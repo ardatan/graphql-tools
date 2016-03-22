@@ -59,18 +59,17 @@ import DB from "DB.js";
 
 export const {
   Book: {
-    _resolve: id => DB.Books.get(id), // this function gets called as Book
-    author: (book, _, _) => Author(book.author_id),
+    author: (book, _, _) => DB.Authors.get(book.author_id),
+
     // fields without resolve function just return book.<fieldName>
   },
 
   Author: {
-    _resolve: id => DB.Authors.get(id),
     booksPublished: (author, _, _) => DB.Books.list( {author_id: author.id}),
   },
 
   RootQuery: {
-    author: (_, { id }, _) => Author(id),
+    author: (_, { id }, _) => DB.Authors.get(id),
     book: (_, { title }, _) => DB.Books.getByTitle(title),
   },
 
@@ -81,6 +80,14 @@ export const {
   },
 }
 ```
+
+Providing a schema in this format has the advantage of staying relatively close
+to graphql-js while at the same time separating the type system from the
+resolve rules for clarity.
+
+It is still possible to dynamically generate the resolve functions, as they just
+have to be exported from the file that Apollo Proxy imports for the schema.
+
 
 It is also possible to not use the shorthand with resolve definitions and simply
 upload a schema for graphql-js in the standard format.
