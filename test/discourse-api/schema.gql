@@ -1,0 +1,106 @@
+// A discourse Post
+type Post {
+  id: Int
+  created_at: String
+  cooked: String
+  updated_at: String
+  reply_count: Int
+  reads: Int
+  score: Int
+  version: Int
+  can_edit: Boolean
+  can_delete: Boolean
+  can_recover: Boolean
+  can_wiki: Boolean
+  raw: String
+  wiki: Boolean
+  user_id: Int
+  category_id: Int
+  topic: Topic
+}
+
+// A discourse Topic
+type Topic {
+  id: Int
+  title: String
+  fancy_title: String
+  posts_count: Int
+  views: Int
+  reply_count: Int
+  participant_count: Int
+  like_count: Int
+  visible: Boolean
+  closed: Boolean
+  archived: Boolean
+  has_summary: Boolean
+  slug: String
+  word_count: Int
+  user_id: Int
+  draft_key: String
+  draft_sequence: String
+  category: Category
+}
+
+// A discource Category
+type Category {
+  id: Int
+  name: String
+  color: String
+  text_color: String
+  slug: String
+  topic_count: Int
+  post_count: Int
+  position: Int
+  description: Int
+  read_restricted: Boolean
+  can_edit: Boolean
+  auto_close_based_on_last_post: Boolean
+  cannot_delete_reason: String
+  latest_topics: PaginatedTopicList
+  new_topics: PaginatedTopicList
+}
+
+//A paginated list of discourse topics
+type PaginatedTopicList {
+  pages(page: Int numPages: Int): [TopicListPage]
+}
+
+//One page of discourse topics
+type TopicListPage {
+  topics: [Topic]
+}
+
+//Enum of time periods used in Discourse queries
+enum TimePeriod {
+  ALL
+  YEARLY
+  QUARTERLY
+  MONTHLY
+  WEEKLY
+  DAILY
+}
+
+//Authenticated type for root query
+type AuthenticatedQuery {
+  allPosts: [Post]
+  allTopics: [Topic]
+  allCategories: [Category]
+
+  onePost: Post
+  oneTopic: Topic
+  oneCategory: Category
+
+  latest: PaginatedTopicList
+  unread: PaginatedTopicList
+  new: PaginatedTopicList
+  top(period: TimePeriod): PaginatedTopicList
+}
+
+type Query {
+  root(token: String!): AuthenticatedQuery
+}
+
+//Mutation used for logging in to Discourse
+type Mutation {
+  login(username: String! password: String!): String
+}
