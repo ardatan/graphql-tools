@@ -81,3 +81,6 @@ export const {
   },
 }
 ```
+
+It is also possible to not use the shorthand with resolve definitions and simply
+upload a schema for graphql-js in the standard format.
