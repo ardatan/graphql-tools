@@ -41,7 +41,7 @@ type Topic {
   category: Category
 }
 
-// A discource Category
+// A discourse Category
 type Category {
   id: Int
   name: String
@@ -62,7 +62,7 @@ type Category {
 
 //A paginated list of discourse topics
 type PaginatedTopicList {
-  pages(page: Int numPages: Int): [TopicListPage]
+  pages(page: Int, numPages: Int): [TopicListPage]
 }
 
 //One page of discourse topics
@@ -102,5 +102,5 @@ type Query {
 
 //Mutation used for logging in to Discourse
 type Mutation {
-  login(username: String! password: String!): String
+  login(username: String!, password: String!): String
 }
