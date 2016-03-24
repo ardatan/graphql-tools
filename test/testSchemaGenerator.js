@@ -15,12 +15,12 @@ describe('generating schema from shorthand', () => {
     const shorthand = `
       //Make birds great again!
       type BirdSpecies {
-        name: String,
+        name: String!,
         wingspan: Int
       }
       //Ze Root Kwery
       type RootQuery {
-        species(name: String!): BirdSpecies
+        species(name: String!): [BirdSpecies]
       }
     `;
 
@@ -32,6 +32,10 @@ describe('generating schema from shorthand', () => {
           name
           type{
             name
+            kind
+            ofType{
+              name
+            }
           }
         }
       }
@@ -40,8 +44,22 @@ describe('generating schema from shorthand', () => {
         description,
         fields{
           name
-          type{
+          type {
             name
+            kind
+            ofType {
+              name
+            }
+          }
+          args {
+            name
+            type {
+              name
+              kind
+              ofType {
+                name
+              }
+            }
           }
         }
       }
@@ -56,13 +74,19 @@ describe('generating schema from shorthand', () => {
             {
               name: 'name',
               type: {
-                name: 'String',
+                kind: 'NON_NULL',
+                name: null,
+                ofType: {
+                  name: 'String',
+                },
               },
             },
             {
               name: 'wingspan',
               type: {
+                kind: 'SCALAR',
                 name: 'Int',
+                ofType: null,
               },
             },
           ],
@@ -74,8 +98,22 @@ describe('generating schema from shorthand', () => {
             {
               name: 'species',
               type: {
-                name: 'BirdSpecies',
+                kind: 'LIST',
+                name: null,
+                ofType: {
+                  name: 'BirdSpecies',
+                },
               },
+              args: [{
+                name: 'name',
+                type: {
+                  name: null,
+                  kind: 'NON_NULL',
+                  ofType: {
+                    name: 'String',
+                  },
+                },
+              }],
             },
           ],
         },

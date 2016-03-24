@@ -53,29 +53,28 @@ const generateSchema = (schema) => {
 };
 
 // TODO test this function individually
-const makeFieldsThunk = (fields, typeMap) => {
-  const func = (myFields, typeMap) => {
-    const ret = {};
-    for (const fieldName of Object.keys(myFields)) {
-      const field = myFields[fieldName];
-      ret[fieldName] = { type: typeMap.get(field.type) }; // is this ok?
-      if (field.list) {
-        ret[fieldName].type = new GraphQLList(ret[fieldName].type);
-      }
-      if (field.required) {
-        ret[fieldName].type = new GraphQLNonNull(ret[fieldName].type);
-      }
-      // TODO should know if list is nonNull or wrapped type is nonNull
-      // TODO add arguments to fields
+const makeFields = (myFields, myTypeMap) => {
+  const ret = {};
+  for (const fieldName of Object.keys(myFields)) {
+    const field = myFields[fieldName];
+    ret[fieldName] = { type: myTypeMap.get(field.type) }; // is this ok?
+    if (field.list) {
+      ret[fieldName].type = new GraphQLList(ret[fieldName].type);
     }
-    return ret;
-  };
-  return func.bind(null, fields, typeMap);
+    if (field.required) {
+      ret[fieldName].type = new GraphQLNonNull(ret[fieldName].type);
+    }
+    // TODO should know if list is nonNull or wrapped type is nonNull
+    if (field.args) {
+      // arguments are just like nested fields
+      ret[fieldName].args = makeFields(field.args, myTypeMap);
+    }
+  }
+  return ret;
 };
 
-// TODO test this function individually
 // turns definition into a type for a GraphQL-js schema
-const makeGraphQLType = (typeDef, typeMap) => {
+const makeGraphQLType = (typeDef, myTypeMap) => {
   if (typeMap.has(typeDef.name)) {
     throw new Error(`Type '${typeDef.name}' is already defined.`);
   }
@@ -90,7 +89,7 @@ const makeGraphQLType = (typeDef, typeMap) => {
     name: typeDef.name,
     description: typeDef.description,
     // TODO interfaces ...
-    fields: makeFieldsThunk(typeDef.fields, typeMap),
+    fields: makeFields.bind(null, typeDef.fields, myTypeMap),
   });
 };
 
