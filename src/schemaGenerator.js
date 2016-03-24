@@ -33,6 +33,7 @@ const kindMap = new Map([
 // @schema: A GraphQL type schema in shorthand
 // @resolvers: Definitions for resolvers to be merged with schema
 // TODO add resolvers to arguments
+// TODO still missing ENUM and INTERFACE support. Also missing input types
 const generateSchema = (schema) => {
   const typeArray = parse(schema);
 
