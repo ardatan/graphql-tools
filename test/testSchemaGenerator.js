@@ -1,13 +1,8 @@
-// import { readFile } from 'fs';
+import { readFile } from 'fs';
 import { generateSchema } from '../src/schemaGenerator.js';
 import { assert } from 'chai';
 import { graphql } from 'graphql';
 
-// read test.gql file
-/* readFile('./test/discourse-api/schema.gql','utf8', (err, data) => {
-  if (err) throw err;
-  console.log( JSON.stringify(parse(data)));
-}); */
 
 
 describe('generating schema from shorthand', () => {
@@ -123,8 +118,59 @@ describe('generating schema from shorthand', () => {
     const jsSchema = generateSchema(shorthand);
     const resultPromise = graphql(jsSchema, introspectionQuery);
     return resultPromise.then((result) => {
-      console.log('result', JSON.stringify(result, null, 2));
       assert.deepEqual(result, solution);
+    });
+  });
+
+  it('Can parse the discourse schema and introspect the enum', (done) => {
+    const introspectionQuery = `{
+      __type(name: "TimePeriod") {
+        name
+        kind
+        enumValues{
+          name
+        }
+      }
+    }`;
+
+    const solution = JSON.parse(`{
+      "data": {
+        "__type": {
+          "name": "TimePeriod",
+          "kind": "ENUM",
+          "enumValues": [
+            {
+              "name": "ALL"
+            },
+            {
+              "name": "YEARLY"
+            },
+            {
+              "name": "QUARTERLY"
+            },
+            {
+              "name": "MONTHLY"
+            },
+            {
+              "name": "WEEKLY"
+            },
+            {
+              "name": "DAILY"
+            }
+          ]
+        }
+      }
+    }`);
+
+    // read test.gql file
+    readFile('./test/discourse-api/schema.gql', 'utf8', (err, data) => {
+      if (err) throw err;
+      const schema = generateSchema(data);
+      const introspectionPromise = graphql(schema, introspectionQuery);
+      introspectionPromise.then((introspectionResult) => {
+        assert.deepEqual(introspectionResult, solution);
+        done();
+      });
     });
   });
 });

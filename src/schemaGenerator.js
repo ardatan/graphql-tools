@@ -16,18 +16,43 @@ import {
 
 import { parse } from './shorthandParser.js';
 
-const typeMap = new Map([
-  ['Int', GraphQLInt],
-  ['String', GraphQLString],
-  ['ID', GraphQLID],
-  ['Float', GraphQLFloat],
-  ['Boolean', GraphQLBoolean],
-]);
+/*
+ * These constructor functions call the graphql-js type with the right arguments
+ */
+const objectConstructor = (typeDef, myTypeMap) => {
+  return new GraphQLObjectType({
+    name: typeDef.name,
+    description: typeDef.description,
+    // TODO interfaces ...
+    fields: () => makeFields(typeDef.fields, myTypeMap),
+  });
+};
+
+const interfaceConstructor = (typeDef, myTypeMap) => {
+  // TODO
+  throw Error('Interface types not implemented!');
+};
+
+const enumConstructor = (typeDef) => {
+  const makeEnumValues = (valuesArray) => {
+    const valuesObj = {};
+    valuesArray.forEach((v) => {
+      valuesObj[v] = { value: v };
+    });
+    return valuesObj;
+  };
+
+  return new GraphQLEnumType({
+    name: typeDef.name,
+    description: typeDef.description,
+    values: makeEnumValues(typeDef.values),
+  });
+};
 
 const kindMap = new Map([
-  ['INTERFACE', GraphQLInterfaceType],
-  ['ENUM', GraphQLEnumType],
-  ['TYPE', GraphQLObjectType],
+  ['INTERFACE', interfaceConstructor],
+  ['ENUM', enumConstructor],
+  ['TYPE', objectConstructor],
 ]);
 
 // @schema: A GraphQL type schema in shorthand
@@ -36,6 +61,14 @@ const kindMap = new Map([
 // TODO still missing ENUM and INTERFACE support. Also missing input types
 const generateSchema = (schema) => {
   const typeArray = parse(schema);
+
+  const typeMap = new Map([
+    ['Int', GraphQLInt],
+    ['String', GraphQLString],
+    ['ID', GraphQLID],
+    ['Float', GraphQLFloat],
+    ['Boolean', GraphQLBoolean],
+  ]);
 
   // TODO should probably clone typeMap here to make generator reusable
   for (const typeDef of typeArray) {
@@ -76,7 +109,7 @@ const makeFields = (myFields, myTypeMap) => {
 
 // turns definition into a type for a GraphQL-js schema
 const makeGraphQLType = (typeDef, myTypeMap) => {
-  if (typeMap.has(typeDef.name)) {
+  if (myTypeMap.has(typeDef.name)) {
     throw new Error(`Type '${typeDef.name}' is already defined.`);
   }
 
@@ -86,12 +119,7 @@ const makeGraphQLType = (typeDef, myTypeMap) => {
   }
 
   // TODO At some point you should check that all fields refer to existing types
-  return new typeConstructor({
-    name: typeDef.name,
-    description: typeDef.description,
-    // TODO interfaces ...
-    fields: makeFields.bind(null, typeDef.fields, myTypeMap),
-  });
+  return typeConstructor(typeDef, myTypeMap);
 };
 
 export { generateSchema };

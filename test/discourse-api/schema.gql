@@ -96,11 +96,11 @@ type AuthenticatedQuery {
   top(period: TimePeriod): PaginatedTopicList
 }
 
-type Query {
+type RootQuery {
   root(token: String!): AuthenticatedQuery
 }
 
 //Mutation used for logging in to Discourse
-type Mutation {
+type RootMutation {
   login(username: String!, password: String!): String
 }
