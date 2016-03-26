@@ -3,7 +3,6 @@ import graphqlShorthandParser from 'graphql-shorthand-parser';
 // we wrap the parser to get useful error messages
 // see: https://github.com/pegjs/pegjs/issues/314
 
-// @p shorthand parser
 // @data string for parsing
 const parse = (data) => {
   try {
