@@ -1,28 +1,8 @@
 import rp from 'request-promise';
 import DataLoader from 'dataloader';
 
-//These are not used
-/*import {
-  GraphQLBoolean,
-  GraphQLFloat,
-  GraphQLID,
-  GraphQLInt,
-  GraphQLList,
-  GraphQLNonNull,
-  GraphQLObjectType,
-  GraphQLSchema,
-  GraphQLString,
-  GraphQLInputObjectType,
-  GraphQLEnumType,
-} from 'graphql';*/
-
 import {
-  mapValues,
-  mapKeys,
   identity,
-  forIn,
-  map,
-  property,
   range,
   forOwn,
   isArray,
@@ -38,11 +18,11 @@ export class DiscourseContext {
     this.loginToken = loginToken;
 
     this.urlDataLoader = new DataLoader((urls) => {
-      console.log("Fetching batch:", urls);
-      //XXX we probably shouldn't batch requests to the backend for REST.
+      console.log('Fetching batch:', urls);
+      // XXX we probably shouldn't batch requests to the backend for REST.
 
       const options = {
-        json: true
+        json: true,
       };
 
       if (this.loginToken) {
@@ -63,18 +43,18 @@ export class DiscourseContext {
     });
   }
 
-  getPagesWithParams(url, { page = 0, numPages = 1}, params = {}) {
+  getPagesWithParams(url, { page = 0, numPages = 1 }, params = {}) {
     const pageNumbers = range(page, page + numPages);
 
     const urls = pageNumbers.map((pageNumber) => {
-      const params = {
+      const myParams = {
         page: pageNumber,
-        ...params
+        ...params,
       };
 
-      return `${url}?${serializeParamsForRails(params)}`;
+      return `${url}?${serializeParamsForRails(myParams)}`;
     });
-    const requestPromises = urls.map(url => this.get(url));
+    const requestPromises = urls.map(myUrl => this.get(myUrl));
     return Promise.all(requestPromises).then((results) => {
       return {
         pages: results.map((result) => {
@@ -89,7 +69,8 @@ export class DiscourseContext {
       return endpoint.fetch(args, this);
     }
 
-    return this.urlDataLoader.load(this.apiRoot + endpoint.url(args)).then(endpoint.map || identity);
+    return this.urlDataLoader.load(this.apiRoot + endpoint.url(args))
+      .then(endpoint.map || identity);
   }
 
   get(url) {
@@ -108,12 +89,12 @@ export class DiscourseContext {
     })[0].split(' ')[0].split('=')[1].split(';')[0];
   }
 
-  //XXX why not just chain the promises?
+  // XXX why not just chain the promises?
   getCSRFAndCookieThen(callback) {
     return rp({
       uri: this.apiRoot + '/session/csrf.json',
       json: true,
-      resolveWithFullResponse: true
+      resolveWithFullResponse: true,
     }).then((res) => {
       const cookie = this.getForumCookie(res);
       const csrf = res.body.csrf;
