@@ -6,7 +6,7 @@ import { graphql } from 'graphql';
 
 
 describe('generating schema from shorthand', () => {
-  it('can generate a schema', () => {
+  it('can generate a schema', (done) => {
     const shorthand = `
       //Make birds great again!
       type BirdSpecies {
@@ -119,6 +119,7 @@ describe('generating schema from shorthand', () => {
     const resultPromise = graphql(jsSchema, introspectionQuery);
     return resultPromise.then((result) => {
       assert.deepEqual(result, solution);
+      done();
     });
   });
 
@@ -171,6 +172,56 @@ describe('generating schema from shorthand', () => {
         assert.deepEqual(introspectionResult, solution);
         done();
       });
+    });
+  });
+
+  it('can generate a schema with resolve functions', (done) => {
+    const shorthand = `
+      //Make birds great again!
+      type BirdSpecies {
+        name: String!,
+        wingspan: Int
+      }
+      //Ze Root Kwery
+      type RootQuery {
+        species(name: String!): [BirdSpecies]
+      }
+    `;
+
+    const resolveFunctions = {
+      RootQuery: {
+        species: (root, { name }) => {
+          return [{
+            name: `Hello ${name}!`,
+            wingspan: 200,
+          }];
+        },
+      },
+    };
+
+    const testQuery = `{
+      species(name: "BigBird"){
+        name
+        wingspan
+      }
+    }`;
+
+    const solution = {
+      data: {
+        species: [
+          {
+            name: 'Hello BigBird!',
+            wingspan: 200,
+          },
+        ],
+      },
+    };
+
+    const jsSchema = generateSchema(shorthand, resolveFunctions);
+    const resultPromise = graphql(jsSchema, testQuery);
+    return resultPromise.then((result) => {
+      assert.deepEqual(result, solution);
+      done();
     });
   });
 });
