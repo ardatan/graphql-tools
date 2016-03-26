@@ -157,6 +157,7 @@ const resolvers = {
         loginToken: args.token,
         apiRoot: API_ROOT,
       });
+      return {};
     },
   },
 

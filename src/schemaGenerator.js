@@ -20,9 +20,6 @@ import { parse } from './shorthandParser.js';
  * These constructor functions call the graphql-js type with the right arguments
  */
 const objectConstructor = (typeDef, myTypeMap, myResolveFunctions = {}) => {
-  // console.log(`Making fields for ${typeDef.name} ----`);
-  // console.log('Resolves', JSON.stringify(Object.keys(myResolveFunctions)));
-  // console.log('Fields', JSON.stringify(Object.keys(typeDef.fields)));
   return new GraphQLObjectType({
     name: typeDef.name,
     description: typeDef.description,
@@ -60,8 +57,9 @@ const kindMap = new Map([
 
 // @schema: A GraphQL type schema in shorthand
 // @resolvers: Definitions for resolvers to be merged with schema
-// TODO add resolvers to arguments
 // TODO still missing ENUM and INTERFACE support. Also missing input types
+// TODO throw error if not all fields with args have resolvers. warn for types
+// TODO throw error if not all resolve functions are actually used for fields
 const generateSchema = (schema, resolveFunctions = {}) => {
   const typeArray = parse(schema);
 
@@ -113,7 +111,6 @@ const makeFields = (myFields, myTypeMap, myResolveFunctions = {}) => {
       if (typeof myResolveFunctions[fieldName] !== 'function') {
         throw new Error(`Resolve for ${fieldName} is not a function`);
       }
-      console.log('Resolve:', `${fieldName} has resolve function!`);
       ret[fieldName].resolve = myResolveFunctions[fieldName];
     }
   }

@@ -7,6 +7,7 @@
     "test": "test"
   },
   "scripts": {
+    "start": "nodemon test/server-index.js",
     "test": "mocha --reporter spec --full-trace test/index.js",
     "lint": "eslint ."
   },
@@ -46,6 +47,8 @@
     "eslint": "^2.4.0",
     "eslint-config-airbnb": "^6.1.0",
     "eslint-plugin-import": "^1.1.0",
+    "express": "^4.13.4",
+    "express-graphql": "^0.4.13",
     "mocha": "^2.3.3",
     "request-promise": "^2.0.1"
   },

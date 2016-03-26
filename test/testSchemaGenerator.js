@@ -163,7 +163,7 @@ describe('generating schema from shorthand', () => {
       }
     }`);
 
-    // read test.gql file
+    // read discourse schema file
     readFile('./test/discourse-api/schema.gql', 'utf8', (err, data) => {
       if (err) throw err;
       const schema = generateSchema(data);
