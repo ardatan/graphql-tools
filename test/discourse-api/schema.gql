@@ -56,13 +56,13 @@ type Category {
   can_edit: Boolean
   auto_close_based_on_last_post: Boolean
   cannot_delete_reason: String
-  latest_topics: PaginatedTopicList
-  new_topics: PaginatedTopicList
+  latest_topics(page: Int, numPages: Int): PaginatedTopicList
+  new_topics(page: Int, numPages: Int): PaginatedTopicList
 }
 
 //A paginated list of discourse topics
 type PaginatedTopicList {
-  pages(page: Int, numPages: Int): [TopicListPage]
+  pages: [TopicListPage]
 }
 
 //One page of discourse topics
@@ -90,10 +90,10 @@ type AuthenticatedQuery {
   oneTopic: Topic
   oneCategory: Category
 
-  latest: PaginatedTopicList
-  unread: PaginatedTopicList
-  new: PaginatedTopicList
-  top(period: TimePeriod): PaginatedTopicList
+  latest(page: Int, numPages: Int): PaginatedTopicList
+  unread(page: Int, numPages: Int): PaginatedTopicList
+  new(page: Int, numPages: Int): PaginatedTopicList
+  top(page: Int, numPages: Int, period: TimePeriod): PaginatedTopicList
 }
 
 type RootQuery {
