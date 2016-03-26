@@ -11,6 +11,7 @@ const API_ROOT = 'https://meta.discourse.org';
 
 const resourceTypes = {
   posts: {
+    typeName: 'Post',
     indexEndpoint: {
       url: () => '/posts',
       map: (data) => data.latest_posts,
@@ -20,11 +21,13 @@ const resourceTypes = {
     },
   },
   topics: {
+    typeName: 'Topic',
     showEndpoint: {
       url: ({ id }) => `/t/${id}`,
     },
   },
   categories: {
+    typeName: 'Category',
     indexEndpoint: {
       url: () => '/categories',
       // XXX oh god this endpoint returns different data than the single category one below
@@ -89,7 +92,7 @@ function makeAuthenticatedQueryResolvers() {
       return null;
     }
 
-    plural[`all${info.graphQLType.name}s`] = (_, args, context) => {
+    plural[`all${info.typeName}s`] = (_, args, context) => {
       return context.rootValue.loadContext._fetchEndpoint(info.indexEndpoint, args);
     };
   });
@@ -100,7 +103,7 @@ function makeAuthenticatedQueryResolvers() {
       return null;
     }
 
-    singular[`one${info.graphQLType.name}`] = (_, args, context) => {
+    singular[`one${info.typeName}`] = (_, args, context) => {
       return context.rootValue.loadContext._fetchEndpoint(info.showEndpoint, args);
     };
   });
@@ -135,10 +138,10 @@ const resolvers = {
   },
 
   Category: {
-    latestTopics: (category, args, context) => {
+    latest_topics: (category, args, context) => {
       return context.rootValue.loadContext.getPagesWithParams(`/c/${category.id}`, args);
     },
-    newTopics: (category, args, context) => {
+    new_topics: (category, args, context) => {
       return context.rootValue.loadContext.getPagesWithParams(
         `/c/${category.id}/l/new`,
         args,
