@@ -85,6 +85,10 @@ const singletons = {
   },
 };
 
+// resolver for posts in Topic
+// resolvers for pages PaginatedPostsList
+// resolver for posts in PostListPage
+
 function makeAuthenticatedQueryResolvers() {
   const plural = {};
   forIn(resourceTypes, (info) => {

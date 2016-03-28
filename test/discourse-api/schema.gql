@@ -39,6 +39,7 @@ type Topic {
   draft_key: String
   draft_sequence: String
   category: Category
+  posts: PaginatedPostList
 }
 
 // A discourse Category
@@ -70,6 +71,16 @@ type TopicListPage {
   topics: [Topic]
 }
 
+//A paginated list of posts
+type PaginatedPostList {
+  pages: [PostListPage]
+}
+
+//One page of discourse posts
+type PostListPage {
+  posts: [Post]
+}
+
 //Enum of time periods used in Discourse queries
 enum TimePeriod {
   ALL
@@ -86,9 +97,9 @@ type AuthenticatedQuery {
   allTopics: [Topic]
   allCategorys: [Category]
 
-  onePost: Post
-  oneTopic: Topic
-  oneCategory: Category
+  onePost(id: ID): Post
+  oneTopic(id: ID): Topic
+  oneCategory(id: ID): Category
 
   latest(page: Int, numPages: Int): PaginatedTopicList
   unread(page: Int, numPages: Int): PaginatedTopicList
