@@ -77,6 +77,34 @@ export class DiscourseContext {
     return this.urlDataLoader.load(this.apiRoot + url);
   }
 
+  getLoginToken(username, password) {
+    return this.getCSRFAndCookieThen((csrf, cookie) => {
+      return rp({
+        method: 'POST',
+        uri: `${this.apiRoot}/session.json`,
+        form: {
+          login: username,
+          password,
+        },
+        headers: {
+          'X-CSRF-Token': csrf,
+          Cookie: `${this.COOKIE_KEY}=${cookie}`,
+        },
+        json: true,
+        resolveWithFullResponse: true,
+      });
+    }).then((res) => {
+      if (res.body.error) {
+        throw new Error(res.body.error);
+      }
+
+      const token = this.getForumToken(res);
+      return token;
+    }).catch((err) => {
+      throw err;
+    });
+  }
+
   getForumCookie(res) {
     return res.headers['set-cookie'].filter((cookie) => {
       return cookie.startsWith(this.COOKIE_KEY);

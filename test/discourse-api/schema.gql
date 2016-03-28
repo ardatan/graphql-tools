@@ -95,7 +95,7 @@ enum TimePeriod {
 type AuthenticatedQuery {
   allPosts: [Post]
   allTopics: [Topic]
-  allCategorys: [Category]
+  allCategories: [Category]
 
   onePost(id: ID): Post
   oneTopic(id: ID): Topic
