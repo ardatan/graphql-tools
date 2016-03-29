@@ -1,6 +1,6 @@
 import { DiscourseContext } from './discourse-context';
 
-const API_ROOT = 'https://forums.meteor.com';
+const API_ROOT = 'https://meta.discourse.org';
 
 // resolver for posts in Topic
 // resolvers for pages PaginatedPostsList
