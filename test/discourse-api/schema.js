@@ -1,6 +1,6 @@
 import { DiscourseContext } from './discourse-context';
 
-const API_ROOT = 'https://meta.discourse.org';
+const API_ROOT = 'https://forums.meteor.com';
 
 // resolver for posts in Topic
 // resolvers for pages PaginatedPostsList
@@ -121,6 +121,16 @@ const resolvers = {
       });
 
       return context.rootValue.loadContext.getLoginToken(args.username, args.password);
+    },
+
+    createPost: (_, args, context) => {
+      context.rootValue.loadContext = new DiscourseContext({
+        loginToken: args.token,
+        apiRoot: API_ROOT,
+      });
+
+      delete args.token;
+      return context.rootValue.loadContext.createPost(args);
     },
   },
 };

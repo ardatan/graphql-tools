@@ -110,6 +110,36 @@ export class DiscourseContext {
     return this.urlDataLoader.load(this.apiRoot + url);
   }
 
+  createPost(args) {
+    return this.getCSRFAndCookieThen((csrf, cookie) => {
+      return rp({
+        method: 'POST',
+        uri: `${this.apiRoot}/posts`,
+        form: {
+          ...args,
+          archetype: 'regular',
+          nested_post: true,
+          is_warning: false,
+          typing_duration_msecs: 5000,
+          composer_open_duration_msecs: 10000,
+        },
+        headers: {
+          'X-CSRF-Token': csrf,
+          Cookie: `${this.COOKIE_KEY}=${cookie}; ${this.TOKEN_KEY}=${this.loginToken}`,
+        },
+        json: true,
+        resolveWithFullResponse: true,
+      });
+    }).then((res) => {
+      if (res.body.error) {
+        throw new Error(res.body.error);
+      }
+      return res.body.post;
+    }).catch((err) => {
+      throw err;
+    });
+  }
+
   getLoginToken(username, password) {
     return this.getCSRFAndCookieThen((csrf, cookie) => {
       return rp({

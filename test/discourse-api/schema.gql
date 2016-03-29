@@ -114,4 +114,5 @@ type RootQuery {
 //Mutation used for logging in to Discourse
 type RootMutation {
   login(username: String!, password: String!): String
+  createPost(token: String!, topic_id: ID!, category: ID!, raw: String!): Post
 }
