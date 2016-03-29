@@ -32,6 +32,7 @@ export class DiscourseContext {
       }
 
       return Promise.all(urls.map((url) => {
+        // console.log(`requesting ${url}, Cookie: ${options.headers.Cookie}`);
         return rp({
           uri: url,
           ...options,
@@ -61,6 +62,38 @@ export class DiscourseContext {
           return result.topic_list;
         }),
       };
+    });
+  }
+
+  // XXX if I ask for 100 pages but there are only 50, should I still get 100?
+  getPaginatedPosts(posts, { page = 0, numPages = 1 }, topicId) {
+    const pages = [];
+    const PPP = 10; // Posts Per Page
+    let postsOnPage = [];
+    let offset = 0;
+    for (let i = 0; i < numPages; i++) {
+      offset = page * PPP + i * PPP;
+      postsOnPage = posts.slice(offset, offset + PPP);
+      pages.push(this.getPostList(postsOnPage, topicId));
+    }
+    return pages;
+  }
+
+  // XXX could also just use the onePost endpoint to fetch each individual post,
+  // in that case we don't need the topicId
+  getPostList(postIDs, topicId) {
+    if (postIDs.length === 0) {
+      return { posts: [] };
+    }
+    const params = {};
+    params['post_ids'] = postIDs;
+    const path = `/t/${topicId}/posts.json`;
+    const url = `${path}?${serializeParamsForRails(params)}`;
+    return this.get(url).then((result) => {
+      return { posts: result.post_stream.posts };
+    }).catch((err) => {
+      console.log('Error fetching page', err);
+      return null;
     });
   }
 

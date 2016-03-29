@@ -21,7 +21,28 @@ const resolvers = {
       id: ({ category_id }) => category_id,
     }), */
     category: () => { throw new Error('No endpoint defined to fetch one cat'); },
+    posts: (root, args, context) => {
+      return context.rootValue.loadContext._fetchEndpoint({
+        url: ({ id }) => `/t/${id}.json`,
+        map: (data) => ({ posts: data.post_stream.stream, topicId: data.id }),
+      }, { id: root.id });
+    },
+
   },
+
+  PaginatedPostList: {
+    pages: ({ posts, topicId }, args, context) => {
+      // XXX I don't like having to pass the topic id through. it's messy
+      return context.rootValue.loadContext.getPaginatedPosts(posts, args, topicId);
+    },
+  },
+
+  /* PostListPage: {
+    posts: (root) => {
+      console.log('PAGE', root);
+      return root;
+    },
+  }, */
 
   Category: {
     latest_topics: (category, args, context) => {

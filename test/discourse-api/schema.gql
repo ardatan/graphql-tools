@@ -21,7 +21,7 @@ type Post {
 
 // A discourse Topic
 type Topic {
-  id: Int
+  id: String
   title: String
   fancy_title: String
   posts_count: Int
@@ -73,7 +73,7 @@ type TopicListPage {
 
 //A paginated list of posts
 type PaginatedPostList {
-  pages: [PostListPage]
+  pages(page: Int, numPages: Int): [PostListPage]
 }
 
 //One page of discourse posts
@@ -108,7 +108,7 @@ type AuthenticatedQuery {
 }
 
 type RootQuery {
-  root(token: String!): AuthenticatedQuery
+  root(token: String): AuthenticatedQuery
 }
 
 //Mutation used for logging in to Discourse
