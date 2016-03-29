@@ -27,7 +27,7 @@ export class DiscourseContext {
 
       if (this.loginToken) {
         options.headers = {
-          'Cookie': this.TOKEN_KEY + '=' + this.loginToken,
+          Cookie: `${this.TOKEN_KEY}=${this.loginToken}`,
         };
       }
 
@@ -120,7 +120,7 @@ export class DiscourseContext {
   // XXX why not just chain the promises?
   getCSRFAndCookieThen(callback) {
     return rp({
-      uri: this.apiRoot + '/session/csrf.json',
+      uri: `${this.apiRoot}/session/csrf.json`,
       json: true,
       resolveWithFullResponse: true,
     }).then((res) => {
