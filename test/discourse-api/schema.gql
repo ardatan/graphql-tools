@@ -16,6 +16,7 @@ type Post {
   wiki: Boolean
   user_id: Int
   category_id: Int
+  username: String
   topic: Topic
 }
 
