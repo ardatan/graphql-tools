@@ -8,6 +8,7 @@ This GraphQL server is built on
 ## How to use:
 
 Apollo-server takes three inputs:
+
 1. A GraphQL schema in shorthand format
 1. One or more javascript code files that defines resolve functions
 1. One or more javascript code files that define data loaders
