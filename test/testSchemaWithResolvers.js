@@ -52,7 +52,6 @@ describe('generating the discourse schema with resolvers', () => {
       if (err) throw err;
       const rep = (key, val) => (typeof val === 'function') ? '[function]' : val;
 
-      console.log(JSON.stringify(resolveFunctions, rep, 2));
       const schema = generateSchema(data, resolveFunctions);
       const introspectionPromise = graphql(schema, introspectionQuery);
       introspectionPromise.then((introspectionResult) => {
