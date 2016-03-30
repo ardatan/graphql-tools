@@ -1,18 +1,16 @@
-# A GraphQL proxy that uses graphql-js
+# A neat GraphQL server in JavaScript
 
-MVP for a GraphQL proxy. Initially nothing more than a GraphQL server.
+MVP for a GraphQL server that makes the developers' life easier.
 
-This GraphQL proxy is built on
-* express
+This GraphQL server is built on
 * graphql-js
-* graphql-shorthand-parser
-
 
 ## How to use:
 
-Apollo-proxy takes two inputs:
+Apollo-server takes three inputs:
 1. A GraphQL schema in shorthand format
-1. One or more javascript code files that define resolve functions
+1. One or more javascript code files that defines resolve functions
+1. One or more javascript code files that define data loaders
 
 An example of a valid GraphQL shorthand input:
 ```
@@ -54,36 +52,57 @@ type RootMutation {
 
 The corresponding file that defines how fields are resolved. If a field does not
 have a resolve function, it is assumed to be the standard resolve function.
+Resolve functions should be stateless.
 ```
-import DB from "DB.js";
-
-export const {
+const resolveFunctions = {
   Book: {
-    author: (book, _, _) => DB.Authors.get(book.author_id),
+    author(book, _, ctx){ return ctx.loaders.author.get(book.author_id) },
 
     // fields without resolve function just return book.<fieldName>
   },
 
   Author: {
-    booksPublished: (author, _, _) => DB.Books.list( {author_id: author.id}),
+    booksPublished(author, _, _){ return ctx.loaders.book.list( {author_id: author.id }) },
   },
 
   RootQuery: {
-    author: (_, { id }, _) => DB.Authors.get(id),
-    book: (_, { title }, _) => DB.Books.getByTitle(title),
+    author(_, { id }, ctx){ return ctx.loaders.author.get(id) },
+    book(_, { title }, ctx){ return ctx.loaders.book.getByTitle(title) },
   },
 
   RootMutation: {
-    addBook: (_, { title, genre, author_id }, _) => {
-      return DB.createBook( {title: title, genre: genre, author_id: author_id});
+    addBook(_, { title, genre, author_id }, ctx){
+      return ctx.loaders.book.createBook({ title: title, genre: genre, author_id: author_id });
     },
   },
-}
+};
+export default resolveFunctions;
 ```
+
+And in a file that defines the data loaders:
+```
+// imports ...
+
+const loaders = {
+  book: {
+    createBook(args){
+      return knex('books').insert({ ...args });
+    },
+  },
+  // etc.
+};
+
+export default loaders;
+```
+
 
 Providing a schema in this format has the advantage of staying relatively close
 to graphql-js while at the same time separating the type system from the
 resolve rules for clarity.
+
+Separating data loaders from resolve functions makes them easier to reason about and to test. It
+also means that the only stateful part is clearly separated from the rest of the system, which
+has benefits for scaling.
 
 It is still possible to dynamically generate the resolve functions, as they just
 have to be exported from the file that Apollo Proxy imports for the schema.
