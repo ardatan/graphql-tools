@@ -30,7 +30,8 @@
   "homepage": "https://github.com/apollostack/apollo-proxy#readme",
   "dependencies": {
     "babel-polyfill": "^6.5.0",
-    "fs": "0.0.2"
+    "fs": "0.0.2",
+    "graphql": "^0.4.18"
   },
   "devDependencies": {
     "babel-cli": "^6.6.5",
@@ -47,6 +48,7 @@
     "express": "^4.13.4",
     "express-graphql": "^0.4.13",
     "mocha": "^2.3.3",
+    "nodemon": "^1.9.1",
     "request-promise": "^2.0.1"
   },
   "eslintConfig": {
