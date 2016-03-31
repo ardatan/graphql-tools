@@ -50,6 +50,7 @@
     "express": "^4.13.4",
     "express-graphql": "^0.4.13",
     "mocha": "^2.3.3",
+    "nodemon": "^1.9.1",
     "request-promise": "^2.0.1"
   },
   "eslintConfig": {
