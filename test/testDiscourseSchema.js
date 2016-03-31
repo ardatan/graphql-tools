@@ -1,7 +1,7 @@
 import { readFile } from 'fs';
 import { generateSchema } from '../src/schemaGenerator.js';
 import { assert } from 'chai';
-import { graphql } from 'graphql';
+import { graphql } from '../../graphql-js/src/';
 import resolveFunctions from './discourse-api/schema.js';
 
 
@@ -50,7 +50,7 @@ describe('generating the discourse schema with resolvers', () => {
     // read test.gql file
     readFile('./test/discourse-api/schema.gql', 'utf8', (err, data) => {
       if (err) throw err;
-      const rep = (key, val) => (typeof val === 'function') ? '[function]' : val;
+      // const rep = (key, val) => (typeof val === 'function') ? '[function]' : val;
 
       const schema = generateSchema(data, resolveFunctions);
       const introspectionPromise = graphql(schema, introspectionQuery);

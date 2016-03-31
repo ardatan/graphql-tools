@@ -1,4 +1,4 @@
-// A discourse Post
+# A discourse Post
 type Post {
   id: Int
   created_at: String
@@ -20,7 +20,7 @@ type Post {
   topic: Topic
 }
 
-// A discourse Topic
+# A discourse Topic
 type Topic {
   id: String
   title: String
@@ -44,7 +44,7 @@ type Topic {
   category_id: String
 }
 
-// A discourse Category
+# A discourse Category
 type Category {
   id: Int
   name: String
@@ -63,27 +63,27 @@ type Category {
   new_topics(page: Int, numPages: Int): PaginatedTopicList
 }
 
-//A paginated list of discourse topics
+# A paginated list of discourse topics
 type PaginatedTopicList {
   pages: [TopicListPage]
 }
 
-//One page of discourse topics
+# One page of discourse topics
 type TopicListPage {
   topics: [Topic]
 }
 
-//A paginated list of posts
+# A paginated list of posts
 type PaginatedPostList {
   pages(page: Int, numPages: Int): [PostListPage]
 }
 
-//One page of discourse posts
+# One page of discourse posts
 type PostListPage {
   posts: [Post]
 }
 
-//Enum of time periods used in Discourse queries
+# Enum of time periods used in Discourse queries
 enum TimePeriod {
   ALL
   YEARLY
@@ -93,7 +93,7 @@ enum TimePeriod {
   DAILY
 }
 
-//Authenticated type for root query
+# Authenticated type for root query
 type AuthenticatedQuery {
   allPosts: [Post]
   allTopics: [Topic]
@@ -113,8 +113,13 @@ type RootQuery {
   root(token: String): AuthenticatedQuery
 }
 
-//Mutation used for logging in to Discourse
+# Mutation used for logging in to Discourse
 type RootMutation {
   login(username: String!, password: String!): String
   createPost(token: String!, topic_id: ID!, category: ID!, raw: String!): Post
+}
+
+schema {
+  query: RootQuery
+  mutation: RootMutation
 }
