@@ -33,7 +33,7 @@
     "babel-polyfill": "^6.5.0",
     "fs": "0.0.2",
     "graphql": "^0.4.18",
-    "graphql-shorthand-parser": "git+ssh://git@github.com:apollostack/graphql-shorthand-parser.git#include-dist"
+    "graphql-shorthand-parser": "https://github.com/apollostack/graphql-shorthand-parser.git#include-dist"
   },
   "devDependencies": {
     "babel-cli": "^6.6.5",
