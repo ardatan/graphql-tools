@@ -1,3 +1,2 @@
-import './testParser';
 import './testSchemaGenerator';
-import './testSchemaWithResolvers';
+import './testDiscourseSchema';

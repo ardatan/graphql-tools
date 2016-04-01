@@ -1,5 +1,5 @@
 import { readFile } from 'fs';
-import { generateSchema } from '../src/schemaGenerator.js';
+import { generateSchema, ResolveError } from '../src/schemaGenerator.js';
 import { assert } from 'chai';
 import { graphql } from 'graphql';
 
@@ -8,14 +8,16 @@ import { graphql } from 'graphql';
 describe('generating schema from shorthand', () => {
   it('can generate a schema', (done) => {
     const shorthand = `
-      //Make birds great again!
       type BirdSpecies {
         name: String!,
         wingspan: Int
       }
-      //Ze Root Kwery
       type RootQuery {
         species(name: String!): [BirdSpecies]
+      }
+
+      schema {
+        query: RootQuery
       }
     `;
 
@@ -64,7 +66,7 @@ describe('generating schema from shorthand', () => {
       data: {
         species: {
           name: 'BirdSpecies',
-          description: 'Make birds great again!',
+          description: null,
           fields: [
             {
               name: 'name',
@@ -88,7 +90,7 @@ describe('generating schema from shorthand', () => {
         },
         query: {
           name: 'RootQuery',
-          description: 'Ze Root Kwery',
+          description: null,
           fields: [
             {
               name: 'species',
@@ -177,14 +179,15 @@ describe('generating schema from shorthand', () => {
 
   it('can generate a schema with resolve functions', (done) => {
     const shorthand = `
-      //Make birds great again!
       type BirdSpecies {
         name: String!,
         wingspan: Int
       }
-      //Ze Root Kwery
       type RootQuery {
         species(name: String!): [BirdSpecies]
+      }
+      schema {
+        query: RootQuery
       }
     `;
 
@@ -223,5 +226,60 @@ describe('generating schema from shorthand', () => {
       assert.deepEqual(result, solution);
       done();
     });
+  });
+
+  it('throws an error if a resolve field cannot be used', (done) => {
+    const shorthand = `
+      type BirdSpecies {
+        name: String!,
+        wingspan: Int
+      }
+      type RootQuery {
+        species(name: String!): [BirdSpecies]
+      }
+      schema {
+        query: RootQuery
+      }
+    `;
+
+    const resolveFunctions = {
+      RootQuery: {
+        speciez: (root, { name }) => {
+          return [{
+            name: `Hello ${name}!`,
+            wingspan: 200,
+          }];
+        },
+      },
+    };
+    assert.throw(generateSchema.bind(null, shorthand, resolveFunctions), ResolveError);
+    done();
+  });
+  it('throws an error if a resolve type is not in schema', (done) => {
+    const shorthand = `
+      type BirdSpecies {
+        name: String!,
+        wingspan: Int
+      }
+      type RootQuery {
+        species(name: String!): [BirdSpecies]
+      }
+      schema {
+        query: RootQuery
+      }
+    `;
+    const resolveFunctions = {
+      BootQuery: {
+        species: (root, { name }) => {
+          return [{
+            name: `Hello ${name}!`,
+            wingspan: 200,
+          }];
+        },
+      },
+    };
+    assert.throw(generateSchema.bind(null, shorthand, resolveFunctions), ResolveError);
+
+    done();
   });
 });
