@@ -1,5 +1,5 @@
 {
-  "name": "apollo-proxy",
+  "name": "apollo-server",
   "version": "0.1.0",
   "description": "A GraphQL proxy",
   "main": "index.js",
