@@ -1,7 +1,7 @@
 // Generates a schema for graphql-js given a shorthand schema
 
-import { parse } from 'graphql/dist/language';
-import { buildASTSchema } from 'graphql/dist/utilities';
+import { parse } from 'graphql/language';
+import { buildASTSchema } from 'graphql/utilities';
 
 // @schemaDefinition: A GraphQL type schema in shorthand
 // @resolvers: Definitions for resolvers to be merged with schema
