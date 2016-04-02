@@ -6,6 +6,14 @@ import { graphql } from 'graphql';
 
 
 describe('generating schema from shorthand', () => {
+  it('throws an error if no schema is provided', () => {
+    assert.throw(generateSchema, ResolveError);
+  });
+
+  it('throws an error if no resolveFunctions are provided', () => {
+    assert.throw(generateSchema.bind(null, ''), ResolveError);
+  });
+
   it('can generate a schema', (done) => {
     const shorthand = `
       type BirdSpecies {
@@ -20,6 +28,12 @@ describe('generating schema from shorthand', () => {
         query: RootQuery
       }
     `;
+
+    const resolve = {
+      RootQuery: {
+        species() { return; },
+      }
+    };
 
     const introspectionQuery = `{
     	species: __type(name: "BirdSpecies"){
@@ -117,63 +131,11 @@ describe('generating schema from shorthand', () => {
       },
     };
 
-    const jsSchema = generateSchema(shorthand);
+    const jsSchema = generateSchema(shorthand, resolve);
     const resultPromise = graphql(jsSchema, introspectionQuery);
     return resultPromise.then((result) => {
       assert.deepEqual(result, solution);
       done();
-    });
-  });
-
-  it('Can parse the discourse schema and introspect the enum', (done) => {
-    const introspectionQuery = `{
-      __type(name: "TimePeriod") {
-        name
-        kind
-        enumValues{
-          name
-        }
-      }
-    }`;
-
-    const solution = JSON.parse(`{
-      "data": {
-        "__type": {
-          "name": "TimePeriod",
-          "kind": "ENUM",
-          "enumValues": [
-            {
-              "name": "ALL"
-            },
-            {
-              "name": "YEARLY"
-            },
-            {
-              "name": "QUARTERLY"
-            },
-            {
-              "name": "MONTHLY"
-            },
-            {
-              "name": "WEEKLY"
-            },
-            {
-              "name": "DAILY"
-            }
-          ]
-        }
-      }
-    }`);
-
-    // read discourse schema file
-    readFile('./test/discourse-api/schema.gql', 'utf8', (err, data) => {
-      if (err) throw err;
-      const schema = generateSchema(data);
-      const introspectionPromise = graphql(schema, introspectionQuery);
-      introspectionPromise.then((introspectionResult) => {
-        assert.deepEqual(introspectionResult, solution);
-        done();
-      });
     });
   });
 
@@ -226,6 +188,37 @@ describe('generating schema from shorthand', () => {
       assert.deepEqual(result, solution);
       done();
     });
+  });
+
+  it('throws an error if a field has arguments but no resolve func', () => {
+    const short = `
+    type Query{
+      bird(id: ID): String
+    }
+    schema {
+      query: Query
+    }`;
+
+    const rf = {};
+
+    assert.throws(generateSchema.bind(null, short, rf), ResolveError);
+  });
+
+  it('throws an error if a field is not scalar, but has no resolve func', () => {
+    const short = `
+    type Bird{
+      id: ID
+    }
+    type Query{
+      bird: Bird
+    }
+    schema {
+      query: Query
+    }`;
+
+    const rf = {};
+
+    assert.throws(generateSchema.bind(null, short, rf), ResolveError);
   });
 
   it('throws an error if a resolve field cannot be used', (done) => {

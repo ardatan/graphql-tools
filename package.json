@@ -8,7 +8,8 @@
   },
   "scripts": {
     "test": "istanbul cover ./node_modules/mocha/bin/_mocha -- --reporter spec --full-trace test/index.js",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "testonly": "mocha test/index.js"
   },
   "repository": {
     "type": "git",

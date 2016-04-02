@@ -56,6 +56,24 @@ const resolvers = {
     },
   },
 
+  PaginatedTopicList: {
+    pages() {
+      throw new Error('Not implemented');
+    },
+  },
+
+  TopicListPage: {
+    topics() {
+      throw new Error('Not implemented');
+    },
+  },
+
+  PostListPage: {
+    posts() {
+      throw new Error('Not implemented');
+    },
+  },
+
   AuthenticatedQuery: {
     latest: (_, args, context) => {
       return context.rootValue.loadContext.getPagesWithParams('/latest', args);
@@ -89,6 +107,9 @@ const resolvers = {
         map: (data) => data.category_list.categories,
       }, args);
     },
+    allTopics() {
+      throw new Error('AuthenticatedQuery.oneCategory not implemented');
+    },
 
     onePost: (_, args, context) => {
       return context.rootValue.loadContext._fetchEndpoint({
@@ -99,6 +120,9 @@ const resolvers = {
       return context.rootValue.loadContext._fetchEndpoint({
         url: ({ id }) => `/t/${id}`,
       }, args);
+    },
+    oneCategory() {
+      throw new Error('AuthenticatedQuery.oneCategory not implemented');
     },
     // oneCategory: null, // this isn't actually defined, I think.
   },
