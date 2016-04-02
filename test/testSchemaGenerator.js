@@ -11,7 +11,7 @@ describe('generating schema from shorthand', () => {
   });
 
   it('throws an error if no resolveFunctions are provided', () => {
-    assert.throw(generateSchema.bind(null, ''), ResolveError);
+    assert.throw(generateSchema.bind(null, 'blah'), ResolveError);
   });
 
   it('can generate a schema', (done) => {
@@ -32,7 +32,7 @@ describe('generating schema from shorthand', () => {
     const resolve = {
       RootQuery: {
         species() { return; },
-      }
+      },
     };
 
     const introspectionQuery = `{
@@ -199,7 +199,21 @@ describe('generating schema from shorthand', () => {
       query: Query
     }`;
 
-    const rf = {};
+    const rf = { Query: {} };
+
+    assert.throws(generateSchema.bind(null, short, rf), ResolveError);
+  });
+
+  it('throws an error if a resolver is not a function', () => {
+    const short = `
+    type Query{
+      bird(id: ID): String
+    }
+    schema {
+      query: Query
+    }`;
+
+    const rf = { Query: { bird: 'NOT A FUNCTION' } };
 
     assert.throws(generateSchema.bind(null, short, rf), ResolveError);
   });
