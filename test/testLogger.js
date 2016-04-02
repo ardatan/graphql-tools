@@ -32,8 +32,8 @@ describe('Logger', () => {
     const jsSchema = generateSchema(shorthand, resolve, logger);
     // calling the mutation here so the erros will be ordered.
     const testQuery = 'mutation { species, stuff }';
-    const expected0 = 'Error in resolver: RootMutation.species\noops!';
-    const expected1 = 'Error in resolver: RootMutation.stuff\noh noes!';
+    const expected0 = 'Error in resolver RootMutation.species\noops!';
+    const expected1 = 'Error in resolver RootMutation.stuff\noh noes!';
     graphql(jsSchema, testQuery).then(() => {
       assert.equal(logger.errors.length, 2);
       assert.equal(logger.errors[0].message, expected0);

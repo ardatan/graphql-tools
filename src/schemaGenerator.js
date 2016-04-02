@@ -14,7 +14,12 @@ function SchemaError(message) {
 SchemaError.prototype = new Error;
 
 
-const generateSchema = (schemaDefinition, resolveFunctions, logger = null) => {
+const generateSchema = (
+  schemaDefinition,
+  resolveFunctions,
+  logger = null,
+  forbidUndefinedInResolve = false,
+) => {
   if (!schemaDefinition) {
     throw new SchemaError('Must provide schemaDefinition');
   }
@@ -40,8 +45,11 @@ const generateSchema = (schemaDefinition, resolveFunctions, logger = null) => {
           );
         }
         const field = type._fields[fieldName];
-        const resolveFn = resolveFunctions[typeName][fieldName];
-        const errorHint = `Error in resolver: ${typeName}.${fieldName}`;
+        let resolveFn = resolveFunctions[typeName][fieldName];
+        const errorHint = `${typeName}.${fieldName}`;
+        if (forbidUndefinedInResolve) {
+          resolveFn = decorateToCatchUndefined(resolveFn, errorHint);
+        }
         field.resolve = decorateWithLogger(resolveFn, logger, errorHint);
       });
     });
@@ -83,12 +91,22 @@ function decorateWithLogger(fn, logger, hint) {
       return fn(...args);
     } catch (e) {
       if (hint) {
-        e.message = `${hint}\n${e.message}`;
+        e.message = `Error in resolver ${hint}\n${e.message}`;
       }
       logger.log(e);
       // we want to pass on the error, just in case.
       throw e;
     }
+  };
+}
+
+function decorateToCatchUndefined(fn, hint) {
+  return (...args) => {
+    const result = fn(...args);
+    if (typeof result === 'undefined') {
+      throw new Error(`Resolve function for "${hint}" returned undefined`);
+    }
+    return result;
   };
 }
 

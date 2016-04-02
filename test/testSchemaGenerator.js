@@ -289,37 +289,64 @@ describe('generating schema from shorthand', () => {
 
     done();
   });
+});
 
-  describe('providing useful errors from resolve functions', () => {
-    it('logs an error if a resolve function fails', (done) => {
-      const shorthand = `
-        type RootQuery {
-          species(name: String): String
-        }
-        schema {
-          query: RootQuery
-        }
-      `;
-      const resolve = {
-        RootQuery: {
-          species: () => {
-            throw new Error('oops!');
-          },
+
+describe('providing useful errors from resolve functions', () => {
+  it('logs an error if a resolve function fails', (done) => {
+    const shorthand = `
+      type RootQuery {
+        species(name: String): String
+      }
+      schema {
+        query: RootQuery
+      }
+    `;
+    const resolve = {
+      RootQuery: {
+        species: () => {
+          throw new Error('oops!');
         },
-      };
+      },
+    };
 
-      // TODO: Should use a spy here instead of logger class
-      // to make sure we don't duplicate tests from Logger.
-      const logger = new Logger();
-      const jsSchema = generateSchema(shorthand, resolve, logger);
-      const testQuery = '{ species }';
-      const expected = 'Error in resolver: RootQuery.species\noops!';
-      graphql(jsSchema, testQuery).then((res) => {
-        console.log('res', res);
-        assert.equal(logger.errors.length, 1);
-        assert.equal(logger.errors[0].message, expected);
-        done();
-      });
+    // TODO: Should use a spy here instead of logger class
+    // to make sure we don't duplicate tests from Logger.
+    const logger = new Logger();
+    const jsSchema = generateSchema(shorthand, resolve, logger);
+    const testQuery = '{ species }';
+    const expected = 'Error in resolver RootQuery.species\noops!';
+    graphql(jsSchema, testQuery).then(() => {
+      assert.equal(logger.errors.length, 1);
+      assert.equal(logger.errors[0].message, expected);
+      done();
+    });
+  });
+
+  it('will throw errors on undefined if you tell it to', (done) => {
+    const shorthand = `
+      type RootQuery {
+        species(name: String): String
+      }
+      schema {
+        query: RootQuery
+      }
+    `;
+    const resolve = {
+      RootQuery: {
+        species: () => undefined,
+      },
+    };
+
+    const logger = new Logger();
+    const jsSchema = generateSchema(shorthand, resolve, logger, true);
+    const testQuery = '{ species }';
+    const expected = /Resolve function for "RootQuery.species" returned undefined/;
+    graphql(jsSchema, testQuery).then(() => {
+      assert.equal(logger.errors.length, 1);
+      console.log(logger.errors[0].message);
+      assert.match(logger.errors[0].message, expected);
+      done();
     });
   });
 });
