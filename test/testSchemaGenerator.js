@@ -327,6 +327,7 @@ describe('providing useful errors from resolve functions', () => {
     const shorthand = `
       type RootQuery {
         species(name: String): String
+        stuff: String
       }
       schema {
         query: RootQuery
@@ -335,17 +336,19 @@ describe('providing useful errors from resolve functions', () => {
     const resolve = {
       RootQuery: {
         species: () => undefined,
+        stuff: () => 'stuff',
       },
     };
 
     const logger = new Logger();
     const jsSchema = generateSchema(shorthand, resolve, logger, true);
-    const testQuery = '{ species }';
-    const expected = /Resolve function for "RootQuery.species" returned undefined/;
-    graphql(jsSchema, testQuery).then(() => {
+    const testQuery = '{ species, stuff }';
+    const expectedErr = /Resolve function for "RootQuery.species" returned undefined/;
+    const expectedResData = { species: null, stuff: 'stuff' };
+    graphql(jsSchema, testQuery).then((res) => {
       assert.equal(logger.errors.length, 1);
-      console.log(logger.errors[0].message);
-      assert.match(logger.errors[0].message, expected);
+      assert.match(logger.errors[0].message, expectedErr);
+      assert.deepEqual(res.data, expectedResData);
       done();
     });
   });
