@@ -83,7 +83,7 @@ const generateSchema = (
  * hint: an optional hint to add to the error's message
  */
 function decorateWithLogger(fn, logger, hint) {
-  if (! logger instanceof Logger) {
+  if (logger === null) {
     return fn;
   }
   return (...args) => {
