@@ -1,17 +1,17 @@
-import { readFile } from 'fs';
-import { generateSchema, ResolveError } from '../src/schemaGenerator.js';
+import { generateSchema, SchemaError } from '../src/schemaGenerator.js';
 import { assert } from 'chai';
 import { graphql } from 'graphql';
+import { Logger } from '../src/Logger.js';
 
 
 
 describe('generating schema from shorthand', () => {
   it('throws an error if no schema is provided', () => {
-    assert.throw(generateSchema, ResolveError);
+    assert.throw(generateSchema, SchemaError);
   });
 
   it('throws an error if no resolveFunctions are provided', () => {
-    assert.throw(generateSchema.bind(null, 'blah'), ResolveError);
+    assert.throw(generateSchema.bind(null, 'blah'), SchemaError);
   });
 
   it('can generate a schema', (done) => {
@@ -201,7 +201,7 @@ describe('generating schema from shorthand', () => {
 
     const rf = { Query: {} };
 
-    assert.throws(generateSchema.bind(null, short, rf), ResolveError);
+    assert.throws(generateSchema.bind(null, short, rf), SchemaError);
   });
 
   it('throws an error if a resolver is not a function', () => {
@@ -215,7 +215,7 @@ describe('generating schema from shorthand', () => {
 
     const rf = { Query: { bird: 'NOT A FUNCTION' } };
 
-    assert.throws(generateSchema.bind(null, short, rf), ResolveError);
+    assert.throws(generateSchema.bind(null, short, rf), SchemaError);
   });
 
   it('throws an error if a field is not scalar, but has no resolve func', () => {
@@ -232,7 +232,7 @@ describe('generating schema from shorthand', () => {
 
     const rf = {};
 
-    assert.throws(generateSchema.bind(null, short, rf), ResolveError);
+    assert.throws(generateSchema.bind(null, short, rf), SchemaError);
   });
 
   it('throws an error if a resolve field cannot be used', (done) => {
@@ -259,7 +259,7 @@ describe('generating schema from shorthand', () => {
         },
       },
     };
-    assert.throw(generateSchema.bind(null, shorthand, resolveFunctions), ResolveError);
+    assert.throw(generateSchema.bind(null, shorthand, resolveFunctions), SchemaError);
     done();
   });
   it('throws an error if a resolve type is not in schema', (done) => {
@@ -285,8 +285,40 @@ describe('generating schema from shorthand', () => {
         },
       },
     };
-    assert.throw(generateSchema.bind(null, shorthand, resolveFunctions), ResolveError);
+    assert.throw(generateSchema.bind(null, shorthand, resolveFunctions), SchemaError);
 
     done();
+  });
+
+  describe('providing useful errors from resolve functions', () => {
+    it('logs an error if a resolve function fails', (done) => {
+      const shorthand = `
+        type RootQuery {
+          species(name: String): String
+        }
+        schema {
+          query: RootQuery
+        }
+      `;
+      const resolve = {
+        RootQuery: {
+          species: () => {
+            throw new Error('oops!');
+          },
+        },
+      };
+
+      // TODO: Should use a spy here instead of logger class
+      // to make sure we don't duplicate tests from Logger.
+      const logger = new Logger();
+      const jsSchema = generateSchema(shorthand, resolve, logger);
+      const testQuery = '{ species }';
+      const expected = 'Error in resolver: RootQuery.species\noops!';
+      graphql(jsSchema, testQuery).then(() => {
+        assert.equal(logger.errors.length, 1);
+        assert.equal(logger.errors[0].message, expected);
+        done();
+      });
+    });
   });
 });
