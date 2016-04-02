@@ -86,8 +86,9 @@ function decorateWithLogger(fn, logger, hint) {
         e.message = `${hint}\n${e.message}`;
       }
       logger.log(e);
+      // we want to pass on the error, just in case.
+      throw e;
     }
-    return null;
   };
 }
 

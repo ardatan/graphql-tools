@@ -7,6 +7,7 @@ class Logger {
     this.name = name;
     this.errors = [];
     this.callback = callback;
+    // TODO: should assert that callback is a function
   }
 
   log(err) {
@@ -21,7 +22,9 @@ class Logger {
   }
 
   printAllErrors() {
-    return this.errors.reduce(e => this.printError(e), '');
+    return this.errors.reduce((agg, e) => {
+      return `${agg}\n${this.printOneError(e)}`;
+    }, '');
   }
 }
 

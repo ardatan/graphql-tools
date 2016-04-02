@@ -314,7 +314,8 @@ describe('generating schema from shorthand', () => {
       const jsSchema = generateSchema(shorthand, resolve, logger);
       const testQuery = '{ species }';
       const expected = 'Error in resolver: RootQuery.species\noops!';
-      graphql(jsSchema, testQuery).then(() => {
+      graphql(jsSchema, testQuery).then((res) => {
+        console.log('res', res);
         assert.equal(logger.errors.length, 1);
         assert.equal(logger.errors[0].message, expected);
         done();

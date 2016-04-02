@@ -41,4 +41,60 @@ describe('Logger', () => {
       done();
     });
   });
+
+  it('also forwards the errors when you tell it to', (done) => {
+    const shorthand = `
+      type RootQuery {
+        species(name: String): String
+      }
+      schema {
+        query: RootQuery
+      }
+    `;
+    const resolve = {
+      RootQuery: {
+        species: () => {
+          throw new Error('oops!');
+        },
+      },
+    };
+    let loggedErr = null;
+    const logger = new Logger('LoggyMcLogface', (e) => { loggedErr = e; });
+    const jsSchema = generateSchema(shorthand, resolve, logger);
+    const testQuery = '{ species }';
+    graphql(jsSchema, testQuery).then(() => {
+      assert.equal(loggedErr, logger.errors[0]);
+      done();
+    });
+  });
+
+  it('prints the errors when you want it to', (done) => {
+    const shorthand = `
+      type RootQuery {
+        species(name: String): String
+      }
+      schema {
+        query: RootQuery
+      }
+    `;
+    const resolve = {
+      RootQuery: {
+        species: (root, { name }) => {
+          if (name) {
+            throw new Error(name);
+          }
+          throw new Error('oops!');
+        },
+      },
+    };
+    const logger = new Logger();
+    const jsSchema = generateSchema(shorthand, resolve, logger);
+    const testQuery = '{ q: species, p: species(name: "Peter") }';
+    graphql(jsSchema, testQuery).then(() => {
+      const allErrors = logger.printAllErrors();
+      assert.match(allErrors, /oops/);
+      assert.match(allErrors, /Peter/);
+      done();
+    });
+  });
 });
