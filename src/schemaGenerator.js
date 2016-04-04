@@ -31,7 +31,7 @@ const generateSchema = (
 
   addResolveFunctionsToSchema(schema, resolveFunctions, forbidUndefinedInResolve, logger);
 
-  assertResolveFunctionPresent(schema, resolveFunctions);
+  assertResolveFunctionsPresent(schema);
 
   if (forbidUndefinedInResolve) {
     addCatchUndefinedToSchema(schema);
@@ -78,25 +78,25 @@ function addResolveFunctionsToSchema(schema, resolveFunctions) {
   });
 }
 
-function assertResolveFunctionPresent(schema, resolveFunctions) {
+function assertResolveFunctionsPresent(schema) {
   forEachField(schema, (field, typeName, fieldName) => {
     // requires a resolve function on every field that has arguments
     if (field.args.length > 0) {
-      expectResolveFunction(resolveFunctions, typeName, fieldName);
+      expectResolveFunction(field, typeName, fieldName);
     }
 
     // requires a resolve function on every field that returns a non-scalar type
     if (!(getNamedType(field.type) instanceof GraphQLScalarType)) {
-      expectResolveFunction(resolveFunctions, typeName, fieldName);
+      expectResolveFunction(field, typeName, fieldName);
     }
   });
 }
 
-function expectResolveFunction(resolveFunctions, typeName, fieldName) {
-  if (!resolveFunctions[typeName] || !resolveFunctions[typeName][fieldName]) {
+function expectResolveFunction(field, typeName, fieldName) {
+  if (!field.resolve) {
     throw new SchemaError(`Resolve function missing for "${typeName}.${fieldName}"`);
   }
-  if (typeof resolveFunctions[typeName][fieldName] !== 'function') {
+  if (typeof field.resolve !== 'function') {
     throw new SchemaError(`Resolver "${typeName}.${fieldName}" must be a function`);
   }
 }
