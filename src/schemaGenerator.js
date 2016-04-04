@@ -2,7 +2,11 @@
 
 import { parse } from 'graphql/language';
 import { buildASTSchema } from 'graphql/utilities';
-import { GraphQLScalarType, getNamedType } from 'graphql/type';
+import {
+  GraphQLScalarType,
+  getNamedType,
+  GraphQLObjectType,
+} from 'graphql/type';
 
 // @schemaDefinition: A GraphQL type schema in shorthand
 // @resolvers: Definitions for resolvers to be merged with schema
@@ -44,12 +48,14 @@ const generateSchema = (
 };
 
 function forEachField(schema, fn) {
-  Object.keys(schema._typeMap).forEach((typeName) => {
-    const type = schema._typeMap[typeName];
+  const typeMap = schema.getTypeMap();
+  Object.keys(typeMap).forEach((typeName) => {
+    const type = typeMap[typeName];
 
-    if (!getNamedType(type).name.startsWith('__') && type._fields) {
-      Object.keys(type._fields).forEach((fieldName) => {
-        const field = type._fields[fieldName];
+    if (!getNamedType(type).name.startsWith('__') && type instanceof GraphQLObjectType) {
+      const fields = type.getFields();
+      Object.keys(fields).forEach((fieldName) => {
+        const field = fields[fieldName];
         fn(field, typeName, fieldName);
       });
     }
@@ -58,7 +64,7 @@ function forEachField(schema, fn) {
 
 function addResolveFunctionsToSchema(schema, resolveFunctions) {
   Object.keys(resolveFunctions).forEach((typeName) => {
-    const type = schema._typeMap[typeName];
+    const type = schema.getType(typeName);
     if (!type) {
       throw new SchemaError(
         `"${typeName}" defined in resolvers, but not in schema`
@@ -66,12 +72,12 @@ function addResolveFunctionsToSchema(schema, resolveFunctions) {
     }
 
     Object.keys(resolveFunctions[typeName]).forEach((fieldName) => {
-      if (!type._fields[fieldName]) {
+      if (!type.getFields()[fieldName]) {
         throw new SchemaError(
           `${typeName}.${fieldName} defined in resolvers, but not in schema`
         );
       }
-      const field = type._fields[fieldName];
+      const field = type.getFields()[fieldName];
       field.resolve = resolveFunctions[typeName][fieldName];
     });
   });
