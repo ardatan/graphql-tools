@@ -3,7 +3,6 @@
 import { parse } from 'graphql/language';
 import { buildASTSchema } from 'graphql/utilities';
 import { GraphQLScalarType, getNamedType } from 'graphql/type';
-import { Logger } from './Logger.js';
 
 // @schemaDefinition: A GraphQL type schema in shorthand
 // @resolvers: Definitions for resolvers to be merged with schema
