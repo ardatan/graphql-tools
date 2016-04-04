@@ -149,4 +149,11 @@ function decorateToCatchUndefined(fn, hint) {
   };
 }
 
-export { generateSchema, SchemaError };
+export {
+  generateSchema,
+  SchemaError,
+  addErrorLoggingToSchema,
+  addResolveFunctionsToSchema,
+  addCatchUndefinedToSchema,
+  assertResolveFunctionsPresent,
+};

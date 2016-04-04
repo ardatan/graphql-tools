@@ -3,4 +3,8 @@
 export {
   generateSchema,
   SchemaError,
+  addErrorLoggingToSchema,
+  addResolveFunctionsToSchema,
+  addCatchUndefinedToSchema,
+  assertResolveFunctionsPresent,
 } from './schemaGenerator';
