@@ -2,5 +2,5 @@
 // The primary entry point into fulfilling a GraphQL request.
 export {
   generateSchema,
-  ResolveError,
+  SchemaError,
 } from './schemaGenerator';
