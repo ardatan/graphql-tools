@@ -29,7 +29,7 @@ const generateSchema = (
   const ast = parse(schemaDefinition);
   const schema = buildASTSchema(ast);
 
-  addResolveFunctionsToSchema(schema, resolveFunctions, forbidUndefinedInResolve, logger);
+  addResolveFunctionsToSchema(schema, resolveFunctions);
 
   assertResolveFunctionsPresent(schema);
 
