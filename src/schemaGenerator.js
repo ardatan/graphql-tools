@@ -101,18 +101,16 @@ function expectResolveFunction(field, typeName, fieldName) {
 }
 
 function addErrorLoggingToSchema(schema, logger) {
+  if (!logger) {
+    throw new Error('Must provide a logger');
+  }
+  if (typeof logger.log !== 'function') {
+    throw new Error('Logger.log must be a function');
+  }
   forEachField(schema, (field, typeName, fieldName) => {
     const errorHint = `${typeName}.${fieldName}`;
     // eslint-disable-next-line no-param-reassign
     field.resolve = decorateWithLogger(field.resolve, logger, errorHint);
-  });
-}
-
-function addCatchUndefinedToSchema(schema) {
-  forEachField(schema, (field, typeName, fieldName) => {
-    const errorHint = `${typeName}.${fieldName}`;
-    // eslint-disable-next-line no-param-reassign
-    field.resolve = decorateToCatchUndefined(field.resolve, errorHint);
   });
 }
 
@@ -121,10 +119,7 @@ function addCatchUndefinedToSchema(schema) {
  * logger: an object instance of type Logger
  * hint: an optional hint to add to the error's message
  */
-function decorateWithLogger(fn, logger, hint) {
-  if (logger === null) {
-    return fn;
-  }
+function decorateWithLogger(fn, logger, hint = '') {
   return (...args) => {
     try {
       return fn(...args);
@@ -137,6 +132,14 @@ function decorateWithLogger(fn, logger, hint) {
       throw e;
     }
   };
+}
+
+function addCatchUndefinedToSchema(schema) {
+  forEachField(schema, (field, typeName, fieldName) => {
+    const errorHint = `${typeName}.${fieldName}`;
+    // eslint-disable-next-line no-param-reassign
+    field.resolve = decorateToCatchUndefined(field.resolve, errorHint);
+  });
 }
 
 function decorateToCatchUndefined(fn, hint) {
