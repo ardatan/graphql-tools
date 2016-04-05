@@ -1,6 +1,6 @@
 {
   "name": "apollo-server",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "A GraphQL server toolkit",
   "main": "dist/index.js",
   "directories": {
