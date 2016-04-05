@@ -48,7 +48,6 @@
     "eslint-config-airbnb": "^6.1.0",
     "eslint-plugin-import": "^1.1.0",
     "express": "^4.13.4",
-    "express-graphql": "^0.4.13",
     "istanbul": "1.0.0-alpha.2",
     "lodash": "^4.7.0",
     "mocha": "^2.3.3",
