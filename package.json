@@ -2,14 +2,15 @@
   "name": "apollo-server",
   "version": "0.1.0",
   "description": "A GraphQL proxy",
-  "main": "index.js",
+  "main": "dist/index.js",
   "directories": {
     "test": "test"
   },
   "scripts": {
     "test": "istanbul cover ./node_modules/mocha/bin/_mocha -- --reporter spec --full-trace test/index.js",
     "lint": "eslint .",
-    "testonly": "mocha test/index.js"
+    "testonly": "mocha test/index.js",
+    "prepublish": "./resources/prepublish.sh"
   },
   "repository": {
     "type": "git",
@@ -31,8 +32,7 @@
   "homepage": "https://github.com/apollostack/apollo-proxy#readme",
   "dependencies": {
     "babel-polyfill": "^6.5.0",
-    "fs": "0.0.2",
-    "graphql": "https://github.com/apollostack/graphql-js.git#npm-dist"
+    "fs": "0.0.2"
   },
   "devDependencies": {
     "babel-cli": "^6.6.5",
