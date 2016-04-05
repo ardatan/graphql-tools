@@ -2,5 +2,9 @@
 // The primary entry point into fulfilling a GraphQL request.
 export {
   generateSchema,
-  ResolveError,
+  SchemaError,
+  addErrorLoggingToSchema,
+  addResolveFunctionsToSchema,
+  addCatchUndefinedToSchema,
+  assertResolveFunctionsPresent,
 } from './schemaGenerator';

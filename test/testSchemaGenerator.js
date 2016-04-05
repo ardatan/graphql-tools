@@ -1,4 +1,4 @@
-import { generateSchema, SchemaError } from '../src/schemaGenerator.js';
+import { generateSchema, SchemaError, addErrorLoggingToSchema } from '../src/schemaGenerator.js';
 import { assert } from 'chai';
 import { graphql } from 'graphql';
 import { Logger } from '../src/Logger.js';
@@ -351,5 +351,14 @@ describe('providing useful errors from resolve functions', () => {
       assert.deepEqual(res.data, expectedResData);
       done();
     });
+  });
+});
+
+describe('Add error logging to schema', () => {
+  it('throws an error if no logger is provided', () => {
+    assert.throw(() => addErrorLoggingToSchema({}), 'Must provide a logger');
+  });
+  it('throws an error if logger.log is not a function', () => {
+    assert.throw(() => addErrorLoggingToSchema({}, { log: '1' }), 'Logger.log must be a function');
   });
 });

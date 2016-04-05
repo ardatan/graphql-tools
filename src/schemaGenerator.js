@@ -2,8 +2,11 @@
 
 import { parse } from 'graphql/language';
 import { buildASTSchema } from 'graphql/utilities';
-import { GraphQLScalarType, getNamedType } from 'graphql/type';
-import { Logger } from './Logger.js';
+import {
+  GraphQLScalarType,
+  getNamedType,
+  GraphQLObjectType,
+} from 'graphql/type';
 
 // @schemaDefinition: A GraphQL type schema in shorthand
 // @resolvers: Definitions for resolvers to be merged with schema
@@ -29,63 +32,100 @@ const generateSchema = (
   const ast = parse(schemaDefinition);
   const schema = buildASTSchema(ast);
 
-  if (resolveFunctions) {
-    Object.keys(resolveFunctions).forEach((typeName) => {
-      const type = schema._typeMap[typeName];
-      if (!type) {
-        throw new SchemaError(
-          `"${typeName}" defined in resolvers, but not in schema`
-        );
-      }
+  addResolveFunctionsToSchema(schema, resolveFunctions);
 
-      Object.keys(resolveFunctions[typeName]).forEach((fieldName) => {
-        if (!type._fields[fieldName]) {
-          throw new SchemaError(
-            `${typeName}.${fieldName} defined in resolvers, but not in schema`
-          );
-        }
-        const field = type._fields[fieldName];
-        let resolveFn = resolveFunctions[typeName][fieldName];
-        const errorHint = `${typeName}.${fieldName}`;
-        if (forbidUndefinedInResolve) {
-          resolveFn = decorateToCatchUndefined(resolveFn, errorHint);
-        }
-        field.resolve = decorateWithLogger(resolveFn, logger, errorHint);
-      });
-    });
+  assertResolveFunctionsPresent(schema);
+
+  if (forbidUndefinedInResolve) {
+    addCatchUndefinedToSchema(schema);
   }
 
-  Object.keys(schema._typeMap).forEach((typeName) => {
-    const type = schema._typeMap[typeName];
-
-    if (!getNamedType(type).name.startsWith('__') && type._fields) {
-      Object.keys(type._fields).forEach((fieldName) => {
-        const field = type._fields[fieldName];
-
-        // TODO: provide more helpful error messages
-        if (field.args.length > 0) {
-          expectResolveFunction(resolveFunctions, typeName, fieldName);
-        }
-
-        if (!(getNamedType(field.type) instanceof GraphQLScalarType)) {
-          expectResolveFunction(resolveFunctions, typeName, fieldName);
-        }
-      });
-    }
-  });
+  if (logger) {
+    addErrorLoggingToSchema(schema, logger);
+  }
 
   return schema;
 };
+
+function forEachField(schema, fn) {
+  const typeMap = schema.getTypeMap();
+  Object.keys(typeMap).forEach((typeName) => {
+    const type = typeMap[typeName];
+
+    if (!getNamedType(type).name.startsWith('__') && type instanceof GraphQLObjectType) {
+      const fields = type.getFields();
+      Object.keys(fields).forEach((fieldName) => {
+        const field = fields[fieldName];
+        fn(field, typeName, fieldName);
+      });
+    }
+  });
+}
+
+function addResolveFunctionsToSchema(schema, resolveFunctions) {
+  Object.keys(resolveFunctions).forEach((typeName) => {
+    const type = schema.getType(typeName);
+    if (!type) {
+      throw new SchemaError(
+        `"${typeName}" defined in resolvers, but not in schema`
+      );
+    }
+
+    Object.keys(resolveFunctions[typeName]).forEach((fieldName) => {
+      if (!type.getFields()[fieldName]) {
+        throw new SchemaError(
+          `${typeName}.${fieldName} defined in resolvers, but not in schema`
+        );
+      }
+      const field = type.getFields()[fieldName];
+      field.resolve = resolveFunctions[typeName][fieldName];
+    });
+  });
+}
+
+function assertResolveFunctionsPresent(schema) {
+  forEachField(schema, (field, typeName, fieldName) => {
+    // requires a resolve function on every field that has arguments
+    if (field.args.length > 0) {
+      expectResolveFunction(field, typeName, fieldName);
+    }
+
+    // requires a resolve function on every field that returns a non-scalar type
+    if (!(getNamedType(field.type) instanceof GraphQLScalarType)) {
+      expectResolveFunction(field, typeName, fieldName);
+    }
+  });
+}
+
+function expectResolveFunction(field, typeName, fieldName) {
+  if (!field.resolve) {
+    throw new SchemaError(`Resolve function missing for "${typeName}.${fieldName}"`);
+  }
+  if (typeof field.resolve !== 'function') {
+    throw new SchemaError(`Resolver "${typeName}.${fieldName}" must be a function`);
+  }
+}
+
+function addErrorLoggingToSchema(schema, logger) {
+  if (!logger) {
+    throw new Error('Must provide a logger');
+  }
+  if (typeof logger.log !== 'function') {
+    throw new Error('Logger.log must be a function');
+  }
+  forEachField(schema, (field, typeName, fieldName) => {
+    const errorHint = `${typeName}.${fieldName}`;
+    // eslint-disable-next-line no-param-reassign
+    field.resolve = decorateWithLogger(field.resolve, logger, errorHint);
+  });
+}
 
 /*
  * fn: The function to decorate with the logger
  * logger: an object instance of type Logger
  * hint: an optional hint to add to the error's message
  */
-function decorateWithLogger(fn, logger, hint) {
-  if (logger === null) {
-    return fn;
-  }
+function decorateWithLogger(fn, logger, hint = '') {
   return (...args) => {
     try {
       return fn(...args);
@@ -100,6 +140,14 @@ function decorateWithLogger(fn, logger, hint) {
   };
 }
 
+function addCatchUndefinedToSchema(schema) {
+  forEachField(schema, (field, typeName, fieldName) => {
+    const errorHint = `${typeName}.${fieldName}`;
+    // eslint-disable-next-line no-param-reassign
+    field.resolve = decorateToCatchUndefined(field.resolve, errorHint);
+  });
+}
+
 function decorateToCatchUndefined(fn, hint) {
   return (...args) => {
     const result = fn(...args);
@@ -110,13 +158,11 @@ function decorateToCatchUndefined(fn, hint) {
   };
 }
 
-function expectResolveFunction(resolveFunctions, typeName, fieldName) {
-  if (!resolveFunctions[typeName] || !resolveFunctions[typeName][fieldName]) {
-    throw new SchemaError(`Resolve function missing for "${typeName}.${fieldName}"`);
-  }
-  if (typeof resolveFunctions[typeName][fieldName] !== 'function') {
-    throw new SchemaError(`Resolver "${typeName}.${fieldName}" must be a function`);
-  }
-}
-
-export { generateSchema, SchemaError };
+export {
+  generateSchema,
+  SchemaError,
+  addErrorLoggingToSchema,
+  addResolveFunctionsToSchema,
+  addCatchUndefinedToSchema,
+  assertResolveFunctionsPresent,
+};
