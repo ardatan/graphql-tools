@@ -1,10 +1,13 @@
 import uuid from 'node-uuid';
+import now from 'performance-now';
 
 class Tracer {
   // @eventGroupId: an id to group the events of this tracer together
   constructor(eventGroupId) {
     this.gid = eventGroupId;
     this.events = [];
+    this.startTime = (new Date()).getTime();
+    this.startHrTime = now();
   }
 
   logEvent({ props, info, type }) {
@@ -12,9 +15,11 @@ class Tracer {
     // TODO ensure info is a valid info thingy
     // TODO ensure type is a valid type thingy
     const id = uuid.v4();
-    const timestamp = (new Date().getTime());
+    // TODO make sure we know what that timestamp is relative to
+    const timestamp = now();
+    // const timestamp = (new Date()).getTime();
     this.events.push({ id, ...props, type, info, timestamp });
-    console.log(this.gid, 'logged event', type, info, 'at', timestamp);
+    // console.log(this.gid, 'logged event', type, info, 'at', timestamp);
   }
 
   startInterval(info) {
@@ -39,8 +44,13 @@ class Tracer {
 
   reportEvents(url) {
     // send the serialized events to url;
-    console.log(`reporting to ${url}`);
-    return this.events;
+    // console.log(`reporting to ${url}`);
+    return {
+      url,
+      startTime: this.startTime,
+      startHrTime: this.startHrTime,
+      events: this.events,
+    };
   }
 }
 

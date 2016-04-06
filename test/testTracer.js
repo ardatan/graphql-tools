@@ -19,7 +19,8 @@ describe('Tracer', () => {
   const resolver = {
     RootQuery: {
       returnArg: (root, { name }) => {
-        return `${name}`;
+        // return `${name}`;
+        return name;
       },
       returnErr: () => {
         throw new Error('aargh!');
@@ -44,7 +45,7 @@ describe('Tracer', () => {
     }`;
     return graphql(jsSchema, testQuery).then(() => {
       const events = tracer.reportEvents('');
-      expect(events.length).to.equal(2);
+      expect(events.events.length).to.equal(2);
     });
   });
 
@@ -57,7 +58,7 @@ describe('Tracer', () => {
     }`;
     return graphql(jsSchema, testQuery).then(() => {
       const events = tracer.reportEvents('');
-      expect(events.length).to.equal(2);
+      expect(events.events.length).to.equal(2);
     });
   });
 
@@ -70,7 +71,7 @@ describe('Tracer', () => {
     }`;
     return graphql(jsSchema, testQuery).then(() => {
       const events = tracer.reportEvents('');
-      expect(events.length).to.equal(2);
+      expect(events.events.length).to.equal(2);
     });
   });
 
@@ -83,7 +84,7 @@ describe('Tracer', () => {
     }`;
     return graphql(jsSchema, testQuery).then(() => {
       const events = tracer.reportEvents('');
-      expect(events.length).to.equal(2);
+      expect(events.events.length).to.equal(2);
     });
   });
 });
