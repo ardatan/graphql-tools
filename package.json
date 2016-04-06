@@ -1,19 +1,20 @@
 {
   "name": "apollo-server",
-  "version": "0.1.0",
-  "description": "A GraphQL proxy",
-  "main": "index.js",
+  "version": "0.0.3",
+  "description": "A GraphQL server toolkit",
+  "main": "dist/index.js",
   "directories": {
     "test": "test"
   },
   "scripts": {
     "test": "istanbul cover ./node_modules/mocha/bin/_mocha -- --reporter spec --full-trace test/index.js",
     "lint": "eslint .",
-    "testonly": "mocha test/index.js"
+    "testonly": "mocha test/index.js",
+    "prepublish": "./resources/prepublish.sh"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/apollostack/apollo-proxy.git"
+    "url": "git+https://github.com/apollostack/apollo-server.git"
   },
   "keywords": [
     "GraphQL",
@@ -32,7 +33,7 @@
   "dependencies": {
     "babel-polyfill": "^6.5.0",
     "fs": "0.0.2",
-    "graphql": "https://github.com/apollostack/graphql-js.git#npm-dist"
+    "graphql": "^0.5.0-beta.1"
   },
   "devDependencies": {
     "babel-cli": "^6.6.5",
@@ -47,7 +48,6 @@
     "eslint-config-airbnb": "^6.1.0",
     "eslint-plugin-import": "^1.1.0",
     "express": "^4.13.4",
-    "express-graphql": "^0.4.13",
     "istanbul": "1.0.0-alpha.2",
     "lodash": "^4.7.0",
     "mocha": "^2.3.3",
