@@ -19,19 +19,19 @@ SchemaError.prototype = new Error;
 
 
 const generateSchema = (
-  schemaDefinition,
+  typeDefinitions,
   resolveFunctions,
   logger = null,
   forbidUndefinedInResolve = false,
 ) => {
-  if (!schemaDefinition) {
-    throw new SchemaError('Must provide schemaDefinition');
+  if (!typeDefinitions) {
+    throw new SchemaError('Must provide typeDefinitions');
   }
   if (!resolveFunctions) {
     throw new SchemaError('Must provide resolveFunctions');
   }
-  const ast = parse(schemaDefinition);
-  const schema = buildASTSchema(ast);
+
+  const schema = buildSchemaFromTypeDefinitions(typeDefinitions);
 
   addResolveFunctionsToSchema(schema, resolveFunctions);
 
@@ -47,6 +47,10 @@ const generateSchema = (
 
   return schema;
 };
+
+function buildSchemaFromTypeDefinitions(typeDefinitions) {
+  return buildASTSchema(parse(typeDefinitions));
+}
 
 function forEachField(schema, fn) {
   const typeMap = schema.getTypeMap();
@@ -81,6 +85,15 @@ function addResolveFunctionsToSchema(schema, resolveFunctions) {
       const field = type.getFields()[fieldName];
       field.resolve = resolveFunctions[typeName][fieldName];
     });
+  });
+}
+
+function addMockFunctionsToSchema(schema, mockFunctions) {
+  forEachField(schema, (field) => {
+    if (mockFunctions.has(field.type)) {
+      // eslint-disable-next-line no-param-reassign
+      field.resolve = mockFunctions.get(field.type);
+    }
   });
 }
 
@@ -179,4 +192,5 @@ export {
   addCatchUndefinedToSchema,
   assertResolveFunctionsPresent,
   addTracingToResolvers,
+  addMockFunctionsToSchema,
 };
