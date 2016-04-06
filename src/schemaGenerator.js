@@ -7,6 +7,7 @@ import {
   getNamedType,
   GraphQLObjectType,
 } from 'graphql/type';
+import { decorateWithTracer } from './tracing';
 
 // @schemaDefinition: A GraphQL type schema in shorthand
 // @resolvers: Definitions for resolvers to be merged with schema
@@ -148,6 +149,18 @@ function addCatchUndefinedToSchema(schema) {
   });
 }
 
+function addTracingToResolvers(schema, tracer) {
+  forEachField(schema, (field, typeName, fieldName) => {
+    const functionName = `${typeName}.${fieldName}`;
+    // eslint-disable-next-line no-param-reassign
+    field.resolve = decorateWithTracer(
+      field.resolve,
+      tracer,
+      { functionType: 'resolve', functionName },
+    );
+  });
+}
+
 function decorateToCatchUndefined(fn, hint) {
   return (...args) => {
     const result = fn(...args);
@@ -165,4 +178,5 @@ export {
   addResolveFunctionsToSchema,
   addCatchUndefinedToSchema,
   assertResolveFunctionsPresent,
+  addTracingToResolvers,
 };
