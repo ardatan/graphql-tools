@@ -6,6 +6,8 @@ import {
   GraphQLScalarType,
   getNamedType,
   GraphQLObjectType,
+  GraphQLNonNull,
+  getNullableType,
 } from 'graphql/type';
 import { decorateWithTracer } from './tracing';
 
@@ -88,11 +90,19 @@ function addResolveFunctionsToSchema(schema, resolveFunctions) {
   });
 }
 
-function addMockFunctionsToSchema(schema, mockFunctions) {
+function addMockFunctionsToSchema(schema, mockFunctionMap) {
   forEachField(schema, (field) => {
-    if (mockFunctions.has(field.type)) {
+    // nullability doesn't matter for the purpose of mocking.
+    const fieldType = getNullableType(field.type);
+
+    // no need to mock objects, just pass through to leaf types.
+    if (fieldType instanceof GraphQLObjectType) {
       // eslint-disable-next-line no-param-reassign
-      field.resolve = mockFunctions.get(field.type);
+      field.resolve = () => { return {}; };
+    }
+    if (mockFunctionMap.has(fieldType)) {
+      // eslint-disable-next-line no-param-reassign
+      field.resolve = mockFunctionMap.get(fieldType);
     }
   });
 }
@@ -193,4 +203,5 @@ export {
   assertResolveFunctionsPresent,
   addTracingToResolvers,
   addMockFunctionsToSchema,
+  buildSchemaFromTypeDefinitions,
 };
