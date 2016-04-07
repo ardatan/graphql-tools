@@ -2,6 +2,7 @@ import {
   buildSchemaFromTypeDefinitions,
   addMockFunctionsToSchema,
   addResolveFunctionsToSchema,
+  MockList,
 } from '../src/schemaGenerator.js';
 import { expect } from 'chai';
 import {
@@ -289,7 +290,9 @@ describe('Mock', () => {
   it('lets you mock root mutation fields', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = new Map();
-    mockMap.set('RootMutation', () => { return { returnStringArgument: (o, a) => a.s };});
+    mockMap.set('RootMutation', () => {
+      return { returnStringArgument: (o, a) => a.s };
+    });
     addMockFunctionsToSchema(jsSchema, mockMap);
     const testQuery = `mutation {
       returnStringArgument(s: "adieu")
@@ -302,5 +305,28 @@ describe('Mock', () => {
     });
   });
 
-  // TODO: test mocking root query and root mutation
+  it('lets you mock a list of a certain length', () => {
+    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    const mockMap = new Map();
+    mockMap.set('RootQuery', () => {
+      return { returnListOfInt: () => new MockList(3) };
+    });
+    mockMap.set('Int', () => 12);
+    addMockFunctionsToSchema(jsSchema, mockMap);
+    const testQuery = `{
+      returnListOfInt
+    }`;
+    const expected = {
+      returnListOfInt: [12, 12, 12],
+    };
+    return graphql(jsSchema, testQuery).then((res) => {
+      expect(res.data).to.deep.equal(expected);
+    });
+  });
+
+  // TODO: test nested lists
+  // TODO: test passing scalar to mock function Map
+  // TODO: test nested nonNull lists etc.
+  // TODO: test list with functions inside
+  // TODO: test list with length based on arguments
 });
