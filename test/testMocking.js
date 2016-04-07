@@ -11,6 +11,8 @@ import {
 
 describe('Mock', () => {
   const shorthand = `
+    scalar MissingMockType
+
     type Bird {
       returnInt: Int
       returnString: String
@@ -23,12 +25,14 @@ describe('Mock', () => {
       returnString: String
       returnBoolean: Boolean
       returnID: ID
+      returnMockError: MissingMockType
       returnNullableString: String
       returnNonNullString: String!
       returnObject: Bird
       returnListOfInt: [Int]
       returnListOfIntArg(l: Int): [Int]
-      returnListOfListOfInt: [[Int]]
+      returnListOfListOfInt: [[Int!]!]!
+      returnListOfListOfIntArg(l: Int): [[Int]]
       returnListOfListOfObject: [[Bird!]]!
       returnStringArgument(s: String): String
     }
@@ -81,6 +85,19 @@ describe('Mock', () => {
     };
     return graphql(jsSchema, testQuery).then((res) => {
       expect(res.data).to.deep.equal(expected);
+    });
+  });
+
+  it('throws an error in resolve if mock type is not defined', () => {
+    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    const mockMap = new Map();
+    addMockFunctionsToSchema(jsSchema, mockMap);
+    const testQuery = `{
+      returnMockError
+    }`;
+    const expected = 'No mock defined for type "MissingMockType"';
+    return graphql(jsSchema, testQuery).then((res) => {
+      expect(res.errors[0].originalError.message).to.equal(expected);
     });
   });
 
@@ -399,13 +416,17 @@ describe('Mock', () => {
     });
   });
 
-  // TODO: test nested lists
+  it('throws an error if the second argument to MockList is not a function', () => {
+    expect(() => new MockList(5, 'abc'))
+                  .to.throw('Second argument to MockList must be a function or undefined');
+  });
+
   it('lets you nest MockList in MockList', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = new Map();
     mockMap.set('RootQuery', () => {
       return { returnListOfListOfInt: () => {
-        return new MockList(2, new MockList(3));
+        return new MockList(2, () => new MockList(3));
       } };
     });
     mockMap.set('Int', () => 12);
@@ -420,5 +441,25 @@ describe('Mock', () => {
       expect(res.data).to.deep.equal(expected);
     });
   });
-  // TODO: test nested nonNull lists etc.
+
+  it('lets you use arguments in nested MockList', () => {
+    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    const mockMap = new Map();
+    mockMap.set('RootQuery', () => {
+      return { returnListOfListOfIntArg: () => {
+        return new MockList(2, (o, a) => new MockList(a.l));
+      } };
+    });
+    mockMap.set('Int', () => 12);
+    addMockFunctionsToSchema(jsSchema, mockMap);
+    const testQuery = `{
+      returnListOfListOfIntArg(l: 1)
+    }`;
+    const expected = {
+      returnListOfListOfIntArg: [[12], [12]],
+    };
+    return graphql(jsSchema, testQuery).then((res) => {
+      expect(res.data).to.deep.equal(expected);
+    });
+  });
 });

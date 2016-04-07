@@ -96,10 +96,15 @@ function addResolveFunctionsToSchema(schema, resolveFunctions) {
 }
 
 class MockList {
-  // wrappedThing can be another MockList, a function or undefined
-  constructor(len, wrappedThing) {
+  // wrappedFunction can return another MockList or a value
+  constructor(len, wrappedFunction) {
     this.len = len;
-    this.wrappedThing = wrappedThing;
+    if (typeof wrappedFunction !== 'undefined') {
+      if (typeof wrappedFunction !== 'function') {
+        throw new Error('Second argument to MockList must be a function or undefined');
+      }
+      this.wrappedFunction = wrappedFunction;
+    }
   }
 
   mock(o, a, c, r, fieldType, mockTypeFunc) {
@@ -113,10 +118,13 @@ class MockList {
       arr = new Array(this.len);
     }
     for (let i = 0; i < arr.length; i++) {
-      if (typeof this.wrappedThing === 'function') {
-        arr[i] = this.wrappedThing(o, a, c, r);
-      } else if (this.wrappedThing instanceof MockList) {
-        arr[i] = this.wrappedThing.mock(o, a, c, r, fieldType.ofType, mockTypeFunc);
+      if (typeof this.wrappedFunction === 'function') {
+        const res = this.wrappedFunction(o, a, c, r);
+        if (res instanceof MockList) {
+          arr[i] = res.mock(o, a, c, r, getNullableType(fieldType.ofType), mockTypeFunc);
+        } else {
+          arr[i] = res;
+        }
       } else {
         arr[i] = mockTypeFunc(fieldType.ofType)(o, a, c, r);
       }
@@ -186,7 +194,7 @@ function addMockFunctionsToSchema(schema, mockFunctionMap, preserveResolvers = f
       }
       // if we get to here, we don't have a value, and we don't have a mock for this type,
       // we could return undefined, but that would be hard to debug, so we throw instead.
-      throw new Error(`No mock defined for scalar type "${fieldType.name}"`);
+      throw new Error(`No mock defined for type "${fieldType.name}"`);
     };
   };
 
