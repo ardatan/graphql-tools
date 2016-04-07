@@ -128,14 +128,12 @@ class MockList {
 function addMockFunctionsToSchema(schema, mockFunctionMap, preserveResolvers = false) {
   // TODO: rewrite from using Map of mock function to using an object?
   // TODO: make first two arguments required. add check for them
-  // TODO: mock function map also takes scalars. Should it?
-  // no it shouldn't, but it should check that everything is a func. fix tmr.
   const defaultMockMap = new Map();
-  defaultMockMap.set(GraphQLInt, () => 58);
-  defaultMockMap.set(GraphQLFloat, () => 12.3);
-  defaultMockMap.set(GraphQLString, () => 'Lorem Ipsum');
-  defaultMockMap.set(GraphQLBoolean, () => false);
-  defaultMockMap.set(GraphQLID, () => '41ae7bd');
+  defaultMockMap.set('Int', () => 58);
+  defaultMockMap.set('Float', () => 12.3);
+  defaultMockMap.set('String', () => 'Lorem Ipsum');
+  defaultMockMap.set('Boolean', () => false);
+  defaultMockMap.set('ID', () => '41ae7bd');
 
   const mockType = function mockType(type, typeName, fieldName) {
     // order of precendence for mocking:
@@ -153,7 +151,6 @@ function addMockFunctionsToSchema(schema, mockFunctionMap, preserveResolvers = f
         if (typeof o[fieldName] === 'function') {
           const result = o[fieldName](o, a, c, r);
           if (result instanceof MockList) {
-            // TODO: check to make sure that mockType refers to this function.
             return result.mock(o, a, c, r, fieldType, mockType);
           }
           return result;
@@ -171,16 +168,12 @@ function addMockFunctionsToSchema(schema, mockFunctionMap, preserveResolvers = f
       if (fieldType instanceof GraphQLObjectType) {
         return {};
       }
-      if (defaultMockMap.has(fieldType)) {
-        const res = defaultMockMap.get(fieldType);
-        if (typeof res === 'function') {
-          return res(o, a, c, r);
-        }
-        return res;
+      if (defaultMockMap.has(fieldType.name)) {
+        return defaultMockMap.get(fieldType.name)(o, a, c, r);
       }
-      // if we get to here, we don't have a value, and we don't have a mock,
-      // so we return undefined like GraphQL would by default
-      return undefined;
+      // if we get to here, we don't have a value, and we don't have a mock for this type,
+      // we could return undefined, but that would be hard to debug, so we throw instead.
+      throw new Error(`No mock defined for scalar type "${fieldType.name}"`);
     };
   };
 
