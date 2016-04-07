@@ -324,6 +324,23 @@ describe('Mock', () => {
     });
   });
 
+  it('lets you mock a list of a random length', () => {
+    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    const mockMap = new Map();
+    mockMap.set('RootQuery', () => {
+      return { returnListOfInt: () => new MockList([10, 20]) };
+    });
+    mockMap.set('Int', () => 12);
+    addMockFunctionsToSchema(jsSchema, mockMap);
+    const testQuery = `{
+      returnListOfInt
+    }`;
+    return graphql(jsSchema, testQuery).then((res) => {
+      expect(res.data.returnListOfInt).to.have.length.within(10, 20);
+      expect(res.data.returnListOfInt[0]).to.equal(12);
+    });
+  });
+
   // TODO: test nested lists
   // TODO: test passing scalar to mock function Map
   // TODO: test nested nonNull lists etc.
