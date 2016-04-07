@@ -40,6 +40,25 @@ describe('Mock', () => {
     }
   `;
 
+  it('throws an error if you forget to pass schema', () => {
+    expect(() => addMockFunctionsToSchema())
+                  .to.throw('Must provide schema to mock');
+  });
+
+  it('throws an error if second argument is not a Map', () => {
+    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    expect(() => addMockFunctionsToSchema(jsSchema, ['a']))
+                  .to.throw('mockFunctionMap must be a Map');
+  });
+
+  it('throws an error if mockFunctionMap contains a non-function thingy', () => {
+    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    const aMap = new Map();
+    aMap.set('Int', 55);
+    expect(() => addMockFunctionsToSchema(jsSchema, aMap))
+                  .to.throw('mockFunctionMap[Int] must be a function');
+  });
+
   it('mocks the default types for you', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = new Map();

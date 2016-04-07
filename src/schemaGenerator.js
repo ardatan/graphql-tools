@@ -127,7 +127,20 @@ class MockList {
 
 function addMockFunctionsToSchema(schema, mockFunctionMap, preserveResolvers = false) {
   // TODO: rewrite from using Map of mock function to using an object?
-  // TODO: make first two arguments required. add check for them
+  if (!schema) {
+    // XXX should we check that schema is an instance of GraphQLSchema?
+    throw new Error('Must provide schema to mock');
+  }
+  if (!(mockFunctionMap instanceof Map)) {
+    throw new Error('mockFunctionMap must be a Map');
+  }
+
+  mockFunctionMap.forEach((mockFunction, mockTypeName) => {
+    if (typeof mockFunction !== 'function') {
+      throw new Error(`mockFunctionMap[${mockTypeName}] must be a function`);
+    }
+  });
+
   const defaultMockMap = new Map();
   defaultMockMap.set('Int', () => 58);
   defaultMockMap.set('Float', () => 12.3);
