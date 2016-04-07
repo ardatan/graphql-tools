@@ -29,8 +29,13 @@ describe('Mock', () => {
       returnListOfListOfObject: [[Bird!]]!
       returnStringArgument(s: String): String
     }
+
+    type RootMutation{
+      returnStringArgument(s: String): String
+    }
     schema {
       query: RootQuery
+      mutation: RootMutation
     }
   `;
 
@@ -259,6 +264,38 @@ describe('Mock', () => {
     }`;
     const expected = {
       returnObject: { returnStringArgument: 'adieu' },
+    };
+    return graphql(jsSchema, testQuery).then((res) => {
+      expect(res.data).to.deep.equal(expected);
+    });
+  });
+
+  it('lets you mock root query fields', () => {
+    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    const mockMap = new Map();
+    mockMap.set('RootQuery', () => { return { returnStringArgument: (o, a) => a.s };});
+    addMockFunctionsToSchema(jsSchema, mockMap);
+    const testQuery = `{
+      returnStringArgument(s: "adieu")
+    }`;
+    const expected = {
+      returnStringArgument: 'adieu',
+    };
+    return graphql(jsSchema, testQuery).then((res) => {
+      expect(res.data).to.deep.equal(expected);
+    });
+  });
+
+  it('lets you mock root mutation fields', () => {
+    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    const mockMap = new Map();
+    mockMap.set('RootMutation', () => { return { returnStringArgument: (o, a) => a.s };});
+    addMockFunctionsToSchema(jsSchema, mockMap);
+    const testQuery = `mutation {
+      returnStringArgument(s: "adieu")
+    }`;
+    const expected = {
+      returnStringArgument: 'adieu',
     };
     return graphql(jsSchema, testQuery).then((res) => {
       expect(res.data).to.deep.equal(expected);

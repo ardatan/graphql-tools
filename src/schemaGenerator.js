@@ -147,6 +147,20 @@ function addMockFunctionsToSchema(schema, mockFunctionMap, preserveResolvers = f
     if (preserveResolvers && field.resolve) {
       return;
     }
+
+    // we have to handle the root mutation and root query types differently,
+    // because no resolver is called at the root.
+    if (typeName === schema.getQueryType().name || typeName === schema.getMutationType().name) {
+      if (mockFunctionMap.has(typeName)) {
+        const rootMock = mockFunctionMap.get(typeName);
+        if (rootMock()[fieldName]) {
+          // TODO: assert that it's a function
+          // eslint-disable-next-line no-param-reassign
+          field.resolve = rootMock()[fieldName];
+          return;
+        }
+      }
+    }
     // eslint-disable-next-line no-param-reassign
     field.resolve = mockType(field.type, typeName, fieldName);
   });
