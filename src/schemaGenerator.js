@@ -116,7 +116,7 @@ class MockList {
       if (typeof this.wrappedThing === 'function') {
         arr[i] = this.wrappedThing(o, a, c, r);
       } else if (this.wrappedThing instanceof MockList) {
-        arr[i] = this.wrappedThing.mock(o, a, c, r, fieldType, mockTypeFunc);
+        arr[i] = this.wrappedThing.mock(o, a, c, r, fieldType.ofType, mockTypeFunc);
       } else {
         arr[i] = mockTypeFunc(fieldType.ofType)(o, a, c, r);
       }

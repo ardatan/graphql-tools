@@ -28,6 +28,7 @@ describe('Mock', () => {
       returnObject: Bird
       returnListOfInt: [Int]
       returnListOfIntArg(l: Int): [Int]
+      returnListOfListOfInt: [[Int]]
       returnListOfListOfObject: [[Bird!]]!
       returnStringArgument(s: String): String
     }
@@ -399,5 +400,25 @@ describe('Mock', () => {
   });
 
   // TODO: test nested lists
+  it('lets you nest MockList in MockList', () => {
+    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    const mockMap = new Map();
+    mockMap.set('RootQuery', () => {
+      return { returnListOfListOfInt: () => {
+        return new MockList(2, new MockList(3));
+      } };
+    });
+    mockMap.set('Int', () => 12);
+    addMockFunctionsToSchema(jsSchema, mockMap);
+    const testQuery = `{
+      returnListOfListOfInt
+    }`;
+    const expected = {
+      returnListOfListOfInt: [[12, 12, 12], [12, 12, 12]],
+    };
+    return graphql(jsSchema, testQuery).then((res) => {
+      expect(res.data).to.deep.equal(expected);
+    });
+  });
   // TODO: test nested nonNull lists etc.
 });
