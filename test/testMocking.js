@@ -13,6 +13,7 @@ describe('Mock', () => {
     type Bird {
       returnInt: Int
       returnString: String
+      returnStringArgument(s: String): String
     }
 
     type RootQuery {
@@ -26,15 +27,38 @@ describe('Mock', () => {
       returnObject: Bird
       returnListOfInt: [Int]
       returnListOfListOfObject: [[Bird!]]!
+      returnStringArgument(s: String): String
     }
     schema {
       query: RootQuery
     }
   `;
 
-  const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+  it('mocks the default types for you', () => {
+    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    const mockMap = new Map();
+    addMockFunctionsToSchema(jsSchema, mockMap);
+    const testQuery = `{
+      returnInt
+      returnFloat
+      returnBoolean
+      returnString
+      returnID
+    }`;
+    const expected = {
+      returnInt: 58,
+      returnFloat: 12.3,
+      returnString: 'Lorem Ipsum',
+      returnBoolean: false,
+      returnID: '41ae7bd',
+    };
+    return graphql(jsSchema, testQuery).then((res) => {
+      expect(res.data).to.deep.equal(expected);
+    });
+  });
 
   it('can mock an Int', () => {
+    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = new Map();
     mockMap.set('Int', () => 55);
     addMockFunctionsToSchema(jsSchema, mockMap);
@@ -47,6 +71,7 @@ describe('Mock', () => {
   });
 
   it('can mock a Float', () => {
+    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = new Map();
     mockMap.set('Float', () => 55.5);
     addMockFunctionsToSchema(jsSchema, mockMap);
@@ -57,7 +82,8 @@ describe('Mock', () => {
       expect(res.data.returnFloat).to.equal(55.5);
     });
   });
-  it('can mock a STRING', () => {
+  it('can mock a String', () => {
+    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = new Map();
     mockMap.set('String', () => 'a string');
     addMockFunctionsToSchema(jsSchema, mockMap);
@@ -69,6 +95,7 @@ describe('Mock', () => {
     });
   });
   it('can mock a Boolean', () => {
+    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = new Map();
     mockMap.set('Boolean', () => true);
     addMockFunctionsToSchema(jsSchema, mockMap);
@@ -80,6 +107,7 @@ describe('Mock', () => {
     });
   });
   it('can mock an ID', () => {
+    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = new Map();
     mockMap.set('ID', () => 'ea5bdc19');
     addMockFunctionsToSchema(jsSchema, mockMap);
@@ -91,6 +119,7 @@ describe('Mock', () => {
     });
   });
   it('nullable type is nullable', () => {
+    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = new Map();
     mockMap.set('String', () => null);
     addMockFunctionsToSchema(jsSchema, mockMap);
@@ -102,6 +131,7 @@ describe('Mock', () => {
     });
   });
   it('can mock a nonNull type', () => {
+    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = new Map();
     mockMap.set('String', () => 'nonnull');
     addMockFunctionsToSchema(jsSchema, mockMap);
@@ -113,6 +143,7 @@ describe('Mock', () => {
     });
   });
   it('nonNull type is not nullable', () => {
+    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = new Map();
     mockMap.set('String', () => null);
     addMockFunctionsToSchema(jsSchema, mockMap);
@@ -125,6 +156,7 @@ describe('Mock', () => {
     });
   });
   it('can mock object types', () => {
+    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = new Map();
     mockMap.set('String', () => 'abc');
     mockMap.set('Int', () => 123);
@@ -141,6 +173,7 @@ describe('Mock', () => {
   });
 
   it('can mock a list of ints', () => {
+    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = new Map();
     mockMap.set('Int', () => 123);
     addMockFunctionsToSchema(jsSchema, mockMap);
@@ -156,6 +189,7 @@ describe('Mock', () => {
   });
 
   it('can mock a list of lists of objects', () => {
+    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = new Map();
     mockMap.set('String', () => 'a');
     mockMap.set('Int', () => 1);
@@ -174,11 +208,12 @@ describe('Mock', () => {
     });
   });
 
-  it('only masks resolve functions if you define a mock', () => {
+  it('does not mask resolve functions if you tell it not to', () => {
+    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = new Map();
     const resolvers = { RootQuery: { returnInt: () => 5 } };
     addResolveFunctionsToSchema(jsSchema, resolvers);
-    addMockFunctionsToSchema(jsSchema, mockMap);
+    addMockFunctionsToSchema(jsSchema, mockMap, true);
     const testQuery = `{
       returnInt
     }`;
@@ -189,4 +224,46 @@ describe('Mock', () => {
       expect(res.data).to.deep.equal(expected);
     });
   });
+
+  it('lets you mock non-leaf types conveniently', () => {
+    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    const mockMap = new Map();
+    mockMap.set('Bird', () => { return { returnInt: 12, returnString: 'woot!?' };});
+    mockMap.set('Int', () => 15);
+    addMockFunctionsToSchema(jsSchema, mockMap);
+    const testQuery = `{
+      returnObject{
+        returnInt
+        returnString
+      }
+      returnInt
+    }`;
+    const expected = {
+      returnObject: { returnInt: 12, returnString: 'woot!?' },
+      returnInt: 15,
+    };
+    return graphql(jsSchema, testQuery).then((res) => {
+      expect(res.data).to.deep.equal(expected);
+    });
+  });
+
+  it('lets you mock with functions', () => {
+    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    const mockMap = new Map();
+    mockMap.set('Bird', () => { return { returnStringArgument: (o, a) => a.s };});
+    addMockFunctionsToSchema(jsSchema, mockMap);
+    const testQuery = `{
+      returnObject{
+        returnStringArgument(s: "adieu")
+      }
+    }`;
+    const expected = {
+      returnObject: { returnStringArgument: 'adieu' },
+    };
+    return graphql(jsSchema, testQuery).then((res) => {
+      expect(res.data).to.deep.equal(expected);
+    });
+  });
+
+  // TODO: test mocking root query and root mutation
 });

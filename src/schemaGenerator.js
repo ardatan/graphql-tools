@@ -8,6 +8,11 @@ import {
   GraphQLObjectType,
   GraphQLList,
   getNullableType,
+  GraphQLInt,
+  GraphQLFloat,
+  GraphQLString,
+  GraphQLID,
+  GraphQLBoolean,
 } from 'graphql/type';
 import { decorateWithTracer } from './tracing';
 
@@ -90,35 +95,63 @@ function addResolveFunctionsToSchema(schema, resolveFunctions) {
   });
 }
 
-function addMockFunctionsToSchema(schema, mockFunctionMap) {
-  // mock type returns a resolve function which will mock this type
-  // it may return null, in which case the resolve function shouldn't
-  // be overridden.
-  function mockType(type) {
-    // nullability doesn't matter for the purpose of mocking.
-    const fieldType = getNullableType(type);
-    if (fieldType instanceof GraphQLList) {
-      return () => [mockType(type.ofType)(), mockType(type.ofType)()];
-    }
-    if (mockFunctionMap.has(fieldType.name)) {
-      return mockFunctionMap.get(fieldType.name);
-    }
-    // Easy fallback if people don't specify how to mock a custom type:
-    // Just keep falling through until you get to the leaf types
-    if (fieldType instanceof GraphQLObjectType) {
-      return () => { return {}; };
-    }
-    // if we get here, no mocking was defined for this type, so we return null
-    return null;
+function addMockFunctionsToSchema(schema, mockFunctionMap, preserveResolvers = false) {
+  // TODO: make first two arguments required. add check for them
+  const defaultMockMap = new Map();
+  defaultMockMap.set(GraphQLInt, () => 58);
+  defaultMockMap.set(GraphQLFloat, () => 12.3);
+  defaultMockMap.set(GraphQLString, () => 'Lorem Ipsum');
+  defaultMockMap.set(GraphQLBoolean, () => false);
+  defaultMockMap.set(GraphQLID, () => '41ae7bd');
+
+  function mockType(type, typeName, fieldName) {
+    // order of precendence for mocking:
+    // 1. if the object passed in already has fieldName, just use that
+    // --> if it's a function, that becomes your resolver
+    // --> if it's a value, the mock resolver will return that
+    // 2. if the nullableType is a list, recurse
+    // 2. if there's a mock defined for this typeName, that will be used
+    // 3. if there's no mock defined, use the default mocks for this type
+    return (o, a, c, r) => {
+      if (o && typeof o[fieldName] !== 'undefined') {
+        if (typeof o[fieldName] === 'function') {
+          return o[fieldName](o, a, c, r);
+        }
+        return o[fieldName];
+      }
+      // nullability doesn't matter for the purpose of mocking.
+      const fieldType = getNullableType(type);
+
+      if (fieldType instanceof GraphQLList) {
+        return [mockType(type.ofType)(o, a, c, r), mockType(type.ofType)(o, a, c, r)];
+      }
+      if (mockFunctionMap.has(fieldType.name)) {
+        // the object passed doesn't have this field, so we apply the default mock
+        return mockFunctionMap.get(fieldType.name)(o, a, c, r);
+      }
+      if (fieldType instanceof GraphQLObjectType) {
+        return () => {
+          console.log('object!');
+          return {};
+        };
+      }
+      if (defaultMockMap.has(fieldType)) {
+        return defaultMockMap.get(fieldType)(o, a, c, r);
+      }
+      // if we get to here, we don't have a value, and we don't have a mock,
+      // so we return undefined like GraphQL would by default
+      return undefined;
+    };
   }
 
-  // TODO: mock union types and interfaces (with override, I guess)
+  // TODO: allow mocking of RootQuery and RootMutation
 
-  forEachField(schema, (field) => {
-    // this only mocks the types defined in mockFunctionMap
-    // other types will keep their current resolve functions
+  forEachField(schema, (field, typeName, fieldName) => {
+    if (preserveResolvers && field.resolve) {
+      return;
+    }
     // eslint-disable-next-line no-param-reassign
-    field.resolve = mockType(field.type) || field.resolve;
+    field.resolve = mockType(field.type, typeName, fieldName);
   });
 }
 
