@@ -379,9 +379,25 @@ describe('Mock', () => {
     });
   });
 
+  it('lets you provide a function for your MockList', () => {
+    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    const mockMap = new Map();
+    mockMap.set('RootQuery', () => {
+      return { returnListOfInt: () => new MockList(2, () => 33) };
+    });
+    mockMap.set('Int', () => 12);
+    addMockFunctionsToSchema(jsSchema, mockMap);
+    const testQuery = `{
+      returnListOfInt
+    }`;
+    const expected = {
+      returnListOfInt: [33, 33],
+    };
+    return graphql(jsSchema, testQuery).then((res) => {
+      expect(res.data).to.deep.equal(expected);
+    });
+  });
+
   // TODO: test nested lists
-  // TODO: test passing scalar to mock function Map
   // TODO: test nested nonNull lists etc.
-  // TODO: test list with functions inside
-  // TODO: test list with length based on arguments
 });
