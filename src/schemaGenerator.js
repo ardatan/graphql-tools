@@ -6,7 +6,7 @@ import {
   GraphQLScalarType,
   getNamedType,
   GraphQLObjectType,
-  GraphQLNonNull,
+  GraphQLList,
   getNullableType,
 } from 'graphql/type';
 import { decorateWithTracer } from './tracing';
@@ -91,19 +91,32 @@ function addResolveFunctionsToSchema(schema, resolveFunctions) {
 }
 
 function addMockFunctionsToSchema(schema, mockFunctionMap) {
-  forEachField(schema, (field) => {
+  function mockType(type) {
     // nullability doesn't matter for the purpose of mocking.
-    const fieldType = getNullableType(field.type);
-
-    // no need to mock objects, just pass through to leaf types.
+    const fieldType = getNullableType(type);
     if (fieldType instanceof GraphQLObjectType) {
-      // eslint-disable-next-line no-param-reassign
-      field.resolve = () => { return {}; };
+      // TODO: let people define how to mock each object type separately
+      // we could do this by passing in an override based on typeName and fieldName
+      // same as we do when we generate a schema
+      return () => { return {}; };
+    }
+    if (fieldType instanceof GraphQLList) {
+      return () => [mockType(type.ofType)(), mockType(type.ofType)()];
     }
     if (mockFunctionMap.has(fieldType)) {
-      // eslint-disable-next-line no-param-reassign
-      field.resolve = mockFunctionMap.get(fieldType);
+      return mockFunctionMap.get(fieldType);
     }
+    // if we don't know how to mock this type, we return null
+    return null;
+  }
+
+  // TODO: mock union types and interfaces (with override, I guess)
+
+  forEachField(schema, (field) => {
+    // this only mocks the types defined in mockFunctionMap
+    // other types will keep their current resolve functions
+    // eslint-disable-next-line no-param-reassign
+    field.resolve = mockType(field.type) || field.resolve;
   });
 }
 

@@ -28,6 +28,8 @@ describe('Mock', () => {
       returnNullableString: String
       returnNonNullString: String!
       returnObject: Bird
+      returnListOfInt: [Int]
+      returnListOfListOfObject: [[Bird!]]!
     }
     schema {
       query: RootQuery
@@ -138,6 +140,41 @@ describe('Mock', () => {
       returnObject: { returnInt: 123, returnString: 'abc' },
     };
     return graphql(jsSchema, testQuery).then((res) => {
+      expect(res.data).to.deep.equal(expected);
+    });
+  });
+
+  it('can mock a list of ints', () => {
+    const mockMap = new Map();
+    mockMap.set(GraphQLInt, () => 123);
+    addMockFunctionsToSchema(jsSchema, mockMap);
+    const testQuery = `{
+      returnListOfInt
+    }`;
+    const expected = {
+      returnListOfInt: [123, 123],
+    };
+    return graphql(jsSchema, testQuery).then((res) => {
+      expect(res.data).to.deep.equal(expected);
+    });
+  });
+
+  it('can mock a list of lists of objects', () => {
+    const mockMap = new Map();
+    mockMap.set(GraphQLString, () => 'a');
+    mockMap.set(GraphQLInt, () => 1);
+    addMockFunctionsToSchema(jsSchema, mockMap);
+    const testQuery = `{
+      returnListOfListOfObject { returnInt, returnString }
+    }`;
+    const expected = {
+      returnListOfListOfObject: [
+        [{ returnInt: 1, returnString: 'a' }, { returnInt: 1, returnString: 'a' }],
+        [{ returnInt: 1, returnString: 'a' }, { returnInt: 1, returnString: 'a' }],
+      ],
+    };
+    return graphql(jsSchema, testQuery).then((res) => {
+      console.log(res);
       expect(res.data).to.deep.equal(expected);
     });
   });
