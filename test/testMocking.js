@@ -1,15 +1,11 @@
 import {
   buildSchemaFromTypeDefinitions,
   addMockFunctionsToSchema,
+  addResolveFunctionsToSchema,
 } from '../src/schemaGenerator.js';
 import { expect } from 'chai';
 import {
   graphql,
-  GraphQLInt,
-  GraphQLFloat,
-  GraphQLBoolean,
-  GraphQLString,
-  GraphQLID,
  } from 'graphql';
 
 describe('Mock', () => {
@@ -172,6 +168,22 @@ describe('Mock', () => {
         [{ returnInt: 1, returnString: 'a' }, { returnInt: 1, returnString: 'a' }],
         [{ returnInt: 1, returnString: 'a' }, { returnInt: 1, returnString: 'a' }],
       ],
+    };
+    return graphql(jsSchema, testQuery).then((res) => {
+      expect(res.data).to.deep.equal(expected);
+    });
+  });
+
+  it('only masks resolve functions if you define a mock', () => {
+    const mockMap = new Map();
+    const resolvers = { RootQuery: { returnInt: () => 5 } };
+    addResolveFunctionsToSchema(jsSchema, resolvers);
+    addMockFunctionsToSchema(jsSchema, mockMap);
+    const testQuery = `{
+      returnInt
+    }`;
+    const expected = {
+      returnInt: 5,
     };
     return graphql(jsSchema, testQuery).then((res) => {
       expect(res.data).to.deep.equal(expected);
