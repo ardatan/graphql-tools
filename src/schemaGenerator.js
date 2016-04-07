@@ -130,10 +130,7 @@ function addMockFunctionsToSchema(schema, mockFunctionMap, preserveResolvers = f
         return mockFunctionMap.get(fieldType.name)(o, a, c, r);
       }
       if (fieldType instanceof GraphQLObjectType) {
-        return () => {
-          console.log('object!');
-          return {};
-        };
+        return {};
       }
       if (defaultMockMap.has(fieldType)) {
         return defaultMockMap.get(fieldType)(o, a, c, r);
