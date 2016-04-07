@@ -133,15 +133,21 @@ class MockList {
   }
 }
 
-function addMockFunctionsToSchema(schema, mockFunctionMap, preserveResolvers = false) {
+function addMockFunctionsToSchema({ schema, mocks, preserveResolvers = false } = {}) {
   // TODO: rewrite from using Map of mock function to using an object?
   if (!schema) {
     // XXX should we check that schema is an instance of GraphQLSchema?
     throw new Error('Must provide schema to mock');
   }
-  if (!(mockFunctionMap instanceof Map)) {
-    throw new Error('mockFunctionMap must be a Map');
+  if (!(mocks === Object(mocks)) || Array.isArray(mocks)) {
+    throw new Error('mocks must be of type Object');
   }
+
+  // use Map internally, because that API is nicer.
+  const mockFunctionMap = new Map();
+  Object.keys(mocks).forEach((typeName) => {
+    mockFunctionMap.set(typeName, mocks[typeName]);
+  });
 
   mockFunctionMap.forEach((mockFunction, mockTypeName) => {
     if (typeof mockFunction !== 'function') {
