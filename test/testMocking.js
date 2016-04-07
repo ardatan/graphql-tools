@@ -27,6 +27,7 @@ describe('Mock', () => {
       returnNonNullString: String!
       returnObject: Bird
       returnListOfInt: [Int]
+      returnListOfIntArg(l: Int): [Int]
       returnListOfListOfObject: [[Bird!]]!
       returnStringArgument(s: String): String
     }
@@ -357,6 +358,24 @@ describe('Mock', () => {
     return graphql(jsSchema, testQuery).then((res) => {
       expect(res.data.returnListOfInt).to.have.length.within(10, 20);
       expect(res.data.returnListOfInt[0]).to.equal(12);
+    });
+  });
+
+  it('lets you mock a list of specific variable length', () => {
+    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    const mockMap = new Map();
+    mockMap.set('RootQuery', () => {
+      return { returnListOfIntArg: (o, a) => new MockList(a.l) };
+    });
+    mockMap.set('Int', () => 12);
+    addMockFunctionsToSchema(jsSchema, mockMap);
+    const testQuery = `{
+      l3: returnListOfIntArg(l: 3)
+      l5: returnListOfIntArg(l: 5)
+    }`;
+    return graphql(jsSchema, testQuery).then((res) => {
+      expect(res.data.l3.length).to.equal(3);
+      expect(res.data.l5.length).to.equal(5);
     });
   });
 
