@@ -96,6 +96,7 @@ function addResolveFunctionsToSchema(schema, resolveFunctions) {
 }
 
 function addMockFunctionsToSchema(schema, mockFunctionMap, preserveResolvers = false) {
+  // TODO: rewrite from using Map of mock function to using an object?
   // TODO: make first two arguments required. add check for them
   const defaultMockMap = new Map();
   defaultMockMap.set(GraphQLInt, () => 58);
