@@ -40,7 +40,7 @@ describe('Mock', () => {
 
   it('can mock an Int', () => {
     const mockMap = new Map();
-    mockMap.set(GraphQLInt, () => 55);
+    mockMap.set('Int', () => 55);
     addMockFunctionsToSchema(jsSchema, mockMap);
     const testQuery = `{
       returnInt
@@ -52,7 +52,7 @@ describe('Mock', () => {
 
   it('can mock a Float', () => {
     const mockMap = new Map();
-    mockMap.set(GraphQLFloat, () => 55.5);
+    mockMap.set('Float', () => 55.5);
     addMockFunctionsToSchema(jsSchema, mockMap);
     const testQuery = `{
       returnFloat
@@ -63,7 +63,7 @@ describe('Mock', () => {
   });
   it('can mock a STRING', () => {
     const mockMap = new Map();
-    mockMap.set(GraphQLString, () => 'a string');
+    mockMap.set('String', () => 'a string');
     addMockFunctionsToSchema(jsSchema, mockMap);
     const testQuery = `{
       returnString
@@ -74,7 +74,7 @@ describe('Mock', () => {
   });
   it('can mock a Boolean', () => {
     const mockMap = new Map();
-    mockMap.set(GraphQLBoolean, () => true);
+    mockMap.set('Boolean', () => true);
     addMockFunctionsToSchema(jsSchema, mockMap);
     const testQuery = `{
       returnBoolean
@@ -85,7 +85,7 @@ describe('Mock', () => {
   });
   it('can mock an ID', () => {
     const mockMap = new Map();
-    mockMap.set(GraphQLID, () => 'ea5bdc19');
+    mockMap.set('ID', () => 'ea5bdc19');
     addMockFunctionsToSchema(jsSchema, mockMap);
     const testQuery = `{
       returnID
@@ -96,7 +96,7 @@ describe('Mock', () => {
   });
   it('nullable type is nullable', () => {
     const mockMap = new Map();
-    mockMap.set(GraphQLString, () => null);
+    mockMap.set('String', () => null);
     addMockFunctionsToSchema(jsSchema, mockMap);
     const testQuery = `{
       returnNullableString
@@ -107,7 +107,7 @@ describe('Mock', () => {
   });
   it('can mock a nonNull type', () => {
     const mockMap = new Map();
-    mockMap.set(GraphQLString, () => 'nonnull');
+    mockMap.set('String', () => 'nonnull');
     addMockFunctionsToSchema(jsSchema, mockMap);
     const testQuery = `{
       returnNonNullString
@@ -118,7 +118,7 @@ describe('Mock', () => {
   });
   it('nonNull type is not nullable', () => {
     const mockMap = new Map();
-    mockMap.set(GraphQLString, () => null);
+    mockMap.set('String', () => null);
     addMockFunctionsToSchema(jsSchema, mockMap);
     const testQuery = `{
       returnNonNullString
@@ -130,8 +130,8 @@ describe('Mock', () => {
   });
   it('can mock object types', () => {
     const mockMap = new Map();
-    mockMap.set(GraphQLString, () => 'abc');
-    mockMap.set(GraphQLInt, () => 123);
+    mockMap.set('String', () => 'abc');
+    mockMap.set('Int', () => 123);
     addMockFunctionsToSchema(jsSchema, mockMap);
     const testQuery = `{
       returnObject { returnInt, returnString }
@@ -146,7 +146,7 @@ describe('Mock', () => {
 
   it('can mock a list of ints', () => {
     const mockMap = new Map();
-    mockMap.set(GraphQLInt, () => 123);
+    mockMap.set('Int', () => 123);
     addMockFunctionsToSchema(jsSchema, mockMap);
     const testQuery = `{
       returnListOfInt
@@ -161,8 +161,8 @@ describe('Mock', () => {
 
   it('can mock a list of lists of objects', () => {
     const mockMap = new Map();
-    mockMap.set(GraphQLString, () => 'a');
-    mockMap.set(GraphQLInt, () => 1);
+    mockMap.set('String', () => 'a');
+    mockMap.set('Int', () => 1);
     addMockFunctionsToSchema(jsSchema, mockMap);
     const testQuery = `{
       returnListOfListOfObject { returnInt, returnString }
@@ -174,7 +174,6 @@ describe('Mock', () => {
       ],
     };
     return graphql(jsSchema, testQuery).then((res) => {
-      console.log(res);
       expect(res.data).to.deep.equal(expected);
     });
   });

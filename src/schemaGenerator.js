@@ -91,22 +91,24 @@ function addResolveFunctionsToSchema(schema, resolveFunctions) {
 }
 
 function addMockFunctionsToSchema(schema, mockFunctionMap) {
+  // mock type returns a resolve function which will mock this type
+  // it may return null, in which case the resolve function shouldn't
+  // be overridden.
   function mockType(type) {
     // nullability doesn't matter for the purpose of mocking.
     const fieldType = getNullableType(type);
-    if (fieldType instanceof GraphQLObjectType) {
-      // TODO: let people define how to mock each object type separately
-      // we could do this by passing in an override based on typeName and fieldName
-      // same as we do when we generate a schema
-      return () => { return {}; };
-    }
     if (fieldType instanceof GraphQLList) {
       return () => [mockType(type.ofType)(), mockType(type.ofType)()];
     }
-    if (mockFunctionMap.has(fieldType)) {
-      return mockFunctionMap.get(fieldType);
+    if (mockFunctionMap.has(fieldType.name)) {
+      return mockFunctionMap.get(fieldType.name);
     }
-    // if we don't know how to mock this type, we return null
+    // Easy fallback if people don't specify how to mock a custom type:
+    // Just keep falling through until you get to the leaf types
+    if (fieldType instanceof GraphQLObjectType) {
+      return () => { return {}; };
+    }
+    // if we get here, no mocking was defined for this type, so we return null
     return null;
   }
 
