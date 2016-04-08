@@ -505,7 +505,7 @@ describe('Mock', () => {
     `;
     const jsSchema = buildSchemaFromTypeDefinitions(short);
     const ITEMS_PER_PAGE = 2;
-    // This mock map demonstrates default merging.
+    // This mock map demonstrates default merging on objects and nested lists.
     // thread on root query will have id a.id, and missing properties
     // come from the Thread mock type
     const mockMap = {
@@ -517,7 +517,7 @@ describe('Mock', () => {
         return {
           name: 'Lorem Ipsum',
           posts: (o, a) => {
-            return new MockList(ITEMS_PER_PAGE * a.num);
+            return new MockList(ITEMS_PER_PAGE * a.num, (oi, ai) => ({ id: ai.num }));
           },
         };
       },
@@ -543,10 +543,10 @@ describe('Mock', () => {
         id: '67',
         name: 'Lorem Ipsum',
         posts: [
-          { id: '41ae7bd', text: 'superlongpost' },
-          { id: '41ae7bd', text: 'superlongpost' },
-          { id: '41ae7bd', text: 'superlongpost' },
-          { id: '41ae7bd', text: 'superlongpost' },
+          { id: '2', text: 'superlongpost' },
+          { id: '2', text: 'superlongpost' },
+          { id: '2', text: 'superlongpost' },
+          { id: '2', text: 'superlongpost' },
         ],
       },
     };

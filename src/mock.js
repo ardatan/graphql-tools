@@ -3,6 +3,7 @@ import {
   GraphQLObjectType,
   GraphQLList,
   getNullableType,
+  getNamedType,
 } from 'graphql/type';
 import casual from 'casual-browserify';
 import { graphql } from 'graphql';
@@ -52,6 +53,24 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
   defaultMockMap.set('Boolean', () => casual.coin_flip);
   defaultMockMap.set('ID', () => uuid.v4());
 
+  function mergeObjects(a, b) {
+    return Object.assign(a, b);
+  }
+
+  // takes either an object or a (possibly nested) array
+  // and completes the customMock object with any fields
+  // defined on genericMock
+  // only merges objects or arrays. Scalars are returned as is
+  function mergeMocks(genericMock, customMock) {
+    if (Array.isArray(customMock)) {
+      return customMock.map((el) => mergeMocks(genericMock, el));
+    }
+    if (isObject(customMock)) {
+      return mergeObjects(genericMock, customMock);
+    }
+    return customMock;
+  }
+
   const mockType = function mockType(type, typeName, fieldName) {
     // order of precendence for mocking:
     // 1. if the object passed in already has fieldName, just use that
@@ -63,6 +82,7 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
     return (o, a, c, r) => {
       // nullability doesn't matter for the purpose of mocking.
       const fieldType = getNullableType(type);
+      const namedFieldType = getNamedType(fieldType);
 
       if (o && typeof o[fieldName] !== 'undefined') {
         let result;
@@ -78,9 +98,8 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
 
         // Now we merge the result with the default mock for this type.
         // This allows overriding defaults while writing very little code.
-        // We only do merging for objects, of course
-        if (isObject(result) && mockFunctionMap.has(fieldType.name)) {
-          result = Object.assign(mockFunctionMap.get(fieldType.name)(o, a, c, r), result);
+        if (mockFunctionMap.has(namedFieldType.name)) {
+          result = mergeMocks(mockFunctionMap.get(namedFieldType.name)(o, a, c, r), result);
         }
         return result;
       }
@@ -103,8 +122,6 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
       throw new Error(`No mock defined for type "${fieldType.name}"`);
     };
   };
-
-  // TODO: allow mocking of RootQuery and RootMutation
 
   forEachField(schema, (field, typeName, fieldName) => {
     if (preserveResolvers && field.resolve) {
