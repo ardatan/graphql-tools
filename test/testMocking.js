@@ -1,9 +1,11 @@
 import {
-  buildSchemaFromTypeDefinitions,
   addMockFunctionsToSchema,
-  addResolveFunctionsToSchema,
   MockList,
-} from '../src/schemaGenerator.js';
+} from '../src/mock';
+import {
+  buildSchemaFromTypeDefinitions,
+  addResolveFunctionsToSchema,
+} from '../src/schemaGenerator';
 import { expect } from 'chai';
 import {
   graphql,
