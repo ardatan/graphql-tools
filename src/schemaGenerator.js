@@ -8,11 +8,6 @@ import {
   GraphQLObjectType,
   GraphQLList,
   getNullableType,
-  GraphQLInt,
-  GraphQLFloat,
-  GraphQLString,
-  GraphQLID,
-  GraphQLBoolean,
 } from 'graphql/type';
 import { decorateWithTracer } from './tracing';
 
@@ -134,12 +129,15 @@ class MockList {
 }
 
 function addMockFunctionsToSchema({ schema, mocks, preserveResolvers = false } = {}) {
+  function isObject(thing) {
+    return thing === Object(thing) && !Array.isArray(thing);
+  }
   // TODO: rewrite from using Map of mock function to using an object?
   if (!schema) {
     // XXX should we check that schema is an instance of GraphQLSchema?
     throw new Error('Must provide schema to mock');
   }
-  if (!(mocks === Object(mocks)) || Array.isArray(mocks)) {
+  if (!isObject(mocks)) {
     throw new Error('mocks must be of type Object');
   }
 
@@ -175,14 +173,24 @@ function addMockFunctionsToSchema({ schema, mocks, preserveResolvers = false } =
       const fieldType = getNullableType(type);
 
       if (o && typeof o[fieldName] !== 'undefined') {
+        let result;
+        // if we're here, the field is already defined
         if (typeof o[fieldName] === 'function') {
-          const result = o[fieldName](o, a, c, r);
+          result = o[fieldName](o, a, c, r);
           if (result instanceof MockList) {
-            return result.mock(o, a, c, r, fieldType, mockType);
+            result = result.mock(o, a, c, r, fieldType, mockType);
           }
-          return result;
+        } else {
+          result = o[fieldName];
         }
-        return o[fieldName];
+
+        // Now we merge the result with the default mock for this type.
+        // This allows overriding defaults while writing very little code.
+        // We only do merging for objects, of course
+        if (isObject(result) && mockFunctionMap.has(fieldType.name)) {
+          result = Object.assign(mockFunctionMap.get(fieldType.name)(o, a, c, r), result);
+        }
+        return result;
       }
 
       if (fieldType instanceof GraphQLList) {
@@ -213,7 +221,9 @@ function addMockFunctionsToSchema({ schema, mocks, preserveResolvers = false } =
 
     // we have to handle the root mutation and root query types differently,
     // because no resolver is called at the root.
-    if (typeName === schema.getQueryType().name || typeName === schema.getMutationType().name) {
+    const isOnQueryType = typeName === (schema.getQueryType() || {}).name;
+    const isOnMutationType = typeName === (schema.getMutationType() || {}).name;
+    if (isOnQueryType || isOnMutationType) {
       if (mockFunctionMap.has(typeName)) {
         const rootMock = mockFunctionMap.get(typeName);
         if (rootMock()[fieldName]) {
@@ -224,6 +234,9 @@ function addMockFunctionsToSchema({ schema, mocks, preserveResolvers = false } =
             u[fieldName] = rootMock()[fieldName];
             // XXX this is a bit of a hack to still use mockType, which
             // lets you mock lists etc. as well
+            // otherwise we could just set field.resolve to rootMock()[fieldName]
+            // it's like pretending there was a resolve function that ran before
+            // the root resolve function.
             return mockType(field.type, typeName, fieldName)(u, a, c, r);
           };
           return;

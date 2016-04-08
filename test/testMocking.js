@@ -458,4 +458,81 @@ describe('Mock', () => {
       expect(res.data).to.deep.equal(expected);
     });
   });
+
+  it('works for a slightly more elaborate example', () => {
+    const short = `
+      type Thread {
+        id: ID!
+        name: String!
+        posts(page: Int = 0, num: Int = 1): [Post]
+      }
+      type Post {
+        id: ID!
+        user: User!
+        text: String!
+      }
+
+      type User {
+        id: ID!
+        name: String
+      }
+
+      type RootQuery {
+        thread(id: ID): Thread
+        threads(page: Int = 0, num: Int = 1): [Thread]
+      }
+
+      schema {
+        query: RootQuery
+      }
+    `;
+    const jsSchema = buildSchemaFromTypeDefinitions(short);
+    const ITEMS_PER_PAGE = 2;
+    // This mock map demonstrates default merging.
+    // thread on root query will have id a.id, and missing properties
+    // come from the Thread mock type
+    const mockMap = {
+      RootQuery: () => ({
+        thread: (o, a) => ({ id: a.id }),
+        threads: (o, a) => new MockList(ITEMS_PER_PAGE * a.num),
+      }),
+      Thread: () => {
+        return {
+          posts: (o, a) => {
+            return new MockList(ITEMS_PER_PAGE * a.num);
+          },
+        };
+      },
+      Post: () => ({
+        text: 'superlongpost',
+      }),
+      Int: () => 123,
+    };
+    addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
+    const testQuery = `query abc{
+      thread(id: "67"){
+        id
+        name
+        posts(num: 2){
+          id
+          text
+        }
+      }
+    }`;
+    const expected = {
+      thread: {
+        id: '67',
+        name: 'Lorem Ipsum',
+        posts: [
+          { id: '41ae7bd', text: 'superlongpost' },
+          { id: '41ae7bd', text: 'superlongpost' },
+          { id: '41ae7bd', text: 'superlongpost' },
+          { id: '41ae7bd', text: 'superlongpost' },
+        ],
+      },
+    };
+    return graphql(jsSchema, testQuery).then((res) => {
+      expect(res.data).to.deep.equal(expected);
+    });
+  });
 });
