@@ -1,7 +1,7 @@
 {
-  "name": "apollo-server",
-  "version": "0.0.3",
-  "description": "A GraphQL server toolkit",
+  "name": "graphql-tools",
+  "version": "0.1.0",
+  "description": "A set of useful GraphQL tools",
   "main": "dist/index.js",
   "directories": {
     "test": "test"
@@ -14,7 +14,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/apollostack/apollo-server.git"
+    "url": "git+https://github.com/apollostack/graphql-tools.git"
   },
   "keywords": [
     "GraphQL",
