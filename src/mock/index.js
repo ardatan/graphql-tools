@@ -1,52 +1,27 @@
 import {
+  GraphQLSchema,
   GraphQLObjectType,
   GraphQLList,
   getNullableType,
 } from 'graphql/type';
 import casual from 'casual';
+import { graphql } from 'graphql';
 import uuid from 'node-uuid';
-import { forEachField } from '../schemaGenerator';
+import { forEachField, buildSchemaFromTypeDefinitions } from '../schemaGenerator';
 
 
-class MockList {
-  // wrappedFunction can return another MockList or a value
-  constructor(len, wrappedFunction) {
-    this.len = len;
-    if (typeof wrappedFunction !== 'undefined') {
-      if (typeof wrappedFunction !== 'function') {
-        throw new Error('Second argument to MockList must be a function or undefined');
-      }
-      this.wrappedFunction = wrappedFunction;
-    }
+function mockServer(schema, mocks = {}, preserveResolvers = false) {
+  let mySchema = schema;
+  if (!(schema instanceof GraphQLSchema)) {
+    console.log('is shorthand');
+    mySchema = buildSchemaFromTypeDefinitions(schema);
   }
+  addMockFunctionsToSchema({ schema: mySchema, mocks, preserveResolvers });
 
-  mock(o, a, c, r, fieldType, mockTypeFunc) {
-    function randint(low, high) {
-      return Math.floor(Math.random() * (high - low + 1) + low);
-    }
-    let arr;
-    if (Array.isArray(this.len)) {
-      arr = new Array(randint(this.len[0], this.len[1]));
-    } else {
-      arr = new Array(this.len);
-    }
-    for (let i = 0; i < arr.length; i++) {
-      if (typeof this.wrappedFunction === 'function') {
-        const res = this.wrappedFunction(o, a, c, r);
-        if (res instanceof MockList) {
-          arr[i] = res.mock(o, a, c, r, getNullableType(fieldType.ofType), mockTypeFunc);
-        } else {
-          arr[i] = res;
-        }
-      } else {
-        arr[i] = mockTypeFunc(fieldType.ofType)(o, a, c, r);
-      }
-    }
-    return arr;
-  }
+  return { query: (query, vars) => graphql(mySchema, query, {}, {}, vars) };
 }
 
-function addMockFunctionsToSchema({ schema, mocks, preserveResolvers = false } = {}) {
+function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = false } = {}) {
   function isObject(thing) {
     return thing === Object(thing) && !Array.isArray(thing);
   }
@@ -165,7 +140,46 @@ function addMockFunctionsToSchema({ schema, mocks, preserveResolvers = false } =
   });
 }
 
+class MockList {
+  // wrappedFunction can return another MockList or a value
+  constructor(len, wrappedFunction) {
+    this.len = len;
+    if (typeof wrappedFunction !== 'undefined') {
+      if (typeof wrappedFunction !== 'function') {
+        throw new Error('Second argument to MockList must be a function or undefined');
+      }
+      this.wrappedFunction = wrappedFunction;
+    }
+  }
+
+  mock(o, a, c, r, fieldType, mockTypeFunc) {
+    function randint(low, high) {
+      return Math.floor(Math.random() * (high - low + 1) + low);
+    }
+    let arr;
+    if (Array.isArray(this.len)) {
+      arr = new Array(randint(this.len[0], this.len[1]));
+    } else {
+      arr = new Array(this.len);
+    }
+    for (let i = 0; i < arr.length; i++) {
+      if (typeof this.wrappedFunction === 'function') {
+        const res = this.wrappedFunction(o, a, c, r);
+        if (res instanceof MockList) {
+          arr[i] = res.mock(o, a, c, r, getNullableType(fieldType.ofType), mockTypeFunc);
+        } else {
+          arr[i] = res;
+        }
+      } else {
+        arr[i] = mockTypeFunc(fieldType.ofType)(o, a, c, r);
+      }
+    }
+    return arr;
+  }
+}
+
 export {
   addMockFunctionsToSchema,
   MockList,
+  mockServer,
 };

@@ -8,3 +8,9 @@ export {
   addCatchUndefinedToSchema,
   assertResolveFunctionsPresent,
 } from './schemaGenerator';
+
+export {
+  addMockFunctionsToSchema,
+  MockList,
+  mockServer,
+} from './mock';
