@@ -508,6 +508,9 @@ describe('Mock', () => {
     // This mock map demonstrates default merging on objects and nested lists.
     // thread on root query will have id a.id, and missing properties
     // come from the Thread mock type
+    // TODO: this tests too many things at once, it should really be broken up
+    // it was really useful to have this though, because it made me find many
+    // unintuitive corner-cases
     const mockMap = {
       RootQuery: () => ({
         thread: (o, a) => ({ id: a.id }),
