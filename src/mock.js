@@ -4,7 +4,7 @@ import {
   GraphQLList,
   getNullableType,
 } from 'graphql/type';
-import casual from 'casual';
+import casual from 'casual-browserify';
 import { graphql } from 'graphql';
 import uuid from 'node-uuid';
 import { forEachField, buildSchemaFromTypeDefinitions } from './schemaGenerator';
