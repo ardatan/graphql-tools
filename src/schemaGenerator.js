@@ -10,6 +10,8 @@ import {
   getNullableType,
 } from 'graphql/type';
 import { decorateWithTracer } from './tracing';
+import casual from 'casual';
+import uuid from 'node-uuid';
 
 // @schemaDefinition: A GraphQL type schema in shorthand
 // @resolvers: Definitions for resolvers to be merged with schema
@@ -132,7 +134,6 @@ function addMockFunctionsToSchema({ schema, mocks, preserveResolvers = false } =
   function isObject(thing) {
     return thing === Object(thing) && !Array.isArray(thing);
   }
-  // TODO: rewrite from using Map of mock function to using an object?
   if (!schema) {
     // XXX should we check that schema is an instance of GraphQLSchema?
     throw new Error('Must provide schema to mock');
@@ -154,11 +155,11 @@ function addMockFunctionsToSchema({ schema, mocks, preserveResolvers = false } =
   });
 
   const defaultMockMap = new Map();
-  defaultMockMap.set('Int', () => 58);
-  defaultMockMap.set('Float', () => 12.3);
-  defaultMockMap.set('String', () => 'Lorem Ipsum');
-  defaultMockMap.set('Boolean', () => false);
-  defaultMockMap.set('ID', () => '41ae7bd');
+  defaultMockMap.set('Int', () => casual.integer());
+  defaultMockMap.set('Float', () => casual.double());
+  defaultMockMap.set('String', () => casual.words(2));
+  defaultMockMap.set('Boolean', () => casual.coin_flip);
+  defaultMockMap.set('ID', () => uuid.v4());
 
   const mockType = function mockType(type, typeName, fieldName) {
     // order of precendence for mocking:

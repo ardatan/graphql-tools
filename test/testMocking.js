@@ -75,15 +75,12 @@ describe('Mock', () => {
       returnString
       returnID
     }`;
-    const expected = {
-      returnInt: 58,
-      returnFloat: 12.3,
-      returnString: 'Lorem Ipsum',
-      returnBoolean: false,
-      returnID: '41ae7bd',
-    };
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data).to.deep.equal(expected);
+      expect(res.data.returnInt).to.be.within(-1000, 1000);
+      expect(res.data.returnFloat).to.be.within(-1000, 1000);
+      expect(res.data.returnBoolean).to.be.a('boolean');
+      expect(res.data.returnString).to.be.a('string');
+      expect(res.data.returnID).to.be.a('string');
     });
   });
 
@@ -498,12 +495,14 @@ describe('Mock', () => {
       }),
       Thread: () => {
         return {
+          name: 'Lorem Ipsum',
           posts: (o, a) => {
             return new MockList(ITEMS_PER_PAGE * a.num);
           },
         };
       },
       Post: () => ({
+        id: '41ae7bd',
         text: 'superlongpost',
       }),
       Int: () => 123,

@@ -11,7 +11,6 @@
     "lint": "eslint .",
     "testonly": "mocha test/index.js",
     "prepublish": "babel ./src --ignore test --out-dir ./dist"
-
   },
   "repository": {
     "type": "git",
@@ -33,6 +32,7 @@
   "homepage": "https://github.com/apollostack/apollo-proxy#readme",
   "dependencies": {
     "babel-polyfill": "^6.5.0",
+    "casual": "^1.5.2",
     "fs": "0.0.2",
     "graphql": "^0.5.0-beta.1",
     "node-uuid": "^1.4.7",
