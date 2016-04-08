@@ -61,12 +61,12 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
   // and completes the customMock object with any fields
   // defined on genericMock
   // only merges objects or arrays. Scalars are returned as is
-  function mergeMocks(genericMock, customMock) {
+  function mergeMocks(genericMockFunction, customMock) {
     if (Array.isArray(customMock)) {
-      return customMock.map((el) => mergeMocks(genericMock, el));
+      return customMock.map((el) => mergeMocks(genericMockFunction, el));
     }
     if (isObject(customMock)) {
-      return mergeObjects(genericMock, customMock);
+      return mergeObjects(genericMockFunction(), customMock);
     }
     return customMock;
   }
@@ -99,7 +99,9 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
         // Now we merge the result with the default mock for this type.
         // This allows overriding defaults while writing very little code.
         if (mockFunctionMap.has(namedFieldType.name)) {
-          result = mergeMocks(mockFunctionMap.get(namedFieldType.name)(o, a, c, r), result);
+          result = mergeMocks(
+            mockFunctionMap.get(namedFieldType.name).bind(null, o, a, c, r), result
+          );
         }
         return result;
       }

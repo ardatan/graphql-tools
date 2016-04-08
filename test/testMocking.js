@@ -557,4 +557,7 @@ describe('Mock', () => {
       expect(res.data).to.deep.equal(expected);
     });
   });
+
+  // TODO add a test that checks that even when merging defaults, lists invoke
+  // the function for every object, not just once per list.
 });
