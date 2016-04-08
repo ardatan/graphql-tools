@@ -7,7 +7,7 @@ import {
 import casual from 'casual';
 import { graphql } from 'graphql';
 import uuid from 'node-uuid';
-import { forEachField, buildSchemaFromTypeDefinitions } from '../schemaGenerator';
+import { forEachField, buildSchemaFromTypeDefinitions } from './schemaGenerator';
 
 
 function mockServer(schema, mocks = {}, preserveResolvers = false) {
