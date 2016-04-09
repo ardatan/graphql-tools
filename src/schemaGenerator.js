@@ -19,19 +19,19 @@ SchemaError.prototype = new Error;
 
 
 const generateSchema = (
-  schemaDefinition,
+  typeDefinitions,
   resolveFunctions,
   logger = null,
   forbidUndefinedInResolve = false,
 ) => {
-  if (!schemaDefinition) {
-    throw new SchemaError('Must provide schemaDefinition');
+  if (!typeDefinitions) {
+    throw new SchemaError('Must provide typeDefinitions');
   }
   if (!resolveFunctions) {
     throw new SchemaError('Must provide resolveFunctions');
   }
-  const ast = parse(schemaDefinition);
-  const schema = buildASTSchema(ast);
+
+  const schema = buildSchemaFromTypeDefinitions(typeDefinitions);
 
   addResolveFunctionsToSchema(schema, resolveFunctions);
 
@@ -47,6 +47,10 @@ const generateSchema = (
 
   return schema;
 };
+
+function buildSchemaFromTypeDefinitions(typeDefinitions) {
+  return buildASTSchema(parse(typeDefinitions));
+}
 
 function forEachField(schema, fn) {
   const typeMap = schema.getTypeMap();
@@ -174,9 +178,11 @@ function decorateToCatchUndefined(fn, hint) {
 export {
   generateSchema,
   SchemaError,
+  forEachField,
   addErrorLoggingToSchema,
   addResolveFunctionsToSchema,
   addCatchUndefinedToSchema,
   assertResolveFunctionsPresent,
   addTracingToResolvers,
+  buildSchemaFromTypeDefinitions,
 };
