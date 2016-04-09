@@ -560,4 +560,6 @@ describe('Mock', () => {
 
   // TODO add a test that checks that even when merging defaults, lists invoke
   // the function for every object, not just once per list.
+
+  // TODO test that you can call mock server with a graphql-js schema
 });
