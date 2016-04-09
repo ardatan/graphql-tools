@@ -10,11 +10,11 @@ import { graphql } from 'graphql';
 import uuid from 'node-uuid';
 import { forEachField, buildSchemaFromTypeDefinitions } from './schemaGenerator';
 
-
+// This function wraps addMockFunctionsToSchema for more convenience
 function mockServer(schema, mocks = {}, preserveResolvers = false) {
   let mySchema = schema;
   if (!(schema instanceof GraphQLSchema)) {
-    console.log('is shorthand');
+    // TODO: provide useful error messages here if this fails
     mySchema = buildSchemaFromTypeDefinitions(schema);
   }
   addMockFunctionsToSchema({ schema: mySchema, mocks, preserveResolvers });
@@ -22,6 +22,9 @@ function mockServer(schema, mocks = {}, preserveResolvers = false) {
   return { query: (query, vars) => graphql(mySchema, query, {}, {}, vars) };
 }
 
+// TODO allow providing a seed such that lengths of list could be deterministic
+// this could be done by using casual to get a random list length if the casual
+// object is global. 
 function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = false } = {}) {
   function isObject(thing) {
     return thing === Object(thing) && !Array.isArray(thing);
