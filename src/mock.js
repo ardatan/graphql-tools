@@ -1,6 +1,7 @@
 import {
   GraphQLSchema,
   GraphQLObjectType,
+  GraphQLEnumType,
   GraphQLList,
   getNullableType,
   getNamedType,
@@ -24,7 +25,7 @@ function mockServer(schema, mocks = {}, preserveResolvers = false) {
 
 // TODO allow providing a seed such that lengths of list could be deterministic
 // this could be done by using casual to get a random list length if the casual
-// object is global. 
+// object is global.
 function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = false } = {}) {
   function isObject(thing) {
     return thing === Object(thing) && !Array.isArray(thing);
@@ -117,7 +118,11 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
         return mockFunctionMap.get(fieldType.name)(o, a, c, r);
       }
       if (fieldType instanceof GraphQLObjectType) {
+        // objects don't return actual data, we only need to mock scalars!
         return {};
+      }
+      if (fieldType instanceof GraphQLEnumType) {
+        return casual.random_element(fieldType.getValues()).value;
       }
       if (defaultMockMap.has(fieldType.name)) {
         return defaultMockMap.get(fieldType.name)(o, a, c, r);

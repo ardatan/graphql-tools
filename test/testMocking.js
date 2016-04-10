@@ -22,12 +22,19 @@ describe('Mock', () => {
       returnStringArgument(s: String): String
     }
 
+    enum SomeEnum {
+      A
+      B
+      C
+    }
+
     type RootQuery {
       returnInt: Int
       returnFloat: Float
       returnString: String
       returnBoolean: Boolean
       returnID: ID
+      returnEnum: SomeEnum
       returnMockError: MissingMockType
       returnNullableString: String
       returnNonNullString: String!
@@ -101,6 +108,19 @@ describe('Mock', () => {
       expect(res.data.returnBoolean).to.be.a('boolean');
       expect(res.data.returnString).to.be.a('string');
       expect(res.data.returnID).to.be.a('string');
+    });
+  });
+
+  // TODO test mockServer with precompiled schema
+  it('can mock Enum', () => {
+    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    const mockMap = {};
+    addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
+    const testQuery = `{
+      returnEnum
+    }`;
+    return graphql(jsSchema, testQuery).then((res) => {
+      expect(res.data.returnEnum).to.be.oneOf(['A', 'B', 'C']);
     });
   });
 
