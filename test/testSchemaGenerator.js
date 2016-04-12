@@ -8,11 +8,19 @@ import TypeA from './circularSchemaA';
 
 describe('generating schema from shorthand', () => {
   it('throws an error if no schema is provided', () => {
-    assert.throw(generateSchema, SchemaError);
+    return assert.throw(generateSchema, SchemaError);
   });
 
   it('throws an error if no resolveFunctions are provided', () => {
-    assert.throw(generateSchema.bind(null, 'blah'), SchemaError);
+    return assert.throw(generateSchema.bind(null, 'blah'), SchemaError);
+  });
+
+  it('throws an error if typeDefinitions is neither string nor array', () => {
+    return assert.throw(generateSchema.bind(null, {}, {}), SchemaError);
+  });
+
+  it('throws an error if typeDefinition array contains not only functions and strings', () => {
+    return assert.throw(generateSchema.bind(null, [17], {}), SchemaError);
   });
 
   it('can generate a schema', (done) => {

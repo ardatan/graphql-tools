@@ -64,17 +64,20 @@ function generateSchema(
 function concatenateTypeDefs(typeDefinitionsAry, functionsCalled = {}) {
   let resolvedTypeDefinitions = [];
   typeDefinitionsAry.forEach((typeDef) => {
-    if (typeof typeDef === 'function' && !(typeDef in functionsCalled)) {
-      // eslint-disable-next-line no-param-reassign
-      functionsCalled[typeDef] = 1;
-      resolvedTypeDefinitions = resolvedTypeDefinitions.concat(
-        concatenateTypeDefs(typeDef(), functionsCalled)
-      );
+    if (typeof typeDef === 'function') {
+      if (!(typeDef in functionsCalled)) {
+        // eslint-disable-next-line no-param-reassign
+        functionsCalled[typeDef] = 1;
+        resolvedTypeDefinitions = resolvedTypeDefinitions.concat(
+          concatenateTypeDefs(typeDef(), functionsCalled)
+        );
+      }
     } else {
       if (typeof typeDef === 'string') {
         resolvedTypeDefinitions.push(typeDef.trim());
       } else {
-        throw new Error('typeDefinitions array must contain only strings and functions');
+        const type = typeof typeDef;
+        throw new SchemaError(`typeDef array must contain only strings and functions, got ${type}`);
       }
     }
   });
