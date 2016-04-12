@@ -199,7 +199,10 @@ function addErrorLoggingToSchema(schema, logger) {
 function wrapResolver(innerResolver, outerResolver) {
   return (obj, args, ctx, info) => {
     const root = outerResolver(obj, args, ctx, info);
-    return innerResolver(root, args, ctx, info);
+    if (innerResolver) {
+      return innerResolver(root, args, ctx, info);
+    }
+    return defaultResolveFn(root, args, ctx, info);
   };
 }
 /*
@@ -250,6 +253,22 @@ function decorateToCatchUndefined(fn, hint) {
     }
     return result;
   };
+}
+/**
+ * XXX taken from graphql-js: src/execution/execute.js, because that function
+ * is not exported
+ *
+ * If a resolve function is not given, then a default resolve behavior is used
+ * which takes the property of the source object of the same name as the field
+ * and returns it as the result, or if it's a function, returns the result
+ * of calling that function.
+ */
+function defaultResolveFn(source, args, context, { fieldName }) {
+  // ensure source is a value for which property access is acceptable.
+  if (typeof source === 'object' || typeof source === 'function') {
+    const property = source[fieldName];
+    return typeof property === 'function' ? source[fieldName]() : property;
+  }
 }
 
 export {

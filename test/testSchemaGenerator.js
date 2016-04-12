@@ -22,7 +22,6 @@ const testSchema = `
 const testResolvers = {
   RootQuery: {
     species: (root, { name }) => root + name,
-    stuff: (root) => `${root} stuff`,
   },
 };
 
@@ -459,9 +458,21 @@ describe('Schema root resolve function', () => {
       stuff
     }`;
     return graphql(jsSchema, query).then((res) => {
-      console.log(res);
       expect(res.data.species).to.equal('ROOTstrix');
-      expect(res.data.stuff).to.equal('ROOT stuff');
+    });
+  });
+
+  it('can wrap fields that do not have a resolver defined', () => {
+    const jsSchema = generateSchema(testSchema, testResolvers);
+    const rootResolver = () => {
+      return { stuff: 'stuff' };
+    };
+    addSchemaLevelResolveFunction(jsSchema, rootResolver);
+    const query = `{
+      stuff
+    }`;
+    return graphql(jsSchema, query).then((res) => {
+      expect(res.data.stuff).to.equal('stuff');
     });
   });
 });
