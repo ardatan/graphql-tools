@@ -103,6 +103,23 @@ function forEachField(schema, fn) {
   });
 }
 
+// takes a GraphQL-JS schema and an object of loaders, then attaches
+// the loaders to the context by wrapping each query or mutation resolve
+// function with a function that attaches loaders if they don't exist.
+// attaches loaders only once to make sure they are singletons
+function attachLoadersToContext(schema, loaders) {
+  const attachLoaderFn = (root, args, ctx) => {
+    Object.keys(loaders).forEach((loaderName) => {
+      if (!ctx[loaderName]) {
+        // eslint-disable-next-line no-param-reassign
+        ctx[loaderName] = new loaders[loaderName]();
+      }
+    });
+    return root;
+  };
+  addSchemaLevelResolveFunction(schema, attachLoaderFn);
+}
+
 // wraps all resolve functions of query, mutation or subscription fields
 // with the provided function to simulate a root schema level resolve funciton
 // CAUTION: this function will run once for each root field, so it behaves
@@ -246,4 +263,5 @@ export {
   addTracingToResolvers,
   buildSchemaFromTypeDefinitions,
   addSchemaLevelResolveFunction,
+  attachLoadersToContext,
 };
