@@ -1,5 +1,5 @@
 import { generateSchema, SchemaError, addErrorLoggingToSchema } from '../src/schemaGenerator.js';
-import { assert } from 'chai';
+import { assert, expect } from 'chai';
 import { graphql } from 'graphql';
 import { Logger } from '../src/Logger.js';
 
@@ -137,6 +137,21 @@ describe('generating schema from shorthand', () => {
       assert.deepEqual(result, solution);
       done();
     });
+  });
+
+  it('can generate a schema from an array of types', () => {
+    const typeDefAry = [`
+      type Query {
+        foo: String
+      }
+      `, `
+      schema {
+        query: Query
+      }
+    `];
+
+    const jsSchema = generateSchema(typeDefAry, {});
+    return expect(jsSchema.getQueryType().name).to.equal('Query');
   });
 
   it('can generate a schema with resolve functions', (done) => {
