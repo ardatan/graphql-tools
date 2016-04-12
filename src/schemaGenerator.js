@@ -1,6 +1,7 @@
 // Generates a schema for graphql-js given a shorthand schema
 
 import { parse } from 'graphql/language';
+import { uniq } from 'lodash';
 import { buildASTSchema } from 'graphql/utilities';
 import {
   GraphQLScalarType,
@@ -17,13 +18,13 @@ function SchemaError(message) {
 }
 SchemaError.prototype = new Error;
 
-
-const generateSchema = (
+// type definitions can be a string or an array of strings.
+function generateSchema(
   typeDefinitions,
   resolveFunctions,
   logger = null,
   forbidUndefinedInResolve = false,
-) => {
+) {
   if (!typeDefinitions) {
     throw new SchemaError('Must provide typeDefinitions');
   }
@@ -31,7 +32,19 @@ const generateSchema = (
     throw new SchemaError('Must provide resolveFunctions');
   }
 
-  const schema = buildSchemaFromTypeDefinitions(typeDefinitions);
+  // TODO: check that typeDefinitions is either string or array of strings
+
+  let schema;
+  if (typeof typeDefinitions === 'string') {
+    schema = buildSchemaFromTypeDefinitions(typeDefinitions);
+  } else {
+    if (! Array.isArray(typeDefinitions)) {
+      // TODO improve error message and say what type was actually found
+      throw new SchemaError('`typeDefinitions` must be a string or array');
+    }
+    const ctd = concatenateTypeDefs(typeDefinitions);
+    schema = buildSchemaFromTypeDefinitions(ctd);
+  }
 
   addResolveFunctionsToSchema(schema, resolveFunctions);
 
@@ -46,7 +59,30 @@ const generateSchema = (
   }
 
   return schema;
-};
+}
+
+function concatenateTypeDefs(typeDefinitionsAry, functionsCalled = {}) {
+  let resolvedTypeDefinitions = [];
+  typeDefinitionsAry.forEach((typeDef) => {
+    if (typeof typeDef === 'function') {
+      if (!(typeDef in functionsCalled)) {
+        // eslint-disable-next-line no-param-reassign
+        functionsCalled[typeDef] = 1;
+        resolvedTypeDefinitions = resolvedTypeDefinitions.concat(
+          concatenateTypeDefs(typeDef(), functionsCalled)
+        );
+      }
+    } else {
+      if (typeof typeDef === 'string') {
+        resolvedTypeDefinitions.push(typeDef.trim());
+      } else {
+        const type = typeof typeDef;
+        throw new SchemaError(`typeDef array must contain only strings and functions, got ${type}`);
+      }
+    }
+  });
+  return uniq(resolvedTypeDefinitions.map((x) => x.trim())).join('\n');
+}
 
 function buildSchemaFromTypeDefinitions(typeDefinitions) {
   return buildASTSchema(parse(typeDefinitions));

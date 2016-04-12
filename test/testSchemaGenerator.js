@@ -1,17 +1,26 @@
 import { generateSchema, SchemaError, addErrorLoggingToSchema } from '../src/schemaGenerator.js';
-import { assert } from 'chai';
+import { assert, expect } from 'chai';
 import { graphql } from 'graphql';
 import { Logger } from '../src/Logger.js';
+import TypeA from './circularSchemaA';
 
 
 
 describe('generating schema from shorthand', () => {
   it('throws an error if no schema is provided', () => {
-    assert.throw(generateSchema, SchemaError);
+    return assert.throw(generateSchema, SchemaError);
   });
 
   it('throws an error if no resolveFunctions are provided', () => {
-    assert.throw(generateSchema.bind(null, 'blah'), SchemaError);
+    return assert.throw(generateSchema.bind(null, 'blah'), SchemaError);
+  });
+
+  it('throws an error if typeDefinitions is neither string nor array', () => {
+    return assert.throw(generateSchema.bind(null, {}, {}), SchemaError);
+  });
+
+  it('throws an error if typeDefinition array contains not only functions and strings', () => {
+    return assert.throw(generateSchema.bind(null, [17], {}), SchemaError);
   });
 
   it('can generate a schema', (done) => {
@@ -137,6 +146,58 @@ describe('generating schema from shorthand', () => {
       assert.deepEqual(result, solution);
       done();
     });
+  });
+
+  it('can generate a schema from an array of types', () => {
+    const typeDefAry = [`
+      type Query {
+        foo: String
+      }
+      `, `
+      schema {
+        query: Query
+      }
+    `];
+
+    const jsSchema = generateSchema(typeDefAry, {});
+    return expect(jsSchema.getQueryType().name).to.equal('Query');
+  });
+  it('properly deduplicates the array of type definitions', () => {
+    const typeDefAry = [`
+      type Query {
+        foo: String
+      }
+      `, `
+      schema {
+        query: Query
+      }
+      `, `
+      schema {
+        query: Query
+      }
+    `];
+
+    const jsSchema = generateSchema(typeDefAry, {});
+    return expect(jsSchema.getQueryType().name).to.equal('Query');
+  });
+
+  it('works with imports, even circular ones', () => {
+    const typeDefAry = [`
+      type Query {
+        foo: TypeA
+      }
+      `, `
+      schema {
+        query: Query
+      }
+    `, TypeA];
+
+    const jsSchema = generateSchema(typeDefAry, {
+      Query: { foo: () => null },
+      TypeA: { b: () => null },
+      TypeB: { a: () => null },
+    });
+    return expect(jsSchema.getQueryType().name).to.equal('Query');
   });
 
   it('can generate a schema with resolve functions', (done) => {
