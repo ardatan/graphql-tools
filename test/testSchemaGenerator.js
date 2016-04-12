@@ -2,6 +2,7 @@ import { generateSchema, SchemaError, addErrorLoggingToSchema } from '../src/sch
 import { assert, expect } from 'chai';
 import { graphql } from 'graphql';
 import { Logger } from '../src/Logger.js';
+import TypeA from './circularSchemaA';
 
 
 
@@ -151,6 +152,43 @@ describe('generating schema from shorthand', () => {
     `];
 
     const jsSchema = generateSchema(typeDefAry, {});
+    return expect(jsSchema.getQueryType().name).to.equal('Query');
+  });
+  it('properly deduplicates the array of type definitions', () => {
+    const typeDefAry = [`
+      type Query {
+        foo: String
+      }
+      `, `
+      schema {
+        query: Query
+      }
+      `, `
+      schema {
+        query: Query
+      }
+    `];
+
+    const jsSchema = generateSchema(typeDefAry, {});
+    return expect(jsSchema.getQueryType().name).to.equal('Query');
+  });
+
+  it('works with imports, even circular ones', () => {
+    const typeDefAry = [`
+      type Query {
+        foo: TypeA
+      }
+      `, `
+      schema {
+        query: Query
+      }
+    `, TypeA];
+
+    const jsSchema = generateSchema(typeDefAry, {
+      Query: { foo: () => null },
+      TypeA: { b: () => null },
+      TypeB: { a: () => null },
+    });
     return expect(jsSchema.getQueryType().name).to.equal('Query');
   });
 

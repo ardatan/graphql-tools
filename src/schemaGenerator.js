@@ -40,9 +40,10 @@ function generateSchema(
   } else {
     if (! Array.isArray(typeDefinitions)) {
       // TODO improve error message and say what type was actually found
-      throw new SchemaError('`typeDefinitions` must be a string or array of strings');
+      throw new SchemaError('`typeDefinitions` must be a string or array');
     }
-    schema = buildSchemaFromTypeDefinitions(concatenateTypeDefs(typeDefinitions));
+    const ctd = concatenateTypeDefs(typeDefinitions);
+    schema = buildSchemaFromTypeDefinitions(ctd);
   }
 
   addResolveFunctionsToSchema(schema, resolveFunctions);
@@ -60,9 +61,24 @@ function generateSchema(
   return schema;
 }
 
-function concatenateTypeDefs(typeDefinitionsAry) {
-  const uniqueTypes = uniq(typeDefinitionsAry);
-  return uniqueTypes.join('\n');
+function concatenateTypeDefs(typeDefinitionsAry, functionsCalled = {}) {
+  let resolvedTypeDefinitions = [];
+  typeDefinitionsAry.forEach((typeDef) => {
+    if (typeof typeDef === 'function' && !(typeDef in functionsCalled)) {
+      // eslint-disable-next-line no-param-reassign
+      functionsCalled[typeDef] = 1;
+      resolvedTypeDefinitions = resolvedTypeDefinitions.concat(
+        concatenateTypeDefs(typeDef(), functionsCalled)
+      );
+    } else {
+      if (typeof typeDef === 'string') {
+        resolvedTypeDefinitions.push(typeDef.trim());
+      } else {
+        throw new Error('typeDefinitions array must contain only strings and functions');
+      }
+    }
+  });
+  return uniq(resolvedTypeDefinitions.map((x) => x.trim())).join('\n');
 }
 
 function buildSchemaFromTypeDefinitions(typeDefinitions) {
