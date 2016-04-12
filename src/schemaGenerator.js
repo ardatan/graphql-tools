@@ -103,6 +103,24 @@ function forEachField(schema, fn) {
   });
 }
 
+// wraps all resolve functions of query, mutation or subscription fields
+// with the provided function to simulate a root schema level resolve funciton
+// CAUTION: this function will run once for each root field, so it behaves
+// slightly differently than if it were an actual resolve function.
+function addSchemaLevelResolveFunction(schema, fn) {
+  const rootTypes = [
+    schema.getQueryType(),
+    schema.getMutationType(),
+    schema.getSubscriptionType(),
+  ];
+  rootTypes.forEach((type) => {
+    const fields = type.getFields();
+    Object.keys(fields).forEach((fieldName) => {
+      fields[fieldName].resolve = wrapResolver(fields[fieldName].resolve, fn);
+    });
+  });
+}
+
 function addResolveFunctionsToSchema(schema, resolveFunctions) {
   Object.keys(resolveFunctions).forEach((typeName) => {
     const type = schema.getType(typeName);
@@ -161,6 +179,12 @@ function addErrorLoggingToSchema(schema, logger) {
   });
 }
 
+function wrapResolver(innerResolver, outerResolver) {
+  return (obj, args, ctx, info) => {
+    const root = outerResolver(obj, args, ctx, info);
+    return innerResolver(root, args, ctx, info);
+  };
+}
 /*
  * fn: The function to decorate with the logger
  * logger: an object instance of type Logger
@@ -221,4 +245,5 @@ export {
   assertResolveFunctionsPresent,
   addTracingToResolvers,
   buildSchemaFromTypeDefinitions,
+  addSchemaLevelResolveFunction,
 };
