@@ -125,11 +125,11 @@ function attachLoadersToContext(schema, loaders) {
 // CAUTION: this function will run once for each root field, so it behaves
 // slightly differently than if it were an actual resolve function.
 function addSchemaLevelResolveFunction(schema, fn) {
-  const rootTypes = [
+  const rootTypes = ([
     schema.getQueryType(),
     schema.getMutationType(),
     schema.getSubscriptionType(),
-  ];
+  ]).filter(x => !!x);
   rootTypes.forEach((type) => {
     const fields = type.getFields();
     Object.keys(fields).forEach((fieldName) => {

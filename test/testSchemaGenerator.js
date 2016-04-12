@@ -1,8 +1,31 @@
-import { generateSchema, SchemaError, addErrorLoggingToSchema } from '../src/schemaGenerator.js';
+import {
+  generateSchema,
+  SchemaError,
+  addErrorLoggingToSchema,
+  addSchemaLevelResolveFunction,
+} from '../src/schemaGenerator.js';
 import { assert, expect } from 'chai';
 import { graphql } from 'graphql';
 import { Logger } from '../src/Logger.js';
 import TypeA from './circularSchemaA';
+
+
+const testSchema = `
+      type RootQuery {
+        species(name: String): String
+        stuff: String
+      }
+      schema {
+        query: RootQuery
+      }
+    `;
+const testResolvers = {
+  RootQuery: {
+    species: (root, { name }) => root + name,
+    stuff: (root) => `${root} stuff`,
+  },
+};
+
 
 
 
@@ -421,5 +444,24 @@ describe('Add error logging to schema', () => {
   });
   it('throws an error if logger.log is not a function', () => {
     assert.throw(() => addErrorLoggingToSchema({}, { log: '1' }), 'Logger.log must be a function');
+  });
+});
+
+describe('Schema root resolve function', () => {
+  it('actually runs the root resolve function', () => {
+    const jsSchema = generateSchema(testSchema, testResolvers);
+    const rootResolver = () => {
+      return 'ROOT';
+    };
+    addSchemaLevelResolveFunction(jsSchema, rootResolver);
+    const query = `{
+      species(name: "strix")
+      stuff
+    }`;
+    return graphql(jsSchema, query).then((res) => {
+      console.log(res);
+      expect(res.data.species).to.equal('ROOTstrix');
+      expect(res.data.stuff).to.equal('ROOT stuff');
+    });
   });
 });
