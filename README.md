@@ -5,6 +5,7 @@ MVP for a GraphQL server that makes the developers' life easier.
 [![npm version](https://badge.fury.io/js/graphql-tools.svg)](https://badge.fury.io/js/graphql-tools)
 [![Build Status](https://travis-ci.org/apollostack/graphql-tools.svg?branch=master)](https://travis-ci.org/apollostack/graphql-tools)
 [![Coverage Status](https://coveralls.io/repos/github/apollostack/graphql-tools/badge.svg?branch=master)](https://coveralls.io/github/apollostack/graphql-tools?branch=master)
+[![Get on Slack](http://slack.apollostack.com/badge.svg)](http://slack.apollostack.com/)
 
 ## How to use:
 
