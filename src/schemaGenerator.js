@@ -297,7 +297,6 @@ function defaultResolveFn(source, args, context, { fieldName }) {
     const property = source[fieldName];
     return typeof property === 'function' ? source[fieldName]() : property;
   }
-  return undefined;
 }
 
 export {
