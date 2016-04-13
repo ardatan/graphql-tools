@@ -117,8 +117,10 @@ function attachLoadersToContext(schema, loaders) {
   schema._apolloLoadersAttached = true;
   const attachLoaderFn = (root, args, ctx) => {
     if (typeof ctx !== 'object') {
+      // if in any way possible, we should throw an error when the attachLoaders
+      // function is called, not when a query is executed.
       const contextType = typeof ctx;
-      throw new Error(`Cannot attach loaders because context is not an object: ${contextType}`);
+      throw new Error(`Cannot attach loader because context is not an object: ${contextType}`);
     }
     if (typeof ctx.loaders === 'undefined') {
       // eslint-disable-next-line no-param-reassign

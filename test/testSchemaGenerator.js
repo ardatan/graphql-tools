@@ -567,7 +567,18 @@ describe('Attaching loaders to schema', () => {
       'Loaders already attached to context, cannot attach more than once'
     );
   });
-  // TODO test attaching loaders when context is not an object throws error
+  it('throws error during execution if context is not an object', () => {
+    const jsSchema = generateSchema(testSchema, testResolvers);
+    attachLoadersToContext(jsSchema, { someLoader: {} });
+    const query = `{
+      useMemoryLoader
+    }`;
+    return graphql(jsSchema, query, {}, 'notObject').then((res) => {
+      expect(res.errors[0].originalError.message).to.equal(
+        'Cannot attach loader because context is not an object: string'
+      );
+    });
+  });
   // TODO test that attaching loaders works even when root function present
   // TODO test attachLoaders with wrong arguments
   // TODO test schemaLevelResolve function with wrong arguments
