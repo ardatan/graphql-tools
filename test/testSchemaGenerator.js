@@ -621,4 +621,22 @@ describe('Attaching loaders to schema', () => {
       'This error could be caused by installing more than one version of GraphQL-JS'
     );
   });
+  it('throws error if loaders argument is an array', () => {
+    const jsSchema = generateSchema(testSchema, testResolvers);
+    return expect(() => attachLoadersToContext(jsSchema, [1])).to.throw(
+      'Expected loaders to be of type object, got Array'
+    );
+  });
+  it('throws error if loaders argument is an empty object', () => {
+    const jsSchema = generateSchema(testSchema, testResolvers);
+    return expect(() => attachLoadersToContext(jsSchema, {})).to.throw(
+      'Expected loaders to not be an empty object'
+    );
+  });
+  it('throws error if loaders argument is not an object', () => {
+    const jsSchema = generateSchema(testSchema, testResolvers);
+    return expect(() => attachLoadersToContext(jsSchema, 'a')).to.throw(
+      'Expected loaders to be of type object, got string'
+    );
+  });
 });
