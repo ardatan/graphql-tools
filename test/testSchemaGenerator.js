@@ -3,6 +3,7 @@
 
 import {
   generateSchema,
+  graphQLSchema,
   SchemaError,
   addErrorLoggingToSchema,
   addSchemaLevelResolveFunction,
@@ -17,7 +18,7 @@ import TypeA from './circularSchemaA';
 const testSchema = `
       type RootQuery {
         usecontext: String
-        useMemoryConnector: String
+        useTestConnector: String
         species(name: String): String
         stuff: String
       }
@@ -26,15 +27,26 @@ const testSchema = `
       }
     `;
 const testResolvers = {
+  __schema: () => {
+    return { stuff: 'stuff', species: 'ROOT' };
+  },
   RootQuery: {
     usecontext: (r, a, ctx) => {
       return ctx.usecontext;
     },
-    useMemoryConnector: (r, a, ctx) => {
-      return ctx.connectors.MemoryConnector.get();
+    useTestConnector: (r, a, ctx) => {
+      return ctx.connectors.TestConnector.get();
     },
     species: (root, { name }) => root.species + name,
   },
+};
+class TestConnector {
+  get() {
+    return 'works';
+  }
+}
+const testConnectors = {
+  TestConnector,
 };
 
 
@@ -532,20 +544,12 @@ describe('Attaching connectors to schema', () => {
   });
   it('actually attaches the connectors', () => {
     const jsSchema = generateSchema(testSchema, testResolvers);
-    class MemoryConnector {
-      get() {
-        return 'works';
-      }
-    }
-    const connectors = {
-      MemoryConnector,
-    };
-    attachConnectorsToContext(jsSchema, connectors);
+    attachConnectorsToContext(jsSchema, testConnectors);
     const query = `{
-      useMemoryConnector
+      useTestConnector
     }`;
     const expected = {
-      useMemoryConnector: 'works',
+      useTestConnector: 'works',
     };
     return graphql(jsSchema, query, {}, {}).then((res) => {
       expect(res.data).to.deep.equal(expected);
@@ -553,16 +557,8 @@ describe('Attaching connectors to schema', () => {
   });
   it('throws error if trying to attach connectors twice', () => {
     const jsSchema = generateSchema(testSchema, testResolvers);
-    class MemoryConnector {
-      get() {
-        return 'works';
-      }
-    }
-    const connectors = {
-      MemoryConnector,
-    };
-    attachConnectorsToContext(jsSchema, connectors);
-    return expect(() => attachConnectorsToContext(jsSchema, connectors)).to.throw(
+    attachConnectorsToContext(jsSchema, testConnectors);
+    return expect(() => attachConnectorsToContext(jsSchema, testConnectors)).to.throw(
       'Connectors already attached to context, cannot attach more than once'
     );
   });
@@ -570,7 +566,7 @@ describe('Attaching connectors to schema', () => {
     const jsSchema = generateSchema(testSchema, testResolvers);
     attachConnectorsToContext(jsSchema, { someConnector: {} });
     const query = `{
-      useMemoryConnector
+      useTestConnector
     }`;
     return graphql(jsSchema, query, {}, 'notObject').then((res) => {
       expect(res.errors[0].originalError.message).to.equal(
@@ -584,24 +580,16 @@ describe('Attaching connectors to schema', () => {
       return { stuff: 'stuff', species: 'ROOT' };
     };
     addSchemaLevelResolveFunction(jsSchema, rootResolver);
-    class MemoryConnector {
-      get() {
-        return 'works';
-      }
-    }
-    const connectors = {
-      MemoryConnector,
-    };
-    attachConnectorsToContext(jsSchema, connectors);
+    attachConnectorsToContext(jsSchema, testConnectors);
     const query = `{
       species(name: "strix")
       stuff
-      useMemoryConnector
+      useTestConnector
     }`;
     const expected = {
       species: 'ROOTstrix',
       stuff: 'stuff',
-      useMemoryConnector: 'works',
+      useTestConnector: 'works',
     };
     return graphql(jsSchema, query, {}, {}).then((res) => {
       expect(res.data).to.deep.equal(expected);
@@ -638,5 +626,30 @@ describe('Attaching connectors to schema', () => {
     return expect(() => attachConnectorsToContext(jsSchema, 'a')).to.throw(
       'Expected connectors to be of type object, got string'
     );
+  });
+});
+
+describe('Generating a full graphQL schema with resolvers and connectors', () => {
+  it('outputs a working GraphQL schema', () => {
+    const schema = graphQLSchema({
+      typeDefs: testSchema,
+      resolvers: testResolvers,
+      connectors: testConnectors,
+    });
+    const query = `{
+      species(name: "uhu")
+      stuff
+      usecontext
+      useTestConnector
+    }`;
+    const expected = {
+      species: 'ROOTuhu',
+      stuff: 'stuff',
+      useTestConnector: 'works',
+      usecontext: 'ABC',
+    };
+    return graphql(schema, query, {}, { usecontext: 'ABC' }).then((res) => {
+      expect(res.data).to.deep.equal(expected);
+    });
   });
 });

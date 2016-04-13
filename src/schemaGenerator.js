@@ -67,10 +67,15 @@ function graphQLSchema({
   typeDefs,
   resolvers,
   connectors,
-  logger = { log: (x) => console.log(x) },
+  logger = { log: (x) => console.log(x.stack) },
   allowUndefinedInResolve = false,
 }) {
   const jsSchema = generateSchema(typeDefs, resolvers, logger, allowUndefinedInResolve);
+  if (typeof resolvers.__schema === 'function') {
+    // TODO a bit of a hack now, better rewrite generateSchema to attach it there.
+    // not doing that now, because I'd have to rewrite a lot of tests.
+    addSchemaLevelResolveFunction(jsSchema, resolvers.__schema);
+  }
   attachConnectorsToContext(jsSchema, connectors);
   return jsSchema;
 }
@@ -191,7 +196,7 @@ function addSchemaLevelResolveFunction(schema, fn) {
 function addResolveFunctionsToSchema(schema, resolveFunctions) {
   Object.keys(resolveFunctions).forEach((typeName) => {
     const type = schema.getType(typeName);
-    if (!type) {
+    if (!type && typeName !== '__schema') {
       throw new SchemaError(
         `"${typeName}" defined in resolvers, but not in schema`
       );
@@ -261,6 +266,9 @@ function wrapResolver(innerResolver, outerResolver) {
  * hint: an optional hint to add to the error's message
  */
 function decorateWithLogger(fn, logger, hint = '') {
+  if (typeof fn === 'undefined') {
+    return undefined;
+  }
   return (...args) => {
     try {
       return fn(...args);
@@ -336,6 +344,7 @@ function defaultResolveFn(source, args, context, { fieldName }) {
 
 export {
   generateSchema,
+  graphQLSchema, // TODO somewhat of a name collision. Merge with generateSchema?
   SchemaError,
   forEachField,
   addErrorLoggingToSchema,
