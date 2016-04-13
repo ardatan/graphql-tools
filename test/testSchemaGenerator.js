@@ -6,7 +6,7 @@ import {
   SchemaError,
   addErrorLoggingToSchema,
   addSchemaLevelResolveFunction,
-  attachLoadersToContext,
+  attachConnectorsToContext,
 } from '../src/schemaGenerator.js';
 import { assert, expect } from 'chai';
 import { graphql } from 'graphql';
@@ -17,7 +17,7 @@ import TypeA from './circularSchemaA';
 const testSchema = `
       type RootQuery {
         usecontext: String
-        useMemoryLoader: String
+        useMemoryConnector: String
         species(name: String): String
         stuff: String
       }
@@ -30,8 +30,8 @@ const testResolvers = {
     usecontext: (r, a, ctx) => {
       return ctx.usecontext;
     },
-    useMemoryLoader: (r, a, ctx) => {
-      return ctx.loaders.MemoryLoader.get();
+    useMemoryConnector: (r, a, ctx) => {
+      return ctx.connectors.MemoryConnector.get();
     },
     species: (root, { name }) => root.species + name,
   },
@@ -458,7 +458,7 @@ describe('Add error logging to schema', () => {
   });
 });
 
-describe('Attaching loaders to schema', () => {
+describe('Attaching connectors to schema', () => {
   describe('Schema level resolve function', () => {
     it('actually runs', () => {
       const jsSchema = generateSchema(testSchema, testResolvers);
@@ -530,51 +530,51 @@ describe('Attaching loaders to schema', () => {
       });
     });
   });
-  it('actually attaches the loaders', () => {
+  it('actually attaches the connectors', () => {
     const jsSchema = generateSchema(testSchema, testResolvers);
-    class MemoryLoader {
+    class MemoryConnector {
       get() {
         return 'works';
       }
     }
-    const loaders = {
-      MemoryLoader,
+    const connectors = {
+      MemoryConnector,
     };
-    attachLoadersToContext(jsSchema, loaders);
+    attachConnectorsToContext(jsSchema, connectors);
     const query = `{
-      useMemoryLoader
+      useMemoryConnector
     }`;
     const expected = {
-      useMemoryLoader: 'works',
+      useMemoryConnector: 'works',
     };
     return graphql(jsSchema, query, {}, {}).then((res) => {
       expect(res.data).to.deep.equal(expected);
     });
   });
-  it('throws error if trying to attach loaders twice', () => {
+  it('throws error if trying to attach connectors twice', () => {
     const jsSchema = generateSchema(testSchema, testResolvers);
-    class MemoryLoader {
+    class MemoryConnector {
       get() {
         return 'works';
       }
     }
-    const loaders = {
-      MemoryLoader,
+    const connectors = {
+      MemoryConnector,
     };
-    attachLoadersToContext(jsSchema, loaders);
-    return expect(() => attachLoadersToContext(jsSchema, loaders)).to.throw(
-      'Loaders already attached to context, cannot attach more than once'
+    attachConnectorsToContext(jsSchema, connectors);
+    return expect(() => attachConnectorsToContext(jsSchema, connectors)).to.throw(
+      'Connectors already attached to context, cannot attach more than once'
     );
   });
   it('throws error during execution if context is not an object', () => {
     const jsSchema = generateSchema(testSchema, testResolvers);
-    attachLoadersToContext(jsSchema, { someLoader: {} });
+    attachConnectorsToContext(jsSchema, { someConnector: {} });
     const query = `{
-      useMemoryLoader
+      useMemoryConnector
     }`;
     return graphql(jsSchema, query, {}, 'notObject').then((res) => {
       expect(res.errors[0].originalError.message).to.equal(
-        'Cannot attach loader because context is not an object: string'
+        'Cannot attach connector because context is not an object: string'
       );
     });
   });
@@ -584,59 +584,59 @@ describe('Attaching loaders to schema', () => {
       return { stuff: 'stuff', species: 'ROOT' };
     };
     addSchemaLevelResolveFunction(jsSchema, rootResolver);
-    class MemoryLoader {
+    class MemoryConnector {
       get() {
         return 'works';
       }
     }
-    const loaders = {
-      MemoryLoader,
+    const connectors = {
+      MemoryConnector,
     };
-    attachLoadersToContext(jsSchema, loaders);
+    attachConnectorsToContext(jsSchema, connectors);
     const query = `{
       species(name: "strix")
       stuff
-      useMemoryLoader
+      useMemoryConnector
     }`;
     const expected = {
       species: 'ROOTstrix',
       stuff: 'stuff',
-      useMemoryLoader: 'works',
+      useMemoryConnector: 'works',
     };
     return graphql(jsSchema, query, {}, {}).then((res) => {
       expect(res.data).to.deep.equal(expected);
     });
   // TODO test schemaLevelResolve function with wrong arguments
   });
-  // TODO test attachLoaders with wrong arguments
+  // TODO test attachConnectors with wrong arguments
   it('throws error if no schema is passed', () => {
-    return expect(() => attachLoadersToContext()).to.throw(
+    return expect(() => attachConnectorsToContext()).to.throw(
       'schema must be an instance of GraphQLSchema. ' +
       'This error could be caused by installing more than one version of GraphQL-JS'
     );
   });
   it('throws error if schema is not an instance of GraphQLSchema', () => {
-    return expect(() => attachLoadersToContext({})).to.throw(
+    return expect(() => attachConnectorsToContext({})).to.throw(
       'schema must be an instance of GraphQLSchema. ' +
       'This error could be caused by installing more than one version of GraphQL-JS'
     );
   });
-  it('throws error if loaders argument is an array', () => {
+  it('throws error if connectors argument is an array', () => {
     const jsSchema = generateSchema(testSchema, testResolvers);
-    return expect(() => attachLoadersToContext(jsSchema, [1])).to.throw(
-      'Expected loaders to be of type object, got Array'
+    return expect(() => attachConnectorsToContext(jsSchema, [1])).to.throw(
+      'Expected connectors to be of type object, got Array'
     );
   });
-  it('throws error if loaders argument is an empty object', () => {
+  it('throws error if connectors argument is an empty object', () => {
     const jsSchema = generateSchema(testSchema, testResolvers);
-    return expect(() => attachLoadersToContext(jsSchema, {})).to.throw(
-      'Expected loaders to not be an empty object'
+    return expect(() => attachConnectorsToContext(jsSchema, {})).to.throw(
+      'Expected connectors to not be an empty object'
     );
   });
-  it('throws error if loaders argument is not an object', () => {
+  it('throws error if connectors argument is not an object', () => {
     const jsSchema = generateSchema(testSchema, testResolvers);
-    return expect(() => attachLoadersToContext(jsSchema, 'a')).to.throw(
-      'Expected loaders to be of type object, got string'
+    return expect(() => attachConnectorsToContext(jsSchema, 'a')).to.throw(
+      'Expected connectors to be of type object, got string'
     );
   });
 });

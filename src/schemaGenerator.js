@@ -20,6 +20,7 @@ function SchemaError(message) {
 SchemaError.prototype = new Error;
 
 // type definitions can be a string or an array of strings.
+// TODO: make this an object
 function generateSchema(
   typeDefinitions,
   resolveFunctions,
@@ -60,6 +61,18 @@ function generateSchema(
   }
 
   return schema;
+}
+
+function graphQLSchema({
+  typeDefs,
+  resolvers,
+  connectors,
+  logger = { log: (x) => console.log(x) },
+  allowUndefinedInResolve = false,
+}) {
+  const jsSchema = generateSchema(typeDefs, resolvers, logger, allowUndefinedInResolve);
+  attachConnectorsToContext(jsSchema, connectors);
+  return jsSchema;
 }
 
 function concatenateTypeDefs(typeDefinitionsAry, functionsCalled = {}) {
@@ -104,11 +117,11 @@ function forEachField(schema, fn) {
   });
 }
 
-// takes a GraphQL-JS schema and an object of loaders, then attaches
-// the loaders to the context by wrapping each query or mutation resolve
-// function with a function that attaches loaders if they don't exist.
-// attaches loaders only once to make sure they are singletons
-function attachLoadersToContext(schema, loaders) {
+// takes a GraphQL-JS schema and an object of connectors, then attaches
+// the connectors to the context by wrapping each query or mutation resolve
+// function with a function that attaches connectors if they don't exist.
+// attaches connectors only once to make sure they are singletons
+function attachConnectorsToContext(schema, connectors) {
   if (!schema || !(schema instanceof GraphQLSchema)) {
     throw new Error(
       'schema must be an instance of GraphQLSchema. ' +
@@ -116,45 +129,45 @@ function attachLoadersToContext(schema, loaders) {
     );
   }
 
-  if (typeof loaders !== 'object') {
-    const loaderType = typeof loaders;
+  if (typeof connectors !== 'object') {
+    const connectorType = typeof connectors;
     throw new Error(
-      `Expected loaders to be of type object, got ${loaderType}`
+      `Expected connectors to be of type object, got ${connectorType}`
     );
   }
-  if (Object.keys(loaders).length === 0) {
+  if (Object.keys(connectors).length === 0) {
     throw new Error(
-      'Expected loaders to not be an empty object'
+      'Expected connectors to not be an empty object'
     );
   }
-  if (Array.isArray(loaders)) {
+  if (Array.isArray(connectors)) {
     throw new Error(
-      'Expected loaders to be of type object, got Array'
+      'Expected connectors to be of type object, got Array'
     );
   }
-  if (schema._apolloLoadersAttached) {
-    throw new Error('Loaders already attached to context, cannot attach more than once');
+  if (schema._apolloConnectorsAttached) {
+    throw new Error('Connectors already attached to context, cannot attach more than once');
   }
   // eslint-disable-next-line no-param-reassign
-  schema._apolloLoadersAttached = true;
-  const attachLoaderFn = (root, args, ctx) => {
+  schema._apolloConnectorsAttached = true;
+  const attachconnectorFn = (root, args, ctx) => {
     if (typeof ctx !== 'object') {
-      // if in any way possible, we should throw an error when the attachLoaders
+      // if in any way possible, we should throw an error when the attachconnectors
       // function is called, not when a query is executed.
       const contextType = typeof ctx;
-      throw new Error(`Cannot attach loader because context is not an object: ${contextType}`);
+      throw new Error(`Cannot attach connector because context is not an object: ${contextType}`);
     }
-    if (typeof ctx.loaders === 'undefined') {
+    if (typeof ctx.connectors === 'undefined') {
       // eslint-disable-next-line no-param-reassign
-      ctx.loaders = {};
+      ctx.connectors = {};
     }
-    Object.keys(loaders).forEach((loaderName) => {
+    Object.keys(connectors).forEach((connectorName) => {
       // eslint-disable-next-line no-param-reassign
-      ctx.loaders[loaderName] = new loaders[loaderName]();
+      ctx.connectors[connectorName] = new connectors[connectorName]();
     });
     return root;
   };
-  addSchemaLevelResolveFunction(schema, attachLoaderFn);
+  addSchemaLevelResolveFunction(schema, attachconnectorFn);
 }
 
 // wraps all resolve functions of query, mutation or subscription fields
@@ -332,5 +345,5 @@ export {
   addTracingToResolvers,
   buildSchemaFromTypeDefinitions,
   addSchemaLevelResolveFunction,
-  attachLoadersToContext,
+  attachConnectorsToContext,
 };
