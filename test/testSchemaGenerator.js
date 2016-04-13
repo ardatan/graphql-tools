@@ -21,7 +21,7 @@ const testSchema = `
     `;
 const testResolvers = {
   RootQuery: {
-    species: (root, { name }) => root + name,
+    species: (root, { name }) => root.species + name,
   },
 };
 
@@ -473,6 +473,30 @@ describe('Schema root resolve function', () => {
     }`;
     return graphql(jsSchema, query).then((res) => {
       expect(res.data.stuff).to.equal('stuff');
+    });
+  });
+
+  it('schema-level resolve function runs only once', () => {
+    const jsSchema = generateSchema(testSchema, testResolvers);
+    let count = 0;
+    const rootResolver = () => {
+      if (count === 0) {
+        count += 1;
+        return { stuff: 'stuff', species: 'some ' };
+      }
+      return { stuff: 'EEE', species: 'EEE' };
+    };
+    addSchemaLevelResolveFunction(jsSchema, rootResolver);
+    const query = `{
+      species(name: "strix")
+      stuff
+    }`;
+    const expected = {
+      species: 'some strix',
+      stuff: 'stuff',
+    };
+    return graphql(jsSchema, query).then((res) => {
+      expect(res.data).to.deep.equal(expected);
     });
   });
 });
