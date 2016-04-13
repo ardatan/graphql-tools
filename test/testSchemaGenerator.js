@@ -578,7 +578,6 @@ describe('Attaching loaders to schema', () => {
       );
     });
   });
-  // TODO test that attaching loaders works even when root function present
   it('does not interfere with schema level resolve function', () => {
     const jsSchema = generateSchema(testSchema, testResolvers);
     const rootResolver = () => {
@@ -607,7 +606,13 @@ describe('Attaching loaders to schema', () => {
     return graphql(jsSchema, query, {}, {}).then((res) => {
       expect(res.data).to.deep.equal(expected);
     });
-  // TODO test attachLoaders with wrong arguments
   // TODO test schemaLevelResolve function with wrong arguments
+  });
+  // TODO test attachLoaders with wrong arguments
+  it('throws error if no schema is passed', () => {
+    return expect(() => attachLoadersToContext()).to.throw(
+      'schema must be an instance of GraphQLSchema. ' +
+      'This error could be caused by installing more than one version of GraphQL-JS'
+    );
   });
 });

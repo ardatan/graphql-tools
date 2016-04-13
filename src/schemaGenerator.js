@@ -7,6 +7,7 @@ import {
   GraphQLScalarType,
   getNamedType,
   GraphQLObjectType,
+  GraphQLSchema,
 } from 'graphql/type';
 import { decorateWithTracer } from './tracing';
 
@@ -108,8 +109,14 @@ function forEachField(schema, fn) {
 // function with a function that attaches loaders if they don't exist.
 // attaches loaders only once to make sure they are singletons
 function attachLoadersToContext(schema, loaders) {
-  // TODO throw an error if loaders is not an object or empty Object
   // TODO throw an error if schema is not passed, or not a graphql-js schema
+  if (!schema || !(schema instanceof GraphQLSchema)) {
+    throw new Error(
+      'schema must be an instance of GraphQLSchema. ' +
+      'This error could be caused by installing more than one version of GraphQL-JS'
+    );
+  }
+  // TODO throw an error if loaders is not an object or empty Object
   if (schema._apolloLoadersAttached) {
     throw new Error('Loaders already attached to context, cannot attach more than once');
   }
