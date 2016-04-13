@@ -552,7 +552,21 @@ describe('Attaching loaders to schema', () => {
       expect(res.data).to.deep.equal(expected);
     });
   });
-  // TODO test attaching twice throws error
+  it('throws error if trying to attach loaders twice', () => {
+    const jsSchema = generateSchema(testSchema, testResolvers);
+    class MemoryLoader {
+      get() {
+        return 'works';
+      }
+    }
+    const loaders = {
+      MemoryLoader,
+    };
+    attachLoadersToContext(jsSchema, loaders);
+    return expect(() => attachLoadersToContext(jsSchema, loaders)).to.throw(
+      'Loaders already attached to context, cannot attach more than once'
+    );
+  });
   // TODO test attaching loaders when context is not an object throws error
   // TODO test that attaching loaders works even when root function present
   // TODO test attachLoaders with wrong arguments

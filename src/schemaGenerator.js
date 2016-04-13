@@ -110,7 +110,11 @@ function forEachField(schema, fn) {
 function attachLoadersToContext(schema, loaders) {
   // TODO throw an error if loaders is not an object or empty Object
   // TODO throw an error if schema is not passed, or not a graphql-js schema
-  // TODO maybe throw an error if you call this function twice for the same schema
+  if (schema._apolloLoadersAttached) {
+    throw new Error('Loaders already attached to context, cannot attach more than once');
+  }
+  // eslint-disable-next-line no-param-reassign
+  schema._apolloLoadersAttached = true;
   const attachLoaderFn = (root, args, ctx) => {
     if (typeof ctx !== 'object') {
       const contextType = typeof ctx;
@@ -135,8 +139,6 @@ function attachLoadersToContext(schema, loaders) {
 
 // wraps all resolve functions of query, mutation or subscription fields
 // with the provided function to simulate a root schema level resolve funciton
-// CAUTION: this function will run once for each root field, so it behaves
-// slightly differently than if it were an actual resolve function.
 function addSchemaLevelResolveFunction(schema, fn) {
   // TODO test that schema is a schema, fn is a function
   const rootTypes = ([
