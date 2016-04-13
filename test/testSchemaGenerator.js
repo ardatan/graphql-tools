@@ -552,4 +552,8 @@ describe('Attaching loaders to schema', () => {
       expect(res.data).to.deep.equal(expected);
     });
   });
+  // TODO test attaching twice throws error
+  // TODO test that attaching loaders works even when root function present
+  // TODO test attachLoaders with wrong arguments
+  // TODO test schemaLevelResolve function with wrong arguments
 });

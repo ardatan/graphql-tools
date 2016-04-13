@@ -110,6 +110,7 @@ function forEachField(schema, fn) {
 function attachLoadersToContext(schema, loaders) {
   // TODO throw an error if loaders is not an object or empty Object
   // TODO throw an error if schema is not passed, or not a graphql-js schema
+  // TODO maybe throw an error if you call this function twice for the same schema
   const attachLoaderFn = (root, args, ctx) => {
     if (typeof ctx === 'undefined') {
       // eslint-disable-next-line no-param-reassign
@@ -137,6 +138,7 @@ function attachLoadersToContext(schema, loaders) {
 // CAUTION: this function will run once for each root field, so it behaves
 // slightly differently than if it were an actual resolve function.
 function addSchemaLevelResolveFunction(schema, fn) {
+  // TODO test that schema is a schema, fn is a function
   const rootTypes = ([
     schema.getQueryType(),
     schema.getMutationType(),
@@ -295,6 +297,7 @@ function defaultResolveFn(source, args, context, { fieldName }) {
     const property = source[fieldName];
     return typeof property === 'function' ? source[fieldName]() : property;
   }
+  return undefined;
 }
 
 export {
