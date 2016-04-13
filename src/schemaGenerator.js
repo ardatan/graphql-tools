@@ -108,11 +108,23 @@ function forEachField(schema, fn) {
 // function with a function that attaches loaders if they don't exist.
 // attaches loaders only once to make sure they are singletons
 function attachLoadersToContext(schema, loaders) {
+  // TODO throw an error if loaders is not an object or empty Object
+  // TODO throw an error if schema is not passed, or not a graphql-js schema
   const attachLoaderFn = (root, args, ctx) => {
+    if (typeof ctx === 'undefined') {
+      // eslint-disable-next-line no-param-reassign
+      ctx = {};
+    }
+    if (typeof ctx.loaders === 'undefined') {
+      // eslint-disable-next-line no-param-reassign
+      ctx.loaders = {};
+    }
     Object.keys(loaders).forEach((loaderName) => {
-      if (!ctx[loaderName]) {
+      if (!ctx.loaders[loaderName]) {
         // eslint-disable-next-line no-param-reassign
-        ctx[loaderName] = new loaders[loaderName]();
+        ctx.loaders[loaderName] = new loaders[loaderName]();
+      } else {
+        throw new Error(`Loader ${loaderName} is already in context, cannot attach again.`);
       }
     });
     return root;

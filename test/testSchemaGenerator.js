@@ -6,6 +6,7 @@ import {
   SchemaError,
   addErrorLoggingToSchema,
   addSchemaLevelResolveFunction,
+  attachLoadersToContext,
 } from '../src/schemaGenerator.js';
 import { assert, expect } from 'chai';
 import { graphql } from 'graphql';
@@ -16,6 +17,7 @@ import TypeA from './circularSchemaA';
 const testSchema = `
       type RootQuery {
         usecontext: String
+        useMemoryLoader: String
         species(name: String): String
         stuff: String
       }
@@ -27,6 +29,9 @@ const testResolvers = {
   RootQuery: {
     usecontext: (r, a, ctx) => {
       return ctx.usecontext;
+    },
+    useMemoryLoader: (r, a, ctx) => {
+      return ctx.loaders.MemoryLoader.get();
     },
     species: (root, { name }) => root.species + name,
   },
@@ -524,6 +529,27 @@ describe('Attaching loaders to schema', () => {
       return graphql(jsSchema, query, {}, {}).then((res) => {
         expect(res.data).to.deep.equal(expected);
       });
+    });
+  });
+  it('actually attaches the loaders', () => {
+    const jsSchema = generateSchema(testSchema, testResolvers);
+    class MemoryLoader {
+      get() {
+        return 'works';
+      }
+    }
+    const loaders = {
+      MemoryLoader,
+    };
+    attachLoadersToContext(jsSchema, loaders);
+    const query = `{
+      useMemoryLoader
+    }`;
+    const expected = {
+      useMemoryLoader: 'works',
+    };
+    return graphql(jsSchema, query, {}, {}).then((res) => {
+      expect(res.data).to.deep.equal(expected);
     });
   });
 });
