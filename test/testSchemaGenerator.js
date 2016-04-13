@@ -615,4 +615,10 @@ describe('Attaching loaders to schema', () => {
       'This error could be caused by installing more than one version of GraphQL-JS'
     );
   });
+  it('throws error if schema is not an instance of GraphQLSchema', () => {
+    return expect(() => attachLoadersToContext({})).to.throw(
+      'schema must be an instance of GraphQLSchema. ' +
+      'This error could be caused by installing more than one version of GraphQL-JS'
+    );
+  });
 });
