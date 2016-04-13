@@ -127,12 +127,8 @@ function attachLoadersToContext(schema, loaders) {
       ctx.loaders = {};
     }
     Object.keys(loaders).forEach((loaderName) => {
-      if (!ctx.loaders[loaderName]) {
-        // eslint-disable-next-line no-param-reassign
-        ctx.loaders[loaderName] = new loaders[loaderName]();
-      } else {
-        throw new Error(`Loader ${loaderName} is already in context, cannot attach again.`);
-      }
+      // eslint-disable-next-line no-param-reassign
+      ctx.loaders[loaderName] = new loaders[loaderName]();
     });
     return root;
   };
