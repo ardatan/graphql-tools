@@ -112,9 +112,9 @@ function attachLoadersToContext(schema, loaders) {
   // TODO throw an error if schema is not passed, or not a graphql-js schema
   // TODO maybe throw an error if you call this function twice for the same schema
   const attachLoaderFn = (root, args, ctx) => {
-    if (typeof ctx === 'undefined') {
-      // eslint-disable-next-line no-param-reassign
-      ctx = {};
+    if (typeof ctx !== 'object') {
+      const contextType = typeof ctx;
+      throw new Error(`Cannot attach loaders because context is not an object: ${contextType}`);
     }
     if (typeof ctx.loaders === 'undefined') {
       // eslint-disable-next-line no-param-reassign
@@ -270,7 +270,7 @@ function decorateToCatchUndefined(fn, hint) {
   };
 }
 
-function runAtMostOnce(fn){
+function runAtMostOnce(fn) {
   let count = 0;
   let value;
   return (...args) => {

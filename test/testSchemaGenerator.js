@@ -553,6 +553,7 @@ describe('Attaching loaders to schema', () => {
     });
   });
   // TODO test attaching twice throws error
+  // TODO test attaching loaders when context is not an object throws error
   // TODO test that attaching loaders works even when root function present
   // TODO test attachLoaders with wrong arguments
   // TODO test schemaLevelResolve function with wrong arguments
