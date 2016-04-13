@@ -130,10 +130,11 @@ function addSchemaLevelResolveFunction(schema, fn) {
     schema.getMutationType(),
     schema.getSubscriptionType(),
   ]).filter(x => !!x);
+  const rootResolveFn = runAtMostOnce(fn);
   rootTypes.forEach((type) => {
     const fields = type.getFields();
     Object.keys(fields).forEach((fieldName) => {
-      fields[fieldName].resolve = wrapResolver(fields[fieldName].resolve, fn);
+      fields[fieldName].resolve = wrapResolver(fields[fieldName].resolve, rootResolveFn);
     });
   });
 }
@@ -254,6 +255,19 @@ function decorateToCatchUndefined(fn, hint) {
     return result;
   };
 }
+
+function runAtMostOnce(fn){
+  let count = 0;
+  let value;
+  return (...args) => {
+    if (count === 0) {
+      value = fn(...args);
+      count += 1;
+    }
+    return value;
+  };
+}
+
 /**
  * XXX taken from graphql-js: src/execution/execute.js, because that function
  * is not exported

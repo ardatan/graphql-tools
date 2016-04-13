@@ -450,7 +450,7 @@ describe('Schema root resolve function', () => {
   it('actually runs the root resolve function', () => {
     const jsSchema = generateSchema(testSchema, testResolvers);
     const rootResolver = () => {
-      return 'ROOT';
+      return { species: 'ROOT' };
     };
     addSchemaLevelResolveFunction(jsSchema, rootResolver);
     const query = `{
