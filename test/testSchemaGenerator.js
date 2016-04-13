@@ -468,7 +468,6 @@ describe('Attaching loaders to schema', () => {
       addSchemaLevelResolveFunction(jsSchema, rootResolver);
       const query = `{
         species(name: "strix")
-        stuff
       }`;
       return graphql(jsSchema, query).then((res) => {
         expect(res.data.species).to.equal('ROOTstrix');
@@ -580,6 +579,35 @@ describe('Attaching loaders to schema', () => {
     });
   });
   // TODO test that attaching loaders works even when root function present
+  it('does not interfere with schema level resolve function', () => {
+    const jsSchema = generateSchema(testSchema, testResolvers);
+    const rootResolver = () => {
+      return { stuff: 'stuff', species: 'ROOT' };
+    };
+    addSchemaLevelResolveFunction(jsSchema, rootResolver);
+    class MemoryLoader {
+      get() {
+        return 'works';
+      }
+    }
+    const loaders = {
+      MemoryLoader,
+    };
+    attachLoadersToContext(jsSchema, loaders);
+    const query = `{
+      species(name: "strix")
+      stuff
+      useMemoryLoader
+    }`;
+    const expected = {
+      species: 'ROOTstrix',
+      stuff: 'stuff',
+      useMemoryLoader: 'works',
+    };
+    return graphql(jsSchema, query, {}, {}).then((res) => {
+      expect(res.data).to.deep.equal(expected);
+    });
   // TODO test attachLoaders with wrong arguments
   // TODO test schemaLevelResolve function with wrong arguments
+  });
 });
