@@ -1,3 +1,6 @@
+// TODO: reduce code repetition in this file.
+// see https://github.com/apollostack/graphql-tools/issues/26
+
 import {
   generateSchema,
   SchemaError,
@@ -12,6 +15,7 @@ import TypeA from './circularSchemaA';
 
 const testSchema = `
       type RootQuery {
+        usecontext: String
         species(name: String): String
         stuff: String
       }
@@ -21,6 +25,9 @@ const testSchema = `
     `;
 const testResolvers = {
   RootQuery: {
+    usecontext: (r, a, ctx) => {
+      return ctx.usecontext;
+    },
     species: (root, { name }) => root.species + name,
   },
 };
@@ -446,57 +453,77 @@ describe('Add error logging to schema', () => {
   });
 });
 
-describe('Schema root resolve function', () => {
-  it('actually runs the root resolve function', () => {
-    const jsSchema = generateSchema(testSchema, testResolvers);
-    const rootResolver = () => {
-      return { species: 'ROOT' };
-    };
-    addSchemaLevelResolveFunction(jsSchema, rootResolver);
-    const query = `{
-      species(name: "strix")
-      stuff
-    }`;
-    return graphql(jsSchema, query).then((res) => {
-      expect(res.data.species).to.equal('ROOTstrix');
+describe('Attaching loaders to schema', () => {
+  describe('Schema level resolve function', () => {
+    it('actually runs', () => {
+      const jsSchema = generateSchema(testSchema, testResolvers);
+      const rootResolver = () => {
+        return { species: 'ROOT' };
+      };
+      addSchemaLevelResolveFunction(jsSchema, rootResolver);
+      const query = `{
+        species(name: "strix")
+        stuff
+      }`;
+      return graphql(jsSchema, query).then((res) => {
+        expect(res.data.species).to.equal('ROOTstrix');
+      });
     });
-  });
 
-  it('can wrap fields that do not have a resolver defined', () => {
-    const jsSchema = generateSchema(testSchema, testResolvers);
-    const rootResolver = () => {
-      return { stuff: 'stuff' };
-    };
-    addSchemaLevelResolveFunction(jsSchema, rootResolver);
-    const query = `{
-      stuff
-    }`;
-    return graphql(jsSchema, query).then((res) => {
-      expect(res.data.stuff).to.equal('stuff');
+    it('can wrap fields that do not have a resolver defined', () => {
+      const jsSchema = generateSchema(testSchema, testResolvers);
+      const rootResolver = () => {
+        return { stuff: 'stuff' };
+      };
+      addSchemaLevelResolveFunction(jsSchema, rootResolver);
+      const query = `{
+        stuff
+      }`;
+      return graphql(jsSchema, query).then((res) => {
+        expect(res.data.stuff).to.equal('stuff');
+      });
     });
-  });
 
-  it('schema-level resolve function runs only once', () => {
-    const jsSchema = generateSchema(testSchema, testResolvers);
-    let count = 0;
-    const rootResolver = () => {
-      if (count === 0) {
-        count += 1;
-        return { stuff: 'stuff', species: 'some ' };
-      }
-      return { stuff: 'EEE', species: 'EEE' };
-    };
-    addSchemaLevelResolveFunction(jsSchema, rootResolver);
-    const query = `{
-      species(name: "strix")
-      stuff
-    }`;
-    const expected = {
-      species: 'some strix',
-      stuff: 'stuff',
-    };
-    return graphql(jsSchema, query).then((res) => {
-      expect(res.data).to.deep.equal(expected);
+    it('runs only once', () => {
+      const jsSchema = generateSchema(testSchema, testResolvers);
+      let count = 0;
+      const rootResolver = () => {
+        if (count === 0) {
+          count += 1;
+          return { stuff: 'stuff', species: 'some ' };
+        }
+        return { stuff: 'EEE', species: 'EEE' };
+      };
+      addSchemaLevelResolveFunction(jsSchema, rootResolver);
+      const query = `{
+        species(name: "strix")
+        stuff
+      }`;
+      const expected = {
+        species: 'some strix',
+        stuff: 'stuff',
+      };
+      return graphql(jsSchema, query).then((res) => {
+        expect(res.data).to.deep.equal(expected);
+      });
+    });
+
+    it('can attach things to context', () => {
+      const jsSchema = generateSchema(testSchema, testResolvers);
+      const rootResolver = (o, a, ctx) => {
+        // eslint-disable-next-line no-param-reassign
+        ctx.usecontext = 'ABC';
+      };
+      addSchemaLevelResolveFunction(jsSchema, rootResolver);
+      const query = `{
+        usecontext
+      }`;
+      const expected = {
+        usecontext: 'ABC',
+      };
+      return graphql(jsSchema, query, {}, {}).then((res) => {
+        expect(res.data).to.deep.equal(expected);
+      });
     });
   });
 });
