@@ -4,7 +4,7 @@ import graphQLHTTP from 'express-graphql';
 
 
 export default function apolloServer({
-  typeDefs, // required
+  schema, // required
   resolvers, // required if mocks is not false
   connectors, // required if mocks is not false
   logger,
@@ -16,6 +16,9 @@ export default function apolloServer({
   context, // pass through
   rootValue, // pass through
 }) {
+  if (!schema) {
+    throw new Error('schema is required');
+  }
   if (!logger) {
     // eslint-disable-next-line no-param-reassign
     logger = { log: (x) => console.log(x) };
@@ -27,12 +30,12 @@ export default function apolloServer({
   let executableSchema;
   if (mocks) {
     const myMocks = mocks || {};
-    executableSchema = mockServer(typeDefs, myMocks);
+    executableSchema = mockServer(schema, myMocks);
   } else {
+    // TODO allow passing in a fully executable GraphQL schema,
+    // in which case resolvers and connectors is not required.
+    
     // this is just basics, makeExecutableSchema should catch the rest
-    if (!typeDefs) {
-      throw new Error('typeDefs is required option if mocks is not provided');
-    }
     if (!resolvers) {
       throw new Error('resolvers is required option if mocks is not provided');
     }
@@ -40,7 +43,7 @@ export default function apolloServer({
       throw new Error('connectors is a required option if mocks is not provided');
     }
     executableSchema = makeExecutableSchema({
-      typeDefs,
+      schema,
       resolvers,
       connectors,
       logger,
