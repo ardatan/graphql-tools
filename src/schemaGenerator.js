@@ -1,5 +1,8 @@
 // Generates a schema for graphql-js given a shorthand schema
 
+// TODO: document each function clearly in the code: what arguments it accepts
+// and what it outputs.
+
 import { parse } from 'graphql/language';
 import { uniq } from 'lodash';
 import { buildASTSchema } from 'graphql/utilities';
@@ -94,6 +97,7 @@ function concatenateTypeDefs(typeDefinitionsAry, functionsCalled = {}) {
 }
 
 function buildSchemaFromTypeDefinitions(typeDefinitions) {
+  // TODO: accept only array here, otherwise interfaces get confusing.
   let myDefinitions = typeDefinitions;
   if (typeof myDefinitions !== 'string') {
     if (! Array.isArray(myDefinitions)) {
