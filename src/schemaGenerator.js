@@ -36,17 +36,7 @@ function generateSchema(
 
   // TODO: check that typeDefinitions is either string or array of strings
 
-  let schema;
-  if (typeof typeDefinitions === 'string') {
-    schema = buildSchemaFromTypeDefinitions(typeDefinitions);
-  } else {
-    if (! Array.isArray(typeDefinitions)) {
-      // TODO improve error message and say what type was actually found
-      throw new SchemaError('`typeDefinitions` must be a string or array');
-    }
-    const ctd = concatenateTypeDefs(typeDefinitions);
-    schema = buildSchemaFromTypeDefinitions(ctd);
-  }
+  const schema = buildSchemaFromTypeDefinitions(typeDefinitions);
 
   addResolveFunctionsToSchema(schema, resolveFunctions);
 
@@ -104,7 +94,15 @@ function concatenateTypeDefs(typeDefinitionsAry, functionsCalled = {}) {
 }
 
 function buildSchemaFromTypeDefinitions(typeDefinitions) {
-  return buildASTSchema(parse(typeDefinitions));
+  let myDefinitions = typeDefinitions;
+  if (typeof myDefinitions !== 'string') {
+    if (! Array.isArray(myDefinitions)) {
+      // TODO improve error message and say what type was actually found
+      throw new SchemaError('`typeDefinitions` must be a string or array');
+    }
+    myDefinitions = concatenateTypeDefs(myDefinitions);
+  }
+  return buildASTSchema(parse(myDefinitions));
 }
 
 function forEachField(schema, fn) {
