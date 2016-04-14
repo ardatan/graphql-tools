@@ -59,7 +59,30 @@ describe('ApolloServer', () => {
     });
   });
   // TODO: test that mocking works
-
+  it('can mock a schema', () => {
+    const app = express();
+    const mockServer = apolloServer({
+      schema: testSchema,
+      mocks: {
+        RootQuery: () => ({
+          stuff: () => 'stuffs',
+          useTestConnector: () => 'utc',
+          species: 'rawr',
+        }),
+      },
+    });
+    app.use('/graphql', mockServer);
+    const expected = {
+      stuff: 'stuffs',
+      useTestConnector: 'utc',
+      species: 'rawr',
+    };
+    return request(app).get(
+      '/graphql?query={stuff useTestConnector species(name: "uhu")}'
+    ).then((res) => {
+      return expect(res.body.data).to.deep.equal(expected);
+    });
+  });
   // TODO: test that logger works
 
   // TODO: test that allow undefined in resolve works
