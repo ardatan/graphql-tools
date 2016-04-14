@@ -33,6 +33,7 @@
   "dependencies": {
     "babel-polyfill": "^6.5.0",
     "casual-browserify": "^1.5.2",
+    "express-graphql": "^0.5.1",
     "fs": "0.0.2",
     "graphql": "^0.5.0",
     "lodash": "^4.10.0",
@@ -53,10 +54,11 @@
     "eslint-plugin-import": "^1.1.0",
     "express": "^4.13.4",
     "istanbul": "1.0.0-alpha.2",
-    "lodash": "^4.7.0",
     "mocha": "^2.3.3",
     "nodemon": "^1.9.1",
-    "request-promise": "^2.0.1"
+    "request-promise": "^2.0.1",
+    "supertest": "^1.2.0",
+    "supertest-as-promised": "^3.1.0"
   },
   "eslintConfig": {
     "parser": "babel-eslint",

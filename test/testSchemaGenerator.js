@@ -3,7 +3,7 @@
 
 import {
   generateSchema,
-  graphQLSchema,
+  makeExecutableSchema,
   SchemaError,
   addErrorLoggingToSchema,
   addSchemaLevelResolveFunction,
@@ -631,7 +631,7 @@ describe('Attaching connectors to schema', () => {
 
 describe('Generating a full graphQL schema with resolvers and connectors', () => {
   it('outputs a working GraphQL schema', () => {
-    const schema = graphQLSchema({
+    const schema = makeExecutableSchema({
       typeDefs: testSchema,
       resolvers: testResolvers,
       connectors: testConnectors,

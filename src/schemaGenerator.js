@@ -63,7 +63,7 @@ function generateSchema(
   return schema;
 }
 
-function graphQLSchema({
+function makeExecutableSchema({
   typeDefs,
   resolvers,
   connectors,
@@ -344,7 +344,7 @@ function defaultResolveFn(source, args, context, { fieldName }) {
 
 export {
   generateSchema,
-  graphQLSchema, // TODO somewhat of a name collision. Merge with generateSchema?
+  makeExecutableSchema, // TODO somewhat of a name collision. Merge with generateSchema?
   SchemaError,
   forEachField,
   addErrorLoggingToSchema,
