@@ -33,9 +33,9 @@ export default function apolloServer({
   let executableSchema;
   if (mocks) {
     const myMocks = mocks || {};
-    const rawSchema = buildSchemaFromTypeDefinitions(schema);
-    executableSchema = addMockFunctionsToSchema({
-      schema: rawSchema,
+    executableSchema = buildSchemaFromTypeDefinitions(schema);
+    addMockFunctionsToSchema({
+      schema: executableSchema,
       mocks: myMocks,
     });
   } else {
