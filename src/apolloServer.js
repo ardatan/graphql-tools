@@ -6,8 +6,8 @@ import { GraphQLSchema } from 'graphql';
 
 export default function apolloServer({
   schema, // required
-  resolvers, // required if mocks is not false
-  connectors, // required if mocks is not false
+  resolvers, // required if mocks is not false and schema is not GraphQLSchema
+  connectors, // required if mocks is not false and schema is not GraphQLSchema
   logger,
   mocks = false,
   allowUndefinedInResolve = false,
@@ -17,6 +17,8 @@ export default function apolloServer({
   context, // pass through
   rootValue, // pass through
 }) {
+  // TODO: throw an error if more than one arg is passed
+  // TODO: throw an error if that argument is not an object
   if (!schema) {
     throw new Error('schema is required');
   }
@@ -52,7 +54,7 @@ export default function apolloServer({
         throw new Error('connectors is a required option if mocks is not provided');
       }
       executableSchema = makeExecutableSchema({
-        schema,
+        typeDefs: schema,
         resolvers,
         connectors,
         logger,

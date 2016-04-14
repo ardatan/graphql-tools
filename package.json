@@ -57,7 +57,9 @@
     "lodash": "^4.7.0",
     "mocha": "^2.3.3",
     "nodemon": "^1.9.1",
-    "request-promise": "^2.0.1"
+    "request-promise": "^2.0.1",
+    "supertest": "^1.2.0",
+    "supertest-as-promised": "^3.1.0"
   },
   "eslintConfig": {
     "parser": "babel-eslint",
