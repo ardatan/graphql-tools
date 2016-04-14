@@ -1,6 +1,3 @@
-// TODO: tests here. Same tests as for express-graphql?? Somehow I have to test
-// the http functionality of it all. Or at least I have to simulate requests and
-// responses
 import { apolloServer } from '../src/apolloServer';
 import { expect } from 'chai';
 import express from 'express';
@@ -47,7 +44,7 @@ const server = apolloServer({
 });
 
 describe('ApolloServer', () => {
-  it('does something', () => {
+  it('can serve a basic request', () => {
     const app = express();
     app.use('/graphql', server);
     const expected = {
@@ -61,4 +58,12 @@ describe('ApolloServer', () => {
       return expect(res.body.data).to.deep.equal(expected);
     });
   });
+
+  // TODO: test that mocking works
+
+  // TODO: test that logger works
+
+  // TODO: test that allow undefined in resolve works
+
+  // TODO: test wrong arguments error messages
 });

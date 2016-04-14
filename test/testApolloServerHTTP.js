@@ -6,6 +6,9 @@
 import { apolloServer } from '../src/apolloServer';
 const graphqlHTTP = apolloServer;
 
+  // TODO: test that it accepts a promise as input object.
+  // XXX: how annoying will it be to keep these tests up to date for every
+  // release of graphql-http?
 
 /* @flow */
 /**
