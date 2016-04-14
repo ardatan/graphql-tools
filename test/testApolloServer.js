@@ -65,7 +65,11 @@ describe('ApolloServer', () => {
   // TODO: test that allow undefined in resolve works
 
   // TODO: test wrong arguments error messages
-
+  it('throws an error if you call it with more than one arg', () => {
+    return expect(() => apolloServer(1, 2)).to.throw(
+      'apolloServer expects exactly one argument, got 2'
+    );
+  });
 
   // express-graphql tests:
 

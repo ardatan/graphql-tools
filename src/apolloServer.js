@@ -12,9 +12,12 @@ import { GraphQLSchema, formatError } from 'graphql';
 // it turned from a simple function into something promise-based,
 // which means the structure is now quite awkward.
 
-export default function apolloServer(options) {
+export default function apolloServer(options, ...rest) {
   if (!options) {
     throw new Error('GraphQL middleware requires options.');
+  }
+  if (rest.length > 0) {
+    throw new Error(`apolloServer expects exactly one argument, got ${rest.length + 1}`);
   }
   // Resolve the Options to get OptionsData.
   return (req, res) => {
@@ -49,11 +52,6 @@ export default function apolloServer(options) {
         rootValue, // pass through
       } = optionsData;
 
-      // TODO: throw an error if more than one arg is passed
-      // TODO: throw an error if that argument is not an object
-      if (!schema) {
-        throw new Error('schema is required');
-      }
       let executableSchema;
       if (mocks) {
         // TODO: mocks doesn't yet work with a normal GraphQL schema, but it should!
