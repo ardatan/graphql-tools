@@ -1,8 +1,54 @@
-import { generateSchema, SchemaError, addErrorLoggingToSchema } from '../src/schemaGenerator.js';
+// TODO: reduce code repetition in this file.
+// see https://github.com/apollostack/graphql-tools/issues/26
+
+import {
+  generateSchema,
+  graphQLSchema,
+  SchemaError,
+  addErrorLoggingToSchema,
+  addSchemaLevelResolveFunction,
+  attachConnectorsToContext,
+} from '../src/schemaGenerator.js';
 import { assert, expect } from 'chai';
 import { graphql } from 'graphql';
 import { Logger } from '../src/Logger.js';
 import TypeA from './circularSchemaA';
+
+
+const testSchema = `
+      type RootQuery {
+        usecontext: String
+        useTestConnector: String
+        species(name: String): String
+        stuff: String
+      }
+      schema {
+        query: RootQuery
+      }
+    `;
+const testResolvers = {
+  __schema: () => {
+    return { stuff: 'stuff', species: 'ROOT' };
+  },
+  RootQuery: {
+    usecontext: (r, a, ctx) => {
+      return ctx.usecontext;
+    },
+    useTestConnector: (r, a, ctx) => {
+      return ctx.connectors.TestConnector.get();
+    },
+    species: (root, { name }) => root.species + name,
+  },
+};
+class TestConnector {
+  get() {
+    return 'works';
+  }
+}
+const testConnectors = {
+  TestConnector,
+};
+
 
 
 
@@ -421,5 +467,189 @@ describe('Add error logging to schema', () => {
   });
   it('throws an error if logger.log is not a function', () => {
     assert.throw(() => addErrorLoggingToSchema({}, { log: '1' }), 'Logger.log must be a function');
+  });
+});
+
+describe('Attaching connectors to schema', () => {
+  describe('Schema level resolve function', () => {
+    it('actually runs', () => {
+      const jsSchema = generateSchema(testSchema, testResolvers);
+      const rootResolver = () => {
+        return { species: 'ROOT' };
+      };
+      addSchemaLevelResolveFunction(jsSchema, rootResolver);
+      const query = `{
+        species(name: "strix")
+      }`;
+      return graphql(jsSchema, query).then((res) => {
+        expect(res.data.species).to.equal('ROOTstrix');
+      });
+    });
+
+    it('can wrap fields that do not have a resolver defined', () => {
+      const jsSchema = generateSchema(testSchema, testResolvers);
+      const rootResolver = () => {
+        return { stuff: 'stuff' };
+      };
+      addSchemaLevelResolveFunction(jsSchema, rootResolver);
+      const query = `{
+        stuff
+      }`;
+      return graphql(jsSchema, query).then((res) => {
+        expect(res.data.stuff).to.equal('stuff');
+      });
+    });
+
+    it('runs only once', () => {
+      const jsSchema = generateSchema(testSchema, testResolvers);
+      let count = 0;
+      const rootResolver = () => {
+        if (count === 0) {
+          count += 1;
+          return { stuff: 'stuff', species: 'some ' };
+        }
+        return { stuff: 'EEE', species: 'EEE' };
+      };
+      addSchemaLevelResolveFunction(jsSchema, rootResolver);
+      const query = `{
+        species(name: "strix")
+        stuff
+      }`;
+      const expected = {
+        species: 'some strix',
+        stuff: 'stuff',
+      };
+      return graphql(jsSchema, query).then((res) => {
+        expect(res.data).to.deep.equal(expected);
+      });
+    });
+
+    it('can attach things to context', () => {
+      const jsSchema = generateSchema(testSchema, testResolvers);
+      const rootResolver = (o, a, ctx) => {
+        // eslint-disable-next-line no-param-reassign
+        ctx.usecontext = 'ABC';
+      };
+      addSchemaLevelResolveFunction(jsSchema, rootResolver);
+      const query = `{
+        usecontext
+      }`;
+      const expected = {
+        usecontext: 'ABC',
+      };
+      return graphql(jsSchema, query, {}, {}).then((res) => {
+        expect(res.data).to.deep.equal(expected);
+      });
+    });
+  });
+  it('actually attaches the connectors', () => {
+    const jsSchema = generateSchema(testSchema, testResolvers);
+    attachConnectorsToContext(jsSchema, testConnectors);
+    const query = `{
+      useTestConnector
+    }`;
+    const expected = {
+      useTestConnector: 'works',
+    };
+    return graphql(jsSchema, query, {}, {}).then((res) => {
+      expect(res.data).to.deep.equal(expected);
+    });
+  });
+  it('throws error if trying to attach connectors twice', () => {
+    const jsSchema = generateSchema(testSchema, testResolvers);
+    attachConnectorsToContext(jsSchema, testConnectors);
+    return expect(() => attachConnectorsToContext(jsSchema, testConnectors)).to.throw(
+      'Connectors already attached to context, cannot attach more than once'
+    );
+  });
+  it('throws error during execution if context is not an object', () => {
+    const jsSchema = generateSchema(testSchema, testResolvers);
+    attachConnectorsToContext(jsSchema, { someConnector: {} });
+    const query = `{
+      useTestConnector
+    }`;
+    return graphql(jsSchema, query, {}, 'notObject').then((res) => {
+      expect(res.errors[0].originalError.message).to.equal(
+        'Cannot attach connector because context is not an object: string'
+      );
+    });
+  });
+  it('does not interfere with schema level resolve function', () => {
+    const jsSchema = generateSchema(testSchema, testResolvers);
+    const rootResolver = () => {
+      return { stuff: 'stuff', species: 'ROOT' };
+    };
+    addSchemaLevelResolveFunction(jsSchema, rootResolver);
+    attachConnectorsToContext(jsSchema, testConnectors);
+    const query = `{
+      species(name: "strix")
+      stuff
+      useTestConnector
+    }`;
+    const expected = {
+      species: 'ROOTstrix',
+      stuff: 'stuff',
+      useTestConnector: 'works',
+    };
+    return graphql(jsSchema, query, {}, {}).then((res) => {
+      expect(res.data).to.deep.equal(expected);
+    });
+  // TODO test schemaLevelResolve function with wrong arguments
+  });
+  // TODO test attachConnectors with wrong arguments
+  it('throws error if no schema is passed', () => {
+    return expect(() => attachConnectorsToContext()).to.throw(
+      'schema must be an instance of GraphQLSchema. ' +
+      'This error could be caused by installing more than one version of GraphQL-JS'
+    );
+  });
+  it('throws error if schema is not an instance of GraphQLSchema', () => {
+    return expect(() => attachConnectorsToContext({})).to.throw(
+      'schema must be an instance of GraphQLSchema. ' +
+      'This error could be caused by installing more than one version of GraphQL-JS'
+    );
+  });
+  it('throws error if connectors argument is an array', () => {
+    const jsSchema = generateSchema(testSchema, testResolvers);
+    return expect(() => attachConnectorsToContext(jsSchema, [1])).to.throw(
+      'Expected connectors to be of type object, got Array'
+    );
+  });
+  it('throws error if connectors argument is an empty object', () => {
+    const jsSchema = generateSchema(testSchema, testResolvers);
+    return expect(() => attachConnectorsToContext(jsSchema, {})).to.throw(
+      'Expected connectors to not be an empty object'
+    );
+  });
+  it('throws error if connectors argument is not an object', () => {
+    const jsSchema = generateSchema(testSchema, testResolvers);
+    return expect(() => attachConnectorsToContext(jsSchema, 'a')).to.throw(
+      'Expected connectors to be of type object, got string'
+    );
+  });
+});
+
+describe('Generating a full graphQL schema with resolvers and connectors', () => {
+  it('outputs a working GraphQL schema', () => {
+    const schema = graphQLSchema({
+      typeDefs: testSchema,
+      resolvers: testResolvers,
+      connectors: testConnectors,
+    });
+    const query = `{
+      species(name: "uhu")
+      stuff
+      usecontext
+      useTestConnector
+    }`;
+    const expected = {
+      species: 'ROOTuhu',
+      stuff: 'stuff',
+      useTestConnector: 'works',
+      usecontext: 'ABC',
+    };
+    return graphql(schema, query, {}, { usecontext: 'ABC' }).then((res) => {
+      expect(res.data).to.deep.equal(expected);
+    });
   });
 });

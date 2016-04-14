@@ -7,6 +7,7 @@ import {
   GraphQLScalarType,
   getNamedType,
   GraphQLObjectType,
+  GraphQLSchema,
 } from 'graphql/type';
 import { decorateWithTracer } from './tracing';
 
@@ -19,6 +20,7 @@ function SchemaError(message) {
 SchemaError.prototype = new Error;
 
 // type definitions can be a string or an array of strings.
+// TODO: make this an object
 function generateSchema(
   typeDefinitions,
   resolveFunctions,
@@ -59,6 +61,23 @@ function generateSchema(
   }
 
   return schema;
+}
+
+function graphQLSchema({
+  typeDefs,
+  resolvers,
+  connectors,
+  logger = { log: (x) => console.log(x.stack) },
+  allowUndefinedInResolve = false,
+}) {
+  const jsSchema = generateSchema(typeDefs, resolvers, logger, allowUndefinedInResolve);
+  if (typeof resolvers.__schema === 'function') {
+    // TODO a bit of a hack now, better rewrite generateSchema to attach it there.
+    // not doing that now, because I'd have to rewrite a lot of tests.
+    addSchemaLevelResolveFunction(jsSchema, resolvers.__schema);
+  }
+  attachConnectorsToContext(jsSchema, connectors);
+  return jsSchema;
 }
 
 function concatenateTypeDefs(typeDefinitionsAry, functionsCalled = {}) {
@@ -103,10 +122,81 @@ function forEachField(schema, fn) {
   });
 }
 
+// takes a GraphQL-JS schema and an object of connectors, then attaches
+// the connectors to the context by wrapping each query or mutation resolve
+// function with a function that attaches connectors if they don't exist.
+// attaches connectors only once to make sure they are singletons
+function attachConnectorsToContext(schema, connectors) {
+  if (!schema || !(schema instanceof GraphQLSchema)) {
+    throw new Error(
+      'schema must be an instance of GraphQLSchema. ' +
+      'This error could be caused by installing more than one version of GraphQL-JS'
+    );
+  }
+
+  if (typeof connectors !== 'object') {
+    const connectorType = typeof connectors;
+    throw new Error(
+      `Expected connectors to be of type object, got ${connectorType}`
+    );
+  }
+  if (Object.keys(connectors).length === 0) {
+    throw new Error(
+      'Expected connectors to not be an empty object'
+    );
+  }
+  if (Array.isArray(connectors)) {
+    throw new Error(
+      'Expected connectors to be of type object, got Array'
+    );
+  }
+  if (schema._apolloConnectorsAttached) {
+    throw new Error('Connectors already attached to context, cannot attach more than once');
+  }
+  // eslint-disable-next-line no-param-reassign
+  schema._apolloConnectorsAttached = true;
+  const attachconnectorFn = (root, args, ctx) => {
+    if (typeof ctx !== 'object') {
+      // if in any way possible, we should throw an error when the attachconnectors
+      // function is called, not when a query is executed.
+      const contextType = typeof ctx;
+      throw new Error(`Cannot attach connector because context is not an object: ${contextType}`);
+    }
+    if (typeof ctx.connectors === 'undefined') {
+      // eslint-disable-next-line no-param-reassign
+      ctx.connectors = {};
+    }
+    Object.keys(connectors).forEach((connectorName) => {
+      // eslint-disable-next-line no-param-reassign
+      ctx.connectors[connectorName] = new connectors[connectorName]();
+    });
+    return root;
+  };
+  addSchemaLevelResolveFunction(schema, attachconnectorFn);
+}
+
+// wraps all resolve functions of query, mutation or subscription fields
+// with the provided function to simulate a root schema level resolve funciton
+function addSchemaLevelResolveFunction(schema, fn) {
+  // TODO test that schema is a schema, fn is a function
+  const rootTypes = ([
+    schema.getQueryType(),
+    schema.getMutationType(),
+    schema.getSubscriptionType(),
+  ]).filter(x => !!x);
+  const rootResolveFn = runAtMostOnce(fn);
+  rootTypes.forEach((type) => {
+    const fields = type.getFields();
+    Object.keys(fields).forEach((fieldName) => {
+      fields[fieldName].resolve = wrapResolver(fields[fieldName].resolve, rootResolveFn);
+    });
+  });
+}
+
 function addResolveFunctionsToSchema(schema, resolveFunctions) {
   Object.keys(resolveFunctions).forEach((typeName) => {
     const type = schema.getType(typeName);
-    if (!type) {
+    if (!type && typeName !== '__schema') {
       throw new SchemaError(
         `"${typeName}" defined in resolvers, but not in schema`
       );
@@ -161,12 +251,24 @@ function addErrorLoggingToSchema(schema, logger) {
   });
 }
 
+function wrapResolver(innerResolver, outerResolver) {
+  return (obj, args, ctx, info) => {
+    const root = outerResolver(obj, args, ctx, info);
+    if (innerResolver) {
+      return innerResolver(root, args, ctx, info);
+    }
+    return defaultResolveFn(root, args, ctx, info);
+  };
+}
 /*
  * fn: The function to decorate with the logger
  * logger: an object instance of type Logger
  * hint: an optional hint to add to the error's message
  */
 function decorateWithLogger(fn, logger, hint = '') {
+  if (typeof fn === 'undefined') {
+    return undefined;
+  }
   return (...args) => {
     try {
       return fn(...args);
@@ -211,8 +313,38 @@ function decorateToCatchUndefined(fn, hint) {
   };
 }
 
+function runAtMostOnce(fn) {
+  let count = 0;
+  let value;
+  return (...args) => {
+    if (count === 0) {
+      value = fn(...args);
+      count += 1;
+    }
+    return value;
+  };
+}
+
+/**
+ * XXX taken from graphql-js: src/execution/execute.js, because that function
+ * is not exported
+ *
+ * If a resolve function is not given, then a default resolve behavior is used
+ * which takes the property of the source object of the same name as the field
+ * and returns it as the result, or if it's a function, returns the result
+ * of calling that function.
+ */
+function defaultResolveFn(source, args, context, { fieldName }) {
+  // ensure source is a value for which property access is acceptable.
+  if (typeof source === 'object' || typeof source === 'function') {
+    const property = source[fieldName];
+    return typeof property === 'function' ? source[fieldName]() : property;
+  }
+}
+
 export {
   generateSchema,
+  graphQLSchema, // TODO somewhat of a name collision. Merge with generateSchema?
   SchemaError,
   forEachField,
   addErrorLoggingToSchema,
@@ -221,4 +353,6 @@ export {
   assertResolveFunctionsPresent,
   addTracingToResolvers,
   buildSchemaFromTypeDefinitions,
+  addSchemaLevelResolveFunction,
+  attachConnectorsToContext,
 };
