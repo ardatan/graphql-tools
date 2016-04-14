@@ -58,7 +58,6 @@ describe('ApolloServer', () => {
       return expect(res.body.data).to.deep.equal(expected);
     });
   });
-
   // TODO: test that mocking works
 
   // TODO: test that logger works
@@ -66,4 +65,104 @@ describe('ApolloServer', () => {
   // TODO: test that allow undefined in resolve works
 
   // TODO: test wrong arguments error messages
+
+
+  // express-graphql tests:
+
+  describe('(express-grapqhl) Useful errors when incorrectly used', () => {
+
+    it('requires an option factory function', () => {
+      expect(() => {
+        apolloServer();
+      }).to.throw(
+        'GraphQL middleware requires options.'
+      );
+    });
+
+    it('requires option factory function to return object', async () => {
+      var app = express();
+
+      app.use('/graphql', apolloServer(() => null));
+
+      var caughtError;
+      var response;
+      try {
+        response = await request(app).get('/graphql?query={test}');
+      } catch (error) {
+        caughtError = error;
+      }
+
+      expect(response.status).to.equal(500);
+      expect(JSON.parse(response.error.text)).to.deep.equal({
+        errors: [
+          { message:
+            'GraphQL middleware option function must return an options object.' }
+        ]
+      });
+    });
+
+    it('requires option factory function to return object or promise of object', async () => {
+      var app = express();
+
+      app.use('/graphql', apolloServer(() => Promise.resolve(null)));
+
+      var caughtError;
+      var response;
+      try {
+        response = await request(app).get('/graphql?query={test}');
+      } catch (error) {
+        caughtError = error;
+      }
+
+      expect(response.status).to.equal(500);
+      expect(JSON.parse(response.error.text)).to.deep.equal({
+        errors: [
+          { message:
+            'GraphQL middleware option function must return an options object.' }
+        ]
+      });
+    });
+
+    it('requires option factory function to return object with schema', async () => {
+      var app = express();
+
+      app.use('/graphql', apolloServer(() => ({})));
+
+      var caughtError;
+      var response;
+      try {
+        response = await request(app).get('/graphql?query={test}');
+      } catch (error) {
+        caughtError = error;
+      }
+
+      expect(response.status).to.equal(500);
+      expect(JSON.parse(response.error.text)).to.deep.equal({
+        errors: [
+          { message: 'GraphQL middleware options must contain a schema.' }
+        ]
+      });
+    });
+
+    it('requires option factory function to return object or promise of object with schema', async () => {
+      var app = express();
+
+      app.use('/graphql', apolloServer(() => Promise.resolve({})));
+
+      var caughtError;
+      var response;
+      try {
+        response = await request(app).get('/graphql?query={test}');
+      } catch (error) {
+        caughtError = error;
+      }
+
+      expect(response.status).to.equal(500);
+      expect(JSON.parse(response.error.text)).to.deep.equal({
+        errors: [
+          { message: 'GraphQL middleware options must contain a schema.' }
+        ]
+      });
+    });
+  });
 });
