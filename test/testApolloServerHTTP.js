@@ -82,11 +82,12 @@ function urlString(urlParams) {
   return string;
 }
 
-function catchError(p){
+function catchError(p) {
   return p.then(
     (res) => {
-      // workaround
-      if (res.error) {
+      // workaround for unkown issues with testing against npm package of express-graphql.
+      // the same code works when testing against the source, I'm not sure why.
+      if (res && res.error) {
         return { response: res };
       }
       throw new Error('Expected to catch error.');
@@ -125,7 +126,7 @@ describe('test harness', () => {
     } catch (error) {
       caught = error;
     }
-    expect(caught && caught.message).to.equal('Expected to catch error.');
+    expect(caught && caught.message).to.equal('Expected error to be instanceof Error.');
   });
 
   it('resolves callback promises', async () => {
