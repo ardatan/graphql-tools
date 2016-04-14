@@ -28,6 +28,7 @@ function generateSchema(
   typeDefinitions,
   resolveFunctions,
   logger = null,
+  // TODO: rename to allowUndefinedInResolve to be consistent
   forbidUndefinedInResolve = false,
 ) {
   if (!typeDefinitions) {

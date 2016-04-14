@@ -1,37 +1,45 @@
-import { makeExecutableSchema, buildSchemaFromTypeDefinitions } from './schemaGenerator';
+import {
+  makeExecutableSchema,
+  buildSchemaFromTypeDefinitions,
+  addErrorLoggingToSchema,
+  addCatchUndefinedToSchema,
+} from './schemaGenerator';
 import { addMockFunctionsToSchema } from './mock';
 import graphQLHTTP from 'express-graphql';
 import { GraphQLSchema } from 'graphql';
 
 
-export default function apolloServer({
-  schema, // required
-  resolvers, // required if mocks is not false and schema is not GraphQLSchema
-  connectors, // required if mocks is not false and schema is not GraphQLSchema
-  logger,
-  mocks = false,
-  allowUndefinedInResolve = false,
-  formatError, // pass through
-  graphiql = true, // pass through
-  validationRules, // pass through
-  context, // pass through
-  rootValue, // pass through
-}) {
+export default function apolloServer(optionsObjectThunk) {
+  // TODO: optionsObjectThunk also has to work with promises
+  return graphQLHTTP(optionsObjectThunk);
+  let myOptions = optionsObjectThunk;
+  if (typeof optionsObjectThunk === 'function') {
+    myOptions = optionsObjectThunk();
+  }
+  const {
+    schema, // required
+    resolvers, // required if mocks is not false and schema is not GraphQLSchema
+    connectors, // required if mocks is not false and schema is not GraphQLSchema
+    logger = { log: (x) => console.log(x) },
+    mocks = false,
+    allowUndefinedInResolve = false,
+    formatError, // pass through
+    pretty, // pass through
+    graphiql = false, // pass through
+    validationRules, // pass through
+    context = {}, // pass through
+    rootValue, // pass through
+  } = myOptions;
+
   // TODO: throw an error if more than one arg is passed
   // TODO: throw an error if that argument is not an object
   if (!schema) {
     throw new Error('schema is required');
   }
-  if (!logger) {
-    // eslint-disable-next-line no-param-reassign
-    logger = { log: (x) => console.log(x) };
-  }
-  if (!context) {
-    // eslint-disable-next-line no-param-reassign
-    context = {};
-  }
   let executableSchema;
   if (mocks) {
+    // TODO: mocks doesn't yet work with a normal GraphQL schema, but it should!
+    // have to rewrite these functions
     const myMocks = mocks || {};
     executableSchema = buildSchemaFromTypeDefinitions(schema);
     addMockFunctionsToSchema({
@@ -43,13 +51,9 @@ export default function apolloServer({
     // TODO: should be able to provide a GraphQLschema and still use resolvers
     // and connectors if you want, but at the moment this is not possible.
     if (schema instanceof GraphQLSchema) {
-      executableSchema = makeExecutableSchema({
-        schema,
-        resolvers: {},
-        connectors: {},
-        logger,
-        allowUndefinedInResolve,
-      });
+      addErrorLoggingToSchema(schema, logger);
+      addCatchUndefinedToSchema(schema);
+      executableSchema = schema;
     } else {
       if (!resolvers) {
         throw new Error('resolvers is required option if mocks is not provided');
@@ -74,6 +78,7 @@ export default function apolloServer({
       context,
       formatError,
       rootValue,
+      pretty,
       validationRules,
       graphiql,
     })(req, res, next);
