@@ -1,5 +1,5 @@
 import { makeExecutableSchema } from './schemaGenerator';
-import { mockServer } from './mock';
+import { addMockFunctionsToSchema } from './mock';
 import graphQLHTTP from 'express-graphql';
 import { GraphQLSchema } from 'graphql';
 
@@ -33,7 +33,7 @@ export default function apolloServer({
   let executableSchema;
   if (mocks) {
     const myMocks = mocks || {};
-    executableSchema = mockServer(schema, myMocks);
+    executableSchema = addMockFunctionsToSchema(schema, myMocks);
   } else {
     // this is just basics, makeExecutableSchema should catch the rest
     // TODO: should be able to provide a GraphQLschema and still use resolvers
