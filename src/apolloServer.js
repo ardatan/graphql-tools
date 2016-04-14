@@ -44,13 +44,15 @@ export default function apolloServer(options, ...rest) {
         logger = { log: (x) => console.log(x) },
         mocks = false,
         allowUndefinedInResolve = false,
-        formatErrorFn, // pass through
         pretty, // pass through
         graphiql = false, // pass through
         validationRules, // pass through
         context = {}, // pass through
         rootValue, // pass through
       } = optionsData;
+
+      // would collide with formatError from graphql otherwise
+      const formatErrorFn = optionsData.formatError;
 
       let executableSchema;
       if (mocks) {
