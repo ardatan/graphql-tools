@@ -59,3 +59,5 @@ export default function apolloServer({
     })(req, res, next);
   };
 }
+
+export { apolloServer };

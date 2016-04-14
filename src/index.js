@@ -14,3 +14,7 @@ export {
   MockList,
   mockServer,
 } from './mock';
+
+export {
+  apolloServer,
+} from './apolloServer';
