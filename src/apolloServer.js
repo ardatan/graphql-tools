@@ -55,6 +55,7 @@ export default function apolloServer({
         throw new Error('resolvers is required option if mocks is not provided');
       }
       if (!connectors) {
+        // TODO: don't require connectors, they're annoying
         throw new Error('connectors is a required option if mocks is not provided');
       }
       executableSchema = makeExecutableSchema({
