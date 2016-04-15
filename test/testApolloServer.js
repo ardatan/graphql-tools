@@ -189,7 +189,13 @@ describe('ApolloServer', () => {
     let lastError;
     const realConsoleError = console.error;
     console.error = (e) => { lastError = e; };
-    app.use('/graphql', server);
+    const printServer = apolloServer({
+      schema: testSchema,
+      resolvers: testResolvers,
+      connectors: testConnectors,
+      printErrors: true,
+    });
+    app.use('/graphql', printServer);
     return request(app).get(
       '/graphql?query={undefinedField}'
     ).then(() => {
