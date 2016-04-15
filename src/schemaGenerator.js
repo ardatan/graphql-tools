@@ -27,7 +27,7 @@ SchemaError.prototype = new Error;
 function generateSchema(
   typeDefinitions,
   resolveFunctions,
-  logger = null,
+  logger,
   // TODO: rename to allowUndefinedInResolve to be consistent
   forbidUndefinedInResolve = false,
 ) {
@@ -61,7 +61,7 @@ function makeExecutableSchema({
   typeDefs,
   resolvers,
   connectors,
-  logger = { log: (x) => console.log(x.stack) },
+  logger,
   allowUndefinedInResolve = false,
 }) {
   const jsSchema = generateSchema(typeDefs, resolvers, logger, allowUndefinedInResolve);
@@ -70,7 +70,11 @@ function makeExecutableSchema({
     // not doing that now, because I'd have to rewrite a lot of tests.
     addSchemaLevelResolveFunction(jsSchema, resolvers.__schema);
   }
-  attachConnectorsToContext(jsSchema, connectors);
+  if (connectors) {
+    // connectors are optional, at least for now. That means you can just import them in the resolve
+    // function if you want.
+    attachConnectorsToContext(jsSchema, connectors);
+  }
   return jsSchema;
 }
 
@@ -277,6 +281,7 @@ function decorateWithLogger(fn, logger, hint = '') {
       return fn(...args);
     } catch (e) {
       if (hint) {
+        e.originalMessage = e.message;
         e.message = `Error in resolver ${hint}\n${e.message}`;
       }
       logger.log(e);
@@ -307,6 +312,9 @@ function addTracingToResolvers(schema, tracer) {
 }
 
 function decorateToCatchUndefined(fn, hint) {
+  if (typeof fn === 'undefined') {
+    return undefined;
+  }
   return (...args) => {
     const result = fn(...args);
     if (typeof result === 'undefined') {

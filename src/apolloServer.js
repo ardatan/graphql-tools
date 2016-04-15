@@ -41,9 +41,9 @@ export default function apolloServer(options, ...rest) {
         schema, // required
         resolvers, // required if mocks is not false and schema is not GraphQLSchema
         connectors, // required if mocks is not false and schema is not GraphQLSchema
-        logger = { log: (x) => console.log(x) },
+        logger,
         mocks = false,
-        allowUndefinedInResolve = false,
+        allowUndefinedInResolve = true,
         pretty, // pass through
         graphiql = false, // pass through
         validationRules, // pass through
@@ -69,15 +69,20 @@ export default function apolloServer(options, ...rest) {
         // TODO: should be able to provide a GraphQLschema and still use resolvers
         // and connectors if you want, but at the moment this is not possible.
         if (schema instanceof GraphQLSchema) {
-          // addErrorLoggingToSchema(schema, logger);
-          // addCatchUndefinedToSchema(schema);
+          if (logger) {
+            addErrorLoggingToSchema(schema, logger);
+          }
+          if (!allowUndefinedInResolve) {
+            addCatchUndefinedToSchema(schema);
+          }
           executableSchema = schema;
         } else {
           if (!resolvers) {
+            // TODO: test this error
             throw new Error('resolvers is required option if mocks is not provided');
           }
           if (!connectors) {
-            // TODO: don't require connectors, they're annoying
+            // TODO: don't require connectors, because not everyone will want to use them.
             throw new Error('connectors is a required option if mocks is not provided');
           }
           executableSchema = makeExecutableSchema({

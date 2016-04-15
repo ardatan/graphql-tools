@@ -9,6 +9,7 @@ const testSchema = `
         useTestConnector: String
         species(name: String): String
         stuff: String
+        errorField: String
       }
       schema {
         query: RootQuery
@@ -26,6 +27,9 @@ const testResolvers = {
       return ctx.connectors.TestConnector.get();
     },
     species: (root, { name }) => root.species + name,
+    errorField: () => {
+      throw new Error('throws error');
+    },
   },
 };
 class TestConnector {
@@ -58,7 +62,6 @@ describe('ApolloServer', () => {
       return expect(res.body.data).to.deep.equal(expected);
     });
   });
-  // TODO: test that mocking works
   it('can mock a schema', () => {
     const app = express();
     const mockServer = apolloServer({
@@ -83,8 +86,23 @@ describe('ApolloServer', () => {
       return expect(res.body.data).to.deep.equal(expected);
     });
   });
-  // TODO: test that logger works
-
+  it('can log errors', () => {
+    const app = express();
+    let lastError;
+    const loggy = { log: (e) => { lastError = e.originalMessage; } };
+    const logServer = apolloServer({
+      schema: testSchema,
+      resolvers: testResolvers,
+      connectors: testConnectors,
+      logger: loggy,
+    });
+    app.use('/graphql', logServer);
+    return request(app).get(
+      '/graphql?query={errorField}'
+    ).then(() => {
+      return expect(lastError).to.equal('throws error');
+    });
+  });
   // TODO: test that allow undefined in resolve works
 
   // TODO: test wrong arguments error messages
@@ -97,7 +115,6 @@ describe('ApolloServer', () => {
   // express-graphql tests:
 
   describe('(express-grapqhl) Useful errors when incorrectly used', () => {
-
     it('requires an option factory function', () => {
       expect(() => {
         apolloServer();
