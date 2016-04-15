@@ -41,7 +41,8 @@ export default function apolloServer(options, ...rest) {
         schema, // required
         resolvers, // required if mocks is not false and schema is not GraphQLSchema
         connectors, // required if mocks is not false and schema is not GraphQLSchema
-        logger = { log: (e) => console.log(e) }, // todo: printErrors option would be better
+        logger,
+        printErrors,
         mocks = false,
         allowUndefinedInResolve = true,
         pretty, // pass through
@@ -72,6 +73,9 @@ export default function apolloServer(options, ...rest) {
           if (logger) {
             addErrorLoggingToSchema(schema, logger);
           }
+          if (printErrors) {
+            addErrorLoggingToSchema(schema, { log: (e) => console.error(e.stack) });
+          }
           if (!allowUndefinedInResolve) {
             addCatchUndefinedToSchema(schema);
           }
@@ -88,6 +92,9 @@ export default function apolloServer(options, ...rest) {
             logger,
             allowUndefinedInResolve,
           });
+          if (printErrors) {
+            addErrorLoggingToSchema(executableSchema, { log: (e) => console.error(e.stack) });
+          }
         }
       }
       // graphQLHTTPOptions

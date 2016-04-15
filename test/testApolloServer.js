@@ -184,6 +184,67 @@ describe('ApolloServer', () => {
       );
     });
   });
+  it('can print errors for you with a shorthand schema', () => {
+    const app = express();
+    let lastError;
+    const realConsoleError = console.error;
+    console.error = (e) => { lastError = e; };
+    app.use('/graphql', server);
+    return request(app).get(
+      '/graphql?query={undefinedField}'
+    ).then(() => {
+      return expect(lastError).to.be.defined;
+    }).finally(() => {
+      console.error = realConsoleError;
+    });
+  });
+  it('can print errors for you with a graphQL-JS schema', () => {
+    const app = express();
+    let lastError;
+    const realConsoleError = console.error;
+    console.error = (e) => { lastError = e; };
+    const jsSchema = makeExecutableSchema({
+      typeDefs: testSchema,
+      resolvers: testResolvers,
+      connectors: testConnectors,
+    });
+    const logServer = apolloServer({
+      schema: jsSchema,
+      allowUndefinedInResolve: false,
+      printErrors: true,
+    });
+    app.use('/graphql', logServer);
+    return request(app).get(
+      '/graphql?query={undefinedField}'
+    ).then(() => {
+      return expect(lastError).to.be.defined;
+    }).finally(() => {
+      console.error = realConsoleError;
+    });
+  });
+  it('can forbid undefined with a graphQL-JS schema', () => {
+    const app = express();
+    let lastError;
+    const loggy = { log: (e) => { lastError = e.originalMessage; } };
+    const jsSchema = makeExecutableSchema({
+      typeDefs: testSchema,
+      resolvers: testResolvers,
+      connectors: testConnectors,
+    });
+    const logServer = apolloServer({
+      schema: jsSchema,
+      allowUndefinedInResolve: false,
+      logger: loggy,
+    });
+    app.use('/graphql', logServer);
+    return request(app).get(
+      '/graphql?query={undefinedField}'
+    ).then(() => {
+      return expect(lastError).to.equal(
+        'Resolve function for "RootQuery.undefinedField" returned undefined'
+      );
+    });
+  });
   // TODO: test wrong arguments error messages
   it('throws an error if you call it with more than one arg', () => {
     return expect(() => apolloServer(1, 2)).to.throw(

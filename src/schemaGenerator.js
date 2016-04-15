@@ -283,6 +283,7 @@ function decorateWithLogger(fn, logger, hint = '') {
     try {
       return fn(...args);
     } catch (e) {
+      // TODO: clone the error properly
       const newE = new Error();
       newE.stack = e.stack;
       if (hint) {
