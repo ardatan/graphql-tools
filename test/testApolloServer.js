@@ -64,6 +64,21 @@ describe('ApolloServer', () => {
       return expect(res.body.data).to.deep.equal(expected);
     });
   });
+  it('throws an error if schema is shorthand and resolvers not defined', () => {
+    const app = express();
+    const verySadServer = apolloServer({
+      schema: testSchema,
+    });
+    app.use('/graphql', verySadServer);
+    return request(app).get(
+      '/graphql?query={stuff}'
+    ).then((res) => {
+      expect(res.status).to.equal(500);
+      return expect(res.error.text).to.equal(
+        '{"errors":[{"message":"resolvers is required option if mocks is not provided"}]}'
+      );
+    });
+  });
   it('can mock a schema', () => {
     const app = express();
     const mockServer = apolloServer({
