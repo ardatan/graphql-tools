@@ -41,7 +41,7 @@ export default function apolloServer(options, ...rest) {
         schema, // required
         resolvers, // required if mocks is not false and schema is not GraphQLSchema
         connectors, // required if mocks is not false and schema is not GraphQLSchema
-        logger,
+        logger = { log: (e) => console.log(e) }, // todo: printErrors option would be better
         mocks = false,
         allowUndefinedInResolve = true,
         pretty, // pass through

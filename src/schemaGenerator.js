@@ -283,11 +283,13 @@ function decorateWithLogger(fn, logger, hint = '') {
     try {
       return fn(...args);
     } catch (e) {
+      const newE = new Error();
+      newE.stack = e.stack;
       if (hint) {
-        e.originalMessage = e.message;
-        e.message = `Error in resolver ${hint}\n${e.message}`;
+        newE.originalMessage = e.message;
+        newE.message = `Error in resolver ${hint}\n${e.message}`;
       }
-      logger.log(e);
+      logger.log(newE);
       // we want to pass on the error, just in case.
       throw e;
     }
