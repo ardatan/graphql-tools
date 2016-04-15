@@ -57,6 +57,8 @@ function generateSchema(
   return schema;
 }
 
+// TODO: this function is almost the same as generateSchema. Merge them.
+// or maybe don't export generate schema.
 function makeExecutableSchema({
   typeDefs,
   resolvers,

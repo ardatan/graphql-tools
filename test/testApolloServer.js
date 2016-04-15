@@ -1,4 +1,5 @@
 import { apolloServer } from '../src/apolloServer';
+import { makeExecutableSchema } from '../src/schemaGenerator';
 import { expect } from 'chai';
 import express from 'express';
 import request from 'supertest-as-promised';
@@ -94,6 +95,27 @@ describe('ApolloServer', () => {
       schema: testSchema,
       resolvers: testResolvers,
       connectors: testConnectors,
+      logger: loggy,
+    });
+    app.use('/graphql', logServer);
+    return request(app).get(
+      '/graphql?query={errorField}'
+    ).then(() => {
+      return expect(lastError).to.equal('throws error');
+    });
+  });
+
+  it('can log errors with a graphQL-JS schema', () => {
+    const app = express();
+    let lastError;
+    const loggy = { log: (e) => { lastError = e.originalMessage; } };
+    const jsSchema = makeExecutableSchema({
+      typeDefs: testSchema,
+      resolvers: testResolvers,
+      connectors: testConnectors,
+    });
+    const logServer = apolloServer({
+      schema: jsSchema,
       logger: loggy,
     });
     app.use('/graphql', logServer);
