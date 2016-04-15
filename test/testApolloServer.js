@@ -193,13 +193,14 @@ describe('ApolloServer', () => {
       schema: testSchema,
       resolvers: testResolvers,
       connectors: testConnectors,
+      allowUndefinedInResolve: false,
       printErrors: true,
     });
     app.use('/graphql', printServer);
     return request(app).get(
       '/graphql?query={undefinedField}'
     ).then(() => {
-      return expect(lastError).to.be.defined;
+      return expect(lastError).to.match(/Error/);
     }).finally(() => {
       console.error = realConsoleError;
     });
@@ -223,7 +224,7 @@ describe('ApolloServer', () => {
     return request(app).get(
       '/graphql?query={undefinedField}'
     ).then(() => {
-      return expect(lastError).to.be.defined;
+      return expect(lastError).to.match(/Error/);
     }).finally(() => {
       console.error = realConsoleError;
     });
