@@ -29,7 +29,7 @@ function generateSchema(
   resolveFunctions,
   logger,
   // TODO: rename to allowUndefinedInResolve to be consistent
-  forbidUndefinedInResolve = false,
+  allowUndefinedInResolve = true,
 ) {
   if (!typeDefinitions) {
     throw new SchemaError('Must provide typeDefinitions');
@@ -46,7 +46,7 @@ function generateSchema(
 
   assertResolveFunctionsPresent(schema);
 
-  if (forbidUndefinedInResolve) {
+  if (!allowUndefinedInResolve) {
     addCatchUndefinedToSchema(schema);
   }
 
