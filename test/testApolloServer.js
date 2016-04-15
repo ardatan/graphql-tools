@@ -11,6 +11,7 @@ const testSchema = `
         species(name: String): String
         stuff: String
         errorField: String
+        undefinedField: String
       }
       schema {
         query: RootQuery
@@ -125,8 +126,49 @@ describe('ApolloServer', () => {
       return expect(lastError).to.equal('throws error');
     });
   });
-  // TODO: test that allow undefined in resolve works
-
+  it('can forbid undefined errors', () => {
+    const app = express();
+    let lastError;
+    const loggy = { log: (e) => { lastError = e.originalMessage; } };
+    const logServer = apolloServer({
+      schema: testSchema,
+      resolvers: testResolvers,
+      connectors: testConnectors,
+      logger: loggy,
+      allowUndefinedInResolve: false,
+    });
+    app.use('/graphql', logServer);
+    return request(app).get(
+      '/graphql?query={undefinedField}'
+    ).then(() => {
+      return expect(lastError).to.equal(
+        'Resolve function for "RootQuery.undefinedField" returned undefined'
+      );
+    });
+  });
+  it('can forbid undefined with a graphQL-JS schema', () => {
+    const app = express();
+    let lastError;
+    const loggy = { log: (e) => { lastError = e.originalMessage; } };
+    const jsSchema = makeExecutableSchema({
+      typeDefs: testSchema,
+      resolvers: testResolvers,
+      connectors: testConnectors,
+    });
+    const logServer = apolloServer({
+      schema: jsSchema,
+      allowUndefinedInResolve: false,
+      logger: loggy,
+    });
+    app.use('/graphql', logServer);
+    return request(app).get(
+      '/graphql?query={undefinedField}'
+    ).then(() => {
+      return expect(lastError).to.equal(
+        'Resolve function for "RootQuery.undefinedField" returned undefined'
+      );
+    });
+  });
   // TODO: test wrong arguments error messages
   it('throws an error if you call it with more than one arg', () => {
     return expect(() => apolloServer(1, 2)).to.throw(
