@@ -1,5 +1,8 @@
 // Generates a schema for graphql-js given a shorthand schema
 
+// TODO: document each function clearly in the code: what arguments it accepts
+// and what it outputs.
+
 import { parse } from 'graphql/language';
 import { uniq } from 'lodash';
 import { buildASTSchema } from 'graphql/utilities';
@@ -24,8 +27,9 @@ SchemaError.prototype = new Error;
 function generateSchema(
   typeDefinitions,
   resolveFunctions,
-  logger = null,
-  forbidUndefinedInResolve = false,
+  logger,
+  // TODO: rename to allowUndefinedInResolve to be consistent
+  allowUndefinedInResolve = true,
 ) {
   if (!typeDefinitions) {
     throw new SchemaError('Must provide typeDefinitions');
@@ -42,7 +46,7 @@ function generateSchema(
 
   assertResolveFunctionsPresent(schema);
 
-  if (forbidUndefinedInResolve) {
+  if (!allowUndefinedInResolve) {
     addCatchUndefinedToSchema(schema);
   }
 
@@ -53,11 +57,13 @@ function generateSchema(
   return schema;
 }
 
+// TODO: this function is almost the same as generateSchema. Merge them.
+// or maybe don't export generate schema.
 function makeExecutableSchema({
   typeDefs,
   resolvers,
   connectors,
-  logger = { log: (x) => console.log(x.stack) },
+  logger,
   allowUndefinedInResolve = false,
 }) {
   const jsSchema = generateSchema(typeDefs, resolvers, logger, allowUndefinedInResolve);
@@ -66,7 +72,11 @@ function makeExecutableSchema({
     // not doing that now, because I'd have to rewrite a lot of tests.
     addSchemaLevelResolveFunction(jsSchema, resolvers.__schema);
   }
-  attachConnectorsToContext(jsSchema, connectors);
+  if (connectors) {
+    // connectors are optional, at least for now. That means you can just import them in the resolve
+    // function if you want.
+    attachConnectorsToContext(jsSchema, connectors);
+  }
   return jsSchema;
 }
 
@@ -94,6 +104,7 @@ function concatenateTypeDefs(typeDefinitionsAry, functionsCalled = {}) {
 }
 
 function buildSchemaFromTypeDefinitions(typeDefinitions) {
+  // TODO: accept only array here, otherwise interfaces get confusing.
   let myDefinitions = typeDefinitions;
   if (typeof myDefinitions !== 'string') {
     if (! Array.isArray(myDefinitions)) {
@@ -265,16 +276,21 @@ function wrapResolver(innerResolver, outerResolver) {
  */
 function decorateWithLogger(fn, logger, hint = '') {
   if (typeof fn === 'undefined') {
-    return undefined;
+    // eslint-disable-next-line no-param-reassign
+    fn = defaultResolveFn;
   }
   return (...args) => {
     try {
       return fn(...args);
     } catch (e) {
+      // TODO: clone the error properly
+      const newE = new Error();
+      newE.stack = e.stack;
       if (hint) {
-        e.message = `Error in resolver ${hint}\n${e.message}`;
+        newE.originalMessage = e.message;
+        newE.message = `Error in resolver ${hint}\n${e.message}`;
       }
-      logger.log(e);
+      logger.log(newE);
       // we want to pass on the error, just in case.
       throw e;
     }
@@ -302,6 +318,10 @@ function addTracingToResolvers(schema, tracer) {
 }
 
 function decorateToCatchUndefined(fn, hint) {
+  if (typeof fn === 'undefined') {
+    // eslint-disable-next-line no-param-reassign
+    fn = defaultResolveFn;
+  }
   return (...args) => {
     const result = fn(...args);
     if (typeof result === 'undefined') {

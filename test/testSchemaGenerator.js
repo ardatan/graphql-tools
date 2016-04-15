@@ -448,7 +448,7 @@ describe('providing useful errors from resolve functions', () => {
     };
 
     const logger = new Logger();
-    const jsSchema = generateSchema(shorthand, resolve, logger, true);
+    const jsSchema = generateSchema(shorthand, resolve, logger, false);
     const testQuery = '{ species, stuff }';
     const expectedErr = /Resolve function for "RootQuery.species" returned undefined/;
     const expectedResData = { species: null, stuff: 'stuff' };
