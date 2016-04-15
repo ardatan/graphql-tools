@@ -276,7 +276,8 @@ function wrapResolver(innerResolver, outerResolver) {
  */
 function decorateWithLogger(fn, logger, hint = '') {
   if (typeof fn === 'undefined') {
-    return undefined;
+    // eslint-disable-next-line no-param-reassign
+    fn = defaultResolveFn;
   }
   return (...args) => {
     try {
@@ -315,7 +316,8 @@ function addTracingToResolvers(schema, tracer) {
 
 function decorateToCatchUndefined(fn, hint) {
   if (typeof fn === 'undefined') {
-    return undefined;
+    // eslint-disable-next-line no-param-reassign
+    fn = defaultResolveFn;
   }
   return (...args) => {
     const result = fn(...args);
