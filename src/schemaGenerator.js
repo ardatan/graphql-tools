@@ -212,14 +212,37 @@ function addResolveFunctionsToSchema(schema, resolveFunctions) {
     }
 
     Object.keys(resolveFunctions[typeName]).forEach((fieldName) => {
+      if (fieldName.startsWith('__')) {
+        // this is for isTypeOf and resolveType and all the other stuff.
+        // TODO require resolveType for unions and interfaces.
+        type[fieldName.substring(2)] = resolveFunctions[typeName][fieldName];
+        return;
+      }
+
       if (!type.getFields()[fieldName]) {
         throw new SchemaError(
           `${typeName}.${fieldName} defined in resolvers, but not in schema`
         );
       }
       const field = type.getFields()[fieldName];
-      field.resolve = resolveFunctions[typeName][fieldName];
+      const fieldResolve = resolveFunctions[typeName][fieldName];
+      if (typeof fieldResolve === 'function') {
+        // for convenience. Allows shorter syntax in resolver definition file
+        setFieldProperties(field, { resolve: fieldResolve });
+      } else {
+        if (typeof fieldResolve !== 'object') {
+          throw new SchemaError(`Resolver ${typeName}.${fieldName} must be object or function`);
+        }
+        setFieldProperties(field, fieldResolve);
+      }
     });
+  });
+}
+
+function setFieldProperties(field, propertiesObj) {
+  Object.keys(propertiesObj).forEach((propertyName) => {
+    // eslint-disable-next-line no-param-reassign
+    field[propertyName] = propertiesObj[propertyName];
   });
 }
 

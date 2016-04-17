@@ -8,9 +8,10 @@ import {
   addErrorLoggingToSchema,
   addSchemaLevelResolveFunction,
   attachConnectorsToContext,
+  assertResolveFunctionsPresent,
 } from '../src/schemaGenerator.js';
 import { assert, expect } from 'chai';
-import { graphql } from 'graphql';
+import { graphql, GraphQLInt, GraphQLObjectType, GraphQLSchema } from 'graphql';
 import { Logger } from '../src/Logger.js';
 import TypeA from './circularSchemaA';
 
@@ -246,7 +247,7 @@ describe('generating schema from shorthand', () => {
     return expect(jsSchema.getQueryType().name).to.equal('Query');
   });
 
-  it('can generate a schema with resolve functions', (done) => {
+  it('can generate a schema with resolve functions', () => {
     const shorthand = `
       type BirdSpecies {
         name: String!,
@@ -288,12 +289,152 @@ describe('generating schema from shorthand', () => {
         ],
       },
     };
+    const jsSchema = generateSchema(shorthand, resolveFunctions);
+    const resultPromise = graphql(jsSchema, testQuery);
+    return resultPromise.then((result) => {
+      return assert.deepEqual(result, solution);
+    });
+  });
+
+  it('supports resolveType for unions', () => {
+    const shorthand = `
+      union Searchable = Person | Location
+      type Person {
+        name: String
+        age: Int
+      }
+      type Location {
+        name: String
+        coordinates: String
+      }
+      type RootQuery {
+        search(name: String): [Searchable]
+      }
+      schema {
+        query: RootQuery
+      }
+    `;
+
+    const resolveFunctions = {
+      RootQuery: {
+        search: {
+          resolve(root, { name }) {
+            return [{
+              name: `Tom ${name}`,
+              age: 100,
+            }, {
+              name: 'North Pole',
+              coordinates: '90, 0',
+            }];
+          },
+        },
+      },
+      Searchable: {
+        __resolveType(data, context, info) {
+          if (data.age) {
+            return info.schema.getType('Person');
+          }
+          if (data.coordinates) {
+            return info.schema.getType('Location');
+          }
+          console.log('no type!');
+          return null;
+        },
+      },
+    };
+
+    const testQuery = `{
+      search(name: "a"){
+        ... on Person {
+          name
+          age
+        }
+        ... on Location {
+          name
+          coordinates
+        }
+      }
+    }`;
+
+    const solution = {
+      data: {
+        search: [
+          {
+            name: 'Tom a',
+            age: 100,
+          },
+          {
+            name: 'North Pole',
+            coordinates: '90, 0',
+          },
+        ],
+      },
+    };
 
     const jsSchema = generateSchema(shorthand, resolveFunctions);
     const resultPromise = graphql(jsSchema, testQuery);
     return resultPromise.then((result) => {
-      assert.deepEqual(result, solution);
-      done();
+      return assert.deepEqual(result, solution);
+    });
+  });
+
+  it('can set description and deprecation reason', () => {
+    const shorthand = `
+      type BirdSpecies {
+        name: String!,
+        wingspan: Int
+      }
+      type RootQuery {
+        species(name: String!): [BirdSpecies]
+      }
+      schema {
+        query: RootQuery
+      }
+    `;
+
+    const resolveFunctions = {
+      RootQuery: {
+        species: {
+          description: 'A species',
+          deprecationReason: 'Just because',
+          resolve: (root, { name }) => {
+            return [{
+              name: `Hello ${name}!`,
+              wingspan: 200,
+            }];
+          },
+        },
+      },
+    };
+
+    const testQuery = `{
+      __type(name: "RootQuery"){
+        name
+        fields(includeDeprecated: true){
+          name
+          description
+          deprecationReason
+        }
+      }
+    }`;
+
+    const solution = {
+      data: {
+        __type: {
+          name: 'RootQuery',
+          fields: [{
+            name: 'species',
+            description: 'A species',
+            deprecationReason: 'Just because',
+          }],
+        },
+      },
+    };
+
+    const jsSchema = generateSchema(shorthand, resolveFunctions);
+    const resultPromise = graphql(jsSchema, testQuery);
+    return resultPromise.then((result) => {
+      return assert.deepEqual(result, solution);
     });
   });
 
@@ -309,6 +450,23 @@ describe('generating schema from shorthand', () => {
     const rf = { Query: {} };
 
     assert.throws(generateSchema.bind(null, short, rf), SchemaError);
+  });
+
+  it('throws an error if field.resolve is not a function', () => {
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          aField: {
+            type: GraphQLInt,
+            args: { a: { type: GraphQLInt } },
+            resolve: 'NOT A FUNCTION',
+          },
+        },
+      }),
+    });
+
+    assert.throws(() => assertResolveFunctionsPresent(schema), SchemaError);
   });
 
   it('throws an error if a resolver is not a function', () => {
