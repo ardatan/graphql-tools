@@ -22,6 +22,13 @@ describe('Mock', () => {
       returnStringArgument(s: String): String
     }
 
+    type Bee {
+      returnInt: Int
+      returnEnum: SomeEnum
+    }
+
+    union BirdsAndBees = Bird | Bee
+
     enum SomeEnum {
       A
       B
@@ -35,6 +42,7 @@ describe('Mock', () => {
       returnBoolean: Boolean
       returnID: ID
       returnEnum: SomeEnum
+      returnBirdsAndBees: [BirdsAndBees]
       returnMockError: MissingMockType
       returnNullableString: String
       returnNonNullString: String!
@@ -55,6 +63,14 @@ describe('Mock', () => {
       mutation: RootMutation
     }
   `;
+
+  const resolveFunctions = {
+    BirdsAndBees: {
+      __resolveType(data, context, info) {
+        return info.schema.getType(data.typename);
+      },
+    },
+  };
 
   it('throws an error if you forget to pass schema', () => {
     expect(() => addMockFunctionsToSchema())
@@ -121,6 +137,43 @@ describe('Mock', () => {
     }`;
     return graphql(jsSchema, testQuery).then((res) => {
       expect(res.data.returnEnum).to.be.oneOf(['A', 'B', 'C']);
+    });
+  });
+
+  it('can mock Unions', () => {
+    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    addResolveFunctionsToSchema(jsSchema, resolveFunctions);
+    const mockMap = {
+      Int: () => 10,
+      String: () => 'aha',
+      SomeEnum: () => 'A',
+      RootQuery: () => ({
+        returnBirdsAndBees: () => new MockList(40),
+      }),
+    };
+    addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
+    const testQuery = `{
+      returnBirdsAndBees {
+        ... on Bird {
+          returnInt
+          returnString
+        }
+        ... on Bee {
+          returnInt
+          returnEnum
+        }
+      }
+    }`;
+    return graphql(jsSchema, testQuery).then((res) => {
+      // XXX this test is expected to fail once every 2^40 times ;-)
+      expect(res.data.returnBirdsAndBees).to.include({
+        returnInt: 10,
+        returnString: 'aha',
+      });
+      return expect(res.data.returnBirdsAndBees).to.include({
+        returnInt: 10,
+        returnEnum: 'A',
+      });
     });
   });
 
