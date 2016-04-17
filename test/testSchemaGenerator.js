@@ -8,9 +8,10 @@ import {
   addErrorLoggingToSchema,
   addSchemaLevelResolveFunction,
   attachConnectorsToContext,
+  assertResolveFunctionsPresent,
 } from '../src/schemaGenerator.js';
 import { assert, expect } from 'chai';
-import { graphql } from 'graphql';
+import { graphql, GraphQLInt, GraphQLObjectType, GraphQLSchema } from 'graphql';
 import { Logger } from '../src/Logger.js';
 import TypeA from './circularSchemaA';
 
@@ -297,6 +298,66 @@ describe('generating schema from shorthand', () => {
     });
   });
 
+  it('can set description and deprecation reason', () => {
+    const shorthand = `
+      type BirdSpecies {
+        name: String!,
+        wingspan: Int
+      }
+      type RootQuery {
+        species(name: String!): [BirdSpecies]
+      }
+      schema {
+        query: RootQuery
+      }
+    `;
+
+    const resolveFunctions = {
+      RootQuery: {
+        species: {
+          description: 'A species',
+          deprecationReason: 'Just because',
+          resolve: (root, { name }) => {
+            return [{
+              name: `Hello ${name}!`,
+              wingspan: 200,
+            }];
+          },
+        },
+      },
+    };
+
+    const testQuery = `{
+      __type(name: "RootQuery"){
+        name
+        fields(includeDeprecated: true){
+          name
+          description
+          deprecationReason
+        }
+      }
+    }`;
+
+    const solution = {
+      data: {
+        __type: {
+          name: 'RootQuery',
+          fields: [{
+            name: 'species',
+            description: 'A species',
+            deprecationReason: 'Just because',
+          }],
+        },
+      },
+    };
+
+    const jsSchema = generateSchema(shorthand, resolveFunctions);
+    const resultPromise = graphql(jsSchema, testQuery);
+    return resultPromise.then((result) => {
+      return assert.deepEqual(result, solution);
+    });
+  });
+
   it('throws an error if a field has arguments but no resolve func', () => {
     const short = `
     type Query{
@@ -309,6 +370,23 @@ describe('generating schema from shorthand', () => {
     const rf = { Query: {} };
 
     assert.throws(generateSchema.bind(null, short, rf), SchemaError);
+  });
+
+  it('throws an error if field.resolve is not a function', () => {
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          aField: {
+            type: GraphQLInt,
+            args: { a: { type: GraphQLInt } },
+            resolve: 'NOT A FUNCTION',
+          },
+        },
+      }),
+    });
+
+    assert.throws(() => assertResolveFunctionsPresent(schema), SchemaError);
   });
 
   it('throws an error if a resolver is not a function', () => {
