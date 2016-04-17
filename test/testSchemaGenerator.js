@@ -309,8 +309,6 @@ describe('generating schema from shorthand', () => {
       }
       type RootQuery {
         search(name: String): [Searchable]
-        a: Location
-        b: Person
       }
       schema {
         query: RootQuery
@@ -319,8 +317,6 @@ describe('generating schema from shorthand', () => {
 
     const resolveFunctions = {
       RootQuery: {
-        a: () => null,
-        b: () => null,
         search: {
           resolve(root, { name }) {
             return [{
