@@ -330,7 +330,7 @@ describe('generating schema from shorthand', () => {
         },
       },
       Searchable: {
-        resolveType(data, context, info) {
+        __resolveType(data, context, info) {
           if (data.age) {
             return info.schema.getType('Person');
           }
