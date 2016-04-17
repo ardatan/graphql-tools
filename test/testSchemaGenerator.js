@@ -247,7 +247,7 @@ describe('generating schema from shorthand', () => {
     return expect(jsSchema.getQueryType().name).to.equal('Query');
   });
 
-  it('can generate a schema with resolve functions', (done) => {
+  it('can generate a schema with resolve functions', () => {
     const shorthand = `
       type BirdSpecies {
         name: String!,
@@ -289,12 +289,96 @@ describe('generating schema from shorthand', () => {
         ],
       },
     };
+    const jsSchema = generateSchema(shorthand, resolveFunctions);
+    const resultPromise = graphql(jsSchema, testQuery);
+    return resultPromise.then((result) => {
+      return assert.deepEqual(result, solution);
+    });
+  });
+
+  it('supports resolveType for unions', () => {
+    const shorthand = `
+      union Searchable = Person | Location
+      type Person {
+        name: String
+        age: Int
+      }
+      type Location {
+        name: String
+        coordinates: String
+      }
+      type RootQuery {
+        search(name: String): [Searchable]
+        a: Location
+        b: Person
+      }
+      schema {
+        query: RootQuery
+      }
+    `;
+
+    const resolveFunctions = {
+      RootQuery: {
+        a: () => null,
+        b: () => null,
+        search: {
+          resolve(root, { name }) {
+            return [{
+              name: `Tom ${name}`,
+              age: 100,
+            }, {
+              name: 'North Pole',
+              coordinates: '90, 0',
+            }];
+          },
+        },
+      },
+      Searchable: {
+        resolveType(data, context, info) {
+          if (data.age) {
+            return info.schema.getType('Person');
+          }
+          if (data.coordinates) {
+            return info.schema.getType('Location');
+          }
+          console.log('no type!');
+          return null;
+        },
+      },
+    };
+
+    const testQuery = `{
+      search(name: "a"){
+        ... on Person {
+          name
+          age
+        }
+        ... on Location {
+          name
+          coordinates
+        }
+      }
+    }`;
+
+    const solution = {
+      data: {
+        search: [
+          {
+            name: 'Tom a',
+            age: 100,
+          },
+          {
+            name: 'North Pole',
+            coordinates: '90, 0',
+          },
+        ],
+      },
+    };
 
     const jsSchema = generateSchema(shorthand, resolveFunctions);
     const resultPromise = graphql(jsSchema, testQuery);
     return resultPromise.then((result) => {
-      assert.deepEqual(result, solution);
-      done();
+      return assert.deepEqual(result, solution);
     });
   });
 

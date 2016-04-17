@@ -211,7 +211,21 @@ function addResolveFunctionsToSchema(schema, resolveFunctions) {
       );
     }
 
+    // treat isTypeOf and resolveType differently
+    // TODO require resolveType for unions and interfaces.
+    // XXX this is getting messier and messier. Will need refactoring soon
+    if (resolveFunctions[typeName].isTypeOf) {
+      console.log('is type of!');
+      type.isTypeOf = resolveFunctions[typeName].isTypeOf;
+    }
+    if (resolveFunctions[typeName].resolveType) {
+      type.resolveType = resolveFunctions[typeName].resolveType;
+    }
+
     Object.keys(resolveFunctions[typeName]).forEach((fieldName) => {
+      if (fieldName === 'isTypeOf' || fieldName === 'resolveType') {
+        return;
+      }
       if (!type.getFields()[fieldName]) {
         throw new SchemaError(
           `${typeName}.${fieldName} defined in resolvers, but not in schema`
