@@ -177,7 +177,7 @@ function attachConnectorsToContext(schema, connectors) {
     }
     Object.keys(connectors).forEach((connectorName) => {
       // eslint-disable-next-line no-param-reassign
-      ctx.connectors[connectorName] = new connectors[connectorName]();
+      ctx.connectors[connectorName] = new connectors[connectorName](ctx);
     });
     return root;
   };
