@@ -20,6 +20,7 @@ const testSchema = `
       type RootQuery {
         usecontext: String
         useTestConnector: String
+        useContextConnector: String
         species(name: String): String
         stuff: String
       }
@@ -38,6 +39,9 @@ const testResolvers = {
     useTestConnector: (r, a, ctx) => {
       return ctx.connectors.TestConnector.get();
     },
+    useContextConnector: (r, a, ctx) => {
+      return ctx.connectors.ContextConnector.get();
+    },
     species: (root, { name }) => root.species + name,
   },
 };
@@ -46,8 +50,18 @@ class TestConnector {
     return 'works';
   }
 }
+
+class ContextConnector {
+  constructor(ctx) {
+    this.str = ctx.str;
+  }
+  get() {
+    return this.str;
+  }
+}
 const testConnectors = {
   TestConnector,
+  ContextConnector,
 };
 
 
@@ -710,6 +724,19 @@ describe('Attaching connectors to schema', () => {
       useTestConnector: 'works',
     };
     return graphql(jsSchema, query, {}, {}).then((res) => {
+      expect(res.data).to.deep.equal(expected);
+    });
+  });
+  it('actually passes the context to the connector constructor', () => {
+    const jsSchema = generateSchema(testSchema, testResolvers);
+    attachConnectorsToContext(jsSchema, testConnectors);
+    const query = `{
+      useContextConnector
+    }`;
+    const expected = {
+      useContextConnector: 'YOYO',
+    };
+    return graphql(jsSchema, query, {}, { str: 'YOYO' }).then((res) => {
       expect(res.data).to.deep.equal(expected);
     });
   });
