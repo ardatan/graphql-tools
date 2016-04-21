@@ -7,7 +7,6 @@ import {
   getNullableType,
   getNamedType,
 } from 'graphql/type';
-import casual from 'casual-browserify';
 import { graphql } from 'graphql';
 import uuid from 'node-uuid';
 import { forEachField, buildSchemaFromTypeDefinitions } from './schemaGenerator';
@@ -52,14 +51,20 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
   });
 
   const defaultMockMap = new Map();
-  defaultMockMap.set('Int', () => casual.integer());
-  defaultMockMap.set('Float', () => casual.double());
-  defaultMockMap.set('String', () => casual.words(2));
-  defaultMockMap.set('Boolean', () => casual.coin_flip);
+  defaultMockMap.set('Int', () => Math.round(Math.random * 200) - 100);
+  defaultMockMap.set('Float', () => Math.random * 200 - 100);
+  defaultMockMap.set('String', () => 'Hello World');
+  defaultMockMap.set('Boolean', () => Math.random > 0.5);
   defaultMockMap.set('ID', () => uuid.v4());
 
   function mergeObjects(a, b) {
     return Object.assign(a, b);
+  }
+
+  // returns a random element from that ary
+  function getRandomElement(ary) {
+    const sample = Math.floor(Math.random() * ary.length);
+    return ary[sample];
   }
 
   // takes either an object or a (possibly nested) array
@@ -129,10 +134,10 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
       if (fieldType instanceof GraphQLUnionType) {
         // TODO: if a union type doesn't implement resolveType, we could overwrite
         // it with a default that works with what's below.
-        return { typename: casual.random_element(fieldType.getTypes()) };
+        return { typename: getRandomElement(fieldType.getTypes()) };
       }
       if (fieldType instanceof GraphQLEnumType) {
-        return casual.random_element(fieldType.getValues()).value;
+        return getRandomElement(fieldType.getValues()).value;
       }
       if (defaultMockMap.has(fieldType.name)) {
         return defaultMockMap.get(fieldType.name)(o, a, c, r);
