@@ -22,9 +22,13 @@ function SchemaError(message) {
 }
 SchemaError.prototype = new Error;
 
+function generateSchema(...args) {
+  console.error('generateSchema is deprecated, use makeExecutableSchema instead');
+  return _generateSchema(...args);
+}
+
 // type definitions can be a string or an array of strings.
-// TODO: make this an object
-function generateSchema(
+function _generateSchema(
   typeDefinitions,
   resolveFunctions,
   logger,
@@ -57,8 +61,6 @@ function generateSchema(
   return schema;
 }
 
-// TODO: this function is almost the same as generateSchema. Merge them.
-// or maybe don't export generate schema.
 function makeExecutableSchema({
   typeDefs,
   resolvers,
@@ -66,7 +68,7 @@ function makeExecutableSchema({
   logger,
   allowUndefinedInResolve = false,
 }) {
-  const jsSchema = generateSchema(typeDefs, resolvers, logger, allowUndefinedInResolve);
+  const jsSchema = _generateSchema(typeDefs, resolvers, logger, allowUndefinedInResolve);
   if (typeof resolvers.__schema === 'function') {
     // TODO a bit of a hack now, better rewrite generateSchema to attach it there.
     // not doing that now, because I'd have to rewrite a lot of tests.
@@ -384,8 +386,8 @@ function defaultResolveFn(source, args, context, { fieldName }) {
 }
 
 export {
-  generateSchema,
-  makeExecutableSchema, // TODO somewhat of a name collision. Merge with generateSchema?
+  generateSchema, // TODO deprecated, remove for v 0.4.x
+  makeExecutableSchema,
   SchemaError,
   forEachField,
   addErrorLoggingToSchema,

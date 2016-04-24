@@ -1,6 +1,8 @@
 // TODO: reduce code repetition in this file.
 // see https://github.com/apollostack/graphql-tools/issues/26
 
+// TODO rewrite tests to use makeExecutableSchema instead of generateSchema
+
 import {
   generateSchema,
   makeExecutableSchema,
