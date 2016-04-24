@@ -3,6 +3,7 @@
 export {
   generateSchema,
   makeExecutableSchema,
+  buildSchemaFromTypeDefinitions,
   SchemaError,
   addErrorLoggingToSchema,
   addResolveFunctionsToSchema,
