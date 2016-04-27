@@ -78,4 +78,56 @@ In general, decorators either add, remove or modify an attribute of the thing th
 ## Schema decorator API
 All decorators must extend the SchemaDecorator class and implement the following interfaces:
 
-[WIP]
+```
+class SampleTypeDecorator extends SchemaDecorator {
+  const tag = 'sample'; // matches @sample in GraphQL schema language
+  const scope = ['type', 'interface', 'union']; // where this decorator can be applied
+
+  constructor(args, prefix){
+    this.args = args;
+    this.prefix = prefix;
+  }
+  
+  getTag(){
+    return this.prefix + tag;
+  }
+  
+  isInScope(typeName){
+    return scope.indexOf(typeName) >= 0;
+  }
+  
+  // context says what scope this decorator is being applied to
+  apply(wrappedThing, { schema, type, field, context }){
+    // this.args ...
+    // ...
+  }
+
+}
+```
+
+## Applying decorators to a GraphQL-JS schema
+
+Schema decorators can also be applied to a GraphQL-JS schema. Here is an example:
+
+```
+import { Description, DeprecationReason, Validator } from 'graphql-decorators';
+// ... more imports ...
+
+const schema = new GraphQLSchema({
+  query: new GraphQLObjectType({
+    name: 'RootQuery',
+    decorators: [ new Description({ text: 'This is the root query' }) ],
+    fields: () => {
+      getString: { 
+        type: GraphQLString,
+        decorators: [ new DeprecationReason({ text: 'This field never did anything useful' })],
+        resolve(root, {str}){ return str; },
+        args: {
+          str: { type: GraphQLString, decorators: [ new Validator({ type: 'length', min: 1, max: 1000 }) ] },
+      },
+    },
+  }),
+});
+
+```
+
