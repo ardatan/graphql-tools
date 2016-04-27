@@ -123,11 +123,17 @@ const schema = new GraphQLSchema({
         decorators: [ new DeprecationReason({ text: 'This field never did anything useful' })],
         resolve(root, {str}){ return str; },
         args: {
-          str: { type: GraphQLString, decorators: [ new Validator({ type: 'length', min: 1, max: 1000 }) ] },
+          str: { 
+            type: GraphQLString,
+            decorators: [ new Validator({ type: 'length', min: 1, max: 1000 }) ]
+          },
+        },
       },
     },
   }),
 });
 
 ```
+
+To apply these decorators, the function `applySchemaDecorators(schema)` from the package `graphql-tools` can be used.
 
