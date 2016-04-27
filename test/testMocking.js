@@ -119,8 +119,8 @@ describe('Mock', () => {
       returnID
     }`;
     return mockServer(shorthand, {}).query(testQuery).then((res) => {
-      expect(res.data.returnInt).to.be.within(-1000, 1000);
-      expect(res.data.returnFloat).to.be.within(-1000, 1000);
+      expect(res.data.returnInt).to.be.a('number').within(-1000, 1000);
+      expect(res.data.returnFloat).to.be.a('number').within(-1000, 1000);
       expect(res.data.returnBoolean).to.be.a('boolean');
       expect(res.data.returnString).to.be.a('string');
       expect(res.data.returnID).to.be.a('string');
