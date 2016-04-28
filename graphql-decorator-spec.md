@@ -137,3 +137,6 @@ const schema = new GraphQLSchema({
 
 To apply these decorators, the function `applySchemaDecorators(schema)` from the package `graphql-tools` can be used.
 
+
+[ note to self: some (or most?) of these decorators should also work in the client! ]
+[ note: based on discussion with Leee, maybe decorators need to come after the thing they're modifying, just to be consistent with directives ]
