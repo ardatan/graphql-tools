@@ -25,7 +25,7 @@ Here is an example of decorators on a schema specified with GraphQL schema langu
 type Person {
   uuid: String!
   name: String!
-  
+
   +deprecated(reason: "Use the 'name' field instead")
   longName: String
   friends: [Person]
@@ -81,11 +81,11 @@ In general, decorators either add, remove or modify an attribute of the thing th
 ## Schema decorator API
 All decorators must extend the SchemaDecorator class and implement the following interfaces:
 
-```
+```es6
 class SampleFieldDecorator extends SchemaDecorator {
   const tag = 'sample'; // matches +sample in GraphQL schema language
   const locations = ['field', 'type', 'interface', 'union']; // where this decorator can be applied
-  
+
   // the argSignature can be used to check whether a decorator's arguments are valid.
   const argSignature = {
     type: GraphQLString,
@@ -100,22 +100,22 @@ class SampleFieldDecorator extends SchemaDecorator {
     this.config = config;
     this.prefix = prefix;
   }
-  
+
   getTag(){
     return this.prefix + tag;
   }
-  
+
   isWellPlaced(locationName){
     return locations.indexOf(locationName) >= 0;
   }
-  
+
   getArgSignature(){
     return argSignature;
   }
-  
+
   // apply returns a function which gets applied to the decorated thing.
   apply(){
-  
+
     // context says what scope this decorator is being applied to, i.e. 'type', 'schema', 'field' etc.
     return (wrappedThing, { schema, type, field, context }) => {
       // use this.config ...
@@ -123,14 +123,12 @@ class SampleFieldDecorator extends SchemaDecorator {
       // modify wrappedThing's properties, resolve functions, etc.
     }
   }
-  
-
-
 }
 ```
 
 When constructing a GraphQL schema from GraphQL schema language with decorators, all decorators need to be specified and given to the schema generation function, otherwise an error will be thrown:
-```
+
+```es6
 import { Description, Deprecated, Validator } from 'graphql-decorators';
 const shorthandSchema = gql` ... schema here `;
 
@@ -141,14 +139,13 @@ const schema = makeExecutableSchema({
   schema: shorthandSchema,
   decorators: availableDecorators
 });
-
 ```
 
 ## Applying decorators to a GraphQL-JS schema
 
 The use of schema decorators is most immediately obvious in GraphQL schema language, but they can also be applied to a GraphQL-JS schema. You might want to do this to get portable components that can be used across many schemas. Here is an example:
 
-```
+```es6
 import { Description, DeprecationReason, Validator } from 'graphql-decorators';
 // ... more imports ...
 const deprecationReason = new DeprecationReason();
@@ -160,12 +157,12 @@ const schema = new GraphQLSchema({
     name: 'RootQuery',
     decorators: [ description.apply({ text: 'This is the root query' }) ],
     fields: () => {
-      getString: { 
+      getString: {
         type: GraphQLString,
         decorators: [ deprecationReason.apply({ text: 'This field never did anything useful' })],
         resolve(root, {str}){ return str; },
         args: {
-          str: { 
+          str: {
             type: GraphQLString,
             decorators: [ validator.apply({ type: 'length', min: 1, max: 1000 }) ]
           },
@@ -174,12 +171,11 @@ const schema = new GraphQLSchema({
     },
   }),
 });
-
 ```
 
 To apply these decorators, the function `applySchemaDecorators(schema)` has to be called like so:
 
-```
+```es6
 import { applySchemaDecorators } from 'graphql-tools';
 
 const schema = new GraphQLSchema({
@@ -187,15 +183,11 @@ const schema = new GraphQLSchema({
 });
 
 applySchemaDecorators(schema); // applies the decorators to the schema in place.
-
-
-
 ```
-
 
 Many decorators can be used on the server as well as the client, which means they have to be part of the information returned by the introspection query. However, only the tag and the arguments should be shared with the client, not the configuration. The client will most likely need different configuration.
 
-Some decorators may need to be server-only, in which case they should not be introspecatble by the client.
+Some decorators may need to be server-only, in which case they should not be introspectable by the client.
 
 
 Decorators can be used to add metadata to a GraphQL schema in a way that is portable across different servers and clients. As long as the semantics of a decorator are well-specified, there could be GraphQL-JS, Graphene, Apollo-client, Relay, Sangria, etc. implementations for the same decorator, which given the same decorator tag and arguments will do the same thing on all these different implementations. For example, they could be used to provide optimistic UI in apollo-client and relay with zero additional code: The server version of the decorator modifies a mutation so it updates a specific store, the client version (eg. apollo-client) updates the client cache instead.
