@@ -40,7 +40,7 @@ type RootQuery {
   allPersons(
     page: Int = 0
 
-    @validateRange(min: 1, max: 10)
+    +validateRange(min: 1, max: 10)
     numPages: Int = 1
   ): [Person]
 }
@@ -49,7 +49,7 @@ type RootMutation {
   +requiresAuthentication
   +log(type: "userAccess")
   addPerson(
-    @maxLen(100)
+    +maxLen(100)
     name: String!
   ): Int
 
