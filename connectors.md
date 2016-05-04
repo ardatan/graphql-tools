@@ -11,17 +11,17 @@ A connector is the piece of code that links your GraphQL server to different bac
 
 Connectors are easy to use in apollo server, requiring just three steps:
 
-1. Importing: 
+Step 1: Importing 
 ```
 import MongoDBConnector from 'apollo-connectors/mongodb';
 ```
 
-2. Configuring 
+Step 2: Configuring 
 ```
 const mongo = new MongoDBConnector({ host: 'localhost', port: 27001, user: ENV.MONGO_USER password: ENV.MONGO_PASSWORD });
 ```
 
-3. Adding connectors to the context
+Step 3: Adding connectors to the context
 ```
 app.use('/graphql', apolloServer({
   schema: Schema,
@@ -31,7 +31,7 @@ app.use('/graphql', apolloServer({
 });
 ```
 
-4. Calling connectors in resolve functions
+Step 4: Calling connectors in resolve functions
 ```
 function resolve(parent, args, ctx, info){
   return ctx.connectors.mongo.findOne({ id: args.id });
