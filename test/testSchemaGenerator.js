@@ -516,6 +516,23 @@ describe('generating schema from shorthand', () => {
     assert.throws(generateSchema.bind(null, short, rf), SchemaError);
   });
 
+  it('allows non-scalar field to use default resolve func if "allowDefaultResolve" == true', () => {
+    const short = `
+    type Bird{
+      id: ID
+    }
+    type Query{
+      bird: Bird
+    }
+    schema {
+      query: Query
+    }`;
+
+    const rf = {};
+
+    assert.doesNotThrow(makeExecutableSchema.bind(null, { typeDefs: short, resolvers: rf, allowDefaultResolve: true }), SchemaError);
+  });
+
   it('throws an error if a resolve field cannot be used', (done) => {
     const shorthand = `
       type BirdSpecies {

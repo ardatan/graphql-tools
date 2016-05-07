@@ -34,6 +34,7 @@ function _generateSchema(
   logger,
   // TODO: rename to allowUndefinedInResolve to be consistent
   allowUndefinedInResolve = true,
+  allowDefaultResolve = false,
 ) {
   if (!typeDefinitions) {
     throw new SchemaError('Must provide typeDefinitions');
@@ -48,7 +49,7 @@ function _generateSchema(
 
   addResolveFunctionsToSchema(schema, resolveFunctions);
 
-  assertResolveFunctionsPresent(schema);
+  assertResolveFunctionsPresent(schema, allowDefaultResolve);
 
   if (!allowUndefinedInResolve) {
     addCatchUndefinedToSchema(schema);
@@ -67,8 +68,9 @@ function makeExecutableSchema({
   connectors,
   logger,
   allowUndefinedInResolve = false,
+  allowDefaultResolve = false,
 }) {
-  const jsSchema = _generateSchema(typeDefs, resolvers, logger, allowUndefinedInResolve);
+  const jsSchema = _generateSchema(typeDefs, resolvers, logger, allowUndefinedInResolve, allowDefaultResolve);
   if (typeof resolvers.__schema === 'function') {
     // TODO a bit of a hack now, better rewrite generateSchema to attach it there.
     // not doing that now, because I'd have to rewrite a lot of tests.
@@ -248,7 +250,7 @@ function setFieldProperties(field, propertiesObj) {
   });
 }
 
-function assertResolveFunctionsPresent(schema) {
+function assertResolveFunctionsPresent(schema, allowNonScalar) {
   forEachField(schema, (field, typeName, fieldName) => {
     // requires a resolve function on every field that has arguments
     if (field.args.length > 0) {
@@ -256,7 +258,7 @@ function assertResolveFunctionsPresent(schema) {
     }
 
     // requires a resolve function on every field that returns a non-scalar type
-    if (!(getNamedType(field.type) instanceof GraphQLScalarType)) {
+    if (!allowNonScalar && !(getNamedType(field.type) instanceof GraphQLScalarType)) {
       expectResolveFunction(field, typeName, fieldName);
     }
   });
