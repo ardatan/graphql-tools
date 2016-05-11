@@ -31,7 +31,7 @@ In this example, an author has mutliple posts, and each post has one author.
 
 Here's an illustration for how connectors and models would look like for this example if Authors and Posts were stored in MySQL, but view counts in MongoDB:
 
-
+(connector-model-diagram.png)[Connectors are database-specfic, models are application-specific]
 
 Let's look at things from the bottom up.
 
@@ -85,7 +85,7 @@ Step 1: Import the connector
 import MongoDBConnector from 'apollo-connectors/mongodb';
 ```
 
-Step 2: Configure the connector 
+Step 2: Configure the connector
 ```
 const mongo = new MongoDBConnector({ host: 'localhost', port: 27001, user: ENV.MONGO_USER password: ENV.MONGO_PASSWORD });
 ```
