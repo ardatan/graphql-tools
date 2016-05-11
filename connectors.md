@@ -2,6 +2,8 @@
 
 This document is intended as a design document for people who want to write connectors for various backends. Its main purpose is to specify what properties connectors should have so they can be easily shared with other people and used in Apollo without any shims.
 
+This is a draft at the moment, and not the final document. Chances are that the spec will change as we learn about the better ways to build GraphQL servers. It should be pretty close to the final version though, so if you want to get started and build connectors for specific backends, this document is a good starting point.
+
 
 Technically you could write a GraphQL server without connectors and models by writing all your logic directly into the resolve functions, but in most cases that's not ideal. Connectors and models are a way of organizing code in a GraphQL server, and you should use them to keep your server modular. If the need arises, you can always write optimized queries directly in your resolvers or models should the need arise.
 
@@ -33,15 +35,17 @@ Here's an illustration for how connectors and models would look like for this ex
 
 ![Connectors are database-specfic, models are application-specific](connector-model-diagram.png)
 
-Let's look at things from the bottom up.
+
+The Posts model connects to both SQL and MongoDB. Title, text and authorId come from SQL, the view count comes from MongoDB.
+
 
 ## What's in a connector?
 
-A connector is the piece of code that links a GraphQL server a backends. Each backend (eg. MySQL, MongoDB, S3, neo4j) will have its own connector. Apart from connecting the GraphQL server to a backend, connectors should also:
+A connector is the piece of code that links a GraphQL server to a specific backend (eg. MySQL, MongoDB, S3, neo4j). Each backend will have its own connector. Apart from connecting the GraphQL server to a backend, connectors should also:
 
 - Batch requests together whenever it makes sense
 - Cache data fetched for the backend to avoid extra requests (at least for the duration of one query)
-- Provide a way to log information about data fetched, such as how long the request took, how much data was fetched etc.
+- Provide a way to log information about data fetched, such as how long the request took, which things were batched together, what was fetched from the cache, how much data was fetched etc.
 
 
 ## What's in a model?
@@ -63,22 +67,17 @@ const Posts = {
   getById(id){ ... }; // get Post by id
   getByTitleContains(contains){ ... }; //get a list of posts that have a word in the title
   getByAuthor(authorId){ ... }; // get list of posts by a certain author
-  views(postId); // get the number of views for post with ID postId
+  views(postId); // get the number of views for post with ID postId (fetches from MongoDB)
 }
 ```
-note: it might also make sense to implement models as classes and have instances represent the actual objects. If you have some thoughts about that, please open an issue.
 
 In some cases it may be a good idea for your `getById` (and other) methods to take the list of fields to be fetched as an additional argument. That way the model layer can make sure to fetch only the data required from the backend. This is especially important for types that have large fields which are not always required.
 
 
-**Common question:** Are models the same as GraphQL types?
-**Answer:** There will almost always be a 1:1 correspondence between types in your schema and the models, so it makes sense to keep them in the same file, or at least in the same folder. While the GraphQL schema describes the types and their relationships, the models define which connectors should be used to fetch the actual data for that type.
+## How to use connectors and models in Apollo Server
+note: This is a still a draft design document. At the time of writing there are no connectors. As we build connectors, we'll add them to the docs.
 
-
-## How to use connectors and models in apollo server
-note: This is a design document. At the time of writing there are no connectors. As we build connectors, we'll add them to the docs.
-
-Connectors are easy to use in apollo server, requiring just three steps:
+Connectors and models are easy to use in apollo server:
 
 Step 1: Import the connector
 ```
@@ -96,7 +95,7 @@ class Author {
   constructor({connector}){
     this.connector = connector;
   }
-  get(id){
+  getById(id){
     return this.connector.findOne({ _id: id });
   }
 }
@@ -107,15 +106,24 @@ Step 4: Adding models to the context
 app.use('/graphql', apolloServer({
   schema: Schema,
   models: {
-    new Author({ connector: mongo }),
-    new Post({ connector: mongo }),
+    Author: new Author({ connector: mongo }),
+    Post: new Post({ connector: mongo }),
   }
 });
 ```
 
-Step 4: Calling connectors in resolve functions
+Step 4: Calling models in resolve functions
 ```
-function resolve(parent, args, ctx, info){
-  return ctx.models.Post.get(args.id);
+function resolve(author, args, ctx){
+  return ctx.models.Post.getByAuthor(author.id);
 }
 ```
+
+## FAQ
+
+
+**Question:** Are models the same as GraphQL types?
+**Answer:** There will usually be a 1:1 correspondence between types in your schema and the models, so it makes sense to keep them in the same file, or at least in the same folder. The subtle difference is that while the GraphQL schema describes the types and their relationships, the models define which connectors should be used to fetch the actual data for that type.
+
+**Question:** Can I use <Mongoose/Sequelize/MyOtherFavoriteORM> with Apollo Server?
+**Answer:** Yes, you can use an existing ORM if you wish. In that case, the models you use will be your ORM's models, and the connector part will be in the ORM itself. Most ORMs don't implement batching and caching, so you may need to do that manually where it becomes necessary, or move some of your models to a connector that automatically does batching and caching.
