@@ -468,6 +468,20 @@ describe('generating schema from shorthand', () => {
     assert.throws(generateSchema.bind(null, short, rf), SchemaError);
   });
 
+  it('does not throw an error if `resolverValidationOptions.requireResolversForArgs` is false', () => {
+    const short = `
+    type Query{
+      bird(id: ID): String
+    }
+    schema {
+      query: Query
+    }`;
+
+    const rf = { Query: {} };
+
+    assert.doesNotThrow(makeExecutableSchema.bind(null, { typeDefs: short, resolvers: rf, resolverValidationOptions: { requireResolversForArgs: false } }), SchemaError);
+  });
+
   it('throws an error if field.resolve is not a function', () => {
     const schema = new GraphQLSchema({
       query: new GraphQLObjectType({
@@ -514,6 +528,23 @@ describe('generating schema from shorthand', () => {
     const rf = {};
 
     assert.throws(generateSchema.bind(null, short, rf), SchemaError);
+  });
+
+  it('allows non-scalar field to use default resolve func if `resolverValidationOptions.requireResolversForNonScalar` = false', () => {
+    const short = `
+    type Bird{
+      id: ID
+    }
+    type Query{
+      bird: Bird
+    }
+    schema {
+      query: Query
+    }`;
+
+    const rf = {};
+
+    assert.doesNotThrow(makeExecutableSchema.bind(null, { typeDefs: short, resolvers: rf, resolverValidationOptions: { requireResolversForNonScalar: false } }), SchemaError);
   });
 
   it('throws an error if a resolve field cannot be used', (done) => {
