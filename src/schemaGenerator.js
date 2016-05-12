@@ -34,8 +34,11 @@ function _generateSchema(
   logger,
   // TODO: rename to allowUndefinedInResolve to be consistent
   allowUndefinedInResolve = true,
-  allowDefaultResolve = false,
+  resolverValidationOptions = {},
 ) {
+  if (typeof resolverValidationOptions !== 'object') {
+    throw new SchemaError('Expected `resolverValidationOptions` to be an object');
+  }
   if (!typeDefinitions) {
     throw new SchemaError('Must provide typeDefinitions');
   }
@@ -49,7 +52,7 @@ function _generateSchema(
 
   addResolveFunctionsToSchema(schema, resolveFunctions);
 
-  assertResolveFunctionsPresent(schema, allowDefaultResolve);
+  assertResolveFunctionsPresent(schema, resolverValidationOptions);
 
   if (!allowUndefinedInResolve) {
     addCatchUndefinedToSchema(schema);
@@ -68,9 +71,9 @@ function makeExecutableSchema({
   connectors,
   logger,
   allowUndefinedInResolve = false,
-  allowDefaultResolve = false,
+  resolverValidationOptions = {},
 }) {
-  const jsSchema = _generateSchema(typeDefs, resolvers, logger, allowUndefinedInResolve, allowDefaultResolve);
+  const jsSchema = _generateSchema(typeDefs, resolvers, logger, allowUndefinedInResolve, resolverValidationOptions);
   if (typeof resolvers.__schema === 'function') {
     // TODO a bit of a hack now, better rewrite generateSchema to attach it there.
     // not doing that now, because I'd have to rewrite a lot of tests.
@@ -250,15 +253,20 @@ function setFieldProperties(field, propertiesObj) {
   });
 }
 
-function assertResolveFunctionsPresent(schema, allowNonScalar) {
+function assertResolveFunctionsPresent(schema, resolverValidationOptions = {}) {
+  const {
+    requireResolversForArgs = true,
+    requireResolversForNonScalar = true,
+  } = resolverValidationOptions;
+
   forEachField(schema, (field, typeName, fieldName) => {
     // requires a resolve function on every field that has arguments
-    if (field.args.length > 0) {
+    if (requireResolversForArgs && field.args.length > 0) {
       expectResolveFunction(field, typeName, fieldName);
     }
 
     // requires a resolve function on every field that returns a non-scalar type
-    if (!allowNonScalar && !(getNamedType(field.type) instanceof GraphQLScalarType)) {
+    if (requireResolversForNonScalar && !(getNamedType(field.type) instanceof GraphQLScalarType)) {
       expectResolveFunction(field, typeName, fieldName);
     }
   });
