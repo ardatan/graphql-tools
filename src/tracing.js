@@ -1,6 +1,21 @@
 import uuid from 'node-uuid';
 import now from 'performance-now';
 
+// Tracer just has a log function
+// you can give it any shape of data, but for Apollo tracer, we tell you what
+// shape the data should have.
+// event = {
+//   grpId: <uuid>,
+//   id: <incrementing id>,
+//   eventType: 'interval.start', // or 'interval.stop', or 'custom.xyz'
+//   eventClass: 'resolver',
+//   info: { type: 'Query', field: 'author' },
+//   parentId: <eid>,
+//
+// }
+
+
+
 class Tracer {
   // @eventGroupId: an id to group the events of this tracer together
   constructor(eventGroupId) {
