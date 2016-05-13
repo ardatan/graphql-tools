@@ -34,10 +34,12 @@
     "babel-polyfill": "^6.5.0",
     "express-graphql": "^0.5.1",
     "fs": "0.0.2",
-    "graphql": "^0.5.0",
     "lodash": "^4.10.0",
     "node-uuid": "^1.4.7",
     "performance-now": "^0.2.0"
+  },
+  "peerDependencies": {
+    "graphql": "^0.5.0"
   },
   "devDependencies": {
     "babel-cli": "^6.6.5",
@@ -54,6 +56,7 @@
     "eslint-plugin-import": "^1.1.0",
     "express": "^4.13.4",
     "express3": "0.0.0",
+    "graphql": "^0.5.0",
     "istanbul": "1.0.0-alpha.2",
     "mocha": "^2.3.3",
     "multer": "^1.0.3",
