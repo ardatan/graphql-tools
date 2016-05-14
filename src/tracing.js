@@ -10,7 +10,7 @@ class Tracer {
     this.startHrTime = now();
   }
 
-  event(type, data) {
+  log(type, data) {
     // TODO ensure props is a valid props thingy
     // TODO ensure info is a valid info thingy
     // TODO ensure type is a valid type thingy
@@ -34,27 +34,27 @@ class Tracer {
 
 function decorateWithTracer(fn, tracer, info) {
   return (...args) => {
-    const intervalId = tracer.event('resolver.start', info);
+    const intervalId = tracer.log('resolver.start', info);
     try {
       const result = fn(...args);
       if (typeof result.then === 'function') {
         result.then((res) => {
-          tracer.event('resolver.stop', { ...info, intervalId });
+          tracer.log('resolver.stop', { ...info, intervalId });
           return res;
         })
         .catch((err) => {
           // console.log('whoa, it threw an error!');
-          tracer.event('resolver.stop', { ...info, intervalId });
+          tracer.log('resolver.stop', { ...info, intervalId });
           throw err;
         });
       } else {
         // console.log('did not return a promise. logging now');
-        tracer.event('resolver.stop', { ...info, intervalId });
+        tracer.log('resolver.stop', { ...info, intervalId });
       }
       return result;
     } catch (e) {
       // console.log('yeah, it errored directly');
-      tracer.event('resolver.stop', { ...info, intervalId });
+      tracer.log('resolver.stop', { ...info, intervalId });
       throw e;
     }
   };
