@@ -128,6 +128,7 @@ function forEachField(schema, fn) {
   Object.keys(typeMap).forEach((typeName) => {
     const type = typeMap[typeName];
 
+    // TODO: maybe have an option to include these?
     if (!getNamedType(type).name.startsWith('__') && type instanceof GraphQLObjectType) {
       const fields = type.getFields();
       Object.keys(fields).forEach((fieldName) => {
@@ -343,12 +344,14 @@ function addCatchUndefinedToSchema(schema) {
 function addTracingToResolvers(schema, tracer) {
   forEachField(schema, (field, typeName, fieldName) => {
     const functionName = `${typeName}.${fieldName}`;
-    // eslint-disable-next-line no-param-reassign
-    field.resolve = decorateWithTracer(
-      field.resolve,
-      tracer,
-      { functionType: 'resolve', functionName },
-    );
+    if (field.resolve) {
+      // eslint-disable-next-line no-param-reassign
+      field.resolve = decorateWithTracer(
+        field.resolve,
+        tracer,
+        { functionType: 'resolve', functionName },
+      );
+    }
   });
 }
 

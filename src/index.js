@@ -4,6 +4,7 @@ export {
   generateSchema,
   makeExecutableSchema,
   buildSchemaFromTypeDefinitions,
+  forEachField,
   SchemaError,
   addErrorLoggingToSchema,
   addResolveFunctionsToSchema,

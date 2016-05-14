@@ -1,60 +1,23 @@
 import uuid from 'node-uuid';
 import now from 'performance-now';
 
-// Tracer just has a log function
-// you can give it any shape of data, but for Apollo tracer, we tell you what
-// shape the data should have.
-// event = {
-//   grpId: <uuid>,
-//   id: <incrementing id>,
-//   eventType: 'interval.start', // or 'interval.stop', or 'custom.xyz'
-//   eventClass: 'resolver',
-//   info: { type: 'Query', field: 'author' },
-//   parentId: <eid>,
-//
-// }
-
-
-
 class Tracer {
-  // @eventGroupId: an id to group the events of this tracer together
-  constructor(eventGroupId) {
-    this.gid = eventGroupId;
+  constructor(queryId) {
+    this.queryId = queryId;
     this.events = [];
+    this.idCounter = 1;
     this.startTime = (new Date()).getTime();
     this.startHrTime = now();
   }
 
-  logEvent({ props, info, type }) {
+  event(type, data) {
     // TODO ensure props is a valid props thingy
     // TODO ensure info is a valid info thingy
     // TODO ensure type is a valid type thingy
-    const id = uuid.v4();
-    // TODO make sure we know what that timestamp is relative to
+    const id = this.idCounter++;
     const timestamp = now();
     // const timestamp = (new Date()).getTime();
-    this.events.push({ id, ...props, type, info, timestamp });
-    // console.log(this.gid, 'logged event', type, info, 'at', timestamp);
-  }
-
-  startInterval(info) {
-    const intervalId = uuid.v4();
-    const type = 'startInterval';
-    this.logEvent({
-      props: { intervalId },
-      info,
-      type,
-    });
-    return intervalId;
-  }
-
-  stopInterval(intervalId, info) {
-    const type = 'stopInterval';
-    this.logEvent({
-      props: { intervalId },
-      info,
-      type,
-    });
+    this.events.push({ id, timestamp, type, data });
   }
 
   reportEvents(url) {
@@ -71,27 +34,27 @@ class Tracer {
 
 function decorateWithTracer(fn, tracer, info) {
   return (...args) => {
-    const intervalId = tracer.startInterval(info);
+    const intervalId = tracer.event('resolver.start', info);
     try {
       const result = fn(...args);
       if (typeof result.then === 'function') {
         result.then((res) => {
-          tracer.stopInterval(intervalId, info);
+          tracer.event('resolver.stop', { ...info, intervalId });
           return res;
         })
         .catch((err) => {
           // console.log('whoa, it threw an error!');
-          tracer.stopInterval(intervalId, info);
+          tracer.event('resolver.stop', { ...info, intervalId });
           throw err;
         });
       } else {
         // console.log('did not return a promise. logging now');
-        tracer.stopInterval(intervalId, info);
+        tracer.event('resolver.stop', { ...info, intervalId });
       }
       return result;
     } catch (e) {
       // console.log('yeah, it errored directly');
-      tracer.stopInterval(intervalId, info);
+      tracer.event('resolver.stop', { ...info, intervalId });
       throw e;
     }
   };
