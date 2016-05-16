@@ -349,7 +349,7 @@ function addTracingToResolvers(schema, tracer) {
       field.resolve = decorateWithTracer(
         field.resolve,
         tracer,
-        { functionType: 'resolve', functionName },
+        { type: 'resolve', functionName },
       );
     }
   });

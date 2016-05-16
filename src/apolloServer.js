@@ -5,7 +5,7 @@ import {
   addCatchUndefinedToSchema,
 } from './schemaGenerator';
 import { addMockFunctionsToSchema } from './mock';
-import graphqlHTTP from 'express-graphql';
+import graphqlHTTP from 'express-widgetizer';
 import { GraphQLSchema, formatError } from 'graphql';
 
 // TODO this implementation could use a bit of refactoring.
@@ -42,6 +42,7 @@ export default function apolloServer(options, ...rest) {
         resolvers, // required if mocks is not false and schema is not GraphQLSchema
         connectors, // required if mocks is not false and schema is not GraphQLSchema
         logger,
+        logFn,
         printErrors,
         mocks = false,
         allowUndefinedInResolve = true,
@@ -106,6 +107,7 @@ export default function apolloServer(options, ...rest) {
         context,
         rootValue,
         graphiql,
+        logFn,
       };
     }).then((graphqlHTTPOptions) => {
       return graphqlHTTP(graphqlHTTPOptions)(req, res);
