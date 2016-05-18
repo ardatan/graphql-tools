@@ -4,7 +4,7 @@ class Tracer {
   constructor(queryId) {
     this.queryId = queryId;
     this.events = [];
-    this.idCounter = 1;
+    this.idCounter = 0;
     this.startTime = (new Date()).getTime();
     this.startHrTime = now();
   }
@@ -21,11 +21,9 @@ class Tracer {
     return id;
   }
 
-  reportEvents(url) {
-    // send the serialized events to url;
-    // console.log(`reporting to ${url}`);
+  report() {
     return {
-      url,
+      queryId: this.queryId,
       startTime: this.startTime,
       startHrTime: this.startHrTime,
       events: this.events,
@@ -40,22 +38,22 @@ function decorateWithTracer(fn, tracer, info) {
       const result = fn(...args);
       if (typeof result.then === 'function') {
         result.then((res) => {
-          tracer.log('resolver.stop', { ...info, startEventId });
+          tracer.log('resolver.end', { ...info, startEventId });
           return res;
         })
         .catch((err) => {
           // console.log('whoa, it threw an error!');
-          tracer.log('resolver.stop', { ...info, startEventId });
+          tracer.log('resolver.end', { ...info, startEventId });
           throw err;
         });
       } else {
         // console.log('did not return a promise. logging now');
-        tracer.log('resolver.stop', { ...info, startEventId });
+        tracer.log('resolver.end', { ...info, startEventId });
       }
       return result;
     } catch (e) {
       // console.log('yeah, it errored directly');
-      tracer.log('resolver.stop', { ...info, startEventId });
+      tracer.log('resolver.end', { ...info, startEventId });
       throw e;
     }
   };
