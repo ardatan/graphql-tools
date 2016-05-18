@@ -3,6 +3,7 @@ import {
   buildSchemaFromTypeDefinitions,
   addErrorLoggingToSchema,
   addCatchUndefinedToSchema,
+  addTracingToResolvers,
 } from './schemaGenerator';
 import { addMockFunctionsToSchema } from './mock';
 import graphqlHTTP from 'express-widgetizer';
@@ -50,7 +51,7 @@ export default function apolloServer(options, ...rest) {
         pretty, // pass through
         graphiql = false, // pass through
         validationRules, // pass through
-        context = {}, // pass through
+        context = {}, // pass through, but add tracer if applicable
         rootValue, // pass through
       } = optionsData;
 
@@ -67,6 +68,72 @@ export default function apolloServer(options, ...rest) {
         if (subtype === 'end') {
           // eslint-disable-next-line no-param-reassign
           intervalMap[supertype] = tstamp - intervalMap[supertype];
+        }
+      }
+
+      let executableSchema;
+      if (mocks) {
+        // TODO: mocks doesn't yet work with a normal GraphQL schema, but it should!
+        // have to rewrite these functions
+        const myMocks = mocks || {};
+        executableSchema = buildSchemaFromTypeDefinitions(schema);
+        addMockFunctionsToSchema({
+          schema: executableSchema,
+          mocks: myMocks,
+        });
+      } else {
+        // this is just basics, makeExecutableSchema should catch the rest
+        // TODO: should be able to provide a GraphQLschema and still use resolvers
+        // and connectors if you want, but at the moment this is not possible.
+        if (schema instanceof GraphQLSchema) {
+          if (logger) {
+            addErrorLoggingToSchema(schema, logger);
+          }
+          if (printErrors) {
+            addErrorLoggingToSchema(schema, { log: (e) => console.error(e.stack) });
+          }
+          if (!allowUndefinedInResolve) {
+            addCatchUndefinedToSchema(schema);
+          }
+          executableSchema = schema;
+        } else {
+          if (!resolvers) {
+            // TODO: test this error
+            throw new Error('resolvers is required option if mocks is not provided');
+          }
+          executableSchema = makeExecutableSchema({
+            typeDefs: schema,
+            resolvers,
+            connectors,
+            logger,
+            allowUndefinedInResolve,
+          });
+          if (printErrors) {
+            addErrorLoggingToSchema(executableSchema, { log: (e) => console.error(e.stack) });
+          }
+        }
+      }
+
+      // Tracer-related stuff ------------------------------------------------
+
+      let tracerLogger = { log: undefined, report: undefined };
+      if (tracer) {
+        tracerLogger = tracer.newLoggerInstance();
+        tracerLogger.log('request.info', {
+          headers: req.headers,
+          baseUrl: req.baseUrl,
+          originalUrl: req.originalUrl,
+          method: req.method,
+          httpVersion: req.httpVersion,
+        });
+        console.log(tracerLogger.report().events[0]);
+        if (context.tracer) {
+          throw new Error('Property tracer on context already defined, cannot attach Tracer');
+        } else {
+          context.tracer = tracerLogger;
+        }
+        if (!executableSchema._apolloTracerApplied) {
+          addTracingToResolvers(executableSchema);
         }
       }
 
@@ -126,12 +193,12 @@ export default function apolloServer(options, ...rest) {
         });
       }
 
-      const extensionsFn = function extensionsFn() {
+      let extensionsFn = function extensionsFn() {
         try {
-          sendReport(tracer.report());
+          setTimeout(0, sendReport(tracerLogger.report()));
           return {
-            timings: timings(tracer.report().events),
-            tracer: tracer.report().events.map(e => ({
+            timings: timings(tracerLogger.report().events),
+            tracer: tracerLogger.report().events.map(e => ({
               id: e.id,
               type: e.type,
               ts: e.timestamp,
@@ -145,48 +212,11 @@ export default function apolloServer(options, ...rest) {
         return {};
       };
 
-      let executableSchema;
-      if (mocks) {
-        // TODO: mocks doesn't yet work with a normal GraphQL schema, but it should!
-        // have to rewrite these functions
-        const myMocks = mocks || {};
-        executableSchema = buildSchemaFromTypeDefinitions(schema);
-        addMockFunctionsToSchema({
-          schema: executableSchema,
-          mocks: myMocks,
-        });
-      } else {
-        // this is just basics, makeExecutableSchema should catch the rest
-        // TODO: should be able to provide a GraphQLschema and still use resolvers
-        // and connectors if you want, but at the moment this is not possible.
-        if (schema instanceof GraphQLSchema) {
-          if (logger) {
-            addErrorLoggingToSchema(schema, logger);
-          }
-          if (printErrors) {
-            addErrorLoggingToSchema(schema, { log: (e) => console.error(e.stack) });
-          }
-          if (!allowUndefinedInResolve) {
-            addCatchUndefinedToSchema(schema);
-          }
-          executableSchema = schema;
-        } else {
-          if (!resolvers) {
-            // TODO: test this error
-            throw new Error('resolvers is required option if mocks is not provided');
-          }
-          executableSchema = makeExecutableSchema({
-            typeDefs: schema,
-            resolvers,
-            connectors,
-            logger,
-            allowUndefinedInResolve,
-          });
-          if (printErrors) {
-            addErrorLoggingToSchema(executableSchema, { log: (e) => console.error(e.stack) });
-          }
-        }
-      }
+      // XXX ugly way of only passing extensionsFn when tracer is defined.
+      if (!tracer) { extensionsFn = undefined; }
+
+      // end of Tracer related stuff -------------------------------------------
+
       // graphQLHTTPOptions
       return {
         schema: executableSchema,
@@ -196,7 +226,7 @@ export default function apolloServer(options, ...rest) {
         context,
         rootValue,
         graphiql,
-        logFn: tracer.log.bind(tracer),
+        logFn: tracerLogger.log,
         extensionsFn,
       };
     }).then((graphqlHTTPOptions) => {

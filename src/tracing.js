@@ -1,15 +1,47 @@
 import now from 'performance-now';
+import uuid from 'node-uuid';
 
 class Tracer {
-  constructor(queryId) {
-    this.queryId = queryId;
-    this.events = [];
-    this.idCounter = 0;
+  constructor({ TRACER_APP_KEY }) {
+    if (!TRACER_APP_KEY || TRACER_APP_KEY.length < 36) {
+      throw new Error('Tracer requires a well-formatted TRACER_APP_KEY');
+    }
+    this.TRACER_APP_KEY = TRACER_APP_KEY;
     this.startTime = (new Date()).getTime();
     this.startHrTime = now();
   }
 
-  log(type, data = null) {
+  newLoggerInstance() {
+    const queryId = uuid.v4();
+    const events = [];
+    let idCounter = 0;
+    const startTime = (new Date()).getTime();
+    const startHrTime = now();
+
+    return {
+      log: (type, data = null) => {
+        const id = idCounter++;
+        const timestamp = now();
+        // const timestamp = (new Date()).getTime();
+        // console.log(timestamp, type, id, data);
+        events.push({ id, timestamp, type, data });
+        return id;
+      },
+
+      report: () => {
+        return {
+          TRACER_APP_KEY: this.TRACER_APP_KEY,
+          tracerApiVersion: '0.0.1',
+          queryId,
+          startTime,
+          startHrTime,
+          events,
+        };
+      },
+    };
+  }
+
+  /* log(type, data = null) {
     // TODO ensure props is a valid props thingy
     // TODO ensure info is a valid info thingy
     // TODO ensure type is a valid type thingy
@@ -28,32 +60,32 @@ class Tracer {
       startHrTime: this.startHrTime,
       events: this.events,
     };
-  }
+  } */
 }
 
-function decorateWithTracer(fn, tracer, info) {
-  return (...args) => {
-    const startEventId = tracer.log('resolver.start', info);
+function decorateWithTracer(fn, info) {
+  return (p, a, ctx, i) => {
+    const startEventId = ctx.tracer.log('resolver.start', info);
     try {
-      const result = fn(...args);
+      const result = fn(p, a, ctx, i);
       if (typeof result.then === 'function') {
         result.then((res) => {
-          tracer.log('resolver.end', { ...info, startEventId });
+          ctx.tracer.log('resolver.end', { ...info, startEventId });
           return res;
         })
         .catch((err) => {
           // console.log('whoa, it threw an error!');
-          tracer.log('resolver.end', { ...info, startEventId });
+          ctx.tracer.log('resolver.end', { ...info, startEventId });
           throw err;
         });
       } else {
         // console.log('did not return a promise. logging now');
-        tracer.log('resolver.end', { ...info, startEventId });
+        ctx.tracer.log('resolver.end', { ...info, startEventId });
       }
       return result;
     } catch (e) {
       // console.log('yeah, it errored directly');
-      tracer.log('resolver.end', { ...info, startEventId });
+      ctx.tracer.log('resolver.end', { ...info, startEventId });
       throw e;
     }
   };

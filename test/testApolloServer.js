@@ -1,5 +1,6 @@
 import { apolloServer } from '../src/apolloServer';
 import { makeExecutableSchema } from '../src/schemaGenerator';
+import { Tracer } from '../src/tracing';
 import { expect } from 'chai';
 import express from 'express';
 import request from 'supertest-as-promised';
@@ -49,6 +50,25 @@ const server = apolloServer({
   connectors: testConnectors,
 });
 
+const t1 = new Tracer({ TRACER_APP_KEY: 'BDE05C83-E58F-4837-8D9A-9FB5EA605D2A' });
+
+const serverWithTracer = apolloServer({
+  schema: testSchema,
+  resolvers: testResolvers,
+  connectors: testConnectors,
+  tracer: t1,
+});
+
+const jsSchema = makeExecutableSchema({
+  typeDefs: testSchema,
+  resolvers: testResolvers,
+  connectors: testConnectors,
+});
+const vanillaServerWithTracer = apolloServer({
+  schema: jsSchema,
+  tracer: t1,
+});
+
 describe('ApolloServer', () => {
   it('can serve a basic request', () => {
     const app = express();
@@ -61,6 +81,38 @@ describe('ApolloServer', () => {
     return request(app).get(
       '/graphql?query={stuff useTestConnector species(name: "uhu")}'
     ).then((res) => {
+      return expect(res.body.data).to.deep.equal(expected);
+    });
+  });
+  it('can add tracer', () => {
+    const app = express();
+    app.use('/graphql', serverWithTracer);
+    const expected = {
+      stuff: 'stuff',
+      useTestConnector: 'works',
+      species: 'ROOTuhu',
+    };
+    return request(app).get(
+      '/graphql?query={stuff useTestConnector species(name: "uhu")}'
+    ).then((res) => {
+      // TODO: this test is silly. actually test the output
+      expect(res.body.extensions.timings.length).to.equal(9);
+      return expect(res.body.data).to.deep.equal(expected);
+    });
+  });
+  it('can add tracer to a graphql-js schema', () => {
+    const app = express();
+    app.use('/graphql', vanillaServerWithTracer);
+    const expected = {
+      stuff: 'stuff',
+      useTestConnector: 'works',
+      species: 'ROOTuhu',
+    };
+    return request(app).get(
+      '/graphql?query={stuff useTestConnector species(name: "uhu")}'
+    ).then((res) => {
+      // TODO: this test is silly. actually test the output
+      expect(res.body.extensions.timings.length).to.equal(9);
       return expect(res.body.data).to.deep.equal(expected);
     });
   });
