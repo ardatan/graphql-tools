@@ -7,6 +7,7 @@ import {
 import { addMockFunctionsToSchema } from './mock';
 import graphqlHTTP from 'express-widgetizer';
 import { GraphQLSchema, formatError } from 'graphql';
+import request from 'request';
 
 // TODO this implementation could use a bit of refactoring.
 // it turned from a simple function into something promise-based,
@@ -42,7 +43,7 @@ export default function apolloServer(options, ...rest) {
         resolvers, // required if mocks is not false and schema is not GraphQLSchema
         connectors, // required if mocks is not false and schema is not GraphQLSchema
         logger,
-        logFn,
+        tracer,
         printErrors,
         mocks = false,
         allowUndefinedInResolve = true,
@@ -55,6 +56,94 @@ export default function apolloServer(options, ...rest) {
 
       // would collide with formatError from graphql otherwise
       const formatErrorFn = optionsData.formatError;
+
+      // TODO: currently relies on the fact that start and end both exist
+      // and appear in the correct order and exactly once.
+      function processInterval(supertype, subtype, tstamp, intervalMap) {
+        if (subtype === 'start') {
+          // eslint-disable-next-line no-param-reassign
+          intervalMap[supertype] = tstamp;
+        }
+        if (subtype === 'end') {
+          // eslint-disable-next-line no-param-reassign
+          intervalMap[supertype] = tstamp - intervalMap[supertype];
+        }
+      }
+
+      // TODO: move to proper place, make less fragile ...
+      // calculate timing information from events
+      function timings(events) {
+        const resolverDurations = [];
+        const intervalMap = {};
+
+        // split by event.type = [ , ]
+        events.forEach(e => {
+          const [supertype, subtype] = e.type.split('.');
+          switch (supertype) {
+            case 'request':
+            case 'parse':
+            case 'validation':
+            case 'execution':
+            case 'parseBody':
+            case 'parseParams':
+              processInterval(supertype, subtype, e.timestamp, intervalMap);
+              break;
+            case 'resolver':
+              if (subtype === 'end') {
+                resolverDurations.push({
+                  type: 'resolve',
+                  functionName: e.data.functionName,
+                  duration: e.timestamp - events[e.data.startEventId].timestamp,
+                });
+              }
+              break;
+            default:
+              console.error(`Unknown event type ${supertype}`);
+          }
+        });
+
+        const durations = [];
+        Object.keys(intervalMap).forEach((key) => {
+          durations.push({
+            type: key,
+            functionName: null,
+            duration: intervalMap[key],
+          });
+        });
+        return durations.concat(resolverDurations);
+      }
+
+      function sendReport(report) {
+        request.put({
+          url: 'https://nim-test-ingress.appspot.com',
+          json: report,
+        }, (err, response) => {
+          if (err) {
+            console.log('err', err);
+            return;
+          }
+          console.log('status', response.statusCode);
+        });
+      }
+
+      const extensionsFn = function extensionsFn() {
+        try {
+          sendReport(tracer.report());
+          return {
+            timings: timings(tracer.report().events),
+            tracer: tracer.report().events.map(e => ({
+              id: e.id,
+              type: e.type,
+              ts: e.timestamp,
+              data: e.data,
+            })).filter(x => x.type !== 'initialization'),
+          };
+        } catch (e) {
+          console.error(e);
+          console.error(e.stack);
+        }
+        return {};
+      };
 
       let executableSchema;
       if (mocks) {
@@ -107,7 +196,8 @@ export default function apolloServer(options, ...rest) {
         context,
         rootValue,
         graphiql,
-        logFn,
+        logFn: tracer.log.bind(tracer),
+        extensionsFn,
       };
     }).then((graphqlHTTPOptions) => {
       return graphqlHTTP(graphqlHTTPOptions)(req, res);
