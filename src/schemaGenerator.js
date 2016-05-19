@@ -128,6 +128,7 @@ function forEachField(schema, fn) {
   Object.keys(typeMap).forEach((typeName) => {
     const type = typeMap[typeName];
 
+    // TODO: maybe have an option to include these?
     if (!getNamedType(type).name.startsWith('__') && type instanceof GraphQLObjectType) {
       const fields = type.getFields();
       Object.keys(fields).forEach((fieldName) => {
@@ -340,15 +341,26 @@ function addCatchUndefinedToSchema(schema) {
   });
 }
 
-function addTracingToResolvers(schema, tracer) {
+// This function modifies the schema in place to add tracing around all resolve functions
+function addTracingToResolvers(schema) {
+  // XXX this is a hacky way of making sure that the schema only gets decorated
+  // with tracer once.
+  if (schema._apolloTracerApplied) {
+    console.warn('Tracing already added to resolve functions. Not adding again.');
+    return;
+  }
+  // eslint-disable-next-line no-param-reassign
+  schema._apolloTracerApplied = true;
+
   forEachField(schema, (field, typeName, fieldName) => {
     const functionName = `${typeName}.${fieldName}`;
-    // eslint-disable-next-line no-param-reassign
-    field.resolve = decorateWithTracer(
-      field.resolve,
-      tracer,
-      { functionType: 'resolve', functionName },
-    );
+    if (field.resolve) {
+      // eslint-disable-next-line no-param-reassign
+      field.resolve = decorateWithTracer(
+        field.resolve,
+        { type: 'resolve', functionName },
+      );
+    }
   });
 }
 

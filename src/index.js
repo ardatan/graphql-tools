@@ -4,8 +4,10 @@ export {
   generateSchema,
   makeExecutableSchema,
   buildSchemaFromTypeDefinitions,
+  forEachField,
   SchemaError,
   addErrorLoggingToSchema,
+  addTracingToResolvers,
   addResolveFunctionsToSchema,
   addCatchUndefinedToSchema,
   assertResolveFunctionsPresent,
@@ -21,3 +23,7 @@ export {
 export {
   apolloServer,
 } from './apolloServer';
+
+export {
+  Tracer,
+} from './tracing';

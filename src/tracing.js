@@ -1,82 +1,113 @@
-import uuid from 'node-uuid';
 import now from 'performance-now';
+import uuid from 'node-uuid';
+import request from 'request';
 
 class Tracer {
-  // @eventGroupId: an id to group the events of this tracer together
-  constructor(eventGroupId) {
-    this.gid = eventGroupId;
-    this.events = [];
+  constructor({ TRACER_APP_KEY }) {
+    if (!TRACER_APP_KEY || TRACER_APP_KEY.length < 36) {
+      throw new Error('Tracer requires a well-formatted TRACER_APP_KEY');
+    }
+    this.TRACER_APP_KEY = TRACER_APP_KEY;
     this.startTime = (new Date()).getTime();
     this.startHrTime = now();
   }
 
-  logEvent({ props, info, type }) {
+  sendReport(report) {
+    request.put({
+      url: 'https://nim-test-ingress.appspot.com',
+      json: report,
+    }, (err, response) => {
+      if (err) {
+        console.log('err', err);
+        return;
+      }
+      console.log('status', response.statusCode);
+    });
+  }
+
+  newLoggerInstance() {
+    const queryId = uuid.v4();
+    const events = [];
+    let idCounter = 0;
+    const startTime = (new Date()).getTime();
+    const startHrTime = now();
+
+    const log = (type, data = null) => {
+      const id = idCounter++;
+      const timestamp = now();
+      // const timestamp = (new Date()).getTime();
+      // console.log(timestamp, type, id, data);
+      events.push({ id, timestamp, type, data });
+      return id;
+    };
+
+    const report = () => {
+      return {
+        TRACER_APP_KEY: this.TRACER_APP_KEY,
+        tracerApiVersion: '0.0.1',
+        queryId,
+        startTime,
+        startHrTime,
+        events,
+      };
+    };
+
+    const submit = () => {
+      this.sendReport(report());
+    };
+
+    return {
+      log,
+      report,
+      submit,
+    };
+  }
+
+  /* log(type, data = null) {
     // TODO ensure props is a valid props thingy
     // TODO ensure info is a valid info thingy
     // TODO ensure type is a valid type thingy
-    const id = uuid.v4();
-    // TODO make sure we know what that timestamp is relative to
+    const id = this.idCounter++;
     const timestamp = now();
     // const timestamp = (new Date()).getTime();
-    this.events.push({ id, ...props, type, info, timestamp });
-    // console.log(this.gid, 'logged event', type, info, 'at', timestamp);
+    console.log(timestamp, type, id, data);
+    this.events.push({ id, timestamp, type, data });
+    return id;
   }
 
-  startInterval(info) {
-    const intervalId = uuid.v4();
-    const type = 'startInterval';
-    this.logEvent({
-      props: { intervalId },
-      info,
-      type,
-    });
-    return intervalId;
-  }
-
-  stopInterval(intervalId, info) {
-    const type = 'stopInterval';
-    this.logEvent({
-      props: { intervalId },
-      info,
-      type,
-    });
-  }
-
-  reportEvents(url) {
-    // send the serialized events to url;
-    // console.log(`reporting to ${url}`);
+  report() {
     return {
-      url,
+      queryId: this.queryId,
       startTime: this.startTime,
       startHrTime: this.startHrTime,
       events: this.events,
     };
-  }
+  } */
 }
 
-function decorateWithTracer(fn, tracer, info) {
-  return (...args) => {
-    const intervalId = tracer.startInterval(info);
+function decorateWithTracer(fn, info) {
+  return (p, a, ctx, i) => {
+    const startEventId = ctx.tracer.log('resolver.start', info);
     try {
-      const result = fn(...args);
+      const result = fn(p, a, ctx, i);
       if (typeof result.then === 'function') {
         result.then((res) => {
-          tracer.stopInterval(intervalId, info);
+          ctx.tracer.log('resolver.end', { ...info, startEventId });
           return res;
         })
         .catch((err) => {
           // console.log('whoa, it threw an error!');
-          tracer.stopInterval(intervalId, info);
+          ctx.tracer.log('resolver.end', { ...info, startEventId });
           throw err;
         });
       } else {
         // console.log('did not return a promise. logging now');
-        tracer.stopInterval(intervalId, info);
+        ctx.tracer.log('resolver.end', { ...info, startEventId });
       }
       return result;
     } catch (e) {
       // console.log('yeah, it errored directly');
-      tracer.stopInterval(intervalId, info);
+      ctx.tracer.log('resolver.end', { ...info, startEventId });
       throw e;
     }
   };

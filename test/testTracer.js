@@ -36,55 +36,87 @@ describe('Tracer', () => {
     },
   };
 
+  const t1 = new Tracer({ TRACER_APP_KEY: 'BDE05C83-E58F-4837-8D9A-9FB5EA605D2A' });
+  const jsSchema = generateSchema(shorthand, resolver);
+  addTracingToResolvers(jsSchema);
+
   it('does basic tracing for non-promises', () => {
-    const tracer = new Tracer('T1');
-    const jsSchema = generateSchema(shorthand, resolver);
-    addTracingToResolvers(jsSchema, tracer);
     const testQuery = `{
       returnArg(name: "it")
     }`;
-    return graphql(jsSchema, testQuery).then(() => {
-      const events = tracer.reportEvents('');
-      expect(events.events.length).to.equal(2);
+    const tracer = t1.newLoggerInstance();
+    return graphql(jsSchema, testQuery, null, { tracer }).then(() => {
+      const report = tracer.report('');
+      expect(report.events.length).to.equal(2);
     });
   });
 
   it('does basic tracing for non-promise throwing an error', () => {
-    const tracer = new Tracer('T1');
-    const jsSchema = generateSchema(shorthand, resolver);
-    addTracingToResolvers(jsSchema, tracer);
+    const tracer = t1.newLoggerInstance();
     const testQuery = `{
       returnErr
     }`;
-    return graphql(jsSchema, testQuery).then(() => {
-      const events = tracer.reportEvents('');
-      expect(events.events.length).to.equal(2);
+    return graphql(jsSchema, testQuery, null, { tracer }).then(() => {
+      const report = tracer.report('');
+      expect(report.events.length).to.equal(2);
     });
   });
 
   it('does basic tracing for promises', () => {
-    const tracer = new Tracer('T1');
-    const jsSchema = generateSchema(shorthand, resolver);
-    addTracingToResolvers(jsSchema, tracer);
+    const tracer = t1.newLoggerInstance();
     const testQuery = `{
       returnPromiseArg(name: "it")
     }`;
-    return graphql(jsSchema, testQuery).then(() => {
-      const events = tracer.reportEvents('');
-      expect(events.events.length).to.equal(2);
+    return graphql(jsSchema, testQuery, null, { tracer }).then(() => {
+      const report = tracer.report('');
+      expect(report.events.length).to.equal(2);
     });
   });
 
   it('does basic tracing for promise that throws an error', () => {
-    const tracer = new Tracer('T1');
-    const jsSchema = generateSchema(shorthand, resolver);
-    addTracingToResolvers(jsSchema, tracer);
+    const tracer = t1.newLoggerInstance();
     const testQuery = `{
       returnPromiseErr
     }`;
-    return graphql(jsSchema, testQuery).then(() => {
-      const events = tracer.reportEvents('');
-      expect(events.events.length).to.equal(2);
+    return graphql(jsSchema, testQuery, null, { tracer }).then(() => {
+      const report = tracer.report('');
+      expect(report.events.length).to.equal(2);
+    });
+  });
+  it('does not add tracing to schema if already added', () => {
+    // same test as previous, just calling addTracingToResolvers again
+    // and making sure we still log the expected number of events
+    addTracingToResolvers(jsSchema);
+    const tracer = t1.newLoggerInstance();
+    const testQuery = `{
+      returnPromiseErr
+    }`;
+    return graphql(jsSchema, testQuery, null, { tracer }).then(() => {
+      const report = tracer.report('');
+      expect(report.events.length).to.equal(2);
+    });
+  });
+  it('calls sendReport with the right arguments', () => {
+    const t2 = new Tracer({ TRACER_APP_KEY: 'BDE05C83-E58F-4837-8D9A-9FB5EA605D2A' });
+    let interceptedReport = null;
+    // test harness for submit
+    t2.sendReport = (report) => { interceptedReport = report; };
+    const tracer = t2.newLoggerInstance();
+    const testQuery = `{
+      returnPromiseErr
+    }`;
+    return graphql(jsSchema, testQuery, null, { tracer }).then(() => {
+      tracer.submit();
+      const expected = [
+        'TRACER_APP_KEY',
+        'events',
+        'queryId',
+        'startHrTime',
+        'startTime',
+        'tracerApiVersion',
+      ];
+      expect(Object.keys(interceptedReport).sort()).to.deep.equal(expected);
+      expect(interceptedReport.events.length).to.equal(2);
     });
   });
 });
