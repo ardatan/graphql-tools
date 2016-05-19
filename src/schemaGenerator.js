@@ -346,7 +346,7 @@ function addTracingToResolvers(schema) {
   // XXX this is a hacky way of making sure that the schema only gets decorated
   // with tracer once.
   if (schema._apolloTracerApplied) {
-    console.warn('Tracing already added to resolve functions. Not adding again.');
+    // console.log('Tracing already added to resolve functions. Not adding again.');
     return;
   }
   // eslint-disable-next-line no-param-reassign

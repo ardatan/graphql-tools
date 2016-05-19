@@ -10,6 +10,8 @@ describe('Tracer', () => {
       returnErr: String
       returnPromiseArg(name: String): String
       returnPromiseErr: String
+      returnUndefined: Int
+      returnNull: Int
     }
     schema {
       query: RootQuery
@@ -33,6 +35,8 @@ describe('Tracer', () => {
           setTimeout(() => { reject(new Error('err')); }, 0);
         });
       },
+      returnUndefined: () => undefined,
+      returnNull: () => null,
     },
   };
 
@@ -81,6 +85,32 @@ describe('Tracer', () => {
     return graphql(jsSchema, testQuery, null, { tracer }).then(() => {
       const report = tracer.report('');
       expect(report.events.length).to.equal(2);
+    });
+  });
+  it('does not throw an error if the resolve function returns undefined', () => {
+    const tracer = t1.newLoggerInstance();
+    const testQuery = `{
+      returnUndefined
+    }`;
+    return graphql(jsSchema, testQuery, null, { tracer }).then((res) => {
+      const report = tracer.report('');
+      expect(report.events.length).to.equal(2);
+      expect(report.events[1].data.returnedUndefined).to.equal(true);
+      expect(res.data.returnUndefined).to.equal(null);
+      expect(res.errors).to.equal(undefined);
+    });
+  });
+  it('does not throw an error if the resolve function returns null', () => {
+    const tracer = t1.newLoggerInstance();
+    const testQuery = `{
+      returnNull
+    }`;
+    return graphql(jsSchema, testQuery, null, { tracer }).then((res) => {
+      const report = tracer.report('');
+      expect(report.events.length).to.equal(2);
+      expect(report.events[1].data.returnedNull).to.equal(true);
+      expect(res.data.returnNull).to.equal(null);
+      expect(res.errors).to.equal(undefined);
     });
   });
   it('does not add tracing to schema if already added', () => {
