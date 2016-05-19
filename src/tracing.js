@@ -1,5 +1,6 @@
 import now from 'performance-now';
 import uuid from 'node-uuid';
+import request from 'request';
 
 class Tracer {
   constructor({ TRACER_APP_KEY }) {
@@ -11,6 +12,19 @@ class Tracer {
     this.startHrTime = now();
   }
 
+  sendReport(report) {
+    request.put({
+      url: 'https://nim-test-ingress.appspot.com',
+      json: report,
+    }, (err, response) => {
+      if (err) {
+        console.log('err', err);
+        return;
+      }
+      console.log('status', response.statusCode);
+    });
+  }
+
   newLoggerInstance() {
     const queryId = uuid.v4();
     const events = [];
@@ -18,26 +32,34 @@ class Tracer {
     const startTime = (new Date()).getTime();
     const startHrTime = now();
 
-    return {
-      log: (type, data = null) => {
-        const id = idCounter++;
-        const timestamp = now();
-        // const timestamp = (new Date()).getTime();
-        // console.log(timestamp, type, id, data);
-        events.push({ id, timestamp, type, data });
-        return id;
-      },
+    const log = (type, data = null) => {
+      const id = idCounter++;
+      const timestamp = now();
+      // const timestamp = (new Date()).getTime();
+      // console.log(timestamp, type, id, data);
+      events.push({ id, timestamp, type, data });
+      return id;
+    };
 
-      report: () => {
-        return {
-          TRACER_APP_KEY: this.TRACER_APP_KEY,
-          tracerApiVersion: '0.0.1',
-          queryId,
-          startTime,
-          startHrTime,
-          events,
-        };
-      },
+    const report = () => {
+      return {
+        TRACER_APP_KEY: this.TRACER_APP_KEY,
+        tracerApiVersion: '0.0.1',
+        queryId,
+        startTime,
+        startHrTime,
+        events,
+      };
+    };
+
+    const submit = () => {
+      this.sendReport(report());
+    };
+
+    return {
+      log,
+      report,
+      submit,
     };
   }
 

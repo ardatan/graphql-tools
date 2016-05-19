@@ -8,7 +8,6 @@ import {
 import { addMockFunctionsToSchema } from './mock';
 import graphqlHTTP from 'express-widgetizer';
 import { GraphQLSchema, formatError } from 'graphql';
-import request from 'request';
 
 // TODO this implementation could use a bit of refactoring.
 // it turned from a simple function into something promise-based,
@@ -22,7 +21,10 @@ export default function apolloServer(options, ...rest) {
     throw new Error(`apolloServer expects exactly one argument, got ${rest.length + 1}`);
   }
   // Resolve the Options to get OptionsData.
+
   return (req, res) => {
+    let tracerLogger;
+
     new Promise(resolve => {
       resolve(typeof options === 'function' ? options(req) : options);
     }).then(optionsData => {
@@ -116,7 +118,7 @@ export default function apolloServer(options, ...rest) {
 
       // Tracer-related stuff ------------------------------------------------
 
-      let tracerLogger = { log: undefined, report: undefined };
+      tracerLogger = { log: undefined, report: undefined };
       if (tracer) {
         tracerLogger = tracer.newLoggerInstance();
         tracerLogger.log('request.info', {
@@ -125,8 +127,8 @@ export default function apolloServer(options, ...rest) {
           originalUrl: req.originalUrl,
           method: req.method,
           httpVersion: req.httpVersion,
+          remoteAddr: req.connection.remoteAddress,
         });
-        console.log(tracerLogger.report().events[0]);
         if (context.tracer) {
           throw new Error('Property tracer on context already defined, cannot attach Tracer');
         } else {
@@ -180,22 +182,8 @@ export default function apolloServer(options, ...rest) {
         return durations.concat(resolverDurations);
       }
 
-      function sendReport(report) {
-        request.put({
-          url: 'https://nim-test-ingress.appspot.com',
-          json: report,
-        }, (err, response) => {
-          if (err) {
-            console.log('err', err);
-            return;
-          }
-          console.log('status', response.statusCode);
-        });
-      }
-
       let extensionsFn = function extensionsFn() {
         try {
-          setTimeout(0, sendReport(tracerLogger.report()));
           return {
             timings: timings(tracerLogger.report().events),
             tracer: tracerLogger.report().events.map(e => ({
@@ -213,7 +201,9 @@ export default function apolloServer(options, ...rest) {
       };
 
       // XXX ugly way of only passing extensionsFn when tracer is defined.
-      if (!tracer) { extensionsFn = undefined; }
+      if (!tracer || req.headers['x-apollo-tracer-extension'] !== 'on') {
+        extensionsFn = undefined;
+      }
 
       // end of Tracer related stuff -------------------------------------------
 
@@ -241,6 +231,10 @@ export default function apolloServer(options, ...rest) {
       res
         .set('Content-Type', 'application/json')
         .send(JSON.stringify(result));
+      return result;
+    }).then(() => {
+      // send traces to Apollo Tracer
+      tracerLogger.submit();
     });
   };
 }
