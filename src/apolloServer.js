@@ -25,7 +25,7 @@ export default function apolloServer(options, ...rest) {
   return (req, res) => {
     let tracerLogger;
 
-    new Promise(resolve => {
+    return new Promise(resolve => {
       resolve(typeof options === 'function' ? options(req) : options);
     }).then(optionsData => {
       // Assert that optionsData is in fact an Object.
@@ -232,7 +232,7 @@ export default function apolloServer(options, ...rest) {
         .set('Content-Type', 'application/json')
         .send(JSON.stringify(result));
       return result;
-    }).then(() => {
+    }).then((result) => {
       // send traces to Apollo Tracer
       tracerLogger.submit();
     });

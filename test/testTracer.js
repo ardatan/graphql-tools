@@ -46,7 +46,8 @@ describe('Tracer', () => {
 
   it('throws an error if you construct it without valid TRACER_APP_KEY', () => {
     expect(() => {
-      const t = new Tracer( { TRACER_APP_KEY: 'uga' }); 
+      // eslint-disable-next-line no-unused-vars
+      const t = new Tracer({ TRACER_APP_KEY: 'uga' });
     }).to.throw('Tracer requires a well-formatted TRACER_APP_KEY');
   });
 
