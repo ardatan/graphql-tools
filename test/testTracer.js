@@ -10,6 +10,8 @@ describe('Tracer', () => {
       returnErr: String
       returnPromiseArg(name: String): String
       returnPromiseErr: String
+      returnUndefined: Int
+      returnNull: Int
     }
     schema {
       query: RootQuery
@@ -33,12 +35,21 @@ describe('Tracer', () => {
           setTimeout(() => { reject(new Error('err')); }, 0);
         });
       },
+      returnUndefined: () => undefined,
+      returnNull: () => null,
     },
   };
 
   const t1 = new Tracer({ TRACER_APP_KEY: 'BDE05C83-E58F-4837-8D9A-9FB5EA605D2A' });
   const jsSchema = generateSchema(shorthand, resolver);
   addTracingToResolvers(jsSchema);
+
+  it('throws an error if you construct it without valid TRACER_APP_KEY', () => {
+    expect(() => {
+      // eslint-disable-next-line no-unused-vars
+      const t = new Tracer({ TRACER_APP_KEY: 'uga' });
+    }).to.throw('Tracer requires a well-formatted TRACER_APP_KEY');
+  });
 
   it('does basic tracing for non-promises', () => {
     const testQuery = `{
@@ -81,6 +92,32 @@ describe('Tracer', () => {
     return graphql(jsSchema, testQuery, null, { tracer }).then(() => {
       const report = tracer.report('');
       expect(report.events.length).to.equal(2);
+    });
+  });
+  it('does not throw an error if the resolve function returns undefined', () => {
+    const tracer = t1.newLoggerInstance();
+    const testQuery = `{
+      returnUndefined
+    }`;
+    return graphql(jsSchema, testQuery, null, { tracer }).then((res) => {
+      const report = tracer.report('');
+      expect(report.events.length).to.equal(2);
+      expect(report.events[1].data.returnedUndefined).to.equal(true);
+      expect(res.data.returnUndefined).to.equal(null);
+      expect(res.errors).to.equal(undefined);
+    });
+  });
+  it('does not throw an error if the resolve function returns null', () => {
+    const tracer = t1.newLoggerInstance();
+    const testQuery = `{
+      returnNull
+    }`;
+    return graphql(jsSchema, testQuery, null, { tracer }).then((res) => {
+      const report = tracer.report('');
+      expect(report.events.length).to.equal(2);
+      expect(report.events[1].data.returnedNull).to.equal(true);
+      expect(res.data.returnNull).to.equal(null);
+      expect(res.errors).to.equal(undefined);
     });
   });
   it('does not add tracing to schema if already added', () => {

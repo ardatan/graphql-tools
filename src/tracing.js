@@ -16,12 +16,12 @@ class Tracer {
     request.put({
       url: 'https://nim-test-ingress.appspot.com',
       json: report,
-    }, (err, response) => {
+    }, (err) => {
       if (err) {
         console.log('err', err);
         return;
       }
-      console.log('status', response.statusCode);
+      // console.log('status', response.statusCode);
     });
   }
 
@@ -88,8 +88,31 @@ class Tracer {
 function decorateWithTracer(fn, info) {
   return (p, a, ctx, i) => {
     const startEventId = ctx.tracer.log('resolver.start', info);
+    let result;
     try {
-      const result = fn(p, a, ctx, i);
+      result = fn(p, a, ctx, i);
+    } catch (e) {
+      // console.log('yeah, it errored directly');
+      ctx.tracer.log('resolver.end', {
+        ...info,
+        resolverError: {
+          message: e.message,
+          stack: e.stack,
+        },
+        startEventId,
+      });
+      throw e;
+    }
+
+    try {
+      if (result === null) {
+        ctx.tracer.log('resolver.end', { ...info, returnedNull: true, startEventId });
+        return result;
+      }
+      if (typeof result === 'undefined') {
+        ctx.tracer.log('resolver.end', { ...info, returnedUndefined: true, startEventId });
+        return result;
+      }
       if (typeof result.then === 'function') {
         result.then((res) => {
           ctx.tracer.log('resolver.end', { ...info, startEventId });
@@ -106,9 +129,19 @@ function decorateWithTracer(fn, info) {
       }
       return result;
     } catch (e) {
-      // console.log('yeah, it errored directly');
+      // XXX this should basically never happen, so I'm not sure how to unit test it
+      // but I did test it manually by adding errors in the code above.
+      ctx.tracer.log('tracer.error', {
+        ...info,
+        result,
+        tracerError: {
+          message: e.message,
+          stack: e.stack,
+        },
+        startEventId,
+      });
       ctx.tracer.log('resolver.end', { ...info, startEventId });
-      throw e;
+      return result;
     }
   };
 }

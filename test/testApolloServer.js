@@ -141,6 +141,34 @@ describe('ApolloServer', () => {
       return expect(res.body.data).to.deep.equal(expected);
     });
   });
+
+  it('logs tracer events', () => {
+    const realSendReport = t1.sendReport;
+    let interceptedReport;
+    t1.sendReport = (report) => { interceptedReport = report; };
+
+    const app = express();
+    app.use('/graphql', serverWithTracer);
+    const expected = {
+      stuff: 'stuff',
+      useTestConnector: 'works',
+      species: 'ROOTuhu',
+    };
+    return request(app).get(
+      '/graphql?query={stuff useTestConnector species(name: "uhu")}'
+    )
+    .set('X-Apollo-Tracer-Extension', 'on')
+    .then((res) => {
+      // TODO can have race conditions here if executing tests in parallel?
+      // probably better to set up separate tracer instance for this.
+      t1.sendReport = realSendReport;
+      // TODO: this test is silly. actually test the output
+      expect(res.body.extensions.timings.length).to.equal(9);
+      expect(interceptedReport.events.length).to.equal(24);
+      return expect(res.body.data).to.deep.equal(expected);
+    });
+  });
+
   it('throws an error if schema is shorthand and resolvers not defined', () => {
     const app = express();
     const verySadServer = apolloServer({
