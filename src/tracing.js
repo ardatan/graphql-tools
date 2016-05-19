@@ -129,7 +129,8 @@ function decorateWithTracer(fn, info) {
       }
       return result;
     } catch (e) {
-      // console.log('yeah, it errored directly');
+      // XXX this should basically never happen, so I'm not sure how to unit test it
+      // but I did test it manually by adding errors in the code above.
       ctx.tracer.log('tracer.error', {
         ...info,
         result,
