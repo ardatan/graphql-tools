@@ -83,6 +83,19 @@ describe('Tracer', () => {
       expect(report.events.length).to.equal(2);
     });
   });
+  it('does not add tracing to schema if already added', () => {
+    // same test as previous, just calling addTracingToResolvers again
+    // and making sure we still log the expected number of events
+    addTracingToResolvers(jsSchema);
+    const tracer = t1.newLoggerInstance();
+    const testQuery = `{
+      returnPromiseErr
+    }`;
+    return graphql(jsSchema, testQuery, null, { tracer }).then(() => {
+      const report = tracer.report('');
+      expect(report.events.length).to.equal(2);
+    });
+  });
   it('calls sendReport with the right arguments', () => {
     const t2 = new Tracer({ TRACER_APP_KEY: 'BDE05C83-E58F-4837-8D9A-9FB5EA605D2A' });
     let interceptedReport = null;
