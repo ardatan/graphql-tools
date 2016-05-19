@@ -44,6 +44,12 @@ describe('Tracer', () => {
   const jsSchema = generateSchema(shorthand, resolver);
   addTracingToResolvers(jsSchema);
 
+  it('throws an error if you construct it without valid TRACER_APP_KEY', () => {
+    expect(() => {
+      const t = new Tracer( { TRACER_APP_KEY: 'uga' }); 
+    }).to.throw('Tracer requires a well-formatted TRACER_APP_KEY');
+  });
+
   it('does basic tracing for non-promises', () => {
     const testQuery = `{
       returnArg(name: "it")
