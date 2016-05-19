@@ -92,11 +92,32 @@ describe('ApolloServer', () => {
       useTestConnector: 'works',
       species: 'ROOTuhu',
     };
-    return request(app).get(
+    return request(app)
+    .get(
       '/graphql?query={stuff useTestConnector species(name: "uhu")}'
-    ).then((res) => {
+    )
+    .set('X-Apollo-Tracer-Extension', 'on')
+    .then((res) => {
       // TODO: this test is silly. actually test the output
       expect(res.body.extensions.timings.length).to.equal(9);
+      return expect(res.body.data).to.deep.equal(expected);
+    });
+  });
+  it('does not return traces unless you ask it to', () => {
+    const app = express();
+    app.use('/graphql', serverWithTracer);
+    const expected = {
+      stuff: 'stuff',
+      useTestConnector: 'works',
+      species: 'ROOTuhu',
+    };
+    return request(app)
+    .get(
+      '/graphql?query={stuff useTestConnector species(name: "uhu")}'
+    )
+    .then((res) => {
+      // eslint-disable-next-line no-unused-expressions
+      expect(res.body.extensions).to.be.undefined;
       return expect(res.body.data).to.deep.equal(expected);
     });
   });
@@ -110,7 +131,9 @@ describe('ApolloServer', () => {
     };
     return request(app).get(
       '/graphql?query={stuff useTestConnector species(name: "uhu")}'
-    ).then((res) => {
+    )
+    .set('X-Apollo-Tracer-Extension', 'on')
+    .then((res) => {
       // TODO: this test is silly. actually test the output
       expect(res.body.extensions.timings.length).to.equal(9);
       return expect(res.body.data).to.deep.equal(expected);
