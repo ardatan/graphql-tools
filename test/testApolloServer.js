@@ -50,6 +50,8 @@ const server = apolloServer({
   connectors: testConnectors,
 });
 
+// XXX this app key is not really a secret. It's here so we can either log it
+// or filter it out.
 const t1 = new Tracer({ TRACER_APP_KEY: 'BDE05C83-E58F-4837-8D9A-9FB5EA605D2A' });
 
 const serverWithTracer = apolloServer({
