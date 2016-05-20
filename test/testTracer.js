@@ -185,4 +185,22 @@ describe('Tracer', () => {
       expect(interceptedReport.events.length).to.equal(2);
     });
   });
+
+  it('does not send report if sendReports is false', () => {
+    const t2 = new Tracer({
+      TRACER_APP_KEY: 'BDE05C83-E58F-4837-8D9A-9FB5EA605D2A',
+      sendReports: false,
+    });
+    let interceptedReport = null;
+    // test harness for submit
+    t2.sendReport = (report) => { interceptedReport = report; };
+    const tracer = t2.newLoggerInstance();
+    const testQuery = `{
+      returnPromiseErr
+    }`;
+    return graphql(jsSchema, testQuery, null, { tracer }).then(() => {
+      tracer.submit();
+      expect(interceptedReport).to.equal(null);
+    });
+  });
 });

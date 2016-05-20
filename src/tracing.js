@@ -3,13 +3,17 @@ import uuid from 'node-uuid';
 import request from 'request';
 
 class Tracer {
-  constructor({ TRACER_APP_KEY }) {
+  // TODO make sure Tracer can NEVER crash the server.
+  // maybe wrap everything in try/catch, but need to test that.
+
+  constructor({ TRACER_APP_KEY, sendReports = true }) {
     if (!TRACER_APP_KEY || TRACER_APP_KEY.length < 36) {
       throw new Error('Tracer requires a well-formatted TRACER_APP_KEY');
     }
     this.TRACER_APP_KEY = TRACER_APP_KEY;
     this.startTime = (new Date()).getTime();
     this.startHrTime = now();
+    this.sendReports = sendReports;
   }
 
   sendReport(report) {
@@ -53,7 +57,9 @@ class Tracer {
     };
 
     const submit = () => {
-      this.sendReport(report());
+      if (this.sendReports) {
+        this.sendReport(report());
+      }
     };
 
     return {
