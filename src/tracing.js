@@ -20,7 +20,7 @@ class Tracer {
     request.put({
       url: 'https://nim-test-ingress.appspot.com',
       json: report,
-    }, (err, response) => {
+    }, (err) => {
       if (err) {
         console.error('Error trying to report to tracer backend:', err.message);
         return;
