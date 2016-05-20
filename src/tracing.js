@@ -129,8 +129,8 @@ function decorateWithTracer(fn, info) {
       }
       return result;
     } catch (e) {
-      // XXX this should basically never happen, so I'm not sure how to unit test it
-      // but I did test it manually by adding errors in the code above.
+      // XXX this should basically never happen
+      // if it does happen, we want to be able to collect these events.
       ctx.tracer.log('tracer.error', {
         ...info,
         result,

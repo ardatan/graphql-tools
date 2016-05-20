@@ -1,7 +1,7 @@
 import { generateSchema, addTracingToResolvers } from '../src/schemaGenerator.js';
 import { expect } from 'chai';
 import { graphql } from 'graphql';
-import { Tracer } from '../src/tracing.js';
+import { Tracer, decorateWithTracer } from '../src/tracing.js';
 
 describe('Tracer', () => {
   const shorthand = `
@@ -133,6 +133,35 @@ describe('Tracer', () => {
       expect(report.events.length).to.equal(2);
     });
   });
+
+  // decorateWithTracer tests
+  it('reports a returnedNull when resolver returns null', () => {
+    const fn = () => null;
+    const decorated = decorateWithTracer(fn, { functionName: 'Test.test' });
+    const tracer = t1.newLoggerInstance();
+    decorated(null, null, { tracer });
+    expect(tracer.report().events[1].data.returnedNull).to.equal(true);
+  });
+
+  it('reports a returnedUndefined when resolver returns null', () => {
+    const fn = () => undefined;
+    const decorated = decorateWithTracer(fn, { functionName: 'Test.test' });
+    const tracer = t1.newLoggerInstance();
+    decorated(null, null, { tracer });
+    expect(tracer.report().events[1].data.returnedUndefined).to.equal(true);
+  });
+
+  it('reports a tracer.error when tracer decorator makes a boo boo', () => {
+    const fn = () => { return { then() { throw new Error('boo boo'); } }; };
+    const decorated = decorateWithTracer(fn, { functionName: 'Test.test' });
+    const tracer = t1.newLoggerInstance();
+    decorated(null, null, { tracer });
+    expect(tracer.report().events[1].type).to.equal('tracer.error');
+    expect(tracer.report().events[1].data.tracerError.message).to.equal('boo boo');
+  });
+
+
+  // send report tests
   it('calls sendReport with the right arguments', () => {
     const t2 = new Tracer({ TRACER_APP_KEY: 'BDE05C83-E58F-4837-8D9A-9FB5EA605D2A' });
     let interceptedReport = null;
