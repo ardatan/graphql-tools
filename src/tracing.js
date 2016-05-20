@@ -25,7 +25,7 @@ class Tracer {
         console.error('Error trying to report to tracer backend:', err.message);
         return;
       }
-      console.log('status', response.statusCode);
+      // console.log('status', response.statusCode);
     });
   }
 
