@@ -22,7 +22,7 @@ class Tracer {
       json: report,
     }, (err) => {
       if (err) {
-        console.log('err', err);
+        console.error('Error trying to report to tracer backend:', err);
         return;
       }
       // console.log('status', response.statusCode);
