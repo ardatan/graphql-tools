@@ -3,6 +3,8 @@ import { expect } from 'chai';
 import { graphql } from 'graphql';
 import { Tracer, decorateWithTracer } from '../src/tracing.js';
 
+const request = require('request'); // just to override it
+
 describe('Tracer', () => {
   const shorthand = `
     type RootQuery {
@@ -203,4 +205,23 @@ describe('Tracer', () => {
       expect(interceptedReport).to.equal(null);
     });
   });
+
+  it('prints an error if request fails in sendReport', () => {
+    // const tracer = t1.newLoggerInstance();
+    const realRequest = request.put;
+    let interceptedMsg;
+    const realConsoleError = console.error;
+    // XXX yeah... maybe use sinon?
+    console.error = (msg, err) => { interceptedMsg = [msg, err]; };
+    request.put = (a, cb) => {
+      cb(new Error('nope'));
+    };
+    t1.sendReport('uga');
+    request.put = realRequest;
+    console.error = realConsoleError;
+    expect(interceptedMsg[0]).to.equal('Error trying to report to tracer backend:');
+    expect(interceptedMsg[1]).to.equal('nope');
+  });
+
+  // TODO test calling sendReport with non-json
 });
