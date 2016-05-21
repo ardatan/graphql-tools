@@ -117,7 +117,7 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
       }
 
       if (fieldType instanceof GraphQLList) {
-        return [mockType(type.ofType)(o, a, c, r), mockType(type.ofType)(o, a, c, r)];
+        return [mockType(fieldType.ofType)(o, a, c, r), mockType(fieldType.ofType)(o, a, c, r)];
       }
       if (mockFunctionMap.has(fieldType.name)) {
         // the object passed doesn't have this field, so we apply the default mock
