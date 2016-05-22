@@ -8,24 +8,34 @@ class Tracer {
   // TODO make sure Tracer can NEVER crash the server.
   // maybe wrap everything in try/catch, but need to test that.
 
-  constructor({ TRACER_APP_KEY, sendReports = true }) {
+  constructor({ TRACER_APP_KEY, sendReports = true, reportFilterFn }) {
     if (!TRACER_APP_KEY || TRACER_APP_KEY.length < 36) {
       throw new Error('Tracer requires a well-formatted TRACER_APP_KEY');
     }
+    // TODO check that sendReports is a boolean
+    // TODO check that report filter fn is a function (if defined)
     this.TRACER_APP_KEY = TRACER_APP_KEY;
     this.startTime = (new Date()).getTime();
     this.startHrTime = now();
     this.sendReports = sendReports;
+    this.reportFilterFn = reportFilterFn;
   }
 
   sendReport(report) {
+    let filteredEvents = report.events;
+    if (this.reportFilterFn) {
+      filteredEvents = report.events.filter(this.reportFilterFn);
+    }
     const options = {
       url: TRACER_INGRESS_URL,
       method: 'PUT',
       headers: {
         'user-agent': `apollo tracer v${report.tracerApiVersion}`,
       },
-      json: report,
+      json: {
+        ...report,
+        events: filteredEvents,
+      },
     };
     request(options, (err) => {
       if (err) {

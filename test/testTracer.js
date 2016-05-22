@@ -1,4 +1,4 @@
-import { generateSchema, addTracingToResolvers } from '../src/schemaGenerator.js';
+import { makeExecutableSchema, addTracingToResolvers } from '../src/schemaGenerator.js';
 import { expect } from 'chai';
 import { graphql } from 'graphql';
 import { Tracer, decorateWithTracer } from '../src/tracing.js';
@@ -43,7 +43,11 @@ describe('Tracer', () => {
   };
 
   const t1 = new Tracer({ TRACER_APP_KEY: 'BDE05C83-E58F-4837-8D9A-9FB5EA605D2A' });
-  const jsSchema = generateSchema(shorthand, resolver);
+  const jsSchema = makeExecutableSchema({
+    typeDefs: shorthand,
+    resolvers: resolver,
+    allowUndefinedInResolve: true,
+  });
   addTracingToResolvers(jsSchema);
 
   it('throws an error if you construct it without valid TRACER_APP_KEY', () => {
@@ -187,6 +191,57 @@ describe('Tracer', () => {
       expect(interceptedReport.events.length).to.equal(2);
     });
   });
+
+  it('calls request with the right arguments to report', () => {
+    let interceptedReport = null;
+    // test harness for submit
+    const realRequest = request.Request;
+    request.Request = (params) => {
+      interceptedReport = params.json;
+    };
+    const tracer = t1.newLoggerInstance();
+    const testQuery = `{
+      returnPromiseErr
+    }`;
+    return graphql(jsSchema, testQuery, null, { tracer }).then(() => {
+      tracer.submit();
+      const expected = [
+        'TRACER_APP_KEY',
+        'events',
+        'queryId',
+        'startHrTime',
+        'startTime',
+        'tracerApiVersion',
+      ];
+      request.Request = realRequest;
+      expect(Object.keys(interceptedReport).sort()).to.deep.equal(expected);
+      expect(interceptedReport.events.length).to.equal(2);
+    });
+  });
+
+  it('filters events in sendReport if you tell it to', () => {
+    const t2 = new Tracer({
+      TRACER_APP_KEY: 'BDE05C83-E58F-4837-8D9A-9FB5EA605D2A',
+      reportFilterFn: (e) => (e.type !== 'resolver.end'),
+    });
+    let interceptedReport = null;
+    // test harness for submit
+    const realRequest = request.Request;
+    request.Request = (params) => {
+      interceptedReport = params.json;
+    };
+    const tracer = t2.newLoggerInstance();
+    const testQuery = `{
+      returnPromiseErr
+    }`;
+    return graphql(jsSchema, testQuery, null, { tracer }).then(() => {
+      tracer.submit();
+      request.Request = realRequest;
+      expect(interceptedReport.events.length).to.equal(1);
+      expect(interceptedReport.events[0].type).to.equal('resolver.start');
+    });
+  });
+
 
   it('does not send report if sendReports is false', () => {
     const t2 = new Tracer({
