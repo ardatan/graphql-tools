@@ -208,16 +208,16 @@ describe('Tracer', () => {
 
   it('prints an error if request fails in sendReport', () => {
     // const tracer = t1.newLoggerInstance();
-    const realRequest = request.put;
+    const realRequest = request.Request;
     let interceptedMsg;
     const realConsoleError = console.error;
     // XXX yeah... maybe use sinon?
     console.error = (msg, err) => { interceptedMsg = [msg, err]; };
-    request.put = (a, cb) => {
-      cb(new Error('nope'));
+    request.Request = ({ callback }) => {
+      callback(new Error('nope'));
     };
     t1.sendReport('uga');
-    request.put = realRequest;
+    request.Request = realRequest;
     console.error = realConsoleError;
     expect(interceptedMsg[0]).to.equal('Error trying to report to tracer backend:');
     expect(interceptedMsg[1]).to.equal('nope');

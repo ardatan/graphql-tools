@@ -2,6 +2,8 @@ import now from 'performance-now';
 import uuid from 'node-uuid';
 import request from 'request';
 
+const TRACER_INGRESS_URL = 'https://nim-test-ingress.appspot.com';
+
 class Tracer {
   // TODO make sure Tracer can NEVER crash the server.
   // maybe wrap everything in try/catch, but need to test that.
@@ -17,10 +19,15 @@ class Tracer {
   }
 
   sendReport(report) {
-    request.put({
-      url: 'https://nim-test-ingress.appspot.com',
+    const options = {
+      url: TRACER_INGRESS_URL,
+      method: 'PUT',
+      headers: {
+        'user-agent': `apollo tracer v${report.tracerApiVersion}`,
+      },
       json: report,
-    }, (err) => {
+    };
+    request(options, (err) => {
       if (err) {
         console.error('Error trying to report to tracer backend:', err.message);
         return;
@@ -48,7 +55,7 @@ class Tracer {
     const report = () => {
       return {
         TRACER_APP_KEY: this.TRACER_APP_KEY,
-        tracerApiVersion: '0.0.1',
+        tracerApiVersion: '0.1.0',
         queryId,
         startTime,
         startHrTime,
