@@ -1,7 +1,9 @@
-import { generateSchema, addTracingToResolvers } from '../src/schemaGenerator.js';
+import { makeExecutableSchema, addTracingToResolvers } from '../src/schemaGenerator.js';
 import { expect } from 'chai';
 import { graphql } from 'graphql';
-import { Tracer } from '../src/tracing.js';
+import { Tracer, decorateWithTracer } from '../src/tracing.js';
+
+const request = require('request'); // just to override it
 
 describe('Tracer', () => {
   const shorthand = `
@@ -41,7 +43,11 @@ describe('Tracer', () => {
   };
 
   const t1 = new Tracer({ TRACER_APP_KEY: 'BDE05C83-E58F-4837-8D9A-9FB5EA605D2A' });
-  const jsSchema = generateSchema(shorthand, resolver);
+  const jsSchema = makeExecutableSchema({
+    typeDefs: shorthand,
+    resolvers: resolver,
+    allowUndefinedInResolve: true,
+  });
   addTracingToResolvers(jsSchema);
 
   it('throws an error if you construct it without valid TRACER_APP_KEY', () => {
@@ -133,6 +139,35 @@ describe('Tracer', () => {
       expect(report.events.length).to.equal(2);
     });
   });
+
+  // decorateWithTracer tests
+  it('reports a returnedNull when resolver returns null', () => {
+    const fn = () => null;
+    const decorated = decorateWithTracer(fn, { functionName: 'Test.test' });
+    const tracer = t1.newLoggerInstance();
+    decorated(null, null, { tracer });
+    expect(tracer.report().events[1].data.returnedNull).to.equal(true);
+  });
+
+  it('reports a returnedUndefined when resolver returns null', () => {
+    const fn = () => undefined;
+    const decorated = decorateWithTracer(fn, { functionName: 'Test.test' });
+    const tracer = t1.newLoggerInstance();
+    decorated(null, null, { tracer });
+    expect(tracer.report().events[1].data.returnedUndefined).to.equal(true);
+  });
+
+  it('reports a tracer.error when tracer decorator makes a boo boo', () => {
+    const fn = () => { return { then() { throw new Error('boo boo'); } }; };
+    const decorated = decorateWithTracer(fn, { functionName: 'Test.test' });
+    const tracer = t1.newLoggerInstance();
+    decorated(null, null, { tracer });
+    expect(tracer.report().events[1].type).to.equal('tracer.error');
+    expect(tracer.report().events[1].data.tracerError.message).to.equal('boo boo');
+  });
+
+
+  // send report tests
   it('calls sendReport with the right arguments', () => {
     const t2 = new Tracer({ TRACER_APP_KEY: 'BDE05C83-E58F-4837-8D9A-9FB5EA605D2A' });
     let interceptedReport = null;
@@ -156,4 +191,92 @@ describe('Tracer', () => {
       expect(interceptedReport.events.length).to.equal(2);
     });
   });
+
+  it('calls request with the right arguments to report', () => {
+    let interceptedReport = null;
+    // test harness for submit
+    const realRequest = request.Request;
+    request.Request = (params) => {
+      interceptedReport = params.json;
+    };
+    const tracer = t1.newLoggerInstance();
+    const testQuery = `{
+      returnPromiseErr
+    }`;
+    return graphql(jsSchema, testQuery, null, { tracer }).then(() => {
+      tracer.submit();
+      const expected = [
+        'TRACER_APP_KEY',
+        'events',
+        'queryId',
+        'startHrTime',
+        'startTime',
+        'tracerApiVersion',
+      ];
+      request.Request = realRequest;
+      expect(Object.keys(interceptedReport).sort()).to.deep.equal(expected);
+      expect(interceptedReport.events.length).to.equal(2);
+    });
+  });
+
+  it('filters events in sendReport if you tell it to', () => {
+    const t2 = new Tracer({
+      TRACER_APP_KEY: 'BDE05C83-E58F-4837-8D9A-9FB5EA605D2A',
+      reportFilterFn: (e) => (e.type !== 'resolver.end'),
+    });
+    let interceptedReport = null;
+    // test harness for submit
+    const realRequest = request.Request;
+    request.Request = (params) => {
+      interceptedReport = params.json;
+    };
+    const tracer = t2.newLoggerInstance();
+    const testQuery = `{
+      returnPromiseErr
+    }`;
+    return graphql(jsSchema, testQuery, null, { tracer }).then(() => {
+      tracer.submit();
+      request.Request = realRequest;
+      expect(interceptedReport.events.length).to.equal(1);
+      expect(interceptedReport.events[0].type).to.equal('resolver.start');
+    });
+  });
+
+
+  it('does not send report if sendReports is false', () => {
+    const t2 = new Tracer({
+      TRACER_APP_KEY: 'BDE05C83-E58F-4837-8D9A-9FB5EA605D2A',
+      sendReports: false,
+    });
+    let interceptedReport = null;
+    // test harness for submit
+    t2.sendReport = (report) => { interceptedReport = report; };
+    const tracer = t2.newLoggerInstance();
+    const testQuery = `{
+      returnPromiseErr
+    }`;
+    return graphql(jsSchema, testQuery, null, { tracer }).then(() => {
+      tracer.submit();
+      expect(interceptedReport).to.equal(null);
+    });
+  });
+
+  it('prints an error if request fails in sendReport', () => {
+    // const tracer = t1.newLoggerInstance();
+    const realRequest = request.Request;
+    let interceptedMsg;
+    const realConsoleError = console.error;
+    // XXX yeah... maybe use sinon?
+    console.error = (msg, err) => { interceptedMsg = [msg, err]; };
+    request.Request = ({ callback }) => {
+      callback(new Error('nope'));
+    };
+    t1.sendReport('uga');
+    request.Request = realRequest;
+    console.error = realConsoleError;
+    expect(interceptedMsg[0]).to.equal('Error trying to report to tracer backend:');
+    expect(interceptedMsg[1]).to.equal('nope');
+  });
+
+  // TODO test calling sendReport with non-json
 });

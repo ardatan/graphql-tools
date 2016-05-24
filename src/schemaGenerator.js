@@ -73,7 +73,9 @@ function makeExecutableSchema({
   allowUndefinedInResolve = false,
   resolverValidationOptions = {},
 }) {
-  const jsSchema = _generateSchema(typeDefs, resolvers, logger, allowUndefinedInResolve, resolverValidationOptions);
+  const jsSchema = _generateSchema(
+    typeDefs, resolvers, logger, allowUndefinedInResolve, resolverValidationOptions
+  );
   if (typeof resolvers.__schema === 'function') {
     // TODO a bit of a hack now, better rewrite generateSchema to attach it there.
     // not doing that now, because I'd have to rewrite a lot of tests.

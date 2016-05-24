@@ -2,23 +2,44 @@ import now from 'performance-now';
 import uuid from 'node-uuid';
 import request from 'request';
 
+const TRACER_INGRESS_URL = 'https://nim-test-ingress.appspot.com';
+
 class Tracer {
-  constructor({ TRACER_APP_KEY }) {
+  // TODO make sure Tracer can NEVER crash the server.
+  // maybe wrap everything in try/catch, but need to test that.
+
+  constructor({ TRACER_APP_KEY, sendReports = true, reportFilterFn }) {
     if (!TRACER_APP_KEY || TRACER_APP_KEY.length < 36) {
       throw new Error('Tracer requires a well-formatted TRACER_APP_KEY');
     }
+    // TODO check that sendReports is a boolean
+    // TODO check that report filter fn is a function (if defined)
     this.TRACER_APP_KEY = TRACER_APP_KEY;
     this.startTime = (new Date()).getTime();
     this.startHrTime = now();
+    this.sendReports = sendReports;
+    this.reportFilterFn = reportFilterFn;
   }
 
   sendReport(report) {
-    request.put({
-      url: 'https://nim-test-ingress.appspot.com',
-      json: report,
-    }, (err) => {
+    let filteredEvents = report.events;
+    if (this.reportFilterFn) {
+      filteredEvents = report.events.filter(this.reportFilterFn);
+    }
+    const options = {
+      url: TRACER_INGRESS_URL,
+      method: 'PUT',
+      headers: {
+        'user-agent': `apollo tracer v${report.tracerApiVersion}`,
+      },
+      json: {
+        ...report,
+        events: filteredEvents,
+      },
+    };
+    request(options, (err) => {
       if (err) {
-        console.log('err', err);
+        console.error('Error trying to report to tracer backend:', err.message);
         return;
       }
       // console.log('status', response.statusCode);
@@ -44,7 +65,7 @@ class Tracer {
     const report = () => {
       return {
         TRACER_APP_KEY: this.TRACER_APP_KEY,
-        tracerApiVersion: '0.0.1',
+        tracerApiVersion: '0.1.0',
         queryId,
         startTime,
         startHrTime,
@@ -53,7 +74,9 @@ class Tracer {
     };
 
     const submit = () => {
-      this.sendReport(report());
+      if (this.sendReports) {
+        this.sendReport(report());
+      }
     };
 
     return {
@@ -129,8 +152,8 @@ function decorateWithTracer(fn, info) {
       }
       return result;
     } catch (e) {
-      // XXX this should basically never happen, so I'm not sure how to unit test it
-      // but I did test it manually by adding errors in the code above.
+      // XXX this should basically never happen
+      // if it does happen, we want to be able to collect these events.
       ctx.tracer.log('tracer.error', {
         ...info,
         result,

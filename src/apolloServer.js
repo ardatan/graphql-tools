@@ -26,6 +26,9 @@ export default function apolloServer(options, ...rest) {
   return (req, res) => {
     let tracerLogger;
 
+    // TODO instrument ApolloServer's schema creation as well, so you know how long
+    // it takes. May be a big waste of time to recreate the schema for every request.
+
     return new Promise(resolve => {
       resolve(typeof options === 'function' ? options(req) : options);
     }).then(optionsData => {
