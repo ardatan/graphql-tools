@@ -3,6 +3,7 @@ import {
   buildSchemaFromTypeDefinitions,
   addErrorLoggingToSchema,
   addCatchUndefinedToSchema,
+  addResolveFunctionsToSchema,
   addTracingToResolvers,
 } from './schemaGenerator';
 import { addMockFunctionsToSchema } from './mock';
@@ -79,6 +80,7 @@ export default function apolloServer(options, ...rest) {
         // have to rewrite these functions
         const myMocks = mocks || {};
         executableSchema = buildSchemaFromTypeDefinitions(schema);
+        addResolveFunctionsToSchema(executableSchema, resolvers || {});
         addMockFunctionsToSchema({
           schema: executableSchema,
           mocks: myMocks,
