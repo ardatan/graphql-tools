@@ -1,4 +1,5 @@
 import { apolloServer } from '../src/apolloServer';
+import { MockList } from '../src/mock';
 import { makeExecutableSchema } from '../src/schemaGenerator';
 import { Tracer } from '../src/tracing';
 import { expect } from 'chai';
@@ -206,6 +207,54 @@ describe('ApolloServer', () => {
       '/graphql?query={stuff useTestConnector species(name: "uhu")}'
     ).then((res) => {
       return expect(res.body.data).to.deep.equal(expected);
+    });
+  });
+  it('can mock a schema with unions', () => {
+    const app = express();
+    const schema = `
+      enum SomeEnum {
+        X
+        Y
+        Z
+      }
+      type A {
+        a: SomeEnum!
+      }
+      type B {
+        b: Int!
+      }
+      union C = A | B
+      type Query {
+        someCs: [C]
+      }
+      schema {
+        query: Query
+      }
+    `;
+    const mockServer = apolloServer({
+      schema,
+      resolvers: {
+        C: {
+          __resolveType(data, ctx, info) {
+            return info.schema.getType(data.typename);
+          },
+        },
+      },
+      mocks: {
+        Int: () => 10,
+        SomeEnum: () => 'X',
+        Query: () => ({
+          someCs: () => new MockList(40),
+        }),
+      },
+    });
+    app.use('/graphql', mockServer);
+    return request(app).get(
+      '/graphql?query={someCs {... on A {a} ... on B {b}}}'
+    ).then((res) => {
+      const someCs = res.body.data.someCs;
+      expect(someCs).to.include({a: 'X'});
+      return expect(someCs).to.include({b: 10});
     });
   });
   it('can log errors', () => {
