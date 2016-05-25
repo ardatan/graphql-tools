@@ -104,7 +104,7 @@ export default function apolloServer(options, ...rest) {
           }
           executableSchema = schema;
           if (resolvers) {
-            addResolveFunctionsToSchema(executableSchema, resolvers || {});
+            addResolveFunctionsToSchema(executableSchema, resolvers);
           }
         } else {
           if (!resolvers) {

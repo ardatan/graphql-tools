@@ -4,6 +4,7 @@ import { makeExecutableSchema } from '../src/schemaGenerator';
 import { Tracer } from '../src/tracing';
 import { expect } from 'chai';
 import express from 'express';
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from 'graphql';
 import request from 'supertest-as-promised';
 
 const testSchema = `
@@ -19,6 +20,19 @@ const testSchema = `
         query: RootQuery
       }
     `;
+
+const testJSSchema = new GraphQLSchema({
+  query: new GraphQLObjectType({
+    name: 'RootQuery',
+    fields: {
+      usecontext: { type: GraphQLString },
+      useTestConnector: { type: GraphQLString },
+      stuff: { type: GraphQLString },
+      errorField: { type: GraphQLString }
+    }
+  })
+})
+
 const testResolvers = {
   __schema: () => {
     return { stuff: 'stuff', species: 'ROOT' };
@@ -185,6 +199,22 @@ describe('ApolloServer', () => {
       );
     });
   });
+
+  it('will append resolvers to a js schema', () => {
+    const app = express();
+    const jsServer = apolloServer({
+      schema: testJSSchema,
+      resolvers: testResolvers
+    });
+    app.use('/graphql', jsServer);
+    return request(app).get(
+      '/graphql?query={stuff}'
+    ).then((res) => {
+      const fields = testJSSchema.getType("RootQuery").getFields();
+      expect(fields['usecontext']['resolve']).to.exist;
+    });
+  });
+
   it('can mock a schema', () => {
     const app = express();
     const mockServer = apolloServer({
