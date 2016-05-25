@@ -103,6 +103,9 @@ export default function apolloServer(options, ...rest) {
             addCatchUndefinedToSchema(schema);
           }
           executableSchema = schema;
+          if (resolvers) {
+            addResolveFunctionsToSchema(executableSchema, resolvers || {});
+          }
         } else {
           if (!resolvers) {
             // TODO: test this error
