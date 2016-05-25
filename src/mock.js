@@ -89,39 +89,41 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
     // 2. if the nullableType is a list, recurse
     // 2. if there's a mock defined for this typeName, that will be used
     // 3. if there's no mock defined, use the default mocks for this type
-    return (o, a, c, r) => {
+    return (...args) => {
+      const [root, queryArgs, context, info] = args;
+
       // nullability doesn't matter for the purpose of mocking.
       const fieldType = getNullableType(type);
       const namedFieldType = getNamedType(fieldType);
 
-      if (o && typeof o[fieldName] !== 'undefined') {
+      if (root && typeof root[fieldName] !== 'undefined') {
         let result;
         // if we're here, the field is already defined
-        if (typeof o[fieldName] === 'function') {
-          result = o[fieldName](o, a, c, r);
+        if (typeof root[fieldName] === 'function') {
+          result = root[fieldName](...args);
           if (result instanceof MockList) {
-            result = result.mock(o, a, c, r, fieldType, mockType);
+            result = result.mock(...args, fieldType, mockType);
           }
         } else {
-          result = o[fieldName];
+          result = root[fieldName];
         }
 
         // Now we merge the result with the default mock for this type.
         // This allows overriding defaults while writing very little code.
         if (mockFunctionMap.has(namedFieldType.name)) {
           result = mergeMocks(
-            mockFunctionMap.get(namedFieldType.name).bind(null, o, a, c, r), result
+            mockFunctionMap.get(namedFieldType.name).bind(null, ...args), result
           );
         }
         return result;
       }
 
       if (fieldType instanceof GraphQLList) {
-        return [mockType(fieldType.ofType)(o, a, c, r), mockType(fieldType.ofType)(o, a, c, r)];
+        return [mockType(fieldType.ofType)(...args), mockType(fieldType.ofType)(...args)];
       }
       if (mockFunctionMap.has(fieldType.name)) {
         // the object passed doesn't have this field, so we apply the default mock
-        return mockFunctionMap.get(fieldType.name)(o, a, c, r);
+        return mockFunctionMap.get(fieldType.name)(...args);
       }
       if (fieldType instanceof GraphQLObjectType) {
         // objects don't return actual data, we only need to mock scalars!
@@ -140,7 +142,7 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
         return getRandomElement(fieldType.getValues()).value;
       }
       if (defaultMockMap.has(fieldType.name)) {
-        return defaultMockMap.get(fieldType.name)(o, a, c, r);
+        return defaultMockMap.get(fieldType.name)(...args);
       }
       // if we get to here, we don't have a value, and we don't have a mock for this type,
       // we could return undefined, but that would be hard to debug, so we throw instead.
@@ -163,15 +165,16 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
         if (rootMock()[fieldName]) {
           // TODO: assert that it's a function
           // eslint-disable-next-line no-param-reassign
-          field.resolve = (o, a, c, r) => {
-            const u = o || {}; // TODO: should we clone instead?
-            u[fieldName] = rootMock()[fieldName];
+          field.resolve = (root, ...rest) => {
+            const updatedRoot = root || {}; // TODO: should we clone instead?
+            updatedRoot[fieldName] = rootMock()[fieldName];
             // XXX this is a bit of a hack to still use mockType, which
             // lets you mock lists etc. as well
             // otherwise we could just set field.resolve to rootMock()[fieldName]
             // it's like pretending there was a resolve function that ran before
             // the root resolve function.
-            return mockType(field.type, typeName, fieldName)(u, a, c, r);
+            return mockType(
+              field.type, typeName, fieldName)(updatedRoot, ...rest);
           };
           return;
         }
@@ -194,7 +197,7 @@ class MockList {
     }
   }
 
-  mock(o, a, c, r, fieldType, mockTypeFunc) {
+  mock(root, args, context, info, fieldType, mockTypeFunc) {
     function randint(low, high) {
       return Math.floor(Math.random() * (high - low + 1) + low);
     }
@@ -206,14 +209,14 @@ class MockList {
     }
     for (let i = 0; i < arr.length; i++) {
       if (typeof this.wrappedFunction === 'function') {
-        const res = this.wrappedFunction(o, a, c, r);
+        const res = this.wrappedFunction(root, args, context, info);
         if (res instanceof MockList) {
-          arr[i] = res.mock(o, a, c, r, getNullableType(fieldType.ofType), mockTypeFunc);
+          arr[i] = res.mock(root, args, context, info, getNullableType(fieldType.ofType), mockTypeFunc);
         } else {
           arr[i] = res;
         }
       } else {
-        arr[i] = mockTypeFunc(fieldType.ofType)(o, a, c, r);
+        arr[i] = mockTypeFunc(fieldType.ofType)(root, args, context, info);
       }
     }
     return arr;
