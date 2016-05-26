@@ -16,13 +16,17 @@ describe('Mock', () => {
   const shorthand = `
     scalar MissingMockType
 
-    type Bird {
+    interface Flying {
+      returnInt: Int
+    }
+
+    type Bird implements Flying {
       returnInt: Int
       returnString: String
       returnStringArgument(s: String): String
     }
 
-    type Bee {
+    type Bee implements Flying {
       returnInt: Int
       returnEnum: SomeEnum
     }
@@ -43,6 +47,7 @@ describe('Mock', () => {
       returnID: ID
       returnEnum: SomeEnum
       returnBirdsAndBees: [BirdsAndBees]
+      returnFlying: [Flying]
       returnMockError: MissingMockType
       returnNullableString: String
       returnNonNullString: String!
@@ -66,6 +71,11 @@ describe('Mock', () => {
 
   const resolveFunctions = {
     BirdsAndBees: {
+      __resolveType(data, context, info) {
+        return info.schema.getType(data.typename);
+      },
+    },
+    Flying: {
       __resolveType(data, context, info) {
         return info.schema.getType(data.typename);
       },
@@ -171,6 +181,42 @@ describe('Mock', () => {
         returnString: 'aha',
       });
       return expect(res.data.returnBirdsAndBees).to.include({
+        returnInt: 10,
+        returnEnum: 'A',
+      });
+    });
+  });
+
+  it('can mock Interfaces', () => {
+    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    addResolveFunctionsToSchema(jsSchema, resolveFunctions);
+    const mockMap = {
+      Int: () => 10,
+      String: () => 'aha',
+      SomeEnum: () => 'A',
+      RootQuery: () => ({
+        returnFlying: () => new MockList(40),
+      }),
+    };
+    addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
+    const testQuery = `{
+      returnFlying {
+        ... on Bird {
+          returnInt
+          returnString
+        }
+        ... on Bee {
+          returnInt
+          returnEnum
+        }
+      }
+    }`;
+    return graphql(jsSchema, testQuery).then((res) => {
+      expect(res.data.returnFlying).to.include({
+        returnInt: 10,
+        returnString: 'aha',
+      });
+      return expect(res.data.returnFlying).to.include({
         returnInt: 10,
         returnEnum: 'A',
       });

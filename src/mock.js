@@ -3,6 +3,7 @@ import {
   GraphQLObjectType,
   GraphQLEnumType,
   GraphQLUnionType,
+  GraphQLInterfaceType,
   GraphQLList,
   getNullableType,
   getNamedType,
@@ -137,6 +138,10 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
         // TODO: if a union type doesn't implement resolveType, we could overwrite
         // it with a default that works with what's below.
         return { typename: getRandomElement(fieldType.getTypes()) };
+      }
+      if (fieldType instanceof GraphQLInterfaceType) {
+        const possibleTypes = schema.getPossibleTypes(fieldType);
+        return { typename: getRandomElement(possibleTypes) };
       }
       if (fieldType instanceof GraphQLEnumType) {
         return getRandomElement(fieldType.getValues()).value;
