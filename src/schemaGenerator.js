@@ -12,7 +12,6 @@ import {
   GraphQLObjectType,
   GraphQLSchema,
 } from 'graphql/type';
-import { decorateWithTracer } from './tracing';
 
 // @schemaDefinition: A GraphQL type schema in shorthand
 // @resolvers: Definitions for resolvers to be merged with schema
@@ -343,29 +342,6 @@ function addCatchUndefinedToSchema(schema) {
   });
 }
 
-// This function modifies the schema in place to add tracing around all resolve functions
-function addTracingToResolvers(schema) {
-  // XXX this is a hacky way of making sure that the schema only gets decorated
-  // with tracer once.
-  if (schema._apolloTracerApplied) {
-    // console.log('Tracing already added to resolve functions. Not adding again.');
-    return;
-  }
-  // eslint-disable-next-line no-param-reassign
-  schema._apolloTracerApplied = true;
-
-  forEachField(schema, (field, typeName, fieldName) => {
-    const functionName = `${typeName}.${fieldName}`;
-    if (field.resolve) {
-      // eslint-disable-next-line no-param-reassign
-      field.resolve = decorateWithTracer(
-        field.resolve,
-        { type: 'resolve', functionName },
-      );
-    }
-  });
-}
-
 function decorateToCatchUndefined(fn, hint) {
   if (typeof fn === 'undefined') {
     // eslint-disable-next-line no-param-reassign
@@ -418,7 +394,6 @@ export {
   addResolveFunctionsToSchema,
   addCatchUndefinedToSchema,
   assertResolveFunctionsPresent,
-  addTracingToResolvers,
   buildSchemaFromTypeDefinitions,
   addSchemaLevelResolveFunction,
   attachConnectorsToContext,
