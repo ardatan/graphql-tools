@@ -32,7 +32,6 @@
   "homepage": "https://github.com/apollostack/apollo-proxy#readme",
   "dependencies": {
     "babel-polyfill": "^6.5.0",
-    "express-widgetizer": "^0.5.2",
     "fs": "0.0.2",
     "lodash": "^4.10.0",
     "node-uuid": "^1.4.7",
