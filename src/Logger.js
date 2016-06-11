@@ -22,9 +22,7 @@ class Logger {
   }
 
   printAllErrors() {
-    return this.errors.reduce((agg, e) => {
-      return `${agg}\n${this.printOneError(e)}`;
-    }, '');
+    return this.errors.reduce((agg, e) => `${agg}\n${this.printOneError(e)}`, '');
   }
 }
 
