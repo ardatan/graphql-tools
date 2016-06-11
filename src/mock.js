@@ -216,7 +216,8 @@ class MockList {
       if (typeof this.wrappedFunction === 'function') {
         const res = this.wrappedFunction(root, args, context, info);
         if (res instanceof MockList) {
-          arr[i] = res.mock(root, args, context, info, getNullableType(fieldType.ofType), mockTypeFunc);
+          const nullableType = getNullableType(fieldType.ofType);
+          arr[i] = res.mock(root, args, context, info, nullableType, mockTypeFunc);
         } else {
           arr[i] = res;
         }
