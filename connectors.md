@@ -140,5 +140,5 @@ function resolve(author, args, ctx){
 **Question:** Are models the same as GraphQL types?
 **Answer:** There will usually be a 1:1 correspondence between types in your schema and the models, so it makes sense to keep them in the same file, or at least in the same folder. The subtle difference is that while the GraphQL schema describes the types and their relationships, the models define which connectors should be used to fetch the actual data for that type.
 
-**Question:** Can I use <Mongoose/Sequelize/MyOtherFavoriteORM> with Apollo Server?
+**Question:** Can I use \<Mongoose/Sequelize/MyOtherFavoriteORM\> with Apollo Server?
 **Answer:** Yes, you can use an existing ORM if you wish. In that case, the models you use will be your ORM's models, and the connector part will be in the ORM itself. Most ORMs don't implement batching and caching, but in the future there should be connectors that work with various ORMs so developers don't need to worry about batching and caching, and can keep using the ORM of their choice. In the meantime you can always start without batching and caching, and then add it manually where necessary (just as you might write an optimized raw query when using your ORM now).
