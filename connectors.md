@@ -2,7 +2,7 @@
 
 * **Connector:** a layer on top of a database/backend driver that has GraphQL-specific error handling, logging, batching, and/or caching. Only needs to be implemented once for each backend, can be reused in many apps
 
-* **Model:** a set of functions to fetch data of a certain GraphQL type by using various connectors. Models are usually always application-specific.
+* **Model:** a set of functions to fetch data of a certain GraphQL type by using various connectors. Models are usually application-specific.
 
 This document is intended as a design document for people who want to write connectors for various backends. Its main purpose is to specify what properties connectors should have so they can be easily shared with other people and used in Apollo without any shims.
 
