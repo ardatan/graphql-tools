@@ -1,3 +1,4 @@
+/* eslint no-param-reassign: 0 */
 import { DiscourseContext } from './discourse-context';
 
 const API_ROOT = 'https://meta.discourse.org';
@@ -8,11 +9,12 @@ const API_ROOT = 'https://meta.discourse.org';
 
 const resolvers = {
   Post: {
-    topic: (root, args, context) => {
-      return context.rootValue.loadContext._fetchEndpoint({
-        url: ({ id }) => `/t/${id}`,
-      }, { id: root.topic_id });
-    },
+    topic: (root, args, context) => (
+      context.rootValue.loadContext._fetchEndpoint(
+        { url: ({ id }) => `/t/${id}` },
+        { id: root.topic_id }
+      )
+    ),
   },
 
   Topic: {
@@ -21,20 +23,19 @@ const resolvers = {
       id: ({ category_id }) => category_id,
     }), */
     category: () => { throw new Error('No endpoint defined to fetch one cat'); },
-    posts: (root, args, context) => {
-      return context.rootValue.loadContext._fetchEndpoint({
+    posts: (root, args, context) => (
+      context.rootValue.loadContext._fetchEndpoint({
         url: ({ id }) => `/t/${id}.json`,
         map: (data) => ({ posts: data.post_stream.stream, topicId: data.id }),
-      }, { id: root.id });
-    },
-
+      }, { id: root.id })
+    ),
   },
 
   PaginatedPostList: {
-    pages: ({ posts, topicId }, args, context) => {
+    pages: ({ posts, topicId }, args, context) => (
       // XXX I don't like having to pass the topic id through. it's messy
-      return context.rootValue.loadContext.getPaginatedPosts(posts, args, topicId);
-    },
+      context.rootValue.loadContext.getPaginatedPosts(posts, args, topicId)
+    ),
   },
 
   /* PostListPage: {
@@ -45,15 +46,15 @@ const resolvers = {
   }, */
 
   Category: {
-    latest_topics: (category, args, context) => {
-      return context.rootValue.loadContext.getPagesWithParams(`/c/${category.id}`, args);
-    },
-    new_topics: (category, args, context) => {
-      return context.rootValue.loadContext.getPagesWithParams(
+    latest_topics: (category, args, context) => (
+      context.rootValue.loadContext.getPagesWithParams(`/c/${category.id}`, args)
+    ),
+    new_topics: (category, args, context) => (
+      context.rootValue.loadContext.getPagesWithParams(
         `/c/${category.id}/l/new`,
         args,
-      );
-    },
+      )
+    ),
   },
 
   PaginatedTopicList: {
@@ -75,52 +76,46 @@ const resolvers = {
   },
 
   AuthenticatedQuery: {
-    latest: (_, args, context) => {
-      return context.rootValue.loadContext.getPagesWithParams('/latest', args);
-    },
+    latest: (_, args, context) => context.rootValue.loadContext.getPagesWithParams('/latest', args),
     // unread doesn't work? returns empty array...
-    unread: (_, args, context) => {
-      return context.rootValue.loadContext.getPagesWithParams('/unread', args);
-    },
-    new: (_, args, context) => {
-      return context.rootValue.loadContext.getPagesWithParams('/new', args);
-    },
+    unread: (_, args, context) => context.rootValue.loadContext.getPagesWithParams('/unread', args),
+    new: (_, args, context) => context.rootValue.loadContext.getPagesWithParams('/new', args),
     top: (_, args, context) => {
       const url = args.period ? `/top/${args.period}` : '/top';
       return context.rootValue.loadContext.getPagesWithParams(url, args);
     },
 
     // I assume this doesn't actually work. It takes no arguments
-    allPosts: (_, args, { rootValue }) => {
-      return rootValue.loadContext._fetchEndpoint({
+    allPosts: (_, args, { rootValue }) => (
+      rootValue.loadContext._fetchEndpoint({
         url: '/posts',
         map: (data) => data.latest_posts,
-      }, args);
-    },
+      }, args)
+    ),
     /* allTopics: (_, args, { rootValue }) => {
       rootValue.loadContext._fetchEndpoint(info.indexEndpoint, args);
     }, */
     // I assume this doesn't actually work. It takes no arguments ...
-    allCategories: (_, args, { rootValue }) => {
-      return rootValue.loadContext._fetchEndpoint({
+    allCategories: (_, args, { rootValue }) => (
+      rootValue.loadContext._fetchEndpoint({
         url: '/categories',
         map: (data) => data.category_list.categories,
-      }, args);
-    },
+      }, args)
+    ),
     allTopics() {
       throw new Error('AuthenticatedQuery.oneCategory not implemented');
     },
 
-    onePost: (_, args, context) => {
-      return context.rootValue.loadContext._fetchEndpoint({
+    onePost: (_, args, context) => (
+      context.rootValue.loadContext._fetchEndpoint({
         url: ({ id }) => `/posts/${id}`,
-      }, args);
-    },
-    oneTopic: (_, args, context) => {
-      return context.rootValue.loadContext._fetchEndpoint({
+      }, args)
+    ),
+    oneTopic: (_, args, context) => (
+      context.rootValue.loadContext._fetchEndpoint({
         url: ({ id }) => `/t/${id}`,
-      }, args);
-    },
+      }, args)
+    ),
     oneCategory() {
       throw new Error('AuthenticatedQuery.oneCategory not implemented');
     },
