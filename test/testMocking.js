@@ -404,7 +404,7 @@ describe('Mock', () => {
   it('lets you mock non-leaf types conveniently', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {
-      Bird: () => { return { returnInt: 12, returnString: 'woot!?' };},
+      Bird: () => ({ returnInt: 12, returnString: 'woot!?' }),
       Int: () => 15,
     };
     addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
@@ -427,7 +427,7 @@ describe('Mock', () => {
   it('lets you mock with functions', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {
-      Bird: () => { return { returnStringArgument: (o, a) => a.s }; },
+      Bird: () => ({ returnStringArgument: (o, a) => a.s }),
     };
     addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
     const testQuery = `{
@@ -446,7 +446,7 @@ describe('Mock', () => {
   it('lets you mock root query fields', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {
-      RootQuery: () => { return { returnStringArgument: (o, a) => a.s };},
+      RootQuery: () => ({ returnStringArgument: (o, a) => a.s }),
     };
     addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
     const testQuery = `{
@@ -463,7 +463,7 @@ describe('Mock', () => {
   it('lets you mock root mutation fields', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {
-      RootMutation: () => { return { returnStringArgument: (o, a) => a.s }; },
+      RootMutation: () => ({ returnStringArgument: (o, a) => a.s }),
     };
     addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
     const testQuery = `mutation {
@@ -480,7 +480,7 @@ describe('Mock', () => {
   it('lets you mock a list of a certain length', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {
-      RootQuery: () => { return { returnListOfInt: () => new MockList(3) }; },
+      RootQuery: () => ({ returnListOfInt: () => new MockList(3) }),
       Int: () => 12,
     };
     addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
@@ -498,7 +498,7 @@ describe('Mock', () => {
   it('lets you mock a list of a random length', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {
-      RootQuery: () => { return { returnListOfInt: () => new MockList([10, 20]) }; },
+      RootQuery: () => ({ returnListOfInt: () => new MockList([10, 20]) }),
       Int: () => 12,
     };
     addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
@@ -514,9 +514,9 @@ describe('Mock', () => {
   it('lets you mock a list of specific variable length', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {
-      RootQuery: () => {
-        return { returnListOfIntArg: (o, a) => new MockList(a.l) };
-      },
+      RootQuery: () => ({
+        returnListOfIntArg: (o, a) => new MockList(a.l),
+      }),
       Int: () => 12,
     };
     addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
@@ -533,9 +533,9 @@ describe('Mock', () => {
   it('lets you provide a function for your MockList', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {
-      RootQuery: () => {
-        return { returnListOfInt: () => new MockList(2, () => 33) };
-      },
+      RootQuery: () => ({
+        returnListOfInt: () => new MockList(2, () => 33),
+      }),
       Int: () => 12,
     };
     addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
@@ -635,14 +635,12 @@ describe('Mock', () => {
         thread: (o, a) => ({ id: a.id }),
         threads: (o, a) => new MockList(ITEMS_PER_PAGE * a.num),
       }),
-      Thread: () => {
-        return {
-          name: 'Lorem Ipsum',
-          posts: (o, a) => {
-            return new MockList(ITEMS_PER_PAGE * a.num, (oi, ai) => ({ id: ai.num }));
-          },
-        };
-      },
+      Thread: () => ({
+        name: 'Lorem Ipsum',
+        posts: (o, a) => (
+          new MockList(ITEMS_PER_PAGE * a.num, (oi, ai) => ({ id: ai.num }))
+        ),
+      }),
       Post: () => ({
         id: '41ae7bd',
         text: 'superlongpost',
