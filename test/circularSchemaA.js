@@ -4,5 +4,5 @@ type TypeA {
   id: ID
   b: TypeB
 }`,
-TypeB
+TypeB,
 ];
