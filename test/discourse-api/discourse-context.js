@@ -31,16 +31,16 @@ export class DiscourseContext {
         };
       }
 
-      return Promise.all(urls.map((url) => {
+      return Promise.all(urls.map((url) => (
         // console.log(`requesting ${url}, Cookie: ${options.headers.Cookie}`);
-        return rp({
+        rp({
           uri: url,
           ...options,
         }).catch((err) => {
           console.log(err);
           throw err;
-        });
-      }));
+        })
+      )));
     });
   }
 
@@ -56,13 +56,9 @@ export class DiscourseContext {
       return `${url}?${serializeParamsForRails(myParams)}`;
     });
     const requestPromises = urls.map(myUrl => this.get(myUrl));
-    return Promise.all(requestPromises).then((results) => {
-      return {
-        pages: results.map((result) => {
-          return result.topic_list;
-        }),
-      };
-    });
+    return Promise.all(requestPromises).then(results => ({
+      pages: results.map(result => result.topic_list),
+    }));
   }
 
   // XXX if I ask for 100 pages but there are only 50, should I still get 100?
@@ -86,15 +82,15 @@ export class DiscourseContext {
       return { posts: [] };
     }
     const params = {};
-    params['post_ids'] = postIDs;
+    params['post_ids'] = postIDs; // eslint-disable-line dot-notation
     const path = `/t/${topicId}/posts.json`;
     const url = `${path}?${serializeParamsForRails(params)}`;
-    return this.get(url).then((result) => {
-      return { posts: result.post_stream.posts };
-    }).catch((err) => {
-      console.log('Error fetching page', err);
-      return null;
-    });
+    return this.get(url)
+      .then(result => ({ posts: result.post_stream.posts }))
+      .catch(err => {
+        console.log('Error fetching page', err);
+        return null;
+      });
   }
 
   _fetchEndpoint(endpoint, args) {
@@ -111,8 +107,8 @@ export class DiscourseContext {
   }
 
   createPost(args) {
-    return this.getCSRFAndCookieThen((csrf, cookie) => {
-      return rp({
+    return this.getCSRFAndCookieThen((csrf, cookie) => (
+      rp({
         method: 'POST',
         uri: `${this.apiRoot}/posts`,
         form: {
@@ -129,8 +125,8 @@ export class DiscourseContext {
         },
         json: true,
         resolveWithFullResponse: true,
-      });
-    }).then((res) => {
+      })
+    )).then((res) => {
       if (res.body.error) {
         throw new Error(res.body.error);
       }
@@ -141,8 +137,8 @@ export class DiscourseContext {
   }
 
   getLoginToken(username, password) {
-    return this.getCSRFAndCookieThen((csrf, cookie) => {
-      return rp({
+    return this.getCSRFAndCookieThen((csrf, cookie) => (
+      rp({
         method: 'POST',
         uri: `${this.apiRoot}/session.json`,
         form: {
@@ -155,8 +151,8 @@ export class DiscourseContext {
         },
         json: true,
         resolveWithFullResponse: true,
-      });
-    }).then((res) => {
+      })
+    )).then((res) => {
       if (res.body.error) {
         throw new Error(res.body.error);
       }
@@ -169,15 +165,19 @@ export class DiscourseContext {
   }
 
   getForumCookie(res) {
-    return res.headers['set-cookie'].filter((cookie) => {
-      return cookie.startsWith(this.COOKIE_KEY);
-    })[0].split(' ')[0].split('=')[1].split(';')[0];
+    return res.headers['set-cookie']
+      .filter(cookie => cookie.startsWith(this.COOKIE_KEY))[0]
+      .split(' ')[0]
+      .split('=')[1]
+      .split(';')[0];
   }
 
   getForumToken(res) {
-    return res.headers['set-cookie'].filter((cookie) => {
-      return cookie.startsWith(this.TOKEN_KEY);
-    })[0].split(' ')[0].split('=')[1].split(';')[0];
+    return res.headers['set-cookie']
+      .filter(cookie => cookie.startsWith(this.TOKEN_KEY))[0]
+      .split(' ')[0]
+      .split('=')[1]
+      .split(';')[0];
   }
 
   // XXX why not just chain the promises?

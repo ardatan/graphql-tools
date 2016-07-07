@@ -7,7 +7,7 @@
     "test": "test"
   },
   "scripts": {
-    "test": "istanbul cover ./node_modules/mocha/bin/_mocha -- --reporter spec --full-trace test/index.js",
+    "test": "npm run lint && istanbul cover ./node_modules/mocha/bin/_mocha -- --reporter spec --full-trace test/index.js",
     "lint": "eslint .",
     "testonly": "mocha test/index.js",
     "prepublish": "babel ./src --ignore test --out-dir ./dist"
@@ -67,21 +67,5 @@
     "supertest": "^1.0.1",
     "supertest-as-promised": "^3.1.0",
     "webpack": "^1.13.1"
-  },
-  "eslintConfig": {
-    "parser": "babel-eslint",
-    "extends": [
-      "airbnb/base",
-      "plugin:import/errors"
-    ],
-    "rules": {
-      "no-use-before-define": 0,
-      "arrow-body-style": 0,
-      "dot-notation": 0,
-      "no-console": 0
-    },
-    "env": {
-      "mocha": true
-    }
   }
 }
