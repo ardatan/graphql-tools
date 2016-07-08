@@ -1,5 +1,5 @@
 import { readFile } from 'fs';
-import { generateSchema } from '../src/schemaGenerator.js';
+import { makeExecutableSchema } from '../src/schemaGenerator.js';
 import { assert } from 'chai';
 import { graphql } from 'graphql';
 import resolveFunctions from './discourse-api/schema.js';
@@ -52,7 +52,7 @@ describe('generating the discourse schema with resolvers', () => {
       if (err) throw err;
       // const rep = (key, val) => (typeof val === 'function') ? '[function]' : val;
 
-      const schema = generateSchema(data, resolveFunctions);
+      const schema = makeExecutableSchema({ typeDefs: data, resolvers: resolveFunctions });
       const introspectionPromise = graphql(schema, introspectionQuery);
       introspectionPromise.then((introspectionResult) => {
         assert.deepEqual(introspectionResult, solution);

@@ -1,4 +1,4 @@
-import { generateSchema } from '../src/schemaGenerator.js';
+import { makeExecutableSchema } from '../src/schemaGenerator.js';
 import { assert } from 'chai';
 import { graphql } from 'graphql';
 import { Logger } from '../src/Logger.js';
@@ -29,7 +29,11 @@ describe('Logger', () => {
       },
     };
     const logger = new Logger();
-    const jsSchema = generateSchema(shorthand, resolve, logger);
+    const jsSchema = makeExecutableSchema({
+      typeDefs: shorthand,
+      resolvers: resolve,
+      logger,
+    });
     // calling the mutation here so the erros will be ordered.
     const testQuery = 'mutation { species, stuff }';
     const expected0 = 'Error in resolver RootMutation.species\noops!';
@@ -60,7 +64,11 @@ describe('Logger', () => {
     };
     let loggedErr = null;
     const logger = new Logger('LoggyMcLogface', (e) => { loggedErr = e; });
-    const jsSchema = generateSchema(shorthand, resolve, logger);
+    const jsSchema = makeExecutableSchema({
+      typeDefs: shorthand,
+      resolvers: resolve,
+      logger,
+    });
     const testQuery = '{ species }';
     graphql(jsSchema, testQuery).then(() => {
       assert.equal(loggedErr, logger.errors[0]);
@@ -88,7 +96,11 @@ describe('Logger', () => {
       },
     };
     const logger = new Logger();
-    const jsSchema = generateSchema(shorthand, resolve, logger);
+    const jsSchema = makeExecutableSchema({
+      typeDefs: shorthand,
+      resolvers: resolve,
+      logger,
+    });
     const testQuery = '{ q: species, p: species(name: "Peter") }';
     graphql(jsSchema, testQuery).then(() => {
       const allErrors = logger.printAllErrors();
