@@ -76,6 +76,14 @@ describe('generating schema from shorthand', () => {
     assert.throw(() => makeExecutableSchema({ typeDefs: [17], resolvers: {} }), SchemaError);
   });
 
+  it('throws an error if resolverValidationOptions is not an object', () => {
+    assert.throw(() => makeExecutableSchema({
+      typeDefs: 'blah',
+      resolvers: {},
+      resolverValidationOptions: 'string',
+    }), SchemaError);
+  });
+
   it('can generate a schema', (done) => {
     const shorthand = `
       type BirdSpecies {
