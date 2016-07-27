@@ -10,7 +10,7 @@
     "test": "npm run lint && istanbul cover ./node_modules/mocha/bin/_mocha -- --reporter spec --full-trace test/index.js",
     "lint": "eslint .",
     "testonly": "mocha test/index.js",
-    "prepublish": "rm -r ./dist && babel ./src --ignore test --out-dir ./dist"
+    "prepublish": "rm -rf ./dist && babel ./src --ignore test --out-dir ./dist"
   },
   "repository": {
     "type": "git",
