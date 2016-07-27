@@ -9,6 +9,7 @@ export {
   addErrorLoggingToSchema,
   addResolveFunctionsToSchema,
   addCatchUndefinedToSchema,
+  addSchemaLevelResolveFunction,
   assertResolveFunctionsPresent,
   attachConnectorsToContext,
 } from './schemaGenerator';
