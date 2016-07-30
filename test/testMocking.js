@@ -127,13 +127,28 @@ describe('Mock', () => {
       returnBoolean
       returnString
       returnID
+      returnBirdsAndBees {
+        ... on Bird {
+          returnInt
+          returnString
+        }
+        ... on Bee {
+          returnInt
+          returnEnum
+        }
+      }
     }`;
-    return mockServer(shorthand, {}).query(testQuery).then((res) => {
-      expect(res.data.returnInt).to.be.a('number').within(-1000, 1000);
+    const mockMap = {
+      Int: () => 12345,
+    };
+    return mockServer(shorthand, mockMap).query(testQuery).then((res) => {
+      expect(res.data.returnInt).to.equal(12345);
       expect(res.data.returnFloat).to.be.a('number').within(-1000, 1000);
       expect(res.data.returnBoolean).to.be.a('boolean');
       expect(res.data.returnString).to.be.a('string');
       expect(res.data.returnID).to.be.a('string');
+      expect(res.data.returnBirdsAndBees[0].returnInt).to.equal(12345);
+      expect(res.data.returnBirdsAndBees[1].returnInt).to.equal(12345);
     });
   });
 
