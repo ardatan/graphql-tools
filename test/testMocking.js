@@ -147,6 +147,7 @@ describe('Mock', () => {
       expect(res.data.returnBoolean).to.be.a('boolean');
       expect(res.data.returnString).to.be.a('string');
       expect(res.data.returnID).to.be.a('string');
+      // tests that resolveType is correctly set for unions and interfaces
       expect(res.data.returnBirdsAndBees[0].returnInt).to.equal(12345);
       expect(res.data.returnBirdsAndBees[1].returnInt).to.equal(12345);
     });
