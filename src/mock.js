@@ -200,7 +200,10 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
     }
     // eslint-disable-next-line no-param-reassign
     field.resolve = mockType(field.type, typeName, fieldName);
-    assignResolveType(field.type);
+
+    if (!preserveResolvers) {
+      assignResolveType(field.type);
+    }
   });
 }
 
