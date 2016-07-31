@@ -89,7 +89,11 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
     if (namedFieldType instanceof GraphQLUnionType ||
         namedFieldType instanceof GraphQLInterfaceType
     ) {
-      namedFieldType.resolveType = (data, context, info) => info.schema.getType(data.typename);
+      const oldResolveType = namedFieldType.resolveType;
+      // the default `resolveType` always returns null. We add a fallback
+      // resolution that works with how unions and interface are mocked
+      namedFieldType.resolveType = (data, context, info) =>
+        oldResolveType(data, context, info) || info.schema.getType(data.typename);
     }
   }
 
