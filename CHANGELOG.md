@@ -1,5 +1,10 @@
 # Changelog
 
+### v0.5.3
+
+* Fix a bug with addSchemaLevelResolveFunction. It now runs once per tick (PR #91)
+
+
 ### v0.5.2
 
 * Add addSchemaLevelResolveFunction to exports
