@@ -1,5 +1,8 @@
 # Changelog
 
+### v0.6.2
+* Added support for `extend` keyword to schemaGenerator https://github.com/apollostack/graphql-tools/pull/90
+
 ### v0.5.2
 
 * Add addSchemaLevelResolveFunction to exports
