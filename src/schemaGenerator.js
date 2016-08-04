@@ -134,10 +134,6 @@ function buildSchemaFromTypeDefinitions(typeDefinitions) {
 }
 
 function extractExtensionDefinitions(ast) {
-  if (!ast || ast.kind !== Kind.DOCUMENT) {
-    return [];
-  }
-
   const extensionDefs =
     ast.definitions.filter((def) => def.kind === Kind.TYPE_EXTENSION_DEFINITION);
 
