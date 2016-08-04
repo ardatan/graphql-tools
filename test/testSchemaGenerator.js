@@ -12,6 +12,7 @@ import {
 } from '../src/schemaGenerator.js';
 import { assert, expect } from 'chai';
 import { graphql, GraphQLInt, GraphQLObjectType, GraphQLSchema } from 'graphql';
+import { printSchema } from 'graphql/utilities';
 import { Logger } from '../src/Logger.js';
 import TypeA from './circularSchemaA';
 
@@ -223,6 +224,27 @@ describe('generating schema from shorthand', () => {
     const jsSchema = makeExecutableSchema({ typeDefs: typeDefAry, resolvers: {} });
     expect(jsSchema.getQueryType().name).to.equal('Query');
   });
+
+  it('can generate a schema from an array of types with extensions', () => {
+    const typeDefAry = [`
+      type Query {
+        foo: String
+      }
+      `, `
+      schema {
+        query: Query
+      }
+      `, `
+      extend type Query {
+        bar: String
+      }
+    `];
+
+    const jsSchema = makeExecutableSchema({ typeDefs: typeDefAry, resolvers: {} });
+    expect(jsSchema.getQueryType().name).to.equal('Query');
+    expect(jsSchema.getQueryType()._fields).to.have.all.keys('foo', 'bar');
+  });
+
   it('properly deduplicates the array of type definitions', () => {
     const typeDefAry = [`
       type Query {
@@ -297,6 +319,62 @@ describe('generating schema from shorthand', () => {
           {
             name: 'Hello BigBird!',
             wingspan: 200,
+          },
+        ],
+      },
+    };
+    const jsSchema = makeExecutableSchema({ typeDefs: shorthand, resolvers: resolveFunctions });
+    const resultPromise = graphql(jsSchema, testQuery);
+    return resultPromise.then(result => assert.deepEqual(result, solution));
+  });
+
+  it('can generate a schema with extensions that can use resolvers', () => {
+    const shorthand = `
+      type BirdSpecies {
+        name: String!,
+        wingspan: Int
+      }
+      type RootQuery {
+        species(name: String!): [BirdSpecies]
+      }
+      schema {
+        query: RootQuery
+      }
+      extend type BirdSpecies {
+        height: Float
+      }
+    `;
+
+    const resolveFunctions = {
+      RootQuery: {
+        species: (root, { name }) => [{
+          name: `Hello ${name}!`,
+          wingspan: 200,
+          height: 30.2,
+        }],
+      },
+      BirdSpecies: {
+        name: (bird) => bird.name,
+        wingspan: (bird) => bird.wingspan,
+        height: (bird) => bird.height,
+      },
+    };
+
+    const testQuery = `{
+      species(name: "BigBird"){
+        name
+        wingspan
+        height
+      }
+    }`;
+
+    const solution = {
+      data: {
+        species: [
+          {
+            name: 'Hello BigBird!',
+            wingspan: 200,
+            height: 30.2,
           },
         ],
       },

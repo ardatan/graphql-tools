@@ -3,9 +3,9 @@
 // TODO: document each function clearly in the code: what arguments it accepts
 // and what it outputs.
 
-import { parse } from 'graphql/language';
+import { parse, Kind } from 'graphql/language';
 import uniq from 'lodash.uniq';
-import { buildASTSchema } from 'graphql/utilities';
+import { buildASTSchema, extendSchema } from 'graphql/utilities';
 import {
   GraphQLScalarType,
   getNamedType,
@@ -121,7 +121,30 @@ function buildSchemaFromTypeDefinitions(typeDefinitions) {
     }
     myDefinitions = concatenateTypeDefs(myDefinitions);
   }
-  return buildASTSchema(parse(myDefinitions));
+
+  const astDocument = parse(myDefinitions);
+  let schema = buildASTSchema(astDocument);
+
+  const extensionsAst = extractExtensionDefinitions(astDocument);
+  if (extensionsAst.definitions.length > 0) {
+    schema = extendSchema(schema, extensionsAst);
+  }
+
+  return schema;
+}
+
+function extractExtensionDefinitions(ast) {
+  if (!ast || ast.kind !== Kind.DOCUMENT) {
+    return [];
+  }
+
+  const extensionDefs =
+    ast.definitions.filter((def) => def.kind === Kind.TYPE_EXTENSION_DEFINITION);
+
+  return {
+    ...ast,
+    definitions: extensionDefs,
+  };
 }
 
 function forEachField(schema, fn) {
