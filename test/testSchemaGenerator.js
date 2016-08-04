@@ -699,7 +699,7 @@ describe('Attaching connectors to schema', () => {
       });
     });
 
-    it('runs only once', () => {
+    it('runs only once per query', () => {
       const simpleResolvers = {
         RootQuery: {
           usecontext: (r, a, ctx) => ctx.usecontext,
@@ -728,6 +728,49 @@ describe('Attaching connectors to schema', () => {
       };
       return graphql(jsSchema, query).then((res) => {
         expect(res.data).to.deep.equal(expected);
+      });
+    });
+
+    it('runs twice for two queries', () => {
+      const simpleResolvers = {
+        RootQuery: {
+          usecontext: (r, a, ctx) => ctx.usecontext,
+          useTestConnector: (r, a, ctx) => ctx.connectors.TestConnector.get(),
+          useContextConnector: (r, a, ctx) => ctx.connectors.ContextConnector.get(),
+          species: (root, { name }) => root.species + name,
+        },
+      };
+      const jsSchema = makeExecutableSchema({ typeDefs: testSchema, resolvers: simpleResolvers });
+      let count = 0;
+      const rootResolver = () => {
+        if (count === 0) {
+          count += 1;
+          return { stuff: 'stuff', species: 'some ' };
+        }
+        if (count === 1) {
+          count += 1;
+          return { stuff: 'stuff2', species: 'species2 ' };
+        }
+        return { stuff: 'EEE', species: 'EEE' };
+      };
+      addSchemaLevelResolveFunction(jsSchema, rootResolver);
+      const query = `{
+        species(name: "strix")
+        stuff
+      }`;
+      const expected = {
+        species: 'some strix',
+        stuff: 'stuff',
+      };
+      const expected2 = {
+        species: 'species2 strix',
+        stuff: 'stuff2',
+      };
+      return graphql(jsSchema, query).then((res) => {
+        expect(res.data).to.deep.equal(expected);
+        return graphql(jsSchema, query).then((res2) =>
+          expect(res2.data).to.deep.equal(expected2)
+        );
       });
     });
 

@@ -202,7 +202,9 @@ function addSchemaLevelResolveFunction(schema, fn) {
     schema.getMutationType(),
     schema.getSubscriptionType(),
   ]).filter(x => !!x);
-  const rootResolveFn = runAtMostOnce(fn);
+  // XXX this should run at most once per request to simulate a true root resolver
+  // for graphql-js this is an approximation that works with queries but not mutations
+  const rootResolveFn = runAtMostOncePerTick(fn);
   rootTypes.forEach((type) => {
     const fields = type.getFields();
     Object.keys(fields).forEach((fieldName) => {
@@ -356,13 +358,15 @@ function decorateToCatchUndefined(fn, hint) {
   };
 }
 
-function runAtMostOnce(fn) {
+// XXX this function needs a shim to work in the browser
+function runAtMostOncePerTick(fn) {
   let count = 0;
   let value;
   return (...args) => {
     if (count === 0) {
       value = fn(...args);
       count += 1;
+      process.nextTick(() => { count = 0; });
     }
     return value;
   };
