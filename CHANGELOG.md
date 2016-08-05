@@ -1,6 +1,11 @@
 # Changelog
 
-### v0.5.3
+### v0.6.3
+
+* Unpin babel-core version to solve build problem (PR #92)
+
+
+### v0.6.2
 
 * Fix a bug with addSchemaLevelResolveFunction. It now runs once per tick (PR #91)
 
