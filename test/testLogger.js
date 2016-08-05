@@ -1,7 +1,8 @@
-import { makeExecutableSchema } from '../src/schemaGenerator.js';
 import { assert } from 'chai';
 import { graphql } from 'graphql';
 import { Logger } from '../src/Logger.js';
+import { makeExecutableSchema } from '../src/schemaGenerator.js';
+
 
 describe('Logger', () => {
   it('logs the errors', (done) => {

@@ -53,7 +53,7 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
 
   const defaultMockMap = new Map();
   defaultMockMap.set('Int', () => Math.round(Math.random() * 200) - 100);
-  defaultMockMap.set('Float', () => Math.random() * 200 - 100);
+  defaultMockMap.set('Float', () => (Math.random() * 200) - 100);
   defaultMockMap.set('String', () => 'Hello World');
   defaultMockMap.set('Boolean', () => Math.random() > 0.5);
   defaultMockMap.set('ID', () => uuid.v4());
@@ -204,7 +204,7 @@ class MockList {
 
   mock(root, args, context, info, fieldType, mockTypeFunc) {
     function randint(low, high) {
-      return Math.floor(Math.random() * (high - low + 1) + low);
+      return Math.floor((Math.random() * ((high - low) + 1)) + low);
     }
     let arr;
     if (Array.isArray(this.len)) {

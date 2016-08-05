@@ -1,3 +1,7 @@
+import { expect } from 'chai';
+import {
+  graphql,
+} from 'graphql';
 import {
   addMockFunctionsToSchema,
   MockList,
@@ -7,10 +11,6 @@ import {
   buildSchemaFromTypeDefinitions,
   addResolveFunctionsToSchema,
 } from '../src/schemaGenerator';
-import { expect } from 'chai';
-import {
-  graphql,
- } from 'graphql';
 
 describe('Mock', () => {
   const shorthand = `

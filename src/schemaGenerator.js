@@ -19,6 +19,7 @@ function SchemaError(message) {
   Error.captureStackTrace(this, this.constructor);
   this.message = message;
 }
+// eslint-disable-next-line new-parens
 SchemaError.prototype = new Error;
 
 function generateSchema(...args) {
@@ -99,13 +100,11 @@ function concatenateTypeDefs(typeDefinitionsAry, functionsCalled = {}) {
           concatenateTypeDefs(typeDef(), functionsCalled)
         );
       }
+    } else if (typeof typeDef === 'string') {
+      resolvedTypeDefinitions.push(typeDef.trim());
     } else {
-      if (typeof typeDef === 'string') {
-        resolvedTypeDefinitions.push(typeDef.trim());
-      } else {
-        const type = typeof typeDef;
-        throw new SchemaError(`typeDef array must contain only strings and functions, got ${type}`);
-      }
+      const type = typeof typeDef;
+      throw new SchemaError(`typeDef array must contain only strings and functions, got ${type}`);
     }
   });
   return uniq(resolvedTypeDefinitions.map((x) => x.trim())).join('\n');
@@ -115,7 +114,7 @@ function buildSchemaFromTypeDefinitions(typeDefinitions) {
   // TODO: accept only array here, otherwise interfaces get confusing.
   let myDefinitions = typeDefinitions;
   if (typeof myDefinitions !== 'string') {
-    if (! Array.isArray(myDefinitions)) {
+    if (!Array.isArray(myDefinitions)) {
       // TODO improve error message and say what type was actually found
       throw new SchemaError('`typeDefinitions` must be a string or array');
     }
