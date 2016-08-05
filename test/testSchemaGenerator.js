@@ -1,7 +1,16 @@
 // TODO: reduce code repetition in this file.
 // see https://github.com/apollostack/graphql-tools/issues/26
 
-
+import { assert, expect } from 'chai';
+import {
+  graphql,
+  GraphQLInt,
+  GraphQLObjectType,
+  GraphQLSchema,
+} from 'graphql';
+import { printSchema } from 'graphql/utilities';
+import { Logger } from '../src/Logger.js';
+import TypeA from './circularSchemaA';
 import {
   makeExecutableSchema,
   SchemaError,
@@ -10,11 +19,6 @@ import {
   attachConnectorsToContext,
   assertResolveFunctionsPresent,
 } from '../src/schemaGenerator.js';
-import { assert, expect } from 'chai';
-import { graphql, GraphQLInt, GraphQLObjectType, GraphQLSchema } from 'graphql';
-import { printSchema } from 'graphql/utilities';
-import { Logger } from '../src/Logger.js';
-import TypeA from './circularSchemaA';
 
 
 const testSchema = `
@@ -85,7 +89,7 @@ describe('generating schema from shorthand', () => {
     }), SchemaError);
   });
 
-  it('can generate a schema', (done) => {
+  it('can generate a schema', () => {
     const shorthand = `
       type BirdSpecies {
         name: String!,
@@ -204,10 +208,9 @@ describe('generating schema from shorthand', () => {
 
     const jsSchema = makeExecutableSchema({ typeDefs: shorthand, resolvers: resolve });
     const resultPromise = graphql(jsSchema, introspectionQuery);
-    return resultPromise.then((result) => {
-      assert.deepEqual(result, solution);
-      done();
-    });
+    return resultPromise.then(result =>
+      assert.deepEqual(result, solution)
+    );
   });
 
   it('can generate a schema from an array of types', () => {
@@ -275,11 +278,14 @@ describe('generating schema from shorthand', () => {
       }
     `, TypeA];
 
-    const jsSchema = makeExecutableSchema({ typeDefs: typeDefAry, resolvers: {
-      Query: { foo: () => null },
-      TypeA: { b: () => null },
-      TypeB: { a: () => null },
-    } });
+    const jsSchema = makeExecutableSchema({
+      typeDefs: typeDefAry,
+      resolvers: {
+        Query: { foo: () => null },
+        TypeA: { b: () => null },
+        TypeB: { a: () => null },
+      },
+    });
     expect(jsSchema.getQueryType().name).to.equal('Query');
   });
 

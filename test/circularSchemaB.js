@@ -1,4 +1,5 @@
 import TypeA from './circularSchemaA';
+
 export default () => [`
 type TypeB {
   id: ID

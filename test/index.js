@@ -4,4 +4,4 @@ require('babel-core/register');
 require('babel-polyfill');
 
 // The tests, however, can and should be written with ECMAScript 2015.
-require('./tests.js');
+require('./tests');

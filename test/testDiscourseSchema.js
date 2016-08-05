@@ -1,7 +1,7 @@
 import { readFile } from 'fs';
-import { makeExecutableSchema } from '../src/schemaGenerator.js';
 import { assert } from 'chai';
 import { graphql } from 'graphql';
+import { makeExecutableSchema } from '../src/schemaGenerator.js';
 import resolveFunctions from './discourse-api/schema.js';
 
 
