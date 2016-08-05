@@ -7,7 +7,7 @@
     "test": "test"
   },
   "scripts": {
-    "test": "npm run lint && istanbul cover ./node_modules/mocha/bin/_mocha -- --reporter spec --full-trace test/index.js",
+    "test": "istanbul cover ./node_modules/mocha/bin/_mocha -- --reporter spec --full-trace test/index.js && npm run lint",
     "lint": "eslint .",
     "testonly": "mocha test/index.js",
     "prepublish": "rm -rf ./dist && babel ./src --ignore test --out-dir ./dist"
