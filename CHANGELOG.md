@@ -1,6 +1,6 @@
 # Changelog
 
-### v0.6.3
+### vNEXT
 
 * Unpin babel-core version to solve build problem (PR #92)
 
