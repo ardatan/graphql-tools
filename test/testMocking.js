@@ -424,6 +424,45 @@ describe('Mock', () => {
     });
   });
 
+  it('lets you mock and resolve non-leaf types concurrently', () => {
+    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    const resolvers = {
+      RootQuery: {
+        returnObject: () => ({
+          returnInt: 12, // part of a Bird
+          // no returnString returned
+        }),
+      },
+    };
+    addResolveFunctionsToSchema(jsSchema, resolvers);
+    const mockMap = {
+      Bird: () => ({
+        returnInt: 3,
+        returnString: 'woot!?', // another part of a Bird
+      }),
+    };
+    addMockFunctionsToSchema({
+      schema: jsSchema,
+      mocks: mockMap,
+      preserveResolvers: true,
+    });
+    const testQuery = `{
+      returnObject{
+        returnInt
+        returnString
+      }
+    }`;
+    const expected = {
+      returnObject: {
+        returnInt: 12,           // from the resolver
+        returnString: 'woot!?',  // from the mock
+      },
+    };
+    return graphql(jsSchema, testQuery).then((res) => {
+      expect(res.data).to.deep.equal(expected);
+    });
+  });
+
   it('lets you mock with functions', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {
