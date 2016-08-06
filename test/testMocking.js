@@ -152,6 +152,40 @@ describe('Mock', () => {
       expect(res.data.returnBirdsAndBees[1].returnInt).to.equal(12345);
     });
   });
+  it('does not mask resolveType functions if you tell it not to', () => {
+    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    let spy = 0;
+    const resolvers = {
+      BirdsAndBees: {
+        __resolveType(data, context, info) {
+          ++spy;
+          return info.schema.getType(data.typename);
+        },
+      },
+    };
+    addResolveFunctionsToSchema(jsSchema, resolvers);
+    addMockFunctionsToSchema({
+      schema: jsSchema,
+      mocks: {},
+      preserveResolvers: true,
+    });
+    const testQuery = `{
+      returnBirdsAndBees {
+        ... on Bird {
+          returnInt
+          returnString
+        }
+        ... on Bee {
+          returnInt
+          returnEnum
+        }
+      }
+    }`;
+    return graphql(jsSchema, testQuery).then((res) => {
+      // the resolveType has been called twice
+      expect(spy).to.equal(2);
+    });
+  });
 
   // TODO test mockServer with precompiled schema
   it('can mock Enum', () => {
