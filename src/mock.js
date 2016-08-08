@@ -82,6 +82,25 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
     return customMock;
   }
 
+  function assignResolveType(type) {
+    const fieldType = getNullableType(type);
+    const namedFieldType = getNamedType(fieldType);
+
+    const oldResolveType = namedFieldType.resolveType;
+    if (preserveResolvers && oldResolveType && oldResolveType.length) {
+      return;
+    }
+
+    if (namedFieldType instanceof GraphQLUnionType ||
+        namedFieldType instanceof GraphQLInterfaceType
+    ) {
+      // the default `resolveType` always returns null. We add a fallback
+      // resolution that works with how unions and interface are mocked
+      namedFieldType.resolveType = (data, context, info) =>
+        info.schema.getType(data.typename);
+    }
+  }
+
   const mockType = function mockType(type, typeName, fieldName) {
     // order of precendence for mocking:
     // 1. if the object passed in already has fieldName, just use that
@@ -135,8 +154,6 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
       // XXX we recommend a generic way for resolve type here, which is defining
       // typename on the object.
       if (fieldType instanceof GraphQLUnionType) {
-        // TODO: if a union type doesn't implement resolveType, we could overwrite
-        // it with a default that works with what's below.
         return { typename: getRandomElement(fieldType.getTypes()) };
       }
       if (fieldType instanceof GraphQLInterfaceType) {
@@ -156,6 +173,8 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
   };
 
   forEachField(schema, (field, typeName, fieldName) => {
+    assignResolveType(field.type);
+
     if (preserveResolvers && field.resolve) {
       return;
     }

@@ -127,13 +127,63 @@ describe('Mock', () => {
       returnBoolean
       returnString
       returnID
+      returnBirdsAndBees {
+        ... on Bird {
+          returnInt
+          returnString
+        }
+        ... on Bee {
+          returnInt
+          returnEnum
+        }
+      }
     }`;
-    return mockServer(shorthand, {}).query(testQuery).then((res) => {
-      expect(res.data.returnInt).to.be.a('number').within(-1000, 1000);
+    const mockMap = {
+      Int: () => 12345,
+    };
+    return mockServer(shorthand, mockMap).query(testQuery).then((res) => {
+      expect(res.data.returnInt).to.equal(12345);
       expect(res.data.returnFloat).to.be.a('number').within(-1000, 1000);
       expect(res.data.returnBoolean).to.be.a('boolean');
       expect(res.data.returnString).to.be.a('string');
       expect(res.data.returnID).to.be.a('string');
+      // tests that resolveType is correctly set for unions and interfaces
+      expect(res.data.returnBirdsAndBees[0].returnInt).to.equal(12345);
+      expect(res.data.returnBirdsAndBees[1].returnInt).to.equal(12345);
+    });
+  });
+  it('does not mask resolveType functions if you tell it not to', () => {
+    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    let spy = 0;
+    const resolvers = {
+      BirdsAndBees: {
+        __resolveType(data, context, info) {
+          ++spy;
+          return info.schema.getType(data.typename);
+        },
+      },
+    };
+    addResolveFunctionsToSchema(jsSchema, resolvers);
+    addMockFunctionsToSchema({
+      schema: jsSchema,
+      mocks: {},
+      preserveResolvers: true,
+    });
+    const testQuery = `{
+      returnBirdsAndBees {
+        ... on Bird {
+          returnInt
+          returnString
+        }
+        ... on Bee {
+          returnInt
+          returnEnum
+        }
+      }
+    }`;
+    return graphql(jsSchema, testQuery).then((res) => {
+      // the resolveType has been called twice
+      expect(spy).to.equal(2);
     });
   });
 
