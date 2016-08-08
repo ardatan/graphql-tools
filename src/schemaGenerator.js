@@ -222,7 +222,7 @@ function addSchemaLevelResolveFunction(schema, fn) {
   ]).filter(x => !!x);
   // XXX this should run at most once per request to simulate a true root resolver
   // for graphql-js this is an approximation that works with queries but not mutations
-  const rootResolveFn = runAtMostOncePerTick(fn);
+  const rootResolveFn = runAtMostOncePerRequest(fn);
   rootTypes.forEach((type) => {
     const fields = type.getFields();
     Object.keys(fields).forEach((fieldName) => {
@@ -376,15 +376,24 @@ function decorateToCatchUndefined(fn, hint) {
   };
 }
 
-// XXX this function needs a shim to work in the browser
-function runAtMostOncePerTick(fn) {
-  let count = 0;
+// XXX this function only works for resolvers
+// XXX very hacky way to remember if the function
+// already ran for this request. This will only work
+// if people don't actually cache the operation.
+// if they do cache the operation, they will have to
+// manually remove the __runAtMostOnce before every request.
+function runAtMostOncePerRequest(fn) {
   let value;
-  return (...args) => {
-    if (count === 0) {
-      value = fn(...args);
-      count += 1;
-      process.nextTick(() => { count = 0; });
+  const randomNumber = Math.random();
+  return (root, args, ctx, info) => {
+    if (!info.operation.__runAtMostOnce) {
+      // eslint-disable-next-line no-param-reassign
+      info.operation.__runAtMostOnce = {};
+    }
+    if (!info.operation.__runAtMostOnce[randomNumber]) {
+      // eslint-disable-next-line no-param-reassign
+      info.operation.__runAtMostOnce[randomNumber] = true;
+      value = fn(root, args, ctx, info);
     }
     return value;
   };
