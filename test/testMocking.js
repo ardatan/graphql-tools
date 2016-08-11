@@ -140,6 +140,8 @@ describe('Mock', () => {
     }`;
     const mockMap = {
       Int: () => 12345,
+      Bird: () => ({ returnInt: () => 54321 }),
+      Bee: () => ({ returnInt: () => 54321 }),
     };
     return mockServer(shorthand, mockMap).query(testQuery).then((res) => {
       expect(res.data.returnInt).to.equal(12345);
@@ -148,8 +150,9 @@ describe('Mock', () => {
       expect(res.data.returnString).to.be.a('string');
       expect(res.data.returnID).to.be.a('string');
       // tests that resolveType is correctly set for unions and interfaces
-      expect(res.data.returnBirdsAndBees[0].returnInt).to.equal(12345);
-      expect(res.data.returnBirdsAndBees[1].returnInt).to.equal(12345);
+      // and that the correct mock function is used
+      expect(res.data.returnBirdsAndBees[0].returnInt).to.equal(54321);
+      expect(res.data.returnBirdsAndBees[1].returnInt).to.equal(54321);
     });
   });
   it('does not mask resolveType functions if you tell it not to', () => {

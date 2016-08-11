@@ -154,11 +154,19 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
       // XXX we recommend a generic way for resolve type here, which is defining
       // typename on the object.
       if (fieldType instanceof GraphQLUnionType) {
-        return { typename: getRandomElement(fieldType.getTypes()) };
+        const randomType = getRandomElement(fieldType.getTypes());
+        return {
+          typename: randomType,
+          ...mockType(randomType)(...args),
+        };
       }
       if (fieldType instanceof GraphQLInterfaceType) {
         const possibleTypes = schema.getPossibleTypes(fieldType);
-        return { typename: getRandomElement(possibleTypes) };
+        const randomType = getRandomElement(possibleTypes);
+        return {
+          typename: randomType,
+          ...mockType(randomType)(...args),
+        };
       }
       if (fieldType instanceof GraphQLEnumType) {
         return getRandomElement(fieldType.getValues()).value;
