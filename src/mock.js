@@ -183,10 +183,6 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
   forEachField(schema, (field, typeName, fieldName) => {
     assignResolveType(field.type);
 
-    if (preserveResolvers && field.resolve) {
-      return;
-    }
-
     // we have to handle the root mutation and root query types differently,
     // because no resolver is called at the root.
     const isOnQueryType = typeName === (schema.getQueryType() || {}).name;
@@ -212,8 +208,20 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
         }
       }
     }
-    // eslint-disable-next-line no-param-reassign
-    field.resolve = mockType(field.type, typeName, fieldName);
+    if (!preserveResolvers || !field.resolve) {
+      // eslint-disable-next-line no-param-reassign
+      field.resolve = mockType(field.type, typeName, fieldName);
+    } else {
+      const oldResolver = field.resolve;
+      const mockResolver = mockType(field.type, typeName, fieldName);
+      // eslint-disable-next-line no-param-reassign
+      field.resolve = (...args) => {
+        const mockedValue = mockResolver(...args);
+        const resolvedValue = oldResolver(...args);
+        return typeof mockedValue === 'object' && typeof resolvedValue === 'object'
+          ? Object.assign({}, mockedValue, resolvedValue) : resolvedValue;
+      };
+    }
   });
 }
 
