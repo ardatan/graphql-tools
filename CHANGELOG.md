@@ -2,6 +2,12 @@
 
 ### vNEXT
 
+### v0.6.4
+* Make mocking partial objects match expected behavior ([@sebastienbarre](https://github.com/sebastienbarre) in [#96](https://github.com/apollostack/graphql-tools/pull/96))
+* Improved behavior when mocking interfaces & unions ([@itajaja](https://github.com/itajaja) in [#102](https://github.com/apollostack/graphql-tools/pull/102))
+
+### v0.6.3
+
 * Unpin babel-core version to solve build problem (PR #92)
 * Added support for `extend` keyword to schemaGenerator https://github.com/apollostack/graphql-tools/pull/90
 
