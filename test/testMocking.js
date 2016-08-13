@@ -786,7 +786,6 @@ describe('Mock', () => {
       RootQuery: {
         user() {
           return new Promise((resolve, reject) => {
-
             // simulates fetching from db
             resolve({
               name: 'User Name',
