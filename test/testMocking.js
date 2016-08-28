@@ -435,8 +435,16 @@ describe('Mock', () => {
 
   it('does not mask resolve functions if you tell it not to', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
-    const mockMap = {};
-    const resolvers = { RootQuery: { returnInt: () => 5 } };
+    const mockMap = {
+      RootQuery: () => ({
+        returnInt: (root, args) => 42,
+      }),
+    };
+    const resolvers = {
+      RootQuery: {
+        returnInt: () => 5,
+      },
+    };
     addResolveFunctionsToSchema(jsSchema, resolvers);
     addMockFunctionsToSchema({
       schema: jsSchema,
@@ -457,7 +465,10 @@ describe('Mock', () => {
   it('lets you mock non-leaf types conveniently', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {
-      Bird: () => ({ returnInt: 12, returnString: 'woot!?' }),
+      Bird: () => ({
+        returnInt: 12,
+        returnString: 'woot!?',
+      }),
       Int: () => 15,
     };
     addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
@@ -469,7 +480,10 @@ describe('Mock', () => {
       returnInt
     }`;
     const expected = {
-      returnObject: { returnInt: 12, returnString: 'woot!?' },
+      returnObject: {
+        returnInt: 12,
+        returnString: 'woot!?',
+      },
       returnInt: 15,
     };
     return graphql(jsSchema, testQuery).then((res) => {
