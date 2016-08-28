@@ -438,6 +438,7 @@ describe('Mock', () => {
     const mockMap = {
       RootQuery: () => ({
         returnInt: (root, args) => 42,
+        returnFloat: (root, args) => 1.3,
       }),
     };
     const resolvers = {
@@ -453,9 +454,11 @@ describe('Mock', () => {
     });
     const testQuery = `{
       returnInt
+      returnFloat
     }`;
     const expected = {
       returnInt: 5,
+      returnFloat: 1.3,
     };
     return graphql(jsSchema, testQuery).then((res) => {
       expect(res.data).to.deep.equal(expected);

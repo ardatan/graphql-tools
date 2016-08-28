@@ -182,6 +182,7 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
 
   forEachField(schema, (field, typeName, fieldName) => {
     assignResolveType(field.type);
+    let mockResolver;
 
     // we have to handle the root mutation and root query types differently,
     // because no resolver is called at the root.
@@ -193,7 +194,7 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
         if (rootMock()[fieldName]) {
           // TODO: assert that it's a function
           // eslint-disable-next-line no-param-reassign
-          field.resolve = (root, ...rest) => {
+          mockResolver = (root, ...rest) => {
             const updatedRoot = root || {}; // TODO: should we clone instead?
             updatedRoot[fieldName] = rootMock()[fieldName];
             // XXX this is a bit of a hack to still use mockType, which
@@ -204,16 +205,17 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
             return mockType(
               field.type, typeName, fieldName)(updatedRoot, ...rest);
           };
-          return;
         }
       }
     }
+    if (!mockResolver) {
+      mockResolver = mockType(field.type, typeName, fieldName);
+    }
     if (!preserveResolvers || !field.resolve) {
       // eslint-disable-next-line no-param-reassign
-      field.resolve = mockType(field.type, typeName, fieldName);
+      field.resolve = mockResolver;
     } else {
       const oldResolver = field.resolve;
-      const mockResolver = mockType(field.type, typeName, fieldName);
       // eslint-disable-next-line no-param-reassign
       field.resolve = (...args) => {
         const mockedValue = mockResolver(...args);
