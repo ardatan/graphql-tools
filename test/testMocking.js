@@ -437,13 +437,15 @@ describe('Mock', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {
       RootQuery: () => ({
-        returnInt: (root, args) => 42,
-        returnFloat: (root, args) => 1.3,
+        returnInt: (root, args) => 42,    // a) in resolvers, will not be used
+        returnFloat: (root, args) => 1.3, // b) not in resolvers, will be used
+        returnString: (root, args) => Promise.resolve('foo'), // c) in resolvers, will not be used
       }),
     };
     const resolvers = {
       RootQuery: {
-        returnInt: () => 5,
+        returnInt: () => 5, // see a)
+        returnString: () => Promise.resolve('bar'), // see c)
       },
     };
     addResolveFunctionsToSchema(jsSchema, resolvers);
@@ -455,10 +457,12 @@ describe('Mock', () => {
     const testQuery = `{
       returnInt
       returnFloat
+      returnString
     }`;
     const expected = {
-      returnInt: 5,
-      returnFloat: 1.3,
+      returnInt: 5,        // a) from resolvers, not masked by mock
+      returnFloat: 1.3,    // b) from mock
+      returnString: 'bar', // c) from resolvers, not masked by mock (and promise)
     };
     return graphql(jsSchema, testQuery).then((res) => {
       expect(res.data).to.deep.equal(expected);
@@ -498,7 +502,7 @@ describe('Mock', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const resolvers = {
       RootQuery: {
-        returnObject: () => ({
+        returnObject: () => Promise.resolve({ // should work with promise too
           returnInt: 12, // part of a Bird
           // no returnString returned
         }),

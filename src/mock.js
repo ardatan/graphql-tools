@@ -217,12 +217,15 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
     } else {
       const oldResolver = field.resolve;
       // eslint-disable-next-line no-param-reassign
-      field.resolve = (...args) => {
-        const mockedValue = mockResolver(...args);
-        const resolvedValue = oldResolver(...args);
+      field.resolve = (...args) => Promise.all([
+        mockResolver(...args),
+        oldResolver(...args),
+      ]).then(values => {
+        const mockedValue = values[0];
+        const resolvedValue = values[1];
         return typeof mockedValue === 'object' && typeof resolvedValue === 'object'
           ? Object.assign({}, mockedValue, resolvedValue) : resolvedValue;
-      };
+      });
     }
   });
 }
