@@ -502,8 +502,51 @@ describe('Mock', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const resolvers = {
       RootQuery: {
-        returnObject: () => Promise.resolve({ // should work with promise too
-          returnInt: 12, // part of a Bird
+        returnListOfInt: () => [1, 2, 3],
+        returnObject: () => ({
+          returnInt: 12,        // a) part of a Bird, should not be masked by mock
+          // no returnString returned
+        }),
+      },
+    };
+    addResolveFunctionsToSchema(jsSchema, resolvers);
+    const mockMap = {
+      returnListOfInt: () => [5, 6, 7],
+      Bird: () => ({
+        returnInt: 3,           // see a)
+        returnString: 'woot!?', // b) another part of a Bird
+      }),
+    };
+    addMockFunctionsToSchema({
+      schema: jsSchema,
+      mocks: mockMap,
+      preserveResolvers: true,
+    });
+    const testQuery = `{
+      returnListOfInt
+      returnObject{
+        returnInt
+        returnString
+      }
+    }`;
+    const expected = {
+      returnListOfInt: [1, 2, 3],
+      returnObject: {
+        returnInt: 12,           // from the resolver, see a)
+        returnString: 'woot!?',  // from the mock, see b)
+      },
+    };
+    return graphql(jsSchema, testQuery).then((res) => {
+      expect(res.data).to.deep.equal(expected);
+    });
+  });
+
+  it('lets you mock and resolve non-leaf types concurrently, support promises', () => {
+    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    const resolvers = {
+      RootQuery: {
+        returnObject: () => Promise.resolve({
+          returnInt: 12,        // a) part of a Bird, should not be masked by mock
           // no returnString returned
         }),
       },
@@ -511,8 +554,8 @@ describe('Mock', () => {
     addResolveFunctionsToSchema(jsSchema, resolvers);
     const mockMap = {
       Bird: () => ({
-        returnInt: 3,
-        returnString: 'woot!?', // another part of a Bird
+        returnInt: 3,           // see a)
+        returnString: 'woot!?', // b) another part of a Bird
       }),
     };
     addMockFunctionsToSchema({
@@ -528,8 +571,8 @@ describe('Mock', () => {
     }`;
     const expected = {
       returnObject: {
-        returnInt: 12,           // from the resolver
-        returnString: 'woot!?',  // from the mock
+        returnInt: 12,           // from the resolver, see a)
+        returnString: 'woot!?',  // from the mock, see b)
       },
     };
     return graphql(jsSchema, testQuery).then((res) => {
@@ -537,19 +580,42 @@ describe('Mock', () => {
     });
   });
 
-  it('lets you mock with functions', () => {
+  it('lets you mock and resolve non-leaf types concurrently, support defineProperty', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
-    const mockMap = {
-      Bird: () => ({ returnStringArgument: (o, a) => a.s }),
+    const objProxy = {};
+    Object.defineProperty(
+      objProxy,
+      'returnInt',  // a) part of a Bird, should not be masked by mock
+      { value: 12 }
+    );
+    const resolvers = {
+      RootQuery: {
+        returnObject: () => objProxy,
+      },
     };
-    addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
+    addResolveFunctionsToSchema(jsSchema, resolvers);
+    const mockMap = {
+      Bird: () => ({
+        returnInt: 3,           // see a)
+        returnString: 'woot!?', // b) another part of a Bird
+      }),
+    };
+    addMockFunctionsToSchema({
+      schema: jsSchema,
+      mocks: mockMap,
+      preserveResolvers: true,
+    });
     const testQuery = `{
       returnObject{
-        returnStringArgument(s: "adieu")
+        returnInt
+        returnString
       }
     }`;
     const expected = {
-      returnObject: { returnStringArgument: 'adieu' },
+      returnObject: {
+        returnInt: 12,           // from the resolver, see a)
+        returnString: 'woot!?',  // from the mock, see b)
+      },
     };
     return graphql(jsSchema, testQuery).then((res) => {
       expect(res.data).to.deep.equal(expected);

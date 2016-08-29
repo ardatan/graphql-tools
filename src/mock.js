@@ -221,10 +221,17 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
         mockResolver(...args),
         oldResolver(...args),
       ]).then(values => {
-        const mockedValue = values[0];
-        const resolvedValue = values[1];
-        return typeof mockedValue === 'object' && typeof resolvedValue === 'object'
-          ? Object.assign({}, mockedValue, resolvedValue) : resolvedValue;
+        const [mockedValue, resolvedValue] = values;
+        if (isObject(mockedValue) && isObject(resolvedValue)) {
+          // return Object.assign({}, mockedValue, resolvedValue);
+          return new Proxy({}, {
+            get: (target, key) => {
+              const value = resolvedValue[key];
+              return value === undefined ? mockedValue[key] : value;
+            },
+          });
+        }
+        return resolvedValue;
       });
     }
   });
