@@ -781,8 +781,6 @@ describe('providing useful errors from resolve functions', () => {
   });
 });
 
-
-
 describe('Add error logging to schema', () => {
   it('throws an error if no logger is provided', () => {
     assert.throw(() => addErrorLoggingToSchema({}), 'Must provide a logger');
