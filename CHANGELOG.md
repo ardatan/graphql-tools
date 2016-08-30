@@ -1,6 +1,9 @@
 # Changelog
 
 ### vNEXT
+* Make allowUndefinedInResolve true by default ([@jbaxleyiii](https://github.com/jbaxleyiii) in [#117]((https://github.com/apollostack/graphql-tools/pull/117))
+
+* Add `requireResolversForAllFields` resolver validation option ([@nevir](https://github.com/nevir) in [#107](https://github.com/apollostack/graphql-tools/pull/107))
 
 ### v0.6.4
 * Make mocking partial objects match expected behavior ([@sebastienbarre](https://github.com/sebastienbarre) in [#96](https://github.com/apollostack/graphql-tools/pull/96))
