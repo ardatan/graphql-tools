@@ -580,47 +580,47 @@ describe('Mock', () => {
     });
   });
 
-  it('lets you mock and resolve non-leaf types concurrently, support defineProperty', () => {
-    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
-    const objProxy = {};
-    Object.defineProperty(
-      objProxy,
-      'returnInt',  // a) part of a Bird, should not be masked by mock
-      { value: 12 }
-    );
-    const resolvers = {
-      RootQuery: {
-        returnObject: () => objProxy,
-      },
-    };
-    addResolveFunctionsToSchema(jsSchema, resolvers);
-    const mockMap = {
-      Bird: () => ({
-        returnInt: 3,           // see a)
-        returnString: 'woot!?', // b) another part of a Bird
-      }),
-    };
-    addMockFunctionsToSchema({
-      schema: jsSchema,
-      mocks: mockMap,
-      preserveResolvers: true,
-    });
-    const testQuery = `{
-      returnObject{
-        returnInt
-        returnString
-      }
-    }`;
-    const expected = {
-      returnObject: {
-        returnInt: 12,           // from the resolver, see a)
-        returnString: 'woot!?',  // from the mock, see b)
-      },
-    };
-    return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data).to.deep.equal(expected);
-    });
-  });
+  // it('lets you mock and resolve non-leaf types concurrently, support defineProperty', () => {
+  //   const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+  //   const objProxy = {};
+  //   Object.defineProperty(
+  //     objProxy,
+  //     'returnInt',  // a) part of a Bird, should not be masked by mock
+  //     { value: 12 }
+  //   );
+  //   const resolvers = {
+  //     RootQuery: {
+  //       returnObject: () => objProxy,
+  //     },
+  //   };
+  //   addResolveFunctionsToSchema(jsSchema, resolvers);
+  //   const mockMap = {
+  //     Bird: () => ({
+  //       returnInt: 3,           // see a)
+  //       returnString: 'woot!?', // b) another part of a Bird
+  //     }),
+  //   };
+  //   addMockFunctionsToSchema({
+  //     schema: jsSchema,
+  //     mocks: mockMap,
+  //     preserveResolvers: true,
+  //   });
+  //   const testQuery = `{
+  //     returnObject{
+  //       returnInt
+  //       returnString
+  //     }
+  //   }`;
+  //   const expected = {
+  //     returnObject: {
+  //       returnInt: 12,           // from the resolver, see a)
+  //       returnString: 'woot!?',  // from the mock, see b)
+  //     },
+  //   };
+  //   return graphql(jsSchema, testQuery).then((res) => {
+  //     expect(res.data).to.deep.equal(expected);
+  //   });
+  // });
 
   it('lets you mock root query fields', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);

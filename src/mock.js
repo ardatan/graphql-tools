@@ -223,13 +223,17 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
       ]).then(values => {
         const [mockedValue, resolvedValue] = values;
         if (isObject(mockedValue) && isObject(resolvedValue)) {
-          // return Object.assign({}, mockedValue, resolvedValue);
-          return new Proxy({}, {
-            get: (target, key) => {
-              const value = resolvedValue[key];
-              return value === undefined ? mockedValue[key] : value;
-            },
-          });
+          return Object.assign({}, mockedValue, resolvedValue);
+          // This solution below would support objects where properties are
+          // defined using Object.defineProperty (such as Sequelize), but require
+          // Proxy, which can not be transpiled by Babel just yet. The corresponding
+          // test exists but is in comments.
+          // return new Proxy({}, {
+          //   get: (target, key) => {
+          //     const value = resolvedValue[key];
+          //     return value === undefined ? mockedValue[key] : value;
+          //   },
+          // });
         }
         return resolvedValue;
       });
