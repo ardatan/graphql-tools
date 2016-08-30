@@ -747,6 +747,38 @@ describe('providing useful errors from resolve functions', () => {
       done();
     });
   });
+
+  it('will not throw errors on undefined by default', (done) => {
+    const shorthand = `
+      type RootQuery {
+        species(name: String): String
+        stuff: String
+      }
+      schema {
+        query: RootQuery
+      }
+    `;
+    const resolve = {
+      RootQuery: {
+        species: () => undefined,
+        stuff: () => 'stuff',
+      },
+    };
+
+    const logger = new Logger();
+    const jsSchema = makeExecutableSchema({
+      typeDefs: shorthand,
+      resolvers: resolve,
+      logger,
+    });
+    const testQuery = '{ species, stuff }';
+    const expectedResData = { species: null, stuff: 'stuff' };
+    graphql(jsSchema, testQuery).then((res) => {
+      assert.equal(logger.errors.length, 0);
+      assert.deepEqual(res.data, expectedResData);
+      done();
+    });
+  });
 });
 
 describe('Add error logging to schema', () => {
