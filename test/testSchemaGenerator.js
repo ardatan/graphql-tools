@@ -620,6 +620,91 @@ describe('generating schema from shorthand', () => {
     assert.doesNotThrow(makeExecutableSchema.bind(null, { typeDefs: short, resolvers: rf, resolverValidationOptions: { requireResolversForNonScalar: false } }), SchemaError); // eslint-disable-line max-len
   });
 
+  it('throws if conflicting validation options are passed', () => {
+    const typeDefs = `
+    type Bird {
+      id: ID
+    }
+    type Query {
+      bird: Bird
+    }
+    schema {
+      query: Query
+    }`;
+    const resolvers = {};
+
+    function assertOptionsError(resolverValidationOptions) {
+      assert.throws(() => makeExecutableSchema({ typeDefs, resolvers, resolverValidationOptions }), TypeError); // eslint-disable-line max-len
+    }
+
+    assertOptionsError({
+      requireResolversForAllFields: true,
+      requireResolversForNonScalar: false,
+      requireResolversForArgs: false,
+    });
+    assertOptionsError({
+      requireResolversForAllFields: true,
+      requireResolversForNonScalar: false,
+    });
+    assertOptionsError({
+      requireResolversForAllFields: true,
+      requireResolversForArgs: false,
+    });
+  });
+
+  it('throws for any missing field if `resolverValidationOptions.requireResolversForAllFields` = true', () => { // eslint-disable-line max-len
+    const typeDefs = `
+    type Bird {
+      id: ID
+    }
+    type Query {
+      bird: Bird
+    }
+    schema {
+      query: Query
+    }`;
+
+    function assertFieldError(errorMatcher, resolvers) {
+      assert.throws(() => makeExecutableSchema({ typeDefs, resolvers, resolverValidationOptions: { requireResolversForAllFields: true } }), SchemaError, errorMatcher); // eslint-disable-line max-len
+    }
+
+    assertFieldError(null, {});
+    assertFieldError('Query.bird', {
+      Bird: {
+        id: bird => bird.id,
+      },
+    });
+    assertFieldError('Bird.id', {
+      Query: {
+        bird: () => ({ id: '123' }),
+      },
+    });
+  });
+
+  it('does not throw if all fields are satisfied when `resolverValidationOptions.requireResolversForAllFields` = true', () => { // eslint-disable-line max-len
+    const typeDefs = `
+    type Bird {
+      id: ID
+    }
+    type Query {
+      bird: Bird
+    }
+    schema {
+      query: Query
+    }`;
+
+    const resolvers = {
+      Bird: {
+        id: bird => bird.id,
+      },
+      Query: {
+        bird: () => ({ id: '123' }),
+      },
+    };
+
+    assert.doesNotThrow(() => makeExecutableSchema({ typeDefs, resolvers, resolverValidationOptions: { requireResolversForAllFields: true } })); // eslint-disable-line max-len
+  });
+
   it('throws an error if a resolve field cannot be used', (done) => {
     const shorthand = `
       type BirdSpecies {
