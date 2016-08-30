@@ -62,6 +62,21 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
     return Object.assign(a, b);
   }
 
+  function copyOwnProps(target, ...sources) {
+    sources.forEach(source => {
+      let chain = source;
+      while (chain) {
+        Object.getOwnPropertyNames(chain).forEach(prop => {
+          if (!Object.getOwnPropertyDescriptor(target, prop)) {
+            Object.defineProperty(target, prop, Object.getOwnPropertyDescriptor(chain, prop));
+          }
+        });
+        chain = Object.getPrototypeOf(chain);
+      }
+    });
+    return target;
+  }
+
   // returns a random element from that ary
   function getRandomElement(ary) {
     const sample = Math.floor(Math.random() * ary.length);
@@ -223,17 +238,9 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
       ]).then(values => {
         const [mockedValue, resolvedValue] = values;
         if (isObject(mockedValue) && isObject(resolvedValue)) {
-          return Object.assign({}, mockedValue, resolvedValue);
-          // This solution below would support objects where properties are
-          // defined using Object.defineProperty (such as Sequelize), but require
-          // Proxy, which can not be transpiled by Babel just yet. The corresponding
-          // test exists but is in comments.
-          // return new Proxy({}, {
-          //   get: (target, key) => {
-          //     const value = resolvedValue[key];
-          //     return value === undefined ? mockedValue[key] : value;
-          //   },
-          // });
+          // Object.assign() won't do here, as we need to all properties, including
+          // the non-enumerable ones and defined using Object.defineProperty
+          return copyOwnProps({}, resolvedValue, mockedValue);
         }
         return resolvedValue;
       });
