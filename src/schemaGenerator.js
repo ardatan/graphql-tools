@@ -70,7 +70,7 @@ function makeExecutableSchema({
   resolvers,
   connectors,
   logger,
-  allowUndefinedInResolve = false,
+  allowUndefinedInResolve = true,
   resolverValidationOptions = {},
 }) {
   const jsSchema = _generateSchema(
