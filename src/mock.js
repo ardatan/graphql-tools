@@ -62,6 +62,25 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
     return Object.assign(a, b);
   }
 
+  function copyOwnPropsIfNotPresent(target, source) {
+    Object.getOwnPropertyNames(source).forEach(prop => {
+      if (!Object.getOwnPropertyDescriptor(target, prop)) {
+        Object.defineProperty(target, prop, Object.getOwnPropertyDescriptor(source, prop));
+      }
+    });
+  }
+
+  function copyOwnProps(target, ...sources) {
+    sources.forEach(source => {
+      let chain = source;
+      while (chain) {
+        copyOwnPropsIfNotPresent(target, chain);
+        chain = Object.getPrototypeOf(chain);
+      }
+    });
+    return target;
+  }
+
   // returns a random element from that ary
   function getRandomElement(ary) {
     const sample = Math.floor(Math.random() * ary.length);
@@ -182,6 +201,7 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
 
   forEachField(schema, (field, typeName, fieldName) => {
     assignResolveType(field.type);
+    let mockResolver;
 
     // we have to handle the root mutation and root query types differently,
     // because no resolver is called at the root.
@@ -193,7 +213,7 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
         if (rootMock()[fieldName]) {
           // TODO: assert that it's a function
           // eslint-disable-next-line no-param-reassign
-          field.resolve = (root, ...rest) => {
+          mockResolver = (root, ...rest) => {
             const updatedRoot = root || {}; // TODO: should we clone instead?
             updatedRoot[fieldName] = rootMock()[fieldName];
             // XXX this is a bit of a hack to still use mockType, which
@@ -204,23 +224,30 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
             return mockType(
               field.type, typeName, fieldName)(updatedRoot, ...rest);
           };
-          return;
         }
       }
     }
+    if (!mockResolver) {
+      mockResolver = mockType(field.type, typeName, fieldName);
+    }
     if (!preserveResolvers || !field.resolve) {
       // eslint-disable-next-line no-param-reassign
-      field.resolve = mockType(field.type, typeName, fieldName);
+      field.resolve = mockResolver;
     } else {
       const oldResolver = field.resolve;
-      const mockResolver = mockType(field.type, typeName, fieldName);
       // eslint-disable-next-line no-param-reassign
-      field.resolve = (...args) => {
-        const mockedValue = mockResolver(...args);
-        const resolvedValue = oldResolver(...args);
-        return typeof mockedValue === 'object' && typeof resolvedValue === 'object'
-          ? Object.assign({}, mockedValue, resolvedValue) : resolvedValue;
-      };
+      field.resolve = (...args) => Promise.all([
+        mockResolver(...args),
+        oldResolver(...args),
+      ]).then(values => {
+        const [mockedValue, resolvedValue] = values;
+        if (isObject(mockedValue) && isObject(resolvedValue)) {
+          // Object.assign() won't do here, as we need to all properties, including
+          // the non-enumerable ones and defined using Object.defineProperty
+          return copyOwnProps({}, resolvedValue, mockedValue);
+        }
+        return resolvedValue;
+      });
     }
   });
 }
