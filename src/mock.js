@@ -62,15 +62,19 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
     return Object.assign(a, b);
   }
 
+  function copyOwnPropsIfNotPresent(target, source) {
+    Object.getOwnPropertyNames(source).forEach(prop => {
+      if (!Object.getOwnPropertyDescriptor(target, prop)) {
+        Object.defineProperty(target, prop, Object.getOwnPropertyDescriptor(source, prop));
+      }
+    });
+  }
+
   function copyOwnProps(target, ...sources) {
     sources.forEach(source => {
       let chain = source;
       while (chain) {
-        Object.getOwnPropertyNames(chain).forEach(prop => {
-          if (!Object.getOwnPropertyDescriptor(target, prop)) {
-            Object.defineProperty(target, prop, Object.getOwnPropertyDescriptor(chain, prop));
-          }
-        });
+        copyOwnPropsIfNotPresent(target, chain);
         chain = Object.getPrototypeOf(chain);
       }
     });
