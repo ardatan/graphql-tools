@@ -40,10 +40,10 @@ function _generateSchema(
     throw new SchemaError('Expected `resolverValidationOptions` to be an object');
   }
   if (!typeDefinitions) {
-    throw new SchemaError('Must provide typeDefinitions');
+    throw new SchemaError('Must provide typeDefs');
   }
   if (!resolveFunctions) {
-    throw new SchemaError('Must provide resolveFunctions');
+    throw new SchemaError('Must provide resolvers');
   }
 
   // TODO: check that typeDefinitions is either string or array of strings
@@ -116,7 +116,7 @@ function buildSchemaFromTypeDefinitions(typeDefinitions) {
   if (typeof myDefinitions !== 'string') {
     if (!Array.isArray(myDefinitions)) {
       // TODO improve error message and say what type was actually found
-      throw new SchemaError('`typeDefinitions` must be a string or array');
+      throw new SchemaError('`typeDefs` must be a string or array');
     }
     myDefinitions = concatenateTypeDefs(myDefinitions);
   }
