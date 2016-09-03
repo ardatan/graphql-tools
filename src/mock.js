@@ -246,7 +246,7 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
           // the non-enumerable ones and defined using Object.defineProperty
           return copyOwnProps({}, resolvedValue, mockedValue);
         }
-        return resolvedValue;
+        return (undefined !== resolvedValue) ? resolvedValue : mockedValue;
       });
     }
   });
