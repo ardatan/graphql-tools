@@ -13,7 +13,7 @@ interface IResolverValidationOptions {
 
 type ITypedef = (() => string) | string;
 type ITypeDefinitions = string | Array<ITypedef>;
-type IResolveFn = (rootObject: any, args: Array<any>, context: any, info: GraphQLResolveInfo) => any;
+type IResolveFn = (rootObject: any, args: { [key: string]: any }, context: any, info: GraphQLResolveInfo) => any;
 type IResolverObject = { [key: string]: IResolveFn };
 type IResolvers = { [key: string]: IResolverObject };
 interface ILogger {
@@ -64,5 +64,5 @@ export function mockServer(schema: GraphQLSchema, mocks: IMocks, preserveResolve
 export function addMockFunctionsToSchema(mockOptions: IMockOptions): void;
 export class MockList {
 	constructor (len: number | Array<number>, wrappedFunction?: IMockFn);
-	public mock(root: any, args: Array<any>, context: any, info: any, fieldType: any, mockTypeFunc: IResolveFn);
+	public mock(root: any, args: { [key: string]: any }, context: any, info: any, fieldType: any, mockTypeFunc: IResolveFn);
 }
