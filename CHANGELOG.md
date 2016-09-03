@@ -1,6 +1,8 @@
 # Changelog
 
 ### vNEXT
+* Added embedded Typescript definitions ([@DxCx](https://github.com/DxCx) in [#120]((https://github.com/apollostack/graphql-tools/pull/120))
+
 * Fix multiple issues in addMockFunctionsToSchema when preserveResolvers is true (support for Promises, and props defined using Object.defineProperty) ([@sebastienbarre](https://github.com/sebastienbarre) in [#115]((https://github.com/apollostack/graphql-tools/pull/115))
 
 * Make allowUndefinedInResolve true by default ([@jbaxleyiii](https://github.com/jbaxleyiii) in [#117]((https://github.com/apollostack/graphql-tools/pull/117))
