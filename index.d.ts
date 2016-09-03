@@ -2,7 +2,7 @@
 // Project: https://github.com/apollostack/graphql-tools
 // Definitions by: Hagai Cohen <https://github.com/DxCx>
 
-import { GraphQLSchema, GraphQLFieldDefinition, GraphQLResult } from "graphql";
+import { GraphQLSchema, GraphQLFieldDefinition, GraphQLResolveInfo, GraphQLResult } from "graphql";
 
 // schemaGenerator.js
 interface IResolverValidationOptions {
@@ -13,7 +13,7 @@ interface IResolverValidationOptions {
 
 type ITypedef = (() => string) | string;
 type ITypeDefinitions = string | Array<ITypedef>;
-type IResolveFn = (rootObject: any, args: Array<any>, context: any) => any;
+type IResolveFn = (rootObject: any, args: Array<any>, context: any, info: GraphQLResolveInfo) => any;
 type IResolverObject = { [key: string]: IResolveFn };
 type IResolvers = { [key: string]: IResolverObject };
 interface ILogger {
@@ -49,7 +49,6 @@ export function attachConnectorsToContext(schema: GraphQLSchema, connectors: ICo
 // mock.js
 type IMockFn = () => any;
 type IMocks = { [key: string] : IMockFn };
-type IMockTypeFn = (root: any, args: Array<any>, context: any, info: any) => any;
 
 interface IMockOptions {
 	schema: GraphQLSchema;
@@ -65,5 +64,5 @@ export function mockServer(schema: GraphQLSchema, mocks: IMocks, preserveResolve
 export function addMockFunctionsToSchema(mockOptions: IMockOptions): void;
 export class MockList {
 	constructor (len: number | Array<number>, wrappedFunction?: IMockFn);
-	public mock(root: any, args: Array<any>, context: any, info: any, fieldType: any, mockTypeFunc: IMockTypeFn);
+	public mock(root: any, args: Array<any>, context: any, info: any, fieldType: any, mockTypeFunc: IResolveFn);
 }
