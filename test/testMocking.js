@@ -10,6 +10,7 @@ import {
 import {
   buildSchemaFromTypeDefinitions,
   addResolveFunctionsToSchema,
+  makeExecutableSchema,
 } from '../src/schemaGenerator';
 
 describe('Mock', () => {
@@ -618,6 +619,140 @@ describe('Mock', () => {
       },
     };
     return graphql(jsSchema, testQuery).then((res) => {
+      expect(res.data).to.deep.equal(expected);
+    });
+  });
+
+  it('let you mock with preserving resolvers, also when using logger', () => {
+    const resolvers = {
+      RootQuery: {
+        returnString: () => 'woot!?', // a) resolve of a string
+      },
+    };
+    const jsSchema = makeExecutableSchema({
+      typeDefs: [shorthand],
+      resolvers,
+      resolverValidationOptions: {
+        requireResolversForArgs: false,
+        requireResolversForNonScalar: false,
+        requireResolversForAllFields: false,
+      },
+      logger: console,
+    });
+    const mockMap = {
+      Int: () => 123, // b) mock of Int.
+    };
+    addMockFunctionsToSchema({
+      schema: jsSchema,
+      mocks: mockMap,
+      preserveResolvers: true,
+    });
+    const testQuery = `{
+      returnObject {
+        returnInt
+          returnString
+      }
+      returnString
+    }`;
+    const expected = {
+      returnObject: {
+        returnInt: 123,           // from the mock, see b)
+        returnString: 'Hello World', // from mock default values.
+      },
+      returnString: 'woot!?',    /// from the mock, see a)
+    };
+    return graphql(jsSchema, testQuery).then((res) => {
+      expect(res.data).to.deep.equal(expected);
+    });
+  });
+
+  it('let you mock with preserving resolvers, also when using connectors', () => {
+    const resolvers = {
+      RootQuery: {
+        returnString: () => 'woot!?', // a) resolve of a string
+      },
+    };
+    const jsSchema = makeExecutableSchema({
+      typeDefs: [shorthand],
+      resolvers,
+      resolverValidationOptions: {
+        requireResolversForArgs: false,
+        requireResolversForNonScalar: false,
+        requireResolversForAllFields: false,
+      },
+      connectors: {
+        testConnector: () => ({}),
+      },
+    });
+    const mockMap = {
+      Int: () => 123, // b) mock of Int.
+    };
+    addMockFunctionsToSchema({
+      schema: jsSchema,
+      mocks: mockMap,
+      preserveResolvers: true,
+    });
+    const testQuery = `{
+      returnObject {
+        returnInt
+          returnString
+      }
+      returnString
+    }`;
+    const expected = {
+      returnObject: {
+        returnInt: 123,           // from the mock, see b)
+        returnString: 'Hello World', // from mock default values.
+      },
+      returnString: 'woot!?',    /// from the mock, see a)
+    };
+    return graphql(jsSchema, testQuery, undefined, {}).then((res) => {
+      expect(res.data).to.deep.equal(expected);
+    });
+  });
+
+  it('let you mock with preserving resolvers, also when using both connectors and logger', () => {
+    const resolvers = {
+      RootQuery: {
+        returnString: () => 'woot!?', // a) resolve of a string
+      },
+    };
+    const jsSchema = makeExecutableSchema({
+      typeDefs: [shorthand],
+      resolvers,
+      resolverValidationOptions: {
+        requireResolversForArgs: false,
+        requireResolversForNonScalar: false,
+        requireResolversForAllFields: false,
+      },
+      logger: console,
+      connectors: {
+        testConnector: () => ({}),
+      },
+    });
+    const mockMap = {
+      Int: () => 123, // b) mock of Int.
+    };
+    addMockFunctionsToSchema({
+      schema: jsSchema,
+      mocks: mockMap,
+      preserveResolvers: true,
+    });
+    const testQuery = `{
+      returnObject {
+        returnInt
+          returnString
+      }
+      returnString
+    }`;
+    const expected = {
+      returnObject: {
+        returnInt: 123,           // from the mock, see b)
+        returnString: 'Hello World', // from mock default values.
+      },
+      returnString: 'woot!?',    /// from the mock, see a)
+    };
+    return graphql(jsSchema, testQuery, undefined, {}).then((res) => {
       expect(res.data).to.deep.equal(expected);
     });
   });
