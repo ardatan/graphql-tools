@@ -854,6 +854,59 @@ describe('Mock', () => {
     });
   });
 
+  it('preserves resolvers when waiting on asynchronous operations', () => {
+    const Schema = buildSchemaFromTypeDefinitions(`
+      type User {
+        name: String
+      }
+
+      type RootQuery {
+        user: User
+      }
+
+      schema {
+        query: RootQuery
+      }
+    `);
+
+    const Resolvers = {
+      RootQuery: {
+        user() {
+          return new Promise((resolve, reject) => {
+            // simulates fetching from db
+            resolve({
+              name: 'User Name',
+            });
+          });
+        },
+      },
+    };
+
+    addResolveFunctionsToSchema(Schema, Resolvers);
+
+    addMockFunctionsToSchema({
+      schema: Schema,
+      mocks: {
+        User: () => ({
+          name: 'Mock User Name',
+        }),
+      },
+      preserveResolvers: true,
+    });
+
+    const TestQuery = `
+      {
+        user {
+          name 
+        }
+      }
+    `;
+
+    return graphql(Schema, TestQuery).then((res) => {
+      expect(res.data.user.name).to.equal('User Name');
+    });
+  });
+
   // TODO add a test that checks that even when merging defaults, lists invoke
   // the function for every object, not just once per list.
 
