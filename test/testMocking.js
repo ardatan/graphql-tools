@@ -659,7 +659,7 @@ describe('Mock', () => {
         returnInt: 123,           // from the mock, see b)
         returnString: 'Hello World', // from mock default values.
       },
-      returnString: 'woot!?',    /// from the mock, see a)
+      returnString: 'woot!?',    // from the mock, see a)
     };
     return graphql(jsSchema, testQuery).then((res) => {
       expect(res.data).to.deep.equal(expected);
@@ -704,7 +704,7 @@ describe('Mock', () => {
         returnInt: 123,           // from the mock, see b)
         returnString: 'Hello World', // from mock default values.
       },
-      returnString: 'woot!?',    /// from the mock, see a)
+      returnString: 'woot!?',    // from the mock, see a)
     };
     return graphql(jsSchema, testQuery, undefined, {}).then((res) => {
       expect(res.data).to.deep.equal(expected);
@@ -750,7 +750,7 @@ describe('Mock', () => {
         returnInt: 123,           // from the mock, see b)
         returnString: 'Hello World', // from mock default values.
       },
-      returnString: 'woot!?',    /// from the mock, see a)
+      returnString: 'woot!?',    // from the mock, see a)
     };
     return graphql(jsSchema, testQuery, undefined, {}).then((res) => {
       expect(res.data).to.deep.equal(expected);
