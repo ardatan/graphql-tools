@@ -3,6 +3,7 @@
   "version": "0.6.5",
   "description": "A set of useful GraphQL tools",
   "main": "dist/index.js",
+  "typings": "index.d.ts",
   "directories": {
     "test": "test"
   },
@@ -35,7 +36,8 @@
     "node-uuid": "^1.4.7"
   },
   "peerDependencies": {
-    "graphql": "^0.5.0 || ^0.6.0 || ^0.7.0"
+    "graphql": "^0.5.0 || ^0.6.0 || ^0.7.0",
+    "graphql-typings": "^0.0.1-beta-2"
   },
   "devDependencies": {
     "babel-cli": "^6.6.5",
@@ -57,6 +59,7 @@
     "express3": "0.0.0",
     "fs": "0.0.2",
     "graphql": "^0.7.0",
+    "graphql-typings": "^0.0.1-beta-2",
     "istanbul": "1.0.0-alpha.2",
     "lodash": "^4.10.0",
     "mocha": "^3.0.1",
