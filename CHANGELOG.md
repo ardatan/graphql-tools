@@ -1,6 +1,7 @@
 # Changelog
 
 ### vNEXT
+* Changed GraphQL typings requirment from peer to standard ([@DxCx](https://github.com/DxCx) in [#129](https://github.com/apollostack/graphql-tools/pull/129))
 
 * Change the missing resolve function validator to show a warning instead of an error ([@nicolaslopezj](https://github.com/nicolaslopezj) in [#134](https://github.com/apollostack/graphql-tools/pull/134))
 
