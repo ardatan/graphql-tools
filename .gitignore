@@ -1,4 +1,5 @@
 node_modules
-npm-debug.log
 coverage
+npm-debug.log
 dist
+*.tgz

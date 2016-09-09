@@ -1,4 +1,6 @@
-src
-test
-coverage
-resources
+*
+!dist/
+!dist/*
+!package.json
+!*.md
+!*.png
