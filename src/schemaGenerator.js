@@ -150,7 +150,7 @@ function forEachField(schema, fn) {
     // TODO: maybe have an option to include these?
     if (!getNamedType(type).name.startsWith('__') && type instanceof GraphQLObjectType) {
       const fields = type.getFields();
-      Object.keys(fields).forEach((fieldName) => {
+      Object.keys(fields).forEach((fieldName) => {Resolve function missing for
         const field = fields[fieldName];
         fn(field, typeName, fieldName);
       });
@@ -310,7 +310,8 @@ function assertResolveFunctionsPresent(schema, resolverValidationOptions = {}) {
 
 function expectResolveFunction(field, typeName, fieldName) {
   if (!field.resolve) {
-    throw new SchemaError(`Resolve function missing for "${typeName}.${fieldName}"`);
+    console.log(`Resolve function missing for "${typeName}.${fieldName}". To disable this warning check https://github.com/apollostack/graphql-tools/issues/131`)
+    return
   }
   if (typeof field.resolve !== 'function') {
     throw new SchemaError(`Resolver "${typeName}.${fieldName}" must be a function`);
