@@ -150,7 +150,7 @@ function forEachField(schema, fn) {
     // TODO: maybe have an option to include these?
     if (!getNamedType(type).name.startsWith('__') && type instanceof GraphQLObjectType) {
       const fields = type.getFields();
-      Object.keys(fields).forEach((fieldName) => {Resolve function missing for
+      Object.keys(fields).forEach((fieldName) => {
         const field = fields[fieldName];
         fn(field, typeName, fieldName);
       });
