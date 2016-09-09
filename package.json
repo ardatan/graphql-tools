@@ -44,7 +44,7 @@
   "dependencies": {
     "lodash.uniq": "^4.3.0",
     "node-uuid": "^1.4.7",
-    "graphql-typings": "^0.0.1-beta-2"
+    "graphql-typings": "git://github.com/DxCx/graphql-typings.git#tmp-pkg"
   },
   "peerDependencies": {
     "graphql": "^0.5.0 || ^0.6.0 || ^0.7.0"
@@ -64,14 +64,14 @@
     "babel-preset-es2015": "^6.14.0",
     "body-parser": "^1.15.0",
     "chai": "^3.5.0",
-    "dataloader": "^1.1.0",
+    "dataloader": "git://github.com/DxCx/dataloader.git#typings-tmp-pkg",
     "delete-empty": "^0.1.3",
     "dts-bundle": "^0.5.0",
     "express": "^4.13.4",
     "express3": "0.0.0",
     "fs": "0.0.2",
     "graphql": "^0.7.0",
-    "graphql-typings": "^0.0.1-beta-2",
+    "graphql-typings": "git://github.com/DxCx/graphql-typings.git#tmp-pkg",
     "istanbul": "1.0.0-alpha.2",
     "lodash": "^4.10.0",
     "mocha": "^3.0.1",
