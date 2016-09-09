@@ -2,28 +2,32 @@
  * A very simple class for logging errors
  */
 
-class Logger {
-  constructor(name, callback) {
+import { ILogger } from './Interfaces';
+
+export class Logger implements ILogger {
+  public errors: Error[];
+  public name: string;
+  private callback: Function;
+
+  constructor(name?: string, callback?: Function) {
     this.name = name;
     this.errors = [];
     this.callback = callback;
     // TODO: should assert that callback is a function
   }
 
-  log(err) {
+  public log(err: Error) {
     this.errors.push(err);
     if (typeof this.callback === 'function') {
       this.callback(err);
     }
   }
 
-  printOneError(e) {
+  public printOneError(e: Error) {
     return e.stack;
   }
 
-  printAllErrors() {
+  public printAllErrors() {
     return this.errors.reduce((agg, e) => `${agg}\n${this.printOneError(e)}`, '');
   }
 }
-
-export { Logger };

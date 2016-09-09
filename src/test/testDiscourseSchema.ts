@@ -1,10 +1,8 @@
 import { readFile } from 'fs';
 import { assert } from 'chai';
 import { graphql } from 'graphql';
-import { makeExecutableSchema } from '../src/schemaGenerator.js';
-import resolveFunctions from './discourse-api/schema.js';
-
-
+import { makeExecutableSchema } from '../schemaGenerator';
+import resolveFunctions from './discourse-api/schema';
 
 describe('generating the discourse schema with resolvers', () => {
   it('Can produce the full discourse schema with resolvers', (done) => {
@@ -48,8 +46,11 @@ describe('generating the discourse schema with resolvers', () => {
     }`);
 
     // read test.gql file
-    readFile('./test/discourse-api/schema.gql', 'utf8', (err, data) => {
-      if (err) throw err;
+    readFile('./src/test/discourse-api/schema.gql', 'utf8', (err, data) => {
+      if (err) {
+          throw err;
+      }
+
       // const rep = (key, val) => (typeof val === 'function') ? '[function]' : val;
 
       const schema = makeExecutableSchema({ typeDefs: data, resolvers: resolveFunctions });

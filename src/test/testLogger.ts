@@ -1,8 +1,8 @@
 import { assert } from 'chai';
 import { graphql } from 'graphql';
-import { Logger } from '../src/Logger.js';
-import { makeExecutableSchema } from '../src/schemaGenerator.js';
-
+import { Logger } from '../Logger';
+import { makeExecutableSchema } from '../schemaGenerator';
+import 'mocha';
 
 describe('Logger', () => {
   it('logs the errors', (done) => {
@@ -63,8 +63,8 @@ describe('Logger', () => {
         },
       },
     };
-    let loggedErr = null;
-    const logger = new Logger('LoggyMcLogface', (e) => { loggedErr = e; });
+    let loggedErr: Error = null;
+    const logger = new Logger('LoggyMcLogface', (e: Error) => { loggedErr = e; });
     const jsSchema = makeExecutableSchema({
       typeDefs: shorthand,
       resolvers: resolve,
@@ -88,7 +88,7 @@ describe('Logger', () => {
     `;
     const resolve = {
       RootQuery: {
-        species: (root, { name }) => {
+        species: (root: any, { name }: { name: string }) => {
           if (name) {
             throw new Error(name);
           }

@@ -1,17 +1,19 @@
 import { expect } from 'chai';
 import {
   graphql,
+  GraphQLResolveInfo,
 } from 'graphql';
 import {
   addMockFunctionsToSchema,
   MockList,
   mockServer,
-} from '../src/mock';
+} from '../mock';
 import {
   buildSchemaFromTypeDefinitions,
   addResolveFunctionsToSchema,
   makeExecutableSchema,
-} from '../src/schemaGenerator';
+} from '../schemaGenerator';
+import 'mocha';
 
 describe('Mock', () => {
   const shorthand = `
@@ -72,32 +74,32 @@ describe('Mock', () => {
 
   const resolveFunctions = {
     BirdsAndBees: {
-      __resolveType(data, context, info) {
+      __resolveType(data: any, context: any, info: GraphQLResolveInfo) {
         return info.schema.getType(data.typename);
       },
     },
     Flying: {
-      __resolveType(data, context, info) {
+      __resolveType(data: any, context: any, info: GraphQLResolveInfo) {
         return info.schema.getType(data.typename);
       },
     },
   };
 
   it('throws an error if you forget to pass schema', () => {
-    expect(() => addMockFunctionsToSchema())
+    expect(() => (<any> addMockFunctionsToSchema)({}))
                   .to.throw('Must provide schema to mock');
   });
 
   it('throws an error if second argument is not a Map', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
-    expect(() => addMockFunctionsToSchema({ schema: jsSchema, mocks: ['a'] }))
+    expect(() => (<any> addMockFunctionsToSchema)({ schema: jsSchema, mocks: ['a'] }))
                   .to.throw('mocks must be of type Object');
   });
 
   it('throws an error if mockFunctionMap contains a non-function thingy', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = { Int: 55 };
-    expect(() => addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap }))
+    expect(() => (<any> addMockFunctionsToSchema)({ schema: jsSchema, mocks: mockMap }))
                   .to.throw('mockFunctionMap[Int] must be a function');
   });
 
@@ -144,7 +146,7 @@ describe('Mock', () => {
       Bird: () => ({ returnInt: () => 54321 }),
       Bee: () => ({ returnInt: () => 54321 }),
     };
-    return mockServer(shorthand, mockMap).query(testQuery).then((res) => {
+    return mockServer(shorthand, mockMap).query(testQuery).then((res: any) => {
       expect(res.data.returnInt).to.equal(12345);
       expect(res.data.returnFloat).to.be.a('number').within(-1000, 1000);
       expect(res.data.returnBoolean).to.be.a('boolean');
@@ -161,7 +163,7 @@ describe('Mock', () => {
     let spy = 0;
     const resolvers = {
       BirdsAndBees: {
-        __resolveType(data, context, info) {
+        __resolveType(data: any, context: any, info: GraphQLResolveInfo) {
           ++spy;
           return info.schema.getType(data.typename);
         },
@@ -286,7 +288,7 @@ describe('Mock', () => {
     }`;
     const expected = 'No mock defined for type "MissingMockType"';
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.errors[0].originalError.message).to.equal(expected);
+      expect((<any> res.errors[0]).originalError.message).to.equal(expected);
     });
   });
 
@@ -348,7 +350,7 @@ describe('Mock', () => {
   });
   it('nullable type is nullable', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
-    const mockMap = { String: () => null };
+    const mockMap = { String: (): null => null };
     addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
     const testQuery = `{
       returnNullableString
@@ -370,7 +372,7 @@ describe('Mock', () => {
   });
   it('nonNull type is not nullable', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
-    const mockMap = { String: () => null };
+    const mockMap = { String: (): null => null };
     addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
     const testQuery = `{
       returnNonNullString
@@ -438,9 +440,9 @@ describe('Mock', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {
       RootQuery: () => ({
-        returnInt: (root, args) => 42,    // a) in resolvers, will not be used
-        returnFloat: (root, args) => 1.3, // b) not in resolvers, will be used
-        returnString: (root, args) => Promise.resolve('foo'), // c) in resolvers, will not be used
+        returnInt: (root: any, args: { [key: string]: any }) => 42,    // a) in resolvers, will not be used
+        returnFloat: (root: any, args: { [key: string]: any }) => 1.3, // b) not in resolvers, will be used
+        returnString: (root: any, args: { [key: string]: any }) => Promise.resolve('foo'), // c) in resolvers, will not be used
       }),
     };
     const resolvers = {
@@ -761,7 +763,7 @@ describe('Mock', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const resolvers = {
       RootQuery: {
-        returnString: () => null, // a) resolve of a string
+        returnString: (): string => null, // a) resolve of a string
       },
     };
     addResolveFunctionsToSchema(jsSchema, resolvers);
@@ -785,7 +787,7 @@ describe('Mock', () => {
         returnInt: 666,              // from the mock, see b)
         returnString: 'Hello World', // from mock default values.
       },
-      returnString: null,    /// from the mock, see a)
+      returnString: null as string,    /// from the mock, see a)
     };
     return graphql(jsSchema, testQuery, undefined, {}).then((res) => {
       expect(res.data).to.deep.equal(expected);
@@ -795,7 +797,7 @@ describe('Mock', () => {
   it('lets you mock root query fields', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {
-      RootQuery: () => ({ returnStringArgument: (o, a) => a.s }),
+      RootQuery: () => ({ returnStringArgument: (o: any, a: { [key: string]: any }) => a['s'] }),
     };
     addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
     const testQuery = `{
@@ -812,7 +814,7 @@ describe('Mock', () => {
   it('lets you mock root mutation fields', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {
-      RootMutation: () => ({ returnStringArgument: (o, a) => a.s }),
+      RootMutation: () => ({ returnStringArgument: (o: any, a: { [key: string]: any }) => a['s'] }),
     };
     addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
     const testQuery = `mutation {
@@ -864,7 +866,7 @@ describe('Mock', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {
       RootQuery: () => ({
-        returnListOfIntArg: (o, a) => new MockList(a.l),
+        returnListOfIntArg: (o: any, a: { [key: string]: any }) => new MockList(a['l']),
       }),
       Int: () => 12,
     };
@@ -900,7 +902,7 @@ describe('Mock', () => {
   });
 
   it('throws an error if the second argument to MockList is not a function', () => {
-    expect(() => new MockList(5, 'abc'))
+    expect(() => new (<any> MockList)(5, 'abc'))
                   .to.throw('Second argument to MockList must be a function or undefined');
   });
 
@@ -928,7 +930,7 @@ describe('Mock', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {
       RootQuery: () => ({
-        returnListOfListOfIntArg: () => new MockList(2, (o, a) => new MockList(a.l)),
+        returnListOfListOfIntArg: () => new MockList(2, (o: any, a: { [key: string]: any }) => new MockList(a['l'])),
       }),
       Int: () => 12,
     };
@@ -981,13 +983,13 @@ describe('Mock', () => {
     // unintuitive corner-cases
     const mockMap = {
       RootQuery: () => ({
-        thread: (o, a) => ({ id: a.id }),
-        threads: (o, a) => new MockList(ITEMS_PER_PAGE * a.num),
+        thread: (o: any, a: { [key: string]: any }) => ({ id: a['id'] }),
+        threads: (o: any, a: { [key: string]: any }) => new MockList(ITEMS_PER_PAGE * a['num']),
       }),
       Thread: () => ({
         name: 'Lorem Ipsum',
-        posts: (o, a) => (
-          new MockList(ITEMS_PER_PAGE * a.num, (oi, ai) => ({ id: ai.num }))
+        posts: (o: any, a: { [key: string]: any }) => (
+          new MockList(ITEMS_PER_PAGE * a['num'], (oi: any, ai: { [key: string]: any }) => ({ id: ai['num'] }))
         ),
       }),
       Post: () => ({

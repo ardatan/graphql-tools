@@ -1,4 +1,3 @@
-/* eslint no-param-reassign: 0 */
 import { DiscourseContext } from './discourse-context';
 
 const API_ROOT = 'https://meta.discourse.org';
@@ -9,9 +8,9 @@ const API_ROOT = 'https://meta.discourse.org';
 
 const resolvers = {
   Post: {
-    topic: (root, args, context) => (
+    topic: (root: any, args: { [key: string]: any }, context: any) => (
       context.rootValue.loadContext._fetchEndpoint(
-        { url: ({ id }) => `/t/${id}` },
+        { url: ({ id }: { id: string }) => `/t/${id}` },
         { id: root.topic_id }
       )
     ),
@@ -23,16 +22,18 @@ const resolvers = {
       id: ({ category_id }) => category_id,
     }), */
     category: () => { throw new Error('No endpoint defined to fetch one cat'); },
-    posts: (root, args, context) => (
+    posts: (root: any, args: { [key: string]: any }, context: any) => (
       context.rootValue.loadContext._fetchEndpoint({
-        url: ({ id }) => `/t/${id}.json`,
-        map: (data) => ({ posts: data.post_stream.stream, topicId: data.id }),
+        url: ({ id }: { id: string }) => `/t/${id}.json`,
+        map: (data: any) => ({ posts: data.post_stream.stream, topicId: data.id }),
       }, { id: root.id })
     ),
   },
 
   PaginatedPostList: {
-    pages: ({ posts, topicId }, args, context) => (
+    pages: ({ posts, topicId }: { posts: string[], topicId: string },
+            args: { [key: string]: any },
+            context: any) => (
       // XXX I don't like having to pass the topic id through. it's messy
       context.rootValue.loadContext.getPaginatedPosts(posts, args, topicId)
     ),
@@ -46,10 +47,10 @@ const resolvers = {
   }, */
 
   Category: {
-    latest_topics: (category, args, context) => (
+    latest_topics: (category: { id: string }, args: { [key: string]: any }, context: any) => (
       context.rootValue.loadContext.getPagesWithParams(`/c/${category.id}`, args)
     ),
-    new_topics: (category, args, context) => (
+    new_topics: (category: { id: string }, args: { [key: string]: any }, context: any) => (
       context.rootValue.loadContext.getPagesWithParams(
         `/c/${category.id}/l/new`,
         args,
@@ -76,44 +77,44 @@ const resolvers = {
   },
 
   AuthenticatedQuery: {
-    latest: (_, args, context) => context.rootValue.loadContext.getPagesWithParams('/latest', args),
+    latest: (_: any, args: { [key: string]: any }, context: any) => context.rootValue.loadContext.getPagesWithParams('/latest', args),
     // unread doesn't work? returns empty array...
-    unread: (_, args, context) => context.rootValue.loadContext.getPagesWithParams('/unread', args),
-    new: (_, args, context) => context.rootValue.loadContext.getPagesWithParams('/new', args),
-    top: (_, args, context) => {
-      const url = args.period ? `/top/${args.period}` : '/top';
+    unread: (_: any, args: { [key: string]: any }, context: any) => context.rootValue.loadContext.getPagesWithParams('/unread', args),
+    new: (_: any, args: { [key: string]: any }, context: any) => context.rootValue.loadContext.getPagesWithParams('/new', args),
+    top: (_: any, args: { [key: string]: any }, context: any) => {
+      const url = args['period'] ? `/top/${args['period']}` : '/top';
       return context.rootValue.loadContext.getPagesWithParams(url, args);
     },
 
     // I assume this doesn't actually work. It takes no arguments
-    allPosts: (_, args, { rootValue }) => (
+    allPosts: (_: any, args: { [key: string]: any }, { rootValue }: { rootValue: any }) => (
       rootValue.loadContext._fetchEndpoint({
         url: '/posts',
-        map: (data) => data.latest_posts,
+        map: (data: any) => data.latest_posts,
       }, args)
     ),
-    /* allTopics: (_, args, { rootValue }) => {
+    /* allTopics: (_: any, args: { [key: string]: any }, { rootValue }) => {
       rootValue.loadContext._fetchEndpoint(info.indexEndpoint, args);
     }, */
     // I assume this doesn't actually work. It takes no arguments ...
-    allCategories: (_, args, { rootValue }) => (
+    allCategories: (_: any, args: { [key: string]: any }, { rootValue }: { rootValue: any }) => (
       rootValue.loadContext._fetchEndpoint({
         url: '/categories',
-        map: (data) => data.category_list.categories,
+        map: (data: any) => data.category_list.categories,
       }, args)
     ),
     allTopics() {
       throw new Error('AuthenticatedQuery.oneCategory not implemented');
     },
 
-    onePost: (_, args, context) => (
+    onePost: (_: any, args: { [key: string]: any }, context: any) => (
       context.rootValue.loadContext._fetchEndpoint({
-        url: ({ id }) => `/posts/${id}`,
+        url: ({ id }: { id: string }) => `/posts/${id}`,
       }, args)
     ),
-    oneTopic: (_, args, context) => (
+    oneTopic: (_: any, args: { [key: string]: any }, context: any) => (
       context.rootValue.loadContext._fetchEndpoint({
-        url: ({ id }) => `/t/${id}`,
+        url: ({ id }: { id: string }) => `/t/${id}`,
       }, args)
     ),
     oneCategory() {
@@ -123,9 +124,9 @@ const resolvers = {
   },
 
   RootQuery: {
-    root: (_, args, context) => {
+    root: (_: any, args: { [key: string]: any }, context: any) => {
       context.rootValue.loadContext = new DiscourseContext({
-        loginToken: args.token,
+        loginToken: args['token'],
         apiRoot: API_ROOT,
       });
       return {};
@@ -134,21 +135,21 @@ const resolvers = {
 
   // TODO this is waaaaay too long.
   RootMutation: {
-    login: (_, args, context) => {
+    login: (_: any, args: { [key: string]: any }, context: any) => {
       context.rootValue.loadContext = new DiscourseContext({
         apiRoot: API_ROOT,
       });
 
-      return context.rootValue.loadContext.getLoginToken(args.username, args.password);
+      return context.rootValue.loadContext.getLoginToken(args['username'], args['password']);
     },
 
-    createPost: (_, args, context) => {
+    createPost: (_: any, args: { [key: string]: any }, context: any) => {
       context.rootValue.loadContext = new DiscourseContext({
-        loginToken: args.token,
+        loginToken: args['token'],
         apiRoot: API_ROOT,
       });
 
-      delete args.token;
+      delete args['token'];
       return context.rootValue.loadContext.createPost(args);
     },
   },
