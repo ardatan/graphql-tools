@@ -310,7 +310,8 @@ function assertResolveFunctionsPresent(schema, resolverValidationOptions = {}) {
 
 function expectResolveFunction(field, typeName, fieldName) {
   if (!field.resolve) {
-    throw new SchemaError(`Resolve function missing for "${typeName}.${fieldName}"`);
+    console.warn(`Resolve function missing for "${typeName}.${fieldName}". To disable this warning check https://github.com/apollostack/graphql-tools/issues/131`);
+    return;
   }
   if (typeof field.resolve !== 'function') {
     throw new SchemaError(`Resolver "${typeName}.${fieldName}" must be a function`);

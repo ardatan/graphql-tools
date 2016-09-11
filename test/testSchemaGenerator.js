@@ -527,7 +527,7 @@ describe('generating schema from shorthand', () => {
     return resultPromise.then(result => assert.deepEqual(result, solution));
   });
 
-  it('throws an error if a field has arguments but no resolve func', () => {
+  it('shows a warning if a field has arguments but no resolve func', () => {
     const short = `
     type Query{
       bird(id: ID): String
@@ -538,7 +538,12 @@ describe('generating schema from shorthand', () => {
 
     const rf = { Query: {} };
 
-    assert.throws(() => makeExecutableSchema({ typeDefs: short, resolvers: rf }), SchemaError);
+    let warning = null;
+    console.warn = function warn(message) {
+      warning = message;
+    };
+    makeExecutableSchema({ typeDefs: short, resolvers: rf });
+    assert.notEqual(warning, null);
   });
 
   it('does not throw an error if `resolverValidationOptions.requireResolversForArgs` is false', () => { // eslint-disable-line max-len
@@ -586,7 +591,7 @@ describe('generating schema from shorthand', () => {
     assert.throws(() => makeExecutableSchema({ typeDefs: short, resolvers: rf }), SchemaError);
   });
 
-  it('throws an error if a field is not scalar, but has no resolve func', () => {
+  it('shows a warning if a field is not scalar, but has no resolve func', () => {
     const short = `
     type Bird{
       id: ID
@@ -600,7 +605,12 @@ describe('generating schema from shorthand', () => {
 
     const rf = {};
 
-    assert.throws(() => makeExecutableSchema({ typeDefs: short, resolvers: rf }), SchemaError);
+    let warning = null;
+    console.warn = function warn(message) {
+      warning = message;
+    };
+    makeExecutableSchema({ typeDefs: short, resolvers: rf });
+    assert.notEqual(warning, null);
   });
 
   it('allows non-scalar field to use default resolve func if `resolverValidationOptions.requireResolversForNonScalar` = false', () => { // eslint-disable-line max-len
@@ -665,7 +675,18 @@ describe('generating schema from shorthand', () => {
     }`;
 
     function assertFieldError(errorMatcher, resolvers) {
-      assert.throws(() => makeExecutableSchema({ typeDefs, resolvers, resolverValidationOptions: { requireResolversForAllFields: true } }), SchemaError, errorMatcher); // eslint-disable-line max-len
+      let warning = null;
+      console.warn = function warn(message) {
+        warning = message;
+      };
+      makeExecutableSchema({
+        typeDefs,
+        resolvers,
+        resolverValidationOptions: {
+          requireResolversForAllFields: true,
+        },
+      });
+      assert.notEqual(warning, null);
     }
 
     assertFieldError(null, {});
