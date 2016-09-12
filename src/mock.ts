@@ -221,8 +221,9 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
 
     // we have to handle the root mutation and root query types differently,
     // because no resolver is called at the root.
-    const isOnQueryType: boolean = typeName === (<any> schema.getQueryType() || {}).name;
-    const isOnMutationType: boolean = typeName === (<any> schema.getMutationType() || {}).name;
+    /* istanbul ignore next: Must provide schema definition with query type or a type named Query. */
+    const isOnQueryType: boolean = schema.getQueryType() ? (schema.getQueryType().name === typeName) : false;
+    const isOnMutationType: boolean = schema.getMutationType() ? (schema.getMutationType().name === typeName) : false;
 
     if (isOnQueryType || isOnMutationType) {
       if (mockFunctionMap.has(typeName)) {
