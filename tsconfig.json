@@ -18,7 +18,7 @@
 		],
 		"types": [
 			"@types/node",
-			"graphql-typings"
+			"typed-graphql"
 		]
 	},
 	"exclude": [
