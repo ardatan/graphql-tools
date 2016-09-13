@@ -5,6 +5,8 @@ import {
     GraphQLResult,
     GraphQLType,
     GraphQLFieldResolveFn,
+    GraphQLIsTypeOfFn,
+    GraphQLTypeResolveFn,
     GraphQLObjectType,
 } from 'graphql';
 
@@ -18,14 +20,12 @@ export interface IResolverValidationOptions {
 
 export interface IResolverOptions {
     resolve?: GraphQLFieldResolveFn;
-    __resolveType?: IResolveTypeFn;
-    __isTypeOf?: IIsTypeOfFn;
+    __resolveType?: GraphQLTypeResolveFn;
+    __isTypeOf?: GraphQLIsTypeOfFn;
 };
 
 export type ITypedef = (() => ITypedef[]) | string;
 export type ITypeDefinitions = ITypedef | ITypedef[];
-export type IIsTypeOfFn = (value: any, info?: GraphQLResolveInfo) => boolean;
-export type IResolveTypeFn = (value: any, info?: GraphQLResolveInfo) => GraphQLObjectType;
 export type IResolverObject = { [key: string]: GraphQLFieldResolveFn | IResolverOptions };
 export interface IResolvers {
     [key: string]: (() => any) | IResolverObject;
@@ -53,6 +53,7 @@ export interface IExecutableSchemaDefinition {
 
 export type IFieldIteratorFn = (fieldDef: GraphQLFieldDefinition, typeName: string, fieldName: string) => void;
 
+/* XXX on mocks, args are optional, Not sure if a bug. */
 export type IMockFn = GraphQLFieldResolveFn;
 export type IMocks = { [key: string]: IMockFn };
 export type IMockTypeFn = (type: GraphQLType, typeName?: string, fieldName?: string) => GraphQLFieldResolveFn;

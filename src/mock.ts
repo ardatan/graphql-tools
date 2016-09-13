@@ -102,7 +102,7 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
   // and completes the customMock object with any fields
   // defined on genericMock
   // only merges objects or arrays. Scalars are returned as is
-  function mergeMocks(genericMockFunction: IMockFn, customMock: any): any {
+  function mergeMocks(genericMockFunction: () => any, customMock: any): any {
     if (Array.isArray(customMock)) {
       return customMock.map((el: any) => mergeMocks(genericMockFunction, el));
     }
@@ -134,10 +134,7 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
         namedFieldType instanceof GraphQLInterfaceType) {
       // the default `resolveType` always returns null. We add a fallback
       // resolution that works with how unions and interface are mocked
-      namedFieldType.resolveType = (data: any, context: any, info?: GraphQLResolveInfo) => {
-        if ( undefined === info ) {
-            throw new Error(`no info provided for resolveType`);
-        }
+      namedFieldType.resolveType = (data: any, context: any, info: GraphQLResolveInfo) => {
         return info.schema.getType(data.typename) as GraphQLObjectType;
       };
     }
@@ -230,14 +227,15 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
     if (isOnQueryType || isOnMutationType) {
       if (mockFunctionMap.has(typeName)) {
         const rootMock = mockFunctionMap.get(typeName);
-        if (rootMock()[fieldName]) {
+        // XXX: BUG in here, need to provide proper signature for rootMock.
+        if (rootMock(undefined, {}, {}, {} as any)[fieldName]) {
           // TODO: assert that it's a function
           mockResolver = (root: any,
                           args: { [key: string]: any },
                           context: any,
                           info: GraphQLResolveInfo) => {
             const updatedRoot = root || {}; // TODO: should we clone instead?
-            updatedRoot[fieldName] = rootMock()[fieldName];
+            updatedRoot[fieldName] = rootMock(root, args, context, info)[fieldName];
             // XXX this is a bit of a hack to still use mockType, which
             // lets you mock lists etc. as well
             // otherwise we could just set field.resolve to rootMock()[fieldName]
