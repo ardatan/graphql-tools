@@ -33,11 +33,11 @@
   "homepage": "https://github.com/apollostack/apollo-proxy#readme",
   "dependencies": {
     "lodash.uniq": "^4.3.0",
-    "node-uuid": "^1.4.7"
+    "node-uuid": "^1.4.7",
+    "graphql-typings": "^0.0.1-beta-2"
   },
   "peerDependencies": {
-    "graphql": "^0.5.0 || ^0.6.0 || ^0.7.0",
-    "graphql-typings": "^0.0.1-beta-2"
+    "graphql": "^0.5.0 || ^0.6.0 || ^0.7.0"
   },
   "devDependencies": {
     "babel-cli": "^6.6.5",
