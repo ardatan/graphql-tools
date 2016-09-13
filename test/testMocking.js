@@ -1024,6 +1024,50 @@ describe('Mock', () => {
     });
   });
 
+  it('inherits object prototype for objects', () => {
+    const short = `
+      type Thread {
+        id: ID!
+        name: String!
+      }
+
+      type RootQuery {
+        thread(id: ID): Thread
+      }
+
+      schema {
+        query: RootQuery
+      }
+    `;
+    const jsSchema = buildSchemaFromTypeDefinitions(short);
+    const mockMap = {
+      RootQuery: () => ({
+        thread: (o, a) => ({ id: a.id }),
+      }),
+      Thread: () => ({
+        name: 'Lorem Ipsum',
+      }),
+    };
+    addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
+    const testQuery = `query abc{
+      thread(id: "67"){
+        id
+        name
+      }
+    }`;
+    const expected = {
+      thread: {
+        id: '67',
+        name: 'Lorem Ipsum',
+      },
+    };
+    return graphql(jsSchema, testQuery).then((res) => {
+      expect(Object.getPrototypeOf(res.data.thread)).to.deep.equal(
+        Object.getPrototypeOf(expected)
+      );
+    });
+  });
+
   // TODO add a test that checks that even when merging defaults, lists invoke
   // the function for every object, not just once per list.
 
