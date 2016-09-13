@@ -252,6 +252,15 @@ function addSchemaLevelResolveFunction(schema: GraphQLSchema, fn: GraphQLFieldRe
   });
 }
 
+function getFieldsForType(type: GraphQLType): GraphQLFieldDefinitionMap {
+    if ((type instanceof GraphQLObjectType) ||
+        (type instanceof GraphQLInterfaceType)) {
+        return type.getFields();
+    } else {
+        return undefined;
+    }
+}
+
 function addResolveFunctionsToSchema(schema: GraphQLSchema, resolveFunctions: IResolvers) {
   Object.keys(resolveFunctions).forEach((typeName) => {
     const type = schema.getType(typeName);
@@ -269,12 +278,19 @@ function addResolveFunctionsToSchema(schema: GraphQLSchema, resolveFunctions: IR
         return;
       }
 
-      if (!(<any> type).getFields()[fieldName]) {
+      const fields = getFieldsForType(type);
+      if (!fields) {
+          throw new SchemaError(
+              `${typeName} was defined in resolvers, but it's not an object`,
+          );
+      }
+
+      if (!fields[fieldName]) {
         throw new SchemaError(
           `${typeName}.${fieldName} defined in resolvers, but not in schema`
         );
       }
-      const field = (<any> type).getFields()[fieldName];
+      const field = fields[fieldName];
       const fieldResolve = resolveFunctions[typeName][fieldName];
       if (typeof fieldResolve === 'function') {
         // for convenience. Allows shorter syntax in resolver definition file

@@ -660,6 +660,35 @@ describe('generating schema from shorthand', () => {
     assert.doesNotThrow(makeExecutableSchema.bind(null, { typeDefs: short, resolvers: rf, resolverValidationOptions: { requireResolversForNonScalar: false } }), SchemaError);
   });
 
+  it('throws if resolver defined for non-object/interface type', () => {
+    const short = `
+      union Searchable = Person | Location
+      type Person {
+        name: String
+        age: Int
+      }
+      type Location {
+        name: String
+        coordinates: String
+      }
+      type RootQuery {
+        search(name: String): [Searchable]
+      }
+      schema {
+        query: RootQuery
+      }
+    `;
+
+    const rf = {
+        Searchable: {
+            name: () => 'Something',
+        },
+    };
+
+    expect(() => makeExecutableSchema({ typeDefs: short, resolvers: rf }))
+    .to.throw(`Searchable was defined in resolvers, but it's not an object`);
+  });
+
   it('throws if conflicting validation options are passed', () => {
     const typeDefs = `
     type Bird {
