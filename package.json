@@ -20,7 +20,7 @@
     "watch": "tsc -w",
     "testonly": "mocha --compilers js:babel-core/register --reporter spec --full-trace ./dist/test/tests.js",
     "coverage": "babel-node ./node_modules/istanbul/lib/cli.js cover _mocha -- --full-trace ./dist/test/tests.js",
-    "postcoverage": "remap-istanbul --input coverage/coverage.raw.json --type lcovonly --output coverage/lcov.info",
+    "postcoverage": "remap-istanbul --input coverage/coverage.json --type lcovonly --output coverage/lcov.info",
     "prepublish": "npm run compile"
   },
   "repository": {
@@ -71,7 +71,7 @@
     "express3": "0.0.0",
     "fs": "0.0.2",
     "graphql": "^0.7.0",
-    "istanbul": "1.0.0-alpha.2",
+    "istanbul": "^0.4.5",
     "lodash": "^4.10.0",
     "mocha": "^3.0.1",
     "multer": "^1.0.3",
