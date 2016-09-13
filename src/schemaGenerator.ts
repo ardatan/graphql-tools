@@ -221,8 +221,10 @@ const attachConnectorsToContext = deprecated<Function>({
       let connector: IConnector = connectors[connectorName];
       if ( !!connector.prototype ) {
           ctx.connectors[connectorName] = new (<IConnectorCls> connector)(ctx);
+      /** XXX Babel will eliminate this flow.
       } else if ( typeof connector === 'function' ) {
           ctx.connectors[connectorName] = (<IConnectorFn> connector)(ctx);
+      */
       } else {
           throw new Error(`Connector must be a function or an class`);
       }
