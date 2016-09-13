@@ -200,17 +200,17 @@ export class DiscourseContext {
   }
 
   // XXX why not just chain the promises?
-  private getCSRFAndCookieThen(callback: (csrf: string, cookie: string) => any): Promise<any> {
-    return rp({
+  private async getCSRFAndCookieThen(callback: (csrf: string, cookie: string) => any): Promise<any> {
+      let res: IResponse = await rp({
       uri: `${this.apiRoot}/session/csrf.json`,
       json: true,
       resolveWithFullResponse: true,
-    }).then((res: IResponse) => {
+      });
+
       const cookie = this.getForumCookie(res);
       const csrf = res.body.csrf;
 
       return callback(csrf, cookie);
-    });
   }
 }
 
