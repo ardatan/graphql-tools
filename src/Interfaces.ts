@@ -4,6 +4,7 @@ import {
     GraphQLResolveInfo,
     GraphQLResult,
     GraphQLType,
+    GraphQLFieldResolveFn,
 } from 'graphql';
 
 /* TODO: Add documentation */
@@ -17,8 +18,7 @@ export interface IResolverValidationOptions {
 export type ITypedef = (() => ITypedef[]) | string;
 export type ITypeDefinitions = ITypedef | ITypedef[];
 export type IResolveTypeFn = (data: any, context: any, info: GraphQLResolveInfo) => any;
-export type IResolveFn = (rootObject?: any, args?: { [key: string]: any }, context?: any, info?: GraphQLResolveInfo) => any;
-export type IResolverObject = { [key: string]: IResolveFn | {resolve?: IResolveFn, __resolveType?: IResolveTypeFn}};
+export type IResolverObject = { [key: string]: GraphQLFieldResolveFn | {resolve?: GraphQLFieldResolveFn, __resolveType?: IResolveTypeFn}};
 export interface IResolvers {
     [key: string]: (() => any) | IResolverObject;
 };
@@ -45,9 +45,9 @@ export interface IExecutableSchemaDefinition {
 
 export type IFieldIteratorFn = (fieldDef: GraphQLFieldDefinition, typeName: string, fieldName: string) => void;
 
-export type IMockFn = IResolveFn;
+export type IMockFn = GraphQLFieldResolveFn;
 export type IMocks = { [key: string]: IMockFn };
-export type IMockTypeFn = (type: GraphQLType, typeName?: string, fieldName?: string) => IResolveFn;
+export type IMockTypeFn = (type: GraphQLType, typeName?: string, fieldName?: string) => GraphQLFieldResolveFn;
 
 export interface IMockOptions {
     schema: GraphQLSchema;

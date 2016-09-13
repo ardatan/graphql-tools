@@ -11,12 +11,13 @@ import {
   getNullableType,
   getNamedType,
   GraphQLNamedType,
+  GraphQLFieldResolveFn,
 } from 'graphql';
 import { graphql } from 'graphql';
 import * as uuid from 'node-uuid';
 import { forEachField, buildSchemaFromTypeDefinitions } from './schemaGenerator';
 
-import { IMocks, IMockServer, IMockOptions , IMockFn , IResolveFn , IMockTypeFn , ITypeDefinitions } from './Interfaces';
+import { IMocks, IMockServer, IMockOptions , IMockFn , IMockTypeFn , ITypeDefinitions } from './Interfaces';
 
 // This function wraps addMockFunctionsToSchema for more convenience
 function mockServer(schema: GraphQLSchema | ITypeDefinitions, mocks: IMocks, preserveResolvers: boolean = false): IMockServer {
@@ -142,7 +143,7 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
     }
   }
 
-  const mockType = function mockType(type: GraphQLType, typeName?: string, fieldName?: string): IResolveFn {
+  const mockType = function mockType(type: GraphQLType, typeName?: string, fieldName?: string): GraphQLFieldResolveFn {
     // order of precendence for mocking:
     // 1. if the object passed in already has fieldName, just use that
     // --> if it's a function, that becomes your resolver
@@ -219,7 +220,7 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
 
   forEachField(schema, (field: GraphQLFieldDefinition, typeName: string, fieldName: string) => {
     assignResolveType(field.type);
-    let mockResolver: IResolveFn;
+    let mockResolver: GraphQLFieldResolveFn;
 
     // we have to handle the root mutation and root query types differently,
     // because no resolver is called at the root.
@@ -273,10 +274,10 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
 
 class MockList {
   private len: number | number[];
-  private wrappedFunction: IResolveFn;
+  private wrappedFunction: GraphQLFieldResolveFn;
 
   // wrappedFunction can return another MockList or a value
-  constructor(len: number | number[], wrappedFunction?: IResolveFn) {
+  constructor(len: number | number[], wrappedFunction?: GraphQLFieldResolveFn) {
     this.len = len;
     if (typeof wrappedFunction !== 'undefined') {
       if (typeof wrappedFunction !== 'function') {

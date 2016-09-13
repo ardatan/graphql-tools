@@ -13,6 +13,7 @@ import {
   GraphQLSchema,
   GraphQLResolveInfo,
   GraphQLFieldDefinition,
+  GraphQLFieldResolveFn,
 } from 'graphql';
 import {
     IExecutableSchemaDefinition ,
@@ -25,7 +26,6 @@ import {
     IConnector,
     IConnectorCls,
     IConnectorFn,
-    IResolveFn,
     IResolverValidationOptions,
 } from './Interfaces';
 
@@ -90,7 +90,7 @@ function makeExecutableSchema({
   if (typeof resolvers['__schema'] === 'function') {
     // TODO a bit of a hack now, better rewrite generateSchema to attach it there.
     // not doing that now, because I'd have to rewrite a lot of tests.
-    addSchemaLevelResolveFunction(jsSchema, (<any> resolvers['__schema']) as IResolveFn);
+    addSchemaLevelResolveFunction(jsSchema, (<any> resolvers['__schema']) as GraphQLFieldResolveFn);
   }
   if (connectors) {
     // connectors are optional, at least for now. That means you can just import them in the resolve
@@ -199,7 +199,7 @@ function attachConnectorsToContext(schema: GraphQLSchema, connectors: IConnector
     throw new Error('Connectors already attached to context, cannot attach more than once');
   }
   schema['_apolloConnectorsAttached'] = true;
-  const attachconnectorFn: IResolveFn = (root: any, args: { [key: string]: any }, ctx: any) => {
+  const attachconnectorFn: GraphQLFieldResolveFn = (root: any, args: { [key: string]: any }, ctx: any) => {
     if (typeof ctx !== 'object') {
       // if in any way possible, we should throw an error when the attachconnectors
       // function is called, not when a query is executed.
@@ -226,7 +226,7 @@ function attachConnectorsToContext(schema: GraphQLSchema, connectors: IConnector
 
 // wraps all resolve functions of query, mutation or subscription fields
 // with the provided function to simulate a root schema level resolve funciton
-function addSchemaLevelResolveFunction(schema: GraphQLSchema, fn: IResolveFn): void {
+function addSchemaLevelResolveFunction(schema: GraphQLSchema, fn: GraphQLFieldResolveFn): void {
   // TODO test that schema is a schema, fn is a function
   const rootTypes = ([
     schema.getQueryType(),
@@ -344,7 +344,7 @@ function addErrorLoggingToSchema(schema: GraphQLSchema, logger: ILogger): void {
   });
 }
 
-function wrapResolver(innerResolver: IResolveFn | undefined, outerResolver: IResolveFn): IResolveFn {
+function wrapResolver(innerResolver: GraphQLFieldResolveFn | undefined, outerResolver: GraphQLFieldResolveFn): GraphQLFieldResolveFn {
   return (obj, args, ctx, info) => {
     const root = outerResolver(obj, args, ctx, info);
     if (innerResolver) {
@@ -358,7 +358,7 @@ function wrapResolver(innerResolver: IResolveFn | undefined, outerResolver: IRes
  * logger: an object instance of type Logger
  * hint: an optional hint to add to the error's message
  */
-function decorateWithLogger(fn: IResolveFn, logger: ILogger, hint: string = ''): IResolveFn {
+function decorateWithLogger(fn: GraphQLFieldResolveFn, logger: ILogger, hint: string = ''): GraphQLFieldResolveFn {
   if (typeof fn === 'undefined') {
     fn = defaultResolveFn;
   }
@@ -388,7 +388,7 @@ function addCatchUndefinedToSchema(schema: GraphQLSchema): void {
   });
 }
 
-function decorateToCatchUndefined(fn: IResolveFn, hint: string): IResolveFn {
+function decorateToCatchUndefined(fn: GraphQLFieldResolveFn, hint: string): GraphQLFieldResolveFn {
   if (typeof fn === 'undefined') {
     fn = defaultResolveFn;
   }
@@ -407,7 +407,7 @@ function decorateToCatchUndefined(fn: IResolveFn, hint: string): IResolveFn {
 // if people don't actually cache the operation.
 // if they do cache the operation, they will have to
 // manually remove the __runAtMostOnce before every request.
-function runAtMostOncePerRequest(fn: IResolveFn): IResolveFn {
+function runAtMostOncePerRequest(fn: GraphQLFieldResolveFn): GraphQLFieldResolveFn {
   let value: any;
   const randomNumber = Math.random();
   return (root, args, ctx, info) => {
