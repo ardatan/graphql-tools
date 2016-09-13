@@ -757,6 +757,41 @@ describe('Mock', () => {
     });
   });
 
+  it('let you resolve null with mocking and preserving resolvers', () => {
+    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    const resolvers = {
+      RootQuery: {
+        returnString: () => null, // a) resolve of a string
+      },
+    };
+    addResolveFunctionsToSchema(jsSchema, resolvers);
+    const mockMap = {
+      Int: () => 666, // b) mock of Int.
+    };
+    addMockFunctionsToSchema({
+      schema: jsSchema,
+      mocks: mockMap,
+      preserveResolvers: true,
+    });
+    const testQuery = `{
+      returnObject {
+        returnInt
+        returnString
+      }
+      returnString
+    }`;
+    const expected = {
+      returnObject: {
+        returnInt: 666,              // from the mock, see b)
+        returnString: 'Hello World', // from mock default values.
+      },
+      returnString: null,    /// from the mock, see a)
+    };
+    return graphql(jsSchema, testQuery, undefined, {}).then((res) => {
+      expect(res.data).to.deep.equal(expected);
+    });
+  });
+
   it('lets you mock root query fields', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {
