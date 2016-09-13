@@ -32,6 +32,7 @@ import {
   IConnectorFn,
   IResolverValidationOptions,
 } from './Interfaces';
+import { deprecated } from "deprecated-decorator";
 
 // @schemaDefinition: A GraphQL type schema in shorthand
 // @resolvers: Definitions for resolvers to be merged with schema
@@ -175,7 +176,10 @@ function forEachField(schema: GraphQLSchema, fn: IFieldIteratorFn): void {
 // the connectors to the context by wrapping each query or mutation resolve
 // function with a function that attaches connectors if they don't exist.
 // attaches connectors only once to make sure they are singletons
-function attachConnectorsToContext(schema: GraphQLSchema, connectors: IConnectors): void {
+const attachConnectorsToContext = deprecated<Function>({
+    version: '0.7.0',
+    url: 'https://github.com/apollostack/graphql-tools/issues/140',
+}, function attachConnectorsToContext(schema: GraphQLSchema, connectors: IConnectors): void {
   if (!schema || !(schema instanceof GraphQLSchema)) {
     throw new Error(
       'schema must be an instance of GraphQLSchema. ' +
@@ -226,7 +230,7 @@ function attachConnectorsToContext(schema: GraphQLSchema, connectors: IConnector
     return root;
   };
   addSchemaLevelResolveFunction(schema, attachconnectorFn);
-}
+});
 
 // wraps all resolve functions of query, mutation or subscription fields
 // with the provided function to simulate a root schema level resolve funciton
