@@ -18,8 +18,8 @@
     "posttest": "npm run lint",
     "lint": "tslint ./src/**/*.ts",
     "watch": "tsc -w",
-    "testonly": "mocha --compilers js:babel-core/register --reporter spec --full-trace ./dist/test/tests.js",
-    "coverage": "babel-node ./node_modules/istanbul/lib/cli.js cover _mocha -- --full-trace ./dist/test/tests.js",
+    "testonly": "mocha --reporter spec --full-trace ./dist/test/tests.js",
+    "coverage": "babel-node ./node_modules/istanbul/lib/cli.js cover _mocha -- --reporter dot --full-trace ./dist/test/tests.js",
     "postcoverage": "remap-istanbul --input coverage/coverage.json --type lcovonly --output coverage/lcov.info",
     "prepublish": "npm run compile"
   },

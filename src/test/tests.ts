@@ -1,3 +1,4 @@
+import 'babel-core/register';
 import 'babel-polyfill';
 require('source-map-support').install();
 
