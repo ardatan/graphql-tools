@@ -1,14 +1,15 @@
 language: node_js
 node_js:
   - "6.2"
-  - "5.1"
   - "4.4"
 install:
+  - npm config set spin=false
   - npm install -g coveralls
   - npm install
 
 script:
   - npm test
+  - npm run coverage
   - coveralls < ./coverage/lcov.info || true # if coveralls doesn't have it covered
 
 # Allow Travis tests to run in containers.

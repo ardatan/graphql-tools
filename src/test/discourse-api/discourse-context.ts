@@ -1,5 +1,7 @@
-import rp from 'request-promise';
-import DataLoader from 'dataloader';
+/* tslint:disable:no-console */
+import * as rp from 'request-promise';
+import { DataLoader } from 'dataloader';
+import { IncomingMessage } from 'http';
 
 import {
   identity,
@@ -8,12 +10,30 @@ import {
   isArray,
 } from 'lodash';
 
+export interface IPagination {
+    page: number;
+    numPages: number;
+}
+
+export interface IEndpoint {
+    url: (args: { [key: string]: any }) => string;
+    map: (data: Object) => { [key: string]: any };
+    fetch?: (args: { [key: string]: any }, context: DiscourseContext) => { [key: string]: any };
+}
+
+export type IResponse = IncomingMessage & {
+    body: any,
+}
+
 // Encapsulates session management, dataloader caching, and pagination
 export class DiscourseContext {
-  COOKIE_KEY = '_forum_session';
-  TOKEN_KEY = '_t';
+  private COOKIE_KEY = '_forum_session';
+  private TOKEN_KEY = '_t';
+  private apiRoot: string;
+  private loginToken: string;
+  private urlDataLoader: DataLoader<string, any>;
 
-  constructor({ loginToken, apiRoot }) {
+  constructor({ loginToken, apiRoot }: { loginToken?: string, apiRoot: string }) {
     this.apiRoot = apiRoot;
     this.loginToken = loginToken;
 
@@ -23,6 +43,7 @@ export class DiscourseContext {
 
       const options = {
         json: true,
+        headers: <{ Cookie: string }> undefined,
       };
 
       if (this.loginToken) {
@@ -33,10 +54,7 @@ export class DiscourseContext {
 
       return Promise.all(urls.map((url) => (
         // console.log(`requesting ${url}, Cookie: ${options.headers.Cookie}`);
-        rp({
-          uri: url,
-          ...options,
-        }).catch((err) => {
+        rp((<any> Object).assign({ uri: url }, options)).catch((err: Error) => {
           console.log(err);
           throw err;
         })
@@ -44,14 +62,13 @@ export class DiscourseContext {
     });
   }
 
-  getPagesWithParams(url, { page = 0, numPages = 1 }, params = {}) {
+  public getPagesWithParams(url: string,
+                            { page = 0, numPages = 1 }: IPagination,
+                            params: { [key: string]: any } = {}) {
     const pageNumbers = range(page, page + numPages);
 
     const urls = pageNumbers.map((pageNumber) => {
-      const myParams = {
-        page: pageNumber,
-        ...params,
-      };
+      const myParams = (<any> Object).assign({ page: pageNumber }, params);
 
       return `${url}?${serializeParamsForRails(myParams)}`;
     });
@@ -62,10 +79,12 @@ export class DiscourseContext {
   }
 
   // XXX if I ask for 100 pages but there are only 50, should I still get 100?
-  getPaginatedPosts(posts, { page = 0, numPages = 1 }, topicId) {
-    const pages = [];
+  public getPaginatedPosts(posts: string[],
+                           { page = 0, numPages = 1 }: IPagination,
+                           topicId: string) {
+    const pages: Array<Promise<Object> | Object> = [];
     const PPP = 10; // Posts Per Page
-    let postsOnPage = [];
+    let postsOnPage: string[] = [];
     let offset = 0;
     for (let i = 0; i < numPages; i++) {
       offset = page * PPP + i * PPP;
@@ -77,12 +96,12 @@ export class DiscourseContext {
 
   // XXX could also just use the onePost endpoint to fetch each individual post,
   // in that case we don't need the topicId
-  getPostList(postIDs, topicId) {
+  public getPostList(postIDs: string[], topicId: string): Object | Promise<Object> {
     if (postIDs.length === 0) {
       return { posts: [] };
     }
     const params = {};
-    params['post_ids'] = postIDs; // eslint-disable-line dot-notation
+    params['post_ids'] = postIDs;
     const path = `/t/${topicId}/posts.json`;
     const url = `${path}?${serializeParamsForRails(params)}`;
     return this.get(url)
@@ -93,32 +112,22 @@ export class DiscourseContext {
       });
   }
 
-  _fetchEndpoint(endpoint, args) {
-    if (endpoint.fetch) {
-      return endpoint.fetch(args, this);
-    }
-
-    return this.urlDataLoader.load(this.apiRoot + endpoint.url(args))
-      .then(endpoint.map || identity);
-  }
-
-  get(url) {
+  public get(url: string) {
     return this.urlDataLoader.load(this.apiRoot + url);
   }
 
-  createPost(args) {
+  public createPost(args: { [key: string]: any }) {
     return this.getCSRFAndCookieThen((csrf, cookie) => (
       rp({
         method: 'POST',
         uri: `${this.apiRoot}/posts`,
-        form: {
-          ...args,
+        form: (<any> Object).assign({}, args, {
           archetype: 'regular',
           nested_post: true,
           is_warning: false,
           typing_duration_msecs: 5000,
           composer_open_duration_msecs: 10000,
-        },
+        }),
         headers: {
           'X-CSRF-Token': csrf,
           Cookie: `${this.COOKIE_KEY}=${cookie}; ${this.TOKEN_KEY}=${this.loginToken}`,
@@ -126,7 +135,7 @@ export class DiscourseContext {
         json: true,
         resolveWithFullResponse: true,
       })
-    )).then((res) => {
+    )).then((res: IResponse) => {
       if (res.body.error) {
         throw new Error(res.body.error);
       }
@@ -136,7 +145,7 @@ export class DiscourseContext {
     });
   }
 
-  getLoginToken(username, password) {
+  public getLoginToken(username: string, password: string) {
     return this.getCSRFAndCookieThen((csrf, cookie) => (
       rp({
         method: 'POST',
@@ -152,7 +161,7 @@ export class DiscourseContext {
         json: true,
         resolveWithFullResponse: true,
       })
-    )).then((res) => {
+    )).then((res: IResponse) => {
       if (res.body.error) {
         throw new Error(res.body.error);
       }
@@ -164,43 +173,53 @@ export class DiscourseContext {
     });
   }
 
-  getForumCookie(res) {
+  public getForumCookie(res: IResponse) {
     return res.headers['set-cookie']
-      .filter(cookie => cookie.startsWith(this.COOKIE_KEY))[0]
+      .filter((cookie: string) => cookie.startsWith(this.COOKIE_KEY))[0]
       .split(' ')[0]
       .split('=')[1]
       .split(';')[0];
   }
 
-  getForumToken(res) {
+  public getForumToken(res: IResponse) {
     return res.headers['set-cookie']
-      .filter(cookie => cookie.startsWith(this.TOKEN_KEY))[0]
+      .filter((cookie: string) => cookie.startsWith(this.TOKEN_KEY))[0]
       .split(' ')[0]
       .split('=')[1]
       .split(';')[0];
+  }
+
+  public _fetchEndpoint(endpoint: IEndpoint,
+                        args: { [key: string]: any }): { [key: string]: any } {
+    if (endpoint.fetch) {
+      return endpoint.fetch(args, this);
+    }
+
+    return this.urlDataLoader.load(this.apiRoot + endpoint.url(args))
+      .then(endpoint.map || identity);
   }
 
   // XXX why not just chain the promises?
-  getCSRFAndCookieThen(callback) {
-    return rp({
+  private async getCSRFAndCookieThen(callback: (csrf: string, cookie: string) => any): Promise<any> {
+      let res: IResponse = await rp({
       uri: `${this.apiRoot}/session/csrf.json`,
       json: true,
       resolveWithFullResponse: true,
-    }).then((res) => {
+      });
+
       const cookie = this.getForumCookie(res);
       const csrf = res.body.csrf;
 
       return callback(csrf, cookie);
-    });
   }
 }
 
-function serializeParamsForRails(paramsObj) {
-  const segments = [];
+function serializeParamsForRails(paramsObj: { [key: string]: string | string[] }): string {
+  const segments: string[] = [];
 
   forOwn(paramsObj, (value, key) => {
     if (isArray(value)) {
-      value.forEach((arrayItem) => {
+      value.forEach((arrayItem: string) => {
         segments.push(`${encodeURIComponent(key)}[]=${encodeURIComponent(arrayItem)}`);
       });
       return;

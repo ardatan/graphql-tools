@@ -7,9 +7,10 @@ import {
   GraphQLInt,
   GraphQLObjectType,
   GraphQLSchema,
+  GraphQLResolveInfo,
 } from 'graphql';
-import { printSchema } from 'graphql/utilities';
-import { Logger } from '../src/Logger.js';
+// import { printSchema } from 'graphql';
+import { Logger } from '../Logger';
 import TypeA from './circularSchemaA';
 import {
   makeExecutableSchema,
@@ -18,8 +19,35 @@ import {
   addSchemaLevelResolveFunction,
   attachConnectorsToContext,
   assertResolveFunctionsPresent,
-} from '../src/schemaGenerator.js';
+} from '../schemaGenerator';
+import { IResolverValidationOptions, IResolvers } from '../Interfaces';
+import 'mocha';
 
+interface Bird {
+    name: string;
+    wingspan?: number;
+}
+
+function expectWarning(fn: () => void, warnMatcher?: string) {
+    let originalWarn = console.warn;
+    let warning: string = null;
+
+    try {
+        console.warn = function warn(message: string) {
+            warning = message;
+        };
+
+        fn();
+
+        if ( undefined === warnMatcher ) {
+            expect(warning).to.be.equal(null);
+        } else {
+            expect(warning).to.contain(warnMatcher);
+        }
+    } finally {
+        console.warn = originalWarn;
+    }
+};
 
 const testSchema = `
       type RootQuery {
@@ -36,23 +64,25 @@ const testSchema = `
 const testResolvers = {
   __schema: () => ({ stuff: 'stuff', species: 'ROOT' }),
   RootQuery: {
-    usecontext: (r, a, ctx) => ctx.usecontext,
-    useTestConnector: (r, a, ctx) => ctx.connectors.TestConnector.get(),
-    useContextConnector: (r, a, ctx) => ctx.connectors.ContextConnector.get(),
-    species: (root, { name }) => root.species + name,
+    usecontext: (r: any, a: { [key: string]: any }, ctx: any) => ctx.usecontext,
+    useTestConnector: (r: any, a: { [key: string]: any }, ctx: any) => ctx.connectors.TestConnector.get(),
+    useContextConnector: (r: any, a: { [key: string]: any }, ctx: any) => ctx.connectors.ContextConnector.get(),
+    species: (root: any, { name }: { name: string }) => root.species + name,
   },
 };
 class TestConnector {
-  get() {
+  public get() {
     return 'works';
   }
 }
 
 class ContextConnector {
-  constructor(ctx) {
+  private str: string;
+
+  constructor(ctx: any) {
     this.str = ctx.str;
   }
-  get() {
+  public get() {
     return this.str;
   }
 }
@@ -61,32 +91,34 @@ const testConnectors = {
   ContextConnector,
 };
 
-
-
-
 describe('generating schema from shorthand', () => {
   it('throws an error if no schema is provided', () => {
-    assert.throw(makeExecutableSchema, TypeError);
+    expect(() => (<any> makeExecutableSchema)()).to.throw('undefined');
+  });
+
+  it('throws an error if no resolver is provided', () => {
+    expect(() => (<any> makeExecutableSchema)({ typeDefs: 'blah' })).to.throw('Must provide resolvers');
   });
 
   it('throws an error if no resolveFunctions are provided', () => {
-    assert.throw(() => makeExecutableSchema({ typeDefs: 'blah' }), SchemaError);
+    expect(() => (<any> makeExecutableSchema)({ typeDefs: 'blah', resolvers: {} })).to.throw('GraphQLError');
   });
 
   it('throws an error if typeDefinitions is neither string nor array', () => {
-    assert.throw(() => makeExecutableSchema({ typeDefs: {}, resolvers: {} }), SchemaError);
+    expect(() => (<any> makeExecutableSchema)({ typeDefs: {}, resolvers: {} })).to.throw('`typeDefs` must be a string or array');
   });
 
   it('throws an error if typeDefinition array contains not only functions and strings', () => {
-    assert.throw(() => makeExecutableSchema({ typeDefs: [17], resolvers: {} }), SchemaError);
+    expect(() => (<any> makeExecutableSchema)({ typeDefs: [17], resolvers: {} }))
+    .to.throw('typeDef array must contain only strings and functions, got number');
   });
 
   it('throws an error if resolverValidationOptions is not an object', () => {
-    assert.throw(() => makeExecutableSchema({
+    expect(() => makeExecutableSchema({
       typeDefs: 'blah',
       resolvers: {},
       resolverValidationOptions: 'string',
-    }), SchemaError);
+    })).to.throw('Expected `resolverValidationOptions` to be an object');
   });
 
   it('can generate a schema', () => {
@@ -112,7 +144,7 @@ describe('generating schema from shorthand', () => {
     };
 
     const introspectionQuery = `{
-    	species: __type(name: "BirdSpecies"){
+      species: __type(name: "BirdSpecies"){
         name,
         description,
         fields{
@@ -162,7 +194,7 @@ describe('generating schema from shorthand', () => {
               name: 'name',
               type: {
                 kind: 'NON_NULL',
-                name: null,
+                name: <string> null,
                 ofType: {
                   name: 'String',
                 },
@@ -186,7 +218,7 @@ describe('generating schema from shorthand', () => {
               name: 'species',
               type: {
                 kind: 'LIST',
-                name: null,
+                name: <string> null,
                 ofType: {
                   name: 'BirdSpecies',
                 },
@@ -194,7 +226,7 @@ describe('generating schema from shorthand', () => {
               args: [{
                 name: 'name',
                 type: {
-                  name: null,
+                  name: <string> null,
                   kind: 'NON_NULL',
                   ofType: {
                     name: 'String',
@@ -246,7 +278,7 @@ describe('generating schema from shorthand', () => {
 
     const jsSchema = makeExecutableSchema({ typeDefs: typeDefAry, resolvers: {} });
     expect(jsSchema.getQueryType().name).to.equal('Query');
-    expect(jsSchema.getQueryType()._fields).to.have.all.keys('foo', 'bar');
+    expect(jsSchema.getQueryType().getFields()).to.have.all.keys('foo', 'bar');
   });
 
   it('properly deduplicates the array of type definitions', () => {
@@ -306,7 +338,7 @@ describe('generating schema from shorthand', () => {
 
     const resolveFunctions = {
       RootQuery: {
-        species: (root, { name }) => [{
+        species: (root: any, { name }: { name: string }) => [{
           name: `Hello ${name}!`,
           wingspan: 200,
         }],
@@ -354,16 +386,16 @@ describe('generating schema from shorthand', () => {
 
     const resolveFunctions = {
       RootQuery: {
-        species: (root, { name }) => [{
+        species: (root: any, { name }: { name: string }) => [{
           name: `Hello ${name}!`,
           wingspan: 200,
           height: 30.2,
         }],
       },
       BirdSpecies: {
-        name: (bird) => bird.name,
-        wingspan: (bird) => bird.wingspan,
-        height: (bird) => bird.height,
+        name: (bird: Bird) => bird.name,
+        wingspan: (bird: Bird) => bird.wingspan,
+        height: (bird: Bird & { height: number }) => bird.height,
       },
     };
 
@@ -413,7 +445,7 @@ describe('generating schema from shorthand', () => {
     const resolveFunctions = {
       RootQuery: {
         search: {
-          resolve(root, { name }) {
+          resolve(root: any, { name }: { name: string }) {
             return [{
               name: `Tom ${name}`,
               age: 100,
@@ -425,14 +457,14 @@ describe('generating schema from shorthand', () => {
         },
       },
       Searchable: {
-        __resolveType(data, context, info) {
+        __resolveType(data: any, context: any, info: GraphQLResolveInfo) {
           if (data.age) {
             return info.schema.getType('Person');
           }
           if (data.coordinates) {
             return info.schema.getType('Location');
           }
-          console.log('no type!');
+          console.error('no type!');
           return null;
         },
       },
@@ -490,7 +522,7 @@ describe('generating schema from shorthand', () => {
         species: {
           description: 'A species',
           deprecationReason: 'Just because',
-          resolve: (root, { name }) => [{
+          resolve: (root: any, { name }: { name: string }) => [{
             name: `Hello ${name}!`,
             wingspan: 200,
           }],
@@ -538,15 +570,13 @@ describe('generating schema from shorthand', () => {
 
     const rf = { Query: {} };
 
-    let warning = null;
-    console.warn = function warn(message) {
-      warning = message;
-    };
-    makeExecutableSchema({ typeDefs: short, resolvers: rf });
-    assert.notEqual(warning, null);
+    expectWarning(() => {
+        makeExecutableSchema({ typeDefs: short, resolvers: rf });
+    }, 'Resolve function missing for "Query.bird"');
   });
 
-  it('does not throw an error if `resolverValidationOptions.requireResolversForArgs` is false', () => { // eslint-disable-line max-len
+  // tslint:disable-next-line: max-line-length
+  it('does not throw an error if `resolverValidationOptions.requireResolversForArgs` is false', () => {
     const short = `
     type Query{
       bird(id: ID): String
@@ -557,12 +587,13 @@ describe('generating schema from shorthand', () => {
 
     const rf = { Query: {} };
 
-    assert.doesNotThrow(makeExecutableSchema.bind(null, { typeDefs: short, resolvers: rf, resolverValidationOptions: { requireResolversForArgs: false } }), SchemaError); // eslint-disable-line max-len
+    // tslint:disable-next-line: max-line-length
+    assert.doesNotThrow(makeExecutableSchema.bind(null, { typeDefs: short, resolvers: rf, resolverValidationOptions: { requireResolversForArgs: false } }), SchemaError);
   });
 
   it('throws an error if field.resolve is not a function', () => {
     const schema = new GraphQLSchema({
-      query: new GraphQLObjectType({
+      query: new GraphQLObjectType(<any> {
         name: 'Query',
         fields: {
           aField: {
@@ -574,7 +605,7 @@ describe('generating schema from shorthand', () => {
       }),
     });
 
-    assert.throws(() => assertResolveFunctionsPresent(schema), SchemaError);
+    expect(() => assertResolveFunctionsPresent(schema)).to.throw('Resolver "Query.aField" must be a function');
   });
 
   it('throws an error if a resolver is not a function', () => {
@@ -588,7 +619,7 @@ describe('generating schema from shorthand', () => {
 
     const rf = { Query: { bird: 'NOT A FUNCTION' } };
 
-    assert.throws(() => makeExecutableSchema({ typeDefs: short, resolvers: rf }), SchemaError);
+    expect(() => makeExecutableSchema({ typeDefs: short, resolvers: rf })).to.throw('Resolver Query.bird must be object or function');
   });
 
   it('shows a warning if a field is not scalar, but has no resolve func', () => {
@@ -605,15 +636,13 @@ describe('generating schema from shorthand', () => {
 
     const rf = {};
 
-    let warning = null;
-    console.warn = function warn(message) {
-      warning = message;
-    };
-    makeExecutableSchema({ typeDefs: short, resolvers: rf });
-    assert.notEqual(warning, null);
+    expectWarning(() => {
+        makeExecutableSchema({ typeDefs: short, resolvers: rf });
+    }, 'Resolve function missing for "Query.bird"');
   });
 
-  it('allows non-scalar field to use default resolve func if `resolverValidationOptions.requireResolversForNonScalar` = false', () => { // eslint-disable-line max-len
+  // tslint:disable-next-line: max-line-length
+  it('allows non-scalar field to use default resolve func if `resolverValidationOptions.requireResolversForNonScalar` = false', () => {
     const short = `
     type Bird{
       id: ID
@@ -627,7 +656,37 @@ describe('generating schema from shorthand', () => {
 
     const rf = {};
 
-    assert.doesNotThrow(makeExecutableSchema.bind(null, { typeDefs: short, resolvers: rf, resolverValidationOptions: { requireResolversForNonScalar: false } }), SchemaError); // eslint-disable-line max-len
+    // tslint:disable-next-line: max-line-length
+    assert.doesNotThrow(makeExecutableSchema.bind(null, { typeDefs: short, resolvers: rf, resolverValidationOptions: { requireResolversForNonScalar: false } }), SchemaError);
+  });
+
+  it('throws if resolver defined for non-object/interface type', () => {
+    const short = `
+      union Searchable = Person | Location
+      type Person {
+        name: String
+        age: Int
+      }
+      type Location {
+        name: String
+        coordinates: String
+      }
+      type RootQuery {
+        search(name: String): [Searchable]
+      }
+      schema {
+        query: RootQuery
+      }
+    `;
+
+    const rf = {
+        Searchable: {
+            name: () => 'Something',
+        },
+    };
+
+    expect(() => makeExecutableSchema({ typeDefs: short, resolvers: rf }))
+    .to.throw(`Searchable was defined in resolvers, but it's not an object`);
   });
 
   it('throws if conflicting validation options are passed', () => {
@@ -643,8 +702,9 @@ describe('generating schema from shorthand', () => {
     }`;
     const resolvers = {};
 
-    function assertOptionsError(resolverValidationOptions) {
-      assert.throws(() => makeExecutableSchema({ typeDefs, resolvers, resolverValidationOptions }), TypeError); // eslint-disable-line max-len
+    function assertOptionsError(resolverValidationOptions: IResolverValidationOptions) {
+      // tslint:disable-next-line: max-line-length
+      assert.throws(() => makeExecutableSchema({ typeDefs, resolvers, resolverValidationOptions }), TypeError);
     }
 
     assertOptionsError({
@@ -662,7 +722,8 @@ describe('generating schema from shorthand', () => {
     });
   });
 
-  it('throws for any missing field if `resolverValidationOptions.requireResolversForAllFields` = true', () => { // eslint-disable-line max-len
+  // tslint:disable-next-line: max-line-length
+  it('throws for any missing field if `resolverValidationOptions.requireResolversForAllFields` = true', () => {
     const typeDefs = `
     type Bird {
       id: ID
@@ -674,25 +735,22 @@ describe('generating schema from shorthand', () => {
       query: Query
     }`;
 
-    function assertFieldError(errorMatcher, resolvers) {
-      let warning = null;
-      console.warn = function warn(message) {
-        warning = message;
-      };
-      makeExecutableSchema({
-        typeDefs,
-        resolvers,
-        resolverValidationOptions: {
-          requireResolversForAllFields: true,
-        },
-      });
-      assert.notEqual(warning, null);
+    function assertFieldError(errorMatcher: string, resolvers: IResolvers) {
+      expectWarning(() => {
+          makeExecutableSchema({
+              typeDefs,
+              resolvers,
+              resolverValidationOptions: {
+                  requireResolversForAllFields: true,
+              },
+          });
+      }, errorMatcher);
     }
 
-    assertFieldError(null, {});
+    assertFieldError('Bird.id', {});
     assertFieldError('Query.bird', {
       Bird: {
-        id: bird => bird.id,
+        id: (bird: { id: string }) => bird.id,
       },
     });
     assertFieldError('Bird.id', {
@@ -702,7 +760,8 @@ describe('generating schema from shorthand', () => {
     });
   });
 
-  it('does not throw if all fields are satisfied when `resolverValidationOptions.requireResolversForAllFields` = true', () => { // eslint-disable-line max-len
+  // tslint:disable-next-line: max-line-length
+  it('does not throw if all fields are satisfied when `resolverValidationOptions.requireResolversForAllFields` = true', () => {
     const typeDefs = `
     type Bird {
       id: ID
@@ -716,14 +775,15 @@ describe('generating schema from shorthand', () => {
 
     const resolvers = {
       Bird: {
-        id: bird => bird.id,
+        id: (bird: { id: string }) => bird.id,
       },
       Query: {
         bird: () => ({ id: '123' }),
       },
     };
 
-    assert.doesNotThrow(() => makeExecutableSchema({ typeDefs, resolvers, resolverValidationOptions: { requireResolversForAllFields: true } })); // eslint-disable-line max-len
+    // tslint:disable-next-line: max-line-length
+    assert.doesNotThrow(() => makeExecutableSchema({ typeDefs, resolvers, resolverValidationOptions: { requireResolversForAllFields: true } }));
   });
 
   it('throws an error if a resolve field cannot be used', (done) => {
@@ -742,16 +802,14 @@ describe('generating schema from shorthand', () => {
 
     const resolveFunctions = {
       RootQuery: {
-        speciez: (root, { name }) => [{
+        speciez: (root: any, { name }: { name: string }) => [{
           name: `Hello ${name}!`,
           wingspan: 200,
         }],
       },
     };
-    assert.throw(
-      () => makeExecutableSchema({ typeDefs: shorthand, resolvers: resolveFunctions }),
-      SchemaError
-    );
+    expect(() => makeExecutableSchema({ typeDefs: shorthand, resolvers: resolveFunctions }))
+    .to.throw('RootQuery.speciez defined in resolvers, but not in schema');
     done();
   });
   it('throws an error if a resolve type is not in schema', (done) => {
@@ -769,23 +827,20 @@ describe('generating schema from shorthand', () => {
     `;
     const resolveFunctions = {
       BootQuery: {
-        species: (root, { name }) => [{
+        species: (root: any, { name }: { name: string }) => [{
           name: `Hello ${name}!`,
           wingspan: 200,
         }],
       },
     };
-    assert.throw(
-      () => makeExecutableSchema({ typeDefs: shorthand, resolvers: resolveFunctions }),
-      SchemaError
-    );
+    expect(() => makeExecutableSchema({ typeDefs: shorthand, resolvers: resolveFunctions }))
+    .to.throw('"BootQuery" defined in resolvers, but not in schema');
     done();
   });
 });
 
-
 describe('providing useful errors from resolve functions', () => {
-  it('logs an error if a resolve function fails', (done) => {
+  it('logs an error if a resolve function fails', () => {
     const shorthand = `
       type RootQuery {
         species(name: String): String
@@ -796,7 +851,7 @@ describe('providing useful errors from resolve functions', () => {
     `;
     const resolve = {
       RootQuery: {
-        species: () => {
+        species: (): string => {
           throw new Error('oops!');
         },
       },
@@ -812,14 +867,13 @@ describe('providing useful errors from resolve functions', () => {
     });
     const testQuery = '{ species }';
     const expected = 'Error in resolver RootQuery.species\noops!';
-    graphql(jsSchema, testQuery).then(() => {
+    return graphql(jsSchema, testQuery).then((res) => {
       assert.equal(logger.errors.length, 1);
       assert.equal(logger.errors[0].message, expected);
-      done();
     });
   });
 
-  it('will throw errors on undefined if you tell it to', (done) => {
+  it('will throw errors on undefined if you tell it to', () => {
     const shorthand = `
       type RootQuery {
         species(name: String): String
@@ -831,7 +885,7 @@ describe('providing useful errors from resolve functions', () => {
     `;
     const resolve = {
       RootQuery: {
-        species: () => undefined,
+        species: (): string => undefined,
         stuff: () => 'stuff',
       },
     };
@@ -845,12 +899,11 @@ describe('providing useful errors from resolve functions', () => {
     });
     const testQuery = '{ species, stuff }';
     const expectedErr = /Resolve function for "RootQuery.species" returned undefined/;
-    const expectedResData = { species: null, stuff: 'stuff' };
-    graphql(jsSchema, testQuery).then((res) => {
+    const expectedResData = { species: <string> null, stuff: 'stuff' };
+    return graphql(jsSchema, testQuery).then((res) => {
       assert.equal(logger.errors.length, 1);
       assert.match(logger.errors[0].message, expectedErr);
       assert.deepEqual(res.data, expectedResData);
-      done();
     });
   });
 
@@ -866,7 +919,7 @@ describe('providing useful errors from resolve functions', () => {
     `;
     const resolve = {
       RootQuery: {
-        species: () => undefined,
+        species: (): string => undefined,
         stuff: () => 'stuff',
       },
     };
@@ -878,7 +931,7 @@ describe('providing useful errors from resolve functions', () => {
       logger,
     });
     const testQuery = '{ species, stuff }';
-    const expectedResData = { species: null, stuff: 'stuff' };
+    const expectedResData = { species: <string> null, stuff: 'stuff' };
     graphql(jsSchema, testQuery).then((res) => {
       assert.equal(logger.errors.length, 0);
       assert.deepEqual(res.data, expectedResData);
@@ -889,10 +942,10 @@ describe('providing useful errors from resolve functions', () => {
 
 describe('Add error logging to schema', () => {
   it('throws an error if no logger is provided', () => {
-    assert.throw(() => addErrorLoggingToSchema({}), 'Must provide a logger');
+    assert.throw(() => (<any> addErrorLoggingToSchema)({}), 'Must provide a logger');
   });
   it('throws an error if logger.log is not a function', () => {
-    assert.throw(() => addErrorLoggingToSchema({}, { log: '1' }), 'Logger.log must be a function');
+    assert.throw(() => (<any> addErrorLoggingToSchema)({}, { log: '1' }), 'Logger.log must be a function');
   });
 });
 
@@ -925,10 +978,10 @@ describe('Attaching connectors to schema', () => {
     it('runs only once per query', () => {
       const simpleResolvers = {
         RootQuery: {
-          usecontext: (r, a, ctx) => ctx.usecontext,
-          useTestConnector: (r, a, ctx) => ctx.connectors.TestConnector.get(),
-          useContextConnector: (r, a, ctx) => ctx.connectors.ContextConnector.get(),
-          species: (root, { name }) => root.species + name,
+          usecontext: (r: any, a: { [key: string]: any }, ctx: any) => ctx.usecontext,
+          useTestConnector: (r: any, a: { [key: string]: any }, ctx: any) => ctx.connectors.TestConnector.get(),
+          useContextConnector: (r: any, a: { [key: string]: any }, ctx: any) => ctx.connectors.ContextConnector.get(),
+          species: (root: any, { name }: { name: string }) => root.species + name,
         },
       };
       const jsSchema = makeExecutableSchema({ typeDefs: testSchema, resolvers: simpleResolvers });
@@ -957,10 +1010,10 @@ describe('Attaching connectors to schema', () => {
     it('runs twice for two queries', () => {
       const simpleResolvers = {
         RootQuery: {
-          usecontext: (r, a, ctx) => ctx.usecontext,
-          useTestConnector: (r, a, ctx) => ctx.connectors.TestConnector.get(),
-          useContextConnector: (r, a, ctx) => ctx.connectors.ContextConnector.get(),
-          species: (root, { name }) => root.species + name,
+          usecontext: (r: any, a: { [key: string]: any }, ctx: any) => ctx.usecontext,
+          useTestConnector: (r: any, a: { [key: string]: any }, ctx: any) => ctx.connectors.TestConnector.get(),
+          useContextConnector: (r: any, a: { [key: string]: any }, ctx: any) => ctx.connectors.ContextConnector.get(),
+          species: (root: any, { name }: { name: string }) => root.species + name,
         },
       };
       const jsSchema = makeExecutableSchema({ typeDefs: testSchema, resolvers: simpleResolvers });
@@ -999,9 +1052,8 @@ describe('Attaching connectors to schema', () => {
 
     it('can attach things to context', () => {
       const jsSchema = makeExecutableSchema({ typeDefs: testSchema, resolvers: testResolvers });
-      const rootResolver = (o, a, ctx) => {
-        // eslint-disable-next-line no-param-reassign
-        ctx.usecontext = 'ABC';
+      const rootResolver = (o: any, a: { [key: string]: any }, ctx: any) => {
+        ctx['usecontext'] = 'ABC';
       };
       addSchemaLevelResolveFunction(jsSchema, rootResolver);
       const query = `{
@@ -1015,6 +1067,7 @@ describe('Attaching connectors to schema', () => {
       });
     });
   });
+
   it('actually attaches the connectors', () => {
     const jsSchema = makeExecutableSchema({ typeDefs: testSchema, resolvers: testResolvers });
     attachConnectorsToContext(jsSchema, testConnectors);
@@ -1028,6 +1081,7 @@ describe('Attaching connectors to schema', () => {
       expect(res.data).to.deep.equal(expected);
     });
   });
+
   it('actually passes the context to the connector constructor', () => {
     const jsSchema = makeExecutableSchema({ typeDefs: testSchema, resolvers: testResolvers });
     attachConnectorsToContext(jsSchema, testConnectors);
@@ -1041,6 +1095,7 @@ describe('Attaching connectors to schema', () => {
       expect(res.data).to.deep.equal(expected);
     });
   });
+
   it('throws error if trying to attach connectors twice', () => {
     const jsSchema = makeExecutableSchema({ typeDefs: testSchema, resolvers: testResolvers });
     attachConnectorsToContext(jsSchema, testConnectors);
@@ -1048,14 +1103,15 @@ describe('Attaching connectors to schema', () => {
       'Connectors already attached to context, cannot attach more than once'
     );
   });
+
   it('throws error during execution if context is not an object', () => {
     const jsSchema = makeExecutableSchema({ typeDefs: testSchema, resolvers: testResolvers });
-    attachConnectorsToContext(jsSchema, { someConnector: {} });
+    (<any> attachConnectorsToContext)(jsSchema, { someConnector: {} });
     const query = `{
       useTestConnector
     }`;
     return graphql(jsSchema, query, {}, 'notObject').then((res) => {
-      expect(res.errors[0].originalError.message).to.equal(
+      expect((<any> res.errors[0]).originalError.message).to.equal(
         'Cannot attach connector because context is not an object: string'
       );
     });
@@ -1080,37 +1136,43 @@ describe('Attaching connectors to schema', () => {
     });
   // TODO test schemaLevelResolve function with wrong arguments
   });
+
   // TODO test attachConnectors with wrong arguments
   it('throws error if no schema is passed', () => {
-    expect(() => attachConnectorsToContext()).to.throw(
+    expect(() => (<any> attachConnectorsToContext)()).to.throw(
       'schema must be an instance of GraphQLSchema. ' +
       'This error could be caused by installing more than one version of GraphQL-JS'
     );
   });
+
   it('throws error if schema is not an instance of GraphQLSchema', () => {
-    expect(() => attachConnectorsToContext({})).to.throw(
+    expect(() => (<any> attachConnectorsToContext)({})).to.throw(
       'schema must be an instance of GraphQLSchema. ' +
       'This error could be caused by installing more than one version of GraphQL-JS'
     );
   });
+
   it('throws error if connectors argument is an array', () => {
     const jsSchema = makeExecutableSchema({ typeDefs: testSchema, resolvers: testResolvers });
-    expect(() => attachConnectorsToContext(jsSchema, [1])).to.throw(
+    expect(() => (<any> attachConnectorsToContext)(jsSchema, [1])).to.throw(
       'Expected connectors to be of type object, got Array'
     );
   });
+
   it('throws error if connectors argument is an empty object', () => {
     const jsSchema = makeExecutableSchema({ typeDefs: testSchema, resolvers: testResolvers });
     return expect(() => attachConnectorsToContext(jsSchema, {})).to.throw(
       'Expected connectors to not be an empty object'
     );
   });
+
   it('throws error if connectors argument is not an object', () => {
     const jsSchema = makeExecutableSchema({ typeDefs: testSchema, resolvers: testResolvers });
-    return expect(() => attachConnectorsToContext(jsSchema, 'a')).to.throw(
+    return expect(() => (<any> attachConnectorsToContext)(jsSchema, 'a')).to.throw(
       'Expected connectors to be of type object, got string'
     );
   });
+
 });
 
 describe('Generating a full graphQL schema with resolvers and connectors', () => {
