@@ -28,6 +28,27 @@ interface Bird {
     wingspan?: number;
 }
 
+function expectWarning(fn: () => void, warnMatcher?: string) {
+    let originalWarn = console.warn;
+    let warning: string = null;
+
+    try {
+        console.warn = function warn(message: string) {
+            warning = message;
+        };
+
+        fn();
+
+        if ( undefined === warnMatcher ) {
+            expect(warning).to.be.equal(null);
+        } else {
+            expect(warning).to.contain(warnMatcher);
+        }
+    } finally {
+        console.warn = originalWarn;
+    }
+};
+
 const testSchema = `
       type RootQuery {
         usecontext: String
@@ -549,12 +570,9 @@ describe('generating schema from shorthand', () => {
 
     const rf = { Query: {} };
 
-    let warning: string = null;
-    console.warn = function warn(message: string) {
-      warning = message;
-    };
-    makeExecutableSchema({ typeDefs: short, resolvers: rf });
-    assert.notEqual(warning, null);
+    expectWarning(() => {
+        makeExecutableSchema({ typeDefs: short, resolvers: rf });
+    }, 'Resolve function missing for "Query.bird"');
   });
 
   // tslint:disable-next-line: max-line-length
@@ -618,12 +636,9 @@ describe('generating schema from shorthand', () => {
 
     const rf = {};
 
-    let warning: string = null;
-    console.warn = function warn(message: string) {
-      warning = message;
-    };
-    makeExecutableSchema({ typeDefs: short, resolvers: rf });
-    assert.notEqual(warning, null);
+    expectWarning(() => {
+        makeExecutableSchema({ typeDefs: short, resolvers: rf });
+    }, 'Resolve function missing for "Query.bird"');
   });
 
   // tslint:disable-next-line: max-line-length
@@ -692,18 +707,15 @@ describe('generating schema from shorthand', () => {
     }`;
 
     function assertFieldError(errorMatcher: string, resolvers: IResolvers) {
-      let warning: string = null;
-      console.warn = function warn(message: string) {
-        warning = message;
-      };
-      makeExecutableSchema({
-        typeDefs,
-        resolvers,
-        resolverValidationOptions: {
-          requireResolversForAllFields: true,
-        },
-      });
-      expect(warning).to.have.string(errorMatcher);
+      expectWarning(() => {
+          makeExecutableSchema({
+              typeDefs,
+              resolvers,
+              resolverValidationOptions: {
+                  requireResolversForAllFields: true,
+              },
+          });
+      }, errorMatcher);
     }
 
     assertFieldError('Bird.id', {});
