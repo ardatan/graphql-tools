@@ -158,6 +158,44 @@ describe('Mock', () => {
       expect(res.data.returnBirdsAndBees[1].returnInt).to.equal(54321);
     });
   });
+
+  it('lets you use mockServer with prebuilt schema', () => {
+    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    const testQuery = `{
+      returnInt
+      returnFloat
+      returnBoolean
+      returnString
+      returnID
+      returnBirdsAndBees {
+        ... on Bird {
+          returnInt
+          returnString
+        }
+        ... on Bee {
+          returnInt
+          returnEnum
+        }
+      }
+    }`;
+    const mockMap = {
+      Int: () => 12345,
+      Bird: () => ({ returnInt: () => 54321 }),
+      Bee: () => ({ returnInt: () => 54321 }),
+    };
+    return mockServer(jsSchema, mockMap).query(testQuery).then((res: any) => {
+      expect(res.data.returnInt).to.equal(12345);
+      expect(res.data.returnFloat).to.be.a('number').within(-1000, 1000);
+      expect(res.data.returnBoolean).to.be.a('boolean');
+      expect(res.data.returnString).to.be.a('string');
+      expect(res.data.returnID).to.be.a('string');
+      // tests that resolveType is correctly set for unions and interfaces
+      // and that the correct mock function is used
+      expect(res.data.returnBirdsAndBees[0].returnInt).to.equal(54321);
+      expect(res.data.returnBirdsAndBees[1].returnInt).to.equal(54321);
+    });
+  });
+
   it('does not mask resolveType functions if you tell it not to', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     let spy = 0;
