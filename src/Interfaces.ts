@@ -5,6 +5,7 @@ import {
     GraphQLResult,
     GraphQLType,
     GraphQLFieldResolveFn,
+    GraphQLObjectType,
 } from 'graphql';
 
 /* TODO: Add documentation */
@@ -15,10 +16,17 @@ export interface IResolverValidationOptions {
     requireResolversForAllFields?: boolean;
 }
 
+export interface IResolverOptions {
+    resolve?: GraphQLFieldResolveFn;
+    __resolveType?: IResolveTypeFn;
+    __isTypeOf?: IIsTypeOfFn;
+};
+
 export type ITypedef = (() => ITypedef[]) | string;
 export type ITypeDefinitions = ITypedef | ITypedef[];
-export type IResolveTypeFn = (data: any, context: any, info: GraphQLResolveInfo) => any;
-export type IResolverObject = { [key: string]: GraphQLFieldResolveFn | {resolve?: GraphQLFieldResolveFn, __resolveType?: IResolveTypeFn}};
+export type IIsTypeOfFn = (value: any, info?: GraphQLResolveInfo) => boolean;
+export type IResolveTypeFn = (value: any, info?: GraphQLResolveInfo) => GraphQLObjectType;
+export type IResolverObject = { [key: string]: GraphQLFieldResolveFn | IResolverOptions };
 export interface IResolvers {
     [key: string]: (() => any) | IResolverObject;
 };

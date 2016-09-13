@@ -14,19 +14,23 @@ import {
   GraphQLResolveInfo,
   GraphQLFieldDefinition,
   GraphQLFieldResolveFn,
+  GraphQLType,
+  GraphQLInterfaceType,
+  GraphQLInputObjectType,
+  GraphQLFieldDefinitionMap
 } from 'graphql';
 import {
-    IExecutableSchemaDefinition ,
-    ILogger,
-    IResolvers,
-    ITypeDefinitions,
-    ITypedef,
-    IFieldIteratorFn,
-    IConnectors,
-    IConnector,
-    IConnectorCls,
-    IConnectorFn,
-    IResolverValidationOptions,
+  IExecutableSchemaDefinition ,
+  ILogger,
+  IResolvers,
+  ITypeDefinitions,
+  ITypedef,
+  IFieldIteratorFn,
+  IConnectors,
+  IConnector,
+  IConnectorCls,
+  IConnectorFn,
+  IResolverValidationOptions,
 } from './Interfaces';
 
 // @schemaDefinition: A GraphQL type schema in shorthand
@@ -90,7 +94,7 @@ function makeExecutableSchema({
   if (typeof resolvers['__schema'] === 'function') {
     // TODO a bit of a hack now, better rewrite generateSchema to attach it there.
     // not doing that now, because I'd have to rewrite a lot of tests.
-    addSchemaLevelResolveFunction(jsSchema, (<any> resolvers['__schema']) as GraphQLFieldResolveFn);
+    addSchemaLevelResolveFunction(jsSchema, resolvers['__schema'] as GraphQLFieldResolveFn);
   }
   if (connectors) {
     // connectors are optional, at least for now. That means you can just import them in the resolve
@@ -104,8 +108,8 @@ function concatenateTypeDefs(typeDefinitionsAry: ITypedef[], functionsCalled = {
   let resolvedTypeDefinitions: string[] = [];
   typeDefinitionsAry.forEach((typeDef: ITypedef) => {
     if (typeof typeDef === 'function') {
-      if (!(<any> typeDef in functionsCalled)) {
-        functionsCalled[<any> typeDef] = 1;
+      if (!(typeDef as any in functionsCalled)) {
+        functionsCalled[typeDef as any] = 1;
         resolvedTypeDefinitions = resolvedTypeDefinitions.concat(
           concatenateTypeDefs(typeDef(), functionsCalled)
         );
@@ -157,7 +161,7 @@ function forEachField(schema: GraphQLSchema, fn: IFieldIteratorFn): void {
     const type = typeMap[typeName];
 
     // TODO: maybe have an option to include these?
-    if (!(<any> getNamedType(type)).name.startsWith('__') && type instanceof GraphQLObjectType) {
+    if (!getNamedType(type).name.startsWith('__') && type instanceof GraphQLObjectType) {
       const fields = type.getFields();
       Object.keys(fields).forEach((fieldName) => {
         const field = fields[fieldName];
@@ -358,7 +362,7 @@ function wrapResolver(innerResolver: GraphQLFieldResolveFn | undefined, outerRes
  * logger: an object instance of type Logger
  * hint: an optional hint to add to the error's message
  */
-function decorateWithLogger(fn: GraphQLFieldResolveFn, logger: ILogger, hint: string = ''): GraphQLFieldResolveFn {
+function decorateWithLogger(fn: GraphQLFieldResolveFn | undefined, logger: ILogger, hint: string = ''): GraphQLFieldResolveFn {
   if (typeof fn === 'undefined') {
     fn = defaultResolveFn;
   }

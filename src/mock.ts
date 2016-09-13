@@ -163,7 +163,7 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
         if (typeof root[fieldName] === 'function') {
           result = root[fieldName](root, args, context, info);
           if (result instanceof MockList) {
-            result = result.mock(root, args, context, info, <GraphQLList> fieldType, mockType);
+            result = result.mock(root, args, context, info, fieldType as GraphQLList, mockType);
           }
         } else {
           result = root[fieldName];
@@ -304,7 +304,7 @@ class MockList {
       if (typeof this.wrappedFunction === 'function') {
         const res = this.wrappedFunction(root, args, context, info);
         if (res instanceof MockList) {
-          const nullableType = <GraphQLList> getNullableType(fieldType.ofType);
+          const nullableType = getNullableType(fieldType.ofType) as GraphQLList;
           arr[i] = res.mock(root, args, context, info, nullableType, mockTypeFunc);
         } else {
           arr[i] = res;

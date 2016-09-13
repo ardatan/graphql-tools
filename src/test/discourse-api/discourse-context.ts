@@ -10,7 +10,7 @@ import {
   isArray,
 } from 'lodash';
 
-export interface IPagenation {
+export interface IPagination {
     page: number;
     numPages: number;
 }
@@ -63,7 +63,7 @@ export class DiscourseContext {
   }
 
   public getPagesWithParams(url: string,
-                            { page = 0, numPages = 1 }: IPagenation,
+                            { page = 0, numPages = 1 }: IPagination,
                             params: { [key: string]: any } = {}) {
     const pageNumbers = range(page, page + numPages);
 
@@ -80,7 +80,7 @@ export class DiscourseContext {
 
   // XXX if I ask for 100 pages but there are only 50, should I still get 100?
   public getPaginatedPosts(posts: string[],
-                           { page = 0, numPages = 1 }: IPagenation,
+                           { page = 0, numPages = 1 }: IPagination,
                            topicId: string) {
     const pages: Array<Promise<Object> | Object> = [];
     const PPP = 10; // Posts Per Page
