@@ -49,8 +49,8 @@ function _generateSchema(
   resolveFunctions: IResolvers,
   logger: ILogger,
   // TODO: rename to allowUndefinedInResolve to be consistent
-  allowUndefinedInResolve = true,
-  resolverValidationOptions = {},
+  allowUndefinedInResolve: boolean,
+  resolverValidationOptions: IResolverValidationOptions,
 ) {
   if (typeof resolverValidationOptions !== 'object') {
     throw new SchemaError('Expected `resolverValidationOptions` to be an object');
@@ -384,7 +384,7 @@ function wrapResolver(innerResolver: GraphQLFieldResolveFn | undefined, outerRes
  * logger: an object instance of type Logger
  * hint: an optional hint to add to the error's message
  */
-function decorateWithLogger(fn: GraphQLFieldResolveFn | undefined, logger: ILogger, hint: string = ''): GraphQLFieldResolveFn {
+function decorateWithLogger(fn: GraphQLFieldResolveFn | undefined, logger: ILogger, hint: string): GraphQLFieldResolveFn {
   if (typeof fn === 'undefined') {
     fn = defaultResolveFn;
   }

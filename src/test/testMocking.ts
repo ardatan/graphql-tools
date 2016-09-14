@@ -159,6 +159,41 @@ describe('Mock', () => {
     });
   });
 
+  it('mockServer is able to preserveResolvers of a prebuilt schema', () => {
+    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    const resolvers = {
+      RootQuery: {
+          returnString: () => 'someString',
+      },
+    };
+    addResolveFunctionsToSchema(jsSchema, resolvers);
+    const testQuery = `{
+      returnInt
+      returnString
+      returnBirdsAndBees {
+        ... on Bird {
+          returnInt
+        }
+        ... on Bee {
+          returnInt
+        }
+      }
+    }`;
+    const mockMap = {
+      Int: () => 12345,
+      Bird: () => ({ returnInt: () => 54321 }),
+      Bee: () => ({ returnInt: () => 54321 }),
+    };
+    return mockServer(jsSchema, mockMap, true).query(testQuery).then((res: any) => {
+      expect(res.data.returnInt).to.equal(12345);
+      expect(res.data.returnString).to.equal('someString');
+      // tests that resolveType is correctly set for unions and interfaces
+      // and that the correct mock function is used
+      expect(res.data.returnBirdsAndBees[0].returnInt).to.equal(54321);
+      expect(res.data.returnBirdsAndBees[1].returnInt).to.equal(54321);
+    });
+  });
+
   it('lets you use mockServer with prebuilt schema', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const testQuery = `{
