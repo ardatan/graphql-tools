@@ -365,6 +365,59 @@ describe('Mock', () => {
     });
   });
 
+  it('throws an error in resolve if mock type is not defined and resolver failed', () => {
+    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    const resolvers = {
+        MissingMockType: {
+            __serialize: (val: string) => val,
+            __parseValue: (val: string) => val,
+            __parseLiteral: (val: string) => val,
+        },
+        RootQuery: {
+            returnMockError: () => <string> undefined,
+        },
+    };
+    addResolveFunctionsToSchema(jsSchema, resolvers);
+
+    const mockMap = {};
+    addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap, preserveResolvers: true});
+    const testQuery = `{
+      returnMockError
+    }`;
+    const expected = 'No mock defined for type "MissingMockType"';
+    return graphql(jsSchema, testQuery).then((res) => {
+      expect((<any> res.errors[0]).originalError.message).to.equal(expected);
+    });
+  });
+
+  it('can preserve scalar resolvers', () => {
+    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    const resolvers = {
+        MissingMockType: {
+            __serialize: (val: string) => val,
+            __parseValue: (val: string) => val,
+            __parseLiteral: (val: string) => val,
+        },
+        RootQuery: {
+            returnMockError: () => '10-11-2012',
+        },
+    };
+    addResolveFunctionsToSchema(jsSchema, resolvers);
+
+    const mockMap = {};
+    addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap, preserveResolvers: true});
+    const testQuery = `{
+      returnMockError
+    }`;
+    const expected = {
+        returnMockError: '10-11-2012',
+    };
+    return graphql(jsSchema, testQuery).then((res) => {
+      expect(res.data).to.deep.equal(expected);
+      expect(res.errors).to.equal(undefined);
+    });
+  });
+
   it('can mock an Int', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = { Int: () => 55 };
