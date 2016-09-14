@@ -7,7 +7,7 @@
 
 ## Documentation
 
-Documentation and a tutorial can be found on [docs.apollostack.com](http://docs.apollostack.com/graphql-tools/).
+Documentation and a tutorial can be found on [docs.apollostack.com](http://dev.apollodata.com/tools/graphql-tools/index.html).
 
 ## Contributions
 
