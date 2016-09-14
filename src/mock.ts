@@ -209,9 +209,11 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
       if (defaultMockMap.has(fieldType.name)) {
         return defaultMockMap.get(fieldType.name)(root, args, context, info);
       }
+
       // if we get to here, we don't have a value, and we don't have a mock for this type,
       // we could return undefined, but that would be hard to debug, so we throw instead.
-      throw new Error(`No mock defined for type "${fieldType.name}"`);
+      // however, we returning it instead of throwing it, so preserveResolvers can handle the failures.
+      return Error(`No mock defined for type "${fieldType.name}"`);
     };
   };
 
@@ -260,6 +262,16 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
         oldResolver(rootObject, args, context, info),
       ]).then(values => {
         const [mockedValue, resolvedValue] = values;
+
+        // In case we couldn't mock
+        if (mockedValue instanceof Error) {
+            // only if value was not resolved, populate the error.
+            if (undefined === resolvedValue) {
+              throw mockedValue;
+            }
+            return resolvedValue;
+        }
+
         if (isObject(mockedValue) && isObject(resolvedValue)) {
           // Object.assign() won't do here, as we need to all properties, including
           // the non-enumerable ones and defined using Object.defineProperty
