@@ -37,7 +37,7 @@ import { deprecated } from "deprecated-decorator";
 // @schemaDefinition: A GraphQL type schema in shorthand
 // @resolvers: Definitions for resolvers to be merged with schema
 class SchemaError extends Error {
-    constructor(message: string) {
+    constructor(public message: string) {
         super(message);
         Error.captureStackTrace(this, this.constructor);
     }

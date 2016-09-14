@@ -3,7 +3,7 @@
 		"experimentalDecorators": true,
 		"lib": ["es6", "dom"],
 		"module": "commonjs",
-		"target": "es6",
+		"target": "es5",
 		"noImplicitAny": true,
 		"suppressImplicitAnyIndexErrors": true,
 		"moduleResolution": "node",
