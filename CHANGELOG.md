@@ -2,6 +2,10 @@
 
 ### vNEXT
 
+### v0.7.1
+
+* Fix dependency on lodash
+
 ### v0.7.0
 * Various Bugfixes ([@DxCx](https://github.com/DxCx) in [#129](https://github.com/apollostack/graphql-tools/pull/129))
 	- Istanbul coverage was not working well due to Istanbul bug [#549](https://github.com/gotwarlost/istanbul/issues/549)
