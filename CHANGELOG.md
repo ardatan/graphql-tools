@@ -1,7 +1,8 @@
 # Changelog
 
 ### vNEXT
-
+ * Bugfix for error handling on preserveResolvers ([#149](https://github.com/apollostack/graphql-tools/issues/149)). ([@DxCx](https://github.com/DxCx) in [#151](https://github.com/apollostack/graphql-tools/pull/151))
+ 
 ### v0.7.2
  * Eliminated babel and moved to native ES5 compilation. ([@DxCx](https://github.com/DxCx) in [#147](https://github.com/apollostack/graphql-tools/pull/147))
 
