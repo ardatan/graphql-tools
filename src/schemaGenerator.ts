@@ -3,6 +3,9 @@
 // TODO: document each function clearly in the code: what arguments it accepts
 // and what it outputs.
 
+// TODO: we should refactor this file, rename it to makeExecutableSchema, and move
+// a bunch of utility functions into a separate utitlities folder, one file per function.
+
 import { Document, parse, Kind, Definition } from 'graphql';
 import { uniq } from 'lodash';
 import { buildASTSchema, extendSchema } from 'graphql';
