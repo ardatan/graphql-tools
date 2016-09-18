@@ -4,6 +4,7 @@
 [![Build Status](https://travis-ci.org/apollostack/graphql-tools.svg?branch=master)](https://travis-ci.org/apollostack/graphql-tools)
 [![Coverage Status](https://coveralls.io/repos/github/apollostack/graphql-tools/badge.svg?branch=master)](https://coveralls.io/github/apollostack/graphql-tools?branch=master)
 [![Get on Slack](https://img.shields.io/badge/slack-join-orange.svg)](http://www.apollostack.com/#slack)
+[![Standard Version](https://img.shields.io/badge/release-standard%20version-brightgreen.svg)](https://github.com/conventional-changelog/standard-version)
 
 ## Documentation
 
