@@ -165,13 +165,29 @@ describe('self-test', () => {
 });
 
 describe('Autopublish', () => {
-  it('publishes payloads to the channel on mutations', (done) => {
+  it('publishes payloads to the channel on mutations', () => {
     const added: any[] = [];
-    pubsub.subscribe('createSpecies', (data: any) => added.push(data));
+    const p1 = new Promise((resolve, reject) => {
+      pubsub.subscribe('createSpecies', (data: any) => {
+        added.push(data);
+        resolve(undefined);
+      });
+    });
     const updated: any[] = [];
-    pubsub.subscribe('updateSpecies', (data: any) => updated.push(data));
+    const p2 = new Promise((resolve, reject) => {
+      pubsub.subscribe('updateSpecies', (data: any) => {
+        updated.push(data);
+        resolve(undefined);
+      });
+    });
     const deleted: any[] = [];
-    pubsub.subscribe('deleteSpecies', (data: any) => deleted.push(data));
+    const p3 = new Promise((resolve, reject) => {
+      pubsub.subscribe('deleteSpecies', (data: any) => {
+        deleted.push(data);
+        resolve(undefined);
+      });
+    });
+    const ready = Promise.all([p1, p2, p3]);
 
     // autopublish
     autopublishMutationResults(schema, pubsub);
@@ -195,13 +211,12 @@ describe('Autopublish', () => {
       'updated': { name: 'Penguin' },
       'deleted': { name: 'Dog' },
     };
-    graphql(schema, mutation).then( data => {
-      setTimeout(() => {
+    return graphql(schema, mutation).then( data => {
+      return ready.then(() => {
         expect(added[0]['name']).to.deep.equal(expected['added']['name']);
         expect(updated[0]['name']).to.deep.equal(expected['updated']['name']);
         expect(deleted[0]['name']).to.deep.equal(expected['deleted']['name']);
-        done();
-      }, 100);
+      });
     });
 
     // if you got them all, yay!
