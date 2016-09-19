@@ -19,6 +19,7 @@ import {
   addSchemaLevelResolveFunction,
   attachConnectorsToContext,
   assertResolveFunctionsPresent,
+  chainResolvers,
 } from '../schemaGenerator';
 import { IResolverValidationOptions, IResolvers } from '../Interfaces';
 import 'mocha';
@@ -1368,5 +1369,23 @@ describe('Generating a full graphQL schema with resolvers and connectors', () =>
     return graphql(schema, query, {}, { usecontext: 'ABC' }).then((res) => {
       expect(res.data).to.deep.equal(expected);
     });
+  });
+});
+
+describe('chainResolvers', () => {
+  it('can chain two resolvers', () => {
+    const r1 = (root: number) => root + 1;
+    const r2 = (root: number, { addend }: { addend: number }) => root + addend;
+
+    const rChained = chainResolvers([r1, r2]);
+    expect(rChained(0, { addend: 2 }, null, null)).to.equals(3);
+  });
+
+  it('uses default resolver when a resolver is undefined', () => {
+    const r1 = (root: any, { name }: { name: string }) => ({ person: { name } });
+    const r3 = (root: any) => root['name'];
+    const rChained = chainResolvers([r1, undefined, r3]);
+    // faking the resolve info here.
+    expect(rChained(0, { name: 'tony' }, null, { fieldName: 'person' } as GraphQLResolveInfo)).to.equals('tony');
   });
 });
