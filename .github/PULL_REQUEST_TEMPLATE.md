@@ -1,10 +1,23 @@
 <!--
   Thanks for filing a pull request on Apollo Client!
 
-  Please look at the following checklist to ensure that your PR
-  can be accepted quickly:
+  We are using standard-version because it makes it easier to keep track of relevant changes when we publish releases, and because it removes the need for a CHANGELOG.md file, which often leads to merge conflicts in pull requests.
+  (More info about the formating below)
+  
+  If you're not sure how exactly to format the commit message, don't worry about it. Just make the PR, and we'll fix it for you when we merge it.
 
-  Commmits Formatting:
+  Finally, please look at the following checklist to ensure that your PR
+  can be accepted quickly:
+-->
+
+TODO:
+
+- [ ] Make sure all of the significant new logic is covered by tests
+- [ ] Rebase your changes on master so that they can be merged easily
+- [ ] Make sure all tests and linter rules pass
+
+<!--
+Commmits Formatting: (https://github.com/bcoe/conventional-changelog-standard/blob/master/convention.md)
   ---------------------
   A commit message consists of a **header**, **body** and **footer**.  The header has a **type**, **scope** and **subject**:
   <type>(<scope>): <subject>
@@ -47,9 +60,3 @@
 
     BREAKING CHANGE: remove mockServer which got deprectaed on version 0.4.0
 -->
-
-TODO:
-
-- [ ] Make sure all of the significant new logic is covered by tests
-- [ ] Rebase your changes on master so that they can be merged easily
-- [ ] Make sure all tests and linter rules pass
