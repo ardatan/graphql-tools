@@ -21,7 +21,9 @@
     "testonly": "mocha --reporter spec --full-trace ./dist/test/tests.js",
     "coverage": "istanbul cover _mocha -- --reporter dot --full-trace ./dist/test/tests.js",
     "postcoverage": "remap-istanbul --input coverage/coverage.json --type lcovonly --output coverage/lcov.info",
-    "prepublish": "npm run compile"
+    "prepublish": "npm run compile",
+    "prerelease": "npm test",
+    "release": "standard-version"
   },
   "repository": {
     "type": "git",
@@ -77,6 +79,7 @@
     "request": "^2.72.0",
     "request-promise": "^4.1.0",
     "source-map-support": "^0.4.2",
+    "standard-version": "^2.4.0",
     "supertest": "^2.0.0",
     "supertest-as-promised": "^4.0.0",
     "tslint": "^3.15.1",
