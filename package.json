@@ -1,7 +1,7 @@
 {
   "name": "graphql-tools",
   "version": "0.7.2",
-  "description": "A set of useful GraphQL tools",
+  "description": "A set of useful tools for GraphQL",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "typescript": {
@@ -32,17 +32,19 @@
   "keywords": [
     "GraphQL",
     "Apollo",
-    "Meteor",
-    "Proxy",
-    "Cache",
-    "Javascript"
+    "JavaScript",
+    "TypeScript",
+    "Mock",
+    "Schema",
+    "Schema Language",
+    "Tools"
   ],
-  "author": "Jonas Helfer <helfer@meteor.com>",
-  "license": "ISC",
+  "author": "Jonas Helfer <jonas@helfer.email>",
+  "license": "MIT",
   "bugs": {
-    "url": "https://github.com/apollostack/apollo-proxy/issues"
+    "url": "https://github.com/apollostack/graphql-tools/issues"
   },
-  "homepage": "https://github.com/apollostack/apollo-proxy#readme",
+  "homepage": "https://github.com/apollostack/graphql-tools#readme",
   "dependencies": {
     "deprecated-decorator": "^0.1.6",
     "lodash": "^4.3.0",
