@@ -70,7 +70,7 @@
     "graphql-subscriptions": "^0.2.0",
     "istanbul": "^0.4.5",
     "mocha": "^3.0.1",
-    "remap-istanbul": "^0.6.4",
+    "remap-istanbul": "^0.7.0",
     "request": "^2.72.0",
     "request-promise": "^4.1.0",
     "source-map-support": "^0.4.2",
