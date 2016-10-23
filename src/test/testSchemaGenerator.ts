@@ -97,10 +97,6 @@ describe('generating schema from shorthand', () => {
     expect(() => (<any> makeExecutableSchema)()).to.throw('undefined');
   });
 
-  it('throws an error if no resolver is provided', () => {
-    expect(() => (<any> makeExecutableSchema)({ typeDefs: 'blah' })).to.throw('Must provide resolvers');
-  });
-
   it('throws an error if typeDefinitions are not provided', () => {
     expect(() => (<any> makeExecutableSchema)({ typeDefs: undefined, resolvers: {} })).to.throw('Must provide typeDefs');
   });
@@ -576,7 +572,9 @@ describe('generating schema from shorthand', () => {
     const rf = { Query: {} };
 
     expectWarning(() => {
-        makeExecutableSchema({ typeDefs: short, resolvers: rf });
+        makeExecutableSchema({ typeDefs: short, resolvers: rf, resolverValidationOptions: {
+          requireResolversForArgs: true,
+        } });
     }, 'Resolve function missing for "Query.bird"');
   });
 
@@ -593,7 +591,7 @@ describe('generating schema from shorthand', () => {
     const rf = { Query: {} };
 
     // tslint:disable-next-line: max-line-length
-    assert.doesNotThrow(makeExecutableSchema.bind(null, { typeDefs: short, resolvers: rf, resolverValidationOptions: { requireResolversForArgs: false } }), SchemaError);
+    assert.doesNotThrow(makeExecutableSchema.bind(null, { typeDefs: short, resolvers: rf }), SchemaError);
   });
 
   it('throws an error if field.resolve is not a function', () => {
@@ -610,7 +608,11 @@ describe('generating schema from shorthand', () => {
       }),
     });
 
-    expect(() => assertResolveFunctionsPresent(schema)).to.throw('Resolver "Query.aField" must be a function');
+    const resolverValidationOptions: IResolverValidationOptions = {
+      requireResolversForArgs: true,
+    };
+
+    expect(() => assertResolveFunctionsPresent(schema, resolverValidationOptions)).to.throw('Resolver "Query.aField" must be a function');
   });
 
   it('throws an error if a resolver is not a function', () => {
@@ -641,8 +643,12 @@ describe('generating schema from shorthand', () => {
 
     const rf = {};
 
+    const resolverValidationOptions: IResolverValidationOptions = {
+      requireResolversForNonScalar: true,
+    };
+
     expectWarning(() => {
-        makeExecutableSchema({ typeDefs: short, resolvers: rf });
+        makeExecutableSchema({ typeDefs: short, resolvers: rf, resolverValidationOptions });
     }, 'Resolve function missing for "Query.bird"');
   });
 
@@ -714,16 +720,16 @@ describe('generating schema from shorthand', () => {
 
     assertOptionsError({
       requireResolversForAllFields: true,
-      requireResolversForNonScalar: false,
-      requireResolversForArgs: false,
+      requireResolversForNonScalar: true,
+      requireResolversForArgs: true,
     });
     assertOptionsError({
       requireResolversForAllFields: true,
-      requireResolversForNonScalar: false,
+      requireResolversForNonScalar: true,
     });
     assertOptionsError({
       requireResolversForAllFields: true,
-      requireResolversForArgs: false,
+      requireResolversForArgs: true,
     });
   });
 

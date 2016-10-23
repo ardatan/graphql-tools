@@ -43,6 +43,7 @@ class SchemaError extends Error {
 
   constructor(message: string) {
     super(message);
+    this.message = message;
     Error.captureStackTrace(this, this.constructor);
   }
 }
@@ -87,7 +88,7 @@ function _generateSchema(
 
 function makeExecutableSchema({
   typeDefs,
-  resolvers,
+  resolvers = {},
   connectors,
   logger,
   allowUndefinedInResolve = true,
@@ -320,7 +321,7 @@ function assertResolveFunctionsPresent(schema: GraphQLSchema, resolverValidation
     requireResolversForAllFields = false,
   } = resolverValidationOptions;
 
-  if (requireResolversForAllFields && (!requireResolversForArgs || !requireResolversForNonScalar)) {
+  if (requireResolversForAllFields && (requireResolversForArgs || requireResolversForNonScalar)) {
     throw new TypeError(
       'requireResolversForAllFields takes precedence over the more specific assertions. ' +
       'Please configure either requireResolversForAllFields or requireResolversForArgs / ' +
