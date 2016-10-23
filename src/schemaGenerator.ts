@@ -315,8 +315,8 @@ function setFieldProperties(field: GraphQLFieldDefinition, propertiesObj: Object
 
 function assertResolveFunctionsPresent(schema: GraphQLSchema, resolverValidationOptions: IResolverValidationOptions = {}) {
   const {
-    requireResolversForArgs = true,
-    requireResolversForNonScalar = true,
+    requireResolversForArgs = false,
+    requireResolversForNonScalar = false,
     requireResolversForAllFields = false,
   } = resolverValidationOptions;
 
@@ -475,13 +475,16 @@ function runAtMostOncePerRequest(fn: GraphQLFieldResolveFn): GraphQLFieldResolve
  * and returns it as the result, or if it's a function, returns the result
  * of calling that function.
  */
-function defaultResolveFn(source: any, args: { [key: string]: string }, context: any, { fieldName }: GraphQLResolveInfo) {
+function defaultResolveFn(
+    source: any, args: any, context: any, { fieldName }: { fieldName: string}) {
   // ensure source is a value for which property access is acceptable.
   if (typeof source === 'object' || typeof source === 'function') {
     const property = source[fieldName];
-    return typeof property === 'function' ? source[fieldName]() : property;
+    if (typeof property === 'function') {
+      return source[fieldName](args, context);
+    }
+    return property;
   }
-  return undefined;
 }
 
 export {
