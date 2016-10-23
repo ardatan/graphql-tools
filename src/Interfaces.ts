@@ -1,13 +1,11 @@
 import {
     GraphQLSchema,
     GraphQLFieldDefinition,
-    GraphQLResolveInfo,
     GraphQLResult,
     GraphQLType,
     GraphQLFieldResolveFn,
     GraphQLIsTypeOfFn,
     GraphQLTypeResolveFn,
-    GraphQLObjectType,
 } from 'graphql';
 
 /* TODO: Add documentation */
@@ -44,7 +42,7 @@ export type IConnectors = { [key: string]: IConnector };
 
 export interface IExecutableSchemaDefinition {
     typeDefs: ITypeDefinitions;
-    resolvers: IResolvers;
+    resolvers?: IResolvers;
     connectors?: IConnectors;
     logger?: ILogger;
     allowUndefinedInResolve?: boolean;

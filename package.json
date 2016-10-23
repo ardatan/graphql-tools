@@ -16,7 +16,7 @@
     "pretest": "npm run compile",
     "test": "npm run testonly --",
     "posttest": "npm run lint",
-    "lint": "tslint ./src/**/*.ts",
+    "lint": "tslint $(find src | grep ts$)",
     "watch": "tsc -w",
     "testonly": "mocha --reporter spec --full-trace ./dist/test/tests.js",
     "coverage": "istanbul cover _mocha -- --reporter dot --full-trace ./dist/test/tests.js",
@@ -48,11 +48,13 @@
   "dependencies": {
     "deprecated-decorator": "^0.1.6",
     "lodash": "^4.3.0",
-    "node-uuid": "^1.4.7",
-    "typed-graphql": "^1.0.2"
+    "node-uuid": "^1.4.7"
   },
   "peerDependencies": {
     "graphql": "^0.5.0 || ^0.6.0 || ^0.7.0"
+  },
+  "optionalDependencies": {
+    "typed-graphql": "^1.0.2"
   },
   "devDependencies": {
     "@types/bluebird": "^3.0.32",

@@ -19,8 +19,7 @@ import {
   GraphQLFieldResolveFn,
   GraphQLType,
   GraphQLInterfaceType,
-  GraphQLInputObjectType,
-  GraphQLFieldDefinitionMap
+  GraphQLFieldDefinitionMap,
 } from 'graphql';
 import {
   IExecutableSchemaDefinition ,
@@ -32,18 +31,21 @@ import {
   IConnectors,
   IConnector,
   IConnectorCls,
-  IConnectorFn,
   IResolverValidationOptions,
 } from './Interfaces';
-import { deprecated } from "deprecated-decorator";
+
+import { deprecated } from 'deprecated-decorator';
 
 // @schemaDefinition: A GraphQL type schema in shorthand
 // @resolvers: Definitions for resolvers to be merged with schema
 class SchemaError extends Error {
-    constructor(public message: string) {
-        super(message);
-        Error.captureStackTrace(this, this.constructor);
-    }
+  public message: string;
+
+  constructor(message: string) {
+    super(message);
+    this.message = message;
+    Error.captureStackTrace(this, this.constructor);
+  }
 }
 
 // type definitions can be a string or an array of strings.
@@ -86,7 +88,7 @@ function _generateSchema(
 
 function makeExecutableSchema({
   typeDefs,
-  resolvers,
+  resolvers = {},
   connectors,
   logger,
   allowUndefinedInResolve = true,
@@ -224,10 +226,6 @@ const attachConnectorsToContext = deprecated<Function>({
       let connector: IConnector = connectors[connectorName];
       if ( !!connector.prototype ) {
           ctx.connectors[connectorName] = new (<IConnectorCls> connector)(ctx);
-      /** XXX Babel will eliminate this flow.
-      } else if ( typeof connector === 'function' ) {
-          ctx.connectors[connectorName] = (<IConnectorFn> connector)(ctx);
-      */
       } else {
           throw new Error(`Connector must be a function or an class`);
       }
@@ -318,12 +316,12 @@ function setFieldProperties(field: GraphQLFieldDefinition, propertiesObj: Object
 
 function assertResolveFunctionsPresent(schema: GraphQLSchema, resolverValidationOptions: IResolverValidationOptions = {}) {
   const {
-    requireResolversForArgs = true,
-    requireResolversForNonScalar = true,
+    requireResolversForArgs = false,
+    requireResolversForNonScalar = false,
     requireResolversForAllFields = false,
   } = resolverValidationOptions;
 
-  if (requireResolversForAllFields && (!requireResolversForArgs || !requireResolversForNonScalar)) {
+  if (requireResolversForAllFields && (requireResolversForArgs || requireResolversForNonScalar)) {
     throw new TypeError(
       'requireResolversForAllFields takes precedence over the more specific assertions. ' +
       'Please configure either requireResolversForAllFields or requireResolversForArgs / ' +
@@ -384,13 +382,14 @@ function wrapResolver(innerResolver: GraphQLFieldResolveFn | undefined, outerRes
   };
 }
 
-function chainResolvers(resolvers: GraphQLFieldResolveFn[]){
+function chainResolvers(resolvers: GraphQLFieldResolveFn[]) {
   return (root: any, args: {[argName: string]: any}, ctx: any, info: GraphQLResolveInfo) => {
-    return resolvers.reduce( 
+    return resolvers.reduce(
       (prev, curResolver) => {
-        if (curResolver){
+        if (curResolver) {
           return curResolver(prev, args, ctx, info);
         }
+
         return defaultResolveFn(prev, args, ctx, info);
       },
       root,
@@ -477,13 +476,16 @@ function runAtMostOncePerRequest(fn: GraphQLFieldResolveFn): GraphQLFieldResolve
  * and returns it as the result, or if it's a function, returns the result
  * of calling that function.
  */
-function defaultResolveFn(source: any, args: { [key: string]: string }, context: any, { fieldName }: GraphQLResolveInfo) {
+function defaultResolveFn(
+    source: any, args: any, context: any, { fieldName }: { fieldName: string}) {
   // ensure source is a value for which property access is acceptable.
   if (typeof source === 'object' || typeof source === 'function') {
     const property = source[fieldName];
-    return typeof property === 'function' ? source[fieldName]() : property;
+    if (typeof property === 'function') {
+      return source[fieldName](args, context);
+    }
+    return property;
   }
-  return undefined;
 }
 
 export {
