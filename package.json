@@ -54,7 +54,7 @@
     "graphql": "^0.5.0 || ^0.6.0 || ^0.7.0"
   },
   "optionalDependencies": {
-    "typed-graphql": "^1.0.2",
+    "typed-graphql": "^1.0.2"
   },
   "devDependencies": {
     "@types/bluebird": "^3.0.32",
