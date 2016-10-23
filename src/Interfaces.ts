@@ -1,13 +1,11 @@
 import {
     GraphQLSchema,
     GraphQLFieldDefinition,
-    GraphQLResolveInfo,
     GraphQLResult,
     GraphQLType,
     GraphQLFieldResolveFn,
     GraphQLIsTypeOfFn,
     GraphQLTypeResolveFn,
-    GraphQLObjectType,
 } from 'graphql';
 
 /* TODO: Add documentation */

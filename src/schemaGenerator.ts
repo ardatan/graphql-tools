@@ -19,8 +19,7 @@ import {
   GraphQLFieldResolveFn,
   GraphQLType,
   GraphQLInterfaceType,
-  GraphQLInputObjectType,
-  GraphQLFieldDefinitionMap
+  GraphQLFieldDefinitionMap,
 } from 'graphql';
 import {
   IExecutableSchemaDefinition ,
@@ -32,18 +31,20 @@ import {
   IConnectors,
   IConnector,
   IConnectorCls,
-  IConnectorFn,
   IResolverValidationOptions,
 } from './Interfaces';
-import { deprecated } from "deprecated-decorator";
+
+import { deprecated } from 'deprecated-decorator';
 
 // @schemaDefinition: A GraphQL type schema in shorthand
 // @resolvers: Definitions for resolvers to be merged with schema
 class SchemaError extends Error {
-    constructor(public message: string) {
-        super(message);
-        Error.captureStackTrace(this, this.constructor);
-    }
+  public message: string;
+
+  constructor(message: string) {
+    super(message);
+    Error.captureStackTrace(this, this.constructor);
+  }
 }
 
 // type definitions can be a string or an array of strings.
@@ -224,10 +225,6 @@ const attachConnectorsToContext = deprecated<Function>({
       let connector: IConnector = connectors[connectorName];
       if ( !!connector.prototype ) {
           ctx.connectors[connectorName] = new (<IConnectorCls> connector)(ctx);
-      /** XXX Babel will eliminate this flow.
-      } else if ( typeof connector === 'function' ) {
-          ctx.connectors[connectorName] = (<IConnectorFn> connector)(ctx);
-      */
       } else {
           throw new Error(`Connector must be a function or an class`);
       }
@@ -384,13 +381,14 @@ function wrapResolver(innerResolver: GraphQLFieldResolveFn | undefined, outerRes
   };
 }
 
-function chainResolvers(resolvers: GraphQLFieldResolveFn[]){
+function chainResolvers(resolvers: GraphQLFieldResolveFn[]) {
   return (root: any, args: {[argName: string]: any}, ctx: any, info: GraphQLResolveInfo) => {
-    return resolvers.reduce( 
+    return resolvers.reduce(
       (prev, curResolver) => {
-        if (curResolver){
+        if (curResolver) {
           return curResolver(prev, args, ctx, info);
         }
+
         return defaultResolveFn(prev, args, ctx, info);
       },
       root,
