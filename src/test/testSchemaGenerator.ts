@@ -10,6 +10,7 @@ import {
   GraphQLResolveInfo,
 } from 'graphql';
 // import { printSchema } from 'graphql';
+const GraphQLJSON = require('graphql-type-json');
 import { Logger } from '../Logger';
 import TypeA from './circularSchemaA';
 import {
@@ -281,6 +282,26 @@ describe('generating schema from shorthand', () => {
     expect(jsSchema.getQueryType().name).to.equal('Query');
     expect(jsSchema.getQueryType().getFields()).to.have.all.keys('foo', 'bar');
   });
+
+  it('can generate a schema which includes a JSON scalar type', () => {
+    const typeDefAry = [`
+      scalar JSON
+      `, `
+      type Query {
+        foo: JSON
+      }
+      `, `
+      schema {
+        query: Query
+      }
+    `];
+    const resolvers = {
+      JSON: GraphQLJSON,
+    };
+    const jsSchema = makeExecutableSchema({ typeDefs: typeDefAry, resolvers: resolvers});
+//console.log(jsSchema);
+    expect(jsSchema.getQueryType().name).to.equal('Query');
+    });
 
   it('properly deduplicates the array of type definitions', () => {
     const typeDefAry = [`

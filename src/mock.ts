@@ -68,6 +68,11 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
   defaultMockMap.set('String', () => 'Hello World');
   defaultMockMap.set('Boolean', () => Math.random() > 0.5);
   defaultMockMap.set('ID', () => uuid.v4());
+  defaultMockMap.set('JSON', () => ({
+    kind: 'ObjectValue',
+    value: '{"foo":"bar"}',
+    name: 'JSON',
+  }));
 
   function mergeObjects(a: Object, b: Object) {
     return Object.assign(a, b);

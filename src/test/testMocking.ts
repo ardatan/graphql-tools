@@ -13,11 +13,14 @@ import {
   addResolveFunctionsToSchema,
   makeExecutableSchema,
 } from '../schemaGenerator';
+const GraphQLJSON = require('graphql-type-json');
 import 'mocha';
 
 describe('Mock', () => {
   const shorthand = `
     scalar MissingMockType
+
+    scalar JSON
 
     interface Flying {
       returnInt: Int
@@ -49,6 +52,7 @@ describe('Mock', () => {
       returnBoolean: Boolean
       returnID: ID
       returnEnum: SomeEnum
+      returnJSON: JSON
       returnBirdsAndBees: [BirdsAndBees]
       returnFlying: [Flying]
       returnMockError: MissingMockType
@@ -83,6 +87,7 @@ describe('Mock', () => {
         return info.schema.getType(data.typename);
       },
     },
+    JSON: GraphQLJSON,
   };
 
   it('throws an error if you forget to pass schema', () => {
@@ -120,6 +125,22 @@ describe('Mock', () => {
       expect(res.data.returnBoolean).to.be.a('boolean');
       expect(res.data.returnString).to.be.a('string');
       expect(res.data.returnID).to.be.a('string');
+    });
+  });
+
+  it('mocks the JSON type', () => {
+    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    addResolveFunctionsToSchema(jsSchema, resolveFunctions);
+    const mockMap = {};
+    addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap});
+    const testQuery = `{
+      returnJSON
+    }`;
+    return graphql(jsSchema, testQuery).then((res) => {
+//console.log(res);
+      expect(res.data.returnJSON).to.be.a('object');
+      let resultObj = JSON.parse(res.data.returnJSON.value);
+      expect(resultObj.foo).to.equal('bar');
     });
   });
 
@@ -523,6 +544,26 @@ describe('Mock', () => {
     };
     return graphql(jsSchema, testQuery).then((res) => {
       expect(res.data).to.deep.equal(expected);
+    });
+  });
+
+  it('can mock the JSON type', () => {
+    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    addResolveFunctionsToSchema(jsSchema, resolveFunctions);
+    const mockMap = { JSON: () => ({
+      kind: 'ObjectValue',
+      value: '{"hello":"world"}',
+      name: 'JSON',
+    })};
+    addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
+    const testQuery = `{
+      returnJSON
+    }`;
+    return graphql(jsSchema, testQuery).then((res) => {
+//console.log(res);
+      expect(res.data.returnJSON).to.be.a('object');
+      let resultObj = JSON.parse(res.data.returnJSON.value);
+      expect(resultObj.hello).to.equal('world');
     });
   });
 

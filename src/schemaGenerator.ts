@@ -281,6 +281,14 @@ function addResolveFunctionsToSchema(schema: GraphQLSchema, resolveFunctions: IR
         return;
       }
 
+      if (typeName === 'JSON') {
+        const propsToCopy = ['description', 'serialize', 'parseValue', 'parseLiteral', '_scalarConfig'];
+        propsToCopy.forEach(function(propName) {
+          type[propName] = resolveFunctions['JSON'][propName];
+        });
+        return;
+      }
+
       const fields = getFieldsForType(type);
       if (!fields) {
           throw new SchemaError(
