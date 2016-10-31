@@ -8,6 +8,7 @@ import {
   GraphQLObjectType,
   GraphQLSchema,
   GraphQLResolveInfo,
+  GraphQLScalarType,
 } from 'graphql';
 // import { printSchema } from 'graphql';
 const GraphQLJSON = require('graphql-type-json');
@@ -283,26 +284,6 @@ describe('generating schema from shorthand', () => {
     expect(jsSchema.getQueryType().getFields()).to.have.all.keys('foo', 'bar');
   });
 
-  it('can generate a schema which includes a JSON scalar type', () => {
-    const typeDefAry = [`
-      scalar JSON
-      `, `
-      type Query {
-        foo: JSON
-      }
-      `, `
-      schema {
-        query: Query
-      }
-    `];
-    const resolvers = {
-      JSON: GraphQLJSON,
-    };
-    const jsSchema = makeExecutableSchema({ typeDefs: typeDefAry, resolvers: resolvers});
-//console.log(jsSchema);
-    expect(jsSchema.getQueryType().name).to.equal('Query');
-    });
-
   it('properly deduplicates the array of type definitions', () => {
     const typeDefAry = [`
       type Query {
@@ -523,6 +504,29 @@ describe('generating schema from shorthand', () => {
     const jsSchema = makeExecutableSchema({ typeDefs: shorthand, resolvers: resolveFunctions });
     const resultPromise = graphql(jsSchema, testQuery);
     return resultPromise.then(result => assert.deepEqual(result, solution));
+  });
+
+  it('supports passing a GraphQLScalarType in resolveFunctions', () => {
+    // Here GraphQLJSON is used as an example of non-default GraphQLScalarType
+    const shorthand = `
+      scalar JSON
+
+      type Foo {
+        aField: JSON
+      }
+
+      type Query {
+        foo: Foo
+      }
+    `;
+    const resolveFunctions = {
+      JSON: GraphQLJSON,
+    };
+    const jsSchema = makeExecutableSchema({ typeDefs: shorthand, resolvers: resolveFunctions });
+    expect(jsSchema.getQueryType().name).to.equal('Query');
+    expect(jsSchema.getType('JSON')).to.be.an.instanceof(GraphQLScalarType);
+    expect(jsSchema.getType('JSON')).to.have.property('description').that.is.a('string');
+    expect(jsSchema.getType('JSON')['description']).to.have.length.above(0);
   });
 
   it('can set description and deprecation reason', () => {

@@ -273,19 +273,20 @@ function addResolveFunctionsToSchema(schema: GraphQLSchema, resolveFunctions: IR
       );
     }
 
+    if (type instanceof GraphQLScalarType) {
+      let resolveFn = resolveFunctions[typeName];
+      if (resolveFn instanceof GraphQLScalarType) {
+        let thisScalarType: GraphQLScalarType = resolveFn;
+        schema.getTypeMap()[typeName] = thisScalarType;
+        return;
+      }
+    }
+
     Object.keys(resolveFunctions[typeName]).forEach((fieldName) => {
       if (fieldName.startsWith('__')) {
         // this is for isTypeOf and resolveType and all the other stuff.
         // TODO require resolveType for unions and interfaces.
         type[fieldName.substring(2)] = resolveFunctions[typeName][fieldName];
-        return;
-      }
-
-      if (typeName === 'JSON') {
-        const propsToCopy = ['description', 'serialize', 'parseValue', 'parseLiteral', '_scalarConfig'];
-        propsToCopy.forEach(function(propName) {
-          type[propName] = resolveFunctions['JSON'][propName];
-        });
         return;
       }
 
