@@ -274,9 +274,9 @@ function addResolveFunctionsToSchema(schema: GraphQLSchema, resolveFunctions: IR
     }
 
     if (type instanceof GraphQLScalarType) {
-      let resolveFn = resolveFunctions[typeName];
+      const resolveFn = resolveFunctions[typeName];
       if (resolveFn instanceof GraphQLScalarType) {
-        let thisScalarType: GraphQLScalarType = resolveFn;
+        const thisScalarType: GraphQLScalarType = resolveFn;
         schema.getTypeMap()[typeName] = thisScalarType;
         return;
       }
