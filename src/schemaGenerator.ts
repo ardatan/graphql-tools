@@ -273,6 +273,15 @@ function addResolveFunctionsToSchema(schema: GraphQLSchema, resolveFunctions: IR
       );
     }
 
+    if (type instanceof GraphQLScalarType) {
+      const resolveFn = resolveFunctions[typeName];
+      if (resolveFn instanceof GraphQLScalarType) {
+        const thisScalarType: GraphQLScalarType = resolveFn;
+        schema.getTypeMap()[typeName] = thisScalarType;
+        return;
+      }
+    }
+
     Object.keys(resolveFunctions[typeName]).forEach((fieldName) => {
       if (fieldName.startsWith('__')) {
         // this is for isTypeOf and resolveType and all the other stuff.

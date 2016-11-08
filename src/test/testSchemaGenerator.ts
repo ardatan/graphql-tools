@@ -8,8 +8,10 @@ import {
   GraphQLObjectType,
   GraphQLSchema,
   GraphQLResolveInfo,
+  GraphQLScalarType,
 } from 'graphql';
 // import { printSchema } from 'graphql';
+const GraphQLJSON = require('graphql-type-json');
 import { Logger } from '../Logger';
 import TypeA from './circularSchemaA';
 import {
@@ -502,6 +504,29 @@ describe('generating schema from shorthand', () => {
     const jsSchema = makeExecutableSchema({ typeDefs: shorthand, resolvers: resolveFunctions });
     const resultPromise = graphql(jsSchema, testQuery);
     return resultPromise.then(result => assert.deepEqual(result, solution));
+  });
+
+  it('supports passing a GraphQLScalarType in resolveFunctions', () => {
+    // Here GraphQLJSON is used as an example of non-default GraphQLScalarType
+    const shorthand = `
+      scalar JSON
+
+      type Foo {
+        aField: JSON
+      }
+
+      type Query {
+        foo: Foo
+      }
+    `;
+    const resolveFunctions = {
+      JSON: GraphQLJSON,
+    };
+    const jsSchema = makeExecutableSchema({ typeDefs: shorthand, resolvers: resolveFunctions });
+    expect(jsSchema.getQueryType().name).to.equal('Query');
+    expect(jsSchema.getType('JSON')).to.be.an.instanceof(GraphQLScalarType);
+    expect(jsSchema.getType('JSON')).to.have.property('description').that.is.a('string');
+    expect(jsSchema.getType('JSON')['description']).to.have.length.above(0);
   });
 
   it('can set description and deprecation reason', () => {
