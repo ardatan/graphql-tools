@@ -9,6 +9,8 @@ import {
   GraphQLSchema,
   GraphQLResolveInfo,
   GraphQLScalarType,
+  Kind,
+  IntValue,
 } from 'graphql';
 // import { printSchema } from 'graphql';
 const GraphQLJSON = require('graphql-type-json');
@@ -527,6 +529,71 @@ describe('generating schema from shorthand', () => {
     expect(jsSchema.getType('JSON')).to.be.an.instanceof(GraphQLScalarType);
     expect(jsSchema.getType('JSON')).to.have.property('description').that.is.a('string');
     expect(jsSchema.getType('JSON')['description']).to.have.length.above(0);
+  });
+
+  it('fails', () => {
+    const oddValue = (value: number) => {
+      return value % 2 === 1 ? value : null;
+    };
+
+    const OddType = new GraphQLScalarType({
+      name: 'Odd',
+      description: 'Odd custom scalar type',
+      parseValue: oddValue,
+      serialize: oddValue,
+      parseLiteral(ast) {
+        if (ast.kind === Kind.INT) {
+          const intValue: IntValue = <IntValue>ast;
+          return oddValue(parseInt(intValue.value, 10));
+        }
+        return null;
+      },
+    });
+
+    const typeDefs = `
+      scalar Odd
+
+      type Post {
+        id: Int!
+        title: String
+        something: Odd
+      }
+
+      type Query {
+        post: Post
+      }
+
+      schema {
+        query: Query
+      }
+    `;
+
+    const resolvers = {
+      Odd: OddType,
+      Query: {
+        post() {
+          return {
+            id: 1,
+            title: 'My first post',
+            something: 3,
+          };
+        },
+      },
+    };
+
+    const jsSchema = makeExecutableSchema({ typeDefs: typeDefs, resolvers: resolvers });
+    const testQuery = `
+{
+  post {
+    something
+  }
+}
+`;
+    const resultPromise = graphql(jsSchema, testQuery);
+    return resultPromise.then(result => {
+      console.log(result.errors);
+      assert.equal(result.errors.length, 0);
+    });
   });
 
   it('can set description and deprecation reason', () => {

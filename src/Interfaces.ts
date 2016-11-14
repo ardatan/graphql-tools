@@ -6,6 +6,7 @@ import {
     GraphQLFieldResolveFn,
     GraphQLIsTypeOfFn,
     GraphQLTypeResolveFn,
+    GraphQLScalarType,
 } from 'graphql';
 
 /* TODO: Add documentation */
@@ -26,7 +27,7 @@ export type ITypedef = (() => ITypedef[]) | string;
 export type ITypeDefinitions = ITypedef | ITypedef[];
 export type IResolverObject = { [key: string]: GraphQLFieldResolveFn | IResolverOptions };
 export interface IResolvers {
-    [key: string]: (() => any) | IResolverObject;
+    [key: string]: (() => any) | IResolverObject | GraphQLScalarType;
 };
 export interface ILogger {
     log: (message: string | Error) => void;
