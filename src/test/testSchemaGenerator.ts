@@ -531,7 +531,7 @@ describe('generating schema from shorthand', () => {
     expect(jsSchema.getType('JSON')['description']).to.have.length.above(0);
   });
 
-  it('fails', () => {
+  it('should work with an Odd custom scalar type', () => {
     const oddValue = (value: number) => {
       return value % 2 === 1 ? value : null;
     };
@@ -568,6 +568,7 @@ describe('generating schema from shorthand', () => {
       }
     `;
 
+    const testValue = 3;
     const resolvers = {
       Odd: OddType,
       Query: {
@@ -575,7 +576,7 @@ describe('generating schema from shorthand', () => {
           return {
             id: 1,
             title: 'My first post',
-            something: 3,
+            something: testValue,
           };
         },
       },
@@ -583,18 +584,87 @@ describe('generating schema from shorthand', () => {
 
     const jsSchema = makeExecutableSchema({ typeDefs: typeDefs, resolvers: resolvers });
     const testQuery = `
-{
-  post {
-    something
-  }
-}
+      {
+        post {
+          something
+        }
+      }
 `;
     const resultPromise = graphql(jsSchema, testQuery);
     return resultPromise.then(result => {
-      console.log(result.errors);
-      assert.equal(result.errors.length, 0);
+      assert.equal(result.data.post.something, testValue);
+      assert.equal(result.errors, undefined);
     });
   });
+
+  it('should work with a Date custom scalar type', () => {
+
+    const DateType = new GraphQLScalarType({
+      name: 'Date',
+      description: 'Date custom scalar type',
+      parseValue(value) {
+        return new Date(value);
+      },
+      serialize(value) {
+        return value.getTime();
+      },
+      parseLiteral(ast) {
+        if (ast.kind === Kind.INT) {
+          const intValue: IntValue = <IntValue>ast;
+          return parseInt(intValue.value, 10);
+        }
+        return null;
+      },
+    });
+
+    const typeDefs = `
+      scalar Date
+
+      type Post {
+        id: Int!
+        title: String
+        something: Date
+      }
+
+      type Query {
+        post: Post
+      }
+
+      schema {
+        query: Query
+      }
+    `;
+
+    const testDate = new Date(2016, 0, 1);
+
+    const resolvers = {
+      Date: DateType,
+      Query: {
+        post() {
+          return {
+            id: 1,
+            title: 'My first post',
+            something: testDate,
+          };
+        },
+      },
+    };
+
+    const jsSchema = makeExecutableSchema({ typeDefs: typeDefs, resolvers: resolvers });
+    const testQuery = `
+      {
+        post {
+          something
+        }
+      }
+`;
+    const resultPromise = graphql(jsSchema, testQuery);
+    return resultPromise.then(result => {
+      assert.equal(result.data.post.something, testDate.getTime());
+      assert.equal(result.errors, undefined);
+    });
+  });
+
 
   it('can set description and deprecation reason', () => {
     const shorthand = `
