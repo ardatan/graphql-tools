@@ -9,6 +9,8 @@ import {
   GraphQLSchema,
   GraphQLResolveInfo,
   GraphQLScalarType,
+  Kind,
+  IntValue,
 } from 'graphql';
 // import { printSchema } from 'graphql';
 const GraphQLJSON = require('graphql-type-json');
@@ -528,6 +530,141 @@ describe('generating schema from shorthand', () => {
     expect(jsSchema.getType('JSON')).to.have.property('description').that.is.a('string');
     expect(jsSchema.getType('JSON')['description']).to.have.length.above(0);
   });
+
+  it('should work with an Odd custom scalar type', () => {
+    const oddValue = (value: number) => {
+      return value % 2 === 1 ? value : null;
+    };
+
+    const OddType = new GraphQLScalarType({
+      name: 'Odd',
+      description: 'Odd custom scalar type',
+      parseValue: oddValue,
+      serialize: oddValue,
+      parseLiteral(ast) {
+        if (ast.kind === Kind.INT) {
+          const intValue: IntValue = <IntValue>ast;
+          return oddValue(parseInt(intValue.value, 10));
+        }
+        return null;
+      },
+    });
+
+    const typeDefs = `
+      scalar Odd
+
+      type Post {
+        id: Int!
+        title: String
+        something: Odd
+      }
+
+      type Query {
+        post: Post
+      }
+
+      schema {
+        query: Query
+      }
+    `;
+
+    const testValue = 3;
+    const resolvers = {
+      Odd: OddType,
+      Query: {
+        post() {
+          return {
+            id: 1,
+            title: 'My first post',
+            something: testValue,
+          };
+        },
+      },
+    };
+
+    const jsSchema = makeExecutableSchema({ typeDefs: typeDefs, resolvers: resolvers });
+    const testQuery = `
+      {
+        post {
+          something
+        }
+      }
+`;
+    const resultPromise = graphql(jsSchema, testQuery);
+    return resultPromise.then(result => {
+      assert.equal(result.data.post.something, testValue);
+      assert.equal(result.errors, undefined);
+    });
+  });
+
+  it('should work with a Date custom scalar type', () => {
+
+    const DateType = new GraphQLScalarType({
+      name: 'Date',
+      description: 'Date custom scalar type',
+      parseValue(value) {
+        return new Date(value);
+      },
+      serialize(value) {
+        return value.getTime();
+      },
+      parseLiteral(ast) {
+        if (ast.kind === Kind.INT) {
+          const intValue: IntValue = <IntValue>ast;
+          return parseInt(intValue.value, 10);
+        }
+        return null;
+      },
+    });
+
+    const typeDefs = `
+      scalar Date
+
+      type Post {
+        id: Int!
+        title: String
+        something: Date
+      }
+
+      type Query {
+        post: Post
+      }
+
+      schema {
+        query: Query
+      }
+    `;
+
+    const testDate = new Date(2016, 0, 1);
+
+    const resolvers = {
+      Date: DateType,
+      Query: {
+        post() {
+          return {
+            id: 1,
+            title: 'My first post',
+            something: testDate,
+          };
+        },
+      },
+    };
+
+    const jsSchema = makeExecutableSchema({ typeDefs: typeDefs, resolvers: resolvers });
+    const testQuery = `
+      {
+        post {
+          something
+        }
+      }
+`;
+    const resultPromise = graphql(jsSchema, testQuery);
+    return resultPromise.then(result => {
+      assert.equal(result.data.post.something, testDate.getTime());
+      assert.equal(result.errors, undefined);
+    });
+  });
+
 
   it('can set description and deprecation reason', () => {
     const shorthand = `

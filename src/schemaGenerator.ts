@@ -278,7 +278,6 @@ function addResolveFunctionsToSchema(schema: GraphQLSchema, resolveFunctions: IR
       if (resolveFn instanceof GraphQLScalarType) {
         const thisScalarType: GraphQLScalarType = resolveFn;
         schema.getTypeMap()[typeName] = thisScalarType;
-        return;
       }
     }
 
@@ -287,6 +286,11 @@ function addResolveFunctionsToSchema(schema: GraphQLSchema, resolveFunctions: IR
         // this is for isTypeOf and resolveType and all the other stuff.
         // TODO require resolveType for unions and interfaces.
         type[fieldName.substring(2)] = resolveFunctions[typeName][fieldName];
+        return;
+      }
+
+      if (type instanceof GraphQLScalarType) {
+        type[fieldName] = resolveFunctions[typeName][fieldName];
         return;
       }
 
