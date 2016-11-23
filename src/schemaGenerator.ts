@@ -383,11 +383,12 @@ function addErrorLoggingToSchema(schema: GraphQLSchema, logger: ILogger): void {
 // XXX badly named function. this doesn't really wrap, it just chains resolvers...
 function wrapResolver(innerResolver: GraphQLFieldResolveFn | undefined, outerResolver: GraphQLFieldResolveFn): GraphQLFieldResolveFn {
   return (obj, args, ctx, info) => {
-    const root = outerResolver(obj, args, ctx, info);
-    if (innerResolver) {
-      return innerResolver(root, args, ctx, info);
-    }
-    return defaultResolveFn(root, args, ctx, info);
+    return Promise.resolve(outerResolver(obj, args, ctx, info)).then(root => {
+      if (innerResolver) {
+        return innerResolver(root, args, ctx, info);
+      }
+      return defaultResolveFn(root, args, ctx, info);
+    });
   };
 }
 
