@@ -3,3 +3,4 @@ coverage
 npm-debug.log
 dist
 *.tgz
+.DS_Store
