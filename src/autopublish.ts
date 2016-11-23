@@ -6,8 +6,6 @@ import {
 import { PubSub } from 'graphql-subscriptions';
 import { chainResolvers } from './schemaGenerator';
 
-
-
 export function autopublishMutationResults(schema: GraphQLSchema, pubsub: PubSub) {
     // decorate the mutations with your thingy
     const mutationFields = schema.getMutationType().getFields();
