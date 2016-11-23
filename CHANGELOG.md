@@ -2,7 +2,7 @@
 
 ### vNEXT
 
-* ...
+* Remove peer dependency on `graphql-subscriptions`. [#210](https://github.com/apollostack/graphql-tools/pull/210)
 
 ### v0.8.2
 

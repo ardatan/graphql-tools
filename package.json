@@ -51,8 +51,7 @@
     "node-uuid": "^1.4.7"
   },
   "peerDependencies": {
-    "graphql": "^0.5.0 || ^0.6.0 || ^0.7.0 || ^0.8.0",
-    "graphql-subscriptions": "^0.2.0"
+    "graphql": "^0.5.0 || ^0.6.0 || ^0.7.0 || ^0.8.0"
   },
   "optionalDependencies": {
     "typed-graphql": "^1.0.2"
