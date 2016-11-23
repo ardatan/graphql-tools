@@ -1,5 +1,13 @@
 # Change log
 
+### vNEXT
+
+* ...
+
+### v0.8.2
+
+* Fix for new custom scalar support introduced in `0.8.1`. ([@oricordeau](https://github.com/oricordeau) in [#203](https://github.com/apollostack/graphql-tools/pull/203)
+
 ### v0.8.1
 
 * Support custom scalar types developed for GraphQL.js, such as [graphql-type-json](https://github.com/taion/graphql-type-json). ([@oricordeau](https://github.com/oricordeau) in [#189](https://github.com/apollostack/graphql-tools/pull/189)
