@@ -36,13 +36,13 @@ graphql(schema, query).then((result) => console.log('Got result', result));
  
 > Note: If your schema has custom scalar types, you still need to define the `__serialize`, `__parseValue`, and `__parseLiteral` functions, and pass them inside the second argument to `makeExecutableSchema`.
 
-## Customizing mocks
-
 This mocking logic simply looks at your schema and makes sure to return a string where your schema has a string, a number for a number, etc. So you can already get the right shape of result. But if you want to use the mocks to do sophisticated testing, you will likely want to customize them to your particular data model.
 
-This is where the second argument to `addMockFunctionsToSchema` comes in, which is an object that describes your desired mocking logic. This is similar to the `resolverMap` in `makeExecutableSchema`, but has a few extra features aimed at mocking.
+## Customizing mocks
 
-You can specify a function that is called for a specific type in the schema, for example:
+This is where the `mocks` option comes in, it's an object that describes your desired mocking logic. This is similar to the `resolverMap` in `makeExecutableSchema`, but has a few extra features aimed at mocking.
+
+It allows you to specify functions that are called for specific types in the schema, for example:
 
 ```js
 {
