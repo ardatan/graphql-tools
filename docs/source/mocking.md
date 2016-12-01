@@ -69,12 +69,12 @@ You can also use the MockList constructor to automate mocking a list:
 
 ```js
 {
-  Person: () => {
+  Person: () => ({
     // a list of length between 2 and 6
     friends: () => new MockList([2,6]),
     // a list of three lists of two items: [[1, 1], [2, 2], [3, 3]]
     listOfLists: () => new MockList(3, () => new MockList(2)),
-  },
+  }),
 }
 ```
 
@@ -82,10 +82,10 @@ Since the mock functions on fields are actually just GraphQL resolvers, you can 
 
 ```js
 {
-  Person: () => {
+  Person: () => ({
     // the number of friends in the list now depends on numPages
     paginatedFriends: (root, { numPages }) => new MockList(numPages * PAGE_SIZE),
-  },
+  }),
 }
 ```
 
