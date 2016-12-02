@@ -244,10 +244,10 @@ function addSchemaLevelResolveFunction(schema: GraphQLSchema, fn: GraphQLFieldRe
     schema.getMutationType(),
     schema.getSubscriptionType(),
   ]).filter(x => !!x);
-  // XXX this should run at most once per request to simulate a true root resolver
-  // for graphql-js this is an approximation that works with queries but not mutations
-  const rootResolveFn = runAtMostOncePerRequest(fn);
   rootTypes.forEach((type) => {
+    // XXX this should run at most once per request to simulate a true root resolver
+    // for graphql-js this is an approximation that works with queries but not mutations
+    const rootResolveFn = runAtMostOncePerRequest(fn);
     const fields = type.getFields();
     Object.keys(fields).forEach((fieldName) => {
       fields[fieldName].resolve = wrapResolver(fields[fieldName].resolve, rootResolveFn);
