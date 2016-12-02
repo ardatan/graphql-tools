@@ -3,6 +3,7 @@
 ### vNEXT
 
 * ...
+* `addSchemaLevelResolveFunction` resolves once per operation type and not once globally. [#220](https://github.com/apollostack/graphql-tools/pull/220)
 
 ### v0.8.3
 
