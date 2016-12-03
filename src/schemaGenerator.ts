@@ -242,6 +242,7 @@ function addSchemaLevelResolveFunction(schema: GraphQLSchema, fn: GraphQLFieldRe
   const rootTypes = ([
     schema.getQueryType(),
     schema.getMutationType(),
+    schema.getSubscriptionType(),
   ]).filter(x => !!x);
   rootTypes.forEach((type) => {
     // XXX this should run at most once per request to simulate a true root resolver
