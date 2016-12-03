@@ -30,17 +30,13 @@ describe('Resolve', () => {
       }
     `;
     const printRoot = (root: any) => root.toString();
-    const subscriptionRoot = 'subscriptionRoot';
     const resolvers = {
       RootQuery: {
         printRoot,
         printRootAgain: printRoot,
       },
       RootMutation: {
-        printRoot: (root: any) => {
-          pubsub.publish('printRoot', subscriptionRoot);
-          return printRoot(root);
-        },
+        printRoot,
       },
       RootSubscription: {
         printRoot,
@@ -81,54 +77,66 @@ describe('Resolve', () => {
       });
     });
 
-    it('should isolate roots from the different operation types', () => {
+    it('should isolate roots from the different operation types', (done) => {
       schemaLevelResolveFunctionCalls = 0;
       const queryRoot = 'queryRoot';
       const mutationRoot = 'mutationRoot';
-      return graphql(schema, `
-        query TestQuery {
-          printRoot
-        }
-      `, queryRoot)
-      .then(({data}) => {
-        assert.deepEqual(data, {
-          printRoot: queryRoot,
-        });
-        assert.equal(schemaLevelResolveFunctionCalls, 1);
-        const subscribePromise = new Promise((resolve, reject) =>
-          subcriptionManager.subscribe({
-            query: `
-              subscription TestSubscription {
-                printRoot
-              }
-            `,
-            operationName: 'TestSubscription',
-            callback: (err: any, subsData: any) => {
-              if (err) {
-                return reject(err);
-              }
-              resolve(subsData);
-            },
-          })
-        );
-        return Promise.all([
-          graphql(schema, `
-            mutation TestMutation {
+      const subscriptionRoot = 'subscriptionRoot';
+      const subscriptionRoot2 = 'subscriptionRoot2';
+      let subsCbkCalls = 0;
+      const firstSubsTriggered = new Promise(resolveFirst => {
+        subcriptionManager.subscribe({
+          query: `
+            subscription TestSubscription {
               printRoot
             }
-          `, mutationRoot),
-          subscribePromise,
-        ]);
-      })
-      .then(([{data: mutationData}, {data: subsData}]) => {
-        assert.deepEqual(mutationData, {
-          printRoot: mutationRoot,
+          `,
+          operationName: 'TestSubscription',
+          callback: (err: any, {data: subsData}: any) => {
+            subsCbkCalls ++;
+            if (err) {
+              done(err);
+            }
+            try {
+              if (subsCbkCalls === 1) {
+                assert.equal(schemaLevelResolveFunctionCalls, 1);
+                assert.deepEqual(subsData, {printRoot: subscriptionRoot});
+                return resolveFirst();
+              } else if (subsCbkCalls === 2) {
+                assert.equal(schemaLevelResolveFunctionCalls, 4);
+                assert.deepEqual(subsData, {printRoot: subscriptionRoot2});
+                return done();
+              }
+            } catch (e) {
+              return done(e);
+            }
+            done(new Error('Too many subscription fired'));
+          },
         });
-        assert.deepEqual(subsData, {
-          printRoot: subscriptionRoot,
-        });
-        assert.equal(schemaLevelResolveFunctionCalls, 3);
       });
+      pubsub.publish('printRoot', subscriptionRoot);
+      firstSubsTriggered.then(() =>
+        graphql(schema, `
+          query TestQuery {
+            printRoot
+          }
+        `, queryRoot)
+      )
+      .then(({data}) => {
+        assert.equal(schemaLevelResolveFunctionCalls, 2);
+        assert.deepEqual(data, {printRoot: queryRoot});
+        return graphql(schema, `
+          mutation TestMutation {
+            printRoot
+          }
+        `, mutationRoot);
+      })
+      .then(({data: mutationData}) => {
+        assert.equal(schemaLevelResolveFunctionCalls, 3);
+        assert.deepEqual(mutationData, {printRoot: mutationRoot});
+        pubsub.publish('printRoot', subscriptionRoot2);
+      })
+      .catch(done);
     });
   });
 });
