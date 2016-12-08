@@ -531,6 +531,57 @@ describe('generating schema from shorthand', () => {
     expect(jsSchema.getType('JSON')['description']).to.have.length.above(0);
   });
 
+  it('should support custom scalar usage on client-side query execution', () => {
+    const shorthand = `
+      scalar CustomScalar
+      
+      type TestType {
+        testField: String
+      }
+      
+      type RootQuery {
+        myQuery(t: CustomScalar): TestType
+      }
+      
+      schema {
+        query: RootQuery
+      }
+    `;
+
+    const resolveFunctions = {
+      CustomScalar: new GraphQLScalarType({
+        name: 'CustomScalar',
+        serialize(value) {
+          return value;
+        },
+        parseValue(value) {
+          return value;
+        },
+        parseLiteral(ast: any) {
+          switch (ast.kind) {
+            case Kind.STRING:
+              return ast.value;
+            default:
+              return null;
+          }
+        }
+      }),
+    };
+
+    const testQuery = `
+      query myQuery($t: CustomScalar) {
+        myQuery(t: $t) {
+          testField
+        }
+      }`;
+
+    const jsSchema = makeExecutableSchema({ typeDefs: shorthand, resolvers: resolveFunctions });
+    const resultPromise = graphql(jsSchema, testQuery);
+    return resultPromise.then(result => {
+      expect(result.errors.length).to.be.equal(0);
+    });
+  });
+
   it('should work with an Odd custom scalar type', () => {
     const oddValue = (value: number) => {
       return value % 2 === 1 ? value : null;
