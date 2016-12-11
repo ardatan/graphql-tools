@@ -184,6 +184,22 @@ const typeDefs = [`
 `];
 ```
 
+<h2>Descriptions</h2>
+When using GraphiQL in the docs section, in every type there is a description so other developers can understand the purpose of the type.
+In order to add descriptions to types, do the following:
+```
+# Description for the type
+type MyObjectType {
+  # Description for field
+  myField: String!
+  
+  otherField(
+    # Description for argument
+    arg: Int
+  )
+}
+```
+
 This [GraphQL schema language cheat sheet](https://raw.githubusercontent.com/sogko/graphql-shorthand-notation-cheat-sheet/master/graphql-shorthand-notation-cheat-sheet.png) by Hafiz Ismail is an excellent reference for all the features of the GraphQL schema language.
 
 <h2 id="api">API</h2>
