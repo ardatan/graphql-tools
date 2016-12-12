@@ -11,9 +11,10 @@
     "test": "test"
   },
   "scripts": {
+    "clean": "rimraf dist",
     "compile": "tsc",
     "typings": "typings install",
-    "pretest": "npm run compile",
+    "pretest": "npm run clean && npm run compile",
     "test": "npm run testonly --",
     "posttest": "npm run lint",
     "lint": "tslint $(find src | grep ts$)",
@@ -76,9 +77,10 @@
     "remap-istanbul": "^0.8.0",
     "request": "^2.72.0",
     "request-promise": "^4.1.0",
+    "rimraf": "^2.5.4",
     "source-map-support": "^0.4.2",
     "standard-version": "^3.0.0",
     "tslint": "^4.0.1",
-    "typescript": "2.0.10"
+    "typescript": "2.1.4"
   }
 }
