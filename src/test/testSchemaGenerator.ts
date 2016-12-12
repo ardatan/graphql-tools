@@ -534,15 +534,15 @@ describe('generating schema from shorthand', () => {
   it('should support custom scalar usage on client-side query execution', () => {
     const shorthand = `
       scalar CustomScalar
-      
+
       type TestType {
         testField: String
       }
-      
+
       type RootQuery {
         myQuery(t: CustomScalar): TestType
       }
-      
+
       schema {
         query: RootQuery
       }
@@ -578,7 +578,7 @@ describe('generating schema from shorthand', () => {
     const jsSchema = makeExecutableSchema({ typeDefs: shorthand, resolvers: resolveFunctions });
     const resultPromise = graphql(jsSchema, testQuery);
     return resultPromise.then(result => {
-      expect(result.errors.length).to.be.equal(0);
+      expect(result.errors).to.not.be.ok;
     });
   });
 
