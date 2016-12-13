@@ -11,9 +11,10 @@
     "test": "test"
   },
   "scripts": {
+    "clean": "rimraf dist",
     "compile": "tsc",
     "typings": "typings install",
-    "pretest": "npm run compile",
+    "pretest": "npm run clean && npm run compile",
     "test": "npm run testonly --",
     "posttest": "npm run lint",
     "lint": "tslint $(find src | grep ts$)",
@@ -48,7 +49,7 @@
   "dependencies": {
     "deprecated-decorator": "^0.1.6",
     "lodash": "^4.3.0",
-    "node-uuid": "^1.4.7"
+    "uuid": "^3.0.1"
   },
   "peerDependencies": {
     "graphql": "^0.5.0 || ^0.6.0 || ^0.7.0 || ^0.8.0"
@@ -62,9 +63,9 @@
     "@types/lodash": "^4.14.34",
     "@types/mocha": "^2.2.31",
     "@types/node": "^6.0.38",
-    "@types/node-uuid": "0.0.27",
     "@types/request": "0.0.30",
     "@types/request-promise": "^3.0.30",
+    "@types/uuid": "^2.0.29",
     "body-parser": "^1.15.0",
     "chai": "^3.5.0",
     "express": "^4.13.4",
@@ -76,9 +77,10 @@
     "remap-istanbul": "^0.8.0",
     "request": "^2.72.0",
     "request-promise": "^4.1.0",
+    "rimraf": "^2.5.4",
     "source-map-support": "^0.4.2",
     "standard-version": "^3.0.0",
     "tslint": "^4.0.1",
-    "typescript": "2.0.10"
+    "typescript": "2.1.4"
   }
 }
