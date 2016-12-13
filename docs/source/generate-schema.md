@@ -185,8 +185,7 @@ const typeDefs = [`
 ```
 
 <h2>Descriptions</h2>
-When using GraphiQL in the docs section, in every type there is a description so other developers can understand the purpose of the type.
-In order to add descriptions to types, do the following:
+GraphiQL has built-in support for displaying docstrings with markdown syntax. You can easily add docstrings to types, fiedlds and arguments like below:
 ```
 # Description for the type
 type MyObjectType {
