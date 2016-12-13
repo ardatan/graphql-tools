@@ -3,10 +3,12 @@
 ### vNEXT
 
 * ...
+
+### v0.8.4
+
 * `addSchemaLevelResolveFunction` resolves once per operation type and not once globally. [#220](https://github.com/apollostack/graphql-tools/pull/220)
 * Replace node-uuid with uuid package [#227](https://github.com/apollostack/graphql-tools/pull/227)
 * Fix issue that prevented usage of custom scalars as arguments [#224](https://github.com/apollostack/graphql-tools/pull/224)
-* schemaLevelResolveFunction now runs once per operation type instead of once globally [#220](https://github.com/apollostack/graphql-tools/pull/220)
 
 ### v0.8.3
 
