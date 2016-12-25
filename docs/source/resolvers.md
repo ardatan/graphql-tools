@@ -15,7 +15,7 @@ The `resolverMap` object should have a map of resolvers for each relevant GraphQ
 ```js
 const resolverMap = {
   Query: {
-    author(root, args, context, info) {
+    author(obj, args, context, info) {
       return Authors.find({ name: args.name });
     },
   },
@@ -29,12 +29,12 @@ Note that you don't have to put all of your resolvers in one object. Refer to th
 Every resolver in a GraphQL.js schema accepts four positional arguments:
 
 ```js
-fieldName: (root, args, context, info) => result
+fieldName: (obj, args, context, info) => result
 ```
 
 These arguments have the following meanings and conventional names:
 
-1. `root`: The result returned from the resolver on the parent field, or, in the case of a top-level `Query` field, the `rootValue` passed from the [server configuration](/tools/graphql-server/setup.html). This argument enables the nested nature of GraphQL queries.
+1. `obj`: The object that contains the result returned from the resolver on the parent field, or, in the case of a top-level `Query` field, the `rootValue` passed from the [server configuration](/tools/graphql-server/setup.html). This argument enables the nested nature of GraphQL queries.
 2. `args`: An object with the arguments passed into the field in the query. For example, if the field was called with `author(name: "Ada")`, the `args` object would be: `{ "name": "Ada" }`.
 3. `context`: This is an object shared by all resolvers in a particular query, and is used to contain per-request state, including authentication information, dataloader instances, and anything else that should be taken into account when resolving the query. If you're using Apollo Server, [read about how to set the context in the setup documentation](/tools/apollo-server/setup.html).
 4. `info`: This argument should only be used in advanced cases, but it contains information about the execution state of the query, including the field name, path to the field from the root, and more. It's only documented in the [GraphQL.js source code](https://github.com/graphql/graphql-js/blob/c82ff68f52722c20f10da69c9e50a030a1f218ae/src/type/definition.js#L489-L500).
@@ -48,9 +48,9 @@ Resolvers in GraphQL can return different kinds of results which are treated dif
 3. A promise - resolvers often do asynchronous actions like fetching from a database or backend API, so they can return promises. This can be combined with arrays, so a resolver can return a promise that resolves to an array, or an array of promises, and both are handled correctly.
 4. A scalar or object value - a resolver can also return any other kind of value, which doesn't have any special meaning but is simply passed down into any nested resolvers, as described in the next section.
 
-### Resolver root argument
+### Resolver obj argument
 
-The first argument to every resolver, `root`, can be a bit confusing at first, but it makes sense when you consider what a GraphQL query looks like:
+The first argument to every resolver, `obj`, can be a bit confusing at first, but it makes sense when you consider what a GraphQL query looks like:
 
 ```graphql
 query {
@@ -66,12 +66,12 @@ query {
 }
 ```
 
-You can think of every GraphQL query as a tree of function calls, as explained in detail in the [GraphQL explained blog post](https://dev-blog.apollodata.com/graphql-explained-5844742f195e#.fq5jjdw7t). So in this case:
+You can think of every GraphQL query as a tree of function calls, as explained in detail in the [GraphQL explained blog post](https://dev-blog.apollodata.com/graphql-explained-5844742f195e#.fq5jjdw7t). So the `obj` contains the result of parent resolver, in this case:
 
-1. `root` in `Query.getAuthor` will be whatever the server configuration passed for `rootValue`.
-2. `root` in `Author.name` and `Author.posts` will be the result from `getAuthor`, likely an Author object from the backend.
-3. `root` in `Post.title` and `Post.author` will be one item from the `posts` result array.
-4. `root` in `Author.name` is the result from the above `Post.author` call.
+1. `obj` in `Query.getAuthor` will be whatever the server configuration passed for `rootValue`.
+2. `obj` in `Author.name` and `Author.posts` will be the result from `getAuthor`, likely an Author object from the backend.
+3. `obj` in `Post.title` and `Post.author` will be one item from the `posts` result array.
+4. `obj` in `Author.name` is the result from the above `Post.author` call.
 
 Basically, it's just every resolver function being called in a nested way according to the layout of the query.
 
@@ -79,8 +79,8 @@ Basically, it's just every resolver function being called in a nested way accord
 
 You don't need to specify resolvers for _every_ type in your schema. If you don't specify a resolver, GraphQL.js falls back to a default one, which does the following:
 
-1. Returns a property from `root` with the relevant field name, or
-2. Calls a function on `root` with the relevant field name and passes the query arguments into that function
+1. Returns a property from `obj` with the relevant field name, or
+2. Calls a function on `obj` with the relevant field name and passes the query arguments into that function
 
 So, in the example query above, the `name` and `title` fields wouldn't need a resolver if the Post and Author objects retrieved from the backend already had those fields.
 
@@ -113,12 +113,12 @@ type Car implements Vehicle {
 ```js
 const resolverMap = {
   Vehicle: {
-    __resolveType(root, context, info){
-      if(root.wingspan){
+    __resolveType(obj, context, info){
+      if(obj.wingspan){
         return 'Airplane';
       }
 
-      if(root.licensePlate){
+      if(obj.licensePlate){
         return 'Car';
       }
 
@@ -145,7 +145,7 @@ import { addResolveFunctionsToSchema } from 'graphql-tools';
 
 const resolverMap = {
   RootQuery: {
-    author(root, { name }, context){
+    author(obj, { name }, context){
       console.log("RootQuery called with context " +
         context + " to find " + name);
       return Author.find({ name });
@@ -160,4 +160,4 @@ addResolveFunctionsToSchema(schema, resolverMap);
   addSchemaLevelResolveFunction(schema, rootResolveFunction)
 </h3>
 
-Some operations, such as authentication, need to be done only once per query. Logically, these operations belong in a root resolve function, but unfortunately GraphQL-JS does not let you define one. `addSchemaLevelResolveFunction` solves this by modifying the GraphQLSchema that is passed as the first argument.
+Some operations, such as authentication, need to be done only once per query. Logically, these operations belong in an obj resolve function, but unfortunately GraphQL-JS does not let you define one. `addSchemaLevelResolveFunction` solves this by modifying the GraphQLSchema that is passed as the first argument.
