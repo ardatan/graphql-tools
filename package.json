@@ -1,6 +1,6 @@
 {
   "name": "graphql-tools",
-  "version": "0.8.4",
+  "version": "0.9.0",
   "description": "A set of useful tools for GraphQL",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -55,7 +55,7 @@
     "graphql": "^0.5.0 || ^0.6.0 || ^0.7.0 || ^0.8.0"
   },
   "optionalDependencies": {
-    "typed-graphql": "^1.0.2"
+    "@types/graphql": "^0.8.5"
   },
   "devDependencies": {
     "@types/bluebird": "^3.0.32",

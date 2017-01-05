@@ -13,14 +13,7 @@
 		"declaration": true,
 		"rootDir": "./src",
 		"outDir": "./dist",
-		"removeComments": false,
-		"typeRoots": [
-			"node_modules/@types"
-		],
-		"types": [
-			"@types/node",
-			"typed-graphql"
-		]
+		"removeComments": false
 	},
 	"exclude": [
 		"node_modules",
