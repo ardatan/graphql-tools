@@ -96,6 +96,7 @@ At the end, the schema and resolvers are combined using `makeExecutableSchema`:
 ```js
 import schema from './data/schema.js';
 import resolverMap from './data/resolvers';
+import { makeExecutableSchema } from 'graphql-tools';
 
 const executableSchema = makeExecutableSchema({
   typeDefs: schema,
