@@ -10,7 +10,7 @@ import {
   GraphQLResolveInfo,
   GraphQLScalarType,
   Kind,
-  IntValue,
+  IntValueNode,
 } from 'graphql';
 // import { printSchema } from 'graphql';
 const GraphQLJSON = require('graphql-type-json');
@@ -101,7 +101,7 @@ describe('generating schema from shorthand', () => {
     expect(() => (<any> makeExecutableSchema)()).to.throw('undefined');
   });
 
-  it('throws an error if typeDefinitions are not provided', () => {
+  it('throws an error if typeDefinitionNodes are not provided', () => {
     expect(() => (<any> makeExecutableSchema)({ typeDefs: undefined, resolvers: {} })).to.throw('Must provide typeDefs');
   });
 
@@ -109,11 +109,11 @@ describe('generating schema from shorthand', () => {
     expect(() => (<any> makeExecutableSchema)({ typeDefs: 'blah', resolvers: {} })).to.throw('GraphQLError');
   });
 
-  it('throws an error if typeDefinitions is neither string nor array', () => {
+  it('throws an error if typeDefinitionNodes is neither string nor array', () => {
     expect(() => (<any> makeExecutableSchema)({ typeDefs: {}, resolvers: {} })).to.throw('`typeDefs` must be a string or array');
   });
 
-  it('throws an error if typeDefinition array contains not only functions and strings', () => {
+  it('throws an error if typeDefinitionNode array contains not only functions and strings', () => {
     expect(() => (<any> makeExecutableSchema)({ typeDefs: [17], resolvers: {} }))
     .to.throw('typeDef array must contain only strings and functions, got number');
   });
@@ -286,7 +286,7 @@ describe('generating schema from shorthand', () => {
     expect(jsSchema.getQueryType().getFields()).to.have.all.keys('foo', 'bar');
   });
 
-  it('properly deduplicates the array of type definitions', () => {
+  it('properly deduplicates the array of type DefinitionNodes', () => {
     const typeDefAry = [`
       type Query {
         foo: String
@@ -594,7 +594,7 @@ describe('generating schema from shorthand', () => {
       serialize: oddValue,
       parseLiteral(ast) {
         if (ast.kind === Kind.INT) {
-          const intValue: IntValue = <IntValue>ast;
+          const intValue: IntValueNode = <IntValueNode>ast;
           return oddValue(parseInt(intValue.value, 10));
         }
         return null;
@@ -643,7 +643,7 @@ describe('generating schema from shorthand', () => {
 `;
     const resultPromise = graphql(jsSchema, testQuery);
     return resultPromise.then(result => {
-      assert.equal(result.data.post.something, testValue);
+      assert.equal(result.data['post'].something, testValue);
       assert.equal(result.errors, undefined);
     });
   });
@@ -661,7 +661,7 @@ describe('generating schema from shorthand', () => {
       },
       parseLiteral(ast) {
         if (ast.kind === Kind.INT) {
-          const intValue: IntValue = <IntValue>ast;
+          const intValue: IntValueNode = <IntValueNode>ast;
           return parseInt(intValue.value, 10);
         }
         return null;
@@ -711,7 +711,7 @@ describe('generating schema from shorthand', () => {
 `;
     const resultPromise = graphql(jsSchema, testQuery);
     return resultPromise.then(result => {
-      assert.equal(result.data.post.something, testDate.getTime());
+      assert.equal(result.data['post'].something, testDate.getTime());
       assert.equal(result.errors, undefined);
     });
   });
@@ -1300,7 +1300,7 @@ describe('Attaching connectors to schema', () => {
         species(name: "strix")
       }`;
       return graphql(jsSchema, query).then((res) => {
-        expect(res.data.species).to.equal('ROOTstrix');
+        expect(res.data['species']).to.equal('ROOTstrix');
       });
     });
 
@@ -1312,7 +1312,7 @@ describe('Attaching connectors to schema', () => {
         stuff
       }`;
       return graphql(jsSchema, query).then((res) => {
-        expect(res.data.stuff).to.equal('stuff');
+        expect(res.data['stuff']).to.equal('stuff');
       });
     });
 
