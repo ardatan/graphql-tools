@@ -2,9 +2,11 @@
 
 ### vNEXT
 
-* Migrate from `typed-graphql` to `@types/graphql`. [PR #249](https://github.com/apollostack/graphql-tools/pull/249)
-
 * ...
+
+### v0.9.0
+
+* Migrate from `typed-graphql` to `@types/graphql`. [PR #249](https://github.com/apollostack/graphql-tools/pull/249)
 
 ### v0.8.4
 
