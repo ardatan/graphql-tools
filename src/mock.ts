@@ -6,12 +6,12 @@ import {
   GraphQLInterfaceType,
   GraphQLList,
   GraphQLType,
-  GraphQLFieldDefinition,
+  GraphQLField,
   GraphQLResolveInfo,
   getNullableType,
   getNamedType,
   GraphQLNamedType,
-  GraphQLFieldResolveFn,
+  GraphQLFieldResolver,
 } from 'graphql';
 import { graphql } from 'graphql';
 import * as uuid from 'uuid';
@@ -140,7 +140,7 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
     }
   }
 
-  const mockType = function mockType(type: GraphQLType, typeName?: string, fieldName?: string): GraphQLFieldResolveFn {
+  const mockType = function mockType(type: GraphQLType, typeName?: string, fieldName?: string): GraphQLFieldResolver<any, any> {
     // order of precendence for mocking:
     // 1. if the object passed in already has fieldName, just use that
     // --> if it's a function, that becomes your resolver
@@ -160,7 +160,7 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
         if (typeof root[fieldName] === 'function') {
           result = root[fieldName](root, args, context, info);
           if (result instanceof MockList) {
-            result = result.mock(root, args, context, info, fieldType as GraphQLList, mockType);
+            result = result.mock(root, args, context, info, fieldType as GraphQLList<any>, mockType);
           }
         } else {
           result = root[fieldName];
@@ -217,13 +217,13 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
     };
   };
 
-  forEachField(schema, (field: GraphQLFieldDefinition, typeName: string, fieldName: string) => {
+  forEachField(schema, (field: GraphQLField<any, any>, typeName: string, fieldName: string) => {
     assignResolveType(field.type);
-    let mockResolver: GraphQLFieldResolveFn;
+    let mockResolver: GraphQLFieldResolver<any, any>;
 
     // we have to handle the root mutation and root query types differently,
     // because no resolver is called at the root.
-    /* istanbul ignore next: Must provide schema definition with query type or a type named Query. */
+    /* istanbul ignore next: Must provide schema DefinitionNode with query type or a type named Query. */
     const isOnQueryType: boolean = schema.getQueryType() ? (schema.getQueryType().name === typeName) : false;
     const isOnMutationType: boolean = schema.getMutationType() ? (schema.getMutationType().name === typeName) : false;
 
@@ -285,10 +285,10 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
 
 class MockList {
   private len: number | number[];
-  private wrappedFunction: GraphQLFieldResolveFn;
+  private wrappedFunction: GraphQLFieldResolver<any, any>;
 
   // wrappedFunction can return another MockList or a value
-  constructor(len: number | number[], wrappedFunction?: GraphQLFieldResolveFn) {
+  constructor(len: number | number[], wrappedFunction?: GraphQLFieldResolver<any, any>) {
     this.len = len;
     if (typeof wrappedFunction !== 'undefined') {
       if (typeof wrappedFunction !== 'function') {
@@ -302,7 +302,7 @@ class MockList {
               args: { [key: string]: any },
               context: any,
               info: GraphQLResolveInfo,
-              fieldType: GraphQLList,
+              fieldType: GraphQLList<any>,
               mockTypeFunc: IMockTypeFn) {
     let arr: any[];
     if (Array.isArray(this.len)) {
@@ -315,7 +315,7 @@ class MockList {
       if (typeof this.wrappedFunction === 'function') {
         const res = this.wrappedFunction(root, args, context, info);
         if (res instanceof MockList) {
-          const nullableType = getNullableType(fieldType.ofType) as GraphQLList;
+          const nullableType = getNullableType(fieldType.ofType) as GraphQLList<any>;
           arr[i] = res.mock(root, args, context, info, nullableType, mockTypeFunc);
         } else {
           arr[i] = res;

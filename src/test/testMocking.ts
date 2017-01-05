@@ -115,11 +115,11 @@ describe('Mock', () => {
       returnID
     }`;
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data.returnInt).to.be.within(-1000, 1000);
-      expect(res.data.returnFloat).to.be.within(-1000, 1000);
-      expect(res.data.returnBoolean).to.be.a('boolean');
-      expect(res.data.returnString).to.be.a('string');
-      expect(res.data.returnID).to.be.a('string');
+      expect(res.data['returnInt']).to.be.within(-1000, 1000);
+      expect(res.data['returnFloat']).to.be.within(-1000, 1000);
+      expect(res.data['returnBoolean']).to.be.a('boolean');
+      expect(res.data['returnString']).to.be.a('string');
+      expect(res.data['returnID']).to.be.a('string');
     });
   });
 
@@ -275,7 +275,7 @@ describe('Mock', () => {
       returnEnum
     }`;
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data.returnEnum).to.be.oneOf(['A', 'B', 'C']);
+      expect(res.data['returnEnum']).to.be.oneOf(['A', 'B', 'C']);
     });
   });
 
@@ -305,11 +305,11 @@ describe('Mock', () => {
     }`;
     return graphql(jsSchema, testQuery).then((res) => {
       // XXX this test is expected to fail once every 2^40 times ;-)
-      expect(res.data.returnBirdsAndBees).to.include({
+      expect(res.data['returnBirdsAndBees']).to.include({
         returnInt: 10,
         returnString: 'aha',
       });
-      return expect(res.data.returnBirdsAndBees).to.include({
+      return expect(res.data['returnBirdsAndBees']).to.include({
         returnInt: 10,
         returnEnum: 'A',
       });
@@ -341,11 +341,11 @@ describe('Mock', () => {
       }
     }`;
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data.returnFlying).to.include({
+      expect(res.data['returnFlying']).to.include({
         returnInt: 10,
         returnString: 'aha',
       });
-      return expect(res.data.returnFlying).to.include({
+      return expect(res.data['returnFlying']).to.include({
         returnInt: 10,
         returnEnum: 'A',
       });
@@ -426,7 +426,7 @@ describe('Mock', () => {
       returnInt
     }`;
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data.returnInt).to.equal(55);
+      expect(res.data['returnInt']).to.equal(55);
     });
   });
 
@@ -438,7 +438,7 @@ describe('Mock', () => {
       returnFloat
     }`;
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data.returnFloat).to.equal(55.5);
+      expect(res.data['returnFloat']).to.equal(55.5);
     });
   });
   it('can mock a String', () => {
@@ -449,7 +449,7 @@ describe('Mock', () => {
       returnString
     }`;
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data.returnString).to.equal('a string');
+      expect(res.data['returnString']).to.equal('a string');
     });
   });
   it('can mock a Boolean', () => {
@@ -460,7 +460,7 @@ describe('Mock', () => {
       returnBoolean
     }`;
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data.returnBoolean).to.equal(true);
+      expect(res.data['returnBoolean']).to.equal(true);
     });
   });
   it('can mock an ID', () => {
@@ -471,7 +471,7 @@ describe('Mock', () => {
       returnID
     }`;
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data.returnID).to.equal('ea5bdc19');
+      expect(res.data['returnID']).to.equal('ea5bdc19');
     });
   });
   it('nullable type is nullable', () => {
@@ -482,7 +482,7 @@ describe('Mock', () => {
       returnNullableString
     }`;
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data.returnNullableString).to.equal(null);
+      expect(res.data['returnNullableString']).to.equal(null);
     });
   });
   it('can mock a nonNull type', () => {
@@ -493,7 +493,7 @@ describe('Mock', () => {
       returnNonNullString
     }`;
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data.returnNonNullString).to.equal('nonnull');
+      expect(res.data['returnNonNullString']).to.equal('nonnull');
     });
   });
   it('nonNull type is not nullable', () => {
@@ -983,8 +983,8 @@ describe('Mock', () => {
       returnListOfInt
     }`;
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data.returnListOfInt).to.have.length.within(10, 20);
-      expect(res.data.returnListOfInt[0]).to.equal(12);
+      expect(res.data['returnListOfInt']).to.have.length.within(10, 20);
+      expect(res.data['returnListOfInt'][0]).to.equal(12);
     });
   });
 
@@ -1002,8 +1002,8 @@ describe('Mock', () => {
       l5: returnListOfIntArg(l: 5)
     }`;
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data.l3.length).to.equal(3);
-      expect(res.data.l5.length).to.equal(5);
+      expect(res.data['l3'].length).to.equal(3);
+      expect(res.data['l5'].length).to.equal(5);
     });
   });
 
