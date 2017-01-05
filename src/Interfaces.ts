@@ -1,11 +1,11 @@
 import {
     GraphQLSchema,
-    GraphQLFieldDefinition,
-    GraphQLResult,
+    GraphQLField,
+    ExecutionResult,
     GraphQLType,
-    GraphQLFieldResolveFn,
+    GraphQLFieldResolver,
     GraphQLIsTypeOfFn,
-    GraphQLTypeResolveFn,
+    GraphQLTypeResolver,
     GraphQLScalarType,
 } from 'graphql';
 
@@ -18,14 +18,14 @@ export interface IResolverValidationOptions {
 }
 
 export interface IResolverOptions {
-    resolve?: GraphQLFieldResolveFn;
-    __resolveType?: GraphQLTypeResolveFn;
-    __isTypeOf?: GraphQLIsTypeOfFn;
+    resolve?: GraphQLFieldResolver<any, any>;
+    __resolveType?: GraphQLTypeResolver<any, any>;
+    __isTypeOf?: GraphQLIsTypeOfFn<any, any>;
 };
 
 export type ITypedef = (() => ITypedef[]) | string;
 export type ITypeDefinitions = ITypedef | ITypedef[];
-export type IResolverObject = { [key: string]: GraphQLFieldResolveFn | IResolverOptions };
+export type IResolverObject = { [key: string]: GraphQLFieldResolver<any, any> | IResolverOptions };
 export interface IResolvers {
     [key: string]: (() => any) | IResolverObject | GraphQLScalarType;
 };
@@ -50,12 +50,12 @@ export interface IExecutableSchemaDefinition {
     resolverValidationOptions?: IResolverValidationOptions;
 }
 
-export type IFieldIteratorFn = (fieldDef: GraphQLFieldDefinition, typeName: string, fieldName: string) => void;
+export type IFieldIteratorFn = (fieldDef: GraphQLField<any, any>, typeName: string, fieldName: string) => void;
 
 /* XXX on mocks, args are optional, Not sure if a bug. */
-export type IMockFn = GraphQLFieldResolveFn;
+export type IMockFn = GraphQLFieldResolver<any, any>;
 export type IMocks = { [key: string]: IMockFn };
-export type IMockTypeFn = (type: GraphQLType, typeName?: string, fieldName?: string) => GraphQLFieldResolveFn;
+export type IMockTypeFn = (type: GraphQLType, typeName?: string, fieldName?: string) => GraphQLFieldResolver<any, any>;
 
 export interface IMockOptions {
     schema: GraphQLSchema;
@@ -64,5 +64,5 @@ export interface IMockOptions {
 }
 
 export interface IMockServer {
-    query: (query: string, vars?: { [key: string]: any }) => Promise<GraphQLResult>;
+    query: (query: string, vars?: { [key: string]: any }) => Promise<ExecutionResult>;
 }

@@ -1,6 +1,5 @@
 import {
     GraphQLSchema,
-    GraphQLFieldDefinition,
     GraphQLResolveInfo,
 } from 'graphql';
 import { PubSub } from 'graphql-subscriptions';
@@ -10,7 +9,7 @@ export function autopublishMutationResults(schema: GraphQLSchema, pubsub: PubSub
     // decorate the mutations with your thingy
     const mutationFields = schema.getMutationType().getFields();
     Object.keys(mutationFields).forEach( fieldName => {
-        const field = mutationFields[fieldName] as GraphQLFieldDefinition;
+        const field = mutationFields[fieldName];
 
         // define the function
         const publishMutatedValue = (
