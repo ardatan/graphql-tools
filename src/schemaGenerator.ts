@@ -517,4 +517,5 @@ export {
   buildSchemaFromTypeDefinitions,
   addSchemaLevelResolveFunction,
   attachConnectorsToContext,
+  concatenateTypeDefs,
 };
