@@ -110,16 +110,17 @@ function makeExecutableSchema({
   return jsSchema;
 }
 
-function concatenateTypeDefs(typeDefinitionsAry: ITypedef[], functionsCalled = {}): string {
+function concatenateTypeDefs(typeDefinitionsAry: ITypedef[], calledFunctionRefs = [] as any ): string {
   let resolvedTypeDefinitions: string[] = [];
   typeDefinitionsAry.forEach((typeDef: ITypedef) => {
     if (typeof typeDef === 'function') {
-      if (!(typeDef as any in functionsCalled)) {
-        functionsCalled[typeDef as any] = 1;
+      if (calledFunctionRefs.indexOf(typeDef) === -1) {
+        calledFunctionRefs.push(typeDef);
         resolvedTypeDefinitions = resolvedTypeDefinitions.concat(
-          concatenateTypeDefs(typeDef(), functionsCalled)
+          concatenateTypeDefs(typeDef(), calledFunctionRefs)
         );
       }
+
     } else if (typeof typeDef === 'string') {
       resolvedTypeDefinitions.push(typeDef.trim());
     } else {
@@ -516,4 +517,5 @@ export {
   buildSchemaFromTypeDefinitions,
   addSchemaLevelResolveFunction,
   attachConnectorsToContext,
+  concatenateTypeDefs,
 };

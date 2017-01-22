@@ -24,6 +24,7 @@ import {
   attachConnectorsToContext,
   assertResolveFunctionsPresent,
   chainResolvers,
+  concatenateTypeDefs,
 } from '../schemaGenerator';
 import { IResolverValidationOptions, IResolvers } from '../Interfaces';
 import 'mocha';
@@ -284,6 +285,30 @@ describe('generating schema from shorthand', () => {
     const jsSchema = makeExecutableSchema({ typeDefs: typeDefAry, resolvers: {} });
     expect(jsSchema.getQueryType().name).to.equal('Query');
     expect(jsSchema.getQueryType().getFields()).to.have.all.keys('foo', 'bar');
+  });
+
+  it('can concatenateTypeDefs created by a function inside a closure', () => {
+    const typeA = { typeDefs: () => ['type TypeA { foo: String }'] };
+    const typeB = { typeDefs: () => ['type TypeB { bar: String }'] };
+    const typeC = { typeDefs: () => ['type TypeC { foo: String }'] };
+    const typeD = { typeDefs: () => ['type TypeD { bar: String }'] };
+
+    function combineTypeDefs(...args: Array<any>): any {
+      return { typeDefs: () => args.map(o => o.typeDefs) };
+    }
+
+    const combinedAandB = combineTypeDefs(typeA, typeB);
+    const combinedCandD = combineTypeDefs(typeC, typeD);
+
+    const result = concatenateTypeDefs([
+      combinedAandB.typeDefs,
+      combinedCandD.typeDefs
+    ]);
+
+    expect(result).to.contain('type TypeA');
+    expect(result).to.contain('type TypeB');
+    expect(result).to.contain('type TypeC');
+    expect(result).to.contain('type TypeD');
   });
 
   it('properly deduplicates the array of type DefinitionNodes', () => {
