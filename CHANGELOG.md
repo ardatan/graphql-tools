@@ -4,6 +4,9 @@
 
 * ...
 
+### v0.9.1
+* use function reference instead of string for concatenateTypeDefs. [PR #252](https://github.com/apollostack/graphql-tools/pull/252)
+
 ### v0.9.0
 
 * Migrate from `typed-graphql` to `@types/graphql`. [PR #249](https://github.com/apollostack/graphql-tools/pull/249)
