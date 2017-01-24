@@ -111,7 +111,7 @@ describe('Logger', () => {
     });
   });
 
-  it('logs any Prommise reject errors', (done) => {
+  it('logs any Promise reject errors', (done) => {
     const shorthand = `
       type RootQuery {
         just_a_field: Int
