@@ -4,9 +4,6 @@
 import { assert, expect } from 'chai';
 import {
   graphql,
-  GraphQLInt,
-  GraphQLObjectType,
-  GraphQLSchema,
   GraphQLResolveInfo,
   GraphQLScalarType,
   Kind,
@@ -22,7 +19,6 @@ import {
   addErrorLoggingToSchema,
   addSchemaLevelResolveFunction,
   attachConnectorsToContext,
-  assertResolveFunctionsPresent,
   chainResolvers,
   concatenateTypeDefs,
 } from '../schemaGenerator';
