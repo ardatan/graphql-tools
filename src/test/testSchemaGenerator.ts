@@ -4,9 +4,6 @@
 import { assert, expect } from 'chai';
 import {
   graphql,
-  GraphQLInt,
-  GraphQLObjectType,
-  GraphQLSchema,
   GraphQLResolveInfo,
   GraphQLScalarType,
   Kind,
@@ -22,7 +19,6 @@ import {
   addErrorLoggingToSchema,
   addSchemaLevelResolveFunction,
   attachConnectorsToContext,
-  assertResolveFunctionsPresent,
   chainResolvers,
   concatenateTypeDefs,
 } from '../schemaGenerator';
@@ -830,27 +826,6 @@ describe('generating schema from shorthand', () => {
 
     // tslint:disable-next-line: max-line-length
     assert.doesNotThrow(makeExecutableSchema.bind(null, { typeDefs: short, resolvers: rf }), SchemaError);
-  });
-
-  it('throws an error if field.resolve is not a function', () => {
-    const schema = new GraphQLSchema({
-      query: new GraphQLObjectType(<any> {
-        name: 'Query',
-        fields: {
-          aField: {
-            type: GraphQLInt,
-            args: { a: { type: GraphQLInt } },
-            resolve: 'NOT A FUNCTION',
-          },
-        },
-      }),
-    });
-
-    const resolverValidationOptions: IResolverValidationOptions = {
-      requireResolversForArgs: true,
-    };
-
-    expect(() => assertResolveFunctionsPresent(schema, resolverValidationOptions)).to.throw('Resolver "Query.aField" must be a function');
   });
 
   it('throws an error if a resolver is not a function', () => {
