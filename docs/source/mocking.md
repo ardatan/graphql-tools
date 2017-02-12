@@ -91,6 +91,77 @@ Since the mock functions on fields are actually just GraphQL resolvers, you can 
 
 You can read some background and flavor on this approach in our blog post, ["Mocking your server with one line of code"](https://medium.com/apollo-stack/mocking-your-server-with-just-one-line-of-code-692feda6e9cd).
 
+## Mocking interfaces
+
+You will need resolvers to mock interfaces. By default [`addMockFunctionsToSchema`](#addMockFunctionsToSchema) will overwrite resolver functions.
+By setting the property `preserveResolvers` on the options object to `true`, the type resolvers will be preserved.
+
+```js
+import {
+  makeExecutableSchema,
+  addMockFunctionsToSchema,
+  addResolveFunctionsToSchema
+} from 'graphql-tools'
+import mocks from './mocks' // your mock functions
+
+const typeDefs = `
+type Query {
+  fetchMore(listType: String!, amount: Int!, offset: Int!): List
+}
+
+type Distributor {
+  id: Int
+  name: String
+}
+
+type Product {
+  id: Int
+  name: String
+}
+
+interface List {
+  amount: Int
+  offset: Int
+  total: Int
+  remaining: Int
+}
+
+type DistributorList implements List {
+  amount: Int
+  offset: Int
+  total: Int
+  remaining: Int
+  items: [Distributor]
+}
+
+type ProductList implements List {
+  amount: Int
+  offset: Int
+  total: Int
+  remaining: Int
+  items: [Product]
+}
+`
+
+const typeResolvers = {
+  List: {
+    __resolveType(data) {
+      return data.typename // typename property must be set by your mock functions
+    }
+  }
+}
+
+const schema = makeExecutableSchema({
+  typeDefs
+})
+
+addMockFunctionsToSchema({
+    schema,
+    mocks,
+    preserveResolvers: true
+})
+```
+
 ## API
 
 ### addMockFunctionsToSchema
