@@ -515,7 +515,7 @@ function defaultResolveFn(
   if (typeof source === 'object' || typeof source === 'function') {
     const property = source[fieldName];
     if (typeof property === 'function') {
-      return source[fieldName](args, context);
+      return property(args, context);
     }
     return property;
   }
