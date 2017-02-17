@@ -1152,8 +1152,72 @@ describe('Mock', () => {
     });
   });
 
-  // TODO add a test that checks that even when merging defaults, lists invoke
-  // the function for every object, not just once per list.
+  it('works for a list', () => {
+    const short = `
+      union AdvertOrPost = Advert | Post
+
+      type Advert {
+        id: ID!
+        productName: String!
+      }
+
+      type Post {
+        id: ID!
+        text: String!
+      }
+
+      type RootQuery {
+        advertsAndPosts: [AdvertOrPost]
+      }
+
+      schema {
+        query: RootQuery
+      }
+    `;
+    const jsSchema = buildSchemaFromTypeDefinitions(short);
+    const types = ['Post', 'Advert', 'Post', 'Post', 'Advert'];
+    let count = 0;
+    let id = 0;
+    const getAdvertOrPost = () => ({typename: types[count++]});
+    // This mock map demonstrates default merging on objects in lists.
+    const mockMap = {
+      RootQuery: () => ({
+        advertsAndPosts: () => new MockList(types.length, getAdvertOrPost),
+      }),
+      Advert: () => ({
+        productName: 'supercoolproduct',
+      }),
+      Post: () => ({
+        text: 'superlongpost',
+      }),
+      ID: () => ++id,
+    };
+    addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
+    const testQuery = `query abc{
+      advertsAndPosts {
+        ... on Advert {
+          id
+          productName
+        }
+        ... on Post {
+          id
+          text
+        }
+      }
+    }`;
+    const expected = {
+      advertsAndPosts: [
+        { id: '1', text: 'superlongpost' },
+        { id: '2', productName: 'supercoolproduct' },
+        { id: '3', text: 'superlongpost' },
+        { id: '4', text: 'superlongpost' },
+        { id: '5', productName: 'supercoolproduct' },
+      ],
+    };
+    return graphql(jsSchema, testQuery).then((res) => {
+      expect(res.data).to.deep.equal(expected);
+    });
+  });
 
   // TODO test that you can call mock server with a graphql-js schema
 });
