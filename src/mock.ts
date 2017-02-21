@@ -154,6 +154,26 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
       const namedFieldType = getNamedType(fieldType);
 
       if (root && typeof root[fieldName] !== 'undefined') {
+        // for the supplied mock, merge with the genericMock for its type (as
+        // defined by `typename`), or use the genericMock for the
+        // namedFieldType
+        const applyMergeFunction = (mock: any): any => {
+          let merged = mock;
+          let mockFieldType = namedFieldType.name;
+          // Allow the mock to define its type
+          if (mock && mock.typename) {
+            mockFieldType = mock.typename;
+          }
+          // Now we merge the result with the default mock for this type.
+          // This allows overriding defaults while writing very little code.
+          if (mockFunctionMap.has(mockFieldType)) {
+            merged = mergeMocks(
+              mockFunctionMap.get(mockFieldType).bind(null, root, args, context, info), mock
+            );
+          }
+          return merged;
+        };
+
         let result: any;
 
         // if we're here, the field is already defined
@@ -166,13 +186,11 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
           result = root[fieldName];
         }
 
-        // Now we merge the result with the default mock for this type.
-        // This allows overriding defaults while writing very little code.
-        if (mockFunctionMap.has(namedFieldType.name)) {
-          result = mergeMocks(
-            mockFunctionMap.get(namedFieldType.name).bind(null, root, args, context, info), result
-          );
-        }
+        // If the result is an array, we need to loop over the elements and
+        // apply the merge functions individually to those to get their types,
+        // otherwise simply apply the merge functions to the original result
+        result = Array.isArray(result) ? result.map(applyMergeFunction) : applyMergeFunction(result);
+
         return result;
       }
 

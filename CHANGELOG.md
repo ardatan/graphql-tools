@@ -4,6 +4,9 @@
 
 * ...
 
+### v0.10.1
+* Allow setting Union and Interface types for lists [PR #282](https://github.com/apollographql/graphql-tools/pull/282)
+
 ### v0.10.0
 * Restrict version range of graphql-js peer dependency to ^0.8.0 || ^0.9.0 [PR #266](https://github.com/apollographql/graphql-tools/pull/266)
 
