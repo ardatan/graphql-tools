@@ -21,14 +21,14 @@ When using `graphql-tools`, you describe the schema as a GraphQL type language s
 
 const schema = `
 type Author {
-  id: Int! # the ! means that every author object _must_ have an id
+  id: ID! # the ! means that every author object _must_ have an id
   firstName: String
   lastName: String
   posts: [Post] # the list of Posts by this author
 }
 
 type Post {
-  id: Int!
+  id: ID!
   title: String
   author: Author
   votes: Int
@@ -42,7 +42,7 @@ type Query {
 # this schema allows the following mutation:
 type Mutation {
   upvotePost (
-    postId: Int!
+    postId: ID!
   ): Post
 }
 
