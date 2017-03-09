@@ -21,7 +21,7 @@ const resolverMap = {
   },
 };
 ```
-> Note: for the custom query and mutation resolvers to work, the `preserveResolvers` argument of [`addMockFunctionsToSchema`](tools/graphql-tools/mocking.html#addMockFunctionsToSchema) must be `true`. 
+> Note: If you are using mocking, the `preserveResolvers` argument of [`addMockFunctionsToSchema`](tools/graphql-tools/mocking.html#addMockFunctionsToSchema) must be set to `true` if you don't want your resolvers to be overwritten by mock resolvers. 
 
 Note that you don't have to put all of your resolvers in one object. Refer to the ["modularizing the schema"](/tools/graphql-tools/generate-schema.html#modularizing) section to learn how to combine multiple resolver maps into one.
 
