@@ -29,7 +29,7 @@ Note that you don't have to put all of your resolvers in one object. Refer to th
 Every resolver in a GraphQL.js schema accepts four positional arguments:
 
 ```js
-fieldName: (obj, args, context, info) => result
+fieldName(obj, args, context, info) { result }
 ```
 
 These arguments have the following meanings and conventional names:
