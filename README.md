@@ -1,7 +1,4 @@
 # GraphQL-tools: generate and mock GraphQL.js schemas
-
-[![Greenkeeper badge](https://badges.greenkeeper.io/apollographql/graphql-tools.svg)](https://greenkeeper.io/)
-
 [![npm version](https://badge.fury.io/js/graphql-tools.svg)](https://badge.fury.io/js/graphql-tools)
 [![Build Status](https://travis-ci.org/apollographql/graphql-tools.svg?branch=master)](https://travis-ci.org/apollographql/graphql-tools)
 [![Coverage Status](https://coveralls.io/repos/github/apollographql/graphql-tools/badge.svg?branch=master)](https://coveralls.io/github/apollographql/graphql-tools?branch=master)
