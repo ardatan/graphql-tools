@@ -167,6 +167,31 @@ const rootResolvers = { ... };
 const resolvers = merge(rootResolvers, gitHubResolvers, sqlResolvers);
 ```
 
+<h2 id="extend-types">Extending Types</h2>
+
+It's easy to add additional edges and properties to existing types using the `extend` keyword.  Using `extend` is particularly useful in avoiding a large list of root Queries and root Mutations.  You can use it like this:
+
+```js
+const typeDefs = [`
+  schema {
+    query: Query
+  }
+  type Query {
+    bars: [Bar]!
+  }
+  type Bar {
+    id
+  }
+  `, `
+  type Foo {
+    id: String!
+  }
+  extend type Query {
+    foos: [Foo]!
+  }
+`]
+```
+
 <h2 id="schema-language">Learning the GraphQL schema language</h2>
 
 The official documentation on graphql.org now has [a section about GraphQL schemas](http://graphql.org/learn/schema/) which explains all of the different schema features and how to use them with the schema language.
