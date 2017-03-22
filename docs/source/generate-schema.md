@@ -107,7 +107,9 @@ import Book from './book';
 
 const Author = `
   type Author {
-    name: String
+    id: Int!
+    firstName: String
+    lastName: String
     books: [Book]
   }
 `;
@@ -138,7 +140,7 @@ import Author from './author.js';
 
 const RootQuery = `
   type RootQuery {
-    author(name: String): Author
+    author(id: Int!): Author
   }
 `;
 
