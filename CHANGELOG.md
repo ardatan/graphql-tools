@@ -2,7 +2,7 @@
 
 ### vNEXT
 
-* ...
+* Remove dependency on `graphql-subscription` and use an interface for PubSub [PR #295](https://github.com/apollographql/graphql-tools/pull/295)
 
 ### v0.10.1
 * Update dependencies [PR #287](https://github.com/apollographql/graphql-tools/pull/287)
