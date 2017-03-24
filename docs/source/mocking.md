@@ -157,6 +157,24 @@ addMockFunctionsToSchema({
 
 ```
 
+## Mocking a schema based on an IntrospectionQuery
+
+Implementations of GraphQL specifications allows clients to introspect the schema with an "IntrospectionQuery".
+The results of the query can be used to generate an instance of GraphQLSchema which can be mocked as explained above.
+
+This helps in situations such as mocking a schema defined in non-JS GraphQL implementations (e.g. Go, Ruby, Python).
+
+To convert the IntrospectionQuery to a GraphQLSchema, `graphql` provides a utility function named `buildClientSchema` that performs this task.
+
+```js
+import { buildClientSchema } from 'graphql';
+import * as introspectedSchema from 'schema.json'
+
+const schema = buildClientSchema(introspectedSchema);
+
+addMockFunctionsToSchema({schema});
+```
+
 ## API
 
 ### addMockFunctionsToSchema
