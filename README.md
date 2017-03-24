@@ -1,5 +1,4 @@
 # GraphQL-tools: generate and mock GraphQL.js schemas
-
 [![npm version](https://badge.fury.io/js/graphql-tools.svg)](https://badge.fury.io/js/graphql-tools)
 [![Build Status](https://travis-ci.org/apollographql/graphql-tools.svg?branch=master)](https://travis-ci.org/apollographql/graphql-tools)
 [![Coverage Status](https://coveralls.io/repos/github/apollographql/graphql-tools/badge.svg?branch=master)](https://coveralls.io/github/apollographql/graphql-tools?branch=master)
@@ -21,14 +20,14 @@ When using `graphql-tools`, you describe the schema as a GraphQL type language s
 
 const schema = `
 type Author {
-  id: Int! # the ! means that every author object _must_ have an id
+  id: ID! # the ! means that every author object _must_ have an id
   firstName: String
   lastName: String
   posts: [Post] # the list of Posts by this author
 }
 
 type Post {
-  id: Int!
+  id: ID!
   title: String
   author: Author
   votes: Int
@@ -42,7 +41,7 @@ type Query {
 # this schema allows the following mutation:
 type Mutation {
   upvotePost (
-    postId: Int!
+    postId: ID!
   ): Post
 }
 

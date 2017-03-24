@@ -2,10 +2,10 @@ import {
     GraphQLSchema,
     GraphQLResolveInfo,
 } from 'graphql';
-import { PubSub } from 'graphql-subscriptions';
 import { chainResolvers } from './schemaGenerator';
+import { IPubSub } from './Interfaces';
 
-export function autopublishMutationResults(schema: GraphQLSchema, pubsub: PubSub) {
+export function autopublishMutationResults(schema: GraphQLSchema, pubsub: IPubSub) {
     // decorate the mutations with your thingy
     const mutationFields = schema.getMutationType().getFields();
     Object.keys(mutationFields).forEach( fieldName => {

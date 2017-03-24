@@ -66,3 +66,7 @@ export interface IMockOptions {
 export interface IMockServer {
     query: (query: string, vars?: { [key: string]: any }) => Promise<ExecutionResult>;
 }
+
+export interface IPubSub {
+    publish(triggerName: string, payload: any): any;
+}
