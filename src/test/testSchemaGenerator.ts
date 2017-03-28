@@ -266,16 +266,16 @@ describe('generating schema from shorthand', () => {
   });
 
   it('can generate a schema from a parsed type definition', () => {
-    const typeDefSchemaAry = [parse(`
+    const typeDefSchema = parse(`
       type Query {
         foo: String
       }
       schema {
         query: Query
       }
-    `)];
+    `);
 
-    const jsSchema = makeExecutableSchema({ typeDefs: typeDefSchemaAry, resolvers: {} });
+    const jsSchema = makeExecutableSchema({ typeDefs: typeDefSchema, resolvers: {} });
     expect(jsSchema.getQueryType().name).to.equal('Query');
   });
 
