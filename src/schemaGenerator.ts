@@ -148,8 +148,8 @@ function buildSchemaFromTypeDefinitions(typeDefinitions: ITypeDefinitions): Grap
     astDocument = typeDefinitions;
   } else if (typeof myDefinitions !== 'string') {
     if (!Array.isArray(myDefinitions)) {
-      // TODO improve error message and say what type was actually found
-      throw new SchemaError('`typeDefs` must be a string or array');
+      const type = typeof myDefinitions;
+      throw new SchemaError(`typeDefs must be a string, array or schema AST, got ${type}`);
     }
     myDefinitions = concatenateTypeDefs(myDefinitions);
   }
