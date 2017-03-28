@@ -7,6 +7,7 @@ import {
     GraphQLIsTypeOfFn,
     GraphQLTypeResolver,
     GraphQLScalarType,
+    DocumentNode,
 } from 'graphql';
 
 /* TODO: Add documentation */
@@ -23,7 +24,7 @@ export interface IResolverOptions {
     __isTypeOf?: GraphQLIsTypeOfFn<any, any>;
 };
 
-export type ITypedef = (() => ITypedef[]) | string;
+export type ITypedef = (() => ITypedef[]) | string | DocumentNode;
 export type ITypeDefinitions = ITypedef | ITypedef[];
 export type IResolverObject = { [key: string]: GraphQLFieldResolver<any, any> | IResolverOptions };
 export interface IResolvers {
