@@ -6,7 +6,7 @@
 // TODO: we should refactor this file, rename it to makeExecutableSchema, and move
 // a bunch of utility functions into a separate utitlities folder, one file per function.
 
-import { DocumentNode, parse, Kind, DefinitionNode } from 'graphql';
+import { DocumentNode, parse, print, Kind, DefinitionNode } from 'graphql';
 import { uniq } from 'lodash';
 import { buildASTSchema, extendSchema } from 'graphql';
 import {
@@ -117,6 +117,10 @@ function isDocumentNode(typeDefinitions: ITypeDefinitions): typeDefinitions is D
 function concatenateTypeDefs(typeDefinitionsAry: ITypedef[], calledFunctionRefs = [] as any ): string {
   let resolvedTypeDefinitions: string[] = [];
   typeDefinitionsAry.forEach((typeDef: ITypedef) => {
+    if (isDocumentNode(typeDef)) {
+      typeDef = print(typeDef);
+    }
+
     if (typeof typeDef === 'function') {
       if (calledFunctionRefs.indexOf(typeDef) === -1) {
         calledFunctionRefs.push(typeDef);
