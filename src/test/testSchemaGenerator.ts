@@ -8,6 +8,7 @@ import {
   GraphQLScalarType,
   Kind,
   IntValueNode,
+  parse,
 } from 'graphql';
 // import { printSchema } from 'graphql';
 const GraphQLJSON = require('graphql-type-json');
@@ -106,8 +107,9 @@ describe('generating schema from shorthand', () => {
     expect(() => (<any> makeExecutableSchema)({ typeDefs: 'blah', resolvers: {} })).to.throw('GraphQLError');
   });
 
-  it('throws an error if typeDefinitionNodes is neither string nor array', () => {
-    expect(() => (<any> makeExecutableSchema)({ typeDefs: {}, resolvers: {} })).to.throw('`typeDefs` must be a string or array');
+  it('throws an error if typeDefinitionNodes is neither string nor array nor schema AST', () => {
+    expect(() => (<any> makeExecutableSchema)({ typeDefs: {}, resolvers: {} }))
+      .to.throw('typeDefs must be a string, array or schema AST, got object');
   });
 
   it('throws an error if typeDefinitionNode array contains not only functions and strings', () => {
@@ -260,6 +262,36 @@ describe('generating schema from shorthand', () => {
     `];
 
     const jsSchema = makeExecutableSchema({ typeDefs: typeDefAry, resolvers: {} });
+    expect(jsSchema.getQueryType().name).to.equal('Query');
+  });
+
+  it('can generate a schema from a parsed type definition', () => {
+    const typeDefSchemaAry = [parse(`
+      type Query {
+        foo: String
+      }
+      schema {
+        query: Query
+      }
+    `)];
+
+    const jsSchema = makeExecutableSchema({ typeDefs: typeDefSchemaAry, resolvers: {} });
+    expect(jsSchema.getQueryType().name).to.equal('Query');
+  });
+
+  it('can generate a schema from an array of parsed and none parsed type definitions', () => {
+    const typeDefSchema = [
+      parse(`
+        type Query {
+          foo: String
+        }`
+      ), `
+      schema {
+        query: Query
+      }
+    `];
+
+    const jsSchema = makeExecutableSchema({ typeDefs: typeDefSchema, resolvers: {} });
     expect(jsSchema.getQueryType().name).to.equal('Query');
   });
 
