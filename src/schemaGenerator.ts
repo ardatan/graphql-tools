@@ -6,7 +6,7 @@
 // TODO: we should refactor this file, rename it to makeExecutableSchema, and move
 // a bunch of utility functions into a separate utitlities folder, one file per function.
 
-import { DocumentNode, parse, Kind, DefinitionNode } from 'graphql';
+import { DocumentNode, parse, print, Kind, DefinitionNode } from 'graphql';
 import { uniq } from 'lodash';
 import { buildASTSchema, extendSchema } from 'graphql';
 import {
@@ -110,9 +110,17 @@ function makeExecutableSchema({
   return jsSchema;
 }
 
+function isDocumentNode(typeDefinitions: ITypeDefinitions): typeDefinitions is DocumentNode {
+  return (<DocumentNode>typeDefinitions).kind !== undefined;
+}
+
 function concatenateTypeDefs(typeDefinitionsAry: ITypedef[], calledFunctionRefs = [] as any ): string {
   let resolvedTypeDefinitions: string[] = [];
   typeDefinitionsAry.forEach((typeDef: ITypedef) => {
+    if (isDocumentNode(typeDef)) {
+      typeDef = print(typeDef);
+    }
+
     if (typeof typeDef === 'function') {
       if (calledFunctionRefs.indexOf(typeDef) === -1) {
         calledFunctionRefs.push(typeDef);
@@ -134,15 +142,22 @@ function concatenateTypeDefs(typeDefinitionsAry: ITypedef[], calledFunctionRefs 
 function buildSchemaFromTypeDefinitions(typeDefinitions: ITypeDefinitions): GraphQLSchema {
   // TODO: accept only array here, otherwise interfaces get confusing.
   let myDefinitions = typeDefinitions;
-  if (typeof myDefinitions !== 'string') {
+  let astDocument: DocumentNode;
+
+  if (isDocumentNode(typeDefinitions)) {
+    astDocument = typeDefinitions;
+  } else if (typeof myDefinitions !== 'string') {
     if (!Array.isArray(myDefinitions)) {
-      // TODO improve error message and say what type was actually found
-      throw new SchemaError('`typeDefs` must be a string or array');
+      const type = typeof myDefinitions;
+      throw new SchemaError(`typeDefs must be a string, array or schema AST, got ${type}`);
     }
     myDefinitions = concatenateTypeDefs(myDefinitions);
   }
 
-  const astDocument: DocumentNode = parse(myDefinitions);
+  if (typeof myDefinitions === 'string') {
+    astDocument = parse(myDefinitions);
+  }
+
   let schema: GraphQLSchema = buildASTSchema(astDocument);
 
   const extensionsAst = extractExtensionDefinitions(astDocument);
