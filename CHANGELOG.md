@@ -2,8 +2,10 @@
 
 ### vNEXT
 
+### v0.11.0
 * Remove dependency on `graphql-subscription` and use an interface for PubSub [PR #295](https://github.com/apollographql/graphql-tools/pull/295)
 * Support schema AST as a type definition input [PR #300](https://github.com/apollographql/graphql-tools/pull/300)
+* Update graphql typings to 0.9.0 [PR #298](https://github.com/apollographql/graphql-tools/pull/298)
 
 ### v0.10.1
 * Update dependencies [PR #287](https://github.com/apollographql/graphql-tools/pull/287)
