@@ -25,8 +25,8 @@ type Author {
 type Post {
   id: Int!
   title: String
-  author: Author
   votes: Int
+  author: Author
 }
 
 # the schema allows the following query:
