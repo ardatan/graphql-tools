@@ -16,7 +16,12 @@ The `resolverMap` object should have a map of resolvers for each relevant GraphQ
 const resolverMap = {
   Query: {
     author(obj, args, context, info) {
-      return Authors.find({ name: args.name });
+      return find(authors, { id: args.id });
+    },
+  },
+  Author: {
+    posts(author) {
+      return filter(posts, { authorId: author.id });
     },
   },
 };
