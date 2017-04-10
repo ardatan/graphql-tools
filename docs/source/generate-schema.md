@@ -212,7 +212,7 @@ const typeDefs = [`
 `];
 ```
 
-<h2 id="descriptions">Descriptions</h2>
+<h2 id="descriptions">Descriptions &amp; Deprecations</h2>
 GraphiQL has built-in support for displaying docstrings with markdown syntax. You can easily add docstrings to types, fiedlds and arguments like below:
 ```
 # Description for the type
@@ -224,6 +224,11 @@ type MyObjectType {
     # Description for argument
     arg: Int
   )
+  
+  oldField(
+    # Description for argument
+    arg: Int
+  ) @deprecated(reason: "Use otherField instead.")
 }
 ```
 
