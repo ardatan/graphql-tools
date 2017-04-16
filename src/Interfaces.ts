@@ -45,6 +45,7 @@ export type IConnectors = { [key: string]: IConnector };
 export interface IExecutableSchemaDefinition {
     typeDefs: ITypeDefinitions;
     resolvers?: IResolvers;
+    validations?: IResolvers;
     connectors?: IConnectors;
     logger?: ILogger;
     allowUndefinedInResolve?: boolean;

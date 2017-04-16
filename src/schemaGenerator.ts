@@ -56,6 +56,7 @@ function _generateSchema(
   // TODO: rename to allowUndefinedInResolve to be consistent
   allowUndefinedInResolve: boolean,
   resolverValidationOptions: IResolverValidationOptions,
+  validations: IResolvers,
 ) {
   if (typeof resolverValidationOptions !== 'object') {
     throw new SchemaError('Expected `resolverValidationOptions` to be an object');
@@ -71,7 +72,7 @@ function _generateSchema(
 
   const schema = buildSchemaFromTypeDefinitions(typeDefinitions);
 
-  addResolveFunctionsToSchema(schema, resolveFunctions);
+  addResolveFunctionsToSchema(schema, resolveFunctions, validations);
 
   assertResolveFunctionsPresent(schema, resolverValidationOptions);
 
@@ -89,13 +90,14 @@ function _generateSchema(
 function makeExecutableSchema({
   typeDefs,
   resolvers = {},
+  validations = {},
   connectors,
   logger,
   allowUndefinedInResolve = true,
   resolverValidationOptions = {},
 }: IExecutableSchemaDefinition) {
   const jsSchema = _generateSchema(
-    typeDefs, resolvers, logger, allowUndefinedInResolve, resolverValidationOptions
+    typeDefs, resolvers, logger, allowUndefinedInResolve, resolverValidationOptions, validations
   );
   if (typeof resolvers['__schema'] === 'function') {
     // TODO a bit of a hack now, better rewrite generateSchema to attach it there.
@@ -287,7 +289,7 @@ function getFieldsForType(type: GraphQLType): GraphQLFieldMap<any, any> {
     }
 }
 
-function addResolveFunctionsToSchema(schema: GraphQLSchema, resolveFunctions: IResolvers) {
+function addResolveFunctionsToSchema(schema: GraphQLSchema, resolveFunctions: IResolvers, validations: IResolvers) {
   Object.keys(resolveFunctions).forEach((typeName) => {
     const type = schema.getType(typeName);
     if (!type && typeName !== '__schema') {
@@ -323,17 +325,33 @@ function addResolveFunctionsToSchema(schema: GraphQLSchema, resolveFunctions: IR
       }
       const field = fields[fieldName];
       const fieldResolve = resolveFunctions[typeName][fieldName];
+      const fieldValidator = validations[typeName] ? validations[typeName][fieldName] : () => {};
       if (typeof fieldResolve === 'function') {
         // for convenience. Allows shorter syntax in resolver definition file
-        setFieldProperties(field, { resolve: fieldResolve });
+        setFieldProperties(field, { resolve: validateThenResolve(fieldValidator, fieldResolve) });
       } else {
         if (typeof fieldResolve !== 'object') {
           throw new SchemaError(`Resolver ${typeName}.${fieldName} must be object or function`);
         }
-        setFieldProperties(field, fieldResolve);
+        setFieldProperties(field, validateThenResolve(fieldValidator, fieldResolve));
       }
     });
   });
+}
+
+function validateThenResolve(validator, resolver) {
+  return (...args) => Promise.resolve(validator(...args))
+    .then(result => {
+      if (result) {
+        return resolver(...args);
+      } else {
+        // TODO: Figure out how to report an error to the user here
+      }
+    })
+    .catch(err => {
+      // TODO: Figure out how to report an error to the user here (do we need to?)
+      console.log(err);
+    })
 }
 
 function setFieldProperties(field: GraphQLField<any, any>, propertiesObj: Object) {
