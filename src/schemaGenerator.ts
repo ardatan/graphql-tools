@@ -289,7 +289,9 @@ function getFieldsForType(type: GraphQLType): GraphQLFieldMap<any, any> {
     }
 }
 
-function addResolveFunctionsToSchema(schema: GraphQLSchema, resolveFunctions: IResolvers, validations?: IResolvers) {
+const NOOP = () => true;
+
+function addResolveFunctionsToSchema(schema: GraphQLSchema, resolveFunctions: IResolvers, validations: IResolvers = {}) {
   Object.keys(resolveFunctions).forEach((typeName) => {
     const type = schema.getType(typeName);
     if (!type && typeName !== '__schema') {
@@ -325,43 +327,38 @@ function addResolveFunctionsToSchema(schema: GraphQLSchema, resolveFunctions: IR
       }
       const field = fields[fieldName];
       const fieldResolve = resolveFunctions[typeName][fieldName];
-      // const fieldValidator = validations[typeName] ? validations[typeName][fieldName] : () => {};
+      const fieldValidator = (validations[typeName] && validations[typeName][fieldName]) || NOOP;
       if (typeof fieldResolve === 'function') {
         // for convenience. Allows shorter syntax in resolver definition file
-        setFieldProperties(field, { resolve: fieldResolve });
-        // setFieldProperties(field, { resolve: validateThenResolve(fieldValidator, fieldResolve) });
+        setFieldProperties(field, { resolve: validateThenResolve(fieldValidator, fieldResolve) });
       } else {
         if (typeof fieldResolve !== 'object') {
           throw new SchemaError(`Resolver ${typeName}.${fieldName} must be object or function`);
         }
-        setFieldProperties(field, fieldResolve);
-        // setFieldProperties(field, validateThenResolve(fieldValidator, fieldResolve));
+        setFieldProperties(field, validateThenResolve(fieldValidator, fieldResolve));
       }
     });
   });
 }
 
-// function validateThenResolve(
-//   validator: GraphQLFieldResolver<any, any>,
-//   resolver: GraphQLFieldResolver<any, any>) {
-//   return (
-//     source: any,
-//     args: { [argName: string]: any },
-//     context: any,
-//     info: GraphQLResolveInfo,
-//   ) => Promise.resolve(validator(source, args, context, info))
-//     .then(result => {
-//       if (result) {
-//         return resolver(source, args, context, info);
-//       } else {
-//         // TODO: Figure outhow to report an error to the user here
-//       }
-//     })
-//     .catch(err => {
-//       // TODO: Figure out how to report an error to the user here (do we need to?)
-//       console.log(err);
-//     })
-// }
+function validateThenResolve(
+  validator: GraphQLFieldResolver<any, any>,
+  resolver: GraphQLFieldResolver<any, any>) {
+  return (
+    source: any,
+    args: { [argName: string]: any },
+    context: any,
+    info: GraphQLResolveInfo,
+  ) => Promise.resolve(validator(source, args, context, info))
+    .then(result => {
+      if (result) {
+        return resolver(source, args, context, info);
+      } else {
+        // TODO: Figure out how to report an error to the user here
+      }
+    })
+    .then(result => result);
+}
 
 function setFieldProperties(field: GraphQLField<any, any>, propertiesObj: Object) {
   Object.keys(propertiesObj).forEach((propertyName) => {
