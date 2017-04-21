@@ -99,7 +99,71 @@ This example has the entire type definition in one string and all resolvers in o
 
 <h2 id="modularizing">Modularizing the schema</h2>
 
-If your schema gets large, you may want to define parts of it in different files and import them to create the full schema. This is possible by passing around arrays of schema strings. If there are circular dependencies, the array can be wrapped in a function. `makeExecutableSchema` will only include each type definition once, even if it is imported multiple times by different types, so you don't have to worry about deduplicating the strings.
+If your schema gets large, you may want to define parts of it in different files and import them to create the full schema. This is possible by passing around arrays of schema strings.
+
+```js
+// comment.js
+const Comment = `
+  type Comment {
+    id: Int!
+    message: String
+    author: String
+  }
+`;
+
+export default Comment;
+```
+
+```js
+// post.js
+import Comment from './comment';
+
+const Post = `
+  type Post {
+    id: Int!
+    title: String
+    content: String
+    author: String
+    comments: [Comment]
+  }
+`;
+
+// we export Post and all types it depends on
+// in order to make sure we don't forget to include
+// a dependency
+export default [Post, Comment];
+```
+
+```js
+// schema.js
+import Post from './post.js';
+
+const RootQuery = `
+  type RootQuery {
+    post(id: Int!): Post
+  }
+`;
+
+const SchemaDefinition = `
+  schema {
+    query: RootQuery
+  }
+`;
+
+export default makeExecutableSchema({
+  typeDefs: [
+    SchemaDefinition, RootQuery,
+    // we have to destructure array imported from the post.js file
+    // as typeDefs only accepts an array of strings or functions
+    ...Post
+  ],
+  // we could also concatenate arrays
+  // typeDefs: [SchemaDefinition, RootQuery].concat(Post)
+  resolvers: {},
+});
+```
+
+If you're exporting array of schema strings and there are circular dependencies, the array can be wrapped in a function. The `makeExecutableSchema` function will only include each type definition once, even if it is imported multiple times by different types, so you don't have to worry about deduplicating the strings.
 
 ```js
 // author.js
@@ -116,7 +180,8 @@ const Author = `
 
 // we export Author and all types it depends on
 // in order to make sure we don't forget to include
-// a dependency
+// a dependency and we wrap it in a function
+// to avoid stings deduplication
 export default () => [Author, Book];
 ```
 
