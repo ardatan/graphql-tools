@@ -42,7 +42,7 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
     return thing === Object(thing) && !Array.isArray(thing);
   }
 
-  if (!schema) {
+  if (!schema || !(schema instanceof GraphQLSchema)) {
     // XXX should we check that schema is an instance of GraphQLSchema?
     throw new Error('Must provide schema to mock');
   }
