@@ -4,7 +4,7 @@ order: 305
 description: Writing resolvers with graphql-tools
 ---
 
-Behind the scenes, Apollo uses [promises](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) to fulfill queries you define in your [schema](http://dev.apollodata.com/tools/graphql-tools/generate-schema.html). To properly *route* your queries, you define how those promises are resolved with field-level ‘resolvers.’ If you’re not familiar with promises, here’s [a brief overview](https://scotch.io/tutorials/javascript-promises-for-dummies).
+Behind the scenes, GraphQL uses [promises](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) to fulfill queries you define in your [schema](http://dev.apollodata.com/tools/graphql-tools/generate-schema.html). To properly *route* your queries, you define how those promises are resolved with field-level ‘resolvers.’ If you’re not familiar with promises, here’s [a brief overview](https://scotch.io/tutorials/javascript-promises-for-dummies).
 
 When using `graphql-tools`, you define your field resolvers separately from the schema. Since the schema already describes all of the fields, arguments, and result types, the only thing left is a collection of functions that are called to actually execute these fields.
 
