@@ -43,8 +43,10 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
   }
 
   if (!schema) {
-    // XXX should we check that schema is an instance of GraphQLSchema?
     throw new Error('Must provide schema to mock');
+  }
+  if (!(schema instanceof GraphQLSchema)) {
+    throw new Error('Value at "schema" must be of type GraphQLSchema');
   }
   if (!isObject(mocks)) {
     throw new Error('mocks must be of type Object');

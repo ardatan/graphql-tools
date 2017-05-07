@@ -90,6 +90,11 @@ describe('Mock', () => {
                   .to.throw('Must provide schema to mock');
   });
 
+  it('throws an error if the property "schema" on the first argument is not of type GraphQLSchema', () => {
+    expect(() => (<any> addMockFunctionsToSchema)({ schema: {}}))
+                  .to.throw('Value at "schema" must be of type GraphQLSchema');
+  });
+
   it('throws an error if second argument is not a Map', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     expect(() => (<any> addMockFunctionsToSchema)({ schema: jsSchema, mocks: ['a'] }))
