@@ -65,6 +65,8 @@ You can also use this to describe object types, and the fields can be functions 
 
 In this example, we are using [casual](https://github.com/boo1ean/casual), a fake data generator for JavaScript, so that we can get a different result every time the field is called. You might want to use a collection of fake objects, or a generator that always uses a consistent seed, if you are planning to use the data for testing.
 
+### Using MockList in resolvers
+
 You can also use the MockList constructor to automate mocking a list:
 
 ```js
@@ -77,6 +79,36 @@ You can also use the MockList constructor to automate mocking a list:
   }),
 }
 ```
+
+In more complex schemas, MockList is helpful for randomizing the number of entries returned in lists.
+
+For example, this schema:
+
+```graphql
+type Usage {
+  account: String!
+  summary: [Summary]!
+}
+
+type Summary {
+  date: String!
+  cost: Float!
+}
+```
+
+By default, the `summary` field will always return 2 entries. To change this, we can add a mock resolver with MockList as follows:
+
+```js
+{
+  Person: () =>({
+    summary: () => new MockList([0, 12]),
+  }),
+}
+```
+
+Now the mock data will contain between zero and 12 summary entries.
+
+### Accessing arguments in mock resolvers
 
 Since the mock functions on fields are actually just GraphQL resolvers, you can use arguments and context in them as well:
 
@@ -199,3 +231,5 @@ new MockList(length: number | number[], mockFunction: Function);
 ```
 
 This is an object you can return from your mock resolvers which calls the `mockFunction` once for each list item. The first argument can either be an exact length, or an inclusive range of possible lengths for the list, in case you want to see how your UI responds to varying lists of data.
+
+
