@@ -182,7 +182,7 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
         return [mockType(fieldType.ofType)(root, args, context, info),
                 mockType(fieldType.ofType)(root, args, context, info)];
       }
-      if (mockFunctionMap.has(fieldType.name)) {
+      if (mockFunctionMap.has(fieldType.name)  && !(fieldType instanceof GraphQLInterfaceType)) {
         // the object passed doesn't have this field, so we apply the default mock
         return mockFunctionMap.get(fieldType.name)(root, args, context, info);
       }
@@ -200,9 +200,19 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
         return Object.assign({ typename: randomType }, mockType(randomType)(root, args, context, info));
       }
       if (fieldType instanceof GraphQLInterfaceType) {
-        const possibleTypes = schema.getPossibleTypes(fieldType);
-        const randomType = getRandomElement(possibleTypes);
-        return Object.assign({ typename: randomType }, mockType(randomType)(root, args, context, info));
+        let implementationType;
+        if (mockFunctionMap.has(fieldType.name)) {
+          const interfaceMockObj = mockFunctionMap.get(fieldType.name)(root, args, context, info);
+          if (!interfaceMockObj.typename) {
+            // http://dev.apollodata.com/tools/graphql-tools/mocking.html
+            return Error(`Please return a typename in "${fieldType.name}"`);
+          }
+          implementationType = schema.getType(interfaceMockObj.typename);
+        } else {
+          const possibleTypes = schema.getPossibleTypes(fieldType);
+          implementationType = getRandomElement(possibleTypes);
+        }
+        return Object.assign({ typename: implementationType }, mockType(implementationType)(root, args, context, info));
       }
       if (fieldType instanceof GraphQLEnumType) {
         return getRandomElement(fieldType.getValues()).value;
