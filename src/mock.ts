@@ -203,7 +203,7 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
         let implementationType;
         if (mockFunctionMap.has(fieldType.name)) {
           const interfaceMockObj = mockFunctionMap.get(fieldType.name)(root, args, context, info);
-          if (!interfaceMockObj.typename) {
+          if (!interfaceMockObj || !interfaceMockObj.typename) {
             // http://dev.apollodata.com/tools/graphql-tools/mocking.html
             return Error(`Please return a typename in "${fieldType.name}"`);
           }
