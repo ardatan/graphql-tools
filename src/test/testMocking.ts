@@ -400,7 +400,7 @@ describe('Mock', () => {
     });
   });
 
-it('must return typename inside an interface mock', () => {
+it('throws an error when typename is not returned within an interface mock', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     addResolveFunctionsToSchema(jsSchema, resolveFunctions);
     const mockMap = {
