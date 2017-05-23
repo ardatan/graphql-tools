@@ -20,16 +20,19 @@ describe('Mock', () => {
     scalar MissingMockType
 
     interface Flying {
+      id:String!
       returnInt: Int
     }
 
     type Bird implements Flying {
+      id:String!
       returnInt: Int
       returnString: String
       returnStringArgument(s: String): String
     }
 
     type Bee implements Flying {
+      id:String!
       returnInt: Int
       returnEnum: SomeEnum
     }
@@ -61,6 +64,7 @@ describe('Mock', () => {
       returnListOfListOfIntArg(l: Int): [[Int]]
       returnListOfListOfObject: [[Bird!]]!
       returnStringArgument(s: String): String
+      node(id:String!):Flying
     }
 
     type RootMutation{
@@ -321,7 +325,7 @@ describe('Mock', () => {
     });
   });
 
-  it('can mock Interfaces', () => {
+  it('can mock Interfaces by default', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     addResolveFunctionsToSchema(jsSchema, resolveFunctions);
     const mockMap = {
@@ -353,6 +357,45 @@ describe('Mock', () => {
       return expect(res.data['returnFlying']).to.include({
         returnInt: 10,
         returnEnum: 'A',
+      });
+    });
+  });
+
+  // http://dev.apollodata.com/tools/graphql-tools/mocking.html#Mocking-interfaces
+  it('can support Interface mock', () => {
+    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    addResolveFunctionsToSchema(jsSchema, resolveFunctions);
+    let spy = 0;
+    const mockMap = {
+      Bird: (root: any, args: any) => ({
+        id: args.id,
+        returnInt: 100,
+      }),
+      Bee: (root: any, args: any) => ({
+        id: args.id,
+        returnInt: 100,
+      }),
+      Flying: (root: any, args: any) => {
+        spy++;
+        const { id } = args;
+        const type = id.split(':')[0];
+        const typename = ['Bird', 'Bee'].find(r => r.toLowerCase() === type);
+        return { typename };
+      }
+    };
+    addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
+    const testQuery = `{
+      node(id:"bee:123456"){
+        id,
+        returnInt
+      }
+    }`;
+
+    return graphql(jsSchema, testQuery).then(res => {
+      expect(spy).to.equal(1); // to make sure that Flying possible types are not randomly selected
+      expect(res.data['node']).to.include({
+        id: 'bee:123456',
+        returnInt: 100
       });
     });
   });
