@@ -400,6 +400,35 @@ describe('Mock', () => {
     });
   });
 
+it('must return typename inside an interface mock', () => {
+    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    addResolveFunctionsToSchema(jsSchema, resolveFunctions);
+    const mockMap = {
+      Bird: (root: any, args: any) => ({
+        id: args.id,
+        returnInt: 100,
+      }),
+      Bee: (root: any, args: any) => ({
+        id: args.id,
+        returnInt: 100,
+      }),
+      Flying: (root: any, args: any): void => {
+        return;
+      }
+    };
+    addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
+    const testQuery = `{
+      node(id:"bee:123456"){
+        id,
+        returnInt
+      }
+    }`;
+    const expected = 'Please return a typename in "Flying"';
+    return graphql(jsSchema, testQuery).then((res) => {
+      expect((<any>res.errors[0]).originalError.message).to.equal(expected);
+    });
+  });
+
   it('throws an error in resolve if mock type is not defined', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {};
