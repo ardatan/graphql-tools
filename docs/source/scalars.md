@@ -31,7 +31,7 @@ $ npm install --save graphql-type-json
 
 ```js
 import { makeExecutableSchema } from 'graphql-tools';
-const GraphQLJSON = require('graphql-type-json');
+import GraphQLJSON from 'graphql-type-json';
 
 const schemaString = `
 
