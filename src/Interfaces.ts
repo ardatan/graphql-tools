@@ -22,14 +22,14 @@ export interface IResolverOptions {
     resolve?: GraphQLFieldResolver<any, any>;
     __resolveType?: GraphQLTypeResolver<any, any>;
     __isTypeOf?: GraphQLIsTypeOfFn<any, any>;
-};
+}
 
 export type ITypedef = (() => ITypedef[]) | string | DocumentNode;
 export type ITypeDefinitions = ITypedef | ITypedef[];
 export type IResolverObject = { [key: string]: GraphQLFieldResolver<any, any> | IResolverOptions };
 export interface IResolvers {
     [key: string]: (() => any) | IResolverObject | GraphQLScalarType;
-};
+}
 export interface ILogger {
     log: (message: string | Error) => void;
 }
