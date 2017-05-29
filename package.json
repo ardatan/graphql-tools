@@ -60,6 +60,7 @@
   "devDependencies": {
     "@types/bluebird": "^3.0.32",
     "@types/chai": "3.4.35",
+    "@types/chai-spies": "0.0.0",
     "@types/lodash": "^4.14.34",
     "@types/mocha": "^2.2.31",
     "@types/node": "^7.0.5",
@@ -68,6 +69,7 @@
     "@types/uuid": "^2.0.29",
     "body-parser": "^1.15.0",
     "chai": "^3.5.0",
+    "chai-spies": "^0.7.1",
     "express": "^4.13.4",
     "graphql": "^0.9.0",
     "graphql-subscriptions": "^0.3.0",
