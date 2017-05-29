@@ -9,6 +9,7 @@ import {
   Kind,
   IntValueNode,
   parse,
+  ExecutionResult,
 } from 'graphql';
 // import { printSchema } from 'graphql';
 const GraphQLJSON = require('graphql-type-json');
@@ -50,7 +51,7 @@ function expectWarning(fn: () => void, warnMatcher?: string) {
     } finally {
         console.warn = originalWarn;
     }
-};
+}
 
 const testSchema = `
       type RootQuery {
@@ -246,7 +247,7 @@ describe('generating schema from shorthand', () => {
     const jsSchema = makeExecutableSchema({ typeDefs: shorthand, resolvers: resolve });
     const resultPromise = graphql(jsSchema, introspectionQuery);
     return resultPromise.then(result =>
-      assert.deepEqual(result, solution)
+      assert.deepEqual(result, solution as ExecutionResult)
     );
   });
 
@@ -422,7 +423,7 @@ describe('generating schema from shorthand', () => {
     };
     const jsSchema = makeExecutableSchema({ typeDefs: shorthand, resolvers: resolveFunctions });
     const resultPromise = graphql(jsSchema, testQuery);
-    return resultPromise.then(result => assert.deepEqual(result, solution));
+    return resultPromise.then(result => assert.deepEqual(result, solution as ExecutionResult));
   });
 
   it('can generate a schema with extensions that can use resolvers', () => {
@@ -478,7 +479,7 @@ describe('generating schema from shorthand', () => {
     };
     const jsSchema = makeExecutableSchema({ typeDefs: shorthand, resolvers: resolveFunctions });
     const resultPromise = graphql(jsSchema, testQuery);
-    return resultPromise.then(result => assert.deepEqual(result, solution));
+    return resultPromise.then(result => assert.deepEqual(result, solution as ExecutionResult));
   });
 
   it('supports resolveType for unions', () => {
@@ -558,7 +559,7 @@ describe('generating schema from shorthand', () => {
 
     const jsSchema = makeExecutableSchema({ typeDefs: shorthand, resolvers: resolveFunctions });
     const resultPromise = graphql(jsSchema, testQuery);
-    return resultPromise.then(result => assert.deepEqual(result, solution));
+    return resultPromise.then(result => assert.deepEqual(result, solution as ExecutionResult));
   });
 
   it('supports passing a GraphQLScalarType in resolveFunctions', () => {
@@ -630,9 +631,7 @@ describe('generating schema from shorthand', () => {
 
     const jsSchema = makeExecutableSchema({ typeDefs: shorthand, resolvers: resolveFunctions });
     const resultPromise = graphql(jsSchema, testQuery);
-    return resultPromise.then(result => {
-      expect(result.errors).to.not.be.ok;
-    });
+    return resultPromise.then(result => expect(result.errors).to.not.exist);
   });
 
   it('should work with an Odd custom scalar type', () => {
@@ -823,7 +822,7 @@ describe('generating schema from shorthand', () => {
 
     const jsSchema = makeExecutableSchema({ typeDefs: shorthand, resolvers: resolveFunctions });
     const resultPromise = graphql(jsSchema, testQuery);
-    return resultPromise.then(result => assert.deepEqual(result, solution));
+    return resultPromise.then(result => assert.deepEqual(result, solution as ExecutionResult));
   });
 
   it('shows a warning if a field has arguments but no resolve func', () => {
