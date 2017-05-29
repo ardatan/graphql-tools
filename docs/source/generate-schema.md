@@ -8,60 +8,53 @@ The graphql-tools package allows you to create a GraphQL.js GraphQLSchema instan
 
 <h2 id="example">Example</h2>
 
-The ["Hello World" server](https://github.com/apollostack/frontpage-server) which powers the main Apollo Client examples is a great place to start if you're looking for a minimal codebase powered by `graphql-tools`.
+[See the complete live example in Apollo Launchpad.](https://launchpad.graphql.com/1jzxrj179)
 
 When using `graphql-tools`, you describe the schema as a GraphQL type language string:
 
 ```js
+const typeDefs = `
+  type Author {
+    id: Int!
+    firstName: String
+    lastName: String
+    posts: [Post] # the list of Posts by this author
+  }
 
-export default `
-type Author {
-  id: Int! # the ! means that every author object _must_ have an id
-  firstName: String
-  lastName: String
-  posts: [Post] # the list of Posts by this author
-}
+  type Post {
+    id: Int!
+    title: String
+    author: Author
+    votes: Int
+  }
 
-type Post {
-  id: Int!
-  title: String
-  votes: Int
-  author: Author
-}
+  # the schema allows the following query:
+  type Query {
+    posts: [Post]
+    author(id: Int!): Author
+  }
 
-# the schema allows the following query:
-type Query {
-  posts: [Post]
-  author(id: Int!): Author # author query must receive an id as argument
-}
-
-# this schema allows the following mutation:
-type Mutation {
-  upvotePost (
-    postId: Int!
-  ): Post
-}
-
-# we need to tell the server which types represent the root query
-# and root mutation types. We call them RootQuery and RootMutation by convention.
-schema {
-  query: Query
-  mutation: Mutation
-}
+  # this schema allows the following mutation:
+  type Mutation {
+    upvotePost (
+      postId: Int!
+    ): Post
+  }
 `;
 ```
 
 Then you define resolvers as a nested object that maps type and field names to resolver functions:
 
 ```js
-const resolveFunctions = {
+import { find, filter } from 'lodash';
+
+const resolvers = {
   Query: {
-    posts() {
-      return posts;
-    },
+    posts: () => posts,
+    author: (_, { id }) => find(authors, { id: id }),
   },
   Mutation: {
-    upvotePost(_, { postId }) {
+    upvotePost: (_, { postId }) => {
       const post = find(posts, { id: postId });
       if (!post) {
         throw new Error(`Couldn't find post with id ${postId}`);
@@ -71,14 +64,10 @@ const resolveFunctions = {
     },
   },
   Author: {
-    posts(author) {
-      return filter(posts, { authorId: author.id });
-    },
+    posts: (author) => filter(posts, { authorId: author.id }),
   },
   Post: {
-    author(post) {
-      return find(authors, { id: post.authorId });
-    },
+    author: (post) => find(authors, { id: post.authorId }),
   },
 };
 ```
@@ -86,16 +75,15 @@ const resolveFunctions = {
 At the end, the schema and resolvers are combined using `makeExecutableSchema`:
 
 ```js
-import Schema from './data/schema.js';
-import Resolvers from './data/resolvers';
+import { makeExecutableSchema } from 'graphql-tools';
 
-const executableSchema = makeExecutableSchema({
-  typeDefs: Schema,
-  resolvers: Resolvers,
+export const schema = makeExecutableSchema({
+  typeDefs,
+  resolvers,
 });
 ```
 
-This example has the entire type definition in one string and all resolvers in one object, but you can combine types and resolvers from multiple files, as documented below in the [modularizing the schema](#modularizing) section.
+This example has the entire type definition in one string and all resolvers in one object, but you can combine types and resolvers from multiple files, as documented in the [modularizing the schema](#modularizing) section below.
 
 <h2 id="modularizing">Modularizing the schema</h2>
 
