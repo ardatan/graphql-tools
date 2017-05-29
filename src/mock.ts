@@ -137,7 +137,7 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
       // the default `resolveType` always returns null. We add a fallback
       // resolution that works with how unions and interface are mocked
       namedFieldType.resolveType = (data: any, context: any, info: GraphQLResolveInfo) => {
-        return info.schema.getType(data.typename) as GraphQLObjectType;
+        return info.schema.getType(data.__typename) as GraphQLObjectType;
       };
     }
   }
@@ -197,22 +197,21 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
       // typename on the object.
       if (fieldType instanceof GraphQLUnionType) {
         const randomType = getRandomElement(fieldType.getTypes());
-        return Object.assign({ typename: randomType }, mockType(randomType)(root, args, context, info));
+        return Object.assign({ __typename: randomType }, mockType(randomType)(root, args, context, info));
       }
       if (fieldType instanceof GraphQLInterfaceType) {
         let implementationType;
         if (mockFunctionMap.has(fieldType.name)) {
           const interfaceMockObj = mockFunctionMap.get(fieldType.name)(root, args, context, info);
-          if (!interfaceMockObj || !interfaceMockObj.typename) {
-            // http://dev.apollodata.com/tools/graphql-tools/mocking.html
-            return Error(`Please return a typename in "${fieldType.name}"`);
+          if (!interfaceMockObj || !interfaceMockObj.__typename) {
+            return Error(`Please return a __typename in "${fieldType.name}"`);
           }
-          implementationType = schema.getType(interfaceMockObj.typename);
+          implementationType = schema.getType(interfaceMockObj.__typename);
         } else {
           const possibleTypes = schema.getPossibleTypes(fieldType);
           implementationType = getRandomElement(possibleTypes);
         }
-        return Object.assign({ typename: implementationType }, mockType(implementationType)(root, args, context, info));
+        return Object.assign({ __typename: implementationType }, mockType(implementationType)(root, args, context, info));
       }
       if (fieldType instanceof GraphQLEnumType) {
         return getRandomElement(fieldType.getValues()).value;
