@@ -378,6 +378,7 @@ describe('Mock', () => {
         spy++;
         const { id } = args;
         const type = id.split(':')[0];
+        // tslint:disable-next-line
         const __typename = ['Bird', 'Bee'].find(r => r.toLowerCase() === type);
         return { __typename };
       }
