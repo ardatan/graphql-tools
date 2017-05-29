@@ -125,13 +125,16 @@ You can read some background and flavor on this approach in our blog post, ["Moc
 
 ## Mocking interfaces
 
-Interface mock functions must return an object with a `typename`  property:
+You will need resolvers to mock interfaces. By default [`addMockFunctionsToSchema`](#addMockFunctionsToSchema) will overwrite resolver functions.
+By setting the property `preserveResolvers` on the options object to `true`, the type resolvers will be preserved.
 
 ```js
 import {
   makeExecutableSchema,
-  addMockFunctionsToSchema
+  addMockFunctionsToSchema,
+  addResolveFunctionsToSchema
 } from 'graphql-tools'
+import mocks from './mocks' // your mock functions
 
 const typeDefs = `
 type Query {
@@ -172,10 +175,12 @@ type ProductList implements List {
 }
 `
 
-const mocks = {
-  List: () => ({
-    typename: (Math.random() > .5) ? `DistributorList`: `ProductList`,
-  })
+const typeResolvers = {
+  List: {
+    __resolveType(data) {
+      return data.typename // typename property must be set by your mock functions
+    }
+  }
 }
 
 const schema = makeExecutableSchema({
@@ -185,8 +190,8 @@ const schema = makeExecutableSchema({
 addMockFunctionsToSchema({
     schema,
     mocks,
+    preserveResolvers: true
 })
-
 ```
 
 ## Mocking a schema using introspection
