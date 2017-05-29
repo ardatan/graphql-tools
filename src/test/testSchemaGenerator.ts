@@ -50,7 +50,7 @@ function expectWarning(fn: () => void, warnMatcher?: string) {
     } finally {
         console.warn = originalWarn;
     }
-};
+}
 
 const testSchema = `
       type RootQuery {
@@ -630,9 +630,7 @@ describe('generating schema from shorthand', () => {
 
     const jsSchema = makeExecutableSchema({ typeDefs: shorthand, resolvers: resolveFunctions });
     const resultPromise = graphql(jsSchema, testQuery);
-    return resultPromise.then(result => {
-      expect(result.errors).to.not.be.ok;
-    });
+    return resultPromise.then(result => expect(result.errors).to.not.exist);
   });
 
   it('should work with an Odd custom scalar type', () => {
