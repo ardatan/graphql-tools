@@ -12,7 +12,7 @@ This package allows you to use the GraphQL schema language to build your [GraphQ
 
 ## Example
 
-The ["Hello World" server](https://github.com/apollostack/frontpage-server) which powers our client examples is a great place to start if you're looking for a minimal codebase powered by `graphql-tools`.
+[See and edit the live example on Launchpad.](https://launchpad.graphql.com/1jzxrj179)
 
 When using `graphql-tools`, you describe the schema as a GraphQL type language string:
 
