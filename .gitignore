@@ -1,6 +1,9 @@
 node_modules
 coverage
 npm-debug.log
-dist
+!dist/
+!dist/**/*.js
+!dist/**/*.d.ts
+!dist/**/*.js.map
 *.tgz
 .DS_Store
