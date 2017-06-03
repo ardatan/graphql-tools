@@ -1,8 +1,6 @@
 *
 !dist/
-!dist/**/*.js
-!dist/**/*.d.ts
-!dist/**/*.js.map
+!dist/*
 !package.json
 !*.md
 !*.png
