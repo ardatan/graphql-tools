@@ -14,7 +14,7 @@
   },
   "scripts": {
     "clean": "rimraf dist",
-    "compile": "tsc",
+    "compile": "tsc && npm run compile-es",
     "compile-es": "tsc -p tsconfig.es.json",
     "typings": "typings install",
     "pretest": "npm run clean && npm run compile",

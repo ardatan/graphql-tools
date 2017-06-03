@@ -1,22 +1,22 @@
 {
-	"compilerOptions": {
-		"experimentalDecorators": true,
-		"lib": ["es6", "dom"],
+  "compilerOptions": {
+    "experimentalDecorators": true,
+    "lib": ["es6", "dom"],
     "module": "es2015",
-		"target": "es2015",
-		"noImplicitAny": true,
-		"suppressImplicitAnyIndexErrors": true,
-		"moduleResolution": "node",
-		"emitDecoratorMetadata": true,
-		"noUnusedLocals": true,
-		"sourceMap": true,
-		"declaration": true,
-		"rootDir": "./src",
-		"outDir": "./dist/es-build",
-		"removeComments": false
-	},
-	"exclude": [
-		"node_modules",
+    "target": "es2015",
+    "noImplicitAny": true,
+    "suppressImplicitAnyIndexErrors": true,
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "noUnusedLocals": true,
+    "sourceMap": true,
+    "declaration": true,
+    "rootDir": "./src",
+    "outDir": "./dist/es-build",
+    "removeComments": false
+  },
+  "exclude": [
+    "node_modules",
     "dist"
-	]
+  ]
 }
