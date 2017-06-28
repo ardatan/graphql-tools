@@ -20,16 +20,19 @@ describe('Mock', () => {
     scalar MissingMockType
 
     interface Flying {
+      id:String!
       returnInt: Int
     }
 
     type Bird implements Flying {
+      id:String!
       returnInt: Int
       returnString: String
       returnStringArgument(s: String): String
     }
 
     type Bee implements Flying {
+      id:String!
       returnInt: Int
       returnEnum: SomeEnum
     }
@@ -61,6 +64,8 @@ describe('Mock', () => {
       returnListOfListOfIntArg(l: Int): [[Int]]
       returnListOfListOfObject: [[Bird!]]!
       returnStringArgument(s: String): String
+      node(id:String!):Flying
+      node2(id:String!):BirdsAndBees
     }
 
     type RootMutation{
@@ -75,12 +80,12 @@ describe('Mock', () => {
   const resolveFunctions = {
     BirdsAndBees: {
       __resolveType(data: any, context: any, info: GraphQLResolveInfo) {
-        return info.schema.getType(data.typename);
+        return info.schema.getType(data.__typename);
       },
     },
     Flying: {
       __resolveType(data: any, context: any, info: GraphQLResolveInfo) {
-        return info.schema.getType(data.typename);
+        return info.schema.getType(data.__typename);
       },
     },
   };
@@ -243,7 +248,7 @@ describe('Mock', () => {
       BirdsAndBees: {
         __resolveType(data: any, context: any, info: GraphQLResolveInfo) {
           ++spy;
-          return info.schema.getType(data.typename);
+          return info.schema.getType(data.__typename);
         },
       },
     };
@@ -321,7 +326,7 @@ describe('Mock', () => {
     });
   });
 
-  it('can mock Interfaces', () => {
+  it('can mock Interfaces by default', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     addResolveFunctionsToSchema(jsSchema, resolveFunctions);
     const mockMap = {
@@ -332,7 +337,7 @@ describe('Mock', () => {
         returnFlying: () => new MockList(40),
       }),
     };
-    addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
+    addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap, preserveResolvers: true });
     const testQuery = `{
       returnFlying {
         ... on Bird {
@@ -356,6 +361,113 @@ describe('Mock', () => {
       });
     });
   });
+
+  it('can support explicit Interface mock', () => {
+    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    addResolveFunctionsToSchema(jsSchema, resolveFunctions);
+    let spy = 0;
+    const mockMap = {
+      Bird: (root: any, args: any) => ({
+        id: args.id,
+        returnInt: 100,
+      }),
+      Bee: (root: any, args: any) => ({
+        id: args.id,
+        returnInt: 200,
+      }),
+      Flying: (root: any, args: any) => {
+        spy++;
+        const { id } = args;
+        const type = id.split(':')[0];
+        // tslint:disable-next-line
+        const __typename = ['Bird', 'Bee'].find(r => r.toLowerCase() === type);
+        return { __typename };
+      }
+    };
+    addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap, preserveResolvers: true });
+    const testQuery = `{
+      node(id:"bee:123456"){
+        id,
+        returnInt
+      }
+    }`;
+
+    return graphql(jsSchema, testQuery).then(res => {
+      expect(spy).to.equal(1); // to make sure that Flying possible types are not randomly selected
+      expect(res.data['node']).to.include({
+        id: 'bee:123456',
+        returnInt: 200
+      });
+    });
+  });
+
+  it('can support explicit UnionType mock', () => {
+      const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+      addResolveFunctionsToSchema(jsSchema, resolveFunctions);
+      let spy = 0;
+      const mockMap = {
+        Bird: (root: any, args: any) => ({
+          id: args.id,
+          returnInt: 100,
+        }),
+        Bee: (root: any, args: any) => ({
+          id: args.id,
+          returnEnum: 'A'
+        }),
+        BirdsAndBees: (root: any, args: any) => {
+          spy++;
+          const { id } = args;
+          const type = id.split(':')[0];
+          return { __typename: ['Bird', 'Bee'].find(r => r.toLowerCase() === type) };
+        }
+      };
+      addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap, preserveResolvers: true });
+      const testQuery = `{
+        node2(id:"bee:123456"){
+          ...on Bee{
+            id,
+            returnEnum
+          }
+        }
+      }`;
+
+      return graphql(jsSchema, testQuery).then(res => {
+        expect(spy).to.equal(1);
+        expect(res.data['node2']).to.include({
+          id: 'bee:123456',
+          returnEnum: 'A'
+        });
+      });
+    });
+
+  it('throws an error when __typename is not returned within an explicit interface mock', () => {
+      const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+      addResolveFunctionsToSchema(jsSchema, resolveFunctions);
+      const mockMap = {
+        Bird: (root: any, args: any) => ({
+          id: args.id,
+          returnInt: 100,
+        }),
+        Bee: (root: any, args: any) => ({
+          id: args.id,
+          returnInt: 100,
+        }),
+        Flying: (root: any, args: any): void => {
+          return;
+        }
+      };
+      addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
+      const testQuery = `{
+        node(id:"bee:123456"){
+          id,
+          returnInt
+        }
+      }`;
+      const expected = 'Please return a __typename in "Flying"';
+      return graphql(jsSchema, testQuery).then((res) => {
+        expect((<any>res.errors[0]).originalError.message).to.equal(expected);
+      });
+    });
 
   it('throws an error in resolve if mock type is not defined', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);

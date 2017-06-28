@@ -137,7 +137,7 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
       // the default `resolveType` always returns null. We add a fallback
       // resolution that works with how unions and interface are mocked
       namedFieldType.resolveType = (data: any, context: any, info: GraphQLResolveInfo) => {
-        return info.schema.getType(data.typename) as GraphQLObjectType;
+        return info.schema.getType(data.__typename) as GraphQLObjectType;
       };
     }
   }
@@ -182,7 +182,8 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
         return [mockType(fieldType.ofType)(root, args, context, info),
                 mockType(fieldType.ofType)(root, args, context, info)];
       }
-      if (mockFunctionMap.has(fieldType.name)) {
+      if (mockFunctionMap.has(fieldType.name)  && !(fieldType instanceof GraphQLUnionType ||
+        fieldType instanceof GraphQLInterfaceType)) {
         // the object passed doesn't have this field, so we apply the default mock
         return mockFunctionMap.get(fieldType.name)(root, args, context, info);
       }
@@ -190,20 +191,23 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
         // objects don't return actual data, we only need to mock scalars!
         return {};
       }
+      // if a mock function is provided for unionType or interfaceType, execute it to resolve the concrete type
+      // otherwise randomly pick a type from all implementation types
+      if (fieldType instanceof GraphQLUnionType || fieldType instanceof GraphQLInterfaceType) {
+        let implementationType;
+        if (mockFunctionMap.has(fieldType.name)) {
+          const interfaceMockObj = mockFunctionMap.get(fieldType.name)(root, args, context, info);
+          if (!interfaceMockObj || !interfaceMockObj.__typename) {
+            return Error(`Please return a __typename in "${fieldType.name}"`);
+          }
+          implementationType = schema.getType(interfaceMockObj.__typename);
+        } else {
+          const possibleTypes = schema.getPossibleTypes(fieldType);
+          implementationType = getRandomElement(possibleTypes);
+        }
+        return Object.assign({ __typename: implementationType }, mockType(implementationType)(root, args, context, info));
+      }
 
-      // TODO mocking Interface and Union types will require determining the
-      // resolve type before passing it on.
-      // XXX we recommend a generic way for resolve type here, which is defining
-      // typename on the object.
-      if (fieldType instanceof GraphQLUnionType) {
-        const randomType = getRandomElement(fieldType.getTypes());
-        return Object.assign({ typename: randomType }, mockType(randomType)(root, args, context, info));
-      }
-      if (fieldType instanceof GraphQLInterfaceType) {
-        const possibleTypes = schema.getPossibleTypes(fieldType);
-        const randomType = getRandomElement(possibleTypes);
-        return Object.assign({ typename: randomType }, mockType(randomType)(root, args, context, info));
-      }
       if (fieldType instanceof GraphQLEnumType) {
         return getRandomElement(fieldType.getValues()).value;
       }

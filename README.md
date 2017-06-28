@@ -89,7 +89,7 @@ const resolvers = {
   },
 };
 
-export default resolverMap;
+export default resolvers;
 ```
 
 At the end, the schema and resolvers are combined using `makeExecutableSchema`:
