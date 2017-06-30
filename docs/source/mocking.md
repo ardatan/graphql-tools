@@ -135,8 +135,7 @@ By setting the property `preserveResolvers` on the options object to `true`, the
 ```js
 import {
   makeExecutableSchema,
-  addMockFunctionsToSchema,
-  addResolveFunctionsToSchema
+  addMockFunctionsToSchema
 } from 'graphql-tools'
 import mocks from './mocks' // your mock functions
 
