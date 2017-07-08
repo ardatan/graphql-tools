@@ -278,6 +278,10 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
             return resolvedValue;
         }
 
+        if (resolvedValue instanceof Date && mockedValue instanceof Date) {
+          return (undefined !== resolvedValue) ? resolvedValue : mockedValue;
+        }
+
         if (isObject(mockedValue) && isObject(resolvedValue)) {
           // Object.assign() won't do here, as we need to all properties, including
           // the non-enumerable ones and defined using Object.defineProperty

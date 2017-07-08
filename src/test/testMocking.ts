@@ -1269,6 +1269,73 @@ describe('Mock', () => {
     });
   });
 
+  it('works for resolvers returning javascript Dates', () => {
+    const typeDefs = `
+    	scalar Date
+
+      type DateObject {
+        start: Date!
+      }
+
+      type Query {
+      	date1: DateObject
+    		date2: Date
+        date3: Date
+      }
+    `;
+
+    const resolvers = {
+      Query: {
+        date1: () => ({
+          start: new Date('2018-01-03')
+        }),
+        date2: () => new Date('2016-01-01')
+      },
+      DateObject: {
+        start: (obj: { start: Date }) => obj.start
+      },
+      Date: {
+        __serialize: (val: Date) => val.toISOString(),
+        __parseValue: (val: string) => new Date(val),
+        __parseLiteral: (val: string) => new Date(val)
+      }
+    };
+
+    const schema = makeExecutableSchema({
+      typeDefs,
+      resolvers
+    });
+
+    addMockFunctionsToSchema({
+      schema,
+      mocks: {
+        Date: () => new Date('2016-05-04')
+      },
+      preserveResolvers: true
+    });
+
+    const query = `
+    {
+      date1 {
+        start
+      }
+      date2
+      date3
+    }
+    `;
+
+    const expected = {
+      date1: {
+        start: '2018-01-03T00:00:00.000Z'
+      },
+      date2: '2016-01-01T00:00:00.000Z',
+      date3: '2016-05-04T00:00:00.000Z'
+    };
+    return graphql(schema, query).then(res => {
+      expect(res.data).to.deep.equal(expected);
+    });
+  });
+
   // TODO add a test that checks that even when merging defaults, lists invoke
   // the function for every object, not just once per list.
 
