@@ -200,7 +200,7 @@ function forEachField(schema: GraphQLSchema, fn: IFieldIteratorFn): void {
 const attachConnectorsToContext = deprecated<Function>({
     version: '0.7.0',
     url: 'https://github.com/apollostack/graphql-tools/issues/140',
-}, function attachConnectorsToContext(schema: GraphQLSchema, connectors: IConnectors): void {
+}, function(schema: GraphQLSchema, connectors: IConnectors): void {
   if (!schema || !(schema instanceof GraphQLSchema)) {
     throw new Error(
       'schema must be an instance of GraphQLSchema. ' +
