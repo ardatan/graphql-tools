@@ -1,5 +1,9 @@
 # Change log
 
+### vNEXT
+
+* Replace `lodash` with `lodash.uniq` [PR #354](https://github.com/apollographql/graphql-tools/pull/354)
+
 ### v.1.1.0
 * Improve mocking of union and interface types [PR #332](https://github.com/apollographql/graphql-tools/pull/332)
 

@@ -7,7 +7,7 @@
 // a bunch of utility functions into a separate utitlities folder, one file per function.
 
 import { DocumentNode, parse, print, Kind, DefinitionNode } from 'graphql';
-import { uniq } from 'lodash';
+import uniq = require('lodash.uniq');
 import { buildASTSchema, extendSchema } from 'graphql';
 import {
   GraphQLScalarType,
