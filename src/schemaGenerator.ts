@@ -7,7 +7,6 @@
 // a bunch of utility functions into a separate utitlities folder, one file per function.
 
 import { DocumentNode, parse, print, Kind, DefinitionNode } from 'graphql';
-import uniq = require('lodash.uniq');
 import { buildASTSchema, extendSchema } from 'graphql';
 import {
   GraphQLScalarType,
@@ -112,6 +111,12 @@ function makeExecutableSchema({
 
 function isDocumentNode(typeDefinitions: ITypeDefinitions): typeDefinitions is DocumentNode {
   return (<DocumentNode>typeDefinitions).kind !== undefined;
+}
+
+function uniq(array: Array<any>): Array<any> {
+  return array.reduce((accumulator, currentValue) => {
+    return (accumulator.indexOf(currentValue) === -1) ? [...accumulator, currentValue] : accumulator;
+  }, []);
 }
 
 function concatenateTypeDefs(typeDefinitionsAry: ITypedef[], calledFunctionRefs = [] as any ): string {
