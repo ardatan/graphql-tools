@@ -142,7 +142,7 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
     }
   }
 
-  const mockType = function mockType(type: GraphQLType, typeName?: string, fieldName?: string): GraphQLFieldResolver<any, any> {
+  const mockType = function(type: GraphQLType, typeName?: string, fieldName?: string): GraphQLFieldResolver<any, any> {
     // order of precendence for mocking:
     // 1. if the object passed in already has fieldName, just use that
     // --> if it's a function, that becomes your resolver
@@ -276,6 +276,10 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
               throw mockedValue;
             }
             return resolvedValue;
+        }
+
+        if (resolvedValue instanceof Date && mockedValue instanceof Date) {
+          return (undefined !== resolvedValue) ? resolvedValue : mockedValue;
         }
 
         if (isObject(mockedValue) && isObject(resolvedValue)) {
