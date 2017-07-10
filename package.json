@@ -48,7 +48,6 @@
   "homepage": "https://github.com/apollostack/graphql-tools#readme",
   "dependencies": {
     "deprecated-decorator": "^0.1.6",
-    "lodash.uniq": "^4.5.0",
     "uuid": "^3.0.1"
   },
   "peerDependencies": {
@@ -60,7 +59,6 @@
   "devDependencies": {
     "@types/bluebird": "^3.0.32",
     "@types/chai": "3.5.2",
-    "@types/lodash.uniq": "^4.5.2",
     "@types/mocha": "^2.2.31",
     "@types/node": "^7.0.5",
     "@types/request": "0.0.43",
