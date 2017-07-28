@@ -1,6 +1,6 @@
 {
   "name": "graphql-tools",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A set of useful tools for GraphQL",
   "main": "dist/index.js",
   "module": "./dist/es-build/index.js",
@@ -51,7 +51,6 @@
   "homepage": "https://github.com/apollostack/graphql-tools#readme",
   "dependencies": {
     "deprecated-decorator": "^0.1.6",
-    "lodash": "^4.3.0",
     "uuid": "^3.0.1"
   },
   "peerDependencies": {
@@ -63,7 +62,6 @@
   "devDependencies": {
     "@types/bluebird": "^3.0.32",
     "@types/chai": "3.5.2",
-    "@types/lodash": "^4.14.34",
     "@types/mocha": "^2.2.31",
     "@types/node": "^7.0.5",
     "@types/request": "0.0.43",

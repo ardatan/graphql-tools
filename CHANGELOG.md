@@ -1,5 +1,12 @@
 # Change log
 
+### vNEXT
+
+* Remove `lodash` dependency [PR #356](https://github.com/apollographql/graphql-tools/pull/356)
+
+### v.1.1.0
+* Improve mocking of union and interface types [PR #332](https://github.com/apollographql/graphql-tools/pull/332)
+
 ### v1.0.0
 * Add argument validation in `addMockFunctionsToSchema` for 'schema' property in parameter object [PR #321](https://github.com/apollographql/graphql-tools/pull/321)
 

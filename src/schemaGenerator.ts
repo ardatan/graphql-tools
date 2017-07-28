@@ -7,7 +7,6 @@
 // a bunch of utility functions into a separate utitlities folder, one file per function.
 
 import { DocumentNode, parse, print, Kind, DefinitionNode } from 'graphql';
-import { uniq } from 'lodash';
 import { buildASTSchema, extendSchema } from 'graphql';
 import {
   GraphQLScalarType,
@@ -114,6 +113,12 @@ function isDocumentNode(typeDefinitions: ITypeDefinitions): typeDefinitions is D
   return (<DocumentNode>typeDefinitions).kind !== undefined;
 }
 
+function uniq(array: Array<any>): Array<any> {
+  return array.reduce((accumulator, currentValue) => {
+    return (accumulator.indexOf(currentValue) === -1) ? [...accumulator, currentValue] : accumulator;
+  }, []);
+}
+
 function concatenateTypeDefs(typeDefinitionsAry: ITypedef[], calledFunctionRefs = [] as any ): string {
   let resolvedTypeDefinitions: string[] = [];
   typeDefinitionsAry.forEach((typeDef: ITypedef) => {
@@ -200,7 +205,7 @@ function forEachField(schema: GraphQLSchema, fn: IFieldIteratorFn): void {
 const attachConnectorsToContext = deprecated<Function>({
     version: '0.7.0',
     url: 'https://github.com/apollostack/graphql-tools/issues/140',
-}, function attachConnectorsToContext(schema: GraphQLSchema, connectors: IConnectors): void {
+}, function(schema: GraphQLSchema, connectors: IConnectors): void {
   if (!schema || !(schema instanceof GraphQLSchema)) {
     throw new Error(
       'schema must be an instance of GraphQLSchema. ' +
