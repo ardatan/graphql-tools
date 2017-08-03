@@ -20,6 +20,7 @@ export interface IResolverValidationOptions {
 
 export interface IResolverOptions {
     resolve?: GraphQLFieldResolver<any, any>;
+    subscribe?: GraphQLFieldResolver<any, any>;
     __resolveType?: GraphQLTypeResolver<any, any>;
     __isTypeOf?: GraphQLIsTypeOfFn<any, any>;
 }
