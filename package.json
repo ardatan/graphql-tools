@@ -22,7 +22,7 @@
     "testonly": "mocha --reporter spec --full-trace ./dist/test/tests.js",
     "coverage": "istanbul cover _mocha -- --reporter dot --full-trace ./dist/test/tests.js",
     "postcoverage": "remap-istanbul --input coverage/coverage.json --type lcovonly --output coverage/lcov.info",
-    "prepublish": "npm run compile",
+    "prepublishOnly": "npm run compile",
     "prerelease": "npm test",
     "release": "standard-version"
   },
