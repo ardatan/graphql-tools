@@ -296,6 +296,9 @@ function addResolveFunctionsToSchema(schema: GraphQLSchema, resolveFunctions: IR
   Object.keys(resolveFunctions).forEach((typeName) => {
     const type = schema.getType(typeName);
     if (!type && typeName !== '__schema') {
+      if (resolverValidationOptions.allowResolversNotInSchema) {
+        return;
+      }
       throw new SchemaError(
         `"${typeName}" defined in resolvers, but not in schema`
       );
