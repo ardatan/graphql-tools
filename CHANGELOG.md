@@ -2,6 +2,7 @@
 
 ### vNEXT
 
+* Use defaultFieldResolver from graphql-js package instead of own one [PR #373](https://github.com/apollographql/graphql-tools/pull/373)
 * Remove `lodash` dependency [PR #356](https://github.com/apollographql/graphql-tools/pull/356)
 
 ### v.1.1.0
