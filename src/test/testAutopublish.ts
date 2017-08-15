@@ -6,16 +6,12 @@ import { autopublishMutationResults } from '../autopublish';
 import 'mocha';
 
 const speciesMap = {
-  'Tiger': { id: 0, name: 'Tiger' },
-  'Cat': { id: 1, name: 'Cat' },
-  'Dog': { id: 2, name: 'Dog' },
+  Tiger: { id: 0, name: 'Tiger' },
+  Cat: { id: 1, name: 'Cat' },
+  Dog: { id: 2, name: 'Dog' },
 };
 
-const speciesIndex: [string] = [
-  'Tiger',
-  'Cat',
-  'Dog',
-];
+const speciesIndex: [string] = ['Tiger', 'Cat', 'Dog'];
 
 const typeDefs = `
   type Species {
@@ -35,7 +31,7 @@ const typeDefs = `
 `;
 const resolvers = {
   Query: {
-    species: (root: any, { id, name }: { id: number, name: string }) => {
+    species: (root: any, { id, name }: { id: number; name: string }) => {
       if (id !== undefined && name !== undefined) {
         throw new Error('Must provide either name or id argument, not both');
       }
@@ -54,7 +50,10 @@ const resolvers = {
       speciesIndex.push(name);
       return speciesMap[name];
     },
-    updateSpecies: (root: any, { id, newName }: { id: number, newName: string }) => {
+    updateSpecies: (
+      root: any,
+      { id, newName }: { id: number; newName: string },
+    ) => {
       const species = speciesMap[speciesIndex[id]];
       delete speciesMap[speciesIndex[id]];
       species['name'] = newName;
@@ -84,7 +83,7 @@ describe('self-test', () => {
         }
       }
     `;
-    return graphql(schema, query).then( res => {
+    return graphql(schema, query).then(res => {
       return expect(res.data['species']['id']).to.equals(0);
     });
   });
@@ -106,8 +105,8 @@ describe('self-test', () => {
       }
     `;
     const expected = { id: 3, name: 'Eagle' };
-    return graphql(schema, mutation).then( data => {
-      return graphql(schema, query).then( res => {
+    return graphql(schema, mutation).then(data => {
+      return graphql(schema, query).then(res => {
         return expect(res.data['species']).to.deep.equal(expected);
       });
     });
@@ -131,8 +130,8 @@ describe('self-test', () => {
       }
     `;
     const expected = { id: 1, name: 'Meow' };
-    return graphql(schema, mutation).then( data => {
-      return graphql(schema, query).then( res => {
+    return graphql(schema, mutation).then(data => {
+      return graphql(schema, query).then(res => {
         return expect(res.data['species']).to.deep.equal(expected);
       });
     });
@@ -156,8 +155,8 @@ describe('self-test', () => {
       }
     `;
     const expected: any = null;
-    return graphql(schema, mutation).then( data => {
-      return graphql(schema, query).then( res => {
+    return graphql(schema, mutation).then(data => {
+      return graphql(schema, query).then(res => {
         return expect(res.data['species']).to.deep.equal(expected);
       });
     });
@@ -207,11 +206,11 @@ describe('Autopublish', () => {
       }
     `;
     const expected = {
-      'added': { name: 'Rhino' },
-      'updated': { name: 'Penguin' },
-      'deleted': { name: 'Dog' },
+      added: { name: 'Rhino' },
+      updated: { name: 'Penguin' },
+      deleted: { name: 'Dog' },
     };
-    return graphql(schema, mutation).then( data => {
+    return graphql(schema, mutation).then(data => {
       return ready.then(() => {
         expect(added[0]['name']).to.deep.equal(expected['added']['name']);
         expect(updated[0]['name']).to.deep.equal(expected['updated']['name']);
