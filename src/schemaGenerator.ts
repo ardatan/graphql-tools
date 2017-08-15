@@ -345,7 +345,7 @@ function getFieldsForType(type: GraphQLType): GraphQLFieldMap<any, any> {
 function addResolveFunctionsToSchema(
   schema: GraphQLSchema,
   resolveFunctions: IResolvers,
-  resolverValidationOptions: any,
+  resolverValidationOptions: any = {},
 ) {
   Object.keys(resolveFunctions).forEach(typeName => {
     const type = schema.getType(typeName);
