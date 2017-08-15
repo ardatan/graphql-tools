@@ -6,7 +6,14 @@
 // TODO: we should refactor this file, rename it to makeExecutableSchema, and move
 // a bunch of utility functions into a separate utitlities folder, one file per function.
 
-import { DocumentNode, parse, print, Kind, DefinitionNode } from 'graphql';
+import {
+  DocumentNode,
+  parse,
+  print,
+  Kind,
+  DefinitionNode,
+  defaultFieldResolver,
+} from 'graphql';
 import { buildASTSchema, extendSchema } from 'graphql';
 import {
   GraphQLScalarType,
@@ -489,7 +496,7 @@ function wrapResolver(
       if (innerResolver) {
         return innerResolver(root, args, ctx, info);
       }
-      return defaultResolveFn(root, args, ctx, info);
+      return defaultFieldResolver(root, args, ctx, info);
     });
   };
 }
@@ -506,7 +513,7 @@ function chainResolvers(resolvers: GraphQLFieldResolver<any, any>[]) {
         return curResolver(prev, args, ctx, info);
       }
 
-      return defaultResolveFn(prev, args, ctx, info);
+      return defaultFieldResolver(prev, args, ctx, info);
     }, root);
   };
 }
@@ -522,7 +529,7 @@ function decorateWithLogger(
   hint: string,
 ): GraphQLFieldResolver<any, any> {
   if (typeof fn === 'undefined') {
-    fn = defaultResolveFn;
+    fn = defaultFieldResolver;
   }
 
   const logError = (e: Error) => {
@@ -576,7 +583,7 @@ function decorateToCatchUndefined(
   hint: string,
 ): GraphQLFieldResolver<any, any> {
   if (typeof fn === 'undefined') {
-    fn = defaultResolveFn;
+    fn = defaultFieldResolver;
   }
   return (root, args, ctx, info) => {
     const result = fn(root, args, ctx, info);
@@ -608,31 +615,6 @@ function runAtMostOncePerRequest(
     }
     return value;
   };
-}
-
-/**
- * XXX taken from graphql-js: src/execution/execute.js, because that function
- * is not exported
- *
- * If a resolve function is not given, then a default resolve behavior is used
- * which takes the property of the source object of the same name as the field
- * and returns it as the result, or if it's a function, returns the result
- * of calling that function.
- */
-function defaultResolveFn(
-  source: any,
-  args: any,
-  context: any,
-  { fieldName }: { fieldName: string },
-) {
-  // ensure source is a value for which property access is acceptable.
-  if (typeof source === 'object' || typeof source === 'function') {
-    const property = source[fieldName];
-    if (typeof property === 'function') {
-      return property(args, context);
-    }
-    return property;
-  }
 }
 
 export {
