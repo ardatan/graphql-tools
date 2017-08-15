@@ -5,3 +5,4 @@ import './testLogger';
 import './testMocking';
 import './testAutopublish';
 import './testResolution';
+import './testMergeSchemas';
