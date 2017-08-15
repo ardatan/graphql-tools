@@ -73,6 +73,7 @@
     "graphql-type-json": "^0.1.3",
     "istanbul": "^0.4.5",
     "mocha": "^3.0.1",
+    "prettier": "^1.5.3",
     "remap-istanbul": "0.8.0",
     "request": "^2.72.0",
     "request-promise": "^4.1.0",

@@ -28,6 +28,9 @@ export class Logger implements ILogger {
   }
 
   public printAllErrors() {
-    return this.errors.reduce((agg, e) => `${agg}\n${this.printOneError(e)}`, '');
+    return this.errors.reduce(
+      (agg, e) => `${agg}\n${this.printOneError(e)}`,
+      '',
+    );
   }
 }
