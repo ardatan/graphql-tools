@@ -24,6 +24,7 @@
     "postcoverage": "remap-istanbul --input coverage/coverage.json --type lcovonly --output coverage/lcov.info",
     "prepublish": "npm run compile",
     "prerelease": "npm test",
+    "prettier": "prettier --trailing-comma all --single-quote --write 'src/**/*.ts'",
     "release": "standard-version"
   },
   "repository": {
