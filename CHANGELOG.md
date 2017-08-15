@@ -1,6 +1,7 @@
 # Change log
 
 ### vNEXT
+* Fix typings for resolver options: [Issue #372](https://github.com/apollographql/graphql-tools/issues/372) [PR #374](https://github.com/apollographql/graphql-tools/pull/374)
 
 ### v.1.2.0
 * Use defaultFieldResolver from graphql-js package instead of own one [PR #373](https://github.com/apollographql/graphql-tools/pull/373)
