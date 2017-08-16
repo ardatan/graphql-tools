@@ -1,21 +1,21 @@
-import fetch from 'isomorphic-fetch';
 import { GraphQLSchema } from 'graphql';
 import { introspectionQuery, buildClientSchema } from 'graphql';
-import addSimpleRoutingResolvers from './addSimpleRoutingResolvers';
+import addSimpleRoutingResolvers, {
+  Fetcher,
+} from './addSimpleRoutingResolvers';
 
 export default async function makeRemoteExecutableSchema(
-  endpointURL: string,
+  fetcher: Fetcher,
 ): Promise<GraphQLSchema> {
-  const introspectionResponse = await fetch(endpointURL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      query: introspectionQuery,
-    }),
+  const introspectionResult = await fetcher({
+    query: introspectionQuery,
   });
-  const introspectionResult = await introspectionResponse.json();
-  const schema = buildClientSchema(introspectionResult.data);
-  return addSimpleRoutingResolvers(schema, endpointURL);
+  if (introspectionResult.errors || !introspectionResult.data.__schema) {
+    throw introspectionResult.errors;
+  } else {
+    const schema = buildClientSchema(
+      introspectionResult.data as { __schema: any },
+    );
+    return addSimpleRoutingResolvers(schema, fetcher);
+  }
 }

@@ -1,26 +1,32 @@
-import fetch from 'isomorphic-fetch';
 import { mapValues, isEmpty } from 'lodash';
-import { printSchema, print } from 'graphql';
+import { printSchema, print, GraphQLError } from 'graphql';
 import { GraphQLFieldResolver, GraphQLSchema } from 'graphql';
 import { makeExecutableSchema } from '../schemaGenerator';
 
 type ResolverMap = { [key: string]: GraphQLFieldResolver<any, any> };
 
+export type Fetcher = (
+  operation: {
+    query: string;
+    operationName?: string;
+    variables?: { [key: string]: any };
+  },
+) => Promise<{ data: { [key: string]: any }; errors: Array<GraphQLError> }>;
+
 export default function addSimpleRoutingResolvers(
   schema: GraphQLSchema,
-  // prolly should be a fetcher function like (query) => Promise<result>
-  endpointURL: string,
+  fetcher: Fetcher,
 ): GraphQLSchema {
   const queries = schema.getQueryType().getFields();
   const queryResolvers: ResolverMap = mapValues(queries, (field, key) =>
-    createResolver(endpointURL, key),
+    createResolver(fetcher, key),
   );
   let mutationResolvers: ResolverMap = {};
   const mutationType = schema.getMutationType();
   if (mutationType) {
     const mutations = mutationType.getFields();
     mutationResolvers = mapValues(mutations, (field, key) =>
-      createResolver(endpointURL, key),
+      createResolver(fetcher, key),
     );
   }
 
@@ -42,24 +48,17 @@ export default function addSimpleRoutingResolvers(
 }
 
 function createResolver(
-  endpointURL: string,
+  fetcher: Fetcher,
   name: string,
 ): GraphQLFieldResolver<any, any> {
   return async (root, args, context, info) => {
     const query = print(info.operation);
-    const response = await fetch(endpointURL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        query,
-        variables: info.variableValues,
-      }),
+    const result = await fetcher({
+      query,
+      variables: info.variableValues,
     });
-    const result = await response.json();
     if (result.errors || !result.data[name]) {
-      throw new Error(result.errors[0].message);
+      throw result.errors;
     } else {
       return result.data[name];
     }
