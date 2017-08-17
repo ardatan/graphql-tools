@@ -187,6 +187,7 @@ query {
       `,
     );
 
+      console.log(mergedResult.errors);
     expect(mergedResult.errors).to.be.undefined;
     expect(mergedResult).to.have.nested.property('data.firstProperty');
     expect(mergedResult).to.have.nested.property('data.secondProperty');
@@ -225,7 +226,6 @@ query {
   });
 
   it('unions', async () => {
-    (mergedSchema.getType('Bike') as any)._fields.bikeType.resolve = (parent: any) => console.log('CALLED', parent);
     const mergedResult = await graphql(
       mergedSchema,
       `
@@ -246,7 +246,6 @@ query {
       `,
     );
 
-    console.log(JSON.stringify(mergedResult));
     expect(mergedResult.errors).to.be.undefined;
     expect(mergedResult).to.have.nested.property('data.Booking_customerById');
     expect(mergedResult).to.have.nested.property('data.Booking_customerById.vehicle');

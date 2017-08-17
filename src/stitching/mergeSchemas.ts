@@ -205,7 +205,7 @@ function recreateCompositeType(
         ...fieldMapToFieldConfigMap(fields, registry),
         ...createLinks(registry.getLinksByType(type.name), registry),
       }),
-      resolveType: parent => resolveFromParentTypename(parent, schema),
+      resolveType: (parent, context, info) => resolveFromParentTypename(parent, info.schema),
     });
   } else {
     return new GraphQLUnionType({
@@ -213,11 +213,7 @@ function recreateCompositeType(
       description: type.description,
       types: () =>
         type.getTypes().map(unionMember => registry.resolveType(unionMember)),
-      resolveType: (parent, context, info) => {
-        const type = resolveFromParentTypename(parent, schema);
-        console.log('triple equal', type === schema.getType('Bike'), type === registry.resolveType(type));
-        return type;
-      },
+      resolveType: (parent, context, info) => resolveFromParentTypename(parent, info.schema),
     });
   }
 }

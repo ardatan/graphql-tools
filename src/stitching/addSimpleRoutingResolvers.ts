@@ -60,7 +60,7 @@ export default function addSimpleRoutingResolvers(
       type instanceof GraphQLInterfaceType ||
       type instanceof GraphQLUnionType
     ) {
-      type.resolveType = parent => resolveFromParentTypename(parent, schema);
+      resolvers[type.name].__resolveType = (parent: any) => resolveFromParentTypename(parent, schema);
     }
   });
 
