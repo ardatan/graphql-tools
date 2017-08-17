@@ -1,6 +1,7 @@
 *
 !dist/
-dist/test/
+!dist/*
+!dist/stitching/*
 !package.json
 !*.md
 !*.png
