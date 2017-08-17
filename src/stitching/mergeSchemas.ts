@@ -187,7 +187,7 @@ function recreateCompositeType(
         ...fieldMapToFieldConfigMap(fields, registry),
         ...createLinks(registry.getLinksByType(type.name), registry),
       }),
-      interfaces: () => interfaces.map((iface) => registry.resolveType(iface)),
+      interfaces: () => interfaces.map(iface => registry.resolveType(iface)),
     });
     return newType;
   } else {
@@ -246,7 +246,9 @@ function createLinks(
   const queryFields = registry.query.getFields();
   return fromPairs(
     links.map(link => {
-      const [schemaName, field] = link.to.includes('_') ? link.to.split('_') : [ROOT_SCHEMA, link.to];
+      const [schemaName, field] = link.to.includes('_')
+        ? link.to.split('_')
+        : [ROOT_SCHEMA, link.to];
       const schema = registry.getSchema(schemaName);
       const resolver: EnhancedGraphQLFieldResolver<
         any,
