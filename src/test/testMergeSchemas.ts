@@ -587,6 +587,9 @@ query($limit: Int) {
         id
         customer {
           name
+          ... on Person {
+            id
+          }
         }
       }
     }
@@ -612,6 +615,7 @@ query($limit: Int) {
             id: 'b1',
             customer: {
               name: 'Exampler Customer',
+              id: 'c1',
             },
           },
         ],
