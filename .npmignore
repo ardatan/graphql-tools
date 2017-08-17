@@ -1,6 +1,6 @@
 *
 !dist/
-!dist/*
+dist/test/
 !package.json
 !*.md
 !*.png
