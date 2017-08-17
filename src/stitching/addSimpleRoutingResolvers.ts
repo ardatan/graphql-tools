@@ -35,6 +35,7 @@ export default function addSimpleRoutingResolvers(
     Mutation?: ResolverMap;
   } = {
     Query: queryResolvers,
+    Mutation: mutationResolvers,
   };
 
   if (!isEmpty(mutationResolvers)) {
