@@ -178,12 +178,7 @@ function recreateCompositeType(
     const fields = type.getFields();
     // XXX we don't really support interfaces yet
     const interfaces = type.getInterfaces();
-    let interfaceNames: Array<string>;
-    if (interfaces) {
-      interfaceNames = interfaces.map(iface => iface.name);
-    } else {
-      interfaceNames = [];
-    }
+
     const newType = new GraphQLObjectType({
       name: type.name,
       description: type.description,
@@ -192,10 +187,7 @@ function recreateCompositeType(
         ...fieldMapToFieldConfigMap(fields, registry),
         ...createLinks(registry.getLinksByType(type.name), registry),
       }),
-      interfaces: () =>
-        interfaceNames.map(() => {
-          throw new Error('Not supporting interfaces yet');
-        }),
+      interfaces: () => interfaces.map((iface) => registry.resolveType(iface)),
     });
     return newType;
   } else {

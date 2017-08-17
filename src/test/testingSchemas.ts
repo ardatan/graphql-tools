@@ -148,7 +148,12 @@ const bookingTypeDefs = `
     endTime: String!
   }
 
-  type Customer {
+  interface Person {
+    id: ID!
+    name: String!
+  }
+
+  type Customer implements Person {
     id: ID!
     email: String!
     name: String!
