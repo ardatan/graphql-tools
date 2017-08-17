@@ -411,6 +411,7 @@ function createDocument(
   const {
     selectionSet,
     fragments: processedFragments,
+    usedVariables,
   } = filterSelectionSetDeep(
     registry,
     schema,
@@ -423,7 +424,10 @@ function createDocument(
     kind: Kind.OPERATION_DEFINITION,
     operation,
     variableDefinitions: [
-      ...(variableDefinitions || []),
+      ...(variableDefinitions || [])
+        .filter(variableDefinition =>
+          usedVariables.includes(variableDefinition.variable.name.value),
+        ),
       ...newVariableDefinitions,
     ],
     selectionSet,
