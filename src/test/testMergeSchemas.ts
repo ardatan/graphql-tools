@@ -246,9 +246,15 @@ query {
 
     expect(mergedResult.errors).to.be.undefined;
     expect(mergedResult).to.have.nested.property('data.Booking_customerById');
-    expect(mergedResult).to.have.nested.property('data.Booking_customerById.vehicle');
-    expect(mergedResult).to.not.have.nested.property('data.Booking_customerById.vehicle.licensePlate');
-    expect(mergedResult).to.have.nested.property('data.Booking_customerById.vehicle.bikeType');
+    expect(mergedResult).to.have.nested.property(
+      'data.Booking_customerById.vehicle',
+    );
+    expect(mergedResult).to.not.have.nested.property(
+      'data.Booking_customerById.vehicle.licensePlate',
+    );
+    expect(mergedResult).to.have.nested.property(
+      'data.Booking_customerById.vehicle.bikeType',
+    );
   });
 
   it('deep links', async () => {

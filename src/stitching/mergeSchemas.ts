@@ -203,7 +203,8 @@ function recreateCompositeType(
         ...fieldMapToFieldConfigMap(fields, registry),
         ...createLinks(registry.getLinksByType(type.name), registry),
       }),
-      resolveType: (parent, context, info) => resolveFromParentTypename(parent, info.schema),
+      resolveType: (parent, context, info) =>
+        resolveFromParentTypename(parent, info.schema),
     });
   } else {
     return new GraphQLUnionType({
@@ -211,7 +212,8 @@ function recreateCompositeType(
       description: type.description,
       types: () =>
         type.getTypes().map(unionMember => registry.resolveType(unionMember)),
-      resolveType: (parent, context, info) => resolveFromParentTypename(parent, info.schema),
+      resolveType: (parent, context, info) =>
+        resolveFromParentTypename(parent, info.schema),
     });
   }
 }
@@ -455,7 +457,10 @@ function createDocument(
     definitions: [operationDefinition, ...processedFragments],
   };
 
-  const newDocWithTypenames: DocumentNode = addTypenameForFragments(newDoc, schema);
+  const newDocWithTypenames: DocumentNode = addTypenameForFragments(
+    newDoc,
+    schema,
+  );
   return newDocWithTypenames;
 }
 

@@ -1,6 +1,9 @@
 import { ASTNode, GraphQLSchema, visit, FieldNode, Kind } from 'graphql';
 
-export default function addTypenameForFragments<T extends ASTNode>(node: T, schema: GraphQLSchema): T {
+export default function addTypenameForFragments<T extends ASTNode>(
+  node: T,
+  schema: GraphQLSchema,
+): T {
   return visit(node, {
     [Kind.FIELD]: {
       leave(field: FieldNode) {
@@ -10,15 +13,18 @@ export default function addTypenameForFragments<T extends ASTNode>(node: T, sche
           let hasFragment = false;
           let hasTypename = false;
 
-          selections.forEach((selection) => {
-            if (selection.kind === Kind.INLINE_FRAGMENT || selection.kind === Kind.FRAGMENT_SPREAD) {
+          selections.forEach(selection => {
+            if (
+              selection.kind === Kind.INLINE_FRAGMENT ||
+              selection.kind === Kind.FRAGMENT_SPREAD
+            ) {
               hasFragment = true;
             } else if (selection.name.value === '__typename') {
               hasTypename = true;
             }
           });
 
-          if (hasFragment && (!hasTypename)) {
+          if (hasFragment && !hasTypename) {
             return {
               ...field,
               selectionSet: {
@@ -30,10 +36,10 @@ export default function addTypenameForFragments<T extends ASTNode>(node: T, sche
                     name: {
                       kind: 'Name',
                       value: '__typename',
-                    }
-                  } as FieldNode
-                ]
-              }
+                    },
+                  } as FieldNode,
+                ],
+              },
             } as FieldNode;
           }
 
