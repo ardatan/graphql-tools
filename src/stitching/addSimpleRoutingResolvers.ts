@@ -1,7 +1,8 @@
 import { mapValues, isEmpty } from 'lodash';
 import { printSchema, print, GraphQLError } from 'graphql';
-import { GraphQLFieldResolver, GraphQLSchema } from 'graphql';
+import { GraphQLFieldResolver, GraphQLSchema, GraphQLInterfaceType, GraphQLUnionType } from 'graphql';
 import { makeExecutableSchema } from '../schemaGenerator';
+import { resolveFromParentTypename } from './resolveFromTypename';
 
 type ResolverMap = { [key: string]: GraphQLFieldResolver<any, any> };
 
@@ -40,6 +41,16 @@ export default function addSimpleRoutingResolvers(
   if (!isEmpty(mutationResolvers)) {
     resolvers.Mutation = mutationResolvers;
   }
+
+  // Add interface and union resolveType functions
+  const typeMap = schema.getTypeMap();
+  Object.keys(typeMap).forEach((typeName) => {
+    const type = typeMap[typeName];
+
+    if (type instanceof GraphQLInterfaceType || type instanceof GraphQLUnionType) {
+      type.resolveType = (parent) => resolveFromParentTypename(parent, schema);
+    }
+  });
 
   return makeExecutableSchema({
     typeDefs: printSchema(schema),

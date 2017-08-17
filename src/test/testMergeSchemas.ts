@@ -224,6 +224,60 @@ query {
     });
   });
 
+  it('unions', async () => {
+    const mergedResult = await graphql(
+      mergedSchema,
+      `
+        query {
+          Booking_customerById(id: "c1") {
+            vehicle {
+              ... on Car {
+                licensePlate
+              }
+            }
+          }
+        }
+      `,
+    );
+
+    console.log(mergedResult);
+    expect(mergedResult.errors).to.be.undefined;
+    expect(mergedResult).to.have.nested.property('data.firstProperty');
+    expect(mergedResult).to.have.nested.property('data.secondProperty');
+    expect(mergedResult).to.have.nested.property('data.booking');
+
+    expect(mergedResult.data).to.deep.equal({
+      firstProperty: {
+        id: 'p2',
+        name: 'Another great hotel',
+        bookings: [
+          {
+            id: 'b4',
+            customer: {
+              name: 'Exampler Customer',
+            },
+          },
+        ],
+      },
+      secondProperty: {
+        id: 'p3',
+        name: 'BedBugs - The Affordable Hostel',
+        bookings: [],
+      },
+      booking: {
+        id: 'b1',
+        customer: {
+          name: 'Exampler Customer',
+        },
+
+        property: {
+          id: 'p1',
+          name: 'Super great hotel',
+        },
+      },
+    });
+  });
+
   it('deep links', async () => {
     const mergedResult = await graphql(
       mergedSchema,

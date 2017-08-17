@@ -46,6 +46,7 @@ import {
 } from 'graphql';
 import TypeRegistry from './TypeRegistry';
 import { SchemaLink } from './types';
+import { resolveFromParentTypename } from './resolveFromTypename';
 
 export const ROOT_SCHEMA = '__ROOT__';
 
@@ -214,25 +215,6 @@ function recreateCompositeType(
   }
 }
 
-function resolveFromParentTypename(parent: any, schema: GraphQLSchema) {
-  const parentTypename: string = parent['__typename'];
-  if (!parentTypename) {
-    throw new Error(
-      'Did not fetch typename for object, unable to resolve interface.',
-    );
-  }
-
-  const resolvedType = schema.getType(parentTypename);
-
-  if (!(resolvedType instanceof GraphQLObjectType)) {
-    throw new Error(
-      '__typename did not match an object type: ' + parentTypename,
-    );
-  }
-
-  return resolvedType;
-}
-
 function fieldMapToFieldConfigMap(
   fields: GraphQLFieldMap<any, any>,
   registry: TypeRegistry,
@@ -329,7 +311,7 @@ function createForwardingResolver(
       type = schema.getMutationType();
     }
     if (type) {
-      const document = createDocument(
+      const graphqlDoc: DocumentNode = createDocument(
         registry,
         schema,
         type,
@@ -340,7 +322,7 @@ function createForwardingResolver(
         info.operation.variableDefinitions,
       );
 
-      const operationDefinition = document.definitions.find(
+      const operationDefinition = graphqlDoc.definitions.find(
         ({ kind }) => kind === Kind.OPERATION_DEFINITION,
       );
       let variableValues;
@@ -366,7 +348,7 @@ function createForwardingResolver(
 
       const result = await execute(
         schema,
-        document,
+        graphqlDoc,
         info.rootValue,
         context,
         variableValues,

@@ -24,12 +24,20 @@ export type Customer = {
   email: string;
   name: string;
   address?: string;
+  vehicleId?: string;
 };
+
+export type Vehicle = {
+  id: string;
+  licensePlate?: string;
+  bikeType?: 'MOUNTAIN' | 'ROAD';
+}
 
 export const sampleData: {
   Property: { [key: string]: Property };
   Booking: { [key: string]: Booking };
   Customer: { [key: string]: Customer };
+  Vehicle: { [key: string]: Vehicle };
 } = {
   Property: {
     p1: {
@@ -90,11 +98,13 @@ export const sampleData: {
       id: 'c1',
       email: 'examplec1@example.com',
       name: 'Exampler Customer',
+      vehicleId: 'v1',
     },
     c2: {
       id: 'c2',
       email: 'examplec2@example.com',
       name: 'Joe Doe',
+      vehicleId: 'v2',
     },
     c3: {
       id: 'c3',
@@ -103,6 +113,17 @@ export const sampleData: {
       address: 'Esimerkikatu 1 A 77, 99999 Kyyjarvi',
     },
   },
+
+  Vehicle: {
+    v1: {
+      id: 'v1',
+      bikeType: 'MOUNTAIN'
+    },
+    v2: {
+      id: 'v2',
+      licensePlate: 'GRAPHQL'
+    }
+  }
 };
 
 const propertyTypeDefs = `
@@ -166,7 +187,7 @@ const bookingTypeDefs = `
 
   type Bike {
     id: ID!
-    type: BikeType
+    bikeType: BikeType
   }
 
   type Car {
@@ -251,18 +272,34 @@ const bookingResolvers: IResolvers = {
   },
 
   Booking: {
-    customer(parent) {
+    customer(parent: Booking) {
       return sampleData.Customer[parent.customerId];
     },
   },
 
   Customer: {
-    bookings(parent) {
+    bookings(parent: Customer) {
       return values(sampleData.Booking).filter(
         (booking: Booking) => booking.customerId === parent.id,
       );
     },
+    vehicle(parent: Customer) {
+      return sampleData.Vehicle[parent.vehicleId];
+    },
   },
+
+  Vehicle: {
+    __resolveType(parent) {
+      console.log(parent);
+      if (parent.licensePlate) {
+        return 'Car';
+      } else if (parent.bikeType) {
+        return 'Bike';
+      } else {
+        throw new Error('Could not resolve Vehicle type');
+      }
+    }
+  }
 };
 
 export const propertySchema: GraphQLSchema = makeExecutableSchema({
