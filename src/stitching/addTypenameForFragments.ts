@@ -36,7 +36,7 @@ export default function addTypenameForFragments<T extends ASTNode>(
                 },
               } as FieldNode,
             ],
-          }
+          };
         }
 
         return selectionSet;
