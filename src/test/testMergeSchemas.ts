@@ -224,6 +224,33 @@ query {
     });
   });
 
+  it('unions', async () => {
+    const mergedResult = await graphql(
+      mergedSchema,
+      `
+        query {
+          Booking_customerById(id: "c1") {
+            ... on Person {
+              name
+            }
+            vehicle {
+              __typename
+              ... on Bike {
+                bikeType
+              }
+            }
+          }
+        }
+      `,
+    );
+
+    expect(mergedResult.errors).to.be.undefined;
+    expect(mergedResult).to.have.nested.property('data.Booking_customerById');
+    expect(mergedResult).to.have.nested.property('data.Booking_customerById.vehicle');
+    expect(mergedResult).to.not.have.nested.property('data.Booking_customerById.vehicle.licensePlate');
+    expect(mergedResult).to.have.nested.property('data.Booking_customerById.vehicle.bikeType');
+  });
+
   it('deep links', async () => {
     const mergedResult = await graphql(
       mergedSchema,
