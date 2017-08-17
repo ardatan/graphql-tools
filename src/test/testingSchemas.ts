@@ -159,6 +159,24 @@ const bookingTypeDefs = `
     name: String!
     address: String
     bookings(limit: Int): [Booking]
+    vehicle: Vehicle
+  }
+
+  union Vehicle = Bike | Car
+
+  type Bike {
+    id: ID!
+    type: BikeType
+  }
+
+  type Car {
+    id: ID!
+    licensePlate: String
+  }
+
+  enum BikeType {
+    MOUNTAIN
+    ROAD
   }
 
   type Query {

@@ -41,6 +41,8 @@ import {
   FragmentSpreadNode,
   GraphQLFieldConfig,
   GraphQLResolveInfo,
+  GraphQLInterfaceType,
+  GraphQLUnionType,
 } from 'graphql';
 import TypeRegistry from './TypeRegistry';
 import { SchemaLink } from './types';
@@ -179,7 +181,7 @@ function recreateCompositeType(
     // XXX we don't really support interfaces yet
     const interfaces = type.getInterfaces();
 
-    const newType = new GraphQLObjectType({
+    return new GraphQLObjectType({
       name: type.name,
       description: type.description,
       isTypeOf: type.isTypeOf,
@@ -189,11 +191,46 @@ function recreateCompositeType(
       }),
       interfaces: () => interfaces.map(iface => registry.resolveType(iface)),
     });
-    return newType;
+  } else if (type instanceof GraphQLInterfaceType) {
+    const fields = type.getFields();
+
+    return new GraphQLInterfaceType({
+      name: type.name,
+      description: type.description,
+      fields: () => ({
+        ...fieldMapToFieldConfigMap(fields, registry),
+        ...createLinks(registry.getLinksByType(type.name), registry),
+      }),
+      resolveType: parent => resolveFromParentTypename(parent, schema),
+    });
   } else {
-    console.warn('We do not support interfaces and union yet.');
-    return type;
+    return new GraphQLUnionType({
+      name: type.name,
+      description: type.description,
+      types: () =>
+        type.getTypes().map(unionMember => registry.resolveType(unionMember)),
+      resolveType: parent => resolveFromParentTypename(parent, schema),
+    });
   }
+}
+
+function resolveFromParentTypename(parent: any, schema: GraphQLSchema) {
+  const parentTypename: string = parent['__typename'];
+  if (!parentTypename) {
+    throw new Error(
+      'Did not fetch typename for object, unable to resolve interface.',
+    );
+  }
+
+  const resolvedType = schema.getType(parentTypename);
+
+  if (!(resolvedType instanceof GraphQLObjectType)) {
+    throw new Error(
+      '__typename did not match an object type: ' + parentTypename,
+    );
+  }
+
+  return resolvedType;
 }
 
 function fieldMapToFieldConfigMap(
