@@ -12,22 +12,21 @@ import { SchemaLink } from './types';
 export default class TypeRegistry {
   public query?: GraphQLObjectType;
   public mutation?: GraphQLObjectType;
-  private schemas: { [key: string]: GraphQLSchema };
+  private schemas: Array<GraphQLSchema>;
+  private schemaByField: { [key: string]: GraphQLSchema };
   private types: { [key: string]: GraphQLCompositeType };
   private linksByType: { [key: string]: Array<SchemaLink> };
   constructor() {
-    this.schemas = {};
+    this.schemas = [];
+    this.schemaByField = {};
     this.types = {};
     this.query = null;
     this.mutation = null;
     this.linksByType = {};
   }
 
-  public getSchema(name: string): GraphQLSchema {
-    if (!this.schemas[name]) {
-      throw new Error(`No such type: ${name}`);
-    }
-    return this.schemas[name];
+  public getSchemaByRootField(fieldName: string): GraphQLSchema {
+    return this.schemaByField[fieldName];
   }
 
   public getType(name: string): GraphQLCompositeType {
@@ -71,11 +70,23 @@ export default class TypeRegistry {
     });
   }
 
-  public setSchema(name: string, schema: GraphQLSchema) {
-    if (this.schemas[name]) {
-      throw new Error(`Schema name conflict: ${name}`);
+  public addSchema(schema: GraphQLSchema) {
+    const query = schema.getQueryType();
+    if (query) {
+      const fieldNames = Object.keys(query.getFields());
+      fieldNames.forEach(field => {
+        this.schemaByField[field] = schema;
+      });
     }
-    this.schemas[name] = schema;
+
+    const mutation = schema.getMutationType();
+    if (mutation) {
+      const fieldNames = Object.keys(mutation.getFields());
+      fieldNames.forEach(field => {
+        this.schemaByField[field] = schema;
+      });
+    }
+    this.schemas.push(schema);
   }
 
   public setType(name: string, type: GraphQLCompositeType): void {

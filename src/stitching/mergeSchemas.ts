@@ -1,7 +1,6 @@
 import {
   isEmpty,
   mapValues,
-  mapKeys,
   fromPairs,
   forEach,
   pick,
@@ -49,8 +48,6 @@ import { SchemaLink } from './types';
 import resolveFromParentTypename from './resolveFromParentTypename';
 import addTypenameForFragments from './addTypenameForFragments';
 
-export const ROOT_SCHEMA = '__ROOT__';
-
 type EnhancedGraphQLFieldResolver<TSource, TContext> = (
   source: TSource,
   args: { [argName: string]: any },
@@ -64,18 +61,15 @@ export default function mergeSchemas({
   schemas,
 }: {
   links?: Array<SchemaLink>;
-  schemas: Array<{
-    prefix?: string;
-    schema: GraphQLSchema;
-  }>;
+  schemas: Array<GraphQLSchema>;
 }): GraphQLSchema {
   let queryFields: GraphQLFieldConfigMap<any, any> = {};
   let mutationFields: GraphQLFieldConfigMap<any, any> = {};
 
   const typeRegistry = new TypeRegistry();
 
-  schemas.forEach(({ prefix = ROOT_SCHEMA, schema }) => {
-    typeRegistry.setSchema(prefix, schema);
+  schemas.forEach(schema => {
+    typeRegistry.addSchema(schema);
   });
 
   typeRegistry.addLinks(
@@ -86,7 +80,7 @@ export default function mergeSchemas({
     })),
   );
 
-  schemas.forEach(({ prefix, schema }) => {
+  schemas.forEach(schema => {
     const typeMap = schema.getTypeMap();
     const queryType = schema.getQueryType();
     const mutationType = schema.getMutationType();
@@ -103,41 +97,31 @@ export default function mergeSchemas({
       }
     });
 
-    const queryTypeFields = mapKeys(
-      mapValues(
-        fieldMapToFieldConfigMap(queryType.getFields(), typeRegistry),
-        (field, name) => ({
-          ...field,
-          resolve: createForwardingResolver(
-            typeRegistry,
-            schema,
-            name,
-            'query',
-          ),
-        }),
-      ),
-      (_, name) => prefixName(name, prefix),
+    const queryTypeFields = mapValues(
+      fieldMapToFieldConfigMap(queryType.getFields(), typeRegistry),
+      (field, name) => ({
+        ...field,
+        resolve: createForwardingResolver(typeRegistry, schema, name, 'query'),
+      }),
     );
     queryFields = {
       ...queryFields,
       ...queryTypeFields,
     };
     if (mutationType) {
-      const mutationTypeFields = mapKeys(
-        mapValues(
-          fieldMapToFieldConfigMap(mutationType.getFields(), typeRegistry),
-          (field, name) => ({
-            ...field,
-            resolve: createForwardingResolver(
-              typeRegistry,
-              schema,
-              name,
-              'mutation',
-            ),
-          }),
-        ),
-        (_, name) => prefixName(name, prefix),
+      const mutationTypeFields = mapValues(
+        fieldMapToFieldConfigMap(mutationType.getFields(), typeRegistry),
+        (field, name) => ({
+          ...field,
+          resolve: createForwardingResolver(
+            typeRegistry,
+            schema,
+            name,
+            'mutation',
+          ),
+        }),
       );
+
       mutationFields = {
         ...mutationFields,
         ...mutationTypeFields,
@@ -167,10 +151,6 @@ export default function mergeSchemas({
     query,
     mutation,
   });
-}
-
-function prefixName(name: string, prefix?: string) {
-  return prefix ? `${prefix}_${name}` : `${name}`;
 }
 
 function recreateCompositeType(
@@ -267,10 +247,8 @@ function createLinks(
   const queryFields = registry.query.getFields();
   return fromPairs(
     links.map(link => {
-      const [schemaName, field] = link.to.includes('_')
-        ? link.to.split('_')
-        : [ROOT_SCHEMA, link.to];
-      const schema = registry.getSchema(schemaName);
+      const field = link.to;
+      const schema = registry.getSchemaByRootField(field);
       const resolver: EnhancedGraphQLFieldResolver<
         any,
         any

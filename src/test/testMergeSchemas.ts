@@ -6,21 +6,12 @@ import mergeSchemas from '../stitching/mergeSchemas';
 import { propertySchema, bookingSchema } from './testingSchemas';
 
 const mergedSchema = mergeSchemas({
-  schemas: [
-    {
-      prefix: 'Property',
-      schema: propertySchema,
-    },
-    {
-      prefix: 'Booking',
-      schema: bookingSchema,
-    },
-  ],
+  schemas: [propertySchema, bookingSchema],
   links: [
     {
       name: 'bookings',
       from: 'Property',
-      to: 'Booking_bookingsByPropertyId',
+      to: 'bookingsByPropertyId',
       fragment: `fragment Property on Property { id }`,
       args: ['limit'],
       resolveArgs(parent) {
@@ -33,7 +24,7 @@ const mergedSchema = mergeSchemas({
       name: 'property',
       from: 'Booking',
       fragment: `fragment Booking on Booking { propertyId }`,
-      to: 'Property_propertyById',
+      to: 'propertyById',
       resolveArgs(parent) {
         return {
           id: parent.propertyId,
@@ -45,14 +36,14 @@ const mergedSchema = mergeSchemas({
 
 describe('basic', () => {
   it('queries', async () => {
-    const propertyFragment = (queryName: string) => `
-${queryName}(id: "p1") {
+    const propertyFragment = `
+propertyById(id: "p1") {
   id
   name
 }
   `;
-    const bookingFragment = (queryName: string) => `
-${queryName}(id: "b1") {
+    const bookingFragment = `
+bookingById(id: "b1") {
   id
   customer {
     name
@@ -64,43 +55,37 @@ ${queryName}(id: "b1") {
 
     const propertyResult = await graphql(
       propertySchema,
-      `query { ${propertyFragment('propertyById')} }`,
+      `query { ${propertyFragment} }`,
     );
 
     const bookingResult = await graphql(
       bookingSchema,
-      `query { ${bookingFragment('bookingById')} }`,
+      `query { ${bookingFragment} }`,
     );
 
     const mergedResult = await graphql(
       mergedSchema,
       `query {
-      ${propertyFragment('Property_propertyById')}
-      ${bookingFragment('Booking_bookingById')}
+      ${propertyFragment}
+      ${bookingFragment}
     }`,
     );
 
     expect(propertyResult.errors).to.be.undefined;
     expect(bookingResult.errors).to.be.undefined;
     expect(mergedResult.errors).to.be.undefined;
-    expect(propertyResult).to.have.nested.property('data.propertyById');
-    expect(bookingResult).to.have.nested.property('data.bookingById');
-    expect(mergedResult).to.have.nested.property('data.Property_propertyById');
-    expect(mergedResult).to.have.nested.property('data.Booking_bookingById');
 
-    expect(mergedResult.data.Property_propertyById).to.deep.equal(
-      propertyResult.data.propertyById,
-    );
-    expect(mergedResult.data.Booking_bookingById).to.deep.equal(
-      bookingResult.data.bookingById,
-    );
+    expect(mergedResult.data).to.deep.equal({
+      ...propertyResult.data,
+      ...bookingResult.data,
+    });
   });
 
   // Technically mutations are not idempotent, but they are in our test schemas
   it('mutations', async () => {
-    const mutationFragment = (name: string) => `
+    const mutationFragment = `
       mutation Mutation($input: BookingInput!) {
-        ${name}(input: $input) {
+        addBooking(input: $input) {
           id
           customer {
             name
@@ -119,7 +104,7 @@ ${queryName}(id: "b1") {
 
     const bookingResult = await graphql(
       bookingSchema,
-      mutationFragment('addBooking'),
+      mutationFragment,
       {},
       {},
       {
@@ -128,7 +113,7 @@ ${queryName}(id: "b1") {
     );
     const mergedResult = await graphql(
       mergedSchema,
-      mutationFragment('Booking_addBooking'),
+      mutationFragment,
       {},
       {},
       {
@@ -138,12 +123,8 @@ ${queryName}(id: "b1") {
 
     expect(bookingResult.errors).to.be.undefined;
     expect(mergedResult.errors).to.be.undefined;
-    expect(bookingResult).to.have.nested.property('data.addBooking');
-    expect(mergedResult).to.have.nested.property('data.Booking_addBooking');
 
-    expect(mergedResult.data.Booking_addBooking).to.deep.equal(
-      bookingResult.data.addBooking,
-    );
+    expect(mergedResult.data).to.deep.equal(bookingResult.data);
   });
 
   it('links in queries', async () => {
@@ -151,7 +132,7 @@ ${queryName}(id: "b1") {
       mergedSchema,
       `
 query {
-  firstProperty: Property_propertyById(id: "p2") {
+  firstProperty: propertyById(id: "p2") {
     id
     name
     bookings {
@@ -162,7 +143,7 @@ query {
     }
   }
 
-  secondProperty: Property_propertyById(id: "p3") {
+  secondProperty: propertyById(id: "p3") {
     id
     name
     bookings {
@@ -173,7 +154,7 @@ query {
     }
   }
 
-  booking: Booking_bookingById(id: "b1") {
+  booking: bookingById(id: "b1") {
     id
     customer {
       name
@@ -229,7 +210,7 @@ query {
       mergedSchema,
       `
         query {
-          Booking_customerById(id: "c1") {
+          customerById(id: "c1") {
             ... on Person {
               name
             }
@@ -245,15 +226,13 @@ query {
     );
 
     expect(mergedResult.errors).to.be.undefined;
-    expect(mergedResult).to.have.nested.property('data.Booking_customerById');
-    expect(mergedResult).to.have.nested.property(
-      'data.Booking_customerById.vehicle',
-    );
+    expect(mergedResult).to.have.nested.property('data.customerById');
+    expect(mergedResult).to.have.nested.property('data.customerById.vehicle');
     expect(mergedResult).to.not.have.nested.property(
-      'data.Booking_customerById.vehicle.licensePlate',
+      'data.customerById.vehicle.licensePlate',
     );
     expect(mergedResult).to.have.nested.property(
-      'data.Booking_customerById.vehicle.bikeType',
+      'data.customerById.vehicle.bikeType',
     );
   });
 
@@ -262,7 +241,7 @@ query {
       mergedSchema,
       `
 query {
-  Property_propertyById(id: "p2") {
+  propertyById(id: "p2") {
     id
     name
     bookings {
@@ -281,10 +260,10 @@ query {
     );
 
     expect(mergedResult.errors).to.be.undefined;
-    expect(mergedResult).to.have.nested.property('data.Property_propertyById');
+    expect(mergedResult).to.have.nested.property('data.propertyById');
 
     expect(mergedResult.data).to.deep.equal({
-      Property_propertyById: {
+      propertyById: {
         id: 'p2',
         name: 'Another great hotel',
         bookings: [
@@ -308,7 +287,7 @@ query {
       mergedSchema,
       `
 query {
-  Property_propertyById(id: "p1") {
+  propertyById(id: "p1") {
     id
     name
     bookings(limit: 1) {
@@ -323,10 +302,10 @@ query {
     );
 
     expect(mergedResult.errors).to.be.undefined;
-    expect(mergedResult).to.have.nested.property('data.Property_propertyById');
+    expect(mergedResult).to.have.nested.property('data.propertyById');
 
     expect(mergedResult.data).to.deep.equal({
-      Property_propertyById: {
+      propertyById: {
         id: 'p1',
         name: 'Super great hotel',
         bookings: [
@@ -394,11 +373,11 @@ ${bookingFragment}
       mergedSchema,
       `
 query {
-  Property_propertyById(id: "p1") {
+  propertyById(id: "p1") {
     ...PropertyFragment
   }
 
-  Booking_bookingById(id: "b1") {
+  bookingById(id: "b1") {
     ...BookingFragment
   }
 }
@@ -411,30 +390,24 @@ ${bookingFragment}
     expect(propertyResult.errors).to.be.undefined;
     expect(bookingResult.errors).to.be.undefined;
     expect(mergedResult.errors).to.be.undefined;
-    expect(propertyResult).to.have.nested.property('data.propertyById');
-    expect(bookingResult).to.have.nested.property('data.bookingById');
-    expect(mergedResult).to.have.nested.property('data.Property_propertyById');
-    expect(mergedResult).to.have.nested.property('data.Booking_bookingById');
 
-    expect(mergedResult.data.Property_propertyById).to.deep.equal(
-      propertyResult.data.propertyById,
-    );
-    expect(mergedResult.data.Booking_bookingById).to.deep.equal(
-      bookingResult.data.bookingById,
-    );
+    expect(mergedResult.data).to.deep.equal({
+      ...propertyResult.data,
+      ...bookingResult.data,
+    });
   });
 
   it('inline', async () => {
-    const propertyFragment = (queryName: string) => `
-${queryName}(id: "p1") {
+    const propertyFragment = `
+propertyById(id: "p1") {
   ... on Property {
     id
   }
   name
 }
   `;
-    const bookingFragment = (queryName: string) => `
-${queryName}(id: "b1") {
+    const bookingFragment = `
+bookingById(id: "b1") {
   id
   ... on Booking {
     customer {
@@ -448,36 +421,30 @@ ${queryName}(id: "b1") {
 
     const propertyResult = await graphql(
       propertySchema,
-      `query { ${propertyFragment('propertyById')} }`,
+      `query { ${propertyFragment} }`,
     );
 
     const bookingResult = await graphql(
       bookingSchema,
-      `query { ${bookingFragment('bookingById')} }`,
+      `query { ${bookingFragment} }`,
     );
 
     const mergedResult = await graphql(
       mergedSchema,
       `query {
-      ${propertyFragment('Property_propertyById')}
-      ${bookingFragment('Booking_bookingById')}
+      ${propertyFragment}
+      ${bookingFragment}
     }`,
     );
 
     expect(propertyResult.errors).to.be.undefined;
     expect(bookingResult.errors).to.be.undefined;
     expect(mergedResult.errors).to.be.undefined;
-    expect(propertyResult).to.have.nested.property('data.propertyById');
-    expect(bookingResult).to.have.nested.property('data.bookingById');
-    expect(mergedResult).to.have.nested.property('data.Property_propertyById');
-    expect(mergedResult).to.have.nested.property('data.Booking_bookingById');
 
-    expect(mergedResult.data.Property_propertyById).to.deep.equal(
-      propertyResult.data.propertyById,
-    );
-    expect(mergedResult.data.Booking_bookingById).to.deep.equal(
-      bookingResult.data.bookingById,
-    );
+    expect(mergedResult.data).to.deep.equal({
+      ...propertyResult.data,
+      ...bookingResult.data,
+    });
   });
 
   it('containing links', async () => {
@@ -485,7 +452,7 @@ ${queryName}(id: "b1") {
       mergedSchema,
       `
 query {
-  Property_propertyById(id: "p2") {
+  propertyById(id: "p2") {
     id
     ...on Property {
       name
@@ -515,10 +482,9 @@ fragment PropertyFragment on Property {
     );
 
     expect(mergedResult.errors).to.be.undefined;
-    expect(mergedResult).to.have.nested.property('data.Property_propertyById');
 
     expect(mergedResult.data).to.deep.equal({
-      Property_propertyById: {
+      propertyById: {
         id: 'p2',
         name: 'Another great hotel',
         bookings: [
@@ -540,14 +506,14 @@ fragment PropertyFragment on Property {
 
 describe('variables', () => {
   it('basic', async () => {
-    const propertyFragment = (queryName: string) => `
-${queryName}(id: $p1) {
+    const propertyFragment = `
+propertyById(id: $p1) {
   id
   name
 }
   `;
-    const bookingFragment = (queryName: string) => `
-${queryName}(id: $b1) {
+    const bookingFragment = `
+bookingById(id: $b1) {
   id
   customer {
     name
@@ -559,7 +525,7 @@ ${queryName}(id: $b1) {
 
     const propertyResult = await graphql(
       propertySchema,
-      `query($p1: ID!) { ${propertyFragment('propertyById')} }`,
+      `query($p1: ID!) { ${propertyFragment} }`,
       {},
       {},
       {
@@ -569,7 +535,7 @@ ${queryName}(id: $b1) {
 
     const bookingResult = await graphql(
       bookingSchema,
-      `query($b1: ID!) { ${bookingFragment('bookingById')} }`,
+      `query($b1: ID!) { ${bookingFragment} }`,
       {},
       {},
       {
@@ -580,8 +546,8 @@ ${queryName}(id: $b1) {
     const mergedResult = await graphql(
       mergedSchema,
       `query($p1: ID!, $b1: ID!) {
-        ${propertyFragment('Property_propertyById')}
-        ${bookingFragment('Booking_bookingById')}
+        ${propertyFragment}
+        ${bookingFragment}
       }`,
       {},
       {},
@@ -594,17 +560,11 @@ ${queryName}(id: $b1) {
     expect(propertyResult.errors).to.be.undefined;
     expect(bookingResult.errors).to.be.undefined;
     expect(mergedResult.errors).to.be.undefined;
-    expect(propertyResult).to.have.nested.property('data.propertyById');
-    expect(bookingResult).to.have.nested.property('data.bookingById');
-    expect(mergedResult).to.have.nested.property('data.Property_propertyById');
-    expect(mergedResult).to.have.nested.property('data.Booking_bookingById');
 
-    expect(mergedResult.data.Property_propertyById).to.deep.equal(
-      propertyResult.data.propertyById,
-    );
-    expect(mergedResult.data.Booking_bookingById).to.deep.equal(
-      bookingResult.data.bookingById,
-    );
+    expect(mergedResult.data).to.deep.equal({
+      ...propertyResult.data,
+      ...bookingResult.data,
+    });
   });
 
   it('in link selections', async () => {
@@ -612,7 +572,7 @@ ${queryName}(id: $b1) {
       mergedSchema,
       `
 query($limit: Int) {
-  Property_propertyById(id: "p1") {
+  propertyById(id: "p1") {
     id
     name
     ...on Property {
@@ -637,10 +597,9 @@ query($limit: Int) {
     );
 
     expect(mergedResult.errors).to.be.undefined;
-    expect(mergedResult).to.have.nested.property('data.Property_propertyById');
 
     expect(mergedResult.data).to.deep.equal({
-      Property_propertyById: {
+      propertyById: {
         id: 'p1',
         name: 'Super great hotel',
         bookings: [
