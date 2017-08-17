@@ -41,9 +41,13 @@ import {
   FragmentSpreadNode,
   GraphQLFieldConfig,
   GraphQLResolveInfo,
+  GraphQLInterfaceType,
+  GraphQLUnionType,
 } from 'graphql';
 import TypeRegistry from './TypeRegistry';
 import { SchemaLink } from './types';
+import resolveFromParentTypename from './resolveFromParentTypename';
+import addTypenameForFragments from './addTypenameForFragments';
 
 export const ROOT_SCHEMA = '__ROOT__';
 
@@ -179,7 +183,7 @@ function recreateCompositeType(
     // XXX we don't really support interfaces yet
     const interfaces = type.getInterfaces();
 
-    const newType = new GraphQLObjectType({
+    return new GraphQLObjectType({
       name: type.name,
       description: type.description,
       isTypeOf: type.isTypeOf,
@@ -189,10 +193,26 @@ function recreateCompositeType(
       }),
       interfaces: () => interfaces.map(iface => registry.resolveType(iface)),
     });
-    return newType;
+  } else if (type instanceof GraphQLInterfaceType) {
+    const fields = type.getFields();
+
+    return new GraphQLInterfaceType({
+      name: type.name,
+      description: type.description,
+      fields: () => ({
+        ...fieldMapToFieldConfigMap(fields, registry),
+        ...createLinks(registry.getLinksByType(type.name), registry),
+      }),
+      resolveType: (parent, context, info) => resolveFromParentTypename(parent, info.schema),
+    });
   } else {
-    console.warn('We do not support interfaces and union yet.');
-    return type;
+    return new GraphQLUnionType({
+      name: type.name,
+      description: type.description,
+      types: () =>
+        type.getTypes().map(unionMember => registry.resolveType(unionMember)),
+      resolveType: (parent, context, info) => resolveFromParentTypename(parent, info.schema),
+    });
   }
 }
 
@@ -292,7 +312,7 @@ function createForwardingResolver(
       type = schema.getMutationType();
     }
     if (type) {
-      const document = createDocument(
+      const graphqlDoc: DocumentNode = createDocument(
         registry,
         schema,
         type,
@@ -303,7 +323,7 @@ function createForwardingResolver(
         info.operation.variableDefinitions,
       );
 
-      const operationDefinition = document.definitions.find(
+      const operationDefinition = graphqlDoc.definitions.find(
         ({ kind }) => kind === Kind.OPERATION_DEFINITION,
       );
       let variableValues;
@@ -329,18 +349,22 @@ function createForwardingResolver(
 
       const result = await execute(
         schema,
-        document,
+        graphqlDoc,
         info.rootValue,
         context,
         variableValues,
       );
+
+      // const print = require('graphql').print;
       // console.log(
-      //   print(document),
+      //   'RESULT FROM FORWARDING\n',
+      //   print(graphqlDoc),
       //   '\n',
       //   JSON.stringify(variableValues, null, 2),
       //   '\n',
       //   JSON.stringify(result, null, 2),
       // );
+
       if (result.errors) {
         throw new Error(result.errors[0].message);
       } else {
@@ -426,10 +450,13 @@ function createDocument(
     selectionSet,
   };
 
-  return {
+  const newDoc: DocumentNode = {
     kind: Kind.DOCUMENT,
     definitions: [operationDefinition, ...processedFragments],
   };
+
+  const newDocWithTypenames: DocumentNode = addTypenameForFragments(newDoc, schema);
+  return newDocWithTypenames;
 }
 
 function processRootField(
