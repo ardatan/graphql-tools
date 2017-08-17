@@ -31,7 +31,7 @@ export type Vehicle = {
   id: string;
   licensePlate?: string;
   bikeType?: 'MOUNTAIN' | 'ROAD';
-}
+};
 
 export const sampleData: {
   Property: { [key: string]: Property };
@@ -117,13 +117,13 @@ export const sampleData: {
   Vehicle: {
     v1: {
       id: 'v1',
-      bikeType: 'MOUNTAIN'
+      bikeType: 'MOUNTAIN',
     },
     v2: {
       id: 'v2',
-      licensePlate: 'GRAPHQL'
-    }
-  }
+      licensePlate: 'GRAPHQL',
+    },
+  },
 };
 
 const propertyTypeDefs = `
@@ -187,17 +187,12 @@ const bookingTypeDefs = `
 
   type Bike {
     id: ID!
-    bikeType: BikeType
+    bikeType: String
   }
 
   type Car {
     id: ID!
     licensePlate: String
-  }
-
-  enum BikeType {
-    MOUNTAIN
-    ROAD
   }
 
   type Query {
@@ -290,7 +285,6 @@ const bookingResolvers: IResolvers = {
 
   Vehicle: {
     __resolveType(parent) {
-      console.log(parent);
       if (parent.licensePlate) {
         return 'Car';
       } else if (parent.bikeType) {
@@ -298,8 +292,8 @@ const bookingResolvers: IResolvers = {
       } else {
         throw new Error('Could not resolve Vehicle type');
       }
-    }
-  }
+    },
+  },
 };
 
 export const propertySchema: GraphQLSchema = makeExecutableSchema({

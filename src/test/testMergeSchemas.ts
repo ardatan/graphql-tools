@@ -225,14 +225,20 @@ query {
   });
 
   it('unions', async () => {
+    (mergedSchema.getType('Bike') as any)._fields.bikeType.resolve = (parent: any) => console.log('CALLED', parent);
     const mergedResult = await graphql(
       mergedSchema,
       `
         query {
           Booking_customerById(id: "c1") {
+            ... on Person {
+              name
+            }
             vehicle {
-              ... on Car {
-                licensePlate
+              __typename
+              ... on Bike {
+
+                bikeType
               }
             }
           }
@@ -240,42 +246,12 @@ query {
       `,
     );
 
-    console.log(mergedResult);
+    console.log(JSON.stringify(mergedResult));
     expect(mergedResult.errors).to.be.undefined;
-    expect(mergedResult).to.have.nested.property('data.firstProperty');
-    expect(mergedResult).to.have.nested.property('data.secondProperty');
-    expect(mergedResult).to.have.nested.property('data.booking');
-
-    expect(mergedResult.data).to.deep.equal({
-      firstProperty: {
-        id: 'p2',
-        name: 'Another great hotel',
-        bookings: [
-          {
-            id: 'b4',
-            customer: {
-              name: 'Exampler Customer',
-            },
-          },
-        ],
-      },
-      secondProperty: {
-        id: 'p3',
-        name: 'BedBugs - The Affordable Hostel',
-        bookings: [],
-      },
-      booking: {
-        id: 'b1',
-        customer: {
-          name: 'Exampler Customer',
-        },
-
-        property: {
-          id: 'p1',
-          name: 'Super great hotel',
-        },
-      },
-    });
+    expect(mergedResult).to.have.nested.property('data.Booking_customerById');
+    expect(mergedResult).to.have.nested.property('data.Booking_customerById.vehicle');
+    expect(mergedResult).to.not.have.nested.property('data.Booking_customerById.vehicle.licensePlate');
+    expect(mergedResult).to.have.nested.property('data.Booking_customerById.vehicle.bikeType');
   });
 
   it('deep links', async () => {
