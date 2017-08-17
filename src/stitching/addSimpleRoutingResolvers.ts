@@ -1,7 +1,17 @@
 import { mapValues, isEmpty } from 'lodash';
-import { printSchema, print, GraphQLError } from 'graphql';
-import { GraphQLFieldResolver, GraphQLSchema } from 'graphql';
+import {
+  printSchema,
+  print,
+  GraphQLError,
+  GraphQLFieldResolver,
+  GraphQLSchema,
+  GraphQLInterfaceType,
+  GraphQLUnionType,
+  OperationDefinitionNode,
+} from 'graphql';
 import { makeExecutableSchema } from '../schemaGenerator';
+import { resolveFromParentTypename } from './resolveFromTypename';
+import addTypenameForFragments from './addTypenameForFragments';
 
 type ResolverMap = { [key: string]: GraphQLFieldResolver<any, any> };
 
@@ -19,14 +29,14 @@ export default function addSimpleRoutingResolvers(
 ): GraphQLSchema {
   const queries = schema.getQueryType().getFields();
   const queryResolvers: ResolverMap = mapValues(queries, (field, key) =>
-    createResolver(fetcher, key),
+    createResolver(fetcher, key, schema),
   );
   let mutationResolvers: ResolverMap = {};
   const mutationType = schema.getMutationType();
   if (mutationType) {
     const mutations = mutationType.getFields();
     mutationResolvers = mapValues(mutations, (field, key) =>
-      createResolver(fetcher, key),
+      createResolver(fetcher, key, schema),
     );
   }
 
@@ -41,6 +51,19 @@ export default function addSimpleRoutingResolvers(
     resolvers.Mutation = mutationResolvers;
   }
 
+  // Add interface and union resolveType functions
+  const typeMap = schema.getTypeMap();
+  Object.keys(typeMap).forEach(typeName => {
+    const type = typeMap[typeName];
+
+    if (
+      type instanceof GraphQLInterfaceType ||
+      type instanceof GraphQLUnionType
+    ) {
+      resolvers[type.name].__resolveType = (parent: any) => resolveFromParentTypename(parent, schema);
+    }
+  });
+
   return makeExecutableSchema({
     typeDefs: printSchema(schema),
     resolvers,
@@ -50,9 +73,14 @@ export default function addSimpleRoutingResolvers(
 function createResolver(
   fetcher: Fetcher,
   name: string,
+  schema: GraphQLSchema,
 ): GraphQLFieldResolver<any, any> {
   return async (root, args, context, info) => {
-    const query = print(info.operation);
+    // Yo this is not going to work with fragments
+    const newOperation: OperationDefinitionNode = addTypenameForFragments(info.operation, schema);
+
+    const query = print(newOperation);
+
     const result = await fetcher({
       query,
       variables: info.variableValues,

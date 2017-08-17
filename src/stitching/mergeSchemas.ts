@@ -41,9 +41,15 @@ import {
   FragmentSpreadNode,
   GraphQLFieldConfig,
   GraphQLResolveInfo,
+  GraphQLInterfaceType,
+  GraphQLUnionType,
+  TypeInfo,
+  visitWithTypeInfo
 } from 'graphql';
 import TypeRegistry from './TypeRegistry';
 import { SchemaLink } from './types';
+import { resolveFromParentTypename } from './resolveFromTypename';
+import addTypenameForFragments from './addTypenameForFragments';
 
 export const ROOT_SCHEMA = '__ROOT__';
 
@@ -179,7 +185,7 @@ function recreateCompositeType(
     // XXX we don't really support interfaces yet
     const interfaces = type.getInterfaces();
 
-    const newType = new GraphQLObjectType({
+    return new GraphQLObjectType({
       name: type.name,
       description: type.description,
       isTypeOf: type.isTypeOf,
@@ -189,10 +195,26 @@ function recreateCompositeType(
       }),
       interfaces: () => interfaces.map(iface => registry.resolveType(iface)),
     });
-    return newType;
+  } else if (type instanceof GraphQLInterfaceType) {
+    const fields = type.getFields();
+
+    return new GraphQLInterfaceType({
+      name: type.name,
+      description: type.description,
+      fields: () => ({
+        ...fieldMapToFieldConfigMap(fields, registry),
+        ...createLinks(registry.getLinksByType(type.name), registry),
+      }),
+      resolveType: (parent, context, info) => resolveFromParentTypename(parent, info.schema),
+    });
   } else {
-    console.warn('We do not support interfaces and union yet.');
-    return type;
+    return new GraphQLUnionType({
+      name: type.name,
+      description: type.description,
+      types: () =>
+        type.getTypes().map(unionMember => registry.resolveType(unionMember)),
+      resolveType: (parent, context, info) => resolveFromParentTypename(parent, info.schema),
+    });
   }
 }
 
@@ -292,7 +314,7 @@ function createForwardingResolver(
       type = schema.getMutationType();
     }
     if (type) {
-      const document = createDocument(
+      const graphqlDoc: DocumentNode = createDocument(
         registry,
         schema,
         type,
@@ -303,7 +325,7 @@ function createForwardingResolver(
         info.operation.variableDefinitions,
       );
 
-      const operationDefinition = document.definitions.find(
+      const operationDefinition = graphqlDoc.definitions.find(
         ({ kind }) => kind === Kind.OPERATION_DEFINITION,
       );
       let variableValues;
@@ -329,18 +351,22 @@ function createForwardingResolver(
 
       const result = await execute(
         schema,
-        document,
+        graphqlDoc,
         info.rootValue,
         context,
         variableValues,
       );
-      // console.log(
-      //   print(document),
-      //   '\n',
-      //   JSON.stringify(variableValues, null, 2),
-      //   '\n',
-      //   JSON.stringify(result, null, 2),
-      // );
+
+      const print = require('graphql').print;
+      console.log(
+        'RESULT FROM FORWARDING\n',
+        print(graphqlDoc),
+        '\n',
+        JSON.stringify(variableValues, null, 2),
+        '\n',
+        JSON.stringify(result, null, 2),
+      );
+
       if (result.errors) {
         throw new Error(result.errors[0].message);
       } else {
@@ -426,10 +452,13 @@ function createDocument(
     selectionSet,
   };
 
-  return {
+  const newDoc: DocumentNode = {
     kind: Kind.DOCUMENT,
     definitions: [operationDefinition, ...processedFragments],
   };
+
+  const newDocWithTypenames: DocumentNode = addTypenameForFragments(newDoc, schema);
+  return newDocWithTypenames;
 }
 
 function processRootField(
@@ -500,7 +529,7 @@ function filterSelectionSetDeep(
     selectionSet: newSelectionSet,
     usedFragments: remainingFragments,
     usedVariables,
-  } = filterSelectionSet(registry, type, selectionSet);
+  } = filterSelectionSet(registry, type, selectionSet, schema);
 
   const newFragments = {};
   // (XXX): So this will break if we have a fragment that only has link fields
@@ -522,7 +551,7 @@ function filterSelectionSetDeep(
         selectionSet: fragmentSelectionSet,
         usedFragments: fragmentUsedFragments,
         usedVariables: fragmentUsedVariables,
-      } = filterSelectionSet(registry, innerType, nextFragment.selectionSet);
+      } = filterSelectionSet(registry, innerType, nextFragment.selectionSet, schema);
       remainingFragments = union(remainingFragments, fragmentUsedFragments);
       usedVariables = union(usedVariables, fragmentUsedVariables);
       newFragments[name] = {
@@ -547,6 +576,7 @@ function filterSelectionSet(
   registry: TypeRegistry,
   type: GraphQLType,
   selectionSet: SelectionSetNode,
+  schema: GraphQLSchema
 ): {
   selectionSet: SelectionSetNode;
   usedFragments: Array<string>;
@@ -554,37 +584,40 @@ function filterSelectionSet(
 } {
   const usedFragments: Array<string> = [];
   const usedVariables: Array<string> = [];
-  const typeStack = [type];
-  const filteredSelectionSet = visit(selectionSet, {
+  const typeInfo = new TypeInfo(schema);
+  const filteredSelectionSet = visit(selectionSet, visitWithTypeInfo(typeInfo, {
     [Kind.FIELD]: {
-      enter(node: FieldNode) {
-        let parentType = typeStack[typeStack.length - 1];
+      enter(fieldNode: FieldNode) {
+        let parentType = typeInfo.getParentType();
+
         if (
           parentType instanceof GraphQLNonNull ||
           parentType instanceof GraphQLList
         ) {
           parentType = parentType.ofType;
         }
+
         if (parentType instanceof GraphQLObjectType) {
-          const fields = parentType.getFields();
-          const field = fields[node.name.value];
-          if (!field) {
-            const link = registry.getLinkByAddress(
-              parentType.name,
-              node.name.value,
-            );
-            if (link && link.inlineFragment) {
+          const link = registry.getLinkByAddress(
+            parentType.name,
+            fieldNode.name.value,
+          );
+
+          if (link) {
+            // This field doesn't exist - it's a fake field created via link
+            if (link.inlineFragment) {
+              // If there's fields we need, overwrite with the fragment
               return link.inlineFragment;
             } else {
+              // If we don't need anything, remove the field
               return null;
             }
           } else {
-            typeStack.push(field.type);
+            return fieldNode;
           }
+        } else {
+          return fieldNode;
         }
-      },
-      leave() {
-        typeStack.pop();
       },
     },
     [Kind.FRAGMENT_SPREAD](node: FragmentSpreadNode) {
@@ -593,7 +626,7 @@ function filterSelectionSet(
     [Kind.VARIABLE](node: VariableNode) {
       usedVariables.push(node.name.value);
     },
-  });
+  }));
 
   return {
     selectionSet: filteredSelectionSet,
