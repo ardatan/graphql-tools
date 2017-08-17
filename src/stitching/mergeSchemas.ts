@@ -180,7 +180,6 @@ function recreateCompositeType(
 ): GraphQLCompositeType {
   if (type instanceof GraphQLObjectType) {
     const fields = type.getFields();
-    // XXX we don't really support interfaces yet
     const interfaces = type.getInterfaces();
 
     return new GraphQLObjectType({
