@@ -6,3 +6,4 @@ import './testMocking';
 import './testAutopublish';
 import './testResolution';
 import './testMergeSchemas';
+import './testGraftSchemas';

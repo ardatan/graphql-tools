@@ -45,6 +45,8 @@ import {
 import TypeRegistry from './TypeRegistry';
 import { SchemaLink } from './types';
 
+export const ROOT_SCHEMA = '__ROOT__';
+
 type EnhancedGraphQLFieldResolver<TSource, TContext> = (
   source: TSource,
   args: { [argName: string]: any },
@@ -59,7 +61,7 @@ export default function mergeSchemas({
 }: {
   links?: Array<SchemaLink>;
   schemas: Array<{
-    prefix: string;
+    prefix?: string;
     schema: GraphQLSchema;
   }>;
 }): GraphQLSchema {
@@ -68,7 +70,7 @@ export default function mergeSchemas({
 
   const typeRegistry = new TypeRegistry();
 
-  schemas.forEach(({ prefix, schema }) => {
+  schemas.forEach(({ prefix = ROOT_SCHEMA, schema }) => {
     typeRegistry.setSchema(prefix, schema);
   });
 
@@ -163,8 +165,8 @@ export default function mergeSchemas({
   });
 }
 
-function prefixName(name: string, prefix: string) {
-  return `${prefix}_${name}`;
+function prefixName(name: string, prefix?: string) {
+  return prefix ? `${prefix}_${name}` : `${name}`;
 }
 
 function recreateCompositeType(
@@ -252,7 +254,7 @@ function createLinks(
   const queryFields = registry.query.getFields();
   return fromPairs(
     links.map(link => {
-      const [schemaName, field] = link.to.split('_');
+      const [schemaName, field] = link.to.includes('_') ? link.to.split('_') : [ROOT_SCHEMA, link.to];
       const schema = registry.getSchema(schemaName);
       const resolver: EnhancedGraphQLFieldResolver<
         any,
