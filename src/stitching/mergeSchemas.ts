@@ -567,11 +567,11 @@ function filterSelectionSet(
 } {
   const usedFragments: Array<string> = [];
   const usedVariables: Array<string> = [];
-  const typeStack = [type];
+  const typeStack: Array<GraphQLType> = [type];
   const filteredSelectionSet = visit(selectionSet, {
     [Kind.FIELD]: {
       enter(node: FieldNode) {
-        let parentType = typeStack[typeStack.length - 1];
+        let parentType: GraphQLType = typeStack[typeStack.length - 1];
         if (
           parentType instanceof GraphQLNonNull ||
           parentType instanceof GraphQLList
