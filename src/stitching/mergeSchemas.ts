@@ -571,7 +571,9 @@ function filterSelectionSet(
   const filteredSelectionSet = visit(selectionSet, {
     [Kind.FIELD]: {
       enter(node: FieldNode) {
-        let parentType: GraphQLType = typeStack[typeStack.length - 1];
+        let parentType: GraphQLType = resolveType(
+          typeStack[typeStack.length - 1],
+        );
         if (
           parentType instanceof GraphQLNonNull ||
           parentType instanceof GraphQLList
@@ -613,6 +615,17 @@ function filterSelectionSet(
     usedFragments,
     usedVariables,
   };
+}
+
+function resolveType(type: GraphQLType): GraphQLType {
+  let lastType = type;
+  while (
+    lastType instanceof GraphQLNonNull ||
+    lastType instanceof GraphQLList
+  ) {
+    lastType = lastType.ofType;
+  }
+  return lastType;
 }
 
 function typeToAst(type: GraphQLInputType): TypeNode {

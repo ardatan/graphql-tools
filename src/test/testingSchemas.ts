@@ -139,7 +139,7 @@ const propertyTypeDefs = `
 
   type Query {
     propertyById(id: ID!): Property
-    properties(limit: Int): [Property]
+    properties(limit: Int): [Property!]
   }
 `;
 
@@ -179,7 +179,7 @@ const bookingTypeDefs = `
     email: String!
     name: String!
     address: String
-    bookings(limit: Int): [Booking]
+    bookings(limit: Int): [Booking!]
     vehicle: Vehicle
   }
 
@@ -197,10 +197,10 @@ const bookingTypeDefs = `
 
   type Query {
     bookingById(id: ID!): Booking
-    bookingsByPropertyId(propertyId: ID!, limit: Int): [Booking]
+    bookingsByPropertyId(propertyId: ID!, limit: Int): [Booking!]
     customerById(id: ID!): Customer
-    bookings(limit: Int): [Booking]
-    customers(limit: Int): [Customer]
+    bookings(limit: Int): [Booking!]
+    customers(limit: Int): [Customer!]
   }
 
   input BookingInput {
