@@ -7,25 +7,26 @@ import {
   makeExecutableSchema,
 } from '../schemaGenerator';
 import 'mocha';
+import gql from './gql';
 
 describe('Mock', () => {
-  const shorthand = `
+  const shorthand = gql`
     scalar MissingMockType
 
     interface Flying {
-      id:String!
+      id: String!
       returnInt: Int
     }
 
     type Bird implements Flying {
-      id:String!
+      id: String!
       returnInt: Int
       returnString: String
       returnStringArgument(s: String): String
     }
 
     type Bee implements Flying {
-      id:String!
+      id: String!
       returnInt: Int
       returnEnum: SomeEnum
     }
@@ -57,13 +58,14 @@ describe('Mock', () => {
       returnListOfListOfIntArg(l: Int): [[Int]]
       returnListOfListOfObject: [[Bird!]]!
       returnStringArgument(s: String): String
-      node(id:String!):Flying
-      node2(id:String!):BirdsAndBees
+      node(id: String!): Flying
+      node2(id: String!): BirdsAndBees
     }
 
-    type RootMutation{
+    type RootMutation {
       returnStringArgument(s: String): String
     }
+
     schema {
       query: RootQuery
       mutation: RootMutation
@@ -114,13 +116,15 @@ describe('Mock', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {};
     addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
-    const testQuery = `{
-      returnInt
-      returnFloat
-      returnBoolean
-      returnString
-      returnID
-    }`;
+    const testQuery = gql`
+      {
+        returnInt
+        returnFloat
+        returnBoolean
+        returnString
+        returnID
+      }
+    `;
     return graphql(jsSchema, testQuery).then(res => {
       expect(res.data['returnInt']).to.be.within(-1000, 1000);
       expect(res.data['returnFloat']).to.be.within(-1000, 1000);
@@ -131,23 +135,25 @@ describe('Mock', () => {
   });
 
   it('lets you use mockServer for convenience', () => {
-    const testQuery = `{
-      returnInt
-      returnFloat
-      returnBoolean
-      returnString
-      returnID
-      returnBirdsAndBees {
-        ... on Bird {
-          returnInt
-          returnString
-        }
-        ... on Bee {
-          returnInt
-          returnEnum
+    const testQuery = gql`
+      {
+        returnInt
+        returnFloat
+        returnBoolean
+        returnString
+        returnID
+        returnBirdsAndBees {
+          ... on Bird {
+            returnInt
+            returnString
+          }
+          ... on Bee {
+            returnInt
+            returnEnum
+          }
         }
       }
-    }`;
+    `;
     const mockMap = {
       Int: () => 12345,
       Bird: () => ({ returnInt: () => 54321 }),
@@ -174,18 +180,20 @@ describe('Mock', () => {
       },
     };
     addResolveFunctionsToSchema(jsSchema, resolvers);
-    const testQuery = `{
-      returnInt
-      returnString
-      returnBirdsAndBees {
-        ... on Bird {
-          returnInt
-        }
-        ... on Bee {
-          returnInt
+    const testQuery = gql`
+      {
+        returnInt
+        returnString
+        returnBirdsAndBees {
+          ... on Bird {
+            returnInt
+          }
+          ... on Bee {
+            returnInt
+          }
         }
       }
-    }`;
+    `;
     const mockMap = {
       Int: () => 12345,
       Bird: () => ({ returnInt: () => 54321 }),
@@ -205,23 +213,25 @@ describe('Mock', () => {
 
   it('lets you use mockServer with prebuilt schema', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
-    const testQuery = `{
-      returnInt
-      returnFloat
-      returnBoolean
-      returnString
-      returnID
-      returnBirdsAndBees {
-        ... on Bird {
-          returnInt
-          returnString
-        }
-        ... on Bee {
-          returnInt
-          returnEnum
+    const testQuery = gql`
+      {
+        returnInt
+        returnFloat
+        returnBoolean
+        returnString
+        returnID
+        returnBirdsAndBees {
+          ... on Bird {
+            returnInt
+            returnString
+          }
+          ... on Bee {
+            returnInt
+            returnEnum
+          }
         }
       }
-    }`;
+    `;
     const mockMap = {
       Int: () => 12345,
       Bird: () => ({ returnInt: () => 54321 }),
@@ -257,18 +267,20 @@ describe('Mock', () => {
       mocks: {},
       preserveResolvers: true,
     });
-    const testQuery = `{
-      returnBirdsAndBees {
-        ... on Bird {
-          returnInt
-          returnString
-        }
-        ... on Bee {
-          returnInt
-          returnEnum
+    const testQuery = gql`
+      {
+        returnBirdsAndBees {
+          ... on Bird {
+            returnInt
+            returnString
+          }
+          ... on Bee {
+            returnInt
+            returnEnum
+          }
         }
       }
-    }`;
+    `;
     return graphql(jsSchema, testQuery).then(res => {
       // the resolveType has been called twice
       expect(spy).to.equal(2);
@@ -280,9 +292,11 @@ describe('Mock', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {};
     addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
-    const testQuery = `{
-      returnEnum
-    }`;
+    const testQuery = gql`
+      {
+        returnEnum
+      }
+    `;
     return graphql(jsSchema, testQuery).then(res => {
       expect(res.data['returnEnum']).to.be.oneOf(['A', 'B', 'C']);
     });
@@ -300,18 +314,20 @@ describe('Mock', () => {
       }),
     };
     addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
-    const testQuery = `{
-      returnBirdsAndBees {
-        ... on Bird {
-          returnInt
-          returnString
-        }
-        ... on Bee {
-          returnInt
-          returnEnum
+    const testQuery = gql`
+      {
+        returnBirdsAndBees {
+          ... on Bird {
+            returnInt
+            returnString
+          }
+          ... on Bee {
+            returnInt
+            returnEnum
+          }
         }
       }
-    }`;
+    `;
     return graphql(jsSchema, testQuery).then(res => {
       // XXX this test is expected to fail once every 2^40 times ;-)
       expect(res.data['returnBirdsAndBees']).to.deep.include({
@@ -341,18 +357,20 @@ describe('Mock', () => {
       mocks: mockMap,
       preserveResolvers: true,
     });
-    const testQuery = `{
-      returnFlying {
-        ... on Bird {
-          returnInt
-          returnString
-        }
-        ... on Bee {
-          returnInt
-          returnEnum
+    const testQuery = gql`
+      {
+        returnFlying {
+          ... on Bird {
+            returnInt
+            returnString
+          }
+          ... on Bee {
+            returnInt
+            returnEnum
+          }
         }
       }
-    }`;
+    `;
     return graphql(jsSchema, testQuery).then(res => {
       expect(res.data['returnFlying']).to.deep.include({
         returnInt: 10,
@@ -392,12 +410,14 @@ describe('Mock', () => {
       mocks: mockMap,
       preserveResolvers: true,
     });
-    const testQuery = `{
-      node(id:"bee:123456"){
-        id,
-        returnInt
+    const testQuery = gql`
+      {
+        node(id: "bee:123456") {
+          id
+          returnInt
+        }
       }
-    }`;
+    `;
 
     return graphql(jsSchema, testQuery).then(res => {
       expect(spy).to.equal(1); // to make sure that Flying possible types are not randomly selected
@@ -435,14 +455,16 @@ describe('Mock', () => {
       mocks: mockMap,
       preserveResolvers: true,
     });
-    const testQuery = `{
-        node2(id:"bee:123456"){
-          ...on Bee{
-            id,
+    const testQuery = gql`
+      {
+        node2(id: "bee:123456") {
+          ... on Bee {
+            id
             returnEnum
           }
         }
-      }`;
+      }
+    `;
 
     return graphql(jsSchema, testQuery).then(res => {
       expect(spy).to.equal(1);
@@ -470,12 +492,14 @@ describe('Mock', () => {
       },
     };
     addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
-    const testQuery = `{
-        node(id:"bee:123456"){
-          id,
+    const testQuery = gql`
+      {
+        node(id: "bee:123456") {
+          id
           returnInt
         }
-      }`;
+      }
+    `;
     const expected = 'Please return a __typename in "Flying"';
     return graphql(jsSchema, testQuery).then(res => {
       expect((<any>res.errors[0]).originalError.message).to.equal(expected);
@@ -486,9 +510,11 @@ describe('Mock', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {};
     addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
-    const testQuery = `{
-      returnMockError
-    }`;
+    const testQuery = gql`
+      {
+        returnMockError
+      }
+    `;
     const expected = 'No mock defined for type "MissingMockType"';
     return graphql(jsSchema, testQuery).then(res => {
       expect((<any>res.errors[0]).originalError.message).to.equal(expected);
@@ -515,9 +541,11 @@ describe('Mock', () => {
       mocks: mockMap,
       preserveResolvers: true,
     });
-    const testQuery = `{
-      returnMockError
-    }`;
+    const testQuery = gql`
+      {
+        returnMockError
+      }
+    `;
     const expected = 'No mock defined for type "MissingMockType"';
     return graphql(jsSchema, testQuery).then(res => {
       expect((<any>res.errors[0]).originalError.message).to.equal(expected);
@@ -544,9 +572,11 @@ describe('Mock', () => {
       mocks: mockMap,
       preserveResolvers: true,
     });
-    const testQuery = `{
-      returnMockError
-    }`;
+    const testQuery = gql`
+      {
+        returnMockError
+      }
+    `;
     const expected = {
       returnMockError: '10-11-2012',
     };
@@ -560,9 +590,11 @@ describe('Mock', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = { Int: () => 55 };
     addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
-    const testQuery = `{
-      returnInt
-    }`;
+    const testQuery = gql`
+      {
+        returnInt
+      }
+    `;
     return graphql(jsSchema, testQuery).then(res => {
       expect(res.data['returnInt']).to.equal(55);
     });
@@ -572,9 +604,11 @@ describe('Mock', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = { Float: () => 55.5 };
     addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
-    const testQuery = `{
-      returnFloat
-    }`;
+    const testQuery = gql`
+      {
+        returnFloat
+      }
+    `;
     return graphql(jsSchema, testQuery).then(res => {
       expect(res.data['returnFloat']).to.equal(55.5);
     });
@@ -583,9 +617,11 @@ describe('Mock', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = { String: () => 'a string' };
     addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
-    const testQuery = `{
-      returnString
-    }`;
+    const testQuery = gql`
+      {
+        returnString
+      }
+    `;
     return graphql(jsSchema, testQuery).then(res => {
       expect(res.data['returnString']).to.equal('a string');
     });
@@ -594,9 +630,11 @@ describe('Mock', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = { Boolean: () => true };
     addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
-    const testQuery = `{
-      returnBoolean
-    }`;
+    const testQuery = gql`
+      {
+        returnBoolean
+      }
+    `;
     return graphql(jsSchema, testQuery).then(res => {
       expect(res.data['returnBoolean']).to.equal(true);
     });
@@ -605,9 +643,11 @@ describe('Mock', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = { ID: () => 'ea5bdc19' };
     addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
-    const testQuery = `{
-      returnID
-    }`;
+    const testQuery = gql`
+      {
+        returnID
+      }
+    `;
     return graphql(jsSchema, testQuery).then(res => {
       expect(res.data['returnID']).to.equal('ea5bdc19');
     });
@@ -616,9 +656,11 @@ describe('Mock', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = { String: (): null => null };
     addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
-    const testQuery = `{
-      returnNullableString
-    }`;
+    const testQuery = gql`
+      {
+        returnNullableString
+      }
+    `;
     return graphql(jsSchema, testQuery).then(res => {
       expect(res.data['returnNullableString']).to.equal(null);
     });
@@ -627,9 +669,11 @@ describe('Mock', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = { String: () => 'nonnull' };
     addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
-    const testQuery = `{
-      returnNonNullString
-    }`;
+    const testQuery = gql`
+      {
+        returnNonNullString
+      }
+    `;
     return graphql(jsSchema, testQuery).then(res => {
       expect(res.data['returnNonNullString']).to.equal('nonnull');
     });
@@ -638,9 +682,11 @@ describe('Mock', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = { String: (): null => null };
     addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
-    const testQuery = `{
-      returnNonNullString
-    }`;
+    const testQuery = gql`
+      {
+        returnNonNullString
+      }
+    `;
     return graphql(jsSchema, testQuery).then(res => {
       expect(res.data).to.equal(null);
       expect(res.errors.length).to.equal(1);
@@ -653,9 +699,14 @@ describe('Mock', () => {
       Int: () => 123,
     };
     addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
-    const testQuery = `{
-      returnObject { returnInt, returnString }
-    }`;
+    const testQuery = gql`
+      {
+        returnObject {
+          returnInt
+          returnString
+        }
+      }
+    `;
     const expected = {
       returnObject: { returnInt: 123, returnString: 'abc' },
     };
@@ -668,9 +719,11 @@ describe('Mock', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = { Int: () => 123 };
     addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
-    const testQuery = `{
-      returnListOfInt
-    }`;
+    const testQuery = gql`
+      {
+        returnListOfInt
+      }
+    `;
     const expected = {
       returnListOfInt: [123, 123],
     };
@@ -686,9 +739,14 @@ describe('Mock', () => {
       Int: () => 1,
     };
     addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
-    const testQuery = `{
-      returnListOfListOfObject { returnInt, returnString }
-    }`;
+    const testQuery = gql`
+      {
+        returnListOfListOfObject {
+          returnInt
+          returnString
+        }
+      }
+    `;
     const expected = {
       returnListOfListOfObject: [
         [
@@ -728,11 +786,13 @@ describe('Mock', () => {
       mocks: mockMap,
       preserveResolvers: true,
     });
-    const testQuery = `{
-      returnInt
-      returnFloat
-      returnString
-    }`;
+    const testQuery = gql`
+      {
+        returnInt
+        returnFloat
+        returnString
+      }
+    `;
     const expected = {
       returnInt: 5, // a) from resolvers, not masked by mock
       returnFloat: 1.3, // b) from mock
@@ -753,13 +813,15 @@ describe('Mock', () => {
       Int: () => 15,
     };
     addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
-    const testQuery = `{
-      returnObject{
+    const testQuery = gql`
+      {
+        returnObject {
+          returnInt
+          returnString
+        }
         returnInt
-        returnString
       }
-      returnInt
-    }`;
+    `;
     const expected = {
       returnObject: {
         returnInt: 12,
@@ -796,13 +858,15 @@ describe('Mock', () => {
       mocks: mockMap,
       preserveResolvers: true,
     });
-    const testQuery = `{
-      returnListOfInt
-      returnObject{
-        returnInt
-        returnString
+    const testQuery = gql`
+      {
+        returnListOfInt
+        returnObject {
+          returnInt
+          returnString
+        }
       }
-    }`;
+    `;
     const expected = {
       returnListOfInt: [1, 2, 3],
       returnObject: {
@@ -838,12 +902,14 @@ describe('Mock', () => {
       mocks: mockMap,
       preserveResolvers: true,
     });
-    const testQuery = `{
-      returnObject{
-        returnInt
-        returnString
+    const testQuery = gql`
+      {
+        returnObject {
+          returnInt
+          returnString
+        }
       }
-    }`;
+    `;
     const expected = {
       returnObject: {
         returnInt: 12, // from the resolver, see a)
@@ -880,12 +946,14 @@ describe('Mock', () => {
       mocks: mockMap,
       preserveResolvers: true,
     });
-    const testQuery = `{
-      returnObject{
-        returnInt
-        returnString
+    const testQuery = gql`
+      {
+        returnObject {
+          returnInt
+          returnString
+        }
       }
-    }`;
+    `;
     const expected = {
       returnObject: {
         returnInt: 12, // from the resolver, see a)
@@ -921,13 +989,15 @@ describe('Mock', () => {
       mocks: mockMap,
       preserveResolvers: true,
     });
-    const testQuery = `{
-      returnObject {
-        returnInt
+    const testQuery = gql`
+      {
+        returnObject {
+          returnInt
           returnString
+        }
+        returnString
       }
-      returnString
-    }`;
+    `;
     const expected = {
       returnObject: {
         returnInt: 123, // from the mock, see b)
@@ -966,13 +1036,15 @@ describe('Mock', () => {
       mocks: mockMap,
       preserveResolvers: true,
     });
-    const testQuery = `{
-      returnObject {
-        returnInt
+    const testQuery = gql`
+      {
+        returnObject {
+          returnInt
           returnString
+        }
+        returnString
       }
-      returnString
-    }`;
+    `;
     const expected = {
       returnObject: {
         returnInt: 123, // from the mock, see b)
@@ -1012,13 +1084,15 @@ describe('Mock', () => {
       mocks: mockMap,
       preserveResolvers: true,
     });
-    const testQuery = `{
-      returnObject {
-        returnInt
+    const testQuery = gql`
+      {
+        returnObject {
+          returnInt
           returnString
+        }
+        returnString
       }
-      returnString
-    }`;
+    `;
     const expected = {
       returnObject: {
         returnInt: 123, // from the mock, see b)
@@ -1047,13 +1121,15 @@ describe('Mock', () => {
       mocks: mockMap,
       preserveResolvers: true,
     });
-    const testQuery = `{
-      returnObject {
-        returnInt
+    const testQuery = gql`
+      {
+        returnObject {
+          returnInt
+          returnString
+        }
         returnString
       }
-      returnString
-    }`;
+    `;
     const expected = {
       returnObject: {
         returnInt: 666, // from the mock, see b)
@@ -1074,9 +1150,11 @@ describe('Mock', () => {
       }),
     };
     addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
-    const testQuery = `{
-      returnStringArgument(s: "adieu")
-    }`;
+    const testQuery = gql`
+      {
+        returnStringArgument(s: "adieu")
+      }
+    `;
     const expected = {
       returnStringArgument: 'adieu',
     };
@@ -1093,9 +1171,11 @@ describe('Mock', () => {
       }),
     };
     addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
-    const testQuery = `mutation {
-      returnStringArgument(s: "adieu")
-    }`;
+    const testQuery = gql`
+      mutation {
+        returnStringArgument(s: "adieu")
+      }
+    `;
     const expected = {
       returnStringArgument: 'adieu',
     };
@@ -1111,9 +1191,11 @@ describe('Mock', () => {
       Int: () => 12,
     };
     addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
-    const testQuery = `{
-      returnListOfInt
-    }`;
+    const testQuery = gql`
+      {
+        returnListOfInt
+      }
+    `;
     const expected = {
       returnListOfInt: [12, 12, 12],
     };
@@ -1129,9 +1211,11 @@ describe('Mock', () => {
       Int: () => 12,
     };
     addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
-    const testQuery = `{
-      returnListOfInt
-    }`;
+    const testQuery = gql`
+      {
+        returnListOfInt
+      }
+    `;
     return graphql(jsSchema, testQuery).then(res => {
       expect(res.data['returnListOfInt']).to.have.length.within(10, 20);
       expect(res.data['returnListOfInt'][0]).to.equal(12);
@@ -1148,10 +1232,12 @@ describe('Mock', () => {
       Int: () => 12,
     };
     addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
-    const testQuery = `{
-      l3: returnListOfIntArg(l: 3)
-      l5: returnListOfIntArg(l: 5)
-    }`;
+    const testQuery = gql`
+      {
+        l3: returnListOfIntArg(l: 3)
+        l5: returnListOfIntArg(l: 5)
+      }
+    `;
     return graphql(jsSchema, testQuery).then(res => {
       expect(res.data['l3'].length).to.equal(3);
       expect(res.data['l5'].length).to.equal(5);
@@ -1167,9 +1253,11 @@ describe('Mock', () => {
       Int: () => 12,
     };
     addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
-    const testQuery = `{
-      returnListOfInt
-    }`;
+    const testQuery = gql`
+      {
+        returnListOfInt
+      }
+    `;
     const expected = {
       returnListOfInt: [33, 33],
     };
@@ -1193,9 +1281,11 @@ describe('Mock', () => {
       Int: () => 12,
     };
     addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
-    const testQuery = `{
-      returnListOfListOfInt
-    }`;
+    const testQuery = gql`
+      {
+        returnListOfListOfInt
+      }
+    `;
     const expected = {
       returnListOfListOfInt: [[12, 12, 12], [12, 12, 12]],
     };
@@ -1217,9 +1307,11 @@ describe('Mock', () => {
       Int: () => 12,
     };
     addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
-    const testQuery = `{
-      returnListOfListOfIntArg(l: 1)
-    }`;
+    const testQuery = gql`
+      {
+        returnListOfListOfIntArg(l: 1)
+      }
+    `;
     const expected = {
       returnListOfListOfIntArg: [[12], [12]],
     };
@@ -1229,12 +1321,13 @@ describe('Mock', () => {
   });
 
   it('works for a slightly more elaborate example', () => {
-    const short = `
+    const short = gql`
       type Thread {
         id: ID!
         name: String!
         posts(page: Int = 0, num: Int = 1): [Post]
       }
+
       type Post {
         id: ID!
         user: User!
@@ -1284,16 +1377,18 @@ describe('Mock', () => {
       Int: () => 123,
     };
     addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
-    const testQuery = `query abc{
-      thread(id: "67"){
-        id
-        name
-        posts(num: 2){
+    const testQuery = gql`
+      query abc {
+        thread(id: "67") {
           id
-          text
+          name
+          posts(num: 2) {
+            id
+            text
+          }
         }
       }
-    }`;
+    `;
     const expected = {
       thread: {
         id: '67',
@@ -1312,16 +1407,16 @@ describe('Mock', () => {
   });
 
   it('works for resolvers returning javascript Dates', () => {
-    const typeDefs = `
-    	scalar Date
+    const typeDefs = gql`
+      scalar Date
 
       type DateObject {
         start: Date!
       }
 
       type Query {
-      	date1: DateObject
-    		date2: Date
+        date1: DateObject
+        date2: Date
         date3: Date
       }
     `;
@@ -1356,14 +1451,14 @@ describe('Mock', () => {
       preserveResolvers: true,
     });
 
-    const query = `
-    {
-      date1 {
-        start
+    const query = gql`
+      {
+        date1 {
+          start
+        }
+        date2
+        date3
       }
-      date2
-      date3
-    }
     `;
 
     const expected = {

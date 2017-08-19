@@ -1,10 +1,11 @@
 import TypeA from './circularSchemaA';
-
+import gql from './gql';
 export default () => [
-  `
-type TypeB {
-  id: ID
-  a: TypeA
-}`,
+  gql`
+    type TypeB {
+      id: ID
+      a: TypeA
+    }
+  `,
   TypeA,
 ];

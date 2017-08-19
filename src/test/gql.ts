@@ -1,7 +1,9 @@
 export default function gql(strings: TemplateStringsArray, ...rest: any[]) {
-  if (rest) {
-    throw new Error('No interpolations allowed.');
-  }
-
-  return strings.join('');
+  const values: any = [];
+  rest.forEach((val, i) => {
+    values.push(strings[i]);
+    values.push(val);
+  })
+  values.push(strings[strings.length - 1]);
+  return values.join('');
 }

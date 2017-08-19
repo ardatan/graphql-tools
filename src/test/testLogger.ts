@@ -3,17 +3,20 @@ import { graphql } from 'graphql';
 import { Logger } from '../Logger';
 import { makeExecutableSchema } from '../schemaGenerator';
 import 'mocha';
+import gql from './gql';
 
 describe('Logger', () => {
   it('logs the errors', done => {
-    const shorthand = `
+    const shorthand = gql`
       type RootQuery {
         just_a_field: Int
       }
+
       type RootMutation {
         species(name: String): String
         stuff: String
       }
+
       schema {
         query: RootQuery
         mutation: RootMutation
@@ -48,10 +51,11 @@ describe('Logger', () => {
   });
 
   it('also forwards the errors when you tell it to', done => {
-    const shorthand = `
+    const shorthand = gql`
       type RootQuery {
         species(name: String): String
       }
+
       schema {
         query: RootQuery
       }
@@ -80,10 +84,11 @@ describe('Logger', () => {
   });
 
   it('prints the errors when you want it to', done => {
-    const shorthand = `
+    const shorthand = gql`
       type RootQuery {
         species(name: String): String
       }
+
       schema {
         query: RootQuery
       }
@@ -114,14 +119,16 @@ describe('Logger', () => {
   });
 
   it('logs any Promise reject errors', done => {
-    const shorthand = `
+    const shorthand = gql`
       type RootQuery {
         just_a_field: Int
       }
+
       type RootMutation {
         species(name: String): String
         stuff: String
       }
+
       schema {
         query: RootQuery
         mutation: RootMutation
@@ -160,10 +167,11 @@ describe('Logger', () => {
   });
 
   it('all Promise rejects will log an Error', done => {
-    const shorthand = `
+    const shorthand = gql`
       type RootQuery {
         species(name: String): String
       }
+
       schema {
         query: RootQuery
       }
