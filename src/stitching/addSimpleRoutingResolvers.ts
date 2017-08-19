@@ -33,17 +33,16 @@ export default function addSimpleRoutingResolvers(
   const resolvers: {
     Query: ResolverMap;
     Mutation?: ResolverMap;
-  } = {
-    Query: queryResolvers,
-    Mutation: mutationResolvers,
-  };
+  } = { Query: queryResolvers };
 
   if (!isEmpty(mutationResolvers)) {
     resolvers.Mutation = mutationResolvers;
   }
 
+  const typeDefs = printSchema(schema);
+
   return makeExecutableSchema({
-    typeDefs: printSchema(schema),
+    typeDefs,
     resolvers,
   });
 }
