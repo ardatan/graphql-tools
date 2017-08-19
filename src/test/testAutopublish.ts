@@ -4,6 +4,7 @@ import { PubSub } from 'graphql-subscriptions';
 import { makeExecutableSchema } from '../schemaGenerator';
 import { autopublishMutationResults } from '../autopublish';
 import 'mocha';
+import gql from './gql';
 
 const speciesMap = {
   Tiger: { id: 0, name: 'Tiger' },
@@ -13,7 +14,7 @@ const speciesMap = {
 
 const speciesIndex: [string] = ['Tiger', 'Cat', 'Dog'];
 
-const typeDefs = `
+const typeDefs = gql`
   type Species {
     id: Int!
     name: String!
@@ -23,6 +24,7 @@ const typeDefs = `
     # either name or id required!
     species(name: String, id: Int): Species
   }
+
   type Mutation {
     createSpecies(name: String!): Species!
     updateSpecies(id: Int!, newName: String!): Species
@@ -76,9 +78,9 @@ const pubsub = new PubSub();
 
 describe('self-test', () => {
   it('query works', () => {
-    const query = `
+    const query = gql`
       {
-        species(name: "Tiger"){
+        species(name: "Tiger") {
           id
         }
       }
@@ -89,16 +91,16 @@ describe('self-test', () => {
   });
 
   it('create mutation works', () => {
-    const mutation = `
+    const mutation = gql`
       mutation {
-        createSpecies(name: "Eagle"){
+        createSpecies(name: "Eagle") {
           id
         }
       }
     `;
-    const query = `
+    const query = gql`
       {
-        species(name: "Eagle"){
+        species(name: "Eagle") {
           id
           name
         }
@@ -113,17 +115,17 @@ describe('self-test', () => {
   });
 
   it('update mutation works', () => {
-    const mutation = `
+    const mutation = gql`
       mutation {
-        updateSpecies(id: 1, newName: "Meow"){
+        updateSpecies(id: 1, newName: "Meow") {
           id
           name
         }
       }
     `;
-    const query = `
+    const query = gql`
       {
-        species(id: 1){
+        species(id: 1) {
           id
           name
         }
@@ -138,17 +140,17 @@ describe('self-test', () => {
   });
 
   it('delete mutation works', () => {
-    const mutation = `
+    const mutation = gql`
       mutation {
-        deleteSpecies(id: 3){
+        deleteSpecies(id: 3) {
           id
           name
         }
       }
     `;
-    const query = `
+    const query = gql`
       {
-        species(id: 3){
+        species(id: 3) {
           id
           name
         }
@@ -192,15 +194,15 @@ describe('Autopublish', () => {
     autopublishMutationResults(schema, pubsub);
 
     // run one mutation of each, then check to make sure you got em all!
-    const mutation = `
+    const mutation = gql`
       mutation {
-        createSpecies(name: "Rhino"){
+        createSpecies(name: "Rhino") {
           name
         }
-        updateSpecies(id: 0, newName: "Penguin"){
+        updateSpecies(id: 0, newName: "Penguin") {
           name
         }
-        deleteSpecies(id: 2){
+        deleteSpecies(id: 2) {
           name
         }
       }

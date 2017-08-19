@@ -2,11 +2,12 @@ import { assert } from 'chai';
 import { makeExecutableSchema, addSchemaLevelResolveFunction } from '..';
 import { graphql } from 'graphql';
 import { PubSub, SubscriptionManager } from 'graphql-subscriptions';
+import gql from './gql';
 
 describe('Resolve', () => {
   describe('addSchemaLevelResolveFunction', () => {
     const pubsub = new PubSub();
-    const typeDefs = `
+    const typeDefs = gql`
       type RootQuery {
         printRoot: String!
         printRootAgain: String!
@@ -62,12 +63,12 @@ describe('Resolve', () => {
       const root = 'queryRoot';
       return graphql(
         schema,
-        `
-        query TestOnce {
-          printRoot
-          printRootAgain
-        }
-      `,
+        gql`
+          query TestOnce {
+            printRoot
+            printRootAgain
+          }
+        `,
         root,
       ).then(({ data }) => {
         assert.deepEqual(data, {
@@ -87,7 +88,7 @@ describe('Resolve', () => {
       let subsCbkCalls = 0;
       const firstSubsTriggered = new Promise(resolveFirst => {
         subcriptionManager.subscribe({
-          query: `
+          query: gql`
             subscription TestSubscription {
               printRoot
             }
@@ -120,11 +121,11 @@ describe('Resolve', () => {
         .then(() =>
           graphql(
             schema,
-            `
-          query TestQuery {
-            printRoot
-          }
-        `,
+            gql`
+              query TestQuery {
+                printRoot
+              }
+            `,
             queryRoot,
           ),
         )
@@ -133,11 +134,11 @@ describe('Resolve', () => {
           assert.deepEqual(data, { printRoot: queryRoot });
           return graphql(
             schema,
-            `
-          mutation TestMutation {
-            printRoot
-          }
-        `,
+            gql`
+              mutation TestMutation {
+                printRoot
+              }
+            `,
             mutationRoot,
           );
         })

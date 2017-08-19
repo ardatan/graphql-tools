@@ -4,6 +4,7 @@ import { makeExecutableSchema } from '../schemaGenerator';
 import { IResolvers } from '../Interfaces';
 import makeRemoteExecutableSchema from '../stitching/makeRemoteExecutableSchema';
 import { Fetcher } from '../stitching/addSimpleRoutingResolvers';
+import gql from './gql';
 
 export type Property = {
   id: string;
@@ -128,7 +129,7 @@ export const sampleData: {
   },
 };
 
-const propertyTypeDefs = `
+const propertyTypeDefs = gql`
   type Property {
     id: ID!
     name: String!
@@ -162,7 +163,7 @@ const propertyResolvers: IResolvers = {
   },
 };
 
-const bookingTypeDefs = `
+const bookingTypeDefs = gql`
   type Booking {
     id: ID!
     propertyId: ID!
