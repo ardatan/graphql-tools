@@ -1,7 +1,9 @@
 import { values } from 'lodash';
-import { GraphQLSchema } from 'graphql';
+import { GraphQLSchema, graphql } from 'graphql';
 import { makeExecutableSchema } from '../schemaGenerator';
 import { IResolvers } from '../Interfaces';
+import makeRemoteExecutableSchema from '../stitching/makeRemoteExecutableSchema';
+import { Fetcher } from '../stitching/addSimpleRoutingResolvers';
 
 export type Property = {
   id: string;
@@ -305,3 +307,15 @@ export const bookingSchema: GraphQLSchema = makeExecutableSchema({
   typeDefs: bookingTypeDefs,
   resolvers: bookingResolvers,
 });
+
+// Pretend this schema is remote
+function makeSchemaRemote(schema: GraphQLSchema) {
+  const fetcher: Fetcher = ({ query, operationName, variables }) => {
+    return graphql(schema, query, null, null, variables, operationName);
+  };
+
+  return makeRemoteExecutableSchema(fetcher);
+}
+
+export const remotePropertySchema = makeSchemaRemote(propertySchema);
+export const remoteBookingSchema = makeSchemaRemote(bookingSchema);

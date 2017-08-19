@@ -1,48 +1,78 @@
 /* tslint:disable:no-unused-expression */
 
 import { expect } from 'chai';
-import { graphql } from 'graphql';
+import { graphql, GraphQLSchema } from 'graphql';
 import mergeSchemas from '../stitching/mergeSchemas';
-import { propertySchema, bookingSchema } from './testingSchemas';
+import {
+  propertySchema as localPropertySchema,
+  bookingSchema as localBookingSchema,
+  remoteBookingSchema,
+  remotePropertySchema,
+} from './testingSchemas';
 
-const mergedSchema = mergeSchemas({
-  schemas: [propertySchema, bookingSchema],
-  links: [
-    {
-      name: 'bookings',
-      from: 'Property',
-      to: 'bookingsByPropertyId',
-      fragment: `fragment Property on Property { id }`,
-      args: ['limit'],
-      resolveArgs(parent) {
-        return {
-          propertyId: parent.id,
-        };
-      },
-    },
-    {
-      name: 'property',
-      from: 'Booking',
-      fragment: `fragment Booking on Booking { propertyId }`,
-      to: 'propertyById',
-      resolveArgs(parent) {
-        return {
-          id: parent.propertyId,
-        };
-      },
-    },
-  ],
-});
+const testCombinations = [
+  { name: 'local', booking: localBookingSchema, property: localPropertySchema },
+  {
+    name: 'remote',
+    booking: remoteBookingSchema,
+    property: remotePropertySchema,
+  },
+  {
+    name: 'hybrid',
+    booking: localBookingSchema,
+    property: remotePropertySchema,
+  },
+];
 
-describe('basic', () => {
-  it('queries', async () => {
-    const propertyFragment = `
+testCombinations.forEach(async combination => {
+  describe('merging ' + combination.name, () => {
+    let mergedSchema: GraphQLSchema,
+      propertySchema: GraphQLSchema,
+      bookingSchema: GraphQLSchema;
+
+    before(async () => {
+      propertySchema = await combination.property;
+      bookingSchema = await combination.booking;
+
+      mergedSchema = mergeSchemas({
+        schemas: [propertySchema, bookingSchema],
+        links: [
+          {
+            name: 'bookings',
+            from: 'Property',
+            to: 'bookingsByPropertyId',
+            fragment: `fragment Property on Property { id }`,
+            args: ['limit'],
+            resolveArgs(parent) {
+              return {
+                propertyId: parent.id,
+              };
+            },
+          },
+          {
+            name: 'property',
+            from: 'Booking',
+            fragment: `fragment Booking on Booking { propertyId }`,
+            to: 'propertyById',
+            resolveArgs(parent) {
+              return {
+                id: parent.propertyId,
+              };
+            },
+          },
+        ],
+      });
+    });
+
+    describe('basic', () => {
+      it('queries', async () => {
+        const propertyFragment = `
 propertyById(id: "p1") {
   id
   name
 }
   `;
-    const bookingFragment = `
+        const bookingFragment = `
 bookingById(id: "b1") {
   id
   customer {
@@ -53,37 +83,37 @@ bookingById(id: "b1") {
 }
   `;
 
-    const propertyResult = await graphql(
-      propertySchema,
-      `query { ${propertyFragment} }`,
-    );
+        const propertyResult = await graphql(
+          propertySchema,
+          `query { ${propertyFragment} }`,
+        );
 
-    const bookingResult = await graphql(
-      bookingSchema,
-      `query { ${bookingFragment} }`,
-    );
+        const bookingResult = await graphql(
+          bookingSchema,
+          `query { ${bookingFragment} }`,
+        );
 
-    const mergedResult = await graphql(
-      mergedSchema,
-      `query {
+        const mergedResult = await graphql(
+          mergedSchema,
+          `query {
       ${propertyFragment}
       ${bookingFragment}
     }`,
-    );
+        );
 
-    expect(propertyResult.errors).to.be.undefined;
-    expect(bookingResult.errors).to.be.undefined;
-    expect(mergedResult.errors).to.be.undefined;
+        expect(propertyResult.errors).to.be.undefined;
+        expect(bookingResult.errors).to.be.undefined;
+        expect(mergedResult.errors).to.be.undefined;
 
-    expect(mergedResult.data).to.deep.equal({
-      ...propertyResult.data,
-      ...bookingResult.data,
-    });
-  });
+        expect(mergedResult.data).to.deep.equal({
+          ...propertyResult.data,
+          ...bookingResult.data,
+        });
+      });
 
-  // Technically mutations are not idempotent, but they are in our test schemas
-  it('mutations', async () => {
-    const mutationFragment = `
+      // Technically mutations are not idempotent, but they are in our test schemas
+      it('mutations', async () => {
+        const mutationFragment = `
       mutation Mutation($input: BookingInput!) {
         addBooking(input: $input) {
           id
@@ -95,42 +125,42 @@ bookingById(id: "b1") {
         }
       }
     `;
-    const input = {
-      propertyId: 'p1',
-      customerId: 'c1',
-      startTime: '2015-01-10',
-      endTime: '2015-02-10',
-    };
+        const input = {
+          propertyId: 'p1',
+          customerId: 'c1',
+          startTime: '2015-01-10',
+          endTime: '2015-02-10',
+        };
 
-    const bookingResult = await graphql(
-      bookingSchema,
-      mutationFragment,
-      {},
-      {},
-      {
-        input,
-      },
-    );
-    const mergedResult = await graphql(
-      mergedSchema,
-      mutationFragment,
-      {},
-      {},
-      {
-        input,
-      },
-    );
+        const bookingResult = await graphql(
+          bookingSchema,
+          mutationFragment,
+          {},
+          {},
+          {
+            input,
+          },
+        );
+        const mergedResult = await graphql(
+          mergedSchema,
+          mutationFragment,
+          {},
+          {},
+          {
+            input,
+          },
+        );
 
-    expect(bookingResult.errors).to.be.undefined;
-    expect(mergedResult.errors).to.be.undefined;
+        expect(bookingResult.errors).to.be.undefined;
+        expect(mergedResult.errors).to.be.undefined;
 
-    expect(mergedResult.data).to.deep.equal(bookingResult.data);
-  });
+        expect(mergedResult.data).to.deep.equal(bookingResult.data);
+      });
 
-  it('links in queries', async () => {
-    const mergedResult = await graphql(
-      mergedSchema,
-      `
+      it('links in queries', async () => {
+        const mergedResult = await graphql(
+          mergedSchema,
+          `
 query {
   firstProperty: propertyById(id: "p2") {
     id
@@ -166,49 +196,49 @@ query {
   }
 }
       `,
-    );
+        );
 
-    expect(mergedResult.errors).to.be.undefined;
-    expect(mergedResult).to.have.nested.property('data.firstProperty');
-    expect(mergedResult).to.have.nested.property('data.secondProperty');
-    expect(mergedResult).to.have.nested.property('data.booking');
+        expect(mergedResult.errors).to.be.undefined;
+        expect(mergedResult).to.have.nested.property('data.firstProperty');
+        expect(mergedResult).to.have.nested.property('data.secondProperty');
+        expect(mergedResult).to.have.nested.property('data.booking');
 
-    expect(mergedResult.data).to.deep.equal({
-      firstProperty: {
-        id: 'p2',
-        name: 'Another great hotel',
-        bookings: [
-          {
-            id: 'b4',
+        expect(mergedResult.data).to.deep.equal({
+          firstProperty: {
+            id: 'p2',
+            name: 'Another great hotel',
+            bookings: [
+              {
+                id: 'b4',
+                customer: {
+                  name: 'Exampler Customer',
+                },
+              },
+            ],
+          },
+          secondProperty: {
+            id: 'p3',
+            name: 'BedBugs - The Affordable Hostel',
+            bookings: [],
+          },
+          booking: {
+            id: 'b1',
             customer: {
               name: 'Exampler Customer',
             },
+
+            property: {
+              id: 'p1',
+              name: 'Super great hotel',
+            },
           },
-        ],
-      },
-      secondProperty: {
-        id: 'p3',
-        name: 'BedBugs - The Affordable Hostel',
-        bookings: [],
-      },
-      booking: {
-        id: 'b1',
-        customer: {
-          name: 'Exampler Customer',
-        },
+        });
+      });
 
-        property: {
-          id: 'p1',
-          name: 'Super great hotel',
-        },
-      },
-    });
-  });
-
-  it('unions', async () => {
-    const mergedResult = await graphql(
-      mergedSchema,
-      `
+      it('unions', async () => {
+        const mergedResult = await graphql(
+          mergedSchema,
+          `
         query {
           customerById(id: "c1") {
             ... on Person {
@@ -223,23 +253,25 @@ query {
           }
         }
       `,
-    );
+        );
 
-    expect(mergedResult.errors).to.be.undefined;
-    expect(mergedResult).to.have.nested.property('data.customerById');
-    expect(mergedResult).to.have.nested.property('data.customerById.vehicle');
-    expect(mergedResult).to.not.have.nested.property(
-      'data.customerById.vehicle.licensePlate',
-    );
-    expect(mergedResult).to.have.nested.property(
-      'data.customerById.vehicle.bikeType',
-    );
-  });
+        expect(mergedResult.errors).to.be.undefined;
+        expect(mergedResult).to.have.nested.property('data.customerById');
+        expect(mergedResult).to.have.nested.property(
+          'data.customerById.vehicle',
+        );
+        expect(mergedResult).to.not.have.nested.property(
+          'data.customerById.vehicle.licensePlate',
+        );
+        expect(mergedResult).to.have.nested.property(
+          'data.customerById.vehicle.bikeType',
+        );
+      });
 
-  it('deep links', async () => {
-    const mergedResult = await graphql(
-      mergedSchema,
-      `
+      it('deep links', async () => {
+        const mergedResult = await graphql(
+          mergedSchema,
+          `
 query {
   propertyById(id: "p2") {
     id
@@ -257,35 +289,35 @@ query {
   }
 }
       `,
-    );
+        );
 
-    expect(mergedResult.errors).to.be.undefined;
-    expect(mergedResult).to.have.nested.property('data.propertyById');
+        expect(mergedResult.errors).to.be.undefined;
+        expect(mergedResult).to.have.nested.property('data.propertyById');
 
-    expect(mergedResult.data).to.deep.equal({
-      propertyById: {
-        id: 'p2',
-        name: 'Another great hotel',
-        bookings: [
-          {
-            id: 'b4',
-            customer: {
-              name: 'Exampler Customer',
-            },
-            property: {
-              id: 'p2',
-              name: 'Another great hotel',
-            },
+        expect(mergedResult.data).to.deep.equal({
+          propertyById: {
+            id: 'p2',
+            name: 'Another great hotel',
+            bookings: [
+              {
+                id: 'b4',
+                customer: {
+                  name: 'Exampler Customer',
+                },
+                property: {
+                  id: 'p2',
+                  name: 'Another great hotel',
+                },
+              },
+            ],
           },
-        ],
-      },
-    });
-  });
+        });
+      });
 
-  it('link arguments', async () => {
-    const mergedResult = await graphql(
-      mergedSchema,
-      `
+      it('link arguments', async () => {
+        const mergedResult = await graphql(
+          mergedSchema,
+          `
 query {
   propertyById(id: "p1") {
     id
@@ -299,31 +331,31 @@ query {
   }
 }
       `,
-    );
+        );
 
-    expect(mergedResult.errors).to.be.undefined;
-    expect(mergedResult).to.have.nested.property('data.propertyById');
+        expect(mergedResult.errors).to.be.undefined;
+        expect(mergedResult).to.have.nested.property('data.propertyById');
 
-    expect(mergedResult.data).to.deep.equal({
-      propertyById: {
-        id: 'p1',
-        name: 'Super great hotel',
-        bookings: [
-          {
-            id: 'b1',
-            customer: {
-              name: 'Exampler Customer',
-            },
+        expect(mergedResult.data).to.deep.equal({
+          propertyById: {
+            id: 'p1',
+            name: 'Super great hotel',
+            bookings: [
+              {
+                id: 'b1',
+                customer: {
+                  name: 'Exampler Customer',
+                },
+              },
+            ],
           },
-        ],
-      },
+        });
+      });
     });
-  });
-});
 
-describe('fragments', () => {
-  it('named', async () => {
-    const propertyFragment = `
+    describe('fragments', () => {
+      it('named', async () => {
+        const propertyFragment = `
 fragment PropertyFragment on Property {
   id
   name
@@ -332,7 +364,7 @@ fragment PropertyFragment on Property {
   }
 }
     `;
-    const bookingFragment = `
+        const bookingFragment = `
 fragment BookingFragment on Booking {
   id
   customer {
@@ -343,9 +375,9 @@ fragment BookingFragment on Booking {
 }
     `;
 
-    const propertyResult = await graphql(
-      propertySchema,
-      `
+        const propertyResult = await graphql(
+          propertySchema,
+          `
 query {
   propertyById(id: "p1") {
     ...PropertyFragment
@@ -354,11 +386,11 @@ query {
 
 ${propertyFragment}
 `,
-    );
+        );
 
-    const bookingResult = await graphql(
-      bookingSchema,
-      `
+        const bookingResult = await graphql(
+          bookingSchema,
+          `
 query {
   bookingById(id: "b1") {
     ...BookingFragment
@@ -367,11 +399,11 @@ query {
 
 ${bookingFragment}
       `,
-    );
+        );
 
-    const mergedResult = await graphql(
-      mergedSchema,
-      `
+        const mergedResult = await graphql(
+          mergedSchema,
+          `
 query {
   propertyById(id: "p1") {
     ...PropertyFragment
@@ -385,20 +417,20 @@ query {
 ${propertyFragment}
 ${bookingFragment}
 `,
-    );
+        );
 
-    expect(propertyResult.errors).to.be.undefined;
-    expect(bookingResult.errors).to.be.undefined;
-    expect(mergedResult.errors).to.be.undefined;
+        expect(propertyResult.errors).to.be.undefined;
+        expect(bookingResult.errors).to.be.undefined;
+        expect(mergedResult.errors).to.be.undefined;
 
-    expect(mergedResult.data).to.deep.equal({
-      ...propertyResult.data,
-      ...bookingResult.data,
-    });
-  });
+        expect(mergedResult.data).to.deep.equal({
+          ...propertyResult.data,
+          ...bookingResult.data,
+        });
+      });
 
-  it('inline', async () => {
-    const propertyFragment = `
+      it('inline', async () => {
+        const propertyFragment = `
 propertyById(id: "p1") {
   ... on Property {
     id
@@ -406,7 +438,7 @@ propertyById(id: "p1") {
   name
 }
   `;
-    const bookingFragment = `
+        const bookingFragment = `
 bookingById(id: "b1") {
   id
   ... on Booking {
@@ -419,38 +451,38 @@ bookingById(id: "b1") {
 }
   `;
 
-    const propertyResult = await graphql(
-      propertySchema,
-      `query { ${propertyFragment} }`,
-    );
+        const propertyResult = await graphql(
+          propertySchema,
+          `query { ${propertyFragment} }`,
+        );
 
-    const bookingResult = await graphql(
-      bookingSchema,
-      `query { ${bookingFragment} }`,
-    );
+        const bookingResult = await graphql(
+          bookingSchema,
+          `query { ${bookingFragment} }`,
+        );
 
-    const mergedResult = await graphql(
-      mergedSchema,
-      `query {
+        const mergedResult = await graphql(
+          mergedSchema,
+          `query {
       ${propertyFragment}
       ${bookingFragment}
     }`,
-    );
+        );
 
-    expect(propertyResult.errors).to.be.undefined;
-    expect(bookingResult.errors).to.be.undefined;
-    expect(mergedResult.errors).to.be.undefined;
+        expect(propertyResult.errors).to.be.undefined;
+        expect(bookingResult.errors).to.be.undefined;
+        expect(mergedResult.errors).to.be.undefined;
 
-    expect(mergedResult.data).to.deep.equal({
-      ...propertyResult.data,
-      ...bookingResult.data,
-    });
-  });
+        expect(mergedResult.data).to.deep.equal({
+          ...propertyResult.data,
+          ...bookingResult.data,
+        });
+      });
 
-  it('containing links', async () => {
-    const mergedResult = await graphql(
-      mergedSchema,
-      `
+      it('containing links', async () => {
+        const mergedResult = await graphql(
+          mergedSchema,
+          `
 query {
   propertyById(id: "p2") {
     id
@@ -479,40 +511,40 @@ fragment PropertyFragment on Property {
   name
 }
       `,
-    );
+        );
 
-    expect(mergedResult.errors).to.be.undefined;
+        expect(mergedResult.errors).to.be.undefined;
 
-    expect(mergedResult.data).to.deep.equal({
-      propertyById: {
-        id: 'p2',
-        name: 'Another great hotel',
-        bookings: [
-          {
-            id: 'b4',
-            customer: {
-              name: 'Exampler Customer',
-            },
-            property: {
-              id: 'p2',
-              name: 'Another great hotel',
-            },
+        expect(mergedResult.data).to.deep.equal({
+          propertyById: {
+            id: 'p2',
+            name: 'Another great hotel',
+            bookings: [
+              {
+                id: 'b4',
+                customer: {
+                  name: 'Exampler Customer',
+                },
+                property: {
+                  id: 'p2',
+                  name: 'Another great hotel',
+                },
+              },
+            ],
           },
-        ],
-      },
+        });
+      });
     });
-  });
-});
 
-describe('variables', () => {
-  it('basic', async () => {
-    const propertyFragment = `
+    describe('variables', () => {
+      it('basic', async () => {
+        const propertyFragment = `
 propertyById(id: $p1) {
   id
   name
 }
   `;
-    const bookingFragment = `
+        const bookingFragment = `
 bookingById(id: $b1) {
   id
   customer {
@@ -523,54 +555,54 @@ bookingById(id: $b1) {
 }
   `;
 
-    const propertyResult = await graphql(
-      propertySchema,
-      `query($p1: ID!) { ${propertyFragment} }`,
-      {},
-      {},
-      {
-        p1: 'p1',
-      },
-    );
+        const propertyResult = await graphql(
+          propertySchema,
+          `query($p1: ID!) { ${propertyFragment} }`,
+          {},
+          {},
+          {
+            p1: 'p1',
+          },
+        );
 
-    const bookingResult = await graphql(
-      bookingSchema,
-      `query($b1: ID!) { ${bookingFragment} }`,
-      {},
-      {},
-      {
-        b1: 'b1',
-      },
-    );
+        const bookingResult = await graphql(
+          bookingSchema,
+          `query($b1: ID!) { ${bookingFragment} }`,
+          {},
+          {},
+          {
+            b1: 'b1',
+          },
+        );
 
-    const mergedResult = await graphql(
-      mergedSchema,
-      `query($p1: ID!, $b1: ID!) {
+        const mergedResult = await graphql(
+          mergedSchema,
+          `query($p1: ID!, $b1: ID!) {
         ${propertyFragment}
         ${bookingFragment}
       }`,
-      {},
-      {},
-      {
-        p1: 'p1',
-        b1: 'b1',
-      },
-    );
+          {},
+          {},
+          {
+            p1: 'p1',
+            b1: 'b1',
+          },
+        );
 
-    expect(propertyResult.errors).to.be.undefined;
-    expect(bookingResult.errors).to.be.undefined;
-    expect(mergedResult.errors).to.be.undefined;
+        expect(propertyResult.errors).to.be.undefined;
+        expect(bookingResult.errors).to.be.undefined;
+        expect(mergedResult.errors).to.be.undefined;
 
-    expect(mergedResult.data).to.deep.equal({
-      ...propertyResult.data,
-      ...bookingResult.data,
-    });
-  });
+        expect(mergedResult.data).to.deep.equal({
+          ...propertyResult.data,
+          ...bookingResult.data,
+        });
+      });
 
-  it('in link selections', async () => {
-    const mergedResult = await graphql(
-      mergedSchema,
-      `
+      it('in link selections', async () => {
+        const mergedResult = await graphql(
+          mergedSchema,
+          `
 query($limit: Int) {
   propertyById(id: "p1") {
     id
@@ -589,29 +621,31 @@ query($limit: Int) {
   }
 }
       `,
-      {},
-      {},
-      {
-        limit: 1,
-      },
-    );
-
-    expect(mergedResult.errors).to.be.undefined;
-
-    expect(mergedResult.data).to.deep.equal({
-      propertyById: {
-        id: 'p1',
-        name: 'Super great hotel',
-        bookings: [
+          {},
+          {},
           {
-            id: 'b1',
-            customer: {
-              name: 'Exampler Customer',
-              id: 'c1',
-            },
+            limit: 1,
           },
-        ],
-      },
+        );
+
+        expect(mergedResult.errors).to.be.undefined;
+
+        expect(mergedResult.data).to.deep.equal({
+          propertyById: {
+            id: 'p1',
+            name: 'Super great hotel',
+            bookings: [
+              {
+                id: 'b1',
+                customer: {
+                  name: 'Exampler Customer',
+                  id: 'c1',
+                },
+              },
+            ],
+          },
+        });
+      });
     });
   });
 });

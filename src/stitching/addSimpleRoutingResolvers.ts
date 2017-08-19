@@ -1,5 +1,5 @@
 import { mapValues, isEmpty } from 'lodash';
-import { printSchema, print, GraphQLError } from 'graphql';
+import { printSchema, print, ExecutionResult } from 'graphql';
 import { GraphQLFieldResolver, GraphQLSchema } from 'graphql';
 import { makeExecutableSchema } from '../schemaGenerator';
 
@@ -11,7 +11,7 @@ export type Fetcher = (
     operationName?: string;
     variables?: { [key: string]: any };
   },
-) => Promise<{ data: { [key: string]: any }; errors: Array<GraphQLError> }>;
+) => Promise<ExecutionResult>;
 
 export default function addSimpleRoutingResolvers(
   schema: GraphQLSchema,

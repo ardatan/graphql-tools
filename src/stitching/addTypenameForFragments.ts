@@ -1,4 +1,11 @@
-import { ASTNode, GraphQLSchema, visit, SelectionSetNode, FieldNode, Kind } from 'graphql';
+import {
+  ASTNode,
+  GraphQLSchema,
+  visit,
+  SelectionSetNode,
+  FieldNode,
+  Kind,
+} from 'graphql';
 
 export default function addTypenameForFragments<T extends ASTNode>(
   node: T,
