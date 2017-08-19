@@ -9,6 +9,7 @@ import {
   remoteBookingSchema,
   remotePropertySchema,
 } from './testingSchemas';
+import gql from './gql';
 
 const testCombinations = [
   { name: 'local', booking: localBookingSchema, property: localPropertySchema },
@@ -66,7 +67,7 @@ testCombinations.forEach(async combination => {
 
     describe('basic', () => {
       it('queries', async () => {
-        const propertyFragment = `
+        const propertyFragment = gql`
 propertyById(id: "p1") {
   id
   name
