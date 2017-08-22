@@ -17,7 +17,8 @@ export default function addSimpleRoutingResolvers(
   schema: GraphQLSchema,
   fetcher: Fetcher,
 ): GraphQLSchema {
-  const queries = schema.getQueryType().getFields();
+  const queryType = schema.getQueryType();
+  const queries = queryType.getFields();
   const queryResolvers: ResolverMap = mapValues(queries, (field, key) =>
     createResolver(fetcher, key),
   );
@@ -30,13 +31,10 @@ export default function addSimpleRoutingResolvers(
     );
   }
 
-  const resolvers: {
-    Query: ResolverMap;
-    Mutation?: ResolverMap;
-  } = { Query: queryResolvers };
+  const resolvers = { [queryType.name]: queryResolvers };
 
   if (!isEmpty(mutationResolvers)) {
-    resolvers.Mutation = mutationResolvers;
+    resolvers[mutationType.name] = mutationResolvers;
   }
 
   const typeDefs = printSchema(schema);
