@@ -1,7 +1,13 @@
-import { mapValues, isEmpty } from 'lodash';
+import { mapValues, isEmpty, values } from 'lodash';
 import { printSchema, print, ExecutionResult } from 'graphql';
-import { GraphQLFieldResolver, GraphQLSchema } from 'graphql';
+import {
+  GraphQLFieldResolver,
+  GraphQLSchema,
+  GraphQLInterfaceType,
+  GraphQLUnionType,
+} from 'graphql';
 import { makeExecutableSchema } from '../schemaGenerator';
+import resolveParentFromTypename from './resolveFromParentTypename';
 
 type ResolverMap = { [key: string]: GraphQLFieldResolver<any, any> };
 
@@ -17,7 +23,8 @@ export default function addSimpleRoutingResolvers(
   schema: GraphQLSchema,
   fetcher: Fetcher,
 ): GraphQLSchema {
-  const queries = schema.getQueryType().getFields();
+  const queryType = schema.getQueryType();
+  const queries = queryType.getFields();
   const queryResolvers: ResolverMap = mapValues(queries, (field, key) =>
     createResolver(fetcher, key),
   );
@@ -30,13 +37,24 @@ export default function addSimpleRoutingResolvers(
     );
   }
 
-  const resolvers: {
-    Query: ResolverMap;
-    Mutation?: ResolverMap;
-  } = { Query: queryResolvers };
+  const resolvers = { [queryType.name]: queryResolvers };
 
   if (!isEmpty(mutationResolvers)) {
-    resolvers.Mutation = mutationResolvers;
+    resolvers[mutationType.name] = mutationResolvers;
+  }
+
+  const types = values(schema.getTypeMap());
+  for (const type of types) {
+    if (
+      type instanceof GraphQLInterfaceType ||
+      type instanceof GraphQLUnionType
+    ) {
+      resolvers[type.name] = {
+        __resolveType(parent, context, info) {
+          return resolveParentFromTypename(parent, info.schema);
+        },
+      };
+    }
   }
 
   const typeDefs = printSchema(schema);
@@ -52,7 +70,11 @@ function createResolver(
   name: string,
 ): GraphQLFieldResolver<any, any> {
   return async (root, args, context, info) => {
-    const query = print(info.operation);
+    const operation = print(info.operation);
+    const fragments = values(info.fragments)
+      .map(fragment => print(fragment))
+      .join('\n');
+    const query = `${operation}\n${fragments}`;
     const result = await fetcher({
       query,
       variables: info.variableValues,

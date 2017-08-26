@@ -245,7 +245,6 @@ query {
               name
             }
             vehicle {
-              __typename
               ... on Bike {
                 bikeType
               }
@@ -503,7 +502,6 @@ fragment BookingFragment on Booking {
   property {
     ...PropertyFragment
   }
-
 }
 
 fragment PropertyFragment on Property {

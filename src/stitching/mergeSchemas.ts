@@ -509,11 +509,18 @@ function filterSelectionSetDeep(
   fragments: Array<FragmentDefinitionNode>;
   usedVariables: Array<string>;
 } {
+  const validFragments = values(fragments)
+    .filter(node => {
+      const typeName = node.typeCondition.name.value;
+      const innerType = schema.getType(typeName);
+      return Boolean(innerType);
+    })
+    .map(node => node.name.value);
   let {
     selectionSet: newSelectionSet,
     usedFragments: remainingFragments,
     usedVariables,
-  } = filterSelectionSet(registry, type, selectionSet);
+  } = filterSelectionSet(registry, schema, type, selectionSet, validFragments);
 
   const newFragments = {};
   // (XXX): So this will break if we have a fragment that only has link fields
@@ -529,13 +536,19 @@ function filterSelectionSetDeep(
       const typeName = nextFragment.typeCondition.name.value;
       const innerType = schema.getType(typeName);
       if (!innerType) {
-        throw new Error(`Could not find type ${typeName}`);
+        continue;
       }
       const {
         selectionSet: fragmentSelectionSet,
         usedFragments: fragmentUsedFragments,
         usedVariables: fragmentUsedVariables,
-      } = filterSelectionSet(registry, innerType, nextFragment.selectionSet);
+      } = filterSelectionSet(
+        registry,
+        schema,
+        innerType,
+        nextFragment.selectionSet,
+        validFragments,
+      );
       remainingFragments = union(remainingFragments, fragmentUsedFragments);
       usedVariables = union(usedVariables, fragmentUsedVariables);
       newFragments[name] = {
@@ -558,8 +571,10 @@ function filterSelectionSetDeep(
 
 function filterSelectionSet(
   registry: TypeRegistry,
+  schema: GraphQLSchema,
   type: GraphQLType,
   selectionSet: SelectionSetNode,
+  validFragments: Array<string>,
 ): {
   selectionSet: SelectionSetNode;
   usedFragments: Array<string>;
@@ -580,7 +595,10 @@ function filterSelectionSet(
         ) {
           parentType = parentType.ofType;
         }
-        if (parentType instanceof GraphQLObjectType) {
+        if (
+          parentType instanceof GraphQLObjectType ||
+          parentType instanceof GraphQLInterfaceType
+        ) {
           const fields = parentType.getFields();
           const field = fields[node.name.value];
           if (!field) {
@@ -602,8 +620,34 @@ function filterSelectionSet(
         typeStack.pop();
       },
     },
-    [Kind.FRAGMENT_SPREAD](node: FragmentSpreadNode) {
-      usedFragments.push(node.name.value);
+    [Kind.FRAGMENT_SPREAD](node: FragmentSpreadNode): null | undefined {
+      if (validFragments.includes(node.name.value)) {
+        usedFragments.push(node.name.value);
+      } else {
+        return null;
+      }
+    },
+    [Kind.INLINE_FRAGMENT]: {
+      enter(node: InlineFragmentNode): null | undefined {
+        if (node.typeCondition) {
+          const innerType = schema.getType(node.typeCondition.name.value);
+          if (innerType) {
+            typeStack.push(innerType);
+          } else {
+            return null;
+          }
+        }
+      },
+      leave(node: InlineFragmentNode): null | undefined {
+        if (node.typeCondition) {
+          const innerType = schema.getType(node.typeCondition.name.value);
+          if (innerType) {
+            typeStack.pop();
+          } else {
+            return null;
+          }
+        }
+      },
     },
     [Kind.VARIABLE](node: VariableNode) {
       usedVariables.push(node.name.value);
