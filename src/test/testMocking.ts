@@ -1335,6 +1335,91 @@ describe('Mock', () => {
       expect(res.data).to.deep.equal(expected);
     });
   });
+  
+  it("allows instanceof checks in resolve type", () => {
+
+    class Account {
+      id: string;
+      username: string;
+      
+      constructor() {
+        this.id = "123nmasb";
+        this.username = "foo@bar.com";
+      }
+    }
+
+    const typeDefs = `
+    	interface Node {
+    		id: ID!
+    	}
+
+      type Account implements Node {
+        id: ID!
+        username: String
+      }
+      
+      type User implements Node {
+        id: ID!
+      }
+
+      type Query {
+        node: Node
+      }
+    `;
+
+    const resolvers = {
+      Query: {
+        node: () => {
+          return new Account();
+        }
+      },
+      Node: {
+        __resolveType: (obj: any) => {
+          // This instanceof check doesn't seem to work
+          // when the addMockFunctionsToSchema is enabled.
+          if (obj instanceof Account) {
+            return "Account";
+          }
+          else {
+            return null;
+          }
+        }
+      }
+    };
+
+    const schema = makeExecutableSchema({
+      typeDefs,
+      resolvers,
+    });
+
+    addMockFunctionsToSchema({
+      schema,
+      preserveResolvers: true
+    });
+
+    const query = `
+    {
+      node {
+        ...on Account {
+          id
+          username
+        }
+      }
+    }
+    `;
+
+    const expected = {
+      data: {
+        node: {
+          id: "123nmasb",
+          username: "foo@bar.com"
+        }
+      }
+    };
+    return graphql(schema, query).then(res => {
+      expect(res).to.deep.equal(expected);
+    });
+  });
 
   // TODO add a test that checks that even when merging defaults, lists invoke
   // the function for every object, not just once per list.
