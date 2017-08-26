@@ -128,13 +128,33 @@ export const sampleData: {
   },
 };
 
-const propertyTypeDefs = `
+const addressTypeDef = `
+  type Address {
+    street: String
+    city: String
+    state: String
+    zip: String
+  }
+`;
+
+const propertyTypeDef = `
   type Property {
     id: ID!
     name: String!
     location: Location
   }
+`;
 
+const propertyAddressTypeDef = `
+  type Property {
+    id: ID!
+    name: String!
+    location: Location
+    address: Address
+  }
+`;
+
+const propertyRootTypeDefs = `
   type Location {
     name: String!
   }
@@ -143,6 +163,17 @@ const propertyTypeDefs = `
     propertyById(id: ID!): Property
     properties(limit: Int): [Property!]
   }
+`;
+
+const propertyTypeDefs = `
+  ${propertyTypeDef}
+  ${propertyRootTypeDefs}
+`;
+
+const propertyAddressTypeDefs = `
+  ${addressTypeDef}
+  ${propertyAddressTypeDef}
+  ${propertyRootTypeDefs}
 `;
 
 const propertyResolvers: IResolvers = {
@@ -162,7 +193,29 @@ const propertyResolvers: IResolvers = {
   },
 };
 
-const bookingTypeDefs = `
+const customerTypeDef = `
+  type Customer implements Person {
+    id: ID!
+    email: String!
+    name: String!
+    address: String
+    bookings(limit: Int): [Booking!]
+    vehicle: Vehicle
+  }
+`;
+
+const customerAddressTypeDef = `
+  type Customer implements Person {
+    id: ID!
+    email: String!
+    name: String!
+    address: Address
+    bookings(limit: Int): [Booking!]
+    vehicle: Vehicle
+  }
+`;
+
+const bookingRootTypeDefs = `
   type Booking {
     id: ID!
     propertyId: ID!
@@ -174,15 +227,6 @@ const bookingTypeDefs = `
   interface Person {
     id: ID!
     name: String!
-  }
-
-  type Customer implements Person {
-    id: ID!
-    email: String!
-    name: String!
-    address: String
-    bookings(limit: Int): [Booking!]
-    vehicle: Vehicle
   }
 
   union Vehicle = Bike | Car
@@ -215,6 +259,17 @@ const bookingTypeDefs = `
   type Mutation {
     addBooking(input: BookingInput): Booking
   }
+`;
+
+const bookingTypeDefs = `
+  ${customerTypeDef}
+  ${bookingRootTypeDefs}
+`;
+
+const bookingAddressTypeDefs = `
+  ${addressTypeDef}
+  ${customerAddressTypeDef}
+  ${bookingRootTypeDefs}
 `;
 
 const bookingResolvers: IResolvers = {
@@ -303,8 +358,18 @@ export const propertySchema: GraphQLSchema = makeExecutableSchema({
   resolvers: propertyResolvers,
 });
 
+export const propertyAddressSchema: GraphQLSchema = makeExecutableSchema({
+  typeDefs: propertyAddressTypeDefs,
+  resolvers: propertyResolvers,
+});
+
 export const bookingSchema: GraphQLSchema = makeExecutableSchema({
   typeDefs: bookingTypeDefs,
+  resolvers: bookingResolvers,
+});
+
+export const bookingAddressSchema: GraphQLSchema = makeExecutableSchema({
+  typeDefs: bookingAddressTypeDefs,
   resolvers: bookingResolvers,
 });
 
