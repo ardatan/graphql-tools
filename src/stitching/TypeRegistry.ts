@@ -89,9 +89,20 @@ export default class TypeRegistry {
     this.schemas.push(schema);
   }
 
-  public setType(name: string, type: GraphQLCompositeType): void {
+  public setType(
+    name: string,
+    type: GraphQLCompositeType,
+    onTypeConflict?: (
+      leftType: GraphQLCompositeType,
+      rightType: GraphQLCompositeType,
+    ) => GraphQLCompositeType,
+  ): void {
     if (this.types[name]) {
-      throw new Error(`Type name conflict: ${name}`);
+      if (onTypeConflict) {
+        type = onTypeConflict(this.types[name], type);
+      } else {
+        throw new Error(`Type name conflict: ${name}`);
+      }
     }
     this.types[name] = type;
   }

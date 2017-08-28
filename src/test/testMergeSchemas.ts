@@ -36,6 +36,7 @@ testCombinations.forEach(async combination => {
 
       mergedSchema = mergeSchemas({
         schemas: [propertySchema, bookingSchema],
+        onTypeConflict: (leftType, rightType) => leftType,
         links: [
           {
             name: 'bookings',

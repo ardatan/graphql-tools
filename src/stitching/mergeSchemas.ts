@@ -59,9 +59,14 @@ type EnhancedGraphQLFieldResolver<TSource, TContext> = (
 export default function mergeSchemas({
   links = [],
   schemas,
+  onTypeConflict,
 }: {
   links?: Array<SchemaLink>;
   schemas: Array<GraphQLSchema>;
+  onTypeConflict?: (
+    leftType: GraphQLCompositeType,
+    rightType: GraphQLCompositeType,
+  ) => GraphQLCompositeType;
 }): GraphQLSchema {
   let queryFields: GraphQLFieldConfigMap<any, any> = {};
   let mutationFields: GraphQLFieldConfigMap<any, any> = {};
@@ -93,7 +98,7 @@ export default function mergeSchemas({
         type !== mutationType
       ) {
         const newType = recreateCompositeType(schema, type, typeRegistry);
-        typeRegistry.setType(newType.name, newType);
+        typeRegistry.setType(newType.name, newType, onTypeConflict);
       }
     });
 

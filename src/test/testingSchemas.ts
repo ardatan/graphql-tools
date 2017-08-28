@@ -137,14 +137,6 @@ const addressTypeDef = `
   }
 `;
 
-const propertyTypeDef = `
-  type Property {
-    id: ID!
-    name: String!
-    location: Location
-  }
-`;
-
 const propertyAddressTypeDef = `
   type Property {
     id: ID!
@@ -163,11 +155,6 @@ const propertyRootTypeDefs = `
     propertyById(id: ID!): Property
     properties(limit: Int): [Property!]
   }
-`;
-
-const propertyTypeDefs = `
-  ${propertyTypeDef}
-  ${propertyRootTypeDefs}
 `;
 
 const propertyAddressTypeDefs = `
@@ -192,17 +179,6 @@ const propertyResolvers: IResolvers = {
     },
   },
 };
-
-const customerTypeDef = `
-  type Customer implements Person {
-    id: ID!
-    email: String!
-    name: String!
-    address: String
-    bookings(limit: Int): [Booking!]
-    vehicle: Vehicle
-  }
-`;
 
 const customerAddressTypeDef = `
   type Customer implements Person {
@@ -259,11 +235,6 @@ const bookingRootTypeDefs = `
   type Mutation {
     addBooking(input: BookingInput): Booking
   }
-`;
-
-const bookingTypeDefs = `
-  ${customerTypeDef}
-  ${bookingRootTypeDefs}
 `;
 
 const bookingAddressTypeDefs = `
@@ -354,21 +325,11 @@ const bookingResolvers: IResolvers = {
 };
 
 export const propertySchema: GraphQLSchema = makeExecutableSchema({
-  typeDefs: propertyTypeDefs,
-  resolvers: propertyResolvers,
-});
-
-export const propertyAddressSchema: GraphQLSchema = makeExecutableSchema({
   typeDefs: propertyAddressTypeDefs,
   resolvers: propertyResolvers,
 });
 
 export const bookingSchema: GraphQLSchema = makeExecutableSchema({
-  typeDefs: bookingTypeDefs,
-  resolvers: bookingResolvers,
-});
-
-export const bookingAddressSchema: GraphQLSchema = makeExecutableSchema({
   typeDefs: bookingAddressTypeDefs,
   resolvers: bookingResolvers,
 });
