@@ -66,6 +66,37 @@ testCombinations.forEach(async combination => {
     });
 
     describe('basic', () => {
+      it('works with context', async () => {
+        const propertyResult = await graphql(
+          propertySchema,
+          `query { contextTest(key: "test") }`,
+          {},
+          {
+            test: 'Foo',
+          },
+        );
+
+        const mergedResult = await graphql(
+          mergedSchema,
+          `query { contextTest(key: "test") }`,
+          {},
+          {
+            test: 'Foo',
+          },
+        );
+
+        expect(propertyResult.errors).to.be.undefined;
+        expect(mergedResult.errors).to.be.undefined;
+
+        expect(propertyResult.data).to.deep.equal({
+          contextTest: '"Foo"',
+        });
+
+        expect(mergedResult.data).to.deep.equal({
+          contextTest: '"Foo"',
+        });
+      });
+
       it('queries', async () => {
         const propertyFragment = `
 propertyById(id: "p1") {

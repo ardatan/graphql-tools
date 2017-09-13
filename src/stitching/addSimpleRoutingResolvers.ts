@@ -16,6 +16,7 @@ export type Fetcher = (
     query: string;
     operationName?: string;
     variables?: { [key: string]: any };
+    context?: { [key: string]: any };
   },
 ) => Promise<ExecutionResult>;
 
@@ -78,6 +79,7 @@ function createResolver(
     const result = await fetcher({
       query,
       variables: info.variableValues,
+      context,
     });
     if (result.errors || !result.data[name]) {
       throw result.errors;

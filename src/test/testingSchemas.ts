@@ -154,6 +154,7 @@ const propertyRootTypeDefs = `
   type Query {
     propertyById(id: ID!): Property
     properties(limit: Int): [Property!]
+    contextTest(key: String!): String
   }
 `;
 
@@ -176,6 +177,10 @@ const propertyResolvers: IResolvers = {
       } else {
         return list;
       }
+    },
+
+    contextTest(root, args, context) {
+      return JSON.stringify(context[args.key]);
     },
   },
 };
@@ -336,8 +341,8 @@ export const bookingSchema: GraphQLSchema = makeExecutableSchema({
 
 // Pretend this schema is remote
 function makeSchemaRemote(schema: GraphQLSchema) {
-  const fetcher: Fetcher = ({ query, operationName, variables }) => {
-    return graphql(schema, query, null, null, variables, operationName);
+  const fetcher: Fetcher = ({ query, operationName, variables, context }) => {
+    return graphql(schema, query, null, context, variables, operationName);
   };
 
   return makeRemoteExecutableSchema(fetcher);
