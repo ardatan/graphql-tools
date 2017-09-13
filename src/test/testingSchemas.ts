@@ -1,5 +1,5 @@
 import { values } from 'lodash';
-import { GraphQLSchema, graphql } from 'graphql';
+import { GraphQLSchema, graphql, Kind, GraphQLScalarType } from 'graphql';
 import { makeExecutableSchema } from '../schemaGenerator';
 import { IResolvers } from '../Interfaces';
 import makeRemoteExecutableSchema from '../stitching/makeRemoteExecutableSchema';
@@ -128,6 +128,25 @@ export const sampleData: {
   },
 };
 
+function coerceString(value: any): string {
+  if (Array.isArray(value)) {
+    throw new TypeError(
+      `String cannot represent an array value: [${String(value)}]`,
+    );
+  }
+  return String(value);
+}
+
+const DateTime = new GraphQLScalarType({
+  name: 'DateTime',
+  description: 'Simple fake datetime',
+  serialize: coerceString,
+  parseValue: coerceString,
+  parseLiteral(ast) {
+    return ast.kind === Kind.STRING ? ast.value : null;
+  },
+});
+
 const addressTypeDef = `
   type Address {
     street: String
@@ -159,6 +178,8 @@ const propertyRootTypeDefs = `
 `;
 
 const propertyAddressTypeDefs = `
+  scalar DateTime
+
   ${addressTypeDef}
   ${propertyAddressTypeDef}
   ${propertyRootTypeDefs}
@@ -183,6 +204,7 @@ const propertyResolvers: IResolvers = {
       return JSON.stringify(context[args.key]);
     },
   },
+  DateTime,
 };
 
 const customerAddressTypeDef = `
@@ -197,6 +219,8 @@ const customerAddressTypeDef = `
 `;
 
 const bookingRootTypeDefs = `
+  scalar DateTime
+
   type Booking {
     id: ID!
     propertyId: ID!
@@ -233,8 +257,8 @@ const bookingRootTypeDefs = `
   input BookingInput {
     propertyId: ID!
     customerId: ID!
-    startTime: String!
-    endTime: String!
+    startTime: DateTime!
+    endTime: DateTime!
   }
 
   type Mutation {
@@ -327,6 +351,8 @@ const bookingResolvers: IResolvers = {
       }
     },
   },
+
+  DateTime,
 };
 
 export const propertySchema: GraphQLSchema = makeExecutableSchema({

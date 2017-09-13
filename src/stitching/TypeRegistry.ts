@@ -1,11 +1,12 @@
 import {
   GraphQLSchema,
   GraphQLObjectType,
-  isCompositeType,
   GraphQLNonNull,
   GraphQLList,
-  GraphQLCompositeType,
   GraphQLType,
+  isNamedType,
+  getNamedType,
+  GraphQLNamedType,
 } from 'graphql';
 import { SchemaLink } from './types';
 
@@ -14,7 +15,7 @@ export default class TypeRegistry {
   public mutation?: GraphQLObjectType;
   private schemas: Array<GraphQLSchema>;
   private schemaByField: { [key: string]: GraphQLSchema };
-  private types: { [key: string]: GraphQLCompositeType };
+  private types: { [key: string]: GraphQLNamedType };
   private linksByType: { [key: string]: Array<SchemaLink> };
   constructor() {
     this.schemas = [];
@@ -29,7 +30,7 @@ export default class TypeRegistry {
     return this.schemaByField[fieldName];
   }
 
-  public getType(name: string): GraphQLCompositeType {
+  public getType(name: string): GraphQLNamedType {
     if (!this.types[name]) {
       throw new Error(`No such type: ${name}`);
     }
@@ -54,8 +55,8 @@ export default class TypeRegistry {
       return new GraphQLList(this.resolveType(type.ofType)) as T;
     } else if (type instanceof GraphQLNonNull) {
       return new GraphQLNonNull(this.resolveType(type.ofType)) as T;
-    } else if (isCompositeType(type)) {
-      return this.getType(type.name) as T;
+    } else if (isNamedType(type)) {
+      return this.getType(getNamedType(type).name) as T;
     } else {
       return type;
     }
@@ -91,11 +92,11 @@ export default class TypeRegistry {
 
   public setType(
     name: string,
-    type: GraphQLCompositeType,
+    type: GraphQLNamedType,
     onTypeConflict?: (
-      leftType: GraphQLCompositeType,
-      rightType: GraphQLCompositeType,
-    ) => GraphQLCompositeType,
+      leftType: GraphQLNamedType,
+      rightType: GraphQLNamedType,
+    ) => GraphQLNamedType,
   ): void {
     if (this.types[name]) {
       if (onTypeConflict) {

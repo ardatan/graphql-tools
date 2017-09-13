@@ -14,7 +14,9 @@ import {
   GraphQLObjectType,
   GraphQLNonNull,
   GraphQLList,
+  isNamedType,
   isCompositeType,
+  getNamedType,
   Kind,
   execute,
   visit,
@@ -92,12 +94,17 @@ export default function mergeSchemas({
 
     forEach(typeMap, (type: GraphQLType) => {
       if (
-        isCompositeType(type) &&
-        type.name.slice(0, 2) !== '__' &&
+        isNamedType(type) &&
+        getNamedType(type).name.slice(0, 2) !== '__' &&
         type !== queryType &&
         type !== mutationType
       ) {
-        const newType = recreateCompositeType(schema, type, typeRegistry);
+        let newType;
+        if (isCompositeType(type)) {
+          newType = recreateCompositeType(schema, type, typeRegistry);
+        } else {
+          newType = getNamedType(type);
+        }
         typeRegistry.setType(newType.name, newType, onTypeConflict);
       }
     });
