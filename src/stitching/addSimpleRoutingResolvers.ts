@@ -5,11 +5,16 @@ import {
   GraphQLSchema,
   GraphQLInterfaceType,
   GraphQLUnionType,
+  GraphQLID,
+  GraphQLString,
+  GraphQLFloat,
+  GraphQLBoolean,
+  GraphQLInt,
+  GraphQLScalarType,
 } from 'graphql';
+import { IResolvers, IResolverObject } from '../Interfaces';
 import { makeExecutableSchema } from '../schemaGenerator';
 import resolveParentFromTypename from './resolveFromParentTypename';
-
-type ResolverMap = { [key: string]: GraphQLFieldResolver<any, any> };
 
 export type Fetcher = (
   operation: {
@@ -26,10 +31,10 @@ export default function addSimpleRoutingResolvers(
 ): GraphQLSchema {
   const queryType = schema.getQueryType();
   const queries = queryType.getFields();
-  const queryResolvers: ResolverMap = mapValues(queries, (field, key) =>
+  const queryResolvers: IResolverObject = mapValues(queries, (field, key) =>
     createResolver(fetcher, key),
   );
-  let mutationResolvers: ResolverMap = {};
+  let mutationResolvers: IResolverObject = {};
   const mutationType = schema.getMutationType();
   if (mutationType) {
     const mutations = mutationType.getFields();
@@ -38,7 +43,7 @@ export default function addSimpleRoutingResolvers(
     );
   }
 
-  const resolvers = { [queryType.name]: queryResolvers };
+  const resolvers: IResolvers = { [queryType.name]: queryResolvers };
 
   if (!isEmpty(mutationResolvers)) {
     resolvers[mutationType.name] = mutationResolvers;
@@ -55,6 +60,31 @@ export default function addSimpleRoutingResolvers(
           return resolveParentFromTypename(parent, info.schema);
         },
       };
+    } else if (type instanceof GraphQLScalarType) {
+      if (
+        !(
+          type === GraphQLID ||
+          type === GraphQLString ||
+          type === GraphQLFloat ||
+          type === GraphQLBoolean ||
+          type === GraphQLInt
+        )
+      ) {
+        const fakeScalar = new GraphQLScalarType({
+          name: type.name,
+          description: type.description,
+          serialize(value) {
+            return GraphQLString.serialize(value);
+          },
+          parseValue(value) {
+            return GraphQLString.parseValue(value);
+          },
+          parseLiteral(ast) {
+            return GraphQLString.parseLiteral(ast);
+          },
+        });
+        resolvers[type.name] = fakeScalar;
+      }
     }
   }
 

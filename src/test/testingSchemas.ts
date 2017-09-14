@@ -174,6 +174,7 @@ const propertyRootTypeDefs = `
     propertyById(id: ID!): Property
     properties(limit: Int): [Property!]
     contextTest(key: String!): String
+    dateTimeTest: DateTime
   }
 `;
 
@@ -202,6 +203,10 @@ const propertyResolvers: IResolvers = {
 
     contextTest(root, args, context) {
       return JSON.stringify(context[args.key]);
+    },
+
+    dateTimeTest() {
+      return '1987-09-25T12:00:00';
     },
   },
   DateTime,

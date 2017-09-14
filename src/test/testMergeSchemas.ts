@@ -97,6 +97,29 @@ testCombinations.forEach(async combination => {
         });
       });
 
+      it('works with custom scalars', async () => {
+        const propertyResult = await graphql(
+          propertySchema,
+          `query { dateTimeTest }`,
+        );
+
+        const mergedResult = await graphql(
+          mergedSchema,
+          `query { dateTimeTest }`,
+        );
+
+        expect(propertyResult.errors).to.be.undefined;
+        expect(mergedResult.errors).to.be.undefined;
+
+        expect(propertyResult.data).to.deep.equal({
+          dateTimeTest: '1987-09-25T12:00:00',
+        });
+
+        expect(mergedResult.data).to.deep.equal({
+          dateTimeTest: '1987-09-25T12:00:00',
+        });
+      });
+
       it('queries', async () => {
         const propertyFragment = `
 propertyById(id: "p1") {

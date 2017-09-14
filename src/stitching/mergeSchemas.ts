@@ -22,6 +22,7 @@ import {
   visit,
   parse,
   GraphQLFieldMap,
+  GraphQLInputFieldConfigMap,
   GraphQLFieldConfigMap,
   GraphQLField,
   GraphQLArgument,
@@ -44,6 +45,10 @@ import {
   GraphQLResolveInfo,
   GraphQLInterfaceType,
   GraphQLUnionType,
+  GraphQLInputObjectType,
+  GraphQLInputFieldMap,
+  GraphQLInputField,
+  GraphQLInputFieldConfig,
 } from 'graphql';
 import TypeRegistry from './TypeRegistry';
 import { SchemaLink } from './types';
@@ -100,7 +105,7 @@ export default function mergeSchemas({
         type !== mutationType
       ) {
         let newType;
-        if (isCompositeType(type)) {
+        if (isCompositeType(type) || type instanceof GraphQLInputObjectType) {
           newType = recreateCompositeType(schema, type, typeRegistry);
         } else {
           newType = getNamedType(type);
@@ -167,9 +172,9 @@ export default function mergeSchemas({
 
 function recreateCompositeType(
   schema: GraphQLSchema,
-  type: GraphQLCompositeType,
+  type: GraphQLCompositeType | GraphQLInputObjectType,
   registry: TypeRegistry,
-): GraphQLCompositeType {
+): GraphQLCompositeType | GraphQLInputObjectType {
   if (type instanceof GraphQLObjectType) {
     const fields = type.getFields();
     const interfaces = type.getInterfaces();
@@ -197,7 +202,7 @@ function recreateCompositeType(
       resolveType: (parent, context, info) =>
         resolveFromParentTypename(parent, info.schema),
     });
-  } else {
+  } else if (type instanceof GraphQLUnionType) {
     return new GraphQLUnionType({
       name: type.name,
       description: type.description,
@@ -206,6 +211,14 @@ function recreateCompositeType(
       resolveType: (parent, context, info) =>
         resolveFromParentTypename(parent, info.schema),
     });
+  } else if (type instanceof GraphQLInputObjectType) {
+    return new GraphQLInputObjectType({
+      name: type.name,
+      description: type.description,
+      fields: () => inputFieldMapToFieldConfigMap(type.getFields(), registry),
+    });
+  } else {
+    throw new Error('Invalid type ${type.name}');
   }
 }
 
@@ -249,6 +262,23 @@ function argumentToArgumentConfig(
   ];
 }
 
+function inputFieldMapToFieldConfigMap(
+  fields: GraphQLInputFieldMap,
+  registry: TypeRegistry,
+): GraphQLInputFieldConfigMap {
+  return mapValues(fields, field => inputFieldToFieldConfig(field, registry));
+}
+
+function inputFieldToFieldConfig(
+  field: GraphQLInputField,
+  registry: TypeRegistry,
+): GraphQLInputFieldConfig {
+  return {
+    type: registry.resolveType(field.type),
+    description: field.description,
+  };
+}
+
 function createLinks(
   links: Array<SchemaLink>,
   registry: TypeRegistry,
@@ -271,7 +301,7 @@ function createLinks(
         link.args || [],
       ) as GraphQLFieldConfigArgumentMap;
       const linkField: GraphQLFieldConfig<any, any> = {
-        type: rootField.type,
+        type: registry.resolveType(rootField.type),
         args: processedArgs,
         resolve: (parent, args, context, info) => {
           let implicitArgs;
