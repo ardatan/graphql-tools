@@ -112,10 +112,9 @@ function makeExecutableSchema({
   if (typeof resolvers['__schema'] === 'function') {
     // TODO a bit of a hack now, better rewrite generateSchema to attach it there.
     // not doing that now, because I'd have to rewrite a lot of tests.
-    addSchemaLevelResolveFunction(
-      jsSchema,
-      resolvers['__schema'] as GraphQLFieldResolver<any, any>,
-    );
+    addSchemaLevelResolveFunction(jsSchema, resolvers[
+      '__schema'
+    ] as GraphQLFieldResolver<any, any>);
   }
   if (connectors) {
     // connectors are optional, at least for now. That means you can just import them in the resolve
@@ -619,4 +618,5 @@ export {
   addSchemaLevelResolveFunction,
   attachConnectorsToContext,
   concatenateTypeDefs,
+  extractExtensionDefinitions,
 };

@@ -3,101 +3,122 @@ import {
   mapValues,
   fromPairs,
   forEach,
-  pick,
   values,
   union,
   keyBy,
   difference,
+  isString,
+  merge,
 } from 'lodash';
 import {
-  GraphQLSchema,
-  GraphQLObjectType,
-  GraphQLNonNull,
-  GraphQLList,
-  isNamedType,
-  isCompositeType,
-  getNamedType,
-  Kind,
-  execute,
-  visit,
-  parse,
-  GraphQLFieldMap,
-  GraphQLInputFieldConfigMap,
-  GraphQLFieldConfigMap,
-  GraphQLField,
+  DocumentNode,
+  FieldNode,
+  FragmentDefinitionNode,
+  FragmentSpreadNode,
   GraphQLArgument,
-  GraphQLFieldConfigArgumentMap,
   GraphQLArgumentConfig,
   GraphQLCompositeType,
-  GraphQLType,
-  DocumentNode,
-  SelectionSetNode,
-  FragmentDefinitionNode,
-  OperationDefinitionNode,
-  FieldNode,
-  VariableDefinitionNode,
-  InlineFragmentNode,
-  GraphQLInputType,
-  VariableNode,
-  TypeNode,
-  FragmentSpreadNode,
+  GraphQLField,
   GraphQLFieldConfig,
-  GraphQLResolveInfo,
-  GraphQLInterfaceType,
-  GraphQLUnionType,
-  GraphQLInputObjectType,
-  GraphQLInputFieldMap,
+  GraphQLFieldConfigArgumentMap,
+  GraphQLFieldConfigMap,
+  GraphQLFieldMap,
+  GraphQLFieldResolver,
   GraphQLInputField,
   GraphQLInputFieldConfig,
+  GraphQLInputFieldConfigMap,
+  GraphQLInputFieldMap,
+  GraphQLInputObjectType,
+  GraphQLInputType,
+  GraphQLInterfaceType,
+  GraphQLList,
+  GraphQLNonNull,
+  GraphQLObjectType,
+  GraphQLResolveInfo,
+  GraphQLSchema,
+  GraphQLType,
+  GraphQLUnionType,
+  InlineFragmentNode,
+  Kind,
+  OperationDefinitionNode,
+  SelectionSetNode,
+  TypeNode,
+  VariableDefinitionNode,
+  VariableNode,
+  buildASTSchema,
+  execute,
+  getNamedType,
+  isCompositeType,
+  isNamedType,
+  parse,
+  visit,
+  extendSchema,
 } from 'graphql';
 import TypeRegistry from './TypeRegistry';
-import { SchemaLink } from './types';
+import { IResolvers } from '../Interfaces';
+import {
+  extractExtensionDefinitions,
+  addResolveFunctionsToSchema,
+} from '../schemaGenerator';
 import resolveFromParentTypename from './resolveFromParentTypename';
 import addTypenameForFragments from './addTypenameForFragments';
 
-type EnhancedGraphQLFieldResolver<TSource, TContext> = (
-  source: TSource,
-  args: { [argName: string]: any },
-  context: TContext,
-  info: GraphQLResolveInfo,
-  implicitArgs?: { [argName: string]: any },
-) => any;
+export type MergeInfo = {
+  delegate: (
+    type: 'query' | 'mutation',
+    fieldName: string,
+    args: { [key: string]: any },
+    context: { [key: string]: any },
+    info: GraphQLResolveInfo,
+  ) => any;
+};
 
 export default function mergeSchemas({
-  links = [],
   schemas,
   onTypeConflict,
+  resolvers,
 }: {
-  links?: Array<SchemaLink>;
-  schemas: Array<GraphQLSchema>;
+  schemas: Array<GraphQLSchema | string>;
   onTypeConflict?: (
     leftType: GraphQLCompositeType,
     rightType: GraphQLCompositeType,
   ) => GraphQLCompositeType;
+  resolvers: (mergeInfo: MergeInfo) => IResolvers;
 }): GraphQLSchema {
   let queryFields: GraphQLFieldConfigMap<any, any> = {};
   let mutationFields: GraphQLFieldConfigMap<any, any> = {};
 
   const typeRegistry = new TypeRegistry();
 
+  const mergeInfo: MergeInfo = createMergeInfo(typeRegistry);
+
+  const actualSchemas: Array<GraphQLSchema> = [];
+  const extensions: Array<DocumentNode> = [];
+  let fullResolvers: IResolvers = {};
+
   schemas.forEach(schema => {
-    typeRegistry.addSchema(schema);
+    if (schema instanceof GraphQLSchema) {
+      actualSchemas.push(schema);
+    } else if (isString(schema)) {
+      let parsedSchemaDocument = parse(schema);
+      try {
+        const actualSchema = buildASTSchema(parsedSchemaDocument);
+        actualSchemas.push(actualSchema);
+      } catch (e) {
+        console.log(
+          'Could not create a schema from parsed string, will only use extensions',
+        );
+      }
+      parsedSchemaDocument = extractExtensionDefinitions(parsedSchemaDocument);
+      if (parsedSchemaDocument.definitions.length > 0) {
+        extensions.push(parsedSchemaDocument);
+      }
+    }
   });
 
-  typeRegistry.addLinks(
-    links.map(link => ({
-      ...link,
-      inlineFragment:
-        link.fragment && parseFragmentToInlineFragment(link.fragment),
-    })),
-  );
-
-  schemas.forEach(schema => {
-    const typeMap = schema.getTypeMap();
-    const queryType = schema.getQueryType();
-    const mutationType = schema.getMutationType();
-
-    forEach(typeMap, (type: GraphQLType) => {
+  actualSchemas.forEach(schema => {
+    typeRegistry.addSchema(schema);
+    forEach(schema.getTypeMap(), (type: GraphQLType) => {
       if (
         isNamedType(type) &&
         getNamedType(type).name.slice(0, 2) !== '__' &&
@@ -110,41 +131,58 @@ export default function mergeSchemas({
         } else {
           newType = getNamedType(type);
         }
-        typeRegistry.setType(newType.name, newType, onTypeConflict);
+        typeRegistry.addType(newType.name, newType, onTypeConflict);
       }
     });
+    const queryType = schema.getQueryType();
+    const mutationType = schema.getMutationType();
 
-    const queryTypeFields = mapValues(
-      fieldMapToFieldConfigMap(queryType.getFields(), typeRegistry),
-      (field, name) => ({
-        ...field,
-        resolve: createForwardingResolver(typeRegistry, schema, name, 'query'),
-      }),
-    );
+    forEach(queryType.getFields(), (field, name) => {
+      if (!fullResolvers.Query) {
+        fullResolvers.Query = {};
+      }
+      fullResolvers.Query[name] = createDelegatingResolver(
+        mergeInfo,
+        'query',
+        name,
+      );
+    });
+
     queryFields = {
       ...queryFields,
-      ...queryTypeFields,
+      ...fieldMapToFieldConfigMap(queryType.getFields(), typeRegistry),
     };
+
     if (mutationType) {
-      const mutationTypeFields = mapValues(
-        fieldMapToFieldConfigMap(mutationType.getFields(), typeRegistry),
-        (field, name) => ({
-          ...field,
-          resolve: createForwardingResolver(
-            typeRegistry,
-            schema,
-            name,
-            'mutation',
-          ),
-        }),
-      );
+      if (!fullResolvers.Mutation) {
+        fullResolvers.Mutation = {};
+      }
+      forEach(mutationType.getFields(), (field, name) => {
+        fullResolvers.Mutation[name] = createDelegatingResolver(
+          mergeInfo,
+          'mutation',
+          name,
+        );
+      });
 
       mutationFields = {
         ...mutationFields,
-        ...mutationTypeFields,
+        ...fieldMapToFieldConfigMap(mutationType.getFields(), typeRegistry),
       };
     }
   });
+
+  const passedResolvers = resolvers(mergeInfo);
+
+  forEach(passedResolvers, (type, typeName) => {
+    forEach(type, (field, fieldName) => {
+      if (field.fragment) {
+        typeRegistry.addFragment(typeName, fieldName, field.fragment);
+      }
+    });
+  });
+
+  merge(fullResolvers, passedResolvers);
 
   const query = new GraphQLObjectType({
     name: 'Query',
@@ -152,7 +190,7 @@ export default function mergeSchemas({
       ...queryFields,
     },
   });
-  typeRegistry.setQuery(query);
+
   let mutation;
   if (!isEmpty(mutationFields)) {
     mutation = new GraphQLObjectType({
@@ -161,13 +199,20 @@ export default function mergeSchemas({
         ...mutationFields,
       },
     });
-    typeRegistry.setMutation(mutation);
   }
 
-  return new GraphQLSchema({
+  let schema = new GraphQLSchema({
     query,
     mutation,
   });
+
+  extensions.forEach(extension => {
+    schema = extendSchema(schema, extension);
+  });
+
+  addResolveFunctionsToSchema(schema, fullResolvers);
+
+  return schema;
 }
 
 function recreateCompositeType(
@@ -183,10 +228,7 @@ function recreateCompositeType(
       name: type.name,
       description: type.description,
       isTypeOf: type.isTypeOf,
-      fields: () => ({
-        ...fieldMapToFieldConfigMap(fields, registry),
-        ...createLinks(registry.getLinksByType(type.name), registry),
-      }),
+      fields: () => fieldMapToFieldConfigMap(fields, registry),
       interfaces: () => interfaces.map(iface => registry.resolveType(iface)),
     });
   } else if (type instanceof GraphQLInterfaceType) {
@@ -195,10 +237,7 @@ function recreateCompositeType(
     return new GraphQLInterfaceType({
       name: type.name,
       description: type.description,
-      fields: () => ({
-        ...fieldMapToFieldConfigMap(fields, registry),
-        ...createLinks(registry.getLinksByType(type.name), registry),
-      }),
+      fields: () => fieldMapToFieldConfigMap(fields, registry),
       resolveType: (parent, context, info) =>
         resolveFromParentTypename(parent, info.schema),
     });
@@ -279,127 +318,126 @@ function inputFieldToFieldConfig(
   };
 }
 
-function createLinks(
-  links: Array<SchemaLink>,
-  registry: TypeRegistry,
-): { [key: string]: GraphQLFieldConfig<any, any> } {
-  if (!registry.query) {
-    throw new Error('Somehow we do not have Query in registry');
-  }
-  const queryFields = registry.query.getFields();
-  return fromPairs(
-    links.map(link => {
-      const field = link.to;
-      const schema = registry.getSchemaByRootField(field);
-      const resolver: EnhancedGraphQLFieldResolver<
-        any,
-        any
-      > = createForwardingResolver(registry, schema, field, 'query');
-      const rootField = queryFields[link.to];
-      const processedArgs = pick(
-        argsToFieldConfigArgumentMap(rootField.args, registry),
-        link.args || [],
-      ) as GraphQLFieldConfigArgumentMap;
-      const linkField: GraphQLFieldConfig<any, any> = {
-        type: registry.resolveType(rootField.type),
-        args: processedArgs,
-        resolve: (parent, args, context, info) => {
-          let implicitArgs;
-          if (link.resolveArgs) {
-            implicitArgs = link.resolveArgs(parent, args, context, info);
-          } else {
-            implicitArgs = {};
-          }
-
-          return resolver(parent, args, context, info, implicitArgs);
-        },
-      };
-      return [link.name, linkField];
-    }),
-  );
-}
-
-function createForwardingResolver(
-  registry: TypeRegistry,
-  schema: GraphQLSchema,
-  rootFieldName: string,
-  operation: 'query' | 'mutation',
-): EnhancedGraphQLFieldResolver<any, any> {
-  return async (root, args, context, info, implicitArgs = {}) => {
-    let type;
-    if (operation === 'query') {
-      type = schema.getQueryType();
-    } else {
-      type = schema.getMutationType();
-    }
-    if (type) {
-      const graphqlDoc: DocumentNode = createDocument(
-        registry,
+function createMergeInfo(typeRegistry: TypeRegistry): MergeInfo {
+  return {
+    delegate(
+      operation: 'query' | 'mutation',
+      fieldName: string,
+      args: { [key: string]: any },
+      context: { [key: string]: any },
+      info: GraphQLResolveInfo,
+    ): any {
+      const schema = typeRegistry.getSchemaByField(operation, fieldName);
+      const fragmentReplacements = typeRegistry.fragmentReplacements;
+      return delegateToSchema(
         schema,
-        type,
-        rootFieldName,
+        fragmentReplacements,
         operation,
-        info.fieldNodes,
-        info.fragments,
-        info.operation.variableDefinitions,
-      );
-
-      const operationDefinition = graphqlDoc.definitions.find(
-        ({ kind }) => kind === Kind.OPERATION_DEFINITION,
-      );
-      let variableValues;
-      if (
-        operationDefinition &&
-        operationDefinition.kind === Kind.OPERATION_DEFINITION &&
-        operationDefinition.variableDefinitions
-      ) {
-        variableValues = fromPairs(
-          operationDefinition.variableDefinitions.map(definition => {
-            const key = definition.variable.name.value;
-            // (XXX) This is kinda hacky
-            let actualKey = key;
-            if (actualKey.startsWith('_')) {
-              actualKey = actualKey.slice(1);
-            }
-            const value =
-              implicitArgs[actualKey] || args[key] || info.variableValues[key];
-            return [key, value];
-          }),
-        );
-      }
-
-      const result = await execute(
-        schema,
-        graphqlDoc,
-        info.rootValue,
+        fieldName,
+        args,
         context,
-        variableValues,
+        info,
       );
-
-      // const print = require('graphql').print;
-      // console.log(
-      //   'RESULT FROM FORWARDING\n',
-      //   print(graphqlDoc),
-      //   '\n',
-      //   JSON.stringify(variableValues, null, 2),
-      //   '\n',
-      //   JSON.stringify(result, null, 2),
-      // );
-
-      if (result.errors) {
-        throw new Error(result.errors[0].message);
-      } else {
-        return result.data[rootFieldName];
-      }
-    }
-
-    throw new Error('Could not forward to merged schema');
+    },
   };
 }
 
-function createDocument(
-  registry: TypeRegistry,
+function createDelegatingResolver(
+  mergeInfo: MergeInfo,
+  operation: 'query' | 'mutation',
+  fieldName: string,
+): GraphQLFieldResolver<any, any> {
+  return (root, args, context, info) => {
+    return mergeInfo.delegate(operation, fieldName, args, context, info);
+  };
+}
+
+async function delegateToSchema(
   schema: GraphQLSchema,
+  fragmentReplacements: {
+    [typeName: string]: { [fieldName: string]: InlineFragmentNode };
+  },
+  operation: 'query' | 'mutation',
+  fieldName: string,
+  args: { [key: string]: any },
+  context: { [key: string]: any },
+  info: GraphQLResolveInfo,
+): Promise<any> {
+  let type;
+  if (operation === 'mutation') {
+    type = schema.getMutationType();
+  } else {
+    type = schema.getQueryType();
+  }
+  if (type) {
+    const graphqlDoc: DocumentNode = createDocument(
+      schema,
+      fragmentReplacements,
+      type,
+      fieldName,
+      operation,
+      info.fieldNodes,
+      info.fragments,
+      info.operation.variableDefinitions,
+    );
+
+    const operationDefinition = graphqlDoc.definitions.find(
+      ({ kind }) => kind === Kind.OPERATION_DEFINITION,
+    );
+    let variableValues;
+    if (
+      operationDefinition &&
+      operationDefinition.kind === Kind.OPERATION_DEFINITION &&
+      operationDefinition.variableDefinitions
+    ) {
+      variableValues = fromPairs(
+        operationDefinition.variableDefinitions.map(definition => {
+          const key = definition.variable.name.value;
+          // (XXX) This is kinda hacky
+          let actualKey = key;
+          if (actualKey.startsWith('_')) {
+            actualKey = actualKey.slice(1);
+          }
+          const value =
+            args[actualKey] || args[key] || info.variableValues[key];
+          return [key, value];
+        }),
+      );
+    }
+
+    const result = await execute(
+      schema,
+      graphqlDoc,
+      info.rootValue,
+      context,
+      variableValues,
+    );
+
+    // const print = require('graphql').print;
+    // console.log(
+    //   'RESULT FROM FORWARDING\n',
+    //   print(graphqlDoc),
+    //   '\n',
+    //   JSON.stringify(variableValues, null, 2),
+    //   '\n',
+    //   JSON.stringify(result, null, 2),
+    // );
+
+    if (result.errors) {
+      throw new Error(result.errors[0].message);
+    } else {
+      return result.data[fieldName];
+    }
+  }
+
+  throw new Error('Could not forward to merged schema');
+}
+
+function createDocument(
+  schema: GraphQLSchema,
+  fragmentReplacements: {
+    [typeName: string]: { [fieldName: string]: InlineFragmentNode };
+  },
   type: GraphQLObjectType,
   rootFieldName: string,
   operation: 'query' | 'mutation',
@@ -455,8 +493,8 @@ function createDocument(
     fragments: processedFragments,
     usedVariables,
   } = filterSelectionSetDeep(
-    registry,
     schema,
+    fragmentReplacements,
     type,
     rootSelectionSet,
     fragments,
@@ -466,10 +504,9 @@ function createDocument(
     kind: Kind.OPERATION_DEFINITION,
     operation,
     variableDefinitions: [
-      ...(variableDefinitions || [])
-        .filter(variableDefinition =>
-          usedVariables.includes(variableDefinition.variable.name.value),
-        ),
+      ...(variableDefinitions || []).filter(variableDefinition =>
+        usedVariables.includes(variableDefinition.variable.name.value),
+      ),
       ...newVariableDefinitions,
     ],
     selectionSet,
@@ -541,8 +578,10 @@ function processRootField(
 }
 
 function filterSelectionSetDeep(
-  registry: TypeRegistry,
   schema: GraphQLSchema,
+  fragmentReplacements: {
+    [typeName: string]: { [fieldName: string]: InlineFragmentNode };
+  },
   type: GraphQLType,
   selectionSet: SelectionSetNode,
   fragments: { [fragmentName: string]: FragmentDefinitionNode },
@@ -562,7 +601,13 @@ function filterSelectionSetDeep(
     selectionSet: newSelectionSet,
     usedFragments: remainingFragments,
     usedVariables,
-  } = filterSelectionSet(registry, schema, type, selectionSet, validFragments);
+  } = filterSelectionSet(
+    schema,
+    fragmentReplacements,
+    type,
+    selectionSet,
+    validFragments,
+  );
 
   const newFragments = {};
   // (XXX): So this will break if we have a fragment that only has link fields
@@ -585,8 +630,8 @@ function filterSelectionSetDeep(
         usedFragments: fragmentUsedFragments,
         usedVariables: fragmentUsedVariables,
       } = filterSelectionSet(
-        registry,
         schema,
+        fragmentReplacements,
         innerType,
         nextFragment.selectionSet,
         validFragments,
@@ -612,8 +657,10 @@ function filterSelectionSetDeep(
 }
 
 function filterSelectionSet(
-  registry: TypeRegistry,
   schema: GraphQLSchema,
+  fragmentReplacements: {
+    [typeName: string]: { [fieldName: string]: InlineFragmentNode };
+  },
   type: GraphQLType,
   selectionSet: SelectionSetNode,
   validFragments: Array<string>,
@@ -627,7 +674,7 @@ function filterSelectionSet(
   const typeStack: Array<GraphQLType> = [type];
   const filteredSelectionSet = visit(selectionSet, {
     [Kind.FIELD]: {
-      enter(node: FieldNode) {
+      enter(node: FieldNode): InlineFragmentNode | null | undefined {
         let parentType: GraphQLType = resolveType(
           typeStack[typeStack.length - 1],
         );
@@ -644,12 +691,11 @@ function filterSelectionSet(
           const fields = parentType.getFields();
           const field = fields[node.name.value];
           if (!field) {
-            const link = registry.getLinkByAddress(
-              parentType.name,
-              node.name.value,
-            );
-            if (link && link.inlineFragment) {
-              return link.inlineFragment;
+            const fragment =
+              fragmentReplacements[parentType.name] &&
+              fragmentReplacements[parentType.name][node.name.value];
+            if (fragment) {
+              return fragment;
             } else {
               return null;
             }
@@ -742,20 +788,4 @@ function typeToAst(type: GraphQLInputType): TypeNode {
       },
     };
   }
-}
-
-function parseFragmentToInlineFragment(
-  definitions: string,
-): InlineFragmentNode {
-  const document = parse(definitions);
-  for (const definition of document.definitions) {
-    if (definition.kind === Kind.FRAGMENT_DEFINITION) {
-      return {
-        kind: Kind.INLINE_FRAGMENT,
-        typeCondition: definition.typeCondition,
-        selectionSet: definition.selectionSet,
-      };
-    }
-  }
-  throw new Error('Could not parse fragment');
 }

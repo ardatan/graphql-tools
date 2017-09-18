@@ -1,33 +1,40 @@
 import {
   GraphQLSchema,
-  GraphQLObjectType,
   GraphQLNonNull,
   GraphQLList,
+  GraphQLNamedType,
   GraphQLType,
   isNamedType,
   getNamedType,
-  GraphQLNamedType,
+  InlineFragmentNode,
+  Kind,
+  parse,
 } from 'graphql';
-import { SchemaLink } from './types';
 
 export default class TypeRegistry {
-  public query?: GraphQLObjectType;
-  public mutation?: GraphQLObjectType;
-  private schemas: Array<GraphQLSchema>;
-  private schemaByField: { [key: string]: GraphQLSchema };
   private types: { [key: string]: GraphQLNamedType };
-  private linksByType: { [key: string]: Array<SchemaLink> };
+  private schemaByField: {
+    query: { [key: string]: GraphQLSchema };
+    mutation: { [key: string]: GraphQLSchema };
+  };
+  public fragmentReplacements: {
+    [typeName: string]: { [fieldName: string]: InlineFragmentNode };
+  };
+
   constructor() {
-    this.schemas = [];
-    this.schemaByField = {};
     this.types = {};
-    this.query = null;
-    this.mutation = null;
-    this.linksByType = {};
+    this.schemaByField = {
+      query: {},
+      mutation: {},
+    };
+    this.fragmentReplacements = {};
   }
 
-  public getSchemaByRootField(fieldName: string): GraphQLSchema {
-    return this.schemaByField[fieldName];
+  public getSchemaByField(
+    operation: 'query' | 'mutation',
+    fieldName: string,
+  ): GraphQLSchema {
+    return this.schemaByField[operation][fieldName];
   }
 
   public getType(name: string): GraphQLNamedType {
@@ -35,19 +42,6 @@ export default class TypeRegistry {
       throw new Error(`No such type: ${name}`);
     }
     return this.types[name];
-  }
-
-  public getLinksByType(name: string): Array<SchemaLink> {
-    return this.linksByType[name] || [];
-  }
-
-  public getLinkByAddress(typeName: string, link: string): SchemaLink {
-    if (typeName && link) {
-      const links = this.getLinksByType(typeName);
-      return links.find(({ name }) => name === link);
-    }
-
-    return null;
   }
 
   public resolveType<T extends GraphQLType>(type: T): T {
@@ -62,21 +56,12 @@ export default class TypeRegistry {
     }
   }
 
-  public addLinks(links: Array<SchemaLink>) {
-    links.forEach(link => {
-      if (!this.linksByType[link.from]) {
-        this.linksByType[link.from] = [];
-      }
-      this.linksByType[link.from].push(link);
-    });
-  }
-
   public addSchema(schema: GraphQLSchema) {
     const query = schema.getQueryType();
     if (query) {
       const fieldNames = Object.keys(query.getFields());
       fieldNames.forEach(field => {
-        this.schemaByField[field] = schema;
+        this.schemaByField.query[field] = schema;
       });
     }
 
@@ -84,13 +69,12 @@ export default class TypeRegistry {
     if (mutation) {
       const fieldNames = Object.keys(mutation.getFields());
       fieldNames.forEach(field => {
-        this.schemaByField[field] = schema;
+        this.schemaByField.mutation[field] = schema;
       });
     }
-    this.schemas.push(schema);
   }
 
-  public setType(
+  public addType(
     name: string,
     type: GraphQLNamedType,
     onTypeConflict?: (
@@ -108,11 +92,28 @@ export default class TypeRegistry {
     this.types[name] = type;
   }
 
-  public setQuery(query: GraphQLObjectType): void {
-    this.query = query;
+  public addFragment(typeName: string, fieldName: string, fragment: string) {
+    if (!this.fragmentReplacements[typeName]) {
+      this.fragmentReplacements[typeName] = {};
+    }
+    this.fragmentReplacements[typeName][
+      fieldName
+    ] = parseFragmentToInlineFragment(fragment);
   }
+}
 
-  public setMutation(mutation: GraphQLObjectType): void {
-    this.mutation = mutation;
+function parseFragmentToInlineFragment(
+  definitions: string,
+): InlineFragmentNode {
+  const document = parse(definitions);
+  for (const definition of document.definitions) {
+    if (definition.kind === Kind.FRAGMENT_DEFINITION) {
+      return {
+        kind: Kind.INLINE_FRAGMENT,
+        typeCondition: definition.typeCondition,
+        selectionSet: definition.selectionSet,
+      };
+    }
   }
+  throw new Error('Could not parse fragment');
 }

@@ -24,6 +24,16 @@ const testCombinations = [
   },
 ];
 
+const linkSchema = `
+  extend type Booking {
+    property: Property
+  }
+
+  extend type Property {
+    bookings: [Booking]
+  }
+`;
+
 testCombinations.forEach(async combination => {
   describe('merging ' + combination.name, () => {
     let mergedSchema: GraphQLSchema,
@@ -35,33 +45,43 @@ testCombinations.forEach(async combination => {
       bookingSchema = await combination.booking;
 
       mergedSchema = mergeSchemas({
-        schemas: [propertySchema, bookingSchema],
+        schemas: [propertySchema, bookingSchema, linkSchema],
         onTypeConflict: (leftType, rightType) => leftType,
-        links: [
-          {
-            name: 'bookings',
-            from: 'Property',
-            to: 'bookingsByPropertyId',
-            fragment: `fragment Property on Property { id }`,
-            args: ['limit'],
-            resolveArgs(parent) {
-              return {
-                propertyId: parent.id,
-              };
+        resolvers: mergeInfo => ({
+          Property: {
+            bookings: {
+              fragment: 'fragment PropertyFragment on Property { id }',
+              resolve(parent, args, context, info) {
+                return mergeInfo.delegate(
+                  'query',
+                  'bookingsByPropertyId',
+                  {
+                    propertyId: parent.id,
+                    limit: args.limit ? args.limit : null,
+                  },
+                  context,
+                  info,
+                );
+              },
             },
           },
-          {
-            name: 'property',
-            from: 'Booking',
-            fragment: `fragment Booking on Booking { propertyId }`,
-            to: 'propertyById',
-            resolveArgs(parent) {
-              return {
-                id: parent.propertyId,
-              };
+          Booking: {
+            property: {
+              fragment: 'fragment BookingFragment on Booking { propertyId }',
+              resolve(parent, args, context, info) {
+                return mergeInfo.delegate(
+                  'query',
+                  'propertyById',
+                  {
+                    id: parent.propertyId,
+                  },
+                  context,
+                  info,
+                );
+              },
             },
           },
-        ],
+        }),
       });
     });
 
@@ -69,7 +89,11 @@ testCombinations.forEach(async combination => {
       it('works with context', async () => {
         const propertyResult = await graphql(
           propertySchema,
-          `query { contextTest(key: "test") }`,
+          `
+            query {
+              contextTest(key: "test")
+            }
+          `,
           {},
           {
             test: 'Foo',
@@ -78,7 +102,11 @@ testCombinations.forEach(async combination => {
 
         const mergedResult = await graphql(
           mergedSchema,
-          `query { contextTest(key: "test") }`,
+          `
+            query {
+              contextTest(key: "test")
+            }
+          `,
           {},
           {
             test: 'Foo',
@@ -100,12 +128,20 @@ testCombinations.forEach(async combination => {
       it('works with custom scalars', async () => {
         const propertyResult = await graphql(
           propertySchema,
-          `query { dateTimeTest }`,
+          `
+            query {
+              dateTimeTest
+            }
+          `,
         );
 
         const mergedResult = await graphql(
           mergedSchema,
-          `query { dateTimeTest }`,
+          `
+            query {
+              dateTimeTest
+            }
+          `,
         );
 
         expect(propertyResult.errors).to.be.undefined;
@@ -216,41 +252,39 @@ bookingById(id: "b1") {
         const mergedResult = await graphql(
           mergedSchema,
           `
-query {
-  firstProperty: propertyById(id: "p2") {
-    id
-    name
-    bookings {
-      id
-      customer {
-        name
-      }
-    }
-  }
-
-  secondProperty: propertyById(id: "p3") {
-    id
-    name
-    bookings {
-      id
-      customer {
-        name
-      }
-    }
-  }
-
-  booking: bookingById(id: "b1") {
-    id
-    customer {
-      name
-    }
-    property {
-      id
-      name
-    }
-  }
-}
-      `,
+            query {
+              firstProperty: propertyById(id: "p2") {
+                id
+                name
+                bookings {
+                  id
+                  customer {
+                    name
+                  }
+                }
+              }
+              secondProperty: propertyById(id: "p3") {
+                id
+                name
+                bookings {
+                  id
+                  customer {
+                    name
+                  }
+                }
+              }
+              booking: bookingById(id: "b1") {
+                id
+                customer {
+                  name
+                }
+                property {
+                  id
+                  name
+                }
+              }
+            }
+          `,
         );
 
         expect(mergedResult.errors).to.be.undefined;
@@ -294,19 +328,19 @@ query {
         const mergedResult = await graphql(
           mergedSchema,
           `
-        query {
-          customerById(id: "c1") {
-            ... on Person {
-              name
-            }
-            vehicle {
-              ... on Bike {
-                bikeType
+            query {
+              customerById(id: "c1") {
+                ... on Person {
+                  name
+                }
+                vehicle {
+                  ... on Bike {
+                    bikeType
+                  }
+                }
               }
             }
-          }
-        }
-      `,
+          `,
         );
 
         expect(mergedResult.errors).to.be.undefined;
@@ -326,23 +360,23 @@ query {
         const mergedResult = await graphql(
           mergedSchema,
           `
-query {
-  propertyById(id: "p2") {
-    id
-    name
-    bookings {
-      id
-      customer {
-        name
-      }
-      property {
-        id
-        name
-      }
-    }
-  }
-}
-      `,
+            query {
+              propertyById(id: "p2") {
+                id
+                name
+                bookings {
+                  id
+                  customer {
+                    name
+                  }
+                  property {
+                    id
+                    name
+                  }
+                }
+              }
+            }
+          `,
         );
 
         expect(mergedResult.errors).to.be.undefined;
@@ -372,19 +406,19 @@ query {
         const mergedResult = await graphql(
           mergedSchema,
           `
-query {
-  propertyById(id: "p1") {
-    id
-    name
-    bookings(limit: 1) {
-      id
-      customer {
-        name
-      }
-    }
-  }
-}
-      `,
+            query {
+              propertyById(id: "p1") {
+                id
+                name
+                bookings(limit: 1) {
+                  id
+                  customer {
+                    name
+                  }
+                }
+              }
+            }
+          `,
         );
 
         expect(mergedResult.errors).to.be.undefined;
@@ -432,45 +466,67 @@ fragment BookingFragment on Booking {
         const propertyResult = await graphql(
           propertySchema,
           `
-query {
-  propertyById(id: "p1") {
-    ...PropertyFragment
-  }
-}
-
-${propertyFragment}
-`,
+            query {
+              propertyById(id: "p1") {
+                ...PropertyFragment
+              }
+            }
+          ${propertyFragment}
+            query {
+              propertyById(id: "p1") {
+                ...PropertyFragment
+              }
+            }
+          `,
         );
 
         const bookingResult = await graphql(
           bookingSchema,
           `
-query {
-  bookingById(id: "b1") {
-    ...BookingFragment
-  }
-}
-
-${bookingFragment}
-      `,
+            query {
+              bookingById(id: "b1") {
+                ...BookingFragment
+              }
+            }
+          ${bookingFragment}
+            query {
+              bookingById(id: "b1") {
+                ...BookingFragment
+              }
+            }
+          `,
         );
 
         const mergedResult = await graphql(
           mergedSchema,
           `
-query {
-  propertyById(id: "p1") {
-    ...PropertyFragment
-  }
-
-  bookingById(id: "b1") {
-    ...BookingFragment
-  }
-}
-
-${propertyFragment}
-${bookingFragment}
-`,
+            query {
+              propertyById(id: "p1") {
+                ...PropertyFragment
+              }
+              bookingById(id: "b1") {
+                ...BookingFragment
+              }
+            }
+          ${propertyFragment}
+            query {
+              propertyById(id: "p1") {
+                ...PropertyFragment
+              }
+              bookingById(id: "b1") {
+                ...BookingFragment
+              }
+            }
+          ${bookingFragment}
+            query {
+              propertyById(id: "p1") {
+                ...PropertyFragment
+              }
+              bookingById(id: "b1") {
+                ...BookingFragment
+              }
+            }
+          `,
         );
 
         expect(propertyResult.errors).to.be.undefined;
@@ -537,33 +593,33 @@ bookingById(id: "b1") {
         const mergedResult = await graphql(
           mergedSchema,
           `
-query {
-  propertyById(id: "p2") {
-    id
-    ...on Property {
-      name
-      bookings {
-        id
-        customer {
-          name
-        }
-        ...BookingFragment
-      }
-    }
-  }
-}
+            query {
+              propertyById(id: "p2") {
+                id
+                ... on Property {
+                  name
+                  bookings {
+                    id
+                    customer {
+                      name
+                    }
+                    ...BookingFragment
+                  }
+                }
+              }
+            }
 
-fragment BookingFragment on Booking {
-  property {
-    ...PropertyFragment
-  }
-}
+            fragment BookingFragment on Booking {
+              property {
+                ...PropertyFragment
+              }
+            }
 
-fragment PropertyFragment on Property {
-  id
-  name
-}
-      `,
+            fragment PropertyFragment on Property {
+              id
+              name
+            }
+          `,
         );
 
         expect(mergedResult.errors).to.be.undefined;
@@ -656,24 +712,24 @@ bookingById(id: $b1) {
         const mergedResult = await graphql(
           mergedSchema,
           `
-query($limit: Int) {
-  propertyById(id: "p1") {
-    id
-    name
-    ...on Property {
-      bookings(limit: $limit) {
-        id
-        customer {
-          name
-          ... on Person {
-            id
-          }
-        }
-      }
-    }
-  }
-}
-      `,
+            query($limit: Int) {
+              propertyById(id: "p1") {
+                id
+                name
+                ... on Property {
+                  bookings(limit: $limit) {
+                    id
+                    customer {
+                      name
+                      ... on Person {
+                        id
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          `,
           {},
           {},
           {
