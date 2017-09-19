@@ -112,7 +112,8 @@ function createResolver(
       context,
     });
     if (result.errors || !result.data[name]) {
-      throw result.errors;
+      const errorMessage = result.errors.map(error => error.message).join('\n');
+      throw new Error(errorMessage);
     } else {
       return result.data[name];
     }

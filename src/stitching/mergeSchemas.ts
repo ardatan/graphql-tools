@@ -428,7 +428,8 @@ async function delegateToSchema(
     // );
 
     if (result.errors) {
-      throw new Error(result.errors[0].message);
+      const errorMessage = result.errors.map(error => error.message).join('\n');
+      throw new Error(errorMessage);
     } else {
       return result.data[fieldName];
     }
