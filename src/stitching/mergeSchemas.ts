@@ -116,6 +116,9 @@ export default function mergeSchemas({
 
   actualSchemas.forEach(schema => {
     typeRegistry.addSchema(schema);
+    const queryType = schema.getQueryType();
+    const mutationType = schema.getMutationType();
+
     forEach(schema.getTypeMap(), (type: GraphQLType) => {
       if (
         isNamedType(type) &&
@@ -132,8 +135,6 @@ export default function mergeSchemas({
         typeRegistry.addType(newType.name, newType, onTypeConflict);
       }
     });
-    const queryType = schema.getQueryType();
-    const mutationType = schema.getMutationType();
 
     forEach(queryType.getFields(), (field, name) => {
       if (!fullResolvers.Query) {
