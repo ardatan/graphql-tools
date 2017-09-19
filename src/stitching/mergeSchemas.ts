@@ -105,9 +105,7 @@ export default function mergeSchemas({
         const actualSchema = buildASTSchema(parsedSchemaDocument);
         actualSchemas.push(actualSchema);
       } catch (e) {
-        console.log(
-          'Could not create a schema from parsed string, will only use extensions',
-        );
+        // Could not create a schema from parsed string, will use extensions
       }
       parsedSchemaDocument = extractExtensionDefinitions(parsedSchemaDocument);
       if (parsedSchemaDocument.definitions.length > 0) {
@@ -201,18 +199,18 @@ export default function mergeSchemas({
     });
   }
 
-  let schema = new GraphQLSchema({
+  let mergedSchema = new GraphQLSchema({
     query,
     mutation,
   });
 
   extensions.forEach(extension => {
-    schema = extendSchema(schema, extension);
+    mergedSchema = extendSchema(mergedSchema, extension);
   });
 
-  addResolveFunctionsToSchema(schema, fullResolvers);
+  addResolveFunctionsToSchema(mergedSchema, fullResolvers);
 
-  return schema;
+  return mergedSchema;
 }
 
 function recreateCompositeType(
@@ -328,6 +326,11 @@ function createMergeInfo(typeRegistry: TypeRegistry): MergeInfo {
       info: GraphQLResolveInfo,
     ): any {
       const schema = typeRegistry.getSchemaByField(operation, fieldName);
+      if (!schema) {
+        throw new Error(
+          'Cannot find subschema for root field `${operation}.${fieldName}`',
+        );
+      }
       const fragmentReplacements = typeRegistry.fragmentReplacements;
       return delegateToSchema(
         schema,

@@ -30,7 +30,7 @@ const linkSchema = `
   }
 
   extend type Property {
-    bookings: [Booking]
+    bookings(limit: Int): [Booking]
   }
 `;
 
@@ -466,11 +466,6 @@ fragment BookingFragment on Booking {
         const propertyResult = await graphql(
           propertySchema,
           `
-            query {
-              propertyById(id: "p1") {
-                ...PropertyFragment
-              }
-            }
           ${propertyFragment}
             query {
               propertyById(id: "p1") {
@@ -483,12 +478,7 @@ fragment BookingFragment on Booking {
         const bookingResult = await graphql(
           bookingSchema,
           `
-            query {
-              bookingById(id: "b1") {
-                ...BookingFragment
-              }
-            }
-          ${bookingFragment}
+            ${bookingFragment}
             query {
               bookingById(id: "b1") {
                 ...BookingFragment
@@ -500,24 +490,9 @@ fragment BookingFragment on Booking {
         const mergedResult = await graphql(
           mergedSchema,
           `
-            query {
-              propertyById(id: "p1") {
-                ...PropertyFragment
-              }
-              bookingById(id: "b1") {
-                ...BookingFragment
-              }
-            }
-          ${propertyFragment}
-            query {
-              propertyById(id: "p1") {
-                ...PropertyFragment
-              }
-              bookingById(id: "b1") {
-                ...BookingFragment
-              }
-            }
           ${bookingFragment}
+          ${propertyFragment}
+
             query {
               propertyById(id: "p1") {
                 ...PropertyFragment

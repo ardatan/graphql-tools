@@ -12,13 +12,13 @@ import {
 } from 'graphql';
 
 export default class TypeRegistry {
+  public fragmentReplacements: {
+    [typeName: string]: { [fieldName: string]: InlineFragmentNode };
+  };
   private types: { [key: string]: GraphQLNamedType };
   private schemaByField: {
     query: { [key: string]: GraphQLSchema };
     mutation: { [key: string]: GraphQLSchema };
-  };
-  public fragmentReplacements: {
-    [typeName: string]: { [fieldName: string]: InlineFragmentNode };
   };
 
   constructor() {
