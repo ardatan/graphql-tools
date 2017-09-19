@@ -1,6 +1,6 @@
 {
   "name": "graphql-tools",
-  "version": "2.0.0-alpha.14",
+  "version": "2.0.0-alpha.15",
   "description": "A set of useful tools for GraphQL",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
