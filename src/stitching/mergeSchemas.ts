@@ -5,7 +5,6 @@ import {
   forEach,
   values,
   union,
-  keyBy,
   difference,
   isString,
   merge,
@@ -451,10 +450,6 @@ function createDocument(
   variableDefinitions?: Array<VariableDefinitionNode>,
 ): DocumentNode {
   const rootField = type.getFields()[rootFieldName];
-  const requiredArgs = rootField.args.filter(
-    arg => arg.type instanceof GraphQLNonNull,
-  );
-  const requiredArgMap = keyBy(requiredArgs, arg => arg.name);
   const newVariables: Array<{ arg: string; variable: string }> = [];
   const rootSelectionSet = {
     kind: Kind.SELECTION_SET,
@@ -464,7 +459,7 @@ function createDocument(
         const { selection: newSelection, variables } = processRootField(
           selection,
           rootFieldName,
-          requiredArgs,
+          rootField,
         );
         newVariables.push(...variables);
         return newSelection;
@@ -475,7 +470,7 @@ function createDocument(
   };
 
   const newVariableDefinitions = newVariables.map(({ arg, variable }) => {
-    const argDef = requiredArgMap[arg];
+    const argDef = rootField.args.find(rootArg => rootArg.name === arg);
     if (!argDef) {
       throw new Error('Unexpected missing arg');
     }
@@ -532,7 +527,7 @@ function createDocument(
 function processRootField(
   selection: FieldNode,
   rootFieldName: string,
-  requiredArgs: Array<GraphQLArgument>,
+  rootField: GraphQLField<any, any>,
 ): {
   selection: FieldNode;
   variables: Array<{ arg: string; variable: string }>;
@@ -540,7 +535,7 @@ function processRootField(
   const existingArguments = selection.arguments || [];
   const existingArgumentNames = existingArguments.map(arg => arg.name.value);
   const missingArgumentNames = difference(
-    requiredArgs.map(arg => arg.name),
+    rootField.args.map(arg => arg.name),
     existingArgumentNames,
   );
   const variables: Array<{ arg: string; variable: string }> = [];
