@@ -113,16 +113,13 @@ testCombinations.forEach(async combination => {
           },
         );
 
-        expect(propertyResult.errors).to.be.undefined;
-        expect(mergedResult.errors).to.be.undefined;
-
-        expect(propertyResult.data).to.deep.equal({
-          contextTest: '"Foo"',
+        expect(propertyResult).to.deep.equal({
+          data: {
+            contextTest: '"Foo"',
+          },
         });
 
-        expect(mergedResult.data).to.deep.equal({
-          contextTest: '"Foo"',
-        });
+        expect(mergedResult).to.deep.equal(propertyResult);
       });
 
       it('works with custom scalars', async () => {
@@ -196,14 +193,11 @@ bookingById(id: "b1") {
       ${bookingFragment}
     }`,
         );
-
-        expect(propertyResult.errors).to.be.undefined;
-        expect(bookingResult.errors).to.be.undefined;
-        expect(mergedResult.errors).to.be.undefined;
-
-        expect(mergedResult.data).to.deep.equal({
-          ...propertyResult.data,
-          ...bookingResult.data,
+        expect(mergedResult).to.deep.equal({
+          data: {
+            ...propertyResult.data,
+            ...bookingResult.data,
+          },
         });
       });
 
@@ -247,10 +241,7 @@ bookingById(id: "b1") {
           },
         );
 
-        expect(bookingResult.errors).to.be.undefined;
-        expect(mergedResult.errors).to.be.undefined;
-
-        expect(mergedResult.data).to.deep.equal(bookingResult.data);
+        expect(mergedResult).to.deep.equal(bookingResult);
       });
 
       it('links in queries', async () => {
@@ -292,38 +283,35 @@ bookingById(id: "b1") {
           `,
         );
 
-        expect(mergedResult.errors).to.be.undefined;
-        expect(mergedResult).to.have.nested.property('data.firstProperty');
-        expect(mergedResult).to.have.nested.property('data.secondProperty');
-        expect(mergedResult).to.have.nested.property('data.booking');
-
-        expect(mergedResult.data).to.deep.equal({
-          firstProperty: {
-            id: 'p2',
-            name: 'Another great hotel',
-            bookings: [
-              {
-                id: 'b4',
-                customer: {
-                  name: 'Exampler Customer',
+        expect(mergedResult).to.deep.equal({
+          data: {
+            firstProperty: {
+              id: 'p2',
+              name: 'Another great hotel',
+              bookings: [
+                {
+                  id: 'b4',
+                  customer: {
+                    name: 'Exampler Customer',
+                  },
                 },
-              },
-            ],
-          },
-          secondProperty: {
-            id: 'p3',
-            name: 'BedBugs - The Affordable Hostel',
-            bookings: [],
-          },
-          booking: {
-            id: 'b1',
-            customer: {
-              name: 'Exampler Customer',
+              ],
             },
+            secondProperty: {
+              id: 'p3',
+              name: 'BedBugs - The Affordable Hostel',
+              bookings: [],
+            },
+            booking: {
+              id: 'b1',
+              customer: {
+                name: 'Exampler Customer',
+              },
 
-            property: {
-              id: 'p1',
-              name: 'Super great hotel',
+              property: {
+                id: 'p1',
+                name: 'Super great hotel',
+              },
             },
           },
         });
@@ -399,17 +387,14 @@ bookingById(id: "b1") {
           `,
         );
 
-        expect(mergedResult.errors).to.be.undefined;
-        expect(mergedResult).to.have.nested.property('data.customerById');
-        expect(mergedResult).to.have.nested.property(
-          'data.customerById.vehicle',
-        );
-        expect(mergedResult).to.not.have.nested.property(
-          'data.customerById.vehicle.licensePlate',
-        );
-        expect(mergedResult).to.have.nested.property(
-          'data.customerById.vehicle.bikeType',
-        );
+        expect(mergedResult).to.deep.equal({
+          data: {
+            customerById: {
+              name: 'Exampler Customer',
+              vehicle: { bikeType: 'MOUNTAIN' },
+            },
+          },
+        });
       });
 
       it('deep links', async () => {
@@ -435,25 +420,24 @@ bookingById(id: "b1") {
           `,
         );
 
-        expect(mergedResult.errors).to.be.undefined;
-        expect(mergedResult).to.have.nested.property('data.propertyById');
-
-        expect(mergedResult.data).to.deep.equal({
-          propertyById: {
-            id: 'p2',
-            name: 'Another great hotel',
-            bookings: [
-              {
-                id: 'b4',
-                customer: {
-                  name: 'Exampler Customer',
+        expect(mergedResult).to.deep.equal({
+          data: {
+            propertyById: {
+              id: 'p2',
+              name: 'Another great hotel',
+              bookings: [
+                {
+                  id: 'b4',
+                  customer: {
+                    name: 'Exampler Customer',
+                  },
+                  property: {
+                    id: 'p2',
+                    name: 'Another great hotel',
+                  },
                 },
-                property: {
-                  id: 'p2',
-                  name: 'Another great hotel',
-                },
-              },
-            ],
+              ],
+            },
           },
         });
       });
@@ -477,21 +461,20 @@ bookingById(id: "b1") {
           `,
         );
 
-        expect(mergedResult.errors).to.be.undefined;
-        expect(mergedResult).to.have.nested.property('data.propertyById');
-
-        expect(mergedResult.data).to.deep.equal({
-          propertyById: {
-            id: 'p1',
-            name: 'Super great hotel',
-            bookings: [
-              {
-                id: 'b1',
-                customer: {
-                  name: 'Exampler Customer',
+        expect(mergedResult).to.deep.equal({
+          data: {
+            propertyById: {
+              id: 'p1',
+              name: 'Super great hotel',
+              bookings: [
+                {
+                  id: 'b1',
+                  customer: {
+                    name: 'Exampler Customer',
+                  },
                 },
-              },
-            ],
+              ],
+            },
           },
         });
       });
@@ -560,13 +543,11 @@ fragment BookingFragment on Booking {
           `,
         );
 
-        expect(propertyResult.errors).to.be.undefined;
-        expect(bookingResult.errors).to.be.undefined;
-        expect(mergedResult.errors).to.be.undefined;
-
-        expect(mergedResult.data).to.deep.equal({
-          ...propertyResult.data,
-          ...bookingResult.data,
+        expect(mergedResult).to.deep.equal({
+          data: {
+            ...propertyResult.data,
+            ...bookingResult.data,
+          },
         });
       });
 
@@ -610,13 +591,11 @@ bookingById(id: "b1") {
     }`,
         );
 
-        expect(propertyResult.errors).to.be.undefined;
-        expect(bookingResult.errors).to.be.undefined;
-        expect(mergedResult.errors).to.be.undefined;
-
-        expect(mergedResult.data).to.deep.equal({
-          ...propertyResult.data,
-          ...bookingResult.data,
+        expect(mergedResult).to.deep.equal({
+          data: {
+            ...propertyResult.data,
+            ...bookingResult.data,
+          },
         });
       });
 
@@ -653,24 +632,24 @@ bookingById(id: "b1") {
           `,
         );
 
-        expect(mergedResult.errors).to.be.undefined;
-
-        expect(mergedResult.data).to.deep.equal({
-          propertyById: {
-            id: 'p2',
-            name: 'Another great hotel',
-            bookings: [
-              {
-                id: 'b4',
-                customer: {
-                  name: 'Exampler Customer',
+        expect(mergedResult).to.deep.equal({
+          data: {
+            propertyById: {
+              id: 'p2',
+              name: 'Another great hotel',
+              bookings: [
+                {
+                  id: 'b4',
+                  customer: {
+                    name: 'Exampler Customer',
+                  },
+                  property: {
+                    id: 'p2',
+                    name: 'Another great hotel',
+                  },
                 },
-                property: {
-                  id: 'p2',
-                  name: 'Another great hotel',
-                },
-              },
-            ],
+              ],
+            },
           },
         });
       });
@@ -729,13 +708,11 @@ bookingById(id: $b1) {
           },
         );
 
-        expect(propertyResult.errors).to.be.undefined;
-        expect(bookingResult.errors).to.be.undefined;
-        expect(mergedResult.errors).to.be.undefined;
-
-        expect(mergedResult.data).to.deep.equal({
-          ...propertyResult.data,
-          ...bookingResult.data,
+        expect(mergedResult).to.deep.equal({
+          data: {
+            ...propertyResult.data,
+            ...bookingResult.data,
+          },
         });
       });
 
@@ -768,21 +745,21 @@ bookingById(id: $b1) {
           },
         );
 
-        expect(mergedResult.errors).to.be.undefined;
-
-        expect(mergedResult.data).to.deep.equal({
-          propertyById: {
-            id: 'p1',
-            name: 'Super great hotel',
-            bookings: [
-              {
-                id: 'b1',
-                customer: {
-                  name: 'Exampler Customer',
-                  id: 'c1',
+        expect(mergedResult).to.deep.equal({
+          data: {
+            propertyById: {
+              id: 'p1',
+              name: 'Super great hotel',
+              bookings: [
+                {
+                  id: 'b1',
+                  customer: {
+                    name: 'Exampler Customer',
+                    id: 'c1',
+                  },
                 },
-              },
-            ],
+              ],
+            },
           },
         });
       });
