@@ -260,7 +260,7 @@ function recreateCompositeType(
       fields: () => inputFieldMapToFieldConfigMap(type.getFields(), registry),
     });
   } else {
-    throw new Error('Invalid type ${type.name}');
+    throw new Error(`Invalid type ${type.name}`);
   }
 }
 
@@ -333,7 +333,7 @@ function createMergeInfo(typeRegistry: TypeRegistry): MergeInfo {
       const schema = typeRegistry.getSchemaByField(operation, fieldName);
       if (!schema) {
         throw new Error(
-          'Cannot find subschema for root field `${operation}.${fieldName}`',
+          `Cannot find subschema for root field ${operation}.${fieldName}`,
         );
       }
       const fragmentReplacements = typeRegistry.fragmentReplacements;
