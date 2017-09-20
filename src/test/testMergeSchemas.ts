@@ -131,6 +131,9 @@ testCombinations.forEach(async combination => {
           `
             query {
               dateTimeTest
+              test1: jsonTest(input: { foo: "bar" })
+              test2: jsonTest(input: 5)
+              test3: jsonTest(input: "6")
             }
           `,
         );
@@ -140,20 +143,22 @@ testCombinations.forEach(async combination => {
           `
             query {
               dateTimeTest
+              test1: jsonTest(input: { foo: "bar" })
+              test2: jsonTest(input: 5)
+              test3: jsonTest(input: "6")
             }
           `,
         );
 
-        expect(propertyResult.errors).to.be.undefined;
-        expect(mergedResult.errors).to.be.undefined;
-
-        expect(propertyResult.data).to.deep.equal({
-          dateTimeTest: '1987-09-25T12:00:00',
+        expect(propertyResult).to.deep.equal({
+          data: {
+            dateTimeTest: '1987-09-25T12:00:00',
+            test1: { foo: 'bar' },
+            test2: 5,
+            test3: '6',
+          },
         });
-
-        expect(mergedResult.data).to.deep.equal({
-          dateTimeTest: '1987-09-25T12:00:00',
-        });
+        expect(mergedResult).to.deep.equal(propertyResult);
       });
 
       it('queries', async () => {

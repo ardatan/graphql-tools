@@ -1,5 +1,5 @@
 import { mapValues, isEmpty, values } from 'lodash';
-import { printSchema, print, ExecutionResult } from 'graphql';
+import { printSchema, print, ExecutionResult, Kind, ValueNode } from 'graphql';
 import {
   GraphQLFieldResolver,
   GraphQLSchema,
@@ -31,16 +31,14 @@ export default function addSimpleRoutingResolvers(
 ): GraphQLSchema {
   const queryType = schema.getQueryType();
   const queries = queryType.getFields();
-  const queryResolvers: IResolverObject = mapValues(queries, (field, key) =>
-    createResolver(fetcher, key),
+  const queryResolvers: IResolverObject = mapValues(queries, () =>
+    createResolver(fetcher),
   );
   let mutationResolvers: IResolverObject = {};
   const mutationType = schema.getMutationType();
   if (mutationType) {
     const mutations = mutationType.getFields();
-    mutationResolvers = mapValues(mutations, (field, key) =>
-      createResolver(fetcher, key),
-    );
+    mutationResolvers = mapValues(mutations, () => createResolver(fetcher));
   }
 
   const resolvers: IResolvers = { [queryType.name]: queryResolvers };
@@ -70,20 +68,7 @@ export default function addSimpleRoutingResolvers(
           type === GraphQLInt
         )
       ) {
-        const fakeScalar = new GraphQLScalarType({
-          name: type.name,
-          description: type.description,
-          serialize(value) {
-            return GraphQLString.serialize(value);
-          },
-          parseValue(value) {
-            return GraphQLString.parseValue(value);
-          },
-          parseLiteral(ast) {
-            return GraphQLString.parseLiteral(ast);
-          },
-        });
-        resolvers[type.name] = fakeScalar;
+        resolvers[type.name] = createPassThroughScalar(type);
       }
     }
   }
@@ -96,10 +81,7 @@ export default function addSimpleRoutingResolvers(
   });
 }
 
-function createResolver(
-  fetcher: Fetcher,
-  name: string,
-): GraphQLFieldResolver<any, any> {
+function createResolver(fetcher: Fetcher): GraphQLFieldResolver<any, any> {
   return async (root, args, context, info) => {
     const operation = print(info.operation);
     const fragments = values(info.fragments)
@@ -111,11 +93,62 @@ function createResolver(
       variables: info.variableValues,
       context,
     });
-    if (result.errors || !result.data[name]) {
+    const fieldName = info.fieldNodes[0].alias
+      ? info.fieldNodes[0].alias.value
+      : info.fieldName;
+    if (result.errors || !result.data[fieldName]) {
       const errorMessage = result.errors.map(error => error.message).join('\n');
       throw new Error(errorMessage);
     } else {
-      return result.data[name];
+      return result.data[fieldName];
     }
   };
+}
+
+function createPassThroughScalar({
+  name,
+  description,
+}: {
+  name: string;
+  description: string;
+}): GraphQLScalarType {
+  return new GraphQLScalarType({
+    name: name,
+    description: description,
+    serialize(value) {
+      return value;
+    },
+    parseValue(value) {
+      return value;
+    },
+    parseLiteral(ast) {
+      return parseLiteral(ast);
+    },
+  });
+}
+
+function parseLiteral(ast: ValueNode): any {
+  switch (ast.kind) {
+    case Kind.STRING:
+    case Kind.BOOLEAN: {
+      return ast.value;
+    }
+    case Kind.INT:
+    case Kind.FLOAT: {
+      return parseFloat(ast.value);
+    }
+    case Kind.OBJECT: {
+      const value = Object.create(null);
+      ast.fields.forEach(field => {
+        value[field.name.value] = parseLiteral(field.value);
+      });
+
+      return value;
+    }
+    case Kind.LIST: {
+      return ast.values.map(parseLiteral);
+    }
+    default:
+      return null;
+  }
 }

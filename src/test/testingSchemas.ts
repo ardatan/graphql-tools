@@ -1,5 +1,11 @@
 import { values } from 'lodash';
-import { GraphQLSchema, graphql, Kind, GraphQLScalarType } from 'graphql';
+import {
+  GraphQLSchema,
+  graphql,
+  Kind,
+  GraphQLScalarType,
+  ValueNode,
+} from 'graphql';
 import { makeExecutableSchema } from '../schemaGenerator';
 import { IResolvers } from '../Interfaces';
 import makeRemoteExecutableSchema from '../stitching/makeRemoteExecutableSchema';
@@ -147,6 +153,44 @@ const DateTime = new GraphQLScalarType({
   },
 });
 
+function identity(value: any): any {
+  return value;
+}
+
+function parseLiteral(ast: ValueNode): any {
+  switch (ast.kind) {
+    case Kind.STRING:
+    case Kind.BOOLEAN:
+      return ast.value;
+    case Kind.INT:
+    case Kind.FLOAT:
+      return parseFloat(ast.value);
+    case Kind.OBJECT: {
+      const value = Object.create(null);
+      ast.fields.forEach(field => {
+        value[field.name.value] = parseLiteral(field.value);
+      });
+
+      return value;
+    }
+    case Kind.LIST:
+      return ast.values.map(parseLiteral);
+    default:
+      return null;
+  }
+}
+
+const GraphQLJSON = new GraphQLScalarType({
+  name: 'JSON',
+  description:
+    'The `JSON` scalar type represents JSON values as specified by ' +
+    '[ECMA-404](http://www.ecma-international.org/' +
+    'publications/files/ECMA-ST/ECMA-404.pdf).',
+  serialize: identity,
+  parseValue: identity,
+  parseLiteral,
+});
+
 const addressTypeDef = `
   type Address {
     street: String
@@ -175,11 +219,13 @@ const propertyRootTypeDefs = `
     properties(limit: Int): [Property!]
     contextTest(key: String!): String
     dateTimeTest: DateTime
+    jsonTest(input: JSON): JSON
   }
 `;
 
 const propertyAddressTypeDefs = `
   scalar DateTime
+  scalar JSON
 
   ${addressTypeDef}
   ${propertyAddressTypeDef}
@@ -208,8 +254,13 @@ const propertyResolvers: IResolvers = {
     dateTimeTest() {
       return '1987-09-25T12:00:00';
     },
+
+    jsonTest(root, { input }) {
+      return input;
+    },
   },
   DateTime,
+  JSON: GraphQLJSON,
 };
 
 const customerAddressTypeDef = `
