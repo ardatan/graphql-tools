@@ -96,7 +96,7 @@ function createResolver(fetcher: Fetcher): GraphQLFieldResolver<any, any> {
     const fieldName = info.fieldNodes[0].alias
       ? info.fieldNodes[0].alias.value
       : info.fieldName;
-    if (result.errors || !result.data[fieldName]) {
+    if (result.errors) {
       const errorMessage = result.errors.map(error => error.message).join('\n');
       throw new Error(errorMessage);
     } else {
