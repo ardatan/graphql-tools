@@ -214,12 +214,35 @@ const propertyRootTypeDefs = `
     name: String!
   }
 
+  enum TestInterfaceKind {
+    ONE
+    TWO
+  }
+
+  interface TestInterface {
+    kind: TestInterfaceKind
+    testString: String
+  }
+
+  type TestImpl1 implements TestInterface {
+    kind: TestInterfaceKind
+    testString: String
+    foo: String
+  }
+
+  type TestImpl2 implements TestInterface {
+    kind: TestInterfaceKind
+    testString: String
+    bar: String
+  }
+
   type Query {
     propertyById(id: ID!): Property
     properties(limit: Int): [Property!]
     contextTest(key: String!): String
     dateTimeTest: DateTime
     jsonTest(input: JSON): JSON
+    interfaceTest(kind: TestInterfaceKind): TestInterface
   }
 `;
 
@@ -258,9 +281,35 @@ const propertyResolvers: IResolvers = {
     jsonTest(root, { input }) {
       return input;
     },
+
+    interfaceTest(root, { kind }) {
+      if (kind === 'ONE') {
+        return {
+          kind: 'ONE',
+          testString: 'test',
+          foo: 'foo',
+        };
+      } else {
+        return {
+          kind: 'TWO',
+          testString: 'test',
+          bar: 'bar',
+        };
+      }
+    },
   },
   DateTime,
   JSON: GraphQLJSON,
+
+  TestInterface: {
+    __resolveType(obj) {
+      if (obj.kind === 'ONE') {
+        return 'TestImpl1';
+      } else {
+        return 'TestImpl2';
+      }
+    },
+  },
 };
 
 const customerAddressTypeDef = `

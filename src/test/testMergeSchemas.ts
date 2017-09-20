@@ -329,6 +329,57 @@ bookingById(id: "b1") {
         });
       });
 
+      it('interfaces', async () => {
+        const query = `
+          query {
+            test1: interfaceTest(kind: ONE) {
+              __typename
+              kind
+              testString
+              ...on TestImpl1 {
+                foo
+              }
+              ...on TestImpl2 {
+                bar
+              }
+            }
+
+            test2: interfaceTest(kind: TWO) {
+              __typename
+              kind
+              testString
+              ...on TestImpl1 {
+                foo
+              }
+              ...on TestImpl2 {
+                bar
+              }
+            }
+          }
+        `;
+        const propertyResult = await graphql(propertySchema, query);
+        const mergedResult = await graphql(mergedSchema, query);
+
+        expect(propertyResult).to.deep.equal({
+          data: {
+            test1: {
+              __typename: 'TestImpl1',
+              kind: 'ONE',
+              testString: 'test',
+              foo: 'foo',
+            },
+            test2: {
+              __typename: 'TestImpl2',
+              kind: 'TWO',
+              testString: 'test',
+              bar: 'bar',
+            },
+          },
+        });
+
+        expect(mergedResult).to.deep.equal(propertyResult);
+      });
+
       it('unions', async () => {
         const mergedResult = await graphql(
           mergedSchema,

@@ -202,6 +202,7 @@ export default function mergeSchemas({
   let mergedSchema = new GraphQLSchema({
     query,
     mutation,
+    types: typeRegistry.getAllTypes(),
   });
 
   extensions.forEach(extension => {
