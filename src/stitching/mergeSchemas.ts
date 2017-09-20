@@ -34,6 +34,7 @@ import {
   GraphQLNonNull,
   GraphQLObjectType,
   GraphQLResolveInfo,
+  GraphQLScalarType,
   GraphQLSchema,
   GraphQLType,
   GraphQLUnionType,
@@ -173,6 +174,9 @@ export default function mergeSchemas({
   const passedResolvers = resolvers(mergeInfo);
 
   forEach(passedResolvers, (type, typeName) => {
+    if (type instanceof GraphQLScalarType) {
+      return;
+    }
     forEach(type, (field, fieldName) => {
       if (field.fragment) {
         typeRegistry.addFragment(typeName, fieldName, field.fragment);

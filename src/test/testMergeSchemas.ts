@@ -1,7 +1,8 @@
 /* tslint:disable:no-unused-expression */
 
 import { expect } from 'chai';
-import { graphql, GraphQLSchema } from 'graphql';
+import { identity } from 'lodash';
+import { graphql, GraphQLSchema, GraphQLScalarType } from 'graphql';
 import mergeSchemas from '../stitching/mergeSchemas';
 import {
   propertySchema as localPropertySchema,
@@ -24,6 +25,18 @@ const testCombinations = [
   },
 ];
 
+const scalarTest = `
+  scalar TestScalar
+
+  type TestingScalar {
+    value: TestScalar
+  }
+
+  type Query {
+    testingScalar: TestingScalar
+  }
+`;
+
 const linkSchema = `
   extend type Booking {
     property: Property
@@ -45,9 +58,16 @@ testCombinations.forEach(async combination => {
       bookingSchema = await combination.booking;
 
       mergedSchema = mergeSchemas({
-        schemas: [propertySchema, bookingSchema, linkSchema],
+        schemas: [propertySchema, bookingSchema, scalarTest, linkSchema],
         onTypeConflict: (leftType, rightType) => leftType,
         resolvers: mergeInfo => ({
+          TestScalar: new GraphQLScalarType({
+            name: 'TestScalar',
+            description: undefined,
+            serialize: identity,
+            parseValue: identity,
+            parseLiteral: () => null,
+          }),
           Property: {
             bookings: {
               fragment: 'fragment PropertyFragment on Property { id }',
