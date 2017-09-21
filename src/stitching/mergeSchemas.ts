@@ -44,6 +44,7 @@ import {
   OperationDefinitionNode,
   SelectionSetNode,
   TypeNode,
+  TypeNameMetaFieldDef,
   VariableDefinitionNode,
   VariableNode,
   buildASTSchema,
@@ -261,7 +262,7 @@ function recreateCompositeType(
       fields: () => inputFieldMapToFieldConfigMap(type.getFields(), registry),
     });
   } else {
-    throw new Error('Invalid type ${type.name}');
+    throw new Error(`Invalid type ${type}`);
   }
 }
 
@@ -334,7 +335,7 @@ function createMergeInfo(typeRegistry: TypeRegistry): MergeInfo {
       const schema = typeRegistry.getSchemaByField(operation, fieldName);
       if (!schema) {
         throw new Error(
-          'Cannot find subschema for root field `${operation}.${fieldName}`',
+          `Cannot find subschema for root field ${operation}.${fieldName}`,
         );
       }
       const fragmentReplacements = typeRegistry.fragmentReplacements;
@@ -695,7 +696,9 @@ function filterSelectionSet(
           parentType instanceof GraphQLInterfaceType
         ) {
           const fields = parentType.getFields();
-          const field = fields[node.name.value];
+          const field = node.name.value === '__typename'
+            ? TypeNameMetaFieldDef
+            : fields[node.name.value];
           if (!field) {
             const fragment =
               fragmentReplacements[parentType.name] &&
@@ -713,6 +716,24 @@ function filterSelectionSet(
       leave() {
         typeStack.pop();
       },
+    },
+    [Kind.SELECTION_SET](node: SelectionSetNode): SelectionSetNode | null | undefined {
+      const parentType: GraphQLType = resolveType(
+        typeStack[typeStack.length - 1],
+      );
+      if (parentType instanceof GraphQLInterfaceType || parentType instanceof GraphQLUnionType) {
+        return {
+          ...node,
+          selections: node.selections.concat({
+            kind: Kind.FIELD,
+            name: {
+              kind: Kind.NAME,
+              value: '__typename'
+            }
+          }
+         )
+        };
+      }
     },
     [Kind.FRAGMENT_SPREAD](node: FragmentSpreadNode): null | undefined {
       if (includes(validFragments, node.name.value)) {
