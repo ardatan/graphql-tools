@@ -63,7 +63,6 @@ import {
   addResolveFunctionsToSchema,
 } from '../schemaGenerator';
 import resolveFromParentTypename from './resolveFromParentTypename';
-import addTypenameForFragments from './addTypenameForFragments';
 
 export type MergeInfo = {
   delegate: (
@@ -524,11 +523,7 @@ function createDocument(
     definitions: [operationDefinition, ...processedFragments],
   };
 
-  const newDocWithTypenames: DocumentNode = addTypenameForFragments(
-    newDoc,
-    schema,
-  );
-  return newDocWithTypenames;
+  return newDoc;
 }
 
 function processRootField(
@@ -696,9 +691,10 @@ function filterSelectionSet(
           parentType instanceof GraphQLInterfaceType
         ) {
           const fields = parentType.getFields();
-          const field = node.name.value === '__typename'
-            ? TypeNameMetaFieldDef
-            : fields[node.name.value];
+          const field =
+            node.name.value === '__typename'
+              ? TypeNameMetaFieldDef
+              : fields[node.name.value];
           if (!field) {
             const fragment =
               fragmentReplacements[parentType.name] &&
@@ -717,21 +713,25 @@ function filterSelectionSet(
         typeStack.pop();
       },
     },
-    [Kind.SELECTION_SET](node: SelectionSetNode): SelectionSetNode | null | undefined {
+    [Kind.SELECTION_SET](
+      node: SelectionSetNode,
+    ): SelectionSetNode | null | undefined {
       const parentType: GraphQLType = resolveType(
         typeStack[typeStack.length - 1],
       );
-      if (parentType instanceof GraphQLInterfaceType || parentType instanceof GraphQLUnionType) {
+      if (
+        parentType instanceof GraphQLInterfaceType ||
+        parentType instanceof GraphQLUnionType
+      ) {
         return {
           ...node,
           selections: node.selections.concat({
             kind: Kind.FIELD,
             name: {
               kind: Kind.NAME,
-              value: '__typename'
-            }
-          }
-         )
+              value: '__typename',
+            },
+          }),
         };
       }
     },
