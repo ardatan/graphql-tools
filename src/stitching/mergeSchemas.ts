@@ -8,6 +8,7 @@ import {
   difference,
   isString,
   merge,
+  includes,
 } from 'lodash';
 import {
   DocumentNode,
@@ -510,7 +511,7 @@ function createDocument(
     operation,
     variableDefinitions: [
       ...(variableDefinitions || []).filter(variableDefinition =>
-        usedVariables.includes(variableDefinition.variable.name.value),
+        includes(usedVariables, variableDefinition.variable.name.value),
       ),
       ...newVariableDefinitions,
     ],
@@ -714,7 +715,7 @@ function filterSelectionSet(
       },
     },
     [Kind.FRAGMENT_SPREAD](node: FragmentSpreadNode): null | undefined {
-      if (validFragments.includes(node.name.value)) {
+      if (includes(validFragments, node.name.value)) {
         usedFragments.push(node.name.value);
       } else {
         return null;
