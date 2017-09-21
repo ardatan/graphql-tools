@@ -243,6 +243,8 @@ const propertyRootTypeDefs = `
     dateTimeTest: DateTime
     jsonTest(input: JSON): JSON
     interfaceTest(kind: TestInterfaceKind): TestInterface
+    errorTest: String
+    errorTestNonNull: String!
   }
 `;
 
@@ -296,6 +298,14 @@ const propertyResolvers: IResolvers = {
           bar: 'bar',
         };
       }
+    },
+
+    errorTest() {
+      throw new Error('Sample error!');
+    },
+
+    errorTestNonNull() {
+      throw new Error('Sample error non-null!');
     },
   },
   DateTime,

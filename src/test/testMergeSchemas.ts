@@ -178,6 +178,77 @@ testCombinations.forEach(async combination => {
         expect(mergedResult).to.deep.equal(propertyResult);
       });
 
+      it('handles errors', async () => {
+        const propertyFragment = `
+          errorTest
+        `;
+        const bookingFragment = `
+bookingById(id: "b1") {
+  id
+  customer {
+    name
+  }
+  startTime
+  endTime
+}
+  `;
+
+        const propertyResult = await graphql(
+          propertySchema,
+          `query {
+            ${propertyFragment}
+          }`,
+        );
+
+        const bookingResult = await graphql(
+          bookingSchema,
+          `query {
+            ${bookingFragment}
+          }`,
+        );
+
+        const mergedResult = await graphql(
+          mergedSchema,
+          `query {
+      ${propertyFragment}
+      ${bookingFragment}
+    }`,
+        );
+        expect(mergedResult).to.deep.equal({
+          errors: propertyResult.errors,
+          data: {
+            ...propertyResult.data,
+            ...bookingResult.data,
+          },
+        });
+
+        const mergedResult2 = await graphql(
+          mergedSchema,
+          `
+          query {
+            errorTestNonNull
+            ${bookingFragment}
+          }
+        `,
+        );
+
+        expect(mergedResult2).to.deep.equal({
+          errors: [
+            {
+              locations: [
+                {
+                  column: 13,
+                  line: 3,
+                },
+              ],
+              message: 'Sample error non-null!',
+              path: ['errorTestNonNull'],
+            },
+          ],
+          data: null,
+        });
+      });
+
       it('queries', async () => {
         const propertyFragment = `
 propertyById(id: "p1") {
