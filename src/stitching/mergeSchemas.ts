@@ -260,7 +260,7 @@ function recreateCompositeType(
       fields: () => inputFieldMapToFieldConfigMap(type.getFields(), registry),
     });
   } else {
-    throw new Error(`Invalid type ${type.name}`);
+    throw new Error(`Invalid type ${type}`);
   }
 }
 
