@@ -716,6 +716,24 @@ function filterSelectionSet(
         typeStack.pop();
       },
     },
+    [Kind.SELECTION_SET](node: SelectionSetNode): SelectionSetNode | null | undefined {
+      const parentType: GraphQLType = resolveType(
+        typeStack[typeStack.length - 1],
+      );
+      if (parentType instanceof GraphQLInterfaceType || parentType instanceof GraphQLUnionType) {
+        return {
+          ...node,
+          selections: node.selections.concat({
+            kind: Kind.FIELD,
+            name: {
+              kind: Kind.NAME,
+              value: '__typename'
+            }
+          }
+         )
+        };
+      }
+    },
     [Kind.FRAGMENT_SPREAD](node: FragmentSpreadNode): null | undefined {
       if (validFragments.includes(node.name.value)) {
         usedFragments.push(node.name.value);
