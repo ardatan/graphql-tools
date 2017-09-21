@@ -45,6 +45,10 @@ const linkSchema = `
   extend type Property {
     bookings(limit: Int): [Booking]
   }
+
+  extend type Query {
+    delegateInterfaceTest: TestInterface
+  }
 `;
 
 testCombinations.forEach(async combination => {
@@ -99,6 +103,19 @@ testCombinations.forEach(async combination => {
                   info,
                 );
               },
+            },
+          },
+          Query: {
+            delegateInterfaceTest(parent, args, context, info) {
+              return mergeInfo.delegate(
+                'query',
+                'interfaceTest',
+                {
+                  kind: 'ONE',
+                },
+                context,
+                info,
+              );
             },
           },
         }),
@@ -457,6 +474,36 @@ bookingById(id: "b1") {
         });
 
         expect(mergedResult).to.deep.equal(propertyResult);
+
+        const delegateQuery = `
+          query {
+            withTypeName: delegateInterfaceTest {
+              __typename
+              kind
+              testString
+            }
+            withoutTypeName: delegateInterfaceTest {
+              kind
+              testString
+            }
+          }
+        `;
+
+        const mergedDelegate = await graphql(mergedSchema, delegateQuery);
+
+        expect(mergedDelegate).to.deep.equal({
+          data: {
+            withTypeName: {
+              __typename: 'TestImpl1',
+              kind: 'ONE',
+              testString: 'test',
+            },
+            withoutTypeName: {
+              kind: 'ONE',
+              testString: 'test',
+            },
+          },
+        });
       });
 
       it('unions', async () => {
