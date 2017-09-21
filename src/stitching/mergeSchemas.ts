@@ -43,6 +43,7 @@ import {
   OperationDefinitionNode,
   SelectionSetNode,
   TypeNode,
+  TypeNameMetaFieldDef,
   VariableDefinitionNode,
   VariableNode,
   buildASTSchema,
@@ -694,7 +695,9 @@ function filterSelectionSet(
           parentType instanceof GraphQLInterfaceType
         ) {
           const fields = parentType.getFields();
-          const field = fields[node.name.value];
+          const field = node.name.value === '__typename'
+            ? TypeNameMetaFieldDef
+            : fields[node.name.value];
           if (!field) {
             const fragment =
               fragmentReplacements[parentType.name] &&
