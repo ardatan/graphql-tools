@@ -79,7 +79,11 @@ function _generateSchema(
 
   const schema = buildSchemaFromTypeDefinitions(typeDefinitions);
 
-  addResolveFunctionsToSchema(schema, resolveFunctions);
+  addResolveFunctionsToSchema(
+    schema,
+    resolveFunctions,
+    resolverValidationOptions,
+  );
 
   assertResolveFunctionsPresent(schema, resolverValidationOptions);
 
@@ -341,10 +345,14 @@ function getFieldsForType(type: GraphQLType): GraphQLFieldMap<any, any> {
 function addResolveFunctionsToSchema(
   schema: GraphQLSchema,
   resolveFunctions: IResolvers,
+  resolverValidationOptions: any = {},
 ) {
   Object.keys(resolveFunctions).forEach(typeName => {
     const type = schema.getType(typeName);
     if (!type && typeName !== '__schema') {
+      if (resolverValidationOptions.allowResolversNotInSchema) {
+        return;
+      }
       throw new SchemaError(
         `"${typeName}" defined in resolvers, but not in schema`,
       );
@@ -371,6 +379,9 @@ function addResolveFunctionsToSchema(
       }
 
       if (!fields[fieldName]) {
+        if (resolverValidationOptions.allowResolversNotInSchema) {
+          return;
+        }
         throw new SchemaError(
           `${typeName}.${fieldName} defined in resolvers, but not in schema`,
         );
