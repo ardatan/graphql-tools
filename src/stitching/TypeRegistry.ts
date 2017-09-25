@@ -1,4 +1,3 @@
-import { values } from 'lodash';
 import {
   GraphQLSchema,
   GraphQLNonNull,
@@ -39,7 +38,7 @@ export default class TypeRegistry {
   }
 
   public getAllTypes(): Array<GraphQLNamedType> {
-    return values(this.types);
+    return Object.keys(this.types).map(name => this.types[name]);
   }
 
   public getType(name: string): GraphQLNamedType {

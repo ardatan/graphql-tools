@@ -1,4 +1,3 @@
-import { mapValues, isEmpty, values } from 'lodash';
 import { printSchema, print, ExecutionResult, Kind, ValueNode } from 'graphql';
 import {
   GraphQLFieldResolver,
@@ -12,6 +11,7 @@ import {
   GraphQLInt,
   GraphQLScalarType,
 } from 'graphql';
+import isEmptyObject from '../isEmptyObject';
 import { IResolvers, IResolverObject } from '../Interfaces';
 import { makeExecutableSchema } from '../schemaGenerator';
 import resolveParentFromTypename from './resolveFromParentTypename';
@@ -31,23 +31,27 @@ export default function addSimpleRoutingResolvers(
 ): GraphQLSchema {
   const queryType = schema.getQueryType();
   const queries = queryType.getFields();
-  const queryResolvers: IResolverObject = mapValues(queries, () =>
-    createResolver(fetcher),
-  );
+  const queryResolvers: IResolverObject = {};
+  Object.keys(queries).forEach(key => {
+    queryResolvers[key] = createResolver(fetcher);
+  });
   let mutationResolvers: IResolverObject = {};
   const mutationType = schema.getMutationType();
   if (mutationType) {
     const mutations = mutationType.getFields();
-    mutationResolvers = mapValues(mutations, () => createResolver(fetcher));
+    Object.keys(mutations).forEach(key => {
+      mutationResolvers[key] = createResolver(fetcher);
+    });
   }
 
   const resolvers: IResolvers = { [queryType.name]: queryResolvers };
 
-  if (!isEmpty(mutationResolvers)) {
+  if (!isEmptyObject(mutationResolvers)) {
     resolvers[mutationType.name] = mutationResolvers;
   }
 
-  const types = values(schema.getTypeMap());
+  const typeMap = schema.getTypeMap();
+  const types = Object.keys(typeMap).map(name => typeMap[name]);
   for (const type of types) {
     if (
       type instanceof GraphQLInterfaceType ||
@@ -84,8 +88,8 @@ export default function addSimpleRoutingResolvers(
 function createResolver(fetcher: Fetcher): GraphQLFieldResolver<any, any> {
   return async (root, args, context, info) => {
     const operation = print(info.operation);
-    const fragments = values(info.fragments)
-      .map(fragment => print(fragment))
+    const fragments = Object.keys(info.fragments)
+      .map(fragment => print(info.fragments[fragment]))
       .join('\n');
     const query = `${operation}\n${fragments}`;
     const result = await fetcher({

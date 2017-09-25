@@ -1,4 +1,3 @@
-import { values } from 'lodash';
 import {
   GraphQLSchema,
   graphql,
@@ -133,6 +132,10 @@ export const sampleData: {
     },
   },
 };
+
+function values<T>(o: { [s: string]: T }): T[] {
+  return Object.keys(o).map(k => o[k]);
+}
 
 function coerceString(value: any): string {
   if (Array.isArray(value)) {

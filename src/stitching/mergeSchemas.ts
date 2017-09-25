@@ -1,16 +1,4 @@
 import {
-  isEmpty,
-  mapValues,
-  fromPairs,
-  forEach,
-  values,
-  union,
-  difference,
-  isString,
-  merge,
-  includes,
-} from 'lodash';
-import {
   DocumentNode,
   FieldNode,
   FragmentDefinitionNode,
@@ -58,6 +46,7 @@ import {
 } from 'graphql';
 import TypeRegistry from './TypeRegistry';
 import { IResolvers } from '../Interfaces';
+import isEmptyObject from '../isEmptyObject';
 import {
   extractExtensionDefinitions,
   addResolveFunctionsToSchema,
@@ -100,7 +89,7 @@ export default function mergeSchemas({
   schemas.forEach(schema => {
     if (schema instanceof GraphQLSchema) {
       actualSchemas.push(schema);
-    } else if (isString(schema)) {
+    } else if (typeof schema === 'string') {
       let parsedSchemaDocument = parse(schema);
       try {
         const actualSchema = buildASTSchema(parsedSchemaDocument);
@@ -120,7 +109,9 @@ export default function mergeSchemas({
     const queryType = schema.getQueryType();
     const mutationType = schema.getMutationType();
 
-    forEach(schema.getTypeMap(), (type: GraphQLType) => {
+    const typeMap = schema.getTypeMap();
+    Object.keys(typeMap).forEach(typeName => {
+      const type: GraphQLType = typeMap[typeName];
       if (
         isNamedType(type) &&
         getNamedType(type).name.slice(0, 2) !== '__' &&
@@ -137,7 +128,7 @@ export default function mergeSchemas({
       }
     });
 
-    forEach(queryType.getFields(), (field, name) => {
+    Object.keys(queryType.getFields()).forEach(name => {
       if (!fullResolvers.Query) {
         fullResolvers.Query = {};
       }
@@ -157,7 +148,7 @@ export default function mergeSchemas({
       if (!fullResolvers.Mutation) {
         fullResolvers.Mutation = {};
       }
-      forEach(mutationType.getFields(), (field, name) => {
+      Object.keys(mutationType.getFields()).forEach(name => {
         fullResolvers.Mutation[name] = createDelegatingResolver(
           mergeInfo,
           'mutation',
@@ -174,18 +165,20 @@ export default function mergeSchemas({
 
   const passedResolvers = resolvers(mergeInfo);
 
-  forEach(passedResolvers, (type, typeName) => {
+  Object.keys(passedResolvers).forEach(typeName => {
+    const type = passedResolvers[typeName];
     if (type instanceof GraphQLScalarType) {
       return;
     }
-    forEach(type, (field, fieldName) => {
+    Object.keys(type).forEach(fieldName => {
+      const field = type[fieldName];
       if (field.fragment) {
         typeRegistry.addFragment(typeName, fieldName, field.fragment);
       }
     });
   });
 
-  merge(fullResolvers, passedResolvers);
+  Object.assign(fullResolvers, passedResolvers);
 
   const query = new GraphQLObjectType({
     name: 'Query',
@@ -195,7 +188,7 @@ export default function mergeSchemas({
   });
 
   let mutation;
-  if (!isEmpty(mutationFields)) {
+  if (!isEmptyObject(mutationFields)) {
     mutation = new GraphQLObjectType({
       name: 'Mutation',
       fields: {
@@ -269,7 +262,11 @@ function fieldMapToFieldConfigMap(
   fields: GraphQLFieldMap<any, any>,
   registry: TypeRegistry,
 ): GraphQLFieldConfigMap<any, any> {
-  return mapValues(fields, field => fieldToFieldConfig(field, registry));
+  const result: GraphQLFieldConfigMap<any, any> = {};
+  Object.keys(fields).forEach(name => {
+    result[name] = fieldToFieldConfig(fields[name], registry);
+  });
+  return result;
 }
 
 function fieldToFieldConfig(
@@ -288,7 +285,12 @@ function argsToFieldConfigArgumentMap(
   args: Array<GraphQLArgument>,
   registry: TypeRegistry,
 ): GraphQLFieldConfigArgumentMap {
-  return fromPairs(args.map(arg => argumentToArgumentConfig(arg, registry)));
+  const result: GraphQLFieldConfigArgumentMap = {};
+  args.forEach(arg => {
+    const [name, def] = argumentToArgumentConfig(arg, registry);
+    result[name] = def;
+  });
+  return result;
 }
 
 function argumentToArgumentConfig(
@@ -309,7 +311,11 @@ function inputFieldMapToFieldConfigMap(
   fields: GraphQLInputFieldMap,
   registry: TypeRegistry,
 ): GraphQLInputFieldConfigMap {
-  return mapValues(fields, field => inputFieldToFieldConfig(field, registry));
+  const result: GraphQLInputFieldConfigMap = {};
+  Object.keys(fields).forEach(name => {
+    result[name] = inputFieldToFieldConfig(fields[name], registry);
+  });
+  return result;
 }
 
 function inputFieldToFieldConfig(
@@ -393,25 +399,22 @@ async function delegateToSchema(
     const operationDefinition = graphqlDoc.definitions.find(
       ({ kind }) => kind === Kind.OPERATION_DEFINITION,
     );
-    let variableValues;
+    let variableValues = {};
     if (
       operationDefinition &&
       operationDefinition.kind === Kind.OPERATION_DEFINITION &&
       operationDefinition.variableDefinitions
     ) {
-      variableValues = fromPairs(
-        operationDefinition.variableDefinitions.map(definition => {
-          const key = definition.variable.name.value;
-          // (XXX) This is kinda hacky
-          let actualKey = key;
-          if (actualKey.startsWith('_')) {
-            actualKey = actualKey.slice(1);
-          }
-          const value =
-            args[actualKey] || args[key] || info.variableValues[key];
-          return [key, value];
-        }),
-      );
+      operationDefinition.variableDefinitions.forEach(definition => {
+        const key = definition.variable.name.value;
+        // (XXX) This is kinda hacky
+        let actualKey = key;
+        if (actualKey.startsWith('_')) {
+          actualKey = actualKey.slice(1);
+        }
+        const value = args[actualKey] || args[key] || info.variableValues[key];
+        variableValues[key] = value;
+      });
     }
 
     const result = await execute(
@@ -510,8 +513,9 @@ function createDocument(
     kind: Kind.OPERATION_DEFINITION,
     operation,
     variableDefinitions: [
-      ...(variableDefinitions || []).filter(variableDefinition =>
-        includes(usedVariables, variableDefinition.variable.name.value),
+      ...(variableDefinitions || []).filter(
+        variableDefinition =>
+          usedVariables.indexOf(variableDefinition.variable.name.value) !== -1,
       ),
       ...newVariableDefinitions,
     ],
@@ -592,13 +596,15 @@ function filterSelectionSetDeep(
   fragments: Array<FragmentDefinitionNode>;
   usedVariables: Array<string>;
 } {
-  const validFragments = values(fragments)
-    .filter(node => {
-      const typeName = node.typeCondition.name.value;
-      const innerType = schema.getType(typeName);
-      return Boolean(innerType);
-    })
-    .map(node => node.name.value);
+  const validFragments: Array<string> = [];
+  Object.keys(fragments).forEach(fragmentName => {
+    const fragment = fragments[fragmentName];
+    const typeName = fragment.typeCondition.name.value;
+    const innerType = schema.getType(typeName);
+    if (innerType) {
+      validFragments.push(fragment.name.value);
+    }
+  });
   let {
     selectionSet: newSelectionSet,
     usedFragments: remainingFragments,
@@ -651,9 +657,12 @@ function filterSelectionSetDeep(
       };
     }
   }
+  const newFragmentValues: Array<FragmentDefinitionNode> = Object.keys(
+    newFragments,
+  ).map(name => newFragments[name]);
   return {
     selectionSet: newSelectionSet,
-    fragments: values(newFragments) as Array<FragmentDefinitionNode>,
+    fragments: newFragmentValues,
     usedVariables,
   };
 }
@@ -736,7 +745,7 @@ function filterSelectionSet(
       }
     },
     [Kind.FRAGMENT_SPREAD](node: FragmentSpreadNode): null | undefined {
-      if (includes(validFragments, node.name.value)) {
+      if (validFragments.indexOf(node.name.value) !== -1) {
         usedFragments.push(node.name.value);
       } else {
         return null;
@@ -815,4 +824,31 @@ function typeToAst(type: GraphQLInputType): TypeNode {
       },
     };
   }
+}
+
+function union(...arrays: Array<Array<string>>): Array<string> {
+  const cache: { [key: string]: Boolean } = {};
+  const result: Array<string> = [];
+  arrays.forEach(array => {
+    array.forEach(item => {
+      if (!cache[item]) {
+        cache[item] = true;
+        result.push(item);
+      }
+    });
+  });
+  return result;
+}
+
+function difference(
+  from: Array<string>,
+  ...arrays: Array<Array<string>>
+): Array<string> {
+  const cache: { [key: string]: Boolean } = {};
+  arrays.forEach(array => {
+    array.forEach(item => {
+      cache[item] = true;
+    });
+  });
+  return from.filter(item => !cache[item]);
 }

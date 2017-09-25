@@ -1,7 +1,6 @@
 /* tslint:disable:no-unused-expression */
 
 import { expect } from 'chai';
-import { identity } from 'lodash';
 import { graphql, GraphQLSchema, GraphQLScalarType } from 'graphql';
 import mergeSchemas from '../stitching/mergeSchemas';
 import {
@@ -68,8 +67,8 @@ testCombinations.forEach(async combination => {
           TestScalar: new GraphQLScalarType({
             name: 'TestScalar',
             description: undefined,
-            serialize: identity,
-            parseValue: identity,
+            serialize: value => value,
+            parseValue: value => value,
             parseLiteral: () => null,
           }),
           Property: {
