@@ -7,7 +7,7 @@ import {
 } from 'graphql';
 import { makeExecutableSchema } from '../schemaGenerator';
 import { IResolvers } from '../Interfaces';
-import makeRemoteExecutableSchemaFromIntrospection from '../stitching/makeRemoteExecutableSchemaFromIntrospection';
+import makeRemoteExecutableSchemaByIntrospection from '../stitching/makeRemoteExecutableSchemaByIntrospection';
 import { Fetcher } from '../stitching/makeRemoteExecutableSchema';
 
 export type Property = {
@@ -489,7 +489,7 @@ function makeSchemaRemote(schema: GraphQLSchema) {
     return graphql(schema, query, null, context, variables, operationName);
   };
 
-  return makeRemoteExecutableSchemaFromIntrospection(fetcher);
+  return makeRemoteExecutableSchemaByIntrospection(fetcher);
 }
 
 export const remotePropertySchema = makeSchemaRemote(propertySchema);

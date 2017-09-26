@@ -4,7 +4,7 @@ import makeRemoteExecutableSchema, {
   Fetcher,
 } from './makeRemoteExecutableSchema';
 
-export default async function makeRemoteExecutableSchemaFromIntrospection(
+export default async function makeRemoteExecutableSchemaByIntrospection(
   fetcher: Fetcher,
 ): Promise<GraphQLSchema> {
   const introspectionResult = await fetcher({

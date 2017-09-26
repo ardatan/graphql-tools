@@ -1,9 +1,9 @@
 import makeRemoteExecutableSchema from './makeRemoteExecutableSchema';
-import makeRemoteExecutableSchemaFromIntrospection from './makeRemoteExecutableSchemaFromIntrospection';
+import makeRemoteExecutableSchemaByIntrospection from './makeRemoteExecutableSchemaByIntrospection';
 import mergeSchemas from './mergeSchemas';
 
 export {
   makeRemoteExecutableSchema,
-  makeRemoteExecutableSchemaFromIntrospection,
+  makeRemoteExecutableSchemaByIntrospection,
   mergeSchemas,
 };
