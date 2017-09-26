@@ -1,5 +1,9 @@
 import makeRemoteExecutableSchema from './makeRemoteExecutableSchema';
-import addSimpleRoutingResolvers from './addSimpleRoutingResolvers';
+import makeRemoteExecutableSchemaFromIntrospection from './makeRemoteExecutableSchemaFromIntrospection';
 import mergeSchemas from './mergeSchemas';
 
-export { makeRemoteExecutableSchema, mergeSchemas, addSimpleRoutingResolvers };
+export {
+  makeRemoteExecutableSchema,
+  makeRemoteExecutableSchemaFromIntrospection,
+  mergeSchemas,
+};

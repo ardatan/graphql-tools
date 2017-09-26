@@ -26,6 +26,7 @@ import {
   GraphQLScalarType,
   GraphQLSchema,
   GraphQLType,
+  GraphQLNamedType,
   GraphQLUnionType,
   InlineFragmentNode,
   Kind,
@@ -63,6 +64,13 @@ export type MergeInfo = {
   ) => any;
 };
 
+function defaultOnTypeConflict(
+  left: GraphQLNamedType,
+  right: GraphQLNamedType,
+): GraphQLNamedType {
+  return left;
+}
+
 export default function mergeSchemas({
   schemas,
   onTypeConflict,
@@ -70,11 +78,14 @@ export default function mergeSchemas({
 }: {
   schemas: Array<GraphQLSchema | string>;
   onTypeConflict?: (
-    leftType: GraphQLCompositeType,
-    rightType: GraphQLCompositeType,
-  ) => GraphQLCompositeType;
+    leftType: GraphQLNamedType,
+    rightType: GraphQLNamedType,
+  ) => GraphQLNamedType;
   resolvers: (mergeInfo: MergeInfo) => IResolvers;
 }): GraphQLSchema {
+  if (!onTypeConflict) {
+    onTypeConflict = defaultOnTypeConflict;
+  }
   let queryFields: GraphQLFieldConfigMap<any, any> = {};
   let mutationFields: GraphQLFieldConfigMap<any, any> = {};
 

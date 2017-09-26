@@ -62,7 +62,6 @@ testCombinations.forEach(async combination => {
 
       mergedSchema = mergeSchemas({
         schemas: [propertySchema, bookingSchema, scalarTest, linkSchema],
-        onTypeConflict: (leftType, rightType) => leftType,
         resolvers: mergeInfo => ({
           TestScalar: new GraphQLScalarType({
             name: 'TestScalar',
