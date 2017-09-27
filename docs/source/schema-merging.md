@@ -15,8 +15,8 @@ Often it's a good idea to separate parts of a big schema, either just logically 
 ```
 mergeSchemas({
   schemas: Array<GraphQLSchema | string>,
-  resolvers: (mergeInfo: MergeInfo) => IResolvers,
-  onTypeConflict: (
+  resolvers?: (mergeInfo: MergeInfo) => IResolvers,
+  onTypeConflict?: (
     left: GraphQLNamedType,
     right: GraphQLNamedType
   ) => GraphQLNamedType
@@ -39,7 +39,7 @@ type MergeInfo = {
 
 #### resolvers
 
-`resolvers` should be a function that takes one argument - `mergeInfo` and
+`resolvers` is an optional a function that takes one argument - `mergeInfo` and
 returns resolvers in [makeExecutableSchema](./resolvers.html) format.
 
 #### mergeInfo and delegate
@@ -67,7 +67,7 @@ mergeInfo.delegate(
 `onTypeConflict` lets you customize type resolving logic. Default logic is to
 take the first encountered type of all the types with the same name. This
 methods allows customization of this, for example by taking other type or
-merging types together. 
+merging types together.
 
 ## Example
 
