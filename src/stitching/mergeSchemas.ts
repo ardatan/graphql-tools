@@ -138,7 +138,11 @@ export default function mergeSchemas({
         typeRegistry.addType(newType.name, newType, onTypeConflict);
       }
     });
+  });
 
+  actualSchemas.forEach(schema => {
+    const queryType = schema.getQueryType();
+    const mutationType = schema.getMutationType();
     Object.keys(queryType.getFields()).forEach(name => {
       if (!fullResolvers.Query) {
         fullResolvers.Query = {};
