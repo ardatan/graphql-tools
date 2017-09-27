@@ -99,6 +99,7 @@ const schema = makeRemoteExecutableSchema({
 Authentication headers from context
 
 ```js
+TODO TODO TODO
 const apolloFetch = createApolloFetch({ uri: 'http://api.githunt.com/graphql'});
 const fetcher = ({ query, variables, operationName, context}) => apolloFetch({
   query, variables, operationName
