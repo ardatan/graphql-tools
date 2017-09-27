@@ -1,14 +1,14 @@
 import { GraphQLSchema } from 'graphql';
 import { introspectionQuery, buildClientSchema } from 'graphql';
-import makeRemoteExecutableSchema, {
-  Fetcher,
-} from './makeRemoteExecutableSchema';
+import { Fetcher } from './makeRemoteExecutableSchema';
 
-export default async function makeRemoteExecutableSchemaByIntrospection(
+export default async function introspectSchema(
   fetcher: Fetcher,
+  context?: { [key: string]: any },
 ): Promise<GraphQLSchema> {
   const introspectionResult = await fetcher({
     query: introspectionQuery,
+    context,
   });
   if (introspectionResult.errors || !introspectionResult.data.__schema) {
     throw introspectionResult.errors;
@@ -16,6 +16,6 @@ export default async function makeRemoteExecutableSchemaByIntrospection(
     const schema = buildClientSchema(introspectionResult.data as {
       __schema: any;
     });
-    return makeRemoteExecutableSchema({ schema, fetcher });
+    return schema;
   }
 }
