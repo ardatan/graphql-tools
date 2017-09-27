@@ -140,6 +140,8 @@ export default function mergeSchemas({
     });
   });
 
+  // This is not a bug/oversight, we iterate twice cause we want to first
+  // resolve all types and then force the type thunks
   actualSchemas.forEach(schema => {
     const queryType = schema.getQueryType();
     const mutationType = schema.getMutationType();
