@@ -705,7 +705,7 @@ function filterSelectionSet(
   const typeStack: Array<GraphQLType> = [type];
   const filteredSelectionSet = visit(selectionSet, {
     [Kind.FIELD]: {
-      enter(node: FieldNode): InlineFragmentNode | null | undefined {
+      enter(node: FieldNode): null | undefined {
         let parentType: GraphQLType = resolveType(
           typeStack[typeStack.length - 1],
         );
@@ -725,14 +725,7 @@ function filterSelectionSet(
               ? TypeNameMetaFieldDef
               : fields[node.name.value];
           if (!field) {
-            const fragment =
-              fragmentReplacements[parentType.name] &&
-              fragmentReplacements[parentType.name][node.name.value];
-            if (fragment) {
-              return fragment;
-            } else {
-              return null;
-            }
+            return null;
           } else {
             typeStack.push(field.type);
           }
@@ -748,19 +741,37 @@ function filterSelectionSet(
       const parentType: GraphQLType = resolveType(
         typeStack[typeStack.length - 1],
       );
+      const parentTypeName = parentType.name;
+      let selections = node.selections;
       if (
         parentType instanceof GraphQLInterfaceType ||
         parentType instanceof GraphQLUnionType
       ) {
+        selections = selections.concat({
+          kind: Kind.FIELD,
+          name: {
+            kind: Kind.NAME,
+            value: '__typename',
+          },
+        });
+      }
+
+      if (fragmentReplacements[parentTypeName]) {
+        selections.forEach(selection => {
+          if (selection.kind === Kind.FIELD) {
+            const name = selection.name.value;
+            const fragment = fragmentReplacements[parentTypeName][name];
+            if (fragment) {
+              selections = selections.concat(fragment);
+            }
+          }
+        });
+      }
+
+      if (selections !== node.selections) {
         return {
           ...node,
-          selections: node.selections.concat({
-            kind: Kind.FIELD,
-            name: {
-              kind: Kind.NAME,
-              value: '__typename',
-            },
-          }),
+          selections,
         };
       }
     },
@@ -805,7 +816,7 @@ function filterSelectionSet(
   };
 }
 
-function resolveType(type: GraphQLType): GraphQLType {
+function resolveType(type: GraphQLType): GraphQLNamedType {
   let lastType = type;
   while (
     lastType instanceof GraphQLNonNull ||
