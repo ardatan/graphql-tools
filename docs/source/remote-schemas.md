@@ -86,10 +86,7 @@ Basic usage
 ```js
 import { createApolloFetch } from 'apollo-fetch';
 
-const apolloFetch = createApolloFetch({ uri: 'http://api.githunt.com/graphql'});
-const fetcher = ({ query, variables, operationName, context}) => apolloFetch({
-  query, variables, operationName
-});
+const fetcher = createApolloFetch({ uri: 'http://api.githunt.com/graphql'});
 const schema = makeRemoteExecutableSchema({
   schema: await introspectSchema(fetcher),
   fetcher,
@@ -99,10 +96,14 @@ const schema = makeRemoteExecutableSchema({
 Authentication headers from context
 
 ```js
-TODO TODO TODO
-const apolloFetch = createApolloFetch({ uri: 'http://api.githunt.com/graphql'});
-const fetcher = ({ query, variables, operationName, context}) => apolloFetch({
-  query, variables, operationName
+const fetcher = createApolloFetch({ uri: 'http://api.githunt.com/graphql'});
+fetcher.use({ request, option }, next) => {
+  if (!options.headers) {
+    options.headers = {};
+  }
+  options.headers['Authorization'] = `Bearer ${request.context.authKey}`;
+
+  next();
 });
 const schema = makeRemoteExecutableSchema({
   schema: await introspectSchema(fetcher),
