@@ -174,7 +174,10 @@ export default function mergeSchemas({
     }
   });
 
-  const passedResolvers = resolvers(mergeInfo);
+  let passedResolvers = {};
+  if (resolvers) {
+    passedResolvers = resolvers(mergeInfo);
+  }
 
   Object.keys(passedResolvers).forEach(typeName => {
     const type = passedResolvers[typeName];
