@@ -285,7 +285,8 @@ function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = fals
         if (isObject(mockedValue) && isObject(resolvedValue)) {
           // Object.assign() won't do here, as we need to all properties, including
           // the non-enumerable ones and defined using Object.defineProperty
-          return copyOwnProps({}, resolvedValue, mockedValue);
+          const emptyObject = Object.create(Object.getPrototypeOf(resolvedValue))
+          return copyOwnProps(emptyObject, resolvedValue, mockedValue);
         }
         return (undefined !== resolvedValue) ? resolvedValue : mockedValue;
       });

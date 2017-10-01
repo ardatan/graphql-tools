@@ -1336,7 +1336,7 @@ describe('Mock', () => {
     });
   });
   
-  it("allows instanceof checks in resolve type", () => {
+  it("allows instanceof checks in __resolveType", () => {
 
     class Account {
       id: string;
@@ -1346,7 +1346,7 @@ describe('Mock', () => {
         this.id = "123nmasb";
         this.username = "foo@bar.com";
       }
-    }
+    };
 
     const typeDefs = `
     	interface Node {
@@ -1375,8 +1375,6 @@ describe('Mock', () => {
       },
       Node: {
         __resolveType: (obj: any) => {
-          // This instanceof check doesn't seem to work
-          // when the addMockFunctionsToSchema is enabled.
           if (obj instanceof Account) {
             return "Account";
           }
