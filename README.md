@@ -53,7 +53,7 @@ schema {
 }
 `;
 
-export default schema;
+export default typeDefs;
 ```
 
 Then you define resolvers as a nested object that maps type and field names to resolver functions:

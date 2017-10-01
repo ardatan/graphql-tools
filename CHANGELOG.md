@@ -1,5 +1,17 @@
 # Change log
 
+### vNEXT
+
+### v1.2.3
+* Update package.json to allow GraphQL.js 0.11 [Issue #394](https://github.com/apollographql/graphql-tools/issues/394) [PR #395](https://github.com/apollographql/graphql-tools/pull/395)
+
+### v1.2.1
+* Fix typings for resolver options: [Issue #372](https://github.com/apollographql/graphql-tools/issues/372) [PR #374](https://github.com/apollographql/graphql-tools/pull/374)
+
+### v.1.2.0
+* Use defaultFieldResolver from graphql-js package instead of own one [PR #373](https://github.com/apollographql/graphql-tools/pull/373)
+* Remove `lodash` dependency [PR #356](https://github.com/apollographql/graphql-tools/pull/356)
+
 ### v.1.1.0
 * Improve mocking of union and interface types [PR #332](https://github.com/apollographql/graphql-tools/pull/332)
 

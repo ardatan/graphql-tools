@@ -5,7 +5,7 @@ import { makeExecutableSchema } from '../schemaGenerator';
 import 'mocha';
 
 describe('Logger', () => {
-  it('logs the errors', (done) => {
+  it('logs the errors', done => {
     const shorthand = `
       type RootQuery {
         just_a_field: Int
@@ -47,7 +47,7 @@ describe('Logger', () => {
     });
   });
 
-  it('also forwards the errors when you tell it to', (done) => {
+  it('also forwards the errors when you tell it to', done => {
     const shorthand = `
       type RootQuery {
         species(name: String): String
@@ -64,7 +64,9 @@ describe('Logger', () => {
       },
     };
     let loggedErr: Error = null;
-    const logger = new Logger('LoggyMcLogface', (e: Error) => { loggedErr = e; });
+    const logger = new Logger('LoggyMcLogface', (e: Error) => {
+      loggedErr = e;
+    });
     const jsSchema = makeExecutableSchema({
       typeDefs: shorthand,
       resolvers: resolve,
@@ -77,7 +79,7 @@ describe('Logger', () => {
     });
   });
 
-  it('prints the errors when you want it to', (done) => {
+  it('prints the errors when you want it to', done => {
     const shorthand = `
       type RootQuery {
         species(name: String): String
@@ -111,7 +113,7 @@ describe('Logger', () => {
     });
   });
 
-  it('logs any Promise reject errors', (done) => {
+  it('logs any Promise reject errors', done => {
     const shorthand = `
       type RootQuery {
         just_a_field: Int
@@ -157,7 +159,7 @@ describe('Logger', () => {
     });
   });
 
-  it('all Promise rejects will log an Error', (done) => {
+  it('all Promise rejects will log an Error', done => {
     const shorthand = `
       type RootQuery {
         species(name: String): String
@@ -177,7 +179,9 @@ describe('Logger', () => {
     };
 
     let loggedErr: Error = null;
-    const logger = new Logger('LoggyMcLogface', (e: Error) => { loggedErr = e; });
+    const logger = new Logger('LoggyMcLogface', (e: Error) => {
+      loggedErr = e;
+    });
     const jsSchema = makeExecutableSchema({
       typeDefs: shorthand,
       resolvers: resolve,
