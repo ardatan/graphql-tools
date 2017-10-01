@@ -1377,18 +1377,18 @@ describe('Mock', () => {
       expect(res.data).to.deep.equal(expected);
     });
   });
-  
-  it("allows instanceof checks in __resolveType", () => {
+
+  it('allows instanceof checks in __resolveType', () => {
 
     class Account {
-      id: string;
-      username: string;
-      
+      public id: string;
+      public username: string;
+
       constructor() {
-        this.id = "123nmasb";
-        this.username = "foo@bar.com";
+        this.id = '123nmasb';
+        this.username = 'foo@bar.com';
       }
-    };
+    }
 
     const typeDefs = `
     	interface Node {
@@ -1399,7 +1399,7 @@ describe('Mock', () => {
         id: ID!
         username: String
       }
-      
+
       type User implements Node {
         id: ID!
       }
@@ -1418,9 +1418,8 @@ describe('Mock', () => {
       Node: {
         __resolveType: (obj: any) => {
           if (obj instanceof Account) {
-            return "Account";
-          }
-          else {
+            return 'Account';
+          } else {
             return null;
           }
         }
@@ -1451,8 +1450,8 @@ describe('Mock', () => {
     const expected = {
       data: {
         node: {
-          id: "123nmasb",
-          username: "foo@bar.com"
+          id: '123nmasb',
+          username: 'foo@bar.com'
         }
       }
     };
