@@ -1,10 +1,13 @@
 // Place your settings in this file to overwrite default and user settings.
 {
   "editor.tabSize": 2,
-  "editor.rulers": [100],
+  "editor.insertSpaces": true,
+  "editor.rulers": [110],
+  "editor.wordWrapColumn": 110,
   "files.trimTrailingWhitespace": true,
   "files.insertFinalNewline": true,
-  "editor.wrappingColumn": 100,
+  "prettier.singleQuote": true,
+  "prettier.printWidth": 110,
   "files.exclude": {
     "**/.git": true,
     "**/.DS_Store": true,
