@@ -82,6 +82,3 @@ export interface IMockServer {
   ) => Promise<ExecutionResult>;
 }
 
-export interface IPubSub {
-  publish(triggerName: string, payload: any): any;
-}
