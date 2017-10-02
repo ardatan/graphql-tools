@@ -314,11 +314,11 @@ describe('Mock', () => {
     }`;
     return graphql(jsSchema, testQuery).then(res => {
       // XXX this test is expected to fail once every 2^40 times ;-)
-      expect(res.data['returnBirdsAndBees']).to.include({
+      expect(res.data['returnBirdsAndBees']).to.deep.include({
         returnInt: 10,
         returnString: 'aha',
       });
-      return expect(res.data['returnBirdsAndBees']).to.include({
+      return expect(res.data['returnBirdsAndBees']).to.deep.include({
         returnInt: 10,
         returnEnum: 'A',
       });
@@ -354,11 +354,11 @@ describe('Mock', () => {
       }
     }`;
     return graphql(jsSchema, testQuery).then(res => {
-      expect(res.data['returnFlying']).to.include({
+      expect(res.data['returnFlying']).to.deep.include({
         returnInt: 10,
         returnString: 'aha',
       });
-      return expect(res.data['returnFlying']).to.include({
+      return expect(res.data['returnFlying']).to.deep.include({
         returnInt: 10,
         returnEnum: 'A',
       });

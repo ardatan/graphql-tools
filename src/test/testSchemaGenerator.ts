@@ -10,6 +10,7 @@ import {
   IntValueNode,
   parse,
   ExecutionResult,
+  GraphQLError
 } from 'graphql';
 // import { printSchema } from 'graphql';
 const GraphQLJSON = require('graphql-type-json');
@@ -24,7 +25,7 @@ import {
   chainResolvers,
   concatenateTypeDefs,
 } from '../schemaGenerator';
-import { IResolverValidationOptions, IResolvers } from '../Interfaces';
+import { IResolverValidationOptions, IResolvers, IExecutableSchemaDefinition } from '../Interfaces';
 import 'mocha';
 
 interface Bird {
@@ -111,7 +112,7 @@ describe('generating schema from shorthand', () => {
   it('throws an error if no resolveFunctions are provided', () => {
     expect(() =>
       (<any>makeExecutableSchema)({ typeDefs: 'blah', resolvers: {} }),
-    ).to.throw('GraphQLError');
+    ).to.throw(GraphQLError);
   });
 
   it('throws an error if typeDefinitionNodes is neither string nor array nor schema AST', () => {
@@ -134,7 +135,7 @@ describe('generating schema from shorthand', () => {
         typeDefs: 'blah',
         resolvers: {},
         resolverValidationOptions: 'string',
-      }),
+      } as IExecutableSchemaDefinition),
     ).to.throw('Expected `resolverValidationOptions` to be an object');
   });
 
@@ -971,7 +972,7 @@ describe('generating schema from shorthand', () => {
     const rf = { Query: { bird: 'NOT A FUNCTION' } };
 
     expect(() =>
-      makeExecutableSchema({ typeDefs: short, resolvers: rf }),
+      makeExecutableSchema({ typeDefs: short, resolvers: rf } as IExecutableSchemaDefinition),
     ).to.throw('Resolver Query.bird must be object or function');
   });
 
