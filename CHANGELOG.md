@@ -2,6 +2,8 @@
 
 ### vNEXT
 
+* Add schema merging utilities [PR #382](https://github.com/apollographql/graphql-tools/pull/382)
+
 ### v1.2.3
 * Update package.json to allow GraphQL.js 0.11 [Issue #394](https://github.com/apollographql/graphql-tools/issues/394) [PR #395](https://github.com/apollographql/graphql-tools/pull/395)
 

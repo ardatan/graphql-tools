@@ -81,4 +81,3 @@ export interface IMockServer {
     vars?: { [key: string]: any },
   ) => Promise<ExecutionResult>;
 }
-
