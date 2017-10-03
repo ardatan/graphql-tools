@@ -1,6 +1,5 @@
 ---
 title: Custom scalars
-order: 309
 description: Add custom scalars to your graphql-tools generated schema.
 ---
 

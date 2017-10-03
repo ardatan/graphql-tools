@@ -1,6 +1,5 @@
 ---
 title: Generating a schema
-order: 304
 description: Generate a GraphQL schema from the concise type definition language.
 ---
 
@@ -290,7 +289,7 @@ type MyObjectType {
     # Description for argument
     arg: Int
   )
-  
+
   oldField(
     # Description for argument
     arg: Int

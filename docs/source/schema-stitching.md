@@ -1,16 +1,13 @@
 ---
 title: Schema stitching
-order: 309
-description: Stitching schemas together
+description: Combining multiple GraphQL APIs into one
 ---
 
 Schema stitching is the ability to create a single GraphQL schema from multiple underlying GraphQL APIs.
 
 One of the main benefits of GraphQL is that you can query all of your data as part of one schema, and get everything you need in one request. But as your schema grows, it might become cumbersome to manage it all as one codebase, and it starts to make sense to split it into different modules. You may also want to decompose your schema into separate microservices, which can be developed and deployed independently.
 
-In both cases, you use `mergeSchemas` to combine multiple GraphQL schemas together and produce a merged schema that knows how to delegate parts of the query to the relevant subschemas.
-
-These subschemas can be either local to the server, or running on a remote server. They can even be services offered by 3rd parties, allowing you to connect to external data and create mashups.
+In both cases, you use `mergeSchemas` to combine multiple GraphQL schemas together and produce a merged schema that knows how to delegate parts of the query to the relevant subschemas. These subschemas can be either local to the server, or running on a remote server. They can even be services offered by 3rd parties, allowing you to connect to external data and create mashups.
 
 In order to merge with a remote schema, you would first use [makeRemoteExecutableSchema](./remote-schemas.html) to create a local proxy for the schema that knows how to call the remote endpoint. You could then merge with that proxy the same way you would merge with a locally implemented schema.
 

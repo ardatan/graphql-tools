@@ -1,6 +1,5 @@
 ---
 title: Mocking
-order: 306
 description: Mock your GraphQL data based on a schema.
 ---
 
@@ -37,7 +36,7 @@ query tasksForUser {
 
 graphql(schema, query).then((result) => console.log('Got result', result));
 ```
- 
+
 > Note: If your schema has custom scalar types, you still need to define the `__serialize`, `__parseValue`, and `__parseLiteral` functions, and pass them inside the second argument to `makeExecutableSchema`.
 
 This mocking logic simply looks at your schema and makes sure to return a string where your schema has a string, a number for a number, etc. So you can already get the right shape of result. But if you want to use the mocks to do sophisticated testing, you will likely want to customize them to your particular data model.

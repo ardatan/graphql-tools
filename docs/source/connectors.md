@@ -1,6 +1,5 @@
 ---
 title: Data fetching
-order: 307
 description: How to fetch data from your GraphQL resolvers.
 ---
 
