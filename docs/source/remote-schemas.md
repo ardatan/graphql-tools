@@ -1,10 +1,10 @@
 ---
 title: Remote schemas
-order: 309
+order: 310
 description: Work with remote GraphQL endpoints
 ---
 
-Sometimes it's valuable to be able to treat remote GraphQL endpoints as if they were local executable schemas. Use cases include, for example [merging schemas](./schema-merging.html) working with schemas on client.
+It can be valuable to be able to treat remote GraphQL endpoints as if they were local executable schemas. This is especially useful for [schema stitching](./schema-stitching.html), but there may be other use cases.
 
 ## API
 
@@ -20,7 +20,7 @@ Given a GraphQL schema (can be a non-executable client schema made by `buildClie
     context?: {[key: string]: any}
 ): Promise&lt;GraphQLSchema&gt;</h3>
 
-Use fetcher to build a client schema using introspection query. For easy of use of `makeRemoteExecutableSchema`. Provides a *client* schema, so a non-executable schema. Accepts optional second argument `context`, which is passed to the fetcher.
+Use `fetcher` to build a client schema using introspection query. For easy of use of `makeRemoteExecutableSchema`. Provides a *client* schema, so a non-executable schema. Accepts optional second argument `context`, which is passed to the fetcher.
 
 <h3 id="Fetcher" title="Fetcher">
   Fetcher
