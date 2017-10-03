@@ -47,6 +47,7 @@ const linkSchema = `
 
   extend type Query {
     delegateInterfaceTest: TestInterface
+    delegateArgumentTest(arbitraryArg: Int): Property
   }
 `;
 
@@ -110,6 +111,17 @@ testCombinations.forEach(async combination => {
                 'interfaceTest',
                 {
                   kind: 'ONE',
+                },
+                context,
+                info,
+              );
+            },
+            delegateArgumentTest(parent, args, context, info) {
+              return mergeInfo.delegate(
+                'query',
+                'propertyById',
+                {
+                  id: 'p1',
                 },
                 context,
                 info,
@@ -895,6 +907,29 @@ bookingById(id: $b1) {
                   },
                 },
               ],
+            },
+          },
+        });
+      });
+    });
+
+    describe('regression', () => {
+      it('should not pass extra arguments to delegates', async () => {
+        const result = await graphql(
+          mergedSchema,
+          `
+            query {
+              delegateArgumentTest(arbitraryArg: 5) {
+                id
+              }
+            }
+          `,
+        );
+
+        expect(result).to.deep.equal({
+          data: {
+            delegateArgumentTest: {
+              id: 'p1',
             },
           },
         });

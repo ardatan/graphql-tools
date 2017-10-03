@@ -560,9 +560,14 @@ function processRootField(
 } {
   const existingArguments = selection.arguments || [];
   const existingArgumentNames = existingArguments.map(arg => arg.name.value);
+  const allowedArguments = rootField.args.map(arg => arg.name);
   const missingArgumentNames = difference(
-    rootField.args.map(arg => arg.name),
+    allowedArguments,
     existingArgumentNames,
+  );
+  const extraArguments = difference(existingArgumentNames, allowedArguments);
+  const filteredExistingArguments = existingArguments.filter(
+    arg => extraArguments.indexOf(arg.name.value) === -1,
   );
   const variables: Array<{ arg: string; variable: string }> = [];
   const missingArguments = missingArgumentNames.map(name => {
@@ -592,7 +597,7 @@ function processRootField(
     selection: {
       kind: Kind.FIELD,
       alias: null,
-      arguments: [...existingArguments, ...missingArguments],
+      arguments: [...filteredExistingArguments, ...missingArguments],
       selectionSet: selection.selectionSet,
       name: {
         kind: Kind.NAME,
