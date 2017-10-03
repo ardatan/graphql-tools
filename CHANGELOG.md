@@ -3,7 +3,6 @@
 ### vNEXT
 
 ### v2.0.0
-
 * Add schema merging utilities [PR #382](https://github.com/apollographql/graphql-tools/pull/382)
 
 ### v1.2.3
