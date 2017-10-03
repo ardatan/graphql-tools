@@ -20,4 +20,4 @@ import { addErrorLoggingToSchema } from 'graphql-tools';
 const logger = { log: (e) => console.error(e.stack) };
 addErrorLoggingToSchema(mySchema, logger);
 ```
-dt
+
