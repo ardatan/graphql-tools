@@ -5,13 +5,37 @@ description: Generate GraphQL schema objects that delegate to a remote server
 
 It can be valuable to be able to treat remote GraphQL endpoints as if they were local executable schemas. This is especially useful for [schema stitching](./schema-stitching.html), but there may be other use cases.
 
-<h2 id="creating-fetcher" title="Creating a fetcher">
+Generally, to create a remote schema, you need three steps:
+
+1. Create a [fetcher](#fetcher) that can retrieve results from that schema
+2. Use [`introspectSchema`](#introspectSchema) to get the schema of the remote server
+3. Use [`makeRemoteExecutableSchema`](#makeRemoteExecutableSchema) to create a schema that uses the fetcher to delegate requests to the underlying service
+
+We've chosen to split this functionality up to give you the flexibility to choose when to do the introspection step. For example, you might already have the remote schema information, allowing you to skip the `introspectSchema` step entirely. Here's a complete example:
+
+```js
+import { HttpLink, makePromise, execute } from 'apollo-link';
+
+const link = new HttpLink({ uri: 'http://api.githunt.com/graphql' });
+
+const fetcher = (operation) => makePromise(execute(link, operation));
+const schema = await introspectSchema(fetcher);
+
+const executableSchema = makeRemoteExecutableSchema({
+  schema,
+  fetcher,
+});
+```
+
+Now, let's look at all the parts separately.
+
+<h2 id="fetcher" title="Creating a fetcher">
   Creating a Fetcher
 </h2>
 
 A fetcher is a function capable of retrieving GraphQL results. This type of function is used by several `graphql-tools` features to do introspection or fetch results during execution.
 
-<h3 id="fetcher" title="Fetcher API">
+<h3 id="fetcher-api" title="Fetcher API">
   Fetcher API
 </h3>
 
