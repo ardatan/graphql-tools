@@ -934,6 +934,77 @@ bookingById(id: $b1) {
           },
         });
       });
+
+      it('aliases', async () => {
+        const result = await graphql(
+          mergedSchema,
+          `
+            query {
+              property: propertyById(id: "p1") {
+                id
+                propertyId: id
+                secondAlias: id
+                firstReservation: bookings(limit: 1) {
+                  id
+                }
+                reservations: bookings {
+                  bookingId: id
+                  user: customer {
+                    customerId: id
+                  }
+                  hotel: property {
+                    propertyId: id
+                  }
+                }
+              }
+            }
+          `,
+        );
+
+        expect(result).to.deep.equal({
+          data: {
+            property: {
+              id: 'p1',
+              propertyId: 'p1',
+              secondAlias: 'p1',
+              firstReservation: [
+                {
+                  id: 'b1',
+                },
+              ],
+              reservations: [
+                {
+                  bookingId: 'b1',
+                  user: {
+                    customerId: 'c1',
+                  },
+                  hotel: {
+                    propertyId: 'p1',
+                  },
+                },
+                {
+                  bookingId: 'b2',
+                  hotel: {
+                    propertyId: 'p1',
+                  },
+                  user: {
+                    customerId: 'c2',
+                  },
+                },
+                {
+                  bookingId: 'b3',
+                  hotel: {
+                    propertyId: 'p1',
+                  },
+                  user: {
+                    customerId: 'c3',
+                  },
+                },
+              ],
+            },
+          },
+        });
+      });
     });
   });
 });
