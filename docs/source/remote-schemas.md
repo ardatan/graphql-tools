@@ -117,7 +117,7 @@ type Operation {
 ```
 
 <h3 id="fetcher-apollo-fetch" title="Using apollo-fetch">
-  Using [apollo-fetch](https://github.com/apollographql/apollo-fetch)
+  Using <a href="https://github.com/apollographql/apollo-fetch">apollo-fetch</a>
 </h3>
 
 Basic usage
@@ -151,7 +151,7 @@ const schema = makeRemoteExecutableSchema({
 ```
 
 <h3 id="fetcher-node-fetch" title="Using node-fetch">
-  Using [node-fetch](https://github.com/apollographql/node-fetch)
+  Using <a href="https://github.com/bitinn/node-fetch">node-fetch</a>
 </h3>
 
 Basic usage
