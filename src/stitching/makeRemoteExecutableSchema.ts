@@ -24,19 +24,19 @@ export type Fetcher = (
     operationName?: string;
     variables?: { [key: string]: any };
     context?: { [key: string]: any };
-  },
+  }
 ) => Promise<ExecutionResult>;
 
 export const fetcherToLink = (fetcher: Fetcher): ApolloLink => {
   return new ApolloLink(operation => {
     return new Observable(observer => {
       const { query, operationName, variables } = operation;
-      const context = operation.getContext();
+      const { graphqlContext } = operation.getContext();
       fetcher({
         query: typeof query === 'string' ? query : print(query),
         operationName,
         variables,
-        context,
+        context: graphqlContext,
       })
         .then((result: ExecutionResult) => {
           observer.next(result);
@@ -119,7 +119,7 @@ export default function makeRemoteExecutableSchema({
 function createResolver(link: ApolloLink): GraphQLFieldResolver<any, any> {
   return async (root, args, context, info) => {
     const fragments = Object.keys(info.fragments).map(
-      fragment => info.fragments[fragment],
+      fragment => info.fragments[fragment]
     );
     const document = {
       kind: Kind.DOCUMENT,
@@ -129,8 +129,8 @@ function createResolver(link: ApolloLink): GraphQLFieldResolver<any, any> {
       execute(link, {
         query: document,
         variables: info.variableValues,
-        context,
-      }),
+        context: { graphqlContext: context },
+      })
     );
     const fieldName = info.fieldNodes[0].alias
       ? info.fieldNodes[0].alias.value
