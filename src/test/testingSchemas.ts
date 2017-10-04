@@ -143,7 +143,7 @@ function values<T>(o: { [s: string]: T }): T[] {
 function coerceString(value: any): string {
   if (Array.isArray(value)) {
     throw new TypeError(
-      `String cannot represent an array value: [${String(value)}]`,
+      `String cannot represent an array value: [${String(value)}]`
     );
   }
   return String(value);
@@ -400,7 +400,7 @@ const bookingResolvers: IResolvers = {
     },
     bookingsByPropertyId(parent, { propertyId, limit }) {
       const list = values(sampleData.Booking).filter(
-        (booking: Booking) => booking.propertyId === propertyId,
+        (booking: Booking) => booking.propertyId === propertyId
       );
       if (limit) {
         return list.slice(0, limit);
@@ -432,7 +432,7 @@ const bookingResolvers: IResolvers = {
   Mutation: {
     addBooking(
       parent,
-      { input: { propertyId, customerId, startTime, endTime } },
+      { input: { propertyId, customerId, startTime, endTime } }
     ) {
       return {
         id: 'newId',
@@ -453,7 +453,7 @@ const bookingResolvers: IResolvers = {
   Customer: {
     bookings(parent: Customer) {
       return values(sampleData.Booking).filter(
-        (booking: Booking) => booking.customerId === parent.id,
+        (booking: Booking) => booking.customerId === parent.id
       );
     },
     vehicle(parent: Customer) {
@@ -488,12 +488,19 @@ export const bookingSchema: GraphQLSchema = makeExecutableSchema({
 
 // Pretend this schema is remote
 async function makeSchemaRemoteFromLink(schema: GraphQLSchema) {
-  const link = new ApolloLink((operation) => {
+  const link = new ApolloLink(operation => {
     return new Observable(observer => {
       const { query, operationName, variables } = operation;
-      const context = operation.getContext();
-      graphql(schema, print(query), null, context, variables, operationName)
-        .then((result) => {
+      const { graphqlContext } = operation.getContext();
+      graphql(
+        schema,
+        print(query),
+        null,
+        graphqlContext,
+        variables,
+        operationName
+      )
+        .then(result => {
           observer.next(result);
           observer.complete();
         })
@@ -502,7 +509,10 @@ async function makeSchemaRemoteFromLink(schema: GraphQLSchema) {
   });
 
   const clientSchema = await introspectSchema(link);
-  return makeRemoteExecutableSchema({ schema: clientSchema, link });
+  return makeRemoteExecutableSchema({
+    schema: clientSchema,
+    link,
+  });
 }
 
 // ensure fetcher support exists from the 2.0 api
@@ -512,8 +522,13 @@ async function makeExecutableSchemaFromFetcher(schema: GraphQLSchema) {
   };
 
   const clientSchema = await introspectSchema(fetcher);
-  return makeRemoteExecutableSchema({ schema: clientSchema, fetcher });
+  return makeRemoteExecutableSchema({
+    schema: clientSchema,
+    fetcher,
+  });
 }
 
 export const remotePropertySchema = makeSchemaRemoteFromLink(propertySchema);
-export const remoteBookingSchema = makeExecutableSchemaFromFetcher(bookingSchema);
+export const remoteBookingSchema = makeExecutableSchemaFromFetcher(
+  bookingSchema
+);
