@@ -10,7 +10,7 @@ import {
   IntValueNode,
   parse,
   ExecutionResult,
-  GraphQLError
+  GraphQLError,
 } from 'graphql';
 // import { printSchema } from 'graphql';
 const GraphQLJSON = require('graphql-type-json');
@@ -25,7 +25,11 @@ import {
   chainResolvers,
   concatenateTypeDefs,
 } from '../schemaGenerator';
-import { IResolverValidationOptions, IResolvers, IExecutableSchemaDefinition } from '../Interfaces';
+import {
+  IResolverValidationOptions,
+  IResolvers,
+  IExecutableSchemaDefinition,
+} from '../Interfaces';
 import 'mocha';
 
 interface Bird {
@@ -657,8 +661,8 @@ describe('generating schema from shorthand', () => {
     });
     expect(jsSchema.getQueryType().name).to.equal('Query');
     expect(jsSchema.getType('JSON')).to.be.an.instanceof(GraphQLScalarType);
-    expect(jsSchema.getType('JSON')).to.have
-      .property('description')
+    expect(jsSchema.getType('JSON'))
+      .to.have.property('description')
       .that.is.a('string');
     expect(jsSchema.getType('JSON')['description']).to.have.length.above(0);
   });
@@ -972,7 +976,10 @@ describe('generating schema from shorthand', () => {
     const rf = { Query: { bird: 'NOT A FUNCTION' } };
 
     expect(() =>
-      makeExecutableSchema({ typeDefs: short, resolvers: rf } as IExecutableSchemaDefinition),
+      makeExecutableSchema({
+        typeDefs: short,
+        resolvers: rf,
+      } as IExecutableSchemaDefinition),
     ).to.throw('Resolver Query.bird must be object or function');
   });
 
@@ -1847,12 +1854,9 @@ describe('chainResolvers', () => {
     const rChained = chainResolvers([r1, undefined, r3]);
     // faking the resolve info here.
     expect(
-      rChained(
-        0,
-        { name: 'tony' },
-        null,
-        { fieldName: 'person' } as GraphQLResolveInfo,
-      ),
+      rChained(0, { name: 'tony' }, null, {
+        fieldName: 'person',
+      } as GraphQLResolveInfo),
     ).to.equals('tony');
   });
 });

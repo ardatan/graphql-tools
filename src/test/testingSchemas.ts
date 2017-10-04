@@ -143,7 +143,7 @@ function values<T>(o: { [s: string]: T }): T[] {
 function coerceString(value: any): string {
   if (Array.isArray(value)) {
     throw new TypeError(
-      `String cannot represent an array value: [${String(value)}]`
+      `String cannot represent an array value: [${String(value)}]`,
     );
   }
   return String(value);
@@ -400,7 +400,7 @@ const bookingResolvers: IResolvers = {
     },
     bookingsByPropertyId(parent, { propertyId, limit }) {
       const list = values(sampleData.Booking).filter(
-        (booking: Booking) => booking.propertyId === propertyId
+        (booking: Booking) => booking.propertyId === propertyId,
       );
       if (limit) {
         return list.slice(0, limit);
@@ -432,7 +432,7 @@ const bookingResolvers: IResolvers = {
   Mutation: {
     addBooking(
       parent,
-      { input: { propertyId, customerId, startTime, endTime } }
+      { input: { propertyId, customerId, startTime, endTime } },
     ) {
       return {
         id: 'newId',
@@ -453,7 +453,7 @@ const bookingResolvers: IResolvers = {
   Customer: {
     bookings(parent: Customer) {
       return values(sampleData.Booking).filter(
-        (booking: Booking) => booking.customerId === parent.id
+        (booking: Booking) => booking.customerId === parent.id,
       );
     },
     vehicle(parent: Customer) {
@@ -525,5 +525,5 @@ async function makeExecutableSchemaFromFetcher(schema: GraphQLSchema) {
 
 export const remotePropertySchema = makeSchemaRemoteFromLink(propertySchema);
 export const remoteBookingSchema = makeExecutableSchemaFromFetcher(
-  bookingSchema
+  bookingSchema,
 );

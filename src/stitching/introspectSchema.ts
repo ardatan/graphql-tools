@@ -7,7 +7,7 @@ const parsedIntrospectionQuery = parse(introspectionQuery);
 
 export default async function introspectSchema(
   link: ApolloLink | Fetcher,
-  linkContext?: { [key: string]: any }
+  linkContext?: { [key: string]: any },
 ): Promise<GraphQLSchema> {
   if (!(link as ApolloLink).request) {
     link = fetcherToLink(link as Fetcher);
@@ -16,7 +16,7 @@ export default async function introspectSchema(
     execute(link as ApolloLink, {
       query: parsedIntrospectionQuery,
       context: linkContext,
-    })
+    }),
   );
   if (introspectionResult.errors || !introspectionResult.data.__schema) {
     throw introspectionResult.errors;

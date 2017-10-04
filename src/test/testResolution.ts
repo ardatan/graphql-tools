@@ -31,16 +31,16 @@ describe('Resolve', () => {
     const resolvers = {
       RootQuery: {
         printRoot,
-        printRootAgain: printRoot
+        printRootAgain: printRoot,
       },
       RootMutation: {
-        printRoot
+        printRoot,
       },
       RootSubscription: {
         printRoot: {
-          subscribe: () => pubsub.asyncIterator('printRootChannel')
-        }
-      }
+          subscribe: () => pubsub.asyncIterator('printRootChannel'),
+        },
+      },
     };
     const schema = makeExecutableSchema({ typeDefs, resolvers });
     let schemaLevelResolveFunctionCalls = 0;
@@ -60,11 +60,11 @@ describe('Resolve', () => {
             printRootAgain
           }
         `,
-        root
+        root,
       ).then(({ data }) => {
         assert.deepEqual(data, {
           printRoot: root,
-          printRootAgain: root
+          printRootAgain: root,
         });
         assert.equal(schemaLevelResolveFunctionCalls, 1);
       });
@@ -85,31 +85,42 @@ describe('Resolve', () => {
             subscription TestSubscription {
               printRoot
             }
-          `)
-        ).then(results => {
-          forAwaitEach(results as AsyncIterable<ExecutionResult>, (result: ExecutionResult) => {
-            if (result.errors) {
-              return done(new Error(`Unexpected errors in GraphQL result: ${result.errors}`));
-            }
+          `),
+        )
+          .then(results => {
+            forAwaitEach(
+              results as AsyncIterable<ExecutionResult>,
+              (result: ExecutionResult) => {
+                if (result.errors) {
+                  return done(
+                    new Error(
+                      `Unexpected errors in GraphQL result: ${result.errors}`,
+                    ),
+                  );
+                }
 
-            const subsData = result.data;
-            subsCbkCalls++;
-            try {
-              if (subsCbkCalls === 1) {
-                assert.equal(schemaLevelResolveFunctionCalls, 1);
-                assert.deepEqual(subsData, { printRoot: subscriptionRoot });
-                return resolveFirst();
-              } else if (subsCbkCalls === 2) {
-                assert.equal(schemaLevelResolveFunctionCalls, 4);
-                assert.deepEqual(subsData, { printRoot: subscriptionRoot2 });
-                return done();
-              }
-            } catch (e) {
-              return done(e);
-            }
-            done(new Error('Too many subscription fired'));
-          }).catch(done);
-        }).catch(done);
+                const subsData = result.data;
+                subsCbkCalls++;
+                try {
+                  if (subsCbkCalls === 1) {
+                    assert.equal(schemaLevelResolveFunctionCalls, 1);
+                    assert.deepEqual(subsData, { printRoot: subscriptionRoot });
+                    return resolveFirst();
+                  } else if (subsCbkCalls === 2) {
+                    assert.equal(schemaLevelResolveFunctionCalls, 4);
+                    assert.deepEqual(subsData, {
+                      printRoot: subscriptionRoot2,
+                    });
+                    return done();
+                  }
+                } catch (e) {
+                  return done(e);
+                }
+                done(new Error('Too many subscription fired'));
+              },
+            ).catch(done);
+          })
+          .catch(done);
       });
 
       pubsub.publish('printRootChannel', { printRoot: subscriptionRoot });
@@ -123,8 +134,8 @@ describe('Resolve', () => {
                 printRoot
               }
             `,
-            queryRoot
-          )
+            queryRoot,
+          ),
         )
         .then(({ data }) => {
           assert.equal(schemaLevelResolveFunctionCalls, 2);
@@ -136,7 +147,7 @@ describe('Resolve', () => {
                 printRoot
               }
             `,
-            mutationRoot
+            mutationRoot,
           );
         })
         .then(({ data: mutationData }) => {

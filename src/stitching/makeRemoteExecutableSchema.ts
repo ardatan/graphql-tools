@@ -24,11 +24,11 @@ export type Fetcher = (
     operationName?: string;
     variables?: { [key: string]: any };
     context?: { [key: string]: any };
-  }
+  },
 ) => Promise<ExecutionResult>;
 
 export type LinkContextCreator = (
-  context: { [key: string]: any }
+  context: { [key: string]: any },
 ) => { [key: string]: any };
 
 export const fetcherToLink = (fetcher: Fetcher): ApolloLink => {
@@ -124,11 +124,11 @@ export default function makeRemoteExecutableSchema({
 
 function createResolver(
   link: ApolloLink,
-  linkContext: LinkContextCreator
+  linkContext: LinkContextCreator,
 ): GraphQLFieldResolver<any, any> {
   return async (root, args, context, info) => {
     const fragments = Object.keys(info.fragments).map(
-      fragment => info.fragments[fragment]
+      fragment => info.fragments[fragment],
     );
     const document = {
       kind: Kind.DOCUMENT,
@@ -143,7 +143,7 @@ function createResolver(
         query: document,
         variables: info.variableValues,
         context: contextForLink,
-      })
+      }),
     );
     const fieldName = info.fieldNodes[0].alias
       ? info.fieldNodes[0].alias.value
