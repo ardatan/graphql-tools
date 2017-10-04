@@ -710,7 +710,7 @@ function filterSelectionSet(
   const typeStack: Array<GraphQLType> = [type];
   const filteredSelectionSet = visit(selectionSet, {
     [Kind.FIELD]: {
-      enter(node: FieldNode): null | undefined {
+      enter(node: FieldNode): null | undefined | FieldNode {
         let parentType: GraphQLType = resolveType(
           typeStack[typeStack.length - 1],
         );
@@ -734,6 +734,13 @@ function filterSelectionSet(
           } else {
             typeStack.push(field.type);
           }
+        }
+
+        if (node.alias) {
+          return {
+            ...node,
+            alias: null,
+          };
         }
       },
       leave() {
