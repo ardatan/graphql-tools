@@ -1,4 +1,6 @@
-import { printSchema, print, ExecutionResult, Kind, ValueNode } from 'graphql';
+import { printSchema, print, Kind, ValueNode, ExecutionResult } from 'graphql';
+import { execute, makePromise, ApolloLink, Observable } from 'apollo-link';
+
 import {
   GraphQLFieldResolver,
   GraphQLSchema,
@@ -25,25 +27,51 @@ export type Fetcher = (
   },
 ) => Promise<ExecutionResult>;
 
+export const fetcherToLink = (fetcher: Fetcher): ApolloLink => {
+  return new ApolloLink(operation => {
+    return new Observable(observer => {
+      const { query, operationName, variables } = operation;
+      const context = operation.getContext();
+      fetcher({
+        query: typeof query === 'string' ? query : print(query),
+        operationName,
+        variables,
+        context,
+      })
+        .then((result: ExecutionResult) => {
+          observer.next(result);
+          observer.complete();
+        })
+        .catch(observer.error.bind(observer));
+    });
+  });
+};
+
 export default function makeRemoteExecutableSchema({
   schema,
+  link,
   fetcher,
 }: {
   schema: GraphQLSchema;
-  fetcher: Fetcher;
+  link?: ApolloLink;
+  fetcher?: Fetcher;
 }): GraphQLSchema {
+  if (fetcher && !link) {
+    link = fetcherToLink(fetcher);
+  }
+
   const queryType = schema.getQueryType();
   const queries = queryType.getFields();
   const queryResolvers: IResolverObject = {};
   Object.keys(queries).forEach(key => {
-    queryResolvers[key] = createResolver(fetcher);
+    queryResolvers[key] = createResolver(link);
   });
   let mutationResolvers: IResolverObject = {};
   const mutationType = schema.getMutationType();
   if (mutationType) {
     const mutations = mutationType.getFields();
     Object.keys(mutations).forEach(key => {
-      mutationResolvers[key] = createResolver(fetcher);
+      mutationResolvers[key] = createResolver(link);
     });
   }
 
@@ -88,18 +116,22 @@ export default function makeRemoteExecutableSchema({
   });
 }
 
-function createResolver(fetcher: Fetcher): GraphQLFieldResolver<any, any> {
+function createResolver(link: ApolloLink): GraphQLFieldResolver<any, any> {
   return async (root, args, context, info) => {
-    const operation = print(info.operation);
-    const fragments = Object.keys(info.fragments)
-      .map(fragment => print(info.fragments[fragment]))
-      .join('\n');
-    const query = `${operation}\n${fragments}`;
-    const result = await fetcher({
-      query,
-      variables: info.variableValues,
-      context,
-    });
+    const fragments = Object.keys(info.fragments).map(
+      fragment => info.fragments[fragment],
+    );
+    const document = {
+      kind: Kind.DOCUMENT,
+      definitions: [info.operation, ...fragments],
+    };
+    const result = await makePromise(
+      execute(link, {
+        query: document,
+        variables: info.variableValues,
+        context,
+      }),
+    );
     const fieldName = info.fieldNodes[0].alias
       ? info.fieldNodes[0].alias.value
       : info.fieldName;

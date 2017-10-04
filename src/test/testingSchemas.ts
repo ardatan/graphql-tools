@@ -1,10 +1,12 @@
 import {
   GraphQLSchema,
   graphql,
+  print,
   Kind,
   GraphQLScalarType,
   ValueNode,
 } from 'graphql';
+import { ApolloLink, Observable } from 'apollo-link';
 import { makeExecutableSchema } from '../schemaGenerator';
 import { IResolvers } from '../Interfaces';
 import makeRemoteExecutableSchema from '../stitching/makeRemoteExecutableSchema';
@@ -485,7 +487,26 @@ export const bookingSchema: GraphQLSchema = makeExecutableSchema({
 });
 
 // Pretend this schema is remote
-async function makeSchemaRemote(schema: GraphQLSchema) {
+async function makeSchemaRemoteFromLink(schema: GraphQLSchema) {
+  const link = new ApolloLink((operation) => {
+    return new Observable(observer => {
+      const { query, operationName, variables } = operation;
+      const context = operation.getContext();
+      graphql(schema, print(query), null, context, variables, operationName)
+        .then((result) => {
+          observer.next(result);
+          observer.complete();
+        })
+        .catch(observer.error.bind(observer));
+    });
+  });
+
+  const clientSchema = await introspectSchema(link);
+  return makeRemoteExecutableSchema({ schema: clientSchema, link });
+}
+
+// ensure fetcher support exists from the 2.0 api
+async function makeExecutableSchemaFromFetcher(schema: GraphQLSchema) {
   const fetcher: Fetcher = ({ query, operationName, variables, context }) => {
     return graphql(schema, query, null, context, variables, operationName);
   };
@@ -494,5 +515,5 @@ async function makeSchemaRemote(schema: GraphQLSchema) {
   return makeRemoteExecutableSchema({ schema: clientSchema, fetcher });
 }
 
-export const remotePropertySchema = makeSchemaRemote(propertySchema);
-export const remoteBookingSchema = makeSchemaRemote(bookingSchema);
+export const remotePropertySchema = makeSchemaRemoteFromLink(propertySchema);
+export const remoteBookingSchema = makeExecutableSchemaFromFetcher(bookingSchema);
