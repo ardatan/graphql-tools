@@ -13,7 +13,7 @@ In both cases, you use `mergeSchemas` to combine multiple GraphQL schemas togeth
 
 In order to merge with a remote schema, you should first use [makeRemoteExecutableSchema](./remote-schemas.html) to create a local proxy for the schema that knows how to call the remote endpoint. You can then merge with that proxy the same way you would merge with a locally implemented schema.
 
-<h2 id="example">Example</h2>
+<h2 id="basic-example">Basic example</h2>
 
 In this example we'll stitch together two very simple schemas. It doesn't matter whether these are local or proxies created with `makeRemoteExecutableSchema`, because the merging itself would be the same.
 
@@ -164,9 +164,17 @@ mergeSchemas({
 
 [Run the above example on Launchpad.](https://launchpad.graphql.com/8r11mk9jq)
 
-## API
+<h2 id="complex-example">Complex example</h2>
 
-### mergeSchemas
+For a more complicated example involving properties and bookings, with implementations of all of the resolvers, check out the Launchpad links below:
+
+* [Property schema](https://launchpad.graphql.com/v7l45qkw3)
+* [Booking schema](https://launchpad.graphql.com/41p4j4309)
+* [Merged schema](https://launchpad.graphql.com/q5kq9z15p)
+
+<h2 id="api">API</h2>
+
+<h3 id="mergeSchemas">mergeSchemas</h3>
 
 ```
 mergeSchemas({
@@ -177,25 +185,17 @@ mergeSchemas({
     right: GraphQLNamedType
   ) => GraphQLNamedType
 })
-
-type MergeInfo = {
-  delegate(
-    operation: 'query' | 'mutation',
-    rootFieldName: string,
-    args: any,
-    context: any,
-    info: GraphQLResolveInfo
-  ) => any
-}
 ```
+
+This is the main function that implements schema stitching. Read below for a description of each option.
 
 #### schemas
 
-`schemas` is an array of either `GraphQLSchema`s (they have to beexecutable schemas, meaning they have resolvers defined) or strings. For strings, only extensions (`extend type`) will be used. Passing strings is useful to add fields to existing types to link schemas together.
+`schemas` is an array of either `GraphQLSchema` objects or strings. For strings, only `extend type` declarations will be used. Passing strings is useful to add fields to existing types to link schemas together, as described in the example above.
 
 #### resolvers
 
-`resolvers` is an optional function that takes one argument - `mergeInfo` - and returns resolvers in [makeExecutableSchema](./resolvers.html) format. One addition to the resolver format is the possibility to specify a `fragment` for a resolver. `fragment` must be a GraphQL fragment definition, and allows you to specify which fields from the subschema are required for the resolver to function correctly. Fragment either replaces a field (for fields that don't exist in the subschema) or are added alongside it.
+`resolvers` is an optional function that takes one argument - `mergeInfo` - and returns resolvers in the same format as [makeExecutableSchema](./resolvers.html). One addition to the resolver format is the possibility to specify a `fragment` for a resolver. `fragment` must be a GraphQL fragment definition, and allows you to specify which fields from the parent schema are required for the resolver to function correctly.
 
 ```js
 resolvers: mergeInfo => ({
@@ -220,7 +220,19 @@ resolvers: mergeInfo => ({
 
 #### mergeInfo and delegate
 
-`mergeInfo` currenty is an object with one propeprty - `delegate`.
+`mergeInfo` currenty is an object with one property - `delegate`. It looks like this:
+
+```js
+type MergeInfo = {
+  delegate(
+    operation: 'query' | 'mutation',
+    rootFieldName: string,
+    args: any,
+    context: any,
+    info: GraphQLResolveInfo
+  ) => any
+}
+```
 
 `delegate` takes the operation type (`query` or `mutation`) and root field names, together with the GraphQL execution context
 and resolve info, as well as arguments for the root field. It delegates to
@@ -240,13 +252,7 @@ mergeInfo.delegate(
 
 #### onTypeConflict
 
-`onTypeConflict` lets you customize type resolving logic. Default logic is to
+`onTypeConflict` lets you customize type resolving logic. The default logic is to
 take the first encountered type of all the types with the same name. This
 method allows customization of this behavior, for example by taking another type or
 merging types together.
-
-## Launchpad examples
-
-* [Merged schema](https://launchpad.graphql.com/q5kq9z15p)
-* [Property schema](https://launchpad.graphql.com/v7l45qkw3)
-* [Booking schema](https://launchpad.graphql.com/41p4j4309)
