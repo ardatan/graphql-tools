@@ -103,6 +103,7 @@ const executableSchema = makeRemoteExecutableSchema({
 <h3 id="fetcher-api" title="Fetcher API">
   Fetcher API
 </h3>
+
 You can also use a fetcher (like apollo-fetch or node-fetch) instead of a link. A fetcher is a function that takes one argument, an object that describes an operation:
 
 ```js

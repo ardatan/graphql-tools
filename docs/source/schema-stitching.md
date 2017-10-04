@@ -9,49 +9,68 @@ One of the main benefits of GraphQL is that you can query all of your data as pa
 
 In both cases, you use `mergeSchemas` to combine multiple GraphQL schemas together and produce a merged schema that knows how to delegate parts of the query to the relevant subschemas. These subschemas can be either local to the server, or running on a remote server. They can even be services offered by 3rd parties, allowing you to connect to external data and create mashups.
 
-In order to merge with a remote schema, you would first use [makeRemoteExecutableSchema](./remote-schemas.html) to create a local proxy for the schema that knows how to call the remote endpoint. You could then merge with that proxy the same way you would merge with a locally implemented schema.
+<h2 id="remote-schemas" title="Remote schemas">Working with remote schemas</h2>
 
-## Example
+In order to merge with a remote schema, you should first use [makeRemoteExecutableSchema](./remote-schemas.html) to create a local proxy for the schema that knows how to call the remote endpoint. You can then merge with that proxy the same way you would merge with a locally implemented schema.
+
+<h2 id="example">Example</h2>
 
 In this example we'll stitch together two very simple schemas. It doesn't matter whether these are local or proxies created with `makeRemoteExecutableSchema`, because the merging itself would be the same.
 
-`chirpSchema`
-
-```graphql
-type Chirp {
-  id: ID!
-  text: String
-  authorId: ID!
-}
-
-type Query {
-  chirpById(id: ID!): Chirp
-  chirpsByAuthorId(authorId: ID!): [Chirp]
-}
-```
-
-`authorSchema`
-
-```graphql
-type User {
-  id: ID!
-  email: String
-}
-
-type Query {
-  userById(id: ID!): User
-}
-```
-
-We can now merge these schemas by calling `mergeSchemas`:
+In this case, we're dealing with two schemas that implement a system with authors and "chirps" - small snippets of text that they can post.
 
 ```js
-mergeSchemas({
+import {
+  makeExecutableSchema,
+  addMockFunctionsToSchema,
+  mergeSchemas,
+} from 'graphql-tools';
+
+// Mocked chirp schema; we don't want to worry about the schema
+// implementation right now since we're just demonstrating
+// schema stitching
+const chirpSchema = makeExecutableSchema({
+  typeDefs: `
+    type Chirp {
+      id: ID!
+      text: String
+      authorId: ID!
+    }
+
+    type Query {
+      chirpById(id: ID!): Chirp
+      chirpsByAuthorId(authorId: ID!): [Chirp]
+    }
+  `
+});
+
+addMockFunctionsToSchema({ schema: chirpSchema });
+
+// Mocked author schema
+const authorSchema = makeExecutableSchema({
+  typeDefs: `
+    type User {
+      id: ID!
+      email: String
+    }
+
+    type Query {
+      userById(id: ID!): User
+    }
+  `
+});
+
+// This function call adds the mocks to your schema!
+addMockFunctionsToSchema({ schema: authorSchema });
+
+export const schema = mergeSchemas({
   schemas: [chirpSchema, authorSchema],
 });
 ```
 
-This would give you a new schema with the root fields on `Query` from both schemas:
+[Run the above example on Launchpad.](https://launchpad.graphql.com/1nkk8vqj9)
+
+This gives you a new schema with the root fields on `Query` from both schemas:
 
 ```graphql
 type Query {
@@ -63,27 +82,29 @@ type Query {
 
 That means you now have a single schema that allows you to ask for `userById` and `chirpsByAuthorId` in one query for example.
 
-In many cases however, you'll want to add the explicit ability to navigate from one schema to another. In this example, you'd want to be able to get from a particular author to its chirps, or from a chirp to its author. This is more than a convenience once you move beyond querying for objects by a specific id. If you want to get the authors for the `latestChirps` for example, you have no way of knowing the `authorId`s in advance, so you wouldn't be able to get the authors in the same query.
+<h3 id="adding-resolvers">Adding resolvers between schemas</h3>
 
-To add the ability to navigate between types, you'll usually want to extend existing types with fields that take you from one to the other, and you can do that by defining another schema:
+Proxying the root fields is a great start, but many cases however you'll want to add the ability to navigate from one schema to another. In this example, you might want to be able to get from a particular author to their chirps, or from a chirp to its author. This is more than a convenience once you move beyond querying for objects by a specific id. If you want to get the authors for the `latestChirps` for example, you have no way of knowing the `authorId`s in advance, so you wouldn't be able to get the authors in the same query.
 
-`linkSchema`
+To add the ability to navigate between types, you need to extend existing types with fields that can take you from one to the other. You can do that the same way you add the other parts of the schema:
 
-```graphql
-extend type User {
-  chirps: [Chirp]
-}
+```js
+const linkTypeDefs = `
+  extend type User {
+    chirps: [Chirp]
+  }
 
-extend type Chirp {
-  author: Author
-}
+  extend type Chirp {
+    author: User
+  }
+`;
 ```
 
 We can now merge these three schemas together:
 
 ```js
 mergeSchemas({
-  schemas: [chirpSchema, authorSchema, linkSchema],
+  schemas: [chirpSchema, authorSchema, linkTypeDefs],
 });
 ```
 
@@ -95,13 +116,13 @@ When we resolve `User.chirps` or `Chirp.author`, we want to delegate to the reve
 
 Resolvers specified as part of `mergeSchema` have access to a `delegate` function that allows you to delegate to root fields.
 
-In order to delegate to these root fields however, we'll need to make sure we've actually requested the `id` of the user or the `authorId` of the chirp. To avoid forcing users to add these to their queries manually, resolvers on a merged schema can define a fragment that specifies the required fields, and these will be added to the query automatically.
+In order to delegate to these root fields, we'll need to make sure we've actually requested the `id` of the user or the `authorId` of the chirp. To avoid forcing users to add these to their queries manually, resolvers on a merged schema can define a fragment that specifies the required fields, and these will be added to the query automatically.
 
 A complete implementation of schema stitching for these schemas would look like this:
 
 ```js
 mergeSchemas({
-  schemas: [chirpSchema, authorSchema, linkSchema],
+  schemas: [chirpSchema, authorSchema, linkTypeDefs],
   resolvers: mergeInfo => ({
     User: {
       chirps: {
@@ -127,7 +148,7 @@ mergeSchemas({
           const id = parent.authorId;
           return mergeInfo.delegate(
             'query',
-            'authorById',
+            'userById',
             {
               id,
             },
@@ -140,6 +161,8 @@ mergeSchemas({
   }),
 });
 ```
+
+[Run the above example on Launchpad.](https://launchpad.graphql.com/8r11mk9jq)
 
 ## API
 
