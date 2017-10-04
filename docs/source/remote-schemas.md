@@ -33,32 +33,13 @@ Now, let's look at all the parts separately.
   Creating a Link
 </h2>
 
-A link is a function capable of retrieving GraphQL results. It is the same way that Apollo Client handles fetching data and is used by several `graphql-tools` features to do introspection or fetch results during execution.
+A link is a function capable of retrieving GraphQL results. It is the same way that Apollo Client handles fetching data and is used by several `graphql-tools` features to do introspection or fetch results during execution. Using an Apollo Link brings with it a large feature set for common use cases. For instance, adding error handling to your request is super easy using the `apollo-link-error` package. You can set headers, batch requests, and even configure your app to retry on failed attempts all by including new links into your request chain.
 
 <h3 id="link-api" title="Link API">
   Link API
 </h3>
 
-Since graphql-tools supports using a link for the network layer, the API is the same as you would write on the client. Apollo Link is designed to be a powerful way to compose actions around data handling with GraphQL. Each link represents a subset of functionality that can be composed with other links to create complex control flows of data. At a basic level, a link is a function that takes an operation and returns an observable. Described with types, it looks like this:
-
-```js
-type Context = Object;
-
-interface Operation {
-  query: DocumentNode;
-  variables: Object;
-  operationName: string;
-  extensions?: Object;
-  getContext(): Context;
-  setContext(newContext: Context | (prevContext: Context) => Context): void;
-  toKey(): string;
-}
-
-// this is what makes up an Apollo Link
-type RequestHandler = (operation: Operation) => Observable<ExecutionResult>
-```
-
-The `query` field will always be passed, but all of the others are optional. `context` is a special field that can be used to pass in arbitrary options into the link and can be modified by links in the chain, as in the `introspectSchema` API above.
+Since graphql-tools supports using a link for the network layer, the API is the same as you would write on the client. To learn more about how Apollo Link works, check out the [docs](); Both GraphQL and Apollo Links have slightly varying concepts of what `context` is used for. To make it easy to use your GraphQL context to create your Apollo Link context, `makeRemoteExecutableSchema` takes an optional `linkContext` function. This is shown in the authentication example below.
 
 Basic usage
 
@@ -86,7 +67,7 @@ const http = new HttpLink({ uri: 'http://api.githunt.com/graphql', fetch });
 const auth = new ApolloLink((operation, forward) => {
   operation.setContext((context) => ({
     headers: {
-      'Authentication': `Bearer ${context.authKey}`,
+      'Authentication': `Bearer ${context.authorization}`,
     },
   }))
   return forward(operation);
@@ -97,6 +78,29 @@ const schema = await introspectSchema(link);
 const executableSchema = makeRemoteExecutableSchema({
   schema,
   link,
+  // pull authKey off of the context from the GraphQL Context and create the link context
+  linkContext: (graphqlContext) => ({ authorization: graphqlContext.authKey })
+});
+```
+
+You can also use `linkContext` to bypass the need for creating a link in some cases. Take for example the above usage refactored to use only linkContext:
+
+```js
+import { HttpLink } from 'apollo-link-http';
+import fetch from 'node-fetch';
+
+const http = new HttpLink({ uri: 'http://api.githunt.com/graphql', fetch });
+
+const schema = await introspectSchema(link);
+const executableSchema = makeRemoteExecutableSchema({
+  schema,
+  link,
+  // pull authKey off of the context from the GraphQL Context and create the link context
+  linkContext: (graphqlContext) => ({
+    headers: {
+      'Authentication': `Bearer ${graphqlContext.authKey}`,
+    },
+  })
 });
 ```
 
