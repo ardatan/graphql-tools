@@ -39,7 +39,7 @@ A link is a function capable of retrieving GraphQL results. It is the same way t
   Link API
 </h3>
 
-Since graphql-tools supports using a link for the network layer, the API is the same as you would write on the client. To learn more about how Apollo Link works, check out the [docs](); Both GraphQL and Apollo Links have slightly varying concepts of what `context` is used for. To make it easy to use your GraphQL context to create your Apollo Link context, `makeRemoteExecutableSchema` takes an optional `linkContext` function. This is shown in the authentication example below.
+Since graphql-tools supports using a link for the network layer, the API is the same as you would write on the client. To learn more about how Apollo Link works, check out the [docs](https://apollo-links-docs.netlify.com/links); Both GraphQL and Apollo Links have slightly varying concepts of what `context` is used for. To make it easy to use your GraphQL context to create your Apollo Link context, `makeRemoteExecutableSchema` attaches the context from the graphql resolver onto the link context under `graphqlContext`.
 
 Basic usage
 
@@ -67,7 +67,7 @@ const http = new HttpLink({ uri: 'http://api.githunt.com/graphql', fetch });
 const auth = new ApolloLink((operation, forward) => {
   operation.setContext((context) => ({
     headers: {
-      'Authentication': `Bearer ${context.authorization}`,
+      'Authentication': `Bearer ${context.graphqlContext.authKey}`,
     },
   }))
   return forward(operation);
@@ -78,29 +78,6 @@ const schema = await introspectSchema(link);
 const executableSchema = makeRemoteExecutableSchema({
   schema,
   link,
-  // pull authKey off of the context from the GraphQL Context and create the link context
-  linkContext: (graphqlContext) => ({ authorization: graphqlContext.authKey })
-});
-```
-
-You can also use `linkContext` to bypass the need for creating a link in some cases. Take for example the above usage refactored to use only linkContext:
-
-```js
-import { HttpLink } from 'apollo-link-http';
-import fetch from 'node-fetch';
-
-const http = new HttpLink({ uri: 'http://api.githunt.com/graphql', fetch });
-
-const schema = await introspectSchema(link);
-const executableSchema = makeRemoteExecutableSchema({
-  schema,
-  link,
-  // pull authKey off of the context from the GraphQL Context and create the link context
-  linkContext: (graphqlContext) => ({
-    headers: {
-      'Authentication': `Bearer ${graphqlContext.authKey}`,
-    },
-  })
 });
 ```
 
