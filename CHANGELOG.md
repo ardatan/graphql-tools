@@ -1,6 +1,6 @@
 # Change log
 
-### vNEXT
+### v2.1.0
 * Added support for passing an Apollo Link instead of a fetcher
 
 ### v2.0.0
