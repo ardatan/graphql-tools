@@ -1,6 +1,7 @@
 # Change log
 
 ### vNEXT
+* Added support for passing an Apollo Link instead of a fetcher
 
 ### v2.0.0
 * Add schema merging utilities [PR #382](https://github.com/apollographql/graphql-tools/pull/382)
