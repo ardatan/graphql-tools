@@ -7,39 +7,103 @@ It can be valuable to be able to treat remote GraphQL endpoints as if they were 
 
 Generally, to create a remote schema, you need three steps:
 
-1. Create a [fetcher](#fetcher) that can retrieve results from that schema
+1. Create a [link](#link) that can retrieve results from that schema
 2. Use [`introspectSchema`](#introspectSchema) to get the schema of the remote server
-3. Use [`makeRemoteExecutableSchema`](#makeRemoteExecutableSchema) to create a schema that uses the fetcher to delegate requests to the underlying service
+3. Use [`makeRemoteExecutableSchema`](#makeRemoteExecutableSchema) to create a schema that uses the link to delegate requests to the underlying service
 
 We've chosen to split this functionality up to give you the flexibility to choose when to do the introspection step. For example, you might already have the remote schema information, allowing you to skip the `introspectSchema` step entirely. Here's a complete example:
 
 ```js
-import { HttpLink, makePromise, execute } from 'apollo-link';
+import { HttpLink } from 'apollo-link-http';
+import fetch from 'node-fetch';
 
-const link = new HttpLink({ uri: 'http://api.githunt.com/graphql' });
+const link = new HttpLink({ uri: 'http://api.githunt.com/graphql', fetch });
 
-const fetcher = (operation) => makePromise(execute(link, operation));
-const schema = await introspectSchema(fetcher);
+const schema = await introspectSchema(link);
 
 const executableSchema = makeRemoteExecutableSchema({
   schema,
-  fetcher,
+  link,
 });
 ```
 
 Now, let's look at all the parts separately.
 
-<h2 id="fetcher" title="Creating a fetcher">
-  Creating a Fetcher
+<h2 id="link" title="Creating a link">
+  Creating a Link
 </h2>
 
-A fetcher is a function capable of retrieving GraphQL results. This type of function is used by several `graphql-tools` features to do introspection or fetch results during execution.
+A link is a function capable of retrieving GraphQL results. It is the same way that Apollo Client handles fetching data and is used by several `graphql-tools` features to do introspection or fetch results during execution.
+
+<h3 id="link-api" title="Link API">
+  Link API
+</h3>
+
+Since graphql-tools supports using a link for the network layer, the API is the same as you would write on the client. Apollo Link is designed to be a powerful way to compose actions around data handling with GraphQL. Each link represents a subset of functionality that can be composed with other links to create complex control flows of data. At a basic level, a link is a function that takes an operation and returns an observable. Described with types, it looks like this:
+
+```js
+type Context = Object;
+
+interface Operation {
+  query: DocumentNode;
+  variables: Object;
+  operationName: string;
+  extensions?: Object;
+  getContext(): Context;
+  setContext(newContext: Context | (prevContext: Context) => Context): void;
+  toKey(): string;
+}
+
+// this is what makes up an Apollo Link
+type RequestHandler = (operation: Operation) => Observable<ExecutionResult>
+```
+
+The `query` field will always be passed, but all of the others are optional. `context` is a special field that can be used to pass in arbitrary options into the link and can be modified by links in the chain, as in the `introspectSchema` API above.
+
+Basic usage
+
+```js
+import { HttpLink } from 'apollo-link-http';
+import fetch from 'node-fetch';
+
+const link = new HttpLink({ uri: 'http://api.githunt.com/graphql', fetch });
+
+const schema = await introspectSchema(link);
+
+const executableSchema = makeRemoteExecutableSchema({
+  schema,
+  link,
+});
+```
+
+Authentication headers from context
+
+```js
+import { HttpLink } from 'apollo-link-http';
+import fetch from 'node-fetch';
+
+const http = new HttpLink({ uri: 'http://api.githunt.com/graphql', fetch });
+const auth = new ApolloLink((operation, forward) => {
+  operation.setContext((context) => ({
+    headers: {
+      'Authentication': `Bearer ${context.authKey}`,
+    },
+  }))
+  return forward(operation);
+})
+
+const schema = await introspectSchema(link);
+
+const executableSchema = makeRemoteExecutableSchema({
+  schema,
+  link,
+});
+```
 
 <h3 id="fetcher-api" title="Fetcher API">
   Fetcher API
 </h3>
-
-A fetcher is a function that takes one argument, an object that describes an operation:
+You can also use a fetcher (like apollo-fetch or node-fetch) instead of a link. A fetcher is a function that takes one argument, an object that describes an operation:
 
 ```js
 type Fetcher = (operation: Operation) => Promise<ExecutionResult>;
@@ -50,56 +114,6 @@ type Operation {
   variables?: Object;
   context?: Object;
 }
-```
-
-The `query` field will always be passed, but all of the others are optional. `context` is a special field that can be used to pass in arbitrary options into the fetcher, as in the `introspectSchema` API above.
-
-You can create a fetcher function easily using several popular libraries:
-
-<h3 id="fetcher-apollo-link" title="Using apollo-link">
-  Using [apollo-link](https://github.com/apollographql/apollo-link)
-</h3>
-
-Basic usage
-
-```js
-import { HttpLink, makePromise, execute } from 'apollo-link';
-
-const link = new HttpLink({ uri: 'http://api.githunt.com/graphql' });
-const fetcher = (operation) => makePromise(execute(link, operation));
-
-const schema = makeRemoteExecutableSchema({
-  schema: await introspectSchema(fetcher),
-  fetcher,
-});
-```
-
-Authentication headers from context
-
-```js
-import {
-  ApolloLink,
-  HttpLink,
-  SetContextLink,
-  makePromise,
-  execute,
-} from 'apollo-link';
-
-const link = ApolloLink.from([
-  new SetContextLink((context) => ({
-    ...context,
-    headers: {
-      'Authentication': `Bearer ${context.authKey}`,
-    },
-  }),
-  new HttpLink({ uri: 'http://api.githunt.com/graphql' }),
-]);
-
-const fetcher = (operation) => makePromise(execute(link, operation));
-const schema = makeRemoteExecutableSchema({
-  schema: await introspectSchema(fetcher),
-  fetcher,
-});
 ```
 
 <h3 id="fetcher-apollo-fetch" title="Using apollo-fetch">
@@ -189,32 +203,33 @@ const schema = makeRemoteExecutableSchema({
   makeRemoteExecutableSchema(options)
 </h3>
 
-`makeExecutableSchema` takes a single argument: an object of options. Both the `schema` and `fetcher` options are required.
+`makeExecutableSchema` takes a single argument: an object of options. The `schema` and either a `fetcher` or a `link` options are required.
 
 ```js
 import { makeRemoteExecutableSchema } from 'graphql-tools';
 
 const schema = makeRemoteExecutableSchema({
   schema,
-  fetcher,
+  link,
+  // fetcher, you can pass a fetcher instead of a link
 });
 ```
 
-Given a GraphQL.js schema (can be a non-executable client schema made by `buildClientSchema`) and a [Fetcher](#fetcher), produce a GraphQL Schema that routes all requests to the fetcher.
+Given a GraphQL.js schema (can be a non-executable client schema made by `buildClientSchema`) and a [Link](#link) or [Fetcher](#fetcher), produce a GraphQL Schema that routes all requests to the link or fetcher.
 
 <h3 id="introspectSchema" title="introspectSchema">
   introspectSchema(fetcher, [context])
 </h3>
 
-Use `fetcher` to build a client schema using introspection query. This function makes it easier to use `makeRemoteExecutableSchema`. As a result, you get a promise to a non-executable GraphQL.js schema object. Accepts optional second argument `context`, which is passed to the fetcher; see the docs about fetchers below for more details.
+Use `link` to build a client schema using introspection query. This function makes it easier to use `makeRemoteExecutableSchema`. As a result, you get a promise to a non-executable GraphQL.js schema object. Accepts optional second argument `context`, which is passed to the link; see the docs about links above for more details.
 
 ```js
 import { introspectSchema } from 'graphql-tools';
 
-introspectSchema(fetcher).then((schema) => {
+introspectSchema(link).then((schema) => {
   // use the schema
 });
 
 // or, with async/await:
-const schema = await introspectSchema(fetcher);
+const schema = await introspectSchema(link);
 ```

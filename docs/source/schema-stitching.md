@@ -230,28 +230,29 @@ import {
   introspectSchema,
   mergeSchemas,
 } from 'graphql-tools';
-import { HttpLink, execute, makePromise } from 'apollo-link';
+import { HttpLink } from 'apollo-link-http';
+import fetch from 'node-fetch';
 
 async function makeMergedSchema() {
   // Create remote executable schemas
   const PropertyLink = new HttpLink({
     uri: 'https://v7l45qkw3.lp.gql.zone/graphql',
+    fetch,
   });
-  const PropertyFetcher = operation =>
-    makePromise(execute(PropertyLink, operation));
+
   const PropertySchema = makeRemoteExecutableSchema({
-    schema: await introspectSchema(PropertyFetcher),
-    fetcher: PropertyFetcher,
+    schema: await introspectSchema(PropertyLink),
+    link: PropertyLink,
   });
 
   const BookingLink = new HttpLink({
     uri: 'https://41p4j4309.lp.gql.zone/graphql',
+    fetch,
   });
-  const BookingFetcher = operation =>
-    makePromise(execute(BookingLink, operation));
+
   const PropertySchema = makeRemoteExecutableSchema({
-    schema: await introspectSchema(BookingFetcher),
-    fetcher: BookingFetcher,
+    schema: await introspectSchema(BookingLink),
+    link: BookingLink,
   });
 
   // A small string schema extensions to add links between schemas
