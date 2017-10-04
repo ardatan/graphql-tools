@@ -3,6 +3,8 @@ import { introspectionQuery, buildClientSchema } from 'graphql';
 import { ApolloLink, execute, makePromise } from 'apollo-link';
 import { Fetcher, fetcherToLink } from './makeRemoteExecutableSchema';
 
+const parsedIntrospectionQuery = parse(introspectionQuery);
+
 export default async function introspectSchema(
   link: ApolloLink | Fetcher,
   context?: { [key: string]: any },
@@ -10,10 +12,12 @@ export default async function introspectSchema(
   if (!(link as ApolloLink).request) {
     link = fetcherToLink(link as Fetcher);
   }
-  const introspectionResult = await makePromise(execute((link as ApolloLink), {
-    query: typeof introspectionQuery === 'string' ? parse(introspectionQuery) : introspectionQuery,
-    context,
-  }));
+  const introspectionResult = await makePromise(
+    execute(link as ApolloLink, {
+      query: parsedIntrospectionQuery,
+      context,
+    }),
+  );
   if (introspectionResult.errors || !introspectionResult.data.__schema) {
     throw introspectionResult.errors;
   } else {

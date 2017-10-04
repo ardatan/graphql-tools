@@ -1,4 +1,4 @@
-import { printSchema, print, parse, Kind, ValueNode, ExecutionResult } from 'graphql';
+import { printSchema, print, Kind, ValueNode, ExecutionResult } from 'graphql';
 import { execute, makePromise, ApolloLink, Observable } from 'apollo-link';
 
 import {
@@ -28,7 +28,7 @@ export type Fetcher = (
 ) => Promise<ExecutionResult>;
 
 export const fetcherToLink = (fetcher: Fetcher): ApolloLink => {
-  return new ApolloLink((operation) => {
+  return new ApolloLink(operation => {
     return new Observable(observer => {
       const { query, operationName, variables } = operation;
       const context = operation.getContext();
@@ -36,7 +36,7 @@ export const fetcherToLink = (fetcher: Fetcher): ApolloLink => {
         query: typeof query === 'string' ? query : print(query),
         operationName,
         variables,
-        context
+        context,
       })
         .then((result: ExecutionResult) => {
           observer.next(result);
@@ -50,7 +50,7 @@ export const fetcherToLink = (fetcher: Fetcher): ApolloLink => {
 export default function makeRemoteExecutableSchema({
   schema,
   link,
-  fetcher
+  fetcher,
 }: {
   schema: GraphQLSchema;
   link?: ApolloLink;
@@ -118,16 +118,20 @@ export default function makeRemoteExecutableSchema({
 
 function createResolver(link: ApolloLink): GraphQLFieldResolver<any, any> {
   return async (root, args, context, info) => {
-    const operation = print(info.operation);
-    const fragments = Object.keys(info.fragments)
-      .map(fragment => print(info.fragments[fragment]))
-      .join('\n');
-    const query = `${operation}\n${fragments}`;
-    const result = await makePromise(execute(link, {
-      query: typeof query === 'string' ? parse(query) : query,
-      variables: info.variableValues,
-      context,
-    }));
+    const fragments = Object.keys(info.fragments).map(
+      fragment => info.fragments[fragment],
+    );
+    const document = {
+      kind: Kind.DOCUMENT,
+      definitions: [info.operation, ...fragments],
+    };
+    const result = await makePromise(
+      execute(link, {
+        query: document,
+        variables: info.variableValues,
+        context,
+      }),
+    );
     const fieldName = info.fieldNodes[0].alias
       ? info.fieldNodes[0].alias.value
       : info.fieldName;
