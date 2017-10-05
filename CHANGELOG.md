@@ -1,9 +1,14 @@
 # Change log
 
-### VNEXT
+### 2.2.1
 
-* Fix alias problems in schema merging [PR #411](https://github.com/apollographql/graphql-tools/pull/411)
 * Fix inability to add recursive queries [PR #413](https://github.com/apollographql/graphql-tools/pull/413)
+
+### 2.2.0
+
+* Change link API to pass GraphQL context as `graphqlContext` field of link
+  context to avoid merging problems
+* Fix alias problems in schema merging [PR #411](https://github.com/apollographql/graphql-tools/pull/411)
 
 ### v2.1.0
 * Added support for passing an Apollo Link instead of a fetcher
