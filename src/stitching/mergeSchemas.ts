@@ -86,8 +86,8 @@ export default function mergeSchemas({
   if (!onTypeConflict) {
     onTypeConflict = defaultOnTypeConflict;
   }
-  let queryFields: GraphQLFieldConfigMap<any, any> = {};
-  let mutationFields: GraphQLFieldConfigMap<any, any> = {};
+  let queryFields: GraphQLFieldMap<any, any> = {};
+  let mutationFields: GraphQLFieldMap<any, any> = {};
 
   const typeRegistry = new TypeRegistry();
 
@@ -138,13 +138,7 @@ export default function mergeSchemas({
         typeRegistry.addType(newType.name, newType, onTypeConflict);
       }
     });
-  });
 
-  // This is not a bug/oversight, we iterate twice cause we want to first
-  // resolve all types and then force the type thunks
-  actualSchemas.forEach(schema => {
-    const queryType = schema.getQueryType();
-    const mutationType = schema.getMutationType();
     Object.keys(queryType.getFields()).forEach(name => {
       if (!fullResolvers.Query) {
         fullResolvers.Query = {};
@@ -158,7 +152,7 @@ export default function mergeSchemas({
 
     queryFields = {
       ...queryFields,
-      ...fieldMapToFieldConfigMap(queryType.getFields(), typeRegistry),
+      ...queryType.getFields(),
     };
 
     if (mutationType) {
@@ -175,7 +169,7 @@ export default function mergeSchemas({
 
       mutationFields = {
         ...mutationFields,
-        ...fieldMapToFieldConfigMap(mutationType.getFields(), typeRegistry),
+        ...mutationType.getFields(),
       };
     }
   });
@@ -202,20 +196,19 @@ export default function mergeSchemas({
 
   const query = new GraphQLObjectType({
     name: 'Query',
-    fields: {
-      ...queryFields,
-    },
+    fields: () => fieldMapToFieldConfigMap(queryFields, typeRegistry),
   });
 
   let mutation;
   if (!isEmptyObject(mutationFields)) {
     mutation = new GraphQLObjectType({
       name: 'Mutation',
-      fields: {
-        ...mutationFields,
-      },
+      fields: () => fieldMapToFieldConfigMap(mutationFields, typeRegistry),
     });
   }
+
+  typeRegistry.addType('Query', query);
+  typeRegistry.addType('Mutation', mutation);
 
   let mergedSchema = new GraphQLSchema({
     query,
