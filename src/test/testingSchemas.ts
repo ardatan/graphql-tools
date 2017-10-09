@@ -452,10 +452,15 @@ const bookingResolvers: IResolvers = {
   },
 
   Customer: {
-    bookings(parent: Customer) {
-      return values(sampleData.Booking).filter(
+    bookings(parent: Customer, { limit }) {
+      const list = values(sampleData.Booking).filter(
         (booking: Booking) => booking.customerId === parent.id,
       );
+      if (limit) {
+        return list.slice(0, limit);
+      } else {
+        return list;
+      }
     },
     vehicle(parent: Customer) {
       return sampleData.Vehicle[parent.vehicleId];

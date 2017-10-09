@@ -1,5 +1,9 @@
 # Change log
 
+### VNEXT
+
+* Fix alias issues [Issue #415](https://github.com/apollographql/graphql-tools/issues/415) [PR #418](https://github.com/apollographql/graphql-tools/pull/418)
+
 ### 2.2.1
 
 * Fix inability to add recursive queries [PR #413](https://github.com/apollographql/graphql-tools/pull/413)
