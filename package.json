@@ -55,10 +55,8 @@
   "peerDependencies": {
     "graphql": "^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0"
   },
-  "optionalDependencies": {
-    "@types/graphql": "^0.11.4"
-  },
   "devDependencies": {
+    "@types/graphql": "^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0",
     "@types/bluebird": "^3.5.12",
     "@types/chai": "4.0.4",
     "@types/mocha": "^2.2.43",
