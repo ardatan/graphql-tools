@@ -53,6 +53,7 @@ import {
   addResolveFunctionsToSchema,
 } from '../schemaGenerator';
 import resolveFromParentTypename from './resolveFromParentTypename';
+import aliasAwareResolver from './aliasAwareResolver';
 
 export type MergeInfo = {
   delegate: (
@@ -289,6 +290,7 @@ function fieldToFieldConfig(
   return {
     type: registry.resolveType(field.type),
     args: argsToFieldConfigArgumentMap(field.args, registry),
+    resolve: aliasAwareResolver,
     description: field.description,
     deprecationReason: field.deprecationReason,
   };
@@ -727,13 +729,6 @@ function filterSelectionSet(
           } else {
             typeStack.push(field.type);
           }
-        }
-
-        if (node.alias) {
-          return {
-            ...node,
-            alias: null,
-          };
         }
       },
       leave() {

@@ -2,6 +2,7 @@ import { printSchema, print, Kind, ValueNode, ExecutionResult } from 'graphql';
 import { execute, makePromise, ApolloLink, Observable } from 'apollo-link';
 
 import {
+  GraphQLObjectType,
   GraphQLFieldResolver,
   GraphQLSchema,
   GraphQLInterfaceType,
@@ -17,6 +18,7 @@ import isEmptyObject from '../isEmptyObject';
 import { IResolvers, IResolverObject } from '../Interfaces';
 import { makeExecutableSchema } from '../schemaGenerator';
 import resolveParentFromTypename from './resolveFromParentTypename';
+import aliasAwareResolver from './aliasAwareResolver';
 
 export type Fetcher = (
   operation: {
@@ -24,7 +26,7 @@ export type Fetcher = (
     operationName?: string;
     variables?: { [key: string]: any };
     context?: { [key: string]: any };
-  }
+  },
 ) => Promise<ExecutionResult>;
 
 export const fetcherToLink = (fetcher: Fetcher): ApolloLink => {
@@ -105,6 +107,17 @@ export default function makeRemoteExecutableSchema({
       ) {
         resolvers[type.name] = createPassThroughScalar(type);
       }
+    } else if (
+      type instanceof GraphQLObjectType &&
+      type.name.slice(0, 2) !== '__' &&
+      type !== queryType &&
+      type !== mutationType
+    ) {
+      const resolver = {};
+      Object.keys(type.getFields()).forEach(field => {
+        resolver[field] = aliasAwareResolver;
+      });
+      resolvers[type.name] = resolver;
     }
   }
 
@@ -119,7 +132,7 @@ export default function makeRemoteExecutableSchema({
 function createResolver(link: ApolloLink): GraphQLFieldResolver<any, any> {
   return async (root, args, context, info) => {
     const fragments = Object.keys(info.fragments).map(
-      fragment => info.fragments[fragment]
+      fragment => info.fragments[fragment],
     );
     const document = {
       kind: Kind.DOCUMENT,
@@ -130,7 +143,7 @@ function createResolver(link: ApolloLink): GraphQLFieldResolver<any, any> {
         query: document,
         variables: info.variableValues,
         context: { graphqlContext: context },
-      })
+      }),
     );
     const fieldName = info.fieldNodes[0].alias
       ? info.fieldNodes[0].alias.value

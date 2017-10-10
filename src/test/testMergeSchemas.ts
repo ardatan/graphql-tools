@@ -913,28 +913,7 @@ bookingById(id: $b1) {
       });
     });
 
-    describe('regression', () => {
-      it('should not pass extra arguments to delegates', async () => {
-        const result = await graphql(
-          mergedSchema,
-          `
-            query {
-              delegateArgumentTest(arbitraryArg: 5) {
-                id
-              }
-            }
-          `,
-        );
-
-        expect(result).to.deep.equal({
-          data: {
-            delegateArgumentTest: {
-              id: 'p1',
-            },
-          },
-        });
-      });
-
+    describe('aliases', () => {
       it('aliases', async () => {
         const result = await graphql(
           mergedSchema,
@@ -1001,6 +980,84 @@ bookingById(id: $b1) {
                   },
                 },
               ],
+            },
+          },
+        });
+      });
+
+      it('aliases subschema queries', async () => {
+        const result = await graphql(
+          mergedSchema,
+          `
+            query {
+              customerById(id: "c1") {
+                id
+                firstBooking: bookings(limit: 1) {
+                  id
+                  property {
+                    id
+                  }
+                }
+                allBookings: bookings(limit: 10) {
+                  id
+                  property {
+                    id
+                  }
+                }
+              }
+            }
+          `,
+        );
+
+        expect(result).to.deep.equal({
+          data: {
+            customerById: {
+              id: 'c1',
+              firstBooking: [
+                {
+                  id: 'b1',
+                  property: {
+                    id: 'p1',
+                  },
+                },
+              ],
+              allBookings: [
+                {
+                  id: 'b1',
+                  property: {
+                    id: 'p1',
+                  },
+                },
+                {
+                  id: 'b4',
+                  property: {
+                    id: 'p2',
+                  },
+                },
+              ],
+            },
+          },
+        });
+      });
+    });
+
+    describe('regression', () => {
+      it('should not pass extra arguments to delegates', async () => {
+        const result = await graphql(
+          mergedSchema,
+          `
+            query {
+              delegateArgumentTest(arbitraryArg: 5) {
+                id
+              }
+            }
+          `,
+        );
+
+        expect(result).to.deep.equal({
+          data: {
+            delegateArgumentTest: {
+              id: 'p1',
             },
           },
         });
