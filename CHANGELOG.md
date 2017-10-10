@@ -2,6 +2,8 @@
 
 ### VNEXT
 
+### 2.3.0
+
 * Fix alias issues [Issue #415](https://github.com/apollographql/graphql-tools/issues/415) [PR #418](https://github.com/apollographql/graphql-tools/pull/418)
 * Make `@typings/graphql` a dev dependency and make it's version as flexible as `graphql` [PR #421](https://github.com/apollographql/graphql-tools/pull/421)
 
