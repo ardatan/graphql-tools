@@ -1,7 +1,7 @@
 import { GraphQLResolveInfo, responsePathAsArray } from 'graphql';
 import { locatedError } from 'graphql/error';
 
-const ERROR_SYMBOL = Symbol('Schema Merging Error');
+const ERROR_SYMBOL = Symbol('subSchemaErrors');
 
 export function annotateWithChildrenErrors(
   object: any,
@@ -39,37 +39,44 @@ export function annotateWithChildrenErrors(
 export function getErrorsFromParent(
   object: any,
   fieldName: string,
-): {
-  ownError?: any;
-  childrenErrors?: Array<{ path?: Array<string | number> }>;
-} {
+):
+  | {
+      kind: 'OWN';
+      error: any;
+    }
+  | {
+      kind: 'CHILDREN';
+      errors?: Array<{ path?: Array<string | number> }>;
+    } {
   const errors = (object && object[ERROR_SYMBOL]) || [];
   const childrenErrors: Array<{ path?: Array<string | number> }> = [];
   for (const error of errors) {
     if (error.path.length === 1 && error.path[0] === fieldName) {
       return {
-        ownError: error,
+        kind: 'OWN',
+        error,
       };
     } else if (error.path[0] === fieldName) {
       childrenErrors.push(error);
     }
   }
   return {
-    childrenErrors,
+    kind: 'CHILDREN',
+    errors: childrenErrors,
   };
 }
 
 export function checkResultAndHandleErrors(
   result: any,
   info: GraphQLResolveInfo,
-  fieldName?: string,
+  responseKey?: string,
 ): any {
-  if (!fieldName) {
-    fieldName = info.fieldNodes[0].alias
+  if (!responseKey) {
+    responseKey = info.fieldNodes[0].alias
       ? info.fieldNodes[0].alias.value
       : info.fieldName;
   }
-  if (result.errors && (!result.data || result.data[fieldName] == null)) {
+  if (result.errors && (!result.data || result.data[responseKey] == null)) {
     const errorMessage = result.errors
       .map((error: { message: string }) => error.message)
       .join('\n');
@@ -79,7 +86,7 @@ export function checkResultAndHandleErrors(
       responsePathAsArray(info.path),
     );
   } else {
-    let resultObject = result.data[fieldName];
+    let resultObject = result.data[responseKey];
     if (result.errors) {
       resultObject = annotateWithChildrenErrors(
         resultObject,

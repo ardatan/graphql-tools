@@ -11,20 +11,20 @@ const defaultMergedResolver: GraphQLFieldResolver<any, any> = (
   context,
   info,
 ) => {
-  const fieldName = info.fieldNodes[0].alias
+  const responseKey = info.fieldNodes[0].alias
     ? info.fieldNodes[0].alias.value
     : info.fieldName;
-  const { ownError, childrenErrors } = getErrorsFromParent(parent, fieldName);
-  if (ownError) {
+  const errorResult = getErrorsFromParent(parent, responseKey);
+  if (errorResult.kind === 'OWN') {
     throw locatedError(
-      ownError.message,
+      errorResult.error.message,
       info.fieldNodes,
       responsePathAsArray(info.path),
     );
   } else if (parent) {
-    let result = parent[fieldName];
-    if (childrenErrors) {
-      result = annotateWithChildrenErrors(result, childrenErrors);
+    let result = parent[responseKey];
+    if (errorResult.errors) {
+      result = annotateWithChildrenErrors(result, errorResult.errors);
     }
     return result;
   } else {
