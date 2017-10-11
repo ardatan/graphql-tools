@@ -18,7 +18,8 @@ import isEmptyObject from '../isEmptyObject';
 import { IResolvers, IResolverObject } from '../Interfaces';
 import { makeExecutableSchema } from '../schemaGenerator';
 import resolveParentFromTypename from './resolveFromParentTypename';
-import aliasAwareResolver from './aliasAwareResolver';
+import defaultMergedResolver from './defaultMergedResolver';
+import { checkResultAndHandleErrors } from './errors';
 
 export type Fetcher = (
   operation: {
@@ -115,7 +116,7 @@ export default function makeRemoteExecutableSchema({
     ) {
       const resolver = {};
       Object.keys(type.getFields()).forEach(field => {
-        resolver[field] = aliasAwareResolver;
+        resolver[field] = defaultMergedResolver;
       });
       resolvers[type.name] = resolver;
     }
@@ -145,15 +146,7 @@ function createResolver(link: ApolloLink): GraphQLFieldResolver<any, any> {
         context: { graphqlContext: context },
       }),
     );
-    const fieldName = info.fieldNodes[0].alias
-      ? info.fieldNodes[0].alias.value
-      : info.fieldName;
-    if (result.errors) {
-      const errorMessage = result.errors.map(error => error.message).join('\n');
-      throw new Error(errorMessage);
-    } else {
-      return result.data[fieldName];
-    }
+    return checkResultAndHandleErrors(result, info);
   };
 }
 

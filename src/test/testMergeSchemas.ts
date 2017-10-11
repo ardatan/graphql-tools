@@ -205,77 +205,6 @@ testCombinations.forEach(async combination => {
         expect(mergedResult).to.deep.equal(propertyResult);
       });
 
-      it('handles errors', async () => {
-        const propertyFragment = `
-          errorTest
-        `;
-        const bookingFragment = `
-bookingById(id: "b1") {
-  id
-  customer {
-    name
-  }
-  startTime
-  endTime
-}
-  `;
-
-        const propertyResult = await graphql(
-          propertySchema,
-          `query {
-            ${propertyFragment}
-          }`,
-        );
-
-        const bookingResult = await graphql(
-          bookingSchema,
-          `query {
-            ${bookingFragment}
-          }`,
-        );
-
-        const mergedResult = await graphql(
-          mergedSchema,
-          `query {
-      ${propertyFragment}
-      ${bookingFragment}
-    }`,
-        );
-        expect(mergedResult).to.deep.equal({
-          errors: propertyResult.errors,
-          data: {
-            ...propertyResult.data,
-            ...bookingResult.data,
-          },
-        });
-
-        const mergedResult2 = await graphql(
-          mergedSchema,
-          `
-          query {
-            errorTestNonNull
-            ${bookingFragment}
-          }
-        `,
-        );
-
-        expect(mergedResult2).to.deep.equal({
-          errors: [
-            {
-              locations: [
-                {
-                  column: 13,
-                  line: 3,
-                },
-              ],
-              message: 'Sample error non-null!',
-              path: ['errorTestNonNull'],
-            },
-          ],
-          data: null,
-        });
-      });
-
       it('queries', async () => {
         const propertyFragment = `
 propertyById(id: "p1") {
@@ -1037,6 +966,206 @@ bookingById(id: $b1) {
               ],
             },
           },
+        });
+      });
+    });
+
+    describe('errors', () => {
+      it('root level', async () => {
+        const propertyFragment = `
+                errorTest
+              `;
+        const bookingFragment = `
+          bookingById(id: "b1") {
+            id
+            customer {
+              name
+            }
+            startTime
+            endTime
+          }
+        `;
+
+        const propertyResult = await graphql(
+          propertySchema,
+          `query {
+                  ${propertyFragment}
+                }`,
+        );
+
+        const bookingResult = await graphql(
+          bookingSchema,
+          `query {
+                  ${bookingFragment}
+                }`,
+        );
+
+        const mergedResult = await graphql(
+          mergedSchema,
+          `query {
+            ${propertyFragment}
+            ${bookingFragment}
+          }`,
+        );
+        expect(mergedResult).to.deep.equal({
+          errors: propertyResult.errors,
+          data: {
+            ...propertyResult.data,
+            ...bookingResult.data,
+          },
+        });
+
+        const mergedResult2 = await graphql(
+          mergedSchema,
+          `
+                query {
+                  errorTestNonNull
+                  ${bookingFragment}
+                }
+              `,
+        );
+
+        expect(mergedResult2).to.deep.equal({
+          errors: [
+            {
+              locations: [
+                {
+                  column: 19,
+                  line: 3,
+                },
+              ],
+              message: 'Sample error non-null!',
+              path: ['errorTestNonNull'],
+            },
+          ],
+          data: null,
+        });
+      });
+
+      it('nested errors', async () => {
+        const result = await graphql(
+          mergedSchema,
+          `
+            query {
+              propertyById(id: "p1") {
+                error
+                errorAlias: error
+                bookings {
+                  id
+                  error
+                  bookingErrorAlias: error
+                }
+              }
+            }
+          `,
+        );
+
+        expect(result).to.deep.equal({
+          data: {
+            propertyById: {
+              bookings: [
+                {
+                  bookingErrorAlias: null,
+                  error: null,
+                  id: 'b1',
+                },
+                {
+                  bookingErrorAlias: null,
+                  error: null,
+                  id: 'b2',
+                },
+                {
+                  bookingErrorAlias: null,
+                  error: null,
+                  id: 'b3',
+                },
+              ],
+              error: null,
+              errorAlias: null,
+            },
+          },
+          errors: [
+            {
+              locations: [
+                {
+                  column: 17,
+                  line: 4,
+                },
+              ],
+              message: 'Property.error error',
+              path: ['propertyById', 'error'],
+            },
+            {
+              locations: [
+                {
+                  column: 17,
+                  line: 5,
+                },
+              ],
+              message: 'Property.error error',
+              path: ['propertyById', 'errorAlias'],
+            },
+            {
+              locations: [
+                {
+                  column: 19,
+                  line: 8,
+                },
+              ],
+              message: 'Booking.error error',
+              path: ['propertyById', 'bookings', 0, 'error'],
+            },
+            {
+              locations: [
+                {
+                  column: 19,
+                  line: 9,
+                },
+              ],
+              message: 'Booking.error error',
+              path: ['propertyById', 'bookings', 0, 'bookingErrorAlias'],
+            },
+            {
+              locations: [
+                {
+                  column: 19,
+                  line: 8,
+                },
+              ],
+              message: 'Booking.error error',
+              path: ['propertyById', 'bookings', 1, 'error'],
+            },
+            {
+              locations: [
+                {
+                  column: 19,
+                  line: 9,
+                },
+              ],
+              message: 'Booking.error error',
+              path: ['propertyById', 'bookings', 1, 'bookingErrorAlias'],
+            },
+            {
+              locations: [
+                {
+                  column: 19,
+                  line: 8,
+                },
+              ],
+              message: 'Booking.error error',
+              path: ['propertyById', 'bookings', 2, 'error'],
+            },
+            {
+              locations: [
+                {
+                  column: 19,
+                  line: 9,
+                },
+              ],
+              message: 'Booking.error error',
+              path: ['propertyById', 'bookings', 2, 'bookingErrorAlias'],
+            },
+          ],
         });
       });
     });

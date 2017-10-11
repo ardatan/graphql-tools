@@ -53,7 +53,8 @@ import {
   addResolveFunctionsToSchema,
 } from '../schemaGenerator';
 import resolveFromParentTypename from './resolveFromParentTypename';
-import aliasAwareResolver from './aliasAwareResolver';
+import defaultMergedResolver from './defaultMergedResolver';
+import { checkResultAndHandleErrors } from './errors';
 
 export type MergeInfo = {
   delegate: (
@@ -290,7 +291,7 @@ function fieldToFieldConfig(
   return {
     type: registry.resolveType(field.type),
     args: argsToFieldConfigArgumentMap(field.args, registry),
-    resolve: aliasAwareResolver,
+    resolve: defaultMergedResolver,
     description: field.description,
     deprecationReason: field.deprecationReason,
   };
@@ -440,22 +441,7 @@ async function delegateToSchema(
       variableValues,
     );
 
-    // const print = require('graphql').print;
-    // console.log(
-    //   'RESULT FROM FORWARDING\n',
-    //   print(graphqlDoc),
-    //   '\n',
-    //   JSON.stringify(variableValues, null, 2),
-    //   '\n',
-    //   JSON.stringify(result, null, 2),
-    // );
-
-    if (result.errors) {
-      const errorMessage = result.errors.map(error => error.message).join('\n');
-      throw new Error(errorMessage);
-    } else {
-      return result.data[fieldName];
-    }
+    return checkResultAndHandleErrors(result, info, fieldName);
   }
 
   throw new Error('Could not forward to merged schema');
