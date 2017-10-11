@@ -212,6 +212,7 @@ const propertyAddressTypeDef = `
     name: String!
     location: Location
     address: Address
+    error: String
   }
 `;
 
@@ -327,6 +328,12 @@ const propertyResolvers: IResolvers = {
       }
     },
   },
+
+  Property: {
+    error() {
+      throw new Error('Property.error error');
+    },
+  },
 };
 
 const customerAddressTypeDef = `
@@ -337,6 +344,7 @@ const customerAddressTypeDef = `
     address: Address
     bookings(limit: Int): [Booking!]
     vehicle: Vehicle
+    error: String
   }
 `;
 
@@ -349,6 +357,8 @@ const bookingRootTypeDefs = `
     customer: Customer!
     startTime: String!
     endTime: String!
+    error: String
+    errorNonNull: String!
   }
 
   interface Person {
@@ -449,6 +459,12 @@ const bookingResolvers: IResolvers = {
     customer(parent: Booking) {
       return sampleData.Customer[parent.customerId];
     },
+    error() {
+      throw new Error('Booking.error error');
+    },
+    errorNonNull() {
+      throw new Error('Booking.errorNoNull error');
+    },
   },
 
   Customer: {
@@ -464,6 +480,9 @@ const bookingResolvers: IResolvers = {
     },
     vehicle(parent: Customer) {
       return sampleData.Vehicle[parent.vehicleId];
+    },
+    error() {
+      throw new Error('Customer.error error');
     },
   },
 

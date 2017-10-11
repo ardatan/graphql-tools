@@ -2,6 +2,8 @@
 
 ### VNEXT
 
+* Translate errors better in merged schema [Issue #419]((https://github.com/apollographql/graphql-tools/issues/419) [PR #425](https://github.com/apollographql/graphql-tools/pull/425)
+
 ### v2.3.0
 
 * Fix alias issues [Issue #415](https://github.com/apollographql/graphql-tools/issues/415) [PR #418](https://github.com/apollographql/graphql-tools/pull/418)
