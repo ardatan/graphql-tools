@@ -2,6 +2,8 @@
 
 ### VNEXT
 
+### v2.4.0
+
 * Translate errors better in merged schema [Issue #419]((https://github.com/apollographql/graphql-tools/issues/419) [PR #425](https://github.com/apollographql/graphql-tools/pull/425)
 
 ### v2.3.0
