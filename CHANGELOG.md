@@ -2,6 +2,8 @@
 
 ### VNEXT
 
+### v2.5.0
+
 * Add ability to pass types in extension strings [Issue #](https://github.com/apollographql/graphql-tools/issues/427) [PR #](https://github.com/apollographql/graphql-tools/pull/430)
 
 ### v2.4.0
