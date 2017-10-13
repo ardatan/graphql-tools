@@ -37,6 +37,11 @@ const scalarTest = `
 `;
 
 const linkSchema = `
+  type LinkType {
+    test: String
+    property: Property
+  }
+
   extend type Booking {
     property: Property
   }
@@ -48,6 +53,7 @@ const linkSchema = `
   extend type Query {
     delegateInterfaceTest: TestInterface
     delegateArgumentTest(arbitraryArg: Int): Property
+    linkTest: LinkType
   }
 `;
 
@@ -104,6 +110,21 @@ testCombinations.forEach(async combination => {
               },
             },
           },
+          LinkType: {
+            property: {
+              resolve(parent, args, context, info) {
+                return mergeInfo.delegate(
+                  'query',
+                  'propertyById',
+                  {
+                    id: 'p1',
+                  },
+                  context,
+                  info,
+                );
+              },
+            },
+          },
           Query: {
             delegateInterfaceTest(parent, args, context, info) {
               return mergeInfo.delegate(
@@ -126,6 +147,11 @@ testCombinations.forEach(async combination => {
                 context,
                 info,
               );
+            },
+            linkTest() {
+              return {
+                test: 'test',
+              };
             },
           },
         }),
@@ -1166,6 +1192,35 @@ bookingById(id: $b1) {
               path: ['propertyById', 'bookings', 2, 'bookingErrorAlias'],
             },
           ],
+        });
+      });
+    });
+
+    describe('types in schema extensions', () => {
+      it('should allow defining new types in link type', async () => {
+        const result = await graphql(
+          mergedSchema,
+          `
+            query {
+              linkTest {
+                test
+                property {
+                  id
+                }
+              }
+            }
+          `,
+        );
+
+        expect(result).to.deep.equal({
+          data: {
+            linkTest: {
+              test: 'test',
+              property: {
+                id: 'p1',
+              },
+            },
+          },
         });
       });
     });
