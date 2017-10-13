@@ -3,47 +3,37 @@ import {
   FieldNode,
   FragmentDefinitionNode,
   FragmentSpreadNode,
-  GraphQLArgument,
-  GraphQLArgumentConfig,
-  GraphQLCompositeType,
   GraphQLField,
-  GraphQLFieldConfig,
-  GraphQLFieldConfigArgumentMap,
-  GraphQLFieldConfigMap,
   GraphQLFieldMap,
   GraphQLFieldResolver,
-  GraphQLInputField,
-  GraphQLInputFieldConfig,
-  GraphQLInputFieldConfigMap,
-  GraphQLInputFieldMap,
   GraphQLInputObjectType,
   GraphQLInputType,
   GraphQLInterfaceType,
   GraphQLList,
+  GraphQLNamedType,
   GraphQLNonNull,
   GraphQLObjectType,
   GraphQLResolveInfo,
   GraphQLScalarType,
   GraphQLSchema,
   GraphQLType,
-  GraphQLNamedType,
   GraphQLUnionType,
   InlineFragmentNode,
   Kind,
   OperationDefinitionNode,
   SelectionSetNode,
-  TypeNode,
   TypeNameMetaFieldDef,
+  TypeNode,
   VariableDefinitionNode,
   VariableNode,
   buildASTSchema,
   execute,
+  extendSchema,
   getNamedType,
   isCompositeType,
   isNamedType,
   parse,
   visit,
-  extendSchema,
 } from 'graphql';
 import TypeRegistry from './TypeRegistry';
 import { IResolvers } from '../Interfaces';
@@ -52,8 +42,11 @@ import {
   extractExtensionDefinitions,
   addResolveFunctionsToSchema,
 } from '../schemaGenerator';
-import resolveFromParentTypename from './resolveFromParentTypename';
-import defaultMergedResolver from './defaultMergedResolver';
+import {
+  recreateCompositeType,
+  fieldMapToFieldConfigMap,
+} from './schemaRecreation';
+import typeFromAST from './typeFromAST';
 import { checkResultAndHandleErrors } from './errors';
 
 export type MergeInfo = {
@@ -96,6 +89,7 @@ export default function mergeSchemas({
   const mergeInfo: MergeInfo = createMergeInfo(typeRegistry);
 
   const actualSchemas: Array<GraphQLSchema> = [];
+  const typeFragments: Array<DocumentNode> = [];
   const extensions: Array<DocumentNode> = [];
   let fullResolvers: IResolvers = {};
 
@@ -108,7 +102,7 @@ export default function mergeSchemas({
         const actualSchema = buildASTSchema(parsedSchemaDocument);
         actualSchemas.push(actualSchema);
       } catch (e) {
-        // Could not create a schema from parsed string, will use extensions
+        typeFragments.push(parsedSchemaDocument);
       }
       parsedSchemaDocument = extractExtensionDefinitions(parsedSchemaDocument);
       if (parsedSchemaDocument.definitions.length > 0) {
@@ -176,6 +170,15 @@ export default function mergeSchemas({
     }
   });
 
+  typeFragments.forEach(document => {
+    document.definitions.forEach(def => {
+      const type = typeFromAST(typeRegistry, def);
+      if (type) {
+        typeRegistry.addType(type.name, type, onTypeConflict);
+      }
+    });
+  });
+
   let passedResolvers = {};
   if (resolvers) {
     passedResolvers = resolvers(mergeInfo);
@@ -225,123 +228,6 @@ export default function mergeSchemas({
   addResolveFunctionsToSchema(mergedSchema, fullResolvers);
 
   return mergedSchema;
-}
-
-function recreateCompositeType(
-  schema: GraphQLSchema,
-  type: GraphQLCompositeType | GraphQLInputObjectType,
-  registry: TypeRegistry,
-): GraphQLCompositeType | GraphQLInputObjectType {
-  if (type instanceof GraphQLObjectType) {
-    const fields = type.getFields();
-    const interfaces = type.getInterfaces();
-
-    return new GraphQLObjectType({
-      name: type.name,
-      description: type.description,
-      isTypeOf: type.isTypeOf,
-      fields: () => fieldMapToFieldConfigMap(fields, registry),
-      interfaces: () => interfaces.map(iface => registry.resolveType(iface)),
-    });
-  } else if (type instanceof GraphQLInterfaceType) {
-    const fields = type.getFields();
-
-    return new GraphQLInterfaceType({
-      name: type.name,
-      description: type.description,
-      fields: () => fieldMapToFieldConfigMap(fields, registry),
-      resolveType: (parent, context, info) =>
-        resolveFromParentTypename(parent, info.schema),
-    });
-  } else if (type instanceof GraphQLUnionType) {
-    return new GraphQLUnionType({
-      name: type.name,
-      description: type.description,
-      types: () =>
-        type.getTypes().map(unionMember => registry.resolveType(unionMember)),
-      resolveType: (parent, context, info) =>
-        resolveFromParentTypename(parent, info.schema),
-    });
-  } else if (type instanceof GraphQLInputObjectType) {
-    return new GraphQLInputObjectType({
-      name: type.name,
-      description: type.description,
-      fields: () => inputFieldMapToFieldConfigMap(type.getFields(), registry),
-    });
-  } else {
-    throw new Error(`Invalid type ${type}`);
-  }
-}
-
-function fieldMapToFieldConfigMap(
-  fields: GraphQLFieldMap<any, any>,
-  registry: TypeRegistry,
-): GraphQLFieldConfigMap<any, any> {
-  const result: GraphQLFieldConfigMap<any, any> = {};
-  Object.keys(fields).forEach(name => {
-    result[name] = fieldToFieldConfig(fields[name], registry);
-  });
-  return result;
-}
-
-function fieldToFieldConfig(
-  field: GraphQLField<any, any>,
-  registry: TypeRegistry,
-): GraphQLFieldConfig<any, any> {
-  return {
-    type: registry.resolveType(field.type),
-    args: argsToFieldConfigArgumentMap(field.args, registry),
-    resolve: defaultMergedResolver,
-    description: field.description,
-    deprecationReason: field.deprecationReason,
-  };
-}
-
-function argsToFieldConfigArgumentMap(
-  args: Array<GraphQLArgument>,
-  registry: TypeRegistry,
-): GraphQLFieldConfigArgumentMap {
-  const result: GraphQLFieldConfigArgumentMap = {};
-  args.forEach(arg => {
-    const [name, def] = argumentToArgumentConfig(arg, registry);
-    result[name] = def;
-  });
-  return result;
-}
-
-function argumentToArgumentConfig(
-  argument: GraphQLArgument,
-  registry: TypeRegistry,
-): [string, GraphQLArgumentConfig] {
-  return [
-    argument.name,
-    {
-      type: registry.resolveType(argument.type),
-      defaultValue: argument.defaultValue,
-      description: argument.description,
-    },
-  ];
-}
-
-function inputFieldMapToFieldConfigMap(
-  fields: GraphQLInputFieldMap,
-  registry: TypeRegistry,
-): GraphQLInputFieldConfigMap {
-  const result: GraphQLInputFieldConfigMap = {};
-  Object.keys(fields).forEach(name => {
-    result[name] = inputFieldToFieldConfig(fields[name], registry);
-  });
-  return result;
-}
-
-function inputFieldToFieldConfig(
-  field: GraphQLInputField,
-  registry: TypeRegistry,
-): GraphQLInputFieldConfig {
-  return {
-    type: registry.resolveType(field.type),
-    description: field.description,
-  };
 }
 
 function createMergeInfo(typeRegistry: TypeRegistry): MergeInfo {
