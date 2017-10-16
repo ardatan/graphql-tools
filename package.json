@@ -61,6 +61,7 @@
     "@types/mocha": "^2.2.43",
     "@types/node": "^8.0.31",
     "@types/uuid": "^3.4.2",
+    "@types/zen-observable": "^0.5.3",
     "body-parser": "^1.18.2",
     "chai": "^4.1.2",
     "express": "^4.16.1",
