@@ -13,7 +13,7 @@ Functions in the `graphql-tools` package are not just useful for building server
 
 Even though we recommend a specific way of building GraphQL servers, you can use these tools even if you don't follow our structure; they work with any GraphQL-JS schema, and each tool can be useful on its own.
 
-<h2 id="recommendations">The GraphQL-first philosophy</h2>
+<h2 id="recommendations" title="GraphQL-first philosophy">The GraphQL-first philosophy</h2>
 
 This package enables a specific workflow for developing a GraphQL server, where the GraphQL schema is the first thing you design, and acts as the contract between your frontend and backend. It's not necessarily for everyone, but it can be a great way to get a server up and running with a very clear separation of concerns. These concerns are aligned with Facebook's direction about the best way to use GraphQL, and our own findings after thinking about the best way to architect a JavaScript GraphQL API codebase.
 
