@@ -23,6 +23,7 @@ import {
   UnionTypeDefinitionNode,
   valueFromAST,
 } from 'graphql';
+import { getDescription } from 'graphql/utilities/buildASTSchema';
 import TypeRegistry from './TypeRegistry';
 
 export default function typeFromAST(
@@ -58,6 +59,7 @@ function makeObjectType(
       node.interfaces.map(
         iface => typeRegistry.getType(iface.name.value) as GraphQLInterfaceType,
       ),
+    description: getDescription(node),
   });
 }
 
@@ -68,6 +70,7 @@ function makeInterfaceType(
   return new GraphQLInterfaceType({
     name: node.name.value,
     fields: () => makeFields(typeRegistry, node.fields),
+    description: getDescription(node),
   });
 }
 
@@ -77,11 +80,14 @@ function makeEnumType(
 ): GraphQLEnumType {
   const values = {};
   node.values.forEach(value => {
-    values[value.name.value] = {};
+    values[value.name.value] = {
+      description: getDescription(value),
+    };
   });
   return new GraphQLEnumType({
     name: node.name.value,
     values,
+    description: getDescription(node),
   });
 }
 
@@ -95,6 +101,7 @@ function makeUnionType(
       node.types.map(
         type => resolveType(typeRegistry, type) as GraphQLObjectType,
       ),
+    description: getDescription(node),
   });
 }
 
@@ -104,6 +111,7 @@ function makeScalarType(
 ): GraphQLScalarType {
   return new GraphQLScalarType({
     name: node.name.value,
+    description: getDescription(node),
     serialize: () => null,
     // Note: validation calls the parse functions to determine if a
     // literal value is correct. Returning null would cause use of custom
@@ -121,6 +129,7 @@ function makeInputObjectType(
   return new GraphQLInputObjectType({
     name: node.name.value,
     fields: () => makeValues(typeRegistry, node.fields),
+    description: getDescription(node),
   });
 }
 
@@ -133,6 +142,7 @@ function makeFields(
     result[node.name.value] = {
       type: resolveType(typeRegistry, node.type),
       args: makeValues(typeRegistry, node.arguments),
+      description: getDescription(node),
     };
   });
   return result;
@@ -148,6 +158,7 @@ function makeValues(
     result[node.name.value] = {
       type,
       defaultValue: valueFromAST(node.defaultValue, type),
+      description: getDescription(node),
     };
   });
   return result;

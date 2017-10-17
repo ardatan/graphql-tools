@@ -2,6 +2,9 @@
 
 ### VNEXT
 
+* Parse type, field, and argument descriptions in `typeFromAST`. This allows the
+  descriptions to be part of the schema when using helpers like `mergeSchemas()`.
+
 ### v2.5.0
 
 * Add ability to pass types in extension strings [Issue #](https://github.com/apollographql/graphql-tools/issues/427) [PR #](https://github.com/apollographql/graphql-tools/pull/430)
