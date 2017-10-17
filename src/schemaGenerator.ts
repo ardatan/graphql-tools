@@ -13,10 +13,8 @@ import {
   Kind,
   DefinitionNode,
   defaultFieldResolver,
-
   buildASTSchema,
   extendSchema,
-
   GraphQLScalarType,
   getNamedType,
   GraphQLObjectType,
@@ -28,7 +26,6 @@ import {
   GraphQLInterfaceType,
   GraphQLFieldMap,
 } from 'graphql';
-
 import {
   IExecutableSchemaDefinition,
   ILogger,
