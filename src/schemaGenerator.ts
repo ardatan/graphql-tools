@@ -16,6 +16,7 @@ import {
 } from 'graphql';
 import { buildASTSchema, extendSchema } from 'graphql';
 import {
+  GraphQLEnumType,
   GraphQLScalarType,
   getNamedType,
   GraphQLObjectType,
@@ -360,6 +361,15 @@ function addResolveFunctionsToSchema(
       if (type instanceof GraphQLScalarType) {
         type[fieldName] = resolveFunctions[typeName][fieldName];
         return;
+      }
+
+      if (type instanceof GraphQLEnumType) {
+        if (!type.isValidValue(fieldName)) {
+          throw new SchemaError(
+              `${typeName}.${fieldName} was defined in resolvers, but enum is not in schema`,
+          );
+        }
+        type.getValue(fieldName)['value'] = resolveFunctions[typeName][fieldName];
       }
 
       const fields = getFieldsForType(type);
