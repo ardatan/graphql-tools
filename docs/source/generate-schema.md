@@ -260,7 +260,7 @@ const typeDefs = [`
 `]
 ```
 
-<h2 id="schema-language">Learning the GraphQL schema language</h2>
+<h2 id="schema-language" title="GraphQL schema language">Learning the GraphQL schema language</h2>
 
 The official documentation on graphql.org now has [a section about GraphQL schemas](http://graphql.org/learn/schema/) which explains all of the different schema features and how to use them with the schema language.
 
