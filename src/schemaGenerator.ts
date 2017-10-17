@@ -13,7 +13,7 @@ import {
   Kind,
   DefinitionNode,
   defaultFieldResolver,
-  
+
   buildASTSchema,
   extendSchema,
 
