@@ -13,9 +13,8 @@ import {
   Kind,
   DefinitionNode,
   defaultFieldResolver,
-} from 'graphql';
-import { buildASTSchema, extendSchema } from 'graphql';
-import {
+  buildASTSchema,
+  extendSchema,
   GraphQLScalarType,
   getNamedType,
   GraphQLObjectType,
