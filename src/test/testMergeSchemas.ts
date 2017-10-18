@@ -1,7 +1,12 @@
 /* tslint:disable:no-unused-expression */
 
 import { expect } from 'chai';
-import { graphql, GraphQLSchema, GraphQLScalarType } from 'graphql';
+import {
+  graphql,
+  GraphQLSchema,
+  GraphQLScalarType,
+  GraphQLObjectType
+} from 'graphql';
 import mergeSchemas from '../stitching/mergeSchemas';
 import {
   propertySchema as localPropertySchema,
@@ -25,8 +30,13 @@ const testCombinations = [
 ];
 
 const scalarTest = `
+  # Description of TestScalar.
   scalar TestScalar
 
+  # Description of AnotherNewScalar.
+  scalar AnotherNewScalar
+
+  # A type that uses TestScalar.
   type TestingScalar {
     value: TestScalar
   }
@@ -37,22 +47,30 @@ const scalarTest = `
 `;
 
 const linkSchema = `
+  # A new type linking the Property type.
   type LinkType {
     test: String
+    # The property.
     property: Property
   }
 
   extend type Booking {
+    # The property of the booking.
     property: Property
   }
 
   extend type Property {
-    bookings(limit: Int): [Booking]
+    # A list of bookings.
+    bookings(
+      # The maximum number of bookings to retrieve.
+      limit: Int
+    ): [Booking]
   }
 
   extend type Query {
     delegateInterfaceTest: TestInterface
     delegateArgumentTest(arbitraryArg: Int): Property
+    # A new field on the root query.
     linkTest: LinkType
   }
 `;
@@ -1197,6 +1215,49 @@ bookingById(id: $b1) {
     });
 
     describe('types in schema extensions', () => {
+      it('should parse descriptions on new types', () => {
+        // Because we redefine it via `GraphQLScalarType` above, it will get
+        // its description from there.
+        expect(mergedSchema.getType('TestScalar').description).to.be.undefined;
+
+        expect(mergedSchema.getType('AnotherNewScalar').description).to.equal(
+          'Description of AnotherNewScalar.'
+        );
+
+        expect(mergedSchema.getType('TestingScalar').description).to.equal(
+          'A type that uses TestScalar.'
+        );
+
+        expect(mergedSchema.getType('LinkType').description).to.equal(
+          'A new type linking the Property type.'
+        );
+
+        expect(mergedSchema.getType('LinkType').description).to.equal(
+          'A new type linking the Property type.'
+        );
+      });
+
+      it('should parse descriptions on new fields', () => {
+        const Query = mergedSchema.getQueryType();
+        expect(Query.getFields().linkTest.description).to.equal(
+          'A new field on the root query.'
+        );
+
+        const Booking = mergedSchema.getType('Booking') as GraphQLObjectType;
+        expect(Booking.getFields().property.description).to.equal(
+          'The property of the booking.'
+        );
+
+        const Property = mergedSchema.getType('Property') as GraphQLObjectType;
+        const bookingsField = Property.getFields().bookings;
+        expect(bookingsField.description).to.equal(
+          'A list of bookings.'
+        );
+        expect(bookingsField.args[0].description).to.equal(
+          'The maximum number of bookings to retrieve.'
+        );
+      });
+
       it('should allow defining new types in link type', async () => {
         const result = await graphql(
           mergedSchema,
