@@ -1467,38 +1467,6 @@ describe('Mock', () => {
     });
   });
 
-  it('doesnt let you define resolver not present in schema', () => {
-    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
-    const resolvers = {
-      RootQuery: {
-        missingField: () => {
-          throw new Error(`it should never be executed`);
-        },
-      },
-    };
-
-    expect(() => addResolveFunctionsToSchema(jsSchema, resolvers)).to.throw(
-      'RootQuery.missingField defined in resolvers, but not in schema',
-    );
-  });
-
-  it('lets you define resolver not present in schema', () => {
-    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
-    const resolvers = {
-      RootQuery: {
-        missingField: () => {
-          throw new Error(`it should never be executed`);
-        },
-      },
-    };
-
-    expect(() =>
-      addResolveFunctionsToSchema(jsSchema, resolvers, {
-        allowResolversNotInSchema: true,
-      }),
-    ).to.not.throw();
-  });
-
   // TODO add a test that checks that even when merging defaults, lists invoke
   // the function for every object, not just once per list.
 
