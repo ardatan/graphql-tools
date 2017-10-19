@@ -6,9 +6,15 @@
 // TODO: we should refactor this file, rename it to makeExecutableSchema, and move
 // a bunch of utility functions into a separate utitlities folder, one file per function.
 
-import { DocumentNode, parse, print, Kind, DefinitionNode } from 'graphql';
-import { buildASTSchema, extendSchema } from 'graphql';
 import {
+  DocumentNode,
+  parse,
+  print,
+  Kind,
+  DefinitionNode,
+  defaultFieldResolver,
+  buildASTSchema,
+  extendSchema,
   GraphQLScalarType,
   getNamedType,
   GraphQLObjectType,
@@ -57,7 +63,9 @@ function _generateSchema(
   resolverValidationOptions: IResolverValidationOptions,
 ) {
   if (typeof resolverValidationOptions !== 'object') {
-    throw new SchemaError('Expected `resolverValidationOptions` to be an object');
+    throw new SchemaError(
+      'Expected `resolverValidationOptions` to be an object',
+    );
   }
   if (!typeDefinitions) {
     throw new SchemaError('Must provide typeDefs');
@@ -94,12 +102,18 @@ function makeExecutableSchema({
   resolverValidationOptions = {},
 }: IExecutableSchemaDefinition) {
   const jsSchema = _generateSchema(
-    typeDefs, resolvers, logger, allowUndefinedInResolve, resolverValidationOptions
+    typeDefs,
+    resolvers,
+    logger,
+    allowUndefinedInResolve,
+    resolverValidationOptions,
   );
   if (typeof resolvers['__schema'] === 'function') {
     // TODO a bit of a hack now, better rewrite generateSchema to attach it there.
     // not doing that now, because I'd have to rewrite a lot of tests.
-    addSchemaLevelResolveFunction(jsSchema, resolvers['__schema'] as GraphQLFieldResolver<any, any>);
+    addSchemaLevelResolveFunction(jsSchema, resolvers[
+      '__schema'
+    ] as GraphQLFieldResolver<any, any>);
   }
   if (connectors) {
     // connectors are optional, at least for now. That means you can just import them in the resolve
@@ -109,17 +123,24 @@ function makeExecutableSchema({
   return jsSchema;
 }
 
-function isDocumentNode(typeDefinitions: ITypeDefinitions): typeDefinitions is DocumentNode {
+function isDocumentNode(
+  typeDefinitions: ITypeDefinitions,
+): typeDefinitions is DocumentNode {
   return (<DocumentNode>typeDefinitions).kind !== undefined;
 }
 
 function uniq(array: Array<any>): Array<any> {
   return array.reduce((accumulator, currentValue) => {
-    return (accumulator.indexOf(currentValue) === -1) ? [...accumulator, currentValue] : accumulator;
+    return accumulator.indexOf(currentValue) === -1
+      ? [...accumulator, currentValue]
+      : accumulator;
   }, []);
 }
 
-function concatenateTypeDefs(typeDefinitionsAry: ITypedef[], calledFunctionRefs = [] as any): string {
+function concatenateTypeDefs(
+  typeDefinitionsAry: ITypedef[],
+  calledFunctionRefs = [] as any,
+): string {
   let resolvedTypeDefinitions: string[] = [];
   typeDefinitionsAry.forEach((typeDef: ITypedef) => {
     if (isDocumentNode(typeDef)) {
@@ -130,21 +151,24 @@ function concatenateTypeDefs(typeDefinitionsAry: ITypedef[], calledFunctionRefs 
       if (calledFunctionRefs.indexOf(typeDef) === -1) {
         calledFunctionRefs.push(typeDef);
         resolvedTypeDefinitions = resolvedTypeDefinitions.concat(
-          concatenateTypeDefs(typeDef(), calledFunctionRefs)
+          concatenateTypeDefs(typeDef(), calledFunctionRefs),
         );
       }
-
     } else if (typeof typeDef === 'string') {
       resolvedTypeDefinitions.push(typeDef.trim());
     } else {
       const type = typeof typeDef;
-      throw new SchemaError(`typeDef array must contain only strings and functions, got ${type}`);
+      throw new SchemaError(
+        `typeDef array must contain only strings and functions, got ${type}`,
+      );
     }
   });
-  return uniq(resolvedTypeDefinitions.map((x) => x.trim())).join('\n');
+  return uniq(resolvedTypeDefinitions.map(x => x.trim())).join('\n');
 }
 
-function buildSchemaFromTypeDefinitions(typeDefinitions: ITypeDefinitions): GraphQLSchema {
+function buildSchemaFromTypeDefinitions(
+  typeDefinitions: ITypeDefinitions,
+): GraphQLSchema {
   // TODO: accept only array here, otherwise interfaces get confusing.
   let myDefinitions = typeDefinitions;
   let astDocument: DocumentNode;
@@ -154,7 +178,9 @@ function buildSchemaFromTypeDefinitions(typeDefinitions: ITypeDefinitions): Grap
   } else if (typeof myDefinitions !== 'string') {
     if (!Array.isArray(myDefinitions)) {
       const type = typeof myDefinitions;
-      throw new SchemaError(`typeDefs must be a string, array or schema AST, got ${type}`);
+      throw new SchemaError(
+        `typeDefs must be a string, array or schema AST, got ${type}`,
+      );
     }
     myDefinitions = concatenateTypeDefs(myDefinitions);
   }
@@ -173,9 +199,10 @@ function buildSchemaFromTypeDefinitions(typeDefinitions: ITypeDefinitions): Grap
   return schema;
 }
 
-function extractExtensionDefinitions(ast: DocumentNode) {
-  const extensionDefs =
-    ast.definitions.filter((def: DefinitionNode) => def.kind === Kind.TYPE_EXTENSION_DEFINITION);
+export function extractExtensionDefinitions(ast: DocumentNode) {
+  const extensionDefs = ast.definitions.filter(
+    (def: DefinitionNode) => def.kind === Kind.TYPE_EXTENSION_DEFINITION,
+  );
 
   return Object.assign({}, ast, {
     definitions: extensionDefs,
@@ -184,13 +211,16 @@ function extractExtensionDefinitions(ast: DocumentNode) {
 
 function forEachField(schema: GraphQLSchema, fn: IFieldIteratorFn): void {
   const typeMap = schema.getTypeMap();
-  Object.keys(typeMap).forEach((typeName) => {
+  Object.keys(typeMap).forEach(typeName => {
     const type = typeMap[typeName];
 
     // TODO: maybe have an option to include these?
-    if (!getNamedType(type).name.startsWith('__') && type instanceof GraphQLObjectType) {
+    if (
+      !getNamedType(type).name.startsWith('__') &&
+      type instanceof GraphQLObjectType
+    ) {
       const fields = type.getFields();
-      Object.keys(fields).forEach((fieldName) => {
+      Object.keys(fields).forEach(fieldName => {
         const field = fields[fieldName];
         fn(field, typeName, fieldName);
       });
@@ -202,49 +232,54 @@ function forEachField(schema: GraphQLSchema, fn: IFieldIteratorFn): void {
 // the connectors to the context by wrapping each query or mutation resolve
 // function with a function that attaches connectors if they don't exist.
 // attaches connectors only once to make sure they are singletons
-const attachConnectorsToContext = deprecated<Function>({
-  version: '0.7.0',
-  url: 'https://github.com/apollostack/graphql-tools/issues/140',
-}, function (schema: GraphQLSchema, connectors: IConnectors): void {
-  if (!schema || !(schema instanceof GraphQLSchema)) {
-    throw new Error(
-      'schema must be an instance of GraphQLSchema. ' +
-      'This error could be caused by installing more than one version of GraphQL-JS'
-    );
-  }
+const attachConnectorsToContext = deprecated<Function>(
+  {
+    version: '0.7.0',
+    url: 'https://github.com/apollostack/graphql-tools/issues/140',
+  },
+  function(schema: GraphQLSchema, connectors: IConnectors): void {
+    if (!schema || !(schema instanceof GraphQLSchema)) {
+      throw new Error(
+        'schema must be an instance of GraphQLSchema. ' +
+          'This error could be caused by installing more than one version of GraphQL-JS',
+      );
+    }
 
-  if (typeof connectors !== 'object') {
-    const connectorType = typeof connectors;
-    throw new Error(
-      `Expected connectors to be of type object, got ${connectorType}`
-    );
-  }
-  if (Object.keys(connectors).length === 0) {
-    throw new Error(
-      'Expected connectors to not be an empty object'
-    );
-  }
-  if (Array.isArray(connectors)) {
-    throw new Error(
-      'Expected connectors to be of type object, got Array'
-    );
-  }
-  if (schema['_apolloConnectorsAttached']) {
-    throw new Error('Connectors already attached to context, cannot attach more than once');
-  }
-  schema['_apolloConnectorsAttached'] = true;
-  const attachconnectorFn: GraphQLFieldResolver<any, any> =
-    (root: any, args: { [key: string]: any }, ctx: any) => {
+    if (typeof connectors !== 'object') {
+      const connectorType = typeof connectors;
+      throw new Error(
+        `Expected connectors to be of type object, got ${connectorType}`,
+      );
+    }
+    if (Object.keys(connectors).length === 0) {
+      throw new Error('Expected connectors to not be an empty object');
+    }
+    if (Array.isArray(connectors)) {
+      throw new Error('Expected connectors to be of type object, got Array');
+    }
+    if (schema['_apolloConnectorsAttached']) {
+      throw new Error(
+        'Connectors already attached to context, cannot attach more than once',
+      );
+    }
+    schema['_apolloConnectorsAttached'] = true;
+    const attachconnectorFn: GraphQLFieldResolver<any, any> = (
+      root: any,
+      args: { [key: string]: any },
+      ctx: any,
+    ) => {
       if (typeof ctx !== 'object') {
         // if in any way possible, we should throw an error when the attachconnectors
         // function is called, not when a query is executed.
         const contextType = typeof ctx;
-        throw new Error(`Cannot attach connector because context is not an object: ${contextType}`);
+        throw new Error(
+          `Cannot attach connector because context is not an object: ${contextType}`,
+        );
       }
       if (typeof ctx.connectors === 'undefined') {
         ctx.connectors = {};
       }
-      Object.keys(connectors).forEach((connectorName) => {
+      Object.keys(connectors).forEach(connectorName => {
         let connector: IConnector = connectors[connectorName];
         if (!!connector.prototype) {
           ctx.connectors[connectorName] = new (<IConnectorCls>connector)(ctx);
@@ -254,57 +289,71 @@ const attachConnectorsToContext = deprecated<Function>({
       });
       return root;
     };
-  addSchemaLevelResolveFunction(schema, attachconnectorFn);
-});
+    addSchemaLevelResolveFunction(schema, attachconnectorFn);
+  },
+);
 
 // wraps all resolve functions of query, mutation or subscription fields
 // with the provided function to simulate a root schema level resolve funciton
-function addSchemaLevelResolveFunction(schema: GraphQLSchema, fn: GraphQLFieldResolver<any, any>): void {
+function addSchemaLevelResolveFunction(
+  schema: GraphQLSchema,
+  fn: GraphQLFieldResolver<any, any>,
+): void {
   // TODO test that schema is a schema, fn is a function
-  const rootTypes = ([
+  const rootTypes = [
     schema.getQueryType(),
     schema.getMutationType(),
     schema.getSubscriptionType(),
-  ]).filter(x => !!x);
-  rootTypes.forEach((type) => {
+  ].filter(x => !!x);
+  rootTypes.forEach(type => {
     // XXX this should run at most once per request to simulate a true root resolver
     // for graphql-js this is an approximation that works with queries but not mutations
     const rootResolveFn = runAtMostOncePerRequest(fn);
     const fields = type.getFields();
-    Object.keys(fields).forEach((fieldName) => {
+    Object.keys(fields).forEach(fieldName => {
       // XXX if the type is a subscription, a same query AST will be ran multiple times so we
       // deactivate here the runOnce if it's a subscription. This may not be optimal though...
       if (type === schema.getSubscriptionType()) {
         fields[fieldName].resolve = wrapResolver(fields[fieldName].resolve, fn);
       } else {
-        fields[fieldName].resolve = wrapResolver(fields[fieldName].resolve, rootResolveFn);
+        fields[fieldName].resolve = wrapResolver(
+          fields[fieldName].resolve,
+          rootResolveFn,
+        );
       }
     });
   });
 }
 
 function getFieldsForType(type: GraphQLType): GraphQLFieldMap<any, any> {
-  if ((type instanceof GraphQLObjectType) ||
-    (type instanceof GraphQLInterfaceType)) {
+  if (
+    type instanceof GraphQLObjectType ||
+    type instanceof GraphQLInterfaceType
+  ) {
     return type.getFields();
   } else {
     return undefined;
   }
 }
 
-function addResolveFunctionsToSchema(schema: GraphQLSchema, resolveFunctions: IResolvers, resolverValidationOptions: any) {
-  Object.keys(resolveFunctions).forEach((typeName) => {
+function addResolveFunctionsToSchema(
+  schema: GraphQLSchema,
+  resolveFunctions: IResolvers,
+  resolverValidationOptions: any,
+) {
+  Object.keys(resolveFunctions).forEach(typeName => {
     const type = schema.getType(typeName);
     if (!type && typeName !== '__schema') {
       if (resolverValidationOptions.allowResolversNotInSchema) {
         return;
       }
+
       throw new SchemaError(
-        `"${typeName}" defined in resolvers, but not in schema`
+        `"${typeName}" defined in resolvers, but not in schema`,
       );
     }
 
-    Object.keys(resolveFunctions[typeName]).forEach((fieldName) => {
+    Object.keys(resolveFunctions[typeName]).forEach(fieldName => {
       if (fieldName.startsWith('__')) {
         // this is for isTypeOf and resolveType and all the other stuff.
         // TODO require resolveType for unions and interfaces.
@@ -328,8 +377,9 @@ function addResolveFunctionsToSchema(schema: GraphQLSchema, resolveFunctions: IR
         if (resolverValidationOptions.allowResolversNotInSchema) {
           return;
         }
+
         throw new SchemaError(
-          `${typeName}.${fieldName} defined in resolvers, but not in schema`
+          `${typeName}.${fieldName} defined in resolvers, but not in schema`,
         );
       }
       const field = fields[fieldName];
@@ -339,7 +389,9 @@ function addResolveFunctionsToSchema(schema: GraphQLSchema, resolveFunctions: IR
         setFieldProperties(field, { resolve: fieldResolve });
       } else {
         if (typeof fieldResolve !== 'object') {
-          throw new SchemaError(`Resolver ${typeName}.${fieldName} must be object or function`);
+          throw new SchemaError(
+            `Resolver ${typeName}.${fieldName} must be object or function`,
+          );
         }
         setFieldProperties(field, fieldResolve);
       }
@@ -347,24 +399,33 @@ function addResolveFunctionsToSchema(schema: GraphQLSchema, resolveFunctions: IR
   });
 }
 
-function setFieldProperties(field: GraphQLField<any, any>, propertiesObj: Object) {
-  Object.keys(propertiesObj).forEach((propertyName) => {
+function setFieldProperties(
+  field: GraphQLField<any, any>,
+  propertiesObj: Object,
+) {
+  Object.keys(propertiesObj).forEach(propertyName => {
     field[propertyName] = propertiesObj[propertyName];
   });
 }
 
-function assertResolveFunctionsPresent(schema: GraphQLSchema, resolverValidationOptions: IResolverValidationOptions = {}) {
+function assertResolveFunctionsPresent(
+  schema: GraphQLSchema,
+  resolverValidationOptions: IResolverValidationOptions = {},
+) {
   const {
     requireResolversForArgs = false,
     requireResolversForNonScalar = false,
     requireResolversForAllFields = false,
   } = resolverValidationOptions;
 
-  if (requireResolversForAllFields && (requireResolversForArgs || requireResolversForNonScalar)) {
+  if (
+    requireResolversForAllFields &&
+    (requireResolversForArgs || requireResolversForNonScalar)
+  ) {
     throw new TypeError(
       'requireResolversForAllFields takes precedence over the more specific assertions. ' +
-      'Please configure either requireResolversForAllFields or requireResolversForArgs / ' +
-      'requireResolversForNonScalar, but not a combination of them.'
+        'Please configure either requireResolversForAllFields or requireResolversForArgs / ' +
+        'requireResolversForNonScalar, but not a combination of them.',
     );
   }
 
@@ -380,20 +441,31 @@ function assertResolveFunctionsPresent(schema: GraphQLSchema, resolverValidation
     }
 
     // requires a resolve function on every field that returns a non-scalar type
-    if (requireResolversForNonScalar && !(getNamedType(field.type) instanceof GraphQLScalarType)) {
+    if (
+      requireResolversForNonScalar &&
+      !(getNamedType(field.type) instanceof GraphQLScalarType)
+    ) {
       expectResolveFunction(field, typeName, fieldName);
     }
   });
 }
 
-function expectResolveFunction(field: GraphQLField<any, any>, typeName: string, fieldName: string) {
+function expectResolveFunction(
+  field: GraphQLField<any, any>,
+  typeName: string,
+  fieldName: string,
+) {
   if (!field.resolve) {
     // tslint:disable-next-line: max-line-length
-    console.warn(`Resolve function missing for "${typeName}.${fieldName}". To disable this warning check https://github.com/apollostack/graphql-tools/issues/131`);
+    console.warn(
+      `Resolve function missing for "${typeName}.${fieldName}". To disable this warning check https://github.com/apollostack/graphql-tools/issues/131`,
+    );
     return;
   }
   if (typeof field.resolve !== 'function') {
-    throw new SchemaError(`Resolver "${typeName}.${fieldName}" must be a function`);
+    throw new SchemaError(
+      `Resolver "${typeName}.${fieldName}" must be a function`,
+    );
   }
 }
 
@@ -420,23 +492,25 @@ function wrapResolver(
       if (innerResolver) {
         return innerResolver(root, args, ctx, info);
       }
-      return defaultResolveFn(root, args, ctx, info);
+      return defaultFieldResolver(root, args, ctx, info);
     });
   };
 }
 
 function chainResolvers(resolvers: GraphQLFieldResolver<any, any>[]) {
-  return (root: any, args: { [argName: string]: any }, ctx: any, info: GraphQLResolveInfo) => {
-    return resolvers.reduce(
-      (prev, curResolver) => {
-        if (curResolver) {
-          return curResolver(prev, args, ctx, info);
-        }
+  return (
+    root: any,
+    args: { [argName: string]: any },
+    ctx: any,
+    info: GraphQLResolveInfo,
+  ) => {
+    return resolvers.reduce((prev, curResolver) => {
+      if (curResolver) {
+        return curResolver(prev, args, ctx, info);
+      }
 
-        return defaultResolveFn(prev, args, ctx, info);
-      },
-      root,
-    );
+      return defaultFieldResolver(prev, args, ctx, info);
+    }, root);
   };
 }
 
@@ -445,9 +519,13 @@ function chainResolvers(resolvers: GraphQLFieldResolver<any, any>[]) {
  * logger: an object instance of type Logger
  * hint: an optional hint to add to the error's message
  */
-function decorateWithLogger(fn: GraphQLFieldResolver<any, any> | undefined, logger: ILogger, hint: string): GraphQLFieldResolver<any, any> {
+function decorateWithLogger(
+  fn: GraphQLFieldResolver<any, any> | undefined,
+  logger: ILogger,
+  hint: string,
+): GraphQLFieldResolver<any, any> {
   if (typeof fn === 'undefined') {
-    fn = defaultResolveFn;
+    fn = defaultFieldResolver;
   }
 
   const logError = (e: Error) => {
@@ -466,7 +544,11 @@ function decorateWithLogger(fn: GraphQLFieldResolver<any, any> | undefined, logg
     try {
       const result = fn(root, args, ctx, info);
       // If the resolve function returns a Promise log any Promise rejects.
-      if (result && typeof result.then === 'function' && typeof result.catch === 'function') {
+      if (
+        result &&
+        typeof result.then === 'function' &&
+        typeof result.catch === 'function'
+      ) {
         result.catch((reason: Error | string) => {
           // make sure that it's an error we're logging.
           const error = reason instanceof Error ? reason : new Error(reason);
@@ -492,9 +574,12 @@ function addCatchUndefinedToSchema(schema: GraphQLSchema): void {
   });
 }
 
-function decorateToCatchUndefined(fn: GraphQLFieldResolver<any, any>, hint: string): GraphQLFieldResolver<any, any> {
+function decorateToCatchUndefined(
+  fn: GraphQLFieldResolver<any, any>,
+  hint: string,
+): GraphQLFieldResolver<any, any> {
   if (typeof fn === 'undefined') {
-    fn = defaultResolveFn;
+    fn = defaultFieldResolver;
   }
   return (root, args, ctx, info) => {
     const result = fn(root, args, ctx, info);
@@ -511,7 +596,9 @@ function decorateToCatchUndefined(fn: GraphQLFieldResolver<any, any>, hint: stri
 // if people don't actually cache the operation.
 // if they do cache the operation, they will have to
 // manually remove the __runAtMostOnce before every request.
-function runAtMostOncePerRequest(fn: GraphQLFieldResolver<any, any>): GraphQLFieldResolver<any, any> {
+function runAtMostOncePerRequest(
+  fn: GraphQLFieldResolver<any, any>,
+): GraphQLFieldResolver<any, any> {
   let value: any;
   const randomNumber = Math.random();
   return (root, args, ctx, info) => {
@@ -524,27 +611,6 @@ function runAtMostOncePerRequest(fn: GraphQLFieldResolver<any, any>): GraphQLFie
     }
     return value;
   };
-}
-
-/**
- * XXX taken from graphql-js: src/execution/execute.js, because that function
- * is not exported
- *
- * If a resolve function is not given, then a default resolve behavior is used
- * which takes the property of the source object of the same name as the field
- * and returns it as the result, or if it's a function, returns the result
- * of calling that function.
- */
-function defaultResolveFn(
-  source: any, args: any, context: any, { fieldName }: { fieldName: string }) {
-  // ensure source is a value for which property access is acceptable.
-  if (typeof source === 'object' || typeof source === 'function') {
-    const property = source[fieldName];
-    if (typeof property === 'function') {
-      return property(args, context);
-    }
-    return property;
-  }
 }
 
 export {

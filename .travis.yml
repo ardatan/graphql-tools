@@ -1,7 +1,9 @@
 language: node_js
 node_js:
-  - "6.2"
-  - "4.4"
+  - "4"
+  - "6"
+  - "8"
+
 install:
   - npm config set spin=false
   - npm install -g coveralls

@@ -1,7 +1,47 @@
 # Change log
 
-### vNEXT
+### VNEXT
 
+* Parse type, field, and argument descriptions in `typeFromAST`. This allows the
+  descriptions to be part of the schema when using helpers like `mergeSchemas()`.
+
+### v2.5.0
+
+* Add ability to pass types in extension strings [Issue #](https://github.com/apollographql/graphql-tools/issues/427) [PR #](https://github.com/apollographql/graphql-tools/pull/430)
+
+### v2.4.0
+
+* Translate errors better in merged schema [Issue #419]((https://github.com/apollographql/graphql-tools/issues/419) [PR #425](https://github.com/apollographql/graphql-tools/pull/425)
+
+### v2.3.0
+
+* Fix alias issues [Issue #415](https://github.com/apollographql/graphql-tools/issues/415) [PR #418](https://github.com/apollographql/graphql-tools/pull/418)
+* Make `@typings/graphql` a dev dependency and make it's version as flexible as `graphql` [PR #421](https://github.com/apollographql/graphql-tools/pull/421)
+
+### v2.2.1
+
+* Fix inability to add recursive queries [PR #413](https://github.com/apollographql/graphql-tools/pull/413)
+
+### v2.2.0
+
+* Change link API to pass GraphQL context as `graphqlContext` field of link
+  context to avoid merging problems
+* Fix alias problems in schema merging [PR #411](https://github.com/apollographql/graphql-tools/pull/411)
+
+### v2.1.0
+* Added support for passing an Apollo Link instead of a fetcher
+
+### v2.0.0
+* Add schema merging utilities [PR #382](https://github.com/apollographql/graphql-tools/pull/382)
+
+### v1.2.3
+* Update package.json to allow GraphQL.js 0.11 [Issue #394](https://github.com/apollographql/graphql-tools/issues/394) [PR #395](https://github.com/apollographql/graphql-tools/pull/395)
+
+### v1.2.1
+* Fix typings for resolver options: [Issue #372](https://github.com/apollographql/graphql-tools/issues/372) [PR #374](https://github.com/apollographql/graphql-tools/pull/374)
+
+### v.1.2.0
+* Use defaultFieldResolver from graphql-js package instead of own one [PR #373](https://github.com/apollographql/graphql-tools/pull/373)
 * Remove `lodash` dependency [PR #356](https://github.com/apollographql/graphql-tools/pull/356)
 
 ### v.1.1.0

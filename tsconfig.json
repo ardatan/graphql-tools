@@ -1,22 +1,19 @@
 {
-	"compilerOptions": {
-		"experimentalDecorators": true,
-		"lib": ["es6", "dom"],
-		"module": "commonjs",
-		"target": "es5",
-		"noImplicitAny": true,
-		"suppressImplicitAnyIndexErrors": true,
-		"moduleResolution": "node",
-		"emitDecoratorMetadata": true,
-		"noUnusedLocals": true,
-		"sourceMap": true,
-		"declaration": true,
-		"rootDir": "./src",
-		"outDir": "./dist",
-		"removeComments": false
-	},
-	"exclude": [
-		"node_modules",
-    "dist"
-	]
+  "compilerOptions": {
+    "experimentalDecorators": true,
+    "lib": ["es7", "dom", "esnext.asynciterable"],
+    "module": "commonjs",
+    "target": "es5",
+    "noImplicitAny": true,
+    "suppressImplicitAnyIndexErrors": true,
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "noUnusedLocals": true,
+    "sourceMap": true,
+    "declaration": true,
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "removeComments": false
+  },
+  "exclude": ["node_modules", "dist"]
 }
