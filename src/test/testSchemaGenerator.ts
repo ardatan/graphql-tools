@@ -1098,6 +1098,58 @@ describe('generating schema from shorthand', () => {
     ).to.not.throw();
   });
 
+  it('throws if resolver defined for non existent type', () => {
+    const short = `
+      type Person {
+        name: String
+        age: Int
+      }
+      type RootQuery {
+        search(name: String): [Person]
+      }
+      schema {
+        query: RootQuery
+      }
+    `;
+
+    const rf = {
+      Searchable: {
+        name: () => 'Something',
+      },
+    };
+
+    expect(() =>
+      makeExecutableSchema({ typeDefs: short, resolvers: rf }),
+    ).to.throw(`"Searchable" defined in resolvers, but not in schema`);
+  });
+
+  it('lets you define resolver for non existent type', () => {
+    const short = `
+      type Person {
+        name: String
+        age: Int
+      }
+      type RootQuery {
+        search(name: String): [Person]
+      }
+      schema {
+        query: RootQuery
+      }
+    `;
+
+    const rf = {
+      Searchable: {
+        name: () => 'Something',
+      },
+    };
+
+    expect(() =>
+      makeExecutableSchema({ typeDefs: short, resolvers: rf, resolverValidationOptions: {
+        allowResolversNotInSchema: true,
+      }}),
+    ).to.not.throw();
+  });
+
   it('doesnt let you define resolver field not present in schema', () => {
     const short = `
       type Person {
