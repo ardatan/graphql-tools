@@ -374,6 +374,10 @@ function addResolveFunctionsToSchema(
 
       const fields = getFieldsForType(type);
       if (!fields) {
+        if (allowResolversNotInSchema) {
+          return;
+        }
+
         throw new SchemaError(
           `${typeName} was defined in resolvers, but it's not an object`,
         );
