@@ -339,12 +339,16 @@ function getFieldsForType(type: GraphQLType): GraphQLFieldMap<any, any> {
 function addResolveFunctionsToSchema(
   schema: GraphQLSchema,
   resolveFunctions: IResolvers,
-  resolverValidationOptions: any,
+  resolverValidationOptions: IResolverValidationOptions = {},
 ) {
+  const {
+    allowResolversNotInSchema = false,
+  } = resolverValidationOptions;
+
   Object.keys(resolveFunctions).forEach(typeName => {
     const type = schema.getType(typeName);
     if (!type && typeName !== '__schema') {
-      if (resolverValidationOptions.allowResolversNotInSchema) {
+      if (allowResolversNotInSchema) {
         return;
       }
 
@@ -374,7 +378,7 @@ function addResolveFunctionsToSchema(
       }
 
       if (!fields[fieldName]) {
-        if (resolverValidationOptions.allowResolversNotInSchema) {
+        if (allowResolversNotInSchema) {
           return;
         }
 

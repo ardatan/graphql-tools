@@ -16,6 +16,7 @@ export interface IResolverValidationOptions {
   requireResolversForArgs?: boolean;
   requireResolversForNonScalar?: boolean;
   requireResolversForAllFields?: boolean;
+  allowResolversNotInSchema?: boolean;
 }
 
 export interface IResolverOptions {
