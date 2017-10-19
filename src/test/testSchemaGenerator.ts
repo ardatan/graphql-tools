@@ -1064,32 +1064,6 @@ describe('generating schema from shorthand', () => {
     expect(() =>
       makeExecutableSchema({ typeDefs: short, resolvers: rf }),
     ).to.throw(`Searchable was defined in resolvers, but it's not an object`);
-  });
-
-  it('lets you define resolver for non-object/interface type', () => {
-    const short = `
-      union Searchable = Person | Location
-      type Person {
-        name: String
-        age: Int
-      }
-      type Location {
-        name: String
-        coordinates: String
-      }
-      type RootQuery {
-        search(name: String): [Searchable]
-      }
-      schema {
-        query: RootQuery
-      }
-    `;
-
-    const rf = {
-      Searchable: {
-        name: () => 'Something',
-      },
-    };
 
     expect(() =>
       makeExecutableSchema({ typeDefs: short, resolvers: rf, resolverValidationOptions: {
@@ -1121,27 +1095,6 @@ describe('generating schema from shorthand', () => {
     expect(() =>
       makeExecutableSchema({ typeDefs: short, resolvers: rf }),
     ).to.throw(`"Searchable" defined in resolvers, but not in schema`);
-  });
-
-  it('lets you define resolver for non existent type', () => {
-    const short = `
-      type Person {
-        name: String
-        age: Int
-      }
-      type RootQuery {
-        search(name: String): [Person]
-      }
-      schema {
-        query: RootQuery
-      }
-    `;
-
-    const rf = {
-      Searchable: {
-        name: () => 'Something',
-      },
-    };
 
     expect(() =>
       makeExecutableSchema({ typeDefs: short, resolvers: rf, resolverValidationOptions: {
@@ -1173,27 +1126,6 @@ describe('generating schema from shorthand', () => {
     expect(() =>
       makeExecutableSchema({ typeDefs: short, resolvers: rf }),
     ).to.throw(`RootQuery.name defined in resolvers, but not in schema`);
-  });
-
-  it('lets you define resolver field not present in schema', () => {
-    const short = `
-      type Person {
-        name: String
-        age: Int
-      }
-      type RootQuery {
-        search(name: String): [Person]
-      }
-      schema {
-        query: RootQuery
-      }
-    `;
-
-    const rf = {
-      RootQuery: {
-        name: () => 'Something',
-      },
-    };
 
     expect(() =>
       makeExecutableSchema({ typeDefs: short, resolvers: rf, resolverValidationOptions: {
