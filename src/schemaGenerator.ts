@@ -78,7 +78,11 @@ function _generateSchema(
 
   const schema = buildSchemaFromTypeDefinitions(typeDefinitions);
 
-  addResolveFunctionsToSchema(schema, resolveFunctions, resolverValidationOptions);
+  addResolveFunctionsToSchema(
+    schema,
+    resolveFunctions,
+    resolverValidationOptions,
+  );
 
   assertResolveFunctionsPresent(schema, resolverValidationOptions);
 
@@ -341,9 +345,7 @@ function addResolveFunctionsToSchema(
   resolveFunctions: IResolvers,
   resolverValidationOptions: IResolverValidationOptions = {},
 ) {
-  const {
-    allowResolversNotInSchema = false,
-  } = resolverValidationOptions;
+  const { allowResolversNotInSchema = false } = resolverValidationOptions;
 
   Object.keys(resolveFunctions).forEach(typeName => {
     const type = schema.getType(typeName);
