@@ -2,6 +2,7 @@
 
 ### VNEXT
 
+* Add the option `resolverValidationOptions.allowResolversNotInSchema` to allow resolvers to be set even when they are not defined in the schemas [PR #444](https://github.com/apollographql/graphql-tools/pull/444)
 * Parse type, field, and argument descriptions in `typeFromAST`. This allows the
   descriptions to be part of the schema when using helpers like `mergeSchemas()`.
 
