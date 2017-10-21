@@ -1,5 +1,9 @@
-import { printSchema, print, Kind, ValueNode, ExecutionResult } from 'graphql';
-import { execute, makePromise, ApolloLink, Observable } from 'apollo-link';
+import { printSchema, Kind, ValueNode } from 'graphql';
+import linkToFetcher from './linkToFetcher';
+
+// This import doesn't actually import code - only the types.
+// Don't use ApolloLink to actually construct a link here.
+import { ApolloLink } from 'apollo-link';
 
 import {
   GraphQLObjectType,
@@ -13,6 +17,8 @@ import {
   GraphQLBoolean,
   GraphQLInt,
   GraphQLScalarType,
+  ExecutionResult,
+  print,
 } from 'graphql';
 import isEmptyObject from '../isEmptyObject';
 import { IResolvers, IResolverObject } from '../Interfaces';
@@ -21,33 +27,13 @@ import resolveParentFromTypename from './resolveFromParentTypename';
 import defaultMergedResolver from './defaultMergedResolver';
 import { checkResultAndHandleErrors } from './errors';
 
-export type Fetcher = (
-  operation: {
-    query: string;
-    operationName?: string;
-    variables?: { [key: string]: any };
-    context?: { [key: string]: any };
-  },
-) => Promise<ExecutionResult>;
+export type Fetcher = (operation: FetcherOperation) => Promise<ExecutionResult>;
 
-export const fetcherToLink = (fetcher: Fetcher): ApolloLink => {
-  return new ApolloLink(operation => {
-    return new Observable(observer => {
-      const { query, operationName, variables } = operation;
-      const { graphqlContext } = operation.getContext();
-      fetcher({
-        query: typeof query === 'string' ? query : print(query),
-        operationName,
-        variables,
-        context: graphqlContext,
-      })
-        .then((result: ExecutionResult) => {
-          observer.next(result);
-          observer.complete();
-        })
-        .catch(observer.error.bind(observer));
-    });
-  });
+export type FetcherOperation = {
+  query: string;
+  operationName?: string;
+  variables?: { [key: string]: any };
+  context?: { [key: string]: any };
 };
 
 export default function makeRemoteExecutableSchema({
@@ -59,22 +45,22 @@ export default function makeRemoteExecutableSchema({
   link?: ApolloLink;
   fetcher?: Fetcher;
 }): GraphQLSchema {
-  if (fetcher && !link) {
-    link = fetcherToLink(fetcher);
+  if (!fetcher && link) {
+    fetcher = linkToFetcher(link);
   }
 
   const queryType = schema.getQueryType();
   const queries = queryType.getFields();
   const queryResolvers: IResolverObject = {};
   Object.keys(queries).forEach(key => {
-    queryResolvers[key] = createResolver(link);
+    queryResolvers[key] = createResolver(fetcher);
   });
   let mutationResolvers: IResolverObject = {};
   const mutationType = schema.getMutationType();
   if (mutationType) {
     const mutations = mutationType.getFields();
     Object.keys(mutations).forEach(key => {
-      mutationResolvers[key] = createResolver(link);
+      mutationResolvers[key] = createResolver(fetcher);
     });
   }
 
@@ -130,7 +116,7 @@ export default function makeRemoteExecutableSchema({
   });
 }
 
-function createResolver(link: ApolloLink): GraphQLFieldResolver<any, any> {
+function createResolver(fetcher: Fetcher): GraphQLFieldResolver<any, any> {
   return async (root, args, context, info) => {
     const fragments = Object.keys(info.fragments).map(
       fragment => info.fragments[fragment],
@@ -139,13 +125,11 @@ function createResolver(link: ApolloLink): GraphQLFieldResolver<any, any> {
       kind: Kind.DOCUMENT,
       definitions: [info.operation, ...fragments],
     };
-    const result = await makePromise(
-      execute(link, {
-        query: document,
-        variables: info.variableValues,
-        context: { graphqlContext: context },
-      }),
-    );
+    const result = await fetcher({
+      query: print(document),
+      variables: info.variableValues,
+      context: { graphqlContext: context },
+    });
     return checkResultAndHandleErrors(result, info);
   };
 }

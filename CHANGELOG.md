@@ -2,6 +2,7 @@
 
 ### VNEXT
 
+* Removed direct dependency on Apollo Link, while keeping the API the same, to work around a Launchpad npm installation issue temporarily.
 * Parse type, field, and argument descriptions in `typeFromAST`. This allows the
   descriptions to be part of the schema when using helpers like `mergeSchemas()`.
 
