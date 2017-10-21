@@ -23,6 +23,9 @@ export default function linkToFetcher(link: ApolloLink): Fetcher {
   };
 }
 
+// Most code from below here is copied from apollo-link
+// TODO - remove
+
 function makePromise<R>(observable: Observable<R>): Promise<R> {
   let completed = false;
   return new Promise<R>((resolve, reject) => {
