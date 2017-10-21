@@ -5,7 +5,7 @@ import {
   graphql,
   GraphQLSchema,
   GraphQLScalarType,
-  GraphQLObjectType
+  GraphQLObjectType,
 } from 'graphql';
 import mergeSchemas from '../stitching/mergeSchemas';
 import {
@@ -1221,40 +1221,38 @@ bookingById(id: $b1) {
         expect(mergedSchema.getType('TestScalar').description).to.be.undefined;
 
         expect(mergedSchema.getType('AnotherNewScalar').description).to.equal(
-          'Description of AnotherNewScalar.'
+          'Description of AnotherNewScalar.',
         );
 
         expect(mergedSchema.getType('TestingScalar').description).to.equal(
-          'A type that uses TestScalar.'
+          'A type that uses TestScalar.',
         );
 
         expect(mergedSchema.getType('LinkType').description).to.equal(
-          'A new type linking the Property type.'
+          'A new type linking the Property type.',
         );
 
         expect(mergedSchema.getType('LinkType').description).to.equal(
-          'A new type linking the Property type.'
+          'A new type linking the Property type.',
         );
       });
 
       it('should parse descriptions on new fields', () => {
         const Query = mergedSchema.getQueryType();
         expect(Query.getFields().linkTest.description).to.equal(
-          'A new field on the root query.'
+          'A new field on the root query.',
         );
 
         const Booking = mergedSchema.getType('Booking') as GraphQLObjectType;
         expect(Booking.getFields().property.description).to.equal(
-          'The property of the booking.'
+          'The property of the booking.',
         );
 
         const Property = mergedSchema.getType('Property') as GraphQLObjectType;
         const bookingsField = Property.getFields().bookings;
-        expect(bookingsField.description).to.equal(
-          'A list of bookings.'
-        );
+        expect(bookingsField.description).to.equal('A list of bookings.');
         expect(bookingsField.args[0].description).to.equal(
-          'The maximum number of bookings to retrieve.'
+          'The maximum number of bookings to retrieve.',
         );
       });
 
