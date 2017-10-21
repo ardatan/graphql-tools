@@ -4,6 +4,10 @@
 
 * ...
 
+### v2.6.1
+
+* Fix one place where `apollo-link` was being used directly
+
 ### v2.6.0
 
 * Removed direct dependency on Apollo Link, while keeping the API the same, to work around a Launchpad npm installation issue temporarily.
