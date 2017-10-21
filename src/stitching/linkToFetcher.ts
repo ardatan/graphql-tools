@@ -55,7 +55,7 @@ function execute(
         operation.context,
         transformOperation(validateOperation(operation)),
       ),
-    ) || Observable.of()
+    )
   );
 }
 
