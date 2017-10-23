@@ -3,6 +3,14 @@
 ### VNEXT
 
 * Add the option `resolverValidationOptions.allowResolversNotInSchema` to allow resolvers to be set even when they are not defined in the schemas [PR #444](https://github.com/apollographql/graphql-tools/pull/444)
+
+### v2.6.1
+
+* Fix one place where `apollo-link` was being used directly
+
+### v2.6.0
+
+* Removed direct dependency on Apollo Link, while keeping the API the same, to work around a Launchpad npm installation issue temporarily.
 * Parse type, field, and argument descriptions in `typeFromAST`. This allows the
   descriptions to be part of the schema when using helpers like `mergeSchemas()`.
 
