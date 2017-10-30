@@ -18,7 +18,10 @@ export default async function introspectSchema(
     context: linkContext,
   });
 
-  if (introspectionResult.errors || !introspectionResult.data.__schema) {
+  if (
+    (introspectionResult.errors && introspectionResult.errors.length) ||
+    !introspectionResult.data.__schema
+  ) {
     throw introspectionResult.errors;
   } else {
     const schema = buildClientSchema(introspectionResult.data as {
