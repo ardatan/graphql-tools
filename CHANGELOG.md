@@ -4,6 +4,10 @@
 
 * ...
 
+### v2.7.0
+
+* Upgraded versions of dependencies
+
 ### v2.6.1
 
 * Fix one place where `apollo-link` was being used directly
