@@ -2,7 +2,7 @@
 
 ### VNEXT
 
-* ...
+* Made `resolvers` parameter optional for `mergeSchemas` [Issue #461](https://github.com/apollographql/graphql-tools/issues/461) [PR #462] (https://github.com/apollographql/graphql-tools/pull/462)
 
 ### v2.7.0
 
