@@ -51,7 +51,7 @@ import { checkResultAndHandleErrors } from './errors';
 
 export type MergeInfo = {
   delegate: (
-    type: 'query' | 'mutation',
+    type: 'query' | 'mutation' | 'subscription',
     fieldName: string,
     args: { [key: string]: any },
     context: { [key: string]: any },
@@ -83,6 +83,7 @@ export default function mergeSchemas({
   }
   let queryFields: GraphQLFieldMap<any, any> = {};
   let mutationFields: GraphQLFieldMap<any, any> = {};
+  let subscriptionFields: GraphQLFieldMap<any, any> = {};
 
   const typeRegistry = new TypeRegistry();
 
@@ -115,6 +116,7 @@ export default function mergeSchemas({
     typeRegistry.addSchema(schema);
     const queryType = schema.getQueryType();
     const mutationType = schema.getMutationType();
+    const subscriptionType = schema.getSubscriptionType();
 
     const typeMap = schema.getTypeMap();
     Object.keys(typeMap).forEach(typeName => {
@@ -123,7 +125,8 @@ export default function mergeSchemas({
         isNamedType(type) &&
         getNamedType(type).name.slice(0, 2) !== '__' &&
         type !== queryType &&
-        type !== mutationType
+        type !== mutationType &&
+        type !== subscriptionType
       ) {
         let newType;
         if (isCompositeType(type) || type instanceof GraphQLInputObjectType) {
@@ -166,6 +169,24 @@ export default function mergeSchemas({
       mutationFields = {
         ...mutationFields,
         ...mutationType.getFields(),
+      };
+    }
+
+    if (subscriptionType) {
+      if (!fullResolvers.Subscription) {
+        fullResolvers.Subscription = {};
+      }
+      Object.keys(subscriptionType.getFields()).forEach(name => {
+        fullResolvers.Subscription[name] = createDelegatingResolver(
+          mergeInfo,
+          'subscription',
+          name,
+        );
+      });
+
+      subscriptionFields = {
+        ...subscriptionFields,
+        ...subscriptionType.getFields(),
       };
     }
   });
@@ -212,12 +233,22 @@ export default function mergeSchemas({
     });
   }
 
+  let subscription;
+  if (!isEmptyObject(subscriptionFields)) {
+    subscription = new GraphQLObjectType({
+      name: 'Subscription',
+      fields: () => fieldMapToFieldConfigMap(subscriptionFields, typeRegistry),
+    });
+  }
+
   typeRegistry.addType('Query', query);
   typeRegistry.addType('Mutation', mutation);
+  typeRegistry.addType('Subscription', subscription);
 
   let mergedSchema = new GraphQLSchema({
     query,
     mutation,
+    subscription,
     types: typeRegistry.getAllTypes(),
   });
 
@@ -233,7 +264,7 @@ export default function mergeSchemas({
 function createMergeInfo(typeRegistry: TypeRegistry): MergeInfo {
   return {
     delegate(
-      operation: 'query' | 'mutation',
+      operation: 'query' | 'mutation' | 'subscription',
       fieldName: string,
       args: { [key: string]: any },
       context: { [key: string]: any },
@@ -261,7 +292,7 @@ function createMergeInfo(typeRegistry: TypeRegistry): MergeInfo {
 
 function createDelegatingResolver(
   mergeInfo: MergeInfo,
-  operation: 'query' | 'mutation',
+  operation: 'query' | 'mutation' | 'subscription',
   fieldName: string,
 ): GraphQLFieldResolver<any, any> {
   return (root, args, context, info) => {
@@ -274,7 +305,7 @@ async function delegateToSchema(
   fragmentReplacements: {
     [typeName: string]: { [fieldName: string]: InlineFragmentNode };
   },
-  operation: 'query' | 'mutation',
+  operation: 'query' | 'mutation' | 'subscription',
   fieldName: string,
   args: { [key: string]: any },
   context: { [key: string]: any },
@@ -283,6 +314,8 @@ async function delegateToSchema(
   let type;
   if (operation === 'mutation') {
     type = schema.getMutationType();
+  } else if (operation === 'subscription') {
+    type = schema.getSubscriptionType();
   } else {
     type = schema.getQueryType();
   }
@@ -340,7 +373,7 @@ function createDocument(
   },
   type: GraphQLObjectType,
   rootFieldName: string,
-  operation: 'query' | 'mutation',
+  operation: 'query' | 'mutation' | 'subscription',
   selections: Array<FieldNode>,
   fragments: { [fragmentName: string]: FragmentDefinitionNode },
   variableDefinitions?: Array<VariableDefinitionNode>,

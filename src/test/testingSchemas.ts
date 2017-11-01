@@ -13,6 +13,7 @@ import makeRemoteExecutableSchema, {
   Fetcher,
 } from '../stitching/makeRemoteExecutableSchema';
 import introspectSchema from '../stitching/introspectSchema';
+import {PubSub} from 'graphql-subscriptions';
 
 export type Property = {
   id: string;
@@ -502,6 +503,34 @@ const bookingResolvers: IResolvers = {
   DateTime,
 };
 
+const subscriptionTypeDefs = `
+  type Notification{
+    text: String
+  }
+
+  type Query{
+    notifications: Notification
+  }
+
+  type Subscription{
+    notifications: Notification
+  }
+`;
+
+export const subscriptionPubSub = new PubSub();
+export const subscriptionPubSubTrigger = 'pubSubTrigger';
+
+const subscriptionResolvers: IResolvers = {
+  Query: {
+    notifications: (root: any) => ({ text: 'Hello world'})
+  },
+  Subscription: {
+    notifications: {
+      subscribe: () => subscriptionPubSub.asyncIterator(subscriptionPubSubTrigger),
+    },
+  }
+};
+
 export const propertySchema: GraphQLSchema = makeExecutableSchema({
   typeDefs: propertyAddressTypeDefs,
   resolvers: propertyResolvers,
@@ -510,6 +539,11 @@ export const propertySchema: GraphQLSchema = makeExecutableSchema({
 export const bookingSchema: GraphQLSchema = makeExecutableSchema({
   typeDefs: bookingAddressTypeDefs,
   resolvers: bookingResolvers,
+});
+
+export const subscriptionSchema: GraphQLSchema = makeExecutableSchema({
+  typeDefs: subscriptionTypeDefs,
+  resolvers: subscriptionResolvers,
 });
 
 // Pretend this schema is remote

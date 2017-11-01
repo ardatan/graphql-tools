@@ -11,6 +11,7 @@ import mergeSchemas from '../stitching/mergeSchemas';
 import {
   propertySchema as localPropertySchema,
   bookingSchema as localBookingSchema,
+  subscriptionSchema as localSubscriptionSchema,
   remoteBookingSchema,
   remotePropertySchema,
 } from './testingSchemas';
@@ -75,6 +76,7 @@ const linkSchema = `
   }
 `;
 
+
 testCombinations.forEach(async combination => {
   describe('merging ' + combination.name, () => {
     let mergedSchema: GraphQLSchema,
@@ -86,7 +88,7 @@ testCombinations.forEach(async combination => {
       bookingSchema = await combination.booking;
 
       mergedSchema = mergeSchemas({
-        schemas: [propertySchema, bookingSchema, scalarTest, linkSchema],
+        schemas: [propertySchema, bookingSchema, scalarTest, linkSchema, localSubscriptionSchema],
         resolvers: mergeInfo => ({
           TestScalar: new GraphQLScalarType({
             name: 'TestScalar',
@@ -333,6 +335,32 @@ bookingById(id: "b1") {
         );
 
         expect(mergedResult).to.deep.equal(bookingResult);
+      });
+
+      it('subscriptions', async () => {
+        const subscriptionFragment = `
+          subscription Subscription {
+            notifications {
+              text
+            }
+          }
+        `;
+
+        const notificationResult = await graphql(
+          localSubscriptionSchema,
+          subscriptionFragment,
+          {},
+          {}
+        );
+        const mergedResult = await graphql(
+          mergedSchema,
+          subscriptionFragment,
+          {},
+          {}
+        );
+
+        expect(notificationResult).to.have.nested.property('data.notifications');
+        expect(mergedResult).to.deep.equal(notificationResult);
       });
 
       it('links in queries', async () => {
