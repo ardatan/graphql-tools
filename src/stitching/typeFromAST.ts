@@ -71,6 +71,9 @@ function makeInterfaceType(
     name: node.name.value,
     fields: () => makeFields(typeRegistry, node.fields),
     description: getDescription(node),
+    resolveType: () => {
+      throw new Error('Stub interface resolve');
+    },
   });
 }
 
