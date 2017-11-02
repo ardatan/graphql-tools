@@ -2,8 +2,13 @@
 
 ### VNEXT
 
+* ...
+
+### v2.7.1
+
 * Made `resolvers` parameter optional for `mergeSchemas` [Issue #461](https://github.com/apollographql/graphql-tools/issues/461) [PR #462] (https://github.com/apollographql/graphql-tools/pull/462)
 * Added basic subscription support for local schemas [Issue #420](https://github.com/apollographql/graphql-tools/issues/420) [PR #463] (https://github.com/apollographql/graphql-tools/pull/463)
+* Make it possible to define interfaces in schema extensions [PR # 464](https://github.com/apollographql/graphql-tools/pull/464)
 
 ### v2.7.0
 

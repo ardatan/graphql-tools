@@ -55,12 +55,16 @@ const linkSchema = `
     property: Property
   }
 
-  extend type Booking {
+  interface Node {
+    id: ID!
+  }
+
+  extend type Booking implements Node {
     # The property of the booking.
     property: Property
   }
 
-  extend type Property {
+  extend type Property implements Node {
     # A list of bookings.
     bookings(
       # The maximum number of bookings to retrieve.
@@ -73,6 +77,8 @@ const linkSchema = `
     delegateArgumentTest(arbitraryArg: Int): Property
     # A new field on the root query.
     linkTest: LinkType
+    node(id: ID!): Node
+    nodes: [Node]
   }
 `;
 
@@ -145,6 +151,17 @@ testCombinations.forEach(async combination => {
               },
             },
           },
+          Node: {
+            __resolveType(obj, context, info) {
+              if (obj.id.startsWith('p')) {
+                return info.schema.getType('Property');
+              } else if (obj.id.startsWith('b')) {
+                return info.schema.getType('Booking');
+              } else {
+                throw new Error('Non node type recieved');
+              }
+            },
+          },
           Query: {
             delegateInterfaceTest(parent, args, context, info) {
               return mergeInfo.delegate(
@@ -172,6 +189,48 @@ testCombinations.forEach(async combination => {
               return {
                 test: 'test',
               };
+            },
+            node: {
+              // fragment doesn't work
+              fragment: 'fragment NodeFragment on Node { id }',
+              resolve(parent, args, context, info) {
+                if (args.id.startsWith('p')) {
+                  return mergeInfo.delegate(
+                    'query',
+                    'propertyById',
+                    args,
+                    context,
+                    info,
+                  );
+                } else if (args.id.startsWith('b')) {
+                  return mergeInfo.delegate(
+                    'query',
+                    'bookingById',
+                    args,
+                    context,
+                    info,
+                  );
+                } else {
+                  throw new Error('invalid id');
+                }
+              },
+            },
+            async nodes(parent, args, context, info) {
+              const bookings = await mergeInfo.delegate(
+                'query',
+                'bookings',
+                {},
+                context,
+                info,
+              );
+              const properties = await mergeInfo.delegate(
+                'query',
+                'properties',
+                {},
+                context,
+                info,
+              );
+              return [...bookings, ...properties];
             },
           },
         }),
@@ -1307,6 +1366,125 @@ bookingById(id: $b1) {
                 id: 'p1',
               },
             },
+          },
+        });
+      });
+    });
+
+    describe('merge info defined interfaces', () => {
+      it('inline fragments on existing types in subschema', async () => {
+        const result = await graphql(
+          mergedSchema,
+          `
+            query($pid: ID!, $bid: ID!) {
+              property: node(id: $pid) {
+                id
+                ... on Property {
+                  name
+                }
+              }
+              booking: node(id: $bid) {
+                id
+                ... on Booking {
+                  startTime
+                  endTime
+                }
+              }
+            }
+          `,
+          {},
+          {},
+          {
+            pid: 'p1',
+            bid: 'b1',
+          },
+        );
+
+        expect(result).to.deep.equal({
+          data: {
+            property: {
+              id: 'p1',
+              name: 'Super great hotel',
+            },
+            booking: {
+              id: 'b1',
+              startTime: '2016-05-04',
+              endTime: '2016-06-03',
+            },
+          },
+        });
+      });
+
+      // KNOWN BUG
+      // it('fragments on interfaces in merged schema', async () => {
+      //   const result = await graphql(
+      //     mergedSchema,
+      //     `
+      //       query($bid: ID!) {
+      //         node(id: $bid) {
+      //           ...NodeFragment
+      //         }
+      //       }
+      //
+      //       fragment NodeFragment on Node {
+      //         id
+      //         ... on Property {
+      //           name
+      //         }
+      //         ... on Booking {
+      //           startTime
+      //           endTime
+      //         }
+      //       }
+      //     `,
+      //     {},
+      //     {},
+      //     {
+      //       bid: 'b1',
+      //     },
+      //   );
+      //
+      //   expect(result).to.deep.equal({
+      //     data: {
+      //       node: {
+      //         id: 'b1',
+      //         startTime: '2016-05-04',
+      //         endTime: '2016-06-03',
+      //       },
+      //     },
+      //   });
+      // });
+
+      it('arbitrary transforms that return interfaces', async () => {
+        const result = await graphql(
+          mergedSchema,
+          `
+            query {
+              nodes {
+                id
+                ... on Property {
+                  name
+                }
+                ... on Booking {
+                  startTime
+                  endTime
+                }
+              }
+            }
+          `,
+        );
+
+        expect(result).to.deep.equal({
+          data: {
+            nodes: [
+              { id: 'b1', startTime: '2016-05-04', endTime: '2016-06-03' },
+              { id: 'b2', startTime: '2016-06-04', endTime: '2016-07-03' },
+              { id: 'b3', startTime: '2016-08-04', endTime: '2016-09-03' },
+              { id: 'b4', startTime: '2016-10-04', endTime: '2016-10-03' },
+              { id: 'p1', name: 'Super great hotel' },
+              { id: 'p2', name: 'Another great hotel' },
+              { id: 'p3', name: 'BedBugs - The Affordable Hostel' },
+            ],
           },
         });
       });
