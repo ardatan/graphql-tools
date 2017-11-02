@@ -488,13 +488,13 @@ function filterSelectionSetDeep(
   fragments: Array<FragmentDefinitionNode>;
   usedVariables: Array<string>;
 } {
-  const validFragments: Array<string> = [];
+  const validFragments: Array<FragmentDefinitionNode> = [];
   Object.keys(fragments).forEach(fragmentName => {
     const fragment = fragments[fragmentName];
     const typeName = fragment.typeCondition.name.value;
     const innerType = schema.getType(typeName);
     if (innerType) {
-      validFragments.push(fragment.name.value);
+      validFragments.push(fragment);
     }
   });
   let {
@@ -566,7 +566,7 @@ function filterSelectionSet(
   },
   type: GraphQLType,
   selectionSet: SelectionSetNode,
-  validFragments: Array<string>,
+  validFragments: Array<FragmentDefinitionNode>,
 ): {
   selectionSet: SelectionSetNode;
   usedFragments: Array<string>;
@@ -578,15 +578,9 @@ function filterSelectionSet(
   const filteredSelectionSet = visit(selectionSet, {
     [Kind.FIELD]: {
       enter(node: FieldNode): null | undefined | FieldNode {
-        let parentType: GraphQLType = resolveType(
+        let parentType: GraphQLNamedType = resolveType(
           typeStack[typeStack.length - 1],
         );
-        if (
-          parentType instanceof GraphQLNonNull ||
-          parentType instanceof GraphQLList
-        ) {
-          parentType = parentType.ofType;
-        }
         if (
           parentType instanceof GraphQLObjectType ||
           parentType instanceof GraphQLInterfaceType
@@ -648,8 +642,22 @@ function filterSelectionSet(
       }
     },
     [Kind.FRAGMENT_SPREAD](node: FragmentSpreadNode): null | undefined {
-      if (validFragments.indexOf(node.name.value) !== -1) {
+      const fragmentFiltered = validFragments.filter(
+        frg => frg.name.value === node.name.value,
+      );
+      const fragment = fragmentFiltered[0];
+      if (fragment) {
+        if (fragment.typeCondition) {
+          const innerType = schema.getType(fragment.typeCondition.name.value);
+          const parentType: GraphQLNamedType = resolveType(
+            typeStack[typeStack.length - 1],
+          );
+          if (!implementsAbstractType(parentType, innerType)) {
+            return null;
+          }
+        }
         usedFragments.push(node.name.value);
+        return;
       } else {
         return null;
       }
@@ -658,7 +666,10 @@ function filterSelectionSet(
       enter(node: InlineFragmentNode): null | undefined {
         if (node.typeCondition) {
           const innerType = schema.getType(node.typeCondition.name.value);
-          if (innerType) {
+          const parentType: GraphQLNamedType = resolveType(
+            typeStack[typeStack.length - 1],
+          );
+          if (implementsAbstractType(parentType, innerType)) {
             typeStack.push(innerType);
           } else {
             return null;
@@ -697,6 +708,30 @@ function resolveType(type: GraphQLType): GraphQLNamedType {
     lastType = lastType.ofType;
   }
   return lastType;
+}
+
+function implementsAbstractType(
+  parent: GraphQLType,
+  child: GraphQLType,
+  bail: boolean = false,
+): boolean {
+  if (parent === child) {
+    return true;
+  } else if (
+    parent instanceof GraphQLInterfaceType &&
+    child instanceof GraphQLObjectType
+  ) {
+    return child.getInterfaces().indexOf(parent) !== -1;
+  } else if (
+    parent instanceof GraphQLUnionType &&
+    child instanceof GraphQLObjectType
+  ) {
+    return parent.getTypes().indexOf(child) !== -1;
+  } else if (parent instanceof GraphQLObjectType && !bail) {
+    return implementsAbstractType(child, parent, true);
+  }
+
+  return false;
 }
 
 function typeToAst(type: GraphQLInputType): TypeNode {
