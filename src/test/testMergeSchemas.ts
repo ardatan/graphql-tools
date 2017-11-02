@@ -59,6 +59,10 @@ const linkSchema = `
     id: ID!
   }
 
+  extend type Customer implements Node {
+
+  }
+
   extend type Booking implements Node {
     # The property of the booking.
     property: Property
@@ -151,17 +155,6 @@ testCombinations.forEach(async combination => {
               },
             },
           },
-          Node: {
-            __resolveType(obj, context, info) {
-              if (obj.id.startsWith('p')) {
-                return info.schema.getType('Property');
-              } else if (obj.id.startsWith('b')) {
-                return info.schema.getType('Booking');
-              } else {
-                throw new Error('Non node type recieved');
-              }
-            },
-          },
           Query: {
             delegateInterfaceTest(parent, args, context, info) {
               return mergeInfo.delegate(
@@ -206,6 +199,14 @@ testCombinations.forEach(async combination => {
                   return mergeInfo.delegate(
                     'query',
                     'bookingById',
+                    args,
+                    context,
+                    info,
+                  );
+                } else if (args.id.startsWith('c')) {
+                  return mergeInfo.delegate(
+                    'query',
+                    'customerById',
                     args,
                     context,
                     info,
@@ -1371,6 +1372,7 @@ bookingById(id: $b1) {
       });
     });
 
+    // FIXME: __typename should be automatic
     describe('merge info defined interfaces', () => {
       it('inline fragments on existing types in subschema', async () => {
         const result = await graphql(
@@ -1378,12 +1380,14 @@ bookingById(id: $b1) {
           `
             query($pid: ID!, $bid: ID!) {
               property: node(id: $pid) {
+                __typename
                 id
                 ... on Property {
                   name
                 }
               }
               booking: node(id: $bid) {
+                __typename
                 id
                 ... on Booking {
                   startTime
@@ -1403,10 +1407,98 @@ bookingById(id: $b1) {
         expect(result).to.deep.equal({
           data: {
             property: {
+              __typename: 'Property',
               id: 'p1',
               name: 'Super great hotel',
             },
             booking: {
+              __typename: 'Booking',
+              id: 'b1',
+              startTime: '2016-05-04',
+              endTime: '2016-06-03',
+            },
+          },
+        });
+      });
+
+      it('inline fragments on non-compatible sub schema types', async () => {
+        const result = await graphql(
+          mergedSchema,
+          `
+            query($bid: ID!) {
+              node(id: $bid) {
+                __typename
+                id
+                ... on Property {
+                  name
+                }
+                ... on Booking {
+                  startTime
+                  endTime
+                }
+                ... on Customer {
+                  name
+                }
+              }
+            }
+          `,
+          {},
+          {},
+          {
+            bid: 'b1',
+          },
+        );
+
+        expect(result).to.deep.equal({
+          data: {
+            node: {
+              __typename: 'Booking',
+              id: 'b1',
+              startTime: '2016-05-04',
+              endTime: '2016-06-03',
+            },
+          },
+        });
+      });
+
+      it('fragments on non-compatible sub schema types', async () => {
+        const result = await graphql(
+          mergedSchema,
+          `
+            query($bid: ID!) {
+              node(id: $bid) {
+                __typename
+                id
+                ...PropertyFragment
+                ...BookingFragment
+                ...CustomerFragment
+              }
+            }
+
+            fragment PropertyFragment on Property {
+              name
+            }
+
+            fragment BookingFragment on Booking {
+              startTime
+              endTime
+            }
+
+            fragment CustomerFragment on Customer {
+              name
+            }
+          `,
+          {},
+          {},
+          {
+            bid: 'b1',
+          },
+        );
+
+        expect(result).to.deep.equal({
+          data: {
+            node: {
+              __typename: 'Booking',
               id: 'b1',
               startTime: '2016-05-04',
               endTime: '2016-06-03',
@@ -1461,6 +1553,7 @@ bookingById(id: $b1) {
           `
             query {
               nodes {
+                __typename
                 id
                 ... on Property {
                   name
@@ -1477,13 +1570,45 @@ bookingById(id: $b1) {
         expect(result).to.deep.equal({
           data: {
             nodes: [
-              { id: 'b1', startTime: '2016-05-04', endTime: '2016-06-03' },
-              { id: 'b2', startTime: '2016-06-04', endTime: '2016-07-03' },
-              { id: 'b3', startTime: '2016-08-04', endTime: '2016-09-03' },
-              { id: 'b4', startTime: '2016-10-04', endTime: '2016-10-03' },
-              { id: 'p1', name: 'Super great hotel' },
-              { id: 'p2', name: 'Another great hotel' },
-              { id: 'p3', name: 'BedBugs - The Affordable Hostel' },
+              {
+                id: 'b1',
+                startTime: '2016-05-04',
+                endTime: '2016-06-03',
+                __typename: 'Booking',
+              },
+              {
+                id: 'b2',
+                startTime: '2016-06-04',
+                endTime: '2016-07-03',
+                __typename: 'Booking',
+              },
+              {
+                id: 'b3',
+                startTime: '2016-08-04',
+                endTime: '2016-09-03',
+                __typename: 'Booking',
+              },
+              {
+                id: 'b4',
+                startTime: '2016-10-04',
+                endTime: '2016-10-03',
+                __typename: 'Booking',
+              },
+              {
+                id: 'p1',
+                name: 'Super great hotel',
+                __typename: 'Property',
+              },
+              {
+                id: 'p2',
+                name: 'Another great hotel',
+                __typename: 'Property',
+              },
+              {
+                id: 'p3',
+                name: 'BedBugs - The Affordable Hostel',
+                __typename: 'Property',
+              },
             ],
           },
         });
