@@ -2,7 +2,7 @@
 
 ### VNEXT
 
-* ...
+* Incompatible fragments are now properly filtered [PR #470](https://github.com/apollographql/graphql-tools/pull/470)
 
 ### v2.7.1
 
