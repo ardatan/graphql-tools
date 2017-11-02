@@ -76,7 +76,7 @@ export default function mergeSchemas({
     leftType: GraphQLNamedType,
     rightType: GraphQLNamedType,
   ) => GraphQLNamedType;
-  resolvers?: (mergeInfo: MergeInfo) => IResolvers;
+  resolvers: (mergeInfo: MergeInfo) => IResolvers;
 }): GraphQLSchema {
   if (!onTypeConflict) {
     onTypeConflict = defaultOnTypeConflict;
