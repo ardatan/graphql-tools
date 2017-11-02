@@ -6,6 +6,9 @@ import {
   GraphQLSchema,
   GraphQLScalarType,
   GraphQLObjectType,
+  subscribe,
+  parse,
+  ExecutionResult,
 } from 'graphql';
 import mergeSchemas from '../stitching/mergeSchemas';
 import {
@@ -14,7 +17,10 @@ import {
   subscriptionSchema as localSubscriptionSchema,
   remoteBookingSchema,
   remotePropertySchema,
+  subscriptionPubSub,
+  subscriptionPubSubTrigger,
 } from './testingSchemas';
+import {forAwaitEach} from 'iterall';
 
 const testCombinations = [
   { name: 'local', booking: localBookingSchema, property: localPropertySchema },
@@ -397,30 +403,32 @@ bookingById(id: "b1") {
         expect(mergedResult).to.deep.equal(bookingResult);
       });
 
-      it('subscriptions', async () => {
-        const subscriptionFragment = `
+      it('local subscriptions working in merged schema', done => {
+        const mockNotification = {
+          notifications: {
+            text: 'Hello world'
+          }
+        };
+
+        const subscription = parse(`
           subscription Subscription {
             notifications {
               text
             }
           }
-        `;
+        `);
 
-        const notificationResult = await graphql(
-          localSubscriptionSchema,
-          subscriptionFragment,
-          {},
-          {}
-        );
-        const mergedResult = await graphql(
-          mergedSchema,
-          subscriptionFragment,
-          {},
-          {}
-        );
+        let notificationCnt = 0;
+        subscribe( mergedSchema, subscription)
+          .then(results => {
+            forAwaitEach( results as AsyncIterable<ExecutionResult>, (result: ExecutionResult) => {
+              expect(result).to.have.property('data');
+              expect(result.data).to.deep.equal(mockNotification);
+              !notificationCnt++ ? done() : null;
+            }).catch(done);
+          }).catch(done);
 
-        expect(notificationResult).to.have.nested.property('data.notifications');
-        expect(mergedResult).to.deep.equal(notificationResult);
+        subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification);
       });
 
       it('links in queries', async () => {
