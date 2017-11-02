@@ -23,6 +23,12 @@ const defaultMergedResolver: GraphQLFieldResolver<any, any> = (
     );
   } else if (parent) {
     let result = parent[responseKey];
+
+    // subscription result mapping
+    if (!result && parent.data && parent.data[responseKey]) {
+      result = parent.data[responseKey];
+    }
+
     if (errorResult.errors) {
       result = annotateWithChildrenErrors(result, errorResult.errors);
     }

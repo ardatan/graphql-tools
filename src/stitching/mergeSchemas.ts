@@ -34,6 +34,7 @@ import {
   isNamedType,
   parse,
   visit,
+  subscribe,
 } from 'graphql';
 import TypeRegistry from './TypeRegistry';
 import { IResolvers } from '../Interfaces';
@@ -177,11 +178,13 @@ export default function mergeSchemas({
         fullResolvers.Subscription = {};
       }
       Object.keys(subscriptionType.getFields()).forEach(name => {
-        fullResolvers.Subscription[name] = createDelegatingResolver(
-          mergeInfo,
-          'subscription',
-          name,
-        );
+        fullResolvers.Subscription[name] = {
+          subscribe: createDelegatingResolver(
+            mergeInfo,
+            'subscription',
+            name,
+          )
+        };
       });
 
       subscriptionFields = {
@@ -352,15 +355,26 @@ async function delegateToSchema(
       });
     }
 
-    const result = await execute(
-      schema,
-      graphqlDoc,
-      info.rootValue,
-      context,
-      variableValues,
-    );
+    if (operation === 'query' || operation === 'mutation') {
+      const result = await execute(
+        schema,
+        graphqlDoc,
+        info.rootValue,
+        context,
+        variableValues
+      );
+      return checkResultAndHandleErrors(result, info, fieldName);
+    }
 
-    return checkResultAndHandleErrors(result, info, fieldName);
+    if (operation === 'subscription') {
+      return subscribe(
+        schema,
+        graphqlDoc,
+        info.rootValue,
+        context,
+        variableValues
+      );
+    }
   }
 
   throw new Error('Could not forward to merged schema');
