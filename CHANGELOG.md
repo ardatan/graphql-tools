@@ -3,6 +3,16 @@
 ### VNEXT
 
 * Add the option `resolverValidationOptions.allowResolversNotInSchema` to allow resolvers to be set even when they are not defined in the schemas [PR #444](https://github.com/apollographql/graphql-tools/pull/444)
+* Incompatible fragments are now properly filtered [PR #470](https://github.com/apollographql/graphql-tools/pull/470)
+
+### v2.7.1
+
+* Made `resolvers` parameter optional for `mergeSchemas` [Issue #461](https://github.com/apollographql/graphql-tools/issues/461) [PR #462] (https://github.com/apollographql/graphql-tools/pull/462)
+* Make it possible to define interfaces in schema extensions [PR # 464](https://github.com/apollographql/graphql-tools/pull/464)
+
+### v2.7.0
+
+* Upgraded versions of dependencies
 
 ### v2.6.1
 

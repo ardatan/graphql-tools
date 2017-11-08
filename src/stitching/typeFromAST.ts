@@ -24,6 +24,7 @@ import {
   valueFromAST,
 } from 'graphql';
 import { getDescription } from 'graphql/utilities/buildASTSchema';
+import resolveFromParentType from './resolveFromParentTypename';
 import TypeRegistry from './TypeRegistry';
 
 export default function typeFromAST(
@@ -71,6 +72,8 @@ function makeInterfaceType(
     name: node.name.value,
     fields: () => makeFields(typeRegistry, node.fields),
     description: getDescription(node),
+    resolveType: (parent, context, info) =>
+      resolveFromParentType(parent, info.schema),
   });
 }
 
@@ -102,6 +105,8 @@ function makeUnionType(
         type => resolveType(typeRegistry, type) as GraphQLObjectType,
       ),
     description: getDescription(node),
+    resolveType: (parent, context, info) =>
+      resolveFromParentType(parent, info.schema),
   });
 }
 
