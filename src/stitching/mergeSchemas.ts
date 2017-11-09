@@ -610,8 +610,9 @@ function filterSelectionSet(
       const parentTypeName = parentType.name;
       let selections = node.selections;
       if (
-        parentType instanceof GraphQLInterfaceType ||
-        parentType instanceof GraphQLUnionType
+        (parentType instanceof GraphQLInterfaceType ||
+        parentType instanceof GraphQLUnionType) &&
+        (!selections.find(_ => (_ as FieldNode).kind === Kind.FIELD && (_ as FieldNode).name.value === '__typename') )
       ) {
         selections = selections.concat({
           kind: Kind.FIELD,
