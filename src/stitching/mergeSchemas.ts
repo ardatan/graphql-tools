@@ -595,6 +595,10 @@ function filterSelectionSet(
           } else {
             typeStack.push(field.type);
           }
+        } else if (
+          parentType instanceof GraphQLUnionType && node.name.value === '__typename'
+        ) {
+          typeStack.push(TypeNameMetaFieldDef.type);
         }
       },
       leave() {
