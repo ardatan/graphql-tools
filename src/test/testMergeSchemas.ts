@@ -659,6 +659,11 @@ bookingById(id: "b1") {
           },
         });
       });
+
+      it('removes `isTypeOf` checks from proxied schemas', () => {
+        const Booking = mergedSchema.getType('Booking') as GraphQLObjectType;
+        expect(Booking.isTypeOf).to.equal(undefined);
+      });
     });
 
     describe('fragments', () => {
