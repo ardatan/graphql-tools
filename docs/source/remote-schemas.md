@@ -118,7 +118,7 @@ Authentication headers from context
 
 ```js
 const fetcher = createApolloFetch({ uri: 'http://api.githunt.com/graphql'});
-fetcher.use({ request, option }, next) => {
+fetcher.use(({ request, options }, next) => {
   if (!options.headers) {
     options.headers = {};
   }
