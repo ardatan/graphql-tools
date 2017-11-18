@@ -598,6 +598,10 @@ function filterSelectionSet(
           } else {
             typeStack.push(field.type);
           }
+        } else if (
+          parentType instanceof GraphQLUnionType && node.name.value === '__typename'
+        ) {
+          typeStack.push(TypeNameMetaFieldDef.type);
         }
       },
       leave() {
@@ -613,8 +617,9 @@ function filterSelectionSet(
       const parentTypeName = parentType.name;
       let selections = node.selections;
       if (
-        parentType instanceof GraphQLInterfaceType ||
-        parentType instanceof GraphQLUnionType
+        (parentType instanceof GraphQLInterfaceType ||
+        parentType instanceof GraphQLUnionType) &&
+        (!selections.find(_ => (_ as FieldNode).kind === Kind.FIELD && (_ as FieldNode).name.value === '__typename') )
       ) {
         selections = selections.concat({
           kind: Kind.FIELD,

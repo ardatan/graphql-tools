@@ -578,6 +578,41 @@ bookingById(id: "b1") {
         });
       });
 
+      it('unions with alias', async () => {
+        const mergedResult = await graphql(
+          mergedSchema,
+          `
+            query {
+              customerById(id: "c1") {
+                ... on Person {
+                  name
+                }
+                v1: vehicle {
+                  ... on Bike {
+                    bikeType
+                  }
+                }
+                v2: vehicle {
+                  ... on Bike {
+                    bikeType
+                  }
+                }
+              }
+            }
+          `,
+        );
+
+        expect(mergedResult).to.deep.equal({
+          data: {
+            customerById: {
+              name: 'Exampler Customer',
+              v1: { bikeType: 'MOUNTAIN' },
+              v2: { bikeType: 'MOUNTAIN' },
+            },
+          },
+        });
+      });
+
       it('deep links', async () => {
         const mergedResult = await graphql(
           mergedSchema,
