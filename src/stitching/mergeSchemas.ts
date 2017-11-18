@@ -131,6 +131,9 @@ export default function mergeSchemas({
         } else {
           newType = getNamedType(type);
         }
+        if (newType instanceof GraphQLObjectType) {
+          delete newType.isTypeOf;
+        }
         typeRegistry.addType(newType.name, newType, onTypeConflict);
       }
     });
