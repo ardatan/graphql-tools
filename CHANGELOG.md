@@ -6,8 +6,8 @@
 
 ### v2.7.1
 
-* Made `resolvers` parameter optional for `mergeSchemas` [Issue #461](https://github.com/apollographql/graphql-tools/issues/461) [PR #462] (https://github.com/apollographql/graphql-tools/pull/462)
-* Make it possible to define interfaces in schema extensions [PR # 464](https://github.com/apollographql/graphql-tools/pull/464)
+* Made `resolvers` parameter optional for `mergeSchemas` [Issue #461](https://github.com/apollographql/graphql-tools/issues/461) [PR #462](https://github.com/apollographql/graphql-tools/pull/462)
+* Make it possible to define interfaces in schema extensions [PR #464](https://github.com/apollographql/graphql-tools/pull/464)
 
 ### v2.7.0
 
@@ -25,16 +25,16 @@
 
 ### v2.5.0
 
-* Add ability to pass types in extension strings [Issue #](https://github.com/apollographql/graphql-tools/issues/427) [PR #](https://github.com/apollographql/graphql-tools/pull/430)
+* Add ability to pass types in extension strings [Issue #427](https://github.com/apollographql/graphql-tools/issues/427) [PR #430](https://github.com/apollographql/graphql-tools/pull/430)
 
 ### v2.4.0
 
-* Translate errors better in merged schema [Issue #419]((https://github.com/apollographql/graphql-tools/issues/419) [PR #425](https://github.com/apollographql/graphql-tools/pull/425)
+* Translate errors better in merged schema [Issue #419](https://github.com/apollographql/graphql-tools/issues/419) [PR #425](https://github.com/apollographql/graphql-tools/pull/425)
 
 ### v2.3.0
 
 * Fix alias issues [Issue #415](https://github.com/apollographql/graphql-tools/issues/415) [PR #418](https://github.com/apollographql/graphql-tools/pull/418)
-* Make `@typings/graphql` a dev dependency and make it's version as flexible as `graphql` [PR #421](https://github.com/apollographql/graphql-tools/pull/421)
+* Make `@types/graphql` a dev dependency and make it's version as flexible as `graphql` [PR #421](https://github.com/apollographql/graphql-tools/pull/421)
 
 ### v2.2.1
 
@@ -103,11 +103,11 @@
 ### v0.8.2
 
 * Accept an async function for the schema level resolver. ([@ephemer](https://github.com/ephemer) in [#199](https://github.com/apollostack/graphql-tools/pull/199))
-* Fix for new custom scalar support introduced in `0.8.1`. ([@oricordeau](https://github.com/oricordeau) in [#203](https://github.com/apollostack/graphql-tools/pull/203)
+* Fix for new custom scalar support introduced in `0.8.1`. ([@oricordeau](https://github.com/oricordeau) in [#203](https://github.com/apollostack/graphql-tools/pull/203))
 
 ### v0.8.1
 
-* Support custom scalar types developed for GraphQL.js, such as [graphql-type-json](https://github.com/taion/graphql-type-json). ([@oricordeau](https://github.com/oricordeau) in [#189](https://github.com/apollostack/graphql-tools/pull/189)
+* Support custom scalar types developed for GraphQL.js, such as [graphql-type-json](https://github.com/taion/graphql-type-json). ([@oricordeau](https://github.com/oricordeau) in [#189](https://github.com/apollostack/graphql-tools/pull/189))
 
 ### v0.8.0
 
@@ -162,12 +162,12 @@
 
 ### v0.6.3
 
-* Unpin babel-core version to solve build problem (PR #92)
-* Added support for `extend` keyword to schemaGenerator https://github.com/apollostack/graphql-tools/pull/90
+* Unpin babel-core version to solve build problem (PR [#92](https://github.com/apollographql/graphql-tools/pull/92))
+* Added support for `extend` keyword to schemaGenerator (PR [#90](https://github.com/apollostack/graphql-tools/pull/90))
 
 ### v0.6.2
 
-* Fix a bug with addSchemaLevelResolveFunction. It now runs once per tick (PR #91)
+* Fix a bug with addSchemaLevelResolveFunction. It now runs once per tick (PR [#91](https://github.com/apollographql/graphql-tools/pull/91))
 
 ### v0.5.2
 
