@@ -3,8 +3,11 @@
 ### VNEXT
 
 * Add the option `resolverValidationOptions.allowResolversNotInSchema` to allow resolvers to be set even when they are not defined in the schemas [PR #444](https://github.com/apollographql/graphql-tools/pull/444)
-* Incompatible fragments are now properly filtered [PR #470](https://github.com/apollographql/graphql-tools/pull/470)
 * Fix schema stitching bug when aliases are used with union types and fragments [PR #482](https://github.com/apollographql/graphql-tools/pull/482)
+
+### v2.7.2
+
+* Incompatible fragments are now properly filtered [PR #470](https://github.com/apollographql/graphql-tools/pull/470)
 
 ### v2.7.1
 
