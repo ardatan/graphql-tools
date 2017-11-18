@@ -2,6 +2,31 @@
 
 ### VNEXT
 
+* Incompatible fragments are now properly filtered [PR #470](https://github.com/apollographql/graphql-tools/pull/470)
+
+### v2.7.1
+
+* Made `resolvers` parameter optional for `mergeSchemas` [Issue #461](https://github.com/apollographql/graphql-tools/issues/461) [PR #462] (https://github.com/apollographql/graphql-tools/pull/462)
+* Make it possible to define interfaces in schema extensions [PR # 464](https://github.com/apollographql/graphql-tools/pull/464)
+
+### v2.7.0
+
+* Upgraded versions of dependencies
+
+### v2.6.1
+
+* Fix one place where `apollo-link` was being used directly
+
+### v2.6.0
+
+* Removed direct dependency on Apollo Link, while keeping the API the same, to work around a Launchpad npm installation issue temporarily.
+* Parse type, field, and argument descriptions in `typeFromAST`. This allows the
+  descriptions to be part of the schema when using helpers like `mergeSchemas()`.
+
+### v2.5.0
+
+* Add ability to pass types in extension strings [Issue #](https://github.com/apollographql/graphql-tools/issues/427) [PR #](https://github.com/apollographql/graphql-tools/pull/430)
+
 ### v2.4.0
 
 * Translate errors better in merged schema [Issue #419]((https://github.com/apollographql/graphql-tools/issues/419) [PR #425](https://github.com/apollographql/graphql-tools/pull/425)

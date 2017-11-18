@@ -9,9 +9,10 @@ import {
 import { ApolloLink, Observable } from 'apollo-link';
 import { makeExecutableSchema } from '../schemaGenerator';
 import { IResolvers } from '../Interfaces';
-import makeRemoteExecutableSchema from '../stitching/makeRemoteExecutableSchema';
+import makeRemoteExecutableSchema, {
+  Fetcher,
+} from '../stitching/makeRemoteExecutableSchema';
 import introspectSchema from '../stitching/introspectSchema';
-import { Fetcher } from '../stitching/makeRemoteExecutableSchema';
 
 export type Property = {
   id: string;

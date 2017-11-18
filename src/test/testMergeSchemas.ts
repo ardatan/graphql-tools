@@ -1,7 +1,12 @@
 /* tslint:disable:no-unused-expression */
 
 import { expect } from 'chai';
-import { graphql, GraphQLSchema, GraphQLScalarType } from 'graphql';
+import {
+  graphql,
+  GraphQLSchema,
+  GraphQLScalarType,
+  GraphQLObjectType,
+} from 'graphql';
 import mergeSchemas from '../stitching/mergeSchemas';
 import {
   propertySchema as localPropertySchema,
@@ -25,8 +30,13 @@ const testCombinations = [
 ];
 
 const scalarTest = `
+  # Description of TestScalar.
   scalar TestScalar
 
+  # Description of AnotherNewScalar.
+  scalar AnotherNewScalar
+
+  # A type that uses TestScalar.
   type TestingScalar {
     value: TestScalar
   }
@@ -37,17 +47,41 @@ const scalarTest = `
 `;
 
 const linkSchema = `
-  extend type Booking {
+  # A new type linking the Property type.
+  type LinkType {
+    test: String
+    # The property.
     property: Property
   }
 
-  extend type Property {
-    bookings(limit: Int): [Booking]
+  interface Node {
+    id: ID!
+  }
+
+  extend type Customer implements Node {
+
+  }
+
+  extend type Booking implements Node {
+    # The property of the booking.
+    property: Property
+  }
+
+  extend type Property implements Node {
+    # A list of bookings.
+    bookings(
+      # The maximum number of bookings to retrieve.
+      limit: Int
+    ): [Booking]
   }
 
   extend type Query {
     delegateInterfaceTest: TestInterface
     delegateArgumentTest(arbitraryArg: Int): Property
+    # A new field on the root query.
+    linkTest: LinkType
+    node(id: ID!): Node
+    nodes: [Node]
   }
 `;
 
@@ -104,6 +138,21 @@ testCombinations.forEach(async combination => {
               },
             },
           },
+          LinkType: {
+            property: {
+              resolve(parent, args, context, info) {
+                return mergeInfo.delegate(
+                  'query',
+                  'propertyById',
+                  {
+                    id: 'p1',
+                  },
+                  context,
+                  info,
+                );
+              },
+            },
+          },
           Query: {
             delegateInterfaceTest(parent, args, context, info) {
               return mergeInfo.delegate(
@@ -126,6 +175,61 @@ testCombinations.forEach(async combination => {
                 context,
                 info,
               );
+            },
+            linkTest() {
+              return {
+                test: 'test',
+              };
+            },
+            node: {
+              // fragment doesn't work
+              fragment: 'fragment NodeFragment on Node { id }',
+              resolve(parent, args, context, info) {
+                if (args.id.startsWith('p')) {
+                  return mergeInfo.delegate(
+                    'query',
+                    'propertyById',
+                    args,
+                    context,
+                    info,
+                  );
+                } else if (args.id.startsWith('b')) {
+                  return mergeInfo.delegate(
+                    'query',
+                    'bookingById',
+                    args,
+                    context,
+                    info,
+                  );
+                } else if (args.id.startsWith('c')) {
+                  return mergeInfo.delegate(
+                    'query',
+                    'customerById',
+                    args,
+                    context,
+                    info,
+                  );
+                } else {
+                  throw new Error('invalid id');
+                }
+              },
+            },
+            async nodes(parent, args, context, info) {
+              const bookings = await mergeInfo.delegate(
+                'query',
+                'bookings',
+                {},
+                context,
+                info,
+              );
+              const properties = await mergeInfo.delegate(
+                'query',
+                'properties',
+                {},
+                context,
+                info,
+              );
+              return [...bookings, ...properties];
             },
           },
         }),
@@ -1166,6 +1270,319 @@ bookingById(id: $b1) {
               path: ['propertyById', 'bookings', 2, 'bookingErrorAlias'],
             },
           ],
+        });
+      });
+    });
+
+    describe('types in schema extensions', () => {
+      it('should parse descriptions on new types', () => {
+        // Because we redefine it via `GraphQLScalarType` above, it will get
+        // its description from there.
+        expect(mergedSchema.getType('TestScalar').description).to.be.undefined;
+
+        expect(mergedSchema.getType('AnotherNewScalar').description).to.equal(
+          'Description of AnotherNewScalar.',
+        );
+
+        expect(mergedSchema.getType('TestingScalar').description).to.equal(
+          'A type that uses TestScalar.',
+        );
+
+        expect(mergedSchema.getType('LinkType').description).to.equal(
+          'A new type linking the Property type.',
+        );
+
+        expect(mergedSchema.getType('LinkType').description).to.equal(
+          'A new type linking the Property type.',
+        );
+      });
+
+      it('should parse descriptions on new fields', () => {
+        const Query = mergedSchema.getQueryType();
+        expect(Query.getFields().linkTest.description).to.equal(
+          'A new field on the root query.',
+        );
+
+        const Booking = mergedSchema.getType('Booking') as GraphQLObjectType;
+        expect(Booking.getFields().property.description).to.equal(
+          'The property of the booking.',
+        );
+
+        const Property = mergedSchema.getType('Property') as GraphQLObjectType;
+        const bookingsField = Property.getFields().bookings;
+        expect(bookingsField.description).to.equal('A list of bookings.');
+        expect(bookingsField.args[0].description).to.equal(
+          'The maximum number of bookings to retrieve.',
+        );
+      });
+
+      it('should allow defining new types in link type', async () => {
+        const result = await graphql(
+          mergedSchema,
+          `
+            query {
+              linkTest {
+                test
+                property {
+                  id
+                }
+              }
+            }
+          `,
+        );
+
+        expect(result).to.deep.equal({
+          data: {
+            linkTest: {
+              test: 'test',
+              property: {
+                id: 'p1',
+              },
+            },
+          },
+        });
+      });
+    });
+
+    // FIXME: __typename should be automatic
+    describe('merge info defined interfaces', () => {
+      it('inline fragments on existing types in subschema', async () => {
+        const result = await graphql(
+          mergedSchema,
+          `
+            query($pid: ID!, $bid: ID!) {
+              property: node(id: $pid) {
+                __typename
+                id
+                ... on Property {
+                  name
+                }
+              }
+              booking: node(id: $bid) {
+                __typename
+                id
+                ... on Booking {
+                  startTime
+                  endTime
+                }
+              }
+            }
+          `,
+          {},
+          {},
+          {
+            pid: 'p1',
+            bid: 'b1',
+          },
+        );
+
+        expect(result).to.deep.equal({
+          data: {
+            property: {
+              __typename: 'Property',
+              id: 'p1',
+              name: 'Super great hotel',
+            },
+            booking: {
+              __typename: 'Booking',
+              id: 'b1',
+              startTime: '2016-05-04',
+              endTime: '2016-06-03',
+            },
+          },
+        });
+      });
+
+      it('inline fragments on non-compatible sub schema types', async () => {
+        const result = await graphql(
+          mergedSchema,
+          `
+            query($bid: ID!) {
+              node(id: $bid) {
+                __typename
+                id
+                ... on Property {
+                  name
+                }
+                ... on Booking {
+                  startTime
+                  endTime
+                }
+                ... on Customer {
+                  name
+                }
+              }
+            }
+          `,
+          {},
+          {},
+          {
+            bid: 'b1',
+          },
+        );
+
+        expect(result).to.deep.equal({
+          data: {
+            node: {
+              __typename: 'Booking',
+              id: 'b1',
+              startTime: '2016-05-04',
+              endTime: '2016-06-03',
+            },
+          },
+        });
+      });
+
+      it('fragments on non-compatible sub schema types', async () => {
+        const result = await graphql(
+          mergedSchema,
+          `
+            query($bid: ID!) {
+              node(id: $bid) {
+                __typename
+                id
+                ...PropertyFragment
+                ...BookingFragment
+                ...CustomerFragment
+              }
+            }
+
+            fragment PropertyFragment on Property {
+              name
+            }
+
+            fragment BookingFragment on Booking {
+              startTime
+              endTime
+            }
+
+            fragment CustomerFragment on Customer {
+              name
+            }
+          `,
+          {},
+          {},
+          {
+            bid: 'b1',
+          },
+        );
+
+        expect(result).to.deep.equal({
+          data: {
+            node: {
+              __typename: 'Booking',
+              id: 'b1',
+              startTime: '2016-05-04',
+              endTime: '2016-06-03',
+            },
+          },
+        });
+      });
+
+      // KNOWN BUG
+      // it('fragments on interfaces in merged schema', async () => {
+      //   const result = await graphql(
+      //     mergedSchema,
+      //     `
+      //       query($bid: ID!) {
+      //         node(id: $bid) {
+      //           ...NodeFragment
+      //         }
+      //       }
+      //
+      //       fragment NodeFragment on Node {
+      //         id
+      //         ... on Property {
+      //           name
+      //         }
+      //         ... on Booking {
+      //           startTime
+      //           endTime
+      //         }
+      //       }
+      //     `,
+      //     {},
+      //     {},
+      //     {
+      //       bid: 'b1',
+      //     },
+      //   );
+      //
+      //   expect(result).to.deep.equal({
+      //     data: {
+      //       node: {
+      //         id: 'b1',
+      //         startTime: '2016-05-04',
+      //         endTime: '2016-06-03',
+      //       },
+      //     },
+      //   });
+      // });
+
+      it('arbitrary transforms that return interfaces', async () => {
+        const result = await graphql(
+          mergedSchema,
+          `
+            query {
+              nodes {
+                __typename
+                id
+                ... on Property {
+                  name
+                }
+                ... on Booking {
+                  startTime
+                  endTime
+                }
+              }
+            }
+          `,
+        );
+
+        expect(result).to.deep.equal({
+          data: {
+            nodes: [
+              {
+                id: 'b1',
+                startTime: '2016-05-04',
+                endTime: '2016-06-03',
+                __typename: 'Booking',
+              },
+              {
+                id: 'b2',
+                startTime: '2016-06-04',
+                endTime: '2016-07-03',
+                __typename: 'Booking',
+              },
+              {
+                id: 'b3',
+                startTime: '2016-08-04',
+                endTime: '2016-09-03',
+                __typename: 'Booking',
+              },
+              {
+                id: 'b4',
+                startTime: '2016-10-04',
+                endTime: '2016-10-03',
+                __typename: 'Booking',
+              },
+              {
+                id: 'p1',
+                name: 'Super great hotel',
+                __typename: 'Property',
+              },
+              {
+                id: 'p2',
+                name: 'Another great hotel',
+                __typename: 'Property',
+              },
+              {
+                id: 'p3',
+                name: 'BedBugs - The Affordable Hostel',
+                __typename: 'Property',
+              },
+            ],
+          },
         });
       });
     });

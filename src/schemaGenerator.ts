@@ -13,9 +13,8 @@ import {
   Kind,
   DefinitionNode,
   defaultFieldResolver,
-} from 'graphql';
-import { buildASTSchema, extendSchema } from 'graphql';
-import {
+  buildASTSchema,
+  extendSchema,
   GraphQLScalarType,
   getNamedType,
   GraphQLObjectType,
@@ -448,8 +447,8 @@ function expectResolveFunction(
   fieldName: string,
 ) {
   if (!field.resolve) {
-    // tslint:disable-next-line: max-line-length
     console.warn(
+      // tslint:disable-next-line: max-line-length
       `Resolve function missing for "${typeName}.${fieldName}". To disable this warning check https://github.com/apollostack/graphql-tools/issues/131`,
     );
     return;
