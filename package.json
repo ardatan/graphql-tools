@@ -1,6 +1,6 @@
 {
   "name": "graphql-tools",
-  "version": "2.7.2",
+  "version": "2.8.0",
   "description": "Useful tools to create and manipulate GraphQL schemas.",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",

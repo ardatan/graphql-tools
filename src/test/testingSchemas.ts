@@ -458,6 +458,9 @@ const bookingResolvers: IResolvers = {
   },
 
   Booking: {
+    __isTypeOf(source, context, info) {
+      return Object.prototype.hasOwnProperty.call(source, 'id');
+    },
     customer(parent: Booking) {
       return sampleData.Customer[parent.customerId];
     },

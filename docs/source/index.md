@@ -1,6 +1,6 @@
 ---
 title: graphql-tools
-description: How to install GraphQL Tools, and what it's for.
+description: A set of utilities to build your JavaScript GraphQL schema in a concise and powerful way.
 ---
 
 GraphQL Tools is an npm package and an opinionated structure for how to build a GraphQL schema and resolvers in JavaScript, following the GraphQL-first development workflow.
