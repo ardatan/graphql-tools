@@ -134,6 +134,7 @@ function inputFieldToFieldConfig(
 ): GraphQLInputFieldConfig {
   return {
     type: registry.resolveType(field.type),
+    defaultValue: field.defaultValue,
     description: field.description,
   };
 }

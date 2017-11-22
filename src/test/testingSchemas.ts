@@ -13,7 +13,7 @@ import makeRemoteExecutableSchema, {
   Fetcher,
 } from '../stitching/makeRemoteExecutableSchema';
 import introspectSchema from '../stitching/introspectSchema';
-import {PubSub} from 'graphql-subscriptions';
+import { PubSub } from 'graphql-subscriptions';
 
 export type Property = {
   id: string;
@@ -245,6 +245,10 @@ const propertyRootTypeDefs = `
     bar: String
   }
 
+  input InputWithDefault {
+    test: String = "Foo"
+  }
+
   type Query {
     propertyById(id: ID!): Property
     properties(limit: Int): [Property!]
@@ -255,6 +259,7 @@ const propertyRootTypeDefs = `
     errorTest: String
     errorTestNonNull: String!
     relay: Query!
+    defaultInputTest(input: InputWithDefault!): String
   }
 `;
 
@@ -316,6 +321,10 @@ const propertyResolvers: IResolvers = {
 
     errorTestNonNull() {
       throw new Error('Sample error non-null!');
+    },
+
+    defaultInputTest(parent, { input }) {
+      return input.test;
     },
   },
   DateTime,
@@ -525,13 +534,14 @@ export const subscriptionPubSubTrigger = 'pubSubTrigger';
 
 const subscriptionResolvers: IResolvers = {
   Query: {
-    notifications: (root: any) => ({ text: 'Hello world'})
+    notifications: (root: any) => ({ text: 'Hello world' }),
   },
   Subscription: {
     notifications: {
-      subscribe: () => subscriptionPubSub.asyncIterator(subscriptionPubSubTrigger),
+      subscribe: () =>
+        subscriptionPubSub.asyncIterator(subscriptionPubSubTrigger),
     },
-  }
+  },
 };
 
 export const propertySchema: GraphQLSchema = makeExecutableSchema({
