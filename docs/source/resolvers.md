@@ -169,3 +169,9 @@ addResolveFunctionsToSchema(schema, resolverMap);
 </h3>
 
 Some operations, such as authentication, need to be done only once per query. Logically, these operations belong in an obj resolve function, but unfortunately GraphQL-JS does not let you define one. `addSchemaLevelResolveFunction` solves this by modifying the GraphQLSchema that is passed as the first argument.
+
+## Companion tools
+
+- **[apollo-errors](https://github.com/thebigredgeek/apollo-errors):** Machine-readable custom errors for Apollostack's GraphQL server
+- **[apollo-resolvers](https://github.com/thebigredgeek/apollo-resolvers):** Expressive and composable resolvers for Apollostack's GraphQL server
+- **[graphql-resolvers](https://github.com/lucasconstantino/graphql-resolvers):** Resolver composition library for GraphQL.
