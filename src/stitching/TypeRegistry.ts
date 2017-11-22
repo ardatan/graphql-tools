@@ -19,6 +19,7 @@ export default class TypeRegistry {
   private schemaByField: {
     query: { [key: string]: GraphQLSchema };
     mutation: { [key: string]: GraphQLSchema };
+    subscription: { [key: string]: GraphQLSchema };
   };
 
   constructor() {
@@ -26,12 +27,13 @@ export default class TypeRegistry {
     this.schemaByField = {
       query: {},
       mutation: {},
+      subscription: {}
     };
     this.fragmentReplacements = {};
   }
 
   public getSchemaByField(
-    operation: 'query' | 'mutation',
+    operation: 'query' | 'mutation' | 'subscription',
     fieldName: string,
   ): GraphQLSchema {
     return this.schemaByField[operation][fieldName];
@@ -74,6 +76,14 @@ export default class TypeRegistry {
       const fieldNames = Object.keys(mutation.getFields());
       fieldNames.forEach(field => {
         this.schemaByField.mutation[field] = schema;
+      });
+    }
+
+    const subscription = schema.getSubscriptionType();
+    if (subscription) {
+      const fieldNames = Object.keys(subscription.getFields());
+      fieldNames.forEach(field => {
+        this.schemaByField.subscription[field] = schema;
       });
     }
   }
