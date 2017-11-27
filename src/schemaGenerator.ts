@@ -379,7 +379,9 @@ function addResolveFunctionsToSchema(
               `${typeName}.${fieldName} was defined in resolvers, but enum is not in schema`,
           );
         }
+
         type.getValue(fieldName)['value'] = resolveFunctions[typeName][fieldName];
+        return;
       }
 
       const fields = getFieldsForType(type);

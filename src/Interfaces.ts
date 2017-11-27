@@ -32,7 +32,7 @@ export type IResolverObject = {
   [key: string]: GraphQLFieldResolver<any, any> | IResolverOptions;
 };
 export interface IResolvers {
-  [key: string]: (() => any) | IResolverObject | GraphQLScalarType;
+  [key: string]: (() => any) | IResolverObject | GraphQLScalarType | any;
 }
 export interface ILogger {
   log: (message: string | Error) => void;

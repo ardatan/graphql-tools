@@ -11,6 +11,7 @@ import {
   parse,
   ExecutionResult,
   GraphQLError,
+  GraphQLEnumType,
 } from 'graphql';
 // import { printSchema } from 'graphql';
 const GraphQLJSON = require('graphql-type-json');
@@ -639,222 +640,302 @@ describe('generating schema from shorthand', () => {
     );
   });
 
-  it('supports passing a GraphQLScalarType in resolveFunctions', () => {
-    // Here GraphQLJSON is used as an example of non-default GraphQLScalarType
-    const shorthand = `
-      scalar JSON
+  describe('scalar types', () => {
+    it('supports passing a GraphQLScalarType in resolveFunctions', () => {
+      // Here GraphQLJSON is used as an example of non-default GraphQLScalarType
+      const shorthand = `
+        scalar JSON
 
-      type Foo {
-        aField: JSON
-      }
+        type Foo {
+          aField: JSON
+        }
 
-      type Query {
-        foo: Foo
-      }
-    `;
-    const resolveFunctions = {
-      JSON: GraphQLJSON,
-    };
-    const jsSchema = makeExecutableSchema({
-      typeDefs: shorthand,
-      resolvers: resolveFunctions,
+        type Query {
+          foo: Foo
+        }
+      `;
+      const resolveFunctions = {
+        JSON: GraphQLJSON,
+      };
+      const jsSchema = makeExecutableSchema({
+        typeDefs: shorthand,
+        resolvers: resolveFunctions,
+      });
+      expect(jsSchema.getQueryType().name).to.equal('Query');
+      expect(jsSchema.getType('JSON')).to.be.an.instanceof(GraphQLScalarType);
+      expect(jsSchema.getType('JSON'))
+        .to.have.property('description')
+        .that.is.a('string');
+      expect(jsSchema.getType('JSON')['description']).to.have.length.above(0);
     });
-    expect(jsSchema.getQueryType().name).to.equal('Query');
-    expect(jsSchema.getType('JSON')).to.be.an.instanceof(GraphQLScalarType);
-    expect(jsSchema.getType('JSON'))
-      .to.have.property('description')
-      .that.is.a('string');
-    expect(jsSchema.getType('JSON')['description']).to.have.length.above(0);
-  });
 
-  it('should support custom scalar usage on client-side query execution', () => {
-    const shorthand = `
-      scalar CustomScalar
+    it('should support custom scalar usage on client-side query execution', () => {
+      const shorthand = `
+        scalar CustomScalar
 
-      type TestType {
-        testField: String
-      }
+        type TestType {
+          testField: String
+        }
 
-      type RootQuery {
-        myQuery(t: CustomScalar): TestType
-      }
+        type RootQuery {
+          myQuery(t: CustomScalar): TestType
+        }
 
-      schema {
-        query: RootQuery
-      }
-    `;
+        schema {
+          query: RootQuery
+        }
+      `;
 
-    const resolveFunctions = {
-      CustomScalar: new GraphQLScalarType({
-        name: 'CustomScalar',
-        serialize(value) {
-          return value;
-        },
-        parseValue(value) {
-          return value;
-        },
-        parseLiteral(ast: any) {
-          switch (ast.kind) {
-            case Kind.STRING:
-              return ast.value;
-            default:
-              return null;
+      const resolveFunctions = {
+        CustomScalar: new GraphQLScalarType({
+          name: 'CustomScalar',
+          serialize(value) {
+            return value;
+          },
+          parseValue(value) {
+            return value;
+          },
+          parseLiteral(ast: any) {
+            switch (ast.kind) {
+              case Kind.STRING:
+                return ast.value;
+              default:
+                return null;
+            }
+          },
+        }),
+      };
+
+      const testQuery = `
+        query myQuery($t: CustomScalar) {
+          myQuery(t: $t) {
+            testField
           }
-        },
-      }),
-    };
+        }`;
 
-    const testQuery = `
-      query myQuery($t: CustomScalar) {
-        myQuery(t: $t) {
-          testField
-        }
-      }`;
-
-    const jsSchema = makeExecutableSchema({
-      typeDefs: shorthand,
-      resolvers: resolveFunctions,
+      const jsSchema = makeExecutableSchema({
+        typeDefs: shorthand,
+        resolvers: resolveFunctions,
+      });
+      const resultPromise = graphql(jsSchema, testQuery);
+      return resultPromise.then(result => expect(result.errors).to.not.exist);
     });
-    const resultPromise = graphql(jsSchema, testQuery);
-    return resultPromise.then(result => expect(result.errors).to.not.exist);
+
+    it('should work with an Odd custom scalar type', () => {
+      const oddValue = (value: number) => {
+        return value % 2 === 1 ? value : null;
+      };
+
+      const OddType = new GraphQLScalarType({
+        name: 'Odd',
+        description: 'Odd custom scalar type',
+        parseValue: oddValue,
+        serialize: oddValue,
+        parseLiteral(ast) {
+          if (ast.kind === Kind.INT) {
+            const intValue: IntValueNode = <IntValueNode>ast;
+            return oddValue(parseInt(intValue.value, 10));
+          }
+          return null;
+        },
+      });
+
+      const typeDefs = `
+        scalar Odd
+
+        type Post {
+          id: Int!
+          title: String
+          something: Odd
+        }
+
+        type Query {
+          post: Post
+        }
+
+        schema {
+          query: Query
+        }
+      `;
+
+      const testValue = 3;
+      const resolvers = {
+        Odd: OddType,
+        Query: {
+          post() {
+            return {
+              id: 1,
+              title: 'My first post',
+              something: testValue,
+            };
+          },
+        },
+      };
+
+      const jsSchema = makeExecutableSchema({
+        typeDefs: typeDefs,
+        resolvers: resolvers,
+      });
+      const testQuery = `
+        {
+          post {
+            something
+          }
+        }
+  `;
+      const resultPromise = graphql(jsSchema, testQuery);
+      return resultPromise.then(result => {
+        assert.equal(result.data['post'].something, testValue);
+        assert.equal(result.errors, undefined);
+      });
+    });
+
+    it('should work with a Date custom scalar type', () => {
+      const DateType = new GraphQLScalarType({
+        name: 'Date',
+        description: 'Date custom scalar type',
+        parseValue(value) {
+          return new Date(value);
+        },
+        serialize(value) {
+          return value.getTime();
+        },
+        parseLiteral(ast) {
+          if (ast.kind === Kind.INT) {
+            const intValue: IntValueNode = <IntValueNode>ast;
+            return parseInt(intValue.value, 10);
+          }
+          return null;
+        },
+      });
+
+      const typeDefs = `
+        scalar Date
+
+        type Post {
+          id: Int!
+          title: String
+          something: Date
+        }
+
+        type Query {
+          post: Post
+        }
+
+        schema {
+          query: Query
+        }
+      `;
+
+      const testDate = new Date(2016, 0, 1);
+
+      const resolvers = {
+        Date: DateType,
+        Query: {
+          post() {
+            return {
+              id: 1,
+              title: 'My first post',
+              something: testDate,
+            };
+          },
+        },
+      };
+
+      const jsSchema = makeExecutableSchema({
+        typeDefs: typeDefs,
+        resolvers: resolvers,
+      });
+      const testQuery = `
+        {
+          post {
+            something
+          }
+        }
+  `;
+      const resultPromise = graphql(jsSchema, testQuery);
+      return resultPromise.then(result => {
+        assert.equal(result.data['post'].something, testDate.getTime());
+        assert.equal(result.errors, undefined);
+      });
+    });
   });
 
-  it('should work with an Odd custom scalar type', () => {
-    const oddValue = (value: number) => {
-      return value % 2 === 1 ? value : null;
-    };
-
-    const OddType = new GraphQLScalarType({
-      name: 'Odd',
-      description: 'Odd custom scalar type',
-      parseValue: oddValue,
-      serialize: oddValue,
-      parseLiteral(ast) {
-        if (ast.kind === Kind.INT) {
-          const intValue: IntValueNode = <IntValueNode>ast;
-          return oddValue(parseInt(intValue.value, 10));
+  describe('enum support', () => {
+    it('supports passing a GraphQLEnumType in resolveFunctions', () => {
+      const shorthand = `
+        enum Color {
+          RED
         }
-        return null;
-      },
-    });
 
-    const typeDefs = `
-      scalar Odd
+        schema {
+          query: Query
+        }
 
-      type Post {
-        id: Int!
-        title: String
-        something: Odd
-      }
+        type Query {
+          color: Color
+        }
+      `;
 
-      type Query {
-        post: Post
-      }
-
-      schema {
-        query: Query
-      }
-    `;
-
-    const testValue = 3;
-    const resolvers = {
-      Odd: OddType,
-      Query: {
-        post() {
-          return {
-            id: 1,
-            title: 'My first post',
-            something: testValue,
-          };
+      const resolveFunctions = {
+        Color: {
+          RED: '#EA3232'
         },
-      },
-    };
+      };
 
-    const jsSchema = makeExecutableSchema({
-      typeDefs: typeDefs,
-      resolvers: resolvers,
+      const jsSchema = makeExecutableSchema({
+        typeDefs: shorthand,
+        resolvers: resolveFunctions,
+      });
+
+      expect(jsSchema.getQueryType().name).to.equal('Query');
+      expect(jsSchema.getType('Color')).to.be.an.instanceof(GraphQLEnumType);
     });
-    const testQuery = `
-      {
-        post {
-          something
+
+    it('supports passing the value for a GraphQLEnumType in resolveFunctions', () => {
+      const shorthand = `
+        enum Color {
+          RED
         }
-      }
-`;
-    const resultPromise = graphql(jsSchema, testQuery);
-    return resultPromise.then(result => {
-      assert.equal(result.data['post'].something, testValue);
-      assert.equal(result.errors, undefined);
-    });
-  });
 
-  it('should work with a Date custom scalar type', () => {
-    const DateType = new GraphQLScalarType({
-      name: 'Date',
-      description: 'Date custom scalar type',
-      parseValue(value) {
-        return new Date(value);
-      },
-      serialize(value) {
-        return value.getTime();
-      },
-      parseLiteral(ast) {
-        if (ast.kind === Kind.INT) {
-          const intValue: IntValueNode = <IntValueNode>ast;
-          return parseInt(intValue.value, 10);
+        schema {
+          query: Query
         }
-        return null;
-      },
-    });
 
-    const typeDefs = `
-      scalar Date
+        type Query {
+          color: Color
+        }
+      `;
 
-      type Post {
-        id: Int!
-        title: String
-        something: Date
-      }
+      const testQuery = `{
+        color
+       }`;
 
-      type Query {
-        post: Post
-      }
-
-      schema {
-        query: Query
-      }
-    `;
-
-    const testDate = new Date(2016, 0, 1);
-
-    const resolvers = {
-      Date: DateType,
-      Query: {
-        post() {
-          return {
-            id: 1,
-            title: 'My first post',
-            something: testDate,
-          };
+      const resolveFunctions = {
+        Color: {
+          RED: '#EA3232'
         },
-      },
-    };
+        Query: {
+          color() {
+            return '#EA3232';
+          },
+        },
+      };
 
-    const jsSchema = makeExecutableSchema({
-      typeDefs: typeDefs,
-      resolvers: resolvers,
-    });
-    const testQuery = `
-      {
-        post {
-          something
-        }
-      }
-`;
-    const resultPromise = graphql(jsSchema, testQuery);
-    return resultPromise.then(result => {
-      assert.equal(result.data['post'].something, testDate.getTime());
-      assert.equal(result.errors, undefined);
+      const jsSchema = makeExecutableSchema({
+        typeDefs: shorthand,
+        resolvers: resolveFunctions,
+      });
+
+
+      const resultPromise = graphql(jsSchema, testQuery);
+      return resultPromise.then(result => {
+        assert.equal(result.data['color'], "RED");
+        assert.equal(result.errors, undefined);
+      });
+
+      expect(jsSchema.getQueryType().name).to.equal('Query');
+      expect(jsSchema.getType('Color')).to.be.an.instanceof(GraphQLEnumType);
     });
   });
 
