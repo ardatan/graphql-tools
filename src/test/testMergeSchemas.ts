@@ -6,14 +6,21 @@ import {
   GraphQLSchema,
   GraphQLScalarType,
   GraphQLObjectType,
+  subscribe,
+  parse,
+  ExecutionResult,
 } from 'graphql';
 import mergeSchemas from '../stitching/mergeSchemas';
 import {
   propertySchema as localPropertySchema,
   bookingSchema as localBookingSchema,
+  subscriptionSchema as localSubscriptionSchema,
   remoteBookingSchema,
   remotePropertySchema,
+  subscriptionPubSub,
+  subscriptionPubSubTrigger,
 } from './testingSchemas';
+import { forAwaitEach } from 'iterall';
 
 const testCombinations = [
   { name: 'local', booking: localBookingSchema, property: localPropertySchema },
@@ -96,7 +103,13 @@ testCombinations.forEach(async combination => {
       bookingSchema = await combination.booking;
 
       mergedSchema = mergeSchemas({
-        schemas: [propertySchema, bookingSchema, scalarTest, linkSchema],
+        schemas: [
+          propertySchema,
+          bookingSchema,
+          scalarTest,
+          linkSchema,
+          localSubscriptionSchema,
+        ],
         resolvers: mergeInfo => ({
           TestScalar: new GraphQLScalarType({
             name: 'TestScalar',
@@ -395,6 +408,38 @@ bookingById(id: "b1") {
         expect(mergedResult).to.deep.equal(bookingResult);
       });
 
+      it('local subscriptions working in merged schema', done => {
+        const mockNotification = {
+          notifications: {
+            text: 'Hello world',
+          },
+        };
+
+        const subscription = parse(`
+          subscription Subscription {
+            notifications {
+              text
+            }
+          }
+        `);
+
+        let notificationCnt = 0;
+        subscribe(mergedSchema, subscription)
+          .then(results => {
+            forAwaitEach(
+              results as AsyncIterable<ExecutionResult>,
+              (result: ExecutionResult) => {
+                expect(result).to.have.property('data');
+                expect(result.data).to.deep.equal(mockNotification);
+                !notificationCnt++ ? done() : null;
+              },
+            ).catch(done);
+          })
+          .catch(done);
+
+        subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification);
+      });
+
       it('links in queries', async () => {
         const mergedResult = await graphql(
           mergedSchema,
@@ -609,6 +654,25 @@ bookingById(id: "b1") {
               v1: { bikeType: 'MOUNTAIN' },
               v2: { bikeType: 'MOUNTAIN' },
             },
+          },
+        });
+      });
+
+      it('input objects with default', async () => {
+        const mergedResult = await graphql(
+          mergedSchema,
+          `
+            query {
+              one: defaultInputTest(input: {})
+              two: defaultInputTest(input: { test: "Bar" })
+            }
+          `,
+        );
+
+        expect(mergedResult).to.deep.equal({
+          data: {
+            one: 'Foo',
+            two: 'Bar',
           },
         });
       });
