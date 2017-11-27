@@ -930,7 +930,7 @@ describe('generating schema from shorthand', () => {
 
       const resultPromise = graphql(jsSchema, testQuery);
       return resultPromise.then(result => {
-        assert.equal(result.data['color'], "RED");
+        assert.equal(result.data['color'], 'RED');
         assert.equal(result.errors, undefined);
       });
 
