@@ -933,9 +933,6 @@ describe('generating schema from shorthand', () => {
         assert.equal(result.data['color'], 'RED');
         assert.equal(result.errors, undefined);
       });
-
-      expect(jsSchema.getQueryType().name).to.equal('Query');
-      expect(jsSchema.getType('Color')).to.be.an.instanceof(GraphQLEnumType);
     });
   });
 

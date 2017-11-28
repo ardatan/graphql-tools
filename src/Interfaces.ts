@@ -31,8 +31,9 @@ export type ITypeDefinitions = ITypedef | ITypedef[];
 export type IResolverObject = {
   [key: string]: GraphQLFieldResolver<any, any> | IResolverOptions;
 };
+export type IEnumResolver = { [key: string]: string };
 export interface IResolvers {
-  [key: string]: (() => any) | IResolverObject | GraphQLScalarType | any;
+  [key: string]: (() => any) | IResolverObject | GraphQLScalarType | IEnumResolver;
 }
 export interface ILogger {
   log: (message: string | Error) => void;
