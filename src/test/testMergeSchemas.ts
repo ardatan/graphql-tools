@@ -21,6 +21,7 @@ import {
   subscriptionPubSubTrigger,
 } from './testingSchemas';
 import { forAwaitEach } from 'iterall';
+import { makeExecutableSchema } from '../schemaGenerator';
 
 const testCombinations = [
   { name: 'local', booking: localBookingSchema, property: localPropertySchema },
@@ -51,6 +52,22 @@ const scalarTest = `
   type Query {
     testingScalar: TestingScalar
   }
+`;
+
+
+const enumTest = `
+# A type that uses an Enum.
+enum Color {
+  RED
+}
+
+schema {
+  query: Query
+}
+
+type Query {
+  color: Color
+}
 `;
 
 const linkSchema = `
@@ -107,6 +124,7 @@ testCombinations.forEach(async combination => {
           propertySchema,
           bookingSchema,
           scalarTest,
+          enumTest,
           linkSchema,
           localSubscriptionSchema,
         ],
@@ -118,6 +136,9 @@ testCombinations.forEach(async combination => {
             parseValue: value => value,
             parseLiteral: () => null,
           }),
+          Color: {
+            RED: '#EA3232'
+          },
           Property: {
             bookings: {
               fragment: 'fragment PropertyFragment on Property { id }',
@@ -167,6 +188,9 @@ testCombinations.forEach(async combination => {
             },
           },
           Query: {
+            color() {
+              return '#EA3232';
+            },
             delegateInterfaceTest(parent, args, context, info) {
               return mergeInfo.delegate(
                 'query',
@@ -320,6 +344,46 @@ testCombinations.forEach(async combination => {
           },
         });
         expect(mergedResult).to.deep.equal(propertyResult);
+      });
+
+      it('works with custom enums', async () => {
+        const enumSchema = makeExecutableSchema({
+          typeDefs: enumTest,
+          resolvers: {
+            Color: {
+              RED: '#EA3232'
+            },
+            Query: {
+              color() {
+                return '#EA3232';
+              },
+            },
+          }
+        });
+        const enumResult = await graphql(
+          enumSchema,
+          `
+            query {
+              color
+            }
+          `,
+        );
+
+        const mergedResult = await graphql(
+          mergedSchema,
+          `
+            query {
+              color
+            }
+          `,
+        );
+
+        expect(enumResult).to.deep.equal({
+          data: {
+            color: 'RED',
+          },
+        });
+        expect(mergedResult).to.deep.equal(enumResult);
       });
 
       it('queries', async () => {
@@ -1390,6 +1454,10 @@ bookingById(id: $b1) {
 
         expect(mergedSchema.getType('TestingScalar').description).to.equal(
           'A type that uses TestScalar.',
+        );
+
+        expect(mergedSchema.getType('Color').description).to.equal(
+          'A type that uses an Enum.',
         );
 
         expect(mergedSchema.getType('LinkType').description).to.equal(

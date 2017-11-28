@@ -2,7 +2,8 @@
 
 ### VNEXT
 
-* ...
+* Added basic support for custom Enums [Issue #363](https://github.com/apollographql/graphql-tools/issues/363) [PR #507](https://github.com/apollographql/graphql-tools/pull/507)
+
 
 ### v2.9.0
 
