@@ -1,9 +1,11 @@
 ---
-title: Custom scalars
-description: Add custom scalars to your graphql-tools generated schema.
+title: Custom scalars and enums
+description: Add custom scalar and enum types to your graphql-tools generated schema.
 ---
 
-The GraphQL specification includes the following default scalar types: `String`, `Int`, `Float` and `Boolean`. While this covers most of the use cases, often you need to support custom atomic data types (e.g. Date), or you want a version of an existing type that does some validation. To enable this, GraphQL allows you to define custom scalar types.
+The GraphQL specification includes the following default scalar types: `String`, `Int`, `Float` and `Boolean`. While this covers most of the use cases, often you need to support custom atomic data types (e.g. Date), or you want a version of an existing type that does some validation. To enable this, GraphQL allows you to define custom scalar types. Enumerations are similar to custom scalars, but their values can only be one of a pre-defined list of strings.
+
+<h2 id="custom-scalars">Custom scalars</h2>
 
 To define a custom scalar you simply add it to the schema string with the following notation:
 
@@ -17,16 +19,17 @@ For more information about GraphQL's type system, please refer to the [official 
 
 Note that [Apollo Client does not currently have a way to automatically interpret custom scalars](https://github.com/apollostack/apollo-client/issues/585), so there's no way to automatically reverse the serialization on the client.
 
-## Using a package
+### Using a package
 
 Here, we'll take the [graphql-type-json](https://github.com/taion/graphql-type-json) package as an example to demonstrate what can be done. This npm package defines a JSON GraphQL scalar type.
 
-* Add the `graphql-type-json` package to your project's dependencies :
+Add the `graphql-type-json` package to your project's dependencies :
+
 ```shell
 $ npm install --save graphql-type-json
 ```
 
-* In your JavaScript code, require the type defined by in the npm package and use it :
+In your JavaScript code, require the type defined by in the npm package and use it :
 
 ```js
 import { makeExecutableSchema } from 'graphql-tools';
@@ -55,7 +58,7 @@ const jsSchema = makeExecutableSchema({ typeDefs: schemaString, resolvers: resol
 
 Remark : `GraphQLJSON` is a [`GraphQLScalarType`](http://graphql.org/graphql-js/type/#graphqlscalartype) instance.
 
-## Own `GraphQLScalarType` instance
+<h3 id="graphqlscalartype" title="GraphQLScalarType">Custom `GraphQLScalarType` instance</h3>
 
 If needed, you can define your own [GraphQLScalarType](http://graphql.org/graphql-js/type/#graphqlscalartype) instance. This can be done the following way :
 
@@ -105,7 +108,7 @@ const resolverFunctions = {
 const jsSchema = makeExecutableSchema({ typeDefs: schemaString, resolvers: resolveFunctions });
 ```
 
-## Examples
+<h2 id="examples">Custom scalar examples</h2>
 
 Let's look at a couple of examples to demonstrate how a custom scalar type can be defined.
 
@@ -186,3 +189,116 @@ const resolverMap = {
   }),
 };
 ```
+
+<h2 id="enums">Enums</h2>
+
+An Enum is similar to a scalar type, but it can only be one of several values defined in the schema. Enums are most useful in a situation where you need the user to pick from a prescribed list of options, and they will auto-complete in tools like GraphiQL.
+
+In the schema language, an enum looks like this:
+
+```graphql
+enum AllowedColor {
+  RED
+  GREEN
+  BLUE
+}
+```
+
+You can use it in your schema anywhere you could use a scalar:
+
+```graphql
+type Query {
+  # As a return value
+  favoriteColor: AllowedColor
+
+  # As an argument
+  avatar(borderColor: AllowedColor): String
+}
+```
+
+Then, you query it like this:
+
+```graphql
+query {
+  avatar(borderColor: RED)
+}
+```
+
+If you want to pass the enum value as a variable, use a string in your JSON, like so:
+
+```graphql
+query MyAvatar($color: AllowedColor) {
+  avatar(borderColor: $color)
+}
+```
+
+```js
+{
+  "color": "RED"
+}
+```
+
+Putting it all together:
+
+```js
+const typeDefs = `
+  enum AllowedColor {
+    RED
+    GREEN
+    BLUE
+  }
+
+  type Query {
+    # As a return value
+    favoriteColor: AllowedColor
+
+    # As an argument
+    avatar(borderColor: AllowedColor): String
+  }
+`;
+
+const resolvers = {
+  Query: {
+    favoriteColor: () => 'RED',
+    avatar: (root, args) => {
+      // args.favoriteColor is 'RED', 'GREEN', or 'BLUE'
+    },
+  }
+};
+
+const schema = makeExecutableSchema({ typeDefs, resolvers });
+```
+
+<h3 id="internal-values">Internal values</h3>
+
+Often, you might have a different value for the enum in your code than in the public API. So maybe in the API we call it `RED`, but inside our resolvers we want to use `#f00` instead. That's why you can use the `resolvers` argument to `makeExecutableSchema` to add custom values to your enum that only show up internally:
+
+```js
+const resolvers = {
+  AllowedColor: {
+    RED: '#f00',
+    GREEN: '#0f0',
+    BLUE: '#00f',
+  }
+};
+```
+
+These don't change the public API at all, but they do allow you to use that value instead of the schema value in your resolvers, like so:
+
+```js
+const resolvers = {
+  AllowedColor: {
+    RED: '#f00',
+    GREEN: '#0f0',
+    BLUE: '#00f',
+  },
+  Query: {
+    favoriteColor: () => '#f00',
+    avatar: (root, args) => {
+      // args.favoriteColor is '#f00', '#0f0', or '#00f'
+    },
+  }
+};
+```
+
+Most of the time, you don't need to use this feature of enums unless you're interoperating with some other library which already expects its values in a different form.
