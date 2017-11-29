@@ -54,7 +54,6 @@ const scalarTest = `
   }
 `;
 
-
 const enumTest = `
 # A type that uses an Enum.
 enum Color {
@@ -128,7 +127,7 @@ testCombinations.forEach(async combination => {
           linkSchema,
           localSubscriptionSchema,
         ],
-        resolvers: mergeInfo => ({
+        resolvers: {
           TestScalar: new GraphQLScalarType({
             name: 'TestScalar',
             description: undefined,
@@ -137,13 +136,13 @@ testCombinations.forEach(async combination => {
             parseLiteral: () => null,
           }),
           Color: {
-            RED: '#EA3232'
+            RED: '#EA3232',
           },
           Property: {
             bookings: {
               fragment: 'fragment PropertyFragment on Property { id }',
               resolve(parent, args, context, info) {
-                return mergeInfo.delegate(
+                return info.mergeInfo.delegate(
                   'query',
                   'bookingsByPropertyId',
                   {
@@ -160,7 +159,7 @@ testCombinations.forEach(async combination => {
             property: {
               fragment: 'fragment BookingFragment on Booking { propertyId }',
               resolve(parent, args, context, info) {
-                return mergeInfo.delegate(
+                return info.mergeInfo.delegate(
                   'query',
                   'propertyById',
                   {
@@ -175,7 +174,7 @@ testCombinations.forEach(async combination => {
           LinkType: {
             property: {
               resolve(parent, args, context, info) {
-                return mergeInfo.delegate(
+                return info.mergeInfo.delegate(
                   'query',
                   'propertyById',
                   {
@@ -192,7 +191,7 @@ testCombinations.forEach(async combination => {
               return '#EA3232';
             },
             delegateInterfaceTest(parent, args, context, info) {
-              return mergeInfo.delegate(
+              return info.mergeInfo.delegate(
                 'query',
                 'interfaceTest',
                 {
@@ -203,7 +202,7 @@ testCombinations.forEach(async combination => {
               );
             },
             delegateArgumentTest(parent, args, context, info) {
-              return mergeInfo.delegate(
+              return info.mergeInfo.delegate(
                 'query',
                 'propertyById',
                 {
@@ -223,7 +222,7 @@ testCombinations.forEach(async combination => {
               fragment: 'fragment NodeFragment on Node { id }',
               resolve(parent, args, context, info) {
                 if (args.id.startsWith('p')) {
-                  return mergeInfo.delegate(
+                  return info.mergeInfo.delegate(
                     'query',
                     'propertyById',
                     args,
@@ -231,7 +230,7 @@ testCombinations.forEach(async combination => {
                     info,
                   );
                 } else if (args.id.startsWith('b')) {
-                  return mergeInfo.delegate(
+                  return info.mergeInfo.delegate(
                     'query',
                     'bookingById',
                     args,
@@ -239,7 +238,7 @@ testCombinations.forEach(async combination => {
                     info,
                   );
                 } else if (args.id.startsWith('c')) {
-                  return mergeInfo.delegate(
+                  return info.mergeInfo.delegate(
                     'query',
                     'customerById',
                     args,
@@ -252,14 +251,14 @@ testCombinations.forEach(async combination => {
               },
             },
             async nodes(parent, args, context, info) {
-              const bookings = await mergeInfo.delegate(
+              const bookings = await info.mergeInfo.delegate(
                 'query',
                 'bookings',
                 {},
                 context,
                 info,
               );
-              const properties = await mergeInfo.delegate(
+              const properties = await info.mergeInfo.delegate(
                 'query',
                 'properties',
                 {},
@@ -269,7 +268,7 @@ testCombinations.forEach(async combination => {
               return [...bookings, ...properties];
             },
           },
-        }),
+        },
       });
     });
 
@@ -351,14 +350,14 @@ testCombinations.forEach(async combination => {
           typeDefs: enumTest,
           resolvers: {
             Color: {
-              RED: '#EA3232'
+              RED: '#EA3232',
             },
             Query: {
               color() {
                 return '#EA3232';
               },
             },
-          }
+          },
         });
         const enumResult = await graphql(
           enumSchema,

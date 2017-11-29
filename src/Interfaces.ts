@@ -4,6 +4,7 @@ import {
   ExecutionResult,
   GraphQLType,
   GraphQLFieldResolver,
+  GraphQLResolveInfo,
   GraphQLIsTypeOfFn,
   GraphQLTypeResolver,
   GraphQLScalarType,
@@ -20,20 +21,41 @@ export interface IResolverValidationOptions {
 }
 
 export interface IResolverOptions {
-  resolve?: GraphQLFieldResolver<any, any>;
-  subscribe?: GraphQLFieldResolver<any, any>;
+  resolve?: IFieldResolver<any, any>;
+  subscribe?: IFieldResolver<any, any>;
   __resolveType?: GraphQLTypeResolver<any, any>;
   __isTypeOf?: GraphQLIsTypeOfFn<any, any>;
 }
 
+export type MergeInfo = {
+  delegate: (
+    type: 'query' | 'mutation' | 'subscription',
+    fieldName: string,
+    args: { [key: string]: any },
+    context: { [key: string]: any },
+    info: GraphQLResolveInfo,
+  ) => any;
+};
+
+export type IFieldResolver<TSource, TContext> = (
+  source: TSource,
+  args: { [argument: string]: any },
+  context: TContext,
+  info: GraphQLResolveInfo & { mergeInfo: MergeInfo },
+) => any;
+
 export type ITypedef = (() => ITypedef[]) | string | DocumentNode;
 export type ITypeDefinitions = ITypedef | ITypedef[];
 export type IResolverObject = {
-  [key: string]: GraphQLFieldResolver<any, any> | IResolverOptions;
+  [key: string]: IFieldResolver<any, any> | IResolverOptions;
 };
 export type IEnumResolver = { [key: string]: string };
 export interface IResolvers {
-  [key: string]: (() => any) | IResolverObject | GraphQLScalarType | IEnumResolver;
+  [key: string]:
+    | (() => any)
+    | IResolverObject
+    | GraphQLScalarType
+    | IEnumResolver;
 }
 export interface ILogger {
   log: (message: string | Error) => void;

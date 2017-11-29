@@ -2,7 +2,7 @@
 
 ### VNEXT
 
-* ...
+* Merge schema now can accept resolvers in a plain object format [PR #511](https://github.com/apollographql/graphql-tools/pull/511)
 
 ### v2.10.0
 
