@@ -641,6 +641,7 @@ export {
   makeExecutableSchema,
   SchemaError,
   forEachField,
+  wrapResolver,
   chainResolvers,
   addErrorLoggingToSchema,
   addResolveFunctionsToSchema,
