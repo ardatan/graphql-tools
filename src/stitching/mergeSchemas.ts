@@ -5,7 +5,6 @@ import {
   FragmentSpreadNode,
   GraphQLField,
   GraphQLFieldMap,
-  GraphQLFieldResolver,
   GraphQLInputObjectType,
   GraphQLInputType,
   GraphQLInterfaceType,
@@ -37,7 +36,7 @@ import {
   subscribe,
 } from 'graphql';
 import TypeRegistry from './TypeRegistry';
-import { IResolvers } from '../Interfaces';
+import { IResolvers, MergeInfo, IFieldResolver } from '../Interfaces';
 import isEmptyObject from '../isEmptyObject';
 import {
   extractExtensionDefinitions,
@@ -49,16 +48,6 @@ import {
 } from './schemaRecreation';
 import typeFromAST from './typeFromAST';
 import { checkResultAndHandleErrors } from './errors';
-
-export type MergeInfo = {
-  delegate: (
-    type: 'query' | 'mutation' | 'subscription',
-    fieldName: string,
-    args: { [key: string]: any },
-    context: { [key: string]: any },
-    info: GraphQLResolveInfo,
-  ) => any;
-};
 
 function defaultOnTypeConflict(
   left: GraphQLNamedType,
@@ -77,7 +66,7 @@ export default function mergeSchemas({
     leftType: GraphQLNamedType,
     rightType: GraphQLNamedType,
   ) => GraphQLNamedType;
-  resolvers?: (mergeInfo: MergeInfo) => IResolvers;
+  resolvers?: IResolvers | ((mergeInfo: MergeInfo) => IResolvers);
 }): GraphQLSchema {
   if (!onTypeConflict) {
     onTypeConflict = defaultOnTypeConflict;
@@ -182,11 +171,7 @@ export default function mergeSchemas({
       }
       Object.keys(subscriptionType.getFields()).forEach(name => {
         fullResolvers.Subscription[name] = {
-          subscribe: createDelegatingResolver(
-            mergeInfo,
-            'subscription',
-            name,
-          )
+          subscribe: createDelegatingResolver(mergeInfo, 'subscription', name),
         };
       });
 
@@ -208,7 +193,11 @@ export default function mergeSchemas({
 
   let passedResolvers = {};
   if (resolvers) {
-    passedResolvers = resolvers(mergeInfo);
+    if (typeof resolvers === 'function') {
+      passedResolvers = resolvers(mergeInfo);
+    } else {
+      passedResolvers = { ...resolvers };
+    }
   }
 
   Object.keys(passedResolvers).forEach(typeName => {
@@ -264,6 +253,16 @@ export default function mergeSchemas({
 
   addResolveFunctionsToSchema(mergedSchema, fullResolvers);
 
+  forEachField(mergedSchema, field => {
+    if (field.resolve) {
+      const fieldResolver = field.resolve;
+      field.resolve = (parent, args, context, info) => {
+        const newInfo = { ...info, mergeInfo };
+        return fieldResolver(parent, args, context, newInfo);
+      };
+    }
+  });
+
   return mergedSchema;
 }
 
@@ -300,7 +299,7 @@ function createDelegatingResolver(
   mergeInfo: MergeInfo,
   operation: 'query' | 'mutation' | 'subscription',
   fieldName: string,
-): GraphQLFieldResolver<any, any> {
+): IFieldResolver<any, any> {
   return (root, args, context, info) => {
     return mergeInfo.delegate(operation, fieldName, args, context, info);
   };
@@ -364,7 +363,7 @@ async function delegateToSchema(
         graphqlDoc,
         info.rootValue,
         context,
-        variableValues
+        variableValues,
       );
       return checkResultAndHandleErrors(result, info, fieldName);
     }
@@ -375,7 +374,7 @@ async function delegateToSchema(
         graphqlDoc,
         info.rootValue,
         context,
-        variableValues
+        variableValues,
       );
     }
   }
@@ -646,7 +645,8 @@ function filterSelectionSet(
             typeStack.push(field.type);
           }
         } else if (
-          parentType instanceof GraphQLUnionType && node.name.value === '__typename'
+          parentType instanceof GraphQLUnionType &&
+          node.name.value === '__typename'
         ) {
           typeStack.push(TypeNameMetaFieldDef.type);
         }
@@ -665,8 +665,12 @@ function filterSelectionSet(
       let selections = node.selections;
       if (
         (parentType instanceof GraphQLInterfaceType ||
-        parentType instanceof GraphQLUnionType) &&
-        (!selections.find(_ => (_ as FieldNode).kind === Kind.FIELD && (_ as FieldNode).name.value === '__typename') )
+          parentType instanceof GraphQLUnionType) &&
+        !selections.find(
+          _ =>
+            (_ as FieldNode).kind === Kind.FIELD &&
+            (_ as FieldNode).name.value === '__typename',
+        )
       ) {
         selections = selections.concat({
           kind: Kind.FIELD,
@@ -866,4 +870,28 @@ function difference(
     });
   });
   return from.filter(item => !cache[item]);
+}
+
+type FieldIteratorFn = (
+  fieldDef: GraphQLField<any, any>,
+  typeName: string,
+  fieldName: string,
+) => void;
+
+function forEachField(schema: GraphQLSchema, fn: FieldIteratorFn): void {
+  const typeMap = schema.getTypeMap();
+  Object.keys(typeMap).forEach(typeName => {
+    const type = typeMap[typeName];
+
+    if (
+      !getNamedType(type).name.startsWith('__') &&
+      type instanceof GraphQLObjectType
+    ) {
+      const fields = type.getFields();
+      Object.keys(fields).forEach(fieldName => {
+        const field = fields[fieldName];
+        fn(field, typeName, fieldName);
+      });
+    }
+  });
 }
