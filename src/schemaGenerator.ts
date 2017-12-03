@@ -13,6 +13,7 @@ import {
   print,
   Kind,
   DefinitionNode,
+  DirectiveNode,
   defaultFieldResolver,
   buildASTSchema,
   extendSchema,
@@ -27,6 +28,7 @@ import {
   GraphQLInterfaceType,
   GraphQLFieldMap,
 } from 'graphql';
+import { getArgumentValues } from 'graphql/execution/values';
 import {
   IExecutableSchemaDefinition,
   ILogger,
@@ -38,6 +40,7 @@ import {
   IConnector,
   IConnectorCls,
   IResolverValidationOptions,
+  IDirectiveResolvers,
 } from './Interfaces';
 
 import { deprecated } from 'deprecated-decorator';
@@ -62,6 +65,7 @@ function _generateSchema(
   // TODO: rename to allowUndefinedInResolve to be consistent
   allowUndefinedInResolve: boolean,
   resolverValidationOptions: IResolverValidationOptions,
+  directiveResolvers: IDirectiveResolvers<any, any>,
 ) {
   if (typeof resolverValidationOptions !== 'object') {
     throw new SchemaError(
@@ -95,6 +99,10 @@ function _generateSchema(
     addErrorLoggingToSchema(schema, logger);
   }
 
+  if (directiveResolvers) {
+    attachDirectives(directiveResolvers, schema);
+  }
+
   return schema;
 }
 
@@ -105,6 +113,7 @@ function makeExecutableSchema({
   logger,
   allowUndefinedInResolve = true,
   resolverValidationOptions = {},
+  directiveResolvers = null,
 }: IExecutableSchemaDefinition) {
   const jsSchema = _generateSchema(
     typeDefs,
@@ -112,6 +121,7 @@ function makeExecutableSchema({
     logger,
     allowUndefinedInResolve,
     resolverValidationOptions,
+    directiveResolvers,
   );
   if (typeof resolvers['__schema'] === 'function') {
     // TODO a bit of a hack now, better rewrite generateSchema to attach it there.
@@ -637,6 +647,42 @@ function runAtMostOncePerRequest(
   };
 }
 
+/**
+ * Attach directive resolvers to Schema
+ * https://github.com/apollographql/graphql-tools/issues/212#issuecomment-324447078
+ *
+ * @author Agon Bina <agon_bina@hotmail.com>
+ * @author Giau. Tran Minh <giau.tmg@gmail.com>
+ * @param resolvers: resolvers of directive
+ * @param schema: GraphQL schema to attach directive resolvers
+ */
+function attachDirectives(resolvers: IDirectiveResolvers<any, any>, schema: GraphQLSchema) {
+  forEachField(schema, (field: GraphQLField<any, any>) => {
+    const directives = field.astNode.directives;
+    directives.forEach((directive: DirectiveNode) => {
+      const directiveName = directive.name.value;
+      const resolver = resolvers[directiveName];
+
+      if (resolver) {
+        const originalResolver = field.resolve || defaultFieldResolver;
+        const Directive = schema.getDirective(directiveName);
+        const directiveArgs = getArgumentValues(Directive, directive);
+
+        field.resolve = (...args: any[]) => {
+          const [source,, context, info] = args;
+          return resolver(() => {
+            const promise = originalResolver.call(field, ...args);
+            if (promise instanceof Promise) {
+              return promise;
+            }
+            return Promise.resolve(promise);
+          }, source, directiveArgs, context, info);
+        };
+      }
+    });
+  });
+};
+
 export {
   makeExecutableSchema,
   SchemaError,
@@ -650,4 +696,5 @@ export {
   addSchemaLevelResolveFunction,
   attachConnectorsToContext,
   concatenateTypeDefs,
+  attachDirectives,
 };
