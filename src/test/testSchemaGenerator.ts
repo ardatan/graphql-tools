@@ -30,6 +30,8 @@ import {
   IResolverValidationOptions,
   IResolvers,
   IExecutableSchemaDefinition,
+  IDirectiveResolvers,
+  NextResolver,
 } from '../Interfaces';
 import 'mocha';
 
@@ -2004,5 +2006,58 @@ describe('chainResolvers', () => {
         fieldName: 'person',
       } as GraphQLResolveInfo),
     ).to.equals('tony');
+  });
+});
+
+
+
+describe('attachDirectives', () => {
+  it('upper String from resolvers', () => {
+    const testSchemaWithDirectives = `
+      directive @upper on QUERY | FIELD
+      type RootQuery {
+        hello: String @upper
+      }
+      schema {
+        query: RootQuery
+      }
+    `;
+
+    const testResolversDirectives = {
+      RootQuery: {
+        hello: () => 'giau. tran minh',
+      },
+    };
+
+    const directiveResolvers: IDirectiveResolvers<any, any> = {
+      upper(
+        next: NextResolver,
+        src: any,
+        args: { [argName: string]: any },
+        context: AnalyserNode,
+      ) {
+        return next().then((str) => {
+          if (typeof(str) === 'string') {
+            return str.toUpperCase();
+          }
+          return str;
+        });
+      },
+    };
+
+    const schema = makeExecutableSchema({
+      typeDefs: testSchemaWithDirectives,
+      resolvers: testResolversDirectives,
+      directiveResolvers: directiveResolvers,
+    });
+    const query = `{
+      hello
+    }`;
+    const expected = {
+      hello: 'GIAU. TRAN MINH',
+    };
+    return graphql(schema, query, {}, {}).then(res => {
+      expect(res.data).to.deep.equal(expected);
+    });
   });
 });
