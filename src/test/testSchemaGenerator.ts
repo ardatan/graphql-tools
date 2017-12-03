@@ -2012,39 +2012,48 @@ describe('chainResolvers', () => {
 
 
 describe('attachDirectives', () => {
+  const testSchemaWithDirectives = `
+    directive @upper on QUERY | FIELD
+    type TestObject {
+      hello: String @upper
+    }
+    type RootQuery {
+      hello: String @upper
+      object: TestObject
+    }
+    schema {
+      query: RootQuery
+    }
+  `;
+
+  const testObject = {
+    hello: 'giau. tran minh',
+  };
+
+  const testResolversDirectives = {
+    RootQuery: {
+      hello: () => 'giau. tran minh',
+      object: () => Promise.resolve(testObject),
+    },
+  };
+
+  const directiveResolvers: IDirectiveResolvers<any, any> = {
+    upper(
+      next: NextResolver,
+      src: any,
+      args: { [argName: string]: any },
+      context: any,
+    ) {
+      return next().then((str) => {
+        if (typeof(str) === 'string') {
+          return str.toUpperCase();
+        }
+        return str;
+      });
+    },
+  };
+
   it('upper String from resolvers', () => {
-    const testSchemaWithDirectives = `
-      directive @upper on QUERY | FIELD
-      type RootQuery {
-        hello: String @upper
-      }
-      schema {
-        query: RootQuery
-      }
-    `;
-
-    const testResolversDirectives = {
-      RootQuery: {
-        hello: () => 'giau. tran minh',
-      },
-    };
-
-    const directiveResolvers: IDirectiveResolvers<any, any> = {
-      upper(
-        next: NextResolver,
-        src: any,
-        args: { [argName: string]: any },
-        context: any,
-      ) {
-        return next().then((str) => {
-          if (typeof(str) === 'string') {
-            return str.toUpperCase();
-          }
-          return str;
-        });
-      },
-    };
-
     const schema = makeExecutableSchema({
       typeDefs: testSchemaWithDirectives,
       resolvers: testResolversDirectives,
@@ -2055,6 +2064,27 @@ describe('attachDirectives', () => {
     }`;
     const expected = {
       hello: 'GIAU. TRAN MINH',
+    };
+    return graphql(schema, query, {}, {}).then(res => {
+      expect(res.data).to.deep.equal(expected);
+    });
+  });
+
+  it('using default resolver for object property', () => {
+    const schema = makeExecutableSchema({
+      typeDefs: testSchemaWithDirectives,
+      resolvers: testResolversDirectives,
+      directiveResolvers: directiveResolvers,
+    });
+    const query = `{
+      object {
+        hello
+      }
+    }`;
+    const expected = {
+      object: {
+        hello: 'GIAU. TRAN MINH',
+      },
     };
     return graphql(schema, query, {}, {}).then(res => {
       expect(res.data).to.deep.equal(expected);
