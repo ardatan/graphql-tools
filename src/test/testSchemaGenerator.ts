@@ -2034,7 +2034,7 @@ describe('attachDirectives', () => {
         next: NextResolver,
         src: any,
         args: { [argName: string]: any },
-        context: AnalyserNode,
+        context: any,
       ) {
         return next().then((str) => {
           if (typeof(str) === 'string') {
