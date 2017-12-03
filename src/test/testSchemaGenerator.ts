@@ -2014,6 +2014,8 @@ describe('chainResolvers', () => {
 describe('attachDirectives', () => {
   const testSchemaWithDirectives = `
     directive @upper on QUERY | FIELD
+    directive @lower on QUERY | FIELD
+
     type TestObject {
       hello: String @upper
     }
@@ -2021,6 +2023,7 @@ describe('attachDirectives', () => {
       hello: String @upper
       object: TestObject
       asyncResolver: String @upper
+      multiDirects: String @upper @lower
     }
     schema {
       query: RootQuery
@@ -2036,10 +2039,24 @@ describe('attachDirectives', () => {
       hello: () => 'giau. tran minh',
       object: () => testObject,
       asyncResolver: async () => 'giau. tran minh',
+      multiDirects: () => 'Giau. Tran Minh',
     },
   };
 
   const directiveResolvers: IDirectiveResolvers<any, any> = {
+    lower(
+      next: NextResolver,
+      src: any,
+      args: { [argName: string]: any },
+      context: any,
+    ) {
+      return next().then((str) => {
+        if (typeof(str) === 'string') {
+          return str.toLowerCase();
+        }
+        return str;
+      });
+    },
     upper(
       next: NextResolver,
       src: any,
@@ -2121,6 +2138,23 @@ describe('attachDirectives', () => {
     }`;
     const expected = {
       asyncResolver: 'GIAU. TRAN MINH',
+    };
+    return graphql(schema, query, {}, {}).then(res => {
+      expect(res.data).to.deep.equal(expected);
+    });
+  });
+
+  it('Multi directives apply with LTR order', () => {
+    const schema = makeExecutableSchema({
+      typeDefs: testSchemaWithDirectives,
+      resolvers: testResolversDirectives,
+      directiveResolvers: directiveResolvers,
+    });
+    const query = `{
+      multiDirects
+    }`;
+    const expected = {
+      multiDirects: 'giau. tran minh',
     };
     return graphql(schema, query, {}, {}).then(res => {
       expect(res.data).to.deep.equal(expected);
