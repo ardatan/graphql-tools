@@ -669,7 +669,7 @@ function attachDirectives(resolvers: IDirectiveResolvers<any, any>, schema: Grap
         const directiveArgs = getArgumentValues(Directive, directive);
 
         field.resolve = (...args: any[]) => {
-          const [source,, context, info] = args;
+          const [source, , context, info] = args;
           return resolver(() => {
             const promise = originalResolver.call(field, ...args);
             if (promise instanceof Promise) {
@@ -681,7 +681,7 @@ function attachDirectives(resolvers: IDirectiveResolvers<any, any>, schema: Grap
       }
     });
   });
-};
+}
 
 export {
   makeExecutableSchema,
