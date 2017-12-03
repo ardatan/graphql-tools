@@ -76,6 +76,7 @@ export interface IExecutableSchemaDefinition {
   logger?: ILogger;
   allowUndefinedInResolve?: boolean;
   resolverValidationOptions?: IResolverValidationOptions;
+  directiveResolvers: IDirectiveResolvers<any, any>;
 }
 
 export type IFieldIteratorFn = (
@@ -83,6 +84,19 @@ export type IFieldIteratorFn = (
   typeName: string,
   fieldName: string,
 ) => void;
+
+export type NextResolver = () => Promise<any>;
+export type DirectiveResolver<TSource, TContext> = (
+  next: NextResolver,
+  source: TSource,
+  args: { [argName: string]: any },
+  context: TContext,
+  info: GraphQLResolveInfo,
+) => GraphQLFieldResolver<any, any>;
+
+export interface IDirectiveResolvers<TSource, TContext> {
+  [directiveName: string]: DirectiveResolver<TSource, TContext>;
+}
 
 /* XXX on mocks, args are optional, Not sure if a bug. */
 export type IMockFn = GraphQLFieldResolver<any, any>;
