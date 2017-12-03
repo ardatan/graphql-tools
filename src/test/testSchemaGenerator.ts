@@ -2020,6 +2020,7 @@ describe('attachDirectives', () => {
     type RootQuery {
       hello: String @upper
       object: TestObject
+      asyncResolver: String @upper
     }
     schema {
       query: RootQuery
@@ -2033,7 +2034,8 @@ describe('attachDirectives', () => {
   const testResolversDirectives = {
     RootQuery: {
       hello: () => 'giau. tran minh',
-      object: () => Promise.resolve(testObject),
+      object: () => testObject,
+      asyncResolver: async () => 'giau. tran minh',
     },
   };
 
@@ -2103,7 +2105,23 @@ describe('attachDirectives', () => {
     const expected = {
       hello: 'giau. tran minh',
     };
+    return graphql(schema, query, {}, {}).then(res => {
+      expect(res.data).to.deep.equal(expected);
+    });
+  });
 
+  it('If resolver return Promise, keep using it', () => {
+    const schema = makeExecutableSchema({
+      typeDefs: testSchemaWithDirectives,
+      resolvers: testResolversDirectives,
+      directiveResolvers: directiveResolvers,
+    });
+    const query = `{
+      asyncResolver
+    }`;
+    const expected = {
+      asyncResolver: 'GIAU. TRAN MINH',
+    };
     return graphql(schema, query, {}, {}).then(res => {
       expect(res.data).to.deep.equal(expected);
     });
