@@ -7,13 +7,13 @@
 
 This package provides a few useful ways to create a GraphQL schema:
 
-1. Use the GraphQL schema language to [generate a schema](http://dev.apollodata.com/tools/graphql-tools/generate-schema.html) with full support for resolvers, interfaces, unions, and custom scalars. The schema produced is completely compatible with [GraphQL.js](https://github.com/graphql/graphql-js).
-2. [Mock your GraphQL API](http://dev.apollodata.com/tools/graphql-tools/mocking.html) with fine-grained per-type mocking
-3. Automatically [stitch multiple schemas together](http://dev.apollodata.com/tools/graphql-tools/schema-stitching.html) into one larger API
+1. Use the GraphQL schema language to [generate a schema](https://www.apollographql.com/docs/graphql-tools/generate-schema.html) with full support for resolvers, interfaces, unions, and custom scalars. The schema produced is completely compatible with [GraphQL.js](https://github.com/graphql/graphql-js).
+2. [Mock your GraphQL API](https://www.apollographql.com/docs/graphql-tools/mocking.html) with fine-grained per-type mocking
+3. Automatically [stitch multiple schemas together](https://www.apollographql.com/docs/graphql-tools/schema-stitching.html) into one larger API
 
 ## Documentation
 
-[Read the docs.](http://dev.apollodata.com/tools/graphql-tools/index.html)
+[Read the docs.](https://www.apollographql.com/docs/graphql-tools/)
 
 ## Example
 
@@ -106,7 +106,7 @@ const executableSchema = makeExecutableSchema({
 });
 ```
 
-This example has the entire type definition in one string and all resolvers in one file, but you can combine types and resolvers from multiple files and objects, as documented in the [modularizing the schema](http://dev.apollodata.com/tools/graphql-tools/generate-schema.html#modularizing) section of the docs.
+This example has the entire type definition in one string and all resolvers in one file, but you can combine types and resolvers from multiple files and objects, as documented in the [modularizing the schema](https://www.apollographql.com/docs/graphql-tools/generate-schema.html#modularizing) section of the docs.
 
 ## Contributions
 
