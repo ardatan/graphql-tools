@@ -2090,4 +2090,22 @@ describe('attachDirectives', () => {
       expect(res.data).to.deep.equal(expected);
     });
   });
+
+  it('No effect if missing directive resolvers', () => {
+    const schema = makeExecutableSchema({
+      typeDefs: testSchemaWithDirectives,
+      resolvers: testResolversDirectives,
+      directiveResolvers: {}, // Empty resolver
+    });
+    const query = `{
+      hello
+    }`;
+    const expected = {
+      hello: 'giau. tran minh',
+    };
+
+    return graphql(schema, query, {}, {}).then(res => {
+      expect(res.data).to.deep.equal(expected);
+    });
+  });
 });
