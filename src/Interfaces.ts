@@ -76,7 +76,7 @@ export interface IExecutableSchemaDefinition {
   logger?: ILogger;
   allowUndefinedInResolve?: boolean;
   resolverValidationOptions?: IResolverValidationOptions;
-  directiveResolvers: IDirectiveResolvers<any, any>;
+  directiveResolvers?: IDirectiveResolvers<any, any>;
 }
 
 export type IFieldIteratorFn = (
