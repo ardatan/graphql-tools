@@ -92,7 +92,7 @@ export type DirectiveResolver<TSource, TContext> = (
   args: { [argName: string]: any },
   context: TContext,
   info: GraphQLResolveInfo,
-) => GraphQLFieldResolver<any, any>;
+) => any;
 
 export interface IDirectiveResolvers<TSource, TContext> {
   [directiveName: string]: DirectiveResolver<TSource, TContext>;
