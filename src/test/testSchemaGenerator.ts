@@ -2193,7 +2193,7 @@ describe('attachDirectives', () => {
     });
   });
 
-  it('throws error if trying using undefined Directive', () => {
+  it('throws error if trying use undefined Directive', () => {
     return expect(() => {
       makeExecutableSchema({
         typeDefs: `
