@@ -170,8 +170,41 @@ addResolveFunctionsToSchema(schema, resolverMap);
 
 Some operations, such as authentication, need to be done only once per query. Logically, these operations belong in an obj resolve function, but unfortunately GraphQL-JS does not let you define one. `addSchemaLevelResolveFunction` solves this by modifying the GraphQLSchema that is passed as the first argument.
 
-<h2 id="companion-tools">Companion tools</h2>
+<h2 id="companion-tools" title="Companion tools">Companion tools</h2>
 
-- **[apollo-errors](https://github.com/thebigredgeek/apollo-errors):** Machine-readable custom errors
-- **[apollo-resolvers](https://github.com/thebigredgeek/apollo-resolvers):** Expressive and composable resolvers
-- **[graphql-resolvers](https://github.com/lucasconstantino/graphql-resolvers):** Resolver composition library
+Modules and extensions built by the community.
+
+### [graphql-resolvers](https://github.com/lucasconstantino/graphql-resolvers)
+
+Composition library for GraphQL, with helpers to combine multiple resolvers into one, specify dependencies between fields, and more.
+
+When developing a GraphQL server, it is common to perform some authorization logic on your resolvers, usually based on the context of a request. With `graphql-resolvers` you can easily accomplish that and still make the code decoupled - thus testable - by combining multiple sigle-logic resolvers into one.
+
+The following is an example of a simple logged-in authorization logic:
+
+```js
+const isAuthenticated = (root, args, context, info) => {
+  if (!context.user) {
+    return new Error('Not authenticated')
+  }
+}
+```
+
+Which could be used it in an actual field resolver like this:
+
+```js
+import { combineResolvers } from 'graphql-resolvers'
+
+const protectedField = (root, args, context, info) => 'Protected field value'
+
+const resolverMap = {
+  Query: {
+    protectedField: combineResolvers(
+      isAuthenticated,
+      protectedField
+    )
+  }
+}
+```
+
+> Have a project which improves resolvers development? Send us a [pull request](https://github.com/apollographql/graphql-tools/blob/master/CONTRIBUTING.md)!
