@@ -2015,6 +2015,7 @@ describe('attachDirectives', () => {
   const testSchemaWithDirectives = `
     directive @upper on QUERY | FIELD
     directive @lower on QUERY | FIELD
+    directive @catchError on QUERY | FIELD
 
     type TestObject {
       hello: String @upper
@@ -2023,7 +2024,8 @@ describe('attachDirectives', () => {
       hello: String @upper
       object: TestObject
       asyncResolver: String @upper
-      multiDirects: String @upper @lower
+      multiDirectives: String @upper @lower
+      throwError: String @catchError
     }
     schema {
       query: RootQuery
@@ -2039,7 +2041,10 @@ describe('attachDirectives', () => {
       hello: () => 'giau. tran minh',
       object: () => testObject,
       asyncResolver: async () => 'giau. tran minh',
-      multiDirects: () => 'Giau. Tran Minh',
+      multiDirectives: () => 'Giau. Tran Minh',
+      throwError: () => {
+        throw new Error('This error for testing');
+      },
     },
   };
 
@@ -2068,6 +2073,16 @@ describe('attachDirectives', () => {
           return str.toUpperCase();
         }
         return str;
+      });
+    },
+    catchError(
+      next: NextResolver,
+      src: any,
+      args: { [argName: string]: any },
+      context: any,
+    ) {
+      return next().catch((error) => {
+        return error.message;
       });
     },
   };
@@ -2151,13 +2166,30 @@ describe('attachDirectives', () => {
       directiveResolvers: directiveResolvers,
     });
     const query = `{
-      multiDirects
+      multiDirectives
     }`;
     const expected = {
-      multiDirects: 'giau. tran minh',
+      multiDirectives: 'giau. tran minh',
     };
     return graphql(schema, query, {}, {}).then(res => {
       expect(res.data).to.deep.equal(expected);
+    });
+  });
+
+  it('Allow to catch error from next resolver', () => {
+    const schema = makeExecutableSchema({
+      typeDefs: testSchemaWithDirectives,
+      resolvers: testResolversDirectives,
+      directiveResolvers: directiveResolvers,
+    });
+    const query = `{
+      throwError
+    }`;
+    const expected = {
+      throwError: 'This error for testing',
+    };
+    return graphql(schema, query, {}, {}).then(res => {
+     expect(res.data).to.deep.equal(expected);
     });
   });
 });
