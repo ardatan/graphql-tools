@@ -2192,4 +2192,27 @@ describe('attachDirectives', () => {
      expect(res.data).to.deep.equal(expected);
     });
   });
+
+  it('throws error if trying using undefined Directive', () => {
+    return expect(() => {
+      makeExecutableSchema({
+        typeDefs: `
+          type RootQuery {
+            hello: String @upper
+          }
+          schema {
+            query: RootQuery
+          }
+        `,
+        resolvers: {
+          RootQuery: {
+            hello: () => 'never touch',
+          }
+        },
+        directiveResolvers: directiveResolvers,
+      });
+    }).to.throw(
+      'Directive @upper is undefined. Please define in schema before using',
+    );
+  });
 });
