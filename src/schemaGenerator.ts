@@ -100,7 +100,7 @@ function _generateSchema(
   }
 
   if (directiveResolvers) {
-    attachDirectiveResolvers(directiveResolvers, schema);
+    attachDirectiveResolvers(schema, directiveResolvers);
   }
 
   return schema;
@@ -647,12 +647,15 @@ function runAtMostOncePerRequest(
   };
 }
 
-function attachDirectiveResolvers(resolvers: IDirectiveResolvers<any, any>, schema: GraphQLSchema) {
+function attachDirectiveResolvers(
+  schema: GraphQLSchema,
+  directiveResolvers: IDirectiveResolvers<any, any>,
+) {
   forEachField(schema, (field: GraphQLField<any, any>) => {
     const directives = field.astNode.directives;
     directives.forEach((directive: DirectiveNode) => {
       const directiveName = directive.name.value;
-      const resolver = resolvers[directiveName];
+      const resolver = directiveResolvers[directiveName];
 
       if (resolver) {
         const originalResolver = field.resolve || defaultFieldResolver;
