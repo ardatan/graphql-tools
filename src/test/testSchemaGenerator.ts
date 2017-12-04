@@ -23,6 +23,7 @@ import {
   addErrorLoggingToSchema,
   addSchemaLevelResolveFunction,
   attachConnectorsToContext,
+  attachDirectiveResolvers,
   chainResolvers,
   concatenateTypeDefs,
 } from '../schemaGenerator';
@@ -2086,6 +2087,26 @@ describe('attachDirectiveResolvers on field', () => {
       });
     },
   };
+
+  it('throws error if directiveResolvers argument is an array', () => {
+    const jsSchema = makeExecutableSchema({
+      typeDefs: testSchema,
+      resolvers: testResolvers,
+    });
+    expect(() => (<any>attachDirectiveResolvers)(jsSchema, [1])).to.throw(
+      'Expected directiveResolvers to be of type object, got Array',
+    );
+  });
+
+  it('throws error if directiveResolvers argument is not an object', () => {
+    const jsSchema = makeExecutableSchema({
+      typeDefs: testSchema,
+      resolvers: testResolvers,
+    });
+    return expect(() =>
+      (<any>attachDirectiveResolvers)(jsSchema, 'a'),
+    ).to.throw('Expected directiveResolvers to be of type object, got string');
+  });
 
   it('upper String from resolvers', () => {
     const schema = makeExecutableSchema({
