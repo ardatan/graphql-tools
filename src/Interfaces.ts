@@ -86,7 +86,7 @@ export type IFieldIteratorFn = (
 ) => void;
 
 export type NextResolverFn = () => Promise<any>;
-export type DirectiveResolver<TSource, TContext> = (
+export type DirectiveResolverFn<TSource, TContext> = (
   next: NextResolverFn,
   source: TSource,
   args: { [argName: string]: any },
@@ -95,7 +95,7 @@ export type DirectiveResolver<TSource, TContext> = (
 ) => any;
 
 export interface IDirectiveResolvers<TSource, TContext> {
-  [directiveName: string]: DirectiveResolver<TSource, TContext>;
+  [directiveName: string]: DirectiveResolverFn<TSource, TContext>;
 }
 
 /* XXX on mocks, args are optional, Not sure if a bug. */
