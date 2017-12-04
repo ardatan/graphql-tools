@@ -666,6 +666,9 @@ function attachDirectives(resolvers: IDirectiveResolvers<any, any>, schema: Grap
       if (resolver) {
         const originalResolver = field.resolve || defaultFieldResolver;
         const Directive = schema.getDirective(directiveName);
+        if (typeof(Directive) === 'undefined') {
+          throw new Error(`Directive @${directiveName} is undefined. Please define in schema before using`);
+        }
         const directiveArgs = getArgumentValues(Directive, directive);
 
         field.resolve = (...args: any[]) => {
