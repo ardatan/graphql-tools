@@ -647,15 +647,6 @@ function runAtMostOncePerRequest(
   };
 }
 
-/**
- * Attach directive resolvers to Schema
- * https://github.com/apollographql/graphql-tools/issues/212#issuecomment-324447078
- *
- * @author Agon Bina <agon_bina@hotmail.com>
- * @author Giau. Tran Minh <giau.tmg@gmail.com>
- * @param resolvers: resolvers of directive
- * @param schema: GraphQL schema to attach directive resolvers
- */
 function attachDirectives(resolvers: IDirectiveResolvers<any, any>, schema: GraphQLSchema) {
   forEachField(schema, (field: GraphQLField<any, any>) => {
     const directives = field.astNode.directives;
