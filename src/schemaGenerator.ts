@@ -651,6 +651,9 @@ function attachDirectiveResolvers(
   schema: GraphQLSchema,
   directiveResolvers: IDirectiveResolvers<any, any>,
 ) {
+  if (typeof directiveResolvers !== 'object') {
+    throw new Error('Must provide directiveResolvers as an object');
+  }
   forEachField(schema, (field: GraphQLField<any, any>) => {
     const directives = field.astNode.directives;
     directives.forEach((directive: DirectiveNode) => {
@@ -661,7 +664,8 @@ function attachDirectiveResolvers(
         const originalResolver = field.resolve || defaultFieldResolver;
         const Directive = schema.getDirective(directiveName);
         if (typeof(Directive) === 'undefined') {
-          throw new Error(`Directive @${directiveName} is undefined. Please define in schema before using`);
+          throw new Error(`Directive @${directiveName} is undefined. ` +
+            'Please define in schema before using');
         }
         const directiveArgs = getArgumentValues(Directive, directive);
 
