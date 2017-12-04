@@ -671,11 +671,15 @@ function attachDirectives(resolvers: IDirectiveResolvers<any, any>, schema: Grap
         field.resolve = (...args: any[]) => {
           const [source, , context, info] = args;
           return resolver(() => {
-            const promise = originalResolver.call(field, ...args);
-            if (promise instanceof Promise) {
-              return promise;
+            try {
+              const promise = originalResolver.call(field, ...args);
+              if (promise instanceof Promise) {
+                return promise;
+              }
+              return Promise.resolve(promise);
+            } catch (error) {
+              return Promise.reject(error);
             }
-            return Promise.resolve(promise);
           }, source, directiveArgs, context, info);
         };
       }
