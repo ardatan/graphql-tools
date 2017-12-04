@@ -31,7 +31,7 @@ import {
   IResolvers,
   IExecutableSchemaDefinition,
   IDirectiveResolvers,
-  NextResolver,
+  NextResolverFn,
 } from '../Interfaces';
 import 'mocha';
 
@@ -2050,7 +2050,7 @@ describe('attachDirectiveResolvers on field', () => {
 
   const directiveResolvers: IDirectiveResolvers<any, any> = {
     lower(
-      next: NextResolver,
+      next: NextResolverFn,
       src: any,
       args: { [argName: string]: any },
       context: any,
@@ -2063,7 +2063,7 @@ describe('attachDirectiveResolvers on field', () => {
       });
     },
     upper(
-      next: NextResolver,
+      next: NextResolverFn,
       src: any,
       args: { [argName: string]: any },
       context: any,
@@ -2076,7 +2076,7 @@ describe('attachDirectiveResolvers on field', () => {
       });
     },
     catchError(
-      next: NextResolver,
+      next: NextResolverFn,
       src: any,
       args: { [argName: string]: any },
       context: any,
