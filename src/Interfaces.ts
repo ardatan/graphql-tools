@@ -85,9 +85,9 @@ export type IFieldIteratorFn = (
   fieldName: string,
 ) => void;
 
-export type NextResolver = () => Promise<any>;
+export type NextResolverFn = () => Promise<any>;
 export type DirectiveResolver<TSource, TContext> = (
-  next: NextResolver,
+  next: NextResolverFn,
   source: TSource,
   args: { [argName: string]: any },
   context: TContext,
