@@ -652,7 +652,12 @@ function attachDirectiveResolvers(
   directiveResolvers: IDirectiveResolvers<any, any>,
 ) {
   if (typeof directiveResolvers !== 'object') {
-    throw new Error('Must provide directiveResolvers as an object');
+    throw new Error(
+      `Expected directiveResolvers to be of type object, got ${typeof directiveResolvers}`,
+    );
+  }
+  if (Array.isArray(directiveResolvers)) {
+    throw new Error('Expected directiveResolvers to be of type object, got Array');
   }
   forEachField(schema, (field: GraphQLField<any, any>) => {
     const directives = field.astNode.directives;
