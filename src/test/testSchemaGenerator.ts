@@ -2198,7 +2198,7 @@ describe('attachDirectives', () => {
       makeExecutableSchema({
         typeDefs: `
           type RootQuery {
-            hello: String @upper
+            hello: String @upper @deprecated(reason: "Built-in directive work as normal")
           }
           schema {
             query: RootQuery
