@@ -2011,7 +2011,7 @@ describe('chainResolvers', () => {
 
 
 
-describe('attachDirectives on field', () => {
+describe('attachDirectiveResolvers on field', () => {
   const testSchemaWithDirectives = `
     directive @upper on FIELD
     directive @lower on FIELD

@@ -100,7 +100,7 @@ function _generateSchema(
   }
 
   if (directiveResolvers) {
-    attachDirectives(directiveResolvers, schema);
+    attachDirectiveResolvers(directiveResolvers, schema);
   }
 
   return schema;
@@ -647,7 +647,7 @@ function runAtMostOncePerRequest(
   };
 }
 
-function attachDirectives(resolvers: IDirectiveResolvers<any, any>, schema: GraphQLSchema) {
+function attachDirectiveResolvers(resolvers: IDirectiveResolvers<any, any>, schema: GraphQLSchema) {
   forEachField(schema, (field: GraphQLField<any, any>) => {
     const directives = field.astNode.directives;
     directives.forEach((directive: DirectiveNode) => {
@@ -694,5 +694,5 @@ export {
   addSchemaLevelResolveFunction,
   attachConnectorsToContext,
   concatenateTypeDefs,
-  attachDirectives,
+  attachDirectiveResolvers,
 };
