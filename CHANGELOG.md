@@ -2,7 +2,7 @@
 
 ### VNEXT
 
-* Allow passing in a string `schema` to `makeRemoteExectuableSchema` [PR #521](https://github.com/apollographql/graphql-tools/pull/521)
+* Allow passing in a string `schema` to `makeRemoteExecutableSchema` [PR #521](https://github.com/apollographql/graphql-tools/pull/521)
 * ...
 
 ### v2.11.0
