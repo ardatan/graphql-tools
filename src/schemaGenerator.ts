@@ -668,7 +668,7 @@ function attachDirectiveResolvers(
       if (resolver) {
         const originalResolver = field.resolve || defaultFieldResolver;
         const Directive = schema.getDirective(directiveName);
-        if (typeof(Directive) === 'undefined') {
+        if (typeof Directive === 'undefined') {
           throw new Error(`Directive @${directiveName} is undefined. ` +
             'Please define in schema before using');
         }
