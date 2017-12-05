@@ -39,12 +39,10 @@ export type FetcherOperation = {
 
 export default function makeRemoteExecutableSchema({
   schema,
-  typeDefs,
   link,
   fetcher,
 }: {
-  schema?: GraphQLSchema;
-  typeDefs?: string;
+  schema: GraphQLSchema | string;
   link?: ApolloLink;
   fetcher?: Fetcher;
 }): GraphQLSchema {
@@ -52,15 +50,12 @@ export default function makeRemoteExecutableSchema({
     fetcher = linkToFetcher(link);
   }
 
-  if (!schema && !typeDefs) {
-    throw new Error('Either `schema` or `typeDefs` must be provided');
-  }
+  let typeDefs: string;
 
-  if (!schema) {
+  if (typeof schema === 'string') {
+    typeDefs = schema;
     schema = buildSchema(typeDefs);
-  }
-
-  if (!typeDefs) {
+  } else {
     typeDefs = printSchema(schema);
   }
 
