@@ -2,6 +2,7 @@
 
 ### VNEXT
 
+* Added `typeDefs` param to `makeRemoteExectuableSchema`
 * ...
 
 ### v2.11.0
