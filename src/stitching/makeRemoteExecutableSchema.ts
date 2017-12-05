@@ -19,6 +19,7 @@ import {
   GraphQLScalarType,
   ExecutionResult,
   print,
+  buildSchema,
 } from 'graphql';
 import isEmptyObject from '../isEmptyObject';
 import { IResolvers, IResolverObject } from '../Interfaces';
@@ -38,15 +39,29 @@ export type FetcherOperation = {
 
 export default function makeRemoteExecutableSchema({
   schema,
+  typeDefs,
   link,
   fetcher,
 }: {
-  schema: GraphQLSchema;
+  schema?: GraphQLSchema;
+  typeDefs?: string;
   link?: ApolloLink;
   fetcher?: Fetcher;
 }): GraphQLSchema {
   if (!fetcher && link) {
     fetcher = linkToFetcher(link);
+  }
+
+  if (!schema && !typeDefs) {
+    throw new Error('Either `schema` or `typeDefs` must be provided');
+  }
+
+  if (!schema) {
+    schema = buildSchema(typeDefs);
+  }
+
+  if (!typeDefs) {
+    typeDefs = printSchema(schema);
   }
 
   const queryType = schema.getQueryType();
@@ -107,8 +122,6 @@ export default function makeRemoteExecutableSchema({
       resolvers[type.name] = resolver;
     }
   }
-
-  const typeDefs = printSchema(schema);
 
   return makeExecutableSchema({
     typeDefs,
