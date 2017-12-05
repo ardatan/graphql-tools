@@ -19,6 +19,7 @@ import {
   GraphQLScalarType,
   ExecutionResult,
   print,
+  buildSchema,
 } from 'graphql';
 import isEmptyObject from '../isEmptyObject';
 import { IResolvers, IResolverObject } from '../Interfaces';
@@ -41,12 +42,21 @@ export default function makeRemoteExecutableSchema({
   link,
   fetcher,
 }: {
-  schema: GraphQLSchema;
+  schema: GraphQLSchema | string;
   link?: ApolloLink;
   fetcher?: Fetcher;
 }): GraphQLSchema {
   if (!fetcher && link) {
     fetcher = linkToFetcher(link);
+  }
+
+  let typeDefs: string;
+
+  if (typeof schema === 'string') {
+    typeDefs = schema;
+    schema = buildSchema(typeDefs);
+  } else {
+    typeDefs = printSchema(schema);
   }
 
   const queryType = schema.getQueryType();
@@ -107,8 +117,6 @@ export default function makeRemoteExecutableSchema({
       resolvers[type.name] = resolver;
     }
   }
-
-  const typeDefs = printSchema(schema);
 
   return makeExecutableSchema({
     typeDefs,
