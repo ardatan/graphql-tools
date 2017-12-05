@@ -3,7 +3,7 @@
 ### VNEXT
 
 * Allow passing in a string `schema` to `makeRemoteExecutableSchema` [PR #521](https://github.com/apollographql/graphql-tools/pull/521)
-* Added support for custom Directives [Issue #212](https://github.com/apollographql/graphql-tools/issues/212) [PR #518](https://github.com/apollographql/graphql-tools/pull/518)
+* Added support for custom Directives on FIELD [Issue #212](https://github.com/apollographql/graphql-tools/issues/212) [PR #518](https://github.com/apollographql/graphql-tools/pull/518)
 
 ### v2.11.0
 
