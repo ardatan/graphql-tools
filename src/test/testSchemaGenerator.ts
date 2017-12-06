@@ -2016,6 +2016,7 @@ describe('attachDirectiveResolvers on field', () => {
   const testSchemaWithDirectives = `
     directive @upper on FIELD
     directive @lower on FIELD
+    directive @default(value: String!) on FIELD
     directive @catchError on FIELD
 
     type TestObject {
@@ -2023,6 +2024,7 @@ describe('attachDirectiveResolvers on field', () => {
     }
     type RootQuery {
       hello: String @upper
+      withDefault: String @default(value: "some default_value")
       object: TestObject
       asyncResolver: String @upper
       multiDirectives: String @upper @lower
@@ -2074,6 +2076,19 @@ describe('attachDirectiveResolvers on field', () => {
           return str.toUpperCase();
         }
         return str;
+      });
+    },
+    default(
+      next: NextResolverFn,
+      src: any,
+      args: { [argName: string]: any },
+      context: any,
+    ) {
+      return next().then((res) => {
+        if (undefined === res) {
+          return args.value;
+        }
+        return res;
       });
     },
     catchError(
@@ -2140,6 +2155,23 @@ describe('attachDirectiveResolvers on field', () => {
       object: {
         hello: 'GIAU. TRAN MINH',
       },
+    };
+    return graphql(schema, query, {}, {}).then(res => {
+      expect(res.data).to.deep.equal(expected);
+    });
+  });
+
+  it('passes in directive arguments to the directive resolver', () => {
+    const schema = makeExecutableSchema({
+      typeDefs: testSchemaWithDirectives,
+      resolvers: testResolversDirectives,
+      directiveResolvers: directiveResolvers,
+    });
+    const query = `{
+      withDefault
+    }`;
+    const expected = {
+      withDefault: 'some default_value'
     };
     return graphql(schema, query, {}, {}).then(res => {
       expect(res.data).to.deep.equal(expected);
