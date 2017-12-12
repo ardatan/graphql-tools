@@ -388,11 +388,12 @@ function addResolveFunctionsToSchema(
         // is inside NPM
         if (!(type as any).isValidValue(fieldName)) {
           throw new SchemaError(
-              `${typeName}.${fieldName} was defined in resolvers, but enum is not in schema`,
+            `${typeName}.${fieldName} was defined in resolvers, but enum is not in schema`,
           );
         }
 
-        type.getValue(fieldName)['value'] = resolveFunctions[typeName][fieldName];
+        type.getValue(fieldName)['value'] =
+          resolveFunctions[typeName][fieldName];
         return;
       }
 
@@ -657,7 +658,9 @@ function attachDirectiveResolvers(
     );
   }
   if (Array.isArray(directiveResolvers)) {
-    throw new Error('Expected directiveResolvers to be of type object, got Array');
+    throw new Error(
+      'Expected directiveResolvers to be of type object, got Array',
+    );
   }
   forEachField(schema, (field: GraphQLField<any, any>) => {
     const directives = field.astNode.directives;
@@ -669,24 +672,32 @@ function attachDirectiveResolvers(
         const originalResolver = field.resolve || defaultFieldResolver;
         const Directive = schema.getDirective(directiveName);
         if (typeof Directive === 'undefined') {
-          throw new Error(`Directive @${directiveName} is undefined. ` +
-            'Please define in schema before using');
+          throw new Error(
+            `Directive @${directiveName} is undefined. ` +
+              'Please define in schema before using',
+          );
         }
         const directiveArgs = getArgumentValues(Directive, directive);
 
         field.resolve = (...args: any[]) => {
           const [source, , context, info] = args;
-          return resolver(() => {
-            try {
-              const promise = originalResolver.call(field, ...args);
-              if (promise instanceof Promise) {
-                return promise;
+          return resolver(
+            () => {
+              try {
+                const promise = originalResolver.call(field, ...args);
+                if (promise instanceof Promise) {
+                  return promise;
+                }
+                return Promise.resolve(promise);
+              } catch (error) {
+                return Promise.reject(error);
               }
-              return Promise.resolve(promise);
-            } catch (error) {
-              return Promise.reject(error);
-            }
-          }, source, directiveArgs, context, info);
+            },
+            source,
+            directiveArgs,
+            context,
+            info,
+          );
         };
       }
     });

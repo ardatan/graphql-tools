@@ -882,7 +882,7 @@ describe('generating schema from shorthand', () => {
 
       const resolveFunctions = {
         Color: {
-          RED: '#EA3232'
+          RED: '#EA3232',
         },
       };
 
@@ -916,7 +916,7 @@ describe('generating schema from shorthand', () => {
 
       const resolveFunctions = {
         Color: {
-          RED: '#EA3232'
+          RED: '#EA3232',
         },
         Query: {
           color() {
@@ -929,7 +929,6 @@ describe('generating schema from shorthand', () => {
         typeDefs: shorthand,
         resolvers: resolveFunctions,
       });
-
 
       const resultPromise = graphql(jsSchema, testQuery);
       return resultPromise.then(result => {
@@ -1147,9 +1146,13 @@ describe('generating schema from shorthand', () => {
     ).to.throw(`Searchable was defined in resolvers, but it's not an object`);
 
     expect(() =>
-      makeExecutableSchema({ typeDefs: short, resolvers: rf, resolverValidationOptions: {
-        allowResolversNotInSchema: true,
-      }}),
+      makeExecutableSchema({
+        typeDefs: short,
+        resolvers: rf,
+        resolverValidationOptions: {
+          allowResolversNotInSchema: true,
+        },
+      }),
     ).to.not.throw();
   });
 
@@ -1178,9 +1181,13 @@ describe('generating schema from shorthand', () => {
     ).to.throw(`"Searchable" defined in resolvers, but not in schema`);
 
     expect(() =>
-      makeExecutableSchema({ typeDefs: short, resolvers: rf, resolverValidationOptions: {
-        allowResolversNotInSchema: true,
-      }}),
+      makeExecutableSchema({
+        typeDefs: short,
+        resolvers: rf,
+        resolverValidationOptions: {
+          allowResolversNotInSchema: true,
+        },
+      }),
     ).to.not.throw();
   });
 
@@ -1209,9 +1216,13 @@ describe('generating schema from shorthand', () => {
     ).to.throw(`RootQuery.name defined in resolvers, but not in schema`);
 
     expect(() =>
-      makeExecutableSchema({ typeDefs: short, resolvers: rf, resolverValidationOptions: {
-        allowResolversNotInSchema: true,
-      }}),
+      makeExecutableSchema({
+        typeDefs: short,
+        resolvers: rf,
+        resolverValidationOptions: {
+          allowResolversNotInSchema: true,
+        },
+      }),
     ).to.not.throw();
   });
 
@@ -2010,8 +2021,6 @@ describe('chainResolvers', () => {
   });
 });
 
-
-
 describe('attachDirectiveResolvers on field', () => {
   const testSchemaWithDirectives = `
     directive @upper on FIELD_DEFINITION
@@ -2058,8 +2067,8 @@ describe('attachDirectiveResolvers on field', () => {
       args: { [argName: string]: any },
       context: any,
     ) {
-      return next().then((str) => {
-        if (typeof(str) === 'string') {
+      return next().then(str => {
+        if (typeof str === 'string') {
           return str.toLowerCase();
         }
         return str;
@@ -2071,8 +2080,8 @@ describe('attachDirectiveResolvers on field', () => {
       args: { [argName: string]: any },
       context: any,
     ) {
-      return next().then((str) => {
-        if (typeof(str) === 'string') {
+      return next().then(str => {
+        if (typeof str === 'string') {
           return str.toUpperCase();
         }
         return str;
@@ -2084,7 +2093,7 @@ describe('attachDirectiveResolvers on field', () => {
       args: { [argName: string]: any },
       context: any,
     ) {
-      return next().then((res) => {
+      return next().then(res => {
         if (undefined === res) {
           return args.value;
         }
@@ -2097,7 +2106,7 @@ describe('attachDirectiveResolvers on field', () => {
       args: { [argName: string]: any },
       context: any,
     ) {
-      return next().catch((error) => {
+      return next().catch(error => {
         return error.message;
       });
     },
@@ -2171,7 +2180,7 @@ describe('attachDirectiveResolvers on field', () => {
       withDefault
     }`;
     const expected = {
-      withDefault: 'some default_value'
+      withDefault: 'some default_value',
     };
     return graphql(schema, query, {}, {}).then(res => {
       expect(res.data).to.deep.equal(expected);
@@ -2242,7 +2251,7 @@ describe('attachDirectiveResolvers on field', () => {
       throwError: 'This error for testing',
     };
     return graphql(schema, query, {}, {}).then(res => {
-     expect(res.data).to.deep.equal(expected);
+      expect(res.data).to.deep.equal(expected);
     });
   });
 
@@ -2260,7 +2269,7 @@ describe('attachDirectiveResolvers on field', () => {
         resolvers: {
           RootQuery: {
             hello: () => 'never touch',
-          }
+          },
         },
         directiveResolvers: directiveResolvers,
       });
