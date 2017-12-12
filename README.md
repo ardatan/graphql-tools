@@ -15,6 +15,12 @@ This package provides a few useful ways to create a GraphQL schema:
 
 [Read the docs.](https://www.apollographql.com/docs/graphql-tools/)
 
+## Binding to HTTP
+
+If you want to bind your JavaScript GraphQL schema to an HTTP server, we recommend using [Apollo Server](https://github.com/apollographql/apollo-server/), which supports every popular Node HTTP server library including Express, Koa, Hapi, and more.
+
+JavaScript GraphQL servers are often developed with `graphql-tools` and `apollo-server-express` together: One to write the schema and resolver code, and the other to connect it to a web server.
+
 ## Example
 
 [See and edit the live example on Launchpad.](https://launchpad.graphql.com/1jzxrj179)
