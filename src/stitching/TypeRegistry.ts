@@ -27,7 +27,7 @@ export default class TypeRegistry {
     this.schemaByField = {
       query: {},
       mutation: {},
-      subscription: {}
+      subscription: {},
     };
     this.fragmentReplacements = {};
   }

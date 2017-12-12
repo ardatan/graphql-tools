@@ -49,13 +49,11 @@ function execute(
   link: ApolloLink,
   operation: GraphQLRequest,
 ): Observable<FetchResult> {
-  return (
-    link.request(
-      createOperation(
-        operation.context,
-        transformOperation(validateOperation(operation)),
-      ),
-    )
+  return link.request(
+    createOperation(
+      operation.context,
+      transformOperation(validateOperation(operation)),
+    ),
   );
 }
 

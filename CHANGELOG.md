@@ -2,8 +2,11 @@
 
 ### VNEXT
 
+* Added support for custom directives on FIELD_DEFINITION that wrap resolvers with custom reusable logic.  [Issue #212](https://github.com/apollographql/graphql-tools/issues/212) [PR #518](https://github.com/apollographql/graphql-tools/pull/518) and [PR #529](https://github.com/apollographql/graphql-tools/pull/529)
+
+### v2.12.0
+
 * Allow passing in a string `schema` to `makeRemoteExecutableSchema` [PR #521](https://github.com/apollographql/graphql-tools/pull/521)
-* ...
 
 ### v2.11.0
 
