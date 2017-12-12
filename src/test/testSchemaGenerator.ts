@@ -2014,10 +2014,10 @@ describe('chainResolvers', () => {
 
 describe('attachDirectiveResolvers on field', () => {
   const testSchemaWithDirectives = `
-    directive @upper on FIELD
-    directive @lower on FIELD
-    directive @default(value: String!) on FIELD
-    directive @catchError on FIELD
+    directive @upper on FIELD_DEFINITION
+    directive @lower on FIELD_DEFINITION
+    directive @default(value: String!) on FIELD_DEFINITION
+    directive @catchError on FIELD_DEFINITION
 
     type TestObject {
       hello: String @upper
