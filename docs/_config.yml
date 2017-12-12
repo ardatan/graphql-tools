@@ -22,6 +22,11 @@ sidebar_categories:
     - connectors
     - remote-schemas
     - schema-stitching
+  Related:
+    - title: Apollo Server
+      href: https://www.apollographql.com/docs/apollo-server/
+    - title: GraphQL Subscriptions
+      href: https://www.apollographql.com/docs/graphql-subscriptions/
 github_repo: apollographql/graphql-tools
 content_root: docs/source
 
