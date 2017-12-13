@@ -60,18 +60,19 @@ const executableSchema = makeRemoteExecutableSchema({
 Authentication headers from context
 
 ```js
+import { ApolloLink } from 'apollo-link';
 import { HttpLink } from 'apollo-link-http';
 import fetch from 'node-fetch';
 
 const http = new HttpLink({ uri: 'http://api.githunt.com/graphql', fetch });
-const auth = new ApolloLink((operation, forward) => {
+const link = new ApolloLink((operation, forward) => {
   operation.setContext((context) => ({
     headers: {
       'Authentication': `Bearer ${context.graphqlContext.authKey}`,
     },
   }))
   return forward(operation);
-})
+}).concat(http);
 
 const schema = await introspectSchema(link);
 
