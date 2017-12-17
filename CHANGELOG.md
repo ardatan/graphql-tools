@@ -3,6 +3,7 @@
 ### vNEXT
 
 * ...
+* Make error more semantic when schema type has no resolver [PR #538](https://github.com/apollographql/graphql-tools/pull/538)
 
 ### v2.13.0
 
