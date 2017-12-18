@@ -11,7 +11,6 @@ import {
   DocumentNode,
   parse,
   print,
-  Kind,
   DefinitionNode,
   DirectiveNode,
   defaultFieldResolver,
@@ -204,19 +203,30 @@ function buildSchemaFromTypeDefinitions(
     astDocument = parse(myDefinitions);
   }
 
-  let schema: GraphQLSchema = buildASTSchema(astDocument);
+  const backcompatOptions = { commentDescriptions: true };
+
+  // TODO fix types https://github.com/apollographql/graphql-tools/issues/542
+  let schema: GraphQLSchema = (buildASTSchema as any)(astDocument, backcompatOptions);
 
   const extensionsAst = extractExtensionDefinitions(astDocument);
   if (extensionsAst.definitions.length > 0) {
-    schema = extendSchema(schema, extensionsAst);
+    // TODO fix types https://github.com/apollographql/graphql-tools/issues/542
+    schema = (extendSchema as any)(schema, extensionsAst, backcompatOptions);
   }
 
   return schema;
 }
 
+
+// This was changed in graphql@0.12
+// See https://github.com/apollographql/graphql-tools/pull/541
+// TODO fix types https://github.com/apollographql/graphql-tools/issues/542
+const oldTypeExtensionDefinitionKind = 'TypeExtensionDefinition';
+const newExtensionDefinitionKind = 'ObjectTypeExtension';
+
 export function extractExtensionDefinitions(ast: DocumentNode) {
   const extensionDefs = ast.definitions.filter(
-    (def: DefinitionNode) => def.kind === Kind.TYPE_EXTENSION_DEFINITION,
+    (def: DefinitionNode) => def.kind === oldTypeExtensionDefinitionKind || (def.kind as any) === newExtensionDefinitionKind,
   );
 
   return Object.assign({}, ast, {
