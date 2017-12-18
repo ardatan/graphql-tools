@@ -30,6 +30,8 @@ import {
 import delegateToSchema from './delegateToSchema';
 import typeFromAST from './typeFromAST';
 
+const backcompatOptions = { commentDescriptions: true };
+
 export default function mergeSchemas({
   schemas,
   onTypeConflict,
@@ -64,7 +66,11 @@ export default function mergeSchemas({
     } else if (typeof schema === 'string') {
       let parsedSchemaDocument = parse(schema);
       try {
-        const actualSchema = buildASTSchema(parsedSchemaDocument);
+        // TODO fix types https://github.com/apollographql/graphql-tools/issues/542
+        const actualSchema = (buildASTSchema as any)(
+          parsedSchemaDocument,
+          backcompatOptions,
+        );
         actualSchemas.push(actualSchema);
       } catch (e) {
         typeFragments.push(parsedSchemaDocument);
@@ -222,7 +228,12 @@ export default function mergeSchemas({
   });
 
   extensions.forEach(extension => {
-    mergedSchema = extendSchema(mergedSchema, extension);
+    // TODO fix types https://github.com/apollographql/graphql-tools/issues/542
+    mergedSchema = (extendSchema as any)(
+      mergedSchema,
+      extension,
+      backcompatOptions,
+    );
   });
 
   addResolveFunctionsToSchema(mergedSchema, fullResolvers);

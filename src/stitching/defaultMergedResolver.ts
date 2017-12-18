@@ -17,7 +17,7 @@ const defaultMergedResolver: GraphQLFieldResolver<any, any> = (
   const errorResult = getErrorsFromParent(parent, responseKey);
   if (errorResult.kind === 'OWN') {
     throw locatedError(
-      errorResult.error.message,
+      new Error(errorResult.error.message),
       info.fieldNodes,
       responsePathAsArray(info.path),
     );
