@@ -394,9 +394,7 @@ function addResolveFunctionsToSchema(
       }
 
       if (type instanceof GraphQLEnumType) {
-        // TODO: Remove once https://github.com/DefinitelyTyped/DefinitelyTyped/pull/21786
-        // is inside NPM
-        if (!(type as any).isValidValue(fieldName)) {
+        if (!type.getValue(fieldName)) {
           throw new SchemaError(
             `${typeName}.${fieldName} was defined in resolvers, but enum is not in schema`,
           );
