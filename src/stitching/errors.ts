@@ -81,7 +81,7 @@ export function checkResultAndHandleErrors(
       .map((error: { message: string }) => error.message)
       .join('\n');
     throw locatedError(
-      errorMessage,
+      new Error(errorMessage),
       info.fieldNodes,
       responsePathAsArray(info.path),
     );

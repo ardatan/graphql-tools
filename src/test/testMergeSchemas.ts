@@ -81,9 +81,6 @@ const linkSchema = `
     id: ID!
   }
 
-  extend type Customer implements Node {
-
-  }
 
   extend type Booking implements Node {
     # The property of the booking.
@@ -106,6 +103,8 @@ const linkSchema = `
     node(id: ID!): Node
     nodes: [Node]
   }
+
+  extend type Customer implements Node
 `;
 
 testCombinations.forEach(async combination => {

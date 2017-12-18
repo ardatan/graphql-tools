@@ -67,7 +67,10 @@ export default function mergeSchemas({
       let parsedSchemaDocument = parse(schema);
       try {
         // TODO fix types https://github.com/apollographql/graphql-tools/issues/542
-        const actualSchema = (buildASTSchema as any)(parsedSchemaDocument, backcompatOptions);
+        const actualSchema = (buildASTSchema as any)(
+          parsedSchemaDocument,
+          backcompatOptions,
+        );
         actualSchemas.push(actualSchema);
       } catch (e) {
         typeFragments.push(parsedSchemaDocument);
@@ -226,7 +229,11 @@ export default function mergeSchemas({
 
   extensions.forEach(extension => {
     // TODO fix types https://github.com/apollographql/graphql-tools/issues/542
-    mergedSchema = (extendSchema as any)(mergedSchema, extension, backcompatOptions);
+    mergedSchema = (extendSchema as any)(
+      mergedSchema,
+      extension,
+      backcompatOptions,
+    );
   });
 
   addResolveFunctionsToSchema(mergedSchema, fullResolvers);
