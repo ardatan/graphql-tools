@@ -153,17 +153,21 @@ describe('Mock', () => {
       Bird: () => ({ returnInt: () => 54321 }),
       Bee: () => ({ returnInt: () => 54321 }),
     };
-    return mockServer(shorthand, mockMap).query(testQuery).then((res: any) => {
-      expect(res.data.returnInt).to.equal(12345);
-      expect(res.data.returnFloat).to.be.a('number').within(-1000, 1000);
-      expect(res.data.returnBoolean).to.be.a('boolean');
-      expect(res.data.returnString).to.be.a('string');
-      expect(res.data.returnID).to.be.a('string');
-      // tests that resolveType is correctly set for unions and interfaces
-      // and that the correct mock function is used
-      expect(res.data.returnBirdsAndBees[0].returnInt).to.equal(54321);
-      expect(res.data.returnBirdsAndBees[1].returnInt).to.equal(54321);
-    });
+    return mockServer(shorthand, mockMap)
+      .query(testQuery)
+      .then((res: any) => {
+        expect(res.data.returnInt).to.equal(12345);
+        expect(res.data.returnFloat)
+          .to.be.a('number')
+          .within(-1000, 1000);
+        expect(res.data.returnBoolean).to.be.a('boolean');
+        expect(res.data.returnString).to.be.a('string');
+        expect(res.data.returnID).to.be.a('string');
+        // tests that resolveType is correctly set for unions and interfaces
+        // and that the correct mock function is used
+        expect(res.data.returnBirdsAndBees[0].returnInt).to.equal(54321);
+        expect(res.data.returnBirdsAndBees[1].returnInt).to.equal(54321);
+      });
   });
 
   it('mockServer is able to preserveResolvers of a prebuilt schema', () => {
@@ -227,17 +231,21 @@ describe('Mock', () => {
       Bird: () => ({ returnInt: () => 54321 }),
       Bee: () => ({ returnInt: () => 54321 }),
     };
-    return mockServer(jsSchema, mockMap).query(testQuery).then((res: any) => {
-      expect(res.data.returnInt).to.equal(12345);
-      expect(res.data.returnFloat).to.be.a('number').within(-1000, 1000);
-      expect(res.data.returnBoolean).to.be.a('boolean');
-      expect(res.data.returnString).to.be.a('string');
-      expect(res.data.returnID).to.be.a('string');
-      // tests that resolveType is correctly set for unions and interfaces
-      // and that the correct mock function is used
-      expect(res.data.returnBirdsAndBees[0].returnInt).to.equal(54321);
-      expect(res.data.returnBirdsAndBees[1].returnInt).to.equal(54321);
-    });
+    return mockServer(jsSchema, mockMap)
+      .query(testQuery)
+      .then((res: any) => {
+        expect(res.data.returnInt).to.equal(12345);
+        expect(res.data.returnFloat)
+          .to.be.a('number')
+          .within(-1000, 1000);
+        expect(res.data.returnBoolean).to.be.a('boolean');
+        expect(res.data.returnString).to.be.a('string');
+        expect(res.data.returnID).to.be.a('string');
+        // tests that resolveType is correctly set for unions and interfaces
+        // and that the correct mock function is used
+        expect(res.data.returnBirdsAndBees[0].returnInt).to.equal(54321);
+        expect(res.data.returnBirdsAndBees[1].returnInt).to.equal(54321);
+      });
   });
 
   it('does not mask resolveType functions if you tell it not to', () => {
@@ -314,11 +322,11 @@ describe('Mock', () => {
     }`;
     return graphql(jsSchema, testQuery).then(res => {
       // XXX this test is expected to fail once every 2^40 times ;-)
-      expect(res.data['returnBirdsAndBees']).to.include({
+      expect(res.data['returnBirdsAndBees']).to.deep.include({
         returnInt: 10,
         returnString: 'aha',
       });
-      return expect(res.data['returnBirdsAndBees']).to.include({
+      return expect(res.data['returnBirdsAndBees']).to.deep.include({
         returnInt: 10,
         returnEnum: 'A',
       });
@@ -354,11 +362,11 @@ describe('Mock', () => {
       }
     }`;
     return graphql(jsSchema, testQuery).then(res => {
-      expect(res.data['returnFlying']).to.include({
+      expect(res.data['returnFlying']).to.deep.include({
         returnInt: 10,
         returnString: 'aha',
       });
-      return expect(res.data['returnFlying']).to.include({
+      return expect(res.data['returnFlying']).to.deep.include({
         returnInt: 10,
         returnEnum: 'A',
       });
@@ -1375,6 +1383,87 @@ describe('Mock', () => {
     };
     return graphql(schema, query).then(res => {
       expect(res.data).to.deep.equal(expected);
+    });
+  });
+
+  it('allows instanceof checks in __resolveType', () => {
+    class Account {
+      public id: string;
+      public username: string;
+
+      constructor() {
+        this.id = '123nmasb';
+        this.username = 'foo@bar.com';
+      }
+    }
+
+    const typeDefs = `
+    	interface Node {
+    		id: ID!
+    	}
+
+      type Account implements Node {
+        id: ID!
+        username: String
+      }
+
+      type User implements Node {
+        id: ID!
+      }
+
+      type Query {
+        node: Node
+      }
+    `;
+
+    const resolvers = {
+      Query: {
+        node: () => {
+          return new Account();
+        },
+      },
+      Node: {
+        __resolveType: (obj: any) => {
+          if (obj instanceof Account) {
+            return 'Account';
+          } else {
+            return null;
+          }
+        },
+      },
+    };
+
+    const schema = makeExecutableSchema({
+      typeDefs,
+      resolvers,
+    });
+
+    addMockFunctionsToSchema({
+      schema,
+      preserveResolvers: true,
+    });
+
+    const query = `
+    {
+      node {
+        ...on Account {
+          id
+          username
+        }
+      }
+    }
+    `;
+
+    const expected = {
+      data: {
+        node: {
+          id: '123nmasb',
+          username: 'foo@bar.com',
+        },
+      },
+    };
+    return graphql(schema, query).then(res => {
+      expect(res).to.deep.equal(expected);
     });
   });
 

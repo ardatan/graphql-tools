@@ -116,13 +116,15 @@ Step 4: Adding models to the context
 ```
 app.use('/graphql', apolloServer({
   schema: Schema,
-  connectors: {
-    mongo: new MongoDBConnector(mongoDB),
-    sql: new SqlConnector(sqlDB)
-  },
-  models: {
-    Author: new Author({ db: 'sql' }),
-    Post: new Post({ postDb: 'sql', viewsDb: 'mongo' }),
+  context: {
+    connectors: {
+      mongo: new MongoDBConnector(mongoDB),
+      sql: new SqlConnector(sqlDB)
+    },
+    models: {
+      Author: new Author({ db: 'sql' }),
+      Post: new Post({ postDb: 'sql', viewsDb: 'mongo' }),
+    }
   }
 });
 ```

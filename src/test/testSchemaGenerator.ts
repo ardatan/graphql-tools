@@ -10,6 +10,8 @@ import {
   IntValueNode,
   parse,
   ExecutionResult,
+  GraphQLError,
+  GraphQLEnumType,
 } from 'graphql';
 // import { printSchema } from 'graphql';
 const GraphQLJSON = require('graphql-type-json');
@@ -21,10 +23,17 @@ import {
   addErrorLoggingToSchema,
   addSchemaLevelResolveFunction,
   attachConnectorsToContext,
+  attachDirectiveResolvers,
   chainResolvers,
   concatenateTypeDefs,
 } from '../schemaGenerator';
-import { IResolverValidationOptions, IResolvers } from '../Interfaces';
+import {
+  IResolverValidationOptions,
+  IResolvers,
+  IExecutableSchemaDefinition,
+  IDirectiveResolvers,
+  NextResolverFn,
+} from '../Interfaces';
 import 'mocha';
 
 interface Bird {
@@ -111,7 +120,7 @@ describe('generating schema from shorthand', () => {
   it('throws an error if no resolveFunctions are provided', () => {
     expect(() =>
       (<any>makeExecutableSchema)({ typeDefs: 'blah', resolvers: {} }),
-    ).to.throw('GraphQLError');
+    ).to.throw(GraphQLError);
   });
 
   it('throws an error if typeDefinitionNodes is neither string nor array nor schema AST', () => {
@@ -134,7 +143,7 @@ describe('generating schema from shorthand', () => {
         typeDefs: 'blah',
         resolvers: {},
         resolverValidationOptions: 'string',
-      }),
+      } as IExecutableSchemaDefinition),
     ).to.throw('Expected `resolverValidationOptions` to be an object');
   });
 
@@ -634,222 +643,298 @@ describe('generating schema from shorthand', () => {
     );
   });
 
-  it('supports passing a GraphQLScalarType in resolveFunctions', () => {
-    // Here GraphQLJSON is used as an example of non-default GraphQLScalarType
-    const shorthand = `
-      scalar JSON
+  describe('scalar types', () => {
+    it('supports passing a GraphQLScalarType in resolveFunctions', () => {
+      // Here GraphQLJSON is used as an example of non-default GraphQLScalarType
+      const shorthand = `
+        scalar JSON
 
-      type Foo {
-        aField: JSON
-      }
+        type Foo {
+          aField: JSON
+        }
 
-      type Query {
-        foo: Foo
-      }
-    `;
-    const resolveFunctions = {
-      JSON: GraphQLJSON,
-    };
-    const jsSchema = makeExecutableSchema({
-      typeDefs: shorthand,
-      resolvers: resolveFunctions,
+        type Query {
+          foo: Foo
+        }
+      `;
+      const resolveFunctions = {
+        JSON: GraphQLJSON,
+      };
+      const jsSchema = makeExecutableSchema({
+        typeDefs: shorthand,
+        resolvers: resolveFunctions,
+      });
+      expect(jsSchema.getQueryType().name).to.equal('Query');
+      expect(jsSchema.getType('JSON')).to.be.an.instanceof(GraphQLScalarType);
+      expect(jsSchema.getType('JSON'))
+        .to.have.property('description')
+        .that.is.a('string');
+      expect(jsSchema.getType('JSON')['description']).to.have.length.above(0);
     });
-    expect(jsSchema.getQueryType().name).to.equal('Query');
-    expect(jsSchema.getType('JSON')).to.be.an.instanceof(GraphQLScalarType);
-    expect(jsSchema.getType('JSON')).to.have
-      .property('description')
-      .that.is.a('string');
-    expect(jsSchema.getType('JSON')['description']).to.have.length.above(0);
-  });
 
-  it('should support custom scalar usage on client-side query execution', () => {
-    const shorthand = `
-      scalar CustomScalar
+    it('should support custom scalar usage on client-side query execution', () => {
+      const shorthand = `
+        scalar CustomScalar
 
-      type TestType {
-        testField: String
-      }
+        type TestType {
+          testField: String
+        }
 
-      type RootQuery {
-        myQuery(t: CustomScalar): TestType
-      }
+        type RootQuery {
+          myQuery(t: CustomScalar): TestType
+        }
 
-      schema {
-        query: RootQuery
-      }
-    `;
+        schema {
+          query: RootQuery
+        }
+      `;
 
-    const resolveFunctions = {
-      CustomScalar: new GraphQLScalarType({
-        name: 'CustomScalar',
-        serialize(value) {
-          return value;
-        },
-        parseValue(value) {
-          return value;
-        },
-        parseLiteral(ast: any) {
-          switch (ast.kind) {
-            case Kind.STRING:
-              return ast.value;
-            default:
-              return null;
+      const resolveFunctions = {
+        CustomScalar: new GraphQLScalarType({
+          name: 'CustomScalar',
+          serialize(value) {
+            return value;
+          },
+          parseValue(value) {
+            return value;
+          },
+          parseLiteral(ast: any) {
+            switch (ast.kind) {
+              case Kind.STRING:
+                return ast.value;
+              default:
+                return null;
+            }
+          },
+        }),
+      };
+
+      const testQuery = `
+        query myQuery($t: CustomScalar) {
+          myQuery(t: $t) {
+            testField
           }
-        },
-      }),
-    };
+        }`;
 
-    const testQuery = `
-      query myQuery($t: CustomScalar) {
-        myQuery(t: $t) {
-          testField
-        }
-      }`;
-
-    const jsSchema = makeExecutableSchema({
-      typeDefs: shorthand,
-      resolvers: resolveFunctions,
+      const jsSchema = makeExecutableSchema({
+        typeDefs: shorthand,
+        resolvers: resolveFunctions,
+      });
+      const resultPromise = graphql(jsSchema, testQuery);
+      return resultPromise.then(result => expect(result.errors).to.not.exist);
     });
-    const resultPromise = graphql(jsSchema, testQuery);
-    return resultPromise.then(result => expect(result.errors).to.not.exist);
+
+    it('should work with an Odd custom scalar type', () => {
+      const oddValue = (value: number) => {
+        return value % 2 === 1 ? value : null;
+      };
+
+      const OddType = new GraphQLScalarType({
+        name: 'Odd',
+        description: 'Odd custom scalar type',
+        parseValue: oddValue,
+        serialize: oddValue,
+        parseLiteral(ast) {
+          if (ast.kind === Kind.INT) {
+            const intValue: IntValueNode = <IntValueNode>ast;
+            return oddValue(parseInt(intValue.value, 10));
+          }
+          return null;
+        },
+      });
+
+      const typeDefs = `
+        scalar Odd
+
+        type Post {
+          id: Int!
+          title: String
+          something: Odd
+        }
+
+        type Query {
+          post: Post
+        }
+
+        schema {
+          query: Query
+        }
+      `;
+
+      const testValue = 3;
+      const resolvers = {
+        Odd: OddType,
+        Query: {
+          post() {
+            return {
+              id: 1,
+              title: 'My first post',
+              something: testValue,
+            };
+          },
+        },
+      };
+
+      const jsSchema = makeExecutableSchema({
+        typeDefs: typeDefs,
+        resolvers: resolvers,
+      });
+      const testQuery = `
+        {
+          post {
+            something
+          }
+        }
+  `;
+      const resultPromise = graphql(jsSchema, testQuery);
+      return resultPromise.then(result => {
+        assert.equal(result.data['post'].something, testValue);
+        assert.equal(result.errors, undefined);
+      });
+    });
+
+    it('should work with a Date custom scalar type', () => {
+      const DateType = new GraphQLScalarType({
+        name: 'Date',
+        description: 'Date custom scalar type',
+        parseValue(value) {
+          return new Date(value);
+        },
+        serialize(value) {
+          return value.getTime();
+        },
+        parseLiteral(ast) {
+          if (ast.kind === Kind.INT) {
+            const intValue: IntValueNode = <IntValueNode>ast;
+            return parseInt(intValue.value, 10);
+          }
+          return null;
+        },
+      });
+
+      const typeDefs = `
+        scalar Date
+
+        type Post {
+          id: Int!
+          title: String
+          something: Date
+        }
+
+        type Query {
+          post: Post
+        }
+
+        schema {
+          query: Query
+        }
+      `;
+
+      const testDate = new Date(2016, 0, 1);
+
+      const resolvers = {
+        Date: DateType,
+        Query: {
+          post() {
+            return {
+              id: 1,
+              title: 'My first post',
+              something: testDate,
+            };
+          },
+        },
+      };
+
+      const jsSchema = makeExecutableSchema({
+        typeDefs: typeDefs,
+        resolvers: resolvers,
+      });
+      const testQuery = `
+        {
+          post {
+            something
+          }
+        }
+  `;
+      const resultPromise = graphql(jsSchema, testQuery);
+      return resultPromise.then(result => {
+        assert.equal(result.data['post'].something, testDate.getTime());
+        assert.equal(result.errors, undefined);
+      });
+    });
   });
 
-  it('should work with an Odd custom scalar type', () => {
-    const oddValue = (value: number) => {
-      return value % 2 === 1 ? value : null;
-    };
-
-    const OddType = new GraphQLScalarType({
-      name: 'Odd',
-      description: 'Odd custom scalar type',
-      parseValue: oddValue,
-      serialize: oddValue,
-      parseLiteral(ast) {
-        if (ast.kind === Kind.INT) {
-          const intValue: IntValueNode = <IntValueNode>ast;
-          return oddValue(parseInt(intValue.value, 10));
+  describe('enum support', () => {
+    it('supports passing a GraphQLEnumType in resolveFunctions', () => {
+      const shorthand = `
+        enum Color {
+          RED
         }
-        return null;
-      },
-    });
 
-    const typeDefs = `
-      scalar Odd
+        schema {
+          query: Query
+        }
 
-      type Post {
-        id: Int!
-        title: String
-        something: Odd
-      }
+        type Query {
+          color: Color
+        }
+      `;
 
-      type Query {
-        post: Post
-      }
-
-      schema {
-        query: Query
-      }
-    `;
-
-    const testValue = 3;
-    const resolvers = {
-      Odd: OddType,
-      Query: {
-        post() {
-          return {
-            id: 1,
-            title: 'My first post',
-            something: testValue,
-          };
+      const resolveFunctions = {
+        Color: {
+          RED: '#EA3232',
         },
-      },
-    };
+      };
 
-    const jsSchema = makeExecutableSchema({
-      typeDefs: typeDefs,
-      resolvers: resolvers,
+      const jsSchema = makeExecutableSchema({
+        typeDefs: shorthand,
+        resolvers: resolveFunctions,
+      });
+
+      expect(jsSchema.getQueryType().name).to.equal('Query');
+      expect(jsSchema.getType('Color')).to.be.an.instanceof(GraphQLEnumType);
     });
-    const testQuery = `
-      {
-        post {
-          something
+
+    it('supports passing the value for a GraphQLEnumType in resolveFunctions', () => {
+      const shorthand = `
+        enum Color {
+          RED
         }
-      }
-`;
-    const resultPromise = graphql(jsSchema, testQuery);
-    return resultPromise.then(result => {
-      assert.equal(result.data['post'].something, testValue);
-      assert.equal(result.errors, undefined);
-    });
-  });
 
-  it('should work with a Date custom scalar type', () => {
-    const DateType = new GraphQLScalarType({
-      name: 'Date',
-      description: 'Date custom scalar type',
-      parseValue(value) {
-        return new Date(value);
-      },
-      serialize(value) {
-        return value.getTime();
-      },
-      parseLiteral(ast) {
-        if (ast.kind === Kind.INT) {
-          const intValue: IntValueNode = <IntValueNode>ast;
-          return parseInt(intValue.value, 10);
+        schema {
+          query: Query
         }
-        return null;
-      },
-    });
 
-    const typeDefs = `
-      scalar Date
+        type Query {
+          color: Color
+        }
+      `;
 
-      type Post {
-        id: Int!
-        title: String
-        something: Date
-      }
+      const testQuery = `{
+        color
+       }`;
 
-      type Query {
-        post: Post
-      }
-
-      schema {
-        query: Query
-      }
-    `;
-
-    const testDate = new Date(2016, 0, 1);
-
-    const resolvers = {
-      Date: DateType,
-      Query: {
-        post() {
-          return {
-            id: 1,
-            title: 'My first post',
-            something: testDate,
-          };
+      const resolveFunctions = {
+        Color: {
+          RED: '#EA3232',
         },
-      },
-    };
+        Query: {
+          color() {
+            return '#EA3232';
+          },
+        },
+      };
 
-    const jsSchema = makeExecutableSchema({
-      typeDefs: typeDefs,
-      resolvers: resolvers,
-    });
-    const testQuery = `
-      {
-        post {
-          something
-        }
-      }
-`;
-    const resultPromise = graphql(jsSchema, testQuery);
-    return resultPromise.then(result => {
-      assert.equal(result.data['post'].something, testDate.getTime());
-      assert.equal(result.errors, undefined);
+      const jsSchema = makeExecutableSchema({
+        typeDefs: shorthand,
+        resolvers: resolveFunctions,
+      });
+
+      const resultPromise = graphql(jsSchema, testQuery);
+      return resultPromise.then(result => {
+        assert.equal(result.data['color'], 'RED');
+        assert.equal(result.errors, undefined);
+      });
     });
   });
 
@@ -971,7 +1056,10 @@ describe('generating schema from shorthand', () => {
     const rf = { Query: { bird: 'NOT A FUNCTION' } };
 
     expect(() =>
-      makeExecutableSchema({ typeDefs: short, resolvers: rf }),
+      makeExecutableSchema({
+        typeDefs: short,
+        resolvers: rf,
+      } as IExecutableSchemaDefinition),
     ).to.throw('Resolver Query.bird must be object or function');
   });
 
@@ -1056,6 +1144,86 @@ describe('generating schema from shorthand', () => {
     expect(() =>
       makeExecutableSchema({ typeDefs: short, resolvers: rf }),
     ).to.throw(`Searchable was defined in resolvers, but it's not an object`);
+
+    expect(() =>
+      makeExecutableSchema({
+        typeDefs: short,
+        resolvers: rf,
+        resolverValidationOptions: {
+          allowResolversNotInSchema: true,
+        },
+      }),
+    ).to.not.throw();
+  });
+
+  it('throws if resolver defined for non existent type', () => {
+    const short = `
+      type Person {
+        name: String
+        age: Int
+      }
+      type RootQuery {
+        search(name: String): [Person]
+      }
+      schema {
+        query: RootQuery
+      }
+    `;
+
+    const rf = {
+      Searchable: {
+        name: () => 'Something',
+      },
+    };
+
+    expect(() =>
+      makeExecutableSchema({ typeDefs: short, resolvers: rf }),
+    ).to.throw(`"Searchable" defined in resolvers, but not in schema`);
+
+    expect(() =>
+      makeExecutableSchema({
+        typeDefs: short,
+        resolvers: rf,
+        resolverValidationOptions: {
+          allowResolversNotInSchema: true,
+        },
+      }),
+    ).to.not.throw();
+  });
+
+  it('doesnt let you define resolver field not present in schema', () => {
+    const short = `
+      type Person {
+        name: String
+        age: Int
+      }
+      type RootQuery {
+        search(name: String): [Person]
+      }
+      schema {
+        query: RootQuery
+      }
+    `;
+
+    const rf = {
+      RootQuery: {
+        name: () => 'Something',
+      },
+    };
+
+    expect(() =>
+      makeExecutableSchema({ typeDefs: short, resolvers: rf }),
+    ).to.throw(`RootQuery.name defined in resolvers, but not in schema`);
+
+    expect(() =>
+      makeExecutableSchema({
+        typeDefs: short,
+        resolvers: rf,
+        resolverValidationOptions: {
+          allowResolversNotInSchema: true,
+        },
+      }),
+    ).to.not.throw();
   });
 
   it('throws if conflicting validation options are passed', () => {
@@ -1846,12 +2014,267 @@ describe('chainResolvers', () => {
     const rChained = chainResolvers([r1, undefined, r3]);
     // faking the resolve info here.
     expect(
-      rChained(
-        0,
-        { name: 'tony' },
-        null,
-        { fieldName: 'person' } as GraphQLResolveInfo,
-      ),
+      rChained(0, { name: 'tony' }, null, {
+        fieldName: 'person',
+      } as GraphQLResolveInfo),
     ).to.equals('tony');
+  });
+});
+
+describe('attachDirectiveResolvers on field', () => {
+  const testSchemaWithDirectives = `
+    directive @upper on FIELD_DEFINITION
+    directive @lower on FIELD_DEFINITION
+    directive @default(value: String!) on FIELD_DEFINITION
+    directive @catchError on FIELD_DEFINITION
+
+    type TestObject {
+      hello: String @upper
+    }
+    type RootQuery {
+      hello: String @upper
+      withDefault: String @default(value: "some default_value")
+      object: TestObject
+      asyncResolver: String @upper
+      multiDirectives: String @upper @lower
+      throwError: String @catchError
+    }
+    schema {
+      query: RootQuery
+    }
+  `;
+
+  const testObject = {
+    hello: 'giau. tran minh',
+  };
+
+  const testResolversDirectives = {
+    RootQuery: {
+      hello: () => 'giau. tran minh',
+      object: () => testObject,
+      asyncResolver: async () => 'giau. tran minh',
+      multiDirectives: () => 'Giau. Tran Minh',
+      throwError: () => {
+        throw new Error('This error for testing');
+      },
+    },
+  };
+
+  const directiveResolvers: IDirectiveResolvers<any, any> = {
+    lower(
+      next: NextResolverFn,
+      src: any,
+      args: { [argName: string]: any },
+      context: any,
+    ) {
+      return next().then(str => {
+        if (typeof str === 'string') {
+          return str.toLowerCase();
+        }
+        return str;
+      });
+    },
+    upper(
+      next: NextResolverFn,
+      src: any,
+      args: { [argName: string]: any },
+      context: any,
+    ) {
+      return next().then(str => {
+        if (typeof str === 'string') {
+          return str.toUpperCase();
+        }
+        return str;
+      });
+    },
+    default(
+      next: NextResolverFn,
+      src: any,
+      args: { [argName: string]: any },
+      context: any,
+    ) {
+      return next().then(res => {
+        if (undefined === res) {
+          return args.value;
+        }
+        return res;
+      });
+    },
+    catchError(
+      next: NextResolverFn,
+      src: any,
+      args: { [argName: string]: any },
+      context: any,
+    ) {
+      return next().catch(error => {
+        return error.message;
+      });
+    },
+  };
+
+  it('throws error if directiveResolvers argument is an array', () => {
+    const jsSchema = makeExecutableSchema({
+      typeDefs: testSchema,
+      resolvers: testResolvers,
+    });
+    expect(() => (<any>attachDirectiveResolvers)(jsSchema, [1])).to.throw(
+      'Expected directiveResolvers to be of type object, got Array',
+    );
+  });
+
+  it('throws error if directiveResolvers argument is not an object', () => {
+    const jsSchema = makeExecutableSchema({
+      typeDefs: testSchema,
+      resolvers: testResolvers,
+    });
+    return expect(() =>
+      (<any>attachDirectiveResolvers)(jsSchema, 'a'),
+    ).to.throw('Expected directiveResolvers to be of type object, got string');
+  });
+
+  it('upper String from resolvers', () => {
+    const schema = makeExecutableSchema({
+      typeDefs: testSchemaWithDirectives,
+      resolvers: testResolversDirectives,
+      directiveResolvers: directiveResolvers,
+    });
+    const query = `{
+      hello
+    }`;
+    const expected = {
+      hello: 'GIAU. TRAN MINH',
+    };
+    return graphql(schema, query, {}, {}).then(res => {
+      expect(res.data).to.deep.equal(expected);
+    });
+  });
+
+  it('using default resolver for object property', () => {
+    const schema = makeExecutableSchema({
+      typeDefs: testSchemaWithDirectives,
+      resolvers: testResolversDirectives,
+      directiveResolvers: directiveResolvers,
+    });
+    const query = `{
+      object {
+        hello
+      }
+    }`;
+    const expected = {
+      object: {
+        hello: 'GIAU. TRAN MINH',
+      },
+    };
+    return graphql(schema, query, {}, {}).then(res => {
+      expect(res.data).to.deep.equal(expected);
+    });
+  });
+
+  it('passes in directive arguments to the directive resolver', () => {
+    const schema = makeExecutableSchema({
+      typeDefs: testSchemaWithDirectives,
+      resolvers: testResolversDirectives,
+      directiveResolvers: directiveResolvers,
+    });
+    const query = `{
+      withDefault
+    }`;
+    const expected = {
+      withDefault: 'some default_value',
+    };
+    return graphql(schema, query, {}, {}).then(res => {
+      expect(res.data).to.deep.equal(expected);
+    });
+  });
+
+  it('No effect if missing directive resolvers', () => {
+    const schema = makeExecutableSchema({
+      typeDefs: testSchemaWithDirectives,
+      resolvers: testResolversDirectives,
+      directiveResolvers: {}, // Empty resolver
+    });
+    const query = `{
+      hello
+    }`;
+    const expected = {
+      hello: 'giau. tran minh',
+    };
+    return graphql(schema, query, {}, {}).then(res => {
+      expect(res.data).to.deep.equal(expected);
+    });
+  });
+
+  it('If resolver return Promise, keep using it', () => {
+    const schema = makeExecutableSchema({
+      typeDefs: testSchemaWithDirectives,
+      resolvers: testResolversDirectives,
+      directiveResolvers: directiveResolvers,
+    });
+    const query = `{
+      asyncResolver
+    }`;
+    const expected = {
+      asyncResolver: 'GIAU. TRAN MINH',
+    };
+    return graphql(schema, query, {}, {}).then(res => {
+      expect(res.data).to.deep.equal(expected);
+    });
+  });
+
+  it('Multi directives apply with LTR order', () => {
+    const schema = makeExecutableSchema({
+      typeDefs: testSchemaWithDirectives,
+      resolvers: testResolversDirectives,
+      directiveResolvers: directiveResolvers,
+    });
+    const query = `{
+      multiDirectives
+    }`;
+    const expected = {
+      multiDirectives: 'giau. tran minh',
+    };
+    return graphql(schema, query, {}, {}).then(res => {
+      expect(res.data).to.deep.equal(expected);
+    });
+  });
+
+  it('Allow to catch error from next resolver', () => {
+    const schema = makeExecutableSchema({
+      typeDefs: testSchemaWithDirectives,
+      resolvers: testResolversDirectives,
+      directiveResolvers: directiveResolvers,
+    });
+    const query = `{
+      throwError
+    }`;
+    const expected = {
+      throwError: 'This error for testing',
+    };
+    return graphql(schema, query, {}, {}).then(res => {
+      expect(res.data).to.deep.equal(expected);
+    });
+  });
+
+  it('throws error if trying use undefined Directive', () => {
+    return expect(() => {
+      makeExecutableSchema({
+        typeDefs: `
+          type RootQuery {
+            hello: String @deprecated(reason: "Built-in directive work as normal") @upper
+          }
+          schema {
+            query: RootQuery
+          }
+        `,
+        resolvers: {
+          RootQuery: {
+            hello: () => 'never touch',
+          },
+        },
+        directiveResolvers: directiveResolvers,
+      });
+    }).to.throw(
+      'Directive @upper is undefined. Please define in schema before using',
+    );
   });
 });

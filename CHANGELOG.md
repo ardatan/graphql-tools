@@ -2,6 +2,87 @@
 
 ### vNEXT
 
+* ...
+
+### v2.13.0
+
+* (Experimental) Added support for custom directives on FIELD_DEFINITION that wrap resolvers with custom reusable logic.  [Issue #212](https://github.com/apollographql/graphql-tools/issues/212) [PR #518](https://github.com/apollographql/graphql-tools/pull/518) and [PR #529](https://github.com/apollographql/graphql-tools/pull/529)
+
+### v2.12.0
+
+* Allow passing in a string `schema` to `makeRemoteExecutableSchema` [PR #521](https://github.com/apollographql/graphql-tools/pull/521)
+
+### v2.11.0
+
+* Merge schema now can accept resolvers in a plain object format, mergeInfo added to GraphQLResolveInfo object in merged schema resolvers [PR #511](https://github.com/apollographql/graphql-tools/pull/511)
+
+### v2.10.0
+
+* Added basic support for custom Enums [Issue #363](https://github.com/apollographql/graphql-tools/issues/363) [PR #507](https://github.com/apollographql/graphql-tools/pull/507) [Read the docs here](https://www.apollographql.com/docs/graphql-tools/scalars.html#enums)
+
+### v2.9.0
+
+* Added basic subscription support for local schemas [Issue #420](https://github.com/apollographql/graphql-tools/issues/420) [PR #463](https://github.com/apollographql/graphql-tools/pull/463)
+* Fix input object default value not propagating to merged schema [Issue #497](https://github.com/apollographql/graphql-tools/issues/497) [PR #498](PR #463](https://github.com/apollographql/graphql-tools/pull/498)
+
+### v2.8.0
+
+* Add the option `resolverValidationOptions.allowResolversNotInSchema` to allow resolvers to be set even when they are not defined in the schemas [PR #444](https://github.com/apollographql/graphql-tools/pull/444)
+* Fix schema stitching bug when aliases are used with union types and fragments [PR #482](https://github.com/apollographql/graphql-tools/pull/482)
+* Remove `isTypeOf` guards from merged schemas [PR #484](https://github.com/apollographql/graphql-tools/pull/484)
+
+### v2.7.2
+
+* Incompatible fragments are now properly filtered [PR #470](https://github.com/apollographql/graphql-tools/pull/470)
+
+### v2.7.1
+
+* Made `resolvers` parameter optional for `mergeSchemas` [Issue #461](https://github.com/apollographql/graphql-tools/issues/461) [PR #462](https://github.com/apollographql/graphql-tools/pull/462)
+* Make it possible to define interfaces in schema extensions [PR #464](https://github.com/apollographql/graphql-tools/pull/464)
+
+### v2.7.0
+
+* Upgraded versions of dependencies
+
+### v2.6.1
+
+* Fix one place where `apollo-link` was being used directly
+
+### v2.6.0
+
+* Removed direct dependency on Apollo Link, while keeping the API the same, to work around a Launchpad npm installation issue temporarily.
+* Parse type, field, and argument descriptions in `typeFromAST`. This allows the
+  descriptions to be part of the schema when using helpers like `mergeSchemas()`.
+
+### v2.5.0
+
+* Add ability to pass types in extension strings [Issue #427](https://github.com/apollographql/graphql-tools/issues/427) [PR #430](https://github.com/apollographql/graphql-tools/pull/430)
+
+### v2.4.0
+
+* Translate errors better in merged schema [Issue #419](https://github.com/apollographql/graphql-tools/issues/419) [PR #425](https://github.com/apollographql/graphql-tools/pull/425)
+
+### v2.3.0
+
+* Fix alias issues [Issue #415](https://github.com/apollographql/graphql-tools/issues/415) [PR #418](https://github.com/apollographql/graphql-tools/pull/418)
+* Make `@types/graphql` a dev dependency and make it's version as flexible as `graphql` [PR #421](https://github.com/apollographql/graphql-tools/pull/421)
+
+### v2.2.1
+
+* Fix inability to add recursive queries [PR #413](https://github.com/apollographql/graphql-tools/pull/413)
+
+### v2.2.0
+
+* Change link API to pass GraphQL context as `graphqlContext` field of link
+  context to avoid merging problems
+* Fix alias problems in schema merging [PR #411](https://github.com/apollographql/graphql-tools/pull/411)
+
+### v2.1.0
+* Added support for passing an Apollo Link instead of a fetcher
+
+### v2.0.0
+* Add schema merging utilities [PR #382](https://github.com/apollographql/graphql-tools/pull/382)
+
 ### v1.2.3
 * Update package.json to allow GraphQL.js 0.11 [Issue #394](https://github.com/apollographql/graphql-tools/issues/394) [PR #395](https://github.com/apollographql/graphql-tools/pull/395)
 
@@ -53,11 +134,11 @@
 ### v0.8.2
 
 * Accept an async function for the schema level resolver. ([@ephemer](https://github.com/ephemer) in [#199](https://github.com/apollostack/graphql-tools/pull/199))
-* Fix for new custom scalar support introduced in `0.8.1`. ([@oricordeau](https://github.com/oricordeau) in [#203](https://github.com/apollostack/graphql-tools/pull/203)
+* Fix for new custom scalar support introduced in `0.8.1`. ([@oricordeau](https://github.com/oricordeau) in [#203](https://github.com/apollostack/graphql-tools/pull/203))
 
 ### v0.8.1
 
-* Support custom scalar types developed for GraphQL.js, such as [graphql-type-json](https://github.com/taion/graphql-type-json). ([@oricordeau](https://github.com/oricordeau) in [#189](https://github.com/apollostack/graphql-tools/pull/189)
+* Support custom scalar types developed for GraphQL.js, such as [graphql-type-json](https://github.com/taion/graphql-type-json). ([@oricordeau](https://github.com/oricordeau) in [#189](https://github.com/apollostack/graphql-tools/pull/189))
 
 ### v0.8.0
 
@@ -112,12 +193,12 @@
 
 ### v0.6.3
 
-* Unpin babel-core version to solve build problem (PR #92)
-* Added support for `extend` keyword to schemaGenerator https://github.com/apollostack/graphql-tools/pull/90
+* Unpin babel-core version to solve build problem (PR [#92](https://github.com/apollographql/graphql-tools/pull/92))
+* Added support for `extend` keyword to schemaGenerator (PR [#90](https://github.com/apollostack/graphql-tools/pull/90))
 
 ### v0.6.2
 
-* Fix a bug with addSchemaLevelResolveFunction. It now runs once per tick (PR #91)
+* Fix a bug with addSchemaLevelResolveFunction. It now runs once per tick (PR [#91](https://github.com/apollographql/graphql-tools/pull/91))
 
 ### v0.5.2
 

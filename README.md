@@ -1,14 +1,25 @@
 # GraphQL-tools: generate and mock GraphQL.js schemas
+
 [![npm version](https://badge.fury.io/js/graphql-tools.svg)](https://badge.fury.io/js/graphql-tools)
 [![Build Status](https://travis-ci.org/apollographql/graphql-tools.svg?branch=master)](https://travis-ci.org/apollographql/graphql-tools)
 [![Coverage Status](https://coveralls.io/repos/github/apollographql/graphql-tools/badge.svg?branch=master)](https://coveralls.io/github/apollographql/graphql-tools?branch=master)
 [![Get on Slack](https://img.shields.io/badge/slack-join-orange.svg)](http://www.apollostack.com/#slack)
 
-This package allows you to use the GraphQL schema language to build your [GraphQL.js](https://github.com/graphql/graphql-js) schema, and also includes useful schema tools like per-type mocking.
+This package provides a few useful ways to create a GraphQL schema:
+
+1. Use the GraphQL schema language to [generate a schema](https://www.apollographql.com/docs/graphql-tools/generate-schema.html) with full support for resolvers, interfaces, unions, and custom scalars. The schema produced is completely compatible with [GraphQL.js](https://github.com/graphql/graphql-js).
+2. [Mock your GraphQL API](https://www.apollographql.com/docs/graphql-tools/mocking.html) with fine-grained per-type mocking
+3. Automatically [stitch multiple schemas together](https://www.apollographql.com/docs/graphql-tools/schema-stitching.html) into one larger API
 
 ## Documentation
 
-[Read the docs.](http://dev.apollodata.com/tools/graphql-tools/index.html)
+[Read the docs.](https://www.apollographql.com/docs/graphql-tools/)
+
+## Binding to HTTP
+
+If you want to bind your JavaScript GraphQL schema to an HTTP server, we recommend using [Apollo Server](https://github.com/apollographql/apollo-server/), which supports every popular Node HTTP server library including Express, Koa, Hapi, and more.
+
+JavaScript GraphQL servers are often developed with `graphql-tools` and `apollo-server-express` together: One to write the schema and resolver code, and the other to connect it to a web server.
 
 ## Example
 
@@ -101,7 +112,7 @@ const executableSchema = makeExecutableSchema({
 });
 ```
 
-This example has the entire type definition in one string and all resolvers in one file, but you can combine types and resolvers from multiple files and objects, as documented in the [modularizing the schema](http://dev.apollodata.com/tools/graphql-tools/generate-schema.html#modularizing) section of the docs.
+This example has the entire type definition in one string and all resolvers in one file, but you can combine types and resolvers from multiple files and objects, as documented in the [modularizing the schema](https://www.apollographql.com/docs/graphql-tools/generate-schema.html#modularizing) section of the docs.
 
 ## Contributions
 
