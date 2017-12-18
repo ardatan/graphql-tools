@@ -23,6 +23,7 @@ import {
   addErrorLoggingToSchema,
   addSchemaLevelResolveFunction,
   attachConnectorsToContext,
+  attachDirectiveResolvers,
   chainResolvers,
   concatenateTypeDefs,
 } from '../schemaGenerator';
@@ -30,6 +31,8 @@ import {
   IResolverValidationOptions,
   IResolvers,
   IExecutableSchemaDefinition,
+  IDirectiveResolvers,
+  NextResolverFn,
 } from '../Interfaces';
 import 'mocha';
 
@@ -879,7 +882,7 @@ describe('generating schema from shorthand', () => {
 
       const resolveFunctions = {
         Color: {
-          RED: '#EA3232'
+          RED: '#EA3232',
         },
       };
 
@@ -913,7 +916,7 @@ describe('generating schema from shorthand', () => {
 
       const resolveFunctions = {
         Color: {
-          RED: '#EA3232'
+          RED: '#EA3232',
         },
         Query: {
           color() {
@@ -926,7 +929,6 @@ describe('generating schema from shorthand', () => {
         typeDefs: shorthand,
         resolvers: resolveFunctions,
       });
-
 
       const resultPromise = graphql(jsSchema, testQuery);
       return resultPromise.then(result => {
@@ -1144,9 +1146,13 @@ describe('generating schema from shorthand', () => {
     ).to.throw(`Searchable was defined in resolvers, but it's not an object`);
 
     expect(() =>
-      makeExecutableSchema({ typeDefs: short, resolvers: rf, resolverValidationOptions: {
-        allowResolversNotInSchema: true,
-      }}),
+      makeExecutableSchema({
+        typeDefs: short,
+        resolvers: rf,
+        resolverValidationOptions: {
+          allowResolversNotInSchema: true,
+        },
+      }),
     ).to.not.throw();
   });
 
@@ -1175,9 +1181,13 @@ describe('generating schema from shorthand', () => {
     ).to.throw(`"Searchable" defined in resolvers, but not in schema`);
 
     expect(() =>
-      makeExecutableSchema({ typeDefs: short, resolvers: rf, resolverValidationOptions: {
-        allowResolversNotInSchema: true,
-      }}),
+      makeExecutableSchema({
+        typeDefs: short,
+        resolvers: rf,
+        resolverValidationOptions: {
+          allowResolversNotInSchema: true,
+        },
+      }),
     ).to.not.throw();
   });
 
@@ -1206,9 +1216,13 @@ describe('generating schema from shorthand', () => {
     ).to.throw(`RootQuery.name defined in resolvers, but not in schema`);
 
     expect(() =>
-      makeExecutableSchema({ typeDefs: short, resolvers: rf, resolverValidationOptions: {
-        allowResolversNotInSchema: true,
-      }}),
+      makeExecutableSchema({
+        typeDefs: short,
+        resolvers: rf,
+        resolverValidationOptions: {
+          allowResolversNotInSchema: true,
+        },
+      }),
     ).to.not.throw();
   });
 
@@ -2004,5 +2018,263 @@ describe('chainResolvers', () => {
         fieldName: 'person',
       } as GraphQLResolveInfo),
     ).to.equals('tony');
+  });
+});
+
+describe('attachDirectiveResolvers on field', () => {
+  const testSchemaWithDirectives = `
+    directive @upper on FIELD_DEFINITION
+    directive @lower on FIELD_DEFINITION
+    directive @default(value: String!) on FIELD_DEFINITION
+    directive @catchError on FIELD_DEFINITION
+
+    type TestObject {
+      hello: String @upper
+    }
+    type RootQuery {
+      hello: String @upper
+      withDefault: String @default(value: "some default_value")
+      object: TestObject
+      asyncResolver: String @upper
+      multiDirectives: String @upper @lower
+      throwError: String @catchError
+    }
+    schema {
+      query: RootQuery
+    }
+  `;
+
+  const testObject = {
+    hello: 'giau. tran minh',
+  };
+
+  const testResolversDirectives = {
+    RootQuery: {
+      hello: () => 'giau. tran minh',
+      object: () => testObject,
+      asyncResolver: async () => 'giau. tran minh',
+      multiDirectives: () => 'Giau. Tran Minh',
+      throwError: () => {
+        throw new Error('This error for testing');
+      },
+    },
+  };
+
+  const directiveResolvers: IDirectiveResolvers<any, any> = {
+    lower(
+      next: NextResolverFn,
+      src: any,
+      args: { [argName: string]: any },
+      context: any,
+    ) {
+      return next().then(str => {
+        if (typeof str === 'string') {
+          return str.toLowerCase();
+        }
+        return str;
+      });
+    },
+    upper(
+      next: NextResolverFn,
+      src: any,
+      args: { [argName: string]: any },
+      context: any,
+    ) {
+      return next().then(str => {
+        if (typeof str === 'string') {
+          return str.toUpperCase();
+        }
+        return str;
+      });
+    },
+    default(
+      next: NextResolverFn,
+      src: any,
+      args: { [argName: string]: any },
+      context: any,
+    ) {
+      return next().then(res => {
+        if (undefined === res) {
+          return args.value;
+        }
+        return res;
+      });
+    },
+    catchError(
+      next: NextResolverFn,
+      src: any,
+      args: { [argName: string]: any },
+      context: any,
+    ) {
+      return next().catch(error => {
+        return error.message;
+      });
+    },
+  };
+
+  it('throws error if directiveResolvers argument is an array', () => {
+    const jsSchema = makeExecutableSchema({
+      typeDefs: testSchema,
+      resolvers: testResolvers,
+    });
+    expect(() => (<any>attachDirectiveResolvers)(jsSchema, [1])).to.throw(
+      'Expected directiveResolvers to be of type object, got Array',
+    );
+  });
+
+  it('throws error if directiveResolvers argument is not an object', () => {
+    const jsSchema = makeExecutableSchema({
+      typeDefs: testSchema,
+      resolvers: testResolvers,
+    });
+    return expect(() =>
+      (<any>attachDirectiveResolvers)(jsSchema, 'a'),
+    ).to.throw('Expected directiveResolvers to be of type object, got string');
+  });
+
+  it('upper String from resolvers', () => {
+    const schema = makeExecutableSchema({
+      typeDefs: testSchemaWithDirectives,
+      resolvers: testResolversDirectives,
+      directiveResolvers: directiveResolvers,
+    });
+    const query = `{
+      hello
+    }`;
+    const expected = {
+      hello: 'GIAU. TRAN MINH',
+    };
+    return graphql(schema, query, {}, {}).then(res => {
+      expect(res.data).to.deep.equal(expected);
+    });
+  });
+
+  it('using default resolver for object property', () => {
+    const schema = makeExecutableSchema({
+      typeDefs: testSchemaWithDirectives,
+      resolvers: testResolversDirectives,
+      directiveResolvers: directiveResolvers,
+    });
+    const query = `{
+      object {
+        hello
+      }
+    }`;
+    const expected = {
+      object: {
+        hello: 'GIAU. TRAN MINH',
+      },
+    };
+    return graphql(schema, query, {}, {}).then(res => {
+      expect(res.data).to.deep.equal(expected);
+    });
+  });
+
+  it('passes in directive arguments to the directive resolver', () => {
+    const schema = makeExecutableSchema({
+      typeDefs: testSchemaWithDirectives,
+      resolvers: testResolversDirectives,
+      directiveResolvers: directiveResolvers,
+    });
+    const query = `{
+      withDefault
+    }`;
+    const expected = {
+      withDefault: 'some default_value',
+    };
+    return graphql(schema, query, {}, {}).then(res => {
+      expect(res.data).to.deep.equal(expected);
+    });
+  });
+
+  it('No effect if missing directive resolvers', () => {
+    const schema = makeExecutableSchema({
+      typeDefs: testSchemaWithDirectives,
+      resolvers: testResolversDirectives,
+      directiveResolvers: {}, // Empty resolver
+    });
+    const query = `{
+      hello
+    }`;
+    const expected = {
+      hello: 'giau. tran minh',
+    };
+    return graphql(schema, query, {}, {}).then(res => {
+      expect(res.data).to.deep.equal(expected);
+    });
+  });
+
+  it('If resolver return Promise, keep using it', () => {
+    const schema = makeExecutableSchema({
+      typeDefs: testSchemaWithDirectives,
+      resolvers: testResolversDirectives,
+      directiveResolvers: directiveResolvers,
+    });
+    const query = `{
+      asyncResolver
+    }`;
+    const expected = {
+      asyncResolver: 'GIAU. TRAN MINH',
+    };
+    return graphql(schema, query, {}, {}).then(res => {
+      expect(res.data).to.deep.equal(expected);
+    });
+  });
+
+  it('Multi directives apply with LTR order', () => {
+    const schema = makeExecutableSchema({
+      typeDefs: testSchemaWithDirectives,
+      resolvers: testResolversDirectives,
+      directiveResolvers: directiveResolvers,
+    });
+    const query = `{
+      multiDirectives
+    }`;
+    const expected = {
+      multiDirectives: 'giau. tran minh',
+    };
+    return graphql(schema, query, {}, {}).then(res => {
+      expect(res.data).to.deep.equal(expected);
+    });
+  });
+
+  it('Allow to catch error from next resolver', () => {
+    const schema = makeExecutableSchema({
+      typeDefs: testSchemaWithDirectives,
+      resolvers: testResolversDirectives,
+      directiveResolvers: directiveResolvers,
+    });
+    const query = `{
+      throwError
+    }`;
+    const expected = {
+      throwError: 'This error for testing',
+    };
+    return graphql(schema, query, {}, {}).then(res => {
+      expect(res.data).to.deep.equal(expected);
+    });
+  });
+
+  it('throws error if trying use undefined Directive', () => {
+    return expect(() => {
+      makeExecutableSchema({
+        typeDefs: `
+          type RootQuery {
+            hello: String @deprecated(reason: "Built-in directive work as normal") @upper
+          }
+          schema {
+            query: RootQuery
+          }
+        `,
+        resolvers: {
+          RootQuery: {
+            hello: () => 'never touch',
+          },
+        },
+        directiveResolvers: directiveResolvers,
+      });
+    }).to.throw(
+      'Directive @upper is undefined. Please define in schema before using',
+    );
   });
 });
