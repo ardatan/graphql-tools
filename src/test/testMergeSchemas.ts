@@ -69,6 +69,11 @@ type Query {
 }
 `;
 
+let graphql11compat = '';
+if (process.env.GRAPHQL_VERSION === '^0.11') {
+  graphql11compat = '{}';
+}
+
 const linkSchema = `
   # A new type linking the Property type.
   type LinkType {
@@ -104,7 +109,7 @@ const linkSchema = `
     nodes: [Node]
   }
 
-  extend type Customer implements Node
+  extend type Customer implements Node ${graphql11compat}
 `;
 
 testCombinations.forEach(async combination => {
