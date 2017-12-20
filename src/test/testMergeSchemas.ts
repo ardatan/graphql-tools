@@ -112,6 +112,12 @@ const linkSchema = `
   extend type Customer implements Node ${graphql11compat}
 `;
 
+const loneExtend = `
+  extend type Booking {
+    foo: String!
+  }
+`;
+
 testCombinations.forEach(async combination => {
   describe('merging ' + combination.name, () => {
     let mergedSchema: GraphQLSchema,
@@ -129,6 +135,7 @@ testCombinations.forEach(async combination => {
           scalarTest,
           enumTest,
           linkSchema,
+          loneExtend,
           localSubscriptionSchema,
         ],
         resolvers: {
