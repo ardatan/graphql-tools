@@ -71,7 +71,9 @@ export default function mergeSchemas({
           parsedSchemaDocument,
           backcompatOptions,
         );
-        actualSchemas.push(actualSchema);
+        if (actualSchema.getQueryType()) {
+          actualSchemas.push(actualSchema);
+        }
       } catch (e) {
         typeFragments.push(parsedSchemaDocument);
       }
