@@ -4,6 +4,10 @@
 
 * ...
 
+### v2.14.1
+
+* Add guard against invalid schemas being constructed from AST [PR #547](https://github.com/apollographql/graphql-tools/pull/547)
+
 ### v2.14.0
 
 Update to add support for `graphql@0.12`, and drop versions before `0.11` from the peer dependencies list. The `graphql` package has some breaking changes you might need to be aware of, but there aren't any breaking changes in `graphql-tools` itself, or common usage patterns, so we are shipping this as a minor version. We're also running tests on this package with _both_ `graphql@0.11` and `graphql@0.12` until we confirm most users have updated.
