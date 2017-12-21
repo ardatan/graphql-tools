@@ -25,6 +25,7 @@ import {
   execute,
   visit,
   subscribe,
+  validate,
 } from 'graphql';
 import { checkResultAndHandleErrors } from './errors';
 
@@ -59,6 +60,11 @@ export default async function delegateToSchema(
       info.operation.variableDefinitions,
     );
 
+    const errors = validate(schema, graphqlDoc);
+    if (errors.length > 0) {
+      throw errors;
+    }
+    
     const operationDefinition = graphqlDoc.definitions.find(
       ({ kind }) => kind === Kind.OPERATION_DEFINITION,
     );
