@@ -39,7 +39,7 @@ A link is a function capable of retrieving GraphQL results. It is the same way t
   Link API
 </h3>
 
-Since graphql-tools supports using a link for the network layer, the API is the same as you would write on the client. To learn more about how Apollo Link works, check out the [docs](https://apollo-links-docs.netlify.com/links); Both GraphQL and Apollo Links have slightly varying concepts of what `context` is used for. To make it easy to use your GraphQL context to create your Apollo Link context, `makeRemoteExecutableSchema` attaches the context from the graphql resolver onto the link context under `graphqlContext`.
+Since graphql-tools supports using a link for the network layer, the API is the same as you would write on the client. To learn more about how Apollo Link works, check out the [docs](https://apollo-link-docs.netlify.com/docs/link/); Both GraphQL and Apollo Links have slightly varying concepts of what `context` is used for. To make it easy to use your GraphQL context to create your Apollo Link context, `makeRemoteExecutableSchema` attaches the context from the graphql resolver onto the link context under `graphqlContext`.
 
 Basic usage
 
