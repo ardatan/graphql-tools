@@ -2062,12 +2062,13 @@ describe('attachDirectiveResolvers on field', () => {
 
   const directiveResolvers: IDirectiveResolvers<any, any> = {
     lower(
-      next: NextResolverFn,
+      next: NextResolverFn<any>,
       src: any,
+      inputArgs: { [argName: string]: any },
       args: { [argName: string]: any },
       context: any,
     ) {
-      return next().then(str => {
+      return next(src, inputArgs).then(str => {
         if (typeof str === 'string') {
           return str.toLowerCase();
         }
@@ -2075,12 +2076,13 @@ describe('attachDirectiveResolvers on field', () => {
       });
     },
     upper(
-      next: NextResolverFn,
+      next: NextResolverFn<any>,
       src: any,
+      inputArgs: { [argName: string]: any },
       args: { [argName: string]: any },
       context: any,
     ) {
-      return next().then(str => {
+      return next(src, inputArgs).then(str => {
         if (typeof str === 'string') {
           return str.toUpperCase();
         }
@@ -2088,12 +2090,13 @@ describe('attachDirectiveResolvers on field', () => {
       });
     },
     default(
-      next: NextResolverFn,
+      next: NextResolverFn<any>,
       src: any,
+      inputArgs: { [argName: string]: any },
       args: { [argName: string]: any },
       context: any,
     ) {
-      return next().then(res => {
+      return next(src, inputArgs).then(res => {
         if (undefined === res) {
           return args.value;
         }
@@ -2101,12 +2104,13 @@ describe('attachDirectiveResolvers on field', () => {
       });
     },
     catchError(
-      next: NextResolverFn,
+      next: NextResolverFn<any>,
       src: any,
+      inputArgs: { [argName: string]: any },
       args: { [argName: string]: any },
       context: any,
     ) {
-      return next().catch(error => {
+      return next(src, inputArgs).catch(error => {
         return error.message;
       });
     },
