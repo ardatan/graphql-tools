@@ -208,10 +208,14 @@ You can use it in your schema anywhere you could use a scalar:
 
 ```graphql
 type Query {
-  # As a return value
+  """
+  As a return value
+  """
   favoriteColor: AllowedColor
 
-  # As an argument
+  """
+  As an argument
+  """
   avatar(borderColor: AllowedColor): String
 }
 ```
@@ -249,10 +253,14 @@ const typeDefs = `
   }
 
   type Query {
-    # As a return value
+    """
+    As a return value
+    """
     favoriteColor: AllowedColor
 
-    # As an argument
+    """
+    As an argument
+    """
     avatar(borderColor: AllowedColor): String
   }
 `;

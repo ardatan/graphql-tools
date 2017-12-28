@@ -38,13 +38,19 @@ const testCombinations = [
 ];
 
 const scalarTest = `
-  # Description of TestScalar.
+  """
+  Description of TestScalar.
+  """
   scalar TestScalar
 
-  # Description of AnotherNewScalar.
+  """
+  Description of AnotherNewScalar.
+  """
   scalar AnotherNewScalar
 
-  # A type that uses TestScalar.
+  """
+  A type that uses TestScalar.
+  """
   type TestingScalar {
     value: TestScalar
   }
@@ -55,7 +61,9 @@ const scalarTest = `
 `;
 
 const enumTest = `
-# A type that uses an Enum.
+"""
+A type that uses an Enum.
+"""
 enum Color {
   RED
 }
@@ -75,10 +83,14 @@ if (process.env.GRAPHQL_VERSION === '^0.11') {
 }
 
 const linkSchema = `
-  # A new type linking the Property type.
+  """
+  A new type linking the Property type.
+  """
   type LinkType {
     test: String
-    # The property.
+    """
+    The property.
+    """
     property: Property
   }
 
@@ -88,14 +100,20 @@ const linkSchema = `
 
 
   extend type Booking implements Node {
-    # The property of the booking.
+    """
+    The property of the booking.
+    """
     property: Property
   }
 
   extend type Property implements Node {
-    # A list of bookings.
+    """
+    A list of bookings.
+    """
     bookings(
-      # The maximum number of bookings to retrieve.
+      """
+      The maximum number of bookings to retrieve.
+      """
       limit: Int
     ): [Booking]
   }
@@ -103,7 +121,9 @@ const linkSchema = `
   extend type Query {
     delegateInterfaceTest: TestInterface
     delegateArgumentTest(arbitraryArg: Int): Property
-    # A new field on the root query.
+    """
+    A new field on the root query.
+    """
     linkTest: LinkType
     node(id: ID!): Node
     nodes: [Node]

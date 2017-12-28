@@ -17,7 +17,10 @@ const typeDefs = `
     id: Int!
     firstName: String
     lastName: String
-    posts: [Post] # the list of Posts by this author
+    """
+    the list of Posts by this author
+    """
+    posts: [Post]
   }
 
   type Post {
@@ -27,13 +30,17 @@ const typeDefs = `
     votes: Int
   }
 
-  # the schema allows the following query:
+  """
+  the schema allows the following query:
+  """
   type Query {
     posts: [Post]
     author(id: Int!): Author
   }
 
-  # this schema allows the following mutation:
+  """
+  this schema allows the following mutation:
+  """
   type Mutation {
     upvotePost (
       postId: Int!
@@ -279,19 +286,29 @@ const typeDefs = [`
 
 <h2 id="descriptions">Descriptions &amp; Deprecations</h2>
 GraphiQL has built-in support for displaying docstrings with markdown syntax. You can easily add docstrings to types, fields and arguments like below:
+
 ```
-# Description for the type
+"""
+Description for the type
+"""
 type MyObjectType {
-  # Description for field
+  """
+  Description for field
+  Supports multi-line description
+  """
   myField: String!
 
   otherField(
-    # Description for argument
+    """
+    Description for argument
+    """
     arg: Int
   )
 
   oldField(
-    # Description for argument
+    """
+    Description for argument
+    """
     arg: Int
   ) @deprecated(reason: "Use otherField instead.")
 }
