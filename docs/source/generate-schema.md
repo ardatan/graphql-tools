@@ -30,17 +30,13 @@ const typeDefs = `
     votes: Int
   }
 
-  """
-  the schema allows the following query:
-  """
+  # the schema allows the following query:
   type Query {
     posts: [Post]
     author(id: Int!): Author
   }
 
-  """
-  this schema allows the following mutation:
-  """
+  # this schema allows the following mutation:
   type Mutation {
     upvotePost (
       postId: Int!

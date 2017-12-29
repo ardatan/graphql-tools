@@ -37,7 +37,7 @@ const testCombinations = [
   },
 ];
 
-const scalarTest = `
+let scalarTest = `
   """
   Description of TestScalar.
   """
@@ -60,29 +60,24 @@ const scalarTest = `
   }
 `;
 
-const enumTest = `
-"""
-A type that uses an Enum.
-"""
-enum Color {
-  RED
-}
+let enumTest = `
+  """
+  A type that uses an Enum.
+  """
+  enum Color {
+    RED
+  }
 
-schema {
-  query: Query
-}
+  schema {
+    query: Query
+  }
 
-type Query {
-  color: Color
-}
+  type Query {
+    color: Color
+  }
 `;
 
-let graphql11compat = '';
-if (process.env.GRAPHQL_VERSION === '^0.11') {
-  graphql11compat = '{}';
-}
-
-const linkSchema = `
+let linkSchema = `
   """
   A new type linking the Property type.
   """
@@ -129,7 +124,7 @@ const linkSchema = `
     nodes: [Node]
   }
 
-  extend type Customer implements Node ${graphql11compat}
+  extend type Customer implements Node
 `;
 
 const loneExtend = `
@@ -137,6 +132,77 @@ const loneExtend = `
     foo: String!
   }
 `;
+
+if (process.env.GRAPHQL_VERSION === '^0.11') {
+  scalarTest = `
+    # Description of TestScalar.
+    scalar TestScalar
+
+    # Description of AnotherNewScalar.
+    scalar AnotherNewScalar
+
+    # A type that uses TestScalar.
+    type TestingScalar {
+      value: TestScalar
+    }
+
+    type Query {
+      testingScalar: TestingScalar
+    }
+  `;
+
+  enumTest = `
+    # A type that uses an Enum.
+    enum Color {
+      RED
+    }
+
+    schema {
+      query: Query
+    }
+
+    type Query {
+      color: Color
+    }
+  `;
+
+  linkSchema = `
+    # A new type linking the Property type.
+    type LinkType {
+      test: String
+      # The property.
+      property: Property
+    }
+
+    interface Node {
+      id: ID!
+    }
+
+    extend type Booking implements Node {
+      # The property of the booking.
+      property: Property
+    }
+
+    extend type Property implements Node {
+      # A list of bookings.
+      bookings(
+        # The maximum number of bookings to retrieve.
+        limit: Int
+      ): [Booking]
+    }
+
+    extend type Query {
+      delegateInterfaceTest: TestInterface
+      delegateArgumentTest(arbitraryArg: Int): Property
+      # A new field on the root query.
+      linkTest: LinkType
+      node(id: ID!): Node
+      nodes: [Node]
+    }
+
+    extend type Customer implements Node
+  `;
+}
 
 testCombinations.forEach(async combination => {
   describe('merging ' + combination.name, () => {

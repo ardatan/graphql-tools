@@ -31,10 +31,7 @@ When using `graphql-tools`, you describe the schema as a GraphQL type language s
 
 const typeDefs = `
 type Author {
-  """
-  the ! means that every author object _must_ have an id
-  """
-  id: ID!
+  id: ID! # the ! means that every author object _must_ have an id
   firstName: String
   lastName: String
   """
@@ -50,26 +47,20 @@ type Post {
   votes: Int
 }
 
-"""
-the schema allows the following query:
-"""
+# the schema allows the following query:
 type Query {
   posts: [Post]
 }
 
-"""
-this schema allows the following mutation:
-"""
+# this schema allows the following mutation:
 type Mutation {
   upvotePost (
     postId: ID!
   ): Post
 }
 
-"""
-we need to tell the server which types represent the root query
-and root mutation types. We call them RootQuery and RootMutation by convention.
-"""
+# we need to tell the server which types represent the root query
+# and root mutation types. We call them RootQuery and RootMutation by convention.
 schema {
   query: Query
   mutation: Mutation

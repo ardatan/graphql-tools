@@ -67,10 +67,7 @@ query {
     posts {
       title
       author {
-        """
-        this will be the same as the name above
-        """
-        name
+        name  # this will be the same as the name above
       }
     }
   }
