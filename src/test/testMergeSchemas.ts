@@ -77,48 +77,6 @@ let enumTest = `
   }
 `;
 
-const loneExtend = `
-  extend type Booking {
-    foo: String!
-  }
-`;
-
-if (process.env.GRAPHQL_VERSION === '^0.11') {
-  scalarTest = `
-    # Description of TestScalar.
-    scalar TestScalar
-
-    # Description of AnotherNewScalar.
-    scalar AnotherNewScalar
-
-    # A type that uses TestScalar.
-    type TestingScalar {
-      value: TestScalar
-    }
-
-    type Query {
-      testingScalar: TestingScalar
-    }
-  `;
-
-  enumTest = `
-    # A type that uses an Enum.
-    enum Color {
-      RED
-    }
-
-    schema {
-      query: Query
-    }
-
-    type Query {
-      color: Color
-    }
-  `;
-}
-
-let graphql11compat = '';
-
 let linkSchema = `
   """
   A new type linking the Property type.
@@ -166,10 +124,48 @@ let linkSchema = `
     nodes: [Node]
   }
 
-  extend type Customer implements Node ${graphql11compat}
+  extend type Customer implements Node
 `;
+
+const loneExtend = `
+  extend type Booking {
+    foo: String!
+  }
+`;
+
 if (process.env.GRAPHQL_VERSION === '^0.11') {
-  graphql11compat = '{}';
+  scalarTest = `
+    # Description of TestScalar.
+    scalar TestScalar
+
+    # Description of AnotherNewScalar.
+    scalar AnotherNewScalar
+
+    # A type that uses TestScalar.
+    type TestingScalar {
+      value: TestScalar
+    }
+
+    type Query {
+      testingScalar: TestingScalar
+    }
+  `;
+
+  enumTest = `
+    # A type that uses an Enum.
+    enum Color {
+      RED
+    }
+
+    schema {
+      query: Query
+    }
+
+    type Query {
+      color: Color
+    }
+  `;
+
   linkSchema = `
     # A new type linking the Property type.
     type LinkType {
@@ -204,7 +200,7 @@ if (process.env.GRAPHQL_VERSION === '^0.11') {
       nodes: [Node]
     }
 
-    extend type Customer implements Node ${graphql11compat}
+    extend type Customer implements Node {}
   `;
 }
 
