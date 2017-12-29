@@ -178,7 +178,7 @@ Modules and extensions built by the community.
 
 Composition library for GraphQL, with helpers to combine multiple resolvers into one, specify dependencies between fields, and more.
 
-When developing a GraphQL server, it is common to perform some authorization logic on your resolvers, usually based on the context of a request. With `graphql-resolvers` you can easily accomplish that and still make the code decoupled - thus testable - by combining multiple sigle-logic resolvers into one.
+When developing a GraphQL server, it is common to perform some authorization logic on your resolvers, usually based on the context of a request. With `graphql-resolvers` you can easily accomplish that and still make the code decoupled - thus testable - by combining multiple single-logic resolvers into one.
 
 The following is an example of a simple logged-in authorization logic:
 
