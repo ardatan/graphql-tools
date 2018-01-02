@@ -4,6 +4,10 @@
 
 * ...
 
+### v2.15.0
+
+* Validate query before delegation [PR #551](https://github.com/apollographql/graphql-tools/pull/551)
+
 ### v2.14.1
 
 * Add guard against invalid schemas being constructed from AST [PR #547](https://github.com/apollographql/graphql-tools/pull/547)
