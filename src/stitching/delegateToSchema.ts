@@ -64,7 +64,7 @@ export default async function delegateToSchema(
     if (errors.length > 0) {
       throw errors;
     }
-    
+
     const operationDefinition = graphqlDoc.definitions.find(
       ({ kind }) => kind === Kind.OPERATION_DEFINITION,
     );
