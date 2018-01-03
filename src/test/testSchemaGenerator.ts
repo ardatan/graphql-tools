@@ -148,8 +148,10 @@ describe('generating schema from shorthand', () => {
   });
 
   it('can generate a schema', () => {
-    const shorthand = `
-      # A bird species
+    let shorthand = `
+      """
+      A bird species
+      """
       type BirdSpecies {
         name: String!,
         wingspan: Int
@@ -162,6 +164,23 @@ describe('generating schema from shorthand', () => {
         query: RootQuery
       }
     `;
+
+    if (process.env.GRAPHQL_VERSION === '^0.11') {
+      shorthand = `
+        # A bird species
+        type BirdSpecies {
+          name: String!,
+          wingspan: Int
+        }
+        type RootQuery {
+          species(name: String!): [BirdSpecies]
+        }
+
+        schema {
+          query: RootQuery
+        }
+      `;
+    }
 
     const resolve = {
       RootQuery: {
