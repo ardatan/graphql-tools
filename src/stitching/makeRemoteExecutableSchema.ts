@@ -20,6 +20,7 @@ import {
   printSchema,
   Kind,
   ValueNode,
+  GraphQLResolveInfo,
 } from 'graphql';
 import linkToFetcher, { execute } from './linkToFetcher';
 import isEmptyObject from '../isEmptyObject';
@@ -28,7 +29,14 @@ import { makeExecutableSchema } from '../schemaGenerator';
 import resolveParentFromTypename from './resolveFromParentTypename';
 import defaultMergedResolver from './defaultMergedResolver';
 import { checkResultAndHandleErrors } from './errors';
-import { PubSub, ResolverFn } from 'graphql-subscriptions';
+import { PubSub, PubSubEngine } from 'graphql-subscriptions';
+
+export type ResolverFn = (
+  rootValue?: any,
+  args?: any,
+  context?: any,
+  info?: GraphQLResolveInfo,
+) => AsyncIterator<any>;
 
 export type Fetcher = (operation: FetcherOperation) => Promise<ExecutionResult>;
 
@@ -43,10 +51,12 @@ export default function makeRemoteExecutableSchema({
   schema,
   link,
   fetcher,
+  createPubSub,
 }: {
   schema: GraphQLSchema | string;
   link?: ApolloLink;
   fetcher?: Fetcher;
+  createPubSub?: () => PubSubEngine;
 }): GraphQLSchema {
   if (!fetcher && link) {
     fetcher = linkToFetcher(link);
@@ -86,7 +96,7 @@ export default function makeRemoteExecutableSchema({
     const subscriptions = subscriptionType.getFields();
     Object.keys(subscriptions).forEach(key => {
       subscriptionResolvers[key] = {
-        subscribe: createSubscriptionResolver(link),
+        subscribe: createSubscriptionResolver(link, createPubSub),
       };
     });
   }
@@ -161,7 +171,7 @@ function createResolver(fetcher: Fetcher): GraphQLFieldResolver<any, any> {
   };
 }
 
-function createSubscriptionResolver(link: ApolloLink): ResolverFn {
+function createSubscriptionResolver(link: ApolloLink, createPubSub?: () => PubSubEngine): ResolverFn {
   return (root, args, context, info) => {
     const fragments = Object.keys(info.fragments).map(fragment => info.fragments[fragment]);
     const document = {
@@ -176,10 +186,11 @@ function createSubscriptionResolver(link: ApolloLink): ResolverFn {
     };
     const observable = execute(link, operation);
 
-    const pubSub = new PubSub();
+    // fallback to in-memory PubSub if no PubSub provided
+    const pubSub = createPubSub ? createPubSub() : new PubSub();
     const observer = {
-      next({ data }: any) {
-        pubSub.publish('static', data);
+      next(value: any) {
+        pubSub.publish('static', value.data);
       },
       error(err: Error) {
         pubSub.publish('static', { errors: [err] });
