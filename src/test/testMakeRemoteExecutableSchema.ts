@@ -16,7 +16,7 @@ describe('remote subscriptions', () => {
     schema = await makeSchemaRemoteFromLink(subscriptionSchema);
   });
 
-  it('should work', async done => {
+  it('should work', done => {
     const mockNotification = {
       notifications: {
         text: 'Hello world',
@@ -32,18 +32,16 @@ describe('remote subscriptions', () => {
     `);
 
     let notificationCnt = 0;
-    subscribe(schema, subscription)
-      .then(results => {
-        forAwaitEach(
-          results as AsyncIterable<ExecutionResult>,
-          (result: ExecutionResult) => {
-            expect(result).to.have.property('data');
-            expect(result.data).to.deep.equal(mockNotification);
-            !notificationCnt++ ? done() : null;
-          },
-        ).catch(done);
-      })
-      .catch(done);
+    subscribe(schema, subscription).then(results =>
+      forAwaitEach(
+        results as AsyncIterable<ExecutionResult>,
+        (result: ExecutionResult) => {
+          expect(result).to.have.property('data');
+          expect(result.data).to.deep.equal(mockNotification);
+          !notificationCnt++ ? done() : null;
+        },
+      ),
+    );
 
     subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification);
   });

@@ -93,10 +93,11 @@ export default function makeRemoteExecutableSchema({
   const subscriptionResolvers: IResolverObject = {};
   const subscriptionType = schema.getSubscriptionType();
   if (subscriptionType) {
+    const pubSub = createPubSub ? createPubSub() : new PubSub();
     const subscriptions = subscriptionType.getFields();
     Object.keys(subscriptions).forEach(key => {
       subscriptionResolvers[key] = {
-        subscribe: createSubscriptionResolver(link, createPubSub),
+        subscribe: createSubscriptionResolver(key, link, pubSub),
       };
     });
   }
@@ -177,8 +178,9 @@ function createResolver(fetcher: Fetcher): GraphQLFieldResolver<any, any> {
 }
 
 function createSubscriptionResolver(
+  name: string,
   link: ApolloLink,
-  createPubSub?: () => PubSubEngine,
+  pubSub: PubSubEngine,
 ): ResolverFn {
   return (root, args, context, info) => {
     const fragments = Object.keys(info.fragments).map(
@@ -196,20 +198,18 @@ function createSubscriptionResolver(
     };
     const observable = execute(link, operation);
 
-    // fallback to in-memory PubSub if no PubSub provided
-    const pubSub = createPubSub ? createPubSub() : new PubSub();
     const observer = {
       next(value: any) {
-        pubSub.publish('static', value.data);
+        pubSub.publish(`remote-schema-${name}`, value.data);
       },
       error(err: Error) {
-        pubSub.publish('static', { errors: [err] });
+        pubSub.publish(`remote-schema-${name}`, { errors: [err] });
       },
     };
 
     observable.subscribe(observer);
 
-    return pubSub.asyncIterator('static');
+    return pubSub.asyncIterator(`remote-schema-${name}`);
   };
 }
 
