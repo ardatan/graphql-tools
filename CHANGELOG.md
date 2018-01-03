@@ -2,7 +2,7 @@
 
 ### vNEXT
 
-* ...
+* Added GraphQL Subscriptions support for schema stitching and `makeRemoteExecutableSchema` [PR #563](https://github.com/apollographql/graphql-tools/pull/563)
 
 ### v2.15.0
 
