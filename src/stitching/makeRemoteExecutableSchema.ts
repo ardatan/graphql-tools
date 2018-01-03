@@ -116,7 +116,10 @@ export default function makeRemoteExecutableSchema({
   const typeMap = schema.getTypeMap();
   const types = Object.keys(typeMap).map(name => typeMap[name]);
   for (const type of types) {
-    if (type instanceof GraphQLInterfaceType || type instanceof GraphQLUnionType) {
+    if (
+      type instanceof GraphQLInterfaceType ||
+      type instanceof GraphQLUnionType
+    ) {
       resolvers[type.name] = {
         __resolveType(parent, context, info) {
           return resolveParentFromTypename(parent, info.schema);
@@ -157,7 +160,9 @@ export default function makeRemoteExecutableSchema({
 
 function createResolver(fetcher: Fetcher): GraphQLFieldResolver<any, any> {
   return async (root, args, context, info) => {
-    const fragments = Object.keys(info.fragments).map(fragment => info.fragments[fragment]);
+    const fragments = Object.keys(info.fragments).map(
+      fragment => info.fragments[fragment],
+    );
     const document = {
       kind: Kind.DOCUMENT,
       definitions: [info.operation, ...fragments],
@@ -171,9 +176,14 @@ function createResolver(fetcher: Fetcher): GraphQLFieldResolver<any, any> {
   };
 }
 
-function createSubscriptionResolver(link: ApolloLink, createPubSub?: () => PubSubEngine): ResolverFn {
+function createSubscriptionResolver(
+  link: ApolloLink,
+  createPubSub?: () => PubSubEngine,
+): ResolverFn {
   return (root, args, context, info) => {
-    const fragments = Object.keys(info.fragments).map(fragment => info.fragments[fragment]);
+    const fragments = Object.keys(info.fragments).map(
+      fragment => info.fragments[fragment],
+    );
     const document = {
       kind: Kind.DOCUMENT,
       definitions: [info.operation, ...fragments],
