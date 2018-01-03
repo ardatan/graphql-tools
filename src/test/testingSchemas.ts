@@ -2,9 +2,11 @@ import {
   GraphQLSchema,
   graphql,
   print,
+  subscribe,
   Kind,
   GraphQLScalarType,
   ValueNode,
+  ExecutionResult,
 } from 'graphql';
 import { ApolloLink, Observable } from 'apollo-link';
 import { makeExecutableSchema } from '../schemaGenerator';
@@ -559,25 +561,69 @@ export const subscriptionSchema: GraphQLSchema = makeExecutableSchema({
   resolvers: subscriptionResolvers,
 });
 
+const hasSubscriptionOperation = ({ query }: { query: any }): boolean => {
+  for (let definition of query.definitions) {
+    if (definition.kind === 'OperationDefinition') {
+      const operation = definition.operation;
+      if (operation === 'subscription') {
+        return true;
+      }
+    }
+  }
+  return false;
+};
+
 // Pretend this schema is remote
-async function makeSchemaRemoteFromLink(schema: GraphQLSchema) {
+export async function makeSchemaRemoteFromLink(schema: GraphQLSchema) {
   const link = new ApolloLink(operation => {
     return new Observable(observer => {
-      const { query, operationName, variables } = operation;
-      const { graphqlContext } = operation.getContext();
-      graphql(
-        schema,
-        print(query),
-        null,
-        graphqlContext,
-        variables,
-        operationName,
-      )
-        .then(result => {
-          observer.next(result);
-          observer.complete();
-        })
-        .catch(observer.error.bind(observer));
+      (async () => {
+        const { query, operationName, variables } = operation;
+        const { graphqlContext } = operation.getContext();
+        try {
+          if (!hasSubscriptionOperation(operation)) {
+            const result = await graphql(
+              schema,
+              print(query),
+              null,
+              graphqlContext,
+              variables,
+              operationName,
+            );
+            observer.next(result);
+            observer.complete();
+          } else {
+            const result = await subscribe(
+              schema,
+              query,
+              null,
+              graphqlContext,
+              variables,
+              operationName,
+            );
+            if (
+              typeof (<AsyncIterator<ExecutionResult>>result).next ===
+              'function'
+            ) {
+              while (true) {
+                const next = await (<AsyncIterator<
+                  ExecutionResult
+                >>result).next();
+                observer.next(next.value);
+                if (next.done) {
+                  observer.complete();
+                  break;
+                }
+              }
+            } else {
+              observer.next(result as ExecutionResult);
+              observer.complete();
+            }
+          }
+        } catch (error) {
+          observer.error.bind(observer);
+        }
+      })();
     });
   });
 
