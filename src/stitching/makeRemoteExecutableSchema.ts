@@ -1,6 +1,3 @@
-import { printSchema, Kind, ValueNode } from 'graphql';
-import linkToFetcher from './linkToFetcher';
-
 // This import doesn't actually import code - only the types.
 // Don't use ApolloLink to actually construct a link here.
 import { ApolloLink } from 'apollo-link';
@@ -20,13 +17,26 @@ import {
   ExecutionResult,
   print,
   buildSchema,
+  printSchema,
+  Kind,
+  ValueNode,
+  GraphQLResolveInfo,
 } from 'graphql';
+import linkToFetcher, { execute } from './linkToFetcher';
 import isEmptyObject from '../isEmptyObject';
 import { IResolvers, IResolverObject } from '../Interfaces';
 import { makeExecutableSchema } from '../schemaGenerator';
 import resolveParentFromTypename from './resolveFromParentTypename';
 import defaultMergedResolver from './defaultMergedResolver';
 import { checkResultAndHandleErrors } from './errors';
+import { PubSub, PubSubEngine } from 'graphql-subscriptions';
+
+export type ResolverFn = (
+  rootValue?: any,
+  args?: any,
+  context?: any,
+  info?: GraphQLResolveInfo,
+) => AsyncIterator<any>;
 
 export type Fetcher = (operation: FetcherOperation) => Promise<ExecutionResult>;
 
@@ -41,10 +51,12 @@ export default function makeRemoteExecutableSchema({
   schema,
   link,
   fetcher,
+  createPubSub,
 }: {
   schema: GraphQLSchema | string;
   link?: ApolloLink;
   fetcher?: Fetcher;
+  createPubSub?: () => PubSubEngine;
 }): GraphQLSchema {
   if (!fetcher && link) {
     fetcher = linkToFetcher(link);
@@ -59,13 +71,16 @@ export default function makeRemoteExecutableSchema({
     typeDefs = printSchema(schema);
   }
 
+  // prepare query resolvers
+  const queryResolvers: IResolverObject = {};
   const queryType = schema.getQueryType();
   const queries = queryType.getFields();
-  const queryResolvers: IResolverObject = {};
   Object.keys(queries).forEach(key => {
     queryResolvers[key] = createResolver(fetcher);
   });
-  let mutationResolvers: IResolverObject = {};
+
+  // prepare mutation resolvers
+  const mutationResolvers: IResolverObject = {};
   const mutationType = schema.getMutationType();
   if (mutationType) {
     const mutations = mutationType.getFields();
@@ -74,12 +89,31 @@ export default function makeRemoteExecutableSchema({
     });
   }
 
+  // prepare subscription resolvers
+  const subscriptionResolvers: IResolverObject = {};
+  const subscriptionType = schema.getSubscriptionType();
+  if (subscriptionType) {
+    const pubSub = createPubSub ? createPubSub() : new PubSub();
+    const subscriptions = subscriptionType.getFields();
+    Object.keys(subscriptions).forEach(key => {
+      subscriptionResolvers[key] = {
+        subscribe: createSubscriptionResolver(key, link, pubSub),
+      };
+    });
+  }
+
+  // merge resolvers into resolver map
   const resolvers: IResolvers = { [queryType.name]: queryResolvers };
 
   if (!isEmptyObject(mutationResolvers)) {
     resolvers[mutationType.name] = mutationResolvers;
   }
 
+  if (!isEmptyObject(subscriptionResolvers)) {
+    resolvers[subscriptionType.name] = subscriptionResolvers;
+  }
+
+  // add missing abstract resolvers (scalar, unions, interfaces)
   const typeMap = schema.getTypeMap();
   const types = Object.keys(typeMap).map(name => typeMap[name]);
   for (const type of types) {
@@ -108,7 +142,8 @@ export default function makeRemoteExecutableSchema({
       type instanceof GraphQLObjectType &&
       type.name.slice(0, 2) !== '__' &&
       type !== queryType &&
-      type !== mutationType
+      type !== mutationType &&
+      type !== subscriptionType
     ) {
       const resolver = {};
       Object.keys(type.getFields()).forEach(field => {
@@ -139,6 +174,42 @@ function createResolver(fetcher: Fetcher): GraphQLFieldResolver<any, any> {
       context: { graphqlContext: context },
     });
     return checkResultAndHandleErrors(result, info);
+  };
+}
+
+function createSubscriptionResolver(
+  name: string,
+  link: ApolloLink,
+  pubSub: PubSubEngine,
+): ResolverFn {
+  return (root, args, context, info) => {
+    const fragments = Object.keys(info.fragments).map(
+      fragment => info.fragments[fragment],
+    );
+    const document = {
+      kind: Kind.DOCUMENT,
+      definitions: [info.operation, ...fragments],
+    };
+
+    const operation = {
+      query: document,
+      variables: info.variableValues,
+      context: { graphqlContext: context },
+    };
+    const observable = execute(link, operation);
+
+    const observer = {
+      next(value: any) {
+        pubSub.publish(`remote-schema-${name}`, value.data);
+      },
+      error(err: Error) {
+        pubSub.publish(`remote-schema-${name}`, { errors: [err] });
+      },
+    };
+
+    observable.subscribe(observer);
+
+    return pubSub.asyncIterator(`remote-schema-${name}`);
   };
 }
 

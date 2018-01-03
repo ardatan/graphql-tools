@@ -2,7 +2,11 @@
 
 ### vNEXT
 
-* ...
+* Added GraphQL Subscriptions support for schema stitching and `makeRemoteExecutableSchema` [PR #563](https://github.com/apollographql/graphql-tools/pull/563)
+
+### v2.15.0
+
+* Validate query before delegation [PR #551](https://github.com/apollographql/graphql-tools/pull/551)
 
 ### v2.14.1
 
