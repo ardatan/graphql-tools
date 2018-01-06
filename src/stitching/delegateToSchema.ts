@@ -514,7 +514,7 @@ function implementsAbstractType(
     parent instanceof GraphQLInterfaceType &&
     child instanceof GraphQLInterfaceType
   ) {
-    return true
+    return true;
   } else if (
     parent instanceof GraphQLUnionType &&
     child instanceof GraphQLObjectType
