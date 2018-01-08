@@ -63,7 +63,7 @@ export function recreateCompositeType(
     return new GraphQLInputObjectType({
       name: type.name,
       description: type.description,
-      astNode: type.astNode
+      astNode: type.astNode,
       fields: () => inputFieldMapToFieldConfigMap(type.getFields(), registry),
     });
   } else {
