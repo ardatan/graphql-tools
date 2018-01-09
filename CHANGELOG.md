@@ -2,7 +2,7 @@
 
 ### vNEXT
 
-* ...
+* IEnumResolver value can be a `number` type
 
 ### v2.17.0
 

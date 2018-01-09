@@ -68,12 +68,20 @@ let enumTest = `
     RED
   }
 
+  """
+  A type that uses an Enum with a numeric constant.
+  """
+  enum NumericEnum {
+    TEST
+  }
+
   schema {
     query: Query
   }
 
   type Query {
     color: Color
+    numericEnum: NumericEnum
   }
 `;
 
@@ -157,12 +165,18 @@ if (process.env.GRAPHQL_VERSION === '^0.11') {
       RED
     }
 
+    # A type that uses an Enum with a numeric constant.
+    enum NumericEnum {
+      TEST
+    }
+
     schema {
       query: Query
     }
 
     type Query {
       color: Color
+      numericEnum: NumericEnum
     }
   `;
 
@@ -232,6 +246,9 @@ testCombinations.forEach(async combination => {
             parseValue: value => value,
             parseLiteral: () => null,
           }),
+          NumericEnum: {
+            TEST: 1
+          },
           Color: {
             RED: '#EA3232',
           },
@@ -286,6 +303,9 @@ testCombinations.forEach(async combination => {
           Query: {
             color() {
               return '#EA3232';
+            },
+            numericEnum() {
+              return 1;
             },
             delegateInterfaceTest(parent, args, context, info) {
               return info.mergeInfo.delegate(
@@ -449,9 +469,15 @@ testCombinations.forEach(async combination => {
             Color: {
               RED: '#EA3232',
             },
+            NumericEnum: {
+              TEST: 1
+            },
             Query: {
               color() {
                 return '#EA3232';
+              },
+              numericEnum() {
+                return 1;
               },
             },
           },
@@ -461,6 +487,7 @@ testCombinations.forEach(async combination => {
           `
             query {
               color
+              numericEnum
             }
           `,
         );
@@ -470,6 +497,7 @@ testCombinations.forEach(async combination => {
           `
             query {
               color
+              numericEnum
             }
           `,
         );
@@ -477,6 +505,7 @@ testCombinations.forEach(async combination => {
         expect(enumResult).to.deep.equal({
           data: {
             color: 'RED',
+            numericEnum: 'TEST'
           },
         });
         expect(mergedResult).to.deep.equal(enumResult);
@@ -1554,6 +1583,10 @@ bookingById(id: $b1) {
 
         expect(mergedSchema.getType('Color').description).to.equal(
           'A type that uses an Enum.',
+        );
+
+        expect(mergedSchema.getType('NumericEnum').description).to.equal(
+          'A type that uses an Enum with a numeric constant.',
         );
 
         expect(mergedSchema.getType('LinkType').description).to.equal(
