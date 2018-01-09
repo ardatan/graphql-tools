@@ -3,6 +3,8 @@
   "version": "2.16.0",
   "description": "Useful tools to create and manipulate GraphQL schemas.",
   "main": "dist/index.js",
+  "module": "./dist/es-build/index.js",
+  "jsnext:main": "./dist/es-build/index.js",
   "typings": "dist/index.d.ts",
   "typescript": {
     "definition": "dist/index.d.ts"
@@ -12,7 +14,8 @@
   },
   "scripts": {
     "clean": "rimraf dist",
-    "compile": "tsc",
+    "compile": "tsc && npm run compile-es",
+    "compile-es": "tsc -p tsconfig.es.json",
     "typings": "typings install",
     "pretest": "npm run clean && npm run compile",
     "test": "npm run testonly --",
