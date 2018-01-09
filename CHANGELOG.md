@@ -2,10 +2,17 @@
 
 ### vNEXT
 
+* ...
+
+### v2.17.0
+
+* Include `astNode` property in schema recreation [PR #569](https://github.com/apollographql/graphql-tools/pull/569)
+
+### v2.16.0
+
 * Added GraphQL Subscriptions support for schema stitching and `makeRemoteExecutableSchema` [PR #563](https://github.com/apollographql/graphql-tools/pull/563)
 * Make `apollo-link` a direct dependency [PR #561](https://github.com/apollographql/graphql-tools/pull/561)
 * Update tests to use `graphql-js@0.12` docstring format [PR #559](https://github.com/apollographql/graphql-tools/pull/559)
-* Include `astNode` property in schema recreation
 
 ### v2.15.0
 
