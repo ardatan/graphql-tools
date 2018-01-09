@@ -34,6 +34,7 @@ export function recreateCompositeType(
       name: type.name,
       description: type.description,
       isTypeOf: type.isTypeOf,
+      astNode: type.astNode,
       fields: () => fieldMapToFieldConfigMap(fields, registry),
       interfaces: () => interfaces.map(iface => registry.resolveType(iface)),
     });
@@ -43,6 +44,7 @@ export function recreateCompositeType(
     return new GraphQLInterfaceType({
       name: type.name,
       description: type.description,
+      astNode: type.astNode,
       fields: () => fieldMapToFieldConfigMap(fields, registry),
       resolveType: (parent, context, info) =>
         resolveFromParentTypename(parent, info.schema),
@@ -51,6 +53,7 @@ export function recreateCompositeType(
     return new GraphQLUnionType({
       name: type.name,
       description: type.description,
+      astNode: type.astNode,
       types: () =>
         type.getTypes().map(unionMember => registry.resolveType(unionMember)),
       resolveType: (parent, context, info) =>
@@ -60,6 +63,7 @@ export function recreateCompositeType(
     return new GraphQLInputObjectType({
       name: type.name,
       description: type.description,
+      astNode: type.astNode,
       fields: () => inputFieldMapToFieldConfigMap(type.getFields(), registry),
     });
   } else {
