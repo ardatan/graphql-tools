@@ -13,10 +13,12 @@ import {
 import mergeSchemas from '../stitching/mergeSchemas';
 import {
   propertySchema as localPropertySchema,
+  productSchema as localProductSchema,
   bookingSchema as localBookingSchema,
   subscriptionSchema as localSubscriptionSchema,
   remoteBookingSchema,
   remotePropertySchema,
+  remoteProductSchema,
   subscriptionPubSub,
   subscriptionPubSubTrigger,
 } from './testingSchemas';
@@ -24,16 +26,23 @@ import { forAwaitEach } from 'iterall';
 import { makeExecutableSchema } from '../schemaGenerator';
 
 const testCombinations = [
-  { name: 'local', booking: localBookingSchema, property: localPropertySchema },
+  {
+    name: 'local',
+    booking: localBookingSchema,
+    property: localPropertySchema,
+    product: localProductSchema,
+  },
   {
     name: 'remote',
     booking: remoteBookingSchema,
     property: remotePropertySchema,
+    product: remoteProductSchema,
   },
   {
     name: 'hybrid',
     booking: localBookingSchema,
     property: remotePropertySchema,
+    product: localProductSchema,
   },
 ];
 
@@ -100,7 +109,6 @@ let linkSchema = `
   interface Node {
     id: ID!
   }
-
 
   extend type Booking implements Node {
     """
@@ -222,16 +230,19 @@ testCombinations.forEach(async combination => {
   describe('merging ' + combination.name, () => {
     let mergedSchema: GraphQLSchema,
       propertySchema: GraphQLSchema,
+      productSchema: GraphQLSchema,
       bookingSchema: GraphQLSchema;
 
     before(async () => {
       propertySchema = await combination.property;
       bookingSchema = await combination.booking;
+      productSchema = await combination.product;
 
       mergedSchema = mergeSchemas({
         schemas: [
           propertySchema,
           bookingSchema,
+          productSchema,
           scalarTest,
           enumTest,
           linkSchema,
@@ -1819,6 +1830,39 @@ bookingById(id: $b1) {
       //     },
       //   });
       // });
+
+      it('multi-interface filter', async () => {
+        const result = await graphql(
+          mergedSchema,
+          `
+            query {
+              products {
+                id
+                __typename
+                ... on Sellable {
+                  price
+                }
+              }
+            }
+          `,
+        );
+
+        expect(result).to.deep.equal({
+          data: {
+            products: [
+              {
+                id: 'pd1',
+                __typename: 'SimpleProduct',
+                price: 100,
+              },
+              {
+                id: 'pd2',
+                __typename: 'DownloadableProduct',
+              },
+            ],
+          },
+        });
+      });
 
       it('arbitrary transforms that return interfaces', async () => {
         const result = await graphql(

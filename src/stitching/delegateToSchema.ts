@@ -511,6 +511,11 @@ function implementsAbstractType(
   ) {
     return child.getInterfaces().indexOf(parent) !== -1;
   } else if (
+    parent instanceof GraphQLInterfaceType &&
+    child instanceof GraphQLInterfaceType
+  ) {
+    return true;
+  } else if (
     parent instanceof GraphQLUnionType &&
     child instanceof GraphQLObjectType
   ) {

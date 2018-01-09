@@ -25,6 +25,13 @@ export type Property = {
   };
 };
 
+export type Product = {
+  id: string;
+  price?: number;
+  url?: string,
+  type: string,
+};
+
 export type Booking = {
   id: string;
   propertyId: string;
@@ -49,10 +56,23 @@ export type Vehicle = {
 
 export const sampleData: {
   Property: { [key: string]: Property };
+  Product: { [key: string]: Product };
   Booking: { [key: string]: Booking };
   Customer: { [key: string]: Customer };
   Vehicle: { [key: string]: Vehicle };
 } = {
+  Product: {
+    pd1: {
+      id: 'pd1',
+      type: 'simple',
+      price: 100,
+    },
+    pd2: {
+      id: 'pd2',
+      type: 'download',
+      url: 'https://graphql.org',
+    },
+  },
   Property: {
     p1: {
       id: 'p1',
@@ -349,6 +369,53 @@ const propertyResolvers: IResolvers = {
   },
 };
 
+const productTypeDefs = `
+  interface Product {
+    id: ID!
+  }
+
+  interface Sellable {
+    price: Int!
+  }
+
+  interface Downloadable {
+    url: String!
+  }
+
+  type SimpleProduct implements Product, Sellable {
+    id: ID!
+    price: Int!
+  }
+
+  type DownloadableProduct implements Product, Downloadable {
+    id: ID!
+    url: String!
+  }
+
+  type Query {
+    products: [Product]
+  }
+`;
+
+const productResolvers: IResolvers = {
+  Query: {
+    products(root) {
+      const list = values(sampleData.Product);
+      return list;
+    },
+  },
+
+  Product: {
+    __resolveType(obj) {
+      if (obj.type === 'simple') {
+        return 'SimpleProduct';
+      } else {
+        return 'DownloadableProduct';
+      }
+    },
+  },
+};
+
 const customerAddressTypeDef = `
   type Customer implements Person {
     id: ID!
@@ -551,6 +618,11 @@ export const propertySchema: GraphQLSchema = makeExecutableSchema({
   resolvers: propertyResolvers,
 });
 
+export const productSchema: GraphQLSchema = makeExecutableSchema({
+  typeDefs: productTypeDefs,
+  resolvers: productResolvers,
+});
+
 export const bookingSchema: GraphQLSchema = makeExecutableSchema({
   typeDefs: bookingAddressTypeDefs,
   resolvers: bookingResolvers,
@@ -648,6 +720,7 @@ async function makeExecutableSchemaFromFetcher(schema: GraphQLSchema) {
 }
 
 export const remotePropertySchema = makeSchemaRemoteFromLink(propertySchema);
+export const remoteProductSchema = makeSchemaRemoteFromLink(productSchema);
 export const remoteBookingSchema = makeExecutableSchemaFromFetcher(
   bookingSchema,
 );
