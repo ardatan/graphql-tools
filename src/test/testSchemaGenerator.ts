@@ -890,12 +890,17 @@ describe('generating schema from shorthand', () => {
           RED
         }
 
+        enum NumericEnum {
+          TEST
+        }
+
         schema {
           query: Query
         }
 
         type Query {
           color: Color
+          numericEnum: NumericEnum
         }
       `;
 
@@ -903,6 +908,9 @@ describe('generating schema from shorthand', () => {
         Color: {
           RED: '#EA3232',
         },
+        NumericEnum: {
+          TEST: 1
+        }
       };
 
       const jsSchema = makeExecutableSchema({
@@ -912,6 +920,7 @@ describe('generating schema from shorthand', () => {
 
       expect(jsSchema.getQueryType().name).to.equal('Query');
       expect(jsSchema.getType('Color')).to.be.an.instanceof(GraphQLEnumType);
+      expect(jsSchema.getType('NumericEnum')).to.be.an.instanceof(GraphQLEnumType);
     });
 
     it('supports passing the value for a GraphQLEnumType in resolveFunctions', () => {
@@ -920,27 +929,39 @@ describe('generating schema from shorthand', () => {
           RED
         }
 
+        enum NumericEnum {
+          TEST
+        }
+
         schema {
           query: Query
         }
 
         type Query {
           color: Color
+          numericEnum: NumericEnum
         }
       `;
 
       const testQuery = `{
         color
+        numericEnum
        }`;
 
       const resolveFunctions = {
         Color: {
           RED: '#EA3232',
         },
+        NumericEnum: {
+          TEST: 1,
+        },
         Query: {
           color() {
             return '#EA3232';
           },
+          numericEnum() {
+            return 1;
+          }
         },
       };
 
@@ -952,6 +973,7 @@ describe('generating schema from shorthand', () => {
       const resultPromise = graphql(jsSchema, testQuery);
       return resultPromise.then(result => {
         assert.equal(result.data['color'], 'RED');
+        assert.equal(result.data['numericEnum'], 'TEST');
         assert.equal(result.errors, undefined);
       });
     });
