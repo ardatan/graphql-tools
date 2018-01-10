@@ -2,8 +2,12 @@
 
 ### vNEXT
 
+* ...
+
+### v2.18.0
+
 * Fix a bug where inline fragments got filtered in merged schemas when a type implemented multiple interfaces [PR #546](https://github.com/apollographql/graphql-tools/pull/546)
-* IEnumResolver value can be a `number` type
+* IEnumResolver value can be a `number` type [PR #568](https://github.com/apollographql/graphql-tools/pull/568)
 
 ### v2.17.0
 
