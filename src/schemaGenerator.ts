@@ -40,6 +40,7 @@ import {
   IConnectorCls,
   IResolverValidationOptions,
   IDirectiveResolvers,
+  UnitOrList,
 } from './Interfaces';
 
 import { deprecated } from 'deprecated-decorator';
@@ -61,7 +62,7 @@ class SchemaError extends Error {
 // type definitions can be a string or an array of strings.
 function _generateSchema(
   typeDefinitions: ITypeDefinitions,
-  resolveFunctions: IResolvers | Array<IResolvers>,
+  resolveFunctions: UnitOrList<IResolvers>,
   logger: ILogger,
   // TODO: rename to allowUndefinedInResolve to be consistent
   allowUndefinedInResolve: boolean,
