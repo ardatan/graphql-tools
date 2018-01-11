@@ -30,6 +30,7 @@ import {
 import delegateToSchema from './delegateToSchema';
 import typeFromAST from './typeFromAST';
 
+const merge = require('lodash.merge');
 const backcompatOptions = { commentDescriptions: true };
 
 export default function mergeSchemas({
@@ -42,7 +43,7 @@ export default function mergeSchemas({
     left: GraphQLNamedType,
     right: GraphQLNamedType,
   ) => GraphQLNamedType;
-  resolvers?: IResolvers | ((mergeInfo: MergeInfo) => IResolvers);
+  resolvers?: IResolvers | ((mergeInfo: MergeInfo) => IResolvers) | Array<IResolvers | ((mergeInfo: MergeInfo) => IResolvers)>;
 }): GraphQLSchema {
   if (!onTypeConflict) {
     onTypeConflict = defaultOnTypeConflict;
@@ -177,6 +178,14 @@ export default function mergeSchemas({
   if (resolvers) {
     if (typeof resolvers === 'function') {
       passedResolvers = resolvers(mergeInfo);
+    } else if (Array.isArray(resolvers)) {
+      passedResolvers = merge(
+        {},
+        ...resolvers
+          .map(resolver => typeof resolver === 'function'
+            ? resolver(mergeInfo)
+            : resolver)
+      );
     } else {
       passedResolvers = { ...resolvers };
     }

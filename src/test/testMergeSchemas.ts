@@ -24,6 +24,7 @@ import {
 } from './testingSchemas';
 import { forAwaitEach } from 'iterall';
 import { makeExecutableSchema } from '../schemaGenerator';
+import { IResolvers } from '../Interfaces';
 
 const testCombinations = [
   {
@@ -962,6 +963,201 @@ bookingById(id: "b1") {
       it('removes `isTypeOf` checks from proxied schemas', () => {
         const Booking = mergedSchema.getType('Booking') as GraphQLObjectType;
         expect(Booking.isTypeOf).to.equal(undefined);
+      });
+
+      it('should merge resolvers when passed an array of resolver objects', async () => {
+        const Scalars = () => ({
+          TestScalar: new GraphQLScalarType({
+            name: 'TestScalar',
+            description: undefined,
+            serialize: value => value,
+            parseValue: value => value,
+            parseLiteral: () => null,
+          })
+        });
+        const Enums = () => ({
+          NumericEnum: {
+            TEST: 1
+          },
+          Color: {
+            RED: '#EA3232',
+          }
+        });
+        const PropertyResolvers: IResolvers = {
+          Property: {
+            bookings: {
+              fragment: 'fragment PropertyFragment on Property { id }',
+              resolve(parent, args, context, info) {
+                return info.mergeInfo.delegate(
+                  'query',
+                  'bookingsByPropertyId',
+                  {
+                    propertyId: parent.id,
+                    limit: args.limit ? args.limit : null,
+                  },
+                  context,
+                  info,
+                );
+              }
+            }
+          }
+        };
+        const LinkResolvers: (info: any) => IResolvers = (info) => ({
+          Booking: {
+            property: {
+              fragment: 'fragment BookingFragment on Booking { propertyId }',
+              resolve(parent, args, context) {
+                return info.mergeInfo.delegate(
+                  'query',
+                  'propertyById',
+                  {
+                    id: parent.propertyId,
+                  },
+                  context,
+                  info
+                );
+              }
+            }
+          }
+        });
+        const Query1 = () => ({
+          Query: {
+            color() {
+              return '#EA3232';
+            },
+            numericEnum() {
+              return 1;
+            }
+          }
+        });
+        const Query2: (info: any) => IResolvers = () => ({
+          Query: {
+            delegateInterfaceTest(parent, args, context, info) {
+              return info.mergeInfo.delegate(
+                'query',
+                'interfaceTest',
+                {
+                  kind: 'ONE',
+                },
+                context,
+                info,
+              );
+            },
+            delegateArgumentTest(parent, args, context, info) {
+              return info.mergeInfo.delegate(
+                'query',
+                'propertyById',
+                {
+                  id: 'p1',
+                },
+                context,
+                info,
+              );
+            },
+            linkTest() {
+              return {
+                test: 'test',
+              };
+            },
+            node: {
+              // fragment doesn't work
+              fragment: 'fragment NodeFragment on Node { id }',
+              resolve(parent, args, context, info) {
+                if (args.id.startsWith('p')) {
+                  return info.mergeInfo.delegate(
+                    'query',
+                    'propertyById',
+                    args,
+                    context,
+                    info,
+                  );
+                } else if (args.id.startsWith('b')) {
+                  return info.mergeInfo.delegate(
+                    'query',
+                    'bookingById',
+                    args,
+                    context,
+                    info,
+                  );
+                } else if (args.id.startsWith('c')) {
+                  return info.mergeInfo.delegate(
+                    'query',
+                    'customerById',
+                    args,
+                    context,
+                    info,
+                  );
+                } else {
+                  throw new Error('invalid id');
+                }
+              }
+            }
+          }
+        });
+
+        const AsyncQuery: (info: any) => IResolvers = (info) => ({
+          Query: {
+            async nodes(parent, args, context) {
+              const bookings = await info.mergeInfo.delegate(
+                'query',
+                'bookings',
+                {},
+                context,
+                info,
+              );
+              const properties = await info.mergeInfo.delegate(
+                'query',
+                'properties',
+                {},
+                context,
+                info,
+              );
+              return [...bookings, ...properties];
+            }
+          }
+        });
+        const schema = mergeSchemas({
+          schemas: [
+            propertySchema,
+            bookingSchema,
+            productSchema,
+            scalarTest,
+            enumTest,
+            linkSchema,
+            loneExtend,
+            localSubscriptionSchema,
+          ],
+          resolvers: [
+            Scalars,
+            Enums,
+            PropertyResolvers,
+            LinkResolvers,
+            Query1,
+            Query2,
+            AsyncQuery
+          ]
+        });
+
+        const mergedResult = await graphql(
+          schema,
+          `
+            query {
+              dateTimeTest
+              test1: jsonTest(input: { foo: "bar" })
+              test2: jsonTest(input: 5)
+              test3: jsonTest(input: "6")
+            }
+          `,
+        );
+        const expected = {
+          data: {
+            dateTimeTest: '1987-09-25T12:00:00',
+            test1: { foo: 'bar' },
+            test2: 5,
+            test3: '6'
+          }
+        };
+        expect(mergedResult).to.deep.equal(expected);
       });
     });
 
