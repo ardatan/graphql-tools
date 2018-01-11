@@ -48,10 +48,12 @@
   },
   "homepage": "https://github.com/apollostack/graphql-tools#readme",
   "dependencies": {
-    "apollo-utilities": "^1.0.1",
+    "@types/lodash.merge": "^4.6.3",
     "apollo-link": "^1.0.0",
+    "apollo-utilities": "^1.0.1",
     "deprecated-decorator": "^0.1.6",
     "graphql-subscriptions": "^0.5.6",
+    "lodash.merge": "^4.6.0",
     "uuid": "^3.1.0"
   },
   "peerDependencies": {

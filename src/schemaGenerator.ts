@@ -44,6 +44,8 @@ import {
 
 import { deprecated } from 'deprecated-decorator';
 
+const merge = require('lodash.merge');
+
 // @schemaDefinition: A GraphQL type schema in shorthand
 // @resolvers: Definitions for resolvers to be merged with schema
 class SchemaError extends Error {
@@ -59,7 +61,7 @@ class SchemaError extends Error {
 // type definitions can be a string or an array of strings.
 function _generateSchema(
   typeDefinitions: ITypeDefinitions,
-  resolveFunctions: IResolvers,
+  resolveFunctions: IResolvers | Array<IResolvers>,
   logger: ILogger,
   // TODO: rename to allowUndefinedInResolve to be consistent
   allowUndefinedInResolve: boolean,
@@ -78,13 +80,17 @@ function _generateSchema(
     throw new SchemaError('Must provide resolvers');
   }
 
+  const resolvers = Array.isArray(resolveFunctions)
+    ? merge({}, ...resolveFunctions.filter(resolverObj => typeof resolverObj === 'object'))
+    : resolveFunctions;
+
   // TODO: check that typeDefinitions is either string or array of strings
 
   const schema = buildSchemaFromTypeDefinitions(typeDefinitions);
 
   addResolveFunctionsToSchema(
     schema,
-    resolveFunctions,
+    resolvers,
     resolverValidationOptions,
   );
 
