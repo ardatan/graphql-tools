@@ -275,7 +275,7 @@ const propertyRootTypeDefs = `
     propertyById(id: ID!): Property
     properties(limit: Int): [Property!]
     contextTest(key: String!): String
-    dateTimeTest: DateTime
+    dateTimeTest: DateTime @disabled(yes: true)
     jsonTest(input: JSON): JSON
     interfaceTest(kind: TestInterfaceKind): TestInterface
     errorTest: String
@@ -288,6 +288,7 @@ const propertyRootTypeDefs = `
 const propertyAddressTypeDefs = `
   scalar DateTime
   scalar JSON
+  directive @disabled(yes: Boolean) on FIELD_DEFINITION
 
   ${addressTypeDef}
   ${propertyAddressTypeDef}

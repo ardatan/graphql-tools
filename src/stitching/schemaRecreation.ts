@@ -92,6 +92,7 @@ function fieldToFieldConfig(
     resolve: defaultMergedResolver,
     description: field.description,
     deprecationReason: field.deprecationReason,
+    astNode: field.astNode
   };
 }
 
@@ -140,5 +141,6 @@ function inputFieldToFieldConfig(
     type: registry.resolveType(field.type),
     defaultValue: field.defaultValue,
     description: field.description,
+    astNode: field.astNode
   };
 }
