@@ -92,6 +92,7 @@ function fieldToFieldConfig(
     resolve: defaultMergedResolver,
     description: field.description,
     deprecationReason: field.deprecationReason,
+    astNode: field.astNode,
   };
 }
 
