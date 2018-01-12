@@ -2,7 +2,7 @@
 
 ### vNEXT
 
-* ...
+* Also recreate `astNode` property for fields, not only types, when recreating schemas.
 
 ### v2.18.0
 
