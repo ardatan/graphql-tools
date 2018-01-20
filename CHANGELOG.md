@@ -8,7 +8,7 @@
 
 * Fix a bug where inline fragments got filtered in merged schemas when a type implemented multiple interfaces [PR #546](https://github.com/apollographql/graphql-tools/pull/546)
 * IEnumResolver value can be a `number` type [PR #568](https://github.com/apollographql/graphql-tools/pull/568)
-* Fix `delegateToSchema.js` to accept and move forward args with zero or false values [PR #586](https://github.com/apollographql/graphql-tools/pull/586)
+* Fix `delegateToSchema.js` to accept and move forward args with zero or false values
 
 ### v2.17.0
 
