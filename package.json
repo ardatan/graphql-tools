@@ -70,7 +70,6 @@
     "chai": "^4.1.2",
     "express": "^4.16.2",
     "graphql": "^0.12.3",
-    "graphql-subscriptions": "^0.5.4",
     "graphql-type-json": "^0.1.4",
     "istanbul": "^0.4.5",
     "iterall": "^1.1.3",
