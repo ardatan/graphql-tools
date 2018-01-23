@@ -671,6 +671,9 @@ function attachDirectiveResolvers(
     );
   }
   forEachField(schema, (field: GraphQLField<any, any>) => {
+    if (!field.astNode) {
+      return;
+    }
     const directives = field.astNode.directives;
     directives.forEach((directive: DirectiveNode) => {
       const directiveName = directive.name.value;

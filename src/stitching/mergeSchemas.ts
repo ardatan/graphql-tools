@@ -17,11 +17,12 @@ import {
   parse,
 } from 'graphql';
 import TypeRegistry from './TypeRegistry';
-import { IResolvers, MergeInfo, IFieldResolver } from '../Interfaces';
+import { IResolvers, MergeInfo, IFieldResolver, IDirectiveResolvers } from '../Interfaces';
 import isEmptyObject from '../isEmptyObject';
 import {
   extractExtensionDefinitions,
   addResolveFunctionsToSchema,
+  attachDirectiveResolvers
 } from '../schemaGenerator';
 import {
   recreateCompositeType,
@@ -36,6 +37,7 @@ export default function mergeSchemas({
   schemas,
   onTypeConflict,
   resolvers,
+  directiveResolvers
 }: {
   schemas: Array<GraphQLSchema | string>;
   onTypeConflict?: (
@@ -43,6 +45,7 @@ export default function mergeSchemas({
     right: GraphQLNamedType,
   ) => GraphQLNamedType;
   resolvers?: IResolvers | ((mergeInfo: MergeInfo) => IResolvers);
+  directiveResolvers?: IDirectiveResolvers<any, any>;
 }): GraphQLSchema {
   if (!onTypeConflict) {
     onTypeConflict = defaultOnTypeConflict;
@@ -222,11 +225,27 @@ export default function mergeSchemas({
   typeRegistry.addType('Mutation', mutation);
   typeRegistry.addType('Subscription', subscription);
 
+  const directiveSet = actualSchemas
+    .map(schema => schema.getDirectives())
+    .reduce((accum, directiveArray) => {
+      directiveArray.forEach((directive) => {
+        if (!accum[directive.name]) {
+          accum[directive.name] = directive;
+        }
+      });
+      return accum;
+    }, {});
+
+  const directives = Object.keys(directiveSet)
+    .map(key => directiveSet[key])
+    .filter(dir => dir.astNode);
+
   let mergedSchema = new GraphQLSchema({
     query,
     mutation,
     subscription,
     types: typeRegistry.getAllTypes(),
+    directives
   });
 
   extensions.forEach(extension => {
@@ -249,6 +268,10 @@ export default function mergeSchemas({
       };
     }
   });
+
+  if (directiveResolvers) {
+    attachDirectiveResolvers(mergedSchema, directiveResolvers);
+  }
 
   return mergedSchema;
 }

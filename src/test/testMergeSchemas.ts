@@ -226,7 +226,7 @@ if (process.env.GRAPHQL_VERSION === '^0.11') {
   `;
 }
 
-testCombinations.forEach(async combination => {
+testCombinations.forEach(async (combination, iteration) => {
   describe('merging ' + combination.name, () => {
     let mergedSchema: GraphQLSchema,
       propertySchema: GraphQLSchema,
@@ -1930,6 +1930,27 @@ bookingById(id: $b1) {
           },
         });
       });
+    });
+
+    it('Should allow wrapping merged schema with directiveResolvers', async () => {
+      // TODO this only works for local schemas
+      if (iteration === 0) {
+        const directiveResolvers: {[key: string]: () => any} = {
+          disabled: (...args: Array<any>) => null
+        };
+        const newSchema = mergeSchemas({
+          schemas: ['directive @disabled on FIELD_DEFINITION', mergedSchema],
+          directiveResolvers
+        });
+
+        const result = await graphql(
+          newSchema,
+          `query {
+            dateTimeTest
+          }`
+        );
+        expect(result.data.dateTimeTest).to.equal(null);
+      }
     });
 
     describe('regression', () => {
