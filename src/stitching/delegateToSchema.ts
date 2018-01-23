@@ -257,7 +257,7 @@ function processRootField(
       kind: Kind.FIELD,
       alias: null,
       arguments: [...filteredExistingArguments, ...missingArguments],
-      selectionSet: selection.selectionSet,
+      selectionSet: stripAliases(selection.selectionSet),
       name: {
         kind: Kind.NAME,
         value: rootFieldName,
