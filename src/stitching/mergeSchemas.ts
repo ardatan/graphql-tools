@@ -182,7 +182,7 @@ export default function mergeSchemas({
         .map(resolver => typeof resolver === 'function'
           ? resolver(mergeInfo)
           : resolver)
-        .reduce(mergeDeep, {})
+        .reduce(mergeDeep, {});
     } else {
       passedResolvers = { ...resolvers };
     }
