@@ -44,8 +44,7 @@ import {
 } from './Interfaces';
 
 import { deprecated } from 'deprecated-decorator';
-
-const merge = require('lodash.merge');
+import { mergeDeep } from './stitching/mergeSchemas';
 
 // @schemaDefinition: A GraphQL type schema in shorthand
 // @resolvers: Definitions for resolvers to be merged with schema
@@ -82,7 +81,9 @@ function _generateSchema(
   }
 
   const resolvers = Array.isArray(resolveFunctions)
-    ? merge({}, ...resolveFunctions.filter(resolverObj => typeof resolverObj === 'object'))
+    ? resolveFunctions
+        .filter(resolverObj => typeof resolverObj === 'object')
+        .reduce(mergeDeep, {})
     : resolveFunctions;
 
   // TODO: check that typeDefinitions is either string or array of strings
