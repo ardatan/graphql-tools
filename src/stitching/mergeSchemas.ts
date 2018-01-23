@@ -30,7 +30,6 @@ import {
 import delegateToSchema from './delegateToSchema';
 import typeFromAST from './typeFromAST';
 
-const merge = require('lodash.merge');
 const backcompatOptions = { commentDescriptions: true };
 
 export default function mergeSchemas({
@@ -179,13 +178,11 @@ export default function mergeSchemas({
     if (typeof resolvers === 'function') {
       passedResolvers = resolvers(mergeInfo);
     } else if (Array.isArray(resolvers)) {
-      passedResolvers = merge(
-        {},
-        ...resolvers
-          .map(resolver => typeof resolver === 'function'
-            ? resolver(mergeInfo)
-            : resolver)
-      );
+      passedResolvers = resolvers
+        .map(resolver => typeof resolver === 'function'
+          ? resolver(mergeInfo)
+          : resolver)
+        .reduce(mergeDeep, {})
     } else {
       passedResolvers = { ...resolvers };
     }
