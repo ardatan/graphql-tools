@@ -192,6 +192,23 @@ export function createDocument(
   return newDoc;
 }
 
+function stripAliases(selectionSet: SelectionSetNode): SelectionSetNode {
+  return visit(selectionSet, {
+    [Kind.FIELD]: {
+      enter(node: FieldNode): null | undefined | FieldNode {
+        if (!node) {
+          return node;
+        }
+
+        return {
+          ...node,
+          alias: null,
+        };
+      },
+    },
+  });
+}
+
 function processRootField(
   selection: FieldNode,
   rootFieldName: string,
