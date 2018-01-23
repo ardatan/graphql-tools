@@ -72,18 +72,15 @@ export default async function delegateToSchema(
     if (
       operationDefinition &&
       operationDefinition.kind === Kind.OPERATION_DEFINITION &&
-      operationDefinition.variableDefinitions
+      operationDefinition.variableDefinitions &&
+      Array.isArray(operationDefinition.variableDefinitions)
     ) {
-      operationDefinition.variableDefinitions.forEach(definition => {
+      for (const definition of operationDefinition.variableDefinitions) {
         const key = definition.variable.name.value;
         // (XXX) This is kinda hacky
-        let actualKey = key;
-        if (actualKey.startsWith('_')) {
-          actualKey = actualKey.slice(1);
-        }
-        const value = args[actualKey] || args[key] || info.variableValues[key];
-        variableValues[key] = value;
-      });
+        const actualKey = key.startsWith('_') ? key.slice(1) : key;
+        variableValues[key] = args[actualKey] != null ? args[actualKey] : info.variableValues[key];
+      }
     }
 
     if (operation === 'query' || operation === 'mutation') {

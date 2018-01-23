@@ -2,7 +2,7 @@
 
 ### vNEXT
 
-* ...
+* Fix `delegateToSchema.js` to accept and move forward args with zero or false values [PR #586](https://github.com/apollographql/graphql-tools/pull/586)
 
 ### v2.18.0
 
