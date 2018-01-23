@@ -141,5 +141,6 @@ function inputFieldToFieldConfig(
     type: registry.resolveType(field.type),
     defaultValue: field.defaultValue,
     description: field.description,
+    astNode: field.astNode,
   };
 }
