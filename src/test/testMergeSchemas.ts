@@ -1339,21 +1339,21 @@ bookingById(id: "b1") {
     describe('variables', () => {
       it('basic', async () => {
         const propertyFragment = `
-propertyById(id: $p1) {
-  id
-  name
-}
-  `;
+          propertyById(id: $p1) {
+            id
+            name
+          }
+        `;
         const bookingFragment = `
-bookingById(id: $b1) {
-  id
-  customer {
-    name
-  }
-  startTime
-  endTime
-}
-  `;
+          bookingById(id: $b1) {
+            id
+            customer {
+              name
+            }
+            startTime
+            endTime
+          }
+        `;
 
         const propertyResult = await graphql(
           propertySchema,
