@@ -7,13 +7,16 @@ import {
   GraphQLScalarType,
   ValueNode,
   ExecutionResult,
+  GraphQLObjectType,
+  GraphQLEnumType,
+  GraphQLString,
+  GraphQLNonNull,
 } from 'graphql';
+
 import { ApolloLink, Observable } from 'apollo-link';
 import { makeExecutableSchema } from '../schemaGenerator';
 import { IResolvers } from '../Interfaces';
-import makeRemoteExecutableSchema, {
-  Fetcher,
-} from '../stitching/makeRemoteExecutableSchema';
+import makeRemoteExecutableSchema, { Fetcher } from '../stitching/makeRemoteExecutableSchema';
 import introspectSchema from '../stitching/introspectSchema';
 import { PubSub } from 'graphql-subscriptions';
 
@@ -612,6 +615,58 @@ const subscriptionResolvers: IResolvers = {
     },
   },
 };
+
+export const ENUM = {
+  VALUE_1: 1,
+  VALUE_2: 2,
+};
+
+const enumSchemaEnumType = new GraphQLEnumType({
+  name: 'EnumArgument',
+  values: {
+    VALUE_1: {
+      value: ENUM.VALUE_1,
+    },
+    VALUE_2: {
+      value: ENUM.VALUE_2,
+    },
+  },
+});
+
+const enumSchemaEnum = new GraphQLObjectType({
+  name: 'EnumType',
+  fields: () => ({
+    fieldA: {
+      type: GraphQLString,
+      resolve: parent => parent.fieldA,
+    },
+  }),
+});
+
+export const resolveEnumType = (enumArg: number) => {
+  return {
+    fieldA: `The enum arg was ${enumArg}`,
+  };
+};
+
+const enumSchemaQuery = new GraphQLObjectType({
+  name: 'Query',
+  fields: () => ({
+    enumType: {
+      type: enumSchemaEnum,
+      args: {
+        enumArg: {
+          type: new GraphQLNonNull(enumSchemaEnumType),
+        },
+      },
+      resolve: (root, args) => resolveEnumType(args.enumArg),
+    },
+  }),
+});
+
+export const enumSchema: GraphQLSchema = new GraphQLSchema({
+  query: enumSchemaQuery,
+});
 
 export const propertySchema: GraphQLSchema = makeExecutableSchema({
   typeDefs: propertyAddressTypeDefs,

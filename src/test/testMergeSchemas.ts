@@ -10,19 +10,26 @@ import {
   parse,
   ExecutionResult,
 } from 'graphql';
+
+import { forAwaitEach } from 'iterall';
+
 import mergeSchemas from '../stitching/mergeSchemas';
+
 import {
   propertySchema as localPropertySchema,
   productSchema as localProductSchema,
   bookingSchema as localBookingSchema,
   subscriptionSchema as localSubscriptionSchema,
+  enumSchema as localEnumSchema,
+  resolveEnumType,
+  ENUM,
   remoteBookingSchema,
   remotePropertySchema,
   remoteProductSchema,
   subscriptionPubSub,
   subscriptionPubSubTrigger,
 } from './testingSchemas';
-import { forAwaitEach } from 'iterall';
+
 import { makeExecutableSchema } from '../schemaGenerator';
 
 const testCombinations = [
@@ -248,6 +255,7 @@ testCombinations.forEach(async combination => {
           linkSchema,
           loneExtend,
           localSubscriptionSchema,
+          localEnumSchema,
         ],
         resolvers: {
           TestScalar: new GraphQLScalarType({
@@ -1244,6 +1252,34 @@ bookingById(id: "b1") {
                   },
                 },
               ],
+            },
+          },
+        });
+      });
+
+      it('with enum args', async () => {
+        const enumArg = 'VALUE_2';
+        const mergedResult = await graphql(
+          mergedSchema,
+          // language=GraphQL
+          `
+            query($enumArg: EnumArgument!) {
+              enumType (enumArg: $enumArg) {
+                fieldA
+              }
+            }
+          `,
+          {},
+          {},
+          {
+            enumArg,
+          },
+        );
+
+        expect(mergedResult).to.deep.equal({
+          data: {
+            enumType: {
+              fieldA: resolveEnumType(ENUM[enumArg]),
             },
           },
         });
