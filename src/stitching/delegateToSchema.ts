@@ -184,12 +184,10 @@ export function createDocument(
     selectionSet,
   };
 
-  const newDoc: DocumentNode = {
+  return {
     kind: Kind.DOCUMENT,
     definitions: [operationDefinition, ...processedFragments],
   };
-
-  return newDoc;
 }
 
 function processRootField(
