@@ -7,6 +7,7 @@ import {
   GraphQLObjectType,
   GraphQLResolveInfo,
   GraphQLScalarType,
+  GraphQLEnumType,
   GraphQLSchema,
   GraphQLType,
   buildASTSchema,
@@ -16,6 +17,7 @@ import {
   isNamedType,
   parse,
 } from 'graphql';
+
 import TypeRegistry from './TypeRegistry';
 import { IResolvers, MergeInfo, IFieldResolver } from '../Interfaces';
 import isEmptyObject from '../isEmptyObject';
@@ -29,6 +31,7 @@ import {
 } from './schemaRecreation';
 import delegateToSchema from './delegateToSchema';
 import typeFromAST from './typeFromAST';
+import { createPassThroughScalar, createPassThroughEnum } from './makeRemoteExecutableSchema';
 
 const backcompatOptions = { commentDescriptions: true };
 
@@ -103,9 +106,14 @@ export default function mergeSchemas({
         let newType;
         if (isCompositeType(type) || type instanceof GraphQLInputObjectType) {
           newType = recreateCompositeType(schema, type, typeRegistry);
+        } else if (type instanceof GraphQLEnumType) {
+          newType = createPassThroughEnum(type);
+        } else if (type instanceof GraphQLScalarType) {
+          newType = createPassThroughScalar(type);
         } else {
           newType = getNamedType(type);
         }
+
         if (newType instanceof GraphQLObjectType) {
           delete newType.isTypeOf;
         }
