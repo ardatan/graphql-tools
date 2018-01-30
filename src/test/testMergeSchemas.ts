@@ -234,7 +234,7 @@ if (process.env.GRAPHQL_VERSION === '^0.11') {
 }
 
 testCombinations.forEach(async combination => {
-  describe('merging ' + combination.name, () => {
+  describe.only('merging ' + combination.name, () => {
     let mergedSchema: GraphQLSchema,
       propertySchema: GraphQLSchema,
       productSchema: GraphQLSchema,
@@ -1148,7 +1148,7 @@ bookingById(id: "b1") {
       });
     });
 
-    describe('variables', () => {
+    describe.only('variables', () => {
       it('basic', async () => {
         const propertyFragment = `
           propertyById(id: $p1) {
@@ -1257,13 +1257,13 @@ bookingById(id: "b1") {
         });
       });
 
-      it('with enum args', async () => {
+      it.only('with enum args', async () => {
         const enumArg = 'VALUE_2';
         const mergedResult = await graphql(
           mergedSchema,
           // language=GraphQL
           `
-            query($enumArg: EnumArgument!) {
+            query ($enumArg: EnumArgument!) {
               enumType (enumArg: $enumArg) {
                 fieldA
               }
@@ -1278,9 +1278,7 @@ bookingById(id: "b1") {
 
         expect(mergedResult).to.deep.equal({
           data: {
-            enumType: {
-              fieldA: resolveEnumType(ENUM[enumArg]),
-            },
+            enumType: resolveEnumType(ENUM[enumArg]),
           },
         });
       });
