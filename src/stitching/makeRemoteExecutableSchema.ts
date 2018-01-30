@@ -14,6 +14,7 @@ import {
   GraphQLBoolean,
   GraphQLInt,
   GraphQLScalarType,
+  GraphQLEnumType,
   ExecutionResult,
   print,
   buildSchema,
@@ -213,7 +214,7 @@ function createSubscriptionResolver(
   };
 }
 
-function createPassThroughScalar({
+export function createPassThroughScalar({
   name,
   description,
 }: {
@@ -232,6 +233,22 @@ function createPassThroughScalar({
     parseLiteral(ast) {
       return parseLiteral(ast);
     },
+  });
+}
+
+export function createPassThroughEnum(type: GraphQLEnumType) {
+  const values = type.getValues();
+  const newValues = {};
+
+  Object.keys(values).forEach(key => {
+    newValues[key] = values[key];
+  });
+
+  return new GraphQLEnumType({
+    name: type.name,
+    description: type.description,
+    astNode: type.astNode,
+    values: newValues,
   });
 }
 
