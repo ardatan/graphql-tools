@@ -9,7 +9,6 @@ import {
   subscribe,
   parse,
   ExecutionResult,
-  printSchema
 } from 'graphql';
 import mergeSchemas from '../stitching/mergeSchemas';
 import {
@@ -369,7 +368,6 @@ testCombinations.forEach(async combination => {
           }
         }
       });
-      console.log(printSchema(mergedSchema));
     });
 
     describe('basic', () => {
