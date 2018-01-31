@@ -1,6 +1,7 @@
 # Change log
 
 ### vNEXT
+* Fix `delegateToSchema.ts` to remove duplicate new variable definitions when delegating to schemas [PR #607](https://github.com/apollographql/graphql-tools/pull/607)
 
 ### v2.19.0
 
