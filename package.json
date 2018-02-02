@@ -48,10 +48,9 @@
   },
   "homepage": "https://github.com/apollostack/graphql-tools#readme",
   "dependencies": {
-    "apollo-utilities": "^1.0.1",
     "apollo-link": "^1.0.0",
+    "apollo-utilities": "^1.0.1",
     "deprecated-decorator": "^0.1.6",
-    "graphql-subscriptions": "^0.5.6",
     "uuid": "^3.1.0"
   },
   "peerDependencies": {
@@ -68,6 +67,7 @@
     "chai": "^4.1.2",
     "express": "^4.16.2",
     "graphql": "^0.12.3",
+    "graphql-subscriptions": "^0.5.6",
     "graphql-type-json": "^0.1.4",
     "istanbul": "^0.4.5",
     "iterall": "^1.1.3",
