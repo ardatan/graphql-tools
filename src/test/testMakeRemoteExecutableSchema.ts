@@ -80,6 +80,6 @@ describe('remote subscriptions', () => {
     setTimeout(() => {
       expect(notificationCnt).to.eq(2);
       done();
-    }, 150);
+    }, 0);
   });
 });
