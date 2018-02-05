@@ -17,7 +17,12 @@ import {
   parse,
 } from 'graphql';
 import TypeRegistry from './TypeRegistry';
-import { IResolvers, MergeInfo, IFieldResolver } from '../Interfaces';
+import {
+  IResolvers,
+  MergeInfo,
+  IFieldResolver,
+  UnitOrList,
+} from '../Interfaces';
 import isEmptyObject from '../isEmptyObject';
 import mergeDeep from '../mergeDeep';
 import {
@@ -43,7 +48,7 @@ export default function mergeSchemas({
     left: GraphQLNamedType,
     right: GraphQLNamedType,
   ) => GraphQLNamedType;
-  resolvers?: IResolvers | ((mergeInfo: MergeInfo) => IResolvers);
+  resolvers?: UnitOrList<IResolvers | ((mergeInfo: MergeInfo) => IResolvers)>;
 }): GraphQLSchema {
   if (!onTypeConflict) {
     onTypeConflict = defaultOnTypeConflict;
@@ -178,6 +183,13 @@ export default function mergeSchemas({
   if (resolvers) {
     if (typeof resolvers === 'function') {
       passedResolvers = resolvers(mergeInfo);
+    } else if (Array.isArray(resolvers)) {
+      passedResolvers = resolvers
+        .map(
+          resolver =>
+            typeof resolver === 'function' ? resolver(mergeInfo) : resolver,
+        )
+        .reduce(mergeDeep, {});
     } else {
       passedResolvers = { ...resolvers };
     }

@@ -13,6 +13,7 @@ import {
 
 /* TODO: Add documentation */
 
+export type UnitOrList<Type> = Type | Array<Type>;
 export interface IResolverValidationOptions {
   requireResolversForArgs?: boolean;
   requireResolversForNonScalar?: boolean;
