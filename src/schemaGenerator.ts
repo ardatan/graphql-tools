@@ -43,7 +43,7 @@ import {
 } from './Interfaces';
 
 import { deprecated } from 'deprecated-decorator';
-import { mergeDeep } from './stitching/mergeSchemas';
+import mergeDeep from './mergeDeep';
 
 // @schemaDefinition: A GraphQL type schema in shorthand
 // @resolvers: Definitions for resolvers to be merged with schema
@@ -89,11 +89,7 @@ function _generateSchema(
 
   const schema = buildSchemaFromTypeDefinitions(typeDefinitions);
 
-  addResolveFunctionsToSchema(
-    schema,
-    resolvers,
-    resolverValidationOptions,
-  );
+  addResolveFunctionsToSchema(schema, resolvers, resolverValidationOptions);
 
   assertResolveFunctionsPresent(schema, resolverValidationOptions);
 
@@ -213,7 +209,10 @@ function buildSchemaFromTypeDefinitions(
   const backcompatOptions = { commentDescriptions: true };
 
   // TODO fix types https://github.com/apollographql/graphql-tools/issues/542
-  let schema: GraphQLSchema = (buildASTSchema as any)(astDocument, backcompatOptions);
+  let schema: GraphQLSchema = (buildASTSchema as any)(
+    astDocument,
+    backcompatOptions,
+  );
 
   const extensionsAst = extractExtensionDefinitions(astDocument);
   if (extensionsAst.definitions.length > 0) {
@@ -224,7 +223,6 @@ function buildSchemaFromTypeDefinitions(
   return schema;
 }
 
-
 // This was changed in graphql@0.12
 // See https://github.com/apollographql/graphql-tools/pull/541
 // TODO fix types https://github.com/apollographql/graphql-tools/issues/542
@@ -233,7 +231,9 @@ const newExtensionDefinitionKind = 'ObjectTypeExtension';
 
 export function extractExtensionDefinitions(ast: DocumentNode) {
   const extensionDefs = ast.definitions.filter(
-    (def: DefinitionNode) => def.kind === oldTypeExtensionDefinitionKind || (def.kind as any) === newExtensionDefinitionKind,
+    (def: DefinitionNode) =>
+      def.kind === oldTypeExtensionDefinitionKind ||
+      (def.kind as any) === newExtensionDefinitionKind,
   );
 
   return Object.assign({}, ast, {

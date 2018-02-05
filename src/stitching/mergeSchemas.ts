@@ -19,6 +19,7 @@ import {
 import TypeRegistry from './TypeRegistry';
 import { IResolvers, MergeInfo, IFieldResolver } from '../Interfaces';
 import isEmptyObject from '../isEmptyObject';
+import mergeDeep from '../mergeDeep';
 import {
   extractExtensionDefinitions,
   addResolveFunctionsToSchema,
@@ -297,28 +298,6 @@ function createDelegatingResolver(
   return (root, args, context, info) => {
     return mergeInfo.delegate(operation, fieldName, args, context, info);
   };
-}
-
-function isObject(item: any): Boolean {
-  return item && typeof item === 'object' && !Array.isArray(item);
-}
-
-export function mergeDeep(target: any, source: any): any {
-  let output = Object.assign({}, target);
-  if (isObject(target) && isObject(source)) {
-    Object.keys(source).forEach(key => {
-      if (isObject(source[key])) {
-        if (!(key in target)) {
-          Object.assign(output, { [key]: source[key] });
-        } else {
-          output[key] = mergeDeep(target[key], source[key]);
-        }
-      } else {
-        Object.assign(output, { [key]: source[key] });
-      }
-    });
-  }
-  return output;
 }
 
 type FieldIteratorFn = (
