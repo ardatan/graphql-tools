@@ -1,7 +1,7 @@
 # Change log
 
 ### vNEXT
-* `makeExecutableSchema` and `mergeSchema` now accept an array of `IResolver` [PR #576](https://github.com/apollographql/graphql-tools/pull/576) [PR #577](https://github.com/apollographql/graphql-tools/pull/577) 
+* `makeExecutableSchema` and `mergeSchema` now accept an array of `IResolver` [PR #612](https://github.com/apollographql/graphql-tools/pull/612) [PR #576](https://github.com/apollographql/graphql-tools/pull/576) [PR #577](https://github.com/apollographql/graphql-tools/pull/577)
 * Fix `delegateToSchema.ts` to remove duplicate new variable definitions when delegating to schemas [PR #607](https://github.com/apollographql/graphql-tools/pull/607)
 * Fix duplicate subscriptions for schema stitching [PR #609](https://github.com/apollographql/graphql-tools/pull/609)
 
