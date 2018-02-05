@@ -17,8 +17,14 @@ import {
   parse,
 } from 'graphql';
 import TypeRegistry from './TypeRegistry';
-import { IResolvers, MergeInfo, IFieldResolver } from '../Interfaces';
+import {
+  IResolvers,
+  MergeInfo,
+  IFieldResolver,
+  UnitOrList,
+} from '../Interfaces';
 import isEmptyObject from '../isEmptyObject';
+import mergeDeep from '../mergeDeep';
 import {
   extractExtensionDefinitions,
   addResolveFunctionsToSchema,
@@ -42,7 +48,7 @@ export default function mergeSchemas({
     left: GraphQLNamedType,
     right: GraphQLNamedType,
   ) => GraphQLNamedType;
-  resolvers?: IResolvers | ((mergeInfo: MergeInfo) => IResolvers);
+  resolvers?: UnitOrList<IResolvers | ((mergeInfo: MergeInfo) => IResolvers)>;
 }): GraphQLSchema {
   if (!onTypeConflict) {
     onTypeConflict = defaultOnTypeConflict;
@@ -177,6 +183,13 @@ export default function mergeSchemas({
   if (resolvers) {
     if (typeof resolvers === 'function') {
       passedResolvers = resolvers(mergeInfo);
+    } else if (Array.isArray(resolvers)) {
+      passedResolvers = resolvers
+        .map(
+          resolver =>
+            typeof resolver === 'function' ? resolver(mergeInfo) : resolver,
+        )
+        .reduce(mergeDeep, {});
     } else {
       passedResolvers = { ...resolvers };
     }
@@ -297,28 +310,6 @@ function createDelegatingResolver(
   return (root, args, context, info) => {
     return mergeInfo.delegate(operation, fieldName, args, context, info);
   };
-}
-
-function isObject(item: any): Boolean {
-  return item && typeof item === 'object' && !Array.isArray(item);
-}
-
-function mergeDeep(target: any, source: any): any {
-  let output = Object.assign({}, target);
-  if (isObject(target) && isObject(source)) {
-    Object.keys(source).forEach(key => {
-      if (isObject(source[key])) {
-        if (!(key in target)) {
-          Object.assign(output, { [key]: source[key] });
-        } else {
-          output[key] = mergeDeep(target[key], source[key]);
-        }
-      } else {
-        Object.assign(output, { [key]: source[key] });
-      }
-    });
-  }
-  return output;
 }
 
 type FieldIteratorFn = (

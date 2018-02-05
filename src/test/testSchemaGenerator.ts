@@ -662,6 +662,80 @@ describe('generating schema from shorthand', () => {
     );
   });
 
+  it('can generate a schema with an array of resolvers', () => {
+    const shorthand = `
+      type BirdSpecies {
+        name: String!,
+        wingspan: Int
+      }
+      type RootQuery {
+        numberOfSpecies: Int
+        species(name: String!): [BirdSpecies]
+      }
+      schema {
+        query: RootQuery
+      }
+      extend type BirdSpecies {
+        height: Float
+      }
+    `;
+
+    const resolveFunctions = {
+      RootQuery: {
+        species: (root: any, { name }: { name: string }) => [
+          {
+            name: `Hello ${name}!`,
+            wingspan: 200,
+            height: 30.2,
+          },
+        ],
+      },
+    };
+
+    const otherResolveFunctions = {
+      BirdSpecies: {
+        name: (bird: Bird) => bird.name,
+        wingspan: (bird: Bird) => bird.wingspan,
+        height: (bird: Bird & { height: number }) => bird.height,
+      },
+      RootQuery: {
+        numberOfSpecies() {
+          return 1;
+        }
+      }
+    };
+
+    const testQuery = `{
+      numberOfSpecies
+      species(name: "BigBird"){
+        name
+        wingspan
+        height
+      }
+    }`;
+
+    const solution = {
+      data: {
+        numberOfSpecies: 1,
+        species: [
+          {
+            name: 'Hello BigBird!',
+            wingspan: 200,
+            height: 30.2,
+          },
+        ],
+      },
+    };
+    const jsSchema = makeExecutableSchema({
+      typeDefs: shorthand,
+      resolvers: [resolveFunctions, otherResolveFunctions],
+    });
+    const resultPromise = graphql(jsSchema, testQuery);
+    return resultPromise.then(result =>
+      assert.deepEqual(result, solution as ExecutionResult),
+    );
+  });
+
   describe('scalar types', () => {
     it('supports passing a GraphQLScalarType in resolveFunctions', () => {
       // Here GraphQLJSON is used as an example of non-default GraphQLScalarType
