@@ -95,25 +95,29 @@ let enumTest = `
   }
 `;
 
-const enumSchema = makeExecutableSchema({
-  typeDefs: enumTest,
-  resolvers: {
-    Color: {
-      RED: '#EA3232',
-    },
-    NumericEnum: {
-      TEST: 1,
-    },
-    Query: {
-      color() {
-        return '#EA3232';
+let enumSchema: GraphQLSchema;
+
+if (process.env.GRAPHQL_VERSION !== '^0.11') {
+  enumSchema = makeExecutableSchema({
+    typeDefs: enumTest,
+    resolvers: {
+      Color: {
+        RED: '#EA3232',
       },
-      numericEnum() {
-        return 1;
+      NumericEnum: {
+        TEST: 1,
+      },
+      Query: {
+        color() {
+          return '#EA3232';
+        },
+        numericEnum() {
+          return 1;
+        },
       },
     },
-  },
-});
+  });
+}
 
 let linkSchema = `
   """
@@ -208,6 +212,26 @@ if (process.env.GRAPHQL_VERSION === '^0.11') {
       numericEnum: NumericEnum
     }
   `;
+
+  enumSchema = makeExecutableSchema({
+    typeDefs: enumTest,
+    resolvers: {
+      Color: {
+        RED: '#EA3232',
+      },
+      NumericEnum: {
+        TEST: 1,
+      },
+      Query: {
+        color() {
+          return '#EA3232';
+        },
+        numericEnum() {
+          return 1;
+        },
+      },
+    },
+  });
 
   linkSchema = `
     # A new type linking the Property type.
