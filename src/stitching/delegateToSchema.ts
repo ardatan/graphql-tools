@@ -139,14 +139,17 @@ export function createDocument(
       }
     }),
   };
-
-  const newVariableDefinitions = newVariables.map(({ arg, variable }) => {
+  const newVariableDefinitions: VariableDefinitionNode[] = [];
+  newVariables.forEach(({ arg, variable }) => {
+    if (newVariableDefinitions.find(newVarDef => newVarDef.variable.name.value === variable)) {
+      return;
+    }
     const argDef = rootField.args.find(rootArg => rootArg.name === arg);
     if (!argDef) {
       throw new Error('Unexpected missing arg');
     }
     const typeName = typeToAst(argDef.type);
-    return {
+    newVariableDefinitions.push({
       kind: Kind.VARIABLE_DEFINITION,
       variable: {
         kind: Kind.VARIABLE,
@@ -156,7 +159,7 @@ export function createDocument(
         },
       },
       type: typeName,
-    };
+    });
   });
 
   const {
@@ -179,7 +182,7 @@ export function createDocument(
         variableDefinition =>
           usedVariables.indexOf(variableDefinition.variable.name.value) !== -1,
       ),
-      ...newVariableDefinitions,
+      ...newVariableDefinitions
     ],
     selectionSet,
   };
