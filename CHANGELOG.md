@@ -2,6 +2,9 @@
 
 ### vNEXT
 
+### v2.19.1
+* Fix duplicate subscriptions for schema stitching [PR #609](https://github.com/apollographql/graphql-tools/pull/609)
+
 ### v2.19.0
 
 * Also recreate `astNode` property for fields, not only types, when recreating schemas. [PR #580](https://github.com/apollographql/graphql-tools/pull/580)
