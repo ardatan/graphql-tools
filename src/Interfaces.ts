@@ -120,3 +120,5 @@ export interface IMockServer {
     vars?: { [key: string]: any },
   ) => Promise<ExecutionResult>;
 }
+
+export type ResolveType<T extends GraphQLType> = (type: T) => T;
