@@ -13,6 +13,7 @@ import {
 
 /* TODO: Add documentation */
 
+export type UnitOrList<Type> = Type | Array<Type>;
 export interface IResolverValidationOptions {
   requireResolversForArgs?: boolean;
   requireResolversForNonScalar?: boolean;
@@ -71,7 +72,7 @@ export type IConnectors = { [key: string]: IConnector };
 
 export interface IExecutableSchemaDefinition {
   typeDefs: ITypeDefinitions;
-  resolvers?: IResolvers;
+  resolvers?: IResolvers | Array<IResolvers>;
   connectors?: IConnectors;
   logger?: ILogger;
   allowUndefinedInResolve?: boolean;
