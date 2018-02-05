@@ -2,7 +2,6 @@ import {
   DocumentNode,
   GraphQLField,
   GraphQLFieldMap,
-  GraphQLInputObjectType,
   GraphQLNamedType,
   GraphQLObjectType,
   GraphQLResolveInfo,
@@ -12,7 +11,6 @@ import {
   buildASTSchema,
   extendSchema,
   getNamedType,
-  isCompositeType,
   isNamedType,
   parse,
 } from 'graphql';
@@ -30,8 +28,9 @@ import {
   addResolveFunctionsToSchema,
 } from '../schemaGenerator';
 import {
-  recreateCompositeType,
+  recreateType,
   fieldMapToFieldConfigMap,
+  createResolveType,
 } from './schemaRecreation';
 import delegateToSchema from './delegateToSchema';
 import typeFromAST from './typeFromAST';
@@ -58,6 +57,10 @@ export default function mergeSchemas({
   let subscriptionFields: GraphQLFieldMap<any, any> = {};
 
   const typeRegistry = new TypeRegistry();
+
+  const resolveType = createResolveType(name => {
+    return typeRegistry.getType(name);
+  });
 
   const mergeInfo: MergeInfo = createMergeInfo(typeRegistry);
 
@@ -106,15 +109,7 @@ export default function mergeSchemas({
         type !== mutationType &&
         type !== subscriptionType
       ) {
-        let newType;
-        if (isCompositeType(type) || type instanceof GraphQLInputObjectType) {
-          newType = recreateCompositeType(schema, type, typeRegistry);
-        } else {
-          newType = getNamedType(type);
-        }
-        if (newType instanceof GraphQLObjectType) {
-          delete newType.isTypeOf;
-        }
+        const newType = recreateType(type, resolveType);
         typeRegistry.addType(newType.name, newType, onTypeConflict);
       }
     });
@@ -212,14 +207,14 @@ export default function mergeSchemas({
 
   const query = new GraphQLObjectType({
     name: 'Query',
-    fields: () => fieldMapToFieldConfigMap(queryFields, typeRegistry),
+    fields: () => fieldMapToFieldConfigMap(queryFields, resolveType),
   });
 
   let mutation;
   if (!isEmptyObject(mutationFields)) {
     mutation = new GraphQLObjectType({
       name: 'Mutation',
-      fields: () => fieldMapToFieldConfigMap(mutationFields, typeRegistry),
+      fields: () => fieldMapToFieldConfigMap(mutationFields, resolveType),
     });
   }
 
@@ -227,7 +222,7 @@ export default function mergeSchemas({
   if (!isEmptyObject(subscriptionFields)) {
     subscription = new GraphQLObjectType({
       name: 'Subscription',
-      fields: () => fieldMapToFieldConfigMap(subscriptionFields, typeRegistry),
+      fields: () => fieldMapToFieldConfigMap(subscriptionFields, resolveType),
     });
   }
 
