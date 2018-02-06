@@ -11,6 +11,7 @@ export function annotateWithChildrenErrors(
     if (Array.isArray(object)) {
       const byIndex = {};
       childrenErrors.forEach(error => {
+        if (!error.path) { return; }
         const index = error.path[1];
         const current = byIndex[index] || [];
         current.push({
@@ -27,7 +28,7 @@ export function annotateWithChildrenErrors(
         ...object,
         [ERROR_SYMBOL]: childrenErrors.map(error => ({
           ...error,
-          path: error.path.slice(1),
+          ...(error.path ? { path: error.path.slice(1) } : {}),
         })),
       };
     }

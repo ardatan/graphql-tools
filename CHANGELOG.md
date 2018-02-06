@@ -4,6 +4,8 @@
 
 * ...
 
+* Fix `error.path` could be `undefined` for schema stitching [PR #617](https://github.com/apollographql/graphql-tools/pull/617)
+
 ### v2.20.0
 
 * Recreate enums and scalars for more consistent behaviour of merged schemas [PR #613](https://github.com/apollographql/graphql-tools/pull/613)
