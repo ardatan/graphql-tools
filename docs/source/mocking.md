@@ -186,7 +186,8 @@ const typeResolvers = {
 }
 
 const schema = makeExecutableSchema({
-  typeDefs
+  typeDefs,
+  typeResolvers
 })
 
 addMockFunctionsToSchema({
