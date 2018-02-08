@@ -2,7 +2,7 @@
 
 ### vNEXT
 
-* ...
+* Pass through apollo-link-http errors to originalError [PR #621](https://github.com/apollographql/graphql-tools/pull/621)
 
 ### v2.20.1
 
