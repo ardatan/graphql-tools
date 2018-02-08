@@ -103,7 +103,7 @@ export function checkResultAndHandleErrors(
 
 function concatErrors(errors: Error[]) {
   return errors
-    .map((error: { message: string }) => error.message)
+    .map(error => error.message)
     .join('\n');
 }
 
