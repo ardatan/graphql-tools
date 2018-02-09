@@ -388,6 +388,19 @@ function addResolveFunctionsToSchema(
       );
     }
 
+    // Check that there's a resolver for this schema prop
+    // sometimes it can be an object or a function, so check
+    // that it is not falsey AND is iterable
+    if (
+      !(typeName in resolveFunctions) ||
+      !resolveFunctions[typeName] ||
+      ['function', 'object'].indexOf(typeof resolveFunctions[typeName]) === -1
+    ) {
+      throw new SchemaError(
+        `"${typeName}" is defined in schema but has no resolver.`,
+      );
+    }
+
     Object.keys(resolveFunctions[typeName]).forEach(fieldName => {
       if (fieldName.startsWith('__')) {
         // this is for isTypeOf and resolveType and all the other stuff.

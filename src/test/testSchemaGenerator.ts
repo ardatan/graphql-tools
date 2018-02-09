@@ -123,6 +123,25 @@ describe('generating schema from shorthand', () => {
     ).to.throw(GraphQLError);
   });
 
+  it('throws an error if schema is defined without resolver', () => {
+    expect(() =>
+      (<any>makeExecutableSchema)({ typeDefs: `
+      # A bird species
+      type BirdSpecies {
+        name: String!,
+        wingspan: Int
+      }
+      type RootQuery {
+        species(name: String!): [BirdSpecies]
+      }
+
+      schema {
+        query: RootQuery
+      }
+    `, resolvers: { RootQuery: null } }),
+    ).to.throw('"RootQuery" is defined in schema but has no resolver.');
+  });
+
   it('throws an error if typeDefinitionNodes is neither string nor array nor schema AST', () => {
     expect(() =>
       (<any>makeExecutableSchema)({ typeDefs: {}, resolvers: {} }),
