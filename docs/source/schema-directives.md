@@ -69,7 +69,7 @@ graphql(schema, query).then((result) => console.log('Got result', result));
 ## Multi-Directives example
 
 Multi-Directives on a field will be apply with LTR order.
-[See a complete runnable example on Launchpad.](https://launchpad.graphql.com/p00rw37qx0)
+[See a complete runnable example on Launchpad.](https://launchpad.graphql.com/nx945rq1x7)
 
 ```js
 // graphql-tools combines a schema string with resolvers.
