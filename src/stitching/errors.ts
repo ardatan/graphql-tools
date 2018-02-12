@@ -1,7 +1,15 @@
 import { GraphQLResolveInfo, responsePathAsArray } from 'graphql';
 import { locatedError } from 'graphql/error';
 
-const ERROR_SYMBOL = Symbol('subSchemaErrors');
+let ERROR_SYMBOL: any;
+if (
+  (typeof global !== 'undefined' && 'Symbol' in global) ||
+  (typeof window !== 'undefined' && 'Symbol' in window)
+) {
+  ERROR_SYMBOL = Symbol('subSchemaErrors');
+} else {
+  ERROR_SYMBOL = '@@__subSchemaErrors';
+}
 
 export function annotateWithChildrenErrors(
   object: any,
@@ -11,7 +19,9 @@ export function annotateWithChildrenErrors(
     if (Array.isArray(object)) {
       const byIndex = {};
       childrenErrors.forEach(error => {
-        if (!error.path) { return; }
+        if (!error.path) {
+          return;
+        }
         const index = error.path[1];
         const current = byIndex[index] || [];
         current.push({
@@ -28,7 +38,7 @@ export function annotateWithChildrenErrors(
         ...object,
         [ERROR_SYMBOL]: childrenErrors.map(error => ({
           ...error,
-          ...(error.path ? { path: error.path.slice(1) } : {}),
+          ...error.path ? { path: error.path.slice(1) } : {},
         })),
       };
     }
@@ -81,8 +91,10 @@ export function checkResultAndHandleErrors(
     // apollo-link-http & http-link-dataloader need the
     // result property to be passed through for better error handling.
     // If there is only one error, which contains a result property, pass the error through
-    const newError = result.errors.length === 1 && hasResult(result.errors[0])
-      ? result.errors[0] : new Error(concatErrors(result.errors));
+    const newError =
+      result.errors.length === 1 && hasResult(result.errors[0])
+        ? result.errors[0]
+        : new Error(concatErrors(result.errors));
 
     throw locatedError(
       newError,
@@ -102,9 +114,7 @@ export function checkResultAndHandleErrors(
 }
 
 function concatErrors(errors: Error[]) {
-  return errors
-    .map(error => error.message)
-    .join('\n');
+  return errors.map(error => error.message).join('\n');
 }
 
 function hasResult(error: any) {
