@@ -2393,3 +2393,132 @@ describe('attachDirectiveResolvers on field', () => {
     );
   });
 });
+
+describe('can specify lexical parser options', () => {
+  it('can specify \'noLocation\' option', () => {
+    const schema = makeExecutableSchema({
+      typeDefs: `
+        type RootQuery {
+          test: String
+        }
+        schema {
+          query: RootQuery
+        }
+      `,
+      resolvers: {
+      },
+      parseOptions: {
+        noLocation: true
+      },
+    });
+
+    expect(schema.astNode.loc).to.equal(undefined);
+  });
+
+  if (!['^0.11', '^0.12'].includes(process.env.GRAPHQL_VERSION)) {
+    it('can specify \'allowLegacySDLEmptyFields\' option', () => {
+      return expect(() => {
+        makeExecutableSchema({
+          typeDefs: `
+            type RootQuery {
+            }
+            schema {
+              query: RootQuery
+            }
+          `,
+          resolvers: {
+          },
+          parseOptions: {
+            allowLegacySDLEmptyFields: true
+          },
+        });
+      }).to.not.throw();
+    });
+
+    it('can specify \'allowLegacySDLImplementsInterfaces\' option', () => {
+      const typeDefs = `
+        interface A {
+          hello: String
+        }
+        interface B {
+          world: String
+        }
+        type RootQuery implements A, B {
+          hello: String
+          world: String
+        }
+        schema {
+          query: RootQuery
+        }
+      `;
+
+      const resolvers = {};
+
+      expect(() => {
+        makeExecutableSchema({
+          typeDefs,
+          resolvers,
+          parseOptions: {
+            allowLegacySDLImplementsInterfaces: true
+          },
+        });
+      }).to.not.throw();
+
+      expect(() => {
+        makeExecutableSchema({
+          typeDefs,
+          resolvers,
+          parseOptions: {
+            allowLegacySDLImplementsInterfaces: false
+          },
+        });
+      }).to.throw('Syntax Error: Unexpected Name');
+    });
+
+  }
+
+
+  if (process.env.GRAPHQL_VERSION !== '^0.11') {
+    it('can specify \'experimentalFragmentVariables\' option', () => {
+      const typeDefs = `
+        type Hello {
+          world(phrase: String): String
+        }
+
+        fragment hello($phrase: String = "world") on Hello {
+          world(phrase: $phrase)
+        }
+
+        type RootQuery {
+          hello: Hello
+        }
+
+        schema {
+          query: RootQuery
+        }
+      `;
+
+      const resolvers = {
+        RootQuery: {
+          hello () {
+            return {
+              world: (phrase: string) => `hello ${phrase}`
+            };
+          }
+        }
+      };
+
+      expect(() => {
+        makeExecutableSchema({
+          typeDefs,
+          resolvers,
+          parseOptions: {
+            experimentalFragmentVariables: true
+          },
+        });
+      }).to.not.throw();
+
+    });
+  }
+
+});

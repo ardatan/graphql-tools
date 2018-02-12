@@ -78,6 +78,7 @@ export interface IExecutableSchemaDefinition {
   allowUndefinedInResolve?: boolean;
   resolverValidationOptions?: IResolverValidationOptions;
   directiveResolvers?: IDirectiveResolvers<any, any>;
+  parseOptions?: GraphQLParseOptions;
 }
 
 export type IFieldIteratorFn = (
@@ -122,3 +123,10 @@ export interface IMockServer {
 }
 
 export type ResolveType<T extends GraphQLType> = (type: T) => T;
+
+export type GraphQLParseOptions = {
+  noLocation?: boolean,
+  allowLegacySDLEmptyFields?: boolean,
+  allowLegacySDLImplementsInterfaces?: boolean,
+  experimentalFragmentVariables?: boolean,
+};

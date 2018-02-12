@@ -41,6 +41,7 @@ import {
   IResolverValidationOptions,
   IDirectiveResolvers,
   UnitOrList,
+  GraphQLParseOptions,
 } from './Interfaces';
 
 import { deprecated } from 'deprecated-decorator';
@@ -67,6 +68,7 @@ function _generateSchema(
   allowUndefinedInResolve: boolean,
   resolverValidationOptions: IResolverValidationOptions,
   directiveResolvers: IDirectiveResolvers<any, any>,
+  parseOptions: GraphQLParseOptions,
 ) {
   if (typeof resolverValidationOptions !== 'object') {
     throw new SchemaError(
@@ -88,7 +90,7 @@ function _generateSchema(
 
   // TODO: check that typeDefinitions is either string or array of strings
 
-  const schema = buildSchemaFromTypeDefinitions(typeDefinitions);
+  const schema = buildSchemaFromTypeDefinitions(typeDefinitions, parseOptions);
 
   addResolveFunctionsToSchema(schema, resolvers, resolverValidationOptions);
 
@@ -117,6 +119,7 @@ function makeExecutableSchema({
   allowUndefinedInResolve = true,
   resolverValidationOptions = {},
   directiveResolvers = null,
+  parseOptions = {},
 }: IExecutableSchemaDefinition) {
   const jsSchema = _generateSchema(
     typeDefs,
@@ -125,6 +128,7 @@ function makeExecutableSchema({
     allowUndefinedInResolve,
     resolverValidationOptions,
     directiveResolvers,
+    parseOptions,
   );
   if (typeof resolvers['__schema'] === 'function') {
     // TODO a bit of a hack now, better rewrite generateSchema to attach it there.
@@ -186,6 +190,7 @@ function concatenateTypeDefs(
 
 function buildSchemaFromTypeDefinitions(
   typeDefinitions: ITypeDefinitions,
+  parseOptions?: GraphQLParseOptions,
 ): GraphQLSchema {
   // TODO: accept only array here, otherwise interfaces get confusing.
   let myDefinitions = typeDefinitions;
@@ -204,7 +209,7 @@ function buildSchemaFromTypeDefinitions(
   }
 
   if (typeof myDefinitions === 'string') {
-    astDocument = parse(myDefinitions);
+    astDocument = parse(myDefinitions, parseOptions);
   }
 
   const backcompatOptions = { commentDescriptions: true };

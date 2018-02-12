@@ -369,6 +369,22 @@ const propertyResolvers: IResolvers = {
   },
 };
 
+let DownloadableProduct = `
+  type DownloadableProduct implements Product & Downloadable {
+    id: ID!
+    url: String!
+  }
+`;
+
+if (['^0.11', '^0.12'].includes(process.env.GRAPHQL_VERSION)) {
+  DownloadableProduct = `
+    type DownloadableProduct implements Product, Downloadable {
+      id: ID!
+      url: String!
+    }
+  `;
+}
+
 const productTypeDefs = `
   interface Product {
     id: ID!
@@ -382,15 +398,12 @@ const productTypeDefs = `
     url: String!
   }
 
-  type SimpleProduct implements Product, Sellable {
+  type SimpleProduct implements Product & Sellable {
     id: ID!
     price: Int!
   }
 
-  type DownloadableProduct implements Product, Downloadable {
-    id: ID!
-    url: String!
-  }
+  ${DownloadableProduct}
 
   type Query {
     products: [Product]
