@@ -21,6 +21,7 @@ sidebar_categories:
     - mocking
     - connectors
     - remote-schemas
+    - schema-directives
     - schema-stitching
   Related:
     - title: Apollo Server
