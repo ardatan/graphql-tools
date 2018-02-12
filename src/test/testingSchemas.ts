@@ -28,8 +28,8 @@ export type Property = {
 export type Product = {
   id: string;
   price?: number;
-  url?: string,
-  type: string,
+  url?: string;
+  type: string;
 };
 
 export type Booking = {
@@ -369,6 +369,34 @@ const propertyResolvers: IResolvers = {
   },
 };
 
+let DownloadableProduct = `
+  type DownloadableProduct implements Product & Downloadable {
+    id: ID!
+    url: String!
+  }
+`;
+
+let SimpleProduct = `type SimpleProduct implements Product & Sellable {
+    id: ID!
+    price: Int!
+  }
+`;
+
+if (['^0.11', '^0.12'].indexOf(process.env.GRAPHQL_VERSION) !== -1) {
+  DownloadableProduct = `
+    type DownloadableProduct implements Product, Downloadable {
+      id: ID!
+      url: String!
+    }
+  `;
+
+  SimpleProduct = `type SimpleProduct implements Product, Sellable {
+      id: ID!
+      price: Int!
+    }
+  `;
+}
+
 const productTypeDefs = `
   interface Product {
     id: ID!
@@ -382,15 +410,8 @@ const productTypeDefs = `
     url: String!
   }
 
-  type SimpleProduct implements Product, Sellable {
-    id: ID!
-    price: Int!
-  }
-
-  type DownloadableProduct implements Product, Downloadable {
-    id: ID!
-    url: String!
-  }
+  ${SimpleProduct}
+  ${DownloadableProduct}
 
   type Query {
     products: [Product]
