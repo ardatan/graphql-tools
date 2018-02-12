@@ -2,7 +2,7 @@
 
 ### vNEXT
 
-* ...
+* Make iterall a runtime dependency [PR #627](https://github.com/apollographql/graphql-tools/pull/627)
 
 ### v2.20.2
 
