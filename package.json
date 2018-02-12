@@ -68,7 +68,7 @@
     "chai": "^4.1.2",
     "express": "^4.16.2",
     "graphql": "^0.13.0",
-    "graphql-subscriptions": "^0.5.6",
+    "graphql-subscriptions": "^0.5.7",
     "graphql-type-json": "^0.1.4",
     "istanbul": "^0.4.5",
     "mocha": "^4.0.1",
