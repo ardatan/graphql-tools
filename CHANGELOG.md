@@ -2,6 +2,8 @@
 
 ### vNEXT
 
+### v2.21.0
+
 * Make iterall a runtime dependency [PR #627](https://github.com/apollographql/graphql-tools/pull/627)
 * Added support for lexical parser options [PR #567](https://github.com/apollographql/graphql-tools/pull/567)
 * Support `graphql@^0.13.0` [PR #567](https://github.com/apollographql/graphql-tools/pull/567)
