@@ -3,6 +3,8 @@
 ### vNEXT
 
 * Make iterall a runtime dependency [PR #627](https://github.com/apollographql/graphql-tools/pull/627)
+* Added support for lexical parser options [PR #567](https://github.com/apollographql/graphql-tools/pull/567)
+* Support `graphql@^0.13.0` [PR #567](https://github.com/apollographql/graphql-tools/pull/567)
 
 ### v2.20.2
 
@@ -38,7 +40,6 @@
 * Added GraphQL Subscriptions support for schema stitching and `makeRemoteExecutableSchema` [PR #563](https://github.com/apollographql/graphql-tools/pull/563)
 * Make `apollo-link` a direct dependency [PR #561](https://github.com/apollographql/graphql-tools/pull/561)
 * Update tests to use `graphql-js@0.12` docstring format [PR #559](https://github.com/apollographql/graphql-tools/pull/559)
-* Added support for lexical parser options [PR #567]
 
 ### v2.15.0
 
