@@ -2416,7 +2416,7 @@ describe('can specify lexical parser options', () => {
     expect(schema.astNode.loc).to.equal(undefined);
   });
 
-  if (['^0.11', '^0.12'].indexOf(process.env.GRAPHQL_VERSION) !== -1) {
+  if (['^0.11', '^0.12'].indexOf(process.env.GRAPHQL_VERSION) === -1) {
     it("can specify 'allowLegacySDLEmptyFields' option", () => {
       return expect(() => {
         makeExecutableSchema({
