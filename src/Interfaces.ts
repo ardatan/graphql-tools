@@ -13,6 +13,7 @@ import {
 
 /* TODO: Add documentation */
 
+export type UnitOrList<Type> = Type | Array<Type>;
 export interface IResolverValidationOptions {
   requireResolversForArgs?: boolean;
   requireResolversForNonScalar?: boolean;
@@ -49,7 +50,7 @@ export type ITypeDefinitions = ITypedef | ITypedef[];
 export type IResolverObject = {
   [key: string]: IFieldResolver<any, any> | IResolverOptions;
 };
-export type IEnumResolver = { [key: string]: string };
+export type IEnumResolver = { [key: string]: string | number };
 export interface IResolvers {
   [key: string]:
     | (() => any)
@@ -71,11 +72,12 @@ export type IConnectors = { [key: string]: IConnector };
 
 export interface IExecutableSchemaDefinition {
   typeDefs: ITypeDefinitions;
-  resolvers?: IResolvers;
+  resolvers?: IResolvers | Array<IResolvers>;
   connectors?: IConnectors;
   logger?: ILogger;
   allowUndefinedInResolve?: boolean;
   resolverValidationOptions?: IResolverValidationOptions;
+  directiveResolvers?: IDirectiveResolvers<any, any>;
 }
 
 export type IFieldIteratorFn = (
@@ -83,6 +85,19 @@ export type IFieldIteratorFn = (
   typeName: string,
   fieldName: string,
 ) => void;
+
+export type NextResolverFn = () => Promise<any>;
+export type DirectiveResolverFn<TSource, TContext> = (
+  next: NextResolverFn,
+  source: TSource,
+  args: { [argName: string]: any },
+  context: TContext,
+  info: GraphQLResolveInfo,
+) => any;
+
+export interface IDirectiveResolvers<TSource, TContext> {
+  [directiveName: string]: DirectiveResolverFn<TSource, TContext>;
+}
 
 /* XXX on mocks, args are optional, Not sure if a bug. */
 export type IMockFn = GraphQLFieldResolver<any, any>;
@@ -105,3 +120,5 @@ export interface IMockServer {
     vars?: { [key: string]: any },
   ) => Promise<ExecutionResult>;
 }
+
+export type ResolveType<T extends GraphQLType> = (type: T) => T;

@@ -25,6 +25,7 @@ import {
   execute,
   visit,
   subscribe,
+  validate,
 } from 'graphql';
 import { checkResultAndHandleErrors } from './errors';
 
@@ -59,6 +60,11 @@ export default async function delegateToSchema(
       info.operation.variableDefinitions,
     );
 
+    const errors = validate(schema, graphqlDoc);
+    if (errors.length > 0) {
+      throw errors;
+    }
+
     const operationDefinition = graphqlDoc.definitions.find(
       ({ kind }) => kind === Kind.OPERATION_DEFINITION,
     );
@@ -66,18 +72,15 @@ export default async function delegateToSchema(
     if (
       operationDefinition &&
       operationDefinition.kind === Kind.OPERATION_DEFINITION &&
-      operationDefinition.variableDefinitions
+      operationDefinition.variableDefinitions &&
+      Array.isArray(operationDefinition.variableDefinitions)
     ) {
-      operationDefinition.variableDefinitions.forEach(definition => {
+      for (const definition of operationDefinition.variableDefinitions) {
         const key = definition.variable.name.value;
         // (XXX) This is kinda hacky
-        let actualKey = key;
-        if (actualKey.startsWith('_')) {
-          actualKey = actualKey.slice(1);
-        }
-        const value = args[actualKey] || args[key] || info.variableValues[key];
-        variableValues[key] = value;
-      });
+        const actualKey = key.startsWith('_') ? key.slice(1) : key;
+        variableValues[key] = args[actualKey] != null ? args[actualKey] : info.variableValues[key];
+      }
     }
 
     if (operation === 'query' || operation === 'mutation') {
@@ -136,14 +139,17 @@ export function createDocument(
       }
     }),
   };
-
-  const newVariableDefinitions = newVariables.map(({ arg, variable }) => {
+  const newVariableDefinitions: VariableDefinitionNode[] = [];
+  newVariables.forEach(({ arg, variable }) => {
+    if (newVariableDefinitions.find(newVarDef => newVarDef.variable.name.value === variable)) {
+      return;
+    }
     const argDef = rootField.args.find(rootArg => rootArg.name === arg);
     if (!argDef) {
       throw new Error('Unexpected missing arg');
     }
     const typeName = typeToAst(argDef.type);
-    return {
+    newVariableDefinitions.push({
       kind: Kind.VARIABLE_DEFINITION,
       variable: {
         kind: Kind.VARIABLE,
@@ -153,7 +159,7 @@ export function createDocument(
         },
       },
       type: typeName,
-    };
+    });
   });
 
   const {
@@ -176,7 +182,7 @@ export function createDocument(
         variableDefinition =>
           usedVariables.indexOf(variableDefinition.variable.name.value) !== -1,
       ),
-      ...newVariableDefinitions,
+      ...newVariableDefinitions
     ],
     selectionSet,
   };
@@ -504,6 +510,11 @@ function implementsAbstractType(
     child instanceof GraphQLObjectType
   ) {
     return child.getInterfaces().indexOf(parent) !== -1;
+  } else if (
+    parent instanceof GraphQLInterfaceType &&
+    child instanceof GraphQLInterfaceType
+  ) {
+    return true;
   } else if (
     parent instanceof GraphQLUnionType &&
     child instanceof GraphQLObjectType

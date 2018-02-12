@@ -11,8 +11,8 @@ import {
   DocumentNode,
   parse,
   print,
-  Kind,
   DefinitionNode,
+  DirectiveNode,
   defaultFieldResolver,
   buildASTSchema,
   extendSchema,
@@ -27,6 +27,7 @@ import {
   GraphQLInterfaceType,
   GraphQLFieldMap,
 } from 'graphql';
+import { getArgumentValues } from 'graphql/execution/values';
 import {
   IExecutableSchemaDefinition,
   ILogger,
@@ -38,9 +39,12 @@ import {
   IConnector,
   IConnectorCls,
   IResolverValidationOptions,
+  IDirectiveResolvers,
+  UnitOrList,
 } from './Interfaces';
 
 import { deprecated } from 'deprecated-decorator';
+import mergeDeep from './mergeDeep';
 
 // @schemaDefinition: A GraphQL type schema in shorthand
 // @resolvers: Definitions for resolvers to be merged with schema
@@ -57,11 +61,12 @@ class SchemaError extends Error {
 // type definitions can be a string or an array of strings.
 function _generateSchema(
   typeDefinitions: ITypeDefinitions,
-  resolveFunctions: IResolvers,
+  resolveFunctions: UnitOrList<IResolvers>,
   logger: ILogger,
   // TODO: rename to allowUndefinedInResolve to be consistent
   allowUndefinedInResolve: boolean,
   resolverValidationOptions: IResolverValidationOptions,
+  directiveResolvers: IDirectiveResolvers<any, any>,
 ) {
   if (typeof resolverValidationOptions !== 'object') {
     throw new SchemaError(
@@ -75,15 +80,17 @@ function _generateSchema(
     throw new SchemaError('Must provide resolvers');
   }
 
+  const resolvers = Array.isArray(resolveFunctions)
+    ? resolveFunctions
+        .filter(resolverObj => typeof resolverObj === 'object')
+        .reduce(mergeDeep, {})
+    : resolveFunctions;
+
   // TODO: check that typeDefinitions is either string or array of strings
 
   const schema = buildSchemaFromTypeDefinitions(typeDefinitions);
 
-  addResolveFunctionsToSchema(
-    schema,
-    resolveFunctions,
-    resolverValidationOptions,
-  );
+  addResolveFunctionsToSchema(schema, resolvers, resolverValidationOptions);
 
   assertResolveFunctionsPresent(schema, resolverValidationOptions);
 
@@ -93,6 +100,10 @@ function _generateSchema(
 
   if (logger) {
     addErrorLoggingToSchema(schema, logger);
+  }
+
+  if (directiveResolvers) {
+    attachDirectiveResolvers(schema, directiveResolvers);
   }
 
   return schema;
@@ -105,6 +116,7 @@ function makeExecutableSchema({
   logger,
   allowUndefinedInResolve = true,
   resolverValidationOptions = {},
+  directiveResolvers = null,
 }: IExecutableSchemaDefinition) {
   const jsSchema = _generateSchema(
     typeDefs,
@@ -112,6 +124,7 @@ function makeExecutableSchema({
     logger,
     allowUndefinedInResolve,
     resolverValidationOptions,
+    directiveResolvers,
   );
   if (typeof resolvers['__schema'] === 'function') {
     // TODO a bit of a hack now, better rewrite generateSchema to attach it there.
@@ -194,19 +207,34 @@ function buildSchemaFromTypeDefinitions(
     astDocument = parse(myDefinitions);
   }
 
-  let schema: GraphQLSchema = buildASTSchema(astDocument);
+  const backcompatOptions = { commentDescriptions: true };
+
+  // TODO fix types https://github.com/apollographql/graphql-tools/issues/542
+  let schema: GraphQLSchema = (buildASTSchema as any)(
+    astDocument,
+    backcompatOptions,
+  );
 
   const extensionsAst = extractExtensionDefinitions(astDocument);
   if (extensionsAst.definitions.length > 0) {
-    schema = extendSchema(schema, extensionsAst);
+    // TODO fix types https://github.com/apollographql/graphql-tools/issues/542
+    schema = (extendSchema as any)(schema, extensionsAst, backcompatOptions);
   }
 
   return schema;
 }
 
+// This was changed in graphql@0.12
+// See https://github.com/apollographql/graphql-tools/pull/541
+// TODO fix types https://github.com/apollographql/graphql-tools/issues/542
+const oldTypeExtensionDefinitionKind = 'TypeExtensionDefinition';
+const newExtensionDefinitionKind = 'ObjectTypeExtension';
+
 export function extractExtensionDefinitions(ast: DocumentNode) {
   const extensionDefs = ast.definitions.filter(
-    (def: DefinitionNode) => def.kind === Kind.TYPE_EXTENSION_DEFINITION,
+    (def: DefinitionNode) =>
+      def.kind === oldTypeExtensionDefinitionKind ||
+      (def.kind as any) === newExtensionDefinitionKind,
   );
 
   return Object.assign({}, ast, {
@@ -374,15 +402,14 @@ function addResolveFunctionsToSchema(
       }
 
       if (type instanceof GraphQLEnumType) {
-        // TODO: Remove once https://github.com/DefinitelyTyped/DefinitelyTyped/pull/21786
-        // is inside NPM
-        if (!(type as any).isValidValue(fieldName)) {
+        if (!type.getValue(fieldName)) {
           throw new SchemaError(
-              `${typeName}.${fieldName} was defined in resolvers, but enum is not in schema`,
+            `${typeName}.${fieldName} was defined in resolvers, but enum is not in schema`,
           );
         }
 
-        type.getValue(fieldName)['value'] = resolveFunctions[typeName][fieldName];
+        type.getValue(fieldName)['value'] =
+          resolveFunctions[typeName][fieldName];
         return;
       }
 
@@ -637,6 +664,62 @@ function runAtMostOncePerRequest(
   };
 }
 
+function attachDirectiveResolvers(
+  schema: GraphQLSchema,
+  directiveResolvers: IDirectiveResolvers<any, any>,
+) {
+  if (typeof directiveResolvers !== 'object') {
+    throw new Error(
+      `Expected directiveResolvers to be of type object, got ${typeof directiveResolvers}`,
+    );
+  }
+  if (Array.isArray(directiveResolvers)) {
+    throw new Error(
+      'Expected directiveResolvers to be of type object, got Array',
+    );
+  }
+  forEachField(schema, (field: GraphQLField<any, any>) => {
+    const directives = field.astNode.directives;
+    directives.forEach((directive: DirectiveNode) => {
+      const directiveName = directive.name.value;
+      const resolver = directiveResolvers[directiveName];
+
+      if (resolver) {
+        const originalResolver = field.resolve || defaultFieldResolver;
+        const Directive = schema.getDirective(directiveName);
+        if (typeof Directive === 'undefined') {
+          throw new Error(
+            `Directive @${directiveName} is undefined. ` +
+              'Please define in schema before using',
+          );
+        }
+        const directiveArgs = getArgumentValues(Directive, directive);
+
+        field.resolve = (...args: any[]) => {
+          const [source, , context, info] = args;
+          return resolver(
+            () => {
+              try {
+                const promise = originalResolver.call(field, ...args);
+                if (promise instanceof Promise) {
+                  return promise;
+                }
+                return Promise.resolve(promise);
+              } catch (error) {
+                return Promise.reject(error);
+              }
+            },
+            source,
+            directiveArgs,
+            context,
+            info,
+          );
+        };
+      }
+    });
+  });
+}
+
 export {
   makeExecutableSchema,
   SchemaError,
@@ -650,4 +733,5 @@ export {
   addSchemaLevelResolveFunction,
   attachConnectorsToContext,
   concatenateTypeDefs,
+  attachDirectiveResolvers,
 };

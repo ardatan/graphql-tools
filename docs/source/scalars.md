@@ -3,7 +3,7 @@ title: Custom scalars and enums
 description: Add custom scalar and enum types to your graphql-tools generated schema.
 ---
 
-The GraphQL specification includes the following default scalar types: `String`, `Int`, `Float` and `Boolean`. While this covers most of the use cases, often you need to support custom atomic data types (e.g. Date), or you want a version of an existing type that does some validation. To enable this, GraphQL allows you to define custom scalar types. Enumerations are similar to custom scalars, but their values can only be one of a pre-defined list of strings.
+The GraphQL specification includes the following default scalar types: `Int`, `Float`, `String`, `Boolean` and `ID`. While this covers most of the use cases, often you need to support custom atomic data types (e.g. Date), or you want a version of an existing type that does some validation. To enable this, GraphQL allows you to define custom scalar types. Enumerations are similar to custom scalars, but their values can only be one of a pre-defined list of strings.
 
 <h2 id="custom-scalars">Custom scalars</h2>
 
@@ -13,7 +13,7 @@ To define a custom scalar you simply add it to the schema string with the follow
 scalar MyCustomScalar
 ```
 
-Afterwards, you have to define the behavior of your `MyCustomScalar` custom scalar by passing an instance of the [`GraphQLScalarType`](http://graphql.org/graphql-js/type/#graphqlscalartype) class in the [resolver map](/tools/graphql-tools/resolvers.html#Resolver-map). This instance can be defined in a [dependency package](#Using-a-package) or [in your own code](#Own-GraphQLScalarType-instance).
+Afterwards, you have to define the behavior of your `MyCustomScalar` custom scalar by passing an instance of the [`GraphQLScalarType`](http://graphql.org/graphql-js/type/#graphqlscalartype) class in the [resolver map](https://www.apollographql.com/docs/graphql-tools/resolvers.html#Resolver-map). This instance can be defined in a [dependency package](#Using-a-package) or [in your own code](#graphqlscalartype).
 
 For more information about GraphQL's type system, please refer to the [official documentation](http://graphql.org/graphql-js/type/) or to the [Learning GraphQL](https://github.com/mugli/learning-graphql/blob/master/7.%20Deep%20Dive%20into%20GraphQL%20Type%20System.md) tutorial.
 
@@ -208,11 +208,8 @@ You can use it in your schema anywhere you could use a scalar:
 
 ```graphql
 type Query {
-  # As a return value
-  favoriteColor: AllowedColor
-
-  # As an argument
-  avatar(borderColor: AllowedColor): String
+  favoriteColor: AllowedColor # As a return value
+  avatar(borderColor: AllowedColor): String # As an argument
 }
 ```
 
@@ -249,11 +246,8 @@ const typeDefs = `
   }
 
   type Query {
-    # As a return value
-    favoriteColor: AllowedColor
-
-    # As an argument
-    avatar(borderColor: AllowedColor): String
+    favoriteColor: AllowedColor # As a return value
+    avatar(borderColor: AllowedColor): String # As an argument
   }
 `;
 

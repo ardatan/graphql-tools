@@ -11,6 +11,7 @@ export function annotateWithChildrenErrors(
     if (Array.isArray(object)) {
       const byIndex = {};
       childrenErrors.forEach(error => {
+        if (!error.path) { return; }
         const index = error.path[1];
         const current = byIndex[index] || [];
         current.push({
@@ -27,7 +28,7 @@ export function annotateWithChildrenErrors(
         ...object,
         [ERROR_SYMBOL]: childrenErrors.map(error => ({
           ...error,
-          path: error.path.slice(1),
+          ...(error.path ? { path: error.path.slice(1) } : {}),
         })),
       };
     }
@@ -77,11 +78,14 @@ export function checkResultAndHandleErrors(
       : info.fieldName;
   }
   if (result.errors && (!result.data || result.data[responseKey] == null)) {
-    const errorMessage = result.errors
-      .map((error: { message: string }) => error.message)
-      .join('\n');
+    // apollo-link-http & http-link-dataloader need the
+    // result property to be passed through for better error handling.
+    // If there is only one error, which contains a result property, pass the error through
+    const newError = result.errors.length === 1 && hasResult(result.errors[0])
+      ? result.errors[0] : new Error(concatErrors(result.errors));
+
     throw locatedError(
-      errorMessage,
+      newError,
       info.fieldNodes,
       responsePathAsArray(info.path),
     );
@@ -95,4 +99,14 @@ export function checkResultAndHandleErrors(
     }
     return resultObject;
   }
+}
+
+function concatErrors(errors: Error[]) {
+  return errors
+    .map(error => error.message)
+    .join('\n');
+}
+
+function hasResult(error: any) {
+  return error.result || (error.originalError && error.originalError.result);
 }

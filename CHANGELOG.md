@@ -1,8 +1,66 @@
 # Change log
 
-### VNEXT
+### vNEXT
 
 * ...
+
+### v2.20.2
+
+* Pass through apollo-link-http errors to originalError [PR #621](https://github.com/apollographql/graphql-tools/pull/621)
+
+### v2.20.1
+
+* Fix `error.path` could be `undefined` for schema stitching [PR #617](https://github.com/apollographql/graphql-tools/pull/617)
+
+### v2.20.0
+
+* Recreate enums and scalars for more consistent behaviour of merged schemas [PR #613](https://github.com/apollographql/graphql-tools/pull/613)
+* `makeExecutableSchema` and `mergeSchema` now accept an array of `IResolver` [PR #612](https://github.com/apollographql/graphql-tools/pull/612) [PR #576](https://github.com/apollographql/graphql-tools/pull/576) [PR #577](https://github.com/apollographql/graphql-tools/pull/577)
+* Fix `delegateToSchema.ts` to remove duplicate new variable definitions when delegating to schemas [PR #607](https://github.com/apollographql/graphql-tools/pull/607)
+* Fix duplicate subscriptions for schema stitching [PR #609](https://github.com/apollographql/graphql-tools/pull/609)
+
+### v2.19.0
+
+* Also recreate `astNode` property for fields, not only types, when recreating schemas. [PR #580](https://github.com/apollographql/graphql-tools/pull/580)
+* Fix `delegateToSchema.js` to accept and move forward args with zero or false values [PR #586](https://github.com/apollographql/graphql-tools/pull/586)
+
+### v2.18.0
+
+* Fix a bug where inline fragments got filtered in merged schemas when a type implemented multiple interfaces [PR #546](https://github.com/apollographql/graphql-tools/pull/546)
+* IEnumResolver value can be a `number` type [PR #568](https://github.com/apollographql/graphql-tools/pull/568)
+
+### v2.17.0
+
+* Include `astNode` property in schema recreation [PR #569](https://github.com/apollographql/graphql-tools/pull/569)
+
+### v2.16.0
+
+* Added GraphQL Subscriptions support for schema stitching and `makeRemoteExecutableSchema` [PR #563](https://github.com/apollographql/graphql-tools/pull/563)
+* Make `apollo-link` a direct dependency [PR #561](https://github.com/apollographql/graphql-tools/pull/561)
+* Update tests to use `graphql-js@0.12` docstring format [PR #559](https://github.com/apollographql/graphql-tools/pull/559)
+
+### v2.15.0
+
+* Validate query before delegation [PR #551](https://github.com/apollographql/graphql-tools/pull/551)
+
+### v2.14.1
+
+* Add guard against invalid schemas being constructed from AST [PR #547](https://github.com/apollographql/graphql-tools/pull/547)
+
+### v2.14.0
+
+Update to add support for `graphql@0.12`, and drop versions before `0.11` from the peer dependencies list. The `graphql` package has some breaking changes you might need to be aware of, but there aren't any breaking changes in `graphql-tools` itself, or common usage patterns, so we are shipping this as a minor version. We're also running tests on this package with _both_ `graphql@0.11` and `graphql@0.12` until we confirm most users have updated.
+
+- Visit the [`graphql` releases page](https://github.com/graphql/graphql-js/releases) to keep track of for breaking changes to the underlying package.
+- [PR #541](https://github.com/apollographql/graphql-tools/pull/541)
+
+### v2.13.0
+
+* (Experimental) Added support for custom directives on FIELD_DEFINITION that wrap resolvers with custom reusable logic.  [Issue #212](https://github.com/apollographql/graphql-tools/issues/212) [PR #518](https://github.com/apollographql/graphql-tools/pull/518) and [PR #529](https://github.com/apollographql/graphql-tools/pull/529)
+
+### v2.12.0
+
+* Allow passing in a string `schema` to `makeRemoteExecutableSchema` [PR #521](https://github.com/apollographql/graphql-tools/pull/521)
 
 ### v2.11.0
 
@@ -162,7 +220,7 @@
 
 * Removed testing on Node 5 ([@DxCx](https://github.com/DxCx) in [#129](https://github.com/apollostack/graphql-tools/pull/129))
 
-* Changed GraphQL typings requirment from peer to standard ([@DxCx](https://github.com/DxCx) in [#129](https://github.com/apollostack/graphql-tools/pull/129))
+* Changed GraphQL typings requirement from peer to standard ([@DxCx](https://github.com/DxCx) in [#129](https://github.com/apollostack/graphql-tools/pull/129))
 
 * Change the missing resolve function validator to show a warning instead of an error ([@nicolaslopezj](https://github.com/nicolaslopezj) in [#134](https://github.com/apollostack/graphql-tools/pull/134))
 

@@ -2,7 +2,6 @@ import {
   DocumentNode,
   GraphQLField,
   GraphQLFieldMap,
-  GraphQLInputObjectType,
   GraphQLNamedType,
   GraphQLObjectType,
   GraphQLResolveInfo,
@@ -12,23 +11,31 @@ import {
   buildASTSchema,
   extendSchema,
   getNamedType,
-  isCompositeType,
   isNamedType,
   parse,
 } from 'graphql';
 import TypeRegistry from './TypeRegistry';
-import { IResolvers, MergeInfo, IFieldResolver } from '../Interfaces';
+import {
+  IResolvers,
+  MergeInfo,
+  IFieldResolver,
+  UnitOrList,
+} from '../Interfaces';
 import isEmptyObject from '../isEmptyObject';
+import mergeDeep from '../mergeDeep';
 import {
   extractExtensionDefinitions,
   addResolveFunctionsToSchema,
 } from '../schemaGenerator';
 import {
-  recreateCompositeType,
+  recreateType,
   fieldMapToFieldConfigMap,
+  createResolveType,
 } from './schemaRecreation';
 import delegateToSchema from './delegateToSchema';
 import typeFromAST from './typeFromAST';
+
+const backcompatOptions = { commentDescriptions: true };
 
 export default function mergeSchemas({
   schemas,
@@ -40,7 +47,7 @@ export default function mergeSchemas({
     left: GraphQLNamedType,
     right: GraphQLNamedType,
   ) => GraphQLNamedType;
-  resolvers?: IResolvers | ((mergeInfo: MergeInfo) => IResolvers);
+  resolvers?: UnitOrList<IResolvers | ((mergeInfo: MergeInfo) => IResolvers)>;
 }): GraphQLSchema {
   if (!onTypeConflict) {
     onTypeConflict = defaultOnTypeConflict;
@@ -50,6 +57,10 @@ export default function mergeSchemas({
   let subscriptionFields: GraphQLFieldMap<any, any> = {};
 
   const typeRegistry = new TypeRegistry();
+
+  const resolveType = createResolveType(name => {
+    return typeRegistry.getType(name);
+  });
 
   const mergeInfo: MergeInfo = createMergeInfo(typeRegistry);
 
@@ -64,8 +75,14 @@ export default function mergeSchemas({
     } else if (typeof schema === 'string') {
       let parsedSchemaDocument = parse(schema);
       try {
-        const actualSchema = buildASTSchema(parsedSchemaDocument);
-        actualSchemas.push(actualSchema);
+        // TODO fix types https://github.com/apollographql/graphql-tools/issues/542
+        const actualSchema = (buildASTSchema as any)(
+          parsedSchemaDocument,
+          backcompatOptions,
+        );
+        if (actualSchema.getQueryType()) {
+          actualSchemas.push(actualSchema);
+        }
       } catch (e) {
         typeFragments.push(parsedSchemaDocument);
       }
@@ -92,15 +109,7 @@ export default function mergeSchemas({
         type !== mutationType &&
         type !== subscriptionType
       ) {
-        let newType;
-        if (isCompositeType(type) || type instanceof GraphQLInputObjectType) {
-          newType = recreateCompositeType(schema, type, typeRegistry);
-        } else {
-          newType = getNamedType(type);
-        }
-        if (newType instanceof GraphQLObjectType) {
-          delete newType.isTypeOf;
-        }
+        const newType = recreateType(type, resolveType);
         typeRegistry.addType(newType.name, newType, onTypeConflict);
       }
     });
@@ -169,6 +178,13 @@ export default function mergeSchemas({
   if (resolvers) {
     if (typeof resolvers === 'function') {
       passedResolvers = resolvers(mergeInfo);
+    } else if (Array.isArray(resolvers)) {
+      passedResolvers = resolvers
+        .map(
+          resolver =>
+            typeof resolver === 'function' ? resolver(mergeInfo) : resolver,
+        )
+        .reduce(mergeDeep, {});
     } else {
       passedResolvers = { ...resolvers };
     }
@@ -191,14 +207,14 @@ export default function mergeSchemas({
 
   const query = new GraphQLObjectType({
     name: 'Query',
-    fields: () => fieldMapToFieldConfigMap(queryFields, typeRegistry),
+    fields: () => fieldMapToFieldConfigMap(queryFields, resolveType),
   });
 
   let mutation;
   if (!isEmptyObject(mutationFields)) {
     mutation = new GraphQLObjectType({
       name: 'Mutation',
-      fields: () => fieldMapToFieldConfigMap(mutationFields, typeRegistry),
+      fields: () => fieldMapToFieldConfigMap(mutationFields, resolveType),
     });
   }
 
@@ -206,7 +222,7 @@ export default function mergeSchemas({
   if (!isEmptyObject(subscriptionFields)) {
     subscription = new GraphQLObjectType({
       name: 'Subscription',
-      fields: () => fieldMapToFieldConfigMap(subscriptionFields, typeRegistry),
+      fields: () => fieldMapToFieldConfigMap(subscriptionFields, resolveType),
     });
   }
 
@@ -222,7 +238,12 @@ export default function mergeSchemas({
   });
 
   extensions.forEach(extension => {
-    mergedSchema = extendSchema(mergedSchema, extension);
+    // TODO fix types https://github.com/apollographql/graphql-tools/issues/542
+    mergedSchema = (extendSchema as any)(
+      mergedSchema,
+      extension,
+      backcompatOptions,
+    );
   });
 
   addResolveFunctionsToSchema(mergedSchema, fullResolvers);
@@ -284,28 +305,6 @@ function createDelegatingResolver(
   return (root, args, context, info) => {
     return mergeInfo.delegate(operation, fieldName, args, context, info);
   };
-}
-
-function isObject(item: any): Boolean {
-  return item && typeof item === 'object' && !Array.isArray(item);
-}
-
-function mergeDeep(target: any, source: any): any {
-  let output = Object.assign({}, target);
-  if (isObject(target) && isObject(source)) {
-    Object.keys(source).forEach(key => {
-      if (isObject(source[key])) {
-        if (!(key in target)) {
-          Object.assign(output, { [key]: source[key] });
-        } else {
-          output[key] = mergeDeep(target[key], source[key]);
-        }
-      } else {
-        Object.assign(output, { [key]: source[key] });
-      }
-    });
-  }
-  return output;
 }
 
 type FieldIteratorFn = (

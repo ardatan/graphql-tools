@@ -42,9 +42,9 @@ fieldName(obj, args, context, info) { result }
 
 These arguments have the following meanings and conventional names:
 
-1. `obj`: The object that contains the result returned from the resolver on the parent field, or, in the case of a top-level `Query` field, the `rootValue` passed from the [server configuration](/tools/apollo-server/setup.html). This argument enables the nested nature of GraphQL queries.
+1. `obj`: The object that contains the result returned from the resolver on the parent field, or, in the case of a top-level `Query` field, the `rootValue` passed from the [server configuration](/docs/apollo-server/setup.html). This argument enables the nested nature of GraphQL queries.
 2. `args`: An object with the arguments passed into the field in the query. For example, if the field was called with `author(name: "Ada")`, the `args` object would be: `{ "name": "Ada" }`.
-3. `context`: This is an object shared by all resolvers in a particular query, and is used to contain per-request state, including authentication information, dataloader instances, and anything else that should be taken into account when resolving the query. If you're using Apollo Server, [read about how to set the context in the setup documentation](/tools/apollo-server/setup.html).
+3. `context`: This is an object shared by all resolvers in a particular query, and is used to contain per-request state, including authentication information, dataloader instances, and anything else that should be taken into account when resolving the query. If you're using Apollo Server, [read about how to set the context in the setup documentation](/docs/apollo-server/setup.html).
 4. `info`: This argument should only be used in advanced cases, but it contains information about the execution state of the query, including the field name, path to the field from the root, and more. It's only documented in the [GraphQL.js source code](https://github.com/graphql/graphql-js/blob/c82ff68f52722c20f10da69c9e50a030a1f218ae/src/type/definition.js#L489-L500).
 
 ### Resolver result format
@@ -169,3 +169,42 @@ addResolveFunctionsToSchema(schema, resolverMap);
 </h3>
 
 Some operations, such as authentication, need to be done only once per query. Logically, these operations belong in an obj resolve function, but unfortunately GraphQL-JS does not let you define one. `addSchemaLevelResolveFunction` solves this by modifying the GraphQLSchema that is passed as the first argument.
+
+<h2 id="companion-tools" title="Companion tools">Companion tools</h2>
+
+Modules and extensions built by the community.
+
+### [graphql-resolvers](https://github.com/lucasconstantino/graphql-resolvers)
+
+Composition library for GraphQL, with helpers to combine multiple resolvers into one, specify dependencies between fields, and more.
+
+When developing a GraphQL server, it is common to perform some authorization logic on your resolvers, usually based on the context of a request. With `graphql-resolvers` you can easily accomplish that and still make the code decoupled - thus testable - by combining multiple single-logic resolvers into one.
+
+The following is an example of a simple logged-in authorization logic:
+
+```js
+const isAuthenticated = (root, args, context, info) => {
+  if (!context.user) {
+    return new Error('Not authenticated')
+  }
+}
+```
+
+Which could be used it in an actual field resolver like this:
+
+```js
+import { combineResolvers } from 'graphql-resolvers'
+
+const protectedField = (root, args, context, info) => 'Protected field value'
+
+const resolverMap = {
+  Query: {
+    protectedField: combineResolvers(
+      isAuthenticated,
+      protectedField
+    )
+  }
+}
+```
+
+> Have a project which improves resolvers development? Send us a [pull request](https://github.com/apollographql/graphql-tools/blob/master/CONTRIBUTING.md)!

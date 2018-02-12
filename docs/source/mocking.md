@@ -13,7 +13,7 @@ Let's take a look at how we can mock a GraphQL schema with just one line of code
 
 [See a complete runnable example on Launchpad.](https://launchpad.graphql.com/98lq7vz8r)
 
-To start, let's grab the schema definition string from the `makeExecutableSchema` example [in the "Generating a schema" article](/tools/graphql-tools/generate-schema.html#example).
+To start, let's grab the schema definition string from the `makeExecutableSchema` example [in the "Generating a schema" article](./generate-schema.html#example).
 
 ```js
 import { makeExecutableSchema, addMockFunctionsToSchema } from 'graphql-tools';
@@ -186,7 +186,8 @@ const typeResolvers = {
 }
 
 const schema = makeExecutableSchema({
-  typeDefs
+  typeDefs,
+  typeResolvers
 })
 
 addMockFunctionsToSchema({

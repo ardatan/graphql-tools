@@ -112,7 +112,7 @@ You won't be able to query `User.chirps` or `Chirp.author` yet however, because 
 
 So what should these resolvers look like?
 
-When we resolve `User.chirps` or `Chirp.author`, we want to delegate to the revelant root fields. To get from a user to its chirps for example, we'll want to use the `id` of the user to call `chirpsByAuthorId`. And to get from a chirp to its author, we can use the chirp's `authorId` field to call into `userById`.
+When we resolve `User.chirps` or `Chirp.author`, we want to delegate to the relevant root fields. To get from a user to its chirps for example, we'll want to use the `id` of the user to call `chirpsByAuthorId`. And to get from a chirp to its author, we can use the chirp's `authorId` field to call into `userById`.
 
 Resolvers specified as part of `mergeSchema` have access to a `delegate` function that allows you to delegate to root fields.
 
@@ -220,7 +220,7 @@ resolvers: mergeInfo => ({
 
 #### mergeInfo and delegate
 
-`mergeInfo` currenty is an object with one property - `delegate`. It looks like this:
+`mergeInfo` currently is an object with one property - `delegate`. It looks like this:
 
 ```js
 type MergeInfo = {
