@@ -701,8 +701,8 @@ describe('generating schema from shorthand', () => {
       RootQuery: {
         numberOfSpecies() {
           return 1;
-        }
-      }
+        },
+      },
     };
 
     const testQuery = `{
@@ -983,8 +983,8 @@ describe('generating schema from shorthand', () => {
           RED: '#EA3232',
         },
         NumericEnum: {
-          TEST: 1
-        }
+          TEST: 1,
+        },
       };
 
       const jsSchema = makeExecutableSchema({
@@ -994,7 +994,9 @@ describe('generating schema from shorthand', () => {
 
       expect(jsSchema.getQueryType().name).to.equal('Query');
       expect(jsSchema.getType('Color')).to.be.an.instanceof(GraphQLEnumType);
-      expect(jsSchema.getType('NumericEnum')).to.be.an.instanceof(GraphQLEnumType);
+      expect(jsSchema.getType('NumericEnum')).to.be.an.instanceof(
+        GraphQLEnumType,
+      );
     });
 
     it('supports passing the value for a GraphQLEnumType in resolveFunctions', () => {
@@ -1035,7 +1037,7 @@ describe('generating schema from shorthand', () => {
           },
           numericEnum() {
             return 1;
-          }
+          },
         },
       };
 
@@ -2395,7 +2397,7 @@ describe('attachDirectiveResolvers on field', () => {
 });
 
 describe('can specify lexical parser options', () => {
-  it('can specify \'noLocation\' option', () => {
+  it("can specify 'noLocation' option", () => {
     const schema = makeExecutableSchema({
       typeDefs: `
         type RootQuery {
@@ -2405,18 +2407,17 @@ describe('can specify lexical parser options', () => {
           query: RootQuery
         }
       `,
-      resolvers: {
-      },
+      resolvers: {},
       parseOptions: {
-        noLocation: true
+        noLocation: true,
       },
     });
 
     expect(schema.astNode.loc).to.equal(undefined);
   });
 
-  if (!['^0.11', '^0.12'].includes(process.env.GRAPHQL_VERSION)) {
-    it('can specify \'allowLegacySDLEmptyFields\' option', () => {
+  if (['^0.11', '^0.12'].indexOf(process.env.GRAPHQL_VERSION) !== -1) {
+    it("can specify 'allowLegacySDLEmptyFields' option", () => {
       return expect(() => {
         makeExecutableSchema({
           typeDefs: `
@@ -2426,16 +2427,15 @@ describe('can specify lexical parser options', () => {
               query: RootQuery
             }
           `,
-          resolvers: {
-          },
+          resolvers: {},
           parseOptions: {
-            allowLegacySDLEmptyFields: true
+            allowLegacySDLEmptyFields: true,
           },
         });
       }).to.not.throw();
     });
 
-    it('can specify \'allowLegacySDLImplementsInterfaces\' option', () => {
+    it("can specify 'allowLegacySDLImplementsInterfaces' option", () => {
       const typeDefs = `
         interface A {
           hello: String
@@ -2459,7 +2459,7 @@ describe('can specify lexical parser options', () => {
           typeDefs,
           resolvers,
           parseOptions: {
-            allowLegacySDLImplementsInterfaces: true
+            allowLegacySDLImplementsInterfaces: true,
           },
         });
       }).to.not.throw();
@@ -2469,17 +2469,15 @@ describe('can specify lexical parser options', () => {
           typeDefs,
           resolvers,
           parseOptions: {
-            allowLegacySDLImplementsInterfaces: false
+            allowLegacySDLImplementsInterfaces: false,
           },
         });
       }).to.throw('Syntax Error: Unexpected Name');
     });
-
   }
 
-
   if (process.env.GRAPHQL_VERSION !== '^0.11') {
-    it('can specify \'experimentalFragmentVariables\' option', () => {
+    it("can specify 'experimentalFragmentVariables' option", () => {
       const typeDefs = `
         type Hello {
           world(phrase: String): String
@@ -2500,12 +2498,12 @@ describe('can specify lexical parser options', () => {
 
       const resolvers = {
         RootQuery: {
-          hello () {
+          hello() {
             return {
-              world: (phrase: string) => `hello ${phrase}`
+              world: (phrase: string) => `hello ${phrase}`,
             };
-          }
-        }
+          },
+        },
       };
 
       expect(() => {
@@ -2513,12 +2511,10 @@ describe('can specify lexical parser options', () => {
           typeDefs,
           resolvers,
           parseOptions: {
-            experimentalFragmentVariables: true
+            experimentalFragmentVariables: true,
           },
         });
       }).to.not.throw();
-
     });
   }
-
 });
