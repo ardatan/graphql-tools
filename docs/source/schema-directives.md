@@ -16,7 +16,7 @@ import { graphql } from 'graphql';
 
 // Construct a schema, using GraphQL schema language
 const typeDefs = `
-	directive @upper on FIELD_DEFINITION
+  directive @upper on FIELD_DEFINITION
 
   type Query {
     hello: String @upper
@@ -77,8 +77,8 @@ import { makeExecutableSchema } from 'graphql-tools';
 
 // Construct a schema, using GraphQL schema language
 const typeDefs = `
-	directive @upper on FIELD_DEFINITION
-	directive @concat(value: String!) on FIELD_DEFINITION
+  directive @upper on FIELD_DEFINITION
+  directive @concat(value: String!) on FIELD_DEFINITION
 
   type Query {
     foo: String @concat(value: "@gmail.com") @upper
