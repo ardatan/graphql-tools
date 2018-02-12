@@ -382,7 +382,7 @@ let SimpleProduct = `type SimpleProduct implements Product & Sellable {
   }
 `;
 
-if (['^0.11', '^0.12'].includes(process.env.GRAPHQL_VERSION)) {
+if (['^0.11', '^0.12'].indexOf(process.env.GRAPHQL_VERSION) !== -1) {
   DownloadableProduct = `
     type DownloadableProduct implements Product, Downloadable {
       id: ID!
