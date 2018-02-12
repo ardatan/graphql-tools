@@ -28,8 +28,8 @@ export type Property = {
 export type Product = {
   id: string;
   price?: number;
-  url?: string,
-  type: string,
+  url?: string;
+  type: string;
 };
 
 export type Booking = {
@@ -376,11 +376,23 @@ let DownloadableProduct = `
   }
 `;
 
+let SimpleProduct = `type SimpleProduct implements Product & Sellable {
+    id: ID!
+    price: Int!
+  }
+`;
+
 if (['^0.11', '^0.12'].includes(process.env.GRAPHQL_VERSION)) {
   DownloadableProduct = `
     type DownloadableProduct implements Product, Downloadable {
       id: ID!
       url: String!
+    }
+  `;
+
+  SimpleProduct = `type SimpleProduct implements Product, Sellable {
+      id: ID!
+      price: Int!
     }
   `;
 }
@@ -398,11 +410,7 @@ const productTypeDefs = `
     url: String!
   }
 
-  type SimpleProduct implements Product & Sellable {
-    id: ID!
-    price: Int!
-  }
-
+  ${SimpleProduct}
   ${DownloadableProduct}
 
   type Query {
