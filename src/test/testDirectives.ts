@@ -4,6 +4,7 @@ import {
 } from '../schemaGenerator';
 import {
   VisitableType,
+  GraphQLSchemaDirective,
 } from '../directives';
 import {
   GraphQLObjectType,
@@ -125,5 +126,25 @@ describe('@directives', () => {
     });
 
     checkDirectives(schema.getType('WhateverUnion'), ['unionDirective']);
+  });
+
+  it('can be implemented with GraphQLSchemaDirective', () => {
+    const visited: Set<GraphQLObjectType> = new Set;
+    const schema = makeExecutableSchema({ typeDefs });
+
+    GraphQLSchemaDirective.visitSchema(schema, {
+      // The directive subclass can be defined anonymously inline!
+      queryTypeDirective: class extends GraphQLSchemaDirective {
+        public static description = 'A @directive for query object types';
+        public visitObject(object: GraphQLObjectType) {
+          visited.add(object);
+        }
+      },
+    });
+
+    assert.strictEqual(visited.size, 1);
+    visited.forEach(object => {
+      assert.strictEqual(object, schema.getType('Query'));
+    });
   });
 });
