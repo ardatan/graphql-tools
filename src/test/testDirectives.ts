@@ -229,4 +229,82 @@ describe('@directives', () => {
       }
     });
   });
+
+  it('can handle all kinds of undeclared arguments', () => {
+    const schemaText = `
+    enum SpineEnum {
+      VERTEBRATE @directive(spineless: false)
+      INVERTEBRATE @directive(spineless: true)
+    }
+
+    type Query @directive(c: null, d: 1, e: { oyez: 3.1415926 }) {
+      animal(
+        name: String @directive(f: ["n", "a", "m", "e"])
+      ): Animal @directive(g: INVERTEBRATE)
+    }
+
+    type Animal {
+      name: String @directive(default: "horse")
+      spine: SpineEnum @directive(default: VERTEBRATE)
+    }
+    `;
+
+    const schema = makeExecutableSchema({
+      typeDefs: schemaText,
+    });
+
+    let enumValueCount = 0;
+    let objectCount = 0;
+    let argumentCount = 0;
+    let fieldCount = 0;
+
+    SchemaDirectiveVisitor.visitSchema(schema, {
+      directive: class extends SchemaDirectiveVisitor {
+        public visitEnumValue(value: GraphQLEnumValue) {
+          ++enumValueCount;
+          assert.strictEqual(
+            this.args.spineless,
+            value.name === 'INVERTEBRATE'
+          );
+        }
+
+        public visitObject(object: GraphQLObjectType) {
+          ++objectCount;
+          assert.strictEqual(this.args.c, null);
+          assert.strictEqual(this.args.d, 1);
+          assert.strictEqual(Math.round(this.args.e.oyez), 3);
+        }
+
+        public visitArgumentDefinition(arg: GraphQLArgument) {
+          ++argumentCount;
+          assert.strictEqual(this.args.f.join(''), 'name');
+        }
+
+        public visitFieldDefinition(field: GraphQLField<any, any>, details: {
+          objectType: GraphQLObjectType,
+        }) {
+          ++fieldCount;
+          switch (details.objectType.name) {
+          case 'Query':
+            assert.strictEqual(this.args.g, 'INVERTEBRATE');
+            break;
+          case 'Animal':
+            if (field.name === 'name') {
+              assert.strictEqual(this.args.default, 'horse');
+            } else if (field.name === 'spine') {
+              assert.strictEqual(this.args.default, 'VERTEBRATE');
+            }
+            break;
+          default:
+            throw new Error('unexpected field parent object type');
+          }
+        }
+      }
+    });
+
+    assert.strictEqual(enumValueCount, 2);
+    assert.strictEqual(objectCount, 1);
+    assert.strictEqual(argumentCount, 1);
+    assert.strictEqual(fieldCount, 3);
+  });
 });

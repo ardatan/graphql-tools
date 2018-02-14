@@ -416,6 +416,7 @@ function valueFromASTUntyped(
       obj[field.name.value] = valueFromASTUntyped(field.value);
     });
     return obj;
+  /* istanbul ignore next */
   default:
     throw new Error('Unexpected value kind: ' + valueNode.kind);
   }
