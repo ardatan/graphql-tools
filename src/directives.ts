@@ -40,9 +40,13 @@ const hasOwn = Object.prototype.hasOwnProperty;
 export class GraphQLSchemaDirective extends GraphQLDirective {
   // Subclasses of GraphQLSchemaDirective must define their own static
   // .description property, which will be passed to the GraphQLDirective
-  // constructor by the static create method. If a subclass fails to
-  // override this 'invalid' description value, create will throw.
-  public static description: string = 'invalid';
+  // constructor by the static create method.
+  public static description: string;
+
+  // All GraphQLSchemaDirective instances are created while visiting a
+  // specific GraphQLSchema object, and this property holds a reference to
+  // that object.
+  public schema: GraphQLSchema;
 
   // Although you might think a GraphQLSchemaDirective subclass should also
   // define an appropriate static .name property, that turns out not to be
@@ -217,7 +221,9 @@ export class GraphQLSchemaDirective extends GraphQLDirective {
         // As described near the top of the visitSchema method, this is where
         // instances of the GraphQLSchemaDirective class get created and
         // assigned names.
-        directiveInstances.push(directiveClass.create(name, args));
+        directiveInstances.push(
+          directiveClass.create(name, args, schema)
+        );
       });
 
       return directiveInstances;
@@ -235,21 +241,23 @@ export class GraphQLSchemaDirective extends GraphQLDirective {
   public static create(
     name: string,
     args: GraphQLFieldConfigArgumentMap,
+    schema: GraphQLSchema,
   ) {
     // It would be great if description could be an abstract static property,
     // so that failing to define it would be a compile-time error rather than
     // a runtime error, but that would require making GraphQLSchemaDirective
     // an abstract class, which won't work because TypeScript forbids invoking
     // `new this(...)` if `this` might be abstract (see below).
-    if (this.description === 'invalid') {
+    if (typeof this.description === 'undefined') {
       throw new Error('missing static description string');
     }
 
-    return new this({
+    return new this(
       name,
-      description: this.description,
+      this.description,
       args,
-    });
+      schema,
+    );
   }
 
   // Concrete subclasses of GraphQLSchema directive should override one or more
@@ -275,15 +283,21 @@ export class GraphQLSchemaDirective extends GraphQLDirective {
   /* tslint:enable:no-empty */
 
   // Make the actual constructor protected to enforce using create.
-  protected constructor(config: {
+  protected constructor(
     name: string,
     description: string,
     args: GraphQLFieldConfigArgumentMap,
-  }) {
+    schema: GraphQLSchema,
+  ) {
     super({
-      ...config,
-      locations: []
+      name,
+      description,
+      args,
+      locations: [],
     });
+
+    // In case visitor methods need to access the schema object.
+    this.schema = schema;
 
     // MAGIC: Subclasses do not have to specify an array of DirectiveLocation
     // values, because we can figure out the appropriate locations simply by
