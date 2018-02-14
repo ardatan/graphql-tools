@@ -44,7 +44,7 @@ import {
   GraphQLParseOptions,
 } from './Interfaces';
 
-import { GraphQLSchemaDirective } from './directives';
+import { SchemaDirectiveVisitor } from './directives';
 import { deprecated } from 'deprecated-decorator';
 import mergeDeep from './mergeDeep';
 
@@ -143,7 +143,7 @@ function makeExecutableSchema<TContext = any>({
   }
 
   // Visit the schema without providing any directive implementations, yet.
-  GraphQLSchemaDirective.visitSchema(jsSchema, {});
+  SchemaDirectiveVisitor.visitSchema(jsSchema, {});
 
   return jsSchema;
 }

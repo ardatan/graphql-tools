@@ -37,37 +37,39 @@ export type VisitableType =
 
 const hasOwn = Object.prototype.hasOwnProperty;
 
-export class GraphQLSchemaDirective extends GraphQLDirective {
-  // Subclasses of GraphQLSchemaDirective should define their own static
+export class SchemaDirectiveVisitor extends GraphQLDirective {
+  // Subclasses of SchemaDirectiveVisitor should define their own static
   // .description property, which will be passed to the GraphQLDirective
   // constructor by the static create method.
   public static description: string;
 
-  // All GraphQLSchemaDirective instances are created while visiting a
+  // All SchemaDirectiveVisitor instances are created while visiting a
   // specific GraphQLSchema object, and this property holds a reference to
   // that object.
   public schema: GraphQLSchema;
 
-  // Although you might think a GraphQLSchemaDirective subclass should also
-  // define an appropriate static .name property, that turns out not to be
-  // necessary, since the names of directives will be provided as keys of the
-  // directiveClasses object passed to visitSchema. In other words, directive
-  // implementations are effectively anonymous, and it's up to the caller of
-  // GraphQLSchemaDirective.visitSchema to assign names to them.
+  // Although you might think a SchemaDirectiveVisitor subclass should
+  // also define an appropriate static .name property, that turns out not
+  // to be necessary, since the names of directives will be provided as
+  // keys of the directiveClasses object passed to visitSchema. In other
+  // words, directive implementations are effectively anonymous, and it's
+  // up to the caller of SchemaDirectiveVisitor.visitSchema to assign
+  // names to them.
 
-  // Call GraphQLSchemaDirective.visitSchema(schema, directiveClasses) to
+  // Call SchemaDirectiveVisitor.visitSchema(schema, directiveClasses) to
   // visit every @directive in the schema and instantiate an appropriate
-  // GraphQLSchemaDirective subclass to visit/handle/transform the object
+  // SchemaDirectiveVisitor subclass to visit/handle/transform the object
   // decorated by the @directive.
   public static visitSchema(
     schema: GraphQLSchema,
     directiveClasses: {
-      // Because a new GraphQLSchemaDirective class will be instantiated each
-      // time a specific directive is found in the schema AST, callers of the
-      // visitSchema method should provide GraphQLSchemaDirective sub*classes*
-      // rather than instances as the values in this object. The keys of the
-      // object correspond to directive names as they appear in the schema.
-      [name: string]: typeof GraphQLSchemaDirective
+      // Because a new SchemaDirectiveVisitor class will be instantiated
+      // each time a certain directive is found in the schema AST, callers
+      // of the visitSchema method should provide SchemaDirectiveVisitor
+      // sub*classes* rather than instances as the values in this object.
+      // The keys of the object correspond to directive names as they
+      // appear in the schema.
+      [name: string]: typeof SchemaDirectiveVisitor
     },
   ) {
     // If the schema declares any directives for public consumption, collect
@@ -140,14 +142,15 @@ export class GraphQLSchemaDirective extends GraphQLDirective {
         });
 
         // The GraphQL schema parser currently does not support @directive
-        // syntax for union member types, so there's no point visiting them
-        // here. That's a blessing in disguise, really, because the types
-        // returned from type.getTypes() are references to GraphQLObjectType
-        // objects defined elsewhere in the schema, which might already have
-        // directives of their own, so it would be tricky to prevent this loop
-        // from re-visiting those directives. If you really need to access the
-        // member types of a union, just implement a GraphQLSchemaDirective that
-        // overrides visitUnion, and call unionType.getTypes() yourself.
+        // syntax for union member types, so there's no point visiting
+        // them here. That's a blessing in disguise, really, because the
+        // types returned from type.getTypes() are references to
+        // GraphQLObjectType objects defined elsewhere in the schema,
+        // which might already have directives of their own, so it would
+        // be hard to prevent this loop from re-visiting those directives.
+        // If you really need to access the member types of a union, just
+        // implement a SchemaDirectiveVisitor that overrides visitUnion,
+        // and call unionType.getTypes() yourself.
 
         // type.getTypes().forEach(visit);
 
@@ -199,8 +202,8 @@ export class GraphQLSchemaDirective extends GraphQLDirective {
 
     // Given a schema type, returns an (often empty) array of directives that
     // should be applied to the given type.
-    function getDirectives(type: VisitableType): GraphQLSchemaDirective[] {
-      const directiveInstances: GraphQLSchemaDirective[] = [];
+    function getDirectives(type: VisitableType): SchemaDirectiveVisitor[] {
+      const directiveInstances: SchemaDirectiveVisitor[] = [];
       const directiveNodes = type.astNode && type.astNode.directives;
       if (! directiveNodes) {
         return directiveInstances;
@@ -229,9 +232,9 @@ export class GraphQLSchemaDirective extends GraphQLDirective {
           });
         }
 
-        // As described near the top of the visitSchema method, this is where
-        // instances of the GraphQLSchemaDirective class get created and
-        // assigned names.
+        // As described near the top of the visitSchema method, this is
+        // where instances of the SchemaDirectiveVisitor class get created
+        // and assigned names.
         directiveInstances.push(
           directiveClass.create(name, args, schema)
         );
@@ -245,10 +248,10 @@ export class GraphQLSchemaDirective extends GraphQLDirective {
   }
 
   // The constructor method cannot access static members like .description
-  // because TypeScript doesn't understand this.constructor.description, and
-  // GraphQLSchemaDirective.description would be wrong for subclasses. Instead
-  // we define an inheritable static create method that returns new instances of
-  // whatever subclass this is.
+  // because TypeScript doesn't understand this.constructor.description,
+  // and SchemaDirectiveVisitor.description would be wrong for subclasses.
+  // Instead we define an inheritable static create method that returns
+  // new instances of whatever subclass this is.
   public static create(
     name: string,
     args: GraphQLFieldConfigArgumentMap,
@@ -348,10 +351,10 @@ const methodToLocationMap: {
 };
 
 // Used to check that a visit* method is not an empty stub inherited from
-// GraphQLSchemaDirective.prototype.
+// SchemaDirectiveVisitor.prototype.
 const visitMethodStubSet = new Set(
   Object.keys(methodToLocationMap).map(
-    key => GraphQLSchemaDirective.prototype[key]
+    key => SchemaDirectiveVisitor.prototype[key]
   )
 );
 

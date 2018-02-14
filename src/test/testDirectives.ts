@@ -4,7 +4,7 @@ import {
 } from '../schemaGenerator';
 import {
   VisitableType,
-  GraphQLSchemaDirective,
+  SchemaDirectiveVisitor,
 } from '../directives';
 import {
   GraphQLObjectType,
@@ -133,14 +133,14 @@ describe('@directives', () => {
     checkDirectives(schema.getType('WhateverUnion'), ['unionDirective']);
   });
 
-  it('can be implemented with GraphQLSchemaDirective', () => {
+  it('can be implemented with SchemaDirectiveVisitor', () => {
     const visited: Set<GraphQLObjectType> = new Set;
     const schema = makeExecutableSchema({ typeDefs });
     let visitCount = 0;
 
-    GraphQLSchemaDirective.visitSchema(schema, {
+    SchemaDirectiveVisitor.visitSchema(schema, {
       // The directive subclass can be defined anonymously inline!
-      queryTypeDirective: class extends GraphQLSchemaDirective {
+      queryTypeDirective: class extends SchemaDirectiveVisitor {
         public static description = 'A @directive for query object types';
         public visitObject(object: GraphQLObjectType) {
           visited.add(object);
@@ -164,15 +164,15 @@ describe('@directives', () => {
     let enumObjectType: GraphQLEnumType;
     let inputObjectType: GraphQLInputObjectType;
 
-    GraphQLSchemaDirective.visitSchema(schema, {
-      mutationTypeDirective: class extends GraphQLSchemaDirective {
+    SchemaDirectiveVisitor.visitSchema(schema, {
+      mutationTypeDirective: class extends SchemaDirectiveVisitor {
         public visitObject(object: GraphQLObjectType) {
           mutationObjectType = object;
           assert.strictEqual(object.name, 'Mutation');
         }
       },
 
-      mutationMethodDirective: class extends GraphQLSchemaDirective {
+      mutationMethodDirective: class extends SchemaDirectiveVisitor {
         public visitFieldDefinition(field: GraphQLField<any, any>, details: {
           objectType: GraphQLObjectType,
         }) {
@@ -183,7 +183,7 @@ describe('@directives', () => {
         }
       },
 
-      mutationArgumentDirective: class extends GraphQLSchemaDirective {
+      mutationArgumentDirective: class extends SchemaDirectiveVisitor {
         public visitArgumentDefinition(arg: GraphQLArgument, details: {
           field: GraphQLField<any, any>,
           objectType: GraphQLObjectType,
@@ -195,14 +195,14 @@ describe('@directives', () => {
         }
       },
 
-      enumTypeDirective: class extends GraphQLSchemaDirective {
+      enumTypeDirective: class extends SchemaDirectiveVisitor {
         public visitEnum(enumType: GraphQLEnumType) {
           assert.strictEqual(enumType.name, 'Gender');
           enumObjectType = enumType;
         }
       },
 
-      enumValueDirective: class extends GraphQLSchemaDirective {
+      enumValueDirective: class extends SchemaDirectiveVisitor {
         public visitEnumValue(value: GraphQLEnumValue, details: {
           enumType: GraphQLEnumType,
         }) {
@@ -212,14 +212,14 @@ describe('@directives', () => {
         }
       },
 
-      inputTypeDirective: class extends GraphQLSchemaDirective {
+      inputTypeDirective: class extends SchemaDirectiveVisitor {
         public visitInputObject(object: GraphQLInputObjectType) {
           inputObjectType = object;
           assert.strictEqual(object.name, 'PersonInput');
         }
       },
 
-      inputFieldDirective: class extends GraphQLSchemaDirective {
+      inputFieldDirective: class extends SchemaDirectiveVisitor {
         public visitInputFieldDefinition(field: GraphQLInputField, details: {
           objectType: GraphQLInputObjectType,
         }) {
