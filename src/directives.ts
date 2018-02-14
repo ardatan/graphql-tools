@@ -38,7 +38,7 @@ export type VisitableType =
 const hasOwn = Object.prototype.hasOwnProperty;
 
 export class GraphQLSchemaDirective extends GraphQLDirective {
-  // Subclasses of GraphQLSchemaDirective must define their own static
+  // Subclasses of GraphQLSchemaDirective should define their own static
   // .description property, which will be passed to the GraphQLDirective
   // constructor by the static create method.
   public static description: string;
@@ -243,18 +243,9 @@ export class GraphQLSchemaDirective extends GraphQLDirective {
     args: GraphQLFieldConfigArgumentMap,
     schema: GraphQLSchema,
   ) {
-    // It would be great if description could be an abstract static property,
-    // so that failing to define it would be a compile-time error rather than
-    // a runtime error, but that would require making GraphQLSchemaDirective
-    // an abstract class, which won't work because TypeScript forbids invoking
-    // `new this(...)` if `this` might be abstract (see below).
-    if (typeof this.description === 'undefined') {
-      throw new Error('missing static description string');
-    }
-
     return new this(
       name,
-      this.description,
+      this.description || ('@' + name),
       args,
       schema,
     );
