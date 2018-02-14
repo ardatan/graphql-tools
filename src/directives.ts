@@ -273,7 +273,7 @@ export class SchemaDirectiveVisitor {
         // where instances of the SchemaDirectiveVisitor class get created
         // and assigned names.
         directiveInstances.push(
-          new directiveClass(name, args, schema)
+          new directiveClass({ name, args, schema })
         );
       });
 
@@ -282,6 +282,18 @@ export class SchemaDirectiveVisitor {
 
     // Kick everything off by visiting the top-level GraphQLSchema object.
     visit(schema);
+  }
+
+  // Make the constructor protected to enforce passing SchemaDirectiveVisitor
+  // subclasses (not instances) to visitSchema.
+  protected constructor(config: {
+    name: string,
+    args: { [name: string]: any },
+    schema: GraphQLSchema,
+  }) {
+    this.name = config.name;
+    this.args = config.args;
+    this.schema = config.schema;
   }
 
   // Concrete subclasses of GraphQLSchema directive should override one or more
@@ -314,19 +326,6 @@ export class SchemaDirectiveVisitor {
     objectType: GraphQLInputObjectType,
   }) {}
   /* tslint:enable:no-empty */
-
-  // Make the actual constructor protected to enforce using create.
-  protected constructor(
-    name: string,
-    args: { [key: string]: any },
-    schema: GraphQLSchema,
-  ) {
-    this.name = name;
-    this.schema = schema;
-    this.args = args;
-
-
-  }
 
   // Subclasses of SchemaDirectiveVisitor should override one or more of
   // the visit* methods defined above, and this locations list will be
