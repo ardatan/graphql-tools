@@ -73,7 +73,9 @@ export class GraphQLSchemaDirective extends GraphQLDirective {
     // If the schema declares any directives for public consumption, collect
     // them here so that we can coerce the arguments when/if we encounter an
     // instance of the directive while walking the schema below.
-    const declaredDirectives = Object.create(null);
+    const declaredDirectives: {
+      [key: string]: GraphQLDirective,
+    } = Object.create(null);
     schema.getDirectives().forEach(decl => {
       declaredDirectives[decl.name] = decl;
     });
