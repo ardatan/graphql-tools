@@ -17,7 +17,7 @@ class ErrorWithResult extends Error {
   }
 }
 
-describe.only('Errors', () => {
+describe('Errors', () => {
   describe('checkResultAndHandleErrors', () => {
     it('persists single error with a result', done => {
       const result = {
