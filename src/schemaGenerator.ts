@@ -114,6 +114,7 @@ function makeExecutableSchema<TContext = any>({
   allowUndefinedInResolve = true,
   resolverValidationOptions = {},
   directiveResolvers = null,
+  directiveVisitors = null,
   parseOptions = {},
 }: IExecutableSchemaDefinition<TContext>) {
   const jsSchema = _generateSchema(
@@ -141,8 +142,9 @@ function makeExecutableSchema<TContext = any>({
     attachDirectiveResolvers(jsSchema, directiveResolvers);
   }
 
-  // Visit the schema without providing any directive implementations, yet.
-  SchemaDirectiveVisitor.visitSchema(jsSchema, {});
+  if (directiveVisitors) {
+    SchemaDirectiveVisitor.visitSchema(jsSchema, directiveVisitors);
+  }
 
   return jsSchema;
 }
@@ -687,10 +689,10 @@ function attachDirectiveResolvers(
     );
   }
 
-  const directiveClasses = Object.create(null);
+  const directiveVisitors = Object.create(null);
 
   Object.keys(directiveResolvers).forEach(directiveName => {
-    directiveClasses[directiveName] = class extends SchemaDirectiveVisitor {
+    directiveVisitors[directiveName] = class extends SchemaDirectiveVisitor {
       public visitFieldDefinition(field: GraphQLField<any, any>) {
         const resolver = directiveResolvers[directiveName];
         const originalResolver = field.resolve || defaultFieldResolver;
@@ -709,7 +711,7 @@ function attachDirectiveResolvers(
     };
   });
 
-  SchemaDirectiveVisitor.visitSchema(schema, directiveClasses);
+  SchemaDirectiveVisitor.visitSchema(schema, directiveVisitors);
 }
 
 export {

@@ -93,13 +93,13 @@ export class SchemaDirectiveVisitor {
   // that object, in case a vistor method needs to refer to this.schema.
   public schema: GraphQLSchema;
 
-  // Call SchemaDirectiveVisitor.visitSchema(schema, directiveClasses) to
+  // Call SchemaDirectiveVisitor.visitSchema(schema, directiveVisitors) to
   // visit every @directive in the schema and instantiate an appropriate
   // SchemaDirectiveVisitor subclass to visit/handle/transform the object
   // decorated by the @directive.
   public static visitSchema(
     schema: GraphQLSchema,
-    directiveClasses: {
+    directiveVisitors: {
       // Because a new SchemaDirectiveVisitor class will be instantiated
       // each time a certain directive is found in the schema AST, callers
       // of the visitSchema method should provide SchemaDirectiveVisitor
@@ -248,11 +248,11 @@ export class SchemaDirectiveVisitor {
 
       directiveNodes.forEach(directiveNode => {
         const name = directiveNode.name.value;
-        if (! hasOwn.call(directiveClasses, name)) {
+        if (! hasOwn.call(directiveVisitors, name)) {
           return;
         }
 
-        const directiveClass = directiveClasses[name];
+        const directiveClass = directiveVisitors[name];
         const decl = declaredDirectives[name];
         let args: { [key: string]: any };
 

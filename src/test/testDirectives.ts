@@ -321,16 +321,12 @@ describe('@directives', () => {
     }
     `;
 
-    const schema = makeExecutableSchema({
-      typeDefs: schemaText,
-    });
-
     let enumValueCount = 0;
     let objectCount = 0;
     let argumentCount = 0;
     let fieldCount = 0;
 
-    SchemaDirectiveVisitor.visitSchema(schema, {
+    const directiveVisitors = {
       directive: class extends SchemaDirectiveVisitor {
         public visitEnumValue(value: GraphQLEnumValue) {
           ++enumValueCount;
@@ -372,6 +368,11 @@ describe('@directives', () => {
           }
         }
       }
+    };
+
+    makeExecutableSchema({
+      typeDefs: schemaText,
+      directiveVisitors,
     });
 
     assert.strictEqual(enumValueCount, 2);
