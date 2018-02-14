@@ -703,17 +703,7 @@ function attachDirectiveResolvers(
         field.resolve = (...args: any[]) => {
           const [source, , context, info] = args;
           return resolver(
-            () => {
-              try {
-                const promise = originalResolver.call(field, ...args);
-                if (promise instanceof Promise) {
-                  return promise;
-                }
-                return Promise.resolve(promise);
-              } catch (error) {
-                return Promise.reject(error);
-              }
-            },
+            async () => originalResolver.apply(field, args),
             source,
             directiveArgs,
             context,
