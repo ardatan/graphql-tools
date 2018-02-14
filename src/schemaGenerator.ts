@@ -12,7 +12,6 @@ import {
   parse,
   print,
   DefinitionNode,
-  DirectiveNode,
   defaultFieldResolver,
   buildASTSchema,
   extendSchema,
@@ -27,7 +26,7 @@ import {
   GraphQLInterfaceType,
   GraphQLFieldMap,
 } from 'graphql';
-import { getArgumentValues } from 'graphql/execution/values';
+
 import {
   IExecutableSchemaDefinition,
   ILogger,
@@ -681,28 +680,21 @@ function attachDirectiveResolvers(
       `Expected directiveResolvers to be of type object, got ${typeof directiveResolvers}`,
     );
   }
+
   if (Array.isArray(directiveResolvers)) {
     throw new Error(
       'Expected directiveResolvers to be of type object, got Array',
     );
   }
-  forEachField(schema, (field: GraphQLField<any, any>) => {
-    const directives = field.astNode.directives;
-    directives.forEach((directive: DirectiveNode) => {
-      const directiveName = directive.name.value;
-      const resolver = directiveResolvers[directiveName];
 
-      if (resolver) {
+  const directiveClasses = Object.create(null);
+
+  Object.keys(directiveResolvers).forEach(directiveName => {
+    directiveClasses[directiveName] = class extends SchemaDirectiveVisitor {
+      public visitFieldDefinition(field: GraphQLField<any, any>) {
+        const resolver = directiveResolvers[directiveName];
         const originalResolver = field.resolve || defaultFieldResolver;
-        const Directive = schema.getDirective(directiveName);
-        if (typeof Directive === 'undefined') {
-          throw new Error(
-            `Directive @${directiveName} is undefined. ` +
-              'Please define in schema before using',
-          );
-        }
-        const directiveArgs = getArgumentValues(Directive, directive);
-
+        const directiveArgs = this.args;
         field.resolve = (...args: any[]) => {
           const [source, , context, info] = args;
           return resolver(
@@ -714,8 +706,10 @@ function attachDirectiveResolvers(
           );
         };
       }
-    });
+    };
   });
+
+  SchemaDirectiveVisitor.visitSchema(schema, directiveClasses);
 }
 
 export {
