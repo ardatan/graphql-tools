@@ -338,9 +338,9 @@ export class SchemaDirectiveVisitor {
   public static getLocations() {
     if (this.locations === null) {
       this.locations = [];
-      for (let key in this) {
+      for (let key in this.prototype) {
         if (hasOwn.call(methodToLocationMap, key)) {
-          const method = this[key];
+          const method = this.prototype[key];
           if (typeof method === 'function' &&
               ! visitMethodStubSet.has(method)) {
             this.locations.push(methodToLocationMap[key]);

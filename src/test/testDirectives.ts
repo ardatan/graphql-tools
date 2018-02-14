@@ -260,6 +260,32 @@ describe('@directives', () => {
     });
   });
 
+  it('can use visitor methods to generate locations implicitly', () => {
+    assert.deepEqual((class extends SchemaDirectiveVisitor {
+      /* tslint:disable:no-empty */
+      public visitSchema() {}
+      public visitScalar() {}
+      public visitObject() {}
+      public visitFieldDefinition() {}
+      public visitArgumentDefinition() {}
+      public visitEnum() {}
+      public visitEnumValue() {}
+      public visitInputObject() {}
+      public visitInputFieldDefinition() {}
+      /* tslint:enable:no-empty */
+    }).getLocations().sort(), [
+      DirectiveLocation.ARGUMENT_DEFINITION,
+      DirectiveLocation.ENUM,
+      DirectiveLocation.ENUM_VALUE,
+      DirectiveLocation.FIELD_DEFINITION,
+      DirectiveLocation.INPUT_FIELD_DEFINITION,
+      DirectiveLocation.INPUT_OBJECT,
+      DirectiveLocation.OBJECT,
+      DirectiveLocation.SCALAR,
+      DirectiveLocation.SCHEMA,
+    ]);
+  });
+
   it('can handle all kinds of undeclared arguments', () => {
     const schemaText = `
     enum SpineEnum {
