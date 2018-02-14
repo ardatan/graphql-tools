@@ -36,6 +36,39 @@ export type VisitableType =
 
 const hasOwn = Object.prototype.hasOwnProperty;
 
+// This class represents a reusable implementation of a @directive that
+// may appear in a GraphQL schema written in Schema Definition Language.
+//
+// By overriding one or more visit* methods, this class registers interest
+// in certain schema types (e.g. GraphQLObjectType, GraphQLUnionType,
+// etc.). When SchemaDirectiveVisitor.visitSchema is called, these methods
+// allow the visitor to obtain references to those GraphQL*Type objects,
+// so the implementation can inspect or modify them as appropriate.
+//
+// For example, if a directive called @rest(...) appears after an object
+// field definition, a SchemaDirectiveVisitor subclass could provide
+// meaning to that directive by overriding the visitFieldDefinition method
+// (which receives a GraphQLField parameter, as well as additional details
+// about the parent object type), and the body of that method could
+// manipulate the field's resolver functions to fetch data from a REST
+// endpoint described by the arguments to the @rest(...) directive:
+//
+//   const typeDefs = `
+//   type Query {
+//     people: [Person] @rest("/api/v1/people")
+//   }`;
+//
+//   const schema = makeExecutableSchema({ typeDefs });
+//
+//   SchemaDirectiveVisitor.visitSchema(schema, {
+//     rest: class extends SchemaDirectiveVisitor {
+//       visitFieldDefinition(field: GraphQLField<any, any>) {
+//         const [url] = this.args;
+//         field.resolve = () => fetch(url);
+//       }
+//     }
+//   });
+//
 export class SchemaDirectiveVisitor {
   // The name of the directive this visitor is allowed to visit (that is,
   // the identifier after the @ character in the schema). Note that this
