@@ -55,7 +55,7 @@ const hasOwn = Object.prototype.hasOwnProperty;
 //
 //   const typeDefs = `
 //   type Query {
-//     people: [Person] @rest("/api/v1/people")
+//     people: [Person] @rest(url: "/api/v1/people")
 //   }`;
 //
 //   const schema = makeExecutableSchema({ typeDefs });
@@ -63,7 +63,7 @@ const hasOwn = Object.prototype.hasOwnProperty;
 //   SchemaDirectiveVisitor.visitSchema(schema, {
 //     rest: class extends SchemaDirectiveVisitor {
 //       visitFieldDefinition(field: GraphQLField<any, any>) {
-//         const [url] = this.args;
+//         const { url } = this.args;
 //         field.resolve = () => fetch(url);
 //       }
 //     }
