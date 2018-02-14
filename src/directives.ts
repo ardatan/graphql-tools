@@ -6,7 +6,6 @@ import {
   GraphQLEnumType,
   GraphQLEnumValue,
   GraphQLField,
-  GraphQLFieldConfigArgumentMap,
   GraphQLInputField,
   GraphQLInputObjectType,
   GraphQLInterfaceType,
@@ -37,24 +36,29 @@ export type VisitableType =
 
 const hasOwn = Object.prototype.hasOwnProperty;
 
-export class SchemaDirectiveVisitor extends GraphQLDirective {
-  // Subclasses of SchemaDirectiveVisitor should define their own static
-  // .description property, which will be passed to the GraphQLDirective
-  // constructor by the static create method.
-  public static description: string;
+export class SchemaDirectiveVisitor {
+  // The name of the directive this visitor is allowed to visit (that is,
+  // the identifier after the @ character in the schema). Note that this
+  // property is per-instance rather than static because subclasses of
+  // SchemaDirectiveVisitor can be instantiated multiple times to visit
+  // directives of different names. In other words, SchemaDirectiveVisitor
+  // implementations are effectively anonymous, and it's up to the caller
+  // of SchemaDirectiveVisitor.visitSchema to assign names to them.
+  public name: string;
+
+  // A map from parameter names to argument values, as obtained from a
+  // specific occurrence of a @directive(arg1, arg2, ...) in the schema.
+  // If the directive is declared in the schema using the `declare ...`
+  // syntax, then the corresponding GraphQLDirective object will also have
+  // an `args` property; however, that represents the expected types (and
+  // names and default values, etc.) of the arguments, rather than the
+  // concrete argument values passed to a specific @directive.
+  public args: { [name: string]: any };
 
   // All SchemaDirectiveVisitor instances are created while visiting a
-  // specific GraphQLSchema object, and this property holds a reference to
-  // that object.
+  // specific GraphQLSchema object, so this property holds a reference to
+  // that object, in case a vistor method needs to refer to this.schema.
   public schema: GraphQLSchema;
-
-  // Although you might think a SchemaDirectiveVisitor subclass should
-  // also define an appropriate static .name property, that turns out not
-  // to be necessary, since the names of directives will be provided as
-  // keys of the directiveClasses object passed to visitSchema. In other
-  // words, directive implementations are effectively anonymous, and it's
-  // up to the caller of SchemaDirectiveVisitor.visitSchema to assign
-  // names to them.
 
   // Call SchemaDirectiveVisitor.visitSchema(schema, directiveClasses) to
   // visit every @directive in the schema and instantiate an appropriate
@@ -236,7 +240,7 @@ export class SchemaDirectiveVisitor extends GraphQLDirective {
         // where instances of the SchemaDirectiveVisitor class get created
         // and assigned names.
         directiveInstances.push(
-          directiveClass.create(name, args, schema)
+          new directiveClass(name, args, schema)
         );
       });
 
@@ -245,24 +249,6 @@ export class SchemaDirectiveVisitor extends GraphQLDirective {
 
     // Kick everything off by visiting the top-level GraphQLSchema object.
     visit(schema);
-  }
-
-  // The constructor method cannot access static members like .description
-  // because TypeScript doesn't understand this.constructor.description,
-  // and SchemaDirectiveVisitor.description would be wrong for subclasses.
-  // Instead we define an inheritable static create method that returns
-  // new instances of whatever subclass this is.
-  public static create(
-    name: string,
-    args: GraphQLFieldConfigArgumentMap,
-    schema: GraphQLSchema,
-  ) {
-    return new this(
-      name,
-      this.description || ('@' + name),
-      args,
-      schema,
-    );
   }
 
   // Concrete subclasses of GraphQLSchema directive should override one or more
@@ -299,33 +285,39 @@ export class SchemaDirectiveVisitor extends GraphQLDirective {
   // Make the actual constructor protected to enforce using create.
   protected constructor(
     name: string,
-    description: string,
-    args: GraphQLFieldConfigArgumentMap,
+    args: { [key: string]: any },
     schema: GraphQLSchema,
   ) {
-    super({
-      name,
-      description,
-      args,
-      locations: [],
-    });
-
-    // In case visitor methods need to access the schema object.
+    this.name = name;
     this.schema = schema;
+    this.args = args;
 
-    // MAGIC: Subclasses do not have to specify an array of DirectiveLocation
-    // values, because we can figure out the appropriate locations simply by
-    // inspecting the visit* methods that are defined by this class.
-    for (let key in this) {
-      if (hasOwn.call(methodToLocationMap, key)) {
-        const method = this[key];
-        if (typeof method === 'function' &&
-            ! visitMethodStubSet.has(method)) {
-          this.locations.push(methodToLocationMap[key]);
+
+  }
+
+  // Subclasses of SchemaDirectiveVisitor should override one or more of
+  // the visit* methods defined above, and this locations list will be
+  // automatically populated with the corresponding DirectiveLocationEnum
+  // strings where the directive is allowed to appear. For example, when a
+  // subclass overrides the visitUnion method, the "UNION" enum value will
+  // be included in this list.
+  /* tslint:disable:member-ordering */
+  private static locations: DirectiveLocationEnum[] = null;
+  public static getLocations() {
+    if (this.locations === null) {
+      this.locations = [];
+      for (let key in this) {
+        if (hasOwn.call(methodToLocationMap, key)) {
+          const method = this[key];
+          if (typeof method === 'function' &&
+              ! visitMethodStubSet.has(method)) {
+            this.locations.push(methodToLocationMap[key]);
+          }
         }
       }
     }
-  }
+    return this.locations;
+  } /* tslint:enable:member-ordering */
 }
 
 // Map from visit* method names to corresponding schema locations where
