@@ -131,12 +131,17 @@ export class GraphQLSchemaDirective extends GraphQLDirective {
           d.visitUnion(type);
         });
 
-        // It's hard to imagine a @directive that needs to modify the types
-        // involved in a union type, instead of a @directive applied directly to
-        // the original type objects, but failure of the imagination is a poor
-        // justification for censorship. If necessary, we could have a visit*
-        // method specifically for type members of union types.
-        type.getTypes().forEach(visit);
+        // The GraphQL schema parser currently does not support @directive
+        // syntax for union member types, so there's no point visiting them
+        // here. That's a blessing in disguise, really, because the types
+        // returned from type.getTypes() are references to GraphQLObjectType
+        // objects defined elsewhere in the schema, which might already have
+        // directives of their own, so it would be tricky to prevent this loop
+        // from re-visiting those directives. If you really need to access the
+        // member types of a union, just implement a GraphQLSchemaDirective that
+        // overrides visitUnion, and call unionType.getTypes() yourself.
+
+        // type.getTypes().forEach(visit);
 
       } else if (type instanceof GraphQLEnumType) {
         getDirectives(type).forEach(d => {

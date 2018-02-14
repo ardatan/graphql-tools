@@ -131,6 +131,7 @@ describe('@directives', () => {
   it('can be implemented with GraphQLSchemaDirective', () => {
     const visited: Set<GraphQLObjectType> = new Set;
     const schema = makeExecutableSchema({ typeDefs });
+    let visitCount = 0;
 
     GraphQLSchemaDirective.visitSchema(schema, {
       // The directive subclass can be defined anonymously inline!
@@ -138,11 +139,13 @@ describe('@directives', () => {
         public static description = 'A @directive for query object types';
         public visitObject(object: GraphQLObjectType) {
           visited.add(object);
+          visitCount++;
         }
       },
     });
 
     assert.strictEqual(visited.size, 1);
+    assert.strictEqual(visitCount, 1);
     visited.forEach(object => {
       assert.strictEqual(object, schema.getType('Query'));
     });
