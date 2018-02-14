@@ -44,6 +44,7 @@ import {
   GraphQLParseOptions,
 } from './Interfaces';
 
+import { GraphQLSchemaDirective } from './directives';
 import { deprecated } from 'deprecated-decorator';
 import mergeDeep from './mergeDeep';
 
@@ -67,7 +68,6 @@ function _generateSchema(
   // TODO: rename to allowUndefinedInResolve to be consistent
   allowUndefinedInResolve: boolean,
   resolverValidationOptions: IResolverValidationOptions,
-  directiveResolvers: IDirectiveResolvers<any, any>,
   parseOptions: GraphQLParseOptions,
 ) {
   if (typeof resolverValidationOptions !== 'object') {
@@ -104,10 +104,6 @@ function _generateSchema(
     addErrorLoggingToSchema(schema, logger);
   }
 
-  if (directiveResolvers) {
-    attachDirectiveResolvers(schema, directiveResolvers);
-  }
-
   return schema;
 }
 
@@ -127,7 +123,6 @@ function makeExecutableSchema<TContext = any>({
     logger,
     allowUndefinedInResolve,
     resolverValidationOptions,
-    directiveResolvers,
     parseOptions,
   );
   if (typeof resolvers['__schema'] === 'function') {
@@ -142,6 +137,14 @@ function makeExecutableSchema<TContext = any>({
     // function if you want.
     attachConnectorsToContext(jsSchema, connectors);
   }
+
+  if (directiveResolvers) {
+    attachDirectiveResolvers(jsSchema, directiveResolvers);
+  }
+
+  // Visit the schema without providing any directive implementations, yet.
+  GraphQLSchemaDirective.visitSchema(jsSchema, {});
+
   return jsSchema;
 }
 
