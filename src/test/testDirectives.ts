@@ -35,6 +35,8 @@ enum Gender @enumTypeDirective {
   MALE
 }
 
+scalar Date @dateDirective(tz: "utc")
+
 interface Named @interfaceDirective {
   name: String! @interfaceFieldDirective
 }
@@ -107,6 +109,8 @@ describe('@directives', () => {
       getDirectiveNames(nonBinary),
       ['enumValueDirective'],
     );
+
+    checkDirectives(schema.getType('Date'), ['dateDirective']);
 
     checkDirectives(schema.getType('Named'), ['interfaceDirective'], {
       name: ['interfaceFieldDirective'],
@@ -227,6 +231,32 @@ describe('@directives', () => {
           assert.strictEqual(details.objectType, inputObjectType);
         }
       }
+    });
+  });
+
+  it('can use SchemaDirectiveVisitor as a no-op visitor', () => {
+    const schema = makeExecutableSchema({ typeDefs });
+
+    // Since SchemaDirectiveVisitor implements no-op versions of all the
+    // visitor methods, this should work, though I'll admit I wrote this test
+    // partly to keep the code coverage tool happy.
+    SchemaDirectiveVisitor.visitSchema(schema, {
+      schemaDirective: SchemaDirectiveVisitor,
+      queryTypeDirective: SchemaDirectiveVisitor,
+      queryFieldDirective: SchemaDirectiveVisitor,
+      enumTypeDirective: SchemaDirectiveVisitor,
+      enumValueDirective: SchemaDirectiveVisitor,
+      dateDirective: SchemaDirectiveVisitor,
+      interfaceDirective: SchemaDirectiveVisitor,
+      interfaceFieldDirective: SchemaDirectiveVisitor,
+      inputTypeDirective: SchemaDirectiveVisitor,
+      inputFieldDirective: SchemaDirectiveVisitor,
+      mutationTypeDirective: SchemaDirectiveVisitor,
+      mutationArgumentDirective: SchemaDirectiveVisitor,
+      mutationMethodDirective: SchemaDirectiveVisitor,
+      objectTypeDirective: SchemaDirectiveVisitor,
+      objectFieldDirective: SchemaDirectiveVisitor,
+      unionDirective: SchemaDirectiveVisitor,
     });
   });
 
