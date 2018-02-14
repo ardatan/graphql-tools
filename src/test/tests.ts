@@ -7,3 +7,4 @@ import './testResolution';
 import './testMakeRemoteExecutableSchema';
 import './testMergeSchemas';
 import './testErrors';
+import './testDirectives';
