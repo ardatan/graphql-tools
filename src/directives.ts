@@ -122,7 +122,7 @@ export class GraphQLSchemaDirective extends GraphQLDirective {
             // Since we call a different method for input object fields, we
             // can't reuse the visitFields function here.
             df.visitInputFieldDefinition(field, {
-              object: type,
+              objectType: type,
             });
           });
         });
@@ -157,7 +157,7 @@ export class GraphQLSchemaDirective extends GraphQLDirective {
         type.getValues().forEach(value => {
           getDirectives(value).forEach(dv => {
             dv.visitEnumValue(value, {
-              enum: type,
+              enumType: type,
             });
           });
         });
@@ -176,7 +176,7 @@ export class GraphQLSchemaDirective extends GraphQLDirective {
           // additional means of disambiguation, such as passing in the parent
           // type as a second argument.
           df.visitFieldDefinition(field, {
-            object: type,
+            objectType: type,
           });
         });
 
@@ -187,7 +187,7 @@ export class GraphQLSchemaDirective extends GraphQLDirective {
               // possibly the parent type as additional arguments here.
               da.visitArgumentDefinition(arg, {
                 field,
-                object: type,
+                objectType: type,
               });
             });
           });
@@ -273,21 +273,21 @@ export class GraphQLSchemaDirective extends GraphQLDirective {
   public visitScalar(scalar: GraphQLScalarType) {}
   public visitObject(object: GraphQLObjectType) {}
   public visitFieldDefinition(field: GraphQLField<any, any>, details: {
-    object: GraphQLObjectType | GraphQLInterfaceType,
+    objectType: GraphQLObjectType | GraphQLInterfaceType,
   }) {}
   public visitArgumentDefinition(argument: GraphQLArgument, details: {
     field: GraphQLField<any, any>,
-    object: GraphQLObjectType | GraphQLInterfaceType,
+    objectType: GraphQLObjectType | GraphQLInterfaceType,
   }) {}
   public visitInterface(iface: GraphQLInterfaceType) {}
   public visitUnion(union: GraphQLUnionType) {}
   public visitEnum(type: GraphQLEnumType) {}
   public visitEnumValue(value: GraphQLEnumValue, details: {
-    enum: GraphQLEnumType,
+    enumType: GraphQLEnumType,
   }) {}
   public visitInputObject(object: GraphQLInputObjectType) {}
   public visitInputFieldDefinition(field: GraphQLInputField, details: {
-    object: GraphQLInputObjectType,
+    objectType: GraphQLInputObjectType,
   }) {}
   /* tslint:enable:no-empty */
 

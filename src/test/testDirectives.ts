@@ -159,25 +159,25 @@ describe('@directives', () => {
   it('can visit fields within object types', () => {
     const schema = makeExecutableSchema({ typeDefs });
 
-    let mutationObject: GraphQLObjectType;
+    let mutationObjectType: GraphQLObjectType;
     let mutationField: GraphQLField<any, any>;
-    let enumObject: GraphQLEnumType;
-    let inputObject: GraphQLInputObjectType;
+    let enumObjectType: GraphQLEnumType;
+    let inputObjectType: GraphQLInputObjectType;
 
     GraphQLSchemaDirective.visitSchema(schema, {
       mutationTypeDirective: class extends GraphQLSchemaDirective {
         public visitObject(object: GraphQLObjectType) {
-          mutationObject = object;
+          mutationObjectType = object;
           assert.strictEqual(object.name, 'Mutation');
         }
       },
 
       mutationMethodDirective: class extends GraphQLSchemaDirective {
         public visitFieldDefinition(field: GraphQLField<any, any>, details: {
-          object: GraphQLObjectType,
+          objectType: GraphQLObjectType,
         }) {
           assert.strictEqual(field.name, 'addPerson');
-          assert.strictEqual(details.object, mutationObject);
+          assert.strictEqual(details.objectType, mutationObjectType);
           assert.strictEqual(field.args.length, 1);
           mutationField = field;
         }
@@ -186,11 +186,11 @@ describe('@directives', () => {
       mutationArgumentDirective: class extends GraphQLSchemaDirective {
         public visitArgumentDefinition(arg: GraphQLArgument, details: {
           field: GraphQLField<any, any>,
-          object: GraphQLObjectType,
+          objectType: GraphQLObjectType,
         }) {
           assert.strictEqual(arg.name, 'input');
           assert.strictEqual(details.field, mutationField);
-          assert.strictEqual(details.object, mutationObject);
+          assert.strictEqual(details.objectType, mutationObjectType);
           assert.strictEqual(details.field.args[0], arg);
         }
       },
@@ -198,33 +198,33 @@ describe('@directives', () => {
       enumTypeDirective: class extends GraphQLSchemaDirective {
         public visitEnum(enumType: GraphQLEnumType) {
           assert.strictEqual(enumType.name, 'Gender');
-          enumObject = enumType;
+          enumObjectType = enumType;
         }
       },
 
       enumValueDirective: class extends GraphQLSchemaDirective {
         public visitEnumValue(value: GraphQLEnumValue, details: {
-          enum: GraphQLEnumType,
+          enumType: GraphQLEnumType,
         }) {
           assert.strictEqual(value.name, 'NONBINARY');
           assert.strictEqual(value.value, 'NONBINARY');
-          assert.strictEqual(details.enum, enumObject);
+          assert.strictEqual(details.enumType, enumObjectType);
         }
       },
 
       inputTypeDirective: class extends GraphQLSchemaDirective {
         public visitInputObject(object: GraphQLInputObjectType) {
-          inputObject = object;
+          inputObjectType = object;
           assert.strictEqual(object.name, 'PersonInput');
         }
       },
 
       inputFieldDirective: class extends GraphQLSchemaDirective {
         public visitInputFieldDefinition(field: GraphQLInputField, details: {
-          object: GraphQLInputObjectType,
+          objectType: GraphQLInputObjectType,
         }) {
           assert.strictEqual(field.name, 'name');
-          assert.strictEqual(details.object, inputObject);
+          assert.strictEqual(details.objectType, inputObjectType);
         }
       }
     });
