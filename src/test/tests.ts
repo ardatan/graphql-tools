@@ -6,3 +6,4 @@ import './testMocking';
 import './testResolution';
 import './testMakeRemoteExecutableSchema';
 import './testMergeSchemas';
+import './testErrors';
