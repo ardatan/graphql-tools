@@ -7,13 +7,15 @@ import {
   SchemaDirectiveVisitor,
 } from '../directives';
 import {
-  GraphQLObjectType,
-  GraphQLEnumType,
-  GraphQLField,
+  DirectiveLocation,
   GraphQLArgument,
+  GraphQLEnumType,
   GraphQLEnumValue,
-  GraphQLInputObjectType,
+  GraphQLField,
   GraphQLInputField,
+  GraphQLInputObjectType,
+  GraphQLObjectType,
+  GraphQLSchema,
 } from 'graphql';
 
 const typeDefs = `
@@ -158,6 +160,20 @@ describe('@directives', () => {
     visited.forEach(object => {
       assert.strictEqual(object, schema.getType('Query'));
     });
+  });
+
+  it('can visit the schema itself', () => {
+    const visited: GraphQLSchema[] = [];
+    const schema = makeExecutableSchema({ typeDefs });
+    SchemaDirectiveVisitor.visitSchema(schema, {
+      schemaDirective: class extends SchemaDirectiveVisitor {
+        public visitSchema(s: GraphQLSchema) {
+          visited.push(s);
+        }
+      }
+    });
+    assert.strictEqual(visited.length, 1);
+    assert.strictEqual(visited[0], schema);
   });
 
   it('can visit fields within object types', () => {
