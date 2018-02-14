@@ -49,7 +49,7 @@ type Person implements Named @objectTypeDirective {
   name: String!
 }
 
-union HumanUnion @unionDirective = Person | PersonInput
+union WhateverUnion @unionDirective = Person | Query | Mutation
 `;
 
 describe('@directives', () => {
@@ -124,6 +124,6 @@ describe('@directives', () => {
       name: [],
     });
 
-    checkDirectives(schema.getType('HumanUnion'), ['unionDirective']);
+    checkDirectives(schema.getType('WhateverUnion'), ['unionDirective']);
   });
 });
