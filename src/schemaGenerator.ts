@@ -40,9 +40,12 @@ import {
   IConnectorCls,
   IResolverValidationOptions,
   IDirectiveResolvers,
+  UnitOrList,
+  GraphQLParseOptions,
 } from './Interfaces';
 
 import { deprecated } from 'deprecated-decorator';
+import mergeDeep from './mergeDeep';
 
 // @schemaDefinition: A GraphQL type schema in shorthand
 // @resolvers: Definitions for resolvers to be merged with schema
@@ -59,12 +62,13 @@ class SchemaError extends Error {
 // type definitions can be a string or an array of strings.
 function _generateSchema(
   typeDefinitions: ITypeDefinitions,
-  resolveFunctions: IResolvers,
+  resolveFunctions: UnitOrList<IResolvers>,
   logger: ILogger,
   // TODO: rename to allowUndefinedInResolve to be consistent
   allowUndefinedInResolve: boolean,
   resolverValidationOptions: IResolverValidationOptions,
   directiveResolvers: IDirectiveResolvers<any, any>,
+  parseOptions: GraphQLParseOptions,
 ) {
   if (typeof resolverValidationOptions !== 'object') {
     throw new SchemaError(
@@ -78,15 +82,17 @@ function _generateSchema(
     throw new SchemaError('Must provide resolvers');
   }
 
+  const resolvers = Array.isArray(resolveFunctions)
+    ? resolveFunctions
+        .filter(resolverObj => typeof resolverObj === 'object')
+        .reduce(mergeDeep, {})
+    : resolveFunctions;
+
   // TODO: check that typeDefinitions is either string or array of strings
 
-  const schema = buildSchemaFromTypeDefinitions(typeDefinitions);
+  const schema = buildSchemaFromTypeDefinitions(typeDefinitions, parseOptions);
 
-  addResolveFunctionsToSchema(
-    schema,
-    resolveFunctions,
-    resolverValidationOptions,
-  );
+  addResolveFunctionsToSchema(schema, resolvers, resolverValidationOptions);
 
   assertResolveFunctionsPresent(schema, resolverValidationOptions);
 
@@ -113,6 +119,7 @@ function makeExecutableSchema({
   allowUndefinedInResolve = true,
   resolverValidationOptions = {},
   directiveResolvers = null,
+  parseOptions = {},
 }: IExecutableSchemaDefinition) {
   const jsSchema = _generateSchema(
     typeDefs,
@@ -121,6 +128,7 @@ function makeExecutableSchema({
     allowUndefinedInResolve,
     resolverValidationOptions,
     directiveResolvers,
+    parseOptions,
   );
   if (typeof resolvers['__schema'] === 'function') {
     // TODO a bit of a hack now, better rewrite generateSchema to attach it there.
@@ -182,6 +190,7 @@ function concatenateTypeDefs(
 
 function buildSchemaFromTypeDefinitions(
   typeDefinitions: ITypeDefinitions,
+  parseOptions?: GraphQLParseOptions,
 ): GraphQLSchema {
   // TODO: accept only array here, otherwise interfaces get confusing.
   let myDefinitions = typeDefinitions;
@@ -200,13 +209,16 @@ function buildSchemaFromTypeDefinitions(
   }
 
   if (typeof myDefinitions === 'string') {
-    astDocument = parse(myDefinitions);
+    astDocument = parse(myDefinitions, parseOptions);
   }
 
   const backcompatOptions = { commentDescriptions: true };
 
   // TODO fix types https://github.com/apollographql/graphql-tools/issues/542
-  let schema: GraphQLSchema = (buildASTSchema as any)(astDocument, backcompatOptions);
+  let schema: GraphQLSchema = (buildASTSchema as any)(
+    astDocument,
+    backcompatOptions,
+  );
 
   const extensionsAst = extractExtensionDefinitions(astDocument);
   if (extensionsAst.definitions.length > 0) {
@@ -217,7 +229,6 @@ function buildSchemaFromTypeDefinitions(
   return schema;
 }
 
-
 // This was changed in graphql@0.12
 // See https://github.com/apollographql/graphql-tools/pull/541
 // TODO fix types https://github.com/apollographql/graphql-tools/issues/542
@@ -226,7 +237,9 @@ const newExtensionDefinitionKind = 'ObjectTypeExtension';
 
 export function extractExtensionDefinitions(ast: DocumentNode) {
   const extensionDefs = ast.definitions.filter(
-    (def: DefinitionNode) => def.kind === oldTypeExtensionDefinitionKind || (def.kind as any) === newExtensionDefinitionKind,
+    (def: DefinitionNode) =>
+      def.kind === oldTypeExtensionDefinitionKind ||
+      (def.kind as any) === newExtensionDefinitionKind,
   );
 
   return Object.assign({}, ast, {

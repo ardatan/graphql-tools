@@ -22,3 +22,4 @@ sudo: false
 env:
   - GRAPHQL_VERSION='^0.11'
   - GRAPHQL_VERSION='^0.12'
+  - GRAPHQL_VERSION='^0.13'

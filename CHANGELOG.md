@@ -2,6 +2,28 @@
 
 ### vNEXT
 
+### v2.21.0
+
+* Make iterall a runtime dependency [PR #627](https://github.com/apollographql/graphql-tools/pull/627)
+* Added support for lexical parser options [PR #567](https://github.com/apollographql/graphql-tools/pull/567)
+* Support `graphql@^0.13.0` [PR #567](https://github.com/apollographql/graphql-tools/pull/567)
+* Don't use `Symbol` in incompatible envs [Issue #535](https://github.com/apollographql/graphql-tools/issues/535) [PR #631](https://github.com/apollographql/graphql-tools/pull/631)
+
+### v2.20.2
+
+* Pass through apollo-link-http errors to originalError [PR #621](https://github.com/apollographql/graphql-tools/pull/621)
+
+### v2.20.1
+
+* Fix `error.path` could be `undefined` for schema stitching [PR #617](https://github.com/apollographql/graphql-tools/pull/617)
+
+### v2.20.0
+
+* Recreate enums and scalars for more consistent behaviour of merged schemas [PR #613](https://github.com/apollographql/graphql-tools/pull/613)
+* `makeExecutableSchema` and `mergeSchema` now accept an array of `IResolver` [PR #612](https://github.com/apollographql/graphql-tools/pull/612) [PR #576](https://github.com/apollographql/graphql-tools/pull/576) [PR #577](https://github.com/apollographql/graphql-tools/pull/577)
+* Fix `delegateToSchema.ts` to remove duplicate new variable definitions when delegating to schemas [PR #607](https://github.com/apollographql/graphql-tools/pull/607)
+* Fix duplicate subscriptions for schema stitching [PR #609](https://github.com/apollographql/graphql-tools/pull/609)
+
 ### v2.19.0
 
 * Also recreate `astNode` property for fields, not only types, when recreating schemas. [PR #580](https://github.com/apollographql/graphql-tools/pull/580)

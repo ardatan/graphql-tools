@@ -14,6 +14,7 @@ import {
 
 /* TODO: Add documentation */
 
+export type UnitOrList<Type> = Type | Array<Type>;
 export interface IResolverValidationOptions {
   requireResolversForArgs?: boolean;
   requireResolversForNonScalar?: boolean;
@@ -74,12 +75,13 @@ export type IConnectors = { [key: string]: IConnector };
 
 export interface IExecutableSchemaDefinition {
   typeDefs: ITypeDefinitions;
-  resolvers?: IResolvers;
+  resolvers?: IResolvers | Array<IResolvers>;
   connectors?: IConnectors;
   logger?: ILogger;
   allowUndefinedInResolve?: boolean;
   resolverValidationOptions?: IResolverValidationOptions;
   directiveResolvers?: IDirectiveResolvers<any, any>;
+  parseOptions?: GraphQLParseOptions;
 }
 
 export type IFieldIteratorFn = (
@@ -141,8 +143,6 @@ export type VisitType = (
   candidates: Array<MergeTypeCandidate>,
 ) => VisitTypeResult;
 
-export type ResolveType<T extends GraphQLType> = (type: T) => T;
-
 export type Operation = 'query' | 'mutation' | 'subscription';
 
 export type Request = {
@@ -153,4 +153,13 @@ export type Request = {
 
 export type Result = ExecutionResult & {
   extensions?: Record<string, any>;
+};
+
+export type ResolveType<T extends GraphQLType> = (type: T) => T;
+
+export type GraphQLParseOptions = {
+  noLocation?: boolean;
+  allowLegacySDLEmptyFields?: boolean;
+  allowLegacySDLImplementsInterfaces?: boolean;
+  experimentalFragmentVariables?: boolean;
 };

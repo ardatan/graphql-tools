@@ -662,6 +662,80 @@ describe('generating schema from shorthand', () => {
     );
   });
 
+  it('can generate a schema with an array of resolvers', () => {
+    const shorthand = `
+      type BirdSpecies {
+        name: String!,
+        wingspan: Int
+      }
+      type RootQuery {
+        numberOfSpecies: Int
+        species(name: String!): [BirdSpecies]
+      }
+      schema {
+        query: RootQuery
+      }
+      extend type BirdSpecies {
+        height: Float
+      }
+    `;
+
+    const resolveFunctions = {
+      RootQuery: {
+        species: (root: any, { name }: { name: string }) => [
+          {
+            name: `Hello ${name}!`,
+            wingspan: 200,
+            height: 30.2,
+          },
+        ],
+      },
+    };
+
+    const otherResolveFunctions = {
+      BirdSpecies: {
+        name: (bird: Bird) => bird.name,
+        wingspan: (bird: Bird) => bird.wingspan,
+        height: (bird: Bird & { height: number }) => bird.height,
+      },
+      RootQuery: {
+        numberOfSpecies() {
+          return 1;
+        },
+      },
+    };
+
+    const testQuery = `{
+      numberOfSpecies
+      species(name: "BigBird"){
+        name
+        wingspan
+        height
+      }
+    }`;
+
+    const solution = {
+      data: {
+        numberOfSpecies: 1,
+        species: [
+          {
+            name: 'Hello BigBird!',
+            wingspan: 200,
+            height: 30.2,
+          },
+        ],
+      },
+    };
+    const jsSchema = makeExecutableSchema({
+      typeDefs: shorthand,
+      resolvers: [resolveFunctions, otherResolveFunctions],
+    });
+    const resultPromise = graphql(jsSchema, testQuery);
+    return resultPromise.then(result =>
+      assert.deepEqual(result, solution as ExecutionResult),
+    );
+  });
+
   describe('scalar types', () => {
     it('supports passing a GraphQLScalarType in resolveFunctions', () => {
       // Here GraphQLJSON is used as an example of non-default GraphQLScalarType
@@ -909,8 +983,13 @@ describe('generating schema from shorthand', () => {
           RED: '#EA3232',
         },
         NumericEnum: {
+<<<<<<< HEAD
           TEST: 1
         }
+=======
+          TEST: 1,
+        },
+>>>>>>> origin/master
       };
 
       const jsSchema = makeExecutableSchema({
@@ -920,7 +999,9 @@ describe('generating schema from shorthand', () => {
 
       expect(jsSchema.getQueryType().name).to.equal('Query');
       expect(jsSchema.getType('Color')).to.be.an.instanceof(GraphQLEnumType);
-      expect(jsSchema.getType('NumericEnum')).to.be.an.instanceof(GraphQLEnumType);
+      expect(jsSchema.getType('NumericEnum')).to.be.an.instanceof(
+        GraphQLEnumType,
+      );
     });
 
     it('supports passing the value for a GraphQLEnumType in resolveFunctions', () => {
@@ -961,7 +1042,7 @@ describe('generating schema from shorthand', () => {
           },
           numericEnum() {
             return 1;
-          }
+          },
         },
       };
 
@@ -2318,4 +2399,127 @@ describe('attachDirectiveResolvers on field', () => {
       'Directive @upper is undefined. Please define in schema before using',
     );
   });
+});
+
+describe('can specify lexical parser options', () => {
+  it("can specify 'noLocation' option", () => {
+    const schema = makeExecutableSchema({
+      typeDefs: `
+        type RootQuery {
+          test: String
+        }
+        schema {
+          query: RootQuery
+        }
+      `,
+      resolvers: {},
+      parseOptions: {
+        noLocation: true,
+      },
+    });
+
+    expect(schema.astNode.loc).to.equal(undefined);
+  });
+
+  if (['^0.11', '^0.12'].indexOf(process.env.GRAPHQL_VERSION) === -1) {
+    it("can specify 'allowLegacySDLEmptyFields' option", () => {
+      return expect(() => {
+        makeExecutableSchema({
+          typeDefs: `
+            type RootQuery {
+            }
+            schema {
+              query: RootQuery
+            }
+          `,
+          resolvers: {},
+          parseOptions: {
+            allowLegacySDLEmptyFields: true,
+          },
+        });
+      }).to.not.throw();
+    });
+
+    it("can specify 'allowLegacySDLImplementsInterfaces' option", () => {
+      const typeDefs = `
+        interface A {
+          hello: String
+        }
+        interface B {
+          world: String
+        }
+        type RootQuery implements A, B {
+          hello: String
+          world: String
+        }
+        schema {
+          query: RootQuery
+        }
+      `;
+
+      const resolvers = {};
+
+      expect(() => {
+        makeExecutableSchema({
+          typeDefs,
+          resolvers,
+          parseOptions: {
+            allowLegacySDLImplementsInterfaces: true,
+          },
+        });
+      }).to.not.throw();
+
+      expect(() => {
+        makeExecutableSchema({
+          typeDefs,
+          resolvers,
+          parseOptions: {
+            allowLegacySDLImplementsInterfaces: false,
+          },
+        });
+      }).to.throw('Syntax Error: Unexpected Name');
+    });
+  }
+
+  if (process.env.GRAPHQL_VERSION !== '^0.11') {
+    it("can specify 'experimentalFragmentVariables' option", () => {
+      const typeDefs = `
+        type Hello {
+          world(phrase: String): String
+        }
+
+        fragment hello($phrase: String = "world") on Hello {
+          world(phrase: $phrase)
+        }
+
+        type RootQuery {
+          hello: Hello
+        }
+
+        schema {
+          query: RootQuery
+        }
+      `;
+
+      const resolvers = {
+        RootQuery: {
+          hello() {
+            return {
+              world: (phrase: string) => `hello ${phrase}`,
+            };
+          },
+        },
+      };
+
+      expect(() => {
+        makeExecutableSchema({
+          typeDefs,
+          resolvers,
+          parseOptions: {
+            experimentalFragmentVariables: true,
+          },
+        });
+      }).to.not.throw();
+    });
+  }
 });
