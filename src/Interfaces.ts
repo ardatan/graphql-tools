@@ -8,6 +8,7 @@ import {
   GraphQLIsTypeOfFn,
   GraphQLTypeResolver,
   GraphQLScalarType,
+  GraphQLNamedType,
   DocumentNode,
 } from 'graphql';
 
@@ -29,12 +30,14 @@ export interface IResolverOptions {
 
 export type MergeInfo = {
   delegate: (
+    schemaName: string,
     type: 'query' | 'mutation' | 'subscription',
     fieldName: string,
     args: { [key: string]: any },
     context: { [key: string]: any },
     info: GraphQLResolveInfo,
   ) => any;
+  getSubSchema: (schemaName: string) => GraphQLSchema;
 };
 
 export type IFieldResolver<TSource, TContext> = (
@@ -49,7 +52,7 @@ export type ITypeDefinitions = ITypedef | ITypedef[];
 export type IResolverObject = {
   [key: string]: IFieldResolver<any, any> | IResolverOptions;
 };
-export type IEnumResolver = { [key: string]: string };
+export type IEnumResolver = { [key: string]: string | number };
 export interface IResolvers {
   [key: string]:
     | (() => any)
@@ -119,3 +122,35 @@ export interface IMockServer {
     vars?: { [key: string]: any },
   ) => Promise<ExecutionResult>;
 }
+
+export type MergeTypeCandidate = {
+  schemaName: string;
+  schema?: GraphQLSchema;
+  type: GraphQLNamedType;
+};
+
+export type TypeWithResolvers = {
+  type: GraphQLNamedType;
+  resolvers?: IResolvers;
+};
+
+export type VisitTypeResult = GraphQLNamedType | TypeWithResolvers | null;
+
+export type VisitType = (
+  name: string,
+  candidates: Array<MergeTypeCandidate>,
+) => VisitTypeResult;
+
+export type ResolveType<T extends GraphQLType> = (type: T) => T;
+
+export type Operation = 'query' | 'mutation' | 'subscription';
+
+export type Request = {
+  document: DocumentNode;
+  variables: Record<string, any>;
+  extensions?: Record<string, any>;
+};
+
+export type Result = ExecutionResult & {
+  extensions?: Record<string, any>;
+};

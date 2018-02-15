@@ -2,7 +2,33 @@
 
 ### vNEXT
 
-* ...
+### v2.19.0
+
+* Also recreate `astNode` property for fields, not only types, when recreating schemas. [PR #580](https://github.com/apollographql/graphql-tools/pull/580)
+* Fix `delegateToSchema.js` to accept and move forward args with zero or false values [PR #586](https://github.com/apollographql/graphql-tools/pull/586)
+
+### v2.18.0
+
+* Fix a bug where inline fragments got filtered in merged schemas when a type implemented multiple interfaces [PR #546](https://github.com/apollographql/graphql-tools/pull/546)
+* IEnumResolver value can be a `number` type [PR #568](https://github.com/apollographql/graphql-tools/pull/568)
+
+### v2.17.0
+
+* Include `astNode` property in schema recreation [PR #569](https://github.com/apollographql/graphql-tools/pull/569)
+
+### v2.16.0
+
+* Added GraphQL Subscriptions support for schema stitching and `makeRemoteExecutableSchema` [PR #563](https://github.com/apollographql/graphql-tools/pull/563)
+* Make `apollo-link` a direct dependency [PR #561](https://github.com/apollographql/graphql-tools/pull/561)
+* Update tests to use `graphql-js@0.12` docstring format [PR #559](https://github.com/apollographql/graphql-tools/pull/559)
+
+### v2.15.0
+
+* Validate query before delegation [PR #551](https://github.com/apollographql/graphql-tools/pull/551)
+
+### v2.14.1
+
+* Add guard against invalid schemas being constructed from AST [PR #547](https://github.com/apollographql/graphql-tools/pull/547)
 
 ### v2.14.0
 
@@ -177,7 +203,7 @@ Update to add support for `graphql@0.12`, and drop versions before `0.11` from t
 
 * Removed testing on Node 5 ([@DxCx](https://github.com/DxCx) in [#129](https://github.com/apollostack/graphql-tools/pull/129))
 
-* Changed GraphQL typings requirment from peer to standard ([@DxCx](https://github.com/DxCx) in [#129](https://github.com/apollostack/graphql-tools/pull/129))
+* Changed GraphQL typings requirement from peer to standard ([@DxCx](https://github.com/DxCx) in [#129](https://github.com/apollostack/graphql-tools/pull/129))
 
 * Change the missing resolve function validator to show a warning instead of an error ([@nicolaslopezj](https://github.com/nicolaslopezj) in [#134](https://github.com/apollostack/graphql-tools/pull/134))
 

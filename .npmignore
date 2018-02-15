@@ -2,6 +2,7 @@
 !dist/
 !dist/*
 !dist/stitching/*
+!dist/transforms/*
 !package.json
 !*.md
 !*.png

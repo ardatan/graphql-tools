@@ -4,19 +4,21 @@ import { expect } from 'chai';
 import {
   graphql,
   GraphQLSchema,
-  GraphQLScalarType,
   GraphQLObjectType,
   subscribe,
   parse,
   ExecutionResult,
 } from 'graphql';
+import { VisitType } from '../Interfaces';
 import mergeSchemas from '../stitching/mergeSchemas';
 import {
   propertySchema as localPropertySchema,
+  productSchema as localProductSchema,
   bookingSchema as localBookingSchema,
   subscriptionSchema as localSubscriptionSchema,
   remoteBookingSchema,
   remotePropertySchema,
+  remoteProductSchema,
   subscriptionPubSub,
   subscriptionPubSubTrigger,
 } from './testingSchemas';
@@ -24,27 +26,40 @@ import { forAwaitEach } from 'iterall';
 import { makeExecutableSchema } from '../schemaGenerator';
 
 const testCombinations = [
-  { name: 'local', booking: localBookingSchema, property: localPropertySchema },
+  {
+    name: 'local',
+    booking: localBookingSchema,
+    property: localPropertySchema,
+    product: localProductSchema,
+  },
   {
     name: 'remote',
     booking: remoteBookingSchema,
     property: remotePropertySchema,
+    product: remoteProductSchema,
   },
   {
     name: 'hybrid',
     booking: localBookingSchema,
     property: remotePropertySchema,
+    product: localProductSchema,
   },
 ];
 
-const scalarTest = `
-  # Description of TestScalar.
+let scalarTest = `
+  """
+  Description of TestScalar.
+  """
   scalar TestScalar
 
-  # Description of AnotherNewScalar.
+  """
+  Description of AnotherNewScalar.
+  """
   scalar AnotherNewScalar
 
-  # A type that uses TestScalar.
+  """
+  A type that uses TestScalar.
+  """
   type TestingScalar {
     value: TestScalar
   }
@@ -54,31 +69,60 @@ const scalarTest = `
   }
 `;
 
-const enumTest = `
-# A type that uses an Enum.
-enum Color {
-  RED
-}
+let enumTest = `
+  """
+  A type that uses an Enum.
+  """
+  enum Color {
+    RED
+  }
 
-schema {
-  query: Query
-}
+  """
+  A type that uses an Enum with a numeric constant.
+  """
+  enum NumericEnum {
+    TEST
+  }
 
-type Query {
-  color: Color
-}
+  schema {
+    query: Query
+  }
+
+  type Query {
+    color: Color
+    numericEnum: NumericEnum
+  }
 `;
 
-let graphql11compat = '';
-if (process.env.GRAPHQL_VERSION === '^0.11') {
-  graphql11compat = '{}';
-}
+const enumSchema = makeExecutableSchema({
+  typeDefs: enumTest,
+  resolvers: {
+    Color: {
+      RED: '#EA3232',
+    },
+    NumericEnum: {
+      TEST: 1,
+    },
+    Query: {
+      color() {
+        return '#EA3232';
+      },
+      numericEnum() {
+        return 1;
+      },
+    },
+  },
+});
 
-const linkSchema = `
-  # A new type linking the Property type.
+let linkSchema = `
+  """
+  A new type linking the Property type.
+  """
   type LinkType {
     test: String
-    # The property.
+    """
+    The property.
+    """
     property: Property
   }
 
@@ -86,16 +130,21 @@ const linkSchema = `
     id: ID!
   }
 
-
   extend type Booking implements Node {
-    # The property of the booking.
+    """
+    The property of the booking.
+    """
     property: Property
   }
 
   extend type Property implements Node {
-    # A list of bookings.
+    """
+    A list of bookings.
+    """
     bookings(
-      # The maximum number of bookings to retrieve.
+      """
+      The maximum number of bookings to retrieve.
+      """
       limit: Int
     ): [Booking]
   }
@@ -103,50 +152,154 @@ const linkSchema = `
   extend type Query {
     delegateInterfaceTest: TestInterface
     delegateArgumentTest(arbitraryArg: Int): Property
-    # A new field on the root query.
+    """
+    A new field on the root query.
+    """
     linkTest: LinkType
     node(id: ID!): Node
     nodes: [Node]
   }
 
-  extend type Customer implements Node ${graphql11compat}
+  extend type Customer implements Node
 `;
+
+const loneExtend = `
+  extend type Booking {
+    foo: String!
+  }
+`;
+
+if (process.env.GRAPHQL_VERSION === '^0.11') {
+  scalarTest = `
+    # Description of TestScalar.
+    scalar TestScalar
+
+    # Description of AnotherNewScalar.
+    scalar AnotherNewScalar
+
+    # A type that uses TestScalar.
+    type TestingScalar {
+      value: TestScalar
+    }
+
+    type Query {
+      testingScalar: TestingScalar
+    }
+  `;
+
+  enumTest = `
+    # A type that uses an Enum.
+    enum Color {
+      RED
+    }
+
+    # A type that uses an Enum with a numeric constant.
+    enum NumericEnum {
+      TEST
+    }
+
+    schema {
+      query: Query
+    }
+
+    type Query {
+      color: Color
+      numericEnum: NumericEnum
+    }
+  `;
+
+  linkSchema = `
+    # A new type linking the Property type.
+    type LinkType {
+      test: String
+      # The property.
+      property: Property
+    }
+
+    interface Node {
+      id: ID!
+    }
+
+    extend type Booking implements Node {
+      # The property of the booking.
+      property: Property
+    }
+
+    extend type Property implements Node {
+      # A list of bookings.
+      bookings(
+        # The maximum number of bookings to retrieve.
+        limit: Int
+      ): [Booking]
+    }
+
+    extend type Query {
+      delegateInterfaceTest: TestInterface
+      delegateArgumentTest(arbitraryArg: Int): Property
+      # A new field on the root query.
+      linkTest: LinkType
+      node(id: ID!): Node
+      nodes: [Node]
+    }
+
+    extend type Customer implements Node {}
+  `;
+}
 
 testCombinations.forEach(async combination => {
   describe('merging ' + combination.name, () => {
     let mergedSchema: GraphQLSchema,
       propertySchema: GraphQLSchema,
+      productSchema: GraphQLSchema,
       bookingSchema: GraphQLSchema;
 
     before(async () => {
       propertySchema = await combination.property;
       bookingSchema = await combination.booking;
+      productSchema = await combination.product;
 
       mergedSchema = mergeSchemas({
         schemas: [
-          propertySchema,
-          bookingSchema,
-          scalarTest,
-          enumTest,
-          linkSchema,
-          localSubscriptionSchema,
+          {
+            name: 'Property',
+            schema: propertySchema,
+          },
+          {
+            name: 'Booking',
+            schema: bookingSchema,
+          },
+          {
+            name: 'Product',
+            schema: productSchema,
+          },
+          {
+            name: 'ScalarTest',
+            schema: scalarTest,
+          },
+          {
+            name: 'EnumTest',
+            schema: enumSchema,
+          },
+          {
+            name: 'LinkSchema',
+            schema: linkSchema,
+          },
+          {
+            name: 'LoneExtend',
+            schema: loneExtend,
+          },
+          {
+            name: 'LocalSubscription',
+            schema: localSubscriptionSchema,
+          },
         ],
         resolvers: {
-          TestScalar: new GraphQLScalarType({
-            name: 'TestScalar',
-            description: undefined,
-            serialize: value => value,
-            parseValue: value => value,
-            parseLiteral: () => null,
-          }),
-          Color: {
-            RED: '#EA3232',
-          },
           Property: {
             bookings: {
               fragment: 'fragment PropertyFragment on Property { id }',
               resolve(parent, args, context, info) {
                 return info.mergeInfo.delegate(
+                  'Booking',
                   'query',
                   'bookingsByPropertyId',
                   {
@@ -164,6 +317,7 @@ testCombinations.forEach(async combination => {
               fragment: 'fragment BookingFragment on Booking { propertyId }',
               resolve(parent, args, context, info) {
                 return info.mergeInfo.delegate(
+                  'Property',
                   'query',
                   'propertyById',
                   {
@@ -179,6 +333,7 @@ testCombinations.forEach(async combination => {
             property: {
               resolve(parent, args, context, info) {
                 return info.mergeInfo.delegate(
+                  'Property',
                   'query',
                   'propertyById',
                   {
@@ -191,11 +346,9 @@ testCombinations.forEach(async combination => {
             },
           },
           Query: {
-            color() {
-              return '#EA3232';
-            },
             delegateInterfaceTest(parent, args, context, info) {
               return info.mergeInfo.delegate(
+                'Property',
                 'query',
                 'interfaceTest',
                 {
@@ -207,6 +360,7 @@ testCombinations.forEach(async combination => {
             },
             delegateArgumentTest(parent, args, context, info) {
               return info.mergeInfo.delegate(
+                'Property',
                 'query',
                 'propertyById',
                 {
@@ -227,6 +381,7 @@ testCombinations.forEach(async combination => {
               resolve(parent, args, context, info) {
                 if (args.id.startsWith('p')) {
                   return info.mergeInfo.delegate(
+                    'Property',
                     'query',
                     'propertyById',
                     args,
@@ -235,6 +390,7 @@ testCombinations.forEach(async combination => {
                   );
                 } else if (args.id.startsWith('b')) {
                   return info.mergeInfo.delegate(
+                    'Booking',
                     'query',
                     'bookingById',
                     args,
@@ -243,6 +399,7 @@ testCombinations.forEach(async combination => {
                   );
                 } else if (args.id.startsWith('c')) {
                   return info.mergeInfo.delegate(
+                    'Booking',
                     'query',
                     'customerById',
                     args,
@@ -256,6 +413,7 @@ testCombinations.forEach(async combination => {
             },
             async nodes(parent, args, context, info) {
               const bookings = await info.mergeInfo.delegate(
+                'Booking',
                 'query',
                 'bookings',
                 {},
@@ -263,6 +421,7 @@ testCombinations.forEach(async combination => {
                 info,
               );
               const properties = await info.mergeInfo.delegate(
+                'Property',
                 'query',
                 'properties',
                 {},
@@ -350,24 +509,12 @@ testCombinations.forEach(async combination => {
       });
 
       it('works with custom enums', async () => {
-        const enumSchema = makeExecutableSchema({
-          typeDefs: enumTest,
-          resolvers: {
-            Color: {
-              RED: '#EA3232',
-            },
-            Query: {
-              color() {
-                return '#EA3232';
-              },
-            },
-          },
-        });
         const enumResult = await graphql(
           enumSchema,
           `
             query {
               color
+              numericEnum
             }
           `,
         );
@@ -377,6 +524,7 @@ testCombinations.forEach(async combination => {
           `
             query {
               color
+              numericEnum
             }
           `,
         );
@@ -384,6 +532,7 @@ testCombinations.forEach(async combination => {
         expect(enumResult).to.deep.equal({
           data: {
             color: 'RED',
+            numericEnum: 'TEST',
           },
         });
         expect(mergedResult).to.deep.equal(enumResult);
@@ -1010,21 +1159,21 @@ bookingById(id: "b1") {
     describe('variables', () => {
       it('basic', async () => {
         const propertyFragment = `
-propertyById(id: $p1) {
-  id
-  name
-}
-  `;
+          propertyById(id: $p1) {
+            id
+            name
+          }
+        `;
         const bookingFragment = `
-bookingById(id: $b1) {
-  id
-  customer {
-    name
-  }
-  startTime
-  endTime
-}
-  `;
+          bookingById(id: $b1) {
+            id
+            customer {
+              name
+            }
+            startTime
+            endTime
+          }
+        `;
 
         const propertyResult = await graphql(
           propertySchema,
@@ -1447,10 +1596,6 @@ bookingById(id: $b1) {
 
     describe('types in schema extensions', () => {
       it('should parse descriptions on new types', () => {
-        // Because we redefine it via `GraphQLScalarType` above, it will get
-        // its description from there.
-        expect(mergedSchema.getType('TestScalar').description).to.be.undefined;
-
         expect(mergedSchema.getType('AnotherNewScalar').description).to.equal(
           'Description of AnotherNewScalar.',
         );
@@ -1461,6 +1606,10 @@ bookingById(id: $b1) {
 
         expect(mergedSchema.getType('Color').description).to.equal(
           'A type that uses an Enum.',
+        );
+
+        expect(mergedSchema.getType('NumericEnum').description).to.equal(
+          'A type that uses an Enum with a numeric constant.',
         );
 
         expect(mergedSchema.getType('LinkType').description).to.equal(
@@ -1694,6 +1843,39 @@ bookingById(id: $b1) {
       //   });
       // });
 
+      it('multi-interface filter', async () => {
+        const result = await graphql(
+          mergedSchema,
+          `
+            query {
+              products {
+                id
+                __typename
+                ... on Sellable {
+                  price
+                }
+              }
+            }
+          `,
+        );
+
+        expect(result).to.deep.equal({
+          data: {
+            products: [
+              {
+                id: 'pd1',
+                __typename: 'SimpleProduct',
+                price: 100,
+              },
+              {
+                id: 'pd2',
+                __typename: 'DownloadableProduct',
+              },
+            ],
+          },
+        });
+      });
+
       it('arbitrary transforms that return interfaces', async () => {
         const result = await graphql(
           mergedSchema,
@@ -1782,6 +1964,121 @@ bookingById(id: $b1) {
             },
           },
         });
+      });
+    });
+  });
+});
+
+describe('mergeSchema options', () => {
+  describe('should filter types', () => {
+    let schema: GraphQLSchema;
+
+    before(async () => {
+      const bookingSchema = await remoteBookingSchema;
+      const createTypeFilteringVisitTypes = (
+        typeNames: Array<string>,
+      ): VisitType => {
+        return (name, candidates) => {
+          if (
+            ['ID', 'String', 'DateTime'].includes(name) ||
+            typeNames.includes(name)
+          ) {
+            return candidates[candidates.length - 1].type;
+          } else {
+            return null;
+          }
+        };
+      };
+      schema = mergeSchemas({
+        schemas: [
+          {
+            name: 'Booking',
+            schema: bookingSchema,
+          },
+          {
+            name: 'Selector',
+            schema: `
+                type Query {
+                  bookingById(id: ID!): Booking
+                },
+              `,
+          },
+        ],
+        visitType: createTypeFilteringVisitTypes(['Query', 'Booking']),
+        resolvers: {
+          Query: {
+            bookingById(parent, args, context, info) {
+              return info.mergeInfo.delegate(
+                'Booking',
+                'query',
+                'bookingById',
+                args,
+                context,
+                info,
+              );
+            },
+          },
+        },
+      });
+    });
+
+    it('should work normally', async () => {
+      const result = await graphql(
+        schema,
+        `
+          query {
+            bookingById(id: "b1") {
+              id
+              propertyId
+              startTime
+              endTime
+            }
+          }
+        `,
+      );
+
+      expect(result).to.deep.equal({
+        data: {
+          bookingById: {
+            endTime: '2016-06-03',
+            id: 'b1',
+            propertyId: 'p1',
+            startTime: '2016-05-04',
+          },
+        },
+      });
+    });
+
+    it('should error on removed types', async () => {
+      const result = await graphql(
+        schema,
+        `
+          query {
+            bookingById(id: "b1") {
+              id
+              propertyId
+              startTime
+              endTime
+              customer {
+                id
+              }
+            }
+          }
+        `,
+      );
+      expect(result).to.deep.equal({
+        errors: [
+          {
+            locations: [
+              {
+                column: 15,
+                line: 8,
+              },
+            ],
+            message: 'Cannot query field "customer" on type "Booking".',
+            path: undefined,
+          },
+        ],
       });
     });
   });

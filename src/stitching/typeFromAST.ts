@@ -23,60 +23,60 @@ import {
   UnionTypeDefinitionNode,
   valueFromAST,
 } from 'graphql';
-//
-// TODO put back import once PR is merged
-// https://github.com/graphql/graphql-js/pull/1165
-// import { getDescription } from 'graphql/utilities/buildASTSchema';
+import resolveFromParentType from './resolveFromParentTypename';
 
 const backcompatOptions = { commentDescriptions: true };
 
-import resolveFromParentType from './resolveFromParentTypename';
-import TypeRegistry from './TypeRegistry';
+export type GetType = (
+  name: string,
+  // this is a hack
+  type: 'object' | 'interface' | 'input',
+) => GraphQLObjectType | GraphQLInputObjectType | GraphQLInterfaceType;
 
 export default function typeFromAST(
-  typeRegistry: TypeRegistry,
   node: DefinitionNode,
+  getType: GetType,
 ): GraphQLNamedType | null {
   switch (node.kind) {
     case Kind.OBJECT_TYPE_DEFINITION:
-      return makeObjectType(typeRegistry, node);
+      return makeObjectType(node, getType);
     case Kind.INTERFACE_TYPE_DEFINITION:
-      return makeInterfaceType(typeRegistry, node);
+      return makeInterfaceType(node, getType);
     case Kind.ENUM_TYPE_DEFINITION:
-      return makeEnumType(typeRegistry, node);
+      return makeEnumType(node, getType);
     case Kind.UNION_TYPE_DEFINITION:
-      return makeUnionType(typeRegistry, node);
+      return makeUnionType(node, getType);
     case Kind.SCALAR_TYPE_DEFINITION:
-      return makeScalarType(typeRegistry, node);
+      return makeScalarType(node, getType);
     case Kind.INPUT_OBJECT_TYPE_DEFINITION:
-      return makeInputObjectType(typeRegistry, node);
+      return makeInputObjectType(node, getType);
     default:
       return null;
   }
 }
 
 function makeObjectType(
-  typeRegistry: TypeRegistry,
   node: ObjectTypeDefinitionNode,
+  getType: GetType,
 ): GraphQLObjectType {
   return new GraphQLObjectType({
     name: node.name.value,
-    fields: () => makeFields(typeRegistry, node.fields),
+    fields: () => makeFields(node.fields, getType),
     interfaces: () =>
       node.interfaces.map(
-        iface => typeRegistry.getType(iface.name.value) as GraphQLInterfaceType,
+        iface => getType(iface.name.value, 'interface') as GraphQLInterfaceType,
       ),
     description: getDescription(node, backcompatOptions),
   });
 }
 
 function makeInterfaceType(
-  typeRegistry: TypeRegistry,
   node: InterfaceTypeDefinitionNode,
+  getType: GetType,
 ): GraphQLInterfaceType {
   return new GraphQLInterfaceType({
     name: node.name.value,
-    fields: () => makeFields(typeRegistry, node.fields),
+    fields: () => makeFields(node.fields, getType),
     description: getDescription(node, backcompatOptions),
     resolveType: (parent, context, info) =>
       resolveFromParentType(parent, info.schema),
@@ -84,8 +84,8 @@ function makeInterfaceType(
 }
 
 function makeEnumType(
-  typeRegistry: TypeRegistry,
   node: EnumTypeDefinitionNode,
+  getType: GetType,
 ): GraphQLEnumType {
   const values = {};
   node.values.forEach(value => {
@@ -101,14 +101,14 @@ function makeEnumType(
 }
 
 function makeUnionType(
-  typeRegistry: TypeRegistry,
   node: UnionTypeDefinitionNode,
+  getType: GetType,
 ): GraphQLUnionType {
   return new GraphQLUnionType({
     name: node.name.value,
     types: () =>
       node.types.map(
-        type => resolveType(typeRegistry, type) as GraphQLObjectType,
+        type => resolveType(type, getType, 'object') as GraphQLObjectType,
       ),
     description: getDescription(node, backcompatOptions),
     resolveType: (parent, context, info) =>
@@ -117,8 +117,8 @@ function makeUnionType(
 }
 
 function makeScalarType(
-  typeRegistry: TypeRegistry,
   node: ScalarTypeDefinitionNode,
+  getType: GetType,
 ): GraphQLScalarType {
   return new GraphQLScalarType({
     name: node.name.value,
@@ -134,38 +134,32 @@ function makeScalarType(
 }
 
 function makeInputObjectType(
-  typeRegistry: TypeRegistry,
   node: InputObjectTypeDefinitionNode,
+  getType: GetType,
 ): GraphQLInputObjectType {
   return new GraphQLInputObjectType({
     name: node.name.value,
-    fields: () => makeValues(typeRegistry, node.fields),
+    fields: () => makeValues(node.fields, getType),
     description: getDescription(node, backcompatOptions),
   });
 }
 
-function makeFields(
-  typeRegistry: TypeRegistry,
-  nodes: Array<FieldDefinitionNode>,
-) {
+function makeFields(nodes: Array<FieldDefinitionNode>, getType: GetType) {
   const result = {};
   nodes.forEach(node => {
     result[node.name.value] = {
-      type: resolveType(typeRegistry, node.type),
-      args: makeValues(typeRegistry, node.arguments),
+      type: resolveType(node.type, getType, 'object'),
+      args: makeValues(node.arguments, getType),
       description: getDescription(node, backcompatOptions),
     };
   });
   return result;
 }
 
-function makeValues(
-  typeRegistry: TypeRegistry,
-  nodes: Array<InputValueDefinitionNode>,
-) {
+function makeValues(nodes: Array<InputValueDefinitionNode>, getType: GetType) {
   const result = {};
   nodes.forEach(node => {
-    const type = resolveType(typeRegistry, node.type) as GraphQLInputType;
+    const type = resolveType(node.type, getType, 'input') as GraphQLInputType;
     result[node.name.value] = {
       type,
       defaultValue: valueFromAST(node.defaultValue, type),
@@ -175,14 +169,18 @@ function makeValues(
   return result;
 }
 
-function resolveType(typeRegistry: TypeRegistry, node: TypeNode): GraphQLType {
+function resolveType(
+  node: TypeNode,
+  getType: GetType,
+  type: 'object' | 'interface' | 'input',
+): GraphQLType {
   switch (node.kind) {
     case Kind.LIST_TYPE:
-      return new GraphQLList(resolveType(typeRegistry, node.type));
+      return new GraphQLList(resolveType(node.type, getType, type));
     case Kind.NON_NULL_TYPE:
-      return new GraphQLNonNull(resolveType(typeRegistry, node.type));
+      return new GraphQLNonNull(resolveType(node.type, getType, type));
     default:
-      return typeRegistry.getType(node.name.value);
+      return getType(node.name.value, type);
   }
 }
 

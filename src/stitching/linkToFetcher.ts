@@ -45,7 +45,7 @@ function makePromise<R>(observable: Observable<R>): Promise<R> {
   });
 }
 
-function execute(
+export function execute(
   link: ApolloLink,
   operation: GraphQLRequest,
 ): Observable<FetchResult> {
