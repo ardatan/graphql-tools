@@ -99,6 +99,9 @@ export class SchemaDirectiveVisitor {
   // object, in case a vistor method needs to refer to this.schema.
   public schema: GraphQLSchema;
 
+  // A reference to the type object that this visitor was created to visit.
+  public visitedType: VisitableType;
+
   // Call SchemaDirectiveVisitor.visitSchema(schema, directiveVisitors) to
   // visit every @directive in the schema and instantiate an appropriate
   // SchemaDirectiveVisitor subclass to visit/handle/transform the object
@@ -287,9 +290,12 @@ export class SchemaDirectiveVisitor {
         // created and assigned names. Subclasses can override the constructor
         // method, but since the constructor is marked as protected, these are
         // the only arguments that will ever be passed.
-        directiveInstances.push(
-          new directiveClass({ name, args, schema })
-        );
+        directiveInstances.push(new directiveClass({
+          name,
+          args,
+          visitedType: type,
+          schema
+        }));
       });
 
       return directiveInstances;
@@ -306,10 +312,12 @@ export class SchemaDirectiveVisitor {
   protected constructor(config: {
     name: string,
     args: { [name: string]: any },
+    visitedType: VisitableType,
     schema: GraphQLSchema,
   }) {
     this.name = config.name;
     this.args = config.args;
+    this.visitedType = config.visitedType;
     this.schema = config.schema;
   }
 

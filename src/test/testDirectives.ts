@@ -188,6 +188,7 @@ describe('@directives', () => {
       mutationTypeDirective: class extends SchemaDirectiveVisitor {
         public visitObject(object: GraphQLObjectType) {
           mutationObjectType = object;
+          assert.strictEqual(this.visitedType, object);
           assert.strictEqual(object.name, 'Mutation');
         }
       },
@@ -196,6 +197,7 @@ describe('@directives', () => {
         public visitFieldDefinition(field: GraphQLField<any, any>, details: {
           objectType: GraphQLObjectType,
         }) {
+          assert.strictEqual(this.visitedType, field);
           assert.strictEqual(field.name, 'addPerson');
           assert.strictEqual(details.objectType, mutationObjectType);
           assert.strictEqual(field.args.length, 1);
@@ -208,6 +210,7 @@ describe('@directives', () => {
           field: GraphQLField<any, any>,
           objectType: GraphQLObjectType,
         }) {
+          assert.strictEqual(this.visitedType, arg);
           assert.strictEqual(arg.name, 'input');
           assert.strictEqual(details.field, mutationField);
           assert.strictEqual(details.objectType, mutationObjectType);
@@ -217,6 +220,7 @@ describe('@directives', () => {
 
       enumTypeDirective: class extends SchemaDirectiveVisitor {
         public visitEnum(enumType: GraphQLEnumType) {
+          assert.strictEqual(this.visitedType, enumType);
           assert.strictEqual(enumType.name, 'Gender');
           enumObjectType = enumType;
         }
@@ -226,6 +230,7 @@ describe('@directives', () => {
         public visitEnumValue(value: GraphQLEnumValue, details: {
           enumType: GraphQLEnumType,
         }) {
+          assert.strictEqual(this.visitedType, value);
           assert.strictEqual(value.name, 'NONBINARY');
           assert.strictEqual(value.value, 'NONBINARY');
           assert.strictEqual(details.enumType, enumObjectType);
@@ -235,6 +240,7 @@ describe('@directives', () => {
       inputTypeDirective: class extends SchemaDirectiveVisitor {
         public visitInputObject(object: GraphQLInputObjectType) {
           inputObjectType = object;
+          assert.strictEqual(this.visitedType, object);
           assert.strictEqual(object.name, 'PersonInput');
         }
       },
@@ -243,6 +249,7 @@ describe('@directives', () => {
         public visitInputFieldDefinition(field: GraphQLInputField, details: {
           objectType: GraphQLInputObjectType,
         }) {
+          assert.strictEqual(this.visitedType, field);
           assert.strictEqual(field.name, 'name');
           assert.strictEqual(details.objectType, inputObjectType);
         }
