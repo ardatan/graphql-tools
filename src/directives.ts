@@ -36,22 +36,23 @@ export type VisitableType =
 
 const hasOwn = Object.prototype.hasOwnProperty;
 
-// This class represents a reusable implementation of a @directive that
-// may appear in a GraphQL schema written in Schema Definition Language.
+// This class represents a reusable implementation of a @directive that may
+// appear in a GraphQL schema written in Schema Definition Language.
 //
-// By overriding one or more visit* methods, this class registers interest
-// in certain schema types (e.g. GraphQLObjectType, GraphQLUnionType,
-// etc.). When SchemaDirectiveVisitor.visitSchema is called, these methods
-// allow the visitor to obtain references to those GraphQL*Type objects,
-// so the implementation can inspect or modify them as appropriate.
+// By overriding one or more visit{Object,Union,...} methods, a subclass
+// registers interest in certain schema types, such as GraphQLObjectType,
+// GraphQLUnionType, and so on. When SchemaDirectiveVisitor.visitSchema is
+// called with a GraphQLSchema object and a map of visitor subclasses, the
+// overidden methods of those subclasses allow the visitors to obtain
+// references to any type objects that have @directives attached to them,
+// enabling the visitors to inspect or modify the schema as appropriate.
 //
-// For example, if a directive called @rest(...) appears after an object
-// field definition, a SchemaDirectiveVisitor subclass could provide
-// meaning to that directive by overriding the visitFieldDefinition method
-// (which receives a GraphQLField parameter, as well as additional details
-// about the parent object type), and the body of that method could
-// manipulate the field's resolver functions to fetch data from a REST
-// endpoint described by the arguments to the @rest(...) directive:
+// For example, if a directive called @rest(url: "...") appears after a field
+// definition, a SchemaDirectiveVisitor subclass could provide meaning to that
+// directive by overriding the visitFieldDefinition method (which receives a
+// GraphQLField parameter), and then the body of that visitor method could
+// manipulate the field's resolver function to fetch data from a REST endpoint
+// described by the url argument passed to the @rest directive:
 //
 //   const typeDefs = `
 //   type Query {
@@ -69,28 +70,33 @@ const hasOwn = Object.prototype.hasOwnProperty;
 //     }
 //   });
 //
+// The subclass in this example is defined as an anonymous class expression,
+// for brevity. A truly reusable SchemaDirectiveVisitor would most likely be
+// defined in a library using a named class declaration, and then exported for
+// consumption by other modules and packages.
+//
+// See below for a complete list of overridable visitor methods, their
+// parameter types, and more details about the properties exposed by instances
+// of the SchemaDirectiveVisitor class.
+
 export class SchemaDirectiveVisitor {
-  // The name of the directive this visitor is allowed to visit (that is,
-  // the identifier after the @ character in the schema). Note that this
-  // property is per-instance rather than static because subclasses of
+  // The name of the directive this visitor is allowed to visit (that is, the
+  // identifier that appears after the @ character in the schema). Note that
+  // this property is per-instance rather than static because subclasses of
   // SchemaDirectiveVisitor can be instantiated multiple times to visit
   // directives of different names. In other words, SchemaDirectiveVisitor
-  // implementations are effectively anonymous, and it's up to the caller
-  // of SchemaDirectiveVisitor.visitSchema to assign names to them.
+  // implementations are effectively anonymous, and it's up to the caller of
+  // SchemaDirectiveVisitor.visitSchema to assign names to them.
   public name: string;
 
   // A map from parameter names to argument values, as obtained from a
-  // specific occurrence of a @directive(arg1, arg2, ...) in the schema.
-  // If the directive is declared in the schema using the `declare ...`
-  // syntax, then the corresponding GraphQLDirective object will also have
-  // an `args` property; however, that represents the expected types (and
-  // names and default values, etc.) of the arguments, rather than the
-  // concrete argument values passed to a specific @directive.
+  // specific occurrence of a @directive(arg1: value1, arg2: value2, ...) in
+  // the schema. Visitor methods may refer to this object via this.args.
   public args: { [name: string]: any };
 
   // All SchemaDirectiveVisitor instances are created while visiting a
-  // specific GraphQLSchema object, so this property holds a reference to
-  // that object, in case a vistor method needs to refer to this.schema.
+  // specific GraphQLSchema object, so this property holds a reference to that
+  // object, in case a vistor method needs to refer to this.schema.
   public schema: GraphQLSchema;
 
   // Call SchemaDirectiveVisitor.visitSchema(schema, directiveVisitors) to
@@ -100,18 +106,20 @@ export class SchemaDirectiveVisitor {
   public static visitSchema(
     schema: GraphQLSchema,
     directiveVisitors: {
-      // Because a new SchemaDirectiveVisitor class will be instantiated
-      // each time a certain directive is found in the schema AST, callers
-      // of the visitSchema method should provide SchemaDirectiveVisitor
-      // sub*classes* rather than instances as the values in this object.
-      // The keys of the object correspond to directive names as they
-      // appear in the schema.
-      [name: string]: typeof SchemaDirectiveVisitor
+      // The keys of this object correspond to directive names as they appear
+      // in the schema, and the values should be subclasses (not instances!)
+      // of the SchemaDirectiveVisitor class. This distinction is important
+      // because a new SchemaDirectiveVisitor instance will be created each
+      // time a matching directive is found in the schema AST, with arguments
+      // and other metadata specific to that occurrence. To help prevent the
+      // mistake of passing instances, the SchemaDirectiveVisitor constructor
+      // method is marked as protected.
+      [directiveName: string]: typeof SchemaDirectiveVisitor
     },
   ) {
-    // If the schema declares any directives for public consumption, collect
-    // them here so that we can coerce the arguments when/if we encounter an
-    // instance of the directive while walking the schema below.
+    // If the schema declares any directives for public consumption, record
+    // them here so that we can properly coerce arguments when/if we encounter
+    // an occurrence of the directive while walking the schema below.
     const declaredDirectives: {
       [key: string]: GraphQLDirective,
     } = Object.create(null);
@@ -123,8 +131,8 @@ export class SchemaDirectiveVisitor {
     function visit(type: VisitableType) {
       if (type instanceof GraphQLSchema) {
         getDirectives(type).forEach(d => {
-          // This call type-checks because it's lexically nested inside an `if
-          // (type instanceof GraphQLSchema)` conditional block. The same is
+          // This call type-checks because it's lexically nested inside the
+          // `type instanceof GraphQLSchema` conditional block. The same is
           // true of every other directive.visit* method call below.
           d.visitSchema(type);
         });
@@ -138,8 +146,8 @@ export class SchemaDirectiveVisitor {
         });
 
       } else if (type instanceof GraphQLObjectType) {
-        // Note that getDirectives(type) will often return an empty array, when
-        // there are no @directive annotations associated with this type.
+        // Note that getDirectives(type) will often return an empty array,
+        // when there are no @directive annotations associated with this type.
         getDirectives(type).forEach(d => {
           d.visitObject(type);
         });
@@ -179,15 +187,14 @@ export class SchemaDirectiveVisitor {
         });
 
         // The GraphQL schema parser currently does not support @directive
-        // syntax for union member types, so there's no point visiting
-        // them here. That's a blessing in disguise, really, because the
-        // types returned from type.getTypes() are references to
-        // GraphQLObjectType objects defined elsewhere in the schema,
-        // which might already have directives of their own, so it would
-        // be hard to prevent this loop from re-visiting those directives.
-        // If you really need to access the member types of a union, just
-        // implement a SchemaDirectiveVisitor that overrides visitUnion,
-        // and call unionType.getTypes() yourself.
+        // syntax for union member types, so there's no point visiting them
+        // here. That's a blessing in disguise, really, because the types
+        // returned from type.getTypes() are references to GraphQLObjectType
+        // objects defined elsewhere in the schema, which might be decorated
+        // with directives of their own, so it would be hard to prevent this
+        // loop from re-visiting those directives. To access the member types
+        // of a union, just implement a SchemaDirectiveVisitor that overrides
+        // visitUnion, and call unionType.getTypes() yourself.
 
         // type.getTypes().forEach(visit);
 
@@ -208,15 +215,18 @@ export class SchemaDirectiveVisitor {
 
     function visitFields(type: GraphQLObjectType | GraphQLInterfaceType) {
       each(type.getFields(), field => {
-        // It would be nice if we could call visit(field) recursively here, but
-        // GraphQLField is merely a type, not a value that can be detected using
-        // an instanceof check, so we have to visit the fields right here, so
-        // TypeScript can validate the call to visitFieldDefinition.
+        // It would be nice if we could call visit(field) recursively here,
+        // but GraphQLField is merely a type, not a value that can be detected
+        // using an instanceof check, so we have to visit the fields in this
+        // lexical context, so that TypeScript can validate the call to
+        // visitFieldDefinition.
         getDirectives(field).forEach(df => {
-          // TODO Since we use the same method for both GraphQLObjectType and
-          // GraphQLInterfaceType fields, we will probably need to provide some
-          // additional means of disambiguation, such as passing in the parent
-          // type as a second argument.
+          // While any field visitor needs a reference to the field object,
+          // some field visitors may also need to know the enclosing (parent)
+          // type, perhaps to determine if the parent is a GraphQLObjectType
+          // or a GraphQLInterfaceType. To obtain a reference to the parent, a
+          // visitor method can have a second parameter, which will be an
+          // object with an .objectType property referring to the parent.
           df.visitFieldDefinition(field, {
             objectType: type,
           });
@@ -225,8 +235,10 @@ export class SchemaDirectiveVisitor {
         if (field.args) {
           field.args.forEach(arg => {
             getDirectives(arg).forEach(da => {
-              // TODO Again, we may need to pass in the parent field and also
-              // possibly the parent type as additional arguments here.
+              // Like visitFieldDefinition, visitArgumentDefinition takes a
+              // second parameter that provides additional context, namely the
+              // parent .field and grandparent .objectType. Remember that the
+              // current GraphQLSchema is always available via this.schema.
               da.visitArgumentDefinition(arg, {
                 field,
                 objectType: type,
@@ -258,7 +270,8 @@ export class SchemaDirectiveVisitor {
 
         if (decl) {
           // If this directive was explicitly declared, use the declared
-          // argument types to coerce the argument values properly.
+          // argument types (and any default values) to check, coerce, and/or
+          // supply default values for the given arguments.
           args = getArgumentValues(decl, directiveNode);
         } else {
           // If this directive was not explicitly declared, just convert the
@@ -269,9 +282,11 @@ export class SchemaDirectiveVisitor {
           });
         }
 
-        // As described near the top of the visitSchema method, this is
-        // where instances of the SchemaDirectiveVisitor class get created
-        // and assigned names.
+        // As foretold in comments near the top of the visitSchema method,
+        // this is where instances of the SchemaDirectiveVisitor class get
+        // created and assigned names. Subclasses can override the constructor
+        // method, but since the constructor is marked as protected, these are
+        // the only arguments that will ever be passed.
         directiveInstances.push(
           new directiveClass({ name, args, schema })
         );
@@ -282,9 +297,11 @@ export class SchemaDirectiveVisitor {
 
     // Kick everything off by visiting the top-level GraphQLSchema object.
     visit(schema);
+
+    // TODO Should visitSchema return anything?
   }
 
-  // Make the constructor protected to enforce passing SchemaDirectiveVisitor
+  // Mark the constructor protected to enforce passing SchemaDirectiveVisitor
   // subclasses (not instances) to visitSchema.
   protected constructor(config: {
     name: string,
@@ -296,14 +313,12 @@ export class SchemaDirectiveVisitor {
     this.schema = config.schema;
   }
 
-  // Concrete subclasses of GraphQLSchema directive should override one or more
-  // of these visit* methods, in order to express their interest in handling
-  // certain types of schema types and/or locations. Much of the complexity of
-  // this class (especially the visit helper function above) is necessary to
-  // allow these methods to have specific parameter types, rather than something
-  // generic like GraphQLNamedType (which isn't even generic enough to handle
-  // e.g. GraphQLField<any, any>).
-
+  // Concrete subclasses of SchemaDirectiveVisitor should override one or more
+  // of these visitor methods, in order to express their interest in handling
+  // certain schema types and/or locations. Much of the complexity of this
+  // class (especially the visit helper function used within visitSchema) is
+  // necessary so that these methods can have specific parameter types, rather
+  // than something generic like GraphQLNamedType.
   /* tslint:disable:no-empty */
   public visitSchema(schema: GraphQLSchema) {}
   public visitScalar(scalar: GraphQLScalarType) {}
@@ -327,12 +342,14 @@ export class SchemaDirectiveVisitor {
   }) {}
   /* tslint:enable:no-empty */
 
-  // Subclasses of SchemaDirectiveVisitor should override one or more of
-  // the visit* methods defined above, and this locations list will be
-  // automatically populated with the corresponding DirectiveLocationEnum
-  // strings where the directive is allowed to appear. For example, when a
-  // subclass overrides the visitUnion method, the "UNION" enum value will
-  // be included in this list.
+  // When subclasses of SchemaDirectiveVisitor override the visitor methods
+  // defined above, this.locations can be populated automatically with the
+  // corresponding DirectiveLocationEnum strings where the directive is
+  // allowed to appear. For example, when a subclass overrides the visitUnion
+  // method, the "UNION" enum value will be included in this list. These
+  // locations take precedence over any locations declared using the
+  // `directive @myDirective on OBJECT | INTERFACE | ...` syntax, as far as
+  // visitSchema is concerned.
   /* tslint:disable:member-ordering */
   private static locations: DirectiveLocationEnum[] = null;
   public static getLocations() {
@@ -352,12 +369,12 @@ export class SchemaDirectiveVisitor {
   } /* tslint:enable:member-ordering */
 }
 
-// Map from visit* method names to corresponding schema locations where
-// @directives can appear. Although the visit* methods follow a naming scheme
-// directly inspired by the names of DirectiveLocation enum values, meaning we
-// could technically populate this mapping automatically, it's not much more
+// Map from visitor method names to corresponding schema locations where
+// directives can appear. Although the visitor methods follow a naming scheme
+// directly inspired by the names of DirectiveLocation enum values (meaning we
+// could technically populate this mapping automatically), it's not much more
 // verbose to write out all the mappings, and that also gives us more
-// flexibility in naming them, if that ever becomes important.
+// flexibility in naming new methods in the future.
 const methodToLocationMap: {
   [methodName: string]: DirectiveLocationEnum
 } = {
@@ -374,8 +391,8 @@ const methodToLocationMap: {
   visitInputFieldDefinition: DirectiveLocation.INPUT_FIELD_DEFINITION,
 };
 
-// Used to check that a visit* method is not an empty stub inherited from
-// SchemaDirectiveVisitor.prototype.
+// Used internally to check that a visitor method is not an empty stub
+// inherited from SchemaDirectiveVisitor.prototype.
 const visitMethodStubSet = new Set(
   Object.keys(methodToLocationMap).map(
     key => SchemaDirectiveVisitor.prototype[key]
