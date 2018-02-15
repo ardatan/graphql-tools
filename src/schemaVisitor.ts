@@ -20,7 +20,7 @@ import {
   getArgumentValues,
 } from 'graphql/execution/values';
 
-export type VisitableType =
+export type VisitableSchemaType =
     GraphQLSchema
   | GraphQLObjectType
   | GraphQLInterfaceType
@@ -104,7 +104,7 @@ export function visitSchema(
   // VisitableType object. See the SchemaDirectiveVisitor class below for an
   // example of a visitor pattern that benefits from this abstraction.
   visitorSelector: (
-    type: VisitableType,
+    type: VisitableSchemaType,
     methodName: string,
   ) => SchemaVisitor[],
 ) {
@@ -112,7 +112,7 @@ export function visitSchema(
   // visitors to the given type, with arguments [type, ...args].
   function callMethod(
     methodName: string,
-    type: VisitableType,
+    type: VisitableSchemaType,
     ...args: any[],
   ) {
     visitorSelector(type, methodName).forEach(visitor => {
@@ -120,7 +120,7 @@ export function visitSchema(
     });
   }
 
-  function visit(type: VisitableType) {
+  function visit(type: VisitableSchemaType) {
     if (type instanceof GraphQLSchema) {
       callMethod('visitSchema', type);
 
@@ -283,7 +283,7 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
   public schema: GraphQLSchema;
 
   // A reference to the type object that this visitor was created to visit.
-  public visitedType: VisitableType;
+  public visitedType: VisitableSchemaType;
 
   // Call SchemaDirectiveVisitor.visitSchemaDirectives to
   // visit every @directive in the schema and instantiate an appropriate
@@ -327,7 +327,7 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
     });
 
     function visitorSelector(
-      type: VisitableType,
+      type: VisitableSchemaType,
       methodName: string,
     ): SchemaDirectiveVisitor[] {
       const visitors: SchemaDirectiveVisitor[] = [];
@@ -399,7 +399,7 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
   protected constructor(config: {
     name: string,
     args: { [name: string]: any },
-    visitedType: VisitableType,
+    visitedType: VisitableSchemaType,
     schema: GraphQLSchema,
   }) {
     super();

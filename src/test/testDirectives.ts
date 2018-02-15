@@ -3,7 +3,7 @@ import {
   makeExecutableSchema,
 } from '../schemaGenerator';
 import {
-  VisitableType,
+  VisitableSchemaType,
   SchemaDirectiveVisitor,
 } from '../schemaVisitor';
 import {
@@ -68,7 +68,7 @@ describe('@directives', () => {
     });
 
     function checkDirectives(
-      type: VisitableType,
+      type: VisitableSchemaType,
       typeDirectiveNames: [string],
       fieldDirectiveMap: { [key: string]: string[] } = {},
     ) {
@@ -86,7 +86,7 @@ describe('@directives', () => {
     }
 
     function getDirectiveNames(
-      type: VisitableType,
+      type: VisitableSchemaType,
     ): string[] {
       return type.astNode.directives.map(d => d.name.value);
     }
