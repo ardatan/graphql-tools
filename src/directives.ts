@@ -146,12 +146,7 @@ export class SchemaDirectiveVisitor {
     // Recursive helper for visiting nested schema type objects.
     function visit(type: VisitableType) {
       if (type instanceof GraphQLSchema) {
-        getDirectives(type).forEach(d => {
-          // This call type-checks because it's lexically nested inside the
-          // `type instanceof GraphQLSchema` conditional block. The same is
-          // true of every other directive.visit* method call below.
-          d.visitSchema(type);
-        });
+        callVisitorMethods('visitSchema', type);
 
         each(type.getTypeMap(), (namedType, typeName) => {
           if (! typeName.startsWith('__')) {
@@ -162,45 +157,33 @@ export class SchemaDirectiveVisitor {
         });
 
       } else if (type instanceof GraphQLObjectType) {
-        // Note that getDirectives(type) will often return an empty array,
-        // when there are no @directive annotations associated with this type.
-        getDirectives(type).forEach(d => {
-          d.visitObject(type);
-        });
-
+        // Note that callVisitorMethods('visitObject', type) may not actually
+        // call any methods, if there are no @directive annotations associated
+        // with this type, or this SchemaDirectiveVisitor subclass does not
+        // override the visitObject method.
+        callVisitorMethods('visitObject', type);
         visitFields(type);
 
       } else if (type instanceof GraphQLInterfaceType) {
-        getDirectives(type).forEach(d => {
-          d.visitInterface(type);
-        });
-
+        callVisitorMethods('visitInterface', type);
         visitFields(type);
 
       } else if (type instanceof GraphQLInputObjectType) {
-        getDirectives(type).forEach(d => {
-          d.visitInputObject(type);
-        });
+        callVisitorMethods('visitInputObject', type);
 
         each(type.getFields(), field => {
-          getDirectives(field).forEach(df => {
-            // Since we call a different method for input object fields, we
-            // can't reuse the visitFields function here.
-            df.visitInputFieldDefinition(field, {
-              objectType: type,
-            });
+          // Since we call a different method for input object fields, we
+          // can't reuse the visitFields function here.
+          callVisitorMethods('visitInputFieldDefinition', field, {
+            objectType: type,
           });
         });
 
       } else if (type instanceof GraphQLScalarType) {
-        getDirectives(type).forEach(d => {
-          d.visitScalar(type);
-        });
+        callVisitorMethods('visitScalar', type);
 
       } else if (type instanceof GraphQLUnionType) {
-        getDirectives(type).forEach(d => {
-          d.visitUnion(type);
-        });
+        callVisitorMethods('visitUnion', type);
 
         // The GraphQL schema parser currently does not support @directive
         // syntax for union member types, so there's no point visiting them
@@ -215,15 +198,11 @@ export class SchemaDirectiveVisitor {
         // type.getTypes().forEach(visit);
 
       } else if (type instanceof GraphQLEnumType) {
-        getDirectives(type).forEach(d => {
-          d.visitEnum(type);
-        });
+        callVisitorMethods('visitEnum', type);
 
         type.getValues().forEach(value => {
-          getDirectives(value).forEach(dv => {
-            dv.visitEnumValue(value, {
-              enumType: type,
-            });
+          callVisitorMethods('visitEnumValue', value, {
+            enumType: type,
           });
         });
       }
@@ -236,38 +215,47 @@ export class SchemaDirectiveVisitor {
         // using an instanceof check, so we have to visit the fields in this
         // lexical context, so that TypeScript can validate the call to
         // visitFieldDefinition.
-        getDirectives(field).forEach(df => {
+        callVisitorMethods('visitFieldDefinition', field, {
           // While any field visitor needs a reference to the field object,
           // some field visitors may also need to know the enclosing (parent)
           // type, perhaps to determine if the parent is a GraphQLObjectType
           // or a GraphQLInterfaceType. To obtain a reference to the parent, a
           // visitor method can have a second parameter, which will be an
           // object with an .objectType property referring to the parent.
-          df.visitFieldDefinition(field, {
-            objectType: type,
-          });
+          objectType: type,
         });
 
         if (field.args) {
           field.args.forEach(arg => {
-            getDirectives(arg).forEach(da => {
+            callVisitorMethods('visitArgumentDefinition', arg, {
               // Like visitFieldDefinition, visitArgumentDefinition takes a
               // second parameter that provides additional context, namely the
               // parent .field and grandparent .objectType. Remember that the
               // current GraphQLSchema is always available via this.schema.
-              da.visitArgumentDefinition(arg, {
-                field,
-                objectType: type,
-              });
+              field,
+              objectType: type,
             });
           });
         }
       });
     }
 
+    function callVisitorMethods(
+      methodName: string,
+      type: VisitableType,
+      ...additionalArgs: any[],
+    ) {
+      getVisitors(type, methodName).forEach(d => {
+        d[methodName](type, ...additionalArgs);
+      });
+    }
+
     // Given a schema type, returns an array of SchemaDirectiveVisitor instances
     // that should be applied to the given type. This array will often be empty.
-    function getDirectives(type: VisitableType): SchemaDirectiveVisitor[] {
+    function getVisitors(
+      type: VisitableType,
+      methodName: string,
+    ): SchemaDirectiveVisitor[] {
       const visitors: SchemaDirectiveVisitor[] = [];
       const directiveNodes = type.astNode && type.astNode.directives;
       if (! directiveNodes) {
@@ -281,6 +269,13 @@ export class SchemaDirectiveVisitor {
         }
 
         const visitorClass = directiveVisitors[directiveName];
+
+        // Avoid creating visitor objects if visitorClass does not override
+        // the visitor method named by methodName.
+        if (! visitorClass.shouldCall(methodName)) {
+          return;
+        }
+
         const decl = declaredDirectives[directiveName];
         let args: { [key: string]: any };
 
@@ -324,6 +319,13 @@ export class SchemaDirectiveVisitor {
     visit(schema);
 
     return createdVisitors;
+  }
+
+  // Determine if the current SchemaDirectiveVisitor subclass overrides the
+  // visitor method of the given name.
+  public static shouldCall(methodName: string) {
+    return hasOwn.call(methodToLocationMap, methodName) &&
+      ! visitorMethodStubSet.has(this.prototype[methodName]);
   }
 
   // Mark the constructor protected to enforce passing SchemaDirectiveVisitor
@@ -383,12 +385,8 @@ export class SchemaDirectiveVisitor {
     if (this.locations === null) {
       this.locations = [];
       for (let key in this.prototype) {
-        if (hasOwn.call(methodToLocationMap, key)) {
-          const method = this.prototype[key];
-          if (typeof method === 'function' &&
-              ! visitMethodStubSet.has(method)) {
-            this.locations.push(methodToLocationMap[key]);
-          }
+        if (this.shouldCall(key)) {
+          this.locations.push(methodToLocationMap[key]);
         }
       }
     }
@@ -420,7 +418,7 @@ const methodToLocationMap: {
 
 // Used internally to check that a visitor method is not an empty stub
 // inherited from SchemaDirectiveVisitor.prototype.
-const visitMethodStubSet = new Set(
+const visitorMethodStubSet = new Set(
   Object.keys(methodToLocationMap).map(
     key => SchemaDirectiveVisitor.prototype[key]
   )
