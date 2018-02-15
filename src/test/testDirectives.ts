@@ -380,4 +380,53 @@ describe('@directives', () => {
     assert.strictEqual(argumentCount, 1);
     assert.strictEqual(fieldCount, 3);
   });
+
+  it('can also handle declared arguments', () => {
+    const schemaText = `
+    directive @oyez(times: Int = 3) on OBJECT | FIELD_DEFINITION
+
+    schema {
+      query: Courtroom
+    }
+
+    type Courtroom @oyez {
+      judge: String @oyez(times: 0)
+      marshall: String @oyez
+      lawyers(
+        # Should @oyez be disallowed here, since it wasn't declared with
+        # the ARGUMENT_DEFINITION location, or simply ignored?
+        side: Side @oyez(times: 0)
+      ): [String]
+    }
+
+    enum Side {
+      DEFENSE
+      PROSECUTION
+    }`;
+
+    const schema = makeExecutableSchema({ typeDefs: schemaText });
+    let objectCount = 0;
+    let fieldCount = 0;
+
+    SchemaDirectiveVisitor.visitSchema(schema, {
+      oyez: class extends SchemaDirectiveVisitor {
+        public visitObject(object: GraphQLObjectType) {
+          ++objectCount;
+          assert.strictEqual(this.args.times, 3);
+        }
+
+        public visitFieldDefinition(field: GraphQLField<any, any>) {
+          ++fieldCount;
+          if (field.name === 'judge') {
+            assert.strictEqual(this.args.times, 0);
+          } else if (field.name === 'marshall') {
+            assert.strictEqual(this.args.times, 3);
+          }
+        }
+      }
+    });
+
+    assert.strictEqual(objectCount, 1);
+    assert.strictEqual(fieldCount, 2);
+  });
 });
