@@ -5,9 +5,8 @@ import {
 import {
   VisitableType,
   SchemaDirectiveVisitor,
-} from '../directives';
+} from '../schemaVisitor';
 import {
-  DirectiveLocation,
   GraphQLArgument,
   GraphQLEnumType,
   GraphQLEnumValue,
@@ -144,7 +143,7 @@ describe('@directives', () => {
     const schema = makeExecutableSchema({ typeDefs });
     let visitCount = 0;
 
-    SchemaDirectiveVisitor.visitSchema(schema, {
+    SchemaDirectiveVisitor.visitSchemaDirectives(schema, {
       // The directive subclass can be defined anonymously inline!
       queryTypeDirective: class extends SchemaDirectiveVisitor {
         public static description = 'A @directive for query object types';
@@ -165,7 +164,7 @@ describe('@directives', () => {
   it('can visit the schema itself', () => {
     const visited: GraphQLSchema[] = [];
     const schema = makeExecutableSchema({ typeDefs });
-    SchemaDirectiveVisitor.visitSchema(schema, {
+    SchemaDirectiveVisitor.visitSchemaDirectives(schema, {
       schemaDirective: class extends SchemaDirectiveVisitor {
         public visitSchema(s: GraphQLSchema) {
           visited.push(s);
@@ -184,7 +183,7 @@ describe('@directives', () => {
     let enumObjectType: GraphQLEnumType;
     let inputObjectType: GraphQLInputObjectType;
 
-    SchemaDirectiveVisitor.visitSchema(schema, {
+    SchemaDirectiveVisitor.visitSchemaDirectives(schema, {
       mutationTypeDirective: class extends SchemaDirectiveVisitor {
         public visitObject(object: GraphQLObjectType) {
           mutationObjectType = object;
@@ -263,7 +262,7 @@ describe('@directives', () => {
     // Since SchemaDirectiveVisitor implements no-op versions of all the
     // visitor methods, this should work, though I'll admit I wrote this test
     // partly to keep the code coverage tool happy.
-    SchemaDirectiveVisitor.visitSchema(schema, {
+    SchemaDirectiveVisitor.visitSchemaDirectives(schema, {
       schemaDirective: SchemaDirectiveVisitor,
       queryTypeDirective: SchemaDirectiveVisitor,
       queryFieldDirective: SchemaDirectiveVisitor,
@@ -281,32 +280,6 @@ describe('@directives', () => {
       objectFieldDirective: SchemaDirectiveVisitor,
       unionDirective: SchemaDirectiveVisitor,
     });
-  });
-
-  it('can use visitor methods to generate locations implicitly', () => {
-    assert.deepEqual((class extends SchemaDirectiveVisitor {
-      /* tslint:disable:no-empty */
-      public visitSchema() {}
-      public visitScalar() {}
-      public visitObject() {}
-      public visitFieldDefinition() {}
-      public visitArgumentDefinition() {}
-      public visitEnum() {}
-      public visitEnumValue() {}
-      public visitInputObject() {}
-      public visitInputFieldDefinition() {}
-      /* tslint:enable:no-empty */
-    }).getLocations().sort(), [
-      DirectiveLocation.ARGUMENT_DEFINITION,
-      DirectiveLocation.ENUM,
-      DirectiveLocation.ENUM_VALUE,
-      DirectiveLocation.FIELD_DEFINITION,
-      DirectiveLocation.INPUT_FIELD_DEFINITION,
-      DirectiveLocation.INPUT_OBJECT,
-      DirectiveLocation.OBJECT,
-      DirectiveLocation.SCALAR,
-      DirectiveLocation.SCHEMA,
-    ]);
   });
 
   it('can handle all kinds of undeclared arguments', () => {
@@ -415,7 +388,7 @@ describe('@directives', () => {
     let objectCount = 0;
     let fieldCount = 0;
 
-    const visitors = SchemaDirectiveVisitor.visitSchema(schema, {
+    const visitors = SchemaDirectiveVisitor.visitSchemaDirectives(schema, {
       oyez: class extends SchemaDirectiveVisitor {
         public visitObject(object: GraphQLObjectType) {
           ++objectCount;

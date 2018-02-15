@@ -43,7 +43,7 @@ import {
   GraphQLParseOptions,
 } from './Interfaces';
 
-import { SchemaDirectiveVisitor } from './directives';
+import { SchemaDirectiveVisitor } from './schemaVisitor';
 import { deprecated } from 'deprecated-decorator';
 import mergeDeep from './mergeDeep';
 
@@ -143,7 +143,10 @@ function makeExecutableSchema<TContext = any>({
   }
 
   if (directiveVisitors) {
-    SchemaDirectiveVisitor.visitSchema(jsSchema, directiveVisitors);
+    SchemaDirectiveVisitor.visitSchemaDirectives(
+      jsSchema,
+      directiveVisitors,
+    );
   }
 
   return jsSchema;
@@ -711,7 +714,10 @@ function attachDirectiveResolvers(
     };
   });
 
-  SchemaDirectiveVisitor.visitSchema(schema, directiveVisitors);
+  SchemaDirectiveVisitor.visitSchemaDirectives(
+    schema,
+    directiveVisitors,
+  );
 }
 
 export {

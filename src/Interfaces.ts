@@ -13,7 +13,7 @@ import {
 
 import {
   SchemaDirectiveVisitor,
-} from './directives';
+} from './schemaVisitor';
 
 /* TODO: Add documentation */
 
