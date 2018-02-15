@@ -37,6 +37,7 @@ import {
 import delegateToSchema from './delegateToSchema';
 import typeFromAST, { GetType } from './typeFromAST';
 import ReplaceFieldWithFragment from '../transforms/ReplaceFieldWithFragment';
+import mergeDeep from '../mergeDeep';
 
 export default function mergeSchemas({
   schemas,
@@ -45,7 +46,7 @@ export default function mergeSchemas({
 }: {
   schemas: Array<{ name: string; schema: string | GraphQLSchema }>;
   visitType?: VisitType;
-  resolvers?: IResolvers | ((mergeInfo: MergeInfo) => IResolvers);
+  resolvers?: Array<IResolvers> | IResolvers;
 }): GraphQLSchema {
   const allSchemas: { [name: string]: GraphQLSchema } = {};
   const typeCandidates: { [name: string]: Array<MergeTypeCandidate> } = {};
@@ -55,6 +56,8 @@ export default function mergeSchemas({
 
   if (!resolvers) {
     resolvers = {};
+  } else if (Array.isArray(resolvers)) {
+    resolvers = resolvers.reduce(mergeDeep, {});
   }
 
   if (!visitType) {
@@ -318,28 +321,6 @@ function forEachField(schema: GraphQLSchema, fn: FieldIteratorFn): void {
       });
     }
   });
-}
-
-function isObject(item: any): Boolean {
-  return item && typeof item === 'object' && !Array.isArray(item);
-}
-
-function mergeDeep(target: any, source: any): any {
-  let output = Object.assign({}, target);
-  if (isObject(target) && isObject(source)) {
-    Object.keys(source).forEach(key => {
-      if (isObject(source[key])) {
-        if (!(key in target)) {
-          Object.assign(output, { [key]: source[key] });
-        } else {
-          output[key] = mergeDeep(target[key], source[key]);
-        }
-      } else {
-        Object.assign(output, { [key]: source[key] });
-      }
-    });
-  }
-  return output;
 }
 
 function parseFragmentToInlineFragment(

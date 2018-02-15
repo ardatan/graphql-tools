@@ -5,6 +5,7 @@ import {
   graphql,
   GraphQLSchema,
   GraphQLObjectType,
+  GraphQLScalarType,
   subscribe,
   parse,
   ExecutionResult,
@@ -1025,7 +1026,7 @@ bookingById(id: "b1") {
       });
 
       it('should merge resolvers when passed an array of resolver objects', async () => {
-        const Scalars = () => ({
+        const Scalars = {
           TestScalar: new GraphQLScalarType({
             name: 'TestScalar',
             description: undefined,
@@ -1033,21 +1034,22 @@ bookingById(id: "b1") {
             parseValue: value => value,
             parseLiteral: () => null,
           }),
-        });
-        const Enums = () => ({
+        };
+        const Enums = {
           NumericEnum: {
             TEST: 1,
           },
           Color: {
             RED: '#EA3232',
           },
-        });
+        };
         const PropertyResolvers: IResolvers = {
           Property: {
             bookings: {
               fragment: 'fragment PropertyFragment on Property { id }',
               resolve(parent, args, context, info) {
                 return info.mergeInfo.delegate(
+                  'Property',
                   'query',
                   'bookingsByPropertyId',
                   {
@@ -1061,12 +1063,13 @@ bookingById(id: "b1") {
             },
           },
         };
-        const LinkResolvers: (info: any) => IResolvers = info => ({
+        const LinkResolvers: IResolvers = {
           Booking: {
             property: {
               fragment: 'fragment BookingFragment on Booking { propertyId }',
-              resolve(parent, args, context) {
+              resolve(parent, args, context, info) {
                 return info.mergeInfo.delegate(
+                  'Booking',
                   'query',
                   'propertyById',
                   {
@@ -1078,8 +1081,8 @@ bookingById(id: "b1") {
               },
             },
           },
-        });
-        const Query1 = () => ({
+        };
+        const Query1 = {
           Query: {
             color() {
               return '#EA3232';
@@ -1088,11 +1091,12 @@ bookingById(id: "b1") {
               return 1;
             },
           },
-        });
-        const Query2: (info: any) => IResolvers = () => ({
+        };
+        const Query2: IResolvers = {
           Query: {
             delegateInterfaceTest(parent, args, context, info) {
               return info.mergeInfo.delegate(
+                'Property',
                 'query',
                 'interfaceTest',
                 {
@@ -1104,6 +1108,7 @@ bookingById(id: "b1") {
             },
             delegateArgumentTest(parent, args, context, info) {
               return info.mergeInfo.delegate(
+                'Property',
                 'query',
                 'propertyById',
                 {
@@ -1124,6 +1129,7 @@ bookingById(id: "b1") {
               resolve(parent, args, context, info) {
                 if (args.id.startsWith('p')) {
                   return info.mergeInfo.delegate(
+                    'Property',
                     'query',
                     'propertyById',
                     args,
@@ -1132,6 +1138,7 @@ bookingById(id: "b1") {
                   );
                 } else if (args.id.startsWith('b')) {
                   return info.mergeInfo.delegate(
+                    'Booking',
                     'query',
                     'bookingById',
                     args,
@@ -1140,6 +1147,7 @@ bookingById(id: "b1") {
                   );
                 } else if (args.id.startsWith('c')) {
                   return info.mergeInfo.delegate(
+                    'Booking',
                     'query',
                     'customerById',
                     args,
@@ -1152,12 +1160,13 @@ bookingById(id: "b1") {
               },
             },
           },
-        });
+        };
 
-        const AsyncQuery: (info: any) => IResolvers = info => ({
+        const AsyncQuery: IResolvers = {
           Query: {
-            async nodes(parent, args, context) {
+            async nodes(parent, args, context, info) {
               const bookings = await info.mergeInfo.delegate(
+                'Booking',
                 'query',
                 'bookings',
                 {},
@@ -1165,6 +1174,7 @@ bookingById(id: "b1") {
                 info,
               );
               const properties = await info.mergeInfo.delegate(
+                'Property',
                 'query',
                 'properties',
                 {},
@@ -1174,17 +1184,41 @@ bookingById(id: "b1") {
               return [...bookings, ...properties];
             },
           },
-        });
+        };
         const schema = mergeSchemas({
           schemas: [
-            propertySchema,
-            bookingSchema,
-            productSchema,
-            scalarTest,
-            enumTest,
-            linkSchema,
-            loneExtend,
-            localSubscriptionSchema,
+            {
+              name: 'Property',
+              schema: propertySchema,
+            },
+            {
+              name: 'Booking',
+              schema: bookingSchema,
+            },
+            {
+              name: 'Product',
+              schema: productSchema,
+            },
+            {
+              name: 'ScalarTest',
+              schema: scalarTest,
+            },
+            {
+              name: 'EnumTest',
+              schema: enumSchema,
+            },
+            {
+              name: 'LinkSchema',
+              schema: linkSchema,
+            },
+            {
+              name: 'LoneExtend',
+              schema: loneExtend,
+            },
+            {
+              name: 'LocalSubscription',
+              schema: localSubscriptionSchema,
+            },
           ],
           resolvers: [
             Scalars,

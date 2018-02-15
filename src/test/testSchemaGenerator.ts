@@ -983,13 +983,8 @@ describe('generating schema from shorthand', () => {
           RED: '#EA3232',
         },
         NumericEnum: {
-<<<<<<< HEAD
-          TEST: 1
-        }
-=======
           TEST: 1,
         },
->>>>>>> origin/master
       };
 
       const jsSchema = makeExecutableSchema({

@@ -1,4 +1,5 @@
 import {
+  ArgumentNode,
   DocumentNode,
   FieldNode,
   FragmentDefinitionNode,
@@ -92,16 +93,34 @@ export default async function delegateToSchema(
 export function createDocument(
   targetField: string,
   targetOperation: Operation,
-  selections: Array<SelectionNode>,
+  originalSelections: Array<SelectionNode>,
   fragments: Array<FragmentDefinitionNode>,
   variables: Array<VariableDefinitionNode>,
 ): DocumentNode {
-  const originalSelection = selections[0] as FieldNode;
+  let selections: Array<SelectionNode> = [];
+  let args: Array<ArgumentNode> = [];
+
+  originalSelections.forEach((field: FieldNode) => {
+    const fieldSelections = field.selectionSet
+      ? field.selectionSet.selections
+      : [];
+    selections = selections.concat(fieldSelections);
+    args = args.concat(field.arguments || []);
+  });
+
+  let selectionSet = null;
+  if (selections.length > 0) {
+    selectionSet = {
+      kind: Kind.SELECTION_SET,
+      selections: selections,
+    };
+  }
+
   const rootField: FieldNode = {
     kind: Kind.FIELD,
     alias: null,
-    arguments: originalSelection.arguments,
-    selectionSet: originalSelection.selectionSet,
+    arguments: args,
+    selectionSet,
     name: {
       kind: Kind.NAME,
       value: targetField,
