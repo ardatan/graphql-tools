@@ -402,11 +402,11 @@ describe('@directives', () => {
       lawyers(
         # Should @oyez be disallowed here, since it wasn't declared with
         # the ARGUMENT_DEFINITION location, or simply ignored?
-        side: Side @oyez(times: 0)
+        party: Party @oyez(times: 0)
       ): [String]
     }
 
-    enum Side {
+    enum Party {
       DEFENSE
       PROSECUTION
     }`;
@@ -415,7 +415,7 @@ describe('@directives', () => {
     let objectCount = 0;
     let fieldCount = 0;
 
-    SchemaDirectiveVisitor.visitSchema(schema, {
+    const visitors = SchemaDirectiveVisitor.visitSchema(schema, {
       oyez: class extends SchemaDirectiveVisitor {
         public visitObject(object: GraphQLObjectType) {
           ++objectCount;
@@ -435,5 +435,13 @@ describe('@directives', () => {
 
     assert.strictEqual(objectCount, 1);
     assert.strictEqual(fieldCount, 2);
+
+    assert.deepEqual(Object.keys(visitors), ['oyez']);
+    assert.deepEqual(
+      visitors.oyez.map(v => {
+        return (v.visitedType as GraphQLObjectType | GraphQLField<any, any>).name;
+      }),
+      ['Courtroom', 'judge', 'marshall'],
+    );
   });
 });

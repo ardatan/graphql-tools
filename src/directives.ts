@@ -119,15 +119,28 @@ export class SchemaDirectiveVisitor {
       // method is marked as protected.
       [directiveName: string]: typeof SchemaDirectiveVisitor
     },
-  ) {
+  ): {
+    // The visitSchema method returns a map from directive names to lists of
+    // SchemaDirectiveVisitor instances created while visiting the schema.
+    [directiveName: string]: SchemaDirectiveVisitor[],
+  } {
     // If the schema declares any directives for public consumption, record
     // them here so that we can properly coerce arguments when/if we encounter
     // an occurrence of the directive while walking the schema below.
     const declaredDirectives: {
-      [key: string]: GraphQLDirective,
+      [directiveName: string]: GraphQLDirective,
     } = Object.create(null);
     schema.getDirectives().forEach(decl => {
       declaredDirectives[decl.name] = decl;
+    });
+
+    // Map from directive names to lists of SchemaDirectiveVisitor instances
+    // created while visiting the schema.
+    const createdVisitors: {
+      [directiveName: string]: SchemaDirectiveVisitor[]
+    } = Object.create(null);
+    Object.keys(directiveVisitors).forEach(directiveName => {
+      createdVisitors[directiveName] = [];
     });
 
     // Recursive helper for visiting nested schema type objects.
@@ -252,23 +265,23 @@ export class SchemaDirectiveVisitor {
       });
     }
 
-    // Given a schema type, returns an (often empty) array of directives that
-    // should be applied to the given type.
+    // Given a schema type, returns an array of SchemaDirectiveVisitor instances
+    // that should be applied to the given type. This array will often be empty.
     function getDirectives(type: VisitableType): SchemaDirectiveVisitor[] {
-      const directiveInstances: SchemaDirectiveVisitor[] = [];
+      const visitors: SchemaDirectiveVisitor[] = [];
       const directiveNodes = type.astNode && type.astNode.directives;
       if (! directiveNodes) {
-        return directiveInstances;
+        return visitors;
       }
 
       directiveNodes.forEach(directiveNode => {
-        const name = directiveNode.name.value;
-        if (! hasOwn.call(directiveVisitors, name)) {
+        const directiveName = directiveNode.name.value;
+        if (! hasOwn.call(directiveVisitors, directiveName)) {
           return;
         }
 
-        const directiveClass = directiveVisitors[name];
-        const decl = declaredDirectives[name];
+        const visitorClass = directiveVisitors[directiveName];
+        const decl = declaredDirectives[directiveName];
         let args: { [key: string]: any };
 
         if (decl) {
@@ -290,21 +303,27 @@ export class SchemaDirectiveVisitor {
         // created and assigned names. Subclasses can override the constructor
         // method, but since the constructor is marked as protected, these are
         // the only arguments that will ever be passed.
-        directiveInstances.push(new directiveClass({
-          name,
+        visitors.push(new visitorClass({
+          name: directiveName,
           args,
           visitedType: type,
           schema
         }));
       });
 
-      return directiveInstances;
+      if (visitors.length > 0) {
+        visitors.forEach(visitor => {
+          createdVisitors[visitor.name].push(visitor);
+        });
+      }
+
+      return visitors;
     }
 
     // Kick everything off by visiting the top-level GraphQLSchema object.
     visit(schema);
 
-    // TODO Should visitSchema return anything?
+    return createdVisitors;
   }
 
   // Mark the constructor protected to enforce passing SchemaDirectiveVisitor
