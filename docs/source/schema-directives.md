@@ -1,7 +1,21 @@
 ---
 title: Schema directives
-description: Using custom Directive on FIELD_DEFINITION
+description: Implementing and using custom `@directive`s that transform schema types, fields, and arguments
 ---
+
+## GraphQL schema directives
+
+A _directive_ is an identifier preceded by a `@` character, optionally followed by a list of named arguments, which can appear after almost any form of syntax in the GraphQL query or schema languages.
+
+The [GraphQL specification](http://facebook.github.io/graphql/October2016/#sec-Type-System.Directives) requires every server implementation to support at least two directives, `@skip(if: Boolean)` and `@include(if: Boolean)`, which can be used during query execution to conditionally omit or include certain fields. The [GraphQL.js reference implementation](https://github.com/graphql/graphql-js) provides one additional built-in [`@deprecated`](https://github.com/graphql/graphql-js/blob/master/src/type/directives.js) directive, which is useful for indicating that a field or `enum` value should no longer be used.
+
+However, the formal syntax of the GraphQL query and schema languages allows arbitrary user-defined `@directive`s to appear as modifiers following almost any kind of type, field, or argument. Unless the server ascribes special meaning to these annotations, they are typically ignored after parsing, almost as if they were comments. But if the server knows how to interpret them, `@directive` annotations can be a powerful tool for preventing repetition, specifying extra behavior, enforcing additional type or value restrictions, and enabling static analysis.
+
+This document focuses on `@directive`s that appear in GraphQL _schemas_ written in Schema Definition Language (SDL), as described in the [Schemas and Types](http://graphql.org/learn/schema/) section of the GraphQL.org documentation. These `@directive`s can be used to modify the structure and behavior of a GraphQL schema in ways that would not be possible using SDL syntax alone.
+
+In order for a `@directive` to have any consequences, the GraphQL server must be configured to apply a specific implementation of that `@directive` to the `GraphQLSchema` object. This document describes one possible approach to defining reusable `@directive` implementations, namely the `SchemaDirectiveVisitor` abstraction provided by the `graphql-tools` npm package.
+
+The possible applications of `@directive` syntax are practically limitless: enforcing access permissions, formatting date strings, auto-generating resolver functions for a particular backend API, marking strings for internationalization, synthesizing globally unique object identifiers, specifying caching behavior, skipping or including or deprecating fields, and just about anything else you can imagine.
 
 ## Simple Directive example
 
