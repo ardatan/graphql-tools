@@ -5,6 +5,7 @@ import {
 import {
   VisitableSchemaType,
   SchemaDirectiveVisitor,
+  SchemaVisitor,
 } from '../schemaVisitor';
 import {
   GraphQLArgument,
@@ -256,30 +257,71 @@ describe('@directives', () => {
     });
   });
 
+  it('can check if a visitor method is implemented', () => {
+    class Visitor extends SchemaVisitor {
+      public notVisitorMethod() {
+        return false;
+      }
+
+      public visitObject() {
+        return true;
+      }
+    }
+
+    const visitor = new Visitor;
+
+    assert.strictEqual(
+      Visitor.implementsVisitorMethod('notVisitorMethod'),
+      visitor.notVisitorMethod(),
+    );
+
+    assert.strictEqual(
+      Visitor.implementsVisitorMethod('visitObject'),
+      visitor.visitObject(),
+    );
+
+    assert.strictEqual(
+      Visitor.implementsVisitorMethod('visitInputFieldDefinition'),
+      false,
+    );
+
+    assert.strictEqual(
+      Visitor.implementsVisitorMethod('visitBogusType'),
+      false,
+    );
+  });
+
   it('can use SchemaDirectiveVisitor as a no-op visitor', () => {
     const schema = makeExecutableSchema({ typeDefs });
 
-    // Since SchemaDirectiveVisitor implements no-op versions of all the
-    // visitor methods, this should work, though I'll admit I wrote this test
-    // partly to keep the code coverage tool happy.
-    SchemaDirectiveVisitor.visitSchemaDirectives(schema, {
-      schemaDirective: SchemaDirectiveVisitor,
-      queryTypeDirective: SchemaDirectiveVisitor,
-      queryFieldDirective: SchemaDirectiveVisitor,
-      enumTypeDirective: SchemaDirectiveVisitor,
-      enumValueDirective: SchemaDirectiveVisitor,
-      dateDirective: SchemaDirectiveVisitor,
-      interfaceDirective: SchemaDirectiveVisitor,
-      interfaceFieldDirective: SchemaDirectiveVisitor,
-      inputTypeDirective: SchemaDirectiveVisitor,
-      inputFieldDirective: SchemaDirectiveVisitor,
-      mutationTypeDirective: SchemaDirectiveVisitor,
-      mutationArgumentDirective: SchemaDirectiveVisitor,
-      mutationMethodDirective: SchemaDirectiveVisitor,
-      objectTypeDirective: SchemaDirectiveVisitor,
-      objectFieldDirective: SchemaDirectiveVisitor,
-      unionDirective: SchemaDirectiveVisitor,
-    });
+    // Temporarily pretend this class implements all visitor methods.
+    SchemaDirectiveVisitor.implementsVisitorMethod = () => true;
+
+    try {
+      // Since SchemaDirectiveVisitor implements no-op versions of all the
+      // visitor methods, this should work, though I'll admit I wrote this test
+      // partly to keep the code coverage tool happy.
+      SchemaDirectiveVisitor.visitSchemaDirectives(schema, {
+        schemaDirective: SchemaDirectiveVisitor,
+        queryTypeDirective: SchemaDirectiveVisitor,
+        queryFieldDirective: SchemaDirectiveVisitor,
+        enumTypeDirective: SchemaDirectiveVisitor,
+        enumValueDirective: SchemaDirectiveVisitor,
+        dateDirective: SchemaDirectiveVisitor,
+        interfaceDirective: SchemaDirectiveVisitor,
+        interfaceFieldDirective: SchemaDirectiveVisitor,
+        inputTypeDirective: SchemaDirectiveVisitor,
+        inputFieldDirective: SchemaDirectiveVisitor,
+        mutationTypeDirective: SchemaDirectiveVisitor,
+        mutationArgumentDirective: SchemaDirectiveVisitor,
+        mutationMethodDirective: SchemaDirectiveVisitor,
+        objectTypeDirective: SchemaDirectiveVisitor,
+        objectFieldDirective: SchemaDirectiveVisitor,
+        unionDirective: SchemaDirectiveVisitor,
+      });
+    } finally {
+      delete SchemaDirectiveVisitor.implementsVisitorMethod;
+    }
   });
 
   it('can handle all kinds of undeclared arguments', () => {
