@@ -138,10 +138,10 @@ export function visitSchema(
       });
 
     } else if (type instanceof GraphQLObjectType) {
-      // Note that callVisitorMethods('visitObject', type) may not actually
-      // call any methods, if there are no @directive annotations associated
-      // with this type, or this SchemaDirectiveVisitor subclass does not
-      // override the visitObject method.
+      // Note that callMethod('visitObject', type) may not actually call any
+      // methods, if there are no @directive annotations associated with this
+      // type, or this SchemaDirectiveVisitor subclass does not override the
+      // visitObject method.
       callMethod('visitObject', type);
       visitFields(type);
 
@@ -285,10 +285,14 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
   // A reference to the type object that this visitor was created to visit.
   public visitedType: VisitableSchemaType;
 
-  // Call SchemaDirectiveVisitor.visitSchemaDirectives to
-  // visit every @directive in the schema and instantiate an appropriate
-  // SchemaDirectiveVisitor subclass to visit/handle/transform the object
-  // decorated by the @directive.
+  // A shared object that will be available to all visitor instances via
+  // this.context. Callers of visitSchemaDirectives can provide their own
+  // object, or just use the default empty object.
+  public context: { [key: string]: any };
+
+  // Call SchemaDirectiveVisitor.visitSchemaDirectives to visit every
+  // @directive in the schema and create an appropriate SchemaDirectiveVisitor
+  // instance to visit the object decorated by the @directive.
   public static visitSchemaDirectives(
     schema: GraphQLSchema,
     directiveVisitors: {
@@ -302,6 +306,11 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
       // method is marked as protected.
       [directiveName: string]: typeof SchemaDirectiveVisitor
     },
+    // Optional context object that will be available to all visitor instances
+    // via this.context. Defaults to an empty null-prototype object.
+    context: {
+      [key: string]: any
+    } = Object.create(null),
   ): {
     // The visitSchemaDirectives method returns a map from directive names to
     // lists of SchemaDirectiveVisitors created while visiting the schema.
@@ -376,7 +385,8 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
           name: directiveName,
           args,
           visitedType: type,
-          schema
+          schema,
+          context,
         }));
       });
 
@@ -397,16 +407,18 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
   // Mark the constructor protected to enforce passing SchemaDirectiveVisitor
   // subclasses (not instances) to visitSchemaDirectives.
   protected constructor(config: {
-    name: string,
-    args: { [name: string]: any },
-    visitedType: VisitableSchemaType,
-    schema: GraphQLSchema,
+    name: string
+    args: { [name: string]: any }
+    visitedType: VisitableSchemaType
+    schema: GraphQLSchema
+    context: { [key: string]: any }
   }) {
     super();
     this.name = config.name;
     this.args = config.args;
     this.visitedType = config.visitedType;
     this.schema = config.schema;
+    this.context = config.context;
   }
 }
 

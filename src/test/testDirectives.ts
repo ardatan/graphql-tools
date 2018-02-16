@@ -385,18 +385,20 @@ describe('@directives', () => {
     }`;
 
     const schema = makeExecutableSchema({ typeDefs: schemaText });
-    let objectCount = 0;
-    let fieldCount = 0;
+    const context = {
+      objectCount: 0,
+      fieldCount: 0,
+    };
 
     const visitors = SchemaDirectiveVisitor.visitSchemaDirectives(schema, {
       oyez: class extends SchemaDirectiveVisitor {
         public visitObject(object: GraphQLObjectType) {
-          ++objectCount;
+          ++this.context.objectCount;
           assert.strictEqual(this.args.times, 3);
         }
 
         public visitFieldDefinition(field: GraphQLField<any, any>) {
-          ++fieldCount;
+          ++this.context.fieldCount;
           if (field.name === 'judge') {
             assert.strictEqual(this.args.times, 0);
           } else if (field.name === 'marshall') {
@@ -404,10 +406,10 @@ describe('@directives', () => {
           }
         }
       }
-    });
+    }, context);
 
-    assert.strictEqual(objectCount, 1);
-    assert.strictEqual(fieldCount, 2);
+    assert.strictEqual(context.objectCount, 1);
+    assert.strictEqual(context.fieldCount, 2);
 
     assert.deepEqual(Object.keys(visitors), ['oyez']);
     assert.deepEqual(
