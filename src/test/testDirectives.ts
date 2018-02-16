@@ -6,6 +6,7 @@ import {
   VisitableSchemaType,
   SchemaDirectiveVisitor,
   SchemaVisitor,
+  visitSchema,
 } from '../schemaVisitor';
 import {
   GraphQLArgument,
@@ -289,6 +290,39 @@ describe('@directives', () => {
       Visitor.implementsVisitorMethod('visitBogusType'),
       false,
     );
+  });
+
+  it('can use visitSchema for simple visitor patterns', () => {
+    class SimpleVisitor extends SchemaVisitor {
+      public visitCount = 0;
+      public names: string[] = [];
+
+      constructor(s: GraphQLSchema) {
+        super();
+        this.schema = s;
+      }
+
+      public visit() {
+        // More complicated visitor implementations might use the
+        // visitorSelector function more selectively, but this SimpleVisitor
+        // class always volunteers itself to visit any schema type.
+        visitSchema(this.schema, () => [this]);
+      }
+
+      public visitObject(object: GraphQLObjectType) {
+        assert.strictEqual(this.schema.getType(object.name), object);
+        this.names.push(object.name);
+      }
+    }
+
+    const schema = makeExecutableSchema({ typeDefs });
+    const visitor = new SimpleVisitor(schema);
+    visitor.visit();
+    assert.deepEqual(visitor.names.sort(), [
+      'Mutation',
+      'Person',
+      'Query',
+    ]);
   });
 
   it('can use SchemaDirectiveVisitor as a no-op visitor', () => {
