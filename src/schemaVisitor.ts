@@ -39,6 +39,11 @@ const hasOwn = Object.prototype.hasOwnProperty;
 // helper function for determining whether a subclass implements a given
 // visitor method, as opposed to inheriting one of the stubs defined here.
 export abstract class SchemaVisitor {
+  // All SchemaVisitor instances are created while visiting a specific
+  // GraphQLSchema object, so this property holds a reference to that object,
+  // in case a vistor method needs to refer to this.schema.
+  public schema: GraphQLSchema;
+
   // Determine if this SchemaVisitor (sub)class implements a particular
   // visitor method.
   public static implementsVisitorMethod(methodName: string) {
@@ -276,11 +281,6 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
   // specific occurrence of a @directive(arg1: value1, arg2: value2, ...) in
   // the schema. Visitor methods may refer to this object via this.args.
   public args: { [name: string]: any };
-
-  // All SchemaDirectiveVisitor instances are created while visiting a
-  // specific GraphQLSchema object, so this property holds a reference to that
-  // object, in case a vistor method needs to refer to this.schema.
-  public schema: GraphQLSchema;
 
   // A reference to the type object that this visitor was created to visit.
   public visitedType: VisitableSchemaType;
