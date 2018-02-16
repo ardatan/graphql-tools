@@ -327,35 +327,42 @@ describe('@directives', () => {
 
   it('can use SchemaDirectiveVisitor as a no-op visitor', () => {
     const schema = makeExecutableSchema({ typeDefs });
+    const methodNamesEncountered = Object.create(null);
 
-    // Temporarily pretend this class implements all visitor methods.
-    SchemaDirectiveVisitor.implementsVisitorMethod = () => true;
-
-    try {
-      // Since SchemaDirectiveVisitor implements no-op versions of all the
-      // visitor methods, this should work, though I'll admit I wrote this test
-      // partly to keep the code coverage tool happy.
-      SchemaDirectiveVisitor.visitSchemaDirectives(schema, {
-        schemaDirective: SchemaDirectiveVisitor,
-        queryTypeDirective: SchemaDirectiveVisitor,
-        queryFieldDirective: SchemaDirectiveVisitor,
-        enumTypeDirective: SchemaDirectiveVisitor,
-        enumValueDirective: SchemaDirectiveVisitor,
-        dateDirective: SchemaDirectiveVisitor,
-        interfaceDirective: SchemaDirectiveVisitor,
-        interfaceFieldDirective: SchemaDirectiveVisitor,
-        inputTypeDirective: SchemaDirectiveVisitor,
-        inputFieldDirective: SchemaDirectiveVisitor,
-        mutationTypeDirective: SchemaDirectiveVisitor,
-        mutationArgumentDirective: SchemaDirectiveVisitor,
-        mutationMethodDirective: SchemaDirectiveVisitor,
-        objectTypeDirective: SchemaDirectiveVisitor,
-        objectFieldDirective: SchemaDirectiveVisitor,
-        unionDirective: SchemaDirectiveVisitor,
-      });
-    } finally {
-      delete SchemaDirectiveVisitor.implementsVisitorMethod;
+    class EnthusiasticVisitor extends SchemaDirectiveVisitor {
+      public static implementsVisitorMethod(name: string) {
+        // Pretend this class implements all visitor methods. This is safe
+        // because the SchemaVisitor base class provides empty stubs for all
+        // the visitor methods that might be called.
+        return methodNamesEncountered[name] = true;
+      }
     }
+
+    EnthusiasticVisitor.visitSchemaDirectives(schema, {
+      schemaDirective: EnthusiasticVisitor,
+      queryTypeDirective: EnthusiasticVisitor,
+      queryFieldDirective: EnthusiasticVisitor,
+      enumTypeDirective: EnthusiasticVisitor,
+      enumValueDirective: EnthusiasticVisitor,
+      dateDirective: EnthusiasticVisitor,
+      interfaceDirective: EnthusiasticVisitor,
+      interfaceFieldDirective: EnthusiasticVisitor,
+      inputTypeDirective: EnthusiasticVisitor,
+      inputFieldDirective: EnthusiasticVisitor,
+      mutationTypeDirective: EnthusiasticVisitor,
+      mutationArgumentDirective: EnthusiasticVisitor,
+      mutationMethodDirective: EnthusiasticVisitor,
+      objectTypeDirective: EnthusiasticVisitor,
+      objectFieldDirective: EnthusiasticVisitor,
+      unionDirective: EnthusiasticVisitor,
+    });
+
+    assert.deepEqual(
+      Object.keys(methodNamesEncountered).sort(),
+      Object.keys(SchemaVisitor.prototype)
+            .filter(name => name.startsWith('visit'))
+            .sort()
+    );
   });
 
   it('can handle all kinds of undeclared arguments', () => {
