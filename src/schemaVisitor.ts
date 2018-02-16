@@ -96,18 +96,19 @@ export abstract class SchemaVisitor {
 // Generic function for visiting GraphQLSchema objects.
 export function visitSchema(
   schema: GraphQLSchema,
-  // In order to accommodate as many different visitor patterns as possible,
-  // the visitSchema function does not simply accept a single instance of the
+  // To accommodate as many different visitor patterns as possible, the
+  // visitSchema function does not simply accept a single instance of the
   // SchemaVisitor class, but instead accepts a function that takes the
-  // current VisitableType object and the name of a visitor method and returns
-  // an array of SchemaVisitor instances that implement the visitor method and
-  // have an interest in handling the given VisitableType object. In the
-  // simplest case, this function can always return an array containing a
-  // single visitor object, without even looking at the type or methodName
-  // parameters. In other cases, this function might return an empty array to
-  // indicate there are no visitors that should be applied to the given
-  // VisitableType object. See the SchemaDirectiveVisitor class below for an
-  // example of a visitor pattern that benefits from this abstraction.
+  // current VisitableSchemaType object and the name of a visitor method and
+  // returns an array of SchemaVisitor instances that implement the visitor
+  // method and have an interest in handling the given VisitableSchemaType
+  // object. In the simplest case, this function can always return an array
+  // containing a single visitor object, without even looking at the type or
+  // methodName parameters. In other cases, this function might sometimes
+  // return an empty array to indicate there are no visitors that should be
+  // applied to the given VisitableSchemaType object. For an example of a
+  // visitor pattern that benefits from this abstraction, see the
+  // SchemaDirectiveVisitor class below.
   visitorSelector: (
     type: VisitableSchemaType,
     methodName: string,
@@ -274,7 +275,7 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
   // SchemaDirectiveVisitor can be instantiated multiple times to visit
   // directives of different names. In other words, SchemaDirectiveVisitor
   // implementations are effectively anonymous, and it's up to the caller of
-  // SchemaDirectiveVisitor.visitSchema to assign names to them.
+  // SchemaDirectiveVisitor.visitSchemaDirectives to assign names to them.
   public name: string;
 
   // A map from parameter names to argument values, as obtained from a
