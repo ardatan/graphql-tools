@@ -252,7 +252,7 @@ export function visitSchema(
 //
 //   SchemaDirectiveVisitor.visitSchemaDirectives(schema, {
 //     rest: class extends SchemaDirectiveVisitor {
-//       visitFieldDefinition(field: GraphQLField<any, any>) {
+//       public visitFieldDefinition(field: GraphQLField<any, any>) {
 //         const { url } = this.args;
 //         field.resolve = () => fetch(url);
 //       }
