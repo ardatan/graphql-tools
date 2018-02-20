@@ -9,28 +9,32 @@ import {
   GraphQLNamedType,
   graphql,
 } from 'graphql';
-import { Request } from '../Interfaces';
+import { Request, Result } from '../Interfaces';
 import { Transform } from '../transforms/transforms';
 import { visitSchema, VisitSchemaKind } from '../transforms/visitSchema';
+import visitObject from '../transforms/visitObject';
 import { propertySchema } from './testingSchemas';
 import makeSimpleTransformSchema from '../transforms/makeSimpleTransformSchema';
 
-function RenameTypes(renameMap: { [originalName: string]: string }): Transform {
+function RenameTypes(renamer: (name: string) => string | undefined): Transform {
   const reverseMap = {};
-  Object.keys(renameMap).map(from => {
-    reverseMap[renameMap[from]] = from;
-  });
   return {
     transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
       return visitSchema(originalSchema, {
         [VisitSchemaKind.TYPE](
           type: GraphQLNamedType,
         ): GraphQLNamedType | undefined {
-          if (type.name in renameMap) {
+          const newName = renamer(type.name);
+          if (newName && newName !== type.name) {
+            reverseMap[newName] = type.name;
             const newType = Object.assign(Object.create(type), type);
-            newType.name = renameMap[type.name];
+            newType.name = newName;
             return newType;
           }
+        },
+
+        [VisitSchemaKind.ROOT_OBJECT](type: GraphQLNamedType) {
+          return undefined;
         },
       });
     },
@@ -55,32 +59,49 @@ function RenameTypes(renameMap: { [originalName: string]: string }): Transform {
         variables: originalRequest.variables,
       };
     },
+
+    transformResult(result: Result): Result {
+      if (result.data) {
+        const newData = visitObject(result.data, (key, value) => {
+          if (key === '__typename') {
+            return renamer(value);
+          }
+        });
+        const newResult = {
+          ...result,
+          data: newData,
+        };
+        return newResult;
+      }
+      return result;
+    },
   };
 }
-
-// function NamespaceSchema(namespace: string): Transform {
-//   return {
-//     transformSchema();,
-//   };
-// }
-
+//
+// type ImportDefinition = {
+//   types: {};
+//   fields: {};
+// };
+//
 // function importFromSchema(importString: string) {}
-//
-//
 
 describe('transforms', () => {
   describe('rename type', () => {
     let schema: GraphQLSchema;
     before(() => {
       const transforms = [
-        RenameTypes({
-          Property: 'House',
-          Location: 'Spots',
-          TestInterface: 'TestingInterface',
-          DateTime: 'Datum',
-          InputWithDefault: 'DefaultingInput',
-          TestInterfaceKind: 'TestingInterfaceKinds',
-        }),
+        RenameTypes(
+          name =>
+            ({
+              Property: 'House',
+              Location: 'Spots',
+              TestInterface: 'TestingInterface',
+              DateTime: 'Datum',
+              InputWithDefault: 'DefaultingInput',
+              TestInterfaceKind: 'TestingInterfaceKinds',
+              TestImpl1: 'TestImplementation1',
+            }[name]),
+        ),
       ];
       schema = makeSimpleTransformSchema(propertySchema, transforms);
     });
@@ -96,6 +117,55 @@ describe('transforms', () => {
             }
             propertyById(id: "p1") {
               ... on House {
+                id
+              }
+            }
+            dateTimeTest
+            defaultInputTest(input: $input)
+          }
+        `,
+        {},
+        {},
+        {
+          input: {
+            test: 'bar',
+          },
+        },
+      );
+
+      expect(result).to.deep.equal({
+        data: {
+          dateTimeTest: '1987-09-25T12:00:00',
+          defaultInputTest: 'bar',
+          interfaceTest: {
+            testString: 'test',
+          },
+          propertyById: {
+            id: 'p1',
+          },
+        },
+      });
+    });
+  });
+
+  describe('namespace', () => {
+    let schema: GraphQLSchema;
+    before(() => {
+      const transforms = [RenameTypes(name => `Property_${name}`)];
+      schema = makeSimpleTransformSchema(propertySchema, transforms);
+    });
+    it('should work', async () => {
+      const result = await graphql(
+        schema,
+        `
+          query($input: Property_InputWithDefault!) {
+            interfaceTest(kind: ONE) {
+              ... on Property_TestInterface {
+                testString
+              }
+            }
+            propertyById(id: "p1") {
+              ... on Property_Property {
                 id
               }
             }
