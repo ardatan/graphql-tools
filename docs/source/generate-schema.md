@@ -316,7 +316,7 @@ This [GraphQL schema language cheat sheet](https://raw.githubusercontent.com/sog
 
 <h3 id="makeExecutableSchema" title="makeExecutableSchema">makeExecutableSchema(options)</h3>
 
-`makeExecutableSchema` takes a single argument: an object of options. Only the `typeDefs` and `resolvers` options are required.
+`makeExecutableSchema` takes a single argument: an object of options. Only the `typeDefs` option is required.
 
 ```
 import { makeExecutableSchema } from 'graphql-tools';
@@ -332,7 +332,7 @@ const jsSchema = makeExecutableSchema({
 
 - `typeDefs` is a required argument and should be an array of GraphQL schema language strings or a function that takes no arguments and returns an array of GraphQL schema language strings. The order of the strings in the array is not important, but it must include a schema definition.
 
-- `resolvers` is a required argument and should be an object that follows the pattern explained in [article on resolvers](http://dev.apollodata.com/tools/graphql-tools/resolvers.html).
+- `resolvers` is an optional argument _(empty object by default)_ and should be an object that follows the pattern explained in [article on resolvers](http://dev.apollodata.com/tools/graphql-tools/resolvers.html).
 
 - `logger` is an optional argument, which can be used to print errors to the server console that are usually swallowed by GraphQL. The `logger` argument should be an object with a `log` function, eg. `const logger = { log: (e) => console.log(e) }`
 
