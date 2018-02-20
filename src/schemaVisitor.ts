@@ -41,7 +41,7 @@ const hasOwn = Object.prototype.hasOwnProperty;
 export abstract class SchemaVisitor {
   // All SchemaVisitor instances are created while visiting a specific
   // GraphQLSchema object, so this property holds a reference to that object,
-  // in case a vistor method needs to refer to this.schema.
+  // in case a visitor method needs to refer to this.schema.
   public schema: GraphQLSchema;
 
   // Determine if this SchemaVisitor (sub)class implements a particular
@@ -119,7 +119,7 @@ export function visitSchema(
   function callMethod(
     methodName: string,
     type: VisitableSchemaType,
-    ...args: any[],
+    ...args: any[]
   ) {
     visitorSelector(type, methodName).forEach(visitor => {
       visitor[methodName](type, ...args);
