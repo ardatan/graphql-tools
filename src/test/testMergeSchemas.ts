@@ -11,7 +11,9 @@ import {
   ExecutionResult,
 } from 'graphql';
 import { VisitType } from '../Interfaces';
-import mergeSchemas from '../stitching/mergeSchemas';
+import mergeSchemas, {
+  mergeSchemasImplementation,
+} from '../stitching/mergeSchemas';
 import {
   propertySchema as localPropertySchema,
   productSchema as localProductSchema,
@@ -2453,7 +2455,7 @@ describe('mergeSchema options', () => {
           }
         };
       };
-      schema = mergeSchemas({
+      schema = mergeSchemasImplementation({
         schemas: [
           {
             name: 'Booking',

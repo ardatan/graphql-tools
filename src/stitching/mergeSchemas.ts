@@ -41,6 +41,36 @@ import mergeDeep from '../mergeDeep';
 
 export default function mergeSchemas({
   schemas,
+  onTypeConflict,
+  resolvers,
+}: {
+  schemas: Array<{ name: string; schema: string | GraphQLSchema }>;
+  onTypeConflict?: (
+    left: GraphQLNamedType,
+    right: GraphQLNamedType,
+  ) => GraphQLNamedType;
+  resolvers?: Array<IResolvers> | IResolvers;
+}): GraphQLSchema {
+  if (schemas.some(schema => !(schema.name && schema.schema))) {
+    throw new Error(
+      `Invalid argument \`schemas\`. Expected array of objects of format \`{ name: string, schema: string | schema }\`.
+
+Argument expected value have been changed in version 3.0, have you updated your code?`,
+    );
+  }
+
+  let visitType: VisitType = defaultVisitType;
+  if (onTypeConflict) {
+    console.warn(
+      '`onTypeConflict` is deprecated. Use schema transforms to customize merging logic.',
+    );
+    visitType = createVisitTypeFromOnTypeConflict(onTypeConflict);
+  }
+  return mergeSchemasImplementation({ schemas, visitType, resolvers });
+}
+
+export function mergeSchemasImplementation({
+  schemas,
   visitType,
   resolvers,
 }: {
@@ -350,10 +380,31 @@ function addTypeCandidate(
   typeCandidates[name].push(typeCandidate);
 }
 
-const defaultVisitType: VisitType = (
+function createVisitTypeFromOnTypeConflict(
+  onTypeConflict: (
+    left: GraphQLNamedType,
+    right: GraphQLNamedType,
+  ) => GraphQLNamedType,
+): VisitType {
+  return (name, candidates) =>
+    defaultVisitType(name, candidates, cands =>
+      cands.reduce(
+        (prev, next) => onTypeConflict(prev, next.type),
+        cands[0].type,
+      ),
+    );
+}
+
+const defaultVisitType = (
   name: string,
   candidates: Array<MergeTypeCandidate>,
+  candidateSelector?: (
+    candidates: Array<MergeTypeCandidate>,
+  ) => GraphQLNamedType,
 ) => {
+  if (!candidateSelector) {
+    candidateSelector = cands => cands[cands.length - 1].type;
+  }
   const resolveType = createResolveType((_, type) => type);
   if (name === 'Query' || name === 'Mutation' || name === 'Subscription') {
     let fields = {};
@@ -396,6 +447,6 @@ const defaultVisitType: VisitType = (
       resolvers,
     };
   } else {
-    return candidates[candidates.length - 1].type;
+    return candidateSelector(candidates);
   }
 };
