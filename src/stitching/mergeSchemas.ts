@@ -291,6 +291,11 @@ function createMergeInfo(
       context: { [key: string]: any },
       info: GraphQLResolveInfo,
     ): any {
+      if (!info) {
+        throw new Error(`Argument \`info\` is missing.
+
+In version 3.0, \`delegate\` requires a schema name as a first argument, have you updated your code?`);
+      }
       const schema = schemas[schemaName];
       const fragmentTransform = ReplaceFieldWithFragment(
         schema,
