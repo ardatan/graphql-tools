@@ -3,7 +3,7 @@ title: Schema directives
 description: Implementing and using custom `@directive`s that transform schema types, fields, and arguments
 ---
 
-## GraphQL schema directives
+## Schema directives
 
 A _directive_ is an identifier preceded by a `@` character, optionally followed by a list of named arguments, which can appear after almost any form of syntax in the GraphQL query or schema languages.
 
@@ -17,7 +17,76 @@ In order for a `@directive` to have any consequences, the GraphQL server must be
 
 The possible applications of `@directive` syntax are numerous: enforcing access permissions, formatting date strings, auto-generating resolver functions for a particular backend API, marking strings for internationalization, synthesizing globally unique object identifiers, specifying caching behavior, skipping or including or deprecating fields, and just about anything else you can imagine.
 
-## Simple Directive example
+## Implementing schema directives
+
+Since the GraphQL specification does not discuss any specific implementation strategy for `@directive`s, it's up to each GraphQL server framework to expose an API for implementing new directives.
+
+If you're using Apollo Server, you are also likely to be using the [`graphql-tools`](https://github.com/apollographql/graphql-tools) npm package, which provides a convenient yet powerful tool for implementing `@directive` syntax: the [`SchemaDirectiveVisitor`](https://github.com/apollographql/graphql-tools/blob/wip-schema-directives/src/schemaVisitor.ts) class.
+
+To implement a schema `@directive` using `SchemaDirectiveVisitor`, simply create a subclass of `SchemaDirectiveVisitor` that overrides one or more of the following visitor methods:
+
+* `visitSchema(schema: GraphQLSchema)`
+* `visitScalar(scalar: GraphQLScalarType)`
+* `visitObject(object: GraphQLObjectType)`
+* `visitFieldDefinition(field: GraphQLField<any, any>)`
+* `visitArgumentDefinition(argument: GraphQLArgument)`
+* `visitInterface(iface: GraphQLInterfaceType)`
+* `visitUnion(union: GraphQLUnionType)`
+* `visitEnum(type: GraphQLEnumType)`
+* `visitEnumValue(value: GraphQLEnumValue)`
+* `visitInputObject(object: GraphQLInputObjectType)`
+* `visitInputFieldDefinition(field: GraphQLInputField)`
+
+By overriding methods like `visitObject`, a subclass of `SchemaDirectiveVisitor` expresses interest in certain schema types such as `GraphQLObjectType` (the first parameter type of `visitObject`).
+
+When `SchemaDirectiveVisitor.visitSchemaDirectives` is called with a `GraphQLSchema` object and a map of visitor subclasses (`{ [directiveName: string]: typeof SchemaDirectiveVisitor }`), visitor methods overridden by those subclasses will be called with references to any schema type objects that have appropriately named `@directive`s attached to them, enabling the visitors to inspect or modify the schema.
+
+For example, if a directive called `@rest(url: "...")` appears after a field definition, a `SchemaDirectiveVisitor` subclass could provide meaning to that directive by overriding the `visitFieldDefinition` method (which receives a `GraphQLField` parameter), and then the body of that visitor method could manipulate the field's resolver function to fetch data from a REST endpoint:
+
+```typescript
+import {
+  makeExecutableSchema,
+  SchemaDirectiveVisitor,
+} from "graphql-tools";
+
+const typeDefs = `
+type Query {
+  people: [Person] @rest(url: "/api/v1/people")
+}`;
+
+const schema = makeExecutableSchema({ typeDefs });
+
+SchemaDirectiveVisitor.visitSchemaDirectives(schema, {
+  rest: class extends SchemaDirectiveVisitor {
+    public visitFieldDefinition(field: GraphQLField<any, any>) {
+      const { url } = this.args;
+      field.resolve = () => fetch(url);
+    }
+  }
+});
+```
+
+The subclass in this example is defined as an anonymous `class` expression, for brevity. A truly reusable `SchemaDirectiveVisitor` would most likely be defined in a library using a named class declaration, and then exported for consumption by other modules and packages.
+
+It's also possible to pass directive implementations to `makeExecutableSchema` via the `directiveVisitors` parameter, if you prefer:
+
+```typescript
+const schema = makeExecutableSchema({
+  typeDefs,
+  directiveVisitors: {
+    rest: class extends SchemaDirectiveVisitor {
+      public visitFieldDefinition(field: GraphQLField<any, any>) {
+        const { url } = this.args;
+        field.resolve = () => fetch(url);
+      }
+    }
+  }
+});
+```
+
+Note that a subclass of `SchemaDirectiveVisitor` may be instantiated multiple times to visit multiple different `@directive` occurrences, or even `@directive`s of different names. In other words, `SchemaDirectiveVisitor` implementations are effectively anonymous, and it's up to the caller of `SchemaDirectiveVisitor.visitSchemaDirectives` to assign names to them.
+
+## Older directive example
 
 Let's take a look at how we can create `@upper` Directive to upper-case a string returned from resolve on Field
 [See a complete runnable example on Launchpad.](https://launchpad.graphql.com/p00rw37qx0)
