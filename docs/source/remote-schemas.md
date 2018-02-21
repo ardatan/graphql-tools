@@ -141,7 +141,7 @@ Basic usage
 import fetch from 'node-fetch';
 
 const fetcher = async ({ query, variables, operationName, context }) => {
-  const fetchResult = fetch('http://api.githunt.com/graphql', {
+  const fetchResult = await fetch('http://api.githunt.com/graphql', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -162,7 +162,7 @@ Authentication headers from context
 import fetch from 'node-fetch';
 
 const fetcher = async ({ query, variables, operationName, context }) => {
-  const fetchResult = fetch('http://api.githunt.com/graphql', {
+  const fetchResult = await fetch('http://api.githunt.com/graphql', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
