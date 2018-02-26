@@ -174,7 +174,7 @@ export function visitSchema(
       // objects defined elsewhere in the schema, which might be decorated
       // with directives of their own, so it would be hard to prevent this
       // loop from re-visiting those directives. To access the member types of
-      // a union, just implement a SchemaVistior that overrides visitUnion,
+      // a union, just implement a SchemaVisitor that overrides visitUnion,
       // and call unionType.getTypes() yourself.
 
       // type.getTypes().forEach(visit);
