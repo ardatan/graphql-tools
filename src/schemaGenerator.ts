@@ -701,7 +701,7 @@ function attachDirectiveResolvers(
         const originalResolver = field.resolve || defaultFieldResolver;
         const directiveArgs = this.args;
         field.resolve = (...args: any[]) => {
-          const [source, , context, info] = args;
+          const [source, /* original args */, context, info] = args;
           return resolver(
             async () => originalResolver.apply(field, args),
             source,
