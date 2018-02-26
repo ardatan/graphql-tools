@@ -137,6 +137,262 @@ class AuthDirectiveVisitor extends SchemaDirectiveVisitor {
 
 Since the `getDirectiveDeclaration` method receives not only the name of the directive but also any previous declaration found in the schema, it can either return a totally new `GraphQLDirective` object, or simply modify the `previousDirective` and return it. Either way, if the visitor returns a non-null `GraphQLDirective` from `getDirectiveDeclaration`, that declaration will be used to check arguments and permissible locations.
 
+## Examples
+
+To appreciate the range of possibilities enabled by `SchemaDirectiveVisitor`, let's examine a variety of practical examples.
+
+### Uppercasing strings
+
+Suppose you want to ensure a string-valued field is converted to uppercase:
+
+```typescript
+const typeDefs = `
+directive @upper on FIELD_DEFINITION
+
+type Query {
+  hello: String @upper
+}`;
+
+const schema = makeExecutableSchema({
+  typeDefs,
+  directiveVisitors: {
+    upper: class extends SchemaDirectiveVisitor {
+      public visitFieldDefinition(field: GraphQLField<any, any>) {
+        const { resolve } = field;
+        field.resolve = async function (...args) {
+          const result = await resolve.apply(this, args);
+          if (typeof result === "string") {
+            return result.toUpperCase();
+          }
+          return result;
+        }
+      }
+    }
+  }
+});
+```
+
+### Formatting date strings
+
+Suppose your resolver returns a `Date` object but you want to return a formatted string to the client:
+
+```typescript
+const typeDefs = `
+directive @date(format: String) on FIELD_DEFINITION
+
+scalar Date
+
+type Post {
+  published: Date @date(format: "mmmm d, yyyy")
+}`;
+
+const schema = makeExecutableSchema({
+  typeDefs,
+  directiveVisitors: {
+    date: class extends SchemaDirectiveVisitor {
+      public visitFieldDefinition(field: GraphQLField<any, any>) {
+        const { resolve } = field;
+        field.resolve = async function (...args) {
+          const date = await resolve.apply(this, args);
+          return require("dateformat")(date, this.args.format);
+        };
+      }
+    }
+  }
+});
+```
+
+### Marking strings for internationalization
+
+```typescript
+const typeDefs = `
+directive @intl on FIELD_DEFINITION
+
+type Query {
+  greeting: String @intl
+}`;
+
+const schema = makeExecutableSchema({
+  typeDefs,
+  directiveVisitors: {
+    date: class extends SchemaDirectiveVisitor {
+      public visitFieldDefinition(field: GraphQLField<any, any>, details: {
+        objectType: GraphQLObjectType,
+      }) {
+        const { resolve } = field;
+        field.resolve = async function (...args) {
+          const context = args[2];
+          const defaultText = await resolve.apply(this, args);
+          // In this example, path would be ["Query", "greeting"]:
+          const path = [details.objectType.name, field.name];
+          return translate(defaultText, path, context.locale);
+        };
+      }
+    }
+  }
+});
+```
+
+### Enforcing access permissions
+
+Suppose you want to implement the `@auth` example mentioned above:
+
+```typescript
+const typeDefs = `
+directive @auth(
+  requires: Role = ADMIN,
+) on OBJECT | FIELD_DEFINITION
+
+enum Role {
+  ADMIN
+  REVIEWER
+  USER
+  UNKNOWN
+}
+
+type User @auth(requires: USER) {
+  name: String
+  banned: Boolean @auth(requires: ADMIN)
+  canPost: Boolean @auth(requires: REVIEWER)
+}`;
+
+const schema = makeExecutableSchema({
+  typeDefs,
+  directiveVisitors: {
+    auth: class extends SchemaDirectiveVisitor {
+      private authReqSymbol = Symbol.for("@auth required role");
+      private authWrapSymbol = Symbol.for("@auth wrapped");
+
+      public visitObject(type: GraphQLObjectType) {
+        this.ensureFieldsWrapped(type);
+        type[authReqSymbol] = this.args.required;
+      }
+
+      public visitFieldDefinition(field: GraphQLField<any, any>, details: {
+        // The parent GraphQLObjectType of this GraphQLField:
+        objectType: GraphQLObjectType,
+      }) {
+        this.ensureFieldsWrapped(details.objectType);
+        field[this.authReqSymbol] = this.args.required;
+      }
+
+      private ensureFieldsWrapped(type: GraphQLObjectType) {
+        const { authWrapSymbol, authReqSymbol } = this;
+        // Mark the GraphQLObjectType object to avoid re-wrapping its fields:
+        if (type[authWrapSymbol]) return;
+        type[authWrapSymbol] = true;
+
+        type.getFields().forEach(field => {
+          const { resolve } = field;
+          field.resolve = async function (...args) {
+            const requiredRole = field[authReqSymbol] || type[authReqSymbol];
+            if (! requiredRole) {
+              return resolve.apply(this, args);
+            }
+            const context = args[2];
+            const user = await getUser(context.headers.authToken);
+            if (! user.hasRole(requiredRole)) {
+              throw new Error("not authorized");
+            }
+            return resolve.apply(this, args);
+          };
+        });
+      }
+    }
+  }
+});
+```
+
+### Enforcing value restrictions
+
+Suppose you want to enforce a maximum length for a string-valued field:
+
+```typescript
+const typeDefs = `
+directive @length(max: Int) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
+
+type Query {
+  books: [Book]
+}
+
+type Book {
+  title: String @length(max: 50)
+}
+
+type Mutation {
+  createBook(input: BookInput): Book
+}
+
+input BookInput {
+  title: String! @length(max: 50)
+}`;
+
+const schema = makeExecutableSchema({
+  typeDefs,
+  directiveVisitors: {
+    length: class extends SchemaDirectiveVisitor {
+      public visitInputFieldDefinition(field: GraphQLInputField) {
+        this.wrapType(field);
+      }
+
+      public visitFieldDefinition(field: GraphQLField<any, any>) {
+        this.wrapType(field);
+      }
+
+      private helper(field: GraphQLInputField | GraphQLField<any, any>) {
+        // This LimitedLengthType should be just like field.type except that the
+        // serialize method enforces the length limit. For more information about
+        // GraphQLScalar type serialization, see the graphql-js implementation:
+        // https://github.com/graphql/graphql-js/blob/31ae8a8e8312494b858b69b2ab27b1837e2d8b1e/src/type/definition.js#L425-L446
+        field.type = new LimitedLengthType(field.type, this.args.max);
+      }
+    }
+  }
+});
+```
+
+### Synthesizing unique IDs
+
+Suppose your database uses an incrementing ID for each resource type, so IDs are not unique across all resource types. Here's how you might synthesize a field called `uid` that combines the object type with the non-unique ID to produce an ID that's unique across your schema:
+
+```typescript
+const typeDefs = `
+type Person @uniqueID(name: "uid", from: ["personID"]) {
+  personID: Int
+  name: String
+}
+
+type Location @uniqueID(name: "uid", from: ["locationID"]) {
+  locationID: Int
+  address: String
+}`;
+
+const schema = makeExecutableSchema({
+  typeDefs,
+  directiveVisitors: {
+    uniqueID: class extends SchemaDirectiveVisitor {
+      public visitObject(type: GraphQLObjectType) {
+        const { name, from } = this.args;
+        object.getFields()[name] = {
+          name: name,
+          type: GraphQLID,
+          description: 'Unique ID',
+          args: [],
+          resolve(object) {
+            const hash = require("crypto").createHash("sha256");
+            hash.update(type.name);
+            from.forEach(fieldName => {
+              hash.update(String(object[fieldName]));
+            });
+            return hash.digest("hex");
+          }
+        };
+      }
+    }
+  }
+});
+```
+
 ## Older directive example
 
 Let's take a look at how we can create `@upper` Directive to upper-case a string returned from resolve on Field
