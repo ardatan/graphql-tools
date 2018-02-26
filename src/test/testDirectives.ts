@@ -17,6 +17,7 @@ import {
   GraphQLInputObjectType,
   GraphQLObjectType,
   GraphQLSchema,
+  GraphQLDirective,
 } from 'graphql';
 
 const typeDefs = `
@@ -446,7 +447,7 @@ describe('@directives', () => {
 
   it('can also handle declared arguments', () => {
     const schemaText = `
-    directive @oyez(times: Int = 3) on OBJECT | FIELD_DEFINITION
+    directive @oyez(times: Int = 5) on OBJECT | FIELD_DEFINITION
 
     schema {
       query: Courtroom
@@ -475,6 +476,21 @@ describe('@directives', () => {
 
     const visitors = SchemaDirectiveVisitor.visitSchemaDirectives(schema, {
       oyez: class extends SchemaDirectiveVisitor {
+        public static getDirectiveDeclaration(
+          name: string,
+          prev: GraphQLDirective,
+        ) {
+          prev.args.some(arg => {
+            if (arg.name === 'times') {
+              // Override the default value of the times argument to be 3
+              // instead of 5.
+              arg.defaultValue = 3;
+              return true;
+            }
+          });
+          return prev;
+        }
+
         public visitObject(object: GraphQLObjectType) {
           ++this.context.objectCount;
           assert.strictEqual(this.args.times, 3);

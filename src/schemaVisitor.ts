@@ -291,6 +291,17 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
   // object, or just use the default empty object.
   public context: { [key: string]: any };
 
+  // Override this method to return a custom GraphQLDirective (or modify one
+  // already present in the schema) to enforce argument types, provide default
+  // argument values, or specify schema locations where this @directive may
+  // appear. By default, any declaration found in the schema will be returned.
+  public static getDirectiveDeclaration(
+    directiveName: string,
+    previousDeclaration?: GraphQLDirective,
+  ): GraphQLDirective {
+    return previousDeclaration;
+  }
+
   // Call SchemaDirectiveVisitor.visitSchemaDirectives to visit every
   // @directive in the schema and create an appropriate SchemaDirectiveVisitor
   // instance to visit the object decorated by the @directive.
@@ -320,12 +331,8 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
     // If the schema declares any directives for public consumption, record
     // them here so that we can properly coerce arguments when/if we encounter
     // an occurrence of the directive while walking the schema below.
-    const declaredDirectives: {
-      [directiveName: string]: GraphQLDirective,
-    } = Object.create(null);
-    schema.getDirectives().forEach(decl => {
-      declaredDirectives[decl.name] = decl;
-    });
+    const declaredDirectives =
+      this.getDeclaredDirectives(schema, directiveVisitors);
 
     // Map from directive names to lists of SchemaDirectiveVisitor instances
     // created while visiting the schema.
@@ -403,6 +410,43 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
     visitSchema(schema, visitorSelector);
 
     return createdVisitors;
+  }
+
+  protected static getDeclaredDirectives(
+    schema: GraphQLSchema,
+    directiveVisitors: {
+      [directiveName: string]: typeof SchemaDirectiveVisitor
+    },
+  ) {
+    const declaredDirectives: {
+      [directiveName: string]: GraphQLDirective,
+    } = Object.create(null);
+
+    schema.getDirectives().forEach(decl => {
+      declaredDirectives[decl.name] = decl;
+    });
+
+    // If the visitor subclass overrides getDirectiveDeclaration, and it
+    // returns a non-null GraphQLDirective, use that instead of any directive
+    // declared in the schema itself. Reasoning: if a SchemaDirectiveVisitor
+    // goes to the trouble of implementing getDirectiveDeclaration, it should
+    // be able to rely on that implementation.
+    each(directiveVisitors, (visitorClass, directiveName) => {
+      const decl = visitorClass.getDirectiveDeclaration(
+        directiveName,
+        // Give the getDirectiveDeclaration method a chance to look at the
+        // existing declaration, in case it only needs to make minor tweaks.
+        // Ironically, this grants the SchemaDirectiveVisitor subclass the
+        // ability to visit/inspect/modify directive declarations found in
+        // the schema, even though they can't be decorated with @directives!
+        declaredDirectives[directiveName] || null,
+      );
+      if (decl) {
+        declaredDirectives[directiveName] = decl;
+      }
+    });
+
+    return declaredDirectives;
   }
 
   // Mark the constructor protected to enforce passing SchemaDirectiveVisitor
