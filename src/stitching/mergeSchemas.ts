@@ -39,16 +39,28 @@ import typeFromAST, { GetType } from './typeFromAST';
 import ReplaceFieldWithFragment from '../transforms/ReplaceFieldWithFragment';
 import mergeDeep from '../mergeDeep';
 
+export type OnTypeConflict = (
+  left: GraphQLNamedType,
+  right: GraphQLNamedType,
+  info?: {
+    left: {
+      name: string;
+      schema?: GraphQLSchema;
+    };
+    right: {
+      name: string;
+      schema?: GraphQLSchema;
+    };
+  },
+) => GraphQLNamedType;
+
 export default function mergeSchemas({
   schemas,
   onTypeConflict,
   resolvers,
 }: {
   schemas: Array<{ name: string; schema: string | GraphQLSchema }>;
-  onTypeConflict?: (
-    left: GraphQLNamedType,
-    right: GraphQLNamedType,
-  ) => GraphQLNamedType;
+  onTypeConflict?: OnTypeConflict;
   resolvers?: Array<IResolvers> | IResolvers;
 }): GraphQLSchema {
   if (schemas.some(schema => !(schema.name && schema.schema))) {
@@ -386,17 +398,32 @@ function addTypeCandidate(
 }
 
 function createVisitTypeFromOnTypeConflict(
-  onTypeConflict: (
-    left: GraphQLNamedType,
-    right: GraphQLNamedType,
-  ) => GraphQLNamedType,
+  onTypeConflict: OnTypeConflict,
 ): VisitType {
   return (name, candidates) =>
     defaultVisitType(name, candidates, cands =>
-      cands.reduce(
-        (prev, next) => onTypeConflict(prev, next.type),
-        cands[0].type,
-      ),
+      cands.reduce((prev, next) => {
+        const type = onTypeConflict(prev.type, next.type, {
+          left: {
+            name: prev.schemaName,
+            schema: prev.schema,
+          },
+          right: {
+            name: prev.schemaName,
+            schema: prev.schema,
+          },
+        });
+        if (prev.type === type) {
+          return prev;
+        } else if (next.type === type) {
+          return next;
+        } else {
+          return {
+            schemaName: 'unknown',
+            type,
+          };
+        }
+      }),
     );
 }
 
@@ -405,10 +432,10 @@ const defaultVisitType = (
   candidates: Array<MergeTypeCandidate>,
   candidateSelector?: (
     candidates: Array<MergeTypeCandidate>,
-  ) => GraphQLNamedType,
+  ) => MergeTypeCandidate,
 ) => {
   if (!candidateSelector) {
-    candidateSelector = cands => cands[cands.length - 1].type;
+    candidateSelector = cands => cands[cands.length - 1];
   }
   const resolveType = createResolveType((_, type) => type);
   if (name === 'Query' || name === 'Mutation' || name === 'Subscription') {
@@ -452,6 +479,7 @@ const defaultVisitType = (
       resolvers,
     };
   } else {
-    return candidateSelector(candidates);
+    const candidate = candidateSelector(candidates);
+    return candidate.type;
   }
 };
