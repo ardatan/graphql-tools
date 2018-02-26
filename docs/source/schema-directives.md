@@ -86,6 +86,57 @@ const schema = makeExecutableSchema({
 
 Note that a subclass of `SchemaDirectiveVisitor` may be instantiated multiple times to visit multiple different `@directive` occurrences, or even `@directive`s of different names. In other words, `SchemaDirectiveVisitor` implementations are effectively anonymous, and it's up to the caller of `SchemaDirectiveVisitor.visitSchemaDirectives` to assign names to them.
 
+## Declaring schema directives
+
+While the above examples should be sufficient to implement any `@directive` used in your schema, SDL syntax also supports declaring the names, argument types, default argument values, and permissible locations of any available directives:
+
+```js
+directive @auth(
+  requires: Role = ADMIN,
+) on OBJECT | FIELD_DEFINITION
+
+enum Role {
+  ADMIN
+  REVIEWER
+  USER
+  UNKNOWN
+}
+
+type User @auth(requires: USER) {
+  name: String
+  banned: Boolean @auth(requires: ADMIN)
+  canPost: Boolean @auth(requires: REVIEWER)
+}
+```
+
+This hypothetical `@auth` directive takes an argument named `requires` of type `Role`, which defaults to `ADMIN` if `@auth` is used without passing an explicit `requires` argument. The `@auth` directive can appear on an `OBJECT` like `User` to set a default access control for all `User` fields, and also on individual fields, to enforce field-specific `@auth` restrictions.
+
+Enforcing the requirements of the declaration is something a `SchemaDirectiveVisitor` implementation could do itself, in theory, but the SDL syntax is easer to read and write, and provides value even if you're not using the `SchemaDirectiveVisitor` abstraction.
+
+However, if you're attempting to implement a reusable `SchemaDirectiveVisitor`, you may not be the one writing the SDL syntax, so you may not have control over which directives the schema author decides to declare, and how. That's why a well-implemented, reusable `SchemaDirectiveVisitor` should consider overriding the `getDirectiveDeclaration` method:
+
+```typescript
+class AuthDirectiveVisitor extends SchemaDirectiveVisitor {
+  public visitObject(object: GraphQLObjectType) {...}
+  public visitFieldDefinition(field: GraphQLField<any, any>) {...}
+
+  public static getDirectiveDeclaration(
+    directiveName: string,
+    previousDirective?: GraphQLDirective,
+  ): GraphQLDirective {
+    previousDirective.args.forEach(arg => {
+      if (arg.name === 'requires') {
+        // Lower the default minimum Role from ADMIN to REVIEWER.
+        arg.defaultValue = 'REVIEWER';
+      }
+    });
+    return previousDirective;
+  }
+}
+```
+
+Since the `getDirectiveDeclaration` method receives not only the name of the directive but also any previous declaration found in the schema, it can either return a totally new `GraphQLDirective` object, or simply modify the `previousDirective` and return it. Either way, if the visitor returns a non-null `GraphQLDirective` from `getDirectiveDeclaration`, that declaration will be used to check arguments and permissible locations.
+
 ## Older directive example
 
 Let's take a look at how we can create `@upper` Directive to upper-case a string returned from resolve on Field
