@@ -14,6 +14,7 @@ import {
   GraphQLUnionType,
   Kind,
   ValueNode,
+  DirectiveLocationEnum,
 } from 'graphql';
 
 import {
@@ -446,6 +447,29 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
       }
     });
 
+    each(declaredDirectives, (decl, name) => {
+      if (! hasOwn.call(directiveVisitors, name)) {
+        // SchemaDirectiveVisitors.visitSchemaDirectives might be called
+        // multiple times with partial directiveVisitors maps, so it's not
+        // necessarily an error for directiveVisitors to be missing an
+        // implementation of a directive that was declared in the schema.
+        return;
+      }
+      const visitorClass = directiveVisitors[name];
+      decl.locations.forEach(loc => {
+        const visitorMethodName = directiveLocationToVisitorMethodName(loc);
+        if (! visitorClass.implementsVisitorMethod(visitorMethodName)) {
+          // While visitor subclasses may implement extra visitor methods,
+          // it's definitely a mistake if the GraphQLDirective declares itself
+          // applicable to certain schema locations, and the visitor subclass
+          // does not implement all the corresponding methods.
+          throw new Error(
+            `SchemaDirectiveVisitor for @${name} must implement ${visitorMethodName} method`
+          );
+        }
+      });
+    });
+
     return declaredDirectives;
   }
 
@@ -465,6 +489,13 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
     this.schema = config.schema;
     this.context = config.context;
   }
+}
+
+// Convert a string like "FIELD_DEFINITION" to "visitFieldDefinition".
+function directiveLocationToVisitorMethodName(loc: DirectiveLocationEnum) {
+  return 'visit' + loc.replace(/([^_]*)_?/g, (wholeMatch, part) => {
+    return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
+  });
 }
 
 // Helper widely used in the visit function above.
