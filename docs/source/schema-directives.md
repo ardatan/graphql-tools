@@ -157,21 +157,23 @@ type Query {
   hello: String @upper
 }`;
 
+class UpperCaseVisitor extends SchemaDirectiveVisitor {
+  visitFieldDefinition(field) {
+    const { resolve = defaultFieldResolver } = field;
+    field.resolve = async function (...args) {
+      const result = await resolve.apply(this, args);
+      if (typeof result === "string") {
+        return result.toUpperCase();
+      }
+      return result;
+    };
+  }
+}
+
 const schema = makeExecutableSchema({
   typeDefs,
   directiveVisitors: {
-    upper: class extends SchemaDirectiveVisitor {
-      visitFieldDefinition(field) {
-        const { resolve = defaultFieldResolver } = field;
-        field.resolve = async function (...args) {
-          const result = await resolve.apply(this, args);
-          if (typeof result === "string") {
-            return result.toUpperCase();
-          }
-          return result;
-        };
-      }
-    }
+    upper: UpperCaseVisitor
   }
 });
 ```
@@ -192,20 +194,22 @@ type Post {
   published: Date @date(format: "mmmm d, yyyy")
 }`;
 
+class DateFormatVisitor extends SchemaDirectiveVisitor {
+  visitFieldDefinition(field) {
+    const { resolve = defaultFieldResolver } = field;
+    const { format } = this.args;
+    field.type = GraphQLString;
+    field.resolve = async function (...args) {
+      const date = await resolve.apply(this, args);
+      return require('dateformat')(date, format);
+    };
+  }
+}
+
 const schema = makeExecutableSchema({
   typeDefs,
   directiveVisitors: {
-    date: class extends SchemaDirectiveVisitor {
-      visitFieldDefinition(field) {
-        const { resolve = defaultFieldResolver } = field;
-        const { format } = this.args;
-        field.type = GraphQLString;
-        field.resolve = async function (...args) {
-          const date = await resolve.apply(this, args);
-          return require('dateformat')(date, format);
-        };
-      }
-    }
+    date: DateFormatVisitor
   }
 });
 ```
@@ -222,21 +226,23 @@ type Query {
   greeting: String @intl
 }`;
 
+class IntlVisitor extends SchemaDirectiveVisitor {
+  visitFieldDefinition(field, details) {
+    const { resolve = defaultFieldResolver } = field;
+    field.resolve = async function (...args) {
+      const context = args[2];
+      const defaultText = await resolve.apply(this, args);
+      // In this example, path would be ["Query", "greeting"]:
+      const path = [details.objectType.name, field.name];
+      return translate(defaultText, path, context.locale);
+    };
+  }
+}
+
 const schema = makeExecutableSchema({
   typeDefs,
   directiveVisitors: {
-    intl: class extends SchemaDirectiveVisitor {
-      visitFieldDefinition(field, details) {
-        const { resolve = defaultFieldResolver } = field;
-        field.resolve = async function (...args) {
-          const context = args[2];
-          const defaultText = await resolve.apply(this, args);
-          // In this example, path would be ["Query", "greeting"]:
-          const path = [details.objectType.name, field.name];
-          return translate(defaultText, path, context.locale);
-        };
-      }
-    }
+    intl: IntlVisitor
   }
 });
 ```
@@ -269,49 +275,51 @@ type User @auth(requires: USER) {
 const authReqSymbol = Symbol.for("@auth required role");
 const authWrapSymbol = Symbol.for("@auth wrapped");
 
+class AuthVisitor extends SchemaDirectiveVisitor {
+  visitObject(type) {
+    this.ensureFieldsWrapped(type);
+    type[authReqSymbol] = this.args.requires;
+  }
+
+  visitFieldDefinition(field, details) {
+    this.ensureFieldsWrapped(details.objectType);
+    field[authReqSymbol] = this.args.requires;
+  }
+
+  ensureFieldsWrapped(type) {
+    // Mark the GraphQLObjectType object to avoid re-wrapping its fields:
+    if (type[authWrapSymbol]) {
+      return;
+    }
+
+    const fields = type.getFields();
+    Object.keys(fields).forEach(fieldName => {
+      const field = fields[fieldName];
+      const { resolve = defaultFieldResolver } = field;
+      field.resolve = async function (...args) {
+        // Get the required role from the field first, falling back to the
+        // parent GraphQLObjectType if no role is required by the field:
+        const requiredRole = field[authReqSymbol] || type[authReqSymbol];
+        if (! requiredRole) {
+          return resolve.apply(this, args);
+        }
+        const context = args[2];
+        const user = await getUser(context.headers.authToken);
+        if (! user.hasRole(requiredRole)) {
+          throw new Error("not authorized");
+        }
+        return resolve.apply(this, args);
+      };
+    });
+
+    type[authWrapSymbol] = true;
+  }
+};
+
 const schema = makeExecutableSchema({
   typeDefs,
   directiveVisitors: {
-    auth: class extends SchemaDirectiveVisitor {
-      visitObject(type) {
-        this.ensureFieldsWrapped(type);
-        type[authReqSymbol] = this.args.requires;
-      }
-
-      visitFieldDefinition(field, details) {
-        this.ensureFieldsWrapped(details.objectType);
-        field[authReqSymbol] = this.args.requires;
-      }
-
-      ensureFieldsWrapped(type) {
-        // Mark the GraphQLObjectType object to avoid re-wrapping its fields:
-        if (type[authWrapSymbol]) {
-          return;
-        }
-
-        const fields = type.getFields();
-        Object.keys(fields).forEach(fieldName => {
-          const field = fields[fieldName];
-          const { resolve = defaultFieldResolver } = field;
-          field.resolve = async function (...args) {
-            // Get the required role from the field first, falling back to the
-            // parent GraphQLObjectType if no role is required by the field:
-            const requiredRole = field[authReqSymbol] || type[authReqSymbol];
-            if (! requiredRole) {
-              return resolve.apply(this, args);
-            }
-            const context = args[2];
-            const user = await getUser(context.headers.authToken);
-            if (! user.hasRole(requiredRole)) {
-              throw new Error("not authorized");
-            }
-            return resolve.apply(this, args);
-          };
-        });
-
-        type[authWrapSymbol] = true;
-      }
-    }
+    auth: AuthVisitor
   }
 });
 ```
@@ -353,27 +361,28 @@ class LimitedLengthType extends GraphQLScalarType {
   }
 }
 
+class LengthVisitor extends SchemaDirectiveVisitor {
+  visitInputFieldDefinition(field) {
+    this.wrapType(field);
+  }
+
+  visitFieldDefinition(field) {
+    this.wrapType(field);
+  }
+
+  wrapType(field) {
+    // This LimitedLengthType should be just like field.type except that the
+    // serialize method enforces the length limit. For more information about
+    // GraphQLScalar type serialization, see the graphql-js implementation:
+    // https://github.com/graphql/graphql-js/blob/31ae8a8e8312494b858b69b2ab27b1837e2d8b1e/src/type/definition.js#L425-L446
+    field.type = new LimitedLengthType(field.type, this.args.max);
+  }
+}
+
 const schema = makeExecutableSchema({
   typeDefs,
   directiveVisitors: {
-    length: class extends SchemaDirectiveVisitor {
-      visitInputFieldDefinition(field) {
-        this.wrapType(field);
-      }
-
-      visitFieldDefinition(field) {
-        this.wrapType(field);
-      }
-
-      wrapType(field) {
-        // This LimitedLengthType should be just like field.type except that the
-        // serialize method enforces the length limit. For more information about
-        // GraphQLScalar type serialization, see the graphql-js implementation:
-        // https://github.com/graphql/graphql-js/blob/31ae8a8e8312494b858b69b2ab27b1837e2d8b1e/src/type/definition.js#L425-L446
-        field.type = new LimitedLengthType(field.type, this.args.max);
-      }
-    }
-  }
+    length: LengthVisitor
 });
 ```
 
@@ -393,28 +402,30 @@ type Location @uniqueID(name: "uid", from: ["locationID"]) {
   address: String
 }`;
 
+class UniqueIDVisitor extends SchemaDirectiveVisitor {
+  visitObject(type) {
+    const { name, from } = this.args;
+    type.getFields()[name] = {
+      name: name,
+      type: GraphQLID,
+      description: 'Unique ID',
+      args: [],
+      resolve(object) {
+        const hash = require("crypto").createHash("sha256");
+        hash.update(type.name);
+        from.forEach(fieldName => {
+          hash.update(String(object[fieldName]));
+        });
+        return hash.digest("hex");
+      }
+    };
+  }
+}
+
 const schema = makeExecutableSchema({
   typeDefs,
   directiveVisitors: {
-    uniqueID: class extends SchemaDirectiveVisitor {
-      visitObject(type) {
-        const { name, from } = this.args;
-        type.getFields()[name] = {
-          name: name,
-          type: GraphQLID,
-          description: 'Unique ID',
-          args: [],
-          resolve(object) {
-            const hash = require("crypto").createHash("sha256");
-            hash.update(type.name);
-            from.forEach(fieldName => {
-              hash.update(String(object[fieldName]));
-            });
-            return hash.digest("hex");
-          }
-        };
-      }
-    }
+    uniqueID: UniqueIDVisitor
   }
 });
 ```
