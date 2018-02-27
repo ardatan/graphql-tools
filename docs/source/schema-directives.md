@@ -341,6 +341,28 @@ input BookInput {
   title: String! @length(max: 50)
 }`;
 
+class LengthDirective extends SchemaDirectiveVisitor {
+  visitInputFieldDefinition(field) {
+    this.wrapType(field);
+  }
+
+  visitFieldDefinition(field) {
+    this.wrapType(field);
+  }
+
+  wrapType(field) {
+    if (field.type instanceof GraphQLNonNull &&
+        field.type.ofType instanceof GraphQLScalarType) {
+      field.type = new GraphQLNonNull(
+        new LimitedLengthType(field.type.ofType, this.args.max));
+    } else if (field.type instanceof GraphQLScalarType) {
+      field.type = new LimitedLengthType(field.type, this.args.max);
+    } else {
+      throw new Error(`Not a scalar type: ${field.type}`);
+    }
+  }
+}
+
 class LimitedLengthType extends GraphQLScalarType {
   constructor(type, maxLength) {
     super({
@@ -364,28 +386,6 @@ class LimitedLengthType extends GraphQLScalarType {
         return type.parseLiteral(ast);
       }
     });
-  }
-}
-
-class LengthDirective extends SchemaDirectiveVisitor {
-  visitInputFieldDefinition(field) {
-    this.wrapType(field);
-  }
-
-  visitFieldDefinition(field) {
-    this.wrapType(field);
-  }
-
-  wrapType(field) {
-    if (field.type instanceof GraphQLNonNull &&
-        field.type.ofType instanceof GraphQLScalarType) {
-      field.type = new GraphQLNonNull(
-        new LimitedLengthType(field.type.ofType, this.args.max));
-    } else if (field.type instanceof GraphQLScalarType) {
-      field.type = new LimitedLengthType(field.type, this.args.max);
-    } else {
-      throw new Error(`Not a scalar type: ${field.type}`);
-    }
   }
 }
 
