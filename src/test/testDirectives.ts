@@ -21,11 +21,10 @@ import {
   GraphQLScalarType,
   GraphQLSchema,
   GraphQLString,
-  GraphQLType,
-  Kind,
   StringValueNode,
   defaultFieldResolver,
   graphql,
+  GraphQLNonNull,
 } from 'graphql';
 
 const typeDefs = `
@@ -828,23 +827,23 @@ describe('@directives', () => {
 
   it('can be used to implement the @length example', async () => {
     class LimitedLengthType extends GraphQLScalarType {
-      constructor(type: GraphQLType, maxLength: number) {
+      constructor(type: GraphQLScalarType, maxLength: number) {
         super({
           name: `LengthAtMost${maxLength}`,
+
           serialize(value: string) {
-            assert.strictEqual(typeof value, 'string');
+            value = type.serialize(value);
+            assert.strictEqual(typeof value.length, 'number');
             assert.isAtMost(value.length, maxLength);
             return value;
           },
 
           parseValue(value: string) {
-            return String(value);
+            return type.parseValue(value);
           },
 
           parseLiteral(ast: StringValueNode) {
-            if (ast.kind === Kind.STRING) {
-              return ast.value;
-            }
+            return type.parseLiteral(ast);
           }
         });
       }
@@ -881,11 +880,15 @@ describe('@directives', () => {
           }
 
           private wrapType(field: GraphQLInputField | GraphQLField<any, any>) {
-            // This LimitedLengthType should be just like field.type except that the
-            // serialize method enforces the length limit. For more information about
-            // GraphQLScalar type serialization, see the graphql-js implementation:
-            // https://github.com/graphql/graphql-js/blob/31ae8a8e8312494b858b69b2ab27b1837e2d8b1e/src/type/definition.js#L425-L446
-            field.type = new LimitedLengthType(field.type, this.args.max);
+            if (field.type instanceof GraphQLNonNull &&
+                field.type.ofType instanceof GraphQLScalarType) {
+              field.type = new GraphQLNonNull(
+                new LimitedLengthType(field.type.ofType, this.args.max));
+            } else if (field.type instanceof GraphQLScalarType) {
+              field.type = new LimitedLengthType(field.type, this.args.max);
+            } else {
+              throw new Error(`Not a scalar type: ${field.type}`);
+            }
           }
         }
       },
