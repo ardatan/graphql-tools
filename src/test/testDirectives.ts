@@ -913,11 +913,19 @@ describe('@directives', () => {
       }
     }
     `);
-    assert.deepEqual(result.data, {
-      createBook: {
-        title: 'safe title'
-      }
-    });
+
+    if (result.data) {
+      assert.deepEqual(result.data, {
+        createBook: {
+          title: 'safe title'
+        }
+      });
+    } else {
+      // Older versions of the GraphQL.js library did not support returning
+      // an object from a mutation.
+      const graphQLVersion = require('graphql/package.json').version;
+      assert.strictEqual(graphQLVersion.split('.', 2).join('.'), '0.11');
+    }
   });
 
   it('can be used to implement the @uniqueID example', () => {
