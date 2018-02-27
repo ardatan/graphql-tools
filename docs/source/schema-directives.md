@@ -3,27 +3,39 @@ title: Schema directives
 description: Implementing and using custom `@directive`s that transform schema types, fields, and arguments
 ---
 
-## Schema directives
+A _directive_ is an identifier preceded by a `@` character, optionally followed by a list of named arguments, which can appear after almost any form of syntax in the GraphQL query or schema languages. Here's an example from the [GraphQL draft specification](http://facebook.github.io/graphql/draft/#sec-Type-System.Directives) that illustrates several of these possibilities:
 
-A _directive_ is an identifier preceded by a `@` character, optionally followed by a list of named arguments, which can appear after almost any form of syntax in the GraphQL query or schema languages.
+```typescript
+directive @deprecated(
+  reason: String = "No longer supported"
+) on FIELD_DEFINITION | ENUM_VALUE
 
-The [GraphQL specification](http://facebook.github.io/graphql/October2016/#sec-Type-System.Directives) requires every server implementation to support at least two directives, `@skip(if: Boolean)` and `@include(if: Boolean)`, which can be used during query execution to conditionally omit or include certain fields. The [GraphQL.js reference implementation](https://github.com/graphql/graphql-js) provides one additional built-in [`@deprecated`](https://github.com/graphql/graphql-js/blob/master/src/type/directives.js) directive, which is useful for indicating that a field or `enum` value should no longer be used.
+type ExampleType {
+  newField: String
+  oldField: String @deprecated(reason: "Use `newField`.")
+}
+```
 
-However, the formal syntax of the GraphQL query and schema languages allows arbitrary user-defined `@directive`s to appear as modifiers following almost any kind of type, field, or argument. Unless the server ascribes special meaning to these annotations, they are typically ignored after parsing, almost as if they were comments. But if the server knows how to interpret them, `@directive` annotations can be a powerful tool for preventing repetition, specifying extra behavior, enforcing additional type or value restrictions, and enabling static analysis.
+Points to notice in this example:
 
-This document focuses on `@directive`s that appear in GraphQL _schemas_ written in Schema Definition Language (SDL), as described in the [Schemas and Types](http://graphql.org/learn/schema/) section of the GraphQL.org documentation. These `@directive`s can be used to modify the structure and behavior of a GraphQL schema in ways that would not be possible using SDL syntax alone.
+* The `@deprecated` directive _follows_ the field that it pertains to (`oldField`), even though its syntax might remind you of "decorators" in other languages, which usually appear on the line above.
+* Directives are often _declared_ in the schema, as in this example, though it's up to the GraphQL server to enforce the argument types (`reason: String`) and locations (`FIELD_DEFINITION | ENUM_VALUE`) of the declaration.
+* The `@deprecated(reason: ...)` syntax is legal even without the `directive @deprecated ...` declaration.
+* Whether a directive has been declared or not, the GraphQL server is responsible for giving it meaning, or else it will be ignored after parsing, almost as if it was a comment.
 
-In order for a `@directive` to have any consequences, the GraphQL server must be configured to apply a specific implementation of that `@directive` to the `GraphQLSchema` object. This document describes one possible approach to defining reusable `@directive` implementations, namely the `SchemaDirectiveVisitor` abstraction provided by the `graphql-tools` npm package.
+While only a few directives are [required](http://facebook.github.io/graphql/draft/#sec--skip) by the specification, the formal syntax of the GraphQL query and schema languages allows arbitrary user-defined directives to appear as modifiers following almost any kind of type, field, or argument. If the server knows how to interpret them, these directive annotations can be a powerful tool for preventing repetition, specifying extra behavior, enforcing additional type or value restrictions, and enabling static analysis.
 
-The possible applications of `@directive` syntax are numerous: enforcing access permissions, formatting date strings, auto-generating resolver functions for a particular backend API, marking strings for internationalization, synthesizing globally unique object identifiers, specifying caching behavior, skipping or including or deprecating fields, and just about anything else you can imagine.
+This document focuses on directives that appear in GraphQL _schemas_ (as opposed to queries) written in [Schema Definition Language](https://github.com/facebook/graphql/pull/90), or SDL for short. Specifically, the following sections will explain how custom directives can be implemented and used to modify the structure and behavior of a GraphQL schema in ways that would not be possible using SDL syntax alone.
+
+The possible applications of directive syntax are numerous: enforcing access permissions, formatting date strings, auto-generating resolver functions for a particular backend API, marking strings for internationalization, synthesizing globally unique object identifiers, specifying caching behavior, skipping or including or deprecating fields, and just about anything else you can imagine.
 
 ## Implementing schema directives
 
-Since the GraphQL specification does not discuss any specific implementation strategy for `@directive`s, it's up to each GraphQL server framework to expose an API for implementing new directives.
+Since the GraphQL specification does not discuss any specific implementation strategy for directives, it's up to each GraphQL server framework to expose an API for implementing new directives.
 
-If you're using Apollo Server, you are also likely to be using the [`graphql-tools`](https://github.com/apollographql/graphql-tools) npm package, which provides a convenient yet powerful tool for implementing `@directive` syntax: the [`SchemaDirectiveVisitor`](https://github.com/apollographql/graphql-tools/blob/wip-schema-directives/src/schemaVisitor.ts) class.
+If you're using Apollo Server, you are also likely to be using the [`graphql-tools`](https://github.com/apollographql/graphql-tools) npm package, which provides a convenient yet powerful tool for implementing directive syntax: the [`SchemaDirectiveVisitor`](https://github.com/apollographql/graphql-tools/blob/wip-schema-directives/src/schemaVisitor.ts) class.
 
-To implement a schema `@directive` using `SchemaDirectiveVisitor`, simply create a subclass of `SchemaDirectiveVisitor` that overrides one or more of the following visitor methods:
+To implement a schema directive using `SchemaDirectiveVisitor`, simply create a subclass of `SchemaDirectiveVisitor` that overrides one or more of the following visitor methods:
 
 * `visitSchema(schema: GraphQLSchema)`
 * `visitScalar(scalar: GraphQLScalarType)`
@@ -39,38 +51,118 @@ To implement a schema `@directive` using `SchemaDirectiveVisitor`, simply create
 
 By overriding methods like `visitObject`, a subclass of `SchemaDirectiveVisitor` expresses interest in certain schema types such as `GraphQLObjectType` (the first parameter type of `visitObject`).
 
-When `SchemaDirectiveVisitor.visitSchemaDirectives` is called with a `GraphQLSchema` object and a map of visitor subclasses (`{ [directiveName: string]: typeof SchemaDirectiveVisitor }`), visitor methods overridden by those subclasses will be called with references to any schema type objects that have appropriately named `@directive`s attached to them, enabling the visitors to inspect or modify the schema.
+When `SchemaDirectiveVisitor.visitSchemaDirectives` is called with a `GraphQLSchema` object and a map of visitor subclasses (`{ [directiveName: string]: typeof SchemaDirectiveVisitor }`), visitor methods overridden by those subclasses will be invoked with references to any schema objects that have appropriately named directives attached to them, enabling the visitors to inspect or modify the schema.
 
-For example, if a directive called `@rest(url: "...")` appears after a field definition, a `SchemaDirectiveVisitor` subclass could provide meaning to that directive by overriding the `visitFieldDefinition` method (which receives a `GraphQLField` parameter), and then the body of that visitor method could manipulate the field's resolver function to fetch data from a REST endpoint:
+For example, here is one possible implementation of the `@deprecated` directive we saw above:
 
 ```typescript
-import {
-  makeExecutableSchema,
-  SchemaDirectiveVisitor,
-} from "graphql-tools";
+import { SchemaDirectiveVisitor } from "graphql-tools";
+
+class DeprecatedDirective extends SchemaDirectiveVisitor {
+  public visitFieldDefinition(field: GraphQLField<any, any>) {
+    value.isDeprecated = true;
+    value.deprecationReason = this.args.reason;
+  }
+
+  public visitEnumValue(value: GraphQLEnumValue) {
+    value.isDeprecated = true;
+    value.deprecationReason = this.args.reason;
+  }
+}
+```
+
+In order to apply this implementation to a schema that contains `@deprecated` directives, simply pass the `DeprecatedDirective` class to the `makeExecutableSchema` function via the `directives` option:
+
+```typescript
+import { makeExecutableSchema } from "graphql-tools";
 
 const typeDefs = `
+type ExampleType {
+  newField: String
+  oldField: String @deprecated(reason: "Use \`newField\`.")
+}`;
+
+const schema = makeExecutableSchema({
+  typeDefs,
+  directives: {
+    deprecated: DeprecatedDirective
+  }
+});
+```
+
+Alternatively, if you want to modify an existing schema object, you can use the `SchemaDirectiveVisitor.visitSchemaDirectives` interface directly:
+
+```typescript
+SchemaDirectiveVisitor.visitSchemaDirectives(schema, {
+  deprecated: DeprecatedDirective
+});
+```
+
+Note that a subclass of `SchemaDirectiveVisitor` may be instantiated multiple times to visit multiple different occurrences of the `@deprecated` directive. That's why you provide a class rather than an instance of that class.
+
+If for some reason you have a schema that uses another name for the `@deprecated` directive, that's not a problem. The same `DeprecatedDirective` class can be used with a different name, simply by changing its key in the `directives` object passed to `makeExecutableSchema`. In other words, `SchemaDirectiveVisitor` implementations are effectively anonymous, so it's up to whoever uses them to assign names to them.
+
+## Examples
+
+To appreciate the range of possibilities enabled by `SchemaDirectiveVisitor`, let's examine a variety of practical examples.
+
+> Note that these examples are written in JavaScript rather than TypeScript, though either language should work.
+
+### Uppercasing strings
+
+Suppose you want to ensure a string-valued field is converted to uppercase:
+
+```javascript
+import { defaultFieldResolver } from "graphql";
+
+const typeDefs = `
+directive @upper on FIELD_DEFINITION
+
+type Query {
+  hello: String @upper
+}`;
+
+class UpperCaseDirective extends SchemaDirectiveVisitor {
+  visitFieldDefinition(field) {
+    const { resolve = defaultFieldResolver } = field;
+    field.resolve = async function (...args) {
+      const result = await resolve.apply(this, args);
+      if (typeof result === "string") {
+        return result.toUpperCase();
+      }
+      return result;
+    };
+  }
+}
+
+const schema = makeExecutableSchema({
+  typeDefs,
+  directives: {
+    upper: UpperCaseDirective,
+    upperCase: UpperCaseDirective
+  }
+});
+```
+
+### Fetching data from a REST API
+
+Suppose you've defined an object type that corresponds to a [REST](https://en.wikipedia.org/wiki/Representational_state_transfer) resource, and you want to avoid implementing resolver functions for every field:
+
+```javascript
+const typeDefs = `
+directive @rest(url: String) on FIELD_DEFINITION
+
 type Query {
   people: [Person] @rest(url: "/api/v1/people")
 }`;
 
-const schema = makeExecutableSchema({ typeDefs });
-
 class RestDirective extends SchemaDirectiveVisitor {
-  public visitFieldDefinition(field: GraphQLField<any, any>) {
+  public visitFieldDefinition(field) {
     const { url } = this.args;
     field.resolve = () => fetch(url);
   }
 }
 
-SchemaDirectiveVisitor.visitSchemaDirectives(schema, {
-  rest: RestDirective
-});
-```
-
-For convenience, you can also pass directive implementations to `makeExecutableSchema` via the `directives` parameter:
-
-```typescript
 const schema = makeExecutableSchema({
   typeDefs,
   directives: {
@@ -79,7 +171,280 @@ const schema = makeExecutableSchema({
 });
 ```
 
-Note that a subclass of `SchemaDirectiveVisitor` may be instantiated multiple times to visit multiple different `@directive` occurrences, or even `@directive`s of different names. In other words, `SchemaDirectiveVisitor` implementations are effectively anonymous, so it's up to whoever uses them to assign names to them.
+There are many more issues to consider when implementing a real GraphQL wrapper over a REST endpoint (such as how to do caching or pagination), but this example demonstrates the basic structure.
+
+### Formatting date strings
+
+Suppose your resolver returns a `Date` object but you want to return a formatted string to the client:
+
+```javascript
+const typeDefs = `
+directive @date(format: String) on FIELD_DEFINITION
+
+scalar Date
+
+type Post {
+  published: Date @date(format: "mmmm d, yyyy")
+}`;
+
+class DateFormatDirective extends SchemaDirectiveVisitor {
+  visitFieldDefinition(field) {
+    const { resolve = defaultFieldResolver } = field;
+    const { format } = this.args;
+    field.resolve = async function (...args) {
+      const date = await resolve.apply(this, args);
+      return require('dateformat')(date, format);
+    };
+    // The formatted Date becomes a String, so the field type must change:
+    field.type = GraphQLString;
+  }
+}
+
+const schema = makeExecutableSchema({
+  typeDefs,
+  directives: {
+    date: DateFormatDirective
+  }
+});
+```
+
+### Marking strings for internationalization
+
+```typescript
+const typeDefs = `
+directive @intl on FIELD_DEFINITION
+
+type Query {
+  greeting: String @intl
+}`;
+
+class IntlDirective extends SchemaDirectiveVisitor {
+  visitFieldDefinition(field, details) {
+    const { resolve = defaultFieldResolver } = field;
+    field.resolve = async function (...args) {
+      const context = args[2];
+      const defaultText = await resolve.apply(this, args);
+      // In this example, path would be ["Query", "greeting"]:
+      const path = [details.objectType.name, field.name];
+      return translate(defaultText, path, context.locale);
+    };
+  }
+}
+
+const schema = makeExecutableSchema({
+  typeDefs,
+  directives: {
+    intl: IntlDirective
+  }
+});
+```
+
+### Enforcing access permissions
+
+To implement the `@auth` example mentioned in the [**Declaring schema directives** section](schema-directives.md#declaring-schema-directives) below:
+
+```typescript
+const typeDefs = `
+directive @auth(
+  requires: Role = ADMIN,
+) on OBJECT | FIELD_DEFINITION
+
+enum Role {
+  ADMIN
+  REVIEWER
+  USER
+  UNKNOWN
+}
+
+type User @auth(requires: USER) {
+  name: String
+  banned: Boolean @auth(requires: ADMIN)
+  canPost: Boolean @auth(requires: REVIEWER)
+}`;
+
+// Symbols can be a good way to store semi-hidden data on schema objects.
+const authRoleSymbol = Symbol.for("@auth role");
+const authWrapSymbol = Symbol.for("@auth wrapped");
+
+class AuthDirective extends SchemaDirectiveVisitor {
+  visitObject(type) {
+    this.ensureFieldsWrapped(type);
+    type[authRoleSymbol] = this.args.requires;
+  }
+
+  visitFieldDefinition(field, details) {
+    this.ensureFieldsWrapped(details.objectType);
+    field[authRoleSymbol] = this.args.requires;
+  }
+
+  ensureFieldsWrapped(type) {
+    // Mark the GraphQLObjectType object to avoid re-wrapping its fields:
+    if (type[authWrapSymbol]) {
+      return;
+    }
+
+    const fields = type.getFields();
+    Object.keys(fields).forEach(fieldName => {
+      const field = fields[fieldName];
+      const { resolve = defaultFieldResolver } = field;
+      field.resolve = async function (...args) {
+        // Get the required role from the field first, falling back to the
+        // parent GraphQLObjectType if no role is required by the field:
+        const requiredRole = field[authRoleSymbol] || type[authRoleSymbol];
+        if (! requiredRole) {
+          return resolve.apply(this, args);
+        }
+        const context = args[2];
+        const user = await getUser(context.headers.authToken);
+        if (! user.hasRole(requiredRole)) {
+          throw new Error("not authorized");
+        }
+        return resolve.apply(this, args);
+      };
+    });
+
+    type[authWrapSymbol] = true;
+  }
+};
+
+const schema = makeExecutableSchema({
+  typeDefs,
+  directives: {
+    auth: AuthDirective,
+    authorized: AuthDirective,
+    authenticated: AuthDirective
+  }
+});
+```
+
+### Enforcing value restrictions
+
+Suppose you want to enforce a maximum length for a string-valued field:
+
+```typescript
+const typeDefs = `
+directive @length(max: Int) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
+
+type Query {
+  books: [Book]
+}
+
+type Book {
+  title: String @length(max: 50)
+}
+
+type Mutation {
+  createBook(book: BookInput): Book
+}
+
+input BookInput {
+  title: String! @length(max: 50)
+}`;
+
+class LimitedLengthType extends GraphQLScalarType {
+  constructor(type, maxLength) {
+    super({
+      name: `LengthAtMost${maxLength}`,
+
+      // For more information about GraphQLScalar type (de)serialization,
+      // see the graphql-js implementation:
+      // https://github.com/graphql/graphql-js/blob/31ae8a8e8312/src/type/definition.js#L425-L446
+
+      serialize(value) {
+        value = type.serialize(value);
+        assert.isAtMost(value.length, maxLength);
+        return value;
+      }
+
+      parseValue(value) {
+        return type.parseValue(value);
+      },
+
+      parseLiteral(ast) {
+        return type.parseLiteral(ast);
+      }
+    });
+  }
+}
+
+class LengthDirective extends SchemaDirectiveVisitor {
+  visitInputFieldDefinition(field) {
+    this.wrapType(field);
+  }
+
+  visitFieldDefinition(field) {
+    this.wrapType(field);
+  }
+
+  wrapType(field) {
+    if (field.type instanceof GraphQLNonNull &&
+        field.type.ofType instanceof GraphQLScalarType) {
+      field.type = new GraphQLNonNull(
+        new LimitedLengthType(field.type.ofType, this.args.max));
+    } else if (field.type instanceof GraphQLScalarType) {
+      field.type = new LimitedLengthType(field.type, this.args.max);
+    } else {
+      throw new Error(`Not a scalar type: ${field.type}`);
+    }
+  }
+}
+
+const schema = makeExecutableSchema({
+  typeDefs,
+  directives: {
+    length: LengthDirective
+  }
+});
+```
+
+### Synthesizing unique IDs
+
+Suppose your database uses incrementing IDs for each resource type, so IDs are not unique across all resource types. Here's how you might synthesize a field called `uid` that combines the object type with the non-unique ID to produce an ID that's unique across your schema:
+
+```typescript
+const typeDefs = `
+declare @uniqueID(
+  name: String!
+  from: [String!] = ["id"]
+) on OBJECT
+
+type Person @uniqueID(name: "uid", from: ["personID"]) {
+  personID: Int
+  name: String
+}
+
+type Location @uniqueID(name: "uid") {
+  id: Int
+  address: String
+}`;
+
+class UniqueIdDirective extends SchemaDirectiveVisitor {
+  visitObject(type) {
+    const { name, from } = this.args;
+    type.getFields()[name] = {
+      name: name,
+      type: GraphQLID,
+      description: 'Unique ID',
+      args: [],
+      resolve(object) {
+        const hash = require("crypto").createHash("sha1");
+        hash.update(type.name);
+        from.forEach(fieldName => {
+          hash.update(String(object[fieldName]));
+        });
+        return hash.digest("hex");
+      }
+    };
+  }
+}
+
+const schema = makeExecutableSchema({
+  typeDefs,
+  directives: {
+    uniqueID: UniqueIdDirective
+  }
+});
+```
 
 ## Declaring schema directives
 
@@ -108,7 +473,7 @@ This hypothetical `@auth` directive takes an argument named `requires` of type `
 
 Enforcing the requirements of the declaration is something a `SchemaDirectiveVisitor` implementation could do itself, in theory, but the SDL syntax is easer to read and write, and provides value even if you're not using the `SchemaDirectiveVisitor` abstraction.
 
-However, if you're attempting to implement a reusable `SchemaDirectiveVisitor`, you may not be the one writing the SDL syntax, so you may not have control over which directives the schema author decides to declare, and how. That's why a well-implemented, reusable `SchemaDirectiveVisitor` should consider overriding the `getDirectiveDeclaration` method:
+However, if you're implementing a reusable `SchemaDirectiveVisitor` for public consumption, you will probably not be the person writing the SDL syntax, so you may not have control over which directives the schema author decides to declare, and how. That's why a well-implemented, reusable `SchemaDirectiveVisitor` should consider overriding the `getDirectiveDeclaration` method:
 
 ```typescript
 import {
@@ -172,313 +537,6 @@ class AuthDirective extends SchemaDirectiveVisitor {
 ```
 
 Since the `getDirectiveDeclaration` method receives not only the name of the directive but also the `GraphQLSchema` object, it can modify and/or reuse previous declarations found in the schema, as an alternative to returning a totally new `GraphQLDirective` object. Either way, if the visitor returns a non-null `GraphQLDirective` from `getDirectiveDeclaration`, that declaration will be used to check arguments and permissible locations.
-
-## Examples
-
-To appreciate the range of possibilities enabled by `SchemaDirectiveVisitor`, let's examine a variety of practical examples.
-
-> Note that these examples are written in JavaScript rather than TypeScript, though either language should work.
-
-### Uppercasing strings
-
-Suppose you want to ensure a string-valued field is converted to uppercase:
-
-```typescript
-import { defaultFieldResolver } from "graphql";
-
-const typeDefs = `
-directive @upper on FIELD_DEFINITION
-
-type Query {
-  hello: String @upper
-}`;
-
-class UpperCaseDirective extends SchemaDirectiveVisitor {
-  visitFieldDefinition(field) {
-    const { resolve = defaultFieldResolver } = field;
-    field.resolve = async function (...args) {
-      const result = await resolve.apply(this, args);
-      if (typeof result === "string") {
-        return result.toUpperCase();
-      }
-      return result;
-    };
-  }
-}
-
-const schema = makeExecutableSchema({
-  typeDefs,
-  directives: {
-    upper: UpperCaseDirective
-  }
-});
-```
-
-### Formatting date strings
-
-Suppose your resolver returns a `Date` object but you want to return a formatted string to the client:
-
-```typescript
-import { defaultFieldResolver } from "graphql";
-
-const typeDefs = `
-directive @date(format: String) on FIELD_DEFINITION
-
-scalar Date
-
-type Post {
-  published: Date @date(format: "mmmm d, yyyy")
-}`;
-
-class DateFormatDirective extends SchemaDirectiveVisitor {
-  visitFieldDefinition(field) {
-    const { resolve = defaultFieldResolver } = field;
-    const { format } = this.args;
-    field.type = GraphQLString;
-    field.resolve = async function (...args) {
-      const date = await resolve.apply(this, args);
-      return require('dateformat')(date, format);
-    };
-  }
-}
-
-const schema = makeExecutableSchema({
-  typeDefs,
-  directives: {
-    date: DateFormatDirective
-  }
-});
-```
-
-### Marking strings for internationalization
-
-```typescript
-import { defaultFieldResolver } from "graphql";
-
-const typeDefs = `
-directive @intl on FIELD_DEFINITION
-
-type Query {
-  greeting: String @intl
-}`;
-
-class IntlDirective extends SchemaDirectiveVisitor {
-  visitFieldDefinition(field, details) {
-    const { resolve = defaultFieldResolver } = field;
-    field.resolve = async function (...args) {
-      const context = args[2];
-      const defaultText = await resolve.apply(this, args);
-      // In this example, path would be ["Query", "greeting"]:
-      const path = [details.objectType.name, field.name];
-      return translate(defaultText, path, context.locale);
-    };
-  }
-}
-
-const schema = makeExecutableSchema({
-  typeDefs,
-  directives: {
-    intl: IntlDirective
-  }
-});
-```
-
-### Enforcing access permissions
-
-Suppose you want to implement the `@auth` example mentioned above:
-
-```typescript
-import { defaultFieldResolver } from "graphql";
-
-const typeDefs = `
-directive @auth(
-  requires: Role = ADMIN,
-) on OBJECT | FIELD_DEFINITION
-
-enum Role {
-  ADMIN
-  REVIEWER
-  USER
-  UNKNOWN
-}
-
-type User @auth(requires: USER) {
-  name: String
-  banned: Boolean @auth(requires: ADMIN)
-  canPost: Boolean @auth(requires: REVIEWER)
-}`;
-
-const authReqSymbol = Symbol.for("@auth required role");
-const authWrapSymbol = Symbol.for("@auth wrapped");
-
-class AuthDirective extends SchemaDirectiveVisitor {
-  visitObject(type) {
-    this.ensureFieldsWrapped(type);
-    type[authReqSymbol] = this.args.requires;
-  }
-
-  visitFieldDefinition(field, details) {
-    this.ensureFieldsWrapped(details.objectType);
-    field[authReqSymbol] = this.args.requires;
-  }
-
-  ensureFieldsWrapped(type) {
-    // Mark the GraphQLObjectType object to avoid re-wrapping its fields:
-    if (type[authWrapSymbol]) {
-      return;
-    }
-
-    const fields = type.getFields();
-    Object.keys(fields).forEach(fieldName => {
-      const field = fields[fieldName];
-      const { resolve = defaultFieldResolver } = field;
-      field.resolve = async function (...args) {
-        // Get the required role from the field first, falling back to the
-        // parent GraphQLObjectType if no role is required by the field:
-        const requiredRole = field[authReqSymbol] || type[authReqSymbol];
-        if (! requiredRole) {
-          return resolve.apply(this, args);
-        }
-        const context = args[2];
-        const user = await getUser(context.headers.authToken);
-        if (! user.hasRole(requiredRole)) {
-          throw new Error("not authorized");
-        }
-        return resolve.apply(this, args);
-      };
-    });
-
-    type[authWrapSymbol] = true;
-  }
-};
-
-const schema = makeExecutableSchema({
-  typeDefs,
-  directives: {
-    auth: AuthDirective
-  }
-});
-```
-
-### Enforcing value restrictions
-
-Suppose you want to enforce a maximum length for a string-valued field:
-
-```typescript
-const typeDefs = `
-directive @length(max: Int) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
-
-type Query {
-  books: [Book]
-}
-
-type Book {
-  title: String @length(max: 50)
-}
-
-type Mutation {
-  createBook(book: BookInput): Book
-}
-
-input BookInput {
-  title: String! @length(max: 50)
-}`;
-
-class LimitedLengthType extends GraphQLScalarType {
-  constructor(type, maxLength) {
-    super({
-      name: `LengthAtMost${maxLength}`,
-
-      serialize(value) {
-        assert.strictEqual(typeof value, "string");
-        assert.isAtMost(value.length, maxLength);
-        return value;
-      }
-
-      parseValue(value) {
-        if (typeof value === "string") {
-          return String(value);
-        }
-      },
-
-      parseLiteral(ast) {
-        if (ast.kind === "STRING") {
-          return ast.value;
-        }
-      }
-    });
-  }
-}
-
-class LengthDirective extends SchemaDirectiveVisitor {
-  visitInputFieldDefinition(field) {
-    this.wrapType(field);
-  }
-
-  visitFieldDefinition(field) {
-    this.wrapType(field);
-  }
-
-  wrapType(field) {
-    // This LimitedLengthType should be just like field.type except that the
-    // serialize method enforces the length limit. For more information about
-    // GraphQLScalar type serialization, see the graphql-js implementation:
-    // https://github.com/graphql/graphql-js/blob/31ae8a8e8312494b858b69b2ab27b1837e2d8b1e/src/type/definition.js#L425-L446
-    field.type = new LimitedLengthType(field.type, this.args.max);
-  }
-}
-
-const schema = makeExecutableSchema({
-  typeDefs,
-  directives: {
-    length: LengthDirective
-  }
-});
-```
-
-### Synthesizing unique IDs
-
-Suppose your database uses an incrementing ID for each resource type, so IDs are not unique across all resource types. Here's how you might synthesize a field called `uid` that combines the object type with the non-unique ID to produce an ID that's unique across your schema:
-
-```typescript
-const typeDefs = `
-type Person @uniqueID(name: "uid", from: ["personID"]) {
-  personID: Int
-  name: String
-}
-
-type Location @uniqueID(name: "uid", from: ["locationID"]) {
-  locationID: Int
-  address: String
-}`;
-
-class UniqueIdDirective extends SchemaDirectiveVisitor {
-  visitObject(type) {
-    const { name, from } = this.args;
-    type.getFields()[name] = {
-      name: name,
-      type: GraphQLID,
-      description: 'Unique ID',
-      args: [],
-      resolve(object) {
-        const hash = require("crypto").createHash("sha256");
-        hash.update(type.name);
-        from.forEach(fieldName => {
-          hash.update(String(object[fieldName]));
-        });
-        return hash.digest("hex");
-      }
-    };
-  }
-}
-
-const schema = makeExecutableSchema({
-  typeDefs,
-  directives: {
-    uniqueID: UniqueIdDirective
-  }
-});
-```
 
 ## What about `directiveResolvers`?
 
