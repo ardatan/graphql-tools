@@ -18,7 +18,6 @@ import {
   GraphQLInputObjectType,
   GraphQLObjectType,
   GraphQLSchema,
-  GraphQLDirective,
   GraphQLString,
   GraphQLID,
   GraphQLScalarType,
@@ -454,7 +453,10 @@ describe('@directives', () => {
 
   it('can also handle declared arguments', () => {
     const schemaText = `
-    directive @oyez(times: Int = 5) on OBJECT | FIELD_DEFINITION
+    directive @oyez(
+      times: Int = 5,
+      party: Party = IMPARTIAL,
+    ) on OBJECT | FIELD_DEFINITION
 
     schema {
       query: Courtroom
@@ -463,16 +465,12 @@ describe('@directives', () => {
     type Courtroom @oyez {
       judge: String @oyez(times: 0)
       marshall: String @oyez
-      lawyers(
-        # Should @oyez be disallowed here, since it wasn't declared with
-        # the ARGUMENT_DEFINITION location, or simply ignored?
-        party: Party @oyez(times: 0)
-      ): [String]
     }
 
     enum Party {
       DEFENSE
       PROSECUTION
+      IMPARTIAL
     }`;
 
     const schema = makeExecutableSchema({ typeDefs: schemaText });
@@ -485,8 +483,10 @@ describe('@directives', () => {
       oyez: class extends SchemaDirectiveVisitor {
         public static getDirectiveDeclaration(
           name: string,
-          prev: GraphQLDirective,
+          theSchema: GraphQLSchema,
         ) {
+          assert.strictEqual(theSchema, schema);
+          const prev = schema.getDirective(name);
           prev.args.some(arg => {
             if (arg.name === 'times') {
               // Override the default value of the times argument to be 3
@@ -510,6 +510,7 @@ describe('@directives', () => {
           } else if (field.name === 'marshall') {
             assert.strictEqual(this.args.times, 3);
           }
+          assert.strictEqual(this.args.party, 'IMPARTIAL');
         }
       }
     }, context);

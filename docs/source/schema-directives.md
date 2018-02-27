@@ -116,26 +116,67 @@ Enforcing the requirements of the declaration is something a `SchemaDirectiveVis
 However, if you're attempting to implement a reusable `SchemaDirectiveVisitor`, you may not be the one writing the SDL syntax, so you may not have control over which directives the schema author decides to declare, and how. That's why a well-implemented, reusable `SchemaDirectiveVisitor` should consider overriding the `getDirectiveDeclaration` method:
 
 ```typescript
+import {
+  DirectiveLocation,
+  GraphQLDirective,
+  GraphQLEnumType,
+} from "graphql";
+
 class AuthDirectiveVisitor extends SchemaDirectiveVisitor {
   public visitObject(object: GraphQLObjectType) {...}
   public visitFieldDefinition(field: GraphQLField<any, any>) {...}
 
   public static getDirectiveDeclaration(
     directiveName: string,
-    previousDirective?: GraphQLDirective,
+    schema: GraphQLSchema,
   ): GraphQLDirective {
-    previousDirective.args.forEach(arg => {
-      if (arg.name === 'requires') {
-        // Lower the default minimum Role from ADMIN to REVIEWER.
-        arg.defaultValue = 'REVIEWER';
-      }
+    const previousDirective = schema.getDirective(directiveName);
+    if (previousDirective) {
+      // If a previous directive declaration exists in the schema, it may be
+      // better to modify it than to return a new GraphQLDirective object.
+      previousDirective.args.forEach(arg => {
+        if (arg.name === 'requires') {
+          // Lower the default minimum Role from ADMIN to REVIEWER.
+          arg.defaultValue = 'REVIEWER';
+        }
+      });
+
+      return previousDirective;
+    }
+
+    // If a previous directive with this name was not found in the schema,
+    // there are several options:
+    //
+    // 1. Construct a new GraphQLDirective (see below).
+    // 2. Throw an exception to force the client to declare the directive.
+    // 3. Return null, and forget about declaring this directive.
+    //
+    // All three are valid options, since the visitor will still work without
+    // any declared directives. In fact, unless you're publishing a directive
+    // implementation for public consumption, you can probably just ignore
+    // getDirectiveDeclaration altogether.
+
+    return new GraphQLDirective({
+      name: directiveName,
+      locations: [
+        DirectiveLocation.OBJECT,
+        DirectiveLocation.FIELD_DEFINITION,
+      ],
+      args: {
+        requires: {
+          // Having the schema available here is important for obtaining
+          // references to existing type objects, such as the Role enum.
+          type: (schema.getType('Role') as GraphQLEnumType),
+          // Set the default minimum Role to REVIEWER.
+          defaultValue: 'REVIEWER',
+        }
+      }]
     });
-    return previousDirective;
   }
 }
 ```
 
-Since the `getDirectiveDeclaration` method receives not only the name of the directive but also any previous declaration found in the schema, it can either return a totally new `GraphQLDirective` object, or simply modify the `previousDirective` and return it. Either way, if the visitor returns a non-null `GraphQLDirective` from `getDirectiveDeclaration`, that declaration will be used to check arguments and permissible locations.
+Since the `getDirectiveDeclaration` method receives not only the name of the directive but also the `GraphQLSchema` object, it can modify and/or reuse previous declarations found in the schema, as an alternative to returning a totally new `GraphQLDirective` object. Either way, if the visitor returns a non-null `GraphQLDirective` from `getDirectiveDeclaration`, that declaration will be used to check arguments and permissible locations.
 
 ## Examples
 

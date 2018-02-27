@@ -298,9 +298,9 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
   // appear. By default, any declaration found in the schema will be returned.
   public static getDirectiveDeclaration(
     directiveName: string,
-    previousDeclaration?: GraphQLDirective,
+    schema: GraphQLSchema,
   ): GraphQLDirective {
-    return previousDeclaration;
+    return schema.getDirective(directiveName);
   }
 
   // Call SchemaDirectiveVisitor.visitSchemaDirectives to visit every
@@ -433,15 +433,7 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
     // goes to the trouble of implementing getDirectiveDeclaration, it should
     // be able to rely on that implementation.
     each(directiveVisitors, (visitorClass, directiveName) => {
-      const decl = visitorClass.getDirectiveDeclaration(
-        directiveName,
-        // Give the getDirectiveDeclaration method a chance to look at the
-        // existing declaration, in case it only needs to make minor tweaks.
-        // Ironically, this grants the SchemaDirectiveVisitor subclass the
-        // ability to visit/inspect/modify directive declarations found in
-        // the schema, even though they can't be decorated with @directives!
-        declaredDirectives[directiveName] || null,
-      );
+      const decl = visitorClass.getDirectiveDeclaration(directiveName, schema);
       if (decl) {
         declaredDirectives[directiveName] = decl;
       }
