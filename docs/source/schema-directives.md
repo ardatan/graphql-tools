@@ -393,10 +393,23 @@ class LimitedLengthType extends GraphQLScalarType {
   constructor(type, maxLength) {
     super({
       name: `LengthAtMost${maxLength}`,
+
       serialize(value) {
-        assert.strictEqual(typeof value, 'string');
+        assert.strictEqual(typeof value, "string");
         assert.isAtMost(value.length, maxLength);
         return value;
+      }
+
+      parseValue(value) {
+        if (typeof value === "string") {
+          return String(value);
+        }
+      },
+
+      parseLiteral(ast) {
+        if (ast.kind === "STRING") {
+          return ast.value;
+        }
       }
     });
   }

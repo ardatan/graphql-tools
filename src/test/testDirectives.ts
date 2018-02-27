@@ -9,21 +9,23 @@ import {
   visitSchema,
 } from '../schemaVisitor';
 import {
-  graphql,
+  ExecutionResult,
   GraphQLArgument,
   GraphQLEnumType,
   GraphQLEnumValue,
   GraphQLField,
+  GraphQLID,
   GraphQLInputField,
   GraphQLInputObjectType,
   GraphQLObjectType,
+  GraphQLScalarType,
   GraphQLSchema,
   GraphQLString,
-  GraphQLID,
-  GraphQLScalarType,
   GraphQLType,
-  ExecutionResult,
+  Kind,
+  StringValueNode,
   defaultFieldResolver,
+  graphql,
 } from 'graphql';
 
 const typeDefs = `
@@ -833,6 +835,16 @@ describe('@directives', () => {
             assert.strictEqual(typeof value, 'string');
             assert.isAtMost(value.length, maxLength);
             return value;
+          },
+
+          parseValue(value: string) {
+            return String(value);
+          },
+
+          parseLiteral(ast: StringValueNode) {
+            if (ast.kind === Kind.STRING) {
+              return ast.value;
+            }
           }
         });
       }
@@ -915,18 +927,15 @@ describe('@directives', () => {
     }
     `);
 
-    if (result.data) {
-      assert.deepEqual(result.data, {
-        createBook: {
-          title: 'safe title'
-        }
-      });
-    } else {
-      // Older versions of the GraphQL.js library did not support returning
-      // an object from a mutation.
-      const graphQLVersion = require('graphql/package.json').version;
-      assert.strictEqual(graphQLVersion.split('.', 2).join('.'), '0.11');
+    if (result.errors) {
+      assert.deepEqual(result.errors, []);
     }
+
+    assert.deepEqual(result.data, {
+      createBook: {
+        title: 'safe title'
+      }
+    });
   });
 
   it('can be used to implement the @uniqueID example', () => {
