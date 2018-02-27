@@ -112,7 +112,7 @@ To appreciate the range of possibilities enabled by `SchemaDirectiveVisitor`, le
 
 Suppose you want to ensure a string-valued field is converted to uppercase:
 
-```javascript
+```js
 import { defaultFieldResolver } from "graphql";
 
 const typeDefs = `
@@ -148,7 +148,7 @@ const schema = makeExecutableSchema({
 
 Suppose you've defined an object type that corresponds to a [REST](https://en.wikipedia.org/wiki/Representational_state_transfer) resource, and you want to avoid implementing resolver functions for every field:
 
-```javascript
+```js
 const typeDefs = `
 directive @rest(url: String) on FIELD_DEFINITION
 
@@ -177,7 +177,7 @@ There are many more issues to consider when implementing a real GraphQL wrapper 
 
 Suppose your resolver returns a `Date` object but you want to return a formatted string to the client:
 
-```javascript
+```js
 const typeDefs = `
 directive @date(format: String) on FIELD_DEFINITION
 
@@ -210,7 +210,7 @@ const schema = makeExecutableSchema({
 
 ### Marking strings for internationalization
 
-```typescript
+```js
 const typeDefs = `
 directive @intl on FIELD_DEFINITION
 
@@ -243,7 +243,7 @@ const schema = makeExecutableSchema({
 
 To implement the `@auth` example mentioned in the [**Declaring schema directives** section](schema-directives.md#declaring-schema-directives) below:
 
-```typescript
+```js
 const typeDefs = `
 directive @auth(
   requires: Role = ADMIN,
@@ -321,7 +321,7 @@ const schema = makeExecutableSchema({
 
 Suppose you want to enforce a maximum length for a string-valued field:
 
-```typescript
+```js
 const typeDefs = `
 directive @length(max: Int) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
 
@@ -401,7 +401,7 @@ const schema = makeExecutableSchema({
 
 Suppose your database uses incrementing IDs for each resource type, so IDs are not unique across all resource types. Here's how you might synthesize a field called `uid` that combines the object type with the non-unique ID to produce an ID that's unique across your schema:
 
-```typescript
+```js
 const typeDefs = `
 declare @uniqueID(
   name: String!
