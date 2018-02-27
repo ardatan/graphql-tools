@@ -56,35 +56,30 @@ type Query {
 
 const schema = makeExecutableSchema({ typeDefs });
 
-SchemaDirectiveVisitor.visitSchemaDirectives(schema, {
-  rest: class extends SchemaDirectiveVisitor {
-    public visitFieldDefinition(field: GraphQLField<any, any>) {
-      const { url } = this.args;
-      field.resolve = () => fetch(url);
-    }
+class RestDirective extends SchemaDirectiveVisitor {
+  public visitFieldDefinition(field: GraphQLField<any, any>) {
+    const { url } = this.args;
+    field.resolve = () => fetch(url);
   }
+}
+
+SchemaDirectiveVisitor.visitSchemaDirectives(schema, {
+  rest: RestDirective
 });
 ```
 
-The subclass in this example is defined as an anonymous `class` expression, for brevity. A truly reusable `SchemaDirectiveVisitor` would most likely be defined in a library using a named class declaration, and then exported for consumption by other modules and packages.
-
-It's also possible to pass directive implementations to `makeExecutableSchema` via the `directiveVisitors` parameter, if you prefer:
+For convenience, you can also pass directive implementations to `makeExecutableSchema` via the `directives` parameter:
 
 ```typescript
 const schema = makeExecutableSchema({
   typeDefs,
-  directiveVisitors: {
-    rest: class extends SchemaDirectiveVisitor {
-      public visitFieldDefinition(field: GraphQLField<any, any>) {
-        const { url } = this.args;
-        field.resolve = () => fetch(url);
-      }
-    }
+  directives: {
+    rest: RestDirective
   }
 });
 ```
 
-Note that a subclass of `SchemaDirectiveVisitor` may be instantiated multiple times to visit multiple different `@directive` occurrences, or even `@directive`s of different names. In other words, `SchemaDirectiveVisitor` implementations are effectively anonymous, and it's up to the caller of `SchemaDirectiveVisitor.visitSchemaDirectives` to assign names to them.
+Note that a subclass of `SchemaDirectiveVisitor` may be instantiated multiple times to visit multiple different `@directive` occurrences, or even `@directive`s of different names. In other words, `SchemaDirectiveVisitor` implementations are effectively anonymous, so it's up to whoever uses them to assign names to them.
 
 ## Declaring schema directives
 
@@ -122,7 +117,7 @@ import {
   GraphQLEnumType,
 } from "graphql";
 
-class AuthDirectiveVisitor extends SchemaDirectiveVisitor {
+class AuthDirective extends SchemaDirectiveVisitor {
   public visitObject(object: GraphQLObjectType) {...}
   public visitFieldDefinition(field: GraphQLField<any, any>) {...}
 
@@ -198,7 +193,7 @@ type Query {
   hello: String @upper
 }`;
 
-class UpperCaseVisitor extends SchemaDirectiveVisitor {
+class UpperCaseDirective extends SchemaDirectiveVisitor {
   visitFieldDefinition(field) {
     const { resolve = defaultFieldResolver } = field;
     field.resolve = async function (...args) {
@@ -213,8 +208,8 @@ class UpperCaseVisitor extends SchemaDirectiveVisitor {
 
 const schema = makeExecutableSchema({
   typeDefs,
-  directiveVisitors: {
-    upper: UpperCaseVisitor
+  directives: {
+    upper: UpperCaseDirective
   }
 });
 ```
@@ -235,7 +230,7 @@ type Post {
   published: Date @date(format: "mmmm d, yyyy")
 }`;
 
-class DateFormatVisitor extends SchemaDirectiveVisitor {
+class DateFormatDirective extends SchemaDirectiveVisitor {
   visitFieldDefinition(field) {
     const { resolve = defaultFieldResolver } = field;
     const { format } = this.args;
@@ -249,8 +244,8 @@ class DateFormatVisitor extends SchemaDirectiveVisitor {
 
 const schema = makeExecutableSchema({
   typeDefs,
-  directiveVisitors: {
-    date: DateFormatVisitor
+  directives: {
+    date: DateFormatDirective
   }
 });
 ```
@@ -267,7 +262,7 @@ type Query {
   greeting: String @intl
 }`;
 
-class IntlVisitor extends SchemaDirectiveVisitor {
+class IntlDirective extends SchemaDirectiveVisitor {
   visitFieldDefinition(field, details) {
     const { resolve = defaultFieldResolver } = field;
     field.resolve = async function (...args) {
@@ -282,8 +277,8 @@ class IntlVisitor extends SchemaDirectiveVisitor {
 
 const schema = makeExecutableSchema({
   typeDefs,
-  directiveVisitors: {
-    intl: IntlVisitor
+  directives: {
+    intl: IntlDirective
   }
 });
 ```
@@ -316,7 +311,7 @@ type User @auth(requires: USER) {
 const authReqSymbol = Symbol.for("@auth required role");
 const authWrapSymbol = Symbol.for("@auth wrapped");
 
-class AuthVisitor extends SchemaDirectiveVisitor {
+class AuthDirective extends SchemaDirectiveVisitor {
   visitObject(type) {
     this.ensureFieldsWrapped(type);
     type[authReqSymbol] = this.args.requires;
@@ -359,8 +354,8 @@ class AuthVisitor extends SchemaDirectiveVisitor {
 
 const schema = makeExecutableSchema({
   typeDefs,
-  directiveVisitors: {
-    auth: AuthVisitor
+  directives: {
+    auth: AuthDirective
   }
 });
 ```
@@ -415,7 +410,7 @@ class LimitedLengthType extends GraphQLScalarType {
   }
 }
 
-class LengthVisitor extends SchemaDirectiveVisitor {
+class LengthDirective extends SchemaDirectiveVisitor {
   visitInputFieldDefinition(field) {
     this.wrapType(field);
   }
@@ -435,8 +430,9 @@ class LengthVisitor extends SchemaDirectiveVisitor {
 
 const schema = makeExecutableSchema({
   typeDefs,
-  directiveVisitors: {
-    length: LengthVisitor
+  directives: {
+    length: LengthDirective
+  }
 });
 ```
 
@@ -456,7 +452,7 @@ type Location @uniqueID(name: "uid", from: ["locationID"]) {
   address: String
 }`;
 
-class UniqueIDVisitor extends SchemaDirectiveVisitor {
+class UniqueIdDirective extends SchemaDirectiveVisitor {
   visitObject(type) {
     const { name, from } = this.args;
     type.getFields()[name] = {
@@ -478,8 +474,8 @@ class UniqueIDVisitor extends SchemaDirectiveVisitor {
 
 const schema = makeExecutableSchema({
   typeDefs,
-  directiveVisitors: {
-    uniqueID: UniqueIDVisitor
+  directives: {
+    uniqueID: UniqueIdDirective
   }
 });
 ```
@@ -495,10 +491,10 @@ function attachDirectiveResolvers(
   schema: GraphQLSchema,
   directiveResolvers: IDirectiveResolvers<any, any>,
 ) {
-  const directiveVisitors = Object.create(null);
+  const directives = Object.create(null);
 
   Object.keys(directiveResolvers).forEach(directiveName => {
-    directiveVisitors[directiveName] = class extends SchemaDirectiveVisitor {
+    directives[directiveName] = class extends SchemaDirectiveVisitor {
       public visitFieldDefinition(field: GraphQLField<any, any>) {
         const resolver = directiveResolvers[directiveName];
         const originalResolver = field.resolve || defaultFieldResolver;
@@ -519,7 +515,7 @@ function attachDirectiveResolvers(
 
   SchemaDirectiveVisitor.visitSchemaDirectives(
     schema,
-    directiveVisitors,
+    directives,
   );
 }
 ```
