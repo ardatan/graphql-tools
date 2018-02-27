@@ -398,7 +398,7 @@ describe('@directives', () => {
     let argumentCount = 0;
     let fieldCount = 0;
 
-    const directiveVisitors = {
+    const directives = {
       directive: class extends SchemaDirectiveVisitor {
         public visitEnumValue(value: GraphQLEnumValue) {
           ++enumValueCount;
@@ -444,7 +444,7 @@ describe('@directives', () => {
 
     makeExecutableSchema({
       typeDefs: schemaText,
-      directiveVisitors,
+      directives,
     });
 
     assert.strictEqual(enumValueCount, 2);
@@ -537,7 +537,7 @@ describe('@directives', () => {
       type Query {
         hello: String @upper
       }`,
-      directiveVisitors: {
+      directives: {
         upper: class extends SchemaDirectiveVisitor {
           public visitFieldDefinition(field: GraphQLField<any, any>) {
             const { resolve = defaultFieldResolver } = field;
@@ -582,7 +582,7 @@ describe('@directives', () => {
         today: Date @date(format: "mmmm d, yyyy")
       }`,
 
-      directiveVisitors: {
+      directives: {
         date: class extends SchemaDirectiveVisitor {
           public visitFieldDefinition(field: GraphQLField<any, any>) {
             const { resolve = defaultFieldResolver } = field;
@@ -640,7 +640,7 @@ describe('@directives', () => {
         greeting: String @intl
       }`,
 
-      directiveVisitors: {
+      directives: {
         intl: class extends SchemaDirectiveVisitor {
           public visitFieldDefinition(field: GraphQLField<any, any>, details: {
             objectType: GraphQLObjectType,
@@ -720,7 +720,7 @@ describe('@directives', () => {
         users: [User]
       }`,
 
-      directiveVisitors: {
+      directives: {
         auth: class extends SchemaDirectiveVisitor {
           public visitObject(type: GraphQLObjectType) {
             this.ensureFieldsWrapped(type);
@@ -870,7 +870,7 @@ describe('@directives', () => {
         title: String! @length(max: 10)
       }`,
 
-      directiveVisitors: {
+      directives: {
         length: class extends SchemaDirectiveVisitor {
           public visitInputFieldDefinition(field: GraphQLInputField) {
             this.wrapType(field);
@@ -956,7 +956,7 @@ describe('@directives', () => {
         address: String
       }`,
 
-      directiveVisitors: {
+      directives: {
         uniqueID: class extends SchemaDirectiveVisitor {
           public visitObject(type: GraphQLObjectType) {
             const { name, from } = this.args;
