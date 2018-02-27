@@ -351,7 +351,7 @@ input BookInput {
 class LimitedLengthType extends GraphQLScalarType {
   constructor(type, maxLength) {
     super({
-      name: `Length <= ${maxLength}`,
+      name: `LengthAtMost${maxLength}`,
       serialize(value) {
         assert.strictEqual(typeof value, 'string');
         assert.isAtMost(value.length, maxLength);

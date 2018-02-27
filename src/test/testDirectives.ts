@@ -827,7 +827,7 @@ describe('@directives', () => {
     class LimitedLengthType extends GraphQLScalarType {
       constructor(type: GraphQLType, maxLength: number) {
         super({
-          name: `Length <= ${maxLength}`,
+          name: `LengthAtMost${maxLength}`,
           serialize(value: string) {
             assert.strictEqual(typeof value, 'string');
             assert.isAtMost(value.length, maxLength);
