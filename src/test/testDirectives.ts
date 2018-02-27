@@ -9,6 +9,7 @@ import {
   visitSchema,
 } from '../schemaVisitor';
 import {
+  graphql,
   GraphQLArgument,
   GraphQLEnumType,
   GraphQLEnumValue,
@@ -18,6 +19,12 @@ import {
   GraphQLObjectType,
   GraphQLSchema,
   GraphQLDirective,
+  GraphQLString,
+  GraphQLID,
+  GraphQLScalarType,
+  GraphQLType,
+  ExecutionResult,
+  defaultFieldResolver,
 } from 'graphql';
 
 const typeDefs = `
@@ -517,5 +524,487 @@ describe('@directives', () => {
       }),
       ['Courtroom', 'judge', 'marshall'],
     );
+  });
+
+  it('can be used to implement the @upper example', () => {
+    const schema = makeExecutableSchema({
+      typeDefs: `
+      directive @upper on FIELD_DEFINITION
+
+      type Query {
+        hello: String @upper
+      }`,
+      directiveVisitors: {
+        upper: class extends SchemaDirectiveVisitor {
+          public visitFieldDefinition(field: GraphQLField<any, any>) {
+            const { resolve = defaultFieldResolver } = field;
+            field.resolve = async function (...args: any[]) {
+              const result = await resolve.apply(this, args);
+              if (typeof result === 'string') {
+                return result.toUpperCase();
+              }
+              return result;
+            };
+          }
+        }
+      },
+      resolvers: {
+        Query: {
+          hello() {
+            return 'hello world';
+          }
+        }
+      }
+    });
+
+    return graphql(schema, `
+    query {
+      hello
+    }
+    `).then(({ data }) => {
+      assert.deepEqual(data, {
+        hello: 'HELLO WORLD'
+      });
+    });
+  });
+
+  it('can be used to implement the @date example', () => {
+    const schema = makeExecutableSchema({
+      typeDefs: `
+      directive @date(format: String) on FIELD_DEFINITION
+
+      scalar Date
+
+      type Query {
+        today: Date @date(format: "mmmm d, yyyy")
+      }`,
+
+      directiveVisitors: {
+        date: class extends SchemaDirectiveVisitor {
+          public visitFieldDefinition(field: GraphQLField<any, any>) {
+            const { resolve = defaultFieldResolver } = field;
+            const { format } = this.args;
+            field.type = GraphQLString;
+            field.resolve = async function (...args: any[]) {
+              const date = await resolve.apply(this, args);
+              return require('dateformat')(date, format);
+            };
+          }
+        }
+      },
+
+      resolvers: {
+        Query: {
+          today() {
+            return new Date(1519688273858);
+          }
+        }
+      }
+    });
+
+    return graphql(schema, `
+    query {
+      today
+    }
+    `).then(({ data }) => {
+      assert.deepEqual(data, {
+        today: 'February 26, 2018'
+      });
+    });
+  });
+
+  it('can be used to implement the @intl example', () => {
+    function translate(
+      text: string,
+      path: string[],
+      locale: string,
+    ) {
+      assert.strictEqual(text, 'hello');
+      assert.deepEqual(path, ['Query', 'greeting']);
+      assert.strictEqual(locale, 'fr');
+      return 'bonjour';
+    }
+
+    const context = {
+      locale: 'fr'
+    };
+
+    const schema = makeExecutableSchema({
+      typeDefs: `
+      directive @intl on FIELD_DEFINITION
+
+      type Query {
+        greeting: String @intl
+      }`,
+
+      directiveVisitors: {
+        intl: class extends SchemaDirectiveVisitor {
+          public visitFieldDefinition(field: GraphQLField<any, any>, details: {
+            objectType: GraphQLObjectType,
+          }) {
+            const { resolve = defaultFieldResolver } = field;
+            field.resolve = async function (...args: any[]) {
+              const defaultText = await resolve.apply(this, args);
+              // In this example, path would be ["Query", "greeting"]:
+              const path = [details.objectType.name, field.name];
+              assert.strictEqual(args[2], context);
+              return translate(defaultText, path, context.locale);
+            };
+          }
+        }
+      },
+
+      resolvers: {
+        Query: {
+          greeting() {
+            return 'hello';
+          }
+        }
+      }
+    });
+
+    return graphql(schema, `
+    query {
+      greeting
+    }
+    `, null, context).then(({ data }) => {
+      assert.deepEqual(data, {
+        greeting: 'bonjour'
+      });
+    });
+  });
+
+  it('can be used to implement the @auth example', async () => {
+    const authReqSymbol = Symbol.for('@auth required role');
+    const authWrapSymbol = Symbol.for('@auth wrapped');
+    const roles = [
+      'UNKNOWN',
+      'USER',
+      'REVIEWER',
+      'ADMIN',
+    ];
+
+    function getUser(token: string) {
+      return {
+        hasRole(role: string) {
+          const tokenIndex = roles.indexOf(token);
+          const roleIndex = roles.indexOf(role);
+          return roleIndex >= 0 && tokenIndex >= roleIndex;
+        }
+      };
+    }
+
+    const schema = makeExecutableSchema({
+      typeDefs: `
+      directive @auth(
+        requires: Role = ADMIN,
+      ) on OBJECT | FIELD_DEFINITION
+
+      enum Role {
+        ADMIN
+        REVIEWER
+        USER
+        UNKNOWN
+      }
+
+      type User @auth(requires: USER) {
+        name: String
+        banned: Boolean @auth(requires: ADMIN)
+        canPost: Boolean @auth(requires: REVIEWER)
+      }
+
+      type Query {
+        users: [User]
+      }`,
+
+      directiveVisitors: {
+        auth: class extends SchemaDirectiveVisitor {
+          public visitObject(type: GraphQLObjectType) {
+            this.ensureFieldsWrapped(type);
+            type[authReqSymbol] = this.args.requires;
+          }
+
+          public visitFieldDefinition(field: GraphQLField<any, any>, details: {
+            objectType: GraphQLObjectType,
+          }) {
+            this.ensureFieldsWrapped(details.objectType);
+            field[authReqSymbol] = this.args.requires;
+          }
+
+          private ensureFieldsWrapped(type: GraphQLObjectType) {
+            // Mark the GraphQLObjectType object to avoid re-wrapping its fields:
+            if (type[authWrapSymbol]) {
+              return;
+            }
+
+            const fields = type.getFields();
+            Object.keys(fields).forEach(fieldName => {
+              const field = fields[fieldName];
+              const { resolve = defaultFieldResolver } = field;
+              field.resolve = async function (...args: any[]) {
+                // Get the required role from the field first, falling back to the
+                // parent GraphQLObjectType if no role is required by the field:
+                const requiredRole = field[authReqSymbol] || type[authReqSymbol];
+                if (! requiredRole) {
+                  return resolve.apply(this, args);
+                }
+                const context = args[2];
+                const user = await getUser(context.headers.authToken);
+                if (! user.hasRole(requiredRole)) {
+                  throw new Error('not authorized');
+                }
+                return resolve.apply(this, args);
+              };
+            });
+
+            type[authWrapSymbol] = true;
+          }
+        }
+      },
+
+      resolvers: {
+        Query: {
+          users() {
+            return [{
+              banned: true,
+              canPost: false,
+              name: 'Ben'
+            }];
+          }
+        }
+      }
+    });
+
+    function execWithRole(role: string): Promise<ExecutionResult> {
+      return graphql(schema, `
+      query {
+        users {
+          name
+          banned
+          canPost
+        }
+      }
+      `, null, {
+        headers: {
+          authToken: role,
+        }
+      });
+    }
+
+    function checkErrors(
+      expectedCount: number,
+      ...expectedNames: string[],
+    ) {
+      return function ({ errors = [], data }: {
+        errors: any[],
+        data: any,
+      }) {
+        assert.strictEqual(errors.length, expectedCount);
+        assert(errors.every(error => error.message === 'not authorized'));
+        const actualNames = errors.map(error => error.path.slice(-1)[0]);
+        assert.deepEqual(
+          expectedNames.sort(),
+          actualNames.sort(),
+        );
+        return data;
+      };
+    }
+
+    return Promise.all([
+      execWithRole('UNKNOWN').then(checkErrors(3, 'banned', 'canPost', 'name')),
+      execWithRole('USER').then(checkErrors(2, 'banned', 'canPost')),
+      execWithRole('REVIEWER').then(checkErrors(1, 'banned')),
+      execWithRole('ADMIN').then(checkErrors(0)).then(data => {
+        assert.strictEqual(data.users.length, 1);
+        assert.strictEqual(data.users[0].banned, true);
+        assert.strictEqual(data.users[0].canPost, false);
+        assert.strictEqual(data.users[0].name, 'Ben');
+      }),
+    ]);
+  });
+
+  it('can be used to implement the @length example', async () => {
+    class LimitedLengthType extends GraphQLScalarType {
+      constructor(type: GraphQLType, maxLength: number) {
+        super({
+          name: `Length <= ${maxLength}`,
+          serialize(value: string) {
+            assert.strictEqual(typeof value, 'string');
+            assert.isAtMost(value.length, maxLength);
+            return value;
+          }
+        });
+      }
+    }
+
+    const schema = makeExecutableSchema({
+      typeDefs: `
+      directive @length(max: Int) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
+
+      type Query {
+        books: [Book]
+      }
+
+      type Book {
+        title: String @length(max: 10)
+      }
+
+      type Mutation {
+        createBook(book: BookInput): Book
+      }
+
+      input BookInput {
+        title: String! @length(max: 10)
+      }`,
+
+      directiveVisitors: {
+        length: class extends SchemaDirectiveVisitor {
+          public visitInputFieldDefinition(field: GraphQLInputField) {
+            this.wrapType(field);
+          }
+
+          public visitFieldDefinition(field: GraphQLField<any, any>) {
+            this.wrapType(field);
+          }
+
+          private wrapType(field: GraphQLInputField | GraphQLField<any, any>) {
+            // This LimitedLengthType should be just like field.type except that the
+            // serialize method enforces the length limit. For more information about
+            // GraphQLScalar type serialization, see the graphql-js implementation:
+            // https://github.com/graphql/graphql-js/blob/31ae8a8e8312494b858b69b2ab27b1837e2d8b1e/src/type/definition.js#L425-L446
+            field.type = new LimitedLengthType(field.type, this.args.max);
+          }
+        }
+      },
+
+      resolvers: {
+        Query: {
+          books() {
+            return [{
+              title: 'abcdefghijklmnopqrstuvwxyz'
+            }];
+          }
+        },
+        Mutation: {
+          createBook(parent, args) {
+            return args.book;
+          }
+        }
+      }
+    });
+
+    const { errors } = await graphql(schema, `
+    query {
+      books {
+        title
+      }
+    }
+    `);
+    assert.strictEqual(errors.length, 1);
+    assert.strictEqual(
+      errors[0].message,
+      'expected 26 to be at most 10',
+    );
+
+    const result = await graphql(schema, `
+    mutation {
+      createBook(book: { title: "safe title" }) {
+        title
+      }
+    }
+    `);
+    assert.deepEqual(result.data, {
+      createBook: {
+        title: 'safe title'
+      }
+    });
+  });
+
+  it('can be used to implement the @uniqueID example', () => {
+    const schema = makeExecutableSchema({
+      typeDefs: `
+      type Query {
+        people: [Person]
+        locations: [Location]
+      }
+
+      type Person @uniqueID(name: "uid", from: ["personID"]) {
+        personID: Int
+        name: String
+      }
+
+      type Location @uniqueID(name: "uid", from: ["locationID"]) {
+        locationID: Int
+        address: String
+      }`,
+
+      directiveVisitors: {
+        uniqueID: class extends SchemaDirectiveVisitor {
+          public visitObject(type: GraphQLObjectType) {
+            const { name, from } = this.args;
+            type.getFields()[name] = {
+              name: name,
+              type: GraphQLID,
+              description: 'Unique ID',
+              args: [],
+              resolve(object) {
+                const hash = require('crypto').createHash('sha1');
+                hash.update(type.name);
+                from.forEach((fieldName: string) => {
+                  hash.update(String(object[fieldName]));
+                });
+                return hash.digest('hex');
+              }
+            };
+          }
+        }
+      },
+
+      resolvers: {
+        Query: {
+          people(...args: any[]) {
+            return [{
+              personID: 1,
+              name: 'Ben',
+            }];
+          },
+          locations(...args: any[]) {
+            return [{
+              locationID: 1,
+              address: '140 10th St',
+            }];
+          }
+        }
+      }
+    });
+
+    return graphql(schema, `
+    query {
+      people {
+        uid
+        personID
+        name
+      }
+      locations {
+        uid
+        locationID
+        address
+      }
+    }
+    `, null, context).then(result => {
+      const { data } = result;
+
+      assert.deepEqual(data.people, [{
+        uid: '580a207c8e94f03b93a2b01217c3cc218490571a',
+        personID: 1,
+        name: 'Ben',
+      }]);
+
+      assert.deepEqual(data.locations, [{
+        uid: 'c31b71e6e23a7ae527f94341da333590dd7cba96',
+        locationID: 1,
+        address: '140 10th St',
+      }]);
+    });
   });
 });

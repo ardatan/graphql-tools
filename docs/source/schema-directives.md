@@ -141,11 +141,15 @@ Since the `getDirectiveDeclaration` method receives not only the name of the dir
 
 To appreciate the range of possibilities enabled by `SchemaDirectiveVisitor`, let's examine a variety of practical examples.
 
+> Note that these examples are written in JavaScript rather than TypeScript, though either language should work.
+
 ### Uppercasing strings
 
 Suppose you want to ensure a string-valued field is converted to uppercase:
 
 ```typescript
+import { defaultFieldResolver } from "graphql";
+
 const typeDefs = `
 directive @upper on FIELD_DEFINITION
 
@@ -157,15 +161,15 @@ const schema = makeExecutableSchema({
   typeDefs,
   directiveVisitors: {
     upper: class extends SchemaDirectiveVisitor {
-      public visitFieldDefinition(field: GraphQLField<any, any>) {
-        const { resolve } = field;
+      visitFieldDefinition(field) {
+        const { resolve = defaultFieldResolver } = field;
         field.resolve = async function (...args) {
           const result = await resolve.apply(this, args);
           if (typeof result === "string") {
             return result.toUpperCase();
           }
           return result;
-        }
+        };
       }
     }
   }
@@ -177,6 +181,8 @@ const schema = makeExecutableSchema({
 Suppose your resolver returns a `Date` object but you want to return a formatted string to the client:
 
 ```typescript
+import { defaultFieldResolver } from "graphql";
+
 const typeDefs = `
 directive @date(format: String) on FIELD_DEFINITION
 
@@ -190,11 +196,13 @@ const schema = makeExecutableSchema({
   typeDefs,
   directiveVisitors: {
     date: class extends SchemaDirectiveVisitor {
-      public visitFieldDefinition(field: GraphQLField<any, any>) {
-        const { resolve } = field;
+      visitFieldDefinition(field) {
+        const { resolve = defaultFieldResolver } = field;
+        const { format } = this.args;
+        field.type = GraphQLString;
         field.resolve = async function (...args) {
           const date = await resolve.apply(this, args);
-          return require("dateformat")(date, this.args.format);
+          return require('dateformat')(date, format);
         };
       }
     }
@@ -205,6 +213,8 @@ const schema = makeExecutableSchema({
 ### Marking strings for internationalization
 
 ```typescript
+import { defaultFieldResolver } from "graphql";
+
 const typeDefs = `
 directive @intl on FIELD_DEFINITION
 
@@ -215,11 +225,9 @@ type Query {
 const schema = makeExecutableSchema({
   typeDefs,
   directiveVisitors: {
-    date: class extends SchemaDirectiveVisitor {
-      public visitFieldDefinition(field: GraphQLField<any, any>, details: {
-        objectType: GraphQLObjectType,
-      }) {
-        const { resolve } = field;
+    intl: class extends SchemaDirectiveVisitor {
+      visitFieldDefinition(field, details) {
+        const { resolve = defaultFieldResolver } = field;
         field.resolve = async function (...args) {
           const context = args[2];
           const defaultText = await resolve.apply(this, args);
@@ -238,6 +246,8 @@ const schema = makeExecutableSchema({
 Suppose you want to implement the `@auth` example mentioned above:
 
 ```typescript
+import { defaultFieldResolver } from "graphql";
+
 const typeDefs = `
 directive @auth(
   requires: Role = ADMIN,
@@ -256,35 +266,36 @@ type User @auth(requires: USER) {
   canPost: Boolean @auth(requires: REVIEWER)
 }`;
 
+const authReqSymbol = Symbol.for("@auth required role");
+const authWrapSymbol = Symbol.for("@auth wrapped");
+
 const schema = makeExecutableSchema({
   typeDefs,
   directiveVisitors: {
     auth: class extends SchemaDirectiveVisitor {
-      private authReqSymbol = Symbol.for("@auth required role");
-      private authWrapSymbol = Symbol.for("@auth wrapped");
-
-      public visitObject(type: GraphQLObjectType) {
+      visitObject(type) {
         this.ensureFieldsWrapped(type);
-        type[authReqSymbol] = this.args.required;
+        type[authReqSymbol] = this.args.requires;
       }
 
-      public visitFieldDefinition(field: GraphQLField<any, any>, details: {
-        // The parent GraphQLObjectType of this GraphQLField:
-        objectType: GraphQLObjectType,
-      }) {
+      visitFieldDefinition(field, details) {
         this.ensureFieldsWrapped(details.objectType);
-        field[this.authReqSymbol] = this.args.required;
+        field[authReqSymbol] = this.args.requires;
       }
 
-      private ensureFieldsWrapped(type: GraphQLObjectType) {
-        const { authWrapSymbol, authReqSymbol } = this;
+      ensureFieldsWrapped(type) {
         // Mark the GraphQLObjectType object to avoid re-wrapping its fields:
-        if (type[authWrapSymbol]) return;
-        type[authWrapSymbol] = true;
+        if (type[authWrapSymbol]) {
+          return;
+        }
 
-        type.getFields().forEach(field => {
-          const { resolve } = field;
+        const fields = type.getFields();
+        Object.keys(fields).forEach(fieldName => {
+          const field = fields[fieldName];
+          const { resolve = defaultFieldResolver } = field;
           field.resolve = async function (...args) {
+            // Get the required role from the field first, falling back to the
+            // parent GraphQLObjectType if no role is required by the field:
             const requiredRole = field[authReqSymbol] || type[authReqSymbol];
             if (! requiredRole) {
               return resolve.apply(this, args);
@@ -297,6 +308,8 @@ const schema = makeExecutableSchema({
             return resolve.apply(this, args);
           };
         });
+
+        type[authWrapSymbol] = true;
       }
     }
   }
@@ -320,26 +333,39 @@ type Book {
 }
 
 type Mutation {
-  createBook(input: BookInput): Book
+  createBook(book: BookInput): Book
 }
 
 input BookInput {
   title: String! @length(max: 50)
 }`;
 
+class LimitedLengthType extends GraphQLScalarType {
+  constructor(type, maxLength) {
+    super({
+      name: `Length <= ${maxLength}`,
+      serialize(value) {
+        assert.strictEqual(typeof value, 'string');
+        assert.isAtMost(value.length, maxLength);
+        return value;
+      }
+    });
+  }
+}
+
 const schema = makeExecutableSchema({
   typeDefs,
   directiveVisitors: {
     length: class extends SchemaDirectiveVisitor {
-      public visitInputFieldDefinition(field: GraphQLInputField) {
+      visitInputFieldDefinition(field) {
         this.wrapType(field);
       }
 
-      public visitFieldDefinition(field: GraphQLField<any, any>) {
+      visitFieldDefinition(field) {
         this.wrapType(field);
       }
 
-      private helper(field: GraphQLInputField | GraphQLField<any, any>) {
+      wrapType(field) {
         // This LimitedLengthType should be just like field.type except that the
         // serialize method enforces the length limit. For more information about
         // GraphQLScalar type serialization, see the graphql-js implementation:
@@ -371,9 +397,9 @@ const schema = makeExecutableSchema({
   typeDefs,
   directiveVisitors: {
     uniqueID: class extends SchemaDirectiveVisitor {
-      public visitObject(type: GraphQLObjectType) {
+      visitObject(type) {
         const { name, from } = this.args;
-        object.getFields()[name] = {
+        type.getFields()[name] = {
           name: name,
           type: GraphQLID,
           description: 'Unique ID',
