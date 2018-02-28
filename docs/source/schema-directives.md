@@ -74,9 +74,9 @@ To implement a schema directive using `SchemaDirectiveVisitor`, simply create a 
 
 By overriding methods like `visitObject`, a subclass of `SchemaDirectiveVisitor` expresses interest in certain schema types such as `GraphQLObjectType` (the first parameter type of `visitObject`).
 
-When `SchemaDirectiveVisitor.visitSchemaDirectives` is called with a `GraphQLSchema` object and a map of visitor subclasses (`{ [directiveName: string]: typeof SchemaDirectiveVisitor }`), visitor methods overridden by those subclasses will be invoked with references to any schema objects that have appropriately named directives attached to them, enabling the visitors to inspect or modify the schema.
+These method names correspond to all possible [locations](https://github.com/graphql/graphql-js/blob/a62eea88d5844a3bd9725c0f3c30950a78727f3e/src/language/directiveLocation.js#L22-L33) where a directive may be used in a schema. For example, the location `INPUT_FIELD_DEFINITION` is handled by `visitInputFieldDefinition`.
 
-For example, here is one possible implementation of the `@deprecated` directive we saw above:
+Here is one possible implementation of the `@deprecated` directive we saw above:
 
 ```typescript
 import { SchemaDirectiveVisitor } from "graphql-tools";
@@ -123,7 +123,7 @@ SchemaDirectiveVisitor.visitSchemaDirectives(schema, {
 
 Note that a subclass of `SchemaDirectiveVisitor` may be instantiated multiple times to visit multiple different occurrences of the `@deprecated` directive. That's why you provide a class rather than an instance of that class.
 
-If for some reason you have a schema that uses another name for the `@deprecated` directive, that's not a problem. The same `DeprecatedDirective` class can be used with a different name, simply by changing its key in the `directives` object passed to `makeExecutableSchema`. In other words, `SchemaDirectiveVisitor` implementations are effectively anonymous, so it's up to whoever uses them to assign names to them.
+If for some reason you have a schema that uses another name for the `@deprecated` directive, but you want to use the same implementation, you can! The same `DeprecatedDirective` class can be passed with a different name, simply by changing its key in the `directives` object passed to `makeExecutableSchema`. In other words, `SchemaDirectiveVisitor` implementations are effectively anonymous, so it's up to whoever uses them to assign names to them.
 
 ## Examples
 
