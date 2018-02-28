@@ -129,11 +129,9 @@ If for some reason you have a schema that uses another name for the `@deprecated
 
 To appreciate the range of possibilities enabled by `SchemaDirectiveVisitor`, let's examine a variety of practical examples.
 
-> Note that these examples are written in JavaScript rather than TypeScript, though either language should work.
-
 ### Uppercasing strings
 
-Suppose you want to ensure a string-valued field is converted to uppercase:
+Suppose you want to ensure a string-valued field is converted to uppercase. Though this use case is simple, it's a good example of a directive implementation that works by wrapping a field's `resolve` function:
 
 ```js
 import { defaultFieldResolver } from "graphql";
@@ -166,6 +164,8 @@ const schema = makeExecutableSchema({
   }
 });
 ```
+
+Notice how easy it is to handle both `@upper` and `@upperCase` with the same `UpperCaseDirective` implementation.
 
 ### Fetching data from a REST API
 
@@ -233,6 +233,10 @@ const schema = makeExecutableSchema({
 
 ### Marking strings for internationalization
 
+Suppose you have a function called `translate` that takes a string, a path identifying that string's role in your application, and a target locale for the translation.
+
+Here's how you might make sure `translate` is used to localize the `greeting` field of a `Query` type:
+
 ```js
 const typeDefs = `
 directive @intl on FIELD_DEFINITION
@@ -262,9 +266,11 @@ const schema = makeExecutableSchema({
 });
 ```
 
+GraphQL is great for internationalization, since a GraphQL server can access unlimited translation data, and clients can simply ask for the translations they need.
+
 ### Enforcing access permissions
 
-To implement the `@auth` example mentioned in the [**Declaring schema directives** section](schema-directives.md#declaring-schema-directives) below:
+To implement the `@auth` example mentioned in the [**Declaring schema directives**](schema-directives.md#declaring-schema-directives) section below:
 
 ```js
 const typeDefs = `
@@ -373,6 +379,8 @@ class LengthDirective extends SchemaDirectiveVisitor {
     this.wrapType(field);
   }
 
+  // Replace field.type with a custom GraphQLScalarType that enforces the
+  // length restriction.
   wrapType(field) {
     if (field.type instanceof GraphQLNonNull &&
         field.type.ofType instanceof GraphQLScalarType) {
