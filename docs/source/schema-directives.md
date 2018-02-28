@@ -16,18 +16,41 @@ type ExampleType {
 }
 ```
 
-Points to notice in this example:
+As you can see, the usage of `@deprecated(reason: ...)` _follows_ the field that it pertains to (`oldField`), though the syntax might remind you of "decorators" in other languages, which usually appear on the line above. Directives are typically _declared_ once, using the `directive @deprecated ... on ...` syntax, and then _used_ zero or more times throughout the schema document, using the `@deprecated(reason: ...)` syntax.
 
-* The `@deprecated` directive _follows_ the field that it pertains to (`oldField`), even though its syntax might remind you of "decorators" in other languages, which usually appear on the line above.
-* Directives are often _declared_ in the schema, as in this example, though it's up to the GraphQL server to enforce the argument types (`reason: String`) and locations (`FIELD_DEFINITION | ENUM_VALUE`) of the declaration.
-* The `@deprecated(reason: ...)` syntax is legal even without the `directive @deprecated ...` declaration.
-* Whether a directive has been declared or not, the GraphQL server is responsible for giving it meaning, or else it will be ignored after parsing, almost as if it was a comment.
-
-While only a few directives are [required](http://facebook.github.io/graphql/draft/#sec--skip) by the specification, the formal syntax of the GraphQL query and schema languages allows arbitrary user-defined directives to appear as modifiers following almost any kind of type, field, or argument. If the server knows how to interpret them, these directive annotations can be a powerful tool for preventing repetition, specifying extra behavior, enforcing additional type or value restrictions, and enabling static analysis.
-
-This document focuses on directives that appear in GraphQL _schemas_ (as opposed to queries) written in [Schema Definition Language](https://github.com/facebook/graphql/pull/90), or SDL for short. Specifically, the following sections will explain how custom directives can be implemented and used to modify the structure and behavior of a GraphQL schema in ways that would not be possible using SDL syntax alone.
+Given a directive declaration, it's up to the GraphQL server to enforce the argument types (`reason: String`) and locations (`FIELD_DEFINITION | ENUM_VALUE`) of its usages. Use of undeclared directives is permitted as long as the GraphQL server can make sense of them. Of course, a GraphQL server may simply ignore directives it doesn't understand&mdash;which is certainly one way of interpreting them.
 
 The possible applications of directive syntax are numerous: enforcing access permissions, formatting date strings, auto-generating resolver functions for a particular backend API, marking strings for internationalization, synthesizing globally unique object identifiers, specifying caching behavior, skipping or including or deprecating fields, and just about anything else you can imagine.
+
+This document focuses on directives that appear in GraphQL _schemas_ (as opposed to queries) written in [Schema Definition Language](https://github.com/facebook/graphql/pull/90), or SDL for short. In the following sections, you will see how custom directives can be implemented and used to modify the structure and behavior of a GraphQL schema in ways that would not be possible using SDL syntax alone.
+
+## Using schema directives
+
+Most of this document is concerned with _implementing_ schema directives, and some of the examples may seem quite complicated. No matter how many tools and best practices you have at your disposal, it can be very difficult to implement a non-trivial schema directive in a reliable, reusable way. Exhaustive testing is essential, and using a typed language like TypeScript is recommended, because there are so many different schema types to worry about.
+
+However, the API we provide for _using_ a schema directive is extremely simple. Just import the implementation of the directive, then pass it to `makeExecutableSchema` via the `directives` argument, which is an object that maps directive names to directive implementations:
+
+```js
+import { makeExecutableSchema } from "graphql-tools";
+import { RenameDirective } from "rename-directive-package";
+
+const typeDefs = `
+type Person @rename(to: "Human") {
+  name: String!
+  currentDateMinusDateOfBirth: Int @rename(to: "age")
+}`;
+
+const schema = makeExecutableSchema({
+  typeDefs,
+  directives: {
+    rename: RenameDirective
+  }
+});
+```
+
+That's it. The implementation of `RenameDirective` takes care of everything else. If you understand what the directive is supposed to do to your schema, then you do not have to worry about how it works.
+
+Everything you read below addresses some aspect of how a directive like `@rename(to: ...)` could be implemented. If that's not something you care about right now, feel free to skim the rest of this document. When you need it, it will be here.
 
 ## Implementing schema directives
 
