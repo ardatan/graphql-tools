@@ -42,3 +42,18 @@ export function applyResultTransforms(
     originalResult,
   );
 }
+
+export function composeTransforms(...transforms: Array<Transform>): Transform {
+  const reverseTransforms = [...transforms].reverse();
+  return {
+    transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
+      return applySchemaTransforms(originalSchema, transforms);
+    },
+    transformRequest(originalRequest: Request): Request {
+      return applyRequestTransforms(originalRequest, reverseTransforms);
+    },
+    transformResult(result: Result): Result {
+      return applyResultTransforms(result, reverseTransforms);
+    },
+  };
+}

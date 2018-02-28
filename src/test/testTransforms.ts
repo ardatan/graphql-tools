@@ -13,7 +13,7 @@ import { Request, Result } from '../Interfaces';
 import { Transform } from '../transforms/transforms';
 import { visitSchema, VisitSchemaKind } from '../transforms/visitSchema';
 import visitObject from '../transforms/visitObject';
-import { propertySchema } from './testingSchemas';
+import { propertySchema, bookingSchema } from './testingSchemas';
 import makeSimpleTransformSchema from '../transforms/makeSimpleTransformSchema';
 
 function RenameTypes(renamer: (name: string) => string | undefined): Transform {
@@ -77,13 +77,22 @@ function RenameTypes(renamer: (name: string) => string | undefined): Transform {
     },
   };
 }
-//
-// type ImportDefinition = {
-//   types: {};
-//   fields: {};
-// };
-//
-// function importFromSchema(importString: string) {}
+
+function FilterTypes(filter: (type: GraphQLNamedType) => Boolean) {
+  return {
+    transformSchema(schema: GraphQLSchema): GraphQLSchema {
+      return visitSchema(schema, {
+        [VisitSchemaKind.TYPE](type: GraphQLNamedType): null | undefined {
+          if (filter(type)) {
+            return undefined;
+          } else {
+            return null;
+          }
+        },
+      });
+    },
+  };
+}
 
 describe('transforms', () => {
   describe('rename type', () => {
@@ -193,6 +202,78 @@ describe('transforms', () => {
             id: 'p1',
           },
         },
+      });
+    });
+  });
+
+  describe('filter type', () => {
+    let schema: GraphQLSchema;
+    before(() => {
+      const transforms = [
+        FilterTypes(type =>
+          ['ID', 'String', 'DateTime', 'Query', 'Booking'].includes(type.name),
+        ),
+      ];
+      schema = makeSimpleTransformSchema(bookingSchema, transforms);
+    });
+
+    it('should work normally', async () => {
+      const result = await graphql(
+        schema,
+        `
+          query {
+            bookingById(id: "b1") {
+              id
+              propertyId
+              startTime
+              endTime
+            }
+          }
+        `,
+      );
+
+      expect(result).to.deep.equal({
+        data: {
+          bookingById: {
+            endTime: '2016-06-03',
+            id: 'b1',
+            propertyId: 'p1',
+            startTime: '2016-05-04',
+          },
+        },
+      });
+    });
+
+    it('should error on removed types', async () => {
+      const result = await graphql(
+        schema,
+        `
+          query {
+            bookingById(id: "b1") {
+              id
+              propertyId
+              startTime
+              endTime
+              customer {
+                id
+              }
+            }
+          }
+        `,
+      );
+      expect(result).to.deep.equal({
+        errors: [
+          {
+            locations: [
+              {
+                column: 15,
+                line: 8,
+              },
+            ],
+            message: 'Cannot query field "customer" on type "Booking".',
+            path: undefined,
+          },
+        ],
       });
     });
   });

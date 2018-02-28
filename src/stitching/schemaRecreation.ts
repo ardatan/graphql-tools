@@ -209,8 +209,10 @@ function argsToFieldConfigArgumentMap(
 ): GraphQLFieldConfigArgumentMap {
   const result: GraphQLFieldConfigArgumentMap = {};
   args.forEach(arg => {
-    const [name, def] = argumentToArgumentConfig(arg, resolveType);
-    result[name] = def;
+    const newArg = argumentToArgumentConfig(arg, resolveType);
+    if (newArg) {
+      result[newArg[0]] = newArg[1];
+    }
   });
   return result;
 }
@@ -218,15 +220,20 @@ function argsToFieldConfigArgumentMap(
 function argumentToArgumentConfig(
   argument: GraphQLArgument,
   resolveType: ResolveType<any>,
-): [string, GraphQLArgumentConfig] {
-  return [
-    argument.name,
-    {
-      type: resolveType(argument.type),
-      defaultValue: argument.defaultValue,
-      description: argument.description,
-    },
-  ];
+): [string, GraphQLArgumentConfig] | null {
+  const type = resolveType(argument.type);
+  if (type === null) {
+    return null;
+  } else {
+    return [
+      argument.name,
+      {
+        type: type,
+        defaultValue: argument.defaultValue,
+        description: argument.description,
+      },
+    ];
+  }
 }
 
 function inputFieldMapToFieldConfigMap(

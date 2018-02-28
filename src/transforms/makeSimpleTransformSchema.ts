@@ -18,6 +18,8 @@ export default function makeSimpleTransformSchema(
     transforms,
     mapping,
   );
-  addResolveFunctionsToSchema(schema, resolvers);
+  addResolveFunctionsToSchema(schema, resolvers, {
+    allowResolversNotInSchema: true,
+  });
   return schema;
 }
