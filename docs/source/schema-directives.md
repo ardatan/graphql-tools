@@ -26,7 +26,7 @@ This document focuses on directives that appear in GraphQL _schemas_ (as opposed
 
 ## Using schema directives
 
-Most of this document is concerned with _implementing_ schema directives, and some of the examples may seem quite complicated. No matter how many tools and best practices you have at your disposal, it can be very difficult to implement a non-trivial schema directive in a reliable, reusable way. Exhaustive testing is essential, and using a typed language like TypeScript is recommended, because there are so many different schema types to worry about.
+Most of this document is concerned with _implementing_ schema directives, and some of the examples may seem quite complicated. No matter how many tools and best practices you have at your disposal, it can be difficult to implement a non-trivial schema directive in a reliable, reusable way. Exhaustive testing is essential, and using a typed language like TypeScript is recommended, because there are so many different schema types to worry about.
 
 However, the API we provide for _using_ a schema directive is extremely simple. Just import the implementation of the directive, then pass it to `makeExecutableSchema` via the `directives` argument, which is an object that maps directive names to directive implementations:
 
