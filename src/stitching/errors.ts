@@ -77,6 +77,14 @@ export function getErrorsFromParent(
   };
 }
 
+class CombinedError extends Error {
+  public errors: Error[];
+  constructor(message: string, errors: Error[]) {
+    super(message);
+    this.errors = errors;
+  }
+}
+
 export function checkResultAndHandleErrors(
   result: any,
   info: GraphQLResolveInfo,
@@ -94,7 +102,7 @@ export function checkResultAndHandleErrors(
     const newError =
       result.errors.length === 1 && hasResult(result.errors[0])
         ? result.errors[0]
-        : new Error(concatErrors(result.errors));
+        : new CombinedError(concatErrors(result.errors), result.errors);
 
     throw locatedError(
       newError,
