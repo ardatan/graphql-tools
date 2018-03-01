@@ -4,6 +4,8 @@ import ReplaceFieldWithFragment from './ReplaceFieldWithFragment';
 import AddTypenameToAbstract from './AddTypenameToAbstract';
 import FilterToSchema from './FilterToSchema';
 import makeSimpleTransformSchema from './makeSimpleTransformSchema';
+import RenameTypes from './RenameTypes';
+import FilterTypes from './FilterTypes';
 export * from './transforms';
 export * from './visitSchema';
 export { makeSimpleTransformSchema };
@@ -13,4 +15,6 @@ export const Transforms: { [name: string]: any } = {
   ReplaceFieldWithFragment,
   AddTypenameToAbstract,
   FilterToSchema,
+  RenameTypes,
+  FilterTypes,
 };
