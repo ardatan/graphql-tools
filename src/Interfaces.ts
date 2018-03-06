@@ -29,6 +29,12 @@ export interface IResolverOptions {
   __isTypeOf?: GraphQLIsTypeOfFn<any, any>;
 }
 
+export type Transform = {
+  transformSchema?: (schema: GraphQLSchema) => GraphQLSchema;
+  transformRequest?: (originalRequest: Request) => Request;
+  transformResult?: (result: Result) => Result;
+};
+
 export type MergeInfo = {
   delegate: (
     schemaName: string,
@@ -39,6 +45,15 @@ export type MergeInfo = {
     info: GraphQLResolveInfo,
   ) => any;
   getSubSchema: (schemaName: string) => GraphQLSchema;
+  delegateToSchema: (
+    schema: GraphQLSchema,
+    type: 'query' | 'mutation' | 'subscription',
+    fieldName: string,
+    args: { [key: string]: any },
+    context: { [key: string]: any },
+    info: GraphQLResolveInfo,
+    transforms?: Array<Transform>,
+  ) => any;
 };
 
 export type IFieldResolver<TSource, TContext> = (

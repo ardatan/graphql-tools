@@ -4,22 +4,37 @@ import {
   NamedTypeNode,
   Kind,
   GraphQLNamedType,
+  GraphQLScalarType,
 } from 'graphql';
+import isSpecifiedScalarType from '../isSpecifiedScalarType';
 import { Request, Result } from '../Interfaces';
 import { Transform } from '../transforms/transforms';
 import { visitSchema, VisitSchemaKind } from '../transforms/visitSchema';
 import visitObject from '../transforms/visitObject';
 
+export type RenameOptions = {
+  renameBuiltins: Boolean;
+  renameScalars: Boolean;
+};
+
 export default function RenameTypes(
   renamer: (name: string) => string | undefined,
+  options?: RenameOptions,
 ): Transform {
   const reverseMap = {};
+  const { renameBuiltins = false, renameScalars = true } = options || {};
   return {
     transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
       return visitSchema(originalSchema, {
         [VisitSchemaKind.TYPE](
           type: GraphQLNamedType,
         ): GraphQLNamedType | undefined {
+          if (isSpecifiedScalarType(type) && !renameBuiltins) {
+            return undefined;
+          }
+          if (type instanceof GraphQLScalarType && !renameScalars) {
+            return undefined;
+          }
           const newName = renamer(type.name);
           if (newName && newName !== type.name) {
             reverseMap[newName] = type.name;

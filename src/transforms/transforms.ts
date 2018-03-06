@@ -1,11 +1,7 @@
 import { GraphQLSchema } from 'graphql';
-import { Request, Result } from '../Interfaces';
+import { Request, Result, Transform } from '../Interfaces';
 
-export type Transform = {
-  transformSchema?: (schema: GraphQLSchema) => GraphQLSchema;
-  transformRequest?: (originalRequest: Request) => Request;
-  transformResult?: (result: Result) => Result;
-};
+export { Transform };
 
 export function applySchemaTransforms(
   originalSchema: GraphQLSchema,

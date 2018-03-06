@@ -36,7 +36,7 @@ import {
 } from './schemaRecreation';
 import delegateToSchema from './delegateToSchema';
 import typeFromAST, { GetType } from './typeFromAST';
-import ReplaceFieldWithFragment from '../transforms/ReplaceFieldWithFragment';
+import { Transform, Transforms } from '../transforms';
 import mergeDeep from '../mergeDeep';
 
 export type OnTypeConflict = (
@@ -59,7 +59,10 @@ export default function mergeSchemas({
   onTypeConflict,
   resolvers,
 }: {
-  schemas: Array<{ name: string; schema: string | GraphQLSchema }>;
+  schemas: Array<{
+    name: string;
+    schema: string | GraphQLSchema | Array<GraphQLNamedType>;
+  }>;
   onTypeConflict?: OnTypeConflict;
   resolvers?: Array<IResolvers> | IResolvers;
 }): GraphQLSchema {
@@ -86,7 +89,10 @@ export function mergeSchemasImplementation({
   visitType,
   resolvers,
 }: {
-  schemas: Array<{ name: string; schema: string | GraphQLSchema }>;
+  schemas: Array<{
+    name: string;
+    schema: string | GraphQLSchema | Array<GraphQLNamedType>;
+  }>;
   visitType?: VisitType;
   resolvers?: Array<IResolvers> | IResolvers;
 }): GraphQLSchema {
@@ -139,11 +145,13 @@ export function mergeSchemasImplementation({
       const queryType = schema.getQueryType();
       const mutationType = schema.getMutationType();
       const subscriptionType = schema.getSubscriptionType();
-      addTypeCandidate(typeCandidates, 'Query', {
-        schemaName: subSchema.name,
-        schema,
-        type: queryType,
-      });
+      if (queryType) {
+        addTypeCandidate(typeCandidates, 'Query', {
+          schemaName: subSchema.name,
+          schema,
+          type: queryType,
+        });
+      }
       if (mutationType) {
         addTypeCandidate(typeCandidates, 'Mutation', {
           schemaName: subSchema.name,
@@ -194,6 +202,13 @@ export function mergeSchemasImplementation({
       if (extensionsDocument.definitions.length > 0) {
         extensions.push(extensionsDocument);
       }
+    } else if (Array.isArray(subSchema.schema)) {
+      subSchema.schema.forEach(type => {
+        addTypeCandidate(typeCandidates, type.name, {
+          schemaName: subSchema.name,
+          type: type,
+        });
+      });
     } else {
       throw new Error(`Invalid schema ${subSchema.name}`);
     }
@@ -219,7 +234,7 @@ export function mergeSchemasImplementation({
       } else {
         throw new Error('Invalid `visitType` result for type "${typeName}"');
       }
-      types[typeName] = recreateType(type, resolveType);
+      types[typeName] = recreateType(type, resolveType, false);
       if (typeResolvers) {
         generatedResolvers[typeName] = typeResolvers;
       }
@@ -309,7 +324,7 @@ function createMergeInfo(
 In version 3.0, \`delegate\` requires a schema name as a first argument, have you updated your code?`);
       }
       const schema = schemas[schemaName];
-      const fragmentTransform = ReplaceFieldWithFragment(
+      const fragmentTransform = Transforms.ReplaceFieldWithFragment(
         schema,
         fragmentReplacements,
       );
@@ -324,6 +339,29 @@ In version 3.0, \`delegate\` requires a schema name as a first argument, have yo
         context,
         info,
         [fragmentTransform],
+      );
+    },
+    delegateToSchema(
+      schema: GraphQLSchema,
+      operation: 'query' | 'mutation' | 'subscription',
+      fieldName: string,
+      args: { [key: string]: any },
+      context: { [key: string]: any },
+      info: GraphQLResolveInfo,
+      transforms?: Array<Transform>,
+    ) {
+      const fragmentTransform = Transforms.ReplaceFieldWithFragment(
+        schema,
+        fragmentReplacements,
+      );
+      return delegateToSchema(
+        schema,
+        operation,
+        fieldName,
+        args,
+        context,
+        info,
+        [fragmentTransform, ...(transforms || [])],
       );
     },
   };
@@ -472,7 +510,7 @@ const defaultVisitType = (
     });
     const type = new GraphQLObjectType({
       name,
-      fields: fieldMapToFieldConfigMap(fields, resolveType),
+      fields: fieldMapToFieldConfigMap(fields, resolveType, false),
     });
     return {
       type,

@@ -35,7 +35,11 @@ export type TypeVisitor = (
   schema: GraphQLSchema,
 ) => GraphQLNamedType;
 
-export function visitSchema(schema: GraphQLSchema, visitor: SchemaVisitor) {
+export function visitSchema(
+  schema: GraphQLSchema,
+  visitor: SchemaVisitor,
+  stripResolvers?: Boolean,
+) {
   const types = {};
   const resolveType = createResolveType(name => {
     if (typeof types[name] === 'undefined') {
@@ -58,24 +62,24 @@ export function visitSchema(schema: GraphQLSchema, visitor: SchemaVisitor) {
           schema,
         );
         if (typeof result === 'undefined') {
-          types[typeName] = recreateType(type, resolveType);
+          types[typeName] = recreateType(type, resolveType, !stripResolvers);
         } else if (result === null) {
           types[typeName] = null;
         } else {
-          types[typeName] = recreateType(result, resolveType);
+          types[typeName] = recreateType(result, resolveType, !stripResolvers);
         }
       } else {
-        types[typeName] = recreateType(type, resolveType);
+        types[typeName] = recreateType(type, resolveType, !stripResolvers);
       }
     }
   });
   return new GraphQLSchema({
-    query: queryType ? types[queryType.name] as GraphQLObjectType : null,
+    query: queryType ? (types[queryType.name] as GraphQLObjectType) : null,
     mutation: mutationType
-      ? types[mutationType.name] as GraphQLObjectType
+      ? (types[mutationType.name] as GraphQLObjectType)
       : null,
     subscription: subscriptionType
-      ? types[subscriptionType.name] as GraphQLObjectType
+      ? (types[subscriptionType.name] as GraphQLObjectType)
       : null,
     types: Object.keys(types).map(name => types[name]),
   });

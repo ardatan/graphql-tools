@@ -1,17 +1,18 @@
 import { GraphQLSchema } from 'graphql';
 import { addResolveFunctionsToSchema } from '../schemaGenerator';
 
+import { visitSchema } from '../transforms/visitSchema';
 import { Transform, applySchemaTransforms } from '../transforms/transforms';
 import {
   generateProxyingResolvers,
   generateSimpleMapping,
 } from '../stitching/resolvers';
 
-export default function makeSimpleTransformSchema(
+export default function makeTransformSchema(
   targetSchema: GraphQLSchema,
   transforms: Array<Transform>,
-) {
-  const schema = applySchemaTransforms(targetSchema, transforms);
+): GraphQLSchema & { transforms: Array<Transform> } {
+  let schema = visitSchema(targetSchema, {}, true);
   const mapping = generateSimpleMapping(targetSchema);
   const resolvers = generateProxyingResolvers(
     targetSchema,
@@ -21,5 +22,7 @@ export default function makeSimpleTransformSchema(
   addResolveFunctionsToSchema(schema, resolvers, {
     allowResolversNotInSchema: true,
   });
-  return schema;
+  schema = applySchemaTransforms(schema, transforms);
+  (schema as any).transforms = transforms;
+  return schema as GraphQLSchema & { transforms: Array<Transform> };
 }

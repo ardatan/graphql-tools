@@ -64,7 +64,7 @@ export function generateSimpleMapping(targetSchema: GraphQLSchema): Mapping {
   return result;
 }
 
-function generateMappingFromObjectType(
+export function generateMappingFromObjectType(
   type: GraphQLObjectType,
   operation: Operation,
 ): {

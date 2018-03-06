@@ -3,7 +3,7 @@
 import { expect } from 'chai';
 import { GraphQLSchema, GraphQLNamedType, graphql } from 'graphql';
 import { propertySchema, bookingSchema } from './testingSchemas';
-import { Transforms, makeSimpleTransformSchema } from '../transforms';
+import { Transforms, makeTransformSchema } from '../transforms';
 
 describe('transforms', () => {
   describe('rename type', () => {
@@ -23,7 +23,7 @@ describe('transforms', () => {
             }[name]),
         ),
       ];
-      schema = makeSimpleTransformSchema(propertySchema, transforms);
+      schema = makeTransformSchema(propertySchema, transforms);
     });
     it('should work', async () => {
       const result = await graphql(
@@ -74,7 +74,7 @@ describe('transforms', () => {
       const transforms = [
         Transforms.RenameTypes((name: string) => `Property_${name}`),
       ];
-      schema = makeSimpleTransformSchema(propertySchema, transforms);
+      schema = makeTransformSchema(propertySchema, transforms);
     });
     it('should work', async () => {
       const result = await graphql(
@@ -127,7 +127,7 @@ describe('transforms', () => {
           ['ID', 'String', 'DateTime', 'Query', 'Booking'].includes(type.name),
         ),
       ];
-      schema = makeSimpleTransformSchema(bookingSchema, transforms);
+      schema = makeTransformSchema(bookingSchema, transforms);
     });
 
     it('should work normally', async () => {

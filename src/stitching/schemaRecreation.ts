@@ -1,28 +1,23 @@
 import {
   GraphQLArgument,
   GraphQLArgumentConfig,
-  GraphQLBoolean,
   GraphQLEnumType,
   GraphQLField,
   GraphQLFieldConfig,
   GraphQLFieldConfigArgumentMap,
   GraphQLFieldConfigMap,
   GraphQLFieldMap,
-  GraphQLFloat,
-  GraphQLID,
   GraphQLInputField,
   GraphQLInputFieldConfig,
   GraphQLInputFieldConfigMap,
   GraphQLInputFieldMap,
   GraphQLInputObjectType,
-  GraphQLInt,
   GraphQLInterfaceType,
   GraphQLList,
   GraphQLNamedType,
   GraphQLNonNull,
   GraphQLObjectType,
   GraphQLScalarType,
-  GraphQLString,
   GraphQLType,
   GraphQLUnionType,
   Kind,
@@ -30,6 +25,7 @@ import {
   getNamedType,
   isNamedType,
 } from 'graphql';
+import isSpecifiedScalarType from '../isSpecifiedScalarType';
 import { ResolveType } from '../Interfaces';
 import resolveFromParentTypename from './resolveFromParentTypename';
 import defaultMergedResolver from './defaultMergedResolver';
@@ -37,6 +33,7 @@ import defaultMergedResolver from './defaultMergedResolver';
 export function recreateType(
   type: GraphQLNamedType,
   resolveType: ResolveType<any>,
+  keepResolvers: Boolean,
 ): GraphQLNamedType {
   if (type instanceof GraphQLObjectType) {
     const fields = type.getFields();
@@ -46,7 +43,9 @@ export function recreateType(
       name: type.name,
       description: type.description,
       astNode: type.astNode,
-      fields: () => fieldMapToFieldConfigMap(fields, resolveType),
+      isTypeOf: keepResolvers ? type.isTypeOf : undefined,
+      fields: () =>
+        fieldMapToFieldConfigMap(fields, resolveType, keepResolvers),
       interfaces: () => interfaces.map(iface => resolveType(iface)),
     });
   } else if (type instanceof GraphQLInterfaceType) {
@@ -56,9 +55,12 @@ export function recreateType(
       name: type.name,
       description: type.description,
       astNode: type.astNode,
-      fields: () => fieldMapToFieldConfigMap(fields, resolveType),
-      resolveType: (parent, context, info) =>
-        resolveFromParentTypename(parent, info.schema),
+      fields: () =>
+        fieldMapToFieldConfigMap(fields, resolveType, keepResolvers),
+      resolveType: keepResolvers
+        ? type.resolveType
+        : (parent, context, info) =>
+            resolveFromParentTypename(parent, info.schema),
     });
   } else if (type instanceof GraphQLUnionType) {
     return new GraphQLUnionType({
@@ -67,8 +69,10 @@ export function recreateType(
       astNode: type.astNode,
 
       types: () => type.getTypes().map(unionMember => resolveType(unionMember)),
-      resolveType: (parent, context, info) =>
-        resolveFromParentTypename(parent, info.schema),
+      resolveType: keepResolvers
+        ? type.resolveType
+        : (parent, context, info) =>
+            resolveFromParentTypename(parent, info.schema),
     });
   } else if (type instanceof GraphQLInputObjectType) {
     return new GraphQLInputObjectType({
@@ -92,13 +96,7 @@ export function recreateType(
       values: newValues,
     });
   } else if (type instanceof GraphQLScalarType) {
-    if (
-      type === GraphQLID ||
-      type === GraphQLString ||
-      type === GraphQLFloat ||
-      type === GraphQLBoolean ||
-      type === GraphQLInt
-    ) {
+    if (isSpecifiedScalarType(type)) {
       return type;
     } else {
       return new GraphQLScalarType({
@@ -150,13 +148,18 @@ function parseLiteral(ast: ValueNode): any {
 export function fieldMapToFieldConfigMap(
   fields: GraphQLFieldMap<any, any>,
   resolveType: ResolveType<any>,
+  keepResolvers: Boolean,
 ): GraphQLFieldConfigMap<any, any> {
   const result: GraphQLFieldConfigMap<any, any> = {};
   Object.keys(fields).forEach(name => {
     const field = fields[name];
     const type = resolveType(field.type);
     if (type !== null) {
-      result[name] = fieldToFieldConfig(fields[name], resolveType);
+      result[name] = fieldToFieldConfig(
+        fields[name],
+        resolveType,
+        keepResolvers,
+      );
     }
   });
   return result;
@@ -189,21 +192,23 @@ export function createResolveType(
   return resolveType;
 }
 
-function fieldToFieldConfig(
+export function fieldToFieldConfig(
   field: GraphQLField<any, any>,
   resolveType: ResolveType<any>,
+  keepResolvers: Boolean,
 ): GraphQLFieldConfig<any, any> {
   return {
     type: resolveType(field.type),
     args: argsToFieldConfigArgumentMap(field.args, resolveType),
-    resolve: defaultMergedResolver,
+    resolve: keepResolvers ? field.resolve : defaultMergedResolver,
+    subscribe: keepResolvers ? field.subscribe : null,
     description: field.description,
     deprecationReason: field.deprecationReason,
     astNode: field.astNode,
   };
 }
 
-function argsToFieldConfigArgumentMap(
+export function argsToFieldConfigArgumentMap(
   args: Array<GraphQLArgument>,
   resolveType: ResolveType<any>,
 ): GraphQLFieldConfigArgumentMap {
@@ -217,7 +222,7 @@ function argsToFieldConfigArgumentMap(
   return result;
 }
 
-function argumentToArgumentConfig(
+export function argumentToArgumentConfig(
   argument: GraphQLArgument,
   resolveType: ResolveType<any>,
 ): [string, GraphQLArgumentConfig] | null {
@@ -236,7 +241,7 @@ function argumentToArgumentConfig(
   }
 }
 
-function inputFieldMapToFieldConfigMap(
+export function inputFieldMapToFieldConfigMap(
   fields: GraphQLInputFieldMap,
   resolveType: ResolveType<any>,
 ): GraphQLInputFieldConfigMap {
@@ -251,7 +256,7 @@ function inputFieldMapToFieldConfigMap(
   return result;
 }
 
-function inputFieldToFieldConfig(
+export function inputFieldToFieldConfig(
   field: GraphQLInputField,
   resolveType: ResolveType<any>,
 ): GraphQLInputFieldConfig {

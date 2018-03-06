@@ -33,7 +33,7 @@ export default async function delegateToSchema(
   args: { [key: string]: any },
   context: { [key: string]: any },
   info: GraphQLResolveInfo,
-  transforms: Array<Transform>,
+  transforms?: Array<Transform>,
 ): Promise<any> {
   const rawDocument: DocumentNode = createDocument(
     targetField,
@@ -51,7 +51,7 @@ export default async function delegateToSchema(
   };
 
   transforms = [
-    ...transforms,
+    ...(transforms || []),
     AddArgumentsAsVariables(targetSchema, args),
     FilterToSchema(targetSchema),
     AddTypenameToAbstract(targetSchema),
