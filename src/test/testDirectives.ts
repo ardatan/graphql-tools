@@ -25,6 +25,8 @@ import {
   defaultFieldResolver,
   graphql,
   GraphQLNonNull,
+  GraphQLList,
+  GraphQLUnionType,
 } from 'graphql';
 
 const typeDefs = `
@@ -1027,5 +1029,44 @@ describe('@directives', () => {
         address: '140 10th St',
       }]);
     });
+  });
+
+  it('automatically updates references to changed types', () => {
+    let HumanType: GraphQLObjectType = null;
+
+    const schema = makeExecutableSchema({
+      typeDefs,
+      directives: {
+        objectTypeDirective: class extends SchemaDirectiveVisitor {
+          public visitObject(object: GraphQLObjectType) {
+            HumanType = Object.create(object, {
+              name: { value: 'Human' }
+            });
+            this.schema.getTypeMap()[object.name] = HumanType;
+          }
+        }
+      }
+    });
+
+    const Query = schema.getType('Query') as GraphQLObjectType;
+    const peopleType = Query.getFields().people.type;
+    if (peopleType instanceof GraphQLList) {
+      assert.strictEqual(peopleType.ofType, HumanType);
+    } else {
+      throw new Error('Query.people not a GraphQLList type');
+    }
+
+    const Mutation = schema.getType('Mutation') as GraphQLObjectType;
+    const addPersonResultType = Mutation.getFields().addPerson.type;
+    assert.strictEqual(addPersonResultType, HumanType);
+
+    const WhateverUnion = schema.getType('WhateverUnion') as GraphQLUnionType;
+    const found = WhateverUnion.getTypes().some(type => {
+      if (type.name === 'Human') {
+        assert.strictEqual(type, HumanType);
+        return true;
+      }
+    });
+    assert.strictEqual(found, true);
   });
 });

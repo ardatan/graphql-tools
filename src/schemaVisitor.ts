@@ -15,6 +15,10 @@ import {
   Kind,
   ValueNode,
   DirectiveLocationEnum,
+  GraphQLType,
+  GraphQLList,
+  GraphQLNonNull,
+  isNamedType,
 } from 'graphql';
 
 import {
@@ -168,18 +172,6 @@ export function visitSchema(
     } else if (type instanceof GraphQLUnionType) {
       callMethod('visitUnion', type);
 
-      // The GraphQL schema parser currently does not support @directive
-      // syntax for union member types, so there's no point visiting them
-      // here. That's a blessing in disguise, really, because the types
-      // returned from type.getTypes() are references to GraphQLObjectType
-      // objects defined elsewhere in the schema, which might be decorated
-      // with directives of their own, so it would be hard to prevent this
-      // loop from re-visiting those directives. To access the member types of
-      // a union, just implement a SchemaVisitor that overrides visitUnion,
-      // and call unionType.getTypes() yourself.
-
-      // type.getTypes().forEach(visit);
-
     } else if (type instanceof GraphQLEnumType) {
       callMethod('visitEnum', type);
 
@@ -188,6 +180,9 @@ export function visitSchema(
           enumType: type,
         });
       });
+
+    } else {
+      throw new Error(`Unexpected schema type: ${type}`);
     }
   }
 
@@ -224,6 +219,93 @@ export function visitSchema(
   }
 
   visit(schema);
+
+  // Automatically update any references to named schema types replaced during
+  // the traversal, so implementors don't have to worry about that.
+  healSchema(schema);
+}
+
+// Update any references to named schema types that disagree with the named
+// types found in schema.getTypeMap().
+export function healSchema(schema: GraphQLSchema) {
+  heal(schema);
+  return schema;
+
+  function heal(type: VisitableSchemaType) {
+    if (type instanceof GraphQLSchema) {
+      each(type.getTypeMap(), (namedType, typeName) => {
+        if (! typeName.startsWith('__')) {
+          heal(namedType);
+        }
+      });
+
+      type.getDirectives().forEach(decl => {
+        if (decl.args) {
+          decl.args.forEach(arg => {
+            arg.type = healType(arg.type);
+          });
+        }
+      });
+
+    } else if (type instanceof GraphQLObjectType) {
+      healFields(type);
+      type.getInterfaces().forEach(iface => heal(iface));
+
+    } else if (type instanceof GraphQLInterfaceType) {
+      healFields(type);
+
+    } else if (type instanceof GraphQLInputObjectType) {
+      each(type.getFields(), field => {
+        field.type = healType(field.type);
+      });
+
+    } else if (type instanceof GraphQLScalarType) {
+      // Nothing to do.
+
+    } else if (type instanceof GraphQLUnionType) {
+      const types = type.getTypes();
+      types.forEach((t, i) => {
+        types[i] = healType(t);
+      });
+
+    } else if (type instanceof GraphQLEnumType) {
+      // Nothing to do.
+
+    } else {
+      throw new Error(`Unexpected schema type: ${type}`);
+    }
+  }
+
+  function healFields(type: GraphQLObjectType | GraphQLInterfaceType) {
+    each(type.getFields(), field => {
+      field.type = healType(field.type);
+      if (field.args) {
+        field.args.forEach(arg => {
+          arg.type = healType(arg.type);
+        });
+      }
+    });
+  }
+
+  function healType<T extends GraphQLType>(type: T): T {
+    if (type instanceof GraphQLList ||
+        type instanceof GraphQLNonNull) {
+      // Unwrap the two known wrapper types:
+      // https://github.com/graphql/graphql-js/blob/master/src/type/wrappers.js
+      type.ofType = healType(type.ofType);
+    } else if (isNamedType(type)) {
+      // If a type annotation on a field or an argument or a union member is
+      // any `GraphQLNamedType` with a `name`, then it must end up identical
+      // to `schema.getType(name)`, since `schema.getTypeMap()` is the source
+      // of truth for all named schema types.
+      const namedType = type as GraphQLNamedType;
+      const officialType = schema.getType(namedType.name);
+      if (officialType && namedType !== officialType) {
+        return officialType as T;
+      }
+    }
+    return type;
+  }
 }
 
 // This class represents a reusable implementation of a @directive that may
