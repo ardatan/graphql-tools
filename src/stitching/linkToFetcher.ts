@@ -1,10 +1,8 @@
 import { parse } from 'graphql';
 import { Fetcher, FetcherOperation } from './makeRemoteExecutableSchema';
 
-// This import doesn't actually import code - only the types.
-// Don't use ApolloLink to actually construct a link here.
 import {
-  ApolloLink,
+  ApolloLink, // This import doesn't actually import code - only the types.
   makePromise,
   execute,
 } from 'apollo-link';
