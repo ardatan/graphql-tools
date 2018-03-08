@@ -79,7 +79,7 @@ export abstract class SchemaVisitor {
   // type in the schema, or nothing to leave the type as it was.
 
   /* tslint:disable:no-empty */
-  public visitSchema(schema: GraphQLSchema): GraphQLSchema | void {}
+  public visitSchema(schema: GraphQLSchema): void {}
   public visitScalar(scalar: GraphQLScalarType): GraphQLScalarType | void {}
   public visitObject(object: GraphQLObjectType): GraphQLObjectType | void {}
   public visitFieldDefinition(field: GraphQLField<any, any>, details: {
@@ -122,7 +122,7 @@ export function visitSchema(
     type: VisitableSchemaType,
     methodName: string,
   ) => SchemaVisitor[],
-) {
+): GraphQLSchema {
   // Helper function that calls visitorSelector and applies the resulting
   // visitors to the given type, with arguments [type, ...args].
   function callMethod<T extends VisitableSchemaType>(
@@ -136,6 +136,11 @@ export function visitSchema(
       if (typeof newType === 'undefined') {
         // Keep going without modifying type.
         return true;
+      }
+
+      if (methodName === 'visitSchema' ||
+          type instanceof GraphQLSchema) {
+        throw new Error(`Method ${methodName} cannot replace schema with ${newType}`);
       }
 
       if (newType === null) {
@@ -160,21 +165,22 @@ export function visitSchema(
   // each object in the schema, then traverses the object's children (if any).
   function visit<T>(type: T): T {
     if (type instanceof GraphQLSchema) {
-      const newSchema = callMethod('visitSchema', type);
+      // Unlike the other types, the root GraphQLSchema object cannot be
+      // replaced by visitor methods, because that would make life very hard
+      // for SchemaVisitor subclasses that rely on the original schema object.
+      callMethod('visitSchema', type);
 
-      if (newSchema) {
-        updateEachKey(newSchema.getTypeMap(), (namedType, typeName) => {
-          if (! typeName.startsWith('__')) {
-            // Call visit recursively to let it determine which concrete
-            // subclass of GraphQLNamedType we found in the type map. Because
-            // we're using updateEachKey, the result of visit(namedType) may
-            // cause the type to be removed or replaced.
-            return visit(namedType);
-          }
-        });
-      }
+      updateEachKey(type.getTypeMap(), (namedType, typeName) => {
+        if (! typeName.startsWith('__')) {
+          // Call visit recursively to let it determine which concrete
+          // subclass of GraphQLNamedType we found in the type map. Because
+          // we're using updateEachKey, the result of visit(namedType) may
+          // cause the type to be removed or replaced.
+          return visit(namedType);
+        }
+      });
 
-      return newSchema;
+      return type;
     }
 
     if (type instanceof GraphQLObjectType) {
@@ -277,6 +283,10 @@ export function visitSchema(
   // Automatically update any references to named schema types replaced during
   // the traversal, so implementors don't have to worry about that.
   healSchema(schema);
+
+  // Return the original schema for convenience, even though it cannot have
+  // been replaced or removed by the code above.
+  return schema;
 }
 
 // Update any references to named schema types that disagree with the named
