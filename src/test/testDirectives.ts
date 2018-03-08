@@ -1039,10 +1039,9 @@ describe('@directives', () => {
       directives: {
         objectTypeDirective: class extends SchemaDirectiveVisitor {
           public visitObject(object: GraphQLObjectType) {
-            HumanType = Object.create(object, {
+            return HumanType = Object.create(object, {
               name: { value: 'Human' }
             });
-            this.schema.getTypeMap()[object.name] = HumanType;
           }
         }
       }
@@ -1068,5 +1067,32 @@ describe('@directives', () => {
       }
     });
     assert.strictEqual(found, true);
+  });
+
+  it('can remove enum values', () => {
+    const schema = makeExecutableSchema({
+      typeDefs: `
+      enum AgeUnit {
+        DOG_YEARS
+        TURTLE_YEARS @remove(if: true)
+        PERSON_YEARS @remove(if: false)
+      }`,
+
+      directives: {
+        remove: class extends SchemaDirectiveVisitor {
+          public visitEnumValue(value: GraphQLEnumValue): null {
+            if (this.args.if) {
+              return null;
+            }
+          }
+        }
+      }
+    });
+
+    const AgeUnit = schema.getType('AgeUnit') as GraphQLEnumType;
+    assert.deepEqual(
+      AgeUnit.getValues().map(value => value.name),
+      ['DOG_YEARS', 'PERSON_YEARS']
+    );
   });
 });

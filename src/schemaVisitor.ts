@@ -122,79 +122,127 @@ export function visitSchema(
 ) {
   // Helper function that calls visitorSelector and applies the resulting
   // visitors to the given type, with arguments [type, ...args].
-  function callMethod(
+  function callMethod<T extends VisitableSchemaType>(
     methodName: string,
-    type: VisitableSchemaType,
+    type: T,
     ...args: any[]
-  ) {
-    visitorSelector(type, methodName).forEach(visitor => {
-      visitor[methodName](type, ...args);
+  ): T {
+    visitorSelector(type, methodName).every(visitor => {
+      const newType = visitor[methodName](type, ...args);
+
+      if (typeof newType === 'undefined') {
+        // Keep going without modifying type.
+        return true;
+      }
+
+      if (newType === null) {
+        // Stop the loop and return null form callMethod, which will cause
+        // the type to be removed from the schema.
+        type = null;
+        return false;
+      }
+
+      // Update type to the new type returned by the visitor method, so that
+      // later directives will see the new type, and callMethod will return
+      // the final type.
+      type = newType;
     });
+
+    // If there were no directives for this type object, or if all visitor
+    // methods returned nothing, type will be returned unmodified.
+    return type;
   }
 
-  function visit(type: VisitableSchemaType) {
+  // Recursive helper function that calls any appropriate visitor methods for
+  // each object in the schema, then traverses the object's children (if any).
+  function visit<T>(type: T): T {
     if (type instanceof GraphQLSchema) {
-      callMethod('visitSchema', type);
+      const newSchema = callMethod('visitSchema', type);
 
-      each(type.getTypeMap(), (namedType, typeName) => {
-        if (! typeName.startsWith('__')) {
-          // Call visit recursively to let it determine which concrete
-          // subclass of GraphQLNamedType we found in the type map.
-          visit(namedType);
-        }
-      });
+      if (newSchema) {
+        updateEachKey(newSchema.getTypeMap(), (namedType, typeName) => {
+          if (! typeName.startsWith('__')) {
+            // Call visit recursively to let it determine which concrete
+            // subclass of GraphQLNamedType we found in the type map. Because
+            // we're using updateEachKey, the result of visit(namedType) may
+            // cause the type to be removed or replaced.
+            return visit(namedType);
+          }
+        });
+      }
 
-    } else if (type instanceof GraphQLObjectType) {
+      return newSchema;
+    }
+
+    if (type instanceof GraphQLObjectType) {
       // Note that callMethod('visitObject', type) may not actually call any
       // methods, if there are no @directive annotations associated with this
-      // type, or this SchemaDirectiveVisitor subclass does not override the
-      // visitObject method.
-      callMethod('visitObject', type);
-      visitFields(type);
-
-    } else if (type instanceof GraphQLInterfaceType) {
-      callMethod('visitInterface', type);
-      visitFields(type);
-
-    } else if (type instanceof GraphQLInputObjectType) {
-      callMethod('visitInputObject', type);
-
-      each(type.getFields(), field => {
-        // Since we call a different method for input object fields, we
-        // can't reuse the visitFields function here.
-        callMethod('visitInputFieldDefinition', field, {
-          objectType: type,
-        });
-      });
-
-    } else if (type instanceof GraphQLScalarType) {
-      callMethod('visitScalar', type);
-
-    } else if (type instanceof GraphQLUnionType) {
-      callMethod('visitUnion', type);
-
-    } else if (type instanceof GraphQLEnumType) {
-      callMethod('visitEnum', type);
-
-      type.getValues().forEach(value => {
-        callMethod('visitEnumValue', value, {
-          enumType: type,
-        });
-      });
-
-    } else {
-      throw new Error(`Unexpected schema type: ${type}`);
+      // type, or if this SchemaDirectiveVisitor subclass does not override
+      // the visitObject method.
+      const newObject = callMethod('visitObject', type);
+      if (newObject) {
+        visitFields(newObject);
+      }
+      return newObject;
     }
+
+    if (type instanceof GraphQLInterfaceType) {
+      const newInterface = callMethod('visitInterface', type);
+      if (newInterface) {
+        visitFields(newInterface);
+      }
+      return newInterface;
+    }
+
+    if (type instanceof GraphQLInputObjectType) {
+      const newInputObject = callMethod('visitInputObject', type);
+
+      if (newInputObject) {
+        updateEachKey(newInputObject.getFields(), field => {
+          // Since we call a different method for input object fields, we
+          // can't reuse the visitFields function here.
+          return callMethod('visitInputFieldDefinition', field, {
+            objectType: newInputObject,
+          });
+        });
+      }
+
+      return newInputObject;
+    }
+
+    if (type instanceof GraphQLScalarType) {
+      return callMethod('visitScalar', type);
+    }
+
+    if (type instanceof GraphQLUnionType) {
+      return callMethod('visitUnion', type);
+    }
+
+    if (type instanceof GraphQLEnumType) {
+      const newEnum = callMethod('visitEnum', type);
+
+      if (newEnum) {
+        updateEachKey(newEnum.getValues(), value => {
+          return callMethod('visitEnumValue', value, {
+            enumType: newEnum,
+          });
+        });
+      }
+
+      return newEnum;
+    }
+
+    throw new Error(`Unexpected schema type: ${type}`);
   }
 
   function visitFields(type: GraphQLObjectType | GraphQLInterfaceType) {
-    each(type.getFields(), field => {
+    updateEachKey(type.getFields(), field => {
       // It would be nice if we could call visit(field) recursively here, but
       // GraphQLField is merely a type, not a value that can be detected using
       // an instanceof check, so we have to visit the fields in this lexical
       // context, so that TypeScript can validate the call to
       // visitFieldDefinition.
-      callMethod('visitFieldDefinition', field, {
+      const newField = callMethod('visitFieldDefinition', field, {
         // While any field visitor needs a reference to the field object, some
         // field visitors may also need to know the enclosing (parent) type,
         // perhaps to determine if the parent is a GraphQLObjectType or a
@@ -204,18 +252,20 @@ export function visitSchema(
         objectType: type,
       });
 
-      if (field.args) {
-        field.args.forEach(arg => {
-          callMethod('visitArgumentDefinition', arg, {
+      if (newField && newField.args) {
+        updateEachKey(newField.args, arg => {
+          return callMethod('visitArgumentDefinition', arg, {
             // Like visitFieldDefinition, visitArgumentDefinition takes a
             // second parameter that provides additional context, namely the
             // parent .field and grandparent .objectType. Remember that the
             // current GraphQLSchema is always available via this.schema.
-            field,
+            field: newField,
             objectType: type,
           });
         });
       }
+
+      return newField;
     });
   }
 
