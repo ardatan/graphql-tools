@@ -271,24 +271,22 @@ describe('@directives', () => {
   it('can check if a visitor method is implemented', () => {
     class Visitor extends SchemaVisitor {
       public notVisitorMethod() {
-        return false;
+        return; // Just to keep the tslint:no-empty rule satisfied.
       }
 
-      public visitObject() {
-        return true;
+      public visitObject(object: GraphQLObjectType) {
+        return object;
       }
     }
 
-    const visitor = new Visitor;
-
     assert.strictEqual(
       Visitor.implementsVisitorMethod('notVisitorMethod'),
-      visitor.notVisitorMethod(),
+      false,
     );
 
     assert.strictEqual(
       Visitor.implementsVisitorMethod('visitObject'),
-      visitor.visitObject(),
+      true,
     );
 
     assert.strictEqual(

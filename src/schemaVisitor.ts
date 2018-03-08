@@ -74,28 +74,31 @@ export abstract class SchemaVisitor {
 
   // Concrete subclasses of SchemaVisitor should override one or more of these
   // visitor methods, in order to express their interest in handling certain
-  // schema types/locations.
+  // schema types/locations. Each method may return null to remove the given
+  // type from the schema, a non-null value of the same type to update the
+  // type in the schema, or nothing to leave the type as it was.
+
   /* tslint:disable:no-empty */
-  public visitSchema(schema: GraphQLSchema) {}
-  public visitScalar(scalar: GraphQLScalarType) {}
-  public visitObject(object: GraphQLObjectType) {}
+  public visitSchema(schema: GraphQLSchema): GraphQLSchema | void {}
+  public visitScalar(scalar: GraphQLScalarType): GraphQLScalarType | void {}
+  public visitObject(object: GraphQLObjectType): GraphQLObjectType | void {}
   public visitFieldDefinition(field: GraphQLField<any, any>, details: {
     objectType: GraphQLObjectType | GraphQLInterfaceType,
-  }) {}
+  }): GraphQLField<any, any> | void {}
   public visitArgumentDefinition(argument: GraphQLArgument, details: {
     field: GraphQLField<any, any>,
     objectType: GraphQLObjectType | GraphQLInterfaceType,
-  }) {}
-  public visitInterface(iface: GraphQLInterfaceType) {}
-  public visitUnion(union: GraphQLUnionType) {}
-  public visitEnum(type: GraphQLEnumType) {}
+  }): GraphQLArgument | void {}
+  public visitInterface(iface: GraphQLInterfaceType): GraphQLInterfaceType | void {}
+  public visitUnion(union: GraphQLUnionType): GraphQLUnionType | void {}
+  public visitEnum(type: GraphQLEnumType): GraphQLEnumType | void {}
   public visitEnumValue(value: GraphQLEnumValue, details: {
     enumType: GraphQLEnumType,
-  }) {}
-  public visitInputObject(object: GraphQLInputObjectType) {}
+  }): GraphQLEnumValue | void {}
+  public visitInputObject(object: GraphQLInputObjectType): GraphQLInputObjectType | void {}
   public visitInputFieldDefinition(field: GraphQLInputField, details: {
     objectType: GraphQLInputObjectType,
-  }) {}
+  }): GraphQLInputField | void {}
   /* tslint:enable:no-empty */
 }
 
