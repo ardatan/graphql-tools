@@ -239,9 +239,9 @@ export function healSchema(schema: GraphQLSchema) {
         }
       });
 
-      type.getDirectives().forEach(decl => {
+      each(type.getDirectives(), decl => {
         if (decl.args) {
-          decl.args.forEach(arg => {
+          each(decl.args, arg => {
             arg.type = healType(arg.type);
           });
         }
@@ -249,7 +249,7 @@ export function healSchema(schema: GraphQLSchema) {
 
     } else if (type instanceof GraphQLObjectType) {
       healFields(type);
-      type.getInterfaces().forEach(iface => heal(iface));
+      each(type.getInterfaces(), iface => heal(iface));
 
     } else if (type instanceof GraphQLInterfaceType) {
       healFields(type);
@@ -280,7 +280,7 @@ export function healSchema(schema: GraphQLSchema) {
     each(type.getFields(), field => {
       field.type = healType(field.type);
       if (field.args) {
-        field.args.forEach(arg => {
+        each(field.args, arg => {
           arg.type = healType(arg.type);
         });
       }
@@ -505,7 +505,7 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
       [directiveName: string]: GraphQLDirective,
     } = Object.create(null);
 
-    schema.getDirectives().forEach(decl => {
+    each(schema.getDirectives(), decl => {
       declaredDirectives[decl.name] = decl;
     });
 
@@ -530,7 +530,8 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
         return;
       }
       const visitorClass = directiveVisitors[name];
-      decl.locations.forEach(loc => {
+
+      each(decl.locations, loc => {
         const visitorMethodName = directiveLocationToVisitorMethodName(loc);
         if (! visitorClass.implementsVisitorMethod(visitorMethodName)) {
           // While visitor subclasses may implement extra visitor methods,
@@ -572,13 +573,14 @@ function directiveLocationToVisitorMethodName(loc: DirectiveLocationEnum) {
   });
 }
 
-// Helper widely used in the visit function above.
+type IndexedObject<V> = { [key: string]: V } | V[];
+
 function each<V>(
-  obj: { [key: string]: V },
+  arrayOrObject: IndexedObject<V>,
   callback: (value: V, key: string) => void,
 ) {
-  Object.keys(obj).forEach(key => {
-    callback(obj[key], key);
+  Object.keys(arrayOrObject).forEach(key => {
+    callback(arrayOrObject[key], key);
   });
 }
 
