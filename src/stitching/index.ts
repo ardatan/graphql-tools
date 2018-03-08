@@ -2,6 +2,7 @@ import makeRemoteExecutableSchema from './makeRemoteExecutableSchema';
 import introspectSchema from './introspectSchema';
 import mergeSchemas from './mergeSchemas';
 import delegateToSchema, { createDocument } from './delegateToSchema';
+import linkToFetcher from './linkToFetcher';
 
 export {
   makeRemoteExecutableSchema,
@@ -11,4 +12,5 @@ export {
   // but exposed for the community use
   delegateToSchema,
   createDocument,
+  linkToFetcher,
 };
