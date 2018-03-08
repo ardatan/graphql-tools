@@ -1,5 +1,6 @@
-import { print, parse } from 'graphql';
+import { parse } from 'graphql';
 import { getOperationName } from 'apollo-utilities';
+import { makePromise, createOperation } from 'apollo-link';
 import { Fetcher, FetcherOperation } from './makeRemoteExecutableSchema';
 
 // This import doesn't actually import code - only the types.
@@ -23,28 +24,6 @@ export default function linkToFetcher(link: ApolloLink): Fetcher {
   };
 }
 
-// Most code from below here is copied from apollo-link
-// TODO - remove
-
-function makePromise<R>(observable: Observable<R>): Promise<R> {
-  let completed = false;
-  return new Promise<R>((resolve, reject) => {
-    observable.subscribe({
-      next: data => {
-        if (completed) {
-          console.warn(
-            `Promise Wrapper does not support multiple results from Observable`,
-          );
-        } else {
-          completed = true;
-          resolve(data);
-        }
-      },
-      error: reject,
-    });
-  });
-}
-
 export function execute(
   link: ApolloLink,
   operation: GraphQLRequest,
@@ -57,35 +36,8 @@ export function execute(
   );
 }
 
-function createOperation(starting: any, operation: GraphQLRequest): Operation {
-  let context = { ...starting };
-  const setContext = (next: any) => {
-    if (typeof next === 'function') {
-      context = next(context);
-    } else {
-      context = { ...next };
-    }
-  };
-  const getContext = () => ({ ...context });
-
-  Object.defineProperty(operation, 'setContext', {
-    enumerable: false,
-    value: setContext,
-  });
-
-  Object.defineProperty(operation, 'getContext', {
-    enumerable: false,
-    value: getContext,
-  });
-
-  Object.defineProperty(operation, 'toKey', {
-    enumerable: false,
-    value: () => getKey(operation),
-  });
-
-  return operation as Operation;
-}
-
+// Most code from below here is copied from apollo-link
+// TODO this is also in `apollo-link` but is not exposed yet
 function validateOperation(operation: GraphQLRequest): GraphQLRequest {
   const OPERATION_FIELDS = [
     'query',
@@ -108,14 +60,7 @@ function validateOperation(operation: GraphQLRequest): GraphQLRequest {
   return operation;
 }
 
-function getKey(operation: GraphQLRequest) {
-  // XXX we're assuming here that variables will be serialized in the same order.
-  // that might not always be true
-  return `${print(operation.query)}|${JSON.stringify(
-    operation.variables,
-  )}|${operation.operationName}`;
-}
-
+// TODO this is also in `apollo-link` but is not exposed yet
 function transformOperation(operation: GraphQLRequest): GraphQLRequest {
   const transformedOperation: GraphQLRequest = {
     variables: operation.variables || {},
