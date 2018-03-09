@@ -1077,6 +1077,10 @@ describe('@directives', () => {
   it('can remove enum values', () => {
     const schema = makeExecutableSchema({
       typeDefs: `
+      type Query {
+        age(unit: AgeUnit): Int
+      }
+
       enum AgeUnit {
         DOG_YEARS
         TURTLE_YEARS @remove(if: true)
