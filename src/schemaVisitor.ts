@@ -289,6 +289,10 @@ export function visitSchema(
   return schema;
 }
 
+type NamedTypeMap = {
+  [key: string]: GraphQLNamedType;
+};
+
 // Update any references to named schema types that disagree with the named
 // types found in schema.getTypeMap().
 export function healSchema(schema: GraphQLSchema) {
@@ -297,17 +301,60 @@ export function healSchema(schema: GraphQLSchema) {
 
   function heal(type: VisitableSchemaType) {
     if (type instanceof GraphQLSchema) {
-      each(type.getTypeMap(), (namedType, typeName) => {
-        if (! typeName.startsWith('__')) {
-          heal(namedType);
+      const originalTypeMap: NamedTypeMap = type.getTypeMap();
+      const actualNamedTypeMap: NamedTypeMap = Object.create(null);
+
+      // If any of the .name properties of the GraphQLNamedType objects in
+      // schema.getTypeMap() have changed, the keys of the type map need to
+      // be updated accordingly.
+
+      each(originalTypeMap, (namedType, typeName) => {
+        if (typeName.startsWith('__')) {
+          return;
         }
+
+        const actualName = namedType.name;
+        if (actualName.startsWith('__')) {
+          return;
+        }
+
+        if (hasOwn.call(actualNamedTypeMap, actualName)) {
+          throw new Error(`Duplicate schema type name ${actualName}`);
+        }
+
+        actualNamedTypeMap[actualName] = namedType;
+
+        // Note: we are deliberately leaving namedType in the schema by its
+        // original name (which might be different from actualName), so that
+        // references by that name can be healed.
       });
 
+      // Now add back every named type by its actual name.
+      each(actualNamedTypeMap, (namedType, typeName) => {
+        originalTypeMap[typeName] = namedType;
+      });
+
+      // Directive declaration argument types can refer to named types.
       each(type.getDirectives(), decl => {
         if (decl.args) {
           each(decl.args, arg => {
             arg.type = healType(arg.type);
           });
+        }
+      });
+
+      each(originalTypeMap, (namedType, typeName) => {
+        if (! typeName.startsWith('__')) {
+          heal(namedType);
+        }
+      });
+
+      updateEachKey(originalTypeMap, (namedType, typeName) => {
+        // Dangling references to renamed types should remain in the schema
+        // during healing, but must be removed now, so that the following
+        // invariant holds for all names: schema.getType(name).name === name
+        if (! hasOwn.call(actualNamedTypeMap, typeName)) {
+          return null;
         }
       });
 

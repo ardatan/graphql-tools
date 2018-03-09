@@ -27,6 +27,7 @@ import {
   GraphQLNonNull,
   GraphQLList,
   GraphQLUnionType,
+  GraphQLInt,
 } from 'graphql';
 
 const typeDefs = `
@@ -1065,6 +1066,12 @@ describe('@directives', () => {
       }
     });
     assert.strictEqual(found, true);
+
+    // Make sure that the Person type was actually removed.
+    assert.strictEqual(
+      typeof schema.getType('Person'),
+      'undefined'
+    );
   });
 
   it('can remove enum values', () => {
@@ -1091,6 +1098,54 @@ describe('@directives', () => {
     assert.deepEqual(
       AgeUnit.getValues().map(value => value.name),
       ['DOG_YEARS', 'PERSON_YEARS']
+    );
+  });
+
+  it('can swap names of GraphQLNamedType objects', () => {
+    const schema = makeExecutableSchema({
+      typeDefs: `
+      type Query {
+        people: [Person]
+      }
+
+      type Person @rename(to: "Human") {
+        heightInInches: Int
+      }
+
+      scalar Date
+
+      type Human @rename(to: "Person") {
+        born: Date
+      }`,
+
+      directives: {
+        rename: class extends SchemaDirectiveVisitor {
+          public visitObject(object: GraphQLObjectType) {
+            object.name = this.args.to;
+          }
+        }
+      }
+    });
+
+    const Human = schema.getType('Human') as GraphQLObjectType;
+    assert.strictEqual(Human.name, 'Human');
+    assert.strictEqual(
+      Human.getFields().heightInInches.type,
+      GraphQLInt,
+    );
+
+    const Person = schema.getType('Person') as GraphQLObjectType;
+    assert.strictEqual(Person.name, 'Person');
+    assert.strictEqual(
+      Person.getFields().born.type,
+      schema.getType('Date') as GraphQLScalarType,
+    );
+
+    const Query = schema.getType('Query') as GraphQLObjectType;
+    const peopleType = Query.getFields().people.type as GraphQLList<GraphQLObjectType>;
+    assert.strictEqual(
+      peopleType.ofType,
+      Human
     );
   });
 });
