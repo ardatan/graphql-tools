@@ -353,7 +353,8 @@ export function healSchema(schema: GraphQLSchema) {
         // Dangling references to renamed types should remain in the schema
         // during healing, but must be removed now, so that the following
         // invariant holds for all names: schema.getType(name).name === name
-        if (! hasOwn.call(actualNamedTypeMap, typeName)) {
+        if (! typeName.startsWith('__') &&
+            ! hasOwn.call(actualNamedTypeMap, typeName)) {
           return null;
         }
       });
