@@ -280,10 +280,6 @@ export function visitSchema(
 
   visit(schema);
 
-  // Automatically update any references to named schema types replaced during
-  // the traversal, so implementors don't have to worry about that.
-  healSchema(schema);
-
   // Return the original schema for convenience, even though it cannot have
   // been replaced or removed by the code above.
   return schema;
@@ -600,6 +596,10 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
     }
 
     visitSchema(schema, visitorSelector);
+
+    // Automatically update any references to named schema types replaced
+    // during the traversal, so implementors don't have to worry about that.
+    healSchema(schema);
 
     return createdVisitors;
   }
