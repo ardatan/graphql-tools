@@ -2179,7 +2179,7 @@ describe('attachDirectiveResolvers on field', () => {
 
   const directiveResolvers: IDirectiveResolvers<any, any> = {
     lower(
-      next: NextResolverFn,
+      next: NextResolverFn<any>,
       src: any,
       args: { [argName: string]: any },
       context: any,
@@ -2192,7 +2192,7 @@ describe('attachDirectiveResolvers on field', () => {
       });
     },
     upper(
-      next: NextResolverFn,
+      next: NextResolverFn<any>,
       src: any,
       args: { [argName: string]: any },
       context: any,
@@ -2205,7 +2205,7 @@ describe('attachDirectiveResolvers on field', () => {
       });
     },
     default(
-      next: NextResolverFn,
+      next: NextResolverFn<any>,
       src: any,
       args: { [argName: string]: any },
       context: any,
@@ -2218,7 +2218,7 @@ describe('attachDirectiveResolvers on field', () => {
       });
     },
     catchError(
-      next: NextResolverFn,
+      next: NextResolverFn<any>,
       src: any,
       args: { [argName: string]: any },
       context: any,

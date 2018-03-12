@@ -701,11 +701,15 @@ function attachDirectiveResolvers(
         const directiveArgs = getArgumentValues(Directive, directive);
 
         field.resolve = (...args: any[]) => {
-          const [source, , context, info] = args;
+          const [source, inputArgs, context, info] = args;
           return resolver(
-            () => {
+            (_source, _inputArgs) => {
               try {
-                const promise = originalResolver.call(field, ...args);
+                const promise = originalResolver.call(
+                  field,
+                  typeof _source === 'undefined' ? source : _source,
+                  typeof _inputArgs === 'undefined' ? inputArgs : _inputArgs,
+                  ...args.slice(2));
                 if (promise instanceof Promise) {
                   return promise;
                 }
@@ -718,6 +722,7 @@ function attachDirectiveResolvers(
             directiveArgs,
             context,
             info,
+            inputArgs,
           );
         };
       }

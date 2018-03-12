@@ -87,13 +87,18 @@ export type IFieldIteratorFn = (
   fieldName: string,
 ) => void;
 
-export type NextResolverFn = () => Promise<any>;
+export type NextResolverFn<TSource> = (
+  source?: TSource,
+  inputArgs?: { [argName: string]: any },
+) => Promise<any>;
+
 export type DirectiveResolverFn<TSource, TContext> = (
-  next: NextResolverFn,
+  next: NextResolverFn<TSource>,
   source: TSource,
-  args: { [argName: string]: any },
+  directiveArgs: { [argName: string]: any },
   context: TContext,
   info: GraphQLResolveInfo,
+  inputArgs: { [argName: string]: any },
 ) => any;
 
 export interface IDirectiveResolvers<TSource, TContext> {
