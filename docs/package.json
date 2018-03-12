@@ -29,5 +29,10 @@
     "develop-theme": "nodemon -x 'rm db.json; hexo serve' -w assets/ -w code/ -w source/ -w themes/ -w scripts/",
     "clean": "hexo clean",
     "test": "npm run clean; npm run build"
+  },
+  "renovate": {
+    "extends": [
+      "apollo-docs"
+    ]
   }
 }
