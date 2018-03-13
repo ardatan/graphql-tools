@@ -111,7 +111,7 @@ function _generateSchema(
   return schema;
 }
 
-function makeExecutableSchema({
+function makeExecutableSchema<TContext = any>({
   typeDefs,
   resolvers = {},
   connectors,
@@ -120,7 +120,7 @@ function makeExecutableSchema({
   resolverValidationOptions = {},
   directiveResolvers = null,
   parseOptions = {},
-}: IExecutableSchemaDefinition) {
+}: IExecutableSchemaDefinition<TContext>) {
   const jsSchema = _generateSchema(
     typeDefs,
     resolvers,

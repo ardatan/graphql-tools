@@ -3,7 +3,9 @@ import {
   GraphQLResolveInfo
 } from 'graphql';
 import {
-  checkResultAndHandleErrors
+  checkResultAndHandleErrors,
+  getErrorsFromParent,
+  ErrorSymbol,
 } from '../stitching/errors';
 
 import 'mocha';
@@ -17,7 +19,25 @@ class ErrorWithResult extends Error {
   }
 }
 
+const mockErrors = {
+  responseKey: '',
+  [ErrorSymbol]: [
+    {
+      message: 'Test error without path',
+    },
+  ],
+};
+
 describe('Errors', () => {
+  describe('getErrorsFromParent', () => {
+    it('should return OWN error kind if path is not defined', () => {
+      assert.deepEqual(
+        getErrorsFromParent(mockErrors, 'responseKey'),
+        { kind: 'OWN', error: mockErrors[ErrorSymbol][0] },
+      );
+    });
+  });
+
   describe('checkResultAndHandleErrors', () => {
     it('persists single error with a result', done => {
       const result = {
