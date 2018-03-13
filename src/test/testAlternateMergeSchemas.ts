@@ -175,9 +175,7 @@ describe('merge schemas through transforms', () => {
         query($pid: ID!, $bid: ID!) {
           property: node(id: $pid) {
             __typename
-            id
             ... on Properties_Property {
-              id
               name
               bookings {
                 startTime
@@ -187,11 +185,9 @@ describe('merge schemas through transforms', () => {
           }
           booking: node(id: $bid) {
             __typename
-            id
             ... on Bookings_Booking {
               startTime
               endTime
-              propertyId
               property {
                 id
                 name
@@ -213,12 +209,10 @@ describe('merge schemas through transforms', () => {
         booking: {
           __typename: 'Bookings_Booking',
           endTime: '2016-06-03',
-          id: 'b1',
           property: {
             id: 'p1',
             name: 'Super great hotel',
           },
-          propertyId: 'p1',
           startTime: '2016-05-04',
         },
         property: {
@@ -237,7 +231,6 @@ describe('merge schemas through transforms', () => {
               startTime: '2016-08-04',
             },
           ],
-          id: 'p1',
           name: 'Super great hotel',
         },
       },

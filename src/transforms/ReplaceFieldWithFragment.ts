@@ -50,7 +50,6 @@ function replaceFieldsWithFragments(
         const parentType: GraphQLType = typeInfo.getParentType();
         if (parentType) {
           const parentTypeName = parentType.name;
-
           let selections = node.selections;
 
           if (mapping[parentTypeName]) {

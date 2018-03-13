@@ -262,10 +262,10 @@ export function mergeSchemasImplementation({
     Object.keys(type).forEach(fieldName => {
       const field = type[fieldName];
       if (field.fragment) {
-        fragments[typeName] = fragments[typeName] || {};
-        fragments[typeName][fieldName] = parseFragmentToInlineFragment(
-          field.fragment,
-        );
+        const parsedFragment = parseFragmentToInlineFragment(field.fragment);
+        const actualTypeName = parsedFragment.typeCondition.name.value;
+        fragments[actualTypeName] = fragments[actualTypeName] || {};
+        fragments[actualTypeName][fieldName] = parsedFragment;
       }
     });
   });
@@ -361,7 +361,7 @@ In version 3.0, \`delegate\` requires a schema name as a first argument, have yo
         args,
         context,
         info,
-        [fragmentTransform, ...(transforms || [])],
+        [...(transforms || []), fragmentTransform],
       );
     },
   };
