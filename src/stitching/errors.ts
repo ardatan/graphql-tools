@@ -11,6 +11,8 @@ if (
   ERROR_SYMBOL = '@@__subSchemaErrors';
 }
 
+export const ErrorSymbol = ERROR_SYMBOL;
+
 export function annotateWithChildrenErrors(
   object: any,
   childrenErrors: Array<{ path?: Array<string | number> }>,
@@ -62,7 +64,7 @@ export function getErrorsFromParent(
   const errors = (object && object[ERROR_SYMBOL]) || [];
   const childrenErrors: Array<{ path?: Array<string | number> }> = [];
   for (const error of errors) {
-    if (error.path.length === 1 && error.path[0] === fieldName) {
+    if ((!error.path) || (error.path.length === 1 && error.path[0] === fieldName)) {
       return {
         kind: 'OWN',
         error,
