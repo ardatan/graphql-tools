@@ -8,3 +8,4 @@ import './testMakeRemoteExecutableSchema';
 import './testMergeSchemas';
 import './testTransforms';
 import './testAlternateMergeSchemas';
+import './testErrors';

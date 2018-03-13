@@ -2,6 +2,9 @@
 
 ### vNEXT
 
+* When concatenating errors maintain a reference to the original for use downstream [Issue #480](https://github.com/apollographql/graphql-tools/issues/480) [PR #637](https://github.com/apollographql/graphql-tools/pull/637)
+* Improve generic typings for several resolver-related interfaces [PR #662](https://github.com/apollographql/graphql-tools/pull/662)
+
 ### v2.21.0
 
 * Make iterall a runtime dependency [PR #627](https://github.com/apollographql/graphql-tools/pull/627)

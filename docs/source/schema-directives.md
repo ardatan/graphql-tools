@@ -170,7 +170,7 @@ const directiveResolvers = {
   // directive resolvers implement
 };
 
-attachDirectiveResolvers(
+attachDirectiveResolvers({
   schema,
   directiveResolvers,
 });
