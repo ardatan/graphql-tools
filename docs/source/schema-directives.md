@@ -436,35 +436,46 @@ const schema = makeExecutableSchema({
 
 ### Synthesizing unique IDs
 
-Suppose your database uses incrementing IDs for each resource type, so IDs are not unique across all resource types. Here's how you might synthesize a field called `uid` that combines the object type with the non-unique ID to produce an ID that's unique across your schema:
+Suppose your database uses incrementing IDs for each resource type, so IDs are not unique across all resource types. Here’s how you might synthesize a field called `uid` that combines the object type with various field values to produce an ID that’s unique across your schema:
 
 ```js
+import { GraphQLID } from "graphql";
+import { createHash } from "crypto";
+
 const typeDefs = `
 declare @uniqueID(
-  name: String!
-  from: [String!] = ["id"]
+  # The name of the new ID field, "uid" by default:
+  name: String = "uid"
+  # Which fields to include in the new ID:
+  from: [String] = ["id"]
 ) on OBJECT
-
-type Person @uniqueID(name: "uid", from: ["personID"]) {
-  personID: Int
-  name: String
-}
-
-type Location @uniqueID(name: "uid") {
+# Since this type just uses the default values of name and from,
+# we don't have to pass any arguments to the directive:
+type Location @uniqueID {
   id: Int
   address: String
+}
+# This type uses both the person's name and the personID field,
+# in addition to the "Person" type name, to construct the ID:
+type Person @uniqueID(from: ["name", "personID"]) {
+  personID: Int
+  name: String
 }`;
 
 class UniqueIdDirective extends SchemaDirectiveVisitor {
   visitObject(type) {
     const { name, from } = this.args;
-    type.getFields()[name] = {
-      name: name,
+    const fields = type.getFields();
+    if (name in fields) {
+      throw new Error(`Conflicting field name ${name}`);
+    }
+    fields[name] = {
+      name,
       type: GraphQLID,
       description: 'Unique ID',
       args: [],
       resolve(object) {
-        const hash = require("crypto").createHash("sha1");
+        const hash = createHash("sha1");
         hash.update(type.name);
         from.forEach(fieldName => {
           hash.update(String(object[fieldName]));
