@@ -28,7 +28,7 @@ This document focuses on directives that appear in GraphQL _schemas_ (as opposed
 
 Most of this document is concerned with _implementing_ schema directives, and some of the examples may seem quite complicated. No matter how many tools and best practices you have at your disposal, it can be difficult to implement a non-trivial schema directive in a reliable, reusable way. Exhaustive testing is essential, and using a typed language like TypeScript is recommended, because there are so many different schema types to worry about.
 
-However, the API we provide for _using_ a schema directive is extremely simple. Just import the implementation of the directive, then pass it to `makeExecutableSchema` via the `directives` argument, which is an object that maps directive names to directive implementations:
+However, the API we provide for _using_ a schema directive is extremely simple. Just import the implementation of the directive, then pass it to `makeExecutableSchema` via the `schemaDirectives` argument, which is an object that maps directive names to directive implementations:
 
 ```js
 import { makeExecutableSchema } from "graphql-tools";
@@ -42,7 +42,7 @@ type Person @rename(to: "Human") {
 
 const schema = makeExecutableSchema({
   typeDefs,
-  directives: {
+  schemaDirectives: {
     rename: RenameDirective
   }
 });
@@ -94,7 +94,7 @@ class DeprecatedDirective extends SchemaDirectiveVisitor {
 }
 ```
 
-In order to apply this implementation to a schema that contains `@deprecated` directives, simply pass the `DeprecatedDirective` class to the `makeExecutableSchema` function via the `directives` option:
+In order to apply this implementation to a schema that contains `@deprecated` directives, simply pass the `DeprecatedDirective` class to the `makeExecutableSchema` function via the `schemaDirectives` option:
 
 ```typescript
 import { makeExecutableSchema } from "graphql-tools";
@@ -107,7 +107,7 @@ type ExampleType {
 
 const schema = makeExecutableSchema({
   typeDefs,
-  directives: {
+  schemaDirectives: {
     deprecated: DeprecatedDirective
   }
 });
@@ -123,7 +123,7 @@ SchemaDirectiveVisitor.visitSchemaDirectives(schema, {
 
 Note that a subclass of `SchemaDirectiveVisitor` may be instantiated multiple times to visit multiple different occurrences of the `@deprecated` directive. That's why you provide a class rather than an instance of that class.
 
-If for some reason you have a schema that uses another name for the `@deprecated` directive, but you want to use the same implementation, you can! The same `DeprecatedDirective` class can be passed with a different name, simply by changing its key in the `directives` object passed to `makeExecutableSchema`. In other words, `SchemaDirectiveVisitor` implementations are effectively anonymous, so it's up to whoever uses them to assign names to them.
+If for some reason you have a schema that uses another name for the `@deprecated` directive, but you want to use the same implementation, you can! The same `DeprecatedDirective` class can be passed with a different name, simply by changing its key in the `schemaDirectives` object passed to `makeExecutableSchema`. In other words, `SchemaDirectiveVisitor` implementations are effectively anonymous, so it's up to whoever uses them to assign names to them.
 
 ## Examples
 
@@ -158,7 +158,7 @@ class UpperCaseDirective extends SchemaDirectiveVisitor {
 
 const schema = makeExecutableSchema({
   typeDefs,
-  directives: {
+  schemaDirectives: {
     upper: UpperCaseDirective,
     upperCase: UpperCaseDirective
   }
@@ -188,7 +188,7 @@ class RestDirective extends SchemaDirectiveVisitor {
 
 const schema = makeExecutableSchema({
   typeDefs,
-  directives: {
+  schemaDirectives: {
     rest: RestDirective
   }
 });
@@ -225,7 +225,7 @@ class DateFormatDirective extends SchemaDirectiveVisitor {
 
 const schema = makeExecutableSchema({
   typeDefs,
-  directives: {
+  schemaDirectives: {
     date: DateFormatDirective
   }
 });
@@ -260,7 +260,7 @@ class IntlDirective extends SchemaDirectiveVisitor {
 
 const schema = makeExecutableSchema({
   typeDefs,
-  directives: {
+  schemaDirectives: {
     intl: IntlDirective
   }
 });
@@ -342,7 +342,7 @@ class AuthDirective extends SchemaDirectiveVisitor {
 
 const schema = makeExecutableSchema({
   typeDefs,
-  directives: {
+  schemaDirectives: {
     auth: AuthDirective,
     authorized: AuthDirective,
     authenticated: AuthDirective
@@ -428,7 +428,7 @@ class LimitedLengthType extends GraphQLScalarType {
 
 const schema = makeExecutableSchema({
   typeDefs,
-  directives: {
+  schemaDirectives: {
     length: LengthDirective
   }
 });
@@ -488,7 +488,7 @@ class UniqueIdDirective extends SchemaDirectiveVisitor {
 
 const schema = makeExecutableSchema({
   typeDefs,
-  directives: {
+  schemaDirectives: {
     uniqueID: UniqueIdDirective
   }
 });
@@ -597,10 +597,10 @@ function attachDirectiveResolvers(
   schema: GraphQLSchema,
   directiveResolvers: IDirectiveResolvers<any, any>,
 ) {
-  const directives = Object.create(null);
+  const schemaDirectives = Object.create(null);
 
   Object.keys(directiveResolvers).forEach(directiveName => {
-    directives[directiveName] = class extends SchemaDirectiveVisitor {
+    schemaDirectives[directiveName] = class extends SchemaDirectiveVisitor {
       public visitFieldDefinition(field: GraphQLField<any, any>) {
         const resolver = directiveResolvers[directiveName];
         const originalResolver = field.resolve || defaultFieldResolver;
@@ -621,7 +621,7 @@ function attachDirectiveResolvers(
 
   SchemaDirectiveVisitor.visitSchemaDirectives(
     schema,
-    directives,
+    schemaDirectives,
   );
 }
 ```

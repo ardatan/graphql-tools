@@ -398,7 +398,7 @@ describe('@directives', () => {
     let argumentCount = 0;
     let fieldCount = 0;
 
-    const directives = {
+    const schemaDirectives = {
       directive: class extends SchemaDirectiveVisitor {
         public visitEnumValue(value: GraphQLEnumValue) {
           ++enumValueCount;
@@ -444,7 +444,7 @@ describe('@directives', () => {
 
     makeExecutableSchema({
       typeDefs: schemaText,
-      directives,
+      schemaDirectives,
     });
 
     assert.strictEqual(enumValueCount, 2);
@@ -537,7 +537,7 @@ describe('@directives', () => {
       type Query {
         hello: String @upper
       }`,
-      directives: {
+      schemaDirectives: {
         upper: class extends SchemaDirectiveVisitor {
           public visitFieldDefinition(field: GraphQLField<any, any>) {
             const { resolve = defaultFieldResolver } = field;
@@ -582,7 +582,7 @@ describe('@directives', () => {
         today: Date @date(format: "mmmm d, yyyy")
       }`,
 
-      directives: {
+      schemaDirectives: {
         date: class extends SchemaDirectiveVisitor {
           public visitFieldDefinition(field: GraphQLField<any, any>) {
             const { resolve = defaultFieldResolver } = field;
@@ -640,7 +640,7 @@ describe('@directives', () => {
         greeting: String @intl
       }`,
 
-      directives: {
+      schemaDirectives: {
         intl: class extends SchemaDirectiveVisitor {
           public visitFieldDefinition(field: GraphQLField<any, any>, details: {
             objectType: GraphQLObjectType,
@@ -769,7 +769,7 @@ describe('@directives', () => {
         users: [User]
       }`,
 
-      directives: {
+      schemaDirectives: {
         auth: AuthDirective
       },
 
@@ -878,7 +878,7 @@ describe('@directives', () => {
         title: String! @length(max: 10)
       }`,
 
-      directives: {
+      schemaDirectives: {
         length: class extends SchemaDirectiveVisitor {
           public visitInputFieldDefinition(field: GraphQLInputField) {
             this.wrapType(field);
@@ -968,7 +968,7 @@ describe('@directives', () => {
         address: String
       }`,
 
-      directives: {
+      schemaDirectives: {
         uniqueID: class extends SchemaDirectiveVisitor {
           public visitObject(type: GraphQLObjectType) {
             const { name, from } = this.args;
@@ -1043,7 +1043,7 @@ describe('@directives', () => {
 
     const schema = makeExecutableSchema({
       typeDefs,
-      directives: {
+      schemaDirectives: {
         objectTypeDirective: class extends SchemaDirectiveVisitor {
           public visitObject(object: GraphQLObjectType) {
             return HumanType = Object.create(object, {
@@ -1095,7 +1095,7 @@ describe('@directives', () => {
         PERSON_YEARS @remove(if: false)
       }`,
 
-      directives: {
+      schemaDirectives: {
         remove: class extends SchemaDirectiveVisitor {
           public visitEnumValue(value: GraphQLEnumValue): null {
             if (this.args.if) {
@@ -1130,7 +1130,7 @@ describe('@directives', () => {
         born: Date
       }`,
 
-      directives: {
+      schemaDirectives: {
         rename: class extends SchemaDirectiveVisitor {
           public visitObject(object: GraphQLObjectType) {
             object.name = this.args.to;

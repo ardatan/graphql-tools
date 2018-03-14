@@ -82,7 +82,7 @@ export interface IExecutableSchemaDefinition<TContext = any> {
   allowUndefinedInResolve?: boolean;
   resolverValidationOptions?: IResolverValidationOptions;
   directiveResolvers?: IDirectiveResolvers<any, TContext>;
-  directives?: { [name: string]: typeof SchemaDirectiveVisitor };
+  schemaDirectives?: { [name: string]: typeof SchemaDirectiveVisitor };
   parseOptions?: GraphQLParseOptions;
 }
 
