@@ -270,10 +270,9 @@ GraphQL is great for internationalization, since a GraphQL server can access unl
 
 ### Enforcing access permissions
 
-To implement the `@auth` example mentioned in the [**Declaring schema directives**](schema-directives.html#Declaring-schema-directives) section below:
+Imagine a hypothetical `@auth` directive that takes an argument `requires` of type `Role`, which defaults to `ADMIN`. This `@auth` directive can appear on an `OBJECT` like `User` to set default access permissions for all `User` fields, as well as appearing on individual fields, to enforce field-specific `@auth` restrictions:
 
-```js
-const typeDefs = `
+```gql
 directive @auth(
   requires: Role = ADMIN,
 ) on OBJECT | FIELD_DEFINITION
@@ -289,52 +288,57 @@ type User @auth(requires: USER) {
   name: String
   banned: Boolean @auth(requires: ADMIN)
   canPost: Boolean @auth(requires: REVIEWER)
-}`;
+}
+```
 
-// Symbols can be a good way to store semi-hidden data on schema objects.
-const authRoleSymbol = Symbol.for("@auth role");
-const authWrapSymbol = Symbol.for("@auth wrapped");
+What makes this example tricky is that the `OBJECT` version of the directive needs to wrap all fields of the object, even though some of those fields may be individually wrapped by `@auth` directives at the `FIELD_DEFINITION` level, and we would prefer not to rewrap resolvers if we can help it:
 
+```js
 class AuthDirective extends SchemaDirectiveVisitor {
   visitObject(type) {
     this.ensureFieldsWrapped(type);
-    type[authRoleSymbol] = this.args.requires;
+    type._requiredAuthRole = this.args.requires;
   }
-
+  // Visitor methods for nested types like fields and arguments
+  // also receive a details object that provides information about
+  // the parent and grandparent types.
   visitFieldDefinition(field, details) {
     this.ensureFieldsWrapped(details.objectType);
-    field[authRoleSymbol] = this.args.requires;
+    field._requiredAuthRole = this.args.requires;
   }
 
-  ensureFieldsWrapped(type) {
-    // Mark the GraphQLObjectType object to avoid re-wrapping its fields:
-    if (type[authWrapSymbol]) {
-      return;
-    }
+  ensureFieldsWrapped(objectType) {
+    // Mark the GraphQLObjectType object to avoid re-wrapping:
+    if (objectType._authFieldsWrapped) return;
+    objectType._authFieldsWrapped = true;
 
-    const fields = type.getFields();
+    const fields = objectType.getFields();
+
     Object.keys(fields).forEach(fieldName => {
       const field = fields[fieldName];
       const { resolve = defaultFieldResolver } = field;
       field.resolve = async function (...args) {
-        // Get the required role from the field first, falling back to the
-        // parent GraphQLObjectType if no role is required by the field:
-        const requiredRole = field[authRoleSymbol] || type[authRoleSymbol];
+        // Get the required Role from the field first, falling back
+        // to the objectType if no Role is required by the field:
+        const requiredRole =
+          field._requiredAuthRole ||
+          objectType._requiredAuthRole;
+
         if (! requiredRole) {
           return resolve.apply(this, args);
         }
+
         const context = args[2];
         const user = await getUser(context.headers.authToken);
         if (! user.hasRole(requiredRole)) {
           throw new Error("not authorized");
         }
+
         return resolve.apply(this, args);
       };
     });
-
-    type[authWrapSymbol] = true;
   }
-};
+}
 
 const schema = makeExecutableSchema({
   typeDefs,
@@ -345,6 +349,8 @@ const schema = makeExecutableSchema({
   }
 });
 ```
+
+One drawback of this approach is that it does not guarantee fields will be wrapped if they are added to the schema after `AuthDirective` is applied, and the whole `getUser(context.headers.authToken)` is a made-up API that would need to be fleshed out. In other words, we’ve glossed over some of the details that would be required for a production-ready implementation of this directive, though we hope the basic structure shown here inspires you to find clever solutions to the remaining problems.
 
 ### Enforcing value restrictions
 

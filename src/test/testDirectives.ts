@@ -678,8 +678,6 @@ describe('@directives', () => {
   });
 
   it('can be used to implement the @auth example', async () => {
-    const authReqSymbol = Symbol.for('@auth required role');
-    const authWrapSymbol = Symbol.for('@auth wrapped');
     const roles = [
       'UNKNOWN',
       'USER',
@@ -695,6 +693,57 @@ describe('@directives', () => {
           return roleIndex >= 0 && tokenIndex >= roleIndex;
         }
       };
+    }
+
+    class AuthDirective extends SchemaDirectiveVisitor {
+      public visitObject(type: GraphQLObjectType) {
+        this.ensureFieldsWrapped(type);
+        (type as any)._requiredAuthRole = this.args.requires;
+      }
+      // Visitor methods for nested types like fields and arguments
+      // also receive a details object that provides information about
+      // the parent and grandparent types.
+      public visitFieldDefinition(
+        field: GraphQLField<any, any>,
+        details: { objectType: GraphQLObjectType },
+      ) {
+        this.ensureFieldsWrapped(details.objectType);
+        (field as any)._requiredAuthRole = this.args.requires;
+      }
+
+      public ensureFieldsWrapped(objectType: GraphQLObjectType) {
+        // Mark the GraphQLObjectType object to avoid re-wrapping:
+        if ((objectType as any)._authFieldsWrapped) {
+          return;
+        }
+        (objectType as any)._authFieldsWrapped = true;
+
+        const fields = objectType.getFields();
+
+        Object.keys(fields).forEach(fieldName => {
+          const field = fields[fieldName];
+          const { resolve = defaultFieldResolver } = field;
+          field.resolve = async function (...args: any[]) {
+            // Get the required Role from the field first, falling back
+            // to the objectType if no Role is required by the field:
+            const requiredRole =
+              (field as any)._requiredAuthRole ||
+              (objectType as any)._requiredAuthRole;
+
+            if (! requiredRole) {
+              return resolve.apply(this, args);
+            }
+
+            const context = args[2];
+            const user = await getUser(context.headers.authToken);
+            if (! user.hasRole(requiredRole)) {
+              throw new Error('not authorized');
+            }
+
+            return resolve.apply(this, args);
+          };
+        });
+      }
     }
 
     const schema = makeExecutableSchema({
@@ -721,48 +770,7 @@ describe('@directives', () => {
       }`,
 
       directives: {
-        auth: class extends SchemaDirectiveVisitor {
-          public visitObject(type: GraphQLObjectType) {
-            this.ensureFieldsWrapped(type);
-            type[authReqSymbol] = this.args.requires;
-          }
-
-          public visitFieldDefinition(field: GraphQLField<any, any>, details: {
-            objectType: GraphQLObjectType,
-          }) {
-            this.ensureFieldsWrapped(details.objectType);
-            field[authReqSymbol] = this.args.requires;
-          }
-
-          private ensureFieldsWrapped(type: GraphQLObjectType) {
-            // Mark the GraphQLObjectType object to avoid re-wrapping its fields:
-            if (type[authWrapSymbol]) {
-              return;
-            }
-
-            const fields = type.getFields();
-            Object.keys(fields).forEach(fieldName => {
-              const field = fields[fieldName];
-              const { resolve = defaultFieldResolver } = field;
-              field.resolve = async function (...args: any[]) {
-                // Get the required role from the field first, falling back to the
-                // parent GraphQLObjectType if no role is required by the field:
-                const requiredRole = field[authReqSymbol] || type[authReqSymbol];
-                if (! requiredRole) {
-                  return resolve.apply(this, args);
-                }
-                const context = args[2];
-                const user = await getUser(context.headers.authToken);
-                if (! user.hasRole(requiredRole)) {
-                  throw new Error('not authorized');
-                }
-                return resolve.apply(this, args);
-              };
-            });
-
-            type[authWrapSymbol] = true;
-          }
-        }
+        auth: AuthDirective
       },
 
       resolvers: {
