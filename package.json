@@ -66,6 +66,7 @@
     "@types/zen-observable": "^0.5.3",
     "body-parser": "^1.18.2",
     "chai": "^4.1.2",
+    "dateformat": "^3.0.3",
     "express": "^4.16.2",
     "graphql": "^0.13.0",
     "graphql-subscriptions": "^0.5.7",
