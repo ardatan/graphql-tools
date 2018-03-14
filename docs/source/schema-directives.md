@@ -449,12 +449,14 @@ declare @uniqueID(
   # Which fields to include in the new ID:
   from: [String] = ["id"]
 ) on OBJECT
+
 # Since this type just uses the default values of name and from,
 # we don't have to pass any arguments to the directive:
 type Location @uniqueID {
   id: Int
   address: String
 }
+
 # This type uses both the person's name and the personID field,
 # in addition to the "Person" type name, to construct the ID:
 type Person @uniqueID(from: ["name", "personID"]) {
