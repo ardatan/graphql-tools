@@ -1,4 +1,3 @@
-import { parse } from 'graphql';
 import { Fetcher, FetcherOperation } from './makeRemoteExecutableSchema';
 
 import {
@@ -11,11 +10,6 @@ export { execute } from 'apollo-link';
 
 export default function linkToFetcher(link: ApolloLink): Fetcher {
   return (fetcherOperation: FetcherOperation) => {
-    const linkOperation = {
-      ...fetcherOperation,
-      query: parse(fetcherOperation.query),
-    };
-
-    return makePromise(execute(link, linkOperation));
+    return makePromise(execute(link, fetcherOperation));
   };
 }

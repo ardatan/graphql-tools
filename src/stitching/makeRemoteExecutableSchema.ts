@@ -15,12 +15,12 @@ import {
   GraphQLInt,
   GraphQLScalarType,
   ExecutionResult,
-  print,
   buildSchema,
   printSchema,
   Kind,
   ValueNode,
   GraphQLResolveInfo,
+  DocumentNode
 } from 'graphql';
 import linkToFetcher, { execute } from './linkToFetcher';
 import isEmptyObject from '../isEmptyObject';
@@ -41,7 +41,7 @@ export type ResolverFn = (
 export type Fetcher = (operation: FetcherOperation) => Promise<ExecutionResult>;
 
 export type FetcherOperation = {
-  query: string;
+  query: DocumentNode;
   operationName?: string;
   variables?: { [key: string]: any };
   context?: { [key: string]: any };
@@ -161,7 +161,7 @@ function createResolver(fetcher: Fetcher): GraphQLFieldResolver<any, any> {
       definitions: [info.operation, ...fragments],
     };
     const result = await fetcher({
-      query: print(document),
+      query: document,
       variables: info.variableValues,
       context: { graphqlContext: context },
     });
