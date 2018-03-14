@@ -2371,29 +2371,6 @@ describe('attachDirectiveResolvers on field', () => {
       expect(res.data).to.deep.equal(expected);
     });
   });
-
-  it('throws error if trying use undefined Directive', () => {
-    return expect(() => {
-      makeExecutableSchema({
-        typeDefs: `
-          type RootQuery {
-            hello: String @deprecated(reason: "Built-in directive work as normal") @upper
-          }
-          schema {
-            query: RootQuery
-          }
-        `,
-        resolvers: {
-          RootQuery: {
-            hello: () => 'never touch',
-          },
-        },
-        directiveResolvers: directiveResolvers,
-      });
-    }).to.throw(
-      'Directive @upper is undefined. Please define in schema before using',
-    );
-  });
 });
 
 describe('can specify lexical parser options', () => {
