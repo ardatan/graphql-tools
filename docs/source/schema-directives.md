@@ -237,7 +237,6 @@ Of course, it would be even better if the schema author did not have decide on a
 import formatDate from "dateformat";
 import {
   defaultFieldResolver,
-  graphql,
   GraphQLString,
 } from "graphql";
 
@@ -268,12 +267,13 @@ class FormattableDateDirective extends SchemaDirectiveVisitor {
       context,
       info,
     ) {
-      // If a format argument was not provided, default to the optional
-      // defaultFormat argument taken by the @date directive.
-      format = format || defaultFormat;
       const date = await resolve.call(this, source, otherArgs, context, info);
-      return formatDate(date, format);
+      // If a format argument was not provided, default to the optional
+      // defaultFormat argument taken by the @date directive:
+      return formatDate(date, format || defaultFormat);
     };
+
+    field.type = GraphQLString;
   }
 }
 
@@ -285,12 +285,20 @@ const schema = makeExecutableSchema({
 });
 ```
 
-Now the client can specify a desired `format` argument when requesting the `today` field:
+Now the client can specify a desired `format` argument when requesting the `Query.today` field, or omit the argument to use the `defaultFormat` string specified in the schema:
 
 ```js
+import { graphql } from "graphql";
+
+graphql(schema, `query { today }`).then(result => {
+  // Logs with the default "mmmm d, yyyy" format:
+  console.log(result.data.today);
+});
+
 graphql(schema, `query {
   today(format: "d mmm yyyy")
 }`).then(result => {
+  // Logs with the requested "d mmm yyyy" format:
   console.log(result.data.today);
 });
 ```
@@ -510,6 +518,7 @@ const typeDefs = `
 declare @uniqueID(
   # The name of the new ID field, "uid" by default:
   name: String = "uid"
+
   # Which fields to include in the new ID:
   from: [String] = ["id"]
 ) on OBJECT
