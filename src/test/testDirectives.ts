@@ -30,6 +30,8 @@ import {
   GraphQLInt,
 } from 'graphql';
 
+import formatDate = require('dateformat');
+
 const typeDefs = `
 directive @schemaDirective(role: String) on SCHEMA
 directive @enumValueDirective on ENUM_VALUE
@@ -590,7 +592,7 @@ describe('@directives', () => {
             field.type = GraphQLString;
             field.resolve = async function (...args: any[]) {
               const date = await resolve.apply(this, args);
-              return require('dateformat')(date, format);
+              return formatDate(date, format);
             };
           }
         }
@@ -614,6 +616,77 @@ describe('@directives', () => {
         today: 'February 26, 2018'
       });
     });
+  });
+
+  it('can be used to implement the @date by adding an argument', async () => {
+    class FormattableDateDirective extends SchemaDirectiveVisitor {
+      public visitFieldDefinition(field: GraphQLField<any, any>) {
+        const { resolve = defaultFieldResolver } = field;
+        const { defaultFormat } = this.args;
+
+        field.args.push({
+          name: 'format',
+          type: GraphQLString
+        });
+
+        field.type = GraphQLString;
+        field.resolve = async function (source, { format, ...args }, context, info) {
+          format = format || defaultFormat;
+          const date = await resolve.call(this, source, args, context, info);
+          return formatDate(date, format);
+        };
+      }
+    }
+
+    const schema = makeExecutableSchema({
+      typeDefs: `
+      directive @date(
+        defaultFormat: String = "mmmm d, yyyy"
+      ) on FIELD_DEFINITION
+
+      scalar Date
+
+      type Query {
+        today: Date @date
+      }`,
+
+      schemaDirectives: {
+        date: FormattableDateDirective
+      },
+
+      resolvers: {
+        Query: {
+          today() {
+            return new Date(1521131357195);
+          }
+        }
+      }
+    });
+
+    const resultNoArg = await graphql(schema, `query { today }`);
+
+    if (resultNoArg.errors) {
+      assert.deepEqual(resultNoArg.errors, []);
+    }
+
+    assert.deepEqual(
+      resultNoArg.data,
+      { today: 'March 15, 2018' }
+    );
+
+    const resultWithArg = await graphql(schema, `
+    query {
+      today(format: "dd mmm yyyy")
+    }`);
+
+    if (resultWithArg.errors) {
+      assert.deepEqual(resultWithArg.errors, []);
+    }
+
+    assert.deepEqual(
+      resultWithArg.data,
+      { today: '15 Mar 2018' }
+    );
   });
 
   it('can be used to implement the @intl example', () => {

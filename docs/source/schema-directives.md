@@ -231,6 +231,78 @@ const schema = makeExecutableSchema({
 });
 ```
 
+Of course, it would be even better if the schema author did not have decide on a specific `Date` format, but could instead leave that decision to the client. To make this work, the directive just needs to add an additional argument to the field:
+
+```js
+import formatDate from "dateformat";
+import {
+  defaultFieldResolver,
+  GraphQLString,
+} from "graphql";
+
+const typeDefs = `
+directive @date(
+  defaultFormat: String = "mmmm d, yyyy"
+) on FIELD_DEFINITION
+
+scalar Date
+
+type Query {
+  today: Date @date
+}`;
+
+class FormattableDateDirective extends SchemaDirectiveVisitor {
+  public visitFieldDefinition(field) {
+    const { resolve = defaultFieldResolver } = field;
+    const { defaultFormat } = this.args;
+
+    field.args.push({
+      name: 'format',
+      type: GraphQLString
+    });
+
+    field.resolve = async function (
+      source,
+      { format, ...otherArgs },
+      context,
+      info,
+    ) {
+      const date = await resolve.call(this, source, otherArgs, context, info);
+      // If a format argument was not provided, default to the optional
+      // defaultFormat argument taken by the @date directive:
+      return formatDate(date, format || defaultFormat);
+    };
+
+    field.type = GraphQLString;
+  }
+}
+
+const schema = makeExecutableSchema({
+  typeDefs,
+  schemaDirectives: {
+    date: FormattableDateDirective
+  }
+});
+```
+
+Now the client can specify a desired `format` argument when requesting the `Query.today` field, or omit the argument to use the `defaultFormat` string specified in the schema:
+
+```js
+import { graphql } from "graphql";
+
+graphql(schema, `query { today }`).then(result => {
+  // Logs with the default "mmmm d, yyyy" format:
+  console.log(result.data.today);
+});
+
+graphql(schema, `query {
+  today(format: "d mmm yyyy")
+}`).then(result => {
+  // Logs with the requested "d mmm yyyy" format:
+  console.log(result.data.today);
+});
+```
+
 ### Marking strings for internationalization
 
 Suppose you have a function called `translate` that takes a string, a path identifying that string's role in your application, and a target locale for the translation.
@@ -446,15 +518,18 @@ const typeDefs = `
 declare @uniqueID(
   # The name of the new ID field, "uid" by default:
   name: String = "uid"
+
   # Which fields to include in the new ID:
   from: [String] = ["id"]
 ) on OBJECT
+
 # Since this type just uses the default values of name and from,
 # we don't have to pass any arguments to the directive:
 type Location @uniqueID {
   id: Int
   address: String
 }
+
 # This type uses both the person's name and the personID field,
 # in addition to the "Person" type name, to construct the ID:
 type Person @uniqueID(from: ["name", "personID"]) {
@@ -585,6 +660,14 @@ class AuthDirective extends SchemaDirectiveVisitor {
 ```
 
 Since the `getDirectiveDeclaration` method receives not only the name of the directive but also the `GraphQLSchema` object, it can modify and/or reuse previous declarations found in the schema, as an alternative to returning a totally new `GraphQLDirective` object. Either way, if the visitor returns a non-null `GraphQLDirective` from `getDirectiveDeclaration`, that declaration will be used to check arguments and permissible locations.
+
+## What about query directives?
+
+As its name suggests, the `SchemaDirectiveVisitor` abstraction is specifically designed to enable transforming GraphQL schemas based on directives that appear in your SDL text.
+
+While directive syntax can also appear in GraphQL queries sent from the client, implementing query directives would require runtime transformation of query documents. We have deliberately restricted this implementation to transformations that take place when you call the `makeExecutableSchema` function&mdash;that is, at schema construction time.
+
+We believe confining this logic to your schema is more sustainable than burdening your clients with it, though you can probably imagine a similar sort of abstraction for implementing query directives. If that possibility becomes a desire that becomes a need for you, let us know, and we may consider supporting query directives in a future version of these tools.
 
 ## What about `directiveResolvers`?
 
