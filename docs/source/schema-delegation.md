@@ -9,7 +9,7 @@ Schema delegation is a way to automatically forward query or a part of the query
 * [Schema transforms](./schema-transforms.html) - manipulating with schemas, while keep ability to delegate to them
 * [Schema stitching](./schema-stitching) - extending schemas and connecting multiple schemas together
 
-Delegation is performed by one function - `delegateToSchema`. It should be called from within a resolver and it uses the GraphQL query part that starts at resolver part to create a query that will be executed on a subschema.
+Delegation is performed by one function - `delegateToSchema`. It should be called from within a parent schema resolver. It uses the GraphQL query tree starts at the resolver to create a query that will be executed on a subschema.
 
 <h2 id="example">Motivational example</h2>
 
