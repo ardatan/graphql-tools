@@ -231,6 +231,70 @@ const schema = makeExecutableSchema({
 });
 ```
 
+Of course, it would be even better if the schema author did not have decide on a specific `Date` format, but could instead leave that decision to the client. To make this work, the directive just needs to add an additional argument to the field:
+
+```js
+import formatDate from "dateformat";
+import {
+  defaultFieldResolver,
+  graphql,
+  GraphQLString,
+} from "graphql";
+
+const typeDefs = `
+directive @date(
+  defaultFormat: String = "mmmm d, yyyy"
+) on FIELD_DEFINITION
+
+scalar Date
+
+type Query {
+  today: Date @date
+}`;
+
+class FormattableDateDirective extends SchemaDirectiveVisitor {
+  public visitFieldDefinition(field) {
+    const { resolve = defaultFieldResolver } = field;
+    const { defaultFormat } = this.args;
+
+    field.args.push({
+      name: 'format',
+      type: GraphQLString
+    });
+
+    field.resolve = async function (
+      source,
+      { format, ...otherArgs },
+      context,
+      info,
+    ) {
+      // If a format argument was not provided, default to the optional
+      // defaultFormat argument taken by the @date directive.
+      format = format || defaultFormat;
+      const date = await resolve.call(this, source, otherArgs, context, info);
+      return formatDate(date, format);
+    };
+  }
+}
+
+const schema = makeExecutableSchema({
+  typeDefs,
+  schemaDirectives: {
+    date: FormattableDateDirective
+  }
+});
+```
+
+Now the client can specify a desired `format` argument when requesting the `today` field:
+
+```js
+graphql(schema, `query {
+  today(format: "d mmm yyyy")
+}`).then(result => {
+  console.log(result.data.today);
+});
+```
+
 ### Marking strings for internationalization
 
 Suppose you have a function called `translate` that takes a string, a path identifying that string's role in your application, and a target locale for the translation.
