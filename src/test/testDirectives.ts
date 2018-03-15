@@ -30,6 +30,8 @@ import {
   GraphQLInt,
 } from 'graphql';
 
+import formatDate = require('dateformat');
+
 const typeDefs = `
 directive @schemaDirective(role: String) on SCHEMA
 directive @enumValueDirective on ENUM_VALUE
@@ -590,7 +592,7 @@ describe('@directives', () => {
             field.type = GraphQLString;
             field.resolve = async function (...args: any[]) {
               const date = await resolve.apply(this, args);
-              return require('dateformat')(date, format);
+              return formatDate(date, format);
             };
           }
         }
@@ -614,6 +616,62 @@ describe('@directives', () => {
         today: 'February 26, 2018'
       });
     });
+  });
+
+  it('can be used to implement the @formattableDate example', async () => {
+    class FormattableDateDirective extends SchemaDirectiveVisitor {
+      public visitFieldDefinition(field: GraphQLField<any, any>) {
+        const { resolve = defaultFieldResolver } = field;
+
+        field.args.push({
+          name: 'format',
+          type: GraphQLString,
+          defaultValue: 'mmmm d, yyyy',
+        });
+
+        field.type = GraphQLString;
+        field.resolve = async function (source, { format, ...args }, context, info) {
+          const date = await resolve.call(this, source, args, context, info);
+          return formatDate(date, format);
+        };
+      }
+    }
+
+    const schema = makeExecutableSchema({
+      typeDefs: `
+      directive @formattableDate on FIELD_DEFINITION
+
+      scalar Date
+
+      type Query {
+        today: Date @formattableDate
+      }`,
+
+      schemaDirectives: {
+        formattableDate: FormattableDateDirective
+      },
+
+      resolvers: {
+        Query: {
+          today() {
+            return new Date(1521131357195);
+          }
+        }
+      }
+    });
+
+    assert.deepEqual(
+      (await graphql(schema, `query { today }`)).data,
+      { today: 'March 15, 2018' }
+    );
+
+    assert.deepEqual(
+      (await graphql(schema, `
+      query {
+        today(format: "dd mmm yyyy")
+      }`)).data,
+      { today: '15 Mar 2018' }
+    );
   });
 
   it('can be used to implement the @intl example', () => {
