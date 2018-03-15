@@ -17,9 +17,11 @@ sidebar_categories:
     - scalars
     - mocking
     - connectors
+    - schema-delegation
     - remote-schemas
-    - schema-directives
+    - schema-transforms
     - schema-stitching
+    - schema-directives
   Related:
     - title: Apollo Server
       href: https://www.apollographql.com/docs/apollo-server/

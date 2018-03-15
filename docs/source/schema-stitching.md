@@ -164,6 +164,10 @@ mergeSchemas({
 
 [Run the above example on Launchpad.](https://launchpad.graphql.com/8r11mk9jq)
 
+<h2 id="using-with-transforms"></h2>
+
+*** TODO ***
+
 <h2 id="complex-example">Complex example</h2>
 
 For a more complicated example involving properties and bookings, with implementations of all of the resolvers, check out the Launchpad links below:
