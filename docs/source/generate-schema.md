@@ -323,7 +323,7 @@ import { makeExecutableSchema } from 'graphql-tools';
 
 const jsSchema = makeExecutableSchema({
   typeDefs,
-  resolvers,
+  resolvers, // optional
   logger, // optional
   allowUndefinedInResolve = false, // optional
   resolverValidationOptions = {}, // optional
