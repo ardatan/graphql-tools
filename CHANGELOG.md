@@ -4,8 +4,6 @@
 
 * Use `getDescription` from `graphql-js` package [PR #672](https://github.com/apollographql/graphql-tools/pull/672)
 
-* When concatenating errors maintain a reference to the original for use downstream [Issue #480](https://github.com/apollographql/graphql-tools/issues/480) [PR #637](https://github.com/apollographql/graphql-tools/pull/637)
-
 ### v2.22.0
 
 * When concatenating errors maintain a reference to the original for use downstream [Issue #480](https://github.com/apollographql/graphql-tools/issues/480) [PR #637](https://github.com/apollographql/graphql-tools/pull/637)
