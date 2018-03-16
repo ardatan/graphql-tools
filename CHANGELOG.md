@@ -2,6 +2,10 @@
 
 ### vNEXT
 
+### v2.23.0
+
+* The `SchemaDirectiveVisitor` abstraction for implementing reusable schema `@directive`s has landed. Read our [blog post](https://dev-blog.apollodata.com/reusable-graphql-schema-directives-131fb3a177d1) about this new functionality, and/or check out the [documentation](https://www.apollographql.com/docs/graphql-tools/schema-directives.html) for even more examples. [PR #640](https://github.com/apollographql/graphql-tools/pull/640)
+
 ### v2.22.0
 
 * When concatenating errors maintain a reference to the original for use downstream [Issue #480](https://github.com/apollographql/graphql-tools/issues/480) [PR #637](https://github.com/apollographql/graphql-tools/pull/637)
