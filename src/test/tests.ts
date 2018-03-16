@@ -9,3 +9,4 @@ import './testMergeSchemas';
 import './testTransforms';
 import './testAlternateMergeSchemas';
 import './testErrors';
+import './testDirectives';

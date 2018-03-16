@@ -12,7 +12,6 @@ import {
   parse,
   print,
   DefinitionNode,
-  DirectiveNode,
   defaultFieldResolver,
   buildASTSchema,
   extendSchema,
@@ -27,7 +26,7 @@ import {
   GraphQLInterfaceType,
   GraphQLFieldMap,
 } from 'graphql';
-import { getArgumentValues } from 'graphql/execution/values';
+
 import {
   IExecutableSchemaDefinition,
   ILogger,
@@ -44,6 +43,7 @@ import {
   GraphQLParseOptions,
 } from './Interfaces';
 
+import { SchemaDirectiveVisitor } from './schemaVisitor';
 import { deprecated } from 'deprecated-decorator';
 import mergeDeep from './mergeDeep';
 
@@ -67,7 +67,6 @@ function _generateSchema(
   // TODO: rename to allowUndefinedInResolve to be consistent
   allowUndefinedInResolve: boolean,
   resolverValidationOptions: IResolverValidationOptions,
-  directiveResolvers: IDirectiveResolvers<any, any>,
   parseOptions: GraphQLParseOptions,
 ) {
   if (typeof resolverValidationOptions !== 'object') {
@@ -104,10 +103,6 @@ function _generateSchema(
     addErrorLoggingToSchema(schema, logger);
   }
 
-  if (directiveResolvers) {
-    attachDirectiveResolvers(schema, directiveResolvers);
-  }
-
   return schema;
 }
 
@@ -119,6 +114,7 @@ function makeExecutableSchema<TContext = any>({
   allowUndefinedInResolve = true,
   resolverValidationOptions = {},
   directiveResolvers = null,
+  schemaDirectives = null,
   parseOptions = {},
 }: IExecutableSchemaDefinition<TContext>) {
   const jsSchema = _generateSchema(
@@ -127,7 +123,6 @@ function makeExecutableSchema<TContext = any>({
     logger,
     allowUndefinedInResolve,
     resolverValidationOptions,
-    directiveResolvers,
     parseOptions,
   );
   if (typeof resolvers['__schema'] === 'function') {
@@ -142,6 +137,18 @@ function makeExecutableSchema<TContext = any>({
     // function if you want.
     attachConnectorsToContext(jsSchema, connectors);
   }
+
+  if (directiveResolvers) {
+    attachDirectiveResolvers(jsSchema, directiveResolvers);
+  }
+
+  if (schemaDirectives) {
+    SchemaDirectiveVisitor.visitSchemaDirectives(
+      jsSchema,
+      schemaDirectives,
+    );
+  }
+
   return jsSchema;
 }
 
@@ -678,42 +685,25 @@ function attachDirectiveResolvers(
       `Expected directiveResolvers to be of type object, got ${typeof directiveResolvers}`,
     );
   }
+
   if (Array.isArray(directiveResolvers)) {
     throw new Error(
       'Expected directiveResolvers to be of type object, got Array',
     );
   }
-  forEachField(schema, (field: GraphQLField<any, any>) => {
-    const directives = field.astNode.directives;
-    directives.forEach((directive: DirectiveNode) => {
-      const directiveName = directive.name.value;
-      const resolver = directiveResolvers[directiveName];
 
-      if (resolver) {
+  const schemaDirectives = Object.create(null);
+
+  Object.keys(directiveResolvers).forEach(directiveName => {
+    schemaDirectives[directiveName] = class extends SchemaDirectiveVisitor {
+      public visitFieldDefinition(field: GraphQLField<any, any>) {
+        const resolver = directiveResolvers[directiveName];
         const originalResolver = field.resolve || defaultFieldResolver;
-        const Directive = schema.getDirective(directiveName);
-        if (typeof Directive === 'undefined') {
-          throw new Error(
-            `Directive @${directiveName} is undefined. ` +
-              'Please define in schema before using',
-          );
-        }
-        const directiveArgs = getArgumentValues(Directive, directive);
-
+        const directiveArgs = this.args;
         field.resolve = (...args: any[]) => {
-          const [source, , context, info] = args;
+          const [source, /* original args */, context, info] = args;
           return resolver(
-            () => {
-              try {
-                const promise = originalResolver.call(field, ...args);
-                if (promise instanceof Promise) {
-                  return promise;
-                }
-                return Promise.resolve(promise);
-              } catch (error) {
-                return Promise.reject(error);
-              }
-            },
+            async () => originalResolver.apply(field, args),
             source,
             directiveArgs,
             context,
@@ -721,8 +711,13 @@ function attachDirectiveResolvers(
           );
         };
       }
-    });
+    };
   });
+
+  SchemaDirectiveVisitor.visitSchemaDirectives(
+    schema,
+    schemaDirectives,
+  );
 }
 
 export {

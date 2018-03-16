@@ -2,8 +2,12 @@
 
 ### vNEXT
 
+### v2.22.0
+
 * When concatenating errors maintain a reference to the original for use downstream [Issue #480](https://github.com/apollographql/graphql-tools/issues/480) [PR #637](https://github.com/apollographql/graphql-tools/pull/637)
 * Improve generic typings for several resolver-related interfaces [PR #662](https://github.com/apollographql/graphql-tools/pull/662)
+* Remove copied apollo-link code [PR #670](https://github.com/apollographql/graphql-tools/pull/670)
+* Handle undefined path in `getErrorsFromParent` [PR #667](https://github.com/apollographql/graphql-tools/pull/667)
 
 ### v2.21.0
 
@@ -59,12 +63,12 @@
 
 Update to add support for `graphql@0.12`, and drop versions before `0.11` from the peer dependencies list. The `graphql` package has some breaking changes you might need to be aware of, but there aren't any breaking changes in `graphql-tools` itself, or common usage patterns, so we are shipping this as a minor version. We're also running tests on this package with _both_ `graphql@0.11` and `graphql@0.12` until we confirm most users have updated.
 
-- Visit the [`graphql` releases page](https://github.com/graphql/graphql-js/releases) to keep track of for breaking changes to the underlying package.
-- [PR #541](https://github.com/apollographql/graphql-tools/pull/541)
+* Visit the [`graphql` releases page](https://github.com/graphql/graphql-js/releases) to keep track of for breaking changes to the underlying package.
+* [PR #541](https://github.com/apollographql/graphql-tools/pull/541)
 
 ### v2.13.0
 
-* (Experimental) Added support for custom directives on FIELD_DEFINITION that wrap resolvers with custom reusable logic.  [Issue #212](https://github.com/apollographql/graphql-tools/issues/212) [PR #518](https://github.com/apollographql/graphql-tools/pull/518) and [PR #529](https://github.com/apollographql/graphql-tools/pull/529)
+* (Experimental) Added support for custom directives on FIELD_DEFINITION that wrap resolvers with custom reusable logic. [Issue #212](https://github.com/apollographql/graphql-tools/issues/212) [PR #518](https://github.com/apollographql/graphql-tools/pull/518) and [PR #529](https://github.com/apollographql/graphql-tools/pull/529)
 
 ### v2.12.0
 
@@ -136,43 +140,55 @@ Update to add support for `graphql@0.12`, and drop versions before `0.11` from t
 * Fix alias problems in schema merging [PR #411](https://github.com/apollographql/graphql-tools/pull/411)
 
 ### v2.1.0
+
 * Added support for passing an Apollo Link instead of a fetcher
 
 ### v2.0.0
+
 * Add schema merging utilities [PR #382](https://github.com/apollographql/graphql-tools/pull/382)
 
 ### v1.2.3
+
 * Update package.json to allow GraphQL.js 0.11 [Issue #394](https://github.com/apollographql/graphql-tools/issues/394) [PR #395](https://github.com/apollographql/graphql-tools/pull/395)
 
 ### v1.2.1
+
 * Fix typings for resolver options: [Issue #372](https://github.com/apollographql/graphql-tools/issues/372) [PR #374](https://github.com/apollographql/graphql-tools/pull/374)
 
 ### v.1.2.0
+
 * Use defaultFieldResolver from graphql-js package instead of own one [PR #373](https://github.com/apollographql/graphql-tools/pull/373)
 * Remove `lodash` dependency [PR #356](https://github.com/apollographql/graphql-tools/pull/356)
 
 ### v.1.1.0
+
 * Improve mocking of union and interface types [PR #332](https://github.com/apollographql/graphql-tools/pull/332)
 
 ### v1.0.0
+
 * Add argument validation in `addMockFunctionsToSchema` for 'schema' property in parameter object [PR #321](https://github.com/apollographql/graphql-tools/pull/321)
 
 ### v0.11.0
+
 * Remove dependency on `graphql-subscription` and use an interface for PubSub [PR #295](https://github.com/apollographql/graphql-tools/pull/295)
 * Support schema AST as a type definition input [PR #300](https://github.com/apollographql/graphql-tools/pull/300)
 * Update graphql typings to 0.9.0 [PR #298](https://github.com/apollographql/graphql-tools/pull/298)
 
 ### v0.10.1
+
 * Update dependencies [PR #287](https://github.com/apollographql/graphql-tools/pull/287)
 
 ### v0.10.0
+
 * Restrict version range of graphql-js peer dependency to ^0.8.0 || ^0.9.0 [PR #266](https://github.com/apollographql/graphql-tools/pull/266)
 
 ### v0.9.2
+
 * Update graphql-js dependency to include 0.9.0 [PR #264](https://github.com/apollostack/graphql-tools/pull/264)
 * Fix logErrors option so it logs errors if resolve function returns a promise [PR #262](https://github.com/apollostack/graphql-tools/pull/262)
 
 ### v0.9.1
+
 * use function reference instead of string for concatenateTypeDefs. [PR #252](https://github.com/apollostack/graphql-tools/pull/252)
 
 ### v0.9.0
@@ -203,8 +219,7 @@ Update to add support for `graphql@0.12`, and drop versions before `0.11` from t
 * Update default resolve function to match the one from GraphQL.js ([@stubailo](https://github.com/stubailo) in [#183](https://github.com/apollostack/graphql-tools/pull/183))
 * Move `typed-graphql` to `optionalDependencies` ([@stubailo](https://github.com/stubailo) in [#183](https://github.com/apollostack/graphql-tools/pull/183))
 * Set new defaults for resolver validation to match GraphQL.js so that developers need to opt-in to advanced validation ([@stubailo](https://github.com/stubailo) in [#183](https://github.com/apollostack/graphql-tools/pull/183)):
-    * `requireResolversForArgs = false`
-		* `requireResolversForNonScalar = false`
+  * `requireResolversForArgs = false` \* `requireResolversForNonScalar = false`
 
 ### v0.7.2
 
@@ -215,10 +230,8 @@ Update to add support for `graphql@0.12`, and drop versions before `0.11` from t
 * Fix dependency on lodash
 
 ### v0.7.0
-* Various Bugfixes ([@DxCx](https://github.com/DxCx) in [#129](https://github.com/apollostack/graphql-tools/pull/129))
-	- Istanbul coverage was not working well due to Istanbul bug [#549](https://github.com/gotwarlost/istanbul/issues/549)
-	- Bluebird promise was not converted well on tests
-	- "console.warn" got overwritten on tests
+
+* Various Bugfixes ([@DxCx](https://github.com/DxCx) in [#129](https://github.com/apollostack/graphql-tools/pull/129)) - Istanbul coverage was not working well due to Istanbul bug [#549](https://github.com/gotwarlost/istanbul/issues/549) - Bluebird promise was not converted well on tests - "console.warn" got overwritten on tests
 
 * Migrated code from Javascript to Typescript ([@DxCx](https://github.com/DxCx) in [#129](https://github.com/apollostack/graphql-tools/pull/129))
 
@@ -235,6 +248,7 @@ Update to add support for `graphql@0.12`, and drop versions before `0.11` from t
 * Add missing type annotations to avoid typescript compiler errors when 'noImplicitAny' is enabled ([@almilo](https://github.com/almilo) in [#133](https://github.com/apollostack/graphql-tools/pull/133))
 
 ### v0.6.6
+
 * Added embedded Typescript definitions ([@DxCx](https://github.com/DxCx) in [#120](https://github.com/apollostack/graphql-tools/pull/120))
 
 * Fix issue in addMockFunctionsToSchema when preserveResolvers is true and connector/logger is used. ([@DxCx](https://github.com/DxCx) in [#121](https://github.com/apollostack/graphql-tools/pull/121))
@@ -246,6 +260,7 @@ Update to add support for `graphql@0.12`, and drop versions before `0.11` from t
 * Add `requireResolversForAllFields` resolver validation option ([@nevir](https://github.com/nevir) in [#107](https://github.com/apollostack/graphql-tools/pull/107))
 
 ### v0.6.4
+
 * Make mocking partial objects match expected behavior ([@sebastienbarre](https://github.com/sebastienbarre) in [#96](https://github.com/apollostack/graphql-tools/pull/96))
 * Improved behavior when mocking interfaces & unions ([@itajaja](https://github.com/itajaja) in [#102](https://github.com/apollostack/graphql-tools/pull/102))
 
