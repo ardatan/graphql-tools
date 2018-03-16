@@ -60,7 +60,7 @@ Both batching and caching are more important in GraphQL than in traditional endp
 
 Models are the glue between connectors - which are backend-specific - and GraphQL types - which are app-specific. They are very similar to models in ORMs, such as Rails' Active Record.
 
-Let's say for example that you have two types, Author and Post, which are both stored in MySQL. Rather than calling the MySQL connector directly from your resolve functions, you should create models for Author and Post, which use the MongoDB connector. This additional level of abstraction helps separate the data fetching logic from the GraphQL schema, which makes reusing and refactoring it easier.
+Let's say for example that you have two types, Author and Post, which are both stored in MySQL. Rather than calling the MySQL connector directly from your resolve functions, you should create models for Author and Post, which use the MySQL connector. This additional level of abstraction helps separate the data fetching logic from the GraphQL schema, which makes reusing and refactoring it easier.
 
 In the example schema above, the Authors model would have the following methods:
 ```

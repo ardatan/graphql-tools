@@ -11,6 +11,10 @@ import {
   DocumentNode,
 } from 'graphql';
 
+import {
+  SchemaDirectiveVisitor,
+} from './schemaVisitor';
+
 /* TODO: Add documentation */
 
 export type UnitOrList<Type> = Type | Array<Type>;
@@ -21,11 +25,11 @@ export interface IResolverValidationOptions {
   allowResolversNotInSchema?: boolean;
 }
 
-export interface IResolverOptions {
-  resolve?: IFieldResolver<any, any>;
-  subscribe?: IFieldResolver<any, any>;
-  __resolveType?: GraphQLTypeResolver<any, any>;
-  __isTypeOf?: GraphQLIsTypeOfFn<any, any>;
+export interface IResolverOptions<TSource = any, TContext = any> {
+  resolve?: IFieldResolver<TSource, TContext>;
+  subscribe?: IFieldResolver<TSource, TContext>;
+  __resolveType?: GraphQLTypeResolver<TSource, TContext>;
+  __isTypeOf?: GraphQLIsTypeOfFn<TSource, TContext>;
 }
 
 export type MergeInfo = {
@@ -47,14 +51,14 @@ export type IFieldResolver<TSource, TContext> = (
 
 export type ITypedef = (() => ITypedef[]) | string | DocumentNode;
 export type ITypeDefinitions = ITypedef | ITypedef[];
-export type IResolverObject = {
-  [key: string]: IFieldResolver<any, any> | IResolverOptions;
+export type IResolverObject<TSource = any, TContext = any> = {
+  [key: string]: IFieldResolver<TSource, TContext> | IResolverOptions;
 };
 export type IEnumResolver = { [key: string]: string | number };
-export interface IResolvers {
+export interface IResolvers<TSource = any, TContext = any> {
   [key: string]:
     | (() => any)
-    | IResolverObject
+    | IResolverObject<TSource, TContext>
     | GraphQLScalarType
     | IEnumResolver;
 }
@@ -62,22 +66,23 @@ export interface ILogger {
   log: (message: string | Error) => void;
 }
 
-export interface IConnectorCls {
-  new (context?: any): any;
+export interface IConnectorCls<TContext = any> {
+  new (context?: TContext): any;
 }
-export type IConnectorFn = (context?: any) => any;
-export type IConnector = IConnectorCls | IConnectorFn;
+export type IConnectorFn<TContext = any> = (context?: TContext) => any;
+export type IConnector<TContext = any> = IConnectorCls<TContext> | IConnectorFn<TContext>;
 
-export type IConnectors = { [key: string]: IConnector };
+export type IConnectors<TContext = any> = { [key: string]: IConnector<TContext> };
 
-export interface IExecutableSchemaDefinition {
+export interface IExecutableSchemaDefinition<TContext = any> {
   typeDefs: ITypeDefinitions;
-  resolvers?: IResolvers | Array<IResolvers>;
-  connectors?: IConnectors;
+  resolvers?: IResolvers<any, TContext> | Array<IResolvers<any, TContext>>;
+  connectors?: IConnectors<TContext>;
   logger?: ILogger;
   allowUndefinedInResolve?: boolean;
   resolverValidationOptions?: IResolverValidationOptions;
-  directiveResolvers?: IDirectiveResolvers<any, any>;
+  directiveResolvers?: IDirectiveResolvers<any, TContext>;
+  schemaDirectives?: { [name: string]: typeof SchemaDirectiveVisitor };
   parseOptions?: GraphQLParseOptions;
 }
 
@@ -88,7 +93,7 @@ export type IFieldIteratorFn = (
 ) => void;
 
 export type NextResolverFn = () => Promise<any>;
-export type DirectiveResolverFn<TSource, TContext> = (
+export type DirectiveResolverFn<TSource = any, TContext = any> = (
   next: NextResolverFn,
   source: TSource,
   args: { [argName: string]: any },
@@ -96,7 +101,7 @@ export type DirectiveResolverFn<TSource, TContext> = (
   info: GraphQLResolveInfo,
 ) => any;
 
-export interface IDirectiveResolvers<TSource, TContext> {
+export interface IDirectiveResolvers<TSource = any, TContext = any> {
   [directiveName: string]: DirectiveResolverFn<TSource, TContext>;
 }
 
