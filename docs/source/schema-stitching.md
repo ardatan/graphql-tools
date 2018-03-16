@@ -64,7 +64,15 @@ const authorSchema = makeExecutableSchema({
 addMockFunctionsToSchema({ schema: authorSchema });
 
 export const schema = mergeSchemas({
-  schemas: [chirpSchema, authorSchema],
+  schemas: [
+    {
+      name: 'Chirp',
+      schema: chirpSchema,
+    }, {
+      name: 'Author',
+      schema: authorSchema,
+    }
+  ],
 });
 ```
 
@@ -104,7 +112,20 @@ We can now merge these three schemas together:
 
 ```js
 mergeSchemas({
-  schemas: [chirpSchema, authorSchema, linkTypeDefs],
+  schemas: [
+    {
+      name: 'Chirp',
+      schema: chirpSchema,
+    },
+    {
+      name: 'Author',
+      schema: authorSchema,
+    },
+    {
+      name: 'Links',
+      schema: linkTypeDefs,
+    }
+  ],
 });
 ```
 
@@ -122,7 +143,20 @@ A complete implementation of schema stitching for these schemas would look like 
 
 ```js
 mergeSchemas({
-  schemas: [chirpSchema, authorSchema, linkTypeDefs],
+  schemas: [
+    {
+      name: 'Chirp',
+      schema: chirpSchema,
+    },
+    {
+      name: 'Author',
+      schema: authorSchema,
+    },
+    {
+      name: 'Links',
+      schema: linkTypeDefs,
+    }
+  ],
   resolvers: mergeInfo => ({
     User: {
       chirps: {
@@ -130,6 +164,7 @@ mergeSchemas({
         resolve(parent, args, context, info) {
           const authorId = parent.id;
           return mergeInfo.delegate(
+            'Chirp',
             'query',
             'chirpsByAuthorId',
             {
@@ -147,6 +182,7 @@ mergeSchemas({
         resolve(parent, args, context, info) {
           const id = parent.authorId;
           return mergeInfo.delegate(
+            'Product',
             'query',
             'userById',
             {
@@ -164,9 +200,115 @@ mergeSchemas({
 
 [Run the above example on Launchpad.](https://launchpad.graphql.com/8r11mk9jq)
 
-<h2 id="using-with-transforms"></h2>
+<h2 id="using-with-transforms">Using with Transforms</h2>
 
-*** TODO ***
+Often, when creating gateways, one might want to modify one of the schemas. The most common tasks include renaming some of the types, filter or removing some of the root fields. By using [transforms](./schema-transforms) with schema stitching, one can do it without much manual work.
+
+While normally, one delegates directly to the schema that is merged, when schemas are transformed, one often need to delegate to original, untransformed schema. For example, even if some root fields are modified, it's often required to still use those root fields inside of the resolvers, for example for links.
+
+In this example, we'll namespace `Chirp` schema and remove `chirpsByAuthorId` from it, by using transforms built-in into `graphql-tools`.
+
+```js
+import {
+  makeExecutableSchema,
+  addMockFunctionsToSchema,
+  mergeSchemas,
+  Transforms,
+  makeTransformSchema,
+} from 'graphql-tools';
+
+// Mocked chirp schema; we don't want to worry about the schema
+// implementation right now since we're just demonstrating
+// schema stitching
+const chirpSchema = makeExecutableSchema({
+  typeDefs: `
+    type Chirp {
+      id: ID!
+      text: String
+      authorId: ID!
+    }
+
+    type Query {
+      chirpById(id: ID!): Chirp
+      chirpsByAuthorId(authorId: ID!): [Chirp]
+    }
+  `
+});
+
+addMockFunctionsToSchema({ schema: chirpSchema });
+
+// create transform schema
+
+const transformedChirpSchema = makeTransformSchema(propertySchema, [
+  Transforms.FilterRootFields((operation: string, rootField: string) =>
+    ['Query.chirpById'].includes(`${operation}.${rootField}`),
+  ),
+  Transforms.RenameTypes((name: string) => `Chirp_${name}`),
+  Transforms.RenameRootFields((name: string) => `Chirp_${name}`),
+]);
+```
+
+Now we have a schema that has all fields and types prefixed with `Chirp_` and has only `chirpById` root field. Now let's implement the resolvers like in previous example.
+
+```js
+mergeSchemas({
+  schemas: [
+    {
+      name: 'Chirp',
+      schema: chirpSchema,
+    },
+    {
+      name: 'Author',
+      schema: authorSchema,
+    },
+    {
+      name: 'Links',
+      schema: linkTypeDefs,
+    }
+  ],
+  resolvers: mergeInfo => ({
+    User: {
+      chirps: {
+        fragment: `fragment UserFragment on User { id }`,
+        resolve(parent, args, context, info) {
+          const authorId = parent.id;
+          return mergeInfo.delegateToSchema(
+            chirpSchema,
+            'query',
+            'chirpsByAuthorId',
+            {
+              authorId,
+            },
+            context,
+            info,
+            chirpSchema.transforms,
+          );
+        },
+      },
+    },
+    Chirp_Chirp: {
+      author: {
+        fragment: `fragment ChirpFragment on Chirp { authorId }`,
+        resolve(parent, args, context, info) {
+          const id = parent.authorId;
+          return mergeInfo.delegate(
+            'Product',
+            'query',
+            'userById',
+            {
+              id,
+            },
+            context,
+            info,
+          );
+        },
+      },
+    },
+  }),
+});
+```
+
+We use `delegateToSchema` to be able to delegate to original schema. This way we can use `chirpsByAuthorId` field that has been filtered out of the transformed schema.
 
 <h2 id="complex-example">Complex example</h2>
 
@@ -182,12 +324,25 @@ For a more complicated example involving properties and bookings, with implement
 
 ```
 mergeSchemas({
-  schemas: Array<GraphQLSchema | string>,
+  schemas: Array<{
+    name: string,
+    schema: GraphQLSchema | string
+    }>,
   resolvers?: (mergeInfo: MergeInfo) => IResolvers,
   onTypeConflict?: (
     left: GraphQLNamedType,
-    right: GraphQLNamedType
-  ) => GraphQLNamedType
+    right: GraphQLNamedType,
+    info?: {
+      left: {
+        name: string;
+        schema?: GraphQLSchema;
+      };
+      right: {
+        name: string;
+        schema?: GraphQLSchema;
+      };
+    },
+  ) => GraphQLNamedType;
 })
 ```
 
@@ -195,7 +350,7 @@ This is the main function that implements schema stitching. Read below for a des
 
 #### schemas
 
-`schemas` is an array of either `GraphQLSchema` objects or strings. For strings, only `extend type` declarations will be used. Passing strings is useful to add fields to existing types to link schemas together, as described in the example above.
+`schemas` is an array of object with `name` and `schema` that's either `GraphQLSchema` objects or strings. Strings can contain type extensions or GraphQL types, they will be added to resulting schema. Note that type extensions are always applied last, while types are used in order of schemas.
 
 #### resolvers
 
@@ -208,6 +363,7 @@ resolvers: mergeInfo => ({
       fragment: 'fragment BookingFragment on Booking { propertyId }',
       resolve(parent, args, context, info) {
         return mergeInfo.delegate(
+          'Bookings', // Schema name
           'query',
           'propertyById',
           {
@@ -228,15 +384,28 @@ resolvers: mergeInfo => ({
 
 ```js
 type MergeInfo = {
+  getSubSchema(schemaName: string) => GraphQLSchema,
   delegate(
+    schemaName: string,
     operation: 'query' | 'mutation',
     rootFieldName: string,
     args: any,
     context: any,
     info: GraphQLResolveInfo
-  ) => any
+  ) => any,
+  delegateToSchema(
+    schema: GraphQLSchema,
+    operation: 'query' | 'mutation' | 'subscription',
+    fieldName: string,
+    args: { [key: string]: any },
+    context: { [key: string]: any },
+    info: GraphQLResolveInfo,
+    transforms?: Array<Transform>,
+  ) => any,
 }
 ```
+
+`getSubSchema` lets you retrieve schema passed to `mergeSchemas` by name.
 
 `delegate` takes the operation type (`query` or `mutation`) and root field names, together with the GraphQL execution context
 and resolve info, as well as arguments for the root field. It delegates to
@@ -254,9 +423,47 @@ mergeInfo.delegate(
 );
 ```
 
+`delegateToSchema` allows delegating to any GraphQLSchema, while adding `fragmentReplacement` transforms. It's identical to `delegateToSchema` function otherwise. See [Schema Delegation](./schema-delegation.html) and *Using with transforms* section of this documentation.
+
+
 #### onTypeConflict
+
+```
+type OnTypeConflict = (
+  left: GraphQLNamedType,
+  right: GraphQLNamedType,
+  info?: {
+    left: {
+      name: string;
+      schema?: GraphQLSchema;
+    };
+    right: {
+      name: string;
+      schema?: GraphQLSchema;
+    };
+  },
+) => GraphQLNamedType;
+```
 
 `onTypeConflict` lets you customize type resolving logic. The default logic is to
 take the first encountered type of all the types with the same name. This
 method allows customization of this behavior, for example by taking another type or
 merging types together.
+
+For example, taking types from last schemas, instead of first.
+
+```js
+const onTypeConflict = (left, right) => right;
+```
+
+Taking type from the schema that has higher field `version`.
+
+```js
+const onTypeConflict = (left, right, info) => {
+  if (info.left.schema.version >= info.right.schema.version) {
+    return left;
+  } else {
+    return right;
+  }
+}
+```
