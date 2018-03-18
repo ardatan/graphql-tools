@@ -9,6 +9,7 @@ import {
   InlineFragmentNode,
   Kind,
   parse,
+  GraphQLDirective,
 } from 'graphql';
 
 export default class TypeRegistry {
@@ -16,6 +17,7 @@ export default class TypeRegistry {
     [typeName: string]: { [fieldName: string]: InlineFragmentNode };
   };
   private types: { [key: string]: GraphQLNamedType };
+  private directives: { [key: string]: GraphQLDirective };
   private schemaByField: {
     query: { [key: string]: GraphQLSchema };
     mutation: { [key: string]: GraphQLSchema };
@@ -24,6 +26,7 @@ export default class TypeRegistry {
 
   constructor() {
     this.types = {};
+    this.directives = {};
     this.schemaByField = {
       query: {},
       mutation: {},
@@ -43,11 +46,22 @@ export default class TypeRegistry {
     return Object.keys(this.types).map(name => this.types[name]);
   }
 
+  public getAllDirectives(): Array<GraphQLDirective> {
+    return Object.keys(this.directives).map(name => this.directives[name]);
+  }
+
   public getType(name: string): GraphQLNamedType {
     if (!this.types[name]) {
       throw new Error(`No such type: ${name}`);
     }
     return this.types[name];
+  }
+
+  public getDirective(name: string): GraphQLDirective {
+    if (!this.directives[name]) {
+      throw new Error(`No such directive: ${name}`);
+    }
+    return this.directives[name];
   }
 
   public resolveType<T extends GraphQLType>(type: T): T {
@@ -104,6 +118,24 @@ export default class TypeRegistry {
       }
     }
     this.types[name] = type;
+  }
+
+  public addDirective(
+    name: string,
+    type: GraphQLDirective,
+    onTypeConflict?: (
+      leftType: GraphQLDirective,
+      rightType: GraphQLDirective,
+    ) => GraphQLDirective,
+  ): void {
+    if (this.directives[name]) {
+      if (onTypeConflict) {
+        type = onTypeConflict(this.directives[name], type);
+      } else {
+        throw new Error(`Directive name conflict: ${name}`);
+      }
+    }
+    this.directives[name] = type;
   }
 
   public addFragment(typeName: string, fieldName: string, fragment: string) {
