@@ -1233,4 +1233,30 @@ describe('@directives', () => {
       Human
     );
   });
+
+  it('does not enforce query directive locations (issue #680)', () => {
+    const visited = new Set<GraphQLObjectType>();
+    const schema = makeExecutableSchema({
+      typeDefs: `
+      directive @hasScope(scope: [String]) on QUERY | FIELD
+
+      type Query @hasScope {
+        oyez: String
+      }`,
+
+      schemaDirectives: {
+        hasScope: class extends SchemaDirectiveVisitor {
+          public visitObject(object: GraphQLObjectType) {
+            assert.strictEqual(object.name, 'Query');
+            visited.add(object);
+          }
+        }
+      }
+    });
+
+    assert.strictEqual(visited.size, 1);
+    visited.forEach(object => {
+      assert.strictEqual(schema.getType('Query'), object);
+    });
+  });
 });
