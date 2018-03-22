@@ -877,7 +877,7 @@ describe('@directives', () => {
 
     function checkErrors(
       expectedCount: number,
-      ...expectedNames: string[],
+      ...expectedNames: string[]
     ) {
       return function ({ errors = [], data }: {
         errors: any[],
