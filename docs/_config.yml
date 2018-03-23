@@ -35,11 +35,6 @@ content_root: docs/source
 typescript_api_box:
   data_file: docs.json
 
-apis:
-  docsearch:
-    apiKey: 768e823959d35bbd51e4b2439be13fb7
-    indexName: apollodata
-
 # URL
 ## If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'
 url: https://www.apollographql.com/docs/graphql-tools/
