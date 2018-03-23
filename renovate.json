@@ -1,5 +1,3 @@
 {
-  "extends": [
-    "config:base"
-  ]
+  "packageFiles": ["docs/package.json"]
 }
