@@ -2495,3 +2495,156 @@ describe('can specify lexical parser options', () => {
     });
   }
 });
+
+describe('interfaces', () => {
+  const testSchemaWithInterfaces = `
+  interface Node {
+    id: ID!
+  }
+  type User implements Node {
+    id: ID!
+    name: String!
+  }
+  type Query {
+    node: Node!
+    user: User!
+  }
+  schema {
+    query: Query
+  }
+  `;
+  const user = { id: 1, type: 'User', name: 'Kim' };
+  const queryResolver = {
+    node: () => user,
+    user: () => user,
+  };
+  const query = `query {
+    node { id __typename }
+    user { id name }
+  }`;
+
+  it('throws if there is no interface type resolver', async () => {
+    const resolvers = {
+      Query: queryResolver,
+    };
+    try {
+      makeExecutableSchema({
+        typeDefs: testSchemaWithInterfaces,
+        resolvers,
+        resolverValidationOptions: { requireResolveTypeForInterfaces: true },
+      });
+    } catch (error) {
+      assert.equal(
+        error.message,
+        'Type Node is missing a "resolveType" method',
+      );
+      return;
+    }
+    throw new Error('Should have had an error.');
+  });
+
+  it('does not throw if there is an interface type resolver', async () => {
+    const resolvers = {
+      Query: queryResolver,
+      Node: {
+        __resolveType: ({ type }: { type: String }) => type,
+      },
+    };
+    const schema = makeExecutableSchema({
+      typeDefs: testSchemaWithInterfaces,
+      resolvers,
+      resolverValidationOptions: { requireResolveTypeForInterfaces: true },
+    });
+    const response = await graphql(schema, query);
+    assert.isUndefined(response.errors);
+  });
+});
+
+describe('unions', () => {
+  const testSchemaWithUnions = `
+    type Post {
+      title: String!
+    }
+    type Page {
+      title: String!
+    }
+    union Displayable = Page | Post
+    type Query {
+      page: Page!
+      post: Post!
+      displayable: [Displayable!]!
+    }
+    schema {
+      query: Query
+    }
+  `;
+  const post = { title: 'I am a post', type: 'Post' };
+  const page = { title: 'I am a page', type: 'Page' };
+  const queryResolver = {
+    page: () => page,
+    post: () => post,
+    displayable: () => [post, page],
+  };
+  const query = `query {
+    post { title }
+    page { title }
+    displayable {
+      ... on Post { title }
+      ... on Page { title }
+    }
+  }`;
+
+  it('throws if there is no union type resolver', async () => {
+    const resolvers = {
+      Query: queryResolver,
+    };
+    try {
+      makeExecutableSchema({
+        typeDefs: testSchemaWithUnions,
+        resolvers,
+        resolverValidationOptions: { requireResolverMethodForUnions: true },
+      });
+    } catch (error) {
+      assert.equal(
+        error.message,
+        'Type Displayable has no "resolverType" method and type(s) Page, Post don\'t have have the "isTypeOf" method.',
+      );
+      return;
+    }
+    throw new Error('Should have had an error.');
+  });
+  it('does not throw if there is a union type resolver', async () => {
+    const resolvers = {
+      Query: queryResolver,
+      Displayable: {
+        __resolveType: ({ type }: { type: String }) => type,
+      },
+    };
+    const schema = makeExecutableSchema({
+      typeDefs: testSchemaWithUnions,
+      resolvers,
+      resolverValidationOptions: { requireResolverMethodForUnions: true },
+    });
+    const response = await graphql(schema, query);
+    assert.isUndefined(response.errors);
+  });
+
+  it('does not throw if there is a union type resolver', async () => {
+    const resolvers = {
+      Query: queryResolver,
+      Page: {
+        __isTypeOf: ({ type }: { type: String }) => type === 'Page',
+      },
+      Post: {
+        __isTypeOf: ({ type }: { type: String }) => type === 'Post',
+      },
+    };
+    const schema = makeExecutableSchema({
+      typeDefs: testSchemaWithUnions,
+      resolvers,
+      resolverValidationOptions: { requireResolverMethodForUnions: true },
+    });
+    const response = await graphql(schema, query);
+    assert.isUndefined(response.errors);
+  });
+});
