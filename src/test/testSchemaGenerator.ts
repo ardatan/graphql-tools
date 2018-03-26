@@ -2626,10 +2626,11 @@ describe('unions', () => {
       resolverValidationOptions: { requireResolverMethodForUnions: true },
     });
     const response = await graphql(schema, query);
+    console.log({ errors: response.errors })
     assert.isUndefined(response.errors);
   });
 
-  it('does not throw if there is a union type resolver', async () => {
+  it('does not throw if there are isTypeOf resolvers', async () => {
     const resolvers = {
       Query: queryResolver,
       Page: {
@@ -2645,6 +2646,7 @@ describe('unions', () => {
       resolverValidationOptions: { requireResolverMethodForUnions: true },
     });
     const response = await graphql(schema, query);
+    console.log({ errors: response.errors })
     assert.isUndefined(response.errors);
   });
 });
