@@ -22,6 +22,7 @@ export interface IResolverValidationOptions {
   requireResolversForArgs?: boolean;
   requireResolversForNonScalar?: boolean;
   requireResolversForAllFields?: boolean;
+  requireResolversForResolveType?: boolean;
   allowResolversNotInSchema?: boolean;
 }
 
