@@ -6,7 +6,7 @@
 
 * Expose `defaultMergedResolver` from stitching [PR #685](https://github.com/apollographql/graphql-tools/pull/685)
 
-* Add `requireResolveTypeForInterfaces` and `requireResolverMethodForUnions` to resolver validation options [PR #695](https://github.com/apollographql/graphql-tools/pull/695)
+* Add `requireResolversForResolveType` to resolver validation options [PR #695](https://github.com/apollographql/graphql-tools/pull/695)
 
 ### v2.23.0
 

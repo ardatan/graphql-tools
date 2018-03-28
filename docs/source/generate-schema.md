@@ -347,8 +347,6 @@ const jsSchema = makeExecutableSchema({
 
   - `requireResolversForAllFields` can be used to set both the `requireResolversForArgs` and `requireResolversForNonScalar` options to true.
 
-  - `requireResolveTypeForInterfaces` will require a `resolveType()` method for Interface types. This can be passed in with the field resolvers as `__resolveType()`
-
-  - `requireResolverMethodForUnions` will require either a `resolveType()` method for Union types or that every type in a union implement a `isTypeOf()` method. These can be passed in with the field resolvers either as `__resolveType()` or `__isTypeOf()`
+  - `requireResolversForResolveType` will require a `resolveType()` method for Interface and Union types. This can be passed in with the field resolvers as `__resolveType()`
 
   - `allowResolversNotInSchema` turns off the functionality which throws errors when resolvers are found which are not present in the schema. Defaults to `false`, to help catch common errors.

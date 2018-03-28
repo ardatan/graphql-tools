@@ -389,8 +389,7 @@ function addResolveFunctionsToSchema(
 ) {
   const {
     allowResolversNotInSchema = false,
-    requireResolveTypeForInterfaces = false,
-    requireResolverMethodForUnions = false,
+    requireResolversForResolveType = false,
   } = resolverValidationOptions;
 
   Object.keys(resolveFunctions).forEach(typeName => {
@@ -466,35 +465,22 @@ function addResolveFunctionsToSchema(
   });
 
   // If we have any union or interface types throw if no there is no resolveType or isTypeOf resolvers
+  if (requireResolversForResolveType) {
+    checkForResolveTypeResolver(schema);
+  }
+}
+
+function checkForResolveTypeResolver(schema: GraphQLSchema) {
   Object.keys(schema.getTypeMap())
-    .map(typeName => schema.getType(typeName))
-    .forEach((type: GraphQLUnionType | GraphQLInterfaceType) => {
-      if (type.resolveType) {
-        return;
-      }
-      if (
-        requireResolveTypeForInterfaces &&
-        type instanceof GraphQLInterfaceType
-      ) {
-        throw new SchemaError(
-          `Type ${type.name} is missing a "resolveType" method`,
-        );
-      }
-      if (requireResolverMethodForUnions && type instanceof GraphQLUnionType) {
-        const typesWithoutIsTypeOf = (type as GraphQLUnionType)
-          .getTypes()
-          .filter((childType: GraphQLObjectType) => !childType.isTypeOf);
-        if (typesWithoutIsTypeOf.length > 0) {
-          throw new SchemaError(
-            `Type ${
-              type.name
-            } has no "resolverType" method and type(s) ${typesWithoutIsTypeOf
-              .map(({ name }) => name)
-              .join(', ')} don't have have the "isTypeOf" method.`,
-          );
-        }
-      }
-    });
+  .map(typeName => schema.getType(typeName))
+  .forEach((type: GraphQLUnionType | GraphQLInterfaceType) => {
+    if (!(type instanceof GraphQLUnionType || type instanceof GraphQLInterfaceType)) {
+      return;
+    }
+    if (!type.resolveType) {
+      throw new SchemaError(`Type ${type.name} is missing a "resolveType" resolver`);
+    }
+  });
 }
 
 function setFieldProperties(

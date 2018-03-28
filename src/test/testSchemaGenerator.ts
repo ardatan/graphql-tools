@@ -2523,7 +2523,7 @@ describe('interfaces', () => {
     user { id name }
   }`;
 
-  it('throws if there is no interface type resolver', async () => {
+  it('throws if there is no interface resolveType resolver', async () => {
     const resolvers = {
       Query: queryResolver,
     };
@@ -2531,19 +2531,19 @@ describe('interfaces', () => {
       makeExecutableSchema({
         typeDefs: testSchemaWithInterfaces,
         resolvers,
-        resolverValidationOptions: { requireResolveTypeForInterfaces: true },
+        resolverValidationOptions: { requireResolversForResolveType: true },
       });
     } catch (error) {
       assert.equal(
         error.message,
-        'Type Node is missing a "resolveType" method',
+        'Type Node is missing a "resolveType" resolver',
       );
       return;
     }
     throw new Error('Should have had an error.');
   });
 
-  it('does not throw if there is an interface type resolver', async () => {
+  it('does not throw if there is an interface resolveType resolver', async () => {
     const resolvers = {
       Query: queryResolver,
       Node: {
@@ -2553,7 +2553,7 @@ describe('interfaces', () => {
     const schema = makeExecutableSchema({
       typeDefs: testSchemaWithInterfaces,
       resolvers,
-      resolverValidationOptions: { requireResolveTypeForInterfaces: true },
+      resolverValidationOptions: { requireResolversForResolveType: true },
     });
     const response = await graphql(schema, query);
     assert.isUndefined(response.errors);
@@ -2594,7 +2594,7 @@ describe('unions', () => {
     }
   }`;
 
-  it('throws if there is no union type resolver', async () => {
+  it('throws if there is no union resolveType resolver', async () => {
     const resolvers = {
       Query: queryResolver,
     };
@@ -2602,18 +2602,18 @@ describe('unions', () => {
       makeExecutableSchema({
         typeDefs: testSchemaWithUnions,
         resolvers,
-        resolverValidationOptions: { requireResolverMethodForUnions: true },
+        resolverValidationOptions: { requireResolversForResolveType: true },
       });
     } catch (error) {
       assert.equal(
         error.message,
-        'Type Displayable has no "resolverType" method and type(s) Page, Post don\'t have have the "isTypeOf" method.',
+        'Type Displayable is missing a "resolveType" resolver',
       );
       return;
     }
     throw new Error('Should have had an error.');
   });
-  it('does not throw if there is a union type resolver', async () => {
+  it('does not throw if there is a resolveType resolver', async () => {
     const resolvers = {
       Query: queryResolver,
       Displayable: {
@@ -2623,30 +2623,9 @@ describe('unions', () => {
     const schema = makeExecutableSchema({
       typeDefs: testSchemaWithUnions,
       resolvers,
-      resolverValidationOptions: { requireResolverMethodForUnions: true },
+      resolverValidationOptions: { requireResolversForResolveType: true },
     });
     const response = await graphql(schema, query);
-    console.log({ errors: response.errors })
-    assert.isUndefined(response.errors);
-  });
-
-  it('does not throw if there are isTypeOf resolvers', async () => {
-    const resolvers = {
-      Query: queryResolver,
-      Page: {
-        __isTypeOf: ({ type }: { type: String }) => type === 'Page',
-      },
-      Post: {
-        __isTypeOf: ({ type }: { type: String }) => type === 'Post',
-      },
-    };
-    const schema = makeExecutableSchema({
-      typeDefs: testSchemaWithUnions,
-      resolvers,
-      resolverValidationOptions: { requireResolverMethodForUnions: true },
-    });
-    const response = await graphql(schema, query);
-    console.log({ errors: response.errors })
     assert.isUndefined(response.errors);
   });
 });
