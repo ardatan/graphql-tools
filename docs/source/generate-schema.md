@@ -146,7 +146,7 @@ export function getTypes() {
 }
 ```
 
-Since the `Post` schema fragment refers to the `Comment` type, we use the `...getCommentTypes()` syntax to include the `Comment` schema fragment in the resulting object, along the `Post` fragment and any other named schema fragments returned by `getCommentTypes()`.
+Since the `Post` schema fragment refers to the `Comment` type, we use the `...getCommentTypes()` syntax to include the `Comment` schema fragment in the resulting object, along with the `Post` fragment and any other named schema fragments returned by `getCommentTypes()`.
 
 Here's how `schema.js` might put everything together:
 
@@ -245,7 +245,7 @@ export default makeExecutableSchema({
 });
 ```
 
-Even though we know that `author.getTypes()` and `book.getTypes()` produce the same information, `schema.js` may not be aware of that redundancy, or might want to protect itself against future changes in the organization of your schema modules. Thanks to object `...spread` syntax, the `getTypes` function in `schema.js` will always return an object with exactly three keys: `Query`, `Author`, and `Book`.
+Even though we know that `author.getTypes()` and `book.getTypes()` produce the same information, `schema.js` may not be aware of that redundancy, or might want to protect itself against future changes to the organization of your schema modules. Thanks to object `...spread` syntax, the `getTypes` function in `schema.js` will always return an object with exactly three keys: `Query`, `Author`, and `Book`.
 
 You can apply this `getTypes` technique to resolvers as well: just have each module export a `getResolvers` function that merges together the resolvers of the types it depends on, using a utility like `lodash/merge`:
 
