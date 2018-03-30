@@ -174,6 +174,16 @@ const loneExtend = `
   }
 `;
 
+const interfaceExtensionTest = `
+  extend interface Downloadable {
+    filesize: Int
+  }
+
+  extend type DownloadableProduct {
+    filesize: Int
+  }
+`;
+
 if (process.env.GRAPHQL_VERSION === '^0.11') {
   scalarTest = `
     # Description of TestScalar.
@@ -289,6 +299,7 @@ testCombinations.forEach(async combination => {
           bookingSchema,
           productSchema,
           scalarTest,
+          interfaceExtensionTest,
           enumSchema,
           linkSchema,
           loneExtend,
@@ -327,6 +338,11 @@ testCombinations.forEach(async combination => {
                 );
               },
             },
+          },
+          DownloadableProduct: {
+            filesize() {
+              return 1024;
+            }
           },
           LinkType: {
             property: {
@@ -2269,6 +2285,39 @@ fragment BookingFragment on Booking {
               },
             ],
           },
+        });
+      });
+
+      it('interface extensions', async () => {
+        const result = await graphql(
+          mergedSchema,
+          `
+            query {
+              products {
+                id
+                __typename
+                ... on Downloadable {
+                  filesize
+                }
+              }
+            }
+          `,
+        );
+
+        expect(result).to.deep.equal({
+          data: {
+            products: [
+              {
+                id: 'pd1',
+                __typename: 'SimpleProduct',
+              },
+              {
+                id: 'pd2',
+                __typename: 'DownloadableProduct',
+                filesize: 1024
+              },
+            ]
+          }
         });
       });
 
