@@ -185,6 +185,14 @@ function expandAbstractTypes(
           }
         });
         if (newSelections.length !== node.selections.length) {
+          // often this happening means we need typename anyway
+          newSelections.push({
+            kind: Kind.FIELD,
+            name: {
+              kind: Kind.NAME,
+              value: '__typename',
+            },
+          });
           return {
             ...node,
             selections: newSelections,

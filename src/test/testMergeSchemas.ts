@@ -2364,45 +2364,44 @@ fragment BookingFragment on Booking {
         });
       });
 
-      // KNOWN BUG
-      // it('fragments on interfaces in merged schema', async () => {
-      //   const result = await graphql(
-      //     mergedSchema,
-      //     `
-      //       query($bid: ID!) {
-      //         node(id: $bid) {
-      //           ...NodeFragment
-      //         }
-      //       }
-      //
-      //       fragment NodeFragment on Node {
-      //         id
-      //         ... on Property {
-      //           name
-      //         }
-      //         ... on Booking {
-      //           startTime
-      //           endTime
-      //         }
-      //       }
-      //     `,
-      //     {},
-      //     {},
-      //     {
-      //       bid: 'b1',
-      //     },
-      //   );
-      //
-      //   expect(result).to.deep.equal({
-      //     data: {
-      //       node: {
-      //         id: 'b1',
-      //         startTime: '2016-05-04',
-      //         endTime: '2016-06-03',
-      //       },
-      //     },
-      //   });
-      // });
+      it('fragments on interfaces in merged schema', async () => {
+        const result = await graphql(
+          mergedSchema,
+          `
+            query($bid: ID!) {
+              node(id: $bid) {
+                ...NodeFragment
+              }
+            }
+
+            fragment NodeFragment on Node {
+              id
+              ... on Property {
+                name
+              }
+              ... on Booking {
+                startTime
+                endTime
+              }
+            }
+          `,
+          {},
+          {},
+          {
+            bid: 'b1',
+          },
+        );
+
+        expect(result).to.deep.equal({
+          data: {
+            node: {
+              id: 'b1',
+              startTime: '2016-05-04',
+              endTime: '2016-06-03',
+            },
+          },
+        });
+      });
 
       it('multi-interface filter', async () => {
         const result = await graphql(
