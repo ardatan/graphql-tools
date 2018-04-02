@@ -62,6 +62,11 @@ export abstract class SchemaVisitor {
       return false;
     }
 
+    if (this === SchemaVisitor) {
+      // The SchemaVisitor class implements every visitor method.
+      return true;
+    }
+
     const stub = SchemaVisitor.prototype[methodName];
     if (method === stub) {
       // If this.prototype[methodName] was just inherited from SchemaVisitor,
@@ -642,7 +647,8 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
 
       each(decl.locations, loc => {
         const visitorMethodName = directiveLocationToVisitorMethodName(loc);
-        if (! visitorClass.implementsVisitorMethod(visitorMethodName)) {
+        if (SchemaVisitor.implementsVisitorMethod(visitorMethodName) &&
+            ! visitorClass.implementsVisitorMethod(visitorMethodName)) {
           // While visitor subclasses may implement extra visitor methods,
           // it's definitely a mistake if the GraphQLDirective declares itself
           // applicable to certain schema locations, and the visitor subclass

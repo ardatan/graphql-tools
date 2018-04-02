@@ -921,6 +921,36 @@ bookingById(id: "b1") {
         });
       });
 
+      it('unions implementing an interface', async () => {
+        const mergedResult = await graphql(
+          mergedSchema,
+          `
+            query {
+              customerById(id: "c1") {
+                ... on Person {
+                  name
+                }
+                vehicle {
+                  ... on Node {
+                    __typename
+                    id
+                  }
+                }
+              }
+            }
+          `,
+        );
+
+        expect(mergedResult).to.deep.equal({
+          data: {
+            customerById: {
+              name: 'Exampler Customer',
+              vehicle: { __typename: 'Bike', id: 'v1' },
+            },
+          },
+        });
+      });
+
       it('input objects with default', async () => {
         const mergedResult = await graphql(
           mergedSchema,
