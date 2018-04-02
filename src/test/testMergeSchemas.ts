@@ -252,9 +252,13 @@ if (process.env.GRAPHQL_VERSION === '^0.11') {
       id: ID!
     }
 
-    extend type Car implements Node
+    extend type Car implements Node {
+      fakeFieldToSatisfyOldGraphQL: String
+    }
 
-    extend type Bike implements Node
+    extend type Bike implements Node {
+      fakeFieldToSatisfyOldGraphQL: String
+    }
 
     extend type Booking implements Node {
       # The property of the booking.
