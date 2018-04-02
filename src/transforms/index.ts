@@ -9,6 +9,7 @@ import FilterTypes from './FilterTypes';
 import TransformRootFields from './TransformRootFields';
 import RenameRootFields from './RenameRootFields';
 import FilterRootFields from './FilterRootFields';
+import ExpandAbstractTypes from './ExpandAbstractTypes';
 export * from './transforms';
 export * from './visitSchema';
 export { makeTransformSchema };
@@ -23,4 +24,5 @@ export const Transforms: { [name: string]: any } = {
   TransformRootFields,
   RenameRootFields,
   FilterRootFields,
+  ExpandAbstractTypes,
 };

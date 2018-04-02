@@ -138,6 +138,10 @@ let linkSchema = `
     id: ID!
   }
 
+  extend type Car implements Node
+
+  extend type Bike implements Node
+
   extend type Booking implements Node {
     """
     The property of the booking.
@@ -247,6 +251,10 @@ if (process.env.GRAPHQL_VERSION === '^0.11') {
     interface Node {
       id: ID!
     }
+
+    extend type Car implements Node
+
+    extend type Bike implements Node
 
     extend type Booking implements Node {
       # The property of the booking.
@@ -921,6 +929,46 @@ bookingById(id: "b1") {
         });
       });
 
+      it('interfaces spread from top level functions', async () => {
+        const mergedResult = await graphql(
+          mergedSchema,
+          `
+            query {
+              first: customerById(id: "c1") {
+                name
+                ... on Node {
+                  id
+                }
+              }
+
+              second: customerById(id: "c1") {
+                ...NodeFragment
+              }
+            }
+
+            fragment NodeFragment on Node {
+              id
+              ... on Customer {
+                name
+              }
+            }
+          `,
+        );
+
+        expect(mergedResult).to.deep.equal({
+          data: {
+            first: {
+              id: 'c1',
+              name: 'Exampler Customer',
+            },
+            second: {
+              id: 'c1',
+              name: 'Exampler Customer',
+            },
+          },
+        });
+      });
+
       it('unions implementing an interface', async () => {
         const mergedResult = await graphql(
           mergedSchema,
@@ -936,7 +984,15 @@ bookingById(id: "b1") {
                     id
                   }
                 }
+                secondVehicle: vehicle {
+                  ...NodeFragment
+                }
               }
+            }
+
+            fragment NodeFragment on Node {
+              id
+              __typename
             }
           `,
         );
@@ -946,6 +1002,7 @@ bookingById(id: "b1") {
             customerById: {
               name: 'Exampler Customer',
               vehicle: { __typename: 'Bike', id: 'v1' },
+              secondVehicle: { __typename: 'Bike', id: 'v1' },
             },
           },
         });

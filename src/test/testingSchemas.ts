@@ -469,18 +469,14 @@ const bookingRootTypeDefs = `
 
   union Vehicle = Bike | Car
 
-  type Bike implements Node {
+  type Bike {
     id: ID!
     bikeType: String
   }
 
-  type Car implements Node {
+  type Car  {
     id: ID!
     licensePlate: String
-  }
-
-  interface Node {
-    id: ID!
   }
 
   type Query {
@@ -734,7 +730,14 @@ export async function makeSchemaRemoteFromLink(schema: GraphQLSchema) {
 // ensure fetcher support exists from the 2.0 api
 async function makeExecutableSchemaFromFetcher(schema: GraphQLSchema) {
   const fetcher: Fetcher = ({ query, operationName, variables, context }) => {
-    return graphql(schema, print(query), null, context, variables, operationName);
+    return graphql(
+      schema,
+      print(query),
+      null,
+      context,
+      variables,
+      operationName,
+    );
   };
 
   const clientSchema = await introspectSchema(fetcher);

@@ -324,6 +324,10 @@ function createMergeInfo(
 In version 3.0, \`delegate\` requires a schema name as a first argument, have you updated your code?`);
       }
       const schema = schemas[schemaName];
+      const expandTransforms = Transforms.ExpandAbstractTypes(
+        info.schema,
+        schema,
+      );
       const fragmentTransform = Transforms.ReplaceFieldWithFragment(
         schema,
         fragmentReplacements,
@@ -338,7 +342,7 @@ In version 3.0, \`delegate\` requires a schema name as a first argument, have yo
         args,
         context,
         info,
-        [fragmentTransform],
+        [expandTransforms, fragmentTransform],
       );
     },
     delegateToSchema(
@@ -350,6 +354,10 @@ In version 3.0, \`delegate\` requires a schema name as a first argument, have yo
       info: GraphQLResolveInfo,
       transforms?: Array<Transform>,
     ) {
+      const expandTransforms = Transforms.ExpandAbstractTypes(
+        info.schema,
+        schema,
+      );
       const fragmentTransform = Transforms.ReplaceFieldWithFragment(
         schema,
         fragmentReplacements,
@@ -361,7 +369,7 @@ In version 3.0, \`delegate\` requires a schema name as a first argument, have yo
         args,
         context,
         info,
-        [...(transforms || []), fragmentTransform],
+        [...(transforms || []), expandTransforms, fragmentTransform],
       );
     },
   };

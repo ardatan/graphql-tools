@@ -22,6 +22,7 @@ import {
   visit,
 } from 'graphql';
 import { Request } from '../Interfaces';
+import implementsAbstractType from '../implementsAbstractType';
 import { Transform } from './transforms';
 
 export default function FilterToSchema(targetSchema: GraphQLSchema): Transform {
@@ -57,13 +58,13 @@ function filterDocumentToSchema(
   const newOperations: Array<OperationDefinitionNode> = [];
   let newFragments: Array<FragmentDefinitionNode> = [];
 
-  const validFragments: Array<
-    FragmentDefinitionNode
-  > = fragments.filter((fragment: FragmentDefinitionNode) => {
-    const typeName = fragment.typeCondition.name.value;
-    const type = targetSchema.getType(typeName);
-    return Boolean(type);
-  });
+  const validFragments: Array<FragmentDefinitionNode> = fragments.filter(
+    (fragment: FragmentDefinitionNode) => {
+      const typeName = fragment.typeCondition.name.value;
+      const type = targetSchema.getType(typeName);
+      return Boolean(type);
+    },
+  );
 
   const validFragmentsWithType: { [name: string]: GraphQLType } = {};
   validFragments.forEach((fragment: FragmentDefinitionNode) => {
@@ -258,35 +259,6 @@ function resolveType(type: GraphQLType): GraphQLNamedType {
     lastType = lastType.ofType;
   }
   return lastType;
-}
-
-function implementsAbstractType(
-  parent: GraphQLType,
-  child: GraphQLType,
-  bail: boolean = false,
-): boolean {
-  if (parent === child) {
-    return true;
-  } else if (
-    parent instanceof GraphQLInterfaceType &&
-    child instanceof GraphQLObjectType
-  ) {
-    return child.getInterfaces().indexOf(parent) !== -1;
-  } else if (
-    parent instanceof GraphQLInterfaceType &&
-    child instanceof GraphQLInterfaceType
-  ) {
-    return true;
-  } else if (
-    parent instanceof GraphQLUnionType &&
-    child instanceof GraphQLObjectType
-  ) {
-    return parent.getTypes().indexOf(child) !== -1;
-  } else if (parent instanceof GraphQLObjectType && !bail) {
-    return implementsAbstractType(child, parent, true);
-  }
-
-  return false;
 }
 
 function union(...arrays: Array<Array<string>>): Array<string> {
