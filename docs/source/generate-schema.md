@@ -56,6 +56,7 @@ const authors = [
   { id: 2, firstName: 'Sashko', lastName: 'Stubailo' },
   { id: 3, firstName: 'Mikhail', lastName: 'Novikov' },
 ];
+
 const posts = [
   { id: 1, authorId: 1, title: 'Introduction to GraphQL', votes: 2 },
   { id: 2, authorId: 2, title: 'Welcome to Meteor', votes: 3 },
@@ -66,8 +67,9 @@ const posts = [
 const resolvers = {
   Query: {
     posts: () => posts,
-    author: (_, { id }) => find(authors, { id: id }),
+    author: (_, { id }) => find(authors, { id }),
   },
+  
   Mutation: {
     upvotePost: (_, { postId }) => {
       const post = find(posts, { id: postId });
@@ -78,11 +80,13 @@ const resolvers = {
       return post;
     },
   },
+  
   Author: {
-    posts: (author) => filter(posts, { authorId: author.id }),
+    posts: author => filter(posts, { authorId: author.id }),
   },
+  
   Post: {
-    author: (post) => find(authors, { id: post.authorId }),
+    author: post => find(authors, { id: post.authorId }),
   },
 };
 ```
@@ -247,9 +251,11 @@ const typeDefs = [`
   schema {
     query: Query
   }
+  
   type Query {
     bars: [Bar]!
   }
+  
   type Bar {
     id
   }
@@ -257,6 +263,7 @@ const typeDefs = [`
   type Foo {
     id: String!
   }
+  
   extend type Query {
     foos: [Foo]!
   }
@@ -330,20 +337,22 @@ const jsSchema = makeExecutableSchema({
 });
 ```
 
-- `typeDefs` is a required argument and should be an array of GraphQL schema language strings or a function that takes no arguments and returns an array of GraphQL schema language strings. The order of the strings in the array is not important, but it must include a schema definition.
+- `typeDefs` is a required argument and should be an GraphQL schema language string or array of GraphQL schema language strings or a function that takes no arguments and returns an array of GraphQL schema language strings. The order of the strings in the array is not important, but it must include a schema definition.
 
 - `resolvers` is an optional argument _(empty object by default)_ and should be an object that follows the pattern explained in [article on resolvers](http://dev.apollodata.com/tools/graphql-tools/resolvers.html).
 
-- `logger` is an optional argument, which can be used to print errors to the server console that are usually swallowed by GraphQL. The `logger` argument should be an object with a `log` function, eg. `const logger = { log: (e) => console.log(e) }`
+- `logger` is an optional argument, which can be used to print errors to the server console that are usually swallowed by GraphQL. The `logger` argument should be an object with a `log` function, eg. `const logger = { log: e => console.log(e) }`
 
 - `parseOptions` is an optional argument which allows customization of parse when specifying `typeDefs` as a string.
 
 - `allowUndefinedInResolve` is an optional argument, which is `true` by default. When set to `false`, causes your resolve functions to throw errors if they return undefined, which can help make debugging easier.
 
-- `resolverValidationOptions` is an optional argument which accepts an object of the following shape: `{ requireResolversForArgs, requireResolversForNonScalar }`.
+- `resolverValidationOptions` is an optional argument which accepts an object of the following shape: `{ requireResolversForArgs, requireResolversForNonScalar, requireResolversForAllFields, allowResolversNotInSchema }`.
 
     - `requireResolversForArgs` will cause `makeExecutableSchema` to throw an error if no resolve function is defined for a field that has arguments.
 
     - `requireResolversForNonScalar` will cause `makeExecutableSchema` to throw an error if a non-scalar field has no resolver defined. By default, both of these are true, which can help catch errors faster. To get the normal behavior of GraphQL, set both of them to `false`.
+    
+    - `requireResolversForAllFields` asserts that *all* fields have a valid resolve function.
 
     - `allowResolversNotInSchema` turns off the functionality which throws errors when resolvers are found which are not present in the schema. Defaults to `false`, to help catch common errors.
