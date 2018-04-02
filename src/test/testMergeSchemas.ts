@@ -177,6 +177,9 @@ const loneExtend = `
 
 let interfaceExtensionTest = `
   # No-op for older versions since this feature does not yet exist
+  extend type DownloadableProduct {
+    filesize: Int
+  }
 `;
 
 if (['^0.11', '^0.12'].indexOf(process.env.GRAPHQL_VERSION) === -1) {
