@@ -74,18 +74,9 @@ describe('merge schemas through transforms', () => {
 
     mergedSchema = mergeSchemas({
       schemas: [
-        {
-          name: 'Property',
-          schema: transformedPropertySchema,
-        },
-        {
-          name: 'Booking',
-          schema: transformedBookingSchema,
-        },
-        {
-          name: 'LinkSchema',
-          schema: linkSchema,
-        },
+        transformedPropertySchema,
+        transformedBookingSchema,
+        linkSchema,
       ],
       resolvers: {
         Query: {

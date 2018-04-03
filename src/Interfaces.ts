@@ -12,9 +12,7 @@ import {
   DocumentNode,
 } from 'graphql';
 
-import {
-  SchemaDirectiveVisitor,
-} from './schemaVisitor';
+import { SchemaDirectiveVisitor } from './schemaVisitor';
 
 /* TODO: Add documentation */
 
@@ -41,14 +39,13 @@ export type Transform = {
 
 export type MergeInfo = {
   delegate: (
-    schemaName: string,
     type: 'query' | 'mutation' | 'subscription',
     fieldName: string,
     args: { [key: string]: any },
     context: { [key: string]: any },
     info: GraphQLResolveInfo,
+    transforms?: Array<Transform>,
   ) => any;
-  getSubSchema: (schemaName: string) => GraphQLSchema;
   delegateToSchema: (
     schema: GraphQLSchema,
     type: 'query' | 'mutation' | 'subscription',
@@ -88,9 +85,13 @@ export interface IConnectorCls<TContext = any> {
   new (context?: TContext): any;
 }
 export type IConnectorFn<TContext = any> = (context?: TContext) => any;
-export type IConnector<TContext = any> = IConnectorCls<TContext> | IConnectorFn<TContext>;
+export type IConnector<TContext = any> =
+  | IConnectorCls<TContext>
+  | IConnectorFn<TContext>;
 
-export type IConnectors<TContext = any> = { [key: string]: IConnector<TContext> };
+export type IConnectors<TContext = any> = {
+  [key: string]: IConnector<TContext>;
+};
 
 export interface IExecutableSchemaDefinition<TContext = any> {
   typeDefs: ITypeDefinitions;
@@ -146,7 +147,6 @@ export interface IMockServer {
 }
 
 export type MergeTypeCandidate = {
-  schemaName: string;
   schema?: GraphQLSchema;
   type: GraphQLNamedType;
 };

@@ -10,10 +10,7 @@ import {
   parse,
   ExecutionResult,
 } from 'graphql';
-import { VisitType } from '../Interfaces';
-import mergeSchemas, {
-  mergeSchemasImplementation,
-} from '../stitching/mergeSchemas';
+import mergeSchemas from '../stitching/mergeSchemas';
 import {
   propertySchema as localPropertySchema,
   productSchema as localProductSchema,
@@ -304,46 +301,22 @@ testCombinations.forEach(async combination => {
 
       mergedSchema = mergeSchemas({
         schemas: [
-          {
-            name: 'Property',
-            schema: propertySchema,
-          },
-          {
-            name: 'Booking',
-            schema: bookingSchema,
-          },
-          {
-            name: 'Product',
-            schema: productSchema,
-          },
-          {
-            name: 'ScalarTest',
-            schema: scalarTest,
-          },
-          {
-            name: 'EnumTest',
-            schema: enumSchema,
-          },
-          {
-            name: 'LinkSchema',
-            schema: linkSchema,
-          },
-          {
-            name: 'LoneExtend',
-            schema: loneExtend,
-          },
-          {
-            name: 'LocalSubscription',
-            schema: localSubscriptionSchema,
-          },
+          propertySchema,
+          bookingSchema,
+          productSchema,
+          scalarTest,
+          enumSchema,
+          linkSchema,
+          loneExtend,
+          localSubscriptionSchema,
         ],
         resolvers: {
           Property: {
             bookings: {
               fragment: 'fragment PropertyFragment on Property { id }',
               resolve(parent, args, context, info) {
-                return info.mergeInfo.delegate(
-                  'Booking',
+                return info.mergeInfo.delegateToSchema(
+                  bookingSchema,
                   'query',
                   'bookingsByPropertyId',
                   {
@@ -360,8 +333,8 @@ testCombinations.forEach(async combination => {
             property: {
               fragment: 'fragment BookingFragment on Booking { propertyId }',
               resolve(parent, args, context, info) {
-                return info.mergeInfo.delegate(
-                  'Property',
+                return info.mergeInfo.delegateToSchema(
+                  propertySchema,
                   'query',
                   'propertyById',
                   {
@@ -376,8 +349,8 @@ testCombinations.forEach(async combination => {
           LinkType: {
             property: {
               resolve(parent, args, context, info) {
-                return info.mergeInfo.delegate(
-                  'Property',
+                return info.mergeInfo.delegateToSchema(
+                  propertySchema,
                   'query',
                   'propertyById',
                   {
@@ -391,8 +364,8 @@ testCombinations.forEach(async combination => {
           },
           Query: {
             delegateInterfaceTest(parent, args, context, info) {
-              return info.mergeInfo.delegate(
-                'Property',
+              return info.mergeInfo.delegateToSchema(
+                propertySchema,
                 'query',
                 'interfaceTest',
                 {
@@ -403,8 +376,8 @@ testCombinations.forEach(async combination => {
               );
             },
             delegateArgumentTest(parent, args, context, info) {
-              return info.mergeInfo.delegate(
-                'Property',
+              return info.mergeInfo.delegateToSchema(
+                propertySchema,
                 'query',
                 'propertyById',
                 {
@@ -424,8 +397,8 @@ testCombinations.forEach(async combination => {
               fragment: 'fragment NodeFragment on Node { id }',
               resolve(parent, args, context, info) {
                 if (args.id.startsWith('p')) {
-                  return info.mergeInfo.delegate(
-                    'Property',
+                  return info.mergeInfo.delegateToSchema(
+                    propertySchema,
                     'query',
                     'propertyById',
                     args,
@@ -433,8 +406,8 @@ testCombinations.forEach(async combination => {
                     info,
                   );
                 } else if (args.id.startsWith('b')) {
-                  return info.mergeInfo.delegate(
-                    'Booking',
+                  return info.mergeInfo.delegateToSchema(
+                    bookingSchema,
                     'query',
                     'bookingById',
                     args,
@@ -442,8 +415,8 @@ testCombinations.forEach(async combination => {
                     info,
                   );
                 } else if (args.id.startsWith('c')) {
-                  return info.mergeInfo.delegate(
-                    'Booking',
+                  return info.mergeInfo.delegateToSchema(
+                    bookingSchema,
                     'query',
                     'customerById',
                     args,
@@ -456,16 +429,16 @@ testCombinations.forEach(async combination => {
               },
             },
             async nodes(parent, args, context, info) {
-              const bookings = await info.mergeInfo.delegate(
-                'Booking',
+              const bookings = await info.mergeInfo.delegateToSchema(
+                bookingSchema,
                 'query',
                 'bookings',
                 {},
                 context,
                 info,
               );
-              const properties = await info.mergeInfo.delegate(
-                'Property',
+              const properties = await info.mergeInfo.delegateToSchema(
+                propertySchema,
                 'query',
                 'properties',
                 {},
@@ -1190,8 +1163,8 @@ bookingById(id: "b1") {
             bookings: {
               fragment: 'fragment PropertyFragment on Property { id }',
               resolve(parent, args, context, info) {
-                return info.mergeInfo.delegate(
-                  'Property',
+                return info.mergeInfo.delegateToSchema(
+                  bookingSchema,
                   'query',
                   'bookingsByPropertyId',
                   {
@@ -1210,8 +1183,8 @@ bookingById(id: "b1") {
             property: {
               fragment: 'fragment BookingFragment on Booking { propertyId }',
               resolve(parent, args, context, info) {
-                return info.mergeInfo.delegate(
-                  'Booking',
+                return info.mergeInfo.delegateToSchema(
+                  propertySchema,
                   'query',
                   'propertyById',
                   {
@@ -1237,8 +1210,8 @@ bookingById(id: "b1") {
         const Query2: IResolvers = {
           Query: {
             delegateInterfaceTest(parent, args, context, info) {
-              return info.mergeInfo.delegate(
-                'Property',
+              return info.mergeInfo.delegateToSchema(
+                propertySchema,
                 'query',
                 'interfaceTest',
                 {
@@ -1249,8 +1222,8 @@ bookingById(id: "b1") {
               );
             },
             delegateArgumentTest(parent, args, context, info) {
-              return info.mergeInfo.delegate(
-                'Property',
+              return info.mergeInfo.delegateToSchema(
+                propertySchema,
                 'query',
                 'propertyById',
                 {
@@ -1270,8 +1243,8 @@ bookingById(id: "b1") {
               fragment: 'fragment NodeFragment on Node { id }',
               resolve(parent, args, context, info) {
                 if (args.id.startsWith('p')) {
-                  return info.mergeInfo.delegate(
-                    'Property',
+                  return info.mergeInfo.delegateToSchema(
+                    propertySchema,
                     'query',
                     'propertyById',
                     args,
@@ -1279,8 +1252,8 @@ bookingById(id: "b1") {
                     info,
                   );
                 } else if (args.id.startsWith('b')) {
-                  return info.mergeInfo.delegate(
-                    'Booking',
+                  return info.mergeInfo.delegateToSchema(
+                    bookingSchema,
                     'query',
                     'bookingById',
                     args,
@@ -1288,8 +1261,8 @@ bookingById(id: "b1") {
                     info,
                   );
                 } else if (args.id.startsWith('c')) {
-                  return info.mergeInfo.delegate(
-                    'Booking',
+                  return info.mergeInfo.delegateToSchema(
+                    bookingSchema,
                     'query',
                     'customerById',
                     args,
@@ -1307,16 +1280,16 @@ bookingById(id: "b1") {
         const AsyncQuery: IResolvers = {
           Query: {
             async nodes(parent, args, context, info) {
-              const bookings = await info.mergeInfo.delegate(
-                'Booking',
+              const bookings = await info.mergeInfo.delegateToSchema(
+                bookingSchema,
                 'query',
                 'bookings',
                 {},
                 context,
                 info,
               );
-              const properties = await info.mergeInfo.delegate(
-                'Property',
+              const properties = await info.mergeInfo.delegateToSchema(
+                propertySchema,
                 'query',
                 'properties',
                 {},
@@ -1329,38 +1302,14 @@ bookingById(id: "b1") {
         };
         const schema = mergeSchemas({
           schemas: [
-            {
-              name: 'Property',
-              schema: propertySchema,
-            },
-            {
-              name: 'Booking',
-              schema: bookingSchema,
-            },
-            {
-              name: 'Product',
-              schema: productSchema,
-            },
-            {
-              name: 'ScalarTest',
-              schema: scalarTest,
-            },
-            {
-              name: 'EnumTest',
-              schema: enumSchema,
-            },
-            {
-              name: 'LinkSchema',
-              schema: linkSchema,
-            },
-            {
-              name: 'LoneExtend',
-              schema: loneExtend,
-            },
-            {
-              name: 'LocalSubscription',
-              schema: localSubscriptionSchema,
-            },
+            propertySchema,
+            bookingSchema,
+            productSchema,
+            scalarTest,
+            enumSchema,
+            linkSchema,
+            loneExtend,
+            localSubscriptionSchema,
           ],
           resolvers: [
             Scalars,
@@ -2556,121 +2505,6 @@ fragment BookingFragment on Booking {
             },
           },
         });
-      });
-    });
-  });
-});
-
-describe('mergeSchema options', () => {
-  describe('should filter types', () => {
-    let schema: GraphQLSchema;
-
-    before(async () => {
-      const bookingSchema = await remoteBookingSchema;
-      const createTypeFilteringVisitTypes = (
-        typeNames: Array<string>,
-      ): VisitType => {
-        return (name, candidates) => {
-          if (
-            ['ID', 'String', 'DateTime'].includes(name) ||
-            typeNames.includes(name)
-          ) {
-            return candidates[candidates.length - 1].type;
-          } else {
-            return null;
-          }
-        };
-      };
-      schema = mergeSchemasImplementation({
-        schemas: [
-          {
-            name: 'Booking',
-            schema: bookingSchema,
-          },
-          {
-            name: 'Selector',
-            schema: `
-                type Query {
-                  bookingById(id: ID!): Booking
-                },
-              `,
-          },
-        ],
-        visitType: createTypeFilteringVisitTypes(['Query', 'Booking']),
-        resolvers: {
-          Query: {
-            bookingById(parent, args, context, info) {
-              return info.mergeInfo.delegate(
-                'Booking',
-                'query',
-                'bookingById',
-                args,
-                context,
-                info,
-              );
-            },
-          },
-        },
-      });
-    });
-
-    it('should work normally', async () => {
-      const result = await graphql(
-        schema,
-        `
-          query {
-            bookingById(id: "b1") {
-              id
-              propertyId
-              startTime
-              endTime
-            }
-          }
-        `,
-      );
-
-      expect(result).to.deep.equal({
-        data: {
-          bookingById: {
-            endTime: '2016-06-03',
-            id: 'b1',
-            propertyId: 'p1',
-            startTime: '2016-05-04',
-          },
-        },
-      });
-    });
-
-    it('should error on removed types', async () => {
-      const result = await graphql(
-        schema,
-        `
-          query {
-            bookingById(id: "b1") {
-              id
-              propertyId
-              startTime
-              endTime
-              customer {
-                id
-              }
-            }
-          }
-        `,
-      );
-      expect(result).to.deep.equal({
-        errors: [
-          {
-            locations: [
-              {
-                column: 15,
-                line: 8,
-              },
-            ],
-            message: 'Cannot query field "customer" on type "Booking".',
-            path: undefined,
-          },
-        ],
       });
     });
   });

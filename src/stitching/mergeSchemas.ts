@@ -44,11 +44,9 @@ export type OnTypeConflict = (
   right: GraphQLNamedType,
   info?: {
     left: {
-      name: string;
       schema?: GraphQLSchema;
     };
     right: {
-      name: string;
       schema?: GraphQLSchema;
     };
   },
@@ -59,21 +57,13 @@ export default function mergeSchemas({
   onTypeConflict,
   resolvers,
 }: {
-  schemas: Array<{
-    name: string;
-    schema: string | GraphQLSchema | Array<GraphQLNamedType>;
-  }>;
+  schemas: Array<string | GraphQLSchema | Array<GraphQLNamedType>>;
   onTypeConflict?: OnTypeConflict;
-  resolvers?: Array<IResolvers> | IResolvers;
+  resolvers?:
+    | Array<IResolvers | ((mergeInfo: MergeInfo) => IResolvers)>
+    | IResolvers
+    | ((mergeInfo: MergeInfo) => IResolvers);
 }): GraphQLSchema {
-  if (schemas.some(schema => !(schema.name && schema.schema))) {
-    throw new Error(
-      `Invalid argument \`schemas\`. Expected array of objects of format \`{ name: string, schema: string | schema }\`.
-
-Argument expected value have been changed in version 3.0, have you updated your code?`,
-    );
-  }
-
   let visitType: VisitType = defaultVisitType;
   if (onTypeConflict) {
     console.warn(
@@ -84,29 +74,23 @@ Argument expected value have been changed in version 3.0, have you updated your 
   return mergeSchemasImplementation({ schemas, visitType, resolvers });
 }
 
-export function mergeSchemasImplementation({
+function mergeSchemasImplementation({
   schemas,
   visitType,
   resolvers,
 }: {
-  schemas: Array<{
-    name: string;
-    schema: string | GraphQLSchema | Array<GraphQLNamedType>;
-  }>;
+  schemas: Array<string | GraphQLSchema | Array<GraphQLNamedType>>;
   visitType?: VisitType;
-  resolvers?: Array<IResolvers> | IResolvers;
+  resolvers?:
+    | Array<IResolvers | ((mergeInfo: MergeInfo) => IResolvers)>
+    | IResolvers
+    | ((mergeInfo: MergeInfo) => IResolvers);
 }): GraphQLSchema {
-  const allSchemas: { [name: string]: GraphQLSchema } = {};
+  const allSchemas: Array<GraphQLSchema> = [];
   const typeCandidates: { [name: string]: Array<MergeTypeCandidate> } = {};
   const types: { [name: string]: GraphQLNamedType } = {};
   const extensions: Array<DocumentNode> = [];
   const fragments = {};
-
-  if (!resolvers) {
-    resolvers = {};
-  } else if (Array.isArray(resolvers)) {
-    resolvers = resolvers.reduce(mergeDeep, {});
-  }
 
   if (!visitType) {
     visitType = defaultVisitType;
@@ -138,30 +122,26 @@ export function mergeSchemasImplementation({
     });
   };
 
-  schemas.forEach(subSchema => {
-    if (subSchema.schema instanceof GraphQLSchema) {
-      const schema = subSchema.schema;
-      allSchemas[subSchema.name] = schema;
+  schemas.forEach(schema => {
+    if (schema instanceof GraphQLSchema) {
+      allSchemas.push(schema);
       const queryType = schema.getQueryType();
       const mutationType = schema.getMutationType();
       const subscriptionType = schema.getSubscriptionType();
       if (queryType) {
         addTypeCandidate(typeCandidates, 'Query', {
-          schemaName: subSchema.name,
           schema,
           type: queryType,
         });
       }
       if (mutationType) {
         addTypeCandidate(typeCandidates, 'Mutation', {
-          schemaName: subSchema.name,
           schema,
           type: mutationType,
         });
       }
       if (subscriptionType) {
         addTypeCandidate(typeCandidates, 'Subscription', {
-          schemaName: subSchema.name,
           schema,
           type: subscriptionType,
         });
@@ -178,19 +158,17 @@ export function mergeSchemasImplementation({
           type !== subscriptionType
         ) {
           addTypeCandidate(typeCandidates, type.name, {
-            schemaName: subSchema.name,
             schema,
             type: type,
           });
         }
       });
-    } else if (typeof subSchema.schema === 'string') {
-      let parsedSchemaDocument = parse(subSchema.schema);
+    } else if (typeof schema === 'string') {
+      let parsedSchemaDocument = parse(schema);
       parsedSchemaDocument.definitions.forEach(def => {
         const type = typeFromAST(def, createNamedStub);
         if (type) {
           addTypeCandidate(typeCandidates, type.name, {
-            schemaName: subSchema.name,
             type: type,
           });
         }
@@ -202,17 +180,37 @@ export function mergeSchemasImplementation({
       if (extensionsDocument.definitions.length > 0) {
         extensions.push(extensionsDocument);
       }
-    } else if (Array.isArray(subSchema.schema)) {
-      subSchema.schema.forEach(type => {
+    } else if (Array.isArray(schema)) {
+      schema.forEach(type => {
         addTypeCandidate(typeCandidates, type.name, {
-          schemaName: subSchema.name,
           type: type,
         });
       });
     } else {
-      throw new Error(`Invalid schema ${subSchema.name}`);
+      throw new Error(`Invalid schema passed`);
     }
   });
+
+  const mergeInfo = createMergeInfo(allSchemas, fragments);
+
+  if (!resolvers) {
+    resolvers = {};
+  } else if (typeof resolvers === 'function') {
+    console.warn(
+      'Passing functions as resolver parameter is deprecated. Use `info.mergeInfo` instead.',
+    );
+    resolvers = resolvers(mergeInfo);
+  } else if (Array.isArray(resolvers)) {
+    resolvers = resolvers.reduce((left, right) => {
+      if (typeof right === 'function') {
+        console.warn(
+          'Passing functions as resolver parameter is deprecated. Use `info.mergeInfo` instead.',
+        );
+        right = right(mergeInfo);
+      }
+      return mergeDeep(left, right);
+    }, {});
+  }
 
   let generatedResolvers = {};
 
@@ -254,6 +252,12 @@ export function mergeSchemasImplementation({
     });
   });
 
+  if (!resolvers) {
+    resolvers = {};
+  } else if (Array.isArray(resolvers)) {
+    resolvers = resolvers.reduce(mergeDeep, {});
+  }
+
   Object.keys(resolvers).forEach(typeName => {
     const type = resolvers[typeName];
     if (type instanceof GraphQLScalarType) {
@@ -275,7 +279,6 @@ export function mergeSchemasImplementation({
     mergeDeep(generatedResolvers, resolvers),
   );
 
-  const mergeInfo = createMergeInfo(allSchemas, fragments);
   forEachField(mergedSchema, field => {
     if (field.resolve) {
       const fieldResolver = field.resolve;
@@ -297,33 +300,25 @@ export function mergeSchemasImplementation({
 }
 
 function createMergeInfo(
-  schemas: { [name: string]: GraphQLSchema },
+  allSchemas: Array<GraphQLSchema>,
   fragmentReplacements: {
     [name: string]: { [fieldName: string]: InlineFragmentNode };
   },
 ): MergeInfo {
   return {
-    getSubSchema(schemaName: string): GraphQLSchema {
-      const schema = schemas[schemaName];
-      if (!schema) {
-        throw new Error(`No subschema named ${schemaName}.`);
-      }
-      return schema;
-    },
     delegate(
-      schemaName: string,
       operation: 'query' | 'mutation' | 'subscription',
       fieldName: string,
       args: { [key: string]: any },
       context: { [key: string]: any },
       info: GraphQLResolveInfo,
-    ): any {
-      if (!info) {
-        throw new Error(`Argument \`info\` is missing.
-
-In version 3.0, \`delegate\` requires a schema name as a first argument, have you updated your code?`);
-      }
-      const schema = schemas[schemaName];
+      transforms?: Array<Transform>,
+    ) {
+      console.warn(
+        '`mergeInfo.delegate` is deprecated. ' +
+          'Use `mergeInfo.delegateToSchema and pass explicit schema instances.',
+      );
+      const schema = guessSchemaByRootField(allSchemas, operation, fieldName);
       const expandTransforms = Transforms.ExpandAbstractTypes(
         info.schema,
         schema,
@@ -332,9 +327,6 @@ In version 3.0, \`delegate\` requires a schema name as a first argument, have yo
         schema,
         fragmentReplacements,
       );
-      if (!schema) {
-        throw new Error(`No subschema named ${schemaName}.`);
-      }
       return delegateToSchema(
         schema,
         operation,
@@ -342,7 +334,7 @@ In version 3.0, \`delegate\` requires a schema name as a first argument, have yo
         args,
         context,
         info,
-        [expandTransforms, fragmentTransform],
+        [...(transforms || []), expandTransforms, fragmentTransform],
       );
     },
     delegateToSchema(
@@ -375,14 +367,40 @@ In version 3.0, \`delegate\` requires a schema name as a first argument, have yo
   };
 }
 
+function guessSchemaByRootField(
+  schemas: Array<GraphQLSchema>,
+  operation: 'query' | 'mutation' | 'subscription',
+  fieldName: string,
+): GraphQLSchema {
+  for (const schema of schemas) {
+    let rootObject: GraphQLObjectType;
+    if (operation === 'subscription') {
+      rootObject = schema.getSubscriptionType();
+    } else if (operation === 'mutation') {
+      rootObject = schema.getMutationType();
+    } else {
+      rootObject = schema.getQueryType();
+    }
+    if (rootObject) {
+      const fields = rootObject.getFields();
+      if (fields[fieldName]) {
+        return schema;
+      }
+    }
+  }
+  throw new Error(
+    `Could not find subschema with field \`{operation}.{fieldName}\``,
+  );
+}
+
 function createDelegatingResolver(
-  schemaName: string,
+  schema: GraphQLSchema,
   operation: 'query' | 'mutation' | 'subscription',
   fieldName: string,
 ): IFieldResolver<any, any> {
   return (root, args, context, info) => {
-    return info.mergeInfo.delegate(
-      schemaName,
+    return info.mergeInfo.delegateToSchema(
+      schema,
       operation,
       fieldName,
       args,
@@ -451,11 +469,9 @@ function createVisitTypeFromOnTypeConflict(
       cands.reduce((prev, next) => {
         const type = onTypeConflict(prev.type, next.type, {
           left: {
-            name: prev.schemaName,
             schema: prev.schema,
           },
           right: {
-            name: prev.schemaName,
             schema: prev.schema,
           },
         });
@@ -503,13 +519,13 @@ const defaultVisitType = (
     const resolvers = {};
     const resolverKey =
       operationName === 'subscription' ? 'subscribe' : 'resolve';
-    candidates.forEach(({ type: candidateType, schemaName }) => {
+    candidates.forEach(({ type: candidateType, schema }) => {
       const candidateFields = (candidateType as GraphQLObjectType).getFields();
       fields = { ...fields, ...candidateFields };
       Object.keys(candidateFields).forEach(fieldName => {
         resolvers[fieldName] = {
           [resolverKey]: createDelegatingResolver(
-            schemaName,
+            schema,
             operationName,
             fieldName,
           ),
