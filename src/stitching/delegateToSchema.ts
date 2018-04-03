@@ -150,7 +150,7 @@ export function createBatchOperation(
   }
 
   if (!operationType) {
-    throw new Error(`Operation type "${operationType}" not supported`);
+    throw new Error(`Operation type "${operation}" not supported`);
   }
 
   const roots = Object.keys(rootDefs).map(key => {
@@ -170,54 +170,51 @@ export function createBatchOperation(
 
   const newVariableDefinitions: VariableDefinitionNode[] = [];
 
-  const selections = roots.map(({ key, name: rootFieldName, info, alias }) => {
-    const selection = {
-      ...info.fieldNodes[0],
-      name: {
-        kind: Kind.NAME,
-        value: rootFieldName
-      }
-    };
-    if (selection.kind === Kind.FIELD) {
-      const rootField = operationType.getFields()[rootFieldName];
+  const selections = roots.reduce((newSelections, { key, name: rootFieldName, info, alias }) => {
+    const rootSelections = info.fieldNodes.map((selection: FieldNode) => {
+      if (selection.kind === Kind.FIELD) {
+        const rootField = operationType.getFields()[rootFieldName];
 
-      const { selection: newSelection, variables } = processRootField(
-        selection,
-        rootFieldName,
-        rootField,
-        key,
-        alias
-      );
+        const { selection: newSelection, variables } = processRootField(
+          selection,
+          rootFieldName,
+          rootField,
+          key,
+          alias
+        );
 
-      variables.forEach(({ arg, variable }) => {
-        if (newVariableDefinitions.find(newVarDef => newVarDef.variable.name.value === variable)) {
-          return;
-        }
+        variables.forEach(({ arg, variable }) => {
+          if (newVariableDefinitions.find(newVarDef => newVarDef.variable.name.value === variable)) {
+            return;
+          }
 
-        const argDef = rootField.args.find(rootArg => rootArg.name === arg);
+          const argDef = rootField.args.find(rootArg => rootArg.name === arg);
 
-        if (!argDef) {
-          throw new Error('Unexpected missing arg');
-        }
-        const typeName = typeToAst(argDef.type);
+          if (!argDef) {
+            throw new Error('Unexpected missing arg');
+          }
+          const typeName = typeToAst(argDef.type);
 
-        newVariableDefinitions.push({
-          kind: Kind.VARIABLE_DEFINITION,
-          variable: {
-            kind: Kind.VARIABLE,
-            name: {
-              kind: Kind.NAME,
-              value: variable
-            }
-          },
-          type: typeName
+          newVariableDefinitions.push({
+            kind: Kind.VARIABLE_DEFINITION,
+            variable: {
+              kind: Kind.VARIABLE,
+              name: {
+                kind: Kind.NAME,
+                value: variable
+              }
+            },
+            type: typeName
+          });
         });
-      });
 
-      return newSelection;
-    }
-    return selection;
-  });
+        return newSelection;
+      }
+      return selection;
+    });
+
+    return newSelections.concat(rootSelections);
+  }, []);
 
   const rootSelectionSet = {
     kind: Kind.SELECTION_SET,

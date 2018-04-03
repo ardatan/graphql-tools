@@ -1443,7 +1443,7 @@ fragment BookingFragment on Booking {
         });
       });
 
-      it.skip('containing links and overlapping fragments on relation', async () => {
+      it('containing links and overlapping fragments on relation', async () => {
         const mergedResult = await graphql(
           mergedSchema,
           `
