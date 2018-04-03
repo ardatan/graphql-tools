@@ -1,16 +1,17 @@
 import {
   DocumentNode,
   FragmentDefinitionNode,
+  GraphQLNamedType,
   GraphQLSchema,
-  GraphQLCompositeType,
-  SelectionSetNode,
   Kind,
   OperationDefinitionNode,
+  SelectionNode,
+  SelectionSetNode,
+  TypeInfo,
+  getNamedType,
   isAbstractType,
   visit,
   visitWithTypeInfo,
-  TypeInfo,
-  SelectionNode,
 } from 'graphql';
 import implementsAbstractType from '../implementsAbstractType';
 import { Transform, Request } from '../Interfaces';
@@ -25,11 +26,13 @@ export default function ExpandAbstractTypes(
     transformedSchema,
     targetSchema,
   );
+  const reverseMapping: TypeMapping = flipMapping(mapping);
   return {
     transformRequest(originalRequest: Request): Request {
       const document = expandAbstractTypes(
         targetSchema,
         mapping,
+        reverseMapping,
         originalRequest.document,
       );
       return {
@@ -45,7 +48,7 @@ function extractPossibleTypes(
   targetSchema: GraphQLSchema,
 ) {
   const typeMap = transformedSchema.getTypeMap();
-  const mapping = {};
+  const mapping: TypeMapping = {};
   Object.keys(typeMap).forEach(typeName => {
     const type = typeMap[typeName];
     if (isAbstractType(type)) {
@@ -61,9 +64,24 @@ function extractPossibleTypes(
   return mapping;
 }
 
+function flipMapping(mapping: TypeMapping): TypeMapping {
+  const result: TypeMapping = {};
+  Object.keys(mapping).forEach(typeName => {
+    const toTypeNames = mapping[typeName];
+    toTypeNames.forEach(toTypeName => {
+      if (!result[toTypeName]) {
+        result[toTypeName] = [];
+      }
+      result[toTypeName].push(typeName);
+    });
+  });
+  return result;
+}
+
 function expandAbstractTypes(
   targetSchema: GraphQLSchema,
   mapping: TypeMapping,
+  reverseMapping: TypeMapping,
   document: DocumentNode,
 ): DocumentNode {
   const operations: Array<
@@ -134,7 +152,9 @@ function expandAbstractTypes(
     visitWithTypeInfo(typeInfo, {
       [Kind.SELECTION_SET](node: SelectionSetNode) {
         const newSelections = [...node.selections];
-        const parentType: GraphQLCompositeType = typeInfo.getParentType();
+        const parentType: GraphQLNamedType = getNamedType(
+          typeInfo.getParentType(),
+        );
         node.selections.forEach((selection: SelectionNode) => {
           if (selection.kind === Kind.INLINE_FRAGMENT) {
             const possibleTypes = mapping[selection.typeCondition.name.value];
@@ -142,6 +162,7 @@ function expandAbstractTypes(
               possibleTypes.forEach(possibleType => {
                 if (
                   implementsAbstractType(
+                    targetSchema,
                     parentType,
                     targetSchema.getType(possibleType),
                   )
@@ -168,6 +189,7 @@ function expandAbstractTypes(
                 const typeName = replacement.typeName;
                 if (
                   implementsAbstractType(
+                    targetSchema,
                     parentType,
                     targetSchema.getType(typeName),
                   )
@@ -184,8 +206,8 @@ function expandAbstractTypes(
             }
           }
         });
-        if (newSelections.length !== node.selections.length) {
-          // often this happening means we need typename anyway
+
+        if (parentType && reverseMapping[parentType.name]) {
           newSelections.push({
             kind: Kind.FIELD,
             name: {
@@ -193,6 +215,9 @@ function expandAbstractTypes(
               value: '__typename',
             },
           });
+        }
+
+        if (newSelections.length !== node.selections.length) {
           return {
             ...node,
             selections: newSelections,

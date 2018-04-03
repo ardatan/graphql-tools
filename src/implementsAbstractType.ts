@@ -1,35 +1,20 @@
 import {
   GraphQLType,
-  GraphQLInterfaceType,
-  GraphQLObjectType,
-  GraphQLUnionType,
+  GraphQLSchema,
+  doTypesOverlap,
+  isCompositeType,
 } from 'graphql';
 
 export default function implementsAbstractType(
-  parent: GraphQLType,
-  child: GraphQLType,
-  bail: boolean = false,
-): boolean {
-  if (parent === child) {
+  schema: GraphQLSchema,
+  typeA: GraphQLType,
+  typeB: GraphQLType,
+) {
+  if (typeA === typeB) {
     return true;
-  } else if (
-    parent instanceof GraphQLInterfaceType &&
-    child instanceof GraphQLObjectType
-  ) {
-    return child.getInterfaces().indexOf(parent) !== -1;
-  } else if (
-    parent instanceof GraphQLInterfaceType &&
-    child instanceof GraphQLInterfaceType
-  ) {
-    return true;
-  } else if (
-    parent instanceof GraphQLUnionType &&
-    child instanceof GraphQLObjectType
-  ) {
-    return parent.getTypes().indexOf(child) !== -1;
-  } else if (parent instanceof GraphQLObjectType && !bail) {
-    return implementsAbstractType(child, parent, true);
+  } else if (isCompositeType(typeA) && isCompositeType(typeB)) {
+    return doTypesOverlap(schema, typeA, typeB);
+  } else {
+    return false;
   }
-
-  return false;
 }

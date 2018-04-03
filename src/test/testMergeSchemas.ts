@@ -937,6 +937,51 @@ bookingById(id: "b1") {
         });
       });
 
+      it('unions implementing interface', async () => {
+        const query = `
+          query {
+            test1: unionTest(output: "Interface") {
+              ... on TestInterface {
+                kind
+                testString
+              }
+              ... on TestImpl1 {
+                foo
+              }
+              ... on UnionImpl {
+                someField
+              }
+            }
+
+            test2: unionTest(output: "OtherStuff") {
+              ... on TestInterface {
+                kind
+                testString
+              }
+              ... on TestImpl1 {
+                foo
+              }
+              ... on UnionImpl {
+                someField
+              }
+            }
+          }
+        `;
+        const mergedResult = await graphql(mergedSchema, query);
+        expect(mergedResult).to.deep.equal({
+          data: {
+            test1: {
+              kind: 'ONE',
+              testString: 'test',
+              foo: 'foo',
+            },
+            test2: {
+              someField: 'Bar',
+            },
+          },
+        });
+      });
+
       it('interfaces spread from top level functions', async () => {
         const mergedResult = await graphql(
           mergedSchema,
@@ -2229,7 +2274,6 @@ fragment BookingFragment on Booking {
       });
     });
 
-    // FIXME: __typename should be automatic
     describe('merge info defined interfaces', () => {
       it('inline fragments on existing types in subschema', async () => {
         const result = await graphql(
@@ -2237,14 +2281,12 @@ fragment BookingFragment on Booking {
           `
             query($pid: ID!, $bid: ID!) {
               property: node(id: $pid) {
-                __typename
                 id
                 ... on Property {
                   name
                 }
               }
               booking: node(id: $bid) {
-                __typename
                 id
                 ... on Booking {
                   startTime
@@ -2264,12 +2306,10 @@ fragment BookingFragment on Booking {
         expect(result).to.deep.equal({
           data: {
             property: {
-              __typename: 'Property',
               id: 'p1',
               name: 'Super great hotel',
             },
             booking: {
-              __typename: 'Booking',
               id: 'b1',
               startTime: '2016-05-04',
               endTime: '2016-06-03',
@@ -2442,7 +2482,6 @@ fragment BookingFragment on Booking {
           `
             query {
               nodes {
-                __typename
                 id
                 ... on Property {
                   name
@@ -2463,40 +2502,33 @@ fragment BookingFragment on Booking {
                 id: 'b1',
                 startTime: '2016-05-04',
                 endTime: '2016-06-03',
-                __typename: 'Booking',
               },
               {
                 id: 'b2',
                 startTime: '2016-06-04',
                 endTime: '2016-07-03',
-                __typename: 'Booking',
               },
               {
                 id: 'b3',
                 startTime: '2016-08-04',
                 endTime: '2016-09-03',
-                __typename: 'Booking',
               },
               {
                 id: 'b4',
                 startTime: '2016-10-04',
                 endTime: '2016-10-03',
-                __typename: 'Booking',
               },
               {
                 id: 'p1',
                 name: 'Super great hotel',
-                __typename: 'Property',
               },
               {
                 id: 'p2',
                 name: 'Another great hotel',
-                __typename: 'Property',
               },
               {
                 id: 'p3',
                 name: 'BedBugs - The Affordable Hostel',
-                __typename: 'Property',
               },
             ],
           },

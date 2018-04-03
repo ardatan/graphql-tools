@@ -160,6 +160,7 @@ function filterSelectionSet(
   const usedVariables: Array<string> = [];
   const typeStack: Array<GraphQLType> = [type];
 
+  // Should be rewritten using visitWithSchema
   const filteredSelectionSet = visit(selectionSet, {
     [Kind.FIELD]: {
       enter(node: FieldNode): null | undefined | FieldNode {
@@ -210,7 +211,7 @@ function filterSelectionSet(
           typeStack[typeStack.length - 1],
         );
         const innerType = validFragments[node.name.value];
-        if (!implementsAbstractType(parentType, innerType)) {
+        if (!implementsAbstractType(schema, parentType, innerType)) {
           return null;
         } else {
           usedFragments.push(node.name.value);
@@ -227,7 +228,7 @@ function filterSelectionSet(
           const parentType: GraphQLNamedType = resolveType(
             typeStack[typeStack.length - 1],
           );
-          if (implementsAbstractType(parentType, innerType)) {
+          if (implementsAbstractType(schema, parentType, innerType)) {
             typeStack.push(innerType);
           } else {
             return null;
