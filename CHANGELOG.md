@@ -4,6 +4,8 @@
 
 * Use `getDescription` from `graphql-js` package [PR #672](https://github.com/apollographql/graphql-tools/pull/672)
 
+* Fix typo in schema-directive.md deprecated example[PR #706](https://github.com/apollographql/graphql-tools/pull/706)
+
 * Fix timezone bug in test for @date directive [PR #686](https://github.com/apollographql/graphql-tools/pull/686)
 
 * Expose `defaultMergedResolver` from stitching [PR #685](https://github.com/apollographql/graphql-tools/pull/685)
