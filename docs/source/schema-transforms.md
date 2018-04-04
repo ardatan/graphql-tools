@@ -84,7 +84,7 @@ type Result = ExecutionResult & {
 };
 ```
 
-<h3 id="makeTransformSchema">makeTransformSchema</h3>
+<h3 id="transformSchema">transformSchema</h3>
 
 Given a `GraphQLSchema` and an array of `Transform`, produce a new schema transformed by them. Also creates delegating resolvers mapping from new schema root fields to old schema root fields. Most of the time, when using transforms, you would be using this.
 

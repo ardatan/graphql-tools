@@ -192,7 +192,7 @@ import {
   addMockFunctionsToSchema,
   mergeSchemas,
   Transforms,
-  makeTransformSchema,
+  transformSchema,
 } from 'graphql-tools';
 
 // Mocked chirp schema; we don't want to worry about the schema
@@ -217,7 +217,7 @@ addMockFunctionsToSchema({ schema: chirpSchema });
 
 // create transform schema
 
-const transformedChirpSchema = makeTransformSchema(propertySchema, [
+const transformedChirpSchema = transformSchema(propertySchema, [
   Transforms.FilterRootFields((operation: string, rootField: string) =>
     ['Query.chirpById'].includes(`${operation}.${rootField}`),
   ),

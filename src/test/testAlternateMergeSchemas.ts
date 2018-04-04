@@ -3,7 +3,7 @@
 import { expect } from 'chai';
 import { graphql, GraphQLSchema } from 'graphql';
 import mergeSchemas from '../stitching/mergeSchemas';
-import { Transforms, makeTransformSchema } from '../transforms';
+import { Transforms, transformSchema } from '../transforms';
 import { propertySchema, bookingSchema } from './testingSchemas';
 
 let linkSchema = `
@@ -55,14 +55,14 @@ describe('merge schemas through transforms', () => {
 
   before(async () => {
     // namespace and strip schemas
-    const transformedPropertySchema = makeTransformSchema(propertySchema, [
+    const transformedPropertySchema = transformSchema(propertySchema, [
       Transforms.FilterRootFields((operation: string, rootField: string) =>
         ['Query.properties'].includes(`${operation}.${rootField}`),
       ),
       Transforms.RenameTypes((name: string) => `Properties_${name}`),
       Transforms.RenameRootFields((name: string) => `Properties_${name}`),
     ]);
-    const transformedBookingSchema = makeTransformSchema(bookingSchema, [
+    const transformedBookingSchema = transformSchema(bookingSchema, [
       Transforms.FilterRootFields((operation: string, rootField: string) =>
         ['Query.bookings'].includes(`${operation}.${rootField}`),
       ),
