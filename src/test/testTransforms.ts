@@ -122,9 +122,10 @@ describe('transforms', () => {
   describe('filter type', () => {
     let schema: GraphQLSchema;
     before(() => {
+      const typeNames = ['ID', 'String', 'DateTime', 'Query', 'Booking'];
       const transforms = [
         Transforms.FilterTypes((type: GraphQLNamedType) =>
-          ['ID', 'String', 'DateTime', 'Query', 'Booking'].includes(type.name),
+          typeNames.indexOf(type.name) >= 0
         ),
       ];
       schema = transformSchema(bookingSchema, transforms);

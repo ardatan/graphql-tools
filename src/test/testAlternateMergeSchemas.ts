@@ -57,14 +57,14 @@ describe('merge schemas through transforms', () => {
     // namespace and strip schemas
     const transformedPropertySchema = transformSchema(propertySchema, [
       Transforms.FilterRootFields((operation: string, rootField: string) =>
-        ['Query.properties'].includes(`${operation}.${rootField}`),
+        'Query.properties' === `${operation}.${rootField}`,
       ),
       Transforms.RenameTypes((name: string) => `Properties_${name}`),
       Transforms.RenameRootFields((name: string) => `Properties_${name}`),
     ]);
     const transformedBookingSchema = transformSchema(bookingSchema, [
       Transforms.FilterRootFields((operation: string, rootField: string) =>
-        ['Query.bookings'].includes(`${operation}.${rootField}`),
+        'Query.bookings' === `${operation}.${rootField}`,
       ),
       Transforms.RenameTypes((name: string) => `Bookings_${name}`),
       Transforms.RenameRootFields(
