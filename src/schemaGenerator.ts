@@ -158,79 +158,69 @@ function isDocumentNode(
   return (<DocumentNode>typeDefinitions).kind !== undefined;
 }
 
-function uniq(array: Array<any>): Array<any> {
-  return array.reduce((accumulator, currentValue) => {
-    return accumulator.indexOf(currentValue) === -1
-      ? [...accumulator, currentValue]
-      : accumulator;
-  }, []);
+function concatenateTypeDefs(
+  typeDefinitions: ITypedef[],
+): string {
+  return print({
+    kind: 'Document',
+    definitions: flattenTypeDefs(typeDefinitions),
+  });
 }
 
-function concatenateTypeDefs(
-  typeDefinitionsAry: ITypedef[],
-  calledFunctionRefs = [] as any,
-): string {
-  let resolvedTypeDefinitions: string[] = [];
-  typeDefinitionsAry.forEach((typeDef: ITypedef) => {
-    if (isDocumentNode(typeDef)) {
-      typeDef = print(typeDef);
-    }
+function flattenTypeDefs(
+  typeDefs: ITypeDefinitions,
+  parseOptions?: GraphQLParseOptions,
+): DefinitionNode[] {
+  const definitions: DefinitionNode[] = [];
+  const calledFunctionRefs = new Set<() => ITypeDefinitions>();
+  const uniqueStringFragments = new Set<string>();
 
-    if (typeof typeDef === 'function') {
-      if (calledFunctionRefs.indexOf(typeDef) === -1) {
-        calledFunctionRefs.push(typeDef);
-        resolvedTypeDefinitions = resolvedTypeDefinitions.concat(
-          concatenateTypeDefs(typeDef(), calledFunctionRefs),
-        );
+  function flatten(defs: ITypeDefinitions) {
+    if (typeof defs === 'string') {
+      defs = defs.trim(); // Why bother with this?
+      if (! uniqueStringFragments.has(defs)) {
+        uniqueStringFragments.add(defs);
+        definitions.push(...parse(defs, parseOptions).definitions);
       }
-    } else if (typeof typeDef === 'string') {
-      resolvedTypeDefinitions.push(typeDef.trim());
+    } else if (typeof defs === 'function') {
+      if (! calledFunctionRefs.has(defs)) {
+        calledFunctionRefs.add(defs);
+        flatten(defs());
+      }
+    } else if (isDocumentNode(defs)) {
+      definitions.push(...defs.definitions);
+    } else if (Array.isArray(defs)) {
+      defs.forEach(flatten);
     } else {
-      const type = typeof typeDef;
-      throw new SchemaError(
-        `typeDef array must contain only strings and functions, got ${type}`,
-      );
+      throw new Error(`Unexpected typeDefs value: ${defs}`);
     }
-  });
-  return uniq(resolvedTypeDefinitions.map(x => x.trim())).join('\n');
+  }
+
+  flatten(typeDefs);
+
+  return definitions;
 }
 
 function buildSchemaFromTypeDefinitions(
   typeDefinitions: ITypeDefinitions,
   parseOptions?: GraphQLParseOptions,
 ): GraphQLSchema {
-  // TODO: accept only array here, otherwise interfaces get confusing.
-  let myDefinitions = typeDefinitions;
-  let astDocument: DocumentNode;
+  const ast = {
+    kind: 'Document',
+    definitions: flattenTypeDefs(typeDefinitions, parseOptions),
+  };
 
-  if (isDocumentNode(typeDefinitions)) {
-    astDocument = typeDefinitions;
-  } else if (typeof myDefinitions !== 'string') {
-    if (!Array.isArray(myDefinitions)) {
-      const type = typeof myDefinitions;
-      throw new SchemaError(
-        `typeDefs must be a string, array or schema AST, got ${type}`,
-      );
-    }
-    myDefinitions = concatenateTypeDefs(myDefinitions);
-  }
-
-  if (typeof myDefinitions === 'string') {
-    astDocument = parse(myDefinitions, parseOptions);
-  }
-
-  const backcompatOptions = { commentDescriptions: true };
+  const backcompatOptions = {
+    commentDescriptions: true,
+  };
 
   // TODO fix types https://github.com/apollographql/graphql-tools/issues/542
-  let schema: GraphQLSchema = (buildASTSchema as any)(
-    astDocument,
-    backcompatOptions,
-  );
+  const schema = (buildASTSchema as any)(ast, backcompatOptions);
 
-  const extensionsAst = extractExtensionDefinitions(astDocument);
+  const extensionsAst = extractExtensionDefinitions(ast);
   if (extensionsAst.definitions.length > 0) {
     // TODO fix types https://github.com/apollographql/graphql-tools/issues/542
-    schema = (extendSchema as any)(schema, extensionsAst, backcompatOptions);
+    return (extendSchema as any)(schema, extensionsAst, backcompatOptions);
   }
 
   return schema;
@@ -242,16 +232,19 @@ function buildSchemaFromTypeDefinitions(
 const oldTypeExtensionDefinitionKind = 'TypeExtensionDefinition';
 const newExtensionDefinitionKind = 'ObjectTypeExtension';
 
-export function extractExtensionDefinitions(ast: DocumentNode) {
-  const extensionDefs = ast.definitions.filter(
-    (def: DefinitionNode) =>
-      def.kind === oldTypeExtensionDefinitionKind ||
-      (def.kind as any) === newExtensionDefinitionKind,
-  );
-
-  return Object.assign({}, ast, {
-    definitions: extensionDefs,
+export function extractExtensionDefinitions(ast: {
+  definitions: DefinitionNode[],
+}): DocumentNode {
+  const extensionDefs = ast.definitions.filter(def => {
+    const kind: string = def.kind;
+    return kind === oldTypeExtensionDefinitionKind ||
+           kind === newExtensionDefinitionKind;
   });
+
+  return {
+    kind: 'Document',
+    definitions: extensionDefs,
+  };
 }
 
 function forEachField(schema: GraphQLSchema, fn: IFieldIteratorFn): void {
