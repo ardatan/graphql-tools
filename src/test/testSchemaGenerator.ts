@@ -123,17 +123,17 @@ describe('generating schema from shorthand', () => {
     ).to.throw(GraphQLError);
   });
 
-  it('throws an error if typeDefinitionNodes is neither string nor array nor schema AST', () => {
+  it('throws if typeDefs is neither string, array, object, nor schema AST', () => {
     expect(() =>
-      (<any>makeExecutableSchema)({ typeDefs: {}, resolvers: {} }),
-    ).to.throw('typeDefs must be a string, array or schema AST, got object');
+      (<any>makeExecutableSchema)({ typeDefs: true, resolvers: {} }),
+    ).to.throw('Unexpected typeDefs value: true');
   });
 
-  it('throws an error if typeDefinitionNode array contains not only functions and strings', () => {
+  it('throws an error if typeDefs array contains not only functions and strings', () => {
     expect(() =>
       (<any>makeExecutableSchema)({ typeDefs: [17], resolvers: {} }),
     ).to.throw(
-      'typeDef array must contain only strings and functions, got number',
+      'Unexpected typeDefs value: 17',
     );
   });
 

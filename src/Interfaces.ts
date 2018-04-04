@@ -49,8 +49,8 @@ export type IFieldResolver<TSource, TContext> = (
   info: GraphQLResolveInfo & { mergeInfo: MergeInfo },
 ) => any;
 
-export type ITypedef = (() => ITypedef[]) | string | DocumentNode;
-export type ITypeDefinitions = ITypedef | ITypedef[];
+export type ITypedef = (() => ITypeDefinitions) | string | DocumentNode;
+export type ITypeDefinitions = ITypedef | ITypedef[] | { [typeName: string]: ITypedef };
 export type IResolverObject<TSource = any, TContext = any> = {
   [key: string]: IFieldResolver<TSource, TContext> | IResolverOptions;
 };

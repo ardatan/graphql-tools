@@ -47,6 +47,8 @@ import { SchemaDirectiveVisitor } from './schemaVisitor';
 import { deprecated } from 'deprecated-decorator';
 import mergeDeep from './mergeDeep';
 
+const hasOwn = Object.prototype.hasOwnProperty;
+
 // @schemaDefinition: A GraphQL type schema in shorthand
 // @resolvers: Definitions for resolvers to be merged with schema
 class SchemaError extends Error {
@@ -155,7 +157,12 @@ function makeExecutableSchema<TContext = any>({
 function isDocumentNode(
   typeDefinitions: ITypeDefinitions,
 ): typeDefinitions is DocumentNode {
-  return (<DocumentNode>typeDefinitions).kind !== undefined;
+  return !!typeDefinitions &&
+    typeof typeDefinitions === 'object' &&
+    hasOwn.call(typeDefinitions, 'kind') &&
+    (typeDefinitions as DocumentNode).kind === 'Document' &&
+    hasOwn.call(typeDefinitions, 'definitions') &&
+    Array.isArray((typeDefinitions as DocumentNode).definitions);
 }
 
 function concatenateTypeDefs(
@@ -191,6 +198,8 @@ function flattenTypeDefs(
       definitions.push(...defs.definitions);
     } else if (Array.isArray(defs)) {
       defs.forEach(flatten);
+    } else if (typeof defs === 'object') {
+      Object.keys(defs).forEach(key => flatten(defs[key]));
     } else {
       throw new Error(`Unexpected typeDefs value: ${defs}`);
     }
