@@ -3,8 +3,6 @@ import {
   DocumentNode,
   FieldNode,
   FragmentDefinitionNode,
-  GraphQLResolveInfo,
-  GraphQLSchema,
   Kind,
   OperationDefinitionNode,
   SelectionSetNode,
@@ -14,9 +12,8 @@ import {
   validate,
   VariableDefinitionNode,
 } from 'graphql';
-import { Operation, Request } from '../Interfaces';
+import { Operation, Request, IDelegateToSchemaOptions } from '../Interfaces';
 import {
-  Transform,
   applyRequestTransforms,
   applyResultTransforms,
 } from '../transforms/transforms';
@@ -26,17 +23,12 @@ import AddTypenameToAbstract from '../transforms/AddTypenameToAbstract';
 import CheckResultAndHandleErrors from '../transforms/CheckResultAndHandleErrors';
 
 export default async function delegateToSchema(
-  targetSchema: GraphQLSchema,
-  targetOperation: Operation,
-  targetField: string,
-  args: { [key: string]: any },
-  context: { [key: string]: any },
-  info: GraphQLResolveInfo,
-  transforms?: Array<Transform>,
+  options: IDelegateToSchemaOptions,
 ): Promise<any> {
+  const { info } = options;
   const rawDocument: DocumentNode = createDocument(
-    targetField,
-    targetOperation,
+    options.fieldName,
+    options.operation,
     info.fieldNodes,
     Object.keys(info.fragments).map(
       fragmentName => info.fragments[fragmentName],
@@ -49,47 +41,45 @@ export default async function delegateToSchema(
     variables: info.variableValues as Record<string, any>,
   };
 
-  transforms = [
-    ...(transforms || []),
-    AddArgumentsAsVariables(targetSchema, args),
-    FilterToSchema(targetSchema),
-    AddTypenameToAbstract(targetSchema),
-    CheckResultAndHandleErrors(info, targetField),
+  const transforms = [
+    ...(options.transforms || []),
+    AddArgumentsAsVariables(options.schema, options.args),
+    FilterToSchema(options.schema),
+    AddTypenameToAbstract(options.schema),
+    CheckResultAndHandleErrors(info, options.fieldName),
   ];
 
   const processedRequest = applyRequestTransforms(rawRequest, transforms);
 
-  const errors = validate(targetSchema, processedRequest.document);
+  const errors = validate(options.schema, processedRequest.document);
   if (errors.length > 0) {
     throw errors;
   }
 
-  if (targetOperation === 'query' || targetOperation === 'mutation') {
-    const rawResult = await execute(
-      targetSchema,
+  if (options.operation === 'query' ||
+      options.operation === 'mutation') {
+    return applyResultTransforms(await execute(
+      options.schema,
       processedRequest.document,
       info.rootValue,
-      context,
+      options.context,
       processedRequest.variables,
-    );
-
-    const result = applyResultTransforms(rawResult, transforms);
-    return result;
+    ), transforms);
   }
 
-  if (targetOperation === 'subscription') {
+  if (options.operation === 'subscription') {
     // apply result processing ???
     return subscribe(
-      targetSchema,
+      options.schema,
       processedRequest.document,
       info.rootValue,
-      context,
+      options.context,
       processedRequest.variables,
     );
   }
 }
 
-export function createDocument(
+function createDocument(
   targetField: string,
   targetOperation: Operation,
   originalSelections: Array<SelectionNode>,

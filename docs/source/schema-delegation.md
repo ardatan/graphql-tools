@@ -103,23 +103,25 @@ Delegation also removes the fields that don't exist on the subschema, such as `u
 
 <h3 id="delegateToSchema">delegateToSchema</h3>
 
+The `delegateToSchema` method can be found on the `info.mergeInfo` object within any resolver function, and should be called with the following named options:
+
 ```
-function delegateToSchema(
-  schema: GraphQLSchema,
-  type: 'query' | 'mutation' | 'subscription',
-  fieldName: string,
-  args: { [key: string]: any },
-  context: { [key: string]: any },
-  info: GraphQLResolveInfo,
-  transforms?: Array<Transform>,
-): Promise<any>
+delegateToSchema(options: {
+  schema: GraphQLSchema;
+  operation: 'query' | 'mutation' | 'subscription';
+  fieldName: string;
+  args: { [key: string]: any };
+  context: { [key: string]: any };
+  info: GraphQLResolveInfo;
+  transforms?: Array<Transform>;
+}): Promise<any>
 ```
 
 #### schema: GraphQLSchema
 
 A subschema to delegate to.
 
-#### type: 'query' | 'mutation' | 'subscription'
+#### operation: 'query' | 'mutation' | 'subscription'
 
 An operation to use during the delegation.
 
@@ -129,7 +131,7 @@ A root field in a subschema from which the query should start.
 
 #### args: { [key: string]: any }
 
-Additional arguments to be passed to the field. Arguments on the field that is being resolved are going to be kept if they are valid, which allows adding additional arguments or overriding existing ones. For example:
+Additional arguments to be passed to the field. Arguments passed to the field that is being resolved will be preserved if the subschema expects them, so you don't have to pass existing arguments explicitly, though you could use the additional arguments to override the existing ones. For example:
 
 ```graphql
 # Subschema
@@ -160,11 +162,11 @@ If we delegate at `User.bookings` to `Query.bookingsByUser`, we want to preserve
 const resolvers = {
   User: {
     bookings(parent, args, context, info) {
-      return info.mergeInfo.delegateToSchema(
-        subschema,
-        'query',
-        'bookingsByUser',
-        {
+      return info.mergeInfo.delegateToSchema({
+        schema: subschema,
+        operation: 'query',
+        fieldName: 'bookingsByUser',
+        args: {
           userId: parent.id,
         },
         context,

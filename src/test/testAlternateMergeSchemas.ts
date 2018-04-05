@@ -83,35 +83,35 @@ describe('merge schemas through transforms', () => {
           // delegating directly, no subschemas or mergeInfo
           node(parent, args, context, info) {
             if (args.id.startsWith('p')) {
-              return info.mergeInfo.delegateToSchema(
-                propertySchema,
-                'query',
-                'propertyById',
+              return info.mergeInfo.delegateToSchema({
+                schema: propertySchema,
+                operation: 'query',
+                fieldName: 'propertyById',
                 args,
                 context,
                 info,
-                transformedPropertySchema.transforms,
-              );
+                transforms: transformedPropertySchema.transforms,
+              });
             } else if (args.id.startsWith('b')) {
-              return info.mergeInfo.delegateToSchema(
-                bookingSchema,
-                'query',
-                'bookingById',
+              return info.mergeInfo.delegateToSchema({
+                schema: bookingSchema,
+                operation: 'query',
+                fieldName: 'bookingById',
                 args,
                 context,
                 info,
-                transformedBookingSchema.transforms,
-              );
+                transforms: transformedBookingSchema.transforms,
+              });
             } else if (args.id.startsWith('c')) {
-              return info.mergeInfo.delegateToSchema(
-                bookingSchema,
-                'query',
-                'customerById',
+              return info.mergeInfo.delegateToSchema({
+                schema: bookingSchema,
+                operation: 'query',
+                fieldName: 'customerById',
                 args,
                 context,
                 info,
-                transformedBookingSchema.transforms,
-              );
+                transforms: transformedBookingSchema.transforms,
+              });
             } else {
               throw new Error('invalid id');
             }
@@ -121,18 +121,18 @@ describe('merge schemas through transforms', () => {
           bookings: {
             fragment: 'fragment PropertyFragment on Property { id }',
             resolve(parent, args, context, info) {
-              return info.mergeInfo.delegateToSchema(
-                bookingSchema,
-                'query',
-                'bookingsByPropertyId',
-                {
+              return info.mergeInfo.delegateToSchema({
+                schema: bookingSchema,
+                operation: 'query',
+                fieldName: 'bookingsByPropertyId',
+                args: {
                   propertyId: parent.id,
                   limit: args.limit ? args.limit : null,
                 },
                 context,
                 info,
-                transformedBookingSchema.transforms,
-              );
+                transforms: transformedBookingSchema.transforms,
+              });
             },
           },
         },
@@ -140,17 +140,17 @@ describe('merge schemas through transforms', () => {
           property: {
             fragment: 'fragment BookingFragment on Booking { propertyId }',
             resolve(parent, args, context, info) {
-              return info.mergeInfo.delegateToSchema(
-                propertySchema,
-                'query',
-                'propertyById',
-                {
+              return info.mergeInfo.delegateToSchema({
+                schema: propertySchema,
+                operation: 'query',
+                fieldName: 'propertyById',
+                args: {
                   id: parent.propertyId,
                 },
                 context,
                 info,
-                transformedPropertySchema.transforms,
-              );
+                transforms: transformedPropertySchema.transforms,
+              });
             },
           },
         },

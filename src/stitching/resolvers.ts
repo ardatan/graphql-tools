@@ -85,19 +85,18 @@ export function generateMappingFromObjectType(
 }
 
 function createProxyingResolver(
-  targetSchema: GraphQLSchema,
-  targetOperation: Operation,
-  targetField: string,
+  schema: GraphQLSchema,
+  operation: Operation,
+  fieldName: string,
   transforms: Array<Transform>,
 ): GraphQLFieldResolver<any, any> {
-  return (parent, args, context, info) =>
-    delegateToSchema(
-      targetSchema,
-      targetOperation,
-      targetField,
-      {},
-      context,
-      info,
-      transforms,
-    );
+  return (parent, args, context, info) => delegateToSchema({
+    schema,
+    operation,
+    fieldName,
+    args: {},
+    context,
+    info,
+    transforms,
+  });
 }

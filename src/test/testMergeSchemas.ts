@@ -336,17 +336,17 @@ testCombinations.forEach(async combination => {
             bookings: {
               fragment: 'fragment PropertyFragment on Property { id }',
               resolve(parent, args, context, info) {
-                return info.mergeInfo.delegateToSchema(
-                  bookingSchema,
-                  'query',
-                  'bookingsByPropertyId',
-                  {
+                return info.mergeInfo.delegateToSchema({
+                  schema: bookingSchema,
+                  operation: 'query',
+                  fieldName: 'bookingsByPropertyId',
+                  args: {
                     propertyId: parent.id,
                     limit: args.limit ? args.limit : null,
                   },
                   context,
                   info,
-                );
+                });
               },
             },
           },
@@ -354,16 +354,16 @@ testCombinations.forEach(async combination => {
             property: {
               fragment: 'fragment BookingFragment on Booking { propertyId }',
               resolve(parent, args, context, info) {
-                return info.mergeInfo.delegateToSchema(
-                  propertySchema,
-                  'query',
-                  'propertyById',
-                  {
+                return info.mergeInfo.delegateToSchema({
+                  schema: propertySchema,
+                  operation: 'query',
+                  fieldName: 'propertyById',
+                  args: {
                     id: parent.propertyId,
                   },
                   context,
                   info,
-                );
+                });
               },
             },
           },
@@ -375,43 +375,43 @@ testCombinations.forEach(async combination => {
           LinkType: {
             property: {
               resolve(parent, args, context, info) {
-                return info.mergeInfo.delegateToSchema(
-                  propertySchema,
-                  'query',
-                  'propertyById',
-                  {
+                return info.mergeInfo.delegateToSchema({
+                  schema: propertySchema,
+                  operation: 'query',
+                  fieldName: 'propertyById',
+                  args: {
                     id: 'p1',
                   },
                   context,
                   info,
-                );
+                });
               },
             },
           },
           Query: {
             delegateInterfaceTest(parent, args, context, info) {
-              return info.mergeInfo.delegateToSchema(
-                propertySchema,
-                'query',
-                'interfaceTest',
-                {
+              return info.mergeInfo.delegateToSchema({
+                schema: propertySchema,
+                operation: 'query',
+                fieldName: 'interfaceTest',
+                args: {
                   kind: 'ONE',
                 },
                 context,
                 info,
-              );
+              });
             },
             delegateArgumentTest(parent, args, context, info) {
-              return info.mergeInfo.delegateToSchema(
-                propertySchema,
-                'query',
-                'propertyById',
-                {
+              return info.mergeInfo.delegateToSchema({
+                schema: propertySchema,
+                operation: 'query',
+                fieldName: 'propertyById',
+                args: {
                   id: 'p1',
                 },
                 context,
                 info,
-              );
+              });
             },
             linkTest() {
               return {
@@ -423,54 +423,54 @@ testCombinations.forEach(async combination => {
               fragment: 'fragment NodeFragment on Node { id }',
               resolve(parent, args, context, info) {
                 if (args.id.startsWith('p')) {
-                  return info.mergeInfo.delegateToSchema(
-                    propertySchema,
-                    'query',
-                    'propertyById',
+                  return info.mergeInfo.delegateToSchema({
+                    schema: propertySchema,
+                    operation: 'query',
+                    fieldName: 'propertyById',
                     args,
                     context,
                     info,
-                  );
+                  });
                 } else if (args.id.startsWith('b')) {
-                  return info.mergeInfo.delegateToSchema(
-                    bookingSchema,
-                    'query',
-                    'bookingById',
+                  return info.mergeInfo.delegateToSchema({
+                    schema: bookingSchema,
+                    operation: 'query',
+                    fieldName: 'bookingById',
                     args,
                     context,
                     info,
-                  );
+                  });
                 } else if (args.id.startsWith('c')) {
-                  return info.mergeInfo.delegateToSchema(
-                    bookingSchema,
-                    'query',
-                    'customerById',
+                  return info.mergeInfo.delegateToSchema({
+                    schema: bookingSchema,
+                    operation: 'query',
+                    fieldName: 'customerById',
                     args,
                     context,
                     info,
-                  );
+                  });
                 } else {
                   throw new Error('invalid id');
                 }
               },
             },
             async nodes(parent, args, context, info) {
-              const bookings = await info.mergeInfo.delegateToSchema(
-                bookingSchema,
-                'query',
-                'bookings',
-                {},
+              const bookings = await info.mergeInfo.delegateToSchema({
+                schema: bookingSchema,
+                operation: 'query',
+                fieldName: 'bookings',
+                args: {},
                 context,
                 info,
-              );
-              const properties = await info.mergeInfo.delegateToSchema(
-                propertySchema,
-                'query',
-                'properties',
-                {},
+              });
+              const properties = await info.mergeInfo.delegateToSchema({
+                schema: propertySchema,
+                operation: 'query',
+                fieldName: 'properties',
+                args: {},
                 context,
                 info,
-              );
+              });
               return [...bookings, ...properties];
             },
           },
@@ -1189,17 +1189,17 @@ bookingById(id: "b1") {
             bookings: {
               fragment: 'fragment PropertyFragment on Property { id }',
               resolve(parent, args, context, info) {
-                return info.mergeInfo.delegateToSchema(
-                  bookingSchema,
-                  'query',
-                  'bookingsByPropertyId',
-                  {
+                return info.mergeInfo.delegateToSchema({
+                  schema: bookingSchema,
+                  operation: 'query',
+                  fieldName: 'bookingsByPropertyId',
+                  args: {
                     propertyId: parent.id,
                     limit: args.limit ? args.limit : null,
                   },
                   context,
                   info,
-                );
+                });
               },
             },
           },
@@ -1209,16 +1209,16 @@ bookingById(id: "b1") {
             property: {
               fragment: 'fragment BookingFragment on Booking { propertyId }',
               resolve(parent, args, context, info) {
-                return info.mergeInfo.delegateToSchema(
-                  propertySchema,
-                  'query',
-                  'propertyById',
-                  {
+                return info.mergeInfo.delegateToSchema({
+                  schema: propertySchema,
+                  operation: 'query',
+                  fieldName: 'propertyById',
+                  args: {
                     id: parent.propertyId,
                   },
                   context,
                   info,
-                );
+                });
               },
             },
           },
@@ -1236,28 +1236,28 @@ bookingById(id: "b1") {
         const Query2: IResolvers = {
           Query: {
             delegateInterfaceTest(parent, args, context, info) {
-              return info.mergeInfo.delegateToSchema(
-                propertySchema,
-                'query',
-                'interfaceTest',
-                {
+              return info.mergeInfo.delegateToSchema({
+                schema: propertySchema,
+                operation: 'query',
+                fieldName: 'interfaceTest',
+                args: {
                   kind: 'ONE',
                 },
                 context,
                 info,
-              );
+              });
             },
             delegateArgumentTest(parent, args, context, info) {
-              return info.mergeInfo.delegateToSchema(
-                propertySchema,
-                'query',
-                'propertyById',
-                {
+              return info.mergeInfo.delegateToSchema({
+                schema: propertySchema,
+                operation: 'query',
+                fieldName: 'propertyById',
+                args: {
                   id: 'p1',
                 },
                 context,
                 info,
-              );
+              });
             },
             linkTest() {
               return {
@@ -1269,32 +1269,32 @@ bookingById(id: "b1") {
               fragment: 'fragment NodeFragment on Node { id }',
               resolve(parent, args, context, info) {
                 if (args.id.startsWith('p')) {
-                  return info.mergeInfo.delegateToSchema(
-                    propertySchema,
-                    'query',
-                    'propertyById',
+                  return info.mergeInfo.delegateToSchema({
+                    schema: propertySchema,
+                    operation: 'query',
+                    fieldName: 'propertyById',
                     args,
                     context,
                     info,
-                  );
+                  });
                 } else if (args.id.startsWith('b')) {
-                  return info.mergeInfo.delegateToSchema(
-                    bookingSchema,
-                    'query',
-                    'bookingById',
+                  return info.mergeInfo.delegateToSchema({
+                    schema: bookingSchema,
+                    operation: 'query',
+                    fieldName: 'bookingById',
                     args,
                     context,
                     info,
-                  );
+                  });
                 } else if (args.id.startsWith('c')) {
-                  return info.mergeInfo.delegateToSchema(
-                    bookingSchema,
-                    'query',
-                    'customerById',
+                  return info.mergeInfo.delegateToSchema({
+                    schema: bookingSchema,
+                    operation: 'query',
+                    fieldName: 'customerById',
                     args,
                     context,
                     info,
-                  );
+                  });
                 } else {
                   throw new Error('invalid id');
                 }
@@ -1306,22 +1306,22 @@ bookingById(id: "b1") {
         const AsyncQuery: IResolvers = {
           Query: {
             async nodes(parent, args, context, info) {
-              const bookings = await info.mergeInfo.delegateToSchema(
-                bookingSchema,
-                'query',
-                'bookings',
-                {},
+              const bookings = await info.mergeInfo.delegateToSchema({
+                schema: bookingSchema,
+                operation: 'query',
+                fieldName: 'bookings',
+                args: {},
                 context,
                 info,
-              );
-              const properties = await info.mergeInfo.delegateToSchema(
-                propertySchema,
-                'query',
-                'properties',
-                {},
+              });
+              const properties = await info.mergeInfo.delegateToSchema({
+                schema: propertySchema,
+                operation: 'query',
+                fieldName: 'properties',
+                args: {},
                 context,
                 info,
-              );
+              });
               return [...bookings, ...properties];
             },
           },
