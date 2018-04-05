@@ -110,7 +110,7 @@ delegateToSchema(options: {
   schema: GraphQLSchema;
   operation: 'query' | 'mutation' | 'subscription';
   fieldName: string;
-  args: { [key: string]: any };
+  args?: { [key: string]: any };
   context: { [key: string]: any };
   info: GraphQLResolveInfo;
   transforms?: Array<Transform>;

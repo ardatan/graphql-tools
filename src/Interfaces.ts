@@ -43,7 +43,7 @@ export interface IDelegateToSchemaOptions<
   schema: GraphQLSchema;
   operation: Operation;
   fieldName: string;
-  args: { [key: string]: any };
+  args?: { [key: string]: any };
   context: TContext;
   info: GraphQLResolveInfo;
   transforms?: Array<Transform>;

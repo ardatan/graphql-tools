@@ -459,7 +459,6 @@ testCombinations.forEach(async combination => {
                 schema: bookingSchema,
                 operation: 'query',
                 fieldName: 'bookings',
-                args: {},
                 context,
                 info,
               });
@@ -467,7 +466,6 @@ testCombinations.forEach(async combination => {
                 schema: propertySchema,
                 operation: 'query',
                 fieldName: 'properties',
-                args: {},
                 context,
                 info,
               });
@@ -1310,7 +1308,6 @@ bookingById(id: "b1") {
                 schema: bookingSchema,
                 operation: 'query',
                 fieldName: 'bookings',
-                args: {},
                 context,
                 info,
               });
@@ -1318,7 +1315,6 @@ bookingById(id: "b1") {
                 schema: propertySchema,
                 operation: 'query',
                 fieldName: 'properties',
-                args: {},
                 context,
                 info,
               });

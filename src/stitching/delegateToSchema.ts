@@ -25,7 +25,7 @@ import CheckResultAndHandleErrors from '../transforms/CheckResultAndHandleErrors
 export default async function delegateToSchema(
   options: IDelegateToSchemaOptions,
 ): Promise<any> {
-  const { info } = options;
+  const { info, args = {} } = options;
   const rawDocument: DocumentNode = createDocument(
     options.fieldName,
     options.operation,
@@ -43,7 +43,7 @@ export default async function delegateToSchema(
 
   const transforms = [
     ...(options.transforms || []),
-    AddArgumentsAsVariables(options.schema, options.args),
+    AddArgumentsAsVariables(options.schema, args),
     FilterToSchema(options.schema),
     AddTypenameToAbstract(options.schema),
     CheckResultAndHandleErrors(info, options.fieldName),
