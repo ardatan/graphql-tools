@@ -10,8 +10,7 @@ import {
   SelectionSetNode,
   SelectionNode,
   subscribe,
-  graphql,
-  print,
+  execute,
   validate,
   VariableDefinitionNode,
 } from 'graphql';
@@ -66,9 +65,9 @@ export default async function delegateToSchema(
   }
 
   if (targetOperation === 'query' || targetOperation === 'mutation') {
-    const rawResult = await graphql(
+    const rawResult = await execute(
       targetSchema,
-      print(processedRequest.document),
+      processedRequest.document,
       info.rootValue,
       context,
       processedRequest.variables,
