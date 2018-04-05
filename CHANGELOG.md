@@ -7,6 +7,8 @@
 * Fix timezone bug in test for @date directive [PR #686](https://github.com/apollographql/graphql-tools/pull/686)
 * Expose `defaultMergedResolver` from stitching [PR #685](https://github.com/apollographql/graphql-tools/pull/685)
 
+* Add `requireResolversForResolveType` to resolver validation options [PR #698](https://github.com/apollographql/graphql-tools/pull/698)
+
 ### v2.23.0
 
 * The `SchemaDirectiveVisitor` abstraction for implementing reusable schema `@directive`s has landed. Read our [blog post](https://dev-blog.apollodata.com/reusable-graphql-schema-directives-131fb3a177d1) about this new functionality, and/or check out the [documentation](https://www.apollographql.com/docs/graphql-tools/schema-directives.html) for even more examples. [PR #640](https://github.com/apollographql/graphql-tools/pull/640)
