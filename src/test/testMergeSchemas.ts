@@ -174,6 +174,26 @@ const loneExtend = `
   }
 `;
 
+
+let interfaceExtensionTest = `
+  # No-op for older versions since this feature does not yet exist
+  extend type DownloadableProduct {
+    filesize: Int
+  }
+`;
+
+if (['^0.11', '^0.12'].indexOf(process.env.GRAPHQL_VERSION) === -1) {
+  interfaceExtensionTest = `
+    extend interface Downloadable {
+      filesize: Int
+    }
+
+    extend type DownloadableProduct {
+      filesize: Int
+    }
+  `;
+}
+
 if (process.env.GRAPHQL_VERSION === '^0.11') {
   scalarTest = `
     # Description of TestScalar.
@@ -289,6 +309,7 @@ testCombinations.forEach(async combination => {
           bookingSchema,
           productSchema,
           scalarTest,
+          interfaceExtensionTest,
           enumSchema,
           linkSchema,
           loneExtend,
@@ -327,6 +348,11 @@ testCombinations.forEach(async combination => {
                 );
               },
             },
+          },
+          DownloadableProduct: {
+            filesize() {
+              return 1024;
+            }
           },
           LinkType: {
             property: {
@@ -2271,6 +2297,41 @@ fragment BookingFragment on Booking {
           },
         });
       });
+
+      if (['^0.11', '^0.12'].indexOf(process.env.GRAPHQL_VERSION) === -1) {
+        it('interface extensions', async () => {
+          const result = await graphql(
+            mergedSchema,
+            `
+              query {
+                products {
+                  id
+                  __typename
+                  ... on Downloadable {
+                    filesize
+                  }
+                }
+              }
+            `,
+          );
+
+          expect(result).to.deep.equal({
+            data: {
+              products: [
+                {
+                  id: 'pd1',
+                  __typename: 'SimpleProduct',
+                },
+                {
+                  id: 'pd2',
+                  __typename: 'DownloadableProduct',
+                  filesize: 1024
+                },
+              ]
+            }
+          });
+        });
+      }
 
       it('arbitrary transforms that return interfaces', async () => {
         const result = await graphql(
