@@ -69,6 +69,7 @@ function _generateSchema(
   allowUndefinedInResolve: boolean,
   resolverValidationOptions: IResolverValidationOptions,
   parseOptions: GraphQLParseOptions,
+  inheritResolversFromInterfaces: boolean
 ) {
   if (typeof resolverValidationOptions !== 'object') {
     throw new SchemaError(
@@ -92,7 +93,7 @@ function _generateSchema(
 
   const schema = buildSchemaFromTypeDefinitions(typeDefinitions, parseOptions);
 
-  addResolveFunctionsToSchema(schema, resolvers, resolverValidationOptions);
+  addResolveFunctionsToSchema(schema, resolvers, resolverValidationOptions, inheritResolversFromInterfaces);
 
   assertResolveFunctionsPresent(schema, resolverValidationOptions);
 
@@ -117,6 +118,7 @@ function makeExecutableSchema<TContext = any>({
   directiveResolvers = null,
   schemaDirectives = null,
   parseOptions = {},
+  inheritResolversFromInterfaces = false
 }: IExecutableSchemaDefinition<TContext>) {
   const jsSchema = _generateSchema(
     typeDefs,
@@ -125,6 +127,7 @@ function makeExecutableSchema<TContext = any>({
     allowUndefinedInResolve,
     resolverValidationOptions,
     parseOptions,
+    inheritResolversFromInterfaces
   );
   if (typeof resolvers['__schema'] === 'function') {
     // TODO a bit of a hack now, better rewrite generateSchema to attach it there.
@@ -386,13 +389,18 @@ function getFieldsForType(type: GraphQLType): GraphQLFieldMap<any, any> {
 
 function addResolveFunctionsToSchema(
   schema: GraphQLSchema,
-  resolveFunctions: IResolvers,
+  inputResolveFunctions: IResolvers,
   resolverValidationOptions: IResolverValidationOptions = {},
+  inheritResolversFromInterfaces: boolean = false
 ) {
   const {
     allowResolversNotInSchema = false,
     requireResolversForResolveType,
   } = resolverValidationOptions;
+
+  const resolveFunctions = inheritResolversFromInterfaces
+    ? extendResolversFromInterfaces(schema, inputResolveFunctions)
+    : inputResolveFunctions;
 
   Object.keys(resolveFunctions).forEach(typeName => {
     const type = schema.getType(typeName);
@@ -430,6 +438,7 @@ function addResolveFunctionsToSchema(
         return;
       }
 
+      // object type
       const fields = getFieldsForType(type);
       if (!fields) {
         if (allowResolversNotInSchema) {
@@ -467,6 +476,30 @@ function addResolveFunctionsToSchema(
   });
 
   checkForResolveTypeResolver(schema, requireResolversForResolveType);
+}
+
+function extendResolversFromInterfaces(schema: GraphQLSchema, resolvers: IResolvers) {
+  const typeNames = new Set([
+    ...Object.keys(schema.getTypeMap()),
+    ...Object.keys(resolvers)
+  ]);
+
+  const extendedResolvers: IResolvers = {};
+  typeNames.forEach((typeName) => {
+    const typeResolvers = resolvers[typeName];
+    const type = schema.getType(typeName);
+    if (!(type instanceof GraphQLObjectType)) {
+      if (typeResolvers) {
+        extendedResolvers[typeName] = typeResolvers;
+      }
+      return;
+    }
+
+    const interfaceResolvers = (type as GraphQLObjectType).getInterfaces().map((iFace) => resolvers[iFace.name]);
+    extendedResolvers[typeName] = Object.assign({}, ...interfaceResolvers, typeResolvers);
+  });
+
+  return extendedResolvers;
 }
 
 // If we have any union or interface types throw if no there is no resolveType or isTypeOf resolvers

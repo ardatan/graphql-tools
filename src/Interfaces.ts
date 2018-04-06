@@ -85,6 +85,7 @@ export interface IExecutableSchemaDefinition<TContext = any> {
   directiveResolvers?: IDirectiveResolvers<any, TContext>;
   schemaDirectives?: { [name: string]: typeof SchemaDirectiveVisitor };
   parseOptions?: GraphQLParseOptions;
+  inheritResolversFromInterfaces?: boolean;
 }
 
 export type IFieldIteratorFn = (

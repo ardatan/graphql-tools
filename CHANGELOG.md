@@ -6,8 +6,8 @@
 * Fix typo in schema-directive.md deprecated example[PR #706](https://github.com/apollographql/graphql-tools/pull/706)
 * Fix timezone bug in test for @date directive [PR #686](https://github.com/apollographql/graphql-tools/pull/686)
 * Expose `defaultMergedResolver` from stitching [PR #685](https://github.com/apollographql/graphql-tools/pull/685)
-
 * Add `requireResolversForResolveType` to resolver validation options [PR #698](https://github.com/apollographql/graphql-tools/pull/698)
+* Add `inheritResolversFromInterfaces` to `makeExecutableSchema` and `addResolveFunctionsToSchema` [PR #720](https://github.com/apollographql/graphql-tools/pull/720)
 
 ### v2.23.0
 
