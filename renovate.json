@@ -1,4 +1,5 @@
 {
+  "packageFiles": ["docs/package.json"],
   "pathRules": [
     {
       "paths": ["docs/package.json"],
