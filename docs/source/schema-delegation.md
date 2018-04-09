@@ -3,17 +3,19 @@ title: Schema delegation
 description: Forward queries to other schemas automatically
 ---
 
-Schema delegation is a way to automatically forward query or a part of the query from the schema one is executing now to another schema called `subschema`. Delegation is useful when your parent schema shares big part of its model with the subschema. This is often the case when, eg, building a GraphQL gateway by connecting multiple schemas together. Several useful tools exist to work together with delegation in `graphql-tools`:
+Schema delegation is a way to automatically forward a query (or a part of a query) from a parent schema to another schema (called a _subschema_) that is able to execute the query. Delegation is useful when the parent schema shares a significant part of its data model with the subschema. For example, the parent schema might be powering a GraphQL gateway that connects multiple existing endpoints together, each with its own schema. This kind of architecture could be implemented using schema delegation.
 
-* [Remote schemas](./remote-schemas.html) - turning a remote GraphQL endpoint into a local GraphQL schema
-* [Schema transforms](./schema-transforms.html) - manipulating with schemas, while keep ability to delegate to them
-* [Schema stitching](./schema-stitching) - extending schemas and connecting multiple schemas together
+The `graphql-tools` package provides several related tools for managing schema delegation:
 
-Delegation is performed by one function - `delegateToSchema`. It should be called from within a parent schema resolver. It uses the GraphQL query tree starts at the resolver to create a query that will be executed on a subschema.
+* [Remote schemas](./remote-schemas.html) - turning a remote GraphQL endpoint into a local schema
+* [Schema transforms](./schema-transforms.html) - modifying existing schemas to make delegation easier
+* [Schema stitching](./schema-stitching) - merging multiple schemas into one
+
+Delegation is performed by one function, `delegateToSchema`, called from within a resolver function of the parent schema. The `delegateToSchema` function sends the query subtree received by the parent resolver to a subschema that knows how to execute it, then returns the result as if the parent resolver had executed the query.
 
 <h2 id="example">Motivational example</h2>
 
-Let's consider our schemas, a subschema and a parent schema that reuses parts of a subschema. While parent schema reuses the *definitions* of the subschema, we want to keep implementation separate. This way the subschema can be tested and used separately or even be a remote service.
+Let's consider two schemas, a subschema and a parent schema that reuses parts of a subschema. While the parent schema reuses the *definitions* of the subschema, we want to keep the implementations separate, so that the subschema can be tested independently, or even used as a remote service.
 
 ```graphql
 # Subschema
@@ -35,7 +37,7 @@ type Query {
   repositoriesByUserId(id: ID!): [Repository]
 }
 
-# Schema
+# Parent schema
 type Repository {
   id: ID!
   url: String
@@ -61,7 +63,7 @@ type Query {
 }
 ```
 
-We want parent schema to delegate retrieval of repositories to the subschema. Assuming a query as following:
+Suppose we want the parent schema to delegate retrieval of repositories to the subschema, in order to execute queries such as this one:
 
 ```graphql
 query {
@@ -80,7 +82,7 @@ query {
 }
 ```
 
-At resolver for `repositories`, we would delegate. While it's possible to simply call a graphql endpoint of this schema or execute manually, this would require us to manually convert the query or always fetch all possible fields, which could lead to overfetching. Delegation automatically extracts the query.
+The resolver function for the `repositories` field of the `User` type would be responsible for the delegation, in this case. While it's possible to call a remote GraphQL endpoint or resolve the data manually, this would require us to transform the query manually, or always fetch all possible fields, which could lead to overfetching. Delegation automatically extracts the appropriate query to send to the subschema:
 
 ```graphql
 # To the subschema
@@ -95,39 +97,41 @@ query($id: ID!) {
 }
 ```
 
-Delegation also removes the fields that don't exist on the subschema, such as user. This field would be retrieved on our parent schema using normal GraphQL resolvers.
+Delegation also removes the fields that don't exist on the subschema, such as `user`. This field would be retrieved from the parent schema using normal GraphQL resolvers.
 
 <h2 id="api">API</h2>
 
 <h3 id="delegateToSchema">delegateToSchema</h3>
 
+The `delegateToSchema` method can be found on the `info.mergeInfo` object within any resolver function, and should be called with the following named options:
+
 ```
-function delegateToSchema(
-  targetSchema: GraphQLSchema,
-  targetOperation: 'query' | 'mutation' | 'subscription',
-  targetField: string,
-  args: { [key: string]: any },
-  context: { [key: string]: any },
-  info: GraphQLResolveInfo,
-  transforms?: Array<Transform>,
-): Promise<any>
+delegateToSchema(options: {
+  schema: GraphQLSchema;
+  operation: 'query' | 'mutation' | 'subscription';
+  fieldName: string;
+  args?: { [key: string]: any };
+  context: { [key: string]: any };
+  info: GraphQLResolveInfo;
+  transforms?: Array<Transform>;
+}): Promise<any>
 ```
 
-#### targetSchema: GraphQLSchema
+#### schema: GraphQLSchema
 
 A subschema to delegate to.
 
-#### targetOperation: 'query' | 'mutation' | 'subscription'
+#### operation: 'query' | 'mutation' | 'subscription'
 
 An operation to use during the delegation.
 
-#### targetField: string
+#### fieldName: string
 
 A root field in a subschema from which the query should start.
 
 #### args: { [key: string]: any }
 
-Additional arguments to be passed to the field. Arguments on the field that is being resolved are going to be kept if they are valid, this allows adding additional arguments or overriding them. For example:
+Additional arguments to be passed to the field. Arguments passed to the field that is being resolved will be preserved if the subschema expects them, so you don't have to pass existing arguments explicitly, though you could use the additional arguments to override the existing ones. For example:
 
 ```graphql
 # Subschema
@@ -152,21 +156,27 @@ type Booking {
 }
 ```
 
-If we are to delegate at `User.bookings` to `bookingsByUser`, we want to preserve the `limit` argument and add an `userId` argument by using the `User.id`. So the resolrver would look like the following:
+If we delegate at `User.bookings` to `Query.bookingsByUser`, we want to preserve the `limit` argument and add an `userId` argument by using the `User.id`. So the resolver would look like the following:
 
 ```js
-bookings(parent, args, context, info) {
-  return delegateToSchema(
-    subschema,
-    'query',
-    'bookingsByUser',
-    {
-      userId: parent.id,
+const resolvers = {
+  User: {
+    bookings(parent, args, context, info) {
+      return info.mergeInfo.delegateToSchema({
+        schema: subschema,
+        operation: 'query',
+        fieldName: 'bookingsByUser',
+        args: {
+          userId: parent.id,
+        },
+        context,
+        info,
+      );
     },
-    context,
-    info,
-  );
-}
+    ...
+  },
+  ...
+};
 ```
 
 #### context: { [key: string]: any }
@@ -179,8 +189,7 @@ GraphQL resolve info of the current resolver. Used to get the query that starts 
 
 #### transforms: Array<Transform>
 
-[Transforms](./transforms.html) to apply to the query and results. Should be the
-same transformed that were used to transform the schema, if any. One can use `transformedSchema.transforms` to retrieve transforms.
+[Transforms](./transforms.html) to apply to the query and results. Should be the same transforms that were used to transform the schema, if any. One can use `transformedSchema.transforms` to retrieve transforms.
 
 <h2 id="considerations">Additional considerations</h2>
 

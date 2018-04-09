@@ -37,6 +37,18 @@ export type Transform = {
   transformResult?: (result: Result) => Result;
 };
 
+export interface IDelegateToSchemaOptions<
+  TContext = { [key: string]: any },
+> {
+  schema: GraphQLSchema;
+  operation: Operation;
+  fieldName: string;
+  args?: { [key: string]: any };
+  context: TContext;
+  info: GraphQLResolveInfo;
+  transforms?: Array<Transform>;
+}
+
 export type MergeInfo = {
   delegate: (
     type: 'query' | 'mutation' | 'subscription',
@@ -46,15 +58,9 @@ export type MergeInfo = {
     info: GraphQLResolveInfo,
     transforms?: Array<Transform>,
   ) => any;
-  delegateToSchema: (
-    schema: GraphQLSchema,
-    type: 'query' | 'mutation' | 'subscription',
-    fieldName: string,
-    args: { [key: string]: any },
-    context: { [key: string]: any },
-    info: GraphQLResolveInfo,
-    transforms?: Array<Transform>,
-  ) => any;
+  delegateToSchema<TContext>(
+    options: IDelegateToSchemaOptions<TContext>
+  ): any,
 };
 
 export type IFieldResolver<TSource, TContext> = (

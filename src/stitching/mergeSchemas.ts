@@ -24,6 +24,7 @@ import {
   MergeTypeCandidate,
   TypeWithResolvers,
   VisitTypeResult,
+  IDelegateToSchemaOptions,
 } from '../Interfaces';
 import {
   extractExtensionDefinitions,
@@ -327,42 +328,36 @@ function createMergeInfo(
         schema,
         fragmentReplacements,
       );
-      return delegateToSchema(
+      return delegateToSchema({
         schema,
         operation,
         fieldName,
         args,
         context,
         info,
-        [...(transforms || []), expandTransforms, fragmentTransform],
-      );
+        transforms: [
+          ...(transforms || []),
+          expandTransforms,
+          fragmentTransform,
+        ],
+      });
     },
-    delegateToSchema(
-      schema: GraphQLSchema,
-      operation: 'query' | 'mutation' | 'subscription',
-      fieldName: string,
-      args: { [key: string]: any },
-      context: { [key: string]: any },
-      info: GraphQLResolveInfo,
-      transforms?: Array<Transform>,
-    ) {
-      const expandTransforms = Transforms.ExpandAbstractTypes(
-        info.schema,
-        schema,
-      );
-      const fragmentTransform = Transforms.ReplaceFieldWithFragment(
-        schema,
-        fragmentReplacements,
-      );
-      return delegateToSchema(
-        schema,
-        operation,
-        fieldName,
-        args,
-        context,
-        info,
-        [...(transforms || []), expandTransforms, fragmentTransform],
-      );
+
+    delegateToSchema(options: IDelegateToSchemaOptions) {
+      return delegateToSchema({
+        ...options,
+        transforms: [
+          ...(options.transforms || []),
+          Transforms.ExpandAbstractTypes(
+            options.info.schema,
+            options.schema,
+          ),
+          Transforms.ReplaceFieldWithFragment(
+            options.schema,
+            fragmentReplacements,
+          ),
+        ],
+      });
     },
   };
 }
@@ -399,14 +394,14 @@ function createDelegatingResolver(
   fieldName: string,
 ): IFieldResolver<any, any> {
   return (root, args, context, info) => {
-    return info.mergeInfo.delegateToSchema(
+    return info.mergeInfo.delegateToSchema({
       schema,
       operation,
       fieldName,
       args,
       context,
       info,
-    );
+    });
   };
 }
 

@@ -8,7 +8,7 @@ import {
   generateSimpleMapping,
 } from '../stitching/resolvers';
 
-export default function makeTransformSchema(
+export default function transformSchema(
   targetSchema: GraphQLSchema,
   transforms: Array<Transform>,
 ): GraphQLSchema & { transforms: Array<Transform> } {

@@ -3,7 +3,7 @@
 import { expect } from 'chai';
 import { GraphQLSchema, GraphQLNamedType, graphql } from 'graphql';
 import { propertySchema, bookingSchema } from './testingSchemas';
-import { Transforms, makeTransformSchema } from '../transforms';
+import { Transforms, transformSchema } from '../transforms';
 
 describe('transforms', () => {
   describe('rename type', () => {
@@ -23,7 +23,7 @@ describe('transforms', () => {
             }[name]),
         ),
       ];
-      schema = makeTransformSchema(propertySchema, transforms);
+      schema = transformSchema(propertySchema, transforms);
     });
     it('should work', async () => {
       const result = await graphql(
@@ -74,7 +74,7 @@ describe('transforms', () => {
       const transforms = [
         Transforms.RenameTypes((name: string) => `Property_${name}`),
       ];
-      schema = makeTransformSchema(propertySchema, transforms);
+      schema = transformSchema(propertySchema, transforms);
     });
     it('should work', async () => {
       const result = await graphql(
@@ -122,12 +122,13 @@ describe('transforms', () => {
   describe('filter type', () => {
     let schema: GraphQLSchema;
     before(() => {
+      const typeNames = ['ID', 'String', 'DateTime', 'Query', 'Booking'];
       const transforms = [
         Transforms.FilterTypes((type: GraphQLNamedType) =>
-          ['ID', 'String', 'DateTime', 'Query', 'Booking'].includes(type.name),
+          typeNames.indexOf(type.name) >= 0
         ),
       ];
-      schema = makeTransformSchema(bookingSchema, transforms);
+      schema = transformSchema(bookingSchema, transforms);
     });
 
     it('should work normally', async () => {

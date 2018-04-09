@@ -3,7 +3,7 @@
 import { expect } from 'chai';
 import { graphql, GraphQLSchema } from 'graphql';
 import mergeSchemas from '../stitching/mergeSchemas';
-import { Transforms, makeTransformSchema } from '../transforms';
+import { Transforms, transformSchema } from '../transforms';
 import { propertySchema, bookingSchema } from './testingSchemas';
 
 let linkSchema = `
@@ -55,16 +55,16 @@ describe('merge schemas through transforms', () => {
 
   before(async () => {
     // namespace and strip schemas
-    const transformedPropertySchema = makeTransformSchema(propertySchema, [
+    const transformedPropertySchema = transformSchema(propertySchema, [
       Transforms.FilterRootFields((operation: string, rootField: string) =>
-        ['Query.properties'].includes(`${operation}.${rootField}`),
+        'Query.properties' === `${operation}.${rootField}`,
       ),
       Transforms.RenameTypes((name: string) => `Properties_${name}`),
       Transforms.RenameRootFields((name: string) => `Properties_${name}`),
     ]);
-    const transformedBookingSchema = makeTransformSchema(bookingSchema, [
+    const transformedBookingSchema = transformSchema(bookingSchema, [
       Transforms.FilterRootFields((operation: string, rootField: string) =>
-        ['Query.bookings'].includes(`${operation}.${rootField}`),
+        'Query.bookings' === `${operation}.${rootField}`,
       ),
       Transforms.RenameTypes((name: string) => `Bookings_${name}`),
       Transforms.RenameRootFields(
@@ -83,35 +83,35 @@ describe('merge schemas through transforms', () => {
           // delegating directly, no subschemas or mergeInfo
           node(parent, args, context, info) {
             if (args.id.startsWith('p')) {
-              return info.mergeInfo.delegateToSchema(
-                propertySchema,
-                'query',
-                'propertyById',
+              return info.mergeInfo.delegateToSchema({
+                schema: propertySchema,
+                operation: 'query',
+                fieldName: 'propertyById',
                 args,
                 context,
                 info,
-                transformedPropertySchema.transforms,
-              );
+                transforms: transformedPropertySchema.transforms,
+              });
             } else if (args.id.startsWith('b')) {
-              return info.mergeInfo.delegateToSchema(
-                bookingSchema,
-                'query',
-                'bookingById',
+              return info.mergeInfo.delegateToSchema({
+                schema: bookingSchema,
+                operation: 'query',
+                fieldName: 'bookingById',
                 args,
                 context,
                 info,
-                transformedBookingSchema.transforms,
-              );
+                transforms: transformedBookingSchema.transforms,
+              });
             } else if (args.id.startsWith('c')) {
-              return info.mergeInfo.delegateToSchema(
-                bookingSchema,
-                'query',
-                'customerById',
+              return info.mergeInfo.delegateToSchema({
+                schema: bookingSchema,
+                operation: 'query',
+                fieldName: 'customerById',
                 args,
                 context,
                 info,
-                transformedBookingSchema.transforms,
-              );
+                transforms: transformedBookingSchema.transforms,
+              });
             } else {
               throw new Error('invalid id');
             }
@@ -121,18 +121,18 @@ describe('merge schemas through transforms', () => {
           bookings: {
             fragment: 'fragment PropertyFragment on Property { id }',
             resolve(parent, args, context, info) {
-              return info.mergeInfo.delegateToSchema(
-                bookingSchema,
-                'query',
-                'bookingsByPropertyId',
-                {
+              return info.mergeInfo.delegateToSchema({
+                schema: bookingSchema,
+                operation: 'query',
+                fieldName: 'bookingsByPropertyId',
+                args: {
                   propertyId: parent.id,
                   limit: args.limit ? args.limit : null,
                 },
                 context,
                 info,
-                transformedBookingSchema.transforms,
-              );
+                transforms: transformedBookingSchema.transforms,
+              });
             },
           },
         },
@@ -140,17 +140,17 @@ describe('merge schemas through transforms', () => {
           property: {
             fragment: 'fragment BookingFragment on Booking { propertyId }',
             resolve(parent, args, context, info) {
-              return info.mergeInfo.delegateToSchema(
-                propertySchema,
-                'query',
-                'propertyById',
-                {
+              return info.mergeInfo.delegateToSchema({
+                schema: propertySchema,
+                operation: 'query',
+                fieldName: 'propertyById',
+                args: {
                   id: parent.propertyId,
                 },
                 context,
                 info,
-                transformedPropertySchema.transforms,
-              );
+                transforms: transformedPropertySchema.transforms,
+              });
             },
           },
         },

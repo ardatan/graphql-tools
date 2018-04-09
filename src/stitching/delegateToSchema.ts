@@ -1,10 +1,6 @@
 import {
-  ArgumentNode,
-  DocumentNode,
   FieldNode,
   FragmentDefinitionNode,
-  GraphQLResolveInfo,
-  GraphQLSchema,
   Kind,
   OperationDefinitionNode,
   SelectionSetNode,
@@ -13,11 +9,11 @@ import {
   execute,
   validate,
   VariableDefinitionNode,
+  GraphQLSchema,
 } from 'graphql';
 import { FetcherOperation } from './makeRemoteExecutableSchema';
-import { Operation, Request } from '../Interfaces';
+import { Request, Transform, IDelegateToSchemaOptions } from '../Interfaces';
 import {
-  Transform,
   applyRequestTransforms,
   applyResultTransforms,
 } from '../transforms/transforms';
@@ -125,109 +121,104 @@ export function createBatchOperation(
 }
 
 export default async function delegateToSchema(
-  targetSchema: GraphQLSchema,
-  targetOperation: Operation,
-  targetField: string,
-  args: { [key: string]: any },
-  context: { [key: string]: any },
-  info: GraphQLResolveInfo,
-  transforms?: Array<Transform>,
+  options: IDelegateToSchemaOptions,
 ): Promise<any> {
   const processedRequest = createBatchOperation(
-    targetSchema,
-    targetOperation,
+    options.schema,
+    options.operation,
     {
-      [targetField]: [args, info]
+      [options.fieldName]: [options.args || {}, options.info]
     },
-    context,
-    info,
-    transforms
+    options.context,
+    options.info,
+    options.transforms
   );
 
-  const errors = validate(targetSchema, processedRequest.query);
+  const errors = validate(options.schema, processedRequest.query);
   if (errors.length > 0) {
     throw errors;
   }
 
-  if (targetOperation === 'query' || targetOperation === 'mutation') {
+  if (options.operation === 'query' || options.operation === 'mutation') {
     const rawResult = await execute(
-      targetSchema,
+      options.schema,
       processedRequest.query,
-      info.rootValue,
-      context,
+      options.info.rootValue,
+      options.context,
       processedRequest.variables,
     );
 
     const result = applyResultTransforms(rawResult, [
-      ...(transforms || []),
-      CheckResultAndHandleErrors(info, targetField),
+      ...(options.transforms || []),
+      CheckResultAndHandleErrors(options.info, options.fieldName),
     ]);
 
     return result;
   }
 
-  if (targetOperation === 'subscription') {
+  if (options.operation === 'subscription') {
     // apply result processing ???
     return subscribe(
-      targetSchema,
+      options.schema,
       processedRequest.query,
-      info.rootValue,
-      context,
+      options.info.rootValue,
+      options.context,
       processedRequest.variables,
     );
   }
 }
 
-export function createDocument(
-  targetField: string,
-  targetOperation: Operation,
-  originalSelections: Array<SelectionNode>,
-  fragments: Array<FragmentDefinitionNode>,
-  variables: Array<VariableDefinitionNode>,
-): DocumentNode {
-  let selections: Array<SelectionNode> = [];
-  let args: Array<ArgumentNode> = [];
-
-  originalSelections.forEach((field: FieldNode) => {
-    const fieldSelections = field.selectionSet
-      ? field.selectionSet.selections
-      : [];
-    selections = selections.concat(fieldSelections);
-    args = args.concat(field.arguments || []);
-  });
-
-  let selectionSet = null;
-  if (selections.length > 0) {
-    selectionSet = {
-      kind: Kind.SELECTION_SET,
-      selections: selections,
-    };
-  }
-
-  const rootField: FieldNode = {
-    kind: Kind.FIELD,
-    alias: null,
-    arguments: args,
-    selectionSet,
-    name: {
-      kind: Kind.NAME,
-      value: targetField,
-    },
-  };
-  const rootSelectionSet: SelectionSetNode = {
-    kind: Kind.SELECTION_SET,
-    selections: [rootField],
-  };
-
-  const operationDefinition: OperationDefinitionNode = {
-    kind: Kind.OPERATION_DEFINITION,
-    operation: targetOperation,
-    variableDefinitions: variables,
-    selectionSet: rootSelectionSet,
-  };
-
-  return {
-    kind: Kind.DOCUMENT,
-    definitions: [operationDefinition, ...fragments],
-  };
-}
+// XXX TODO remove function, use createBatchOperation instead
+// function createDocument(
+//   targetField: string,
+//   targetOperation: Operation,
+//   originalSelections: Array<SelectionNode>,
+//   fragments: Array<FragmentDefinitionNode>,
+//   variables: Array<VariableDefinitionNode>,
+// ): DocumentNode {
+//   let selections: Array<SelectionNode> = [];
+//   let args: Array<ArgumentNode> = [];
+//
+//   originalSelections.forEach((field: FieldNode) => {
+//     const fieldSelections = field.selectionSet
+//       ? field.selectionSet.selections
+//       : [];
+//     selections = selections.concat(fieldSelections);
+//     args = args.concat(field.arguments || []);
+//   });
+//
+//   let selectionSet = null;
+//   if (selections.length > 0) {
+//     selectionSet = {
+//       kind: Kind.SELECTION_SET,
+//       selections: selections,
+//     };
+//   }
+//
+//   const rootField: FieldNode = {
+//     kind: Kind.FIELD,
+//     alias: null,
+//     arguments: args,
+//     selectionSet,
+//     name: {
+//       kind: Kind.NAME,
+//       value: targetField,
+//     },
+//   };
+//   const rootSelectionSet: SelectionSetNode = {
+//     kind: Kind.SELECTION_SET,
+//     selections: [rootField],
+//   };
+//
+//   const operationDefinition: OperationDefinitionNode = {
+//     kind: Kind.OPERATION_DEFINITION,
+//     operation: targetOperation,
+//     variableDefinitions: variables,
+//     selectionSet: rootSelectionSet,
+//   };
+//
+//   return {
+//     kind: Kind.DOCUMENT,
+//     definitions: [operationDefinition, ...fragments],
+//   };
+// }
