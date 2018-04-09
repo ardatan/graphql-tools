@@ -10,11 +10,11 @@ import {
   SelectionSetNode,
   SelectionNode,
   subscribe,
-  graphql,
-  print,
+  execute,
   validate,
   VariableDefinitionNode,
 } from 'graphql';
+import { FetcherOperation } from './makeRemoteExecutableSchema';
 import { Operation, Request } from '../Interfaces';
 import {
   Transform,
@@ -26,6 +26,104 @@ import FilterToSchema from '../transforms/FilterToSchema';
 import AddTypenameToAbstract from '../transforms/AddTypenameToAbstract';
 import CheckResultAndHandleErrors from '../transforms/CheckResultAndHandleErrors';
 
+export function createBatchOperation(
+  targetSchema: GraphQLSchema,
+  targetOperation: 'query' | 'mutation' | 'subscription',
+  rootDefs: { [key: string]: [{ [key: string]: any }, { [key: string]: any }] },
+  graphqlContext: { [key: string]: any },
+  documentInfo: {
+    operation: {
+      name?: { [key: string]: any }
+      variableDefinitions?: Array<VariableDefinitionNode>,
+    },
+    variableValues?: { [variableName: string]: any },
+    fragments?: { [fragmentName: string]: FragmentDefinitionNode },
+  },
+  transforms?: Array<Transform>,
+): FetcherOperation {
+  const roots = Object.keys(rootDefs).map(key => {
+    const [args, info] = rootDefs[key];
+    const [a, n] = key.split(':');
+    const name = n || a;
+    const alias = n ? a : null;
+    return {
+      key: alias || name,
+      name,
+      alias,
+      args,
+      info: info || documentInfo
+    };
+  });
+
+  const selections: Array<SelectionNode> = roots.reduce((newSelections, { key, name: rootFieldName, info, alias, args }) => {
+    const rootSelections = info.fieldNodes.map((selection: FieldNode) => {
+       if (selection.kind === Kind.FIELD) {
+         const rootField: FieldNode = {
+           kind: Kind.FIELD,
+           name: {
+             kind: Kind.NAME,
+             value: rootFieldName,
+           },
+           alias: alias
+            ? {
+              kind: Kind.NAME,
+              value: alias
+            }
+            : null,
+           arguments: selection.arguments,
+           selectionSet: selection.selectionSet
+         };
+         return rootField;
+       }
+       return selection;
+    });
+
+    return newSelections.concat(rootSelections);
+  }, []);
+
+  const selectionSet: SelectionSetNode = {
+    kind: Kind.SELECTION_SET,
+    selections,
+  };
+
+  const operationDefinition: OperationDefinitionNode = {
+    kind: Kind.OPERATION_DEFINITION,
+    operation: targetOperation,
+    variableDefinitions: documentInfo.operation.variableDefinitions,
+    selectionSet,
+  };
+
+  const fragments = Object.keys(documentInfo.fragments).map(
+    fragmentName => documentInfo.fragments[fragmentName],
+  );
+
+  const document = {
+    kind: Kind.DOCUMENT,
+    definitions: [operationDefinition, ...fragments],
+  };
+
+  const rawRequest: Request = {
+    document,
+    variables: documentInfo.variableValues as Record<string, any>,
+  };
+
+  transforms = [
+    ...(transforms || []),
+    ...roots.map(({ args }) => AddArgumentsAsVariables(targetSchema, args)),
+    FilterToSchema(targetSchema),
+    AddTypenameToAbstract(targetSchema)
+  ];
+
+  const { document: query, variables } = applyRequestTransforms(rawRequest, transforms);
+
+  return {
+    query,
+    variables,
+    context: graphqlContext,
+    operationName: documentInfo.operation && documentInfo.operation.name && documentInfo.operation.name.value
+  };
+}
+
 export default async function delegateToSchema(
   targetSchema: GraphQLSchema,
   targetOperation: Operation,
@@ -35,46 +133,36 @@ export default async function delegateToSchema(
   info: GraphQLResolveInfo,
   transforms?: Array<Transform>,
 ): Promise<any> {
-  const rawDocument: DocumentNode = createDocument(
-    targetField,
+  const processedRequest = createBatchOperation(
+    targetSchema,
     targetOperation,
-    info.fieldNodes,
-    Object.keys(info.fragments).map(
-      fragmentName => info.fragments[fragmentName],
-    ),
-    info.operation.variableDefinitions,
+    {
+      [targetField]: [args, info]
+    },
+    context,
+    info,
+    transforms
   );
 
-  const rawRequest: Request = {
-    document: rawDocument,
-    variables: info.variableValues as Record<string, any>,
-  };
-
-  transforms = [
-    ...(transforms || []),
-    AddArgumentsAsVariables(targetSchema, args),
-    FilterToSchema(targetSchema),
-    AddTypenameToAbstract(targetSchema),
-    CheckResultAndHandleErrors(info, targetField),
-  ];
-
-  const processedRequest = applyRequestTransforms(rawRequest, transforms);
-
-  const errors = validate(targetSchema, processedRequest.document);
+  const errors = validate(targetSchema, processedRequest.query);
   if (errors.length > 0) {
     throw errors;
   }
 
   if (targetOperation === 'query' || targetOperation === 'mutation') {
-    const rawResult = await graphql(
+    const rawResult = await execute(
       targetSchema,
-      print(processedRequest.document),
+      processedRequest.query,
       info.rootValue,
       context,
       processedRequest.variables,
     );
 
-    const result = applyResultTransforms(rawResult, transforms);
+    const result = applyResultTransforms(rawResult, [
+      ...(transforms || []),
+      CheckResultAndHandleErrors(info, targetField),
+    ]);
+
     return result;
   }
 
@@ -82,7 +170,7 @@ export default async function delegateToSchema(
     // apply result processing ???
     return subscribe(
       targetSchema,
-      processedRequest.document,
+      processedRequest.query,
       info.rootValue,
       context,
       processedRequest.variables,
