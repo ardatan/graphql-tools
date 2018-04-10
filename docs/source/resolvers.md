@@ -12,7 +12,7 @@ Keep in mind that GraphQL resolvers can return [promises](https://developer.mozi
 
 In order to respond to queries, a schema needs to have resolve functions for all fields. Resolve functions cannot be included in the GraphQL schema language, so they must be added separately. This collection of functions is called the "resolver map".
 
-The `resolverMap` object should have a map of resolvers for each relevant GraphQL Object Type. The following is an example of a valid `resolverMap` object:
+The `resolverMap` object (`IResolvers`) should have a map of resolvers for each relevant GraphQL Object Type. The following is an example of a valid `resolverMap` object:
 
 ```js
 const resolverMap = {
@@ -143,15 +143,16 @@ const resolverMap = {
 In addition to using a resolver map with `makeExecutableSchema`, you can use it with any GraphQL.js schema by importing the following function from `graphql-tools`:
 
 <h3 id="addResolveFunctionsToSchema" title="addResolveFunctionsToSchema">
-  addResolveFunctionsToSchema(schema, resolverMap)
+  addResolveFunctionsToSchema({ schema, resolvers, resolverValidationOptions?, inheritResolversFromInterfaces? })
 </h3>
 
-`addResolveFunctionsToSchema` takes two arguments, a GraphQLSchema and a resolver map, and modifies the schema in place by attaching the resolvers to the relevant types.
+`addResolveFunctionsToSchema` takes an options object of `IAddResolveFunctionsToSchemaOptions` and modifies the schema in place by attaching the resolvers to the relevant types.
+
 
 ```js
 import { addResolveFunctionsToSchema } from 'graphql-tools';
 
-const resolverMap = {
+const resolvers = {
   RootQuery: {
     author(obj, { name }, context){
       console.log("RootQuery called with context " +
@@ -161,7 +162,17 @@ const resolverMap = {
   },
 };
 
-addResolveFunctionsToSchema(schema, resolverMap);
+addResolveFunctionsToSchema({ schema, resolvers });
+```
+
+The `IAddResolveFunctionsToSchemaOptions` object has 4 properties that are described in [`makeExecutableSchema`](/docs/graphql-tools/generate-schema.html#makeExecutableSchema).
+```ts
+export interface IAddResolveFunctionsToSchemaOptions {
+  schema: GraphQLSchema;
+  resolvers: IResolvers;
+  resolverValidationOptions?: IResolverValidationOptions;
+  inheritResolversFromInterfaces?: boolean;
+}
 ```
 
 <h3 id="addSchemaLevelResolveFunction" title="addSchemaLevelResolveFunction">

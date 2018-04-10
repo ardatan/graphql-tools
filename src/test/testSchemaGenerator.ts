@@ -2571,6 +2571,120 @@ describe('interfaces', () => {
   });
 });
 
+describe('interface resolver inheritance', () => {
+  it('copies resolvers from the interfaces', async () => {
+    const testSchemaWithInterfaceResolvers = `
+    interface Node {
+      id: ID!
+    }
+    type User implements Node {
+      id: ID!
+      name: String!
+    }
+    type Query {
+      user: User!
+    }
+    schema {
+      query: Query
+    }
+    `;
+    const user = { id: 1, name: 'Ada', type: 'User' };
+    const resolvers = {
+      Node: {
+        __resolveType: ({ type }: { type: string }) => type,
+        id: ({ id }: { id: number }) => `Node:${id}`,
+      },
+      User: {
+        name: ({ name }: { name: string}) => `User:${name}`
+      },
+      Query: {
+        user: () => user
+      }
+    };
+    const schema = makeExecutableSchema({
+      typeDefs: testSchemaWithInterfaceResolvers,
+      resolvers,
+      inheritResolversFromInterfaces: true,
+      resolverValidationOptions: { requireResolversForAllFields: true, requireResolversForResolveType: true }
+    });
+    const query = `{ user { id name } }`;
+    const response = await graphql(schema, query);
+    assert.deepEqual(response, {
+      data: {
+        user: {
+          id: `Node:1`,
+          name: `User:Ada`
+        }
+      }
+    });
+  });
+
+  it('respects interface order and existing resolvers', async () => {
+    const testSchemaWithInterfaceResolvers = `
+    interface Node {
+      id: ID!
+    }
+    interface Person {
+      id: ID!
+      name: String!
+    }
+    type Replicant implements Node, Person {
+      id: ID!
+      name: String!
+    }
+    type Cyborg implements Person, Node {
+      id: ID!
+      name: String!
+    }
+    type Query {
+      cyborg: Cyborg!
+      replicant: Replicant!
+    }
+    schema {
+      query: Query
+    }
+    `;
+    const cyborg = { id: 1, name: 'Alex Murphy', type: 'Cyborg' };
+    const replicant = { id: 2, name: 'Rachael Tyrell', type: 'Replicant' };
+    const resolvers = {
+      Node: {
+        __resolveType: ({ type }: { type: string }) => type,
+        id: ({ id }: { id: number }) => `Node:${id}`,
+      },
+      Person: {
+        __resolveType: ({ type }: { type: string }) => type,
+        id: ({ id }: { id: number }) => `Person:${id}`,
+        name: ({ name }: { name: string}) => `Person:${name}`
+      },
+      Query: {
+        cyborg: () => cyborg,
+        replicant: () => replicant,
+      }
+    };
+    const schema = makeExecutableSchema({
+      parseOptions: { allowLegacySDLImplementsInterfaces: true },
+      typeDefs: testSchemaWithInterfaceResolvers,
+      resolvers,
+      inheritResolversFromInterfaces: true,
+      resolverValidationOptions: { requireResolversForAllFields: true, requireResolversForResolveType: true }
+    });
+    const query = `{ cyborg { id name } replicant { id name }}`;
+    const response = await graphql(schema, query);
+    assert.deepEqual(response, {
+      data: {
+        cyborg: {
+          id: `Node:1`,
+          name: `Person:Alex Murphy`
+        },
+        replicant: {
+          id: `Person:2`,
+          name: `Person:Rachael Tyrell`
+        }
+      }
+    });
+  });
+});
+
 describe('unions', () => {
   const testSchemaWithUnions = `
     type Post {

@@ -334,6 +334,10 @@ const jsSchema = makeExecutableSchema({
   logger, // optional
   allowUndefinedInResolve = false, // optional
   resolverValidationOptions = {}, // optional
+  directiveResolvers = null, // optional
+  schemaDirectives = null,  // optional
+  parseOptions = {},  // optional
+  inheritResolversFromInterfaces = false  // optional
 });
 ```
 
@@ -357,3 +361,5 @@ const jsSchema = makeExecutableSchema({
   - `requireResolversForResolveType` will require a `resolveType()` method for Interface and Union types. This can be passed in with the field resolvers as `__resolveType()`. False to disable the warning.
 
   - `allowResolversNotInSchema` turns off the functionality which throws errors when resolvers are found which are not present in the schema. Defaults to `false`, to help catch common errors.
+
+- `inheritResolversFromInterfaces` GraphQL Objects that implement interfaces will inherit missing resolvers from their interface types defined in the `resolvers` object.
