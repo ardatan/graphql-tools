@@ -42,6 +42,7 @@ import {
   IDirectiveResolvers,
   UnitOrList,
   GraphQLParseOptions,
+  IAddResolveFunctionsToSchemaOptions,
 } from './Interfaces';
 
 import { SchemaDirectiveVisitor } from './schemaVisitor';
@@ -93,7 +94,7 @@ function _generateSchema(
 
   const schema = buildSchemaFromTypeDefinitions(typeDefinitions, parseOptions);
 
-  addResolveFunctionsToSchema(schema, resolvers, resolverValidationOptions, inheritResolversFromInterfaces);
+  addResolveFunctionsToSchema({ schema, resolvers, resolverValidationOptions, inheritResolversFromInterfaces });
 
   assertResolveFunctionsPresent(schema, resolverValidationOptions);
 
@@ -388,21 +389,35 @@ function getFieldsForType(type: GraphQLType): GraphQLFieldMap<any, any> {
 }
 
 function addResolveFunctionsToSchema(
-  schema: GraphQLSchema,
-  inputResolveFunctions: IResolvers,
-  resolverValidationOptions: IResolverValidationOptions = {},
-  inheritResolversFromInterfaces: boolean = false
-) {
+  options: IAddResolveFunctionsToSchemaOptions|GraphQLSchema,
+  legacyInputResolvers?: IResolvers,
+  legacyInputValidationOptions?: IResolverValidationOptions) {
+  if (options instanceof GraphQLSchema) {
+    console.warn('idk');
+    options = {
+      schema: options,
+      resolvers: legacyInputResolvers,
+      resolverValidationOptions: legacyInputValidationOptions
+    };
+  }
+
+  const {
+    schema,
+    resolvers: inputResolvers,
+    resolverValidationOptions = {},
+    inheritResolversFromInterfaces = false
+  } = options;
+
   const {
     allowResolversNotInSchema = false,
     requireResolversForResolveType,
   } = resolverValidationOptions;
 
-  const resolveFunctions = inheritResolversFromInterfaces
-    ? extendResolversFromInterfaces(schema, inputResolveFunctions)
-    : inputResolveFunctions;
+  const resolvers = inheritResolversFromInterfaces
+    ? extendResolversFromInterfaces(schema, inputResolvers)
+    : inputResolvers;
 
-  Object.keys(resolveFunctions).forEach(typeName => {
+  Object.keys(resolvers).forEach(typeName => {
     const type = schema.getType(typeName);
     if (!type && typeName !== '__schema') {
       if (allowResolversNotInSchema) {
@@ -414,15 +429,15 @@ function addResolveFunctionsToSchema(
       );
     }
 
-    Object.keys(resolveFunctions[typeName]).forEach(fieldName => {
+    Object.keys(resolvers[typeName]).forEach(fieldName => {
       if (fieldName.startsWith('__')) {
         // this is for isTypeOf and resolveType and all the other stuff.
-        type[fieldName.substring(2)] = resolveFunctions[typeName][fieldName];
+        type[fieldName.substring(2)] = resolvers[typeName][fieldName];
         return;
       }
 
       if (type instanceof GraphQLScalarType) {
-        type[fieldName] = resolveFunctions[typeName][fieldName];
+        type[fieldName] = resolvers[typeName][fieldName];
         return;
       }
 
@@ -434,7 +449,7 @@ function addResolveFunctionsToSchema(
         }
 
         type.getValue(fieldName)['value'] =
-          resolveFunctions[typeName][fieldName];
+          resolvers[typeName][fieldName];
         return;
       }
 
@@ -460,7 +475,7 @@ function addResolveFunctionsToSchema(
         );
       }
       const field = fields[fieldName];
-      const fieldResolve = resolveFunctions[typeName][fieldName];
+      const fieldResolve = resolvers[typeName][fieldName];
       if (typeof fieldResolve === 'function') {
         // for convenience. Allows shorter syntax in resolver definition file
         setFieldProperties(field, { resolve: fieldResolve });
@@ -479,24 +494,23 @@ function addResolveFunctionsToSchema(
 }
 
 function extendResolversFromInterfaces(schema: GraphQLSchema, resolvers: IResolvers) {
-  const typeNames = new Set([
-    ...Object.keys(schema.getTypeMap()),
-    ...Object.keys(resolvers)
-  ]);
+  const typeNames = Object.keys({
+    ...schema.getTypeMap(),
+    ...resolvers
+  });
 
   const extendedResolvers: IResolvers = {};
   typeNames.forEach((typeName) => {
     const typeResolvers = resolvers[typeName];
     const type = schema.getType(typeName);
-    if (!(type instanceof GraphQLObjectType)) {
+    if (type instanceof GraphQLObjectType) {
+      const interfaceResolvers = type.getInterfaces().map((iFace) => resolvers[iFace.name]);
+      extendedResolvers[typeName] = Object.assign({}, ...interfaceResolvers, typeResolvers);
+    } else {
       if (typeResolvers) {
         extendedResolvers[typeName] = typeResolvers;
       }
-      return;
     }
-
-    const interfaceResolvers = (type as GraphQLObjectType).getInterfaces().map((iFace) => resolvers[iFace.name]);
-    extendedResolvers[typeName] = Object.assign({}, ...interfaceResolvers, typeResolvers);
   });
 
   return extendedResolvers;
