@@ -393,7 +393,7 @@ function addResolveFunctionsToSchema(
   legacyInputResolvers?: IResolvers,
   legacyInputValidationOptions?: IResolverValidationOptions) {
   if (options instanceof GraphQLSchema) {
-    console.warn('addResolveFunctionsToSchema has a new api with more options see "IAddResolveFunctionsToSchemaOptions"');
+    console.warn('The addResolveFunctionsToSchema function takes named options now; see IAddResolveFunctionsToSchemaOptions');
     options = {
       schema: options,
       resolvers: legacyInputResolvers,
