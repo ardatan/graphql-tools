@@ -17,7 +17,7 @@
     "pretest": "npm run clean && npm run compile",
     "test": "npm run testonly --",
     "posttest": "npm run lint",
-    "lint": "tslint $(find src | grep ts$)",
+    "lint": "tslint src/**/*.ts",
     "watch": "tsc -w",
     "testonly": "mocha --reporter spec --full-trace ./dist/test/tests.js",
     "coverage": "istanbul cover _mocha -- --reporter dot --full-trace ./dist/test/tests.js",
