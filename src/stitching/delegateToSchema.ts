@@ -1,6 +1,5 @@
 import {
   FieldNode,
-  FragmentDefinitionNode,
   Kind,
   OperationDefinitionNode,
   SelectionSetNode,
@@ -8,57 +7,42 @@ import {
   subscribe,
   execute,
   validate,
-  VariableDefinitionNode,
   GraphQLSchema,
+  GraphQLResolveInfo
 } from 'graphql';
 import { FetcherOperation } from './makeRemoteExecutableSchema';
 import { Request, Transform, IDelegateToSchemaOptions } from '../Interfaces';
-import {
-  applyRequestTransforms,
-  applyResultTransforms,
-} from '../transforms/transforms';
+import { applyRequestTransforms, applyResultTransforms } from '../transforms/transforms';
 import AddArgumentsAsVariables from '../transforms/AddArgumentsAsVariables';
 import FilterToSchema from '../transforms/FilterToSchema';
 import AddTypenameToAbstract from '../transforms/AddTypenameToAbstract';
 import CheckResultAndHandleErrors from '../transforms/CheckResultAndHandleErrors';
 
-export function createBatchOperation(
+export type OperationRootDefinition = {
+  alias?: string,
+  fieldName: string,
+  args?: { [key: string]: any },
+  info: GraphQLResolveInfo
+};
+
+export function createOperation(
   targetSchema: GraphQLSchema,
   targetOperation: 'query' | 'mutation' | 'subscription',
-  rootDefs: { [key: string]: [{ [key: string]: any }, { [key: string]: any }] },
+  rootDefs: Array<OperationRootDefinition>,
   graphqlContext: { [key: string]: any },
-  documentInfo: {
-    operation: {
-      name?: { [key: string]: any }
-      variableDefinitions?: Array<VariableDefinitionNode>,
-    },
-    variableValues?: { [variableName: string]: any },
-    fragments?: { [fragmentName: string]: FragmentDefinitionNode },
-  },
+  documentInfo: GraphQLResolveInfo,
   transforms?: Array<Transform>,
 ): FetcherOperation {
-  const roots = Object.keys(rootDefs).map(key => {
-    const [args, info] = rootDefs[key];
-    const [a, n] = key.split(':');
-    const name = n || a;
-    const alias = n ? a : null;
-    return {
-      key: alias || name,
-      name,
-      alias,
-      args,
-      info: info || documentInfo
-    };
-  });
+  const roots = rootDefs.map(def => ({ ...def, key: def.alias || def.fieldName }));
 
-  const selections: Array<SelectionNode> = roots.reduce((newSelections, { key, name: rootFieldName, info, alias, args }) => {
+  const selections: Array<SelectionNode> = roots.reduce((newSelections, { key, fieldName, info, alias, args }) => {
     const rootSelections = info.fieldNodes.map((selection: FieldNode) => {
        if (selection.kind === Kind.FIELD) {
          const rootField: FieldNode = {
            kind: Kind.FIELD,
            name: {
              kind: Kind.NAME,
-             value: rootFieldName,
+             value: fieldName,
            },
            alias: alias
             ? {
@@ -123,12 +107,16 @@ export function createBatchOperation(
 export default async function delegateToSchema(
   options: IDelegateToSchemaOptions,
 ): Promise<any> {
-  const processedRequest = createBatchOperation(
+  const processedRequest = createOperation(
     options.schema,
     options.operation,
-    {
-      [options.fieldName]: [options.args || {}, options.info]
-    },
+    [
+      {
+        fieldName: options.fieldName,
+        args: options.args || {},
+        info: options.info
+      }
+    ],
     options.context,
     options.info,
     options.transforms
