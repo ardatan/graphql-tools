@@ -4,11 +4,15 @@
 
 * Use `getDescription` from `graphql-js` package [PR #672](https://github.com/apollographql/graphql-tools/pull/672)
 
+* Allow `extend interface` definitions in merged schemas [PR #703](https://github.com/apollographql/graphql-tools/pull/703)
+
 * Fix typo in schema-directive.md deprecated example[PR #706](https://github.com/apollographql/graphql-tools/pull/706)
 
 * Fix timezone bug in test for @date directive [PR #686](https://github.com/apollographql/graphql-tools/pull/686)
 
 * Expose `defaultMergedResolver` from stitching [PR #685](https://github.com/apollographql/graphql-tools/pull/685)
+
+* Add `requireResolversForResolveType` to resolver validation options [PR #698](https://github.com/apollographql/graphql-tools/pull/698)
 
 ### v2.23.0
 
