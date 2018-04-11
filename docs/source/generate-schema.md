@@ -354,7 +354,7 @@ const jsSchema = makeExecutableSchema({
 - `resolverValidationOptions` is an optional argument which accepts an `ResolverValidationOptions` object which has the following boolean properties:
   - `requireResolversForArgs` will cause `makeExecutableSchema` to throw an error if no resolve function is defined for a field that has arguments.
 
-  - `requireResolversForNonScalar` will cause `makeExecutableSchema` to throw an error if a non-scalar field has no resolver defined. By default, both of these are true, which can help catch errors faster.
+  - `requireResolversForNonScalar` will cause `makeExecutableSchema` to throw an error if a non-scalar field has no resolver defined. Setting to `true` can help catch errors faster.
 
   - `requireResolversForAllFields` asserts that *all* fields have a valid resolve function.
 
