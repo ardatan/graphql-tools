@@ -19,8 +19,8 @@ import AddTypenameToAbstract from '../transforms/AddTypenameToAbstract';
 import CheckResultAndHandleErrors from '../transforms/CheckResultAndHandleErrors';
 
 export type OperationRootDefinition = {
-  alias?: string,
   fieldName: string,
+  alias?: string,
   args?: { [key: string]: any },
   info: GraphQLResolveInfo
 };
@@ -39,7 +39,7 @@ export function createOperation(
     const rootSelections = info.fieldNodes.map((selection: FieldNode) => {
        if (selection.kind === Kind.FIELD) {
          const rootField: FieldNode = {
-           kind: Kind.FIELD,
+           ...selection,
            name: {
              kind: Kind.NAME,
              value: fieldName,
@@ -49,9 +49,7 @@ export function createOperation(
               kind: Kind.NAME,
               value: alias
             }
-            : null,
-           arguments: selection.arguments,
-           selectionSet: selection.selectionSet
+            : null
          };
          return rootField;
        }
@@ -89,7 +87,7 @@ export function createOperation(
 
   transforms = [
     ...(transforms || []),
-    ...roots.map(({ args }) => AddArgumentsAsVariables(targetSchema, args)),
+    AddArgumentsAsVariables(targetSchema, roots),
     FilterToSchema(targetSchema),
     AddTypenameToAbstract(targetSchema)
   ];

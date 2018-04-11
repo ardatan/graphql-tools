@@ -44,7 +44,7 @@ export default function AddArgumentsAsVariablesTransform(
 function addVariablesToRootField(
   targetSchema: GraphQLSchema,
   document: DocumentNode,
-  args: { [key: string]: any },
+  args: { [key: string]: any } | Array<{ fieldName: string, alias?: string, args: { [key: string]: any } }>,
 ): {
   document: DocumentNode;
   newVariables: { [key: string]: any };
@@ -105,38 +105,65 @@ function addVariablesToRootField(
         });
         const name: string = selection.name.value;
         const field: GraphQLField<any, any> = type.getFields()[name];
-        field.args.forEach((argument: GraphQLArgument) => {
-          if (argument.name in args) {
-            const variableName = generateVariableName(argument.name, selection.name.value);
-            variableNames[argument.name] = variableName;
-            newArgs[argument.name] = {
-              kind: Kind.ARGUMENT,
+
+        const addArgument = (variableName: string, argument: GraphQLArgument) =>  {
+          newArgs[argument.name] = {
+            kind: Kind.ARGUMENT,
+            name: {
+              kind: Kind.NAME,
+              value: argument.name,
+            },
+            value: {
+              kind: Kind.VARIABLE,
               name: {
                 kind: Kind.NAME,
-                value: argument.name,
+                value: variableName,
               },
-              value: {
-                kind: Kind.VARIABLE,
-                name: {
-                  kind: Kind.NAME,
-                  value: variableName,
-                },
+            },
+          };
+          existingVariables.push(variableName);
+          variables[variableName] = {
+            kind: Kind.VARIABLE_DEFINITION,
+            variable: {
+              kind: Kind.VARIABLE,
+              name: {
+                kind: Kind.NAME,
+                value: variableName,
               },
-            };
-            existingVariables.push(variableName);
-            variables[variableName] = {
-              kind: Kind.VARIABLE_DEFINITION,
-              variable: {
-                kind: Kind.VARIABLE,
-                name: {
-                  kind: Kind.NAME,
-                  value: variableName,
-                },
-              },
-              type: typeToAst(argument.type),
-            };
-          }
-        });
+            },
+            type: typeToAst(argument.type),
+          };
+        };
+
+        if (Array.isArray(args)) {
+          const def = args.find(arg =>
+              arg.alias === (selection.alias && selection.alias.value) ||
+              arg.fieldName === selection.name.value);
+          const key = def.alias || def.fieldName;
+
+          Object.keys(def.args).forEach(arg => {
+            const variableName = generateVariableName(arg, key);
+
+            if (!variableNames[key]) {
+              variableNames[key] = {};
+            }
+
+            const argument = field.args.find(rootArg => rootArg.name === arg);
+
+            // TODO change this to always be single map or map-of-maps
+            variableNames[key][arg] = variableName;
+
+            addArgument(variableName, argument);
+          });
+        } else {
+          field.args.forEach((argument: GraphQLArgument) => {
+            if (argument.name in args) {
+              const variableName = generateVariableName(argument.name, name);
+              variableNames[argument.name] = variableName;
+              addArgument(variableName, argument);
+            }
+          });
+        }
 
         newSelectionSet.push({
           ...selection,
@@ -160,9 +187,17 @@ function addVariablesToRootField(
   });
 
   const newVariables = {};
-  Object.keys(variableNames).forEach(name => {
-    newVariables[variableNames[name]] = args[name];
-  });
+  if (Array.isArray(args)) {
+    args.forEach((root) => {
+      Object.keys(root.args).forEach((arg) => {
+        newVariables[variableNames[root.alias || root.fieldName][arg]] = root.args[arg];
+      });
+    });
+  } else {
+    Object.keys(variableNames).forEach(name => {
+      newVariables[variableNames[name]] = args[name];
+    });
+  }
 
   return {
     document: {
