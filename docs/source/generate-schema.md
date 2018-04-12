@@ -354,7 +354,7 @@ const jsSchema = makeExecutableSchema({
 - `resolverValidationOptions` is an optional argument which accepts an `ResolverValidationOptions` object which has the following boolean properties:
   - `requireResolversForArgs` will cause `makeExecutableSchema` to throw an error if no resolve function is defined for a field that has arguments.
 
-  - `requireResolversForNonScalar` will cause `makeExecutableSchema` to throw an error if a non-scalar field has no resolver defined. Setting this to `true` can be helpful in catching errors.
+  - `requireResolversForNonScalar` will cause `makeExecutableSchema` to throw an error if a non-scalar field has no resolver defined. Setting this to `true` can be helpful in catching errors, but defaults to `false` to avoid confusing behavior for those coming from other GraphQL libraries.
 
   - `requireResolversForAllFields` asserts that *all* fields have a valid resolve function.
 
