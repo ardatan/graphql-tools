@@ -1,5 +1,6 @@
 import {
   FieldNode,
+  ArgumentNode,
   Kind,
   OperationDefinitionNode,
   SelectionSetNode,
@@ -35,28 +36,43 @@ export function createOperation(
 ): FetcherOperation {
   const roots = rootDefs.map(def => ({ ...def, key: def.alias || def.fieldName }));
 
-  const selections: Array<SelectionNode> = roots.reduce((newSelections, { key, fieldName, info, alias, args }) => {
-    const rootSelections = info.fieldNodes.map((selection: FieldNode) => {
-       if (selection.kind === Kind.FIELD) {
-         const rootField: FieldNode = {
-           ...selection,
-           name: {
-             kind: Kind.NAME,
-             value: fieldName,
-           },
-           alias: alias
-            ? {
-              kind: Kind.NAME,
-              value: alias
-            }
-            : null
-         };
-         return rootField;
-       }
-       return selection;
+  const selections: Array<SelectionNode> = roots.map(({ fieldName, info, alias }) => {
+    let newSelections: Array<SelectionNode> = [];
+    let args: Array<ArgumentNode> = [];
+
+    info.fieldNodes.forEach((field: FieldNode) => {
+      const fieldSelections = field.selectionSet
+        ? field.selectionSet.selections
+        : [];
+      newSelections = newSelections.concat(fieldSelections);
+      args = args.concat(field.arguments || []);
     });
 
-    return newSelections.concat(rootSelections);
+    let rootSelectionSet = null;
+    if (newSelections.length > 0) {
+      rootSelectionSet = {
+        kind: Kind.SELECTION_SET,
+        selections: newSelections,
+      };
+    }
+
+    const rootField: FieldNode = {
+      kind: Kind.FIELD,
+      name: {
+        kind: Kind.NAME,
+        value: fieldName,
+      },
+      alias: alias
+       ? {
+         kind: Kind.NAME,
+         value: alias
+       }
+       : null,
+       selectionSet: rootSelectionSet,
+       arguments: args
+    };
+
+    return rootField;
   }, []);
 
   const selectionSet: SelectionSetNode = {

@@ -143,7 +143,7 @@ function addVariablesToRootField(
 
             const argument = field.args.find(rootArg => rootArg.name === arg);
 
-            // TODO change this to always be single map or map-of-maps
+            // TODO change this to always be single map or map-of-maps?
             variableNames[key][arg] = variableName;
 
             addArgument(variableName, argument);
