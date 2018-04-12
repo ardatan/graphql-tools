@@ -633,7 +633,7 @@ describe('@directives', () => {
         field.resolve = async function (source, { format, ...args }, context, info) {
           format = format || defaultFormat;
           const date = await resolve.call(this, source, args, context, info);
-          return formatDate(date, format);
+          return formatDate(date, format, true);
         };
       }
     }

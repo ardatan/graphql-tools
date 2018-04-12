@@ -2,12 +2,14 @@
 
 ### vNEXT
 
-* Allow `extend interface` definitions in merged schemas [PR #703](https://github.com/apollographql/graphql-tools/pull/703)
-* Fix typo in schema-directive.md deprecated example[PR #706](https://github.com/apollographql/graphql-tools/pull/706)
-* Fix timezone bug in test for @date directive [PR #686](https://github.com/apollographql/graphql-tools/pull/686)
-* Expose `defaultMergedResolver` from stitching [PR #685](https://github.com/apollographql/graphql-tools/pull/685)
+### v2.24.0
 
+* Allow `extend interface` definitions in merged schemas [PR #703](https://github.com/apollographql/graphql-tools/pull/703)
+* Fix typo in `@deprecated` example in `schema-directives.md` [PR #706](https://github.com/apollographql/graphql-tools/pull/706)
+* Fix timezone bug in test for `@date` directive [PR #686](https://github.com/apollographql/graphql-tools/pull/686)
+* Expose `defaultMergedResolver` for schema stitching [PR #685](https://github.com/apollographql/graphql-tools/pull/685)
 * Add `requireResolversForResolveType` to resolver validation options [PR #698](https://github.com/apollographql/graphql-tools/pull/698)
+* Add `inheritResolversFromInterfaces` option to `makeExecutableSchema` and `addResolveFunctionsToSchema` [PR #720](https://github.com/apollographql/graphql-tools/pull/720)
 
 ### v2.23.0
 
