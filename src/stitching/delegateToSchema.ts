@@ -12,49 +12,36 @@ import {
   GraphQLResolveInfo
 } from 'graphql';
 import { FetcherOperation } from './makeRemoteExecutableSchema';
-import { Request, Transform, IDelegateToSchemaOptions } from '../Interfaces';
+import { Request, Transform, IDelegateToSchemaOptions, OperationRootDefinition } from '../Interfaces';
 import { applyRequestTransforms, applyResultTransforms } from '../transforms/transforms';
 import AddArgumentsAsVariables from '../transforms/AddArgumentsAsVariables';
 import FilterToSchema from '../transforms/FilterToSchema';
 import AddTypenameToAbstract from '../transforms/AddTypenameToAbstract';
 import CheckResultAndHandleErrors from '../transforms/CheckResultAndHandleErrors';
 
-export type OperationRootDefinition = {
-  fieldName: string,
-  alias?: string,
-  args?: { [key: string]: any },
-  info: GraphQLResolveInfo
-};
-
 export function createOperation(
   targetSchema: GraphQLSchema,
   targetOperation: 'query' | 'mutation' | 'subscription',
-  rootDefs: Array<OperationRootDefinition>,
+  roots: Array<OperationRootDefinition>,
   graphqlContext: { [key: string]: any },
   documentInfo: GraphQLResolveInfo,
   transforms?: Array<Transform>,
 ): FetcherOperation {
-  const roots = rootDefs.map(def => ({ ...def, key: def.alias || def.fieldName }));
-
   const selections: Array<SelectionNode> = roots.map(({ fieldName, info, alias }) => {
-    let newSelections: Array<SelectionNode> = [];
-    let args: Array<ArgumentNode> = [];
+    const newSelections: Array<SelectionNode> = info
+      ? [].concat(...info.fieldNodes.map((field: FieldNode) => field.selectionSet ? field.selectionSet.selections : []))
+      : [];
 
-    info.fieldNodes.forEach((field: FieldNode) => {
-      const fieldSelections = field.selectionSet
-        ? field.selectionSet.selections
-        : [];
-      newSelections = newSelections.concat(fieldSelections);
-      args = args.concat(field.arguments || []);
-    });
+    const args: Array<ArgumentNode> = info
+      ? [].concat( ...info.fieldNodes.map((field: FieldNode) => field.arguments || []))
+      : [];
 
-    let rootSelectionSet = null;
-    if (newSelections.length > 0) {
-      rootSelectionSet = {
+    const rootSelectionSet = newSelections.length > 0
+      ? {
         kind: Kind.SELECTION_SET,
-        selections: newSelections,
-      };
-    }
+        selections: newSelections
+      }
+      : null;
 
     const rootField: FieldNode = {
       kind: Kind.FIELD,

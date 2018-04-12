@@ -15,7 +15,7 @@ import {
   TypeNode,
   VariableDefinitionNode,
 } from 'graphql';
-import { Request } from '../Interfaces';
+import { Request, OperationRootDefinition } from '../Interfaces';
 import { Transform } from './transforms';
 
 export default function AddArgumentsAsVariablesTransform(
@@ -44,7 +44,7 @@ export default function AddArgumentsAsVariablesTransform(
 function addVariablesToRootField(
   targetSchema: GraphQLSchema,
   document: DocumentNode,
-  args: { [key: string]: any } | Array<{ fieldName: string, alias?: string, args: { [key: string]: any } }>,
+  args: { [key: string]: any } | Array<OperationRootDefinition>,
 ): {
   document: DocumentNode;
   newVariables: { [key: string]: any };

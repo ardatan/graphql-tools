@@ -189,3 +189,10 @@ export type GraphQLParseOptions = {
   allowLegacySDLImplementsInterfaces?: boolean;
   experimentalFragmentVariables?: boolean;
 };
+
+export type OperationRootDefinition = {
+  fieldName: string,
+  alias?: string,
+  args?: { [key: string]: any },
+  info?: GraphQLResolveInfo
+};
