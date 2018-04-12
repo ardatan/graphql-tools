@@ -68,21 +68,14 @@ function addVariablesToRootField(
 
     let variableCounter = 0;
     const variables = {};
-    const pairSet = {};
 
     const generateVariableName = (argName: string, fieldName: string) => {
-      const fieldArgKey = `${argName}${fieldName}`;
-      if (pairSet[fieldArgKey]) {
-        return pairSet[fieldArgKey];
-      }
-
       let varName;
       do {
         varName = `_v${variableCounter}_${argName}`;
         variableCounter++;
       } while (existingVariables.indexOf(varName) !== -1);
 
-      pairSet[fieldArgKey] = varName;
       return varName;
     };
 
