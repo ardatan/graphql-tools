@@ -3,6 +3,7 @@ import introspectSchema from './introspectSchema';
 import mergeSchemas from './mergeSchemas';
 import delegateToSchema, { createDocument } from './delegateToSchema';
 import defaultMergedResolver from './defaultMergedResolver';
+import { checkResultAndHandleErrors } from './errors'
 
 export {
   makeRemoteExecutableSchema,
@@ -13,4 +14,5 @@ export {
   delegateToSchema,
   createDocument,
   defaultMergedResolver,
+  checkResultAndHandleErrors,
 };
