@@ -129,12 +129,16 @@ function addVariablesToRootField(
         };
 
         if (Array.isArray(args)) {
-          const def = args.find(arg =>
-              arg.alias === (selection.alias && selection.alias.value) ||
-              arg.fieldName === selection.name.value);
+          const def = args.find(arg => {
+            if (arg.alias && selection.alias) {
+              return arg.alias === selection.alias.value;
+            }
+            return arg.fieldName === selection.name.value;
+          });
+
           const key = def.alias || def.fieldName;
 
-          Object.keys(def.args).forEach(arg => {
+          Object.keys(def.args || {}).forEach(arg => {
             const variableName = generateVariableName(arg, key);
 
             if (!variableNames[key]) {
@@ -143,10 +147,11 @@ function addVariablesToRootField(
 
             const argument = field.args.find(rootArg => rootArg.name === arg);
 
-            // TODO change this to always be single map or map-of-maps?
-            variableNames[key][arg] = variableName;
-
-            addArgument(variableName, argument);
+            if (argument) {
+              addArgument(variableName, argument);
+              // TODO change this to always be single map or map-of-maps?
+              variableNames[key][arg] = variableName;
+            }
           });
         } else {
           field.args.forEach((argument: GraphQLArgument) => {
@@ -182,9 +187,11 @@ function addVariablesToRootField(
   const newVariables = {};
   if (Array.isArray(args)) {
     args.forEach((root) => {
-      Object.keys(root.args).forEach((arg) => {
-        newVariables[variableNames[root.alias || root.fieldName][arg]] = root.args[arg];
-      });
+      if (root.args) {
+        Object.keys(root.args).forEach((arg) => {
+          newVariables[variableNames[root.alias || root.fieldName][arg]] = root.args[arg];
+        });
+      }
     });
   } else {
     Object.keys(variableNames).forEach(name => {
