@@ -8,9 +8,12 @@ import {
   GraphQLScalarType,
   subscribe,
   parse,
+  print,
   ExecutionResult,
+  GraphQLResolveInfo
 } from 'graphql';
 import mergeSchemas from '../stitching/mergeSchemas';
+import { createOperation } from '../stitching/delegateToSchema';
 import {
   propertySchema as localPropertySchema,
   productSchema as localProductSchema,
@@ -2561,6 +2564,81 @@ fragment BookingFragment on Booking {
               id: 'p1',
             },
           },
+        });
+      });
+    });
+    describe('createOperation', () => {
+      it('should support multiple aliased roots with no args', () => {
+        const operation = createOperation(
+          mergedSchema,
+          'query',
+          [
+            {
+              fieldName: 'nodes',
+              alias: 'users1'
+            },
+            {
+              fieldName: 'nodes',
+              alias: 'users2'
+            }
+          ],
+          {},
+          {
+            operation: {
+              variableDefinitions: [],
+              name: {
+                value: 'OperationName'
+              }
+            },
+            fragments: {},
+            variableValues: {}
+          } as GraphQLResolveInfo
+        );
+        expect(print(operation.query)).to.equal(
+`{
+  users1: nodes
+  users2: nodes
+}
+`);
+        expect(operation.variables).to.deep.equal({});
+      });
+      it('should support multiple aliased roots with args', () => {
+        const operation = createOperation(
+          mergedSchema,
+          'query',
+          [
+            {
+              fieldName: 'node',
+              alias: 'user1',
+              args: { id: '1' }
+            },
+            {
+              fieldName: 'node',
+              alias: 'user2',
+              args: { id: '2' }
+            }
+          ],
+          {},
+          {
+            operation: {
+              variableDefinitions: [],
+              name: {
+                value: 'OperationName'
+              }
+            },
+            fragments: {},
+            variableValues: {}
+          } as GraphQLResolveInfo
+        );
+        expect(print(operation.query)).to.equal(
+`query ($_v0_id: ID!, $_v1_id: ID!) {
+  user1: node(id: $_v0_id)
+  user2: node(id: $_v1_id)
+}
+`);
+        expect(operation.variables).to.deep.equal({
+          _v0_id: '1',
+          _v1_id: '2',
         });
       });
     });
