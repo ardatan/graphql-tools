@@ -13,6 +13,7 @@ import {
   getNamedType,
   isNamedType,
   parse,
+  GraphQLDirective,
 } from 'graphql';
 import TypeRegistry from './TypeRegistry';
 import {
@@ -40,6 +41,7 @@ const backcompatOptions = { commentDescriptions: true };
 export default function mergeSchemas({
   schemas,
   onTypeConflict,
+  onDirectiveConflict,
   resolvers,
 }: {
   schemas: Array<GraphQLSchema | string>;
@@ -47,10 +49,17 @@ export default function mergeSchemas({
     left: GraphQLNamedType,
     right: GraphQLNamedType,
   ) => GraphQLNamedType;
+  onDirectiveConflict?: (
+    left: GraphQLDirective,
+    right: GraphQLDirective,
+  ) => GraphQLDirective;
   resolvers?: UnitOrList<IResolvers | ((mergeInfo: MergeInfo) => IResolvers)>;
 }): GraphQLSchema {
   if (!onTypeConflict) {
     onTypeConflict = defaultOnTypeConflict;
+  }
+  if (!onDirectiveConflict) {
+    onDirectiveConflict = defaultOnDirectiveConflict;
   }
   let queryFields: GraphQLFieldMap<any, any> = {};
   let mutationFields: GraphQLFieldMap<any, any> = {};
@@ -98,8 +107,9 @@ export default function mergeSchemas({
     const queryType = schema.getQueryType();
     const mutationType = schema.getMutationType();
     const subscriptionType = schema.getSubscriptionType();
-
     const typeMap = schema.getTypeMap();
+    const directives = schema.getDirectives();
+
     Object.keys(typeMap).forEach(typeName => {
       const type: GraphQLType = typeMap[typeName];
       if (
@@ -123,6 +133,10 @@ export default function mergeSchemas({
         'query',
         name,
       );
+    });
+
+    directives.forEach(directive => {
+      typeRegistry.addDirective(directive.name, directive, onDirectiveConflict);
     });
 
     queryFields = {
@@ -235,6 +249,7 @@ export default function mergeSchemas({
     mutation,
     subscription,
     types: typeRegistry.getAllTypes(),
+    directives: typeRegistry.getAllDirectives()
   });
 
   extensions.forEach(extension => {
@@ -265,6 +280,13 @@ function defaultOnTypeConflict(
   left: GraphQLNamedType,
   right: GraphQLNamedType,
 ): GraphQLNamedType {
+  return left;
+}
+
+function defaultOnDirectiveConflict(
+  left: GraphQLDirective,
+  right: GraphQLDirective
+): GraphQLDirective {
   return left;
 }
 

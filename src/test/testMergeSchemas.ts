@@ -9,6 +9,8 @@ import {
   subscribe,
   parse,
   ExecutionResult,
+  defaultFieldResolver,
+  GraphQLField,
 } from 'graphql';
 import mergeSchemas from '../stitching/mergeSchemas';
 import {
@@ -23,6 +25,7 @@ import {
   subscriptionPubSubTrigger,
 } from './testingSchemas';
 import { forAwaitEach } from 'iterall';
+import { SchemaDirectiveVisitor } from '../schemaVisitor';
 import { makeExecutableSchema } from '../schemaGenerator';
 import { IResolvers } from '../Interfaces';
 
@@ -168,6 +171,63 @@ let linkSchema = `
   extend type Customer implements Node
 `;
 
+const directiveResolversSchema = makeExecutableSchema({
+  typeDefs: `
+    directive @lower on FIELD_DEFINITION
+
+    type Query {
+      testLowerDirective: String @lower
+    }
+  `,
+  directiveResolvers: {
+    async lower(next) {
+      const result = await next();
+      if (typeof result === 'string') {
+        return result.toLowerCase();
+      }
+      return result;
+    }
+  },
+  resolvers: {
+    Query: {
+      testLowerDirective() {
+        return 'HELLO WORLD';
+      }
+    }
+  }
+});
+
+const schemaDirectivesSchema = makeExecutableSchema({
+  typeDefs: `
+    directive @upper on FIELD_DEFINITION
+
+    type Query {
+      testUpperDirective: String @upper
+    }
+  `,
+  schemaDirectives: {
+    upper: class extends SchemaDirectiveVisitor {
+      public visitFieldDefinition(field: GraphQLField<any, any>) {
+        const { resolve = defaultFieldResolver } = field;
+        field.resolve = async function (...args: any[]) {
+          const result = await resolve.apply(this, args);
+          if (typeof result === 'string') {
+            return result.toUpperCase();
+          }
+          return result;
+        };
+      }
+    }
+  },
+  resolvers: {
+    Query: {
+      testUpperDirective() {
+        return 'hello world';
+      }
+    }
+  }
+});
+
 const loneExtend = `
   extend type Booking {
     foo: String!
@@ -312,6 +372,8 @@ testCombinations.forEach(async combination => {
           interfaceExtensionTest,
           enumSchema,
           linkSchema,
+          directiveResolversSchema,
+          schemaDirectivesSchema,
           loneExtend,
           localSubscriptionSchema,
         ],
@@ -908,6 +970,74 @@ bookingById(id: "b1") {
             },
           },
         });
+      });
+
+      it('directives', async () => {
+        const propertyFragment = `
+          propertyById(id: "p1") {
+            id
+            name
+          }
+        `;
+        const propertyResult = await graphql(
+          propertySchema,
+          `query { ${propertyFragment} }`
+        );
+        const directiveResult = await graphql(
+          directiveResolversSchema,
+          `query { testLowerDirective }`
+        );
+        const mergedResult = await graphql(
+          mergedSchema,
+          `query {
+            ${propertyFragment}
+            testLowerDirective
+          }`
+        );
+
+        expect(mergedResult).to.deep.equal({
+          data: {
+            ...propertyResult.data,
+            ...directiveResult.data,
+          },
+        });
+        expect(mergedSchema.getDirective('lower')).to.equal(
+          directiveResolversSchema.getDirective('lower')
+        );
+      });
+
+      it('schema directives', async () => {
+        const propertyFragment = `
+          propertyById(id: "p1") {
+            id
+            name
+          }
+        `;
+        const propertyResult = await graphql(
+          propertySchema,
+          `query { ${propertyFragment} }`,
+        );
+        const directiveResult = await graphql(
+          schemaDirectivesSchema,
+          `query { testUpperDirective }`
+        );
+        const mergedResult = await graphql(
+          mergedSchema,
+          `query {
+            ${propertyFragment}
+            testUpperDirective
+          }`
+        );
+
+        expect(mergedResult).to.deep.equal({
+          data: {
+            ...propertyResult.data,
+            ...directiveResult.data,
+          },
+        });
+        expect(mergedSchema.getDirective('upper')).to.equal(
+          schemaDirectivesSchema.getDirective('upper')
+        );
       });
 
       it('input objects with default', async () => {
