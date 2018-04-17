@@ -2495,3 +2495,274 @@ describe('can specify lexical parser options', () => {
     });
   }
 });
+
+describe('interfaces', () => {
+  const testSchemaWithInterfaces = `
+  interface Node {
+    id: ID!
+  }
+  type User implements Node {
+    id: ID!
+    name: String!
+  }
+  type Query {
+    node: Node!
+    user: User!
+  }
+  schema {
+    query: Query
+  }
+  `;
+  const user = { id: 1, type: 'User', name: 'Kim' };
+  const queryResolver = {
+    node: () => user,
+    user: () => user,
+  };
+  const query = `query {
+    node { id __typename }
+    user { id name }
+  }`;
+
+  if (process.env.GRAPHQL_VERSION !== '^0.11') {
+    it('throws if there is no interface resolveType resolver', async () => {
+      const resolvers = {
+        Query: queryResolver,
+      };
+      try {
+        makeExecutableSchema({
+          typeDefs: testSchemaWithInterfaces,
+          resolvers,
+          resolverValidationOptions: { requireResolversForResolveType: true },
+        });
+      } catch (error) {
+        assert.equal(
+          error.message,
+          'Type "Node" is missing a "resolveType" resolver',
+        );
+        return;
+      }
+      throw new Error('Should have had an error.');
+    });
+  }
+  it('does not throw if there is an interface resolveType resolver', async () => {
+    const resolvers = {
+      Query: queryResolver,
+      Node: {
+        __resolveType: ({ type }: { type: String }) => type,
+      },
+    };
+    const schema = makeExecutableSchema({
+      typeDefs: testSchemaWithInterfaces,
+      resolvers,
+      resolverValidationOptions: { requireResolversForResolveType: true },
+    });
+    const response = await graphql(schema, query);
+    assert.isUndefined(response.errors);
+  });
+  it('does not warn if requireResolversForResolveType is disabled and there are missing resolvers', async () => {
+    const resolvers = {
+      Query: queryResolver,
+    };
+    makeExecutableSchema({
+      typeDefs: testSchemaWithInterfaces,
+      resolvers,
+      resolverValidationOptions: { requireResolversForResolveType: false },
+    });
+  });
+});
+
+describe('interface resolver inheritance', () => {
+  it('copies resolvers from the interfaces', async () => {
+    const testSchemaWithInterfaceResolvers = `
+    interface Node {
+      id: ID!
+    }
+    type User implements Node {
+      id: ID!
+      name: String!
+    }
+    type Query {
+      user: User!
+    }
+    schema {
+      query: Query
+    }
+    `;
+    const user = { id: 1, name: 'Ada', type: 'User' };
+    const resolvers = {
+      Node: {
+        __resolveType: ({ type }: { type: string }) => type,
+        id: ({ id }: { id: number }) => `Node:${id}`,
+      },
+      User: {
+        name: ({ name }: { name: string}) => `User:${name}`
+      },
+      Query: {
+        user: () => user
+      }
+    };
+    const schema = makeExecutableSchema({
+      typeDefs: testSchemaWithInterfaceResolvers,
+      resolvers,
+      inheritResolversFromInterfaces: true,
+      resolverValidationOptions: { requireResolversForAllFields: true, requireResolversForResolveType: true }
+    });
+    const query = `{ user { id name } }`;
+    const response = await graphql(schema, query);
+    assert.deepEqual(response, {
+      data: {
+        user: {
+          id: `Node:1`,
+          name: `User:Ada`
+        }
+      }
+    });
+  });
+
+  it('respects interface order and existing resolvers', async () => {
+    const testSchemaWithInterfaceResolvers = `
+    interface Node {
+      id: ID!
+    }
+    interface Person {
+      id: ID!
+      name: String!
+    }
+    type Replicant implements Node, Person {
+      id: ID!
+      name: String!
+    }
+    type Cyborg implements Person, Node {
+      id: ID!
+      name: String!
+    }
+    type Query {
+      cyborg: Cyborg!
+      replicant: Replicant!
+    }
+    schema {
+      query: Query
+    }
+    `;
+    const cyborg = { id: 1, name: 'Alex Murphy', type: 'Cyborg' };
+    const replicant = { id: 2, name: 'Rachael Tyrell', type: 'Replicant' };
+    const resolvers = {
+      Node: {
+        __resolveType: ({ type }: { type: string }) => type,
+        id: ({ id }: { id: number }) => `Node:${id}`,
+      },
+      Person: {
+        __resolveType: ({ type }: { type: string }) => type,
+        id: ({ id }: { id: number }) => `Person:${id}`,
+        name: ({ name }: { name: string}) => `Person:${name}`
+      },
+      Query: {
+        cyborg: () => cyborg,
+        replicant: () => replicant,
+      }
+    };
+    const schema = makeExecutableSchema({
+      parseOptions: { allowLegacySDLImplementsInterfaces: true },
+      typeDefs: testSchemaWithInterfaceResolvers,
+      resolvers,
+      inheritResolversFromInterfaces: true,
+      resolverValidationOptions: { requireResolversForAllFields: true, requireResolversForResolveType: true }
+    });
+    const query = `{ cyborg { id name } replicant { id name }}`;
+    const response = await graphql(schema, query);
+    assert.deepEqual(response, {
+      data: {
+        cyborg: {
+          id: `Node:1`,
+          name: `Person:Alex Murphy`
+        },
+        replicant: {
+          id: `Person:2`,
+          name: `Person:Rachael Tyrell`
+        }
+      }
+    });
+  });
+});
+
+describe('unions', () => {
+  const testSchemaWithUnions = `
+    type Post {
+      title: String!
+    }
+    type Page {
+      title: String!
+    }
+    union Displayable = Page | Post
+    type Query {
+      page: Page!
+      post: Post!
+      displayable: [Displayable!]!
+    }
+    schema {
+      query: Query
+    }
+  `;
+  const post = { title: 'I am a post', type: 'Post' };
+  const page = { title: 'I am a page', type: 'Page' };
+  const queryResolver = {
+    page: () => page,
+    post: () => post,
+    displayable: () => [post, page],
+  };
+  const query = `query {
+    post { title }
+    page { title }
+    displayable {
+      ... on Post { title }
+      ... on Page { title }
+    }
+  }`;
+
+  if (process.env.GRAPHQL_VERSION !== '^0.11') {
+    it('throws if there is no union resolveType resolver', async () => {
+      const resolvers = {
+        Query: queryResolver,
+      };
+      try {
+        makeExecutableSchema({
+          typeDefs: testSchemaWithUnions,
+          resolvers,
+          resolverValidationOptions: { requireResolversForResolveType: true },
+        });
+      } catch (error) {
+        assert.equal(
+          error.message,
+          'Type "Displayable" is missing a "resolveType" resolver',
+        );
+        return;
+      }
+      throw new Error('Should have had an error.');
+    });
+  }
+  it('does not throw if there is a resolveType resolver', async () => {
+    const resolvers = {
+      Query: queryResolver,
+      Displayable: {
+        __resolveType: ({ type }: { type: String }) => type,
+      },
+    };
+    const schema = makeExecutableSchema({
+      typeDefs: testSchemaWithUnions,
+      resolvers,
+      resolverValidationOptions: { requireResolversForResolveType: true },
+    });
+    const response = await graphql(schema, query);
+    assert.isUndefined(response.errors);
+  });
+  it('does not warn if requireResolversForResolveType is disabled', async () => {
+    const resolvers = {
+      Query: queryResolver,
+    };
+    makeExecutableSchema({
+      typeDefs: testSchemaWithUnions,
+      resolvers,
+      resolverValidationOptions: { requireResolversForResolveType: false },
+    });
+  });
+});

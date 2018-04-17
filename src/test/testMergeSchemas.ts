@@ -334,7 +334,7 @@ testCombinations.forEach(async combination => {
         resolvers: {
           Property: {
             bookings: {
-              fragment: 'fragment PropertyFragment on Property { id }',
+              fragment: '... on Property { id }',
               resolve(parent, args, context, info) {
                 return info.mergeInfo.delegateToSchema({
                   schema: bookingSchema,
@@ -420,7 +420,7 @@ testCombinations.forEach(async combination => {
             },
             node: {
               // fragment doesn't work
-              fragment: 'fragment NodeFragment on Node { id }',
+              fragment: '... on Node { id }',
               resolve(parent, args, context, info) {
                 if (args.id.startsWith('p')) {
                   return info.mergeInfo.delegateToSchema({

@@ -11,20 +11,21 @@ import {
   GraphQLString,
   InlineFragmentNode,
   Kind,
+  OperationDefinitionNode,
   extendSchema,
   getNamedType,
   isNamedType,
   parse,
 } from 'graphql';
 import {
+  IDelegateToSchemaOptions,
+  IFieldResolver,
   IResolvers,
   MergeInfo,
-  IFieldResolver,
-  VisitType,
   MergeTypeCandidate,
   TypeWithResolvers,
+  VisitType,
   VisitTypeResult,
-  IDelegateToSchemaOptions,
 } from '../Interfaces';
 import {
   extractExtensionDefinitions,
@@ -275,10 +276,10 @@ function mergeSchemasImplementation({
     });
   });
 
-  addResolveFunctionsToSchema(
-    mergedSchema,
-    mergeDeep(generatedResolvers, resolvers),
-  );
+  addResolveFunctionsToSchema({
+    schema: mergedSchema,
+    resolvers: mergeDeep(generatedResolvers, resolvers),
+  });
 
   forEachField(mergedSchema, field => {
     if (field.resolve) {
@@ -348,10 +349,7 @@ function createMergeInfo(
         ...options,
         transforms: [
           ...(options.transforms || []),
-          Transforms.ExpandAbstractTypes(
-            options.info.schema,
-            options.schema,
-          ),
+          Transforms.ExpandAbstractTypes(options.info.schema, options.schema),
           Transforms.ReplaceFieldWithFragment(
             options.schema,
             fragmentReplacements,
@@ -432,16 +430,27 @@ function forEachField(schema: GraphQLSchema, fn: FieldIteratorFn): void {
 function parseFragmentToInlineFragment(
   definitions: string,
 ): InlineFragmentNode {
-  const document = parse(definitions);
-  for (const definition of document.definitions) {
-    if (definition.kind === Kind.FRAGMENT_DEFINITION) {
-      return {
-        kind: Kind.INLINE_FRAGMENT,
-        typeCondition: definition.typeCondition,
-        selectionSet: definition.selectionSet,
-      };
+  if (definitions.trim().startsWith('fragment')) {
+    const document = parse(definitions);
+    for (const definition of document.definitions) {
+      if (definition.kind === Kind.FRAGMENT_DEFINITION) {
+        return {
+          kind: Kind.INLINE_FRAGMENT,
+          typeCondition: definition.typeCondition,
+          selectionSet: definition.selectionSet,
+        };
+      }
     }
   }
+
+  const query = parse(`{${definitions}}`)
+    .definitions[0] as OperationDefinitionNode;
+  for (const selection of query.selectionSet.selections) {
+    if (selection.kind === Kind.INLINE_FRAGMENT) {
+      return selection;
+    }
+  }
+
   throw new Error('Could not parse fragment');
 }
 
