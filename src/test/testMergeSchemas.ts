@@ -2695,7 +2695,7 @@ fragment BookingFragment on Booking {
           _v1_id: '2',
         });
       });
-      it('should support multiple aliased roots with selection sets', () => {
+      it('should support multiple aliased roots with selection sets', async () => {
         const info = {
           fieldNodes: [
             {
@@ -2730,13 +2730,13 @@ fragment BookingFragment on Booking {
             {
               fieldName: 'node',
               alias: 'user1',
-              args: { id: '1' },
+              args: { id: 'b1' },
               info
             },
             {
               fieldName: 'node',
               alias: 'user2',
-              args: { id: '2' },
+              args: { id: 'b2' },
               info
             }
           ],
@@ -2763,6 +2763,17 @@ fragment BookingFragment on Booking {
   }
 }
 `);
+        const result = await graphql(
+          mergedSchema,
+          print(operation.document),
+          {},
+          {},
+          operation.variables
+        );
+        expect(result.data).to.deep.equal({
+          user1: { id: 'b1', __typename: 'Booking' },
+          user2: { id: 'b2', __typename: 'Booking' }
+        });
       });
     });
   });
