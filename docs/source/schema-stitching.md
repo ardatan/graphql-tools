@@ -134,23 +134,22 @@ mergeSchemas({
     authorSchema,
     linkTypeDefs,
   ],
-  ],
   resolvers: {
     User: {
       chirps: {
         fragment: `fragment UserFragment on User { id }`,
         resolve(parent, args, context, info) {
           const authorId = parent.id;
-          return info.mergeInfo.delegateToSchema(
-            chirpSchema,
-            'query',
-            'chirpsByAuthorId',
-            {
+          return info.mergeInfo.delegateToSchema({
+            schema: chirpSchema,
+            operation: 'query',
+            fieldName: 'chirpsByAuthorId',
+            args: {
               authorId,
             },
             context,
             info,
-          );
+          });
         },
       },
     },
@@ -159,16 +158,16 @@ mergeSchemas({
         fragment: `fragment ChirpFragment on Chirp { authorId }`,
         resolve(parent, args, context, info) {
           const id = parent.authorId;
-          return info.mergeInfo.delegateToSchema(
-            productSchema,
-            'query',
-            'userById',
-            {
+          return info.mergeInfo.delegateToSchema({
+            schema: authorSchema,
+            operation: 'query',
+            fieldName: 'userById',
+            args: {
               id,
             },
             context,
             info,
-          );
+          });
         },
       },
     },
@@ -217,7 +216,7 @@ addMockFunctionsToSchema({ schema: chirpSchema });
 
 // create transform schema
 
-const transformedChirpSchema = transformSchema(propertySchema, [
+const transformedChirpSchema = transformSchema(chirpSchema, [
   Transforms.FilterRootFields((operation: string, rootField: string) =>
     ['Query.chirpById'].includes(`${operation}.${rootField}`),
   ),
@@ -235,23 +234,23 @@ mergeSchemas({
     authorSchema,
     linkTypeDefs,
   ],
-  resolvers: mergeInfo => ({
+  resolvers: {
     User: {
       chirps: {
         fragment: `fragment UserFragment on User { id }`,
         resolve(parent, args, context, info) {
           const authorId = parent.id;
-          return mergeInfo.delegateToSchema(
-            chirpSchema,
-            'query',
-            'chirpsByAuthorId',
-            {
+          return info.mergeInfo.delegateToSchema({
+            schema: chirpSchema,
+            operation: 'query',
+            fieldName: 'chirpsByAuthorId',
+            args: {
               authorId,
             },
             context,
             info,
-            transformedChirpSchema.transforms,
-          );
+            transforms: transformedChirpSchema.transforms,
+          });
         },
       },
     },
@@ -260,20 +259,20 @@ mergeSchemas({
         fragment: `fragment ChirpFragment on Chirp { authorId }`,
         resolve(parent, args, context, info) {
           const id = parent.authorId;
-          return mergeInfo.delegateToSchema(
-            authorSchema,
-            'query',
-            'userById',
-            {
+          return info.mergeInfo.delegateToSchema({
+            schema: authorSchema,
+            operation: 'query',
+            fieldName: 'userById',
+            args: {
               id,
             },
             context,
             info,
-          );
+          });
         },
       },
     },
-  }),
+  },
 });
 ```
 
@@ -326,37 +325,43 @@ resolvers: mergeInfo => ({
     property: {
       fragment: 'fragment BookingFragment on Booking { propertyId }',
       resolve(parent, args, context, info) {
-        return mergeInfo.delegateToSchema(
-          bookingSchema,
-          'query',
-          'propertyById',
-          {
+        return mergeInfo.delegateToSchema({
+          schema: bookingSchema,
+          operation: 'query',
+          fieldName: 'propertyById',
+          args: {
             id: parent.propertyId,
           },
           context,
           info,
-        );
+        });
       },
     },
   },
 })
 ```
 
-#### mergeInfo and delegate
+#### mergeInfo and delegateToSchema
 
 `mergeInfo` currently is an object with `delegateToSchema` property. It looks like this:
 
 ```js
 type MergeInfo = {
-  delegateToSchema(
-    schema: GraphQLSchema,
-    operation: 'query' | 'mutation' | 'subscription',
-    fieldName: string,
-    args: { [key: string]: any },
-    context: { [key: string]: any },
-    info: GraphQLResolveInfo,
-    transforms?: Array<Transform>,
-  ) => any,
+  delegateToSchema<TContext>(options: IDelegateToSchemaOptions<TContext>): any;
+}
+
+interface IDelegateToSchemaOptions<TContext = {
+    [key: string]: any;
+}> {
+    schema: GraphQLSchema;
+    operation: Operation;
+    fieldName: string;
+    args?: {
+        [key: string]: any;
+    };
+    context: TContext;
+    info: GraphQLResolveInfo;
+    transforms?: Array<Transform>;
 }
 ```
 `delegateToSchema` allows delegating to any GraphQLSchema, while adding `fragmentReplacement` transforms. It's identical to `delegateToSchema` function otherwise. See [Schema Delegation](./schema-delegation.html) and *Using with transforms* section of this documentation.
@@ -364,7 +369,7 @@ type MergeInfo = {
 
 #### onTypeConflict
 
-```
+```js
 type OnTypeConflict = (
   left: GraphQLNamedType,
   right: GraphQLNamedType,
