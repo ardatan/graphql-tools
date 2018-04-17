@@ -73,34 +73,6 @@ function filterDocumentToSchema(
     validFragmentsWithType[fragment.name.value] = type;
   });
 
-  validFragments.forEach((fragment: FragmentDefinitionNode) => {
-    const name = fragment.name.value;
-    const typeName = fragment.typeCondition.name.value;
-    const type = targetSchema.getType(typeName);
-    const {
-      selectionSet,
-      usedFragments: fragmentUsedFragments,
-      usedVariables: fragmentUsedVariables,
-    } = filterSelectionSet(
-      targetSchema,
-      type,
-      validFragmentsWithType,
-      fragment.selectionSet,
-    );
-    usedFragments = union(usedFragments, fragmentUsedFragments);
-    usedVariables = union(usedVariables, fragmentUsedVariables);
-
-    newFragments.push({
-      kind: Kind.FRAGMENT_DEFINITION,
-      name: {
-        kind: Kind.NAME,
-        value: name,
-      },
-      typeCondition: fragment.typeCondition,
-      selectionSet,
-    });
-  });
-
   operations.forEach((operation: OperationDefinitionNode) => {
     let type;
     if (operation.operation === 'subscription') {
@@ -139,10 +111,39 @@ function filterDocumentToSchema(
     });
   });
 
-  newFragments = newFragments.filter(
-    (fragment: FragmentDefinitionNode) =>
-      usedFragments.indexOf(fragment.name.value) !== -1,
-  );
+  while (usedFragments.length !== 0) {
+    const nextFragmentName = usedFragments.pop();
+    const fragment = validFragments.find(
+      fr => fr.name.value === nextFragmentName,
+    );
+    if (fragment) {
+      const name = nextFragmentName;
+      const typeName = fragment.typeCondition.name.value;
+      const type = targetSchema.getType(typeName);
+      const {
+        selectionSet,
+        usedFragments: fragmentUsedFragments,
+        usedVariables: fragmentUsedVariables,
+      } = filterSelectionSet(
+        targetSchema,
+        type,
+        validFragmentsWithType,
+        fragment.selectionSet,
+      );
+      usedFragments = union(usedFragments, fragmentUsedFragments);
+      usedVariables = union(usedVariables, fragmentUsedVariables);
+
+      newFragments.push({
+        kind: Kind.FRAGMENT_DEFINITION,
+        name: {
+          kind: Kind.NAME,
+          value: name,
+        },
+        typeCondition: fragment.typeCondition,
+        selectionSet,
+      });
+    }
+  }
 
   return {
     kind: Kind.DOCUMENT,

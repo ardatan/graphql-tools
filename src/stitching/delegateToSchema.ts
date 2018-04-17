@@ -56,15 +56,17 @@ export default async function delegateToSchema(
     throw errors;
   }
 
-  if (options.operation === 'query' ||
-      options.operation === 'mutation') {
-    return applyResultTransforms(await execute(
-      options.schema,
-      processedRequest.document,
-      info.rootValue,
-      options.context,
-      processedRequest.variables,
-    ), transforms);
+  if (options.operation === 'query' || options.operation === 'mutation') {
+    return applyResultTransforms(
+      await execute(
+        options.schema,
+        processedRequest.document,
+        info.rootValue,
+        options.context,
+        processedRequest.variables,
+      ),
+      transforms,
+    );
   }
 
   if (options.operation === 'subscription') {
