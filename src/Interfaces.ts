@@ -22,7 +22,15 @@ export interface IResolverValidationOptions {
   requireResolversForArgs?: boolean;
   requireResolversForNonScalar?: boolean;
   requireResolversForAllFields?: boolean;
+  requireResolversForResolveType?: boolean;
   allowResolversNotInSchema?: boolean;
+}
+
+export interface IAddResolveFunctionsToSchemaOptions {
+  schema: GraphQLSchema;
+  resolvers: IResolvers;
+  resolverValidationOptions?: IResolverValidationOptions;
+  inheritResolversFromInterfaces?: boolean;
 }
 
 export interface IResolverOptions<TSource = any, TContext = any> {
@@ -84,6 +92,7 @@ export interface IExecutableSchemaDefinition<TContext = any> {
   directiveResolvers?: IDirectiveResolvers<any, TContext>;
   schemaDirectives?: { [name: string]: typeof SchemaDirectiveVisitor };
   parseOptions?: GraphQLParseOptions;
+  inheritResolversFromInterfaces?: boolean;
 }
 
 export type IFieldIteratorFn = (
