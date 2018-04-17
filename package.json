@@ -1,6 +1,6 @@
 {
   "name": "graphql-tools",
-  "version": "3.0.0-alpha.14",
+  "version": "3.0.0-alpha.16",
   "description": "Useful tools to create and manipulate GraphQL schemas.",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -17,7 +17,7 @@
     "pretest": "npm run clean && npm run compile",
     "test": "npm run testonly --",
     "posttest": "npm run lint",
-    "lint": "tslint $(find src | grep ts$)",
+    "lint": "tslint src/**/*.ts",
     "watch": "tsc -w",
     "testonly": "mocha --reporter spec --full-trace ./dist/test/tests.js",
     "coverage": "istanbul cover _mocha -- --reporter dot --full-trace ./dist/test/tests.js",
@@ -48,7 +48,7 @@
   },
   "homepage": "https://github.com/apollostack/graphql-tools#readme",
   "dependencies": {
-    "apollo-link": "^1.2.1",
+    "apollo-link": "1.2.1",
     "apollo-utilities": "^1.0.1",
     "deprecated-decorator": "^0.1.6",
     "iterall": "^1.1.3",

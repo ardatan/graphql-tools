@@ -185,7 +185,6 @@ const loneExtend = `
   }
 `;
 
-
 let interfaceExtensionTest = `
   # No-op for older versions since this feature does not yet exist
   extend type DownloadableProduct {
@@ -337,7 +336,7 @@ testCombinations.forEach(async combination => {
         resolvers: {
           Property: {
             bookings: {
-              fragment: 'fragment PropertyFragment on Property { id }',
+              fragment: '... on Property { id }',
               resolve(parent, args, context, info) {
                 return info.mergeInfo.delegateToSchema({
                   schema: bookingSchema,
@@ -373,7 +372,7 @@ testCombinations.forEach(async combination => {
           DownloadableProduct: {
             filesize() {
               return 1024;
-            }
+            },
           },
           LinkType: {
             property: {
@@ -423,7 +422,7 @@ testCombinations.forEach(async combination => {
             },
             node: {
               // fragment doesn't work
-              fragment: 'fragment NodeFragment on Node { id }',
+              fragment: '... on Node { id }',
               resolve(parent, args, context, info) {
                 if (args.id.startsWith('p')) {
                   return info.mergeInfo.delegateToSchema({
@@ -1627,6 +1626,63 @@ fragment BookingFragment on Booking {
         });
       });
 
+      it('containing fragment on outer type', async () => {
+        const mergedResult = await graphql(
+          mergedSchema,
+          `
+            query {
+              propertyById(id: "p2") {
+                id
+                ... on Property {
+                  name
+                  ...BookingFragment1
+                }
+              }
+            }
+
+            fragment BookingFragment1 on Property {
+              bookings {
+                id
+                property {
+                  id
+                  name
+                }
+              }
+              ...BookingFragment2
+            }
+
+            fragment BookingFragment2 on Property {
+              bookings {
+                customer {
+                  name
+                }
+              }
+            }
+          `,
+        );
+
+        expect(mergedResult).to.deep.equal({
+          data: {
+            propertyById: {
+              id: 'p2',
+              name: 'Another great hotel',
+              bookings: [
+                {
+                  id: 'b4',
+                  customer: {
+                    name: 'Exampler Customer',
+                  },
+                  property: {
+                    id: 'p2',
+                    name: 'Another great hotel',
+                  },
+                },
+              ],
+            },
+          },
+        });
+      });
+
       it('containing links and overlapping fragments on relation', async () => {
         const mergedResult = await graphql(
           mergedSchema,
@@ -2477,10 +2533,10 @@ fragment BookingFragment on Booking {
                 {
                   id: 'pd2',
                   __typename: 'DownloadableProduct',
-                  filesize: 1024
+                  filesize: 1024,
                 },
-              ]
-            }
+              ],
+            },
           });
         });
       }

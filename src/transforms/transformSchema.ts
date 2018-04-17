@@ -19,8 +19,12 @@ export default function transformSchema(
     transforms,
     mapping,
   );
-  addResolveFunctionsToSchema(schema, resolvers, {
-    allowResolversNotInSchema: true,
+  addResolveFunctionsToSchema({
+    schema,
+    resolvers,
+    resolverValidationOptions: {
+      allowResolversNotInSchema: true,
+    },
   });
   schema = applySchemaTransforms(schema, transforms);
   (schema as any).transforms = transforms;

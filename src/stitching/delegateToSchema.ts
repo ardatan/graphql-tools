@@ -119,20 +119,19 @@ export default async function delegateToSchema(
   }
 
   if (options.operation === 'query' || options.operation === 'mutation') {
-    const rawResult = await execute(
-      options.schema,
-      processedRequest.document,
-      options.info.rootValue,
-      options.context,
-      processedRequest.variables,
+    return applyResultTransforms(
+      await execute(
+        options.schema,
+        processedRequest.document,
+        options.info.rootValue,
+        options.context,
+        processedRequest.variables,
+      ),
+      [
+        ...(options.transforms || []),
+        CheckResultAndHandleErrors(options.info, options.fieldName),
+      ]
     );
-
-    const result = applyResultTransforms(rawResult, [
-      ...(options.transforms || []),
-      CheckResultAndHandleErrors(options.info, options.fieldName),
-    ]);
-
-    return result;
   }
 
   if (options.operation === 'subscription') {
