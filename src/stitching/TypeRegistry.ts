@@ -9,6 +9,7 @@ import {
   InlineFragmentNode,
   Kind,
   parse,
+  OperationDefinitionNode,
 } from 'graphql';
 
 export default class TypeRegistry {
@@ -119,15 +120,25 @@ export default class TypeRegistry {
 function parseFragmentToInlineFragment(
   definitions: string,
 ): InlineFragmentNode {
-  const document = parse(definitions);
-  for (const definition of document.definitions) {
-    if (definition.kind === Kind.FRAGMENT_DEFINITION) {
-      return {
-        kind: Kind.INLINE_FRAGMENT,
-        typeCondition: definition.typeCondition,
-        selectionSet: definition.selectionSet,
-      };
+  if (definitions.trim().startsWith('fragment')) {
+    const document = parse(definitions);
+    for (const definition of document.definitions) {
+      if (definition.kind === Kind.FRAGMENT_DEFINITION) {
+        return {
+          kind: Kind.INLINE_FRAGMENT,
+          typeCondition: definition.typeCondition,
+          selectionSet: definition.selectionSet,
+        };
+      }
     }
   }
+
+  const query = parse(`{${definitions}}`).definitions[0] as OperationDefinitionNode;
+  for (const selection of query.selectionSet.selections) {
+    if (selection.kind === Kind.INLINE_FRAGMENT) {
+      return selection;
+    }
+  }
+
   throw new Error('Could not parse fragment');
 }
