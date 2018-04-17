@@ -2639,6 +2639,75 @@ fragment BookingFragment on Booking {
           _v1_id: '2',
         });
       });
+      it('should support multiple aliased roots with selection sets', () => {
+        const info = {
+          fieldNodes: [
+            {
+              kind: 'Field',
+              name: {
+                kind: 'Name',
+                value: 'user' // doesn't matter
+              },
+              arguments: [],
+              directives: [],
+              selectionSet: {
+                kind: 'SelectionSet',
+                selections: [
+                  {
+                    kind: 'Field',
+                    name: {
+                      kind: 'Name',
+                      value: 'id'
+                    },
+                    arguments: [],
+                    directives: []
+                  }
+                ]
+              }
+            }
+          ]
+        } as GraphQLResolveInfo;
+        const operation = createDocument(
+          mergedSchema,
+          'query',
+          [
+            {
+              fieldName: 'node',
+              alias: 'user1',
+              args: { id: '1' },
+              info
+            },
+            {
+              fieldName: 'node',
+              alias: 'user2',
+              args: { id: '2' },
+              info
+            }
+          ],
+          {
+            operation: {
+              variableDefinitions: [],
+              name: {
+                value: 'OperationName'
+              }
+            },
+            fragments: {},
+            variableValues: {}
+          } as GraphQLResolveInfo
+        );
+        expect(print(operation.document)).to.equal(
+`query ($_v0_id: ID!, $_v1_id: ID!) {
+  user1: node(id: $_v0_id) {
+    id
+    __typename
+  }
+  user2: node(id: $_v1_id) {
+    id
+    __typename
+  }
+}
+`);
+      });
     });
   });
 });
