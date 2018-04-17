@@ -13,7 +13,7 @@ import {
   GraphQLResolveInfo
 } from 'graphql';
 import mergeSchemas from '../stitching/mergeSchemas';
-import { createOperation } from '../stitching/delegateToSchema';
+import { createDocument } from '../stitching/delegateToSchema';
 import {
   propertySchema as localPropertySchema,
   productSchema as localProductSchema,
@@ -2567,9 +2567,9 @@ fragment BookingFragment on Booking {
         });
       });
     });
-    describe('createOperation', () => {
+    describe('createDocument', () => {
       it('should support multiple aliased roots with no args', () => {
-        const operation = createOperation(
+        const operation = createDocument(
           mergedSchema,
           'query',
           [
@@ -2582,7 +2582,6 @@ fragment BookingFragment on Booking {
               alias: 'users2'
             }
           ],
-          {},
           {
             operation: {
               variableDefinitions: [],
@@ -2594,7 +2593,7 @@ fragment BookingFragment on Booking {
             variableValues: {}
           } as GraphQLResolveInfo
         );
-        expect(print(operation.query)).to.equal(
+        expect(print(operation.document)).to.equal(
 `{
   users1: nodes
   users2: nodes
@@ -2603,7 +2602,7 @@ fragment BookingFragment on Booking {
         expect(operation.variables).to.deep.equal({});
       });
       it('should support multiple aliased roots with args', () => {
-        const operation = createOperation(
+        const operation = createDocument(
           mergedSchema,
           'query',
           [
@@ -2618,7 +2617,6 @@ fragment BookingFragment on Booking {
               args: { id: '2' }
             }
           ],
-          {},
           {
             operation: {
               variableDefinitions: [],
@@ -2630,7 +2628,7 @@ fragment BookingFragment on Booking {
             variableValues: {}
           } as GraphQLResolveInfo
         );
-        expect(print(operation.query)).to.equal(
+        expect(print(operation.document)).to.equal(
 `query ($_v0_id: ID!, $_v1_id: ID!) {
   user1: node(id: $_v0_id)
   user2: node(id: $_v1_id)

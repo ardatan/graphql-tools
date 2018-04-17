@@ -11,7 +11,6 @@ import {
   GraphQLSchema,
   GraphQLResolveInfo
 } from 'graphql';
-import { FetcherOperation } from './makeRemoteExecutableSchema';
 import { Request, Transform, IDelegateToSchemaOptions, OperationRootDefinition } from '../Interfaces';
 import { applyRequestTransforms, applyResultTransforms } from '../transforms/transforms';
 import AddArgumentsAsVariables from '../transforms/AddArgumentsAsVariables';
@@ -19,14 +18,13 @@ import FilterToSchema from '../transforms/FilterToSchema';
 import AddTypenameToAbstract from '../transforms/AddTypenameToAbstract';
 import CheckResultAndHandleErrors from '../transforms/CheckResultAndHandleErrors';
 
-export function createOperation(
+export function createDocument(
   targetSchema: GraphQLSchema,
   targetOperation: 'query' | 'mutation' | 'subscription',
   roots: Array<OperationRootDefinition>,
-  graphqlContext: { [key: string]: any },
   documentInfo: GraphQLResolveInfo,
   transforms?: Array<Transform>,
-): FetcherOperation {
+): Request {
   const selections: Array<SelectionNode> = roots.map(({ fieldName, info, alias }) => {
     const newSelections: Array<SelectionNode> = info
       ? [].concat(...info.fieldNodes.map((field: FieldNode) => field.selectionSet ? field.selectionSet.selections : []))
@@ -95,20 +93,13 @@ export function createOperation(
     AddTypenameToAbstract(targetSchema)
   ];
 
-  const { document: query, variables } = applyRequestTransforms(rawRequest, transforms);
-
-  return {
-    query,
-    variables,
-    context: graphqlContext,
-    operationName: documentInfo.operation && documentInfo.operation.name && documentInfo.operation.name.value
-  };
+  return applyRequestTransforms(rawRequest, transforms);
 }
 
 export default async function delegateToSchema(
   options: IDelegateToSchemaOptions,
 ): Promise<any> {
-  const processedRequest = createOperation(
+  const processedRequest = createDocument(
     options.schema,
     options.operation,
     [
@@ -118,12 +109,11 @@ export default async function delegateToSchema(
         info: options.info
       }
     ],
-    options.context,
     options.info,
     options.transforms
   );
 
-  const errors = validate(options.schema, processedRequest.query);
+  const errors = validate(options.schema, processedRequest.document);
   if (errors.length > 0) {
     throw errors;
   }
@@ -131,7 +121,7 @@ export default async function delegateToSchema(
   if (options.operation === 'query' || options.operation === 'mutation') {
     const rawResult = await execute(
       options.schema,
-      processedRequest.query,
+      processedRequest.document,
       options.info.rootValue,
       options.context,
       processedRequest.variables,
@@ -149,7 +139,7 @@ export default async function delegateToSchema(
     // apply result processing ???
     return subscribe(
       options.schema,
-      processedRequest.query,
+      processedRequest.document,
       options.info.rootValue,
       options.context,
       processedRequest.variables,
