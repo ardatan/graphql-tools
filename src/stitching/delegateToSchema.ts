@@ -18,7 +18,7 @@ import FilterToSchema from '../transforms/FilterToSchema';
 import AddTypenameToAbstract from '../transforms/AddTypenameToAbstract';
 import CheckResultAndHandleErrors from '../transforms/CheckResultAndHandleErrors';
 
-export function createDocument(
+export function createRequest(
   targetSchema: GraphQLSchema,
   targetOperation: 'query' | 'mutation' | 'subscription',
   roots: Array<OperationRootDefinition>,
@@ -99,7 +99,7 @@ export function createDocument(
 export default async function delegateToSchema(
   options: IDelegateToSchemaOptions,
 ): Promise<any> {
-  const processedRequest = createDocument(
+  const processedRequest = createRequest(
     options.schema,
     options.operation,
     [

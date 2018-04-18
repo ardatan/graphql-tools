@@ -191,12 +191,12 @@ GraphQL resolve info of the current resolver. Used to get the query that starts 
 
 [Transforms](./transforms.html) to apply to the query and results. Should be the same transforms that were used to transform the schema, if any. One can use `transformedSchema.transforms` to retrieve transforms.
 
-<h3 id="createDocument">createDocument</h3>
+<h3 id="createRequest">createRequest</h3>
 
-The `createDocument` is a utility function for creating queries with multiple, aliased, roots and possible argument name collisions. The function should be called with these parameters:
+The `createRequest` is a utility function for creating queries with multiple, aliased, roots and possible argument name collisions. The function should be called with these parameters:
 
 ```js
-createDocument(
+createRequest(
   targetSchema: GraphQLSchema,
   targetOperation: 'query' | 'mutation' | 'subscription',
   roots: Array<OperationRootDefinition>,
@@ -222,7 +222,7 @@ type OperationRootDefinition = {
 ```js
 User: {
   bookings(parent, args, context, info) {
-    const { document, variables } = createDocument(
+    const { document, variables } = createRequest(
       subschema,
       'query',
       [
@@ -279,11 +279,11 @@ Info object containing fields that are not specific to root fields, but rather t
 
 Delegation preserves aliases that are passed from the parent query. However that presents problems, because default GraphQL resolvers retrieve field from parent based on their name, not aliases. This way results with aliases will be missing from the delegated result. `mergeSchemas` and `transformSchemas` go around that by using `src/stitching/defaultMergedResolver` for all fields without explicit resolver. When building new libraries around delegation, one should consider how the aliases will be handled.
 
-However, to create an aliased query/mutation, you can use `createDocument` and pass the resulting `document` and `variables` into `graphql` (or `execute` or your own fetcher). For example:
+However, to create an aliased query/mutation, you can use `createRequest` and pass the resulting `document` and `variables` into `graphql` (or `execute` or your own fetcher). For example:
 ```js
 import { graphql } from 'graphql'
 
-const { document, variables } = createDocumentResult
+const { document, variables } = createRequestResult
 
 graphql(
   schema,

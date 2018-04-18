@@ -13,7 +13,7 @@ import {
   GraphQLResolveInfo
 } from 'graphql';
 import mergeSchemas from '../stitching/mergeSchemas';
-import { createDocument } from '../stitching/delegateToSchema';
+import { createRequest } from '../stitching/delegateToSchema';
 import {
   propertySchema as localPropertySchema,
   productSchema as localProductSchema,
@@ -2623,9 +2623,9 @@ fragment BookingFragment on Booking {
         });
       });
     });
-    describe('createDocument', () => {
+    describe('createRequest', () => {
       it('should support multiple aliased roots with no args', () => {
-        const operation = createDocument(
+        const operation = createRequest(
           mergedSchema,
           'query',
           [
@@ -2658,7 +2658,7 @@ fragment BookingFragment on Booking {
         expect(operation.variables).to.deep.equal({});
       });
       it('should support multiple aliased roots with args', () => {
-        const operation = createDocument(
+        const operation = createRequest(
           mergedSchema,
           'query',
           [
@@ -2723,7 +2723,7 @@ fragment BookingFragment on Booking {
             }
           ]
         } as GraphQLResolveInfo;
-        const operation = createDocument(
+        const operation = createRequest(
           mergedSchema,
           'query',
           [
