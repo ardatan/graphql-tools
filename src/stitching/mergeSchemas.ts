@@ -246,7 +246,7 @@ export default function mergeSchemas({
     );
   });
 
-  addResolveFunctionsToSchema(mergedSchema, fullResolvers);
+  addResolveFunctionsToSchema({ schema: mergedSchema, resolvers: fullResolvers });
 
   forEachField(mergedSchema, field => {
     if (field.resolve) {
