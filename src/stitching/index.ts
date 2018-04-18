@@ -1,7 +1,7 @@
 import makeRemoteExecutableSchema from './makeRemoteExecutableSchema';
 import introspectSchema from './introspectSchema';
 import mergeSchemas from './mergeSchemas';
-import delegateToSchema from './delegateToSchema';
+import delegateToSchema, { createRequest } from './delegateToSchema';
 import defaultMergedResolver from './defaultMergedResolver';
 
 export {
@@ -12,4 +12,5 @@ export {
   // but exposed for the community use
   delegateToSchema,
   defaultMergedResolver,
+  createRequest
 };
