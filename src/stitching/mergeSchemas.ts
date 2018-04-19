@@ -114,21 +114,24 @@ export default function mergeSchemas({
       }
     });
 
-    Object.keys(queryType.getFields()).forEach(name => {
-      if (!fullResolvers.Query) {
-        fullResolvers.Query = {};
-      }
-      fullResolvers.Query[name] = createDelegatingResolver(
-        mergeInfo,
-        'query',
-        name,
-      );
-    });
+    if (queryType) {
+      Object.keys(queryType.getFields()).forEach(name => {
+        if (!fullResolvers.Query) {
+          fullResolvers.Query = {};
+        }
+        fullResolvers.Query[name] = createDelegatingResolver(
+          mergeInfo,
+          'query',
+          name,
+        );
+      });
 
-    queryFields = {
-      ...queryFields,
-      ...queryType.getFields(),
-    };
+      queryFields = {
+        ...queryFields,
+        ...queryType.getFields(),
+      };
+    }
+
 
     if (mutationType) {
       if (!fullResolvers.Mutation) {

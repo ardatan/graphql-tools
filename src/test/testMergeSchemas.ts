@@ -660,6 +660,23 @@ bookingById(id: "b1") {
         expect(mergedResult).to.deep.equal(bookingResult);
       });
 
+      it('merging schema without a query', async () => {
+        const mutationOnlySchema = makeExecutableSchema({
+          typeDefs: `
+            type Mutation {
+              testMutation: Boolean
+            }
+          `,
+          resolvers: {
+            Mutation: { testMutation: () => true },
+          }
+        });
+
+        const mergedMutation = mergeSchemas({ schemas: [mergedSchema, mutationOnlySchema]});
+
+        expect(mergedMutation).to.be.an.instanceof(GraphQLSchema);
+      });
+
       it('local subscriptions working in merged schema', done => {
         const mockNotification = {
           notifications: {
