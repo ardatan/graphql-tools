@@ -1,5 +1,17 @@
 # Change log
 
+### v3.0.0 (prerelease)
+
+* Full rewrite of internals of mergeSchemas and delegateToSchema. Multiple bugs fixed
+* `delegateToSchema` is now a public API [Docs](https://www.apollographql.com/docs/graphql-tools/schema-delegation.html)
+* `delegateToSchema` now accepts an object. List of arguments is a deprecated API.
+* `delegateToSchema` no longer accepts `fragmentReplacements`, instead accepting transforms
+* `info.mergeInfo.delegateToSchema` is now a preferred delegation API, `info.mergeInfo.delegate` is deprecated
+* Using `mergeInfo` closure in resolvers of `mergeSchemas` is deprecated
+* Add schema transforms [Docs](https://www.apollographql.com/docs/graphql-tools/schema-transforms.html)
+* Add `transformSchema`, `visitSchema`, `visitObject` as utility functions for
+  transforms
+
 ### vNEXT
 
 ### v2.24.0
