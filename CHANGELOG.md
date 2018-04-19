@@ -2,6 +2,8 @@
 
 ### vNEXT
 
+* Add `createResolver` option to `makeRemoteExecutableSchema` [PR #734](https://github.com/apollographql/graphql-tools/pull/734)
+
 ### v2.24.0
 
 * Allow `extend interface` definitions in merged schemas [PR #703](https://github.com/apollographql/graphql-tools/pull/703)
