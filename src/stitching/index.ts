@@ -1,4 +1,4 @@
-import makeRemoteExecutableSchema from './makeRemoteExecutableSchema';
+import makeRemoteExecutableSchema, { createResolver as defaultCreateRemoteResolver } from './makeRemoteExecutableSchema';
 import introspectSchema from './introspectSchema';
 import mergeSchemas from './mergeSchemas';
 import delegateToSchema, { createDocument } from './delegateToSchema';
@@ -13,4 +13,5 @@ export {
   delegateToSchema,
   createDocument,
   defaultMergedResolver,
+  defaultCreateRemoteResolver
 };

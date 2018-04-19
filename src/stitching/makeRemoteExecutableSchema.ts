@@ -51,10 +51,12 @@ export default function makeRemoteExecutableSchema({
   schema,
   link,
   fetcher,
+  createResolver: customCreateResolver = createResolver
 }: {
   schema: GraphQLSchema | string;
   link?: ApolloLink;
   fetcher?: Fetcher;
+  createResolver?: (fetcher: Fetcher) => GraphQLFieldResolver<any, any>
 }): GraphQLSchema {
   if (!fetcher && link) {
     fetcher = linkToFetcher(link);
@@ -74,7 +76,7 @@ export default function makeRemoteExecutableSchema({
   const queryType = schema.getQueryType();
   const queries = queryType.getFields();
   Object.keys(queries).forEach(key => {
-    queryResolvers[key] = createResolver(fetcher);
+    queryResolvers[key] = customCreateResolver(fetcher);
   });
 
   // prepare mutation resolvers
@@ -83,7 +85,7 @@ export default function makeRemoteExecutableSchema({
   if (mutationType) {
     const mutations = mutationType.getFields();
     Object.keys(mutations).forEach(key => {
-      mutationResolvers[key] = createResolver(fetcher);
+      mutationResolvers[key] = customCreateResolver(fetcher);
     });
   }
 
@@ -153,7 +155,7 @@ export default function makeRemoteExecutableSchema({
   });
 }
 
-function createResolver(fetcher: Fetcher): GraphQLFieldResolver<any, any> {
+export function createResolver(fetcher: Fetcher): GraphQLFieldResolver<any, any> {
   return async (root, args, context, info) => {
     const fragments = Object.keys(info.fragments).map(fragment => info.fragments[fragment]);
     const document = {
