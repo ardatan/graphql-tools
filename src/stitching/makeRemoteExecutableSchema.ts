@@ -63,12 +63,14 @@ export default function makeRemoteExecutableSchema({
   }
 
   let typeDefs: string;
+  const printOptions = { commentDescriptions: true };
 
   if (typeof schema === 'string') {
     typeDefs = schema;
     schema = buildSchema(typeDefs);
   } else {
-    typeDefs = printSchema(schema);
+    // TODO fix types https://github.com/apollographql/graphql-tools/issues/542
+    typeDefs = (printSchema as any)(schema, printOptions);
   }
 
   // prepare query resolvers
