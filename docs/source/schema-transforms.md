@@ -64,7 +64,7 @@ Lastly, we need a result transform. This only comes into play if we request `__t
 
 <h2 id="api">API</h2>
 
-<h3 id="mergeSchemas">mergeSchemas</h3>
+<h3 id="mergeSchemas">Transform</h3>
 
 ```js
 type Transform = {
