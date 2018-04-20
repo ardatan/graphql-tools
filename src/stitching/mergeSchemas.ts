@@ -23,6 +23,7 @@ import {
   TypeWithResolvers,
   VisitType,
   VisitTypeResult,
+  IResolversParameter,
 } from '../Interfaces';
 import {
   extractExtensionDefinitions,
@@ -58,10 +59,7 @@ export default function mergeSchemas({
 }: {
   schemas: Array<string | GraphQLSchema | Array<GraphQLNamedType>>;
   onTypeConflict?: OnTypeConflict;
-  resolvers?:
-    | Array<IResolvers | ((mergeInfo: MergeInfo) => IResolvers)>
-    | IResolvers
-    | ((mergeInfo: MergeInfo) => IResolvers);
+  resolvers?: IResolversParameter;
 }): GraphQLSchema {
   let visitType: VisitType = defaultVisitType;
   if (onTypeConflict) {
@@ -80,10 +78,7 @@ function mergeSchemasImplementation({
 }: {
   schemas: Array<string | GraphQLSchema | Array<GraphQLNamedType>>;
   visitType?: VisitType;
-  resolvers?:
-    | Array<IResolvers | ((mergeInfo: MergeInfo) => IResolvers)>
-    | IResolvers
-    | ((mergeInfo: MergeInfo) => IResolvers);
+  resolvers?: IResolversParameter;
 }): GraphQLSchema {
   const allSchemas: Array<GraphQLSchema> = [];
   const typeCandidates: { [name: string]: Array<MergeTypeCandidate> } = {};
