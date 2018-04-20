@@ -43,10 +43,10 @@ export default async function delegateToSchema(
 
   const transforms = [
     ...(options.transforms || []),
-    AddArgumentsAsVariables(options.schema, args),
-    FilterToSchema(options.schema),
-    AddTypenameToAbstract(options.schema),
-    CheckResultAndHandleErrors(info, options.fieldName),
+    new AddArgumentsAsVariables(options.schema, args),
+    new FilterToSchema(options.schema),
+    new AddTypenameToAbstract(options.schema),
+    new CheckResultAndHandleErrors(info, options.fieldName),
   ];
 
   const processedRequest = applyRequestTransforms(rawRequest, transforms);

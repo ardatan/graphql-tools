@@ -23,36 +23,38 @@ export type RootTransformer = (
   | null
   | undefined;
 
-export default function TransformRootFields(
-  transform: RootTransformer,
-): Transform {
-  return {
-    transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
-      return visitSchema(originalSchema, {
-        [VisitSchemaKind.QUERY](type: GraphQLObjectType) {
-          return transformFields(
-            type,
-            (fieldName: string, field: GraphQLField<any, any>) =>
-              transform('Query', fieldName, field),
-          );
-        },
-        [VisitSchemaKind.MUTATION](type: GraphQLObjectType) {
-          return transformFields(
-            type,
-            (fieldName: string, field: GraphQLField<any, any>) =>
-              transform('Mutation', fieldName, field),
-          );
-        },
-        [VisitSchemaKind.SUBSCRIPTION](type: GraphQLObjectType) {
-          return transformFields(
-            type,
-            (fieldName: string, field: GraphQLField<any, any>) =>
-              transform('Subscription', fieldName, field),
-          );
-        },
-      });
-    },
-  };
+export default class TransformRootFields implements Transform {
+  private transform: RootTransformer;
+
+  constructor(transform: RootTransformer) {
+    this.transform = transform;
+  }
+
+  public transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
+    return visitSchema(originalSchema, {
+      [VisitSchemaKind.QUERY]: (type: GraphQLObjectType) => {
+        return transformFields(
+          type,
+          (fieldName: string, field: GraphQLField<any, any>) =>
+            this.transform('Query', fieldName, field),
+        );
+      },
+      [VisitSchemaKind.MUTATION]: (type: GraphQLObjectType) => {
+        return transformFields(
+          type,
+          (fieldName: string, field: GraphQLField<any, any>) =>
+            this.transform('Mutation', fieldName, field),
+        );
+      },
+      [VisitSchemaKind.SUBSCRIPTION]: (type: GraphQLObjectType) => {
+        return transformFields(
+          type,
+          (fieldName: string, field: GraphQLField<any, any>) =>
+            this.transform('Subscription', fieldName, field),
+        );
+      },
+    });
+  }
 }
 
 function transformFields(

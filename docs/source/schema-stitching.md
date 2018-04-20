@@ -217,11 +217,11 @@ addMockFunctionsToSchema({ schema: chirpSchema });
 // create transform schema
 
 const transformedChirpSchema = transformSchema(chirpSchema, [
-  Transforms.FilterRootFields((operation: string, rootField: string) =>
+  new Transforms.FilterRootFields((operation: string, rootField: string) =>
     ['Query.chirpById'].includes(`${operation}.${rootField}`),
   ),
-  Transforms.RenameTypes((name: string) => `Chirp_${name}`),
-  Transforms.RenameRootFields((name: string) => `Chirp_${name}`),
+  new Transforms.RenameTypes((name: string) => `Chirp_${name}`),
+  new Transforms.RenameRootFields((name: string) => `Chirp_${name}`),
 ]);
 ```
 

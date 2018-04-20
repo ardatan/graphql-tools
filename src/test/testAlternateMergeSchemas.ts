@@ -56,18 +56,20 @@ describe('merge schemas through transforms', () => {
   before(async () => {
     // namespace and strip schemas
     const transformedPropertySchema = transformSchema(propertySchema, [
-      Transforms.FilterRootFields((operation: string, rootField: string) =>
-        'Query.properties' === `${operation}.${rootField}`,
+      new Transforms.FilterRootFields(
+        (operation: string, rootField: string) =>
+          'Query.properties' === `${operation}.${rootField}`,
       ),
-      Transforms.RenameTypes((name: string) => `Properties_${name}`),
-      Transforms.RenameRootFields((name: string) => `Properties_${name}`),
+      new Transforms.RenameTypes((name: string) => `Properties_${name}`),
+      new Transforms.RenameRootFields((name: string) => `Properties_${name}`),
     ]);
     const transformedBookingSchema = transformSchema(bookingSchema, [
-      Transforms.FilterRootFields((operation: string, rootField: string) =>
-        'Query.bookings' === `${operation}.${rootField}`,
+      new Transforms.FilterRootFields(
+        (operation: string, rootField: string) =>
+          'Query.bookings' === `${operation}.${rootField}`,
       ),
-      Transforms.RenameTypes((name: string) => `Bookings_${name}`),
-      Transforms.RenameRootFields(
+      new Transforms.RenameTypes((name: string) => `Bookings_${name}`),
+      new Transforms.RenameRootFields(
         (operation: string, name: string) => `Bookings_${name}`,
       ),
     ]);

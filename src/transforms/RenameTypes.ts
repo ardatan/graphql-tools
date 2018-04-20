@@ -13,78 +13,85 @@ import { visitSchema, VisitSchemaKind } from '../transforms/visitSchema';
 import visitObject from '../transforms/visitObject';
 
 export type RenameOptions = {
-  renameBuiltins: Boolean;
-  renameScalars: Boolean;
+  renameBuiltins: boolean;
+  renameScalars: boolean;
 };
 
-export default function RenameTypes(
-  renamer: (name: string) => string | undefined,
-  options?: RenameOptions,
-): Transform {
-  const reverseMap = {};
-  const { renameBuiltins = false, renameScalars = true } = options || {};
-  return {
-    transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
-      return visitSchema(originalSchema, {
-        [VisitSchemaKind.TYPE](
-          type: GraphQLNamedType,
-        ): GraphQLNamedType | undefined {
-          if (isSpecifiedScalarType(type) && !renameBuiltins) {
-            return undefined;
-          }
-          if (type instanceof GraphQLScalarType && !renameScalars) {
-            return undefined;
-          }
-          const newName = renamer(type.name);
-          if (newName && newName !== type.name) {
-            reverseMap[newName] = type.name;
-            const newType = Object.assign(Object.create(type), type);
-            newType.name = newName;
-            return newType;
-          }
-        },
+export default class RenameTypes implements Transform {
+  private renamer: (name: string) => string | undefined;
+  private reverseMap: { [key: string]: string };
+  private renameBuiltins: boolean;
+  private renameScalars: boolean;
 
-        [VisitSchemaKind.ROOT_OBJECT](type: GraphQLNamedType) {
+  constructor(
+    renamer: (name: string) => string | undefined,
+    options?: RenameOptions,
+  ) {
+    this.renamer = renamer;
+    this.reverseMap = {};
+    const { renameBuiltins = false, renameScalars = true } = options || {};
+    this.renameBuiltins = renameBuiltins;
+    this.renameScalars = renameScalars;
+  }
+
+  public transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
+    return visitSchema(originalSchema, {
+      [VisitSchemaKind.TYPE]: (type: GraphQLNamedType) => {
+        if (isSpecifiedScalarType(type) && !this.renameBuiltins) {
           return undefined;
-        },
-      });
-    },
+        }
+        if (type instanceof GraphQLScalarType && !this.renameScalars) {
+          return undefined;
+        }
+        const newName = this.renamer(type.name);
+        if (newName && newName !== type.name) {
+          this.reverseMap[newName] = type.name;
+          const newType = Object.assign(Object.create(type), type);
+          newType.name = newName;
+          return newType;
+        }
+      },
 
-    transformRequest(originalRequest: Request): Request {
-      const newDocument = visit(originalRequest.document, {
-        [Kind.NAMED_TYPE](node: NamedTypeNode): NamedTypeNode | undefined {
-          const name = node.name.value;
-          if (name in reverseMap) {
-            return {
-              ...node,
-              name: {
-                kind: Kind.NAME,
-                value: reverseMap[name],
-              },
-            };
-          }
-        },
+      [VisitSchemaKind.ROOT_OBJECT](type: GraphQLNamedType) {
+        return undefined;
+      },
+    });
+  }
+
+  public transformRequest(originalRequest: Request): Request {
+    const newDocument = visit(originalRequest.document, {
+      [Kind.NAMED_TYPE]: (node: NamedTypeNode) => {
+        const name = node.name.value;
+        if (name in this.reverseMap) {
+          return {
+            ...node,
+            name: {
+              kind: Kind.NAME,
+              value: this.reverseMap[name],
+            },
+          };
+        }
+      },
+    });
+    return {
+      document: newDocument,
+      variables: originalRequest.variables,
+    };
+  }
+
+  public transformResult(result: Result): Result {
+    if (result.data) {
+      const newData = visitObject(result.data, (key, value) => {
+        if (key === '__typename') {
+          return this.renamer(value);
+        }
       });
-      return {
-        document: newDocument,
-        variables: originalRequest.variables,
+      const newResult = {
+        ...result,
+        data: newData,
       };
-    },
-
-    transformResult(result: Result): Result {
-      if (result.data) {
-        const newData = visitObject(result.data, (key, value) => {
-          if (key === '__typename') {
-            return renamer(value);
-          }
-        });
-        const newResult = {
-          ...result,
-          data: newData,
-        };
-        return newResult;
-      }
-      return result;
-    },
-  };
+      return newResult;
+    }
+    return result;
+  }
 }

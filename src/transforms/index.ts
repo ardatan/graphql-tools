@@ -16,7 +16,7 @@ import FilterRootFields from './FilterRootFields';
 import ExpandAbstractTypes from './ExpandAbstractTypes';
 
 export const Transforms: {
-  [name: string]: (...args: any[]) => Transform
+  [name: string]: { new (...args: Array<any>): Transform };
 } = {
   AddArgumentsAsVariables,
   CheckResultAndHandleErrors,

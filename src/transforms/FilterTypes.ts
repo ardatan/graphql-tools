@@ -4,20 +4,22 @@ import { GraphQLSchema, GraphQLNamedType } from 'graphql';
 import { Transform } from '../transforms/transforms';
 import { visitSchema, VisitSchemaKind } from '../transforms/visitSchema';
 
-export default function FilterTypes(
-  filter: (type: GraphQLNamedType) => Boolean,
-): Transform {
-  return {
-    transformSchema(schema: GraphQLSchema): GraphQLSchema {
-      return visitSchema(schema, {
-        [VisitSchemaKind.TYPE](type: GraphQLNamedType): null | undefined {
-          if (filter(type)) {
-            return undefined;
-          } else {
-            return null;
-          }
-        },
-      });
-    },
-  };
+export default class FilterTypes implements Transform {
+  private filter: (type: GraphQLNamedType) => Boolean;
+
+  constructor(filter: (type: GraphQLNamedType) => Boolean) {
+    this.filter = filter;
+  }
+
+  public transformSchema(schema: GraphQLSchema): GraphQLSchema {
+    return visitSchema(schema, {
+      [VisitSchemaKind.TYPE]: (type: GraphQLNamedType) => {
+        if (this.filter(type)) {
+          return undefined;
+        } else {
+          return null;
+        }
+      },
+    });
+  }
 }

@@ -10,7 +10,7 @@ describe('transforms', () => {
     let schema: GraphQLSchema;
     before(() => {
       const transforms = [
-        Transforms.RenameTypes(
+        new Transforms.RenameTypes(
           (name: string) =>
             ({
               Property: 'House',
@@ -72,7 +72,7 @@ describe('transforms', () => {
     let schema: GraphQLSchema;
     before(() => {
       const transforms = [
-        Transforms.RenameTypes((name: string) => `Property_${name}`),
+        new Transforms.RenameTypes((name: string) => `Property_${name}`),
       ];
       schema = transformSchema(propertySchema, transforms);
     });
@@ -124,8 +124,8 @@ describe('transforms', () => {
     before(() => {
       const typeNames = ['ID', 'String', 'DateTime', 'Query', 'Booking'];
       const transforms = [
-        Transforms.FilterTypes((type: GraphQLNamedType) =>
-          typeNames.indexOf(type.name) >= 0
+        new Transforms.FilterTypes(
+          (type: GraphQLNamedType) => typeNames.indexOf(type.name) >= 0,
         ),
       ];
       schema = transformSchema(bookingSchema, transforms);
