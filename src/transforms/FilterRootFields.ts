@@ -6,7 +6,7 @@ export type RootFilter = (
   operation: 'Query' | 'Mutation' | 'Subscription',
   fieldName: string,
   field: GraphQLField<any, any>,
-) => Boolean;
+) => boolean;
 
 export default class FilterRootFields implements Transform {
   private transformer: TransformRootFields;

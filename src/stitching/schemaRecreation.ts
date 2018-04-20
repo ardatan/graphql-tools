@@ -33,7 +33,7 @@ import defaultMergedResolver from './defaultMergedResolver';
 export function recreateType(
   type: GraphQLNamedType,
   resolveType: ResolveType<any>,
-  keepResolvers: Boolean,
+  keepResolvers: boolean,
 ): GraphQLNamedType {
   if (type instanceof GraphQLObjectType) {
     const fields = type.getFields();
@@ -148,7 +148,7 @@ function parseLiteral(ast: ValueNode): any {
 export function fieldMapToFieldConfigMap(
   fields: GraphQLFieldMap<any, any>,
   resolveType: ResolveType<any>,
-  keepResolvers: Boolean,
+  keepResolvers: boolean,
 ): GraphQLFieldConfigMap<any, any> {
   const result: GraphQLFieldConfigMap<any, any> = {};
   Object.keys(fields).forEach(name => {
@@ -195,7 +195,7 @@ export function createResolveType(
 export function fieldToFieldConfig(
   field: GraphQLField<any, any>,
   resolveType: ResolveType<any>,
-  keepResolvers: Boolean,
+  keepResolvers: boolean,
 ): GraphQLFieldConfig<any, any> {
   return {
     type: resolveType(field.type),

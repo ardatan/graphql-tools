@@ -16,6 +16,6 @@ export default function mergeDeep(target: any, source: any): any {
   return output;
 }
 
-function isObject(item: any): Boolean {
+function isObject(item: any): boolean {
   return item && typeof item === 'object' && !Array.isArray(item);
 }

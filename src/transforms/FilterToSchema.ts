@@ -65,8 +65,7 @@ function filterDocumentToSchema(
   const validFragments: Array<FragmentDefinitionNode> = fragments.filter(
     (fragment: FragmentDefinitionNode) => {
       const typeName = fragment.typeCondition.name.value;
-      const type = targetSchema.getType(typeName);
-      return Boolean(type);
+      return Boolean(targetSchema.getType(typeName));
     },
   );
 
@@ -268,7 +267,7 @@ function resolveType(type: GraphQLType): GraphQLNamedType {
 }
 
 function union(...arrays: Array<Array<string>>): Array<string> {
-  const cache: { [key: string]: Boolean } = {};
+  const cache: { [key: string]: boolean } = {};
   const result: Array<string> = [];
   arrays.forEach(array => {
     array.forEach(item => {

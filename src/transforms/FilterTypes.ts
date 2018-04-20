@@ -5,9 +5,9 @@ import { Transform } from '../transforms/transforms';
 import { visitSchema, VisitSchemaKind } from '../transforms/visitSchema';
 
 export default class FilterTypes implements Transform {
-  private filter: (type: GraphQLNamedType) => Boolean;
+  private filter: (type: GraphQLNamedType) => boolean;
 
-  constructor(filter: (type: GraphQLNamedType) => Boolean) {
+  constructor(filter: (type: GraphQLNamedType) => boolean) {
     this.filter = filter;
   }
 

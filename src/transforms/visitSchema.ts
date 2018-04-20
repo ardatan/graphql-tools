@@ -38,7 +38,7 @@ export type TypeVisitor = (
 export function visitSchema(
   schema: GraphQLSchema,
   visitor: SchemaVisitor,
-  stripResolvers?: Boolean,
+  stripResolvers?: boolean,
 ) {
   const types = {};
   const resolveType = createResolveType(name => {
