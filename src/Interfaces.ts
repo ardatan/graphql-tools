@@ -33,6 +33,7 @@ export interface IAddResolveFunctionsToSchemaOptions {
 }
 
 export interface IResolverOptions<TSource = any, TContext = any> {
+  fragment?: string;
   resolve?: IFieldResolver<TSource, TContext>;
   subscribe?: IFieldResolver<TSource, TContext>;
   __resolveType?: GraphQLTypeResolver<TSource, TContext>;
@@ -45,9 +46,7 @@ export type Transform = {
   transformResult?: (result: Result) => Result;
 };
 
-export interface IDelegateToSchemaOptions<
-  TContext = { [key: string]: any },
-> {
+export interface IDelegateToSchemaOptions<TContext = { [key: string]: any }> {
   schema: GraphQLSchema;
   operation: Operation;
   fieldName: string;
@@ -66,9 +65,7 @@ export type MergeInfo = {
     info: GraphQLResolveInfo,
     transforms?: Array<Transform>,
   ) => any;
-  delegateToSchema<TContext>(
-    options: IDelegateToSchemaOptions<TContext>
-  ): any,
+  delegateToSchema<TContext>(options: IDelegateToSchemaOptions<TContext>): any;
 };
 
 export type IFieldResolver<TSource, TContext> = (

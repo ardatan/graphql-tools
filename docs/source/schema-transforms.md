@@ -64,10 +64,10 @@ Lastly, we need a result transform. This only comes into play if we request `__t
 
 <h2 id="api">API</h2>
 
-<h3 id="mergeSchemas">mergeSchemas</h3>
+<h3 id="Transform">Transform</h3>
 
 ```js
-type Transform = {
+interface Transform = {
   transformSchema?: (schema: GraphQLSchema) => GraphQLSchema;
   transformRequest?: (request: Request) => Request;
   transformResult?: (result: Result) => Result;
@@ -157,7 +157,7 @@ A helper function to do a depth-first traversal of a nested object, such as `dat
 
 <h2 id="built-in">Built-in transforms</h2>
 
-Built-in transforms are all functions returning a `Transform`.
+Built-in transforms are all classes implementing a `Transform` interface.
 
 ### Modifying types
 
@@ -208,7 +208,7 @@ type RootFilter = (
 * `RenameRootFields(renamer)` - rename root fields, by applying `renamer` to their names.
 
 ```js
-function RenameRootFields(
+RenameRootFields(
   renamer: (
     operation: 'Query' | 'Mutation' | 'Subscription',
     name: string,
@@ -235,3 +235,4 @@ Those transforms are automatically added to transform list by `delegateToSchema`
 * `AddTypenameToAbstract` - add `__typename` to all abstract types in the document
 * `FilterToSchema` - given a schema and document, remove all fields, variables and fragments for the types that don't exist in that schema
 * `CheckResultAndHandleErrors` - given a result from a subschema, propagate errors so that they match correct subfield. Also provide correct key if the aliases are used.
+* `ExpandAbstractTypes` - given a transformed schema and a subschema, expand all abstract types that aren't implemented into subschema into their implementations

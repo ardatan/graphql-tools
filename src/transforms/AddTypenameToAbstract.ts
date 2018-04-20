@@ -14,21 +14,23 @@ import {
 import { Request } from '../Interfaces';
 import { Transform } from './transforms';
 
-export default function AddTypenameToAbstract(
-  targetSchema: GraphQLSchema,
-): Transform {
-  return {
-    transformRequest(originalRequest: Request): Request {
-      const document = addTypenameToAbstract(
-        targetSchema,
-        originalRequest.document,
-      );
-      return {
-        ...originalRequest,
-        document,
-      };
-    },
-  };
+export default class AddTypenameToAbstract implements Transform {
+  private targetSchema: GraphQLSchema;
+
+  constructor(targetSchema: GraphQLSchema) {
+    this.targetSchema = targetSchema;
+  }
+
+  public transformRequest(originalRequest: Request): Request {
+    const document = addTypenameToAbstract(
+      this.targetSchema,
+      originalRequest.document,
+    );
+    return {
+      ...originalRequest,
+      document,
+    };
+  }
 }
 
 function addTypenameToAbstract(

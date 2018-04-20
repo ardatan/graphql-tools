@@ -8,15 +8,26 @@ import {
   subscribe,
   execute,
   validate,
+  print,
+  GraphQLResolveInfo,
+  InlineFragmentNode,
   GraphQLSchema,
-  GraphQLResolveInfo
 } from 'graphql';
-import { Request, Transform, IDelegateToSchemaOptions, OperationRootDefinition } from '../Interfaces';
-import { applyRequestTransforms, applyResultTransforms } from '../transforms/transforms';
+import {
+  Request,
+  IDelegateToSchemaOptions,
+  Transform,
+  OperationRootDefinition,
+} from '../Interfaces';
+import {
+  applyRequestTransforms,
+  applyResultTransforms
+} from '../transforms/transforms';
 import AddArgumentsAsVariables from '../transforms/AddArgumentsAsVariables';
 import FilterToSchema from '../transforms/FilterToSchema';
 import AddTypenameToAbstract from '../transforms/AddTypenameToAbstract';
 import CheckResultAndHandleErrors from '../transforms/CheckResultAndHandleErrors';
+import ReplaceFieldWithFragment from '../transforms/ReplaceFieldWithFragment';
 
 export function createRequest(
   targetSchema: GraphQLSchema,
@@ -88,59 +99,116 @@ export function createRequest(
 
   transforms = [
     ...(transforms || []),
-    AddArgumentsAsVariables(targetSchema, roots),
-    FilterToSchema(targetSchema),
-    AddTypenameToAbstract(targetSchema)
+    new AddArgumentsAsVariables(targetSchema, roots),
+    new FilterToSchema(targetSchema),
+    new AddTypenameToAbstract(targetSchema),
   ];
 
   return applyRequestTransforms(rawRequest, transforms);
 }
 
 export default async function delegateToSchema(
+  options: IDelegateToSchemaOptions | GraphQLSchema,
+  ...args: Array<any>
+): Promise<any>;
+export default async function delegateToSchema(
+  options: IDelegateToSchemaOptions | GraphQLSchema,
+  fragmentReplacements: {
+    [typeName: string]: { [fieldName: string]: InlineFragmentNode };
+  },
+  operation: 'query' | 'mutation' | 'subscription',
+  fieldName: string,
+  args: { [key: string]: any },
+  context: { [key: string]: any },
+  info: GraphQLResolveInfo,
+  transforms?: Array<Transform>,
+): Promise<any> {
+  if (options instanceof GraphQLSchema) {
+    const schema = options;
+    console.warn(
+      'Argument list is a deprecated. Pass object of parameters ' +
+        'to delegate to schema',
+    );
+    const fragments: Array<{ field: string; fragment: string }> = [];
+    Object.keys(fragmentReplacements).forEach(typeName => {
+      const typeFragments = fragmentReplacements[typeName];
+      Object.keys(typeFragments).forEach(field => {
+        fragments.push({ field, fragment: print(typeFragments[field]) });
+      });
+    });
+    const newOptions: IDelegateToSchemaOptions = {
+      schema,
+      operation,
+      fieldName,
+      args,
+      context,
+      info,
+      transforms: [
+        new ReplaceFieldWithFragment(schema, fragments),
+        ...(transforms || []),
+      ],
+    };
+    return delegateToSchemaImplementation(newOptions);
+  } else {
+    return delegateToSchemaImplementation(options);
+  }
+}
+
+async function delegateToSchemaImplementation(
   options: IDelegateToSchemaOptions,
 ): Promise<any> {
+  const {
+    info,
+    args = {},
+    fieldName,
+    schema,
+    operation,
+    context
+   } = options;
   const processedRequest = createRequest(
-    options.schema,
-    options.operation,
+    schema,
+    operation,
     [
       {
-        fieldName: options.fieldName,
-        args: options.args || {},
-        info: options.info
+        fieldName,
+        args,
+        info
       }
     ],
-    options.info,
+    info,
     options.transforms
   );
 
-  const errors = validate(options.schema, processedRequest.document);
+  const errors = validate(schema, processedRequest.document);
   if (errors.length > 0) {
     throw errors;
   }
 
-  if (options.operation === 'query' || options.operation === 'mutation') {
+  const transforms = [
+    ...(options.transforms || []),
+    new CheckResultAndHandleErrors(info, fieldName),
+  ];
+
+  if (operation === 'query' || operation === 'mutation') {
     return applyResultTransforms(
       await execute(
-        options.schema,
+        schema,
         processedRequest.document,
-        options.info.rootValue,
-        options.context,
+        info.rootValue,
+        context,
         processedRequest.variables,
       ),
-      [
-        ...(options.transforms || []),
-        CheckResultAndHandleErrors(options.info, options.fieldName),
-      ]
+      transforms,
     );
   }
 
-  if (options.operation === 'subscription') {
+  if (operation === 'subscription') {
     // apply result processing ???
     return subscribe(
-      options.schema,
+      schema,
       processedRequest.document,
-      options.info.rootValue,
-      options.context,
+      info.rootValue,
+      context,
       processedRequest.variables,
     );
   }

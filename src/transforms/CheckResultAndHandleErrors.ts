@@ -2,13 +2,16 @@ import { GraphQLResolveInfo } from 'graphql';
 import { checkResultAndHandleErrors } from '../stitching/errors';
 import { Transform } from './transforms';
 
-export default function CheckResultAndHandleErrors(
-  info: GraphQLResolveInfo,
-  fieldName?: string,
-): Transform {
-  return {
-    transformResult(result: any): any {
-      return checkResultAndHandleErrors(result, info, fieldName);
-    },
-  };
+export default class CheckResultAndHandleErrors implements Transform {
+  private info: GraphQLResolveInfo;
+  private fieldName?: string;
+
+  constructor(info: GraphQLResolveInfo, fieldName?: string) {
+    this.info = info;
+    this.fieldName = fieldName;
+  }
+
+  public transformResult(result: any): any {
+    return checkResultAndHandleErrors(result, this.info, this.fieldName);
+  }
 }

@@ -18,27 +18,30 @@ import {
 import { Request, OperationRootDefinition } from '../Interfaces';
 import { Transform } from './transforms';
 
-export default function AddArgumentsAsVariablesTransform(
-  schema: GraphQLSchema,
-  args: { [key: string]: any },
-): Transform {
-  return {
-    transformRequest(originalRequest: Request): Request {
-      const { document, newVariables } = addVariablesToRootField(
-        schema,
-        originalRequest.document,
-        args,
-      );
-      const variables = {
-        ...originalRequest.variables,
-        ...newVariables,
-      };
-      return {
-        document,
-        variables,
-      };
-    },
-  };
+export default class AddArgumentsAsVariablesTransform implements Transform {
+  private schema: GraphQLSchema;
+  private args: { [key: string]: any };
+
+  constructor(schema: GraphQLSchema, args: { [key: string]: any }) {
+    this.schema = schema;
+    this.args = args;
+  }
+
+  public transformRequest(originalRequest: Request): Request {
+    const { document, newVariables } = addVariablesToRootField(
+      this.schema,
+      originalRequest.document,
+      this.args,
+    );
+    const variables = {
+      ...originalRequest.variables,
+      ...newVariables,
+    };
+    return {
+      document,
+      variables,
+    };
+  }
 }
 
 function addVariablesToRootField(

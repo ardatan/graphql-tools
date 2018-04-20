@@ -18,29 +18,29 @@ import { Transform, Request } from '../Interfaces';
 
 type TypeMapping = { [key: string]: Array<string> };
 
-export default function ExpandAbstractTypes(
-  transformedSchema: GraphQLSchema,
-  targetSchema: GraphQLSchema,
-): Transform {
-  const mapping: TypeMapping = extractPossibleTypes(
-    transformedSchema,
-    targetSchema,
-  );
-  const reverseMapping: TypeMapping = flipMapping(mapping);
-  return {
-    transformRequest(originalRequest: Request): Request {
-      const document = expandAbstractTypes(
-        targetSchema,
-        mapping,
-        reverseMapping,
-        originalRequest.document,
-      );
-      return {
-        ...originalRequest,
-        document,
-      };
-    },
-  };
+export default class ExpandAbstractTypes implements Transform {
+  private targetSchema: GraphQLSchema;
+  private mapping: TypeMapping;
+  private reverseMapping: TypeMapping;
+
+  constructor(transformedSchema: GraphQLSchema, targetSchema: GraphQLSchema) {
+    this.targetSchema = targetSchema;
+    this.mapping = extractPossibleTypes(transformedSchema, targetSchema);
+    this.reverseMapping = flipMapping(this.mapping);
+  }
+
+  public transformRequest(originalRequest: Request): Request {
+    const document = expandAbstractTypes(
+      this.targetSchema,
+      this.mapping,
+      this.reverseMapping,
+      originalRequest.document,
+    );
+    return {
+      ...originalRequest,
+      document,
+    };
+  }
 }
 
 function extractPossibleTypes(

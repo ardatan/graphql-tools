@@ -9,9 +9,6 @@ import {
   GraphQLScalarType,
   GraphQLSchema,
   GraphQLString,
-  InlineFragmentNode,
-  Kind,
-  OperationDefinitionNode,
   extendSchema,
   getNamedType,
   isNamedType,
@@ -92,7 +89,10 @@ function mergeSchemasImplementation({
   const typeCandidates: { [name: string]: Array<MergeTypeCandidate> } = {};
   const types: { [name: string]: GraphQLNamedType } = {};
   const extensions: Array<DocumentNode> = [];
-  const fragments = {};
+  const fragments: Array<{
+    field: string;
+    fragment: string;
+  }> = [];
 
   if (!visitType) {
     visitType = defaultVisitType;
@@ -268,10 +268,10 @@ function mergeSchemasImplementation({
     Object.keys(type).forEach(fieldName => {
       const field = type[fieldName];
       if (field.fragment) {
-        const parsedFragment = parseFragmentToInlineFragment(field.fragment);
-        const actualTypeName = parsedFragment.typeCondition.name.value;
-        fragments[actualTypeName] = fragments[actualTypeName] || {};
-        fragments[actualTypeName][fieldName] = parsedFragment;
+        fragments.push({
+          field: fieldName,
+          fragment: field.fragment,
+        });
       }
     });
   });
@@ -303,9 +303,10 @@ function mergeSchemasImplementation({
 
 function createMergeInfo(
   allSchemas: Array<GraphQLSchema>,
-  fragmentReplacements: {
-    [name: string]: { [fieldName: string]: InlineFragmentNode };
-  },
+  fragments: Array<{
+    field: string;
+    fragment: string;
+  }>,
 ): MergeInfo {
   return {
     delegate(
@@ -321,13 +322,13 @@ function createMergeInfo(
           'Use `mergeInfo.delegateToSchema and pass explicit schema instances.',
       );
       const schema = guessSchemaByRootField(allSchemas, operation, fieldName);
-      const expandTransforms = Transforms.ExpandAbstractTypes(
+      const expandTransforms = new Transforms.ExpandAbstractTypes(
         info.schema,
         schema,
       );
-      const fragmentTransform = Transforms.ReplaceFieldWithFragment(
+      const fragmentTransform = new Transforms.ReplaceFieldWithFragment(
         schema,
-        fragmentReplacements,
+        fragments,
       );
       return delegateToSchema({
         schema,
@@ -349,11 +350,11 @@ function createMergeInfo(
         ...options,
         transforms: [
           ...(options.transforms || []),
-          Transforms.ExpandAbstractTypes(options.info.schema, options.schema),
-          Transforms.ReplaceFieldWithFragment(
+          new Transforms.ExpandAbstractTypes(
+            options.info.schema,
             options.schema,
-            fragmentReplacements,
           ),
+          new Transforms.ReplaceFieldWithFragment(options.schema, fragments),
         ],
       });
     },
@@ -425,33 +426,6 @@ function forEachField(schema: GraphQLSchema, fn: FieldIteratorFn): void {
       });
     }
   });
-}
-
-function parseFragmentToInlineFragment(
-  definitions: string,
-): InlineFragmentNode {
-  if (definitions.trim().startsWith('fragment')) {
-    const document = parse(definitions);
-    for (const definition of document.definitions) {
-      if (definition.kind === Kind.FRAGMENT_DEFINITION) {
-        return {
-          kind: Kind.INLINE_FRAGMENT,
-          typeCondition: definition.typeCondition,
-          selectionSet: definition.selectionSet,
-        };
-      }
-    }
-  }
-
-  const query = parse(`{${definitions}}`)
-    .definitions[0] as OperationDefinitionNode;
-  for (const selection of query.selectionSet.selections) {
-    if (selection.kind === Kind.INLINE_FRAGMENT) {
-      return selection;
-    }
-  }
-
-  throw new Error('Could not parse fragment');
 }
 
 function addTypeCandidate(

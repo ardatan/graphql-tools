@@ -25,19 +25,23 @@ import { Request } from '../Interfaces';
 import implementsAbstractType from '../implementsAbstractType';
 import { Transform } from './transforms';
 
-export default function FilterToSchema(targetSchema: GraphQLSchema): Transform {
-  return {
-    transformRequest(originalRequest: Request): Request {
-      const document = filterDocumentToSchema(
-        targetSchema,
-        originalRequest.document,
-      );
-      return {
-        ...originalRequest,
-        document,
-      };
-    },
-  };
+export default class FilterToSchema implements Transform {
+  private targetSchema: GraphQLSchema;
+
+  constructor(targetSchema: GraphQLSchema) {
+    this.targetSchema = targetSchema;
+  }
+
+  public transformRequest(originalRequest: Request): Request {
+    const document = filterDocumentToSchema(
+      this.targetSchema,
+      originalRequest.document,
+    );
+    return {
+      ...originalRequest,
+      document,
+    };
+  }
 }
 
 function filterDocumentToSchema(
