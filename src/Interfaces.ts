@@ -8,12 +8,11 @@ import {
   GraphQLIsTypeOfFn,
   GraphQLTypeResolver,
   GraphQLScalarType,
+  GraphQLNamedType,
   DocumentNode,
 } from 'graphql';
 
-import {
-  SchemaDirectiveVisitor,
-} from './schemaVisitor';
+import { SchemaDirectiveVisitor } from './schemaVisitor';
 
 /* TODO: Add documentation */
 
@@ -34,10 +33,27 @@ export interface IAddResolveFunctionsToSchemaOptions {
 }
 
 export interface IResolverOptions<TSource = any, TContext = any> {
+  fragment?: string;
   resolve?: IFieldResolver<TSource, TContext>;
   subscribe?: IFieldResolver<TSource, TContext>;
   __resolveType?: GraphQLTypeResolver<TSource, TContext>;
   __isTypeOf?: GraphQLIsTypeOfFn<TSource, TContext>;
+}
+
+export type Transform = {
+  transformSchema?: (schema: GraphQLSchema) => GraphQLSchema;
+  transformRequest?: (originalRequest: Request) => Request;
+  transformResult?: (result: Result) => Result;
+};
+
+export interface IDelegateToSchemaOptions<TContext = { [key: string]: any }> {
+  schema: GraphQLSchema;
+  operation: Operation;
+  fieldName: string;
+  args?: { [key: string]: any };
+  context: TContext;
+  info: GraphQLResolveInfo;
+  transforms?: Array<Transform>;
 }
 
 export type MergeInfo = {
@@ -47,7 +63,9 @@ export type MergeInfo = {
     args: { [key: string]: any },
     context: { [key: string]: any },
     info: GraphQLResolveInfo,
+    transforms?: Array<Transform>,
   ) => any;
+  delegateToSchema<TContext>(options: IDelegateToSchemaOptions<TContext>): any;
 };
 
 export type IFieldResolver<TSource, TContext> = (
@@ -70,6 +88,11 @@ export interface IResolvers<TSource = any, TContext = any> {
     | GraphQLScalarType
     | IEnumResolver;
 }
+export type IResolversParameter =
+  | Array<IResolvers | ((mergeInfo: MergeInfo) => IResolvers)>
+  | IResolvers
+  | ((mergeInfo: MergeInfo) => IResolvers);
+
 export interface ILogger {
   log: (message: string | Error) => void;
 }
@@ -78,9 +101,13 @@ export interface IConnectorCls<TContext = any> {
   new (context?: TContext): any;
 }
 export type IConnectorFn<TContext = any> = (context?: TContext) => any;
-export type IConnector<TContext = any> = IConnectorCls<TContext> | IConnectorFn<TContext>;
+export type IConnector<TContext = any> =
+  | IConnectorCls<TContext>
+  | IConnectorFn<TContext>;
 
-export type IConnectors<TContext = any> = { [key: string]: IConnector<TContext> };
+export type IConnectors<TContext = any> = {
+  [key: string]: IConnector<TContext>;
+};
 
 export interface IExecutableSchemaDefinition<TContext = any> {
   typeDefs: ITypeDefinitions;
@@ -136,11 +163,40 @@ export interface IMockServer {
   ) => Promise<ExecutionResult>;
 }
 
+export type MergeTypeCandidate = {
+  schema?: GraphQLSchema;
+  type: GraphQLNamedType;
+};
+
+export type TypeWithResolvers = {
+  type: GraphQLNamedType;
+  resolvers?: IResolvers;
+};
+
+export type VisitTypeResult = GraphQLNamedType | TypeWithResolvers | null;
+
+export type VisitType = (
+  name: string,
+  candidates: Array<MergeTypeCandidate>,
+) => VisitTypeResult;
+
+export type Operation = 'query' | 'mutation' | 'subscription';
+
+export type Request = {
+  document: DocumentNode;
+  variables: Record<string, any>;
+  extensions?: Record<string, any>;
+};
+
+export type Result = ExecutionResult & {
+  extensions?: Record<string, any>;
+};
+
 export type ResolveType<T extends GraphQLType> = (type: T) => T;
 
 export type GraphQLParseOptions = {
-  noLocation?: boolean,
-  allowLegacySDLEmptyFields?: boolean,
-  allowLegacySDLImplementsInterfaces?: boolean,
-  experimentalFragmentVariables?: boolean,
+  noLocation?: boolean;
+  allowLegacySDLEmptyFields?: boolean;
+  allowLegacySDLImplementsInterfaces?: boolean;
+  experimentalFragmentVariables?: boolean;
 };

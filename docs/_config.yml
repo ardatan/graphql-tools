@@ -12,8 +12,10 @@ sidebar_categories:
     - scalars
     - mocking
     - connectors
-    - remote-schemas
     - schema-directives
+    - schema-delegation
+    - remote-schemas
+    - schema-transforms
     - schema-stitching
   Related:
     - title: Monitoring and caching
