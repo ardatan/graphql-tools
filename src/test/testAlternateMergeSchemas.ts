@@ -3,7 +3,12 @@
 import { expect } from 'chai';
 import { graphql, GraphQLSchema } from 'graphql';
 import mergeSchemas from '../stitching/mergeSchemas';
-import { Transforms, transformSchema } from '../transforms';
+import {
+  transformSchema,
+  FilterRootFields,
+  RenameTypes,
+  RenameRootFields,
+} from '../transforms';
 import { propertySchema, bookingSchema } from './testingSchemas';
 
 let linkSchema = `
@@ -56,20 +61,20 @@ describe('merge schemas through transforms', () => {
   before(async () => {
     // namespace and strip schemas
     const transformedPropertySchema = transformSchema(propertySchema, [
-      new Transforms.FilterRootFields(
+      new FilterRootFields(
         (operation: string, rootField: string) =>
           'Query.properties' === `${operation}.${rootField}`,
       ),
-      new Transforms.RenameTypes((name: string) => `Properties_${name}`),
-      new Transforms.RenameRootFields((name: string) => `Properties_${name}`),
+      new RenameTypes((name: string) => `Properties_${name}`),
+      new RenameRootFields((name: string) => `Properties_${name}`),
     ]);
     const transformedBookingSchema = transformSchema(bookingSchema, [
-      new Transforms.FilterRootFields(
+      new FilterRootFields(
         (operation: string, rootField: string) =>
           'Query.bookings' === `${operation}.${rootField}`,
       ),
-      new Transforms.RenameTypes((name: string) => `Bookings_${name}`),
-      new Transforms.RenameRootFields(
+      new RenameTypes((name: string) => `Bookings_${name}`),
+      new RenameRootFields(
         (operation: string, name: string) => `Bookings_${name}`,
       ),
     ]);

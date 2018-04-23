@@ -1,16 +1,30 @@
 /* tslint:disable:no-unused-expression */
 
 import { expect } from 'chai';
-import { GraphQLSchema, GraphQLNamedType, graphql } from 'graphql';
+import {
+  GraphQLSchema,
+  GraphQLNamedType,
+  graphql,
+  Kind,
+  SelectionSetNode,
+} from 'graphql';
+import { makeExecutableSchema } from '../schemaGenerator';
 import { propertySchema, bookingSchema } from './testingSchemas';
-import { Transforms, transformSchema } from '../transforms';
+import delegateToSchema from '../stitching/delegateToSchema';
+import {
+  transformSchema,
+  RenameTypes,
+  FilterTypes,
+  WrapQuery,
+  ExtractField,
+} from '../transforms';
 
 describe('transforms', () => {
   describe('rename type', () => {
     let schema: GraphQLSchema;
     before(() => {
       const transforms = [
-        new Transforms.RenameTypes(
+        new RenameTypes(
           (name: string) =>
             ({
               Property: 'House',
@@ -72,7 +86,7 @@ describe('transforms', () => {
     let schema: GraphQLSchema;
     before(() => {
       const transforms = [
-        new Transforms.RenameTypes((name: string) => `Property_${name}`),
+        new RenameTypes((name: string) => `Property_${name}`),
       ];
       schema = transformSchema(propertySchema, transforms);
     });
@@ -124,7 +138,7 @@ describe('transforms', () => {
     before(() => {
       const typeNames = ['ID', 'String', 'DateTime', 'Query', 'Booking'];
       const transforms = [
-        new Transforms.FilterTypes(
+        new FilterTypes(
           (type: GraphQLNamedType) => typeNames.indexOf(type.name) >= 0,
         ),
       ];
@@ -188,6 +202,269 @@ describe('transforms', () => {
             path: undefined,
           },
         ],
+      });
+    });
+  });
+
+  describe('tree operations', () => {
+    let data: any;
+    let subSchema: GraphQLSchema;
+    let schema: GraphQLSchema;
+    before(() => {
+      data = {
+        u1: {
+          id: 'u1',
+          username: 'alice',
+          address: {
+            streetAddress: 'Windy Shore 21 A 7',
+            zip: '12345',
+          },
+        },
+        u2: {
+          id: 'u2',
+          username: 'bob',
+          address: {
+            streetAddress: 'Snowy Mountain 5 B 77',
+            zip: '54321',
+          },
+        },
+      };
+      subSchema = makeExecutableSchema({
+        typeDefs: `
+        type User {
+          id: ID!
+          username: String
+          address: Address
+        }
+
+        type Address {
+          streetAddress: String
+          zip: String
+        }
+
+        input UserInput {
+          id: ID!
+          username: String
+        }
+
+        input AddressInput {
+          id: ID!
+          streetAddress: String
+          zip: String
+        }
+
+        type Query {
+          userById(id: ID!): User
+        }
+
+        type Mutation {
+          setUser(input: UserInput!): User
+          setAddress(input: AddressInput!): Address
+        }
+      `,
+        resolvers: {
+          Query: {
+            userById(parent, { id }) {
+              return data[id];
+            },
+          },
+          Mutation: {
+            setUser(parent, { input }) {
+              if (data[input.id]) {
+                return {
+                  ...data[input.id],
+                  ...input,
+                };
+              }
+            },
+            setAddress(parent, { input }) {
+              if (data[input.id]) {
+                return {
+                  ...data[input.id].address,
+                  ...input,
+                };
+              }
+            },
+          },
+        },
+      });
+      schema = makeExecutableSchema({
+        typeDefs: `
+        type User {
+          id: ID!
+          username: String
+          address: Address
+        }
+
+        type Address {
+          streetAddress: String
+          zip: String
+        }
+
+        input UserInput {
+          id: ID!
+          username: String
+          streetAddress: String
+          zip: String
+        }
+
+        type Query {
+          addressByUser(id: ID!): Address
+        }
+
+        type Mutation {
+          setUserAndAddress(input: UserInput!): User
+        }
+      `,
+        resolvers: {
+          Query: {
+            addressByUser(parent, { id }, context, info) {
+              return delegateToSchema({
+                schema: subSchema,
+                operation: 'query',
+                fieldName: 'userById',
+                args: { id },
+                context,
+                info,
+                transforms: [
+                  // Wrap document takes a subtree as an AST node
+                  new WrapQuery(
+                    // path at which to apply wrapping and extracting
+                    ['userById'],
+                    (subtree: SelectionSetNode) => ({
+                      // we create a wrapping AST Field
+                      kind: Kind.FIELD,
+                      name: {
+                        kind: Kind.NAME,
+                        // that field is `address`
+                        value: 'address',
+                      },
+                      // Inside the field selection
+                      selectionSet: subtree,
+                    }),
+                    // how to process the data result at path
+                    result => result && result.address,
+                  ),
+                ],
+              });
+            },
+          },
+          Mutation: {
+            async setUserAndAddress(parent, { input }, context, info) {
+              const addressResult = await delegateToSchema({
+                schema: subSchema,
+                operation: 'mutation',
+                fieldName: 'setAddress',
+                args: {
+                  input: {
+                    id: input.id,
+                    streetAddress: input.streetAddress,
+                    zip: input.zip,
+                  },
+                },
+                context,
+                info,
+                transforms: [
+                  // ExtractField takes a path from which to extract the query
+                  // for delegation and path to which to move it
+                  new ExtractField({
+                    from: ['setAddress', 'address'],
+                    to: ['setAddress'],
+                  }),
+                ],
+              });
+              const userResult = await delegateToSchema({
+                schema: subSchema,
+                operation: 'mutation',
+                fieldName: 'setUser',
+                args: {
+                  input: {
+                    id: input.id,
+                    username: input.username,
+                  },
+                },
+                context,
+                info,
+              });
+              return {
+                ...userResult,
+                address: addressResult,
+              };
+            },
+          },
+        },
+      });
+    });
+
+    it('wrapping delegation', async () => {
+      const result = await graphql(
+        schema,
+        `
+          query {
+            addressByUser(id: "u1") {
+              streetAddress
+              zip
+            }
+          }
+        `,
+      );
+
+      expect(result).to.deep.equal({
+        data: {
+          addressByUser: {
+            streetAddress: 'Windy Shore 21 A 7',
+            zip: '12345',
+          },
+        },
+      });
+    });
+
+    it('extracting delegation', async () => {
+      const result = await graphql(
+        schema,
+        `
+          mutation($input: UserInput!) {
+            setUserAndAddress(input: $input) {
+              username
+              address {
+                zip
+                streetAddress
+              }
+            }
+          }
+
+          # fragment UserFragment on User {
+          #   address {
+          #     zip
+          #     ...AddressFragment
+          #   }
+          # }
+          #
+          # fragment AddressFragment on Address {
+          #   streetAddress
+          # }
+        `,
+        {},
+        {},
+        {
+          input: {
+            id: 'u2',
+            username: 'new-username',
+            streetAddress: 'New Address 555',
+            zip: '22222',
+          },
+        },
+      );
+      expect(result).to.deep.equal({
+        data: {
+          setUserAndAddress: {
+            username: 'new-username',
+            address: {
+              streetAddress: 'New Address 555',
+              zip: '22222',
+            },
+          },
+        },
       });
     });
   });

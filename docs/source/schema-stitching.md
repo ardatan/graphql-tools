@@ -185,8 +185,10 @@ import {
   makeExecutableSchema,
   addMockFunctionsToSchema,
   mergeSchemas,
-  Transforms,
   transformSchema,
+  FilterRootFields,
+  RenameTypes,
+  RenameRootFields,
 } from 'graphql-tools';
 
 // Mocked chirp schema; we don't want to worry about the schema
@@ -212,11 +214,11 @@ addMockFunctionsToSchema({ schema: chirpSchema });
 // create transform schema
 
 const transformedChirpSchema = transformSchema(chirpSchema, [
-  new Transforms.FilterRootFields(
+  new FilterRootFields(
     (operation: string, rootField: string) => rootField !== 'chirpsByAuthorId'
   ),
-  new Transforms.RenameTypes((name: string) => `Chirp_${name}`),
-  new Transforms.RenameRootFields((name: string) => `Chirp_${name}`),
+  new RenameTypes((name: string) => `Chirp_${name}`),
+  new RenameRootFields((name: string) => `Chirp_${name}`),
 ]);
 ```
 

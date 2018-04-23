@@ -36,7 +36,11 @@ import {
 } from './schemaRecreation';
 import delegateToSchema from './delegateToSchema';
 import typeFromAST, { GetType } from './typeFromAST';
-import { Transform, Transforms } from '../transforms';
+import {
+  Transform,
+  ExpandAbstractTypes,
+  ReplaceFieldWithFragment,
+} from '../transforms';
 import mergeDeep from '../mergeDeep';
 
 export type OnTypeConflict = (
@@ -317,14 +321,8 @@ function createMergeInfo(
           'Use `mergeInfo.delegateToSchema and pass explicit schema instances.',
       );
       const schema = guessSchemaByRootField(allSchemas, operation, fieldName);
-      const expandTransforms = new Transforms.ExpandAbstractTypes(
-        info.schema,
-        schema,
-      );
-      const fragmentTransform = new Transforms.ReplaceFieldWithFragment(
-        schema,
-        fragments,
-      );
+      const expandTransforms = new ExpandAbstractTypes(info.schema, schema);
+      const fragmentTransform = new ReplaceFieldWithFragment(schema, fragments);
       return delegateToSchema({
         schema,
         operation,
@@ -345,11 +343,8 @@ function createMergeInfo(
         ...options,
         transforms: [
           ...(options.transforms || []),
-          new Transforms.ExpandAbstractTypes(
-            options.info.schema,
-            options.schema,
-          ),
-          new Transforms.ReplaceFieldWithFragment(options.schema, fragments),
+          new ExpandAbstractTypes(options.info.schema, options.schema),
+          new ReplaceFieldWithFragment(options.schema, fragments),
         ],
       });
     },

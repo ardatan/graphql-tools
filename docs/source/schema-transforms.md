@@ -172,6 +172,37 @@ RenameRootFields(
 
 ### Other
 
+* `ExractField({ from: Array<string>, to: Array<string> })` - move selection at `from` path to `to` path.
+
+* `WrapQuery(
+    path: Array<string>,
+    wrapper: QueryWrapper,
+    extractor: (result: any) => any,
+  )` - wrap a selection at `path` using function `wrapper`. Apply `extractor` at the same path to get the result. This is used to get a result nested inside other result
+
+```js
+transforms: [
+  // Wrap document takes a subtree as an AST node
+  new WrapQuery(
+    // path at which to apply wrapping and extracting
+    ['userById'],
+    (subtree: SelectionSetNode) => ({
+      // we create a wrapping AST Field
+      kind: Kind.FIELD,
+      name: {
+        kind: Kind.NAME,
+        // that field is `address`
+        value: 'address',
+      },
+      // Inside the field selection
+      selectionSet: subtree,
+    }),
+    // how to process the data result at path
+    result => result && result.address,
+  ),
+],
+```
+
 * `ReplaceFieldWithFragment(targetSchema: GraphQLSchema, mapping: FieldToFragmentMapping)`: Replace the given fields with an inline fragment. Used by `mergeSchemas` to handle the `fragment` option.
 
 ```ts
