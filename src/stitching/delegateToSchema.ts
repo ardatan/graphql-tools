@@ -11,72 +11,36 @@ import {
   execute,
   validate,
   VariableDefinitionNode,
-  print,
-  GraphQLResolveInfo,
-  InlineFragmentNode,
   GraphQLSchema,
 } from 'graphql';
+
 import {
   Operation,
   Request,
   IDelegateToSchemaOptions,
-  Transform,
 } from '../Interfaces';
+
 import {
   applyRequestTransforms,
   applyResultTransforms,
 } from '../transforms/transforms';
+
 import AddArgumentsAsVariables from '../transforms/AddArgumentsAsVariables';
 import FilterToSchema from '../transforms/FilterToSchema';
 import AddTypenameToAbstract from '../transforms/AddTypenameToAbstract';
 import CheckResultAndHandleErrors from '../transforms/CheckResultAndHandleErrors';
-import ReplaceFieldWithFragment from '../transforms/ReplaceFieldWithFragment';
 
-export default async function delegateToSchema(
+export default function delegateToSchema(
   options: IDelegateToSchemaOptions | GraphQLSchema,
-  ...args: Array<any>
-): Promise<any>;
-export default async function delegateToSchema(
-  options: IDelegateToSchemaOptions | GraphQLSchema,
-  fragmentReplacements: {
-    [typeName: string]: { [fieldName: string]: InlineFragmentNode };
-  },
-  operation: 'query' | 'mutation' | 'subscription',
-  fieldName: string,
-  args: { [key: string]: any },
-  context: { [key: string]: any },
-  info: GraphQLResolveInfo,
-  transforms?: Array<Transform>,
+  ...args: any[],
 ): Promise<any> {
   if (options instanceof GraphQLSchema) {
-    const schema = options;
-    console.warn(
-      'Argument list is a deprecated. Pass object of parameters ' +
-        'to delegate to schema',
+    throw new Error(
+      'Passing positional arguments to delegateToSchema is a deprecated. ' +
+      'Please pass named parameters instead.'
     );
-    const fragments: Array<{ field: string; fragment: string }> = [];
-    Object.keys(fragmentReplacements).forEach(typeName => {
-      const typeFragments = fragmentReplacements[typeName];
-      Object.keys(typeFragments).forEach(field => {
-        fragments.push({ field, fragment: print(typeFragments[field]) });
-      });
-    });
-    const newOptions: IDelegateToSchemaOptions = {
-      schema,
-      operation,
-      fieldName,
-      args,
-      context,
-      info,
-      transforms: [
-        new ReplaceFieldWithFragment(schema, fragments),
-        ...(transforms || []),
-      ],
-    };
-    return delegateToSchemaImplementation(newOptions);
-  } else {
-    return delegateToSchemaImplementation(options);
   }
+  return delegateToSchemaImplementation(options);
 }
 
 async function delegateToSchemaImplementation(
