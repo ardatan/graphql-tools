@@ -88,6 +88,11 @@ export interface IResolvers<TSource = any, TContext = any> {
     | GraphQLScalarType
     | IEnumResolver;
 }
+export type IResolversParameter =
+  | Array<IResolvers | ((mergeInfo: MergeInfo) => IResolvers)>
+  | IResolvers
+  | ((mergeInfo: MergeInfo) => IResolvers);
+
 export interface ILogger {
   log: (message: string | Error) => void;
 }

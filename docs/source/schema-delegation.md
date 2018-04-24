@@ -123,7 +123,7 @@ A subschema to delegate to.
 
 #### operation: 'query' | 'mutation' | 'subscription'
 
-An operation to use during the delegation.
+The operation type to use during the delegation.
 
 #### fieldName: string
 
@@ -185,11 +185,13 @@ GraphQL context that is going to be past to subschema execution or subsciption c
 
 #### info: GraphQLResolveInfo
 
-GraphQL resolve info of the current resolver. Used to get the query that starts at the current resolver
+GraphQL resolve info of the current resolver. Provides access to the subquery that starts at the current resolver.
+
+Also provides the `info.mergeInfo.delegateToSchema` function discussed above.
 
 #### transforms: Array<Transform>
 
-[Transforms](./transforms.html) to apply to the query and results. Should be the same transforms that were used to transform the schema, if any. One can use `transformedSchema.transforms` to retrieve transforms.
+[Transforms](./transforms.html) to apply to the query and results. Should be the same transforms that were used to transform the schema, if any. After transformation, `transformedSchema.transforms` contains the transforms that were applied.
 
 <h3 id="createRequest">createRequest</h3>
 

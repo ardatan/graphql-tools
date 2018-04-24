@@ -10,7 +10,6 @@ import isSpecifiedScalarType from '../isSpecifiedScalarType';
 import { Request, Result } from '../Interfaces';
 import { Transform } from '../transforms/transforms';
 import { visitSchema, VisitSchemaKind } from '../transforms/visitSchema';
-import visitObject from '../transforms/visitObject';
 
 export type RenameOptions = {
   renameBuiltins: boolean;
@@ -81,17 +80,38 @@ export default class RenameTypes implements Transform {
 
   public transformResult(result: Result): Result {
     if (result.data) {
-      const newData = visitObject(result.data, (key, value) => {
-        if (key === '__typename') {
-          return this.renamer(value);
+      const data = this.renameTypes(result.data, 'data');
+      if (data !== result.data) {
+        return { ...result, data };
+      }
+    }
+
+    return result;
+  }
+
+  private renameTypes(value: any, name: string) {
+    if (name === '__typename') {
+      return this.renamer(value);
+    }
+
+    if (value && typeof value === 'object') {
+      const newObject = Object.create(Object.getPrototypeOf(value));
+      let returnNewObject = false;
+
+      Object.keys(value).forEach(key => {
+        const oldChild = value[key];
+        const newChild = this.renameTypes(oldChild, key);
+        newObject[key] = newChild;
+        if (newChild !== oldChild) {
+          returnNewObject = true;
         }
       });
-      const newResult = {
-        ...result,
-        data: newData,
-      };
-      return newResult;
+
+      if (returnNewObject) {
+        return newObject;
+      }
     }
-    return result;
+
+    return value;
   }
 }

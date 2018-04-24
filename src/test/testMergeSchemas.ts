@@ -309,6 +309,36 @@ if (process.env.GRAPHQL_VERSION === '^0.11') {
   `;
 }
 
+// Miscellaneous typeDefs that exercise uncommon branches for the sake of
+// code coverage.
+const codeCoverageTypeDefs = `
+  interface SyntaxNode {
+    type: String
+  }
+
+  type Statement implements SyntaxNode {
+    type: String
+  }
+
+  type Expression implements SyntaxNode {
+    type: String
+  }
+
+  union ASTNode = Statement | Expression
+
+  enum Direction {
+    NORTH
+    SOUTH
+    EAST
+    WEST
+  }
+
+  input WalkingPlan {
+    steps: Int
+    direction: Direction
+  }
+`;
+
 testCombinations.forEach(async combination => {
   describe('merging ' + combination.name, () => {
     let mergedSchema: GraphQLSchema,
@@ -332,23 +362,25 @@ testCombinations.forEach(async combination => {
           linkSchema,
           loneExtend,
           localSubscriptionSchema,
+          codeCoverageTypeDefs,
         ],
         resolvers: {
           Property: {
             bookings: {
               fragment: '... on Property { id }',
               resolve(parent, args, context, info) {
-                return info.mergeInfo.delegateToSchema({
-                  schema: bookingSchema,
-                  operation: 'query',
-                  fieldName: 'bookingsByPropertyId',
-                  args: {
+                // Use the old mergeInfo.delegate API just this once, to make
+                // sure it continues to work.
+                return info.mergeInfo.delegate(
+                  'query',
+                  'bookingsByPropertyId',
+                  {
                     propertyId: parent.id,
                     limit: args.limit ? args.limit : null,
                   },
                   context,
                   info,
-                });
+                );
               },
             },
           },

@@ -23,6 +23,7 @@ import {
   TypeWithResolvers,
   VisitType,
   VisitTypeResult,
+  IResolversParameter,
 } from '../Interfaces';
 import {
   extractExtensionDefinitions,
@@ -35,7 +36,11 @@ import {
 } from './schemaRecreation';
 import delegateToSchema from './delegateToSchema';
 import typeFromAST, { GetType } from './typeFromAST';
-import { Transform, Transforms } from '../transforms';
+import {
+  Transform,
+  ExpandAbstractTypes,
+  ReplaceFieldWithFragment,
+} from '../transforms';
 import mergeDeep from '../mergeDeep';
 
 export type OnTypeConflict = (
@@ -58,10 +63,7 @@ export default function mergeSchemas({
 }: {
   schemas: Array<string | GraphQLSchema | Array<GraphQLNamedType>>;
   onTypeConflict?: OnTypeConflict;
-  resolvers?:
-    | Array<IResolvers | ((mergeInfo: MergeInfo) => IResolvers)>
-    | IResolvers
-    | ((mergeInfo: MergeInfo) => IResolvers);
+  resolvers?: IResolversParameter;
 }): GraphQLSchema {
   let visitType: VisitType = defaultVisitType;
   if (onTypeConflict) {
@@ -80,10 +82,7 @@ function mergeSchemasImplementation({
 }: {
   schemas: Array<string | GraphQLSchema | Array<GraphQLNamedType>>;
   visitType?: VisitType;
-  resolvers?:
-    | Array<IResolvers | ((mergeInfo: MergeInfo) => IResolvers)>
-    | IResolvers
-    | ((mergeInfo: MergeInfo) => IResolvers);
+  resolvers?: IResolversParameter;
 }): GraphQLSchema {
   const allSchemas: Array<GraphQLSchema> = [];
   const typeCandidates: { [name: string]: Array<MergeTypeCandidate> } = {};
@@ -322,14 +321,8 @@ function createMergeInfo(
           'Use `mergeInfo.delegateToSchema and pass explicit schema instances.',
       );
       const schema = guessSchemaByRootField(allSchemas, operation, fieldName);
-      const expandTransforms = new Transforms.ExpandAbstractTypes(
-        info.schema,
-        schema,
-      );
-      const fragmentTransform = new Transforms.ReplaceFieldWithFragment(
-        schema,
-        fragments,
-      );
+      const expandTransforms = new ExpandAbstractTypes(info.schema, schema);
+      const fragmentTransform = new ReplaceFieldWithFragment(schema, fragments);
       return delegateToSchema({
         schema,
         operation,
@@ -350,11 +343,8 @@ function createMergeInfo(
         ...options,
         transforms: [
           ...(options.transforms || []),
-          new Transforms.ExpandAbstractTypes(
-            options.info.schema,
-            options.schema,
-          ),
-          new Transforms.ReplaceFieldWithFragment(options.schema, fragments),
+          new ExpandAbstractTypes(options.info.schema, options.schema),
+          new ReplaceFieldWithFragment(options.schema, fragments),
         ],
       });
     },
