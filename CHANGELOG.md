@@ -3,8 +3,20 @@
 ### vNEXT
 
 * Use `getDescription` from `graphql-js` package [PR #672](https://github.com/apollographql/graphql-tools/pull/672)
-* add commentDescription to printSchema call to match other uses [PR #745](https://github.com/apollographql/graphql-tools/pull/745)
-* Add `createResolver` option to `makeRemoteExecutableSchema` [PR #734](https://github.com/apollographql/graphql-tools/pull/734)
+
+### v3.0.0
+
+* Schema transforms and delegation
+  * Substantial rewrite of internals of `mergeSchemas` and `delegateToSchema`
+  * A new API for schema transforms has been introduced: [Docs](https://www.apollographql.com/docs/graphql-tools/schema-transforms.html)
+  * `delegateToSchema` is now a public API: [Docs](https://www.apollographql.com/docs/graphql-tools/schema-delegation.html)
+  * `delegateToSchema` now accepts an object of named parameters; positional arguments are deprecated
+  * `delegateToSchema` no longer accepts `fragmentReplacements`; instead use `transforms`
+  * `info.mergeInfo.delegateToSchema` is now the preferred delegation API, rather than `info.mergeInfo.delegate`
+
+* Other changes
+  * Add `commentDescription` to `printSchema` call to match other uses [PR #745](https://github.com/apollographql/graphql-tools/pull/745)
+  * Add `createResolver` option to `makeRemoteExecutableSchema` [PR #734](https://github.com/apollographql/graphql-tools/pull/734)
 
 ### v2.24.0
 

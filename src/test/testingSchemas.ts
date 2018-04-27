@@ -267,6 +267,12 @@ const propertyRootTypeDefs = `
     bar: String
   }
 
+  type UnionImpl {
+    someField: String
+  }
+
+  union TestUnion = TestImpl1 | UnionImpl
+
   input InputWithDefault {
     test: String = "Foo"
   }
@@ -278,6 +284,7 @@ const propertyRootTypeDefs = `
     dateTimeTest: DateTime
     jsonTest(input: JSON): JSON
     interfaceTest(kind: TestInterfaceKind): TestInterface
+    unionTest(output: String): TestUnion
     errorTest: String
     errorTestNonNull: String!
     relay: Query!
@@ -337,6 +344,20 @@ const propertyResolvers: IResolvers = {
       }
     },
 
+    unionTest(root, { output }) {
+      if (output === 'Interface') {
+        return {
+          kind: 'ONE',
+          testString: 'test',
+          foo: 'foo',
+        };
+      } else {
+        return {
+          someField: 'Bar',
+        };
+      }
+    },
+
     errorTest() {
       throw new Error('Sample error!');
     },
@@ -358,6 +379,16 @@ const propertyResolvers: IResolvers = {
         return 'TestImpl1';
       } else {
         return 'TestImpl2';
+      }
+    },
+  },
+
+  TestUnion: {
+    __resolveType(obj) {
+      if (obj.kind === 'ONE') {
+        return 'TestImpl1';
+      } else {
+        return 'UnionImpl';
       }
     },
   },
@@ -459,7 +490,7 @@ const bookingRootTypeDefs = `
     bikeType: String
   }
 
-  type Car {
+  type Car  {
     id: ID!
     licensePlate: String
   }
@@ -715,7 +746,14 @@ export async function makeSchemaRemoteFromLink(schema: GraphQLSchema) {
 // ensure fetcher support exists from the 2.0 api
 async function makeExecutableSchemaFromFetcher(schema: GraphQLSchema) {
   const fetcher: Fetcher = ({ query, operationName, variables, context }) => {
-    return graphql(schema, print(query), null, context, variables, operationName);
+    return graphql(
+      schema,
+      print(query),
+      null,
+      context,
+      variables,
+      operationName,
+    );
   };
 
   const clientSchema = await introspectSchema(fetcher);

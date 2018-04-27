@@ -18,7 +18,6 @@ import {
   buildSchema,
   printSchema,
   Kind,
-  ValueNode,
   GraphQLResolveInfo,
   DocumentNode
 } from 'graphql';
@@ -26,6 +25,7 @@ import linkToFetcher, { execute } from './linkToFetcher';
 import isEmptyObject from '../isEmptyObject';
 import { IResolvers, IResolverObject } from '../Interfaces';
 import { makeExecutableSchema } from '../schemaGenerator';
+import { recreateType } from './schemaRecreation';
 import resolveParentFromTypename from './resolveFromParentTypename';
 import defaultMergedResolver from './defaultMergedResolver';
 import { checkResultAndHandleErrors } from './errors';
@@ -118,7 +118,10 @@ export default function makeRemoteExecutableSchema({
   const typeMap = schema.getTypeMap();
   const types = Object.keys(typeMap).map(name => typeMap[name]);
   for (const type of types) {
-    if (type instanceof GraphQLInterfaceType || type instanceof GraphQLUnionType) {
+    if (
+      type instanceof GraphQLInterfaceType ||
+      type instanceof GraphQLUnionType
+    ) {
       resolvers[type.name] = {
         __resolveType(parent, context, info) {
           return resolveParentFromTypename(parent, info.schema);
@@ -134,7 +137,11 @@ export default function makeRemoteExecutableSchema({
           type === GraphQLInt
         )
       ) {
-        resolvers[type.name] = createPassThroughScalar(type);
+        resolvers[type.name] = recreateType(
+          type,
+          (name: string) => null,
+          false,
+        ) as GraphQLScalarType;
       }
     } else if (
       type instanceof GraphQLObjectType &&
@@ -159,7 +166,9 @@ export default function makeRemoteExecutableSchema({
 
 export function createResolver(fetcher: Fetcher): GraphQLFieldResolver<any, any> {
   return async (root, args, context, info) => {
-    const fragments = Object.keys(info.fragments).map(fragment => info.fragments[fragment]);
+    const fragments = Object.keys(info.fragments).map(
+      fragment => info.fragments[fragment],
+    );
     const document = {
       kind: Kind.DOCUMENT,
       definitions: [info.operation, ...fragments],
@@ -173,9 +182,14 @@ export function createResolver(fetcher: Fetcher): GraphQLFieldResolver<any, any>
   };
 }
 
-function createSubscriptionResolver(name: string, link: ApolloLink): ResolverFn {
+function createSubscriptionResolver(
+  name: string,
+  link: ApolloLink,
+): ResolverFn {
   return (root, args, context, info) => {
-    const fragments = Object.keys(info.fragments).map(fragment => info.fragments[fragment]);
+    const fragments = Object.keys(info.fragments).map(
+      fragment => info.fragments[fragment],
+    );
     const document = {
       kind: Kind.DOCUMENT,
       definitions: [info.operation, ...fragments],
@@ -191,52 +205,4 @@ function createSubscriptionResolver(name: string, link: ApolloLink): ResolverFn 
 
     return observableToAsyncIterable(observable);
   };
-}
-
-function createPassThroughScalar({
-  name,
-  description,
-}: {
-  name: string;
-  description: string;
-}): GraphQLScalarType {
-  return new GraphQLScalarType({
-    name: name,
-    description: description,
-    serialize(value) {
-      return value;
-    },
-    parseValue(value) {
-      return value;
-    },
-    parseLiteral(ast) {
-      return parseLiteral(ast);
-    },
-  });
-}
-
-function parseLiteral(ast: ValueNode): any {
-  switch (ast.kind) {
-    case Kind.STRING:
-    case Kind.BOOLEAN: {
-      return ast.value;
-    }
-    case Kind.INT:
-    case Kind.FLOAT: {
-      return parseFloat(ast.value);
-    }
-    case Kind.OBJECT: {
-      const value = Object.create(null);
-      ast.fields.forEach(field => {
-        value[field.name.value] = parseLiteral(field.value);
-      });
-
-      return value;
-    }
-    case Kind.LIST: {
-      return ast.values.map(parseLiteral);
-    }
-    default:
-      return null;
-  }
 }
