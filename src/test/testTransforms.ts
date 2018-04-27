@@ -100,6 +100,10 @@ describe('transforms', () => {
                 testString
               }
             }
+            properties(limit: 1) {
+               __typename
+               id
+            }
             propertyById(id: "p1") {
               ... on Property_Property {
                 id
@@ -125,6 +129,12 @@ describe('transforms', () => {
           interfaceTest: {
             testString: 'test',
           },
+          properties: [
+            {
+              __typename: 'Property_Property',
+              id: 'p1',
+            }
+          ],
           propertyById: {
             id: 'p1',
           },
