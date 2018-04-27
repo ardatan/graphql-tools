@@ -89,7 +89,7 @@ export default class RenameTypes implements Transform {
     return result;
   }
 
-  private renameTypes(value: any, name: string) {
+  private renameTypes(value: any, name?: string) {
     if (name === '__typename') {
       return this.renamer(value);
     }
@@ -98,14 +98,24 @@ export default class RenameTypes implements Transform {
       const newObject = Object.create(Object.getPrototypeOf(value));
       let returnNewObject = false;
 
-      Object.keys(value).forEach(key => {
-        const oldChild = value[key];
-        const newChild = this.renameTypes(oldChild, key);
-        newObject[key] = newChild;
-        if (newChild !== oldChild) {
-          returnNewObject = true;
-        }
-      });
+      if (newObject instanceof Array) {
+        value.forEach((oldChild: any) => {
+          const newChild = this.renameTypes(oldChild);
+          newObject.push(newChild);
+          if (newChild !== oldChild) {
+            returnNewObject = true;
+          }
+        });
+      } else {
+        Object.keys(value).forEach(key => {
+          const oldChild = value[key];
+          const newChild = this.renameTypes(oldChild, key);
+          newObject[key] = newChild;
+          if (newChild !== oldChild) {
+            returnNewObject = true;
+          }
+        });
+      }
 
       if (returnNewObject) {
         return newObject;
