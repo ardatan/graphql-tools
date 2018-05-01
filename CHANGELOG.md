@@ -1,5 +1,9 @@
 # Change log
 
+### Master
+
+* Loosens the apollo-link dependency [PR #765](https://github.com/apollographql/graphql-tools/pull/765)
+
 ### v3.0.0
 
 * Schema transforms and delegation
