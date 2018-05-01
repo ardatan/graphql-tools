@@ -191,7 +191,7 @@ Also provides the `info.mergeInfo.delegateToSchema` function discussed above.
 
 #### transforms: Array<Transform>
 
-[Transforms](./transforms.html) to apply to the query and results. Should be the same transforms that were used to transform the schema, if any. After transformation, `transformedSchema.transforms` contains the transforms that were applied.
+[Transforms](./schema-transforms.html) to apply to the query and results. Should be the same transforms that were used to transform the schema, if any. After transformation, `transformedSchema.transforms` contains the transforms that were applied.
 
 <h3 id="createRequest">createRequest</h3>
 
