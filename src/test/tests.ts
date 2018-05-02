@@ -7,6 +7,7 @@ import './testResolution';
 import './testMakeRemoteExecutableSchema';
 import './testMergeSchemas';
 import './testTransforms';
+import './FilterFields/testAstNodeDuplication';
 import './testAlternateMergeSchemas';
 import './testErrors';
 import './testDirectives';
