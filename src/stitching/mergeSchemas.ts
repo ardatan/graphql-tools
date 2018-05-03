@@ -440,7 +440,7 @@ function createVisitTypeFromOnTypeConflict(
             schema: prev.schema,
           },
           right: {
-            schema: prev.schema,
+            schema: next.schema,
           },
         });
         if (prev.type === type) {
