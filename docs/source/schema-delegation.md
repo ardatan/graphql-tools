@@ -167,6 +167,7 @@ const resolvers = {
         operation: 'query',
         fieldName: 'bookingsByUser',
         args: {
+          limit: args.limit,
           userId: parent.id,
         },
         context,
