@@ -114,7 +114,7 @@ function filterDocumentToSchema(
     });
   });
 
-  const fragmentSet = {};
+  const fragmentSet = Object.create(null);
   while (usedFragments.length !== 0) {
     const nextFragmentName = usedFragments.pop();
     const fragment = validFragments.find(
