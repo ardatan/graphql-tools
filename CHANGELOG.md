@@ -1,5 +1,10 @@
 # Change log
 
+### v3.0.2
+
+* Fixed duplicate fragments getting added during transform in `FilterToSchema` [#777](https://github.com/apollographql/graphql-tools/pull/777)
+
+
 ### v3.0.1
 
 * Fixed an array cloning bug in the `RenameTypes` transform
