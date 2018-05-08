@@ -114,6 +114,7 @@ function filterDocumentToSchema(
     });
   });
 
+  const fragmentSet = Object.create(null);
   while (usedFragments.length !== 0) {
     const nextFragmentName = usedFragments.pop();
     const fragment = validFragments.find(
@@ -136,15 +137,18 @@ function filterDocumentToSchema(
       usedFragments = union(usedFragments, fragmentUsedFragments);
       usedVariables = union(usedVariables, fragmentUsedVariables);
 
-      newFragments.push({
-        kind: Kind.FRAGMENT_DEFINITION,
-        name: {
-          kind: Kind.NAME,
-          value: name,
-        },
-        typeCondition: fragment.typeCondition,
-        selectionSet,
-      });
+      if (!fragmentSet[name]) {
+        fragmentSet[name] = true;
+        newFragments.push({
+          kind: Kind.FRAGMENT_DEFINITION,
+          name: {
+            kind: Kind.NAME,
+            value: name,
+          },
+          typeCondition: fragment.typeCondition,
+          selectionSet,
+        });
+      }
     }
   }
 
