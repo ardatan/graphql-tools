@@ -4,6 +4,19 @@
 
 * Use `getDescription` from `graphql-js` package [PR #672](https://github.com/apollographql/graphql-tools/pull/672)
 
+### v3.0.2
+
+* Fixed duplicate fragments getting added during transform in `FilterToSchema` [#778](https://github.com/apollographql/graphql-tools/pull/778)
+
+
+### v3.0.1
+
+* Fixed an array cloning bug in the `RenameTypes` transform
+  [#756](https://github.com/apollographql/graphql-tools/pull/756)
+
+* Fixed a fragments bug in the `ReplaceFieldWithFragment` transform
+  [#763](https://github.com/apollographql/graphql-tools/pull/763)
+
 ### v3.0.0
 
 * Schema transforms and delegation
