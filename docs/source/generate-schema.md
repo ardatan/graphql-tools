@@ -106,7 +106,13 @@ This example has the entire type definition in one string and all resolvers in o
 
 <h2 id="modularizing">Modularizing the schema</h2>
 
-If your schema gets large, you may want to define parts of it in different files and import them to create the full schema. This is possible by passing around arrays of schema strings.
+As your schema grows larger and more complicated, you may want to define parts of it in different modules, and then import those modules to create the full schema.
+
+Because Schema Definition Language does not have its own syntax for importing other schemas, nor any built-in syntax for defining resolvers, we recommend using the JavaScript module system to manage multiple schema modules.
+
+There are many ways to approach this problem. The one we will describe below handles tricky edge cases like circular dependencies, and easily scales to large codebases.
+
+The basic idea is to have each module export a `getTypes` function that returns an object mapping type names to schema fragment strings:
 
 ```js
 // comment.js
@@ -118,12 +124,16 @@ const Comment = `
   }
 `;
 
-export default Comment;
+export function getTypes() {
+  return { Comment };
+}
 ```
+
+Since `Comment` is the only type used in this fragment that isn't built into the GraphQL schema language, that's all this `getTypes` function needs to return.
 
 ```js
 // post.js
-import Comment from './comment';
+import { getTypes as getCommentTypes } from './comment';
 
 const Post = `
   type Post {
@@ -135,46 +145,46 @@ const Post = `
   }
 `;
 
-// we export Post and all types it depends on
-// in order to make sure we don't forget to include
-// a dependency
-export default [Post, Comment];
+export function getTypes() {
+  return { Post, ...getCommentTypes() };
+}
 ```
+
+Since the `Post` schema fragment refers to the `Comment` type, we use the `...getCommentTypes()` syntax to include the `Comment` schema fragment in the resulting object, along with the `Post` fragment and any other named schema fragments returned by `getCommentTypes()`.
+
+Here's how `schema.js` might put everything together:
 
 ```js
 // schema.js
-import Post from './post.js';
+import * as post from './post';
 
-const RootQuery = `
-  type RootQuery {
+const Query = `
+  type Query {
     post(id: Int!): Post
   }
 `;
 
-const SchemaDefinition = `
-  schema {
-    query: RootQuery
-  }
-`;
+export function getTypes() {
+  return {
+    Query,
+    // This map includes both Post and Comment, even though schema.js never
+    // mentions the Comment type explicitly:
+    ...post.getTypes(),
+  };
+}
 
 export default makeExecutableSchema({
-  typeDefs: [
-    SchemaDefinition, RootQuery,
-    // we have to destructure array imported from the post.js file
-    // as typeDefs only accepts an array of strings or functions
-    ...Post
-  ],
-  // we could also concatenate arrays
-  // typeDefs: [SchemaDefinition, RootQuery].concat(Post)
-  resolvers: {},
+  // Generate an array of schema fragment strings from the getTypes() map.
+  typeDefs: Object.values(getTypes()),
+  resolvers: { ... },
 });
 ```
 
-If you're exporting array of schema strings and there are circular dependencies, the array can be wrapped in a function. The `makeExecutableSchema` function will only include each type definition once, even if it is imported multiple times by different types, so you don't have to worry about deduplicating the strings.
+You might wonder why we've defined a `getTypes` function instead of just exporting the type map as an object. The reason becomes clear when you consider modules that mutually depend on one another:
 
 ```js
 // author.js
-import Book from './book';
+import { getTypes as getBookTypes } from './book';
 
 const Author = `
   type Author {
@@ -185,62 +195,102 @@ const Author = `
   }
 `;
 
-// we export Author and all types it depends on
-// in order to make sure we don't forget to include
-// a dependency and we wrap it in a function
-// to avoid strings deduplication
-export default () => [Author, Book];
+export function getTypes() {
+  return { Author, ...getBookTypes() };
+}
 ```
+
+Of course, most `Book`s have `Author`s, so the `book.js` module also depends on `author.js`:
 
 ```js
 // book.js
-import Author from './author';
+import { getTypes as getAuthorTypes } from './author';
 
 const Book = `
   type Book {
+    isbn: String!
     title: String
     author: Author
   }
 `;
 
-export default () => [Book, Author];
+export function getTypes() {
+  return { Book, ...getAuthorTypes() };
+}
 ```
+
+If `schema.js` imports `author.js` first, which then imports `book.js`, it would be a mistake for `book.js` to attempt to call `getAuthorTypes()` immediately, before the `author.js` module has initialized its `Author` export.
+
+By deferring the creation of the type map until `schema.js` calls `author.getTypes()`, we give both `author.js` and `book.js` a chance to finish initializing their `Author` and `Book` variables.
 
 ```js
 // schema.js
-import Author from './author.js';
+import * as author from './author';
+import * as book from './book';
 
-const RootQuery = `
-  type RootQuery {
+const Query = `
+  type Query {
     author(id: Int!): Author
+    book(isbn: String!): Book
   }
 `;
 
-const SchemaDefinition = `
-  schema {
-    query: RootQuery
-  }
-`;
+export function getTypes() {
+  return {
+    Query,
+    ...author.getTypes(),
+    ...book.getTypes(),
+  };
+}
 
 export default makeExecutableSchema({
-  typeDefs: [SchemaDefinition, RootQuery, Author],
-  resolvers: {},
+  typeDefs: Object.values(getTypes()),
+  resolvers: { ... },
 });
 ```
 
-You can do the same thing with resolvers - just pass around multiple resolver objects, and at the end combine them together using something like the Lodash `merge` function:
+Even though we know that `author.getTypes()` and `book.getTypes()` produce the same information, `schema.js` may not be aware of that redundancy, or might want to protect itself against future changes to the organization of your schema modules. Thanks to object `...spread` syntax, the `getTypes` function in `schema.js` will always return an object with exactly three keys: `Query`, `Author`, and `Book`.
+
+You can apply this `getTypes` technique to resolvers as well: just have each module export a `getResolvers` function that merges together the resolvers of the types it depends on, using a utility like `lodash/merge`:
 
 ```js
-import { merge } from 'lodash';
+import _merge from 'lodash/merge';
+import * as author from './author';
+import * as book from './book';
 
-import { resolvers as gitHubResolvers } from './github/schema';
-import { resolvers as sqlResolvers } from './sql/schema';
+const Query = `
+  type Query {
+    author(id: Int!): Author
+    book(isbn: String!): Book
+  }
+`;
 
-const rootResolvers = { ... };
+export function getTypes() {
+  return { Query, ...author.getTypes(), ...book.getTypes() };
+}
 
-// Merge all of the resolver objects together
-const resolvers = merge(rootResolvers, gitHubResolvers, sqlResolvers);
+const rootResolvers = {
+  Query: {
+    author() { ... },
+    book() { ... }
+  },
+};
+
+export function getResolvers() {
+  return _merge(
+    rootResolvers,
+    author.getResolvers(),
+    book.getResolvers(),
+  );
+}
+
+export default makeExecutableSchema({
+  typeDefs: Object.values(getTypes()),
+  resolvers: getResolvers(),
+});
 ```
+
+Although this system is a bit more verbose than just putting everything into one big schema string, the advantages will become apparent as your schema gets larger, because you can add or remove types, fields, and resolvers without having to rewrite code in other modules.
 
 <h2 id="extend-types">Extending Types</h2>
 
