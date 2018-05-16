@@ -25,6 +25,7 @@ import {
   GraphQLType,
   GraphQLInterfaceType,
   GraphQLFieldMap,
+  GraphQLUnionType,
 } from 'graphql';
 
 import {
@@ -41,6 +42,7 @@ import {
   IDirectiveResolvers,
   UnitOrList,
   GraphQLParseOptions,
+  IAddResolveFunctionsToSchemaOptions,
 } from './Interfaces';
 
 import { SchemaDirectiveVisitor } from './schemaVisitor';
@@ -68,6 +70,7 @@ function _generateSchema(
   allowUndefinedInResolve: boolean,
   resolverValidationOptions: IResolverValidationOptions,
   parseOptions: GraphQLParseOptions,
+  inheritResolversFromInterfaces: boolean
 ) {
   if (typeof resolverValidationOptions !== 'object') {
     throw new SchemaError(
@@ -91,7 +94,7 @@ function _generateSchema(
 
   const schema = buildSchemaFromTypeDefinitions(typeDefinitions, parseOptions);
 
-  addResolveFunctionsToSchema(schema, resolvers, resolverValidationOptions);
+  addResolveFunctionsToSchema({ schema, resolvers, resolverValidationOptions, inheritResolversFromInterfaces });
 
   assertResolveFunctionsPresent(schema, resolverValidationOptions);
 
@@ -116,6 +119,7 @@ function makeExecutableSchema<TContext = any>({
   directiveResolvers = null,
   schemaDirectives = null,
   parseOptions = {},
+  inheritResolversFromInterfaces = false
 }: IExecutableSchemaDefinition<TContext>) {
   const jsSchema = _generateSchema(
     typeDefs,
@@ -124,6 +128,7 @@ function makeExecutableSchema<TContext = any>({
     allowUndefinedInResolve,
     resolverValidationOptions,
     parseOptions,
+    inheritResolversFromInterfaces
   );
   if (typeof resolvers['__schema'] === 'function') {
     // TODO a bit of a hack now, better rewrite generateSchema to attach it there.
@@ -241,12 +246,14 @@ function buildSchemaFromTypeDefinitions(
 // TODO fix types https://github.com/apollographql/graphql-tools/issues/542
 const oldTypeExtensionDefinitionKind = 'TypeExtensionDefinition';
 const newExtensionDefinitionKind = 'ObjectTypeExtension';
+const interfaceExtensionDefinitionKind = 'InterfaceTypeExtension';
 
 export function extractExtensionDefinitions(ast: DocumentNode) {
   const extensionDefs = ast.definitions.filter(
     (def: DefinitionNode) =>
       def.kind === oldTypeExtensionDefinitionKind ||
-      (def.kind as any) === newExtensionDefinitionKind,
+      (def.kind as any) === newExtensionDefinitionKind ||
+      (def.kind as any) === interfaceExtensionDefinitionKind,
   );
 
   return Object.assign({}, ast, {
@@ -382,13 +389,35 @@ function getFieldsForType(type: GraphQLType): GraphQLFieldMap<any, any> {
 }
 
 function addResolveFunctionsToSchema(
-  schema: GraphQLSchema,
-  resolveFunctions: IResolvers,
-  resolverValidationOptions: IResolverValidationOptions = {},
-) {
-  const { allowResolversNotInSchema = false } = resolverValidationOptions;
+  options: IAddResolveFunctionsToSchemaOptions|GraphQLSchema,
+  legacyInputResolvers?: IResolvers,
+  legacyInputValidationOptions?: IResolverValidationOptions) {
+  if (options instanceof GraphQLSchema) {
+    console.warn('The addResolveFunctionsToSchema function takes named options now; see IAddResolveFunctionsToSchemaOptions');
+    options = {
+      schema: options,
+      resolvers: legacyInputResolvers,
+      resolverValidationOptions: legacyInputValidationOptions
+    };
+  }
 
-  Object.keys(resolveFunctions).forEach(typeName => {
+  const {
+    schema,
+    resolvers: inputResolvers,
+    resolverValidationOptions = {},
+    inheritResolversFromInterfaces = false
+  } = options;
+
+  const {
+    allowResolversNotInSchema = false,
+    requireResolversForResolveType,
+  } = resolverValidationOptions;
+
+  const resolvers = inheritResolversFromInterfaces
+    ? extendResolversFromInterfaces(schema, inputResolvers)
+    : inputResolvers;
+
+  Object.keys(resolvers).forEach(typeName => {
     const type = schema.getType(typeName);
     if (!type && typeName !== '__schema') {
       if (allowResolversNotInSchema) {
@@ -400,16 +429,15 @@ function addResolveFunctionsToSchema(
       );
     }
 
-    Object.keys(resolveFunctions[typeName]).forEach(fieldName => {
+    Object.keys(resolvers[typeName]).forEach(fieldName => {
       if (fieldName.startsWith('__')) {
         // this is for isTypeOf and resolveType and all the other stuff.
-        // TODO require resolveType for unions and interfaces.
-        type[fieldName.substring(2)] = resolveFunctions[typeName][fieldName];
+        type[fieldName.substring(2)] = resolvers[typeName][fieldName];
         return;
       }
 
       if (type instanceof GraphQLScalarType) {
-        type[fieldName] = resolveFunctions[typeName][fieldName];
+        type[fieldName] = resolvers[typeName][fieldName];
         return;
       }
 
@@ -421,10 +449,11 @@ function addResolveFunctionsToSchema(
         }
 
         type.getValue(fieldName)['value'] =
-          resolveFunctions[typeName][fieldName];
+          resolvers[typeName][fieldName];
         return;
       }
 
+      // object type
       const fields = getFieldsForType(type);
       if (!fields) {
         if (allowResolversNotInSchema) {
@@ -446,7 +475,7 @@ function addResolveFunctionsToSchema(
         );
       }
       const field = fields[fieldName];
-      const fieldResolve = resolveFunctions[typeName][fieldName];
+      const fieldResolve = resolvers[typeName][fieldName];
       if (typeof fieldResolve === 'function') {
         // for convenience. Allows shorter syntax in resolver definition file
         setFieldProperties(field, { resolve: fieldResolve });
@@ -459,6 +488,52 @@ function addResolveFunctionsToSchema(
         setFieldProperties(field, fieldResolve);
       }
     });
+  });
+
+  checkForResolveTypeResolver(schema, requireResolversForResolveType);
+}
+
+function extendResolversFromInterfaces(schema: GraphQLSchema, resolvers: IResolvers) {
+  const typeNames = Object.keys({
+    ...schema.getTypeMap(),
+    ...resolvers
+  });
+
+  const extendedResolvers: IResolvers = {};
+  typeNames.forEach((typeName) => {
+    const typeResolvers = resolvers[typeName];
+    const type = schema.getType(typeName);
+    if (type instanceof GraphQLObjectType) {
+      const interfaceResolvers = type.getInterfaces().map((iFace) => resolvers[iFace.name]);
+      extendedResolvers[typeName] = Object.assign({}, ...interfaceResolvers, typeResolvers);
+    } else {
+      if (typeResolvers) {
+        extendedResolvers[typeName] = typeResolvers;
+      }
+    }
+  });
+
+  return extendedResolvers;
+}
+
+// If we have any union or interface types throw if no there is no resolveType or isTypeOf resolvers
+function checkForResolveTypeResolver(schema: GraphQLSchema, requireResolversForResolveType?: boolean) {
+  Object.keys(schema.getTypeMap())
+  .map(typeName => schema.getType(typeName))
+  .forEach((type: GraphQLUnionType | GraphQLInterfaceType) => {
+    if (!(type instanceof GraphQLUnionType || type instanceof GraphQLInterfaceType)) {
+      return;
+    }
+    if (!type.resolveType) {
+      if (requireResolversForResolveType === false) {
+        return;
+      }
+      if (requireResolversForResolveType === true) {
+        throw new SchemaError(`Type "${type.name}" is missing a "resolveType" resolver`);
+      }
+      // tslint:disable-next-line:max-line-length
+      console.warn(`Type "${type.name}" is missing a "resolveType" resolver. Pass false into "resolverValidationOptions.requireResolversForResolveType" to disable this warning.`);
+    }
   });
 }
 

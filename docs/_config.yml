@@ -1,8 +1,3 @@
-# Hexo Configuration
-## Docs: http://hexo.io/docs/configuration.html
-## Source: https://github.com/hexojs/hexo/
-
-# Site
 title: GraphQL Tools
 propertytitle: Using GraphQL Tools
 subtitle: GraphQL Tools Guide
@@ -17,27 +12,26 @@ sidebar_categories:
     - scalars
     - mocking
     - connectors
-    - remote-schemas
     - schema-directives
+    - schema-delegation
+    - remote-schemas
+    - schema-transforms
     - schema-stitching
   Related:
+    - title: Monitoring and caching
+      href: https://www.apollographql.com/docs/engine/setup-node.html
     - title: Apollo Server
       href: https://www.apollographql.com/docs/apollo-server/
     - title: GraphQL Subscriptions
       href: https://www.apollographql.com/docs/graphql-subscriptions/
+    - title: Production deployment
+      href: https://dev-blog.apollodata.com/graphql-over-rest-with-node-heroku-and-apollo-engine-fb8581f8d77f
 github_repo: apollographql/graphql-tools
 content_root: docs/source
 
 typescript_api_box:
   data_file: docs.json
 
-apis:
-  docsearch:
-    apiKey: 768e823959d35bbd51e4b2439be13fb7
-    indexName: apollodata
-
-# URL
-## If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'
 url: https://www.apollographql.com/docs/graphql-tools/
 root: /docs/graphql-tools/
 

@@ -592,7 +592,7 @@ describe('@directives', () => {
             field.type = GraphQLString;
             field.resolve = async function (...args: any[]) {
               const date = await resolve.apply(this, args);
-              return formatDate(date, format);
+              return formatDate(date, format, true);
             };
           }
         }
@@ -601,7 +601,7 @@ describe('@directives', () => {
       resolvers: {
         Query: {
           today() {
-            return new Date(1519688273858);
+            return new Date(1519688273858).toUTCString();
           }
         }
       }
@@ -633,7 +633,7 @@ describe('@directives', () => {
         field.resolve = async function (source, { format, ...args }, context, info) {
           format = format || defaultFormat;
           const date = await resolve.call(this, source, args, context, info);
-          return formatDate(date, format);
+          return formatDate(date, format, true);
         };
       }
     }
@@ -877,7 +877,7 @@ describe('@directives', () => {
 
     function checkErrors(
       expectedCount: number,
-      ...expectedNames: string[],
+      ...expectedNames: string[]
     ) {
       return function ({ errors = [], data }: {
         errors: any[],

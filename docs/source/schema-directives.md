@@ -515,7 +515,7 @@ import { GraphQLID } from "graphql";
 import { createHash } from "crypto";
 
 const typeDefs = `
-declare @uniqueID(
+directive @uniqueID(
   # The name of the new ID field, "uid" by default:
   name: String = "uid"
 

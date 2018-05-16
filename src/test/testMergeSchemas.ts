@@ -4,8 +4,8 @@ import { expect } from 'chai';
 import {
   graphql,
   GraphQLSchema,
-  GraphQLScalarType,
   GraphQLObjectType,
+  GraphQLScalarType,
   subscribe,
   parse,
   ExecutionResult,
@@ -135,6 +135,14 @@ let linkSchema = `
     id: ID!
   }
 
+  extend type Car implements Node {
+    fakeFieldToSatisfyOldGraphQLRemoveAfter12: String
+  }
+
+  extend type Bike implements Node {
+    fakeFieldToSatisfyOldGraphQLRemoveAfter12: String
+  }
+
   extend type Booking implements Node {
     """
     The property of the booking.
@@ -173,6 +181,25 @@ const loneExtend = `
     foo: String!
   }
 `;
+
+let interfaceExtensionTest = `
+  # No-op for older versions since this feature does not yet exist
+  extend type DownloadableProduct {
+    filesize: Int
+  }
+`;
+
+if (['^0.11', '^0.12'].indexOf(process.env.GRAPHQL_VERSION) === -1) {
+  interfaceExtensionTest = `
+    extend interface Downloadable {
+      filesize: Int
+    }
+
+    extend type DownloadableProduct {
+      filesize: Int
+    }
+  `;
+}
 
 if (process.env.GRAPHQL_VERSION === '^0.11') {
   scalarTest = `
@@ -245,6 +272,14 @@ if (process.env.GRAPHQL_VERSION === '^0.11') {
       id: ID!
     }
 
+    extend type Car implements Node {
+      fakeFieldToSatisfyOldGraphQL: String
+    }
+
+    extend type Bike implements Node {
+      fakeFieldToSatisfyOldGraphQL: String
+    }
+
     extend type Booking implements Node {
       # The property of the booking.
       property: Property
@@ -271,6 +306,36 @@ if (process.env.GRAPHQL_VERSION === '^0.11') {
   `;
 }
 
+// Miscellaneous typeDefs that exercise uncommon branches for the sake of
+// code coverage.
+const codeCoverageTypeDefs = `
+  interface SyntaxNode {
+    type: String
+  }
+
+  type Statement implements SyntaxNode {
+    type: String
+  }
+
+  type Expression implements SyntaxNode {
+    type: String
+  }
+
+  union ASTNode = Statement | Expression
+
+  enum Direction {
+    NORTH
+    SOUTH
+    EAST
+    WEST
+  }
+
+  input WalkingPlan {
+    steps: Int
+    direction: Direction
+  }
+`;
+
 testCombinations.forEach(async combination => {
   describe('merging ' + combination.name, () => {
     let mergedSchema: GraphQLSchema,
@@ -289,16 +354,20 @@ testCombinations.forEach(async combination => {
           bookingSchema,
           productSchema,
           scalarTest,
+          interfaceExtensionTest,
           enumSchema,
           linkSchema,
           loneExtend,
           localSubscriptionSchema,
+          codeCoverageTypeDefs,
         ],
         resolvers: {
           Property: {
             bookings: {
-              fragment: 'fragment PropertyFragment on Property { id }',
+              fragment: '... on Property { id }',
               resolve(parent, args, context, info) {
+                // Use the old mergeInfo.delegate API just this once, to make
+                // sure it continues to work.
                 return info.mergeInfo.delegate(
                   'query',
                   'bookingsByPropertyId',
@@ -316,55 +385,64 @@ testCombinations.forEach(async combination => {
             property: {
               fragment: 'fragment BookingFragment on Booking { propertyId }',
               resolve(parent, args, context, info) {
-                return info.mergeInfo.delegate(
-                  'query',
-                  'propertyById',
-                  {
+                return info.mergeInfo.delegateToSchema({
+                  schema: propertySchema,
+                  operation: 'query',
+                  fieldName: 'propertyById',
+                  args: {
                     id: parent.propertyId,
                   },
                   context,
                   info,
-                );
+                });
               },
+            },
+          },
+          DownloadableProduct: {
+            filesize() {
+              return 1024;
             },
           },
           LinkType: {
             property: {
               resolve(parent, args, context, info) {
-                return info.mergeInfo.delegate(
-                  'query',
-                  'propertyById',
-                  {
+                return info.mergeInfo.delegateToSchema({
+                  schema: propertySchema,
+                  operation: 'query',
+                  fieldName: 'propertyById',
+                  args: {
                     id: 'p1',
                   },
                   context,
                   info,
-                );
+                });
               },
             },
           },
           Query: {
             delegateInterfaceTest(parent, args, context, info) {
-              return info.mergeInfo.delegate(
-                'query',
-                'interfaceTest',
-                {
+              return info.mergeInfo.delegateToSchema({
+                schema: propertySchema,
+                operation: 'query',
+                fieldName: 'interfaceTest',
+                args: {
                   kind: 'ONE',
                 },
                 context,
                 info,
-              );
+              });
             },
             delegateArgumentTest(parent, args, context, info) {
-              return info.mergeInfo.delegate(
-                'query',
-                'propertyById',
-                {
+              return info.mergeInfo.delegateToSchema({
+                schema: propertySchema,
+                operation: 'query',
+                fieldName: 'propertyById',
+                args: {
                   id: 'p1',
                 },
                 context,
                 info,
-              );
+              });
             },
             linkTest() {
               return {
@@ -373,52 +451,55 @@ testCombinations.forEach(async combination => {
             },
             node: {
               // fragment doesn't work
-              fragment: 'fragment NodeFragment on Node { id }',
+              fragment: '... on Node { id }',
               resolve(parent, args, context, info) {
                 if (args.id.startsWith('p')) {
-                  return info.mergeInfo.delegate(
-                    'query',
-                    'propertyById',
+                  return info.mergeInfo.delegateToSchema({
+                    schema: propertySchema,
+                    operation: 'query',
+                    fieldName: 'propertyById',
                     args,
                     context,
                     info,
-                  );
+                  });
                 } else if (args.id.startsWith('b')) {
-                  return info.mergeInfo.delegate(
-                    'query',
-                    'bookingById',
+                  return info.mergeInfo.delegateToSchema({
+                    schema: bookingSchema,
+                    operation: 'query',
+                    fieldName: 'bookingById',
                     args,
                     context,
                     info,
-                  );
+                  });
                 } else if (args.id.startsWith('c')) {
-                  return info.mergeInfo.delegate(
-                    'query',
-                    'customerById',
+                  return info.mergeInfo.delegateToSchema({
+                    schema: bookingSchema,
+                    operation: 'query',
+                    fieldName: 'customerById',
                     args,
                     context,
                     info,
-                  );
+                  });
                 } else {
                   throw new Error('invalid id');
                 }
               },
             },
             async nodes(parent, args, context, info) {
-              const bookings = await info.mergeInfo.delegate(
-                'query',
-                'bookings',
-                {},
+              const bookings = await info.mergeInfo.delegateToSchema({
+                schema: bookingSchema,
+                operation: 'query',
+                fieldName: 'bookings',
                 context,
                 info,
-              );
-              const properties = await info.mergeInfo.delegate(
-                'query',
-                'properties',
-                {},
+              });
+              const properties = await info.mergeInfo.delegateToSchema({
+                schema: propertySchema,
+                operation: 'query',
+                fieldName: 'properties',
                 context,
                 info,
-              );
+              });
               return [...bookings, ...properties];
             },
           },
@@ -884,6 +965,130 @@ bookingById(id: "b1") {
         });
       });
 
+      it('unions implementing interface', async () => {
+        const query = `
+          query {
+            test1: unionTest(output: "Interface") {
+              ... on TestInterface {
+                kind
+                testString
+              }
+              ... on TestImpl1 {
+                foo
+              }
+              ... on UnionImpl {
+                someField
+              }
+            }
+
+            test2: unionTest(output: "OtherStuff") {
+              ... on TestInterface {
+                kind
+                testString
+              }
+              ... on TestImpl1 {
+                foo
+              }
+              ... on UnionImpl {
+                someField
+              }
+            }
+          }
+        `;
+        const mergedResult = await graphql(mergedSchema, query);
+        expect(mergedResult).to.deep.equal({
+          data: {
+            test1: {
+              kind: 'ONE',
+              testString: 'test',
+              foo: 'foo',
+            },
+            test2: {
+              someField: 'Bar',
+            },
+          },
+        });
+      });
+
+      it('interfaces spread from top level functions', async () => {
+        const mergedResult = await graphql(
+          mergedSchema,
+          `
+            query {
+              first: customerById(id: "c1") {
+                name
+                ... on Node {
+                  id
+                }
+              }
+
+              second: customerById(id: "c1") {
+                ...NodeFragment
+              }
+            }
+
+            fragment NodeFragment on Node {
+              id
+              ... on Customer {
+                name
+              }
+            }
+          `,
+        );
+
+        expect(mergedResult).to.deep.equal({
+          data: {
+            first: {
+              id: 'c1',
+              name: 'Exampler Customer',
+            },
+            second: {
+              id: 'c1',
+              name: 'Exampler Customer',
+            },
+          },
+        });
+      });
+
+      it('unions implementing an interface', async () => {
+        const mergedResult = await graphql(
+          mergedSchema,
+          `
+            query {
+              customerById(id: "c1") {
+                ... on Person {
+                  name
+                }
+                vehicle {
+                  ... on Node {
+                    __typename
+                    id
+                  }
+                }
+                secondVehicle: vehicle {
+                  ...NodeFragment
+                }
+              }
+            }
+
+            fragment NodeFragment on Node {
+              id
+              __typename
+            }
+          `,
+        );
+
+        expect(mergedResult).to.deep.equal({
+          data: {
+            customerById: {
+              name: 'Exampler Customer',
+              vehicle: { __typename: 'Bike', id: 'v1' },
+              secondVehicle: { __typename: 'Bike', id: 'v1' },
+            },
+          },
+        });
+      });
+
       it('input objects with default', async () => {
         const mergedResult = await graphql(
           mergedSchema,
@@ -991,7 +1196,7 @@ bookingById(id: "b1") {
       });
 
       it('should merge resolvers when passed an array of resolver objects', async () => {
-        const Scalars = () => ({
+        const Scalars = {
           TestScalar: new GraphQLScalarType({
             name: 'TestScalar',
             description: undefined,
@@ -999,53 +1204,55 @@ bookingById(id: "b1") {
             parseValue: value => value,
             parseLiteral: () => null,
           }),
-        });
-        const Enums = () => ({
+        };
+        const Enums = {
           NumericEnum: {
             TEST: 1,
           },
           Color: {
             RED: '#EA3232',
           },
-        });
+        };
         const PropertyResolvers: IResolvers = {
           Property: {
             bookings: {
               fragment: 'fragment PropertyFragment on Property { id }',
               resolve(parent, args, context, info) {
-                return info.mergeInfo.delegate(
-                  'query',
-                  'bookingsByPropertyId',
-                  {
+                return info.mergeInfo.delegateToSchema({
+                  schema: bookingSchema,
+                  operation: 'query',
+                  fieldName: 'bookingsByPropertyId',
+                  args: {
                     propertyId: parent.id,
                     limit: args.limit ? args.limit : null,
                   },
                   context,
                   info,
-                );
+                });
               },
             },
           },
         };
-        const LinkResolvers: (info: any) => IResolvers = info => ({
+        const LinkResolvers: IResolvers = {
           Booking: {
             property: {
               fragment: 'fragment BookingFragment on Booking { propertyId }',
-              resolve(parent, args, context) {
-                return info.mergeInfo.delegate(
-                  'query',
-                  'propertyById',
-                  {
+              resolve(parent, args, context, info) {
+                return info.mergeInfo.delegateToSchema({
+                  schema: propertySchema,
+                  operation: 'query',
+                  fieldName: 'propertyById',
+                  args: {
                     id: parent.propertyId,
                   },
                   context,
                   info,
-                );
+                });
               },
             },
           },
-        });
-        const Query1 = () => ({
+        };
+        const Query1 = {
           Query: {
             color() {
               return '#EA3232';
@@ -1054,30 +1261,32 @@ bookingById(id: "b1") {
               return 1;
             },
           },
-        });
-        const Query2: (info: any) => IResolvers = () => ({
+        };
+        const Query2: IResolvers = {
           Query: {
             delegateInterfaceTest(parent, args, context, info) {
-              return info.mergeInfo.delegate(
-                'query',
-                'interfaceTest',
-                {
+              return info.mergeInfo.delegateToSchema({
+                schema: propertySchema,
+                operation: 'query',
+                fieldName: 'interfaceTest',
+                args: {
                   kind: 'ONE',
                 },
                 context,
                 info,
-              );
+              });
             },
             delegateArgumentTest(parent, args, context, info) {
-              return info.mergeInfo.delegate(
-                'query',
-                'propertyById',
-                {
+              return info.mergeInfo.delegateToSchema({
+                schema: propertySchema,
+                operation: 'query',
+                fieldName: 'propertyById',
+                args: {
                   id: 'p1',
                 },
                 context,
                 info,
-              );
+              });
             },
             linkTest() {
               return {
@@ -1089,65 +1298,68 @@ bookingById(id: "b1") {
               fragment: 'fragment NodeFragment on Node { id }',
               resolve(parent, args, context, info) {
                 if (args.id.startsWith('p')) {
-                  return info.mergeInfo.delegate(
-                    'query',
-                    'propertyById',
+                  return info.mergeInfo.delegateToSchema({
+                    schema: propertySchema,
+                    operation: 'query',
+                    fieldName: 'propertyById',
                     args,
                     context,
                     info,
-                  );
+                  });
                 } else if (args.id.startsWith('b')) {
-                  return info.mergeInfo.delegate(
-                    'query',
-                    'bookingById',
+                  return info.mergeInfo.delegateToSchema({
+                    schema: bookingSchema,
+                    operation: 'query',
+                    fieldName: 'bookingById',
                     args,
                     context,
                     info,
-                  );
+                  });
                 } else if (args.id.startsWith('c')) {
-                  return info.mergeInfo.delegate(
-                    'query',
-                    'customerById',
+                  return info.mergeInfo.delegateToSchema({
+                    schema: bookingSchema,
+                    operation: 'query',
+                    fieldName: 'customerById',
                     args,
                     context,
                     info,
-                  );
+                  });
                 } else {
                   throw new Error('invalid id');
                 }
               },
             },
           },
-        });
+        };
 
-        const AsyncQuery: (info: any) => IResolvers = info => ({
+        const AsyncQuery: IResolvers = {
           Query: {
-            async nodes(parent, args, context) {
-              const bookings = await info.mergeInfo.delegate(
-                'query',
-                'bookings',
-                {},
+            async nodes(parent, args, context, info) {
+              const bookings = await info.mergeInfo.delegateToSchema({
+                schema: bookingSchema,
+                operation: 'query',
+                fieldName: 'bookings',
                 context,
                 info,
-              );
-              const properties = await info.mergeInfo.delegate(
-                'query',
-                'properties',
-                {},
+              });
+              const properties = await info.mergeInfo.delegateToSchema({
+                schema: propertySchema,
+                operation: 'query',
+                fieldName: 'properties',
                 context,
                 info,
-              );
+              });
               return [...bookings, ...properties];
             },
           },
-        });
+        };
         const schema = mergeSchemas({
           schemas: [
             propertySchema,
             bookingSchema,
             productSchema,
             scalarTest,
-            enumTest,
+            enumSchema,
             linkSchema,
             loneExtend,
             localSubscriptionSchema,
@@ -1439,6 +1651,63 @@ fragment BookingFragment on Booking {
           data: {
             ...propertyResult.data,
             ...bookingResult.data,
+          },
+        });
+      });
+
+      it('containing fragment on outer type', async () => {
+        const mergedResult = await graphql(
+          mergedSchema,
+          `
+            query {
+              propertyById(id: "p2") {
+                id
+                ... on Property {
+                  name
+                  ...BookingFragment1
+                }
+              }
+            }
+
+            fragment BookingFragment1 on Property {
+              bookings {
+                id
+                property {
+                  id
+                  name
+                }
+              }
+              ...BookingFragment2
+            }
+
+            fragment BookingFragment2 on Property {
+              bookings {
+                customer {
+                  name
+                }
+              }
+            }
+          `,
+        );
+
+        expect(mergedResult).to.deep.equal({
+          data: {
+            propertyById: {
+              id: 'p2',
+              name: 'Another great hotel',
+              bookings: [
+                {
+                  id: 'b4',
+                  customer: {
+                    name: 'Exampler Customer',
+                  },
+                  property: {
+                    id: 'p2',
+                    name: 'Another great hotel',
+                  },
+                },
+              ],
+            },
           },
         });
       });
@@ -2064,7 +2333,6 @@ fragment BookingFragment on Booking {
       });
     });
 
-    // FIXME: __typename should be automatic
     describe('merge info defined interfaces', () => {
       it('inline fragments on existing types in subschema', async () => {
         const result = await graphql(
@@ -2072,14 +2340,12 @@ fragment BookingFragment on Booking {
           `
             query($pid: ID!, $bid: ID!) {
               property: node(id: $pid) {
-                __typename
                 id
                 ... on Property {
                   name
                 }
               }
               booking: node(id: $bid) {
-                __typename
                 id
                 ... on Booking {
                   startTime
@@ -2099,12 +2365,10 @@ fragment BookingFragment on Booking {
         expect(result).to.deep.equal({
           data: {
             property: {
-              __typename: 'Property',
               id: 'p1',
               name: 'Super great hotel',
             },
             booking: {
-              __typename: 'Booking',
               id: 'b1',
               startTime: '2016-05-04',
               endTime: '2016-06-03',
@@ -2199,45 +2463,44 @@ fragment BookingFragment on Booking {
         });
       });
 
-      // KNOWN BUG
-      // it('fragments on interfaces in merged schema', async () => {
-      //   const result = await graphql(
-      //     mergedSchema,
-      //     `
-      //       query($bid: ID!) {
-      //         node(id: $bid) {
-      //           ...NodeFragment
-      //         }
-      //       }
-      //
-      //       fragment NodeFragment on Node {
-      //         id
-      //         ... on Property {
-      //           name
-      //         }
-      //         ... on Booking {
-      //           startTime
-      //           endTime
-      //         }
-      //       }
-      //     `,
-      //     {},
-      //     {},
-      //     {
-      //       bid: 'b1',
-      //     },
-      //   );
-      //
-      //   expect(result).to.deep.equal({
-      //     data: {
-      //       node: {
-      //         id: 'b1',
-      //         startTime: '2016-05-04',
-      //         endTime: '2016-06-03',
-      //       },
-      //     },
-      //   });
-      // });
+      it('fragments on interfaces in merged schema', async () => {
+        const result = await graphql(
+          mergedSchema,
+          `
+            query($bid: ID!) {
+              node(id: $bid) {
+                ...NodeFragment
+              }
+            }
+
+            fragment NodeFragment on Node {
+              id
+              ... on Property {
+                name
+              }
+              ... on Booking {
+                startTime
+                endTime
+              }
+            }
+          `,
+          {},
+          {},
+          {
+            bid: 'b1',
+          },
+        );
+
+        expect(result).to.deep.equal({
+          data: {
+            node: {
+              id: 'b1',
+              startTime: '2016-05-04',
+              endTime: '2016-06-03',
+            },
+          },
+        });
+      });
 
       it('multi-interface filter', async () => {
         const result = await graphql(
@@ -2272,13 +2535,47 @@ fragment BookingFragment on Booking {
         });
       });
 
+      if (['^0.11', '^0.12'].indexOf(process.env.GRAPHQL_VERSION) === -1) {
+        it('interface extensions', async () => {
+          const result = await graphql(
+            mergedSchema,
+            `
+              query {
+                products {
+                  id
+                  __typename
+                  ... on Downloadable {
+                    filesize
+                  }
+                }
+              }
+            `,
+          );
+
+          expect(result).to.deep.equal({
+            data: {
+              products: [
+                {
+                  id: 'pd1',
+                  __typename: 'SimpleProduct',
+                },
+                {
+                  id: 'pd2',
+                  __typename: 'DownloadableProduct',
+                  filesize: 1024,
+                },
+              ],
+            },
+          });
+        });
+      }
+
       it('arbitrary transforms that return interfaces', async () => {
         const result = await graphql(
           mergedSchema,
           `
             query {
               nodes {
-                __typename
                 id
                 ... on Property {
                   name
@@ -2299,40 +2596,33 @@ fragment BookingFragment on Booking {
                 id: 'b1',
                 startTime: '2016-05-04',
                 endTime: '2016-06-03',
-                __typename: 'Booking',
               },
               {
                 id: 'b2',
                 startTime: '2016-06-04',
                 endTime: '2016-07-03',
-                __typename: 'Booking',
               },
               {
                 id: 'b3',
                 startTime: '2016-08-04',
                 endTime: '2016-09-03',
-                __typename: 'Booking',
               },
               {
                 id: 'b4',
                 startTime: '2016-10-04',
                 endTime: '2016-10-03',
-                __typename: 'Booking',
               },
               {
                 id: 'p1',
                 name: 'Super great hotel',
-                __typename: 'Property',
               },
               {
                 id: 'p2',
                 name: 'Another great hotel',
-                __typename: 'Property',
               },
               {
                 id: 'p3',
                 name: 'BedBugs - The Affordable Hostel',
-                __typename: 'Property',
               },
             ],
           },
