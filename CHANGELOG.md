@@ -1,6 +1,9 @@
 # Change log
 
 ### vNext
+* Add schema transforms to subscriptions, fix dissapiring errors of subscriptions on mergeSchemas
+[#793] https://github.com/apollographql/graphql-tools/issues/793
+[#780] https://github.com/apollographql/graphql-tools/issues/780
 * Fixed a visitType error printing the name of the variable typeName rather than its value due to a template string being incorrectly formatted. [#783] https://github.com/apollographql/graphql-tools/pull/783
 
 ### v3.0.2
