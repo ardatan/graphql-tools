@@ -12,6 +12,7 @@ import {
   validate,
   VariableDefinitionNode,
   GraphQLSchema,
+  ExecutionResult,
 } from 'graphql';
 
 import {
@@ -29,6 +30,7 @@ import AddArgumentsAsVariables from '../transforms/AddArgumentsAsVariables';
 import FilterToSchema from '../transforms/FilterToSchema';
 import AddTypenameToAbstract from '../transforms/AddTypenameToAbstract';
 import CheckResultAndHandleErrors from '../transforms/CheckResultAndHandleErrors';
+import mapAsyncIterator from './mapAsyncIterator';
 
 export default function delegateToSchema(
   options: IDelegateToSchemaOptions | GraphQLSchema,
@@ -91,14 +93,27 @@ async function delegateToSchemaImplementation(
   }
 
   if (options.operation === 'subscription') {
-    // apply result processing ???
-    return subscribe(
+    const executionResult = await subscribe(
       options.schema,
       processedRequest.document,
       info.rootValue,
       options.context,
       processedRequest.variables,
-    );
+    ) as AsyncIterator<ExecutionResult>;
+
+    // "subscribe" to the subscription result and map the result through the transforms
+    return mapAsyncIterator<ExecutionResult, any>(executionResult, (result) => {
+      const transformedResult = applyResultTransforms(result, transforms);
+      const subscriptionKey = Object.keys(result.data)[0];
+
+      // for some reason the returned transformedResult needs to be nested inside the root subscription field
+      // does not work otherwise...
+      return {
+        [subscriptionKey]: {
+          ...transformedResult
+        },
+      };
+    });
   }
 }
 
