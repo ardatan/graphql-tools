@@ -195,7 +195,7 @@ Also provides the `info.mergeInfo.delegateToSchema` function discussed above.
 
 <h3 id="createRequest">createRequest</h3>
 
-The `createRequest` is a utility function for creating queries with multiple, aliased, roots and possible argument name collisions. The function should be called with these parameters:
+The `createRequest` function is a utility function for creating queries with multiple, aliased, roots and possible argument name collisions. The function should be called with these parameters:
 
 ```js
 createRequest(options: {
