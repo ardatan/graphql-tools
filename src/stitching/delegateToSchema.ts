@@ -72,9 +72,11 @@ async function delegateToSchemaImplementation(
 
   const processedRequest = applyRequestTransforms(rawRequest, transforms);
 
-  const errors = validate(options.schema, processedRequest.document);
-  if (errors.length > 0) {
-    throw errors;
+  if (!options.skipValidation) {
+    const errors = validate(options.schema, processedRequest.document);
+    if (errors.length > 0) {
+      throw errors;
+    }
   }
 
   if (options.operation === 'query' || options.operation === 'mutation') {
