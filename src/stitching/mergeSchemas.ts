@@ -231,7 +231,7 @@ function mergeSchemasImplementation({
         type = (<TypeWithResolvers>resultType).type;
         typeResolvers = (<TypeWithResolvers>resultType).resolvers;
       } else {
-        throw new Error('Invalid `visitType` result for type "${typeName}"');
+        throw new Error(`Invalid visitType result for type ${typeName}`);
       }
       types[typeName] = recreateType(type, resolveType, false);
       if (typeResolvers) {
