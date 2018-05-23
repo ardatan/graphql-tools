@@ -198,13 +198,13 @@ Also provides the `info.mergeInfo.delegateToSchema` function discussed above.
 The `createRequest` is a utility function for creating queries with multiple, aliased, roots and possible argument name collisions. The function should be called with these parameters:
 
 ```js
-createRequest(
-  targetSchema: GraphQLSchema,
-  targetOperation: 'query' | 'mutation' | 'subscription',
-  roots: Array<OperationRootDefinition>,
-  documentInfo: GraphQLResolveInfo,
-  transforms?: Array<Transform>,
-): Request
+createRequest(options: {
+  schema: GraphQLSchema;
+  operation: 'query' | 'mutation' | 'subscription';
+  roots: Array<OperationRootDefinition>;
+  info: GraphQLResolveInfo;
+  transforms?: Array<Transform>;
+}): Request
 ```
 
 where `OperationRootDefinition` is the following:
@@ -224,15 +224,15 @@ type OperationRootDefinition = {
 ```js
 User: {
   bookings(parent, args, context, info) {
-    const { document, variables } = createRequest(
-      subschema,
-      'query',
-      [
+    const { document, variables } = createRequest({
+      schema: subschema,
+      operation: 'query',
+      roots: [
         { fieldName: 'node', alias: 'booking1', args: { id: 'b1' }, info },
         { fieldName: 'node', alias: 'booking2', args: { id: 'b2' }, info },
       ],
       info
-    )
+    })
     return graphql.execute(
       subschema,
       document,
@@ -267,7 +267,7 @@ A list of root definitions. This is where you can define multiple root fields fo
 ]
 ```
 
-#### documentInfo: GraphQLResolveInfo
+#### info: GraphQLResolveInfo
 
 Info object containing fields that are not specific to root fields, but rather the document as a whole, like `fragments` and other `variableValues`
 

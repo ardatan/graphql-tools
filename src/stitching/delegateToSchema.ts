@@ -8,15 +8,13 @@ import {
   subscribe,
   execute,
   validate,
-  GraphQLResolveInfo,
   GraphQLSchema,
 } from 'graphql';
 
 import {
   Request,
   IDelegateToSchemaOptions,
-  Transform,
-  OperationRootDefinition,
+  ICreateRequestOptions
 } from '../Interfaces';
 
 import {
@@ -29,13 +27,14 @@ import FilterToSchema from '../transforms/FilterToSchema';
 import AddTypenameToAbstract from '../transforms/AddTypenameToAbstract';
 import CheckResultAndHandleErrors from '../transforms/CheckResultAndHandleErrors';
 
-export function createRequest(
-  targetSchema: GraphQLSchema,
-  targetOperation: 'query' | 'mutation' | 'subscription',
-  roots: Array<OperationRootDefinition>,
-  documentInfo: GraphQLResolveInfo,
-  transforms?: Array<Transform>,
-): Request {
+
+export function createRequest({
+  schema,
+  operation,
+  roots,
+  info: documentInfo,
+  transforms
+}: ICreateRequestOptions): Request {
   const selections: Array<SelectionNode> = roots.map(({ fieldName, info, alias }) => {
     const newSelections: Array<SelectionNode> = info
       ? [].concat(...info.fieldNodes.map((field: FieldNode) => field.selectionSet ? field.selectionSet.selections : []))
@@ -78,7 +77,7 @@ export function createRequest(
 
   const operationDefinition: OperationDefinitionNode = {
     kind: Kind.OPERATION_DEFINITION,
-    operation: targetOperation,
+    operation,
     variableDefinitions: documentInfo.operation.variableDefinitions,
     selectionSet,
   };
@@ -99,9 +98,9 @@ export function createRequest(
 
   transforms = [
     ...(transforms || []),
-    new AddArgumentsAsVariables(targetSchema, roots),
-    new FilterToSchema(targetSchema),
-    new AddTypenameToAbstract(targetSchema),
+    new AddArgumentsAsVariables(schema, roots),
+    new FilterToSchema(schema),
+    new AddTypenameToAbstract(schema),
   ];
 
   return applyRequestTransforms(rawRequest, transforms);
@@ -131,10 +130,10 @@ async function delegateToSchemaImplementation(
     operation,
     context
    } = options;
-  const processedRequest = createRequest(
+  const processedRequest = createRequest({
     schema,
     operation,
-    [
+    roots: [
       {
         fieldName,
         args,
@@ -142,8 +141,8 @@ async function delegateToSchemaImplementation(
       }
     ],
     info,
-    options.transforms
-  );
+    transforms: options.transforms
+  });
 
   const errors = validate(schema, processedRequest.document);
   if (errors.length > 0) {

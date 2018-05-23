@@ -56,6 +56,14 @@ export interface IDelegateToSchemaOptions<TContext = { [key: string]: any }> {
   transforms?: Array<Transform>;
 }
 
+export interface ICreateRequestOptions {
+  schema: GraphQLSchema;
+  operation: 'query' | 'mutation' | 'subscription';
+  roots: Array<OperationRootDefinition>;
+  info: GraphQLResolveInfo;
+  transforms?: Array<Transform>;
+}
+
 export type MergeInfo = {
   delegate: (
     type: 'query' | 'mutation' | 'subscription',

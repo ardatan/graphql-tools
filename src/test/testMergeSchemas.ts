@@ -2657,10 +2657,10 @@ fragment BookingFragment on Booking {
     });
     describe('createRequest', () => {
       it('should support multiple aliased roots with no args', () => {
-        const operation = createRequest(
-          mergedSchema,
-          'query',
-          [
+        const operation = createRequest({
+          schema: mergedSchema,
+          operation: 'query',
+          roots: [
             {
               fieldName: 'nodes',
               alias: 'users1'
@@ -2670,7 +2670,7 @@ fragment BookingFragment on Booking {
               alias: 'users2'
             }
           ],
-          {
+          info: {
             operation: {
               variableDefinitions: [],
               name: {
@@ -2680,7 +2680,7 @@ fragment BookingFragment on Booking {
             fragments: {},
             variableValues: {}
           } as GraphQLResolveInfo
-        );
+        });
         expect(print(operation.document)).to.equal(
 `{
   users1: nodes
@@ -2690,10 +2690,10 @@ fragment BookingFragment on Booking {
         expect(operation.variables).to.deep.equal({});
       });
       it('should support multiple aliased roots with args', () => {
-        const operation = createRequest(
-          mergedSchema,
-          'query',
-          [
+        const operation = createRequest({
+          schema: mergedSchema,
+          operation: 'query',
+          roots: [
             {
               fieldName: 'node',
               alias: 'user1',
@@ -2705,7 +2705,7 @@ fragment BookingFragment on Booking {
               args: { id: '2' }
             }
           ],
-          {
+          info: {
             operation: {
               variableDefinitions: [],
               name: {
@@ -2715,7 +2715,7 @@ fragment BookingFragment on Booking {
             fragments: {},
             variableValues: {}
           } as GraphQLResolveInfo
-        );
+        });
         expect(print(operation.document)).to.equal(
 `query ($_v0_id: ID!, $_v1_id: ID!) {
   user1: node(id: $_v0_id)
@@ -2755,10 +2755,10 @@ fragment BookingFragment on Booking {
             }
           ]
         } as GraphQLResolveInfo;
-        const operation = createRequest(
-          mergedSchema,
-          'query',
-          [
+        const operation = createRequest({
+          schema: mergedSchema,
+          operation: 'query',
+          roots: [
             {
               fieldName: 'node',
               alias: 'user1',
@@ -2772,7 +2772,7 @@ fragment BookingFragment on Booking {
               info
             }
           ],
-          {
+          info: {
             operation: {
               variableDefinitions: [],
               name: {
@@ -2782,7 +2782,7 @@ fragment BookingFragment on Booking {
             fragments: {},
             variableValues: {}
           } as GraphQLResolveInfo
-        );
+        });
         expect(print(operation.document)).to.equal(
 `query ($_v0_id: ID!, $_v1_id: ID!) {
   user1: node(id: $_v0_id) {
