@@ -8,6 +8,7 @@ import {
   Kind,
   SelectionSetNode,
 } from 'graphql';
+import { assertValidSchema } from 'graphql/type/validate';
 import { makeExecutableSchema } from '../schemaGenerator';
 import { propertySchema, bookingSchema } from './testingSchemas';
 import delegateToSchema from '../stitching/delegateToSchema';
@@ -155,6 +156,10 @@ describe('transforms', () => {
       schema = transformSchema(bookingSchema, transforms);
     });
 
+    it('should produce a valid schema', () => {
+      assertValidSchema(schema);
+    });
+
     it('should work normally', async () => {
       const result = await graphql(
         schema,
@@ -212,6 +217,71 @@ describe('transforms', () => {
             path: undefined,
           },
         ],
+      });
+    });
+  });
+
+  describe('filtering a type from a union', () => {
+    let schema: GraphQLSchema;
+    before(() => {
+      // We are checking that the 'Vehicle' union is valid
+      // after removing the 'Bike' type.
+      const transforms = [
+        new FilterTypes((type: GraphQLNamedType) => type.name !== 'Bike'),
+      ];
+      schema = transformSchema(bookingSchema, transforms);
+    });
+
+    it('should produce a valid schema', () => {
+      assertValidSchema(schema);
+    });
+
+    it('should work normally', async () => {
+      const query = `
+        query {
+          customerById(id: "c1") {
+            id
+            email
+            name
+            vehicle {
+              __typename
+              ... on Bike {
+                id
+                bikeType
+              }
+            }
+          }
+        }
+      `;
+
+      const originalResult = await graphql(bookingSchema, query);
+
+      expect(originalResult).to.deep.equal({
+        data: {
+          customerById: {
+            id: 'c1',
+            email: 'examplec1@example.com',
+            name: 'Exampler Customer',
+            vehicle: {
+              __typename: 'Bike',
+              id: 'v1',
+              bikeType: 'MOUNTAIN',
+            },
+          },
+        },
+      });
+
+      const transformedResult = await graphql(schema, query);
+
+      expect(transformedResult).to.deep.equal({
+        data: {
+          customerById: {
+            id: 'c1',
+            email: 'examplec1@example.com',
+            name: 'Exampler Customer',
+            vehicle: null,
+          },
+        },
       });
     });
   });
