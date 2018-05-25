@@ -1,5 +1,11 @@
 # Change log
 
+Include a description of your change, link to PR (always) and issue (if applicable). Add your CHANGELOG entry under vNEXT. Do not create a new version number for your change yourself.
+
+### vNEXT
+
+* Fixed ECMAScript syntax error incompatible with TypeScript 2.9 [#807](https://github.com/apollographql/graphql-tools/pull/807)
+
 ### v3.0.2
 
 * Fixed duplicate fragments getting added during transform in `FilterToSchema` [#778](https://github.com/apollographql/graphql-tools/pull/778)
