@@ -1891,14 +1891,18 @@ fragment BookingFragment on Booking {
                 id
                 name
                 ... on Property {
-                  bookings(limit: $limit) {
+                  ...BookingFragment
+                }
+              }
+            }
+
+            fragment BookingFragment on Property {
+              bookings(limit: $limit) {
+                id
+                customer {
+                  name
+                  ... on Person {
                     id
-                    customer {
-                      name
-                      ... on Person {
-                        id
-                      }
-                    }
                   }
                 }
               }

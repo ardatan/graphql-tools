@@ -1,5 +1,9 @@
 # Change log
 
+### v3.0.3
+
+* Fixed error in `mergeSchemas` linking fragment field variables with the parent query [#806](https://github.com/apollographql/graphql-tools/pull/806)
+
 ### v3.0.2
 
 * Fixed duplicate fragments getting added during transform in `FilterToSchema` [#778](https://github.com/apollographql/graphql-tools/pull/778)
