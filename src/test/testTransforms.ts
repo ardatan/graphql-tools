@@ -7,6 +7,8 @@ import {
   graphql,
   Kind,
   SelectionSetNode,
+  print,
+  parse,
 } from 'graphql';
 import { makeExecutableSchema } from '../schemaGenerator';
 import { propertySchema, bookingSchema } from './testingSchemas';
@@ -17,6 +19,7 @@ import {
   FilterTypes,
   WrapQuery,
   ExtractField,
+  FilterToSchema,
 } from '../transforms';
 
 describe('transforms', () => {
@@ -140,6 +143,104 @@ describe('transforms', () => {
           },
         },
       });
+    });
+  });
+
+  describe('filter to schema', () => {
+    let filter: FilterToSchema;
+    before(() => {
+      filter = new FilterToSchema(bookingSchema);
+    });
+
+    it('should remove empty selection sets on objects', async () => {
+      const query = parse(`
+      query customerQuery($id: ID!) {
+        customerById(id: $id) {
+          id
+          name
+          address {
+            planet
+          }
+        }
+      }
+      `);
+      const filteredQuery = filter.transformRequest({
+        document: query,
+        variables: {
+          id: 'c1'
+        }
+      });
+
+      const expected = parse(`
+      query customerQuery($id: ID!) {
+        customerById(id: $id) {
+          id
+          name
+        }
+      }
+      `);
+      expect(print(filteredQuery.document)).to.equal(print(expected));
+    });
+
+    it('should also remove variables when removing empty selection sets', async () => {
+      const query = parse(`
+      query customerQuery($id: ID!, $limit: Int) {
+        customerById(id: $id) {
+          id
+          name
+          bookings(limit: $limit) {
+            paid
+          }
+        }
+      }
+      `);
+      const filteredQuery = filter.transformRequest({
+        document: query,
+        variables: {
+          id: 'c1',
+          limit: 10
+        }
+      });
+
+      const expected = parse(`
+      query customerQuery($id: ID!) {
+        customerById(id: $id) {
+          id
+          name
+        }
+      }
+      `);
+      expect(print(filteredQuery.document)).to.equal(print(expected));
+    });
+
+    it('should remove empty selection sets on wrapped objects (non-nullable/lists)', async () => {
+      const query = parse(`
+      query bookingQuery($id: ID!) {
+        bookingById(id: $id) {
+          id
+          propertyId
+          customer {
+            favoriteFood
+          }
+        }
+      }
+      `);
+      const filteredQuery = filter.transformRequest({
+        document: query,
+        variables: {
+          id: 'b1'
+        }
+      });
+
+      const expected = parse(`
+      query bookingQuery($id: ID!) {
+        bookingById(id: $id) {
+          id
+          propertyId
+        }
+      }
+      `);
+      expect(print(filteredQuery.document)).to.equal(print(expected));
     });
   });
 
