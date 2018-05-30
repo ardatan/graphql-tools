@@ -56,10 +56,6 @@ function addMockFunctionsToSchema({
   mocks = {},
   preserveResolvers = false,
 }: IMockOptions): void {
-  function isObject(thing: any) {
-    return thing === Object(thing) && !Array.isArray(thing);
-  }
-
   if (!schema) {
     throw new Error('Must provide schema to mock');
   }
@@ -88,89 +84,6 @@ function addMockFunctionsToSchema({
   defaultMockMap.set('String', () => 'Hello World');
   defaultMockMap.set('Boolean', () => Math.random() > 0.5);
   defaultMockMap.set('ID', () => uuid.v4());
-
-  function mergeObjects(a: Object, b: Object) {
-    return Object.assign(a, b);
-  }
-
-  function copyOwnPropsIfNotPresent(target: Object, source: Object) {
-    Object.getOwnPropertyNames(source).forEach(prop => {
-      if (!Object.getOwnPropertyDescriptor(target, prop)) {
-        Object.defineProperty(
-          target,
-          prop,
-          Object.getOwnPropertyDescriptor(source, prop),
-        );
-      }
-    });
-  }
-
-  function copyOwnProps(target: Object, ...sources: Object[]) {
-    sources.forEach(source => {
-      let chain = source;
-      while (chain) {
-        copyOwnPropsIfNotPresent(target, chain);
-        chain = Object.getPrototypeOf(chain);
-      }
-    });
-    return target;
-  }
-
-  // returns a random element from that ary
-  function getRandomElement(ary: any[]) {
-    const sample = Math.floor(Math.random() * ary.length);
-    return ary[sample];
-  }
-
-  // takes either an object or a (possibly nested) array
-  // and completes the customMock object with any fields
-  // defined on genericMock
-  // only merges objects or arrays. Scalars are returned as is
-  function mergeMocks(genericMockFunction: () => any, customMock: any): any {
-    if (Array.isArray(customMock)) {
-      return customMock.map((el: any) => mergeMocks(genericMockFunction, el));
-    }
-    if (isObject(customMock)) {
-      return mergeObjects(genericMockFunction(), customMock);
-    }
-    return customMock;
-  }
-
-  function getResolveType(namedFieldType: GraphQLNamedType) {
-    if (
-      namedFieldType instanceof GraphQLInterfaceType ||
-      namedFieldType instanceof GraphQLUnionType
-    ) {
-      return namedFieldType.resolveType;
-    } else {
-      return undefined;
-    }
-  }
-
-  function assignResolveType(type: GraphQLType) {
-    const fieldType = getNullableType(type);
-    const namedFieldType = getNamedType(fieldType);
-
-    const oldResolveType = getResolveType(namedFieldType);
-    if (preserveResolvers && oldResolveType && oldResolveType.length) {
-      return;
-    }
-
-    if (
-      namedFieldType instanceof GraphQLUnionType ||
-      namedFieldType instanceof GraphQLInterfaceType
-    ) {
-      // the default `resolveType` always returns null. We add a fallback
-      // resolution that works with how unions and interface are mocked
-      namedFieldType.resolveType = (
-        data: any,
-        context: any,
-        info: GraphQLResolveInfo,
-      ) => {
-        return info.schema.getType(data.__typename) as GraphQLObjectType;
-      };
-    }
-  }
 
   const mockType = function(
     type: GraphQLType,
@@ -293,7 +206,7 @@ function addMockFunctionsToSchema({
   forEachField(
     schema,
     (field: GraphQLField<any, any>, typeName: string, fieldName: string) => {
-      assignResolveType(field.type);
+      assignResolveType(field.type, preserveResolvers);
       let mockResolver: GraphQLFieldResolver<any, any>;
 
       // we have to handle the root mutation and root query types differently,
@@ -382,6 +295,93 @@ function addMockFunctionsToSchema({
       }
     },
   );
+}
+
+function isObject(thing: any) {
+  return thing === Object(thing) && !Array.isArray(thing);
+}
+
+// returns a random element from that ary
+function getRandomElement(ary: any[]) {
+  const sample = Math.floor(Math.random() * ary.length);
+  return ary[sample];
+}
+
+function mergeObjects(a: Object, b: Object) {
+  return Object.assign(a, b);
+}
+
+function copyOwnPropsIfNotPresent(target: Object, source: Object) {
+  Object.getOwnPropertyNames(source).forEach(prop => {
+    if (!Object.getOwnPropertyDescriptor(target, prop)) {
+      Object.defineProperty(
+        target,
+        prop,
+        Object.getOwnPropertyDescriptor(source, prop),
+      );
+    }
+  });
+}
+
+function copyOwnProps(target: Object, ...sources: Object[]) {
+  sources.forEach(source => {
+    let chain = source;
+    while (chain) {
+      copyOwnPropsIfNotPresent(target, chain);
+      chain = Object.getPrototypeOf(chain);
+    }
+  });
+  return target;
+}
+
+// takes either an object or a (possibly nested) array
+// and completes the customMock object with any fields
+// defined on genericMock
+// only merges objects or arrays. Scalars are returned as is
+function mergeMocks(genericMockFunction: () => any, customMock: any): any {
+  if (Array.isArray(customMock)) {
+    return customMock.map((el: any) => mergeMocks(genericMockFunction, el));
+  }
+  if (isObject(customMock)) {
+    return mergeObjects(genericMockFunction(), customMock);
+  }
+  return customMock;
+}
+
+function getResolveType(namedFieldType: GraphQLNamedType) {
+  if (
+    namedFieldType instanceof GraphQLInterfaceType ||
+    namedFieldType instanceof GraphQLUnionType
+  ) {
+    return namedFieldType.resolveType;
+  } else {
+    return undefined;
+  }
+}
+
+function assignResolveType(type: GraphQLType, preserveResolvers: boolean) {
+  const fieldType = getNullableType(type);
+  const namedFieldType = getNamedType(fieldType);
+
+  const oldResolveType = getResolveType(namedFieldType);
+  if (preserveResolvers && oldResolveType && oldResolveType.length) {
+    return;
+  }
+
+  if (
+    namedFieldType instanceof GraphQLUnionType ||
+    namedFieldType instanceof GraphQLInterfaceType
+  ) {
+    // the default `resolveType` always returns null. We add a fallback
+    // resolution that works with how unions and interface are mocked
+    namedFieldType.resolveType = (
+      data: any,
+      context: any,
+      info: GraphQLResolveInfo,
+    ) => {
+      return info.schema.getType(data.__typename) as GraphQLObjectType;
+    };
+  }
 }
 
 class MockList {
