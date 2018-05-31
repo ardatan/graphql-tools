@@ -134,7 +134,7 @@ const mergedSchema = mergeSchemas({
   resolvers: {
     User: {
       chirps: {
-        fragment: `fragment UserFragment on User { id }`,
+        fragment: `... on User { id }`,
         resolve(user, args, context, info) {
           return info.mergeInfo.delegateToSchema({
             schema: chirpSchema,
@@ -151,7 +151,7 @@ const mergedSchema = mergeSchemas({
     },
     Chirp: {
       author: {
-        fragment: `fragment ChirpFragment on Chirp { authorId }`,
+        fragment: `... on Chirp { authorId }`,
         resolve(chirp, args, context, info) {
           return info.mergeInfo.delegateToSchema({
             schema: authorSchema,
@@ -236,7 +236,7 @@ const mergedSchema = mergeSchemas({
   resolvers: {
     User: {
       chirps: {
-        fragment: `fragment UserFragment on User { id }`,
+        fragment: `... on User { id }`,
         resolve(user, args, context, info) {
           return info.mergeInfo.delegateToSchema({
             schema: chirpSchema,
@@ -254,7 +254,7 @@ const mergedSchema = mergeSchemas({
     },
     Chirp_Chirp: {
       author: {
-        fragment: `fragment ChirpFragment on Chirp { authorId }`,
+        fragment: `... on Chirp { authorId }`,
         resolve(chirp, args, context, info) {
           return info.mergeInfo.delegateToSchema({
             schema: authorSchema,
@@ -322,7 +322,7 @@ This is the main function that implements schema stitching. Read below for a des
 resolvers: {
   Booking: {
     property: {
-      fragment: 'fragment BookingFragment on Booking { propertyId }',
+      fragment: '... on Booking { propertyId }',
       resolve(parent, args, context, info) {
         return mergeInfo.delegateToSchema({
           schema: bookingSchema,
