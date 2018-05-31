@@ -93,7 +93,7 @@ function addVariablesToRootField(
     const newSelectionSet: Array<SelectionNode> = [];
 
     operation.selectionSet.selections.forEach((selection: SelectionNode) => {
-      if (selection.kind === Kind.FIELD) {
+      if (selection.kind === Kind.FIELD && selection.name.value !== '__typename') {
         let newArgs: { [name: string]: ArgumentNode } = {};
         selection.arguments.forEach((argument: ArgumentNode) => {
           newArgs[argument.name.value] = argument;
