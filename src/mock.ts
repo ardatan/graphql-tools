@@ -48,6 +48,13 @@ function mockServer(
   return { query: (query, vars) => graphql(mySchema, query, {}, {}, vars) };
 }
 
+const defaultMockMap: Map<string, IMockFn> = new Map();
+defaultMockMap.set('Int', () => Math.round(Math.random() * 200) - 100);
+defaultMockMap.set('Float', () => Math.random() * 200 - 100);
+defaultMockMap.set('String', () => 'Hello World');
+defaultMockMap.set('Boolean', () => Math.random() > 0.5);
+defaultMockMap.set('ID', () => uuid.v4());
+
 // TODO allow providing a seed such that lengths of list could be deterministic
 // this could be done by using casual to get a random list length if the casual
 // object is global.
@@ -77,13 +84,6 @@ function addMockFunctionsToSchema({
       throw new Error(`mockFunctionMap[${mockTypeName}] must be a function`);
     }
   });
-
-  const defaultMockMap: Map<string, IMockFn> = new Map();
-  defaultMockMap.set('Int', () => Math.round(Math.random() * 200) - 100);
-  defaultMockMap.set('Float', () => Math.random() * 200 - 100);
-  defaultMockMap.set('String', () => 'Hello World');
-  defaultMockMap.set('Boolean', () => Math.random() > 0.5);
-  defaultMockMap.set('ID', () => uuid.v4());
 
   const mockType = function(
     type: GraphQLType,
