@@ -19,12 +19,17 @@ import fetch from 'node-fetch';
 
 const link = new HttpLink({ uri: 'http://api.githunt.com/graphql', fetch });
 
-const schema = await introspectSchema(link);
+export default async () => {
+  const schema = await introspectSchema(link);
 
-const executableSchema = makeRemoteExecutableSchema({
-  schema,
-  link,
-});
+  const executableSchema = makeRemoteExecutableSchema({
+    schema,
+    link,
+  });
+
+  return executableSchema
+}
+
 ```
 
 Now, let's look at all the parts separately.
@@ -49,12 +54,16 @@ import fetch from 'node-fetch';
 
 const link = new HttpLink({ uri: 'http://api.githunt.com/graphql', fetch });
 
-const schema = await introspectSchema(link);
+export default async () => {
+  const schema = await introspectSchema(link);
 
-const executableSchema = makeRemoteExecutableSchema({
-  schema,
-  link,
-});
+  const executableSchema = makeRemoteExecutableSchema({
+    schema,
+    link,
+  });
+
+  return executableSchema
+}
 ```
 
 Authentication headers from context
@@ -72,12 +81,17 @@ const link = setContext((request, previousContext) => ({
   }
 })).concat(http);
 
-const schema = await introspectSchema(link);
 
-const executableSchema = makeRemoteExecutableSchema({
-  schema,
-  link,
-});
+export default async () => {
+  const schema = await introspectSchema(link);
+
+  const executableSchema = makeRemoteExecutableSchema({
+    schema,
+    link,
+  });
+
+  return executableSchema
+}
 ```
 
 <h3 id="fetcher-api" title="Fetcher API">
@@ -107,10 +121,14 @@ Basic usage
 import { createApolloFetch } from 'apollo-fetch';
 
 const fetcher = createApolloFetch({ uri: 'http://api.githunt.com/graphql'});
-const schema = makeRemoteExecutableSchema({
-  schema: await introspectSchema(fetcher),
-  fetcher,
-});
+
+export const createSchema =  async () => {
+  const schema = makeRemoteExecutableSchema({
+    schema: await introspectSchema(fetcher),
+    fetcher,
+  });
+  return schema
+}
 ```
 
 Authentication headers from context
@@ -125,10 +143,14 @@ fetcher.use(({ request, options }, next) => {
 
   next();
 });
-const schema = makeRemoteExecutableSchema({
-  schema: await introspectSchema(fetcher),
-  fetcher,
-});
+
+export default async () => {
+  const schema = makeRemoteExecutableSchema({
+    schema: await introspectSchema(fetcher),
+    fetcher,
+  });
+  return schema
+}
 ```
 
 <h3 id="fetcher-node-fetch" title="Using node-fetch">
@@ -150,10 +172,14 @@ const fetcher = async ({ query, variables, operationName, context }) => {
   });
   return fetchResult.json();
 };
-const schema = makeRemoteExecutableSchema({
-  schema: await introspectSchema(fetcher),
-  fetcher,
-});
+
+export default async () => {
+  const schema = makeRemoteExecutableSchema({
+    schema: await introspectSchema(fetcher),
+    fetcher,
+  });
+  return schema
+}
 ```
 
 Authentication headers from context
@@ -172,10 +198,15 @@ const fetcher = async ({ query, variables, operationName, context }) => {
   });
   return fetchResult.json();
 };
-const schema = makeRemoteExecutableSchema({
-  schema: await introspectSchema(fetcher),
-  fetcher,
-});
+
+export default async () => {
+  const schema = makeRemoteExecutableSchema({
+    schema: await introspectSchema(fetcher),
+    fetcher,
+  });
+
+  return schema
+}
 ```
 
 ## API

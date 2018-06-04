@@ -144,9 +144,11 @@ async function delegateToSchemaImplementation(
     transforms: options.transforms
   });
 
-  const errors = validate(schema, processedRequest.document);
-  if (errors.length > 0) {
-    throw errors;
+  if (!options.skipValidation) {
+    const errors = validate(options.schema, processedRequest.document);
+    if (errors.length > 0) {
+      throw errors;
+    }
   }
 
   const transforms = [

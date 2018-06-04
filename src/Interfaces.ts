@@ -54,6 +54,7 @@ export interface IDelegateToSchemaOptions<TContext = { [key: string]: any }> {
   context: TContext;
   info: GraphQLResolveInfo;
   transforms?: Array<Transform>;
+  skipValidation?: boolean;
 }
 
 export interface ICreateRequestOptions {
