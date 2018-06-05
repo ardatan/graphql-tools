@@ -19,45 +19,6 @@ For more information about GraphQL's type system, please refer to the [official 
 
 Note that [Apollo Client does not currently have a way to automatically interpret custom scalars](https://github.com/apollostack/apollo-client/issues/585), so there's no way to automatically reverse the serialization on the client.
 
-### Using a package
-
-Here, we'll take the [graphql-type-json](https://github.com/taion/graphql-type-json) package as an example to demonstrate what can be done. This npm package defines a JSON GraphQL scalar type.
-
-Add the `graphql-type-json` package to your project's dependencies :
-
-```shell
-$ npm install --save graphql-type-json
-```
-
-In your JavaScript code, require the type defined by in the npm package and use it :
-
-```js
-import { makeExecutableSchema } from 'graphql-tools';
-import GraphQLJSON from 'graphql-type-json';
-
-const schemaString = `
-
-scalar JSON
-
-type Foo {
-  aField: JSON
-}
-
-type Query {
-  foo: Foo
-}
-
-`;
-
-const resolveFunctions = {
-  JSON: GraphQLJSON
-};
-
-const jsSchema = makeExecutableSchema({ typeDefs: schemaString, resolvers: resolveFunctions });
-```
-
-Remark : `GraphQLJSON` is a [`GraphQLScalarType`](http://graphql.org/graphql-js/type/#graphqlscalartype) instance.
-
 <h3 id="graphqlscalartype" title="GraphQLScalarType">Custom `GraphQLScalarType` instance</h3>
 
 If needed, you can define your own [GraphQLScalarType](http://graphql.org/graphql-js/type/#graphqlscalartype) instance. This can be done the following way :
