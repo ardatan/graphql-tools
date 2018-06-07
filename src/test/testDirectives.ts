@@ -1,7 +1,7 @@
 import { assert } from 'chai';
 import {
   makeExecutableSchema,
-} from '../schemaGenerator';
+} from '../makeExecutableSchema';
 import {
   VisitableSchemaType,
   SchemaDirectiveVisitor,
