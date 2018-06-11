@@ -1308,6 +1308,32 @@ describe('generating schema from shorthand', () => {
     ).to.not.throw();
   });
 
+  it('throws if resolver value is invalid', () => {
+    const short = `
+      type Person {
+        name: String
+        age: Int
+      }
+      type RootQuery {
+        search(name: String): [Person]
+      }
+      schema {
+        query: RootQuery
+      }
+    `;
+
+    const rf = {
+      Searchable: undefined
+    } as any;
+
+    expect(() =>
+      makeExecutableSchema({ typeDefs: short, resolvers: rf }),
+    ).to.throw(
+      `"Searchable" defined in resolvers, but has invalid value "undefined". A resolver's value ` +
+      `must be of type object or function.`
+    );
+  });
+
   it('doesnt let you define resolver field not present in schema', () => {
     const short = `
       type Person {
