@@ -12,6 +12,7 @@ import {
   ExecutionResult,
   GraphQLError,
   GraphQLEnumType,
+  GraphQLObjectType,
 } from 'graphql';
 // import { printSchema } from 'graphql';
 const GraphQLJSON = require('graphql-type-json');
@@ -26,6 +27,7 @@ import {
   attachDirectiveResolvers,
   chainResolvers,
   concatenateTypeDefs,
+  cloneSchema,
 } from '../schemaGenerator';
 import {
   IResolverValidationOptions,
@@ -2765,4 +2767,88 @@ describe('unions', () => {
       resolverValidationOptions: { requireResolversForResolveType: false },
     });
   });
+});
+
+describe('cloneSchema()', () => {
+  const testSchemaWithUnions = `
+    type Post {
+      title: String!
+      titleColor: Color
+    }
+    type Page {
+      title: String!
+      backgroundColor: Color
+    }
+    union Displayable = Page | Post
+    scalar Date
+    type Query {
+      page: Page!
+      post: Post!
+      displayable: [Displayable!]!
+    }
+
+    enum Color {
+      RED
+      GREEN
+      BLUE
+    }
+
+    schema {
+      query: Query
+    }
+  `;
+  const post = { title: 'I am a post', type: 'Post', titleColor: 'RED' };
+  const page = { title: 'I am a page', type: 'Page', backgroundColor: 'BLUE' };
+  const queryResolver = {
+    page: () => page,
+    post: () => post,
+    displayable: () => [post, page],
+  };
+  const query = `query {
+    post { title }
+    page { title }
+    displayable {
+      ... on Post { title, titleColor }
+      ... on Page { title, backgroundColor }
+    }
+  }`;
+  if (process.env.GRAPHQL_VERSION !== '^0.11') {
+    it('should clone a schema correctly', async () => {
+      const resolvers = {
+        Query: queryResolver,
+        Date: new GraphQLScalarType({
+          name: 'Date',
+          parseValue: _ => _,
+          parseLiteral: _ => _,
+          serialize: _ => _,
+        }),
+        Displayable: {
+          __resolveType: (parent: any) => parent.type
+        }
+      };
+
+      const schema = makeExecutableSchema({
+        typeDefs: testSchemaWithUnions,
+        resolvers
+      });
+
+      const clonedSchema = cloneSchema(schema);
+
+      assert.notEqual(schema, clonedSchema);
+      assert.notEqual(
+        (schema.getTypeMap()['Query'] as GraphQLObjectType).getFields()['post'].resolve,
+        (clonedSchema.getTypeMap()['Query'] as GraphQLObjectType).getFields()['post'].resolve
+      );
+      assert.notEqual(
+        schema.getTypeMap()['Date'],
+        clonedSchema.getTypeMap()['Date']
+      );
+
+      const response = await graphql(clonedSchema, query);
+
+      assert.isUndefined(response.errors);
+      assert.equal(response.data.displayable[0].titleColor, 'RED');
+      assert.equal(response.data.displayable[1].backgroundColor, 'BLUE');
+    });
+  }
 });
