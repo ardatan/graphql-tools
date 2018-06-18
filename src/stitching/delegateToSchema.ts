@@ -12,6 +12,7 @@ import {
   validate,
   VariableDefinitionNode,
   GraphQLSchema,
+  NameNode,
 } from 'graphql';
 
 import {
@@ -56,6 +57,7 @@ async function delegateToSchemaImplementation(
       fragmentName => info.fragments[fragmentName],
     ),
     info.operation.variableDefinitions,
+    info.operation.name,
   );
 
   const rawRequest: Request = {
@@ -111,6 +113,7 @@ function createDocument(
   originalSelections: Array<SelectionNode>,
   fragments: Array<FragmentDefinitionNode>,
   variables: Array<VariableDefinitionNode>,
+  operationName: NameNode,
 ): DocumentNode {
   let selections: Array<SelectionNode> = [];
   let args: Array<ArgumentNode> = [];
@@ -151,6 +154,7 @@ function createDocument(
     operation: targetOperation,
     variableDefinitions: variables,
     selectionSet: rootSelectionSet,
+    name: operationName,
   };
 
   return {
