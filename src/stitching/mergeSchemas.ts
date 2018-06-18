@@ -28,7 +28,7 @@ import {
 import {
   extractExtensionDefinitions,
   addResolveFunctionsToSchema,
-} from '../schemaGenerator';
+} from '../makeExecutableSchema';
 import {
   recreateType,
   fieldMapToFieldConfigMap,
