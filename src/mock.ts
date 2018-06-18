@@ -18,7 +18,7 @@ import * as uuid from 'uuid';
 import {
   forEachField,
   buildSchemaFromTypeDefinitions,
-} from './schemaGenerator';
+} from './makeExecutableSchema';
 
 import {
   IMocks,

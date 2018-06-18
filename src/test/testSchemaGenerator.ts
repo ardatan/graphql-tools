@@ -28,7 +28,7 @@ import {
   chainResolvers,
   concatenateTypeDefs,
   cloneSchema,
-} from '../schemaGenerator';
+} from '../makeExecutableSchema';
 import {
   IResolverValidationOptions,
   IResolvers,
