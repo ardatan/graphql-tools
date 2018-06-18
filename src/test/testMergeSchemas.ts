@@ -23,7 +23,7 @@ import {
   subscriptionPubSubTrigger,
 } from './testingSchemas';
 import { forAwaitEach } from 'iterall';
-import { makeExecutableSchema } from '../schemaGenerator';
+import { makeExecutableSchema } from '../makeExecutableSchema';
 import { IResolvers } from '../Interfaces';
 
 const testCombinations = [
