@@ -1259,4 +1259,69 @@ describe('@directives', () => {
       assert.strictEqual(schema.getType('Query'), object);
     });
   });
+
+  it('allows multiple directives when first replaces type (issue #851)', () => {
+    const schema = makeExecutableSchema({
+      typeDefs: `
+        directive @upper on FIELD_DEFINITION
+        directive @reverse on FIELD_DEFINITION
+
+        type Query {
+          hello: String @upper @reverse
+        }`,
+      schemaDirectives: {
+        upper: class extends SchemaDirectiveVisitor {
+          public visitFieldDefinition(field: GraphQLField<any, any>) {
+            const { resolve = defaultFieldResolver } = field;
+            const newField = {...field};
+
+            newField.resolve = async function(...args: any[]) {
+              const result = await resolve.apply(this, args);
+              if (typeof result === 'string') {
+                return result.toUpperCase();
+              }
+              return result;
+            };
+
+            return newField;
+          }
+        },
+        reverse: class extends SchemaDirectiveVisitor {
+          public visitFieldDefinition(field: GraphQLField<any, any>) {
+            const { resolve = defaultFieldResolver } = field;
+            field.resolve = async function(...args: any[]) {
+              const result = await resolve.apply(this, args);
+              if (typeof result === 'string') {
+                return result
+                  .split('')
+                  .reverse()
+                  .join('');
+              }
+              return result;
+            };
+          }
+        },
+      },
+      resolvers: {
+        Query: {
+          hello() {
+            return 'hello world';
+          },
+        },
+      },
+    });
+
+    return graphql(
+      schema,
+      `
+        query {
+          hello
+        }
+      `,
+    ).then(({ data }) => {
+      assert.deepEqual(data, {
+        hello: 'DLROW OLLEH',
+      });
+    });
+  });
 });
