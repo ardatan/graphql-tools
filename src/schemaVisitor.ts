@@ -159,6 +159,7 @@ export function visitSchema(
       // later directives will see the new type, and callMethod will return
       // the final type.
       type = newType;
+      return true;
     });
 
     // If there were no directives for this type object, or if all visitor
