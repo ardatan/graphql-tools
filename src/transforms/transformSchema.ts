@@ -1,5 +1,5 @@
 import { GraphQLSchema } from 'graphql';
-import { addResolveFunctionsToSchema } from '../schemaGenerator';
+import { addResolveFunctionsToSchema } from '../makeExecutableSchema';
 
 import { visitSchema } from '../transforms/visitSchema';
 import { Transform, applySchemaTransforms } from '../transforms/transforms';
