@@ -27,12 +27,11 @@ import FilterToSchema from '../transforms/FilterToSchema';
 import AddTypenameToAbstract from '../transforms/AddTypenameToAbstract';
 import CheckResultAndHandleErrors from '../transforms/CheckResultAndHandleErrors';
 
-
 export function createRequest({
   schema,
-  operation,
-  roots,
   info: documentInfo,
+  operation = documentInfo.operation.operation,
+  roots,
   transforms
 }: ICreateRequestOptions): Request {
   const selections: Array<SelectionNode> = roots.map(({ fieldName, info, alias }) => {
@@ -127,7 +126,7 @@ async function delegateToSchemaImplementation(
     args = {},
     fieldName,
     schema,
-    operation,
+    operation = info.operation.operation,
     context
    } = options;
   const processedRequest = createRequest({
