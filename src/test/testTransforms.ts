@@ -8,7 +8,7 @@ import {
   Kind,
   SelectionSetNode,
 } from 'graphql';
-import { makeExecutableSchema } from '../schemaGenerator';
+import { makeExecutableSchema } from '../makeExecutableSchema';
 import { propertySchema, bookingSchema } from './testingSchemas';
 import delegateToSchema from '../stitching/delegateToSchema';
 import {
