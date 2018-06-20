@@ -4,6 +4,7 @@
 * Add schema transforms to subscriptions, fix dissapiring errors of subscriptions on mergeSchemas
 [#793] https://github.com/apollographql/graphql-tools/issues/793
 [#780] https://github.com/apollographql/graphql-tools/issues/780
+* Pass on operation name when stitching schemas [#849](https://github.com/apollographql/graphql-tools/pull/849)
 
 ### v3.0.2
 

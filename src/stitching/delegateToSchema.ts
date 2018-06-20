@@ -13,6 +13,7 @@ import {
   VariableDefinitionNode,
   GraphQLSchema,
   ExecutionResult,
+  NameNode,
 } from 'graphql';
 
 import {
@@ -49,14 +50,16 @@ async function delegateToSchemaImplementation(
   options: IDelegateToSchemaOptions,
 ): Promise<any> {
   const { info, args = {} } = options;
+  const operation = options.operation || info.operation.operation;
   const rawDocument: DocumentNode = createDocument(
     options.fieldName,
-    options.operation,
+    operation,
     info.fieldNodes,
     Object.keys(info.fragments).map(
       fragmentName => info.fragments[fragmentName],
     ),
     info.operation.variableDefinitions,
+    info.operation.name,
   );
 
   const rawRequest: Request = {
@@ -81,7 +84,7 @@ async function delegateToSchemaImplementation(
     }
   }
 
-  if (options.operation === 'query' || options.operation === 'mutation') {
+  if (operation === 'query' || operation === 'mutation') {
     return applyResultTransforms(
       await execute(
         options.schema,
@@ -94,7 +97,7 @@ async function delegateToSchemaImplementation(
     );
   }
 
-  if (options.operation === 'subscription') {
+  if (operation === 'subscription') {
     const executionResult = await subscribe(
       options.schema,
       processedRequest.document,
@@ -125,6 +128,7 @@ function createDocument(
   originalSelections: Array<SelectionNode>,
   fragments: Array<FragmentDefinitionNode>,
   variables: Array<VariableDefinitionNode>,
+  operationName: NameNode,
 ): DocumentNode {
   let selections: Array<SelectionNode> = [];
   let args: Array<ArgumentNode> = [];
@@ -165,6 +169,7 @@ function createDocument(
     operation: targetOperation,
     variableDefinitions: variables,
     selectionSet: rootSelectionSet,
+    name: operationName,
   };
 
   return {
