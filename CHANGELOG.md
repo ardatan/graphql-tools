@@ -4,6 +4,8 @@
 
 * Use `getDescription` from `graphql-js` package [PR #672](https://github.com/apollographql/graphql-tools/pull/672)
 
+* Pass on operation name when stitching schemas [#849](https://github.com/apollographql/graphql-tools/pull/849)
+
 ### v3.0.2
 
 * Fixed duplicate fragments getting added during transform in `FilterToSchema` [#778](https://github.com/apollographql/graphql-tools/pull/778)

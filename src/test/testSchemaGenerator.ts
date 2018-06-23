@@ -26,7 +26,7 @@ import {
   attachDirectiveResolvers,
   chainResolvers,
   concatenateTypeDefs,
-} from '../schemaGenerator';
+} from '../makeExecutableSchema';
 import {
   IResolverValidationOptions,
   IResolvers,

@@ -9,7 +9,7 @@ import {
   ExecutionResult,
 } from 'graphql';
 import { ApolloLink, Observable } from 'apollo-link';
-import { makeExecutableSchema } from '../schemaGenerator';
+import { makeExecutableSchema } from '../makeExecutableSchema';
 import { IResolvers } from '../Interfaces';
 import makeRemoteExecutableSchema, {
   Fetcher,

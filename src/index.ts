@@ -1,5 +1,5 @@
 export * from './Interfaces';
-export * from './schemaGenerator';
+export * from './makeExecutableSchema';
 export * from './mock';
 export * from './stitching';
 export * from './transforms';
