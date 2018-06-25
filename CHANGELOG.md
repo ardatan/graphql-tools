@@ -1,8 +1,12 @@
 # Change log
 
-### v3.0.3
+### vNEXT
 
-* Fixed error in `mergeSchemas` linking fragment field variables with the parent query [#806](https://github.com/apollographql/graphql-tools/pull/806)
+* Pass on operation name when stitching schemas.
+  [#849](https://github.com/apollographql/graphql-tools/pull/849)
+* Fixed error in `mergeSchemas` linking fragment field variables with the
+  parent query.
+  [#806](https://github.com/apollographql/graphql-tools/pull/806)
 
 ### v3.0.2
 
