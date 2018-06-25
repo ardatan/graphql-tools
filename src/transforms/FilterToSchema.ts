@@ -57,7 +57,6 @@ function filterDocumentToSchema(
     def => def.kind === Kind.FRAGMENT_DEFINITION,
   ) as Array<FragmentDefinitionNode>;
 
-  let usedVariables: Array<string> = [];
   let usedFragments: Array<string> = [];
   const newOperations: Array<OperationDefinitionNode> = [];
   let newFragments: Array<FragmentDefinitionNode> = [];
@@ -106,7 +105,7 @@ function filterDocumentToSchema(
       fragmentSet: collectedFragmentSet,
     } = collectFragmentVariables(targetSchema, fragmentSet, validFragments, validFragmentsWithType, usedFragments);
 
-    const fullUsedVariables = union(usedVariables, operationUsedVariables, collectedUsedVariables);
+    const fullUsedVariables = union(operationUsedVariables, collectedUsedVariables);
     newFragments = collectedNewFragments;
     fragmentSet = collectedFragmentSet;
 
