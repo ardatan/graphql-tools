@@ -1,6 +1,6 @@
 # Change log
 
-### vNEXT
+### v3.0.3
 
 * Pass on operation name when stitching schemas.
   [Issue #522](https://github.com/apollographql/graphql-tools/issues/522)
