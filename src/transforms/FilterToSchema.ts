@@ -86,6 +86,7 @@ function filterDocumentToSchema(
     } else {
       type = targetSchema.getQueryType();
     }
+
     const {
       selectionSet,
       usedFragments: operationUsedFragments,
@@ -96,16 +97,21 @@ function filterDocumentToSchema(
       validFragmentsWithType,
       operation.selectionSet,
     );
-
     usedFragments = union(usedFragments, operationUsedFragments);
 
     const {
       usedVariables: collectedUsedVariables,
       newFragments: collectedNewFragments,
       fragmentSet: collectedFragmentSet,
-    } = collectFragmentVariables(targetSchema, fragmentSet, validFragments, validFragmentsWithType, usedFragments);
-
-    const fullUsedVariables = union(operationUsedVariables, collectedUsedVariables);
+    } = collectFragmentVariables(
+      targetSchema,
+      fragmentSet,
+      validFragments,
+      validFragmentsWithType,
+      usedFragments,
+    );
+    const fullUsedVariables =
+      union(operationUsedVariables, collectedUsedVariables);
     newFragments = collectedNewFragments;
     fragmentSet = collectedFragmentSet;
 
