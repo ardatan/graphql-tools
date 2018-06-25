@@ -1,5 +1,9 @@
 # Change log
 
+### v3.0.4
+
+* Make sure `dist/generate` isn't excluded when published.
+
 ### v3.0.3
 
 * Pass on operation name when stitching schemas.
