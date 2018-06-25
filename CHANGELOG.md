@@ -2,7 +2,13 @@
 
 ### vNEXT
 
-* Pass on operation name when stitching schemas [#849](https://github.com/apollographql/graphql-tools/pull/849)
+* Pass on operation name when stitching schemas.
+  [Issue #522](https://github.com/apollographql/graphql-tools/issues/522)
+  [PR #849](https://github.com/apollographql/graphql-tools/pull/849)
+* Fixed errors that occurred when a fragment field argument used a variable
+  defined in the parent query.
+  [Issue #753](https://github.com/apollographql/graphql-tools/issues/753)
+  [PR #806](https://github.com/apollographql/graphql-tools/pull/806)
 
 ### v3.0.2
 
