@@ -1,5 +1,9 @@
 # Change log
 
+### vNEXT
+
+* Add null to return type of directive visitors.
+
 ### v3.0.4
 
 * Make sure `dist/generate` isn't excluded when published.
