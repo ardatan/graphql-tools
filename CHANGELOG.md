@@ -1,5 +1,9 @@
 # Change log
 
+### v3.0.5
+
+* Update apollo-link to 1.2.2 [#785](https://github.com/apollographql/graphql-tools/pull/785)
+
 ### v3.0.4
 
 * Make sure `dist/generate` isn't excluded when published.
@@ -13,6 +17,7 @@
   defined in the parent query.
   [Issue #753](https://github.com/apollographql/graphql-tools/issues/753)
   [PR #806](https://github.com/apollographql/graphql-tools/pull/806)
+
 
 ### v3.0.2
 
