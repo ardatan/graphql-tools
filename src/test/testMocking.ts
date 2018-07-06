@@ -5,7 +5,7 @@ import {
   buildSchemaFromTypeDefinitions,
   addResolveFunctionsToSchema,
   makeExecutableSchema,
-} from '../schemaGenerator';
+} from '../makeExecutableSchema';
 import 'mocha';
 
 describe('Mock', () => {

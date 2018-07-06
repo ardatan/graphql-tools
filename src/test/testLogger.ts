@@ -1,7 +1,7 @@
 import { assert } from 'chai';
 import { graphql } from 'graphql';
 import { Logger } from '../Logger';
-import { makeExecutableSchema } from '../schemaGenerator';
+import { makeExecutableSchema } from '../makeExecutableSchema';
 import 'mocha';
 
 describe('Logger', () => {

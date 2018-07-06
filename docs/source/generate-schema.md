@@ -228,7 +228,7 @@ export default makeExecutableSchema({
 });
 ```
 
-You can do the same thing with resolvers - just pass around multiple resolver objects, and at the end combine them together into a plain array. They will be deeply merged by makeExecutableSchema.
+You can do the same thing with resolvers - just pass around multiple resolver objects, and at the end combine them together into a plain array. They will be deeply merged by `makeExecutableSchema`.
 
 ```js
 import { resolvers as gitHubResolvers } from './github/schema';

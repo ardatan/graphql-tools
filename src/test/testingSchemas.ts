@@ -14,7 +14,7 @@ import {
   Observable,
   ExecutionResult as LinkExecutionResult,
 } from 'apollo-link';
-import { makeExecutableSchema } from '../schemaGenerator';
+import { makeExecutableSchema } from '../makeExecutableSchema';
 import { IResolvers } from '../Interfaces';
 import makeRemoteExecutableSchema, {
   Fetcher,
