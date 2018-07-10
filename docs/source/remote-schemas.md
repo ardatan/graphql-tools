@@ -15,7 +15,7 @@ We've chosen to split this functionality up to give you the flexibility to choos
 
 ```js
 import { HttpLink } from 'apollo-link-http';
-import fetch from 'node-fetch';
+import fetch from 'cross-fetch';
 
 const link = new HttpLink({ uri: 'http://api.githunt.com/graphql', fetch });
 
@@ -50,7 +50,7 @@ Basic usage
 
 ```js
 import { HttpLink } from 'apollo-link-http';
-import fetch from 'node-fetch';
+import fetch from 'cross-fetch';
 
 const link = new HttpLink({ uri: 'http://api.githunt.com/graphql', fetch });
 
@@ -71,7 +71,7 @@ Authentication headers from context
 ```js
 import { setContext } from 'apollo-link-context';
 import { HttpLink } from 'apollo-link-http';
-import fetch from 'node-fetch';
+import fetch from 'cross-fetch';
 
 const http = new HttpLink({ uri: 'http://api.githunt.com/graphql', fetch });
 
@@ -98,7 +98,7 @@ export default async () => {
   Fetcher API
 </h3>
 
-You can also use a fetcher (like apollo-fetch or node-fetch) instead of a link. A fetcher is a function that takes one argument, an object that describes an operation:
+You can also use a fetcher (like apollo-fetch or cross-fetch) instead of a link. A fetcher is a function that takes one argument, an object that describes an operation:
 
 ```js
 type Fetcher = (operation: Operation) => Promise<ExecutionResult>;
@@ -153,14 +153,14 @@ export default async () => {
 }
 ```
 
-<h3 id="fetcher-node-fetch" title="Using node-fetch">
-  Using <a href="https://github.com/bitinn/node-fetch">node-fetch</a>
+<h3 id="fetcher-cross-fetch" title="Using cross-fetch">
+  Using <a href="https://github.com/lquixada/cross-fetch">cross-fetch</a>
 </h3>
 
 Basic usage
 
 ```js
-import fetch from 'node-fetch';
+import fetch from 'cross-fetch';
 
 const fetcher = async ({ query, variables, operationName, context }) => {
   const fetchResult = await fetch('http://api.githunt.com/graphql', {
@@ -185,7 +185,7 @@ export default async () => {
 Authentication headers from context
 
 ```js
-import fetch from 'node-fetch';
+import fetch from 'cross-fetch';
 
 const fetcher = async ({ query, variables, operationName, context }) => {
   const fetchResult = await fetch('http://api.githunt.com/graphql', {
