@@ -1,5 +1,11 @@
 # Change log
 
+### vNEXT
+
+* `delegateToSchema` now behaves like `info.mergeInfo.delegateToSchema` for fragment handling
+  [Issue #876](https://github.com/apollographql/graphql-tools/issues/876)
+  [PR #885](https://github.com/apollographql/graphql-tools/pull/885)
+
 ### v3.0.5
 
 * Update apollo-link to 1.2.2 [#785](https://github.com/apollographql/graphql-tools/pull/785)
