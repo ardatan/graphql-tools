@@ -10,3 +10,4 @@ import './testTransforms';
 import './testAlternateMergeSchemas';
 import './testErrors';
 import './testDirectives';
+import './testDelegateToSchema';
