@@ -305,6 +305,7 @@ mergeSchemas({
       };
     },
   ) => GraphQLNamedType;
+  inheritResolversFromInterfaces?: boolean;
 })
 ```
 
@@ -406,3 +407,7 @@ const onTypeConflict = (left, right, info) => {
 ```
 
 When using schema transforms, `onTypeConflict` is often unnecessary, since transforms can be used to prevent conflicts before merging schemas. However, if you're not using schema transforms, `onTypeConflict` can be a quick way to make `mergeSchemas` produce more desirable results.
+
+#### inheritResolversFromInterfaces
+
+The `inheritResolversFromInterfaces` option is simply passed through to `addResolveFunctionsToSchema`, which is called when adding resolvers to the schema under the covers. See [`addResolveFunctionsToSchema`](/docs/graphql-tools/resolvers.md#addResolveFunctionsToSchema) for more info.
