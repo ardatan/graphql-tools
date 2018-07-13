@@ -218,7 +218,7 @@ const transformedChirpSchema = transformSchema(chirpSchema, [
     (operation: string, rootField: string) => rootField !== 'chirpsByAuthorId'
   ),
   new RenameTypes((name: string) => `Chirp_${name}`),
-  new RenameRootFields((name: string) => `Chirp_${name}`),
+  new RenameRootFields((operation: string, name: string) => `Chirp_${name}`),
 ]);
 ```
 
