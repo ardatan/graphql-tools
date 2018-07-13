@@ -1,6 +1,6 @@
 {
   "name": "graphql-tools",
-  "version": "3.0.4",
+  "version": "3.0.5",
   "description": "Useful tools to create and manipulate GraphQL schemas.",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -48,7 +48,7 @@
   },
   "homepage": "https://github.com/apollostack/graphql-tools#readme",
   "dependencies": {
-    "apollo-link": "1.2.1",
+    "apollo-link": "1.2.2",
     "apollo-utilities": "^1.0.1",
     "deprecated-decorator": "^0.1.6",
     "iterall": "^1.1.3",
