@@ -24,7 +24,7 @@ import {
 import linkToFetcher, { execute } from './linkToFetcher';
 import isEmptyObject from '../isEmptyObject';
 import { IResolvers, IResolverObject } from '../Interfaces';
-import { makeExecutableSchema } from '../schemaGenerator';
+import { makeExecutableSchema } from '../makeExecutableSchema';
 import { recreateType } from './schemaRecreation';
 import resolveParentFromTypename from './resolveFromParentTypename';
 import defaultMergedResolver from './defaultMergedResolver';

@@ -23,7 +23,7 @@ import {
   subscriptionPubSubTrigger,
 } from './testingSchemas';
 import { forAwaitEach } from 'iterall';
-import { makeExecutableSchema } from '../schemaGenerator';
+import { makeExecutableSchema } from '../makeExecutableSchema';
 import { IResolvers } from '../Interfaces';
 
 const testCombinations = [
@@ -1891,14 +1891,18 @@ fragment BookingFragment on Booking {
                 id
                 name
                 ... on Property {
-                  bookings(limit: $limit) {
+                  ...BookingFragment
+                }
+              }
+            }
+
+            fragment BookingFragment on Property {
+              bookings(limit: $limit) {
+                id
+                customer {
+                  name
+                  ... on Person {
                     id
-                    customer {
-                      name
-                      ... on Person {
-                        id
-                      }
-                    }
                   }
                 }
               }

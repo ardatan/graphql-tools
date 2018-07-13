@@ -7,9 +7,14 @@ import {
   GraphQLScalarType,
   ValueNode,
   ExecutionResult,
+  DocumentNode,
 } from 'graphql';
-import { ApolloLink, Observable } from 'apollo-link';
-import { makeExecutableSchema } from '../schemaGenerator';
+import {
+  ApolloLink,
+  Observable,
+  ExecutionResult as LinkExecutionResult,
+} from 'apollo-link';
+import { makeExecutableSchema } from '../makeExecutableSchema';
 import { IResolvers } from '../Interfaces';
 import makeRemoteExecutableSchema, {
   Fetcher,
@@ -714,12 +719,12 @@ export async function makeSchemaRemoteFromLink(schema: GraphQLSchema) {
               variables,
               operationName,
             );
-            observer.next(result);
+            observer.next(result as LinkExecutionResult);
             observer.complete();
           } else {
             const result = await subscribe(
               schema,
-              query,
+              query as DocumentNode,
               null,
               graphqlContext,
               variables,
@@ -730,17 +735,17 @@ export async function makeSchemaRemoteFromLink(schema: GraphQLSchema) {
               'function'
             ) {
               while (true) {
-                const next = await (<AsyncIterator<
-                  ExecutionResult
-                >>result).next();
-                observer.next(next.value);
+                const next = await (<AsyncIterator<ExecutionResult>>(
+                  result
+                )).next();
+                observer.next(next.value as LinkExecutionResult);
                 if (next.done) {
                   observer.complete();
                   break;
                 }
               }
             } else {
-              observer.next(result as ExecutionResult);
+              observer.next(result as LinkExecutionResult);
               observer.complete();
             }
           }
