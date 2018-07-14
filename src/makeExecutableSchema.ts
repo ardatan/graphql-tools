@@ -2,6 +2,14 @@ import {
   defaultFieldResolver,
   GraphQLSchema,
   GraphQLFieldResolver,
+  GraphQLScalarType,
+  GraphQLObjectType,
+  GraphQLResolveInfo,
+  GraphQLField,
+  GraphQLInterfaceType,
+  GraphQLUnionType,
+  printSchema,
+  GraphQLNamedType
 } from 'graphql';
 
 import {
@@ -28,6 +36,9 @@ import {
   forEachField,
   SchemaError,
 } from './generate';
+
+import { recreateType, createResolveType } from './stitching/schemaRecreation'
+import resolveFromParentTypename from './stitching/resolveFromParentTypename';
 
 // type definitions can be a string or an array of strings.
 function _generateSchema(
@@ -141,6 +152,59 @@ function decorateToCatchUndefined(
     }
     return result;
   };
+}
+
+const reduceObject = (fn: Function) => (o: object) =>
+  Object.keys(o).reduce((accum, key) => {
+    const v = fn(o[key], key, o);
+    if (v) {
+      return {
+        ...accum,
+        [key]: v,
+      };
+    }
+    return accum;
+  }, {});
+
+export function cloneSchema(schema: GraphQLSchema): GraphQLSchema {
+  const resolvers = reduceObject(
+    (
+      type: GraphQLNamedType,
+      key: string,
+      types: { [key: string]: GraphQLNamedType },
+    ) => {
+      const resolveType = createResolveType((name: string, type) => type);
+      if (!key.startsWith('__')) {
+        if (type instanceof GraphQLObjectType) {
+          return reduceObject(
+            (field: GraphQLField<any, any>) =>
+              typeof field.resolve === 'function'
+                ? field.resolve.bind(null)
+                : field.resolve,
+          )(type.getFields());
+        }
+
+        if (type instanceof GraphQLUnionType || type instanceof GraphQLInterfaceType) {
+          return {
+            __resolveType:
+              type.resolveType
+                ? type.resolveType.bind(null)
+                : ((parent: any, context: any, info: GraphQLResolveInfo) =>
+                    resolveFromParentTypename(parent, info.schema)),
+          };
+        }
+
+        if (type instanceof GraphQLScalarType) {
+          return recreateType(type, resolveType, false);
+        }
+      }
+    },
+  )(schema.getTypeMap());
+
+  return makeExecutableSchema({
+    typeDefs: printSchema(schema),
+    resolvers,
+  });
 }
 
 export function addCatchUndefinedToSchema(schema: GraphQLSchema): void {
