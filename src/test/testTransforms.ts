@@ -17,6 +17,7 @@ import {
   FilterTypes,
   WrapQuery,
   ExtractField,
+  ReplaceFieldWithFragment,
 } from '../transforms';
 
 describe('transforms', () => {
@@ -101,8 +102,8 @@ describe('transforms', () => {
               }
             }
             properties(limit: 1) {
-               __typename
-               id
+              __typename
+              id
             }
             propertyById(id: "p1") {
               ... on Property_Property {
@@ -133,7 +134,7 @@ describe('transforms', () => {
             {
               __typename: 'Property_Property',
               id: 'p1',
-            }
+            },
           ],
           propertyById: {
             id: 'p1',
@@ -473,6 +474,110 @@ describe('transforms', () => {
               streetAddress: 'New Address 555',
               zip: '22222',
             },
+          },
+        },
+      });
+    });
+  });
+
+  describe('replaces field with fragments', () => {
+    let data: any;
+    let schema: GraphQLSchema;
+    let subSchema: GraphQLSchema;
+    before(() => {
+      data = {
+        u1: {
+          id: 'u1',
+          name: 'joh',
+          surname: 'gats',
+        },
+      };
+
+      subSchema = makeExecutableSchema({
+        typeDefs: `
+          type User {
+            id: ID!
+            name: String!
+            surname: String!
+          }
+
+          type Query {
+            userById(id: ID!): User
+          }
+        `,
+        resolvers: {
+          Query: {
+            userById(parent, { id }) {
+              return data[id];
+            },
+          },
+        },
+      });
+
+      schema = makeExecutableSchema({
+        typeDefs: `
+          type User {
+            id: ID!
+            name: String!
+            surname: String!
+            fullname: String!
+          }
+
+          type Query {
+            userById(id: ID!): User
+          }
+        `,
+        resolvers: {
+          Query: {
+            userById(parent, { id }, context, info) {
+              return delegateToSchema({
+                schema: subSchema,
+                operation: 'query',
+                fieldName: 'userById',
+                args: { id },
+                context,
+                info,
+                transforms: [
+                  new ReplaceFieldWithFragment(subSchema, [
+                    {
+                      field: `fullname`,
+                      fragment: `fragment UserName on User { name }`,
+                    },
+                    {
+                      field: `fullname`,
+                      fragment: `fragment UserSurname on User { surname }`,
+                    },
+                  ]),
+                ],
+              });
+            },
+          },
+          User: {
+            fullname(parent, args, context, info) {
+              return `${parent.name} ${parent.surname}`;
+            },
+          },
+        },
+      });
+    });
+    it('should work', async () => {
+      const result = await graphql(
+        schema,
+        `
+          query {
+            userById(id: "u1") {
+              id
+              fullname
+            }
+          }
+        `,
+      );
+
+      expect(result).to.deep.equal({
+        data: {
+          userById: {
+            id: 'u1',
+            fullname: 'joh gats',
           },
         },
       });
