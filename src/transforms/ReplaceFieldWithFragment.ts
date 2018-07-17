@@ -10,6 +10,7 @@ import {
   parse,
   visit,
   visitWithTypeInfo,
+  SelectionNode,
 } from 'graphql';
 import { Request } from '../Interfaces';
 import { Transform } from './transforms';
@@ -31,7 +32,12 @@ export default class ReplaceFieldWithFragment implements Transform {
       const parsedFragment = parseFragmentToInlineFragment(fragment);
       const actualTypeName = parsedFragment.typeCondition.name.value;
       this.mapping[actualTypeName] = this.mapping[actualTypeName] || {};
-      this.mapping[actualTypeName][field] = parsedFragment;
+
+      if (this.mapping[actualTypeName][field]) {
+        this.mapping[actualTypeName][field].push(parsedFragment);
+      } else {
+        this.mapping[actualTypeName][field] = [parsedFragment];
+      }
     }
   }
 
@@ -49,7 +55,7 @@ export default class ReplaceFieldWithFragment implements Transform {
 }
 
 type FieldToFragmentMapping = {
-  [typeName: string]: { [fieldName: string]: InlineFragmentNode };
+  [typeName: string]: { [fieldName: string]: InlineFragmentNode[] };
 };
 
 function replaceFieldsWithFragments(
@@ -73,8 +79,12 @@ function replaceFieldsWithFragments(
             node.selections.forEach(selection => {
               if (selection.kind === Kind.FIELD) {
                 const name = selection.name.value;
-                const fragment = mapping[parentTypeName][name];
-                if (fragment) {
+                const fragments = mapping[parentTypeName][name];
+                if (fragments && fragments.length > 0) {
+                  const fragment = concatInlineFragments(
+                    parentTypeName,
+                    fragments,
+                  );
                   selections = selections.concat(fragment);
                 }
               }
@@ -118,4 +128,31 @@ function parseFragmentToInlineFragment(
   }
 
   throw new Error('Could not parse fragment');
+}
+
+function concatInlineFragments(
+  type: string,
+  fragments: InlineFragmentNode[],
+): InlineFragmentNode {
+  const fragmentSelections: SelectionNode[] = fragments.reduce(
+    (selections, fragment) => {
+      return selections.concat(fragment.selectionSet.selections);
+    },
+    [],
+  );
+
+  return {
+    kind: Kind.INLINE_FRAGMENT,
+    typeCondition: {
+      kind: Kind.NAMED_TYPE,
+      name: {
+        kind: Kind.NAME,
+        value: type,
+      },
+    },
+    selectionSet: {
+      kind: Kind.SELECTION_SET,
+      selections: fragmentSelections,
+    },
+  };
 }
