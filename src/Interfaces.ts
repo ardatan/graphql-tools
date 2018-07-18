@@ -79,7 +79,10 @@ export type IFieldResolver<TSource, TContext> = (
 export type ITypedef = (() => ITypedef[]) | string | DocumentNode;
 export type ITypeDefinitions = ITypedef | ITypedef[];
 export type IResolverObject<TSource = any, TContext = any> = {
-  [key: string]: IFieldResolver<TSource, TContext> | IResolverOptions<TSource, TContext>;
+  [key: string]:
+    | IFieldResolver<TSource, TContext>
+    | IResolverOptions<TSource, TContext>
+    | IResolverObject<TSource, TContext>;
 };
 export type IEnumResolver = { [key: string]: string | number };
 export interface IResolvers<TSource = any, TContext = any> {
