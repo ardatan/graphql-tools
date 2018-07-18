@@ -75,6 +75,9 @@ let enumTest = `
   A type that uses an Enum.
   """
   enum Color {
+    """
+    A vivid color
+    """
     RED
   }
 
@@ -82,6 +85,9 @@ let enumTest = `
   A type that uses an Enum with a numeric constant.
   """
   enum NumericEnum {
+    """
+    A test description
+    """
     TEST
   }
 
@@ -222,11 +228,13 @@ if (process.env.GRAPHQL_VERSION === '^0.11') {
   enumTest = `
     # A type that uses an Enum.
     enum Color {
+      # A vivid color
       RED
     }
 
     # A type that uses an Enum with a numeric constant.
     enum NumericEnum {
+    # A test description
       TEST
     }
 
@@ -606,6 +614,12 @@ testCombinations.forEach(async combination => {
             query {
               color
               numericEnum
+              __type(name: "Color") {
+                enumValues {
+                  name
+                  description
+                }
+              }
             }
           `,
         );
@@ -616,6 +630,12 @@ testCombinations.forEach(async combination => {
             query {
               color
               numericEnum
+            }
+            __type(name: "Color") {
+              enumValues {
+                name
+                description
+              }
             }
           `,
         );
