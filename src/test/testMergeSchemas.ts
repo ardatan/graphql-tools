@@ -630,11 +630,11 @@ testCombinations.forEach(async combination => {
             query {
               color
               numericEnum
-            }
-            __type(name: "Color") {
-              enumValues {
-                name
-                description
+              __type(name: "Color") {
+                enumValues {
+                  name
+                  description
+                }
               }
             }
           `,
@@ -644,6 +644,14 @@ testCombinations.forEach(async combination => {
           data: {
             color: 'RED',
             numericEnum: 'TEST',
+            "__type": {
+            enumValues: [
+              {
+                description: "A vivid color",
+                name: "RED"
+              }
+            ]
+            },
           },
         });
         expect(mergedResult).to.deep.equal(enumResult);
