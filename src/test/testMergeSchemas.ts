@@ -88,7 +88,7 @@ let enumTest = `
     """
     A test description
     """
-    TEST
+    TEST @deprecated(reason: "This is deprecated")
   }
 
   schema {
@@ -235,7 +235,7 @@ if (process.env.GRAPHQL_VERSION === '^0.11') {
     # A type that uses an Enum with a numeric constant.
     enum NumericEnum {
     # A test description
-      TEST
+      TEST @deprecated(reason: "This is deprecated")
     }
 
     schema {
@@ -614,7 +614,15 @@ testCombinations.forEach(async combination => {
             query {
               color
               numericEnum
-              __type(name: "Color") {
+              numericEnumInfo: __type(name: "NumericEnum") {
+                enumValues(includeDeprecated: true) {
+                  name
+                  description
+                  isDeprecated
+                  deprecationReason
+                }
+              }
+              colorEnumInfo: __type(name: "Color") {
                 enumValues {
                   name
                   description
@@ -630,7 +638,15 @@ testCombinations.forEach(async combination => {
             query {
               color
               numericEnum
-              __type(name: "Color") {
+              numericEnumInfo: __type(name: "NumericEnum") {
+                enumValues(includeDeprecated: true) {
+                  name
+                  description
+                  isDeprecated
+                  deprecationReason
+                }
+              }
+              colorEnumInfo: __type(name: "Color") {
                 enumValues {
                   name
                   description
@@ -644,13 +660,23 @@ testCombinations.forEach(async combination => {
           data: {
             color: 'RED',
             numericEnum: 'TEST',
-            "__type": {
-            enumValues: [
-              {
-                description: "A vivid color",
-                name: "RED"
-              }
-            ]
+            numericEnumInfo: {
+              enumValues: [
+                {
+                  description: 'A test description',
+                  name: 'TEST',
+                  isDeprecated: true,
+                  deprecationReason: 'This is deprecated',
+                },
+              ],
+            },
+            colorEnumInfo: {
+              enumValues: [
+                {
+                  description: 'A vivid color',
+                  name: 'RED',
+                },
+              ],
             },
           },
         });
