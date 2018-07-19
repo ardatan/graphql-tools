@@ -141,6 +141,10 @@ function concatInlineFragments(
     [],
   );
 
+  const deduplicatedFragmentSelection: SelectionNode[] = deduplicateSelection(
+    fragmentSelections,
+  );
+
   return {
     kind: Kind.INLINE_FRAGMENT,
     typeCondition: {
@@ -152,7 +156,65 @@ function concatInlineFragments(
     },
     selectionSet: {
       kind: Kind.SELECTION_SET,
-      selections: fragmentSelections,
+      selections: deduplicatedFragmentSelection,
     },
   };
+}
+
+function deduplicateSelection(nodes: SelectionNode[]): SelectionNode[] {
+  const selectionMap = nodes.reduce<{ [key: string]: SelectionNode }>(
+    (map, node) => {
+      switch (node.kind) {
+        case 'Field': {
+          if (map.hasOwnProperty(node.name.value)) {
+            return map;
+          } else {
+            return {
+              ...map,
+              [node.name.value]: node,
+            };
+          }
+        }
+        case 'FragmentSpread': {
+          if (map.hasOwnProperty(node.name.value)) {
+            return map;
+          } else {
+            return {
+              ...map,
+              [node.name.value]: node,
+            };
+          }
+        }
+        case 'InlineFragment': {
+          if (map.__fragment) {
+            const fragment = map.__fragment as InlineFragmentNode;
+
+            return {
+              ...map,
+              __fragment: concatInlineFragments(
+                fragment.typeCondition.name.value,
+                [fragment, node],
+              ),
+            };
+          } else {
+            return {
+              ...map,
+              __fragment: node,
+            };
+          }
+        }
+        default: {
+          return map;
+        }
+      }
+    },
+    {},
+  );
+
+  const selection = Object.keys(selectionMap).reduce(
+    (selectionList, node) => selectionList.concat(selectionMap[node]),
+    [],
+  );
+
+  return selection;
 }
