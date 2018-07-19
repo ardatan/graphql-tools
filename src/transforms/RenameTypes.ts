@@ -95,30 +95,23 @@ export default class RenameTypes implements Transform {
     }
 
     if (value && typeof value === 'object') {
-      const newObject = Object.create(Object.getPrototypeOf(value));
-      let returnNewObject = false;
+      const newValue = Array.isArray(value) ? []
+        // Create a new object with the same prototype.
+        : Object.create(Object.getPrototypeOf(value));
 
-      if (newObject instanceof Array) {
-        value.forEach((oldChild: any) => {
-          const newChild = this.renameTypes(oldChild);
-          newObject.push(newChild);
-          if (newChild !== oldChild) {
-            returnNewObject = true;
-          }
-        });
-      } else {
-        Object.keys(value).forEach(key => {
-          const oldChild = value[key];
-          const newChild = this.renameTypes(oldChild, key);
-          newObject[key] = newChild;
-          if (newChild !== oldChild) {
-            returnNewObject = true;
-          }
-        });
-      }
+      let returnNewValue = false;
 
-      if (returnNewObject) {
-        return newObject;
+      Object.keys(value).forEach(key => {
+        const oldChild = value[key];
+        const newChild = this.renameTypes(oldChild, key);
+        newValue[key] = newChild;
+        if (newChild !== oldChild) {
+          returnNewValue = true;
+        }
+      });
+
+      if (returnNewValue) {
+        return newValue;
       }
     }
 

@@ -26,7 +26,7 @@ import {
   attachDirectiveResolvers,
   chainResolvers,
   concatenateTypeDefs,
-} from '../schemaGenerator';
+} from '../makeExecutableSchema';
 import {
   IResolverValidationOptions,
   IResolvers,
@@ -2392,66 +2392,6 @@ describe('can specify lexical parser options', () => {
 
     expect(schema.astNode.loc).to.equal(undefined);
   });
-
-  if (['^0.11', '^0.12'].indexOf(process.env.GRAPHQL_VERSION) === -1) {
-    it("can specify 'allowLegacySDLEmptyFields' option", () => {
-      return expect(() => {
-        makeExecutableSchema({
-          typeDefs: `
-            type RootQuery {
-            }
-            schema {
-              query: RootQuery
-            }
-          `,
-          resolvers: {},
-          parseOptions: {
-            allowLegacySDLEmptyFields: true,
-          },
-        });
-      }).to.not.throw();
-    });
-
-    it("can specify 'allowLegacySDLImplementsInterfaces' option", () => {
-      const typeDefs = `
-        interface A {
-          hello: String
-        }
-        interface B {
-          world: String
-        }
-        type RootQuery implements A, B {
-          hello: String
-          world: String
-        }
-        schema {
-          query: RootQuery
-        }
-      `;
-
-      const resolvers = {};
-
-      expect(() => {
-        makeExecutableSchema({
-          typeDefs,
-          resolvers,
-          parseOptions: {
-            allowLegacySDLImplementsInterfaces: true,
-          },
-        });
-      }).to.not.throw();
-
-      expect(() => {
-        makeExecutableSchema({
-          typeDefs,
-          resolvers,
-          parseOptions: {
-            allowLegacySDLImplementsInterfaces: false,
-          },
-        });
-      }).to.throw('Syntax Error: Unexpected Name');
-    });
-  }
 
   if (process.env.GRAPHQL_VERSION !== '^0.11') {
     it("can specify 'experimentalFragmentVariables' option", () => {

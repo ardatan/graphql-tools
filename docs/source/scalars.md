@@ -144,7 +144,7 @@ const resolverMap = {
     },
     parseLiteral(ast) {
       if (ast.kind === Kind.INT) {
-        return parseInt(ast.value, 10); // ast value is always in string format
+        return new Date(ast.value) // ast value is always in string format
       }
       return null;
     },
