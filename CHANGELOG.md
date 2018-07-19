@@ -1,5 +1,14 @@
 # Change log
 
+### vNext
+
+* Loosens the apollo-link dependency [PR #765](https://github.com/apollographql/graphql-tools/pull/765)
+* Use `getDescription` from `graphql-js` package [PR #672](https://github.com/apollographql/graphql-tools/pull/672)
+
+### v3.0.5
+
+* Update apollo-link to 1.2.2 [#785](https://github.com/apollographql/graphql-tools/pull/785)
+
 ### v3.0.4
 
 * Make sure `dist/generate` isn't excluded when published.
