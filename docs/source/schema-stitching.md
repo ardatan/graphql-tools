@@ -134,7 +134,7 @@ const mergedSchema = mergeSchemas({
   resolvers: {
     User: {
       chirps: {
-        fragment: `fragment UserFragment on User { id }`,
+        fragment: `... on User { id }`,
         resolve(user, args, context, info) {
           return info.mergeInfo.delegateToSchema({
             schema: chirpSchema,
@@ -151,7 +151,7 @@ const mergedSchema = mergeSchemas({
     },
     Chirp: {
       author: {
-        fragment: `fragment ChirpFragment on Chirp { authorId }`,
+        fragment: `... on Chirp { authorId }`,
         resolve(chirp, args, context, info) {
           return info.mergeInfo.delegateToSchema({
             schema: authorSchema,
@@ -218,7 +218,7 @@ const transformedChirpSchema = transformSchema(chirpSchema, [
     (operation: string, rootField: string) => rootField !== 'chirpsByAuthorId'
   ),
   new RenameTypes((name: string) => `Chirp_${name}`),
-  new RenameRootFields((name: string) => `Chirp_${name}`),
+  new RenameRootFields((operation: 'Query' | 'Mutation' | 'Subscription', name: string) => `Chirp_${name}`),
 ]);
 ```
 
@@ -236,7 +236,7 @@ const mergedSchema = mergeSchemas({
   resolvers: {
     User: {
       chirps: {
-        fragment: `fragment UserFragment on User { id }`,
+        fragment: `... on User { id }`,
         resolve(user, args, context, info) {
           return info.mergeInfo.delegateToSchema({
             schema: chirpSchema,
@@ -254,7 +254,7 @@ const mergedSchema = mergeSchemas({
     },
     Chirp_Chirp: {
       author: {
-        fragment: `fragment ChirpFragment on Chirp { authorId }`,
+        fragment: `... on Chirp { authorId }`,
         resolve(chirp, args, context, info) {
           return info.mergeInfo.delegateToSchema({
             schema: authorSchema,
@@ -322,7 +322,7 @@ This is the main function that implements schema stitching. Read below for a des
 resolvers: {
   Booking: {
     property: {
-      fragment: 'fragment BookingFragment on Booking { propertyId }',
+      fragment: '... on Booking { propertyId }',
       resolve(parent, args, context, info) {
         return mergeInfo.delegateToSchema({
           schema: bookingSchema,
