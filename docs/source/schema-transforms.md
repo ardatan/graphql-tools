@@ -172,7 +172,7 @@ RenameRootFields(
 
 ### Other
 
-* `ExractField({ from: Array<string>, to: Array<string> })` - move selection at `from` path to `to` path.
+* `ExtractField({ from: Array<string>, to: Array<string> })` - move selection at `from` path to `to` path.
 
 * `WrapQuery(
     path: Array<string>,
@@ -203,13 +203,7 @@ transforms: [
 ],
 ```
 
-* `ReplaceFieldWithFragment(targetSchema: GraphQLSchema, mapping: FieldToFragmentMapping)`: Replace the given fields with an inline fragment. Used by `mergeSchemas` to handle the `fragment` option.
-
-```ts
-type FieldToFragmentMapping = {
-  [typeName: string]: { [fieldName: string]: InlineFragmentNode };
-};
-```
+* `ReplaceFieldWithFragment(targetSchema: GraphQLSchema, fragments: Array<{ field: string; fragment: string; }>)`: Replace the given fields with an inline fragment. Used by `mergeSchemas` to handle the `fragment` option.
 
 <h2 id="other-built-in">delegateToSchema transforms</h2>
 

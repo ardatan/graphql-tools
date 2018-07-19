@@ -30,7 +30,7 @@ export default class ReplaceFieldWithFragment implements Transform {
     for (const { field, fragment } of fragments) {
       const parsedFragment = parseFragmentToInlineFragment(fragment);
       const actualTypeName = parsedFragment.typeCondition.name.value;
-      this.mapping[actualTypeName] = fragments[actualTypeName] || {};
+      this.mapping[actualTypeName] = this.mapping[actualTypeName] || {};
       this.mapping[actualTypeName][field] = parsedFragment;
     }
   }

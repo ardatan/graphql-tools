@@ -74,7 +74,7 @@ query {
 }
 ```
 
-You can think of every GraphQL query as a tree of function calls, as explained in detail in the [GraphQL explained blog post](https://dev-blog.apollodata.com/graphql-explained-5844742f195e#.fq5jjdw7t). So the `obj` contains the result of parent resolver, in this case:
+You can think of every GraphQL query as a tree of function calls, as explained in detail in the [GraphQL explained blog post](https://blog.apollographql.com/graphql-explained-5844742f195e#.fq5jjdw7t). So the `obj` contains the result of parent resolver, in this case:
 
 1. `obj` in `Query.getAuthor` will be whatever the server configuration passed for `rootValue`.
 2. `obj` in `Author.name` and `Author.posts` will be the result from `getAuthor`, likely an Author object from the backend.
