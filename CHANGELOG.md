@@ -1,5 +1,8 @@
 # Change log
 
+### vNext
+
+* Loosens the apollo-link dependency [PR #765](https://github.com/apollographql/graphql-tools/pull/765)
 * Use `getDescription` from `graphql-js` package [PR #672](https://github.com/apollographql/graphql-tools/pull/672)
 
 ### v3.0.5
