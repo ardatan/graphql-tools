@@ -166,13 +166,24 @@ function deduplicateSelection(nodes: SelectionNode[]): SelectionNode[] {
     (map, node) => {
       switch (node.kind) {
         case 'Field': {
-          if (map.hasOwnProperty(node.name.value)) {
-            return map;
+          if (node.alias) {
+            if (map.hasOwnProperty(node.alias.value)) {
+              return map;
+            } else {
+              return {
+                ...map,
+                [node.alias.value]: node,
+              };
+            }
           } else {
-            return {
-              ...map,
-              [node.name.value]: node,
-            };
+            if (map.hasOwnProperty(node.name.value)) {
+              return map;
+            } else {
+              return {
+                ...map,
+                [node.name.value]: node,
+              };
+            }
           }
         }
         case 'FragmentSpread': {
