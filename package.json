@@ -55,11 +55,11 @@
     "uuid": "^3.1.0"
   },
   "peerDependencies": {
-    "graphql": "^0.12.0 || ^0.13.0"
+    "graphql": "^0.13.0"
   },
   "devDependencies": {
     "@types/chai": "4.0.10",
-    "@types/graphql": "0.11.7",
+    "@types/graphql": "0.12.5",
     "@types/dateformat": "^1.0.1",
     "@types/mocha": "^2.2.44",
     "@types/node": "^8.0.47",
