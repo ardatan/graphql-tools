@@ -22,6 +22,7 @@
   [Issue #753](https://github.com/apollographql/graphql-tools/issues/753)
   [PR #806](https://github.com/apollographql/graphql-tools/pull/806)
 
+
 ### v3.0.2
 
 * Fixed duplicate fragments getting added during transform in `FilterToSchema` [#778](https://github.com/apollographql/graphql-tools/pull/778)
@@ -38,7 +39,6 @@
 ### v3.0.0
 
 * Schema transforms and delegation
-
   * Substantial rewrite of internals of `mergeSchemas` and `delegateToSchema`
   * A new API for schema transforms has been introduced: [Docs](https://www.apollographql.com/docs/graphql-tools/schema-transforms.html)
   * `delegateToSchema` is now a public API: [Docs](https://www.apollographql.com/docs/graphql-tools/schema-delegation.html)
@@ -292,7 +292,7 @@ Update to add support for `graphql@0.12`, and drop versions before `0.11` from t
 
 ### v0.7.0
 
-* Various Bugfixes ([@DxCx](https://github.com/DxCx) in [#129](https://github.com/apollostack/graphql-tools/pull/129)) * Istanbul coverage was not working well due to Istanbul bug [#549](https://github.com/gotwarlost/istanbul/issues/549) * Bluebird promise was not converted well on tests * "console.warn" got overwritten on tests
+* Various Bugfixes ([@DxCx](https://github.com/DxCx) in [#129](https://github.com/apollostack/graphql-tools/pull/129)) - Istanbul coverage was not working well due to Istanbul bug [#549](https://github.com/gotwarlost/istanbul/issues/549) - Bluebird promise was not converted well on tests - "console.warn" got overwritten on tests
 
 * Migrated code from Javascript to Typescript ([@DxCx](https://github.com/DxCx) in [#129](https://github.com/apollostack/graphql-tools/pull/129))
 
