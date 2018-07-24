@@ -1,7 +1,9 @@
 # Change log
 
-### vNEXT
+### vNext
 
+* Loosens the apollo-link dependency [PR #765](https://github.com/apollographql/graphql-tools/pull/765)
+* Use `getDescription` from `graphql-js` package [PR #672](https://github.com/apollographql/graphql-tools/pull/672)
 * Add support for overlapping fragments in ReplaceFieldiWithFragment. [#894](https://github.com/apollographql/graphql-tools/issues/894)
 
 ### v3.0.5
@@ -21,7 +23,6 @@
   defined in the parent query.
   [Issue #753](https://github.com/apollographql/graphql-tools/issues/753)
   [PR #806](https://github.com/apollographql/graphql-tools/pull/806)
-
 
 ### v3.0.2
 

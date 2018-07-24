@@ -418,21 +418,6 @@ let SimpleProduct = `type SimpleProduct implements Product & Sellable {
   }
 `;
 
-if (['^0.11', '^0.12'].indexOf(process.env.GRAPHQL_VERSION) !== -1) {
-  DownloadableProduct = `
-    type DownloadableProduct implements Product, Downloadable {
-      id: ID!
-      url: String!
-    }
-  `;
-
-  SimpleProduct = `type SimpleProduct implements Product, Sellable {
-      id: ID!
-      price: Int!
-    }
-  `;
-}
-
 const productTypeDefs = `
   interface Product {
     id: ID!
