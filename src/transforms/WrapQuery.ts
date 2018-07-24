@@ -7,7 +7,7 @@ import {
 } from 'graphql';
 import { Transform, Request, Result } from '../Interfaces';
 
-export type QueryWrapper = (subtree: SelectionSetNode) => SelectionNode;
+export type QueryWrapper = (subtree: SelectionSetNode) => SelectionNode | SelectionSetNode;
 
 export default class WrapQuery implements Transform {
   private wrapper: QueryWrapper;
@@ -34,12 +34,15 @@ export default class WrapQuery implements Transform {
           fieldPath.push(node.name.value);
           if (ourPath === JSON.stringify(fieldPath)) {
             const selection = this.wrapper(node.selectionSet);
+            const selectionSet = selection.kind === Kind.SELECTION_SET ?
+              selection :
+              {
+                kind: Kind.SELECTION_SET,
+                selections: [selection]
+              };
             return {
               ...node,
-              selectionSet: {
-                kind: Kind.SELECTION_SET,
-                selections: [selection],
-              },
+              selectionSet
             };
           }
         },
