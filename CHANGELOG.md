@@ -6,8 +6,10 @@
 * Use `getDescription` from `graphql-js` package [PR #672](https://github.com/apollographql/graphql-tools/pull/672)
 * Do not annotate error symbol on primitive value(s)
   [Issue #905](https://github.com/apollographql/graphql-tools/issues/905)
+  [Issue #907](https://github.com/apollographql/graphql-tools/pull/907)
 * Use provided error message in the result for the same key and same path on resolve
   [Issue #905](https://github.com/apollographql/graphql-tools/issues/905)
+  [Issue #907](https://github.com/apollographql/graphql-tools/pull/907)
 
 ### v3.0.5
 
