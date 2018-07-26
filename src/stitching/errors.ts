@@ -35,7 +35,8 @@ export function annotateWithChildrenErrors(
       return object.map((item, index) =>
         annotateWithChildrenErrors(item, byIndex[index]),
       );
-    } else {
+    } else if (typeof(object) === 'object') {
+      // decorate the children object
       return {
         ...object,
         [ERROR_SYMBOL]: childrenErrors.map(error => ({
@@ -44,9 +45,9 @@ export function annotateWithChildrenErrors(
         })),
       };
     }
-  } else {
-    return object;
   }
+  // return this value anyway, either it is a primitive value or there is nothing wrong at all
+  return object;
 }
 
 export function getErrorsFromParent(
@@ -79,10 +80,10 @@ export function getErrorsFromParent(
   };
 }
 
-class CombinedError extends Error {
+class ResultError extends Error {
   public errors: Error[];
-  constructor(message: string, errors: Error[]) {
-    super(message);
+  constructor(error: Error, errors: Error[]) {
+    super(error.message);
     this.errors = errors;
   }
 }
@@ -98,18 +99,35 @@ export function checkResultAndHandleErrors(
       : info.fieldName;
   }
   if (result.errors && (!result.data || result.data[responseKey] == null)) {
-    // apollo-link-http & http-link-dataloader need the
+    // both apollo-link-http & http-link-dataloader needed the
     // result property to be passed through for better error handling.
-    // If there is only one error, which contains a result property, pass the error through
-    const newError =
-      result.errors.length === 1 && hasResult(result.errors[0])
-        ? result.errors[0]
-        : new CombinedError(concatErrors(result.errors), result.errors);
+
+    let newError: Error = null; // Error instance that will be promoted later for a located error
+
+    const currentPath = responsePathAsArray(info.path);
+    const joinedCurrentPath = currentPath.join('.'); // Cache the joined path for comparison
+    // If there is only one error, which contains a result property
+    if (result.errors.length === 1 && hasResult(result.errors[0])) {
+      // Pass the error through
+      newError = result.errors[0];
+    } else {
+      // If an error path exists, the result is probably coming from a remote schema/Apollo server,
+      // so use the provided error in the result instead
+      const originalError = result.errors.find(
+        (error: any) => error.path && error.path.join('.') === joinedCurrentPath
+      );
+      newError = new ResultError(
+        !!originalError // If we do have an error that matches the path of the current key
+          ? originalError // Pass the original error
+          : new Error(concatErrors(result.errors))  // otherwise fallback to concancate the error
+        , result.errors
+      );
+    }
 
     throw locatedError(
       newError,
       info.fieldNodes,
-      responsePathAsArray(info.path),
+      currentPath,
     );
   } else {
     let resultObject = result.data[responseKey];

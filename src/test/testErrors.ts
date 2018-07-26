@@ -1,15 +1,9 @@
-import { assert } from 'chai';
-import {
-  GraphQLResolveInfo
-} from 'graphql';
-import {
-  checkResultAndHandleErrors,
-  getErrorsFromParent,
-  ErrorSymbol,
-} from '../stitching/errors';
-
 import 'mocha';
-
+import { assert } from 'chai';
+import { GraphQLResolveInfo } from 'graphql';
+import {
+  checkResultAndHandleErrors, ErrorSymbol, getErrorsFromParent
+} from '../stitching/errors';
 
 class ErrorWithResult extends Error {
   public result: any;
@@ -91,6 +85,62 @@ describe('Errors', () => {
 
         done();
       }
+    });
+
+    it('should not join error when corresponding path exists', done => {
+      const result = {
+        data: {
+          'a': null as any,
+          'b': null as any
+        },
+        errors: [
+          { message: 'Error1', path: ['a'] },
+          { message: 'Error2', path: ['b'] }
+        ]
+      };
+
+      const checkErrorTemplate = (key: string, expectedEntry: any) => {
+        try {
+          checkResultAndHandleErrors(result, { path: { key } } as any, key);
+        } catch (e) {
+          assert.equal(e.message, expectedEntry.message);
+          assert.deepEqual(e.path, expectedEntry.path);
+          assert.isNotEmpty(e.originalError);
+          assert.isNotEmpty(e.originalError.errors);
+          assert.lengthOf(e.originalError.errors, result.errors.length);
+          result.errors.forEach((error, i) => {
+            assert.deepEqual(e.originalError.errors[i], error);
+          });
+        }
+      };
+
+      checkErrorTemplate('a', result.errors[0]);
+      checkErrorTemplate('b', result.errors[1]);
+
+      done();
+    });
+
+    it('should not taint primitive values on error', done => {
+      const result = {
+        data: {
+          'a': 'hello world',
+          'b': 123,
+          'c': true,
+          'd': null as any
+        },
+        errors: [
+          { message: 'Error', path: ['d'] }
+        ]
+      };
+
+      const checkValueOnResult =
+        (key: any) => checkResultAndHandleErrors(result, {} as GraphQLResolveInfo, key) === result.data[key];
+
+      assert.isTrue(checkValueOnResult('a'));
+      assert.isTrue(checkValueOnResult('b'));
+      assert.isTrue(checkValueOnResult('c'));
+
+      done();
     });
   });
 });
