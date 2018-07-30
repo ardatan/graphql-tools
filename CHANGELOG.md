@@ -4,7 +4,7 @@
 
 * Loosens the apollo-link dependency [PR #765](https://github.com/apollographql/graphql-tools/pull/765)
 * Use `getDescription` from `graphql-js` package [PR #672](https://github.com/apollographql/graphql-tools/pull/672)
-* Fix `IResolvers` type for correct Union & Interface resolver support. [#896](https://github.com/apollographql/graphql-tools/pull/896)
+* Update `IResolvers` to use source & context generics and to support all resolver use cases. [#896](https://github.com/apollographql/graphql-tools/pull/896)
 
 ### v3.0.5
 
