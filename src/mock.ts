@@ -1,4 +1,5 @@
 import {
+  graphql,
   GraphQLSchema,
   GraphQLObjectType,
   GraphQLEnumType,
@@ -13,7 +14,6 @@ import {
   GraphQLNamedType,
   GraphQLFieldResolver,
 } from 'graphql';
-import { graphql } from 'graphql';
 import * as uuid from 'uuid';
 import {
   forEachField,
