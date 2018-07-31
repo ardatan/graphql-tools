@@ -324,7 +324,7 @@ resolvers: {
     property: {
       fragment: '... on Booking { propertyId }',
       resolve(parent, args, context, info) {
-        return mergeInfo.delegateToSchema({
+        return info.mergeInfo.delegateToSchema({
           schema: bookingSchema,
           operation: 'query',
           fieldName: 'propertyById',
