@@ -28,7 +28,7 @@ import {
 import {
   extractExtensionDefinitions,
   addResolveFunctionsToSchema,
-} from '../schemaGenerator';
+} from '../makeExecutableSchema';
 import {
   recreateType,
   fieldMapToFieldConfigMap,
@@ -42,6 +42,7 @@ import {
   ReplaceFieldWithFragment,
 } from '../transforms';
 import mergeDeep from '../mergeDeep';
+import { SchemaDirectiveVisitor } from '../schemaVisitor';
 
 export type OnTypeConflict = (
   left: GraphQLNamedType,
@@ -60,10 +61,14 @@ export default function mergeSchemas({
   schemas,
   onTypeConflict,
   resolvers,
+  schemaDirectives,
+  inheritResolversFromInterfaces
 }: {
   schemas: Array<string | GraphQLSchema | Array<GraphQLNamedType>>;
   onTypeConflict?: OnTypeConflict;
   resolvers?: IResolversParameter;
+  schemaDirectives?: { [name: string]: typeof SchemaDirectiveVisitor };
+  inheritResolversFromInterfaces?: boolean;
 }): GraphQLSchema {
   let visitType: VisitType = defaultVisitType;
   if (onTypeConflict) {
@@ -72,17 +77,21 @@ export default function mergeSchemas({
     );
     visitType = createVisitTypeFromOnTypeConflict(onTypeConflict);
   }
-  return mergeSchemasImplementation({ schemas, visitType, resolvers });
+  return mergeSchemasImplementation({ schemas, visitType, resolvers, schemaDirectives, inheritResolversFromInterfaces });
 }
 
 function mergeSchemasImplementation({
   schemas,
   visitType,
   resolvers,
+  schemaDirectives,
+  inheritResolversFromInterfaces
 }: {
   schemas: Array<string | GraphQLSchema | Array<GraphQLNamedType>>;
   visitType?: VisitType;
   resolvers?: IResolversParameter;
+  schemaDirectives?: { [name: string]: typeof SchemaDirectiveVisitor };
+  inheritResolversFromInterfaces?: boolean;
 }): GraphQLSchema {
   const allSchemas: Array<GraphQLSchema> = [];
   const typeCandidates: { [name: string]: Array<MergeTypeCandidate> } = {};
@@ -278,6 +287,7 @@ function mergeSchemasImplementation({
   addResolveFunctionsToSchema({
     schema: mergedSchema,
     resolvers: mergeDeep(generatedResolvers, resolvers),
+    inheritResolversFromInterfaces
   });
 
   forEachField(mergedSchema, field => {
@@ -296,6 +306,13 @@ function mergeSchemasImplementation({
       };
     }
   });
+
+  if (schemaDirectives) {
+    SchemaDirectiveVisitor.visitSchemaDirectives(
+      mergedSchema,
+      schemaDirectives,
+    );
+  }
 
   return mergedSchema;
 }

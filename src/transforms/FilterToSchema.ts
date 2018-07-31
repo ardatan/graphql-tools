@@ -57,7 +57,6 @@ function filterDocumentToSchema(
     def => def.kind === Kind.FRAGMENT_DEFINITION,
   ) as Array<FragmentDefinitionNode>;
 
-  let usedVariables: Array<string> = [];
   let usedFragments: Array<string> = [];
   const newOperations: Array<OperationDefinitionNode> = [];
   let newFragments: Array<FragmentDefinitionNode> = [];
@@ -76,6 +75,8 @@ function filterDocumentToSchema(
     validFragmentsWithType[fragment.name.value] = type;
   });
 
+  let fragmentSet = Object.create(null);
+
   operations.forEach((operation: OperationDefinitionNode) => {
     let type;
     if (operation.operation === 'subscription') {
@@ -85,6 +86,7 @@ function filterDocumentToSchema(
     } else {
       type = targetSchema.getQueryType();
     }
+
     const {
       selectionSet,
       usedFragments: operationUsedFragments,
@@ -93,11 +95,26 @@ function filterDocumentToSchema(
       targetSchema,
       type,
       validFragmentsWithType,
-      operation.selectionSet,
-      );
+      operation.selectionSet
+    );
 
     usedFragments = union(usedFragments, operationUsedFragments);
-    const fullUsedVariables = union(usedVariables, operationUsedVariables);
+
+    const {
+      usedVariables: collectedUsedVariables,
+      newFragments: collectedNewFragments,
+      fragmentSet: collectedFragmentSet,
+    } = collectFragmentVariables(
+      targetSchema,
+      fragmentSet,
+      validFragments,
+      validFragmentsWithType,
+      usedFragments,
+    );
+    const fullUsedVariables =
+      union(operationUsedVariables, collectedUsedVariables);
+    newFragments = collectedNewFragments;
+    fragmentSet = collectedFragmentSet;
 
     const variableDefinitions = operation.variableDefinitions.filter(
       (variable: VariableDefinitionNode) =>
@@ -114,7 +131,22 @@ function filterDocumentToSchema(
     });
   });
 
-  const fragmentSet = Object.create(null);
+  return {
+    kind: Kind.DOCUMENT,
+    definitions: [...newOperations, ...newFragments],
+  };
+}
+
+function collectFragmentVariables(
+  targetSchema: GraphQLSchema,
+  fragmentSet: Object,
+  validFragments: Array<FragmentDefinitionNode>,
+  validFragmentsWithType: { [name: string]: GraphQLType },
+  usedFragments: Array<string>,
+) {
+  let usedVariables: Array<string> = [];
+  let newFragments: Array<FragmentDefinitionNode> = [];
+
   while (usedFragments.length !== 0) {
     const nextFragmentName = usedFragments.pop();
     const fragment = validFragments.find(
@@ -153,8 +185,9 @@ function filterDocumentToSchema(
   }
 
   return {
-    kind: Kind.DOCUMENT,
-    definitions: [...newOperations, ...newFragments],
+    usedVariables,
+    newFragments,
+    fragmentSet,
   };
 }
 

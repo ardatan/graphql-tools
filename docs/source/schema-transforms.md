@@ -172,7 +172,7 @@ RenameRootFields(
 
 ### Other
 
-* `ExractField({ from: Array<string>, to: Array<string> })` - move selection at `from` path to `to` path.
+* `ExtractField({ from: Array<string>, to: Array<string> })` - move selection at `from` path to `to` path.
 
 * `WrapQuery(
     path: Array<string>,
@@ -201,6 +201,46 @@ transforms: [
     result => result && result.address,
   ),
 ],
+```
+
+`WrapQuery` can also be used to expand multiple top level query fields
+
+```js
+transforms: [
+  // Wrap document takes a subtree as an AST node
+  new WrapQuery(
+    // path at which to apply wrapping and extracting
+    ['userById'],
+    (subtree: SelectionSetNode) => {
+      const newSelectionSet = {
+        kind: Kind.SELECTION_SET,
+        selections: subtree.selections.map(selection => {
+          // just append fragments, not interesting for this
+          // test
+          if (selection.kind === Kind.INLINE_FRAGMENT ||
+            selection.kind === Kind.FRAGMENT_SPREAD) {
+            return selection;
+          }
+          // prepend `address` to name and camelCase
+          const oldFieldName = selection.name.value;
+          return {
+            kind: Kind.FIELD,
+            name: {
+              kind: Kind.NAME,
+              value: 'address' +
+                oldFieldName.charAt(0).toUpperCase() +
+                oldFieldName.slice(1)
+            }
+          };
+        })
+      };
+      return newSelectionSet;
+    },
+    // how to process the data result at path
+    result => ({
+      streetAddress: result.addressStreetAddress,
+      zip: result.addressZip
+    })
 ```
 
 * `ReplaceFieldWithFragment(targetSchema: GraphQLSchema, fragments: Array<{ field: string; fragment: string; }>)`: Replace the given fields with an inline fragment. Used by `mergeSchemas` to handle the `fragment` option.

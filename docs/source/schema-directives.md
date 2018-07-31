@@ -231,7 +231,7 @@ const schema = makeExecutableSchema({
 });
 ```
 
-Of course, it would be even better if the schema author did not have decide on a specific `Date` format, but could instead leave that decision to the client. To make this work, the directive just needs to add an additional argument to the field:
+Of course, it would be even better if the schema author did not have to decide on a specific `Date` format, but could instead leave that decision to the client. To make this work, the directive just needs to add an additional argument to the field:
 
 ```js
 import formatDate from "dateformat";
