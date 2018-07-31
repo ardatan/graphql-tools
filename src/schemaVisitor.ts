@@ -85,25 +85,25 @@ export abstract class SchemaVisitor {
 
   /* tslint:disable:no-empty */
   public visitSchema(schema: GraphQLSchema): void {}
-  public visitScalar(scalar: GraphQLScalarType): GraphQLScalarType | void {}
-  public visitObject(object: GraphQLObjectType): GraphQLObjectType | void {}
+  public visitScalar(scalar: GraphQLScalarType): GraphQLScalarType | void | null {}
+  public visitObject(object: GraphQLObjectType): GraphQLObjectType | void | null {}
   public visitFieldDefinition(field: GraphQLField<any, any>, details: {
     objectType: GraphQLObjectType | GraphQLInterfaceType,
-  }): GraphQLField<any, any> | void {}
+  }): GraphQLField<any, any> | void | null {}
   public visitArgumentDefinition(argument: GraphQLArgument, details: {
     field: GraphQLField<any, any>,
     objectType: GraphQLObjectType | GraphQLInterfaceType,
-  }): GraphQLArgument | void {}
-  public visitInterface(iface: GraphQLInterfaceType): GraphQLInterfaceType | void {}
-  public visitUnion(union: GraphQLUnionType): GraphQLUnionType | void {}
-  public visitEnum(type: GraphQLEnumType): GraphQLEnumType | void {}
+  }): GraphQLArgument | void | null {}
+  public visitInterface(iface: GraphQLInterfaceType): GraphQLInterfaceType | void | null {}
+  public visitUnion(union: GraphQLUnionType): GraphQLUnionType | void | null {}
+  public visitEnum(type: GraphQLEnumType): GraphQLEnumType | void | null {}
   public visitEnumValue(value: GraphQLEnumValue, details: {
     enumType: GraphQLEnumType,
-  }): GraphQLEnumValue | void {}
-  public visitInputObject(object: GraphQLInputObjectType): GraphQLInputObjectType | void {}
+  }): GraphQLEnumValue | void | null {}
+  public visitInputObject(object: GraphQLInputObjectType): GraphQLInputObjectType | void | null {}
   public visitInputFieldDefinition(field: GraphQLInputField, details: {
     objectType: GraphQLInputObjectType,
-  }): GraphQLInputField | void {}
+  }): GraphQLInputField | void | null {}
   /* tslint:enable:no-empty */
 }
 
@@ -159,6 +159,7 @@ export function visitSchema(
       // later directives will see the new type, and callMethod will return
       // the final type.
       type = newType;
+      return true;
     });
 
     // If there were no directives for this type object, or if all visitor

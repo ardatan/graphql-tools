@@ -241,17 +241,12 @@ function buildSchemaFromTypeDefinitions(
   return schema;
 }
 
-// This was changed in graphql@0.12
-// See https://github.com/apollographql/graphql-tools/pull/541
-// TODO fix types https://github.com/apollographql/graphql-tools/issues/542
-const oldTypeExtensionDefinitionKind = 'TypeExtensionDefinition';
 const newExtensionDefinitionKind = 'ObjectTypeExtension';
 const interfaceExtensionDefinitionKind = 'InterfaceTypeExtension';
 
 export function extractExtensionDefinitions(ast: DocumentNode) {
   const extensionDefs = ast.definitions.filter(
     (def: DefinitionNode) =>
-      def.kind === oldTypeExtensionDefinitionKind ||
       (def.kind as any) === newExtensionDefinitionKind ||
       (def.kind as any) === interfaceExtensionDefinitionKind,
   );
@@ -532,7 +527,7 @@ function checkForResolveTypeResolver(schema: GraphQLSchema, requireResolversForR
         throw new SchemaError(`Type "${type.name}" is missing a "resolveType" resolver`);
       }
       // tslint:disable-next-line:max-line-length
-      console.warn(`Type "${type.name}" is missing a "resolveType" resolver. Pass false into "resolverValidationOptions.requireResolversForResolveType" to disable this warning.`);
+      console.warn(`Type "${type.name}" is missing a "__resolveType" resolver. Pass false into "resolverValidationOptions.requireResolversForResolveType" to disable this warning.`);
     }
   });
 }

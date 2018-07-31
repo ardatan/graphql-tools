@@ -218,7 +218,7 @@ const transformedChirpSchema = transformSchema(chirpSchema, [
     (operation: string, rootField: string) => rootField !== 'chirpsByAuthorId'
   ),
   new RenameTypes((name: string) => `Chirp_${name}`),
-  new RenameRootFields((name: string) => `Chirp_${name}`),
+  new RenameRootFields((operation: 'Query' | 'Mutation' | 'Subscription', name: string) => `Chirp_${name}`),
 ]);
 ```
 
@@ -324,7 +324,7 @@ resolvers: {
     property: {
       fragment: '... on Booking { propertyId }',
       resolve(parent, args, context, info) {
-        return mergeInfo.delegateToSchema({
+        return info.mergeInfo.delegateToSchema({
           schema: bookingSchema,
           operation: 'query',
           fieldName: 'propertyById',
