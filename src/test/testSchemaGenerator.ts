@@ -1343,6 +1343,51 @@ describe('generating schema from shorthand', () => {
     ).to.not.throw();
   });
 
+  it('does not let you define resolver field for enum values not present in schema', () => {
+    const short = `
+      enum Color {
+        RED
+      }
+
+      enum NumericEnum {
+        TEST
+      }
+
+      schema {
+        query: Query
+      }
+
+      type Query {
+        color: Color
+        numericEnum: NumericEnum
+      }
+    `;
+
+    const rf = {
+      Color: {
+        RED: '#EA3232',
+        NO_RESOLVER: '#EA3232',
+      },
+      NumericEnum: {
+        TEST: 1,
+      },
+    };
+
+    expect(() =>
+      makeExecutableSchema({ typeDefs: short, resolvers: rf }),
+    ).to.throw(`Color.NO_RESOLVER was defined in resolvers, but enum is not in schema`);
+
+    expect(() =>
+      makeExecutableSchema({
+        typeDefs: short,
+        resolvers: rf,
+        resolverValidationOptions: {
+          allowResolversNotInSchema: true,
+        },
+      }),
+    ).to.not.throw();
+  });
+
   it('throws if conflicting validation options are passed', () => {
     const typeDefs = `
     type Bird {
