@@ -22,6 +22,7 @@ import {
   TypeNode,
   UnionTypeDefinitionNode,
   valueFromAST,
+  getDescription
 } from 'graphql';
 import resolveFromParentType from './resolveFromParentTypename';
 
@@ -182,118 +183,4 @@ function resolveType(
     default:
       return getType(node.name.value, type);
   }
-}
-
-// Code below temporarily copied from graphql/graphql-js pending PR
-// https://github.com/graphql/graphql-js/pull/1165
-
-// MIT License
-
-// Copyright (c) 2015-present, Facebook, Inc.
-
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
-
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
-function getDescription(node: any, options: any): string {
-  if (node.description) {
-    return node.description.value;
-  }
-  if (options && options.commentDescriptions) {
-    const rawValue = getLeadingCommentBlock(node);
-    if (rawValue !== undefined) {
-      return blockStringValue('\n' + rawValue);
-    }
-  }
-}
-
-function getLeadingCommentBlock(node: any): void | string {
-  const loc = node.loc;
-  if (!loc) {
-    return;
-  }
-  const comments = [];
-  let token = loc.startToken.prev;
-  while (
-    token &&
-    token.kind === 'Comment' &&
-    token.next &&
-    token.prev &&
-    token.line + 1 === token.next.line &&
-    token.line !== token.prev.line
-  ) {
-    const value = String(token.value);
-    comments.push(value);
-    token = token.prev;
-  }
-  return comments.reverse().join('\n');
-}
-
-/**
- * Produces the value of a block string from its parsed raw value, similar to
- * Coffeescript's block string, Python's docstring trim or Ruby's strip_heredoc.
- *
- * This implements the GraphQL spec's BlockStringValue() static algorithm.
- */
-function blockStringValue(rawString: string): string {
-  // Expand a block string's raw value into independent lines.
-  const lines = rawString.split(/\r\n|[\n\r]/g);
-
-  // Remove common indentation from all lines but first.
-  let commonIndent = null;
-  for (let i = 1; i < lines.length; i++) {
-    const line = lines[i];
-    const indent = leadingWhitespace(line);
-    if (
-      indent < line.length &&
-      (commonIndent === null || indent < commonIndent)
-    ) {
-      commonIndent = indent;
-      if (commonIndent === 0) {
-        break;
-      }
-    }
-  }
-
-  if (commonIndent) {
-    for (let i = 1; i < lines.length; i++) {
-      lines[i] = lines[i].slice(commonIndent);
-    }
-  }
-
-  // Remove leading and trailing blank lines.
-  while (lines.length > 0 && isBlank(lines[0])) {
-    lines.shift();
-  }
-  while (lines.length > 0 && isBlank(lines[lines.length - 1])) {
-    lines.pop();
-  }
-
-  // Return a string of the lines joined with U+000A.
-  return lines.join('\n');
-}
-
-function leadingWhitespace(str: string): number {
-  let i = 0;
-  while (i < str.length && (str[i] === ' ' || str[i] === '\t')) {
-    i++;
-  }
-  return i;
-}
-
-function isBlank(str: string): boolean {
-  return leadingWhitespace(str) === str.length;
 }

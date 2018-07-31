@@ -75,6 +75,9 @@ let enumTest = `
   A type that uses an Enum.
   """
   enum Color {
+    """
+    A vivid color
+    """
     RED
   }
 
@@ -82,7 +85,10 @@ let enumTest = `
   A type that uses an Enum with a numeric constant.
   """
   enum NumericEnum {
-    TEST
+    """
+    A test description
+    """
+    TEST @deprecated(reason: "This is deprecated")
   }
 
   schema {
@@ -226,12 +232,14 @@ if (process.env.GRAPHQL_VERSION === '^0.11') {
   enumTest = `
     # A type that uses an Enum.
     enum Color {
+      # A vivid color
       RED
     }
 
     # A type that uses an Enum with a numeric constant.
     enum NumericEnum {
-      TEST
+    # A test description
+      TEST @deprecated(reason: "This is deprecated")
     }
 
     schema {
@@ -618,6 +626,20 @@ testCombinations.forEach(async combination => {
             query {
               color
               numericEnum
+              numericEnumInfo: __type(name: "NumericEnum") {
+                enumValues(includeDeprecated: true) {
+                  name
+                  description
+                  isDeprecated
+                  deprecationReason
+                }
+              }
+              colorEnumInfo: __type(name: "Color") {
+                enumValues {
+                  name
+                  description
+                }
+              }
             }
           `,
         );
@@ -628,6 +650,20 @@ testCombinations.forEach(async combination => {
             query {
               color
               numericEnum
+              numericEnumInfo: __type(name: "NumericEnum") {
+                enumValues(includeDeprecated: true) {
+                  name
+                  description
+                  isDeprecated
+                  deprecationReason
+                }
+              }
+              colorEnumInfo: __type(name: "Color") {
+                enumValues {
+                  name
+                  description
+                }
+              }
             }
           `,
         );
@@ -636,6 +672,24 @@ testCombinations.forEach(async combination => {
           data: {
             color: 'RED',
             numericEnum: 'TEST',
+            numericEnumInfo: {
+              enumValues: [
+                {
+                  description: 'A test description',
+                  name: 'TEST',
+                  isDeprecated: true,
+                  deprecationReason: 'This is deprecated',
+                },
+              ],
+            },
+            colorEnumInfo: {
+              enumValues: [
+                {
+                  description: 'A vivid color',
+                  name: 'RED',
+                },
+              ],
+            },
           },
         });
         expect(mergedResult).to.deep.equal(enumResult);
