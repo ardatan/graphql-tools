@@ -1,5 +1,31 @@
 # Change log
 
+### vNext
+
+* Loosens the apollo-link dependency [PR #765](https://github.com/apollographql/graphql-tools/pull/765)
+* Use `getDescription` from `graphql-js` package [PR #672](https://github.com/apollographql/graphql-tools/pull/672)
+* `WrapQuery`'s `wrapper` param can now return a SelectionSet.
+  [PR #902](https://github.com/apollographql/graphql-tools/pull/902)
+  [Issue #901](https://github.com/apollographql/graphql-tools/issues/901)
+
+### v3.0.5
+
+* Update apollo-link to 1.2.2 [#785](https://github.com/apollographql/graphql-tools/pull/785)
+
+### v3.0.4
+
+* Make sure `dist/generate` isn't excluded when published.
+
+### v3.0.3
+
+* Pass on operation name when stitching schemas.
+  [Issue #522](https://github.com/apollographql/graphql-tools/issues/522)
+  [PR #849](https://github.com/apollographql/graphql-tools/pull/849)
+* Fixed errors that occurred when a fragment field argument used a variable
+  defined in the parent query.
+  [Issue #753](https://github.com/apollographql/graphql-tools/issues/753)
+  [PR #806](https://github.com/apollographql/graphql-tools/pull/806)
+
 ### v3.0.2
 
 * Fixed duplicate fragments getting added during transform in `FilterToSchema` [#778](https://github.com/apollographql/graphql-tools/pull/778)
