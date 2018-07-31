@@ -255,7 +255,7 @@ const resolvers = {
   Query: {
     favoriteColor: () => 'RED',
     avatar: (root, args) => {
-      // args.favoriteColor is 'RED', 'GREEN', or 'BLUE'
+      // args.borderColor is 'RED', 'GREEN', or 'BLUE'
     },
   }
 };
