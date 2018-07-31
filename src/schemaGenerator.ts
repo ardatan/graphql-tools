@@ -527,7 +527,7 @@ function checkForResolveTypeResolver(schema: GraphQLSchema, requireResolversForR
         throw new SchemaError(`Type "${type.name}" is missing a "resolveType" resolver`);
       }
       // tslint:disable-next-line:max-line-length
-      console.warn(`Type "${type.name}" is missing a "resolveType" resolver. Pass false into "resolverValidationOptions.requireResolversForResolveType" to disable this warning.`);
+      console.warn(`Type "${type.name}" is missing a "__resolveType" resolver. Pass false into "resolverValidationOptions.requireResolversForResolveType" to disable this warning.`);
     }
   });
 }

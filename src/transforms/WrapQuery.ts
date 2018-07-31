@@ -1,24 +1,14 @@
-import {
-  FieldNode,
-  visit,
-  Kind,
-  SelectionNode,
-  SelectionSetNode,
-} from 'graphql';
+import { FieldNode, visit, Kind, SelectionNode, SelectionSetNode } from 'graphql';
 import { Transform, Request, Result } from '../Interfaces';
 
-export type QueryWrapper = (subtree: SelectionSetNode) => SelectionNode;
+export type QueryWrapper = (subtree: SelectionSetNode) => SelectionNode | SelectionSetNode;
 
 export default class WrapQuery implements Transform {
   private wrapper: QueryWrapper;
   private extractor: (result: any) => any;
   private path: Array<string>;
 
-  constructor(
-    path: Array<string>,
-    wrapper: QueryWrapper,
-    extractor: (result: any) => any,
-  ) {
+  constructor(path: Array<string>, wrapper: QueryWrapper, extractor: (result: any) => any) {
     this.path = path;
     this.wrapper = wrapper;
     this.extractor = extractor;
@@ -33,24 +23,32 @@ export default class WrapQuery implements Transform {
         enter: (node: FieldNode) => {
           fieldPath.push(node.name.value);
           if (ourPath === JSON.stringify(fieldPath)) {
-            const selection = this.wrapper(node.selectionSet);
+            const wrapResult = this.wrapper(node.selectionSet);
+
+            // Selection can be either a single selection or a selection set. If it's just one selection,
+            // let's wrap it in a selection set. Otherwise, keep it as is.
+            const selectionSet =
+              wrapResult.kind === Kind.SELECTION_SET
+                ? wrapResult
+                : {
+                    kind: Kind.SELECTION_SET,
+                    selections: [wrapResult]
+                  };
+
             return {
               ...node,
-              selectionSet: {
-                kind: Kind.SELECTION_SET,
-                selections: [selection],
-              },
+              selectionSet
             };
           }
         },
         leave: (node: FieldNode) => {
           fieldPath.pop();
-        },
-      },
+        }
+      }
     });
     return {
       ...originalRequest,
-      document: newDocument,
+      document: newDocument
     };
   }
 
@@ -69,7 +67,7 @@ export default class WrapQuery implements Transform {
 
     return {
       data,
-      errors: originalResult.errors,
+      errors: originalResult.errors
     };
   }
 }
