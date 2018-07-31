@@ -1,6 +1,7 @@
 require('source-map-support').install();
 
 import './testAlternateMergeSchemas';
+import './testDelegateToSchema';
 import './testDirectives';
 import './testErrors';
 import './testFragmentsAreNotDuplicated';
