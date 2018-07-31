@@ -33,13 +33,15 @@ export default class WrapQuery implements Transform {
         enter: (node: FieldNode) => {
           fieldPath.push(node.name.value);
           if (ourPath === JSON.stringify(fieldPath)) {
-            const selection = this.wrapper(node.selectionSet);
-            const selectionSet = selection.kind === Kind.SELECTION_SET ?
-              selection :
-              {
+            const wrapResult = this.wrapper(node.selectionSet);
+
+            // Selection can be either a single selection or a selection set. If it's just one selection,
+            // let's wrap it in a selection set. Otherwise, keep it as is.
+            const selectionSet = wrapResult.kind === Kind.SELECTION_SET ? wrapResult : {
                 kind: Kind.SELECTION_SET,
-                selections: [selection]
+                selections: [wrapResult]
               };
+
             return {
               ...node,
               selectionSet
