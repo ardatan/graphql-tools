@@ -87,7 +87,11 @@ export function recreateType(
     const values = type.getValues();
     const newValues = {};
     values.forEach(value => {
-      newValues[value.name] = { value: value.name };
+      newValues[value.name] = {
+        value: value.name,
+        deprecationReason: value.deprecationReason,
+        description: value.description,
+      };
     });
     return new GraphQLEnumType({
       name: type.name,

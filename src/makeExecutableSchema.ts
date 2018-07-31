@@ -1,18 +1,6 @@
-import {
-  defaultFieldResolver,
-  GraphQLSchema,
-  GraphQLFieldResolver,
-} from 'graphql';
+import { defaultFieldResolver, GraphQLSchema, GraphQLFieldResolver } from 'graphql';
 
-import {
-  IExecutableSchemaDefinition,
-  ILogger,
-  IResolvers,
-  ITypeDefinitions,
-  IResolverValidationOptions,
-  UnitOrList,
-  GraphQLParseOptions,
-} from './Interfaces';
+import { IExecutableSchemaDefinition, ILogger } from './Interfaces';
 
 import { SchemaDirectiveVisitor } from './schemaVisitor';
 import mergeDeep from './mergeDeep';
@@ -26,47 +14,48 @@ import {
   buildSchemaFromTypeDefinitions,
   decorateWithLogger,
   forEachField,
-  SchemaError,
+  SchemaError
 } from './generate';
 
-// type definitions can be a string or an array of strings.
-function _generateSchema(
-  typeDefinitions: ITypeDefinitions,
-  resolveFunctions: UnitOrList<IResolvers>,
-  logger: ILogger,
-  // TODO: rename to allowUndefinedInResolve to be consistent
-  allowUndefinedInResolve: boolean,
-  resolverValidationOptions: IResolverValidationOptions,
-  parseOptions: GraphQLParseOptions,
-  inheritResolversFromInterfaces: boolean,
-) {
+export function makeExecutableSchema<TContext = any>({
+  typeDefs,
+  resolvers = {},
+  connectors,
+  logger,
+  allowUndefinedInResolve = true,
+  resolverValidationOptions = {},
+  directiveResolvers = null,
+  schemaDirectives = null,
+  parseOptions = {},
+  inheritResolversFromInterfaces = false
+}: IExecutableSchemaDefinition<TContext>) {
+  // Validate and clean up arguments
   if (typeof resolverValidationOptions !== 'object') {
-    throw new SchemaError(
-      'Expected `resolverValidationOptions` to be an object',
-    );
+    throw new SchemaError('Expected `resolverValidationOptions` to be an object');
   }
-  if (!typeDefinitions) {
+
+  if (!typeDefs) {
     throw new SchemaError('Must provide typeDefs');
   }
-  if (!resolveFunctions) {
+
+  if (!resolvers) {
     throw new SchemaError('Must provide resolvers');
   }
 
-  const resolvers = Array.isArray(resolveFunctions)
-    ? resolveFunctions
-        .filter(resolverObj => typeof resolverObj === 'object')
-        .reduce(mergeDeep, {})
-    : resolveFunctions;
+  // We allow passing in an array of resolver maps, in which case we merge them
+  const resolverMap = Array.isArray(resolvers)
+    ? resolvers.filter(resolverObj => typeof resolverObj === 'object').reduce(mergeDeep, {})
+    : resolvers;
 
-  // TODO: check that typeDefinitions is either string or array of strings
+  // Arguments are now validated and cleaned up
 
-  const schema = buildSchemaFromTypeDefinitions(typeDefinitions, parseOptions);
+  const schema = buildSchemaFromTypeDefinitions(typeDefs, parseOptions);
 
   addResolveFunctionsToSchema({
     schema,
-    resolvers,
+    resolvers: resolverMap,
     resolverValidationOptions,
-    inheritResolversFromInterfaces,
+    inheritResolversFromInterfaces
   });
 
   assertResolveFunctionsPresent(schema, resolverValidationOptions);
@@ -79,57 +68,32 @@ function _generateSchema(
     addErrorLoggingToSchema(schema, logger);
   }
 
-  return schema;
-}
-
-export function makeExecutableSchema<TContext = any>({
-  typeDefs,
-  resolvers = {},
-  connectors,
-  logger,
-  allowUndefinedInResolve = true,
-  resolverValidationOptions = {},
-  directiveResolvers = null,
-  schemaDirectives = null,
-  parseOptions = {},
-  inheritResolversFromInterfaces = false,
-}: IExecutableSchemaDefinition<TContext>) {
-  const jsSchema = _generateSchema(
-    typeDefs,
-    resolvers,
-    logger,
-    allowUndefinedInResolve,
-    resolverValidationOptions,
-    parseOptions,
-    inheritResolversFromInterfaces,
-  );
   if (typeof resolvers['__schema'] === 'function') {
     // TODO a bit of a hack now, better rewrite generateSchema to attach it there.
     // not doing that now, because I'd have to rewrite a lot of tests.
-    addSchemaLevelResolveFunction(jsSchema, resolvers[
-      '__schema'
-    ] as GraphQLFieldResolver<any, any>);
+    addSchemaLevelResolveFunction(schema, resolvers['__schema'] as GraphQLFieldResolver<any, any>);
   }
+
   if (connectors) {
     // connectors are optional, at least for now. That means you can just import them in the resolve
     // function if you want.
-    attachConnectorsToContext(jsSchema, connectors);
+    attachConnectorsToContext(schema, connectors);
   }
 
   if (directiveResolvers) {
-    attachDirectiveResolvers(jsSchema, directiveResolvers);
+    attachDirectiveResolvers(schema, directiveResolvers);
   }
 
   if (schemaDirectives) {
-    SchemaDirectiveVisitor.visitSchemaDirectives(jsSchema, schemaDirectives);
+    SchemaDirectiveVisitor.visitSchemaDirectives(schema, schemaDirectives);
   }
 
-  return jsSchema;
+  return schema;
 }
 
 function decorateToCatchUndefined(
   fn: GraphQLFieldResolver<any, any>,
-  hint: string,
+  hint: string
 ): GraphQLFieldResolver<any, any> {
   if (typeof fn === 'undefined') {
     fn = defaultFieldResolver;
@@ -150,10 +114,7 @@ export function addCatchUndefinedToSchema(schema: GraphQLSchema): void {
   });
 }
 
-export function addErrorLoggingToSchema(
-  schema: GraphQLSchema,
-  logger: ILogger,
-): void {
+export function addErrorLoggingToSchema(schema: GraphQLSchema, logger: ILogger): void {
   if (!logger) {
     throw new Error('Must provide a logger');
   }

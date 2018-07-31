@@ -1343,6 +1343,51 @@ describe('generating schema from shorthand', () => {
     ).to.not.throw();
   });
 
+  it('does not let you define resolver field for enum values not present in schema', () => {
+    const short = `
+      enum Color {
+        RED
+      }
+
+      enum NumericEnum {
+        TEST
+      }
+
+      schema {
+        query: Query
+      }
+
+      type Query {
+        color: Color
+        numericEnum: NumericEnum
+      }
+    `;
+
+    const rf = {
+      Color: {
+        RED: '#EA3232',
+        NO_RESOLVER: '#EA3232',
+      },
+      NumericEnum: {
+        TEST: 1,
+      },
+    };
+
+    expect(() =>
+      makeExecutableSchema({ typeDefs: short, resolvers: rf }),
+    ).to.throw(`Color.NO_RESOLVER was defined in resolvers, but enum is not in schema`);
+
+    expect(() =>
+      makeExecutableSchema({
+        typeDefs: short,
+        resolvers: rf,
+        resolverValidationOptions: {
+          allowResolversNotInSchema: true,
+        },
+      }),
+    ).to.not.throw();
+  });
+
   it('throws if conflicting validation options are passed', () => {
     const typeDefs = `
     type Bird {
@@ -2392,66 +2437,6 @@ describe('can specify lexical parser options', () => {
 
     expect(schema.astNode.loc).to.equal(undefined);
   });
-
-  if (['^0.11', '^0.12'].indexOf(process.env.GRAPHQL_VERSION) === -1) {
-    it("can specify 'allowLegacySDLEmptyFields' option", () => {
-      return expect(() => {
-        makeExecutableSchema({
-          typeDefs: `
-            type RootQuery {
-            }
-            schema {
-              query: RootQuery
-            }
-          `,
-          resolvers: {},
-          parseOptions: {
-            allowLegacySDLEmptyFields: true,
-          },
-        });
-      }).to.not.throw();
-    });
-
-    it("can specify 'allowLegacySDLImplementsInterfaces' option", () => {
-      const typeDefs = `
-        interface A {
-          hello: String
-        }
-        interface B {
-          world: String
-        }
-        type RootQuery implements A, B {
-          hello: String
-          world: String
-        }
-        schema {
-          query: RootQuery
-        }
-      `;
-
-      const resolvers = {};
-
-      expect(() => {
-        makeExecutableSchema({
-          typeDefs,
-          resolvers,
-          parseOptions: {
-            allowLegacySDLImplementsInterfaces: true,
-          },
-        });
-      }).to.not.throw();
-
-      expect(() => {
-        makeExecutableSchema({
-          typeDefs,
-          resolvers,
-          parseOptions: {
-            allowLegacySDLImplementsInterfaces: false,
-          },
-        });
-      }).to.throw('Syntax Error: Unexpected Name');
-    });
-  }
 
   if (process.env.GRAPHQL_VERSION !== '^0.11') {
     it("can specify 'experimentalFragmentVariables' option", () => {

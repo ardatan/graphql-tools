@@ -35,7 +35,7 @@ import ReplaceFieldWithFragment from '../transforms/ReplaceFieldWithFragment';
 
 export default function delegateToSchema(
   options: IDelegateToSchemaOptions | GraphQLSchema,
-  ...args: any[],
+  ...args: any[]
 ): Promise<any> {
   if (options instanceof GraphQLSchema) {
     throw new Error(
