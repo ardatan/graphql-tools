@@ -358,13 +358,10 @@ function createMergeInfo(
     delegateToSchema(options: IDelegateToSchemaOptions) {
       return delegateToSchema({
         ...options,
-        transforms: [
-          ...(options.transforms || []),
-          new ExpandAbstractTypes(options.info.schema, options.schema),
-          new ReplaceFieldWithFragment(options.schema, fragments),
-        ],
+        transforms: options.transforms
       });
     },
+    fragments
   };
 }
 

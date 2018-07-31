@@ -813,6 +813,60 @@ bookingById(id: "b1") {
         subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification);
       });
 
+      it('subscription errors are working correctly in merged schema', done => {
+        const mockNotification = {
+          notifications: {
+            text: 'Hello world',
+          },
+        };
+
+        const expectedResult = {
+          data: {
+            notifications: {
+              text: 'Hello world',
+              throwError: null,
+            },
+          } as any,
+          errors: [{
+            message: 'subscription field error',
+            path: ['notifications', 'throwError'],
+            locations: [{
+              line: 4,
+              column: 15,
+            }],
+          }],
+        };
+
+        const subscription = parse(`
+          subscription Subscription {
+            notifications {
+              throwError
+              text
+            }
+          }
+        `);
+
+        let notificationCnt = 0;
+        subscribe(mergedSchema, subscription)
+          .then(results => {
+            forAwaitEach(
+              results as AsyncIterable<ExecutionResult>,
+              (result: ExecutionResult) => {
+                expect(result).to.have.property('data');
+                expect(result).to.have.property('errors');
+                expect(result.errors).to.have.lengthOf(1);
+                expect(result.errors).to.deep.equal(expectedResult.errors);
+                expect(result.data).to.deep.equal(expectedResult.data);
+                !notificationCnt++ ? done() : null;
+              },
+            ).catch(done);
+          })
+          .catch(done);
+
+        subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification);
+      });
+
+
       it('links in queries', async () => {
         const mergedResult = await graphql(
           mergedSchema,

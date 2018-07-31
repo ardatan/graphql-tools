@@ -12,6 +12,7 @@ import {
   validate,
   VariableDefinitionNode,
   GraphQLSchema,
+  ExecutionResult,
   NameNode,
 } from 'graphql';
 
@@ -30,6 +31,9 @@ import AddArgumentsAsVariables from '../transforms/AddArgumentsAsVariables';
 import FilterToSchema from '../transforms/FilterToSchema';
 import AddTypenameToAbstract from '../transforms/AddTypenameToAbstract';
 import CheckResultAndHandleErrors from '../transforms/CheckResultAndHandleErrors';
+import mapAsyncIterator from './mapAsyncIterator';
+import ExpandAbstractTypes from '../transforms/ExpandAbstractTypes';
+import ReplaceFieldWithFragment from '../transforms/ReplaceFieldWithFragment';
 
 export default function delegateToSchema(
   options: IDelegateToSchemaOptions | GraphQLSchema,
@@ -65,13 +69,23 @@ async function delegateToSchemaImplementation(
     variables: info.variableValues as Record<string, any>,
   };
 
-  const transforms = [
+  let transforms = [
     ...(options.transforms || []),
+    new ExpandAbstractTypes(info.schema, options.schema)
+  ];
+
+  if (info.mergeInfo && info.mergeInfo.fragments) {
+    transforms.push(
+      new ReplaceFieldWithFragment(options.schema, info.mergeInfo.fragments)
+    );
+  }
+
+  transforms = transforms.concat([
     new AddArgumentsAsVariables(options.schema, args),
     new FilterToSchema(options.schema),
     new AddTypenameToAbstract(options.schema),
-    new CheckResultAndHandleErrors(info, options.fieldName),
-  ];
+    new CheckResultAndHandleErrors(info, options.fieldName)
+  ]);
 
   const processedRequest = applyRequestTransforms(rawRequest, transforms);
 
@@ -96,14 +110,27 @@ async function delegateToSchemaImplementation(
   }
 
   if (operation === 'subscription') {
-    // apply result processing ???
-    return subscribe(
+    const executionResult = await subscribe(
       options.schema,
       processedRequest.document,
       info.rootValue,
       options.context,
       processedRequest.variables,
-    );
+    ) as AsyncIterator<ExecutionResult>;
+
+    // "subscribe" to the subscription result and map the result through the transforms
+    return mapAsyncIterator<ExecutionResult, any>(executionResult, (result) => {
+      const transformedResult = applyResultTransforms(result, transforms);
+      const subscriptionKey = Object.keys(result.data)[0];
+
+      // for some reason the returned transformedResult needs to be nested inside the root subscription field
+      // does not work otherwise...
+      return {
+        [subscriptionKey]: {
+          ...transformedResult
+        },
+      };
+    });
   }
 }
 

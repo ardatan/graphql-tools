@@ -46,13 +46,17 @@ export type Transform = {
   transformResult?: (result: Result) => Result;
 };
 
+export interface IGraphQLToolsResolveInfo extends GraphQLResolveInfo {
+  mergeInfo?: MergeInfo;
+}
+
 export interface IDelegateToSchemaOptions<TContext = { [key: string]: any }> {
   schema: GraphQLSchema;
   operation: Operation;
   fieldName: string;
   args?: { [key: string]: any };
   context: TContext;
-  info: GraphQLResolveInfo;
+  info: IGraphQLToolsResolveInfo;
   transforms?: Array<Transform>;
   skipValidation?: boolean;
 }
@@ -67,6 +71,10 @@ export type MergeInfo = {
     transforms?: Array<Transform>,
   ) => any;
   delegateToSchema<TContext>(options: IDelegateToSchemaOptions<TContext>): any;
+  fragments: Array<{
+    field: string;
+    fragment: string;
+  }>;
 };
 
 export type IFieldResolver<TSource, TContext> = (
