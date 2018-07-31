@@ -1343,7 +1343,7 @@ describe('generating schema from shorthand', () => {
     ).to.not.throw();
   });
 
-  it('doesnt let you define resolver field for enums not present in schema', () => {
+  it('does not let you define resolver field for enum values not present in schema', () => {
     const short = `
       enum Color {
         RED
