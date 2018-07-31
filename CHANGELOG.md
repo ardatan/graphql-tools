@@ -4,7 +4,7 @@
 
 * Loosens the apollo-link dependency [PR #765](https://github.com/apollographql/graphql-tools/pull/765)
 * Use `getDescription` from `graphql-js` package [PR #672](https://github.com/apollographql/graphql-tools/pull/672)
-* Add support for overlapping fragments in ReplaceFieldiWithFragment. [#894](https://github.com/apollographql/graphql-tools/issues/894)
+* Add support for overlapping fragments in ReplaceFieldWithFragment. [#894](https://github.com/apollographql/graphql-tools/issues/894)
 
 ### v3.0.5
 
