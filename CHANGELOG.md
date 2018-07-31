@@ -1,8 +1,7 @@
 # Change log
 
-### vNext
+### vNEXT
 
-* Pass on operation name when stitching schemas [#849](https://github.com/apollographql/graphql-tools/pull/849)
 * Loosens the apollo-link dependency [PR #765](https://github.com/apollographql/graphql-tools/pull/765)
 * Use `getDescription` from `graphql-js` package [PR #672](https://github.com/apollographql/graphql-tools/pull/672)
 * Update `IResolvers` to use source & context generics and to support all resolver use cases. [#896](https://github.com/apollographql/graphql-tools/pull/896)
