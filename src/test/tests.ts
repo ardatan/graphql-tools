@@ -1,12 +1,13 @@
 require('source-map-support').install();
 
-import './testSchemaGenerator';
+import './testAlternateMergeSchemas';
+import './testDirectives';
+import './testErrors';
+import './testFragmentsAreNotDuplicated';
 import './testLogger';
-import './testMocking';
-import './testResolution';
 import './testMakeRemoteExecutableSchema';
 import './testMergeSchemas';
+import './testMocking';
+import './testResolution';
+import './testSchemaGenerator';
 import './testTransforms';
-import './testAlternateMergeSchemas';
-import './testErrors';
-import './testDirectives';

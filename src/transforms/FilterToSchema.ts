@@ -50,9 +50,9 @@ function filterDocumentToSchema(
 ): DocumentNode {
   const operations: Array<
     OperationDefinitionNode
-  > = document.definitions.filter(
-    def => def.kind === Kind.OPERATION_DEFINITION,
-  ) as Array<OperationDefinitionNode>;
+    > = document.definitions.filter(
+      def => def.kind === Kind.OPERATION_DEFINITION,
+    ) as Array<OperationDefinitionNode>;
   const fragments: Array<FragmentDefinitionNode> = document.definitions.filter(
     def => def.kind === Kind.FRAGMENT_DEFINITION,
   ) as Array<FragmentDefinitionNode>;
@@ -95,8 +95,9 @@ function filterDocumentToSchema(
       targetSchema,
       type,
       validFragmentsWithType,
-      operation.selectionSet,
+      operation.selectionSet
     );
+
     usedFragments = union(usedFragments, operationUsedFragments);
 
     const {
@@ -164,7 +165,7 @@ function collectFragmentVariables(
         type,
         validFragmentsWithType,
         fragment.selectionSet,
-      );
+        );
       usedFragments = union(usedFragments, fragmentUsedFragments);
       usedVariables = union(usedVariables, fragmentUsedVariables);
 
@@ -241,8 +242,28 @@ function filterSelectionSet(
           typeStack.push(TypeNameMetaFieldDef.type);
         }
       },
-      leave() {
-        typeStack.pop();
+      leave(node: FieldNode): null | undefined | FieldNode {
+        const currentType = typeStack.pop();
+        const resolvedType = resolveType(currentType);
+        if (
+          resolvedType instanceof GraphQLObjectType ||
+          resolvedType instanceof GraphQLInterfaceType
+        ) {
+          const selections = node.selectionSet && node.selectionSet.selections || null;
+          if (!selections || selections.length === 0) {
+            // need to remove any added variables. Is there a better way to do this?
+            visit(node, {
+              [Kind.VARIABLE](variableNode: VariableNode) {
+                const index = usedVariables.indexOf(variableNode.name.value);
+                if (index !== -1) {
+                  usedVariables.splice(index, 1);
+                }
+              }
+            }
+            );
+            return null;
+          }
+        }
       },
     },
     [Kind.FRAGMENT_SPREAD](node: FragmentSpreadNode): null | undefined {
