@@ -635,6 +635,7 @@ const bookingResolvers: IResolvers = {
 const subscriptionTypeDefs = `
   type Notification{
     text: String
+    throwError: String
   }
 
   type Query{
@@ -659,6 +660,11 @@ const subscriptionResolvers: IResolvers = {
         subscriptionPubSub.asyncIterator(subscriptionPubSubTrigger),
     },
   },
+  Notification: {
+    throwError: () => {
+      throw new Error('subscription field error');
+    }
+  }
 };
 
 export const propertySchema: GraphQLSchema = makeExecutableSchema({
