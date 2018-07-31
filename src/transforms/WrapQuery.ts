@@ -1,10 +1,4 @@
-import {
-  FieldNode,
-  visit,
-  Kind,
-  SelectionNode,
-  SelectionSetNode,
-} from 'graphql';
+import { FieldNode, visit, Kind, SelectionNode, SelectionSetNode } from 'graphql';
 import { Transform, Request, Result } from '../Interfaces';
 
 export type QueryWrapper = (subtree: SelectionSetNode) => SelectionNode | SelectionSetNode;
@@ -14,11 +8,7 @@ export default class WrapQuery implements Transform {
   private extractor: (result: any) => any;
   private path: Array<string>;
 
-  constructor(
-    path: Array<string>,
-    wrapper: QueryWrapper,
-    extractor: (result: any) => any,
-  ) {
+  constructor(path: Array<string>, wrapper: QueryWrapper, extractor: (result: any) => any) {
     this.path = path;
     this.wrapper = wrapper;
     this.extractor = extractor;
@@ -37,10 +27,13 @@ export default class WrapQuery implements Transform {
 
             // Selection can be either a single selection or a selection set. If it's just one selection,
             // let's wrap it in a selection set. Otherwise, keep it as is.
-            const selectionSet = wrapResult.kind === Kind.SELECTION_SET ? wrapResult : {
-                kind: Kind.SELECTION_SET,
-                selections: [wrapResult]
-              };
+            const selectionSet =
+              wrapResult.kind === Kind.SELECTION_SET
+                ? wrapResult
+                : {
+                    kind: Kind.SELECTION_SET,
+                    selections: [wrapResult]
+                  };
 
             return {
               ...node,
@@ -50,12 +43,12 @@ export default class WrapQuery implements Transform {
         },
         leave: (node: FieldNode) => {
           fieldPath.pop();
-        },
-      },
+        }
+      }
     });
     return {
       ...originalRequest,
-      document: newDocument,
+      document: newDocument
     };
   }
 
@@ -74,7 +67,7 @@ export default class WrapQuery implements Transform {
 
     return {
       data,
-      errors: originalResult.errors,
+      errors: originalResult.errors
     };
   }
 }
