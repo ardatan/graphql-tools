@@ -2,7 +2,34 @@
 
 ### vNEXT
 
-* Pass on operation name when stitching schemas [#849](https://github.com/apollographql/graphql-tools/pull/849)
+* Loosens the apollo-link dependency [PR #765](https://github.com/apollographql/graphql-tools/pull/765)
+* Use `getDescription` from `graphql-js` package [PR #672](https://github.com/apollographql/graphql-tools/pull/672)
+* Update `IResolvers` to use source & context generics and to support all resolver use cases. [#896](https://github.com/apollographql/graphql-tools/pull/896)
+* `WrapQuery`'s `wrapper` param can now return a SelectionSet. [PR #902](https://github.com/apollographql/graphql-tools/pull/902) [Issue #901](https://github.com/apollographql/graphql-tools/issues/901)
+* Add null to return type of directive visitors in the TypeScript definition.
+* Make sure mergeSchemas keeps Enum descriptions and deprecation status. [PR 898](https://github.com/apollographql/graphql-tools/pull/898/)
+* Add `inheritResolversFromInterfaces` option to `mergeSchemas` [PR #812](https://github.com/apollographql/graphql-tools/pull/812)
+* Added filtering of empty selection sets in FilterToSchema [#827](https://github.com/apollographql/graphql-tools/pull/827)
+* Add support for overlapping fragments in ReplaceFieldWithFragment. [#894](https://github.com/apollographql/graphql-tools/issues/894)
+* `delegateToSchema` now behaves like `info.mergeInfo.delegateToSchema` for fragment handling [Issue #876](https://github.com/apollographql/graphql-tools/issues/876) [PR #885](https://github.com/apollographql/graphql-tools/pull/885)
+
+### v3.0.5
+
+* Update apollo-link to 1.2.2 [#785](https://github.com/apollographql/graphql-tools/pull/785)
+
+### v3.0.4
+
+* Make sure `dist/generate` isn't excluded when published.
+
+### v3.0.3
+
+* Pass on operation name when stitching schemas.
+  [Issue #522](https://github.com/apollographql/graphql-tools/issues/522)
+  [PR #849](https://github.com/apollographql/graphql-tools/pull/849)
+* Fixed errors that occurred when a fragment field argument used a variable
+  defined in the parent query.
+  [Issue #753](https://github.com/apollographql/graphql-tools/issues/753)
+  [PR #806](https://github.com/apollographql/graphql-tools/pull/806)
 
 ### v3.0.2
 
