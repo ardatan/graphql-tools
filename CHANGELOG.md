@@ -10,6 +10,7 @@
 * Make sure mergeSchemas keeps Enum descriptions and deprecation status. [PR 898](https://github.com/apollographql/graphql-tools/pull/898/)
 * Add `inheritResolversFromInterfaces` option to `mergeSchemas` [PR #812](https://github.com/apollographql/graphql-tools/pull/812)
 * Added filtering of empty selection sets in FilterToSchema [#827](https://github.com/apollographql/graphql-tools/pull/827)
+* Add support for overlapping fragments in ReplaceFieldWithFragment. [#894](https://github.com/apollographql/graphql-tools/issues/894)
 
 ### v3.0.5
 
