@@ -235,3 +235,97 @@ describe('merge schemas through transforms', () => {
     });
   });
 });
+
+describe('interface resolver inheritance', () => {
+  const testSchemaWithInterfaceResolvers = `
+    interface Node {
+      id: ID!
+    }
+    type User implements Node {
+      id: ID!
+      name: String!
+    }
+    type Query {
+      user: User!
+    }
+    schema {
+      query: Query
+    }
+  `;
+  const user = { _id: 1, name: 'Ada', type: 'User' };
+  const resolvers = {
+    Node: {
+      __resolveType: ({ type }: { type: string }) => type,
+      id: ({ _id }: { _id: number }) => `Node:${_id}`,
+    },
+    User: {
+      name: ({ name }: { name: string}) => `User:${name}`
+    },
+    Query: {
+      user: () => user
+    }
+  };
+
+  it('copies resolvers from interface', async () => {
+    const mergedSchema = mergeSchemas({
+      schemas: [
+        // pull in an executable schema just so mergeSchema doesn't complain
+        // about not finding default types (e.g. ID)
+        propertySchema,
+        testSchemaWithInterfaceResolvers
+      ],
+      resolvers,
+      inheritResolversFromInterfaces: true
+    });
+    const query = `{ user { id name } }`;
+    const response = await graphql(mergedSchema, query);
+    expect(response).to.deep.equal({
+      data: {
+        user: {
+          id: `Node:1`,
+          name: `User:Ada`
+        }
+      }
+    });
+  });
+
+  it('does not copy resolvers from interface when flag is false',
+async () => {
+    const mergedSchema = mergeSchemas({
+      schemas: [
+        // pull in an executable schema just so mergeSchema doesn't complain
+        // about not finding default types (e.g. ID)
+        propertySchema,
+        testSchemaWithInterfaceResolvers
+      ],
+      resolvers,
+      inheritResolversFromInterfaces: false
+    });
+    const query = `{ user { id name } }`;
+    const response = await graphql(mergedSchema, query);
+    expect(response.errors.length).to.equal(1);
+    expect(response.errors[0].message).to.equal('Cannot return null for ' +
+      'non-nullable field User.id.');
+    expect(response.errors[0].path).to.deep.equal(['user', 'id']);
+  });
+
+  it('does not copy resolvers from interface when flag is not provided',
+async () => {
+    const mergedSchema = mergeSchemas({
+      schemas: [
+        // pull in an executable schema just so mergeSchema doesn't complain
+        // about not finding default types (e.g. ID)
+        propertySchema,
+        testSchemaWithInterfaceResolvers
+      ],
+      resolvers
+    });
+    const query = `{ user { id name } }`;
+    const response = await graphql(mergedSchema, query);
+    expect(response.errors.length).to.equal(1);
+    expect(response.errors[0].message).to.equal('Cannot return null for ' +
+      'non-nullable field User.id.');
+    expect(response.errors[0].path).to.deep.equal(['user', 'id']);
+  });
+});
+

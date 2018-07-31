@@ -32,10 +32,12 @@ import FilterToSchema from '../transforms/FilterToSchema';
 import AddTypenameToAbstract from '../transforms/AddTypenameToAbstract';
 import CheckResultAndHandleErrors from '../transforms/CheckResultAndHandleErrors';
 import mapAsyncIterator from './mapAsyncIterator';
+import ExpandAbstractTypes from '../transforms/ExpandAbstractTypes';
+import ReplaceFieldWithFragment from '../transforms/ReplaceFieldWithFragment';
 
 export default function delegateToSchema(
   options: IDelegateToSchemaOptions | GraphQLSchema,
-  ...args: any[],
+  ...args: any[]
 ): Promise<any> {
   if (options instanceof GraphQLSchema) {
     throw new Error(
@@ -67,13 +69,23 @@ async function delegateToSchemaImplementation(
     variables: info.variableValues as Record<string, any>,
   };
 
-  const transforms = [
+  let transforms = [
     ...(options.transforms || []),
+    new ExpandAbstractTypes(info.schema, options.schema)
+  ];
+
+  if (info.mergeInfo && info.mergeInfo.fragments) {
+    transforms.push(
+      new ReplaceFieldWithFragment(options.schema, info.mergeInfo.fragments)
+    );
+  }
+
+  transforms = transforms.concat([
     new AddArgumentsAsVariables(options.schema, args),
     new FilterToSchema(options.schema),
     new AddTypenameToAbstract(options.schema),
-    new CheckResultAndHandleErrors(info, options.fieldName),
-  ];
+    new CheckResultAndHandleErrors(info, options.fieldName)
+  ]);
 
   const processedRequest = applyRequestTransforms(rawRequest, transforms);
 
