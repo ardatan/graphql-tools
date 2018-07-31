@@ -85,11 +85,30 @@ In some cases it may be a good idea for your `getById` (and other) methods to ta
 ## How to use connectors and models in Apollo Server
 note: This is a still a draft design document. At the time of writing there are no connectors. As we build connectors, we'll add them to the docs.
 
+Let's presume a simple mongo connector:
+```javascript
+// ./connectors/mongodb.js
+class MongoDBConnector {
+  constructor(connection){
+    this.connection = connection;
+  }
+  closeConnection(){
+    this.connection.close();
+  }
+  collection(collectionName){
+    // caching, batching and logging could be added here
+    return connection.collection(connectionName);
+  }
+}
+
+export default MongoDBConnector
+```
+
 Connectors and models are easy to use in apollo server:
 
 Step 1: Import the connector and the DB driver
 ```
-import MongoDBConnector from 'apollo-connector-mongodb';
+import MongoDBConnector from './connectors/mongodb';
 import pmongo from 'promised-mongo';
 import knex from 'knex';
 ```
@@ -103,11 +122,13 @@ const sqlDB = knex({ dialect: 'sqlite3', connection: { filename: './blog.sqlite'
 Step 3: Create the model
 ```
 class Author {
-  constructor({connector}){
-    this.connector = connector;
+  constructor(connectorKeys){
+    this.connectorKeys = connectorKeys;
   }
-  getById(id){
-    return this.connector.findOne({ _id: id });
+  getById(id, context){
+    return context.connectors[this.connectorKeys.db]
+      .collection('author')
+      .findOne({ _id: id });
   }
 }
 ```
@@ -122,7 +143,7 @@ app.use('/graphql', apolloServer({
       sql: new SqlConnector(sqlDB)
     },
     models: {
-      Author: new Author({ db: 'sql' }),
+      Author: new Author({ db: 'mongo' }),
       Post: new Post({ postDb: 'sql', viewsDb: 'mongo' }),
     }
   }
@@ -132,7 +153,7 @@ app.use('/graphql', apolloServer({
 Step 4: Calling models in resolve functions
 ```
 function resolve(author, args, ctx){
-  return ctx.models.Post.getByAuthor(author.id);
+  return ctx.models.Author.getById(author.id, ctx);
 }
 ```
 
