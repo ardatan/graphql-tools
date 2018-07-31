@@ -154,6 +154,10 @@ let linkSchema = `
     The property of the booking.
     """
     property: Property
+    """
+    A textual description of the booking.
+    """
+    textDescription: String
   }
 
   extend type Property implements Node {
@@ -291,6 +295,8 @@ if (process.env.GRAPHQL_VERSION === '^0.11') {
     extend type Booking implements Node {
       # The property of the booking.
       property: Property
+      # A textual description of the booking.
+      textDescription: String
     }
 
     extend type Property implements Node {
@@ -403,6 +409,12 @@ testCombinations.forEach(async combination => {
                   context,
                   info,
                 });
+              },
+            },
+            textDescription: {
+              fragment: '... on Booking { id }',
+              resolve(parent, args, context, info) {
+                return `Booking #${parent.id}`;
               },
             },
           },
@@ -811,6 +823,7 @@ bookingById(id: "b1") {
                 name
                 bookings {
                   id
+                  textDescription
                   customer {
                     name
                   }
@@ -848,6 +861,7 @@ bookingById(id: "b1") {
               bookings: [
                 {
                   id: 'b4',
+                  textDescription: 'Booking #b4',
                   customer: {
                     name: 'Exampler Customer',
                   },
