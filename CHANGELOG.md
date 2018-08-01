@@ -6,10 +6,10 @@
 * Use `getDescription` from `graphql-js` package [PR #672](https://github.com/apollographql/graphql-tools/pull/672)
 * Do not annotate error symbol on primitive value(s)
   [Issue #905](https://github.com/apollographql/graphql-tools/issues/905)
-  [Issue #907](https://github.com/apollographql/graphql-tools/pull/907)
+  [PR #907](https://github.com/apollographql/graphql-tools/pull/907)
 * Use provided error message in the result for the same key and same path on resolve
   [Issue #905](https://github.com/apollographql/graphql-tools/issues/905)
-  [Issue #907](https://github.com/apollographql/graphql-tools/pull/907)
+  [PR #907](https://github.com/apollographql/graphql-tools/pull/907)
 * Update `IResolvers` to use source & context generics and to support all resolver use cases. [#896](https://github.com/apollographql/graphql-tools/pull/896)
 * `WrapQuery`'s `wrapper` param can now return a SelectionSet. [PR #902](https://github.com/apollographql/graphql-tools/pull/902) [Issue #901](https://github.com/apollographql/graphql-tools/issues/901)
 * Add null to return type of directive visitors in the TypeScript definition.
