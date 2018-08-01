@@ -9,6 +9,7 @@ import {
   execute,
   validate,
   GraphQLSchema,
+  ExecutionResult,
 } from 'graphql';
 
 import {
@@ -26,6 +27,9 @@ import AddArgumentsAsVariables from '../transforms/AddArgumentsAsVariables';
 import FilterToSchema from '../transforms/FilterToSchema';
 import AddTypenameToAbstract from '../transforms/AddTypenameToAbstract';
 import CheckResultAndHandleErrors from '../transforms/CheckResultAndHandleErrors';
+import mapAsyncIterator from './mapAsyncIterator';
+import ExpandAbstractTypes from '../transforms/ExpandAbstractTypes';
+import ReplaceFieldWithFragment from '../transforms/ReplaceFieldWithFragment';
 
 export function createRequest({
   schema,
@@ -97,17 +101,30 @@ export function createRequest({
 
   transforms = [
     ...(transforms || []),
+  ];
+
+  if (documentInfo.schema) {
+    transforms.push(new ExpandAbstractTypes(documentInfo.schema, schema));
+  }
+
+  if (documentInfo.mergeInfo && documentInfo.mergeInfo.fragments) {
+    transforms.push(
+      new ReplaceFieldWithFragment(schema, documentInfo.mergeInfo.fragments)
+    );
+  }
+
+  transforms.push(
     new AddArgumentsAsVariables(schema, roots),
     new FilterToSchema(schema),
     new AddTypenameToAbstract(schema),
-  ];
+  );
 
   return applyRequestTransforms(rawRequest, transforms);
 }
 
 export default function delegateToSchema(
   options: IDelegateToSchemaOptions | GraphQLSchema,
-  ...args: any[],
+  ...args: any[]
 ): Promise<any> {
   if (options instanceof GraphQLSchema) {
     throw new Error(
@@ -169,13 +186,26 @@ async function delegateToSchemaImplementation(
   }
 
   if (operation === 'subscription') {
-    // apply result processing ???
-    return subscribe(
+    const executionResult = await subscribe(
       schema,
       processedRequest.document,
       info.rootValue,
       context,
       processedRequest.variables,
-    );
+    ) as AsyncIterator<ExecutionResult>;
+
+    // "subscribe" to the subscription result and map the result through the transforms
+    return mapAsyncIterator<ExecutionResult, any>(executionResult, (result) => {
+      const transformedResult = applyResultTransforms(result, transforms);
+      const subscriptionKey = Object.keys(result.data)[0];
+
+      // for some reason the returned transformedResult needs to be nested inside the root subscription field
+      // does not work otherwise...
+      return {
+        [subscriptionKey]: {
+          ...transformedResult
+        },
+      };
+    });
   }
 }

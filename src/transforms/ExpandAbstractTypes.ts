@@ -54,7 +54,7 @@ function extractPossibleTypes(
     if (isAbstractType(type)) {
       const targetType = targetSchema.getType(typeName);
       if (!isAbstractType(targetType)) {
-        const implementations = transformedSchema.getPossibleTypes(type);
+        const implementations = transformedSchema.getPossibleTypes(type) || [];
         mapping[typeName] = implementations
           .filter(impl => targetSchema.getType(impl.name))
           .map(impl => impl.name);

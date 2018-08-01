@@ -52,6 +52,16 @@ function addResolveFunctionsToSchema(
     : inputResolvers;
 
   Object.keys(resolvers).forEach(typeName => {
+    const resolverValue = resolvers[typeName];
+    const resolverType = typeof resolverValue;
+
+    if (resolverType !== 'object' && resolverType !== 'function') {
+      throw new SchemaError(
+        `"${typeName}" defined in resolvers, but has invalid value "${resolverValue}". A resolver's value ` +
+        `must be of type object or function.`,
+      );
+    }
+
     const type = schema.getType(typeName);
     if (!type && typeName !== '__schema') {
       if (allowResolversNotInSchema) {
@@ -63,26 +73,29 @@ function addResolveFunctionsToSchema(
       );
     }
 
-    Object.keys(resolvers[typeName]).forEach(fieldName => {
+    Object.keys(resolverValue).forEach(fieldName => {
       if (fieldName.startsWith('__')) {
         // this is for isTypeOf and resolveType and all the other stuff.
-        type[fieldName.substring(2)] = resolvers[typeName][fieldName];
+        type[fieldName.substring(2)] = resolverValue[fieldName];
         return;
       }
 
       if (type instanceof GraphQLScalarType) {
-        type[fieldName] = resolvers[typeName][fieldName];
+        type[fieldName] = resolverValue[fieldName];
         return;
       }
 
       if (type instanceof GraphQLEnumType) {
         if (!type.getValue(fieldName)) {
+          if (allowResolversNotInSchema) {
+            return;
+          }
           throw new SchemaError(
             `${typeName}.${fieldName} was defined in resolvers, but enum is not in schema`,
           );
         }
 
-        type.getValue(fieldName)['value'] = resolvers[typeName][fieldName];
+        type.getValue(fieldName)['value'] = resolverValue[fieldName];
         return;
       }
 
@@ -108,7 +121,7 @@ function addResolveFunctionsToSchema(
         );
       }
       const field = fields[fieldName];
-      const fieldResolve = resolvers[typeName][fieldName];
+      const fieldResolve = resolverValue[fieldName];
       if (typeof fieldResolve === 'function') {
         // for convenience. Allows shorter syntax in resolver definition file
         setFieldProperties(field, { resolve: fieldResolve });

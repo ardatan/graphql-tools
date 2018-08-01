@@ -171,7 +171,7 @@ const resolvers = {
         },
         context,
         info,
-      );
+      });
     },
     ...
   },

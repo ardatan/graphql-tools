@@ -1,5 +1,23 @@
 # Change log
 
+### vNEXT
+
+* Loosens the apollo-link dependency [PR #765](https://github.com/apollographql/graphql-tools/pull/765)
+* Use `getDescription` from `graphql-js` package [PR #672](https://github.com/apollographql/graphql-tools/pull/672)
+* Update `IResolvers` to use source & context generics and to support all resolver use cases. [#896](https://github.com/apollographql/graphql-tools/pull/896)
+* `WrapQuery`'s `wrapper` param can now return a SelectionSet. [PR #902](https://github.com/apollographql/graphql-tools/pull/902) [Issue #901](https://github.com/apollographql/graphql-tools/issues/901)
+* Add null to return type of directive visitors in the TypeScript definition.
+* Make sure mergeSchemas keeps Enum descriptions and deprecation status. [PR 898](https://github.com/apollographql/graphql-tools/pull/898/)
+* Add `inheritResolversFromInterfaces` option to `mergeSchemas` [PR #812](https://github.com/apollographql/graphql-tools/pull/812)
+* Added filtering of empty selection sets in FilterToSchema [#827](https://github.com/apollographql/graphql-tools/pull/827)
+* Add support for overlapping fragments in ReplaceFieldWithFragment. [#894](https://github.com/apollographql/graphql-tools/issues/894)
+* `delegateToSchema` now behaves like `info.mergeInfo.delegateToSchema` for fragment handling [Issue #876](https://github.com/apollographql/graphql-tools/issues/876) [PR #885](https://github.com/apollographql/graphql-tools/pull/885)
+* Make schema transforms work with subscriptions, make it so that subscription errors don't disappear when using mergeSchemas [#793](https://github.com/apollographql/graphql-tools/issues/793) [#780](https://github.com/apollographql/graphql-tools/issues/780)
+
+### v3.0.5
+
+* Update apollo-link to 1.2.2 [#785](https://github.com/apollographql/graphql-tools/pull/785)
+
 ### v3.0.4
 
 * Make sure `dist/generate` isn't excluded when published.

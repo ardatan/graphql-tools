@@ -78,6 +78,9 @@ let enumTest = `
   A type that uses an Enum.
   """
   enum Color {
+    """
+    A vivid color
+    """
     RED
   }
 
@@ -85,7 +88,10 @@ let enumTest = `
   A type that uses an Enum with a numeric constant.
   """
   enum NumericEnum {
-    TEST
+    """
+    A test description
+    """
+    TEST @deprecated(reason: "This is deprecated")
   }
 
   schema {
@@ -151,6 +157,10 @@ let linkSchema = `
     The property of the booking.
     """
     property: Property
+    """
+    A textual description of the booking.
+    """
+    textDescription: String
   }
 
   extend type Property implements Node {
@@ -225,12 +235,14 @@ if (process.env.GRAPHQL_VERSION === '^0.11') {
   enumTest = `
     # A type that uses an Enum.
     enum Color {
+      # A vivid color
       RED
     }
 
     # A type that uses an Enum with a numeric constant.
     enum NumericEnum {
-      TEST
+    # A test description
+      TEST @deprecated(reason: "This is deprecated")
     }
 
     schema {
@@ -286,6 +298,8 @@ if (process.env.GRAPHQL_VERSION === '^0.11') {
     extend type Booking implements Node {
       # The property of the booking.
       property: Property
+      # A textual description of the booking.
+      textDescription: String
     }
 
     extend type Property implements Node {
@@ -398,6 +412,12 @@ testCombinations.forEach(async combination => {
                   context,
                   info,
                 });
+              },
+            },
+            textDescription: {
+              fragment: '... on Booking { id }',
+              resolve(parent, args, context, info) {
+                return `Booking #${parent.id}`;
               },
             },
           },
@@ -609,6 +629,20 @@ testCombinations.forEach(async combination => {
             query {
               color
               numericEnum
+              numericEnumInfo: __type(name: "NumericEnum") {
+                enumValues(includeDeprecated: true) {
+                  name
+                  description
+                  isDeprecated
+                  deprecationReason
+                }
+              }
+              colorEnumInfo: __type(name: "Color") {
+                enumValues {
+                  name
+                  description
+                }
+              }
             }
           `,
         );
@@ -619,6 +653,20 @@ testCombinations.forEach(async combination => {
             query {
               color
               numericEnum
+              numericEnumInfo: __type(name: "NumericEnum") {
+                enumValues(includeDeprecated: true) {
+                  name
+                  description
+                  isDeprecated
+                  deprecationReason
+                }
+              }
+              colorEnumInfo: __type(name: "Color") {
+                enumValues {
+                  name
+                  description
+                }
+              }
             }
           `,
         );
@@ -627,6 +675,24 @@ testCombinations.forEach(async combination => {
           data: {
             color: 'RED',
             numericEnum: 'TEST',
+            numericEnumInfo: {
+              enumValues: [
+                {
+                  description: 'A test description',
+                  name: 'TEST',
+                  isDeprecated: true,
+                  deprecationReason: 'This is deprecated',
+                },
+              ],
+            },
+            colorEnumInfo: {
+              enumValues: [
+                {
+                  description: 'A vivid color',
+                  name: 'RED',
+                },
+              ],
+            },
           },
         });
         expect(mergedResult).to.deep.equal(enumResult);
@@ -750,6 +816,60 @@ bookingById(id: "b1") {
         subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification);
       });
 
+      it('subscription errors are working correctly in merged schema', done => {
+        const mockNotification = {
+          notifications: {
+            text: 'Hello world',
+          },
+        };
+
+        const expectedResult = {
+          data: {
+            notifications: {
+              text: 'Hello world',
+              throwError: null,
+            },
+          } as any,
+          errors: [{
+            message: 'subscription field error',
+            path: ['notifications', 'throwError'],
+            locations: [{
+              line: 4,
+              column: 15,
+            }],
+          }],
+        };
+
+        const subscription = parse(`
+          subscription Subscription {
+            notifications {
+              throwError
+              text
+            }
+          }
+        `);
+
+        let notificationCnt = 0;
+        subscribe(mergedSchema, subscription)
+          .then(results => {
+            forAwaitEach(
+              results as AsyncIterable<ExecutionResult>,
+              (result: ExecutionResult) => {
+                expect(result).to.have.property('data');
+                expect(result).to.have.property('errors');
+                expect(result.errors).to.have.lengthOf(1);
+                expect(result.errors).to.deep.equal(expectedResult.errors);
+                expect(result.data).to.deep.equal(expectedResult.data);
+                !notificationCnt++ ? done() : null;
+              },
+            ).catch(done);
+          })
+          .catch(done);
+
+        subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification);
+      });
+
+
       it('links in queries', async () => {
         const mergedResult = await graphql(
           mergedSchema,
@@ -760,6 +880,7 @@ bookingById(id: "b1") {
                 name
                 bookings {
                   id
+                  textDescription
                   customer {
                     name
                   }
@@ -797,6 +918,7 @@ bookingById(id: "b1") {
               bookings: [
                 {
                   id: 'b4',
+                  textDescription: 'Booking #b4',
                   customer: {
                     name: 'Exampler Customer',
                   },
@@ -2660,6 +2782,33 @@ fragment BookingFragment on Booking {
       });
     });
     describe('createRequest', () => {
+      const info = {
+        fieldNodes: [
+          {
+            kind: 'Field',
+            name: {
+              kind: 'Name',
+              value: 'user' // doesn't matter
+            },
+            arguments: [],
+            directives: [],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'Field',
+                  name: {
+                    kind: 'Name',
+                    value: 'id'
+                  },
+                  arguments: [],
+                  directives: []
+                }
+              ]
+            }
+          }
+        ]
+      } as GraphQLResolveInfo;
       it('should support multiple aliased roots with no args', () => {
         const operation = createRequest({
           schema: mergedSchema,
@@ -2667,11 +2816,13 @@ fragment BookingFragment on Booking {
           roots: [
             {
               fieldName: 'nodes',
-              alias: 'users1'
+              alias: 'users1',
+              info
             },
             {
               fieldName: 'nodes',
-              alias: 'users2'
+              alias: 'users2',
+              info
             }
           ],
           info: {
@@ -2687,8 +2838,14 @@ fragment BookingFragment on Booking {
         });
         expect(print(operation.document)).to.equal(
 `{
-  users1: nodes
-  users2: nodes
+  users1: nodes {
+    id
+    __typename
+  }
+  users2: nodes {
+    id
+    __typename
+  }
 }
 `);
         expect(operation.variables).to.deep.equal({});
@@ -2701,78 +2858,13 @@ fragment BookingFragment on Booking {
             {
               fieldName: 'node',
               alias: 'user1',
-              args: { id: '1' }
-            },
-            {
-              fieldName: 'node',
-              alias: 'user2',
-              args: { id: '2' }
-            }
-          ],
-          info: {
-            operation: {
-              variableDefinitions: [],
-              name: {
-                value: 'OperationName'
-              }
-            },
-            fragments: {},
-            variableValues: {}
-          } as GraphQLResolveInfo
-        });
-        expect(print(operation.document)).to.equal(
-`query ($_v0_id: ID!, $_v1_id: ID!) {
-  user1: node(id: $_v0_id)
-  user2: node(id: $_v1_id)
-}
-`);
-        expect(operation.variables).to.deep.equal({
-          _v0_id: '1',
-          _v1_id: '2',
-        });
-      });
-      it('should support multiple aliased roots with selection sets', async () => {
-        const info = {
-          fieldNodes: [
-            {
-              kind: 'Field',
-              name: {
-                kind: 'Name',
-                value: 'user' // doesn't matter
-              },
-              arguments: [],
-              directives: [],
-              selectionSet: {
-                kind: 'SelectionSet',
-                selections: [
-                  {
-                    kind: 'Field',
-                    name: {
-                      kind: 'Name',
-                      value: 'id'
-                    },
-                    arguments: [],
-                    directives: []
-                  }
-                ]
-              }
-            }
-          ]
-        } as GraphQLResolveInfo;
-        const operation = createRequest({
-          schema: mergedSchema,
-          operation: 'query',
-          roots: [
-            {
-              fieldName: 'node',
-              alias: 'user1',
-              args: { id: 'b1' },
+              args: { id: '1' },
               info
             },
             {
               fieldName: 'node',
               alias: 'user2',
-              args: { id: 'b2' },
+              args: { id: '2' },
               info
             }
           ],
@@ -2799,16 +2891,9 @@ fragment BookingFragment on Booking {
   }
 }
 `);
-        const result = await graphql(
-          mergedSchema,
-          print(operation.document),
-          {},
-          {},
-          operation.variables
-        );
-        expect(result.data).to.deep.equal({
-          user1: { id: 'b1', __typename: 'Booking' },
-          user2: { id: 'b2', __typename: 'Booking' }
+        expect(operation.variables).to.deep.equal({
+          _v0_id: '1',
+          _v1_id: '2',
         });
       });
     });
