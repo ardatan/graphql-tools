@@ -75,6 +75,9 @@ let enumTest = `
   A type that uses an Enum.
   """
   enum Color {
+    """
+    A vivid color
+    """
     RED
   }
 
@@ -82,7 +85,10 @@ let enumTest = `
   A type that uses an Enum with a numeric constant.
   """
   enum NumericEnum {
-    TEST
+    """
+    A test description
+    """
+    TEST @deprecated(reason: "This is deprecated")
   }
 
   schema {
@@ -148,6 +154,10 @@ let linkSchema = `
     The property of the booking.
     """
     property: Property
+    """
+    A textual description of the booking.
+    """
+    textDescription: String
   }
 
   extend type Property implements Node {
@@ -222,12 +232,14 @@ if (process.env.GRAPHQL_VERSION === '^0.11') {
   enumTest = `
     # A type that uses an Enum.
     enum Color {
+      # A vivid color
       RED
     }
 
     # A type that uses an Enum with a numeric constant.
     enum NumericEnum {
-      TEST
+    # A test description
+      TEST @deprecated(reason: "This is deprecated")
     }
 
     schema {
@@ -283,6 +295,8 @@ if (process.env.GRAPHQL_VERSION === '^0.11') {
     extend type Booking implements Node {
       # The property of the booking.
       property: Property
+      # A textual description of the booking.
+      textDescription: String
     }
 
     extend type Property implements Node {
@@ -395,6 +409,12 @@ testCombinations.forEach(async combination => {
                   context,
                   info,
                 });
+              },
+            },
+            textDescription: {
+              fragment: '... on Booking { id }',
+              resolve(parent, args, context, info) {
+                return `Booking #${parent.id}`;
               },
             },
           },
@@ -606,6 +626,20 @@ testCombinations.forEach(async combination => {
             query {
               color
               numericEnum
+              numericEnumInfo: __type(name: "NumericEnum") {
+                enumValues(includeDeprecated: true) {
+                  name
+                  description
+                  isDeprecated
+                  deprecationReason
+                }
+              }
+              colorEnumInfo: __type(name: "Color") {
+                enumValues {
+                  name
+                  description
+                }
+              }
             }
           `,
         );
@@ -616,6 +650,20 @@ testCombinations.forEach(async combination => {
             query {
               color
               numericEnum
+              numericEnumInfo: __type(name: "NumericEnum") {
+                enumValues(includeDeprecated: true) {
+                  name
+                  description
+                  isDeprecated
+                  deprecationReason
+                }
+              }
+              colorEnumInfo: __type(name: "Color") {
+                enumValues {
+                  name
+                  description
+                }
+              }
             }
           `,
         );
@@ -624,6 +672,24 @@ testCombinations.forEach(async combination => {
           data: {
             color: 'RED',
             numericEnum: 'TEST',
+            numericEnumInfo: {
+              enumValues: [
+                {
+                  description: 'A test description',
+                  name: 'TEST',
+                  isDeprecated: true,
+                  deprecationReason: 'This is deprecated',
+                },
+              ],
+            },
+            colorEnumInfo: {
+              enumValues: [
+                {
+                  description: 'A vivid color',
+                  name: 'RED',
+                },
+              ],
+            },
           },
         });
         expect(mergedResult).to.deep.equal(enumResult);
@@ -747,6 +813,60 @@ bookingById(id: "b1") {
         subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification);
       });
 
+      it('subscription errors are working correctly in merged schema', done => {
+        const mockNotification = {
+          notifications: {
+            text: 'Hello world',
+          },
+        };
+
+        const expectedResult = {
+          data: {
+            notifications: {
+              text: 'Hello world',
+              throwError: null,
+            },
+          } as any,
+          errors: [{
+            message: 'subscription field error',
+            path: ['notifications', 'throwError'],
+            locations: [{
+              line: 4,
+              column: 15,
+            }],
+          }],
+        };
+
+        const subscription = parse(`
+          subscription Subscription {
+            notifications {
+              throwError
+              text
+            }
+          }
+        `);
+
+        let notificationCnt = 0;
+        subscribe(mergedSchema, subscription)
+          .then(results => {
+            forAwaitEach(
+              results as AsyncIterable<ExecutionResult>,
+              (result: ExecutionResult) => {
+                expect(result).to.have.property('data');
+                expect(result).to.have.property('errors');
+                expect(result.errors).to.have.lengthOf(1);
+                expect(result.errors).to.deep.equal(expectedResult.errors);
+                expect(result.data).to.deep.equal(expectedResult.data);
+                !notificationCnt++ ? done() : null;
+              },
+            ).catch(done);
+          })
+          .catch(done);
+
+        subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification);
+      });
+
+
       it('links in queries', async () => {
         const mergedResult = await graphql(
           mergedSchema,
@@ -757,6 +877,7 @@ bookingById(id: "b1") {
                 name
                 bookings {
                   id
+                  textDescription
                   customer {
                     name
                   }
@@ -794,6 +915,7 @@ bookingById(id: "b1") {
               bookings: [
                 {
                   id: 'b4',
+                  textDescription: 'Booking #b4',
                   customer: {
                     name: 'Exampler Customer',
                   },

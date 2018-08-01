@@ -1308,6 +1308,32 @@ describe('generating schema from shorthand', () => {
     ).to.not.throw();
   });
 
+  it('throws if resolver value is invalid', () => {
+    const short = `
+      type Person {
+        name: String
+        age: Int
+      }
+      type RootQuery {
+        search(name: String): [Person]
+      }
+      schema {
+        query: RootQuery
+      }
+    `;
+
+    const rf = {
+      Searchable: undefined
+    } as any;
+
+    expect(() =>
+      makeExecutableSchema({ typeDefs: short, resolvers: rf }),
+    ).to.throw(
+      `"Searchable" defined in resolvers, but has invalid value "undefined". A resolver's value ` +
+      `must be of type object or function.`
+    );
+  });
+
   it('doesnt let you define resolver field not present in schema', () => {
     const short = `
       type Person {
@@ -1331,6 +1357,51 @@ describe('generating schema from shorthand', () => {
     expect(() =>
       makeExecutableSchema({ typeDefs: short, resolvers: rf }),
     ).to.throw(`RootQuery.name defined in resolvers, but not in schema`);
+
+    expect(() =>
+      makeExecutableSchema({
+        typeDefs: short,
+        resolvers: rf,
+        resolverValidationOptions: {
+          allowResolversNotInSchema: true,
+        },
+      }),
+    ).to.not.throw();
+  });
+
+  it('does not let you define resolver field for enum values not present in schema', () => {
+    const short = `
+      enum Color {
+        RED
+      }
+
+      enum NumericEnum {
+        TEST
+      }
+
+      schema {
+        query: Query
+      }
+
+      type Query {
+        color: Color
+        numericEnum: NumericEnum
+      }
+    `;
+
+    const rf = {
+      Color: {
+        RED: '#EA3232',
+        NO_RESOLVER: '#EA3232',
+      },
+      NumericEnum: {
+        TEST: 1,
+      },
+    };
+
+    expect(() =>
+      makeExecutableSchema({ typeDefs: short, resolvers: rf }),
+    ).to.throw(`Color.NO_RESOLVER was defined in resolvers, but enum is not in schema`);
 
     expect(() =>
       makeExecutableSchema({

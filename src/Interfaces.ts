@@ -46,13 +46,17 @@ export type Transform = {
   transformResult?: (result: Result) => Result;
 };
 
+export interface IGraphQLToolsResolveInfo extends GraphQLResolveInfo {
+  mergeInfo?: MergeInfo;
+}
+
 export interface IDelegateToSchemaOptions<TContext = { [key: string]: any }> {
   schema: GraphQLSchema;
   operation: Operation;
   fieldName: string;
   args?: { [key: string]: any };
   context: TContext;
-  info: GraphQLResolveInfo;
+  info: IGraphQLToolsResolveInfo;
   transforms?: Array<Transform>;
   skipValidation?: boolean;
 }
@@ -67,6 +71,10 @@ export type MergeInfo = {
     transforms?: Array<Transform>,
   ) => any;
   delegateToSchema<TContext>(options: IDelegateToSchemaOptions<TContext>): any;
+  fragments: Array<{
+    field: string;
+    fragment: string;
+  }>;
 };
 
 export type IFieldResolver<TSource, TContext> = (
@@ -79,13 +87,17 @@ export type IFieldResolver<TSource, TContext> = (
 export type ITypedef = (() => ITypedef[]) | string | DocumentNode;
 export type ITypeDefinitions = ITypedef | ITypedef[];
 export type IResolverObject<TSource = any, TContext = any> = {
-  [key: string]: IFieldResolver<TSource, TContext> | IResolverOptions;
+  [key: string]:
+    | IFieldResolver<TSource, TContext>
+    | IResolverOptions<TSource, TContext>
+    | IResolverObject<TSource, TContext>;
 };
 export type IEnumResolver = { [key: string]: string | number };
 export interface IResolvers<TSource = any, TContext = any> {
   [key: string]:
     | (() => any)
     | IResolverObject<TSource, TContext>
+    | IResolverOptions<TSource, TContext>
     | GraphQLScalarType
     | IEnumResolver;
 }
@@ -155,6 +167,7 @@ export interface IMockOptions {
   schema: GraphQLSchema;
   mocks?: IMocks;
   preserveResolvers?: boolean;
+  seed?: number
 }
 
 export interface IMockServer {
