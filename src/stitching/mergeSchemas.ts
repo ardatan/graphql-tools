@@ -1,14 +1,11 @@
 import {
   DocumentNode,
   GraphQLField,
-  GraphQLInputObjectType,
-  GraphQLInterfaceType,
   GraphQLNamedType,
   GraphQLObjectType,
   GraphQLResolveInfo,
   GraphQLScalarType,
   GraphQLSchema,
-  GraphQLString,
   extendSchema,
   getNamedType,
   isNamedType,
@@ -157,7 +154,7 @@ function mergeSchemasImplementation({
     } else if (typeof schema === 'string') {
       let parsedSchemaDocument = parse(schema);
       parsedSchemaDocument.definitions.forEach(def => {
-        const type = typeFromAST(def, createNamedStub);
+        const type = typeFromAST(def);
         if (type) {
           addTypeCandidate(typeCandidates, type.name, {
             type: type,
@@ -507,24 +504,4 @@ function defaultVisitType(
     const candidate = candidateSelector(candidates);
     return candidate.type;
   }
-};
-
-
-function createNamedStub(name: string, type: 'object' | 'interface' | 'input'): GraphQLObjectType | GraphQLInputObjectType | GraphQLInterfaceType {
-  let constructor: any;
-  if (type === 'object') {
-    constructor = GraphQLObjectType;
-  } else if (type === 'interface') {
-    constructor = GraphQLInterfaceType;
-  } else {
-    constructor = GraphQLInputObjectType;
-  }
-  return new constructor({
-    name,
-    fields: {
-      __fake: {
-        type: GraphQLString,
-      },
-    },
-  });
-};
+}
