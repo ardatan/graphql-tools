@@ -19,7 +19,6 @@ import {
   getNamedType,
   GraphQLObjectType,
   GraphQLSchema,
-  GraphQLResolveInfo,
   GraphQLField,
   GraphQLFieldResolver,
   GraphQLType,
