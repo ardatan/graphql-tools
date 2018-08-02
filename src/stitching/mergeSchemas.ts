@@ -18,7 +18,6 @@ import {
   MergeInfo,
   MergeTypeCandidate,
   TypeWithResolvers,
-  VisitType,
   VisitTypeResult,
   IResolversParameter,
 } from '../Interfaces';
@@ -67,25 +66,16 @@ export default function mergeSchemas({
   schemaDirectives?: { [name: string]: typeof SchemaDirectiveVisitor };
   inheritResolversFromInterfaces?: boolean;
 }): GraphQLSchema {
-  let visitType: VisitType = defaultVisitType;
-  if (onTypeConflict) {
-    console.warn(
-      '`onTypeConflict` is deprecated. Use schema transforms to customize merging logic.',
-    );
-    visitType = createVisitTypeFromOnTypeConflict(onTypeConflict);
-  }
-  return mergeSchemasImplementation({ schemas, visitType, resolvers, schemaDirectives, inheritResolversFromInterfaces });
+  return mergeSchemasImplementation({ schemas, resolvers, schemaDirectives, inheritResolversFromInterfaces });
 }
 
 function mergeSchemasImplementation({
   schemas,
-  visitType,
   resolvers,
   schemaDirectives,
   inheritResolversFromInterfaces
 }: {
   schemas: Array<string | GraphQLSchema | Array<GraphQLNamedType>>;
-  visitType?: VisitType;
   resolvers?: IResolversParameter;
   schemaDirectives?: { [name: string]: typeof SchemaDirectiveVisitor };
   inheritResolversFromInterfaces?: boolean;
@@ -98,10 +88,6 @@ function mergeSchemasImplementation({
     field: string;
     fragment: string;
   }> = [];
-
-  if (!visitType) {
-    visitType = defaultVisitType;
-  }
 
   const resolveType = createResolveType(name => {
     if (types[name] === undefined) {
@@ -203,7 +189,7 @@ function mergeSchemasImplementation({
   let generatedResolvers = {};
 
   Object.keys(typeCandidates).forEach(typeName => {
-    const resultType: VisitTypeResult = visitType(
+    const resultType: VisitTypeResult = defaultVisitType(
       typeName,
       typeCandidates[typeName],
     );
@@ -419,34 +405,6 @@ function addTypeCandidate(
     typeCandidates[name] = [];
   }
   typeCandidates[name].push(typeCandidate);
-}
-
-function createVisitTypeFromOnTypeConflict(
-  onTypeConflict: OnTypeConflict,
-): VisitType {
-  return (name, candidates) =>
-    defaultVisitType(name, candidates, cands =>
-      cands.reduce((prev, next) => {
-        const type = onTypeConflict(prev.type, next.type, {
-          left: {
-            schema: prev.schema,
-          },
-          right: {
-            schema: next.schema,
-          },
-        });
-        if (prev.type === type) {
-          return prev;
-        } else if (next.type === type) {
-          return next;
-        } else {
-          return {
-            schemaName: 'unknown',
-            type,
-          };
-        }
-      }),
-    );
 }
 
 function defaultVisitType(
