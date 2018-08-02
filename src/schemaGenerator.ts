@@ -630,23 +630,6 @@ function wrapResolver(
   };
 }
 
-function chainResolvers(resolvers: GraphQLFieldResolver<any, any>[]) {
-  return (
-    root: any,
-    args: { [argName: string]: any },
-    ctx: any,
-    info: GraphQLResolveInfo,
-  ) => {
-    return resolvers.reduce((prev, curResolver) => {
-      if (curResolver) {
-        return curResolver(prev, args, ctx, info);
-      }
-
-      return defaultFieldResolver(prev, args, ctx, info);
-    }, root);
-  };
-}
-
 /*
  * fn: The function to decorate with the logger
  * logger: an object instance of type Logger
@@ -794,7 +777,6 @@ export {
   makeExecutableSchema,
   SchemaError,
   forEachField,
-  chainResolvers,
   addErrorLoggingToSchema,
   addResolveFunctionsToSchema,
   addCatchUndefinedToSchema,
