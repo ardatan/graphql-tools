@@ -214,9 +214,6 @@ const schema = buildClientSchema(introspectionResult);
 addMockFunctionsToSchema({schema});
 ```
 
-## Seeding
-`graphql-tools` uses [`casual`](https://www.npmjs.com/package/casual) to generate random integers, floats, booleans, and ids. You can seed the `casual` generator by passing `seed: <your seed value>` to `addMockFunctionsToSchema`.
-
 ## API
 
 ### addMockFunctionsToSchema
@@ -228,11 +225,10 @@ addMockFunctionsToSchema({
   schema,
   mocks: {},
   preserveResolvers: false,
-  seed?: number
 });
 ```
 
-Given an instance of GraphQLSchema and a mock object, `addMockFunctionsToSchema` modifies the schema in place to return mock data for any valid query that is sent to the server. If `mocks` is not passed, the defaults will be used for each of the scalar types. If `preserveResolvers` is set to `true`, existing resolve functions will not be overwritten to provide mock data. This can be used to mock some parts of the server and not others. The `seed` option is used to initialize the generator in order to get consistent random values between runs.
+Given an instance of GraphQLSchema and a mock object, `addMockFunctionsToSchema` modifies the schema in place to return mock data for any valid query that is sent to the server. If `mocks` is not passed, the defaults will be used for each of the scalar types. If `preserveResolvers` is set to `true`, existing resolve functions will not be overwritten to provide mock data. This can be used to mock some parts of the server and not others.
 
 ### MockList
 
@@ -243,3 +239,5 @@ new MockList(length: number | number[], mockFunction: Function);
 ```
 
 This is an object you can return from your mock resolvers which calls the `mockFunction` once for each list item. The first argument can either be an exact length, or an inclusive range of possible lengths for the list, in case you want to see how your UI responds to varying lists of data.
+
+
