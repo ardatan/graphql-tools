@@ -1,6 +1,6 @@
 {
   "name": "graphql-tools",
-  "version": "3.1.0",
+  "version": "3.1.1",
   "description": "Useful tools to create and manipulate GraphQL schemas.",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -50,9 +50,9 @@
   "dependencies": {
     "apollo-link": "^1.2.2",
     "apollo-utilities": "^1.0.1",
-    "casual": "^1.5.19",
     "deprecated-decorator": "^0.1.6",
-    "iterall": "^1.1.3"
+    "iterall": "^1.1.3",
+    "uuid": "^3.1.0"
   },
   "peerDependencies": {
     "graphql": "^0.13.0"
