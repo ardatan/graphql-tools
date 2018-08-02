@@ -4,6 +4,10 @@
 
 * ...
 
+### v3.1.1
+
+* Revert the added `casual` dependency for mocking, since it was causing issues for people using `graphql-tools` in the browser.
+
 ### v3.1.0
 
 * Loosens the apollo-link dependency [PR #765](https://github.com/apollographql/graphql-tools/pull/765)
