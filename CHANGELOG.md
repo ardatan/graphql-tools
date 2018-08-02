@@ -2,6 +2,10 @@
 
 ### vNEXT
 
+* ...
+
+### v3.1.0
+
 * Loosens the apollo-link dependency [PR #765](https://github.com/apollographql/graphql-tools/pull/765)
 * Use `getDescription` from `graphql-js` package [PR #672](https://github.com/apollographql/graphql-tools/pull/672)
 * Do not annotate error symbol on primitive value(s)
