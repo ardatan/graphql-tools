@@ -1,14 +1,11 @@
 import {
   DocumentNode,
   GraphQLField,
-  GraphQLInputObjectType,
-  GraphQLInterfaceType,
   GraphQLNamedType,
   GraphQLObjectType,
   GraphQLResolveInfo,
   GraphQLScalarType,
   GraphQLSchema,
-  GraphQLString,
   extendSchema,
   getNamedType,
   isNamedType,
@@ -21,7 +18,6 @@ import {
   MergeInfo,
   MergeTypeCandidate,
   TypeWithResolvers,
-  VisitType,
   VisitTypeResult,
   IResolversParameter,
 } from '../Interfaces';
@@ -35,7 +31,7 @@ import {
   createResolveType,
 } from './schemaRecreation';
 import delegateToSchema from './delegateToSchema';
-import typeFromAST, { GetType } from './typeFromAST';
+import typeFromAST from './typeFromAST';
 import {
   Transform,
   ExpandAbstractTypes,
@@ -70,25 +66,16 @@ export default function mergeSchemas({
   schemaDirectives?: { [name: string]: typeof SchemaDirectiveVisitor };
   inheritResolversFromInterfaces?: boolean;
 }): GraphQLSchema {
-  let visitType: VisitType = defaultVisitType;
-  if (onTypeConflict) {
-    console.warn(
-      '`onTypeConflict` is deprecated. Use schema transforms to customize merging logic.',
-    );
-    visitType = createVisitTypeFromOnTypeConflict(onTypeConflict);
-  }
-  return mergeSchemasImplementation({ schemas, visitType, resolvers, schemaDirectives, inheritResolversFromInterfaces });
+  return mergeSchemasImplementation({ schemas, resolvers, schemaDirectives, inheritResolversFromInterfaces });
 }
 
 function mergeSchemasImplementation({
   schemas,
-  visitType,
   resolvers,
   schemaDirectives,
   inheritResolversFromInterfaces
 }: {
   schemas: Array<string | GraphQLSchema | Array<GraphQLNamedType>>;
-  visitType?: VisitType;
   resolvers?: IResolversParameter;
   schemaDirectives?: { [name: string]: typeof SchemaDirectiveVisitor };
   inheritResolversFromInterfaces?: boolean;
@@ -102,35 +89,12 @@ function mergeSchemasImplementation({
     fragment: string;
   }> = [];
 
-  if (!visitType) {
-    visitType = defaultVisitType;
-  }
-
   const resolveType = createResolveType(name => {
     if (types[name] === undefined) {
       throw new Error(`Can't find type ${name}.`);
     }
     return types[name];
   });
-
-  const createNamedStub: GetType = (name, type) => {
-    let constructor: any;
-    if (type === 'object') {
-      constructor = GraphQLObjectType;
-    } else if (type === 'interface') {
-      constructor = GraphQLInterfaceType;
-    } else {
-      constructor = GraphQLInputObjectType;
-    }
-    return new constructor({
-      name,
-      fields: {
-        __fake: {
-          type: GraphQLString,
-        },
-      },
-    });
-  };
 
   schemas.forEach(schema => {
     if (schema instanceof GraphQLSchema) {
@@ -176,7 +140,7 @@ function mergeSchemasImplementation({
     } else if (typeof schema === 'string') {
       let parsedSchemaDocument = parse(schema);
       parsedSchemaDocument.definitions.forEach(def => {
-        const type = typeFromAST(def, createNamedStub);
+        const type = typeFromAST(def);
         if (type) {
           addTypeCandidate(typeCandidates, type.name, {
             type: type,
@@ -225,7 +189,7 @@ function mergeSchemasImplementation({
   let generatedResolvers = {};
 
   Object.keys(typeCandidates).forEach(typeName => {
-    const resultType: VisitTypeResult = visitType(
+    const resultType: VisitTypeResult = defaultVisitType(
       typeName,
       typeCandidates[typeName],
     );
@@ -443,41 +407,13 @@ function addTypeCandidate(
   typeCandidates[name].push(typeCandidate);
 }
 
-function createVisitTypeFromOnTypeConflict(
-  onTypeConflict: OnTypeConflict,
-): VisitType {
-  return (name, candidates) =>
-    defaultVisitType(name, candidates, cands =>
-      cands.reduce((prev, next) => {
-        const type = onTypeConflict(prev.type, next.type, {
-          left: {
-            schema: prev.schema,
-          },
-          right: {
-            schema: next.schema,
-          },
-        });
-        if (prev.type === type) {
-          return prev;
-        } else if (next.type === type) {
-          return next;
-        } else {
-          return {
-            schemaName: 'unknown',
-            type,
-          };
-        }
-      }),
-    );
-}
-
-const defaultVisitType = (
+function defaultVisitType(
   name: string,
   candidates: Array<MergeTypeCandidate>,
   candidateSelector?: (
     candidates: Array<MergeTypeCandidate>,
   ) => MergeTypeCandidate,
-) => {
+) {
   if (!candidateSelector) {
     candidateSelector = cands => cands[cands.length - 1];
   }
@@ -526,4 +462,4 @@ const defaultVisitType = (
     const candidate = candidateSelector(candidates);
     return candidate.type;
   }
-};
+}
