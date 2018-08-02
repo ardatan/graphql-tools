@@ -35,7 +35,7 @@ import {
   createResolveType,
 } from './schemaRecreation';
 import delegateToSchema from './delegateToSchema';
-import typeFromAST, { GetType } from './typeFromAST';
+import typeFromAST from './typeFromAST';
 import {
   Transform,
   ExpandAbstractTypes,
@@ -112,25 +112,6 @@ function mergeSchemasImplementation({
     }
     return types[name];
   });
-
-  const createNamedStub: GetType = (name, type) => {
-    let constructor: any;
-    if (type === 'object') {
-      constructor = GraphQLObjectType;
-    } else if (type === 'interface') {
-      constructor = GraphQLInterfaceType;
-    } else {
-      constructor = GraphQLInputObjectType;
-    }
-    return new constructor({
-      name,
-      fields: {
-        __fake: {
-          type: GraphQLString,
-        },
-      },
-    });
-  };
 
   schemas.forEach(schema => {
     if (schema instanceof GraphQLSchema) {
@@ -471,13 +452,13 @@ function createVisitTypeFromOnTypeConflict(
     );
 }
 
-const defaultVisitType = (
+function defaultVisitType(
   name: string,
   candidates: Array<MergeTypeCandidate>,
   candidateSelector?: (
     candidates: Array<MergeTypeCandidate>,
   ) => MergeTypeCandidate,
-) => {
+) {
   if (!candidateSelector) {
     candidateSelector = cands => cands[cands.length - 1];
   }
@@ -526,4 +507,24 @@ const defaultVisitType = (
     const candidate = candidateSelector(candidates);
     return candidate.type;
   }
+};
+
+
+function createNamedStub(name: string, type: 'object' | 'interface' | 'input'): GraphQLObjectType | GraphQLInputObjectType | GraphQLInterfaceType {
+  let constructor: any;
+  if (type === 'object') {
+    constructor = GraphQLObjectType;
+  } else if (type === 'interface') {
+    constructor = GraphQLInterfaceType;
+  } else {
+    constructor = GraphQLInputObjectType;
+  }
+  return new constructor({
+    name,
+    fields: {
+      __fake: {
+        type: GraphQLString,
+      },
+    },
+  });
 };
