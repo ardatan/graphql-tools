@@ -21,6 +21,7 @@
 * Add support for overlapping fragments in ReplaceFieldWithFragment. [#894](https://github.com/apollographql/graphql-tools/issues/894)
 * `delegateToSchema` now behaves like `info.mergeInfo.delegateToSchema` for fragment handling [Issue #876](https://github.com/apollographql/graphql-tools/issues/876) [PR #885](https://github.com/apollographql/graphql-tools/pull/885)
 * Make schema transforms work with subscriptions, make it so that subscription errors don't disappear when using mergeSchemas [#793](https://github.com/apollographql/graphql-tools/issues/793) [#780](https://github.com/apollographql/graphql-tools/issues/780)
+* Updates mocking to use [`casual`](https://www.npmjs.com/package/casual) [PR #817](https://github.com/apollographql/graphql-tools/pull/817)
 
 ### v3.0.5
 

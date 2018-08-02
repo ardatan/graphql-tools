@@ -14,7 +14,7 @@ import {
   GraphQLNamedType,
   GraphQLFieldResolver,
 } from 'graphql';
-import * as uuid from 'uuid';
+import * as casual from 'casual'
 import {
   forEachField,
   buildSchemaFromTypeDefinitions,
@@ -34,6 +34,7 @@ function mockServer(
   schema: GraphQLSchema | ITypeDefinitions,
   mocks: IMocks,
   preserveResolvers: boolean = false,
+  seed?: number
 ): IMockServer {
   let mySchema: GraphQLSchema;
   if (!(schema instanceof GraphQLSchema)) {
@@ -43,17 +44,17 @@ function mockServer(
     mySchema = schema;
   }
 
-  addMockFunctionsToSchema({ schema: mySchema, mocks, preserveResolvers });
+  addMockFunctionsToSchema({ schema: mySchema, mocks, preserveResolvers, seed });
 
   return { query: (query, vars) => graphql(mySchema, query, {}, {}, vars) };
 }
 
 const defaultMockMap: Map<string, IMockFn> = new Map();
-defaultMockMap.set('Int', () => Math.round(Math.random() * 200) - 100);
-defaultMockMap.set('Float', () => Math.random() * 200 - 100);
+defaultMockMap.set('Int', () => casual.integer(-100, 100));
+defaultMockMap.set('Float', () => casual.double(-100, 100));
 defaultMockMap.set('String', () => 'Hello World');
-defaultMockMap.set('Boolean', () => Math.random() > 0.5);
-defaultMockMap.set('ID', () => uuid.v4());
+defaultMockMap.set('Boolean', () => casual.boolean);
+defaultMockMap.set('ID', () => casual.uuid);
 
 // TODO allow providing a seed such that lengths of list could be deterministic
 // this could be done by using casual to get a random list length if the casual
@@ -62,6 +63,7 @@ function addMockFunctionsToSchema({
   schema,
   mocks = {},
   preserveResolvers = false,
+  seed
 }: IMockOptions): void {
   if (!schema) {
     throw new Error('Must provide schema to mock');
@@ -71,6 +73,9 @@ function addMockFunctionsToSchema({
   }
   if (!isObject(mocks)) {
     throw new Error('mocks must be of type Object');
+  }
+  if (typeof seed === 'number') {
+    casual.seed(seed);
   }
 
   // use Map internally, because that API is nicer.
@@ -141,10 +146,8 @@ function addMockFunctionsToSchema({
       }
 
       if (fieldType instanceof GraphQLList) {
-        return [
-          mockType(fieldType.ofType)(root, args, context, info),
-          mockType(fieldType.ofType)(root, args, context, info),
-        ];
+        return Array.from({ length: casual.integer(0, 10) }, () =>
+          mockType(fieldType.ofType)(root, args, context, info))
       }
       if (
         mockFunctionMap.has(fieldType.name) &&
@@ -298,8 +301,7 @@ function isObject(thing: any) {
 
 // returns a random element from that ary
 function getRandomElement(ary: any[]) {
-  const sample = Math.floor(Math.random() * ary.length);
-  return ary[sample];
+  return casual.random_element(ary);
 }
 
 function mergeObjects(a: Object, b: Object) {
@@ -409,7 +411,7 @@ class MockList {
   ) {
     let arr: any[];
     if (Array.isArray(this.len)) {
-      arr = new Array(this.randint(this.len[0], this.len[1]));
+      arr = new Array(casual.integer(this.len[0], this.len[1]));
     } else {
       arr = new Array(this.len);
     }
@@ -437,10 +439,6 @@ class MockList {
       }
     }
     return arr;
-  }
-
-  private randint(low: number, high: number): number {
-    return Math.floor(Math.random() * (high - low + 1) + low);
   }
 }
 
