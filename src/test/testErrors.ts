@@ -32,7 +32,7 @@ describe('Errors', () => {
   });
 
   describe('checkResultAndHandleErrors', () => {
-    it('persists single error with a result', done => {
+    it('persists single error with a result', () => {
       const result = {
         errors: [new ErrorWithResult('Test error', 'result')]
       };
@@ -41,7 +41,6 @@ describe('Errors', () => {
       } catch (e) {
         assert.equal(e.message, 'Test error');
         assert.isUndefined(e.originalError.errors);
-        done();
       }
     });
 
