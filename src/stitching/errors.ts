@@ -56,10 +56,10 @@ export function getErrorsFromParent(
     }
   | {
       kind: 'CHILDREN';
-      errors?: Array<{ path?: Array<string | number> }>;
+      errors?: Array<GraphQLFormattedError>;
     } {
   const errors = (object && object[ERROR_SYMBOL]) || [];
-  const childrenErrors: Array<{ path?: Array<string | number> }> = [];
+  const childrenErrors: Array<GraphQLFormattedError> = [];
 
   for (const error of errors) {
     if (!error.path || (error.path.length === 1 && error.path[0] === fieldName)) {
