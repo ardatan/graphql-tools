@@ -1,15 +1,8 @@
 import { assert } from 'chai';
-import {
-  GraphQLResolveInfo
-} from 'graphql';
-import {
-  checkResultAndHandleErrors,
-  getErrorsFromParent,
-  ErrorSymbol,
-} from '../stitching/errors';
+import { GraphQLResolveInfo } from 'graphql';
+import { checkResultAndHandleErrors, getErrorsFromParent, ErrorSymbol } from '../stitching/errors';
 
 import 'mocha';
-
 
 class ErrorWithResult extends Error {
   public result: any;
@@ -19,22 +12,22 @@ class ErrorWithResult extends Error {
   }
 }
 
-const mockErrors = {
-  responseKey: '',
-  [ErrorSymbol]: [
-    {
-      message: 'Test error without path',
-    },
-  ],
-};
-
 describe('Errors', () => {
   describe('getErrorsFromParent', () => {
     it('should return OWN error kind if path is not defined', () => {
-      assert.deepEqual(
-        getErrorsFromParent(mockErrors, 'responseKey'),
-        { kind: 'OWN', error: mockErrors[ErrorSymbol][0] },
-      );
+      const mockErrors = {
+        responseKey: '',
+        [ErrorSymbol]: [
+          {
+            message: 'Test error without path'
+          }
+        ]
+      };
+
+      assert.deepEqual(getErrorsFromParent(mockErrors, 'responseKey'), {
+        kind: 'OWN',
+        error: mockErrors[ErrorSymbol][0]
+      });
     });
   });
 
@@ -73,10 +66,7 @@ describe('Errors', () => {
 
     it('combines errors and perists the original errors', done => {
       const result = {
-        errors: [
-          new Error('Error1'),
-          new Error('Error2')
-        ]
+        errors: [new Error('Error1'), new Error('Error2')]
       };
       try {
         checkResultAndHandleErrors(result, {} as GraphQLResolveInfo, 'responseKey');
