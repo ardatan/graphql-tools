@@ -16,19 +16,19 @@ const defaultMergedResolver: GraphQLFieldResolver<any, any> = (parent, args, con
 
   if (errorResult.kind === 'OWN') {
     throw locatedError(new Error(errorResult.error.message), info.fieldNodes, responsePathAsArray(info.path));
-  } else if (parent) {
-    let result = parent[responseKey];
-
-    // subscription result mapping
-    if (!result && parent.data && parent.data[responseKey]) {
-      result = parent.data[responseKey];
-    }
-
-    if (errorResult.errors) {
-      result = annotateWithChildrenErrors(result, errorResult.errors);
-    }
-    return result;
   }
+
+  let result = parent[responseKey];
+
+  // subscription result mapping
+  if (!result && parent.data && parent.data[responseKey]) {
+    result = parent.data[responseKey];
+  }
+
+  if (errorResult.errors) {
+    result = annotateWithChildrenErrors(result, errorResult.errors);
+  }
+  return result;
 };
 
 export default defaultMergedResolver;
