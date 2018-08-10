@@ -44,7 +44,7 @@ describe('Errors', () => {
       }
     });
 
-    it('persists original errors without a result', done => {
+    it('persists original errors without a result', () => {
       const result = {
         errors: [new Error('Test error')]
       };
@@ -58,12 +58,10 @@ describe('Errors', () => {
         result.errors.forEach((error, i) => {
           assert.deepEqual(e.originalError.errors[i], error);
         });
-
-        done();
       }
     });
 
-    it('combines errors and perists the original errors', done => {
+    it('combines errors and perists the original errors', () => {
       const result = {
         errors: [new Error('Error1'), new Error('Error2')]
       };
@@ -77,8 +75,6 @@ describe('Errors', () => {
         result.errors.forEach((error, i) => {
           assert.deepEqual(e.originalError.errors[i], error);
         });
-
-        done();
       }
     });
   });
