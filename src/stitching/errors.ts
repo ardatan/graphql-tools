@@ -1,4 +1,4 @@
-import { GraphQLResolveInfo, responsePathAsArray, ExecutionResult } from 'graphql';
+import { GraphQLResolveInfo, responsePathAsArray, ExecutionResult, GraphQLFormattedError } from 'graphql';
 import { locatedError } from 'graphql/error';
 import { getResponseKeyFromInfo } from './getResponseKeyFromInfo';
 
@@ -12,10 +12,7 @@ if (
   ERROR_SYMBOL = '@@__subSchemaErrors';
 }
 
-export function annotateWithChildrenErrors(
-  object: any,
-  childrenErrors: Array<{ path?: Array<string | number> }>
-): any {
+export function annotateWithChildrenErrors(object: any, childrenErrors: Array<GraphQLFormattedError>): any {
   if (!childrenErrors || childrenErrors.length === 0) {
     // Nothing to see here, move along
     return object;
@@ -112,7 +109,7 @@ export function checkResultAndHandleErrors(
 
   let resultObject = result.data[responseKey];
   if (result.errors) {
-    resultObject = annotateWithChildrenErrors(resultObject, result.errors as Array<{ path?: Array<string> }>);
+    resultObject = annotateWithChildrenErrors(resultObject, result.errors as Array<GraphQLFormattedError>);
   }
   return resultObject;
 }
