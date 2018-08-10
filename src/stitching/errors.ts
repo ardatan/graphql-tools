@@ -1,5 +1,6 @@
 import { GraphQLResolveInfo, responsePathAsArray } from 'graphql';
 import { locatedError } from 'graphql/error';
+import { getResponseKeyFromInfo } from './getResponseKeyFromInfo';
 
 let ERROR_SYMBOL: any;
 if (
@@ -93,9 +94,7 @@ export function checkResultAndHandleErrors(
   responseKey?: string,
 ): any {
   if (!responseKey) {
-    responseKey = info.fieldNodes[0].alias
-      ? info.fieldNodes[0].alias.value
-      : info.fieldName;
+    responseKey = getResponseKeyFromInfo(info);
   }
   if (result.errors && (!result.data || result.data[responseKey] == null)) {
     // apollo-link-http & http-link-dataloader need the
