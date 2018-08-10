@@ -1,6 +1,6 @@
 import { assert } from 'chai';
 import { GraphQLResolveInfo } from 'graphql';
-import { checkResultAndHandleErrors, getErrorsFromParent, ErrorSymbol } from '../stitching/errors';
+import { checkResultAndHandleErrors, getErrorsFromParent, ERROR_SYMBOL } from '../stitching/errors';
 
 import 'mocha';
 
@@ -17,7 +17,7 @@ describe('Errors', () => {
     it('should return OWN error kind if path is not defined', () => {
       const mockErrors = {
         responseKey: '',
-        [ErrorSymbol]: [
+        [ERROR_SYMBOL]: [
           {
             message: 'Test error without path'
           }
@@ -26,7 +26,7 @@ describe('Errors', () => {
 
       assert.deepEqual(getErrorsFromParent(mockErrors, 'responseKey'), {
         kind: 'OWN',
-        error: mockErrors[ErrorSymbol][0]
+        error: mockErrors[ERROR_SYMBOL][0]
       });
     });
   });
