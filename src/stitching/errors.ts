@@ -1,4 +1,4 @@
-import { GraphQLResolveInfo, responsePathAsArray } from 'graphql';
+import { GraphQLResolveInfo, responsePathAsArray, ExecutionResult } from 'graphql';
 import { locatedError } from 'graphql/error';
 import { getResponseKeyFromInfo } from './getResponseKeyFromInfo';
 
@@ -89,7 +89,7 @@ class CombinedError extends Error {
 }
 
 export function checkResultAndHandleErrors(
-  result: any,
+  result: ExecutionResult,
   info: GraphQLResolveInfo,
   responseKey?: string,
 ): any {
