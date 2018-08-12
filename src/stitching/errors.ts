@@ -119,5 +119,5 @@ function concatErrors(errors: Error[]) {
 }
 
 function hasResult(error: any) {
-  return error.result || (error.originalError && error.originalError.result);
+  return error.result || error.extensions || (error.originalError && error.originalError.result);
 }
