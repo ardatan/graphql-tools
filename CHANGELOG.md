@@ -2,7 +2,7 @@
 
 ### vNEXT
 
-* ...
+* Re-use errors with they contain an extensions property to make compatible with Apollo Server and it's built-in errors. [PR #925](https://github.com/apollographql/graphql-tools/pull/925)
 
 ### v3.1.1
 
