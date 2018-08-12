@@ -31,7 +31,7 @@ function checkForResolveTypeResolver(
         console.warn(
           `Type "${
             type.name
-          }" is missing a "resolveType" resolver. Pass false into `  +
+          }" is missing a "__resolveType" resolver. Pass false into `  +
           `"resolverValidationOptions.requireResolversForResolveType" to disable this warning.`,
         );
       }

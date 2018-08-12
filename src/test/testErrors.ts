@@ -1,15 +1,8 @@
 import { assert } from 'chai';
-import {
-  GraphQLResolveInfo
-} from 'graphql';
-import {
-  checkResultAndHandleErrors,
-  getErrorsFromParent,
-  ErrorSymbol,
-} from '../stitching/errors';
+import { GraphQLResolveInfo } from 'graphql';
+import { checkResultAndHandleErrors, getErrorsFromParent, ERROR_SYMBOL } from '../stitching/errors';
 
 import 'mocha';
-
 
 class ErrorWithResult extends Error {
   public result: any;
@@ -19,27 +12,27 @@ class ErrorWithResult extends Error {
   }
 }
 
-const mockErrors = {
-  responseKey: '',
-  [ErrorSymbol]: [
-    {
-      message: 'Test error without path',
-    },
-  ],
-};
-
 describe('Errors', () => {
   describe('getErrorsFromParent', () => {
     it('should return OWN error kind if path is not defined', () => {
-      assert.deepEqual(
-        getErrorsFromParent(mockErrors, 'responseKey'),
-        { kind: 'OWN', error: mockErrors[ErrorSymbol][0] },
-      );
+      const mockErrors = {
+        responseKey: '',
+        [ERROR_SYMBOL]: [
+          {
+            message: 'Test error without path'
+          }
+        ]
+      };
+
+      assert.deepEqual(getErrorsFromParent(mockErrors, 'responseKey'), {
+        kind: 'OWN',
+        error: mockErrors[ERROR_SYMBOL][0]
+      });
     });
   });
 
   describe('checkResultAndHandleErrors', () => {
-    it('persists single error with a result', done => {
+    it('persists single error with a result', () => {
       const result = {
         errors: [new ErrorWithResult('Test error', 'result')]
       };
@@ -48,11 +41,10 @@ describe('Errors', () => {
       } catch (e) {
         assert.equal(e.message, 'Test error');
         assert.isUndefined(e.originalError.errors);
-        done();
       }
     });
 
-    it('persists original errors without a result', done => {
+    it('persists original errors without a result', () => {
       const result = {
         errors: [new Error('Test error')]
       };
@@ -66,17 +58,12 @@ describe('Errors', () => {
         result.errors.forEach((error, i) => {
           assert.deepEqual(e.originalError.errors[i], error);
         });
-
-        done();
       }
     });
 
-    it('combines errors and perists the original errors', done => {
+    it('combines errors and perists the original errors', () => {
       const result = {
-        errors: [
-          new Error('Error1'),
-          new Error('Error2')
-        ]
+        errors: [new Error('Error1'), new Error('Error2')]
       };
       try {
         checkResultAndHandleErrors(result, {} as GraphQLResolveInfo, 'responseKey');
@@ -88,8 +75,6 @@ describe('Errors', () => {
         result.errors.forEach((error, i) => {
           assert.deepEqual(e.originalError.errors[i], error);
         });
-
-        done();
       }
     });
   });
