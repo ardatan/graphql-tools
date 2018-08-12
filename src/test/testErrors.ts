@@ -12,6 +12,14 @@ class ErrorWithResult extends Error {
   }
 }
 
+class ErrorWithExtensions extends Error {
+  public extensions: any;
+  constructor(message: string, code: string) {
+    super(message);
+    this.extensions = { code };
+  }
+}
+
 describe('Errors', () => {
   describe('getErrorsFromParent', () => {
     it('should return OWN error kind if path is not defined', () => {
@@ -44,6 +52,19 @@ describe('Errors', () => {
       }
     });
 
+    it('persists single error with extensions', () => {
+      const result = {
+        errors: [new ErrorWithExtensions('Test error', 'UNAUTHENTICATED')]
+      };
+      try {
+        checkResultAndHandleErrors(result, {} as GraphQLResolveInfo, 'responseKey');
+      } catch (e) {
+        assert.equal(e.message, 'Test error');
+        assert.equal(e.extensions && e.extensions.code, 'UNAUTHENTICATED');
+        assert.isUndefined(e.originalError.errors);
+      }
+    });
+
     it('persists original errors without a result', () => {
       const result = {
         errors: [new Error('Test error')]
@@ -61,7 +82,7 @@ describe('Errors', () => {
       }
     });
 
-    it('combines errors and perists the original errors', () => {
+    it('combines errors and persists the original errors', () => {
       const result = {
         errors: [new Error('Error1'), new Error('Error2')]
       };
