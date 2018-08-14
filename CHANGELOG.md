@@ -2,7 +2,7 @@
 
 ### vNEXT
 
-* ...
+* Remove object spreading on subscription resolution [PR #928](https://github.com/apollographql/graphql-tools/pull/928)
 
 ### v3.1.1
 
