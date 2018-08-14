@@ -31,6 +31,7 @@ export function annotateWithChildrenErrors(object: any, childrenErrors: Array<Gr
         ...error,
         path: error.path.slice(1)
       });
+      byIndex[index] = current;
     });
 
     return object.map((item, index) => annotateWithChildrenErrors(item, byIndex[index]));
@@ -113,7 +114,8 @@ export function checkResultAndHandleErrors(
       // so use the provided error in the result instead
       const joinedCurrentPath = currentPath.join('.'); // Cache the joined path for comparison
       const originalError = result.errors.find(
-        (error: GraphQLError) => error.path && error.path.join('.') === joinedCurrentPath);
+        (error: GraphQLError) => error.path && error.path.join('.') === joinedCurrentPath
+      );
       newError = new ResultError(
         !!originalError // If we do have an error that matches the path of the current key
           ? originalError // Pass the original error
