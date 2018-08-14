@@ -126,9 +126,7 @@ async function delegateToSchemaImplementation(
       // for some reason the returned transformedResult needs to be nested inside the root subscription field
       // does not work otherwise...
       return {
-        [subscriptionKey]: {
-          ...transformedResult
-        },
+        [subscriptionKey]: transformedResult,
       };
     });
   }
