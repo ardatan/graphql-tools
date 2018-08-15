@@ -25,6 +25,7 @@ import {
 import { forAwaitEach } from 'iterall';
 import { makeExecutableSchema } from '../makeExecutableSchema';
 import { IResolvers } from '../Interfaces';
+import gql from 'graphql-tag';
 
 const testCombinations = [
   {
@@ -125,7 +126,7 @@ if (process.env.GRAPHQL_VERSION !== '^0.11') {
   });
 }
 
-let linkSchema = `
+let linkSchema = gql`
   """
   A new type linking the Property type.
   """

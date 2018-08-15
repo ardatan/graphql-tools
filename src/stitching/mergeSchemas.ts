@@ -60,7 +60,7 @@ export default function mergeSchemas({
   schemaDirectives,
   inheritResolversFromInterfaces
 }: {
-  schemas: Array<string | GraphQLSchema | Array<GraphQLNamedType>>;
+  schemas: Array<string | GraphQLSchema | Array<GraphQLNamedType> | DocumentNode>;
   onTypeConflict?: OnTypeConflict;
   resolvers?: IResolversParameter;
   schemaDirectives?: { [name: string]: typeof SchemaDirectiveVisitor };
@@ -75,7 +75,7 @@ function mergeSchemasImplementation({
   schemaDirectives,
   inheritResolversFromInterfaces
 }: {
-  schemas: Array<string | GraphQLSchema | Array<GraphQLNamedType>>;
+  schemas: Array<string | GraphQLSchema | Array<GraphQLNamedType> | DocumentNode>;
   resolvers?: IResolversParameter;
   schemaDirectives?: { [name: string]: typeof SchemaDirectiveVisitor };
   inheritResolversFromInterfaces?: boolean;
@@ -137,8 +137,8 @@ function mergeSchemasImplementation({
           });
         }
       });
-    } else if (typeof schema === 'string') {
-      let parsedSchemaDocument = parse(schema);
+    } else if (typeof schema === 'string' || schema.hasOwnProperty('kind')) {
+      let parsedSchemaDocument = typeof schema === 'string' ? parse(schema) : schema as DocumentNode;
       parsedSchemaDocument.definitions.forEach(def => {
         const type = typeFromAST(def);
         if (type) {
