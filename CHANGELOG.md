@@ -2,7 +2,7 @@
 
 ### vNEXT
 
-* ...
+* `mergeSchemas` now accepts `DocumentNode` elements [PR #929](https://github.com/apollographql/graphql-tools/pull/929)
 
 ### v3.1.1
 
