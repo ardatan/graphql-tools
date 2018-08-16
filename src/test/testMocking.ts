@@ -751,6 +751,71 @@ describe('Mock', () => {
     });
   });
 
+  it('preserveResolvers still enables mocks to override resolvers', () => {
+    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    const mockMap = {
+      Bird: () => ({ returnString: () => 'mock me' }),
+    };
+    const resolvers = {
+      RootQuery: {
+        returnObject: () => ({
+          returnString: () => 'real talk',
+          id: () => 'id',
+        }),
+      },
+    };
+    addResolveFunctionsToSchema(jsSchema, resolvers);
+    addMockFunctionsToSchema({
+      schema: jsSchema,
+      mocks: mockMap,
+      preserveResolvers: true,
+    });
+    const testQuery = `{
+      returnObject {
+        id
+        returnString
+      }
+    }`;
+    const expected = {
+      returnObject: { id: 'id', returnString: 'mock me' },
+    };
+    return graphql(jsSchema, testQuery).then(res => {
+      expect(res.data).to.deep.equal(expected);
+    });
+  });
+
+  it('preserveResolvers:false overrides all resolvers with mocks', () => {
+    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    const mockMap = {
+      Bird: () => ({ returnString: () => 'mock me' }),
+    };
+    const resolvers = {
+      RootQuery: {
+        returnObject: () => ({
+          returnString: () => 'real talk',
+          id: () => 'id',
+        }),
+      },
+    };
+    addResolveFunctionsToSchema(jsSchema, resolvers);
+    addMockFunctionsToSchema({
+      schema: jsSchema,
+      mocks: mockMap,
+    });
+    const testQuery = `{
+      returnObject {
+        id
+        returnString
+      }
+    }`;
+    const expected = {
+      returnObject: { id: 'Hello World', returnString: 'mock me' },
+    };
+    return graphql(jsSchema, testQuery).then(res => {
+      expect(res.data).to.deep.equal(expected);
+    });
+  });
+
   it('lets you mock non-leaf types conveniently', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {
