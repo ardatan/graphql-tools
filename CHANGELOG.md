@@ -2,7 +2,7 @@
 
 ### vNEXT
 
-* ...
+* Update IFieldResolver to allow typed input args [PR #932](https://github.com/apollographql/graphql-tools/pull/932). Related to [Issue #704](https://github.com/apollographql/graphql-tools/issues/704)
 
 ### v3.1.1
 
