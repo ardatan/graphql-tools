@@ -2,7 +2,7 @@
 
 ### vNEXT
 
-* ...
+* Properly document the `FetcherOperation` to accept a `DocumentNode` [PR #933](https://github.com/apollographql/graphql-tools/pull/933) [Issue #891](https://github.com/apollographql/graphql-tools/issues/891)
 
 ### v3.1.1
 
