@@ -2,7 +2,7 @@
 
 ### vNEXT
 
-* ...
+* Extracts input extensions [PR #948](https://github.com/apollographql/graphql-tools/pull/948)
 
 ### v3.1.1
 
