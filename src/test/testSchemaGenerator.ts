@@ -12,7 +12,6 @@ import {
   ExecutionResult,
   GraphQLError,
   GraphQLEnumType,
-  GraphQLInputObjectType,
 } from 'graphql';
 // import { printSchema } from 'graphql';
 const GraphQLJSON = require('graphql-type-json');
@@ -2776,29 +2775,5 @@ describe('unions', () => {
       resolvers,
       resolverValidationOptions: { requireResolversForResolveType: false },
     });
-  });
-});
-
-describe('extending inputs', () => {
-  it.only('can extend input', () => {
-    const typeDefAry = [
-      `
-      input Input {
-        foo: String
-      }`,
-      `
-      extend input Input {
-        bar: String
-      }
-    `,
-    ];
-
-    const jsSchema = makeExecutableSchema({
-      typeDefs: typeDefAry,
-      resolvers: {},
-    });
-
-    expect(jsSchema.getType('Input')).to.be.an.instanceof(GraphQLInputObjectType);
-    expect(jsSchema.getType('Input')._fields).to.have.all.keys('foo', 'bar');
   });
 });
