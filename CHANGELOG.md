@@ -4,6 +4,8 @@
 
 * Fix template strings usage in guessSchemaByRootField error message.  <br/>
   [@nagelflorian](https://github.com/nagelflorian) in [#936](https://github.com/apollographql/graphql-tools/pull/936)
+* Update `IFieldResolver` to allow typed input args.  <br/>
+  [@luk3thomas](https://github.com/luk3thomas) in [#932](https://github.com/apollographql/graphql-tools/pull/932)
 * Documentation updates.  <br/>
   [@Amorites](https://github.com/Amorites) in [#944](https://github.com/apollographql/graphql-tools/pull/944)  <br/>
   [@trevor-scheer](https://github.com/trevor-scheer) in [#946](https://github.com/apollographql/graphql-tools/pull/946)  <br/>
