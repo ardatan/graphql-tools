@@ -1,8 +1,16 @@
 # Change log
 
-### vNEXT
+### 4.0.0
 
-* Update IFieldResolver to allow typed input args [PR #932](https://github.com/apollographql/graphql-tools/pull/932). Related to [Issue #704](https://github.com/apollographql/graphql-tools/issues/704)
+* Fix template strings usage in guessSchemaByRootField error message.  <br/>
+  [@nagelflorian](https://github.com/nagelflorian) in [#936](https://github.com/apollographql/graphql-tools/pull/936)
+* Update `IFieldResolver` to allow typed input args.  <br/>
+  [@luk3thomas](https://github.com/luk3thomas) in [#932](https://github.com/apollographql/graphql-tools/pull/932)
+* Documentation updates.  <br/>
+  [@Amorites](https://github.com/Amorites) in [#944](https://github.com/apollographql/graphql-tools/pull/944)  <br/>
+  [@trevor-scheer](https://github.com/trevor-scheer) in [#946](https://github.com/apollographql/graphql-tools/pull/946)  <br/>
+  [@dnalborczyk](https://github.com/dnalborczyk) in [#934](https://github.com/apollographql/graphql-tools/pull/934)  <br/>
+  [@zcei](https://github.com/zcei) in [#933](https://github.com/apollographql/graphql-tools/pull/933)
 
 ### v3.1.1
 
