@@ -7,7 +7,8 @@
 * Documentation updates.  <br/>
   [@Amorites](https://github.com/Amorites) in [#944](https://github.com/apollographql/graphql-tools/pull/944)  <br/>
   [@trevor-scheer](https://github.com/trevor-scheer) in [#946](https://github.com/apollographql/graphql-tools/pull/946)  <br/>
-  [@dnalborczyk](https://github.com/dnalborczyk) in [#934](https://github.com/apollographql/graphql-tools/pull/934)
+  [@dnalborczyk](https://github.com/dnalborczyk) in [#934](https://github.com/apollographql/graphql-tools/pull/934)  <br/>
+  [@zcei](https://github.com/zcei) in [#933](https://github.com/apollographql/graphql-tools/pull/933)
 
 ### v3.1.1
 
