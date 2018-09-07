@@ -53,7 +53,7 @@ const resolverMap = {
     }
   },
   Submission: {
-    repository: (root, args, context) {
+    repository(root, args, context) {
       return getRepositoryByName(root.repositoryFullName);
     }
   }

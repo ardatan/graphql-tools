@@ -12,3 +12,4 @@ import './testMocking';
 import './testResolution';
 import './testSchemaGenerator';
 import './testTransforms';
+import './testExtensionExtraction';
