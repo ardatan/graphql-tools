@@ -85,9 +85,9 @@ export type MergeInfo = {
   }>;
 };
 
-export type IFieldResolver<TSource, TContext> = (
+export type IFieldResolver<TSource, TContext, TArgs = { [argument: string]: any }> = (
   source: TSource,
-  args: { [argument: string]: any },
+  args: TArgs,
   context: TContext,
   info: GraphQLResolveInfo & { mergeInfo: MergeInfo },
 ) => any;

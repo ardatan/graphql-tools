@@ -485,7 +485,7 @@ class LimitedLengthType extends GraphQLScalarType {
         value = type.serialize(value);
         assert.isAtMost(value.length, maxLength);
         return value;
-      }
+      },
 
       parseValue(value) {
         return type.parseValue(value);
