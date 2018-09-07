@@ -1,8 +1,9 @@
 # Change log
 
-### vNEXT
+### 4.0.0
 
-* ...
+* Fix template strings usage in guessSchemaByRootField error message.  <br/>
+  [@nagelflorian](https://github.com/nagelflorian) in [#936](https://github.com/apollographql/graphql-tools/pull/936)
 
 ### v3.1.1
 
