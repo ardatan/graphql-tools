@@ -26,7 +26,7 @@ const schemaString = `...`;
 const schema = makeExecutableSchema({ typeDefs: schemaString });
 
 // Add mocks, modifies schema in place
-addMockFunctionsToSchema({ schema });
+addMockFunctionsToSchema({ schema: schema });
 
 const query = `
 query tasksForUser {
