@@ -104,7 +104,7 @@ You can also use a fetcher (like apollo-fetch or node-fetch) instead of a link. 
 type Fetcher = (operation: Operation) => Promise<ExecutionResult>;
 
 type Operation {
-  query: string;
+  query: DocumentNode;
   operationName?: string;
   variables?: Object;
   context?: Object;
@@ -161,8 +161,10 @@ Basic usage
 
 ```js
 import fetch from 'node-fetch';
+import { print } from 'graphql':
 
-const fetcher = async ({ query, variables, operationName, context }) => {
+const fetcher = async ({ query: queryDocument, variables, operationName, context }) => {
+  const query = print(queryDocument);
   const fetchResult = await fetch('http://api.githunt.com/graphql', {
     method: 'POST',
     headers: {
@@ -186,8 +188,10 @@ Authentication headers from context
 
 ```js
 import fetch from 'node-fetch';
+import { print } from 'graphql':
 
-const fetcher = async ({ query, variables, operationName, context }) => {
+const fetcher = async ({ query: queryDocument, variables, operationName, context }) => {
+  const query = print(queryDocument);
   const fetchResult = await fetch('http://api.githunt.com/graphql', {
     method: 'POST',
     headers: {
