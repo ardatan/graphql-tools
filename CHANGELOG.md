@@ -1,8 +1,22 @@
 # Change log
 
-### vNEXT
+### 4.0.0
 
-* ...
+* Fix template strings usage in guessSchemaByRootField error message.  <br/>
+  [@nagelflorian](https://github.com/nagelflorian) in [#936](https://github.com/apollographql/graphql-tools/pull/936)
+* Update `IFieldResolver` to allow typed input args.  <br/>
+  [@luk3thomas](https://github.com/luk3thomas) in [#932](https://github.com/apollographql/graphql-tools/pull/932)
+* Changes to `extractExtensionDefinitions` to properly support `graphql-js` input extensions.  <br/>
+  [@jure](https://github.com/jure) in [#948](https://github.com/apollographql/graphql-tools/pull/948)
+* Stop automatically shallow cloning (via object spread syntax) transformed subscription results. Transformed subscription results are not always objects, which means object spreading can lead to invalid results.  <br/>
+  [@ericlewis](https://github.com/ericlewis) in [#928](https://github.com/apollographql/graphql-tools/pull/928)  
+* Re-use errors with an `extensions` property to make compatible with Apollo Server and it's built-in errors.  <br/>
+  [@edorsey](https://github.com/edorsey) in [#925](https://github.com/apollographql/graphql-tools/pull/925)
+* Documentation updates.  <br/>
+  [@Amorites](https://github.com/Amorites) in [#944](https://github.com/apollographql/graphql-tools/pull/944)  <br/>
+  [@trevor-scheer](https://github.com/trevor-scheer) in [#946](https://github.com/apollographql/graphql-tools/pull/946)  <br/>
+  [@dnalborczyk](https://github.com/dnalborczyk) in [#934](https://github.com/apollographql/graphql-tools/pull/934)  <br/>
+  [@zcei](https://github.com/zcei) in [#933](https://github.com/apollographql/graphql-tools/pull/933)
 
 ### v3.1.1
 

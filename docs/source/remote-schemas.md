@@ -77,7 +77,7 @@ const http = new HttpLink({ uri: 'http://api.githunt.com/graphql', fetch });
 
 const link = setContext((request, previousContext) => ({
   headers: {
-    'Authentication': `Bearer ${previousContext.graphqlContext.authKey}`,
+    'Authorization': `Bearer ${previousContext.graphqlContext.authKey}`,
   }
 })).concat(http);
 
@@ -104,7 +104,7 @@ You can also use a fetcher (like apollo-fetch or node-fetch) instead of a link. 
 type Fetcher = (operation: Operation) => Promise<ExecutionResult>;
 
 type Operation {
-  query: string;
+  query: DocumentNode;
   operationName?: string;
   variables?: Object;
   context?: Object;
@@ -161,8 +161,10 @@ Basic usage
 
 ```js
 import fetch from 'node-fetch';
+import { print } from 'graphql':
 
-const fetcher = async ({ query, variables, operationName, context }) => {
+const fetcher = async ({ query: queryDocument, variables, operationName, context }) => {
+  const query = print(queryDocument);
   const fetchResult = await fetch('http://api.githunt.com/graphql', {
     method: 'POST',
     headers: {
@@ -186,13 +188,15 @@ Authentication headers from context
 
 ```js
 import fetch from 'node-fetch';
+import { print } from 'graphql':
 
-const fetcher = async ({ query, variables, operationName, context }) => {
+const fetcher = async ({ query: queryDocument, variables, operationName, context }) => {
+  const query = print(queryDocument);
   const fetchResult = await fetch('http://api.githunt.com/graphql', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authentication': `Bearer ${context.authKey}`,
+      'Authorization': `Bearer ${context.authKey}`,
     },
     body: JSON.stringify({ query, variables, operationName })
   });
