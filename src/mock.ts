@@ -14,7 +14,7 @@ import {
   GraphQLNamedType,
   GraphQLFieldResolver,
 } from 'graphql';
-import * as uuid from 'uuid';
+import * as faker from 'faker'
 import {
   forEachField,
   buildSchemaFromTypeDefinitions,
@@ -49,11 +49,11 @@ function mockServer(
 }
 
 const defaultMockMap: Map<string, IMockFn> = new Map();
-defaultMockMap.set('Int', () => Math.round(Math.random() * 200) - 100);
-defaultMockMap.set('Float', () => Math.random() * 200 - 100);
+defaultMockMap.set('Int', () => faker.random.number({ min: -100, max: 100 }));
+defaultMockMap.set('Float', () => faker.random.number({ min: -100, max: 100, precision: 2 }));
 defaultMockMap.set('String', () => 'Hello World');
-defaultMockMap.set('Boolean', () => Math.random() > 0.5);
-defaultMockMap.set('ID', () => uuid.v4());
+defaultMockMap.set('Boolean', () => faker.random.boolean());
+defaultMockMap.set('ID', () => faker.random.uuid());
 
 // TODO allow providing a seed such that lengths of list could be deterministic
 // this could be done by using casual to get a random list length if the casual
@@ -62,6 +62,7 @@ function addMockFunctionsToSchema({
   schema,
   mocks = {},
   preserveResolvers = false,
+  seed
 }: IMockOptions): void {
   if (!schema) {
     throw new Error('Must provide schema to mock');
@@ -71,6 +72,9 @@ function addMockFunctionsToSchema({
   }
   if (!isObject(mocks)) {
     throw new Error('mocks must be of type Object');
+  }
+  if (typeof seed === 'number') {
+    faker.seed(seed);
   }
 
   // use Map internally, because that API is nicer.
@@ -141,10 +145,8 @@ function addMockFunctionsToSchema({
       }
 
       if (fieldType instanceof GraphQLList) {
-        return [
-          mockType(fieldType.ofType)(root, args, context, info),
-          mockType(fieldType.ofType)(root, args, context, info),
-        ];
+        return Array.from({ length: faker.random.number(10) }, () =>
+          mockType(fieldType.ofType)(root, args, context, info))
       }
       if (
         mockFunctionMap.has(fieldType.name) &&
@@ -298,8 +300,7 @@ function isObject(thing: any) {
 
 // returns a random element from that ary
 function getRandomElement(ary: any[]) {
-  const sample = Math.floor(Math.random() * ary.length);
-  return ary[sample];
+  return faker.random.arrayElement(ary);
 }
 
 function mergeObjects(a: Object, b: Object) {
@@ -409,7 +410,7 @@ class MockList {
   ) {
     let arr: any[];
     if (Array.isArray(this.len)) {
-      arr = new Array(this.randint(this.len[0], this.len[1]));
+      arr = new Array(faker.random.number({ min: this.len[0], max: this.len[1] }));
     } else {
       arr = new Array(this.len);
     }
@@ -437,10 +438,6 @@ class MockList {
       }
     }
     return arr;
-  }
-
-  private randint(low: number, high: number): number {
-    return Math.floor(Math.random() * (high - low + 1) + low);
   }
 }
 

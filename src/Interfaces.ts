@@ -167,6 +167,7 @@ export interface IMockOptions {
   schema: GraphQLSchema;
   mocks?: IMocks;
   preserveResolvers?: boolean;
+  seed?: number
 }
 
 export interface IMockServer {
