@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import { graphql, GraphQLResolveInfo } from 'graphql';
+import * as faker from 'faker';
 import { addMockFunctionsToSchema, MockList, mockServer } from '../mock';
 import {
   buildSchemaFromTypeDefinitions,
@@ -153,6 +154,7 @@ describe('Mock', () => {
       Bird: () => ({ returnInt: () => 54321 }),
       Bee: () => ({ returnInt: () => 54321 }),
     };
+    faker.seed(1);
     return mockServer(shorthand, mockMap)
       .query(testQuery)
       .then((res: any) => {
@@ -279,7 +281,7 @@ describe('Mock', () => {
     }`;
     return graphql(jsSchema, testQuery).then(res => {
       // the resolveType has been called twice
-      expect(spy).to.equal(2);
+      expect(spy).to.equal(9);
     });
   });
 
@@ -675,12 +677,12 @@ describe('Mock', () => {
   it('can mock a list of ints', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = { Int: () => 123 };
-    addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
+    addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap, seed: 0 });
     const testQuery = `{
       returnListOfInt
     }`;
     const expected = {
-      returnListOfInt: [123, 123],
+      returnListOfInt: Array(6).fill(123) ,
     };
     return graphql(jsSchema, testQuery).then(res => {
       expect(res.data).to.deep.equal(expected);
@@ -693,21 +695,16 @@ describe('Mock', () => {
       String: () => 'a',
       Int: () => 1,
     };
-    addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
+    addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap, seed: 5 });
     const testQuery = `{
       returnListOfListOfObject { returnInt, returnString }
     }`;
+    const obj = { returnInt: 1, returnString: 'a' };
     const expected = {
       returnListOfListOfObject: [
-        [
-          { returnInt: 1, returnString: 'a' },
-          { returnInt: 1, returnString: 'a' },
-        ],
-        [
-          { returnInt: 1, returnString: 'a' },
-          { returnInt: 1, returnString: 'a' },
-        ],
-      ],
+        Array(0),
+        Array(9).fill(obj)
+      ]
     };
     return graphql(jsSchema, testQuery).then(res => {
       expect(res.data).to.deep.equal(expected);
