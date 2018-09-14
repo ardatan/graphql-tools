@@ -3,7 +3,7 @@
 ### vNEXT
 
 * Support `graphql@^14.0`  <br />
-  [@hwillson](https://github.com/hwillson) in [#](https://github.com/apollographql/graphql-tools/pull/)
+  [@hwillson](https://github.com/hwillson) in [#953](https://github.com/apollographql/graphql-tools/pull/953)
 
 ### v3.1.1
 
