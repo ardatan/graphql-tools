@@ -20,4 +20,4 @@ script:
 sudo: false
 
 env:
-  - GRAPHQL_VERSION='^0.13'
+  - GRAPHQL_VERSION='^14.0'
