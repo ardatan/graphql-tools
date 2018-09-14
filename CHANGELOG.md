@@ -2,7 +2,8 @@
 
 ### vNEXT
 
-* ...
+* Support `graphql@^14.0`  <br />
+  [@hwillson](https://github.com/hwillson) in [#](https://github.com/apollographql/graphql-tools/pull/)
 
 ### v3.1.1
 
