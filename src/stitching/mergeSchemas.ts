@@ -351,7 +351,7 @@ function guessSchemaByRootField(
     }
   }
   throw new Error(
-    `Could not find subschema with field \`{operation}.{fieldName}\``,
+    `Could not find subschema with field \`${operation}.${fieldName}\``,
   );
 }
 
