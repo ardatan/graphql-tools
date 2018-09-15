@@ -337,7 +337,7 @@ export function healSchema(schema: GraphQLSchema) {
       });
 
       // Directive declaration argument types can refer to named types.
-      each(type.getDirectives(), decl => {
+      each(type.getDirectives(), (decl: GraphQLDirective) => {
         if (decl.args) {
           each(decl.args, arg => {
             arg.type = healType(arg.type);
@@ -399,11 +399,11 @@ export function healSchema(schema: GraphQLSchema) {
   }
 
   function healType<T extends GraphQLType>(type: T): T {
-    if (type instanceof GraphQLList ||
-        type instanceof GraphQLNonNull) {
-      // Unwrap the two known wrapper types:
-      // https://github.com/graphql/graphql-js/blob/master/src/type/wrappers.js
-      type.ofType = healType(type.ofType);
+    // Unwrap the two known wrapper types
+    if (type instanceof GraphQLList) {
+      type = new GraphQLList(healType(type.ofType)) as T;
+    } else if (type instanceof GraphQLNonNull) {
+      type = new GraphQLNonNull(healType(type.ofType)) as T;
     } else if (isNamedType(type)) {
       // If a type annotation on a field or an argument or a union member is
       // any `GraphQLNamedType` with a `name`, then it must end up identical
@@ -620,7 +620,7 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
       [directiveName: string]: GraphQLDirective,
     } = Object.create(null);
 
-    each(schema.getDirectives(), decl => {
+    each(schema.getDirectives(), (decl: GraphQLDirective) => {
       declaredDirectives[decl.name] = decl;
     });
 
@@ -689,7 +689,7 @@ function directiveLocationToVisitorMethodName(loc: DirectiveLocationEnum) {
   });
 }
 
-type IndexedObject<V> = { [key: string]: V } | V[];
+type IndexedObject<V> = { [key: string]: V } | ReadonlyArray<V>;
 
 function each<V>(
   arrayOrObject: IndexedObject<V>,

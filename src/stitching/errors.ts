@@ -1,4 +1,10 @@
-import { GraphQLResolveInfo, responsePathAsArray, ExecutionResult, GraphQLFormattedError } from 'graphql';
+import {
+  GraphQLResolveInfo,
+  responsePathAsArray,
+  ExecutionResult,
+  GraphQLFormattedError,
+  GraphQLError,
+} from 'graphql';
 import { locatedError } from 'graphql/error';
 import { getResponseKeyFromInfo } from './getResponseKeyFromInfo';
 
@@ -12,7 +18,7 @@ if (
   ERROR_SYMBOL = '@@__subSchemaErrors';
 }
 
-export function annotateWithChildrenErrors(object: any, childrenErrors: Array<GraphQLFormattedError>): any {
+export function annotateWithChildrenErrors(object: any, childrenErrors: ReadonlyArray<GraphQLFormattedError>): any {
   if (!childrenErrors || childrenErrors.length === 0) {
     // Nothing to see here, move along
     return object;
@@ -79,8 +85,8 @@ export function getErrorsFromParent(
 }
 
 class CombinedError extends Error {
-  public errors: Error[];
-  constructor(message: string, errors: Error[]) {
+  public errors: ReadonlyArray<GraphQLError>;
+  constructor(message: string, errors: ReadonlyArray<GraphQLError>) {
     super(message);
     this.errors = errors;
   }
@@ -103,18 +109,17 @@ export function checkResultAndHandleErrors(
       result.errors.length === 1 && hasResult(result.errors[0])
         ? result.errors[0]
         : new CombinedError(concatErrors(result.errors), result.errors);
-
     throw locatedError(newError, info.fieldNodes, responsePathAsArray(info.path));
   }
 
   let resultObject = result.data[responseKey];
   if (result.errors) {
-    resultObject = annotateWithChildrenErrors(resultObject, result.errors as Array<GraphQLFormattedError>);
+    resultObject = annotateWithChildrenErrors(resultObject, result.errors as ReadonlyArray<GraphQLFormattedError>);
   }
   return resultObject;
 }
 
-function concatErrors(errors: Error[]) {
+function concatErrors(errors: ReadonlyArray<GraphQLError>) {
   return errors.map(error => error.message).join('\n');
 }
 

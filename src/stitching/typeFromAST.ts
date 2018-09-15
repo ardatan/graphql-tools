@@ -139,7 +139,7 @@ function makeInputObjectType(
   });
 }
 
-function makeFields(nodes: Array<FieldDefinitionNode>) {
+function makeFields(nodes: ReadonlyArray<FieldDefinitionNode>) {
   const result = {};
   nodes.forEach(node => {
     result[node.name.value] = {
@@ -151,7 +151,7 @@ function makeFields(nodes: Array<FieldDefinitionNode>) {
   return result;
 }
 
-function makeValues(nodes: Array<InputValueDefinitionNode>) {
+function makeValues(nodes: ReadonlyArray<InputValueDefinitionNode>) {
   const result = {};
   nodes.forEach(node => {
     const type = resolveType(node.type, 'input') as GraphQLInputType;

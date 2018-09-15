@@ -860,7 +860,7 @@ describe('@directives', () => {
           },
 
           parseLiteral(ast: StringValueNode) {
-            return type.parseLiteral(ast);
+            return type.parseLiteral(ast, {});
           }
         });
       }

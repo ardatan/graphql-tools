@@ -1,10 +1,10 @@
 import { assert } from 'chai';
-import { GraphQLResolveInfo } from 'graphql';
+import { GraphQLResolveInfo, GraphQLError } from 'graphql';
 import { checkResultAndHandleErrors, getErrorsFromParent, ERROR_SYMBOL } from '../stitching/errors';
 
 import 'mocha';
 
-class ErrorWithResult extends Error {
+class ErrorWithResult extends GraphQLError {
   public result: any;
   constructor(message: string, result: any) {
     super(message);
@@ -12,11 +12,9 @@ class ErrorWithResult extends Error {
   }
 }
 
-class ErrorWithExtensions extends Error {
-  public extensions: any;
+class ErrorWithExtensions extends GraphQLError {
   constructor(message: string, code: string) {
-    super(message);
-    this.extensions = { code };
+    super(message, null, null, null, null, null, { code });
   }
 }
 
@@ -67,7 +65,7 @@ describe('Errors', () => {
 
     it('persists original errors without a result', () => {
       const result = {
-        errors: [new Error('Test error')]
+        errors: [new GraphQLError('Test error')]
       };
       try {
         checkResultAndHandleErrors(result, {} as GraphQLResolveInfo, 'responseKey');
@@ -84,7 +82,10 @@ describe('Errors', () => {
 
     it('combines errors and persists the original errors', () => {
       const result = {
-        errors: [new Error('Error1'), new Error('Error2')]
+        errors: [
+          new GraphQLError('Error1'),
+          new GraphQLError('Error2'),
+        ]
       };
       try {
         checkResultAndHandleErrors(result, {} as GraphQLResolveInfo, 'responseKey');

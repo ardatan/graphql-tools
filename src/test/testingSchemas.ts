@@ -9,6 +9,7 @@ import {
   ExecutionResult,
   DocumentNode,
 } from 'graphql';
+import { ExecutionResultDataDefault } from 'graphql/execution/execute';
 import {
   ApolloLink,
   Observable,
@@ -708,7 +709,7 @@ export async function makeSchemaRemoteFromLink(schema: GraphQLSchema) {
         const { graphqlContext } = operation.getContext();
         try {
           if (!hasSubscriptionOperation(operation)) {
-            const result = await graphql(
+            const result: ExecutionResultDataDefault = await graphql(
               schema,
               print(query),
               null,
@@ -732,7 +733,7 @@ export async function makeSchemaRemoteFromLink(schema: GraphQLSchema) {
               'function'
             ) {
               while (true) {
-                const next = await (<AsyncIterator<ExecutionResult>>(
+                const next = await (<AsyncIterator<ExecutionResultDataDefault>>(
                   result
                 )).next();
                 observer.next(next.value as LinkExecutionResult);

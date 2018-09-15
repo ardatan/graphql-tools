@@ -13,6 +13,7 @@ import {
   getNamedType,
   GraphQLNamedType,
   GraphQLFieldResolver,
+  GraphQLNonNull,
 } from 'graphql';
 import * as uuid from 'uuid';
 import {
@@ -140,7 +141,10 @@ function addMockFunctionsToSchema({
         return result;
       }
 
-      if (fieldType instanceof GraphQLList) {
+      if (
+        fieldType instanceof GraphQLList ||
+        fieldType instanceof GraphQLNonNull
+      ) {
         return [
           mockType(fieldType.ofType)(root, args, context, info),
           mockType(fieldType.ofType)(root, args, context, info),
@@ -297,7 +301,7 @@ function isObject(thing: any) {
 }
 
 // returns a random element from that ary
-function getRandomElement(ary: any[]) {
+function getRandomElement(ary: ReadonlyArray<any>) {
   const sample = Math.floor(Math.random() * ary.length);
   return ary[sample];
 }
