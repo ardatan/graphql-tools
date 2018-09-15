@@ -28,7 +28,6 @@ import {
   GraphQLList,
   GraphQLUnionType,
   GraphQLInt,
-  visit,
 } from 'graphql';
 
 import formatDate = require('dateformat');
