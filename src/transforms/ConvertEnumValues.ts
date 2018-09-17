@@ -63,8 +63,8 @@ export default class ConvertEnumValues implements Transform {
     // creating a new `GraphQLEnumType` with the internal enum value as the
     // enum value. Unfortunately, doing this breaks the way scheam delegation
     // works in `graphql-tools`, since delegation can no longer look an enum
-    // up by it's original external facing value. To accommodate this,
-    // here we're switching the enums value back to it's original external
+    // up by its original external facing value. To accommodate this,
+    // here we're switching the enums value back to its original external
     // facing value. So `_valueLookup` stays as we want it - with the new
     // enum value as the key in the lookup map, but the defined enum values
     // array is now back to the way it was, with only external facing values.
