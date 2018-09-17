@@ -71,7 +71,7 @@
     "dateformat": "^3.0.3",
     "express": "^4.16.2",
     "graphql": "^14.0.2",
-    "graphql-subscriptions": "^0.5.7",
+    "graphql-subscriptions": "^1.0.0",
     "graphql-type-json": "^0.1.4",
     "istanbul": "^0.4.5",
     "mocha": "^4.0.1",
