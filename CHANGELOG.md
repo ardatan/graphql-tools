@@ -3,6 +3,7 @@
 ### 4.0.0
 
 * Support `graphql` and `@types/graphql` 14.x.  <br />
+  **NOTE:** `graphql` 14 includes [breaking changes](https://github.com/graphql/graphql-js/releases/tag/v14.0.0). We're bumping the major version of `graphql-tools` to accommodate those breaking changes. If you're planning on using `graphql` 14 with `graphql-tools` 4.0.0, please make sure you've reviewed the `graphql` breaking changes list.
   [@hwillson](https://github.com/hwillson) in [#953](https://github.com/apollographql/graphql-tools/pull/953)
 * Fix template strings usage in guessSchemaByRootField error message.  <br/>
   [@nagelflorian](https://github.com/nagelflorian) in [#936](https://github.com/apollographql/graphql-tools/pull/936)
