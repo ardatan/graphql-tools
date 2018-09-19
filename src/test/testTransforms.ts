@@ -301,20 +301,11 @@ describe('transforms', () => {
           }
         `,
       );
-      expect(result).to.deep.equal({
-        errors: [
-          {
-            locations: [
-              {
-                column: 15,
-                line: 8,
-              },
-            ],
-            message: 'Cannot query field "customer" on type "Booking".',
-            path: undefined,
-          },
-        ],
-      });
+      expect(result.errors).not.to.be.empty;
+      expect(result.errors.length).to.equal(1);
+      expect(result.errors[0].message).to.equal(
+        'Cannot query field "customer" on type "Booking".'
+      );
     });
   });
 

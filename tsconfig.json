@@ -13,7 +13,8 @@
     "declaration": true,
     "rootDir": "./src",
     "outDir": "./dist",
-    "removeComments": false
+    "removeComments": false,
+    "noImplicitUseStrict": true,
   },
   "exclude": ["node_modules", "dist"]
 }

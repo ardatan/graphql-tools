@@ -135,9 +135,9 @@ async function delegateToSchemaImplementation(
 function createDocument(
   targetField: string,
   targetOperation: Operation,
-  originalSelections: Array<SelectionNode>,
+  originalSelections: ReadonlyArray<SelectionNode>,
   fragments: Array<FragmentDefinitionNode>,
-  variables: Array<VariableDefinitionNode>,
+  variables: ReadonlyArray<VariableDefinitionNode>,
   operationName: NameNode,
 ): DocumentNode {
   let selections: Array<SelectionNode> = [];

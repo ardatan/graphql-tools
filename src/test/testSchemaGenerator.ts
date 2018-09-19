@@ -165,23 +165,6 @@ describe('generating schema from shorthand', () => {
       }
     `;
 
-    if (process.env.GRAPHQL_VERSION === '^0.11') {
-      shorthand = `
-        # A bird species
-        type BirdSpecies {
-          name: String!,
-          wingspan: Int
-        }
-        type RootQuery {
-          species(name: String!): [BirdSpecies]
-        }
-
-        schema {
-          query: RootQuery
-        }
-      `;
-    }
-
     const resolve = {
       RootQuery: {
         species() {
@@ -2464,47 +2447,45 @@ describe('can specify lexical parser options', () => {
     expect(schema.astNode.loc).to.equal(undefined);
   });
 
-  if (process.env.GRAPHQL_VERSION !== '^0.11') {
-    it("can specify 'experimentalFragmentVariables' option", () => {
-      const typeDefs = `
-        type Hello {
-          world(phrase: String): String
-        }
+  it("can specify 'experimentalFragmentVariables' option", () => {
+    const typeDefs = `
+      type Hello {
+        world(phrase: String): String
+      }
 
-        fragment hello($phrase: String = "world") on Hello {
-          world(phrase: $phrase)
-        }
+      fragment hello($phrase: String = "world") on Hello {
+        world(phrase: $phrase)
+      }
 
-        type RootQuery {
-          hello: Hello
-        }
+      type RootQuery {
+        hello: Hello
+      }
 
-        schema {
-          query: RootQuery
-        }
-      `;
+      schema {
+        query: RootQuery
+      }
+    `;
 
-      const resolvers = {
-        RootQuery: {
-          hello() {
-            return {
-              world: (phrase: string) => `hello ${phrase}`,
-            };
-          },
+    const resolvers = {
+      RootQuery: {
+        hello() {
+          return {
+            world: (phrase: string) => `hello ${phrase}`,
+          };
         },
-      };
+      },
+    };
 
-      expect(() => {
-        makeExecutableSchema({
-          typeDefs,
-          resolvers,
-          parseOptions: {
-            experimentalFragmentVariables: true,
-          },
-        });
-      }).to.not.throw();
-    });
-  }
+    expect(() => {
+      makeExecutableSchema({
+        typeDefs,
+        resolvers,
+        parseOptions: {
+          experimentalFragmentVariables: true,
+        },
+      });
+    }).to.not.throw();
+  });
 });
 
 describe('interfaces', () => {
@@ -2534,27 +2515,25 @@ describe('interfaces', () => {
     user { id name }
   }`;
 
-  if (process.env.GRAPHQL_VERSION !== '^0.11') {
-    it('throws if there is no interface resolveType resolver', async () => {
-      const resolvers = {
-        Query: queryResolver,
-      };
-      try {
-        makeExecutableSchema({
-          typeDefs: testSchemaWithInterfaces,
-          resolvers,
-          resolverValidationOptions: { requireResolversForResolveType: true },
-        });
-      } catch (error) {
-        assert.equal(
-          error.message,
-          'Type "Node" is missing a "resolveType" resolver',
-        );
-        return;
-      }
-      throw new Error('Should have had an error.');
-    });
-  }
+  it('throws if there is no interface resolveType resolver', async () => {
+    const resolvers = {
+      Query: queryResolver,
+    };
+    try {
+      makeExecutableSchema({
+        typeDefs: testSchemaWithInterfaces,
+        resolvers,
+        resolverValidationOptions: { requireResolversForResolveType: true },
+      });
+    } catch (error) {
+      assert.equal(
+        error.message,
+        'Type "Node" is missing a "resolveType" resolver',
+      );
+      return;
+    }
+    throw new Error('Should have had an error.');
+  });
   it('does not throw if there is an interface resolveType resolver', async () => {
     const resolvers = {
       Query: queryResolver,
@@ -2730,27 +2709,25 @@ describe('unions', () => {
     }
   }`;
 
-  if (process.env.GRAPHQL_VERSION !== '^0.11') {
-    it('throws if there is no union resolveType resolver', async () => {
-      const resolvers = {
-        Query: queryResolver,
-      };
-      try {
-        makeExecutableSchema({
-          typeDefs: testSchemaWithUnions,
-          resolvers,
-          resolverValidationOptions: { requireResolversForResolveType: true },
-        });
-      } catch (error) {
-        assert.equal(
-          error.message,
-          'Type "Displayable" is missing a "resolveType" resolver',
-        );
-        return;
-      }
-      throw new Error('Should have had an error.');
-    });
-  }
+  it('throws if there is no union resolveType resolver', async () => {
+    const resolvers = {
+      Query: queryResolver,
+    };
+    try {
+      makeExecutableSchema({
+        typeDefs: testSchemaWithUnions,
+        resolvers,
+        resolverValidationOptions: { requireResolversForResolveType: true },
+      });
+    } catch (error) {
+      assert.equal(
+        error.message,
+        'Type "Displayable" is missing a "resolveType" resolver',
+      );
+      return;
+    }
+    throw new Error('Should have had an error.');
+  });
   it('does not throw if there is a resolveType resolver', async () => {
     const resolvers = {
       Query: queryResolver,

@@ -34,7 +34,21 @@ import formatDate = require('dateformat');
 
 const typeDefs = `
 directive @schemaDirective(role: String) on SCHEMA
+directive @queryTypeDirective on OBJECT
+directive @queryFieldDirective on FIELD_DEFINITION
+directive @enumTypeDirective on ENUM
 directive @enumValueDirective on ENUM_VALUE
+directive @dateDirective(tz: String) on SCALAR
+directive @interfaceDirective on INTERFACE
+directive @interfaceFieldDirective on FIELD_DEFINITION
+directive @inputTypeDirective on INPUT_OBJECT
+directive @inputFieldDirective on INPUT_FIELD_DEFINITION
+directive @mutationTypeDirective on OBJECT
+directive @mutationArgumentDirective on ARGUMENT_DEFINITION
+directive @mutationMethodDirective on FIELD_DEFINITION
+directive @objectTypeDirective on OBJECT
+directive @objectFieldDirective on FIELD_DEFINITION
+directive @unionDirective on UNION
 
 schema @schemaDirective(role: "admin") {
   query: Query
@@ -376,86 +390,7 @@ describe('@directives', () => {
     );
   });
 
-  it('can handle all kinds of undeclared arguments', () => {
-    const schemaText = `
-    enum SpineEnum {
-      VERTEBRATE @directive(spineless: false)
-      INVERTEBRATE @directive(spineless: true)
-    }
-
-    type Query @directive(c: null, d: 1, e: { oyez: 3.1415926 }) {
-      animal(
-        name: String @directive(f: ["n", "a", "m", "e"])
-      ): Animal @directive(g: INVERTEBRATE)
-    }
-
-    type Animal {
-      name: String @directive(default: "horse")
-      spine: SpineEnum @directive(default: VERTEBRATE)
-    }
-    `;
-
-    let enumValueCount = 0;
-    let objectCount = 0;
-    let argumentCount = 0;
-    let fieldCount = 0;
-
-    const schemaDirectives = {
-      directive: class extends SchemaDirectiveVisitor {
-        public visitEnumValue(value: GraphQLEnumValue) {
-          ++enumValueCount;
-          assert.strictEqual(
-            this.args.spineless,
-            value.name === 'INVERTEBRATE'
-          );
-        }
-
-        public visitObject(object: GraphQLObjectType) {
-          ++objectCount;
-          assert.strictEqual(this.args.c, null);
-          assert.strictEqual(this.args.d, 1);
-          assert.strictEqual(Math.round(this.args.e.oyez), 3);
-        }
-
-        public visitArgumentDefinition(arg: GraphQLArgument) {
-          ++argumentCount;
-          assert.strictEqual(this.args.f.join(''), 'name');
-        }
-
-        public visitFieldDefinition(field: GraphQLField<any, any>, details: {
-          objectType: GraphQLObjectType,
-        }) {
-          ++fieldCount;
-          switch (details.objectType.name) {
-          case 'Query':
-            assert.strictEqual(this.args.g, 'INVERTEBRATE');
-            break;
-          case 'Animal':
-            if (field.name === 'name') {
-              assert.strictEqual(this.args.default, 'horse');
-            } else if (field.name === 'spine') {
-              assert.strictEqual(this.args.default, 'VERTEBRATE');
-            }
-            break;
-          default:
-            throw new Error('unexpected field parent object type');
-          }
-        }
-      }
-    };
-
-    makeExecutableSchema({
-      typeDefs: schemaText,
-      schemaDirectives,
-    });
-
-    assert.strictEqual(enumValueCount, 2);
-    assert.strictEqual(objectCount, 1);
-    assert.strictEqual(argumentCount, 1);
-    assert.strictEqual(fieldCount, 3);
-  });
-
-  it('can also handle declared arguments', () => {
+  it('can handle declared arguments', () => {
     const schemaText = `
     directive @oyez(
       times: Int = 5,
@@ -925,7 +860,7 @@ describe('@directives', () => {
           },
 
           parseLiteral(ast: StringValueNode) {
-            return type.parseLiteral(ast);
+            return type.parseLiteral(ast, {});
           }
         });
       }
@@ -1026,6 +961,8 @@ describe('@directives', () => {
   it('can be used to implement the @uniqueID example', () => {
     const schema = makeExecutableSchema({
       typeDefs: `
+      directive @uniqueID(name: String, from: [String]) on OBJECT
+
       type Query {
         people: [Person]
         locations: [Location]
@@ -1158,6 +1095,8 @@ describe('@directives', () => {
   it('can remove enum values', () => {
     const schema = makeExecutableSchema({
       typeDefs: `
+      directive @remove(if: Boolean) on ENUM_VALUE
+
       type Query {
         age(unit: AgeUnit): Int
       }
@@ -1189,6 +1128,8 @@ describe('@directives', () => {
   it('can swap names of GraphQLNamedType objects', () => {
     const schema = makeExecutableSchema({
       typeDefs: `
+      directive @rename(to: String) on OBJECT
+
       type Query {
         people: [Person]
       }
@@ -1238,7 +1179,7 @@ describe('@directives', () => {
     const visited = new Set<GraphQLObjectType>();
     const schema = makeExecutableSchema({
       typeDefs: `
-      directive @hasScope(scope: [String]) on QUERY | FIELD
+      directive @hasScope(scope: [String]) on QUERY | FIELD | OBJECT
 
       type Query @hasScope {
         oyez: String
