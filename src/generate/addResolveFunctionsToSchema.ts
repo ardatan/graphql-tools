@@ -54,7 +54,7 @@ function addResolveFunctionsToSchema(
 
   // Used to map the external value of an enum to its internal value, when
   // that internal value is provided by a resolver.
-  const enumValueMap = {};
+  const enumValueMap = Object.create(null);
 
   Object.keys(resolvers).forEach(typeName => {
     const resolverValue = resolvers[typeName];
