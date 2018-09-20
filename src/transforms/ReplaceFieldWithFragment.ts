@@ -11,6 +11,7 @@ import {
   visit,
   visitWithTypeInfo,
   SelectionNode,
+  GraphQLObjectType,
 } from 'graphql';
 import { Request } from '../Interfaces';
 import { Transform } from './transforms';
@@ -72,23 +73,36 @@ function replaceFieldsWithFragments(
       ): SelectionSetNode | null | undefined {
         const parentType: GraphQLType = typeInfo.getParentType();
         if (parentType) {
-          const parentTypeName = parentType.name;
           let selections = node.selections;
 
-          if (mapping[parentTypeName]) {
-            node.selections.forEach(selection => {
-              if (selection.kind === Kind.FIELD) {
-                const name = selection.name.value;
-                const fragments = mapping[parentTypeName][name];
-                if (fragments && fragments.length > 0) {
-                  const fragment = concatInlineFragments(
-                    parentTypeName,
-                    fragments,
-                  );
-                  selections = selections.concat(fragment);
+          // the list of types that can add new fields to the selection set
+          // are stitched configuration from the parent class as well as any
+          // other stitchings from interfaces that the parent class implements
+
+          // the interfaces that the parent type implements
+          const interfaces = parentType instanceof GraphQLObjectType ? parentType.getInterfaces() : [];
+          // the total list of types that we need to check for sititchings
+          const typeNames = [parentType, ...interfaces].map(type => type.name);
+
+          // look at each type
+          for (const typeName of typeNames) {
+            // if there is stitching to add for the type
+            if (mapping[typeName]) {
+              // combine the field selection set for the types
+              node.selections.forEach(selection => {
+                if (selection.kind === Kind.FIELD) {
+                  const name = selection.name.value;
+                  const fragments = mapping[typeName][name];
+                  if (fragments && fragments.length > 0) {
+                    const fragment = concatInlineFragments(
+                      typeName,
+                      fragments,
+                    );
+                    selections = selections.concat(fragment);
+                  }
                 }
-              }
-            });
+              });
+            }
           }
 
           if (selections !== node.selections) {

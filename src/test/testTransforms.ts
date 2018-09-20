@@ -734,15 +734,20 @@ describe('transforms', () => {
 
       schema = makeExecutableSchema({
         typeDefs: `
-          type User {
+          type User implements Named {
             id: ID!
             name: String!
             surname: String!
             fullname: String!
+            specialName: String!
           }
 
           type Query {
             userById(id: ID!): User
+          }
+
+          interface Named {
+            specialName: String!
           }
         `,
         resolvers: {
@@ -765,14 +770,21 @@ describe('transforms', () => {
                       field: `fullname`,
                       fragment: `fragment UserSurname on User { surname }`,
                     },
+                    {
+                      field: 'foo',
+                      fragment: `... on Named { name }`
+                    }
                   ]),
                 ],
               });
-            },
+            }
           },
           User: {
             fullname(parent, args, context, info) {
               return `${parent.name} ${parent.surname}`;
+            },
+            specialName(parent) {
+              return data.u1.name
             },
           },
         },
@@ -800,5 +812,26 @@ describe('transforms', () => {
         },
       });
     });
+
+    it('should accept fragments and resolvers that rely on an interface the type implements', async () => {
+      const result = await graphql(
+        schema,
+        `
+          query {
+            userById(id: "u1") {
+              specialName
+            }
+          }
+        `,
+      );
+
+      expect(result).to.deep.equal({
+        data: {
+          userById: {
+            specialName: data.u1.name,
+          },
+        },
+      });
+    })
   });
 });
