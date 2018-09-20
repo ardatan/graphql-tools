@@ -373,6 +373,40 @@ describe('Mock', () => {
     });
   });
 
+  it('can mock nullable Interfaces', () => {
+    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+
+    addResolveFunctionsToSchema(jsSchema, resolveFunctions);
+
+    const mockMap = {
+      Bird: (): null => null,
+      Bee: (): null => null,
+      Flying: (root: any, args: any) => {
+        const { id } = args;
+        const type = id.split(':')[0];
+        // tslint:disable-next-line
+        const __typename = ['Bird', 'Bee'].find(r => r.toLowerCase() === type);
+        return { __typename };
+      },
+    };
+
+    addMockFunctionsToSchema({
+      schema: jsSchema,
+      mocks: mockMap,
+      preserveResolvers: true,
+    });
+
+    const testQuery = `{
+      node(id: "someid") {
+        id
+      }
+    }`;
+
+    return graphql(jsSchema, testQuery).then(res => {
+      expect(res.data['node']).to.equal(null);
+    });
+  });
+
   it('can support explicit Interface mock', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     addResolveFunctionsToSchema(jsSchema, resolveFunctions);

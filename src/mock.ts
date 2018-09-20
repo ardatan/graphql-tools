@@ -186,9 +186,10 @@ function addMockFunctionsToSchema({
           const possibleTypes = schema.getPossibleTypes(fieldType);
           implementationType = getRandomElement(possibleTypes);
         }
-        return Object.assign(
+        const returnValue = mockType(implementationType)(root, args, context, info);
+        return returnValue && Object.assign(
           { __typename: implementationType },
-          mockType(implementationType)(root, args, context, info),
+          returnValue,
         );
       }
 
