@@ -20,6 +20,8 @@
   [@mfix22](https://github.com/mfix22) in [PR #982](https://github.com/apollographql/graphql-tools/pull/982)  
 * Fix regression where custom scalars were incorrectly replaced while recreating schema with `visitSchema`.  <br/>
   [@tgriesser](https://github.com/tgriesser) in [#985](https://github.com/apollographql/graphql-tools/pull/985)
+* Fix returning null values for interface mocks. <br/>
+  [@anehx](https://github.com/anehx) in [#956](https://github.com/apollographql/graphql-tools/pull/956)
 
 ### 4.0.2
 
