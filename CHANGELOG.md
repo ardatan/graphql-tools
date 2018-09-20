@@ -13,6 +13,8 @@
   [#1014](https://github.com/apollographql/graphql-tools/pull/1014)
 * Documentation updates.  <br/>
   [@dougshamoo](https://github.com/dougshamoo) in [#1012](https://github.com/apollographql/graphql-tools/pull/1012)
+* Use `TArgs` generic wherever `IFieldResolver` is used.<br/>
+  [@brikou](https://github.com/brikou) in [#955](https://github.com/apollographql/graphql-tools/pull/955)
 
 ### 4.0.3
 
