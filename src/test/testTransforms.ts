@@ -784,7 +784,7 @@ describe('transforms', () => {
               return `${parent.name} ${parent.surname}`;
             },
             specialName(parent) {
-              return data.u1.name
+              return data.u1.name;
             },
           },
         },
@@ -832,6 +832,6 @@ describe('transforms', () => {
           },
         },
       });
-    })
+    });
   });
 });
