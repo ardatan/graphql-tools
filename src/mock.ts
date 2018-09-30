@@ -187,7 +187,7 @@ function addMockFunctionsToSchema({
           implementationType = getRandomElement(possibleTypes);
         }
         return Object.assign(
-          { __typename: implementationType },
+          { __typename: implementationType, ...interfaceMockObj },
           mockType(implementationType)(root, args, context, info),
         );
       }
