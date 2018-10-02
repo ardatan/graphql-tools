@@ -1,5 +1,10 @@
 # Change log
 
+### VNEXT
+
+* Adds a new transform tool for removing fields from a type <br/>
+  [@orta](https://github.com/orta) in [#9634(https://github.com/apollographql/graphql-tools/pull/964)
+
 ### 4.0.0
 
 * Support `graphql` and `@types/graphql` 14.x.  <br />
