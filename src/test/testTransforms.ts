@@ -22,6 +22,7 @@ import {
   ReplaceFieldWithFragment,
   FilterToSchema,
 } from '../transforms';
+import RemoveFieldsOnType from '../transforms/RemoveFieldsOnType';
 
 describe('transforms', () => {
   describe('rename type', () => {
@@ -305,6 +306,34 @@ describe('transforms', () => {
       expect(result.errors.length).to.equal(1);
       expect(result.errors[0].message).to.equal(
         'Cannot query field "customer" on type "Booking".'
+      );
+    });
+  });
+
+  describe('removing fields from a type', () => {
+    it('removes a field from an existing type', async () => {
+      const newSchema = transformSchema(propertySchema, [
+          new RemoveFieldsOnType('Property', ['name', 'location'])
+      ]);
+      const result = await graphql(
+        newSchema,
+        `
+          query {
+            propertyById(id: "p1") {
+              id
+              name
+              location
+            }
+          }
+        `,
+      );
+      expect(result.errors).not.to.be.empty;
+      expect(result.errors.length).to.equal(2);
+      expect(result.errors[0].message).to.equal(
+        'Cannot query field "name" on type "Property".'
+      );
+      expect(result.errors[1].message).to.equal(
+        'Cannot query field "location" on type "Property".'
       );
     });
   });

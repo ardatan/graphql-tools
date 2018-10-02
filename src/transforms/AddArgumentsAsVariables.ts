@@ -180,7 +180,7 @@ function typeToAst(type: GraphQLInputType): TypeNode {
         type: innerType,
       };
     } else {
-      throw new Error('Incorrent inner non-null type');
+      throw new Error('Incorrect inner non-null type');
     }
   } else if (type instanceof GraphQLList) {
     return {

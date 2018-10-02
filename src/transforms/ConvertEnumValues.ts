@@ -2,7 +2,7 @@ import { GraphQLSchema, GraphQLEnumType } from 'graphql';
 import { Transform } from '../transforms/transforms';
 import { visitSchema, VisitSchemaKind } from '../transforms/visitSchema';
 
-// Transformation used to modifiy `GraphQLEnumType` values in a schema.
+// Transformation used to modify `GraphQLEnumType` values in a schema.
 export default class ConvertEnumValues implements Transform {
   // Maps current enum values to their new values.
   // e.g. { Color: { 'RED': '#EA3232' } }
