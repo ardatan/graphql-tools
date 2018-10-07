@@ -1,5 +1,9 @@
 # Change log
 
+### vNEXT
+* Update `IFieldResolver` to allow specified return type  <br />
+  [@hedvigoscar](https://github.com/hedvigoscar) in [#968](https://github.com/apollographql/graphql-tools/pull/968)
+
 ### 4.0.0
 
 * Support `graphql` and `@types/graphql` 14.x.  <br />
