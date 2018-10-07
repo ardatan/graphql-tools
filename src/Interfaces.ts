@@ -77,12 +77,12 @@ export type MergeInfo = {
   }>;
 };
 
-export type IFieldResolver<TSource, TContext, TArgs = { [argument: string]: any }> = (
+export type IFieldResolver<TSource, TContext, TArgs = { [argument: string]: any }, TReturn = any> = (
   source: TSource,
   args: TArgs,
   context: TContext,
   info: GraphQLResolveInfo & { mergeInfo: MergeInfo },
-) => any;
+) => TReturn;
 
 export type ITypedef = (() => ITypedef[]) | string | DocumentNode;
 export type ITypeDefinitions = ITypedef | ITypedef[];
