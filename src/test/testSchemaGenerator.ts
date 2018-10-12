@@ -986,6 +986,7 @@ describe('generating schema from shorthand', () => {
       const shorthand = `
         enum Color {
           RED
+          BLUE
         }
 
         enum NumericEnum {
@@ -997,26 +998,32 @@ describe('generating schema from shorthand', () => {
         }
 
         type Query {
-          color: Color
+          redColor: Color
+          blueColor: Color
           numericEnum: NumericEnum
         }
       `;
 
       const testQuery = `{
-        color
+        redColor
+        blueColor
         numericEnum
        }`;
 
       const resolveFunctions = {
         Color: {
           RED: '#EA3232',
+          BLUE: '#0000FF',
         },
         NumericEnum: {
           TEST: 1,
         },
         Query: {
-          color() {
+          redColor() {
             return '#EA3232';
+          },
+          blueColor() {
+            return '#0000FF';
           },
           numericEnum() {
             return 1;
@@ -1031,7 +1038,8 @@ describe('generating schema from shorthand', () => {
 
       const resultPromise = graphql(jsSchema, testQuery);
       return resultPromise.then(result => {
-        assert.equal(result.data['color'], 'RED');
+        assert.equal(result.data['redColor'], 'RED');
+        assert.equal(result.data['blueColor'], 'BLUE');
         assert.equal(result.data['numericEnum'], 'TEST');
         assert.equal(result.errors, undefined);
       });
@@ -1306,14 +1314,14 @@ describe('generating schema from shorthand', () => {
     `;
 
     const rf = {
-      Searchable: undefined
+      Searchable: undefined,
     } as any;
 
     expect(() =>
       makeExecutableSchema({ typeDefs: short, resolvers: rf }),
     ).to.throw(
       `"Searchable" defined in resolvers, but has invalid value "undefined". A resolver's value ` +
-      `must be of type object or function.`
+        `must be of type object or function.`,
     );
   });
 
@@ -1384,7 +1392,9 @@ describe('generating schema from shorthand', () => {
 
     expect(() =>
       makeExecutableSchema({ typeDefs: short, resolvers: rf }),
-    ).to.throw(`Color.NO_RESOLVER was defined in resolvers, but enum is not in schema`);
+    ).to.throw(
+      `Color.NO_RESOLVER was defined in resolvers, but enum is not in schema`,
+    );
 
     expect(() =>
       makeExecutableSchema({
@@ -2585,17 +2595,20 @@ describe('interface resolver inheritance', () => {
         id: ({ id }: { id: number }) => `Node:${id}`,
       },
       User: {
-        name: ({ name }: { name: string}) => `User:${name}`
+        name: ({ name }: { name: string }) => `User:${name}`,
       },
       Query: {
-        user: () => user
-      }
+        user: () => user,
+      },
     };
     const schema = makeExecutableSchema({
       typeDefs: testSchemaWithInterfaceResolvers,
       resolvers,
       inheritResolversFromInterfaces: true,
-      resolverValidationOptions: { requireResolversForAllFields: true, requireResolversForResolveType: true }
+      resolverValidationOptions: {
+        requireResolversForAllFields: true,
+        requireResolversForResolveType: true,
+      },
     });
     const query = `{ user { id name } }`;
     const response = await graphql(schema, query);
@@ -2603,9 +2616,9 @@ describe('interface resolver inheritance', () => {
       data: {
         user: {
           id: `Node:1`,
-          name: `User:Ada`
-        }
-      }
+          name: `User:Ada`,
+        },
+      },
     });
   });
 
@@ -2644,19 +2657,22 @@ describe('interface resolver inheritance', () => {
       Person: {
         __resolveType: ({ type }: { type: string }) => type,
         id: ({ id }: { id: number }) => `Person:${id}`,
-        name: ({ name }: { name: string}) => `Person:${name}`
+        name: ({ name }: { name: string }) => `Person:${name}`,
       },
       Query: {
         cyborg: () => cyborg,
         replicant: () => replicant,
-      }
+      },
     };
     const schema = makeExecutableSchema({
       parseOptions: { allowLegacySDLImplementsInterfaces: true },
       typeDefs: testSchemaWithInterfaceResolvers,
       resolvers,
       inheritResolversFromInterfaces: true,
-      resolverValidationOptions: { requireResolversForAllFields: true, requireResolversForResolveType: true }
+      resolverValidationOptions: {
+        requireResolversForAllFields: true,
+        requireResolversForResolveType: true,
+      },
     });
     const query = `{ cyborg { id name } replicant { id name }}`;
     const response = await graphql(schema, query);
@@ -2664,13 +2680,13 @@ describe('interface resolver inheritance', () => {
       data: {
         cyborg: {
           id: `Node:1`,
-          name: `Person:Alex Murphy`
+          name: `Person:Alex Murphy`,
         },
         replicant: {
           id: `Person:2`,
-          name: `Person:Rachael Tyrell`
-        }
-      }
+          name: `Person:Rachael Tyrell`,
+        },
+      },
     });
   });
 });

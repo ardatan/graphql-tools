@@ -1,5 +1,9 @@
 # Change log
 
+### vNEXT
+
+* Fix [regression](https://github.com/apollographql/graphql-tools/issues/962) in enum internal value mapping.
+
 ### 4.0.0
 
 * Support `graphql` and `@types/graphql` 14.x.  <br />
