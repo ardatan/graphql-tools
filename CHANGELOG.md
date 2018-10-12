@@ -1,8 +1,9 @@
 # Change log
 
-### vNEXT
+### 4.0.1
 
-* Fix [regression](https://github.com/apollographql/graphql-tools/issues/962) in enum internal value mapping.
+* Fix [regression](https://github.com/apollographql/graphql-tools/issues/962) in enum internal value mapping.  <br/>
+  [@tgriesser](https://github.com/tgriesser) in [#973](https://github.com/apollographql/graphql-tools/pull/973)
 
 ### 4.0.0
 
