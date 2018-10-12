@@ -1045,7 +1045,7 @@ describe('generating schema from shorthand', () => {
       });
     });
 
-    it.only('supports resolving the value for a GraphQLEnumType in input types', () => {
+    it('supports resolving the value for a GraphQLEnumType in input types', () => {
       const shorthand = `
         enum Color {
           RED
