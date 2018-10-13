@@ -14,6 +14,7 @@ import {
   GraphQLNamedType,
   GraphQLFieldResolver,
   GraphQLNonNull,
+  GraphQLScalarType,
 } from 'graphql';
 import * as uuid from 'uuid';
 import {
@@ -107,6 +108,7 @@ function addMockFunctionsToSchema({
       // nullability doesn't matter for the purpose of mocking.
       const fieldType = getNullableType(type);
       const namedFieldType = getNamedType(fieldType);
+      const isScalar = fieldType instanceof GraphQLScalarType;
 
       if (root && typeof root[fieldName] !== 'undefined') {
         let result: any;
@@ -130,7 +132,7 @@ function addMockFunctionsToSchema({
 
         // Now we merge the result with the default mock for this type.
         // This allows overriding defaults while writing very little code.
-        if (mockFunctionMap.has(namedFieldType.name)) {
+        if (!isScalar && mockFunctionMap.has(namedFieldType.name)) {
           result = mergeMocks(
             mockFunctionMap
               .get(namedFieldType.name)
