@@ -49,9 +49,9 @@ export function makeExecutableSchema<TContext = any>({
 
   // Arguments are now validated and cleaned up
 
-  const schema = buildSchemaFromTypeDefinitions(typeDefs, parseOptions);
+  let schema = buildSchemaFromTypeDefinitions(typeDefs, parseOptions);
 
-  addResolveFunctionsToSchema({
+  schema = addResolveFunctionsToSchema({
     schema,
     resolvers: resolverMap,
     resolverValidationOptions,
