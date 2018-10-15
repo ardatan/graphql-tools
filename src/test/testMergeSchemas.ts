@@ -190,7 +190,6 @@ const loneExtend = parse(`
   }
 `);
 
-
 let interfaceExtensionTest = `
   # No-op for older versions since this feature does not yet exist
   extend type DownloadableProduct {
