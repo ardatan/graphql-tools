@@ -63,7 +63,7 @@ function addResolveFunctionsToSchema(
     if (resolverType !== 'object' && resolverType !== 'function') {
       throw new SchemaError(
         `"${typeName}" defined in resolvers, but has invalid value "${resolverValue}". A resolver's value ` +
-        `must be of type object or function.`,
+          `must be of type object or function.`,
       );
     }
 
@@ -109,10 +109,8 @@ function addResolveFunctionsToSchema(
         // its resolver provided internal value. This map is used to transform
         // the current schema to a new schema that includes enums with the new
         // internal value.
-        enumValueMap[type.name] = {
-          [fieldName]: resolverValue[fieldName],
-        };
-
+        enumValueMap[type.name] = enumValueMap[type.name] || {};
+        enumValueMap[type.name][fieldName] = resolverValue[fieldName];
         return;
       }
 
@@ -158,10 +156,9 @@ function addResolveFunctionsToSchema(
   // If there are any enum resolver functions (that are used to return
   // internal enum values), create a new schema that includes enums with the
   // new internal facing values.
-  const updatedSchema = applySchemaTransforms(
-    schema,
-    [new ConvertEnumValues(enumValueMap)],
-  );
+  const updatedSchema = applySchemaTransforms(schema, [
+    new ConvertEnumValues(enumValueMap),
+  ]);
 
   return updatedSchema;
 }
