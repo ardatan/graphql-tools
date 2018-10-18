@@ -1044,6 +1044,65 @@ describe('generating schema from shorthand', () => {
         assert.equal(result.errors, undefined);
       });
     });
+
+    it('supports resolving the value for a GraphQLEnumType in input types', () => {
+      const shorthand = `
+        enum Color {
+          RED
+          BLUE
+        }
+
+        enum NumericEnum {
+          TEST
+        }
+
+        schema {
+          query: Query
+        }
+
+        type Query {
+          colorTest(color: Color): String
+          numericTest(num: NumericEnum): Int
+        }
+      `;
+
+      const testQuery = `{
+        red: colorTest(color: RED)
+        blue: colorTest(color: BLUE)
+        num: numericTest(num: TEST)
+       }`;
+
+      const resolveFunctions = {
+        Color: {
+          RED: '#EA3232',
+          BLUE: '#0000FF',
+        },
+        NumericEnum: {
+          TEST: 1,
+        },
+        Query: {
+          colorTest(root: any, args: { color: string }) {
+            return args.color;
+          },
+          numericTest(root: any, args: { num: number }) {
+            return args.num;
+          },
+        },
+      };
+
+      const jsSchema = makeExecutableSchema({
+        typeDefs: shorthand,
+        resolvers: resolveFunctions,
+      });
+
+      const resultPromise = graphql(jsSchema, testQuery);
+      return resultPromise.then(result => {
+        assert.equal(result.data['red'], resolveFunctions.Color.RED);
+        assert.equal(result.data['blue'], resolveFunctions.Color.BLUE);
+        assert.equal(result.data['num'], resolveFunctions.NumericEnum.TEST);
+        assert.equal(result.errors, undefined);
+      });
+    });
   });
 
   it('can set description and deprecation reason', () => {
