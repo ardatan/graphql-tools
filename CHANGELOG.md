@@ -1,8 +1,9 @@
 # Change log
 
-### vNext
+### 4.0.2
 
-* Fix regression in enum input mapping.
+* Fix regression in enum input mapping.  <br/>
+  [@tgriesser](https://github.com/tgriesser) in [#974](https://github.com/apollographql/graphql-tools/pull/974)
 
 ### 4.0.1
 
