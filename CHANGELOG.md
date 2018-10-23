@@ -1,5 +1,11 @@
 # Change log
 
+### vNext
+
+* Update package.json `repository` field. <br />
+  [@dlukeomalley](https://github.com/dlukeomalley) in
+  [#979](https://github.com/apollographql/graphql-tools/pull/979)
+
 ### 4.0.2
 
 * Fix regression in enum input mapping.  <br/>
