@@ -15,7 +15,7 @@ Even though we recommend a specific way of building GraphQL servers, you can use
 
 <h2 id="example">Hello world example</h2>
 
-To get started with `graphql-tools` right away, [See the complete live example in Apollo Launchpad.](https://launchpad.graphql.com/1jzxrj179).
+To get started with `graphql-tools` right away, [see this complete live example in Apollo Launchpad.](https://launchpad.graphql.com/1jzxrj179).
 
 <h2 id="apollo-server" title="Using with HTTP">Using GraphQL with HTTP</h2>
 
