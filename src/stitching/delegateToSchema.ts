@@ -10,6 +10,7 @@ import {
   validate,
   GraphQLSchema,
   ExecutionResult,
+  isEnumType
 } from 'graphql';
 
 import {
@@ -30,6 +31,7 @@ import CheckResultAndHandleErrors from '../transforms/CheckResultAndHandleErrors
 import mapAsyncIterator from './mapAsyncIterator';
 import ExpandAbstractTypes from '../transforms/ExpandAbstractTypes';
 import ReplaceFieldWithFragment from '../transforms/ReplaceFieldWithFragment';
+import ConvertEnumResponse from '../transforms/ConvertEnumResponse';
 
 export function createRequest({
   schema,
@@ -129,7 +131,7 @@ export default function delegateToSchema(
   if (options instanceof GraphQLSchema) {
     throw new Error(
       'Passing positional arguments to delegateToSchema is a deprecated. ' +
-      'Please pass named parameters instead.'
+        'Please pass named parameters instead.',
     );
   }
   return delegateToSchemaImplementation(options);
@@ -172,6 +174,12 @@ async function delegateToSchemaImplementation(
     new CheckResultAndHandleErrors(info, fieldName),
   ];
 
+  if (isEnumType(info.returnType)) {
+    transforms.push(
+      new ConvertEnumResponse(info.returnType),
+    );
+  }
+
   if (operation === 'query' || operation === 'mutation') {
     return applyResultTransforms(
       await execute(
@@ -186,16 +194,16 @@ async function delegateToSchemaImplementation(
   }
 
   if (operation === 'subscription') {
-    const executionResult = await subscribe(
+    const executionResult = (await subscribe(
       schema,
       processedRequest.document,
       info.rootValue,
       context,
       processedRequest.variables,
-    ) as AsyncIterator<ExecutionResult>;
+    )) as AsyncIterator<ExecutionResult>;
 
     // "subscribe" to the subscription result and map the result through the transforms
-    return mapAsyncIterator<ExecutionResult, any>(executionResult, (result) => {
+    return mapAsyncIterator<ExecutionResult, any>(executionResult, result => {
       const transformedResult = applyResultTransforms(result, transforms);
       const subscriptionKey = Object.keys(result.data)[0];
 
