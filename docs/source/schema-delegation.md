@@ -73,7 +73,10 @@ query {
     repositories {
       id
       url
-      user
+      user {
+        username
+        id
+      }
       issues {
         text
       }
