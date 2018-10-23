@@ -2,6 +2,9 @@
 
 ### vNext
 
+* Replaced broken link in docs homepage with Launchpad example <br />
+  [@kriss1897](https://github.com/kriss1897) in
+  [#965](https://github.com/apollographql/graphql-tools/pull/965)
 * Fix invalid query in schema delegation example. <br />
   [@nico29](https://github.com/nico29) in
   [#980](https://github.com/apollographql/graphql-tools/pull/980)
