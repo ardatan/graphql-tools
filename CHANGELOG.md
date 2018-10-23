@@ -1,5 +1,14 @@
 # Change log
 
+### vNext
+
+* Fix invalid query in schema delegation example. <br />
+  [@nico29](https://github.com/nico29) in
+  [#980](https://github.com/apollographql/graphql-tools/pull/980)
+* Update package.json `repository` field. <br />
+  [@dlukeomalley](https://github.com/dlukeomalley) in
+  [#979](https://github.com/apollographql/graphql-tools/pull/979)
+
 ### 4.0.2
 
 * Fix regression in enum input mapping.  <br/>
