@@ -14,6 +14,8 @@
 * Add support for passing a parsed schema ast to `mergeSchemas` <br/>
   [@ganemone](https://github.com/ganemone) in
   [#977](https://github.com/apollographql/graphql-tools/pull/977)
+* Changes to `extractExtensionDefinitions` to support `graphql-js` union and enum extensions.  <br/>
+  [@jansuchy](https://github.com/jansuchy) in [#951](https://github.com/apollographql/graphql-tools/pull/951)
 
 ### 4.0.2
 
