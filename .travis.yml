@@ -1,8 +1,8 @@
 language: node_js
 node_js:
-  - "4"
   - "6"
   - "8"
+  - "10"
 
 install:
   - npm config set spin=false
@@ -20,4 +20,4 @@ script:
 sudo: false
 
 env:
-  - GRAPHQL_VERSION='^0.13'
+  - GRAPHQL_VERSION='^14.0'

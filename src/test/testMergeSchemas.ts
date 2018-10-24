@@ -103,27 +103,25 @@ let enumTest = `
 
 let enumSchema: GraphQLSchema;
 
-if (process.env.GRAPHQL_VERSION !== '^0.11') {
-  enumSchema = makeExecutableSchema({
-    typeDefs: enumTest,
-    resolvers: {
-      Color: {
-        RED: '#EA3232',
+enumSchema = makeExecutableSchema({
+  typeDefs: enumTest,
+  resolvers: {
+    Color: {
+      RED: '#EA3232',
+    },
+    NumericEnum: {
+      TEST: 1,
+    },
+    Query: {
+      color() {
+        return '#EA3232';
       },
-      NumericEnum: {
-        TEST: 1,
-      },
-      Query: {
-        color() {
-          return '#EA3232';
-        },
-        numericEnum() {
-          return 1;
-        },
+      numericEnum() {
+        return 1;
       },
     },
-  });
-}
+  },
+});
 
 let linkSchema = `
   """
@@ -186,11 +184,11 @@ let linkSchema = `
   extend type Customer implements Node
 `;
 
-const loneExtend = `
+const loneExtend = parse(`
   extend type Booking {
     foo: String!
   }
-`;
+`);
 
 let interfaceExtensionTest = `
   # No-op for older versions since this feature does not yet exist
@@ -199,126 +197,15 @@ let interfaceExtensionTest = `
   }
 `;
 
-if (['^0.11', '^0.12'].indexOf(process.env.GRAPHQL_VERSION) === -1) {
-  interfaceExtensionTest = `
-    extend interface Downloadable {
-      filesize: Int
-    }
+interfaceExtensionTest = `
+  extend interface Downloadable {
+    filesize: Int
+  }
 
-    extend type DownloadableProduct {
-      filesize: Int
-    }
-  `;
-}
-
-if (process.env.GRAPHQL_VERSION === '^0.11') {
-  scalarTest = `
-    # Description of TestScalar.
-    scalar TestScalar
-
-    # Description of AnotherNewScalar.
-    scalar AnotherNewScalar
-
-    # A type that uses TestScalar.
-    type TestingScalar {
-      value: TestScalar
-    }
-
-    type Query {
-      testingScalar: TestingScalar
-    }
-  `;
-
-  enumTest = `
-    # A type that uses an Enum.
-    enum Color {
-      # A vivid color
-      RED
-    }
-
-    # A type that uses an Enum with a numeric constant.
-    enum NumericEnum {
-    # A test description
-      TEST @deprecated(reason: "This is deprecated")
-    }
-
-    schema {
-      query: Query
-    }
-
-    type Query {
-      color: Color
-      numericEnum: NumericEnum
-    }
-  `;
-
-  enumSchema = makeExecutableSchema({
-    typeDefs: enumTest,
-    resolvers: {
-      Color: {
-        RED: '#EA3232',
-      },
-      NumericEnum: {
-        TEST: 1,
-      },
-      Query: {
-        color() {
-          return '#EA3232';
-        },
-        numericEnum() {
-          return 1;
-        },
-      },
-    },
-  });
-
-  linkSchema = `
-    # A new type linking the Property type.
-    type LinkType {
-      test: String
-      # The property.
-      property: Property
-    }
-
-    interface Node {
-      id: ID!
-    }
-
-    extend type Car implements Node {
-      fakeFieldToSatisfyOldGraphQL: String
-    }
-
-    extend type Bike implements Node {
-      fakeFieldToSatisfyOldGraphQL: String
-    }
-
-    extend type Booking implements Node {
-      # The property of the booking.
-      property: Property
-      # A textual description of the booking.
-      textDescription: String
-    }
-
-    extend type Property implements Node {
-      # A list of bookings.
-      bookings(
-        # The maximum number of bookings to retrieve.
-        limit: Int
-      ): [Booking]
-    }
-
-    extend type Query {
-      delegateInterfaceTest: TestInterface
-      delegateArgumentTest(arbitraryArg: Int): Property
-      # A new field on the root query.
-      linkTest: LinkType
-      node(id: ID!): Node
-      nodes: [Node]
-    }
-
-    extend type Customer implements Node {}
-  `;
-}
+  extend type DownloadableProduct {
+    filesize: Int
+  }
+`;
 
 // Miscellaneous typeDefs that exercise uncommon branches for the sake of
 // code coverage.
@@ -827,14 +714,18 @@ bookingById(id: "b1") {
               throwError: null,
             },
           } as any,
-          errors: [{
-            message: 'subscription field error',
-            path: ['notifications', 'throwError'],
-            locations: [{
-              line: 4,
-              column: 15,
-            }],
-          }],
+          errors: [
+            {
+              message: 'subscription field error',
+              path: ['notifications', 'throwError'],
+              locations: [
+                {
+                  line: 4,
+                  column: 15,
+                },
+              ],
+            },
+          ],
         };
 
         const subscription = parse(`
@@ -865,7 +756,6 @@ bookingById(id: "b1") {
 
         subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification);
       });
-
 
       it('links in queries', async () => {
         const mergedResult = await graphql(
@@ -2661,40 +2551,38 @@ fragment BookingFragment on Booking {
         });
       });
 
-      if (['^0.11', '^0.12'].indexOf(process.env.GRAPHQL_VERSION) === -1) {
-        it('interface extensions', async () => {
-          const result = await graphql(
-            mergedSchema,
-            `
-              query {
-                products {
-                  id
-                  __typename
-                  ... on Downloadable {
-                    filesize
-                  }
+      it('interface extensions', async () => {
+        const result = await graphql(
+          mergedSchema,
+          `
+            query {
+              products {
+                id
+                __typename
+                ... on Downloadable {
+                  filesize
                 }
               }
-            `,
-          );
+            }
+          `,
+        );
 
-          expect(result).to.deep.equal({
-            data: {
-              products: [
-                {
-                  id: 'pd1',
-                  __typename: 'SimpleProduct',
-                },
-                {
-                  id: 'pd2',
-                  __typename: 'DownloadableProduct',
-                  filesize: 1024,
-                },
-              ],
-            },
-          });
+        expect(result).to.deep.equal({
+          data: {
+            products: [
+              {
+                id: 'pd1',
+                __typename: 'SimpleProduct',
+              },
+              {
+                id: 'pd2',
+                __typename: 'DownloadableProduct',
+                filesize: 1024,
+              },
+            ],
+          },
         });
-      }
+      });
 
       it('arbitrary transforms that return interfaces', async () => {
         const result = await graphql(

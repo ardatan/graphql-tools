@@ -10,6 +10,7 @@ import {
   getNamedType,
   isNamedType,
   parse,
+  Kind
 } from 'graphql';
 import {
   IDelegateToSchemaOptions,
@@ -60,7 +61,7 @@ export default function mergeSchemas({
   schemaDirectives,
   inheritResolversFromInterfaces
 }: {
-  schemas: Array<string | GraphQLSchema | Array<GraphQLNamedType>>;
+  schemas: Array<string | GraphQLSchema | DocumentNode | Array<GraphQLNamedType>>;
   onTypeConflict?: OnTypeConflict;
   resolvers?: IResolversParameter;
   schemaDirectives?: { [name: string]: typeof SchemaDirectiveVisitor };
@@ -75,7 +76,7 @@ function mergeSchemasImplementation({
   schemaDirectives,
   inheritResolversFromInterfaces
 }: {
-  schemas: Array<string | GraphQLSchema | Array<GraphQLNamedType>>;
+  schemas: Array<string | GraphQLSchema | DocumentNode | Array<GraphQLNamedType>>;
   resolvers?: IResolversParameter;
   schemaDirectives?: { [name: string]: typeof SchemaDirectiveVisitor };
   inheritResolversFromInterfaces?: boolean;
@@ -137,8 +138,8 @@ function mergeSchemasImplementation({
           });
         }
       });
-    } else if (typeof schema === 'string') {
-      let parsedSchemaDocument = parse(schema);
+    } else if (typeof schema === 'string' || (schema && (schema as DocumentNode).kind === Kind.DOCUMENT)) {
+      let parsedSchemaDocument = typeof schema === 'string' ? parse(schema) : (schema as DocumentNode);
       parsedSchemaDocument.definitions.forEach(def => {
         const type = typeFromAST(def);
         if (type) {
@@ -248,7 +249,7 @@ function mergeSchemasImplementation({
     });
   });
 
-  addResolveFunctionsToSchema({
+  mergedSchema = addResolveFunctionsToSchema({
     schema: mergedSchema,
     resolvers: mergeDeep(generatedResolvers, resolvers),
     inheritResolversFromInterfaces

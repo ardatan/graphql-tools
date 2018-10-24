@@ -16,8 +16,9 @@ import {
   IResolverValidationOptions,
   IAddResolveFunctionsToSchemaOptions,
 } from '../Interfaces';
-
+import { applySchemaTransforms } from '../transforms/transforms';
 import { checkForResolveTypeResolver, extendResolversFromInterfaces } from '.';
+import ConvertEnumValues from '../transforms/ConvertEnumValues';
 
 function addResolveFunctionsToSchema(
   options: IAddResolveFunctionsToSchemaOptions | GraphQLSchema,
@@ -51,6 +52,10 @@ function addResolveFunctionsToSchema(
     ? extendResolversFromInterfaces(schema, inputResolvers)
     : inputResolvers;
 
+  // Used to map the external value of an enum to its internal value, when
+  // that internal value is provided by a resolver.
+  const enumValueMap = Object.create(null);
+
   Object.keys(resolvers).forEach(typeName => {
     const resolverValue = resolvers[typeName];
     const resolverType = typeof resolverValue;
@@ -58,11 +63,12 @@ function addResolveFunctionsToSchema(
     if (resolverType !== 'object' && resolverType !== 'function') {
       throw new SchemaError(
         `"${typeName}" defined in resolvers, but has invalid value "${resolverValue}". A resolver's value ` +
-        `must be of type object or function.`,
+          `must be of type object or function.`,
       );
     }
 
     const type = schema.getType(typeName);
+
     if (!type && typeName !== '__schema') {
       if (allowResolversNotInSchema) {
         return;
@@ -95,7 +101,16 @@ function addResolveFunctionsToSchema(
           );
         }
 
-        type.getValue(fieldName)['value'] = resolverValue[fieldName];
+        // We've encountered an enum resolver that is being used to provide an
+        // internal enum value.
+        // Reference: https://www.apollographql.com/docs/graphql-tools/scalars.html#internal-values
+        //
+        // We're storing a map of the current enums external facing value to
+        // its resolver provided internal value. This map is used to transform
+        // the current schema to a new schema that includes enums with the new
+        // internal value.
+        enumValueMap[type.name] = enumValueMap[type.name] || {};
+        enumValueMap[type.name][fieldName] = resolverValue[fieldName];
         return;
       }
 
@@ -137,6 +152,15 @@ function addResolveFunctionsToSchema(
   });
 
   checkForResolveTypeResolver(schema, requireResolversForResolveType);
+
+  // If there are any enum resolver functions (that are used to return
+  // internal enum values), create a new schema that includes enums with the
+  // new internal facing values.
+  const updatedSchema = applySchemaTransforms(schema, [
+    new ConvertEnumValues(enumValueMap),
+  ]);
+
+  return updatedSchema;
 }
 
 function getFieldsForType(type: GraphQLType): GraphQLFieldMap<any, any> {

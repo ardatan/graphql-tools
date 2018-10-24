@@ -14,13 +14,10 @@ import {
   GraphQLSchema,
   ExecutionResult,
   NameNode,
+  isEnumType,
 } from 'graphql';
 
-import {
-  Operation,
-  Request,
-  IDelegateToSchemaOptions,
-} from '../Interfaces';
+import { Operation, Request, IDelegateToSchemaOptions } from '../Interfaces';
 
 import {
   applyRequestTransforms,
@@ -34,6 +31,7 @@ import CheckResultAndHandleErrors from '../transforms/CheckResultAndHandleErrors
 import mapAsyncIterator from './mapAsyncIterator';
 import ExpandAbstractTypes from '../transforms/ExpandAbstractTypes';
 import ReplaceFieldWithFragment from '../transforms/ReplaceFieldWithFragment';
+import ConvertEnumResponse from '../transforms/ConvertEnumResponse';
 
 export default function delegateToSchema(
   options: IDelegateToSchemaOptions | GraphQLSchema,
@@ -42,7 +40,7 @@ export default function delegateToSchema(
   if (options instanceof GraphQLSchema) {
     throw new Error(
       'Passing positional arguments to delegateToSchema is a deprecated. ' +
-      'Please pass named parameters instead.'
+        'Please pass named parameters instead.',
     );
   }
   return delegateToSchemaImplementation(options);
@@ -71,12 +69,12 @@ async function delegateToSchemaImplementation(
 
   let transforms = [
     ...(options.transforms || []),
-    new ExpandAbstractTypes(info.schema, options.schema)
+    new ExpandAbstractTypes(info.schema, options.schema),
   ];
 
   if (info.mergeInfo && info.mergeInfo.fragments) {
     transforms.push(
-      new ReplaceFieldWithFragment(options.schema, info.mergeInfo.fragments)
+      new ReplaceFieldWithFragment(options.schema, info.mergeInfo.fragments),
     );
   }
 
@@ -84,8 +82,14 @@ async function delegateToSchemaImplementation(
     new AddArgumentsAsVariables(options.schema, args),
     new FilterToSchema(options.schema),
     new AddTypenameToAbstract(options.schema),
-    new CheckResultAndHandleErrors(info, options.fieldName)
+    new CheckResultAndHandleErrors(info, options.fieldName),
   ]);
+
+  if (isEnumType(options.info.returnType)) {
+    transforms = transforms.concat(
+      new ConvertEnumResponse(options.info.returnType),
+    );
+  }
 
   const processedRequest = applyRequestTransforms(rawRequest, transforms);
 
@@ -110,16 +114,16 @@ async function delegateToSchemaImplementation(
   }
 
   if (operation === 'subscription') {
-    const executionResult = await subscribe(
+    const executionResult = (await subscribe(
       options.schema,
       processedRequest.document,
       info.rootValue,
       options.context,
       processedRequest.variables,
-    ) as AsyncIterator<ExecutionResult>;
+    )) as AsyncIterator<ExecutionResult>;
 
     // "subscribe" to the subscription result and map the result through the transforms
-    return mapAsyncIterator<ExecutionResult, any>(executionResult, (result) => {
+    return mapAsyncIterator<ExecutionResult, any>(executionResult, result => {
       const transformedResult = applyResultTransforms(result, transforms);
       const subscriptionKey = Object.keys(result.data)[0];
 
@@ -135,9 +139,9 @@ async function delegateToSchemaImplementation(
 function createDocument(
   targetField: string,
   targetOperation: Operation,
-  originalSelections: Array<SelectionNode>,
+  originalSelections: ReadonlyArray<SelectionNode>,
   fragments: Array<FragmentDefinitionNode>,
-  variables: Array<VariableDefinitionNode>,
+  variables: ReadonlyArray<VariableDefinitionNode>,
   operationName: NameNode,
 ): DocumentNode {
   let selections: Array<SelectionNode> = [];
