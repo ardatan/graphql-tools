@@ -2,6 +2,8 @@
 
 ### vNext
 
+* Export `mapAsyncIterator` <br />
+  [@divyenduz](https://github.com/divyenduz) in [#989](https://github.com/apollographql/graphql-tools/pull/989)
 * Replaced broken link in docs homepage with Launchpad example <br />
   [@kriss1897](https://github.com/kriss1897) in
   [#965](https://github.com/apollographql/graphql-tools/pull/965)

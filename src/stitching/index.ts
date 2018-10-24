@@ -3,6 +3,7 @@ import introspectSchema from './introspectSchema';
 import mergeSchemas from './mergeSchemas';
 import delegateToSchema from './delegateToSchema';
 import defaultMergedResolver from './defaultMergedResolver';
+import mapAsyncIterator from './mapAsyncIterator';
 
 export {
   makeRemoteExecutableSchema,
@@ -12,5 +13,6 @@ export {
   // but exposed for the community use
   delegateToSchema,
   defaultMergedResolver,
-  defaultCreateRemoteResolver
+  defaultCreateRemoteResolver,
+  mapAsyncIterator
 };
