@@ -11,6 +11,9 @@
 * Update package.json `repository` field. <br />
   [@dlukeomalley](https://github.com/dlukeomalley) in
   [#979](https://github.com/apollographql/graphql-tools/pull/979)
+* Add support for passing a parsed schema ast to `mergeSchemas` <br/>
+  [@ganemone](https://github.com/ganemone) in
+  [#977](https://github.com/apollographql/graphql-tools/pull/977)
 
 ### 4.0.2
 
