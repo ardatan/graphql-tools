@@ -240,4 +240,26 @@ new MockList(length: number | number[], mockFunction: Function);
 
 This is an object you can return from your mock resolvers which calls the `mockFunction` once for each list item. The first argument can either be an exact length, or an inclusive range of possible lengths for the list, in case you want to see how your UI responds to varying lists of data.
 
+### mockServer
 
+```js
+import { mockServer } from 'graphql-tools';
+
+const server = mockServer({
+  schema,
+  mocks: {},
+  preserveResolvers: false,
+});
+
+const query = `{ __typename }`
+const variables = {}
+
+server.query(query, variables)
+  .then(response => {
+    console.log(response)
+  })
+```
+
+`mockServer` is just a convenience wrapper on top of `addMockFunctionsToSchema`. It adds your mock resolvers to your schema and returns a client that will correctly execute
+your query with variables. **Note**: when executing queries from the returned server,
+`context` and `root` will both equal `{}`.
