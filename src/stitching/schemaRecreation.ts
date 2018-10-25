@@ -101,7 +101,7 @@ export function recreateType(
       values: newValues,
     });
   } else if (type instanceof GraphQLScalarType) {
-    if (isSpecifiedScalarType(type)) {
+    if (keepResolvers || isSpecifiedScalarType(type)) {
       return type;
     } else {
       return new GraphQLScalarType({
