@@ -184,11 +184,11 @@ let linkSchema = `
   extend type Customer implements Node
 `;
 
-const loneExtend = `
+const loneExtend = parse(`
   extend type Booking {
     foo: String!
   }
-`;
+`);
 
 let interfaceExtensionTest = `
   # No-op for older versions since this feature does not yet exist
@@ -714,14 +714,18 @@ bookingById(id: "b1") {
               throwError: null,
             },
           } as any,
-          errors: [{
-            message: 'subscription field error',
-            path: ['notifications', 'throwError'],
-            locations: [{
-              line: 4,
-              column: 15,
-            }],
-          }],
+          errors: [
+            {
+              message: 'subscription field error',
+              path: ['notifications', 'throwError'],
+              locations: [
+                {
+                  line: 4,
+                  column: 15,
+                },
+              ],
+            },
+          ],
         };
 
         const subscription = parse(`
@@ -752,7 +756,6 @@ bookingById(id: "b1") {
 
         subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification);
       });
-
 
       it('links in queries', async () => {
         const mergedResult = await graphql(

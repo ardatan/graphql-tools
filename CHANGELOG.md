@@ -1,5 +1,31 @@
 # Change log
 
+### vNext
+
+* Replaced broken link in docs homepage with Launchpad example <br />
+  [@kriss1897](https://github.com/kriss1897) in
+  [#965](https://github.com/apollographql/graphql-tools/pull/965)
+* Fix invalid query in schema delegation example. <br />
+  [@nico29](https://github.com/nico29) in
+  [#980](https://github.com/apollographql/graphql-tools/pull/980)
+* Update package.json `repository` field. <br />
+  [@dlukeomalley](https://github.com/dlukeomalley) in
+  [#979](https://github.com/apollographql/graphql-tools/pull/979)
+* Add support for passing a parsed schema ast to `mergeSchemas` <br/>
+  [@ganemone](https://github.com/ganemone) in
+  [#977](https://github.com/apollographql/graphql-tools/pull/977)
+* Changes to `extractExtensionDefinitions` to support `graphql-js` union and enum extensions.  <br/>
+  [@jansuchy](https://github.com/jansuchy) in [#951](https://github.com/apollographql/graphql-tools/pull/951)
+* Add docs for `mockServer` (closes [#951](https://github.com/apollographql/graphql-tools/issues/94))<br/>
+  [@mfix22](https://github.com/mfix22) in [PR #982](https://github.com/apollographql/graphql-tools/pull/982)  
+* Fix regression where custom scalars were incorrectly replaced while recreating schema with `visitSchema`.  <br/>
+  [@tgriesser](https://github.com/tgriesser) in [#985](https://github.com/apollographql/graphql-tools/pull/985)
+
+### 4.0.2
+
+* Fix regression in enum input mapping.  <br/>
+  [@tgriesser](https://github.com/tgriesser) in [#974](https://github.com/apollographql/graphql-tools/pull/974)
+
 ### 4.0.1
 
 * Fix [regression](https://github.com/apollographql/graphql-tools/issues/962) in enum internal value mapping.  <br/>

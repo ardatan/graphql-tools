@@ -35,6 +35,7 @@ import {
   NextResolverFn,
 } from '../Interfaces';
 import 'mocha';
+import { VisitSchemaKind, visitSchema } from '../transforms/visitSchema';
 
 interface Bird {
   name: string;
@@ -748,6 +749,76 @@ describe('generating schema from shorthand', () => {
       expect(jsSchema.getType('JSON')['description']).to.have.length.above(0);
     });
 
+    it('retains scalars after walking/recreating the schema', () => {
+      const shorthand = `
+        scalar Test
+
+        type Foo {
+          testField: Test
+        }
+
+        type Query {
+          test: Test
+          testIn(input: Test): Test
+        }
+      `;
+      const resolveFunctions = {
+        Test: new GraphQLScalarType({
+          name: 'Test',
+          description: 'Test resolver',
+          serialize(value) {
+            if (typeof value !== 'string' || value.indexOf('scalar:') !== 0) {
+              return `scalar:${value}`;
+            }
+            return value;
+          },
+          parseValue(value) {
+            return `scalar:${value}`;
+          },
+          parseLiteral(ast: any) {
+            switch (ast.kind) {
+              case Kind.STRING:
+              case Kind.INT:
+                return `scalar:${ast.value}`;
+              default:
+                return null;
+            }
+          }
+        }),
+        Query: {
+          testIn(_: any, { input }: any) {
+            expect(input).to.contain('scalar:');
+            return input;
+          },
+          test() {
+            return 42;
+          }
+        }
+      };
+      const walkedSchema = visitSchema(makeExecutableSchema({
+        typeDefs: shorthand,
+        resolvers: resolveFunctions,
+      }), {
+        [VisitSchemaKind.ENUM_TYPE](type: GraphQLEnumType) {
+          return type;
+        }
+      });
+      expect(walkedSchema.getType('Test')).to.be.an.instanceof(GraphQLScalarType);
+      expect(walkedSchema.getType('Test'))
+        .to.have.property('description')
+        .that.equals('Test resolver');
+      const testQuery = `
+        {
+          test
+          testIn(input: 1)
+        }`;
+      const resultPromise = graphql(walkedSchema, testQuery);
+      return resultPromise.then(result => expect(result.data).to.deep.equal({
+        test: 'scalar:42',
+        testIn: 'scalar:1'
+      }));
+    });
+
     it('should support custom scalar usage on client-side query execution', () => {
       const shorthand = `
         scalar CustomScalar
@@ -1041,6 +1112,65 @@ describe('generating schema from shorthand', () => {
         assert.equal(result.data['redColor'], 'RED');
         assert.equal(result.data['blueColor'], 'BLUE');
         assert.equal(result.data['numericEnum'], 'TEST');
+        assert.equal(result.errors, undefined);
+      });
+    });
+
+    it('supports resolving the value for a GraphQLEnumType in input types', () => {
+      const shorthand = `
+        enum Color {
+          RED
+          BLUE
+        }
+
+        enum NumericEnum {
+          TEST
+        }
+
+        schema {
+          query: Query
+        }
+
+        type Query {
+          colorTest(color: Color): String
+          numericTest(num: NumericEnum): Int
+        }
+      `;
+
+      const testQuery = `{
+        red: colorTest(color: RED)
+        blue: colorTest(color: BLUE)
+        num: numericTest(num: TEST)
+       }`;
+
+      const resolveFunctions = {
+        Color: {
+          RED: '#EA3232',
+          BLUE: '#0000FF',
+        },
+        NumericEnum: {
+          TEST: 1,
+        },
+        Query: {
+          colorTest(root: any, args: { color: string }) {
+            return args.color;
+          },
+          numericTest(root: any, args: { num: number }) {
+            return args.num;
+          },
+        },
+      };
+
+      const jsSchema = makeExecutableSchema({
+        typeDefs: shorthand,
+        resolvers: resolveFunctions,
+      });
+
+      const resultPromise = graphql(jsSchema, testQuery);
+      return resultPromise.then(result => {
+        assert.equal(result.data['red'], resolveFunctions.Color.RED);
+        assert.equal(result.data['blue'], resolveFunctions.Color.BLUE);
+        assert.equal(result.data['num'], resolveFunctions.NumericEnum.TEST);
         assert.equal(result.errors, undefined);
       });
     });
