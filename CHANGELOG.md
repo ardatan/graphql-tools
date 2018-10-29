@@ -1,6 +1,6 @@
 # Change log
 
-### vNext
+### 4.0.3
 
 * Replaced broken link in docs homepage with Launchpad example <br />
   [@kriss1897](https://github.com/kriss1897) in
