@@ -1,6 +1,6 @@
 # Change log
 
-### vNext
+### 4.0.3
 
 * Export `mapAsyncIterator` <br />
   [@divyenduz](https://github.com/divyenduz) in [#989](https://github.com/apollographql/graphql-tools/pull/989)
