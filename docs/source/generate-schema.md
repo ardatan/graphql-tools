@@ -69,7 +69,7 @@ const resolvers = {
     posts: () => posts,
     author: (_, { id }) => find(authors, { id }),
   },
-  
+
   Mutation: {
     upvotePost: (_, { postId }) => {
       const post = find(posts, { id: postId });
@@ -80,11 +80,11 @@ const resolvers = {
       return post;
     },
   },
-  
+
   Author: {
     posts: author => filter(posts, { authorId: author.id }),
   },
-  
+
   Post: {
     author: post => find(authors, { id: post.authorId }),
   },
@@ -104,142 +104,6 @@ export const schema = makeExecutableSchema({
 
 This example has the entire type definition in one string and all resolvers in one object, but you can combine types and resolvers from multiple files, as documented in the [modularizing the schema](#modularizing) section below.
 
-<h2 id="modularizing">Modularizing the schema</h2>
-
-If your schema gets large, you may want to define parts of it in different files and import them to create the full schema. This is possible by passing around arrays of schema strings.
-
-```js
-// comment.js
-const Comment = `
-  type Comment {
-    id: Int!
-    message: String
-    author: String
-  }
-`;
-
-export default Comment;
-```
-
-```js
-// post.js
-import Comment from './comment';
-
-const Post = `
-  type Post {
-    id: Int!
-    title: String
-    content: String
-    author: String
-    comments: [Comment]
-  }
-`;
-
-// we export Post and all types it depends on
-// in order to make sure we don't forget to include
-// a dependency
-export default [Post, Comment];
-```
-
-```js
-// schema.js
-import Post from './post.js';
-
-const RootQuery = `
-  type RootQuery {
-    post(id: Int!): Post
-  }
-`;
-
-const SchemaDefinition = `
-  schema {
-    query: RootQuery
-  }
-`;
-
-export default makeExecutableSchema({
-  typeDefs: [
-    SchemaDefinition, RootQuery,
-    // we have to destructure array imported from the post.js file
-    // as typeDefs only accepts an array of strings or functions
-    ...Post
-  ],
-  // we could also concatenate arrays
-  // typeDefs: [SchemaDefinition, RootQuery].concat(Post)
-  resolvers: {},
-});
-```
-
-If you're exporting array of schema strings and there are circular dependencies, the array can be wrapped in a function. The `makeExecutableSchema` function will only include each type definition once, even if it is imported multiple times by different types, so you don't have to worry about deduplicating the strings.
-
-```js
-// author.js
-import Book from './book';
-
-const Author = `
-  type Author {
-    id: Int!
-    firstName: String
-    lastName: String
-    books: [Book]
-  }
-`;
-
-// we export Author and all types it depends on
-// in order to make sure we don't forget to include
-// a dependency and we wrap it in a function
-// to avoid strings deduplication
-export default () => [Author, Book];
-```
-
-```js
-// book.js
-import Author from './author';
-
-const Book = `
-  type Book {
-    title: String
-    author: Author
-  }
-`;
-
-export default () => [Book, Author];
-```
-
-```js
-// schema.js
-import Author from './author.js';
-
-const RootQuery = `
-  type RootQuery {
-    author(id: Int!): Author
-  }
-`;
-
-const SchemaDefinition = `
-  schema {
-    query: RootQuery
-  }
-`;
-
-export default makeExecutableSchema({
-  typeDefs: [SchemaDefinition, RootQuery, Author],
-  resolvers: {},
-});
-```
-
-You can do the same thing with resolvers - just pass around multiple resolver objects, and at the end combine them together into a plain array. They will be deeply merged by `makeExecutableSchema`.
-
-```js
-import { resolvers as gitHubResolvers } from './github/schema';
-import { resolvers as sqlResolvers } from './sql/schema';
-
-const rootResolvers = { ... };
-
-// resolvers will be merged together by makeExecutableSchema.
-const resolvers = [rootResolvers, gitHubResolvers, sqlResolvers];
-```
-
 <h2 id="extend-types">Extending Types</h2>
 
 It's easy to add additional fields to existing types using the `extend` keyword.  Using `extend` is particularly useful in avoiding a large list of fields on root Queries and Mutations.  You can use it like this:
@@ -249,11 +113,11 @@ const typeDefs = [`
   schema {
     query: Query
   }
-  
+
   type Query {
     bars: [Bar]!
   }
-  
+
   type Bar {
     id
   }
@@ -261,7 +125,7 @@ const typeDefs = [`
   type Foo {
     id: String!
   }
-  
+
   extend type Query {
     foos: [Foo]!
   }
