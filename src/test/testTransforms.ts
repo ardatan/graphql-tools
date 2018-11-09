@@ -86,6 +86,58 @@ describe('transforms', () => {
     });
   });
 
+  describe('rename type defaults', () => {
+    let schema: GraphQLSchema;
+    before(() => {
+      const transforms = [
+        new RenameTypes(
+          (name: string) => undefined),
+      ];
+      schema = transformSchema(propertySchema, transforms);
+    });
+    it('should work', async () => {
+      const result = await graphql(
+        schema,
+        `
+          query($input: InputWithDefault!) {
+            interfaceTest(kind: ONE) {
+              ... on TestInterface {
+                testString
+              }
+            }
+            propertyById(id: "p1") {
+              ... on Property {
+                id
+              }
+            }
+            dateTimeTest
+            defaultInputTest(input: $input)
+          }
+        `,
+        {},
+        {},
+        {
+          input: {
+            test: 'bar',
+          },
+        },
+      );
+
+      expect(result).to.deep.equal({
+        data: {
+          dateTimeTest: '1987-09-25T12:00:00',
+          defaultInputTest: 'bar',
+          interfaceTest: {
+            testString: 'test',
+          },
+          propertyById: {
+            id: 'p1',
+          },
+        },
+      });
+    });
+  });
+
   describe('namespace', () => {
     let schema: GraphQLSchema;
     before(() => {

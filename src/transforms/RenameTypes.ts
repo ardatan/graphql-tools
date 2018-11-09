@@ -91,7 +91,11 @@ export default class RenameTypes implements Transform {
 
   private renameTypes(value: any, name?: string) {
     if (name === '__typename') {
-      return this.renamer(value);
+      const newValue = this.renamer(value);
+
+      if (newValue !== undefined) {
+        return newValue;
+      }
     }
 
     if (value && typeof value === 'object') {
