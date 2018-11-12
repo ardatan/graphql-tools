@@ -1,5 +1,11 @@
 # Change log
 
+### vNEXT
+
+* Do not drop unmodified `__typename` when renaming types <br />
+  [@jagoda](https://github.com/jagoda) in
+  [#999](https://github.com/apollographql/graphql-tools/pull/999)
+
 ### 4.0.3
 
 * Replaced broken link in docs homepage with Launchpad example <br />
