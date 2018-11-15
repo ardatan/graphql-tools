@@ -1,6 +1,6 @@
 {
   "name": "graphql-tools",
-  "version": "4.0.2",
+  "version": "4.0.3",
   "description": "Useful tools to create and manipulate GraphQL schemas.",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -30,7 +30,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/apollostack/graphql-tools.git"
+    "url": "git+https://github.com/apollographql/graphql-tools.git"
   },
   "keywords": [
     "GraphQL",
