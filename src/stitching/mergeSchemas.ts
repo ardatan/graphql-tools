@@ -10,7 +10,8 @@ import {
   getNamedType,
   isNamedType,
   parse,
-  Kind
+  Kind,
+  GraphQLDirective,
 } from 'graphql';
 import {
   IDelegateToSchemaOptions,
@@ -59,32 +60,49 @@ export default function mergeSchemas({
   onTypeConflict,
   resolvers,
   schemaDirectives,
-  inheritResolversFromInterfaces
+  inheritResolversFromInterfaces,
+  mergeDirectives,
 }: {
-  schemas: Array<string | GraphQLSchema | DocumentNode | Array<GraphQLNamedType>>;
+  schemas: Array<
+    string | GraphQLSchema | DocumentNode | Array<GraphQLNamedType>
+  >;
   onTypeConflict?: OnTypeConflict;
   resolvers?: IResolversParameter;
   schemaDirectives?: { [name: string]: typeof SchemaDirectiveVisitor };
   inheritResolversFromInterfaces?: boolean;
+  mergeDirectives?: boolean,
+
 }): GraphQLSchema {
-  return mergeSchemasImplementation({ schemas, resolvers, schemaDirectives, inheritResolversFromInterfaces });
+  return mergeSchemasImplementation({
+    schemas,
+    resolvers,
+    schemaDirectives,
+    inheritResolversFromInterfaces,
+    mergeDirectives,
+  });
 }
 
 function mergeSchemasImplementation({
   schemas,
   resolvers,
   schemaDirectives,
-  inheritResolversFromInterfaces
+  inheritResolversFromInterfaces,
+  mergeDirectives,
 }: {
-  schemas: Array<string | GraphQLSchema | DocumentNode | Array<GraphQLNamedType>>;
+  schemas: Array<
+    string | GraphQLSchema | DocumentNode | Array<GraphQLNamedType>
+  >;
   resolvers?: IResolversParameter;
   schemaDirectives?: { [name: string]: typeof SchemaDirectiveVisitor };
   inheritResolversFromInterfaces?: boolean;
+  mergeDirectives?: boolean,
+
 }): GraphQLSchema {
   const allSchemas: Array<GraphQLSchema> = [];
   const typeCandidates: { [name: string]: Array<MergeTypeCandidate> } = {};
   const types: { [name: string]: GraphQLNamedType } = {};
   const extensions: Array<DocumentNode> = [];
+  const directives: Array<GraphQLDirective> = [];
   const fragments: Array<{
     field: string;
     fragment: string;
@@ -122,6 +140,11 @@ function mergeSchemasImplementation({
         });
       }
 
+      const directiveInstances = schema.getDirectives();
+      directiveInstances.forEach(directive => {
+        directives.push(directive);
+      });
+
       const typeMap = schema.getTypeMap();
       Object.keys(typeMap).forEach(typeName => {
         const type: GraphQLNamedType = typeMap[typeName];
@@ -138,11 +161,17 @@ function mergeSchemasImplementation({
           });
         }
       });
-    } else if (typeof schema === 'string' || (schema && (schema as DocumentNode).kind === Kind.DOCUMENT)) {
-      let parsedSchemaDocument = typeof schema === 'string' ? parse(schema) : (schema as DocumentNode);
+    } else if (
+      typeof schema === 'string' ||
+      (schema && (schema as DocumentNode).kind === Kind.DOCUMENT)
+    ) {
+      let parsedSchemaDocument =
+        typeof schema === 'string' ? parse(schema) : (schema as DocumentNode);
       parsedSchemaDocument.definitions.forEach(def => {
         const type = typeFromAST(def);
-        if (type) {
+        if (type instanceof GraphQLDirective) {
+          directives.push(type);
+        } else if (type) {
           addTypeCandidate(typeCandidates, type.name, {
             type: type,
           });
@@ -219,6 +248,7 @@ function mergeSchemasImplementation({
     mutation: types.Mutation as GraphQLObjectType,
     subscription: types.Subscription as GraphQLObjectType,
     types: Object.keys(types).map(key => types[key]),
+    directives: mergeDirectives ? directives : [],
   });
 
   extensions.forEach(extension => {

@@ -9,6 +9,8 @@ import {
   subscribe,
   parse,
   ExecutionResult,
+  defaultFieldResolver,
+  GraphQLField,
 } from 'graphql';
 import mergeSchemas from '../stitching/mergeSchemas';
 import {
@@ -22,6 +24,7 @@ import {
   subscriptionPubSub,
   subscriptionPubSubTrigger,
 } from './testingSchemas';
+import { SchemaDirectiveVisitor } from '../schemaVisitor';
 import { forAwaitEach } from 'iterall';
 import { makeExecutableSchema } from '../makeExecutableSchema';
 import { IResolvers } from '../Interfaces';
@@ -237,6 +240,14 @@ const codeCoverageTypeDefs = `
   }
 `;
 
+let schemaDirectiveTypeDefs = `
+  directive @upper on FIELD_DEFINITION
+
+  extend type Property {
+    someField: String! @upper
+  }
+`;
+
 testCombinations.forEach(async combination => {
   describe('merging ' + combination.name, () => {
     let mergedSchema: GraphQLSchema,
@@ -261,7 +272,23 @@ testCombinations.forEach(async combination => {
           loneExtend,
           localSubscriptionSchema,
           codeCoverageTypeDefs,
+          schemaDirectiveTypeDefs,
         ],
+        schemaDirectives: {
+          upper: class extends SchemaDirectiveVisitor {
+            public visitFieldDefinition(field: GraphQLField<any, any>) {
+              const { resolve = defaultFieldResolver } = field;
+              field.resolve = async function(...args: any[]) {
+                const result = await resolve.apply(this, args);
+                if (typeof result === 'string') {
+                  return result.toUpperCase();
+                }
+                return result;
+              };
+            }
+          },
+        },
+        mergeDirectives: true,
         resolvers: {
           Property: {
             bookings: {
@@ -279,6 +306,11 @@ testCombinations.forEach(async combination => {
                   context,
                   info,
                 );
+              },
+            },
+            someField: {
+              resolve() {
+                return 'someField';
               },
             },
           },
@@ -2639,6 +2671,29 @@ fragment BookingFragment on Booking {
                 name: 'BedBugs - The Affordable Hostel',
               },
             ],
+          },
+        });
+      });
+    });
+
+    describe('schema directives', () => {
+      it('should work with schema directives', async () => {
+        const result = await graphql(
+          mergedSchema,
+          `
+            query {
+              propertyById(id: "p1") {
+                someField
+              }
+            }
+          `,
+        );
+
+        expect(result).to.deep.equal({
+          data: {
+            propertyById: {
+              someField: 'SOMEFIELD',
+            },
           },
         });
       });
