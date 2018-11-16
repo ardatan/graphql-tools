@@ -55,6 +55,8 @@ export default function typeFromAST(
       return makeScalarType(node);
     case Kind.INPUT_OBJECT_TYPE_DEFINITION:
       return makeInputObjectType(node);
+    case Kind.DIRECTIVE_DEFINITION:
+      return makeDirective(node);
     default:
       return null;
   }
