@@ -11,6 +11,8 @@
 * Add missing property to `mergeSchemas` api reference. <br />
   [@PlayMa256](https://github.com/PlayMa256) in
   [#1014](https://github.com/apollographql/graphql-tools/pull/1014)
+* Documentation updates.  <br/>
+  [@dougshamoo](https://github.com/dougshamoo) in [#1012](https://github.com/apollographql/graphql-tools/pull/1012)
 
 ### 4.0.3
 
