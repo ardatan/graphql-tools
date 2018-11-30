@@ -53,11 +53,12 @@ export default class WrapQuery implements Transform {
   }
 
   public transformResult(originalResult: Result): Result {
-    let data = originalResult.data;
-    if (data) {
+    const rootData = originalResult.data;
+    if (rootData) {
+      let data = rootData;
       const path = [...this.path];
       while (path.length > 1) {
-        const next = path.unshift();
+        const next = path.shift();
         if (data[next]) {
           data = data[next];
         }
@@ -66,7 +67,7 @@ export default class WrapQuery implements Transform {
     }
 
     return {
-      data,
+      data: rootData,
       errors: originalResult.errors
     };
   }
