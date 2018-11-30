@@ -291,7 +291,7 @@ For a more complicated example involving properties and bookings, with implement
 
 ```ts
 mergeSchemas({
-  schemas: Array<string | GraphQLSchema | Array<GraphQLNamedType>>;
+  schemas: Array<string | GraphQLSchema | DocumentNode | Array<GraphQLNamedType>>;
   resolvers?: Array<IResolvers> | IResolvers;
   onTypeConflict?: (
     left: GraphQLNamedType,

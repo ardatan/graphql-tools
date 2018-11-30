@@ -665,6 +665,12 @@ describe('transforms', () => {
                       zip: result.addressZip
                     })
                   ),
+                  // Wrap a second level field
+                  new WrapQuery(
+                    ['userById', 'zip'],
+                    (subtree: SelectionSetNode) => subtree,
+                    result => result
+                  )
                 ],
               });
             },
