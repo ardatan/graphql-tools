@@ -187,11 +187,11 @@ let linkSchema = `
   extend type Customer implements Node
 `;
 
-const loneExtend = `
+const loneExtend = parse(`
   extend type Booking {
     foo: String!
   }
-`;
+`);
 
 let interfaceExtensionTest = `
   # No-op for older versions since this feature does not yet exist

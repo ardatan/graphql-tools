@@ -120,3 +120,8 @@ This example has the entire type definition in one string and all resolvers in o
 ## Contributions
 
 Contributions, issues and feature requests are very welcome. If you are using this package and fixed a bug for yourself, please consider submitting a PR!
+
+## Maintainers
+
+- [@hwillson](https://github.com/hwillson) (Apollo)
+- [@benjamn](https://github.com/benjamn) (Apollo)
