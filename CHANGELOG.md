@@ -11,8 +11,10 @@
 * Add missing property to `mergeSchemas` api reference. <br />
   [@PlayMa256](https://github.com/PlayMa256) in
   [#1014](https://github.com/apollographql/graphql-tools/pull/1014)
-* Documentation updates.  <br/>
+* Documentation updates for mockServer <br/>
   [@dougshamoo](https://github.com/dougshamoo) in [#1012](https://github.com/apollographql/graphql-tools/pull/1012)
+* Fix default merged resolver behavior <br/>
+  [@mfix22](https://github.com/mfix22) in [#983](https://github.com/apollographql/graphql-tools/pull/983)
 
 ### 4.0.3
 
