@@ -5,6 +5,9 @@
 * Make `WrapQuery` work for non-root fields <br />
   [@mdlavin](https://github.com/mdlavin) in
   [#1007](https://github.com/apollographql/graphql-tools/pull/1008)
+* Update resolvers.md to clarify array usage <br />
+  [@alvin777](https://github.com/alvin777) in
+  [#1005](https://github.com/apollographql/graphql-tools/pull/1005)
 
 ### 4.0.3
 
