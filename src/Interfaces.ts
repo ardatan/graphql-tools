@@ -32,10 +32,10 @@ export interface IAddResolveFunctionsToSchemaOptions {
   inheritResolversFromInterfaces?: boolean;
 }
 
-export interface IResolverOptions<TSource = any, TContext = any> {
+export interface IResolverOptions<TSource = any, TContext = any, TArgs = any> {
   fragment?: string;
-  resolve?: IFieldResolver<TSource, TContext>;
-  subscribe?: IFieldResolver<TSource, TContext>;
+  resolve?: IFieldResolver<TSource, TContext, TArgs>;
+  subscribe?: IFieldResolver<TSource, TContext, TArgs>;
   __resolveType?: GraphQLTypeResolver<TSource, TContext>;
   __isTypeOf?: GraphQLIsTypeOfFn<TSource, TContext>;
 }
@@ -77,7 +77,7 @@ export type MergeInfo = {
   }>;
 };
 
-export type IFieldResolver<TSource, TContext, TArgs = { [argument: string]: any }> = (
+export type IFieldResolver<TSource, TContext, TArgs = any> = (
   source: TSource,
   args: TArgs,
   context: TContext,

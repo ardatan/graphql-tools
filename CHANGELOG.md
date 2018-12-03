@@ -15,6 +15,9 @@
   [@dougshamoo](https://github.com/dougshamoo) in [#1012](https://github.com/apollographql/graphql-tools/pull/1012)
 * Fix default merged resolver behavior <br/>
   [@mfix22](https://github.com/mfix22) in [#983](https://github.com/apollographql/graphql-tools/pull/983)
+* Fix `IFieldResolver`, changed TArgs default value to `any` 
+  in response to [#1001](https://github.com/apollographql/graphql-tools/issues/1001) <br />
+  [@jcloutz](https://github.com/jcloutz) in [#1017](https://github.com/apollographql/graphql-tools/pull/1017)
 
 ### 4.0.3
 

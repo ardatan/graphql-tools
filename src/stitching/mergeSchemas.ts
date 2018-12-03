@@ -360,7 +360,7 @@ function createDelegatingResolver(
   schema: GraphQLSchema,
   operation: 'query' | 'mutation' | 'subscription',
   fieldName: string,
-): IFieldResolver<any, any> {
+): IFieldResolver<any, any, any> {
   return (root, args, context, info) => {
     return info.mergeInfo.delegateToSchema({
       schema,
