@@ -11,10 +11,12 @@
 * Add missing property to `mergeSchemas` api reference. <br />
   [@PlayMa256](https://github.com/PlayMa256) in
   [#1014](https://github.com/apollographql/graphql-tools/pull/1014)
-* Documentation updates.  <br/>
+* Documentation updates for mockServer <br/>
   [@dougshamoo](https://github.com/dougshamoo) in [#1012](https://github.com/apollographql/graphql-tools/pull/1012)
-* Use `TArgs` generic wherever `IFieldResolver` is used.<br/>
-  [@brikou](https://github.com/brikou) in [#955](https://github.com/apollographql/graphql-tools/pull/955)
+* Fix default merged resolver behavior <br/>
+  [@mfix22](https://github.com/mfix22) in [#983](https://github.com/apollographql/graphql-tools/pull/983)
+* Use `TArgs` generic wherever `IFieldResolver` is used.  <br/>
+  [@brikou](https://github.com/brikou) in [#955](https://github.com/apollographql/graphql-tools/pull/955)  
 
 ### 4.0.3
 

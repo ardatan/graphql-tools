@@ -2665,6 +2665,37 @@ fragment BookingFragment on Booking {
           },
         });
       });
+
+      it('defaultMergedResolver should work with non-root aliases', async () => {
+        // Source: https://github.com/apollographql/graphql-tools/issues/967
+        const typeDefs = `
+          type Query {
+            book: Book
+          }
+          type Book {
+            category: String!
+          }
+        `;
+        let schema = makeExecutableSchema({ typeDefs });
+
+        const resolvers = {
+          Query: {
+            book: () => ({ category: 'Test' })
+          }
+        };
+
+        schema = mergeSchemas({
+          schemas: [ schema ],
+          resolvers
+        });
+
+        const result = await graphql(
+          schema,
+          `{ book { cat: category } }`,
+        );
+
+        expect(result.data.book.cat).to.equal('Test');
+      });
     });
   });
 });
