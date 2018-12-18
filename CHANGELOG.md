@@ -16,7 +16,9 @@
 * Fix default merged resolver behavior <br/>
   [@mfix22](https://github.com/mfix22) in [#983](https://github.com/apollographql/graphql-tools/pull/983)
 * Use `TArgs` generic wherever `IFieldResolver` is used.  <br/>
-  [@brikou](https://github.com/brikou) in [#955](https://github.com/apollographql/graphql-tools/pull/955)  
+  [@brikou](https://github.com/brikou) in [#955](https://github.com/apollographql/graphql-tools/pull/955)
+* Fix mocking interfaces example <br/>
+  [@danielsbird](https://github.com/danielsbird) in [#1029](https://github.com/apollographql/graphql-tools/pull/1029)
 
 ### 4.0.3
 
