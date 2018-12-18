@@ -2,6 +2,9 @@
 
 ### vNext
 
+* Fix `SchemaVisitor` type declaration to allow null and undefined return values <br />
+  [@rexxars](https://github.com/rexxars) in
+  [#1030](https://github.com/apollographql/graphql-tools/pull/1030)
 * Make `WrapQuery` work for non-root fields <br />
   [@mdlavin](https://github.com/mdlavin) in
   [#1007](https://github.com/apollographql/graphql-tools/pull/1008)

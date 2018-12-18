@@ -28,12 +28,12 @@ export enum VisitSchemaKind {
   MUTATION = 'VisitSchemaKind.MUTATION',
   SUBSCRIPTION = 'VisitSchemaKind.SUBSCRIPTION',
 }
-// I couldn't make keys to be forced to be enum values
-export type SchemaVisitor = { [key: string]: TypeVisitor };
+
+export type SchemaVisitor = { [key in VisitSchemaKind]?: TypeVisitor };
 export type TypeVisitor = (
   type: GraphQLType,
   schema: GraphQLSchema,
-) => GraphQLNamedType;
+) => GraphQLNamedType | null | undefined;
 
 export function visitSchema(
   schema: GraphQLSchema,
@@ -57,7 +57,7 @@ export function visitSchema(
       const specifiers = getTypeSpecifiers(type, schema);
       const typeVisitor = getVisitor(visitor, specifiers);
       if (typeVisitor) {
-        const result: GraphQLNamedType | null | undefined = typeVisitor(
+        const result = typeVisitor(
           type,
           schema,
         );
