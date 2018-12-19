@@ -20,6 +20,10 @@ const defaultMergedResolver: GraphQLFieldResolver<any, any> = (parent, args, con
 
   let result = parent[responseKey];
 
+  if (result == null) {
+    result = parent[info.fieldName];
+  }
+
   // subscription result mapping
   if (!result && parent.data && parent.data[responseKey]) {
     result = parent.data[responseKey];

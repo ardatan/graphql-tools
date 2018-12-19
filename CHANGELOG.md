@@ -1,5 +1,23 @@
 # Change log
 
+### vNext
+
+* Make `WrapQuery` work for non-root fields <br />
+  [@mdlavin](https://github.com/mdlavin) in
+  [#1007](https://github.com/apollographql/graphql-tools/pull/1008)
+* Update resolvers.md to clarify array usage <br />
+  [@alvin777](https://github.com/alvin777) in
+  [#1005](https://github.com/apollographql/graphql-tools/pull/1005)
+* Add missing property to `mergeSchemas` api reference. <br />
+  [@PlayMa256](https://github.com/PlayMa256) in
+  [#1014](https://github.com/apollographql/graphql-tools/pull/1014)
+* Documentation updates for mockServer <br/>
+  [@dougshamoo](https://github.com/dougshamoo) in [#1012](https://github.com/apollographql/graphql-tools/pull/1012)
+* Fix default merged resolver behavior <br/>
+  [@mfix22](https://github.com/mfix22) in [#983](https://github.com/apollographql/graphql-tools/pull/983)
+* Use `TArgs` generic wherever `IFieldResolver` is used.  <br/>
+  [@brikou](https://github.com/brikou) in [#955](https://github.com/apollographql/graphql-tools/pull/955)  
+
 ### 4.0.3
 
 * Export `mapAsyncIterator` <br />
@@ -16,42 +34,42 @@
 * Add support for passing a parsed schema ast to `mergeSchemas` <br/>
   [@ganemone](https://github.com/ganemone) in
   [#977](https://github.com/apollographql/graphql-tools/pull/977)
-* Changes to `extractExtensionDefinitions` to support `graphql-js` union and enum extensions.  <br/>
+* Changes to `extractExtensionDefinitions` to support `graphql-js` union and enum extensions. <br/>
   [@jansuchy](https://github.com/jansuchy) in [#951](https://github.com/apollographql/graphql-tools/pull/951)
 * Add docs for `mockServer` (closes [#951](https://github.com/apollographql/graphql-tools/issues/94))<br/>
-  [@mfix22](https://github.com/mfix22) in [PR #982](https://github.com/apollographql/graphql-tools/pull/982)  
-* Fix regression where custom scalars were incorrectly replaced while recreating schema with `visitSchema`.  <br/>
+  [@mfix22](https://github.com/mfix22) in [PR #982](https://github.com/apollographql/graphql-tools/pull/982)
+* Fix regression where custom scalars were incorrectly replaced while recreating schema with `visitSchema`. <br/>
   [@tgriesser](https://github.com/tgriesser) in [#985](https://github.com/apollographql/graphql-tools/pull/985)
 
 ### 4.0.2
 
-* Fix regression in enum input mapping.  <br/>
+* Fix regression in enum input mapping. <br/>
   [@tgriesser](https://github.com/tgriesser) in [#974](https://github.com/apollographql/graphql-tools/pull/974)
 
 ### 4.0.1
 
-* Fix [regression](https://github.com/apollographql/graphql-tools/issues/962) in enum internal value mapping.  <br/>
+* Fix [regression](https://github.com/apollographql/graphql-tools/issues/962) in enum internal value mapping. <br/>
   [@tgriesser](https://github.com/tgriesser) in [#973](https://github.com/apollographql/graphql-tools/pull/973)
 
 ### 4.0.0
 
-* Support `graphql` and `@types/graphql` 14.x.  <br />
+* Support `graphql` and `@types/graphql` 14.x. <br />
   **NOTE:** `graphql` 14 includes [breaking changes](https://github.com/graphql/graphql-js/releases/tag/v14.0.0). We're bumping the major version of `graphql-tools` to accommodate those breaking changes. If you're planning on using `graphql` 14 with `graphql-tools` 4.0.0, please make sure you've reviewed the `graphql` breaking changes list.
   [@hwillson](https://github.com/hwillson) in [#953](https://github.com/apollographql/graphql-tools/pull/953)
-* Fix template strings usage in guessSchemaByRootField error message.  <br/>
+* Fix template strings usage in guessSchemaByRootField error message. <br/>
   [@nagelflorian](https://github.com/nagelflorian) in [#936](https://github.com/apollographql/graphql-tools/pull/936)
-* Update `IFieldResolver` to allow typed input args.  <br/>
+* Update `IFieldResolver` to allow typed input args. <br/>
   [@luk3thomas](https://github.com/luk3thomas) in [#932](https://github.com/apollographql/graphql-tools/pull/932)
-* Changes to `extractExtensionDefinitions` to properly support `graphql-js` input extensions.  <br/>
+* Changes to `extractExtensionDefinitions` to properly support `graphql-js` input extensions. <br/>
   [@jure](https://github.com/jure) in [#948](https://github.com/apollographql/graphql-tools/pull/948)
-* Stop automatically shallow cloning (via object spread syntax) transformed subscription results. Transformed subscription results are not always objects, which means object spreading can lead to invalid results.  <br/>
+* Stop automatically shallow cloning (via object spread syntax) transformed subscription results. Transformed subscription results are not always objects, which means object spreading can lead to invalid results. <br/>
   [@ericlewis](https://github.com/ericlewis) in [#928](https://github.com/apollographql/graphql-tools/pull/928)
-* Re-use errors with an `extensions` property to make compatible with Apollo Server and it's built-in errors.  <br/>
+* Re-use errors with an `extensions` property to make compatible with Apollo Server and it's built-in errors. <br/>
   [@edorsey](https://github.com/edorsey) in [#925](https://github.com/apollographql/graphql-tools/pull/925)
-* Documentation updates.  <br/>
-  [@Amorites](https://github.com/Amorites) in [#944](https://github.com/apollographql/graphql-tools/pull/944)  <br/>
-  [@trevor-scheer](https://github.com/trevor-scheer) in [#946](https://github.com/apollographql/graphql-tools/pull/946)  <br/>
-  [@dnalborczyk](https://github.com/dnalborczyk) in [#934](https://github.com/apollographql/graphql-tools/pull/934)  <br/>
+* Documentation updates. <br/>
+  [@Amorites](https://github.com/Amorites) in [#944](https://github.com/apollographql/graphql-tools/pull/944) <br/>
+  [@trevor-scheer](https://github.com/trevor-scheer) in [#946](https://github.com/apollographql/graphql-tools/pull/946) <br/>
+  [@dnalborczyk](https://github.com/dnalborczyk) in [#934](https://github.com/apollographql/graphql-tools/pull/934) <br/>
   [@zcei](https://github.com/zcei) in [#933](https://github.com/apollographql/graphql-tools/pull/933)
 
 ### v3.1.1
@@ -106,6 +124,7 @@
 ### v3.0.0
 
 * Schema transforms and delegation
+
   * Substantial rewrite of internals of `mergeSchemas` and `delegateToSchema`
   * A new API for schema transforms has been introduced: [Docs](https://www.apollographql.com/docs/graphql-tools/schema-transforms.html)
   * `delegateToSchema` is now a public API: [Docs](https://www.apollographql.com/docs/graphql-tools/schema-delegation.html)

@@ -245,11 +245,15 @@ This is an object you can return from your mock resolvers which calls the `mockF
 ```js
 import { mockServer } from 'graphql-tools';
 
-const server = mockServer({
-  schema,
-  mocks: {},
-  preserveResolvers: false,
-});
+// This can be an SDL schema string (eg the result of `buildClientSchema` above)
+// or a GraphQLSchema object (eg the result of `buildSchema` from `graphql`)
+const schema = `...`
+
+// Same mocks object that `addMockFunctionsToSchema` takes above
+const mocks = {}
+preserveResolvers = false
+
+const server = mockServer(schemaString, mocks, preserveResolvers);
 
 const query = `{ __typename }`
 const variables = {}
