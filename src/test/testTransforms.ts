@@ -1,6 +1,7 @@
 /* tslint:disable:no-unused-expression */
 
 import { expect } from 'chai';
+import { forAwaitEach } from 'iterall';
 import {
   GraphQLSchema,
   GraphQLNamedType,
@@ -9,9 +10,17 @@ import {
   SelectionSetNode,
   print,
   parse,
+  ExecutionResult,
+  subscribe,
 } from 'graphql';
 import { makeExecutableSchema } from '../makeExecutableSchema';
-import { propertySchema, bookingSchema } from './testingSchemas';
+import {
+  propertySchema,
+  bookingSchema,
+  subscriptionSchema,
+  subscriptionPubSubTrigger,
+  subscriptionPubSub,
+} from './testingSchemas';
 import delegateToSchema from '../stitching/delegateToSchema';
 import {
   transformSchema,
@@ -21,6 +30,7 @@ import {
   ExtractField,
   ReplaceFieldWithFragment,
   FilterToSchema,
+  RenameRootFields,
 } from '../transforms';
 
 describe('transforms', () => {
@@ -83,6 +93,46 @@ describe('transforms', () => {
           },
         },
       });
+    });
+  });
+
+  describe('rename root fields for subscriptions', () => {
+    let schema: GraphQLSchema;
+    before(() => {
+      const transforms = [
+        new RenameRootFields((_operation: string, name: string) => `prefix_${name}`),
+      ];
+      schema = transformSchema(subscriptionSchema, transforms);
+    });
+    it('should work', done => {
+      const mockNotification = {
+        notifications: {
+          text: 'Hello world',
+        },
+      };
+
+      const subscription = parse(`
+        subscription Subscription {
+          prefix_notifications {
+            text
+          }
+        }
+      `);
+
+      let notificationCnt = 0;
+      subscribe(schema, subscription).then(results =>
+        forAwaitEach(results as AsyncIterable<ExecutionResult>, (result: ExecutionResult) => {
+          expect(result).to.have.property('data');
+          expect(result.data).to.deep.equal({
+            prefix_notifications: {
+              text: 'Hello world',
+            },
+          });
+          !notificationCnt++ ? done() : null;
+        }),
+      );
+
+      subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification);
     });
   });
 
