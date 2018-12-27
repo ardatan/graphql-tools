@@ -16,7 +16,10 @@
 * Fix default merged resolver behavior <br/>
   [@mfix22](https://github.com/mfix22) in [#983](https://github.com/apollographql/graphql-tools/pull/983)
 * Use `TArgs` generic wherever `IFieldResolver` is used.  <br/>
-  [@brikou](https://github.com/brikou) in [#955](https://github.com/apollographql/graphql-tools/pull/955)  
+  [@brikou](https://github.com/brikou) in [#955](https://github.com/apollographql/graphql-tools/pull/955)
+* Resolve original AST field name in `getResponseKeyFromInfo` for [#997] <br/>
+  [@kommander](https://github.com/kommander) in [#1036]
+  (https://github.com/apollographql/graphql-tools/pull/1036)
 
 ### 4.0.3
 
