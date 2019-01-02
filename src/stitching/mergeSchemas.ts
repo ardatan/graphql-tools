@@ -29,6 +29,7 @@ import {
 } from '../makeExecutableSchema';
 import {
   recreateType,
+  recreateDirective,
   fieldMapToFieldConfigMap,
   createResolveType,
 } from './schemaRecreation';
@@ -140,10 +141,12 @@ function mergeSchemasImplementation({
         });
       }
 
-      const directiveInstances = schema.getDirectives();
-      directiveInstances.forEach(directive => {
-        directives.push(directive);
-      });
+      if (mergeDirectives) {
+        const directiveInstances = schema.getDirectives();
+        directiveInstances.forEach(directive => {
+          directives.push(directive);
+        });
+      }
 
       const typeMap = schema.getTypeMap();
       Object.keys(typeMap).forEach(typeName => {
@@ -166,12 +169,12 @@ function mergeSchemasImplementation({
       (schema && (schema as DocumentNode).kind === Kind.DOCUMENT)
     ) {
       let parsedSchemaDocument =
-        typeof schema === 'string' ? parse(schema) : (schema as DocumentNode);
+      typeof schema === 'string' ? parse(schema) : (schema as DocumentNode);
       parsedSchemaDocument.definitions.forEach(def => {
         const type = typeFromAST(def);
-        if (type instanceof GraphQLDirective) {
+        if (type instanceof GraphQLDirective && mergeDirectives) {
           directives.push(type);
-        } else if (type) {
+        } else if (type && !(type instanceof GraphQLDirective)) {
           addTypeCandidate(typeCandidates, type.name, {
             type: type,
           });
@@ -248,7 +251,7 @@ function mergeSchemasImplementation({
     mutation: types.Mutation as GraphQLObjectType,
     subscription: types.Subscription as GraphQLObjectType,
     types: Object.keys(types).map(key => types[key]),
-    directives: mergeDirectives ? directives : [],
+    directives: directives.map((directive) => recreateDirective(directive, resolveType))
   });
 
   extensions.forEach(extension => {

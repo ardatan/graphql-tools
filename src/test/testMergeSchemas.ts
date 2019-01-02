@@ -243,8 +243,17 @@ const codeCoverageTypeDefs = `
 let schemaDirectiveTypeDefs = `
   directive @upper on FIELD_DEFINITION
 
+  directive @withEnumArg(enumArg: DirectiveEnum = FOO) on FIELD_DEFINITION
+
+  enum DirectiveEnum {
+    FOO
+    BAR
+  }
+
   extend type Property {
     someField: String! @upper
+    someOtherField: String! @withEnumArg
+    someThirdField: String! @withEnumArg(enumArg: BAR)
   }
 `;
 

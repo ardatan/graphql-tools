@@ -20,6 +20,7 @@ import {
   GraphQLScalarType,
   GraphQLType,
   GraphQLUnionType,
+  GraphQLDirective,
   Kind,
   ValueNode,
   getNamedType,
@@ -122,6 +123,19 @@ export function recreateType(
   } else {
     throw new Error(`Invalid type ${type}`);
   }
+}
+
+export function recreateDirective(
+  directive: GraphQLDirective,
+  resolveType: ResolveType<any>,
+): GraphQLDirective {
+  return new GraphQLDirective({
+    name: directive.name,
+    description: directive.description,
+    locations: directive.locations,
+    args: argsToFieldConfigArgumentMap(directive.args, resolveType),
+    astNode: directive.astNode,
+  });
 }
 
 function parseLiteral(ast: ValueNode): any {
