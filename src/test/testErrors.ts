@@ -99,5 +99,23 @@ describe('Errors', () => {
         });
       }
     });
+
+    it('persists single error that is instance of Error if the initial error has path and extensions and is instance of Object', () => {
+      const result = {
+        errors: [
+          {
+            message: 'Test error',
+            extensions: {},
+            path: [] as any,
+          } as GraphQLError
+        ]
+      };
+      try {
+        checkResultAndHandleErrors(result, {} as GraphQLResolveInfo, 'responseKey');
+      } catch (e) {
+        assert.equal(e.message, 'Test error');
+        assert.instanceOf(e, Error);
+      }
+    });
   });
 });
