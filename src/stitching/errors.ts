@@ -107,7 +107,7 @@ export function checkResultAndHandleErrors(
     // If there is only one error, which contains a result property, pass the error through
     const newError =
       result.errors.length === 1 && hasResult(result.errors[0])
-        ? result.errors[0]
+        ? Object.setPrototypeOf(result.errors[0], Error.prototype)
         : new CombinedError(concatErrors(result.errors), result.errors);
     throw locatedError(newError, info.fieldNodes, responsePathAsArray(info.path));
   }
