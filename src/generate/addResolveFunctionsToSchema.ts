@@ -1,4 +1,4 @@
-import { SchemaError } from '.';
+import SchemaError from './SchemaError';
 
 import {
   GraphQLField,
@@ -17,7 +17,8 @@ import {
   IAddResolveFunctionsToSchemaOptions,
 } from '../Interfaces';
 import { applySchemaTransforms } from '../transforms/transforms';
-import { checkForResolveTypeResolver, extendResolversFromInterfaces } from '.';
+import checkForResolveTypeResolver from './checkForResolveTypeResolver';
+import extendResolversFromInterfaces from './extendResolversFromInterfaces';
 import ConvertEnumValues from '../transforms/ConvertEnumValues';
 
 function addResolveFunctionsToSchema(

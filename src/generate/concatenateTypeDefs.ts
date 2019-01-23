@@ -1,7 +1,7 @@
 import { print, DocumentNode } from 'graphql';
 import { ITypedef } from '../Interfaces';
 
-import { SchemaError } from '.';
+import SchemaError from './SchemaError';
 
 function concatenateTypeDefs(
   typeDefinitionsAry: ITypedef[],
