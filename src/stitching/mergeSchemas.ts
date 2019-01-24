@@ -9,6 +9,8 @@ import {
   extendSchema,
   getNamedType,
   isNamedType,
+  GraphQLDirective,
+  specifiedDirectives,
   parse,
   Kind
 } from 'graphql';
@@ -85,6 +87,7 @@ function mergeSchemasImplementation({
   const typeCandidates: { [name: string]: Array<MergeTypeCandidate> } = {};
   const types: { [name: string]: GraphQLNamedType } = {};
   const extensions: Array<DocumentNode> = [];
+  const directives: { [name: string]: GraphQLDirective } = {};
   const fragments: Array<{
     field: string;
     fragment: string;
@@ -138,6 +141,14 @@ function mergeSchemasImplementation({
           });
         }
       });
+
+      const schemaDirectives = schema.getDirectives();
+      schemaDirectives.forEach(directive => {
+        if (!!!directives[directive.name]) {
+          directives[directive.name] = directive;
+        }
+      });
+
     } else if (typeof schema === 'string' || (schema && (schema as DocumentNode).kind === Kind.DOCUMENT)) {
       let parsedSchemaDocument = typeof schema === 'string' ? parse(schema) : (schema as DocumentNode);
       parsedSchemaDocument.definitions.forEach(def => {
@@ -214,10 +225,13 @@ function mergeSchemasImplementation({
     }
   });
 
+
+  const directiveList = Object.values(directives);
   let mergedSchema = new GraphQLSchema({
     query: types.Query as GraphQLObjectType,
     mutation: types.Mutation as GraphQLObjectType,
     subscription: types.Subscription as GraphQLObjectType,
+    directives: directiveList.length > 0 ? directiveList : specifiedDirectives.concat([]),
     types: Object.keys(types).map(key => types[key]),
   });
 
