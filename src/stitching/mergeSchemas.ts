@@ -225,7 +225,7 @@ function mergeSchemasImplementation({
   });
 
 
-  const directiveList = Object.values(directives);
+  const directiveList = Object.keys(directives).map(name => directives[name]);
   let mergedSchema = new GraphQLSchema({
     query: types.Query as GraphQLObjectType,
     mutation: types.Mutation as GraphQLObjectType,
