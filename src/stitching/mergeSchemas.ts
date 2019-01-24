@@ -142,8 +142,7 @@ function mergeSchemasImplementation({
         }
       });
 
-      const schemaDirectives = schema.getDirectives();
-      schemaDirectives.forEach(directive => {
+      schema.getDirectives().forEach(directive => {
         if (!!!directives[directive.name]) {
           directives[directive.name] = directive;
         }
