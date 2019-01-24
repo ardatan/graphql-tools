@@ -2,6 +2,10 @@
 
 ### vNext
 
+* TODO
+
+### 4.0.4
+
 * Make `WrapQuery` work for non-root fields <br />
   [@mdlavin](https://github.com/mdlavin) in
   [#1007](https://github.com/apollographql/graphql-tools/pull/1008)
