@@ -50,11 +50,18 @@ export interface IGraphQLToolsResolveInfo extends GraphQLResolveInfo {
   mergeInfo?: MergeInfo;
 }
 
-export interface IDelegateToSchemaOptions<TContext = { [key: string]: any }> {
+export interface IDelegateToSchemaOptions<
+  TContext = {
+    [key: string]: any;
+  },
+  TArgs = {
+    [key: string]: any;
+  }
+> {
   schema: GraphQLSchema;
   operation: Operation;
   fieldName: string;
-  args?: { [key: string]: any };
+  args?: TArgs;
   context: TContext;
   info: IGraphQLToolsResolveInfo;
   transforms?: Array<Transform>;
@@ -70,7 +77,9 @@ export type MergeInfo = {
     info: GraphQLResolveInfo,
     transforms?: Array<Transform>,
   ) => any;
-  delegateToSchema<TContext>(options: IDelegateToSchemaOptions<TContext>): any;
+  delegateToSchema<TContext, TArgs>(
+    options: IDelegateToSchemaOptions<TContext, TArgs>
+  ): any;
   fragments: Array<{
     field: string;
     fragment: string;
