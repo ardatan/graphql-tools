@@ -159,7 +159,7 @@ type Booking {
 }
 ```
 
-If we delegate at `User.bookings` to `Query.bookingsByUser`, we want to preserve the `limit` argument and add an `userId` argument by using the `User.id`. So the resolver would look like the following:
+If we delegate at `User.bookings` to `Query.bookingsByUser`, we want to preserve the `limit` argument and add a `userId` argument by using the `User.id`. So the resolver would look like the following:
 
 ```js
 const resolvers = {
