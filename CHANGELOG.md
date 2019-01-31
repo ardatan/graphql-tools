@@ -2,6 +2,10 @@
 
 ### vNext
 
+* TODO
+
+### 4.0.4
+
 * Make `WrapQuery` work for non-root fields <br />
   [@mdlavin](https://github.com/mdlavin) in
   [#1007](https://github.com/apollographql/graphql-tools/pull/1008)
@@ -20,6 +24,8 @@
 * Resolve original AST field name in `getResponseKeyFromInfo` for [#997] <br/>
   [@kommander](https://github.com/kommander) in [#1036]
   (https://github.com/apollographql/graphql-tools/pull/1036)
+* Include deprecations from string SDL in mergeSchemas.  <br/>
+  [@evans](https://github.com/evans) in [#1041](https://github.com/apollographql/graphql-tools/pull/1041)
 
 ### 4.0.3
 
