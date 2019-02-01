@@ -3,6 +3,9 @@
 ### vNext
 
 * TODO
+* Prevent `addSchemaLevelResolveFunction` from making an otherwise sync operation async. <br />
+  [@simoncave](https://github.com/simoncave) in [#1057](https://github.com/apollographql/graphql-tools/pull/1057)
+
 
 ### 4.0.4
 
