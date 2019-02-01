@@ -1,6 +1,12 @@
 import { assert } from 'chai';
 import { makeExecutableSchema, addSchemaLevelResolveFunction } from '..';
-import { parse, graphql, subscribe, ExecutionResult } from 'graphql';
+import {
+  parse,
+  graphql,
+  graphqlSync,
+  subscribe,
+  ExecutionResult,
+} from 'graphql';
 import { PubSub } from 'graphql-subscriptions';
 import { forAwaitEach } from 'iterall';
 
@@ -156,6 +162,19 @@ describe('Resolve', () => {
           pubsub.publish('printRootChannel', { printRoot: subscriptionRoot2 });
         })
         .catch(done);
+    });
+
+    it('should not force an otherwise synchronous schema to be asynchronous', () => {
+      const queryRoot = 'queryRoot';
+      graphqlSync(
+        schema,
+        `
+          query TestQuery {
+            printRoot
+          }
+        `,
+        queryRoot,
+      );
     });
   });
 });
