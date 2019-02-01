@@ -166,6 +166,7 @@ describe('Resolve', () => {
 
     it('should not force an otherwise synchronous schema to be asynchronous', () => {
       const queryRoot = 'queryRoot';
+      // This will throw an error if schema has any asynchronous resolvers
       graphqlSync(
         schema,
         `
