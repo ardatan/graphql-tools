@@ -42,13 +42,33 @@ function wrapResolver(
   outerResolver: GraphQLFieldResolver<any, any>,
 ): GraphQLFieldResolver<any, any> {
   return (obj, args, ctx, info) => {
-    return Promise.resolve(outerResolver(obj, args, ctx, info)).then(root => {
+    return resolveMaybePromise(outerResolver(obj, args, ctx, info), root => {
       if (innerResolver) {
         return innerResolver(root, args, ctx, info);
       }
       return defaultFieldResolver(root, args, ctx, info);
     });
   };
+}
+
+function isPromise<T>(
+  maybePromise: Promise<T> | T,
+): maybePromise is Promise<T> {
+  return maybePromise && typeof (<Promise<T>>maybePromise).then === 'function';
+}
+
+// resolvers can be synchronous or asynchronous. if all resolvers
+// in an operation return synchronously, the execution should return
+// synchronously. the maybe-sync/maybe-async nature of resolvers should be
+// preserved
+function resolveMaybePromise<T, U>(
+  maybePromise: Promise<T> | T,
+  fulfillmentCallback: (value: T) => U,
+): Promise<U> | U {
+  if (isPromise(maybePromise)) {
+    return maybePromise.then(fulfillmentCallback);
+  }
+  return fulfillmentCallback(maybePromise);
 }
 
 // XXX this function only works for resolvers
