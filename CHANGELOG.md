@@ -2,7 +2,7 @@
 
 ### vNext
 
-* TODO
+* Fix bug where schemas with scalarscould not be merged when passed to mergeSchemas as a string, or GraphQLSchema generated using the graphql module.
 
 ### 4.0.4
 
