@@ -6,6 +6,8 @@ export default class SchemaError extends Error {
   constructor(message: string) {
     super(message);
     this.message = message;
-    Error.captureStackTrace(this, this.constructor);
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, this.constructor);
+    }
   }
 }
