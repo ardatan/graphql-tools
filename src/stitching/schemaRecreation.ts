@@ -195,8 +195,7 @@ export function createResolveType(
       }
     } else if (isNamedType(type)) {
       const typeName = getNamedType(type).name;
-
-       switch (typeName) {
+      switch (typeName) {
         case GraphQLInt.name:
           return GraphQLInt;
         case GraphQLFloat.name:
