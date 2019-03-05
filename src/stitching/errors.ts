@@ -1,4 +1,10 @@
-import { ExecutionResult, GraphQLError, GraphQLFormattedError, GraphQLResolveInfo, responsePathAsArray, } from 'graphql';
+import {
+  ExecutionResult,
+  GraphQLError,
+  GraphQLFormattedError,
+  GraphQLResolveInfo,
+  responsePathAsArray,
+} from 'graphql';
 import { locatedError } from 'graphql/error';
 import { getResponseKeyFromInfo } from './getResponseKeyFromInfo';
 
@@ -12,7 +18,10 @@ if (
   ERROR_SYMBOL = '@@__subSchemaErrors';
 }
 
-export function annotateWithChildrenErrors(object: any, childrenErrors: ReadonlyArray<GraphQLFormattedError>): any {
+export function annotateWithChildrenErrors(
+  object: any,
+  childrenErrors: ReadonlyArray<GraphQLFormattedError>,
+): any {
   if (!childrenErrors || childrenErrors.length === 0) {
     // Nothing to see here, move along
     return object;
@@ -29,26 +38,28 @@ export function annotateWithChildrenErrors(object: any, childrenErrors: Readonly
       const current = byIndex[index] || [];
       current.push({
         ...error,
-        path: error.path.slice(1)
+        path: error.path.slice(1),
       });
       byIndex[index] = current;
     });
 
-    return object.map((item, index) => annotateWithChildrenErrors(item, byIndex[index]));
+    return object.map((item, index) =>
+      annotateWithChildrenErrors(item, byIndex[index]),
+    );
   }
 
   return {
     ...object,
     [ERROR_SYMBOL]: childrenErrors.map(error => ({
       ...error,
-      ...(error.path ? {path: error.path.slice(1)} : {})
-    }))
+      ...(error.path ? { path: error.path.slice(1) } : {}),
+    })),
   };
 }
 
 export function getErrorsFromParent(
   object: any,
-  fieldName: string
+  fieldName: string,
 ):
   | {
   kind: 'OWN';
@@ -62,10 +73,13 @@ export function getErrorsFromParent(
   const childrenErrors: Array<GraphQLFormattedError> = [];
 
   for (const error of errors) {
-    if (!error.path || (error.path.length === 1 && error.path[0] === fieldName)) {
+    if (
+      !error.path ||
+      (error.path.length === 1 && error.path[0] === fieldName)
+    ) {
       return {
         kind: 'OWN',
-        error
+        error,
       };
     } else if (error.path[0] === fieldName) {
       childrenErrors.push(error);
@@ -74,7 +88,7 @@ export function getErrorsFromParent(
 
   return {
     kind: 'CHILDREN',
-    errors: childrenErrors
+    errors: childrenErrors,
   };
 }
 
@@ -106,7 +120,7 @@ function createGraphqlError(error: any): Error | GraphQLError {
 export function checkResultAndHandleErrors(
   result: ExecutionResult,
   info: GraphQLResolveInfo,
-  responseKey?: string
+  responseKey?: string,
 ): any {
   if (!responseKey) {
     responseKey = getResponseKeyFromInfo(info);
@@ -120,12 +134,19 @@ export function checkResultAndHandleErrors(
       result.errors.length === 1 && hasResult(result.errors[0])
         ? createGraphqlError(result.errors[0])
         : new CombinedError(concatErrors(result.errors), result.errors);
-    throw locatedError(newError, info.fieldNodes, responsePathAsArray(info.path));
+    throw locatedError(
+      newError,
+      info.fieldNodes,
+      responsePathAsArray(info.path),
+    );
   }
 
   let resultObject = result.data[responseKey];
   if (result.errors) {
-    resultObject = annotateWithChildrenErrors(resultObject, result.errors as ReadonlyArray<GraphQLFormattedError>);
+    resultObject = annotateWithChildrenErrors(
+      resultObject,
+      result.errors as ReadonlyArray<GraphQLFormattedError>,
+    );
   }
   return resultObject;
 }
@@ -135,5 +156,9 @@ function concatErrors(errors: ReadonlyArray<GraphQLError>) {
 }
 
 function hasResult(error: any) {
-  return error.result || error.extensions || (error.originalError && error.originalError.result);
+  return (
+    error.result ||
+    error.extensions ||
+    (error.originalError && error.originalError.result)
+  );
 }
