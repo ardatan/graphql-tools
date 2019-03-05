@@ -2734,4 +2734,65 @@ fragment BookingFragment on Booking {
       });
     });
   });
+
+  describe('scalars without executable schema', () => {
+    it('can merge and query schema', async () => {
+      const BookSchema = `
+        type Book {
+          name: String
+        }
+      `;
+
+      const AuthorSchema = `
+        type Query {
+          book: Book
+        }
+
+        type Author {
+          name: String
+        }
+
+        type Book {
+          author: Author
+        }
+      `;
+
+      const resolvers = {
+        Query: {
+          book: () => ({
+            author: {
+              name: 'JRR Tolkien',
+            },
+          }),
+        },
+      };
+
+      const result = await graphql(
+        mergeSchemas({ schemas: [BookSchema, AuthorSchema], resolvers }),
+        `
+          query {
+            book {
+              author {
+                name
+              }
+            }
+          }
+        `,
+        {},
+        {
+          test: 'Foo',
+        },
+      );
+
+      expect(result).to.deep.equal({
+        data: {
+          book: {
+            author: {
+              name: 'JRR Tolkien',
+            },
+          },
+        },
+      });
+    });
+  });
 });
