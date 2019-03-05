@@ -21,28 +21,28 @@ module.exports = {
             'schema-delegation',
             'remote-schemas',
             'schema-transforms',
-            'schema-stitching',
+            'schema-stitching'
           ],
           Related: [
             {
               title: 'Monitoring and caching',
-              href: 'https://www.apollographql.com/docs/engine/setup-node.html',
+              href: 'https://www.apollographql.com/docs/engine/setup-node.html'
             },
             {
               title: 'Apollo Server',
-              href: 'https://www.apollographql.com/docs/apollo-server/',
+              href: 'https://www.apollographql.com/docs/apollo-server/'
             },
             {
 
               title: 'GraphQL Subscriptions',
-              href: 'https://www.apollographql.com/docs/graphql-subscriptions/',
+              href: 'https://www.apollographql.com/docs/graphql-subscriptions/'
             },
             {
 
               title: 'Production deployment',
-              href: 'https://dev-blog.apollodata.com/graphql-over-rest-with-node-heroku-and-apollo-engine-fb8581f8d77f',
+              href: 'https://dev-blog.apollodata.com/graphql-over-rest-with-node-heroku-and-apollo-engine-fb8581f8d77f'
             }
-          ],
+          ]
         }
       }
     }
