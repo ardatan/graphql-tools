@@ -1,10 +1,4 @@
-import {
-  GraphQLResolveInfo,
-  responsePathAsArray,
-  ExecutionResult,
-  GraphQLFormattedError,
-  GraphQLError,
-} from 'graphql';
+import { ExecutionResult, GraphQLError, GraphQLFormattedError, GraphQLResolveInfo, responsePathAsArray, } from 'graphql';
 import { locatedError } from 'graphql/error';
 import { getResponseKeyFromInfo } from './getResponseKeyFromInfo';
 
@@ -47,7 +41,7 @@ export function annotateWithChildrenErrors(object: any, childrenErrors: Readonly
     ...object,
     [ERROR_SYMBOL]: childrenErrors.map(error => ({
       ...error,
-      ...(error.path ? { path: error.path.slice(1) } : {})
+      ...(error.path ? {path: error.path.slice(1)} : {})
     }))
   };
 }
@@ -57,13 +51,13 @@ export function getErrorsFromParent(
   fieldName: string
 ):
   | {
-      kind: 'OWN';
-      error: any;
-    }
+  kind: 'OWN';
+  error: any;
+}
   | {
-      kind: 'CHILDREN';
-      errors?: Array<GraphQLFormattedError>;
-    } {
+  kind: 'CHILDREN';
+  errors?: Array<GraphQLFormattedError>;
+} {
   const errors = (object && object[ERROR_SYMBOL]) || [];
   const childrenErrors: Array<GraphQLFormattedError> = [];
 
@@ -86,10 +80,27 @@ export function getErrorsFromParent(
 
 class CombinedError extends Error {
   public errors: ReadonlyArray<GraphQLError>;
+
   constructor(message: string, errors: ReadonlyArray<GraphQLError>) {
     super(message);
     this.errors = errors;
   }
+}
+
+function createGraphqlError(error: any): Error | GraphQLError {
+  if (error instanceof Error) {
+    return error;
+  }
+
+  return new GraphQLError(
+    error.message || null,
+    error.nodes || null,
+    error.source || null,
+    error.positions || null,
+    error.path || null,
+    error,
+    error.extensions,
+  );
 }
 
 export function checkResultAndHandleErrors(
@@ -107,7 +118,7 @@ export function checkResultAndHandleErrors(
     // If there is only one error, which contains a result property, pass the error through
     const newError =
       result.errors.length === 1 && hasResult(result.errors[0])
-        ? result.errors[0]
+        ? createGraphqlError(result.errors[0])
         : new CombinedError(concatErrors(result.errors), result.errors);
     throw locatedError(newError, info.fieldNodes, responsePathAsArray(info.path));
   }
