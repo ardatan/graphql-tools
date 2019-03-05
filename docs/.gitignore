@@ -8,3 +8,4 @@ public/*
 docs.json
 _multiconfig.yml
 .cache
+!package-lock.json
