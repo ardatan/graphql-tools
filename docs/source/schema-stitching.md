@@ -306,6 +306,7 @@ mergeSchemas({
     },
   ) => GraphQLNamedType;
   inheritResolversFromInterfaces?: boolean;
+  schemaDirectives?: { [name: string]: typeof SchemaDirectiveVisitor };
 })
 ```
 

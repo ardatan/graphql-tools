@@ -9,6 +9,7 @@ import {
   subscribe,
   parse,
   ExecutionResult,
+  findDeprecatedUsages,
 } from 'graphql';
 import mergeSchemas from '../stitching/mergeSchemas';
 import {
@@ -2664,6 +2665,133 @@ fragment BookingFragment on Booking {
             },
           },
         });
+      });
+
+      it('defaultMergedResolver should work with non-root aliases', async () => {
+        // Source: https://github.com/apollographql/graphql-tools/issues/967
+        const typeDefs = `
+          type Query {
+            book: Book
+          }
+          type Book {
+            category: String!
+          }
+        `;
+        let schema = makeExecutableSchema({ typeDefs });
+
+        const resolvers = {
+          Query: {
+            book: () => ({ category: 'Test' })
+          }
+        };
+
+        schema = mergeSchemas({
+          schemas: [schema],
+          resolvers
+        });
+
+        const result = await graphql(
+          schema,
+          `{ book { cat: category } }`,
+        );
+
+        expect(result.data.book.cat).to.equal('Test');
+      });
+    });
+
+    describe('deprecation', () => {
+      it('should retain deprecation information', async () => {
+        const typeDefs = `
+          type Query {
+            book: Book
+          }
+          type Book {
+            category: String! @deprecated(reason: "yolo")
+          }
+        `;
+
+        const query = `query {
+          book {
+            category
+          }
+        }`;
+
+        const resolvers = {
+          Query: {
+            book: () => ({ category: 'Test' })
+          }
+        };
+
+        const schema = mergeSchemas({
+          schemas: [propertySchema, typeDefs],
+          resolvers
+        });
+
+        const deprecatedUsages = findDeprecatedUsages(schema, parse(query));
+        expect(deprecatedUsages).not.empty;
+        expect(deprecatedUsages.length).to.equal(1);
+        expect(deprecatedUsages.find(error => Boolean(error && error.message.match(/deprecated/) && error.message.match(/yolo/))));
+      });
+    });
+  });
+
+  describe('scalars without executable schema', () => {
+    it('can merge and query schema', async () => {
+      const BookSchema = `
+        type Book {
+          name: String
+        }
+      `;
+
+      const AuthorSchema = `
+        type Query {
+          book: Book
+        }
+
+        type Author {
+          name: String
+        }
+
+        type Book {
+          author: Author
+        }
+      `;
+
+      const resolvers = {
+        Query: {
+          book: () => ({
+            author: {
+              name: 'JRR Tolkien',
+            },
+          }),
+        },
+      };
+
+      const result = await graphql(
+        mergeSchemas({ schemas: [BookSchema, AuthorSchema], resolvers }),
+        `
+          query {
+            book {
+              author {
+                name
+              }
+            }
+          }
+        `,
+        {},
+        {
+          test: 'Foo',
+        },
+      );
+
+      expect(result).to.deep.equal({
+        data: {
+          book: {
+            author: {
+              name: 'JRR Tolkien',
+            },
+          },
+        },
       });
     });
   });
