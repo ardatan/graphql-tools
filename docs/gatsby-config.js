@@ -6,7 +6,7 @@ module.exports = {
         root: __dirname,
         subtitle: 'GraphQL Tools',
         description: 'A guide to using GraphQL Tools',
-        contentDir: 'source',
+        contentDir: 'docs/source',
         basePath: '/docs/graphql-tools',
         githubRepo: 'apollographql/graphql-tools',
         sidebarCategories: {
