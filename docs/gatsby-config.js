@@ -9,7 +9,6 @@ module.exports = {
         contentDir: 'source',
         basePath: '/docs/graphql-tools',
         githubRepo: 'apollographql/graphql-tools',
-        versions: ['4', '3'],
         sidebarCategories: {
           null: [
             'index',
