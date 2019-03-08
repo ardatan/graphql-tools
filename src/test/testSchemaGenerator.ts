@@ -2587,7 +2587,7 @@ describe('can specify lexical parser options', () => {
     expect(schema.astNode.loc).to.equal(undefined);
   });
 
-  it("can specify 'experimentalFragmentVariables' option", () => {
+  xit("can specify 'experimentalFragmentVariables' option", () => {
     const typeDefs = `
       type Hello {
         world(phrase: String): String
