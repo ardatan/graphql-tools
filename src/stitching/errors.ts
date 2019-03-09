@@ -2,7 +2,6 @@ import {
   GraphQLResolveInfo,
   responsePathAsArray,
   ExecutionResult,
-  GraphQLFormattedError,
   GraphQLError,
 } from 'graphql';
 import { locatedError } from 'graphql/error';
@@ -18,7 +17,7 @@ if (
   ERROR_SYMBOL = '@@__subSchemaErrors';
 }
 
-export function annotateWithChildrenErrors(object: any, childrenErrors: ReadonlyArray<GraphQLFormattedError>): any {
+export function annotateWithChildrenErrors(object: any, childrenErrors: ReadonlyArray<GraphQLError>): any {
   if (!childrenErrors || childrenErrors.length === 0) {
     // Nothing to see here, move along
     return object;
@@ -33,10 +32,16 @@ export function annotateWithChildrenErrors(object: any, childrenErrors: Readonly
       }
       const index = error.path[1];
       const current = byIndex[index] || [];
+
+      // It's important to keep the `originalError`, to make sure
+      // error stacktrace's and custom `extensions` are preserved from
+      // source schemas, when merged.
       current.push({
         ...error,
-        path: error.path.slice(1)
+        path: error.path.slice(1),
+        originalError: error.originalError,
       });
+
       byIndex[index] = current;
     });
 
@@ -62,10 +67,10 @@ export function getErrorsFromParent(
     }
   | {
       kind: 'CHILDREN';
-      errors?: Array<GraphQLFormattedError>;
+      errors?: Array<GraphQLError>;
     } {
   const errors = (object && object[ERROR_SYMBOL]) || [];
-  const childrenErrors: Array<GraphQLFormattedError> = [];
+  const childrenErrors: Array<GraphQLError> = [];
 
   for (const error of errors) {
     if (!error.path || (error.path.length === 1 && error.path[0] === fieldName)) {
@@ -114,7 +119,7 @@ export function checkResultAndHandleErrors(
 
   let resultObject = result.data[responseKey];
   if (result.errors) {
-    resultObject = annotateWithChildrenErrors(resultObject, result.errors as ReadonlyArray<GraphQLFormattedError>);
+    resultObject = annotateWithChildrenErrors(resultObject, result.errors as ReadonlyArray<GraphQLError>);
   }
   return resultObject;
 }

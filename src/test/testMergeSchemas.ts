@@ -2274,6 +2274,38 @@ fragment BookingFragment on Booking {
           ],
         });
       });
+
+      it(
+        'should preserve custom error extensions from the original schema, ' +
+        'when merging schemas',
+        async () => {
+          const propertyQuery = `
+            query {
+              properties(limit: 1) {
+                error
+              }
+            }
+          `;
+
+          const propertyResult = await graphql(
+            propertySchema,
+            propertyQuery,
+          );
+
+          const mergedResult = await graphql(
+            mergedSchema,
+            propertyQuery,
+          );
+
+          [propertyResult, mergedResult].forEach((result) => {
+            expect(result.errors).to.exist;
+            expect(result.errors.length > 0).to.be.true;
+            const error = result.errors[0];
+            expect(error.extensions).to.exist;
+            expect(error.extensions.code).to.equal('SOME_CUSTOM_CODE');
+          });
+        }
+      );
     });
 
     describe('types in schema extensions', () => {
