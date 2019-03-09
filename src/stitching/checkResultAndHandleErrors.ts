@@ -5,6 +5,7 @@ import {
   isObjectType,
   isListType,
   isEnumType,
+  isScalarType,
   ExecutionResult,
   GraphQLError,
 } from 'graphql';
@@ -65,6 +66,8 @@ export function handleResult(
     if (value) {
       return value.value;
     }
+  } else if (isScalarType(nullableType)) {
+    return nullableType.parseValue(resultObject);
   }
 
   return resultObject;

@@ -4,13 +4,13 @@ import { expect } from 'chai';
 import {
   graphql,
   GraphQLSchema,
+  GraphQLField,
   GraphQLObjectType,
   GraphQLScalarType,
   subscribe,
   parse,
   ExecutionResult,
   defaultFieldResolver,
-  GraphQLField,
   findDeprecatedUsages,
 } from 'graphql';
 import mergeSchemas from '../stitching/mergeSchemas';
@@ -72,9 +72,31 @@ let scalarTest = `
   }
 
   type Query {
-    testingScalar: TestingScalar
+    testingScalar(input: TestScalar): TestingScalar
   }
 `;
+
+let scalarSchema: GraphQLSchema;
+
+scalarSchema = makeExecutableSchema({
+  typeDefs: scalarTest,
+  resolvers: {
+    TestScalar: new GraphQLScalarType({
+      name: 'TestScalar',
+      description: undefined,
+      serialize: value => (value as string).slice(1),
+      parseValue: value => `_${value}`,
+      parseLiteral: (ast: any) => `_${ast.value}`,
+    }),
+    Query: {
+      testingScalar(parent, args) {
+        return {
+          value: args.input[0] === '_' ? args.input : null
+        };
+      },
+    },
+  },
+});
 
 let enumTest = `
   """
@@ -107,7 +129,7 @@ let enumTest = `
   }
 
   type Query {
-    color: Color
+    color(input: Color): Color
     numericEnum: NumericEnum
     wrappedEnum: EnumWrapper
   }
@@ -125,8 +147,8 @@ enumSchema = makeExecutableSchema({
       TEST: 1,
     },
     Query: {
-      color() {
-        return '#EA3232';
+      color(parent, args) {
+        return args.input === '#EA3232' ? args.input : null;
       },
       numericEnum() {
         return 1;
@@ -289,8 +311,8 @@ testCombinations.forEach(async combination => {
           propertySchema,
           bookingSchema,
           productSchema,
-          scalarTest,
           interfaceExtensionTest,
+          scalarSchema,
           enumSchema,
           linkSchema,
           loneExtend,
@@ -543,12 +565,45 @@ testCombinations.forEach(async combination => {
         expect(mergedResult).to.deep.equal(propertyResult);
       });
 
+      it('works with custom scalars', async () => {
+        const scalarResult = await graphql(
+          scalarSchema,
+          `
+            query {
+              testingScalar(input: "test") {
+                value
+              }
+            }
+          `,
+        );
+
+        const mergedResult = await graphql(
+          mergedSchema,
+          `
+            query {
+              testingScalar(input: "test") {
+                value
+              }
+            }
+          `,
+        );
+
+        expect(scalarResult).to.deep.equal({
+          data: {
+            testingScalar: {
+              value: 'test'
+            }
+          },
+        });
+        expect(mergedResult).to.deep.equal(scalarResult);
+      });
+
       it('works with custom enums', async () => {
         const enumResult = await graphql(
           enumSchema,
           `
             query {
-              color
+              color(input: RED)
               numericEnum
               numericEnumInfo: __type(name: "NumericEnum") {
                 enumValues(includeDeprecated: true) {
@@ -576,7 +631,7 @@ testCombinations.forEach(async combination => {
           mergedSchema,
           `
             query {
-              color
+              color(input: RED)
               numericEnum
               numericEnumInfo: __type(name: "NumericEnum") {
                 enumValues(includeDeprecated: true) {
