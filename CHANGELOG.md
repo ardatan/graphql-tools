@@ -4,7 +4,17 @@ All notable changes to this project will be documented in this file. See [standa
 
 ## [5.0.0](https://github.com/yaacovCR/graphql-tools-fork/compare/v4.0.4...v5.0.0) (2019-06-02)
 
-
+* Fixes a bug where schemas with scalars could not be merged when passed to
+  `mergeSchemas` as a string or `GraphQLSchema`.  <br/>
+  [@hayes](https://github.com/hayes) in [#1062](https://github.com/apollographql/graphql-tools/pull/1062)
+* Make `mergeSchemas` optionally merge directive definitions.  <br/>
+  [@freiksenet](https://github.com/freiksenet) in [#1003](https://github.com/apollographql/graphql-tools/pull/1003)
+* Fix `delegateToSchema` to allow delegation to subscriptions with different root field names, allows
+  the use of the `RenameRootFields` transform with subscriptions,
+  pull request [#1104](https://github.com/apollographql/graphql-tools/pull/1104), fixes
+  [#997](https://github.com/apollographql/graphql-tools/issues/997).  <br/>
+* Add transformers to rename, filter, and arbitrarily transform object fields. <br/>
+  Fixes [#819](https://github.com/apollographql/graphql-tools/issues/819).
 
 ### 4.0.4
 
