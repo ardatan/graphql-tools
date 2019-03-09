@@ -1,6 +1,16 @@
-import { GraphQLFieldResolver, responsePathAsArray } from 'graphql';
-import { locatedError } from 'graphql/error';
-import { getErrorsFromParent, annotateWithChildrenErrors } from './errors';
+import {
+  GraphQLFieldResolver,
+  responsePathAsArray,
+  getNullableType,
+  isObjectType,
+  isListType
+} from 'graphql';
+import {
+  getErrorsFromParent,
+  annotateWithChildrenErrors,
+  combineErrors,
+  relocatedError
+} from './errors';
 import { getResponseKeyFromInfo } from './getResponseKeyFromInfo';
 
 // Resolver that knows how to:
@@ -12,26 +22,30 @@ const defaultMergedResolver: GraphQLFieldResolver<any, any> = (parent, args, con
   }
 
   const responseKey = getResponseKeyFromInfo(info);
-  const errorResult = getErrorsFromParent(parent, responseKey);
+  const errors = getErrorsFromParent(parent, responseKey);
 
-  if (errorResult.kind === 'OWN') {
-    throw locatedError(new Error(errorResult.error.message), info.fieldNodes, responsePathAsArray(info.path));
+  // check to see if parent is not a proxied result, i.e. if parent resolver was manually overwritten
+  // See https://github.com/apollographql/graphql-tools/issues/967
+  if (!Array.isArray(errors)) {
+    return parent[info.fieldName];
   }
 
   let result = parent[responseKey];
 
-  if (result == null) {
-    result = parent[info.fieldName];
+  // if null, throw all possible errors
+  if (!result && errors.length) {
+    throw relocatedError(
+      combineErrors(errors),
+      info.fieldNodes,
+      responsePathAsArray(info.path)
+    );
   }
 
-  // subscription result mapping
-  if (!result && parent.data && parent.data[responseKey]) {
-    result = parent.data[responseKey];
+  const nullableType = getNullableType(info.returnType);
+  if (isObjectType(nullableType) || isListType(nullableType)) {
+    annotateWithChildrenErrors(result, errors);
   }
 
-  if (errorResult.errors) {
-    result = annotateWithChildrenErrors(result, errorResult.errors);
-  }
   return result;
 };
 

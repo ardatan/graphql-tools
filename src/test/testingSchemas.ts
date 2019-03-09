@@ -407,7 +407,11 @@ const propertyResolvers: IResolvers = {
 
   Property: {
     error() {
-      throw new Error('Property.error error');
+      const error = new Error('Property.error error');
+      (error as any).extensions = {
+        code: 'SOME_CUSTOM_CODE',
+      };
+      throw error;
     },
   },
 };
