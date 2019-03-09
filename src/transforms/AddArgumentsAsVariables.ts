@@ -3,17 +3,21 @@ import {
   DocumentNode,
   FragmentDefinitionNode,
   GraphQLArgument,
+  GraphQLEnumType,
+  GraphQLInputObjectType,
   GraphQLInputType,
   GraphQLList,
   GraphQLField,
   GraphQLNonNull,
   GraphQLObjectType,
+  GraphQLScalarType,
   GraphQLSchema,
   Kind,
   OperationDefinitionNode,
   SelectionNode,
   TypeNode,
   VariableDefinitionNode,
+  getNullableType,
 } from 'graphql';
 import { Request } from '../Interfaces';
 import { Transform } from './transforms';
@@ -62,6 +66,7 @@ function addVariablesToRootField(
   ) as Array<FragmentDefinitionNode>;
 
   const variableNames = {};
+  const newVariables = {};
 
   const newOperations = operations.map((operation: OperationDefinitionNode) => {
     let existingVariables = operation.variableDefinitions.map(
@@ -130,6 +135,10 @@ function addVariablesToRootField(
               },
               type: typeToAst(argument.type),
             };
+            newVariables[variableName] = serializeArgumentValue(
+              argument.type,
+              args[argument.name],
+            );
           }
         });
 
@@ -152,11 +161,6 @@ function addVariablesToRootField(
         selections: newSelectionSet,
       },
     };
-  });
-
-  const newVariables = {};
-  Object.keys(variableNames).forEach(name => {
-    newVariables[variableNames[name]] = args[name];
   });
 
   return {
@@ -196,4 +200,31 @@ function typeToAst(type: GraphQLInputType): TypeNode {
       },
     };
   }
+}
+
+function serializeArgumentValue(type: GraphQLInputType, value: any): any {
+  if (value == null) {
+    return null;
+  }
+
+  const nullableType = getNullableType(type);
+
+  if (nullableType instanceof GraphQLEnumType || nullableType instanceof GraphQLScalarType) {
+    return nullableType.serialize(value);
+  }
+
+  if (nullableType instanceof GraphQLList) {
+    return value.map((listMember: any) => serializeArgumentValue(nullableType.ofType, listMember));
+  }
+
+  if (nullableType instanceof GraphQLInputObjectType) {
+    const fields = nullableType.getFields();
+    const newValue = {};
+    Object.keys(value).forEach(key => {
+      newValue[key] = serializeArgumentValue(fields[key].type, value[key]);
+    });
+    return newValue;
+  }
+
+  return value;
 }
