@@ -107,22 +107,16 @@ export function recreateType(
       values: newValues,
     });
   } else if (type instanceof GraphQLScalarType) {
-    if (keepResolvers || isSpecifiedScalarType(type)) {
+    if (isSpecifiedScalarType(type)) {
       return type;
     } else {
       return new GraphQLScalarType({
         name: type.name,
         description: type.description,
         astNode: type.astNode,
-        serialize(value: any) {
-          return value;
-        },
-        parseValue(value: any) {
-          return value;
-        },
-        parseLiteral(ast: ValueNode) {
-          return parseLiteral(ast);
-        },
+        serialize: type.serialize ? type.serialize : (value: any) => value,
+        parseValue: type.parseValue ? type.parseValue : (value: any) => value,
+        parseLiteral: type.parseLiteral ? type.parseLiteral : (ast: any) => parseLiteral(ast),
       });
     }
   } else {
