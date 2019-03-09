@@ -2,14 +2,19 @@
 
 import { expect } from 'chai';
 import {
-  graphql,
-  GraphQLSchema,
+  ExecutionResult,
+  GraphQLEnumType,
+  GraphQLInputObjectType,
+  GraphQLList,
+  GraphQLNonNull,
   GraphQLObjectType,
   GraphQLScalarType,
-  subscribe,
-  parse,
-  ExecutionResult,
+  GraphQLSchema,
+  GraphQLString,
   findDeprecatedUsages,
+  graphql,
+  parse,
+  subscribe,
 } from 'graphql';
 import mergeSchemas from '../stitching/mergeSchemas';
 import {
@@ -581,6 +586,66 @@ testCombinations.forEach(async combination => {
           },
         });
         expect(mergedResult).to.deep.equal(enumResult);
+      });
+
+      it(`works with enum arguments`, async () => {
+        const SortOrder = new GraphQLEnumType({
+          name: 'SortOrder',
+          values: {
+            ASC: { value: 'asc' },
+            DESC: { value: 'desc' },
+          },
+        });
+        const Query = new GraphQLObjectType({
+          name: 'Query',
+          fields: {
+            sort: {
+              type: GraphQLString,
+              args: {
+                sort: { type: SortOrder },
+              },
+              resolve(source, args) {
+                return args.sort;
+              }
+            },
+            nested: {
+              type: new GraphQLList(GraphQLString),
+              args: {
+                sort: {
+                  type: new GraphQLInputObjectType({
+                    name: 'SortOrders',
+                    fields: {
+                      orders: {
+                        type: new GraphQLNonNull(new GraphQLList(
+                          new GraphQLNonNull(SortOrder)
+                        ))
+                      }
+                    }
+                  })
+                },
+              },
+              resolve(source, args) {
+                return args.sort.orders;
+              }
+            }
+          }
+        });
+        const schema = new GraphQLSchema({
+          query: Query,
+        });
+        const merged = mergeSchemas({ schemas: [schema]});
+        const result = await graphql(
+          merged,
+          `
+            query {
+              sort(sort: DESC)
+              nested(sort: { orders: [DESC, ASC] })
+            }
+          `,
+        );
+        expect(result.errors).to.be.undefined;
+        expect(result.data.sort).to.equal('desc');
+        expect(result.data.nested).to.eql(['desc', 'asc']);
       });
 
       it('queries', async () => {
