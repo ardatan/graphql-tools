@@ -7,6 +7,8 @@
   [@hayes](https://github.com/hayes) in [#1062](https://github.com/apollographql/graphql-tools/pull/1062)
 * Make `mergeSchemas` optionally merge directive definitions.  <br/>
   [@freiksenet](https://github.com/freiksenet) in [#1003](https://github.com/apollographql/graphql-tools/pull/1003)
+* Pass through all possible errors. <br/>
+  [PR #1147](https://github.com/apollographql/graphql-tools/pull/1147) closes issues [#743](https://github.com/apollographql/graphql-tools/issues/743), [#1037](https://github.com/apollographql/graphql-tools/issues/1037), [#1046](https://github.com/apollographql/graphql-tools/issues/1046)
 
 ### 4.0.4
 

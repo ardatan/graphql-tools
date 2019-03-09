@@ -1,16 +1,13 @@
 import { assert } from 'chai';
 import { GraphQLResolveInfo, GraphQLError } from 'graphql';
-import { checkResultAndHandleErrors, getErrorsFromParent, ERROR_SYMBOL } from '../stitching/errors';
+import {
+  relocatedError,
+  checkResultAndHandleErrors,
+  getErrorsFromParent,
+  ERROR_SYMBOL
+} from '../stitching/errors';
 
 import 'mocha';
-
-class ErrorWithResult extends GraphQLError {
-  public result: any;
-  constructor(message: string, result: any) {
-    super(message);
-    this.result = result;
-  }
-}
 
 class ErrorWithExtensions extends GraphQLError {
   constructor(message: string, code: string) {
@@ -19,28 +16,43 @@ class ErrorWithExtensions extends GraphQLError {
 }
 
 describe('Errors', () => {
+  describe('relocatedError', () => {
+    it('should adjust the path of a GraphqlError', () => {
+      const originalError = new GraphQLError('test', null, null, null, ['test']);
+      const newError = relocatedError(originalError, null, ['test', 1]);
+      const expectedError = new GraphQLError('test', null, null, null, ['test', 1]);
+      assert.deepEqual(newError, expectedError);
+    });
+
+    it('should also locate a non GraphQLError', () => {
+      const originalError = new Error('test');
+      const newError = relocatedError(originalError, null, ['test', 1]);
+      const expectedError = new GraphQLError('test', null, null, null, ['test', 1]);
+      assert.deepEqual(newError, expectedError);
+    });
+  });
+
   describe('getErrorsFromParent', () => {
-    it('should return OWN error kind if path is not defined', () => {
+    it('should return all errors including if path is not defined', () => {
       const mockErrors = {
         responseKey: '',
         [ERROR_SYMBOL]: [
           {
             message: 'Test error without path'
-          }
+          } as GraphQLError
         ]
       };
 
-      assert.deepEqual(getErrorsFromParent(mockErrors, 'responseKey'), {
-        kind: 'OWN',
-        error: mockErrors[ERROR_SYMBOL][0]
-      });
+      assert.deepEqual(getErrorsFromParent(mockErrors, 'responseKey'),
+        [mockErrors[ERROR_SYMBOL][0]]
+      );
     });
   });
 
   describe('checkResultAndHandleErrors', () => {
-    it('persists single error with a result', () => {
+    it('persists single error', () => {
       const result = {
-        errors: [new ErrorWithResult('Test error', 'result')]
+        errors: [new GraphQLError('Test error')]
       };
       try {
         checkResultAndHandleErrors(result, {} as GraphQLResolveInfo, 'responseKey');
@@ -60,23 +72,6 @@ describe('Errors', () => {
         assert.equal(e.message, 'Test error');
         assert.equal(e.extensions && e.extensions.code, 'UNAUTHENTICATED');
         assert.isUndefined(e.originalError.errors);
-      }
-    });
-
-    it('persists original errors without a result', () => {
-      const result = {
-        errors: [new GraphQLError('Test error')]
-      };
-      try {
-        checkResultAndHandleErrors(result, {} as GraphQLResolveInfo, 'responseKey');
-      } catch (e) {
-        assert.equal(e.message, 'Test error');
-        assert.isNotEmpty(e.originalError);
-        assert.isNotEmpty(e.originalError.errors);
-        assert.lengthOf(e.originalError.errors, result.errors.length);
-        result.errors.forEach((error, i) => {
-          assert.deepEqual(e.originalError.errors[i], error);
-        });
       }
     });
 

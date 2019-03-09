@@ -30,6 +30,8 @@ import { forAwaitEach } from 'iterall';
 import { makeExecutableSchema } from '../makeExecutableSchema';
 import { IResolvers } from '../Interfaces';
 
+const removeLocations = ({ locations, ...rest }: any): any => ({ ...rest });
+
 const testCombinations = [
   {
     name: 'local',
@@ -2154,13 +2156,12 @@ fragment BookingFragment on Booking {
             ${bookingFragment}
           }`,
         );
-        expect(mergedResult).to.deep.equal({
-          errors: propertyResult.errors,
-          data: {
-            ...propertyResult.data,
-            ...bookingResult.data,
-          },
+        expect(mergedResult.data).to.deep.equal({
+          ...propertyResult.data,
+          ...bookingResult.data,
         });
+        expect(mergedResult.errors.map(removeLocations)).to.deep.equal(
+          propertyResult.errors.map(removeLocations));
 
         const mergedResult2 = await graphql(
           mergedSchema,
@@ -2172,21 +2173,13 @@ fragment BookingFragment on Booking {
               `,
         );
 
-        expect(mergedResult2).to.deep.equal({
-          errors: [
-            {
-              locations: [
-                {
-                  column: 19,
-                  line: 3,
-                },
-              ],
-              message: 'Sample error non-null!',
-              path: ['errorTestNonNull'],
-            },
-          ],
-          data: null,
-        });
+        expect(mergedResult2.data).to.equal(null);
+        expect(mergedResult2.errors.map(removeLocations)).to.deep.equal([
+          {
+            message: 'Sample error non-null!',
+            path: ['errorTestNonNull'],
+          },
+        ]);
       });
 
       it('nested errors', async () => {
@@ -2207,114 +2200,102 @@ fragment BookingFragment on Booking {
           `,
         );
 
-        expect(result).to.deep.equal({
-          data: {
-            propertyById: {
-              bookings: [
-                {
-                  bookingErrorAlias: null,
-                  error: null,
-                  id: 'b1',
-                },
-                {
-                  bookingErrorAlias: null,
-                  error: null,
-                  id: 'b2',
-                },
-                {
-                  bookingErrorAlias: null,
-                  error: null,
-                  id: 'b3',
-                },
-              ],
-              error: null,
-              errorAlias: null,
-            },
-          },
-          errors: [
-            {
-              locations: [
-                {
-                  column: 17,
-                  line: 4,
-                },
-              ],
-              message: 'Property.error error',
-              path: ['propertyById', 'error'],
-            },
-            {
-              locations: [
-                {
-                  column: 17,
-                  line: 5,
-                },
-              ],
-              message: 'Property.error error',
-              path: ['propertyById', 'errorAlias'],
-            },
-            {
-              locations: [
-                {
-                  column: 19,
-                  line: 8,
-                },
-              ],
-              message: 'Booking.error error',
-              path: ['propertyById', 'bookings', 0, 'error'],
-            },
-            {
-              locations: [
-                {
-                  column: 19,
-                  line: 9,
-                },
-              ],
-              message: 'Booking.error error',
-              path: ['propertyById', 'bookings', 0, 'bookingErrorAlias'],
-            },
-            {
-              locations: [
-                {
-                  column: 19,
-                  line: 8,
-                },
-              ],
-              message: 'Booking.error error',
-              path: ['propertyById', 'bookings', 1, 'error'],
-            },
-            {
-              locations: [
-                {
-                  column: 19,
-                  line: 9,
-                },
-              ],
-              message: 'Booking.error error',
-              path: ['propertyById', 'bookings', 1, 'bookingErrorAlias'],
-            },
-            {
-              locations: [
-                {
-                  column: 19,
-                  line: 8,
-                },
-              ],
-              message: 'Booking.error error',
-              path: ['propertyById', 'bookings', 2, 'error'],
-            },
-            {
-              locations: [
-                {
-                  column: 19,
-                  line: 9,
-                },
-              ],
-              message: 'Booking.error error',
-              path: ['propertyById', 'bookings', 2, 'bookingErrorAlias'],
-            },
-          ],
+        expect(result.data).to.deep.equal({
+          propertyById: {
+            bookings: [
+              {
+                bookingErrorAlias: null,
+                error: null,
+                id: 'b1',
+              },
+              {
+                bookingErrorAlias: null,
+                error: null,
+                id: 'b2',
+              },
+              {
+                bookingErrorAlias: null,
+                error: null,
+                id: 'b3',
+              },
+            ],
+            error: null,
+            errorAlias: null,
+          }
         });
+        expect(result.errors.map(removeLocations)).to.deep.equal([
+          {
+            extensions: {
+              code: 'SOME_CUSTOM_CODE'
+            },
+            message: 'Property.error error',
+            path: ['propertyById', 'error'],
+          },
+          {
+            extensions: {
+              code: 'SOME_CUSTOM_CODE'
+            },
+            message: 'Property.error error',
+            path: ['propertyById', 'errorAlias'],
+          },
+          {
+            message: 'Booking.error error',
+            path: ['propertyById', 'bookings', 0, 'error'],
+          },
+          {
+            message: 'Booking.error error',
+            path: ['propertyById', 'bookings', 0, 'bookingErrorAlias'],
+          },
+          {
+            message: 'Booking.error error',
+            path: ['propertyById', 'bookings', 1, 'error'],
+          },
+          {
+            message: 'Booking.error error',
+            path: ['propertyById', 'bookings', 1, 'bookingErrorAlias'],
+          },
+          {
+            message: 'Booking.error error',
+            path: ['propertyById', 'bookings', 2, 'error'],
+          },
+          {
+            message: 'Booking.error error',
+            path: ['propertyById', 'bookings', 2, 'bookingErrorAlias'],
+          }
+        ]);
       });
+
+      it(
+        'should preserve custom error extensions from the original schema, ' +
+        'when merging schemas',
+        async () => {
+          const propertyQuery = `
+            query {
+              properties(limit: 1) {
+                error
+              }
+            }
+          `;
+
+          const propertyResult = await graphql(
+            propertySchema,
+            propertyQuery,
+          );
+
+          const mergedResult = await graphql(
+            mergedSchema,
+            propertyQuery,
+          );
+
+          [propertyResult, mergedResult].forEach((result) => {
+            expect(result.errors).to.exist;
+            expect(result.errors.length > 0).to.be.true;
+            const error = result.errors[0];
+            expect(error.extensions).to.exist;
+            expect(error.extensions.code).to.equal('SOME_CUSTOM_CODE');
+          });
+        }
+      );
     });
 
     describe('types in schema extensions', () => {
@@ -2731,7 +2712,7 @@ fragment BookingFragment on Booking {
         });
       });
 
-      it('defaultMergedResolver should work with non-root aliases', async () => {
+      it('defaultMergedResolver should work with aliases if parent merged resolver is manually overwritten', async () => {
         // Source: https://github.com/apollographql/graphql-tools/issues/967
         const typeDefs = `
           type Query {
