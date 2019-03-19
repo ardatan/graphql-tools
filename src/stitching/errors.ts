@@ -112,9 +112,9 @@ export function checkResultAndHandleErrors(
       result.errors.length === 1 && hasResult(result.errors[0])
         ? new GraphQLError(
             result.errors[0].message,
-            null,
-            null,
-            null,
+            result.errors[0].nodes,
+            result.errors[0].source,
+            result.errors[0].positions,
             result.errors[0].path,
             result.errors[0],
             result.errors[0].extensions
