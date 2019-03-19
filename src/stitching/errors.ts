@@ -18,7 +18,10 @@ if (
   ERROR_SYMBOL = '@@__subSchemaErrors';
 }
 
-export function annotateWithChildrenErrors(object: any, childrenErrors: ReadonlyArray<GraphQLFormattedError>): any {
+export function annotateWithChildrenErrors(
+  object: any,
+  childrenErrors: ReadonlyArray<GraphQLFormattedError>
+): any {
   if (!childrenErrors || childrenErrors.length === 0) {
     // Nothing to see here, move along
     return object;
@@ -107,7 +110,15 @@ export function checkResultAndHandleErrors(
     // If there is only one error, which contains a result property, pass the error through
     const newError =
       result.errors.length === 1 && hasResult(result.errors[0])
-        ? result.errors[0]
+        ? new GraphQLError(
+            result.errors[0].message,
+            null,
+            null,
+            null,
+            result.errors[0].path,
+            result.errors[0],
+            result.errors[0].extensions
+          )
         : new CombinedError(concatErrors(result.errors), result.errors);
     throw locatedError(newError, info.fieldNodes, responsePathAsArray(info.path));
   }
