@@ -28,6 +28,8 @@ import {
   DirectiveDefinitionNode,
   DirectiveLocationEnum,
   DirectiveLocation,
+  GraphQLFieldConfig,
+  StringValueNode,
 } from 'graphql';
 import resolveFromParentType from './resolveFromParentTypename';
 
@@ -145,13 +147,31 @@ function makeInputObjectType(
   });
 }
 
-function makeFields(nodes: ReadonlyArray<FieldDefinitionNode>) {
-  const result = {};
-  nodes.forEach(node => {
+function makeFields(
+  nodes: ReadonlyArray<FieldDefinitionNode>,
+): Record<string, GraphQLFieldConfig<any, any>> {
+  const result: Record<string, GraphQLFieldConfig<any, any>> = {};
+  nodes.forEach((node) => {
+    const deprecatedDirective = node.directives.find(
+      (directive) =>
+        directive && directive.name && directive.name.value === 'deprecated',
+    );
+    const deprecatedArgument =
+      deprecatedDirective &&
+      deprecatedDirective.arguments &&
+      deprecatedDirective.arguments.find(
+        (arg) => arg && arg.name && arg.name.value === 'reason',
+      );
+    const deprecationReason =
+      deprecatedArgument &&
+      deprecatedArgument.value &&
+      (deprecatedArgument.value as StringValueNode).value;
+
     result[node.name.value] = {
-      type: resolveType(node.type, 'object'),
+      type: resolveType(node.type, 'object') as GraphQLObjectType,
       args: makeValues(node.arguments),
       description: getDescription(node, backcompatOptions),
+      deprecationReason,
     };
   });
   return result;
