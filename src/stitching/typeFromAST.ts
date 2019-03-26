@@ -24,6 +24,10 @@ import {
   valueFromAST,
   getDescription,
   GraphQLString,
+  GraphQLDirective,
+  DirectiveDefinitionNode,
+  DirectiveLocationEnum,
+  DirectiveLocation,
   GraphQLFieldConfig,
   StringValueNode,
 } from 'graphql';
@@ -39,7 +43,7 @@ export type GetType = (
 
 export default function typeFromAST(
   node: DefinitionNode,
-): GraphQLNamedType | null {
+): GraphQLNamedType | GraphQLDirective | null {
   switch (node.kind) {
     case Kind.OBJECT_TYPE_DEFINITION:
       return makeObjectType(node);
@@ -53,6 +57,8 @@ export default function typeFromAST(
       return makeScalarType(node);
     case Kind.INPUT_OBJECT_TYPE_DEFINITION:
       return makeInputObjectType(node);
+    case Kind.DIRECTIVE_DEFINITION:
+      return makeDirective(node);
     default:
       return null;
   }
@@ -218,5 +224,20 @@ function createNamedStub(
         type: GraphQLString,
       },
     },
+  });
+}
+
+function makeDirective(node: DirectiveDefinitionNode): GraphQLDirective {
+  const locations: Array<DirectiveLocationEnum> = [];
+  node.locations.forEach(location => {
+    if (<DirectiveLocationEnum>location.value in DirectiveLocation) {
+      locations.push(<DirectiveLocationEnum>location.value);
+    }
+  });
+  return new GraphQLDirective({
+    name: node.name.value,
+    description: node.description ? node.description.value : null,
+    args: makeValues(node.arguments),
+    locations,
   });
 }
