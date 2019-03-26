@@ -5,6 +5,8 @@
 * Fixes a bug where schemas with scalars could not be merged when passed to
   `mergeSchemas` as a string or `GraphQLSchema`.  <br/>
   [@hayes](https://github.com/hayes) in [#1062](https://github.com/apollographql/graphql-tools/pull/1062)
+* Make `mergeSchemas` optionally merge directive definitions.  <br/>
+  [@freiksenet](https://github.com/freiksenet) in [#1003](https://github.com/apollographql/graphql-tools/pull/1003)
 
 ### 4.0.4
 
