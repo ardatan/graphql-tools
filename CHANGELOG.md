@@ -5,6 +5,7 @@
 * Fixes a bug where schemas with scalars could not be merged when passed to
   `mergeSchemas` as a string or `GraphQLSchema`.  <br/>
   [@hayes](https://github.com/hayes) in [#1062](https://github.com/apollographql/graphql-tools/pull/1062)
+* Adds `mergeResolvers` API to allow merging one resolver map on top of another (useful for schema mocking and merging test-specific resolver mocks on top of a base set of resolvers) in [#1084](https://github.com/apollographql/graphql-tools/pull/1084).
 
 ### 4.0.4
 
