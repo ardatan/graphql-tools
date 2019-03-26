@@ -213,3 +213,15 @@ export type GraphQLParseOptions = {
   allowLegacySDLImplementsInterfaces?: boolean;
   experimentalFragmentVariables?: boolean;
 };
+
+type ResolvedScalar = string | number | boolean | null;
+type ResolvedValue = ResolvedScalar | ResolvedScalar[] | { [key: string]: ResolvedValue };
+type ResolverFunction = (...args: any[]) => ResolvedValue;
+
+export type ResolverMap = {
+  [key: string]: () =>
+    | { [key: string]: ResolvedValue | ResolverFunction }
+    | null
+    | ResolvedValue
+    | ResolverMap;
+};

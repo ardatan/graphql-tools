@@ -11,4 +11,5 @@ export { default as decorateWithLogger } from './decorateWithLogger';
 export { default as extendResolversFromInterfaces } from './extendResolversFromInterfaces';
 export { default as extractExtensionDefinitions } from './extractExtensionDefinitions';
 export { default as forEachField } from './forEachField';
+export { default as mergeResolvers } from './mergeResolvers';
 export { default as SchemaError } from './SchemaError';
