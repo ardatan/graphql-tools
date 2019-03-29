@@ -7,6 +7,8 @@
   [@hayes](https://github.com/hayes) in [#1062](https://github.com/apollographql/graphql-tools/pull/1062)
 * Make `mergeSchemas` optionally merge directive definitions.  <br/>
   [@freiksenet](https://github.com/freiksenet) in [#1003](https://github.com/apollographql/graphql-tools/pull/1003)
+* Correction in docs/remote-schema, change from \` to \', otherwise graphqlContext undefined error. <br/>
+  [@PrathameshUpadhyay](https://github.com/PrathameshUpadhyay) in [#1091](https://github.com/apollographql/graphql-tools/pull/1091)
 
 ### 4.0.4
 
