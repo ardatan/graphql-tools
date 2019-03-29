@@ -77,7 +77,7 @@ const http = new HttpLink({ uri: 'http://api.githunt.com/graphql', fetch });
 
 const link = setContext((request, previousContext) => ({
   headers: {
-    'Authorization': `Bearer ${previousContext.graphqlContext.authKey}`,
+    'Authorization': 'Bearer ${previousContext.graphqlContext.authKey}',
   }
 })).concat(http);
 
@@ -139,7 +139,7 @@ fetcher.use(({ request, options }, next) => {
   if (!options.headers) {
     options.headers = {};
   }
-  options.headers['Authorization'] = `Bearer ${request.context.authKey}`;
+  options.headers['Authorization'] = 'Bearer ${request.context.authKey}';
 
   next();
 });
@@ -196,7 +196,7 @@ const fetcher = async ({ query: queryDocument, variables, operationName, context
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${context.authKey}`,
+      'Authorization': 'Bearer ${context.authKey}',
     },
     body: JSON.stringify({ query, variables, operationName })
   });
