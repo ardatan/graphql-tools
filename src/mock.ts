@@ -35,6 +35,7 @@ function mockServer(
   schema: GraphQLSchema | ITypeDefinitions,
   mocks: IMocks,
   preserveResolvers: boolean = false,
+  overrideQueryResolvers: boolean = false,
 ): IMockServer {
   let mySchema: GraphQLSchema;
   if (!(schema instanceof GraphQLSchema)) {
@@ -44,7 +45,7 @@ function mockServer(
     mySchema = schema;
   }
 
-  addMockFunctionsToSchema({ schema: mySchema, mocks, preserveResolvers });
+  addMockFunctionsToSchema({ schema: mySchema, mocks, preserveResolvers, overrideQueryResolvers });
 
   return { query: (query, vars) => graphql(mySchema, query, {}, {}, vars) };
 }
@@ -63,6 +64,7 @@ function addMockFunctionsToSchema({
   schema,
   mocks = {},
   preserveResolvers = false,
+  overrideQueryResolvers = false
 }: IMockOptions): void {
   if (!schema) {
     throw new Error('Must provide schema to mock');
@@ -218,10 +220,12 @@ function addMockFunctionsToSchema({
       /* istanbul ignore next: Must provide schema DefinitionNode with query type or a type named Query. */
       const isOnQueryType: boolean = schema.getQueryType() && schema.getQueryType().name === typeName
       const isOnMutationType: boolean = schema.getMutationType() && schema.getMutationType().name === typeName
+      let hasMockOnRootSchema: boolean = false;
 
       if (isOnQueryType || isOnMutationType) {
         if (mockFunctionMap.has(typeName)) {
           const rootMock = mockFunctionMap.get(typeName);
+          hasMockOnRootSchema = typeof rootMock(undefined, {}, {}, {} as any)[fieldName] === 'function';
           // XXX: BUG in here, need to provide proper signature for rootMock.
           if (typeof rootMock(undefined, {}, {}, {} as any)[fieldName] === 'function') {
             mockResolver = (
@@ -288,6 +292,10 @@ function addMockFunctionsToSchema({
                 Object.getPrototypeOf(resolvedValue),
               );
               return copyOwnProps(emptyObject, resolvedValue, mockedValue);
+            }
+
+            if (preserveResolvers && overrideQueryResolvers && hasMockOnRootSchema) {
+              return undefined !== mockedValue ? mockedValue : resolvedValue;
             }
             return undefined !== resolvedValue ? resolvedValue : mockedValue;
           });

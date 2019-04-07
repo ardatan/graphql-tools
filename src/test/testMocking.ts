@@ -1467,6 +1467,57 @@ describe('Mock', () => {
     });
   });
 
+  it('should override only specific resolver with mock', () => {
+    const typeDefs = `
+      type Query {
+        hello: String
+        bar: String
+      }
+    `;
+
+    const resolvers = {
+      Query: {
+        hello: () => 'Hello world!',
+        bar: () => 'FooBar'
+      }
+    };
+
+    const mocks = {
+      String: () => 'Foo',
+      Query: () => ({
+        hello: () => '[Mock] Hello world!'
+      })
+    };
+
+    const query = `
+    {
+      hello
+      bar
+    }
+    `;
+
+    const schema = makeExecutableSchema({
+      typeDefs,
+      resolvers,
+    });
+    addMockFunctionsToSchema({
+      schema,
+      mocks: mocks,
+      preserveResolvers: true,
+      overrideQueryResolvers: true
+    });
+
+    const expected = {
+      data: {
+        hello: '[Mock] Hello world!',
+        bar: 'FooBar'
+      },
+    };
+    return graphql(schema, query).then(res => {
+      expect(res).to.deep.equal(expected);
+    });
+  });
+
   // TODO add a test that checks that even when merging defaults, lists invoke
   // the function for every object, not just once per list.
 
