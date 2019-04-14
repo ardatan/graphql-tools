@@ -64,7 +64,7 @@ describe('remote subscriptions', () => {
         expect(result).to.have.property('data');
         expect(result.data).to.deep.equal(mockNotification);
         notificationCnt++;
-      })
+      });
     });
 
     const sub2 = subscribe(schema, subscription).then(results => {
