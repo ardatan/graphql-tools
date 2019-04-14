@@ -119,11 +119,11 @@ describe('Resolve', () => {
                 done(new Error('Too many subscription fired'));
               },
             ).catch(done);
-          })
-          .catch(done);
+          }).then(() => {
+            pubsub.publish('printRootChannel', { printRoot: subscriptionRoot });
+          }).catch(done);
       });
 
-      pubsub.publish('printRootChannel', { printRoot: subscriptionRoot });
 
       firstSubsTriggered
         .then(() =>
