@@ -33,15 +33,13 @@ describe('remote subscriptions', () => {
     `);
 
     let notificationCnt = 0;
-    subscribe(schema, subscription).then(results =>
+    subscribe(schema, subscription).then(results => {
       forAwaitEach(results as AsyncIterable<ExecutionResult>, (result: ExecutionResult) => {
         expect(result).to.have.property('data');
         expect(result.data).to.deep.equal(mockNotification);
         !notificationCnt++ ? done() : null;
-      })
-    );
-
-    setTimeout(() => {
+      });
+    }).then(() => {
       subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification);
     });
   });
@@ -62,28 +60,29 @@ describe('remote subscriptions', () => {
     `);
 
     let notificationCnt = 0;
-    subscribe(schema, subscription).then(results =>
+    const sub1 = subscribe(schema, subscription).then(results => {
       forAwaitEach(results as AsyncIterable<ExecutionResult>, (result: ExecutionResult) => {
         expect(result).to.have.property('data');
         expect(result.data).to.deep.equal(mockNotification);
         notificationCnt++;
-      })
-    );
+      });
+    });
 
-    subscribe(schema, subscription).then(results =>
+    const sub2 = subscribe(schema, subscription).then(results => {
       forAwaitEach(results as AsyncIterable<ExecutionResult>, (result: ExecutionResult) => {
         expect(result).to.have.property('data');
         expect(result.data).to.deep.equal(mockNotification);
-      })
-    );
+      });
+    });
 
-    setTimeout(() => {
+    Promise.all([sub1, sub2]).then(() => {
       subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification);
       subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification);
+
       setTimeout(() => {
         expect(notificationCnt).to.eq(2);
         done();
-      });
+      }, 0);
     });
   });
 });

@@ -119,12 +119,9 @@ describe('Resolve', () => {
                 done(new Error('Too many subscription fired'));
               },
             ).catch(done);
-          })
-          .catch(done);
-      });
-
-      setTimeout(() => {
-        pubsub.publish('printRootChannel', { printRoot: subscriptionRoot });
+          }).then(() => {
+            pubsub.publish('printRootChannel', { printRoot: subscriptionRoot });
+          }).catch(done);
       });
 
       firstSubsTriggered

@@ -736,15 +736,9 @@ bookingById(id: "b1") {
                 !notificationCnt++ ? done() : null;
               },
             ).catch(done);
-          })
-          .catch(done);
-
-        setTimeout(() => {
-          subscriptionPubSub.publish(
-            subscriptionPubSubTrigger,
-            mockNotification
-          );
-        });
+          }).then(() => {
+            subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification);
+          }).catch(done);
       });
 
       it('subscription errors are working correctly in merged schema', done => {
@@ -798,15 +792,9 @@ bookingById(id: "b1") {
                 !notificationCnt++ ? done() : null;
               },
             ).catch(done);
-          })
-          .catch(done);
-
-        setTimeout(() => {
-          subscriptionPubSub.publish(
-            subscriptionPubSubTrigger,
-            mockNotification
-          );
-        });
+          }).then(() => {
+            subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification);
+          }).catch(done);
       });
 
       it('links in queries', async () => {
