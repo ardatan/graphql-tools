@@ -1,7 +1,13 @@
 /* tslint:disable:no-unused-expression */
 
 import { expect } from 'chai';
-import { graphql, GraphQLSchema } from 'graphql';
+import {
+  graphql,
+  GraphQLSchema,
+  ExecutionResult,
+  subscribe,
+  parse,
+} from 'graphql';
 import mergeSchemas from '../stitching/mergeSchemas';
 import {
   transformSchema,
@@ -9,7 +15,14 @@ import {
   RenameTypes,
   RenameRootFields,
 } from '../transforms';
-import { propertySchema, bookingSchema } from './testingSchemas';
+import {
+  propertySchema,
+  bookingSchema,
+  subscriptionSchema,
+  subscriptionPubSub,
+  subscriptionPubSubTrigger,
+} from './testingSchemas';
+import { forAwaitEach } from 'iterall';
 
 let linkSchema = `
   """
@@ -78,11 +91,23 @@ describe('merge schemas through transforms', () => {
         (operation: string, name: string) => `Bookings_${name}`,
       ),
     ]);
+    const transformedSubscriptionSchema = transformSchema(subscriptionSchema, [
+      new FilterRootFields(
+        (operation: string, rootField: string) =>
+          // must include a Query type otherwise graphql will error
+          'Query.notifications' === `${operation}.${rootField}` ||
+          'Subscription.notifications' === `${operation}.${rootField}`,
+      ),
+      new RenameTypes((name: string) => `Subscriptions_${name}`),
+      new RenameRootFields(
+        (operation: string, name: string) => `Subscriptions_${name}`),
+    ]);
 
     mergedSchema = mergeSchemas({
       schemas: [
         transformedPropertySchema,
         transformedBookingSchema,
+        transformedSubscriptionSchema,
         linkSchema,
       ],
       resolvers: {
@@ -233,6 +258,41 @@ describe('merge schemas through transforms', () => {
         },
       },
     });
+  });
+
+  it('local subscriptions should work even if root fields are renamed', done => {
+    const originalNotification = {
+      notifications: {
+        text: 'Hello world',
+      },
+    };
+
+    const transformedNotification = {
+      Subscriptions_notifications: originalNotification.notifications
+    };
+
+    const subscription = parse(`
+      subscription Subscription {
+        Subscriptions_notifications {
+          text
+        }
+      }
+    `);
+
+    let notificationCnt = 0;
+    subscribe(mergedSchema, subscription)
+      .then(results => {
+        forAwaitEach(
+          results as AsyncIterable<ExecutionResult>,
+          (result: ExecutionResult) => {
+            expect(result).to.have.property('data');
+            expect(result.data).to.deep.equal(transformedNotification);
+            !notificationCnt++ ? done() : null;
+          },
+        ).catch(done);
+      }).then(() => {
+        subscriptionPubSub.publish(subscriptionPubSubTrigger, originalNotification);
+      }).catch(done);
   });
 });
 
