@@ -125,12 +125,11 @@ async function delegateToSchemaImplementation(
     // "subscribe" to the subscription result and map the result through the transforms
     return mapAsyncIterator<ExecutionResult, any>(executionResult, result => {
       const transformedResult = applyResultTransforms(result, transforms);
-      const subscriptionKey = Object.keys(result.data)[0];
 
-      // for some reason the returned transformedResult needs to be nested inside the root subscription field
-      // does not work otherwise...
+      // wrap with fieldName to return for an additional round of resolutioon
+      // with payload as rootValue
       return {
-        [subscriptionKey]: transformedResult,
+        [info.fieldName]: transformedResult,
       };
     });
   }
