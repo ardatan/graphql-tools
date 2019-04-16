@@ -7,6 +7,8 @@
   [@hayes](https://github.com/hayes) in [#1062](https://github.com/apollographql/graphql-tools/pull/1062)
 * Make `mergeSchemas` optionally merge directive definitions.  <br/>
   [@freiksenet](https://github.com/freiksenet) in [#1003](https://github.com/apollographql/graphql-tools/pull/1003)
+* Updated documentation for Custom Scalar Types when Mocking [Issue #545](https://github.com/apollographql/graphql-tools/issues/545).  <br/>
+  [@lagp0310](https://github.com/lagp0310) in [#1105](https://github.com/apollographql/graphql-tools/pull/1105)
 
 ### 4.0.4
 
