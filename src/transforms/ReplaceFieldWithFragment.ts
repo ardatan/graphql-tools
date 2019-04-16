@@ -27,16 +27,18 @@ export default class ReplaceFieldWithFragment implements Transform {
     }>,
   ) {
     this.targetSchema = targetSchema;
-    this.mapping = {};
+    this.mapping = new Map();
     for (const { field, fragment } of fragments) {
       const parsedFragment = parseFragmentToInlineFragment(fragment);
       const actualTypeName = parsedFragment.typeCondition.name.value;
-      this.mapping[actualTypeName] = this.mapping[actualTypeName] || {};
+      if (!this.mapping.has(actualTypeName)) {
+        this.mapping.set(actualTypeName, new Map());
+      }
 
-      if (this.mapping[actualTypeName][field]) {
-        this.mapping[actualTypeName][field].push(parsedFragment);
+      if (this.mapping.get(actualTypeName).has(field)) {
+        this.mapping.get(actualTypeName).get(field).push(parsedFragment);
       } else {
-        this.mapping[actualTypeName][field] = [parsedFragment];
+        this.mapping.get(actualTypeName).set(field, [parsedFragment]);
       }
     }
   }
@@ -54,9 +56,7 @@ export default class ReplaceFieldWithFragment implements Transform {
   }
 }
 
-type FieldToFragmentMapping = {
-  [typeName: string]: { [fieldName: string]: InlineFragmentNode[] };
-};
+type FieldToFragmentMapping = Map<string, Map<string, InlineFragmentNode[]>>;
 
 function replaceFieldsWithFragments(
   targetSchema: GraphQLSchema,
@@ -75,11 +75,11 @@ function replaceFieldsWithFragments(
           const parentTypeName = parentType.name;
           let selections = node.selections;
 
-          if (mapping[parentTypeName]) {
+          if (mapping.has(parentTypeName)) {
             node.selections.forEach(selection => {
               if (selection.kind === Kind.FIELD) {
                 const name = selection.name.value;
-                const fragments = mapping[parentTypeName][name];
+                const fragments = mapping.get(parentTypeName).get(name);
                 if (fragments && fragments.length > 0) {
                   const fragment = concatInlineFragments(
                     parentTypeName,
