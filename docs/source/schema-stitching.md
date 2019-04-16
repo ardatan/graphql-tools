@@ -411,4 +411,4 @@ When using schema transforms, `onTypeConflict` is often unnecessary, since trans
 
 #### inheritResolversFromInterfaces
 
-The `inheritResolversFromInterfaces` option is simply passed through to `addResolveFunctionsToSchema`, which is called when adding resolvers to the schema under the covers. See [`addResolveFunctionsToSchema`](/docs/graphql-tools/resolvers.md#addResolveFunctionsToSchema) for more info.
+The `inheritResolversFromInterfaces` option is simply passed through to `addResolveFunctionsToSchema`, which is called when adding resolvers to the schema under the covers. See [`addResolveFunctionsToSchema`](/docs/graphql-tools/resolvers#addResolveFunctionsToSchema) for more info.
