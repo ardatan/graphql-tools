@@ -68,6 +68,66 @@ You can also use this to describe object types, and the fields can be functions 
 
 In this example, we are using [casual](https://github.com/boo1ean/casual), a fake data generator for JavaScript, so that we can get a different result every time the field is called. You might want to use a collection of fake objects, or a generator that always uses a consistent seed, if you are planning to use the data for testing.
 
+### Mocking Custom Scalar Types
+
+In order to Mock Custom Scalar Types, you need to declare them in your Schema. Let's look at an example for declaring DateTime Custom Scalar in our Schema:  
+
+```js
+const schema = `
+  scalar DateTime
+  
+  // Your Schema definitions below.
+  ...
+  
+  ...
+`;
+```
+
+This will make DateTime Custom Scalar available to be used in the Schema.  
+
+The next step is to define a function that returns a value (fixed or random) for the Custom Scalar. Look at the following example, in which we're mocking a **fixed** value for the DateTime Custom Scalar Type:  
+
+```js
+{
+  DateTime: () => '2011-01-05T17:08:49.000-0430'
+}
+```
+
+Similarly, if you want to mock a **random** value for the Custom Scalar, you can use a library. We're using [casual](https://github.com/boo1ean/casual), as in the example above:  
+
+```js
+{
+  DateTime: () => casual.date(format = 'YYYY-MM-DDTHH:mm:ss.SSSZZ') // Output Example: 2011-11-11T11:43:31.000-0430
+}
+```
+
+The final step is to use the `mocks` object and `schema` to mock the server.
+
+```js
+import { addMockFunctionsToSchema, mockServer } from 'graphql-tools';
+
+// Mock object.
+const mocks = {
+  Int: () => 6,
+  Float: () => 22.1,
+  String: () => 'Hello',
+  DateTime: () => casual.date(format = 'YYYY-MM-DDTHH:mm:ss.SSSZZ')
+};
+const preserveResolvers = false;
+
+// Mock the server passing the schema, mocks object and preserverResolvers arguments.
+const server = mockServer(schema, mocks, preserveResolvers);
+
+// Alternatively, you can call addMockFunctionsToSchema with the same arguments.
+addMockFunctionsToSchema({
+  schema,
+  mocks,
+  preserveResolvers,
+});
+```
+
+Now, when you make a Query which response contains the DateTime Scalar Type, the DateTime function will return a value for it.  
+
 ### Using MockList in resolvers
 
 You can also use the MockList constructor to automate mocking a list:
