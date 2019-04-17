@@ -7,6 +7,9 @@
   [@hayes](https://github.com/hayes) in [#1062](https://github.com/apollographql/graphql-tools/pull/1062)
 * Make `mergeSchemas` optionally merge directive definitions.  <br/>
   [@freiksenet](https://github.com/freiksenet) in [#1003](https://github.com/apollographql/graphql-tools/pull/1003)
+* Enable `constructor` and other JS built-in field names in stitched schemas <br />
+  [@gnidan](https://github.com/gnidan) in
+  [#1108](https://github.com/apollographql/graphql-tools/pull/1108)
 
 ### 4.0.4
 
