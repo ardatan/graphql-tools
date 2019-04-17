@@ -806,5 +806,122 @@ describe('transforms', () => {
         },
       });
     });
+
+    describe('given field name collision with JS built-ins', () => {
+      let users: any;
+      let usersSchema: GraphQLSchema;
+      let projects: any;
+      let projectsSchema: GraphQLSchema;
+
+      before(() => {
+        users = {
+          u1: {
+            id: 'u1',
+            username: 'human22'
+          }
+        };
+
+        usersSchema = makeExecutableSchema({
+          typeDefs: `
+            type User {
+              id: ID!
+              username: String!
+            }
+
+            type Query {
+              userById(id: ID!): User
+            }
+          `,
+          resolvers: {
+            Query: {
+              userById(parent, { id }) {
+                return users[id];
+              }
+            }
+          }
+        });
+
+        projects = {
+          p1: {
+            id: 'p1',
+            constructor: { // User
+              id: 'u1'
+            }
+          }
+        };
+
+        projectsSchema = makeExecutableSchema({
+          typeDefs: `
+            type Project {
+              id: ID!
+              constructor: User!
+            }
+
+            type User {
+              id: ID!
+              username: String!
+            }
+
+            type Query {
+              projectById(id: ID!): Project
+            }
+          `,
+          resolvers: {
+            Query: {
+              projectById(parent, { id }, context, info) {
+                return projects[id];
+              },
+            },
+            Project: {
+              async constructor(project: any, args: any, context: any, info: any) {
+                const result = await delegateToSchema({
+                  schema: usersSchema,
+                  operation: 'query',
+                  fieldName: 'userById',
+                  args: { id: project.constructor.id },
+                  context,
+                  info,
+                  transforms: [
+                    new ReplaceFieldWithFragment(usersSchema, [
+                      {
+                        field: `constructor`,
+                        fragment: `fragment UserName on User { id username }`
+                      }
+                    ]),
+                  ],
+                });
+
+                return result;
+              }
+            }
+          }
+        });
+      });
+
+      it('should work', async () => {
+        const result = await graphql(
+          projectsSchema,
+          `
+            query {
+              projectById(id: "p1") {
+                constructor {
+                  username
+                }
+              }
+            }
+          `
+        );
+
+        expect(result).to.deep.equal({
+          data: {
+            projectById: {
+              constructor: {
+                username: 'human22'
+              }
+            }
+          }
+        });
+      });
+    });
   });
 });
