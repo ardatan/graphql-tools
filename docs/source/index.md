@@ -13,10 +13,6 @@ Functions in the `graphql-tools` package are not just useful for building server
 
 Even though we recommend a specific way of building GraphQL servers, you can use these tools even if you don't follow our structure; they work with any GraphQL-JS schema, and each tool can be useful on its own.
 
-<h2 id="example">Hello world example</h2>
-
-To get started with `graphql-tools` right away, [see this complete live example in Apollo Launchpad.](https://launchpad.graphql.com/1jzxrj179).
-
 <h2 id="apollo-server" title="Using with HTTP">Using GraphQL with HTTP</h2>
 
 If you want to bind your JavaScript GraphQL schema to an HTTP server, we recommend using [Apollo Server](https://www.apollographql.com/docs/apollo-server/), which supports every popular Node HTTP server library including Express, Koa, Hapi, and more.
