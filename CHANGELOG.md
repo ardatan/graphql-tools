@@ -2,6 +2,14 @@
 
 ### vNext
 
+* Fixes a bug where schemas with scalars could not be merged when passed to
+  `mergeSchemas` as a string or `GraphQLSchema`.  <br/>
+  [@hayes](https://github.com/hayes) in [#1062](https://github.com/apollographql/graphql-tools/pull/1062)
+* Make `mergeSchemas` optionally merge directive definitions.  <br/>
+  [@freiksenet](https://github.com/freiksenet) in [#1003](https://github.com/apollographql/graphql-tools/pull/1003)
+
+### 4.0.4
+
 * Make `WrapQuery` work for non-root fields <br />
   [@mdlavin](https://github.com/mdlavin) in
   [#1007](https://github.com/apollographql/graphql-tools/pull/1008)
@@ -16,7 +24,9 @@
 * Fix default merged resolver behavior <br/>
   [@mfix22](https://github.com/mfix22) in [#983](https://github.com/apollographql/graphql-tools/pull/983)
 * Use `TArgs` generic wherever `IFieldResolver` is used.  <br/>
-  [@brikou](https://github.com/brikou) in [#955](https://github.com/apollographql/graphql-tools/pull/955)  
+  [@brikou](https://github.com/brikou) in [#955](https://github.com/apollographql/graphql-tools/pull/955)
+* Include deprecations from string SDL in mergeSchemas.  <br/>
+  [@evans](https://github.com/evans) in [#1041](https://github.com/apollographql/graphql-tools/pull/1041)
 
 ### 4.0.3
 
