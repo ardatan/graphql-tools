@@ -12,6 +12,7 @@ import {
   defaultFieldResolver,
   GraphQLField,
   findDeprecatedUsages,
+  printSchema,
 } from 'graphql';
 import mergeSchemas from '../stitching/mergeSchemas';
 import {
@@ -24,6 +25,7 @@ import {
   remoteProductSchema,
   subscriptionPubSub,
   subscriptionPubSubTrigger,
+  rawDefaultSchema,
 } from './testingSchemas';
 import { SchemaDirectiveVisitor } from '../schemaVisitor';
 import { forAwaitEach } from 'iterall';
@@ -263,12 +265,16 @@ testCombinations.forEach(async combination => {
     let mergedSchema: GraphQLSchema,
       propertySchema: GraphQLSchema,
       productSchema: GraphQLSchema,
+      rawMergedSchema: GraphQLSchema,
       bookingSchema: GraphQLSchema;
 
     before(async () => {
       propertySchema = await combination.property;
       bookingSchema = await combination.booking;
       productSchema = await combination.product;
+
+      rawMergedSchema = mergeSchemas({ schemas: [rawDefaultSchema] });
+
 
       mergedSchema = mergeSchemas({
         schemas: [
@@ -1160,6 +1166,10 @@ bookingById(id: "b1") {
             two: 'Bar',
           },
         });
+      });
+
+      it('input object with default and raw schema', async () => {
+        expect(printSchema(rawMergedSchema)).to.equal(rawDefaultSchema);
       });
 
       it('deep links', async () => {

@@ -304,6 +304,16 @@ const propertyRootTypeDefs = `
   }
 `;
 
+const simpleRawDefaultTest = `
+input InputWithDefault {
+  test: String = "Foo"
+}
+type Query {
+  defaultInputTest(input: InputWithDefault!): String
+}
+`;
+export const rawDefaultSchema: string = simpleRawDefaultTest;
+
 const propertyAddressTypeDefs = `
   scalar DateTime
   scalar JSON
