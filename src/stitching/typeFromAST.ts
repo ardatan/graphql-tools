@@ -181,6 +181,9 @@ function makeValues(nodes: ReadonlyArray<InputValueDefinitionNode>) {
   const result = {};
   nodes.forEach(node => {
     const type = resolveType(node.type, 'input') as GraphQLInputType;
+    console.info(`the Type is ${type}`);
+    console.info(`incorrect/undefined default ${valueFromAST(node.defaultValue, type)}`);
+    console.info(`correct default ${valueFromAST(node.defaultValue, GraphQLString)}`);
     result[node.name.value] = {
       type,
       defaultValue: valueFromAST(node.defaultValue, type),
