@@ -278,7 +278,7 @@ const propertyRootTypeDefs = `
   union TestUnion = TestImpl1 | UnionImpl
 
   input InputWithDefault {
-    test: String = "JazminFoo"
+    test: String = "Foo"
   }
 
   type Query {
