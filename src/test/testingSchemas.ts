@@ -292,7 +292,6 @@ const propertyRootTypeDefs = `
     errorTest: String
     errorTestNonNull: String!
     relay: Query!
-    defaultLimitTest(limit: Int = 20): Int
     defaultInputTest(input: InputWithDefault!): String
   }
 `;
@@ -384,9 +383,6 @@ const propertyResolvers: IResolvers = {
 
     defaultInputTest(parent, { input }) {
       return input.test;
-    },
-    defaultLimitTest(parent, { limit }) {
-      return limit;
     }
   },
   DateTime,
