@@ -12,6 +12,7 @@ import {
   defaultFieldResolver,
   GraphQLField,
   findDeprecatedUsages,
+  printSchema
 } from 'graphql';
 import mergeSchemas from '../stitching/mergeSchemas';
 import {
@@ -24,6 +25,7 @@ import {
   remoteProductSchema,
   subscriptionPubSub,
   subscriptionPubSubTrigger,
+  rawSchema
 } from './testingSchemas';
 import { SchemaDirectiveVisitor } from '../schemaVisitor';
 import { forAwaitEach } from 'iterall';
@@ -35,20 +37,20 @@ const testCombinations = [
     name: 'local',
     booking: localBookingSchema,
     property: localPropertySchema,
-    product: localProductSchema,
+    product: localProductSchema
   },
   {
     name: 'remote',
     booking: remoteBookingSchema,
     property: remotePropertySchema,
-    product: remoteProductSchema,
+    product: remoteProductSchema
   },
   {
     name: 'hybrid',
     booking: localBookingSchema,
     property: remotePropertySchema,
-    product: localProductSchema,
-  },
+    product: localProductSchema
+  }
 ];
 
 let scalarTest = `
@@ -111,10 +113,10 @@ enumSchema = makeExecutableSchema({
   typeDefs: enumTest,
   resolvers: {
     Color: {
-      RED: '#EA3232',
+      RED: '#EA3232'
     },
     NumericEnum: {
-      TEST: 1,
+      TEST: 1
     },
     Query: {
       color() {
@@ -122,9 +124,9 @@ enumSchema = makeExecutableSchema({
       },
       numericEnum() {
         return 1;
-      },
-    },
-  },
+      }
+    }
+  }
 });
 
 let linkSchema = `
@@ -263,12 +265,15 @@ testCombinations.forEach(async combination => {
     let mergedSchema: GraphQLSchema,
       propertySchema: GraphQLSchema,
       productSchema: GraphQLSchema,
+      rawMergedSchema: GraphQLSchema,
       bookingSchema: GraphQLSchema;
 
     before(async () => {
       propertySchema = await combination.property;
       bookingSchema = await combination.booking;
       productSchema = await combination.product;
+
+      rawMergedSchema = mergeSchemas({ schemas: [rawSchema] });
 
       mergedSchema = mergeSchemas({
         schemas: [
@@ -282,7 +287,7 @@ testCombinations.forEach(async combination => {
           loneExtend,
           localSubscriptionSchema,
           codeCoverageTypeDefs,
-          schemaDirectiveTypeDefs,
+          schemaDirectiveTypeDefs
         ],
         schemaDirectives: {
           upper: class extends SchemaDirectiveVisitor {
@@ -296,7 +301,7 @@ testCombinations.forEach(async combination => {
                 return result;
               };
             }
-          },
+          }
         },
         mergeDirectives: true,
         resolvers: {
@@ -311,18 +316,18 @@ testCombinations.forEach(async combination => {
                   'bookingsByPropertyId',
                   {
                     propertyId: parent.id,
-                    limit: args.limit ? args.limit : null,
+                    limit: args.limit ? args.limit : null
                   },
                   context,
-                  info,
+                  info
                 );
-              },
+              }
             },
             someField: {
               resolve() {
                 return 'someField';
-              },
-            },
+              }
+            }
           },
           Booking: {
             property: {
@@ -333,24 +338,24 @@ testCombinations.forEach(async combination => {
                   operation: 'query',
                   fieldName: 'propertyById',
                   args: {
-                    id: parent.propertyId,
+                    id: parent.propertyId
                   },
                   context,
-                  info,
+                  info
                 });
-              },
+              }
             },
             textDescription: {
               fragment: '... on Booking { id }',
               resolve(parent, args, context, info) {
                 return `Booking #${parent.id}`;
-              },
-            },
+              }
+            }
           },
           DownloadableProduct: {
             filesize() {
               return 1024;
-            },
+            }
           },
           LinkType: {
             property: {
@@ -360,13 +365,13 @@ testCombinations.forEach(async combination => {
                   operation: 'query',
                   fieldName: 'propertyById',
                   args: {
-                    id: 'p1',
+                    id: 'p1'
                   },
                   context,
-                  info,
+                  info
                 });
-              },
-            },
+              }
+            }
           },
           Query: {
             delegateInterfaceTest(parent, args, context, info) {
@@ -375,10 +380,10 @@ testCombinations.forEach(async combination => {
                 operation: 'query',
                 fieldName: 'interfaceTest',
                 args: {
-                  kind: 'ONE',
+                  kind: 'ONE'
                 },
                 context,
-                info,
+                info
               });
             },
             delegateArgumentTest(parent, args, context, info) {
@@ -387,15 +392,15 @@ testCombinations.forEach(async combination => {
                 operation: 'query',
                 fieldName: 'propertyById',
                 args: {
-                  id: 'p1',
+                  id: 'p1'
                 },
                 context,
-                info,
+                info
               });
             },
             linkTest() {
               return {
-                test: 'test',
+                test: 'test'
               };
             },
             node: {
@@ -409,7 +414,7 @@ testCombinations.forEach(async combination => {
                     fieldName: 'propertyById',
                     args,
                     context,
-                    info,
+                    info
                   });
                 } else if (args.id.startsWith('b')) {
                   return info.mergeInfo.delegateToSchema({
@@ -418,7 +423,7 @@ testCombinations.forEach(async combination => {
                     fieldName: 'bookingById',
                     args,
                     context,
-                    info,
+                    info
                   });
                 } else if (args.id.startsWith('c')) {
                   return info.mergeInfo.delegateToSchema({
@@ -427,12 +432,12 @@ testCombinations.forEach(async combination => {
                     fieldName: 'customerById',
                     args,
                     context,
-                    info,
+                    info
                   });
                 } else {
                   throw new Error('invalid id');
                 }
-              },
+              }
             },
             async nodes(parent, args, context, info) {
               const bookings = await info.mergeInfo.delegateToSchema({
@@ -440,19 +445,19 @@ testCombinations.forEach(async combination => {
                 operation: 'query',
                 fieldName: 'bookings',
                 context,
-                info,
+                info
               });
               const properties = await info.mergeInfo.delegateToSchema({
                 schema: propertySchema,
                 operation: 'query',
                 fieldName: 'properties',
                 context,
-                info,
+                info
               });
               return [...bookings, ...properties];
-            },
-          },
-        },
+            }
+          }
+        }
       });
     });
 
@@ -467,8 +472,8 @@ testCombinations.forEach(async combination => {
           `,
           {},
           {
-            test: 'Foo',
-          },
+            test: 'Foo'
+          }
         );
 
         const mergedResult = await graphql(
@@ -480,14 +485,14 @@ testCombinations.forEach(async combination => {
           `,
           {},
           {
-            test: 'Foo',
-          },
+            test: 'Foo'
+          }
         );
 
         expect(propertyResult).to.deep.equal({
           data: {
-            contextTest: '"Foo"',
-          },
+            contextTest: '"Foo"'
+          }
         });
 
         expect(mergedResult).to.deep.equal(propertyResult);
@@ -503,7 +508,7 @@ testCombinations.forEach(async combination => {
               test2: jsonTest(input: 5)
               test3: jsonTest(input: "6")
             }
-          `,
+          `
         );
 
         const mergedResult = await graphql(
@@ -515,7 +520,7 @@ testCombinations.forEach(async combination => {
               test2: jsonTest(input: 5)
               test3: jsonTest(input: "6")
             }
-          `,
+          `
         );
 
         expect(propertyResult).to.deep.equal({
@@ -523,8 +528,8 @@ testCombinations.forEach(async combination => {
             dateTimeTest: '1987-09-25T12:00:00',
             test1: { foo: 'bar' },
             test2: 5,
-            test3: '6',
-          },
+            test3: '6'
+          }
         });
         expect(mergedResult).to.deep.equal(propertyResult);
       });
@@ -534,10 +539,10 @@ testCombinations.forEach(async combination => {
           typeDefs: enumTest,
           resolvers: {
             Color: {
-              RED: '#EA3232',
+              RED: '#EA3232'
             },
             NumericEnum: {
-              TEST: 1,
+              TEST: 1
             },
             Query: {
               color() {
@@ -545,9 +550,9 @@ testCombinations.forEach(async combination => {
               },
               numericEnum() {
                 return 1;
-              },
-            },
-          },
+              }
+            }
+          }
         });
         const enumResult = await graphql(
           localSchema,
@@ -570,7 +575,7 @@ testCombinations.forEach(async combination => {
                 }
               }
             }
-          `,
+          `
         );
 
         const mergedResult = await graphql(
@@ -594,7 +599,7 @@ testCombinations.forEach(async combination => {
                 }
               }
             }
-          `,
+          `
         );
 
         expect(enumResult).to.deep.equal({
@@ -607,19 +612,19 @@ testCombinations.forEach(async combination => {
                   description: 'A test description',
                   name: 'TEST',
                   isDeprecated: true,
-                  deprecationReason: 'This is deprecated',
-                },
-              ],
+                  deprecationReason: 'This is deprecated'
+                }
+              ]
             },
             colorEnumInfo: {
               enumValues: [
                 {
                   description: 'A vivid color',
-                  name: 'RED',
-                },
-              ],
-            },
-          },
+                  name: 'RED'
+                }
+              ]
+            }
+          }
         });
         expect(mergedResult).to.deep.equal(enumResult);
       });
@@ -642,28 +647,22 @@ bookingById(id: "b1") {
 }
   `;
 
-        const propertyResult = await graphql(
-          propertySchema,
-          `query { ${propertyFragment} }`,
-        );
+        const propertyResult = await graphql(propertySchema, `query { ${propertyFragment} }`);
 
-        const bookingResult = await graphql(
-          bookingSchema,
-          `query { ${bookingFragment} }`,
-        );
+        const bookingResult = await graphql(bookingSchema, `query { ${bookingFragment} }`);
 
         const mergedResult = await graphql(
           mergedSchema,
           `query {
       ${propertyFragment}
       ${bookingFragment}
-    }`,
+    }`
         );
         expect(mergedResult).to.deep.equal({
           data: {
             ...propertyResult.data,
-            ...bookingResult.data,
-          },
+            ...bookingResult.data
+          }
         });
       });
 
@@ -685,7 +684,7 @@ bookingById(id: "b1") {
           propertyId: 'p1',
           customerId: 'c1',
           startTime: '2015-01-10',
-          endTime: '2015-02-10',
+          endTime: '2015-02-10'
         };
 
         const bookingResult = await graphql(
@@ -694,8 +693,8 @@ bookingById(id: "b1") {
           {},
           {},
           {
-            input,
-          },
+            input
+          }
         );
         const mergedResult = await graphql(
           mergedSchema,
@@ -703,8 +702,8 @@ bookingById(id: "b1") {
           {},
           {},
           {
-            input,
-          },
+            input
+          }
         );
 
         expect(mergedResult).to.deep.equal(bookingResult);
@@ -713,8 +712,8 @@ bookingById(id: "b1") {
       it('local subscriptions working in merged schema', done => {
         const mockNotification = {
           notifications: {
-            text: 'Hello world',
-          },
+            text: 'Hello world'
+          }
         };
 
         const subscription = parse(`
@@ -728,14 +727,11 @@ bookingById(id: "b1") {
         let notificationCnt = 0;
         subscribe(mergedSchema, subscription)
           .then(results => {
-            forAwaitEach(
-              results as AsyncIterable<ExecutionResult>,
-              (result: ExecutionResult) => {
-                expect(result).to.have.property('data');
-                expect(result.data).to.deep.equal(mockNotification);
-                !notificationCnt++ ? done() : null;
-              },
-            ).catch(done);
+            forAwaitEach(results as AsyncIterable<ExecutionResult>, (result: ExecutionResult) => {
+              expect(result).to.have.property('data');
+              expect(result.data).to.deep.equal(mockNotification);
+              !notificationCnt++ ? done() : null;
+            }).catch(done);
           })
           .catch(done);
 
@@ -745,16 +741,16 @@ bookingById(id: "b1") {
       it('subscription errors are working correctly in merged schema', done => {
         const mockNotification = {
           notifications: {
-            text: 'Hello world',
-          },
+            text: 'Hello world'
+          }
         };
 
         const expectedResult = {
           data: {
             notifications: {
               text: 'Hello world',
-              throwError: null,
-            },
+              throwError: null
+            }
           } as any,
           errors: [
             {
@@ -763,11 +759,11 @@ bookingById(id: "b1") {
               locations: [
                 {
                   line: 4,
-                  column: 15,
-                },
-              ],
-            },
-          ],
+                  column: 15
+                }
+              ]
+            }
+          ]
         };
 
         const subscription = parse(`
@@ -782,17 +778,14 @@ bookingById(id: "b1") {
         let notificationCnt = 0;
         subscribe(mergedSchema, subscription)
           .then(results => {
-            forAwaitEach(
-              results as AsyncIterable<ExecutionResult>,
-              (result: ExecutionResult) => {
-                expect(result).to.have.property('data');
-                expect(result).to.have.property('errors');
-                expect(result.errors).to.have.lengthOf(1);
-                expect(result.errors).to.deep.equal(expectedResult.errors);
-                expect(result.data).to.deep.equal(expectedResult.data);
-                !notificationCnt++ ? done() : null;
-              },
-            ).catch(done);
+            forAwaitEach(results as AsyncIterable<ExecutionResult>, (result: ExecutionResult) => {
+              expect(result).to.have.property('data');
+              expect(result).to.have.property('errors');
+              expect(result.errors).to.have.lengthOf(1);
+              expect(result.errors).to.deep.equal(expectedResult.errors);
+              expect(result.data).to.deep.equal(expectedResult.data);
+              !notificationCnt++ ? done() : null;
+            }).catch(done);
           })
           .catch(done);
 
@@ -836,7 +829,7 @@ bookingById(id: "b1") {
                 }
               }
             }
-          `,
+          `
         );
 
         expect(mergedResult).to.deep.equal({
@@ -849,28 +842,28 @@ bookingById(id: "b1") {
                   id: 'b4',
                   textDescription: 'Booking #b4',
                   customer: {
-                    name: 'Exampler Customer',
-                  },
-                },
-              ],
+                    name: 'Exampler Customer'
+                  }
+                }
+              ]
             },
             secondProperty: {
               id: 'p3',
               name: 'BedBugs - The Affordable Hostel',
-              bookings: [],
+              bookings: []
             },
             booking: {
               id: 'b1',
               customer: {
-                name: 'Exampler Customer',
+                name: 'Exampler Customer'
               },
 
               property: {
                 id: 'p1',
-                name: 'Super great hotel',
-              },
-            },
-          },
+                name: 'Super great hotel'
+              }
+            }
+          }
         });
       });
 
@@ -911,15 +904,15 @@ bookingById(id: "b1") {
               __typename: 'TestImpl1',
               kind: 'ONE',
               testString: 'test',
-              foo: 'foo',
+              foo: 'foo'
             },
             test2: {
               __typename: 'TestImpl2',
               kind: 'TWO',
               testString: 'test',
-              bar: 'bar',
-            },
-          },
+              bar: 'bar'
+            }
+          }
         });
 
         expect(mergedResult).to.deep.equal(propertyResult);
@@ -945,13 +938,13 @@ bookingById(id: "b1") {
             withTypeName: {
               __typename: 'TestImpl1',
               kind: 'ONE',
-              testString: 'test',
+              testString: 'test'
             },
             withoutTypeName: {
               kind: 'ONE',
-              testString: 'test',
-            },
-          },
+              testString: 'test'
+            }
+          }
         });
       });
 
@@ -971,16 +964,16 @@ bookingById(id: "b1") {
                 }
               }
             }
-          `,
+          `
         );
 
         expect(mergedResult).to.deep.equal({
           data: {
             customerById: {
               name: 'Exampler Customer',
-              vehicle: { bikeType: 'MOUNTAIN' },
-            },
-          },
+              vehicle: { bikeType: 'MOUNTAIN' }
+            }
+          }
         });
       });
 
@@ -1005,7 +998,7 @@ bookingById(id: "b1") {
                 }
               }
             }
-          `,
+          `
         );
 
         expect(mergedResult).to.deep.equal({
@@ -1013,9 +1006,9 @@ bookingById(id: "b1") {
             customerById: {
               name: 'Exampler Customer',
               v1: { bikeType: 'MOUNTAIN' },
-              v2: { bikeType: 'MOUNTAIN' },
-            },
-          },
+              v2: { bikeType: 'MOUNTAIN' }
+            }
+          }
         });
       });
 
@@ -1055,12 +1048,12 @@ bookingById(id: "b1") {
             test1: {
               kind: 'ONE',
               testString: 'test',
-              foo: 'foo',
+              foo: 'foo'
             },
             test2: {
-              someField: 'Bar',
-            },
-          },
+              someField: 'Bar'
+            }
+          }
         });
       });
 
@@ -1087,20 +1080,20 @@ bookingById(id: "b1") {
                 name
               }
             }
-          `,
+          `
         );
 
         expect(mergedResult).to.deep.equal({
           data: {
             first: {
               id: 'c1',
-              name: 'Exampler Customer',
+              name: 'Exampler Customer'
             },
             second: {
               id: 'c1',
-              name: 'Exampler Customer',
-            },
-          },
+              name: 'Exampler Customer'
+            }
+          }
         });
       });
 
@@ -1129,7 +1122,7 @@ bookingById(id: "b1") {
               id
               __typename
             }
-          `,
+          `
         );
 
         expect(mergedResult).to.deep.equal({
@@ -1137,9 +1130,9 @@ bookingById(id: "b1") {
             customerById: {
               name: 'Exampler Customer',
               vehicle: { __typename: 'Bike', id: 'v1' },
-              secondVehicle: { __typename: 'Bike', id: 'v1' },
-            },
-          },
+              secondVehicle: { __typename: 'Bike', id: 'v1' }
+            }
+          }
         });
       });
 
@@ -1151,15 +1144,20 @@ bookingById(id: "b1") {
               one: defaultInputTest(input: {})
               two: defaultInputTest(input: { test: "Bar" })
             }
-          `,
+          `
         );
 
         expect(mergedResult).to.deep.equal({
           data: {
             one: 'Foo',
             two: 'Bar',
-          },
+            three: 20
+          }
         });
+      });
+
+      it('raw schema test', async () => {
+        expect(printSchema(rawMergedSchema)).to.equal(rawSchema);
       });
 
       it('deep links', async () => {
@@ -1182,7 +1180,7 @@ bookingById(id: "b1") {
                 }
               }
             }
-          `,
+          `
         );
 
         expect(mergedResult).to.deep.equal({
@@ -1194,16 +1192,16 @@ bookingById(id: "b1") {
                 {
                   id: 'b4',
                   customer: {
-                    name: 'Exampler Customer',
+                    name: 'Exampler Customer'
                   },
                   property: {
                     id: 'p2',
-                    name: 'Another great hotel',
-                  },
-                },
-              ],
-            },
-          },
+                    name: 'Another great hotel'
+                  }
+                }
+              ]
+            }
+          }
         });
       });
 
@@ -1223,7 +1221,7 @@ bookingById(id: "b1") {
                 }
               }
             }
-          `,
+          `
         );
 
         expect(mergedResult).to.deep.equal({
@@ -1235,12 +1233,12 @@ bookingById(id: "b1") {
                 {
                   id: 'b1',
                   customer: {
-                    name: 'Exampler Customer',
-                  },
-                },
-              ],
-            },
-          },
+                    name: 'Exampler Customer'
+                  }
+                }
+              ]
+            }
+          }
         });
       });
 
@@ -1256,16 +1254,16 @@ bookingById(id: "b1") {
             description: undefined,
             serialize: value => value,
             parseValue: value => value,
-            parseLiteral: () => null,
-          }),
+            parseLiteral: () => null
+          })
         };
         const Enums = {
           NumericEnum: {
-            TEST: 1,
+            TEST: 1
           },
           Color: {
-            RED: '#EA3232',
-          },
+            RED: '#EA3232'
+          }
         };
         const PropertyResolvers: IResolvers = {
           Property: {
@@ -1278,14 +1276,14 @@ bookingById(id: "b1") {
                   fieldName: 'bookingsByPropertyId',
                   args: {
                     propertyId: parent.id,
-                    limit: args.limit ? args.limit : null,
+                    limit: args.limit ? args.limit : null
                   },
                   context,
-                  info,
+                  info
                 });
-              },
-            },
-          },
+              }
+            }
+          }
         };
         const LinkResolvers: IResolvers = {
           Booking: {
@@ -1297,14 +1295,14 @@ bookingById(id: "b1") {
                   operation: 'query',
                   fieldName: 'propertyById',
                   args: {
-                    id: parent.propertyId,
+                    id: parent.propertyId
                   },
                   context,
-                  info,
+                  info
                 });
-              },
-            },
-          },
+              }
+            }
+          }
         };
         const Query1 = {
           Query: {
@@ -1313,8 +1311,8 @@ bookingById(id: "b1") {
             },
             numericEnum() {
               return 1;
-            },
-          },
+            }
+          }
         };
         const Query2: IResolvers = {
           Query: {
@@ -1324,10 +1322,10 @@ bookingById(id: "b1") {
                 operation: 'query',
                 fieldName: 'interfaceTest',
                 args: {
-                  kind: 'ONE',
+                  kind: 'ONE'
                 },
                 context,
-                info,
+                info
               });
             },
             delegateArgumentTest(parent, args, context, info) {
@@ -1336,15 +1334,15 @@ bookingById(id: "b1") {
                 operation: 'query',
                 fieldName: 'propertyById',
                 args: {
-                  id: 'p1',
+                  id: 'p1'
                 },
                 context,
-                info,
+                info
               });
             },
             linkTest() {
               return {
-                test: 'test',
+                test: 'test'
               };
             },
             node: {
@@ -1358,7 +1356,7 @@ bookingById(id: "b1") {
                     fieldName: 'propertyById',
                     args,
                     context,
-                    info,
+                    info
                   });
                 } else if (args.id.startsWith('b')) {
                   return info.mergeInfo.delegateToSchema({
@@ -1367,7 +1365,7 @@ bookingById(id: "b1") {
                     fieldName: 'bookingById',
                     args,
                     context,
-                    info,
+                    info
                   });
                 } else if (args.id.startsWith('c')) {
                   return info.mergeInfo.delegateToSchema({
@@ -1376,14 +1374,14 @@ bookingById(id: "b1") {
                     fieldName: 'customerById',
                     args,
                     context,
-                    info,
+                    info
                   });
                 } else {
                   throw new Error('invalid id');
                 }
-              },
-            },
-          },
+              }
+            }
+          }
         };
 
         const AsyncQuery: IResolvers = {
@@ -1394,18 +1392,18 @@ bookingById(id: "b1") {
                 operation: 'query',
                 fieldName: 'bookings',
                 context,
-                info,
+                info
               });
               const properties = await info.mergeInfo.delegateToSchema({
                 schema: propertySchema,
                 operation: 'query',
                 fieldName: 'properties',
                 context,
-                info,
+                info
               });
               return [...bookings, ...properties];
-            },
-          },
+            }
+          }
         };
         const schema = mergeSchemas({
           schemas: [
@@ -1416,17 +1414,9 @@ bookingById(id: "b1") {
             enumSchema,
             linkSchema,
             loneExtend,
-            localSubscriptionSchema,
+            localSubscriptionSchema
           ],
-          resolvers: [
-            Scalars,
-            Enums,
-            PropertyResolvers,
-            LinkResolvers,
-            Query1,
-            Query2,
-            AsyncQuery,
-          ],
+          resolvers: [Scalars, Enums, PropertyResolvers, LinkResolvers, Query1, Query2, AsyncQuery]
         });
 
         const mergedResult = await graphql(
@@ -1438,15 +1428,15 @@ bookingById(id: "b1") {
               test2: jsonTest(input: 5)
               test3: jsonTest(input: "6")
             }
-          `,
+          `
         );
         const expected = {
           data: {
             dateTimeTest: '1987-09-25T12:00:00',
             test1: { foo: 'bar' },
             test2: 5,
-            test3: '6',
-          },
+            test3: '6'
+          }
         };
         expect(mergedResult).to.deep.equal(expected);
       });
@@ -1483,7 +1473,7 @@ fragment BookingFragment on Booking {
                 ...PropertyFragment
               }
             }
-          `,
+          `
         );
 
         const bookingResult = await graphql(
@@ -1495,7 +1485,7 @@ fragment BookingFragment on Booking {
                 ...BookingFragment
               }
             }
-          `,
+          `
         );
 
         const mergedResult = await graphql(
@@ -1512,14 +1502,14 @@ fragment BookingFragment on Booking {
                 ...BookingFragment
               }
             }
-          `,
+          `
         );
 
         expect(mergedResult).to.deep.equal({
           data: {
             ...propertyResult.data,
-            ...bookingResult.data,
-          },
+            ...bookingResult.data
+          }
         });
       });
 
@@ -1545,29 +1535,23 @@ bookingById(id: "b1") {
 }
   `;
 
-        const propertyResult = await graphql(
-          propertySchema,
-          `query { ${propertyFragment} }`,
-        );
+        const propertyResult = await graphql(propertySchema, `query { ${propertyFragment} }`);
 
-        const bookingResult = await graphql(
-          bookingSchema,
-          `query { ${bookingFragment} }`,
-        );
+        const bookingResult = await graphql(bookingSchema, `query { ${bookingFragment} }`);
 
         const mergedResult = await graphql(
           mergedSchema,
           `query {
       ${propertyFragment}
       ${bookingFragment}
-    }`,
+    }`
         );
 
         expect(mergedResult).to.deep.equal({
           data: {
             ...propertyResult.data,
-            ...bookingResult.data,
-          },
+            ...bookingResult.data
+          }
         });
       });
 
@@ -1601,7 +1585,7 @@ bookingById(id: "b1") {
               id
               name
             }
-          `,
+          `
         );
 
         expect(mergedResult).to.deep.equal({
@@ -1613,16 +1597,16 @@ bookingById(id: "b1") {
                 {
                   id: 'b4',
                   customer: {
-                    name: 'Exampler Customer',
+                    name: 'Exampler Customer'
                   },
                   property: {
                     id: 'p2',
-                    name: 'Another great hotel',
-                  },
-                },
-              ],
-            },
-          },
+                    name: 'Another great hotel'
+                  }
+                }
+              ]
+            }
+          }
         });
       });
 
@@ -1667,7 +1651,7 @@ fragment BookingFragment on Booking {
                 ...PropertyFragment2
               }
             }
-          `,
+          `
         );
 
         const bookingResult = await graphql(
@@ -1679,7 +1663,7 @@ fragment BookingFragment on Booking {
                 ...BookingFragment
               }
             }
-          `,
+          `
         );
 
         const mergedResult = await graphql(
@@ -1698,14 +1682,14 @@ fragment BookingFragment on Booking {
                 ...BookingFragment
               }
             }
-          `,
+          `
         );
 
         expect(mergedResult).to.deep.equal({
           data: {
             ...propertyResult.data,
-            ...bookingResult.data,
-          },
+            ...bookingResult.data
+          }
         });
       });
 
@@ -1741,7 +1725,7 @@ fragment BookingFragment on Booking {
                 }
               }
             }
-          `,
+          `
         );
 
         expect(mergedResult).to.deep.equal({
@@ -1753,16 +1737,16 @@ fragment BookingFragment on Booking {
                 {
                   id: 'b4',
                   customer: {
-                    name: 'Exampler Customer',
+                    name: 'Exampler Customer'
                   },
                   property: {
                     id: 'p2',
-                    name: 'Another great hotel',
-                  },
-                },
-              ],
-            },
-          },
+                    name: 'Another great hotel'
+                  }
+                }
+              ]
+            }
+          }
         });
       });
 
@@ -1798,7 +1782,7 @@ fragment BookingFragment on Booking {
                 }
               }
             }
-          `,
+          `
         );
 
         expect(mergedResult).to.deep.equal({
@@ -1810,16 +1794,16 @@ fragment BookingFragment on Booking {
                 {
                   id: 'b4',
                   customer: {
-                    name: 'Exampler Customer',
+                    name: 'Exampler Customer'
                   },
                   property: {
                     id: 'p2',
-                    name: 'Another great hotel',
-                  },
-                },
-              ],
-            },
-          },
+                    name: 'Another great hotel'
+                  }
+                }
+              ]
+            }
+          }
         });
       });
 
@@ -1849,7 +1833,7 @@ fragment BookingFragment on Booking {
                 }
               }
             }
-          `,
+          `
         );
 
         expect(mergedResult).to.deep.equal({
@@ -1861,16 +1845,16 @@ fragment BookingFragment on Booking {
                 {
                   id: 'b4',
                   customer: {
-                    name: 'Exampler Customer',
+                    name: 'Exampler Customer'
                   },
                   property: {
                     id: 'p2',
-                    name: 'Another great hotel',
-                  },
-                },
-              ],
-            },
-          },
+                    name: 'Another great hotel'
+                  }
+                }
+              ]
+            }
+          }
         });
       });
     });
@@ -1900,8 +1884,8 @@ fragment BookingFragment on Booking {
           {},
           {},
           {
-            p1: 'p1',
-          },
+            p1: 'p1'
+          }
         );
 
         const bookingResult = await graphql(
@@ -1910,8 +1894,8 @@ fragment BookingFragment on Booking {
           {},
           {},
           {
-            b1: 'b1',
-          },
+            b1: 'b1'
+          }
         );
 
         const mergedResult = await graphql(
@@ -1924,15 +1908,15 @@ fragment BookingFragment on Booking {
           {},
           {
             p1: 'p1',
-            b1: 'b1',
-          },
+            b1: 'b1'
+          }
         );
 
         expect(mergedResult).to.deep.equal({
           data: {
             ...propertyResult.data,
-            ...bookingResult.data,
-          },
+            ...bookingResult.data
+          }
         });
       });
 
@@ -1965,8 +1949,8 @@ fragment BookingFragment on Booking {
           {},
           {},
           {
-            limit: 1,
-          },
+            limit: 1
+          }
         );
 
         expect(mergedResult).to.deep.equal({
@@ -1979,12 +1963,12 @@ fragment BookingFragment on Booking {
                   id: 'b1',
                   customer: {
                     name: 'Exampler Customer',
-                    id: 'c1',
-                  },
-                },
-              ],
-            },
-          },
+                    id: 'c1'
+                  }
+                }
+              ]
+            }
+          }
         });
       });
     });
@@ -2013,7 +1997,7 @@ fragment BookingFragment on Booking {
                 }
               }
             }
-          `,
+          `
         );
 
         expect(result).to.deep.equal({
@@ -2024,40 +2008,40 @@ fragment BookingFragment on Booking {
               secondAlias: 'p1',
               firstReservation: [
                 {
-                  id: 'b1',
-                },
+                  id: 'b1'
+                }
               ],
               reservations: [
                 {
                   bookingId: 'b1',
                   user: {
-                    customerId: 'c1',
+                    customerId: 'c1'
                   },
                   hotel: {
-                    propertyId: 'p1',
-                  },
+                    propertyId: 'p1'
+                  }
                 },
                 {
                   bookingId: 'b2',
                   hotel: {
-                    propertyId: 'p1',
+                    propertyId: 'p1'
                   },
                   user: {
-                    customerId: 'c2',
-                  },
+                    customerId: 'c2'
+                  }
                 },
                 {
                   bookingId: 'b3',
                   hotel: {
-                    propertyId: 'p1',
+                    propertyId: 'p1'
                   },
                   user: {
-                    customerId: 'c3',
-                  },
-                },
-              ],
-            },
-          },
+                    customerId: 'c3'
+                  }
+                }
+              ]
+            }
+          }
         });
       });
 
@@ -2082,7 +2066,7 @@ fragment BookingFragment on Booking {
                 }
               }
             }
-          `,
+          `
         );
 
         expect(result).to.deep.equal({
@@ -2093,26 +2077,26 @@ fragment BookingFragment on Booking {
                 {
                   id: 'b1',
                   property: {
-                    id: 'p1',
-                  },
-                },
+                    id: 'p1'
+                  }
+                }
               ],
               allBookings: [
                 {
                   id: 'b1',
                   property: {
-                    id: 'p1',
-                  },
+                    id: 'p1'
+                  }
                 },
                 {
                   id: 'b4',
                   property: {
-                    id: 'p2',
-                  },
-                },
-              ],
-            },
-          },
+                    id: 'p2'
+                  }
+                }
+              ]
+            }
+          }
         });
       });
     });
@@ -2137,14 +2121,14 @@ fragment BookingFragment on Booking {
           propertySchema,
           `query {
                   ${propertyFragment}
-                }`,
+                }`
         );
 
         const bookingResult = await graphql(
           bookingSchema,
           `query {
                   ${bookingFragment}
-                }`,
+                }`
         );
 
         const mergedResult = await graphql(
@@ -2152,14 +2136,14 @@ fragment BookingFragment on Booking {
           `query {
             ${propertyFragment}
             ${bookingFragment}
-          }`,
+          }`
         );
         expect(mergedResult).to.deep.equal({
           errors: propertyResult.errors,
           data: {
             ...propertyResult.data,
-            ...bookingResult.data,
-          },
+            ...bookingResult.data
+          }
         });
 
         const mergedResult2 = await graphql(
@@ -2169,7 +2153,7 @@ fragment BookingFragment on Booking {
                   errorTestNonNull
                   ${bookingFragment}
                 }
-              `,
+              `
         );
 
         expect(mergedResult2).to.deep.equal({
@@ -2178,14 +2162,14 @@ fragment BookingFragment on Booking {
               locations: [
                 {
                   column: 19,
-                  line: 3,
-                },
+                  line: 3
+                }
               ],
               message: 'Sample error non-null!',
-              path: ['errorTestNonNull'],
-            },
+              path: ['errorTestNonNull']
+            }
           ],
-          data: null,
+          data: null
         });
       });
 
@@ -2204,7 +2188,7 @@ fragment BookingFragment on Booking {
                 }
               }
             }
-          `,
+          `
         );
 
         expect(result).to.deep.equal({
@@ -2214,105 +2198,105 @@ fragment BookingFragment on Booking {
                 {
                   bookingErrorAlias: null,
                   error: null,
-                  id: 'b1',
+                  id: 'b1'
                 },
                 {
                   bookingErrorAlias: null,
                   error: null,
-                  id: 'b2',
+                  id: 'b2'
                 },
                 {
                   bookingErrorAlias: null,
                   error: null,
-                  id: 'b3',
-                },
+                  id: 'b3'
+                }
               ],
               error: null,
-              errorAlias: null,
-            },
+              errorAlias: null
+            }
           },
           errors: [
             {
               locations: [
                 {
                   column: 17,
-                  line: 4,
-                },
+                  line: 4
+                }
               ],
               message: 'Property.error error',
-              path: ['propertyById', 'error'],
+              path: ['propertyById', 'error']
             },
             {
               locations: [
                 {
                   column: 17,
-                  line: 5,
-                },
+                  line: 5
+                }
               ],
               message: 'Property.error error',
-              path: ['propertyById', 'errorAlias'],
+              path: ['propertyById', 'errorAlias']
             },
             {
               locations: [
                 {
                   column: 19,
-                  line: 8,
-                },
+                  line: 8
+                }
               ],
               message: 'Booking.error error',
-              path: ['propertyById', 'bookings', 0, 'error'],
+              path: ['propertyById', 'bookings', 0, 'error']
             },
             {
               locations: [
                 {
                   column: 19,
-                  line: 9,
-                },
+                  line: 9
+                }
               ],
               message: 'Booking.error error',
-              path: ['propertyById', 'bookings', 0, 'bookingErrorAlias'],
+              path: ['propertyById', 'bookings', 0, 'bookingErrorAlias']
             },
             {
               locations: [
                 {
                   column: 19,
-                  line: 8,
-                },
+                  line: 8
+                }
               ],
               message: 'Booking.error error',
-              path: ['propertyById', 'bookings', 1, 'error'],
+              path: ['propertyById', 'bookings', 1, 'error']
             },
             {
               locations: [
                 {
                   column: 19,
-                  line: 9,
-                },
+                  line: 9
+                }
               ],
               message: 'Booking.error error',
-              path: ['propertyById', 'bookings', 1, 'bookingErrorAlias'],
+              path: ['propertyById', 'bookings', 1, 'bookingErrorAlias']
             },
             {
               locations: [
                 {
                   column: 19,
-                  line: 8,
-                },
+                  line: 8
+                }
               ],
               message: 'Booking.error error',
-              path: ['propertyById', 'bookings', 2, 'error'],
+              path: ['propertyById', 'bookings', 2, 'error']
             },
             {
               locations: [
                 {
                   column: 19,
-                  line: 9,
-                },
+                  line: 9
+                }
               ],
               message: 'Booking.error error',
-              path: ['propertyById', 'bookings', 2, 'bookingErrorAlias'],
-            },
-          ],
+              path: ['propertyById', 'bookings', 2, 'bookingErrorAlias']
+            }
+          ]
         });
       });
     });
@@ -2320,47 +2304,37 @@ fragment BookingFragment on Booking {
     describe('types in schema extensions', () => {
       it('should parse descriptions on new types', () => {
         expect(mergedSchema.getType('AnotherNewScalar').description).to.equal(
-          'Description of AnotherNewScalar.',
+          'Description of AnotherNewScalar.'
         );
 
-        expect(mergedSchema.getType('TestingScalar').description).to.equal(
-          'A type that uses TestScalar.',
-        );
+        expect(mergedSchema.getType('TestingScalar').description).to.equal('A type that uses TestScalar.');
 
-        expect(mergedSchema.getType('Color').description).to.equal(
-          'A type that uses an Enum.',
-        );
+        expect(mergedSchema.getType('Color').description).to.equal('A type that uses an Enum.');
 
         expect(mergedSchema.getType('NumericEnum').description).to.equal(
-          'A type that uses an Enum with a numeric constant.',
+          'A type that uses an Enum with a numeric constant.'
         );
 
         expect(mergedSchema.getType('LinkType').description).to.equal(
-          'A new type linking the Property type.',
+          'A new type linking the Property type.'
         );
 
         expect(mergedSchema.getType('LinkType').description).to.equal(
-          'A new type linking the Property type.',
+          'A new type linking the Property type.'
         );
       });
 
       it('should parse descriptions on new fields', () => {
         const Query = mergedSchema.getQueryType();
-        expect(Query.getFields().linkTest.description).to.equal(
-          'A new field on the root query.',
-        );
+        expect(Query.getFields().linkTest.description).to.equal('A new field on the root query.');
 
         const Booking = mergedSchema.getType('Booking') as GraphQLObjectType;
-        expect(Booking.getFields().property.description).to.equal(
-          'The property of the booking.',
-        );
+        expect(Booking.getFields().property.description).to.equal('The property of the booking.');
 
         const Property = mergedSchema.getType('Property') as GraphQLObjectType;
         const bookingsField = Property.getFields().bookings;
         expect(bookingsField.description).to.equal('A list of bookings.');
-        expect(bookingsField.args[0].description).to.equal(
-          'The maximum number of bookings to retrieve.',
-        );
+        expect(bookingsField.args[0].description).to.equal('The maximum number of bookings to retrieve.');
       });
 
       it('should allow defining new types in link type', async () => {
@@ -2375,7 +2349,7 @@ fragment BookingFragment on Booking {
                 }
               }
             }
-          `,
+          `
         );
 
         expect(result).to.deep.equal({
@@ -2383,10 +2357,10 @@ fragment BookingFragment on Booking {
             linkTest: {
               test: 'test',
               property: {
-                id: 'p1',
-              },
-            },
-          },
+                id: 'p1'
+              }
+            }
+          }
         });
       });
     });
@@ -2416,22 +2390,22 @@ fragment BookingFragment on Booking {
           {},
           {
             pid: 'p1',
-            bid: 'b1',
-          },
+            bid: 'b1'
+          }
         );
 
         expect(result).to.deep.equal({
           data: {
             property: {
               id: 'p1',
-              name: 'Super great hotel',
+              name: 'Super great hotel'
             },
             booking: {
               id: 'b1',
               startTime: '2016-05-04',
-              endTime: '2016-06-03',
-            },
-          },
+              endTime: '2016-06-03'
+            }
+          }
         });
       });
 
@@ -2459,8 +2433,8 @@ fragment BookingFragment on Booking {
           {},
           {},
           {
-            bid: 'b1',
-          },
+            bid: 'b1'
+          }
         );
 
         expect(result).to.deep.equal({
@@ -2469,9 +2443,9 @@ fragment BookingFragment on Booking {
               __typename: 'Booking',
               id: 'b1',
               startTime: '2016-05-04',
-              endTime: '2016-06-03',
-            },
-          },
+              endTime: '2016-06-03'
+            }
+          }
         });
       });
 
@@ -2505,8 +2479,8 @@ fragment BookingFragment on Booking {
           {},
           {},
           {
-            bid: 'b1',
-          },
+            bid: 'b1'
+          }
         );
 
         expect(result).to.deep.equal({
@@ -2515,9 +2489,9 @@ fragment BookingFragment on Booking {
               __typename: 'Booking',
               id: 'b1',
               startTime: '2016-05-04',
-              endTime: '2016-06-03',
-            },
-          },
+              endTime: '2016-06-03'
+            }
+          }
         });
       });
 
@@ -2545,8 +2519,8 @@ fragment BookingFragment on Booking {
           {},
           {},
           {
-            bid: 'b1',
-          },
+            bid: 'b1'
+          }
         );
 
         expect(result).to.deep.equal({
@@ -2554,9 +2528,9 @@ fragment BookingFragment on Booking {
             node: {
               id: 'b1',
               startTime: '2016-05-04',
-              endTime: '2016-06-03',
-            },
-          },
+              endTime: '2016-06-03'
+            }
+          }
         });
       });
 
@@ -2573,7 +2547,7 @@ fragment BookingFragment on Booking {
                 }
               }
             }
-          `,
+          `
         );
 
         expect(result).to.deep.equal({
@@ -2582,14 +2556,14 @@ fragment BookingFragment on Booking {
               {
                 id: 'pd1',
                 __typename: 'SimpleProduct',
-                price: 100,
+                price: 100
               },
               {
                 id: 'pd2',
-                __typename: 'DownloadableProduct',
-              },
-            ],
-          },
+                __typename: 'DownloadableProduct'
+              }
+            ]
+          }
         });
       });
 
@@ -2606,7 +2580,7 @@ fragment BookingFragment on Booking {
                 }
               }
             }
-          `,
+          `
         );
 
         expect(result).to.deep.equal({
@@ -2614,15 +2588,15 @@ fragment BookingFragment on Booking {
             products: [
               {
                 id: 'pd1',
-                __typename: 'SimpleProduct',
+                __typename: 'SimpleProduct'
               },
               {
                 id: 'pd2',
                 __typename: 'DownloadableProduct',
-                filesize: 1024,
-              },
-            ],
-          },
+                filesize: 1024
+              }
+            ]
+          }
         });
       });
 
@@ -2642,7 +2616,7 @@ fragment BookingFragment on Booking {
                 }
               }
             }
-          `,
+          `
         );
 
         expect(result).to.deep.equal({
@@ -2651,37 +2625,37 @@ fragment BookingFragment on Booking {
               {
                 id: 'b1',
                 startTime: '2016-05-04',
-                endTime: '2016-06-03',
+                endTime: '2016-06-03'
               },
               {
                 id: 'b2',
                 startTime: '2016-06-04',
-                endTime: '2016-07-03',
+                endTime: '2016-07-03'
               },
               {
                 id: 'b3',
                 startTime: '2016-08-04',
-                endTime: '2016-09-03',
+                endTime: '2016-09-03'
               },
               {
                 id: 'b4',
                 startTime: '2016-10-04',
-                endTime: '2016-10-03',
+                endTime: '2016-10-03'
               },
               {
                 id: 'p1',
-                name: 'Super great hotel',
+                name: 'Super great hotel'
               },
               {
                 id: 'p2',
-                name: 'Another great hotel',
+                name: 'Another great hotel'
               },
               {
                 id: 'p3',
-                name: 'BedBugs - The Affordable Hostel',
-              },
-            ],
-          },
+                name: 'BedBugs - The Affordable Hostel'
+              }
+            ]
+          }
         });
       });
     });
@@ -2696,15 +2670,15 @@ fragment BookingFragment on Booking {
                 someField
               }
             }
-          `,
+          `
         );
 
         expect(result).to.deep.equal({
           data: {
             propertyById: {
-              someField: 'SOMEFIELD',
-            },
-          },
+              someField: 'SOMEFIELD'
+            }
+          }
         });
       });
     });
@@ -2719,15 +2693,15 @@ fragment BookingFragment on Booking {
                 id
               }
             }
-          `,
+          `
         );
 
         expect(result).to.deep.equal({
           data: {
             delegateArgumentTest: {
-              id: 'p1',
-            },
-          },
+              id: 'p1'
+            }
+          }
         });
       });
 
@@ -2756,7 +2730,13 @@ fragment BookingFragment on Booking {
 
         const result = await graphql(
           schema,
-          `{ book { cat: category } }`,
+          `
+            {
+              book {
+                cat: category
+              }
+            }
+          `
         );
 
         expect(result.data.book.cat).to.equal('Test');
@@ -2794,7 +2774,11 @@ fragment BookingFragment on Booking {
         const deprecatedUsages = findDeprecatedUsages(schema, parse(query));
         expect(deprecatedUsages).not.empty;
         expect(deprecatedUsages.length).to.equal(1);
-        expect(deprecatedUsages.find(error => Boolean(error && error.message.match(/deprecated/) && error.message.match(/yolo/))));
+        expect(
+          deprecatedUsages.find(error =>
+            Boolean(error && error.message.match(/deprecated/) && error.message.match(/yolo/))
+          )
+        );
       });
     });
   });
@@ -2825,10 +2809,10 @@ fragment BookingFragment on Booking {
         Query: {
           book: () => ({
             author: {
-              name: 'JRR Tolkien',
-            },
-          }),
-        },
+              name: 'JRR Tolkien'
+            }
+          })
+        }
       };
 
       const result = await graphql(
@@ -2844,18 +2828,18 @@ fragment BookingFragment on Booking {
         `,
         {},
         {
-          test: 'Foo',
-        },
+          test: 'Foo'
+        }
       );
 
       expect(result).to.deep.equal({
         data: {
           book: {
             author: {
-              name: 'JRR Tolkien',
-            },
-          },
-        },
+              name: 'JRR Tolkien'
+            }
+          }
+        }
       });
     });
   });
