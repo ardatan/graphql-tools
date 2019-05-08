@@ -52,8 +52,9 @@ export function annotateWithChildrenErrors(object: any, childrenErrors: Readonly
     ...object,
     [ERROR_SYMBOL]: childrenErrors.map(error => ({
       ...error,
-      ...(error.path ? { path: error.path.slice(1) } : {})
-    }))
+      ...(error.path ? { path: error.path.slice(1) } : {}),
+      originalError: error.originalError,
+    })),
   };
 }
 
