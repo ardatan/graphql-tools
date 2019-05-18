@@ -105,7 +105,10 @@ const resolverFunctions = {
   MyCustomScalar: myCustomScalarType
 };
 
-const jsSchema = makeExecutableSchema({ typeDefs: schemaString, resolvers: resolveFunctions });
+const jsSchema = makeExecutableSchema({
+  typeDefs: schemaString,
+  resolvers: resolverFunctions,
+});
 ```
 
 <h2 id="examples">Custom scalar examples</h2>
