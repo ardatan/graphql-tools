@@ -11,6 +11,8 @@
   the use of the `RenameRootFields` transform with subscriptions,
   pull request [#1104](https://github.com/apollographql/graphql-tools/pull/1104), fixes
   [#997](https://github.com/apollographql/graphql-tools/issues/997).  <br/>
+* Add transformers to rename, filter, and arbitrarily transform object fields. <br/>
+  Fixes [#819](https://github.com/apollographql/graphql-tools/issues/819).
 
 ### 4.0.4
 
