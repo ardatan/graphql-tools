@@ -7,6 +7,8 @@
   [@hayes](https://github.com/hayes) in [#1062](https://github.com/apollographql/graphql-tools/pull/1062)
 * Make `mergeSchemas` optionally merge directive definitions.  <br/>
   [@freiksenet](https://github.com/freiksenet) in [#1003](https://github.com/apollographql/graphql-tools/pull/1003)
+* Add transformers to rename, filter, and arbitrarily transform object fields. <br/>
+  Fixes [#819](https://github.com/apollographql/graphql-tools/issues/819).
 
 ### 4.0.4
 

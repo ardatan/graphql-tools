@@ -170,6 +170,54 @@ RenameRootFields(
 )
 ```
 
+### Modifying object fields
+
+* `TransformObjectFields(objectFieldTransformer: ObjectFieldTransformer, fieldNodeTransformer?: FieldNodeTransformer))`: Given an object field transformer, arbitrarily transform fields. The `objectFieldTransformer` can return a `GraphQLFieldConfig` definition, a object with new `name` and a `field`, `null` to remove the field, or `undefined` to leave the field unchanged. The optional `fieldNodeTransformer`, if specified, is called upon any field of that type in the request; result transformation can be specified by wrapping the resolve function within the `objectFieldTransformer`. In this way, a field can be fully arbitrarily modified in place.
+
+```ts
+TransformObjectFields(objectFieldTransformer: ObjectFieldTransformer, fieldNodeTransformer: FieldNodeTransformer)
+
+type ObjectFieldTransformer = (
+  typeName: string,
+  fieldName: string,
+  field: GraphQLField<any, any>,
+) =>
+  | GraphQLFieldConfig<any, any>
+  | { name: string; field: GraphQLFieldConfig<any, any> }
+  | null
+  | void;
+
+type FieldNodeTransformer = (
+  typeName: string,
+  fieldName: string,
+  fieldNode: FieldNode
+) => FieldNode;
+```
+
+* `FilterObjectFields(filter: ObjectFilter)`: Removes object fields for which the `filter` function returns `false`.
+
+```ts
+FilterObjectFields(filter: ObjectFilter)
+
+type ObjectFilter = (
+  typeName: string,
+  fieldName: string,
+  field: GraphQLField<any, any>,
+) => boolean;
+```
+
+* `RenameObjectFields(renamer)`: Rename object fields, by applying the `renamer` function to their names.
+
+```ts
+RenameObjectFields(
+  renamer: (
+    typeName: string,
+    fieldName: string,
+    field: GraphQLField<any, any>,
+  ) => string,
+)
+```
+
 ### Other
 
 * `ExtractField({ from: Array<string>, to: Array<string> })` - move selection at `from` path to `to` path.

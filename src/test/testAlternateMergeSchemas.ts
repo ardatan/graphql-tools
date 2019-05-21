@@ -1,15 +1,25 @@
 /* tslint:disable:no-unused-expression */
 
 import { expect } from 'chai';
-import { graphql, GraphQLSchema } from 'graphql';
+import {
+  graphql,
+  GraphQLSchema,
+  GraphQLField,
+  GraphQLNamedType,
+  FieldNode
+} from 'graphql';
 import mergeSchemas from '../stitching/mergeSchemas';
 import {
   transformSchema,
   FilterRootFields,
   RenameTypes,
   RenameRootFields,
+  RenameObjectFields,
+  FilterObjectFields,
+  TransformObjectFields,
 } from '../transforms';
 import { propertySchema, bookingSchema } from './testingSchemas';
+import { createResolveType, fieldToFieldConfig } from '../stitching/schemaRecreation';
 
 let linkSchema = `
   """
@@ -66,7 +76,7 @@ describe('merge schemas through transforms', () => {
           'Query.properties' === `${operation}.${rootField}`,
       ),
       new RenameTypes((name: string) => `Properties_${name}`),
-      new RenameRootFields((name: string) => `Properties_${name}`),
+      new RenameRootFields((operation: string, name: string) => `Properties_${name}`),
     ]);
     const transformedBookingSchema = transformSchema(bookingSchema, [
       new FilterRootFields(
@@ -74,9 +84,7 @@ describe('merge schemas through transforms', () => {
           'Query.bookings' === `${operation}.${rootField}`,
       ),
       new RenameTypes((name: string) => `Bookings_${name}`),
-      new RenameRootFields(
-        (operation: string, name: string) => `Bookings_${name}`,
-      ),
+      new RenameRootFields((operation: string, name: string) => `Bookings_${name}`),
     ]);
 
     mergedSchema = mergeSchemas({
@@ -230,6 +238,117 @@ describe('merge schemas through transforms', () => {
             },
           ],
           name: 'Super great hotel',
+        },
+      },
+    });
+  });
+});
+
+describe('transform object fields', () => {
+  let transformedPropertySchema: GraphQLSchema;
+
+  before(async () => {
+    const resolveType = createResolveType((name: string, type: GraphQLNamedType): GraphQLNamedType => type);
+    transformedPropertySchema = transformSchema(propertySchema, [
+      new TransformObjectFields(
+        (typeName: string, fieldName: string, field: GraphQLField<any, any>) => {
+          const fieldConfig = fieldToFieldConfig(field, resolveType, true);
+          if (typeName !== 'Property' || fieldName !== 'name') return fieldConfig;
+          fieldConfig.resolve = () => 'test';
+          return fieldConfig;
+        },
+        (typeName: string, fieldName: string, fieldNode: FieldNode) => {
+          if (typeName !== 'Property' || fieldName !== 'name') return fieldNode;
+          const newFieldNode = {
+            ...fieldNode,
+            name: {
+              ...fieldNode.name,
+              value: 'id'
+            }
+          }
+          return newFieldNode;
+        }
+      )
+    ]);
+  });
+
+  it('should work', async () => {
+    const result = await graphql(
+      transformedPropertySchema,
+      `
+        query($pid: ID!) {
+          propertyById(id: $pid) {
+            id
+            name
+            location {
+              name
+            }
+          }
+        }
+      `,
+      {},
+      {},
+      {
+        pid: 'p1',
+      },
+    );
+
+    expect(result).to.deep.equal({
+      data: {
+        propertyById: {
+          id: 'p1',
+          name: 'test',
+          location: {
+            name: 'Helsinki',
+          },
+        },
+      },
+    });
+  });
+});
+
+describe('filter and rename object fields', () => {
+  let transformedPropertySchema: GraphQLSchema;
+
+  before(async () => {
+    transformedPropertySchema = transformSchema(propertySchema, [
+      new RenameTypes((name: string) => `New_${name}`),
+      new FilterObjectFields((typeName: string, fieldName: string) =>
+        (typeName !== 'NewProperty' || fieldName === 'id' || fieldName === 'name' || fieldName === 'location')
+      ),
+      new RenameObjectFields((typeName: string, fieldName: string) => (typeName === 'New_Property' ? `new_${fieldName}` : fieldName))
+    ]);
+  });
+
+  it('should work', async () => {
+    const result = await graphql(
+      transformedPropertySchema,
+      `
+        query($pid: ID!) {
+          propertyById(id: $pid) {
+            new_id
+            new_name
+            new_location {
+              name
+            }
+          }
+        }
+      `,
+      {},
+      {},
+      {
+        pid: 'p1',
+      },
+    );
+
+    expect(result).to.deep.equal({
+      data: {
+        propertyById: {
+          new_id: 'p1',
+          new_name: 'Super great hotel',
+          new_location: {
+            name: 'Helsinki',
+          },
         },
       },
     });
