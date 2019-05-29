@@ -144,9 +144,7 @@ const resolverMap = {
 
 In addition to using a resolver map with `makeExecutableSchema`, you can use it with any GraphQL.js schema by importing the following function from `graphql-tools`:
 
-<h3 id="addResolveFunctionsToSchema" title="addResolveFunctionsToSchema">
-  addResolveFunctionsToSchema({ schema, resolvers, resolverValidationOptions?, inheritResolversFromInterfaces? })
-</h3>
+### addResolveFunctionsToSchema({ schema, resolvers, resolverValidationOptions?, inheritResolversFromInterfaces? })
 
 `addResolveFunctionsToSchema` takes an options object of `IAddResolveFunctionsToSchemaOptions` and modifies the schema in place by attaching the resolvers to the relevant types.
 
@@ -177,13 +175,11 @@ export interface IAddResolveFunctionsToSchemaOptions {
 }
 ```
 
-<h3 id="addSchemaLevelResolveFunction" title="addSchemaLevelResolveFunction">
-  addSchemaLevelResolveFunction(schema, rootResolveFunction)
-</h3>
+### addSchemaLevelResolveFunction(schema, rootResolveFunction)
 
 Some operations, such as authentication, need to be done only once per query. Logically, these operations belong in an obj resolve function, but unfortunately GraphQL-JS does not let you define one. `addSchemaLevelResolveFunction` solves this by modifying the GraphQLSchema that is passed as the first argument.
 
-<h2 id="companion-tools" title="Companion tools">Companion tools</h2>
+## Companion tools
 
 Modules and extensions built by the community.
 

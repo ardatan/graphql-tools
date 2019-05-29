@@ -5,7 +5,7 @@ description: Add custom scalar and enum types to your graphql-tools generated sc
 
 The GraphQL specification includes the following default scalar types: `Int`, `Float`, `String`, `Boolean` and `ID`. While this covers most of the use cases, often you need to support custom atomic data types (e.g. Date), or you want a version of an existing type that does some validation. To enable this, GraphQL allows you to define custom scalar types. Enumerations are similar to custom scalars, but their values can only be one of a pre-defined list of strings.
 
-<h2 id="custom-scalars">Custom scalars</h2>
+## Custom scalars
 
 To define a custom scalar you simply add it to the schema string with the following notation:
 
@@ -58,7 +58,7 @@ const jsSchema = makeExecutableSchema({ typeDefs: schemaString, resolvers: resol
 
 Remark : `GraphQLJSON` is a [`GraphQLScalarType`](http://graphql.org/graphql-js/type/#graphqlscalartype) instance.
 
-<h3 id="graphqlscalartype" title="GraphQLScalarType">Custom `GraphQLScalarType` instance</h3>
+### Custom `GraphQLScalarType` instance
 
 If needed, you can define your own [GraphQLScalarType](http://graphql.org/graphql-js/type/#graphqlscalartype) instance. This can be done the following way :
 
@@ -111,7 +111,7 @@ const jsSchema = makeExecutableSchema({
 });
 ```
 
-<h2 id="examples">Custom scalar examples</h2>
+## Custom scalar examples
 
 Let's look at a couple of examples to demonstrate how a custom scalar type can be defined.
 
@@ -193,7 +193,7 @@ const resolverMap = {
 };
 ```
 
-<h2 id="enums">Enums</h2>
+## Enums
 
 An Enum is similar to a scalar type, but it can only be one of several values defined in the schema. Enums are most useful in a situation where you need the user to pick from a prescribed list of options, and they will auto-complete in tools like GraphiQL.
 
@@ -266,7 +266,7 @@ const resolvers = {
 const schema = makeExecutableSchema({ typeDefs, resolvers });
 ```
 
-<h3 id="internal-values">Internal values</h3>
+### Internal values
 
 Often, you might have a different value for the enum in your code than in the public API. So maybe in the API we call it `RED`, but inside our resolvers we want to use `#f00` instead. That's why you can use the `resolvers` argument to `makeExecutableSchema` to add custom values to your enum that only show up internally:
 

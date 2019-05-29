@@ -13,7 +13,7 @@ The `graphql-tools` package provides several related tools for managing schema d
 
 Delegation is performed by one function, `delegateToSchema`, called from within a resolver function of the parent schema. The `delegateToSchema` function sends the query subtree received by the parent resolver to a subschema that knows how to execute it, then returns the result as if the parent resolver had executed the query.
 
-<h2 id="example">Motivational example</h2>
+## Motivational example
 
 Let's consider two schemas, a subschema and a parent schema that reuses parts of a subschema. While the parent schema reuses the *definitions* of the subschema, we want to keep the implementations separate, so that the subschema can be tested independently, or even used as a remote service.
 
@@ -102,9 +102,9 @@ query($id: ID!) {
 
 Delegation also removes the fields that don't exist on the subschema, such as `user`. This field would be retrieved from the parent schema using normal GraphQL resolvers.
 
-<h2 id="api">API</h2>
+## API
 
-<h3 id="delegateToSchema">delegateToSchema</h3>
+### delegateToSchema
 
 The `delegateToSchema` method can be found on the `info.mergeInfo` object within any resolver function, and should be called with the following named options:
 
@@ -196,7 +196,7 @@ Also provides the `info.mergeInfo.delegateToSchema` function discussed above.
 
 [Transforms](./schema-transforms.html) to apply to the query and results. Should be the same transforms that were used to transform the schema, if any. After transformation, `transformedSchema.transforms` contains the transforms that were applied.
 
-<h2 id="considerations">Additional considerations</h2>
+## Additional considerations
 
 ### Aliases
 

@@ -9,11 +9,11 @@ One of the main benefits of GraphQL is that we can query all of our data as part
 
 In both cases, we use `mergeSchemas` to combine multiple GraphQL schemas together and produce a merged schema that knows how to delegate parts of the query to the relevant subschemas. These subschemas can be either local to the server, or running on a remote server. They can even be services offered by 3rd parties, allowing us to connect to external data and create mashups.
 
-<h2 id="remote-schemas" title="Remote schemas">Working with remote schemas</h2>
+## Working with remote schemas
 
 In order to merge with a remote schema, we first call [makeRemoteExecutableSchema](./remote-schemas.html) to create a local proxy for the schema that knows how to call the remote endpoint. We then merge that local proxy schema the same way we would merge any other locally implemented schema.
 
-<h2 id="basic-example">Basic example</h2>
+## Basic example
 
 In this example we'll stitch together two very simple schemas. It doesn't matter whether these are local or proxies created with `makeRemoteExecutableSchema`, because the merging itself would be the same.
 
@@ -84,7 +84,7 @@ type Query {
 
 We now have a single schema that supports asking for `userById` and `chirpsByAuthorId` in the same query!
 
-<h3 id="adding-resolvers">Adding resolvers between schemas</h3>
+### Adding resolvers between schemas
 
 Combining existing root fields is a great start, but in practice we will often want to introduce additional fields for working with the relationships between types that came from different subschemas. For example, we might want to go from a particular user to their chirps, or from a chirp to its author. Or we might want to query a `latestChirps` field and then get the author of each of those chirps. If the only way to obtain a chirp's author is to call the `userById(id)` root query field with the `authorId` of a given chirp, and we don't know the chirp's `authorId` until we receive the GraphQL response, then we won't be able to obtain the authors as part of the same query.
 
@@ -172,7 +172,7 @@ const mergedSchema = mergeSchemas({
 
 [Run the above example on Launchpad.](https://launchpad.graphql.com/8r11mk9jq)
 
-<h2 id="using-with-transforms">Using with Transforms</h2>
+## Using with Transforms
 
 Often, when creating a GraphQL gateway that combines multiple existing schemas, we might want to modify one of the schemas. The most common tasks include renaming some of the types, and filtering the root fields. By using [transforms](./schema-transforms) with schema stitching, we can easily tweak the subschemas before merging them together.
 
@@ -277,7 +277,7 @@ Notice that `resolvers.Chirp_Chirp` has been renamed from just `Chirp`, but `res
 
 Also, when we call `info.mergeInfo.delegateToSchema` in the `User.chirps` resolvers, we can delegate to the original `chirpsByAuthorId` field, even though it has been filtered out of the final schema. That's because we're delegating to the original `chirpSchema`, which has not been modified by the transforms.
 
-<h2 id="complex-example">Complex example</h2>
+## Complex example
 
 For a more complicated example involving properties and bookings, with implementations of all of the resolvers, check out the Launchpad links below:
 
@@ -285,9 +285,9 @@ For a more complicated example involving properties and bookings, with implement
 * [Booking schema](https://launchpad.graphql.com/41p4j4309)
 * [Merged schema](https://launchpad.graphql.com/q5kq9z15p)
 
-<h2 id="api">API</h2>
+## API
 
-<h3 id="mergeSchemas">mergeSchemas</h3>
+### mergeSchemas
 
 ```ts
 mergeSchemas({

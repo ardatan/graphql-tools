@@ -5,7 +5,7 @@ description: How to fetch data from your GraphQL resolvers.
 
 By this point in the documentation, you know how to generate a GraphQL.js schema from the GraphQL schema language, and how to add resolvers to that schema to call functions. How do you access your backend from those resolvers? Well, it's quite easy, but as your app gets more complex it might make sense to add some structure. We'll start with the basics and then move on to more advanced conventions.
 
-<h2 id="basic">Basic fetching</h2>
+## Basic fetching
 
 As you have read on the [resolvers page](/docs/graphql-tools/resolvers.html#Resolver-result-format), resolvers in GraphQL.js can return Promises. This means it's easy to fetch data using any library that returns a promise for the result:
 
@@ -21,7 +21,7 @@ const resolverMap = {
 }
 ```
 
-<h2 id="connectors">Factoring out fetching details</h2>
+## Factoring out fetching details
 
 As you start to have more different resolvers that need to access the GitHub API, the above approach becomes unsustainable. It's good to abstract that away into a "repository" pattern. We call these data fetching functions "connectors":
 
@@ -62,7 +62,7 @@ const resolverMap = {
 
 This means we no longer have to worry about the details of fetching from GitHub inside our resolvers, and we just need to put in the right repository name to fetch. We can improve our GitHub fetching logic over time.
 
-<h2 id="dataloader">DataLoader and caching</h2>
+## DataLoader and caching
 
 At some point, you might get to a situation where you are fetching the same objects over and over during the course of a single query. For example, you could have a list of repositories which each want to know about their owner:
 
@@ -95,7 +95,7 @@ If the list of repositories has several that were owned by the same user, the `g
 
 You can improve the situation by adding a per-request cache with `dataloader`, Facebook's [helpful JavaScript library](https://github.com/facebook/dataloader) for in-memory data caching.
 
-<h3 id="dataloader-per-request">One dataloader per request</h3>
+### One dataloader per request
 
 One important thing to understand about `dataloader` is that it caches the results forever, unless told otherwise. So we really want to make sure we create a new instance for _every_ request sent to our server, so that we de-duplicate fetches in one query but not across multiple requests or, even worse, multiple users.
 
