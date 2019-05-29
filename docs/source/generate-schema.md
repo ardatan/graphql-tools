@@ -102,7 +102,7 @@ export const schema = makeExecutableSchema({
 });
 ```
 
-This example has the entire type definition in one string and all resolvers in one object, but you can combine types and resolvers from multiple files, as documented in the [modularizing the schema](#modularizing) section below.
+This example has the entire type definition in one string and all resolvers in one object, but you can combine types and resolvers from multiple files, as documented in the [extending types](#extending-types) section below.
 
 ## Extending Types
 
@@ -206,7 +206,7 @@ const jsSchema = makeExecutableSchema({
 
 - `typeDefs` is a required argument and should be an GraphQL schema language string or array of GraphQL schema language strings or a function that takes no arguments and returns an array of GraphQL schema language strings. The order of the strings in the array is not important, but it must include a schema definition.
 
-- `resolvers` is an optional argument _(empty object by default)_ and should be an object that follows the pattern explained in [article on resolvers](http://dev.apollodata.com/tools/graphql-tools/resolvers.html).
+- `resolvers` is an optional argument _(empty object by default)_ and should be an object that follows the pattern explained in [article on resolvers](/resolvers/).
 
 - `logger` is an optional argument, which can be used to print errors to the server console that are usually swallowed by GraphQL. The `logger` argument should be an object with a `log` function, eg. `const logger = { log: e => console.log(e) }`
 

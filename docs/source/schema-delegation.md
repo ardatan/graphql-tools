@@ -7,9 +7,9 @@ Schema delegation is a way to automatically forward a query (or a part of a quer
 
 The `graphql-tools` package provides several related tools for managing schema delegation:
 
-* [Remote schemas](./remote-schemas.html) - turning a remote GraphQL endpoint into a local schema
-* [Schema transforms](./schema-transforms.html) - modifying existing schemas to make delegation easier
-* [Schema stitching](./schema-stitching) - merging multiple schemas into one
+* [Remote schemas](/remote-schemas/) - turning a remote GraphQL endpoint into a local schema
+* [Schema transforms](/schema-transforms/) - modifying existing schemas to make delegation easier
+* [Schema stitching](/schema-stitching/) - merging multiple schemas into one
 
 Delegation is performed by one function, `delegateToSchema`, called from within a resolver function of the parent schema. The `delegateToSchema` function sends the query subtree received by the parent resolver to a subschema that knows how to execute it, then returns the result as if the parent resolver had executed the query.
 
@@ -194,7 +194,7 @@ Also provides the `info.mergeInfo.delegateToSchema` function discussed above.
 
 #### transforms: Array<Transform>
 
-[Transforms](./schema-transforms.html) to apply to the query and results. Should be the same transforms that were used to transform the schema, if any. After transformation, `transformedSchema.transforms` contains the transforms that were applied.
+[Transforms](/schema-transforms/) to apply to the query and results. Should be the same transforms that were used to transform the schema, if any. After transformation, `transformedSchema.transforms` contains the transforms that were applied.
 
 ## Additional considerations
 

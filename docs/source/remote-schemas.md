@@ -3,13 +3,13 @@ title: Remote schemas
 description: Generate GraphQL schema objects that delegate to a remote server
 ---
 
-It can be valuable to be able to treat remote GraphQL endpoints as if they were local executable schemas. This is especially useful for [schema stitching](./schema-stitching.html), but there may be other use cases.
+It can be valuable to be able to treat remote GraphQL endpoints as if they were local executable schemas. This is especially useful for [schema stitching](/schema-stitching/), but there may be other use cases.
 
 Generally, to create a remote schema, you need three steps:
 
-1. Create a [link](#link) that can retrieve results from that schema
-2. Use [`introspectSchema`](#introspectSchema) to get the schema of the remote server
-3. Use [`makeRemoteExecutableSchema`](#makeRemoteExecutableSchema) to create a schema that uses the link to delegate requests to the underlying service
+1. Create a [link](#creating-a-link) that can retrieve results from that schema
+2. Use [`introspectSchema`](#introspectschemafetcher-context) to get the schema of the remote server
+3. Use [`makeRemoteExecutableSchema`](#makeremoteexecutableschemaoptions) to create a schema that uses the link to delegate requests to the underlying service
 
 We've chosen to split this functionality up to give you the flexibility to choose when to do the introspection step. For example, you might already have the remote schema information, allowing you to skip the `introspectSchema` step entirely. Here's a complete example:
 
@@ -220,7 +220,7 @@ const schema = makeRemoteExecutableSchema({
 });
 ```
 
-Given a GraphQL.js schema (can be a non-executable client schema made by `buildClientSchema`) and a [Link](#link) or [Fetcher](#fetcher), produce a GraphQL Schema that routes all requests to the link or fetcher.
+Given a GraphQL.js schema (can be a non-executable client schema made by `buildClientSchema`) and a [Link](#link-api) or [Fetcher](#fetcher-api), produce a GraphQL Schema that routes all requests to the link or fetcher.
 
 You can also pass a `createResolver` function to `makeRemoteExecutableSchema` to override how the fetch resolvers are created and executed. The `createResolver` param accepts a `Fetcher` as its first argument and returns a resolver function. This opens up the possibility for users to create batching mechanisms for fetches.
 ```js

@@ -11,7 +11,7 @@ In both cases, we use `mergeSchemas` to combine multiple GraphQL schemas togethe
 
 ## Working with remote schemas
 
-In order to merge with a remote schema, we first call [makeRemoteExecutableSchema](./remote-schemas.html) to create a local proxy for the schema that knows how to call the remote endpoint. We then merge that local proxy schema the same way we would merge any other locally implemented schema.
+In order to merge with a remote schema, we first call [makeRemoteExecutableSchema](/remote-schemas/) to create a local proxy for the schema that knows how to call the remote endpoint. We then merge that local proxy schema the same way we would merge any other locally implemented schema.
 
 ## Basic example
 
@@ -174,7 +174,7 @@ const mergedSchema = mergeSchemas({
 
 ## Using with Transforms
 
-Often, when creating a GraphQL gateway that combines multiple existing schemas, we might want to modify one of the schemas. The most common tasks include renaming some of the types, and filtering the root fields. By using [transforms](./schema-transforms) with schema stitching, we can easily tweak the subschemas before merging them together.
+Often, when creating a GraphQL gateway that combines multiple existing schemas, we might want to modify one of the schemas. The most common tasks include renaming some of the types, and filtering the root fields. By using [transforms](/schema-transforms/) with schema stitching, we can easily tweak the subschemas before merging them together.
 
 Before, when we were simply merging schemas without first transforming them, we would typically delegate directly to one of the merged schemas. Once we add transforms to the mix, there are times when we want to delegate to fields of the new, transformed schemas, and other times when we want to delegate to the original, untransformed schemas.
 
@@ -318,7 +318,7 @@ This is the main function that implements schema stitching. Read below for a des
 
 #### resolvers
 
-`resolvers` accepts resolvers in same format as [makeExecutableSchema](./resolvers.html). It can also take an Array of resolvers. One addition to the resolver format is the possibility to specify a `fragment` for a resolver. The `fragment` must be a GraphQL fragment definition string, specifying which fields from the parent schema are required for the resolver to function properly.
+`resolvers` accepts resolvers in same format as [makeExecutableSchema](/resolvers/). It can also take an Array of resolvers. One addition to the resolver format is the possibility to specify a `fragment` for a resolver. The `fragment` must be a GraphQL fragment definition string, specifying which fields from the parent schema are required for the resolver to function properly.
 
 ```js
 resolvers: {
@@ -366,7 +366,7 @@ interface IDelegateToSchemaOptions<TContext = {
 }
 ```
 
-As described in the documentation above, `info.mergeInfo.delegateToSchema` allows delegating to any `GraphQLSchema` object, optionally applying transforms in the process. See [Schema Delegation](./schema-delegation.html) and the [*Using with transforms*](#using-with-transforms) section of this document.
+As described in the documentation above, `info.mergeInfo.delegateToSchema` allows delegating to any `GraphQLSchema` object, optionally applying transforms in the process. See [Schema Delegation](/schema-delegation/) and the [*Using with transforms*](#using-with-transforms) section of this document.
 
 #### onTypeConflict
 
@@ -411,4 +411,4 @@ When using schema transforms, `onTypeConflict` is often unnecessary, since trans
 
 #### inheritResolversFromInterfaces
 
-The `inheritResolversFromInterfaces` option is simply passed through to `addResolveFunctionsToSchema`, which is called when adding resolvers to the schema under the covers. See [`addResolveFunctionsToSchema`](/docs/graphql-tools/resolvers.md#addResolveFunctionsToSchema) for more info.
+The `inheritResolversFromInterfaces` option is simply passed through to `addResolveFunctionsToSchema`, which is called when adding resolvers to the schema under the covers. See [`addResolveFunctionsToSchema`](/resolvers/#addresolvefunctionstoschema-schema-resolvers-resolvervalidationoptions-inheritresolversfrominterfaces-) for more info.
