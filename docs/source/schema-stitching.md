@@ -3,7 +3,7 @@ title: Schema stitching (deprecated)
 description: Combining multiple GraphQL APIs into one
 ---
 
-> **Deprecated:** Federation is our replacement for schema stitching that enables developers to declaratively compose a distributed graph. Learn why in our [blog post](https://blog.apollographql.com/apollo-federation-f260cf525d21) and [how to migrate](https://www.apollographql.com/docs/apollo-server/federation/migrating-from-stitching/) in the federation guide.
+> **Deprecated:** Federation is our replacement for schema stitching that enables developers to declaratively compose a distributed graph. Learn why in our [blog post](https://blog.apollographql.com/apollo-federation-f260cf525d21) and [how to migrate](/docs/apollo-server/federation/migrating-from-stitching/) in the federation guide.
 
 Schema stitching is the process of creating a single GraphQL schema from multiple underlying GraphQL APIs.
 
