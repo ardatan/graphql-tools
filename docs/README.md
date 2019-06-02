@@ -1,8 +1,16 @@
 # Documentation
 
-This is the documentation **source** for this repository.
+This is the documentation **source** for graphql-tools-fork.
 
-The **deployed** version of the documentation for this repository is available at:
+The **deployed** version of the documentation for the graphql-tools-fork repository is available at:
+
+* https://graphql-tools-fork.netlify.com/docs/graphql-tools-fork/
+
+An important short-term goal is to fork the Gatsby theme to more clearly distinguish the fork from the original repository. Moreover, the documentation is in **very** early stages. At this time, see the changelog for a better description of distinguishing fixes and new features.
+
+* https://github.com/yaacovCR/graphql-tools-fork/blob/master/CHANGELOG.md
+
+For reference, the documentation for the original graphql-tools repository is available at:
 
 * https://www.apollographql.com/docs/graphql-tools/
 
