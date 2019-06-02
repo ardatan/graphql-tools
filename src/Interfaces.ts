@@ -71,11 +71,11 @@ export type MergeInfo = {
     info: GraphQLResolveInfo,
     transforms?: Array<Transform>,
   ) => any;
-  delegateToSchema<TContext>(options: IDelegateToSchemaOptions<TContext>): any;
   fragments: Array<{
     field: string;
     fragment: string;
   }>;
+  delegateToSchema<TContext>(options: IDelegateToSchemaOptions<TContext>): any;
 };
 
 export type IFieldResolver<TSource, TContext, TArgs = Record<string, any>> = (
