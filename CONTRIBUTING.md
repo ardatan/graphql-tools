@@ -1,10 +1,8 @@
-# Apollo Contributor Guide
+# Contributor Guide
 
-Excited about Apollo and want to make it better? We’re excited too!
+Excited about graphql-tools and/or graphql-tools-fork and want to make it better? We’re excited too! That's why we forked the project, so that we could open up the tools and (hopefully) provide better more and more timely engagement with the community.
 
-Apollo is a community of developers just like you, striving to create the best tools and libraries around GraphQL. We welcome anyone who wants to contribute or provide constructive feedback, no matter the age or level of experience. If you want to help but don't know where to start, let us know, and we'll find something for you.
-
-Oh, and if you haven't already, sign up for the [Apollo Slack](http://www.apollodata.com/#slack).
+We welcome anyone who wants to contribute or provide constructive feedback, no matter the age or level of experience. If you want to help but don't know where to start, let us know, and we'll find something for you.
 
 Here are some ways to contribute to the project, from easiest to most difficult:
 
@@ -35,7 +33,7 @@ Improving the documentation, examples, and other open source content can be the 
 
 ### Responding to issues
 
-In addition to reporting issues, a great way to contribute to Apollo is to respond to other peoples' issues and try to identify the problem or help them work around it. If you’re interested in taking a more active role in this process, please go ahead and respond to issues. And don't forget to say "Hi" on Apollo Slack!
+In addition to reporting issues, a great way to contribute is to respond to other peoples' issues and try to identify the problem or help them work around it. If you’re interested in taking a more active role in this process, please go ahead and respond to issues.
 
 ### Small bug fixes
 
@@ -43,7 +41,7 @@ For a small bug fix change (less than 20 lines of code changed), feel free to op
 
 ### Suggesting features
 
-Most of the features in Apollo came from suggestions by you, the community! We welcome any ideas about how to make Apollo  better for your use case. Unless there is overwhelming demand for a feature, it might not get implemented immediately, but please include as much information as possible that will help people have a discussion about your proposal:
+We welcome any ideas about how to make graphql-tools-fork better for your use case. Unless there is overwhelming demand for a feature, it might not get implemented immediately, but please include as much information as possible that will help people have a discussion about your proposal:
 
 1. **Use case:** What are you trying to accomplish, in specific terms? Often, there might already be a good way to do what you need and a new feature is unnecessary, but it’s hard to know without information about the specific use case.
 2. **Could this be a plugin?** In many cases, a feature might be too niche to be included in the core of a library, and is better implemented as a companion package. If there isn’t a way to extend the library to do what you want, could we add additional plugin APIs? It’s important to make the case for why a feature should be part of the core functionality of the library.
@@ -72,7 +70,7 @@ For significant changes to a repository, it’s important to settle on a design 
 
 ### Code review guidelines
 
-It’s important that every piece of code in Apollo packages is reviewed by at least one core contributor familiar with that codebase. Here are some things we look for:
+It’s important that every piece of code is reviewed by at least one core contributor familiar with that codebase. Here are some things we look for:
 
 1. **Required CI checks pass.** This is a prerequisite for the review, and it is the PR author's responsibility. As long as the tests don’t pass, the PR won't get reviewed.
 2. **Simplicity.** Is this the simplest way to achieve the intended goal? If there are too many files, redundant functions, or complex lines of code, suggest a simpler way to do the same thing. In particular, avoid implementing an overly general solution when a simple, small, and pragmatic fix will do.

@@ -1,7 +1,7 @@
 {
-  "name": "graphql-tools",
-  "version": "4.0.4",
-  "description": "Useful tools to create and manipulate GraphQL schemas.",
+  "name": "graphql-tools-fork",
+  "version": "5.0.0",
+  "description": "Forked graphql-tools, still more useful tools to create and manipulate GraphQL schemas.",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "typescript": {
@@ -30,7 +30,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/apollographql/graphql-tools.git"
+    "url": "git+https://github.com/yaacovCR/graphql-tools-fork.git"
+  },
+  "release": {
+    "tagFormat": "v${version}-fork"
   },
   "keywords": [
     "GraphQL",
@@ -42,12 +45,11 @@
     "Schema Language",
     "Tools"
   ],
-  "author": "Jonas Helfer <jonas@helfer.email>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/apollostack/graphql-tools/issues"
+    "url": "https://github.com/yaacovCR/graphql-tools-fork/issues"
   },
-  "homepage": "https://github.com/apollostack/graphql-tools#readme",
+  "homepage": "https://github.com/yaacovCR/graphql-tools-fork#readme",
   "dependencies": {
     "apollo-link": "^1.2.3",
     "apollo-utilities": "^1.0.1",
@@ -79,6 +81,7 @@
     "remap-istanbul": "0.9.6",
     "rimraf": "^2.6.2",
     "source-map-support": "^0.5.0",
+    "standard-version": "^6.0.1",
     "tslint": "^5.8.0",
     "typescript": "3.0.3"
   }

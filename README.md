@@ -1,19 +1,23 @@
-# GraphQL-tools: generate and mock GraphQL.js schemas
+# graphql-tools-fork: keep on stitching
 
-[![npm version](https://badge.fury.io/js/graphql-tools.svg)](https://badge.fury.io/js/graphql-tools)
-[![Build Status](https://travis-ci.org/apollographql/graphql-tools.svg?branch=master)](https://travis-ci.org/apollographql/graphql-tools)
-[![Coverage Status](https://coveralls.io/repos/github/apollographql/graphql-tools/badge.svg?branch=master)](https://coveralls.io/github/apollographql/graphql-tools?branch=master)
-[![Get on Slack](https://img.shields.io/badge/slack-join-orange.svg)](http://www.apollostack.com/#slack)
+[![npm version](https://badge.fury.io/js/graphql-tools-fork.svg)](https://badge.fury.io/js/graphql-tools-fork)
+[![Build Status](https://travis-ci.org/yaacovCR/graphql-tools-fork.svg?branch=master)](https://travis-ci.org/yaacovCR/graphql-tools-fork)
+[![Coverage Status](https://coveralls.io/repos/github/yaacovCR/graphql-tools-fork/badge.svg?branch=master)](https://coveralls.io/github/yaacovCR/graphql-tools-fork?branch=master)
 
-This package provides a few useful ways to create a GraphQL schema:
+This fork will hopefully provide more and more timely engagement with the community as we continue to support the following use cases, with the notable inclusion of schema stitching:
 
-1. Use the GraphQL schema language to [generate a schema](https://www.apollographql.com/docs/graphql-tools/generate-schema.html) with full support for resolvers, interfaces, unions, and custom scalars. The schema produced is completely compatible with [GraphQL.js](https://github.com/graphql/graphql-js).
-2. [Mock your GraphQL API](https://www.apollographql.com/docs/graphql-tools/mocking.html) with fine-grained per-type mocking
-3. Automatically [stitch multiple schemas together](https://www.apollographql.com/docs/graphql-tools/schema-stitching.html) into one larger API
+1. Use the GraphQL schema language to [generate a schema](https://graphql-tools-fork.netlify.com/docs/graphql-tools-fork/generate-schema.html) with full support for resolvers, interfaces, unions, and custom scalars. The schema produced is completely compatible with [GraphQL.js](https://github.com/graphql/graphql-js).
+2. [Mock your GraphQL API](https://graphql-tools-fork.netlify.com/docs/graphql-tools-fork/mocking.html) with fine-grained per-type mocking
+3. Automatically [stitch multiple schemas together](https://graphql-tools-fork.netlify.com/docs/graphql-tools-fork/schema-stitching.html) into one larger API
 
 ## Documentation
 
-[Read the docs.](https://www.apollographql.com/docs/graphql-tools/)
+[Read the forked docs.](https://graphql-tools-fork.netlify.com/docs/graphql-tools-fork/)
+
+See the changelog for recent changes:
+* https://github.com/yaacovCR/graphql-tools-fork/blob/master/CHANGELOG.md
+
+[Read the original docs.](https://www.apollographql.com/docs/graphql-tools/)
 
 ## Binding to HTTP
 
@@ -115,7 +119,7 @@ const executableSchema = makeExecutableSchema({
 });
 ```
 
-This example has the entire type definition in one string and all resolvers in one file, but you can combine types and resolvers from multiple files and objects, as documented in the [modularizing the schema](https://www.apollographql.com/docs/graphql-tools/generate-schema.html#modularizing) section of the docs.
+This example has the entire type definition in one string and all resolvers in one file, but you can combine types and resolvers from multiple files and objects, as documented in the [modularizing the schema](https://graphql-tools-fork.netlify.com/docs/graphql-tools-fork/generate-schema.html#modularizing) section of the docs.
 
 ## Contributions
 
@@ -123,5 +127,4 @@ Contributions, issues and feature requests are very welcome. If you are using th
 
 ## Maintainers
 
-- [@hwillson](https://github.com/hwillson) (Apollo)
-- [@benjamn](https://github.com/benjamn) (Apollo)
+- [@yaacovCR](https://github.com/yaacovCR)
