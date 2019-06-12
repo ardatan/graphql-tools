@@ -92,7 +92,6 @@ export function recreateType(
       name: type.name,
       description: type.description,
       astNode: type.astNode,
-
       fields: () =>
         inputFieldMapToFieldConfigMap(type.getFields(), resolveType),
     });
