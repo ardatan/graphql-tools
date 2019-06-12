@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.1.0](https://github.com/yaacovCR/graphql-tools-fork/compare/v5.0.0...v5.1.0) (2019-06-12)
+
+
+### Features
+
+* **errors:** Pass through all possible errors. ([21f70a3](https://github.com/yaacovCR/graphql-tools-fork/commit/21f70a3)), closes [#743](https://github.com/yaacovCR/graphql-tools-fork/issues/743) [#1037](https://github.com/yaacovCR/graphql-tools-fork/issues/1037) [#1046](https://github.com/yaacovCR/graphql-tools-fork/issues/1046) [apollographql/apollo-server#1582](https://github.com/yaacovCR/graphql-tools-fork/issues/1582)
+
+
+
 ## [5.0.0](https://github.com/yaacovCR/graphql-tools-fork/compare/v4.0.4...v5.0.0) (2019-06-02)
 
 * Fixes a bug where schemas with scalars could not be merged when passed to
