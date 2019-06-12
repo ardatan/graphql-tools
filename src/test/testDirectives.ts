@@ -94,6 +94,13 @@ describe('@directives', () => {
   it('are included in the schema AST', () => {
     const schema = makeExecutableSchema({
       typeDefs,
+      resolvers: {
+        Gender: {
+          NONBINARY: 'NB',
+          FEMALE: 'F',
+          MALE: 'M'
+        }
+      }
     });
 
     function checkDirectives(
