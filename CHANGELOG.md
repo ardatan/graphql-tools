@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [5.1.1](https://github.com/yaacovCR/graphql-tools-fork/compare/v5.1.0...v5.1.1) (2019-06-13)
+
+
+### Bug Fixes
+
+* **stitching:** fix regression ([6eed72e](https://github.com/yaacovCR/graphql-tools-fork/commit/6eed72e))
+
+
+
 ## [5.1.0](https://github.com/yaacovCR/graphql-tools-fork/compare/v5.0.0...v5.1.0) (2019-06-12)
 
 
