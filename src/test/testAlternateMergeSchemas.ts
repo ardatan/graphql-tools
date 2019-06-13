@@ -30,6 +30,7 @@ import {
 } from './testingSchemas';
 import { forAwaitEach } from 'iterall';
 import { createResolveType, fieldToFieldConfig } from '../stitching/schemaRecreation';
+import { makeExecutableSchema } from '../makeExecutableSchema';
 
 let linkSchema = `
   """
@@ -509,3 +510,30 @@ async () => {
   });
 });
 
+describe('mergeSchemas', () => {
+  it('can merge null root fields', async () => {
+    const schema = makeExecutableSchema({
+      typeDefs: `
+        type Query {
+          test: Test
+        }
+        type Test {
+          field: String
+        }
+      `,
+      resolvers: {
+        Query: {
+          test: () => null
+        }
+      }
+    });
+    const mergedSchema = mergeSchemas({
+      schemas: [schema]
+    });
+
+    const query = `{ test { field } }`;
+    const response = await graphql(mergedSchema, query);
+    expect(response.data.test).to.be.null;
+    expect(response.errors).to.be.undefined;
+  });
+});

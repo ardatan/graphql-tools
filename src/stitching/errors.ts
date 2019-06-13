@@ -132,6 +132,8 @@ export function checkResultAndHandleErrors(
         info.fieldNodes,
         responsePathAsArray(info.path)
       );
+    } else {
+      return null;
     }
   }
 
