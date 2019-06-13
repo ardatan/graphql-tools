@@ -85,7 +85,6 @@ export function recreateType(
       name: type.name,
       description: type.description,
       astNode: type.astNode,
-
       fields: () =>
         inputFieldMapToFieldConfigMap(type.getFields(), resolveType),
     });
@@ -274,6 +273,7 @@ export function argumentToArgumentConfig(
         type: type,
         defaultValue: argument.defaultValue,
         description: argument.description,
+        astNode: argument.astNode,
       },
     ];
   }

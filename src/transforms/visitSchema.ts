@@ -40,7 +40,7 @@ export function visitSchema(
   visitor: SchemaVisitor,
   stripResolvers?: boolean,
 ) {
-  const types = {};
+  const types: {[key: string]: GraphQLNamedType} = {};
   const resolveType = createResolveType(name => {
     if (typeof types[name] === 'undefined') {
       throw new Error(`Can't find type ${name}.`);
@@ -73,6 +73,7 @@ export function visitSchema(
       }
     }
   });
+
   return new GraphQLSchema({
     query: queryType ? (types[queryType.name] as GraphQLObjectType) : null,
     mutation: mutationType
@@ -82,6 +83,8 @@ export function visitSchema(
       ? (types[subscriptionType.name] as GraphQLObjectType)
       : null,
     types: Object.keys(types).map(name => types[name]),
+    directives: [...schema.getDirectives()],
+    astNode: schema.astNode,
   });
 }
 
