@@ -11,7 +11,7 @@ import {
   isNamedType,
   getNamedType,
 } from 'graphql';
-import { recreateType, createResolveType } from '../stitching/schemaRecreation';
+import { recreateType, recreateDirective, createResolveType } from '../stitching/schemaRecreation';
 
 export enum VisitSchemaKind {
   TYPE = 'VisitSchemaKind.TYPE',
@@ -83,7 +83,7 @@ export function visitSchema(
       ? (types[subscriptionType.name] as GraphQLObjectType)
       : null,
     types: Object.keys(types).map(name => types[name]),
-    directives: [...schema.getDirectives()],
+    directives: [...schema.getDirectives().map(d => recreateDirective(d, resolveType))],
     astNode: schema.astNode,
   });
 }

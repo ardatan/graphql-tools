@@ -174,6 +174,35 @@ describe('@directives', () => {
     checkDirectives(schema.getType('WhateverUnion'), ['unionDirective']);
   });
 
+  it('works with enum and its resolvers', () => {
+    const schema = makeExecutableSchema({
+      typeDefs: `
+        enum DateFormat {
+            LOCAL
+            ISO
+        }
+
+        directive @date(format: DateFormat) on FIELD_DEFINITION
+
+        scalar Date
+
+        type Query {
+          today: Date @date(format: LOCAL)
+        }
+      `,
+      resolvers: {
+        DateFormat: {
+          LOCAL: 'local',
+          ISO: 'iso'
+        }
+      }
+    });
+
+    assert.exists(schema.getType('DateFormat'));
+    assert.lengthOf(schema.getDirectives(), 4);
+    assert.exists(schema.getDirective('date'));
+  });
+
   it('can be implemented with SchemaDirectiveVisitor', () => {
     const visited: Set<GraphQLObjectType> = new Set;
     const schema = makeExecutableSchema({ typeDefs });
