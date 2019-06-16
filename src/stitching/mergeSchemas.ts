@@ -56,6 +56,10 @@ export type OnTypeConflict = (
   },
 ) => GraphQLNamedType;
 
+type CandidateSelector = (
+  candidates: Array<MergeTypeCandidate>,
+) => MergeTypeCandidate;
+
 export default function mergeSchemas({
   schemas,
   onTypeConflict,
@@ -76,6 +80,7 @@ export default function mergeSchemas({
 }): GraphQLSchema {
   return mergeSchemasImplementation({
     schemas,
+    onTypeConflict,
     resolvers,
     schemaDirectives,
     inheritResolversFromInterfaces,
@@ -85,6 +90,7 @@ export default function mergeSchemas({
 
 function mergeSchemasImplementation({
   schemas,
+  onTypeConflict,
   resolvers,
   schemaDirectives,
   inheritResolversFromInterfaces,
@@ -93,6 +99,7 @@ function mergeSchemasImplementation({
   schemas: Array<
     string | GraphQLSchema | DocumentNode | Array<GraphQLNamedType>
   >;
+  onTypeConflict?: OnTypeConflict;
   resolvers?: IResolversParameter;
   schemaDirectives?: { [name: string]: typeof SchemaDirectiveVisitor };
   inheritResolversFromInterfaces?: boolean;
@@ -225,6 +232,7 @@ function mergeSchemasImplementation({
     const resultType: VisitTypeResult = defaultVisitType(
       typeName,
       typeCandidates[typeName],
+      onTypeConflict ? onTypeConflictToCandidateSelector(onTypeConflict) : undefined
     );
     if (resultType === null) {
       types[typeName] = null;
@@ -441,12 +449,34 @@ function addTypeCandidate(
   typeCandidates[name].push(typeCandidate);
 }
 
+function onTypeConflictToCandidateSelector(onTypeConflict: OnTypeConflict): CandidateSelector {
+  return cands =>
+    cands.reduce((prev, next) => {
+      const type = onTypeConflict(prev.type, next.type, {
+        left: {
+          schema: prev.schema,
+        },
+        right: {
+          schema: next.schema,
+        },
+      });
+      if (prev.type === type) {
+        return prev;
+      } else if (next.type === type) {
+        return next;
+      } else {
+        return {
+          schemaName: 'unknown',
+          type
+        };
+      }
+    });
+}
+
 function defaultVisitType(
   name: string,
   candidates: Array<MergeTypeCandidate>,
-  candidateSelector?: (
-    candidates: Array<MergeTypeCandidate>,
-  ) => MergeTypeCandidate,
+  candidateSelector?: CandidateSelector
 ) {
   if (!candidateSelector) {
     candidateSelector = cands => cands[cands.length - 1];
