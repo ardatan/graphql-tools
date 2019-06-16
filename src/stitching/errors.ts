@@ -2,6 +2,7 @@ import {
   GraphQLError,
   ASTNode
 } from 'graphql';
+import { forEach } from 'iterall';
 
 export let ERROR_SYMBOL: any;
 if (
@@ -65,7 +66,9 @@ export function annotateWithChildrenErrors(object: any, childrenErrors: Readonly
       byIndex[index] = current;
     });
 
-    return object.map((item, index) => annotateWithChildrenErrors(item, byIndex[index]));
+    object.forEach((item, index) => annotateWithChildrenErrors(item, byIndex[index]));
+
+    return object;
   }
 
   object[ERROR_SYMBOL] = childrenErrors.map(error => {
