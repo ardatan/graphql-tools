@@ -590,7 +590,7 @@ describe('onTypeConflict', () => {
         }
       }
     });
-  })
+  });
 
   it('by default takes last type', async () => {
     const mergedSchema = mergeSchemas({
