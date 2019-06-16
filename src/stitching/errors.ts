@@ -1,14 +1,7 @@
 import {
-  GraphQLResolveInfo,
-  responsePathAsArray,
-  getNullableType,
-  isObjectType,
-  isListType,
-  ExecutionResult,
   GraphQLError,
   ASTNode
 } from 'graphql';
-import { getResponseKeyFromInfo } from './getResponseKeyFromInfo';
 
 export let ERROR_SYMBOL: any;
 if (
@@ -114,37 +107,6 @@ class CombinedError extends Error {
     super(message);
     this.errors = errors;
   }
-}
-
-export function checkResultAndHandleErrors(
-  result: ExecutionResult,
-  info: GraphQLResolveInfo,
-  responseKey?: string
-): any {
-  if (!responseKey) {
-    responseKey = getResponseKeyFromInfo(info);
-  }
-
-  if (!result.data || !result.data[responseKey]) {
-    if (result.errors) {
-      throw relocatedError(
-        combineErrors(result.errors),
-        info.fieldNodes,
-        responsePathAsArray(info.path)
-      );
-    } else {
-      return null;
-    }
-  }
-
-  result.errors = result.errors || [];
-
-  let resultObject = result.data[responseKey];
-  const nullableType = getNullableType(info.returnType);
-  if (isObjectType(nullableType) || isListType(nullableType)) {
-    annotateWithChildrenErrors(resultObject, result.errors);
-  }
-  return resultObject;
 }
 
 export function combineErrors(errors: ReadonlyArray<GraphQLError>): GraphQLError | CombinedError {
