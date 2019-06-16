@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.2.0](https://github.com/yaacovCR/graphql-tools-fork/compare/v5.1.1...v5.2.0) (2019-06-16)
+
+
+### Bug Fixes
+
+* **stitching:** nested enums ([0cd8b96](https://github.com/yaacovCR/graphql-tools-fork/commit/0cd8b96))
+
+
+### Features
+
+* **stitching:** restore onTypeConflict option to mergeSchemas ([d8d418a](https://github.com/yaacovCR/graphql-tools-fork/commit/d8d418a))
+
+
+
 ### [5.1.1](https://github.com/yaacovCR/graphql-tools-fork/compare/v5.1.0...v5.1.1) (2019-06-13)
 
 
