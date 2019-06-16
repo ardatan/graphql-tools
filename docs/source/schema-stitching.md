@@ -391,12 +391,12 @@ type OnTypeConflict = (
 
 The `onTypeConflict` option to `mergeSchemas` allows customization of type resolving logic.
 
-The default behavior of `mergeSchemas` is to take the first encountered type of all the types with the same name. If there are conflicts, `onTypeConflict` enables explicit selection of the winning type.
+The default behavior of `mergeSchemas` is to take the *last* encountered type of all the types with the same name, with a warning that type conflicts have been encountered. If specified, `onTypeConflict` enables explicit selection of the winning type.
 
-For example, here's how we could select the last type among multiple types with the same name:
+For example, here's how we could select the *first* type among multiple types with the same name:
 
 ```js
-const onTypeConflict = (left, right) => right;
+const onTypeConflict = (left, right) => left;
 ```
 
 And here's how we might select the type whose schema has the latest `version`:
