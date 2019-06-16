@@ -2,10 +2,10 @@ import { assert } from 'chai';
 import { GraphQLResolveInfo, GraphQLError } from 'graphql';
 import {
   relocatedError,
-  checkResultAndHandleErrors,
   getErrorsFromParent,
   ERROR_SYMBOL
 } from '../stitching/errors';
+import { checkResultAndHandleErrors } from '../stitching/checkResultAndHandleErrors';
 
 import 'mocha';
 

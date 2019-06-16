@@ -97,6 +97,11 @@ let enumTest = `
     TEST @deprecated(reason: "This is deprecated")
   }
 
+  type EnumWrapper {
+    color: Color
+    numericEnum: NumericEnum
+  }
+
   schema {
     query: Query
   }
@@ -104,6 +109,7 @@ let enumTest = `
   type Query {
     color: Color
     numericEnum: NumericEnum
+    wrappedEnum: EnumWrapper
   }
 `;
 
@@ -124,6 +130,12 @@ enumSchema = makeExecutableSchema({
       },
       numericEnum() {
         return 1;
+      },
+      wrappedEnum() {
+        return {
+          color: '#EA3232',
+          numericEnum: 1
+        };
       },
     },
   },
@@ -532,27 +544,8 @@ testCombinations.forEach(async combination => {
       });
 
       it('works with custom enums', async () => {
-        const localSchema = makeExecutableSchema({
-          typeDefs: enumTest,
-          resolvers: {
-            Color: {
-              RED: '#EA3232',
-            },
-            NumericEnum: {
-              TEST: 1,
-            },
-            Query: {
-              color() {
-                return '#EA3232';
-              },
-              numericEnum() {
-                return 1;
-              },
-            },
-          },
-        });
         const enumResult = await graphql(
-          localSchema,
+          enumSchema,
           `
             query {
               color
@@ -570,6 +563,10 @@ testCombinations.forEach(async combination => {
                   name
                   description
                 }
+              }
+              wrappedEnum {
+                color
+                numericEnum
               }
             }
           `,
@@ -594,6 +591,10 @@ testCombinations.forEach(async combination => {
                   name
                   description
                 }
+              }
+              wrappedEnum {
+                color
+                numericEnum
               }
             }
           `,
@@ -620,6 +621,10 @@ testCombinations.forEach(async combination => {
                   name: 'RED',
                 },
               ],
+            },
+            wrappedEnum: {
+              color: 'RED',
+              numericEnum: 'TEST',
             },
           },
         });

@@ -1,5 +1,5 @@
 import { GraphQLResolveInfo } from 'graphql';
-import { checkResultAndHandleErrors } from '../stitching/errors';
+import { checkResultAndHandleErrors } from '../stitching/checkResultAndHandleErrors';
 import { Transform } from './transforms';
 
 export default class CheckResultAndHandleErrors implements Transform {

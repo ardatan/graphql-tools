@@ -14,7 +14,6 @@ import {
   GraphQLSchema,
   ExecutionResult,
   NameNode,
-  isEnumType,
 } from 'graphql';
 
 import { Operation, Request, IDelegateToSchemaOptions } from '../Interfaces';
@@ -31,7 +30,6 @@ import CheckResultAndHandleErrors from '../transforms/CheckResultAndHandleErrors
 import mapAsyncIterator from './mapAsyncIterator';
 import ExpandAbstractTypes from '../transforms/ExpandAbstractTypes';
 import ReplaceFieldWithFragment from '../transforms/ReplaceFieldWithFragment';
-import ConvertEnumResponse from '../transforms/ConvertEnumResponse';
 
 export default function delegateToSchema(
   options: IDelegateToSchemaOptions | GraphQLSchema,
@@ -84,12 +82,6 @@ async function delegateToSchemaImplementation(
     new AddTypenameToAbstract(options.schema),
     new CheckResultAndHandleErrors(info, options.fieldName),
   ]);
-
-  if (isEnumType(options.info.returnType)) {
-    transforms = transforms.concat(
-      new ConvertEnumResponse(options.info.returnType),
-    );
-  }
 
   const processedRequest = applyRequestTransforms(rawRequest, transforms);
 
