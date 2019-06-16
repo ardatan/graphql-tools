@@ -2,7 +2,6 @@ import {
   GraphQLError,
   ASTNode
 } from 'graphql';
-import { forEach } from 'iterall';
 
 export let ERROR_SYMBOL: any;
 if (
