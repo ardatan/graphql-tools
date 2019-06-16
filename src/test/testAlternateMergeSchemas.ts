@@ -537,3 +537,90 @@ describe('mergeSchemas', () => {
     expect(response.errors).to.be.undefined;
   });
 });
+
+describe('onTypeConflict', () => {
+  let schema1: GraphQLSchema;
+  let schema2: GraphQLSchema;
+
+  beforeEach(() => {
+    const typeDefs1 = `
+      type Query {
+        test1: Test
+      }
+
+      type Test {
+        fieldA: String
+        fieldB: String
+      }
+    `;
+
+    const typeDefs2 = `
+      type Query {
+        test2: Test
+      }
+
+      type Test {
+        fieldA: String
+        fieldC: String
+      }
+      `;
+
+    schema1 = makeExecutableSchema({
+      typeDefs: typeDefs1,
+      resolvers: {
+        Query: {
+          test1: () => ({})
+        },
+        Test: {
+          fieldA: () => 'A',
+          fieldB: () => 'B'
+        }
+      }
+    });
+
+    schema2 = makeExecutableSchema({
+      typeDefs: typeDefs2,
+      resolvers: {
+        Query: {
+          test2: () => ({})
+        },
+        Test: {
+          fieldA: () => 'A',
+          fieldC: () => 'C'
+        }
+      }
+    });
+  })
+
+  it('by default takes last type', async () => {
+    const mergedSchema = mergeSchemas({
+      schemas: [schema1, schema2]
+    });
+    const result1 = await graphql(mergedSchema, `{ test2 { fieldC } }`);
+    expect(result1.data.test2.fieldC).to.equal('C');
+    const result2 = await graphql(mergedSchema, `{ test2 { fieldB } }`);
+    expect(result2.data).to.be.undefined;
+  });
+
+  it('can use onTypeConflict to select last type', async () => {
+    const mergedSchema = mergeSchemas({
+      schemas: [schema1, schema2],
+      onTypeConflict: (left, right) => right
+    });
+    const result1 = await graphql(mergedSchema, `{ test2 { fieldC } }`);
+    expect(result1.data.test2.fieldC).to.equal('C');
+    const result2 = await graphql(mergedSchema, `{ test2 { fieldB } }`);
+    expect(result2.data).to.be.undefined;
+  });
+
+  it('can use onTypeConflict to select first type', async () => {
+    const mergedSchema = mergeSchemas({
+      schemas: [schema1, schema2],
+      onTypeConflict: (left) => left
+    });
+    const result1 = await graphql(mergedSchema, `{ test1 { fieldB } }`);
+    expect(result1.data.test1.fieldB).to.equal('B');
+    const result2 = await graphql(mergedSchema, `{ test1 { fieldC } }`);
+    expect(result2.data).to.be.undefined;
+  });
+});
