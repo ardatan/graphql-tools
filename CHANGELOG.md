@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [6.0.0](https://github.com/yaacovCR/graphql-tools-fork/compare/v5.2.0...v6.0.0) (2019-06-18)
+
+
+### Bug Fixes
+
+* **stitching:** serialize/deserialize enum/custom scalar values ([2ec9ac2](https://github.com/yaacovCR/graphql-tools-fork/commit/2ec9ac2))
+
+
+### BREAKING CHANGES
+
+* **stitching:** This change allows enums and custom scalars to be used as arguments
+within merged schemas. It also fixes seralization and deserialization
+more generally within merged schemas. If an implementation is available
+for a custom scalar within a merged schema (i.e., the schema is local),
+the internal representation will be available for use with stitching.
+Previously, the merged schema internally used the serialized version.
+
+
+
 ## [5.2.0](https://github.com/yaacovCR/graphql-tools-fork/compare/v5.1.1...v5.2.0) (2019-06-16)
 
 
