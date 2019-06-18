@@ -11,5 +11,3 @@ TODO:
 - [ ] Make sure all of the significant new logic is covered by tests
 - [ ] Rebase your changes on master so that they can be merged easily
 - [ ] Make sure all tests and linter rules pass
-- [ ] Update CHANGELOG.md with your change. Include a description of your change, link to PR (always) and issue (if applicable). Add your CHANGELOG entry under vNEXT. Do not create a new version number for your change yourself.
-
