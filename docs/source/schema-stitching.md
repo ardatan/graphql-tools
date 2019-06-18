@@ -1,5 +1,5 @@
 ---
-title: Schema stitching (deprecated)
+title: Schema stitching (still going strong)
 description: Combining multiple GraphQL APIs into one
 ---
 
