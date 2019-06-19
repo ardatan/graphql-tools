@@ -19,7 +19,8 @@ import {
   printSchema,
   Kind,
   GraphQLResolveInfo,
-  DocumentNode
+  DocumentNode,
+  BuildSchemaOptions
 } from 'graphql';
 import linkToFetcher, { execute } from './linkToFetcher';
 import isEmptyObject from '../isEmptyObject';
@@ -51,12 +52,14 @@ export default function makeRemoteExecutableSchema({
   schema,
   link,
   fetcher,
-  createResolver: customCreateResolver = createResolver
+  createResolver: customCreateResolver = createResolver,
+  buildSchemaOptions
 }: {
   schema: GraphQLSchema | string;
   link?: ApolloLink;
   fetcher?: Fetcher;
-  createResolver?: (fetcher: Fetcher) => GraphQLFieldResolver<any, any>
+  createResolver?: (fetcher: Fetcher) => GraphQLFieldResolver<any, any>;
+  buildSchemaOptions?: BuildSchemaOptions;
 }): GraphQLSchema {
   if (!fetcher && link) {
     fetcher = linkToFetcher(link);
@@ -67,7 +70,7 @@ export default function makeRemoteExecutableSchema({
 
   if (typeof schema === 'string') {
     typeDefs = schema;
-    schema = buildSchema(typeDefs);
+    schema = buildSchema(typeDefs, buildSchemaOptions);
   } else {
     // TODO fix types https://github.com/apollographql/graphql-tools/issues/542
     typeDefs = (printSchema as any)(schema, printOptions);
