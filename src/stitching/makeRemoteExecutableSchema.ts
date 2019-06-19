@@ -31,6 +31,7 @@ import resolveParentFromTypename from './resolveFromParentTypename';
 import defaultMergedResolver from './defaultMergedResolver';
 import { checkResultAndHandleErrors } from './errors';
 import { observableToAsyncIterable } from './observableToAsyncIterable';
+import { Options as PrintSchemaOptions } from 'graphql/utilities/schemaPrinter';
 
 export type ResolverFn = (
   rootValue?: any,
@@ -53,27 +54,27 @@ export default function makeRemoteExecutableSchema({
   link,
   fetcher,
   createResolver: customCreateResolver = createResolver,
-  buildSchemaOptions
+  buildSchemaOptions,
+  printSchemaOptions = { commentDescriptions: true }
 }: {
   schema: GraphQLSchema | string;
   link?: ApolloLink;
   fetcher?: Fetcher;
   createResolver?: (fetcher: Fetcher) => GraphQLFieldResolver<any, any>;
   buildSchemaOptions?: BuildSchemaOptions;
+  printSchemaOptions?: PrintSchemaOptions
 }): GraphQLSchema {
   if (!fetcher && link) {
     fetcher = linkToFetcher(link);
   }
 
   let typeDefs: string;
-  const printOptions = { commentDescriptions: true };
 
   if (typeof schema === 'string') {
     typeDefs = schema;
     schema = buildSchema(typeDefs, buildSchemaOptions);
   } else {
-    // TODO fix types https://github.com/apollographql/graphql-tools/issues/542
-    typeDefs = (printSchema as any)(schema, printOptions);
+    typeDefs = printSchema(schema, printSchemaOptions);
   }
 
   // prepare query resolvers
