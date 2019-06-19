@@ -37,7 +37,7 @@ export type ResolverFn = (
   rootValue?: any,
   args?: any,
   context?: any,
-  info?: GraphQLResolveInfo,
+  info?: GraphQLResolveInfo
 ) => AsyncIterator<any>;
 
 export type Fetcher = (operation: FetcherOperation) => Promise<ExecutionResult>;
@@ -62,7 +62,7 @@ export default function makeRemoteExecutableSchema({
   fetcher?: Fetcher;
   createResolver?: (fetcher: Fetcher) => GraphQLFieldResolver<any, any>;
   buildSchemaOptions?: BuildSchemaOptions;
-  printSchemaOptions?: PrintSchemaOptions
+  printSchemaOptions?: PrintSchemaOptions;
 }): GraphQLSchema {
   if (!fetcher && link) {
     fetcher = linkToFetcher(link);
@@ -102,7 +102,7 @@ export default function makeRemoteExecutableSchema({
     const subscriptions = subscriptionType.getFields();
     Object.keys(subscriptions).forEach(key => {
       subscriptionResolvers[key] = {
-        subscribe: createSubscriptionResolver(key, link),
+        subscribe: createSubscriptionResolver(key, link)
       };
     });
   }
@@ -122,14 +122,11 @@ export default function makeRemoteExecutableSchema({
   const typeMap = schema.getTypeMap();
   const types = Object.keys(typeMap).map(name => typeMap[name]);
   for (const type of types) {
-    if (
-      type instanceof GraphQLInterfaceType ||
-      type instanceof GraphQLUnionType
-    ) {
+    if (type instanceof GraphQLInterfaceType || type instanceof GraphQLUnionType) {
       resolvers[type.name] = {
         __resolveType(parent, context, info) {
           return resolveParentFromTypename(parent, info.schema);
-        },
+        }
       };
     } else if (type instanceof GraphQLScalarType) {
       if (
@@ -141,11 +138,7 @@ export default function makeRemoteExecutableSchema({
           type === GraphQLInt
         )
       ) {
-        resolvers[type.name] = recreateType(
-          type,
-          (name: string) => null,
-          false,
-        ) as GraphQLScalarType;
+        resolvers[type.name] = recreateType(type, (name: string) => null, false) as GraphQLScalarType;
       }
     } else if (
       type instanceof GraphQLObjectType &&
@@ -164,45 +157,38 @@ export default function makeRemoteExecutableSchema({
 
   return makeExecutableSchema({
     typeDefs,
-    resolvers,
+    resolvers
   });
 }
 
 export function createResolver(fetcher: Fetcher): GraphQLFieldResolver<any, any> {
   return async (root, args, context, info) => {
-    const fragments = Object.keys(info.fragments).map(
-      fragment => info.fragments[fragment],
-    );
+    const fragments = Object.keys(info.fragments).map(fragment => info.fragments[fragment]);
     const document = {
       kind: Kind.DOCUMENT,
-      definitions: [info.operation, ...fragments],
+      definitions: [info.operation, ...fragments]
     };
     const result = await fetcher({
       query: document,
       variables: info.variableValues,
-      context: { graphqlContext: context },
+      context: { graphqlContext: context }
     });
     return checkResultAndHandleErrors(result, info);
   };
 }
 
-function createSubscriptionResolver(
-  name: string,
-  link: ApolloLink,
-): ResolverFn {
+function createSubscriptionResolver(name: string, link: ApolloLink): ResolverFn {
   return (root, args, context, info) => {
-    const fragments = Object.keys(info.fragments).map(
-      fragment => info.fragments[fragment],
-    );
+    const fragments = Object.keys(info.fragments).map(fragment => info.fragments[fragment]);
     const document = {
       kind: Kind.DOCUMENT,
-      definitions: [info.operation, ...fragments],
+      definitions: [info.operation, ...fragments]
     };
 
     const operation = {
       query: document,
       variables: info.variableValues,
-      context: { graphqlContext: context },
+      context: { graphqlContext: context }
     };
 
     const observable = execute(link, operation);
