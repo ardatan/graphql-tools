@@ -7,8 +7,9 @@ import {
   subscriptionSchema,
   subscriptionPubSubTrigger,
   subscriptionPubSub,
-  makeSchemaRemoteFromLink,
+  makeSchemaRemoteFromLink
 } from '../test/testingSchemas';
+import { makeRemoteExecutableSchema } from '../stitching';
 
 describe('remote subscriptions', () => {
   let schema: GraphQLSchema;
@@ -19,8 +20,8 @@ describe('remote subscriptions', () => {
   it('should work', done => {
     const mockNotification = {
       notifications: {
-        text: 'Hello world',
-      },
+        text: 'Hello world'
+      }
     };
 
     const subscription = parse(`
@@ -46,8 +47,8 @@ describe('remote subscriptions', () => {
   it('should work without triggering multiple times per notification', done => {
     const mockNotification = {
       notifications: {
-        text: 'Hello world',
-      },
+        text: 'Hello world'
+      }
     };
 
     const subscription = parse(`
@@ -83,5 +84,36 @@ describe('remote subscriptions', () => {
         done();
       }, 0);
     });
+  });
+});
+
+describe('respects buildSchema options', () => {
+  const schema = `
+  type Query {
+    # Field description
+    custom: CustomScalar!
+  }
+
+  # Scalar description
+  scalar CustomScalar
+`;
+
+  it('without comment descriptions', () => {
+    const remoteSchema = makeRemoteExecutableSchema({ schema });
+
+    const customScalar = remoteSchema.getType('CustomScalar');
+    expect(customScalar.description).to.eq(undefined);
+  });
+
+  it('with comment descriptions', () => {
+    const remoteSchema = makeRemoteExecutableSchema({
+      schema,
+      buildSchemaOptions: { commentDescriptions: true }
+    });
+
+    const field = remoteSchema.getQueryType().getFields()['custom'];
+    expect(field.description).to.eq('Field description');
+    const customScalar = remoteSchema.getType('CustomScalar');
+    expect(customScalar.description).to.eq('Scalar description');
   });
 });
