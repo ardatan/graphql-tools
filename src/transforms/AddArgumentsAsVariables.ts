@@ -3,24 +3,21 @@ import {
   DocumentNode,
   FragmentDefinitionNode,
   GraphQLArgument,
-  GraphQLEnumType,
-  GraphQLInputObjectType,
   GraphQLInputType,
   GraphQLList,
   GraphQLField,
   GraphQLNonNull,
   GraphQLObjectType,
-  GraphQLScalarType,
   GraphQLSchema,
   Kind,
   OperationDefinitionNode,
   SelectionNode,
   TypeNode,
   VariableDefinitionNode,
-  getNullableType,
 } from 'graphql';
 import { Request } from '../Interfaces';
 import { Transform } from './transforms';
+import { serializeInputValue } from '../transformInputValue';
 
 export default class AddArgumentsAsVariablesTransform implements Transform {
   private schema: GraphQLSchema;
@@ -135,7 +132,7 @@ function addVariablesToRootField(
               },
               type: typeToAst(argument.type),
             };
-            newVariables[variableName] = serializeArgumentValue(
+            newVariables[variableName] = serializeInputValue(
               argument.type,
               args[argument.name],
             );
@@ -200,31 +197,4 @@ function typeToAst(type: GraphQLInputType): TypeNode {
       },
     };
   }
-}
-
-function serializeArgumentValue(type: GraphQLInputType, value: any): any {
-  if (value == null) {
-    return null;
-  }
-
-  const nullableType = getNullableType(type);
-
-  if (nullableType instanceof GraphQLEnumType || nullableType instanceof GraphQLScalarType) {
-    return nullableType.serialize(value);
-  }
-
-  if (nullableType instanceof GraphQLList) {
-    return value.map((listMember: any) => serializeArgumentValue(nullableType.ofType, listMember));
-  }
-
-  if (nullableType instanceof GraphQLInputObjectType) {
-    const fields = nullableType.getFields();
-    const newValue = {};
-    Object.keys(value).forEach(key => {
-      newValue[key] = serializeArgumentValue(fields[key].type, value[key]);
-    });
-    return newValue;
-  }
-
-  return value;
 }

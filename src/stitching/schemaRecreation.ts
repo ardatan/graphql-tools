@@ -9,6 +9,7 @@ import {
   GraphQLFieldMap,
   GraphQLInputField,
   GraphQLInputFieldConfig,
+  GraphQLInputType,
   GraphQLInputFieldConfigMap,
   GraphQLInputFieldMap,
   GraphQLInputObjectType,
@@ -35,6 +36,12 @@ import isSpecifiedScalarType from '../isSpecifiedScalarType';
 import { ResolveType } from '../Interfaces';
 import resolveFromParentTypename from './resolveFromParentTypename';
 import defaultMergedResolver from './defaultMergedResolver';
+import { isStub } from './typeFromAST';
+import {
+  serializeInputValue,
+  parseInputValue,
+  parseInputValueLiteral
+} from '../transformInputValue';
 
 export function recreateType(
   type: GraphQLNamedType,
@@ -265,9 +272,10 @@ export function argumentToArgumentConfig(
     return [
       argument.name,
       {
-        type: type,
-        defaultValue: argument.defaultValue,
+        type,
+        defaultValue: reparseDefaultValue(argument.defaultValue, argument.type, type),
         description: argument.description,
+        astNode: argument.astNode,
       },
     ];
   }
@@ -292,10 +300,22 @@ export function inputFieldToFieldConfig(
   field: GraphQLInputField,
   resolveType: ResolveType<any>,
 ): GraphQLInputFieldConfig {
+  const type = resolveType(field.type);
   return {
-    type: resolveType(field.type),
-    defaultValue: field.defaultValue,
+    type,
+    defaultValue: reparseDefaultValue(field.defaultValue, field.type, type),
     description: field.description,
     astNode: field.astNode,
   };
+}
+
+function reparseDefaultValue(
+  originalDefaultValue: any,
+  originalType: GraphQLInputType,
+  newType: GraphQLInputType,
+) {
+  if (originalType instanceof GraphQLInputObjectType && isStub(originalType)) {
+    return parseInputValueLiteral(newType, originalDefaultValue);
+  }
+  return parseInputValue(newType, serializeInputValue(originalType, originalDefaultValue));
 }

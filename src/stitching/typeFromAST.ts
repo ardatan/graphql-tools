@@ -21,7 +21,6 @@ import {
   ScalarTypeDefinitionNode,
   TypeNode,
   UnionTypeDefinitionNode,
-  valueFromAST,
   getDescription,
   GraphQLString,
   GraphQLDirective,
@@ -183,7 +182,7 @@ function makeValues(nodes: ReadonlyArray<InputValueDefinitionNode>) {
     const type = resolveType(node.type, 'input') as GraphQLInputType;
     result[node.name.value] = {
       type,
-      defaultValue: valueFromAST(node.defaultValue, type),
+      defaultValue: node.defaultValue,
       description: getDescription(node, backcompatOptions),
     };
   });
@@ -225,6 +224,12 @@ function createNamedStub(
       },
     },
   });
+}
+
+export function isStub(type: GraphQLObjectType | GraphQLInputObjectType | GraphQLInterfaceType): boolean {
+  const fields = type.getFields();
+  const fieldNames = Object.keys(fields);
+  return fieldNames.length === 1 && fields[fieldNames[0]].name === '__fake';
 }
 
 function makeDirective(node: DirectiveDefinitionNode): GraphQLDirective {

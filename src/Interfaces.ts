@@ -8,7 +8,6 @@ import {
   GraphQLIsTypeOfFn,
   GraphQLTypeResolver,
   GraphQLScalarType,
-  GraphQLNamedType,
   DocumentNode,
   ASTNode,
 } from 'graphql';
@@ -176,23 +175,6 @@ export interface IMockServer {
     vars?: { [key: string]: any },
   ) => Promise<ExecutionResult>;
 }
-
-export type MergeTypeCandidate = {
-  schema?: GraphQLSchema;
-  type: GraphQLNamedType;
-};
-
-export type TypeWithResolvers = {
-  type: GraphQLNamedType;
-  resolvers?: IResolvers;
-};
-
-export type VisitTypeResult = GraphQLNamedType | TypeWithResolvers | null;
-
-export type VisitType = (
-  name: string,
-  candidates: Array<MergeTypeCandidate>,
-) => VisitTypeResult;
 
 export type Operation = 'query' | 'mutation' | 'subscription';
 
