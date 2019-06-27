@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [6.0.1](https://github.com/yaacovCR/graphql-tools-fork/compare/v6.0.0...v6.0.1) (2019-06-27)
+
+
+### Bug Fixes
+
+* **stitching:** add default value support ([cf8750d](https://github.com/yaacovCR/graphql-tools-fork/commit/cf8750d)), closes [#1121](https://github.com/yaacovCR/graphql-tools-fork/issues/1121)
+
+
+
 ## [6.0.0](https://github.com/yaacovCR/graphql-tools-fork/compare/v5.2.0...v6.0.0) (2019-06-18)
 
 
@@ -49,7 +58,7 @@ Previously, the merged schema internally used the serialized version.
 
 ### Features
 
-* **errors:** Pass through all possible errors. ([21f70a3](https://github.com/yaacovCR/graphql-tools-fork/commit/21f70a3)), closes [#743](https://github.com/yaacovCR/graphql-tools-fork/issues/743) [#1037](https://github.com/yaacovCR/graphql-tools-fork/issues/1037) [#1046](https://github.com/yaacovCR/graphql-tools-fork/issues/1046) [apollographql/apollo-server#1582](https://github.com/yaacovCR/graphql-tools-fork/issues/1582)
+* **errors:** Pass through all possible errors.
 
 
 
