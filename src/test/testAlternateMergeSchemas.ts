@@ -9,7 +9,9 @@ import {
   parse,
   GraphQLField,
   GraphQLNamedType,
-  FieldNode
+  GraphQLScalarType,
+  FieldNode,
+  printSchema
 } from 'graphql';
 import mergeSchemas from '../stitching/mergeSchemas';
 import {
@@ -535,6 +537,113 @@ describe('mergeSchemas', () => {
     const response = await graphql(mergedSchema, query);
     expect(response.data.test).to.be.null;
     expect(response.errors).to.be.undefined;
+  });
+
+  it('can merge default input types', async () => {
+    const schema = makeExecutableSchema({
+      typeDefs: `
+        input InputWithDefault {
+          field: String = "test"
+        }
+        type Query {
+          getInput(input: InputWithDefault!): String
+        }
+      `,
+      resolvers: {
+        Query: {
+          getInput: (root, args) => args.input.field
+        }
+      }
+    });
+    const mergedSchema = mergeSchemas({
+      schemas: [schema]
+    });
+
+    const query = `{ getInput(input: {}) }`;
+    const response = await graphql(mergedSchema, query);
+
+    expect(printSchema(schema)).to.equal(printSchema(mergedSchema));
+    expect(response.data.getInput).to.equal('test');
+  });
+
+  it('can override scalars with new internal values', async () => {
+    const schema = makeExecutableSchema({
+      typeDefs: `
+        scalar TestScalar
+        type Query {
+          getTestScalar: TestScalar
+        }
+      `,
+      resolvers: {
+        TestScalar: new GraphQLScalarType({
+          name: 'TestScalar',
+          description: undefined,
+          serialize: value => (value as string).slice(1),
+          parseValue: value => `_${value}`,
+          parseLiteral: (ast: any) => `_${ast.value}`,
+        }),
+        Query: {
+          getTestScalar: () => '_test'
+        }
+      }
+    });
+    const mergedSchema = mergeSchemas({
+      schemas: [schema],
+      resolvers: {
+        TestScalar: new GraphQLScalarType({
+          name: 'TestScalar',
+          description: undefined,
+          serialize: value => (value as string).slice(2),
+          parseValue: value => `__${value}`,
+          parseLiteral: (ast: any) => `__${ast.value}`,
+        })
+      }
+    });
+
+    const query = `{ getTestScalar }`;
+    const response = await graphql(mergedSchema, query);
+
+    expect(response.data.getTestScalar).to.equal('test');
+  });
+
+  it('can override scalars with new internal values when using default input types', async () => {
+    const schema = makeExecutableSchema({
+      typeDefs: `
+        scalar TestScalar
+        type Query {
+          getTestScalar(input: TestScalar = "test"): TestScalar
+        }
+      `,
+      resolvers: {
+        TestScalar: new GraphQLScalarType({
+          name: 'TestScalar',
+          description: undefined,
+          serialize: value => (value as string).slice(1),
+          parseValue: value => `_${value}`,
+          parseLiteral: (ast: any) => `_${ast.value}`,
+        }),
+        Query: {
+          getTestScalar: (root, args) => '_test'
+        }
+      }
+    });
+    const mergedSchema = mergeSchemas({
+      schemas: [schema],
+      resolvers: {
+        TestScalar: new GraphQLScalarType({
+          name: 'TestScalar',
+          description: undefined,
+          serialize: value => (value as string).slice(2),
+          parseValue: value => `__${value}`,
+          parseLiteral: (ast: any) => `__${ast.value}`,
+        })
+      }
+    });
+
+    const query = `{ getTestScalar }`;
+    const response = await graphql(mergedSchema, query);
+
+    expect(response.data.getTestScalar).to.equal('test');
   });
 });
 
