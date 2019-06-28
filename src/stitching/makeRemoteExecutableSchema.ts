@@ -144,7 +144,7 @@ export default function makeRemoteExecutableSchema({
   for (const type of types) {
     if (type instanceof GraphQLInterfaceType || type instanceof GraphQLUnionType) {
       resolvers[type.name] = {
-        __resolveType(parent: any, context: any, info: any) {
+        __resolveType(parent: any, context: any, info: GraphQLResolveInfo) {
           return resolveParentFromTypename(parent, info.schema);
         }
       };

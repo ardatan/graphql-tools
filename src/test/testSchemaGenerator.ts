@@ -14,7 +14,7 @@ import {
   GraphQLEnumType,
 } from 'graphql';
 // import { printSchema } from 'graphql';
-const GraphQLJSON = require('graphql-type-json');
+const { GraphQLJSON } = require('graphql-type-json');
 import { Logger } from '../Logger';
 import TypeA from './circularSchemaA';
 import {

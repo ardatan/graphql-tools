@@ -8,6 +8,8 @@ import {
   ValueNode,
   ExecutionResult,
   DocumentNode,
+  Source,
+  GraphQLResolveInfo,
 } from 'graphql';
 import { ExecutionResultDataDefault } from 'graphql/execution/execute';
 import {
@@ -589,7 +591,7 @@ const bookingResolvers: IResolvers = {
   },
 
   Booking: {
-    __isTypeOf(source: any, context: any, info: any) {
+    __isTypeOf(source: Source, context: any, info: GraphQLResolveInfo) {
       return Object.prototype.hasOwnProperty.call(source, 'id');
     },
     customer(parent: Booking) {
