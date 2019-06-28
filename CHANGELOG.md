@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [6.1.0](https://github.com/yaacovCR/graphql-tools-fork/compare/v6.0.1...v6.1.0) (2019-06-28)
+
+
+### Bug Fixes
+
+* **stitching:** Directive disappears when enum has resolvers ([ea0d359](https://github.com/yaacovCR/graphql-tools-fork/commit/ea0d359))
+* **stitching:** fix legacy custom scalar recreation to more closely match pre-v6.0.1 functionality. ([1541a9f](https://github.com/yaacovCR/graphql-tools-fork/commit/1541a9f))
+
+
+### Features
+
+* **deps:** upgrade dependencies to latest minor version. ([850f513](https://github.com/yaacovCR/graphql-tools-fork/commit/850f513))
+* **generate:** Allow user-provided buildSchema options ([#1154](https://github.com/yaacovCR/graphql-tools-fork/issues/1154)) ([829255e](https://github.com/yaacovCR/graphql-tools-fork/commit/829255e))
+
+
+
 ## [6.0.1](https://github.com/yaacovCR/graphql-tools-fork/compare/v6.0.0...v6.0.1) (2019-06-27)
 
 
