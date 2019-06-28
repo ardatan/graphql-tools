@@ -57,18 +57,25 @@ export default class AddEnumAndScalarResolvers implements Transform {
 
     //Build scalar types from resolver map (if necessary, see below).
     Object.keys(scalarTypeMap).forEach(typeName => {
-      const type = scalarTypeMap[typeName];
+      const resolverValue = scalarTypeMap[typeName];
 
       // Below is necessary as legacy code for scalar type specification allowed
-      // hardcoding within the resolver an object with fields 'serialize',
-      // 'parse', and '__parseLiteral', see examples in testMocking.ts.
-      if (!(type instanceof GraphQLScalarType)) {
+      // hardcoding within the resolver an object with fields '__serialize',
+      // '__parse', and '__parseLiteral', see examples in testMocking.ts.
+      if (!(resolverValue instanceof GraphQLScalarType)) {
+        const scalarType: GraphQLScalarType = schema.getType(typeName) as GraphQLScalarType;
+
         const scalarTypeConfig = {};
-        Object.keys(type).forEach(key => {
-          scalarTypeConfig[key.slice(2)] = type[key];
+        Object.keys(resolverValue).forEach(key => {
+          if (key.startsWith('__')) {
+            scalarTypeConfig[key.substring(2)] = resolverValue[key];
+          } else {
+            scalarTypeConfig[key] = resolverValue[key];
+          }
         });
+
         scalarTypeMap[typeName] = new GraphQLScalarType({
-          name: typeName,
+          ...scalarType,
           ...scalarTypeConfig
         } as GraphQLScalarTypeConfig<any, any>);
       }
