@@ -51,38 +51,38 @@
   },
   "homepage": "https://github.com/yaacovCR/graphql-tools-fork#readme",
   "dependencies": {
-    "apollo-link": "^1.2.3",
-    "apollo-utilities": "^1.0.1",
+    "apollo-link": "^1.2.12",
+    "apollo-utilities": "^1.3.2",
     "deprecated-decorator": "^0.1.6",
-    "iterall": "^1.1.3",
-    "uuid": "^3.1.0"
+    "iterall": "^1.2.2",
+    "uuid": "^3.3.2"
   },
   "peerDependencies": {
-    "graphql": "^0.13.0 || ^14.0.0"
+    "graphql": "^14.4.0"
   },
   "devDependencies": {
-    "@types/chai": "4.0.10",
-    "@types/dateformat": "^1.0.1",
-    "@types/graphql": "14.0.0",
-    "@types/mocha": "^2.2.44",
-    "@types/node": "^8.0.47",
-    "@types/uuid": "^3.4.3",
-    "@types/zen-observable": "^0.5.3",
-    "body-parser": "^1.18.2",
-    "chai": "^4.1.2",
+    "@types/chai": "4.1.7",
+    "@types/dateformat": "^3.0.0",
+    "@types/graphql": "14.2.2",
+    "@types/mocha": "^5.2.7",
+    "@types/node": "^12.0.10",
+    "@types/uuid": "^3.4.4",
+    "@types/zen-observable": "^0.8.0",
+    "body-parser": "^1.19.0",
+    "chai": "^4.2.0",
     "dateformat": "^3.0.3",
-    "express": "^4.16.2",
+    "express": "^4.17.1",
     "graphql": "^14.0.2",
-    "graphql-subscriptions": "^1.0.0",
-    "graphql-type-json": "^0.1.4",
+    "graphql-subscriptions": "^1.1.0",
+    "graphql-type-json": "^0.3.0",
     "istanbul": "^0.4.5",
-    "mocha": "^4.0.1",
-    "prettier": "^1.7.4",
-    "remap-istanbul": "0.9.6",
-    "rimraf": "^2.6.2",
-    "source-map-support": "^0.5.0",
+    "mocha": "^6.1.4",
+    "prettier": "^1.18.2",
+    "remap-istanbul": "0.13.0",
+    "rimraf": "^2.6.3",
+    "source-map-support": "^0.5.12",
     "standard-version": "^6.0.1",
-    "tslint": "^5.8.0",
-    "typescript": "3.0.3"
+    "tslint": "^5.18.0",
+    "typescript": "3.5.2"
   }
 }

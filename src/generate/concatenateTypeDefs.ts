@@ -9,10 +9,6 @@ function concatenateTypeDefs(
 ): string {
   let resolvedTypeDefinitions: string[] = [];
   typeDefinitionsAry.forEach((typeDef: ITypedef) => {
-    if ((<DocumentNode>typeDef).kind !== undefined) {
-      typeDef = print(typeDef);
-    }
-
     if (typeof typeDef === 'function') {
       if (calledFunctionRefs.indexOf(typeDef) === -1) {
         calledFunctionRefs.push(typeDef);
@@ -22,6 +18,8 @@ function concatenateTypeDefs(
       }
     } else if (typeof typeDef === 'string') {
       resolvedTypeDefinitions.push(typeDef.trim());
+    } else if ((<DocumentNode>typeDef).kind !== undefined) {
+      resolvedTypeDefinitions.push(print(typeDef).trim());
     } else {
       const type = typeof typeDef;
       throw new SchemaError(
