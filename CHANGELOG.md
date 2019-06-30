@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [6.1.1](https://github.com/yaacovCR/graphql-tools-fork/compare/v6.1.0...v6.1.1) (2019-06-30)
+
+
+### Bug Fixes
+
+* **stitching:** fix reparsing of lists ([d766fe4](https://github.com/yaacovCR/graphql-tools-fork/commit/d766fe4))
+* **stitching:** include specified directives even when merging of directives is disabled ([44ca2c2](https://github.com/yaacovCR/graphql-tools-fork/commit/44ca2c2))
+
+
+
 ## [6.1.0](https://github.com/yaacovCR/graphql-tools-fork/compare/v6.0.1...v6.1.0) (2019-06-28)
 
 
