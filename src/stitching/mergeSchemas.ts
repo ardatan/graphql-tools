@@ -232,7 +232,9 @@ export default function mergeSchemas({
     mutation: types.Mutation as GraphQLObjectType,
     subscription: types.Subscription as GraphQLObjectType,
     types: Object.keys(types).map(key => types[key]),
-    directives: directives.map((directive) => recreateDirective(directive, resolveType))
+    directives: directives.length ?
+      directives.map((directive) => recreateDirective(directive, resolveType)) :
+      undefined
   });
 
   extensions.forEach(extension => {
