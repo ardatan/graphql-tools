@@ -681,7 +681,7 @@ describe('mergeSchemas', () => {
               fieldName: 'get1',
               context,
               info
-            })
+            });
           }
         }
       }
@@ -695,7 +695,6 @@ describe('mergeSchemas', () => {
       }
     `;
     const response = await graphql(mergedSchema, query);
-    console.log(JSON.stringify(response, null, 2));
     expect(response.data.get2.subfield).to.equal('test');
   });
 });
