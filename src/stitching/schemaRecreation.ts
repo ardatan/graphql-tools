@@ -313,7 +313,10 @@ function reparseDefaultValue(
   originalType: GraphQLInputType,
   newType: GraphQLInputType,
 ) {
-  if (originalType instanceof GraphQLInputObjectType && isStub(originalType)) {
+  if (
+    originalType instanceof GraphQLInputObjectType &&
+    isStub(getNamedType(originalType) as GraphQLInputObjectType)
+  ) {
     return parseInputValueLiteral(newType, originalDefaultValue);
   }
   return parseInputValue(newType, serializeInputValue(originalType, originalDefaultValue));
