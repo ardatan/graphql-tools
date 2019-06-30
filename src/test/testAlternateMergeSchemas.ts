@@ -33,6 +33,7 @@ import {
 import { forAwaitEach } from 'iterall';
 import { createResolveType, fieldToFieldConfig } from '../stitching/schemaRecreation';
 import { makeExecutableSchema } from '../makeExecutableSchema';
+import { delegateToSchema } from '../stitching';
 
 let linkSchema = `
   """
@@ -644,6 +645,58 @@ describe('mergeSchemas', () => {
     const response = await graphql(mergedSchema, query);
 
     expect(response.data.getTestScalar).to.equal('test');
+  });
+
+  it('can use @include directives', async () => {
+    const schema = makeExecutableSchema({
+      typeDefs: `
+        type WrappingType {
+          subfield: String
+        }
+        type Query {
+          get1: WrappingType
+        }
+      `,
+      resolvers: {
+        Query: {
+          get1: () => ({ subfield: 'test'})
+        }
+      }
+    });
+    const mergedSchema = mergeSchemas({
+      schemas: [
+        schema,
+        `
+          type Query {
+            get2: WrappingType
+          }
+        `
+      ],
+      resolvers: {
+        Query: {
+          get2: (root, args, context, info) => {
+            return delegateToSchema({
+              schema: schema,
+              operation: 'query',
+              fieldName: 'get1',
+              context,
+              info
+            })
+          }
+        }
+      }
+    });
+
+    const query = `
+      {
+        get2 @include(if: true) {
+          subfield
+        }
+      }
+    `;
+    const response = await graphql(mergedSchema, query);
+    console.log(JSON.stringify(response, null, 2));
+    expect(response.data.get2.subfield).to.equal('test');
   });
 });
 
