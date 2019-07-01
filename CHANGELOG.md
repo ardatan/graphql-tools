@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [6.1.2](https://github.com/yaacovCR/graphql-tools-fork/compare/v6.1.1...v6.1.2) (2019-07-01)
+
+
+### Bug Fixes
+
+* **stitching:** fix default resolver to execute field if specified as function. ([fa3f7e7](https://github.com/yaacovCR/graphql-tools-fork/commit/fa3f7e7))
+
+
+
 ### [6.1.1](https://github.com/yaacovCR/graphql-tools-fork/compare/v6.1.0...v6.1.1) (2019-06-30)
 
 
