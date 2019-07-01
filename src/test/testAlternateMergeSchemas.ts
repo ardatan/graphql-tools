@@ -697,6 +697,34 @@ describe('mergeSchemas', () => {
     const response = await graphql(mergedSchema, query);
     expect(response.data.get2.subfield).to.equal('test');
   });
+
+  it('can use functions in subfields', async () => {
+    const schema = makeExecutableSchema({
+      typeDefs: `
+        type WrappingObject {
+          functionField: Int!
+        }
+        type Query {
+          wrappingObject: WrappingObject
+        }
+      `
+    });
+
+    const mergedSchema = mergeSchemas({
+      schemas: [schema],
+      resolvers: {
+        Query: {
+          wrappingObject: () => ({
+            functionField: () => 8
+          })
+        },
+      }
+    });
+
+    const query = `{ wrappingObject { functionField } }`;
+    const response = await graphql(mergedSchema, query);
+    expect(response.data.wrappingObject.functionField).to.equal(8);
+  });
 });
 
 describe('onTypeConflict', () => {

@@ -18,6 +18,9 @@ const defaultMergedResolver: GraphQLFieldResolver<any, any> = (parent, args, con
   // check to see if parent is not a proxied result, i.e. if parent resolver was manually overwritten
   // See https://github.com/apollographql/graphql-tools/issues/967
   if (!Array.isArray(errors)) {
+    if (typeof parent[info.fieldName] === 'function') {
+      return parent[info.fieldName](parent, args, context, info);
+    }
     return parent[info.fieldName];
   }
 
