@@ -8,6 +8,7 @@ import {
   isScalarType,
   ExecutionResult,
   GraphQLError,
+  GraphQLType,
 } from 'graphql';
 import { getResponseKeyFromInfo } from './getResponseKeyFromInfo';
 import {
@@ -61,14 +62,16 @@ export function handleResult(
 
   if (isObjectType(nullableType) || isListType(nullableType)) {
     annotateWithChildrenErrors(resultObject, errors);
-  } else if (isEnumType(nullableType)) {
-    const value = nullableType.getValue(resultObject);
-    if (value) {
-      return value.value;
-    }
-  } else if (isScalarType(nullableType)) {
-    return nullableType.parseValue(resultObject);
   }
 
-  return resultObject;
+  return parseOutputValue(nullableType, resultObject);
+}
+
+function parseOutputValue(type: GraphQLType, value: any) {
+  if (isListType(type)) {
+    return value.map((v: any) => parseOutputValue(getNullableType(type.ofType), v));
+  } else if (isEnumType(type) || isScalarType(type)) {
+    return type.parseValue(value);
+  }
+  return value;
 }

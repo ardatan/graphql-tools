@@ -73,6 +73,7 @@ let scalarTest = `
 
   type Query {
     testingScalar(input: TestScalar): TestingScalar
+    listTestingScalar(input: TestScalar): [TestingScalar]
   }
 `;
 
@@ -93,6 +94,11 @@ scalarSchema = makeExecutableSchema({
         return {
           value: args.input[0] === '_' ? args.input : null
         };
+      },
+      listTestingScalar(parent, args) {
+        return [{
+          value: args.input[0] === '_' ? args.input : null
+        }];
       },
     },
   },
@@ -131,6 +137,7 @@ let enumTest = `
   type Query {
     color(input: Color): Color
     numericEnum: NumericEnum
+    listNumericEnum: [NumericEnum]
     wrappedEnum: EnumWrapper
   }
 `;
@@ -152,6 +159,9 @@ enumSchema = makeExecutableSchema({
       },
       numericEnum() {
         return 1;
+      },
+      listNumericEnum() {
+        return [1];
       },
       wrappedEnum() {
         return {
@@ -573,6 +583,9 @@ testCombinations.forEach(async combination => {
               testingScalar(input: "test") {
                 value
               }
+              listTestingScalar(input: "test") {
+                value
+              }
             }
           `,
         );
@@ -584,6 +597,9 @@ testCombinations.forEach(async combination => {
               testingScalar(input: "test") {
                 value
               }
+              listTestingScalar(input: "test") {
+                value
+              }
             }
           `,
         );
@@ -592,7 +608,10 @@ testCombinations.forEach(async combination => {
           data: {
             testingScalar: {
               value: 'test'
-            }
+            },
+            listTestingScalar: [{
+              value: 'test'
+            }]
           },
         });
         expect(mergedResult).to.deep.equal(scalarResult);
@@ -605,6 +624,7 @@ testCombinations.forEach(async combination => {
             query {
               color(input: RED)
               numericEnum
+              listNumericEnum
               numericEnumInfo: __type(name: "NumericEnum") {
                 enumValues(includeDeprecated: true) {
                   name
@@ -633,6 +653,7 @@ testCombinations.forEach(async combination => {
             query {
               color(input: RED)
               numericEnum
+              listNumericEnum
               numericEnumInfo: __type(name: "NumericEnum") {
                 enumValues(includeDeprecated: true) {
                   name
@@ -659,6 +680,7 @@ testCombinations.forEach(async combination => {
           data: {
             color: 'RED',
             numericEnum: 'TEST',
+            listNumericEnum: ['TEST'],
             numericEnumInfo: {
               enumValues: [
                 {
