@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Bug Fixes
 
-* **stitching:** fix lists of enum and custom scalars, closes [#9](https://github.com/yaacovCR/graphql-tools-fork/issues/9) ([0d173b9](https://github.com/yaacovCR/graphql-tools-fork/commit/0d173b9))
+* **stitching:** fix lists of enum and custom scalars, closes [#8](https://github.com/yaacovCR/graphql-tools-fork/issues/8) ([0d173b9](https://github.com/yaacovCR/graphql-tools-fork/commit/0d173b9))
 
 
 
