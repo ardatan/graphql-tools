@@ -43,10 +43,10 @@ export function checkResultAndHandleErrors(
 
 export function handleResult(
   info: GraphQLResolveInfo,
-  resultObject: any,
+  result: any,
   errors: ReadonlyArray<GraphQLError>
 ): any {
-  if (!resultObject) {
+  if (result == null) {
     if (errors.length) {
       throw relocatedError(
         combineErrors(errors),
@@ -61,10 +61,10 @@ export function handleResult(
   const nullableType = getNullableType(info.returnType);
 
   if (isObjectType(nullableType) || isListType(nullableType)) {
-    annotateWithChildrenErrors(resultObject, errors);
+    annotateWithChildrenErrors(result, errors);
   }
 
-  return parseOutputValue(nullableType, resultObject);
+  return parseOutputValue(nullableType, result);
 }
 
 function parseOutputValue(type: GraphQLType, value: any) {
