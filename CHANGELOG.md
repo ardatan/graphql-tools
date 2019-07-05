@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [6.1.4](https://github.com/yaacovCR/graphql-tools-fork/compare/v6.1.3...v6.1.4) (2019-07-05)
+
+
+### Bug Fixes
+
+* **stitching:** do not convert falsy values to null. ([26c5d67](https://github.com/yaacovCR/graphql-tools-fork/commit/26c5d67)), closes [#10](https://github.com/yaacovCR/graphql-tools-fork/issues/10)
+
+
+
 ### [6.1.3](https://github.com/yaacovCR/graphql-tools-fork/compare/v6.1.2...v6.1.3) (2019-07-03)
 
 

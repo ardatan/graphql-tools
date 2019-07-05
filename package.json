@@ -1,6 +1,6 @@
 {
   "name": "graphql-tools-fork",
-  "version": "6.1.3",
+  "version": "6.1.4",
   "description": "Forked graphql-tools, still more useful tools to create and manipulate GraphQL schemas.",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
