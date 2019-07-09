@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [6.1.5](https://github.com/yaacovCR/graphql-tools-fork/compare/v6.1.4...v6.1.5) (2019-07-09)
+
+
+### Bug Fixes
+
+* **mocking:** to work with schema stitching ([58363ea](https://github.com/yaacovCR/graphql-tools-fork/commit/58363ea))
+
+
+
 ### [6.1.4](https://github.com/yaacovCR/graphql-tools-fork/compare/v6.1.3...v6.1.4) (2019-07-05)
 
 
