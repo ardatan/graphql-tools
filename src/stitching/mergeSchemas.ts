@@ -222,7 +222,7 @@ export default function mergeSchemas({
       throw new Error(`Invalid mergeTypeCandidates result for type ${typeName}`);
     }
     types[typeName] = recreateType(type, resolveType, false);
-    if (typeResolvers) {
+    if (typeResolvers !== undefined) {
       generatedResolvers[typeName] = typeResolvers;
     }
   });
@@ -481,11 +481,11 @@ function mergeTypeCandidates(
       fields = { ...fields, ...candidateFields };
       Object.keys(candidateFields).forEach(fieldName => {
         resolvers[fieldName] = {
-          [resolverKey]: createDelegatingResolver(
+          [resolverKey]: schema ? createDelegatingResolver(
             schema,
             operationName,
             fieldName,
-          ),
+          ) : null,
         };
       });
     });

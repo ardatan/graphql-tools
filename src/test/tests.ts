@@ -13,3 +13,4 @@ import './testResolution';
 import './testSchemaGenerator';
 import './testTransforms';
 import './testExtensionExtraction';
+import './testIntegration';
