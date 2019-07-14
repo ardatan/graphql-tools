@@ -147,6 +147,75 @@ describe('transforms', () => {
     });
   });
 
+  describe('interfaces (and unions) when renamer() returns undefined', () => {
+    let schema: GraphQLSchema;
+    before(() => {
+      const transforms = [
+        new RenameTypes((name: string) => undefined),
+      ];
+      schema = transformSchema(propertySchema, transforms);
+    });
+    it('should work', async () => {
+      const result = await graphql(
+        schema,
+        `
+          query {
+            interfaceTest(kind: ONE) {
+              ... on TestInterface {
+                testString
+              }
+            }
+
+            test1: unionTest(output: "Interface") {
+              ... on TestInterface {
+                kind
+                testString
+              }
+              ... on TestImpl1 {
+                foo
+              }
+              ... on UnionImpl {
+                someField
+              }
+            }
+
+            test2: unionTest(output: "OtherStuff") {
+              ... on TestInterface {
+                kind
+                testString
+              }
+              ... on TestImpl1 {
+                foo
+              }
+              ... on UnionImpl {
+                someField
+              }
+            }
+          }
+        `,
+        {},
+        {},
+        {},
+      );
+
+      expect(result).to.deep.equal({
+        data: {
+          interfaceTest: {
+            testString: 'test',
+          },
+          test1: {
+            kind: 'ONE',
+            testString: 'test',
+            foo: 'foo',
+          },
+          test2: {
+            someField: 'Bar',
+          },
+        },
+      });
+    });
+  });
+
   describe('filter to schema', () => {
     let filter: FilterToSchema;
     before(() => {
