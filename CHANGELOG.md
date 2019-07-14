@@ -1,5 +1,10 @@
 # Change log
 
+### vNEXT
+* Fixes a bug where interfaces and unions wouldn't correctly resolve if RenameTypes' renamer() function
+  returned `undefined`<br/>
+  [@ftatzky](https://github.com/ftatzky) in [#1170](https://github.com/apollographql/graphql-tools/pull/1170)
+
 ### 4.0.5
 
 * Fixes a bug where schemas with scalars could not be merged when passed to
