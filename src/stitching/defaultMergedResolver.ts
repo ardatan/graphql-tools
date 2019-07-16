@@ -1,4 +1,4 @@
-import { GraphQLFieldResolver, responsePathAsArray } from 'graphql';
+import { GraphQLFieldResolver, GraphQLNonNull, responsePathAsArray } from 'graphql';
 import { locatedError } from 'graphql/error';
 import { getErrorsFromParent, annotateWithChildrenErrors } from './errors';
 import { getResponseKeyFromInfo } from './getResponseKeyFromInfo';
@@ -20,7 +20,8 @@ const defaultMergedResolver: GraphQLFieldResolver<any, any> = (parent, args, con
 
   let result = parent[responseKey];
 
-  if (result == null) {
+  // Only replace the aliased result with the parent result if the field is non-nullable
+  if (result == null && info.returnType instanceof GraphQLNonNull) {
     result = parent[info.fieldName];
   }
 
