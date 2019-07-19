@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [6.1.6](https://github.com/yaacovCR/graphql-tools-fork/compare/v6.1.5...v6.1.6) (2019-07-19)
+
+
+### Bug Fixes
+
+* **stitching:** support stitching unions of types with enums ([119ebc5](https://github.com/yaacovCR/graphql-tools-fork/commit/119ebc5)), closes [#13](https://github.com/yaacovCR/graphql-tools-fork/issues/13)
+
+
+
 ### [6.1.5](https://github.com/yaacovCR/graphql-tools-fork/compare/v6.1.4...v6.1.5) (2019-07-09)
 
 
