@@ -2,10 +2,9 @@ import {
   GraphQLResolveInfo,
   responsePathAsArray,
   getNullableType,
-  isObjectType,
+  isCompositeType,
+  isLeafType,
   isListType,
-  isEnumType,
-  isScalarType,
   ExecutionResult,
   GraphQLError,
   GraphQLType,
@@ -60,7 +59,7 @@ export function handleResult(
 
   const nullableType = getNullableType(info.returnType);
 
-  if (isObjectType(nullableType) || isListType(nullableType)) {
+  if (isCompositeType(nullableType) || isListType(nullableType)) {
     annotateWithChildrenErrors(result, errors);
   }
 
@@ -70,7 +69,7 @@ export function handleResult(
 function parseOutputValue(type: GraphQLType, value: any) {
   if (isListType(type)) {
     return value.map((v: any) => parseOutputValue(getNullableType(type.ofType), v));
-  } else if (isEnumType(type) || isScalarType(type)) {
+  } else if (isLeafType(type)) {
     return type.parseValue(value);
   }
   return value;
