@@ -130,6 +130,8 @@ let enumTest = `
     numericEnum: NumericEnum
   }
 
+  union UnionWithEnum = EnumWrapper
+
   schema {
     query: Query
   }
@@ -139,6 +141,7 @@ let enumTest = `
     numericEnum: NumericEnum
     listNumericEnum: [NumericEnum]
     wrappedEnum: EnumWrapper
+    unionWithEnum: UnionWithEnum
   }
 `;
 
@@ -153,6 +156,9 @@ enumSchema = makeExecutableSchema({
     NumericEnum: {
       TEST: 1,
     },
+    UnionWithEnum: {
+      __resolveType: () => 'EnumWrapper'
+    },
     Query: {
       color(parent, args) {
         return args.input === '#EA3232' ? args.input : null;
@@ -164,6 +170,12 @@ enumSchema = makeExecutableSchema({
         return [1];
       },
       wrappedEnum() {
+        return {
+          color: '#EA3232',
+          numericEnum: 1
+        };
+      },
+      unionWithEnum() {
         return {
           color: '#EA3232',
           numericEnum: 1
@@ -643,6 +655,12 @@ testCombinations.forEach(async combination => {
                 color
                 numericEnum
               }
+              unionWithEnum {
+                ... on EnumWrapper {
+                  color
+                  numericEnum
+                }
+              }
             }
           `,
         );
@@ -672,6 +690,12 @@ testCombinations.forEach(async combination => {
                 color
                 numericEnum
               }
+              unionWithEnum {
+                ... on EnumWrapper {
+                  color
+                  numericEnum
+                }
+              }
             }
           `,
         );
@@ -700,6 +724,10 @@ testCombinations.forEach(async combination => {
               ],
             },
             wrappedEnum: {
+              color: 'RED',
+              numericEnum: 'TEST',
+            },
+            unionWithEnum: {
               color: 'RED',
               numericEnum: 'TEST',
             },
