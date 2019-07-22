@@ -1,5 +1,10 @@
 # Change log
 
+### vNext
+
+* Updated documentation for missing GitHunt API url.
+  [@sunnymis](https://github.com/sunnymis) in [#1175](https://github.com/apollographql/graphql-tools/pull/1175).
+
 ### 4.0.5
 
 * Fixes a bug where schemas with scalars could not be merged when passed to
