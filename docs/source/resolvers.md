@@ -199,7 +199,7 @@ const isAuthenticated = (root, args, context, info) => {
 }
 ```
 
-Which could be used it in an actual field resolver like this:
+Which could be used in an actual field resolver like this:
 
 ```js
 import { combineResolvers } from 'graphql-resolvers'
