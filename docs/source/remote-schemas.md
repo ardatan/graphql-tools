@@ -161,7 +161,7 @@ Basic usage
 
 ```js
 import fetch from 'node-fetch';
-import { print } from 'graphql’;
+import { print } from 'graphql';
 
 const fetcher = async ({ query: queryDocument, variables, operationName, context }) => {
   const query = print(queryDocument);
