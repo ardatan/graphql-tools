@@ -3,7 +3,12 @@ import {
   GraphQLFieldResolver,
   GraphQLObjectType,
 } from 'graphql';
-import { IResolvers, Operation } from '../Interfaces';
+import {
+  IResolvers,
+  Operation,
+  SchemaExecutionConfig,
+  isRemoteSchemaExecutionConfig,
+} from '../Interfaces';
 import delegateToSchema from './delegateToSchema';
 import { Transform } from '../transforms/index';
 
@@ -17,7 +22,7 @@ export type Mapping = {
 };
 
 export function generateProxyingResolvers(
-  targetSchema: GraphQLSchema,
+  targetSchema: GraphQLSchema | SchemaExecutionConfig,
   transforms: Array<Transform>,
   mapping: Mapping,
 ): IResolvers {
@@ -85,13 +90,25 @@ export function generateMappingFromObjectType(
 }
 
 function createProxyingResolver(
-  schema: GraphQLSchema,
+  schema: GraphQLSchema | SchemaExecutionConfig,
   operation: Operation,
   fieldName: string,
   transforms: Array<Transform>,
 ): GraphQLFieldResolver<any, any> {
+  if (isRemoteSchemaExecutionConfig(schema)) {
+    return (parent, args, context, info) => delegateToSchema({
+      ...schema,
+      operation,
+      fieldName,
+      args: {},
+      context,
+      info,
+      transforms,
+    });
+  }
+
   return (parent, args, context, info) => delegateToSchema({
-    schema,
+    schema: schema as GraphQLSchema,
     operation,
     fieldName,
     args: {},

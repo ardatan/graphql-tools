@@ -14,7 +14,11 @@ import { makeRemoteExecutableSchema } from '../stitching';
 describe('remote subscriptions', () => {
   let schema: GraphQLSchema;
   before(async () => {
-    schema = await makeSchemaRemoteFromLink(subscriptionSchema);
+    const remoteSchemaExecConfig = await makeSchemaRemoteFromLink(subscriptionSchema);
+    schema = makeRemoteExecutableSchema({
+      schema: remoteSchemaExecConfig.schema,
+      link: remoteSchemaExecConfig.link
+    });
   });
 
   it('should work', done => {

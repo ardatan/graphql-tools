@@ -14,17 +14,15 @@ import {
   GraphQLBoolean,
   GraphQLInt,
   GraphQLScalarType,
-  ExecutionResult,
   buildSchema,
   printSchema,
   Kind,
   GraphQLResolveInfo,
-  DocumentNode,
   BuildSchemaOptions
 } from 'graphql';
 import linkToFetcher, { execute } from './linkToFetcher';
 import isEmptyObject from '../isEmptyObject';
-import { IResolvers, IResolverObject } from '../Interfaces';
+import { IResolvers, IResolverObject, Fetcher } from '../Interfaces';
 import { makeExecutableSchema } from '../makeExecutableSchema';
 import { recreateType } from './schemaRecreation';
 import resolveParentFromTypename from './resolveFromParentTypename';
@@ -38,36 +36,6 @@ export type ResolverFn = (
   context?: any,
   info?: GraphQLResolveInfo
 ) => AsyncIterator<any>;
-
-export type Fetcher = (operation: FetcherOperation) => Promise<ExecutionResult>;
-
-export type FetcherOperation = {
-  query: DocumentNode;
-  operationName?: string;
-  variables?: { [key: string]: any };
-  context?: { [key: string]: any };
-};
-
-/**
- * This type has been copied inline from its source on `@types/graphql`:
- *
- * https://git.io/Jv8NX
- *
- * Previously, it was imported from `graphql/utilities/schemaPrinter`, however
- * that module has been removed in `graphql@15`.  Furthermore, the sole property
- * on this type is due to be deprecated in `graphql@16`.
- */
-interface PrintSchemaOptions {
-  /**
-   * Descriptions are defined as preceding string literals, however an older
-   * experimental version of the SDL supported preceding comments as
-   * descriptions. Set to true to enable this deprecated behavior.
-   * This option is provided to ease adoption and will be removed in v16.
-   *
-   * Default: false
-   */
-  commentDescriptions?: boolean;
-}
 
 export default function makeRemoteExecutableSchema({
   schema,

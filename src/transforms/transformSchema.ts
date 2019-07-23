@@ -7,15 +7,22 @@ import {
   generateProxyingResolvers,
   generateSimpleMapping,
 } from '../stitching/resolvers';
+import {
+  SchemaExecutionConfig,
+  isSchemaExecutionConfig,
+} from '../Interfaces';
 
 export default function transformSchema(
-  targetSchema: GraphQLSchema,
+  schemaOrSchemaExecutionConfig: GraphQLSchema | SchemaExecutionConfig,
   transforms: Array<Transform>,
 ): GraphQLSchema & { transforms: Array<Transform> } {
+  const targetSchema: GraphQLSchema = isSchemaExecutionConfig(schemaOrSchemaExecutionConfig) ?
+    schemaOrSchemaExecutionConfig.schema : schemaOrSchemaExecutionConfig;
+
   let schema = visitSchema(targetSchema, {}, true);
   const mapping = generateSimpleMapping(targetSchema);
   const resolvers = generateProxyingResolvers(
-    targetSchema,
+    schemaOrSchemaExecutionConfig,
     transforms,
     mapping,
   );
