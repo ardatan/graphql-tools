@@ -25,7 +25,7 @@ import {
 } from '../transforms';
 import {
   propertySchema,
-  bookingSchema,
+  remoteBookingSchema,
   subscriptionSchema,
   subscriptionPubSub,
   subscriptionPubSubTrigger,
@@ -33,7 +33,8 @@ import {
 import { forAwaitEach } from 'iterall';
 import { createResolveType, fieldToFieldConfig } from '../stitching/schemaRecreation';
 import { makeExecutableSchema } from '../makeExecutableSchema';
-import { delegateToSchema } from '../stitching';
+import { delegateToSchema, delegateToRemoteSchema } from '../stitching';
+import { SchemaExecutionConfig } from '../Interfaces';
 
 let linkSchema = `
   """
@@ -80,9 +81,12 @@ let linkSchema = `
 `;
 
 describe('merge schemas through transforms', () => {
+  let bookingSchemaExecConfig: SchemaExecutionConfig;
   let mergedSchema: GraphQLSchema;
 
   before(async () => {
+    bookingSchemaExecConfig = await remoteBookingSchema;
+
     // namespace and strip schemas
     const transformedPropertySchema = transformSchema(propertySchema, [
       new FilterRootFields(
@@ -92,7 +96,7 @@ describe('merge schemas through transforms', () => {
       new RenameTypes((name: string) => `Properties_${name}`),
       new RenameRootFields((operation: string, name: string) => `Properties_${name}`),
     ]);
-    const transformedBookingSchema = transformSchema(bookingSchema, [
+    const transformedBookingSchema = transformSchema(bookingSchemaExecConfig, [
       new FilterRootFields(
         (operation: string, rootField: string) =>
           'Query.bookings' === `${operation}.${rootField}`,
@@ -134,8 +138,8 @@ describe('merge schemas through transforms', () => {
                 transforms: transformedPropertySchema.transforms,
               });
             } else if (args.id.startsWith('b')) {
-              return info.mergeInfo.delegateToSchema({
-                schema: bookingSchema,
+              return delegateToRemoteSchema({
+                ...bookingSchemaExecConfig,
                 operation: 'query',
                 fieldName: 'bookingById',
                 args,
@@ -144,8 +148,8 @@ describe('merge schemas through transforms', () => {
                 transforms: transformedBookingSchema.transforms,
               });
             } else if (args.id.startsWith('c')) {
-              return info.mergeInfo.delegateToSchema({
-                schema: bookingSchema,
+              return delegateToRemoteSchema({
+                ...bookingSchemaExecConfig,
                 operation: 'query',
                 fieldName: 'customerById',
                 args,
@@ -162,8 +166,8 @@ describe('merge schemas through transforms', () => {
           bookings: {
             fragment: 'fragment PropertyFragment on Property { id }',
             resolve(parent, args, context, info) {
-              return info.mergeInfo.delegateToSchema({
-                schema: bookingSchema,
+              return delegateToRemoteSchema({
+                ...bookingSchemaExecConfig,
                 operation: 'query',
                 fieldName: 'bookingsByPropertyId',
                 args: {

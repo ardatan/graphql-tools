@@ -14,17 +14,15 @@ import {
   GraphQLBoolean,
   GraphQLInt,
   GraphQLScalarType,
-  ExecutionResult,
   buildSchema,
   printSchema,
   Kind,
   GraphQLResolveInfo,
-  DocumentNode,
   BuildSchemaOptions
 } from 'graphql';
 import linkToFetcher, { execute } from './linkToFetcher';
 import isEmptyObject from '../isEmptyObject';
-import { IResolvers, IResolverObject } from '../Interfaces';
+import { IResolvers, IResolverObject, Fetcher } from '../Interfaces';
 import { makeExecutableSchema } from '../makeExecutableSchema';
 import { recreateType } from './schemaRecreation';
 import resolveParentFromTypename from './resolveFromParentTypename';
@@ -39,15 +37,6 @@ export type ResolverFn = (
   context?: any,
   info?: GraphQLResolveInfo
 ) => AsyncIterator<any>;
-
-export type Fetcher = (operation: FetcherOperation) => Promise<ExecutionResult>;
-
-export type FetcherOperation = {
-  query: DocumentNode;
-  operationName?: string;
-  variables?: { [key: string]: any };
-  context?: { [key: string]: any };
-};
 
 export default function makeRemoteExecutableSchema({
   schema,

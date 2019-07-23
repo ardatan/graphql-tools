@@ -3,6 +3,7 @@ import {
   GraphQLField,
   ExecutionResult,
   GraphQLType,
+  GraphQLNamedType,
   GraphQLFieldResolver,
   GraphQLResolveInfo,
   GraphQLIsTypeOfFn,
@@ -12,6 +13,8 @@ import {
 } from 'graphql';
 
 import { SchemaDirectiveVisitor } from './schemaVisitor';
+
+import { ApolloLink } from 'apollo-link';
 
 /* TODO: Add documentation */
 
@@ -49,6 +52,46 @@ export interface IGraphQLToolsResolveInfo extends GraphQLResolveInfo {
   mergeInfo?: MergeInfo;
 }
 
+export type Fetcher = (operation: IFetcherOperation) => Promise<ExecutionResult>;
+
+export interface IFetcherOperation {
+  query: DocumentNode;
+  operationName?: string;
+  variables?: { [key: string]: any };
+  context?: { [key: string]: any };
+}
+
+export type Dispatcher = (context: any) => ApolloLink | Fetcher;
+
+export type SchemaExecutionConfig = {
+  schema: GraphQLSchemaWithTransforms;
+};
+
+export type GraphQLSchemaWithTransforms = GraphQLSchema & { transforms?: Array<Transform> };
+
+export type RemoteSchemaExecutionConfig = {
+  schema: GraphQLSchemaWithTransforms;
+  link?: ApolloLink;
+  fetcher?: Fetcher;
+  dispatcher?: Dispatcher;
+};
+
+export function isSchemaExecutionConfig(
+  schema: string | GraphQLSchema | SchemaExecutionConfig | DocumentNode | Array<GraphQLNamedType>
+): schema is SchemaExecutionConfig {
+  return !!(schema as SchemaExecutionConfig).schema;
+}
+
+export function isRemoteSchemaExecutionConfig(
+  schema: GraphQLSchema | SchemaExecutionConfig
+): schema is RemoteSchemaExecutionConfig {
+  return (
+    !!(schema as RemoteSchemaExecutionConfig).dispatcher ||
+    !!(schema as RemoteSchemaExecutionConfig).link ||
+    !!(schema as RemoteSchemaExecutionConfig).fetcher
+  );
+}
+
 export interface IDelegateToSchemaOptions<TContext = { [key: string]: any }> {
   schema: GraphQLSchema;
   operation: Operation;
@@ -58,7 +101,15 @@ export interface IDelegateToSchemaOptions<TContext = { [key: string]: any }> {
   info: IGraphQLToolsResolveInfo;
   transforms?: Array<Transform>;
   skipValidation?: boolean;
+  executor?: Delegator;
+  subscriber?: Delegator;
 }
+
+export type Delegator = ({ document, context, variables }: {
+  document: DocumentNode;
+  context?: { [key: string]: any };
+  variables?: { [key: string]: any };
+}) => any;
 
 export type MergeInfo = {
   delegate: (

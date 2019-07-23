@@ -16,7 +16,11 @@ import {
   NameNode,
 } from 'graphql';
 
-import { Operation, Request, IDelegateToSchemaOptions } from '../Interfaces';
+import {
+  IDelegateToSchemaOptions,
+  Operation,
+  Request,
+} from '../Interfaces';
 
 import {
   applyRequestTransforms,
@@ -93,29 +97,45 @@ async function delegateToSchemaImplementation(
   }
 
   if (operation === 'query' || operation === 'mutation') {
+    if (!options.executor) {
+      options.executor = ({ document, context, variables }) => execute({
+        schema: options.schema,
+        document,
+        rootValue: info.rootValue,
+        contextValue: context,
+        variableValues: variables,
+      });
+    }
+
     return applyResultTransforms(
-      await execute(
-        options.schema,
-        processedRequest.document,
-        info.rootValue,
-        options.context,
-        processedRequest.variables,
-      ),
+      await options.executor({
+        document: processedRequest.document,
+        context: options.context,
+        variables: processedRequest.variables
+      }),
       transforms,
     );
   }
 
   if (operation === 'subscription') {
-    const executionResult = (await subscribe(
-      options.schema,
-      processedRequest.document,
-      info.rootValue,
-      options.context,
-      processedRequest.variables,
-    )) as AsyncIterator<ExecutionResult>;
+    if (!options.subscriber) {
+      options.subscriber = ({ document, context, variables }) => subscribe({
+        schema: options.schema,
+        document,
+        rootValue: info.rootValue,
+        contextValue: context,
+        variableValues: variables,
+      });
+    }
+
+    const originalAsyncIterator = (await options.subscriber({
+      document: processedRequest.document,
+      context: options.context,
+      variables: processedRequest.variables,
+    })) as AsyncIterator<ExecutionResult>;
 
     // "subscribe" to the subscription result and map the result through the transforms
-    return mapAsyncIterator<ExecutionResult, any>(executionResult, result => {
+    return mapAsyncIterator<ExecutionResult, any>(originalAsyncIterator, result => {
       const transformedResult = applyResultTransforms(result, transforms);
 
       // wrap with fieldName to return for an additional round of resolutioon

@@ -12,6 +12,7 @@ import {
   ExecutionResult,
   defaultFieldResolver,
   findDeprecatedUsages,
+  GraphQLResolveInfo,
 } from 'graphql';
 import mergeSchemas from '../stitching/mergeSchemas';
 import {
@@ -28,7 +29,14 @@ import {
 import { SchemaDirectiveVisitor } from '../schemaVisitor';
 import { forAwaitEach } from 'iterall';
 import { makeExecutableSchema } from '../makeExecutableSchema';
-import { IResolvers } from '../Interfaces';
+import {
+  IResolvers,
+  SchemaExecutionConfig,
+  isRemoteSchemaExecutionConfig,
+  Operation,
+} from '../Interfaces';
+import { delegateToSchema, delegateToRemoteSchema } from '../stitching';
+import { Transform } from '../transforms';
 
 const removeLocations = ({ locations, ...rest }: any): any => ({ ...rest });
 
@@ -316,12 +324,33 @@ let schemaDirectiveTypeDefs = `
   }
 `;
 
+function delegateToLocalOrRemote(options: {
+  schema: GraphQLSchema | SchemaExecutionConfig;
+  operation: Operation;
+  fieldName: string;
+  args?: { [key: string]: any };
+  context: any;
+  info: GraphQLResolveInfo;
+  transforms?: Array<Transform>;
+}) {
+  if (isRemoteSchemaExecutionConfig(options.schema)) {
+    return delegateToRemoteSchema({
+      ...options,
+      ...options.schema,
+    });
+  }
+  return delegateToSchema({
+    ...options,
+    schema: options.schema as GraphQLSchema
+  });
+}
+
 testCombinations.forEach(async combination => {
   describe('merging ' + combination.name, () => {
     let mergedSchema: GraphQLSchema,
-      propertySchema: GraphQLSchema,
-      productSchema: GraphQLSchema,
-      bookingSchema: GraphQLSchema;
+      propertySchema: GraphQLSchema | SchemaExecutionConfig,
+      productSchema: GraphQLSchema | SchemaExecutionConfig,
+      bookingSchema: GraphQLSchema | SchemaExecutionConfig;
 
     before(async () => {
       propertySchema = await combination.property;
@@ -362,18 +391,32 @@ testCombinations.forEach(async combination => {
             bookings: {
               fragment: '... on Property { id }',
               resolve(parent, args, context, info) {
-                // Use the old mergeInfo.delegate API just this once, to make
-                // sure it continues to work.
-                return info.mergeInfo.delegate(
-                  'query',
-                  'bookingsByPropertyId',
-                  {
-                    propertyId: parent.id,
-                    limit: args.limit ? args.limit : null,
-                  },
-                  context,
-                  info,
-                );
+                if (combination.name === 'local') {
+                  // Use the old mergeInfo.delegate API just this once, to make
+                  // sure it continues to work.
+                  return info.mergeInfo.delegate(
+                    'query',
+                    'bookingsByPropertyId',
+                    {
+                      propertyId: parent.id,
+                      limit: args.limit ? args.limit : null,
+                    },
+                    context,
+                    info,
+                  );
+                } else {
+                  return delegateToLocalOrRemote({
+                    schema: bookingSchema,
+                    operation: 'query',
+                    fieldName: 'bookingsByPropertyId',
+                    args: {
+                      propertyId: parent.id,
+                      limit: args.limit ? args.limit : null,
+                    },
+                    context,
+                    info,
+                  });
+                }
               },
             },
             someField: {
@@ -386,7 +429,7 @@ testCombinations.forEach(async combination => {
             property: {
               fragment: 'fragment BookingFragment on Booking { propertyId }',
               resolve(parent, args, context, info) {
-                return info.mergeInfo.delegateToSchema({
+                return delegateToLocalOrRemote({
                   schema: propertySchema,
                   operation: 'query',
                   fieldName: 'propertyById',
@@ -413,7 +456,7 @@ testCombinations.forEach(async combination => {
           LinkType: {
             property: {
               resolve(parent, args, context, info) {
-                return info.mergeInfo.delegateToSchema({
+                return delegateToLocalOrRemote({
                   schema: propertySchema,
                   operation: 'query',
                   fieldName: 'propertyById',
@@ -428,7 +471,7 @@ testCombinations.forEach(async combination => {
           },
           Query: {
             delegateInterfaceTest(parent, args, context, info) {
-              return info.mergeInfo.delegateToSchema({
+              return delegateToLocalOrRemote({
                 schema: propertySchema,
                 operation: 'query',
                 fieldName: 'interfaceTest',
@@ -440,7 +483,7 @@ testCombinations.forEach(async combination => {
               });
             },
             delegateArgumentTest(parent, args, context, info) {
-              return info.mergeInfo.delegateToSchema({
+              return delegateToLocalOrRemote({
                 schema: propertySchema,
                 operation: 'query',
                 fieldName: 'propertyById',
@@ -461,7 +504,7 @@ testCombinations.forEach(async combination => {
               fragment: '... on Node { id }',
               resolve(parent, args, context, info) {
                 if (args.id.startsWith('p')) {
-                  return info.mergeInfo.delegateToSchema({
+                  return delegateToLocalOrRemote({
                     schema: propertySchema,
                     operation: 'query',
                     fieldName: 'propertyById',
@@ -470,7 +513,7 @@ testCombinations.forEach(async combination => {
                     info,
                   });
                 } else if (args.id.startsWith('b')) {
-                  return info.mergeInfo.delegateToSchema({
+                  return delegateToLocalOrRemote({
                     schema: bookingSchema,
                     operation: 'query',
                     fieldName: 'bookingById',
@@ -479,7 +522,7 @@ testCombinations.forEach(async combination => {
                     info,
                   });
                 } else if (args.id.startsWith('c')) {
-                  return info.mergeInfo.delegateToSchema({
+                  return delegateToLocalOrRemote({
                     schema: bookingSchema,
                     operation: 'query',
                     fieldName: 'customerById',
@@ -493,14 +536,14 @@ testCombinations.forEach(async combination => {
               },
             },
             async nodes(parent, args, context, info) {
-              const bookings = await info.mergeInfo.delegateToSchema({
+              const bookings = await delegateToLocalOrRemote({
                 schema: bookingSchema,
                 operation: 'query',
                 fieldName: 'bookings',
                 context,
                 info,
               });
-              const properties = await info.mergeInfo.delegateToSchema({
+              const properties = await delegateToLocalOrRemote({
                 schema: propertySchema,
                 operation: 'query',
                 fieldName: 'properties',
@@ -517,7 +560,7 @@ testCombinations.forEach(async combination => {
     describe('basic', () => {
       it('works with context', async () => {
         const propertyResult = await graphql(
-          propertySchema,
+          localPropertySchema,
           `
             query {
               contextTest(key: "test")
@@ -553,7 +596,7 @@ testCombinations.forEach(async combination => {
 
       it('works with custom scalars', async () => {
         const propertyResult = await graphql(
-          propertySchema,
+          localPropertySchema,
           `
             query {
               dateTimeTest
@@ -755,12 +798,12 @@ bookingById(id: "b1") {
   `;
 
         const propertyResult = await graphql(
-          propertySchema,
+          localPropertySchema,
           `query { ${propertyFragment} }`,
         );
 
         const bookingResult = await graphql(
-          bookingSchema,
+          localBookingSchema,
           `query { ${bookingFragment} }`,
         );
 
@@ -801,7 +844,7 @@ bookingById(id: "b1") {
         };
 
         const bookingResult = await graphql(
-          bookingSchema,
+          localBookingSchema,
           mutationFragment,
           {},
           {},
@@ -1012,7 +1055,7 @@ bookingById(id: "b1") {
             }
           }
         `;
-        const propertyResult = await graphql(propertySchema, query);
+        const propertyResult = await graphql(localPropertySchema, query);
         const mergedResult = await graphql(mergedSchema, query);
 
         expect(propertyResult).to.deep.equal({
@@ -1382,7 +1425,7 @@ bookingById(id: "b1") {
             bookings: {
               fragment: 'fragment PropertyFragment on Property { id }',
               resolve(parent, args, context, info) {
-                return info.mergeInfo.delegateToSchema({
+                return delegateToLocalOrRemote({
                   schema: bookingSchema,
                   operation: 'query',
                   fieldName: 'bookingsByPropertyId',
@@ -1402,7 +1445,7 @@ bookingById(id: "b1") {
             property: {
               fragment: 'fragment BookingFragment on Booking { propertyId }',
               resolve(parent, args, context, info) {
-                return info.mergeInfo.delegateToSchema({
+                return delegateToLocalOrRemote({
                   schema: propertySchema,
                   operation: 'query',
                   fieldName: 'propertyById',
@@ -1429,7 +1472,7 @@ bookingById(id: "b1") {
         const Query2: IResolvers = {
           Query: {
             delegateInterfaceTest(parent, args, context, info) {
-              return info.mergeInfo.delegateToSchema({
+              return delegateToLocalOrRemote({
                 schema: propertySchema,
                 operation: 'query',
                 fieldName: 'interfaceTest',
@@ -1441,7 +1484,7 @@ bookingById(id: "b1") {
               });
             },
             delegateArgumentTest(parent, args, context, info) {
-              return info.mergeInfo.delegateToSchema({
+              return delegateToLocalOrRemote({
                 schema: propertySchema,
                 operation: 'query',
                 fieldName: 'propertyById',
@@ -1462,7 +1505,7 @@ bookingById(id: "b1") {
               fragment: 'fragment NodeFragment on Node { id }',
               resolve(parent, args, context, info) {
                 if (args.id.startsWith('p')) {
-                  return info.mergeInfo.delegateToSchema({
+                  return delegateToLocalOrRemote({
                     schema: propertySchema,
                     operation: 'query',
                     fieldName: 'propertyById',
@@ -1471,7 +1514,7 @@ bookingById(id: "b1") {
                     info,
                   });
                 } else if (args.id.startsWith('b')) {
-                  return info.mergeInfo.delegateToSchema({
+                  return delegateToLocalOrRemote({
                     schema: bookingSchema,
                     operation: 'query',
                     fieldName: 'bookingById',
@@ -1480,7 +1523,7 @@ bookingById(id: "b1") {
                     info,
                   });
                 } else if (args.id.startsWith('c')) {
-                  return info.mergeInfo.delegateToSchema({
+                  return delegateToLocalOrRemote({
                     schema: bookingSchema,
                     operation: 'query',
                     fieldName: 'customerById',
@@ -1499,14 +1542,14 @@ bookingById(id: "b1") {
         const AsyncQuery: IResolvers = {
           Query: {
             async nodes(parent, args, context, info) {
-              const bookings = await info.mergeInfo.delegateToSchema({
+              const bookings = await delegateToLocalOrRemote({
                 schema: bookingSchema,
                 operation: 'query',
                 fieldName: 'bookings',
                 context,
                 info,
               });
-              const properties = await info.mergeInfo.delegateToSchema({
+              const properties = await delegateToLocalOrRemote({
                 schema: propertySchema,
                 operation: 'query',
                 fieldName: 'properties',
@@ -1585,7 +1628,7 @@ fragment BookingFragment on Booking {
     `;
 
         const propertyResult = await graphql(
-          propertySchema,
+          localPropertySchema,
           `
             ${propertyFragment}
             query {
@@ -1597,7 +1640,7 @@ fragment BookingFragment on Booking {
         );
 
         const bookingResult = await graphql(
-          bookingSchema,
+          localBookingSchema,
           `
             ${bookingFragment}
             query {
@@ -1656,12 +1699,12 @@ bookingById(id: "b1") {
   `;
 
         const propertyResult = await graphql(
-          propertySchema,
+          localPropertySchema,
           `query { ${propertyFragment} }`,
         );
 
         const bookingResult = await graphql(
-          bookingSchema,
+          localBookingSchema,
           `query { ${bookingFragment} }`,
         );
 
@@ -1767,7 +1810,7 @@ fragment BookingFragment on Booking {
     `;
 
         const propertyResult = await graphql(
-          propertySchema,
+          localPropertySchema,
           `
             ${propertyFragment1}
             ${propertyFragment2}
@@ -1781,7 +1824,7 @@ fragment BookingFragment on Booking {
         );
 
         const bookingResult = await graphql(
-          bookingSchema,
+          localBookingSchema,
           `
             ${bookingFragment}
             query {
@@ -2005,7 +2048,7 @@ fragment BookingFragment on Booking {
         `;
 
         const propertyResult = await graphql(
-          propertySchema,
+          localPropertySchema,
           `query($p1: ID!) { ${propertyFragment} }`,
           {},
           {},
@@ -2015,7 +2058,7 @@ fragment BookingFragment on Booking {
         );
 
         const bookingResult = await graphql(
-          bookingSchema,
+          localBookingSchema,
           `query($b1: ID!) { ${bookingFragment} }`,
           {},
           {},
@@ -2244,14 +2287,14 @@ fragment BookingFragment on Booking {
         `;
 
         const propertyResult = await graphql(
-          propertySchema,
+          localPropertySchema,
           `query {
                   ${propertyFragment}
                 }`,
         );
 
         const bookingResult = await graphql(
-          bookingSchema,
+          localBookingSchema,
           `query {
                   ${bookingFragment}
                 }`,
@@ -2386,7 +2429,7 @@ fragment BookingFragment on Booking {
           `;
 
           const propertyResult = await graphql(
-            propertySchema,
+            localPropertySchema,
             propertyQuery,
           );
 

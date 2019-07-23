@@ -1,4 +1,4 @@
-import { Fetcher, FetcherOperation } from './makeRemoteExecutableSchema';
+import { Fetcher, IFetcherOperation } from '../Interfaces';
 
 import {
   ApolloLink, // This import doesn't actually import code - only the types.
@@ -10,7 +10,7 @@ import {
 export { execute } from 'apollo-link';
 
 export default function linkToFetcher(link: ApolloLink): Fetcher {
-  return (fetcherOperation: FetcherOperation) => {
+  return (fetcherOperation: IFetcherOperation) => {
     return makePromise(execute(link, fetcherOperation as GraphQLRequest));
   };
 }

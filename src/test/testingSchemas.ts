@@ -18,10 +18,11 @@ import {
   ExecutionResult as LinkExecutionResult,
 } from 'apollo-link';
 import { makeExecutableSchema } from '../makeExecutableSchema';
-import { IResolvers } from '../Interfaces';
-import makeRemoteExecutableSchema, {
+import {
+  IResolvers,
   Fetcher,
-} from '../stitching/makeRemoteExecutableSchema';
+  RemoteSchemaExecutionConfig,
+} from '../Interfaces';
 import introspectSchema from '../stitching/introspectSchema';
 import { PubSub } from 'graphql-subscriptions';
 
@@ -706,9 +707,8 @@ const hasSubscriptionOperation = ({ query }: { query: any }): boolean => {
   return false;
 };
 
-// Pretend this schema is remote
-export async function makeSchemaRemoteFromLink(schema: GraphQLSchema) {
-  const link = new ApolloLink(operation => {
+function makeLinkFromSchema(schema: GraphQLSchema) {
+  return new ApolloLink(operation => {
     return new Observable(observer => {
       (async () => {
         const { query, operationName, variables } = operation;
@@ -759,16 +759,31 @@ export async function makeSchemaRemoteFromLink(schema: GraphQLSchema) {
       })();
     });
   });
+}
 
+export async function makeSchemaRemoteFromLink(schema: GraphQLSchema)
+  : Promise<RemoteSchemaExecutionConfig> {
+  const link = makeLinkFromSchema(schema);
   const clientSchema = await introspectSchema(link);
-  return makeRemoteExecutableSchema({
+  return {
     schema: clientSchema,
     link,
-  });
+  };
+}
+
+export async function makeSchemaRemoteFromDispatchedLink(schema: GraphQLSchema)
+  : Promise<RemoteSchemaExecutionConfig> {
+  const link = makeLinkFromSchema(schema);
+  const clientSchema = await introspectSchema(link);
+  return {
+    schema: clientSchema,
+    dispatcher: () => link,
+  };
 }
 
 // ensure fetcher support exists from the 2.0 api
-async function makeExecutableSchemaFromFetcher(schema: GraphQLSchema) {
+async function makeExecutableSchemaFromDispatchedFetcher(schema: GraphQLSchema)
+  : Promise<RemoteSchemaExecutionConfig> {
   const fetcher: Fetcher = ({ query, operationName, variables, context }) => {
     return graphql(
       schema,
@@ -781,14 +796,12 @@ async function makeExecutableSchemaFromFetcher(schema: GraphQLSchema) {
   };
 
   const clientSchema = await introspectSchema(fetcher);
-  return makeRemoteExecutableSchema({
+  return {
     schema: clientSchema,
     fetcher,
-  });
+  };
 }
 
 export const remotePropertySchema = makeSchemaRemoteFromLink(propertySchema);
-export const remoteProductSchema = makeSchemaRemoteFromLink(productSchema);
-export const remoteBookingSchema = makeExecutableSchemaFromFetcher(
-  bookingSchema,
-);
+export const remoteProductSchema = makeSchemaRemoteFromDispatchedLink(productSchema);
+export const remoteBookingSchema = makeExecutableSchemaFromDispatchedFetcher(bookingSchema);

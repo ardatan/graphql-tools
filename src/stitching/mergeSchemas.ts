@@ -19,6 +19,9 @@ import {
   IResolvers,
   MergeInfo,
   IResolversParameter,
+  SchemaExecutionConfig,
+  isSchemaExecutionConfig,
+  isRemoteSchemaExecutionConfig,
 } from '../Interfaces';
 import {
   extractExtensionDefinitions,
@@ -31,6 +34,7 @@ import {
   createResolveType,
 } from './schemaRecreation';
 import delegateToSchema from './delegateToSchema';
+import delegateToRemoteSchema from './delegateToRemoteSchema';
 import typeFromAST from './typeFromAST';
 import {
   Transform,
@@ -42,6 +46,7 @@ import { SchemaDirectiveVisitor } from '../schemaVisitor';
 
 type MergeTypeCandidate = {
   schema?: GraphQLSchema;
+  executionConfig?: SchemaExecutionConfig;
   type: GraphQLNamedType;
 };
 
@@ -77,7 +82,7 @@ export default function mergeSchemas({
   mergeDirectives,
 }: {
   schemas: Array<
-    string | GraphQLSchema | DocumentNode | Array<GraphQLNamedType>
+    string | GraphQLSchema | SchemaExecutionConfig | DocumentNode | Array<GraphQLNamedType>
   >;
   onTypeConflict?: OnTypeConflict;
   resolvers?: IResolversParameter;
@@ -102,7 +107,16 @@ export default function mergeSchemas({
     return types[name];
   });
 
-  schemas.forEach(schema => {
+  schemas.forEach(schemaOrSchemaExecutionConfig => {
+    let schema: string | GraphQLSchema | SchemaExecutionConfig | DocumentNode | Array<GraphQLNamedType>;
+    let executionConfig: SchemaExecutionConfig;
+    if (isSchemaExecutionConfig(schemaOrSchemaExecutionConfig)) {
+      executionConfig  = schemaOrSchemaExecutionConfig;
+      schema = schemaOrSchemaExecutionConfig.schema;
+    } else {
+      schema = schemaOrSchemaExecutionConfig;
+    }
+
     if (schema instanceof GraphQLSchema) {
       allSchemas.push(schema);
       const queryType = schema.getQueryType();
@@ -111,18 +125,21 @@ export default function mergeSchemas({
       if (queryType) {
         addTypeCandidate(typeCandidates, 'Query', {
           schema,
+          executionConfig,
           type: queryType,
         });
       }
       if (mutationType) {
         addTypeCandidate(typeCandidates, 'Mutation', {
           schema,
+          executionConfig,
           type: mutationType,
         });
       }
       if (subscriptionType) {
         addTypeCandidate(typeCandidates, 'Subscription', {
           schema,
+          executionConfig,
           type: subscriptionType,
         });
       }
@@ -145,8 +162,9 @@ export default function mergeSchemas({
           type !== subscriptionType
         ) {
           addTypeCandidate(typeCandidates, type.name, {
-            schema,
-            type: type,
+            schema: schema as GraphQLSchema,
+            executionConfig,
+            type,
           });
         }
       });
@@ -162,7 +180,7 @@ export default function mergeSchemas({
           directives.push(type);
         } else if (type && !(type instanceof GraphQLDirective)) {
           addTypeCandidate(typeCandidates, type.name, {
-            type: type,
+            type,
           });
         }
       });
@@ -176,7 +194,7 @@ export default function mergeSchemas({
     } else if (Array.isArray(schema)) {
       schema.forEach(type => {
         addTypeCandidate(typeCandidates, type.name, {
-          type: type,
+          type,
         });
       });
     } else {
@@ -372,11 +390,30 @@ function guessSchemaByRootField(
   );
 }
 
-function createDelegatingResolver(
+function createDelegatingResolver({
+  schema,
+  executionConfig,
+  operation,
+  fieldName,
+}: {
   schema: GraphQLSchema,
+  executionConfig?: SchemaExecutionConfig,
   operation: 'query' | 'mutation' | 'subscription',
   fieldName: string,
-): IFieldResolver<any, any> {
+}): IFieldResolver<any, any> {
+  if (executionConfig && isRemoteSchemaExecutionConfig(executionConfig)) {
+    return (root, args, context, info) => {
+      return delegateToRemoteSchema({
+        ...executionConfig,
+        operation,
+        fieldName,
+        args,
+        context,
+        info,
+      });
+    };
+  }
+
   return (root, args, context, info) => {
     return info.mergeInfo.delegateToSchema({
       schema,
@@ -476,16 +513,17 @@ function mergeTypeCandidates(
     const resolvers = {};
     const resolverKey =
       operationName === 'subscription' ? 'subscribe' : 'resolve';
-    candidates.forEach(({ type: candidateType, schema }) => {
+    candidates.forEach(({ type: candidateType, schema, executionConfig }) => {
       const candidateFields = (candidateType as GraphQLObjectType).getFields();
       fields = { ...fields, ...candidateFields };
       Object.keys(candidateFields).forEach(fieldName => {
         resolvers[fieldName] = {
-          [resolverKey]: schema ? createDelegatingResolver(
+          [resolverKey]: schema ? createDelegatingResolver({
             schema,
-            operationName,
+            executionConfig,
+            operation: operationName,
             fieldName,
-          ) : null,
+          }) : null,
         };
       });
     });
