@@ -121,3 +121,34 @@ describe('respects buildSchema options', () => {
     expect(customScalar.description).to.eq('Scalar description');
   });
 });
+
+describe('respects buildSchema options', () => {
+  const schema = `
+  type Query {
+    # Field description
+    custom: CustomScalar!
+  }
+
+  # Scalar description
+  scalar CustomScalar
+`;
+
+  it('without comment descriptions', () => {
+    const remoteSchema = makeRemoteExecutableSchema({ schema });
+
+    const customScalar = remoteSchema.getType('CustomScalar');
+    expect(customScalar.description).to.eq(undefined);
+  });
+
+  it('with comment descriptions', () => {
+    const remoteSchema = makeRemoteExecutableSchema({
+      schema,
+      buildSchemaOptions: { commentDescriptions: true }
+    });
+
+    const field = remoteSchema.getQueryType().getFields()['custom'];
+    expect(field.description).to.eq('Field description');
+    const customScalar = remoteSchema.getType('CustomScalar');
+    expect(customScalar.description).to.eq('Scalar description');
+  });
+});

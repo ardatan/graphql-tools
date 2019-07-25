@@ -29,6 +29,6 @@ This package enables a specific workflow for developing a GraphQL server, where 
 2. **Separate business logic from the schema.** As Dan Schafer covered in his talk, [GraphQL at Facebook](https://medium.com/apollo-stack/graphql-at-facebook-by-dan-schafer-38d65ef075af#.jduhdwudr), it's a good idea to treat GraphQL as a thin API and routing layer. This means that your actual business logic, permissions, and other concerns should not be part of your GraphQL schema. For large apps, we suggest splitting your GraphQL server code into 4 components: Schema, Resolvers, Models, and Connectors, which each handle a specific part of the work. You can see this in action in the server part of our [GitHunt example app](https://github.com/apollostack/GitHunt-API/blob/master/api/schema.js).
 3. **Use standard libraries for auth and other special concerns.** There's no need to reinvent the login process in GraphQL. Every server framework already has a wealth of technologies for auth, file uploads, and more. It's prudent to use those standard solutions even if your data is being served through a GraphQL endpoint, and it is okay to have non-GraphQL endpoints on your server when it's the most practical solution.
 
-##The GitHunt-API example
+## The GitHunt-API example
 
 We have produced a complete example app that represents this model for constructing a small GraphQL API. [Check it out at apollostack/GitHunt-API on GitHub](https://github.com/apollostack/GitHunt-API).
