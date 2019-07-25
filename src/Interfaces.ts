@@ -227,6 +227,19 @@ export interface IMockServer {
   ) => Promise<ExecutionResult>;
 }
 
+export type OnTypeConflict = (
+  left: GraphQLNamedType,
+  right: GraphQLNamedType,
+  info?: {
+    left: {
+      schema?: GraphQLSchema;
+    };
+    right: {
+      schema?: GraphQLSchema;
+    };
+  },
+) => GraphQLNamedType;
+
 export type Operation = 'query' | 'mutation' | 'subscription';
 
 export type Request = {

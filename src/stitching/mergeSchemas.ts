@@ -18,6 +18,7 @@ import {
   IFieldResolver,
   IResolvers,
   MergeInfo,
+  OnTypeConflict,
   IResolversParameter,
   SchemaExecutionConfig,
   isSchemaExecutionConfig,
@@ -55,19 +56,6 @@ type MergeTypeCandidatesResult = {
   resolvers?: IResolvers;
   candidate?: MergeTypeCandidate;
 };
-
-type OnTypeConflict = (
-  left: GraphQLNamedType,
-  right: GraphQLNamedType,
-  info?: {
-    left: {
-      schema?: GraphQLSchema;
-    };
-    right: {
-      schema?: GraphQLSchema;
-    };
-  },
-) => GraphQLNamedType;
 
 type CandidateSelector = (
   candidates: Array<MergeTypeCandidate>,
