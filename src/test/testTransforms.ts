@@ -12,7 +12,10 @@ import {
 } from 'graphql';
 import { makeExecutableSchema } from '../makeExecutableSchema';
 import { propertySchema, bookingSchema } from './testingSchemas';
-import delegateToSchema from '../stitching/delegateToSchema';
+import {
+  delegateToSchema,
+  defaultMergedResolver
+} from '../stitching';
 import {
   transformSchema,
   RenameTypes,
@@ -21,6 +24,7 @@ import {
   ExtractField,
   ReplaceFieldWithFragment,
   FilterToSchema,
+  TransformQuery,
 } from '../transforms';
 
 describe('transforms', () => {
@@ -703,6 +707,245 @@ describe('transforms', () => {
     });
   });
 
+  describe('TransformQuery', () => {
+    let data: any;
+    let subSchema: GraphQLSchema;
+    let schema: GraphQLSchema;
+    before(() => {
+      data = {
+        u1: {
+          id: 'u1',
+          username: 'alice',
+          address: {
+            streetAddress: 'Windy Shore 21 A 7',
+            zip: '12345',
+          },
+        },
+        u2: {
+          id: 'u2',
+          username: 'bob',
+          address: {
+            streetAddress: 'Snowy Mountain 5 B 77',
+            zip: '54321',
+          },
+        },
+      };
+      subSchema = makeExecutableSchema({
+        typeDefs: `
+          type User {
+            id: ID!
+            username: String
+            address: Address
+            errorTest: Address
+          }
+
+          type Address {
+            streetAddress: String
+            zip: String
+            errorTest: String
+          }
+
+          type Query {
+            userById(id: ID!): User
+          }
+        `,
+        resolvers: {
+          User: {
+            errorTest: () => {
+              throw new Error('Test Error!');
+            }
+          },
+          Address: {
+            errorTest: () => {
+              throw new Error('Test Error!');
+            }
+          },
+          Query: {
+            userById(parent, { id }) {
+              return data[id];
+            },
+          },
+        },
+      });
+      schema = makeExecutableSchema({
+        typeDefs: `
+          type Address {
+            streetAddress: String
+            zip: String
+            errorTest: String
+          }
+
+          type Query {
+            addressByUser(id: ID!): Address
+            errorTest(id: ID!): Address
+          }
+        `,
+        resolvers: {
+          Query: {
+            addressByUser(parent, { id }, context, info) {
+              return delegateToSchema({
+                schema: subSchema,
+                operation: 'query',
+                fieldName: 'userById',
+                args: { id },
+                context,
+                info,
+                transforms: [
+                  // Wrap document takes a subtree as an AST node
+                  new TransformQuery({
+                    // path at which to apply wrapping and extracting
+                    path: ['userById'],
+                    queryTransformer: (subtree: SelectionSetNode) => ({
+                      kind: Kind.SELECTION_SET,
+                      selections: [{
+                        // we create a wrapping AST Field
+                        kind: Kind.FIELD,
+                        name: {
+                          kind: Kind.NAME,
+                          // that field is `address`
+                          value: 'address',
+                        },
+                        // Inside the field selection
+                        selectionSet: subtree,
+                      }],
+                    }),
+                    // how to process the data result at path
+                    resultTransformer: result => result && result.address,
+                    errorPathTransformer: path => path.slice(1),
+                  }),
+                ],
+              });
+            },
+            errorTest(parent, { id }, context, info) {
+              return delegateToSchema({
+                schema: subSchema,
+                operation: 'query',
+                fieldName: 'userById',
+                args: { id },
+                context,
+                info,
+                transforms: [
+                  new TransformQuery({
+                    path: ['userById'],
+                    queryTransformer: (subtree: SelectionSetNode) => ({
+                      kind: Kind.SELECTION_SET,
+                      selections: [{
+                        kind: Kind.FIELD,
+                        name: {
+                          kind: Kind.NAME,
+                          value: 'errorTest',
+                        },
+                        selectionSet: subtree,
+                      }],
+                    }),
+                    resultTransformer: result => result && result.address,
+                    errorPathTransformer: path => path.slice(1),
+                  }),
+                ],
+              });
+            },
+          },
+        },
+      });
+    });
+
+    it('wrapping delegation', async () => {
+      const result = await graphql(
+        schema,
+        `
+          query {
+            addressByUser(id: "u1") {
+              streetAddress
+              zip
+            }
+          }
+        `,
+      );
+
+      expect(result).to.deep.equal({
+        data: {
+          addressByUser: {
+            streetAddress: 'Windy Shore 21 A 7',
+            zip: '12345',
+          },
+        },
+      });
+    });
+
+    it('preserves errors from underlying fields', async () => {
+      const result = await graphql(
+        schema,
+        `
+          query {
+            addressByUser(id: "u1") {
+              errorTest
+            }
+          }
+        `,
+        {},
+        {},
+        {},
+        undefined,
+        defaultMergedResolver,
+      );
+
+      expect(result).to.deep.equal({
+        data: {
+          addressByUser: {
+            errorTest: null,
+          },
+        },
+        errors: [
+          {
+            locations: [
+              {
+                column: 15,
+                line: 4,
+              },
+            ],
+            message: 'Test Error!',
+            path: [
+              'addressByUser',
+              'errorTest',
+            ],
+          }
+        ]
+      });
+    });
+
+    it('preserves errors from the wrapping field', async () => {
+      const result = await graphql(
+        schema,
+        `
+          query {
+            errorTest(id: "u1") {
+              errorTest
+            }
+          }
+        `,
+        {},
+        {},
+        {},
+        undefined,
+        defaultMergedResolver,
+      );
+
+      expect(result).to.deep.equal({
+        data: {
+          errorTest: null,
+        },
+        errors: [
+          {
+            locations: [],
+            message: 'Test Error!',
+            path: [
+              'errorTest',
+            ],
+          }
+        ]
+      });
+    });
+  });
 
   describe('replaces field with fragments', () => {
     let data: any;
