@@ -23,3 +23,4 @@ export { default as FilterObjectFields } from './FilterObjectFields';
 export { default as ExpandAbstractTypes } from './ExpandAbstractTypes';
 export { default as ExtractField } from './ExtractField';
 export { default as WrapQuery } from './WrapQuery';
+export { default as TransformQuery } from './TransformQuery';
