@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [6.2.0](https://github.com/yaacovCR/graphql-tools-fork/compare/v6.1.6...v6.2.0) (2019-07-31)
+
+
+### Bug Fixes
+
+* **types:** export OnTypeConflict type ([fcc608b](https://github.com/yaacovCR/graphql-tools-fork/commit/fcc608b))
+
+
+### Features
+
+* **stitching:** allow delegateToSchema, mergeSchemas and transformSchema to take remote schema configurations as parameters ([12d2f5a](https://github.com/yaacovCR/graphql-tools-fork/commit/12d2f5a))
+* **transformers:** TransformQuery transformer adds errorPathTransformer property to properly return errors from transformed queries. ([6159ad2](https://github.com/yaacovCR/graphql-tools-fork/commit/6159ad2))
+* **transforms:** add dedicated filterSchema function to allow schema filtering without a layer of delegation ([8a50f38](https://github.com/yaacovCR/graphql-tools-fork/commit/8a50f38))
+
+
+
 ### [6.1.6](https://github.com/yaacovCR/graphql-tools-fork/compare/v6.1.5...v6.1.6) (2019-07-19)
 
 
