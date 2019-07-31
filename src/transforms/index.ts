@@ -1,6 +1,7 @@
 import { Transform } from './transforms';
 export { Transform };
 
+export { default as filterSchema } from './filterSchema';
 export { default as transformSchema } from './transformSchema';
 
 export { default as AddArgumentsAsVariables } from './AddArgumentsAsVariables';

@@ -16,11 +16,10 @@ import {
 import mergeSchemas from '../stitching/mergeSchemas';
 import {
   transformSchema,
-  FilterRootFields,
+  filterSchema,
   RenameTypes,
   RenameRootFields,
   RenameObjectFields,
-  FilterObjectFields,
   TransformObjectFields,
 } from '../transforms';
 import {
@@ -88,33 +87,33 @@ describe('merge schemas through transforms', () => {
     bookingSchemaExecConfig = await remoteBookingSchema;
 
     // namespace and strip schemas
-    const transformedPropertySchema = transformSchema(propertySchema, [
-      new FilterRootFields(
-        (operation: string, rootField: string) =>
-          'Query.properties' === `${operation}.${rootField}`,
-      ),
-      new RenameTypes((name: string) => `Properties_${name}`),
-      new RenameRootFields((operation: string, name: string) => `Properties_${name}`),
-    ]);
-    const transformedBookingSchema = transformSchema(bookingSchemaExecConfig, [
-      new FilterRootFields(
-        (operation: string, rootField: string) =>
-          'Query.bookings' === `${operation}.${rootField}`,
-      ),
-      new RenameTypes((name: string) => `Bookings_${name}`),
-      new RenameRootFields((operation: string, name: string) => `Bookings_${name}`),
-    ]);
-    const transformedSubscriptionSchema = transformSchema(subscriptionSchema, [
-      new FilterRootFields(
-        (operation: string, rootField: string) =>
+    const transformedPropertySchema = filterSchema({
+      schema: transformSchema(propertySchema, [
+        new RenameTypes((name: string) => `Properties_${name}`),
+        new RenameRootFields((operation: string, name: string) => `Properties_${name}`),
+      ]),
+      rootFieldFilter: (operation: string, rootField: string) =>
+        'Query.Properties_properties' === `${operation}.${rootField}`,
+    });
+    const transformedBookingSchema = filterSchema({
+      schema: transformSchema(bookingSchemaExecConfig, [
+        new RenameTypes((name: string) => `Bookings_${name}`),
+        new RenameRootFields((operation: string, name: string) => `Bookings_${name}`),
+      ]),
+      rootFieldFilter: (operation: string, rootField: string) =>
+        'Query.Bookings_bookings' === `${operation}.${rootField}`
+    });
+    const transformedSubscriptionSchema = filterSchema({
+      schema: transformSchema(subscriptionSchema, [
+        new RenameTypes((name: string) => `Subscriptions_${name}`),
+        new RenameRootFields(
+          (operation: string, name: string) => `Subscriptions_${name}`),
+      ]),
+      rootFieldFilter: (operation: string, rootField: string) =>
           // must include a Query type otherwise graphql will error
-          'Query.notifications' === `${operation}.${rootField}` ||
-          'Subscription.notifications' === `${operation}.${rootField}`,
-      ),
-      new RenameTypes((name: string) => `Subscriptions_${name}`),
-      new RenameRootFields(
-        (operation: string, name: string) => `Subscriptions_${name}`),
-    ]);
+          'Query.Subscriptions_notifications' === `${operation}.${rootField}` ||
+          'Subscription.Subscriptions_notifications' === `${operation}.${rootField}`,
+    });
 
     mergedSchema = mergeSchemas({
       schemas: [
@@ -380,13 +379,37 @@ describe('filter and rename object fields', () => {
   let transformedPropertySchema: GraphQLSchema;
 
   before(async () => {
-    transformedPropertySchema = transformSchema(propertySchema, [
-      new RenameTypes((name: string) => `New_${name}`),
-      new FilterObjectFields((typeName: string, fieldName: string) =>
-        (typeName !== 'NewProperty' || fieldName === 'id' || fieldName === 'name' || fieldName === 'location')
-      ),
-      new RenameObjectFields((typeName: string, fieldName: string) => (typeName === 'New_Property' ? `new_${fieldName}` : fieldName))
-    ]);
+    transformedPropertySchema = filterSchema({
+      schema: transformSchema(propertySchema, [
+        new RenameTypes((name: string) => `New_${name}`),
+        new RenameObjectFields((typeName: string, fieldName: string) => (typeName === 'New_Property' ? `new_${fieldName}` : fieldName))
+      ]),
+      rootFieldFilter: (operation: string, fieldName: string) =>
+        'Query.propertyById' === `${operation}.${fieldName}`,
+      fieldFilter: (typeName: string, fieldName: string) =>
+        (typeName === 'New_Property' || fieldName === 'name'),
+      typeFilter: (typeName: string) =>
+        (typeName === 'New_Property' || typeName === 'New_Location')
+    });
+  });
+
+  it('should filter', () => {
+    expect(printSchema(transformedPropertySchema)).to.equal(`type New_Location {
+  name: String!
+}
+
+type New_Property {
+  new_id: ID!
+  new_name: String!
+  new_location: New_Location
+  new_error: String
+}
+
+type Query {
+  propertyById(id: ID!): New_Property
+}
+`
+    );
   });
 
   it('should work', async () => {
