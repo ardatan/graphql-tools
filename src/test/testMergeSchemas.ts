@@ -739,7 +739,7 @@ bookingById(id: "b1") {
           })
           .catch(done);
 
-        subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification);
+        setTimeout(() => subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification), 0);
       });
 
       it('subscription errors are working correctly in merged schema', done => {
@@ -796,7 +796,7 @@ bookingById(id: "b1") {
           })
           .catch(done);
 
-        subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification);
+        setTimeout( () => subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification), 0);
       });
 
       it('links in queries', async () => {

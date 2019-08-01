@@ -123,7 +123,7 @@ describe('Resolve', () => {
           .catch(done);
       });
 
-      pubsub.publish('printRootChannel', { printRoot: subscriptionRoot });
+      setTimeout(() => pubsub.publish('printRootChannel', { printRoot: subscriptionRoot }), 0);
 
       firstSubsTriggered
         .then(() =>

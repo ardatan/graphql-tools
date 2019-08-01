@@ -41,7 +41,7 @@ describe('remote subscriptions', () => {
       })
     );
 
-    subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification);
+    setTimeout(() => subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification), 0);
   });
 
   it('should work without triggering multiple times per notification', done => {
@@ -75,13 +75,16 @@ describe('remote subscriptions', () => {
       })
     );
 
-    subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification);
-    subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification);
-
     setTimeout(() => {
-      expect(notificationCnt).to.eq(2);
-      done();
+      subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification);
+      subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification);
+
+      setTimeout(() => {
+        expect(notificationCnt).to.eq(2);
+        done();
+      }, 0);
     }, 0);
+
   });
 });
 
