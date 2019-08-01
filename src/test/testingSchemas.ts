@@ -172,6 +172,14 @@ export const sampleData: {
   },
 };
 
+class ErrorWithExtensions extends Error {
+  public extensions: {[key: string]: any};
+  constructor(message: string, extensions: {[key: string]: any}) {
+    super(message);
+    this.extensions = extensions;
+  }
+}
+
 function values<T>(o: { [s: string]: T }): T[] {
   return Object.keys(o).map(k => o[k]);
 }
@@ -249,6 +257,7 @@ const propertyAddressTypeDef = `
     location: Location
     address: Address
     error: String
+    errorWithExtensions: String
   }
 `;
 
@@ -409,6 +418,9 @@ const propertyResolvers: IResolvers = {
     error() {
       throw new Error('Property.error error');
     },
+    errorWithExtensions() {
+      throw new ErrorWithExtensions('Property.error error', { code: 'NOT_FOUND' });
+    },
   },
 };
 
@@ -488,6 +500,7 @@ const bookingRootTypeDefs = `
     endTime: String!
     error: String
     errorNonNull: String!
+    errorWithExtensions: String
   }
 
   interface Person {
@@ -597,6 +610,9 @@ const bookingResolvers: IResolvers = {
     errorNonNull() {
       throw new Error('Booking.errorNoNull error');
     },
+    errorWithExtensions() {
+      throw new ErrorWithExtensions('Booking.errorWithExtensions error', { someExtension: true });
+    }
   },
 
   Customer: {
