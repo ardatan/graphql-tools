@@ -1,5 +1,4 @@
-import { GraphQLFieldResolver, responsePathAsArray } from 'graphql';
-import { locatedError } from 'graphql/error';
+import { GraphQLError, GraphQLFieldResolver, responsePathAsArray } from 'graphql';
 import { getErrorsFromParent, annotateWithChildrenErrors } from './errors';
 import { getResponseKeyFromInfo } from './getResponseKeyFromInfo';
 
@@ -15,7 +14,15 @@ const defaultMergedResolver: GraphQLFieldResolver<any, any> = (parent, args, con
   const errorResult = getErrorsFromParent(parent, responseKey);
 
   if (errorResult.kind === 'OWN') {
-    throw locatedError(new Error(errorResult.error.message), info.fieldNodes, responsePathAsArray(info.path));
+    throw new GraphQLError(
+      errorResult.error.message,
+      info.fieldNodes,
+      undefined,
+      undefined,
+      responsePathAsArray(info.path),
+      undefined,
+      errorResult.error.extensions,
+    );
   }
 
   let result = parent[responseKey];
