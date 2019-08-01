@@ -1,5 +1,10 @@
 # Change log
 
+### vNext
+
+* Make remote schemas pass error extensions through. <br/>
+[@carmelid](https://github.com/carmelid) in [#1179](https://github.com/apollographql/graphql-tools/pull/1179)
+
 ### 4.0.5
 
 * Fixes a bug where schemas with scalars could not be merged when passed to
