@@ -1,4 +1,4 @@
-import { GraphQLFieldResolver } from 'graphql';
+import { GraphQLFieldResolver, defaultFieldResolver } from 'graphql';
 import { getErrorsFromParent } from './errors';
 import { handleResult } from './checkResultAndHandleErrors';
 import { getResponseKeyFromInfo } from './getResponseKeyFromInfo';
@@ -18,10 +18,7 @@ const defaultMergedResolver: GraphQLFieldResolver<any, any> = (parent, args, con
   // check to see if parent is not a proxied result, i.e. if parent resolver was manually overwritten
   // See https://github.com/apollographql/graphql-tools/issues/967
   if (!Array.isArray(errors)) {
-    if (typeof parent[info.fieldName] === 'function') {
-      return parent[info.fieldName](parent, args, context, info);
-    }
-    return parent[info.fieldName];
+    return defaultFieldResolver(parent, args, context, info);
   }
 
   return handleResult(info, parent[responseKey], errors);

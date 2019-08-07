@@ -10,7 +10,10 @@ import {
   TypeInfo,
   visit,
   visitWithTypeInfo,
-  Kind
+  Kind,
+  SelectionSetNode,
+  SelectionNode,
+  FragmentDefinitionNode
 } from 'graphql';
 import isEmptyObject from '../isEmptyObject';
 import { Request } from '../Interfaces';
@@ -21,14 +24,15 @@ import { createResolveType, fieldToFieldConfig } from '../stitching/schemaRecrea
 export type ObjectFieldTransformer = (
   typeName: string,
   fieldName: string,
-  field: GraphQLField<any, any>
+  field: GraphQLField<any, any>,
 ) => GraphQLFieldConfig<any, any> | { name: string; field: GraphQLFieldConfig<any, any> } | null | undefined;
 
 export type FieldNodeTransformer = (
   typeName: string,
   fieldName: string,
-  fieldNode: FieldNode
-) => FieldNode;
+  fieldNode: FieldNode,
+  fragments: Record<string, FragmentDefinitionNode>
+) => SelectionNode | Array<SelectionNode>;
 
 type FieldMapping = {
   [typeName: string]: {
@@ -42,7 +46,10 @@ export default class TransformObjectFields implements Transform {
   private schema: GraphQLSchema;
   private mapping: FieldMapping;
 
-  constructor(objectFieldTransformer: ObjectFieldTransformer, fieldNodeTransformer?: FieldNodeTransformer) {
+  constructor(
+    objectFieldTransformer: ObjectFieldTransformer,
+    fieldNodeTransformer?: FieldNodeTransformer,
+  ) {
     this.objectFieldTransformer = objectFieldTransformer;
     this.fieldNodeTransformer = fieldNodeTransformer;
     this.mapping = {};
@@ -61,7 +68,18 @@ export default class TransformObjectFields implements Transform {
   }
 
   public transformRequest(originalRequest: Request): Request {
-    const document = this.reverseMapping(originalRequest.document, this.mapping, this.fieldNodeTransformer);
+    const fragments = {};
+    originalRequest.document.definitions.filter(
+      def => def.kind === Kind.FRAGMENT_DEFINITION
+    ).forEach(def => {
+      fragments[(def as FragmentDefinitionNode).name.value] = def;
+    });
+    const document = this.transformDocument(
+      originalRequest.document,
+      this.mapping,
+      this.fieldNodeTransformer,
+      fragments
+    );
     return {
       ...originalRequest,
       document
@@ -128,36 +146,55 @@ export default class TransformObjectFields implements Transform {
     }
   }
 
-  private reverseMapping(
+  private transformDocument(
     document: DocumentNode,
     mapping: FieldMapping,
-    fieldNodeTransformer?: FieldNodeTransformer
+    fieldNodeTransformer?: FieldNodeTransformer,
+    fragments: Record<string, FragmentDefinitionNode> = {},
   ): DocumentNode {
     const typeInfo = new TypeInfo(this.schema);
     const newDocument: DocumentNode = visit(
       document,
       visitWithTypeInfo(typeInfo, {
-        [Kind.FIELD](node: FieldNode): FieldNode | null | undefined {
+        [Kind.SELECTION_SET](node: SelectionSetNode): SelectionSetNode {
           const parentType: GraphQLType = typeInfo.getParentType();
           if (parentType) {
             const parentTypeName = parentType.name;
-            const newName = node.name.value;
-            const transformedNode = fieldNodeTransformer
-              ? fieldNodeTransformer(parentTypeName, newName, node)
-              : node;
-            let transformedName = transformedNode.name.value;
-            if (mapping[parentTypeName]) {
-              const originalName = mapping[parentTypeName][newName];
-              if (originalName) {
-                transformedName = originalName;
+            let newSelections: Array<SelectionNode> = [];
+
+            node.selections.forEach(selection => {
+              if (selection.kind === Kind.FIELD) {
+                const newName = selection.name.value;
+
+                const transformedSelection = fieldNodeTransformer
+                  ? fieldNodeTransformer(parentTypeName, newName, selection, fragments)
+                  : selection;
+
+                if (Array.isArray(transformedSelection)) {
+                  newSelections = newSelections.concat(transformedSelection);
+                } else if (transformedSelection.kind === Kind.FIELD) {
+                  let originalName;
+                  if (mapping[parentTypeName]) {
+                    originalName = mapping[parentTypeName][newName];
+                  }
+                  newSelections.push({
+                    ...transformedSelection,
+                    name: {
+                      ...transformedSelection.name,
+                      value: originalName || transformedSelection.name.value
+                    }
+                  });
+                } else {
+                  newSelections.push(selection);
+                }
+              } else {
+                newSelections.push(selection);
               }
-            }
+            });
+
             return {
-              ...transformedNode,
-              name: {
-                ...node.name,
-                value: transformedName
-              }
+              ...node,
+              selections: newSelections,
             };
           }
         }

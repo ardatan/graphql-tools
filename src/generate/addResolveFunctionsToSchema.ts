@@ -18,7 +18,7 @@ import {
 } from '../Interfaces';
 import { applySchemaTransforms } from '../transforms/transforms';
 import { checkForResolveTypeResolver, extendResolversFromInterfaces } from '.';
-import AddEnumAndScalarResolvers from '../transforms/AddEnumAndScalarResolvers';
+import { AddDefaultResolver, AddEnumAndScalarResolvers } from '../transforms/index';
 
 function addResolveFunctionsToSchema(
   options: IAddResolveFunctionsToSchemaOptions | GraphQLSchema,
@@ -39,6 +39,7 @@ function addResolveFunctionsToSchema(
   const {
     schema,
     resolvers: inputResolvers,
+    defaultFieldResolver,
     resolverValidationOptions = {},
     inheritResolversFromInterfaces = false,
   } = options;
@@ -153,12 +154,13 @@ function addResolveFunctionsToSchema(
 
   checkForResolveTypeResolver(schema, requireResolversForResolveType);
 
-  // If there are any enum resolver functions (that are used to return
-  // internal enum values), create a new schema that includes enums with the
-  // new internal facing values.
-  // also parse all defaultValues in all input fields to use internal values for enums/scalars
   const updatedSchema = applySchemaTransforms(schema, [
+    // If there are any enum resolver functions (that are used to return
+    // internal enum values), create a new schema that includes enums with the
+    // new internal facing values.
+    // also parse all defaultValues in all input fields to use internal values for enums/scalars
     new AddEnumAndScalarResolvers(enumValueMap, scalarTypeMap),
+    new AddDefaultResolver(defaultFieldResolver),
   ]);
 
   return updatedSchema;
