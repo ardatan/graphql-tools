@@ -4,15 +4,15 @@ export { Transform };
 export { default as filterSchema } from './filterSchema';
 export { default as transformSchema } from './transformSchema';
 
+export { default as AddEnumAndScalarResolvers } from './AddEnumAndScalarResolvers';
+export { default as AddDefaultResolver } from './AddDefaultResolver';
+
 export { default as AddArgumentsAsVariables } from './AddArgumentsAsVariables';
-export {
-  default as CheckResultAndHandleErrors,
-} from './CheckResultAndHandleErrors';
-export {
-  default as ReplaceFieldWithFragment,
-} from './ReplaceFieldWithFragment';
+export { default as CheckResultAndHandleErrors } from './CheckResultAndHandleErrors';
+export { default as ReplaceFieldWithFragment } from './ReplaceFieldWithFragment';
 export { default as AddTypenameToAbstract } from './AddTypenameToAbstract';
 export { default as FilterToSchema } from './FilterToSchema';
+
 export { default as RenameTypes } from './RenameTypes';
 export { default as FilterTypes } from './FilterTypes';
 export { default as TransformRootFields } from './TransformRootFields';
@@ -25,3 +25,8 @@ export { default as ExpandAbstractTypes } from './ExpandAbstractTypes';
 export { default as ExtractField } from './ExtractField';
 export { default as WrapQuery } from './WrapQuery';
 export { default as TransformQuery } from './TransformQuery';
+
+export { default as ExtendSchema } from './ExtendSchema';
+export { wrapField, extractField, renameField } from './mergeResolvers';
+export { default as MapFields } from './MapFields';
+export { collectFields } from './collectFields';
