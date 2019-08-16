@@ -27,6 +27,4 @@ export { default as WrapQuery } from './WrapQuery';
 export { default as TransformQuery } from './TransformQuery';
 
 export { default as ExtendSchema } from './ExtendSchema';
-export { wrapField, extractField, renameField } from './mergeResolvers';
 export { default as MapFields } from './MapFields';
-export { collectFields } from './collectFields';
