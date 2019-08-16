@@ -22,11 +22,6 @@ import {
   RenameObjectFields,
   TransformObjectFields,
   ExtendSchema,
-  wrapField,
-  extractField,
-  renameField,
-  MapFields,
-  collectFields,
 } from '../transforms';
 import {
   propertySchema,
@@ -43,8 +38,17 @@ import {
   delegateToRemoteSchema,
   defaultMergedResolver,
   mergeSchemas,
+  wrapField,
+  extractField,
+  renameField,
+  createMergedResolver,
+  extractFields,
 } from '../stitching';
 import { SchemaExecutionConfig } from '../Interfaces';
+
+const toFieldNode =
+  (raw: string) =>
+    ((parse(`{ ${raw} }`).definitions[0] as ExecutableDefinitionNode).selectionSet.selections[0]);
 
 let linkSchema = `
   """
@@ -567,7 +571,7 @@ type Wrap {
   });
 });
 
-describe('extract object field example', () => {
+describe('schema transformation with extraction of nested fields', () => {
   let transformedPropertySchema: GraphQLSchema;
 
   before(async () => {
@@ -576,24 +580,20 @@ describe('extract object field example', () => {
         typeDefs: `
           extend type Property {
             locationName: String
+            locationName2: String
           }
         `,
         resolvers: {
           Property: {
-            locationName: wrapField('location', 'name'),
+            locationName: createMergedResolver({ fromPath: ['location', 'name'] }),
+            //deprecated wrapField shorthand
+            locationName2: wrapField('location', 'name'),
           },
         },
-      }),
-      new MapFields({
-        'Property': {
-          'locationName': () => {
-            return (parse(`
-              {
-                location {
-                  name
-                }
-              }
-            `).definitions[0] as ExecutableDefinitionNode).selectionSet.selections[0];
+        fieldNodeTransformerMap: {
+          'Property': {
+            'locationName': () => toFieldNode('location { name }'),
+            'locationName2': () => toFieldNode('location { name }'),
           },
         },
       }),
@@ -608,7 +608,7 @@ describe('extract object field example', () => {
           propertyById(id: $pid) {
             id
             test1: locationName
-            test2: locationName
+            test2: locationName2
             name
           }
         }
@@ -633,7 +633,7 @@ describe('extract object field example', () => {
   });
 });
 
-describe('wrap object field example', () => {
+describe('schema transformation with wrapping of object fields', () => {
   let transformedPropertySchema: GraphQLSchema;
 
   before(async () => {
@@ -641,49 +641,70 @@ describe('wrap object field example', () => {
       new ExtendSchema({
         typeDefs: `
           extend type Property {
-            wrap: Wrap
+            outerWrap: OuterWrap
+            singleWrap: InnerWrap
           }
 
-          type Wrap {
+          type OuterWrap {
+            innerWrap: InnerWrap
+          }
+
+          type InnerWrap {
             id: ID
             name: String
           }
         `,
         resolvers: {
           Property: {
-            wrap: (parent, args, context, info) => ({
+            outerWrap: (parent, args, context, info) => ({
+              innerWrap: {
+                id: createMergedResolver({ toPath: ['innerWrap', 'id'] })(parent, args, context, info),
+                name: createMergedResolver({ toPath: ['innerWrap', 'name'] })(parent, args, context, info),
+              },
+            }),
+            //deprecated extractField shorthand
+            singleWrap: (parent, args, context, info) => ({
               id: extractField('id')(parent, args, context, info),
               name: extractField('name')(parent, args, context, info),
             }),
           },
         },
-      }),
-      new MapFields({
-        'Property': {
-          'wrap': (fieldNode, fragments) => collectFields(fieldNode.selectionSet, fragments),
+        fieldNodeTransformerMap: {
+          'Property': {
+            'outerWrap': (fieldNode, fragments) => extractFields({ fieldNode, path: ['innerWrap'], fragments }),
+            'singleWrap': (fieldNode, fragments) => extractFields({ fieldNode, fragments }),
+          },
         },
       }),
     ]);
   });
 
-  it('should work to wrap a field even with aliases', async () => {
+  it('should work, even with aliases', async () => {
     const result = await graphql(
       transformedPropertySchema,
       `
         query($pid: ID!) {
           propertyById(id: $pid) {
-            test1: wrap {
-              ...W1
+            test1: outerWrap {
+              innerWrap {
+                ...W1
+              }
             }
-            test2: wrap {
+            test2: outerWrap {
+              innerWrap {
+                ...W2
+              }
+            }
+            singleWrap {
+              ...W1
               ...W2
             }
           }
         }
-        fragment W1 on Wrap {
+        fragment W1 on InnerWrap {
           one: id
         }
-        fragment W2 on Wrap {
+        fragment W2 on InnerWrap {
           two: name
         }
     `,
@@ -698,18 +719,26 @@ describe('wrap object field example', () => {
       data: {
         propertyById: {
           test1: {
-            one: 'p1',
+            innerWrap: {
+              one: 'p1',
+            },
           },
           test2: {
-            two: 'Super great hotel',
+            innerWrap: {
+              two: 'Super great hotel',
+            },
           },
+          singleWrap: {
+            one: 'p1',
+            two: 'Super great hotel',
+          }
         },
       },
     });
   });
 });
 
-describe('rename field while preserving errors', () => {
+describe('schema transformation with renaming of object fields', () => {
   let transformedPropertySchema: GraphQLSchema;
 
   before(async () => {
@@ -718,35 +747,34 @@ describe('rename field while preserving errors', () => {
         typeDefs: `
           extend type Property {
             new_error: String
+            new_error2: String
           }
         `,
         resolvers: {
           Property: {
-            new_error: renameField('error'),
+            new_error: createMergedResolver({ fromPath: ['error'] }),
+            //deprecated renameField shorthand
+            new_error2: renameField('error'),
           },
         },
-      }),
-      new MapFields({
-        'Property': {
-          'new_error': () => {
-            return (parse(`
-              {
-                error
-              }
-            `).definitions[0] as ExecutableDefinitionNode).selectionSet.selections[0];
+        fieldNodeTransformerMap: {
+          'Property': {
+            'new_error': () => toFieldNode('error'),
+            'new_error2': () => toFieldNode('error'),
           },
         },
       }),
     ]);
   });
 
-  it('should work to rename an error field even with aliases', async () => {
+  it('should work, even with aliases, and should preserve errors', async () => {
     const result = await graphql(
       transformedPropertySchema,
       `
         query($pid: ID!) {
           propertyById(id: $pid) {
             new_error
+            new_error2
           }
         }
     `,
@@ -761,6 +789,7 @@ describe('rename field while preserving errors', () => {
       data: {
         propertyById: {
           new_error: null,
+          new_error2: null,
         },
       },
       errors: [
@@ -770,8 +799,12 @@ describe('rename field while preserving errors', () => {
           },
           locations: [
             {
-              column: 17,
-              line: 3,
+              column: 3,
+              line: 1,
+            },
+            {
+              column: 3,
+              line: 1,
             },
           ],
           message: 'Property.error error',
@@ -779,7 +812,27 @@ describe('rename field while preserving errors', () => {
             'propertyById',
             'new_error',
           ],
-        }
+        },
+        {
+          extensions: {
+            code: 'SOME_CUSTOM_CODE',
+          },
+          locations: [
+            {
+              column: 3,
+              line: 1,
+            },
+            {
+              column: 3,
+              line: 1,
+            },
+          ],
+          message: 'Property.error error',
+          path: [
+            'propertyById',
+            'new_error2',
+          ],
+        },
       ],
     });
   });
