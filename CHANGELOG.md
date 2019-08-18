@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [6.3.2](https://github.com/yaacovCR/graphql-tools-fork/compare/v6.3.1...v6.3.2) (2019-08-18)
+
+
+### Bug Fixes
+
+* **stitching:** map errors along schema transformation path when extracting fields ([c132142](https://github.com/yaacovCR/graphql-tools-fork/commit/c132142))
+
+
+
 ### [6.3.1](https://github.com/yaacovCR/graphql-tools-fork/compare/v6.3.0...v6.3.1) (2019-08-16)
 
 
