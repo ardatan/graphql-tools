@@ -12,7 +12,7 @@ import {
   GraphQLScalarType,
   FieldNode,
   printSchema,
-  ExecutableDefinitionNode,
+  Kind,
 } from 'graphql';
 import {
   transformSchema,
@@ -46,9 +46,35 @@ import {
 } from '../stitching';
 import { SchemaExecutionConfig } from '../Interfaces';
 
-const toFieldNode =
-  (raw: string) =>
-    ((parse(`{ ${raw} }`).definitions[0] as ExecutableDefinitionNode).selectionSet.selections[0]);
+function renameFieldNode(fieldNode: FieldNode, name: string): FieldNode {
+  return {
+    ...fieldNode,
+    name: {
+      ...fieldNode.name,
+      value: name,
+    }
+  };
+}
+
+function wrapFieldNode(fieldNode: FieldNode, path: Array<string>): FieldNode {
+  let newFieldNode = fieldNode;
+  path.forEach(fieldName => {
+    newFieldNode = {
+      kind: Kind.FIELD,
+      name: {
+        kind: Kind.NAME,
+        value: fieldName,
+      },
+      selectionSet: {
+        kind: Kind.SELECTION_SET,
+        selections: [
+          fieldNode,
+        ]
+      }
+    };
+  });
+  return newFieldNode;
+}
 
 let linkSchema = `
   """
@@ -581,6 +607,7 @@ describe('schema transformation with extraction of nested fields', () => {
           extend type Property {
             locationName: String
             locationName2: String
+            pseudoWrappedError: String
           }
         `,
         resolvers: {
@@ -588,16 +615,68 @@ describe('schema transformation with extraction of nested fields', () => {
             locationName: createMergedResolver({ fromPath: ['location', 'name'] }),
             //deprecated wrapField shorthand
             locationName2: wrapField('location', 'name'),
+            pseudoWrappedError: createMergedResolver({ fromPath: ['error', 'name'] }),
           },
         },
         fieldNodeTransformerMap: {
           'Property': {
-            'locationName': () => toFieldNode('location { name }'),
-            'locationName2': () => toFieldNode('location { name }'),
+            'locationName':
+              fieldNode => wrapFieldNode(renameFieldNode(fieldNode, 'name'), ['location']),
+            'locationName2':
+              fieldNode => wrapFieldNode(renameFieldNode(fieldNode, 'name'), ['location']),
+            'pseudoWrappedError': fieldNode => renameFieldNode(fieldNode, 'error'),
           },
         },
       }),
     ]);
+  });
+
+  it('should work to extract a field', async () => {
+    const result = await graphql(
+      transformedPropertySchema,
+      `
+        query($pid: ID!) {
+          propertyById(id: $pid) {
+            test1: locationName
+            test2: locationName2
+            pseudoWrappedError
+          }
+        }
+      `,
+      {},
+      {},
+      {
+        pid: 'p1',
+      },
+    );
+
+    expect(result).to.deep.equal({
+      data: {
+        propertyById: {
+          test1: 'Helsinki',
+          test2: 'Helsinki',
+          pseudoWrappedError: null,
+        },
+      },
+      errors: [
+        {
+          extensions: {
+            code: 'SOME_CUSTOM_CODE',
+          },
+          locations: [
+            {
+              column: 13,
+              line: 6,
+            },
+          ],
+          message: 'Property.error error',
+          path: [
+            'propertyById',
+            'pseudoWrappedError',
+          ],
+        },
+      ]
+    });
   });
 
   it('should work to extract a field', async () => {
@@ -759,8 +838,8 @@ describe('schema transformation with renaming of object fields', () => {
         },
         fieldNodeTransformerMap: {
           'Property': {
-            'new_error': () => toFieldNode('error'),
-            'new_error2': () => toFieldNode('error'),
+            'new_error': fieldNode => renameFieldNode(fieldNode, 'error'),
+            'new_error2': fieldNode => renameFieldNode(fieldNode, 'error'),
           },
         },
       }),
@@ -799,12 +878,12 @@ describe('schema transformation with renaming of object fields', () => {
           },
           locations: [
             {
-              column: 3,
-              line: 1,
+              column: 13,
+              line: 4,
             },
             {
-              column: 3,
-              line: 1,
+              column: 13,
+              line: 5,
             },
           ],
           message: 'Property.error error',
@@ -819,12 +898,12 @@ describe('schema transformation with renaming of object fields', () => {
           },
           locations: [
             {
-              column: 3,
-              line: 1,
+              column: 13,
+              line: 4,
             },
             {
-              column: 3,
-              line: 1,
+              column: 13,
+              line: 5,
             },
           ],
           message: 'Property.error error',
