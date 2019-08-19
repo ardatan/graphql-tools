@@ -11,7 +11,7 @@ type InputValueTransformer = (type: GraphQLEnumType | GraphQLScalarType, origina
 
 export function transformInputValue(type: GraphQLInputType, value: any, transformer: InputValueTransformer) {
   if (value == null) {
-    return null;
+    return value;
   }
 
   const nullableType = getNullableType(type);
