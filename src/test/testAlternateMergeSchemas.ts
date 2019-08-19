@@ -547,12 +547,12 @@ type Property {
 
 type Query {
   propertyById(id: ID!): Property
-  properties(limit: Int = null): [Property!]
+  properties(limit: Int): [Property!]
   contextTest(key: String!): String
   dateTimeTest: DateTime
-  jsonTest(input: JSON = null): JSON
-  interfaceTest(kind: TestInterfaceKind = null): TestInterface
-  unionTest(output: String = null): TestUnion
+  jsonTest(input: JSON): JSON
+  interfaceTest(kind: TestInterfaceKind): TestInterface
+  unionTest(output: String): TestUnion
   errorTest: String
   errorTestNonNull: String!
   relay: Query!
