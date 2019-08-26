@@ -111,7 +111,7 @@ function createProxyingResolver(
     schema: schema as GraphQLSchema,
     operation,
     fieldName,
-    args: {},
+    args,
     context,
     info,
     transforms,
