@@ -33,6 +33,7 @@ export type VisitableSchemaType =
   | GraphQLNamedType
   | GraphQLScalarType
   | GraphQLField<any, any>
+  | GraphQLInputField
   | GraphQLArgument
   | GraphQLUnionType
   | GraphQLEnumType
