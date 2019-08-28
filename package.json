@@ -49,6 +49,7 @@
   },
   "homepage": "https://github.com/apollostack/graphql-tools#readme",
   "dependencies": {
+    "@apollo/federation": "^0.9.0",
     "apollo-link": "^1.2.3",
     "apollo-utilities": "^1.0.1",
     "deprecated-decorator": "^0.1.6",

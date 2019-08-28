@@ -2,6 +2,12 @@
 // Don't use ApolloLink to actually construct a link here.
 import { ApolloLink } from 'apollo-link';
 
+/**
+ * Import buildFederatedSchema to add the cability at
+ * the moment create the remote schema
+ */
+import { buildFederatedSchema } from '@apollo/federation';
+
 import {
   GraphQLObjectType,
   GraphQLFieldResolver,
@@ -32,6 +38,8 @@ import defaultMergedResolver from './defaultMergedResolver';
 import { checkResultAndHandleErrors } from './errors';
 import { observableToAsyncIterable } from './observableToAsyncIterable';
 import { Options as PrintSchemaOptions } from 'graphql/utilities/schemaPrinter';
+import { type } from 'os';
+import { GraphQLResolverMap } from 'apollo-graphql';
 
 export type ResolverFn = (
   rootValue?: any,
@@ -50,19 +58,21 @@ export type FetcherOperation = {
 };
 
 export default function makeRemoteExecutableSchema({
-  schema,
-  link,
-  fetcher,
-  createResolver: customCreateResolver = createResolver,
   buildSchemaOptions,
-  printSchemaOptions = { commentDescriptions: true }
+  createResolver: customCreateResolver = createResolver,
+  fetcher,
+  isFederatedSchema = false,
+  link,
+  printSchemaOptions = { commentDescriptions: true },
+  schema
 }: {
-  schema: GraphQLSchema | string;
-  link?: ApolloLink;
-  fetcher?: Fetcher;
-  createResolver?: (fetcher: Fetcher) => GraphQLFieldResolver<any, any>;
   buildSchemaOptions?: BuildSchemaOptions;
+  createResolver?: (fetcher: Fetcher) => GraphQLFieldResolver<any, any>;
+  fetcher?: Fetcher;
+  isFederatedSchema: Boolean;
+  link?: ApolloLink;
   printSchemaOptions?: PrintSchemaOptions;
+  schema: GraphQLSchema | string;
 }): GraphQLSchema {
   if (!fetcher && link) {
     fetcher = linkToFetcher(link);
@@ -155,10 +165,7 @@ export default function makeRemoteExecutableSchema({
     }
   }
 
-  return makeExecutableSchema({
-    typeDefs,
-    resolvers
-  });
+  return schemaExcutable({ typeDefs, resolvers }, isFederatedSchema);
 }
 
 export function createResolver(fetcher: Fetcher): GraphQLFieldResolver<any, any> {
@@ -175,6 +182,25 @@ export function createResolver(fetcher: Fetcher): GraphQLFieldResolver<any, any>
     });
     return checkResultAndHandleErrors(result, info);
   };
+}
+
+type schemaParamsProps = {
+  typeDefs: DocumentNode | string;
+  resolvers: IResolvers<any, any> | GraphQLResolverMap<any>;
+};
+
+function schemaExcutable({ typeDefs, resolvers }: schemaParamsProps, isFederatedSchema: Boolean) {
+  if (isFederatedSchema) {
+    if (typeof typeDefs === 'string') {
+      throw 'Should Pass "DocumentNode" type';
+    }
+    const r = resolvers as GraphQLResolverMap<any>;
+    return buildFederatedSchema({ typeDefs, resolvers: r });
+  }
+  return makeExecutableSchema({
+    typeDefs,
+    resolvers
+  });
 }
 
 function createSubscriptionResolver(name: string, link: ApolloLink): ResolverFn {
