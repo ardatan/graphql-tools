@@ -758,6 +758,7 @@ export async function makeSchemaRemoteFromLink(schema: GraphQLSchema) {
   return makeRemoteExecutableSchema({
     schema: clientSchema,
     link,
+    isFederatedSchema: false
   });
 }
 
@@ -778,6 +779,7 @@ async function makeExecutableSchemaFromFetcher(schema: GraphQLSchema) {
   return makeRemoteExecutableSchema({
     schema: clientSchema,
     fetcher,
+    isFederatedSchema: false
   });
 }
 

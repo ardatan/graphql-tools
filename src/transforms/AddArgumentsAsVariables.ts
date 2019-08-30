@@ -3,7 +3,6 @@ import {
   DocumentNode,
   FragmentDefinitionNode,
   GraphQLArgument,
-  GraphQLInputType,
   GraphQLList,
   GraphQLField,
   GraphQLNonNull,
@@ -13,7 +12,7 @@ import {
   OperationDefinitionNode,
   SelectionNode,
   TypeNode,
-  VariableDefinitionNode,
+  VariableDefinitionNode
 } from 'graphql';
 import { Request } from '../Interfaces';
 import { Transform } from './transforms';
@@ -31,15 +30,15 @@ export default class AddArgumentsAsVariablesTransform implements Transform {
     const { document, newVariables } = addVariablesToRootField(
       this.schema,
       originalRequest.document,
-      this.args,
+      this.args
     );
     const variables = {
       ...originalRequest.variables,
-      ...newVariables,
+      ...newVariables
     };
     return {
       document,
-      variables,
+      variables
     };
   }
 }
@@ -47,26 +46,23 @@ export default class AddArgumentsAsVariablesTransform implements Transform {
 function addVariablesToRootField(
   targetSchema: GraphQLSchema,
   document: DocumentNode,
-  args: { [key: string]: any },
+  args: { [key: string]: any }
 ): {
   document: DocumentNode;
   newVariables: { [key: string]: any };
 } {
-  const operations: Array<
-    OperationDefinitionNode
-  > = document.definitions.filter(
-    def => def.kind === Kind.OPERATION_DEFINITION,
+  const operations: Array<OperationDefinitionNode> = document.definitions.filter(
+    def => def.kind === Kind.OPERATION_DEFINITION
   ) as Array<OperationDefinitionNode>;
   const fragments: Array<FragmentDefinitionNode> = document.definitions.filter(
-    def => def.kind === Kind.FRAGMENT_DEFINITION,
+    def => def.kind === Kind.FRAGMENT_DEFINITION
   ) as Array<FragmentDefinitionNode>;
 
   const variableNames = {};
 
   const newOperations = operations.map((operation: OperationDefinitionNode) => {
     let existingVariables = operation.variableDefinitions.map(
-      (variableDefinition: VariableDefinitionNode) =>
-        variableDefinition.variable.name.value,
+      (variableDefinition: VariableDefinitionNode) => variableDefinition.variable.name.value
     );
 
     let variableCounter = 0;
@@ -108,15 +104,15 @@ function addVariablesToRootField(
               kind: Kind.ARGUMENT,
               name: {
                 kind: Kind.NAME,
-                value: argument.name,
+                value: argument.name
               },
               value: {
                 kind: Kind.VARIABLE,
                 name: {
                   kind: Kind.NAME,
-                  value: variableName,
-                },
-              },
+                  value: variableName
+                }
+              }
             };
             existingVariables.push(variableName);
             variables[variableName] = {
@@ -125,17 +121,17 @@ function addVariablesToRootField(
                 kind: Kind.VARIABLE,
                 name: {
                   kind: Kind.NAME,
-                  value: variableName,
-                },
+                  value: variableName
+                }
               },
-              type: typeToAst(argument.type),
+              type: typeToAst(argument.type)
             };
           }
         });
 
         newSelectionSet.push({
           ...selection,
-          arguments: Object.keys(newArgs).map(argName => newArgs[argName]),
+          arguments: Object.keys(newArgs).map(argName => newArgs[argName])
         });
       } else {
         newSelectionSet.push(selection);
@@ -145,12 +141,12 @@ function addVariablesToRootField(
     return {
       ...operation,
       variableDefinitions: operation.variableDefinitions.concat(
-        Object.keys(variables).map(varName => variables[varName]),
+        Object.keys(variables).map(varName => variables[varName])
       ),
       selectionSet: {
         kind: Kind.SELECTION_SET,
-        selections: newSelectionSet,
-      },
+        selections: newSelectionSet
+      }
     };
   });
 
@@ -162,22 +158,19 @@ function addVariablesToRootField(
   return {
     document: {
       ...document,
-      definitions: [...newOperations, ...fragments],
+      definitions: [...newOperations, ...fragments]
     },
-    newVariables,
+    newVariables
   };
 }
 
-function typeToAst(type: GraphQLInputType): TypeNode {
+function typeToAst(type: any): TypeNode {
   if (type instanceof GraphQLNonNull) {
     const innerType = typeToAst(type.ofType);
-    if (
-      innerType.kind === Kind.LIST_TYPE ||
-      innerType.kind === Kind.NAMED_TYPE
-    ) {
+    if (innerType.kind === Kind.LIST_TYPE || innerType.kind === Kind.NAMED_TYPE) {
       return {
         kind: Kind.NON_NULL_TYPE,
-        type: innerType,
+        type: innerType
       };
     } else {
       throw new Error('Incorrent inner non-null type');
@@ -185,15 +178,15 @@ function typeToAst(type: GraphQLInputType): TypeNode {
   } else if (type instanceof GraphQLList) {
     return {
       kind: Kind.LIST_TYPE,
-      type: typeToAst(type.ofType),
+      type: typeToAst(type.ofType)
     };
   } else {
     return {
       kind: Kind.NAMED_TYPE,
       name: {
         kind: Kind.NAME,
-        value: type.toString(),
-      },
+        value: type.toString()
+      }
     };
   }
 }

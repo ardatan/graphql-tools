@@ -38,7 +38,6 @@ import defaultMergedResolver from './defaultMergedResolver';
 import { checkResultAndHandleErrors } from './errors';
 import { observableToAsyncIterable } from './observableToAsyncIterable';
 import { Options as PrintSchemaOptions } from 'graphql/utilities/schemaPrinter';
-import { type } from 'os';
 import { GraphQLResolverMap } from 'apollo-graphql';
 
 export type ResolverFn = (

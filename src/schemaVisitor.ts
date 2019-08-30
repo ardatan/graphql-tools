@@ -18,15 +18,13 @@ import {
   GraphQLType,
   GraphQLList,
   GraphQLNonNull,
-  isNamedType,
+  isNamedType
 } from 'graphql';
 
-import {
-  getArgumentValues,
-} from 'graphql/execution/values';
+import { getArgumentValues } from 'graphql/execution/values';
 
 export type VisitableSchemaType =
-    GraphQLSchema
+  | GraphQLSchema
   | GraphQLObjectType
   | GraphQLInterfaceType
   | GraphQLInputObjectType
@@ -53,7 +51,7 @@ export abstract class SchemaVisitor {
   // Determine if this SchemaVisitor (sub)class implements a particular
   // visitor method.
   public static implementsVisitorMethod(methodName: string) {
-    if (! methodName.startsWith('visit')) {
+    if (!methodName.startsWith('visit')) {
       return false;
     }
 
@@ -87,23 +85,35 @@ export abstract class SchemaVisitor {
   public visitSchema(schema: GraphQLSchema): void {}
   public visitScalar(scalar: GraphQLScalarType): GraphQLScalarType | void | null {}
   public visitObject(object: GraphQLObjectType): GraphQLObjectType | void | null {}
-  public visitFieldDefinition(field: GraphQLField<any, any>, details: {
-    objectType: GraphQLObjectType | GraphQLInterfaceType,
-  }): GraphQLField<any, any> | void | null {}
-  public visitArgumentDefinition(argument: GraphQLArgument, details: {
+  public visitFieldDefinition(
     field: GraphQLField<any, any>,
-    objectType: GraphQLObjectType | GraphQLInterfaceType,
-  }): GraphQLArgument | void | null {}
+    details: {
+      objectType: GraphQLObjectType | GraphQLInterfaceType;
+    }
+  ): GraphQLField<any, any> | void | null {}
+  public visitArgumentDefinition(
+    argument: GraphQLArgument,
+    details: {
+      field: GraphQLField<any, any>;
+      objectType: GraphQLObjectType | GraphQLInterfaceType;
+    }
+  ): GraphQLArgument | void | null {}
   public visitInterface(iface: GraphQLInterfaceType): GraphQLInterfaceType | void | null {}
   public visitUnion(union: GraphQLUnionType): GraphQLUnionType | void | null {}
   public visitEnum(type: GraphQLEnumType): GraphQLEnumType | void | null {}
-  public visitEnumValue(value: GraphQLEnumValue, details: {
-    enumType: GraphQLEnumType,
-  }): GraphQLEnumValue | void | null {}
-  public visitInputObject(object: GraphQLInputObjectType): GraphQLInputObjectType | void | null {}
-  public visitInputFieldDefinition(field: GraphQLInputField, details: {
-    objectType: GraphQLInputObjectType,
-  }): GraphQLInputField | void | null {}
+  public visitEnumValue(
+    value: GraphQLEnumValue,
+    details: {
+      enumType: GraphQLEnumType;
+    }
+  ): GraphQLEnumValue | void | null {}
+  public visitInputObject(object: GraphQLInputObjectType): GraphQLInputObjectType | void | null {}
+  public visitInputFieldDefinition(
+    field: GraphQLInputField,
+    details: {
+      objectType: GraphQLInputObjectType;
+    }
+  ): GraphQLInputField | void | null {}
   /* tslint:enable:no-empty */
 }
 
@@ -123,18 +133,11 @@ export function visitSchema(
   // applied to the given VisitableSchemaType object. For an example of a
   // visitor pattern that benefits from this abstraction, see the
   // SchemaDirectiveVisitor class below.
-  visitorSelector: (
-    type: VisitableSchemaType,
-    methodName: string,
-  ) => SchemaVisitor[],
+  visitorSelector: (type: VisitableSchemaType, methodName: string) => SchemaVisitor[]
 ): GraphQLSchema {
   // Helper function that calls visitorSelector and applies the resulting
   // visitors to the given type, with arguments [type, ...args].
-  function callMethod<T extends VisitableSchemaType>(
-    methodName: string,
-    type: T,
-    ...args: any[]
-  ): T {
+  function callMethod<T extends VisitableSchemaType>(methodName: string, type: T, ...args: any[]): T {
     visitorSelector(type, methodName).every(visitor => {
       const newType = visitor[methodName](type, ...args);
 
@@ -143,8 +146,7 @@ export function visitSchema(
         return true;
       }
 
-      if (methodName === 'visitSchema' ||
-          type instanceof GraphQLSchema) {
+      if (methodName === 'visitSchema' || type instanceof GraphQLSchema) {
         throw new Error(`Method ${methodName} cannot replace schema with ${newType}`);
       }
 
@@ -177,7 +179,7 @@ export function visitSchema(
       callMethod('visitSchema', type);
 
       updateEachKey(type.getTypeMap(), (namedType, typeName) => {
-        if (! typeName.startsWith('__')) {
+        if (!typeName.startsWith('__')) {
           // Call visit recursively to let it determine which concrete
           // subclass of GraphQLNamedType we found in the type map. Because
           // we're using updateEachKey, the result of visit(namedType) may
@@ -213,11 +215,11 @@ export function visitSchema(
       const newInputObject = callMethod('visitInputObject', type);
 
       if (newInputObject) {
-        updateEachKey(newInputObject.getFields(), field => {
+        updateEachKey(newInputObject.getFields(), (field: any) => {
           // Since we call a different method for input object fields, we
           // can't reuse the visitFields function here.
           return callMethod('visitInputFieldDefinition', field, {
-            objectType: newInputObject,
+            objectType: newInputObject
           });
         });
       }
@@ -239,7 +241,7 @@ export function visitSchema(
       if (newEnum) {
         updateEachKey(newEnum.getValues(), value => {
           return callMethod('visitEnumValue', value, {
-            enumType: newEnum,
+            enumType: newEnum
           });
         });
       }
@@ -264,7 +266,7 @@ export function visitSchema(
         // GraphQLInterfaceType. To obtain a reference to the parent, a
         // visitor method can have a second parameter, which will be an object
         // with an .objectType property referring to the parent.
-        objectType: type,
+        objectType: type
       });
 
       if (newField && newField.args) {
@@ -275,7 +277,7 @@ export function visitSchema(
             // parent .field and grandparent .objectType. Remember that the
             // current GraphQLSchema is always available via this.schema.
             field: newField,
-            objectType: type,
+            objectType: type
           });
         });
       }
@@ -346,7 +348,7 @@ export function healSchema(schema: GraphQLSchema) {
       });
 
       each(originalTypeMap, (namedType, typeName) => {
-        if (! typeName.startsWith('__')) {
+        if (!typeName.startsWith('__')) {
           heal(namedType);
         }
       });
@@ -355,33 +357,25 @@ export function healSchema(schema: GraphQLSchema) {
         // Dangling references to renamed types should remain in the schema
         // during healing, but must be removed now, so that the following
         // invariant holds for all names: schema.getType(name).name === name
-        if (! typeName.startsWith('__') &&
-            ! hasOwn.call(actualNamedTypeMap, typeName)) {
+        if (!typeName.startsWith('__') && !hasOwn.call(actualNamedTypeMap, typeName)) {
           return null;
         }
       });
-
     } else if (type instanceof GraphQLObjectType) {
       healFields(type);
       each(type.getInterfaces(), iface => heal(iface));
-
     } else if (type instanceof GraphQLInterfaceType) {
       healFields(type);
-
     } else if (type instanceof GraphQLInputObjectType) {
       each(type.getFields(), field => {
         field.type = healType(field.type);
       });
-
     } else if (type instanceof GraphQLScalarType) {
       // Nothing to do.
-
     } else if (type instanceof GraphQLUnionType) {
-      updateEachKey(type.getTypes(), t => healType(t));
-
+      updateEachKey(type.getTypes(), (t: any) => healType(t));
     } else if (type instanceof GraphQLEnumType) {
       // Nothing to do.
-
     } else {
       throw new Error(`Unexpected schema type: ${type}`);
     }
@@ -398,7 +392,7 @@ export function healSchema(schema: GraphQLSchema) {
     });
   }
 
-  function healType<T extends GraphQLType>(type: T): T {
+  function healType<T extends GraphQLType>(type: any): T {
     // Unwrap the two known wrapper types
     if (type instanceof GraphQLList) {
       type = new GraphQLList(healType(type.ofType)) as T;
@@ -489,10 +483,7 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
   // already present in the schema) to enforce argument types, provide default
   // argument values, or specify schema locations where this @directive may
   // appear. By default, any declaration found in the schema will be returned.
-  public static getDirectiveDeclaration(
-    directiveName: string,
-    schema: GraphQLSchema,
-  ): GraphQLDirective {
+  public static getDirectiveDeclaration(directiveName: string, schema: GraphQLSchema): GraphQLDirective {
     return schema.getDirective(directiveName);
   }
 
@@ -510,46 +501,42 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
       // and other metadata specific to that occurrence. To help prevent the
       // mistake of passing instances, the SchemaDirectiveVisitor constructor
       // method is marked as protected.
-      [directiveName: string]: typeof SchemaDirectiveVisitor
+      [directiveName: string]: typeof SchemaDirectiveVisitor;
     },
     // Optional context object that will be available to all visitor instances
     // via this.context. Defaults to an empty null-prototype object.
     context: {
-      [key: string]: any
-    } = Object.create(null),
+      [key: string]: any;
+    } = Object.create(null)
   ): {
     // The visitSchemaDirectives method returns a map from directive names to
     // lists of SchemaDirectiveVisitors created while visiting the schema.
-    [directiveName: string]: SchemaDirectiveVisitor[],
+    [directiveName: string]: SchemaDirectiveVisitor[];
   } {
     // If the schema declares any directives for public consumption, record
     // them here so that we can properly coerce arguments when/if we encounter
     // an occurrence of the directive while walking the schema below.
-    const declaredDirectives =
-      this.getDeclaredDirectives(schema, directiveVisitors);
+    const declaredDirectives = this.getDeclaredDirectives(schema, directiveVisitors);
 
     // Map from directive names to lists of SchemaDirectiveVisitor instances
     // created while visiting the schema.
     const createdVisitors: {
-      [directiveName: string]: SchemaDirectiveVisitor[]
+      [directiveName: string]: SchemaDirectiveVisitor[];
     } = Object.create(null);
     Object.keys(directiveVisitors).forEach(directiveName => {
       createdVisitors[directiveName] = [];
     });
 
-    function visitorSelector(
-      type: VisitableSchemaType,
-      methodName: string,
-    ): SchemaDirectiveVisitor[] {
+    function visitorSelector(type: VisitableSchemaType, methodName: string): SchemaDirectiveVisitor[] {
       const visitors: SchemaDirectiveVisitor[] = [];
       const directiveNodes = type.astNode && type.astNode.directives;
-      if (! directiveNodes) {
+      if (!directiveNodes) {
         return visitors;
       }
 
       directiveNodes.forEach(directiveNode => {
         const directiveName = directiveNode.name.value;
-        if (! hasOwn.call(directiveVisitors, directiveName)) {
+        if (!hasOwn.call(directiveVisitors, directiveName)) {
           return;
         }
 
@@ -557,7 +544,7 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
 
         // Avoid creating visitor objects if visitorClass does not override
         // the visitor method named by methodName.
-        if (! visitorClass.implementsVisitorMethod(methodName)) {
+        if (!visitorClass.implementsVisitorMethod(methodName)) {
           return;
         }
 
@@ -583,13 +570,15 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
         // get created and assigned names. While subclasses could override the
         // constructor method, the constructor is marked as protected, so
         // these are the only arguments that will ever be passed.
-        visitors.push(new visitorClass({
-          name: directiveName,
-          args,
-          visitedType: type,
-          schema,
-          context,
-        }));
+        visitors.push(
+          new visitorClass({
+            name: directiveName,
+            args,
+            visitedType: type,
+            schema,
+            context
+          })
+        );
       });
 
       if (visitors.length > 0) {
@@ -613,11 +602,11 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
   protected static getDeclaredDirectives(
     schema: GraphQLSchema,
     directiveVisitors: {
-      [directiveName: string]: typeof SchemaDirectiveVisitor
-    },
+      [directiveName: string]: typeof SchemaDirectiveVisitor;
+    }
   ) {
     const declaredDirectives: {
-      [directiveName: string]: GraphQLDirective,
+      [directiveName: string]: GraphQLDirective;
     } = Object.create(null);
 
     each(schema.getDirectives(), (decl: GraphQLDirective) => {
@@ -637,7 +626,7 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
     });
 
     each(declaredDirectives, (decl, name) => {
-      if (! hasOwn.call(directiveVisitors, name)) {
+      if (!hasOwn.call(directiveVisitors, name)) {
         // SchemaDirectiveVisitors.visitSchemaDirectives might be called
         // multiple times with partial directiveVisitors maps, so it's not
         // necessarily an error for directiveVisitors to be missing an
@@ -648,15 +637,15 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
 
       each(decl.locations, loc => {
         const visitorMethodName = directiveLocationToVisitorMethodName(loc);
-        if (SchemaVisitor.implementsVisitorMethod(visitorMethodName) &&
-            ! visitorClass.implementsVisitorMethod(visitorMethodName)) {
+        if (
+          SchemaVisitor.implementsVisitorMethod(visitorMethodName) &&
+          !visitorClass.implementsVisitorMethod(visitorMethodName)
+        ) {
           // While visitor subclasses may implement extra visitor methods,
           // it's definitely a mistake if the GraphQLDirective declares itself
           // applicable to certain schema locations, and the visitor subclass
           // does not implement all the corresponding methods.
-          throw new Error(
-            `SchemaDirectiveVisitor for @${name} must implement ${visitorMethodName} method`
-          );
+          throw new Error(`SchemaDirectiveVisitor for @${name} must implement ${visitorMethodName} method`);
         }
       });
     });
@@ -667,11 +656,11 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
   // Mark the constructor protected to enforce passing SchemaDirectiveVisitor
   // subclasses (not instances) to visitSchemaDirectives.
   protected constructor(config: {
-    name: string
-    args: { [name: string]: any }
-    visitedType: VisitableSchemaType
-    schema: GraphQLSchema
-    context: { [key: string]: any }
+    name: string;
+    args: { [name: string]: any };
+    visitedType: VisitableSchemaType;
+    schema: GraphQLSchema;
+    context: { [key: string]: any };
   }) {
     super();
     this.name = config.name;
@@ -684,17 +673,17 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
 
 // Convert a string like "FIELD_DEFINITION" to "visitFieldDefinition".
 function directiveLocationToVisitorMethodName(loc: DirectiveLocationEnum) {
-  return 'visit' + loc.replace(/([^_]*)_?/g, (wholeMatch, part) => {
-    return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
-  });
+  return (
+    'visit' +
+    loc.replace(/([^_]*)_?/g, (wholeMatch, part) => {
+      return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
+    })
+  );
 }
 
 type IndexedObject<V> = { [key: string]: V } | ReadonlyArray<V>;
 
-function each<V>(
-  arrayOrObject: IndexedObject<V>,
-  callback: (value: V, key: string) => void,
-) {
+function each<V>(arrayOrObject: IndexedObject<V>, callback: (value: V, key: string) => void) {
   Object.keys(arrayOrObject).forEach(key => {
     callback(arrayOrObject[key], key);
   });
@@ -706,7 +695,7 @@ function updateEachKey<V>(
   arrayOrObject: IndexedObject<V>,
   // The callback can return nothing to leave the key untouched, null to remove
   // the key from the array or object, or a non-null V to replace the value.
-  callback: (value: V, key: string) => V | void,
+  callback: (value: V, key: string) => V | void
 ) {
   let deletedCount = 0;
 
@@ -736,30 +725,28 @@ function updateEachKey<V>(
 
 // Similar to the graphql-js function of the same name, slightly simplified:
 // https://github.com/graphql/graphql-js/blob/master/src/utilities/valueFromASTUntyped.js
-function valueFromASTUntyped(
-  valueNode: ValueNode,
-): any {
+function valueFromASTUntyped(valueNode: ValueNode): any {
   switch (valueNode.kind) {
-  case Kind.NULL:
-    return null;
-  case Kind.INT:
-    return parseInt(valueNode.value, 10);
-  case Kind.FLOAT:
-    return parseFloat(valueNode.value);
-  case Kind.STRING:
-  case Kind.ENUM:
-  case Kind.BOOLEAN:
-    return valueNode.value;
-  case Kind.LIST:
-    return valueNode.values.map(valueFromASTUntyped);
-  case Kind.OBJECT:
-    const obj = Object.create(null);
-    valueNode.fields.forEach(field => {
-      obj[field.name.value] = valueFromASTUntyped(field.value);
-    });
-    return obj;
-  /* istanbul ignore next */
-  default:
-    throw new Error('Unexpected value kind: ' + valueNode.kind);
+    case Kind.NULL:
+      return null;
+    case Kind.INT:
+      return parseInt(valueNode.value, 10);
+    case Kind.FLOAT:
+      return parseFloat(valueNode.value);
+    case Kind.STRING:
+    case Kind.ENUM:
+    case Kind.BOOLEAN:
+      return valueNode.value;
+    case Kind.LIST:
+      return valueNode.values.map(valueFromASTUntyped);
+    case Kind.OBJECT:
+      const obj = Object.create(null);
+      valueNode.fields.forEach(field => {
+        obj[field.name.value] = valueFromASTUntyped(field.value);
+      });
+      return obj;
+    /* istanbul ignore next */
+    default:
+      throw new Error('Unexpected value kind: ' + valueNode.kind);
   }
 }

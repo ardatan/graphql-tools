@@ -10,7 +10,7 @@ function concatenateTypeDefs(
   let resolvedTypeDefinitions: string[] = [];
   typeDefinitionsAry.forEach((typeDef: ITypedef) => {
     if ((<DocumentNode>typeDef).kind !== undefined) {
-      typeDef = print(typeDef);
+      typeDef = print(typeDef as any);
     }
 
     if (typeof typeDef === 'function') {

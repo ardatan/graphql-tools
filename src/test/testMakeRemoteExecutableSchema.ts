@@ -97,7 +97,7 @@ describe('respects buildSchema options', () => {
 `;
 
   it('without comment descriptions', () => {
-    const remoteSchema = makeRemoteExecutableSchema({ schema });
+    const remoteSchema = makeRemoteExecutableSchema({ schema, isFederatedSchema: false });
 
     const customScalar = remoteSchema.getType('CustomScalar');
     expect(customScalar.description).to.eq(undefined);
@@ -106,7 +106,8 @@ describe('respects buildSchema options', () => {
   it('with comment descriptions', () => {
     const remoteSchema = makeRemoteExecutableSchema({
       schema,
-      buildSchemaOptions: { commentDescriptions: true }
+      buildSchemaOptions: { commentDescriptions: true },
+      isFederatedSchema: false
     });
 
     const field = remoteSchema.getQueryType().getFields()['custom'];

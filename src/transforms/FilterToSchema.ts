@@ -19,7 +19,7 @@ import {
   TypeNameMetaFieldDef,
   VariableDefinitionNode,
   VariableNode,
-  visit,
+  visit
 } from 'graphql';
 import { Request } from '../Interfaces';
 import implementsAbstractType from '../implementsAbstractType';
@@ -33,28 +33,20 @@ export default class FilterToSchema implements Transform {
   }
 
   public transformRequest(originalRequest: Request): Request {
-    const document = filterDocumentToSchema(
-      this.targetSchema,
-      originalRequest.document,
-    );
+    const document = filterDocumentToSchema(this.targetSchema, originalRequest.document);
     return {
       ...originalRequest,
-      document,
+      document
     };
   }
 }
 
-function filterDocumentToSchema(
-  targetSchema: GraphQLSchema,
-  document: DocumentNode,
-): DocumentNode {
-  const operations: Array<
-    OperationDefinitionNode
-    > = document.definitions.filter(
-      def => def.kind === Kind.OPERATION_DEFINITION,
-    ) as Array<OperationDefinitionNode>;
+function filterDocumentToSchema(targetSchema: GraphQLSchema, document: DocumentNode): DocumentNode {
+  const operations: Array<OperationDefinitionNode> = document.definitions.filter(
+    def => def.kind === Kind.OPERATION_DEFINITION
+  ) as Array<OperationDefinitionNode>;
   const fragments: Array<FragmentDefinitionNode> = document.definitions.filter(
-    def => def.kind === Kind.FRAGMENT_DEFINITION,
+    def => def.kind === Kind.FRAGMENT_DEFINITION
   ) as Array<FragmentDefinitionNode>;
 
   let usedFragments: Array<string> = [];
@@ -65,7 +57,7 @@ function filterDocumentToSchema(
     (fragment: FragmentDefinitionNode) => {
       const typeName = fragment.typeCondition.name.value;
       return Boolean(targetSchema.getType(typeName));
-    },
+    }
   );
 
   const validFragmentsWithType: { [name: string]: GraphQLType } = {};
@@ -90,35 +82,28 @@ function filterDocumentToSchema(
     const {
       selectionSet,
       usedFragments: operationUsedFragments,
-      usedVariables: operationUsedVariables,
-    } = filterSelectionSet(
-      targetSchema,
-      type,
-      validFragmentsWithType,
-      operation.selectionSet
-    );
+      usedVariables: operationUsedVariables
+    } = filterSelectionSet(targetSchema, type, validFragmentsWithType, operation.selectionSet);
 
     usedFragments = union(usedFragments, operationUsedFragments);
 
     const {
       usedVariables: collectedUsedVariables,
       newFragments: collectedNewFragments,
-      fragmentSet: collectedFragmentSet,
+      fragmentSet: collectedFragmentSet
     } = collectFragmentVariables(
       targetSchema,
       fragmentSet,
       validFragments,
       validFragmentsWithType,
-      usedFragments,
+      usedFragments
     );
-    const fullUsedVariables =
-      union(operationUsedVariables, collectedUsedVariables);
+    const fullUsedVariables = union(operationUsedVariables, collectedUsedVariables);
     newFragments = collectedNewFragments;
     fragmentSet = collectedFragmentSet;
 
     const variableDefinitions = operation.variableDefinitions.filter(
-      (variable: VariableDefinitionNode) =>
-        fullUsedVariables.indexOf(variable.variable.name.value) !== -1,
+      (variable: VariableDefinitionNode) => fullUsedVariables.indexOf(variable.variable.name.value) !== -1
     );
 
     newOperations.push({
@@ -127,13 +112,13 @@ function filterDocumentToSchema(
       name: operation.name,
       directives: operation.directives,
       variableDefinitions,
-      selectionSet,
+      selectionSet
     });
   });
 
   return {
     kind: Kind.DOCUMENT,
-    definitions: [...newOperations, ...newFragments],
+    definitions: [...newOperations, ...newFragments]
   };
 }
 
@@ -142,16 +127,14 @@ function collectFragmentVariables(
   fragmentSet: Object,
   validFragments: Array<FragmentDefinitionNode>,
   validFragmentsWithType: { [name: string]: GraphQLType },
-  usedFragments: Array<string>,
+  usedFragments: Array<string>
 ) {
   let usedVariables: Array<string> = [];
   let newFragments: Array<FragmentDefinitionNode> = [];
 
   while (usedFragments.length !== 0) {
     const nextFragmentName = usedFragments.pop();
-    const fragment = validFragments.find(
-      fr => fr.name.value === nextFragmentName,
-    );
+    const fragment = validFragments.find(fr => fr.name.value === nextFragmentName);
     if (fragment) {
       const name = nextFragmentName;
       const typeName = fragment.typeCondition.name.value;
@@ -159,13 +142,8 @@ function collectFragmentVariables(
       const {
         selectionSet,
         usedFragments: fragmentUsedFragments,
-        usedVariables: fragmentUsedVariables,
-      } = filterSelectionSet(
-        targetSchema,
-        type,
-        validFragmentsWithType,
-        fragment.selectionSet,
-        );
+        usedVariables: fragmentUsedVariables
+      } = filterSelectionSet(targetSchema, type, validFragmentsWithType, fragment.selectionSet);
       usedFragments = union(usedFragments, fragmentUsedFragments);
       usedVariables = union(usedVariables, fragmentUsedVariables);
 
@@ -175,10 +153,10 @@ function collectFragmentVariables(
           kind: Kind.FRAGMENT_DEFINITION,
           name: {
             kind: Kind.NAME,
-            value: name,
+            value: name
           },
           typeCondition: fragment.typeCondition,
-          selectionSet,
+          selectionSet
         });
       }
     }
@@ -187,7 +165,7 @@ function collectFragmentVariables(
   return {
     usedVariables,
     newFragments,
-    fragmentSet,
+    fragmentSet
   };
 }
 
@@ -195,7 +173,7 @@ function filterSelectionSet(
   schema: GraphQLSchema,
   type: GraphQLType,
   validFragments: { [name: string]: GraphQLType },
-  selectionSet: SelectionSetNode,
+  selectionSet: SelectionSetNode
 ) {
   const usedFragments: Array<string> = [];
   const usedVariables: Array<string> = [];
@@ -205,18 +183,10 @@ function filterSelectionSet(
   const filteredSelectionSet = visit(selectionSet, {
     [Kind.FIELD]: {
       enter(node: FieldNode): null | undefined | FieldNode {
-        let parentType: GraphQLNamedType = resolveType(
-          typeStack[typeStack.length - 1],
-        );
-        if (
-          parentType instanceof GraphQLObjectType ||
-          parentType instanceof GraphQLInterfaceType
-        ) {
+        let parentType: GraphQLNamedType = resolveType(typeStack[typeStack.length - 1]);
+        if (parentType instanceof GraphQLObjectType || parentType instanceof GraphQLInterfaceType) {
           const fields = parentType.getFields();
-          const field =
-            node.name.value === '__typename'
-              ? TypeNameMetaFieldDef
-              : fields[node.name.value];
+          const field = node.name.value === '__typename' ? TypeNameMetaFieldDef : fields[node.name.value];
           if (!field) {
             return null;
           } else {
@@ -231,25 +201,19 @@ function filterSelectionSet(
             if (args.length !== node.arguments.length) {
               return {
                 ...node,
-                arguments: args,
+                arguments: args
               };
             }
           }
-        } else if (
-          parentType instanceof GraphQLUnionType &&
-          node.name.value === '__typename'
-        ) {
+        } else if (parentType instanceof GraphQLUnionType && node.name.value === '__typename') {
           typeStack.push(TypeNameMetaFieldDef.type);
         }
       },
       leave(node: FieldNode): null | undefined | FieldNode {
         const currentType = typeStack.pop();
         const resolvedType = resolveType(currentType);
-        if (
-          resolvedType instanceof GraphQLObjectType ||
-          resolvedType instanceof GraphQLInterfaceType
-        ) {
-          const selections = node.selectionSet && node.selectionSet.selections || null;
+        if (resolvedType instanceof GraphQLObjectType || resolvedType instanceof GraphQLInterfaceType) {
+          const selections = (node.selectionSet && node.selectionSet.selections) || null;
           if (!selections || selections.length === 0) {
             // need to remove any added variables. Is there a better way to do this?
             visit(node, {
@@ -259,18 +223,15 @@ function filterSelectionSet(
                   usedVariables.splice(index, 1);
                 }
               }
-            }
-            );
+            });
             return null;
           }
         }
-      },
+      }
     },
     [Kind.FRAGMENT_SPREAD](node: FragmentSpreadNode): null | undefined {
       if (node.name.value in validFragments) {
-        const parentType: GraphQLNamedType = resolveType(
-          typeStack[typeStack.length - 1],
-        );
+        const parentType: GraphQLNamedType = resolveType(typeStack[typeStack.length - 1]);
         const innerType = validFragments[node.name.value];
         if (!implementsAbstractType(schema, parentType, innerType)) {
           return null;
@@ -286,9 +247,7 @@ function filterSelectionSet(
       enter(node: InlineFragmentNode): null | undefined {
         if (node.typeCondition) {
           const innerType = schema.getType(node.typeCondition.name.value);
-          const parentType: GraphQLNamedType = resolveType(
-            typeStack[typeStack.length - 1],
-          );
+          const parentType: GraphQLNamedType = resolveType(typeStack[typeStack.length - 1]);
           if (implementsAbstractType(schema, parentType, innerType)) {
             typeStack.push(innerType);
           } else {
@@ -298,26 +257,23 @@ function filterSelectionSet(
       },
       leave(node: InlineFragmentNode) {
         typeStack.pop();
-      },
+      }
     },
     [Kind.VARIABLE](node: VariableNode) {
       usedVariables.push(node.name.value);
-    },
+    }
   });
 
   return {
     selectionSet: filteredSelectionSet,
     usedFragments,
-    usedVariables,
+    usedVariables
   };
 }
 
-function resolveType(type: GraphQLType): GraphQLNamedType {
+function resolveType(type: any): GraphQLNamedType {
   let lastType = type;
-  while (
-    lastType instanceof GraphQLNonNull ||
-    lastType instanceof GraphQLList
-  ) {
+  while (lastType instanceof GraphQLNonNull || lastType instanceof GraphQLList) {
     lastType = lastType.ofType;
   }
   return lastType;
