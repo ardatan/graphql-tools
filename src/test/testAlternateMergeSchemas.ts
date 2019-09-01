@@ -36,7 +36,6 @@ import { makeExecutableSchema } from '../makeExecutableSchema';
 import {
   delegateToSchema,
   delegateToRemoteSchema,
-  defaultMergedResolver,
   mergeSchemas,
   wrapField,
   extractField,
@@ -505,7 +504,6 @@ describe('ExtendSchema transform', () => {
             name: String
           }
         `,
-        defaultFieldResolver: defaultMergedResolver,
       }),
     ]);
   });

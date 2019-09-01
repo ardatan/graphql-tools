@@ -26,7 +26,7 @@ export default function transformSchema(
     transforms,
     mapping,
   );
-  schema = addResolveFunctionsToSchema({
+  addResolveFunctionsToSchema({
     schema,
     resolvers,
     resolverValidationOptions: {

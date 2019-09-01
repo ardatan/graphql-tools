@@ -271,7 +271,7 @@ export default function mergeSchemas({
     });
   });
 
-  mergedSchema = addResolveFunctionsToSchema({
+  addResolveFunctionsToSchema({
     schema: mergedSchema,
     resolvers: mergeDeep(generatedResolvers, resolvers),
     inheritResolversFromInterfaces

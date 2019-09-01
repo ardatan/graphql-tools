@@ -51,7 +51,7 @@ export function makeExecutableSchema<TContext = any>({
 
   let schema = buildSchemaFromTypeDefinitions(typeDefs, parseOptions);
 
-  schema = addResolveFunctionsToSchema({
+  addResolveFunctionsToSchema({
     schema,
     resolvers: resolverMap,
     resolverValidationOptions,
