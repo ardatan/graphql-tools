@@ -1,5 +1,3 @@
-import { SchemaError } from '.';
-
 import {
   GraphQLField,
   GraphQLEnumType,
@@ -16,8 +14,12 @@ import {
   IResolverValidationOptions,
   IAddResolveFunctionsToSchemaOptions,
 } from '../Interfaces';
+
+import SchemaError from './SchemaError';
+import checkForResolveTypeResolver from './checkForResolveTypeResolver';
+import extendResolversFromInterfaces from './extendResolversFromInterfaces';
+
 import { applySchemaTransforms } from '../transforms/transforms';
-import { checkForResolveTypeResolver, extendResolversFromInterfaces } from '.';
 import { AddDefaultResolver, AddEnumAndScalarResolvers } from '../transforms/index';
 
 function addResolveFunctionsToSchema(
