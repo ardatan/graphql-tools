@@ -13,14 +13,8 @@ module.exports = {
       new UglifyJsPlugin({
         uglifyOptions: {
           warnings: true,
-          parse: {},
-          compress: {},
           mangle: false,
-          output: null,
-          toplevel: false,
-          nameCache: null,
-          ie8: false,
-          keep_fnames: false
+          nameCache: null
         }
       })
     ]
@@ -48,8 +42,8 @@ module.exports = {
     plugins: [new TsconfigPathsPlugin()]
   },
   output: {
-    libraryTarget: 'commonjs2',
-    path: path.join(__dirname, 'dist'),
+    libraryTarget: 'system',
+    path: path.join(__dirname, 'main'),
     filename: '[name].js',
     sourceMapFilename: '[file].map'
   }

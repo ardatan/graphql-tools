@@ -2,17 +2,17 @@
   "name": "graphql-tools-federation",
   "version": "4.0.5",
   "description": "Useful tools to create and manipulate GraphQL schemas.",
-  "main": "dist/index.js",
-  "typings": "dist/index.d.ts",
+  "main": "main/main.js",
+  "typings": "main/index.d.ts",
   "typescript": {
-    "definition": "dist/index.d.ts"
+    "definition": "main/index.d.ts"
   },
   "directories": {
     "test": "test"
   },
   "scripts": {
     "build": "webpack --config webpack.config.js",
-    "clean": "rimraf dist",
+    "clean": "rimraf main",
     "compile": "tsc",
     "typings": "typings install",
     "pretest": "npm run clean && npm run compile",
@@ -20,9 +20,9 @@
     "posttest": "npm run lint",
     "lint": "tslint src/**/*.ts",
     "watch": "tsc -w",
-    "testonly": "mocha --reporter spec --full-trace ./dist/test/tests.js",
-    "testonly:watch": "mocha -w --reporter spec --full-trace ./dist/test/tests.js",
-    "coverage": "istanbul cover _mocha -- --reporter dot --full-trace ./dist/test/tests.js",
+    "testonly": "mocha --reporter spec --full-trace ./main/test/tests.js",
+    "testonly:watch": "mocha -w --reporter spec --full-trace ./main/test/tests.js",
+    "coverage": "istanbul cover _mocha -- --reporter dot --full-trace ./main/test/tests.js",
     "postcoverage": "remap-istanbul --input coverage/coverage.json --type lcovonly --output coverage/lcov.info",
     "prepublishOnly": "npm run compile",
     "prerelease": "npm test",
