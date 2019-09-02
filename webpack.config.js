@@ -42,7 +42,7 @@ module.exports = {
     plugins: [new TsconfigPathsPlugin()]
   },
   output: {
-    libraryTarget: 'system',
+    libraryTarget: 'commonjs2',
     path: path.join(__dirname, 'main'),
     filename: '[name].js',
     sourceMapFilename: '[file].map'
