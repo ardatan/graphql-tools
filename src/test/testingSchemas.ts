@@ -7,19 +7,13 @@ import {
   GraphQLScalarType,
   ValueNode,
   ExecutionResult,
-  DocumentNode,
+  DocumentNode
 } from 'graphql';
 import { ExecutionResultDataDefault } from 'graphql/execution/execute';
-import {
-  ApolloLink,
-  Observable,
-  ExecutionResult as LinkExecutionResult,
-} from 'apollo-link';
+import { ApolloLink, Observable, ExecutionResult as LinkExecutionResult } from 'apollo-link';
 import { makeExecutableSchema } from '../makeExecutableSchema';
 import { IResolvers } from '../Interfaces';
-import makeRemoteExecutableSchema, {
-  Fetcher,
-} from '../stitching/makeRemoteExecutableSchema';
+import makeRemoteExecutableSchema, { Fetcher } from '../stitching/makeRemoteExecutableSchema';
 import introspectSchema from '../stitching/introspectSchema';
 import { PubSub } from 'graphql-subscriptions';
 
@@ -74,13 +68,13 @@ export const sampleData: {
     pd1: {
       id: 'pd1',
       type: 'simple',
-      price: 100,
+      price: 100
     },
     pd2: {
       id: 'pd2',
       type: 'download',
-      url: 'https://graphql.org',
-    },
+      url: 'https://graphql.org'
+    }
   },
   Property: {
     p1: {
@@ -89,7 +83,7 @@ export const sampleData: {
       location: {
         name: 'Helsinki',
         coordinates: '60.1698° N, 24.9383° E'
-      },
+      }
     },
     p2: {
       id: 'p2',
@@ -97,7 +91,7 @@ export const sampleData: {
       location: {
         name: 'San Francisco',
         coordinates: '37.7749° N, 122.4194° W'
-      },
+      }
     },
     p3: {
       id: 'p3',
@@ -105,8 +99,8 @@ export const sampleData: {
       location: {
         name: 'Helsinki',
         coordinates: '60.1699° N, 24.9384° E'
-      },
-    },
+      }
+    }
   },
   Booking: {
     b1: {
@@ -114,29 +108,29 @@ export const sampleData: {
       propertyId: 'p1',
       customerId: 'c1',
       startTime: '2016-05-04',
-      endTime: '2016-06-03',
+      endTime: '2016-06-03'
     },
     b2: {
       id: 'b2',
       propertyId: 'p1',
       customerId: 'c2',
       startTime: '2016-06-04',
-      endTime: '2016-07-03',
+      endTime: '2016-07-03'
     },
     b3: {
       id: 'b3',
       propertyId: 'p1',
       customerId: 'c3',
       startTime: '2016-08-04',
-      endTime: '2016-09-03',
+      endTime: '2016-09-03'
     },
     b4: {
       id: 'b4',
       propertyId: 'p2',
       customerId: 'c1',
       startTime: '2016-10-04',
-      endTime: '2016-10-03',
-    },
+      endTime: '2016-10-03'
+    }
   },
 
   Customer: {
@@ -144,32 +138,32 @@ export const sampleData: {
       id: 'c1',
       email: 'examplec1@example.com',
       name: 'Exampler Customer',
-      vehicleId: 'v1',
+      vehicleId: 'v1'
     },
     c2: {
       id: 'c2',
       email: 'examplec2@example.com',
       name: 'Joe Doe',
-      vehicleId: 'v2',
+      vehicleId: 'v2'
     },
     c3: {
       id: 'c3',
       email: 'examplec3@example.com',
       name: 'Liisa Esimerki',
-      address: 'Esimerkikatu 1 A 77, 99999 Kyyjarvi',
-    },
+      address: 'Esimerkikatu 1 A 77, 99999 Kyyjarvi'
+    }
   },
 
   Vehicle: {
     v1: {
       id: 'v1',
-      bikeType: 'MOUNTAIN',
+      bikeType: 'MOUNTAIN'
     },
     v2: {
       id: 'v2',
-      licensePlate: 'GRAPHQL',
-    },
-  },
+      licensePlate: 'GRAPHQL'
+    }
+  }
 };
 
 function values<T>(o: { [s: string]: T }): T[] {
@@ -178,9 +172,7 @@ function values<T>(o: { [s: string]: T }): T[] {
 
 function coerceString(value: any): string {
   if (Array.isArray(value)) {
-    throw new TypeError(
-      `String cannot represent an array value: [${String(value)}]`,
-    );
+    throw new TypeError(`String cannot represent an array value: [${String(value)}]`);
   }
   return String(value);
 }
@@ -192,7 +184,7 @@ const DateTime = new GraphQLScalarType({
   parseValue: coerceString,
   parseLiteral(ast) {
     return ast.kind === Kind.STRING ? ast.value : null;
-  },
+  }
 });
 
 function identity(value: any): any {
@@ -230,7 +222,7 @@ const GraphQLJSON = new GraphQLScalarType({
     'publications/files/ECMA-ST/ECMA-404.pdf).',
   serialize: identity,
   parseValue: identity,
-  parseLiteral,
+  parseLiteral
 });
 
 const addressTypeDef = `
@@ -345,13 +337,13 @@ const propertyResolvers: IResolvers = {
         return {
           kind: 'ONE',
           testString: 'test',
-          foo: 'foo',
+          foo: 'foo'
         };
       } else {
         return {
           kind: 'TWO',
           testString: 'test',
-          bar: 'bar',
+          bar: 'bar'
         };
       }
     },
@@ -361,11 +353,11 @@ const propertyResolvers: IResolvers = {
         return {
           kind: 'ONE',
           testString: 'test',
-          foo: 'foo',
+          foo: 'foo'
         };
       } else {
         return {
-          someField: 'Bar',
+          someField: 'Bar'
         };
       }
     },
@@ -380,7 +372,7 @@ const propertyResolvers: IResolvers = {
 
     defaultInputTest(parent, { input }) {
       return input.test;
-    },
+    }
   },
   DateTime,
   JSON: GraphQLJSON,
@@ -392,7 +384,7 @@ const propertyResolvers: IResolvers = {
       } else {
         return 'TestImpl2';
       }
-    },
+    }
   },
 
   TestUnion: {
@@ -402,14 +394,14 @@ const propertyResolvers: IResolvers = {
       } else {
         return 'UnionImpl';
       }
-    },
+    }
   },
 
   Property: {
     error() {
       throw new Error('Property.error error');
-    },
-  },
+    }
+  }
 };
 
 let DownloadableProduct = `
@@ -451,7 +443,7 @@ const productResolvers: IResolvers = {
     products(root) {
       const list = values(sampleData.Product);
       return list;
-    },
+    }
   },
 
   Product: {
@@ -461,8 +453,8 @@ const productResolvers: IResolvers = {
       } else {
         return 'DownloadableProduct';
       }
-    },
-  },
+    }
+  }
 };
 
 const customerAddressTypeDef = `
@@ -539,9 +531,7 @@ const bookingResolvers: IResolvers = {
       return sampleData.Booking[id];
     },
     bookingsByPropertyId(parent, { propertyId, limit }) {
-      const list = values(sampleData.Booking).filter(
-        (booking: Booking) => booking.propertyId === propertyId,
-      );
+      const list = values(sampleData.Booking).filter((booking: Booking) => booking.propertyId === propertyId);
       if (limit) {
         return list.slice(0, limit);
       } else {
@@ -566,22 +556,19 @@ const bookingResolvers: IResolvers = {
       } else {
         return list;
       }
-    },
+    }
   },
 
   Mutation: {
-    addBooking(
-      parent,
-      { input: { propertyId, customerId, startTime, endTime } },
-    ) {
+    addBooking(parent, { input: { propertyId, customerId, startTime, endTime } }) {
       return {
         id: 'newId',
         propertyId,
         customerId,
         startTime,
-        endTime,
+        endTime
       };
-    },
+    }
   },
 
   Booking: {
@@ -596,14 +583,12 @@ const bookingResolvers: IResolvers = {
     },
     errorNonNull() {
       throw new Error('Booking.errorNoNull error');
-    },
+    }
   },
 
   Customer: {
     bookings(parent: Customer, { limit }) {
-      const list = values(sampleData.Booking).filter(
-        (booking: Booking) => booking.customerId === parent.id,
-      );
+      const list = values(sampleData.Booking).filter((booking: Booking) => booking.customerId === parent.id);
       if (limit) {
         return list.slice(0, limit);
       } else {
@@ -615,7 +600,7 @@ const bookingResolvers: IResolvers = {
     },
     error() {
       throw new Error('Customer.error error');
-    },
+    }
   },
 
   Vehicle: {
@@ -627,10 +612,10 @@ const bookingResolvers: IResolvers = {
       } else {
         throw new Error('Could not resolve Vehicle type');
       }
-    },
+    }
   },
 
-  DateTime,
+  DateTime
 };
 
 const subscriptionTypeDefs = `
@@ -653,13 +638,12 @@ export const subscriptionPubSubTrigger = 'pubSubTrigger';
 
 const subscriptionResolvers: IResolvers = {
   Query: {
-    notifications: (root: any) => ({ text: 'Hello world' }),
+    notifications: (root: any) => ({ text: 'Hello world' })
   },
   Subscription: {
     notifications: {
-      subscribe: () =>
-        subscriptionPubSub.asyncIterator(subscriptionPubSubTrigger),
-    },
+      subscribe: () => subscriptionPubSub.asyncIterator(subscriptionPubSubTrigger)
+    }
   },
   Notification: {
     throwError: () => {
@@ -670,22 +654,22 @@ const subscriptionResolvers: IResolvers = {
 
 export const propertySchema: GraphQLSchema = makeExecutableSchema({
   typeDefs: propertyAddressTypeDefs,
-  resolvers: propertyResolvers,
+  resolvers: propertyResolvers
 });
 
 export const productSchema: GraphQLSchema = makeExecutableSchema({
   typeDefs: productTypeDefs,
-  resolvers: productResolvers,
+  resolvers: productResolvers
 });
 
 export const bookingSchema: GraphQLSchema = makeExecutableSchema({
   typeDefs: bookingAddressTypeDefs,
-  resolvers: bookingResolvers,
+  resolvers: bookingResolvers
 });
 
 export const subscriptionSchema: GraphQLSchema = makeExecutableSchema({
   typeDefs: subscriptionTypeDefs,
-  resolvers: subscriptionResolvers,
+  resolvers: subscriptionResolvers
 });
 
 const hasSubscriptionOperation = ({ query }: { query: any }): boolean => {
@@ -715,7 +699,7 @@ export async function makeSchemaRemoteFromLink(schema: GraphQLSchema) {
               null,
               graphqlContext,
               variables,
-              operationName,
+              operationName
             );
             observer.next(result as LinkExecutionResult);
             observer.complete();
@@ -726,16 +710,11 @@ export async function makeSchemaRemoteFromLink(schema: GraphQLSchema) {
               null,
               graphqlContext,
               variables,
-              operationName,
+              operationName
             );
-            if (
-              typeof (<AsyncIterator<ExecutionResult>>result).next ===
-              'function'
-            ) {
+            if (typeof (<AsyncIterator<ExecutionResult>>result).next === 'function') {
               while (true) {
-                const next = await (<AsyncIterator<ExecutionResultDataDefault>>(
-                  result
-                )).next();
+                const next = await (<AsyncIterator<ExecutionResultDataDefault>>result).next();
                 observer.next(next.value as LinkExecutionResult);
                 if (next.done) {
                   observer.complete();
@@ -757,34 +736,23 @@ export async function makeSchemaRemoteFromLink(schema: GraphQLSchema) {
   const clientSchema = await introspectSchema(link);
   return makeRemoteExecutableSchema({
     schema: clientSchema,
-    link,
-    isFederatedSchema: false
+    link
   });
 }
 
 // ensure fetcher support exists from the 2.0 api
 async function makeExecutableSchemaFromFetcher(schema: GraphQLSchema) {
   const fetcher: Fetcher = ({ query, operationName, variables, context }) => {
-    return graphql(
-      schema,
-      print(query),
-      null,
-      context,
-      variables,
-      operationName,
-    );
+    return graphql(schema, print(query), null, context, variables, operationName);
   };
 
   const clientSchema = await introspectSchema(fetcher);
   return makeRemoteExecutableSchema({
     schema: clientSchema,
-    fetcher,
-    isFederatedSchema: false
+    fetcher
   });
 }
 
 export const remotePropertySchema = makeSchemaRemoteFromLink(propertySchema);
 export const remoteProductSchema = makeSchemaRemoteFromLink(productSchema);
-export const remoteBookingSchema = makeExecutableSchemaFromFetcher(
-  bookingSchema,
-);
+export const remoteBookingSchema = makeExecutableSchemaFromFetcher(bookingSchema);

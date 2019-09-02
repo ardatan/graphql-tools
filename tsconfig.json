@@ -1,20 +1,25 @@
 {
   "compilerOptions": {
+    "baseUrl": "./",
+    "declaration": true,
+    "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "lib": ["es7", "dom", "esnext.asynciterable"],
     "module": "commonjs",
-    "target": "es5",
-    "noImplicitAny": true,
-    "suppressImplicitAnyIndexErrors": true,
     "moduleResolution": "node",
-    "emitDecoratorMetadata": true,
-    "noUnusedLocals": true,
-    "sourceMap": true,
-    "declaration": true,
-    "rootDir": "./src",
-    "outDir": "./dist",
-    "removeComments": false,
+    "noImplicitAny": true,
     "noImplicitUseStrict": true,
+    "noUnusedLocals": true,
+    "outDir": "main/dist",
+    "paths": {
+      "~/*": ["src/*"],
+      "__tests__/*": ["__tests__/*"]
+    },
+    "removeComments": false,
+    "rootDir": "./src",
+    "sourceMap": true,
+    "suppressImplicitAnyIndexErrors": true,
+    "target": "es5"
   },
   "exclude": ["node_modules", "dist"]
 }
