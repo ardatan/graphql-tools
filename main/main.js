@@ -1,31 +1,4 @@
-System.register(["apollo-link","deprecated-decorator","graphql","graphql/error","graphql/execution/values","iterall","uuid"], function(__WEBPACK_DYNAMIC_EXPORT__) {
-	var __WEBPACK_EXTERNAL_MODULE_apollo_link__, __WEBPACK_EXTERNAL_MODULE_deprecated_decorator__, __WEBPACK_EXTERNAL_MODULE_graphql__, __WEBPACK_EXTERNAL_MODULE_graphql_error__, __WEBPACK_EXTERNAL_MODULE_graphql_execution_values__, __WEBPACK_EXTERNAL_MODULE_iterall__, __WEBPACK_EXTERNAL_MODULE_uuid__;
-	return {
-		setters: [
-			function(module) {
-				__WEBPACK_EXTERNAL_MODULE_apollo_link__ = module;
-			},
-			function(module) {
-				__WEBPACK_EXTERNAL_MODULE_deprecated_decorator__ = module;
-			},
-			function(module) {
-				__WEBPACK_EXTERNAL_MODULE_graphql__ = module;
-			},
-			function(module) {
-				__WEBPACK_EXTERNAL_MODULE_graphql_error__ = module;
-			},
-			function(module) {
-				__WEBPACK_EXTERNAL_MODULE_graphql_execution_values__ = module;
-			},
-			function(module) {
-				__WEBPACK_EXTERNAL_MODULE_iterall__ = module;
-			},
-			function(module) {
-				__WEBPACK_EXTERNAL_MODULE_uuid__ = module;
-			}
-		],
-		execute: function() {
-			__WEBPACK_DYNAMIC_EXPORT__(
+module.exports =
 /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -818,8 +791,4 @@ eval("module.exports = require(\"uuid\");\n\n//# sourceURL=webpack:///external_%
 
 /***/ })
 
-/******/ })
-			);
-		}
-	};
-});
+/******/ });
