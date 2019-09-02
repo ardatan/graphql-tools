@@ -19,11 +19,13 @@ import {
   GraphQLList,
   GraphQLNonNull,
   isNamedType,
+  getNamedType,
 } from 'graphql';
 
 import {
   getArgumentValues,
 } from 'graphql/execution/values';
+import { serializeInputValue, parseInputValue } from './transformInputValue';
 
 export type VisitableSchemaType =
     GraphQLSchema
@@ -371,9 +373,7 @@ export function healSchema(schema: GraphQLSchema) {
       healFields(type);
 
     } else if (type instanceof GraphQLInputObjectType) {
-      each(type.getFields(), field => {
-        field.type = healType(field.type);
-      });
+      healInputFields(type);
 
     } else if (type instanceof GraphQLScalarType) {
       // Nothing to do.
@@ -394,10 +394,30 @@ export function healSchema(schema: GraphQLSchema) {
       field.type = healType(field.type);
       if (field.args) {
         each(field.args, arg => {
+          const originalType = arg.type;
           arg.type = healType(arg.type);
+          if (getNamedType(arg.type) !== getNamedType(originalType)) {
+            arg.defaultValue = parseInputValue(
+              arg.type,
+              serializeInputValue(originalType, arg.defaultValue)
+            );
+          }
         });
       }
     });
+  }
+
+  function healInputFields(type: GraphQLInputObjectType) {
+    each(type.getFields(), field => {
+      const originalType = field.type;
+      field.type = healType(field.type);
+      if (getNamedType(field.type) !== getNamedType(originalType)) {
+        field.defaultValue = parseInputValue(
+          field.type,
+          serializeInputValue(originalType, field.defaultValue)
+        );
+      }
+});
   }
 
   function healType<T extends GraphQLType>(type: T): T {

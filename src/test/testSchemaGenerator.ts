@@ -36,6 +36,7 @@ import {
 } from '../Interfaces';
 import 'mocha';
 import { VisitSchemaKind, visitSchema } from '../transforms/visitSchema';
+import { addResolveFunctionsToSchema } from '../generate';
 
 interface Bird {
   name: string;
@@ -1171,6 +1172,101 @@ describe('generating schema from shorthand', () => {
         assert.equal(result.data['red'], resolveFunctions.Color.RED);
         assert.equal(result.data['blue'], resolveFunctions.Color.BLUE);
         assert.equal(result.data['num'], resolveFunctions.NumericEnum.TEST);
+        assert.equal(result.errors, undefined);
+      });
+    });
+  });
+
+  describe('default value support', () => {
+    it('supports default field values', () => {
+      const shorthand = `
+        enum Color {
+          RED
+        }
+
+        schema {
+          query: Query
+        }
+
+        type Query {
+          colorTest(color: Color = RED): String
+        }
+      `;
+
+      const testQuery = `{
+        red: colorTest
+       }`;
+
+      const resolveFunctions = {
+        Color: {
+          RED: '#EA3232',
+        },
+        Query: {
+          colorTest(root: any, args: { color: string }) {
+            return args.color;
+          },
+        },
+      };
+
+      const jsSchema = makeExecutableSchema({
+        typeDefs: shorthand,
+        resolvers: resolveFunctions,
+      });
+
+      const resultPromise = graphql(jsSchema, testQuery);
+      return resultPromise.then(result => {
+        assert.equal(result.data['red'], resolveFunctions.Color.RED);
+        assert.equal(result.errors, undefined);
+      });
+    });
+
+    it('supports changing default field values', () => {
+      const shorthand = `
+        enum Color {
+          RED
+        }
+
+        schema {
+          query: Query
+        }
+
+        type Query {
+          colorTest(color: Color = RED): String
+        }
+      `;
+
+      const testQuery = `{
+        red: colorTest
+       }`;
+
+      const resolveFunctions = {
+        Color: {
+          RED: '#EA3232',
+        },
+        Query: {
+          colorTest(root: any, args: { color: string }) {
+            return args.color;
+          },
+        },
+      };
+
+      const jsSchema = makeExecutableSchema({
+        typeDefs: shorthand,
+        resolvers: resolveFunctions,
+      });
+
+      addResolveFunctionsToSchema({
+        schema: jsSchema,
+        resolvers: {
+          Color: {
+            RED: 'override',
+          },
+        }
+      });
+
+      const resultPromise = graphql(jsSchema, testQuery);
+      return resultPromise.then(result => {
+        assert.equal(result.data['red'], 'override');
         assert.equal(result.errors, undefined);
       });
     });

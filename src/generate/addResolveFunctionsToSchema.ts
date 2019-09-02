@@ -19,9 +19,6 @@ import SchemaError from './SchemaError';
 import checkForResolveTypeResolver from './checkForResolveTypeResolver';
 import extendResolversFromInterfaces from './extendResolversFromInterfaces';
 import forEachField from './forEachField';
-import forEachDefaultValue from './forEachDefaultValue';
-
-import { serializeInputValue, parseInputValue } from '../transformInputValue';
 import { healSchema } from '../schemaVisitor';
 
 function addResolveFunctionsToSchema(
@@ -57,9 +54,7 @@ function addResolveFunctionsToSchema(
     ? extendResolversFromInterfaces(schema, inputResolvers)
     : inputResolvers;
 
-  // serialize all default values prior to addition of scalar/enum types.
-  // default values will be parsed via new defs after addition of the new types.
-  forEachDefaultValue(schema, serializeInputValue);
+  const typeMap = schema.getTypeMap();
 
   Object.keys(resolvers).forEach(typeName => {
     const resolverValue = resolvers[typeName];
@@ -85,16 +80,23 @@ function addResolveFunctionsToSchema(
     }
 
     if (type instanceof GraphQLScalarType) {
+      const config = type.toConfig();
+
       Object.keys(resolverValue).forEach(fieldName => {
         // Below is necessary as legacy code for scalar type specification allowed
         // hardcoding within the resolver an object with fields '__serialize',
         // '__parse', and '__parseLiteral', see examples in testMocking.ts.
+        // Luckily, the fields on GraphQLScalarType and GraphQLScalarTypeConfig
+        // are named the same.
         if (fieldName.startsWith('__')) {
-          type[fieldName.substring(2)] = resolverValue[fieldName];
+          config[fieldName.substring(2)] = resolverValue[fieldName];
         } else {
-          type[fieldName] = resolverValue[fieldName];
+          config[fieldName] = resolverValue[fieldName];
         }
       });
+
+      // healSchema called later to update all fields to new type
+      typeMap[type.name] = new GraphQLScalarType(config);
     } else if (type instanceof GraphQLEnumType) {
       // We've encountered an enum resolver that is being used to provide an
       // internal enum value.
@@ -109,6 +111,8 @@ function addResolveFunctionsToSchema(
           );
         }
       });
+
+      const config = type.toConfig();
 
       const values = type.getValues();
       const newValues = {};
@@ -126,12 +130,9 @@ function addResolveFunctionsToSchema(
         };
       });
 
-      const typeMap = schema.getTypeMap();
-      // healSchema called later to update fields to new type
+      // healSchema called later to update all fields to new type
       typeMap[type.name] = new GraphQLEnumType({
-        name: type.name,
-        description: type.description,
-        astNode: type.astNode,
+        ...config,
         values: newValues,
       });
     } else {
@@ -182,10 +183,8 @@ function addResolveFunctionsToSchema(
 
   checkForResolveTypeResolver(schema, requireResolversForResolveType);
 
-  // schema may have new enum types that require healing
+  // schema may have new scalar or enum types that require healing
   healSchema(schema);
-  // reparse all  default values with new parsing functions.
-  forEachDefaultValue(schema, parseInputValue);
 
   if (defaultFieldResolver) {
     forEachField(schema, field => {
