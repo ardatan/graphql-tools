@@ -19,6 +19,8 @@ import SchemaError from './SchemaError';
 import checkForResolveTypeResolver from './checkForResolveTypeResolver';
 import extendResolversFromInterfaces from './extendResolversFromInterfaces';
 import forEachField from './forEachField';
+import forEachDefaultValue from './forEachDefaultValue';
+import { parseInputValue, serializeInputValue } from '../transformInputValue';
 import { healSchema } from '../schemaVisitor';
 
 function addResolveFunctionsToSchema(
@@ -183,8 +185,12 @@ function addResolveFunctionsToSchema(
 
   checkForResolveTypeResolver(schema, requireResolversForResolveType);
 
-  // schema may have new scalar or enum types that require healing
+  // serialize all default values prior to healing fields with new scalar/enum types.
+  forEachDefaultValue(schema, serializeInputValue);
+  // schema may have new scalar/enum types that require healing
   healSchema(schema);
+  // reparse all default values with new parsing functions.
+  forEachDefaultValue(schema, parseInputValue);
 
   if (defaultFieldResolver) {
     forEachField(schema, field => {
