@@ -94,7 +94,7 @@ function getTypeSpecifiers(
 ): Array<VisitSchemaKind> {
   const specifiers = [VisitSchemaKind.TYPE];
   if (type instanceof GraphQLObjectType) {
-    specifiers.unshift(
+    specifiers.push(
       VisitSchemaKind.COMPOSITE_TYPE,
       VisitSchemaKind.OBJECT_TYPE,
     );
