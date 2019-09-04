@@ -32,6 +32,7 @@ import defaultMergedResolver from './defaultMergedResolver';
 import { checkResultAndHandleErrors } from './errors';
 import { observableToAsyncIterable } from './observableToAsyncIterable';
 import { Options as PrintSchemaOptions } from 'graphql/utilities/schemaPrinter';
+import { GraphQLResolverMap } from 'apollo-graphql';
 
 export type ResolverFn = (
   rootValue?: any,
@@ -48,6 +49,10 @@ export type FetcherOperation = {
   variables?: { [key: string]: any };
   context?: { [key: string]: any };
 };
+type schemaParamsProps = {
+  typeDefs: DocumentNode | string;
+  resolvers: IResolvers<any, any> | GraphQLResolverMap<any>;
+};
 
 export default function makeRemoteExecutableSchema({
   schema,
@@ -57,13 +62,42 @@ export default function makeRemoteExecutableSchema({
   buildSchemaOptions,
   printSchemaOptions = { commentDescriptions: true }
 }: {
-  schema: GraphQLSchema | string;
-  link?: ApolloLink;
-  fetcher?: Fetcher;
-  createResolver?: (fetcher: Fetcher) => GraphQLFieldResolver<any, any>;
   buildSchemaOptions?: BuildSchemaOptions;
+  createResolver?: (fetcher: Fetcher) => GraphQLFieldResolver<any, any>;
+  fetcher?: Fetcher;
+  link?: ApolloLink;
   printSchemaOptions?: PrintSchemaOptions;
+  schema: GraphQLSchema | string;
 }): GraphQLSchema {
+  const { typeDefs, resolvers } = getRemoteTypeDefsAndResolvers({
+    buildSchemaOptions,
+    createResolver,
+    fetcher,
+    link,
+    printSchemaOptions,
+    schema
+  });
+  return makeExecutableSchema({
+    typeDefs,
+    resolvers
+  });
+}
+
+export function getRemoteTypeDefsAndResolvers({
+  buildSchemaOptions,
+  createResolver: customCreateResolver = createResolver,
+  fetcher,
+  link,
+  printSchemaOptions = { commentDescriptions: true },
+  schema
+}: {
+  buildSchemaOptions?: BuildSchemaOptions;
+  createResolver?: (fetcher: Fetcher) => GraphQLFieldResolver<any, any>;
+  fetcher?: Fetcher;
+  link?: ApolloLink;
+  printSchemaOptions?: PrintSchemaOptions;
+  schema: GraphQLSchema | string;
+}): schemaParamsProps {
   if (!fetcher && link) {
     fetcher = linkToFetcher(link);
   }
@@ -155,10 +189,10 @@ export default function makeRemoteExecutableSchema({
     }
   }
 
-  return makeExecutableSchema({
+  return {
     typeDefs,
     resolvers
-  });
+  };
 }
 
 export function createResolver(fetcher: Fetcher): GraphQLFieldResolver<any, any> {
