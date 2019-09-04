@@ -32,7 +32,6 @@ import defaultMergedResolver from './defaultMergedResolver';
 import { checkResultAndHandleErrors } from './errors';
 import { observableToAsyncIterable } from './observableToAsyncIterable';
 import { Options as PrintSchemaOptions } from 'graphql/utilities/schemaPrinter';
-import { GraphQLResolverMap } from 'apollo-graphql';
 
 export type ResolverFn = (
   rootValue?: any,
@@ -51,7 +50,7 @@ export type FetcherOperation = {
 };
 type schemaParamsProps = {
   typeDefs: DocumentNode | string;
-  resolvers: IResolvers<any, any> | GraphQLResolverMap<any>;
+  resolvers: IResolvers<any, any>;
 };
 
 export default function makeRemoteExecutableSchema({
