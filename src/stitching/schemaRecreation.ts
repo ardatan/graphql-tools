@@ -32,7 +32,7 @@ import {
   GraphQLBoolean,
   GraphQLID,
 } from 'graphql';
-import isSpecifiedScalarType from '../isSpecifiedScalarType';
+import isSpecifiedScalarType from '../utils/isSpecifiedScalarType';
 import { ResolveType } from '../Interfaces';
 import resolveFromParentTypename from './resolveFromParentTypename';
 import defaultMergedResolver from './defaultMergedResolver';
@@ -41,7 +41,7 @@ import {
   serializeInputValue,
   parseInputValue,
   parseInputValueLiteral
-} from '../transformInputValue';
+} from '../utils/transformInputValue';
 
 export function recreateType(
   type: GraphQLNamedType,

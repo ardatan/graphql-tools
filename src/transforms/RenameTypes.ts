@@ -6,7 +6,7 @@ import {
   GraphQLNamedType,
   GraphQLScalarType,
 } from 'graphql';
-import isSpecifiedScalarType from '../isSpecifiedScalarType';
+import isSpecifiedScalarType from '../utils/isSpecifiedScalarType';
 import { Request, Result } from '../Interfaces';
 import { Transform } from '../transforms/transforms';
 import { visitSchema, VisitSchemaKind } from '../transforms/visitSchema';

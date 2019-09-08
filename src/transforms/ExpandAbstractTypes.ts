@@ -13,7 +13,7 @@ import {
   visit,
   visitWithTypeInfo,
 } from 'graphql';
-import implementsAbstractType from '../implementsAbstractType';
+import implementsAbstractType from '../utils/implementsAbstractType';
 import { Transform, Request } from '../Interfaces';
 
 type TypeMapping = { [key: string]: Array<string> };

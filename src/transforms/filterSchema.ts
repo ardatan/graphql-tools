@@ -9,7 +9,7 @@ import {
 import { GraphQLSchemaWithTransforms } from '../Interfaces';
 import { visitSchema, VisitSchemaKind } from './visitSchema';
 import { fieldToFieldConfig, createResolveType } from '../stitching/schemaRecreation';
-import isEmptyObject from '../isEmptyObject';
+import isEmptyObject from '../utils/isEmptyObject';
 
 export type RootFieldFilter = (
   operation: 'Query' | 'Mutation' | 'Subscription',

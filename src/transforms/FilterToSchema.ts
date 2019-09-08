@@ -22,7 +22,7 @@ import {
   visit,
 } from 'graphql';
 import { Request } from '../Interfaces';
-import implementsAbstractType from '../implementsAbstractType';
+import implementsAbstractType from '../utils/implementsAbstractType';
 import { Transform } from './transforms';
 
 export default class FilterToSchema implements Transform {

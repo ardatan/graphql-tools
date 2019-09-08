@@ -5,7 +5,7 @@ import {
   GraphQLField,
   GraphQLFieldConfig,
 } from 'graphql';
-import isEmptyObject from '../isEmptyObject';
+import isEmptyObject from '../utils/isEmptyObject';
 import { Transform } from './transforms';
 import { visitSchema, VisitSchemaKind } from './visitSchema';
 import {

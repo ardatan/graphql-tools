@@ -3,7 +3,7 @@ import { defaultFieldResolver, GraphQLSchema, GraphQLFieldResolver } from 'graph
 import { IExecutableSchemaDefinition, ILogger } from './Interfaces';
 
 import { SchemaDirectiveVisitor } from './schemaVisitor';
-import mergeDeep from './mergeDeep';
+import mergeDeep from './utils/mergeDeep';
 
 import {
   attachDirectiveResolvers,

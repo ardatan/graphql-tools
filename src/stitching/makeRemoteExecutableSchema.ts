@@ -21,7 +21,7 @@ import {
   BuildSchemaOptions
 } from 'graphql';
 import linkToFetcher, { execute } from './linkToFetcher';
-import isEmptyObject from '../isEmptyObject';
+import isEmptyObject from '../utils/isEmptyObject';
 import { IResolvers, IResolverObject, Fetcher } from '../Interfaces';
 import { makeExecutableSchema } from '../makeExecutableSchema';
 import { recreateType } from './schemaRecreation';

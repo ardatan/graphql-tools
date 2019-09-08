@@ -15,7 +15,7 @@ import {
   SelectionNode,
   FragmentDefinitionNode
 } from 'graphql';
-import isEmptyObject from '../isEmptyObject';
+import isEmptyObject from '../utils/isEmptyObject';
 import { Request } from '../Interfaces';
 import { Transform } from './transforms';
 import { visitSchema, VisitSchemaKind } from './visitSchema';

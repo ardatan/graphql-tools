@@ -17,7 +17,7 @@ import {
 } from 'graphql';
 import { Request } from '../Interfaces';
 import { Transform } from './transforms';
-import { serializeInputValue } from '../transformInputValue';
+import { serializeInputValue } from '../utils/transformInputValue';
 
 export default class AddArgumentsAsVariablesTransform implements Transform {
   private schema: GraphQLSchema;

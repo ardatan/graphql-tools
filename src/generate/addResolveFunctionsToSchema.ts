@@ -20,7 +20,7 @@ import checkForResolveTypeResolver from './checkForResolveTypeResolver';
 import extendResolversFromInterfaces from './extendResolversFromInterfaces';
 import forEachField from './forEachField';
 import forEachDefaultValue from './forEachDefaultValue';
-import { parseInputValue, serializeInputValue } from '../transformInputValue';
+import { parseInputValue, serializeInputValue } from '../utils/transformInputValue';
 import { healSchema } from '../schemaVisitor';
 
 function addResolveFunctionsToSchema(

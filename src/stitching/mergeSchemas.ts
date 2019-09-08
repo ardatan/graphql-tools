@@ -42,7 +42,7 @@ import {
   ExpandAbstractTypes,
   ReplaceFieldWithFragment,
 } from '../transforms';
-import mergeDeep from '../mergeDeep';
+import mergeDeep from '../utils/mergeDeep';
 import { SchemaDirectiveVisitor } from '../schemaVisitor';
 
 type MergeTypeCandidate = {
