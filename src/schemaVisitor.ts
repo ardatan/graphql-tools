@@ -365,7 +365,7 @@ export function healSchema(schema: GraphQLSchema) {
 
     } else if (type instanceof GraphQLObjectType) {
       healFields(type);
-      each(type.getInterfaces(), iface => heal(iface));
+      updateEachKey(type.getInterfaces(), iface => healType(iface));
 
     } else if (type instanceof GraphQLInterfaceType) {
       healFields(type);
