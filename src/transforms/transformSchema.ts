@@ -1,7 +1,11 @@
-import { GraphQLSchema } from 'graphql';
+import {
+  GraphQLInterfaceType,
+  GraphQLObjectType,
+  GraphQLSchema,
+  GraphQLUnionType,
+} from 'graphql';
 import { addResolveFunctionsToSchema } from '../makeExecutableSchema';
 
-import { visitSchema } from '../transforms/visitSchema';
 import { Transform, applySchemaTransforms } from '../transforms/transforms';
 import {
   generateProxyingResolvers,
@@ -11,15 +15,42 @@ import {
   SchemaExecutionConfig,
   isSchemaExecutionConfig,
 } from '../Interfaces';
+import resolveFromParentTypename from '../stitching/resolveFromParentTypename';
+import { defaultMergedResolver } from '../stitching';
+import { cloneSchema } from '../utils/cloneSchema';
 
-export default function transformSchema(
+function stripResolvers(schema: GraphQLSchema): void {
+  const typeMap = schema.getTypeMap();
+  Object.keys(typeMap).forEach(typeName => {
+    if (typeName.startsWith('__')) {
+      return;
+    }
+
+    const type = typeMap[typeName];
+    if (type instanceof GraphQLObjectType) {
+      type.isTypeOf = undefined;
+
+      const fieldMap = type.getFields();
+      Object.keys(fieldMap).forEach(fieldName => {
+        fieldMap[fieldName].resolve = defaultMergedResolver;
+        fieldMap[fieldName].subscribe = null;
+      });
+    } else if (type instanceof GraphQLInterfaceType || type instanceof GraphQLUnionType) {
+      type.resolveType = (parent, context, info) => resolveFromParentTypename(parent, info.schema);
+    }
+  });
+}
+
+export function wrapSchema(
   schemaOrSchemaExecutionConfig: GraphQLSchema | SchemaExecutionConfig,
   transforms: Array<Transform>,
-): GraphQLSchema & { transforms: Array<Transform> } {
+): GraphQLSchema {
   const targetSchema: GraphQLSchema = isSchemaExecutionConfig(schemaOrSchemaExecutionConfig) ?
     schemaOrSchemaExecutionConfig.schema : schemaOrSchemaExecutionConfig;
 
-  let schema = visitSchema(targetSchema, {}, true);
+  const schema = cloneSchema(targetSchema);
+  stripResolvers(schema);
+
   const mapping = generateSimpleMapping(targetSchema);
   const resolvers = generateProxyingResolvers(
     schemaOrSchemaExecutionConfig,
@@ -33,6 +64,14 @@ export default function transformSchema(
       allowResolversNotInSchema: true,
     },
   });
+  return schema;
+}
+
+export default function transformSchema(
+  schemaOrSchemaExecutionConfig: GraphQLSchema | SchemaExecutionConfig,
+  transforms: Array<Transform>,
+): GraphQLSchema & { transforms: Array<Transform> } {
+  let schema = wrapSchema(schemaOrSchemaExecutionConfig, transforms);
   schema = applySchemaTransforms(schema, transforms);
   (schema as any).transforms = transforms;
   return schema as GraphQLSchema & { transforms: Array<Transform> };
