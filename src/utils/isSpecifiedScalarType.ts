@@ -9,6 +9,7 @@ import {
 } from 'graphql';
 
 // FIXME: Replace with https://github.com/graphql/graphql-js/blob/master/src/type/scalars.js#L139
+// Blocked by https://github.com/graphql/graphql-js/issues/2153
 
 export const specifiedScalarTypes: Array<GraphQLScalarType> = [
   GraphQLString,
