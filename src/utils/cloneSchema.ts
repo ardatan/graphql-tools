@@ -12,11 +12,11 @@ import {
 import { healTypeMap } from './healTypeMap';
 import isSpecifiedScalarType from './isSpecifiedScalarType';
 
-function cloneDirective(directive: GraphQLDirective): GraphQLDirective {
+export function cloneDirective(directive: GraphQLDirective): GraphQLDirective {
   return new GraphQLDirective(directive.toConfig());
 }
 
-function cloneType(type: GraphQLNamedType): GraphQLNamedType {
+export function cloneType(type: GraphQLNamedType): GraphQLNamedType {
   if (type instanceof GraphQLObjectType) {
     return new GraphQLObjectType(type.toConfig());
   } else if (type instanceof GraphQLInterfaceType) {
