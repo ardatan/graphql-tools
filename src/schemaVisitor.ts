@@ -12,18 +12,16 @@ import {
   GraphQLScalarType,
   GraphQLSchema,
   GraphQLUnionType,
-  Kind,
-  ValueNode,
   DirectiveLocationEnum,
-  GraphQLType,
-  GraphQLList,
-  GraphQLNonNull,
-  isNamedType,
 } from 'graphql';
 
 import {
   getArgumentValues,
 } from 'graphql/execution/values';
+import each from './utils/each';
+import valueFromASTUntyped from './utils/valueFromASTUntyped';
+import { healTypeMap } from './utils/healTypeMap';
+import updateEachKey from './utils/updateEachKey';
 
 export type VisitableSchemaType =
     GraphQLSchema
@@ -293,137 +291,13 @@ export function visitSchema(
   return schema;
 }
 
-type NamedTypeMap = {
-  [key: string]: GraphQLNamedType;
-};
-
 // Update any references to named schema types that disagree with the named
 // types found in schema.getTypeMap().
-export function healSchema(schema: GraphQLSchema) {
-  heal(schema);
+export function healSchema(schema: GraphQLSchema): GraphQLSchema {
+  healTypeMap(schema.getTypeMap(), schema.getDirectives());
   return schema;
-
-  function heal(type: VisitableSchemaType) {
-    if (type instanceof GraphQLSchema) {
-      const originalTypeMap: NamedTypeMap = type.getTypeMap();
-      const actualNamedTypeMap: NamedTypeMap = Object.create(null);
-
-      // If any of the .name properties of the GraphQLNamedType objects in
-      // schema.getTypeMap() have changed, the keys of the type map need to
-      // be updated accordingly.
-
-      each(originalTypeMap, (namedType, typeName) => {
-        if (typeName.startsWith('__')) {
-          return;
-        }
-
-        const actualName = namedType.name;
-        if (actualName.startsWith('__')) {
-          return;
-        }
-
-        if (hasOwn.call(actualNamedTypeMap, actualName)) {
-          throw new Error(`Duplicate schema type name ${actualName}`);
-        }
-
-        actualNamedTypeMap[actualName] = namedType;
-
-        // Note: we are deliberately leaving namedType in the schema by its
-        // original name (which might be different from actualName), so that
-        // references by that name can be healed.
-      });
-
-      // Now add back every named type by its actual name.
-      each(actualNamedTypeMap, (namedType, typeName) => {
-        originalTypeMap[typeName] = namedType;
-      });
-
-      // Directive declaration argument types can refer to named types.
-      each(type.getDirectives(), (decl: GraphQLDirective) => {
-        if (decl.args) {
-          each(decl.args, arg => {
-            arg.type = healType(arg.type);
-          });
-        }
-      });
-
-      each(originalTypeMap, (namedType, typeName) => {
-        if (! typeName.startsWith('__')) {
-          heal(namedType);
-        }
-      });
-
-      updateEachKey(originalTypeMap, (namedType, typeName) => {
-        // Dangling references to renamed types should remain in the schema
-        // during healing, but must be removed now, so that the following
-        // invariant holds for all names: schema.getType(name).name === name
-        if (! typeName.startsWith('__') &&
-            ! hasOwn.call(actualNamedTypeMap, typeName)) {
-          return null;
-        }
-      });
-
-    } else if (type instanceof GraphQLObjectType) {
-      healFields(type);
-      updateEachKey(type.getInterfaces(), iface => healType(iface));
-
-    } else if (type instanceof GraphQLInterfaceType) {
-      healFields(type);
-
-    } else if (type instanceof GraphQLInputObjectType) {
-      healInputFields(type);
-
-    } else if (type instanceof GraphQLScalarType) {
-      // Nothing to do.
-
-    } else if (type instanceof GraphQLUnionType) {
-      updateEachKey(type.getTypes(), t => healType(t));
-
-    } else if (type instanceof GraphQLEnumType) {
-      // Nothing to do.
-
-    } else {
-      throw new Error(`Unexpected schema type: ${type}`);
-    }
-  }
-
-  function healFields(type: GraphQLObjectType | GraphQLInterfaceType) {
-    each(type.getFields(), field => {
-      field.type = healType(field.type);
-      if (field.args) {
-        each(field.args, arg => {
-          arg.type = healType(arg.type);
-        });
-      }
-    });
-  }
-
-  function healInputFields(type: GraphQLInputObjectType) {
-    each(type.getFields(), field => {
-      field.type = healType(field.type);
-    });
-  }
-
-  function healType<T extends GraphQLType>(type: T): T {
-    // Unwrap the two known wrapper types
-    if (type instanceof GraphQLList) {
-      type = new GraphQLList(healType(type.ofType)) as T;
-    } else if (type instanceof GraphQLNonNull) {
-      type = new GraphQLNonNull(healType(type.ofType)) as T;
-    } else if (isNamedType(type)) {
-      // If a type annotation on a field or an argument or a union member is
-      // any `GraphQLNamedType` with a `name`, then it must end up identical
-      // to `schema.getType(name)`, since `schema.getTypeMap()` is the source
-      // of truth for all named schema types.
-      const namedType = type as GraphQLNamedType;
-      const officialType = schema.getType(namedType.name);
-      if (officialType && namedType !== officialType) {
-        return officialType as T;
-      }
-    }
-    return type;
-  }
 }
+
 
 // This class represents a reusable implementation of a @directive that may
 // appear in a GraphQL schema written in Schema Definition Language.
@@ -695,77 +569,4 @@ function directiveLocationToVisitorMethodName(loc: DirectiveLocationEnum) {
   });
 }
 
-type IndexedObject<V> = { [key: string]: V } | ReadonlyArray<V>;
 
-function each<V>(
-  arrayOrObject: IndexedObject<V>,
-  callback: (value: V, key: string) => void,
-) {
-  Object.keys(arrayOrObject).forEach(key => {
-    callback(arrayOrObject[key], key);
-  });
-}
-
-// A more powerful version of each that has the ability to replace or remove
-// array or object keys.
-function updateEachKey<V>(
-  arrayOrObject: IndexedObject<V>,
-  // The callback can return nothing to leave the key untouched, null to remove
-  // the key from the array or object, or a non-null V to replace the value.
-  callback: (value: V, key: string) => V | void,
-) {
-  let deletedCount = 0;
-
-  Object.keys(arrayOrObject).forEach(key => {
-    const result = callback(arrayOrObject[key], key);
-
-    if (typeof result === 'undefined') {
-      return;
-    }
-
-    if (result === null) {
-      delete arrayOrObject[key];
-      deletedCount++;
-      return;
-    }
-
-    arrayOrObject[key] = result;
-  });
-
-  if (deletedCount > 0 && Array.isArray(arrayOrObject)) {
-    // Remove any holes from the array due to deleted elements.
-    arrayOrObject.splice(0).forEach(elem => {
-      arrayOrObject.push(elem);
-    });
-  }
-}
-
-// Similar to the graphql-js function of the same name, slightly simplified:
-// https://github.com/graphql/graphql-js/blob/master/src/utilities/valueFromASTUntyped.js
-function valueFromASTUntyped(
-  valueNode: ValueNode,
-): any {
-  switch (valueNode.kind) {
-  case Kind.NULL:
-    return null;
-  case Kind.INT:
-    return parseInt(valueNode.value, 10);
-  case Kind.FLOAT:
-    return parseFloat(valueNode.value);
-  case Kind.STRING:
-  case Kind.ENUM:
-  case Kind.BOOLEAN:
-    return valueNode.value;
-  case Kind.LIST:
-    return valueNode.values.map(valueFromASTUntyped);
-  case Kind.OBJECT:
-    const obj = Object.create(null);
-    valueNode.fields.forEach(field => {
-      obj[field.name.value] = valueFromASTUntyped(field.value);
-    });
-    return obj;
-  /* istanbul ignore next */
-  default:
-    throw new Error('Unexpected value kind: ' + valueNode.kind);
-  }
-}
