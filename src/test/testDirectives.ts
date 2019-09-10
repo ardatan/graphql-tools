@@ -595,14 +595,10 @@ describe('@directives', () => {
         const { resolve = defaultFieldResolver } = field;
         const { defaultFormat } = this.args;
 
-        field.args.push({
+        field.args.push(Object.create({
           name: 'format',
           type: GraphQLString,
-          description: undefined,
-          defaultValue: undefined,
-          extensions: undefined,
-          astNode: undefined,
-        });
+        }));
 
         field.type = GraphQLString;
         field.resolve = async function (source, { format, ...args }, context, info) {
@@ -1022,7 +1018,7 @@ describe('@directives', () => {
         uniqueID: class extends SchemaDirectiveVisitor {
           public visitObject(type: GraphQLObjectType) {
             const { name, from } = this.args;
-            type.getFields()[name] = {
+            type.getFields()[name] = Object.create({
               name: name,
               type: GraphQLID,
               description: 'Unique ID',
@@ -1035,8 +1031,7 @@ describe('@directives', () => {
                 });
                 return hash.digest('hex');
               },
-              extensions: undefined,
-            };
+            });
           }
         }
       },
