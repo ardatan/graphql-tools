@@ -64,15 +64,15 @@ export function wrapSchema(
       allowResolversNotInSchema: true,
     },
   });
-  return schema;
+
+  return applySchemaTransforms(schema, transforms);
 }
 
 export default function transformSchema(
   schemaOrSchemaExecutionConfig: GraphQLSchema | SchemaExecutionConfig,
   transforms: Array<Transform>,
 ): GraphQLSchema & { transforms: Array<Transform> } {
-  let schema = wrapSchema(schemaOrSchemaExecutionConfig, transforms);
-  schema = applySchemaTransforms(schema, transforms);
+  const schema = wrapSchema(schemaOrSchemaExecutionConfig, transforms);
   (schema as any).transforms = transforms;
   return schema as GraphQLSchema & { transforms: Array<Transform> };
 }
