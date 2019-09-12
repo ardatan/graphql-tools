@@ -18,11 +18,19 @@ export function cloneDirective(directive: GraphQLDirective): GraphQLDirective {
 
 export function cloneType(type: GraphQLNamedType): GraphQLNamedType {
   if (type instanceof GraphQLObjectType) {
-    return new GraphQLObjectType(type.toConfig());
+    const config = type.toConfig();
+    return new GraphQLObjectType({
+      ...config,
+      interfaces: config.interfaces.slice(),
+    });
   } else if (type instanceof GraphQLInterfaceType) {
     return new GraphQLInterfaceType(type.toConfig());
   } else if (type instanceof GraphQLUnionType) {
-    return new GraphQLUnionType(type.toConfig());
+    const config = type.toConfig();
+    return new GraphQLUnionType({
+      ...config,
+      types: config.types.slice(),
+    });
   } else if (type instanceof GraphQLInputObjectType) {
     return new GraphQLInputObjectType(type.toConfig());
   } else if (type instanceof GraphQLEnumType) {
