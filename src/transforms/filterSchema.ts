@@ -9,8 +9,6 @@ import {
 } from 'graphql';
 import { GraphQLSchemaWithTransforms } from '../Interfaces';
 import { visitSchema, VisitSchemaKind } from './visitSchema';
-import { fieldToFieldConfig, createResolveType } from '../stitching/schemaRecreation';
-import isEmptyObject from '../utils/isEmptyObject';
 
 export type RootFieldFilter = (
   operation: 'Query' | 'Mutation' | 'Subscription',
@@ -75,49 +73,24 @@ function filterRootFields(
   operation: 'Query' | 'Mutation' | 'Subscription',
   rootFieldFilter: RootFieldFilter,
 ): GraphQLObjectType {
-  const resolveType = createResolveType((_, t) => t);
-  const fields = type.getFields();
-  const newFields = {};
-  Object.keys(fields).forEach(fieldName => {
-    if (rootFieldFilter(operation, fieldName)) {
-      newFields[fieldName] = fieldToFieldConfig(fields[fieldName], resolveType, true);
+  const config = type.toConfig();
+  Object.keys(config.fields).forEach(fieldName => {
+    if (!rootFieldFilter(operation, fieldName)) {
+      delete config.fields[fieldName];
     }
   });
-  if (isEmptyObject(newFields)) {
-    return null;
-  } else {
-    return new GraphQLObjectType({
-      name: type.name,
-      description: type.description,
-      astNode: type.astNode,
-      fields: newFields,
-    });
-  }
+  return new GraphQLObjectType(config);
 }
 
 function filterObjectFields(
   type: GraphQLObjectType,
   fieldFilter: FieldFilter,
 ): GraphQLObjectType {
-  const resolveType = createResolveType((_, t) => t);
-  const fields = type.getFields();
-  const interfaces = type.getInterfaces();
-  const newFields = {};
-  Object.keys(fields).forEach(fieldName => {
-    if (fieldFilter(type.name, fieldName)) {
-      newFields[fieldName] = fieldToFieldConfig(fields[fieldName], resolveType, true);
+  const config = type.toConfig();
+  Object.keys(config.fields).forEach(fieldName => {
+    if (!fieldFilter(type.name, fieldName)) {
+      delete config.fields[fieldName];
     }
   });
-  if (isEmptyObject(newFields)) {
-    return null;
-  } else {
-    return new GraphQLObjectType({
-      name: type.name,
-      description: type.description,
-      astNode: type.astNode,
-      isTypeOf: type.isTypeOf,
-      fields: newFields,
-      interfaces: () => interfaces.map(iface => resolveType(iface)),
-    });
-  }
+  return new GraphQLObjectType(config);
 }
