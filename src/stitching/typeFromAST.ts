@@ -22,7 +22,6 @@ import {
   TypeNode,
   UnionTypeDefinitionNode,
   getDescription,
-  GraphQLString,
   GraphQLDirective,
   DirectiveDefinitionNode,
   DirectiveLocationEnum,
@@ -31,6 +30,7 @@ import {
   StringValueNode,
 } from 'graphql';
 import resolveFromParentType from './resolveFromParentTypename';
+import { createNamedStub } from '../utils/stub';
 
 const backcompatOptions = { commentDescriptions: true };
 
@@ -201,35 +201,6 @@ function resolveType(
     default:
       return createNamedStub(node.name.value, type);
   }
-}
-
-function createNamedStub(
-  name: string,
-  type: 'object' | 'interface' | 'input'
-): GraphQLObjectType | GraphQLInputObjectType | GraphQLInterfaceType {
-  let constructor: any;
-  if (type === 'object') {
-    constructor = GraphQLObjectType;
-  } else if (type === 'interface') {
-    constructor = GraphQLInterfaceType;
-  } else {
-    constructor = GraphQLInputObjectType;
-  }
-
-  return new constructor({
-    name,
-    fields: {
-      __fake: {
-        type: GraphQLString,
-      },
-    },
-  });
-}
-
-export function isStub(type: GraphQLObjectType | GraphQLInputObjectType | GraphQLInterfaceType): boolean {
-  const fields = type.getFields();
-  const fieldNames = Object.keys(fields);
-  return fieldNames.length === 1 && fields[fieldNames[0]].name === '__fake';
 }
 
 function makeDirective(node: DirectiveDefinitionNode): GraphQLDirective {

@@ -36,7 +36,7 @@ import isSpecifiedScalarType from '../utils/isSpecifiedScalarType';
 import { ResolveType } from '../Interfaces';
 import resolveFromParentTypename from './resolveFromParentTypename';
 import defaultMergedResolver from './defaultMergedResolver';
-import { isStub } from './typeFromAST';
+import { isStub } from '../utils/stub';
 import {
   serializeInputValue,
   parseInputValue,
