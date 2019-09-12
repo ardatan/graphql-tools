@@ -42,7 +42,7 @@ export type TypeVisitor = (
 export function visitSchema(
   schema: GraphQLSchema,
   visitor: SchemaVisitor,
-  wrap?: boolean,
+  wrap?: boolean, // deprecated, use wrapSchema
 ) {
   const types: { [key: string]: GraphQLNamedType } = {};
 
