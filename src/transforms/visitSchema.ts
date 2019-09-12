@@ -9,9 +9,13 @@ import {
   GraphQLUnionType,
   GraphQLNamedType,
   isNamedType,
-  getNamedType,
 } from 'graphql';
-import { recreateType, recreateDirective, createResolveType } from '../stitching/schemaRecreation';
+import {
+  cloneType,
+  cloneDirective,
+  healTypeMap,
+} from '../utils';
+import { stripResolvers } from './transformSchema';
 
 export enum VisitSchemaKind {
   TYPE = 'VisitSchemaKind.TYPE',
@@ -33,59 +37,58 @@ export type SchemaVisitor = { [key: string]: TypeVisitor };
 export type TypeVisitor = (
   type: GraphQLType,
   schema: GraphQLSchema,
-) => GraphQLNamedType;
+) => GraphQLNamedType | null | undefined;
 
 export function visitSchema(
   schema: GraphQLSchema,
   visitor: SchemaVisitor,
-  stripResolvers?: boolean,
+  wrap?: boolean,
 ) {
-  const types: {[key: string]: GraphQLNamedType} = {};
-  const resolveType = createResolveType(name => {
-    if (typeof types[name] === 'undefined') {
-      throw new Error(`Can't find type ${name}.`);
-    }
-    return types[name];
-  });
+  const types: { [key: string]: GraphQLNamedType } = {};
+
   const queryType = schema.getQueryType();
   const mutationType = schema.getMutationType();
   const subscriptionType = schema.getSubscriptionType();
+
   const typeMap = schema.getTypeMap();
   Object.keys(typeMap).map((typeName: string) => {
     const type = typeMap[typeName];
-    if (isNamedType(type) && getNamedType(type).name.slice(0, 2) !== '__') {
+    if (isNamedType(type) && type.name.slice(0, 2) !== '__') {
       const specifiers = getTypeSpecifiers(type, schema);
       const typeVisitor = getVisitor(visitor, specifiers);
       if (typeVisitor) {
-        const result: GraphQLNamedType | null | undefined = typeVisitor(
-          type,
-          schema,
-        );
+        const result = typeVisitor(type, schema);
         if (typeof result === 'undefined') {
-          types[typeName] = recreateType(type, resolveType, !stripResolvers);
+          types[typeName] = cloneType(type);
         } else if (result === null) {
           types[typeName] = null;
         } else {
-          types[typeName] = recreateType(result, resolveType, !stripResolvers);
+          types[typeName] = cloneType(result);
         }
-      } else {
-        types[typeName] = recreateType(type, resolveType, !stripResolvers);
+    } else {
+        types[typeName] = cloneType(type);
       }
     }
   });
 
-  return new GraphQLSchema({
+  const directives = schema.getDirectives().map(d => cloneDirective(d));
+
+  healTypeMap(types, directives);
+
+  const newSchema = new GraphQLSchema({
+    ...schema.toConfig(),
     query: queryType ? (types[queryType.name] as GraphQLObjectType) : null,
-    mutation: mutationType
-      ? (types[mutationType.name] as GraphQLObjectType)
-      : null,
-    subscription: subscriptionType
-      ? (types[subscriptionType.name] as GraphQLObjectType)
-      : null,
+    mutation: mutationType ? (types[mutationType.name] as GraphQLObjectType) : null,
+    subscription: subscriptionType ? (types[subscriptionType.name] as GraphQLObjectType) : null,
     types: Object.keys(types).map(name => types[name]),
-    directives: [...schema.getDirectives().map(d => recreateDirective(d, resolveType))],
-    astNode: schema.astNode,
+    directives,
   });
+
+  if (wrap) {
+    stripResolvers(newSchema);
+  }
+
+  return newSchema;
 }
 
 function getTypeSpecifiers(

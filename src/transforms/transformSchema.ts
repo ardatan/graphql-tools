@@ -18,8 +18,9 @@ import {
 import resolveFromParentTypename from '../stitching/resolveFromParentTypename';
 import { defaultMergedResolver } from '../stitching';
 import { cloneSchema } from '../utils/cloneSchema';
+import { visitSchema } from './visitSchema';
 
-function stripResolvers(schema: GraphQLSchema): void {
+export function stripResolvers(schema: GraphQLSchema): void {
   const typeMap = schema.getTypeMap();
   Object.keys(typeMap).forEach(typeName => {
     if (typeName.startsWith('__')) {
@@ -48,8 +49,7 @@ export function wrapSchema(
   const targetSchema: GraphQLSchema = isSchemaExecutionConfig(schemaOrSchemaExecutionConfig) ?
     schemaOrSchemaExecutionConfig.schema : schemaOrSchemaExecutionConfig;
 
-  const schema = cloneSchema(targetSchema);
-  stripResolvers(schema);
+  const schema = visitSchema(targetSchema, {}, true);
 
   const mapping = generateSimpleMapping(targetSchema);
   const resolvers = generateProxyingResolvers(
