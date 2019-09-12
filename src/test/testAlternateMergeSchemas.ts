@@ -44,6 +44,7 @@ import {
   extractFields,
 } from '../stitching';
 import { SchemaExecutionConfig } from '../Interfaces';
+import isSpecifiedScalarType from '../utils/isSpecifiedScalarType';
 
 function renameFieldNode(fieldNode: FieldNode, name: string): FieldNode {
   return {
@@ -428,8 +429,8 @@ describe('filter and rename object fields', () => {
         'Query.propertyById' === `${operation}.${fieldName}`,
       fieldFilter: (typeName: string, fieldName: string) =>
         (typeName === 'New_Property' || fieldName === 'name'),
-      typeFilter: (typeName: string) =>
-        (typeName === 'New_Property' || typeName === 'New_Location')
+      typeFilter: (typeName: string, type) =>
+        (typeName === 'New_Property' || typeName === 'New_Location' || isSpecifiedScalarType(type))
     });
   });
 

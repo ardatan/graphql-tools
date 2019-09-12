@@ -5,6 +5,7 @@ import {
   GraphQLObjectType,
   GraphQLScalarType,
   GraphQLUnionType,
+  GraphQLType,
 } from 'graphql';
 import { GraphQLSchemaWithTransforms } from '../Interfaces';
 import { visitSchema, VisitSchemaKind } from './visitSchema';
@@ -29,40 +30,38 @@ export default function filterSchema({
 }: {
   schema: GraphQLSchemaWithTransforms;
   rootFieldFilter?: RootFieldFilter;
-  typeFilter?: (typeName: string) => boolean;
+  typeFilter?: (typeName: string, type: GraphQLType) => boolean;
   fieldFilter?: (typeName: string, fieldName: string) => boolean;
 }): GraphQLSchemaWithTransforms {
   const filteredSchema: GraphQLSchemaWithTransforms = visitSchema(schema, {
     [VisitSchemaKind.QUERY]: (type: GraphQLObjectType) => {
-      return rootFieldFilter ? filterRootFields(type, 'Query', rootFieldFilter) : undefined;
+      return filterRootFields(type, 'Query', rootFieldFilter);
     },
     [VisitSchemaKind.MUTATION]: (type: GraphQLObjectType) => {
-      return rootFieldFilter ? filterRootFields(type, 'Mutation', rootFieldFilter) : undefined;
+      return filterRootFields(type, 'Mutation', rootFieldFilter);
     },
     [VisitSchemaKind.SUBSCRIPTION]: (type: GraphQLObjectType) => {
-      return rootFieldFilter ? filterRootFields(type, 'Subscription', rootFieldFilter) : undefined;
+      return filterRootFields(type, 'Subscription', rootFieldFilter);
     },
     [VisitSchemaKind.OBJECT_TYPE]: (type: GraphQLObjectType) => {
-      return (!typeFilter || typeFilter(type.name)) ?
-        (filterObjectFields ?
-          filterObjectFields(type, fieldFilter) :
-          undefined) :
+      return (typeFilter(type.name, type)) ?
+        filterObjectFields(type, fieldFilter) :
         null;
     },
     [VisitSchemaKind.INTERFACE_TYPE]: (type: GraphQLInterfaceType) => {
-      return (!typeFilter || typeFilter(type.name)) ? undefined : null;
+      return typeFilter(type.name, type) ? undefined : null;
     },
     [VisitSchemaKind.UNION_TYPE]: (type: GraphQLUnionType) => {
-      return (!typeFilter || typeFilter(type.name)) ? undefined : null;
+      return typeFilter(type.name, type) ? undefined : null;
     },
     [VisitSchemaKind.INPUT_OBJECT_TYPE]: (type: GraphQLInputObjectType) => {
-      return (!typeFilter || typeFilter(type.name)) ? undefined : null;
+      return typeFilter(type.name, type) ? undefined : null;
     },
     [VisitSchemaKind.ENUM_TYPE]: (type: GraphQLEnumType) => {
-      return (!typeFilter || typeFilter(type.name)) ? undefined : null;
+      return typeFilter(type.name, type) ? undefined : null;
     },
     [VisitSchemaKind.SCALAR_TYPE]: (type: GraphQLScalarType) => {
-      return (!typeFilter || typeFilter(type.name)) ? undefined : null;
+      return typeFilter(type.name, type) ? undefined : null;
     },
   });
 
