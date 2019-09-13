@@ -28,12 +28,6 @@ import {
   extractExtensionDefinitions,
   addResolveFunctionsToSchema,
 } from '../makeExecutableSchema';
-import {
-  recreateType,
-  recreateDirective,
-  fieldMapToFieldConfigMap,
-  createResolveType,
-} from './schemaRecreation';
 import delegateToSchema from './delegateToSchema';
 import delegateToRemoteSchema from './delegateToRemoteSchema';
 import typeFromAST from './typeFromAST';
@@ -43,7 +37,9 @@ import {
   ReplaceFieldWithFragment,
 } from '../transforms';
 import mergeDeep from '../utils/mergeDeep';
-import { SchemaDirectiveVisitor } from '../schemaVisitor';
+import { SchemaDirectiveVisitor, healSchema } from '../schemaVisitor';
+import { cloneDirective, cloneType, healTypeMap } from '../utils';
+import { makeMergedType } from './makeMergedType';
 
 type MergeTypeCandidate = {
   schema?: GraphQLSchema;
@@ -87,13 +83,6 @@ export default function mergeSchemas({
     field: string;
     fragment: string;
   }> = [];
-
-  const resolveType = createResolveType(name => {
-    if (types[name] === undefined) {
-      throw new Error(`Can't find type ${name}.`);
-    }
-    return types[name];
-  });
 
   schemas.forEach(schemaOrSchemaExecutionConfig => {
     let schema: string | GraphQLSchema | SchemaExecutionConfig | DocumentNode | Array<GraphQLNamedType>;
@@ -227,11 +216,13 @@ export default function mergeSchemas({
     } else {
       throw new Error(`Invalid mergeTypeCandidates result for type ${typeName}`);
     }
-    types[typeName] = recreateType(type, resolveType, false);
+    types[typeName] = type;
     if (typeResolvers !== undefined) {
       generatedResolvers[typeName] = typeResolvers;
     }
   });
+
+  healTypeMap(types, directives, { skipPruning: true });
 
   let mergedSchema = new GraphQLSchema({
     query: types.Query as GraphQLObjectType,
@@ -239,7 +230,7 @@ export default function mergeSchemas({
     subscription: types.Subscription as GraphQLObjectType,
     types: Object.keys(types).map(key => types[key]),
     directives: directives.length ?
-      directives.map((directive) => recreateDirective(directive, resolveType)) :
+      directives.map((directive) => cloneDirective(directive)) :
       undefined
   });
 
@@ -300,6 +291,8 @@ export default function mergeSchemas({
       schemaDirectives,
     );
   }
+
+  healSchema(mergedSchema);
 
   return mergedSchema;
 }
@@ -481,7 +474,6 @@ function mergeTypeCandidates(
   if (!candidateSelector) {
     candidateSelector = cands => cands[cands.length - 1];
   }
-  const resolveType = createResolveType((_, type) => type);
   if (name === 'Query' || name === 'Mutation' || name === 'Subscription') {
     let fields = {};
     let operationName: 'query' | 'mutation' | 'subscription';
@@ -502,7 +494,7 @@ function mergeTypeCandidates(
     const resolverKey =
       operationName === 'subscription' ? 'subscribe' : 'resolve';
     candidates.forEach(({ type: candidateType, schema, executionConfig }) => {
-      const candidateFields = (candidateType as GraphQLObjectType).getFields();
+      const candidateFields = (candidateType as GraphQLObjectType).toConfig().fields;
       fields = { ...fields, ...candidateFields };
       Object.keys(candidateFields).forEach(fieldName => {
         resolvers[fieldName] = {
@@ -517,7 +509,7 @@ function mergeTypeCandidates(
     });
     const type = new GraphQLObjectType({
       name,
-      fields: fieldMapToFieldConfigMap(fields, resolveType, false),
+      fields,
     });
     return {
       type,
@@ -525,8 +517,10 @@ function mergeTypeCandidates(
     };
   } else {
     const candidate = candidateSelector(candidates);
+    const type = cloneType(candidate.type);
+    makeMergedType(type);
     return {
-      type: candidate.type,
+      type,
       candidate
     };
   }

@@ -1,9 +1,4 @@
-import {
-  GraphQLInterfaceType,
-  GraphQLObjectType,
-  GraphQLSchema,
-  GraphQLUnionType,
-} from 'graphql';
+import { GraphQLSchema } from 'graphql';
 import { addResolveFunctionsToSchema } from '../makeExecutableSchema';
 
 import { Transform, applySchemaTransforms } from '../transforms/transforms';
@@ -15,28 +10,15 @@ import {
   SchemaExecutionConfig,
   isSchemaExecutionConfig,
 } from '../Interfaces';
-import resolveFromParentTypename from '../stitching/resolveFromParentTypename';
-import { defaultMergedResolver } from '../stitching';
+
 import { cloneSchema } from '../utils/cloneSchema';
+import { makeMergedType } from '../stitching/makeMergedType';
 
 export function stripResolvers(schema: GraphQLSchema): void {
   const typeMap = schema.getTypeMap();
   Object.keys(typeMap).forEach(typeName => {
-    if (typeName.startsWith('__')) {
-      return;
-    }
-
-    const type = typeMap[typeName];
-    if (type instanceof GraphQLObjectType) {
-      type.isTypeOf = undefined;
-
-      const fieldMap = type.getFields();
-      Object.keys(fieldMap).forEach(fieldName => {
-        fieldMap[fieldName].resolve = defaultMergedResolver;
-        fieldMap[fieldName].subscribe = null;
-      });
-    } else if (type instanceof GraphQLInterfaceType || type instanceof GraphQLUnionType) {
-      type.resolveType = (parent, context, info) => resolveFromParentTypename(parent, info.schema);
+    if (!typeName.startsWith('__')) {
+      makeMergedType(typeMap[typeName]);
     }
   });
 }

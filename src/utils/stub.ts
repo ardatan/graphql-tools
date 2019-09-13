@@ -3,6 +3,11 @@ import {
   GraphQLInterfaceType,
   GraphQLInputObjectType,
   GraphQLString,
+  GraphQLNamedType,
+  GraphQLInt,
+  GraphQLFloat,
+  GraphQLBoolean,
+  GraphQLID,
 } from 'graphql';
 
 export function createNamedStub(
@@ -28,8 +33,33 @@ export function createNamedStub(
   });
 }
 
-export function isStub(type: GraphQLObjectType | GraphQLInputObjectType | GraphQLInterfaceType): boolean {
-  const fields = type.getFields();
-  const fieldNames = Object.keys(fields);
-  return fieldNames.length === 1 && fields[fieldNames[0]].name === '__fake';
+export function isStub(type: GraphQLNamedType): boolean {
+  if (
+    type instanceof GraphQLObjectType ||
+    type instanceof GraphQLInterfaceType ||
+    type instanceof GraphQLInterfaceType
+  ) {
+    const fields = type.getFields();
+    const fieldNames = Object.keys(fields);
+    return fieldNames.length === 1 && fields[fieldNames[0]].name === '__fake';
+  }
+
+  return false;
+}
+
+export function getBuiltInForStub(type: GraphQLNamedType): GraphQLNamedType {
+  switch (type.name) {
+    case GraphQLInt.name:
+      return GraphQLInt;
+    case GraphQLFloat.name:
+      return GraphQLFloat;
+    case GraphQLString.name:
+      return GraphQLString;
+    case GraphQLBoolean.name:
+      return GraphQLBoolean;
+    case GraphQLID.name:
+      return GraphQLID;
+    default:
+      return type;
+    }
 }

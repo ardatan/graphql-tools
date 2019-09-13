@@ -10,11 +10,12 @@ import {
   GraphQLScalarType,
   GraphQLType,
   GraphQLUnionType,
-  isNamedType
+  isNamedType,
 } from 'graphql';
 import each from './each';
 import updateEachKey from './updateEachKey';
 import { VisitableSchemaType } from '../schemaVisitor';
+import { isStub, getBuiltInForStub } from './stub';
 
 type NamedTypeMap = {
   [key: string]: GraphQLNamedType;
@@ -22,7 +23,15 @@ type NamedTypeMap = {
 
 const hasOwn = Object.prototype.hasOwnProperty;
 
-export function healTypeMap(originalTypeMap: NamedTypeMap, directives: ReadonlyArray<GraphQLDirective>) {
+export function healTypeMap(
+  originalTypeMap: NamedTypeMap,
+  directives: ReadonlyArray<GraphQLDirective>,
+  config: {
+    skipPruning: boolean;
+  } = {
+    skipPruning: false,
+  }
+) {
   const actualNamedTypeMap: NamedTypeMap = Object.create(null);
 
   // If any of the .name properties of the GraphQLNamedType objects in
@@ -83,7 +92,9 @@ export function healTypeMap(originalTypeMap: NamedTypeMap, directives: ReadonlyA
     }
   });
 
-  pruneTypeMap(originalTypeMap, directives);
+  if (!config.skipPruning) {
+    pruneTypeMap(originalTypeMap, directives);
+  }
 
   function heal(type: VisitableSchemaType) {
     if (type instanceof GraphQLObjectType) {
@@ -156,13 +167,16 @@ export function healTypeMap(originalTypeMap: NamedTypeMap, directives: ReadonlyA
       // of truth for all named schema types.
       // Note that new types can still be simply added by adding a field, as
       // the official type will be undefined, not null.
-      const officialType = originalTypeMap[type.name];
+      let officialType = originalTypeMap[type.name];
       if (officialType === undefined) {
-        originalTypeMap[type.name] = type;
-        return type;
-      } else {
-        return officialType as T;
+        if (isStub(type)) {
+          officialType = getBuiltInForStub(type);
+        } else {
+          officialType = type;
+        }
+        originalTypeMap[type.name] = officialType;
       }
+      return officialType as T;
     } else {
       return null;
     }
@@ -189,8 +203,8 @@ function pruneTypeMap(typeMap: NamedTypeMap, directives: ReadonlyArray<GraphQLDi
       // prune unions without underlying types
       shouldPrune = !type.getTypes().length;
     } else if (type instanceof GraphQLInterfaceType) {
-      // prune interfaces without implementations
-      shouldPrune = !implementedInterfaces[type.name];
+      // prune interfaces without fields or without implementations
+      shouldPrune = !Object.keys(type.getFields()).length || !implementedInterfaces[type.name];
     }
 
     if (shouldPrune) {
