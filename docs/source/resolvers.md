@@ -94,6 +94,16 @@ You don't need to specify resolvers for _every_ type in your schema. If you don'
 
 So, in the example query above, the `name` and `title` fields wouldn't need a resolver if the Post and Author objects retrieved from the backend already had those fields.
 
+### Class method resolvers
+
+When returning an object or a class instance from a parent resolver, we are implicitly relying the GraphQL.js default resolver logic described above to execute the child resolvers. As such, class method resolvers have the following interface:
+
+```js
+class Type {
+    fieldName(args, context, info) { result }
+}
+```
+
 ## Unions and interfaces
 
 Unions and interfaces are great when you have fields that are in common between two types.
