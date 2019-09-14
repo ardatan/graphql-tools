@@ -9,7 +9,7 @@ import {
   GraphQLSchema,
   GraphQLUnionType,
 } from 'graphql';
-import { healTypeMap } from './healTypeMap';
+import { healTypes } from './healTypes';
 import isSpecifiedScalarType from './isSpecifiedScalarType';
 
 export function cloneDirective(directive: GraphQLDirective): GraphQLDirective {
@@ -54,7 +54,7 @@ export function cloneSchema(schema: GraphQLSchema): GraphQLSchema {
     }
   });
 
-  healTypeMap(newTypeMap, newDirectives);
+  healTypes(newTypeMap, newDirectives);
 
   const selectors = {
     query: 'getQueryType',

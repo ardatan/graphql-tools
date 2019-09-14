@@ -38,7 +38,7 @@ import {
 } from '../transforms';
 import mergeDeep from '../utils/mergeDeep';
 import { SchemaDirectiveVisitor, healSchema } from '../schemaVisitor';
-import { cloneDirective, cloneType, healTypeMap } from '../utils';
+import { cloneDirective, cloneType, healTypes } from '../utils';
 import { makeMergedType } from './makeMergedType';
 
 type MergeTypeCandidate = {
@@ -222,7 +222,7 @@ export default function mergeSchemas({
     }
   });
 
-  healTypeMap(types, directives, { skipPruning: true });
+  healTypes(types, directives, { skipPruning: true });
 
   let mergedSchema = new GraphQLSchema({
     query: types.Query as GraphQLObjectType,

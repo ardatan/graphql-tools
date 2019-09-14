@@ -13,7 +13,7 @@ import {
 import {
   cloneType,
   cloneDirective,
-  healTypeMap,
+  healTypes,
 } from '../utils';
 import { stripResolvers } from './transformSchema';
 
@@ -73,7 +73,7 @@ export function visitSchema(
 
   const directives = schema.getDirectives().map(d => cloneDirective(d));
 
-  healTypeMap(types, directives);
+  healTypes(types, directives);
 
   const newSchema = new GraphQLSchema({
     ...schema.toConfig(),

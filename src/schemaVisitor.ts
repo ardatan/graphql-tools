@@ -20,7 +20,7 @@ import {
 } from 'graphql/execution/values';
 import each from './utils/each';
 import valueFromASTUntyped from './utils/valueFromASTUntyped';
-import { healTypeMap } from './utils/healTypeMap';
+import { healTypes } from './utils/healTypes';
 import updateEachKey from './utils/updateEachKey';
 
 export type VisitableSchemaType =
@@ -294,7 +294,7 @@ export function visitSchema(
 // Update any references to named schema types that disagree with the named
 // types found in schema.getTypeMap().
 export function healSchema(schema: GraphQLSchema): GraphQLSchema {
-  healTypeMap(schema.getTypeMap(), schema.getDirectives());
+  healTypes(schema.getTypeMap(), schema.getDirectives());
   return schema;
 }
 

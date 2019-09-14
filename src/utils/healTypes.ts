@@ -23,7 +23,7 @@ type NamedTypeMap = {
 
 const hasOwn = Object.prototype.hasOwnProperty;
 
-export function healTypeMap(
+export function healTypes(
   originalTypeMap: NamedTypeMap,
   directives: ReadonlyArray<GraphQLDirective>,
   config: {
@@ -215,6 +215,6 @@ function pruneTypeMap(typeMap: NamedTypeMap, directives: ReadonlyArray<GraphQLDi
 
   // every prune requires another round of healing
   if (prunedTypeMap) {
-    healTypeMap(typeMap, directives);
+    healTypes(typeMap, directives);
   }
 }
