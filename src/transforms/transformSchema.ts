@@ -11,7 +11,7 @@ import {
   isSchemaExecutionConfig,
 } from '../Interfaces';
 
-import { cloneSchema } from '../utils/cloneSchema';
+import { cloneSchema } from '../utils/clone';
 import { makeMergedType } from '../stitching/makeMergedType';
 
 export function stripResolvers(schema: GraphQLSchema): void {

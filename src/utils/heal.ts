@@ -11,10 +11,11 @@ import {
   GraphQLType,
   GraphQLUnionType,
   isNamedType,
+  GraphQLSchema,
 } from 'graphql';
 import each from './each';
 import updateEachKey from './updateEachKey';
-import { VisitableSchemaType } from '../schemaVisitor';
+import { VisitableSchemaType } from '../Interfaces';
 import { isStub, getBuiltInForStub } from './stub';
 
 type NamedTypeMap = {
@@ -22,6 +23,13 @@ type NamedTypeMap = {
 };
 
 const hasOwn = Object.prototype.hasOwnProperty;
+
+// Update any references to named schema types that disagree with the named
+// types found in schema.getTypeMap().
+export function healSchema(schema: GraphQLSchema): GraphQLSchema {
+  healTypes(schema.getTypeMap(), schema.getDirectives());
+  return schema;
+}
 
 export function healTypes(
   originalTypeMap: NamedTypeMap,

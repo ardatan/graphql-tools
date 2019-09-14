@@ -37,8 +37,9 @@ import {
   ReplaceFieldWithFragment,
 } from '../transforms';
 import mergeDeep from '../utils/mergeDeep';
-import { SchemaDirectiveVisitor, healSchema } from '../schemaVisitor';
-import { cloneDirective, cloneType, healTypes } from '../utils';
+import { SchemaDirectiveVisitor } from '../utils/SchemaDirectiveVisitor';
+import { cloneDirective, cloneType } from '../utils/clone';
+import { healSchema, healTypes } from '../utils/heal';
 import { makeMergedType } from './makeMergedType';
 
 type MergeTypeCandidate = {

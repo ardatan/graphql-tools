@@ -9,7 +9,7 @@ import {
   GraphQLSchema,
   GraphQLUnionType,
 } from 'graphql';
-import { healTypes } from './healTypes';
+import { healTypes } from './heal';
 import isSpecifiedScalarType from './isSpecifiedScalarType';
 
 export function cloneDirective(directive: GraphQLDirective): GraphQLDirective {

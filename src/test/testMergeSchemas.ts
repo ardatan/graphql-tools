@@ -26,7 +26,7 @@ import {
   subscriptionPubSub,
   subscriptionPubSubTrigger,
 } from './testingSchemas';
-import { SchemaDirectiveVisitor } from '../schemaVisitor';
+import { SchemaDirectiveVisitor } from '../utils/SchemaDirectiveVisitor';
 import { forAwaitEach } from 'iterall';
 import { makeExecutableSchema } from '../makeExecutableSchema';
 import {

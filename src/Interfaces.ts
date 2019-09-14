@@ -11,10 +11,17 @@ import {
   GraphQLTypeResolver,
   GraphQLScalarType,
   DocumentNode,
-  ASTNode,
+  GraphQLEnumValue,
+  GraphQLEnumType,
+  GraphQLUnionType,
+  GraphQLArgument,
+  GraphQLInputField,
+  GraphQLInputObjectType,
+  GraphQLInterfaceType,
+  GraphQLObjectType,
 } from 'graphql';
 
-import { SchemaDirectiveVisitor } from './schemaVisitor';
+import { SchemaDirectiveVisitor } from './utils/SchemaDirectiveVisitor';
 
 import { ApolloLink } from 'apollo-link';
 
@@ -137,7 +144,7 @@ export type IFieldResolver<TSource, TContext, TArgs = Record<string, any>> = (
   info: GraphQLResolveInfo & { mergeInfo: MergeInfo },
 ) => any;
 
-export type ITypedef = (() => ITypedef[]) | string | DocumentNode | ASTNode;
+export type ITypedef = (() => ITypedef[]) | string | DocumentNode;
 export type ITypeDefinitions = ITypedef | ITypedef[];
 export type IResolverObject<TSource = any, TContext = any, TArgs = any> = {
   [key: string]:
@@ -269,3 +276,17 @@ export type GraphQLParseOptions = {
 };
 
 export type IndexedObject<V> = { [key: string]: V } | ReadonlyArray<V>;
+
+export type VisitableSchemaType =
+    GraphQLSchema
+  | GraphQLObjectType
+  | GraphQLInterfaceType
+  | GraphQLInputObjectType
+  | GraphQLNamedType
+  | GraphQLScalarType
+  | GraphQLField<any, any>
+  | GraphQLInputField
+  | GraphQLArgument
+  | GraphQLUnionType
+  | GraphQLEnumType
+  | GraphQLEnumValue;

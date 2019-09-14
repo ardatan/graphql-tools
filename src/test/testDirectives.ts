@@ -1,13 +1,9 @@
 import { assert } from 'chai';
-import {
-  makeExecutableSchema,
-} from '../makeExecutableSchema';
-import {
-  VisitableSchemaType,
-  SchemaDirectiveVisitor,
-  SchemaVisitor,
-  visitSchema,
-} from '../schemaVisitor';
+import { makeExecutableSchema } from '../makeExecutableSchema';
+import { VisitableSchemaType } from '../Interfaces';
+import { SchemaDirectiveVisitor } from '../utils/SchemaDirectiveVisitor';
+import { SchemaVisitor } from '../utils/SchemaVisitor';
+import { visitSchema } from '../utils/visitSchema';
 import {
   ExecutionResult,
   GraphQLArgument,

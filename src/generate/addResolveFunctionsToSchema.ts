@@ -21,7 +21,7 @@ import extendResolversFromInterfaces from './extendResolversFromInterfaces';
 import forEachField from './forEachField';
 import forEachDefaultValue from './forEachDefaultValue';
 import { parseInputValue, serializeInputValue } from '../utils/transformInputValue';
-import { healSchema } from '../schemaVisitor';
+import { healSchema } from '../utils/heal';
 
 function addResolveFunctionsToSchema(
   options: IAddResolveFunctionsToSchemaOptions | GraphQLSchema,
