@@ -7,7 +7,8 @@ import {
 } from 'graphql';
 import isEmptyObject from '../utils/isEmptyObject';
 import { Transform } from './transforms';
-import { visitSchema, VisitSchemaKind } from './visitSchema';
+import { visitSchema } from '../utils/visitSchema';
+import { VisitSchemaKind } from '../Interfaces';
 import {
   createResolveType,
   fieldToFieldConfig,

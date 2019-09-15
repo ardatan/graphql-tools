@@ -7,8 +7,8 @@ import {
   GraphQLUnionType,
   GraphQLType,
 } from 'graphql';
-import { GraphQLSchemaWithTransforms } from '../Interfaces';
-import { visitSchema, VisitSchemaKind } from './visitSchema';
+import { GraphQLSchemaWithTransforms, VisitSchemaKind } from '../Interfaces';
+import { visitSchema } from '../utils/visitSchema';
 
 export type RootFieldFilter = (
   operation: 'Query' | 'Mutation' | 'Subscription',

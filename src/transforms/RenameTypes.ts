@@ -7,9 +7,9 @@ import {
   GraphQLScalarType,
 } from 'graphql';
 import isSpecifiedScalarType from '../utils/isSpecifiedScalarType';
-import { Request, Result } from '../Interfaces';
+import { Request, Result, VisitSchemaKind } from '../Interfaces';
 import { Transform } from '../transforms/transforms';
-import { visitSchema, VisitSchemaKind } from '../transforms/visitSchema';
+import { visitSchema } from '../utils/visitSchema';
 
 export type RenameOptions = {
   renameBuiltins: boolean;

@@ -22,6 +22,7 @@ import {
 } from 'graphql';
 
 import { SchemaDirectiveVisitor } from './utils/SchemaDirectiveVisitor';
+import { SchemaVisitor } from './utils/SchemaVisitor';
 
 import { ApolloLink } from 'apollo-link';
 
@@ -290,3 +291,31 @@ export type VisitableSchemaType =
   | GraphQLUnionType
   | GraphQLEnumType
   | GraphQLEnumValue;
+
+export type VisitorSelector = (
+  type: VisitableSchemaType,
+  methodName: string,
+) => Array<SchemaVisitor | SchemaVisitorMap>;
+
+export enum VisitSchemaKind {
+  TYPE = 'VisitSchemaKind.TYPE',
+  SCALAR_TYPE = 'VisitSchemaKind.SCALAR_TYPE',
+  ENUM_TYPE = 'VisitSchemaKind.ENUM_TYPE',
+  COMPOSITE_TYPE = 'VisitSchemaKind.COMPOSITE_TYPE',
+  OBJECT_TYPE = 'VisitSchemaKind.OBJECT_TYPE',
+  INPUT_OBJECT_TYPE = 'VisitSchemaKind.INPUT_OBJECT_TYPE',
+  ABSTRACT_TYPE = 'VisitSchemaKind.ABSTRACT_TYPE',
+  UNION_TYPE = 'VisitSchemaKind.UNION_TYPE',
+  INTERFACE_TYPE = 'VisitSchemaKind.INTERFACE_TYPE',
+  ROOT_OBJECT = 'VisitSchemaKind.ROOT_OBJECT',
+  QUERY = 'VisitSchemaKind.QUERY',
+  MUTATION = 'VisitSchemaKind.MUTATION',
+  SUBSCRIPTION = 'VisitSchemaKind.SUBSCRIPTION',
+}
+
+// I couldn't make keys to be forced to be enum values
+export type SchemaVisitorMap = { [key: string]: TypeVisitor };
+export type TypeVisitor = (
+  type: GraphQLType,
+  schema: GraphQLSchema,
+) => GraphQLNamedType | null | undefined;

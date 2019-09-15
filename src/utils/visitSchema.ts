@@ -6,12 +6,16 @@ import {
   GraphQLScalarType,
   GraphQLSchema,
   GraphQLUnionType,
+  isNamedType,
+  GraphQLType,
 } from 'graphql';
 
 import updateEachKey from './updateEachKey';
-import { VisitableSchemaType } from '../Interfaces';
-import { SchemaVisitor } from './SchemaVisitor';
+import { VisitableSchemaType, VisitorSelector, VisitSchemaKind, SchemaVisitorMap, TypeVisitor } from '../Interfaces';
 import { healSchema } from './heal';
+import { SchemaVisitor } from './SchemaVisitor';
+import each from './each';
+import { cloneSchema } from './clone';
 
 // Generic function for visiting GraphQLSchema objects.
 export function visitSchema(
@@ -29,11 +33,17 @@ export function visitSchema(
   // applied to the given VisitableSchemaType object. For an example of a
   // visitor pattern that benefits from this abstraction, see the
   // SchemaDirectiveVisitor class below.
-  visitorSelector: (
-    type: VisitableSchemaType,
-    methodName: string,
-  ) => SchemaVisitor[],
+  visitorOrVisitorSelector:
+    VisitorSelector |
+    Array<SchemaVisitor | SchemaVisitorMap> |
+    SchemaVisitorMap |
+    SchemaVisitorMap,
 ): GraphQLSchema {
+  const visitorSelector =
+    typeof visitorOrVisitorSelector === 'function' ?
+      visitorOrVisitorSelector :
+      () => visitorOrVisitorSelector;
+
   // Helper function that calls visitorSelector and applies the resulting
   // visitors to the given type, with arguments [type, ...args].
   function callMethod<T extends VisitableSchemaType>(
@@ -41,8 +51,26 @@ export function visitSchema(
     type: T,
     ...args: any[]
   ): T {
-    visitorSelector(type, methodName).every(visitor => {
-      const newType = visitor[methodName](type, ...args);
+    let visitors = visitorSelector(type, methodName);
+    visitors = Array.isArray(visitors) ? visitors : [visitors];
+
+    visitors.every(visitorOrVisitorDef => {
+      let newType;
+      if (visitorOrVisitorDef instanceof SchemaVisitor) {
+        newType = visitorOrVisitorDef[methodName](type, ...args);
+      } else if (
+        isNamedType(type) && (
+          methodName === 'visitScalar' ||
+          methodName === 'visitEnum' ||
+          methodName === 'visitObject' ||
+          methodName === 'visitInputObject' ||
+          methodName === 'visitUnion' ||
+          methodName === 'visitInterface'
+        )) {
+        const specifiers = getTypeSpecifiers(type, schema);
+        const typeVisitor = getVisitor(visitorOrVisitorDef, specifiers);
+        newType = typeVisitor ? typeVisitor(type, schema) : undefined;
+      }
 
       if (typeof newType === 'undefined') {
         // Keep going without modifying type.
@@ -82,13 +110,14 @@ export function visitSchema(
       // for SchemaVisitor subclasses that rely on the original schema object.
       callMethod('visitSchema', type);
 
-      updateEachKey(type.getTypeMap(), (namedType, typeName) => {
+      each(type.getTypeMap(), (namedType, typeName) => {
         if (! typeName.startsWith('__')) {
           // Call visit recursively to let it determine which concrete
-          // subclass of GraphQLNamedType we found in the type map. Because
-          // we're using updateEachKey, the result of visit(namedType) may
-          // cause the type to be removed or replaced.
-          return visit(namedType);
+          // subclass of GraphQLNamedType we found in the type map.
+          // We do not use updateEachKey because we want to preserve
+          // deleted types in the typeMap so that other types that reference
+          // the deleted types can be healed.
+          type.getTypeMap()[typeName] = visit(namedType);
         }
       });
 
@@ -196,7 +225,68 @@ export function visitSchema(
   // during the traversal, so implementors don't have to worry about that.
   healSchema(schema);
 
-  // Return the original schema for convenience, even though it cannot have
-  // been replaced or removed by the code above.
-  return schema;
+  // Return a cloned version of the schema as a workaround for constructor
+  // initiliazation not currently healed, e.g. the stored implementation map.
+  return cloneSchema(schema);
+}
+
+
+function getTypeSpecifiers(
+  type: GraphQLType,
+  schema: GraphQLSchema,
+): Array<VisitSchemaKind> {
+  const specifiers = [VisitSchemaKind.TYPE];
+  if (type instanceof GraphQLObjectType) {
+    specifiers.push(
+      VisitSchemaKind.COMPOSITE_TYPE,
+      VisitSchemaKind.OBJECT_TYPE,
+    );
+    const query = schema.getQueryType();
+    const mutation = schema.getMutationType();
+    const subscription = schema.getSubscriptionType();
+    if (type === query) {
+      specifiers.push(VisitSchemaKind.ROOT_OBJECT, VisitSchemaKind.QUERY);
+    } else if (type === mutation) {
+      specifiers.push(VisitSchemaKind.ROOT_OBJECT, VisitSchemaKind.MUTATION);
+    } else if (type === subscription) {
+      specifiers.push(
+        VisitSchemaKind.ROOT_OBJECT,
+        VisitSchemaKind.SUBSCRIPTION,
+      );
+    }
+  } else if (type instanceof GraphQLInputObjectType) {
+    specifiers.push(VisitSchemaKind.INPUT_OBJECT_TYPE);
+  } else if (type instanceof GraphQLInterfaceType) {
+    specifiers.push(
+      VisitSchemaKind.COMPOSITE_TYPE,
+      VisitSchemaKind.ABSTRACT_TYPE,
+      VisitSchemaKind.INTERFACE_TYPE,
+    );
+  } else if (type instanceof GraphQLUnionType) {
+    specifiers.push(
+      VisitSchemaKind.COMPOSITE_TYPE,
+      VisitSchemaKind.ABSTRACT_TYPE,
+      VisitSchemaKind.UNION_TYPE,
+    );
+  } else if (type instanceof GraphQLEnumType) {
+    specifiers.push(VisitSchemaKind.ENUM_TYPE);
+  } else if (type instanceof GraphQLScalarType) {
+    specifiers.push(VisitSchemaKind.SCALAR_TYPE);
+  }
+
+  return specifiers;
+}
+
+function getVisitor(
+  visitorDef: SchemaVisitorMap,
+  specifiers: Array<VisitSchemaKind>,
+): TypeVisitor {
+  let typeVisitor = null;
+  const stack = [...specifiers];
+  while (!typeVisitor && stack.length > 0) {
+    const next = stack.pop();
+    typeVisitor = visitorDef[next];
+  }
+
+  return typeVisitor;
 }

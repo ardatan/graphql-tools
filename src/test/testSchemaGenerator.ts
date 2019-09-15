@@ -33,9 +33,10 @@ import {
   IExecutableSchemaDefinition,
   IDirectiveResolvers,
   NextResolverFn,
+  VisitSchemaKind,
 } from '../Interfaces';
 import 'mocha';
-import { VisitSchemaKind, visitSchema } from '../transforms/visitSchema';
+import { visitSchema } from '../utils/visitSchema';
 import { addResolveFunctionsToSchema } from '../generate';
 
 interface Bird {

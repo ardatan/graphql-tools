@@ -16,9 +16,9 @@ import {
   FragmentDefinitionNode
 } from 'graphql';
 import isEmptyObject from '../utils/isEmptyObject';
-import { Request } from '../Interfaces';
+import { Request, VisitSchemaKind } from '../Interfaces';
 import { Transform } from './transforms';
-import { visitSchema, VisitSchemaKind } from './visitSchema';
+import { visitSchema } from '../utils/visitSchema';
 import { createResolveType, fieldToFieldConfig } from '../stitching/schemaRecreation';
 
 export type ObjectFieldTransformer = (

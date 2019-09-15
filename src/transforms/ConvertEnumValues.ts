@@ -1,6 +1,7 @@
 import { GraphQLSchema, GraphQLEnumType } from 'graphql';
 import { Transform } from '../transforms/transforms';
-import { visitSchema, VisitSchemaKind } from '../transforms/visitSchema';
+import { visitSchema } from '../utils/visitSchema';
+import { VisitSchemaKind } from '../Interfaces';
 
 // Transformation used to modifiy `GraphQLEnumType` values in a schema.
 export default class ConvertEnumValues implements Transform {

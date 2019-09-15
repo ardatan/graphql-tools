@@ -5,7 +5,8 @@ import {
   GraphQLScalarTypeConfig
 } from 'graphql';
 import { Transform } from './transforms';
-import { visitSchema, VisitSchemaKind } from './visitSchema';
+import { visitSchema } from '../utils/visitSchema';
+import { VisitSchemaKind } from '../Interfaces';
 
 export default class AddEnumAndScalarResolvers implements Transform {
   private enumValueMap: object;

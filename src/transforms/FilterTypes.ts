@@ -2,7 +2,8 @@
 
 import { GraphQLSchema, GraphQLNamedType } from 'graphql';
 import { Transform } from '../transforms/transforms';
-import { visitSchema, VisitSchemaKind } from '../transforms/visitSchema';
+import { visitSchema } from '../utils/visitSchema';
+import { VisitSchemaKind } from '../Interfaces';
 
 export default class FilterTypes implements Transform {
   private filter: (type: GraphQLNamedType) => boolean;

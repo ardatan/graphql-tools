@@ -5,7 +5,8 @@ import {
   GraphQLFieldConfigMap
 } from 'graphql';
 import { Transform } from './transforms';
-import { visitSchema, VisitSchemaKind } from './visitSchema';
+import { visitSchema } from '../utils/visitSchema';
+import { VisitSchemaKind } from '../Interfaces';
 import { createResolveType, argsToFieldConfigArgumentMap } from '../stitching/schemaRecreation';
 
 export default class AddDefaultResolver implements Transform {
