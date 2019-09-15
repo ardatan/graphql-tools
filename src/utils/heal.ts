@@ -101,7 +101,7 @@ export function healTypes(
   });
 
   if (!config.skipPruning) {
-    pruneTypeMap(originalTypeMap, directives);
+    pruneTypes(originalTypeMap, directives);
   }
 
   function heal(type: VisitableSchemaType) {
@@ -191,7 +191,7 @@ export function healTypes(
   }
 }
 
-function pruneTypeMap(typeMap: NamedTypeMap, directives: ReadonlyArray<GraphQLDirective>) {
+function pruneTypes(typeMap: NamedTypeMap, directives: ReadonlyArray<GraphQLDirective>) {
   const implementedInterfaces = {};
   each(typeMap, (namedType, typeName) => {
     if (namedType instanceof GraphQLObjectType) {
