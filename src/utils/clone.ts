@@ -56,25 +56,15 @@ export function cloneSchema(schema: GraphQLSchema): GraphQLSchema {
 
   healTypes(newTypeMap, newDirectives);
 
-  const selectors = {
-    query: 'getQueryType',
-    mutation: 'getMutationType',
-    subscription: 'getSubscriptionType',
-  };
-
-  const rootTypes = Object.create(null);
-
-  Object.keys(selectors).forEach(op => {
-    const rootType = schema[selectors[op]]();
-    if (rootType) {
-      rootTypes[op] = newTypeMap[rootType.name];
-    }
-  });
+  const query = schema.getQueryType();
+  const mutation = schema.getMutationType();
+  const subscription = schema.getSubscriptionType();
 
   return new GraphQLSchema({
-    query: rootTypes.query,
-    mutation: rootTypes.mutation,
-    subscription: rootTypes.subscription,
+    ...schema.toConfig(),
+    query: query ? newTypeMap[query.name] : undefined,
+    mutation: mutation ? newTypeMap[mutation.name] : undefined,
+    subscription: subscription ? newTypeMap[subscription.name] : undefined,
     types: Object.keys(newTypeMap).map(typeName => newTypeMap[typeName]),
     directives: newDirectives,
   });
