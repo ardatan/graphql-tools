@@ -11,6 +11,7 @@ import {
 import updateEachKey from './updateEachKey';
 import { VisitableSchemaType } from '../Interfaces';
 import { SchemaVisitor } from './SchemaVisitor';
+import { healSchema } from './heal';
 
 // Generic function for visiting GraphQLSchema objects.
 export function visitSchema(
@@ -190,6 +191,10 @@ export function visitSchema(
   }
 
   visit(schema);
+
+  // Automatically update any references to named schema types replaced
+  // during the traversal, so implementors don't have to worry about that.
+  healSchema(schema);
 
   // Return the original schema for convenience, even though it cannot have
   // been replaced or removed by the code above.

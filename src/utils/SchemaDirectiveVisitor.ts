@@ -7,7 +7,6 @@ import {
 import { getArgumentValues } from 'graphql/execution/values';
 import each from './each';
 import valueFromASTUntyped from './valueFromASTUntyped';
-import { healSchema } from './heal';
 import { VisitableSchemaType } from '../Interfaces';
 import { SchemaVisitor } from './SchemaVisitor';
 import { visitSchema } from './visitSchema';
@@ -197,10 +196,6 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
     }
 
     visitSchema(schema, visitorSelector);
-
-    // Automatically update any references to named schema types replaced
-    // during the traversal, so implementors don't have to worry about that.
-    healSchema(schema);
 
     return createdVisitors;
   }
