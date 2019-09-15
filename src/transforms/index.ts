@@ -4,9 +4,6 @@ export { Transform };
 export { default as filterSchema } from './filterSchema';
 export { default as transformSchema, wrapSchema } from './transformSchema';
 
-export { default as AddEnumAndScalarResolvers } from './AddEnumAndScalarResolvers';
-export { default as AddDefaultResolver } from './AddDefaultResolver';
-
 export { default as AddArgumentsAsVariables } from './AddArgumentsAsVariables';
 export { default as CheckResultAndHandleErrors } from './CheckResultAndHandleErrors';
 export { default as ReplaceFieldWithFragment } from './ReplaceFieldWithFragment';
