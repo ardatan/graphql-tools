@@ -9,6 +9,7 @@ import {
 } from 'graphql';
 import { GraphQLSchemaWithTransforms, VisitSchemaKind } from '../Interfaces';
 import { visitSchema } from '../utils/visitSchema';
+import { cloneSchema } from '../utils/clone';
 
 export type RootFieldFilter = (
   operation: 'Query' | 'Mutation' | 'Subscription',
@@ -31,7 +32,7 @@ export default function filterSchema({
   typeFilter?: (typeName: string, type: GraphQLType) => boolean;
   fieldFilter?: (typeName: string, fieldName: string) => boolean;
 }): GraphQLSchemaWithTransforms {
-  const filteredSchema: GraphQLSchemaWithTransforms = visitSchema(schema, {
+  const filteredSchema: GraphQLSchemaWithTransforms = visitSchema(cloneSchema(schema), {
     [VisitSchemaKind.QUERY]: (type: GraphQLObjectType) => {
       return filterRootFields(type, 'Query', rootFieldFilter);
     },
