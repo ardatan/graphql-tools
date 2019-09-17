@@ -225,9 +225,12 @@ export function visitSchema(
   // during the traversal, so implementors don't have to worry about that.
   healSchema(schema);
 
-  // Return a cloned version of the schema as a workaround for constructor
-  // initiliazation not currently healed, e.g. the stored implementation map.
-  return cloneSchema(schema);
+  // Reconstruct the schema to reinitialize private variables
+  // e.g. the stored implementation map.
+  Object.assign(schema, cloneSchema(schema));
+
+  // Return schema for convenience, even though schema parameter has all updated types.
+  return schema;
 }
 
 
