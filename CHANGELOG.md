@@ -1,5 +1,6 @@
 # Change log
 
+* Exposes Remote resolvers. Help to create federated schemas from remote resolvers.
 ### 4.0.5
 
 * Fixes a bug where schemas with scalars could not be merged when passed to
