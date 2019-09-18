@@ -12,11 +12,11 @@ export function observableToAsyncIterable<T>(
 
   let listening = true;
 
-  const pushValue = ({ data }: any) => {
+  const pushValue = (value: any) => {
     if (pullQueue.length !== 0) {
-      pullQueue.shift()({ value: data, done: false });
+      pullQueue.shift()({ value, done: false });
     } else {
-      pushQueue.push({ value: data });
+      pushQueue.push({ value });
     }
   };
 
