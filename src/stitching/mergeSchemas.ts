@@ -22,14 +22,12 @@ import {
   IResolversParameter,
   SchemaExecutionConfig,
   isSchemaExecutionConfig,
-  isRemoteSchemaExecutionConfig,
 } from '../Interfaces';
 import {
   extractExtensionDefinitions,
   addResolveFunctionsToSchema,
 } from '../makeExecutableSchema';
 import delegateToSchema from './delegateToSchema';
-import delegateToRemoteSchema from './delegateToRemoteSchema';
 import typeFromAST from './typeFromAST';
 import {
   Transform,
@@ -383,24 +381,21 @@ function createDelegatingResolver({
   operation: 'query' | 'mutation' | 'subscription',
   fieldName: string,
 }): IFieldResolver<any, any> {
-  if (executionConfig && isRemoteSchemaExecutionConfig(executionConfig)) {
-    return (root, args, context, info) => {
-      return delegateToRemoteSchema({
-        ...executionConfig,
-        operation,
-        fieldName,
-        args,
-        context,
-        info,
-      });
-    };
-  }
+  let options = Object.create(null);
+
+  options = executionConfig ? {
+    operation,
+    fieldName,
+    ...executionConfig,
+  } : {
+    operation,
+    fieldName,
+    schema,
+  };
 
   return (root, args, context, info) => {
-    return info.mergeInfo.delegateToSchema({
-      schema,
-      operation,
-      fieldName,
+    return delegateToSchema({
+      ...options,
       args,
       context,
       info,

@@ -76,16 +76,12 @@ export type Dispatcher = (context: any) => ApolloLink | Fetcher;
 
 export type SchemaExecutionConfig = {
   schema: GraphQLSchemaWithTransforms;
-};
-
-export type GraphQLSchemaWithTransforms = GraphQLSchema & { transforms?: Array<Transform> };
-
-export type RemoteSchemaExecutionConfig = {
-  schema: GraphQLSchemaWithTransforms;
   link?: ApolloLink;
   fetcher?: Fetcher;
   dispatcher?: Dispatcher;
 };
+
+export type GraphQLSchemaWithTransforms = GraphQLSchema & { transforms?: Array<Transform> };
 
 export function isSchemaExecutionConfig(
   schema: string | GraphQLSchema | SchemaExecutionConfig | DocumentNode | Array<GraphQLNamedType>
@@ -93,18 +89,11 @@ export function isSchemaExecutionConfig(
   return !!(schema as SchemaExecutionConfig).schema;
 }
 
-export function isRemoteSchemaExecutionConfig(
-  schema: GraphQLSchema | SchemaExecutionConfig
-): schema is RemoteSchemaExecutionConfig {
-  return (
-    !!(schema as RemoteSchemaExecutionConfig).dispatcher ||
-    !!(schema as RemoteSchemaExecutionConfig).link ||
-    !!(schema as RemoteSchemaExecutionConfig).fetcher
-  );
-}
-
 export interface IDelegateToSchemaOptions<TContext = { [key: string]: any }> {
-  schema: GraphQLSchema;
+  schema: GraphQLSchema | SchemaExecutionConfig;
+  link?: ApolloLink;
+  fetcher?: Fetcher;
+  dispatcher?: Dispatcher;
   operation: Operation;
   fieldName: string;
   args?: { [key: string]: any };

@@ -7,7 +7,6 @@ import {
   IResolvers,
   Operation,
   SchemaExecutionConfig,
-  isRemoteSchemaExecutionConfig,
 } from '../Interfaces';
 import delegateToSchema from './delegateToSchema';
 import { Transform } from '../transforms/index';
@@ -95,20 +94,8 @@ function createProxyingResolver(
   fieldName: string,
   transforms: Array<Transform>,
 ): GraphQLFieldResolver<any, any> {
-  if (isRemoteSchemaExecutionConfig(schema)) {
-    return (parent, args, context, info) => delegateToSchema({
-      ...schema,
-      operation,
-      fieldName,
-      args: {},
-      context,
-      info,
-      transforms,
-    });
-  }
-
   return (parent, args, context, info) => delegateToSchema({
-    schema: schema as GraphQLSchema,
+    schema,
     operation,
     fieldName,
     args,

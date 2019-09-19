@@ -35,7 +35,6 @@ import { createResolveType, fieldToFieldConfig } from '../stitching/schemaRecrea
 import { makeExecutableSchema } from '../makeExecutableSchema';
 import {
   delegateToSchema,
-  delegateToRemoteSchema,
   mergeSchemas,
   wrapField,
   extractField,
@@ -178,7 +177,7 @@ describe('merge schemas through transforms', () => {
                 transforms: transformedPropertySchema.transforms,
               });
             } else if (args.id.startsWith('b')) {
-              return delegateToRemoteSchema({
+              return delegateToSchema({
                 ...bookingSchemaExecConfig,
                 operation: 'query',
                 fieldName: 'bookingById',
@@ -188,7 +187,7 @@ describe('merge schemas through transforms', () => {
                 transforms: transformedBookingSchema.transforms,
               });
             } else if (args.id.startsWith('c')) {
-              return delegateToRemoteSchema({
+              return delegateToSchema({
                 ...bookingSchemaExecConfig,
                 operation: 'query',
                 fieldName: 'customerById',
@@ -206,7 +205,7 @@ describe('merge schemas through transforms', () => {
           bookings: {
             fragment: 'fragment PropertyFragment on Property { id }',
             resolve(parent, args, context, info) {
-              return delegateToRemoteSchema({
+              return delegateToSchema({
                 ...bookingSchemaExecConfig,
                 operation: 'query',
                 fieldName: 'bookingsByPropertyId',
