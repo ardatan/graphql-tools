@@ -372,30 +372,18 @@ function guessSchemaByRootField(
 
 function createDelegatingResolver({
   schema,
-  executionConfig,
   operation,
   fieldName,
 }: {
-  schema: GraphQLSchema,
-  executionConfig?: SchemaExecutionConfig,
+  schema: GraphQLSchema | SchemaExecutionConfig,
   operation: 'query' | 'mutation' | 'subscription',
   fieldName: string,
 }): IFieldResolver<any, any> {
-  let options = Object.create(null);
-
-  options = executionConfig ? {
-    operation,
-    fieldName,
-    ...executionConfig,
-  } : {
-    operation,
-    fieldName,
-    schema,
-  };
-
   return (root, args, context, info) => {
     return delegateToSchema({
-      ...options,
+      schema,
+      operation,
+      fieldName,
       args,
       context,
       info,
@@ -495,8 +483,7 @@ function mergeTypeCandidates(
       Object.keys(candidateFields).forEach(fieldName => {
         resolvers[fieldName] = {
           [resolverKey]: schema ? createDelegatingResolver({
-            schema,
-            executionConfig,
+            schema: executionConfig ? executionConfig : schema,
             operation: operationName,
             fieldName,
           }) : null,
