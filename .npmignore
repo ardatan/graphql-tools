@@ -1,9 +1,10 @@
 *
 !dist/
 !dist/*
+!dist/generate/*
 !dist/stitching/*
 !dist/transforms/*
-!dist/generate/*
+!dist/utils/*
 !package.json
 !*.md
 !*.png
