@@ -69,7 +69,7 @@ async function delegateToSchemaImplementation(
     targetSchema = schemaOrSchemaConfig;
   }
 
-  const { info, args = {} } = options;
+  const { info } = options;
   const operation = options.operation || info.operation.operation;
   const rawDocument: DocumentNode = createDocument(
     options.fieldName,
@@ -94,12 +94,18 @@ async function delegateToSchemaImplementation(
 
   if (info.mergeInfo && info.mergeInfo.fragments) {
     transforms.push(
-      new ReplaceFieldWithFragment(targetSchema, info.mergeInfo.fragments),
+      new ReplaceFieldWithFragment(targetSchema, info.mergeInfo.fragments)
+    );
+  }
+
+  const { args } = options;
+  if (args) {
+    transforms.push(
+      new AddArgumentsAsVariables(targetSchema, args)
     );
   }
 
   transforms = transforms.concat([
-    new AddArgumentsAsVariables(targetSchema, args),
     new FilterToSchema(targetSchema),
     new AddTypenameToAbstract(targetSchema),
     new CheckResultAndHandleErrors(info, options.fieldName),
