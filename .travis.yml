@@ -5,7 +5,7 @@ node_js:
 
 install:
   - npm config set spin=false
-  - npm install -g coveralls
+  - npm install -g mocha coveralls
   - npm install
   - npm install graphql@$GRAPHQL_VERSION
   - npm install @types/graphql@$TYPES_GRAPHQL_VERSION
