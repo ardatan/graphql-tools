@@ -1,6 +1,6 @@
-import { GraphQLNamedType, GraphQLField, GraphQLSchema } from 'graphql';
+import { GraphQLField, GraphQLSchema } from 'graphql';
 import { Transform } from './transforms';
-import { createResolveType, fieldToFieldConfig } from '../stitching/schemaRecreation';
+import { fieldToFieldConfig } from '../stitching/schemaRecreation';
 import { Request } from '../Interfaces';
 import TransformObjectFields from './TransformObjectFields';
 
@@ -8,12 +8,11 @@ export default class RenameObjectFields implements Transform {
   private transformer: TransformObjectFields;
 
   constructor(renamer: (typeName: string, fieldName: string, field: GraphQLField<any, any>) => string) {
-    const resolveType = createResolveType((name: string, type: GraphQLNamedType): GraphQLNamedType => type);
     this.transformer = new TransformObjectFields(
       (typeName: string, fieldName: string, field: GraphQLField<any, any>) => {
         return {
           name: renamer(typeName, fieldName, field),
-          field: fieldToFieldConfig(field, resolveType, true)
+          field: fieldToFieldConfig(field)
         };
       }
     );

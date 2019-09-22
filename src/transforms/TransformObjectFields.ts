@@ -1,7 +1,6 @@
 import {
   GraphQLObjectType,
   GraphQLSchema,
-  GraphQLNamedType,
   GraphQLField,
   GraphQLFieldConfig,
   GraphQLType,
@@ -19,7 +18,7 @@ import isEmptyObject from '../utils/isEmptyObject';
 import { Request, VisitSchemaKind } from '../Interfaces';
 import { Transform } from './transforms';
 import { visitSchema } from '../utils/visitSchema';
-import { createResolveType, fieldToFieldConfig } from '../stitching/schemaRecreation';
+import { fieldToFieldConfig } from '../stitching/schemaRecreation';
 
 export type ObjectFieldTransformer = (
   typeName: string,
@@ -90,9 +89,6 @@ export default class TransformObjectFields implements Transform {
     type: GraphQLObjectType,
     objectFieldTransformer: ObjectFieldTransformer
   ): GraphQLObjectType {
-    const resolveType = createResolveType(
-      (name: string, originalType: GraphQLNamedType): GraphQLNamedType => originalType
-    );
     const fields = type.getFields();
     const newFields = {};
 
@@ -101,7 +97,7 @@ export default class TransformObjectFields implements Transform {
       const transformedField = objectFieldTransformer(type.name, fieldName, field);
 
       if (typeof transformedField === 'undefined') {
-        newFields[fieldName] = fieldToFieldConfig(field, resolveType, true);
+        newFields[fieldName] = fieldToFieldConfig(field);
       } else if (transformedField !== null) {
         const newName = (transformedField as { name: string; field: GraphQLFieldConfig<any, any> }).name;
 
@@ -136,12 +132,8 @@ export default class TransformObjectFields implements Transform {
       return null;
     } else {
       return new GraphQLObjectType({
-        name: type.name,
-        description: type.description,
-        astNode: type.astNode,
-        isTypeOf: type.isTypeOf,
+        ...type.toConfig(),
         fields: newFields,
-        interfaces: () => type.getInterfaces().map(iface => resolveType(iface))
       });
     }
   }

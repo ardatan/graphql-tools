@@ -7,8 +7,10 @@ import {
   IResolvers,
   Operation,
   SchemaExecutionConfig,
+  isSchemaExecutionConfig,
 } from '../Interfaces';
 import delegateToSchema from './delegateToSchema';
+import { makeMergedType } from './makeMergedType';
 import { Transform } from '../transforms/index';
 
 export type Mapping = {
@@ -21,10 +23,20 @@ export type Mapping = {
 };
 
 export function generateProxyingResolvers(
-  targetSchema: GraphQLSchema | SchemaExecutionConfig,
-  transforms: Array<Transform>,
-  mapping: Mapping,
+  schemaOrSchemaExecutionConfig: GraphQLSchema | SchemaExecutionConfig,
+  transforms: Array<Transform> = [],
+  createProxyingResolver: (
+    schema: GraphQLSchema | SchemaExecutionConfig,
+    operation: Operation,
+    fieldName: string,
+    transforms: Array<Transform>,
+  ) => GraphQLFieldResolver<any, any> = defaultCreateProxyingResolver,
 ): IResolvers {
+  const targetSchema: GraphQLSchema = isSchemaExecutionConfig(schemaOrSchemaExecutionConfig) ?
+    schemaOrSchemaExecutionConfig.schema : schemaOrSchemaExecutionConfig;
+
+  const mapping = generateSimpleMapping(targetSchema);
+
   const result = {};
   Object.keys(mapping).forEach(name => {
     result[name] = {};
@@ -88,7 +100,7 @@ export function generateMappingFromObjectType(
   return result;
 }
 
-function createProxyingResolver(
+function defaultCreateProxyingResolver(
   schema: GraphQLSchema | SchemaExecutionConfig,
   operation: Operation,
   fieldName: string,
@@ -102,5 +114,14 @@ function createProxyingResolver(
     context,
     info,
     transforms,
+  });
+}
+
+export function stripResolvers(schema: GraphQLSchema): void {
+  const typeMap = schema.getTypeMap();
+  Object.keys(typeMap).forEach(typeName => {
+    if (!typeName.startsWith('__')) {
+      makeMergedType(typeMap[typeName]);
+    }
   });
 }

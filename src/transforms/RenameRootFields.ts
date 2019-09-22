@@ -1,9 +1,6 @@
-import { GraphQLNamedType, GraphQLField, GraphQLSchema } from 'graphql';
+import { GraphQLField, GraphQLSchema } from 'graphql';
 import { Transform } from './transforms';
-import {
-  createResolveType,
-  fieldToFieldConfig,
-} from '../stitching/schemaRecreation';
+import { fieldToFieldConfig } from '../stitching/schemaRecreation';
 import TransformRootFields from './TransformRootFields';
 
 export default class RenameRootFields implements Transform {
@@ -16,9 +13,6 @@ export default class RenameRootFields implements Transform {
       field: GraphQLField<any, any>,
     ) => string,
   ) {
-    const resolveType = createResolveType(
-      (name: string, type: GraphQLNamedType): GraphQLNamedType => type,
-    );
     this.transformer = new TransformRootFields(
       (
         operation: 'Query' | 'Mutation' | 'Subscription',
@@ -27,7 +21,7 @@ export default class RenameRootFields implements Transform {
       ) => {
         return {
           name: renamer(operation, fieldName, field),
-          field: fieldToFieldConfig(field, resolveType, true),
+          field: fieldToFieldConfig(field),
         };
       },
     );

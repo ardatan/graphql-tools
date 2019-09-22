@@ -1,7 +1,6 @@
 import {
   GraphQLObjectType,
   GraphQLSchema,
-  GraphQLNamedType,
   GraphQLField,
   GraphQLFieldConfig,
 } from 'graphql';
@@ -9,10 +8,7 @@ import isEmptyObject from '../utils/isEmptyObject';
 import { Transform } from './transforms';
 import { visitSchema } from '../utils/visitSchema';
 import { VisitSchemaKind } from '../Interfaces';
-import {
-  createResolveType,
-  fieldToFieldConfig,
-} from '../stitching/schemaRecreation';
+import { fieldToFieldConfig } from '../stitching/schemaRecreation';
 
 export type RootTransformer = (
   operation: 'Query' | 'Mutation' | 'Subscription',
@@ -69,17 +65,13 @@ function transformFields(
     | null
     | undefined,
 ): GraphQLObjectType {
-  const resolveType = createResolveType(
-    (name: string, originalType: GraphQLNamedType): GraphQLNamedType =>
-      originalType,
-  );
   const fields = type.getFields();
   const newFields = {};
   Object.keys(fields).forEach(fieldName => {
     const field = fields[fieldName];
     const newField = transformer(fieldName, field);
     if (typeof newField === 'undefined') {
-      newFields[fieldName] = fieldToFieldConfig(field, resolveType, true);
+      newFields[fieldName] = fieldToFieldConfig(field);
     } else if (newField !== null) {
       if (
         (<{ name: string; field: GraphQLFieldConfig<any, any> }>newField).name

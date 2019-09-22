@@ -3,34 +3,22 @@
 import { ApolloLink } from 'apollo-link';
 
 import {
-  GraphQLObjectType,
   GraphQLFieldResolver,
   GraphQLSchema,
-  GraphQLInterfaceType,
-  GraphQLUnionType,
-  GraphQLID,
-  GraphQLString,
-  GraphQLFloat,
-  GraphQLBoolean,
-  GraphQLInt,
-  GraphQLScalarType,
   buildSchema,
-  printSchema,
   Kind,
   GraphQLResolveInfo,
   BuildSchemaOptions
 } from 'graphql';
 import linkToFetcher, { execute } from './linkToFetcher';
-import isEmptyObject from '../utils/isEmptyObject';
-import { IResolvers, IResolverObject, Fetcher } from '../Interfaces';
-import { makeExecutableSchema } from '../makeExecutableSchema';
-import { recreateType } from './schemaRecreation';
-import resolveParentFromTypename from './resolveFromParentTypename';
-import defaultMergedResolver from './defaultMergedResolver';
+import { Fetcher, Operation } from '../Interfaces';
 import { checkResultAndHandleErrors } from './checkResultAndHandleErrors';
 import { observableToAsyncIterable } from './observableToAsyncIterable';
 import mapAsyncIterator from './mapAsyncIterator';
 import { Options as PrintSchemaOptions } from 'graphql/utilities/schemaPrinter';
+import { cloneSchema } from '../utils';
+import { stripResolvers, generateProxyingResolvers } from './resolvers';
+import { addResolveFunctionsToSchema } from '../generate';
 
 export type ResolverFn = (
   rootValue?: any,
@@ -40,7 +28,7 @@ export type ResolverFn = (
 ) => AsyncIterator<any>;
 
 export default function makeRemoteExecutableSchema({
-  schema,
+  schema: targetSchema,
   link,
   fetcher,
   createResolver: customCreateResolver = createResolver,
@@ -58,97 +46,34 @@ export default function makeRemoteExecutableSchema({
     fetcher = linkToFetcher(link);
   }
 
-  let typeDefs: string;
-
-  if (typeof schema === 'string') {
-    typeDefs = schema;
-    schema = buildSchema(typeDefs, buildSchemaOptions);
-  } else {
-    typeDefs = printSchema(schema, printSchemaOptions);
+  if (typeof targetSchema === 'string') {
+    targetSchema = buildSchema(targetSchema, buildSchemaOptions);
   }
 
-  // prepare query resolvers
-  const queryResolvers: IResolverObject = {};
-  const queryType = schema.getQueryType();
-  const queries = queryType.getFields();
-  Object.keys(queries).forEach(key => {
-    queryResolvers[key] = customCreateResolver(fetcher);
-  });
+  const schema = cloneSchema(targetSchema);
+  stripResolvers(schema);
 
-  // prepare mutation resolvers
-  const mutationResolvers: IResolverObject = {};
-  const mutationType = schema.getMutationType();
-  if (mutationType) {
-    const mutations = mutationType.getFields();
-    Object.keys(mutations).forEach(key => {
-      mutationResolvers[key] = customCreateResolver(fetcher);
-    });
-  }
-
-  // prepare subscription resolvers
-  const subscriptionResolvers: IResolverObject = {};
-  const subscriptionType = schema.getSubscriptionType();
-  if (subscriptionType) {
-    const subscriptions = subscriptionType.getFields();
-    Object.keys(subscriptions).forEach(key => {
-      subscriptionResolvers[key] = {
-        subscribe: createSubscriptionResolver(key, link)
-      };
-    });
-  }
-
-  // merge resolvers into resolver map
-  const resolvers: IResolvers = { [queryType.name]: queryResolvers };
-
-  if (!isEmptyObject(mutationResolvers)) {
-    resolvers[mutationType.name] = mutationResolvers;
-  }
-
-  if (!isEmptyObject(subscriptionResolvers)) {
-    resolvers[subscriptionType.name] = subscriptionResolvers;
-  }
-
-  // add missing abstract resolvers (scalar, unions, interfaces)
-  const typeMap = schema.getTypeMap();
-  const types = Object.keys(typeMap).map(name => typeMap[name]);
-  for (const type of types) {
-    if (type instanceof GraphQLInterfaceType || type instanceof GraphQLUnionType) {
-      resolvers[type.name] = {
-        __resolveType(parent: any, context: any, info: GraphQLResolveInfo) {
-          return resolveParentFromTypename(parent, info.schema);
-        }
-      };
-    } else if (type instanceof GraphQLScalarType) {
-      if (
-        !(
-          type === GraphQLID ||
-          type === GraphQLString ||
-          type === GraphQLFloat ||
-          type === GraphQLBoolean ||
-          type === GraphQLInt
-        )
-      ) {
-        resolvers[type.name] = recreateType(type, (name: string) => null, false) as GraphQLScalarType;
-      }
-    } else if (
-      type instanceof GraphQLObjectType &&
-      type.name.slice(0, 2) !== '__' &&
-      type !== queryType &&
-      type !== mutationType &&
-      type !== subscriptionType
-    ) {
-      const resolver = {};
-      Object.keys(type.getFields()).forEach(field => {
-        resolver[field] = defaultMergedResolver;
-      });
-      resolvers[type.name] = resolver;
+  function createProxyingResolver(
+    schema: GraphQLSchema,
+    operation: Operation,
+  ): GraphQLFieldResolver<any, any> {
+    if (operation === 'query' || operation === 'mutation') {
+      return customCreateResolver(fetcher);
+    } else {
+      return createSubscriptionResolver(link);
     }
   }
 
-  return makeExecutableSchema({
-    typeDefs,
-    resolvers
+  const resolvers = generateProxyingResolvers(schema, [], createProxyingResolver);
+  addResolveFunctionsToSchema({
+    schema,
+    resolvers,
+    resolverValidationOptions: {
+      allowResolversNotInSchema: true,
+    },
   });
+
+  return schema;
 }
 
 export function createResolver(fetcher: Fetcher): GraphQLFieldResolver<any, any> {
@@ -167,7 +92,7 @@ export function createResolver(fetcher: Fetcher): GraphQLFieldResolver<any, any>
   };
 }
 
-function createSubscriptionResolver(name: string, link: ApolloLink): ResolverFn {
+function createSubscriptionResolver(link: ApolloLink): ResolverFn {
   return (root, args, context, info) => {
     const fragments = Object.keys(info.fragments).map(fragment => info.fragments[fragment]);
     const document = {

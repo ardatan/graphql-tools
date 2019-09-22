@@ -8,7 +8,6 @@ import {
   subscribe,
   parse,
   GraphQLField,
-  GraphQLNamedType,
   GraphQLScalarType,
   FieldNode,
   printSchema,
@@ -31,7 +30,7 @@ import {
   subscriptionPubSubTrigger,
 } from './testingSchemas';
 import { forAwaitEach } from 'iterall';
-import { createResolveType, fieldToFieldConfig } from '../stitching/schemaRecreation';
+import { fieldToFieldConfig } from '../stitching/schemaRecreation';
 import { makeExecutableSchema } from '../makeExecutableSchema';
 import {
   delegateToSchema,
@@ -352,11 +351,10 @@ describe('transform object fields', () => {
   let transformedPropertySchema: GraphQLSchema;
 
   before(async () => {
-    const resolveType = createResolveType((name: string, type: GraphQLNamedType): GraphQLNamedType => type);
     transformedPropertySchema = transformSchema(propertySchema, [
       new TransformObjectFields(
         (typeName: string, fieldName: string, field: GraphQLField<any, any>) => {
-          const fieldConfig = fieldToFieldConfig(field, resolveType, true);
+          const fieldConfig = fieldToFieldConfig(field);
           if (typeName !== 'Property' || fieldName !== 'name') {
             return fieldConfig;
           }

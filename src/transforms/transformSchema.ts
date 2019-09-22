@@ -4,7 +4,7 @@ import { addResolveFunctionsToSchema } from '../makeExecutableSchema';
 import { Transform, applySchemaTransforms } from '../transforms/transforms';
 import {
   generateProxyingResolvers,
-  generateSimpleMapping,
+  stripResolvers,
 } from '../stitching/resolvers';
 import {
   SchemaExecutionConfig,
@@ -12,16 +12,6 @@ import {
 } from '../Interfaces';
 
 import { cloneSchema } from '../utils/clone';
-import { makeMergedType } from '../stitching/makeMergedType';
-
-export function stripResolvers(schema: GraphQLSchema): void {
-  const typeMap = schema.getTypeMap();
-  Object.keys(typeMap).forEach(typeName => {
-    if (!typeName.startsWith('__')) {
-      makeMergedType(typeMap[typeName]);
-    }
-  });
-}
 
 export function wrapSchema(
   schemaOrSchemaExecutionConfig: GraphQLSchema | SchemaExecutionConfig,
@@ -33,11 +23,9 @@ export function wrapSchema(
   const schema = cloneSchema(targetSchema);
   stripResolvers(schema);
 
-  const mapping = generateSimpleMapping(targetSchema);
   const resolvers = generateProxyingResolvers(
     schemaOrSchemaExecutionConfig,
     transforms,
-    mapping,
   );
   addResolveFunctionsToSchema({
     schema,
