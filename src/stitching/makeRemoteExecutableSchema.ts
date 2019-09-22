@@ -50,8 +50,8 @@ export default function makeRemoteExecutableSchema({
     targetSchema = buildSchema(targetSchema, buildSchemaOptions);
   }
 
-  const schema = cloneSchema(targetSchema);
-  stripResolvers(schema);
+  const remoteSchema = cloneSchema(targetSchema);
+  stripResolvers(remoteSchema);
 
   function createProxyingResolver(
     schema: GraphQLSchema,
@@ -64,16 +64,16 @@ export default function makeRemoteExecutableSchema({
     }
   }
 
-  const resolvers = generateProxyingResolvers(schema, [], createProxyingResolver);
+  const resolvers = generateProxyingResolvers(remoteSchema, [], createProxyingResolver);
   addResolveFunctionsToSchema({
-    schema,
+    schema: remoteSchema,
     resolvers,
     resolverValidationOptions: {
       allowResolversNotInSchema: true,
     },
   });
 
-  return schema;
+  return remoteSchema;
 }
 
 export function createResolver(fetcher: Fetcher): GraphQLFieldResolver<any, any> {
