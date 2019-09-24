@@ -8,10 +8,12 @@ import {
   buildSchema,
   Kind,
   GraphQLResolveInfo,
-  BuildSchemaOptions
+  BuildSchemaOptions,
+  DocumentNode,
 } from 'graphql';
 import linkToFetcher, { execute } from './linkToFetcher';
 import { Fetcher, Operation } from '../Interfaces';
+import { addTypenameToAbstract } from './addTypenameToAbstract';
 import { checkResultAndHandleErrors } from './checkResultAndHandleErrors';
 import { observableToAsyncIterable } from './observableToAsyncIterable';
 import mapAsyncIterator from './mapAsyncIterator';
@@ -79,12 +81,15 @@ export default function makeRemoteExecutableSchema({
 export function createResolver(fetcher: Fetcher): GraphQLFieldResolver<any, any> {
   return async (root, args, context, info) => {
     const fragments = Object.keys(info.fragments).map(fragment => info.fragments[fragment]);
-    const document = {
+    let query: DocumentNode = {
       kind: Kind.DOCUMENT,
       definitions: [info.operation, ...fragments]
     };
+
+    query = addTypenameToAbstract(info.schema, query);
+
     const result = await fetcher({
-      query: document,
+      query,
       variables: info.variableValues,
       context: { graphqlContext: context }
     });
@@ -95,13 +100,15 @@ export function createResolver(fetcher: Fetcher): GraphQLFieldResolver<any, any>
 function createSubscriptionResolver(link: ApolloLink): ResolverFn {
   return (root, args, context, info) => {
     const fragments = Object.keys(info.fragments).map(fragment => info.fragments[fragment]);
-    const document = {
+    let query: DocumentNode = {
       kind: Kind.DOCUMENT,
       definitions: [info.operation, ...fragments]
     };
 
+    query = addTypenameToAbstract(info.schema, query);
+
     const operation = {
-      query: document,
+      query,
       variables: info.variableValues,
       context: { graphqlContext: context }
     };

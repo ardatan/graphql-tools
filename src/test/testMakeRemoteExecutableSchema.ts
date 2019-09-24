@@ -2,14 +2,56 @@
 
 import { expect } from 'chai';
 import { forAwaitEach } from 'iterall';
-import { GraphQLSchema, ExecutionResult, subscribe, parse } from 'graphql';
+import { GraphQLSchema, ExecutionResult, subscribe, parse, graphql } from 'graphql';
 import {
+  propertySchema,
   subscriptionSchema,
   subscriptionPubSubTrigger,
   subscriptionPubSub,
   makeSchemaRemoteFromLink
 } from '../test/testingSchemas';
 import { makeRemoteExecutableSchema } from '../stitching';
+
+describe('remote queries', () => {
+  let schema: GraphQLSchema;
+  before(async () => {
+    const remoteSchemaExecConfig = await makeSchemaRemoteFromLink(propertySchema);
+    schema = makeRemoteExecutableSchema({
+      schema: remoteSchemaExecConfig.schema,
+      link: remoteSchemaExecConfig.link
+    });
+  });
+
+  it('should work', async () => {
+    const query = `
+      {
+        interfaceTest(kind: ONE) {
+          kind
+          testString
+          ...on TestImpl1 {
+            foo
+          }
+          ...on TestImpl2 {
+            bar
+          }
+        }
+      }
+    `;
+
+    const expected = {
+      data: {
+        interfaceTest: {
+          foo: 'foo',
+          kind: 'ONE',
+          testString: 'test',
+        },
+      },
+    };
+
+    const result = await graphql(schema, query);
+    expect(result).to.deep.equal(expected);
+  });
+});
 
 describe('remote subscriptions', () => {
   let schema: GraphQLSchema;
