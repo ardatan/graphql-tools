@@ -33,6 +33,7 @@ import {
   SchemaExecutionConfig,
 } from '../Interfaces';
 import { delegateToSchema } from '../stitching';
+import { cloneSchema } from '../utils';
 
 const removeLocations = ({ locations, ...rest }: any): any => ({ ...rest });
 
@@ -55,6 +56,12 @@ const testCombinations = [
     property: remotePropertySchema,
     product: localProductSchema,
   },
+  {
+    name: 'recreated',
+    booking: cloneSchema(localBookingSchema),
+    property: cloneSchema(localPropertySchema),
+    product: cloneSchema(localProductSchema),
+  }
 ];
 
 let scalarTest = `
