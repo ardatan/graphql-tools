@@ -12,6 +12,7 @@ import {
   ExecutionResult,
   defaultFieldResolver,
   findDeprecatedUsages,
+  printSchema,
 } from 'graphql';
 import mergeSchemas from '../stitching/mergeSchemas';
 import {
@@ -34,6 +35,7 @@ import {
 } from '../Interfaces';
 import { delegateToSchema } from '../stitching';
 import { cloneSchema } from '../utils';
+import { getResolversFromSchema } from '../utils/getResolversFromSchema';
 
 const removeLocations = ({ locations, ...rest }: any): any => ({ ...rest });
 
@@ -59,7 +61,10 @@ const testCombinations = [
   {
     name: 'recreated',
     booking: cloneSchema(localBookingSchema),
-    property: cloneSchema(localPropertySchema),
+    property: makeExecutableSchema({
+      typeDefs: printSchema(localPropertySchema),
+      resolvers: getResolversFromSchema(localPropertySchema),
+    }),
     product: cloneSchema(localProductSchema),
   }
 ];
