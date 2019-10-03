@@ -29,7 +29,7 @@ import {
   GraphQLFieldConfig,
   StringValueNode,
 } from 'graphql';
-import resolveFromParentType from './resolveFromParentTypename';
+import resolveFromParentTypename from './resolveFromParentTypename';
 import { createNamedStub } from '../utils/stub';
 
 const backcompatOptions = { commentDescriptions: true };
@@ -85,7 +85,7 @@ function makeInterfaceType(
     fields: () => makeFields(node.fields),
     description: getDescription(node, backcompatOptions),
     resolveType: (parent, context, info) =>
-      resolveFromParentType(parent, info.schema),
+      resolveFromParentTypename(parent, info.schema),
   });
 }
 
@@ -116,7 +116,7 @@ function makeUnionType(
       ),
     description: getDescription(node, backcompatOptions),
     resolveType: (parent, context, info) =>
-      resolveFromParentType(parent, info.schema),
+      resolveFromParentTypename(parent, info.schema),
   });
 }
 
