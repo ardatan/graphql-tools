@@ -24,4 +24,5 @@ export { default as WrapQuery } from './WrapQuery';
 export { default as TransformQuery } from './TransformQuery';
 
 export { default as ExtendSchema } from './ExtendSchema';
+export { default as WrapType } from './WrapType';
 export { default as MapFields } from './MapFields';

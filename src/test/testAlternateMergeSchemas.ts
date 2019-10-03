@@ -21,6 +21,7 @@ import {
   RenameObjectFields,
   TransformObjectFields,
   ExtendSchema,
+  WrapType,
 } from '../transforms';
 import {
   propertySchema,
@@ -481,6 +482,152 @@ type Query {
           },
         },
       },
+    });
+  });
+});
+
+describe('WrapType transform', () => {
+  let transformedPropertySchema: GraphQLSchema;
+
+  before(async () => {
+    transformedPropertySchema = transformSchema(propertySchema, [
+      new WrapType('Query', 'Namespace_Query', 'namespace'),
+    ]);
+  });
+
+  it('should modify the schema', () => {
+    /* tslint:disable:max-line-length */
+    expect(printSchema(transformedPropertySchema)).to.equal(`type Address {
+  street: String
+  city: String
+  state: String
+  zip: String
+}
+
+"""Simple fake datetime"""
+scalar DateTime
+
+input InputWithDefault {
+  test: String = "Foo"
+}
+
+"""
+The \`JSON\` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSON
+
+type Location {
+  name: String!
+}
+
+type Namespace_Query {
+  propertyById(id: ID!): Property
+  properties(limit: Int): [Property!]
+  contextTest(key: String!): String
+  dateTimeTest: DateTime
+  jsonTest(input: JSON): JSON
+  interfaceTest(kind: TestInterfaceKind): TestInterface
+  unionTest(output: String): TestUnion
+  errorTest: String
+  errorTestNonNull: String!
+  relay: Query!
+  defaultInputTest(input: InputWithDefault!): String
+}
+
+type Property {
+  id: ID!
+  name: String!
+  location: Location
+  address: Address
+  error: String
+}
+
+type Query {
+  namespace: Namespace_Query
+}
+
+type TestImpl1 implements TestInterface {
+  kind: TestInterfaceKind
+  testString: String
+  foo: String
+}
+
+type TestImpl2 implements TestInterface {
+  kind: TestInterfaceKind
+  testString: String
+  bar: String
+}
+
+interface TestInterface {
+  kind: TestInterfaceKind
+  testString: String
+}
+
+enum TestInterfaceKind {
+  ONE
+  TWO
+}
+
+union TestUnion = TestImpl1 | UnionImpl
+
+type UnionImpl {
+  someField: String
+}
+`
+      /* tslint:enable:max-line-length */
+    );
+  });
+
+  it('should work', async () => {
+    const result = await graphql(
+      transformedPropertySchema,
+      `
+        query($pid: ID!) {
+          namespace {
+            propertyById(id: $pid) {
+              id
+              name
+              error
+            }
+          }
+        }
+      `,
+      {},
+      {},
+      {
+        pid: 'p1',
+      },
+    );
+
+    expect(result).to.deep.equal({
+      data: {
+        namespace: {
+          propertyById: {
+            id: 'p1',
+            name: 'Super great hotel',
+            error: null,
+          },
+        },
+      },
+      errors: [
+        {
+          extensions: {
+            code: 'SOME_CUSTOM_CODE',
+          },
+          locations: [
+            {
+              column: 15,
+              line: 7,
+            },
+          ],
+          message: 'Property.error error',
+          path: [
+            'namespace',
+            'propertyById',
+            'error',
+          ],
+        },
+      ]
     });
   });
 });
