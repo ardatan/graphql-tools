@@ -33,7 +33,7 @@ export type SchemaVisitor = { [key: string]: TypeVisitor };
 export type TypeVisitor = (
   type: GraphQLType,
   schema: GraphQLSchema,
-) => GraphQLNamedType;
+) => GraphQLNamedType | null | undefined;
 
 export function visitSchema(
   schema: GraphQLSchema,
@@ -57,7 +57,7 @@ export function visitSchema(
       const specifiers = getTypeSpecifiers(type, schema);
       const typeVisitor = getVisitor(visitor, specifiers);
       if (typeVisitor) {
-        const result: GraphQLNamedType | null | undefined = typeVisitor(
+        const result = typeVisitor(
           type,
           schema,
         );
