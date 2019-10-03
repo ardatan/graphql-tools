@@ -47,7 +47,7 @@ export function generateProxyingResolvers(
         to.operation === 'subscription' ? 'subscribe' : 'resolve';
       result[name][from] = {
         [resolverType]: createProxyingResolver(
-          targetSchema,
+          schemaOrSchemaExecutionConfig,
           to.operation,
           to.name,
           transforms,
