@@ -17,6 +17,7 @@ import each from './each';
 import updateEachKey from './updateEachKey';
 import { VisitableSchemaType } from '../Interfaces';
 import { isStub, getBuiltInForStub } from './stub';
+import { cloneSchema } from './clone';
 
 type NamedTypeMap = {
   [key: string]: GraphQLNamedType;
@@ -28,6 +29,11 @@ const hasOwn = Object.prototype.hasOwnProperty;
 // types found in schema.getTypeMap().
 export function healSchema(schema: GraphQLSchema): GraphQLSchema {
   healTypes(schema.getTypeMap(), schema.getDirectives());
+
+  // Reconstruct the schema to reinitialize private variables
+  // e.g. the stored implementation map and the proper root types.
+  Object.assign(schema, cloneSchema(schema));
+
   return schema;
 }
 

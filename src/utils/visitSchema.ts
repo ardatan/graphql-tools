@@ -15,7 +15,6 @@ import { VisitableSchemaType, VisitorSelector, VisitSchemaKind, SchemaVisitorMap
 import { healSchema } from './heal';
 import { SchemaVisitor } from './SchemaVisitor';
 import each from './each';
-import { cloneSchema } from './clone';
 
 // Generic function for visiting GraphQLSchema objects.
 export function visitSchema(
@@ -224,10 +223,6 @@ export function visitSchema(
   // Automatically update any references to named schema types replaced
   // during the traversal, so implementors don't have to worry about that.
   healSchema(schema);
-
-  // Reconstruct the schema to reinitialize private variables
-  // e.g. the stored implementation map.
-  Object.assign(schema, cloneSchema(schema));
 
   // Return schema for convenience, even though schema parameter has all updated types.
   return schema;
