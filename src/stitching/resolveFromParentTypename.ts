@@ -1,4 +1,4 @@
-import { GraphQLObjectType, GraphQLSchema } from 'graphql';
+import { GraphQLSchema } from 'graphql';
 
 export default function resolveFromParentTypename(
   parent: any,
@@ -11,13 +11,5 @@ export default function resolveFromParentTypename(
     );
   }
 
-  const resolvedType = schema.getType(parentTypename);
-
-  if (!(resolvedType instanceof GraphQLObjectType)) {
-    throw new Error(
-      '__typename did not match an object type: ' + parentTypename,
-    );
-  }
-
-  return resolvedType;
+  return parentTypename;
 }

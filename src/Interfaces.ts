@@ -57,6 +57,7 @@ export type Transform = {
   transformSchema?: (schema: GraphQLSchema) => GraphQLSchema;
   transformRequest?: (originalRequest: Request) => Request;
   transformResult?: (result: Result) => Result;
+  resolversTransformResult?: boolean;
 };
 
 export interface IGraphQLToolsResolveInfo extends GraphQLResolveInfo {

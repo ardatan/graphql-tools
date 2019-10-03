@@ -82,6 +82,10 @@ export function annotateWithChildrenErrors(object: any, childrenErrors: Readonly
   return object;
 }
 
+export function isParentProxiedResult(parent: any) {
+  return parent && parent[ERROR_SYMBOL];
+}
+
 export function getErrorsFromParent(
   object: any,
   fieldName: string

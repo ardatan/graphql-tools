@@ -25,7 +25,13 @@ export function wrapSchema(
 
   const resolvers = generateProxyingResolvers(
     schemaOrSchemaExecutionConfig,
-    transforms.slice().reverse(),
+    transforms.slice().reverse().map(transform => {
+      return transform.resolversTransformResult
+        ? {
+          transformRequest: originalRequest => transform.transformRequest(originalRequest)
+        } :
+        transform;
+    }),
   );
   addResolveFunctionsToSchema({
     schema,
