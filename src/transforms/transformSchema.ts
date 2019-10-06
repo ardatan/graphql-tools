@@ -25,7 +25,7 @@ export function wrapSchema(
 
   const resolvers = generateProxyingResolvers(
     schemaOrSchemaExecutionConfig,
-    transforms,
+    transforms.slice().reverse(),
   );
   addResolveFunctionsToSchema({
     schema,
@@ -43,6 +43,6 @@ export default function transformSchema(
   transforms: Array<Transform>,
 ): GraphQLSchema & { transforms: Array<Transform> } {
   const schema = wrapSchema(schemaOrSchemaExecutionConfig, transforms);
-  (schema as any).transforms = transforms;
+  (schema as any).transforms = transforms.slice().reverse();
   return schema as GraphQLSchema & { transforms: Array<Transform> };
 }

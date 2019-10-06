@@ -88,6 +88,7 @@ async function delegateToSchemaImplementation(
   };
 
   let transforms = [
+    new CheckResultAndHandleErrors(info, options.fieldName),
     ...(options.transforms || []),
     new ExpandAbstractTypes(info.schema, targetSchema),
   ];
@@ -108,7 +109,6 @@ async function delegateToSchemaImplementation(
   transforms = transforms.concat([
     new FilterToSchema(targetSchema),
     new AddTypenameToAbstract(targetSchema),
-    new CheckResultAndHandleErrors(info, options.fieldName),
   ]);
 
   const processedRequest = applyRequestTransforms(rawRequest, transforms);

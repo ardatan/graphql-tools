@@ -32,7 +32,7 @@ export function applyResultTransforms(
   originalResult: any,
   transforms: Array<Transform>,
 ): any {
-  return transforms.reduce(
+  return transforms.reduceRight(
     (result: any, transform: Transform) =>
       transform.transformResult ? transform.transformResult(result) : result,
     originalResult,

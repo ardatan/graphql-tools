@@ -160,7 +160,8 @@ describe('transforms', () => {
     let schema: GraphQLSchema;
     before(() => {
       const transforms = [
-        new RenameTypes((name: string) => `Property_${name}`),
+        new RenameTypes((name: string) => `_${name}`),
+        new RenameTypes((name: string) => `Property${name}`),
       ];
       schema = transformSchema(propertySchema, transforms);
     });
