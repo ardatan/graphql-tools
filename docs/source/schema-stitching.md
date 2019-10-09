@@ -120,7 +120,7 @@ We won't be able to query `User.chirps` or `Chirp.author` yet, however, because 
 
 How should these resolvers be implemented? When we resolve `User.chirps` or `Chirp.author`, we want to _delegate_ to the relevant root fields. To get from a user to the user's chirps, for example, we'll want to use the `id` of the user to call `Query.chirpsByAuthorId`. And to get from a chirp to its author, we can use the chirp's `authorId` field to call the existing `Query.userById` field.
 
-Resolvers for fields in schemas created by `mergeSchema` have access to a handy `delegateToSchema` function (exposed via `info.mergeInfo.delegateToSchema`) that allows forwarding parts of queries (or even whole new queries) to one of the subschemas that was passed to `mergeSchemas`.
+Resolvers for fields in schemas created by `mergeSchemas` have access to a handy `delegateToSchema` function (exposed via `info.mergeInfo.delegateToSchema`) that allows forwarding parts of queries (or even whole new queries) to one of the subschemas that was passed to `mergeSchemas`.
 
 In order to delegate to these root fields, we'll need to make sure we've actually requested the `id` of the user or the `authorId` of the chirp. To avoid forcing users to add these fields to their queries manually, resolvers on a merged schema can define a `fragment` property that specifies the required fields, and they will be added to the query automatically.
 
