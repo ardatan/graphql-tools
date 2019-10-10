@@ -1,6 +1,7 @@
 {
   "scripts": {
-    "start": "rm -rf .cache && gatsby develop",
+    "prestart": "gatsby clean",
+    "start": "gatsby develop",
     "build": "gatsby build",
     "serve": "gatsby serve"
   },
