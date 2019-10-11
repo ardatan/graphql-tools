@@ -302,8 +302,7 @@ export enum VisitSchemaKind {
   SUBSCRIPTION = 'VisitSchemaKind.SUBSCRIPTION',
 }
 
-// I couldn't make keys to be forced to be enum values
-export type SchemaVisitorMap = { [key: string]: TypeVisitor };
+export type SchemaVisitorMap = { [key in VisitSchemaKind]?: TypeVisitor };
 export type TypeVisitor = (
   type: GraphQLType,
   schema: GraphQLSchema,
