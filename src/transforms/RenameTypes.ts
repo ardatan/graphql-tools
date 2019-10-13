@@ -61,13 +61,13 @@ export default class RenameTypes implements Transform {
     }, {
       [VisitSchemaKind.ABSTRACT_TYPE]: (type: GraphQLAbstractType) => {
         const originalResolveType = type.resolveType;
-        type.resolveType = (value, info, context) => {
+        type.resolveType = (value, info, context, abstractType) => {
           if (isParentProxiedResult(value)) {
-            const oldName = originalResolveType(value, info, context) as string;
+            const oldName = originalResolveType(value, info, context, abstractType) as string;
             const newName = this.renamer(oldName);
             return newName ? newName : oldName;
           }
-          return originalResolveType(value, info, context);
+          return originalResolveType(value, info, context, abstractType);
         };
         return type;
       },
