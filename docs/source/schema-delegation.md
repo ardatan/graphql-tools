@@ -170,7 +170,7 @@ If we delegate at `User.bookings` to `Query.bookingsByUser`, we want to preserve
 const resolvers = {
   User: {
     bookings(parent, args, context, info) {
-      return info.mergeInfo.delegateToSchema({
+      return delegateToSchema({
         schema: subschema,
         operation: 'query',
         fieldName: 'bookingsByUser',

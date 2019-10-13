@@ -120,7 +120,7 @@ We won't be able to query `User.chirps` or `Chirp.author` yet, however, because 
 
 How should these resolvers be implemented? When we resolve `User.chirps` or `Chirp.author`, we want to _delegate_ to the relevant root fields. To get from a user to the user's chirps, for example, we'll want to use the `id` of the user to call `Query.chirpsByAuthorId`. And to get from a chirp to its author, we can use the chirp's `authorId` field to call the existing `Query.userById` field.
 
-Resolvers for fields in schemas created by `mergeSchema` have access to a handy `delegateToSchema` function (exposed via `info.mergeInfo.delegateToSchema`) that allows forwarding parts of queries (or even whole new queries) to one of the subschemas that was passed to `mergeSchemas`.
+Resolvers for fields in schemas created by `mergeSchema` can use the `delegateToSchema` function to forward parts of queries (or even whole new queries) to one of the subschemas that was passed to `mergeSchemas` (or any other schema).
 
 In order to delegate to these root fields, we'll need to make sure we've actually requested the `id` of the user or the `authorId` of the chirp. To avoid forcing users to add these fields to their queries manually, resolvers on a merged schema can define a `fragment` property that specifies the required fields, and they will be added to the query automatically.
 
@@ -138,7 +138,7 @@ const mergedSchema = mergeSchemas({
       chirps: {
         fragment: `... on User { id }`,
         resolve(user, args, context, info) {
-          return info.mergeInfo.delegateToSchema({
+          return delegateToSchema({
             schema: chirpSchema,
             operation: 'query',
             fieldName: 'chirpsByAuthorId',
@@ -155,7 +155,7 @@ const mergedSchema = mergeSchemas({
       author: {
         fragment: `... on Chirp { authorId }`,
         resolve(chirp, args, context, info) {
-          return info.mergeInfo.delegateToSchema({
+          return delegateToSchema({
             schema: authorSchema,
             operation: 'query',
             fieldName: 'userById',
@@ -240,7 +240,7 @@ const mergedSchema = mergeSchemas({
       chirps: {
         fragment: `... on User { id }`,
         resolve(user, args, context, info) {
-          return info.mergeInfo.delegateToSchema({
+          return delegateToSchema({
             schema: chirpSchema,
             operation: 'query',
             fieldName: 'chirpsByAuthorId',
@@ -258,7 +258,7 @@ const mergedSchema = mergeSchemas({
       author: {
         fragment: `... on Chirp { authorId }`,
         resolve(chirp, args, context, info) {
-          return info.mergeInfo.delegateToSchema({
+          return delegateToSchema({
             schema: authorSchema,
             operation: 'query',
             fieldName: 'userById',
@@ -277,7 +277,7 @@ const mergedSchema = mergeSchemas({
 
 Notice that `resolvers.Chirp_Chirp` has been renamed from just `Chirp`, but `resolvers.Chirp_Chirp.author.fragment` still refers to the original `Chirp` type and `authorId` field, rather than `Chirp_Chirp` and `Chirp_authorId`.
 
-Also, when we call `info.mergeInfo.delegateToSchema` in the `User.chirps` resolvers, we can delegate to the original `chirpsByAuthorId` field, even though it has been filtered out of the final schema. That's because we're delegating to the original `chirpSchema`, which has not been modified by the transforms.
+Also, when we call `delegateToSchema` in the `User.chirps` resolvers, we can delegate to the original `chirpsByAuthorId` field, even though it has been filtered out of the final schema. That's because we're delegating to the original `chirpSchema`, which has not been modified by the transforms.
 
 ## Complex example
 
@@ -328,7 +328,7 @@ resolvers: {
     property: {
       fragment: '... on Booking { propertyId }',
       resolve(parent, args, context, info) {
-        return info.mergeInfo.delegateToSchema({
+        return delegateToSchema({
           schema: bookingSchema,
           operation: 'query',
           fieldName: 'propertyById',
@@ -368,7 +368,7 @@ interface IDelegateToSchemaOptions<TContext = {
 }
 ```
 
-As described in the documentation above, `info.mergeInfo.delegateToSchema` allows delegating to any `GraphQLSchema` object, optionally applying transforms in the process. See [Schema Delegation](/schema-delegation/) and the [*Using with transforms*](#using-with-transforms) section of this document.
+As described in the documentation above, `delegateToSchema` allows delegating to any `GraphQLSchema` object, optionally applying transforms in the process. See [Schema Delegation](/schema-delegation/) and the [*Using with transforms*](#using-with-transforms) section of this document.
 
 #### onTypeConflict
 
