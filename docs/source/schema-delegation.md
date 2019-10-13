@@ -197,4 +197,4 @@ GraphQL resolve info of the current resolver. Provides access to the subquery th
 
 #### transforms: Array<Transform>
 
-[Transforms](/schema-transforms/) to apply to the query and results. Should be the same transforms that were used to transform the schema, if any. For convenience, after transformation, `transformedSchema.transforms` contains the transforms that were applied.
+Any additional operation [transforms](/schema-transforms/) to apply to the query and results. Could be the same operation transforms used in conjunction with schema transformation. For convenience, after schema transformation, `transformedSchema.transforms` contains the transforms that were applied.
