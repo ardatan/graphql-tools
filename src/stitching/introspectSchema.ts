@@ -1,10 +1,11 @@
 import { GraphQLSchema, DocumentNode } from 'graphql';
-import { introspectionQuery, buildClientSchema, parse } from 'graphql';
+import { buildClientSchema, parse } from 'graphql';
+import { getIntrospectionQuery } from 'graphql/utilities';
 import { ApolloLink } from 'apollo-link';
 import { Fetcher } from './makeRemoteExecutableSchema';
 import linkToFetcher from './linkToFetcher';
 
-const parsedIntrospectionQuery: DocumentNode = parse(introspectionQuery);
+const parsedIntrospectionQuery: DocumentNode = parse(getIntrospectionQuery());
 
 export default async function introspectSchema(
   fetcher: ApolloLink | Fetcher,
