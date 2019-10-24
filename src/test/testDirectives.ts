@@ -562,7 +562,7 @@ describe('@directives', () => {
         field.args.push({
           name: 'format',
           type: GraphQLString
-        });
+        } as any);
 
         field.type = GraphQLString;
         field.resolve = async function (source, { format, ...args }, context, info) {
@@ -987,7 +987,7 @@ describe('@directives', () => {
               type: GraphQLID,
               description: 'Unique ID',
               args: [],
-              resolve(object) {
+              resolve(object: any) {
                 const hash = require('crypto').createHash('sha1');
                 hash.update(type.name);
                 from.forEach((fieldName: string) => {
@@ -995,7 +995,7 @@ describe('@directives', () => {
                 });
                 return hash.digest('hex');
               }
-            };
+            } as any;
           }
         }
       },
