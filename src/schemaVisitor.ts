@@ -36,7 +36,8 @@ export type VisitableSchemaType =
   | GraphQLArgument
   | GraphQLUnionType
   | GraphQLEnumType
-  | GraphQLEnumValue;
+  | GraphQLEnumValue
+  | GraphQLInputField;
 
 const hasOwn = Object.prototype.hasOwnProperty;
 
