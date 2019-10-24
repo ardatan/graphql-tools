@@ -1,7 +1,7 @@
 import { getNamedType, GraphQLInputObjectType, GraphQLSchema, GraphQLObjectType } from 'graphql';
 import { IDefaultValueIteratorFn } from '../Interfaces';
 
-function forEachDefaultValue(schema: GraphQLSchema, fn: IDefaultValueIteratorFn): void {
+export function forEachDefaultValue(schema: GraphQLSchema, fn: IDefaultValueIteratorFn): void {
 
   const typeMap = schema.getTypeMap();
   Object.keys(typeMap).forEach(typeName => {
@@ -27,5 +27,3 @@ function forEachDefaultValue(schema: GraphQLSchema, fn: IDefaultValueIteratorFn)
     }
   });
 }
-
-export default forEachDefaultValue;

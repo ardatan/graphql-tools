@@ -1,4 +1,4 @@
-export default function mergeDeep(target: any, source: any): any {
+export function mergeDeep(target: any, source: any): any {
   let output = Object.assign({}, target);
   if (isObject(target) && isObject(source)) {
     Object.keys(source).forEach(key => {

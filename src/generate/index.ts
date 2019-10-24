@@ -10,5 +10,4 @@ export { default as concatenateTypeDefs } from './concatenateTypeDefs';
 export { default as decorateWithLogger } from './decorateWithLogger';
 export { default as extendResolversFromInterfaces } from './extendResolversFromInterfaces';
 export { default as extractExtensionDefinitions } from './extractExtensionDefinitions';
-export { default as forEachField } from './forEachField';
 export { default as SchemaError } from './SchemaError';

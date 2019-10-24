@@ -1,6 +1,5 @@
 import {
   DocumentNode,
-  GraphQLField,
   GraphQLNamedType,
   GraphQLObjectType,
   GraphQLResolveInfo,
@@ -36,10 +35,15 @@ import {
   ExpandAbstractTypes,
   ReplaceFieldWithFragment,
 } from '../transforms';
-import mergeDeep from '../utils/mergeDeep';
-import { SchemaDirectiveVisitor } from '../utils/SchemaDirectiveVisitor';
-import { cloneDirective, cloneType } from '../utils/clone';
-import { healSchema, healTypes } from '../utils/heal';
+import {
+  SchemaDirectiveVisitor,
+  cloneDirective,
+  cloneType,
+  healSchema,
+  healTypes,
+  forEachField,
+  mergeDeep,
+} from '../utils';
 import { makeMergedType } from './makeMergedType';
 
 type MergeTypeCandidate = {
@@ -354,30 +358,6 @@ function createDelegatingResolver({
       info,
     });
   };
-}
-
-type FieldIteratorFn = (
-  fieldDef: GraphQLField<any, any>,
-  typeName: string,
-  fieldName: string,
-) => void;
-
-function forEachField(schema: GraphQLSchema, fn: FieldIteratorFn): void {
-  const typeMap = schema.getTypeMap();
-  Object.keys(typeMap).forEach(typeName => {
-    const type = typeMap[typeName];
-
-    if (
-      !getNamedType(type).name.startsWith('__') &&
-      type instanceof GraphQLObjectType
-    ) {
-      const fields = type.getFields();
-      Object.keys(fields).forEach(fieldName => {
-        const field = fields[fieldName];
-        fn(field, typeName, fieldName);
-      });
-    }
-  });
 }
 
 function addTypeCandidate(

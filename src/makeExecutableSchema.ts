@@ -2,8 +2,11 @@ import { defaultFieldResolver, GraphQLSchema, GraphQLFieldResolver } from 'graph
 
 import { IExecutableSchemaDefinition, ILogger } from './Interfaces';
 
-import { SchemaDirectiveVisitor } from './utils/SchemaDirectiveVisitor';
-import mergeDeep from './utils/mergeDeep';
+import {
+  SchemaDirectiveVisitor,
+  forEachField,
+  mergeDeep
+} from './utils';
 
 import {
   attachDirectiveResolvers,
@@ -13,7 +16,6 @@ import {
   addSchemaLevelResolveFunction,
   buildSchemaFromTypeDefinitions,
   decorateWithLogger,
-  forEachField,
   SchemaError
 } from './generate';
 

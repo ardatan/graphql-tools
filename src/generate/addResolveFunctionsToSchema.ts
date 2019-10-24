@@ -18,10 +18,13 @@ import {
 import SchemaError from './SchemaError';
 import checkForResolveTypeResolver from './checkForResolveTypeResolver';
 import extendResolversFromInterfaces from './extendResolversFromInterfaces';
-import forEachField from './forEachField';
-import forEachDefaultValue from './forEachDefaultValue';
-import { parseInputValue, serializeInputValue } from '../utils/transformInputValue';
-import { healSchema } from '../utils/heal';
+import {
+  parseInputValue,
+  serializeInputValue,
+  healSchema,
+  forEachField,
+  forEachDefaultValue,
+} from '../utils';
 
 function addResolveFunctionsToSchema(
   options: IAddResolveFunctionsToSchemaOptions | GraphQLSchema,

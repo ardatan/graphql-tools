@@ -5,7 +5,7 @@ import {
   GraphQLScalarType,
 } from 'graphql';
 import { IResolverValidationOptions } from '../Interfaces';
-import forEachField from './forEachField';
+import { forEachField } from '../utils';
 import SchemaError from './SchemaError';
 
 function assertResolveFunctionsPresent(
