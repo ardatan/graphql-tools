@@ -1,6 +1,6 @@
 # Change log
 
-### vNext
+### 4.0.6
 
 * Use `getIntrospectionQuery` instead of deprecated `introspectionQuery` constant from graphql-js
   [@derek-miller](https://github.com/derek-miller) in [#1228](https://github.com/apollographql/graphql-tools/pull/1228)
