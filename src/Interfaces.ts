@@ -84,10 +84,15 @@ export type SchemaExecutionConfig = {
 
 export type GraphQLSchemaWithTransforms = GraphQLSchema & { transforms?: Array<Transform> };
 
-export function isSchemaExecutionConfig(
-  schema: string | GraphQLSchema | SchemaExecutionConfig | DocumentNode | Array<GraphQLNamedType>
-): schema is SchemaExecutionConfig {
-  return !!(schema as SchemaExecutionConfig).schema;
+export type SchemaLikeObject =
+  SchemaExecutionConfig |
+  GraphQLSchema |
+  string |
+  DocumentNode |
+  Array<GraphQLNamedType>;
+
+export function isSchemaExecutionConfig(value: SchemaLikeObject): value is SchemaExecutionConfig {
+  return !!(value as SchemaExecutionConfig).schema;
 }
 
 export interface IDelegateToSchemaOptions<TContext = { [key: string]: any }> {
