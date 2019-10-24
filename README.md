@@ -23,8 +23,6 @@ JavaScript GraphQL servers are often developed with `graphql-tools` and `apollo-
 
 ## Example
 
-[See and edit the live example on Launchpad.](https://launchpad.graphql.com/1jzxrj179)
-
 When using `graphql-tools`, you describe the schema as a GraphQL type language string:
 
 ```js
