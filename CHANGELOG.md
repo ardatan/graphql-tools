@@ -1,12 +1,19 @@
 # Change log
 
-### vNext
+### 4.0.6
+
+* Use `getIntrospectionQuery` instead of deprecated `introspectionQuery` constant from graphql-js
+  [@derek-miller](https://github.com/derek-miller) in [#1228](https://github.com/apollographql/graphql-tools/pull/1228)
+
+### 4.0.5
 
 * Fixes a bug where schemas with scalars could not be merged when passed to
   `mergeSchemas` as a string or `GraphQLSchema`.  <br/>
   [@hayes](https://github.com/hayes) in [#1062](https://github.com/apollographql/graphql-tools/pull/1062)
 * Make `mergeSchemas` optionally merge directive definitions.  <br/>
   [@freiksenet](https://github.com/freiksenet) in [#1003](https://github.com/apollographql/graphql-tools/pull/1003)
+* Allow user-provided `buildSchema` options.  <br/>
+  [@trevor-scheer](https://github.com/trevor-scheer) in [#1154](https://github.com/apollographql/graphql-tools/pull/1154)
 
 ### 4.0.4
 

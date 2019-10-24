@@ -396,7 +396,7 @@ const propertyResolvers: IResolvers = {
   JSON: GraphQLJSON,
 
   TestInterface: {
-    __resolveType(obj) {
+    __resolveType(obj: any) {
       if (obj.kind === 'ONE') {
         return 'TestImpl1';
       } else {
@@ -406,7 +406,7 @@ const propertyResolvers: IResolvers = {
   },
 
   TestUnion: {
-    __resolveType(obj) {
+    __resolveType(obj: any) {
       if (obj.kind === 'ONE') {
         return 'TestImpl1';
       } else {
@@ -465,7 +465,7 @@ const productResolvers: IResolvers = {
   },
 
   Product: {
-    __resolveType(obj) {
+    __resolveType(obj: any) {
       if (obj.type === 'simple') {
         return 'SimpleProduct';
       } else {
@@ -595,7 +595,7 @@ const bookingResolvers: IResolvers = {
   },
 
   Booking: {
-    __isTypeOf(source, context, info) {
+    __isTypeOf(source: any, context: any, info: any) {
       return Object.prototype.hasOwnProperty.call(source, 'id');
     },
     customer(parent: Booking) {
@@ -629,7 +629,7 @@ const bookingResolvers: IResolvers = {
   },
 
   Vehicle: {
-    __resolveType(parent) {
+    __resolveType(parent: any) {
       if (parent.licensePlate) {
         return 'Car';
       } else if (parent.bikeType) {
