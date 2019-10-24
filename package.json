@@ -12,7 +12,7 @@
   },
   "scripts": {
     "clean": "rimraf dist",
-    "compile": "tsc",
+    "compile": "npx tsc",
     "typings": "typings install",
     "pretest": "npm run clean && npm run compile",
     "test": "npm run testonly --",
