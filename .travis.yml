@@ -8,7 +8,6 @@ install:
   - npm config set spin=false
   - npm install -g coveralls
   - npm install
-  - npm install graphql@$GRAPHQL_VERSION
 
 script:
   - npm test
@@ -18,6 +17,3 @@ script:
 
 # Allow Travis tests to run in containers.
 sudo: false
-
-env:
-  - GRAPHQL_VERSION='^14.0'
