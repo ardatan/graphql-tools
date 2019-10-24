@@ -1,5 +1,10 @@
 # Change log
 
+### 4.0.6
+
+* Use `getIntrospectionQuery` instead of deprecated `introspectionQuery` constant from graphql-js
+  [@derek-miller](https://github.com/derek-miller) in [#1228](https://github.com/apollographql/graphql-tools/pull/1228)
+
 ### 4.0.5
 
 * Fixes a bug where schemas with scalars could not be merged when passed to
