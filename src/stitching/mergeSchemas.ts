@@ -186,12 +186,11 @@ export default function mergeSchemas({
   }
 
   Object.keys(typeCandidates).forEach(typeName => {
-    const mergeResult = mergeTypeCandidates(
+    types[typeName] = mergeTypeCandidates(
       typeName,
       typeCandidates[typeName],
       onTypeConflict ? onTypeConflictToCandidateSelector(onTypeConflict) : undefined
     );
-    types[typeName] = mergeResult;
   });
 
   healTypes(types, directives, { skipPruning: true });
