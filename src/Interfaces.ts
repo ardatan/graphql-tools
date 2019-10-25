@@ -82,10 +82,14 @@ export type SchemaExecutionConfig = {
   dispatcher?: Dispatcher;
 };
 
+export type SubSchemaConfig = {
+  transforms?: Array<Transform>;
+} & SchemaExecutionConfig;
+
 export type GraphQLSchemaWithTransforms = GraphQLSchema & { transforms?: Array<Transform> };
 
 export type SchemaLikeObject =
-  SchemaExecutionConfig |
+  SubSchemaConfig |
   GraphQLSchema |
   string |
   DocumentNode |
@@ -95,6 +99,9 @@ export function isSchemaExecutionConfig(value: SchemaLikeObject): value is Schem
   return !!(value as SchemaExecutionConfig).schema;
 }
 
+export function isSubSchemaConfig(value: SchemaLikeObject): value is SubSchemaConfig {
+  return !!(value as SubSchemaConfig).schema;
+}
 export interface IDelegateToSchemaOptions<TContext = { [key: string]: any }> {
   schema: GraphQLSchema | SchemaExecutionConfig;
   link?: ApolloLink;

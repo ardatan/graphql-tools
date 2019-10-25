@@ -22,6 +22,7 @@ import {
   TransformObjectFields,
   ExtendSchema,
   WrapType,
+  FilterRootFields,
 } from '../transforms';
 import {
   propertySchema,
@@ -127,39 +128,48 @@ describe('merge schemas through transforms', () => {
     bookingSchemaExecConfig = await remoteBookingSchema;
 
     // namespace and strip schemas
-    const transformedPropertySchema = filterSchema({
-      schema: transformSchema(propertySchema, [
-        new RenameTypes((name: string) => `Properties_${name}`),
-        new RenameRootFields((operation: string, name: string) => `Properties_${name}`),
-      ]),
-      rootFieldFilter: (operation: string, rootField: string) =>
-        'Query.Properties_properties' === `${operation}.${rootField}`,
-    });
-    const transformedBookingSchema = filterSchema({
-      schema: transformSchema(bookingSchemaExecConfig, [
-        new RenameTypes((name: string) => `Bookings_${name}`),
-        new RenameRootFields((operation: string, name: string) => `Bookings_${name}`),
-      ]),
-      rootFieldFilter: (operation: string, rootField: string) =>
-        'Query.Bookings_bookings' === `${operation}.${rootField}`
-    });
-    const transformedSubscriptionSchema = filterSchema({
-      schema: transformSchema(subscriptionSchema, [
-        new RenameTypes((name: string) => `Subscriptions_${name}`),
-        new RenameRootFields(
-          (operation: string, name: string) => `Subscriptions_${name}`),
-      ]),
-      rootFieldFilter: (operation: string, rootField: string) =>
+    const propertySchemaTransforms = [
+      new FilterRootFields(
+        (operation: string, rootField: string) =>
+          'Query.properties' === `${operation}.${rootField}`
+      ),
+      new RenameTypes((name: string) => `Properties_${name}`),
+      new RenameRootFields((operation: string, name: string) => `Properties_${name}`),
+    ];
+    const bookingSchemaTransforms = [
+      new FilterRootFields(
+        (operation: string, rootField: string) =>
+          'Query.bookings' === `${operation}.${rootField}`
+      ),
+      new RenameTypes((name: string) => `Bookings_${name}`),
+      new RenameRootFields((operation: string, name: string) => `Bookings_${name}`),
+    ];
+    const subScriptionSchemaTransforms = [
+      new FilterRootFields(
+        (operation: string, rootField: string) =>
           // must include a Query type otherwise graphql will error
-          'Query.Subscriptions_notifications' === `${operation}.${rootField}` ||
-          'Subscription.Subscriptions_notifications' === `${operation}.${rootField}`,
-    });
+          'Query.notifications' === `${operation}.${rootField}` ||
+          'Subscription.notifications' === `${operation}.${rootField}`
+      ),
+      new RenameTypes((name: string) => `Subscriptions_${name}`),
+      new RenameRootFields(
+        (operation: string, name: string) => `Subscriptions_${name}`),
+    ];
 
     mergedSchema = mergeSchemas({
       schemas: [
-        transformedPropertySchema,
-        transformedBookingSchema,
-        transformedSubscriptionSchema,
+        {
+          schema: propertySchema,
+          transforms: propertySchemaTransforms,
+        },
+        {
+          ...bookingSchemaExecConfig,
+          transforms: bookingSchemaTransforms,
+        },
+        {
+          schema: subscriptionSchema,
+          transforms: subScriptionSchemaTransforms,
+        },
         linkSchema,
       ],
       resolvers: {
@@ -174,7 +184,7 @@ describe('merge schemas through transforms', () => {
                 args,
                 context,
                 info,
-                transforms: transformedPropertySchema.transforms,
+                transforms: propertySchemaTransforms,
               });
             } else if (args.id.startsWith('b')) {
               return delegateToSchema({
@@ -184,7 +194,7 @@ describe('merge schemas through transforms', () => {
                 args,
                 context,
                 info,
-                transforms: transformedBookingSchema.transforms,
+                transforms: bookingSchemaTransforms,
               });
             } else if (args.id.startsWith('c')) {
               return delegateToSchema({
@@ -194,7 +204,7 @@ describe('merge schemas through transforms', () => {
                 args,
                 context,
                 info,
-                transforms: transformedBookingSchema.transforms,
+                transforms: bookingSchemaTransforms,
               });
             } else {
               throw new Error('invalid id');
@@ -215,7 +225,7 @@ describe('merge schemas through transforms', () => {
                 },
                 context,
                 info,
-                transforms: transformedBookingSchema.transforms,
+                transforms: bookingSchemaTransforms,
               });
             },
           },
@@ -233,7 +243,7 @@ describe('merge schemas through transforms', () => {
                 },
                 context,
                 info,
-                transforms: transformedPropertySchema.transforms,
+                transforms: propertySchemaTransforms,
               });
             },
           },
