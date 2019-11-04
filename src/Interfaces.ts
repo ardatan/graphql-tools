@@ -57,7 +57,6 @@ export type Transform = {
   transformSchema?: (schema: GraphQLSchema) => GraphQLSchema;
   transformRequest?: (originalRequest: Request) => Request;
   transformResult?: (result: Result) => Result;
-  resolversTransformResult?: boolean;
 };
 
 export interface IGraphQLToolsResolveInfo extends GraphQLResolveInfo {
@@ -75,47 +74,39 @@ export interface IFetcherOperation {
 
 export type Dispatcher = (context: any) => ApolloLink | Fetcher;
 
-export type SchemaExecutionConfig = {
+export type SubschemaConfig = {
   schema: GraphQLSchemaWithTransforms;
+  rootValue?: Record<string, any>;
+  executor?: Delegator;
+  subscriber?: Delegator;
   link?: ApolloLink;
   fetcher?: Fetcher;
   dispatcher?: Dispatcher;
-};
-
-export type SubSchemaConfig = {
   transforms?: Array<Transform>;
-} & SchemaExecutionConfig;
+};
 
 export type GraphQLSchemaWithTransforms = GraphQLSchema & { transforms?: Array<Transform> };
 
 export type SchemaLikeObject =
-  SubSchemaConfig |
+  SubschemaConfig |
   GraphQLSchema |
   string |
   DocumentNode |
   Array<GraphQLNamedType>;
 
-export function isSchemaExecutionConfig(value: SchemaLikeObject): value is SchemaExecutionConfig {
-  return !!(value as SchemaExecutionConfig).schema;
-}
-
-export function isSubSchemaConfig(value: SchemaLikeObject): value is SubSchemaConfig {
-  return !!(value as SubSchemaConfig).schema;
+export function isSubschemaConfig(value: SchemaLikeObject): value is SubschemaConfig {
+  return !!(value as SubschemaConfig).schema;
 }
 export interface IDelegateToSchemaOptions<TContext = { [key: string]: any }> {
-  schema: GraphQLSchema | SchemaExecutionConfig;
-  link?: ApolloLink;
-  fetcher?: Fetcher;
-  dispatcher?: Dispatcher;
+  schema: GraphQLSchema | SubschemaConfig;
   operation: Operation;
   fieldName: string;
   args?: { [key: string]: any };
   context: TContext;
   info: IGraphQLToolsResolveInfo;
+  rootValue?: Record<string, any>;
   transforms?: Array<Transform>;
   skipValidation?: boolean;
-  executor?: Delegator;
-  subscriber?: Delegator;
 }
 
 export type Delegator = ({ document, context, variables }: {

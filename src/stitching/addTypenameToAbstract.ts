@@ -9,11 +9,11 @@ import {
   FieldNode,
   GraphQLInterfaceType,
   GraphQLUnionType,
+  GraphQLSchema,
 } from 'graphql';
-import { GraphQLSchemaWithTransforms } from '../Interfaces';
 
 export function addTypenameToAbstract(
-  targetSchema: GraphQLSchemaWithTransforms,
+  targetSchema: GraphQLSchema,
   document: DocumentNode,
 ): DocumentNode {
   const typeInfo = new TypeInfo(targetSchema);

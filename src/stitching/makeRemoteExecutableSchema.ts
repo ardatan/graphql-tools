@@ -66,10 +66,9 @@ export default function makeRemoteExecutableSchema({
     }
   }
 
-  const resolvers = generateProxyingResolvers(remoteSchema, [], createProxyingResolver);
   addResolveFunctionsToSchema({
     schema: remoteSchema,
-    resolvers,
+    resolvers: generateProxyingResolvers({ schema: remoteSchema }, createProxyingResolver),
     resolverValidationOptions: {
       allowResolversNotInSchema: true,
     },

@@ -7,19 +7,13 @@ description: Combining multiple GraphQL APIs into one
 
 Schema stitching is the process of creating a single GraphQL schema from multiple underlying GraphQL APIs.
 
-One of the main benefits of GraphQL is that we can query all of our data as part of one schema, and get everything we need in one request. But as the schema grows, it might become cumbersome to manage it all as one codebase, and it starts to make sense to split it into different modules. We may also want to decompose your schema into separate microservices, which can be developed and deployed independently.
+One of the main benefits of GraphQL is that we can query all of our data as part of one schema, and get everything we need in one request. But as the schema grows, it might become cumbersome to manage it all as one codebase, and it starts to make sense to split it into different modules. We may also want to decompose your schema into separate microservices, which can be developed and deployed independently. We may also want to integrate our own schema with remote schemas.
 
-In both cases, we use `mergeSchemas` to combine multiple GraphQL schemas together and produce a merged schema that knows how to delegate parts of the query to the relevant subschemas. These subschemas can be either local to the server, or running on a remote server. They can even be services offered by 3rd parties, allowing us to connect to external data and create mashups.
-
-## Working with remote schemas
-
-In order to merge with a remote schema, we first call [makeRemoteExecutableSchema](/remote-schemas/) to create a local proxy for the schema that knows how to call the remote endpoint. We then merge that local proxy schema the same way we would merge any other locally implemented schema.
+In these cases, we use `mergeSchemas` to combine multiple GraphQL schemas together and produce a new schema that knows how to delegate parts of the query to the relevant subschemas. These subschemas can be either local to the server, or running on a remote server. They can even be services offered by 3rd parties, allowing us to connect to external data and create mashups.
 
 ## Basic example
 
-In this example we'll stitch together two very simple schemas. It doesn't matter whether these are local or proxies created with `makeRemoteExecutableSchema`, because the merging itself would be the same.
-
-In this case, we're dealing with two schemas that implement a system with users and "chirps"&mdash;small snippets of text that users can post.
+In this example we'll stitch together two very simple schemas. In this case, we're dealing with two schemas that implement a system with users and "chirps"&mdash;small snippets of text that users can post.
 
 ```js
 import {
@@ -65,14 +59,16 @@ const authorSchema = makeExecutableSchema({
 addMockFunctionsToSchema({ schema: authorSchema });
 
 export const schema = mergeSchemas({
-  schemas: [
-    chirpSchema,
-    authorSchema,
+  subschemas: [
+    { schema: chirpSchema, },
+    { schema: authorSchema, },
   ],
 });
 ```
 
-[Run the above example on Launchpad.](https://launchpad.graphql.com/1nkk8vqj9)
+Note the new `subschemas` property with an array of subschema configuration objects. This syntax is a bit more verbose, but we shall see how it provides multiple benefits:
+1. transforms can be specified on the subschema config object, avoiding creation of a new schema with a new round of delegation in order to transform a schema prior to merging.
+2. remote schema configuration options can be specified, also avoiding an additional round of schema proxying.
 
 This gives us a new schema with the root fields on `Query` from both schemas (along with the `User` and `Chirp` types):
 
@@ -107,32 +103,34 @@ const linkTypeDefs = `
 We can now merge these three schemas together:
 
 ```js
-mergeSchemas({
-  schemas: [
-    chirpSchema,
-    authorSchema,
-    linkTypeDefs,
+export const schema = mergeSchemas({
+  subschemas: [
+    { schema: chirpSchema, },
+    { schema: authorSchema, },
   ],
+  typeDefs: linkTypeDefs,
 });
 ```
+
+Note the new `typeDefs` option in parallel to the new `subschemas` option, which better expresses that these typeDefs are defined only within the outer gateway schemas.
 
 We won't be able to query `User.chirps` or `Chirp.author` yet, however, because we still need to define resolvers for these new fields.
 
 How should these resolvers be implemented? When we resolve `User.chirps` or `Chirp.author`, we want to _delegate_ to the relevant root fields. To get from a user to the user's chirps, for example, we'll want to use the `id` of the user to call `Query.chirpsByAuthorId`. And to get from a chirp to its author, we can use the chirp's `authorId` field to call the existing `Query.userById` field.
 
-Resolvers for fields in schemas created by `mergeSchema` can use the `delegateToSchema` function to forward parts of queries (or even whole new queries) to one of the subschemas that was passed to `mergeSchemas` (or any other schema).
+Resolvers can use the `delegateToSchema` function to forward parts of queries (or even whole new queries) to one of the subschemas that was passed to `mergeSchemas` (or any other schema).
 
 In order to delegate to these root fields, we'll need to make sure we've actually requested the `id` of the user or the `authorId` of the chirp. To avoid forcing users to add these fields to their queries manually, resolvers on a merged schema can define a `fragment` property that specifies the required fields, and they will be added to the query automatically.
 
 A complete implementation of schema stitching for these schemas might look like this:
 
 ```js
-const mergedSchema = mergeSchemas({
-  schemas: [
-    chirpSchema,
-    authorSchema,
-    linkTypeDefs,
+const schema = mergeSchemas({
+  subschemas: [
+    { schema: chirpSchema, },
+    { schema: authorSchema, },
   ],
+  typeDefs: linkTypeDefs,
   resolvers: {
     User: {
       chirps: {
@@ -172,13 +170,9 @@ const mergedSchema = mergeSchemas({
 });
 ```
 
-[Run the above example on Launchpad.](https://launchpad.graphql.com/8r11mk9jq)
-
 ## Using with Transforms
 
-Often, when creating a GraphQL gateway that combines multiple existing schemas, we might want to modify one of the schemas. The most common tasks include renaming some of the types, and filtering the root fields. By using [transforms](/schema-transforms/) with schema stitching, we can easily tweak the subschemas before merging them together.
-
-Before, when we were simply merging schemas without first transforming them, we would typically delegate directly to one of the merged schemas. Once we add transforms to the mix, there are times when we want to delegate to fields of the new, transformed schemas, and other times when we want to delegate to the original, untransformed schemas.
+Often, when creating a GraphQL gateway that combines multiple existing schemas, we might want to modify one of the schemas. The most common tasks include renaming some of the types, and filtering the root fields. By using [transforms](/schema-transforms/) with schema stitching, we can easily tweak the subschemas before merging them together. (In earlier versions of graphql-tools, this required an additional round of delegation prior to merging, but transforms can now be specifying directly when merging using the new subschema configuration objects.)
 
 For example, suppose we transform the `chirpSchema` by removing the `chirpsByAuthorId` field and add a `Chirp_` prefix to all types and field names, in order to make it very clear which types and fields came from `chirpSchema`:
 
@@ -187,7 +181,6 @@ import {
   makeExecutableSchema,
   addMockFunctionsToSchema,
   mergeSchemas,
-  transformSchema,
   FilterRootFields,
   RenameTypes,
   RenameRootFields,
@@ -213,35 +206,41 @@ const chirpSchema = makeExecutableSchema({
 
 addMockFunctionsToSchema({ schema: chirpSchema });
 
-// create transform schema
+// create transforms
 
-const transformedChirpSchema = transformSchema(chirpSchema, [
+const chirpSchemaTransforms = [
   new FilterRootFields(
     (operation: string, rootField: string) => rootField !== 'chirpsByAuthorId'
   ),
   new RenameTypes((name: string) => `Chirp_${name}`),
   new RenameRootFields((operation: 'Query' | 'Mutation' | 'Subscription', name: string) => `Chirp_${name}`),
-]);
+];
 ```
 
-Now we have a schema that has all fields and types prefixed with `Chirp_` and has only the `chirpById` root field. Note that the original schema has not been modified, and remains fully functional. We've simply created a new, slightly different schema, which hopefully will be more convenient for merging with our other subschemas.
+We will now have a schema that has all fields and types prefixed with `Chirp_` and has only the `chirpById` root field.
 
 Now let's implement the resolvers:
 
-```js
-const mergedSchema = mergeSchemas({
-  schemas: [
-    transformedChirpSchema,
-    authorSchema,
-    linkTypeDefs,
+```ts
+const chirpSubschema = {
+  schema: chirpSchema,
+  transforms: chirpSchemaTransforms,
+}
+
+export const schema = mergeSchemas({
+  subschemas: [
+    chirpSubschema,
+    { schema: authorSchema },
   ],
+  typeDefs: linkTypeDefs,
+
   resolvers: {
     User: {
       chirps: {
         fragment: `... on User { id }`,
         resolve(user, args, context, info) {
           return delegateToSchema({
-            schema: chirpSchema,
+            schema: chirpSubschema,
             operation: 'query',
             fieldName: 'chirpsByAuthorId',
             args: {
@@ -249,7 +248,6 @@ const mergedSchema = mergeSchemas({
             },
             context,
             info,
-            transforms: transformedChirpSchema.transforms,
           });
         },
       },
@@ -277,23 +275,56 @@ const mergedSchema = mergeSchemas({
 
 Notice that `resolvers.Chirp_Chirp` has been renamed from just `Chirp`, but `resolvers.Chirp_Chirp.author.fragment` still refers to the original `Chirp` type and `authorId` field, rather than `Chirp_Chirp` and `Chirp_authorId`.
 
-Also, when we call `delegateToSchema` in the `User.chirps` resolvers, we can delegate to the original `chirpsByAuthorId` field, even though it has been filtered out of the final schema. That's because we're delegating to the original `chirpSchema`, which has not been modified by the transforms.
+Also, when we call `delegateToSchema` in the `User.chirps` resolvers, we can delegate to the original `chirpsByAuthorId` field, even though it has been filtered out of the final schema.
 
-## Complex example
+## Working with remote schemas
 
-For a more complicated example involving properties and bookings, with implementations of all of the resolvers, check out the Launchpad links below:
+In order to merge with a remote schema, we specify different options within the subschema configuration object that describe how to connect to the remote schema. For example:
 
-* [Property schema](https://launchpad.graphql.com/v7l45qkw3)
-* [Booking schema](https://launchpad.graphql.com/41p4j4309)
-* [Merged schema](https://launchpad.graphql.com/q5kq9z15p)
+```ts
+  subschemas: [
+    {
+      schema: nonExecutableChirpSchema,
+      link: chirpSchemaLink
+      transforms: chirpSchemaTransforms,
+    },
+    { schema: authorSchema },
+  ],
+```
+
+The remote schema may be obtained either via introspection or any other source. A link is a generic ApolloLink method of connecting to a schema, also used by Apollo Client.
+
+Specifying the remote schema options within the `mergeSchemas` call itself allows for skipping an additional round of delegation. The old method of using [makeRemoteExecutableSchema](/remote-schemas/) to create a local proxy for the remote schema would still work, and the same arguments are supported. See the [remote schema](/remote-schemas/) docs for further description of the options available. Subschema configuration allows for specifying an ApolloLink `link`, any fetcher method (if not using subscriptions), or a dispatcher function that takes the graphql `context` object as an argument and dynamically returns a link object or fetcher method.
 
 ## API
 
-### mergeSchemas
+### schemas
 
 ```ts
+
+export type SubschemaConfig = {
+  schema: GraphQLSchema;
+  rootValue?: Record<string, any>;
+  executor?: Delegator;
+  subscriber?: Delegator;
+  link?: ApolloLink;
+  fetcher?: Fetcher;
+  dispatcher?: Dispatcher;
+  transforms?: Array<Transform>;
+};
+
+export type SchemaLikeObject =
+  SubschemaConfig |
+  GraphQLSchema |
+  string |
+  DocumentNode |
+  Array<GraphQLNamedType>;
+
 mergeSchemas({
-  schemas: Array<string | GraphQLSchema | DocumentNode | Array<GraphQLNamedType>>;
+  subschemas: Array<SubschemaConfig>;
+  types: Array<GraphQLNamedType>;
+  typeDefs: string | DocumentNode;
+  schemas: Array<SchemaLikeObject>;
   resolvers?: Array<IResolvers> | IResolvers;
   onTypeConflict?: (
     left: GraphQLNamedType,
@@ -316,7 +347,7 @@ This is the main function that implements schema stitching. Read below for a des
 
 #### schemas
 
-`schemas` is an array of `GraphQLSchema` objects, schema strings, or lists of `GraphQLNamedType`s. Strings can contain type extensions or GraphQL types, which will be added to resulting schema. Note that type extensions are always applied last, while types are defined in the order in which they are provided.
+`schemas` is an array of `GraphQLSchema` objects, schema strings, or lists of `GraphQLNamedType`s. Strings can contain type extensions or GraphQL types, which will be added to resulting schema. Note that type extensions are always applied last, while types are defined in the order in which they are provided. Using the `subschemas` and `typeDefs` parameters is preferred, as these parameter names better describe whether the includes types will be wrapped or will be imported directly into the outer schema.
 
 #### resolvers
 
@@ -344,14 +375,12 @@ resolvers: {
 }
 ```
 
-#### mergeInfo and delegateToSchema
+#### delegateToSchema
 
-The `info.mergeInfo` object provides the `delegateToSchema` method:
+The `delegateToSchema` method:
 
 ```js
-type MergeInfo = {
-  delegateToSchema<TContext>(options: IDelegateToSchemaOptions<TContext>): any;
-}
+delegateToSchema<TContext>(options: IDelegateToSchemaOptions<TContext>): any;
 
 interface IDelegateToSchemaOptions<TContext = {
     [key: string]: any;

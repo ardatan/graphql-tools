@@ -21,7 +21,7 @@ import { makeExecutableSchema } from '../makeExecutableSchema';
 import {
   IResolvers,
   Fetcher,
-  SchemaExecutionConfig,
+  SubschemaConfig,
 } from '../Interfaces';
 import introspectSchema from '../stitching/introspectSchema';
 import { PubSub } from 'graphql-subscriptions';
@@ -762,7 +762,7 @@ function makeLinkFromSchema(schema: GraphQLSchema) {
 }
 
 export async function makeSchemaRemoteFromLink(schema: GraphQLSchema)
-  : Promise<SchemaExecutionConfig> {
+  : Promise<SubschemaConfig> {
   const link = makeLinkFromSchema(schema);
   const clientSchema = await introspectSchema(link);
   return {
@@ -772,7 +772,7 @@ export async function makeSchemaRemoteFromLink(schema: GraphQLSchema)
 }
 
 export async function makeSchemaRemoteFromDispatchedLink(schema: GraphQLSchema)
-  : Promise<SchemaExecutionConfig> {
+  : Promise<SubschemaConfig> {
   const link = makeLinkFromSchema(schema);
   const clientSchema = await introspectSchema(link);
   return {
@@ -783,7 +783,7 @@ export async function makeSchemaRemoteFromDispatchedLink(schema: GraphQLSchema)
 
 // ensure fetcher support exists from the 2.0 api
 async function makeExecutableSchemaFromDispatchedFetcher(schema: GraphQLSchema)
-  : Promise<SchemaExecutionConfig> {
+  : Promise<SubschemaConfig> {
   const fetcher: Fetcher = ({ query, operationName, variables, context }) => {
     return graphql(
       schema,

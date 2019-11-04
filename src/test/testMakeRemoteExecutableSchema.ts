@@ -15,10 +15,10 @@ import { makeRemoteExecutableSchema } from '../stitching';
 describe('remote queries', () => {
   let schema: GraphQLSchema;
   before(async () => {
-    const remoteSchemaExecConfig = await makeSchemaRemoteFromLink(propertySchema);
+    const remoteSubschemaConfig = await makeSchemaRemoteFromLink(propertySchema);
     schema = makeRemoteExecutableSchema({
-      schema: remoteSchemaExecConfig.schema,
-      link: remoteSchemaExecConfig.link
+      schema: remoteSubschemaConfig.schema,
+      link: remoteSubschemaConfig.link
     });
   });
 
@@ -56,10 +56,10 @@ describe('remote queries', () => {
 describe('remote subscriptions', () => {
   let schema: GraphQLSchema;
   before(async () => {
-    const remoteSchemaExecConfig = await makeSchemaRemoteFromLink(subscriptionSchema);
+    const remoteSubschemaConfig = await makeSchemaRemoteFromLink(subscriptionSchema);
     schema = makeRemoteExecutableSchema({
-      schema: remoteSchemaExecConfig.schema,
-      link: remoteSchemaExecConfig.link
+      schema: remoteSubschemaConfig.schema,
+      link: remoteSubschemaConfig.link
     });
   });
 

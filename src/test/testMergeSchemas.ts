@@ -31,7 +31,7 @@ import { forAwaitEach } from 'iterall';
 import { makeExecutableSchema } from '../makeExecutableSchema';
 import {
   IResolvers,
-  SchemaExecutionConfig,
+  SubschemaConfig,
 } from '../Interfaces';
 import { delegateToSchema } from '../stitching';
 import { cloneSchema } from '../utils';
@@ -335,9 +335,9 @@ let schemaDirectiveTypeDefs = `
 testCombinations.forEach(async combination => {
   describe('merging ' + combination.name, () => {
     let mergedSchema: GraphQLSchema,
-      propertySchema: GraphQLSchema | SchemaExecutionConfig,
-      productSchema: GraphQLSchema | SchemaExecutionConfig,
-      bookingSchema: GraphQLSchema | SchemaExecutionConfig;
+      propertySchema: GraphQLSchema | SubschemaConfig,
+      productSchema: GraphQLSchema | SubschemaConfig,
+      bookingSchema: GraphQLSchema | SubschemaConfig;
 
     before(async () => {
       propertySchema = await combination.property;

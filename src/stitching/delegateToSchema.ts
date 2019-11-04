@@ -22,7 +22,8 @@ import {
   Request,
   Fetcher,
   Delegator,
-  isSchemaExecutionConfig,
+  SubschemaConfig,
+  isSubschemaConfig,
 } from '../Interfaces';
 
 import {
@@ -55,24 +56,33 @@ export default function delegateToSchema(
   return delegateToSchemaImplementation(options);
 }
 
-async function delegateToSchemaImplementation(
-  options: IDelegateToSchemaOptions,
+async function delegateToSchemaImplementation({
+  schema: schemaOrSubschemaConfig,
+  rootValue,
+  info,
+  operation = info.operation.operation,
+  fieldName,
+  args,
+  context,
+  transforms = [],
+  skipValidation,
+}: IDelegateToSchemaOptions,
 ): Promise<any> {
-  const { schema: schemaOrSchemaConfig } = options;
-  let targetSchema;
-  if (isSchemaExecutionConfig(schemaOrSchemaConfig)) {
-    targetSchema = schemaOrSchemaConfig.schema;
-    options.link = schemaOrSchemaConfig.link;
-    options.fetcher = schemaOrSchemaConfig.fetcher;
-    options.dispatcher = schemaOrSchemaConfig.dispatcher;
+  let targetSchema: GraphQLSchema;
+  let subSchemaConfig: SubschemaConfig;
+
+  if (isSubschemaConfig(schemaOrSubschemaConfig)) {
+    subSchemaConfig = schemaOrSubschemaConfig;
+    targetSchema = subSchemaConfig.schema;
+    rootValue = rootValue || subSchemaConfig.rootValue || info.rootValue;
+    transforms = transforms.concat((subSchemaConfig.transforms || []).slice().reverse());
   } else {
-    targetSchema = schemaOrSchemaConfig;
+    targetSchema = schemaOrSubschemaConfig;
+    rootValue = rootValue || info.rootValue;
   }
 
-  const { info } = options;
-  const operation = options.operation || info.operation.operation;
   const rawDocument: DocumentNode = createDocument(
-    options.fieldName,
+    fieldName,
     operation,
     info.fieldNodes,
     Object.keys(info.fragments).map(
@@ -87,9 +97,9 @@ async function delegateToSchemaImplementation(
     variables: info.variableValues as Record<string, any>,
   };
 
-  let transforms = [
-    new CheckResultAndHandleErrors(info, options.fieldName),
-    ...(options.transforms || []),
+  transforms = [
+    new CheckResultAndHandleErrors(info, fieldName),
+    ...transforms,
     new ExpandAbstractTypes(info.schema, targetSchema),
   ];
 
@@ -99,7 +109,6 @@ async function delegateToSchemaImplementation(
     );
   }
 
-  const { args } = options;
   if (args) {
     transforms.push(
       new AddArgumentsAsVariables(targetSchema, args)
@@ -113,7 +122,7 @@ async function delegateToSchemaImplementation(
 
   const processedRequest = applyRequestTransforms(rawRequest, transforms);
 
-  if (!options.skipValidation) {
+  if (!skipValidation) {
     const errors = validate(targetSchema, processedRequest.document);
     if (errors.length > 0) {
       throw errors;
@@ -121,24 +130,23 @@ async function delegateToSchemaImplementation(
   }
 
   if (operation === 'query' || operation === 'mutation') {
-    options.executor = options.executor || getExecutor(targetSchema, options);
+    const executor = createExecutor(targetSchema, rootValue, subSchemaConfig);
 
     return applyResultTransforms(
-      await options.executor({
+      await executor({
         document: processedRequest.document,
-        context: options.context,
+        context,
         variables: processedRequest.variables
       }),
       transforms,
     );
-  }
 
-  if (operation === 'subscription') {
-    options.subscriber = options.subscriber || getSubscriber(targetSchema, options);
+  } else if (operation === 'subscription') {
+    const subscriber = createSubscriber(targetSchema, rootValue, subSchemaConfig);
 
-    const originalAsyncIterator = (await options.subscriber({
+    const originalAsyncIterator = (await subscriber({
       document: processedRequest.document,
-      context: options.context,
+      context,
       variables: processedRequest.variables,
     })) as AsyncIterator<ExecutionResult>;
 
@@ -211,17 +219,27 @@ function createDocument(
   };
 }
 
-function getExecutor(schema: GraphQLSchema, options: IDelegateToSchemaOptions): Delegator {
+function createExecutor(
+  schema: GraphQLSchema,
+  rootValue: Record<string, any>,
+  subSchemaConfig?: SubschemaConfig
+): Delegator {
   let fetcher: Fetcher;
-  if (options.dispatcher) {
-    const dynamicLinkOrFetcher = options.dispatcher(context);
-    fetcher = (typeof dynamicLinkOrFetcher === 'function') ?
-      dynamicLinkOrFetcher :
-      linkToFetcher(dynamicLinkOrFetcher);
-  } else if (options.link) {
-    fetcher = linkToFetcher(options.link);
-  } else if (options.fetcher) {
-    fetcher = options.fetcher;
+  if (subSchemaConfig) {
+    if (subSchemaConfig.dispatcher) {
+      const dynamicLinkOrFetcher = subSchemaConfig.dispatcher(context);
+      fetcher = (typeof dynamicLinkOrFetcher === 'function') ?
+        dynamicLinkOrFetcher :
+        linkToFetcher(dynamicLinkOrFetcher);
+    } else if (subSchemaConfig.link) {
+      fetcher = linkToFetcher(subSchemaConfig.link);
+    } else if (subSchemaConfig.fetcher) {
+      fetcher = subSchemaConfig.fetcher;
+    }
+
+    if (!fetcher && !rootValue && subSchemaConfig.rootValue) {
+      rootValue = subSchemaConfig.rootValue;
+    }
   }
 
   if (fetcher) {
@@ -234,19 +252,30 @@ function getExecutor(schema: GraphQLSchema, options: IDelegateToSchemaOptions): 
     return ({ document, context, variables }) => execute({
       schema,
       document,
-      rootValue: options.info.rootValue,
+      rootValue,
       contextValue: context,
       variableValues: variables,
     });
   }
 }
 
-function getSubscriber(schema: GraphQLSchema, options: IDelegateToSchemaOptions): Delegator {
+function createSubscriber(
+  schema: GraphQLSchema,
+  rootValue: Record<string, any>,
+  subSchemaConfig?: SubschemaConfig
+): Delegator {
   let link: ApolloLink;
-  if (options.dispatcher) {
-    link = options.dispatcher(context) as ApolloLink;
-  } else if (options.link) {
-    link = options.link;
+
+  if (subSchemaConfig) {
+    if (subSchemaConfig.dispatcher) {
+      link = subSchemaConfig.dispatcher(context) as ApolloLink;
+    } else if (subSchemaConfig.link) {
+      link = subSchemaConfig.link;
+    }
+
+    if (!link && !rootValue && subSchemaConfig.rootValue) {
+      rootValue = subSchemaConfig.rootValue;
+    }
   }
 
   if (link) {
@@ -263,9 +292,9 @@ function getSubscriber(schema: GraphQLSchema, options: IDelegateToSchemaOptions)
     return ({ document, context, variables }) => subscribe({
       schema,
       document,
-      rootValue: options.info.rootValue,
+      rootValue,
       contextValue: context,
       variableValues: variables,
     });
-  }
+    }
 }

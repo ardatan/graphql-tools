@@ -17,9 +17,10 @@ import {
   MergeInfo,
   OnTypeConflict,
   IResolversParameter,
-  isSubSchemaConfig,
+  isSubschemaConfig,
   SchemaLikeObject,
   IResolvers,
+  SubschemaConfig,
 } from '../Interfaces';
 import {
   extractExtensionDefinitions,
@@ -52,14 +53,20 @@ type CandidateSelector = (
 ) => MergeTypeCandidate;
 
 export default function mergeSchemas({
-  schemas,
+  subschemas = [],
+  types = [],
+  typeDefs,
+  schemas: schemaLikeObjects = [],
   onTypeConflict,
   resolvers,
   schemaDirectives,
   inheritResolversFromInterfaces,
   mergeDirectives,
 }: {
-  schemas: Array<SchemaLikeObject>;
+  subschemas?: Array<GraphQLSchema | SubschemaConfig>;
+  types?: Array<GraphQLNamedType>;
+  typeDefs?: string | DocumentNode;
+  schemas?: Array<SchemaLikeObject>;
   onTypeConflict?: OnTypeConflict;
   resolvers?: IResolversParameter;
   schemaDirectives?: { [name: string]: typeof SchemaDirectiveVisitor };
@@ -68,22 +75,25 @@ export default function mergeSchemas({
 }): GraphQLSchema {
   const allSchemas: Array<GraphQLSchema> = [];
   const typeCandidates: { [name: string]: Array<MergeTypeCandidate> } = {};
-  const types: { [name: string]: GraphQLNamedType } = {};
+  const typeMap: { [name: string]: GraphQLNamedType } = {};
   const extensions: Array<DocumentNode> = [];
   const directives: Array<GraphQLDirective> = [];
   const fragments: Array<{
     field: string;
     fragment: string;
   }> = [];
+  let schemas: Array<SchemaLikeObject> = [...subschemas];
+  if (typeDefs) {
+    schemas.push(typeDefs);
+  }
+  if (types) {
+    schemas.push(types);
+  }
+  schemas = [...schemas, ...schemaLikeObjects];
 
   schemas.forEach(schemaLikeObject => {
-    if (schemaLikeObject instanceof GraphQLSchema || isSubSchemaConfig(schemaLikeObject)) {
-      let schema: GraphQLSchema;
-      if (isSubSchemaConfig(schemaLikeObject)) {
-        schema = wrapSchema(schemaLikeObject, schemaLikeObject.transforms || []);
-      } else {
-        schema = wrapSchema(schemaLikeObject, []);
-      }
+    if (schemaLikeObject instanceof GraphQLSchema || isSubschemaConfig(schemaLikeObject)) {
+      const schema = wrapSchema(schemaLikeObject);
 
       allSchemas.push(schema);
 
@@ -109,9 +119,9 @@ export default function mergeSchemas({
         });
       }
 
-      const typeMap = schema.getTypeMap();
-      Object.keys(typeMap).forEach(typeName => {
-        const type: GraphQLNamedType = typeMap[typeName];
+      const originalTypeMap = schema.getTypeMap();
+      Object.keys(originalTypeMap).forEach(typeName => {
+        const type: GraphQLNamedType = originalTypeMap[typeName];
         if (
           isNamedType(type) &&
           getNamedType(type).name.slice(0, 2) !== '__' &&
@@ -130,7 +140,7 @@ export default function mergeSchemas({
       (schemaLikeObject && (schemaLikeObject as DocumentNode).kind === Kind.DOCUMENT)
     ) {
       let parsedSchemaDocument =
-      typeof schemaLikeObject === 'string' ? parse(schemaLikeObject) : (schemaLikeObject as DocumentNode);
+        typeof schemaLikeObject === 'string' ? parse(schemaLikeObject) : (schemaLikeObject as DocumentNode);
       parsedSchemaDocument.definitions.forEach(def => {
         const type = typeFromAST(def);
         if (type instanceof GraphQLDirective && mergeDirectives) {
@@ -181,20 +191,20 @@ export default function mergeSchemas({
   }
 
   Object.keys(typeCandidates).forEach(typeName => {
-    types[typeName] = mergeTypeCandidates(
+    typeMap[typeName] = mergeTypeCandidates(
       typeName,
       typeCandidates[typeName],
       onTypeConflict ? onTypeConflictToCandidateSelector(onTypeConflict) : undefined
     );
   });
 
-  healTypes(types, directives, { skipPruning: true });
+  healTypes(typeMap, directives, { skipPruning: true });
 
   let mergedSchema = new GraphQLSchema({
-    query: types.Query as GraphQLObjectType,
-    mutation: types.Mutation as GraphQLObjectType,
-    subscription: types.Subscription as GraphQLObjectType,
-    types: Object.keys(types).map(key => types[key]),
+    query: typeMap.Query as GraphQLObjectType,
+    mutation: typeMap.Mutation as GraphQLObjectType,
+    subscription: typeMap.Subscription as GraphQLObjectType,
+    types: Object.keys(typeMap).map(key => typeMap[key]),
     directives: directives.length ?
       directives.map((directive) => cloneDirective(directive)) :
       undefined

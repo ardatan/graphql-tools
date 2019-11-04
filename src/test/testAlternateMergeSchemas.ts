@@ -43,7 +43,7 @@ import {
   createMergedResolver,
   extractFields,
 } from '../stitching';
-import { SchemaExecutionConfig } from '../Interfaces';
+import { SubschemaConfig } from '../Interfaces';
 import isSpecifiedScalarType from '../utils/isSpecifiedScalarType';
 
 function renameFieldNode(fieldNode: FieldNode, name: string): FieldNode {
@@ -121,11 +121,11 @@ let linkSchema = `
 `;
 
 describe('merge schemas through transforms', () => {
-  let bookingSchemaExecConfig: SchemaExecutionConfig;
+  let bookingSubschemaConfig: SubschemaConfig;
   let mergedSchema: GraphQLSchema;
 
   before(async () => {
-    bookingSchemaExecConfig = await remoteBookingSchema;
+    bookingSubschemaConfig = await remoteBookingSchema;
 
     // namespace and strip schemas
     const propertySchemaTransforms = [
@@ -144,7 +144,7 @@ describe('merge schemas through transforms', () => {
       new RenameTypes((name: string) => `Bookings_${name}`),
       new RenameRootFields((operation: string, name: string) => `Bookings_${name}`),
     ];
-    const subScriptionSchemaTransforms = [
+    const subscriptionSchemaTransforms = [
       new FilterRootFields(
         (operation: string, rootField: string) =>
           // must include a Query type otherwise graphql will error
@@ -156,55 +156,59 @@ describe('merge schemas through transforms', () => {
         (operation: string, name: string) => `Subscriptions_${name}`),
     ];
 
+    const propertySubschema = {
+      schema: propertySchema,
+      transforms: propertySchemaTransforms,
+    };
+    const bookingSubschema = {
+      ...bookingSubschemaConfig,
+      transforms: bookingSchemaTransforms,
+    };
+    const subscriptionSubschema = {
+      schema: subscriptionSchema,
+      transforms: subscriptionSchemaTransforms,
+    };
+
     mergedSchema = mergeSchemas({
-      schemas: [
-        {
-          schema: propertySchema,
-          transforms: propertySchemaTransforms,
-        },
-        {
-          ...bookingSchemaExecConfig,
-          transforms: bookingSchemaTransforms,
-        },
-        {
-          schema: subscriptionSchema,
-          transforms: subScriptionSchemaTransforms,
-        },
-        linkSchema,
+      subschemas: [
+        propertySubschema,
+        bookingSubschema,
+        subscriptionSubschema,
       ],
+      typeDefs: linkSchema,
       resolvers: {
         Query: {
           // delegating directly, no subschemas or mergeInfo
           node(parent, args, context, info) {
             if (args.id.startsWith('p')) {
               return info.mergeInfo.delegateToSchema({
-                schema: propertySchema,
+                schema: propertySubschema,
                 operation: 'query',
                 fieldName: 'propertyById',
                 args,
                 context,
                 info,
-                transforms: propertySchemaTransforms,
+                transforms: [],
               });
             } else if (args.id.startsWith('b')) {
               return delegateToSchema({
-                ...bookingSchemaExecConfig,
+                schema: bookingSubschema,
                 operation: 'query',
                 fieldName: 'bookingById',
                 args,
                 context,
                 info,
-                transforms: bookingSchemaTransforms,
+                transforms: [],
               });
             } else if (args.id.startsWith('c')) {
               return delegateToSchema({
-                ...bookingSchemaExecConfig,
+                schema: bookingSubschema,
                 operation: 'query',
                 fieldName: 'customerById',
                 args,
                 context,
                 info,
-                transforms: bookingSchemaTransforms,
+                transforms: [],
               });
             } else {
               throw new Error('invalid id');
@@ -216,7 +220,7 @@ describe('merge schemas through transforms', () => {
             fragment: 'fragment PropertyFragment on Property { id }',
             resolve(parent, args, context, info) {
               return delegateToSchema({
-                ...bookingSchemaExecConfig,
+                schema: bookingSubschema,
                 operation: 'query',
                 fieldName: 'bookingsByPropertyId',
                 args: {
@@ -225,7 +229,6 @@ describe('merge schemas through transforms', () => {
                 },
                 context,
                 info,
-                transforms: bookingSchemaTransforms,
               });
             },
           },
@@ -235,7 +238,7 @@ describe('merge schemas through transforms', () => {
             fragment: 'fragment BookingFragment on Booking { propertyId }',
             resolve(parent, args, context, info) {
               return info.mergeInfo.delegateToSchema({
-                schema: propertySchema,
+                schema: propertySubschema,
                 operation: 'query',
                 fieldName: 'propertyById',
                 args: {
@@ -243,7 +246,6 @@ describe('merge schemas through transforms', () => {
                 },
                 context,
                 info,
-                transforms: propertySchemaTransforms,
               });
             },
           },

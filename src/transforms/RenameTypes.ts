@@ -5,12 +5,10 @@ import {
   Kind,
   GraphQLNamedType,
   GraphQLScalarType,
-  GraphQLAbstractType,
 } from 'graphql';
 import isSpecifiedScalarType from '../utils/isSpecifiedScalarType';
 import { Request, Result, VisitSchemaKind } from '../Interfaces';
 import { Transform } from '../transforms/transforms';
-import { isParentProxiedResult } from '../stitching/errors';
 import { visitSchema, cloneType } from '../utils';
 
 export type RenameOptions = {
@@ -19,8 +17,6 @@ export type RenameOptions = {
 };
 
 export default class RenameTypes implements Transform {
-  public readonly resolversTransformResult = true;
-
   private renamer: (name: string) => string | undefined;
   private reverseMap: { [key: string]: string };
   private renameBuiltins: boolean;
@@ -38,7 +34,7 @@ export default class RenameTypes implements Transform {
   }
 
   public transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
-    return visitSchema(originalSchema, [{
+    return visitSchema(originalSchema, {
       [VisitSchemaKind.TYPE]: (type: GraphQLNamedType) => {
         if (isSpecifiedScalarType(type) && !this.renameBuiltins) {
           return undefined;
@@ -58,20 +54,7 @@ export default class RenameTypes implements Transform {
       [VisitSchemaKind.ROOT_OBJECT](type: GraphQLNamedType) {
         return undefined;
       },
-    }, {
-      [VisitSchemaKind.ABSTRACT_TYPE]: (type: GraphQLAbstractType) => {
-        const originalResolveType = type.resolveType;
-        type.resolveType = (value, info, context, abstractType) => {
-          if (isParentProxiedResult(value)) {
-            const oldName = originalResolveType(value, info, context, abstractType) as string;
-            const newName = this.renamer(oldName);
-            return newName ? newName : oldName;
-          }
-          return originalResolveType(value, info, context, abstractType);
-        };
-        return type;
-      },
-    }]);
+    });
   }
 
   public transformRequest(originalRequest: Request): Request {

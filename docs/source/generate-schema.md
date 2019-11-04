@@ -7,8 +7,6 @@ The graphql-tools package allows you to create a GraphQL.js GraphQLSchema instan
 
 ## Example
 
-[See the complete live example in Apollo Launchpad.](https://launchpad.graphql.com/1jzxrj179)
-
 When using `graphql-tools`, you describe the schema as a GraphQL type language string:
 
 ```js

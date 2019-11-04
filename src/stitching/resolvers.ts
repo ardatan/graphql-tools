@@ -6,12 +6,10 @@ import {
 import {
   IResolvers,
   Operation,
-  SchemaExecutionConfig,
-  isSchemaExecutionConfig,
+  SubschemaConfig,
 } from '../Interfaces';
 import delegateToSchema from './delegateToSchema';
 import { makeMergedType } from './makeMergedType';
-import { Transform } from '../transforms/index';
 
 export type Mapping = {
   [typeName: string]: {
@@ -23,17 +21,14 @@ export type Mapping = {
 };
 
 export function generateProxyingResolvers(
-  schemaOrSchemaExecutionConfig: GraphQLSchema | SchemaExecutionConfig,
-  transforms: Array<Transform> = [],
+  subschemaConfig: SubschemaConfig,
   createProxyingResolver: (
-    schema: GraphQLSchema | SchemaExecutionConfig,
+    schema: GraphQLSchema | SubschemaConfig,
     operation: Operation,
     fieldName: string,
-    transforms: Array<Transform>,
   ) => GraphQLFieldResolver<any, any> = defaultCreateProxyingResolver,
 ): IResolvers {
-  const targetSchema: GraphQLSchema = isSchemaExecutionConfig(schemaOrSchemaExecutionConfig) ?
-    schemaOrSchemaExecutionConfig.schema : schemaOrSchemaExecutionConfig;
+  const targetSchema = subschemaConfig.schema;
 
   const mapping = generateSimpleMapping(targetSchema);
 
@@ -47,10 +42,9 @@ export function generateProxyingResolvers(
         to.operation === 'subscription' ? 'subscribe' : 'resolve';
       result[name][from] = {
         [resolverType]: createProxyingResolver(
-          schemaOrSchemaExecutionConfig,
+          subschemaConfig,
           to.operation,
           to.name,
-          transforms,
         ),
       };
     });
@@ -101,19 +95,17 @@ export function generateMappingFromObjectType(
 }
 
 function defaultCreateProxyingResolver(
-  schema: GraphQLSchema | SchemaExecutionConfig,
+  subschemaConfig: SubschemaConfig,
   operation: Operation,
   fieldName: string,
-  transforms: Array<Transform>,
 ): GraphQLFieldResolver<any, any> {
   return (parent, args, context, info) => delegateToSchema({
-    schema,
+    schema: subschemaConfig,
     operation,
     fieldName,
     args,
     context,
     info,
-    transforms,
   });
 }
 
