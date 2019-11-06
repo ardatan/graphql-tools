@@ -41,6 +41,10 @@ export function relocatedError(
 }
 
 export function annotateWithChildrenErrors(object: any, childrenErrors: ReadonlyArray<GraphQLError>): any {
+  if (!object) {
+    return object;
+  }
+
   if (!Array.isArray(childrenErrors)) {
     object[ERROR_SYMBOL] = [];
     return object;
