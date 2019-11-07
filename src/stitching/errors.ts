@@ -44,7 +44,7 @@ export function relocatedError(
 }
 
 export function createMergedResult(object: any, childrenErrors: ReadonlyArray<GraphQLError> = []): any {
-  if (!object) {
+  if (object == null) {
     object = {
       [MERGED_NULL_SYMBOL]: true,
     };
