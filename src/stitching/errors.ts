@@ -48,6 +48,8 @@ export function createMergedResult(object: any, childrenErrors: ReadonlyArray<Gr
     object = {
       [MERGED_NULL_SYMBOL]: true,
     };
+  } else if (typeof object !== 'object') {
+    return object;
   }
 
   if (Array.isArray(object)) {
