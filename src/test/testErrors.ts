@@ -100,43 +100,6 @@ describe('Errors', () => {
 });
 
 describe('passes along errors for missing fields on list', () => {
-  it('hides error if null allowed', async () => {
-    const typeDefs = `
-      type Query {
-        getOuter: Outer
-      }
-      type Outer {
-        innerList: [Inner]!
-      }
-      type Inner {
-        mandatoryField: String!
-      }
-    `;
-
-    const schema = makeExecutableSchema({
-      typeDefs,
-      resolvers: {
-        Query: {
-          getOuter: () => ({
-            innerList: [{}]
-          })
-        },
-      }
-    });
-
-    const mergedSchema = mergeSchemas({
-      schemas: [schema]
-    });
-    const result = await graphql(mergedSchema, `{ getOuter { innerList { mandatoryField } } }`);
-    expect(result).to.deep.equal({
-      data: {
-        getOuter: {
-          innerList: [null],
-        },
-      },
-    });
-  });
-
   it('if non-null', async () => {
     const typeDefs = `
       type Query {
@@ -177,6 +140,56 @@ describe('passes along errors for missing fields on list', () => {
         message: 'Cannot return null for non-nullable field Inner.mandatoryField.',
         path: [
           'getOuter',
+        ],
+      }]
+    });
+  });
+
+  it('even if nullable', async () => {
+    const typeDefs = `
+      type Query {
+        getOuter: Outer
+      }
+      type Outer {
+        innerList: [Inner]!
+      }
+      type Inner {
+        mandatoryField: String!
+      }
+    `;
+
+    const schema = makeExecutableSchema({
+      typeDefs,
+      resolvers: {
+        Query: {
+          getOuter: () => ({
+            innerList: [{}]
+          })
+        },
+      }
+    });
+
+    const mergedSchema = mergeSchemas({
+      schemas: [schema]
+    });
+    const result = await graphql(mergedSchema, `{ getOuter { innerList { mandatoryField } } }`);
+    expect(result).to.deep.equal({
+      data: {
+        getOuter: {
+          innerList: [null],
+        },
+      },
+      errors: [{
+        locations: [{
+          column: 26,
+          line: 1,
+        }],
+        message: 'Cannot return null for non-nullable field Inner.mandatoryField.',
+        path: [
+          'getOuter',
+          'innerList',
+          0,
+          'mandatoryField',
         ],
       }]
     });

@@ -4,7 +4,7 @@ import {
   relocatedError,
   combineErrors,
   getErrorsFromParent,
-  annotateWithChildrenErrors,
+  createMergedResult,
 } from './errors';
 import defaultMergedResolver from './defaultMergedResolver';
 import { extractOneLevelOfFields } from './extractFields';
@@ -67,8 +67,7 @@ export function createMergedResolver({
             return null;
           }
         }
-        annotateWithChildrenErrors(result, errors);
-        parent = result;
+        parent = createMergedResult(result, errors);
       }
 
       fieldName = fromPath[fromPathLength - 1];

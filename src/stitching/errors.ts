@@ -40,14 +40,21 @@ export function relocatedError(
   );
 }
 
-export function annotateWithChildrenErrors(object: any, childrenErrors: ReadonlyArray<GraphQLError>): any {
-  if (!object) {
-    return object;
-  }
+export let MERGED_NULL_SYMBOL: any;
+if (
+  (typeof global !== 'undefined' && 'Symbol' in global) ||
+  (typeof window !== 'undefined' && 'Symbol' in window)
+) {
+  MERGED_NULL_SYMBOL = Symbol('mergedNull');
+} else {
+  MERGED_NULL_SYMBOL = '@@__mergedNull';
+}
 
-  if (!Array.isArray(childrenErrors)) {
-    object[ERROR_SYMBOL] = [];
-    return object;
+export function createMergedResult(object: any, childrenErrors: ReadonlyArray<GraphQLError> = []): any {
+  if (!object) {
+    object = {
+      [MERGED_NULL_SYMBOL]: true,
+    };
   }
 
   if (Array.isArray(object)) {
@@ -69,7 +76,7 @@ export function annotateWithChildrenErrors(object: any, childrenErrors: Readonly
       byIndex[index] = current;
     });
 
-    object.forEach((item, index) => annotateWithChildrenErrors(item, byIndex[index]));
+    object = object.map((item, index) => createMergedResult(item, byIndex[index]));
 
     return object;
   }

@@ -13,7 +13,7 @@ import { getResponseKeyFromInfo } from './getResponseKeyFromInfo';
 import {
   relocatedError,
   combineErrors,
-  annotateWithChildrenErrors
+  createMergedResult
 } from './errors';
 
 export function checkResultAndHandleErrors(
@@ -37,6 +37,10 @@ export function checkResultAndHandleErrors(
     }
   }
 
+  if (result.data[responseKey] == null) {
+    return handleNull(info, result.errors || []);
+  }
+
   return handleResult(info, result.data[responseKey], result.errors || []);
 }
 
@@ -45,22 +49,10 @@ export function handleResult(
   result: any,
   errors: ReadonlyArray<GraphQLError>
 ): any {
-  if (result == null) {
-    if (errors.length) {
-      throw relocatedError(
-        combineErrors(errors),
-        info.fieldNodes,
-        responsePathAsArray(info.path)
-      );
-    } else {
-      return null;
-    }
-  }
-
   const nullableType = getNullableType(info.returnType);
 
   if (isCompositeType(nullableType) || isListType(nullableType)) {
-    annotateWithChildrenErrors(result, errors);
+    result = createMergedResult(result, errors);
   }
 
   return parseOutputValue(nullableType, result);
@@ -73,4 +65,19 @@ function parseOutputValue(type: GraphQLType, value: any) {
     return type.parseValue(value);
   }
   return value;
+}
+
+export function handleNull(
+  info: GraphQLResolveInfo,
+  errors: ReadonlyArray<GraphQLError>,
+): null {
+  if (errors.length) {
+    throw relocatedError(
+      combineErrors(errors),
+      info.fieldNodes,
+      responsePathAsArray(info.path)
+    );
+  } else {
+    return null;
+  }
 }

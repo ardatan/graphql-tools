@@ -1,6 +1,6 @@
 import { GraphQLFieldResolver, defaultFieldResolver } from 'graphql';
-import { getErrorsFromParent } from './errors';
-import { handleResult } from './checkResultAndHandleErrors';
+import { getErrorsFromParent, MERGED_NULL_SYMBOL } from './errors';
+import { handleResult, handleNull } from './checkResultAndHandleErrors';
 import { getResponseKeyFromInfo } from './getResponseKeyFromInfo';
 
 // Resolver that knows how to:
@@ -21,7 +21,13 @@ const defaultMergedResolver: GraphQLFieldResolver<any, any> = (parent, args, con
     return defaultFieldResolver(parent, args, context, info);
   }
 
-  return handleResult(info, parent[responseKey], errors);
+  const result = parent[responseKey];
+
+  if (result == null || result[MERGED_NULL_SYMBOL]) {
+    return handleNull(info, errors);
+  }
+
+  return handleResult(info, result, errors);
 };
 
 export default defaultMergedResolver;
