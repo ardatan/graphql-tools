@@ -51,20 +51,25 @@ export function handleResult(
 ): any {
   const nullableType = getNullableType(info.returnType);
 
-  if (isCompositeType(nullableType) || isListType(nullableType)) {
-    result = createMergedResult(result, errors);
+  if (isLeafType(nullableType)) {
+    return nullableType.parseValue(result);
+  } else if (isCompositeType(nullableType)) {
+    return createMergedResult(result, errors);
+  } else if (isListType(nullableType)) {
+    return createMergedResult(result, errors).map(
+      (r: any) => parseOutputValue(getNullableType(nullableType.ofType), r)
+    );
   }
-
-  return parseOutputValue(nullableType, result);
 }
 
 function parseOutputValue(type: GraphQLType, value: any) {
-  if (isListType(type)) {
-    return value.map((v: any) => parseOutputValue(getNullableType(type.ofType), v));
-  } else if (isLeafType(type)) {
+  if (isLeafType(type)) {
     return type.parseValue(value);
+  } else if (isCompositeType(type)) {
+    return value;
+  } else if (isListType(type)) {
+    return value.map((v: any) => parseOutputValue(getNullableType(type.ofType), v));
   }
-  return value;
 }
 
 export function handleNull(
