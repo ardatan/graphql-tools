@@ -25,20 +25,8 @@ export function checkResultAndHandleErrors(
     responseKey = getResponseKeyFromInfo(info);
   }
 
-  if (!result.data) {
-    if (result.errors) {
-      throw relocatedError(
-        combineErrors(result.errors),
-        info.fieldNodes,
-        responsePathAsArray(info.path)
-      );
-    } else {
-      return null;
-    }
-  }
-
-  if (result.data[responseKey] == null) {
-    return handleNull(info, result.errors || []);
+  if (!result.data || result.data[responseKey] == null) {
+    return (result.errors) ? handleErrors(info, result.errors) : null;
   }
 
   return handleResult(info, result.data[responseKey], result.errors || []);
@@ -72,17 +60,13 @@ function parseOutputValue(type: GraphQLType, value: any) {
   }
 }
 
-export function handleNull(
+export function handleErrors(
   info: GraphQLResolveInfo,
   errors: ReadonlyArray<GraphQLError>,
-): null {
-  if (errors.length) {
-    throw relocatedError(
-      combineErrors(errors),
-      info.fieldNodes,
-      responsePathAsArray(info.path)
-    );
-  } else {
-    return null;
-  }
+) {
+  throw relocatedError(
+    combineErrors(errors),
+    info.fieldNodes,
+    responsePathAsArray(info.path)
+  );
 }

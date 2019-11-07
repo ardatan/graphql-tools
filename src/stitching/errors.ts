@@ -3,13 +3,16 @@ import {
   ASTNode
 } from 'graphql';
 
+export let MERGED_NULL_SYMBOL: any;
 export let ERROR_SYMBOL: any;
 if (
   (typeof global !== 'undefined' && 'Symbol' in global) ||
   (typeof window !== 'undefined' && 'Symbol' in window)
 ) {
+  MERGED_NULL_SYMBOL = Symbol('mergedNull');
   ERROR_SYMBOL = Symbol('subSchemaErrors');
 } else {
+  MERGED_NULL_SYMBOL = '@@__mergedNull';
   ERROR_SYMBOL = '@@__subSchemaErrors';
 }
 
@@ -38,16 +41,6 @@ export function relocatedError(
     path,
     originalError,
   );
-}
-
-export let MERGED_NULL_SYMBOL: any;
-if (
-  (typeof global !== 'undefined' && 'Symbol' in global) ||
-  (typeof window !== 'undefined' && 'Symbol' in window)
-) {
-  MERGED_NULL_SYMBOL = Symbol('mergedNull');
-} else {
-  MERGED_NULL_SYMBOL = '@@__mergedNull';
 }
 
 export function createMergedResult(object: any, childrenErrors: ReadonlyArray<GraphQLError> = []): any {
