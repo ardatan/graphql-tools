@@ -83,7 +83,21 @@ export type SubschemaConfig = {
   fetcher?: Fetcher;
   dispatcher?: Dispatcher;
   transforms?: Array<Transform>;
+  mergedTypeConfigs?: Record<string, MergedTypeConfig>;
 };
+
+export type MergedTypeConfig = {
+  fragment?: string;
+  mergedTypeResolver: MergedTypeResolver;
+};
+
+export type MergedTypeResolver = (
+  subschema: GraphQLSchema | SubschemaConfig,
+  parent: any,
+  args: Record<string, any>,
+  context: Record<string, any>,
+  info: IGraphQLToolsResolveInfo,
+) => any;
 
 export type GraphQLSchemaWithTransforms = GraphQLSchema & { transforms?: Array<Transform> };
 
@@ -128,6 +142,7 @@ export type MergeInfo = {
     field: string;
     fragment: string;
   }>;
+  mergedTypes: Record<string, Array<SubschemaConfig>>,
   delegateToSchema<TContext>(options: IDelegateToSchemaOptions<TContext>): any;
 };
 
@@ -240,10 +255,10 @@ export type OnTypeConflict = (
   right: GraphQLNamedType,
   info?: {
     left: {
-      schema?: GraphQLSchema;
+      schema?: GraphQLSchema | SubschemaConfig;
     };
     right: {
-      schema?: GraphQLSchema;
+      schema?: GraphQLSchema | SubschemaConfig;
     };
   },
 ) => GraphQLNamedType;

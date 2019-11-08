@@ -57,7 +57,7 @@ export default function delegateToSchema(
 }
 
 async function delegateToSchemaImplementation({
-  schema: schemaOrSubschemaConfig,
+  schema: subschema,
   rootValue,
   info,
   operation = info.operation.operation,
@@ -71,13 +71,13 @@ async function delegateToSchemaImplementation({
   let targetSchema: GraphQLSchema;
   let subSchemaConfig: SubschemaConfig;
 
-  if (isSubschemaConfig(schemaOrSubschemaConfig)) {
-    subSchemaConfig = schemaOrSubschemaConfig;
+  if (isSubschemaConfig(subschema)) {
+    subSchemaConfig = subschema;
     targetSchema = subSchemaConfig.schema;
     rootValue = rootValue || subSchemaConfig.rootValue || info.rootValue;
     transforms = transforms.concat((subSchemaConfig.transforms || []).slice().reverse());
   } else {
-    targetSchema = schemaOrSubschemaConfig;
+    targetSchema = subschema;
     rootValue = rootValue || info.rootValue;
   }
 
@@ -98,7 +98,7 @@ async function delegateToSchemaImplementation({
   };
 
   transforms = [
-    new CheckResultAndHandleErrors(info, fieldName),
+    new CheckResultAndHandleErrors(info, fieldName, subschema),
     ...transforms,
     new ExpandAbstractTypes(info.schema, targetSchema),
   ];

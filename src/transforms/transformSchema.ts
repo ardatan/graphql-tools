@@ -14,41 +14,39 @@ import {
 import { cloneSchema } from '../utils/clone';
 
 export function wrapSchema(
-  schemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig,
+  subschema: GraphQLSchema | SubschemaConfig,
   transforms: Array<Transform> = [],
 ): GraphQLSchema {
-  let subschemaConfig: SubschemaConfig;
-  if (isSubschemaConfig(schemaOrSubschemaConfig)) {
-    subschemaConfig = {
-      ...schemaOrSubschemaConfig,
-      transforms: (schemaOrSubschemaConfig.transforms || []).concat(transforms),
-    };
+  if (isSubschemaConfig(subschema)) {
+    if (transforms) {
+      subschema.transforms = (subschema.transforms || []).concat(transforms);
+    }
   } else {
-    subschemaConfig = {
-      schema: schemaOrSubschemaConfig,
+    subschema = {
+      schema: subschema,
       transforms,
     };
   }
 
-  const schema = cloneSchema(subschemaConfig.schema);
+  const schema = cloneSchema(subschema.schema);
   stripResolvers(schema);
 
   addResolveFunctionsToSchema({
     schema,
-    resolvers: generateProxyingResolvers(subschemaConfig),
+    resolvers: generateProxyingResolvers(subschema),
     resolverValidationOptions: {
       allowResolversNotInSchema: true,
     },
   });
 
-  return applySchemaTransforms(schema, subschemaConfig.transforms);
+  return applySchemaTransforms(schema, subschema.transforms);
 }
 
 export default function transformSchema(
-  schemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig,
+  subschema: GraphQLSchema | SubschemaConfig,
   transforms: Array<Transform>,
 ): GraphQLSchema & { transforms: Array<Transform> } {
-  const schema = wrapSchema(schemaOrSubschemaConfig, transforms);
+  const schema = wrapSchema(subschema, transforms);
   (schema as any).transforms = transforms.slice().reverse();
   return schema as GraphQLSchema & { transforms: Array<Transform> };
 }

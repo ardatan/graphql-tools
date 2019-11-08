@@ -1,19 +1,24 @@
 import {
   GraphQLError,
-  ASTNode
+  ASTNode,
+  GraphQLSchema
 } from 'graphql';
+import { SubschemaConfig } from '../Interfaces';
 
 export let MERGED_NULL_SYMBOL: any;
+export let SUBSCHEMAS_SYMBOL: any;
 export let ERROR_SYMBOL: any;
 if (
   (typeof global !== 'undefined' && 'Symbol' in global) ||
   (typeof window !== 'undefined' && 'Symbol' in window)
 ) {
   MERGED_NULL_SYMBOL = Symbol('mergedNull');
-  ERROR_SYMBOL = Symbol('subSchemaErrors');
+  SUBSCHEMAS_SYMBOL = Symbol('subschemas');
+  ERROR_SYMBOL = Symbol('subschemaErrors');
 } else {
   MERGED_NULL_SYMBOL = '@@__mergedNull';
-  ERROR_SYMBOL = '@@__subSchemaErrors';
+  SUBSCHEMAS_SYMBOL = Symbol('subschemas');
+  ERROR_SYMBOL = '@@__subschemaErrors';
 }
 
 export function relocatedError(
@@ -43,7 +48,11 @@ export function relocatedError(
   );
 }
 
-export function createMergedResult(object: any, childrenErrors: ReadonlyArray<GraphQLError> = []): any {
+export function createMergedResult(
+  object: any,
+  childrenErrors: ReadonlyArray<GraphQLError> = [],
+  subschemas: Array<GraphQLSchema | SubschemaConfig> = [],
+): any {
   if (object == null) {
     object = {
       [MERGED_NULL_SYMBOL]: true,
@@ -71,7 +80,7 @@ export function createMergedResult(object: any, childrenErrors: ReadonlyArray<Gr
       byIndex[index] = current;
     });
 
-    object = object.map((item, index) => createMergedResult(item, byIndex[index]));
+    object = object.map((item, index) => createMergedResult(item, byIndex[index]), subschemas);
 
     return object;
   }
@@ -84,12 +93,17 @@ export function createMergedResult(object: any, childrenErrors: ReadonlyArray<Gr
     );
     return newError;
   });
+  object[SUBSCHEMAS_SYMBOL] = subschemas;
 
   return object;
 }
 
 export function isParentProxiedResult(parent: any) {
   return parent && parent[ERROR_SYMBOL];
+}
+
+export function getSubschemasFromParent(object: any): Array<GraphQLSchema | SubschemaConfig> {
+  return object && object[SUBSCHEMAS_SYMBOL];
 }
 
 export function getErrorsFromParent(

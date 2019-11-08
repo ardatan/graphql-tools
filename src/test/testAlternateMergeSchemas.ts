@@ -43,7 +43,7 @@ import {
   createMergedResolver,
   extractFields,
 } from '../stitching';
-import { SubschemaConfig } from '../Interfaces';
+import { SubschemaConfig, MergedTypeConfig } from '../Interfaces';
 import isSpecifiedScalarType from '../utils/isSpecifiedScalarType';
 
 function renameFieldNode(fieldNode: FieldNode, name: string): FieldNode {
@@ -1463,5 +1463,120 @@ describe('onTypeConflict', () => {
     expect(result1.data.test1.fieldB).to.equal('B');
     const result2 = await graphql(mergedSchema, `{ test1 { fieldC } }`);
     expect(result2.data).to.be.undefined;
+  });
+});
+
+describe('mergeTypes', () => {
+  let schema1: GraphQLSchema;
+  let schema2: GraphQLSchema;
+
+  beforeEach(() => {
+    const typeDefs1 = `
+      type Query {
+        rootField1: Wrapper
+        getTest: Test
+      }
+
+      type Wrapper {
+        test: Test
+      }
+
+      type Test {
+        field1: String
+      }
+    `;
+
+    const typeDefs2 = `
+      type Query {
+        rootField2: Wrapper
+        getTest: Test
+      }
+
+      type Wrapper {
+        test: Test
+      }
+
+      type Test {
+        field2: String
+      }
+    `;
+
+    schema1 = makeExecutableSchema({
+      typeDefs: typeDefs1,
+      resolvers: {
+        Query: {
+          rootField1: () => ({ test: {} }),
+          getTest: () => ({}),
+        },
+        Test: {
+          field1: () => '1',
+        }
+      }
+    });
+
+    schema2 = makeExecutableSchema({
+      typeDefs: typeDefs2,
+      resolvers: {
+        Query: {
+          rootField2: () => ({ test: {} }),
+          getTest: () => ({}),
+        },
+        Test: {
+          field2: () => '2',
+        }
+      }
+    });
+  });
+
+  it('can merge types', async () => {
+    const subschemaConfig1: SubschemaConfig = { schema: schema1 };
+    const subschemaConfig2: SubschemaConfig = { schema: schema2 };
+
+    const mergedTypeConfigs1: Record<string, MergedTypeConfig> = {
+      Test: {
+        mergedTypeResolver: (subschema, parent, args, context, info) => {
+          return delegateToSchema({
+            schema: subschemaConfig1,
+            operation: 'query',
+            fieldName: 'getTest',
+            context,
+            info,
+          });
+        }
+      }
+    };
+
+    const mergedTypeConfigs2: Record<string, MergedTypeConfig> = {
+      Test: {
+        mergedTypeResolver: (subschema, parent, args, context, info) => {
+          return delegateToSchema({
+            schema: subschemaConfig2,
+            operation: 'query',
+            fieldName: 'getTest',
+            context,
+            info,
+          });
+        }
+      }
+    };
+
+    subschemaConfig1.mergedTypeConfigs = mergedTypeConfigs1;
+    subschemaConfig2.mergedTypeConfigs = mergedTypeConfigs2;
+
+    const mergedSchema = mergeSchemas({
+      subschemas: [subschemaConfig1, subschemaConfig2],
+      mergeTypes: ['Test'],
+    });
+    const result1 = await graphql(mergedSchema, `{ rootField1 { test { field1 field2 } } }`);
+    expect(result1).to.deep.equal({
+      data: {
+        rootField1: {
+          test: {
+            field1: '1',
+            field2: '2',
+          }
+        }
+      }
+    });
   });
 });

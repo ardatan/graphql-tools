@@ -8,6 +8,7 @@ import {
   ExecutionResult,
   GraphQLError,
   GraphQLType,
+  GraphQLSchema,
 } from 'graphql';
 import { getResponseKeyFromInfo } from './getResponseKeyFromInfo';
 import {
@@ -15,11 +16,16 @@ import {
   combineErrors,
   createMergedResult
 } from './errors';
+import {
+  SubschemaConfig,
+  IGraphQLToolsResolveInfo,
+} from '../Interfaces';
 
 export function checkResultAndHandleErrors(
   result: ExecutionResult,
   info: GraphQLResolveInfo,
-  responseKey?: string
+  responseKey?: string,
+  subschema?: GraphQLSchema | SubschemaConfig,
 ): any {
   if (!responseKey) {
     responseKey = getResponseKeyFromInfo(info);
@@ -29,20 +35,21 @@ export function checkResultAndHandleErrors(
     return (result.errors) ? handleErrors(info, result.errors) : null;
   }
 
-  return handleResult(info, result.data[responseKey], result.errors || []);
+  return handleResult(info, result.data[responseKey], result.errors || [], [subschema]);
 }
 
 export function handleResult(
-  info: GraphQLResolveInfo,
+  info: IGraphQLToolsResolveInfo,
   result: any,
-  errors: ReadonlyArray<GraphQLError>
+  errors: ReadonlyArray<GraphQLError>,
+  subschemas: Array<GraphQLSchema | SubschemaConfig>,
 ): any {
   const nullableType = getNullableType(info.returnType);
 
   if (isLeafType(nullableType)) {
     return nullableType.parseValue(result);
   } else if (isCompositeType(nullableType)) {
-    return createMergedResult(result, errors);
+    return createMergedResult(result, errors, subschemas);
   } else if (isListType(nullableType)) {
     return createMergedResult(result, errors).map(
       (r: any) => parseOutputValue(getNullableType(nullableType.ofType), r)
