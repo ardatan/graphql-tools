@@ -1,5 +1,10 @@
 # Change log
 
+### vNEXT
+
+* Add ESM build for tree-shaking
+  [@sheepsteak](https://github.com/sheepsteak) in [#1238](https://github.com/apollographql/graphql-tools/pull/1238)
+
 ### 4.0.6
 
 * Use `getIntrospectionQuery` instead of deprecated `introspectionQuery` constant from graphql-js
