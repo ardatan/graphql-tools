@@ -15,6 +15,7 @@
     "outDir": "./dist",
     "removeComments": false,
     "noImplicitUseStrict": true,
+    "esModuleInterop": true
   },
-  "exclude": ["node_modules", "dist"]
+  "exclude": ["node_modules", "dist", "es"]
 }

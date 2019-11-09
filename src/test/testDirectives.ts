@@ -30,7 +30,7 @@ import {
   GraphQLInt,
 } from 'graphql';
 
-import formatDate = require('dateformat');
+import formatDate from 'dateformat';
 
 const typeDefs = `
 directive @schemaDirective(role: String) on SCHEMA
