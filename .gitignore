@@ -2,6 +2,7 @@ node_modules
 coverage
 npm-debug.log
 dist
+es
 *.tgz
 .DS_Store
 package-lock.json

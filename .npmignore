@@ -4,6 +4,11 @@
 !dist/stitching/*
 !dist/transforms/*
 !dist/generate/*
+!es/
+!es/*
+!es/stitching/*
+!es/transforms/*
+!es/generate/*
 !package.json
 !*.md
 !*.png
