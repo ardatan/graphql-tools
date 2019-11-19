@@ -12,4 +12,5 @@ export {
   parseInputValueLiteral,
   serializeInputValue,
 } from './transformInputValue';
+export { concatInlineFragments, parseFragmentToInlineFragment } from './fragments';
 export { mergeDeep } from './mergeDeep';

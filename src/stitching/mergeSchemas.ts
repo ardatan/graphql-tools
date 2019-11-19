@@ -2,7 +2,6 @@ import {
   DocumentNode,
   GraphQLNamedType,
   GraphQLObjectType,
-  GraphQLResolveInfo,
   GraphQLScalarType,
   GraphQLSchema,
   extendSchema,
@@ -21,6 +20,8 @@ import {
   SchemaLikeObject,
   IResolvers,
   SubschemaConfig,
+  ReplacementFragmentMapping,
+  IGraphQLToolsResolveInfo,
 } from '../Interfaces';
 import {
   extractExtensionDefinitions,
@@ -31,8 +32,8 @@ import typeFromAST from './typeFromAST';
 import {
   Transform,
   ExpandAbstractTypes,
-  ReplaceFieldWithFragment,
   wrapSchema,
+  AddReplacementFragments,
 } from '../transforms';
 import {
   SchemaDirectiveVisitor,
@@ -41,6 +42,8 @@ import {
   healTypes,
   forEachField,
   mergeDeep,
+  parseFragmentToInlineFragment,
+  concatInlineFragments,
 } from '../utils';
 
 type MergeTypeCandidate = {
@@ -262,6 +265,8 @@ export default function mergeSchemas({
     });
   });
 
+  mergeInfo.replacementFragments = parseReplacementFragments(fragments);
+
   addResolveFunctionsToSchema({
     schema: mergedSchema,
     resolvers: resolvers as IResolvers,
@@ -311,7 +316,7 @@ function createMergeInfo(
       fieldName: string,
       args: { [key: string]: any },
       context: { [key: string]: any },
-      info: GraphQLResolveInfo,
+      info: IGraphQLToolsResolveInfo,
       transforms?: Array<Transform>,
     ) {
       console.warn(
@@ -320,7 +325,7 @@ function createMergeInfo(
       );
       const schema = guessSchemaByRootField(allSchemas, operation, fieldName);
       const expandTransforms = new ExpandAbstractTypes(info.schema, schema);
-      const fragmentTransform = new ReplaceFieldWithFragment(schema, fragments);
+      const fragmentTransform = new AddReplacementFragments(schema, info.mergeInfo.replacementFragments);
       return delegateToSchema({
         schema,
         operation,
@@ -343,8 +348,44 @@ function createMergeInfo(
       });
     },
     fragments,
+    replacementFragments: undefined,
     mergedTypes,
   };
+}
+
+function parseReplacementFragments(
+  fragments: Array<{
+    field: string;
+    fragment: string;
+  }>
+): ReplacementFragmentMapping {
+  const mapping = {};
+  for (const { field, fragment } of fragments) {
+    const parsedFragment = parseFragmentToInlineFragment(fragment);
+    const actualTypeName = parsedFragment.typeCondition.name.value;
+    mapping[actualTypeName] = mapping[actualTypeName] || {};
+
+    if (mapping[actualTypeName][field]) {
+      mapping[actualTypeName][field].push(parsedFragment);
+    } else {
+      mapping[actualTypeName][field] = [parsedFragment];
+    }
+  }
+
+  const replacementFragments = Object.create({});
+  Object.keys(mapping).forEach(typeName => {
+    Object.keys(mapping[typeName]).forEach(field => {
+      replacementFragments[typeName] = mapping[typeName] || {};
+      if (mapping[typeName][field]) {
+        replacementFragments[typeName][field] = concatInlineFragments(
+          typeName,
+          mapping[typeName][field],
+        );
+      }
+    });
+  });
+
+  return replacementFragments;
 }
 
 function guessSchemaByRootField(

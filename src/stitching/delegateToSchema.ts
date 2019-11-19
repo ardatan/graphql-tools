@@ -37,7 +37,7 @@ import AddTypenameToAbstract from '../transforms/AddTypenameToAbstract';
 import CheckResultAndHandleErrors from '../transforms/CheckResultAndHandleErrors';
 import mapAsyncIterator from './mapAsyncIterator';
 import ExpandAbstractTypes from '../transforms/ExpandAbstractTypes';
-import ReplaceFieldWithFragment from '../transforms/ReplaceFieldWithFragment';
+import AddReplacementFragments from '../transforms/AddReplacementFragments';
 
 import { ApolloLink, execute as executeLink } from 'apollo-link';
 import linkToFetcher from './linkToFetcher';
@@ -103,9 +103,9 @@ async function delegateToSchemaImplementation({
     new ExpandAbstractTypes(info.schema, targetSchema),
   ];
 
-  if (info.mergeInfo && info.mergeInfo.fragments) {
+  if (info.mergeInfo) {
     transforms.push(
-      new ReplaceFieldWithFragment(targetSchema, info.mergeInfo.fragments)
+      new AddReplacementFragments(targetSchema, info.mergeInfo.replacementFragments)
     );
   }
 

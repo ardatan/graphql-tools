@@ -19,6 +19,7 @@ import {
   GraphQLInputObjectType,
   GraphQLInterfaceType,
   GraphQLObjectType,
+  InlineFragmentNode,
 } from 'graphql';
 
 import { SchemaDirectiveVisitor } from './utils/SchemaDirectiveVisitor';
@@ -142,8 +143,13 @@ export type MergeInfo = {
     field: string;
     fragment: string;
   }>;
+  replacementFragments: ReplacementFragmentMapping,
   mergedTypes: Record<string, Array<SubschemaConfig>>,
   delegateToSchema<TContext>(options: IDelegateToSchemaOptions<TContext>): any;
+};
+
+export type ReplacementFragmentMapping = {
+  [typeName: string]: { [fieldName: string]: InlineFragmentNode };
 };
 
 export type IFieldResolver<TSource, TContext, TArgs = Record<string, any>> = (
