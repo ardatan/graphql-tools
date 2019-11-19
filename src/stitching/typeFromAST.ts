@@ -84,8 +84,7 @@ function makeInterfaceType(
     name: node.name.value,
     fields: () => makeFields(node.fields),
     description: getDescription(node, backcompatOptions),
-    resolveType: (parent, context, info) =>
-      resolveFromParentTypename(parent, info.schema),
+    resolveType: parent => resolveFromParentTypename(parent),
   });
 }
 
@@ -115,8 +114,7 @@ function makeUnionType(
         type => resolveType(type, 'object') as GraphQLObjectType,
       ),
     description: getDescription(node, backcompatOptions),
-    resolveType: (parent, context, info) =>
-      resolveFromParentTypename(parent, info.schema),
+    resolveType: parent => resolveFromParentTypename(parent),
   });
 }
 

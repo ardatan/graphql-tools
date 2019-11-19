@@ -1,8 +1,5 @@
-import { GraphQLSchema } from 'graphql';
-
 export default function resolveFromParentTypename(
   parent: any,
-  schema: GraphQLSchema,
 ) {
   const parentTypename: string = parent['__typename'];
   if (!parentTypename) {
