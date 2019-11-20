@@ -94,8 +94,7 @@ export type MergedTypeConfig = {
 
 export type MergedTypeResolver = (
   subschema: GraphQLSchema | SubschemaConfig,
-  parent: any,
-  args: Record<string, any>,
+  originalResult: any,
   context: Record<string, any>,
   info: IGraphQLToolsResolveInfo,
 ) => any;
@@ -144,13 +143,18 @@ export type MergeInfo = {
     fragment: string;
   }>;
   replacementFragments: ReplacementFragmentMapping,
-  mergedTypes: Record<string, Array<SubschemaConfig>>,
+  mergedTypes: MergedTypeMapping,
   delegateToSchema<TContext>(options: IDelegateToSchemaOptions<TContext>): any;
 };
 
 export type ReplacementFragmentMapping = {
   [typeName: string]: { [fieldName: string]: InlineFragmentNode };
 };
+
+export type MergedTypeMapping = Record<string, {
+  fragment: InlineFragmentNode,
+  subschemas: Array<SubschemaConfig>,
+}>;
 
 export type IFieldResolver<TSource, TContext, TArgs = Record<string, any>> = (
   source: TSource,
@@ -332,3 +336,8 @@ export type TypeVisitor = (
   type: GraphQLType,
   schema: GraphQLSchema,
 ) => GraphQLNamedType | null | undefined;
+
+export type Path = {
+  prev: Path;
+  key: string | number;
+};

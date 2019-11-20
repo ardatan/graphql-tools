@@ -13,21 +13,21 @@ import { Transform } from './transforms';
 
 export default class AddReplacementFragments implements Transform {
   private targetSchema: GraphQLSchema;
-  private fragments: ReplacementFragmentMapping;
+  private mapping: ReplacementFragmentMapping;
 
   constructor(
     targetSchema: GraphQLSchema,
-    fragments: ReplacementFragmentMapping,
+    mapping: ReplacementFragmentMapping,
   ) {
     this.targetSchema = targetSchema;
-    this.fragments = fragments;
+    this.mapping = mapping;
   }
 
   public transformRequest(originalRequest: Request): Request {
     const document = replaceFieldsWithFragments(
       this.targetSchema,
       originalRequest.document,
-      this.fragments,
+      this.mapping,
     );
     return {
       ...originalRequest,
@@ -39,7 +39,7 @@ export default class AddReplacementFragments implements Transform {
 function replaceFieldsWithFragments(
   targetSchema: GraphQLSchema,
   document: DocumentNode,
-  fragments: ReplacementFragmentMapping,
+  mapping: ReplacementFragmentMapping,
 ): DocumentNode {
   const typeInfo = new TypeInfo(targetSchema);
   return visit(
@@ -53,11 +53,11 @@ function replaceFieldsWithFragments(
           const parentTypeName = parentType.name;
           let selections = node.selections;
 
-          if (fragments[parentTypeName]) {
+          if (mapping[parentTypeName]) {
             node.selections.forEach(selection => {
               if (selection.kind === Kind.FIELD) {
                 const name = selection.name.value;
-                const fragment = fragments[parentTypeName][name];
+                const fragment = mapping[parentTypeName][name];
                 if (fragment) {
                   selections = selections.concat(fragment);
                 }

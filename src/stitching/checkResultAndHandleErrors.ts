@@ -6,9 +6,12 @@ import {
   isLeafType,
   isListType,
   ExecutionResult,
+  GraphQLCompositeType,
   GraphQLError,
   GraphQLType,
   GraphQLSchema,
+  FieldNode,
+  isAbstractType,
 } from 'graphql';
 import { getResponseKeyFromInfo } from './getResponseKeyFromInfo';
 import {
@@ -19,10 +22,13 @@ import {
 import {
   SubschemaConfig,
   IGraphQLToolsResolveInfo,
+  Path,
 } from '../Interfaces';
+import resolveFromParentTypename from './resolveFromParentTypename';
 
 export function checkResultAndHandleErrors(
   result: ExecutionResult,
+  context: Record<string, any>,
   info: GraphQLResolveInfo,
   responseKey?: string,
   subschema?: GraphQLSchema | SubschemaConfig,
@@ -32,48 +38,127 @@ export function checkResultAndHandleErrors(
   }
 
   if (!result.data || result.data[responseKey] == null) {
-    return (result.errors) ? handleErrors(info, result.errors) : null;
+    return (result.errors) ? handleErrors(info.fieldNodes, info.path, result.errors) : null;
   }
 
-  return handleResult(info, result.data[responseKey], result.errors || [], [subschema]);
+  return handleResult(
+    getNullableType(info.returnType),
+    result.data[responseKey],
+    result.errors || [],
+    [subschema],
+    context,
+    info,
+  );
 }
 
 export function handleResult(
-  info: IGraphQLToolsResolveInfo,
+  type: GraphQLType,
   result: any,
   errors: ReadonlyArray<GraphQLError>,
   subschemas: Array<GraphQLSchema | SubschemaConfig>,
+  context: Record<string, any>,
+  info: IGraphQLToolsResolveInfo,
 ): any {
-  const nullableType = getNullableType(info.returnType);
-
-  if (isLeafType(nullableType)) {
-    return nullableType.parseValue(result);
-  } else if (isCompositeType(nullableType)) {
-    return createMergedResult(result, errors, subschemas);
-  } else if (isListType(nullableType)) {
-    return createMergedResult(result, errors).map(
-      (r: any) => parseOutputValue(getNullableType(nullableType.ofType), r)
+  if (isLeafType(type)) {
+    return type.parseValue(result);
+  } else if (isCompositeType(type)) {
+    return mergeResultsFromOtherSubschemas(
+      type,
+      createMergedResult(result, errors, subschemas),
+      subschemas,
+      context,
+      info,
+    );
+  } else if (isListType(type)) {
+    return createMergedResult(result, errors, subschemas).map(
+      (r: any) => handleListResult(
+        getNullableType(type.ofType),
+        r,
+        subschemas,
+        context,
+        info,
+      )
     );
   }
 }
 
-function parseOutputValue(type: GraphQLType, value: any) {
+function handleListResult(
+  type: GraphQLType,
+  result: any,
+  subschemas: Array<GraphQLSchema | SubschemaConfig>,
+  context: Record<string, any>,
+  info: IGraphQLToolsResolveInfo,
+) {
   if (isLeafType(type)) {
-    return type.parseValue(value);
+    return type.parseValue(result);
   } else if (isCompositeType(type)) {
-    return value;
+    return mergeResultsFromOtherSubschemas(
+      type,
+      result,
+      subschemas,
+      context,
+      info
+    );
   } else if (isListType(type)) {
-    return value.map((v: any) => parseOutputValue(getNullableType(type.ofType), v));
+    return result.map((r: any) => handleListResult(
+      getNullableType(type.ofType),
+      r,
+      subschemas,
+      context,
+      info,
+  ));
   }
 }
 
+async function mergeResultsFromOtherSubschemas(
+  type: GraphQLCompositeType,
+  result: any,
+  subschemas: Array<GraphQLSchema | SubschemaConfig>,
+  context: Record<string, any>,
+  info: IGraphQLToolsResolveInfo,
+): Promise<any> {
+  if (info.mergeInfo) {
+    let typeName: string;
+    if (isAbstractType(type)) {
+      typeName = info.schema.getTypeMap()[resolveFromParentTypename(result)].name;
+    } else {
+      typeName = type.name;
+    }
+
+    const initialSchemas =
+      info.mergeInfo.mergedTypes[typeName] &&
+      info.mergeInfo.mergedTypes[typeName].subschemas;
+    if (initialSchemas) {
+      const remainingSubschemas = initialSchemas.filter(
+        subschema => !subschemas.includes(subschema)
+      );
+      if (remainingSubschemas.length) {
+        const results = await Promise.all(remainingSubschemas.map(subschema => {
+          const mergedTypeResolver = subschema.mergedTypeConfigs[typeName].mergedTypeResolver;
+          return mergedTypeResolver(subschema, result, context, {
+            ...info,
+            mergeInfo: {
+              ...info.mergeInfo,
+              mergedTypes: {},
+            },
+          });
+        }));
+        results.forEach((r: ExecutionResult) => Object.assign(result, r));
+      }
+    }
+  }
+
+  return result;
+}
+
 export function handleErrors(
-  info: GraphQLResolveInfo,
+  fieldNodes: ReadonlyArray<FieldNode>,
+  path: Path,
   errors: ReadonlyArray<GraphQLError>,
 ) {
   throw relocatedError(
     combineErrors(errors),
-    info.fieldNodes,
-    responsePathAsArray(info.path)
+    fieldNodes,
+    responsePathAsArray(path)
   );
 }

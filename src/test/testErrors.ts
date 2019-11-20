@@ -1,5 +1,5 @@
 import { expect, assert } from 'chai';
-import { GraphQLResolveInfo, GraphQLError, graphql } from 'graphql';
+import { GraphQLError, graphql } from 'graphql';
 import {
   relocatedError,
   getErrorsFromParent,
@@ -10,6 +10,7 @@ import { checkResultAndHandleErrors } from '../stitching/checkResultAndHandleErr
 import 'mocha';
 import { makeExecutableSchema } from '../makeExecutableSchema';
 import { mergeSchemas } from '../stitching';
+import { IGraphQLToolsResolveInfo } from '../Interfaces';
 
 class ErrorWithExtensions extends GraphQLError {
   constructor(message: string, code: string) {
@@ -57,7 +58,7 @@ describe('Errors', () => {
         errors: [new GraphQLError('Test error')]
       };
       try {
-        checkResultAndHandleErrors(result, {} as GraphQLResolveInfo, 'responseKey');
+        checkResultAndHandleErrors(result, {}, {} as IGraphQLToolsResolveInfo, 'responseKey');
       } catch (e) {
         assert.equal(e.message, 'Test error');
         assert.isUndefined(e.originalError.errors);
@@ -69,7 +70,7 @@ describe('Errors', () => {
         errors: [new ErrorWithExtensions('Test error', 'UNAUTHENTICATED')]
       };
       try {
-        checkResultAndHandleErrors(result, {} as GraphQLResolveInfo, 'responseKey');
+        checkResultAndHandleErrors(result, {}, {} as IGraphQLToolsResolveInfo, 'responseKey');
       } catch (e) {
         assert.equal(e.message, 'Test error');
         assert.equal(e.extensions && e.extensions.code, 'UNAUTHENTICATED');
@@ -85,7 +86,7 @@ describe('Errors', () => {
         ]
       };
       try {
-        checkResultAndHandleErrors(result, {} as GraphQLResolveInfo, 'responseKey');
+        checkResultAndHandleErrors(result, {}, {} as IGraphQLToolsResolveInfo, 'responseKey');
       } catch (e) {
         assert.equal(e.message, 'Error1\nError2');
         assert.isNotEmpty(e.originalError);

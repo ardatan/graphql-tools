@@ -49,22 +49,22 @@ export function relocatedError(
 }
 
 export function createMergedResult(
-  object: any,
-  childrenErrors: ReadonlyArray<GraphQLError> = [],
+  result: any,
+  errors: ReadonlyArray<GraphQLError> = [],
   subschemas: Array<GraphQLSchema | SubschemaConfig> = [],
 ): any {
-  if (object == null) {
-    object = {
+  if (result == null) {
+    result = {
       [MERGED_NULL_SYMBOL]: true,
     };
-  } else if (typeof object !== 'object') {
-    return object;
+  } else if (typeof result !== 'object') {
+    return result;
   }
 
-  if (Array.isArray(object)) {
+  if (Array.isArray(result)) {
     const byIndex = {};
 
-    childrenErrors.forEach(error => {
+    errors.forEach((error: GraphQLError) => {
       if (!error.path) {
         return;
       }
@@ -80,12 +80,10 @@ export function createMergedResult(
       byIndex[index] = current;
     });
 
-    object = object.map((item, index) => createMergedResult(item, byIndex[index]), subschemas);
-
-    return object;
+    return result.map((item, index) => createMergedResult(item, byIndex[index], subschemas));
   }
 
-  object[ERROR_SYMBOL] = childrenErrors.map(error => {
+  result[ERROR_SYMBOL] = errors.map(error => {
     const newError = relocatedError(
       error,
       error.nodes,
@@ -93,9 +91,9 @@ export function createMergedResult(
     );
     return newError;
   });
-  object[SUBSCHEMAS_SYMBOL] = subschemas;
+  result[SUBSCHEMAS_SYMBOL] = subschemas;
 
-  return object;
+  return result;
 }
 
 export function isParentProxiedResult(parent: any) {

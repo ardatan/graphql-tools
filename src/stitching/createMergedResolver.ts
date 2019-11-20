@@ -1,13 +1,13 @@
-import { GraphQLObjectType, getNamedType, responsePathAsArray } from 'graphql';
+import { GraphQLObjectType, getNamedType } from 'graphql';
 import { IFieldResolver } from '../Interfaces';
 import {
-  relocatedError,
-  combineErrors,
   getErrorsFromParent,
   createMergedResult,
+  getSubschemasFromParent,
 } from './errors';
 import defaultMergedResolver from './defaultMergedResolver';
 import { extractOneLevelOfFields } from './extractFields';
+import { handleErrors } from './checkResultAndHandleErrors';
 
 export function wrapField(wrapper: string, fieldName: string): IFieldResolver<any, any> {
   return createMergedResolver({ fromPath: [wrapper, fieldName] });
@@ -28,7 +28,7 @@ export function createMergedResolver({
   toPath?: Array<string>;
   fromPath?: Array<string>;
 }): IFieldResolver<any, any> {
-  return (parent, args, context, info) => {
+  return async (parent, args, context, info) => {
 
     let fieldNodes = info.fieldNodes;
     let returnType = info.returnType;
@@ -55,19 +55,16 @@ export function createMergedResolver({
       for (let i = 0; i < fromParentPathLength; i++) {
         const responseKey = fromPath[i];
         const errors = getErrorsFromParent(parent, responseKey);
+        const subschemas = getSubschemasFromParent(parent);
         const result = parent[responseKey];
         if (result == null) {
           if (errors.length) {
-            throw relocatedError(
-              combineErrors(errors),
-              fieldNodes,
-              responsePathAsArray(path)
-            );
+            handleErrors(fieldNodes, path, errors);
           } else {
             return null;
           }
         }
-        parent = createMergedResult(result, errors);
+        parent = createMergedResult(result, errors, subschemas);
       }
 
       fieldName = fromPath[fromPathLength - 1];

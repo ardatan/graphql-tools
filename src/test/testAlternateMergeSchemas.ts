@@ -1474,7 +1474,7 @@ describe('mergeTypes', () => {
     const typeDefs1 = `
       type Query {
         rootField1: Wrapper
-        getTest: Test
+        getTest(id: ID): Test
       }
 
       type Wrapper {
@@ -1482,6 +1482,7 @@ describe('mergeTypes', () => {
       }
 
       type Test {
+        id: ID
         field1: String
       }
     `;
@@ -1489,7 +1490,7 @@ describe('mergeTypes', () => {
     const typeDefs2 = `
       type Query {
         rootField2: Wrapper
-        getTest: Test
+        getTest(id: ID): Test
       }
 
       type Wrapper {
@@ -1497,6 +1498,7 @@ describe('mergeTypes', () => {
       }
 
       type Test {
+        id: ID
         field2: String
       }
     `;
@@ -1505,11 +1507,11 @@ describe('mergeTypes', () => {
       typeDefs: typeDefs1,
       resolvers: {
         Query: {
-          rootField1: () => ({ test: {} }),
-          getTest: () => ({}),
+          rootField1: () => ({ test: { id: '1' } }),
+          getTest: (parent, { id }) => ({ id }),
         },
         Test: {
-          field1: () => '1',
+          field1: parent => parent.id,
         }
       }
     });
@@ -1518,11 +1520,11 @@ describe('mergeTypes', () => {
       typeDefs: typeDefs2,
       resolvers: {
         Query: {
-          rootField2: () => ({ test: {} }),
-          getTest: () => ({}),
+          rootField2: () => ({ test: { id: '2' } }),
+          getTest: (parent, { id }) => ({ id }),
         },
         Test: {
-          field2: () => '2',
+          field2: parent => parent.id,
         }
       }
     });
@@ -1534,11 +1536,13 @@ describe('mergeTypes', () => {
 
     const mergedTypeConfigs1: Record<string, MergedTypeConfig> = {
       Test: {
-        mergedTypeResolver: (subschema, parent, args, context, info) => {
+        fragment: 'fragment TestFragment on Test { id }',
+        mergedTypeResolver: (subschema, originalResult, context, info) => {
           return delegateToSchema({
             schema: subschemaConfig1,
             operation: 'query',
             fieldName: 'getTest',
+            args: { id: originalResult.id },
             context,
             info,
           });
@@ -1548,11 +1552,13 @@ describe('mergeTypes', () => {
 
     const mergedTypeConfigs2: Record<string, MergedTypeConfig> = {
       Test: {
-        mergedTypeResolver: (subschema, parent, args, context, info) => {
+        fragment: 'fragment TestFragment on Test { id }',
+        mergedTypeResolver: async (subschema, originalResult, context, info) => {
           return delegateToSchema({
             schema: subschemaConfig2,
             operation: 'query',
             fieldName: 'getTest',
+            args: { id: originalResult.id },
             context,
             info,
           });
@@ -1573,7 +1579,7 @@ describe('mergeTypes', () => {
         rootField1: {
           test: {
             field1: '1',
-            field2: '2',
+            field2: '1',
           }
         }
       }

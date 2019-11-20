@@ -7,6 +7,7 @@ export { default as transformSchema, wrapSchema } from './transformSchema';
 export { default as AddArgumentsAsVariables } from './AddArgumentsAsVariables';
 export { default as CheckResultAndHandleErrors } from './CheckResultAndHandleErrors';
 export { default as AddReplacementFragments } from './AddReplacementFragments';
+export { default as AddMergedTypeFragments } from './AddMergedTypeFragments';
 export { default as AddTypenameToAbstract } from './AddTypenameToAbstract';
 export { default as FilterToSchema } from './FilterToSchema';
 

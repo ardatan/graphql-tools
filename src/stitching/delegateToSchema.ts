@@ -42,6 +42,7 @@ import AddReplacementFragments from '../transforms/AddReplacementFragments';
 import { ApolloLink, execute as executeLink } from 'apollo-link';
 import linkToFetcher from './linkToFetcher';
 import { observableToAsyncIterable } from './observableToAsyncIterable';
+import { AddMergedTypeFragments } from '../transforms';
 
 export default function delegateToSchema(
   options: IDelegateToSchemaOptions | GraphQLSchema,
@@ -98,14 +99,15 @@ async function delegateToSchemaImplementation({
   };
 
   transforms = [
-    new CheckResultAndHandleErrors(info, fieldName, subschema),
+    new CheckResultAndHandleErrors(info, fieldName, subschema, context),
     ...transforms,
     new ExpandAbstractTypes(info.schema, targetSchema),
   ];
 
   if (info.mergeInfo) {
     transforms.push(
-      new AddReplacementFragments(targetSchema, info.mergeInfo.replacementFragments)
+      new AddReplacementFragments(targetSchema, info.mergeInfo.replacementFragments),
+      new AddMergedTypeFragments(targetSchema, info.mergeInfo.mergedTypes),
     );
   }
 

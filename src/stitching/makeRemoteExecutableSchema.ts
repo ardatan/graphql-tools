@@ -92,7 +92,7 @@ export function createResolver(fetcher: Fetcher): GraphQLFieldResolver<any, any>
       variables: info.variableValues,
       context: { graphqlContext: context }
     });
-    return checkResultAndHandleErrors(result, info);
+    return checkResultAndHandleErrors(result, context, info);
   };
 }
 
@@ -115,7 +115,7 @@ function createSubscriptionResolver(link: ApolloLink): ResolverFn {
     const observable = execute(link, operation);
     const originalAsyncIterator = observableToAsyncIterable(observable);
     return mapAsyncIterator(originalAsyncIterator, result => ({
-      [info.fieldName]: checkResultAndHandleErrors(result, info),
+      [info.fieldName]: checkResultAndHandleErrors(result, context, info),
     }));
   };
 }
