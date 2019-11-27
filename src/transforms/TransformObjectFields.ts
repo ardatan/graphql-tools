@@ -42,7 +42,7 @@ type FieldMapping = {
 export default class TransformObjectFields implements Transform {
   private objectFieldTransformer: ObjectFieldTransformer;
   private fieldNodeTransformer: FieldNodeTransformer;
-  private schema: GraphQLSchema;
+  private transformedSchema: GraphQLSchema;
   private mapping: FieldMapping;
 
   constructor(
@@ -55,8 +55,7 @@ export default class TransformObjectFields implements Transform {
   }
 
   public transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
-    this.schema = originalSchema;
-    return visitSchema(originalSchema, {
+    this.transformedSchema = visitSchema(originalSchema, {
       [VisitSchemaKind.ROOT_OBJECT]: () => {
         return undefined;
       },
@@ -64,6 +63,8 @@ export default class TransformObjectFields implements Transform {
         return this.transformFields(type, this.objectFieldTransformer);
       }
     });
+
+    return this.transformedSchema;
   }
 
   public transformRequest(originalRequest: Request): Request {
@@ -144,7 +145,7 @@ export default class TransformObjectFields implements Transform {
     fieldNodeTransformer?: FieldNodeTransformer,
     fragments: Record<string, FragmentDefinitionNode> = {},
   ): DocumentNode {
-    const typeInfo = new TypeInfo(this.schema);
+    const typeInfo = new TypeInfo(this.transformedSchema);
     const newDocument: DocumentNode = visit(
       document,
       visitWithTypeInfo(typeInfo, {
