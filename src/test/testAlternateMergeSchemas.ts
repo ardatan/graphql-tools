@@ -426,6 +426,102 @@ describe('transform object fields', () => {
   });
 });
 
+describe('rename object fields', () => {
+  it('should work', async () => {
+    const ITEM = {
+      id: '123',
+      camel_case: "I'm a camel!",
+    };
+
+    const itemSchema = makeExecutableSchema({
+      typeDefs: `
+        type Item {
+          id: ID!
+          camel_case: String
+        }
+        type ItemConnection {
+          edges: [ItemEdge!]!
+        }
+        type ItemEdge {
+          node: Item!
+        }
+        type Query {
+          item: Item
+          allItems: ItemConnection!
+        }
+      `,
+      resolvers: {
+        Query: {
+          item: () => ITEM,
+          allItems: () => ({
+            edges: [
+              {
+                node: ITEM
+              }
+            ]
+          })
+        }
+      }
+    });
+
+    const schema = transformSchema(itemSchema, [
+      new RenameObjectFields((_typeName, fieldName) => {
+        if (fieldName === 'camel_case') {
+          return 'camelCase';
+        }
+        return fieldName;
+      }),
+      new RenameRootFields((_operation, fieldName) => {
+        if (fieldName === 'allItems') {
+          return 'items';
+        }
+        return fieldName;
+      }),
+    ]);
+
+    const result = await graphql(
+      schema,
+      `
+        query {
+          item {
+            id
+            camelCase
+          }
+          items {
+            edges {
+              node {
+                id
+                camelCase
+             }
+            }
+          }
+        }
+      `,
+      {},
+      {},
+      {
+        pid: 'p1',
+      },
+    );
+
+    const TRANSFORMED_ITEM = {
+      id: '123',
+      camelCase: "I'm a camel!",
+    };
+
+    expect(result).to.deep.equal({
+      data: {
+        item: TRANSFORMED_ITEM,
+        items: {
+          edges: [{
+            node: TRANSFORMED_ITEM,
+          }],
+        },
+      },
+    });
+  });
+});
+
 describe('filter and rename object fields', () => {
   let transformedPropertySchema: GraphQLSchema;
 
