@@ -1,5 +1,6 @@
 import { GraphQLSchema } from 'graphql';
 import { Request, Transform } from '../Interfaces';
+import { cloneSchema } from '../utils';
 
 export { Transform };
 
@@ -9,7 +10,7 @@ export function applySchemaTransforms(
 ): GraphQLSchema {
   return transforms.reduce(
     (schema: GraphQLSchema, transform: Transform) =>
-      transform.transformSchema ? transform.transformSchema(schema) : schema,
+      transform.transformSchema ? transform.transformSchema(cloneSchema(schema)) : schema,
     originalSchema,
   );
 }
