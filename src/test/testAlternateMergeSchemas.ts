@@ -23,6 +23,7 @@ import {
   ExtendSchema,
   WrapType,
   FilterRootFields,
+  FilterObjectFields,
 } from '../transforms';
 import {
   propertySchema,
@@ -426,8 +427,10 @@ describe('transform object fields', () => {
   });
 });
 
-describe('rename object fields', () => {
-  it('should work', async () => {
+describe.only('transform object fields', () => {
+  let schema: GraphQLSchema;
+
+  before(() => {
     const ITEM = {
       id: '123',
       camel_case: "I'm a camel!",
@@ -464,7 +467,13 @@ describe('rename object fields', () => {
       }
     });
 
-    const schema = transformSchema(itemSchema, [
+    schema = transformSchema(itemSchema, [
+      new FilterObjectFields((_typeName, fieldName) => {
+        if (fieldName === 'id') {
+          return false;
+        }
+        return true;
+      }),
       new RenameObjectFields((_typeName, fieldName) => {
         if (fieldName === 'camel_case') {
           return 'camelCase';
@@ -478,34 +487,28 @@ describe('rename object fields', () => {
         return fieldName;
       }),
     ]);
+  });
 
+  it('renaming should work', async () => {
     const result = await graphql(
       schema,
       `
         query {
           item {
-            id
             camelCase
           }
           items {
             edges {
               node {
-                id
                 camelCase
              }
             }
           }
         }
       `,
-      {},
-      {},
-      {
-        pid: 'p1',
-      },
     );
 
     const TRANSFORMED_ITEM = {
-      id: '123',
       camelCase: "I'm a camel!",
     };
 
@@ -518,6 +521,33 @@ describe('rename object fields', () => {
           }],
         },
       },
+    });
+  });
+
+  it('filtering should work', async () => {
+    const result = await graphql(
+      schema,
+      `
+        query {
+          items {
+            edges {
+              node {
+                id
+             }
+            }
+          }
+        }
+      `,
+    );
+
+    expect(result).to.deep.equal({
+      errors: [{
+        locations: [{
+          column: 17,
+          line: 6,
+        }],
+        message: 'Cannot query field \"id\" on type \"Item\".',
+      }],
     });
   });
 });
