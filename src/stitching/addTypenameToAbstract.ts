@@ -6,7 +6,6 @@ import {
   visitWithTypeInfo,
   SelectionSetNode,
   Kind,
-  FieldNode,
   GraphQLInterfaceType,
   GraphQLUnionType,
   GraphQLSchema,
@@ -28,12 +27,7 @@ export function addTypenameToAbstract(
         if (
           parentType &&
           (parentType instanceof GraphQLInterfaceType ||
-            parentType instanceof GraphQLUnionType) &&
-          !selections.find(
-            _ =>
-              (_ as FieldNode).kind === Kind.FIELD &&
-              (_ as FieldNode).name.value === '__typename',
-          )
+            parentType instanceof GraphQLUnionType)
         ) {
           selections = selections.concat({
             kind: Kind.FIELD,
