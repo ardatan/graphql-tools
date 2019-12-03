@@ -427,7 +427,7 @@ describe('transform object fields', () => {
   });
 });
 
-describe.only('transform object fields', () => {
+describe('transform object fields', () => {
   let schema: GraphQLSchema;
 
   before(() => {
