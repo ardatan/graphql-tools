@@ -5,13 +5,9 @@ import {
   FragmentDefinitionNode,
   FragmentSpreadNode,
   GraphQLInterfaceType,
-  GraphQLList,
-  GraphQLNamedType,
-  GraphQLNonNull,
   GraphQLObjectType,
   GraphQLSchema,
   GraphQLType,
-  GraphQLUnionType,
   InlineFragmentNode,
   Kind,
   OperationDefinitionNode,
@@ -20,6 +16,9 @@ import {
   VariableDefinitionNode,
   VariableNode,
   visit,
+  TypeInfo,
+  visitWithTypeInfo,
+  getNamedType,
 } from 'graphql';
 import { Request } from '../Interfaces';
 import implementsAbstractType from '../utils/implementsAbstractType';
@@ -199,15 +198,12 @@ function filterSelectionSet(
 ) {
   const usedFragments: Array<string> = [];
   const usedVariables: Array<string> = [];
-  const typeStack: Array<GraphQLType> = [type];
 
-  // Should be rewritten using visitWithSchema
-  const filteredSelectionSet = visit(selectionSet, {
+  const typeInfo = new TypeInfo(schema, undefined, type);
+  const filteredSelectionSet = visit(selectionSet, visitWithTypeInfo(typeInfo, {
     [Kind.FIELD]: {
       enter(node: FieldNode): null | undefined | FieldNode {
-        let parentType: GraphQLNamedType = resolveType(
-          typeStack[typeStack.length - 1],
-        );
+        const parentType = typeInfo.getParentType();
         if (
           parentType instanceof GraphQLObjectType ||
           parentType instanceof GraphQLInterfaceType
@@ -219,8 +215,6 @@ function filterSelectionSet(
               : fields[node.name.value];
           if (!field) {
             return null;
-          } else {
-            typeStack.push(field.type);
           }
 
           const argNames = (field.args || []).map(arg => arg.name);
@@ -235,16 +229,10 @@ function filterSelectionSet(
               };
             }
           }
-        } else if (
-          parentType instanceof GraphQLUnionType &&
-          node.name.value === '__typename'
-        ) {
-          typeStack.push(TypeNameMetaFieldDef.type);
         }
       },
       leave(node: FieldNode): null | undefined | FieldNode {
-        const currentType = typeStack.pop();
-        const resolvedType = resolveType(currentType);
+        const resolvedType = getNamedType(typeInfo.getType());
         if (
           resolvedType instanceof GraphQLObjectType ||
           resolvedType instanceof GraphQLInterfaceType
@@ -268,9 +256,7 @@ function filterSelectionSet(
     },
     [Kind.FRAGMENT_SPREAD](node: FragmentSpreadNode): null | undefined {
       if (node.name.value in validFragments) {
-        const parentType: GraphQLNamedType = resolveType(
-          typeStack[typeStack.length - 1],
-        );
+        const parentType = typeInfo.getParentType();
         const innerType = validFragments[node.name.value];
         if (!implementsAbstractType(schema, parentType, innerType)) {
           return null;
@@ -285,42 +271,26 @@ function filterSelectionSet(
     [Kind.INLINE_FRAGMENT]: {
       enter(node: InlineFragmentNode): null | undefined {
         if (node.typeCondition) {
+          const parentType = typeInfo.getParentType();
           const innerType = schema.getType(node.typeCondition.name.value);
-          const parentType: GraphQLNamedType = resolveType(
-            typeStack[typeStack.length - 1],
-          );
-          if (implementsAbstractType(schema, parentType, innerType)) {
-            typeStack.push(innerType);
-          } else {
+          if (!implementsAbstractType(schema, parentType, innerType)) {
             return null;
+          } else {
+            return;
           }
         }
-      },
-      leave(node: InlineFragmentNode) {
-        typeStack.pop();
       },
     },
     [Kind.VARIABLE](node: VariableNode) {
       usedVariables.push(node.name.value);
     },
-  });
+  }));
 
   return {
     selectionSet: filteredSelectionSet,
     usedFragments,
     usedVariables,
   };
-}
-
-function resolveType(type: GraphQLType): GraphQLNamedType {
-  let lastType = type;
-  while (
-    lastType instanceof GraphQLNonNull ||
-    lastType instanceof GraphQLList
-  ) {
-    lastType = lastType.ofType;
-  }
-  return lastType;
 }
 
 function union(...arrays: Array<Array<string>>): Array<string> {
