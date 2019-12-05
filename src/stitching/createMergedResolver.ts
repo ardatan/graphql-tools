@@ -25,8 +25,8 @@ export function createMergedResolver({
   fromPath = [],
   toPath = [],
 }: {
-  toPath?: Array<string>;
   fromPath?: Array<string>;
+  toPath?: Array<string>;
 }): IFieldResolver<any, any> {
   return async (parent, args, context, info) => {
 
