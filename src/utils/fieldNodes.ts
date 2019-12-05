@@ -1,9 +1,39 @@
 import {
   FieldNode,
-  FragmentDefinitionNode,
   Kind,
+  FragmentDefinitionNode,
   SelectionSetNode,
 } from 'graphql';
+
+export function renameFieldNode(fieldNode: FieldNode, name: string): FieldNode {
+  return {
+    ...fieldNode,
+    name: {
+      ...fieldNode.name,
+      value: name,
+    }
+  };
+}
+
+export function wrapFieldNode(fieldNode: FieldNode, path: Array<string>): FieldNode {
+  let newFieldNode = fieldNode;
+  path.forEach(fieldName => {
+    newFieldNode = {
+      kind: Kind.FIELD,
+      name: {
+        kind: Kind.NAME,
+        value: fieldName,
+      },
+      selectionSet: {
+        kind: Kind.SELECTION_SET,
+        selections: [
+          fieldNode,
+        ]
+      }
+    };
+  });
+  return newFieldNode;
+}
 
 export function collectFields(
   selectionSet: SelectionSetNode,

@@ -1,5 +1,5 @@
 import { FieldNode, FragmentDefinitionNode } from 'graphql';
-import { collectFields } from './collectFields';
+import { collectFields } from '../utils';
 
 export function extractFields({
   fieldNode,

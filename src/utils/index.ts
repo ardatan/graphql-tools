@@ -14,3 +14,8 @@ export {
 } from './transformInputValue';
 export { concatInlineFragments, parseFragmentToInlineFragment } from './fragments';
 export { mergeDeep } from './mergeDeep';
+export {
+  collectFields,
+  wrapFieldNode,
+  renameFieldNode,
+} from './fieldNodes';

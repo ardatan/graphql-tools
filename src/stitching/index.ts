@@ -5,7 +5,6 @@ import delegateToSchema from './delegateToSchema';
 import defaultMergedResolver from './defaultMergedResolver';
 import { wrapField, extractField, renameField, createMergedResolver } from './createMergedResolver';
 import { extractFields } from './extractFields';
-import { collectFields } from './collectFields';
 
 
 export {
@@ -19,7 +18,6 @@ export {
   defaultCreateRemoteResolver,
   defaultMergedResolver,
   createMergedResolver,
-  collectFields,
   extractFields,
 
   // TBD: deprecate in favor of createMergedResolver?
