@@ -8,6 +8,7 @@ import {
   ExecutionResult,
   GraphQLCompositeType,
   GraphQLError,
+  GraphQLList,
   GraphQLType,
   GraphQLSchema,
   FieldNode,
@@ -17,14 +18,14 @@ import { getResponseKeyFromInfo } from './getResponseKeyFromInfo';
 import {
   relocatedError,
   combineErrors,
-  createMergedResult
+  getErrorsByPathSegment,
 } from './errors';
 import {
   SubschemaConfig,
   IGraphQLToolsResolveInfo,
-  Path,
 } from '../Interfaces';
 import resolveFromParentTypename from './resolveFromParentTypename';
+import { setErrors, setSubschemas } from './proxiedResult';
 
 export function checkResultAndHandleErrors(
   result: ExecutionResult,
@@ -37,82 +38,114 @@ export function checkResultAndHandleErrors(
     responseKey = getResponseKeyFromInfo(info);
   }
 
-  if (!result.data || result.data[responseKey] == null) {
-    return (result.errors) ? handleErrors(info.fieldNodes, info.path, result.errors) : null;
-  }
+  const errors = result.errors || [];
+  const data = result.data && result.data[responseKey];
+  const subschemas = [subschema];
 
-  return handleResult(
-    getNullableType(info.returnType),
-    result.data[responseKey],
-    result.errors || [],
-    [subschema],
-    context,
-    info,
-  );
+  return handleResult(data, errors, subschemas, context, info);
 }
 
 export function handleResult(
-  type: GraphQLType,
   result: any,
   errors: ReadonlyArray<GraphQLError>,
   subschemas: Array<GraphQLSchema | SubschemaConfig>,
   context: Record<string, any>,
   info: IGraphQLToolsResolveInfo,
 ): any {
+  const type = getNullableType(info.returnType);
+
+  if (result == null) {
+    return handleNull(info.fieldNodes, responsePathAsArray(info.path), errors);
+  }
+
   if (isLeafType(type)) {
     return type.parseValue(result);
   } else if (isCompositeType(type)) {
-    return mergeResultsFromOtherSubschemas(
+    const object = handleObject(result, errors, subschemas);
+    return mergeFields(
       type,
-      createMergedResult(result, errors, subschemas),
+      object,
       subschemas,
       context,
       info,
     );
   } else if (isListType(type)) {
-    return createMergedResult(result, errors, subschemas).map(
-      (r: any) => handleListResult(
-        getNullableType(type.ofType),
-        r,
-        subschemas,
-        context,
-        info,
-      )
-    );
+    return handleList(type, result, errors, subschemas, info);
   }
 }
 
-function handleListResult(
+export function handleObject (
+  object: any,
+  errors: ReadonlyArray<GraphQLError>,
+  subschemas: Array<GraphQLSchema | SubschemaConfig>,
+) {
+  setErrors(object, errors.map(error => {
+    return relocatedError(
+      error,
+      error.nodes,
+      error.path ? error.path.slice(1) : undefined
+    );
+  }));
+  setSubschemas(object, subschemas);
+
+  return object;
+}
+
+function handleList(
+  type: GraphQLList<any>,
+  list: Array<any>,
+  errors: ReadonlyArray<GraphQLError>,
+  subschemas: Array<GraphQLSchema | SubschemaConfig>,
+  info: IGraphQLToolsResolveInfo,
+) {
+
+  const childErrors = getErrorsByPathSegment(errors);
+
+  list = list.map((listMember, index) => handleListMember(
+    getNullableType(type.ofType),
+    listMember,
+    index,
+    childErrors[index] || [],
+    subschemas,
+    context,
+    info,
+  ));
+
+  return list;
+}
+
+function handleListMember(
   type: GraphQLType,
-  result: any,
+  listMember: any,
+  index: number,
+  errors: ReadonlyArray<GraphQLError>,
   subschemas: Array<GraphQLSchema | SubschemaConfig>,
   context: Record<string, any>,
   info: IGraphQLToolsResolveInfo,
-) {
+): any {
+  if (listMember == null) {
+    return handleNull(info.fieldNodes, [...responsePathAsArray(info.path), index], errors);
+  }
+
   if (isLeafType(type)) {
-    return type.parseValue(result);
+    return type.parseValue(listMember);
   } else if (isCompositeType(type)) {
-    return mergeResultsFromOtherSubschemas(
+    const object = handleObject(listMember, errors, subschemas);
+    return mergeFields(
       type,
-      result,
+      object,
       subschemas,
       context,
       info
     );
   } else if (isListType(type)) {
-    return result.map((r: any) => handleListResult(
-      getNullableType(type.ofType),
-      r,
-      subschemas,
-      context,
-      info,
-  ));
+    return handleList(type, listMember, errors, subschemas, info);
   }
 }
 
-async function mergeResultsFromOtherSubschemas(
+async function mergeFields(
   type: GraphQLCompositeType,
-  result: any,
+  object: any,
   subschemas: Array<GraphQLSchema | SubschemaConfig>,
   context: Record<string, any>,
   info: IGraphQLToolsResolveInfo,
@@ -120,7 +153,7 @@ async function mergeResultsFromOtherSubschemas(
   if (info.mergeInfo) {
     let typeName: string;
     if (isAbstractType(type)) {
-      typeName = info.schema.getTypeMap()[resolveFromParentTypename(result)].name;
+      typeName = info.schema.getTypeMap()[resolveFromParentTypename(object)].name;
     } else {
       typeName = type.name;
     }
@@ -135,7 +168,7 @@ async function mergeResultsFromOtherSubschemas(
       if (remainingSubschemas.length) {
         const results = await Promise.all(remainingSubschemas.map(subschema => {
           const mergedTypeResolver = subschema.mergedTypeConfigs[typeName].mergedTypeResolver;
-          return mergedTypeResolver(subschema, result, context, {
+          return mergedTypeResolver(subschema, object, context, {
             ...info,
             mergeInfo: {
               ...info.mergeInfo,
@@ -143,22 +176,48 @@ async function mergeResultsFromOtherSubschemas(
             },
           });
         }));
-        results.forEach((r: ExecutionResult) => Object.assign(result, r));
+        results.forEach((r: ExecutionResult) => Object.assign(object, r));
       }
     }
   }
 
-  return result;
+  return object;
 }
 
-export function handleErrors(
+export function handleNull(
   fieldNodes: ReadonlyArray<FieldNode>,
-  path: Path,
+  path: Array<string | number>,
   errors: ReadonlyArray<GraphQLError>,
 ) {
-  throw relocatedError(
-    combineErrors(errors),
-    fieldNodes,
-    responsePathAsArray(path)
-  );
+  if (errors.length) {
+    if (errors.some(error => !error.path || error.path.length < 2)) {
+      return relocatedError(
+        combineErrors(errors),
+        fieldNodes,
+        path,
+      );
+
+    } else if (errors.some(error => typeof error.path[1] === 'string')) {
+      const childErrors = getErrorsByPathSegment(errors);
+
+      const result = Object.create(null);
+      Object.keys(childErrors).forEach(pathSegment => {
+        result[pathSegment] = handleNull(fieldNodes, [...path, pathSegment], childErrors[pathSegment]);
+      });
+
+      return result;
+
+    } else {
+      const childErrors = getErrorsByPathSegment(errors);
+
+      const result = new Array;
+      Object.keys(childErrors).forEach(pathSegment => {
+        result.push(handleNull(fieldNodes, [...path, parseInt(pathSegment, 10)], childErrors[pathSegment]));
+      });
+
+      return result;
+    }
+  } else {
+    return null;
+  }
 }

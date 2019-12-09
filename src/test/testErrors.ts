@@ -1,10 +1,7 @@
 import { expect, assert } from 'chai';
 import { GraphQLError, graphql } from 'graphql';
-import {
-  relocatedError,
-  getErrorsFromParent,
-  ERROR_SYMBOL
-} from '../stitching/errors';
+import { relocatedError } from '../stitching/errors';
+import { getErrors, ERROR_SYMBOL } from '../stitching/proxiedResult';
 import { checkResultAndHandleErrors } from '../stitching/checkResultAndHandleErrors';
 
 import 'mocha';
@@ -35,7 +32,7 @@ describe('Errors', () => {
     });
   });
 
-  describe('getErrorsFromParent', () => {
+  describe('getErrors', () => {
     it('should return all errors including if path is not defined', () => {
       const mockErrors = {
         responseKey: '',
@@ -46,7 +43,7 @@ describe('Errors', () => {
         ]
       };
 
-      assert.deepEqual(getErrorsFromParent(mockErrors, 'responseKey'),
+      assert.deepEqual(getErrors(mockErrors, 'responseKey'),
         [mockErrors[ERROR_SYMBOL][0]]
       );
     });
@@ -119,7 +116,7 @@ describe('passes along errors for missing fields on list', () => {
       resolvers: {
         Query: {
           getOuter: () => ({
-            innerList: [{}]
+            innerList: [{ mandatoryField: 'test'}, {}]
           })
         },
       }
@@ -141,6 +138,9 @@ describe('passes along errors for missing fields on list', () => {
         message: 'Cannot return null for non-nullable field Inner.mandatoryField.',
         path: [
           'getOuter',
+          'innerList',
+          1,
+          'mandatoryField',
         ],
       }]
     });
@@ -164,7 +164,7 @@ describe('passes along errors for missing fields on list', () => {
       resolvers: {
         Query: {
           getOuter: () => ({
-            innerList: [{}]
+            innerList: [{ mandatoryField: 'test' }, {}]
           })
         },
       }
@@ -177,7 +177,7 @@ describe('passes along errors for missing fields on list', () => {
     expect(result).to.deep.equal({
       data: {
         getOuter: {
-          innerList: [null],
+          innerList: [{ mandatoryField: 'test'}, null],
         },
       },
       errors: [{
@@ -189,8 +189,106 @@ describe('passes along errors for missing fields on list', () => {
         path: [
           'getOuter',
           'innerList',
-          0,
+          1,
           'mandatoryField',
+        ],
+      }]
+    });
+  });
+});
+
+describe('passes along errors when list field errors', () => {
+  it('if non-null', async () => {
+    const typeDefs = `
+      type Query {
+        getOuter: Outer
+      }
+      type Outer {
+        innerList: [Inner!]!
+      }
+      type Inner {
+        mandatoryField: String!
+      }
+    `;
+
+    const schema = makeExecutableSchema({
+      typeDefs,
+      resolvers: {
+        Query: {
+          getOuter: () => ({
+            innerList: [{ mandatoryField: 'test' }, new Error('test')],
+          }),
+        },
+      }
+    });
+
+    const mergedSchema = mergeSchemas({
+      schemas: [schema]
+    });
+    const result = await graphql(mergedSchema, `{ getOuter { innerList { mandatoryField } } }`);
+    expect(result).to.deep.equal({
+      data: {
+        getOuter: null,
+      },
+      errors: [{
+        locations: [{
+          column: 14,
+          line: 1,
+        }],
+        message: 'test',
+        path: [
+          'getOuter',
+          'innerList',
+          1,
+        ],
+      }]
+    });
+  });
+
+  it('even if nullable', async () => {
+    const typeDefs = `
+      type Query {
+        getOuter: Outer
+      }
+      type Outer {
+        innerList: [Inner]!
+      }
+      type Inner {
+        mandatoryField: String!
+      }
+    `;
+
+    const schema = makeExecutableSchema({
+      typeDefs,
+      resolvers: {
+        Query: {
+          getOuter: () => ({
+            innerList: [{ mandatoryField: 'test' }, new Error('test')],
+          }),
+        },
+      }
+    });
+
+    const mergedSchema = mergeSchemas({
+      schemas: [schema]
+    });
+    const result = await graphql(mergedSchema, `{ getOuter { innerList { mandatoryField } } }`);
+    expect(result).to.deep.equal({
+      data: {
+        getOuter: {
+          innerList: [{ mandatoryField: 'test'}, null],
+        },
+      },
+      errors: [{
+        locations: [{
+          column: 14,
+          line: 1,
+        }],
+        message: 'test',
+        path: [
+          'getOuter',
+          'innerList',
+          1,
         ],
       }]
     });

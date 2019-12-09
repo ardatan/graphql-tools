@@ -336,8 +336,3 @@ export type TypeVisitor = (
   type: GraphQLType,
   schema: GraphQLSchema,
 ) => GraphQLNamedType | null | undefined;
-
-export type Path = {
-  prev: Path;
-  key: string | number;
-};

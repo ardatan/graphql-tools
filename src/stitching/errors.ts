@@ -1,25 +1,7 @@
 import {
   GraphQLError,
   ASTNode,
-  GraphQLSchema
 } from 'graphql';
-import { SubschemaConfig } from '../Interfaces';
-
-export let MERGED_NULL_SYMBOL: any;
-export let SUBSCHEMAS_SYMBOL: any;
-export let ERROR_SYMBOL: any;
-if (
-  (typeof global !== 'undefined' && 'Symbol' in global) ||
-  (typeof window !== 'undefined' && 'Symbol' in window)
-) {
-  MERGED_NULL_SYMBOL = Symbol('mergedNull');
-  SUBSCHEMAS_SYMBOL = Symbol('subschemas');
-  ERROR_SYMBOL = Symbol('subschemaErrors');
-} else {
-  MERGED_NULL_SYMBOL = '@@__mergedNull';
-  SUBSCHEMAS_SYMBOL = Symbol('subschemas');
-  ERROR_SYMBOL = '@@__subschemaErrors';
-}
 
 export function relocatedError(
   originalError: Error | GraphQLError,
@@ -48,81 +30,30 @@ export function relocatedError(
   );
 }
 
-export function createMergedResult(
-  result: any,
-  errors: ReadonlyArray<GraphQLError> = [],
-  subschemas: Array<GraphQLSchema | SubschemaConfig> = [],
-): any {
-  if (result == null) {
-    result = {
-      [MERGED_NULL_SYMBOL]: true,
-    };
-  } else if (typeof result !== 'object') {
-    return result;
-  }
-
-  if (Array.isArray(result)) {
-    const byIndex = {};
-
-    errors.forEach((error: GraphQLError) => {
-      if (!error.path) {
-        return;
-      }
-      const index = error.path[1];
-      const current = byIndex[index] || [];
-      current.push(
-        relocatedError(
-          error,
-          error.nodes,
-          error.path ? error.path.slice(1) : undefined
-        )
-      );
-      byIndex[index] = current;
-    });
-
-    return result.map((item, index) => createMergedResult(item, byIndex[index], subschemas));
-  }
-
-  result[ERROR_SYMBOL] = errors.map(error => {
-    const newError = relocatedError(
-      error,
-      error.nodes,
-      error.path ? error.path.slice(1) : undefined
-    );
-    return newError;
-  });
-  result[SUBSCHEMAS_SYMBOL] = subschemas;
-
-  return result;
+export function slicedError(originalError: GraphQLError) {
+  return relocatedError(
+    originalError,
+    originalError.nodes,
+    originalError.path ? originalError.path.slice(1) : undefined
+  );
 }
 
-export function isParentProxiedResult(parent: any) {
-  return parent && parent[ERROR_SYMBOL];
-}
 
-export function getSubschemasFromParent(object: any): Array<GraphQLSchema | SubschemaConfig> {
-  return object && object[SUBSCHEMAS_SYMBOL];
-}
-
-export function getErrorsFromParent(
-  object: any,
-  fieldName: string
-): Array<GraphQLError> {
-  const errors = object && object[ERROR_SYMBOL];
-
-  if (!Array.isArray(errors)) {
-    return null;
-  }
-
-  const childrenErrors = [];
-
-  for (const error of errors) {
-    if (!error.path || error.path[0] === fieldName) {
-      childrenErrors.push(error);
+export function getErrorsByPathSegment(errors: ReadonlyArray<GraphQLError>): Record<string, Array<GraphQLError>> {
+  const record = Object.create(null);
+  errors.forEach(error => {
+    if (!error.path || error.path.length < 2) {
+      return;
     }
-  }
 
-  return childrenErrors;
+    const pathSegment = error.path[1];
+
+    const current = record[pathSegment] || [];
+    current.push(slicedError(error));
+    record[pathSegment] = current;
+  });
+
+  return record;
 }
 
 class CombinedError extends Error {

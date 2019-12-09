@@ -1,6 +1,6 @@
-import { defaultFieldResolver, getNullableType } from 'graphql';
-import { getErrorsFromParent, getSubschemasFromParent, MERGED_NULL_SYMBOL } from './errors';
-import { handleResult, handleErrors } from './checkResultAndHandleErrors';
+import { defaultFieldResolver } from 'graphql';
+import { getErrors, getSubschemas } from './proxiedResult';
+import { handleResult } from './checkResultAndHandleErrors';
 import { getResponseKeyFromInfo } from './getResponseKeyFromInfo';
 import { IGraphQLToolsResolveInfo } from '../Interfaces';
 
@@ -19,7 +19,7 @@ export default function defaultMergedResolver(
   }
 
   const responseKey = getResponseKeyFromInfo(info);
-  const errors = getErrorsFromParent(parent, responseKey);
+  const errors = getErrors(parent, responseKey);
 
   // check to see if parent is not a proxied result, i.e. if parent resolver was manually overwritten
   // See https://github.com/apollographql/graphql-tools/issues/967
@@ -28,11 +28,7 @@ export default function defaultMergedResolver(
   }
 
   const result = parent[responseKey];
+  const subschemas = getSubschemas(parent);
 
-  if (result == null || result[MERGED_NULL_SYMBOL]) {
-    return (errors.length) ? handleErrors(info.fieldNodes, info.path, errors) : null;
-  }
-
-  const parentSubschemas = getSubschemasFromParent(parent);
-  return handleResult(getNullableType(info.returnType), result, errors, parentSubschemas, context, info);
+  return handleResult(result, errors, subschemas, context, info);
 }
