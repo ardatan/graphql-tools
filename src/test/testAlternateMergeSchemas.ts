@@ -700,8 +700,8 @@ type UnionImpl {
           }
         }
       `,
-      {},
-      {},
+      undefined,
+      undefined,
       {
         pid: 'p1',
       },

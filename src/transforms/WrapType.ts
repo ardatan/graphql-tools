@@ -24,7 +24,7 @@ export default class WrapType implements Transform {
     this.transformer = new ExtendSchema({
       resolvers: {
         [outerTypeName]: {
-          [fieldName]: parent => parent,
+          [fieldName]: parent => parent ? parent : {},
         },
       },
       fieldNodeTransformerMap: {
