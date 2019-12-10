@@ -70,7 +70,7 @@ export function handleResult(
       info,
     );
   } else if (isListType(type)) {
-    return handleList(type, result, errors, subschemas, info);
+    return handleList(type, result, errors, subschemas, context, info);
   }
 }
 
@@ -96,6 +96,7 @@ function handleList(
   list: Array<any>,
   errors: ReadonlyArray<GraphQLError>,
   subschemas: Array<GraphQLSchema | SubschemaConfig>,
+  context: Record<string, any>,
   info: IGraphQLToolsResolveInfo,
 ) {
 
@@ -139,7 +140,7 @@ function handleListMember(
       info
     );
   } else if (isListType(type)) {
-    return handleList(type, listMember, errors, subschemas, info);
+    return handleList(type, listMember, errors, subschemas, context, info);
   }
 }
 
