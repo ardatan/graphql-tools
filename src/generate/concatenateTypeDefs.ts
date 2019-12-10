@@ -1,4 +1,4 @@
-import { print, DocumentNode } from 'graphql';
+import { print, DocumentNode, ASTNode } from 'graphql';
 import { ITypedef } from '../Interfaces';
 
 import { SchemaError } from '.';
@@ -10,7 +10,7 @@ function concatenateTypeDefs(
   let resolvedTypeDefinitions: string[] = [];
   typeDefinitionsAry.forEach((typeDef: ITypedef) => {
     if ((<DocumentNode>typeDef).kind !== undefined) {
-      typeDef = print(typeDef);
+      typeDef = print(typeDef as ASTNode);
     }
 
     if (typeof typeDef === 'function') {

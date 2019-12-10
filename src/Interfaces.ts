@@ -10,6 +10,7 @@ import {
   GraphQLScalarType,
   GraphQLNamedType,
   DocumentNode,
+  ASTNode,
 } from 'graphql';
 
 import { SchemaDirectiveVisitor } from './schemaVisitor';
@@ -84,7 +85,7 @@ export type IFieldResolver<TSource, TContext, TArgs = Record<string, any>> = (
   info: GraphQLResolveInfo & { mergeInfo: MergeInfo },
 ) => any;
 
-export type ITypedef = (() => ITypedef[]) | string | DocumentNode;
+export type ITypedef = (() => ITypedef[]) | string | DocumentNode | ASTNode;
 export type ITypeDefinitions = ITypedef | ITypedef[];
 export type IResolverObject<TSource = any, TContext = any, TArgs = any> = {
   [key: string]:
