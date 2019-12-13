@@ -151,7 +151,7 @@ const typeDefs = [`
 
 ## Descriptions & Deprecations
 
-GraphiQL has built-in support for displaying docstrings with markdown syntax. You can easily add docstrings to types, fields and arguments like below:
+GraphQL has built-in support for displaying docstrings with markdown syntax. You can easily add docstrings to types, fields and arguments like below:
 
 ```
 """
