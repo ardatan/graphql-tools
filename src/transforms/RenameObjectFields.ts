@@ -1,6 +1,5 @@
 import { GraphQLField, GraphQLSchema } from 'graphql';
 import { Transform } from './transforms';
-import { fieldToFieldConfig } from '../stitching/schemaRecreation';
 import { Request } from '../Interfaces';
 import TransformObjectFields from './TransformObjectFields';
 
@@ -12,7 +11,6 @@ export default class RenameObjectFields implements Transform {
       (typeName: string, fieldName: string, field: GraphQLField<any, any>) => {
         return {
           name: renamer(typeName, fieldName, field),
-          field: fieldToFieldConfig(field)
         };
       }
     );

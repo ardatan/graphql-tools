@@ -18,13 +18,12 @@ import isEmptyObject from '../utils/isEmptyObject';
 import { Request, VisitSchemaKind } from '../Interfaces';
 import { Transform } from './transforms';
 import { visitSchema } from '../utils/visitSchema';
-import { fieldToFieldConfig } from '../stitching/schemaRecreation';
 
 export type ObjectFieldTransformer = (
   typeName: string,
   fieldName: string,
   field: GraphQLField<any, any>,
-) => GraphQLFieldConfig<any, any> | { name: string; field: GraphQLFieldConfig<any, any> } | null | undefined;
+) => GraphQLFieldConfig<any, any> | RenamedField | null | undefined;
 
 export type FieldNodeTransformer = (
   typeName: string,
@@ -38,6 +37,8 @@ type FieldMapping = {
     [newFieldName: string]: string;
   };
 };
+
+type RenamedField = { name: string; field?: GraphQLFieldConfig<any, any> };
 
 export default class TransformObjectFields implements Transform {
   private objectFieldTransformer: ObjectFieldTransformer;
@@ -90,6 +91,7 @@ export default class TransformObjectFields implements Transform {
     type: GraphQLObjectType,
     objectFieldTransformer: ObjectFieldTransformer
   ): GraphQLObjectType {
+    const typeConfig = type.toConfig();
     const fields = type.getFields();
     const newFields = {};
 
@@ -98,15 +100,15 @@ export default class TransformObjectFields implements Transform {
       const transformedField = objectFieldTransformer(type.name, fieldName, field);
 
       if (typeof transformedField === 'undefined') {
-        newFields[fieldName] = fieldToFieldConfig(field);
+        newFields[fieldName] = typeConfig.fields[fieldName];
       } else if (transformedField !== null) {
-        const newName = (transformedField as { name: string; field: GraphQLFieldConfig<any, any> }).name;
+        const newName = (transformedField as RenamedField).name;
 
         if (newName) {
-          newFields[newName] = (transformedField as {
-            name: string;
-            field: GraphQLFieldConfig<any, any>;
-          }).field;
+          newFields[newName] = (transformedField as RenamedField).field ?
+            (transformedField as RenamedField).field :
+            typeConfig.fields[fieldName];
+
           if (newName !== fieldName) {
             const typeName = type.name;
             if (!this.mapping[typeName]) {
@@ -114,10 +116,7 @@ export default class TransformObjectFields implements Transform {
             }
             this.mapping[typeName][newName] = fieldName;
 
-            const originalResolver = (transformedField as {
-              name: string;
-              field: GraphQLFieldConfig<any, any>;
-            }).field.resolve;
+            const originalResolver = newFields[newName].resolve;
             (newFields[newName] as GraphQLFieldConfig<any, any>).resolve = (parent, args, context, info) =>
               originalResolver(parent, args, context, {
                 ...info,

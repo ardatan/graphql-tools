@@ -1,6 +1,5 @@
 import { GraphQLField, GraphQLSchema } from 'graphql';
 import { Transform } from './transforms';
-import { fieldToFieldConfig } from '../stitching/schemaRecreation';
 import TransformRootFields from './TransformRootFields';
 
 export default class RenameRootFields implements Transform {
@@ -21,7 +20,6 @@ export default class RenameRootFields implements Transform {
       ) => {
         return {
           name: renamer(operation, fieldName, field),
-          field: fieldToFieldConfig(field),
         };
       },
     );

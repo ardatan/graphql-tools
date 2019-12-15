@@ -8,7 +8,6 @@ import isEmptyObject from '../utils/isEmptyObject';
 import { Transform } from './transforms';
 import { visitSchema } from '../utils/visitSchema';
 import { VisitSchemaKind } from '../Interfaces';
-import { fieldToFieldConfig } from '../stitching/schemaRecreation';
 
 export type RootTransformer = (
   operation: 'Query' | 'Mutation' | 'Subscription',
@@ -16,9 +15,11 @@ export type RootTransformer = (
   field: GraphQLField<any, any>,
 ) =>
   | GraphQLFieldConfig<any, any>
-  | { name: string; field: GraphQLFieldConfig<any, any> }
+  | RenamedField
   | null
   | undefined;
+
+type RenamedField = { name: string; field?: GraphQLFieldConfig<any, any> };
 
 export default class TransformRootFields implements Transform {
   private transform: RootTransformer;
@@ -61,27 +62,24 @@ function transformFields(
     field: GraphQLField<any, any>,
   ) =>
     | GraphQLFieldConfig<any, any>
-    | { name: string; field: GraphQLFieldConfig<any, any> }
+    | RenamedField
     | null
     | undefined,
 ): GraphQLObjectType {
+  const typeConfig = type.toConfig();
   const fields = type.getFields();
   const newFields = {};
   Object.keys(fields).forEach(fieldName => {
     const field = fields[fieldName];
     const newField = transformer(fieldName, field);
     if (typeof newField === 'undefined') {
-      newFields[fieldName] = fieldToFieldConfig(field);
+      newFields[fieldName] = typeConfig.fields[fieldName];
     } else if (newField !== null) {
-      if (
-        (<{ name: string; field: GraphQLFieldConfig<any, any> }>newField).name
-      ) {
-        newFields[
-          (<{ name: string; field: GraphQLFieldConfig<any, any> }>newField).name
-        ] = (<{
-          name: string;
-          field: GraphQLFieldConfig<any, any>;
-        }>newField).field;
+      if ((newField as RenamedField).name) {
+        newFields[(newField as RenamedField).name] =
+          (newField as RenamedField).field ?
+            (newField as RenamedField).field :
+            typeConfig.fields[fieldName];
       } else {
         newFields[fieldName] = newField;
       }
@@ -91,9 +89,7 @@ function transformFields(
     return null;
   } else {
     return new GraphQLObjectType({
-      name: type.name,
-      description: type.description,
-      astNode: type.astNode,
+      ...type,
       fields: newFields,
     });
   }
