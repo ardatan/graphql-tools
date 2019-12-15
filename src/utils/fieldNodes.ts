@@ -15,6 +15,16 @@ export function renameFieldNode(fieldNode: FieldNode, name: string): FieldNode {
   };
 }
 
+export function preAliasFieldNode(fieldNode: FieldNode, str: string): FieldNode {
+  return {
+    ...fieldNode,
+    alias: {
+      ...fieldNode.name,
+      value: `${str}${fieldNode.alias ? fieldNode.alias.value : fieldNode.name.value}`,
+    }
+  };
+}
+
 export function wrapFieldNode(fieldNode: FieldNode, path: Array<string>): FieldNode {
   let newFieldNode = fieldNode;
   path.forEach(fieldName => {
@@ -71,4 +81,48 @@ export function collectFields(
   });
 
   return fields;
+}
+
+export function hoistFieldNodes({
+  fieldNode,
+  fieldNames,
+  path,
+  delimeter,
+  fragments,
+}: {
+  fieldNode: FieldNode;
+  fieldNames: Array<string>;
+  path: Array<string>;
+  delimeter: string;
+  fragments: Record<string, FragmentDefinitionNode>;
+}): Array<FieldNode> {
+  const newFieldNode = path.reduce((acc, pathSegment) => {
+    const alias = acc.alias ? acc.alias.value : acc.name.value;
+    const newFieldNodes: Array<FieldNode> = [];
+    collectFields(acc.selectionSet, fragments).forEach((possibleFieldNode: FieldNode) => {
+      if (possibleFieldNode.name.value === pathSegment) {
+        newFieldNodes.push(preAliasFieldNode(possibleFieldNode, `${alias}${delimeter}`));
+      }
+    });
+
+    return {
+      ...acc,
+      selectionSet: {
+        ...acc.selectionSet,
+        selections: newFieldNodes,
+      }
+    };
+  }, fieldNode);
+
+  const finalFieldNodes: Array<FieldNode> = [];
+  collectFields(newFieldNode.selectionSet, fragments).forEach((finalfieldNode: FieldNode) => {
+    const alias = finalfieldNode.alias ? finalfieldNode.alias.value : finalfieldNode.name.value;
+    collectFields(finalfieldNode.selectionSet, fragments).forEach((possibleFieldNode: FieldNode) => {
+      if (fieldNames.includes(possibleFieldNode.name.value)) {
+        finalFieldNodes.push(preAliasFieldNode(possibleFieldNode, `${alias}${delimeter}`));
+      }
+    });
+  });
+
+  return finalFieldNodes;
 }

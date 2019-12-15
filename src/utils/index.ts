@@ -18,4 +18,5 @@ export {
   collectFields,
   wrapFieldNode,
   renameFieldNode,
+  hoistFieldNodes,
 } from './fieldNodes';

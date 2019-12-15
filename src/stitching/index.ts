@@ -3,9 +3,8 @@ import introspectSchema from './introspectSchema';
 import mergeSchemas from './mergeSchemas';
 import delegateToSchema from './delegateToSchema';
 import defaultMergedResolver from './defaultMergedResolver';
-import { wrapField, extractField, renameField, createMergedResolver } from './createMergedResolver';
-import { extractFields } from './extractFields';
-
+import { createMergedResolver } from './createMergedResolver';
+import { dehoistResult, unwrapResult } from './proxiedResult';
 
 export {
   makeRemoteExecutableSchema,
@@ -18,11 +17,6 @@ export {
   defaultCreateRemoteResolver,
   defaultMergedResolver,
   createMergedResolver,
-  extractFields,
-
-  // TBD: deprecate in favor of createMergedResolver?
-  // OR: fix naming to clarify that these functions return resolvers?
-  wrapField,
-  extractField,
-  renameField,
+  dehoistResult,
+  unwrapResult,
 };

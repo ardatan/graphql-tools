@@ -3,8 +3,7 @@
 import { GraphQLSchema, GraphQLObjectType } from 'graphql';
 import { Request } from '../Interfaces';
 import { Transform } from './transforms';
-import { cloneType, healSchema } from '../utils';
-import { extractFields } from '../stitching';
+import { cloneType, healSchema, collectFields } from '../utils';
 import { default as ExtendSchema } from './ExtendSchema';
 
 export default class WrapType implements Transform {
@@ -29,7 +28,7 @@ export default class WrapType implements Transform {
       },
       fieldNodeTransformerMap: {
         [outerTypeName]: {
-          [fieldName]: (fieldNode, fragments) => extractFields({ fieldNode, fragments }),
+          [fieldName]: (fieldNode, fragments) => collectFields(fieldNode.selectionSet, fragments),
         },
       }
     });

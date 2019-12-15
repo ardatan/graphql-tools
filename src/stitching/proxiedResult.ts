@@ -1,8 +1,11 @@
 import {
   GraphQLError,
   GraphQLSchema,
+  responsePathAsArray,
 } from 'graphql';
-import { SubschemaConfig } from '../Interfaces';
+import { SubschemaConfig, IGraphQLToolsResolveInfo } from '../Interfaces';
+import { handleNull, handleObject } from './checkResultAndHandleErrors';
+import { relocatedError } from './errors';
 
 export let SUBSCHEMAS_SYMBOL: any;
 export let ERROR_SYMBOL: any;
@@ -52,4 +55,57 @@ export function getErrors(
   }
 
   return fieldErrors;
+}
+
+export function unwrapResult(
+  parent: any,
+  info: IGraphQLToolsResolveInfo,
+  path: Array<string> = []
+): any {
+  const pathLength = path.length;
+
+  for (let i = 0; i < pathLength; i++) {
+    const responseKey = path[i];
+    const errors = getErrors(parent, responseKey);
+    const subschemas = getSubschemas(parent);
+
+    const result = parent[responseKey];
+    if (result == null) {
+      return handleNull(info.fieldNodes, responsePathAsArray(info.path), errors);
+    }
+    parent = handleObject(result, errors, subschemas);
+  }
+
+  return parent;
+}
+
+export function dehoistResult(parent: any, delimeter: string): any {
+  const result = Object.create(null);
+
+  Object.keys(parent).forEach(alias => {
+    let obj = result;
+
+    const fieldNames = alias.split(delimeter);
+    const fieldName = fieldNames.pop();
+    fieldNames.forEach(key => {
+      obj = obj[key] = obj[key] || Object.create(null);
+    });
+    obj[fieldName] = parent[alias];
+
+  });
+
+  result[ERROR_SYMBOL] = parent[ERROR_SYMBOL].map((error: GraphQLError) => {
+    if (error.path) {
+      let path = error.path.slice();
+      const pathSegment = path.shift();
+      const expandedPathSegment: Array<string | number> = (pathSegment as string).split(delimeter);
+      return relocatedError(error, error.nodes, expandedPathSegment.concat(path));
+    } else {
+      return error;
+    }
+  });
+
+  result[SUBSCHEMAS_SYMBOL] = parent[SUBSCHEMAS_SYMBOL];
+
+  return result;
 }

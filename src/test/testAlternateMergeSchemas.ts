@@ -37,15 +37,11 @@ import { makeExecutableSchema } from '../makeExecutableSchema';
 import {
   delegateToSchema,
   mergeSchemas,
-  wrapField,
-  extractField,
-  renameField,
   createMergedResolver,
-  extractFields,
 } from '../stitching';
 import { SubschemaConfig, MergedTypeConfig } from '../Interfaces';
 import isSpecifiedScalarType from '../utils/isSpecifiedScalarType';
-import { wrapFieldNode, renameFieldNode } from '../utils/fieldNodes';
+import { wrapFieldNode, renameFieldNode, hoistFieldNodes } from '../utils/fieldNodes';
 
 let linkSchema = `
   """
@@ -857,23 +853,18 @@ describe('schema transformation with extraction of nested fields', () => {
         typeDefs: `
           extend type Property {
             locationName: String
-            locationName2: String
             pseudoWrappedError: String
           }
         `,
         resolvers: {
           Property: {
-            locationName: createMergedResolver({ fromPath: ['location', 'name'] }),
-            //deprecated wrapField shorthand
-            locationName2: wrapField('location', 'name'),
-            pseudoWrappedError: createMergedResolver({ fromPath: ['error', 'name'] }),
+            locationName: createMergedResolver({ fromPath: ['location'], fromField: 'name' }),
+            pseudoWrappedError: createMergedResolver({ fromField: 'error' }),
           },
         },
         fieldNodeTransformerMap: {
           'Property': {
             'locationName':
-              fieldNode => wrapFieldNode(renameFieldNode(fieldNode, 'name'), ['location']),
-            'locationName2':
               fieldNode => wrapFieldNode(renameFieldNode(fieldNode, 'name'), ['location']),
             'pseudoWrappedError': fieldNode => renameFieldNode(fieldNode, 'error'),
           },
@@ -888,8 +879,9 @@ describe('schema transformation with extraction of nested fields', () => {
       `
         query($pid: ID!) {
           propertyById(id: $pid) {
-            test1: locationName
-            test2: locationName2
+            id
+            name
+            test: locationName
             pseudoWrappedError
           }
         }
@@ -904,8 +896,9 @@ describe('schema transformation with extraction of nested fields', () => {
     expect(result).to.deep.equal({
       data: {
         propertyById: {
-          test1: 'Helsinki',
-          test2: 'Helsinki',
+          id: 'p1',
+          name: 'Super great hotel',
+          test: 'Helsinki',
           pseudoWrappedError: null,
         },
       },
@@ -917,7 +910,7 @@ describe('schema transformation with extraction of nested fields', () => {
           locations: [
             {
               column: 13,
-              line: 6,
+              line: 7,
             },
           ],
           message: 'Property.error error',
@@ -927,38 +920,6 @@ describe('schema transformation with extraction of nested fields', () => {
           ],
         },
       ]
-    });
-  });
-
-  it('should work to extract a field', async () => {
-    const result = await graphql(
-      transformedPropertySchema,
-      `
-        query($pid: ID!) {
-          propertyById(id: $pid) {
-            id
-            test1: locationName
-            test2: locationName2
-            name
-          }
-        }
-      `,
-      {},
-      {},
-      {
-        pid: 'p1',
-      },
-    );
-
-    expect(result).to.deep.equal({
-      data: {
-        propertyById: {
-          id: 'p1',
-          test1: 'Helsinki',
-          test2: 'Helsinki',
-          name: 'Super great hotel',
-        },
-      },
     });
   });
 });
@@ -972,7 +933,6 @@ describe('schema transformation with wrapping of object fields', () => {
         typeDefs: `
           extend type Property {
             outerWrap: OuterWrap
-            singleWrap: InnerWrap
           }
 
           type OuterWrap {
@@ -982,27 +942,23 @@ describe('schema transformation with wrapping of object fields', () => {
           type InnerWrap {
             id: ID
             name: String
+            error: String
           }
         `,
         resolvers: {
           Property: {
-            outerWrap: (parent, args, context, info) => ({
-              innerWrap: {
-                id: createMergedResolver({ toPath: ['innerWrap', 'id'] })(parent, args, context, info),
-                name: createMergedResolver({ toPath: ['innerWrap', 'name'] })(parent, args, context, info),
-              },
-            }),
-            //deprecated extractField shorthand
-            singleWrap: (parent, args, context, info) => ({
-              id: extractField('id')(parent, args, context, info),
-              name: extractField('name')(parent, args, context, info),
-            }),
+            outerWrap: createMergedResolver({ dehoist: '__gqltf__' }),
           },
         },
         fieldNodeTransformerMap: {
           'Property': {
-            'outerWrap': (fieldNode, fragments) => extractFields({ fieldNode, path: ['innerWrap'], fragments }),
-            'singleWrap': (fieldNode, fragments) => extractFields({ fieldNode, fragments }),
+            'outerWrap': (fieldNode, fragments) => hoistFieldNodes({
+              fieldNode,
+              fieldNames: ['id', 'name', 'error'],
+              path: ['innerWrap'],
+              delimeter: '__gqltf__',
+              fragments,
+            }),
           },
         },
       }),
@@ -1025,17 +981,14 @@ describe('schema transformation with wrapping of object fields', () => {
                 ...W2
               }
             }
-            singleWrap {
-              ...W1
-              ...W2
-            }
           }
         }
         fragment W1 on InnerWrap {
           one: id
+          two: error
         }
         fragment W2 on InnerWrap {
-          two: name
+          one: name
         }
     `,
       {},
@@ -1051,19 +1004,32 @@ describe('schema transformation with wrapping of object fields', () => {
           test1: {
             innerWrap: {
               one: 'p1',
+              two: null,
             },
           },
           test2: {
             innerWrap: {
-              two: 'Super great hotel',
+              one: 'Super great hotel',
             },
           },
-          singleWrap: {
-            one: 'p1',
-            two: 'Super great hotel',
-          }
         },
       },
+      'errors': [{
+        'extensions': {
+          code: 'SOME_CUSTOM_CODE'
+        },
+        'locations': [{
+          column: 11,
+          line: 18
+        }],
+        message: 'Property.error error',
+        path: [
+          'propertyById',
+          'test1',
+          'innerWrap',
+          'two',
+        ],
+      }]
     });
   });
 });
@@ -1077,20 +1043,16 @@ describe('schema transformation with renaming of object fields', () => {
         typeDefs: `
           extend type Property {
             new_error: String
-            new_error2: String
           }
         `,
         resolvers: {
           Property: {
-            new_error: createMergedResolver({ fromPath: ['error'] }),
-            //deprecated renameField shorthand
-            new_error2: renameField('error'),
+            new_error: createMergedResolver({ fromField: 'error' }),
           },
         },
         fieldNodeTransformerMap: {
           'Property': {
             'new_error': fieldNode => renameFieldNode(fieldNode, 'error'),
-            'new_error2': fieldNode => renameFieldNode(fieldNode, 'error'),
           },
         },
       }),
@@ -1104,7 +1066,6 @@ describe('schema transformation with renaming of object fields', () => {
         query($pid: ID!) {
           propertyById(id: $pid) {
             new_error
-            new_error2
           }
         }
     `,
@@ -1119,7 +1080,6 @@ describe('schema transformation with renaming of object fields', () => {
       data: {
         propertyById: {
           new_error: null,
-          new_error2: null,
         },
       },
       errors: [
@@ -1132,35 +1092,11 @@ describe('schema transformation with renaming of object fields', () => {
               column: 13,
               line: 4,
             },
-            {
-              column: 13,
-              line: 5,
-            },
           ],
           message: 'Property.error error',
           path: [
             'propertyById',
             'new_error',
-          ],
-        },
-        {
-          extensions: {
-            code: 'SOME_CUSTOM_CODE',
-          },
-          locations: [
-            {
-              column: 13,
-              line: 4,
-            },
-            {
-              column: 13,
-              line: 5,
-            },
-          ],
-          message: 'Property.error error',
-          path: [
-            'propertyById',
-            'new_error2',
           ],
         },
       ],
