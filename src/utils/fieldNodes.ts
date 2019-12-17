@@ -87,13 +87,13 @@ export function hoistFieldNodes({
   fieldNode,
   fieldNames,
   path,
-  delimeter,
+  delimeter = '__gqltf__',
   fragments,
 }: {
   fieldNode: FieldNode;
-  fieldNames: Array<string>;
+  fieldNames?: Array<string>;
   path: Array<string>;
-  delimeter: string;
+  delimeter?: string;
   fragments: Record<string, FragmentDefinitionNode>;
 }): Array<FieldNode> {
   const newFieldNode = path.reduce((acc, pathSegment) => {
@@ -118,7 +118,7 @@ export function hoistFieldNodes({
   collectFields(newFieldNode.selectionSet, fragments).forEach((finalfieldNode: FieldNode) => {
     const alias = finalfieldNode.alias ? finalfieldNode.alias.value : finalfieldNode.name.value;
     collectFields(finalfieldNode.selectionSet, fragments).forEach((possibleFieldNode: FieldNode) => {
-      if (fieldNames.includes(possibleFieldNode.name.value)) {
+      if (!fieldNames || fieldNames.includes(possibleFieldNode.name.value)) {
         finalFieldNodes.push(preAliasFieldNode(possibleFieldNode, `${alias}${delimeter}`));
       }
     });

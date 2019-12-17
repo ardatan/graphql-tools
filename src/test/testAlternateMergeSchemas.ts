@@ -948,7 +948,7 @@ describe('schema transformation with wrapping of object fields', () => {
         `,
         resolvers: {
           Property: {
-            outerWrap: createMergedResolver({ dehoist: '__gqltf__' }),
+            outerWrap: createMergedResolver({ dehoist: true }),
           },
         },
         fieldNodeTransformerMap: {
@@ -957,7 +957,6 @@ describe('schema transformation with wrapping of object fields', () => {
               fieldNode,
               fieldNames: ['id', 'name', 'error'],
               path: ['innerWrap'],
-              delimeter: '__gqltf__',
               fragments,
             }),
           },
