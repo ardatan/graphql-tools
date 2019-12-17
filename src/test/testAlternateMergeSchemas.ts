@@ -854,20 +854,20 @@ describe('schema transformation with extraction of nested fields', () => {
         typeDefs: `
           extend type Property {
             locationName: String
-            pseudoWrappedError: String
+            renamedError: String
           }
         `,
         resolvers: {
           Property: {
             locationName: createMergedResolver({ fromPath: ['location'], fromField: 'name' }),
-            pseudoWrappedError: createMergedResolver({ fromField: 'error' }),
+            renamedError: createMergedResolver({ fromField: 'error' }),
           },
         },
         fieldNodeTransformerMap: {
           'Property': {
             'locationName':
               fieldNode => wrapFieldNode(renameFieldNode(fieldNode, 'name'), ['location']),
-            'pseudoWrappedError': fieldNode => renameFieldNode(fieldNode, 'error'),
+            'renamedError': fieldNode => renameFieldNode(fieldNode, 'error'),
           },
         },
       }),
@@ -883,7 +883,7 @@ describe('schema transformation with extraction of nested fields', () => {
             id
             name
             test: locationName
-            pseudoWrappedError
+            renamedError
           }
         }
       `,
@@ -900,7 +900,7 @@ describe('schema transformation with extraction of nested fields', () => {
           id: 'p1',
           name: 'Super great hotel',
           test: 'Helsinki',
-          pseudoWrappedError: null,
+          renamedError: null,
         },
       },
       errors: [
@@ -917,7 +917,7 @@ describe('schema transformation with extraction of nested fields', () => {
           message: 'Property.error error',
           path: [
             'propertyById',
-            'pseudoWrappedError',
+            'renamedError',
           ],
         },
       ]
