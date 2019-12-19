@@ -86,43 +86,42 @@ export function collectFields(
 export function hoistFieldNodes({
   fieldNode,
   fieldNames,
-  path,
+  path = [],
   delimeter = '__gqltf__',
   fragments,
 }: {
   fieldNode: FieldNode;
   fieldNames?: Array<string>;
-  path: Array<string>;
+  path?: Array<string>;
   delimeter?: string;
   fragments: Record<string, FragmentDefinitionNode>;
 }): Array<FieldNode> {
-  const newFieldNode = path.reduce((acc, pathSegment) => {
-    const alias = acc.alias ? acc.alias.value : acc.name.value;
-    const newFieldNodes: Array<FieldNode> = [];
-    collectFields(acc.selectionSet, fragments).forEach((possibleFieldNode: FieldNode) => {
-      if (possibleFieldNode.name.value === pathSegment) {
+  const alias = fieldNode.alias ? fieldNode.alias.value : fieldNode.name.value;
+
+  let newFieldNodes: Array<FieldNode> = [];
+
+  if (path && path.length) {
+    const remainingPathSegments = path.slice();
+    const initialPathSegment = remainingPathSegments.shift();
+
+    collectFields(fieldNode.selectionSet, fragments).forEach((possibleFieldNode: FieldNode) => {
+      if (possibleFieldNode.name.value === initialPathSegment) {
+        newFieldNodes = newFieldNodes.concat(hoistFieldNodes({
+          fieldNode: preAliasFieldNode(possibleFieldNode, `${alias}${delimeter}`),
+          fieldNames,
+          path: remainingPathSegments,
+          delimeter,
+          fragments,
+        }));
+      }
+    });
+  } else {
+    collectFields(fieldNode.selectionSet, fragments).forEach((possibleFieldNode: FieldNode) => {
+      if (!fieldNames || fieldNames.includes(possibleFieldNode.name.value)) {
         newFieldNodes.push(preAliasFieldNode(possibleFieldNode, `${alias}${delimeter}`));
       }
     });
+  }
 
-    return {
-      ...acc,
-      selectionSet: {
-        ...acc.selectionSet,
-        selections: newFieldNodes,
-      }
-    };
-  }, fieldNode);
-
-  const finalFieldNodes: Array<FieldNode> = [];
-  collectFields(newFieldNode.selectionSet, fragments).forEach((finalfieldNode: FieldNode) => {
-    const alias = finalfieldNode.alias ? finalfieldNode.alias.value : finalfieldNode.name.value;
-    collectFields(finalfieldNode.selectionSet, fragments).forEach((possibleFieldNode: FieldNode) => {
-      if (!fieldNames || fieldNames.includes(possibleFieldNode.name.value)) {
-        finalFieldNodes.push(preAliasFieldNode(possibleFieldNode, `${alias}${delimeter}`));
-      }
-    });
-  });
-
-  return finalFieldNodes;
+  return newFieldNodes;
 }
