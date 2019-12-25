@@ -32,21 +32,22 @@ export default class FilterToSchema implements Transform {
   }
 
   public transformRequest(originalRequest: Request): Request {
-    const document = filterDocumentToSchema(
-      this.targetSchema,
-      originalRequest.document,
-    );
     return {
       ...originalRequest,
-      document,
+      ...filterToSchema(
+        this.targetSchema,
+        originalRequest.document,
+        originalRequest.variables,
+      ),
     };
   }
 }
 
-function filterDocumentToSchema(
+function filterToSchema(
   targetSchema: GraphQLSchema,
   document: DocumentNode,
-): DocumentNode {
+  variables: Record<string, any>,
+): { document: DocumentNode; variables: Record<string, any> } {
   const operations: Array<
     OperationDefinitionNode
     > = document.definitions.filter(
@@ -56,6 +57,7 @@ function filterDocumentToSchema(
     def => def.kind === Kind.FRAGMENT_DEFINITION,
   ) as Array<FragmentDefinitionNode>;
 
+  let usedVariables: Array<string> = [];
   let usedFragments: Array<string> = [];
   const newOperations: Array<OperationDefinitionNode> = [];
   let newFragments: Array<FragmentDefinitionNode> = [];
@@ -110,14 +112,15 @@ function filterDocumentToSchema(
       validFragmentsWithType,
       usedFragments,
     );
-    const fullUsedVariables =
+    const operationOrFragmentVariables =
       union(operationUsedVariables, collectedUsedVariables);
+    usedVariables = union(usedVariables, operationOrFragmentVariables);
     newFragments = collectedNewFragments;
     fragmentSet = collectedFragmentSet;
 
     const variableDefinitions = operation.variableDefinitions.filter(
       (variable: VariableDefinitionNode) =>
-        fullUsedVariables.indexOf(variable.variable.name.value) !== -1,
+      operationOrFragmentVariables.indexOf(variable.variable.name.value) !== -1,
     );
 
     newOperations.push({
@@ -130,9 +133,17 @@ function filterDocumentToSchema(
     });
   });
 
+  const newVariables: Record<string, any> = Object.create(null);
+  usedVariables.forEach(variableName => {
+    newVariables[variableName] = variables[variableName];
+  });
+
   return {
-    kind: Kind.DOCUMENT,
-    definitions: [...newOperations, ...newFragments],
+    document: {
+      kind: Kind.DOCUMENT,
+      definitions: [...newOperations, ...newFragments],
+    },
+    variables: newVariables,
   };
 }
 
