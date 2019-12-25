@@ -704,7 +704,7 @@ type UnionImpl {
         pid: 'p1',
       },
     );
-//console.log(result.errors[0])
+
     expect(result).to.deep.equal({
       data: {
         namespace: {
