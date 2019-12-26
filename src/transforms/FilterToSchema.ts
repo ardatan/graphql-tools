@@ -133,7 +133,7 @@ function filterToSchema(
     });
   });
 
-  const newVariables: Record<string, any> = Object.create(null);
+  const newVariables: Record<string, any> = {};
   usedVariables.forEach(variableName => {
     newVariables[variableName] = variables[variableName];
   });
