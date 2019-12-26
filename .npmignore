@@ -2,6 +2,8 @@
 !dist/
 !dist/*
 !dist/generate/*
+!dist/links/*
+!dist/scalars/*
 !dist/stitching/*
 !dist/transforms/*
 !dist/utils/*

@@ -14,3 +14,4 @@ import './testSchemaGenerator';
 import './testTransforms';
 import './testExtensionExtraction';
 import './testIntegration';
+import './testUpload';
