@@ -1,4 +1,4 @@
-import { print, DocumentNode, ASTNode } from 'graphql';
+import { print, DocumentNode } from 'graphql';
 import { ITypedef } from '../Interfaces';
 
 import SchemaError from './SchemaError';
