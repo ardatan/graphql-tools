@@ -927,10 +927,8 @@ describe('schema transformation with extraction of nested fields', () => {
 });
 
 describe('schema transformation with wrapping of object fields', () => {
-  let transformedPropertySchema: GraphQLSchema;
-
-  before(async () => {
-    transformedPropertySchema = transformSchema(propertySchema, [
+  it('should work via ExtendSchema transform', async () => {
+    const transformedPropertySchema = transformSchema(propertySchema, [
       new ExtendSchema({
         typeDefs: `
           extend type Property {
@@ -964,9 +962,7 @@ describe('schema transformation with wrapping of object fields', () => {
         },
       }),
     ]);
-  });
 
-  it('should work, even with aliases', async () => {
     const result = await graphql(
       transformedPropertySchema,
       `
@@ -1033,161 +1029,151 @@ describe('schema transformation with wrapping of object fields', () => {
       }]
     });
   });
-});
 
-describe('WrapFields transform', () => {
-  let transformedPropertySchema: GraphQLSchema;
+  describe('WrapFields transform', () => {
+    it('should work', async () => {
+      const transformedPropertySchema = transformSchema(propertySchema, [
+        new WrapFields(
+          'Property',
+          ['outerWrap'],
+          ['OuterWrap'],
+          ['id', 'name', 'error'],
+        ),
+      ]);
 
-  before(async () => {
-    transformedPropertySchema = transformSchema(propertySchema, [
-      new WrapFields(
-        'Property',
-        ['outerWrap'],
-        ['OuterWrap'],
-        ['id', 'name', 'error'],
-      ),
-    ]);
-  });
-
-  it('should work, even with aliases', async () => {
-    const result = await graphql(
-      transformedPropertySchema,
-      `
-        query($pid: ID!) {
-          propertyById(id: $pid) {
-            test1: outerWrap {
-              ...W1
-            }
-            test2: outerWrap {
-              ...W2
-            }
-          }
-        }
-        fragment W1 on OuterWrap {
-          one: id
-          two: error
-        }
-        fragment W2 on OuterWrap {
-          one: name
-        }
-    `,
-      {},
-      {},
-      {
-        pid: 'p1',
-      },
-    );
-
-    expect(result).to.deep.equal({
-      data: {
-        propertyById: {
-          test1: {
-            one: 'p1',
-            two: null,
-          },
-          test2: {
-            one: 'Super great hotel',
-          },
-        },
-      },
-      'errors': [{
-        'extensions': {
-          code: 'SOME_CUSTOM_CODE'
-        },
-        'locations': [{
-          column: 11,
-          line: 14
-        }],
-        message: 'Property.error error',
-        path: [
-          'propertyById',
-          'test1',
-          'two',
-        ],
-      }]
-    });
-  });
-});
-
-describe('WrapFields transform with multiple fields', () => {
-  let transformedPropertySchema: GraphQLSchema;
-
-  before(async () => {
-    transformedPropertySchema = transformSchema(propertySchema, [
-      new WrapFields(
-        'Property',
-        ['outerWrap', 'innerWrap'],
-        ['OuterWrap', 'InnerWrap'],
-        ['id', 'name', 'error'],
-      ),
-    ]);
-  });
-
-  it('should work, even with aliases', async () => {
-    const result = await graphql(
-      transformedPropertySchema,
-      `
-        query($pid: ID!) {
-          propertyById(id: $pid) {
-            test1: outerWrap {
-              innerWrap {
+      const result = await graphql(
+        transformedPropertySchema,
+        `
+          query($pid: ID!) {
+            propertyById(id: $pid) {
+              test1: outerWrap {
                 ...W1
               }
-            }
-            test2: outerWrap {
-              innerWrap {
+              test2: outerWrap {
                 ...W2
               }
             }
           }
-        }
-        fragment W1 on InnerWrap {
-          one: id
-          two: error
-        }
-        fragment W2 on InnerWrap {
-          one: name
-        }
-    `,
-      {},
-      {},
-      {
-        pid: 'p1',
-      },
-    );
+          fragment W1 on OuterWrap {
+            one: id
+            two: error
+          }
+          fragment W2 on OuterWrap {
+            one: name
+          }
+      `,
+        {},
+        {},
+        {
+          pid: 'p1',
+        },
+      );
 
-    expect(result).to.deep.equal({
-      data: {
-        propertyById: {
-          test1: {
-            innerWrap: {
+      expect(result).to.deep.equal({
+        data: {
+          propertyById: {
+            test1: {
               one: 'p1',
               two: null,
             },
-          },
-          test2: {
-            innerWrap: {
+            test2: {
               one: 'Super great hotel',
             },
           },
         },
-      },
-      'errors': [{
-        'extensions': {
-          code: 'SOME_CUSTOM_CODE'
+        'errors': [{
+          'extensions': {
+            code: 'SOME_CUSTOM_CODE'
+          },
+          'locations': [{
+            column: 13,
+            line: 14
+          }],
+          message: 'Property.error error',
+          path: [
+            'propertyById',
+            'test1',
+            'two',
+          ],
+        }]
+      });
+    });
+
+    it('should work, even with multiple fields', async () => {
+      const transformedPropertySchema = transformSchema(propertySchema, [
+        new WrapFields(
+          'Property',
+          ['outerWrap', 'innerWrap'],
+          ['OuterWrap', 'InnerWrap'],
+          ['id', 'name', 'error'],
+        ),
+      ]);
+
+      const result = await graphql(
+        transformedPropertySchema,
+        `
+          query($pid: ID!) {
+            propertyById(id: $pid) {
+              test1: outerWrap {
+                innerWrap {
+                  ...W1
+                }
+              }
+              test2: outerWrap {
+                innerWrap {
+                  ...W2
+                }
+              }
+            }
+          }
+          fragment W1 on InnerWrap {
+            one: id
+            two: error
+          }
+          fragment W2 on InnerWrap {
+            one: name
+          }
+      `,
+        {},
+        {},
+        {
+          pid: 'p1',
         },
-        'locations': [{
-          column: 11,
-          line: 18
-        }],
-        message: 'Property.error error',
-        path: [
-          'propertyById',
-          'test1',
-          'innerWrap',
-          'two',
-        ],
-      }]
+      );
+
+      expect(result).to.deep.equal({
+        data: {
+          propertyById: {
+            test1: {
+              innerWrap: {
+                one: 'p1',
+                two: null,
+              },
+            },
+            test2: {
+              innerWrap: {
+                one: 'Super great hotel',
+              },
+            },
+          },
+        },
+        'errors': [{
+          'extensions': {
+            code: 'SOME_CUSTOM_CODE'
+          },
+          'locations': [{
+            column: 13,
+            line: 18
+          }],
+          message: 'Property.error error',
+          path: [
+            'propertyById',
+            'test1',
+            'innerWrap',
+            'two',
+          ],
+        }]
+      });
     });
   });
 });
