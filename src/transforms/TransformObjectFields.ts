@@ -177,7 +177,7 @@ export default class TransformObjectFields implements Transform {
                     }
                   });
                 } else {
-                  newSelections.push(selection);
+                  newSelections.push(transformedSelection);
                 }
               } else {
                 newSelections.push(selection);

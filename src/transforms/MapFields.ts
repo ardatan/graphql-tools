@@ -92,7 +92,7 @@ function transformDocument(
               } else if (transformedSelection.kind === Kind.FIELD) {
                 newSelections.push(transformedSelection);
               } else {
-                newSelections.push(selection);
+                newSelections.push(transformedSelection);
               }
             } else {
               newSelections.push(selection);
