@@ -18,6 +18,7 @@ export type RenameOptions = {
 
 export default class RenameTypes implements Transform {
   private renamer: (name: string) => string | undefined;
+  private map: { [key: string]: string };
   private reverseMap: { [key: string]: string };
   private renameBuiltins: boolean;
   private renameScalars: boolean;
@@ -27,6 +28,7 @@ export default class RenameTypes implements Transform {
     options?: RenameOptions,
   ) {
     this.renamer = renamer;
+    this.map = {};
     this.reverseMap = {};
     const { renameBuiltins = false, renameScalars = true } = options || {};
     this.renameBuiltins = renameBuiltins;
@@ -42,9 +44,11 @@ export default class RenameTypes implements Transform {
         if (type instanceof GraphQLScalarType && !this.renameScalars) {
           return undefined;
         }
-        const newName = this.renamer(type.name);
-        if (newName && newName !== type.name) {
-          this.reverseMap[newName] = type.name;
+        const oldName = type.name;
+        const newName = this.renamer(oldName);
+        if (newName && newName !== oldName) {
+          this.map[oldName] = type.name;
+          this.reverseMap[newName] = oldName;
           const newType = cloneType(type);
           newType.name = newName;
           return newType;
@@ -79,42 +83,28 @@ export default class RenameTypes implements Transform {
   }
 
   public transformResult(result: Result): Result {
-    if (result.data) {
-      const data = this.renameTypes(result.data, 'data');
-      if (data !== result.data) {
-        return { ...result, data };
-      }
-    }
-
-    return result;
+    return {
+      ...result,
+      data: this.renameTypes(result.data)
+    };
   }
 
-  private renameTypes(value: any, name?: string) {
-    if (name === '__typename') {
-      return this.renamer(value);
-    }
-
-    if (value && typeof value === 'object') {
-      const newValue = Array.isArray(value) ? []
-        // Create a new object with the same prototype.
-        : Object.create(Object.getPrototypeOf(value));
-
-      let returnNewValue = false;
-
-      Object.keys(value).forEach(key => {
-        const oldChild = value[key];
-        const newChild = this.renameTypes(oldChild, key);
-        newValue[key] = newChild;
-        if (newChild !== oldChild) {
-          returnNewValue = true;
-        }
+  private renameTypes(value: any): any {
+    if (value == null) {
+      return value;
+    } else if (Array.isArray(value)) {
+      value.forEach((v, index) => {
+        value[index] = this.renameTypes(v);
       });
-
-      if (returnNewValue) {
-        return newValue;
-      }
+      return value;
+    } else if (typeof value === 'object') {
+      Object.keys(value).forEach(key => {
+        value[key] = key === '__typename' ?
+          this.renamer(value[key]) : this.renameTypes(value[key]);
+      });
+      return value;
+    } else {
+      return value;
     }
-
-    return value;
   }
 }
