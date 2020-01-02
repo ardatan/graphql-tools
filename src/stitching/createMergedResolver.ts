@@ -11,17 +11,10 @@ export function createMergedResolver({
   fromField?: string;
   dehoist?: boolean | string;
 }): IFieldResolver<any, any> {
-  const fromFieldResolver: IFieldResolver<any, any> = fromField ?
-    (parent, args, context, info) => defaultMergedResolver(parent, args, context, {
-      ...info,
-      fieldName: fromField,
-    }) :
-    defaultMergedResolver;
-
   const parentErrorResolver: IFieldResolver<any, any> =
     (parent, args, context, info) => parent instanceof Error ?
       parent :
-      fromFieldResolver(parent, args, context, info);
+      defaultMergedResolver(parent, args, context, info);
 
   const unwrappingResolver: IFieldResolver<any, any> = fromPath ?
     (parent, args, context, info) =>

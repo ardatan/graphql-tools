@@ -8,8 +8,12 @@ import {
 export function renameFieldNode(fieldNode: FieldNode, name: string): FieldNode {
   return {
     ...fieldNode,
+    alias: {
+      kind: Kind.NAME,
+      value: fieldNode.alias ? fieldNode.alias.value : fieldNode.name.value,
+    },
     name: {
-      ...fieldNode.name,
+      kind: Kind.NAME,
       value: name,
     }
   };
@@ -19,7 +23,7 @@ export function preAliasFieldNode(fieldNode: FieldNode, str: string): FieldNode 
   return {
     ...fieldNode,
     alias: {
-      ...fieldNode.name,
+      kind: Kind.NAME,
       value: `${str}${fieldNode.alias ? fieldNode.alias.value : fieldNode.name.value}`,
     }
   };

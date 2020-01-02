@@ -568,6 +568,7 @@ type Query {
             new_location {
               name
             }
+            new_error
           }
         }
       `,
@@ -586,8 +587,27 @@ type Query {
           new_location: {
             name: 'Helsinki',
           },
+          new_error: null,
         },
       },
+      errors: [
+        {
+          extensions: {
+            code: 'SOME_CUSTOM_CODE',
+          },
+          locations: [
+            {
+              column: 13,
+              line: 9,
+            },
+          ],
+          message: 'Property.error error',
+          path: [
+            'propertyById',
+            'new_error',
+          ],
+        },
+      ],
     });
   });
 });

@@ -115,13 +115,6 @@ export default class TransformObjectFields implements Transform {
               this.mapping[typeName] = {};
             }
             this.mapping[typeName][newName] = fieldName;
-
-            const originalResolver = newFields[newName].resolve;
-            (newFields[newName] as GraphQLFieldConfig<any, any>).resolve = (parent, args, context, info) =>
-              originalResolver(parent, args, context, {
-                ...info,
-                fieldName
-              });
           }
         } else {
           newFields[fieldName] = transformedField;
@@ -165,17 +158,22 @@ export default class TransformObjectFields implements Transform {
                 if (Array.isArray(transformedSelection)) {
                   newSelections = newSelections.concat(transformedSelection);
                 } else if (transformedSelection.kind === Kind.FIELD) {
-                  let originalName;
-                  if (mapping[parentTypeName]) {
-                    originalName = mapping[parentTypeName][newName];
+                  const oldName = mapping[parentTypeName] && mapping[parentTypeName][newName];
+                  if (oldName) {
+                    newSelections.push({
+                      ...transformedSelection,
+                      name: {
+                        kind: Kind.NAME,
+                        value: oldName
+                      },
+                      alias: {
+                        kind: Kind.NAME,
+                        value: newName
+                      }
+                    });
+                  } else {
+                    newSelections.push(transformedSelection);
                   }
-                  newSelections.push({
-                    ...transformedSelection,
-                    name: {
-                      ...transformedSelection.name,
-                      value: originalName || transformedSelection.name.value
-                    }
-                  });
                 } else {
                   newSelections.push(transformedSelection);
                 }
