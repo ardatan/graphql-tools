@@ -9,13 +9,8 @@ export default class FilterObjectFields implements Transform {
 
   constructor(filter: ObjectFilter) {
     this.transformer = new TransformObjectFields(
-      (typeName: string, fieldName: string, field: GraphQLField<any, any>) => {
-        if (filter(typeName, fieldName, field)) {
-          return undefined;
-        } else {
-          return null;
-        }
-      }
+      (typeName: string, fieldName: string, field: GraphQLField<any, any>) =>
+        filter(typeName, fieldName, field) ? undefined : null
     );
   }
 
