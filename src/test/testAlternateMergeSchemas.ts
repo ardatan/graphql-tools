@@ -880,8 +880,7 @@ describe('schema transformation with extraction of nested fields', () => {
         `,
         resolvers: {
           Property: {
-            locationName: createMergedResolver({ fromPath: ['location'], fromField: 'name' }),
-            renamedError: createMergedResolver({ fromField: 'error' }),
+            locationName: createMergedResolver({ fromPath: ['location'] }),
           },
         },
         fieldNodeTransformerMap: {
@@ -1209,11 +1208,6 @@ describe('schema transformation with renaming of object fields', () => {
             new_error: String
           }
         `,
-        resolvers: {
-          Property: {
-            new_error: createMergedResolver({ fromField: 'error' }),
-          },
-        },
         fieldNodeTransformerMap: {
           'Property': {
             'new_error': fieldNode => renameFieldNode(fieldNode, 'error'),

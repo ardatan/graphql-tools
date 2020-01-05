@@ -4,24 +4,23 @@ import defaultMergedResolver from './defaultMergedResolver';
 
 export function createMergedResolver({
   fromPath,
-  fromField,
   dehoist,
+  delimeter = '__gqltf__',
 }: {
   fromPath?: Array<string>;
-  fromField?: string;
-  dehoist?: boolean | string;
+  dehoist?: boolean;
+  delimeter?: string;
 }): IFieldResolver<any, any> {
   const parentErrorResolver: IFieldResolver<any, any> =
     (parent, args, context, info) => parent instanceof Error ?
       parent :
       defaultMergedResolver(parent, args, context, info);
 
-  const unwrappingResolver: IFieldResolver<any, any> = fromPath ?
+  const unwrappingResolver: IFieldResolver<any, any> = fromPath && fromPath.length ?
     (parent, args, context, info) =>
-    parentErrorResolver(unwrapResult(parent, info, fromPath), args, context, info) :
+    parentErrorResolver(unwrapResult(parent, info, fromPath, delimeter), args, context, info) :
     parentErrorResolver;
 
-  const delimeter = dehoist === 'string' ? dehoist : '__gqltf__';
   const dehoistingResolver: IFieldResolver<any, any> = dehoist ?
     (parent, args, context, info) =>
       unwrappingResolver(dehoistResult(parent, delimeter), args, context, info) :

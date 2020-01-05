@@ -29,7 +29,13 @@ export function preAliasFieldNode(fieldNode: FieldNode, str: string): FieldNode 
   };
 }
 
-export function wrapFieldNode(fieldNode: FieldNode, path: Array<string>): FieldNode {
+export function wrapFieldNode(
+  fieldNode: FieldNode,
+  path: Array<string>,
+  delimeter: string = '__gqltf__',
+): FieldNode {
+  const alias = fieldNode.alias ? fieldNode.alias.value : fieldNode.name.value;
+
   let newFieldNode = fieldNode;
   path.forEach(fieldName => {
     newFieldNode = {
@@ -46,7 +52,8 @@ export function wrapFieldNode(fieldNode: FieldNode, path: Array<string>): FieldN
       }
     };
   });
-  return newFieldNode;
+
+  return preAliasFieldNode(newFieldNode, `wrapped${delimeter}${alias}__gqltf__`);
 }
 
 export function collectFields(
@@ -122,7 +129,7 @@ export function hoistFieldNodes({
   } else {
     collectFields(fieldNode.selectionSet, fragments).forEach((possibleFieldNode: FieldNode) => {
       if (!fieldNames || fieldNames.includes(possibleFieldNode.name.value)) {
-        newFieldNodes.push(preAliasFieldNode(possibleFieldNode, `${alias}${delimeter}`));
+        newFieldNodes.push(preAliasFieldNode(possibleFieldNode, `hoisted${delimeter}${alias}${delimeter}`));
       }
     });
   }

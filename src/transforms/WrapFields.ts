@@ -20,6 +20,7 @@ export default class WrapFields implements Transform {
   private wrappingTypeNames: Array<string>;
   private numWraps: number;
   private fieldNames: Array<string>;
+  private delimeter: string;
   private transformer: Transform;
 
   constructor(
@@ -27,12 +28,14 @@ export default class WrapFields implements Transform {
     wrappingFieldNames: Array<string>,
     wrappingTypeNames: Array<string>,
     fieldNames?: Array<string>,
+    delimeter: string = '__gqltf__',
   ) {
     this.outerTypeName = outerTypeName;
     this.wrappingFieldNames = wrappingFieldNames;
     this.wrappingTypeNames = wrappingTypeNames;
     this.numWraps = wrappingFieldNames.length;
     this.fieldNames = fieldNames;
+    this.delimeter = delimeter;
 
     const remainingWrappingFieldNames = this.wrappingFieldNames.slice();
     const outerMostWrappingFieldName = remainingWrappingFieldNames.shift();
@@ -43,6 +46,7 @@ export default class WrapFields implements Transform {
           path: remainingWrappingFieldNames,
           fieldNames: this.fieldNames,
           fragments,
+          delimeter: this.delimeter,
         }),
       },
     });
@@ -74,7 +78,7 @@ export default class WrapFields implements Transform {
     this.appendFields(typeMap, this.outerTypeName, {
       [this.wrappingFieldNames[0]]: {
         type: typeMap[this.wrappingTypeNames[0]] as GraphQLObjectType,
-        resolve: createMergedResolver({ dehoist: true }),
+        resolve: createMergedResolver({ dehoist: true, delimeter: this.delimeter }),
       },
     });
 

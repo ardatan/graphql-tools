@@ -11,9 +11,16 @@ export default class WrapType implements Transform {
   constructor(
     outerTypeName: string,
     innerTypeName: string,
-    fieldName: string
+    fieldName: string,
+    delimeter: string = '__gqltf__',
   ) {
-    this.transformer = new WrapFields(outerTypeName, [fieldName], [innerTypeName]);
+    this.transformer = new WrapFields(
+      outerTypeName,
+      [fieldName],
+      [innerTypeName],
+      undefined,
+      delimeter
+    );
   }
 
   public transformSchema(schema: GraphQLSchema): GraphQLSchema {

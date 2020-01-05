@@ -60,12 +60,16 @@ export function getErrors(
 export function unwrapResult(
   parent: any,
   info: IGraphQLToolsResolveInfo,
-  path: Array<string> = []
+  path: Array<string>,
+  delimeter: string = '__gqltf__',
 ): any {
-  const pathLength = path.length;
+  let responseKey = Object.keys(parent).find(key => {
+    const splitKey = key.split(delimeter);
+    return (splitKey.length === 3 && splitKey[0] === 'wrapped' && splitKey[2] === path[0]);
+  });
 
+  const pathLength = path.length;
   for (let i = 0; i < pathLength; i++) {
-    const responseKey = path[i];
     const errors = getErrors(parent, responseKey);
     const subschemas = getSubschemas(parent);
 
@@ -74,24 +78,27 @@ export function unwrapResult(
       return handleNull(info.fieldNodes, responsePathAsArray(info.path), errors);
     }
     parent = handleObject(result, errors, subschemas);
+    responseKey = path[i + 1];
   }
 
   return parent;
 }
 
-export function dehoistResult(parent: any, delimeter: string): any {
+export function dehoistResult(parent: any, delimeter: string = '__gqltf__'): any {
   const result = Object.create(null);
 
   Object.keys(parent).forEach(alias => {
     let obj = result;
 
     const fieldNames = alias.split(delimeter);
-    const fieldName = fieldNames.pop();
-    fieldNames.forEach(key => {
-      obj = obj[key] = obj[key] || Object.create(null);
-    });
-    obj[fieldName] = parent[alias];
-
+    const prefix = fieldNames.shift();
+    if (prefix === 'hoisted') {
+      const fieldName = fieldNames.pop();
+      fieldNames.forEach(key => {
+        obj = obj[key] = obj[key] || Object.create(null);
+      });
+      obj[fieldName] = parent[alias];
+    }
   });
 
   result[ERROR_SYMBOL] = parent[ERROR_SYMBOL].map((error: GraphQLError) => {
@@ -99,7 +106,10 @@ export function dehoistResult(parent: any, delimeter: string): any {
       let path = error.path.slice();
       const pathSegment = path.shift();
       const expandedPathSegment: Array<string | number> = (pathSegment as string).split(delimeter);
-      return relocatedError(error, error.nodes, expandedPathSegment.concat(path));
+      const prefix = expandedPathSegment.shift();
+      return (prefix === 'hoisted') ?
+        relocatedError(error, error.nodes, expandedPathSegment.concat(path)) :
+        error;
     } else {
       return error;
     }
