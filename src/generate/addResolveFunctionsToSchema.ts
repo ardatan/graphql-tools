@@ -2,11 +2,9 @@ import {
   GraphQLField,
   GraphQLEnumType,
   GraphQLScalarType,
-  GraphQLType,
   GraphQLSchema,
   GraphQLObjectType,
   GraphQLInterfaceType,
-  GraphQLFieldMap,
 } from 'graphql';
 
 import {
@@ -149,8 +147,10 @@ function addResolveFunctionsToSchema(
           return;
         }
 
-        const fields = getFieldsForType(type);
-        if (!fields) {
+        if (!(
+          type instanceof GraphQLObjectType ||
+          type instanceof GraphQLInterfaceType
+        )) {
           if (allowResolversNotInSchema) {
             return;
           }
@@ -160,6 +160,7 @@ function addResolveFunctionsToSchema(
           );
         }
 
+        const fields = type.getFields();
         if (!fields[fieldName]) {
           if (allowResolversNotInSchema) {
             return;
@@ -204,17 +205,6 @@ function addResolveFunctionsToSchema(
   }
 
   return schema;
-}
-
-function getFieldsForType(type: GraphQLType): GraphQLFieldMap<any, any> {
-  if (
-    type instanceof GraphQLObjectType ||
-    type instanceof GraphQLInterfaceType
-  ) {
-    return type.getFields();
-  } else {
-    return undefined;
-  }
 }
 
 function setFieldProperties(
