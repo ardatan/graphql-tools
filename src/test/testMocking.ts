@@ -3,7 +3,7 @@ import { graphql, GraphQLResolveInfo } from 'graphql';
 import { addMockFunctionsToSchema, MockList, mockServer } from '../mock';
 import {
   buildSchemaFromTypeDefinitions,
-  addResolveFunctionsToSchema,
+  addResolversToSchema,
   makeExecutableSchema,
 } from '../makeExecutableSchema';
 import 'mocha';
@@ -177,7 +177,7 @@ describe('Mock', () => {
         returnString: () => 'someString',
       },
     };
-    addResolveFunctionsToSchema(jsSchema, resolvers);
+    addResolversToSchema(jsSchema, resolvers);
     const testQuery = `{
       returnInt
       returnString
@@ -259,7 +259,7 @@ describe('Mock', () => {
         },
       },
     };
-    addResolveFunctionsToSchema(jsSchema, resolvers);
+    addResolversToSchema(jsSchema, resolvers);
     addMockFunctionsToSchema({
       schema: jsSchema,
       mocks: {},
@@ -298,7 +298,7 @@ describe('Mock', () => {
 
   it('can mock Unions', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
-    addResolveFunctionsToSchema(jsSchema, resolveFunctions);
+    addResolversToSchema(jsSchema, resolveFunctions);
     const mockMap = {
       Int: () => 10,
       String: () => 'aha',
@@ -335,7 +335,7 @@ describe('Mock', () => {
 
   it('can mock Interfaces by default', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
-    addResolveFunctionsToSchema(jsSchema, resolveFunctions);
+    addResolversToSchema(jsSchema, resolveFunctions);
     const mockMap = {
       Int: () => 10,
       String: () => 'aha',
@@ -375,7 +375,7 @@ describe('Mock', () => {
 
   it('can support explicit Interface mock', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
-    addResolveFunctionsToSchema(jsSchema, resolveFunctions);
+    addResolversToSchema(jsSchema, resolveFunctions);
     let spy = 0;
     const mockMap = {
       Bird: (root: any, args: any) => ({
@@ -418,7 +418,7 @@ describe('Mock', () => {
 
   it('can support explicit UnionType mock', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
-    addResolveFunctionsToSchema(jsSchema, resolveFunctions);
+    addResolversToSchema(jsSchema, resolveFunctions);
     let spy = 0;
     const mockMap = {
       Bird: (root: any, args: any) => ({
@@ -463,7 +463,7 @@ describe('Mock', () => {
 
   it('throws an error when __typename is not returned within an explicit interface mock', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
-    addResolveFunctionsToSchema(jsSchema, resolveFunctions);
+    addResolversToSchema(jsSchema, resolveFunctions);
     const mockMap = {
       Bird: (root: any, args: any) => ({
         id: args.id,
@@ -515,7 +515,7 @@ describe('Mock', () => {
         returnMockError: () => <string>undefined,
       },
     };
-    addResolveFunctionsToSchema(jsSchema, resolvers);
+    addResolversToSchema(jsSchema, resolvers);
 
     const mockMap = {};
     addMockFunctionsToSchema({
@@ -544,7 +544,7 @@ describe('Mock', () => {
         returnMockError: () => '10-11-2012',
       },
     };
-    addResolveFunctionsToSchema(jsSchema, resolvers);
+    addResolversToSchema(jsSchema, resolvers);
 
     const mockMap = {};
     addMockFunctionsToSchema({
@@ -714,7 +714,7 @@ describe('Mock', () => {
     });
   });
 
-  it('does not mask resolve functions if you tell it not to', () => {
+  it('does not mask resolvers if you tell it not to', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {
       RootQuery: () => ({
@@ -730,7 +730,7 @@ describe('Mock', () => {
         returnString: () => Promise.resolve('bar'), // see c)
       },
     };
-    addResolveFunctionsToSchema(jsSchema, resolvers);
+    addResolversToSchema(jsSchema, resolvers);
     addMockFunctionsToSchema({
       schema: jsSchema,
       mocks: mockMap,
@@ -791,7 +791,7 @@ describe('Mock', () => {
         }),
       },
     };
-    addResolveFunctionsToSchema(jsSchema, resolvers);
+    addResolversToSchema(jsSchema, resolvers);
     const mockMap = {
       returnListOfInt: () => [5, 6, 7],
       Bird: () => ({
@@ -834,7 +834,7 @@ describe('Mock', () => {
           }),
       },
     };
-    addResolveFunctionsToSchema(jsSchema, resolvers);
+    addResolversToSchema(jsSchema, resolvers);
     const mockMap = {
       Bird: () => ({
         returnInt: 3, // see a)
@@ -876,7 +876,7 @@ describe('Mock', () => {
         returnObject: () => objProxy,
       },
     };
-    addResolveFunctionsToSchema(jsSchema, resolvers);
+    addResolversToSchema(jsSchema, resolvers);
     const mockMap = {
       Bird: () => ({
         returnInt: 3, // see a)
@@ -1046,7 +1046,7 @@ describe('Mock', () => {
         returnString: (): string => null, // a) resolve of a string
       },
     };
-    addResolveFunctionsToSchema(jsSchema, resolvers);
+    addResolversToSchema(jsSchema, resolvers);
     const mockMap = {
       Int: () => 666, // b) mock of Int.
     };

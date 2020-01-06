@@ -25,7 +25,7 @@ import {
 } from '../Interfaces';
 import {
   extractExtensionDefinitions,
-  addResolveFunctionsToSchema,
+  addResolversToSchema,
 } from '../makeExecutableSchema';
 import delegateToSchema from './delegateToSchema';
 import typeFromAST from './typeFromAST';
@@ -234,7 +234,7 @@ export default function mergeSchemas({
 
   mergeInfo = completeMergeInfo(mergeInfo, resolvers);
 
-  addResolveFunctionsToSchema({
+  addResolversToSchema({
     schema: mergedSchema,
     resolvers: resolvers as IResolvers,
     inheritResolversFromInterfaces

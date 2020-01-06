@@ -24,7 +24,7 @@ import {
   makeExecutableSchema,
   SchemaError,
   addErrorLoggingToSchema,
-  addSchemaLevelResolveFunction,
+  addSchemaLevelResolver,
   attachConnectorsToContext,
   attachDirectiveResolvers,
   chainResolvers,
@@ -40,7 +40,7 @@ import {
 } from '../Interfaces';
 import 'mocha';
 import { visitSchema } from '../utils/visitSchema';
-import { addResolveFunctionsToSchema } from '../generate';
+import { addResolversToSchema } from '../generate';
 
 interface Bird {
   name: string;
@@ -448,7 +448,7 @@ describe('generating schema from shorthand', () => {
     expect(jsSchema.getQueryType().name).to.equal('Query');
   });
 
-  it('can generate a schema with resolve functions', () => {
+  it('can generate a schema with resolvers', () => {
     const shorthand = `
       type BirdSpecies {
         name: String!,
@@ -1259,7 +1259,7 @@ describe('generating schema from shorthand', () => {
         resolvers: resolveFunctions,
       });
 
-      addResolveFunctionsToSchema({
+      addResolversToSchema({
         schema: jsSchema,
         resolvers: {
           Color: {
@@ -1341,7 +1341,7 @@ describe('generating schema from shorthand', () => {
     );
   });
 
-  it('shows a warning if a field has arguments but no resolve func', () => {
+  it('shows a warning if a field has arguments but no resolver', () => {
     const short = `
     type Query{
       bird(id: ID): String
@@ -1360,7 +1360,7 @@ describe('generating schema from shorthand', () => {
           requireResolversForArgs: true,
         },
       });
-    }, 'Resolve function missing for "Query.bird"');
+    }, 'Resolver missing for "Query.bird"');
   });
 
   // tslint:disable-next-line: max-line-length
@@ -1401,7 +1401,7 @@ describe('generating schema from shorthand', () => {
     ).to.throw('Resolver Query.bird must be object or function');
   });
 
-  it('shows a warning if a field is not scalar, but has no resolve func', () => {
+  it('shows a warning if a field is not scalar, but has no resolver', () => {
     const short = `
     type Bird{
       id: ID
@@ -1425,11 +1425,11 @@ describe('generating schema from shorthand', () => {
         resolvers: rf,
         resolverValidationOptions,
       });
-    }, 'Resolve function missing for "Query.bird"');
+    }, 'Resolver missing for "Query.bird"');
   });
 
   // tslint:disable-next-line: max-line-length
-  it('allows non-scalar field to use default resolve func if `resolverValidationOptions.requireResolversForNonScalar` = false', () => {
+  it('allows non-scalar field to use default resolver if `resolverValidationOptions.requireResolversForNonScalar` = false', () => {
     const short = `
     type Bird{
       id: ID
@@ -1815,8 +1815,8 @@ describe('generating schema from shorthand', () => {
   });
 });
 
-describe('providing useful errors from resolve functions', () => {
-  it('logs an error if a resolve function fails', () => {
+describe('providing useful errors from resolvers', () => {
+  it('logs an error if a resolver fails', () => {
     const shorthand = `
       type RootQuery {
         species(name: String): String
@@ -1874,7 +1874,7 @@ describe('providing useful errors from resolve functions', () => {
       allowUndefinedInResolve: false,
     });
     const testQuery = '{ species, stuff }';
-    const expectedErr = /Resolve function for "RootQuery.species" returned undefined/;
+    const expectedErr = /Resolver for "RootQuery.species" returned undefined/;
     const expectedResData = { species: <string>null, stuff: 'stuff' };
     return graphql(jsSchema, testQuery).then(res => {
       assert.equal(logger.errors.length, 1);
@@ -1955,7 +1955,7 @@ describe('providing useful errors from resolve functions', () => {
     }`;
     return graphql(jsSchema, testQuery).then(res => {
       expect((<any>res.errors[0]).originalError.message).to.equal(
-        'Resolve function for "Thread.name" returned undefined',
+        'Resolver for "Thread.name" returned undefined',
       );
     });
   });
@@ -2049,14 +2049,14 @@ describe('Add error logging to schema', () => {
 });
 
 describe('Attaching connectors to schema', () => {
-  describe('Schema level resolve function', () => {
+  describe('Schema level resolver', () => {
     it('actually runs', () => {
       const jsSchema = makeExecutableSchema({
         typeDefs: testSchema,
         resolvers: testResolvers,
       });
       const rootResolver = () => ({ species: 'ROOT' });
-      addSchemaLevelResolveFunction(jsSchema, rootResolver);
+      addSchemaLevelResolver(jsSchema, rootResolver);
       const query = `{
         species(name: "strix")
       }`;
@@ -2071,7 +2071,7 @@ describe('Attaching connectors to schema', () => {
         resolvers: testResolvers,
       });
       const rootResolver = () => ({ stuff: 'stuff' });
-      addSchemaLevelResolveFunction(jsSchema, rootResolver);
+      addSchemaLevelResolver(jsSchema, rootResolver);
       const query = `{
         stuff
       }`;
@@ -2105,7 +2105,7 @@ describe('Attaching connectors to schema', () => {
         }
         return { stuff: 'EEE', species: 'EEE' };
       };
-      addSchemaLevelResolveFunction(jsSchema, rootResolver);
+      addSchemaLevelResolver(jsSchema, rootResolver);
       const query = `{
         species(name: "strix")
         stuff
@@ -2148,7 +2148,7 @@ describe('Attaching connectors to schema', () => {
         }
         return { stuff: 'EEE', species: 'EEE' };
       };
-      addSchemaLevelResolveFunction(jsSchema, rootResolver);
+      addSchemaLevelResolver(jsSchema, rootResolver);
       const query = `{
         species(name: "strix")
         stuff
@@ -2177,7 +2177,7 @@ describe('Attaching connectors to schema', () => {
       const rootResolver = (o: any, a: { [key: string]: any }, ctx: any) => {
         ctx['usecontext'] = 'ABC';
       };
-      addSchemaLevelResolveFunction(jsSchema, rootResolver);
+      addSchemaLevelResolver(jsSchema, rootResolver);
       const query = `{
         usecontext
       }`;
@@ -2313,13 +2313,13 @@ describe('Attaching connectors to schema', () => {
     });
   });
 
-  it('does not interfere with schema level resolve function', () => {
+  it('does not interfere with schema level resolver', () => {
     const jsSchema = makeExecutableSchema({
       typeDefs: testSchema,
       resolvers: testResolvers,
     });
     const rootResolver = () => ({ stuff: 'stuff', species: 'ROOT' });
-    addSchemaLevelResolveFunction(jsSchema, rootResolver);
+    addSchemaLevelResolver(jsSchema, rootResolver);
     attachConnectorsToContext(jsSchema, testConnectors);
     const query = `{
       species(name: "strix")

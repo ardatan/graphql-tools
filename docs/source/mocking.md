@@ -226,7 +226,7 @@ addMockFunctionsToSchema({
 });
 ```
 
-Given an instance of GraphQLSchema and a mock object, `addMockFunctionsToSchema` modifies the schema in place to return mock data for any valid query that is sent to the server. If `mocks` is not passed, the defaults will be used for each of the scalar types. If `preserveResolvers` is set to `true`, existing resolve functions will not be overwritten to provide mock data. This can be used to mock some parts of the server and not others.
+Given an instance of GraphQLSchema and a mock object, `addMockFunctionsToSchema` modifies the schema in place to return mock data for any valid query that is sent to the server. If `mocks` is not passed, the defaults will be used for each of the scalar types. If `preserveResolvers` is set to `true`, existing resolvers will not be overwritten to provide mock data. This can be used to mock some parts of the server and not others.
 
 ### MockList
 

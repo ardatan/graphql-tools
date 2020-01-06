@@ -4,7 +4,7 @@ import { deprecated } from 'deprecated-decorator';
 
 import { IConnectors, IConnector, IConnectorCls } from '../Interfaces';
 
-import addSchemaLevelResolveFunction from './addSchemaLevelResolveFunction';
+import addSchemaLevelResolver from './addSchemaLevelResolver';
 
 // takes a GraphQL-JS schema and an object of connectors, then attaches
 // the connectors to the context by wrapping each query or mutation resolve
@@ -67,7 +67,7 @@ const attachConnectorsToContext = deprecated<Function>(
       });
       return root;
     };
-    addSchemaLevelResolveFunction(schema, attachconnectorFn);
+    addSchemaLevelResolver(schema, attachconnectorFn);
   },
 );
 

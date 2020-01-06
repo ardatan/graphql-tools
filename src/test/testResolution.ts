@@ -1,11 +1,11 @@
 import { assert } from 'chai';
-import { makeExecutableSchema, addSchemaLevelResolveFunction } from '..';
+import { makeExecutableSchema, addSchemaLevelResolver } from '..';
 import { parse, graphql, subscribe, ExecutionResult } from 'graphql';
 import { PubSub } from 'graphql-subscriptions';
 import { forAwaitEach } from 'iterall';
 
 describe('Resolve', () => {
-  describe('addSchemaLevelResolveFunction', () => {
+  describe('addSchemaLevelResolver', () => {
     const pubsub = new PubSub();
     const typeDefs = `
       type RootQuery {
@@ -44,7 +44,7 @@ describe('Resolve', () => {
     };
     const schema = makeExecutableSchema({ typeDefs, resolvers });
     let schemaLevelResolveFunctionCalls = 0;
-    addSchemaLevelResolveFunction(schema, root => {
+    addSchemaLevelResolver(schema, root => {
       schemaLevelResolveFunctionCalls += 1;
       return root;
     });

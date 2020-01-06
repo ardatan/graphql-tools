@@ -1,6 +1,6 @@
-export { default as addResolveFunctionsToSchema } from './addResolveFunctionsToSchema';
-export { default as addSchemaLevelResolveFunction } from './addSchemaLevelResolveFunction';
-export { default as assertResolveFunctionsPresent } from './assertResolveFunctionsPresent';
+export { default as addResolversToSchema } from './addResolversToSchema';
+export { default as addSchemaLevelResolver } from './addSchemaLevelResolver';
+export { default as assertResolversPresent } from './assertResolversPresent';
 export { default as attachDirectiveResolvers } from './attachDirectiveResolvers';
 export { default as attachConnectorsToContext } from './attachConnectorsToContext';
 export { default as buildSchemaFromTypeDefinitions } from './buildSchemaFromTypeDefinitions';
@@ -11,3 +11,8 @@ export { default as decorateWithLogger } from './decorateWithLogger';
 export { default as extendResolversFromInterfaces } from './extendResolversFromInterfaces';
 export { default as extractExtensionDefinitions } from './extractExtensionDefinitions';
 export { default as SchemaError } from './SchemaError';
+
+// for backwards compatibility
+export { default as addResolveFunctionsToSchema } from './addResolversToSchema';
+export { default as addSchemaLevelResolveFunction } from './addSchemaLevelResolver';
+export { default as assertResolveFunctionsPresent } from './assertResolversPresent';

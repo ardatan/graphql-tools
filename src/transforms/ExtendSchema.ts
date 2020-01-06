@@ -3,7 +3,7 @@
 import { GraphQLSchema, extendSchema, parse, } from 'graphql';
 import { IFieldResolver, IResolvers, Request } from '../Interfaces';
 import { Transform } from './transforms';
-import { addResolveFunctionsToSchema } from '../generate';
+import { addResolversToSchema } from '../generate';
 import { defaultMergedResolver } from '../stitching';
 import { default as MapFields, FieldNodeTransformerMap } from './MapFields';
 
@@ -39,7 +39,7 @@ export default class ExtendSchema implements Transform {
       newSchema = extendSchema(schema, parse(this.typeDefs));
     }
 
-    return addResolveFunctionsToSchema({
+    return addResolversToSchema({
       schema: newSchema || schema,
       resolvers: this.resolvers,
       defaultFieldResolver: this.defaultFieldResolver,

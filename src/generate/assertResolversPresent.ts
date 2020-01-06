@@ -8,7 +8,7 @@ import { IResolverValidationOptions } from '../Interfaces';
 import { forEachField } from '../utils';
 import SchemaError from './SchemaError';
 
-function assertResolveFunctionsPresent(
+function assertResolversPresent(
   schema: GraphQLSchema,
   resolverValidationOptions: IResolverValidationOptions = {},
 ) {
@@ -30,17 +30,17 @@ function assertResolveFunctionsPresent(
   }
 
   forEachField(schema, (field, typeName, fieldName) => {
-    // requires a resolve function for *every* field.
+    // requires a resolver for *every* field.
     if (requireResolversForAllFields) {
       expectResolveFunction(field, typeName, fieldName);
     }
 
-    // requires a resolve function on every field that has arguments
+    // requires a resolver on every field that has arguments
     if (requireResolversForArgs && field.args.length > 0) {
       expectResolveFunction(field, typeName, fieldName);
     }
 
-    // requires a resolve function on every field that returns a non-scalar type
+    // requires a resolver on every field that returns a non-scalar type
     if (
       requireResolversForNonScalar &&
       !(getNamedType(field.type) instanceof GraphQLScalarType)
@@ -58,7 +58,7 @@ function expectResolveFunction(
   if (!field.resolve) {
     console.warn(
       // tslint:disable-next-line: max-line-length
-      `Resolve function missing for "${typeName}.${fieldName}". To disable this warning check https://github.com/apollostack/graphql-tools/issues/131`,
+      `Resolver missing for "${typeName}.${fieldName}". To disable this warning check https://github.com/apollostack/graphql-tools/issues/131`,
     );
     return;
   }
@@ -69,4 +69,4 @@ function expectResolveFunction(
   }
 }
 
-export default assertResolveFunctionsPresent;
+export default assertResolversPresent;

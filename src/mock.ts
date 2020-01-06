@@ -236,8 +236,8 @@ function addMockFunctionsToSchema({
               // XXX this is a bit of a hack to still use mockType, which
               // lets you mock lists etc. as well
               // otherwise we could just set field.resolve to rootMock()[fieldName]
-              // it's like pretending there was a resolve function that ran before
-              // the root resolve function.
+              // it's like pretending there was a resolver that ran before
+              // the root resolver.
               return mockType(field.type, typeName, fieldName)(
                 updatedRoot,
                 args,

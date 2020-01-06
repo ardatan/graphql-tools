@@ -1,5 +1,5 @@
 import { GraphQLSchema } from 'graphql';
-import { addResolveFunctionsToSchema } from '../makeExecutableSchema';
+import { addResolversToSchema } from '../makeExecutableSchema';
 
 import { Transform, applySchemaTransforms } from '../transforms/transforms';
 import {
@@ -31,7 +31,7 @@ export function wrapSchema(
   const schema = cloneSchema(subschema.schema);
   stripResolvers(schema);
 
-  addResolveFunctionsToSchema({
+  addResolversToSchema({
     schema,
     resolvers: generateProxyingResolvers(subschema),
     resolverValidationOptions: {

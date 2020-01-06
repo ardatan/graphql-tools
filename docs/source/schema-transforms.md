@@ -174,7 +174,7 @@ RenameRootFields(
 
 ### Modifying object fields
 
-* `TransformObjectFields(objectFieldTransformer: ObjectFieldTransformer, fieldNodeTransformer?: FieldNodeTransformer))`: Given an object field transformer, arbitrarily transform fields. The `objectFieldTransformer` can return a `GraphQLFieldConfig` definition, a object with new `name` and a `field`, `null` to remove the field, or `undefined` to leave the field unchanged. The optional `fieldNodeTransformer`, if specified, is called upon any field of that type in the request; result transformation can be specified by wrapping the resolve function within the `objectFieldTransformer`. In this way, a field can be fully arbitrarily modified in place.
+* `TransformObjectFields(objectFieldTransformer: ObjectFieldTransformer, fieldNodeTransformer?: FieldNodeTransformer))`: Given an object field transformer, arbitrarily transform fields. The `objectFieldTransformer` can return a `GraphQLFieldConfig` definition, a object with new `name` and a `field`, `null` to remove the field, or `undefined` to leave the field unchanged. The optional `fieldNodeTransformer`, if specified, is called upon any field of that type in the request; result transformation can be specified by wrapping the field's resolver within the `objectFieldTransformer`. In this way, a field can be fully arbitrarily modified in place.
 
 ```ts
 TransformObjectFields(objectFieldTransformer: ObjectFieldTransformer, fieldNodeTransformer: FieldNodeTransformer)

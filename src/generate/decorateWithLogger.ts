@@ -30,7 +30,7 @@ function decorateWithLogger(
   return (root, args, ctx, info) => {
     try {
       const result = fn(root, args, ctx, info);
-      // If the resolve function returns a Promise log any Promise rejects.
+      // If the resolver returns a Promise log any Promise rejects.
       if (
         result &&
         typeof result.then === 'function' &&

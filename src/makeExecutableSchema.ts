@@ -10,10 +10,10 @@ import {
 
 import {
   attachDirectiveResolvers,
-  assertResolveFunctionsPresent,
-  addResolveFunctionsToSchema,
+  assertResolversPresent,
+  addResolversToSchema,
   attachConnectorsToContext,
-  addSchemaLevelResolveFunction,
+  addSchemaLevelResolver,
   buildSchemaFromTypeDefinitions,
   decorateWithLogger,
   SchemaError
@@ -53,14 +53,14 @@ export function makeExecutableSchema<TContext = any>({
 
   let schema = buildSchemaFromTypeDefinitions(typeDefs, parseOptions);
 
-  addResolveFunctionsToSchema({
+  addResolversToSchema({
     schema,
     resolvers: resolverMap,
     resolverValidationOptions,
     inheritResolversFromInterfaces
   });
 
-  assertResolveFunctionsPresent(schema, resolverValidationOptions);
+  assertResolversPresent(schema, resolverValidationOptions);
 
   if (!allowUndefinedInResolve) {
     addCatchUndefinedToSchema(schema);
@@ -73,7 +73,7 @@ export function makeExecutableSchema<TContext = any>({
   if (typeof resolvers['__schema'] === 'function') {
     // TODO a bit of a hack now, better rewrite generateSchema to attach it there.
     // not doing that now, because I'd have to rewrite a lot of tests.
-    addSchemaLevelResolveFunction(schema, resolvers['__schema'] as GraphQLFieldResolver<any, any>);
+    addSchemaLevelResolver(schema, resolvers['__schema'] as GraphQLFieldResolver<any, any>);
   }
 
   if (connectors) {
@@ -103,7 +103,7 @@ function decorateToCatchUndefined(
   return (root, args, ctx, info) => {
     const result = fn(root, args, ctx, info);
     if (typeof result === 'undefined') {
-      throw new Error(`Resolve function for "${hint}" returned undefined`);
+      throw new Error(`Resolver for "${hint}" returned undefined`);
     }
     return result;
   };

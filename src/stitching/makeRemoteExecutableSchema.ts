@@ -20,7 +20,7 @@ import mapAsyncIterator from './mapAsyncIterator';
 import { Options as PrintSchemaOptions } from 'graphql/utilities/schemaPrinter';
 import { cloneSchema } from '../utils';
 import { stripResolvers, generateProxyingResolvers } from './resolvers';
-import { addResolveFunctionsToSchema } from '../generate';
+import { addResolversToSchema } from '../generate';
 
 export type ResolverFn = (
   rootValue?: any,
@@ -66,7 +66,7 @@ export default function makeRemoteExecutableSchema({
     }
   }
 
-  addResolveFunctionsToSchema({
+  addResolversToSchema({
     schema: remoteSchema,
     resolvers: generateProxyingResolvers({ schema: remoteSchema }, createProxyingResolver),
     resolverValidationOptions: {

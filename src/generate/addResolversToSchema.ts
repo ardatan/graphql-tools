@@ -24,14 +24,14 @@ import {
   forEachDefaultValue,
 } from '../utils';
 
-function addResolveFunctionsToSchema(
+function addResolversToSchema(
   options: IAddResolveFunctionsToSchemaOptions | GraphQLSchema,
   legacyInputResolvers?: IResolvers,
   legacyInputValidationOptions?: IResolverValidationOptions,
 ) {
   if (options instanceof GraphQLSchema) {
     console.warn(
-      'The addResolveFunctionsToSchema function takes named options now; see IAddResolveFunctionsToSchemaOptions',
+      'The addResolversToSchema function takes named options now; see IAddResolveFunctionsToSchemaOptions',
     );
     options = {
       schema: options,
@@ -216,4 +216,4 @@ function setFieldProperties(
   });
 }
 
-export default addResolveFunctionsToSchema;
+export default addResolversToSchema;

@@ -210,14 +210,14 @@ const jsSchema = makeExecutableSchema({
 
 - `parseOptions` is an optional argument which allows customization of parse when specifying `typeDefs` as a string.
 
-- `allowUndefinedInResolve` is an optional argument, which is `true` by default. When set to `false`, causes your resolve functions to throw errors if they return undefined, which can help make debugging easier.
+- `allowUndefinedInResolve` is an optional argument, which is `true` by default. When set to `false`, causes your resolver to throw errors if they return undefined, which can help make debugging easier.
 
 - `resolverValidationOptions` is an optional argument which accepts an `ResolverValidationOptions` object which has the following boolean properties:
-  - `requireResolversForArgs` will cause `makeExecutableSchema` to throw an error if no resolve function is defined for a field that has arguments.
+  - `requireResolversForArgs` will cause `makeExecutableSchema` to throw an error if no resolver is defined for a field that has arguments.
 
   - `requireResolversForNonScalar` will cause `makeExecutableSchema` to throw an error if a non-scalar field has no resolver defined. Setting this to `true` can be helpful in catching errors, but defaults to `false` to avoid confusing behavior for those coming from other GraphQL libraries.
 
-  - `requireResolversForAllFields` asserts that *all* fields have a valid resolve function.
+  - `requireResolversForAllFields` asserts that *all* fields have valid resolvers.
 
   - `requireResolversForResolveType` will require a `resolveType()` method for Interface and Union types. This can be passed in with the field resolvers as `__resolveType()`. False to disable the warning.
 
