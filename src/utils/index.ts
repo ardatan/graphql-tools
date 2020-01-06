@@ -20,3 +20,4 @@ export {
   renameFieldNode,
   hoistFieldNodes,
 } from './fieldNodes';
+export { appendFields, removeFields } from './fields';

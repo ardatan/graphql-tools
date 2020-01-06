@@ -3,16 +3,13 @@
 import {
   GraphQLSchema,
   GraphQLObjectType,
-  GraphQLObjectTypeConfig,
-  GraphQLFieldConfigMap,
-  GraphQLFieldConfig,
 } from 'graphql';
 import { Request } from '../Interfaces';
 import { Transform } from './transforms';
 import { hoistFieldNodes, healSchema } from '../utils';
 import { defaultMergedResolver, createMergedResolver } from '../stitching';
 import { default as MapFields } from './MapFields';
-import { TypeMap } from 'graphql/type/schema';
+import { appendFields, removeFields } from '../utils/fields';
 
 export default class WrapFields implements Transform {
   private outerTypeName: string;
@@ -55,7 +52,7 @@ export default class WrapFields implements Transform {
   public transformSchema(schema: GraphQLSchema): GraphQLSchema {
     const typeMap = schema.getTypeMap();
 
-    const targetFields = this.filterFields(
+    const targetFields = removeFields(
       typeMap,
       this.outerTypeName,
       !this.fieldNames ? () => true : fieldName => this.fieldNames.includes(fieldName)
@@ -64,10 +61,10 @@ export default class WrapFields implements Transform {
     let wrapIndex = this.numWraps - 1;
 
     const innerMostWrappingTypeName = this.wrappingTypeNames[wrapIndex];
-    this.appendFields(typeMap, innerMostWrappingTypeName, targetFields);
+    appendFields(typeMap, innerMostWrappingTypeName, targetFields);
 
     for (wrapIndex--; wrapIndex > -1; wrapIndex--) {
-      this.appendFields(typeMap, this.wrappingTypeNames[wrapIndex], {
+      appendFields(typeMap, this.wrappingTypeNames[wrapIndex], {
         [this.wrappingFieldNames[wrapIndex + 1]]: {
           type: typeMap[this.wrappingTypeNames[wrapIndex + 1]] as GraphQLObjectType,
           resolve: defaultMergedResolver,
@@ -75,7 +72,7 @@ export default class WrapFields implements Transform {
       });
     }
 
-    this.appendFields(typeMap, this.outerTypeName, {
+    appendFields(typeMap, this.outerTypeName, {
       [this.wrappingFieldNames[0]]: {
         type: typeMap[this.wrappingTypeNames[0]] as GraphQLObjectType,
         resolve: createMergedResolver({ dehoist: true, delimeter: this.delimeter }),
@@ -89,60 +86,5 @@ export default class WrapFields implements Transform {
 
   public transformRequest(originalRequest: Request): Request {
     return this.transformer.transformRequest(originalRequest);
-  }
-
-  private appendFields(
-    typeMap: TypeMap,
-    typeName: string,
-    fields: GraphQLFieldConfigMap<any, any>,
-  ) {
-    let type = typeMap[typeName];
-    if (type) {
-      const typeConfig = type.toConfig() as GraphQLObjectTypeConfig<any, any>;
-      const originalFields = typeConfig.fields;
-      const newFields = {};
-      Object.keys(originalFields).forEach(fieldName => {
-        newFields[fieldName] = originalFields[fieldName];
-      });
-      Object.keys(fields).forEach(fieldName => {
-        newFields[fieldName] = fields[fieldName];
-      });
-      type = new GraphQLObjectType({
-        ...typeConfig,
-        fields: newFields,
-      });
-    } else {
-      type = new GraphQLObjectType({
-        name: typeName,
-        fields,
-      });
-    }
-    typeMap[typeName] = type;
-  }
-
-  private filterFields(
-    typeMap: TypeMap,
-    typeName: string,
-    filter: (fieldName: string, field: GraphQLFieldConfig<any, any>) => boolean,
-  ): GraphQLFieldConfigMap<any, any> {
-    let type = typeMap[typeName];
-    const typeConfig = type.toConfig() as GraphQLObjectTypeConfig<any, any>;
-    const originalFields = typeConfig.fields;
-    const newFields = {};
-    const filteredFields = {};
-    Object.keys(originalFields).forEach(fieldName => {
-      if (filter(fieldName, originalFields[fieldName])) {
-        filteredFields[fieldName] = originalFields[fieldName];
-      } else {
-        newFields[fieldName] = originalFields[fieldName];
-      }
-    });
-    type = new GraphQLObjectType({
-      ...typeConfig,
-      fields: newFields,
-    });
-    typeMap[typeName] = type;
-
-    return filteredFields;
   }
 }

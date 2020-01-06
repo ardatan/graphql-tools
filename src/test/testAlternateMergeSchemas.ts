@@ -23,6 +23,7 @@ import {
   ExtendSchema,
   WrapType,
   WrapFields,
+  HoistField,
   FilterRootFields,
   FilterObjectFields,
 } from '../transforms';
@@ -867,10 +868,8 @@ type Wrap {
 });
 
 describe('schema transformation with extraction of nested fields', () => {
-  let transformedPropertySchema: GraphQLSchema;
-
-  before(async () => {
-    transformedPropertySchema = transformSchema(propertySchema, [
+  it('should work via ExtendSchema transform', async () => {
+    const transformedPropertySchema = transformSchema(propertySchema, [
       new ExtendSchema({
         typeDefs: `
           extend type Property {
@@ -892,9 +891,7 @@ describe('schema transformation with extraction of nested fields', () => {
         },
       }),
     ]);
-  });
 
-  it('should work to extract a field', async () => {
     const result = await graphql(
       transformedPropertySchema,
       `
@@ -941,6 +938,36 @@ describe('schema transformation with extraction of nested fields', () => {
           ],
         },
       ]
+    });
+  });
+
+  it('should work via HoistField transform', async () => {
+    const transformedPropertySchema = transformSchema(propertySchema, [
+      new HoistField('Property', ['location', 'name'], 'locationName'),
+    ]);
+
+    const result = await graphql(
+      transformedPropertySchema,
+      `
+        query($pid: ID!) {
+          propertyById(id: $pid) {
+            test: locationName
+          }
+        }
+      `,
+      {},
+      {},
+      {
+        pid: 'p1',
+      },
+    );
+
+    expect(result).to.deep.equal({
+      data: {
+        propertyById: {
+          test: 'Helsinki',
+        },
+      },
     });
   });
 });
