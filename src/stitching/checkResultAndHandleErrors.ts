@@ -26,6 +26,7 @@ import {
 } from '../Interfaces';
 import resolveFromParentTypename from './resolveFromParentTypename';
 import { setErrors, setSubschemas } from './proxiedResult';
+import { mergeDeep } from '../utils';
 
 export function checkResultAndHandleErrors(
   result: ExecutionResult,
@@ -183,7 +184,7 @@ async function mergeFields(
           },
         });
       }));
-      results.forEach((r: ExecutionResult) => Object.assign(object, r));
+      object = results.reduce((acc: any, r: ExecutionResult) => mergeDeep(acc, r), object);
     }
   }
 

@@ -18,19 +18,16 @@ export default class HoistField implements Transform {
   private newFieldName: string;
   private pathToField: Array<string>;
   private oldFieldName: string;
-  private delimeter: string;
   private transformer: Transform;
 
   constructor(
     typeName: string,
     path: Array<string>,
     newFieldName: string,
-    delimeter: string = '__gqltf__',
   ) {
     this.typeName = typeName;
     this.path = path;
     this.newFieldName = newFieldName;
-    this.delimeter = delimeter;
 
     this.pathToField = this.path.slice();
     this.oldFieldName = this.pathToField.pop();
@@ -39,7 +36,6 @@ export default class HoistField implements Transform {
         [newFieldName]: fieldNode => wrapFieldNode(
           renameFieldNode(fieldNode, this.oldFieldName),
           this.pathToField,
-          this.delimeter
         ),
       },
     });
@@ -65,7 +61,7 @@ export default class HoistField implements Transform {
     appendFields(typeMap, this.typeName, {
       [this.newFieldName]: {
         type: targetType,
-        resolve: createMergedResolver({ fromPath: this.pathToField, delimeter: this.delimeter }),
+        resolve: createMergedResolver({ fromPath: this.pathToField }),
       },
     });
 

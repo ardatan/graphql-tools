@@ -18,7 +18,7 @@ export function createMergedResolver({
 
   const unwrappingResolver: IFieldResolver<any, any> = fromPath && fromPath.length ?
     (parent, args, context, info) =>
-    parentErrorResolver(unwrapResult(parent, info, fromPath, delimeter), args, context, info) :
+    parentErrorResolver(unwrapResult(parent, info, fromPath), args, context, info) :
     parentErrorResolver;
 
   const dehoistingResolver: IFieldResolver<any, any> = dehoist ?

@@ -61,15 +61,10 @@ export function unwrapResult(
   parent: any,
   info: IGraphQLToolsResolveInfo,
   path: Array<string>,
-  delimeter: string = '__gqltf__',
 ): any {
-  let responseKey = Object.keys(parent).find(key => {
-    const splitKey = key.split(delimeter);
-    return (splitKey.length === 3 && splitKey[0] === 'wrapped' && splitKey[2] === path[0]);
-  });
-
   const pathLength = path.length;
   for (let i = 0; i < pathLength; i++) {
+    const responseKey = path[i];
     const errors = getErrors(parent, responseKey);
     const subschemas = getSubschemas(parent);
 
@@ -77,11 +72,8 @@ export function unwrapResult(
     if (object == null) {
       return handleNull(info.fieldNodes, responsePathAsArray(info.path), errors);
     }
-
     makeObjectProxiedResult(object, errors, subschemas);
     parent = object;
-
-    responseKey = path[i + 1];
   }
 
   return parent;
@@ -94,14 +86,11 @@ export function dehoistResult(parent: any, delimeter: string = '__gqltf__'): any
     let obj = result;
 
     const fieldNames = alias.split(delimeter);
-    const prefix = fieldNames.shift();
-    if (prefix === 'hoisted') {
-      const fieldName = fieldNames.pop();
-      fieldNames.forEach(key => {
-        obj = obj[key] = obj[key] || Object.create(null);
-      });
-      obj[fieldName] = parent[alias];
-    }
+    const fieldName = fieldNames.pop();
+    fieldNames.forEach(key => {
+      obj = obj[key] = obj[key] || Object.create(null);
+    });
+    obj[fieldName] = parent[alias];
   });
 
   result[ERROR_SYMBOL] = parent[ERROR_SYMBOL].map((error: GraphQLError) => {
@@ -109,10 +98,7 @@ export function dehoistResult(parent: any, delimeter: string = '__gqltf__'): any
       let path = error.path.slice();
       const pathSegment = path.shift();
       const expandedPathSegment: Array<string | number> = (pathSegment as string).split(delimeter);
-      const prefix = expandedPathSegment.shift();
-      return (prefix === 'hoisted') ?
-        relocatedError(error, error.nodes, expandedPathSegment.concat(path)) :
-        error;
+      return relocatedError(error, error.nodes, expandedPathSegment.concat(path));
     } else {
       return error;
     }
