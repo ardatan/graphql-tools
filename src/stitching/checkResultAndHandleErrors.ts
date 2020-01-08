@@ -61,20 +61,13 @@ export function handleResult(
   if (isLeafType(type)) {
     return type.parseValue(result);
   } else if (isCompositeType(type)) {
-    const object = handleObject(result, errors, subschemas);
-    return mergeFields(
-      type,
-      object,
-      subschemas,
-      context,
-      info,
-    );
+    return handleObject(type, result, errors, subschemas, context, info);
   } else if (isListType(type)) {
     return handleList(type, result, errors, subschemas, context, info);
   }
 }
 
-export function handleObject (
+export function makeObjectProxiedResult(
   object: any,
   errors: ReadonlyArray<GraphQLError>,
   subschemas: Array<GraphQLSchema | SubschemaConfig>,
@@ -87,8 +80,29 @@ export function handleObject (
     );
   }));
   setSubschemas(object, subschemas);
+}
 
-  return object;
+export function handleObject(
+  type: GraphQLCompositeType,
+  object: any,
+  errors: ReadonlyArray<GraphQLError>,
+  subschemas: Array<GraphQLSchema | SubschemaConfig>,
+  context: Record<string, any>,
+  info: IGraphQLToolsResolveInfo,
+) {
+  makeObjectProxiedResult(object, errors, subschemas);
+
+  if (info.mergeInfo) {
+    return mergeFields(
+      type,
+      object,
+      subschemas,
+      context,
+      info,
+    );
+  } else {
+    return object;
+  }
 }
 
 function handleList(
@@ -131,14 +145,7 @@ function handleListMember(
   if (isLeafType(type)) {
     return type.parseValue(listMember);
   } else if (isCompositeType(type)) {
-    const object = handleObject(listMember, errors, subschemas);
-    return mergeFields(
-      type,
-      object,
-      subschemas,
-      context,
-      info
-    );
+    return handleObject(type, listMember, errors, subschemas, context, info);
   } else if (isListType(type)) {
     return handleList(type, listMember, errors, subschemas, context, info);
   }
@@ -151,34 +158,32 @@ async function mergeFields(
   context: Record<string, any>,
   info: IGraphQLToolsResolveInfo,
 ): Promise<any> {
-  if (info.mergeInfo) {
-    let typeName: string;
-    if (isAbstractType(type)) {
-      typeName = info.schema.getTypeMap()[resolveFromParentTypename(object)].name;
-    } else {
-      typeName = type.name;
-    }
+  let typeName: string;
+  if (isAbstractType(type)) {
+    typeName = info.schema.getTypeMap()[resolveFromParentTypename(object)].name;
+  } else {
+    typeName = type.name;
+  }
 
-    const initialSchemas =
-      info.mergeInfo.mergedTypes[typeName] &&
-      info.mergeInfo.mergedTypes[typeName].subschemas;
-    if (initialSchemas) {
-      const remainingSubschemas = initialSchemas.filter(
-        subschema => !subschemas.includes(subschema)
-      );
-      if (remainingSubschemas.length) {
-        const results = await Promise.all(remainingSubschemas.map(subschema => {
-          const mergedTypeResolver = subschema.mergedTypeConfigs[typeName].mergedTypeResolver;
-          return mergedTypeResolver(subschema, object, context, {
-            ...info,
-            mergeInfo: {
-              ...info.mergeInfo,
-              mergedTypes: {},
-            },
-          });
-        }));
-        results.forEach((r: ExecutionResult) => Object.assign(object, r));
-      }
+  const initialSchemas =
+    info.mergeInfo.mergedTypes[typeName] &&
+    info.mergeInfo.mergedTypes[typeName].subschemas;
+  if (initialSchemas) {
+    const remainingSubschemas = initialSchemas.filter(
+      subschema => !subschemas.includes(subschema)
+    );
+    if (remainingSubschemas.length) {
+      const results = await Promise.all(remainingSubschemas.map(subschema => {
+        const mergedTypeResolver = subschema.mergedTypeConfigs[typeName].mergedTypeResolver;
+        return mergedTypeResolver(subschema, object, context, {
+          ...info,
+          mergeInfo: {
+            ...info.mergeInfo,
+            mergedTypes: {},
+          },
+        });
+      }));
+      results.forEach((r: ExecutionResult) => Object.assign(object, r));
     }
   }
 

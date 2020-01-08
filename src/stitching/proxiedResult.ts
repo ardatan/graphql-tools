@@ -4,7 +4,7 @@ import {
   responsePathAsArray,
 } from 'graphql';
 import { SubschemaConfig, IGraphQLToolsResolveInfo } from '../Interfaces';
-import { handleNull, handleObject } from './checkResultAndHandleErrors';
+import { handleNull, makeObjectProxiedResult } from './checkResultAndHandleErrors';
 import { relocatedError } from './errors';
 
 export let SUBSCHEMAS_SYMBOL: any;
@@ -73,11 +73,14 @@ export function unwrapResult(
     const errors = getErrors(parent, responseKey);
     const subschemas = getSubschemas(parent);
 
-    const result = parent[responseKey];
-    if (result == null) {
+    const object = parent[responseKey];
+    if (object == null) {
       return handleNull(info.fieldNodes, responsePathAsArray(info.path), errors);
     }
-    parent = handleObject(result, errors, subschemas);
+
+    makeObjectProxiedResult(object, errors, subschemas);
+    parent = object;
+
     responseKey = path[i + 1];
   }
 
