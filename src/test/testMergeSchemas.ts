@@ -456,6 +456,11 @@ testCombinations.forEach(async combination => {
               },
             },
           },
+          TestScalar: new GraphQLScalarType({
+            name: 'TestScalar',
+            description: undefined,
+            serialize: value => value,
+          }),
           Query: {
             delegateInterfaceTest(parent, args, context, info) {
               return delegateToSchema({

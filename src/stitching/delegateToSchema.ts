@@ -113,7 +113,11 @@ async function delegateToSchemaImplementation({
 
   if (args) {
     transforms.push(
-      new AddArgumentsAsVariables(targetSchema, args)
+      new AddArgumentsAsVariables(targetSchema, args, info.schema)
+    );
+  } else {
+    console.warn(
+      '"args" undefined. "args" argument may be required in a future version. Custom scalars or enums may not be properly serialized prior to delegation.'
     );
   }
 

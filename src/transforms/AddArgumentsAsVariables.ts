@@ -14,25 +14,30 @@ import {
   SelectionNode,
   TypeNode,
   VariableDefinitionNode,
+  GraphQLEnumType,
+  GraphQLScalarType,
 } from 'graphql';
 import { Request } from '../Interfaces';
 import { Transform } from './transforms';
-import { serializeInputValue } from '../utils/transformInputValue';
+import { transformInputValue } from '../utils';
 
 export default class AddArgumentsAsVariablesTransform implements Transform {
-  private schema: GraphQLSchema;
+  private targetSchema: GraphQLSchema;
   private args: { [key: string]: any };
+  private newSchema: GraphQLSchema;
 
-  constructor(schema: GraphQLSchema, args: { [key: string]: any }) {
-    this.schema = schema;
+  constructor(targetSchema: GraphQLSchema, args: { [key: string]: any }, newSchema: GraphQLSchema) {
+    this.targetSchema = targetSchema;
     this.args = args;
+    this.newSchema = newSchema;
   }
 
   public transformRequest(originalRequest: Request): Request {
     const { document, newVariables } = addVariablesToRootField(
-      this.schema,
+      this.targetSchema,
       originalRequest.document,
       this.args,
+      this.newSchema,
     );
     const variables = {
       ...originalRequest.variables,
@@ -49,10 +54,11 @@ function addVariablesToRootField(
   targetSchema: GraphQLSchema,
   document: DocumentNode,
   args: { [key: string]: any },
+  newSchema: GraphQLSchema,
 ): {
   document: DocumentNode;
   newVariables: { [key: string]: any };
-} {
+  } {
   const operations: Array<
     OperationDefinitionNode
   > = document.definitions.filter(
@@ -132,10 +138,22 @@ function addVariablesToRootField(
               },
               type: typeToAst(argument.type),
             };
-            newVariables[variableName] = serializeInputValue(
-              argument.type,
-              args[argument.name],
-            );
+            if (newSchema) {
+              newVariables[variableName] = transformInputValue(
+                argument.type,
+                args[argument.name],
+                (t, v) => {
+                  const newType = newSchema.getType(t.name) as GraphQLEnumType | GraphQLScalarType;
+                  return newType ? newType.serialize(v) : v;
+                }
+              );
+            } else {
+              // tslint:disable-next-line:max-line-length
+              console.warn(
+                'AddArgumentsAsVariables should be passed the wrapping schema so that arguments can be properly serialized prior to delegation.'
+              );
+              newVariables[variableName] = args[argument.name];
+            }
           }
         });
 
