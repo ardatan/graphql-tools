@@ -7,15 +7,14 @@ import { AddressInfo } from 'net';
 import { Readable } from 'stream';
 import express, { Express } from 'express';
 import graphqlHTTP from 'express-graphql';
-import { graphqlUploadExpress } from 'graphql-upload';
+import { GraphQLUpload, graphqlUploadExpress } from 'graphql-upload';
 import FormData from 'form-data';
 import fetch from 'node-fetch';
 import { buildSchema } from 'graphql';
 import { SubschemaConfig } from '../Interfaces';
 import { createServerHttpLink } from '../links';
 import { makeExecutableSchema } from '../makeExecutableSchema';
-import { GraphQLUpload } from '../scalars';
-import { mergeSchemas, delegateToSchema } from '../stitching';
+import { mergeSchemas} from '../stitching';
 
 function streamToString(stream: Readable) {
   const chunks: Array<Buffer> = [];
@@ -105,22 +104,6 @@ describe('graphql upload', () => {
 
     const gatewaySchema = mergeSchemas({
       schemas: [subSchema],
-      resolvers: {
-        Mutation: {
-          upload: async (root, args, context, info) => {
-            const result = await delegateToSchema({
-              schema: subSchema,
-              operation: 'mutation',
-              fieldName: 'upload',
-              args,
-              context,
-              info,
-            });
-            return result;
-          }
-        },
-        Upload: GraphQLUpload,
-      },
     });
 
     const gatewayApp = express().use(
