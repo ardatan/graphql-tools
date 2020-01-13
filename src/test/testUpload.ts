@@ -95,7 +95,7 @@ describe('graphql upload', () => {
       }
     `);
 
-    const subSchema: SubschemaConfig = {
+    const subschema: SubschemaConfig = {
       schema: nonExecutableSchema,
       link: createServerHttpLink({
         uri: `http://localhost:${remotePort}`,
@@ -103,7 +103,7 @@ describe('graphql upload', () => {
     };
 
     const gatewaySchema = mergeSchemas({
-      schemas: [subSchema],
+      schemas: [subschema],
     });
 
     const gatewayApp = express().use(

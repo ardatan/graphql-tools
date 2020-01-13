@@ -70,13 +70,13 @@ async function delegateToSchemaImplementation({
 }: IDelegateToSchemaOptions,
 ): Promise<any> {
   let targetSchema: GraphQLSchema;
-  let subSchemaConfig: SubschemaConfig;
+  let subschemaConfig: SubschemaConfig;
 
   if (isSubschemaConfig(subschema)) {
-    subSchemaConfig = subschema;
-    targetSchema = subSchemaConfig.schema;
-    rootValue = rootValue || subSchemaConfig.rootValue || info.rootValue;
-    transforms = transforms.concat((subSchemaConfig.transforms || []).slice().reverse());
+    subschemaConfig = subschema;
+    targetSchema = subschemaConfig.schema;
+    rootValue = rootValue || subschemaConfig.rootValue || info.rootValue;
+    transforms = transforms.concat((subschemaConfig.transforms || []).slice().reverse());
   } else {
     targetSchema = subschema;
     rootValue = rootValue || info.rootValue;
@@ -136,7 +136,7 @@ async function delegateToSchemaImplementation({
   }
 
   if (operation === 'query' || operation === 'mutation') {
-    const executor = createExecutor(targetSchema, rootValue, subSchemaConfig);
+    const executor = createExecutor(targetSchema, rootValue, subschemaConfig);
 
     return applyResultTransforms(
       await executor({
@@ -148,7 +148,7 @@ async function delegateToSchemaImplementation({
     );
 
   } else if (operation === 'subscription') {
-    const subscriber = createSubscriber(targetSchema, rootValue, subSchemaConfig);
+    const subscriber = createSubscriber(targetSchema, rootValue, subschemaConfig);
 
     const originalAsyncIterator = (await subscriber({
       document: processedRequest.document,
@@ -228,23 +228,23 @@ function createDocument(
 function createExecutor(
   schema: GraphQLSchema,
   rootValue: Record<string, any>,
-  subSchemaConfig?: SubschemaConfig
+  subschemaConfig?: SubschemaConfig
 ): Delegator {
   let fetcher: Fetcher;
-  if (subSchemaConfig) {
-    if (subSchemaConfig.dispatcher) {
-      const dynamicLinkOrFetcher = subSchemaConfig.dispatcher(context);
+  if (subschemaConfig) {
+    if (subschemaConfig.dispatcher) {
+      const dynamicLinkOrFetcher = subschemaConfig.dispatcher(context);
       fetcher = (typeof dynamicLinkOrFetcher === 'function') ?
         dynamicLinkOrFetcher :
         linkToFetcher(dynamicLinkOrFetcher);
-    } else if (subSchemaConfig.link) {
-      fetcher = linkToFetcher(subSchemaConfig.link);
-    } else if (subSchemaConfig.fetcher) {
-      fetcher = subSchemaConfig.fetcher;
+    } else if (subschemaConfig.link) {
+      fetcher = linkToFetcher(subschemaConfig.link);
+    } else if (subschemaConfig.fetcher) {
+      fetcher = subschemaConfig.fetcher;
     }
 
-    if (!fetcher && !rootValue && subSchemaConfig.rootValue) {
-      rootValue = subSchemaConfig.rootValue;
+    if (!fetcher && !rootValue && subschemaConfig.rootValue) {
+      rootValue = subschemaConfig.rootValue;
     }
   }
 
@@ -268,19 +268,19 @@ function createExecutor(
 function createSubscriber(
   schema: GraphQLSchema,
   rootValue: Record<string, any>,
-  subSchemaConfig?: SubschemaConfig
+  subschemaConfig?: SubschemaConfig
 ): Delegator {
   let link: ApolloLink;
 
-  if (subSchemaConfig) {
-    if (subSchemaConfig.dispatcher) {
-      link = subSchemaConfig.dispatcher(context) as ApolloLink;
-    } else if (subSchemaConfig.link) {
-      link = subSchemaConfig.link;
+  if (subschemaConfig) {
+    if (subschemaConfig.dispatcher) {
+      link = subschemaConfig.dispatcher(context) as ApolloLink;
+    } else if (subschemaConfig.link) {
+      link = subschemaConfig.link;
     }
 
-    if (!link && !rootValue && subSchemaConfig.rootValue) {
-      rootValue = subSchemaConfig.rootValue;
+    if (!link && !rootValue && subschemaConfig.rootValue) {
+      rootValue = subschemaConfig.rootValue;
     }
   }
 

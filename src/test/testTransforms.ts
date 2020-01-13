@@ -387,7 +387,7 @@ describe('transforms', () => {
 
   describe('tree operations', () => {
     let data: any;
-    let subSchema: GraphQLSchema;
+    let subschema: GraphQLSchema;
     let schema: GraphQLSchema;
     before(() => {
       data = {
@@ -408,7 +408,7 @@ describe('transforms', () => {
           },
         },
       };
-      subSchema = makeExecutableSchema({
+      subschema = makeExecutableSchema({
         typeDefs: `
         type User {
           id: ID!
@@ -499,7 +499,7 @@ describe('transforms', () => {
           Query: {
             addressByUser(parent, { id }, context, info) {
               return delegateToSchema({
-                schema: subSchema,
+                schema: subschema,
                 operation: 'query',
                 fieldName: 'userById',
                 args: { id },
@@ -531,7 +531,7 @@ describe('transforms', () => {
           Mutation: {
             async setUserAndAddress(parent, { input }, context, info) {
               const addressResult = await delegateToSchema({
-                schema: subSchema,
+                schema: subschema,
                 operation: 'mutation',
                 fieldName: 'setAddress',
                 args: {
@@ -553,7 +553,7 @@ describe('transforms', () => {
                 ],
               });
               const userResult = await delegateToSchema({
-                schema: subSchema,
+                schema: subschema,
                 operation: 'mutation',
                 fieldName: 'setUser',
                 args: {
@@ -649,7 +649,7 @@ describe('transforms', () => {
   });
   describe('WrapQuery', () => {
     let data: any;
-    let subSchema: GraphQLSchema;
+    let subschema: GraphQLSchema;
     let schema: GraphQLSchema;
     before(() => {
       data = {
@@ -659,7 +659,7 @@ describe('transforms', () => {
           addressZip: '12345'
         }
       };
-      subSchema = makeExecutableSchema({
+      subschema = makeExecutableSchema({
         typeDefs: `
         type User {
           id: ID!
@@ -699,7 +699,7 @@ describe('transforms', () => {
           Query: {
             addressByUser(parent, { id }, context, info) {
               return delegateToSchema({
-                schema: subSchema,
+                schema: subschema,
                 operation: 'query',
                 fieldName: 'userById',
                 args: { id },
@@ -781,7 +781,7 @@ describe('transforms', () => {
 
   describe('TransformQuery', () => {
     let data: any;
-    let subSchema: GraphQLSchema;
+    let subschema: GraphQLSchema;
     let schema: GraphQLSchema;
     before(() => {
       data = {
@@ -802,7 +802,7 @@ describe('transforms', () => {
           },
         },
       };
-      subSchema = makeExecutableSchema({
+      subschema = makeExecutableSchema({
         typeDefs: `
           type User {
             id: ID!
@@ -856,7 +856,7 @@ describe('transforms', () => {
           Query: {
             addressByUser(parent, { id }, context, info) {
               return delegateToSchema({
-                schema: subSchema,
+                schema: subschema,
                 operation: 'query',
                 fieldName: 'userById',
                 args: { id },
@@ -890,7 +890,7 @@ describe('transforms', () => {
             },
             errorTest(parent, { id }, context, info) {
               return delegateToSchema({
-                schema: subSchema,
+                schema: subschema,
                 operation: 'query',
                 fieldName: 'userById',
                 args: { id },
@@ -1022,7 +1022,7 @@ describe('transforms', () => {
   describe('replaces field with fragments', () => {
     let data: any;
     let schema: GraphQLSchema;
-    let subSchema: GraphQLSchema;
+    let subschema: GraphQLSchema;
     before(() => {
       data = {
         u1: {
@@ -1032,7 +1032,7 @@ describe('transforms', () => {
         },
       };
 
-      subSchema = makeExecutableSchema({
+      subschema = makeExecutableSchema({
         typeDefs: `
           type User {
             id: ID!
@@ -1070,14 +1070,14 @@ describe('transforms', () => {
           Query: {
             userById(parent, { id }, context, info) {
               return delegateToSchema({
-                schema: subSchema,
+                schema: subschema,
                 operation: 'query',
                 fieldName: 'userById',
                 args: { id },
                 context,
                 info,
                 transforms: [
-                  new ReplaceFieldWithFragment(subSchema, [
+                  new ReplaceFieldWithFragment(subschema, [
                     {
                       field: `fullname`,
                       fragment: `fragment UserName on User { name }`,
@@ -1127,7 +1127,7 @@ describe('transforms', () => {
 describe('replaces field with processed fragment node', () => {
   let data: any;
   let schema: GraphQLSchema;
-  let subSchema: GraphQLSchema;
+  let subschema: GraphQLSchema;
   before(() => {
     data = {
       u1: {
@@ -1137,7 +1137,7 @@ describe('replaces field with processed fragment node', () => {
       },
     };
 
-    subSchema = makeExecutableSchema({
+    subschema = makeExecutableSchema({
       typeDefs: `
         type User {
           id: ID!
@@ -1175,14 +1175,14 @@ describe('replaces field with processed fragment node', () => {
         Query: {
           userById(parent, { id }, context, info) {
             return delegateToSchema({
-              schema: subSchema,
+              schema: subschema,
               operation: 'query',
               fieldName: 'userById',
               args: { id },
               context,
               info,
               transforms: [
-                new AddReplacementFragments(subSchema, {
+                new AddReplacementFragments(subschema, {
                   User: {
                     fullname: concatInlineFragments(
                       'User',
