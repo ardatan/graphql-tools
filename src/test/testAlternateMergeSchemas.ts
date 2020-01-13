@@ -41,7 +41,7 @@ import {
   mergeSchemas,
   createMergedResolver,
 } from '../stitching';
-import { SubschemaConfig, MergedTypeConfig } from '../Interfaces';
+import { SubschemaConfig } from '../Interfaces';
 import isSpecifiedScalarType from '../utils/isSpecifiedScalarType';
 import { wrapFieldNode, renameFieldNode, hoistFieldNodes } from '../utils/fieldNodes';
 
@@ -1748,48 +1748,44 @@ describe('mergeTypes', () => {
   });
 
   it('can merge types', async () => {
-    const subschemaConfig1: SubschemaConfig = { schema: schema1 };
-    const subschemaConfig2: SubschemaConfig = { schema: schema2 };
-
-    const mergedTypeConfigs1: Record<string, MergedTypeConfig> = {
-      Test: {
-        fragment: 'fragment TestFragment on Test { id }',
-        mergedTypeResolver: (subschema, originalResult, context, info) => {
-          return delegateToSchema({
-            schema: subschemaConfig1,
+    const subschemaConfig1: SubschemaConfig = {
+      schema: schema1,
+      mergedTypeConfigs: {
+        Test: {
+          fragment: 'fragment TestFragment on Test { id }',
+          mergedTypeResolver: (subschema, originalResult, context, info) => delegateToSchema({
+            schema: subschema,
             operation: 'query',
             fieldName: 'getTest',
             args: { id: originalResult.id },
             context,
             info,
-          });
+          })
         }
-      }
+      },
     };
 
-    const mergedTypeConfigs2: Record<string, MergedTypeConfig> = {
-      Test: {
-        fragment: 'fragment TestFragment on Test { id }',
-        mergedTypeResolver: async (subschema, originalResult, context, info) => {
-          return delegateToSchema({
-            schema: subschemaConfig2,
+    const subschemaConfig2: SubschemaConfig = {
+      schema: schema2,
+      mergedTypeConfigs: {
+        Test: {
+          fragment: 'fragment TestFragment on Test { id }',
+          mergedTypeResolver: (subschema, originalResult, context, info) => delegateToSchema({
+            schema: subschema,
             operation: 'query',
             fieldName: 'getTest',
             args: { id: originalResult.id },
             context,
             info,
-          });
+          })
         }
-      }
+      },
     };
-
-    subschemaConfig1.mergedTypeConfigs = mergedTypeConfigs1;
-    subschemaConfig2.mergedTypeConfigs = mergedTypeConfigs2;
 
     const mergedSchema = mergeSchemas({
       subschemas: [subschemaConfig1, subschemaConfig2],
-      mergeTypes: ['Test'],
     });
+
     const result1 = await graphql(mergedSchema, `{ rootField1 { test { field1 field2 } } }`);
     expect(result1).to.deep.equal({
       data: {

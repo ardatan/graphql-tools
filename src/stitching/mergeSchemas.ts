@@ -61,7 +61,6 @@ export default function mergeSchemas({
   types = [],
   typeDefs,
   schemas: schemaLikeObjects = [],
-  mergeTypes = [],
   onTypeConflict,
   resolvers = {},
   schemaDirectives,
@@ -72,7 +71,6 @@ export default function mergeSchemas({
   types?: Array<GraphQLNamedType>;
   typeDefs?: string | DocumentNode;
   schemas?: Array<SchemaLikeObject>;
-  mergeTypes?: Array<string>;
   onTypeConflict?: OnTypeConflict;
   resolvers?: IResolversParameter;
   schemaDirectives?: { [name: string]: typeof SchemaDirectiveVisitor };
@@ -174,12 +172,38 @@ export default function mergeSchemas({
     }
   });
 
+  let mergeInfo = createMergeInfo(allSchemas, typeCandidates);
+
+  if (typeof resolvers === 'function') {
+    console.warn(
+      'Passing functions as resolver parameter is deprecated. Use `info.mergeInfo` instead.',
+    );
+    resolvers = resolvers(mergeInfo) || {};
+  } else if (Array.isArray(resolvers)) {
+    resolvers = resolvers.reduce((left, right) => {
+      if (typeof right === 'function') {
+        console.warn(
+          'Passing functions as resolver parameter is deprecated. Use `info.mergeInfo` instead.',
+        );
+        right = right(mergeInfo);
+      }
+      return mergeDeep(left, right);
+    }, {}) || {};
+    if (!resolvers) {
+      resolvers = {};
+    } else if (Array.isArray(resolvers)) {
+      resolvers = resolvers.reduce(mergeDeep, {});
+    }
+  }
+
+  mergeInfo = completeMergeInfo(mergeInfo, resolvers);
+
   Object.keys(typeCandidates).forEach(typeName => {
     if (
       typeName === 'Query' ||
       typeName === 'Mutation' ||
       typeName === 'Subscription' ||
-      mergeTypes.includes(typeName)
+      mergeInfo.mergedTypes[typeName]
     ) {
       typeMap[typeName] = mergeFields(typeName, typeCandidates[typeName]);
     } else {
@@ -207,32 +231,6 @@ export default function mergeSchemas({
       commentDescriptions: true,
     });
   });
-
-  let mergeInfo = createMergeInfo(allSchemas, mergeTypes, typeCandidates);
-
-  if (typeof resolvers === 'function') {
-    console.warn(
-      'Passing functions as resolver parameter is deprecated. Use `info.mergeInfo` instead.',
-    );
-    resolvers = resolvers(mergeInfo) || {};
-  } else if (Array.isArray(resolvers)) {
-    resolvers = resolvers.reduce((left, right) => {
-      if (typeof right === 'function') {
-        console.warn(
-          'Passing functions as resolver parameter is deprecated. Use `info.mergeInfo` instead.',
-        );
-        right = right(mergeInfo);
-      }
-      return mergeDeep(left, right);
-    }, {}) || {};
-    if (!resolvers) {
-      resolvers = {};
-    } else if (Array.isArray(resolvers)) {
-      resolvers = resolvers.reduce(mergeDeep, {});
-    }
-  }
-
-  mergeInfo = completeMergeInfo(mergeInfo, resolvers);
 
   addResolversToSchema({
     schema: mergedSchema,
@@ -271,27 +269,29 @@ export default function mergeSchemas({
 
 function createMergeInfo(
   allSchemas: Array<GraphQLSchema>,
-  mergeTypes: Array<string>,
   typeCandidates: { [name: string]: Array<MergeTypeCandidate> },
 ): MergeInfo {
   const mergedTypes: MergedTypeMapping = {};
 
-  mergeTypes.forEach(typeName => {
-    if (typeCandidates[typeName]) {
-      const subschemaConfigs: Array<SubschemaConfig> =
-        typeCandidates[typeName]
-          .filter(typeCandidate => isSubschemaConfig(typeCandidate.subschema))
-          .map(typeCandidate => typeCandidate.subschema as SubschemaConfig);
-      const inlineFragments = subschemaConfigs
-        .filter(subschemaConfig => subschemaConfig.mergedTypeConfigs[typeName].fragment)
-        .map(subschemaConfig => subschemaConfig.mergedTypeConfigs[typeName].fragment)
-        .map(fragment => parseFragmentToInlineFragment(fragment));
+  Object.keys(typeCandidates).forEach(typeName => {
+    const subschemaConfigs: Array<SubschemaConfig> =
+      typeCandidates[typeName]
+        .filter(typeCandidate => typeCandidate.subschema && isSubschemaConfig(typeCandidate.subschema))
+        .map(typeCandidate => typeCandidate.subschema as SubschemaConfig);
+
+    const mergeTypeConfigs = subschemaConfigs
+      .filter(subschemaConfig =>
+        subschemaConfig.mergedTypeConfigs && subschemaConfig.mergedTypeConfigs[typeName])
+      .map(subschemaConfig => subschemaConfig.mergedTypeConfigs[typeName]);
+
+    if (mergeTypeConfigs.length) {
+      const inlineFragments = mergeTypeConfigs
+        .filter(mergeTypeConfig => mergeTypeConfig.fragment)
+        .map(mergeTypeConfig => parseFragmentToInlineFragment(mergeTypeConfig.fragment));
       mergedTypes[typeName] = {
         fragment: concatInlineFragments(typeName, inlineFragments),
         subschemas: subschemaConfigs,
       };
-    } else {
-      throw new Error(`Cannot merge type '${typeName}', type not found.`);
     }
   });
 

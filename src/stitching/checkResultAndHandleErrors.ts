@@ -175,8 +175,8 @@ async function mergeFields(
     );
     if (remainingSubschemas.length) {
       const results = await Promise.all(remainingSubschemas.map(subschema => {
-        const mergedTypeResolver = subschema.mergedTypeConfigs[typeName].mergedTypeResolver;
-        return mergedTypeResolver(subschema, object, context, {
+        const resolver = subschema.mergedTypeConfigs[typeName].mergedTypeResolver;
+        return resolver(subschema, object, context, {
           ...info,
           mergeInfo: {
             ...info.mergeInfo,
