@@ -44,10 +44,12 @@ import linkToFetcher from './linkToFetcher';
 import { observableToAsyncIterable } from './observableToAsyncIterable';
 import { AddMergedTypeFragments } from '../transforms';
 
+import { isAsyncIterable } from 'iterall';
+
 export default function delegateToSchema(
   options: IDelegateToSchemaOptions | GraphQLSchema,
   ...args: any[]
-): Promise<any> {
+): any {
   if (options instanceof GraphQLSchema) {
     throw new Error(
       'Passing positional arguments to delegateToSchema is a deprecated. ' +
@@ -57,7 +59,7 @@ export default function delegateToSchema(
   return delegateToSchemaImplementation(options);
 }
 
-async function delegateToSchemaImplementation({
+function delegateToSchemaImplementation({
   schema: subschema,
   rootValue,
   info,
@@ -68,7 +70,7 @@ async function delegateToSchemaImplementation({
   transforms = [],
   skipValidation,
 }: IDelegateToSchemaOptions,
-): Promise<any> {
+): any {
   let targetSchema: GraphQLSchema;
   let subschemaConfig: SubschemaConfig;
 
@@ -138,33 +140,39 @@ async function delegateToSchemaImplementation({
   if (operation === 'query' || operation === 'mutation') {
     const executor = createExecutor(targetSchema, rootValue, subschemaConfig);
 
-    return applyResultTransforms(
-      await executor({
-        document: processedRequest.document,
-        context,
-        variables: processedRequest.variables
-      }),
-      transforms,
-    );
+    const executionResult: ExecutionResult | Promise<ExecutionResult> = executor({
+      document: processedRequest.document,
+      context,
+      variables: processedRequest.variables
+    });
 
+    if (executionResult instanceof Promise) {
+      return executionResult.then((originalResult: any) => applyResultTransforms(originalResult, transforms));
+    } else {
+      return applyResultTransforms(executionResult, transforms);
+    }
   } else if (operation === 'subscription') {
     const subscriber = createSubscriber(targetSchema, rootValue, subschemaConfig);
 
-    const originalAsyncIterator = (await subscriber({
+    return subscriber({
       document: processedRequest.document,
       context,
       variables: processedRequest.variables,
-    })) as AsyncIterator<ExecutionResult>;
+    }).then((subscriptionResult: AsyncIterableIterator<ExecutionResult> | ExecutionResult) => {
+      if (isAsyncIterable(subscriptionResult)) {
+        // "subscribe" to the subscription result and map the result through the transforms
+        return mapAsyncIterator<ExecutionResult, any>(subscriptionResult, result => {
+          const transformedResult = applyResultTransforms(result, transforms);
 
-    // "subscribe" to the subscription result and map the result through the transforms
-    return mapAsyncIterator<ExecutionResult, any>(originalAsyncIterator, result => {
-      const transformedResult = applyResultTransforms(result, transforms);
-
-      // wrap with fieldName to return for an additional round of resolutioon
-      // with payload as rootValue
-      return {
-        [info.fieldName]: transformedResult,
-      };
+          // wrap with fieldName to return for an additional round of resolutioon
+          // with payload as rootValue
+          return {
+            [info.fieldName]: transformedResult,
+          };
+        });
+      } else {
+        return applyResultTransforms(subscriptionResult, transforms);
+      }
     });
   }
 }

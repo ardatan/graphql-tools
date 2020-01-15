@@ -152,13 +152,13 @@ function handleListMember(
   }
 }
 
-async function mergeFields(
+function mergeFields(
   type: GraphQLCompositeType,
   object: any,
   subschemas: Array<GraphQLSchema | SubschemaConfig>,
   context: Record<string, any>,
   info: IGraphQLToolsResolveInfo,
-): Promise<any> {
+): any {
   let typeName: string;
   if (isAbstractType(type)) {
     typeName = info.schema.getTypeMap()[resolveFromParentTypename(object)].name;
@@ -174,17 +174,30 @@ async function mergeFields(
       subschema => !subschemas.includes(subschema)
     );
     if (remainingSubschemas.length) {
-      const results = await Promise.all(remainingSubschemas.map(subschema => {
-        const resolver = subschema.mergedTypeConfigs[typeName].mergedTypeResolver;
-        return resolver(subschema, object, context, {
+      const maybePromises = remainingSubschemas.map(subschema => {
+        return subschema.mergedTypeConfigs[typeName].mergedTypeResolver(subschema, object, context, {
           ...info,
           mergeInfo: {
             ...info.mergeInfo,
             mergedTypes: {},
           },
         });
-      }));
-      object = results.reduce((acc: any, r: ExecutionResult) => mergeDeep(acc, r), object);
+      });
+
+      let containsPromises = false; {
+        for (const maybePromise of maybePromises) {
+          if (maybePromise instanceof Promise) {
+            containsPromises = true;
+            break;
+          }
+        }
+      }
+      if (containsPromises) {
+        return Promise.all(maybePromises).
+          then(results => results.reduce((acc: any, r: ExecutionResult) => mergeDeep(acc, r), object));
+      } else {
+        return maybePromises.reduce((acc: any, r: ExecutionResult) => mergeDeep(acc, r), object);
+      }
     }
   }
 
