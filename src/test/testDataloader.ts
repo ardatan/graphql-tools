@@ -81,10 +81,8 @@ describe('dataloader', () => {
           ids: keys.map((k: { id: any }) => k.id)
         },
         context: null,
-        info: {
-          ...keys[0].info,
-          returnType: new GraphQLList(keys[0].info.returnType),
-        }
+        info: keys[0].info,
+        returnType: new GraphQLList(keys[0].info.returnType),
       });
 
       expect(users).to.deep.equal([{

@@ -9,6 +9,7 @@ import {
   GraphQLCompositeType,
   GraphQLError,
   GraphQLList,
+  GraphQLOutputType,
   GraphQLType,
   GraphQLSchema,
   FieldNode,
@@ -34,6 +35,7 @@ export function checkResultAndHandleErrors(
   info: GraphQLResolveInfo,
   responseKey?: string,
   subschema?: GraphQLSchema | SubschemaConfig,
+  returnType: GraphQLOutputType = info.returnType,
 ): any {
   if (!responseKey) {
     responseKey = getResponseKeyFromInfo(info);
@@ -43,7 +45,7 @@ export function checkResultAndHandleErrors(
   const data = result.data && result.data[responseKey];
   const subschemas = [subschema];
 
-  return handleResult(data, errors, subschemas, context, info);
+  return handleResult(data, errors, subschemas, context, info, returnType);
 }
 
 export function handleResult(
@@ -52,8 +54,9 @@ export function handleResult(
   subschemas: Array<GraphQLSchema | SubschemaConfig>,
   context: Record<string, any>,
   info: IGraphQLToolsResolveInfo,
+  returnType = info.returnType,
 ): any {
-  const type = getNullableType(info.returnType);
+  const type = getNullableType(returnType);
 
   if (result == null) {
     return handleNull(info.fieldNodes, responsePathAsArray(info.path), errors);

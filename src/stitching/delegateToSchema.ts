@@ -65,6 +65,7 @@ function delegateToSchemaImplementation({
   info,
   operation = info.operation.operation,
   fieldName,
+  returnType = info.returnType,
   args,
   context,
   transforms = [],
@@ -101,7 +102,7 @@ function delegateToSchemaImplementation({
   };
 
   transforms = [
-    new CheckResultAndHandleErrors(info, fieldName, subschema, context),
+    new CheckResultAndHandleErrors(info, fieldName, subschema, context, returnType),
     ...transforms,
     new ExpandAbstractTypes(info.schema, targetSchema),
   ];

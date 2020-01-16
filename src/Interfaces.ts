@@ -20,6 +20,7 @@ import {
   GraphQLInterfaceType,
   GraphQLObjectType,
   InlineFragmentNode,
+  GraphQLOutputType,
 } from 'graphql';
 
 import { SchemaDirectiveVisitor } from './utils/SchemaDirectiveVisitor';
@@ -115,6 +116,7 @@ export interface IDelegateToSchemaOptions<TContext = { [key: string]: any }> {
   schema: GraphQLSchema | SubschemaConfig;
   operation: Operation;
   fieldName: string;
+  returnType?: GraphQLOutputType;
   args?: { [key: string]: any };
   context: TContext;
   info: IGraphQLToolsResolveInfo;
