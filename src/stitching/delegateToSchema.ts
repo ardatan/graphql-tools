@@ -1,6 +1,5 @@
 import {
   ArgumentNode,
-  DocumentNode,
   FieldNode,
   FragmentDefinitionNode,
   Kind,
@@ -10,20 +9,21 @@ import {
   subscribe,
   execute,
   validate,
-  VariableDefinitionNode,
   GraphQLSchema,
   ExecutionResult,
-  NameNode,
 } from 'graphql';
 
 import {
   IDelegateToSchemaOptions,
+  ICreateDelegatingRequestOptions,
+  IDelegateRequestOptions,
   Operation,
   Request,
   Fetcher,
   Delegator,
   SubschemaConfig,
   isSubschemaConfig,
+  IGraphQLToolsResolveInfo,
 } from '../Interfaces';
 
 import {
@@ -48,7 +48,6 @@ import { isAsyncIterable } from 'iterall';
 
 export default function delegateToSchema(
   options: IDelegateToSchemaOptions | GraphQLSchema,
-  ...args: any[]
 ): any {
   if (options instanceof GraphQLSchema) {
     throw new Error(
@@ -56,53 +55,66 @@ export default function delegateToSchema(
         'Please pass named parameters instead.',
     );
   }
-  return delegateToSchemaImplementation(options);
+
+  const {
+    schema: subschema,
+    rootValue,
+    info,
+    operation = info.operation.operation,
+    fieldName,
+    returnType = info.returnType,
+    args,
+    context,
+    transforms = [],
+    skipValidation,
+  } = options;
+
+  const request = createDelegatingRequest({
+    schema: subschema,
+    info,
+    operation,
+    fieldName,
+    args,
+    transforms,
+    skipValidation,
+  });
+
+  return delegateRequest({
+    request,
+    schema: subschema,
+    rootValue,
+    info,
+    operation,
+    fieldName,
+    returnType,
+    context,
+    transforms,
+  });
 }
 
-function delegateToSchemaImplementation({
+export function createDelegatingRequest({
   schema: subschema,
-  rootValue,
   info,
   operation = info.operation.operation,
   fieldName,
-  returnType = info.returnType,
   args,
-  context,
   transforms = [],
   skipValidation,
-}: IDelegateToSchemaOptions,
-): any {
+}: ICreateDelegatingRequestOptions): any {
   let targetSchema: GraphQLSchema;
   let subschemaConfig: SubschemaConfig;
 
   if (isSubschemaConfig(subschema)) {
     subschemaConfig = subschema;
     targetSchema = subschemaConfig.schema;
-    rootValue = rootValue || subschemaConfig.rootValue || info.rootValue;
     transforms = transforms.concat((subschemaConfig.transforms || []).slice().reverse());
   } else {
     targetSchema = subschema;
-    rootValue = rootValue || info.rootValue;
   }
 
-  const rawDocument: DocumentNode = createDocument(
-    fieldName,
-    operation,
-    info.fieldNodes,
-    Object.keys(info.fragments).map(
-      fragmentName => info.fragments[fragmentName],
-    ),
-    info.operation.variableDefinitions,
-    info.operation.name,
-  );
-
-  const rawRequest: Request = {
-    document: rawDocument,
-    variables: info.variableValues as Record<string, any>,
-  };
+  const initialRequest = createInitialRequest(fieldName, operation, info);
 
   transforms = [
-    new CheckResultAndHandleErrors(info, fieldName, subschema, context, returnType),
     ...transforms,
     new ExpandAbstractTypes(info.schema, targetSchema),
   ];
@@ -124,27 +136,60 @@ function delegateToSchemaImplementation({
     );
   }
 
-  transforms = transforms.concat([
+  transforms.push(
     new FilterToSchema(targetSchema),
     new AddTypenameToAbstract(targetSchema),
-  ]);
+  );
 
-  const processedRequest = applyRequestTransforms(rawRequest, transforms);
+  const delegatingRequest = applyRequestTransforms(initialRequest, transforms);
 
   if (!skipValidation) {
-    const errors = validate(targetSchema, processedRequest.document);
+    const errors = validate(targetSchema, delegatingRequest.document);
     if (errors.length > 0) {
       throw errors;
     }
   }
 
+  return delegatingRequest;
+}
+
+export function delegateRequest({
+  request,
+  schema: subschema,
+  rootValue,
+  info,
+  operation = info.operation.operation,
+  fieldName,
+  returnType = info.returnType,
+  context,
+  transforms = [],
+}: IDelegateRequestOptions): any {
+  let targetSchema: GraphQLSchema;
+  let subschemaConfig: SubschemaConfig;
+
+  if (isSubschemaConfig(subschema)) {
+    subschemaConfig = subschema;
+    targetSchema = subschemaConfig.schema;
+    rootValue = rootValue || subschemaConfig.rootValue || info.rootValue;
+    transforms = transforms.concat((subschemaConfig.transforms || []).slice().reverse());
+  } else {
+    targetSchema = subschema;
+    rootValue = rootValue || info.rootValue;
+  }
+
+  transforms = [
+    new CheckResultAndHandleErrors(info, fieldName, subschema, context, returnType),
+    ...transforms,
+  ];
+
   if (operation === 'query' || operation === 'mutation') {
+
     const executor = createExecutor(targetSchema, rootValue, subschemaConfig);
 
     const executionResult: ExecutionResult | Promise<ExecutionResult> = executor({
-      document: processedRequest.document,
+      document: request.document,
       context,
-      variables: processedRequest.variables
+      variables: request.variables
     });
 
     if (executionResult instanceof Promise) {
@@ -152,13 +197,15 @@ function delegateToSchemaImplementation({
     } else {
       return applyResultTransforms(executionResult, transforms);
     }
+
   } else if (operation === 'subscription') {
+
     const subscriber = createSubscriber(targetSchema, rootValue, subschemaConfig);
 
     return subscriber({
-      document: processedRequest.document,
+      document: request.document,
       context,
-      variables: processedRequest.variables,
+      variables: request.variables,
     }).then((subscriptionResult: AsyncIterableIterator<ExecutionResult> | ExecutionResult) => {
       if (isAsyncIterable(subscriptionResult)) {
         // "subscribe" to the subscription result and map the result through the transforms
@@ -175,20 +222,19 @@ function delegateToSchemaImplementation({
         return applyResultTransforms(subscriptionResult, transforms);
       }
     });
+
   }
 }
 
-function createDocument(
+function createInitialRequest(
   targetField: string,
   targetOperation: Operation,
-  originalSelections: ReadonlyArray<SelectionNode>,
-  fragments: Array<FragmentDefinitionNode>,
-  variables: ReadonlyArray<VariableDefinitionNode>,
-  operationName: NameNode,
-): DocumentNode {
+  info: IGraphQLToolsResolveInfo,
+): Request {
   let selections: Array<SelectionNode> = [];
   let args: Array<ArgumentNode> = [];
 
+  const originalSelections: ReadonlyArray<SelectionNode> = info.fieldNodes;
   originalSelections.forEach((field: FieldNode) => {
     const fieldSelections = field.selectionSet
       ? field.selectionSet.selections
@@ -215,6 +261,7 @@ function createDocument(
       value: targetField,
     },
   };
+
   const rootSelectionSet: SelectionSetNode = {
     kind: Kind.SELECTION_SET,
     selections: [rootField],
@@ -223,14 +270,23 @@ function createDocument(
   const operationDefinition: OperationDefinitionNode = {
     kind: Kind.OPERATION_DEFINITION,
     operation: targetOperation,
-    variableDefinitions: variables,
+    variableDefinitions: info.operation.variableDefinitions,
     selectionSet: rootSelectionSet,
-    name: operationName,
+    name: info.operation.name,
+  };
+
+  const fragments: Array<FragmentDefinitionNode> = Object.keys(info.fragments).map(
+    fragmentName => info.fragments[fragmentName],
+  );
+
+  const document = {
+    kind: Kind.DOCUMENT,
+    definitions: [operationDefinition, ...fragments],
   };
 
   return {
-    kind: Kind.DOCUMENT,
-    definitions: [operationDefinition, ...fragments],
+    document,
+    variables: info.variableValues,
   };
 }
 

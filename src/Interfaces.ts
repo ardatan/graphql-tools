@@ -112,17 +112,40 @@ export type SchemaLikeObject =
 export function isSubschemaConfig(value: SchemaLikeObject): value is SubschemaConfig {
   return !!(value as SubschemaConfig).schema;
 }
+
 export interface IDelegateToSchemaOptions<TContext = { [key: string]: any }> {
   schema: GraphQLSchema | SubschemaConfig;
   operation: Operation;
   fieldName: string;
   returnType?: GraphQLOutputType;
   args?: { [key: string]: any };
-  context: TContext;
+  context?: TContext;
   info: IGraphQLToolsResolveInfo;
   rootValue?: Record<string, any>;
   transforms?: Array<Transform>;
   skipValidation?: boolean;
+}
+
+export interface ICreateDelegatingRequestOptions {
+  schema: GraphQLSchema | SubschemaConfig;
+  info: IGraphQLToolsResolveInfo;
+  operation: Operation;
+  fieldName: string;
+  args?: { [key: string]: any };
+  transforms?: Array<Transform>;
+  skipValidation?: boolean;
+}
+
+export interface IDelegateRequestOptions<TContext = { [key: string]: any }> {
+  request: Request;
+  schema: GraphQLSchema | SubschemaConfig;
+  rootValue?: Record<string, any>;
+  info: IGraphQLToolsResolveInfo;
+  operation: Operation;
+  fieldName: string;
+  returnType?: GraphQLOutputType;
+  context?: TContext;
+  transforms?: Array<Transform>;
 }
 
 export type Delegator = ({ document, context, variables }: {
