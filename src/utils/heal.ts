@@ -208,22 +208,25 @@ function pruneTypes(typeMap: NamedTypeMap, directives: ReadonlyArray<GraphQLDire
   });
 
   let prunedTypeMap = false;
-  updateEachKey(typeMap, (type, typeName) => {
-    let shouldPrune: boolean = false;
-    if (type instanceof GraphQLObjectType) {
+  each(typeMap, (type, typeName) => {
+    if (type instanceof GraphQLObjectType || type instanceof GraphQLInputObjectType) {
       // prune types with no fields
-      shouldPrune = !Object.keys(type.getFields()).length;
+      if (!Object.keys(type.getFields()).length) {
+        typeMap[typeName] = null;
+        prunedTypeMap = true;
+      }
     } else if (type instanceof GraphQLUnionType) {
       // prune unions without underlying types
-      shouldPrune = !type.getTypes().length;
+      if (!type.getTypes().length) {
+        typeMap[typeName] = null;
+        prunedTypeMap = true;
+      }
     } else if (type instanceof GraphQLInterfaceType) {
       // prune interfaces without fields or without implementations
-      shouldPrune = !Object.keys(type.getFields()).length || !implementedInterfaces[type.name];
-    }
-
-    if (shouldPrune) {
-      prunedTypeMap = true;
-      return null;
+      if (!Object.keys(type.getFields()).length || !implementedInterfaces[type.name]) {
+        typeMap[typeName] = null;
+        prunedTypeMap = true;
+      }
     }
   });
 

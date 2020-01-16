@@ -16,3 +16,5 @@ import './testTransforms';
 import './testExtensionExtraction';
 import './testIntegration';
 import './testUpload';
+import './testUtils';
+
