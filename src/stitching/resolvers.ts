@@ -106,6 +106,7 @@ function defaultCreateProxyingResolver(
     args,
     context,
     info,
+    mergeTypes: true,
   });
 }
 

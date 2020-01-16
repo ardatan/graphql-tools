@@ -67,6 +67,7 @@ export default function delegateToSchema(
     context,
     transforms = [],
     skipValidation,
+    mergeTypes,
   } = options;
 
   const request = createDelegatingRequest({
@@ -89,6 +90,7 @@ export default function delegateToSchema(
     returnType,
     context,
     transforms,
+    mergeTypes,
   });
 }
 
@@ -163,6 +165,7 @@ export function delegateRequest({
   returnType = info.returnType,
   context,
   transforms = [],
+  mergeTypes,
 }: IDelegateRequestOptions): any {
   let targetSchema: GraphQLSchema;
   let subschemaConfig: SubschemaConfig;
@@ -178,7 +181,7 @@ export function delegateRequest({
   }
 
   transforms = [
-    new CheckResultAndHandleErrors(info, fieldName, subschema, context, returnType),
+    new CheckResultAndHandleErrors(info, fieldName, subschema, context, returnType, mergeTypes),
     ...transforms,
   ];
 

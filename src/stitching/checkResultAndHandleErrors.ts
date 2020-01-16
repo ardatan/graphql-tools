@@ -36,6 +36,7 @@ export function checkResultAndHandleErrors(
   responseKey?: string,
   subschema?: GraphQLSchema | SubschemaConfig,
   returnType: GraphQLOutputType = info.returnType,
+  mergeTypes?: boolean,
 ): any {
   if (!responseKey) {
     responseKey = getResponseKeyFromInfo(info);
@@ -45,7 +46,7 @@ export function checkResultAndHandleErrors(
   const data = result.data && result.data[responseKey];
   const subschemas = [subschema];
 
-  return handleResult(data, errors, subschemas, context, info, returnType);
+  return handleResult(data, errors, subschemas, context, info, returnType, mergeTypes);
 }
 
 export function handleResult(
@@ -55,6 +56,7 @@ export function handleResult(
   context: Record<string, any>,
   info: IGraphQLToolsResolveInfo,
   returnType = info.returnType,
+  mergeTypes?: boolean,
 ): any {
   const type = getNullableType(returnType);
 
@@ -65,9 +67,9 @@ export function handleResult(
   if (isLeafType(type)) {
     return type.parseValue(result);
   } else if (isCompositeType(type)) {
-    return handleObject(type, result, errors, subschemas, context, info);
+    return handleObject(type, result, errors, subschemas, context, info, mergeTypes);
   } else if (isListType(type)) {
-    return handleList(type, result, errors, subschemas, context, info);
+    return handleList(type, result, errors, subschemas, context, info, mergeTypes);
   }
 }
 
@@ -93,10 +95,11 @@ export function handleObject(
   subschemas: Array<GraphQLSchema | SubschemaConfig>,
   context: Record<string, any>,
   info: IGraphQLToolsResolveInfo,
+  mergeTypes?: boolean,
 ) {
   makeObjectProxiedResult(object, errors, subschemas);
 
-  if (info.mergeInfo) {
+  if (mergeTypes && info.mergeInfo) {
     return mergeFields(
       type,
       object,
@@ -116,6 +119,7 @@ function handleList(
   subschemas: Array<GraphQLSchema | SubschemaConfig>,
   context: Record<string, any>,
   info: IGraphQLToolsResolveInfo,
+  mergeTypes?: boolean,
 ) {
 
   const childErrors = getErrorsByPathSegment(errors);
@@ -128,6 +132,7 @@ function handleList(
     subschemas,
     context,
     info,
+    mergeTypes,
   ));
 
   return list;
@@ -141,6 +146,7 @@ function handleListMember(
   subschemas: Array<GraphQLSchema | SubschemaConfig>,
   context: Record<string, any>,
   info: IGraphQLToolsResolveInfo,
+  mergeTypes?: boolean,
 ): any {
   if (listMember == null) {
     return handleNull(info.fieldNodes, [...responsePathAsArray(info.path), index], errors);
@@ -149,9 +155,9 @@ function handleListMember(
   if (isLeafType(type)) {
     return type.parseValue(listMember);
   } else if (isCompositeType(type)) {
-    return handleObject(type, listMember, errors, subschemas, context, info);
+    return handleObject(type, listMember, errors, subschemas, context, info, mergeTypes);
   } else if (isListType(type)) {
-    return handleList(type, listMember, errors, subschemas, context, info);
+    return handleList(type, listMember, errors, subschemas, context, info, mergeTypes);
   }
 }
 
@@ -178,13 +184,7 @@ function mergeFields(
     );
     if (remainingSubschemas.length) {
       const maybePromises = remainingSubschemas.map(subschema => {
-        return subschema.mergedTypeConfigs[typeName].mergedTypeResolver(subschema, object, context, {
-          ...info,
-          mergeInfo: {
-            ...info.mergeInfo,
-            mergedTypes: {},
-          },
-        });
+        return subschema.mergedTypeConfigs[typeName].mergedTypeResolver(subschema, object, context, info);
       });
 
       let containsPromises = false; {

@@ -30,5 +30,5 @@ export default function defaultMergedResolver(
   const result = parent[responseKey];
   const subschemas = getSubschemas(parent);
 
-  return handleResult(result, errors, subschemas, context, info);
+  return handleResult(result, errors, subschemas, context, info, undefined, true);
 }

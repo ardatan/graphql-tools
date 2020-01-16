@@ -133,6 +133,7 @@ export interface IDelegateToSchemaOptions<TContext = { [key: string]: any }> {
   rootValue?: Record<string, any>;
   transforms?: Array<Transform>;
   skipValidation?: boolean;
+  mergeTypes?: boolean;
 }
 
 export interface ICreateDelegatingRequestOptions {
@@ -155,6 +156,7 @@ export interface IDelegateRequestOptions<TContext = { [key: string]: any }> {
   returnType?: GraphQLOutputType;
   context?: TContext;
   transforms?: Array<Transform>;
+  mergeTypes?: boolean;
 }
 
 export type Delegator = ({ document, context, variables }: {
