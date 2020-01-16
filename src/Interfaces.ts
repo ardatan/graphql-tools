@@ -39,7 +39,16 @@ export interface IResolverValidationOptions {
   allowResolversNotInSchema?: boolean;
 }
 
+// for backwards compatibility
 export interface IAddResolveFunctionsToSchemaOptions {
+  schema: GraphQLSchema;
+  resolvers: IResolvers;
+  defaultFieldResolver?: IFieldResolver<any, any>;
+  resolverValidationOptions?: IResolverValidationOptions;
+  inheritResolversFromInterfaces?: boolean;
+}
+
+export interface IAddResolversToSchemaOptions {
   schema: GraphQLSchema;
   resolvers: IResolvers;
   defaultFieldResolver?: IFieldResolver<any, any>;

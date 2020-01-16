@@ -669,7 +669,7 @@ describe('generating schema from shorthand', () => {
       }
     `;
 
-    const resolveFunctions = {
+    const resolvers = {
       RootQuery: {
         species: (root: any, { name }: { name: string }) => [
           {
@@ -681,7 +681,7 @@ describe('generating schema from shorthand', () => {
       },
     };
 
-    const otherResolveFunctions = {
+    const otherResolvers = {
       BirdSpecies: {
         name: (bird: Bird) => bird.name,
         wingspan: (bird: Bird) => bird.wingspan,
@@ -717,7 +717,7 @@ describe('generating schema from shorthand', () => {
     };
     const jsSchema = makeExecutableSchema({
       typeDefs: shorthand,
-      resolvers: [resolveFunctions, otherResolveFunctions],
+      resolvers: [resolvers, otherResolvers],
     });
     const resultPromise = graphql(jsSchema, testQuery);
     return resultPromise.then(result =>

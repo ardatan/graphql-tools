@@ -32,12 +32,12 @@ function assertResolversPresent(
   forEachField(schema, (field, typeName, fieldName) => {
     // requires a resolver for *every* field.
     if (requireResolversForAllFields) {
-      expectResolveFunction(field, typeName, fieldName);
+      expectResolver(field, typeName, fieldName);
     }
 
     // requires a resolver on every field that has arguments
     if (requireResolversForArgs && field.args.length > 0) {
-      expectResolveFunction(field, typeName, fieldName);
+      expectResolver(field, typeName, fieldName);
     }
 
     // requires a resolver on every field that returns a non-scalar type
@@ -45,12 +45,12 @@ function assertResolversPresent(
       requireResolversForNonScalar &&
       !(getNamedType(field.type) instanceof GraphQLScalarType)
     ) {
-      expectResolveFunction(field, typeName, fieldName);
+      expectResolver(field, typeName, fieldName);
     }
   });
 }
 
-function expectResolveFunction(
+function expectResolver(
   field: GraphQLField<any, any>,
   typeName: string,
   fieldName: string,

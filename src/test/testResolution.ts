@@ -43,14 +43,14 @@ describe('Resolve', () => {
       },
     };
     const schema = makeExecutableSchema({ typeDefs, resolvers });
-    let schemaLevelResolveFunctionCalls = 0;
+    let schemaLevelResolverCalls = 0;
     addSchemaLevelResolver(schema, root => {
-      schemaLevelResolveFunctionCalls += 1;
+      schemaLevelResolverCalls += 1;
       return root;
     });
 
     it('should run the schema level resolver once in a same query', () => {
-      schemaLevelResolveFunctionCalls = 0;
+      schemaLevelResolverCalls = 0;
       const root = 'queryRoot';
       return graphql(
         schema,
@@ -66,12 +66,12 @@ describe('Resolve', () => {
           printRoot: root,
           printRootAgain: root,
         });
-        assert.equal(schemaLevelResolveFunctionCalls, 1);
+        assert.equal(schemaLevelResolverCalls, 1);
       });
     });
 
     it('should isolate roots from the different operation types', done => {
-      schemaLevelResolveFunctionCalls = 0;
+      schemaLevelResolverCalls = 0;
       const queryRoot = 'queryRoot';
       const mutationRoot = 'mutationRoot';
       const subscriptionRoot = 'subscriptionRoot';
@@ -103,11 +103,11 @@ describe('Resolve', () => {
                 subsCbkCalls++;
                 try {
                   if (subsCbkCalls === 1) {
-                    assert.equal(schemaLevelResolveFunctionCalls, 1);
+                    assert.equal(schemaLevelResolverCalls, 1);
                     assert.deepEqual(subsData, { printRoot: subscriptionRoot });
                     return resolveFirst();
                   } else if (subsCbkCalls === 2) {
-                    assert.equal(schemaLevelResolveFunctionCalls, 4);
+                    assert.equal(schemaLevelResolverCalls, 4);
                     assert.deepEqual(subsData, {
                       printRoot: subscriptionRoot2,
                     });
@@ -137,7 +137,7 @@ describe('Resolve', () => {
           ),
         )
         .then(({ data }) => {
-          assert.equal(schemaLevelResolveFunctionCalls, 2);
+          assert.equal(schemaLevelResolverCalls, 2);
           assert.deepEqual(data, { printRoot: queryRoot });
           return graphql(
             schema,
@@ -150,7 +150,7 @@ describe('Resolve', () => {
           );
         })
         .then(({ data: mutationData }) => {
-          assert.equal(schemaLevelResolveFunctionCalls, 3);
+          assert.equal(schemaLevelResolverCalls, 3);
           assert.deepEqual(mutationData, { printRoot: mutationRoot });
           pubsub.publish('printRootChannel', { printRoot: subscriptionRoot2 });
         })

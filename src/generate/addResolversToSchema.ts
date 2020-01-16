@@ -10,7 +10,7 @@ import {
 import {
   IResolvers,
   IResolverValidationOptions,
-  IAddResolveFunctionsToSchemaOptions,
+  IAddResolversToSchemaOptions,
 } from '../Interfaces';
 
 import SchemaError from './SchemaError';
@@ -25,7 +25,7 @@ import {
 } from '../utils';
 
 function addResolversToSchema(
-  options: IAddResolveFunctionsToSchemaOptions | GraphQLSchema,
+  options: IAddResolversToSchemaOptions | GraphQLSchema,
   legacyInputResolvers?: IResolvers,
   legacyInputValidationOptions?: IResolverValidationOptions,
 ) {
