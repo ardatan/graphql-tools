@@ -11,6 +11,11 @@ import {
   validate,
   GraphQLSchema,
   ExecutionResult,
+  GraphQLObjectType,
+  OperationTypeNode,
+  typeFromAST,
+  NamedTypeNode,
+  GraphQLInputType,
 } from 'graphql';
 
 import {
@@ -45,6 +50,20 @@ import { observableToAsyncIterable } from './observableToAsyncIterable';
 import { AddMergedTypeFragments } from '../transforms';
 
 import { isAsyncIterable } from 'iterall';
+import { serializeInputValue } from '../utils';
+
+function getDelegatingOperation(
+  parentType: GraphQLObjectType,
+  schema: GraphQLSchema
+): OperationTypeNode {
+  if (parentType === schema.getMutationType()) {
+    return 'mutation';
+  } else if (parentType === schema.getSubscriptionType()) {
+    return 'subscription';
+  } else {
+    return 'query';
+  }
+}
 
 export default function delegateToSchema(
   options: IDelegateToSchemaOptions | GraphQLSchema,
@@ -60,14 +79,14 @@ export default function delegateToSchema(
     schema: subschema,
     rootValue,
     info,
-    operation = info.operation.operation,
+    operation = getDelegatingOperation(info.parentType, info.schema),
     fieldName,
     returnType = info.returnType,
     args,
     context,
     transforms = [],
     skipValidation,
-    mergeTypes,
+    skipTypeMerging,
   } = options;
 
   const request = createDelegatingRequest({
@@ -90,14 +109,14 @@ export default function delegateToSchema(
     returnType,
     context,
     transforms,
-    mergeTypes,
+    skipTypeMerging,
   });
 }
 
 export function createDelegatingRequest({
   schema: subschema,
   info,
-  operation = info.operation.operation,
+  operation = getDelegatingOperation(info.parentType, info.schema),
   fieldName,
   args,
   transforms = [],
@@ -132,10 +151,6 @@ export function createDelegatingRequest({
     transforms.push(
       new AddArgumentsAsVariables(targetSchema, args, info.schema)
     );
-  } else {
-    console.warn(
-      '"args" undefined. "args" argument may be required in a future version. Custom scalars or enums may not be properly serialized prior to delegation.'
-    );
   }
 
   transforms.push(
@@ -160,12 +175,12 @@ export function delegateRequest({
   schema: subschema,
   rootValue,
   info,
-  operation = info.operation.operation,
+  operation,
   fieldName,
   returnType = info.returnType,
   context,
   transforms = [],
-  mergeTypes,
+  skipTypeMerging,
 }: IDelegateRequestOptions): any {
   let targetSchema: GraphQLSchema;
   let subschemaConfig: SubschemaConfig;
@@ -181,7 +196,7 @@ export function delegateRequest({
   }
 
   transforms = [
-    new CheckResultAndHandleErrors(info, fieldName, subschema, context, returnType, mergeTypes),
+    new CheckResultAndHandleErrors(info, fieldName, subschema, context, returnType, skipTypeMerging),
     ...transforms,
   ];
 
@@ -261,7 +276,7 @@ function createInitialRequest(
     selectionSet,
     name: {
       kind: Kind.NAME,
-      value: targetField,
+      value: targetField || info.fieldNodes[0].name.value,
     },
   };
 
@@ -272,7 +287,7 @@ function createInitialRequest(
 
   const operationDefinition: OperationDefinitionNode = {
     kind: Kind.OPERATION_DEFINITION,
-    operation: targetOperation,
+    operation: targetOperation || getDelegatingOperation(info.parentType, info.schema),
     variableDefinitions: info.operation.variableDefinitions,
     selectionSet: rootSelectionSet,
     name: info.operation.name,
@@ -287,9 +302,17 @@ function createInitialRequest(
     definitions: [operationDefinition, ...fragments],
   };
 
+  const variableValues = info.variableValues;
+  const variables = {};
+  for (const variableDefinition of info.operation.variableDefinitions) {
+    const varName = variableDefinition.variable.name.value;
+    const varType = typeFromAST(info.schema, (variableDefinition.type as NamedTypeNode)) as GraphQLInputType;
+    variables[varName] = serializeInputValue(varType, variableValues[varName]);
+  }
+
   return {
     document,
-    variables: info.variableValues,
+    variables,
   };
 }
 

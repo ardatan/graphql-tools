@@ -124,7 +124,7 @@ export function isSubschemaConfig(value: SchemaLikeObject): value is SubschemaCo
 
 export interface IDelegateToSchemaOptions<TContext = { [key: string]: any }> {
   schema: GraphQLSchema | SubschemaConfig;
-  operation: Operation;
+  operation?: Operation;
   fieldName: string;
   returnType?: GraphQLOutputType;
   args?: { [key: string]: any };
@@ -133,7 +133,7 @@ export interface IDelegateToSchemaOptions<TContext = { [key: string]: any }> {
   rootValue?: Record<string, any>;
   transforms?: Array<Transform>;
   skipValidation?: boolean;
-  mergeTypes?: boolean;
+  skipTypeMerging?: boolean;
 }
 
 export interface ICreateDelegatingRequestOptions {
@@ -156,7 +156,7 @@ export interface IDelegateRequestOptions<TContext = { [key: string]: any }> {
   returnType?: GraphQLOutputType;
   context?: TContext;
   transforms?: Array<Transform>;
-  mergeTypes?: boolean;
+  skipTypeMerging?: boolean;
 }
 
 export type Delegator = ({ document, context, variables }: {

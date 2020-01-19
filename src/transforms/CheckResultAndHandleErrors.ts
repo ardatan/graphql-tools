@@ -9,7 +9,7 @@ export default class CheckResultAndHandleErrors implements Transform {
   private fieldName?: string;
   private subschema?: GraphQLSchema | SubschemaConfig;
   private returnType?: GraphQLOutputType;
-  private mergeTypes?: boolean;
+  private typeMerge?: boolean;
 
   constructor(
     info: IGraphQLToolsResolveInfo,
@@ -17,14 +17,14 @@ export default class CheckResultAndHandleErrors implements Transform {
     subschema?: GraphQLSchema | SubschemaConfig,
     context?: Record<string, any>,
     returnType: GraphQLOutputType = info.returnType,
-    mergeTypes?: boolean,
+    typeMerge?: boolean,
   ) {
     this.context = context;
     this.info = info;
     this.fieldName = fieldName;
     this.subschema = subschema;
     this.returnType = returnType;
-    this.mergeTypes = mergeTypes;
+    this.typeMerge = typeMerge;
   }
 
   public transformResult(result: any): any {
@@ -35,7 +35,7 @@ export default class CheckResultAndHandleErrors implements Transform {
       this.fieldName,
       this.subschema,
       this.returnType,
-      this.mergeTypes,
+      this.typeMerge,
     );
   }
 }

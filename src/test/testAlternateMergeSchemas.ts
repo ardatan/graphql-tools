@@ -1760,6 +1760,7 @@ describe('mergeTypes', () => {
             args: { id: originalResult.id },
             context,
             info,
+            skipTypeMerging: true,
           })
         }
       },
@@ -1777,6 +1778,7 @@ describe('mergeTypes', () => {
             args: { id: originalResult.id },
             context,
             info,
+            skipTypeMerging: true,
           })
         }
       },

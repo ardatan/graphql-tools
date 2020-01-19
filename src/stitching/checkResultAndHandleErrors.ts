@@ -36,7 +36,7 @@ export function checkResultAndHandleErrors(
   responseKey?: string,
   subschema?: GraphQLSchema | SubschemaConfig,
   returnType: GraphQLOutputType = info.returnType,
-  mergeTypes?: boolean,
+  skipTypeMerging?: boolean,
 ): any {
   if (!responseKey) {
     responseKey = getResponseKeyFromInfo(info);
@@ -46,7 +46,7 @@ export function checkResultAndHandleErrors(
   const data = result.data && result.data[responseKey];
   const subschemas = [subschema];
 
-  return handleResult(data, errors, subschemas, context, info, returnType, mergeTypes);
+  return handleResult(data, errors, subschemas, context, info, returnType, skipTypeMerging);
 }
 
 export function handleResult(
@@ -56,7 +56,7 @@ export function handleResult(
   context: Record<string, any>,
   info: IGraphQLToolsResolveInfo,
   returnType = info.returnType,
-  mergeTypes?: boolean,
+  skipTypeMerging?: boolean,
 ): any {
   const type = getNullableType(returnType);
 
@@ -67,9 +67,9 @@ export function handleResult(
   if (isLeafType(type)) {
     return type.parseValue(result);
   } else if (isCompositeType(type)) {
-    return handleObject(type, result, errors, subschemas, context, info, mergeTypes);
+    return handleObject(type, result, errors, subschemas, context, info, skipTypeMerging);
   } else if (isListType(type)) {
-    return handleList(type, result, errors, subschemas, context, info, mergeTypes);
+    return handleList(type, result, errors, subschemas, context, info, skipTypeMerging);
   }
 }
 
@@ -95,11 +95,12 @@ export function handleObject(
   subschemas: Array<GraphQLSchema | SubschemaConfig>,
   context: Record<string, any>,
   info: IGraphQLToolsResolveInfo,
-  mergeTypes?: boolean,
+  skipTypeMerging?: boolean,
 ) {
   makeObjectProxiedResult(object, errors, subschemas);
-
-  if (mergeTypes && info.mergeInfo) {
+  if (skipTypeMerging || !info.mergeInfo) {
+    return object;
+  } else {
     return mergeFields(
       type,
       object,
@@ -107,8 +108,6 @@ export function handleObject(
       context,
       info,
     );
-  } else {
-    return object;
   }
 }
 
@@ -119,9 +118,8 @@ function handleList(
   subschemas: Array<GraphQLSchema | SubschemaConfig>,
   context: Record<string, any>,
   info: IGraphQLToolsResolveInfo,
-  mergeTypes?: boolean,
+  skipTypeMerging?: boolean,
 ) {
-
   const childErrors = getErrorsByPathSegment(errors);
 
   list = list.map((listMember, index) => handleListMember(
@@ -132,7 +130,7 @@ function handleList(
     subschemas,
     context,
     info,
-    mergeTypes,
+    skipTypeMerging,
   ));
 
   return list;
@@ -146,7 +144,7 @@ function handleListMember(
   subschemas: Array<GraphQLSchema | SubschemaConfig>,
   context: Record<string, any>,
   info: IGraphQLToolsResolveInfo,
-  mergeTypes?: boolean,
+  skipTypeMerging?: boolean,
 ): any {
   if (listMember == null) {
     return handleNull(info.fieldNodes, [...responsePathAsArray(info.path), index], errors);
@@ -155,9 +153,9 @@ function handleListMember(
   if (isLeafType(type)) {
     return type.parseValue(listMember);
   } else if (isCompositeType(type)) {
-    return handleObject(type, listMember, errors, subschemas, context, info, mergeTypes);
+    return handleObject(type, listMember, errors, subschemas, context, info, skipTypeMerging);
   } else if (isListType(type)) {
-    return handleList(type, listMember, errors, subschemas, context, info, mergeTypes);
+    return handleList(type, listMember, errors, subschemas, context, info, skipTypeMerging);
   }
 }
 
