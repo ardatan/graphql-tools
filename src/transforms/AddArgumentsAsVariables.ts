@@ -24,12 +24,12 @@ import { transformInputValue } from '../utils';
 export default class AddArgumentsAsVariablesTransform implements Transform {
   private targetSchema: GraphQLSchema;
   private args: { [key: string]: any };
-  private newSchema: GraphQLSchema;
+  private sourceSchema: GraphQLSchema;
 
-  constructor(targetSchema: GraphQLSchema, args: { [key: string]: any }, newSchema: GraphQLSchema) {
+  constructor(targetSchema: GraphQLSchema, args: { [key: string]: any }, sourceSchema: GraphQLSchema) {
     this.targetSchema = targetSchema;
     this.args = args;
-    this.newSchema = newSchema;
+    this.sourceSchema = sourceSchema;
   }
 
   public transformRequest(originalRequest: Request): Request {
@@ -37,7 +37,7 @@ export default class AddArgumentsAsVariablesTransform implements Transform {
       this.targetSchema,
       originalRequest.document,
       this.args,
-      this.newSchema,
+      this.sourceSchema,
     );
     const variables = {
       ...originalRequest.variables,
@@ -54,7 +54,7 @@ function addVariablesToRootField(
   targetSchema: GraphQLSchema,
   document: DocumentNode,
   args: { [key: string]: any },
-  newSchema: GraphQLSchema,
+  sourceSchema: GraphQLSchema,
 ): {
   document: DocumentNode;
   newVariables: { [key: string]: any };
@@ -138,13 +138,13 @@ function addVariablesToRootField(
               },
               type: typeToAst(argument.type),
             };
-            if (newSchema) {
+            if (sourceSchema) {
               newVariables[variableName] = transformInputValue(
                 argument.type,
                 args[argument.name],
                 (t, v) => {
-                  const newType = newSchema.getType(t.name) as GraphQLEnumType | GraphQLScalarType;
-                  return newType ? newType.serialize(v) : v;
+                  const type = sourceSchema.getType(t.name) as GraphQLEnumType | GraphQLScalarType;
+                  return type ? type.serialize(v) : v;
                 }
               );
             } else {

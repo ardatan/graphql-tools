@@ -23,9 +23,9 @@ export default class ExpandAbstractTypes implements Transform {
   private mapping: TypeMapping;
   private reverseMapping: TypeMapping;
 
-  constructor(transformedSchema: GraphQLSchema, targetSchema: GraphQLSchema) {
+  constructor(sourceSchema: GraphQLSchema, targetSchema: GraphQLSchema) {
     this.targetSchema = targetSchema;
-    this.mapping = extractPossibleTypes(transformedSchema, targetSchema);
+    this.mapping = extractPossibleTypes(sourceSchema, targetSchema);
     this.reverseMapping = flipMapping(this.mapping);
   }
 
@@ -44,17 +44,17 @@ export default class ExpandAbstractTypes implements Transform {
 }
 
 function extractPossibleTypes(
-  transformedSchema: GraphQLSchema,
+  sourceSchema: GraphQLSchema,
   targetSchema: GraphQLSchema,
 ) {
-  const typeMap = transformedSchema.getTypeMap();
+  const typeMap = sourceSchema.getTypeMap();
   const mapping: TypeMapping = {};
   Object.keys(typeMap).forEach(typeName => {
     const type = typeMap[typeName];
     if (isAbstractType(type)) {
       const targetType = targetSchema.getType(typeName);
       if (!isAbstractType(targetType)) {
-        const implementations = transformedSchema.getPossibleTypes(type) || [];
+        const implementations = sourceSchema.getPossibleTypes(type) || [];
         mapping[typeName] = implementations
           .filter(impl => targetSchema.getType(impl.name))
           .map(impl => impl.name);
