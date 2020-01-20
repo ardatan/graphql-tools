@@ -149,7 +149,7 @@ export function createDelegatingRequest({
 
   if (args) {
     transforms.push(
-      new AddArgumentsAsVariables(targetSchema, args, info.schema)
+      new AddArgumentsAsVariables(targetSchema, args)
     );
   }
 

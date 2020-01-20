@@ -14,22 +14,18 @@ import {
   SelectionNode,
   TypeNode,
   VariableDefinitionNode,
-  GraphQLEnumType,
-  GraphQLScalarType,
 } from 'graphql';
 import { Request } from '../Interfaces';
 import { Transform } from './transforms';
-import { transformInputValue } from '../utils';
+import { serializeInputValue } from '../utils';
 
 export default class AddArgumentsAsVariablesTransform implements Transform {
   private targetSchema: GraphQLSchema;
   private args: { [key: string]: any };
-  private sourceSchema: GraphQLSchema;
 
-  constructor(targetSchema: GraphQLSchema, args: { [key: string]: any }, sourceSchema: GraphQLSchema) {
+  constructor(targetSchema: GraphQLSchema, args: { [key: string]: any }) {
     this.targetSchema = targetSchema;
     this.args = args;
-    this.sourceSchema = sourceSchema;
   }
 
   public transformRequest(originalRequest: Request): Request {
@@ -37,7 +33,6 @@ export default class AddArgumentsAsVariablesTransform implements Transform {
       this.targetSchema,
       originalRequest.document,
       this.args,
-      this.sourceSchema,
     );
     const variables = {
       ...originalRequest.variables,
@@ -54,7 +49,6 @@ function addVariablesToRootField(
   targetSchema: GraphQLSchema,
   document: DocumentNode,
   args: { [key: string]: any },
-  sourceSchema: GraphQLSchema,
 ): {
   document: DocumentNode;
   newVariables: { [key: string]: any };
@@ -138,22 +132,10 @@ function addVariablesToRootField(
               },
               type: typeToAst(argument.type),
             };
-            if (sourceSchema) {
-              newVariables[variableName] = transformInputValue(
-                argument.type,
-                args[argument.name],
-                (t, v) => {
-                  const type = sourceSchema.getType(t.name) as GraphQLEnumType | GraphQLScalarType;
-                  return type ? type.serialize(v) : v;
-                }
-              );
-            } else {
-              // tslint:disable-next-line:max-line-length
-              console.warn(
-                'AddArgumentsAsVariables should be passed the wrapping schema so that arguments can be properly serialized prior to delegation.'
-              );
-              newVariables[variableName] = args[argument.name];
-            }
+            newVariables[variableName] = serializeInputValue(
+              argument.type,
+              args[argument.name],
+            );
           }
         });
 
