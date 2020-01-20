@@ -101,7 +101,6 @@ function defaultCreateProxyingResolver(
 ): GraphQLFieldResolver<any, any> {
   return (parent, args, context, info) => delegateToSchema({
     schema: subschemaConfig,
-    fieldName,
     context,
     info,
   });

@@ -125,7 +125,7 @@ export function isSubschemaConfig(value: SchemaLikeObject): value is SubschemaCo
 export interface IDelegateToSchemaOptions<TContext = { [key: string]: any }> {
   schema: GraphQLSchema | SubschemaConfig;
   operation?: Operation;
-  fieldName: string;
+  fieldName?: string;
   returnType?: GraphQLOutputType;
   args?: { [key: string]: any };
   context?: TContext;

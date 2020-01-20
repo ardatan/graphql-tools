@@ -80,7 +80,7 @@ export default function delegateToSchema(
     rootValue,
     info,
     operation = getDelegatingOperation(info.parentType, info.schema),
-    fieldName,
+    fieldName = info.fieldName,
     returnType = info.returnType,
     args,
     context,
@@ -117,7 +117,7 @@ export function createDelegatingRequest({
   schema: subschema,
   info,
   operation = getDelegatingOperation(info.parentType, info.schema),
-  fieldName,
+  fieldName = info.fieldName,
   args,
   transforms = [],
   skipValidation,
@@ -175,8 +175,8 @@ export function delegateRequest({
   schema: subschema,
   rootValue,
   info,
-  operation,
-  fieldName,
+  operation = getDelegatingOperation(info.parentType, info.schema),
+  fieldName = info.fieldName,
   returnType = info.returnType,
   context,
   transforms = [],
@@ -229,7 +229,6 @@ export function delegateRequest({
         // "subscribe" to the subscription result and map the result through the transforms
         return mapAsyncIterator<ExecutionResult, any>(subscriptionResult, result => {
           const transformedResult = applyResultTransforms(result, transforms);
-
           // wrap with fieldName to return for an additional round of resolutioon
           // with payload as rootValue
           return {

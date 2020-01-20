@@ -443,15 +443,15 @@ describe('transform object fields', () => {
         }
         return true;
       }),
-      new RenameObjectFields((_typeName, fieldName) => {
-        if (fieldName === 'camel_case') {
-          return 'camelCase';
-        }
-        return fieldName;
-      }),
       new RenameRootFields((_operation, fieldName) => {
         if (fieldName === 'allItems') {
           return 'items';
+        }
+        return fieldName;
+      }),
+      new RenameObjectFields((_typeName, fieldName) => {
+        if (fieldName === 'camel_case') {
+          return 'camelCase';
         }
         return fieldName;
       }),

@@ -1,4 +1,5 @@
 import { GraphQLField, GraphQLSchema } from 'graphql';
+import { Request } from '../Interfaces';
 import { Transform } from './transforms';
 import TransformRootFields from './TransformRootFields';
 
@@ -27,5 +28,9 @@ export default class RenameRootFields implements Transform {
 
   public transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
     return this.transformer.transformSchema(originalSchema);
+  }
+
+  public transformRequest(originalRequest: Request): Request {
+    return this.transformer.transformRequest(originalRequest);
   }
 }

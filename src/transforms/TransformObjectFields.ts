@@ -57,9 +57,6 @@ export default class TransformObjectFields implements Transform {
 
   public transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
     this.transformedSchema = visitSchema(originalSchema, {
-      [VisitSchemaKind.ROOT_OBJECT]: () => {
-        return undefined;
-      },
       [VisitSchemaKind.OBJECT_TYPE]: (type: GraphQLObjectType) => {
         return this.transformFields(type, this.objectFieldTransformer);
       }
