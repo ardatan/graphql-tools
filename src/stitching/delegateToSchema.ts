@@ -36,7 +36,7 @@ import {
   applyResultTransforms,
 } from '../transforms/transforms';
 
-import AddArgumentsAsVariables from '../transforms/AddArgumentsAsVariables';
+import AddArguments from '../transforms/AddArguments';
 import FilterToSchema from '../transforms/FilterToSchema';
 import AddTypenameToAbstract from '../transforms/AddTypenameToAbstract';
 import CheckResultAndHandleErrors from '../transforms/CheckResultAndHandleErrors';
@@ -149,7 +149,7 @@ export function createDelegatingRequest({
 
   if (args) {
     transforms.push(
-      new AddArgumentsAsVariables(targetSchema, args)
+      new AddArguments(targetSchema, args)
     );
   }
 
