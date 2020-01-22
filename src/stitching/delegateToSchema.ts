@@ -4,7 +4,6 @@ import {
   FragmentDefinitionNode,
   Kind,
   OperationDefinitionNode,
-  SelectionSetNode,
   SelectionNode,
   subscribe,
   execute,
@@ -19,11 +18,12 @@ import {
   GraphQLField,
   GraphQLArgument,
   astFromValue,
+  VariableDefinitionNode,
 } from 'graphql';
 
 import {
   IDelegateToSchemaOptions,
-  ICreateDelegatingRequestOptions,
+  ICreateRequestFromInfo,
   IDelegateRequestOptions,
   Operation,
   Request,
@@ -31,7 +31,6 @@ import {
   Delegator,
   SubschemaConfig,
   isSubschemaConfig,
-  IGraphQLToolsResolveInfo,
 } from '../Interfaces';
 
 import {
@@ -71,98 +70,37 @@ export default function delegateToSchema(
 ): any {
   if (options instanceof GraphQLSchema) {
     throw new Error(
-      'Passing positional arguments to delegateToSchema is a deprecated. ' +
+      'Passing positional arguments to delegateToSchema is deprecated. ' +
         'Please pass named parameters instead.',
     );
   }
 
   const {
-    schema: subschema,
-    rootValue,
+    schema: subschemaOrSubschemaConfig,
     info,
     operation = getDelegatingOperation(info.parentType, info.schema),
     fieldName = info.fieldName,
     returnType = info.returnType,
     args,
-    context,
-    transforms = [],
-    skipValidation,
-    skipTypeMerging,
+    fieldNodes = info.fieldNodes,
   } = options;
 
-  const request = createDelegatingRequest({
-    schema: subschema,
+  const request = createRequestFromInfo({
     info,
+    schema: subschemaOrSubschemaConfig,
     operation,
     fieldName,
-    args,
-    transforms,
-    skipValidation,
+    additionalArgs: args,
+    fieldNodes,
   });
 
   return delegateRequest({
+    ...options,
     request,
-    schema: subschema,
-    rootValue,
-    info,
     operation,
     fieldName,
     returnType,
-    context,
-    transforms,
-    skipTypeMerging,
   });
-}
-
-export function createDelegatingRequest({
-  schema: subschema,
-  info,
-  operation = getDelegatingOperation(info.parentType, info.schema),
-  fieldName = info.fieldName,
-  args,
-  transforms = [],
-  skipValidation,
-}: ICreateDelegatingRequestOptions): any {
-  let targetSchema: GraphQLSchema;
-  let subschemaConfig: SubschemaConfig;
-
-  if (isSubschemaConfig(subschema)) {
-    subschemaConfig = subschema;
-    targetSchema = subschemaConfig.schema;
-    transforms = transforms.concat((subschemaConfig.transforms || []).slice().reverse());
-  } else {
-    targetSchema = subschema;
-  }
-
-  const initialRequest = createInitialRequest(info, operation, fieldName, targetSchema, args);
-
-  transforms = [
-    ...transforms,
-    new ExpandAbstractTypes(info.schema, targetSchema),
-  ];
-
-  if (info.mergeInfo) {
-    transforms.push(
-      new AddReplacementFragments(targetSchema, info.mergeInfo.replacementFragments),
-      new AddMergedTypeFragments(targetSchema, info.mergeInfo.mergedTypes),
-    );
-  }
-
-  transforms.push(
-    new FilterToSchema(targetSchema),
-    new AddTypenameToAbstract(targetSchema),
-  );
-
-  const delegatingRequest = applyRequestTransforms(initialRequest, transforms);
-
-  if (!skipValidation) {
-    const errors = validate(targetSchema, delegatingRequest.document);
-    if (errors.length > 0) {
-      throw errors;
-    }
-  }
-
-  return delegatingRequest;
 }
 
 export function delegateRequest({
@@ -172,9 +110,11 @@ export function delegateRequest({
   info,
   operation = getDelegatingOperation(info.parentType, info.schema),
   fieldName = info.fieldName,
+  fieldNodes = info.fieldNodes,
   returnType = info.returnType,
   context,
   transforms = [],
+  skipValidation,
   skipTypeMerging,
 }: IDelegateRequestOptions): any {
   let targetSchema: GraphQLSchema;
@@ -193,7 +133,29 @@ export function delegateRequest({
   transforms = [
     new CheckResultAndHandleErrors(info, fieldName, subschema, context, returnType, skipTypeMerging),
     ...transforms,
+    new ExpandAbstractTypes(info.schema, targetSchema),
   ];
+
+  if (info.mergeInfo) {
+    transforms.push(
+      new AddReplacementFragments(targetSchema, info.mergeInfo.replacementFragments),
+      new AddMergedTypeFragments(targetSchema, info.mergeInfo.mergedTypes),
+    );
+  }
+
+  transforms.push(
+    new FilterToSchema(targetSchema),
+    new AddTypenameToAbstract(targetSchema),
+  );
+
+  request = applyRequestTransforms(request, transforms);
+
+  if (!skipValidation) {
+    const errors = validate(targetSchema, request.document);
+    if (errors.length > 0) {
+      throw errors;
+    }
+  }
 
   if (operation === 'query' || operation === 'mutation') {
 
@@ -238,17 +200,40 @@ export function delegateRequest({
   }
 }
 
-function createInitialRequest(
-  info: IGraphQLToolsResolveInfo,
+export function createRequestFromInfo({
+  info,
+  schema,
+  operation = getDelegatingOperation(info.parentType, info.schema),
+  fieldName = info.fieldName,
+  additionalArgs,
+  fieldNodes = info.fieldNodes,
+}: ICreateRequestFromInfo): Request {
+  return createRequest(
+    info.schema,
+    info.fragments,
+    info.operation.variableDefinitions,
+    info.variableValues,
+    schema,
+    operation,
+    fieldName,
+    additionalArgs,
+    fieldNodes,
+  );
+}
+
+export function createRequest(
+  sourceSchema: GraphQLSchema,
+  fragments: Record<string, FragmentDefinitionNode>,
+  variableDefinitions: ReadonlyArray<VariableDefinitionNode>,
+  variableValues: Record<string, any>,
+  targetSchemaOrSchemaConfig: GraphQLSchema | SubschemaConfig,
   targetOperation: Operation,
   targetField: string,
-  targetSchema: GraphQLSchema,
-  newArgsMap: Record<string, any>,
+  additionalArgs: Record<string, any>,
+  fieldNodes: ReadonlyArray<FieldNode>,
 ): Request {
   let selections: Array<SelectionNode> = [];
-  let args: ReadonlyArray<ArgumentNode> = info.fieldNodes[0].arguments || [];
-
-  const originalSelections: ReadonlyArray<SelectionNode> = info.fieldNodes;
+  const originalSelections: ReadonlyArray<SelectionNode> = fieldNodes;
   originalSelections.forEach((field: FieldNode) => {
     const fieldSelections = field.selectionSet
       ? field.selectionSet.selections
@@ -264,44 +249,46 @@ function createInitialRequest(
     };
   }
 
-  const rootField: FieldNode = {
+  const fieldNode: FieldNode = {
     kind: Kind.FIELD,
     alias: null,
-    arguments: newArgsMap ? updateArguments(targetSchema, targetOperation, targetField, args, newArgsMap) : args,
+    arguments: additionalArgs ? updateArguments(
+      targetSchemaOrSchemaConfig,
+      targetOperation,
+      targetField,
+      fieldNodes[0].arguments,
+      additionalArgs,
+    ) : fieldNodes[0].arguments,
     selectionSet,
     name: {
       kind: Kind.NAME,
-      value: targetField || info.fieldNodes[0].name.value,
+      value: targetField || fieldNodes[0].name.value,
     },
-  };
-
-  const rootSelectionSet: SelectionSetNode = {
-    kind: Kind.SELECTION_SET,
-    selections: [rootField],
   };
 
   const operationDefinition: OperationDefinitionNode = {
     kind: Kind.OPERATION_DEFINITION,
-    operation: targetOperation || getDelegatingOperation(info.parentType, info.schema),
-    variableDefinitions: info.operation.variableDefinitions,
-    selectionSet: rootSelectionSet,
-    name: info.operation.name,
+    operation: targetOperation,
+    variableDefinitions,
+    selectionSet: {
+      kind: Kind.SELECTION_SET,
+      selections: [fieldNode],
+    },
   };
 
-  const fragments: Array<FragmentDefinitionNode> = Object.keys(info.fragments).map(
-    fragmentName => info.fragments[fragmentName],
+  const fragmentDefinitions: Array<FragmentDefinitionNode> = Object.keys(fragments).map(
+    fragmentName => fragments[fragmentName],
   );
 
   const document = {
     kind: Kind.DOCUMENT,
-    definitions: [operationDefinition, ...fragments],
+    definitions: [operationDefinition, ...fragmentDefinitions],
   };
 
-  const variableValues = info.variableValues;
   const variables = {};
-  for (const variableDefinition of info.operation.variableDefinitions) {
+  for (const variableDefinition of variableDefinitions) {
     const varName = variableDefinition.variable.name.value;
-    const varType = typeFromAST(info.schema, (variableDefinition.type as NamedTypeNode)) as GraphQLInputType;
+    const varType = typeFromAST(sourceSchema, (variableDefinition.type as NamedTypeNode)) as GraphQLInputType;
     variables[varName] = serializeInputValue(varType, variableValues[varName]);
   }
 
@@ -312,12 +299,15 @@ function createInitialRequest(
 }
 
 function updateArguments(
-  schema: GraphQLSchema,
+  subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig,
   operation: OperationTypeNode,
   fieldName: string,
   argumentNodes: ReadonlyArray<ArgumentNode>,
   newArgsMap: Record<string, any>,
 ): Array<ArgumentNode> {
+  const schema = isSubschemaConfig(subschemaOrSubschemaConfig) ?
+    subschemaOrSubschemaConfig.schema : subschemaOrSubschemaConfig;
+
   let type: GraphQLObjectType;
   if (operation === 'subscription') {
     type = schema.getSubscriptionType();
@@ -328,9 +318,11 @@ function updateArguments(
   }
 
   const newArgs: Record<string, ArgumentNode> = {};
-  argumentNodes.forEach((argument: ArgumentNode) => {
-    newArgs[argument.name.value] = argument;
-  });
+  if (argumentNodes) {
+    argumentNodes.forEach((argument: ArgumentNode) => {
+      newArgs[argument.name.value] = argument;
+    });
+  }
 
   const field: GraphQLField<any, any> = type.getFields()[fieldName];
   field.args.forEach((argument: GraphQLArgument) => {

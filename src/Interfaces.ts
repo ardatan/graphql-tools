@@ -11,6 +11,7 @@ import {
   GraphQLTypeResolver,
   GraphQLScalarType,
   DocumentNode,
+  FieldNode,
   GraphQLEnumValue,
   GraphQLEnumType,
   GraphQLUnionType,
@@ -127,6 +128,7 @@ export interface IDelegateToSchemaOptions<TContext = { [key: string]: any }> {
   operation?: Operation;
   fieldName?: string;
   returnType?: GraphQLOutputType;
+  fieldNodes?: ReadonlyArray<FieldNode>;
   args?: { [key: string]: any };
   context?: TContext;
   info: IGraphQLToolsResolveInfo;
@@ -136,28 +138,18 @@ export interface IDelegateToSchemaOptions<TContext = { [key: string]: any }> {
   skipTypeMerging?: boolean;
 }
 
-export interface ICreateDelegatingRequestOptions {
-  schema: GraphQLSchema | SubschemaConfig;
+export interface ICreateRequestFromInfo {
   info: IGraphQLToolsResolveInfo;
+  schema: GraphQLSchema | SubschemaConfig;
   operation: Operation;
   fieldName: string;
-  args?: { [key: string]: any };
-  transforms?: Array<Transform>;
-  skipValidation?: boolean;
+  additionalArgs: Record<string, any>;
+  fieldNodes: ReadonlyArray<FieldNode>;
 }
 
-export interface IDelegateRequestOptions<TContext = { [key: string]: any }> {
+export type IDelegateRequestOptions = {
   request: Request;
-  schema: GraphQLSchema | SubschemaConfig;
-  rootValue?: Record<string, any>;
-  info: IGraphQLToolsResolveInfo;
-  operation: Operation;
-  fieldName: string;
-  returnType?: GraphQLOutputType;
-  context?: TContext;
-  transforms?: Array<Transform>;
-  skipTypeMerging?: boolean;
-}
+} & IDelegateToSchemaOptions;
 
 export type Delegator = ({ document, context, variables }: {
   document: DocumentNode;
