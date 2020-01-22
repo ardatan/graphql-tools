@@ -1,5 +1,9 @@
-import { Transform } from './transforms';
-export { Transform };
+export {
+  Transform,
+  applySchemaTransforms,
+  applyRequestTransforms,
+  applyResultTransforms,
+} from './transforms';
 
 export { default as filterSchema } from './filterSchema';
 export { default as transformSchema, wrapSchema } from './transformSchema';

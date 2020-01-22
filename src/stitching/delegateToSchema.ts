@@ -35,24 +35,23 @@ import {
 } from '../Interfaces';
 
 import {
+  ExpandAbstractTypes,
+  FilterToSchema,
+  AddReplacementFragments,
+  AddMergedTypeFragments,
+  AddTypenameToAbstract,
+  CheckResultAndHandleErrors,
   applyRequestTransforms,
   applyResultTransforms,
-} from '../transforms/transforms';
+} from '../transforms';
 
-import FilterToSchema from '../transforms/FilterToSchema';
-import AddTypenameToAbstract from '../transforms/AddTypenameToAbstract';
-import CheckResultAndHandleErrors from '../transforms/CheckResultAndHandleErrors';
-import mapAsyncIterator from './mapAsyncIterator';
-import ExpandAbstractTypes from '../transforms/ExpandAbstractTypes';
-import AddReplacementFragments from '../transforms/AddReplacementFragments';
+import { serializeInputValue } from '../utils';
 
 import { ApolloLink, execute as executeLink } from 'apollo-link';
 import linkToFetcher from './linkToFetcher';
 import { observableToAsyncIterable } from './observableToAsyncIterable';
-import { AddMergedTypeFragments } from '../transforms';
-
 import { isAsyncIterable } from 'iterall';
-import { serializeInputValue } from '../utils';
+import mapAsyncIterator from './mapAsyncIterator';
 
 function getDelegatingOperation(
   parentType: GraphQLObjectType,
