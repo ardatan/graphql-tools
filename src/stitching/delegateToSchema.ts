@@ -16,6 +16,9 @@ import {
   typeFromAST,
   NamedTypeNode,
   GraphQLInputType,
+  GraphQLField,
+  GraphQLArgument,
+  astFromValue,
 } from 'graphql';
 
 import {
@@ -36,7 +39,6 @@ import {
   applyResultTransforms,
 } from '../transforms/transforms';
 
-import AddArguments from '../transforms/AddArguments';
 import FilterToSchema from '../transforms/FilterToSchema';
 import AddTypenameToAbstract from '../transforms/AddTypenameToAbstract';
 import CheckResultAndHandleErrors from '../transforms/CheckResultAndHandleErrors';
@@ -133,7 +135,7 @@ export function createDelegatingRequest({
     targetSchema = subschema;
   }
 
-  const initialRequest = createInitialRequest(fieldName, operation, info);
+  const initialRequest = createInitialRequest(info, operation, fieldName, targetSchema, args);
 
   transforms = [
     ...transforms,
@@ -144,12 +146,6 @@ export function createDelegatingRequest({
     transforms.push(
       new AddReplacementFragments(targetSchema, info.mergeInfo.replacementFragments),
       new AddMergedTypeFragments(targetSchema, info.mergeInfo.mergedTypes),
-    );
-  }
-
-  if (args) {
-    transforms.push(
-      new AddArguments(targetSchema, args)
     );
   }
 
@@ -244,12 +240,14 @@ export function delegateRequest({
 }
 
 function createInitialRequest(
-  targetField: string,
-  targetOperation: Operation,
   info: IGraphQLToolsResolveInfo,
+  targetOperation: Operation,
+  targetField: string,
+  targetSchema: GraphQLSchema,
+  newArgsMap: Record<string, any>,
 ): Request {
   let selections: Array<SelectionNode> = [];
-  let args: Array<ArgumentNode> = [];
+  let args: ReadonlyArray<ArgumentNode> = info.fieldNodes[0].arguments || [];
 
   const originalSelections: ReadonlyArray<SelectionNode> = info.fieldNodes;
   originalSelections.forEach((field: FieldNode) => {
@@ -257,10 +255,9 @@ function createInitialRequest(
       ? field.selectionSet.selections
       : [];
     selections = selections.concat(fieldSelections);
-    args = args.concat(field.arguments || []);
   });
 
-  let selectionSet = null;
+  let selectionSet = undefined;
   if (selections.length > 0) {
     selectionSet = {
       kind: Kind.SELECTION_SET,
@@ -271,7 +268,7 @@ function createInitialRequest(
   const rootField: FieldNode = {
     kind: Kind.FIELD,
     alias: null,
-    arguments: args,
+    arguments: newArgsMap ? updateArguments(targetSchema, targetOperation, targetField, args, newArgsMap) : args,
     selectionSet,
     name: {
       kind: Kind.NAME,
@@ -313,6 +310,44 @@ function createInitialRequest(
     document,
     variables,
   };
+}
+
+function updateArguments(
+  schema: GraphQLSchema,
+  operation: OperationTypeNode,
+  fieldName: string,
+  argumentNodes: ReadonlyArray<ArgumentNode>,
+  newArgsMap: Record<string, any>,
+): Array<ArgumentNode> {
+  let type: GraphQLObjectType;
+  if (operation === 'subscription') {
+    type = schema.getSubscriptionType();
+  } else if (operation === 'mutation') {
+    type = schema.getMutationType();
+  } else {
+    type = schema.getQueryType();
+  }
+
+  const newArgs: Record<string, ArgumentNode> = {};
+  argumentNodes.forEach((argument: ArgumentNode) => {
+    newArgs[argument.name.value] = argument;
+  });
+
+  const field: GraphQLField<any, any> = type.getFields()[fieldName];
+  field.args.forEach((argument: GraphQLArgument) => {
+    if (newArgsMap[argument.name]) {
+      newArgs[argument.name] = {
+        kind: Kind.ARGUMENT,
+        name: {
+          kind: Kind.NAME,
+          value: argument.name,
+        },
+        value: astFromValue(newArgsMap[argument.name], argument.type),
+      };
+    }
+  });
+
+  return Object.keys(newArgs).map(argName => newArgs[argName]);
 }
 
 function createExecutor(

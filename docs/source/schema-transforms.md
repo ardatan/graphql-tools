@@ -301,7 +301,6 @@ transforms: [
 
 The following transforms are automatically applied by `delegateToSchema` during schema delegation, to translate between new and old types and fields:
 
-* `AddArguments`: Given a schema and arguments passed to a root field, add arguments to request.
 * `ExpandAbstractTypes`: If an abstract type within a document does not exist in the inner schema, expand the type to each and any of its implementations that do exist in the inner schema.
 * `FilterToSchema`: Given a schema and document, remove all fields, variables and fragments for types that don't exist in that schema.
 * `AddTypenameToAbstract`: Add `__typename` to all abstract types in the document, necessary for type resolution of interfaces within the outer schema to work.
