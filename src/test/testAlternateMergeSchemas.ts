@@ -1753,11 +1753,12 @@ describe('mergeTypes', () => {
       mergedTypeConfigs: {
         Test: {
           fragment: 'fragment TestFragment on Test { id }',
-          mergedTypeResolver: (subschema, originalResult, context, info) => delegateToSchema({
+          merge: (originalResult, context, info, subschema, fieldNodes) => delegateToSchema({
             schema: subschema,
             operation: 'query',
             fieldName: 'getTest',
             args: { id: originalResult.id },
+            fieldNodes,
             context,
             info,
             skipTypeMerging: true,
@@ -1771,11 +1772,12 @@ describe('mergeTypes', () => {
       mergedTypeConfigs: {
         Test: {
           fragment: 'fragment TestFragment on Test { id }',
-          mergedTypeResolver: (subschema, originalResult, context, info) => delegateToSchema({
+          merge: (originalResult, context, info, subschema, fieldNodes) => delegateToSchema({
             schema: subschema,
             operation: 'query',
             fieldName: 'getTest',
             args: { id: originalResult.id },
+            fieldNodes,
             context,
             info,
             skipTypeMerging: true,

@@ -10,6 +10,7 @@ import {
   parse,
   Kind,
   GraphQLDirective,
+  InlineFragmentNode,
 } from 'graphql';
 import {
   IDelegateToSchemaOptions,
@@ -21,7 +22,6 @@ import {
   IResolvers,
   SubschemaConfig,
   IGraphQLToolsResolveInfo,
-  MergedTypeMapping,
 } from '../Interfaces';
 import {
   extractExtensionDefinitions,
@@ -50,6 +50,7 @@ type MergeTypeCandidate = {
   type: GraphQLNamedType;
   schema?: GraphQLSchema;
   subschema?: GraphQLSchema | SubschemaConfig;
+  transformedSubschema?: GraphQLSchema;
 };
 
 type CandidateSelector = (
@@ -110,6 +111,7 @@ export default function mergeSchemas({
             schema,
             type: operationTypes[typeName],
             subschema: schemaLikeObject,
+            transformedSubschema: schema,
           });
         }
       });
@@ -135,6 +137,7 @@ export default function mergeSchemas({
             schema,
             type,
             subschema: schemaLikeObject,
+            transformedSubschema: schema,
           });
         }
       });
@@ -271,27 +274,64 @@ function createMergeInfo(
   allSchemas: Array<GraphQLSchema>,
   typeCandidates: { [name: string]: Array<MergeTypeCandidate> },
 ): MergeInfo {
-  const mergedTypes: MergedTypeMapping = {};
+  const mergedTypes = {};
 
   Object.keys(typeCandidates).forEach(typeName => {
-    const subschemaConfigs: Array<SubschemaConfig> =
+    const mergedTypeCandidates =
       typeCandidates[typeName]
-        .filter(typeCandidate => typeCandidate.subschema && isSubschemaConfig(typeCandidate.subschema))
-        .map(typeCandidate => typeCandidate.subschema as SubschemaConfig);
+        .filter(typeCandidate =>
+          typeCandidate.subschema &&
+          isSubschemaConfig(typeCandidate.subschema) &&
+          typeCandidate.subschema.mergedTypeConfigs &&
+          typeCandidate.subschema.mergedTypeConfigs[typeName]
+        );
 
-    const mergeTypeConfigs = subschemaConfigs
-      .filter(subschemaConfig =>
-        subschemaConfig.mergedTypeConfigs && subschemaConfig.mergedTypeConfigs[typeName])
-      .map(subschemaConfig => subschemaConfig.mergedTypeConfigs[typeName]);
+    if (mergedTypeCandidates.length) {
+      const subschemas: Array<SubschemaConfig> = [];
+      const parsedFragments: Array<InlineFragmentNode> = [];
+      const fields = Object.create({});
+      const typeMaps = new Map();
 
-    if (mergeTypeConfigs.length) {
-      const inlineFragments = mergeTypeConfigs
-        .filter(mergeTypeConfig => mergeTypeConfig.fragment)
-        .map(mergeTypeConfig => parseFragmentToInlineFragment(mergeTypeConfig.fragment));
+      mergedTypeCandidates.forEach(typeCandidate => {
+        const subschemaConfig = typeCandidate.subschema as SubschemaConfig;
+        const transformedSubschema = typeCandidate.transformedSubschema;
+        typeMaps.set(subschemaConfig, transformedSubschema.getTypeMap());
+        const type = transformedSubschema.getType(typeName) as GraphQLObjectType;
+        const fieldMap = type.getFields();
+        Object.keys(fieldMap).forEach(fieldName => {
+          fields[fieldName] = fields[fieldName] || [];
+          fields[fieldName].push(subschemaConfig);
+        });
+
+        const mergedTypeConfig = subschemaConfig.mergedTypeConfigs[typeName];
+        if (mergedTypeConfig.fragment) {
+          const parsedFragment = parseFragmentToInlineFragment(mergedTypeConfig.fragment);
+          parsedFragments.push(parsedFragment);
+          mergedTypeConfig.parsedFragment = parsedFragment;
+        }
+
+        subschemas.push(subschemaConfig);
+      });
+
       mergedTypes[typeName] = {
-        fragment: concatInlineFragments(typeName, inlineFragments),
-        subschemas: subschemaConfigs,
+        subschemas,
+        typeMaps,
+        uniqueFields: Object.create({}),
+        nonUniqueFields: Object.create({}),
       };
+
+      Object.keys(fields).forEach(fieldName => {
+        const supportedBySubschemas = fields[fieldName];
+        if (supportedBySubschemas.length === 1) {
+          mergedTypes[typeName].uniqueFields[fieldName] = supportedBySubschemas[0];
+        } else {
+          mergedTypes[typeName].nonUniqueFields[fieldName] = supportedBySubschemas;
+        }
+      });
+
+      if (parsedFragments.length) {
+        mergedTypes[typeName].fragment = concatInlineFragments(typeName, parsedFragments);
+      }
     }
   });
 
@@ -367,7 +407,7 @@ function completeMergeInfo(
     mapping[actualTypeName][field].push(parsedFragment);
   });
 
-  const replacementFragments = Object.create({});
+  const replacementFragments = Object.create(null);
   Object.keys(mapping).forEach(typeName => {
     Object.keys(mapping[typeName]).forEach(field => {
       replacementFragments[typeName] = mapping[typeName] || {};

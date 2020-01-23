@@ -4,19 +4,23 @@ import {
   responsePathAsArray,
 } from 'graphql';
 import { SubschemaConfig, IGraphQLToolsResolveInfo } from '../Interfaces';
-import { handleNull, makeObjectProxiedResult } from './checkResultAndHandleErrors';
+import { handleNull } from './checkResultAndHandleErrors';
 import { relocatedError } from './errors';
+import { mergeDeep } from '../utils';
 
-export let SUBSCHEMAS_SYMBOL: any;
+export let OBJECT_SUBSCHEMA_SYMBOL: any;
+export let SUBSCHEMA_MAP_SYMBOL: any;
 export let ERROR_SYMBOL: any;
 if (
   (typeof global !== 'undefined' && 'Symbol' in global) ||
   (typeof window !== 'undefined' && 'Symbol' in window)
 ) {
-  SUBSCHEMAS_SYMBOL = Symbol('subschemas');
+  OBJECT_SUBSCHEMA_SYMBOL = Symbol('initialSubschema');
+  SUBSCHEMA_MAP_SYMBOL = Symbol('subschemaMap');
   ERROR_SYMBOL = Symbol('subschemaErrors');
 } else {
-  SUBSCHEMAS_SYMBOL = Symbol('subschemas');
+  OBJECT_SUBSCHEMA_SYMBOL = Symbol('@@__initialSubschema');
+  SUBSCHEMA_MAP_SYMBOL = Symbol('@@__subschemaMap');
   ERROR_SYMBOL = '@@__subschemaErrors';
 }
 
@@ -24,12 +28,18 @@ export function isProxiedResult(result: any) {
   return result && result[ERROR_SYMBOL];
 }
 
-export function getSubschemas(result: any): Array<GraphQLSchema | SubschemaConfig> {
-  return result && result[SUBSCHEMAS_SYMBOL];
+export function getSubschema(result: any, responseKey: string): GraphQLSchema | SubschemaConfig {
+  const subschema = result[SUBSCHEMA_MAP_SYMBOL] && result[SUBSCHEMA_MAP_SYMBOL][responseKey];
+  return subschema ? subschema : result[OBJECT_SUBSCHEMA_SYMBOL];
 }
 
-export function setSubschemas(result: any, subschemas: Array<GraphQLSchema | SubschemaConfig>) {
-  result[SUBSCHEMAS_SYMBOL] = subschemas;
+export function setObjectSubschema(result: any, subschema: GraphQLSchema | SubschemaConfig) {
+  result[OBJECT_SUBSCHEMA_SYMBOL] = subschema;
+}
+
+export function setSubschemaForKey(result: any, responseKey: string, subschema: GraphQLSchema | SubschemaConfig) {
+  result[SUBSCHEMA_MAP_SYMBOL] = result[SUBSCHEMA_MAP_SYMBOL] || Object.create(null);
+  result[SUBSCHEMA_MAP_SYMBOL][responseKey] = subschema;
 }
 
 export function setErrors(result: any, errors: Array<GraphQLError>) {
@@ -66,13 +76,22 @@ export function unwrapResult(
   for (let i = 0; i < pathLength; i++) {
     const responseKey = path[i];
     const errors = getErrors(parent, responseKey);
-    const subschemas = getSubschemas(parent);
+    const subschema = getSubschema(parent, responseKey);
 
     const object = parent[responseKey];
     if (object == null) {
       return handleNull(info.fieldNodes, responsePathAsArray(info.path), errors);
     }
-    makeObjectProxiedResult(object, errors, subschemas);
+
+    setErrors(object, errors.map(error => {
+      return relocatedError(
+        error,
+        error.nodes,
+        error.path ? error.path.slice(1) : undefined
+      );
+    }));
+    setObjectSubschema(object, subschema);
+
     parent = object;
   }
 
@@ -104,7 +123,22 @@ export function dehoistResult(parent: any, delimeter: string = '__gqltf__'): any
     }
   });
 
-  result[SUBSCHEMAS_SYMBOL] = parent[SUBSCHEMAS_SYMBOL];
+  result[OBJECT_SUBSCHEMA_SYMBOL] = parent[OBJECT_SUBSCHEMA_SYMBOL];
 
   return result;
+}
+
+export function mergeProxiedResults(target: any, ...sources: any): any {
+  const errors = target[ERROR_SYMBOL].concat(sources.map((source: any) => source[ERROR_SYMBOL]));
+  const subschemaMap = sources.reduce((acc: Record<any, SubschemaConfig>, source: any) => {
+    const subschema = source[OBJECT_SUBSCHEMA_SYMBOL];
+    Object.keys(source).forEach(key => {
+      acc[key] = subschema;
+    });
+    return acc;
+  }, {});
+  return mergeDeep(target, ...sources, {
+    [ERROR_SYMBOL]: errors,
+    [SUBSCHEMA_MAP_SYMBOL]: subschemaMap,
+  });
 }

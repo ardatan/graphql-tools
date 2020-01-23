@@ -14,6 +14,7 @@ import {
   GraphQLSchema,
   FieldNode,
   isAbstractType,
+  GraphQLObjectType,
 } from 'graphql';
 import { getResponseKeyFromInfo } from './getResponseKeyFromInfo';
 import {
@@ -24,10 +25,12 @@ import {
 import {
   SubschemaConfig,
   IGraphQLToolsResolveInfo,
+  isSubschemaConfig,
 } from '../Interfaces';
 import resolveFromParentTypename from './resolveFromParentTypename';
-import { setErrors, setSubschemas } from './proxiedResult';
-import { mergeDeep } from '../utils';
+import { setErrors, setObjectSubschema } from './proxiedResult';
+import { collectFields } from '../utils';
+import { mergeFields } from './mergeFields';
 
 export function checkResultAndHandleErrors(
   result: ExecutionResult,
@@ -44,15 +47,14 @@ export function checkResultAndHandleErrors(
 
   const errors = result.errors || [];
   const data = result.data && result.data[responseKey];
-  const subschemas = [subschema];
 
-  return handleResult(data, errors, subschemas, context, info, returnType, skipTypeMerging);
+  return handleResult(data, errors, subschema, context, info, returnType, skipTypeMerging);
 }
 
 export function handleResult(
   result: any,
   errors: ReadonlyArray<GraphQLError>,
-  subschemas: Array<GraphQLSchema | SubschemaConfig>,
+  subschema: GraphQLSchema | SubschemaConfig,
   context: Record<string, any>,
   info: IGraphQLToolsResolveInfo,
   returnType = info.returnType,
@@ -67,47 +69,9 @@ export function handleResult(
   if (isLeafType(type)) {
     return type.parseValue(result);
   } else if (isCompositeType(type)) {
-    return handleObject(type, result, errors, subschemas, context, info, skipTypeMerging);
+    return handleObject(type, result, errors, subschema, context, info, skipTypeMerging);
   } else if (isListType(type)) {
-    return handleList(type, result, errors, subschemas, context, info, skipTypeMerging);
-  }
-}
-
-export function makeObjectProxiedResult(
-  object: any,
-  errors: ReadonlyArray<GraphQLError>,
-  subschemas: Array<GraphQLSchema | SubschemaConfig>,
-) {
-  setErrors(object, errors.map(error => {
-    return relocatedError(
-      error,
-      error.nodes,
-      error.path ? error.path.slice(1) : undefined
-    );
-  }));
-  setSubschemas(object, subschemas);
-}
-
-export function handleObject(
-  type: GraphQLCompositeType,
-  object: any,
-  errors: ReadonlyArray<GraphQLError>,
-  subschemas: Array<GraphQLSchema | SubschemaConfig>,
-  context: Record<string, any>,
-  info: IGraphQLToolsResolveInfo,
-  skipTypeMerging?: boolean,
-) {
-  makeObjectProxiedResult(object, errors, subschemas);
-  if (skipTypeMerging || !info.mergeInfo) {
-    return object;
-  } else {
-    return mergeFields(
-      type,
-      object,
-      subschemas,
-      context,
-      info,
-    );
+    return handleList(type, result, errors, subschema, context, info, skipTypeMerging);
   }
 }
 
@@ -115,7 +79,7 @@ function handleList(
   type: GraphQLList<any>,
   list: Array<any>,
   errors: ReadonlyArray<GraphQLError>,
-  subschemas: Array<GraphQLSchema | SubschemaConfig>,
+  subschema: GraphQLSchema | SubschemaConfig,
   context: Record<string, any>,
   info: IGraphQLToolsResolveInfo,
   skipTypeMerging?: boolean,
@@ -127,7 +91,7 @@ function handleList(
     listMember,
     index,
     childErrors[index] || [],
-    subschemas,
+    subschema,
     context,
     info,
     skipTypeMerging,
@@ -141,7 +105,7 @@ function handleListMember(
   listMember: any,
   index: number,
   errors: ReadonlyArray<GraphQLError>,
-  subschemas: Array<GraphQLSchema | SubschemaConfig>,
+  subschema: GraphQLSchema | SubschemaConfig,
   context: Record<string, any>,
   info: IGraphQLToolsResolveInfo,
   skipTypeMerging?: boolean,
@@ -153,19 +117,35 @@ function handleListMember(
   if (isLeafType(type)) {
     return type.parseValue(listMember);
   } else if (isCompositeType(type)) {
-    return handleObject(type, listMember, errors, subschemas, context, info, skipTypeMerging);
+    return handleObject(type, listMember, errors, subschema, context, info, skipTypeMerging);
   } else if (isListType(type)) {
-    return handleList(type, listMember, errors, subschemas, context, info, skipTypeMerging);
+    return handleList(type, listMember, errors, subschema, context, info, skipTypeMerging);
   }
 }
 
-function mergeFields(
+export function handleObject(
   type: GraphQLCompositeType,
   object: any,
-  subschemas: Array<GraphQLSchema | SubschemaConfig>,
+  errors: ReadonlyArray<GraphQLError>,
+  subschema: GraphQLSchema | SubschemaConfig,
   context: Record<string, any>,
   info: IGraphQLToolsResolveInfo,
-): any {
+  skipTypeMerging?: boolean,
+) {
+  setErrors(object, errors.map(error => {
+    return relocatedError(
+      error,
+      error.nodes,
+      error.path ? error.path.slice(1) : undefined
+    );
+  }));
+
+  setObjectSubschema(object, subschema);
+
+  if (skipTypeMerging || !info.mergeInfo) {
+    return object;
+  }
+
   let typeName: string;
   if (isAbstractType(type)) {
     typeName = info.schema.getTypeMap()[resolveFromParentTypename(object)].name;
@@ -173,36 +153,39 @@ function mergeFields(
     typeName = type.name;
   }
 
-  const initialSchemas =
-    info.mergeInfo.mergedTypes[typeName] &&
-    info.mergeInfo.mergedTypes[typeName].subschemas;
-  if (initialSchemas) {
-    const remainingSubschemas = initialSchemas.filter(
-      subschema => !subschemas.includes(subschema)
-    );
-    if (remainingSubschemas.length) {
-      const maybePromises = remainingSubschemas.map(subschema => {
-        return subschema.mergedTypeConfigs[typeName].mergedTypeResolver(subschema, object, context, info);
-      });
+  const mergedTypeInfo = info.mergeInfo.mergedTypes[typeName];
+  let subschemas = mergedTypeInfo && mergedTypeInfo.subschemas;
 
-      let containsPromises = false; {
-        for (const maybePromise of maybePromises) {
-          if (maybePromise instanceof Promise) {
-            containsPromises = true;
-            break;
-          }
-        }
-      }
-      if (containsPromises) {
-        return Promise.all(maybePromises).
-          then(results => results.reduce((acc: any, r: ExecutionResult) => mergeDeep(acc, r), object));
-      } else {
-        return maybePromises.reduce((acc: any, r: ExecutionResult) => mergeDeep(acc, r), object);
-      }
-    }
+  if (!subschemas) {
+    return object;
   }
 
-  return object;
+  subschemas = subschemas.filter(s => s !== subschema);
+  if (!subschemas.length) {
+    return object;
+  }
+
+  const typeMap = isSubschemaConfig(subschema) ?
+    mergedTypeInfo.typeMaps.get(subschema) : subschema.getTypeMap();
+  const fields = (typeMap[typeName] as GraphQLObjectType).getFields();
+  const selections: Array<FieldNode> = [];
+  info.fieldNodes.forEach(fieldNode => {
+    collectFields(fieldNode.selectionSet, info.fragments).forEach(s => {
+      if (!fields[s.name.value]) {
+        selections.push(s);
+      }
+    });
+  });
+
+  return mergeFields(
+    mergedTypeInfo,
+    typeName,
+    object,
+    selections,
+    subschemas,
+    context,
+    info,
+  );
 }
 
 export function handleNull(

@@ -24,6 +24,8 @@ import {
   GraphQLOutputType,
 } from 'graphql';
 
+import { TypeMap } from 'graphql/type/schema';
+
 import { SchemaDirectiveVisitor } from './utils/SchemaDirectiveVisitor';
 import { SchemaVisitor } from './utils/SchemaVisitor';
 
@@ -100,14 +102,16 @@ export type SubschemaConfig = {
 
 export type MergedTypeConfig = {
   fragment?: string;
-  mergedTypeResolver: MergedTypeResolver;
+  parsedFragment?: InlineFragmentNode,
+  merge: MergedTypeResolver;
 };
 
 export type MergedTypeResolver = (
-  subschema: GraphQLSchema | SubschemaConfig,
   originalResult: any,
   context: Record<string, any>,
   info: IGraphQLToolsResolveInfo,
+  subschema: GraphQLSchema | SubschemaConfig,
+  fieldNodes: Array<FieldNode>,
 ) => any;
 
 export type GraphQLSchemaWithTransforms = GraphQLSchema & { transforms?: Array<Transform> };
@@ -171,7 +175,7 @@ export type MergeInfo = {
     fragment: string;
   }>;
   replacementFragments: ReplacementFragmentMapping,
-  mergedTypes: MergedTypeMapping,
+  mergedTypes: Record<string, MergedTypeInfo>,
   delegateToSchema<TContext>(options: IDelegateToSchemaOptions<TContext>): any;
 };
 
@@ -179,10 +183,13 @@ export type ReplacementFragmentMapping = {
   [typeName: string]: { [fieldName: string]: InlineFragmentNode };
 };
 
-export type MergedTypeMapping = Record<string, {
-  fragment: InlineFragmentNode,
+export type MergedTypeInfo = {
   subschemas: Array<SubschemaConfig>,
-}>;
+  fragment?: InlineFragmentNode,
+  uniqueFields: Record<string, SubschemaConfig>,
+  nonUniqueFields: Record<string, Array<SubschemaConfig>>,
+  typeMaps: Map<SubschemaConfig, TypeMap>,
+};
 
 export type IFieldResolver<TSource, TContext, TArgs = Record<string, any>> = (
   source: TSource,

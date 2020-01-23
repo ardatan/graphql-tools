@@ -8,16 +8,16 @@ import {
   visit,
   visitWithTypeInfo,
 } from 'graphql';
-import { Request, MergedTypeMapping } from '../Interfaces';
+import { Request, MergedTypeInfo } from '../Interfaces';
 import { Transform } from './transforms';
 
 export default class AddMergedTypeFragments implements Transform {
   private targetSchema: GraphQLSchema;
-  private mapping: MergedTypeMapping;
+  private mapping: Record<string, MergedTypeInfo>;
 
   constructor(
     targetSchema: GraphQLSchema,
-    mapping: MergedTypeMapping,
+    mapping: Record<string, MergedTypeInfo>,
   ) {
     this.targetSchema = targetSchema;
     this.mapping = mapping;
@@ -39,7 +39,7 @@ export default class AddMergedTypeFragments implements Transform {
 function addMergedTypeFragments(
   targetSchema: GraphQLSchema,
   document: DocumentNode,
-  mapping: MergedTypeMapping,
+  mapping: Record<string, MergedTypeInfo>,
 ): DocumentNode {
   const typeInfo = new TypeInfo(targetSchema);
   return visit(

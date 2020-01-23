@@ -132,3 +132,26 @@ export function parseFragmentToInlineFragment(
 
   throw new Error('Could not parse fragment');
 }
+
+export function objectContainsInlineFragment(object: any, fragment: InlineFragmentNode): boolean {
+  for (const selection of fragment.selectionSet.selections) {
+    if (selection.kind === Kind.FIELD) {
+      if (selection.alias) {
+        if (!object[selection.alias.value]) {
+          return false;
+        }
+      } else {
+        if (!object[selection.name.value]) {
+          return false;
+        }
+      }
+    } else if (selection.kind === Kind.INLINE_FRAGMENT) {
+      const containsFragment = objectContainsInlineFragment(object, selection);
+      if (!containsFragment) {
+        return false;
+      }
+    }
+  }
+
+  return true;
+}

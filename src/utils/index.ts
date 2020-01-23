@@ -12,7 +12,11 @@ export {
   parseInputValueLiteral,
   serializeInputValue,
 } from './transformInputValue';
-export { concatInlineFragments, parseFragmentToInlineFragment } from './fragments';
+export {
+  concatInlineFragments,
+  parseFragmentToInlineFragment,
+  objectContainsInlineFragment,
+} from './fragments';
 export { mergeDeep } from './mergeDeep';
 export {
   collectFields,

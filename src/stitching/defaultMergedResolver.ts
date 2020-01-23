@@ -1,5 +1,5 @@
 import { defaultFieldResolver } from 'graphql';
-import { getErrors, getSubschemas } from './proxiedResult';
+import { getErrors, getSubschema } from './proxiedResult';
 import { handleResult } from './checkResultAndHandleErrors';
 import { getResponseKeyFromInfo } from './getResponseKeyFromInfo';
 import { IGraphQLToolsResolveInfo } from '../Interfaces';
@@ -28,7 +28,7 @@ export default function defaultMergedResolver(
   }
 
   const result = parent[responseKey];
-  const subschemas = getSubschemas(parent);
+  const subschema = getSubschema(parent, responseKey);
 
-  return handleResult(result, errors, subschemas, context, info);
+  return handleResult(result, errors, subschema, context, info);
 }
