@@ -17,6 +17,7 @@ import {
   GraphQLList,
   GraphQLNonNull,
   TypeNode,
+  GraphQLType,
 } from 'graphql';
 
 import {
@@ -158,10 +159,10 @@ function updateArguments(
   subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig,
   operation: OperationTypeNode,
   fieldName: string,
-  argumentNodes: ReadonlyArray<ArgumentNode>,
-  variableDefinitions: ReadonlyArray<VariableDefinitionNode>,
-  variableValues: Record<string, any>,
-  newArgsMap: Record<string, any>,
+  argumentNodes: ReadonlyArray<ArgumentNode> = [],
+  variableDefinitions: ReadonlyArray<VariableDefinitionNode> = [],
+  variableValues: Record<string, any> = {},
+  newArgsMap: Record<string, any> = {},
 ): {
   arguments: Array<ArgumentNode>,
   variableDefinitions: Array<VariableDefinitionNode>,
@@ -179,20 +180,17 @@ function updateArguments(
     type = schema.getQueryType();
   }
 
-  const newArgs: Record<string, ArgumentNode> = {};
-  if (argumentNodes) {
-    argumentNodes.forEach((argument: ArgumentNode) => {
-      newArgs[argument.name.value] = argument;
-    });
-  }
-
   let varNames = variableDefinitions.reduce((acc, def) => {
     acc[def.variable.name.value] = true;
     return acc;
   }, {});
-
-  const variables = {};
   let numGeneratedVariables = 0;
+
+  const updatedArgs: Record<string, ArgumentNode> = {};
+  argumentNodes.forEach((argument: ArgumentNode) => {
+    updatedArgs[argument.name.value] = argument;
+  });
+  const newVariableDefinitions: Array<VariableDefinitionNode> = [];
 
   const field: GraphQLField<any, any> = type.getFields()[fieldName];
   field.args.forEach((argument: GraphQLArgument) => {
@@ -203,11 +201,11 @@ function updateArguments(
         varName = `_v${numGeneratedVariables++}_${argName}`;
       } while (varNames[varName]);
 
-      newArgs[argument.name] = {
+      updatedArgs[argument.name] = {
         kind: Kind.ARGUMENT,
         name: {
           kind: Kind.NAME,
-          value: argument.name,
+          value: argName,
         },
         value: {
           kind: Kind.VARIABLE,
@@ -218,7 +216,7 @@ function updateArguments(
         },
       };
       varNames[varName] = true;
-      variables[varName] = {
+      newVariableDefinitions.push({
         kind: Kind.VARIABLE_DEFINITION,
         variable: {
           kind: Kind.VARIABLE,
@@ -227,49 +225,43 @@ function updateArguments(
             value: varName,
           },
         },
-        type: typeToAst(argument.type),
-      };
+        type: astFromType(argument.type),
+      });
       variableValues[varName] = serializeInputValue(
         argument.type,
-        newArgsMap[argument.name],
+        newArgsMap[argName],
       );
     }
   });
 
   return {
-    arguments: Object.keys(newArgs).map(argName => newArgs[argName]),
-    variableDefinitions: variableDefinitions.concat(
-      Object.keys(variables).map(varName => variables[varName]),
-    ),
+    arguments: Object.keys(updatedArgs).map(argName => updatedArgs[argName]),
+    variableDefinitions: newVariableDefinitions,
     variableValues,
   };
 }
 
-function typeToAst(type: GraphQLInputType): TypeNode {
+function astFromType(type: GraphQLType): TypeNode {
   if (type instanceof GraphQLNonNull) {
-    const innerType = typeToAst(type.ofType);
-    if (
-      innerType.kind === Kind.LIST_TYPE ||
-      innerType.kind === Kind.NAMED_TYPE
-    ) {
-      return {
-        kind: Kind.NON_NULL_TYPE,
-        type: innerType,
-      };
-    } else {
-      throw new Error('Incorrent inner non-null type');
+    const innerType = astFromType(type.ofType);
+    if (innerType.kind === Kind.NON_NULL_TYPE) {
+      throw new Error(`Invalid type node ${JSON.stringify(type)}. Inner type of non-null type cannot be a non-null type.`);
     }
+    return {
+      kind: Kind.NON_NULL_TYPE,
+      type: innerType,
+    };
   } else if (type instanceof GraphQLList) {
     return {
       kind: Kind.LIST_TYPE,
-      type: typeToAst(type.ofType),
+      type: astFromType(type.ofType),
     };
   } else {
     return {
       kind: Kind.NAMED_TYPE,
       name: {
         kind: Kind.NAME,
-        value: type.toString(),
+        value: type.name,
       },
     };
   }
