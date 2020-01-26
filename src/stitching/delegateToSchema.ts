@@ -17,8 +17,10 @@ import {
   GraphQLInputType,
   GraphQLField,
   GraphQLArgument,
-  astFromValue,
   VariableDefinitionNode,
+  GraphQLList,
+  GraphQLNonNull,
+  TypeNode,
 } from 'graphql';
 
 import {
@@ -249,16 +251,37 @@ export function createRequest(
     };
   }
 
-  const fieldNode: FieldNode = {
-    kind: Kind.FIELD,
-    alias: null,
-    arguments: additionalArgs ? updateArguments(
+  let variables = {};
+  for (const variableDefinition of variableDefinitions) {
+    const varName = variableDefinition.variable.name.value;
+    const varType = typeFromAST(sourceSchema, (variableDefinition.type as NamedTypeNode)) as GraphQLInputType;
+    variables[varName] = serializeInputValue(varType, variableValues[varName]);
+  }
+
+  let args = fieldNodes[0].arguments;
+  if (additionalArgs) {
+    const {
+      arguments: updatedArguments,
+      variableDefinitions: updatedVariableDefinitions,
+      variableValues: updatedVariableValues
+    } = updateArguments(
       targetSchemaOrSchemaConfig,
       targetOperation,
       targetField,
-      fieldNodes[0].arguments,
+      args,
+      variableDefinitions,
+      variables,
       additionalArgs,
-    ) : fieldNodes[0].arguments,
+      );
+    args = updatedArguments;
+    variableDefinitions = updatedVariableDefinitions;
+    variables = updatedVariableValues;
+  }
+
+  const fieldNode: FieldNode = {
+    kind: Kind.FIELD,
+    alias: null,
+    arguments: args,
     selectionSet,
     name: {
       kind: Kind.NAME,
@@ -285,13 +308,6 @@ export function createRequest(
     definitions: [operationDefinition, ...fragmentDefinitions],
   };
 
-  const variables = {};
-  for (const variableDefinition of variableDefinitions) {
-    const varName = variableDefinition.variable.name.value;
-    const varType = typeFromAST(sourceSchema, (variableDefinition.type as NamedTypeNode)) as GraphQLInputType;
-    variables[varName] = serializeInputValue(varType, variableValues[varName]);
-  }
-
   return {
     document,
     variables,
@@ -303,8 +319,14 @@ function updateArguments(
   operation: OperationTypeNode,
   fieldName: string,
   argumentNodes: ReadonlyArray<ArgumentNode>,
+  variableDefinitions: ReadonlyArray<VariableDefinitionNode>,
+  variableValues: Record<string, any>,
   newArgsMap: Record<string, any>,
-): Array<ArgumentNode> {
+): {
+  arguments: Array<ArgumentNode>,
+  variableDefinitions: Array<VariableDefinitionNode>,
+  variableValues: Record<string, any>
+} {
   const schema = isSubschemaConfig(subschemaOrSubschemaConfig) ?
     subschemaOrSubschemaConfig.schema : subschemaOrSubschemaConfig;
 
@@ -324,21 +346,93 @@ function updateArguments(
     });
   }
 
+  let varNames = variableDefinitions.reduce((acc, def) => {
+    acc[def.variable.name.value] = true;
+    return acc;
+  }, {});
+
+  const variables = {};
+  let numGeneratedVariables = 0;
+
   const field: GraphQLField<any, any> = type.getFields()[fieldName];
   field.args.forEach((argument: GraphQLArgument) => {
     if (newArgsMap[argument.name]) {
+      const argName = argument.name;
+      let varName;
+      do {
+        varName = `_v${numGeneratedVariables++}_${argName}`;
+      } while (varNames[varName]);
+
       newArgs[argument.name] = {
         kind: Kind.ARGUMENT,
         name: {
           kind: Kind.NAME,
           value: argument.name,
         },
-        value: astFromValue(newArgsMap[argument.name], argument.type),
+        value: {
+          kind: Kind.VARIABLE,
+          name: {
+            kind: Kind.NAME,
+            value: varName,
+          },
+        },
       };
+      varNames[varName] = true;
+      variables[varName] = {
+        kind: Kind.VARIABLE_DEFINITION,
+        variable: {
+          kind: Kind.VARIABLE,
+          name: {
+            kind: Kind.NAME,
+            value: varName,
+          },
+        },
+        type: typeToAst(argument.type),
+      };
+      variableValues[varName] = serializeInputValue(
+        argument.type,
+        newArgsMap[argument.name],
+      );
     }
   });
 
-  return Object.keys(newArgs).map(argName => newArgs[argName]);
+  return {
+    arguments: Object.keys(newArgs).map(argName => newArgs[argName]),
+    variableDefinitions: variableDefinitions.concat(
+      Object.keys(variables).map(varName => variables[varName]),
+    ),
+    variableValues,
+  };
+}
+
+function typeToAst(type: GraphQLInputType): TypeNode {
+  if (type instanceof GraphQLNonNull) {
+    const innerType = typeToAst(type.ofType);
+    if (
+      innerType.kind === Kind.LIST_TYPE ||
+      innerType.kind === Kind.NAMED_TYPE
+    ) {
+      return {
+        kind: Kind.NON_NULL_TYPE,
+        type: innerType,
+      };
+    } else {
+      throw new Error('Incorrent inner non-null type');
+    }
+  } else if (type instanceof GraphQLList) {
+    return {
+      kind: Kind.LIST_TYPE,
+      type: typeToAst(type.ofType),
+    };
+  } else {
+    return {
+      kind: Kind.NAMED_TYPE,
+      name: {
+        kind: Kind.NAME,
+        value: type.toString(),
+      },
+    };
+  }
 }
 
 function createExecutor(
