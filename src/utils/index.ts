@@ -15,7 +15,7 @@ export {
 export {
   concatInlineFragments,
   parseFragmentToInlineFragment,
-  objectContainsInlineFragment,
+  typeContainsInlineFragment,
 } from './fragments';
 export { mergeDeep } from './mergeDeep';
 export {

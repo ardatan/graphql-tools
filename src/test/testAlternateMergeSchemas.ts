@@ -1790,7 +1790,16 @@ describe('mergeTypes', () => {
       subschemas: [subschemaConfig1, subschemaConfig2],
     });
 
-    const result1 = await graphql(mergedSchema, `{ rootField1 { test { field1 field2 } } }`);
+    const result1 = await graphql(mergedSchema, `{
+      rootField1 {
+        test {
+          field1
+          ... on Test {
+            field2
+          }
+        }
+      }
+    }`);
     expect(result1).to.deep.equal({
       data: {
         rootField1: {

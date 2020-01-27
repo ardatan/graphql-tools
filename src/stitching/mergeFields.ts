@@ -9,77 +9,112 @@ import {
   MergedTypeInfo,
 } from '../Interfaces';
 import { mergeProxiedResults } from './proxiedResult';
-import { objectContainsInlineFragment } from '../utils';
 
-export function mergeFields(
-  mergedType: MergedTypeInfo,
+function buildDelegationPlan(
+  mergedTypeInfo: MergedTypeInfo,
   typeName: string,
-  object: any,
   originalSelections: Array<FieldNode>,
-  subschemas: Array<SubschemaConfig>,
-  context: Record<string, any>,
-  info: IGraphQLToolsResolveInfo,
-): any {
-  // 1. use fragment contained within the map and existing result to calculate
-  //    if possible to delegate to given subschema
+  sourceSubschemas: Array<SubschemaConfig>,
+  targetSubschemas: Array<SubschemaConfig>,
+): {
+  delegationMap: Map<SubschemaConfig, Array<SelectionNode>>,
+  unproxiableSelections: Array<FieldNode>,
+  proxiableSubschemas: Array<SubschemaConfig>,
+  nonProxiableSubschemas: Array<SubschemaConfig>,
+} {
+  // 1. use fragment and source subschemas to calculate if possible to delegate to given subschema
+  //    TODO: change logic so that fragment can be spread across multiple subschemas?
 
   const proxiableSubschemas: Array<SubschemaConfig> = [];
-  const nonProxiableSubschemas: Array<SubschemaConfig>  = [];
-  subschemas.forEach(s => {
-    if (objectContainsInlineFragment(object, s.mergedTypeConfigs[typeName].parsedFragment)) {
-      proxiableSubschemas.push(s);
+  const nonProxiableSubschemas: Array<SubschemaConfig> = [];
+
+  targetSubschemas.forEach(t => {
+    if (sourceSubschemas.some(s =>
+      mergedTypeInfo.containsFragment.get(s).get(t.mergedTypeConfigs[typeName].parsedFragment)
+    )) {
+      proxiableSubschemas.push(t);
     } else {
-      nonProxiableSubschemas.push(s);
+      nonProxiableSubschemas.push(t);
     }
   });
 
-  // 3. use uniqueFields map to assign fields to subschema if one of possible subschemas
+  const { uniqueFields, nonUniqueFields } = mergedTypeInfo;
+  const unproxiableSelections: Array<FieldNode> = [];
 
-  const uniqueFields = mergedType.uniqueFields;
-  const nonUniqueFields = mergedType.nonUniqueFields;
-  const remainingSelections: Array<FieldNode> = [];
+  // 2. for each selection:
 
   const delegationMap: Map<SubschemaConfig, Array<SelectionNode>> = new Map();
   originalSelections.forEach(selection => {
+
+    // 2a. use uniqueFields map to assign fields to subschema if one of possible subschemas
+
     const uniqueSubschema: SubschemaConfig = uniqueFields[selection.name.value];
-    if (uniqueSubschema && proxiableSubschemas.includes(uniqueSubschema)) {
-      const selections = delegationMap.get(uniqueSubschema);
-      if (selections) {
-        selections.push(selection);
+    if (uniqueSubschema) {
+      if (proxiableSubschemas.includes(uniqueSubschema)) {
+        const existingSubschema = delegationMap.get(uniqueSubschema);
+        if (existingSubschema) {
+          existingSubschema.push(selection);
+        } else {
+          delegationMap.set(uniqueSubschema, [selection]);
+        }
       } else {
-        delegationMap.set(uniqueSubschema, [selection]);
+        unproxiableSelections.push(selection);
       }
+
     } else {
-      remainingSelections.push(selection);
+
+      // 2b. use nonUniqueFields to assign to a possible subschema,
+      //     preferring one of the subschemas already targets of delegation
+
+      let nonUniqueSubschemas: Array<SubschemaConfig> = nonUniqueFields[selection.name.value];
+      nonUniqueSubschemas = nonUniqueSubschemas.filter(s => proxiableSubschemas.includes(s));
+      if (nonUniqueSubschemas) {
+        const subschemas: Array<SubschemaConfig> = Array.from(delegationMap.keys());
+        const existingSubschema = nonUniqueSubschemas.find(s => subschemas.includes(s));
+        if (existingSubschema) {
+          delegationMap.get(existingSubschema).push(selection);
+        } else {
+          delegationMap.set(nonUniqueSubschemas[0], [selection]);
+        }
+      } else {
+        unproxiableSelections.push(selection);
+      }
     }
   });
 
-  // 4. use nonUniqueFields to assign to a possible subschema,
-  //    preferring one of the subschemas already targets of delegation
+  return {
+    delegationMap,
+    unproxiableSelections,
+    proxiableSubschemas,
+    nonProxiableSubschemas,
+  };
+}
 
-  const unproxiableSelections: Array<FieldNode> = [];
-  remainingSelections.forEach(selection => {
-    let nonUniqueSubschemas: Array<SubschemaConfig> = nonUniqueFields[selection.name.value];
-    nonUniqueSubschemas = nonUniqueSubschemas.filter(s => proxiableSubschemas.includes(s));
-    if (nonUniqueSubschemas) {
-      const existingSelections = nonUniqueSubschemas.map(s => delegationMap.get(s)).find(selections => selections);
-      if (existingSelections) {
-        existingSelections.push(selection);
-      } else {
-        delegationMap.set(nonUniqueSubschemas[0], [selection]);
-      }
-    } else {
-      unproxiableSelections.push(selection);
-    }
-  });
+export function mergeFields(
+  mergedTypeInfo: MergedTypeInfo,
+  typeName: string,
+  object: any,
+  originalSelections: Array<FieldNode>,
+  sourceSubschemas: Array<SubschemaConfig>,
+  targetSubschemas: Array<SubschemaConfig>,
+  context: Record<string, any>,
+  info: IGraphQLToolsResolveInfo,
+): any {
 
-  // 5. terminate if no delegations actually possible.
+  if (!originalSelections.length) {
+    return object;
+  }
+
+  const {
+    delegationMap,
+    unproxiableSelections,
+    proxiableSubschemas,
+    nonProxiableSubschemas,
+  } = buildDelegationPlan(mergedTypeInfo, typeName, originalSelections, sourceSubschemas, targetSubschemas);
 
   if (!delegationMap.size) {
     return object;
   }
-
-  // 6. delegate!
 
   const maybePromises: Promise<any> | any = [];
   delegationMap.forEach((selections: Array<SelectionNode>, s: SubschemaConfig) => {
@@ -108,28 +143,26 @@ export function mergeFields(
     }
   }
 
-  // 7. repeat if necessary
-
-  const mergeRemaining = (o: any) => {
-    if (unproxiableSelections) {
-      return mergeFields(
-        mergedType,
+  return containsPromises ?
+    Promise.all(maybePromises).
+      then(results => mergeFields(
+        mergedTypeInfo,
         typeName,
-        o,
+        mergeProxiedResults(object, ...results),
         unproxiableSelections,
+        sourceSubschemas.concat(proxiableSubschemas),
         nonProxiableSubschemas,
         context,
-        info
-      );
-    } else {
-      return o;
-    }
-  };
-
-  if (containsPromises) {
-    return Promise.all(maybePromises).
-      then(results => mergeRemaining(mergeProxiedResults(object, ...results)));
-  } else {
-    return mergeRemaining(mergeProxiedResults(object, ...maybePromises));
-  }
+        info,
+      )) :
+    mergeFields(
+      mergedTypeInfo,
+      typeName,
+      mergeProxiedResults(object, ...maybePromises),
+      unproxiableSelections,
+      sourceSubschemas.concat(proxiableSubschemas),
+      nonProxiableSubschemas,
+      context,
+      info,
+    );
 }

@@ -26,6 +26,7 @@ import {
   SubschemaConfig,
   IGraphQLToolsResolveInfo,
   isSubschemaConfig,
+  MergedTypeInfo,
 } from '../Interfaces';
 import resolveFromParentTypename from './resolveFromParentTypename';
 import { setErrors, setObjectSubschema } from './proxiedResult';
@@ -146,59 +147,74 @@ export function handleObject(
     return object;
   }
 
-  let typeName: string;
-  if (isAbstractType(type)) {
-    typeName = info.schema.getTypeMap()[resolveFromParentTypename(object)].name;
-  } else {
-    typeName = type.name;
-  }
-
+  const typeName =
+    isAbstractType(type) ?
+      info.schema.getTypeMap()[resolveFromParentTypename(object)].name :
+      type.name;
   const mergedTypeInfo = info.mergeInfo.mergedTypes[typeName];
-  let subschemas = mergedTypeInfo && mergedTypeInfo.subschemas;
+  let targetSubschemas = mergedTypeInfo && mergedTypeInfo.subschemas;
 
-  if (!subschemas) {
+  if (!targetSubschemas) {
     return object;
   }
 
-  subschemas = subschemas.filter(s => s !== subschema);
-  if (!subschemas.length) {
+  targetSubschemas = targetSubschemas.filter(s => s !== subschema);
+  if (!targetSubschemas.length) {
     return object;
   }
-
-  let subFieldNodes: Record<string, Array<FieldNode>> = Object.create(null);
-  const visitedFragmentNames = Object.create(null);
-  info.fieldNodes.forEach(fieldNode => {
-    subFieldNodes = collectFields(
-      { schema: info.schema, variableValues: info.variableValues, fragments: info.fragments } as ExecutionContext,
-      info.schema.getType(object.__typename) as GraphQLObjectType<any, any>,
-      fieldNode.selectionSet,
-      subFieldNodes,
-      visitedFragmentNames,
-    );
-  });
-
-  const typeMap = isSubschemaConfig(subschema) ?
-    mergedTypeInfo.typeMaps.get(subschema) : subschema.getTypeMap();
-  const fields = (typeMap[typeName] as GraphQLObjectType).getFields();
-
-  const selections: Array<FieldNode> = [];
-  Object.keys(subFieldNodes).forEach(responseName => {
-    subFieldNodes[responseName].forEach(subFieldNode => {
-      if (!fields[subFieldNode.name.value]) {
-        selections.push(subFieldNode);
-      }
-    });
-  });
 
   return mergeFields(
     mergedTypeInfo,
     typeName,
     object,
-    selections,
-    subschemas,
+    getFieldsNotInSubschema(
+      collectSubFields(info, object.__typename),
+      subschema,
+      mergedTypeInfo,
+      object.__typename,
+    ),
+    [subschema as SubschemaConfig],
+    targetSubschemas,
     context,
     info,
   );
+}
+
+function collectSubFields(info: IGraphQLToolsResolveInfo, typeName: string) {
+  let subFieldNodes: Record<string, Array<FieldNode>> = Object.create(null);
+  const visitedFragmentNames = Object.create(null);
+  info.fieldNodes.forEach(fieldNode => {
+    subFieldNodes = collectFields(
+      { schema: info.schema, variableValues: info.variableValues, fragments: info.fragments } as ExecutionContext,
+      info.schema.getType(typeName) as GraphQLObjectType<any, any>,
+      fieldNode.selectionSet,
+      subFieldNodes,
+      visitedFragmentNames,
+    );
+  });
+  return subFieldNodes;
+}
+
+function getFieldsNotInSubschema(
+  subFieldNodes: Record<string, Array<FieldNode>>,
+  subschema: GraphQLSchema | SubschemaConfig,
+  mergedTypeInfo: MergedTypeInfo,
+  typeName: string,
+): Array<FieldNode> {
+  const typeMap = isSubschemaConfig(subschema) ?
+    mergedTypeInfo.typeMaps.get(subschema) : subschema.getTypeMap();
+  const fields = (typeMap[typeName] as GraphQLObjectType).getFields();
+
+  const fieldsNotInSchema: Array<FieldNode> = [];
+  Object.keys(subFieldNodes).forEach(responseName => {
+    subFieldNodes[responseName].forEach(subFieldNode => {
+      if (!fields[subFieldNode.name.value]) {
+        fieldsNotInSchema.push(subFieldNode);
+      }
+    });
+  });
+
+  return fieldsNotInSchema;
 }
 
 export function handleNull(

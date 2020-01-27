@@ -44,7 +44,9 @@ import {
   mergeDeep,
   parseFragmentToInlineFragment,
   concatInlineFragments,
+  typeContainsInlineFragment,
 } from '../utils';
+import { TypeMap } from 'graphql/type/schema';
 
 type MergeTypeCandidate = {
   type: GraphQLNamedType;
@@ -290,7 +292,7 @@ function createMergeInfo(
       const subschemas: Array<SubschemaConfig> = [];
       const parsedFragments: Array<InlineFragmentNode> = [];
       const fields = Object.create({});
-      const typeMaps = new Map();
+      const typeMaps: Map<SubschemaConfig, TypeMap> = new Map();
 
       mergedTypeCandidates.forEach(typeCandidate => {
         const subschemaConfig = typeCandidate.subschema as SubschemaConfig;
@@ -316,9 +318,22 @@ function createMergeInfo(
       mergedTypes[typeName] = {
         subschemas,
         typeMaps,
+        containsFragment: new Map(),
         uniqueFields: Object.create({}),
         nonUniqueFields: Object.create({}),
       };
+
+      subschemas.forEach(subschema => {
+        const type = typeMaps.get(subschema)[typeName] as GraphQLObjectType<any, any>;
+        let subschemaMap = new Map();
+        subschemas.filter(s => s !== subschema).forEach(s => {
+          const fragment = s.mergedTypeConfigs[typeName].parsedFragment;
+          if (fragment && typeContainsInlineFragment(type, fragment)) {
+            subschemaMap.set(fragment, true);
+          }
+        });
+        mergedTypes[typeName].containsFragment.set(subschema, subschemaMap);
+      });
 
       Object.keys(fields).forEach(fieldName => {
         const supportedBySubschemas = fields[fieldName];

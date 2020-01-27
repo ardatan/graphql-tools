@@ -189,6 +189,7 @@ export type MergedTypeInfo = {
   uniqueFields: Record<string, SubschemaConfig>,
   nonUniqueFields: Record<string, Array<SubschemaConfig>>,
   typeMaps: Map<SubschemaConfig, TypeMap>,
+  containsFragment: Map<SubschemaConfig, Map<InlineFragmentNode, boolean>>,
 };
 
 export type IFieldResolver<TSource, TContext, TArgs = Record<string, any>> = (
