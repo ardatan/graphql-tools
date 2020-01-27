@@ -29,8 +29,8 @@ import {
 } from '../Interfaces';
 import resolveFromParentTypename from './resolveFromParentTypename';
 import { setErrors, setObjectSubschema } from './proxiedResult';
-import { collectFields } from '../utils';
 import { mergeFields } from './mergeFields';
+import { collectFields, ExecutionContext } from 'graphql/execution/execute';
 
 export function checkResultAndHandleErrors(
   result: ExecutionResult,
@@ -165,14 +165,27 @@ export function handleObject(
     return object;
   }
 
+  let subFieldNodes: Record<string, Array<FieldNode>> = Object.create(null);
+  const visitedFragmentNames = Object.create(null);
+  info.fieldNodes.forEach(fieldNode => {
+    subFieldNodes = collectFields(
+      { schema: info.schema, variableValues: info.variableValues, fragments: info.fragments } as ExecutionContext,
+      info.schema.getType(object.__typename) as GraphQLObjectType<any, any>,
+      fieldNode.selectionSet,
+      subFieldNodes,
+      visitedFragmentNames,
+    );
+  });
+
   const typeMap = isSubschemaConfig(subschema) ?
     mergedTypeInfo.typeMaps.get(subschema) : subschema.getTypeMap();
   const fields = (typeMap[typeName] as GraphQLObjectType).getFields();
+
   const selections: Array<FieldNode> = [];
-  info.fieldNodes.forEach(fieldNode => {
-    collectFields(fieldNode.selectionSet, info.fragments).forEach(s => {
-      if (!fields[s.name.value]) {
-        selections.push(s);
+  Object.keys(subFieldNodes).forEach(responseName => {
+    subFieldNodes[responseName].forEach(subFieldNode => {
+      if (!fields[subFieldNode.name.value]) {
+        selections.push(subFieldNode);
       }
     });
   });

@@ -329,9 +329,8 @@ function createMergeInfo(
         }
       });
 
-      if (parsedFragments.length) {
-        mergedTypes[typeName].fragment = concatInlineFragments(typeName, parsedFragments);
-      }
+      parsedFragments.push(parseFragmentToInlineFragment(`... on ${typeName} { __typename }`));
+      mergedTypes[typeName].fragment = concatInlineFragments(typeName, parsedFragments);
     }
   });
 

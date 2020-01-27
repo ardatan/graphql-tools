@@ -75,6 +75,7 @@ export function collectFields(
       case Kind.FRAGMENT_SPREAD:
         const fragmentName = selection.name.value;
         if (!visitedFragmentNames[fragmentName]) {
+          visitedFragmentNames[fragmentName] = true;
           collectFields(
             fragments[fragmentName].selectionSet,
             fragments,
