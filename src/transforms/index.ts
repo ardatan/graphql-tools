@@ -10,8 +10,8 @@ export { default as transformSchema, wrapSchema } from './transformSchema';
 
 export { default as CheckResultAndHandleErrors } from './CheckResultAndHandleErrors';
 export { default as ExpandAbstractTypes } from './ExpandAbstractTypes';
-export { default as AddReplacementFragments } from './AddReplacementFragments';
-export { default as AddMergedTypeFragments } from './AddMergedTypeFragments';
+export { default as AddReplacementSelectionSets } from './AddReplacementSelectionSets';
+export { default as AddMergedTypeSelectionSets } from './AddMergedTypeSelectionSets';
 export { default as FilterToSchema } from './FilterToSchema';
 export { default as AddTypenameToAbstract } from './AddTypenameToAbstract';
 
@@ -35,6 +35,8 @@ export { default as MapFields } from './MapFields';
 export { default as AddArgumentsAsVariables } from './AddArgumentsAsVariables';
 // superseded by AddReplacementFragments
 export { default as ReplaceFieldWithFragment } from './ReplaceFieldWithFragment';
+// superseded by AddReplacementSelectionSets
+export { default as AddReplacementFragments } from './AddReplacementFragments';
 // superseded by TransformQuery
 export { default as WrapQuery } from './WrapQuery';
 export { default as ExtractField } from './ExtractField';

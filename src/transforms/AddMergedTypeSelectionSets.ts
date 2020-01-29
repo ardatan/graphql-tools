@@ -24,7 +24,7 @@ export default class AddMergedTypeFragments implements Transform {
   }
 
   public transformRequest(originalRequest: Request): Request {
-    const document = addMergedTypeFragments(
+    const document = addMergedTypeSelectionSets(
       this.targetSchema,
       originalRequest.document,
       this.mapping,
@@ -36,7 +36,7 @@ export default class AddMergedTypeFragments implements Transform {
   }
 }
 
-function addMergedTypeFragments(
+function addMergedTypeSelectionSets(
   targetSchema: GraphQLSchema,
   document: DocumentNode,
   mapping: Record<string, MergedTypeInfo>,
@@ -55,7 +55,7 @@ function addMergedTypeFragments(
             let selections = node.selections;
 
             if (mapping[parentTypeName]) {
-              selections = selections.concat(mapping[parentTypeName].fragment);
+              selections = selections.concat(mapping[parentTypeName].selectionSet.selections);
             }
 
             if (selections !== node.selections) {

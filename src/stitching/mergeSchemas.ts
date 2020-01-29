@@ -10,7 +10,8 @@ import {
   parse,
   Kind,
   GraphQLDirective,
-  InlineFragmentNode,
+  SelectionNode,
+  SelectionSetNode,
 } from 'graphql';
 import {
   IDelegateToSchemaOptions,
@@ -44,7 +45,8 @@ import {
   mergeDeep,
   parseFragmentToInlineFragment,
   concatInlineFragments,
-  typeContainsInlineFragment,
+  typeContainsSelectionSet,
+  parseSelectionSet,
 } from '../utils';
 import { TypeMap } from 'graphql/type/schema';
 
@@ -290,9 +292,10 @@ function createMergeInfo(
 
     if (mergedTypeCandidates.length) {
       const subschemas: Array<SubschemaConfig> = [];
-      const parsedFragments: Array<InlineFragmentNode> = [];
+      let requiredSelections: Array<SelectionNode> = [];
       const fields = Object.create({});
       const typeMaps: Map<SubschemaConfig, TypeMap> = new Map();
+      const selectionSets: Map<SubschemaConfig, SelectionSetNode> = new Map();
 
       mergedTypeCandidates.forEach(typeCandidate => {
         const subschemaConfig = typeCandidate.subschema as SubschemaConfig;
@@ -306,10 +309,10 @@ function createMergeInfo(
         });
 
         const mergedTypeConfig = subschemaConfig.mergedTypeConfigs[typeName];
-        if (mergedTypeConfig.fragment) {
-          const parsedFragment = parseFragmentToInlineFragment(mergedTypeConfig.fragment);
-          parsedFragments.push(parsedFragment);
-          mergedTypeConfig.parsedFragment = parsedFragment;
+        if (mergedTypeConfig.selectionSet) {
+          const selectionSet = parseSelectionSet(mergedTypeConfig.selectionSet);
+          requiredSelections = requiredSelections.concat(selectionSet.selections);
+          selectionSets.set(subschemaConfig, selectionSet);
         }
 
         subschemas.push(subschemaConfig);
@@ -318,7 +321,8 @@ function createMergeInfo(
       mergedTypes[typeName] = {
         subschemas,
         typeMaps,
-        containsFragment: new Map(),
+        selectionSets,
+        containsSelectionSet: new Map(),
         uniqueFields: Object.create({}),
         nonUniqueFields: Object.create({}),
       };
@@ -327,12 +331,12 @@ function createMergeInfo(
         const type = typeMaps.get(subschema)[typeName] as GraphQLObjectType<any, any>;
         let subschemaMap = new Map();
         subschemas.filter(s => s !== subschema).forEach(s => {
-          const fragment = s.mergedTypeConfigs[typeName].parsedFragment;
-          if (fragment && typeContainsInlineFragment(type, fragment)) {
-            subschemaMap.set(fragment, true);
+          const selectionSet = selectionSets.get(s);
+          if (selectionSet && typeContainsSelectionSet(type, selectionSet)) {
+            subschemaMap.set(selectionSet, true);
           }
         });
-        mergedTypes[typeName].containsFragment.set(subschema, subschemaMap);
+        mergedTypes[typeName].containsSelectionSet.set(subschema, subschemaMap);
       });
 
       Object.keys(fields).forEach(fieldName => {
@@ -344,8 +348,11 @@ function createMergeInfo(
         }
       });
 
-      parsedFragments.push(parseFragmentToInlineFragment(`... on ${typeName} { __typename }`));
-      mergedTypes[typeName].fragment = concatInlineFragments(typeName, parsedFragments);
+      requiredSelections.push(parseSelectionSet(`{ __typename }`).selections[0]);
+      mergedTypes[typeName].selectionSet = {
+        kind: Kind.SELECTION_SET,
+        selections: requiredSelections,
+      };
     }
   });
 
@@ -387,6 +394,7 @@ function createMergeInfo(
       });
     },
     fragments: [],
+    replacementSelectionSets: undefined,
     replacementFragments: undefined,
     mergedTypes,
   };
@@ -396,6 +404,8 @@ function completeMergeInfo(
   mergeInfo: MergeInfo,
   resolvers: IResolversParameter,
 ): MergeInfo {
+  const replacementSelectionSets = Object.create(null);
+
   Object.keys(resolvers).forEach(typeName => {
     const type = resolvers[typeName];
     if (type instanceof GraphQLScalarType) {
@@ -403,6 +413,16 @@ function completeMergeInfo(
     }
     Object.keys(type).forEach(fieldName => {
       const field = type[fieldName];
+      if (field.selectionSet) {
+        const selectionSet = parseSelectionSet(field.selectionSet);
+        replacementSelectionSets[typeName] = replacementSelectionSets[typeName] || {};
+        replacementSelectionSets[typeName][fieldName] = replacementSelectionSets[typeName][fieldName] || {
+          kind: Kind.SELECTION_SET,
+          selections: [],
+        };
+        replacementSelectionSets[typeName][fieldName].selections =
+          replacementSelectionSets[typeName][fieldName].selections.concat(selectionSet.selections);
+      }
       if (field.fragment) {
         mergeInfo.fragments.push({
           field: fieldName,
@@ -432,6 +452,7 @@ function completeMergeInfo(
     });
   });
 
+  mergeInfo.replacementSelectionSets = replacementSelectionSets;
   mergeInfo.replacementFragments = replacementFragments;
 
   return mergeInfo;

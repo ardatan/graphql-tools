@@ -22,15 +22,17 @@ function buildDelegationPlan(
   proxiableSubschemas: Array<SubschemaConfig>,
   nonProxiableSubschemas: Array<SubschemaConfig>,
 } {
-  // 1. use fragment and source subschemas to calculate if possible to delegate to given subschema
-  //    TODO: change logic so that fragment can be spread across multiple subschemas?
+  // 1.  calculate if possible to delegate to given subschema
+  //    TODO: change logic so that required selection set can be spread across multiple subschemas?
 
   const proxiableSubschemas: Array<SubschemaConfig> = [];
   const nonProxiableSubschemas: Array<SubschemaConfig> = [];
 
   targetSubschemas.forEach(t => {
-    if (sourceSubschemas.some(s =>
-      mergedTypeInfo.containsFragment.get(s).get(t.mergedTypeConfigs[typeName].parsedFragment)
+    if (sourceSubschemas.some(s => {
+      const selectionSet = mergedTypeInfo.selectionSets.get(t);
+      return mergedTypeInfo.containsSelectionSet.get(s).get(selectionSet);
+    }
     )) {
       proxiableSubschemas.push(t);
     } else {
@@ -118,19 +120,15 @@ export function mergeFields(
 
   const maybePromises: Promise<any> | any = [];
   delegationMap.forEach((selections: Array<SelectionNode>, s: SubschemaConfig) => {
-    const newFieldNodes = [{
-      ...info.fieldNodes[0],
-      selectionSet: {
-        kind: Kind.SELECTION_SET,
-        selections,
-      }
-    }];
     const maybePromise = s.mergedTypeConfigs[typeName].merge(
       object,
       context,
       info,
       s,
-      newFieldNodes,
+      {
+        kind: Kind.SELECTION_SET,
+        selections,
+      },
     );
     maybePromises.push(maybePromise);
   });

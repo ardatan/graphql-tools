@@ -18,12 +18,14 @@ import {
 import {
   ExpandAbstractTypes,
   FilterToSchema,
+  AddReplacementSelectionSets,
   AddReplacementFragments,
-  AddMergedTypeFragments,
+  AddMergedTypeSelectionSets,
   AddTypenameToAbstract,
   CheckResultAndHandleErrors,
   applyRequestTransforms,
   applyResultTransforms,
+  Transform,
 } from '../transforms';
 
 import {
@@ -54,7 +56,8 @@ export default function delegateToSchema(
     fieldName = info.fieldName,
     returnType = info.returnType,
     args,
-    fieldNodes = info.fieldNodes,
+    selectionSet,
+    fieldNodes,
   } = options;
 
   const request = createRequestFromInfo({
@@ -62,7 +65,8 @@ export default function delegateToSchema(
     schema: subschemaOrSubschemaConfig,
     operation,
     fieldName,
-    additionalArgs: args,
+    args,
+    selectionSet,
     fieldNodes,
   });
 
@@ -82,7 +86,6 @@ export function delegateRequest({
   info,
   operation = getDelegatingOperation(info.parentType, info.schema),
   fieldName = info.fieldName,
-  fieldNodes = info.fieldNodes,
   returnType = info.returnType,
   context,
   transforms = [],
@@ -102,25 +105,35 @@ export function delegateRequest({
     rootValue = rootValue || info.rootValue;
   }
 
-  transforms = [
+  let delegationTransforms: Array<Transform> = [
     new CheckResultAndHandleErrors(info, fieldName, subschema, context, returnType, skipTypeMerging),
-    ...transforms,
-    new ExpandAbstractTypes(info.schema, targetSchema),
   ];
 
   if (info.mergeInfo) {
-    transforms.push(
-      new AddReplacementFragments(targetSchema, info.mergeInfo.replacementFragments),
-      new AddMergedTypeFragments(targetSchema, info.mergeInfo.mergedTypes),
+    delegationTransforms.push(
+      new AddReplacementSelectionSets(info.schema, info.mergeInfo.replacementSelectionSets),
+      new AddMergedTypeSelectionSets(info.schema, info.mergeInfo.mergedTypes),
     );
   }
 
-  transforms.push(
+  delegationTransforms = delegationTransforms.concat(transforms);
+
+  delegationTransforms.push(
+    new ExpandAbstractTypes(info.schema, targetSchema),
+  );
+
+  if (info.mergeInfo) {
+    delegationTransforms.push(
+      new AddReplacementFragments(targetSchema, info.mergeInfo.replacementFragments),
+    );
+  }
+
+  delegationTransforms.push(
     new FilterToSchema(targetSchema),
     new AddTypenameToAbstract(targetSchema),
   );
 
-  request = applyRequestTransforms(request, transforms);
+  request = applyRequestTransforms(request, delegationTransforms);
 
   if (!skipValidation) {
     const errors = validate(targetSchema, request.document);
@@ -140,9 +153,10 @@ export function delegateRequest({
     });
 
     if (executionResult instanceof Promise) {
-      return executionResult.then((originalResult: any) => applyResultTransforms(originalResult, transforms));
+      return executionResult.then((originalResult: any) =>
+        applyResultTransforms(originalResult, delegationTransforms));
     } else {
-      return applyResultTransforms(executionResult, transforms);
+      return applyResultTransforms(executionResult, delegationTransforms);
     }
 
   } else if (operation === 'subscription') {
@@ -157,7 +171,7 @@ export function delegateRequest({
       if (isAsyncIterable(subscriptionResult)) {
         // "subscribe" to the subscription result and map the result through the transforms
         return mapAsyncIterator<ExecutionResult, any>(subscriptionResult, result => {
-          const transformedResult = applyResultTransforms(result, transforms);
+          const transformedResult = applyResultTransforms(result, delegationTransforms);
           // wrap with fieldName to return for an additional round of resolutioon
           // with payload as rootValue
           return {
@@ -165,7 +179,7 @@ export function delegateRequest({
           };
         });
       } else {
-        return applyResultTransforms(subscriptionResult, transforms);
+        return applyResultTransforms(subscriptionResult, delegationTransforms);
       }
     });
 

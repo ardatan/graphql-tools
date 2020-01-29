@@ -4,7 +4,6 @@ import {
   Kind,
   parse,
   OperationDefinitionNode,
-  GraphQLObjectType,
 } from 'graphql';
 
 export function concatInlineFragments(
@@ -132,32 +131,4 @@ export function parseFragmentToInlineFragment(
   }
 
   throw new Error('Could not parse fragment');
-}
-
-export function typeContainsInlineFragment(type: GraphQLObjectType, fragment: InlineFragmentNode): boolean {
-  const fields = type.getFields();
-
-  for (const selection of fragment.selectionSet.selections) {
-    if (selection.kind === Kind.FIELD) {
-      if (selection.alias) {
-        if (!fields[selection.alias.value]) {
-          return false;
-        }
-      } else {
-        if (!fields[selection.name.value]) {
-          return false;
-        }
-      }
-
-      // TODO: check that all subfields are also included.
-
-    } else if (selection.kind === Kind.INLINE_FRAGMENT) {
-      const containsFragment = typeContainsInlineFragment(type, selection);
-      if (!containsFragment) {
-        return false;
-      }
-    }
-  }
-
-  return true;
 }

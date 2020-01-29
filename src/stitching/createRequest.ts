@@ -18,6 +18,7 @@ import {
   GraphQLNonNull,
   TypeNode,
   GraphQLType,
+  SelectionSetNode,
 } from 'graphql';
 
 import {
@@ -48,8 +49,9 @@ export function createRequestFromInfo({
   schema,
   operation = getDelegatingOperation(info.parentType, info.schema),
   fieldName = info.fieldName,
-  additionalArgs,
-  fieldNodes = info.fieldNodes,
+  args,
+  selectionSet,
+  fieldNodes,
 }: ICreateRequestFromInfo): Request {
   return createRequest(
     info.schema,
@@ -59,8 +61,9 @@ export function createRequestFromInfo({
     schema,
     operation,
     fieldName,
-    additionalArgs,
-    fieldNodes,
+    args,
+    selectionSet,
+    selectionSet ? undefined : (fieldNodes ? fieldNodes : info.fieldNodes),
   );
 }
 
@@ -72,24 +75,28 @@ export function createRequest(
   targetSchemaOrSchemaConfig: GraphQLSchema | SubschemaConfig,
   targetOperation: Operation,
   targetField: string,
-  additionalArgs: Record<string, any>,
+  args: Record<string, any>,
+  selectionSet: SelectionSetNode,
   fieldNodes: ReadonlyArray<FieldNode>,
 ): Request {
-  let selections: Array<SelectionNode> = [];
-  const originalSelections: ReadonlyArray<SelectionNode> = fieldNodes;
-  originalSelections.forEach((field: FieldNode) => {
-    const fieldSelections = field.selectionSet
-      ? field.selectionSet.selections
-      : [];
-    selections = selections.concat(fieldSelections);
-  });
+  let argumentNodes: ReadonlyArray<ArgumentNode>;
 
-  let selectionSet = undefined;
-  if (selections.length > 0) {
-    selectionSet = {
+  if (!selectionSet && fieldNodes) {
+    const selections: Array<SelectionNode> = fieldNodes.reduce(
+      (acc, fieldNode) => fieldNode.selectionSet ?
+        acc.concat(fieldNode.selectionSet.selections) :
+        acc,
+      [],
+    );
+
+    selectionSet = selections.length ? {
       kind: Kind.SELECTION_SET,
       selections: selections,
-    };
+    } : undefined;
+
+    argumentNodes = fieldNodes[0].arguments;
+  } else {
+    argumentNodes = [];
   }
 
   let variables = {};
@@ -99,8 +106,7 @@ export function createRequest(
     variables[varName] = serializeInputValue(varType, variableValues[varName]);
   }
 
-  let args = fieldNodes[0].arguments;
-  if (additionalArgs) {
+  if (args) {
     const {
       arguments: updatedArguments,
       variableDefinitions: updatedVariableDefinitions,
@@ -109,20 +115,20 @@ export function createRequest(
       targetSchemaOrSchemaConfig,
       targetOperation,
       targetField,
-      args,
+      argumentNodes,
       variableDefinitions,
       variables,
-      additionalArgs,
+      args,
       );
-    args = updatedArguments;
+    argumentNodes = updatedArguments;
     variableDefinitions = updatedVariableDefinitions;
     variables = updatedVariableValues;
   }
 
-  const fieldNode: FieldNode = {
+  const rootfieldNode: FieldNode = {
     kind: Kind.FIELD,
     alias: null,
-    arguments: args,
+    arguments: argumentNodes,
     selectionSet,
     name: {
       kind: Kind.NAME,
@@ -136,7 +142,7 @@ export function createRequest(
     variableDefinitions,
     selectionSet: {
       kind: Kind.SELECTION_SET,
-      selections: [fieldNode],
+      selections: [rootfieldNode],
     },
   };
 

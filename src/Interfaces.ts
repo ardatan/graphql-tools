@@ -22,6 +22,7 @@ import {
   GraphQLObjectType,
   InlineFragmentNode,
   GraphQLOutputType,
+  SelectionSetNode,
 } from 'graphql';
 
 import { TypeMap } from 'graphql/type/schema';
@@ -101,8 +102,7 @@ export type SubschemaConfig = {
 };
 
 export type MergedTypeConfig = {
-  fragment?: string;
-  parsedFragment?: InlineFragmentNode,
+  selectionSet?: string;
   merge: MergedTypeResolver;
 };
 
@@ -111,7 +111,7 @@ export type MergedTypeResolver = (
   context: Record<string, any>,
   info: IGraphQLToolsResolveInfo,
   subschema: GraphQLSchema | SubschemaConfig,
-  fieldNodes: Array<FieldNode>,
+  selectionSet: SelectionSetNode,
 ) => any;
 
 export type GraphQLSchemaWithTransforms = GraphQLSchema & { transforms?: Array<Transform> };
@@ -132,8 +132,9 @@ export interface IDelegateToSchemaOptions<TContext = { [key: string]: any }> {
   operation?: Operation;
   fieldName?: string;
   returnType?: GraphQLOutputType;
-  fieldNodes?: ReadonlyArray<FieldNode>;
   args?: { [key: string]: any };
+  selectionSet?: SelectionSetNode;
+  fieldNodes?: ReadonlyArray<FieldNode>;
   context?: TContext;
   info: IGraphQLToolsResolveInfo;
   rootValue?: Record<string, any>;
@@ -147,8 +148,9 @@ export interface ICreateRequestFromInfo {
   schema: GraphQLSchema | SubschemaConfig;
   operation: Operation;
   fieldName: string;
-  additionalArgs: Record<string, any>;
-  fieldNodes: ReadonlyArray<FieldNode>;
+  args?: Record<string, any>;
+  selectionSet?: SelectionSetNode;
+  fieldNodes?: ReadonlyArray<FieldNode>;
 }
 
 export type IDelegateRequestOptions = {
@@ -174,9 +176,14 @@ export type MergeInfo = {
     field: string;
     fragment: string;
   }>;
+  replacementSelectionSets: ReplacementSelectionSetMapping,
   replacementFragments: ReplacementFragmentMapping,
   mergedTypes: Record<string, MergedTypeInfo>,
   delegateToSchema<TContext>(options: IDelegateToSchemaOptions<TContext>): any;
+};
+
+export type ReplacementSelectionSetMapping = {
+  [typeName: string]: { [fieldName: string]: SelectionSetNode };
 };
 
 export type ReplacementFragmentMapping = {
@@ -185,11 +192,12 @@ export type ReplacementFragmentMapping = {
 
 export type MergedTypeInfo = {
   subschemas: Array<SubschemaConfig>,
-  fragment?: InlineFragmentNode,
+  selectionSet?: SelectionSetNode,
   uniqueFields: Record<string, SubschemaConfig>,
   nonUniqueFields: Record<string, Array<SubschemaConfig>>,
   typeMaps: Map<SubschemaConfig, TypeMap>,
-  containsFragment: Map<SubschemaConfig, Map<InlineFragmentNode, boolean>>,
+  selectionSets: Map<SubschemaConfig, SelectionSetNode>,
+  containsSelectionSet: Map<SubschemaConfig, Map<SelectionSetNode, boolean>>,
 };
 
 export type IFieldResolver<TSource, TContext, TArgs = Record<string, any>> = (
