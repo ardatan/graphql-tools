@@ -120,7 +120,7 @@ export function mergeFields(
 
   const maybePromises: Promise<any> | any = [];
   delegationMap.forEach((selections: Array<SelectionNode>, s: SubschemaConfig) => {
-    const maybePromise = s.mergedTypeConfigs[typeName].merge(
+    const maybePromise = s.merge[typeName].resolve(
       object,
       context,
       info,

@@ -286,8 +286,8 @@ function createMergeInfo(
         .filter(typeCandidate =>
           typeCandidate.subschema &&
           isSubschemaConfig(typeCandidate.subschema) &&
-          typeCandidate.subschema.mergedTypeConfigs &&
-          typeCandidate.subschema.mergedTypeConfigs[typeName]
+          typeCandidate.subschema.merge &&
+          typeCandidate.subschema.merge[typeName]
         );
 
     if (mergedTypeCandidates.length) {
@@ -308,11 +308,25 @@ function createMergeInfo(
           fields[fieldName].push(subschemaConfig);
         });
 
-        const mergedTypeConfig = subschemaConfig.mergedTypeConfigs[typeName];
+        const mergedTypeConfig = subschemaConfig.merge[typeName];
+
         if (mergedTypeConfig.selectionSet) {
           const selectionSet = parseSelectionSet(mergedTypeConfig.selectionSet);
           requiredSelections = requiredSelections.concat(selectionSet.selections);
           selectionSets.set(subschemaConfig, selectionSet);
+        }
+
+        if (!mergedTypeConfig.resolve) {
+          mergedTypeConfig.resolve = (originalResult, context, info, subschema, selectionSet) => delegateToSchema({
+            schema: subschema,
+            operation: 'query',
+            fieldName: mergedTypeConfig.fieldName,
+            args: mergedTypeConfig.args(originalResult),
+            selectionSet,
+            context,
+            info,
+            skipTypeMerging: true,
+          });
         }
 
         subschemas.push(subschemaConfig);

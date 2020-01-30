@@ -98,12 +98,14 @@ export type SubschemaConfig = {
   fetcher?: Fetcher;
   dispatcher?: Dispatcher;
   transforms?: Array<Transform>;
-  mergedTypeConfigs?: Record<string, MergedTypeConfig>;
+  merge?: Record<string, MergedTypeConfig>;
 };
 
 export type MergedTypeConfig = {
   selectionSet?: string;
-  merge: MergedTypeResolver;
+  fieldName?: string;
+  args?: (originalResult: any) => Record<string, any>;
+  resolve?: MergedTypeResolver;
 };
 
 export type MergedTypeResolver = (

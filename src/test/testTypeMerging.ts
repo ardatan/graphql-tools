@@ -6,7 +6,6 @@
 import { expect } from 'chai';
 import { graphql } from 'graphql';
 import {
-  delegateToSchema,
   mergeSchemas,
   addMocksToSchema,
   makeExecutableSchema,
@@ -49,36 +48,20 @@ addMocksToSchema({ schema: authorSchema });
 const mergedSchema = mergeSchemas({
   subschemas: [{
     schema: chirpSchema,
-    mergedTypeConfigs: {
+    merge: {
       User: {
+        fieldName: 'userById',
+        args: originalResult => ({ id: originalResult.id }),
         selectionSet: '{ id }',
-        merge: (originalResult, context, info, subschema, selectionSet) => delegateToSchema({
-          schema: subschema,
-          operation: 'query',
-          fieldName: 'userById',
-          args: { id: originalResult.id },
-          selectionSet,
-          context,
-          info,
-          skipTypeMerging: true,
-        }),
       }
     },
   }, {
     schema: authorSchema,
-    mergedTypeConfigs: {
+    merge: {
       User: {
+        fieldName: 'userById',
+        args: originalResult => ({ id: originalResult.id }),
         selectionSet: '{ id }',
-        merge: (originalResult, context, info, subschema, selectionSet) => delegateToSchema({
-          schema: subschema,
-          operation: 'query',
-          fieldName: 'userById',
-          args: { id: originalResult.id },
-          selectionSet,
-          context,
-          info,
-          skipTypeMerging: true,
-        }),
       }
     },
   }],

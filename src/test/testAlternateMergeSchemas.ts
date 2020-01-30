@@ -1750,10 +1750,10 @@ describe('mergeTypes', () => {
   it('can merge types', async () => {
     const subschemaConfig1: SubschemaConfig = {
       schema: schema1,
-      mergedTypeConfigs: {
+      merge: {
         Test: {
           selectionSet: '{ id }',
-          merge: (originalResult, context, info, subschema, selectionSet) => delegateToSchema({
+          resolve: (originalResult, context, info, subschema, selectionSet) => delegateToSchema({
             schema: subschema,
             operation: 'query',
             fieldName: 'getTest',
@@ -1769,10 +1769,10 @@ describe('mergeTypes', () => {
 
     const subschemaConfig2: SubschemaConfig = {
       schema: schema2,
-      mergedTypeConfigs: {
+      merge: {
         Test: {
           selectionSet: '{ id }',
-          merge: (originalResult, context, info, subschema, selectionSet) => delegateToSchema({
+          resolve: (originalResult, context, info, subschema, selectionSet) => delegateToSchema({
             schema: subschema,
             operation: 'query',
             fieldName: 'getTest',
