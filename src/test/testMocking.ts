@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { graphql, GraphQLResolveInfo } from 'graphql';
-import { addMockFunctionsToSchema, MockList, mockServer } from '../mock';
+import { addMocksToSchema, MockList, mockServer } from '../mock';
 import {
   buildSchemaFromTypeDefinitions,
   addResolversToSchema,
@@ -84,13 +84,13 @@ describe('Mock', () => {
   };
 
   it('throws an error if you forget to pass schema', () => {
-    expect(() => (<any>addMockFunctionsToSchema)({})).to.throw(
+    expect(() => (<any>addMocksToSchema)({})).to.throw(
       'Must provide schema to mock',
     );
   });
 
   it('throws an error if the property "schema" on the first argument is not of type GraphQLSchema', () => {
-    expect(() => (<any>addMockFunctionsToSchema)({ schema: {} })).to.throw(
+    expect(() => (<any>addMocksToSchema)({ schema: {} })).to.throw(
       'Value at "schema" must be of type GraphQLSchema',
     );
   });
@@ -98,7 +98,7 @@ describe('Mock', () => {
   it('throws an error if second argument is not a Map', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     expect(() =>
-      (<any>addMockFunctionsToSchema)({ schema: jsSchema, mocks: ['a'] }),
+      (<any>addMocksToSchema)({ schema: jsSchema, mocks: ['a'] }),
     ).to.throw('mocks must be of type Object');
   });
 
@@ -106,14 +106,14 @@ describe('Mock', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = { Int: 55 };
     expect(() =>
-      (<any>addMockFunctionsToSchema)({ schema: jsSchema, mocks: mockMap }),
+      (<any>addMocksToSchema)({ schema: jsSchema, mocks: mockMap }),
     ).to.throw('mockFunctionMap[Int] must be a function');
   });
 
   it('mocks the default types for you', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {};
-    addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
+    addMocksToSchema({ schema: jsSchema, mocks: mockMap });
     const testQuery = `{
       returnInt
       returnFloat
@@ -260,7 +260,7 @@ describe('Mock', () => {
       },
     };
     addResolversToSchema(jsSchema, resolvers);
-    addMockFunctionsToSchema({
+    addMocksToSchema({
       schema: jsSchema,
       mocks: {},
       preserveResolvers: true,
@@ -287,7 +287,7 @@ describe('Mock', () => {
   it('can mock Enum', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {};
-    addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
+    addMocksToSchema({ schema: jsSchema, mocks: mockMap });
     const testQuery = `{
       returnEnum
     }`;
@@ -307,7 +307,7 @@ describe('Mock', () => {
         returnBirdsAndBees: () => new MockList(40),
       }),
     };
-    addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
+    addMocksToSchema({ schema: jsSchema, mocks: mockMap });
     const testQuery = `{
       returnBirdsAndBees {
         ... on Bird {
@@ -344,7 +344,7 @@ describe('Mock', () => {
         returnFlying: () => new MockList(40),
       }),
     };
-    addMockFunctionsToSchema({
+    addMocksToSchema({
       schema: jsSchema,
       mocks: mockMap,
       preserveResolvers: true,
@@ -395,7 +395,7 @@ describe('Mock', () => {
         return { __typename };
       },
     };
-    addMockFunctionsToSchema({
+    addMocksToSchema({
       schema: jsSchema,
       mocks: mockMap,
       preserveResolvers: true,
@@ -438,7 +438,7 @@ describe('Mock', () => {
         };
       },
     };
-    addMockFunctionsToSchema({
+    addMocksToSchema({
       schema: jsSchema,
       mocks: mockMap,
       preserveResolvers: true,
@@ -477,7 +477,7 @@ describe('Mock', () => {
         return;
       },
     };
-    addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
+    addMocksToSchema({ schema: jsSchema, mocks: mockMap });
     const testQuery = `{
         node(id:"bee:123456"){
           id,
@@ -493,7 +493,7 @@ describe('Mock', () => {
   it('throws an error in resolve if mock type is not defined', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {};
-    addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
+    addMocksToSchema({ schema: jsSchema, mocks: mockMap });
     const testQuery = `{
       returnMockError
     }`;
@@ -518,7 +518,7 @@ describe('Mock', () => {
     addResolversToSchema(jsSchema, resolvers);
 
     const mockMap = {};
-    addMockFunctionsToSchema({
+    addMocksToSchema({
       schema: jsSchema,
       mocks: mockMap,
       preserveResolvers: true,
@@ -547,7 +547,7 @@ describe('Mock', () => {
     addResolversToSchema(jsSchema, resolvers);
 
     const mockMap = {};
-    addMockFunctionsToSchema({
+    addMocksToSchema({
       schema: jsSchema,
       mocks: mockMap,
       preserveResolvers: true,
@@ -567,7 +567,7 @@ describe('Mock', () => {
   it('can mock an Int', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = { Int: () => 55 };
-    addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
+    addMocksToSchema({ schema: jsSchema, mocks: mockMap });
     const testQuery = `{
       returnInt
     }`;
@@ -579,7 +579,7 @@ describe('Mock', () => {
   it('can mock a Float', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = { Float: () => 55.5 };
-    addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
+    addMocksToSchema({ schema: jsSchema, mocks: mockMap });
     const testQuery = `{
       returnFloat
     }`;
@@ -590,7 +590,7 @@ describe('Mock', () => {
   it('can mock a String', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = { String: () => 'a string' };
-    addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
+    addMocksToSchema({ schema: jsSchema, mocks: mockMap });
     const testQuery = `{
       returnString
     }`;
@@ -601,7 +601,7 @@ describe('Mock', () => {
   it('can mock a Boolean', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = { Boolean: () => true };
-    addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
+    addMocksToSchema({ schema: jsSchema, mocks: mockMap });
     const testQuery = `{
       returnBoolean
     }`;
@@ -612,7 +612,7 @@ describe('Mock', () => {
   it('can mock an ID', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = { ID: () => 'ea5bdc19' };
-    addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
+    addMocksToSchema({ schema: jsSchema, mocks: mockMap });
     const testQuery = `{
       returnID
     }`;
@@ -623,7 +623,7 @@ describe('Mock', () => {
   it('nullable type is nullable', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = { String: (): null => null };
-    addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
+    addMocksToSchema({ schema: jsSchema, mocks: mockMap });
     const testQuery = `{
       returnNullableString
     }`;
@@ -634,7 +634,7 @@ describe('Mock', () => {
   it('can mock a nonNull type', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = { String: () => 'nonnull' };
-    addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
+    addMocksToSchema({ schema: jsSchema, mocks: mockMap });
     const testQuery = `{
       returnNonNullString
     }`;
@@ -645,7 +645,7 @@ describe('Mock', () => {
   it('nonNull type is not nullable', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = { String: (): null => null };
-    addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
+    addMocksToSchema({ schema: jsSchema, mocks: mockMap });
     const testQuery = `{
       returnNonNullString
     }`;
@@ -660,7 +660,7 @@ describe('Mock', () => {
       String: () => 'abc',
       Int: () => 123,
     };
-    addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
+    addMocksToSchema({ schema: jsSchema, mocks: mockMap });
     const testQuery = `{
       returnObject { returnInt, returnString }
     }`;
@@ -675,7 +675,7 @@ describe('Mock', () => {
   it('can mock a list of ints', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = { Int: () => 123 };
-    addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
+    addMocksToSchema({ schema: jsSchema, mocks: mockMap });
     const testQuery = `{
       returnListOfInt
     }`;
@@ -693,7 +693,7 @@ describe('Mock', () => {
       String: () => 'a',
       Int: () => 1,
     };
-    addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
+    addMocksToSchema({ schema: jsSchema, mocks: mockMap });
     const testQuery = `{
       returnListOfListOfObject { returnInt, returnString }
     }`;
@@ -731,7 +731,7 @@ describe('Mock', () => {
       },
     };
     addResolversToSchema(jsSchema, resolvers);
-    addMockFunctionsToSchema({
+    addMocksToSchema({
       schema: jsSchema,
       mocks: mockMap,
       preserveResolvers: true,
@@ -760,7 +760,7 @@ describe('Mock', () => {
       }),
       Int: () => 15,
     };
-    addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
+    addMocksToSchema({ schema: jsSchema, mocks: mockMap });
     const testQuery = `{
       returnObject{
         returnInt
@@ -799,7 +799,7 @@ describe('Mock', () => {
         returnString: 'woot!?', // b) another part of a Bird
       }),
     };
-    addMockFunctionsToSchema({
+    addMocksToSchema({
       schema: jsSchema,
       mocks: mockMap,
       preserveResolvers: true,
@@ -841,7 +841,7 @@ describe('Mock', () => {
         returnString: 'woot!?', // b) another part of a Bird
       }),
     };
-    addMockFunctionsToSchema({
+    addMocksToSchema({
       schema: jsSchema,
       mocks: mockMap,
       preserveResolvers: true,
@@ -883,7 +883,7 @@ describe('Mock', () => {
         returnString: 'woot!?', // b) another part of a Bird
       }),
     };
-    addMockFunctionsToSchema({
+    addMocksToSchema({
       schema: jsSchema,
       mocks: mockMap,
       preserveResolvers: true,
@@ -924,7 +924,7 @@ describe('Mock', () => {
     const mockMap = {
       Int: () => 123, // b) mock of Int.
     };
-    addMockFunctionsToSchema({
+    addMocksToSchema({
       schema: jsSchema,
       mocks: mockMap,
       preserveResolvers: true,
@@ -969,7 +969,7 @@ describe('Mock', () => {
     const mockMap = {
       Int: () => 123, // b) mock of Int.
     };
-    addMockFunctionsToSchema({
+    addMocksToSchema({
       schema: jsSchema,
       mocks: mockMap,
       preserveResolvers: true,
@@ -1015,7 +1015,7 @@ describe('Mock', () => {
     const mockMap = {
       Int: () => 123, // b) mock of Int.
     };
-    addMockFunctionsToSchema({
+    addMocksToSchema({
       schema: jsSchema,
       mocks: mockMap,
       preserveResolvers: true,
@@ -1050,7 +1050,7 @@ describe('Mock', () => {
     const mockMap = {
       Int: () => 666, // b) mock of Int.
     };
-    addMockFunctionsToSchema({
+    addMocksToSchema({
       schema: jsSchema,
       mocks: mockMap,
       preserveResolvers: true,
@@ -1081,7 +1081,7 @@ describe('Mock', () => {
         returnStringArgument: (o: any, a: { [key: string]: any }) => a['s'],
       }),
     };
-    addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
+    addMocksToSchema({ schema: jsSchema, mocks: mockMap });
     const testQuery = `{
       returnStringArgument(s: "adieu")
     }`;
@@ -1100,7 +1100,7 @@ describe('Mock', () => {
         returnStringArgument: (o: any, a: { [key: string]: any }) => a['s'],
       }),
     };
-    addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
+    addMocksToSchema({ schema: jsSchema, mocks: mockMap });
     const testQuery = `mutation {
       returnStringArgument(s: "adieu")
     }`;
@@ -1118,7 +1118,7 @@ describe('Mock', () => {
       RootQuery: () => ({ returnListOfInt: () => new MockList(3) }),
       Int: () => 12,
     };
-    addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
+    addMocksToSchema({ schema: jsSchema, mocks: mockMap });
     const testQuery = `{
       returnListOfInt
     }`;
@@ -1136,7 +1136,7 @@ describe('Mock', () => {
       RootQuery: () => ({ returnListOfInt: () => new MockList([10, 20]) }),
       Int: () => 12,
     };
-    addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
+    addMocksToSchema({ schema: jsSchema, mocks: mockMap });
     const testQuery = `{
       returnListOfInt
     }`;
@@ -1155,7 +1155,7 @@ describe('Mock', () => {
       }),
       Int: () => 12,
     };
-    addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
+    addMocksToSchema({ schema: jsSchema, mocks: mockMap });
     const testQuery = `{
       l3: returnListOfIntArg(l: 3)
       l5: returnListOfIntArg(l: 5)
@@ -1174,7 +1174,7 @@ describe('Mock', () => {
       }),
       Int: () => 12,
     };
-    addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
+    addMocksToSchema({ schema: jsSchema, mocks: mockMap });
     const testQuery = `{
       returnListOfInt
     }`;
@@ -1200,7 +1200,7 @@ describe('Mock', () => {
       }),
       Int: () => 12,
     };
-    addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
+    addMocksToSchema({ schema: jsSchema, mocks: mockMap });
     const testQuery = `{
       returnListOfListOfInt
     }`;
@@ -1224,7 +1224,7 @@ describe('Mock', () => {
       }),
       Int: () => 12,
     };
-    addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
+    addMocksToSchema({ schema: jsSchema, mocks: mockMap });
     const testQuery = `{
       returnListOfListOfIntArg(l: 1)
     }`;
@@ -1291,7 +1291,7 @@ describe('Mock', () => {
       }),
       Int: () => 123,
     };
-    addMockFunctionsToSchema({ schema: jsSchema, mocks: mockMap });
+    addMocksToSchema({ schema: jsSchema, mocks: mockMap });
     const testQuery = `query abc{
       thread(id: "67"){
         id
@@ -1356,7 +1356,7 @@ describe('Mock', () => {
       resolvers,
     });
 
-    addMockFunctionsToSchema({
+    addMocksToSchema({
       schema,
       mocks: {
         Date: () => new Date('2016-05-04'),
@@ -1438,7 +1438,7 @@ describe('Mock', () => {
       resolvers,
     });
 
-    addMockFunctionsToSchema({
+    addMocksToSchema({
       schema,
       preserveResolvers: true,
     });

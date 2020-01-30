@@ -28,7 +28,7 @@ const resolverMap = {
   },
 };
 ```
-> Note: If you are using mocking, the `preserveResolvers` argument of [`addMockFunctionsToSchema`](/mocking/#addmockfunctionstoschema) must be set to `true` if you don't want your resolvers to be overwritten by mock resolvers.
+> Note: If you are using mocking, the `preserveResolvers` argument of [`addMocksToSchema`](/mocking/#addmockfunctionstoschema) must be set to `true` if you don't want your resolvers to be overwritten by mock resolvers.
 
 Note that you don't have to put all of your resolvers in one object. Refer to the ["modularizing the schema"](/generate-schema/) section to learn how to combine multiple resolver maps into one.
 

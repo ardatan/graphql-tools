@@ -1,7 +1,7 @@
 import {expect} from 'chai';
 import {ExecutionResult, graphql} from 'graphql';
 import {
-  addMockFunctionsToSchema,
+  addMocksToSchema,
   makeExecutableSchema,
   transformSchema,
 } from '..';
@@ -12,7 +12,7 @@ describe('Merging schemas', () => {
       typeDefs: rawSchema,
     });
 
-    addMockFunctionsToSchema({schema: originalSchema});
+    addMocksToSchema({schema: originalSchema});
 
     const originalResult = await graphql(
       originalSchema,

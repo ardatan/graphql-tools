@@ -8,7 +8,7 @@ import { graphql } from 'graphql';
 import {
   delegateToSchema,
   mergeSchemas,
-  addMockFunctionsToSchema,
+  addMocksToSchema,
   makeExecutableSchema,
 } from '../index';
 
@@ -30,7 +30,7 @@ const chirpSchema = makeExecutableSchema({
   `,
 });
 
-addMockFunctionsToSchema({ schema: chirpSchema });
+addMocksToSchema({ schema: chirpSchema });
 
 const authorSchema = makeExecutableSchema({
   typeDefs: `
@@ -44,7 +44,7 @@ const authorSchema = makeExecutableSchema({
   `,
 });
 
-addMockFunctionsToSchema({ schema: authorSchema });
+addMocksToSchema({ schema: authorSchema });
 
 const mergedSchema = mergeSchemas({
   subschemas: [{

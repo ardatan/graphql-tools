@@ -18,7 +18,7 @@ import { graphql } from 'graphql';
 import {
   delegateToSchema,
   mergeSchemas,
-  addMockFunctionsToSchema,
+  addMocksToSchema,
 } from '../index';
 
 const chirpTypeDefs = `
@@ -70,7 +70,7 @@ const chirpSchema = mergeSchemas({
   }
 });
 
-addMockFunctionsToSchema({
+addMocksToSchema({
   schema: chirpSchema,
   mocks: {
     Chirp: () => ({
@@ -108,7 +108,7 @@ const authorSchema = mergeSchemas({
   }
 });
 
-addMockFunctionsToSchema({
+addMocksToSchema({
   schema: authorSchema,
   mocks: {
     User: () => ({
