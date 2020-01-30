@@ -4,6 +4,7 @@ import {
   parse,
   Kind,
   GraphQLObjectType,
+  getNamedType,
 } from 'graphql';
 
 export function parseSelectionSet(selectionSet: string): SelectionSetNode {
@@ -11,22 +12,26 @@ export function parseSelectionSet(selectionSet: string): SelectionSetNode {
   return query.selectionSet;
 }
 
-export function typeContainsSelectionSet(type: GraphQLObjectType, selectionSet: SelectionSetNode): boolean {
+export function typeContainsSelectionSet(
+  type: GraphQLObjectType,
+  selectionSet: SelectionSetNode,
+): boolean {
   const fields = type.getFields();
 
   for (const selection of selectionSet.selections) {
     if (selection.kind === Kind.FIELD) {
-      if (selection.alias) {
-        if (!fields[selection.alias.value]) {
-          return false;
-        }
-      } else {
-        if (!fields[selection.name.value]) {
-          return false;
-        }
+      const field = fields[selection.name.value];
+
+      if (!field) {
+        return false;
       }
 
-      // TODO: check that all subfields are also included.
+      if (selection.selectionSet) {
+        return typeContainsSelectionSet(
+          getNamedType(field.type) as GraphQLObjectType,
+          selection.selectionSet,
+        );
+      }
 
     } else if (selection.kind === Kind.INLINE_FRAGMENT) {
       const containsSelectionSet = typeContainsSelectionSet(type, selection.selectionSet);
