@@ -9,18 +9,18 @@ import { relocatedError } from './errors';
 import { mergeDeep } from '../utils';
 
 export let OBJECT_SUBSCHEMA_SYMBOL: any;
-export let SUBSCHEMA_MAP_SYMBOL: any;
+export let FIELD_SUBSCHEMA_MAP_SYMBOL: any;
 export let ERROR_SYMBOL: any;
 if (
   (typeof global !== 'undefined' && 'Symbol' in global) ||
   (typeof window !== 'undefined' && 'Symbol' in window)
 ) {
   OBJECT_SUBSCHEMA_SYMBOL = Symbol('initialSubschema');
-  SUBSCHEMA_MAP_SYMBOL = Symbol('subschemaMap');
+  FIELD_SUBSCHEMA_MAP_SYMBOL = Symbol('subschemaMap');
   ERROR_SYMBOL = Symbol('subschemaErrors');
 } else {
   OBJECT_SUBSCHEMA_SYMBOL = Symbol('@@__initialSubschema');
-  SUBSCHEMA_MAP_SYMBOL = Symbol('@@__subschemaMap');
+  FIELD_SUBSCHEMA_MAP_SYMBOL = Symbol('@@__subschemaMap');
   ERROR_SYMBOL = '@@__subschemaErrors';
 }
 
@@ -29,17 +29,12 @@ export function isProxiedResult(result: any) {
 }
 
 export function getSubschema(result: any, responseKey: string): GraphQLSchema | SubschemaConfig {
-  const subschema = result[SUBSCHEMA_MAP_SYMBOL] && result[SUBSCHEMA_MAP_SYMBOL][responseKey];
+  const subschema = result[FIELD_SUBSCHEMA_MAP_SYMBOL] && result[FIELD_SUBSCHEMA_MAP_SYMBOL][responseKey];
   return subschema ? subschema : result[OBJECT_SUBSCHEMA_SYMBOL];
 }
 
 export function setObjectSubschema(result: any, subschema: GraphQLSchema | SubschemaConfig) {
   result[OBJECT_SUBSCHEMA_SYMBOL] = subschema;
-}
-
-export function setSubschemaForKey(result: any, responseKey: string, subschema: GraphQLSchema | SubschemaConfig) {
-  result[SUBSCHEMA_MAP_SYMBOL] = result[SUBSCHEMA_MAP_SYMBOL] || Object.create(null);
-  result[SUBSCHEMA_MAP_SYMBOL][responseKey] = subschema;
 }
 
 export function setErrors(result: any, errors: Array<GraphQLError>) {
@@ -130,15 +125,17 @@ export function dehoistResult(parent: any, delimeter: string = '__gqltf__'): any
 
 export function mergeProxiedResults(target: any, ...sources: any): any {
   const errors = target[ERROR_SYMBOL].concat(sources.map((source: any) => source[ERROR_SYMBOL]));
-  const subschemaMap = sources.reduce((acc: Record<any, SubschemaConfig>, source: any) => {
+  const fieldSubschemaMap = sources.reduce((acc: Record<any, SubschemaConfig>, source: any) => {
     const subschema = source[OBJECT_SUBSCHEMA_SYMBOL];
     Object.keys(source).forEach(key => {
       acc[key] = subschema;
     });
     return acc;
   }, {});
-  return mergeDeep(target, ...sources, {
-    [ERROR_SYMBOL]: errors,
-    [SUBSCHEMA_MAP_SYMBOL]: subschemaMap,
-  });
+  const result = mergeDeep(target, ...sources);
+  result[ERROR_SYMBOL] = errors;
+  result[FIELD_SUBSCHEMA_MAP_SYMBOL] = target[FIELD_SUBSCHEMA_MAP_SYMBOL] ?
+    mergeDeep(target[FIELD_SUBSCHEMA_MAP_SYMBOL], fieldSubschemaMap) :
+    fieldSubschemaMap;
+  return result;
 }

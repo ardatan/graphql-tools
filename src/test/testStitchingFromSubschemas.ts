@@ -6,13 +6,20 @@
 // always returning the necessary object fields:
 // https://medium.com/paypal-engineering/graphql-resolvers-best-practices-cd36fdbcef55
 
+// This is achieved at the considerable cost of moving all of the delegation
+// logic from the gateway to each subschema so that each subschema imports all
+// the required types and performs all delegation.
+
 // The fragment field is still necessary when working with a remote schema
 // where this is not possible.
 
 import { expect } from 'chai';
 import { graphql } from 'graphql';
-import { delegateToSchema, mergeSchemas } from '../index';
-import { addMockFunctionsToSchema } from '../mock';
+import {
+  delegateToSchema,
+  mergeSchemas,
+  addMockFunctionsToSchema,
+} from '../index';
 
 const chirpTypeDefs = `
   type Chirp {

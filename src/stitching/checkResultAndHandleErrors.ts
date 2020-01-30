@@ -163,16 +163,20 @@ export function handleObject(
     return object;
   }
 
+  const subFields = collectSubFields(info, object.__typename);
+
+  const selections = getFieldsNotInSubschema(
+    subFields,
+    subschema,
+    mergedTypeInfo,
+    object.__typename,
+  );
+
   return mergeFields(
     mergedTypeInfo,
     typeName,
     object,
-    getFieldsNotInSubschema(
-      collectSubFields(info, object.__typename),
-      subschema,
-      mergedTypeInfo,
-      object.__typename,
-    ),
+    selections,
     [subschema as SubschemaConfig],
     targetSubschemas,
     context,

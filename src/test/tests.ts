@@ -14,7 +14,8 @@ import './testResolution';
 import './testSchemaGenerator';
 import './testTransforms';
 import './testExtensionExtraction';
-import './testIntegration';
+import './testStitchingFromSubschemas';
+import './testTypeMerging';
 import './testUpload';
 import './testUtils';
 
