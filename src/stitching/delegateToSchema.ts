@@ -4,6 +4,7 @@ import {
   validate,
   GraphQLSchema,
   ExecutionResult,
+  GraphQLOutputType,
 } from 'graphql';
 
 import {
@@ -13,6 +14,7 @@ import {
   Delegator,
   SubschemaConfig,
   isSubschemaConfig,
+  IGraphQLToolsResolveInfo,
 } from '../Interfaces';
 
 import {
@@ -79,34 +81,17 @@ export default function delegateToSchema(
   });
 }
 
-export function delegateRequest({
-  request,
-  schema: subschema,
-  rootValue,
-  info,
-  operation = getDelegatingOperation(info.parentType, info.schema),
-  fieldName = info.fieldName,
-  returnType = info.returnType,
-  context,
-  transforms = [],
-  skipValidation,
-  skipTypeMerging,
-}: IDelegateRequestOptions): any {
-  let targetSchema: GraphQLSchema;
-  let subschemaConfig: SubschemaConfig;
-
-  if (isSubschemaConfig(subschema)) {
-    subschemaConfig = subschema;
-    targetSchema = subschemaConfig.schema;
-    rootValue = rootValue || subschemaConfig.rootValue || info.rootValue;
-    transforms = transforms.concat((subschemaConfig.transforms || []).slice().reverse());
-  } else {
-    targetSchema = subschema;
-    rootValue = rootValue || info.rootValue;
-  }
-
+function buildDelegationTransforms(
+  subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig,
+  info: IGraphQLToolsResolveInfo,
+  targetSchema: GraphQLSchema,
+  fieldName: string,
+  returnType: GraphQLOutputType,
+  transforms: Array<Transform>,
+  skipTypeMerging: boolean,
+): Array<Transform> {
   let delegationTransforms: Array<Transform> = [
-    new CheckResultAndHandleErrors(info, fieldName, subschema, context, returnType, skipTypeMerging),
+    new CheckResultAndHandleErrors(info, fieldName, subschemaOrSubschemaConfig, context, returnType, skipTypeMerging),
   ];
 
   if (info.mergeInfo) {
@@ -131,6 +116,45 @@ export function delegateRequest({
   delegationTransforms.push(
     new FilterToSchema(targetSchema),
     new AddTypenameToAbstract(targetSchema),
+  );
+
+  return delegationTransforms;
+}
+
+export function delegateRequest({
+  request,
+  schema: subschemaOrSubschemaConfig,
+  rootValue,
+  info,
+  operation = getDelegatingOperation(info.parentType, info.schema),
+  fieldName = info.fieldName,
+  returnType = info.returnType,
+  context,
+  transforms = [],
+  skipValidation,
+  skipTypeMerging,
+}: IDelegateRequestOptions): any {
+  let targetSchema: GraphQLSchema;
+  let subschemaConfig: SubschemaConfig;
+
+  if (isSubschemaConfig(subschemaOrSubschemaConfig)) {
+    subschemaConfig = subschemaOrSubschemaConfig;
+    targetSchema = subschemaConfig.schema;
+    rootValue = rootValue || subschemaConfig.rootValue || info.rootValue;
+    transforms = transforms.concat((subschemaConfig.transforms || []).slice().reverse());
+  } else {
+    targetSchema = subschemaOrSubschemaConfig;
+    rootValue = rootValue || info.rootValue;
+  }
+
+  const delegationTransforms = buildDelegationTransforms(
+    subschemaOrSubschemaConfig,
+    info,
+    targetSchema,
+    fieldName,
+    returnType,
+    transforms,
+    skipTypeMerging,
   );
 
   request = applyRequestTransforms(request, delegationTransforms);
