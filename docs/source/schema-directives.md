@@ -344,7 +344,7 @@ GraphQL is great for internationalization, since a GraphQL server can access unl
 
 Imagine a hypothetical `@auth` directive that takes an argument `requires` of type `Role`, which defaults to `ADMIN`. This `@auth` directive can appear on an `OBJECT` like `User` to set default access permissions for all `User` fields, as well as appearing on individual fields, to enforce field-specific `@auth` restrictions:
 
-```gql
+```graphql
 directive @auth(
   requires: Role = ADMIN,
 ) on OBJECT | FIELD_DEFINITION
@@ -673,7 +673,7 @@ We believe confining this logic to your schema is more sustainable than burdenin
 
 Before `SchemaDirectiveVisitor` was implemented, the `makeExecutableSchema` function took a `directiveResolvers` option that could be used for implementing certain kinds of `@directive`s on fields that have resolver functions.
 
-The new abstraction is more general, since it can visit any kind of schema syntax, and do much more than just wrap resolver functions. However, the old `directiveResolvers` API has been [left in place](directive-resolvers.html) for backwards compatibility, though it is now implemented in terms of `SchemaDirectiveVisitor`:
+The new abstraction is more general, since it can visit any kind of schema syntax, and do much more than just wrap resolver functions. However, the old `directiveResolvers` API has been [left in place](directive-resolvers) for backwards compatibility, though it is now implemented in terms of `SchemaDirectiveVisitor`:
 
 ```typescript
 function attachDirectiveResolvers(
