@@ -7,7 +7,7 @@ Schema transforms are a tool for making modified copies of `GraphQLSchema` objec
 
 Schema transforms can be useful when building GraphQL gateways that combine multiple schemas using [schema stitching](/schema-stitching/) to combine schemas together without conflicts between types or fields.
 
-Schema transforms work by wrapping the original schema in a new outer schema that simply delegates all operations to the original inner schema. Each schema transform includes a function that changes the outer wrapping schema. It may also include an operation transform, i.e. functions that either modify the operation prior to delegation or modify the result prior to its return.
+Schema transforms work by wrapping the original schema in a new 'gateway' schema that simply delegates all operations to the original subschema. Each schema transform includes a function that changes the gateway schema. It may also include an operation transform, i.e. functions that either modify the operation prior to delegation or modify the result prior to its return.
 
 ```ts
 interface Transform = {
@@ -42,7 +42,7 @@ type Query {
 }
 ```
 
-On delegation to the inner, original schema, we want the `NewTest` type to be automatically mapped to the old `Test` type.
+On delegation to the original subschema, we want the `NewTest` type to be automatically mapped to the old `Test` type.
 
 At first glance, it might seem as though most queries work the same way as before:
 
@@ -104,11 +104,11 @@ Given a `GraphQLSchema` and an array of `Transform` objects, produce a new schem
 
 Delegating resolvers are generated to map from new schema root fields to old schema root fields. These automatic resolvers should be sufficient, so you don't have to implement your own.
 
-The delegating resolvers will apply the operation transforms defined by the `Transform` objects. Each provided `transformRequest` functions will be applies in reverse order, until the request matches the original schema. The `tranformResult` functions will be applied in the opposite order until the result matches the outer schema.
+The delegating resolvers will apply the operation transforms defined by the `Transform` objects. Each provided `transformRequest` functions will be applies in reverse order, until the request matches the original schema. The `tranformResult` functions will be applied in the opposite order until the result matches the final gateway schema.
 
 ### transformSchema
 
-For convenience, when using `transformSchema`, after schema transformation, the `transforms` property on a returned `transformedSchema` object will contains the operation transforms that were applied. This could be useful when manually delegating to the original schema from an outer schema when [schema stitching](/schema-stitching/), but has been deprecated in favor of specifying subschema ids. See the [schema stitching](/schema-stitching/) docs for further details.
+For convenience, when using `transformSchema`, after schema transformation, the `transforms` property on a returned `transformedSchema` object will contains the operation transforms that were applied. This could be useful when manually delegating to the transformed schema, but has been deprecated in favor of specifying the transforms within a subschema configuration object. See the [schema stitching](/schema-stitching/) docs for further details.
 
 ## Built-in transforms
 
@@ -295,15 +295,19 @@ transforms: [
     })
 ```
 
-* `ReplaceFieldWithFragment(targetSchema: GraphQLSchema, fragments: Array<{ field: string; fragment: string; }>)`: Replace the given fields with an inline fragment. Used by `mergeSchemas` to handle the `fragment` option.
+## delegateToSchema (delegation) transforms
 
-## delegateToSchema transforms
+The following transforms are automatically applied by `delegateToSchema` during schema delegation, to translate between source and target types and fields:
 
-The following transforms are automatically applied by `delegateToSchema` during schema delegation, to translate between new and old types and fields:
-
-* `ExpandAbstractTypes`: If an abstract type within a document does not exist in the inner schema, expand the type to each and any of its implementations that do exist in the inner schema.
-* `FilterToSchema`: Given a schema and document, remove all fields, variables and fragments for types that don't exist in that schema.
-* `AddTypenameToAbstract`: Add `__typename` to all abstract types in the document, necessary for type resolution of interfaces within the outer schema to work.
+* `ExpandAbstractTypes`: If an abstract type within a document does not exist within the target schema, expand the type to each and any of its implementations that do exist.
+* `FilterToSchema`: Remove all fields, variables and fragments for types that don't exist within the target schema.
+* `AddTypenameToAbstract`: Add `__typename` to all abstract types in the document, necessary for type resolution of interfaces within the source schema to work.
 * `CheckResultAndHandleErrors`: Given a result from a subschema, propagate errors so that they match the correct subfield. Also provide the correct key if aliases are used.
 
 By passing a custom `transforms` array to `delegateToSchema`, it's possible to run additional operation (request/result) transforms before these default transforms.
+
+## mergeSchemas (gateway/stitching) transforms
+
+* `AddReplacementSelectionSets(schema: GraphQLSchema, mapping: ReplacementSelectionSetMapping)`:  `mergeSchemas` adds selection sets on outgoing requests from the gateway, enabling delegation from fields specified on the gateway using fields obtained from the original requests. The selection sets can be added depending on the presence of fields within the request using the `selectionSet` option within the resolver map.  `mergeSchemas` creates the mapping at gateway startup. Selection sets are used instead of fragments as the selections are added prior to transformation (in case type names are changed).
+* `AddMergedTypeSelectionSets(schema: GraphQLSchema, mapping: Record<string, MergedTypeInfo>)`: `mergeSchemas` adds selection sets on outgoing requests from the gateway, enabling type merging from the initial result using any fields initially obtained. The mapping is created at gateway startup.
+* Deprecated: `ReplaceFieldWithFragment(targetSchema: GraphQLSchema, fragments: Array<{ field: string; fragment: string; }>)`: Replace the given fields with an inline fragment. Used by original `mergeSchemas` to add prespecified fragments to root fields, enabling delegation `fragment` option. Array was parsed at each delegation.
