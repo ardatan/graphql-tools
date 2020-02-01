@@ -65,6 +65,7 @@ const mergedSchema = mergeSchemas({
       }
     },
   }],
+  mergeTypes: true,
 });
 
 describe('merging using type merging', () => {
