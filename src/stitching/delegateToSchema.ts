@@ -84,6 +84,7 @@ export default function delegateToSchema(
 function buildDelegationTransforms(
   subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig,
   info: IGraphQLToolsResolveInfo,
+  context: Record<string, any>,
   targetSchema: GraphQLSchema,
   fieldName: string,
   returnType: GraphQLOutputType,
@@ -150,6 +151,7 @@ export function delegateRequest({
   const delegationTransforms = buildDelegationTransforms(
     subschemaOrSubschemaConfig,
     info,
+    context,
     targetSchema,
     fieldName,
     returnType,
