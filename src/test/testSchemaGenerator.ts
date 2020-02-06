@@ -15,6 +15,8 @@ import {
   execute,
   VariableDefinitionNode,
   DocumentNode,
+  GraphQLBoolean,
+  graphqlSync,
 } from 'graphql';
 // import { printSchema } from 'graphql';
 const { GraphQLJSON } = require('graphql-type-json');
@@ -752,6 +754,70 @@ describe('generating schema from shorthand', () => {
         .to.have.property('description')
         .that.is.a('string');
       expect(jsSchema.getType('JSON')['description']).to.have.length.above(0);
+    });
+
+    it('supports passing a default scalar type', () => {
+      const shorthand = `
+        type Foo {
+          aField: Boolean
+        }
+
+        type Query {
+          foo: Foo
+        }
+      `;
+      const resolveFunctions = {
+        Boolean: GraphQLBoolean,
+      };
+      const jsSchema = makeExecutableSchema({
+        typeDefs: shorthand,
+        resolvers: resolveFunctions,
+      });
+      expect(jsSchema.getQueryType().name).to.equal('Query');
+      expect(jsSchema.getType('Boolean')).to.equal(GraphQLBoolean);
+    });
+
+    it('allow overriding default scalar type fields', () => {
+      const originalSerialize = GraphQLBoolean.serialize;
+      const shorthand = `
+        type Foo {
+          aField: Boolean
+        }
+
+        type Query {
+          foo: Foo
+        }
+      `;
+      const resolveFunctions = {
+        Boolean: new GraphQLScalarType({
+          name: 'Boolean',
+          serialize: () => false,
+        }),
+        Query: {
+          foo: () => ({ aField: true }),
+        }
+      };
+      const jsSchema = makeExecutableSchema({
+        typeDefs: shorthand,
+        resolvers: resolveFunctions,
+      });
+      const testQuery = `
+        {
+          foo {
+            aField
+          }
+        }
+      `;
+      const result = graphqlSync(jsSchema, testQuery);
+      expect(result.data.foo.aField).to.equal(false);
+      addResolversToSchema({
+        schema: jsSchema,
+        resolvers: {
+          Boolean: {
+            serialize: originalSerialize,
+          }
+        }
+      });
     });
 
     it('retains scalars after walking/recreating the schema', () => {
