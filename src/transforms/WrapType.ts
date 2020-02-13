@@ -8,11 +8,7 @@ import WrapFields from './WrapFields';
 export default class WrapType implements Transform {
   private readonly transformer: Transform;
 
-  constructor(
-    outerTypeName: string,
-    innerTypeName: string,
-    fieldName: string,
-  ) {
+  constructor(outerTypeName: string, innerTypeName: string, fieldName: string) {
     this.transformer = new WrapFields(
       outerTypeName,
       [fieldName],

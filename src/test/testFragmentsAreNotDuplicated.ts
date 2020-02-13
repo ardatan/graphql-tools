@@ -1,11 +1,7 @@
-import {expect} from 'chai';
-import {ExecutionResult, graphql} from 'graphql';
+import { expect } from 'chai';
+import { ExecutionResult, graphql } from 'graphql';
 
-import {
-  addMocksToSchema,
-  makeExecutableSchema,
-  transformSchema,
-} from '..';
+import { addMocksToSchema, makeExecutableSchema, transformSchema } from '..';
 
 describe('Merging schemas', () => {
   it('should not throw `There can be only one fragment named "FieldName"` errors', async () => {
@@ -13,7 +9,7 @@ describe('Merging schemas', () => {
       typeDefs: rawSchema,
     });
 
-    addMocksToSchema({schema: originalSchema});
+    addMocksToSchema({ schema: originalSchema });
 
     const originalResult = await graphql(
       originalSchema,

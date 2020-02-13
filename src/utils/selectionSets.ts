@@ -8,7 +8,7 @@ import {
 } from 'graphql';
 
 export function parseSelectionSet(selectionSet: string): SelectionSetNode {
-  const query = (parse(selectionSet).definitions[0] as OperationDefinitionNode);
+  const query = parse(selectionSet).definitions[0] as OperationDefinitionNode;
   return query.selectionSet;
 }
 
@@ -32,9 +32,11 @@ export function typeContainsSelectionSet(
           selection.selectionSet,
         );
       }
-
     } else if (selection.kind === Kind.INLINE_FRAGMENT) {
-      const containsSelectionSet = typeContainsSelectionSet(type, selection.selectionSet);
+      const containsSelectionSet = typeContainsSelectionSet(
+        type,
+        selection.selectionSet,
+      );
       if (!containsSelectionSet) {
         return false;
       }

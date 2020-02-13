@@ -1,5 +1,3 @@
 import { GraphQLUpload } from './GraphQLUpload';
 
-export {
-  GraphQLUpload,
-};
+export { GraphQLUpload };

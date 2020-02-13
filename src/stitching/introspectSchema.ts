@@ -18,28 +18,35 @@ export default function introspectSchema(
   linkOrFetcher: ApolloLink | Fetcher,
   linkContext?: { [key: string]: any },
 ): Promise<GraphQLSchema> {
-  const fetcher = linkOrFetcher instanceof ApolloLink ?
-    linkToFetcher(linkOrFetcher) :
-    linkOrFetcher;
+  const fetcher =
+    linkOrFetcher instanceof ApolloLink
+      ? linkToFetcher(linkOrFetcher)
+      : linkOrFetcher;
 
   return fetcher({
     query: parsedIntrospectionQuery,
     context: linkContext,
   }).then(introspectionResult => {
     if (
-      (Array.isArray(introspectionResult.errors) && introspectionResult.errors.length) ||
+      (Array.isArray(introspectionResult.errors) &&
+        introspectionResult.errors.length) ||
       !introspectionResult.data.__schema
     ) {
       if (Array.isArray(introspectionResult.errors)) {
         const combinedError: Error = combineErrors(introspectionResult.errors);
         throw combinedError;
       } else {
-        throw new Error('Could not obtain introspection result, received: ' + JSON.stringify(introspectionResult));
+        throw new Error(
+          'Could not obtain introspection result, received: ' +
+            JSON.stringify(introspectionResult),
+        );
       }
     } else {
-      const schema = buildClientSchema(introspectionResult.data as {
-        __schema: any;
-      });
+      const schema = buildClientSchema(
+        introspectionResult.data as {
+          __schema: any;
+        },
+      );
       return schema;
     }
   });

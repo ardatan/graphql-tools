@@ -8,11 +8,17 @@ import { Transform } from './transforms';
 export default class RenameObjectFields implements Transform {
   private readonly transformer: TransformObjectFields;
 
-  constructor(renamer: (typeName: string, fieldName: string, field: GraphQLField<any, any>) => string) {
+  constructor(
+    renamer: (
+      typeName: string,
+      fieldName: string,
+      field: GraphQLField<any, any>,
+    ) => string,
+  ) {
     this.transformer = new TransformObjectFields(
       (typeName: string, fieldName: string, field: GraphQLField<any, any>) => ({
-          name: renamer(typeName, fieldName, field),
-        })
+        name: renamer(typeName, fieldName, field),
+      }),
     );
   }
 

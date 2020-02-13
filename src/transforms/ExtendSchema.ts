@@ -1,8 +1,4 @@
-import {
-  GraphQLSchema,
-  extendSchema,
-  parse,
-} from 'graphql';
+import { GraphQLSchema, extendSchema, parse } from 'graphql';
 
 import { IFieldResolver, IResolvers, Request } from '../Interfaces';
 import { addResolversToSchema } from '../generate';
@@ -27,18 +23,25 @@ export default class ExtendSchema implements Transform {
     resolvers?: IResolvers;
     defaultFieldResolver?: IFieldResolver<any, any>;
     fieldNodeTransformerMap?: FieldNodeTransformerMap;
-    }) {
+  }) {
     this.typeDefs = typeDefs;
     this.resolvers = resolvers;
-    this.defaultFieldResolver = defaultFieldResolver != null ? defaultFieldResolver : defaultMergedResolver;
-    this.transformer = new MapFields(fieldNodeTransformerMap != null ? fieldNodeTransformerMap : {});
+    this.defaultFieldResolver =
+      defaultFieldResolver != null
+        ? defaultFieldResolver
+        : defaultMergedResolver;
+    this.transformer = new MapFields(
+      fieldNodeTransformerMap != null ? fieldNodeTransformerMap : {},
+    );
   }
 
   public transformSchema(schema: GraphQLSchema): GraphQLSchema {
     this.transformer.transformSchema(schema);
 
     return addResolversToSchema({
-      schema: this.typeDefs ? extendSchema(schema, parse(this.typeDefs)) : schema,
+      schema: this.typeDefs
+        ? extendSchema(schema, parse(this.typeDefs))
+        : schema,
       resolvers: this.resolvers != null ? this.resolvers : {},
       defaultFieldResolver: this.defaultFieldResolver,
     });

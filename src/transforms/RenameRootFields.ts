@@ -21,8 +21,8 @@ export default class RenameRootFields implements Transform {
         fieldName: string,
         field: GraphQLField<any, any>,
       ) => ({
-          name: renamer(operation, fieldName, field),
-        }),
+        name: renamer(operation, fieldName, field),
+      }),
     );
   }
 

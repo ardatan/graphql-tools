@@ -32,7 +32,7 @@ import { serializeInputValue } from '../utils';
 
 export function getDelegatingOperation(
   parentType: GraphQLObjectType,
-  schema: GraphQLSchema
+  schema: GraphQLSchema,
 ): OperationTypeNode {
   if (parentType === schema.getMutationType()) {
     return 'mutation';
@@ -62,7 +62,11 @@ export function createRequestFromInfo({
     fieldName,
     args,
     selectionSet,
-    selectionSet != null ? undefined : (fieldNodes != null ? fieldNodes: info.fieldNodes),
+    selectionSet != null
+      ? undefined
+      : fieldNodes != null
+      ? fieldNodes
+      : info.fieldNodes,
   );
 }
 
@@ -85,16 +89,19 @@ export function createRequest(
 
   if (!selectionSet && fieldNodes != null) {
     const selections: Array<SelectionNode> = fieldNodes.reduce(
-      (acc, fieldNode) => fieldNode.selectionSet != null ?
-        acc.concat(fieldNode.selectionSet.selections) :
-        acc,
+      (acc, fieldNode) =>
+        fieldNode.selectionSet != null
+          ? acc.concat(fieldNode.selectionSet.selections)
+          : acc,
       [],
     );
 
-    newSelectionSet = selections.length ? {
-      kind: Kind.SELECTION_SET,
-      selections,
-    } : undefined;
+    newSelectionSet = selections.length
+      ? {
+          kind: Kind.SELECTION_SET,
+          selections,
+        }
+      : undefined;
 
     argumentNodes = fieldNodes[0].arguments;
   } else {
@@ -104,7 +111,10 @@ export function createRequest(
   let variables = {};
   for (const variableDefinition of variableDefinitions) {
     const varName = variableDefinition.variable.name.value;
-    const varType = typeFromAST(sourceSchema, (variableDefinition.type as NamedTypeNode)) as GraphQLInputType;
+    const varType = typeFromAST(
+      sourceSchema,
+      variableDefinition.type as NamedTypeNode,
+    ) as GraphQLInputType;
     variables[varName] = serializeInputValue(varType, variableValues[varName]);
   }
 
@@ -112,7 +122,7 @@ export function createRequest(
     const {
       arguments: updatedArguments,
       variableDefinitions: updatedVariableDefinitions,
-      variableValues: updatedVariableValues
+      variableValues: updatedVariableValues,
     } = updateArguments(
       targetSchemaOrSchemaConfig,
       targetOperation,
@@ -121,7 +131,7 @@ export function createRequest(
       variableDefinitions,
       variables,
       args,
-      );
+    );
     argumentNodes = updatedArguments;
     newVariableDefinitions = updatedVariableDefinitions;
     variables = updatedVariableValues;
@@ -148,9 +158,9 @@ export function createRequest(
     },
   };
 
-  const fragmentDefinitions: Array<FragmentDefinitionNode> = Object.keys(fragments).map(
-    fragmentName => fragments[fragmentName],
-  );
+  const fragmentDefinitions: Array<FragmentDefinitionNode> = Object.keys(
+    fragments,
+  ).map(fragmentName => fragments[fragmentName]);
 
   const document = {
     kind: Kind.DOCUMENT,
@@ -172,12 +182,13 @@ function updateArguments(
   variableValues: Record<string, any> = {},
   newArgsMap: Record<string, any> = {},
 ): {
-  arguments: Array<ArgumentNode>,
-  variableDefinitions: Array<VariableDefinitionNode>,
-  variableValues: Record<string, any>
+  arguments: Array<ArgumentNode>;
+  variableDefinitions: Array<VariableDefinitionNode>;
+  variableValues: Record<string, any>;
 } {
-  const schema = isSubschemaConfig(subschemaOrSubschemaConfig) ?
-    subschemaOrSubschemaConfig.schema : subschemaOrSubschemaConfig;
+  const schema = isSubschemaConfig(subschemaOrSubschemaConfig)
+    ? subschemaOrSubschemaConfig.schema
+    : subschemaOrSubschemaConfig;
 
   let type: GraphQLObjectType;
   if (operation === 'subscription') {
@@ -253,7 +264,11 @@ function astFromType(type: GraphQLType): TypeNode {
   if (type instanceof GraphQLNonNull) {
     const innerType = astFromType(type.ofType);
     if (innerType.kind === Kind.NON_NULL_TYPE) {
-      throw new Error(`Invalid type node ${JSON.stringify(type)}. Inner type of non-null type cannot be a non-null type.`);
+      throw new Error(
+        `Invalid type node ${JSON.stringify(
+          type,
+        )}. Inner type of non-null type cannot be a non-null type.`,
+      );
     }
     return {
       kind: Kind.NON_NULL_TYPE,

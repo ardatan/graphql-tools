@@ -133,4 +133,3 @@ function parseFragmentToInlineFragment(
 
   throw new Error('Could not parse fragment');
 }
-

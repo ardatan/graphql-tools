@@ -23,10 +23,8 @@ function checkForResolveTypeResolver(
           return;
         }
         throw new SchemaError(
-          `Type "${
-            type.name
-          }" is missing a "__resolveType" resolver. Pass false into `  +
-          '"resolverValidationOptions.requireResolversForResolveType" to disable this error.',
+          `Type "${type.name}" is missing a "__resolveType" resolver. Pass false into ` +
+            '"resolverValidationOptions.requireResolversForResolveType" to disable this error.',
         );
       }
     });

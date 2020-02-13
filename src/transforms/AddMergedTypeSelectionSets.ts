@@ -51,7 +51,10 @@ function addMergedTypeSelectionSets(
         [Kind.SELECTION_SET](
           node: SelectionSetNode,
         ): SelectionSetNode | null | undefined {
-          const parentType: GraphQLType | null | undefined = typeInfo.getParentType();
+          const parentType:
+            | GraphQLType
+            | null
+            | undefined = typeInfo.getParentType();
           if (parentType != null) {
             const parentTypeName = parentType.name;
             let selections = node.selections;

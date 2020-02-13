@@ -77,7 +77,9 @@ export interface IGraphQLToolsResolveInfo extends GraphQLResolveInfo {
   mergeInfo?: MergeInfo;
 }
 
-export type Fetcher = (operation: IFetcherOperation) => Promise<ExecutionResult>;
+export type Fetcher = (
+  operation: IFetcherOperation,
+) => Promise<ExecutionResult>;
 
 export interface IFetcherOperation {
   query: DocumentNode;
@@ -115,16 +117,20 @@ export type MergedTypeResolver = (
   selectionSet: SelectionSetNode,
 ) => any;
 
-export type GraphQLSchemaWithTransforms = GraphQLSchema & { transforms?: Array<Transform> };
+export type GraphQLSchemaWithTransforms = GraphQLSchema & {
+  transforms?: Array<Transform>;
+};
 
 export type SchemaLikeObject =
-  SubschemaConfig |
-  GraphQLSchema |
-  string |
-  DocumentNode |
-  Array<GraphQLNamedType>;
+  | SubschemaConfig
+  | GraphQLSchema
+  | string
+  | DocumentNode
+  | Array<GraphQLNamedType>;
 
-export function isSubschemaConfig(value: SchemaLikeObject): value is SubschemaConfig {
+export function isSubschemaConfig(
+  value: SchemaLikeObject,
+): value is SubschemaConfig {
   return Boolean((value as SubschemaConfig).schema);
 }
 
@@ -158,7 +164,11 @@ export type IDelegateRequestOptions = {
   request: Request;
 } & IDelegateToSchemaOptions;
 
-export type Delegator = ({ document, context, variables }: {
+export type Delegator = ({
+  document,
+  context,
+  variables,
+}: {
   document: DocumentNode;
   context?: { [key: string]: any };
   variables?: { [key: string]: any };
@@ -177,9 +187,9 @@ export type MergeInfo = {
     field: string;
     fragment: string;
   }>;
-  replacementSelectionSets: ReplacementSelectionSetMapping,
-  replacementFragments: ReplacementFragmentMapping,
-  mergedTypes: Record<string, MergedTypeInfo>,
+  replacementSelectionSets: ReplacementSelectionSetMapping;
+  replacementFragments: ReplacementFragmentMapping;
+  mergedTypes: Record<string, MergedTypeInfo>;
   delegateToSchema<TContext>(options: IDelegateToSchemaOptions<TContext>): any;
 };
 
@@ -192,13 +202,13 @@ export type ReplacementFragmentMapping = {
 };
 
 export type MergedTypeInfo = {
-  subschemas: Array<SubschemaConfig>,
-  selectionSet?: SelectionSetNode,
-  uniqueFields: Record<string, SubschemaConfig>,
-  nonUniqueFields: Record<string, Array<SubschemaConfig>>,
-  typeMaps: Map<SubschemaConfig, TypeMap>,
-  selectionSets: Map<SubschemaConfig, SelectionSetNode>,
-  containsSelectionSet: Map<SubschemaConfig, Map<SelectionSetNode, boolean>>,
+  subschemas: Array<SubschemaConfig>;
+  selectionSet?: SelectionSetNode;
+  uniqueFields: Record<string, SubschemaConfig>;
+  nonUniqueFields: Record<string, Array<SubschemaConfig>>;
+  typeMaps: Map<SubschemaConfig, TypeMap>;
+  selectionSets: Map<SubschemaConfig, SelectionSetNode>;
+  containsSelectionSet: Map<SubschemaConfig, Map<SelectionSetNode, boolean>>;
 };
 
 export type IFieldResolver<TSource, TContext, TArgs = Record<string, any>> = (
@@ -340,7 +350,7 @@ export type GraphQLParseOptions = {
 export type IndexedObject<V> = { [key: string]: V } | ReadonlyArray<V>;
 
 export type VisitableSchemaType =
-    GraphQLSchema
+  | GraphQLSchema
   | GraphQLObjectType
   | GraphQLInterfaceType
   | GraphQLInputObjectType
@@ -408,7 +418,12 @@ export type EnumTypeVisitor = (
 export type CompositeTypeVisitor = (
   type: GraphQLObjectType | GraphQLInterfaceType | GraphQLUnionType,
   schema: GraphQLSchema,
-) => GraphQLObjectType | GraphQLInterfaceType | GraphQLUnionType | null | undefined;
+) =>
+  | GraphQLObjectType
+  | GraphQLInterfaceType
+  | GraphQLUnionType
+  | null
+  | undefined;
 
 export type ObjectTypeVisitor = (
   type: GraphQLObjectType,

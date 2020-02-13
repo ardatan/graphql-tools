@@ -4,11 +4,7 @@
 import { expect } from 'chai';
 import { graphql } from 'graphql';
 
-import {
-  mergeSchemas,
-  addMocksToSchema,
-  makeExecutableSchema,
-} from '../index';
+import { mergeSchemas, addMocksToSchema, makeExecutableSchema } from '../index';
 
 const chirpSchema = makeExecutableSchema({
   typeDefs: `
@@ -45,25 +41,28 @@ const authorSchema = makeExecutableSchema({
 addMocksToSchema({ schema: authorSchema });
 
 const mergedSchema = mergeSchemas({
-  subschemas: [{
-    schema: chirpSchema,
-    merge: {
-      User: {
-        fieldName: 'userById',
-        args: originalResult => ({ id: originalResult.id }),
-        selectionSet: '{ id }',
-      }
+  subschemas: [
+    {
+      schema: chirpSchema,
+      merge: {
+        User: {
+          fieldName: 'userById',
+          args: originalResult => ({ id: originalResult.id }),
+          selectionSet: '{ id }',
+        },
+      },
     },
-  }, {
-    schema: authorSchema,
-    merge: {
-      User: {
-        fieldName: 'userById',
-        args: originalResult => ({ id: originalResult.id }),
-        selectionSet: '{ id }',
-      }
+    {
+      schema: authorSchema,
+      merge: {
+        User: {
+          fieldName: 'userById',
+          args: originalResult => ({ id: originalResult.id }),
+          selectionSet: '{ id }',
+        },
+      },
     },
-  }],
+  ],
   mergeTypes: true,
 });
 

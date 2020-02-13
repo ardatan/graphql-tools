@@ -17,10 +17,7 @@ export default class AddReplacementSelectionSets implements Transform {
   private readonly schema: GraphQLSchema;
   private readonly mapping: ReplacementSelectionSetMapping;
 
-  constructor(
-    schema: GraphQLSchema,
-    mapping: ReplacementSelectionSetMapping,
-  ) {
+  constructor(schema: GraphQLSchema, mapping: ReplacementSelectionSetMapping) {
     this.schema = schema;
     this.mapping = mapping;
   }
@@ -50,7 +47,10 @@ function replaceFieldsWithSelectionSet(
       [Kind.SELECTION_SET](
         node: SelectionSetNode,
       ): SelectionSetNode | null | undefined {
-        const parentType: GraphQLType | null | undefined = typeInfo.getParentType();
+        const parentType:
+          | GraphQLType
+          | null
+          | undefined = typeInfo.getParentType();
         if (parentType != null) {
           const parentTypeName = parentType.name;
           let selections = node.selections;

@@ -54,10 +54,8 @@ function addVariablesToRootField(
 ): {
   document: DocumentNode;
   newVariables: { [key: string]: any };
-  } {
-  const operations: Array<
-    OperationDefinitionNode
-  > = document.definitions.filter(
+} {
+  const operations: Array<OperationDefinitionNode> = document.definitions.filter(
     def => def.kind === Kind.OPERATION_DEFINITION,
   ) as Array<OperationDefinitionNode>;
   const fragments: Array<FragmentDefinitionNode> = document.definitions.filter(

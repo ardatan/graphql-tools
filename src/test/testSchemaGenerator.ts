@@ -90,12 +90,14 @@ const testSchema = `
 const testResolvers = {
   __schema: () => ({ stuff: 'stuff', species: 'ROOT' }),
   RootQuery: {
-    usecontext: (_r: any, _a: { [key: string]: any }, ctx: any) => ctx.usecontext,
+    usecontext: (_r: any, _a: { [key: string]: any }, ctx: any) =>
+      ctx.usecontext,
     useTestConnector: (_r: any, _a: { [key: string]: any }, ctx: any) =>
       ctx.connectors.TestConnector.get(),
     useContextConnector: (_r: any, _a: { [key: string]: any }, ctx: any) =>
       ctx.connectors.ContextConnector.get(),
-    species: (root: any, { name }: { name: string }) => root.species as string + name,
+    species: (root: any, { name }: { name: string }) =>
+      (root.species as string) + name,
   },
 };
 class TestConnector {
@@ -139,13 +141,19 @@ describe('generating schema from shorthand', () => {
 
   it('throws an error if typeDefinitionNodes is neither string nor array nor schema AST', () => {
     expect(() =>
-      makeExecutableSchema({ typeDefs: {} as unknown as ITypeDefinitions, resolvers: {} }),
+      makeExecutableSchema({
+        typeDefs: ({} as unknown) as ITypeDefinitions,
+        resolvers: {},
+      }),
     ).to.throw('typeDefs must be a string, array or schema AST, got object');
   });
 
   it('throws an error if typeDefinitionNode array contains not only functions and strings', () => {
     expect(() =>
-      makeExecutableSchema({ typeDefs: [17] as unknown as ITypeDefinitions, resolvers: {} }),
+      makeExecutableSchema({
+        typeDefs: ([17] as unknown) as ITypeDefinitions,
+        resolvers: {},
+      }),
     ).to.throw(
       'typeDef array must contain only strings and functions, got number',
     );
@@ -155,9 +163,11 @@ describe('generating schema from shorthand', () => {
     const options = {
       typeDefs: 'blah',
       resolvers: {},
-      resolverValidationOptions: 'string' as unknown as IResolverValidationOptions,
+      resolverValidationOptions: ('string' as unknown) as IResolverValidationOptions,
     };
-    expect(() => makeExecutableSchema(options)).to.throw('Expected `resolverValidationOptions` to be an object');
+    expect(() => makeExecutableSchema(options)).to.throw(
+      'Expected `resolverValidationOptions` to be an object',
+    );
   });
 
   it('can generate a schema', () => {
@@ -181,7 +191,7 @@ describe('generating schema from shorthand', () => {
     const resolve = {
       RootQuery: {
         // eslint-disable-next-line @typescript-eslint/no-empty-function
-        species() {}
+        species() {},
       },
     };
 
@@ -798,7 +808,7 @@ describe('generating schema from shorthand', () => {
         }),
         Query: {
           foo: () => ({ aField: true }),
-        }
+        },
       };
       const jsSchema = makeExecutableSchema({
         typeDefs: shorthand,
@@ -818,8 +828,8 @@ describe('generating schema from shorthand', () => {
         resolvers: {
           Boolean: {
             serialize: originalSerialize,
-          }
-        }
+          },
+        },
       });
     });
 
@@ -857,7 +867,7 @@ describe('generating schema from shorthand', () => {
               default:
                 return null;
             }
-          }
+          },
         }),
         Query: {
           testIn(_: any, { input }: any) {
@@ -866,18 +876,23 @@ describe('generating schema from shorthand', () => {
           },
           test() {
             return 42;
-          }
-        }
+          },
+        },
       };
-      const walkedSchema = visitSchema(makeExecutableSchema({
-        typeDefs: shorthand,
-        resolvers: resolveFunctions,
-      }), {
-        [VisitSchemaKind.ENUM_TYPE](type: GraphQLEnumType) {
-          return type;
-        }
-      });
-      expect(walkedSchema.getType('Test')).to.be.an.instanceof(GraphQLScalarType);
+      const walkedSchema = visitSchema(
+        makeExecutableSchema({
+          typeDefs: shorthand,
+          resolvers: resolveFunctions,
+        }),
+        {
+          [VisitSchemaKind.ENUM_TYPE](type: GraphQLEnumType) {
+            return type;
+          },
+        },
+      );
+      expect(walkedSchema.getType('Test')).to.be.an.instanceof(
+        GraphQLScalarType,
+      );
       expect(walkedSchema.getType('Test'))
         .to.have.property('description')
         .that.equals('Test resolver');
@@ -887,10 +902,12 @@ describe('generating schema from shorthand', () => {
           testIn(input: 1)
         }`;
       const resultPromise = graphql(walkedSchema, testQuery);
-      return resultPromise.then(result => expect(result.data).to.deep.equal({
-        test: 'scalar:42',
-        testIn: 'scalar:1'
-      }));
+      return resultPromise.then(result =>
+        expect(result.data).to.deep.equal({
+          test: 'scalar:42',
+          testIn: 'scalar:1',
+        }),
+      );
     });
 
     it('should support custom scalar usage on client-side query execution', () => {
@@ -946,7 +963,7 @@ describe('generating schema from shorthand', () => {
     });
 
     it('should work with an Odd custom scalar type', () => {
-      const oddValue = (value: number) => value % 2 === 1 ? value : null;
+      const oddValue = (value: number) => (value % 2 === 1 ? value : null);
 
       const OddType = new GraphQLScalarType({
         name: 'Odd',
@@ -1332,7 +1349,7 @@ describe('generating schema from shorthand', () => {
           Color: {
             RED: 'override',
           },
-        }
+        },
       });
 
       const resultPromise = graphql(jsSchema, testQuery);
@@ -1544,7 +1561,7 @@ describe('generating schema from shorthand', () => {
 
     expect(() =>
       makeExecutableSchema({ typeDefs: short, resolvers: rf }),
-    ).to.throw('Searchable was defined in resolvers, but it\'s not an object');
+    ).to.throw("Searchable was defined in resolvers, but it's not an object");
 
     expect(() =>
       makeExecutableSchema({
@@ -2094,13 +2111,17 @@ describe('providing useful errors from resolvers', () => {
 describe('Add error logging to schema', () => {
   it('throws an error if no logger is provided', () => {
     assert.throw(
-      () => addErrorLoggingToSchema({} as unknown as GraphQLSchema),
+      () => addErrorLoggingToSchema(({} as unknown) as GraphQLSchema),
       'Must provide a logger',
     );
   });
   it('throws an error if logger.log is not a function', () => {
     assert.throw(
-      () => addErrorLoggingToSchema({} as unknown as GraphQLSchema, { log: '1' } as unknown as ILogger),
+      () =>
+        addErrorLoggingToSchema(
+          ({} as unknown) as GraphQLSchema,
+          ({ log: '1' } as unknown) as ILogger,
+        ),
       'Logger.log must be a function',
     );
   });
@@ -2145,10 +2166,13 @@ describe('Attaching connectors to schema', () => {
             ctx.usecontext,
           useTestConnector: (_r: any, _a: { [key: string]: any }, ctx: any) =>
             ctx.connectors.TestConnector.get(),
-          useContextConnector: (_r: any, _a: { [key: string]: any }, ctx: any) =>
-            ctx.connectors.ContextConnector.get(),
+          useContextConnector: (
+            _r: any,
+            _a: { [key: string]: any },
+            ctx: any,
+          ) => ctx.connectors.ContextConnector.get(),
           species: (root: any, { name }: { name: string }) =>
-            root.species as string + name,
+            (root.species as string) + name,
         },
       };
       const jsSchema = makeExecutableSchema({
@@ -2184,10 +2208,13 @@ describe('Attaching connectors to schema', () => {
             ctx.usecontext,
           useTestConnector: (_r: any, _a: { [key: string]: any }, ctx: any) =>
             ctx.connectors.TestConnector.get(),
-          useContextConnector: (_r: any, _a: { [key: string]: any }, ctx: any) =>
-            ctx.connectors.ContextConnector.get(),
+          useContextConnector: (
+            _r: any,
+            _a: { [key: string]: any },
+            ctx: any,
+          ) => ctx.connectors.ContextConnector.get(),
           species: (root: any, { name }: { name: string }) =>
-            root.species as string + name,
+            (root.species as string) + name,
         },
       };
       const jsSchema = makeExecutableSchema({
@@ -2435,9 +2462,9 @@ describe('Attaching connectors to schema', () => {
       typeDefs: testSchema,
       resolvers: testResolvers,
     });
-    return expect(() =>
-      attachConnectorsToContext(jsSchema, 'a'),
-    ).to.throw('Expected connectors to be of type object, got string');
+    return expect(() => attachConnectorsToContext(jsSchema, 'a')).to.throw(
+      'Expected connectors to be of type object, got string',
+    );
   });
 });
 
@@ -2482,12 +2509,10 @@ describe('chainResolvers', () => {
     const r3 = (root: any) => root['name'];
     const rChained = chainResolvers([r1, undefined, r3]);
     // faking the resolve info here.
-    const info: GraphQLResolveInfo = {
+    const info: GraphQLResolveInfo = ({
       fieldName: 'person',
-    } as unknown as GraphQLResolveInfo;
-    expect(
-      rChained(0, { name: 'tony' }, null, info),
-    ).to.equals('tony');
+    } as unknown) as GraphQLResolveInfo;
+    expect(rChained(0, { name: 'tony' }, null, info)).to.equals('tony');
   });
 });
 
@@ -2585,9 +2610,11 @@ describe('attachDirectiveResolvers on field', () => {
       typeDefs: testSchema,
       resolvers: testResolvers,
     });
-    expect(() => attachDirectiveResolvers(jsSchema, [1] as unknown as IDirectiveResolvers)).to.throw(
-      'Expected directiveResolvers to be of type object, got Array',
-    );
+    expect(() =>
+      attachDirectiveResolvers(jsSchema, ([
+        1,
+      ] as unknown) as IDirectiveResolvers),
+    ).to.throw('Expected directiveResolvers to be of type object, got Array');
   });
 
   it('throws error if directiveResolvers argument is not an object', () => {
@@ -2596,7 +2623,10 @@ describe('attachDirectiveResolvers on field', () => {
       resolvers: testResolvers,
     });
     return expect(() =>
-      attachDirectiveResolvers(jsSchema, 'a' as unknown as IDirectiveResolvers),
+      attachDirectiveResolvers(
+        jsSchema,
+        ('a' as unknown) as IDirectiveResolvers,
+      ),
     ).to.throw('Expected directiveResolvers to be of type object, got string');
   });
 
@@ -2772,7 +2802,7 @@ describe('can specify lexical parser options', () => {
   // to hoist the parsed variables into queries, see https://github.com/graphql/graphql-js/pull/1141
   // and so this really has nothing to do with schema creation or execution.
   it("can use 'experimentalFragmentVariables' option", async () => {
-  const typeDefs = `
+    const typeDefs = `
       type Query {
         hello(phrase: String): String
       }
@@ -2780,7 +2810,7 @@ describe('can specify lexical parser options', () => {
 
     const resolvers = {
       Query: {
-        hello: (_root: any, args: any) => `hello ${args.phrase as string}`
+        hello: (_root: any, args: any) => `hello ${args.phrase as string}`,
       },
     };
 
@@ -2812,19 +2842,21 @@ describe('can specify lexical parser options', () => {
       return {
         kind: Kind.DOCUMENT,
         definitions: parsedQuery.definitions.map(def => ({
-            ...def,
-            variableDefinitions: variableDefs,
-          })),
+          ...def,
+          variableDefinitions: variableDefs,
+        })),
       };
     };
 
     const hoistedQuery = hoist(parsedQuery);
 
     const result = await execute(jsSchema, hoistedQuery);
-    expect(result.data).to.deep.equal({ hello: 'hello world', });
+    expect(result.data).to.deep.equal({ hello: 'hello world' });
 
-    const result2 = await execute(jsSchema, hoistedQuery, null, null, { phrase: 'world again!' });
-    expect(result2.data).to.deep.equal({ hello: 'hello world again!', });
+    const result2 = await execute(jsSchema, hoistedQuery, null, null, {
+      phrase: 'world again!',
+    });
+    expect(result2.data).to.deep.equal({ hello: 'hello world again!' });
   });
 });
 
@@ -3068,7 +3100,7 @@ describe('unions', () => {
     } catch (error) {
       assert.equal(
         error.message,
-        'Type "Displayable" is missing a "__resolveType" resolver. Pass false into "resolverValidationOptions.requireResolversForResolveType" to disable this error.' ,
+        'Type "Displayable" is missing a "__resolveType" resolver. Pass false into "resolverValidationOptions.requireResolversForResolveType" to disable this error.',
       );
       return;
     }

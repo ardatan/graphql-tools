@@ -26,7 +26,10 @@ function addSchemaLevelResolver(
         // XXX if the type is a subscription, a same query AST will be ran multiple times so we
         // deactivate here the runOnce if it's a subscription. This may not be optimal though...
         if (type === schema.getSubscriptionType()) {
-          fields[fieldName].resolve = wrapResolver(fields[fieldName].resolve, fn);
+          fields[fieldName].resolve = wrapResolver(
+            fields[fieldName].resolve,
+            fn,
+          );
         } else {
           fields[fieldName].resolve = wrapResolver(
             fields[fieldName].resolve,

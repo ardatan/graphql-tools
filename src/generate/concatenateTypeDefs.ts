@@ -32,10 +32,13 @@ function concatenateTypeDefs(
 }
 
 function uniq(array: Array<any>): Array<any> {
-  return array.reduce((accumulator, currentValue) =>
-    accumulator.indexOf(currentValue) === -1
-      ? [...accumulator, currentValue]
-      : accumulator, []);
+  return array.reduce(
+    (accumulator, currentValue) =>
+      accumulator.indexOf(currentValue) === -1
+        ? [...accumulator, currentValue]
+        : accumulator,
+    [],
+  );
 }
 
 export default concatenateTypeDefs;

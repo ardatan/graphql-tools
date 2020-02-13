@@ -1,6 +1,4 @@
-export default function resolveFromParentTypename(
-  parent: any,
-) {
+export default function resolveFromParentTypename(parent: any) {
   const parentTypename: string = parent['__typename'];
   if (!parentTypename) {
     throw new Error(

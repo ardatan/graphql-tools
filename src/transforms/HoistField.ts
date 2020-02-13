@@ -1,8 +1,4 @@
-import {
-  GraphQLSchema,
-  GraphQLObjectType,
-  getNullableType,
-} from 'graphql';
+import { GraphQLSchema, GraphQLObjectType, getNullableType } from 'graphql';
 
 import { healSchema, wrapFieldNode, renameFieldNode } from '../utils';
 import { createMergedResolver } from '../stitching';
@@ -20,11 +16,7 @@ export default class HoistField implements Transform {
   private readonly oldFieldName: string;
   private readonly transformer: Transform;
 
-  constructor(
-    typeName: string,
-    path: Array<string>,
-    newFieldName: string,
-  ) {
+  constructor(typeName: string, path: Array<string>, newFieldName: string) {
     this.typeName = typeName;
     this.path = path;
     this.newFieldName = newFieldName;
@@ -33,10 +25,11 @@ export default class HoistField implements Transform {
     this.oldFieldName = this.pathToField.pop();
     this.transformer = new MapFields({
       [typeName]: {
-        [newFieldName]: fieldNode => wrapFieldNode(
-          renameFieldNode(fieldNode, this.oldFieldName),
-          this.pathToField,
-        ),
+        [newFieldName]: fieldNode =>
+          wrapFieldNode(
+            renameFieldNode(fieldNode, this.oldFieldName),
+            this.pathToField,
+          ),
       },
     });
   }
@@ -47,7 +40,7 @@ export default class HoistField implements Transform {
     const innerType: GraphQLObjectType = this.pathToField.reduce(
       (acc, pathSegment) =>
         getNullableType(acc.getFields()[pathSegment].type) as GraphQLObjectType,
-      typeMap[this.typeName] as GraphQLObjectType
+      typeMap[this.typeName] as GraphQLObjectType,
     );
 
     const targetField = removeFields(
@@ -56,7 +49,7 @@ export default class HoistField implements Transform {
       fieldName => fieldName === this.oldFieldName,
     )[this.oldFieldName];
 
-    const targetType = (targetField.type as GraphQLObjectType);
+    const targetType = targetField.type as GraphQLObjectType;
 
     appendFields(typeMap, this.typeName, {
       [this.newFieldName]: {

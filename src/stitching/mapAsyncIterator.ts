@@ -34,7 +34,7 @@ export default function mapAsyncIterator<T, U>(
       asyncMapValue(error, reject).then(iteratorResult, abruptClose);
   }
 
-  return ({
+  return {
     next() {
       return iterator.next().then(mapResult, mapReject);
     },
@@ -52,7 +52,7 @@ export default function mapAsyncIterator<T, U>(
     [$$asyncIterator]() {
       return this;
     },
-  } as any);
+  } as any;
 }
 
 function asyncMapValue<T, U>(

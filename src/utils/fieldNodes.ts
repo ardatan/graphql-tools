@@ -10,22 +10,28 @@ export function renameFieldNode(fieldNode: FieldNode, name: string): FieldNode {
     ...fieldNode,
     alias: {
       kind: Kind.NAME,
-      value: fieldNode.alias != null ? fieldNode.alias.value : fieldNode.name.value,
+      value:
+        fieldNode.alias != null ? fieldNode.alias.value : fieldNode.name.value,
     },
     name: {
       kind: Kind.NAME,
       value: name,
-    }
+    },
   };
 }
 
-export function preAliasFieldNode(fieldNode: FieldNode, str: string): FieldNode {
+export function preAliasFieldNode(
+  fieldNode: FieldNode,
+  str: string,
+): FieldNode {
   return {
     ...fieldNode,
     alias: {
       kind: Kind.NAME,
-      value: `${str}${fieldNode.alias != null ? fieldNode.alias.value : fieldNode.name.value}`,
-    }
+      value: `${str}${
+        fieldNode.alias != null ? fieldNode.alias.value : fieldNode.name.value
+      }`,
+    },
   };
 }
 
@@ -43,10 +49,8 @@ export function wrapFieldNode(
       },
       selectionSet: {
         kind: Kind.SELECTION_SET,
-        selections: [
-          fieldNode,
-        ]
-      }
+        selections: [fieldNode],
+      },
     };
   });
 
@@ -57,7 +61,7 @@ export function collectFields(
   selectionSet: SelectionSetNode | undefined,
   fragments: Record<string, FragmentDefinitionNode>,
   fields: Array<FieldNode> = [],
-  visitedFragmentNames = {}
+  visitedFragmentNames = {},
 ): Array<FieldNode> {
   if (selectionSet != null) {
     selectionSet.selections.forEach(selection => {
@@ -70,7 +74,7 @@ export function collectFields(
             selection.selectionSet,
             fragments,
             fields,
-            visitedFragmentNames
+            visitedFragmentNames,
           );
           break;
         case Kind.FRAGMENT_SPREAD: {
@@ -81,12 +85,13 @@ export function collectFields(
               fragments[fragmentName].selectionSet,
               fragments,
               fields,
-              visitedFragmentNames
+              visitedFragmentNames,
             );
           }
           break;
         }
-        default: // unreachable
+        default:
+          // unreachable
           break;
       }
     });
@@ -108,7 +113,8 @@ export function hoistFieldNodes({
   delimeter?: string;
   fragments: Record<string, FragmentDefinitionNode>;
 }): Array<FieldNode> {
-  const alias = fieldNode.alias != null ? fieldNode.alias.value : fieldNode.name.value;
+  const alias =
+    fieldNode.alias != null ? fieldNode.alias.value : fieldNode.name.value;
 
   let newFieldNodes: Array<FieldNode> = [];
 
@@ -116,23 +122,34 @@ export function hoistFieldNodes({
     const remainingPathSegments = path.slice();
     const initialPathSegment = remainingPathSegments.shift();
 
-    collectFields(fieldNode.selectionSet, fragments).forEach((possibleFieldNode: FieldNode) => {
-      if (possibleFieldNode.name.value === initialPathSegment) {
-        newFieldNodes = newFieldNodes.concat(hoistFieldNodes({
-          fieldNode: preAliasFieldNode(possibleFieldNode, `${alias}${delimeter}`),
-          fieldNames,
-          path: remainingPathSegments,
-          delimeter,
-          fragments,
-        }));
-      }
-    });
+    collectFields(fieldNode.selectionSet, fragments).forEach(
+      (possibleFieldNode: FieldNode) => {
+        if (possibleFieldNode.name.value === initialPathSegment) {
+          newFieldNodes = newFieldNodes.concat(
+            hoistFieldNodes({
+              fieldNode: preAliasFieldNode(
+                possibleFieldNode,
+                `${alias}${delimeter}`,
+              ),
+              fieldNames,
+              path: remainingPathSegments,
+              delimeter,
+              fragments,
+            }),
+          );
+        }
+      },
+    );
   } else {
-    collectFields(fieldNode.selectionSet, fragments).forEach((possibleFieldNode: FieldNode) => {
-      if (!fieldNames || fieldNames.includes(possibleFieldNode.name.value)) {
-        newFieldNodes.push(preAliasFieldNode(possibleFieldNode, `${alias}${delimeter}`));
-      }
-    });
+    collectFields(fieldNode.selectionSet, fragments).forEach(
+      (possibleFieldNode: FieldNode) => {
+        if (!fieldNames || fieldNames.includes(possibleFieldNode.name.value)) {
+          newFieldNodes.push(
+            preAliasFieldNode(possibleFieldNode, `${alias}${delimeter}`),
+          );
+        }
+      },
+    );
   }
 
   return newFieldNodes;

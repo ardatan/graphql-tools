@@ -17,10 +17,7 @@ import {
 import mergeSchemas from '../stitching/mergeSchemas';
 import { SchemaDirectiveVisitor } from '../utils/SchemaDirectiveVisitor';
 import { makeExecutableSchema } from '../makeExecutableSchema';
-import {
-  IResolvers,
-  SubschemaConfig,
-} from '../Interfaces';
+import { IResolvers, SubschemaConfig } from '../Interfaces';
 import { delegateToSchema } from '../stitching';
 import { cloneSchema } from '../utils';
 import { getResolversFromSchema } from '../utils/getResolversFromSchema';
@@ -36,7 +33,6 @@ import {
   subscriptionPubSub,
   subscriptionPubSubTrigger,
 } from './testingSchemas';
-
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const removeLocations = ({ locations, ...rest }: any): any => ({ ...rest });
@@ -68,7 +64,7 @@ const testCombinations = [
       resolvers: getResolversFromSchema(localPropertySchema),
     }),
     product: cloneSchema(localProductSchema),
-  }
+  },
 ];
 
 const scalarTest = `
@@ -108,13 +104,15 @@ const scalarSchema = makeExecutableSchema({
     Query: {
       testingScalar(_parent, args) {
         return {
-          value: args.input[0] === '_' ? args.input : null
+          value: args.input[0] === '_' ? args.input : null,
         };
       },
       listTestingScalar(_parent, args) {
-        return [{
-          value: args.input[0] === '_' ? args.input : null
-        }];
+        return [
+          {
+            value: args.input[0] === '_' ? args.input : null,
+          },
+        ];
       },
     },
   },
@@ -171,7 +169,7 @@ const enumSchema = makeExecutableSchema({
       TEST: 1,
     },
     UnionWithEnum: {
-      __resolveType: () => 'EnumWrapper'
+      __resolveType: () => 'EnumWrapper',
     },
     Query: {
       color(_parent, args) {
@@ -186,13 +184,13 @@ const enumSchema = makeExecutableSchema({
       wrappedEnum() {
         return {
           color: '#EA3232',
-          numericEnum: 1
+          numericEnum: 1,
         };
       },
       unionWithEnum() {
         return {
           color: '#EA3232',
-          numericEnum: 1
+          numericEnum: 1,
         };
       },
     },
@@ -652,11 +650,13 @@ testCombinations.forEach(combination => {
         expect(scalarResult).to.deep.equal({
           data: {
             testingScalar: {
-              value: 'test'
+              value: 'test',
             },
-            listTestingScalar: [{
-              value: 'test'
-            }]
+            listTestingScalar: [
+              {
+                value: 'test',
+              },
+            ],
           },
         });
         expect(mergedResult).to.deep.equal(scalarResult);
@@ -884,7 +884,12 @@ bookingById(id: "b1") {
               },
             ).catch(done);
           })
-          .then(() => subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification))
+          .then(() =>
+            subscriptionPubSub.publish(
+              subscriptionPubSubTrigger,
+              mockNotification,
+            ),
+          )
           .catch(done);
       });
 
@@ -942,7 +947,12 @@ bookingById(id: "b1") {
               },
             ).catch(done);
           })
-          .then(() => subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification))
+          .then(() =>
+            subscriptionPubSub.publish(
+              subscriptionPubSubTrigger,
+              mockNotification,
+            ),
+          )
           .catch(done);
       });
 
@@ -2306,7 +2316,8 @@ fragment BookingFragment on Booking {
           ...bookingResult.data,
         });
         expect(mergedResult.errors.map(removeLocations)).to.deep.equal(
-          propertyResult.errors.map(removeLocations));
+          propertyResult.errors.map(removeLocations),
+        );
 
         const mergedResult2 = await graphql(
           mergedSchema,
@@ -2366,19 +2377,19 @@ fragment BookingFragment on Booking {
             ],
             error: null,
             errorAlias: null,
-          }
+          },
         });
         expect(result.errors.map(removeLocations)).to.deep.equal([
           {
             extensions: {
-              code: 'SOME_CUSTOM_CODE'
+              code: 'SOME_CUSTOM_CODE',
             },
             message: 'Property.error error',
             path: ['propertyById', 'error'],
           },
           {
             extensions: {
-              code: 'SOME_CUSTOM_CODE'
+              code: 'SOME_CUSTOM_CODE',
             },
             message: 'Property.error error',
             path: ['propertyById', 'errorAlias'],
@@ -2406,13 +2417,13 @@ fragment BookingFragment on Booking {
           {
             message: 'Booking.error error',
             path: ['propertyById', 'bookings', 2, 'bookingErrorAlias'],
-          }
+          },
         ]);
       });
 
       it(
         'should preserve custom error extensions from the original schema, ' +
-        'when merging schemas',
+          'when merging schemas',
         async () => {
           const propertyQuery = `
             query {
@@ -2427,19 +2438,16 @@ fragment BookingFragment on Booking {
             propertyQuery,
           );
 
-          const mergedResult = await graphql(
-            mergedSchema,
-            propertyQuery,
-          );
+          const mergedResult = await graphql(mergedSchema, propertyQuery);
 
-          [propertyResult, mergedResult].forEach((result) => {
+          [propertyResult, mergedResult].forEach(result => {
             expect(result.errors).to.not.equal(undefined);
             expect(result.errors.length > 0).to.equal(true);
             const error = result.errors[0];
             expect(error.extensions).to.not.equal(undefined);
             expect(error.extensions.code).to.equal('SOME_CUSTOM_CODE');
           });
-        }
+        },
       );
     });
 
@@ -2871,19 +2879,16 @@ fragment BookingFragment on Booking {
 
         const resolvers = {
           Query: {
-            book: () => ({ category: 'Test' })
-          }
+            book: () => ({ category: 'Test' }),
+          },
         };
 
         schema = mergeSchemas({
           schemas: [schema],
-          resolvers
+          resolvers,
         });
 
-        const result = await graphql(
-          schema,
-          '{ book { cat: category } }',
-        );
+        const result = await graphql(schema, '{ book { cat: category } }');
 
         expect(result.data.book.cat).to.equal('Test');
       });
@@ -2908,18 +2913,24 @@ fragment BookingFragment on Booking {
 
         const resolvers = {
           Query: {
-            book: () => ({ category: 'Test' })
-          }
+            book: () => ({ category: 'Test' }),
+          },
         };
 
         const schema = mergeSchemas({
           schemas: [propertySchema, typeDefs],
-          resolvers
+          resolvers,
         });
 
         const deprecatedUsages = findDeprecatedUsages(schema, parse(query));
         expect(deprecatedUsages.length).to.equal(1);
-        expect(deprecatedUsages.find(error => (error.message.match(/deprecated/g) != null) && (error.message.match(/yolo/g) != null))).to.not.equal(undefined);
+        expect(
+          deprecatedUsages.find(
+            error =>
+              error.message.match(/deprecated/g) != null &&
+              error.message.match(/yolo/g) != null,
+          ),
+        ).to.not.equal(undefined);
       });
     });
   });

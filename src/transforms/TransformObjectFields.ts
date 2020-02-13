@@ -12,7 +12,7 @@ import {
   Kind,
   SelectionSetNode,
   SelectionNode,
-  FragmentDefinitionNode
+  FragmentDefinitionNode,
 } from 'graphql';
 
 import isEmptyObject from '../utils/isEmptyObject';
@@ -31,7 +31,7 @@ export type FieldNodeTransformer = (
   typeName: string,
   fieldName: string,
   fieldNode: FieldNode,
-  fragments: Record<string, FragmentDefinitionNode>
+  fragments: Record<string, FragmentDefinitionNode>,
 ) => SelectionNode | Array<SelectionNode>;
 
 type FieldMapping = {
@@ -59,7 +59,8 @@ export default class TransformObjectFields implements Transform {
 
   public transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
     this.transformedSchema = visitSchema(originalSchema, {
-      [VisitSchemaKind.OBJECT_TYPE]: (type: GraphQLObjectType) => this.transformFields(type, this.objectFieldTransformer)
+      [VisitSchemaKind.OBJECT_TYPE]: (type: GraphQLObjectType) =>
+        this.transformFields(type, this.objectFieldTransformer),
     });
 
     return this.transformedSchema;
@@ -67,26 +68,26 @@ export default class TransformObjectFields implements Transform {
 
   public transformRequest(originalRequest: Request): Request {
     const fragments = {};
-    originalRequest.document.definitions.filter(
-      def => def.kind === Kind.FRAGMENT_DEFINITION
-    ).forEach(def => {
-      fragments[(def as FragmentDefinitionNode).name.value] = def;
-    });
+    originalRequest.document.definitions
+      .filter(def => def.kind === Kind.FRAGMENT_DEFINITION)
+      .forEach(def => {
+        fragments[(def as FragmentDefinitionNode).name.value] = def;
+      });
     const document = this.transformDocument(
       originalRequest.document,
       this.mapping,
       this.fieldNodeTransformer,
-      fragments
+      fragments,
     );
     return {
       ...originalRequest,
-      document
+      document,
     };
   }
 
   private transformFields(
     type: GraphQLObjectType,
-    objectFieldTransformer: ObjectFieldTransformer
+    objectFieldTransformer: ObjectFieldTransformer,
   ): GraphQLObjectType {
     const typeConfig = type.toConfig();
     const fields = type.getFields();
@@ -94,7 +95,11 @@ export default class TransformObjectFields implements Transform {
 
     Object.keys(fields).forEach(fieldName => {
       const field = fields[fieldName];
-      const transformedField = objectFieldTransformer(type.name, fieldName, field);
+      const transformedField = objectFieldTransformer(
+        type.name,
+        fieldName,
+        field,
+      );
 
       if (typeof transformedField === 'undefined') {
         newFields[fieldName] = typeConfig.fields[fieldName];
@@ -102,9 +107,10 @@ export default class TransformObjectFields implements Transform {
         const newName = (transformedField as RenamedField).name;
 
         if (newName) {
-          newFields[newName] = (transformedField as RenamedField).field != null ?
-            (transformedField as RenamedField).field :
-            typeConfig.fields[fieldName];
+          newFields[newName] =
+            (transformedField as RenamedField).field != null
+              ? (transformedField as RenamedField).field
+              : typeConfig.fields[fieldName];
 
           if (newName !== fieldName) {
             const typeName = type.name;
@@ -153,9 +159,15 @@ export default class TransformObjectFields implements Transform {
 
               const newName = selection.name.value;
 
-              const transformedSelection = fieldNodeTransformer != null
-                ? fieldNodeTransformer(parentTypeName, newName, selection, fragments)
-                : selection;
+              const transformedSelection =
+                fieldNodeTransformer != null
+                  ? fieldNodeTransformer(
+                      parentTypeName,
+                      newName,
+                      selection,
+                      fragments,
+                    )
+                  : selection;
 
               if (Array.isArray(transformedSelection)) {
                 newSelections = newSelections.concat(transformedSelection);
@@ -183,12 +195,12 @@ export default class TransformObjectFields implements Transform {
                 ...transformedSelection,
                 name: {
                   kind: Kind.NAME,
-                  value: oldName
+                  value: oldName,
                 },
                 alias: {
                   kind: Kind.NAME,
-                  value: newName
-                }
+                  value: newName,
+                },
               });
             });
 
@@ -197,8 +209,8 @@ export default class TransformObjectFields implements Transform {
               selections: newSelections,
             };
           }
-        }
-      })
+        },
+      }),
     );
     return newDocument;
   }

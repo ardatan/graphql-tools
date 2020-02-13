@@ -50,11 +50,9 @@ function filterToSchema(
   document: DocumentNode,
   variables: Record<string, any>,
 ): { document: DocumentNode; variables: Record<string, any> } {
-  const operations: Array<
-    OperationDefinitionNode
-    > = document.definitions.filter(
-      def => def.kind === Kind.OPERATION_DEFINITION,
-    ) as Array<OperationDefinitionNode>;
+  const operations: Array<OperationDefinitionNode> = document.definitions.filter(
+    def => def.kind === Kind.OPERATION_DEFINITION,
+  ) as Array<OperationDefinitionNode>;
   const fragments: Array<FragmentDefinitionNode> = document.definitions.filter(
     def => def.kind === Kind.FRAGMENT_DEFINITION,
   ) as Array<FragmentDefinitionNode>;
@@ -98,7 +96,7 @@ function filterToSchema(
       targetSchema,
       type,
       validFragmentsWithType,
-      operation.selectionSet
+      operation.selectionSet,
     );
 
     usedFragments = union(usedFragments, operationUsedFragments);
@@ -114,15 +112,18 @@ function filterToSchema(
       validFragmentsWithType,
       usedFragments,
     );
-    const operationOrFragmentVariables =
-      union(operationUsedVariables, collectedUsedVariables);
+    const operationOrFragmentVariables = union(
+      operationUsedVariables,
+      collectedUsedVariables,
+    );
     usedVariables = union(usedVariables, operationOrFragmentVariables);
     newFragments = collectedNewFragments;
     fragmentSet = collectedFragmentSet;
 
     const variableDefinitions = operation.variableDefinitions.filter(
       (variable: VariableDefinitionNode) =>
-      operationOrFragmentVariables.indexOf(variable.variable.name.value) !== -1,
+        operationOrFragmentVariables.indexOf(variable.variable.name.value) !==
+        -1,
     );
 
     newOperations.push({
@@ -179,7 +180,7 @@ function collectFragmentVariables(
         type,
         validFragmentsWithType,
         fragment.selectionSet,
-        );
+      );
       remainingFragments = union(remainingFragments, fragmentUsedFragments);
       usedVariables = union(usedVariables, fragmentUsedVariables);
 
@@ -215,87 +216,94 @@ function filterSelectionSet(
   const usedVariables: Array<string> = [];
 
   const typeInfo = new TypeInfo(schema, undefined, type);
-  const filteredSelectionSet = visit(selectionSet, visitWithTypeInfo(typeInfo, {
-    [Kind.FIELD]: {
-      enter(node: FieldNode): null | undefined | FieldNode {
-        const parentType = typeInfo.getParentType();
-        if (
-          parentType instanceof GraphQLObjectType ||
-          parentType instanceof GraphQLInterfaceType
-        ) {
-          const fields = parentType.getFields();
-          const field =
-            node.name.value === '__typename'
-              ? TypeNameMetaFieldDef
-              : fields[node.name.value];
-          if (!field) {
-            return null;
-          }
-
-          const argNames = (field.args != null ? field.args : []).map(arg => arg.name);
-          if (node.arguments != null) {
-            const args = node.arguments.filter((arg: ArgumentNode) => argNames.indexOf(arg.name.value) !== -1);
-            if (args.length !== node.arguments.length) {
-              return {
-                ...node,
-                arguments: args,
-              };
+  const filteredSelectionSet = visit(
+    selectionSet,
+    visitWithTypeInfo(typeInfo, {
+      [Kind.FIELD]: {
+        enter(node: FieldNode): null | undefined | FieldNode {
+          const parentType = typeInfo.getParentType();
+          if (
+            parentType instanceof GraphQLObjectType ||
+            parentType instanceof GraphQLInterfaceType
+          ) {
+            const fields = parentType.getFields();
+            const field =
+              node.name.value === '__typename'
+                ? TypeNameMetaFieldDef
+                : fields[node.name.value];
+            if (!field) {
+              return null;
             }
-          }
-        }
-      },
-      leave(node: FieldNode): null | undefined | FieldNode {
-        const resolvedType = getNamedType(typeInfo.getType());
-        if (
-          resolvedType instanceof GraphQLObjectType ||
-          resolvedType instanceof GraphQLInterfaceType
-        ) {
-          const selections = node.selectionSet != null ? node.selectionSet.selections : null;
-          if (selections == null || selections.length === 0) {
-            // need to remove any added variables. Is there a better way to do this?
-            visit(node, {
-              [Kind.VARIABLE](variableNode: VariableNode) {
-                const index = usedVariables.indexOf(variableNode.name.value);
-                if (index !== -1) {
-                  usedVariables.splice(index, 1);
-                }
+
+            const argNames = (field.args != null ? field.args : []).map(
+              arg => arg.name,
+            );
+            if (node.arguments != null) {
+              const args = node.arguments.filter(
+                (arg: ArgumentNode) => argNames.indexOf(arg.name.value) !== -1,
+              );
+              if (args.length !== node.arguments.length) {
+                return {
+                  ...node,
+                  arguments: args,
+                };
               }
             }
-            );
-            return null;
           }
-        }
+        },
+        leave(node: FieldNode): null | undefined | FieldNode {
+          const resolvedType = getNamedType(typeInfo.getType());
+          if (
+            resolvedType instanceof GraphQLObjectType ||
+            resolvedType instanceof GraphQLInterfaceType
+          ) {
+            const selections =
+              node.selectionSet != null ? node.selectionSet.selections : null;
+            if (selections == null || selections.length === 0) {
+              // need to remove any added variables. Is there a better way to do this?
+              visit(node, {
+                [Kind.VARIABLE](variableNode: VariableNode) {
+                  const index = usedVariables.indexOf(variableNode.name.value);
+                  if (index !== -1) {
+                    usedVariables.splice(index, 1);
+                  }
+                },
+              });
+              return null;
+            }
+          }
+        },
       },
-    },
-    [Kind.FRAGMENT_SPREAD](node: FragmentSpreadNode): null | undefined {
-      if (node.name.value in validFragments) {
-        const parentType = typeInfo.getParentType();
-        const innerType = validFragments[node.name.value];
-        if (!implementsAbstractType(schema, parentType, innerType)) {
-          return null;
-        }
-
-        usedFragments.push(node.name.value);
-        return;
-      }
-
-      return null;
-    },
-    [Kind.INLINE_FRAGMENT]: {
-      enter(node: InlineFragmentNode): null | undefined {
-        if (node.typeCondition != null) {
+      [Kind.FRAGMENT_SPREAD](node: FragmentSpreadNode): null | undefined {
+        if (node.name.value in validFragments) {
           const parentType = typeInfo.getParentType();
-          const innerType = schema.getType(node.typeCondition.name.value);
+          const innerType = validFragments[node.name.value];
           if (!implementsAbstractType(schema, parentType, innerType)) {
             return null;
           }
+
+          usedFragments.push(node.name.value);
+          return;
         }
+
+        return null;
       },
-    },
-    [Kind.VARIABLE](node: VariableNode) {
-      usedVariables.push(node.name.value);
-    },
-  }));
+      [Kind.INLINE_FRAGMENT]: {
+        enter(node: InlineFragmentNode): null | undefined {
+          if (node.typeCondition != null) {
+            const parentType = typeInfo.getParentType();
+            const innerType = schema.getType(node.typeCondition.name.value);
+            if (!implementsAbstractType(schema, parentType, innerType)) {
+              return null;
+            }
+          }
+        },
+      },
+      [Kind.VARIABLE](node: VariableNode) {
+        usedVariables.push(node.name.value);
+      },
+    }),
+  );
 
   return {
     selectionSet: filteredSelectionSet,

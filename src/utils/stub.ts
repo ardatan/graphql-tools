@@ -12,7 +12,7 @@ import {
 
 export function createNamedStub(
   name: string,
-  type: 'object' | 'interface' | 'input'
+  type: 'object' | 'interface' | 'input',
 ): GraphQLObjectType | GraphQLInputObjectType | GraphQLInterfaceType {
   let constructor: any;
   if (type === 'object') {
@@ -61,5 +61,5 @@ export function getBuiltInForStub(type: GraphQLNamedType): GraphQLNamedType {
       return GraphQLID;
     default:
       return type;
-    }
+  }
 }

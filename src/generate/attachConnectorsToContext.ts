@@ -40,7 +40,11 @@ const attachConnectorsToContext = deprecated<Function>(
       );
     }
     schema['_apolloConnectorsAttached'] = true;
-    const attachconnectorFn: GraphQLFieldResolver<any, any> = (root, _args, ctx) => {
+    const attachconnectorFn: GraphQLFieldResolver<any, any> = (
+      root,
+      _args,
+      ctx,
+    ) => {
       if (typeof ctx !== 'object') {
         // if in any way possible, we should throw an error when the attachconnectors
         // function is called, not when a query is executed.

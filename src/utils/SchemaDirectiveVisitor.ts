@@ -105,28 +105,30 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
       // and other metadata specific to that occurrence. To help prevent the
       // mistake of passing instances, the SchemaDirectiveVisitor constructor
       // method is marked as protected.
-      [directiveName: string]: typeof SchemaDirectiveVisitor
+      [directiveName: string]: typeof SchemaDirectiveVisitor;
     },
     // Optional context object that will be available to all visitor instances
     // via this.context. Defaults to an empty null-prototype object.
     context: {
-      [key: string]: any
+      [key: string]: any;
     } = Object.create(null),
   ): {
     // The visitSchemaDirectives method returns a map from directive names to
     // lists of SchemaDirectiveVisitors created while visiting the schema.
-    [directiveName: string]: Array<SchemaDirectiveVisitor>,
+    [directiveName: string]: Array<SchemaDirectiveVisitor>;
   } {
     // If the schema declares any directives for public consumption, record
     // them here so that we can properly coerce arguments when/if we encounter
     // an occurrence of the directive while walking the schema below.
-    const declaredDirectives =
-      this.getDeclaredDirectives(schema, directiveVisitors);
+    const declaredDirectives = this.getDeclaredDirectives(
+      schema,
+      directiveVisitors,
+    );
 
     // Map from directive names to lists of SchemaDirectiveVisitor instances
     // created while visiting the schema.
     const createdVisitors: {
-      [directiveName: string]: Array<SchemaDirectiveVisitor>
+      [directiveName: string]: Array<SchemaDirectiveVisitor>;
     } = Object.create(null);
     Object.keys(directiveVisitors).forEach(directiveName => {
       createdVisitors[directiveName] = [];
@@ -137,14 +139,15 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
       methodName: string,
     ): Array<SchemaDirectiveVisitor> {
       const visitors: Array<SchemaDirectiveVisitor> = [];
-      const directiveNodes = (type.astNode != null) ? type.astNode.directives : null;
-      if (! directiveNodes) {
+      const directiveNodes =
+        type.astNode != null ? type.astNode.directives : null;
+      if (!directiveNodes) {
         return visitors;
       }
 
       directiveNodes.forEach(directiveNode => {
         const directiveName = directiveNode.name.value;
-        if (! hasOwn.call(directiveVisitors, directiveName)) {
+        if (!hasOwn.call(directiveVisitors, directiveName)) {
           return;
         }
 
@@ -152,7 +155,7 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
 
         // Avoid creating visitor objects if visitorClass does not override
         // the visitor method named by methodName.
-        if (! visitorClass.implementsVisitorMethod(methodName)) {
+        if (!visitorClass.implementsVisitorMethod(methodName)) {
           return;
         }
 
@@ -180,13 +183,15 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
         // get created and assigned names. While subclasses could override the
         // constructor method, the constructor is marked as protected, so
         // these are the only arguments that will ever be passed.
-        visitors.push(new visitorClass({
-          name: directiveName,
-          args,
-          visitedType: type,
-          schema,
-          context,
-        }));
+        visitors.push(
+          new visitorClass({
+            name: directiveName,
+            args,
+            visitedType: type,
+            schema,
+            context,
+          }),
+        );
       });
 
       if (visitors.length > 0) {
@@ -206,11 +211,11 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
   protected static getDeclaredDirectives(
     schema: GraphQLSchema,
     directiveVisitors: {
-      [directiveName: string]: typeof SchemaDirectiveVisitor
+      [directiveName: string]: typeof SchemaDirectiveVisitor;
     },
   ) {
     const declaredDirectives: {
-      [directiveName: string]: GraphQLDirective,
+      [directiveName: string]: GraphQLDirective;
     } = Object.create(null);
 
     each(schema.getDirectives(), (decl: GraphQLDirective) => {
@@ -230,7 +235,7 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
     });
 
     each(declaredDirectives, (decl, name) => {
-      if (! hasOwn.call(directiveVisitors, name)) {
+      if (!hasOwn.call(directiveVisitors, name)) {
         // SchemaDirectiveVisitors.visitSchemaDirectives might be called
         // multiple times with partial directiveVisitors maps, so it's not
         // necessarily an error for directiveVisitors to be missing an
@@ -241,14 +246,16 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
 
       each(decl.locations, loc => {
         const visitorMethodName = directiveLocationToVisitorMethodName(loc);
-        if (SchemaVisitor.implementsVisitorMethod(visitorMethodName) &&
-            ! visitorClass.implementsVisitorMethod(visitorMethodName)) {
+        if (
+          SchemaVisitor.implementsVisitorMethod(visitorMethodName) &&
+          !visitorClass.implementsVisitorMethod(visitorMethodName)
+        ) {
           // While visitor subclasses may implement extra visitor methods,
           // it's definitely a mistake if the GraphQLDirective declares itself
           // applicable to certain schema locations, and the visitor subclass
           // does not implement all the corresponding methods.
           throw new Error(
-            `SchemaDirectiveVisitor for @${name} must implement ${visitorMethodName} method`
+            `SchemaDirectiveVisitor for @${name} must implement ${visitorMethodName} method`,
           );
         }
       });
@@ -260,11 +267,11 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
   // Mark the constructor protected to enforce passing SchemaDirectiveVisitor
   // subclasses (not instances) to visitSchemaDirectives.
   protected constructor(config: {
-    name: string
-    args: { [name: string]: any }
-    visitedType: VisitableSchemaType
-    schema: GraphQLSchema
-    context: { [key: string]: any }
+    name: string;
+    args: { [name: string]: any };
+    visitedType: VisitableSchemaType;
+    schema: GraphQLSchema;
+    context: { [key: string]: any };
   }) {
     super();
     this.name = config.name;
@@ -277,6 +284,12 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
 
 // Convert a string like "FIELD_DEFINITION" to "visitFieldDefinition".
 function directiveLocationToVisitorMethodName(loc: DirectiveLocationEnum) {
-  return 'visit' + loc.replace(/([^_]*)_?/g, (_wholeMatch, part: string) =>
-    part.charAt(0).toUpperCase() + part.slice(1).toLowerCase());
+  return (
+    'visit' +
+    loc.replace(
+      /([^_]*)_?/g,
+      (_wholeMatch, part: string) =>
+        part.charAt(0).toUpperCase() + part.slice(1).toLowerCase(),
+    )
+  );
 }

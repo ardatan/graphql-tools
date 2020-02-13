@@ -72,8 +72,13 @@ export default function mergeSchemas({
   resolvers?: IResolversParameter;
   schemaDirectives?: { [name: string]: typeof SchemaDirectiveVisitor };
   inheritResolversFromInterfaces?: boolean;
-  mergeTypes?: boolean | Array<string> |
-    ((typeName: string, mergeTypeCandidates: Array<MergeTypeCandidate>) => boolean);
+  mergeTypes?:
+    | boolean
+    | Array<string>
+    | ((
+        typeName: string,
+        mergeTypeCandidates: Array<MergeTypeCandidate>,
+      ) => boolean);
   mergeDirectives?: boolean;
 }): GraphQLSchema {
   const allSchemas: Array<GraphQLSchema> = [];
@@ -92,7 +97,10 @@ export default function mergeSchemas({
   schemas = [...schemas, ...schemaLikeObjects];
 
   schemas.forEach(schemaLikeObject => {
-    if (schemaLikeObject instanceof GraphQLSchema || isSubschemaConfig(schemaLikeObject)) {
+    if (
+      schemaLikeObject instanceof GraphQLSchema ||
+      isSubschemaConfig(schemaLikeObject)
+    ) {
       const schema = wrapSchema(schemaLikeObject);
 
       allSchemas.push(schema);
@@ -141,10 +149,13 @@ export default function mergeSchemas({
       });
     } else if (
       typeof schemaLikeObject === 'string' ||
-      (schemaLikeObject != null && (schemaLikeObject as ASTNode).kind === Kind.DOCUMENT)
+      (schemaLikeObject != null &&
+        (schemaLikeObject as ASTNode).kind === Kind.DOCUMENT)
     ) {
       const parsedSchemaDocument =
-        typeof schemaLikeObject === 'string' ? parse(schemaLikeObject) : (schemaLikeObject as DocumentNode);
+        typeof schemaLikeObject === 'string'
+          ? parse(schemaLikeObject)
+          : (schemaLikeObject as DocumentNode);
       parsedSchemaDocument.definitions.forEach(def => {
         const type = typeFromAST(def);
         if (type instanceof GraphQLDirective && mergeDirectives) {
@@ -179,8 +190,11 @@ export default function mergeSchemas({
   if (typeof resolvers === 'function') {
     finalResolvers = resolvers(mergeInfo);
   } else if (Array.isArray(resolvers)) {
-    finalResolvers = resolvers.reduce((left, right) =>
-      mergeDeep(left, (typeof right === 'function') ? right(mergeInfo) : right), {});
+    finalResolvers = resolvers.reduce(
+      (left, right) =>
+        mergeDeep(left, typeof right === 'function' ? right(mergeInfo) : right),
+      {},
+    );
     if (Array.isArray(resolvers)) {
       finalResolvers = resolvers.reduce(mergeDeep, {});
     }
@@ -196,21 +210,22 @@ export default function mergeSchemas({
 
   Object.keys(typeCandidates).forEach(typeName => {
     if (
-      (
-        typeName === 'Query' ||
-        typeName === 'Mutation' ||
-        typeName === 'Subscription' ||
-        (mergeTypes === true && !(typeCandidates[typeName][0].type instanceof GraphQLScalarType)) ||
-        (typeof mergeTypes === 'function') && mergeTypes(typeName, typeCandidates[typeName]) ||
-        (Array.isArray(mergeTypes) && mergeTypes.includes(typeName)) ||
-        mergeInfo.mergedTypes[typeName] != null
-      )
+      typeName === 'Query' ||
+      typeName === 'Mutation' ||
+      typeName === 'Subscription' ||
+      (mergeTypes === true &&
+        !(typeCandidates[typeName][0].type instanceof GraphQLScalarType)) ||
+      (typeof mergeTypes === 'function' &&
+        mergeTypes(typeName, typeCandidates[typeName])) ||
+      (Array.isArray(mergeTypes) && mergeTypes.includes(typeName)) ||
+      mergeInfo.mergedTypes[typeName] != null
     ) {
       typeMap[typeName] = merge(typeName, typeCandidates[typeName]);
     } else {
-      const candidateSelector = onTypeConflict != null ?
-        onTypeConflictToCandidateSelector(onTypeConflict) :
-        (cands: Array<MergeTypeCandidate>) => cands[cands.length - 1];
+      const candidateSelector =
+        onTypeConflict != null
+          ? onTypeConflictToCandidateSelector(onTypeConflict)
+          : (cands: Array<MergeTypeCandidate>) => cands[cands.length - 1];
       typeMap[typeName] = candidateSelector(typeCandidates[typeName]).type;
     }
   });
@@ -222,9 +237,9 @@ export default function mergeSchemas({
     mutation: typeMap.Mutation as GraphQLObjectType,
     subscription: typeMap.Subscription as GraphQLObjectType,
     types: Object.keys(typeMap).map(key => typeMap[key]),
-    directives: directives.length ?
-      directives.map((directive) => cloneDirective(directive)) :
-      undefined
+    directives: directives.length
+      ? directives.map(directive => cloneDirective(directive))
+      : undefined,
   });
 
   extensions.forEach(extension => {
@@ -236,7 +251,7 @@ export default function mergeSchemas({
   addResolversToSchema({
     schema: mergedSchema,
     resolvers: finalResolvers,
-    inheritResolversFromInterfaces
+    inheritResolversFromInterfaces,
   });
 
   forEachField(mergedSchema, field => {
@@ -279,7 +294,9 @@ function addTypeCandidate(
   typeCandidates[name].push(typeCandidate);
 }
 
-function onTypeConflictToCandidateSelector(onTypeConflict: OnTypeConflict): CandidateSelector {
+function onTypeConflictToCandidateSelector(
+  onTypeConflict: OnTypeConflict,
+): CandidateSelector {
   return cands =>
     cands.reduce((prev, next) => {
       const type = onTypeConflict(prev.type, next.type, {
@@ -297,54 +314,77 @@ function onTypeConflictToCandidateSelector(onTypeConflict: OnTypeConflict): Cand
       }
       return {
         schemaName: 'unknown',
-        type
+        type,
       };
     });
 }
 
-function merge(typeName: string, candidates: Array<MergeTypeCandidate>): GraphQLNamedType {
+function merge(
+  typeName: string,
+  candidates: Array<MergeTypeCandidate>,
+): GraphQLNamedType {
   const initialCandidateType = candidates[0].type;
-  if (candidates.some(candidate => candidate.type.constructor !== initialCandidateType.constructor)) {
-    throw new Error(`Cannot merge different type categories into common type ${typeName}.`);
+  if (
+    candidates.some(
+      candidate =>
+        candidate.type.constructor !== initialCandidateType.constructor,
+    )
+  ) {
+    throw new Error(
+      `Cannot merge different type categories into common type ${typeName}.`,
+    );
   }
   if (initialCandidateType instanceof GraphQLObjectType) {
     return new GraphQLObjectType({
       name: typeName,
-      fields: candidates.reduce((acc, candidate) => ({
-        ...acc,
-        ...(candidate.type as GraphQLObjectType).toConfig().fields,
-      }), {}),
+      fields: candidates.reduce(
+        (acc, candidate) => ({
+          ...acc,
+          ...(candidate.type as GraphQLObjectType).toConfig().fields,
+        }),
+        {},
+      ),
       interfaces: candidates.reduce((acc, candidate) => {
-        const interfaces = (candidate.type as GraphQLObjectType).toConfig().interfaces;
-        return (interfaces != null) ? acc.concat(interfaces) : acc;
+        const interfaces = (candidate.type as GraphQLObjectType).toConfig()
+          .interfaces;
+        return interfaces != null ? acc.concat(interfaces) : acc;
       }, []),
     });
   } else if (initialCandidateType instanceof GraphQLInterfaceType) {
     return new GraphQLInterfaceType({
       name: typeName,
-      fields: candidates.reduce((acc, candidate) => ({
-        ...acc,
-        ...(candidate.type as GraphQLObjectType).toConfig().fields,
-      }), {}),
+      fields: candidates.reduce(
+        (acc, candidate) => ({
+          ...acc,
+          ...(candidate.type as GraphQLObjectType).toConfig().fields,
+        }),
+        {},
+      ),
     });
   } else if (initialCandidateType instanceof GraphQLUnionType) {
     return new GraphQLUnionType({
       name: typeName,
       types: candidates.reduce(
-        (acc, candidate) => acc.concat((candidate.type as GraphQLUnionType).toConfig().types),
+        (acc, candidate) =>
+          acc.concat((candidate.type as GraphQLUnionType).toConfig().types),
         [],
       ),
     });
   } else if (initialCandidateType instanceof GraphQLEnumType) {
     return new GraphQLEnumType({
       name: typeName,
-      values: candidates.reduce((acc, candidate) => ({
-        ...acc,
-        ...(candidate.type as GraphQLEnumType).toConfig().values,
-      }), {}),
+      values: candidates.reduce(
+        (acc, candidate) => ({
+          ...acc,
+          ...(candidate.type as GraphQLEnumType).toConfig().values,
+        }),
+        {},
+      ),
     });
   } else if (initialCandidateType instanceof GraphQLScalarType) {
-    throw new Error(`Cannot merge type ${typeName}. Merging not supported for GraphQLScalarType.`);
+    throw new Error(
+      `Cannot merge type ${typeName}. Merging not supported for GraphQLScalarType.`,
+    );
   } else {
     // not reachable.
     throw new Error(`Type ${typeName} has unknown GraphQL type.`);

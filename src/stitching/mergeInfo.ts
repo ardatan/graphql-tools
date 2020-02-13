@@ -42,8 +42,13 @@ type MergeTypeCandidate = {
 export function createMergeInfo(
   allSchemas: Array<GraphQLSchema>,
   typeCandidates: { [name: string]: Array<MergeTypeCandidate> },
-  mergeTypes?: boolean | Array<string> |
-    ((typeName: string, mergeTypeCandidates: Array<MergeTypeCandidate>) => boolean),
+  mergeTypes?:
+    | boolean
+    | Array<string>
+    | ((
+        typeName: string,
+        mergeTypeCandidates: Array<MergeTypeCandidate>,
+      ) => boolean),
 ): MergeInfo {
   return {
     delegate(
@@ -56,7 +61,10 @@ export function createMergeInfo(
     ) {
       const schema = guessSchemaByRootField(allSchemas, operation, fieldName);
       const expandTransforms = new ExpandAbstractTypes(info.schema, schema);
-      const fragmentTransform = new AddReplacementFragments(schema, info.mergeInfo.replacementFragments);
+      const fragmentTransform = new AddReplacementFragments(
+        schema,
+        info.mergeInfo.replacementFragments,
+      );
       return delegateToSchema({
         schema,
         operation,
@@ -64,18 +72,14 @@ export function createMergeInfo(
         args,
         context,
         info,
-        transforms: [
-          ...transforms,
-          expandTransforms,
-          fragmentTransform,
-        ],
+        transforms: [...transforms, expandTransforms, fragmentTransform],
       });
     },
 
     delegateToSchema(options: IDelegateToSchemaOptions) {
       return delegateToSchema({
         ...options,
-        transforms: options.transforms
+        transforms: options.transforms,
       });
     },
     fragments: [],
@@ -87,30 +91,38 @@ export function createMergeInfo(
 
 function createMergedTypes(
   typeCandidates: { [name: string]: Array<MergeTypeCandidate> },
-  mergeTypes?: boolean | Array<string> |
-    ((typeName: string, mergeTypeCandidates: Array<MergeTypeCandidate>) => boolean)
+  mergeTypes?:
+    | boolean
+    | Array<string>
+    | ((
+        typeName: string,
+        mergeTypeCandidates: Array<MergeTypeCandidate>,
+      ) => boolean),
 ): Record<string, MergedTypeInfo> {
   const mergedTypes: Record<string, MergedTypeInfo> = {};
 
   Object.keys(typeCandidates).forEach(typeName => {
     if (typeCandidates[typeName][0].type instanceof GraphQLObjectType) {
-      const mergedTypeCandidates = typeCandidates[typeName]
-        .filter(typeCandidate =>
+      const mergedTypeCandidates = typeCandidates[typeName].filter(
+        typeCandidate =>
           typeCandidate.subschema != null &&
           isSubschemaConfig(typeCandidate.subschema) &&
           typeCandidate.subschema.merge != null &&
-          typeCandidate.subschema.merge[typeName] != null
-        );
+          typeCandidate.subschema.merge[typeName] != null,
+      );
 
       if (
         mergeTypes === true ||
-        (typeof mergeTypes === 'function') && mergeTypes(typeName, typeCandidates[typeName]) ||
+        (typeof mergeTypes === 'function' &&
+          mergeTypes(typeName, typeCandidates[typeName])) ||
         (Array.isArray(mergeTypes) && mergeTypes.includes(typeName)) ||
         mergedTypeCandidates.length
       ) {
         const subschemas: Array<SubschemaConfig> = [];
 
-        let requiredSelections: Array<SelectionNode> = [parseSelectionSet('{ __typename }').selections[0]];
+        let requiredSelections: Array<SelectionNode> = [
+          parseSelectionSet('{ __typename }').selections[0],
+        ];
         const fields = Object.create({});
         const typeMaps: Map<SubschemaConfig, TypeMap> = new Map();
         const selectionSets: Map<SubschemaConfig, SelectionSetNode> = new Map();
@@ -119,7 +131,9 @@ function createMergedTypes(
           const subschemaConfig = typeCandidate.subschema as SubschemaConfig;
           const transformedSubschema = typeCandidate.transformedSubschema;
           typeMaps.set(subschemaConfig, transformedSubschema.getTypeMap());
-          const type = transformedSubschema.getType(typeName) as GraphQLObjectType;
+          const type = transformedSubschema.getType(
+            typeName,
+          ) as GraphQLObjectType;
           const fieldMap = type.getFields();
           Object.keys(fieldMap).forEach(fieldName => {
             if (fields[fieldName] == null) {
@@ -131,22 +145,33 @@ function createMergedTypes(
           const mergedTypeConfig = subschemaConfig.merge[typeName];
 
           if (mergedTypeConfig.selectionSet) {
-            const selectionSet = parseSelectionSet(mergedTypeConfig.selectionSet);
-            requiredSelections = requiredSelections.concat(selectionSet.selections);
+            const selectionSet = parseSelectionSet(
+              mergedTypeConfig.selectionSet,
+            );
+            requiredSelections = requiredSelections.concat(
+              selectionSet.selections,
+            );
             selectionSets.set(subschemaConfig, selectionSet);
           }
 
           if (!mergedTypeConfig.resolve) {
-            mergedTypeConfig.resolve = (originalResult, context, info, subschema, selectionSet) => delegateToSchema({
-              schema: subschema,
-              operation: 'query',
-              fieldName: mergedTypeConfig.fieldName,
-              args: mergedTypeConfig.args(originalResult),
-              selectionSet,
+            mergedTypeConfig.resolve = (
+              originalResult,
               context,
               info,
-              skipTypeMerging: true,
-            });
+              subschema,
+              selectionSet,
+            ) =>
+              delegateToSchema({
+                schema: subschema,
+                operation: 'query',
+                fieldName: mergedTypeConfig.fieldName,
+                args: mergedTypeConfig.args(originalResult),
+                selectionSet,
+                context,
+                info,
+                skipTypeMerging: true,
+              });
           }
 
           subschemas.push(subschemaConfig);
@@ -164,21 +189,32 @@ function createMergedTypes(
         subschemas.forEach(subschema => {
           const type = typeMaps.get(subschema)[typeName] as GraphQLObjectType;
           const subschemaMap = new Map();
-          subschemas.filter(s => s !== subschema).forEach(s => {
-            const selectionSet = selectionSets.get(s);
-            if (selectionSet != null && typeContainsSelectionSet(type, selectionSet)) {
-              subschemaMap.set(selectionSet, true);
-            }
-          });
-          mergedTypes[typeName].containsSelectionSet.set(subschema, subschemaMap);
+          subschemas
+            .filter(s => s !== subschema)
+            .forEach(s => {
+              const selectionSet = selectionSets.get(s);
+              if (
+                selectionSet != null &&
+                typeContainsSelectionSet(type, selectionSet)
+              ) {
+                subschemaMap.set(selectionSet, true);
+              }
+            });
+          mergedTypes[typeName].containsSelectionSet.set(
+            subschema,
+            subschemaMap,
+          );
         });
 
         Object.keys(fields).forEach(fieldName => {
           const supportedBySubschemas = fields[fieldName];
           if (supportedBySubschemas.length === 1) {
-            mergedTypes[typeName].uniqueFields[fieldName] = supportedBySubschemas[0];
+            mergedTypes[typeName].uniqueFields[fieldName] =
+              supportedBySubschemas[0];
           } else {
-            mergedTypes[typeName].nonUniqueFields[fieldName] = supportedBySubschemas;
+            mergedTypes[typeName].nonUniqueFields[
+              fieldName
+            ] = supportedBySubschemas;
           }
         });
 
@@ -187,7 +223,6 @@ function createMergedTypes(
           selections: requiredSelections,
         };
       }
-
     }
   });
 
@@ -218,8 +253,11 @@ export function completeMergeInfo(
             selections: [],
           };
         }
-        replacementSelectionSets[typeName][fieldName].selections =
-          replacementSelectionSets[typeName][fieldName].selections.concat(selectionSet.selections);
+        replacementSelectionSets[typeName][
+          fieldName
+        ].selections = replacementSelectionSets[typeName][
+          fieldName
+        ].selections.concat(selectionSet.selections);
       }
       if (field.fragment) {
         mergeInfo.fragments.push({

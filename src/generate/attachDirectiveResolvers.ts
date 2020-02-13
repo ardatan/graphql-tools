@@ -25,18 +25,20 @@ function attachDirectiveResolvers(
     schemaDirectives[directiveName] = class extends SchemaDirectiveVisitor {
       public visitFieldDefinition(field: GraphQLField<any, any>) {
         const resolver = directiveResolvers[directiveName];
-        const originalResolver = (field.resolve != null) ? field.resolve : defaultFieldResolver;
+        const originalResolver =
+          field.resolve != null ? field.resolve : defaultFieldResolver;
         const directiveArgs = this.args;
         field.resolve = (...args) => {
           const [source /* original args */, , context, info] = args;
           return resolver(
-            () => new Promise((resolve, reject) => {
-              const result = originalResolver.apply(field, args);
-              if (result instanceof Error) {
-                reject(result);
-              }
-              resolve(result);
-            }),
+            () =>
+              new Promise((resolve, reject) => {
+                const result = originalResolver.apply(field, args);
+                if (result instanceof Error) {
+                  reject(result);
+                }
+                resolve(result);
+              }),
             source,
             directiveArgs,
             context,

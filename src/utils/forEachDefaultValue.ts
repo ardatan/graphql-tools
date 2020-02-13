@@ -7,8 +7,10 @@ import {
 
 import { IDefaultValueIteratorFn } from '../Interfaces';
 
-export function forEachDefaultValue(schema: GraphQLSchema, fn: IDefaultValueIteratorFn): void {
-
+export function forEachDefaultValue(
+  schema: GraphQLSchema,
+  fn: IDefaultValueIteratorFn,
+): void {
   const typeMap = schema.getTypeMap();
   Object.keys(typeMap).forEach(typeName => {
     const type = typeMap[typeName];

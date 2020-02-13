@@ -1,15 +1,27 @@
-import { FieldNode, visit, Kind, SelectionNode, SelectionSetNode } from 'graphql';
+import {
+  FieldNode,
+  visit,
+  Kind,
+  SelectionNode,
+  SelectionSetNode,
+} from 'graphql';
 
 import { Transform, Request, Result } from '../Interfaces';
 
-export type QueryWrapper = (subtree: SelectionSetNode) => SelectionNode | SelectionSetNode;
+export type QueryWrapper = (
+  subtree: SelectionSetNode,
+) => SelectionNode | SelectionSetNode;
 
 export default class WrapQuery implements Transform {
   private readonly wrapper: QueryWrapper;
   private readonly extractor: (result: any) => any;
   private readonly path: Array<string>;
 
-  constructor(path: Array<string>, wrapper: QueryWrapper, extractor: (result: any) => any) {
+  constructor(
+    path: Array<string>,
+    wrapper: QueryWrapper,
+    extractor: (result: any) => any,
+  ) {
     this.path = path;
     this.wrapper = wrapper;
     this.extractor = extractor;
@@ -33,23 +45,23 @@ export default class WrapQuery implements Transform {
                 ? wrapResult
                 : {
                     kind: Kind.SELECTION_SET,
-                    selections: [wrapResult]
+                    selections: [wrapResult],
                   };
 
             return {
               ...node,
-              selectionSet
+              selectionSet,
             };
           }
         },
         leave: () => {
           fieldPath.pop();
-        }
-      }
+        },
+      },
     });
     return {
       ...originalRequest,
-      document: newDocument
+      document: newDocument,
     };
   }
 
@@ -69,7 +81,7 @@ export default class WrapQuery implements Transform {
 
     return {
       data: rootData,
-      errors: originalResult.errors
+      errors: originalResult.errors,
     };
   }
 }

@@ -25,7 +25,7 @@ export type ResolverFn = (
   rootValue?: any,
   args?: any,
   context?: any,
-  info?: GraphQLResolveInfo
+  info?: GraphQLResolveInfo,
 ) => AsyncIterator<any>;
 
 export default function makeRemoteExecutableSchema({
@@ -48,9 +48,10 @@ export default function makeRemoteExecutableSchema({
     finalFetcher = linkToFetcher(link);
   }
 
-  const targetSchema = typeof schemaOrTypeDefs === 'string' ?
-    buildSchema(schemaOrTypeDefs, buildSchemaOptions) :
-    schemaOrTypeDefs;
+  const targetSchema =
+    typeof schemaOrTypeDefs === 'string'
+      ? buildSchema(schemaOrTypeDefs, buildSchemaOptions)
+      : schemaOrTypeDefs;
 
   const remoteSchema = cloneSchema(targetSchema);
   stripResolvers(remoteSchema);
@@ -80,12 +81,16 @@ export default function makeRemoteExecutableSchema({
   return remoteSchema;
 }
 
-export function createResolver(fetcher: Fetcher): GraphQLFieldResolver<any, any> {
+export function createResolver(
+  fetcher: Fetcher,
+): GraphQLFieldResolver<any, any> {
   return async (_root, _args, context, info) => {
-    const fragments = Object.keys(info.fragments).map(fragment => info.fragments[fragment]);
+    const fragments = Object.keys(info.fragments).map(
+      fragment => info.fragments[fragment],
+    );
     let query: DocumentNode = {
       kind: Kind.DOCUMENT,
-      definitions: [info.operation, ...fragments]
+      definitions: [info.operation, ...fragments],
     };
 
     query = addTypenameToAbstract(info.schema, query);
@@ -93,7 +98,7 @@ export function createResolver(fetcher: Fetcher): GraphQLFieldResolver<any, any>
     const result = await fetcher({
       query,
       variables: info.variableValues,
-      context: { graphqlContext: context }
+      context: { graphqlContext: context },
     });
     return checkResultAndHandleErrors(result, context, info);
   };
@@ -101,10 +106,12 @@ export function createResolver(fetcher: Fetcher): GraphQLFieldResolver<any, any>
 
 function createSubscriptionResolver(link: ApolloLink): ResolverFn {
   return (_root, _args, context, info) => {
-    const fragments = Object.keys(info.fragments).map(fragment => info.fragments[fragment]);
+    const fragments = Object.keys(info.fragments).map(
+      fragment => info.fragments[fragment],
+    );
     let query: DocumentNode = {
       kind: Kind.DOCUMENT,
-      definitions: [info.operation, ...fragments]
+      definitions: [info.operation, ...fragments],
     };
 
     query = addTypenameToAbstract(info.schema, query);
@@ -112,7 +119,7 @@ function createSubscriptionResolver(link: ApolloLink): ResolverFn {
     const operation = {
       query,
       variables: info.variableValues,
-      context: { graphqlContext: context }
+      context: { graphqlContext: context },
     };
 
     const observable = execute(link, operation);

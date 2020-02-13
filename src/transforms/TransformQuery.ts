@@ -12,12 +12,14 @@ import { Transform } from './transforms';
 
 export type QueryTransformer = (
   selectionSet: SelectionSetNode,
-  fragments: Record<string, FragmentDefinitionNode>
+  fragments: Record<string, FragmentDefinitionNode>,
 ) => SelectionSetNode;
 
 export type ResultTransformer = (result: any) => any;
 
-export type ErrorPathTransformer = (path: ReadonlyArray<string | number>) => Array<string | number>;
+export type ErrorPathTransformer = (
+  path: ReadonlyArray<string | number>,
+) => Array<string | number>;
 
 export default class TransformQuery implements Transform {
   private readonly path: Array<string>;
@@ -33,11 +35,11 @@ export default class TransformQuery implements Transform {
     errorPathTransformer = errorPath => [].concat(errorPath),
     fragments = {},
   }: {
-      path: Array<string>;
-      queryTransformer: QueryTransformer;
-      resultTransformer?: ResultTransformer;
-      errorPathTransformer?: ErrorPathTransformer;
-      fragments?: Record<string, FragmentDefinitionNode>;
+    path: Array<string>;
+    queryTransformer: QueryTransformer;
+    resultTransformer?: ResultTransformer;
+    errorPathTransformer?: ErrorPathTransformer;
+    fragments?: Record<string, FragmentDefinitionNode>;
   }) {
     this.path = path;
     this.queryTransformer = queryTransformer;
@@ -63,23 +65,23 @@ export default class TransformQuery implements Transform {
           if (index === pathLength) {
             const selectionSet = this.queryTransformer(
               node.selectionSet,
-              this.fragments
+              this.fragments,
             );
 
             return {
               ...node,
-              selectionSet
+              selectionSet,
             };
           }
         },
         leave: () => {
           index--;
-        }
-      }
+        },
+      },
     });
     return {
       ...originalRequest,
-      document: newDocument
+      document: newDocument,
     };
   }
 
@@ -88,7 +90,7 @@ export default class TransformQuery implements Transform {
     const errors = originalResult.errors;
     return {
       data,
-      errors: errors != null ? this.transformErrors(errors) : undefined
+      errors: errors != null ? this.transformErrors(errors) : undefined,
     };
   }
 
@@ -112,7 +114,9 @@ export default class TransformQuery implements Transform {
     return newData;
   }
 
-  private transformErrors(errors: ReadonlyArray<GraphQLError>): ReadonlyArray<GraphQLError> {
+  private transformErrors(
+    errors: ReadonlyArray<GraphQLError>,
+  ): ReadonlyArray<GraphQLError> {
     return errors.map(error => {
       const path: ReadonlyArray<string | number> = error.path;
 
@@ -126,9 +130,11 @@ export default class TransformQuery implements Transform {
         index++;
       }
 
-      const newPath = match ?
-        path.slice(0, index).concat(this.errorPathTransformer(path.slice(index))) :
-        path;
+      const newPath = match
+        ? path
+            .slice(0, index)
+            .concat(this.errorPathTransformer(path.slice(index)))
+        : path;
 
       return new GraphQLError(
         error.message,
@@ -137,7 +143,7 @@ export default class TransformQuery implements Transform {
         error.positions,
         newPath,
         error.originalError,
-        error.extensions
+        error.extensions,
       );
     });
   }

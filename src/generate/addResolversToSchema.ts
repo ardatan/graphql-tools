@@ -31,11 +31,14 @@ function addResolversToSchema(
   legacyInputResolvers?: IResolvers,
   legacyInputValidationOptions?: IResolverValidationOptions,
 ) {
-  const options: IAddResolversToSchemaOptions = (schemaOrOptions instanceof GraphQLSchema) ? {
-    schema: schemaOrOptions,
-    resolvers: legacyInputResolvers,
-    resolverValidationOptions: legacyInputValidationOptions,
-  } : schemaOrOptions;
+  const options: IAddResolversToSchemaOptions =
+    schemaOrOptions instanceof GraphQLSchema
+      ? {
+          schema: schemaOrOptions,
+          resolvers: legacyInputResolvers,
+          resolverValidationOptions: legacyInputValidationOptions,
+        }
+      : schemaOrOptions;
 
   const {
     schema,
@@ -128,9 +131,7 @@ function addResolversToSchema(
       const values = type.getValues();
       const newValues = {};
       values.forEach(value => {
-        const newValue = Object.keys(resolverValue).includes(
-          value.name,
-        )
+        const newValue = Object.keys(resolverValue).includes(value.name)
           ? resolverValue[value.name]
           : value.name;
         newValues[value.name] = {
@@ -161,7 +162,10 @@ function addResolversToSchema(
           `${typeName} was defined in resolvers, but it's not an object`,
         );
       });
-    } else if (type instanceof GraphQLInterfaceType || type instanceof GraphQLObjectType) {
+    } else if (
+      type instanceof GraphQLInterfaceType ||
+      type instanceof GraphQLObjectType
+    ) {
       Object.keys(resolverValue).forEach(fieldName => {
         if (fieldName.startsWith('__')) {
           // this is for isTypeOf and resolveType and all the other stuff.

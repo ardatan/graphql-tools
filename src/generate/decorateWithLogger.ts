@@ -12,7 +12,7 @@ function decorateWithLogger(
   logger: ILogger,
   hint: string,
 ): GraphQLFieldResolver<any, any> {
-  const resolver = (fn != null) ? fn : defaultFieldResolver;
+  const resolver = fn != null ? fn : defaultFieldResolver;
 
   const logError = (e: Error) => {
     // TODO: clone the error properly

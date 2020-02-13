@@ -14,11 +14,7 @@
 import { expect } from 'chai';
 import { graphql } from 'graphql';
 
-import {
-  delegateToSchema,
-  mergeSchemas,
-  addMocksToSchema,
-} from '../index';
+import { delegateToSchema, mergeSchemas, addMocksToSchema } from '../index';
 
 const chirpTypeDefs = `
   type Chirp {
@@ -49,32 +45,33 @@ const chirpSchema = mergeSchemas({
         chirpById(id: ID!): Chirp
         chirpsByAuthorId(authorId: ID!): [Chirp]
       }
-    `
+    `,
   ],
   resolvers: {
     Chirp: {
-      author: (chirp, _args, context, info) => delegateToSchema({
-        schema: getSchema('authorSchema'),
-        operation: 'query',
-        fieldName: 'userById',
-        args: {
-          id: chirp.authorId
-        },
-        context,
-        info
-      })
-    }
-  }
+      author: (chirp, _args, context, info) =>
+        delegateToSchema({
+          schema: getSchema('authorSchema'),
+          operation: 'query',
+          fieldName: 'userById',
+          args: {
+            id: chirp.authorId,
+          },
+          context,
+          info,
+        }),
+    },
+  },
 });
 
 addMocksToSchema({
   schema: chirpSchema,
   mocks: {
     Chirp: () => ({
-      authorId: '1'
+      authorId: '1',
     }),
   },
-  preserveResolvers: true
+  preserveResolvers: true,
 });
 
 const authorSchema = mergeSchemas({
@@ -85,39 +82,40 @@ const authorSchema = mergeSchemas({
       type Query {
         userById(id: ID!): User
       }
-    `
+    `,
   ],
   resolvers: {
     User: {
-      chirps: (user, _args, context, info) => delegateToSchema({
+      chirps: (user, _args, context, info) =>
+        delegateToSchema({
           schema: getSchema('chirpSchema'),
           operation: 'query',
           fieldName: 'chirpsByAuthorId',
           args: {
-            authorId: user.id
+            authorId: user.id,
           },
           context,
-          info
-        })
-    }
-  }
+          info,
+        }),
+    },
+  },
 });
 
 addMocksToSchema({
   schema: authorSchema,
   mocks: {
     User: () => ({
-      id: '1'
+      id: '1',
     }),
   },
-  preserveResolvers: true
+  preserveResolvers: true,
 });
 
 schemas['chirpSchema'] = chirpSchema;
 schemas['authorSchema'] = authorSchema;
 
 const mergedSchema = mergeSchemas({
-  schemas: Object.keys(schemas).map(schemaName => schemas[schemaName])
+  schemas: Object.keys(schemas).map(schemaName => schemas[schemaName]),
 });
 
 describe('merging without specifying fragments', () => {

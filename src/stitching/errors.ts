@@ -1,12 +1,9 @@
-import {
-  GraphQLError,
-  ASTNode,
-} from 'graphql';
+import { GraphQLError, ASTNode } from 'graphql';
 
 export function relocatedError(
   originalError: Error | GraphQLError,
   nodes: ReadonlyArray<ASTNode>,
-  path: ReadonlyArray<string | number>
+  path: ReadonlyArray<string | number>,
 ): GraphQLError {
   if (Array.isArray((originalError as GraphQLError).path)) {
     return new GraphQLError(
@@ -16,7 +13,7 @@ export function relocatedError(
       (originalError as GraphQLError).positions,
       path != null ? path : (originalError as GraphQLError).path,
       (originalError as GraphQLError).originalError,
-      (originalError as GraphQLError).extensions
+      (originalError as GraphQLError).extensions,
     );
   }
 
@@ -33,7 +30,9 @@ export function relocatedError(
 
   return new GraphQLError(
     originalError.message,
-    ((originalError as GraphQLError).nodes != null) ? (originalError as GraphQLError).nodes : nodes,
+    (originalError as GraphQLError).nodes != null
+      ? (originalError as GraphQLError).nodes
+      : nodes,
     (originalError as GraphQLError).source,
     (originalError as GraphQLError).positions,
     path,
@@ -45,12 +44,13 @@ export function slicedError(originalError: GraphQLError) {
   return relocatedError(
     originalError,
     originalError.nodes,
-    (originalError.path != null) ? originalError.path.slice(1) : undefined
+    originalError.path != null ? originalError.path.slice(1) : undefined,
   );
 }
 
-
-export function getErrorsByPathSegment(errors: ReadonlyArray<GraphQLError>): Record<string, Array<GraphQLError>> {
+export function getErrorsByPathSegment(
+  errors: ReadonlyArray<GraphQLError>,
+): Record<string, Array<GraphQLError>> {
   const record = Object.create(null);
   errors.forEach(error => {
     if (!error.path || error.path.length < 2) {
@@ -59,7 +59,7 @@ export function getErrorsByPathSegment(errors: ReadonlyArray<GraphQLError>): Rec
 
     const pathSegment = error.path[1];
 
-    const current = (record[pathSegment] != null) ? record[pathSegment] : [];
+    const current = record[pathSegment] != null ? record[pathSegment] : [];
     current.push(slicedError(error));
     record[pathSegment] = current;
   });
@@ -75,7 +75,9 @@ class CombinedError extends Error {
   }
 }
 
-export function combineErrors(errors: ReadonlyArray<GraphQLError>): GraphQLError | CombinedError {
+export function combineErrors(
+  errors: ReadonlyArray<GraphQLError>,
+): GraphQLError | CombinedError {
   if (errors.length === 1) {
     return new GraphQLError(
       errors[0].message,
@@ -84,9 +86,12 @@ export function combineErrors(errors: ReadonlyArray<GraphQLError>): GraphQLError
       errors[0].positions,
       errors[0].path,
       errors[0].originalError,
-      errors[0].extensions
+      errors[0].extensions,
     );
   }
 
-  return new CombinedError(errors.map(error => error.message).join('\n'), errors);
+  return new CombinedError(
+    errors.map(error => error.message).join('\n'),
+    errors,
+  );
 }

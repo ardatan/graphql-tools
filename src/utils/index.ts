@@ -16,10 +16,7 @@ export {
   concatInlineFragments,
   parseFragmentToInlineFragment,
 } from './fragments';
-export {
-  parseSelectionSet,
-  typeContainsSelectionSet,
-} from './selectionSets';
+export { parseSelectionSet, typeContainsSelectionSet } from './selectionSets';
 export { mergeDeep } from './mergeDeep';
 export {
   collectFields,

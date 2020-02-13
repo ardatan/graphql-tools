@@ -1,7 +1,4 @@
-import {
-  GraphQLSchema,
-  GraphQLObjectType,
-} from 'graphql';
+import { GraphQLSchema, GraphQLObjectType } from 'graphql';
 
 import { Request } from '../Interfaces';
 import { appendFields, removeFields } from '../utils/fields';
@@ -35,12 +32,13 @@ export default class WrapFields implements Transform {
     const outerMostWrappingFieldName = remainingWrappingFieldNames.shift();
     this.transformer = new MapFields({
       [outerTypeName]: {
-        [outerMostWrappingFieldName]: (fieldNode, fragments) => hoistFieldNodes({
-          fieldNode,
-          path: remainingWrappingFieldNames,
-          fieldNames: this.fieldNames,
-          fragments,
-        }),
+        [outerMostWrappingFieldName]: (fieldNode, fragments) =>
+          hoistFieldNodes({
+            fieldNode,
+            path: remainingWrappingFieldNames,
+            fieldNames: this.fieldNames,
+            fragments,
+          }),
       },
     });
   }
@@ -51,7 +49,9 @@ export default class WrapFields implements Transform {
     const targetFields = removeFields(
       typeMap,
       this.outerTypeName,
-      !this.fieldNames ? () => true : fieldName => this.fieldNames.includes(fieldName)
+      !this.fieldNames
+        ? () => true
+        : fieldName => this.fieldNames.includes(fieldName),
     );
 
     let wrapIndex = this.numWraps - 1;
@@ -62,9 +62,11 @@ export default class WrapFields implements Transform {
     for (wrapIndex--; wrapIndex > -1; wrapIndex--) {
       appendFields(typeMap, this.wrappingTypeNames[wrapIndex], {
         [this.wrappingFieldNames[wrapIndex + 1]]: {
-          type: typeMap[this.wrappingTypeNames[wrapIndex + 1]] as GraphQLObjectType,
+          type: typeMap[
+            this.wrappingTypeNames[wrapIndex + 1]
+          ] as GraphQLObjectType,
           resolve: defaultMergedResolver,
-        }
+        },
       });
     }
 

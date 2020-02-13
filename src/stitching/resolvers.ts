@@ -4,11 +4,7 @@ import {
   GraphQLObjectType,
 } from 'graphql';
 
-import {
-  IResolvers,
-  Operation,
-  SubschemaConfig,
-} from '../Interfaces';
+import { IResolvers, Operation, SubschemaConfig } from '../Interfaces';
 import { Transform } from '../transforms';
 
 import delegateToSchema from './delegateToSchema';
@@ -114,11 +110,12 @@ function defaultCreateProxyingResolver({
 }: {
   schema: SubschemaConfig;
 }): GraphQLFieldResolver<any, any> {
-  return (_parent, _args, context, info) => delegateToSchema({
-    schema,
-    context,
-    info,
-  });
+  return (_parent, _args, context, info) =>
+    delegateToSchema({
+      schema,
+      context,
+      info,
+    });
 }
 
 export function stripResolvers(schema: GraphQLSchema): void {

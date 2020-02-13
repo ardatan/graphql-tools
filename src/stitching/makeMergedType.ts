@@ -17,7 +17,10 @@ export function makeMergedType(type: GraphQLType): void {
       fieldMap[fieldName].resolve = defaultMergedResolver;
       fieldMap[fieldName].subscribe = null;
     });
-  } else if (type instanceof GraphQLInterfaceType || type instanceof GraphQLUnionType) {
+  } else if (
+    type instanceof GraphQLInterfaceType ||
+    type instanceof GraphQLUnionType
+  ) {
     type.resolveType = parent => resolveFromParentTypename(parent);
   }
 }

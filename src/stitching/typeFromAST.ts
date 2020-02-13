@@ -65,15 +65,17 @@ export default function typeFromAST(
   }
 }
 
-function makeObjectType(
-  node: ObjectTypeDefinitionNode,
-): GraphQLObjectType {
+function makeObjectType(node: ObjectTypeDefinitionNode): GraphQLObjectType {
   return new GraphQLObjectType({
     name: node.name.value,
     fields: () => makeFields(node.fields),
     interfaces: () =>
       node.interfaces.map(
-        iface => createNamedStub(iface.name.value, 'interface') as GraphQLInterfaceType,
+        iface =>
+          createNamedStub(
+            iface.name.value,
+            'interface',
+          ) as GraphQLInterfaceType,
       ),
     description: getDescription(node, backcompatOptions),
   });
@@ -90,9 +92,7 @@ function makeInterfaceType(
   });
 }
 
-function makeEnumType(
-  node: EnumTypeDefinitionNode,
-): GraphQLEnumType {
+function makeEnumType(node: EnumTypeDefinitionNode): GraphQLEnumType {
   const values = {};
   node.values.forEach(value => {
     values[value.name.value] = {
@@ -106,23 +106,17 @@ function makeEnumType(
   });
 }
 
-function makeUnionType(
-  node: UnionTypeDefinitionNode,
-): GraphQLUnionType {
+function makeUnionType(node: UnionTypeDefinitionNode): GraphQLUnionType {
   return new GraphQLUnionType({
     name: node.name.value,
     types: () =>
-      node.types.map(
-        type => resolveType(type, 'object') as GraphQLObjectType,
-      ),
+      node.types.map(type => resolveType(type, 'object') as GraphQLObjectType),
     description: getDescription(node, backcompatOptions),
     resolveType: parent => resolveFromParentTypename(parent),
   });
 }
 
-function makeScalarType(
-  node: ScalarTypeDefinitionNode,
-): GraphQLScalarType {
+function makeScalarType(node: ScalarTypeDefinitionNode): GraphQLScalarType {
   return new GraphQLScalarType({
     name: node.name.value,
     description: getDescription(node, backcompatOptions),
@@ -150,7 +144,7 @@ function makeFields(
   nodes: ReadonlyArray<FieldDefinitionNode>,
 ): Record<string, GraphQLFieldConfig<any, any>> {
   const result: Record<string, GraphQLFieldConfig<any, any>> = {};
-  nodes.forEach((node) => {
+  nodes.forEach(node => {
     const deprecatedDirective = node.directives.find(
       directive => directive.name.value === 'deprecated',
     );

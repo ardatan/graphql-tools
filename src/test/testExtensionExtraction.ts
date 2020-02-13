@@ -19,7 +19,9 @@ describe('Extension extraction', () => {
     const extensionAst = extractExtensionDefinitons(astDocument);
 
     expect(extensionAst.definitions).to.have.length(1);
-    expect(extensionAst.definitions[0].kind).to.equal('InputObjectTypeExtension');
+    expect(extensionAst.definitions[0].kind).to.equal(
+      'InputObjectTypeExtension',
+    );
   });
 
   it('extracts extended unions', () => {
@@ -64,4 +66,3 @@ describe('Extension extraction', () => {
     expect(extensionAst.definitions[0].kind).to.equal('EnumTypeExtension');
   });
 });
-

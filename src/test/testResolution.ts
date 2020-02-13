@@ -95,7 +95,9 @@ describe('Resolve', () => {
                 if (result.errors != null) {
                   return done(
                     new Error(
-                      `Unexpected errors in GraphQL result: ${JSON.stringify(result.errors)}`,
+                      `Unexpected errors in GraphQL result: ${JSON.stringify(
+                        result.errors,
+                      )}`,
                     ),
                   );
                 }
@@ -120,9 +122,11 @@ describe('Resolve', () => {
                 done(new Error('Too many subscription fired'));
               },
             ).catch(done);
-          }).then(() =>
-            pubsub.publish('printRootChannel', { printRoot: subscriptionRoot })
-          ).catch(done);
+          })
+          .then(() =>
+            pubsub.publish('printRootChannel', { printRoot: subscriptionRoot }),
+          )
+          .catch(done);
       });
 
       firstSubsTriggered
@@ -153,7 +157,9 @@ describe('Resolve', () => {
         .then(({ data: mutationData }) => {
           assert.equal(schemaLevelResolverCalls, 3);
           assert.deepEqual(mutationData, { printRoot: mutationRoot });
-          return pubsub.publish('printRootChannel', { printRoot: subscriptionRoot2 });
+          return pubsub.publish('printRootChannel', {
+            printRoot: subscriptionRoot2,
+          });
         })
         .catch(done);
     });

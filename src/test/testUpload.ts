@@ -10,7 +10,7 @@ import FormData from 'form-data';
 import fetch from 'node-fetch';
 import { buildSchema } from 'graphql';
 
-import { mergeSchemas} from '../stitching';
+import { mergeSchemas } from '../stitching';
 import { makeExecutableSchema } from '../makeExecutableSchema';
 import { createServerHttpLink } from '../links';
 import { SubschemaConfig } from '../Interfaces';
@@ -26,7 +26,7 @@ function streamToString(stream: Readable) {
 
 function startServer(e: Express): Promise<Server> {
   return new Promise((resolve, reject) => {
-    e.listen(undefined, 'localhost', function (error) {
+    e.listen(undefined, 'localhost', function(error) {
       if (error) {
         reject(error);
       } else {
@@ -39,12 +39,15 @@ function startServer(e: Express): Promise<Server> {
 function testGraphqlMultipartRequest(query: string, port: number) {
   const body = new FormData();
 
-  body.append('operations', JSON.stringify({
-    query,
-    variables: {
-      file: null,
-    },
-  }));
+  body.append(
+    'operations',
+    JSON.stringify({
+      query,
+      variables: {
+        file: null,
+      },
+    }),
+  );
   body.append('map', '{ "1": ["variables.file"] }');
   body.append('1', 'abc', { filename: __filename });
 
@@ -70,7 +73,7 @@ describe('graphql upload', () => {
             const stream = createReadStream();
             const s = await streamToString(stream);
             return s;
-          }
+          },
         },
         Upload: GraphQLUpload,
       },

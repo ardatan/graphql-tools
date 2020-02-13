@@ -6,5 +6,7 @@ import { GraphQLResolveInfo } from 'graphql';
  * @param info The info argument to the resolver.
  */
 export function getResponseKeyFromInfo(info: GraphQLResolveInfo) {
-  return info.fieldNodes[0].alias != null ? info.fieldNodes[0].alias.value : info.fieldName;
+  return info.fieldNodes[0].alias != null
+    ? info.fieldNodes[0].alias.value
+    : info.fieldName;
 }

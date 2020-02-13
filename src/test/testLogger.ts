@@ -126,12 +126,14 @@ describe('Logger', () => {
     `;
     const resolve = {
       RootMutation: {
-        species: () => new Promise((_, reject) => {
-          reject(new Error('oops!'));
-        }),
-        stuff: () => new Promise((_, reject) => {
-          reject(new Error('oh noes!'));
-        }),
+        species: () =>
+          new Promise((_, reject) => {
+            reject(new Error('oops!'));
+          }),
+        stuff: () =>
+          new Promise((_, reject) => {
+            reject(new Error('oh noes!'));
+          }),
       },
     };
     const logger = new Logger();
@@ -162,7 +164,8 @@ describe('Logger', () => {
     `;
     const resolve = {
       RootQuery: {
-        species: () => new Promise((_, reject) => {
+        species: () =>
+          new Promise((_, reject) => {
             reject(new Error('oops!'));
           }),
       },

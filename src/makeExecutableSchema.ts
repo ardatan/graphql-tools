@@ -5,11 +5,7 @@ import {
 } from 'graphql';
 
 import { IExecutableSchemaDefinition, ILogger } from './Interfaces';
-import {
-  SchemaDirectiveVisitor,
-  forEachField,
-  mergeDeep
-} from './utils';
+import { SchemaDirectiveVisitor, forEachField, mergeDeep } from './utils';
 import {
   attachDirectiveResolvers,
   assertResolversPresent,
@@ -18,9 +14,8 @@ import {
   addSchemaLevelResolver,
   buildSchemaFromTypeDefinitions,
   decorateWithLogger,
-  SchemaError
+  SchemaError,
 } from './generate';
-
 
 export function makeExecutableSchema<TContext = any>({
   typeDefs,
@@ -32,11 +27,13 @@ export function makeExecutableSchema<TContext = any>({
   directiveResolvers,
   schemaDirectives,
   parseOptions = {},
-  inheritResolversFromInterfaces = false
+  inheritResolversFromInterfaces = false,
 }: IExecutableSchemaDefinition<TContext>) {
   // Validate and clean up arguments
   if (typeof resolverValidationOptions !== 'object') {
-    throw new SchemaError('Expected `resolverValidationOptions` to be an object');
+    throw new SchemaError(
+      'Expected `resolverValidationOptions` to be an object',
+    );
   }
 
   if (!typeDefs) {
@@ -45,7 +42,9 @@ export function makeExecutableSchema<TContext = any>({
 
   // We allow passing in an array of resolver maps, in which case we merge them
   const resolverMap = Array.isArray(resolvers)
-    ? resolvers.filter(resolverObj => typeof resolverObj === 'object').reduce(mergeDeep, {})
+    ? resolvers
+        .filter(resolverObj => typeof resolverObj === 'object')
+        .reduce(mergeDeep, {})
     : resolvers;
 
   // Arguments are now validated and cleaned up
@@ -56,7 +55,7 @@ export function makeExecutableSchema<TContext = any>({
     schema,
     resolvers: resolverMap,
     resolverValidationOptions,
-    inheritResolversFromInterfaces
+    inheritResolversFromInterfaces,
   });
 
   assertResolversPresent(schema, resolverValidationOptions);
@@ -72,7 +71,10 @@ export function makeExecutableSchema<TContext = any>({
   if (typeof resolvers['__schema'] === 'function') {
     // TODO a bit of a hack now, better rewrite generateSchema to attach it there.
     // not doing that now, because I'd have to rewrite a lot of tests.
-    addSchemaLevelResolver(schema, resolvers['__schema'] as GraphQLFieldResolver<any, any>);
+    addSchemaLevelResolver(
+      schema,
+      resolvers['__schema'] as GraphQLFieldResolver<any, any>,
+    );
   }
 
   if (connectors != null) {
@@ -94,9 +96,9 @@ export function makeExecutableSchema<TContext = any>({
 
 function decorateToCatchUndefined(
   fn: GraphQLFieldResolver<any, any>,
-  hint: string
+  hint: string,
 ): GraphQLFieldResolver<any, any> {
-  const resolve = (fn == null) ? defaultFieldResolver : fn;
+  const resolve = fn == null ? defaultFieldResolver : fn;
   return (root, args, ctx, info) => {
     const result = resolve(root, args, ctx, info);
     if (typeof result === 'undefined') {
@@ -113,7 +115,10 @@ export function addCatchUndefinedToSchema(schema: GraphQLSchema): void {
   });
 }
 
-export function addErrorLoggingToSchema(schema: GraphQLSchema, logger?: ILogger): void {
+export function addErrorLoggingToSchema(
+  schema: GraphQLSchema,
+  logger?: ILogger,
+): void {
   if (!logger) {
     throw new Error('Must provide a logger');
   }

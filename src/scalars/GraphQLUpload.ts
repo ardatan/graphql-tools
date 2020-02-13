@@ -10,6 +10,4 @@ const GraphQLUpload = new GraphQLScalarType({
   serialize: value => value,
 });
 
-export {
-  GraphQLUpload,
-};
+export { GraphQLUpload };

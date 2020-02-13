@@ -31,7 +31,8 @@ export default class RenameTypes implements Transform {
     this.renamer = renamer;
     this.map = {};
     this.reverseMap = {};
-    const { renameBuiltins = false, renameScalars = true } = (options != null) ? options : {};
+    const { renameBuiltins = false, renameScalars = true } =
+      options != null ? options : {};
     this.renameBuiltins = renameBuiltins;
     this.renameScalars = renameScalars;
   }
@@ -86,7 +87,7 @@ export default class RenameTypes implements Transform {
   public transformResult(result: Result): Result {
     return {
       ...result,
-      data: this.renameTypes(result.data)
+      data: this.renameTypes(result.data),
     };
   }
 
@@ -100,8 +101,10 @@ export default class RenameTypes implements Transform {
       return value;
     } else if (typeof value === 'object') {
       Object.keys(value).forEach(key => {
-        value[key] = key === '__typename' ?
-          this.renamer(value[key]) : this.renameTypes(value[key]);
+        value[key] =
+          key === '__typename'
+            ? this.renamer(value[key])
+            : this.renameTypes(value[key]);
       });
       return value;
     }

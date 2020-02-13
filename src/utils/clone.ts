@@ -37,14 +37,18 @@ export function cloneType(type: GraphQLNamedType): GraphQLNamedType {
   } else if (type instanceof GraphQLEnumType) {
     return new GraphQLEnumType(type.toConfig());
   } else if (type instanceof GraphQLScalarType) {
-    return isSpecifiedScalarType(type) ? type : new GraphQLScalarType(type.toConfig());
+    return isSpecifiedScalarType(type)
+      ? type
+      : new GraphQLScalarType(type.toConfig());
   }
 
   throw new Error(`Invalid type ${type as string}`);
 }
 
 export function cloneSchema(schema: GraphQLSchema): GraphQLSchema {
-  const newDirectives = schema.getDirectives().map(directive => cloneDirective(directive));
+  const newDirectives = schema
+    .getDirectives()
+    .map(directive => cloneDirective(directive));
 
   const originalTypeMap = schema.getTypeMap();
   const newTypeMap = {};
@@ -65,7 +69,8 @@ export function cloneSchema(schema: GraphQLSchema): GraphQLSchema {
     ...schema.toConfig(),
     query: query != null ? newTypeMap[query.name] : undefined,
     mutation: mutation != null ? newTypeMap[mutation.name] : undefined,
-    subscription: subscription != null ? newTypeMap[subscription.name] : undefined,
+    subscription:
+      subscription != null ? newTypeMap[subscription.name] : undefined,
     types: Object.keys(newTypeMap).map(typeName => newTypeMap[typeName]),
     directives: newDirectives,
   });

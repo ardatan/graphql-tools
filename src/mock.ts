@@ -209,21 +209,29 @@ function addMocksToSchema({
     schema,
     (field: GraphQLField<any, any>, typeName: string, fieldName: string) => {
       assignResolveType(field.type, preserveResolvers);
-      let mockResolver: GraphQLFieldResolver<any, any> = mockType(field.type, typeName, fieldName);
+      let mockResolver: GraphQLFieldResolver<any, any> = mockType(
+        field.type,
+        typeName,
+        fieldName,
+      );
 
       // we have to handle the root mutation and root query types differently,
       // because no resolver is called at the root.
       const queryType = schema.getQueryType();
-      const isOnQueryType = (queryType != null) && (queryType.name === typeName);
+      const isOnQueryType = queryType != null && queryType.name === typeName;
 
       const mutationType = schema.getMutationType();
-      const isOnMutationType = (mutationType != null) && (mutationType.name === typeName);
+      const isOnMutationType =
+        mutationType != null && mutationType.name === typeName;
 
       if (isOnQueryType || isOnMutationType) {
         if (mockFunctionMap.has(typeName)) {
           const rootMock = mockFunctionMap.get(typeName);
           // XXX: BUG in here, need to provide proper signature for rootMock.
-          if (typeof rootMock(undefined, {}, {}, {} as any)[fieldName] === 'function') {
+          if (
+            typeof rootMock(undefined, {}, {}, {} as any)[fieldName] ===
+            'function'
+          ) {
             mockResolver = (
               root: any,
               args: { [key: string]: any },
@@ -307,20 +315,26 @@ function mergeObjects(a: Record<string, any>, b: Record<string, any>) {
   return Object.assign(a, b);
 }
 
-function copyOwnPropsIfNotPresent(target: Record<string, any>, source: Record<string, any>) {
+function copyOwnPropsIfNotPresent(
+  target: Record<string, any>,
+  source: Record<string, any>,
+) {
   Object.getOwnPropertyNames(source).forEach(prop => {
     if (!Object.getOwnPropertyDescriptor(target, prop)) {
       const propertyDescriptor = Object.getOwnPropertyDescriptor(source, prop);
       Object.defineProperty(
         target,
         prop,
-        (propertyDescriptor == null) ? {} : propertyDescriptor,
+        propertyDescriptor == null ? {} : propertyDescriptor,
       );
     }
   });
 }
 
-function copyOwnProps(target: Record<string, any>, ...sources: Array<Record<string, any>>) {
+function copyOwnProps(
+  target: Record<string, any>,
+  ...sources: Array<Record<string, any>>
+) {
   sources.forEach(source => {
     let chain = source;
     while (chain != null) {
@@ -359,7 +373,7 @@ function assignResolveType(type: GraphQLType, preserveResolvers: boolean) {
   const namedFieldType = getNamedType(fieldType);
 
   const oldResolveType = getResolveType(namedFieldType);
-  if (preserveResolvers && (oldResolveType != null) && oldResolveType.length) {
+  if (preserveResolvers && oldResolveType != null && oldResolveType.length) {
     return;
   }
 
@@ -443,4 +457,9 @@ class MockList {
 }
 
 // retain addMockFunctionsToSchema for backwards compatibility
-export { addMocksToSchema, addMocksToSchema as addMockFunctionsToSchema, MockList, mockServer };
+export {
+  addMocksToSchema,
+  addMocksToSchema as addMockFunctionsToSchema,
+  MockList,
+  mockServer,
+};

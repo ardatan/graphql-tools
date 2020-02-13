@@ -1,5 +1,3 @@
 import { createServerHttpLink } from './createServerHttpLink';
 
-export {
-  createServerHttpLink,
-};
+export { createServerHttpLink };

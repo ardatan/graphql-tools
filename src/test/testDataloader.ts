@@ -3,10 +3,7 @@ import { graphql, GraphQLList } from 'graphql';
 import { expect } from 'chai';
 
 import { makeExecutableSchema } from '../makeExecutableSchema';
-import {
-  mergeSchemas,
-  delegateToSchema
-} from '../stitching';
+import { mergeSchemas, delegateToSchema } from '../stitching';
 import { IGraphQLToolsResolveInfo } from '../Interfaces';
 
 describe('dataloader', () => {
@@ -24,8 +21,12 @@ describe('dataloader', () => {
       `,
       resolvers: {
         Query: {
-          task: (_root, { id }) => ({ id, text: `task ${id as string}`, userId: id }),
-        }
+          task: (_root, { id }) => ({
+            id,
+            text: `task ${id as string}`,
+            userId: id,
+          }),
+        },
       },
     });
 
@@ -41,16 +42,14 @@ describe('dataloader', () => {
       `,
       resolvers: {
         Query: {
-          usersByIds: (_root, { ids }) => ids.map((id: string) => ({ id, email: `${id}@tasks.com` })),
-        }
+          usersByIds: (_root, { ids }) =>
+            ids.map((id: string) => ({ id, email: `${id}@tasks.com` })),
+        },
       },
     });
 
     const schema = mergeSchemas({
-      schemas: [
-        taskSchema,
-        userSchema
-      ],
+      schemas: [taskSchema, userSchema],
       typeDefs: `
         extend type Task {
           user: User!
@@ -62,32 +61,36 @@ describe('dataloader', () => {
             fragment: '... on Task { userId }',
             resolve(task, _args, context, info) {
               return context.usersLoader.load({ id: task.userId, info });
-            }
-          }
+            },
+          },
         },
-      }
+      },
     });
 
-    const usersLoader = new DataLoader(async (keys: Array<{ id: any, info: IGraphQLToolsResolveInfo }>) => {
-      const users = await delegateToSchema({
-        schema: userSchema,
-        operation: 'query',
-        fieldName: 'usersByIds',
-        args: {
-          ids: keys.map((k: { id: any }) => k.id)
-        },
-        context: null,
-        info: keys[0].info,
-        returnType: new GraphQLList(keys[0].info.returnType),
-      });
+    const usersLoader = new DataLoader(
+      async (keys: Array<{ id: any; info: IGraphQLToolsResolveInfo }>) => {
+        const users = await delegateToSchema({
+          schema: userSchema,
+          operation: 'query',
+          fieldName: 'usersByIds',
+          args: {
+            ids: keys.map((k: { id: any }) => k.id),
+          },
+          context: null,
+          info: keys[0].info,
+          returnType: new GraphQLList(keys[0].info.returnType),
+        });
 
-      expect(users).to.deep.equal([{
-        id: '1',
-        email: '1@tasks.com',
-      }]);
+        expect(users).to.deep.equal([
+          {
+            id: '1',
+            email: '1@tasks.com',
+          },
+        ]);
 
-      return users;
-    });
+        return users;
+      },
+    );
 
     const query = `{
       task(id: "1") {
@@ -103,17 +106,16 @@ describe('dataloader', () => {
     const result = await graphql(schema, query, null, { usersLoader });
 
     expect(result).to.deep.equal({
-      data:
-      {
+      data: {
         task: {
           id: '1',
           text: 'task 1',
           user: {
             id: '1',
             email: '1@tasks.com',
-          }
-        }
-      }
+          },
+        },
+      },
     });
   });
 });

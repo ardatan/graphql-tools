@@ -1,5 +1,10 @@
 import { expect } from 'chai';
-import { graphql, GraphQLResolveInfo, GraphQLSchema, GraphQLFieldResolver } from 'graphql';
+import {
+  graphql,
+  GraphQLResolveInfo,
+  GraphQLSchema,
+  GraphQLFieldResolver,
+} from 'graphql';
 
 import { addMocksToSchema, MockList, mockServer } from '../mock';
 import {
@@ -85,21 +90,22 @@ describe('Mock', () => {
   };
 
   it('throws an error if you forget to pass schema', () => {
-    expect(() => addMocksToSchema({})).to.throw(
-      'Must provide schema to mock',
-    );
+    expect(() => addMocksToSchema({})).to.throw('Must provide schema to mock');
   });
 
   it('throws an error if the property "schema" on the first argument is not of type GraphQLSchema', () => {
-    expect(() => addMocksToSchema({ schema: {} as unknown as GraphQLSchema })).to.throw(
-      'Value at "schema" must be of type GraphQLSchema',
-    );
+    expect(() =>
+      addMocksToSchema({ schema: ({} as unknown) as GraphQLSchema }),
+    ).to.throw('Value at "schema" must be of type GraphQLSchema');
   });
 
   it('throws an error if second argument is not a Map', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     expect(() =>
-      addMocksToSchema({ schema: jsSchema, mocks: ['a'] as unknown as IMocks }),
+      addMocksToSchema({
+        schema: jsSchema,
+        mocks: (['a'] as unknown) as IMocks,
+      }),
     ).to.throw('mocks must be of type Object');
   });
 
@@ -107,7 +113,10 @@ describe('Mock', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = { Int: 55 };
     expect(() =>
-      addMocksToSchema({ schema: jsSchema, mocks: mockMap as unknown as IMocks }),
+      addMocksToSchema({
+        schema: jsSchema,
+        mocks: (mockMap as unknown) as IMocks,
+      }),
     ).to.throw('mockFunctionMap[Int] must be a function');
   });
 
@@ -1186,9 +1195,10 @@ describe('Mock', () => {
   });
 
   it('throws an error if the second argument to MockList is not a function', () => {
-    expect(() => new MockList(5, 'abc' as unknown as GraphQLFieldResolver<any, any>)).to.throw(
-      'Second argument to MockList must be a function or undefined',
-    );
+    expect(
+      () =>
+        new MockList(5, ('abc' as unknown) as GraphQLFieldResolver<any, any>),
+    ).to.throw('Second argument to MockList must be a function or undefined');
   });
 
   it('lets you nest MockList in MockList', () => {
@@ -1204,7 +1214,10 @@ describe('Mock', () => {
       returnListOfListOfInt
     }`;
     const expected = {
-      returnListOfListOfInt: [[12, 12, 12], [12, 12, 12]],
+      returnListOfListOfInt: [
+        [12, 12, 12],
+        [12, 12, 12],
+      ],
     };
     return graphql(jsSchema, testQuery).then(res => {
       expect(res.data).to.deep.equal(expected);

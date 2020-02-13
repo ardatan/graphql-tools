@@ -19,11 +19,7 @@ import {
 import { forAwaitEach } from 'iterall';
 
 import introspectSchema from '../stitching/introspectSchema';
-import {
-  IResolvers,
-  Fetcher,
-  SubschemaConfig,
-} from '../Interfaces';
+import { IResolvers, Fetcher, SubschemaConfig } from '../Interfaces';
 import { makeExecutableSchema } from '../makeExecutableSchema';
 
 export type Location = {
@@ -91,7 +87,7 @@ export const sampleData: {
       name: 'Super great hotel',
       location: {
         name: 'Helsinki',
-        coordinates: '60.1698° N, 24.9383° E'
+        coordinates: '60.1698° N, 24.9383° E',
       },
     },
     p2: {
@@ -99,7 +95,7 @@ export const sampleData: {
       name: 'Another great hotel',
       location: {
         name: 'San Francisco',
-        coordinates: '37.7749° N, 122.4194° W'
+        coordinates: '37.7749° N, 122.4194° W',
       },
     },
     p3: {
@@ -107,7 +103,7 @@ export const sampleData: {
       name: 'BedBugs - The Affordable Hostel',
       location: {
         name: 'Helsinki',
-        coordinates: '60.1699° N, 24.9384° E'
+        coordinates: '60.1699° N, 24.9384° E',
       },
     },
   },
@@ -340,25 +336,29 @@ const propertyResolvers: IResolvers = {
     },
 
     interfaceTest(_root, { kind }) {
-      return (kind === 'ONE') ? {
-        kind: 'ONE',
-        testString: 'test',
-        foo: 'foo',
-      } : {
-        kind: 'TWO',
-        testString: 'test',
-        bar: 'bar',
-      };
+      return kind === 'ONE'
+        ? {
+            kind: 'ONE',
+            testString: 'test',
+            foo: 'foo',
+          }
+        : {
+            kind: 'TWO',
+            testString: 'test',
+            bar: 'bar',
+          };
     },
 
     unionTest(_root, { output }) {
-      return (output === 'Interface') ? {
-        kind: 'ONE',
-        testString: 'test',
-        foo: 'foo',
-      } : {
-        someField: 'Bar',
-      };
+      return output === 'Interface'
+        ? {
+            kind: 'ONE',
+            testString: 'test',
+            foo: 'foo',
+          }
+        : {
+            someField: 'Bar',
+          };
     },
 
     errorTest() {
@@ -378,13 +378,13 @@ const propertyResolvers: IResolvers = {
 
   TestInterface: {
     __resolveType(obj: any) {
-      return (obj.kind === 'ONE') ? 'TestImpl1' : 'TestImpl2';
+      return obj.kind === 'ONE' ? 'TestImpl1' : 'TestImpl2';
     },
   },
 
   TestUnion: {
     __resolveType(obj: any) {
-      return (obj.kind === 'ONE') ? 'TestImpl1' : 'UnionImpl';
+      return obj.kind === 'ONE' ? 'TestImpl1' : 'UnionImpl';
     },
   },
 
@@ -443,7 +443,7 @@ const productResolvers: IResolvers = {
 
   Product: {
     __resolveType(obj: any) {
-      return (obj.type === 'simple') ? 'SimpleProduct' : 'DownloadableProduct';
+      return obj.type === 'simple' ? 'SimpleProduct' : 'DownloadableProduct';
     },
   },
 };
@@ -631,8 +631,8 @@ const subscriptionResolvers: IResolvers = {
   Notification: {
     throwError: () => {
       throw new Error('subscription field error');
-    }
-  }
+    },
+  },
 };
 
 export const propertySchema: GraphQLSchema = makeExecutableSchema({
@@ -668,50 +668,63 @@ const hasSubscriptionOperation = ({ query }: { query: any }): boolean => {
 };
 
 function makeLinkFromSchema(schema: GraphQLSchema) {
-  return new ApolloLink(operation => new Observable(observer => {
-      const { query, operationName, variables } = operation;
-      const { graphqlContext } = operation.getContext();
-      if (!hasSubscriptionOperation(operation)) {
-        graphql(
-          schema,
-          print(query),
-          null,
-          graphqlContext,
-          variables,
-          operationName,
-        ).then(result => {
-          observer.next(result);
-          observer.complete();
-        }).catch(err => {
-          observer.error(err);
-        });
-      } else {
-        subscribe(
-          schema,
-          query,
-          null,
-          graphqlContext,
-          variables,
-          operationName,
-        ).then(results => {
-          if (typeof (results as AsyncIterator<ExecutionResult>).next === 'function') {
-            forAwaitEach(
-              (results as AsyncIterable<ExecutionResult>),
-              result => observer.next(result)
-            ).then(() => observer.complete()).catch(err => observer.error(err))
-          } else {
-            observer.next(results as LinkExecutionResult);
-            observer.complete();
-          }
-        }).catch(err => {
-          observer.error(err);
-        });
-      }
-    }));
+  return new ApolloLink(
+    operation =>
+      new Observable(observer => {
+        const { query, operationName, variables } = operation;
+        const { graphqlContext } = operation.getContext();
+        if (!hasSubscriptionOperation(operation)) {
+          graphql(
+            schema,
+            print(query),
+            null,
+            graphqlContext,
+            variables,
+            operationName,
+          )
+            .then(result => {
+              observer.next(result);
+              observer.complete();
+            })
+            .catch(err => {
+              observer.error(err);
+            });
+        } else {
+          subscribe(
+            schema,
+            query,
+            null,
+            graphqlContext,
+            variables,
+            operationName,
+          )
+            .then(results => {
+              if (
+                typeof (results as AsyncIterator<ExecutionResult>).next ===
+                'function'
+              ) {
+                forAwaitEach(
+                  results as AsyncIterable<ExecutionResult>,
+                  result => observer.next(result),
+                )
+                  .then(() => observer.complete())
+                  .catch(err => observer.error(err));
+              } else {
+                observer.next(results as LinkExecutionResult);
+                observer.complete();
+              }
+            })
+            .catch(err => {
+              observer.error(err);
+            });
+        }
+      }),
+  );
 }
 
-export async function makeSchemaRemoteFromLink(schema: GraphQLSchema)
-  : Promise<SubschemaConfig> {
+export async function makeSchemaRemoteFromLink(
+  schema: GraphQLSchema,
+): Promise<SubschemaConfig> {
   const link = makeLinkFromSchema(schema);
   const clientSchema = await introspectSchema(link);
   return {
@@ -720,8 +733,9 @@ export async function makeSchemaRemoteFromLink(schema: GraphQLSchema)
   };
 }
 
-export async function makeSchemaRemoteFromDispatchedLink(schema: GraphQLSchema)
-  : Promise<SubschemaConfig> {
+export async function makeSchemaRemoteFromDispatchedLink(
+  schema: GraphQLSchema,
+): Promise<SubschemaConfig> {
   const link = makeLinkFromSchema(schema);
   const clientSchema = await introspectSchema(link);
   return {
@@ -731,16 +745,11 @@ export async function makeSchemaRemoteFromDispatchedLink(schema: GraphQLSchema)
 }
 
 // ensure fetcher support exists from the 2.0 api
-async function makeExecutableSchemaFromDispatchedFetcher(schema: GraphQLSchema)
-  : Promise<SubschemaConfig> {
-  const fetcher: Fetcher = ({ query, operationName, variables, context }) => graphql(
-    schema,
-    print(query),
-    null,
-    context,
-    variables,
-    operationName,
-  );
+async function makeExecutableSchemaFromDispatchedFetcher(
+  schema: GraphQLSchema,
+): Promise<SubschemaConfig> {
+  const fetcher: Fetcher = ({ query, operationName, variables, context }) =>
+    graphql(schema, print(query), null, context, variables, operationName);
 
   const clientSchema = await introspectSchema(fetcher);
   return {
@@ -750,5 +759,9 @@ async function makeExecutableSchemaFromDispatchedFetcher(schema: GraphQLSchema)
 }
 
 export const remotePropertySchema = makeSchemaRemoteFromLink(propertySchema);
-export const remoteProductSchema = makeSchemaRemoteFromDispatchedLink(productSchema);
-export const remoteBookingSchema = makeExecutableSchemaFromDispatchedFetcher(bookingSchema);
+export const remoteProductSchema = makeSchemaRemoteFromDispatchedLink(
+  productSchema,
+);
+export const remoteBookingSchema = makeExecutableSchemaFromDispatchedFetcher(
+  bookingSchema,
+);

@@ -11,7 +11,8 @@ export function concatInlineFragments(
   fragments: Array<InlineFragmentNode>,
 ): InlineFragmentNode {
   const fragmentSelections: Array<SelectionNode> = fragments.reduce(
-    (selections, fragment) => selections.concat(fragment.selectionSet.selections),
+    (selections, fragment) =>
+      selections.concat(fragment.selectionSet.selections),
     [],
   );
 
@@ -37,7 +38,9 @@ export function concatInlineFragments(
 
 const hasOwn = Object.prototype.hasOwnProperty;
 
-function deduplicateSelection(nodes: Array<SelectionNode>): Array<SelectionNode> {
+function deduplicateSelection(
+  nodes: Array<SelectionNode>,
+): Array<SelectionNode> {
   const selectionMap = nodes.reduce<{ [key: string]: SelectionNode }>(
     (map, node) => {
       switch (node.kind) {

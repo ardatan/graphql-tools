@@ -31,10 +31,7 @@ import {
   Transform,
 } from '../transforms';
 
-import {
-  createRequestFromInfo,
-  getDelegatingOperation,
-} from './createRequest';
+import { createRequestFromInfo, getDelegatingOperation } from './createRequest';
 import linkToFetcher from './linkToFetcher';
 import { observableToAsyncIterable } from './observableToAsyncIterable';
 import mapAsyncIterator from './mapAsyncIterator';
@@ -91,25 +88,36 @@ function buildDelegationTransforms(
   skipTypeMerging: boolean,
 ): Array<Transform> {
   let delegationTransforms: Array<Transform> = [
-    new CheckResultAndHandleErrors(info, fieldName, subschemaOrSubschemaConfig, context, returnType, skipTypeMerging),
+    new CheckResultAndHandleErrors(
+      info,
+      fieldName,
+      subschemaOrSubschemaConfig,
+      context,
+      returnType,
+      skipTypeMerging,
+    ),
   ];
 
   if (info.mergeInfo != null) {
     delegationTransforms.push(
-      new AddReplacementSelectionSets(info.schema, info.mergeInfo.replacementSelectionSets),
+      new AddReplacementSelectionSets(
+        info.schema,
+        info.mergeInfo.replacementSelectionSets,
+      ),
       new AddMergedTypeSelectionSets(info.schema, info.mergeInfo.mergedTypes),
     );
   }
 
   delegationTransforms = delegationTransforms.concat(transforms);
 
-  delegationTransforms.push(
-    new ExpandAbstractTypes(info.schema, targetSchema),
-  );
+  delegationTransforms.push(new ExpandAbstractTypes(info.schema, targetSchema));
 
   if (info.mergeInfo != null) {
     delegationTransforms.push(
-      new AddReplacementFragments(targetSchema, info.mergeInfo.replacementFragments),
+      new AddReplacementFragments(
+        targetSchema,
+        info.mergeInfo.replacementFragments,
+      ),
     );
   }
 
@@ -142,11 +150,14 @@ export function delegateRequest({
   if (isSubschemaConfig(subschemaOrSubschemaConfig)) {
     subschemaConfig = subschemaOrSubschemaConfig;
     targetSchema = subschemaConfig.schema;
-    targetRootValue = rootValue != null ?
-      rootValue :
-      (subschemaConfig.rootValue != null ? subschemaConfig.rootValue : info.rootValue);
+    targetRootValue =
+      rootValue != null
+        ? rootValue
+        : subschemaConfig.rootValue != null
+        ? subschemaConfig.rootValue
+        : info.rootValue;
     if (subschemaConfig.transforms != null) {
-      requestTransforms = requestTransforms.concat(subschemaConfig.transforms)
+      requestTransforms = requestTransforms.concat(subschemaConfig.transforms);
     }
   } else {
     targetSchema = subschemaOrSubschemaConfig;
@@ -164,7 +175,10 @@ export function delegateRequest({
     skipTypeMerging,
   );
 
-  const processedRequest = applyRequestTransforms(request, delegationTransforms);
+  const processedRequest = applyRequestTransforms(
+    request,
+    delegationTransforms,
+  );
 
   if (!skipValidation) {
     const errors = validate(targetSchema, processedRequest.document);
@@ -175,47 +189,68 @@ export function delegateRequest({
   }
 
   if (operation === 'query' || operation === 'mutation') {
+    const executor = createExecutor(
+      targetSchema,
+      targetRootValue,
+      context,
+      subschemaConfig,
+    );
 
-    const executor = createExecutor(targetSchema, targetRootValue, context, subschemaConfig);
-
-    const executionResult: ExecutionResult | Promise<ExecutionResult> = executor({
+    const executionResult:
+      | ExecutionResult
+      | Promise<ExecutionResult> = executor({
       document: processedRequest.document,
       context,
-      variables: processedRequest.variables
+      variables: processedRequest.variables,
     });
 
     if (executionResult instanceof Promise) {
       return executionResult.then((originalResult: any) =>
-        applyResultTransforms(originalResult, delegationTransforms));
+        applyResultTransforms(originalResult, delegationTransforms),
+      );
     }
     return applyResultTransforms(executionResult, delegationTransforms);
-
   }
 
-  const subscriber = createSubscriber(targetSchema, targetRootValue, context, subschemaConfig);
+  const subscriber = createSubscriber(
+    targetSchema,
+    targetRootValue,
+    context,
+    subschemaConfig,
+  );
 
   return subscriber({
     document: processedRequest.document,
     context,
     variables: processedRequest.variables,
-  }).then((subscriptionResult: AsyncIterableIterator<ExecutionResult> | ExecutionResult) => {
-    if (isAsyncIterable(subscriptionResult)) {
-      // "subscribe" to the subscription result and map the result through the transforms
-      return mapAsyncIterator<ExecutionResult, any>(subscriptionResult, result => {
-        const transformedResult = applyResultTransforms(result, delegationTransforms);
-        // wrap with fieldName to return for an additional round of resolutioon
-        // with payload as rootValue
-        return {
-          [info.fieldName]: transformedResult,
-        };
-      });
-    }
+  }).then(
+    (
+      subscriptionResult:
+        | AsyncIterableIterator<ExecutionResult>
+        | ExecutionResult,
+    ) => {
+      if (isAsyncIterable(subscriptionResult)) {
+        // "subscribe" to the subscription result and map the result through the transforms
+        return mapAsyncIterator<ExecutionResult, any>(
+          subscriptionResult,
+          result => {
+            const transformedResult = applyResultTransforms(
+              result,
+              delegationTransforms,
+            );
+            // wrap with fieldName to return for an additional round of resolutioon
+            // with payload as rootValue
+            return {
+              [info.fieldName]: transformedResult,
+            };
+          },
+        );
+      }
 
-    return applyResultTransforms(subscriptionResult, delegationTransforms);
-  });
-
+      return applyResultTransforms(subscriptionResult, delegationTransforms);
+    },
+  );
 }
-
 
 function createExecutor(
   schema: GraphQLSchema,
@@ -228,9 +263,10 @@ function createExecutor(
   if (subschemaConfig != null) {
     if (subschemaConfig.dispatcher != null) {
       const dynamicLinkOrFetcher = subschemaConfig.dispatcher(context);
-      fetcher = (typeof dynamicLinkOrFetcher === 'function') ?
-        dynamicLinkOrFetcher :
-        linkToFetcher(dynamicLinkOrFetcher);
+      fetcher =
+        typeof dynamicLinkOrFetcher === 'function'
+          ? dynamicLinkOrFetcher
+          : linkToFetcher(dynamicLinkOrFetcher);
     } else if (subschemaConfig.link != null) {
       fetcher = linkToFetcher(subschemaConfig.link);
     } else if (subschemaConfig.fetcher != null) {
@@ -243,27 +279,29 @@ function createExecutor(
   }
 
   if (fetcher != null) {
-    return ({ document, context: graphqlContext, variables }) => fetcher({
-      query: document,
-      variables,
-      context: { graphqlContext }
-    });
+    return ({ document, context: graphqlContext, variables }) =>
+      fetcher({
+        query: document,
+        variables,
+        context: { graphqlContext },
+      });
   }
 
-  return ({ document, context: graphqlContext, variables }) => execute({
-    schema,
-    document,
-    rootValue: targetRootValue,
-    contextValue: graphqlContext,
-    variableValues: variables,
-  });
+  return ({ document, context: graphqlContext, variables }) =>
+    execute({
+      schema,
+      document,
+      rootValue: targetRootValue,
+      contextValue: graphqlContext,
+      variableValues: variables,
+    });
 }
 
 function createSubscriber(
   schema: GraphQLSchema,
   rootValue: Record<string, any>,
   context: Record<string, any>,
-  subschemaConfig?: SubschemaConfig
+  subschemaConfig?: SubschemaConfig,
 ): Delegator {
   let link: ApolloLink;
   let targetRootValue: Record<string, any> = rootValue;
@@ -285,18 +323,19 @@ function createSubscriber(
       const operation = {
         query: document,
         variables,
-        context: { graphqlContext }
+        context: { graphqlContext },
       };
       const observable = executeLink(link, operation);
       return observableToAsyncIterable(observable);
     };
   }
 
-  return ({ document, context: graphqlContext, variables }) => subscribe({
-    schema,
-    document,
-    rootValue: targetRootValue,
-    contextValue: graphqlContext,
-    variableValues: variables,
-  });
+  return ({ document, context: graphqlContext, variables }) =>
+    subscribe({
+      schema,
+      document,
+      rootValue: targetRootValue,
+      contextValue: graphqlContext,
+      variableValues: variables,
+    });
 }

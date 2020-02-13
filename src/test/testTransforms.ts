@@ -11,10 +11,7 @@ import {
 } from 'graphql';
 
 import { makeExecutableSchema } from '../makeExecutableSchema';
-import {
-  delegateToSchema,
-  defaultMergedResolver
-} from '../stitching';
+import { delegateToSchema, defaultMergedResolver } from '../stitching';
 import {
   transformSchema,
   RenameTypes,
@@ -26,13 +23,9 @@ import {
   TransformQuery,
   AddReplacementFragments,
 } from '../transforms';
-import {
-  concatInlineFragments,
-  parseFragmentToInlineFragment
-} from '../utils';
+import { concatInlineFragments, parseFragmentToInlineFragment } from '../utils';
 
 import { propertySchema, bookingSchema } from './testingSchemas';
-
 
 describe('transforms', () => {
   describe('base transform function', () => {
@@ -61,7 +54,7 @@ describe('transforms', () => {
         Query: {
           testingScalar(_parent, args) {
             return {
-              value: args.input[0] === '_' ? args.input : null
+              value: args.input[0] === '_' ? args.input : null,
             };
           },
         },
@@ -243,8 +236,8 @@ describe('transforms', () => {
       const filteredQuery = filter.transformRequest({
         document: query,
         variables: {
-          id: 'c1'
-        }
+          id: 'c1',
+        },
       });
 
       const expected = parse(`
@@ -274,8 +267,8 @@ describe('transforms', () => {
         document: query,
         variables: {
           id: 'c1',
-          limit: 10
-        }
+          limit: 10,
+        },
       });
 
       const expected = parse(`
@@ -304,8 +297,8 @@ describe('transforms', () => {
       const filteredQuery = filter.transformRequest({
         document: query,
         variables: {
-          id: 'b1'
-        }
+          id: 'b1',
+        },
       });
 
       const expected = parse(`
@@ -379,7 +372,7 @@ describe('transforms', () => {
       expect(result.errors).to.not.equal(undefined);
       expect(result.errors.length).to.equal(1);
       expect(result.errors[0].message).to.equal(
-        'Cannot query field "customer" on type "Booking".'
+        'Cannot query field "customer" on type "Booking".',
       );
     });
   });
@@ -655,8 +648,8 @@ describe('transforms', () => {
         u1: {
           id: 'user1',
           addressStreetAddress: 'Windy Shore 21 A 7',
-          addressZip: '12345'
-        }
+          addressZip: '12345',
+        },
       };
       subschema = makeExecutableSchema({
         typeDefs: `
@@ -675,7 +668,7 @@ describe('transforms', () => {
             userById(_parent, { id }) {
               return data[id];
             },
-          }
+          },
         },
       });
       schema = makeExecutableSchema({
@@ -715,8 +708,10 @@ describe('transforms', () => {
                         selections: subtree.selections.map(selection => {
                           // just append fragments, not interesting for this
                           // test
-                          if (selection.kind === Kind.INLINE_FRAGMENT ||
-                            selection.kind === Kind.FRAGMENT_SPREAD) {
+                          if (
+                            selection.kind === Kind.INLINE_FRAGMENT ||
+                            selection.kind === Kind.FRAGMENT_SPREAD
+                          ) {
                             return selection;
                           }
                           // prepend `address` to name and camelCase
@@ -725,27 +720,28 @@ describe('transforms', () => {
                             kind: Kind.FIELD,
                             name: {
                               kind: Kind.NAME,
-                              value: 'address' +
+                              value:
+                                'address' +
                                 oldFieldName.charAt(0).toUpperCase() +
-                                oldFieldName.slice(1)
-                            }
+                                oldFieldName.slice(1),
+                            },
                           };
-                        })
+                        }),
                       };
                       return newSelectionSet;
                     },
                     // how to process the data result at path
                     result => ({
                       streetAddress: result.addressStreetAddress,
-                      zip: result.addressZip
-                    })
+                      zip: result.addressZip,
+                    }),
                   ),
                   // Wrap a second level field
                   new WrapQuery(
                     ['userById', 'zip'],
                     (subtree: SelectionSetNode) => subtree,
-                    result => result
-                  )
+                    result => result,
+                  ),
                 ],
               });
             },
@@ -824,12 +820,12 @@ describe('transforms', () => {
           User: {
             errorTest: () => {
               throw new Error('Test Error!');
-            }
+            },
           },
           Address: {
             errorTest: () => {
               throw new Error('Test Error!');
-            }
+            },
           },
           Query: {
             userById(_parent, { id }) {
@@ -868,17 +864,19 @@ describe('transforms', () => {
                     path: ['userById'],
                     queryTransformer: (subtree: SelectionSetNode) => ({
                       kind: Kind.SELECTION_SET,
-                      selections: [{
-                        // we create a wrapping AST Field
-                        kind: Kind.FIELD,
-                        name: {
-                          kind: Kind.NAME,
-                          // that field is `address`
-                          value: 'address',
+                      selections: [
+                        {
+                          // we create a wrapping AST Field
+                          kind: Kind.FIELD,
+                          name: {
+                            kind: Kind.NAME,
+                            // that field is `address`
+                            value: 'address',
+                          },
+                          // Inside the field selection
+                          selectionSet: subtree,
                         },
-                        // Inside the field selection
-                        selectionSet: subtree,
-                      }],
+                      ],
                     }),
                     // how to process the data result at path
                     resultTransformer: result => result?.address,
@@ -900,14 +898,16 @@ describe('transforms', () => {
                     path: ['userById'],
                     queryTransformer: (subtree: SelectionSetNode) => ({
                       kind: Kind.SELECTION_SET,
-                      selections: [{
-                        kind: Kind.FIELD,
-                        name: {
-                          kind: Kind.NAME,
-                          value: 'errorTest',
+                      selections: [
+                        {
+                          kind: Kind.FIELD,
+                          name: {
+                            kind: Kind.NAME,
+                            value: 'errorTest',
+                          },
+                          selectionSet: subtree,
                         },
-                        selectionSet: subtree,
-                      }],
+                      ],
                     }),
                     resultTransformer: result => result?.address,
                     errorPathTransformer: path => path.slice(1),
@@ -975,12 +975,9 @@ describe('transforms', () => {
               },
             ],
             message: 'Test Error!',
-            path: [
-              'addressByUser',
-              'errorTest',
-            ],
-          }
-        ]
+            path: ['addressByUser', 'errorTest'],
+          },
+        ],
       });
     });
 
@@ -1009,11 +1006,9 @@ describe('transforms', () => {
           {
             locations: [],
             message: 'Test Error!',
-            path: [
-              'errorTest',
-            ],
-          }
-        ]
+            path: ['errorTest'],
+          },
+        ],
       });
     });
   });
@@ -1183,14 +1178,15 @@ describe('replaces field with processed fragment node', () => {
               transforms: [
                 new AddReplacementFragments(subschema, {
                   User: {
-                    fullname: concatInlineFragments(
-                      'User',
-                      [
-                        parseFragmentToInlineFragment('fragment UserName on User { name }'),
-                        parseFragmentToInlineFragment('fragment UserSurname on User { surname }'),
-                      ],
-                    ),
-                  }
+                    fullname: concatInlineFragments('User', [
+                      parseFragmentToInlineFragment(
+                        'fragment UserName on User { name }',
+                      ),
+                      parseFragmentToInlineFragment(
+                        'fragment UserSurname on User { surname }',
+                      ),
+                    ]),
+                  },
                 }),
               ],
             });

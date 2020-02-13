@@ -15,7 +15,10 @@ import {
   UriFunction,
 } from 'apollo-link-http-common';
 import { DefinitionNode } from 'graphql';
-import { extractFiles, isExtractableFile as defaultIsExtractableFile } from 'extract-files';
+import {
+  extractFiles,
+  isExtractableFile as defaultIsExtractableFile,
+} from 'extract-files';
 import KnownLengthFormData, { AppendOptions } from 'form-data';
 import fetch from 'node-fetch';
 
@@ -29,11 +32,16 @@ class FormData extends KnownLengthFormData {
     this.hasUnknowableLength = false;
   }
 
-  public append(key: string, value: any, optionsOrFilename: AppendOptions | string = {}): void {
+  public append(
+    key: string,
+    value: any,
+    optionsOrFilename: AppendOptions | string = {},
+  ): void {
     // allow filename as single option
-    const options: AppendOptions = (typeof optionsOrFilename === 'string') ?
-      { filename: optionsOrFilename } :
-      optionsOrFilename;
+    const options: AppendOptions =
+      typeof optionsOrFilename === 'string'
+        ? { filename: optionsOrFilename }
+        : optionsOrFilename;
 
     // empty or either doesn't have path or not an http response
     if (
@@ -49,7 +57,9 @@ class FormData extends KnownLengthFormData {
     super.append(key, value, options);
   }
 
-  public getLength(callback: (err: Error | null, length: number) => void): void {
+  public getLength(
+    callback: (err: Error | null, length: number) => void,
+  ): void {
     if (this.hasUnknowableLength) {
       return null;
     }
@@ -77,7 +87,7 @@ export type Options = HttpOptions & {
   useGETForQueries?: boolean;
   serializer?: (method: string) => any;
   appendFile?: (form: FormData, index: string, file: File) => void;
-}
+};
 // For backwards compatibility.
 export { HttpOptions as FetchOptions };
 
@@ -91,7 +101,7 @@ interface File {
 export const createServerHttpLink = (linkOptions: Options = {}) => {
   const {
     uri = '/graphql',
-    fetch: customFetch = fetch as unknown as WindowOrWorkerGlobalScope['fetch'],
+    fetch: customFetch = (fetch as unknown) as WindowOrWorkerGlobalScope['fetch'],
     serializer: customSerializer = defaultSerializer,
     appendFile: customAppendFile = defaultAppendFile,
     includeExtensions,
@@ -149,7 +159,7 @@ export const createServerHttpLink = (linkOptions: Options = {}) => {
     if (!(options as any).signal) {
       const { controller: _controller, signal } = createSignalIfSupported();
       controller = _controller;
-      if (controller as unknown as boolean) {
+      if ((controller as unknown) as boolean) {
         (options as any).signal = signal;
       }
     }
@@ -174,16 +184,17 @@ export const createServerHttpLink = (linkOptions: Options = {}) => {
     }
 
     return new Observable(observer => {
-      getFinalPromise(body).then(resolvedBody => {
-        if (options.method !== 'GET') {
-          options.body = customSerializer(resolvedBody, customAppendFile);
-          if (options.body instanceof FormData) {
-            // Automatically set by fetch when the body is a FormData instance.
-            delete options.headers['content-type'];
+      getFinalPromise(body)
+        .then(resolvedBody => {
+          if (options.method !== 'GET') {
+            options.body = customSerializer(resolvedBody, customAppendFile);
+            if (options.body instanceof FormData) {
+              // Automatically set by fetch when the body is a FormData instance.
+              delete options.headers['content-type'];
+            }
           }
-        }
-        return options;
-      })
+          return options;
+        })
         .then(newOptions => customFetch(chosenURI, newOptions))
         .then(response => {
           operation.setContext({ response });
@@ -242,7 +253,7 @@ export const createServerHttpLink = (linkOptions: Options = {}) => {
       return () => {
         // XXX support canceling this request
         // https://developers.google.com/web/updates/2017/09/abortable-fetch
-        if (controller as unknown as boolean) {
+        if ((controller as unknown) as boolean) {
           controller.abort();
         }
       };
@@ -317,19 +328,17 @@ function getFinalPromise(object: any): Promise<any> {
     }
 
     if (Array.isArray(resolvedObject)) {
-
       return Promise.all(resolvedObject.map(o => getFinalPromise(o)));
-
     } else if (typeof resolvedObject === 'object') {
-
       const keys = Object.keys(resolvedObject);
-      return Promise.all(keys.map(key => getFinalPromise(resolvedObject[key]))).then(awaitedValues => {
+      return Promise.all(
+        keys.map(key => getFinalPromise(resolvedObject[key])),
+      ).then(awaitedValues => {
         for (let i = 0; i < keys.length; i++) {
           resolvedObject[keys[i]] = awaitedValues[i];
         }
         return resolvedObject;
       });
-
     }
 
     return resolvedObject;
@@ -340,8 +349,11 @@ function defaultSerializer(
   body: any,
   appendFile: (form: FormData, index: string, file: File) => void,
 ): any {
-  const { clone, files } = extractFiles(body, undefined, (value: any) =>
-    defaultIsExtractableFile(value) || value?.createReadStream);
+  const { clone, files } = extractFiles(
+    body,
+    undefined,
+    (value: any) => defaultIsExtractableFile(value) || value?.createReadStream,
+  );
 
   const payload = serializeFetchParameter(clone, 'Payload');
 

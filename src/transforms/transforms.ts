@@ -11,7 +11,9 @@ export function applySchemaTransforms(
 ): GraphQLSchema {
   return transforms.reduce(
     (schema: GraphQLSchema, transform: Transform) =>
-      transform.transformSchema != null ? transform.transformSchema(cloneSchema(schema)) : schema,
+      transform.transformSchema != null
+        ? transform.transformSchema(cloneSchema(schema))
+        : schema,
     originalSchema,
   );
 }
@@ -36,7 +38,9 @@ export function applyResultTransforms(
 ): any {
   return transforms.reduceRight(
     (result: any, transform: Transform) =>
-      transform.transformResult != null ? transform.transformResult(result) : result,
+      transform.transformResult != null
+        ? transform.transformResult(result)
+        : result,
     originalResult,
   );
 }

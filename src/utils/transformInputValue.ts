@@ -7,24 +7,40 @@ import {
   getNullableType,
 } from 'graphql';
 
-type InputValueTransformer = (type: GraphQLEnumType | GraphQLScalarType, originalValue: any) => any;
+type InputValueTransformer = (
+  type: GraphQLEnumType | GraphQLScalarType,
+  originalValue: any,
+) => any;
 
-export function transformInputValue(type: GraphQLInputType, value: any, transformer: InputValueTransformer) {
+export function transformInputValue(
+  type: GraphQLInputType,
+  value: any,
+  transformer: InputValueTransformer,
+) {
   if (value == null) {
     return value;
   }
 
   const nullableType = getNullableType(type);
 
-  if (nullableType instanceof GraphQLEnumType || nullableType instanceof GraphQLScalarType) {
+  if (
+    nullableType instanceof GraphQLEnumType ||
+    nullableType instanceof GraphQLScalarType
+  ) {
     return transformer(nullableType, value);
   } else if (nullableType instanceof GraphQLList) {
-    return value.map((listMember: any) => transformInputValue(nullableType.ofType, listMember, transformer));
+    return value.map((listMember: any) =>
+      transformInputValue(nullableType.ofType, listMember, transformer),
+    );
   } else if (nullableType instanceof GraphQLInputObjectType) {
     const fields = nullableType.getFields();
     const newValue = {};
     Object.keys(value).forEach(key => {
-      newValue[key] = transformInputValue(fields[key].type, value[key], transformer);
+      newValue[key] = transformInputValue(
+        fields[key].type,
+        value[key],
+        transformer,
+      );
     });
     return newValue;
   }
@@ -33,25 +49,13 @@ export function transformInputValue(type: GraphQLInputType, value: any, transfor
 }
 
 export function serializeInputValue(type: GraphQLInputType, value: any) {
-  return transformInputValue(
-    type,
-    value,
-    (t, v) => t.serialize(v)
-  );
+  return transformInputValue(type, value, (t, v) => t.serialize(v));
 }
 
 export function parseInputValue(type: GraphQLInputType, value: any) {
-  return transformInputValue(
-    type,
-    value,
-    (t, v) => t.parseValue(v)
-  );
+  return transformInputValue(type, value, (t, v) => t.parseValue(v));
 }
 
 export function parseInputValueLiteral(type: GraphQLInputType, value: any) {
-  return transformInputValue(
-    type,
-    value,
-    (t, v) => t.parseLiteral(v, {})
-  );
+  return transformInputValue(type, value, (t, v) => t.parseLiteral(v, {}));
 }

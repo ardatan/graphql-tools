@@ -85,9 +85,7 @@ function expandAbstractTypes(
   reverseMapping: TypeMapping,
   document: DocumentNode,
 ): DocumentNode {
-  const operations: Array<
-    OperationDefinitionNode
-  > = document.definitions.filter(
+  const operations: Array<OperationDefinitionNode> = document.definitions.filter(
     def => def.kind === Kind.OPERATION_DEFINITION,
   ) as Array<OperationDefinitionNode>;
   const fragments: Array<FragmentDefinitionNode> = document.definitions.filter(
@@ -159,13 +157,20 @@ function expandAbstractTypes(
           node.selections.forEach((selection: SelectionNode) => {
             if (selection.kind === Kind.INLINE_FRAGMENT) {
               if (selection.typeCondition != null) {
-                const possibleTypes = mapping[selection.typeCondition.name.value];
+                const possibleTypes =
+                  mapping[selection.typeCondition.name.value];
                 if (possibleTypes != null) {
                   possibleTypes.forEach(possibleType => {
-                    const maybePossibleType = targetSchema.getType(possibleType);
+                    const maybePossibleType = targetSchema.getType(
+                      possibleType,
+                    );
                     if (
                       maybePossibleType != null &&
-                      implementsAbstractType(targetSchema, parentType, maybePossibleType)
+                      implementsAbstractType(
+                        targetSchema,
+                        parentType,
+                        maybePossibleType,
+                      )
                     ) {
                       newSelections.push({
                         kind: Kind.INLINE_FRAGMENT,

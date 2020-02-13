@@ -1,10 +1,4 @@
-import {
-  visit,
-  Kind,
-  SelectionSetNode,
-  BREAK,
-  FieldNode,
-} from 'graphql';
+import { visit, Kind, SelectionSetNode, BREAK, FieldNode } from 'graphql';
 
 import { Transform, Request } from '../Interfaces';
 
@@ -42,7 +36,10 @@ export default class ExtractField implements Transform {
       [Kind.FIELD]: {
         enter: (node: FieldNode) => {
           fieldPath.push(node.name.value);
-          if (ourPathTo === JSON.stringify(fieldPath) && fromSelection != null) {
+          if (
+            ourPathTo === JSON.stringify(fieldPath) &&
+            fromSelection != null
+          ) {
             return {
               ...node,
               selectionSet: fromSelection,

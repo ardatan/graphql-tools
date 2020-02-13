@@ -8,7 +8,7 @@ import {
   visitWithTypeInfo,
   Kind,
   SelectionNode,
-  FragmentDefinitionNode
+  FragmentDefinitionNode,
 } from 'graphql';
 
 import { Request } from '../Interfaces';
@@ -17,22 +17,20 @@ import { Transform } from './transforms';
 
 export type FieldNodeTransformer = (
   fieldNode: FieldNode,
-  fragments: Record<string, FragmentDefinitionNode>
+  fragments: Record<string, FragmentDefinitionNode>,
 ) => SelectionNode | Array<SelectionNode>;
 
 export type FieldNodeTransformerMap = {
   [typeName: string]: {
-    [fieldName: string]: FieldNodeTransformer
-  }
+    [fieldName: string]: FieldNodeTransformer;
+  };
 };
 
 export default class MapFields implements Transform {
   private schema: GraphQLSchema | undefined;
   private readonly fieldNodeTransformerMap: FieldNodeTransformerMap;
 
-  constructor(
-    fieldNodeTransformerMap: FieldNodeTransformerMap,
-  ) {
+  constructor(fieldNodeTransformerMap: FieldNodeTransformerMap) {
     this.fieldNodeTransformerMap = fieldNodeTransformerMap;
   }
 
@@ -43,24 +41,26 @@ export default class MapFields implements Transform {
 
   public transformRequest(originalRequest: Request): Request {
     if (!this.schema) {
-      throw new Error('MapFields transform required initialization with target schema within the transformSchema method.')
+      throw new Error(
+        'MapFields transform required initialization with target schema within the transformSchema method.',
+      );
     }
 
     const fragments = {};
-    originalRequest.document.definitions.filter(
-      def => def.kind === Kind.FRAGMENT_DEFINITION
-    ).forEach(def => {
-      fragments[(def as FragmentDefinitionNode).name.value] = def;
-    });
+    originalRequest.document.definitions
+      .filter(def => def.kind === Kind.FRAGMENT_DEFINITION)
+      .forEach(def => {
+        fragments[(def as FragmentDefinitionNode).name.value] = def;
+      });
     const document = transformDocument(
       originalRequest.document,
       this.schema,
       this.fieldNodeTransformerMap,
-      fragments
+      fragments,
     );
     return {
       ...originalRequest,
-      document
+      document,
     };
   }
 }
@@ -76,7 +76,10 @@ function transformDocument(
     document,
     visitWithTypeInfo(typeInfo, {
       [Kind.SELECTION_SET]: node => {
-        const parentType: GraphQLType | null | undefined = typeInfo.getParentType();
+        const parentType:
+          | GraphQLType
+          | null
+          | undefined = typeInfo.getParentType();
         if (parentType != null) {
           const parentTypeName = parentType.name;
           const fieldNodeTransformers = fieldNodeTransformerMap[parentTypeName];
@@ -90,7 +93,10 @@ function transformDocument(
               if (fieldNodeTransformers != null) {
                 const fieldNodeTransformer = fieldNodeTransformers[fieldName];
                 if (fieldNodeTransformer != null) {
-                  transformedSelection = fieldNodeTransformer(selection, fragments);
+                  transformedSelection = fieldNodeTransformer(
+                    selection,
+                    fragments,
+                  );
                 } else {
                   transformedSelection = selection;
                 }
@@ -115,8 +121,8 @@ function transformDocument(
             selections: newSelections,
           };
         }
-      }
-    })
+      },
+    }),
   );
   return newDocument;
 }

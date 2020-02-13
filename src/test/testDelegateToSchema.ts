@@ -1,18 +1,20 @@
-import {
-  GraphQLSchema,
-  graphql
-} from 'graphql';
+import { GraphQLSchema, graphql } from 'graphql';
 import { expect } from 'chai';
 
 import delegateToSchema from '../stitching/delegateToSchema';
 import mergeSchemas from '../stitching/mergeSchemas';
 import { IResolvers } from '../Interfaces';
 
-import { propertySchema, bookingSchema, sampleData, Property } from './testingSchemas';
+import {
+  propertySchema,
+  bookingSchema,
+  sampleData,
+  Property,
+} from './testingSchemas';
 
-function findPropertyByLocationName (
+function findPropertyByLocationName(
   properties: { [key: string]: Property },
-  name: string
+  name: string,
 ): Property | undefined {
   for (const key of Object.keys(properties)) {
     const property = properties[key];
@@ -34,35 +36,37 @@ const COORDINATES_QUERY = `
   }
 `;
 
-function proxyResolvers (spec: string): IResolvers {
+function proxyResolvers(spec: string): IResolvers {
   return {
     Booking: {
       property: {
         fragment: '... on Booking { propertyId }',
-        resolve (booking, _args, context, info) {
-          const delegateFn = spec === 'standalone' ? delegateToSchema :
-            info.mergeInfo.delegateToSchema;
+        resolve(booking, _args, context, info) {
+          const delegateFn =
+            spec === 'standalone'
+              ? delegateToSchema
+              : info.mergeInfo.delegateToSchema;
           return delegateFn?.({
             schema: propertySchema,
             operation: 'query',
             fieldName: 'propertyById',
             args: { id: booking.propertyId },
             context,
-            info
+            info,
           });
-        }
-      }
+        },
+      },
     },
     Location: {
       coordinates: {
         fragment: '... on Location { name }',
         resolve: location => {
           const name = location.name;
-          return findPropertyByLocationName(sampleData.Property, name)
-            .location.coordinates;
-        }
-      }
-    }
+          return findPropertyByLocationName(sampleData.Property, name).location
+            .coordinates;
+        },
+      },
+    },
   };
 }
 
@@ -83,23 +87,28 @@ describe('stitching', () => {
         before(() => {
           schema = mergeSchemas({
             schemas: [bookingSchema, propertySchema, proxyTypeDefs],
-            resolvers: proxyResolvers(spec)
+            resolvers: proxyResolvers(spec),
           });
         });
         it('should add fragments for deep types', async () => {
-          const result = await graphql(schema, COORDINATES_QUERY,
-            {}, {}, { bookingId: 'b1' });
+          const result = await graphql(
+            schema,
+            COORDINATES_QUERY,
+            {},
+            {},
+            { bookingId: 'b1' },
+          );
 
           expect(result).to.deep.equal({
             data: {
               bookingById: {
                 property: {
                   location: {
-                    coordinates: sampleData.Property.p1.location.coordinates
-                  }
-                }
-              }
-            }
+                    coordinates: sampleData.Property.p1.location.coordinates,
+                  },
+                },
+              },
+            },
           });
         });
       });

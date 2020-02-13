@@ -17,9 +17,11 @@ export function wrapSchema(
   subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig,
   transforms?: Array<Transform>,
 ): GraphQLSchema {
-  const subschemaConfig: SubschemaConfig = isSubschemaConfig(subschemaOrSubschemaConfig) ?
-    subschemaOrSubschemaConfig :
-    { schema: subschemaOrSubschemaConfig };
+  const subschemaConfig: SubschemaConfig = isSubschemaConfig(
+    subschemaOrSubschemaConfig,
+  )
+    ? subschemaOrSubschemaConfig
+    : { schema: subschemaOrSubschemaConfig };
 
   const schema = cloneSchema(subschemaConfig.schema);
   stripResolvers(schema);
