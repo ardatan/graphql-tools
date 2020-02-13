@@ -1,8 +1,9 @@
 import { assert } from 'chai';
-import { makeExecutableSchema, addSchemaLevelResolver } from '..';
 import { parse, graphql, subscribe, ExecutionResult } from 'graphql';
 import { PubSub } from 'graphql-subscriptions';
 import { forAwaitEach } from 'iterall';
+
+import { makeExecutableSchema, addSchemaLevelResolver } from '..';
 
 describe('Resolve', () => {
   describe('addSchemaLevelResolver', () => {

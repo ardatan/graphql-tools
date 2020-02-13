@@ -2,11 +2,6 @@ import { Server } from 'http';
 import { AddressInfo } from 'net';
 import { Readable } from 'stream';
 
-import { SubschemaConfig } from '../Interfaces';
-import { createServerHttpLink } from '../links';
-import { makeExecutableSchema } from '../makeExecutableSchema';
-import { mergeSchemas} from '../stitching';
-
 import { expect } from 'chai';
 import express, { Express } from 'express';
 import graphqlHTTP from 'express-graphql';
@@ -14,6 +9,11 @@ import { GraphQLUpload, graphqlUploadExpress } from 'graphql-upload';
 import FormData from 'form-data';
 import fetch from 'node-fetch';
 import { buildSchema } from 'graphql';
+
+import { mergeSchemas} from '../stitching';
+import { makeExecutableSchema } from '../makeExecutableSchema';
+import { createServerHttpLink } from '../links';
+import { SubschemaConfig } from '../Interfaces';
 
 function streamToString(stream: Readable) {
   const chunks: Array<Buffer> = [];

@@ -1,3 +1,14 @@
+import { isAsyncIterable } from 'iterall';
+import { ApolloLink, execute as executeLink } from 'apollo-link';
+import {
+  subscribe,
+  execute,
+  validate,
+  GraphQLSchema,
+  ExecutionResult,
+  GraphQLOutputType,
+} from 'graphql';
+
 import {
   IDelegateToSchemaOptions,
   IDelegateRequestOptions,
@@ -28,17 +39,6 @@ import linkToFetcher from './linkToFetcher';
 import { observableToAsyncIterable } from './observableToAsyncIterable';
 import mapAsyncIterator from './mapAsyncIterator';
 import { combineErrors } from './errors';
-
-import { isAsyncIterable } from 'iterall';
-import { ApolloLink, execute as executeLink } from 'apollo-link';
-import {
-  subscribe,
-  execute,
-  validate,
-  GraphQLSchema,
-  ExecutionResult,
-  GraphQLOutputType,
-} from 'graphql';
 
 export default function delegateToSchema(
   options: IDelegateToSchemaOptions | GraphQLSchema,

@@ -1,11 +1,5 @@
 import crypto from 'crypto';
 
-import { makeExecutableSchema } from '../makeExecutableSchema';
-import { VisitableSchemaType } from '../Interfaces';
-import { SchemaDirectiveVisitor } from '../utils/SchemaDirectiveVisitor';
-import { SchemaVisitor } from '../utils/SchemaVisitor';
-import { visitSchema } from '../utils/visitSchema';
-
 import {
   ExecutionResult,
   GraphQLArgument,
@@ -28,10 +22,14 @@ import {
   GraphQLInt,
   GraphQLOutputType,
 } from 'graphql';
-
 import { assert } from 'chai';
-
 import formatDate from 'dateformat';
+
+import { makeExecutableSchema } from '../makeExecutableSchema';
+import { VisitableSchemaType } from '../Interfaces';
+import { SchemaDirectiveVisitor } from '../utils/SchemaDirectiveVisitor';
+import { SchemaVisitor } from '../utils/SchemaVisitor';
+import { visitSchema } from '../utils/visitSchema';
 
 const typeDefs = `
 directive @schemaDirective(role: String) on SCHEMA

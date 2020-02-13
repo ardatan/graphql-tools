@@ -1,3 +1,5 @@
+import { GraphQLSchema } from 'graphql';
+
 import { addResolversToSchema } from '../makeExecutableSchema';
 import { Transform, applySchemaTransforms } from '../transforms/transforms';
 import {
@@ -9,10 +11,7 @@ import {
   isSubschemaConfig,
   GraphQLSchemaWithTransforms,
 } from '../Interfaces';
-
 import { cloneSchema } from '../utils/clone';
-
-import { GraphQLSchema } from 'graphql';
 
 export function wrapSchema(
   subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig,

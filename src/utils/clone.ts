@@ -1,6 +1,3 @@
-import { healTypes } from './heal';
-import isSpecifiedScalarType from './isSpecifiedScalarType';
-
 import {
   GraphQLDirective,
   GraphQLEnumType,
@@ -12,6 +9,9 @@ import {
   GraphQLSchema,
   GraphQLUnionType,
 } from 'graphql';
+
+import { healTypes } from './heal';
+import isSpecifiedScalarType from './isSpecifiedScalarType';
 
 export function cloneDirective(directive: GraphQLDirective): GraphQLDirective {
   return new GraphQLDirective(directive.toConfig());

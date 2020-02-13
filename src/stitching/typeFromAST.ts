@@ -1,7 +1,3 @@
-import { createNamedStub } from '../utils/stub';
-
-import resolveFromParentTypename from './resolveFromParentTypename';
-
 import {
   DefinitionNode,
   EnumTypeDefinitionNode,
@@ -33,6 +29,10 @@ import {
   GraphQLFieldConfig,
   StringValueNode,
 } from 'graphql';
+
+import { createNamedStub } from '../utils/stub';
+
+import resolveFromParentTypename from './resolveFromParentTypename';
 
 const backcompatOptions = { commentDescriptions: true };
 

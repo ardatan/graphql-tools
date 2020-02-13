@@ -1,8 +1,3 @@
-import { Request } from '../Interfaces';
-import implementsAbstractType from '../utils/implementsAbstractType';
-
-import { Transform } from './transforms';
-
 import {
   ArgumentNode,
   DocumentNode,
@@ -25,6 +20,11 @@ import {
   visitWithTypeInfo,
   getNamedType,
 } from 'graphql';
+
+import { Request } from '../Interfaces';
+import implementsAbstractType from '../utils/implementsAbstractType';
+
+import { Transform } from './transforms';
 
 export default class FilterToSchema implements Transform {
   private readonly targetSchema: GraphQLSchema;

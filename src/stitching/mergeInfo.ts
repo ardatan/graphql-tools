@@ -1,4 +1,15 @@
 import {
+  GraphQLNamedType,
+  GraphQLObjectType,
+  GraphQLScalarType,
+  GraphQLSchema,
+  Kind,
+  SelectionNode,
+  SelectionSetNode,
+} from 'graphql';
+import { TypeMap } from 'graphql/type/schema';
+
+import {
   IDelegateToSchemaOptions,
   MergeInfo,
   IResolversParameter,
@@ -20,17 +31,6 @@ import {
 } from '../utils';
 
 import delegateToSchema from './delegateToSchema';
-
-import {
-  GraphQLNamedType,
-  GraphQLObjectType,
-  GraphQLScalarType,
-  GraphQLSchema,
-  Kind,
-  SelectionNode,
-  SelectionSetNode,
-} from 'graphql';
-import { TypeMap } from 'graphql/type/schema';
 
 type MergeTypeCandidate = {
   type: GraphQLNamedType;

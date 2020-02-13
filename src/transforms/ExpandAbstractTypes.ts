@@ -1,6 +1,3 @@
-import implementsAbstractType from '../utils/implementsAbstractType';
-import { Transform, Request } from '../Interfaces';
-
 import {
   DocumentNode,
   FragmentDefinitionNode,
@@ -16,6 +13,9 @@ import {
   visit,
   visitWithTypeInfo,
 } from 'graphql';
+
+import implementsAbstractType from '../utils/implementsAbstractType';
+import { Transform, Request } from '../Interfaces';
 
 type TypeMapping = { [key: string]: Array<string> };
 

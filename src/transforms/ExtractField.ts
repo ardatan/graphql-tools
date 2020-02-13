@@ -1,5 +1,3 @@
-import { Transform, Request } from '../Interfaces';
-
 import {
   visit,
   Kind,
@@ -7,6 +5,8 @@ import {
   BREAK,
   FieldNode,
 } from 'graphql';
+
+import { Transform, Request } from '../Interfaces';
 
 export default class ExtractField implements Transform {
   private readonly from: Array<string>;

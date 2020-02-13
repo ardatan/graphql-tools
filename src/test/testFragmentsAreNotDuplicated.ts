@@ -1,5 +1,6 @@
 import {expect} from 'chai';
 import {ExecutionResult, graphql} from 'graphql';
+
 import {
   addMocksToSchema,
   makeExecutableSchema,

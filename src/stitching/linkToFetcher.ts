@@ -1,11 +1,11 @@
-import { Fetcher, IFetcherOperation } from '../Interfaces';
-
 import {
   ApolloLink,
   toPromise,
   execute,
   ExecutionResult,
 } from 'apollo-link';
+
+import { Fetcher, IFetcherOperation } from '../Interfaces';
 
 export { execute } from 'apollo-link';
 

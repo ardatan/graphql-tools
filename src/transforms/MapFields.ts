@@ -1,7 +1,3 @@
-import { Request } from '../Interfaces';
-
-import { Transform } from './transforms';
-
 import {
   GraphQLSchema,
   GraphQLType,
@@ -14,6 +10,10 @@ import {
   SelectionNode,
   FragmentDefinitionNode
 } from 'graphql';
+
+import { Request } from '../Interfaces';
+
+import { Transform } from './transforms';
 
 export type FieldNodeTransformer = (
   fieldNode: FieldNode,

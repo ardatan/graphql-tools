@@ -1,6 +1,6 @@
-import SchemaError from './SchemaError';
-
 import { GraphQLInterfaceType, GraphQLUnionType, GraphQLSchema } from 'graphql';
+
+import SchemaError from './SchemaError';
 
 // If we have any union or interface types throw if no there is no resolveType or isTypeOf resolvers
 function checkForResolveTypeResolver(

@@ -1,10 +1,10 @@
-import { IFieldIteratorFn } from '../Interfaces';
-
 import {
   getNamedType,
   GraphQLObjectType,
   GraphQLSchema,
 } from 'graphql';
+
+import { IFieldIteratorFn } from '../Interfaces';
 
 export function forEachField(schema: GraphQLSchema, fn: IFieldIteratorFn): void {
   const typeMap = schema.getTypeMap();

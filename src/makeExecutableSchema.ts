@@ -1,11 +1,15 @@
-import { IExecutableSchemaDefinition, ILogger } from './Interfaces';
+import {
+  defaultFieldResolver,
+  GraphQLSchema,
+  GraphQLFieldResolver,
+} from 'graphql';
 
+import { IExecutableSchemaDefinition, ILogger } from './Interfaces';
 import {
   SchemaDirectiveVisitor,
   forEachField,
   mergeDeep
 } from './utils';
-
 import {
   attachDirectiveResolvers,
   assertResolversPresent,
@@ -17,11 +21,6 @@ import {
   SchemaError
 } from './generate';
 
-import {
-  defaultFieldResolver,
-  GraphQLSchema,
-  GraphQLFieldResolver,
-} from 'graphql';
 
 export function makeExecutableSchema<TContext = any>({
   typeDefs,

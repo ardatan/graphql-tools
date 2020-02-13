@@ -1,14 +1,3 @@
-import { addResolversToSchema } from '../generate';
-import { Fetcher, Operation } from '../Interfaces';
-import { cloneSchema } from '../utils';
-
-import linkToFetcher, { execute } from './linkToFetcher';
-import { addTypenameToAbstract } from './addTypenameToAbstract';
-import { checkResultAndHandleErrors } from './checkResultAndHandleErrors';
-import { observableToAsyncIterable } from './observableToAsyncIterable';
-import mapAsyncIterator from './mapAsyncIterator';
-import { stripResolvers, generateProxyingResolvers } from './resolvers';
-
 import { ApolloLink } from 'apollo-link';
 import {
   GraphQLFieldResolver,
@@ -20,6 +9,17 @@ import {
   DocumentNode,
 } from 'graphql';
 import { Options as PrintSchemaOptions } from 'graphql/utilities/schemaPrinter';
+
+import { addResolversToSchema } from '../generate';
+import { Fetcher, Operation } from '../Interfaces';
+import { cloneSchema } from '../utils';
+
+import linkToFetcher, { execute } from './linkToFetcher';
+import { addTypenameToAbstract } from './addTypenameToAbstract';
+import { checkResultAndHandleErrors } from './checkResultAndHandleErrors';
+import { observableToAsyncIterable } from './observableToAsyncIterable';
+import mapAsyncIterator from './mapAsyncIterator';
+import { stripResolvers, generateProxyingResolvers } from './resolvers';
 
 export type ResolverFn = (
   rootValue?: any,

@@ -1,3 +1,15 @@
+import { expect } from 'chai';
+import {
+  GraphQLSchema,
+  GraphQLNamedType,
+  GraphQLScalarType,
+  graphql,
+  Kind,
+  SelectionSetNode,
+  print,
+  parse,
+} from 'graphql';
+
 import { makeExecutableSchema } from '../makeExecutableSchema';
 import {
   delegateToSchema,
@@ -21,17 +33,6 @@ import {
 
 import { propertySchema, bookingSchema } from './testingSchemas';
 
-import { expect } from 'chai';
-import {
-  GraphQLSchema,
-  GraphQLNamedType,
-  GraphQLScalarType,
-  graphql,
-  Kind,
-  SelectionSetNode,
-  print,
-  parse,
-} from 'graphql';
 
 describe('transforms', () => {
   describe('base transform function', () => {

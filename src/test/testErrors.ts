@@ -1,12 +1,12 @@
+import { expect, assert } from 'chai';
+import { GraphQLError, graphql } from 'graphql';
+
 import { relocatedError } from '../stitching/errors';
 import { getErrors, ERROR_SYMBOL } from '../stitching/proxiedResult';
 import { checkResultAndHandleErrors } from '../stitching/checkResultAndHandleErrors';
 import { makeExecutableSchema } from '../makeExecutableSchema';
 import { mergeSchemas } from '../stitching';
 import { IGraphQLToolsResolveInfo } from '../Interfaces';
-
-import { expect, assert } from 'chai';
-import { GraphQLError, graphql } from 'graphql';
 
 class ErrorWithExtensions extends GraphQLError {
   constructor(message: string, code: string) {

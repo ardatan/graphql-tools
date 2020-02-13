@@ -1,3 +1,9 @@
+import {
+  GraphQLSchema,
+  GraphQLObjectType,
+  getNullableType,
+} from 'graphql';
+
 import { healSchema, wrapFieldNode, renameFieldNode } from '../utils';
 import { createMergedResolver } from '../stitching';
 import { appendFields, removeFields } from '../utils/fields';
@@ -5,12 +11,6 @@ import { Request } from '../Interfaces';
 
 import { Transform } from './transforms';
 import MapFields from './MapFields';
-
-import {
-  GraphQLSchema,
-  GraphQLObjectType,
-  getNullableType,
-} from 'graphql';
 
 export default class HoistField implements Transform {
   private readonly typeName: string;

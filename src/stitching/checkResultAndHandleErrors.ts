@@ -1,21 +1,4 @@
 import {
-  SubschemaConfig,
-  IGraphQLToolsResolveInfo,
-  isSubschemaConfig,
-  MergedTypeInfo,
-} from '../Interfaces';
-
-import {
-  relocatedError,
-  combineErrors,
-  getErrorsByPathSegment,
-} from './errors';
-import { getResponseKeyFromInfo } from './getResponseKeyFromInfo';
-import resolveFromParentTypename from './resolveFromParentTypename';
-import { setErrors, setObjectSubschema } from './proxiedResult';
-import { mergeFields } from './mergeFields';
-
-import {
   GraphQLResolveInfo,
   responsePathAsArray,
   getNullableType,
@@ -34,6 +17,24 @@ import {
   GraphQLObjectType,
 } from 'graphql';
 import { collectFields, ExecutionContext } from 'graphql/execution/execute';
+
+import {
+  SubschemaConfig,
+  IGraphQLToolsResolveInfo,
+  isSubschemaConfig,
+  MergedTypeInfo,
+} from '../Interfaces';
+
+import {
+  relocatedError,
+  combineErrors,
+  getErrorsByPathSegment,
+} from './errors';
+import { getResponseKeyFromInfo } from './getResponseKeyFromInfo';
+import resolveFromParentTypename from './resolveFromParentTypename';
+import { setErrors, setObjectSubschema } from './proxiedResult';
+import { mergeFields } from './mergeFields';
+
 
 export function checkResultAndHandleErrors(
   result: ExecutionResult,

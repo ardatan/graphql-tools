@@ -1,8 +1,8 @@
+import { print, ASTNode } from 'graphql';
+
 import { ITypedef } from '../Interfaces';
 
 import SchemaError from './SchemaError';
-
-import { print, ASTNode } from 'graphql';
 
 function concatenateTypeDefs(
   typeDefinitionsAry: Array<ITypedef>,

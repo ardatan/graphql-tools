@@ -1,6 +1,26 @@
 // TODO: reduce code repetition in this file.
 // see https://github.com/apollostack/graphql-tools/issues/26
 
+import { GraphQLJSON } from 'graphql-type-json';
+import { assert, expect } from 'chai';
+import {
+  graphql,
+  GraphQLResolveInfo,
+  GraphQLScalarType,
+  Kind,
+  IntValueNode,
+  parse,
+  ExecutionResult,
+  GraphQLError,
+  GraphQLEnumType,
+  execute,
+  VariableDefinitionNode,
+  DocumentNode,
+  GraphQLBoolean,
+  graphqlSync,
+  GraphQLSchema,
+} from 'graphql';
+
 import { Logger } from '../Logger';
 import {
   makeExecutableSchema,
@@ -25,26 +45,6 @@ import { visitSchema } from '../utils/visitSchema';
 import { addResolversToSchema } from '../generate';
 
 import TypeA from './circularSchemaA';
-
-import { GraphQLJSON } from 'graphql-type-json';
-import { assert, expect } from 'chai';
-import {
-  graphql,
-  GraphQLResolveInfo,
-  GraphQLScalarType,
-  Kind,
-  IntValueNode,
-  parse,
-  ExecutionResult,
-  GraphQLError,
-  GraphQLEnumType,
-  execute,
-  VariableDefinitionNode,
-  DocumentNode,
-  GraphQLBoolean,
-  graphqlSync,
-  GraphQLSchema,
-} from 'graphql';
 
 interface Bird {
   name: string;

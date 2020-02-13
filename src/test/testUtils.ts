@@ -1,8 +1,8 @@
-import { healSchema } from '../utils';
-import { makeExecutableSchema } from '../makeExecutableSchema';
-
 import { expect } from 'chai';
 import { GraphQLObjectType, GraphQLObjectTypeConfig } from 'graphql';
+
+import { healSchema } from '../utils';
+import { makeExecutableSchema } from '../makeExecutableSchema';
 
 describe('heal', () => {
   it('should prune empty types', () => {

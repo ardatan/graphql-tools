@@ -1,12 +1,3 @@
-import {
-  propertySchema,
-  subscriptionSchema,
-  subscriptionPubSubTrigger,
-  subscriptionPubSub,
-  makeSchemaRemoteFromLink
-} from '../test/testingSchemas';
-import { makeRemoteExecutableSchema } from '../stitching';
-
 import { expect } from 'chai';
 import { forAwaitEach } from 'iterall';
 import {
@@ -16,6 +7,15 @@ import {
   parse,
   graphql,
 } from 'graphql';
+
+import { makeRemoteExecutableSchema } from '../stitching';
+import {
+  propertySchema,
+  subscriptionSchema,
+  subscriptionPubSubTrigger,
+  subscriptionPubSub,
+  makeSchemaRemoteFromLink
+} from '../test/testingSchemas';
 
 describe('remote queries', () => {
   let schema: GraphQLSchema;

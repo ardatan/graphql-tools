@@ -1,9 +1,9 @@
+import { GraphQLField, GraphQLSchema } from 'graphql';
+
 import { Request } from '../Interfaces';
 
 import TransformObjectFields from './TransformObjectFields';
 import { Transform } from './transforms';
-
-import { GraphQLField, GraphQLSchema } from 'graphql';
 
 export default class RenameObjectFields implements Transform {
   private readonly transformer: TransformObjectFields;

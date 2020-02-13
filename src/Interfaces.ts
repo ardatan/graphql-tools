@@ -1,6 +1,3 @@
-import { SchemaDirectiveVisitor } from './utils/SchemaDirectiveVisitor';
-import { SchemaVisitor } from './utils/SchemaVisitor';
-
 import {
   GraphQLSchema,
   GraphQLField,
@@ -29,8 +26,10 @@ import {
 } from 'graphql';
 
 import { TypeMap } from 'graphql/type/schema';
-
 import { ApolloLink } from 'apollo-link';
+
+import { SchemaVisitor } from './utils/SchemaVisitor';
+import { SchemaDirectiveVisitor } from './utils/SchemaDirectiveVisitor';
 
 /* TODO: Add documentation */
 

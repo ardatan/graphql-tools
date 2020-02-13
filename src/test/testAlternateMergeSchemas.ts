@@ -1,4 +1,20 @@
 import {
+  graphql,
+  GraphQLSchema,
+  ExecutionResult,
+  subscribe,
+  parse,
+  GraphQLScalarType,
+  FieldNode,
+  printSchema,
+  GraphQLObjectTypeConfig,
+  GraphQLFieldConfig,
+  GraphQLObjectType,
+} from 'graphql';
+import { forAwaitEach } from 'iterall';
+import { expect } from 'chai';
+
+import {
   transformSchema,
   filterSchema,
   RenameTypes,
@@ -31,21 +47,6 @@ import {
   subscriptionPubSubTrigger,
 } from './testingSchemas';
 
-import {
-  graphql,
-  GraphQLSchema,
-  ExecutionResult,
-  subscribe,
-  parse,
-  GraphQLScalarType,
-  FieldNode,
-  printSchema,
-  GraphQLObjectTypeConfig,
-  GraphQLFieldConfig,
-  GraphQLObjectType,
-} from 'graphql';
-import { forAwaitEach } from 'iterall';
-import { expect } from 'chai';
 
 const linkSchema = `
   """

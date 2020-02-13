@@ -1,14 +1,14 @@
-import delegateToSchema from '../stitching/delegateToSchema';
-import mergeSchemas from '../stitching/mergeSchemas';
-import { IResolvers } from '../Interfaces';
-
-import { propertySchema, bookingSchema, sampleData, Property } from './testingSchemas';
-
 import {
   GraphQLSchema,
   graphql
 } from 'graphql';
 import { expect } from 'chai';
+
+import delegateToSchema from '../stitching/delegateToSchema';
+import mergeSchemas from '../stitching/mergeSchemas';
+import { IResolvers } from '../Interfaces';
+
+import { propertySchema, bookingSchema, sampleData, Property } from './testingSchemas';
 
 function findPropertyByLocationName (
   properties: { [key: string]: Property },

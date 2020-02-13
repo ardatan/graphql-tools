@@ -1,18 +1,16 @@
-import { VisitableSchemaType } from '../Interfaces';
-
-import each from './each';
-import valueFromASTUntyped from './valueFromASTUntyped';
-
-import { SchemaVisitor } from './SchemaVisitor';
-import { visitSchema } from './visitSchema';
-
-import { getArgumentValues } from 'graphql/execution/values';
-
 import {
   GraphQLDirective,
   GraphQLSchema,
   DirectiveLocationEnum,
 } from 'graphql';
+import { getArgumentValues } from 'graphql/execution/values';
+
+import { VisitableSchemaType } from '../Interfaces';
+
+import each from './each';
+import valueFromASTUntyped from './valueFromASTUntyped';
+import { SchemaVisitor } from './SchemaVisitor';
+import { visitSchema } from './visitSchema';
 
 const hasOwn = Object.prototype.hasOwnProperty;
 

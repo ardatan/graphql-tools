@@ -1,3 +1,19 @@
+import { forAwaitEach } from 'iterall';
+import { expect } from 'chai';
+import {
+  graphql,
+  GraphQLSchema,
+  GraphQLField,
+  GraphQLObjectType,
+  GraphQLScalarType,
+  subscribe,
+  parse,
+  ExecutionResult,
+  defaultFieldResolver,
+  findDeprecatedUsages,
+  printSchema,
+} from 'graphql';
+
 import mergeSchemas from '../stitching/mergeSchemas';
 import { SchemaDirectiveVisitor } from '../utils/SchemaDirectiveVisitor';
 import { makeExecutableSchema } from '../makeExecutableSchema';
@@ -21,21 +37,6 @@ import {
   subscriptionPubSubTrigger,
 } from './testingSchemas';
 
-import { forAwaitEach } from 'iterall';
-import { expect } from 'chai';
-import {
-  graphql,
-  GraphQLSchema,
-  GraphQLField,
-  GraphQLObjectType,
-  GraphQLScalarType,
-  subscribe,
-  parse,
-  ExecutionResult,
-  defaultFieldResolver,
-  findDeprecatedUsages,
-  printSchema,
-} from 'graphql';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const removeLocations = ({ locations, ...rest }: any): any => ({ ...rest });

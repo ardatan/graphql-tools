@@ -1,9 +1,9 @@
+import { deprecated } from 'deprecated-decorator';
+import { GraphQLSchema, GraphQLFieldResolver } from 'graphql';
+
 import { IConnectors, IConnector, IConnectorCls } from '../Interfaces';
 
 import addSchemaLevelResolver from './addSchemaLevelResolver';
-
-import { deprecated } from 'deprecated-decorator';
-import { GraphQLSchema, GraphQLFieldResolver } from 'graphql';
 
 // takes a GraphQL-JS schema and an object of connectors, then attaches
 // the connectors to the context by wrapping each query or mutation resolve

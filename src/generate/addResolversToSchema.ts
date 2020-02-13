@@ -1,9 +1,19 @@
 import {
+  GraphQLField,
+  GraphQLEnumType,
+  GraphQLScalarType,
+  GraphQLSchema,
+  GraphQLObjectType,
+  GraphQLInterfaceType,
+  isSpecifiedScalarType,
+  GraphQLUnionType,
+} from 'graphql';
+
+import {
   IResolvers,
   IResolverValidationOptions,
   IAddResolversToSchemaOptions,
 } from '../Interfaces';
-
 import {
   parseInputValue,
   serializeInputValue,
@@ -15,17 +25,6 @@ import {
 import SchemaError from './SchemaError';
 import checkForResolveTypeResolver from './checkForResolveTypeResolver';
 import extendResolversFromInterfaces from './extendResolversFromInterfaces';
-
-import {
-  GraphQLField,
-  GraphQLEnumType,
-  GraphQLScalarType,
-  GraphQLSchema,
-  GraphQLObjectType,
-  GraphQLInterfaceType,
-  isSpecifiedScalarType,
-  GraphQLUnionType,
-} from 'graphql';
 
 function addResolversToSchema(
   schemaOrOptions: GraphQLSchema | IAddResolversToSchemaOptions,

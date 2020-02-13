@@ -1,9 +1,9 @@
+import { GraphQLSchema } from 'graphql';
+
 import { Request } from '../Interfaces';
 
 import { Transform } from './transforms';
 import WrapFields from './WrapFields';
-
-import { GraphQLSchema } from 'graphql';
 
 export default class WrapType implements Transform {
   private readonly transformer: Transform;

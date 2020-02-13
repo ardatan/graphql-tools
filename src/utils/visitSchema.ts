@@ -1,17 +1,4 @@
 import {
-  VisitableSchemaType,
-  VisitorSelector,
-  VisitSchemaKind,
-  NamedTypeVisitor,
-  SchemaVisitorMap,
-} from '../Interfaces';
-
-import updateEachKey from './updateEachKey';
-import { healSchema } from './heal';
-import { SchemaVisitor } from './SchemaVisitor';
-import each from './each';
-
-import {
   GraphQLEnumType,
   GraphQLInputObjectType,
   GraphQLInterfaceType,
@@ -24,6 +11,19 @@ import {
   GraphQLNamedType,
   GraphQLInputField,
 } from 'graphql';
+
+import {
+  VisitableSchemaType,
+  VisitorSelector,
+  VisitSchemaKind,
+  NamedTypeVisitor,
+  SchemaVisitorMap,
+} from '../Interfaces';
+
+import updateEachKey from './updateEachKey';
+import { healSchema } from './heal';
+import { SchemaVisitor } from './SchemaVisitor';
+import each from './each';
 
 // Generic function for visiting GraphQLSchema objects.
 export function visitSchema(

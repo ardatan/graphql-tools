@@ -1,7 +1,3 @@
-import { GraphQLSchemaWithTransforms, VisitSchemaKind } from '../Interfaces';
-import { visitSchema } from '../utils/visitSchema';
-import { cloneSchema } from '../utils/clone';
-
 import {
   GraphQLEnumType,
   GraphQLInputObjectType,
@@ -11,6 +7,10 @@ import {
   GraphQLUnionType,
   GraphQLType,
 } from 'graphql';
+
+import { GraphQLSchemaWithTransforms, VisitSchemaKind } from '../Interfaces';
+import { visitSchema } from '../utils/visitSchema';
+import { cloneSchema } from '../utils/clone';
 
 export type RootFieldFilter = (
   operation: 'Query' | 'Mutation' | 'Subscription',

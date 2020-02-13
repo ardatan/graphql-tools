@@ -1,9 +1,9 @@
+import { GraphQLSchema } from 'graphql';
+
 import { Request } from '../Interfaces';
 import { addTypenameToAbstract } from '../stitching/addTypenameToAbstract';
 
 import { Transform } from './transforms';
-
-import { GraphQLSchema } from 'graphql';
 
 export default class AddTypenameToAbstract implements Transform {
   private readonly targetSchema: GraphQLSchema;

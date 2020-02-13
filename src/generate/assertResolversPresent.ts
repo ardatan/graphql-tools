@@ -1,14 +1,14 @@
-import { IResolverValidationOptions } from '../Interfaces';
-import { forEachField } from '../utils';
-
-import SchemaError from './SchemaError';
-
 import {
   GraphQLSchema,
   GraphQLField,
   getNamedType,
   GraphQLScalarType,
 } from 'graphql';
+
+import { IResolverValidationOptions } from '../Interfaces';
+import { forEachField } from '../utils';
+
+import SchemaError from './SchemaError';
 
 function assertResolversPresent(
   schema: GraphQLSchema,

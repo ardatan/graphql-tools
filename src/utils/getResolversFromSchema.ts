@@ -1,8 +1,3 @@
-import { IResolvers } from '../Interfaces';
-
-import isSpecifiedScalarType from './isSpecifiedScalarType';
-import { cloneType } from './clone';
-
 import {
   GraphQLSchema,
   GraphQLScalarType,
@@ -11,6 +6,11 @@ import {
   GraphQLInterfaceType,
   GraphQLUnionType,
 } from 'graphql';
+
+import { IResolvers } from '../Interfaces';
+
+import isSpecifiedScalarType from './isSpecifiedScalarType';
+import { cloneType } from './clone';
 
 export function getResolversFromSchema(schema: GraphQLSchema): IResolvers {
   const resolvers = Object.create({});

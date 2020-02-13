@@ -1,4 +1,22 @@
 import {
+  DocumentNode,
+  GraphQLNamedType,
+  GraphQLObjectType,
+  GraphQLScalarType,
+  GraphQLSchema,
+  extendSchema,
+  getNamedType,
+  isNamedType,
+  parse,
+  Kind,
+  GraphQLDirective,
+  GraphQLInterfaceType,
+  GraphQLUnionType,
+  GraphQLEnumType,
+  ASTNode,
+} from 'graphql';
+
+import {
   OnTypeConflict,
   IResolversParameter,
   isSubschemaConfig,
@@ -22,24 +40,6 @@ import {
 
 import typeFromAST from './typeFromAST';
 import { createMergeInfo, completeMergeInfo } from './mergeInfo';
-
-import {
-  DocumentNode,
-  GraphQLNamedType,
-  GraphQLObjectType,
-  GraphQLScalarType,
-  GraphQLSchema,
-  extendSchema,
-  getNamedType,
-  isNamedType,
-  parse,
-  Kind,
-  GraphQLDirective,
-  GraphQLInterfaceType,
-  GraphQLUnionType,
-  GraphQLEnumType,
-  ASTNode,
-} from 'graphql';
 
 type MergeTypeCandidate = {
   type: GraphQLNamedType;

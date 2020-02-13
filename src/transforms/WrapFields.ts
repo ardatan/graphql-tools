@@ -1,3 +1,8 @@
+import {
+  GraphQLSchema,
+  GraphQLObjectType,
+} from 'graphql';
+
 import { Request } from '../Interfaces';
 import { appendFields, removeFields } from '../utils/fields';
 import { hoistFieldNodes, healSchema } from '../utils';
@@ -5,11 +10,6 @@ import { defaultMergedResolver, createMergedResolver } from '../stitching';
 
 import { Transform } from './transforms';
 import MapFields from './MapFields';
-
-import {
-  GraphQLSchema,
-  GraphQLObjectType,
-} from 'graphql';
 
 export default class WrapFields implements Transform {
   private readonly outerTypeName: string;

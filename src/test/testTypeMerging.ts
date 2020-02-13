@@ -1,14 +1,14 @@
 // The below is meant to be an alternative canonical schema stitching example
 // which relies on type merging.
 
+import { expect } from 'chai';
+import { graphql } from 'graphql';
+
 import {
   mergeSchemas,
   addMocksToSchema,
   makeExecutableSchema,
 } from '../index';
-
-import { expect } from 'chai';
-import { graphql } from 'graphql';
 
 const chirpSchema = makeExecutableSchema({
   typeDefs: `

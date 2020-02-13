@@ -1,13 +1,13 @@
+import DataLoader from 'dataloader';
+import { graphql, GraphQLList } from 'graphql';
+import { expect } from 'chai';
+
 import { makeExecutableSchema } from '../makeExecutableSchema';
 import {
   mergeSchemas,
   delegateToSchema
 } from '../stitching';
 import { IGraphQLToolsResolveInfo } from '../Interfaces';
-
-import DataLoader from 'dataloader';
-import { graphql, GraphQLList } from 'graphql';
-import { expect } from 'chai';
 
 describe('dataloader', () => {
   it('should work', async () => {

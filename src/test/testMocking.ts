@@ -1,3 +1,6 @@
+import { expect } from 'chai';
+import { graphql, GraphQLResolveInfo, GraphQLSchema, GraphQLFieldResolver } from 'graphql';
+
 import { addMocksToSchema, MockList, mockServer } from '../mock';
 import {
   buildSchemaFromTypeDefinitions,
@@ -5,9 +8,6 @@ import {
   makeExecutableSchema,
 } from '../makeExecutableSchema';
 import { IMocks } from '../Interfaces';
-
-import { expect } from 'chai';
-import { graphql, GraphQLResolveInfo, GraphQLSchema, GraphQLFieldResolver } from 'graphql';
 
 describe('Mock', () => {
   const shorthand = `

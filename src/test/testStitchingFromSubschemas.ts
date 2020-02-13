@@ -11,14 +11,14 @@
 // The fragment field is still necessary when working with a remote schema
 // where this is not possible.
 
+import { expect } from 'chai';
+import { graphql } from 'graphql';
+
 import {
   delegateToSchema,
   mergeSchemas,
   addMocksToSchema,
 } from '../index';
-
-import { expect } from 'chai';
-import { graphql } from 'graphql';
 
 const chirpTypeDefs = `
   type Chirp {

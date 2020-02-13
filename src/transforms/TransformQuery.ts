@@ -1,7 +1,3 @@
-import { Request, Result } from '../Interfaces';
-
-import { Transform } from './transforms';
-
 import {
   visit,
   Kind,
@@ -9,6 +5,10 @@ import {
   FragmentDefinitionNode,
   GraphQLError,
 } from 'graphql';
+
+import { Request, Result } from '../Interfaces';
+
+import { Transform } from './transforms';
 
 export type QueryTransformer = (
   selectionSet: SelectionSetNode,

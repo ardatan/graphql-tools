@@ -1,11 +1,3 @@
-import { makeExecutableSchema } from '../makeExecutableSchema';
-import {
-  IResolvers,
-  Fetcher,
-  SubschemaConfig,
-} from '../Interfaces';
-import introspectSchema from '../stitching/introspectSchema';
-
 import { PubSub } from 'graphql-subscriptions';
 import {
   ApolloLink,
@@ -25,6 +17,14 @@ import {
   GraphQLResolveInfo,
 } from 'graphql';
 import { forAwaitEach } from 'iterall';
+
+import introspectSchema from '../stitching/introspectSchema';
+import {
+  IResolvers,
+  Fetcher,
+  SubschemaConfig,
+} from '../Interfaces';
+import { makeExecutableSchema } from '../makeExecutableSchema';
 
 export type Location = {
   name: string;

@@ -1,7 +1,3 @@
-import { Request, MergedTypeInfo } from '../Interfaces';
-
-import { Transform } from './transforms';
-
 import {
   DocumentNode,
   GraphQLSchema,
@@ -12,6 +8,10 @@ import {
   visit,
   visitWithTypeInfo,
 } from 'graphql';
+
+import { Request, MergedTypeInfo } from '../Interfaces';
+
+import { Transform } from './transforms';
 
 export default class AddMergedTypeFragments implements Transform {
   private readonly targetSchema: GraphQLSchema;

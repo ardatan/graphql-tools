@@ -1,4 +1,10 @@
 import {
+  GraphQLSchema,
+  GraphQLFieldResolver,
+  GraphQLObjectType,
+} from 'graphql';
+
+import {
   IResolvers,
   Operation,
   SubschemaConfig,
@@ -7,12 +13,6 @@ import { Transform } from '../transforms';
 
 import delegateToSchema from './delegateToSchema';
 import { makeMergedType } from './makeMergedType';
-
-import {
-  GraphQLSchema,
-  GraphQLFieldResolver,
-  GraphQLObjectType,
-} from 'graphql';
 
 export type Mapping = {
   [typeName: string]: {

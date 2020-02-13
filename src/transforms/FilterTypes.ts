@@ -1,8 +1,8 @@
+import { GraphQLSchema, GraphQLNamedType } from 'graphql';
+
 import { Transform } from '../transforms/transforms';
 import { visitSchema } from '../utils/visitSchema';
 import { VisitSchemaKind } from '../Interfaces';
-
-import { GraphQLSchema, GraphQLNamedType } from 'graphql';
 
 export default class FilterTypes implements Transform {
   private readonly filter: (type: GraphQLNamedType) => boolean;

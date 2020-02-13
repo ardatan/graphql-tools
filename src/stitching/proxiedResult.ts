@@ -1,14 +1,14 @@
-import { SubschemaConfig, IGraphQLToolsResolveInfo } from '../Interfaces';
-import { mergeDeep } from '../utils';
-
-import { handleNull } from './checkResultAndHandleErrors';
-import { relocatedError } from './errors';
-
 import {
   GraphQLError,
   GraphQLSchema,
   responsePathAsArray,
 } from 'graphql';
+
+import { SubschemaConfig, IGraphQLToolsResolveInfo } from '../Interfaces';
+import { mergeDeep } from '../utils';
+
+import { handleNull } from './checkResultAndHandleErrors';
+import { relocatedError } from './errors';
 
 const hasSymbol =
   (typeof global !== 'undefined' && 'Symbol' in global) ||

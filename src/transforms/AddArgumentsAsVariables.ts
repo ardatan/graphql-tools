@@ -1,8 +1,3 @@
-import { Request } from '../Interfaces';
-import { serializeInputValue } from '../utils';
-
-import { Transform } from './transforms';
-
 import {
   ArgumentNode,
   DocumentNode,
@@ -20,6 +15,11 @@ import {
   TypeNode,
   VariableDefinitionNode,
 } from 'graphql';
+
+import { Request } from '../Interfaces';
+import { serializeInputValue } from '../utils';
+
+import { Transform } from './transforms';
 
 export default class AddArgumentsAsVariablesTransform implements Transform {
   private readonly targetSchema: GraphQLSchema;

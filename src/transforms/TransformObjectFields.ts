@@ -1,9 +1,3 @@
-import isEmptyObject from '../utils/isEmptyObject';
-import { Request, VisitSchemaKind } from '../Interfaces';
-import { visitSchema } from '../utils/visitSchema';
-
-import { Transform } from './transforms';
-
 import {
   GraphQLObjectType,
   GraphQLSchema,
@@ -20,6 +14,12 @@ import {
   SelectionNode,
   FragmentDefinitionNode
 } from 'graphql';
+
+import isEmptyObject from '../utils/isEmptyObject';
+import { Request, VisitSchemaKind } from '../Interfaces';
+import { visitSchema } from '../utils/visitSchema';
+
+import { Transform } from './transforms';
 
 export type ObjectFieldTransformer = (
   typeName: string,

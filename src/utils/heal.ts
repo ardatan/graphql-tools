@@ -1,8 +1,3 @@
-import each from './each';
-import updateEachKey from './updateEachKey';
-import { isStub, getBuiltInForStub } from './stub';
-import { cloneSchema } from './clone';
-
 import {
   GraphQLDirective,
   GraphQLEnumType,
@@ -20,6 +15,11 @@ import {
   GraphQLInputType,
   GraphQLOutputType,
 } from 'graphql';
+
+import each from './each';
+import updateEachKey from './updateEachKey';
+import { isStub, getBuiltInForStub } from './stub';
+import { cloneSchema } from './clone';
 
 type NamedTypeMap = {
   [key: string]: GraphQLNamedType;

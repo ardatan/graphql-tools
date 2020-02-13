@@ -1,15 +1,3 @@
-import { buildSchemaFromTypeDefinitions } from './makeExecutableSchema';
-import { forEachField } from './utils';
-
-import {
-  IMocks,
-  IMockServer,
-  IMockOptions,
-  IMockFn,
-  IMockTypeFn,
-  ITypeDefinitions,
-} from './Interfaces';
-
 import {
   graphql,
   GraphQLSchema,
@@ -29,6 +17,18 @@ import {
   GraphQLNullableType,
 } from 'graphql';
 import { v4 as uuid } from 'uuid';
+
+import { buildSchemaFromTypeDefinitions } from './makeExecutableSchema';
+import { forEachField } from './utils';
+
+import {
+  IMocks,
+  IMockServer,
+  IMockOptions,
+  IMockFn,
+  IMockTypeFn,
+  ITypeDefinitions,
+} from './Interfaces';
 
 // This function wraps addMocksToSchema for more convenience
 function mockServer(

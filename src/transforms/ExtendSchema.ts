@@ -1,16 +1,15 @@
-import { IFieldResolver, IResolvers, Request } from '../Interfaces';
-
-import { addResolversToSchema } from '../generate';
-import { defaultMergedResolver } from '../stitching';
-
-import { Transform } from './transforms';
-import MapFields, { FieldNodeTransformerMap } from './MapFields';
-
 import {
   GraphQLSchema,
   extendSchema,
   parse,
 } from 'graphql';
+
+import { IFieldResolver, IResolvers, Request } from '../Interfaces';
+import { addResolversToSchema } from '../generate';
+import { defaultMergedResolver } from '../stitching';
+
+import { Transform } from './transforms';
+import MapFields, { FieldNodeTransformerMap } from './MapFields';
 
 export default class ExtendSchema implements Transform {
   private readonly typeDefs: string | undefined;

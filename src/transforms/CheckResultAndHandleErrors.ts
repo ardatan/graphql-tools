@@ -1,9 +1,9 @@
+import { GraphQLSchema, GraphQLOutputType } from 'graphql';
+
 import { checkResultAndHandleErrors } from '../stitching/checkResultAndHandleErrors';
 import { SubschemaConfig, IGraphQLToolsResolveInfo } from '../Interfaces';
 
 import { Transform } from './transforms';
-
-import { GraphQLSchema, GraphQLOutputType } from 'graphql';
 
 export default class CheckResultAndHandleErrors implements Transform {
   private readonly context?: Record<string, any>;

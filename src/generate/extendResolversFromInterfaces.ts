@@ -1,6 +1,6 @@
-import { IResolvers } from '../Interfaces';
-
 import { GraphQLObjectType, GraphQLSchema } from 'graphql';
+
+import { IResolvers } from '../Interfaces';
 
 function extendResolversFromInterfaces(
   schema: GraphQLSchema,

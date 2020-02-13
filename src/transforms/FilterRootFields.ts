@@ -1,7 +1,7 @@
+import { GraphQLField, GraphQLSchema } from 'graphql';
+
 import { Transform } from './transforms';
 import TransformRootFields from './TransformRootFields';
-
-import { GraphQLField, GraphQLSchema } from 'graphql';
 
 export type RootFilter = (
   operation: 'Query' | 'Mutation' | 'Subscription',

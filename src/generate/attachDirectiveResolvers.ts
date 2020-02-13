@@ -1,7 +1,7 @@
+import { GraphQLSchema, GraphQLField, defaultFieldResolver } from 'graphql';
+
 import { IDirectiveResolvers } from '../Interfaces';
 import { SchemaDirectiveVisitor } from '../utils/SchemaDirectiveVisitor';
-
-import { GraphQLSchema, GraphQLField, defaultFieldResolver } from 'graphql';
 
 function attachDirectiveResolvers(
   schema: GraphQLSchema,

@@ -1,7 +1,7 @@
+import { GraphQLField, GraphQLSchema } from 'graphql';
+
 import { Transform } from './transforms';
 import TransformObjectFields from './TransformObjectFields';
-
-import { GraphQLField, GraphQLSchema } from 'graphql';
 
 export type ObjectFilter = (typeName: string, fieldName: string, field: GraphQLField<any, any>) => boolean;
 

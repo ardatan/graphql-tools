@@ -1,13 +1,4 @@
 import {
-  ICreateRequestFromInfo,
-  Operation,
-  Request,
-  SubschemaConfig,
-  isSubschemaConfig,
-} from '../Interfaces';
-import { serializeInputValue } from '../utils';
-
-import {
   ArgumentNode,
   FieldNode,
   FragmentDefinitionNode,
@@ -29,6 +20,15 @@ import {
   GraphQLType,
   SelectionSetNode,
 } from 'graphql';
+
+import {
+  ICreateRequestFromInfo,
+  Operation,
+  Request,
+  SubschemaConfig,
+  isSubschemaConfig,
+} from '../Interfaces';
+import { serializeInputValue } from '../utils';
 
 export function getDelegatingOperation(
   parentType: GraphQLObjectType,
