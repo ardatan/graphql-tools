@@ -1,8 +1,3 @@
-/* tslint:disable:no-unused-expression */
-
-import { expect } from 'chai';
-import { forAwaitEach } from 'iterall';
-import { GraphQLSchema, ExecutionResult, subscribe, parse, graphql } from 'graphql';
 import {
   propertySchema,
   subscriptionSchema,
@@ -11,6 +6,16 @@ import {
   makeSchemaRemoteFromLink
 } from '../test/testingSchemas';
 import { makeRemoteExecutableSchema } from '../stitching';
+
+import { expect } from 'chai';
+import { forAwaitEach } from 'iterall';
+import {
+  GraphQLSchema,
+  ExecutionResult,
+  subscribe,
+  parse,
+  graphql,
+} from 'graphql';
 
 describe('remote queries', () => {
   let schema: GraphQLSchema;
@@ -83,11 +88,11 @@ describe('remote subscriptions', () => {
       forAwaitEach(results as AsyncIterable<ExecutionResult>, (result: ExecutionResult) => {
         expect(result).to.have.property('data');
         expect(result.data).to.deep.equal(mockNotification);
-        !notificationCnt++ ? done() : null;
-      });
-    }).then(() => {
-      subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification);
-    });
+        if (!notificationCnt++) {
+          done();
+        }
+      }).catch(done);
+    }).then(() => subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification)).catch(done);
   });
 
   it('should work without triggering multiple times per notification', done => {
@@ -111,25 +116,25 @@ describe('remote subscriptions', () => {
         expect(result).to.have.property('data');
         expect(result.data).to.deep.equal(mockNotification);
         notificationCnt++;
-      });
+      }).catch(done);
     });
 
     const sub2 = subscribe(schema, subscription).then(results => {
       forAwaitEach(results as AsyncIterable<ExecutionResult>, (result: ExecutionResult) => {
         expect(result).to.have.property('data');
         expect(result.data).to.deep.equal(mockNotification);
-      });
+      }).catch(done);
     });
 
     Promise.all([sub1, sub2]).then(() => {
-      subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification);
-      subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification);
+      subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification).catch(done);
+      subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification).catch(done);
 
       setTimeout(() => {
         expect(notificationCnt).to.eq(2);
         done();
       }, 0);
-    });
+    }).catch(done);
   });
 });
 

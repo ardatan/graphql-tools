@@ -1,3 +1,8 @@
+import { IResolvers } from '../Interfaces';
+
+import isSpecifiedScalarType from './isSpecifiedScalarType';
+import { cloneType } from './clone';
+
 import {
   GraphQLSchema,
   GraphQLScalarType,
@@ -6,9 +11,6 @@ import {
   GraphQLInterfaceType,
   GraphQLUnionType,
 } from 'graphql';
-import { IResolvers } from '../Interfaces';
-import isSpecifiedScalarType from './isSpecifiedScalarType';
-import { cloneType } from './clone';
 
 export function getResolversFromSchema(schema: GraphQLSchema): IResolvers {
   const resolvers = Object.create({});
@@ -30,13 +32,13 @@ export function getResolversFromSchema(schema: GraphQLSchema): IResolvers {
         resolvers[typeName][value.name] = value.value;
       });
     } else if (type instanceof GraphQLInterfaceType) {
-      if (type.resolveType) {
+      if (type.resolveType != null) {
         resolvers[typeName] = {
           __resolveType: type.resolveType,
         };
       }
     } else if (type instanceof GraphQLUnionType) {
-      if (type.resolveType) {
+      if (type.resolveType != null) {
         resolvers[typeName] = {
           __resolveType: type.resolveType,
         };
@@ -44,7 +46,7 @@ export function getResolversFromSchema(schema: GraphQLSchema): IResolvers {
     } else if (type instanceof GraphQLObjectType) {
       resolvers[typeName] = {};
 
-      if (type.isTypeOf) {
+      if (type.isTypeOf != null) {
         resolvers[typeName].__isTypeOf = type.isTypeOf;
       }
 

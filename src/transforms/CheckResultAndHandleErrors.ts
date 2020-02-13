@@ -1,15 +1,17 @@
-import { GraphQLSchema, GraphQLOutputType } from 'graphql';
 import { checkResultAndHandleErrors } from '../stitching/checkResultAndHandleErrors';
-import { Transform } from './transforms';
 import { SubschemaConfig, IGraphQLToolsResolveInfo } from '../Interfaces';
 
+import { Transform } from './transforms';
+
+import { GraphQLSchema, GraphQLOutputType } from 'graphql';
+
 export default class CheckResultAndHandleErrors implements Transform {
-  private context?: Record<string, any>;
-  private info: IGraphQLToolsResolveInfo;
-  private fieldName?: string;
-  private subschema?: GraphQLSchema | SubschemaConfig;
-  private returnType?: GraphQLOutputType;
-  private typeMerge?: boolean;
+  private readonly context?: Record<string, any>;
+  private readonly info: IGraphQLToolsResolveInfo;
+  private readonly fieldName?: string;
+  private readonly subschema?: GraphQLSchema | SubschemaConfig;
+  private readonly returnType?: GraphQLOutputType;
+  private readonly typeMerge?: boolean;
 
   constructor(
     info: IGraphQLToolsResolveInfo,
@@ -30,7 +32,7 @@ export default class CheckResultAndHandleErrors implements Transform {
   public transformResult(result: any): any {
     return checkResultAndHandleErrors(
       result,
-      this.context,
+      this.context != null ? this.context : {},
       this.info,
       this.fieldName,
       this.subschema,

@@ -1,5 +1,6 @@
-import { defaultFieldResolver, GraphQLFieldResolver } from 'graphql';
 import { ILogger } from '../Interfaces';
+
+import { defaultFieldResolver, GraphQLFieldResolver } from 'graphql';
 
 /*
  * fn: The function to decorate with the logger
@@ -7,13 +8,11 @@ import { ILogger } from '../Interfaces';
  * hint: an optional hint to add to the error's message
  */
 function decorateWithLogger(
-  fn: GraphQLFieldResolver<any, any> | undefined,
+  fn: GraphQLFieldResolver<any, any>,
   logger: ILogger,
   hint: string,
 ): GraphQLFieldResolver<any, any> {
-  if (typeof fn === 'undefined') {
-    fn = defaultFieldResolver;
-  }
+  const resolver = (fn != null) ? fn : defaultFieldResolver;
 
   const logError = (e: Error) => {
     // TODO: clone the error properly
@@ -29,7 +28,7 @@ function decorateWithLogger(
 
   return (root, args, ctx, info) => {
     try {
-      const result = fn(root, args, ctx, info);
+      const result = resolver(root, args, ctx, info);
       // If the resolver returns a Promise log any Promise rejects.
       if (
         result &&

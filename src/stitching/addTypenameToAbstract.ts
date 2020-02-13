@@ -25,7 +25,7 @@ export function addTypenameToAbstract(
         const parentType: GraphQLType = typeInfo.getParentType();
         let selections = node.selections;
         if (
-          parentType &&
+          parentType != null &&
           (parentType instanceof GraphQLInterfaceType ||
             parentType instanceof GraphQLUnionType)
         ) {

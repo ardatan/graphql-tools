@@ -1,5 +1,7 @@
 export function mergeDeep(target: any, ...sources: any): any {
-  let output = Object.assign({}, target);
+  const output = {
+    ...target,
+  };
   sources.forEach((source: any) => {
     if (isObject(target) && isObject(source)) {
       Object.keys(source).forEach(key => {

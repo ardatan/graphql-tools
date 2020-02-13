@@ -1,19 +1,19 @@
-/* tslint:disable:no-unused-expression */
-
-import { expect } from 'chai';
-import {
-  GraphQLSchema,
-  graphql
-} from 'graphql';
-import { propertySchema, bookingSchema, sampleData, Property } from './testingSchemas';
 import delegateToSchema from '../stitching/delegateToSchema';
 import mergeSchemas from '../stitching/mergeSchemas';
 import { IResolvers } from '../Interfaces';
 
+import { propertySchema, bookingSchema, sampleData, Property } from './testingSchemas';
+
+import {
+  GraphQLSchema,
+  graphql
+} from 'graphql';
+import { expect } from 'chai';
+
 function findPropertyByLocationName (
   properties: { [key: string]: Property },
   name: string
-): Property {
+): Property | undefined {
   for (const key of Object.keys(properties)) {
     const property = properties[key];
     if (property.location.name === name) {
@@ -39,10 +39,10 @@ function proxyResolvers (spec: string): IResolvers {
     Booking: {
       property: {
         fragment: '... on Booking { propertyId }',
-        resolve (booking, args, context, info) {
+        resolve (booking, _args, context, info) {
           const delegateFn = spec === 'standalone' ? delegateToSchema :
             info.mergeInfo.delegateToSchema;
-          return delegateFn({
+          return delegateFn?.({
             schema: propertySchema,
             operation: 'query',
             fieldName: 'propertyById',
@@ -56,7 +56,7 @@ function proxyResolvers (spec: string): IResolvers {
     Location: {
       coordinates: {
         fragment: '... on Location { name }',
-        resolve (location, args, context, info) {
+        resolve: location => {
           const name = location.name;
           return findPropertyByLocationName(sampleData.Property, name)
             .location.coordinates;
@@ -78,7 +78,7 @@ const proxyTypeDefs = `
 describe('stitching', () => {
   describe('delegateToSchema', () => {
     ['standalone', 'info.mergeInfo'].forEach(spec => {
-      context(spec, () => {
+      describe(spec, () => {
         let schema: GraphQLSchema;
         before(() => {
           schema = mergeSchemas({

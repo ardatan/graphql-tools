@@ -1,3 +1,8 @@
+import { concatInlineFragments } from '../utils';
+import { Request } from '../Interfaces';
+
+import { Transform } from './transforms';
+
 import {
   DocumentNode,
   GraphQLSchema,
@@ -11,13 +16,10 @@ import {
   visit,
   visitWithTypeInfo,
 } from 'graphql';
-import { Request } from '../Interfaces';
-import { Transform } from './transforms';
-import { concatInlineFragments } from '../utils';
 
 export default class ReplaceFieldWithFragment implements Transform {
-  private targetSchema: GraphQLSchema;
-  private mapping: FieldToFragmentMapping;
+  private readonly targetSchema: GraphQLSchema;
+  private readonly mapping: FieldToFragmentMapping;
 
   constructor(
     targetSchema: GraphQLSchema,
@@ -31,12 +33,14 @@ export default class ReplaceFieldWithFragment implements Transform {
     for (const { field, fragment } of fragments) {
       const parsedFragment = parseFragmentToInlineFragment(fragment);
       const actualTypeName = parsedFragment.typeCondition.name.value;
-      this.mapping[actualTypeName] = this.mapping[actualTypeName] || {};
+      if (this.mapping[actualTypeName] == null) {
+        this.mapping[actualTypeName] = {};
+      }
 
-      if (this.mapping[actualTypeName][field]) {
-        this.mapping[actualTypeName][field].push(parsedFragment);
-      } else {
+      if (this.mapping[actualTypeName][field] == null) {
         this.mapping[actualTypeName][field] = [parsedFragment];
+      } else {
+        this.mapping[actualTypeName][field].push(parsedFragment);
       }
     }
   }
@@ -55,7 +59,7 @@ export default class ReplaceFieldWithFragment implements Transform {
 }
 
 type FieldToFragmentMapping = {
-  [typeName: string]: { [fieldName: string]: InlineFragmentNode[] };
+  [typeName: string]: { [fieldName: string]: Array<InlineFragmentNode> };
 };
 
 function replaceFieldsWithFragments(
@@ -71,16 +75,16 @@ function replaceFieldsWithFragments(
         node: SelectionSetNode,
       ): SelectionSetNode | null | undefined {
         const parentType: GraphQLType = typeInfo.getParentType();
-        if (parentType) {
+        if (parentType != null) {
           const parentTypeName = parentType.name;
           let selections = node.selections;
 
-          if (mapping[parentTypeName]) {
+          if (mapping[parentTypeName] != null) {
             node.selections.forEach(selection => {
               if (selection.kind === Kind.FIELD) {
                 const name = selection.name.value;
                 const fragments = mapping[parentTypeName][name];
-                if (fragments && fragments.length > 0) {
+                if (fragments != null && fragments.length > 0) {
                   const fragment = concatInlineFragments(
                     parentTypeName,
                     fragments,

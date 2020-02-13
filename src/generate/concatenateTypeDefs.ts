@@ -1,13 +1,14 @@
-import { print, DocumentNode } from 'graphql';
 import { ITypedef } from '../Interfaces';
 
 import SchemaError from './SchemaError';
 
+import { print, ASTNode } from 'graphql';
+
 function concatenateTypeDefs(
-  typeDefinitionsAry: ITypedef[],
+  typeDefinitionsAry: Array<ITypedef>,
   calledFunctionRefs = [] as any,
 ): string {
-  let resolvedTypeDefinitions: string[] = [];
+  let resolvedTypeDefinitions: Array<string> = [];
   typeDefinitionsAry.forEach((typeDef: ITypedef) => {
     if (typeof typeDef === 'function') {
       if (calledFunctionRefs.indexOf(typeDef) === -1) {
@@ -18,7 +19,7 @@ function concatenateTypeDefs(
       }
     } else if (typeof typeDef === 'string') {
       resolvedTypeDefinitions.push(typeDef.trim());
-    } else if ((<DocumentNode>typeDef).kind !== undefined) {
+    } else if ((typeDef as ASTNode).kind !== undefined) {
       resolvedTypeDefinitions.push(print(typeDef).trim());
     } else {
       const type = typeof typeDef;
@@ -31,11 +32,10 @@ function concatenateTypeDefs(
 }
 
 function uniq(array: Array<any>): Array<any> {
-  return array.reduce((accumulator, currentValue) => {
-    return accumulator.indexOf(currentValue) === -1
+  return array.reduce((accumulator, currentValue) =>
+    accumulator.indexOf(currentValue) === -1
       ? [...accumulator, currentValue]
-      : accumulator;
-  }, []);
+      : accumulator, []);
 }
 
 export default concatenateTypeDefs;

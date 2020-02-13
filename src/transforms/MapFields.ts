@@ -1,3 +1,7 @@
+import { Request } from '../Interfaces';
+
+import { Transform } from './transforms';
+
 import {
   GraphQLSchema,
   GraphQLType,
@@ -7,12 +11,9 @@ import {
   visit,
   visitWithTypeInfo,
   Kind,
-  SelectionSetNode,
   SelectionNode,
   FragmentDefinitionNode
 } from 'graphql';
-import { Request } from '../Interfaces';
-import { Transform } from './transforms';
 
 export type FieldNodeTransformer = (
   fieldNode: FieldNode,
@@ -26,8 +27,8 @@ export type FieldNodeTransformerMap = {
 };
 
 export default class MapFields implements Transform {
-  private schema: GraphQLSchema;
-  private fieldNodeTransformerMap: FieldNodeTransformerMap;
+  private schema: GraphQLSchema | undefined;
+  private readonly fieldNodeTransformerMap: FieldNodeTransformerMap;
 
   constructor(
     fieldNodeTransformerMap: FieldNodeTransformerMap,
@@ -41,6 +42,10 @@ export default class MapFields implements Transform {
   }
 
   public transformRequest(originalRequest: Request): Request {
+    if (!this.schema) {
+      throw new Error('MapFields transform required initialization with target schema within the transformSchema method.')
+    }
+
     const fragments = {};
     originalRequest.document.definitions.filter(
       def => def.kind === Kind.FRAGMENT_DEFINITION
@@ -70,22 +75,28 @@ function transformDocument(
   const newDocument: DocumentNode = visit(
     document,
     visitWithTypeInfo(typeInfo, {
-      [Kind.SELECTION_SET](node: SelectionSetNode): SelectionSetNode {
-        const parentType: GraphQLType = typeInfo.getParentType();
-        if (parentType) {
+      [Kind.SELECTION_SET]: node => {
+        const parentType: GraphQLType | null | undefined = typeInfo.getParentType();
+        if (parentType != null) {
           const parentTypeName = parentType.name;
+          const fieldNodeTransformers = fieldNodeTransformerMap[parentTypeName];
           let newSelections: Array<SelectionNode> = [];
 
           node.selections.forEach(selection => {
             if (selection.kind === Kind.FIELD) {
               const fieldName = selection.name.value;
 
-              const fieldNodeTransformer =
-                fieldNodeTransformerMap[parentTypeName] && fieldNodeTransformerMap[parentTypeName][fieldName];
-
-              const transformedSelection = fieldNodeTransformer
-                ? fieldNodeTransformer(selection, fragments)
-                : selection;
+              let transformedSelection;
+              if (fieldNodeTransformers != null) {
+                const fieldNodeTransformer = fieldNodeTransformers[fieldName];
+                if (fieldNodeTransformer != null) {
+                  transformedSelection = fieldNodeTransformer(selection, fragments);
+                } else {
+                  transformedSelection = selection;
+                }
+              } else {
+                transformedSelection = selection;
+              }
 
               if (Array.isArray(transformedSelection)) {
                 newSelections = newSelections.concat(transformedSelection);

@@ -1,18 +1,19 @@
 import {
-  FieldNode,
-  SelectionNode,
-  Kind,
-} from 'graphql';
-import {
   SubschemaConfig,
   IGraphQLToolsResolveInfo,
   MergedTypeInfo,
 } from '../Interfaces';
+
 import { mergeProxiedResults } from './proxiedResult';
+
+import {
+  FieldNode,
+  SelectionNode,
+  Kind,
+} from 'graphql';
 
 function buildDelegationPlan(
   mergedTypeInfo: MergedTypeInfo,
-  typeName: string,
   originalSelections: Array<FieldNode>,
   sourceSubschemas: Array<SubschemaConfig>,
   targetSubschemas: Array<SubschemaConfig>,
@@ -51,10 +52,10 @@ function buildDelegationPlan(
     // 2a. use uniqueFields map to assign fields to subschema if one of possible subschemas
 
     const uniqueSubschema: SubschemaConfig = uniqueFields[selection.name.value];
-    if (uniqueSubschema) {
+    if (uniqueSubschema != null) {
       if (proxiableSubschemas.includes(uniqueSubschema)) {
         const existingSubschema = delegationMap.get(uniqueSubschema);
-        if (existingSubschema) {
+        if (existingSubschema != null) {
           existingSubschema.push(selection);
         } else {
           delegationMap.set(uniqueSubschema, [selection]);
@@ -70,10 +71,10 @@ function buildDelegationPlan(
 
       let nonUniqueSubschemas: Array<SubschemaConfig> = nonUniqueFields[selection.name.value];
       nonUniqueSubschemas = nonUniqueSubschemas.filter(s => proxiableSubschemas.includes(s));
-      if (nonUniqueSubschemas) {
+      if (nonUniqueSubschemas != null) {
         const subschemas: Array<SubschemaConfig> = Array.from(delegationMap.keys());
         const existingSubschema = nonUniqueSubschemas.find(s => subschemas.includes(s));
-        if (existingSubschema) {
+        if (existingSubschema != null) {
           delegationMap.get(existingSubschema).push(selection);
         } else {
           delegationMap.set(nonUniqueSubschemas[0], [selection]);
@@ -112,7 +113,7 @@ export function mergeFields(
     unproxiableSelections,
     proxiableSubschemas,
     nonProxiableSubschemas,
-  } = buildDelegationPlan(mergedTypeInfo, typeName, originalSelections, sourceSubschemas, targetSubschemas);
+  } = buildDelegationPlan(mergedTypeInfo, originalSelections, sourceSubschemas, targetSubschemas);
 
   if (!delegationMap.size) {
     return object;

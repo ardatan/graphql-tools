@@ -1,6 +1,7 @@
-import { GraphQLField, GraphQLSchema } from 'graphql';
 import { Transform } from './transforms';
 import TransformRootFields from './TransformRootFields';
+
+import { GraphQLField, GraphQLSchema } from 'graphql';
 
 export type RootFilter = (
   operation: 'Query' | 'Mutation' | 'Subscription',
@@ -9,7 +10,7 @@ export type RootFilter = (
 ) => boolean;
 
 export default class FilterRootFields implements Transform {
-  private transformer: TransformRootFields;
+  private readonly transformer: TransformRootFields;
 
   constructor(filter: RootFilter) {
     this.transformer = new TransformRootFields(
@@ -20,9 +21,9 @@ export default class FilterRootFields implements Transform {
       ) => {
         if (filter(operation, fieldName, field)) {
           return undefined;
-        } else {
-          return null;
         }
+
+        return null;
       },
     );
   }

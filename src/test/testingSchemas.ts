@@ -1,3 +1,17 @@
+import { makeExecutableSchema } from '../makeExecutableSchema';
+import {
+  IResolvers,
+  Fetcher,
+  SubschemaConfig,
+} from '../Interfaces';
+import introspectSchema from '../stitching/introspectSchema';
+
+import { PubSub } from 'graphql-subscriptions';
+import {
+  ApolloLink,
+  Observable,
+  ExecutionResult as LinkExecutionResult,
+} from 'apollo-link';
 import {
   GraphQLSchema,
   graphql,
@@ -7,24 +21,10 @@ import {
   GraphQLScalarType,
   ValueNode,
   ExecutionResult,
-  DocumentNode,
   Source,
   GraphQLResolveInfo,
 } from 'graphql';
-import { ExecutionResultDataDefault } from 'graphql/execution/execute';
-import {
-  ApolloLink,
-  Observable,
-  ExecutionResult as LinkExecutionResult,
-} from 'apollo-link';
-import { makeExecutableSchema } from '../makeExecutableSchema';
-import {
-  IResolvers,
-  Fetcher,
-  SubschemaConfig,
-} from '../Interfaces';
-import introspectSchema from '../stitching/introspectSchema';
-import { PubSub } from 'graphql-subscriptions';
+import { forAwaitEach } from 'iterall';
 
 export type Location = {
   name: string;
@@ -175,7 +175,7 @@ export const sampleData: {
   },
 };
 
-function values<T>(o: { [s: string]: T }): T[] {
+function values<T>(o: { [s: string]: T }): Array<T> {
   return Object.keys(o).map(k => o[k]);
 }
 
@@ -318,20 +318,16 @@ const propertyAddressTypeDefs = `
 
 const propertyResolvers: IResolvers = {
   Query: {
-    propertyById(root, { id }) {
+    propertyById(_root, { id }) {
       return sampleData.Property[id];
     },
 
-    properties(root, { limit }) {
+    properties(_root, { limit }) {
       const list = values(sampleData.Property);
-      if (limit) {
-        return list.slice(0, limit);
-      } else {
-        return list;
-      }
+      return limit ? list.slice(0, limit) : list;
     },
 
-    contextTest(root, args, context) {
+    contextTest(_root, args, context) {
       return JSON.stringify(context[args.key]);
     },
 
@@ -339,38 +335,30 @@ const propertyResolvers: IResolvers = {
       return '1987-09-25T12:00:00';
     },
 
-    jsonTest(root, { input }) {
+    jsonTest(_root, { input }) {
       return input;
     },
 
-    interfaceTest(root, { kind }) {
-      if (kind === 'ONE') {
-        return {
-          kind: 'ONE',
-          testString: 'test',
-          foo: 'foo',
-        };
-      } else {
-        return {
-          kind: 'TWO',
-          testString: 'test',
-          bar: 'bar',
-        };
-      }
+    interfaceTest(_root, { kind }) {
+      return (kind === 'ONE') ? {
+        kind: 'ONE',
+        testString: 'test',
+        foo: 'foo',
+      } : {
+        kind: 'TWO',
+        testString: 'test',
+        bar: 'bar',
+      };
     },
 
-    unionTest(root, { output }) {
-      if (output === 'Interface') {
-        return {
-          kind: 'ONE',
-          testString: 'test',
-          foo: 'foo',
-        };
-      } else {
-        return {
-          someField: 'Bar',
-        };
-      }
+    unionTest(_root, { output }) {
+      return (output === 'Interface') ? {
+        kind: 'ONE',
+        testString: 'test',
+        foo: 'foo',
+      } : {
+        someField: 'Bar',
+      };
     },
 
     errorTest() {
@@ -381,7 +369,7 @@ const propertyResolvers: IResolvers = {
       throw new Error('Sample error non-null!');
     },
 
-    defaultInputTest(parent, { input }) {
+    defaultInputTest(_parent, { input }) {
       return input.test;
     },
   },
@@ -390,21 +378,13 @@ const propertyResolvers: IResolvers = {
 
   TestInterface: {
     __resolveType(obj: any) {
-      if (obj.kind === 'ONE') {
-        return 'TestImpl1';
-      } else {
-        return 'TestImpl2';
-      }
+      return (obj.kind === 'ONE') ? 'TestImpl1' : 'TestImpl2';
     },
   },
 
   TestUnion: {
     __resolveType(obj: any) {
-      if (obj.kind === 'ONE') {
-        return 'TestImpl1';
-      } else {
-        return 'UnionImpl';
-      }
+      return (obj.kind === 'ONE') ? 'TestImpl1' : 'UnionImpl';
     },
   },
 
@@ -419,14 +399,14 @@ const propertyResolvers: IResolvers = {
   },
 };
 
-let DownloadableProduct = `
+const DownloadableProduct = `
   type DownloadableProduct implements Product & Downloadable {
     id: ID!
     url: String!
   }
 `;
 
-let SimpleProduct = `type SimpleProduct implements Product & Sellable {
+const SimpleProduct = `type SimpleProduct implements Product & Sellable {
     id: ID!
     price: Int!
   }
@@ -455,7 +435,7 @@ const productTypeDefs = `
 
 const productResolvers: IResolvers = {
   Query: {
-    products(root) {
+    products(_root) {
       const list = values(sampleData.Product);
       return list;
     },
@@ -463,11 +443,7 @@ const productResolvers: IResolvers = {
 
   Product: {
     __resolveType(obj: any) {
-      if (obj.type === 'simple') {
-        return 'SimpleProduct';
-      } else {
-        return 'DownloadableProduct';
-      }
+      return (obj.type === 'simple') ? 'SimpleProduct' : 'DownloadableProduct';
     },
   },
 };
@@ -542,43 +518,31 @@ const bookingAddressTypeDefs = `
 
 const bookingResolvers: IResolvers = {
   Query: {
-    bookingById(parent, { id }) {
+    bookingById(_parent, { id }) {
       return sampleData.Booking[id];
     },
-    bookingsByPropertyId(parent, { propertyId, limit }) {
+    bookingsByPropertyId(_parent, { propertyId, limit }) {
       const list = values(sampleData.Booking).filter(
         (booking: Booking) => booking.propertyId === propertyId,
       );
-      if (limit) {
-        return list.slice(0, limit);
-      } else {
-        return list;
-      }
+      return limit ? list.slice(0, limit) : list;
     },
-    customerById(parent, { id }) {
+    customerById(_parent, { id }) {
       return sampleData.Customer[id];
     },
-    bookings(parent, { limit }) {
+    bookings(_parent, { limit }) {
       const list = values(sampleData.Booking);
-      if (limit) {
-        return list.slice(0, limit);
-      } else {
-        return list;
-      }
+      return limit ? list.slice(0, limit) : list;
     },
-    customers(parent, { limit }) {
+    customers(_parent, { limit }) {
       const list = values(sampleData.Customer);
-      if (limit) {
-        return list.slice(0, limit);
-      } else {
-        return list;
-      }
+      return limit ? list.slice(0, limit) : list;
     },
   },
 
   Mutation: {
     addBooking(
-      parent,
+      _parent,
       { input: { propertyId, customerId, startTime, endTime } },
     ) {
       return {
@@ -592,7 +556,7 @@ const bookingResolvers: IResolvers = {
   },
 
   Booking: {
-    __isTypeOf(source: Source, context: any, info: GraphQLResolveInfo) {
+    __isTypeOf(source: Source, _context: any, _info: GraphQLResolveInfo) {
       return Object.prototype.hasOwnProperty.call(source, 'id');
     },
     customer(parent: Booking) {
@@ -611,11 +575,7 @@ const bookingResolvers: IResolvers = {
       const list = values(sampleData.Booking).filter(
         (booking: Booking) => booking.customerId === parent.id,
       );
-      if (limit) {
-        return list.slice(0, limit);
-      } else {
-        return list;
-      }
+      return limit ? list.slice(0, limit) : list;
     },
     vehicle(parent: Customer) {
       return sampleData.Vehicle[parent.vehicleId];
@@ -631,9 +591,9 @@ const bookingResolvers: IResolvers = {
         return 'Car';
       } else if (parent.bikeType) {
         return 'Bike';
-      } else {
-        throw new Error('Could not resolve Vehicle type');
       }
+
+      throw new Error('Could not resolve Vehicle type');
     },
   },
 
@@ -660,7 +620,7 @@ export const subscriptionPubSubTrigger = 'pubSubTrigger';
 
 const subscriptionResolvers: IResolvers = {
   Query: {
-    notifications: (root: any) => ({ text: 'Hello world' }),
+    notifications: (_root: any) => ({ text: 'Hello world' }),
   },
   Subscription: {
     notifications: {
@@ -696,7 +656,7 @@ export const subscriptionSchema: GraphQLSchema = makeExecutableSchema({
 });
 
 const hasSubscriptionOperation = ({ query }: { query: any }): boolean => {
-  for (let definition of query.definitions) {
+  for (const definition of query.definitions) {
     if (definition.kind === 'OperationDefinition') {
       const operation = definition.operation;
       if (operation === 'subscription') {
@@ -708,57 +668,46 @@ const hasSubscriptionOperation = ({ query }: { query: any }): boolean => {
 };
 
 function makeLinkFromSchema(schema: GraphQLSchema) {
-  return new ApolloLink(operation => {
-    return new Observable(observer => {
-      (async () => {
-        const { query, operationName, variables } = operation;
-        const { graphqlContext } = operation.getContext();
-        try {
-          if (!hasSubscriptionOperation(operation)) {
-            const result: ExecutionResultDataDefault = await graphql(
-              schema,
-              print(query),
-              null,
-              graphqlContext,
-              variables,
-              operationName,
-            );
-            observer.next(result as LinkExecutionResult);
-            observer.complete();
+  return new ApolloLink(operation => new Observable(observer => {
+      const { query, operationName, variables } = operation;
+      const { graphqlContext } = operation.getContext();
+      if (!hasSubscriptionOperation(operation)) {
+        graphql(
+          schema,
+          print(query),
+          null,
+          graphqlContext,
+          variables,
+          operationName,
+        ).then(result => {
+          observer.next(result);
+          observer.complete();
+        }).catch(err => {
+          observer.error(err);
+        });
+      } else {
+        subscribe(
+          schema,
+          query,
+          null,
+          graphqlContext,
+          variables,
+          operationName,
+        ).then(results => {
+          if (typeof (results as AsyncIterator<ExecutionResult>).next === 'function') {
+            forAwaitEach(
+              (results as AsyncIterable<ExecutionResult>),
+              result => observer.next(result)
+            ).then(() => observer.complete()).catch(err => observer.error(err))
           } else {
-            const result = await subscribe(
-              schema,
-              query as DocumentNode,
-              null,
-              graphqlContext,
-              variables,
-              operationName,
-            );
-            if (
-              typeof (<AsyncIterator<ExecutionResult>>result).next ===
-              'function'
-            ) {
-              while (true) {
-                const next = await (<AsyncIterator<ExecutionResultDataDefault>>(
-                  result
-                )).next();
-                observer.next(next.value as LinkExecutionResult);
-                if (next.done) {
-                  observer.complete();
-                  break;
-                }
-              }
-            } else {
-              observer.next(result as LinkExecutionResult);
-              observer.complete();
-            }
+            observer.next(results as LinkExecutionResult);
+            observer.complete();
           }
-        } catch (error) {
-          observer.error.bind(observer);
-        }
-      })();
-    });
-  });
+        }).catch(err => {
+          observer.error(err);
+        });
+      }
+    }));
 }
 
 export async function makeSchemaRemoteFromLink(schema: GraphQLSchema)
@@ -784,16 +733,14 @@ export async function makeSchemaRemoteFromDispatchedLink(schema: GraphQLSchema)
 // ensure fetcher support exists from the 2.0 api
 async function makeExecutableSchemaFromDispatchedFetcher(schema: GraphQLSchema)
   : Promise<SubschemaConfig> {
-  const fetcher: Fetcher = ({ query, operationName, variables, context }) => {
-    return graphql(
-      schema,
-      print(query),
-      null,
-      context,
-      variables,
-      operationName,
-    );
-  };
+  const fetcher: Fetcher = ({ query, operationName, variables, context }) => graphql(
+    schema,
+    print(query),
+    null,
+    context,
+    variables,
+    operationName,
+  );
 
   const clientSchema = await introspectSchema(fetcher);
   return {

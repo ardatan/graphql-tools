@@ -1,6 +1,14 @@
-import { visit, Kind, SelectionSetNode, FragmentDefinitionNode, GraphQLError } from 'graphql';
-import { Transform } from './transforms';
 import { Request, Result } from '../Interfaces';
+
+import { Transform } from './transforms';
+
+import {
+  visit,
+  Kind,
+  SelectionSetNode,
+  FragmentDefinitionNode,
+  GraphQLError,
+} from 'graphql';
 
 export type QueryTransformer = (
   selectionSet: SelectionSetNode,
@@ -12,11 +20,11 @@ export type ResultTransformer = (result: any) => any;
 export type ErrorPathTransformer = (path: ReadonlyArray<string | number>) => Array<string | number>;
 
 export default class TransformQuery implements Transform {
-  private path: Array<string>;
-  private queryTransformer: QueryTransformer;
-  private resultTransformer: ResultTransformer;
-  private errorPathTransformer: ErrorPathTransformer;
-  private fragments: Record<string, FragmentDefinitionNode>;
+  private readonly path: Array<string>;
+  private readonly queryTransformer: QueryTransformer;
+  private readonly resultTransformer: ResultTransformer;
+  private readonly errorPathTransformer: ErrorPathTransformer;
+  private readonly fragments: Record<string, FragmentDefinitionNode>;
 
   constructor({
     path,
@@ -80,32 +88,33 @@ export default class TransformQuery implements Transform {
     const errors = originalResult.errors;
     return {
       data,
-      errors: errors ? this.transformErrors(errors) : undefined
+      errors: errors != null ? this.transformErrors(errors) : undefined
     };
   }
 
   private transformData(data: any): any {
+    const leafIndex = this.path.length - 1;
     let index = 0;
-    let leafIndex = this.path.length - 1;
-    if (data) {
+    let newData = data;
+    if (newData) {
       let next = this.path[index];
       while (index < leafIndex) {
         if (data[next]) {
-          data = data[next];
+          newData = newData[next];
         } else {
           break;
         }
         index++;
         next = this.path[index];
       }
-      data[next] = this.resultTransformer(data[next]);
+      newData[next] = this.resultTransformer(newData[next]);
     }
-    return data;
+    return newData;
   }
 
   private transformErrors(errors: ReadonlyArray<GraphQLError>): ReadonlyArray<GraphQLError> {
     return errors.map(error => {
-      let path: ReadonlyArray<string | number> = error.path;
+      const path: ReadonlyArray<string | number> = error.path;
 
       let match = true;
       let index = 0;

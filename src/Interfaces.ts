@@ -1,3 +1,6 @@
+import { SchemaDirectiveVisitor } from './utils/SchemaDirectiveVisitor';
+import { SchemaVisitor } from './utils/SchemaVisitor';
+
 import {
   GraphQLSchema,
   GraphQLField,
@@ -27,9 +30,6 @@ import {
 
 import { TypeMap } from 'graphql/type/schema';
 
-import { SchemaDirectiveVisitor } from './utils/SchemaDirectiveVisitor';
-import { SchemaVisitor } from './utils/SchemaVisitor';
-
 import { ApolloLink } from 'apollo-link';
 
 /* TODO: Add documentation */
@@ -47,9 +47,9 @@ export interface IResolverValidationOptions {
 export interface IAddResolveFunctionsToSchemaOptions {
   schema: GraphQLSchema;
   resolvers: IResolvers;
-  defaultFieldResolver?: IFieldResolver<any, any>;
-  resolverValidationOptions?: IResolverValidationOptions;
-  inheritResolversFromInterfaces?: boolean;
+  defaultFieldResolver: IFieldResolver<any, any>;
+  resolverValidationOptions: IResolverValidationOptions;
+  inheritResolversFromInterfaces: boolean;
 }
 
 export interface IAddResolversToSchemaOptions {
@@ -126,7 +126,7 @@ export type SchemaLikeObject =
   Array<GraphQLNamedType>;
 
 export function isSubschemaConfig(value: SchemaLikeObject): value is SubschemaConfig {
-  return !!(value as SubschemaConfig).schema;
+  return Boolean((value as SubschemaConfig).schema);
 }
 
 export interface IDelegateToSchemaOptions<TContext = { [key: string]: any }> {
@@ -206,11 +206,11 @@ export type IFieldResolver<TSource, TContext, TArgs = Record<string, any>> = (
   source: TSource,
   args: TArgs,
   context: TContext,
-  info: GraphQLResolveInfo & { mergeInfo: MergeInfo },
+  info: IGraphQLToolsResolveInfo,
 ) => any;
 
-export type ITypedef = (() => ITypedef[]) | string | DocumentNode;
-export type ITypeDefinitions = ITypedef | ITypedef[];
+export type ITypedef = (() => Array<ITypedef>) | string | DocumentNode;
+export type ITypeDefinitions = ITypedef | Array<ITypedef>;
 export type IResolverObject<TSource = any, TContext = any, TArgs = any> = {
   [key: string]:
     | IFieldResolver<TSource, TContext, TArgs>
@@ -232,12 +232,10 @@ export type IResolversParameter =
   | ((mergeInfo: MergeInfo) => IResolvers);
 
 export interface ILogger {
-  log: (message: string | Error) => void;
+  log: (error: Error) => void;
 }
 
-export interface IConnectorCls<TContext = any> {
-  new (context?: TContext): any;
-}
+export type IConnectorCls<TContext = any> = new (context?: TContext) => any;
 export type IConnectorFn<TContext = any> = (context?: TContext) => any;
 export type IConnector<TContext = any> =
   | IConnectorCls<TContext>
@@ -294,7 +292,7 @@ export type IMockTypeFn = (
 ) => GraphQLFieldResolver<any, any>;
 
 export interface IMockOptions {
-  schema: GraphQLSchema;
+  schema?: GraphQLSchema;
   mocks?: IMocks;
   preserveResolvers?: boolean;
 }
@@ -377,8 +375,63 @@ export enum VisitSchemaKind {
   SUBSCRIPTION = 'VisitSchemaKind.SUBSCRIPTION',
 }
 
-export type SchemaVisitorMap = { [key in VisitSchemaKind]?: TypeVisitor };
-export type TypeVisitor = (
-  type: GraphQLType,
+export interface SchemaVisitorMap {
+  [VisitSchemaKind.TYPE]?: NamedTypeVisitor;
+  [VisitSchemaKind.SCALAR_TYPE]?: ScalarTypeVisitor;
+  [VisitSchemaKind.ENUM_TYPE]?: EnumTypeVisitor;
+  [VisitSchemaKind.COMPOSITE_TYPE]?: CompositeTypeVisitor;
+  [VisitSchemaKind.OBJECT_TYPE]?: ObjectTypeVisitor;
+  [VisitSchemaKind.INPUT_OBJECT_TYPE]?: InputObjectTypeVisitor;
+  [VisitSchemaKind.ABSTRACT_TYPE]?: AbstractTypeVisitor;
+  [VisitSchemaKind.UNION_TYPE]?: UnionTypeVisitor;
+  [VisitSchemaKind.INTERFACE_TYPE]?: InterfaceTypeVisitor;
+  [VisitSchemaKind.ROOT_OBJECT]?: ObjectTypeVisitor;
+  [VisitSchemaKind.QUERY]?: ObjectTypeVisitor;
+  [VisitSchemaKind.MUTATION]?: ObjectTypeVisitor;
+  [VisitSchemaKind.SUBSCRIPTION]?: ObjectTypeVisitor;
+}
+
+export type NamedTypeVisitor = (
+  type: GraphQLNamedType,
   schema: GraphQLSchema,
 ) => GraphQLNamedType | null | undefined;
+
+export type ScalarTypeVisitor = (
+  type: GraphQLScalarType,
+  schema: GraphQLSchema,
+) => GraphQLScalarType | null | undefined;
+
+export type EnumTypeVisitor = (
+  type: GraphQLEnumType,
+  schema: GraphQLSchema,
+) => GraphQLEnumType | null | undefined;
+
+export type CompositeTypeVisitor = (
+  type: GraphQLObjectType | GraphQLInterfaceType | GraphQLUnionType,
+  schema: GraphQLSchema,
+) => GraphQLObjectType | GraphQLInterfaceType | GraphQLUnionType | null | undefined;
+
+export type ObjectTypeVisitor = (
+  type: GraphQLObjectType,
+  schema: GraphQLSchema,
+) => GraphQLObjectType | null | undefined;
+
+export type InputObjectTypeVisitor = (
+  type: GraphQLInputObjectType,
+  schema: GraphQLSchema,
+) => GraphQLInputObjectType | null | undefined;
+
+export type AbstractTypeVisitor = (
+  type: GraphQLInterfaceType | GraphQLUnionType,
+  schema: GraphQLSchema,
+) => GraphQLInterfaceType | GraphQLUnionType | null | undefined;
+
+export type UnionTypeVisitor = (
+  type: GraphQLUnionType,
+  schema: GraphQLSchema,
+) => GraphQLUnionType | null | undefined;
+
+export type InterfaceTypeVisitor = (
+  type: GraphQLInterfaceType,
+  schema: GraphQLSchema,
+) => GraphQLInterfaceType | null | undefined;

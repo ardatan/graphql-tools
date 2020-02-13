@@ -1,3 +1,7 @@
+/* eslint-disable import/no-nodejs-modules */
+
+import { Readable } from 'stream';
+
 import { ApolloLink, Observable, RequestHandler, fromError } from 'apollo-link';
 import {
   serializeFetchParameter,
@@ -15,6 +19,8 @@ import { extractFiles, isExtractableFile as defaultIsExtractableFile } from 'ext
 import KnownLengthFormData, { AppendOptions } from 'form-data';
 import fetch from 'node-fetch';
 
+const hasOwn = Object.prototype.hasOwnProperty;
+
 class FormData extends KnownLengthFormData {
   private hasUnknowableLength: boolean;
 
@@ -23,13 +29,11 @@ class FormData extends KnownLengthFormData {
     this.hasUnknowableLength = false;
   }
 
-  public append(key: string, value: any, options?: AppendOptions | string): void {
-    options = options || {};
-
+  public append(key: string, value: any, optionsOrFilename: AppendOptions | string = {}): void {
     // allow filename as single option
-    if (typeof options === 'string') {
-      options = {filename: options};
-    }
+    const options: AppendOptions = (typeof optionsOrFilename === 'string') ?
+      { filename: optionsOrFilename } :
+      optionsOrFilename;
 
     // empty or either doesn't have path or not an http response
     if (
@@ -37,7 +41,7 @@ class FormData extends KnownLengthFormData {
       !Buffer.isBuffer(value) &&
       typeof value !== 'string' &&
       !value.path &&
-      !(value.readable && value.hasOwnProperty('httpVersion'))
+      !(value.readable && hasOwn.call(value, 'httpVersion'))
     ) {
       this.hasUnknowableLength = true;
     }
@@ -58,30 +62,24 @@ class FormData extends KnownLengthFormData {
       return null;
     }
 
+    // eslint-disable-next-line no-sync
     return super.getLengthSync();
   }
 }
 
-export namespace HttpLink {
-  //TODO Would much rather be able to export directly
-  // tslint:disable-next-line: no-shadowed-variable
-  export interface Function extends UriFunction {}
-  export interface Options extends HttpOptions {
-    /**
-     * If set to true, use the HTTP GET method for query operations. Mutations
-     * will still use the method specified in fetchOptions.method (which defaults
-     * to POST).
-     */
-    useGETForQueries?: boolean;
-    serializer?: (method: string) => any;
-    appendFile?: (form: FormData, index: string, file: File) => void;
-  }
+export type Function = UriFunction;
+export type Options = HttpOptions & {
+  /**
+   * If set to true, use the HTTP GET method for query operations. Mutations
+   * will still use the method specified in fetchOptions.method (which defaults
+   * to POST).
+   */
+  useGETForQueries?: boolean;
+  serializer?: (method: string) => any;
+  appendFile?: (form: FormData, index: string, file: File) => void;
 }
-
 // For backwards compatibility.
-export import FetchOptions = HttpLink.Options;
-export import UriFunction = HttpLink.Function;
-import { Readable } from 'stream';
+export { HttpOptions as FetchOptions };
 
 interface File {
   createReadStream?: () => Readable;
@@ -90,8 +88,8 @@ interface File {
   name?: string;
 }
 
-export const createServerHttpLink = (linkOptions: HttpLink.Options = {}) => {
-  let {
+export const createServerHttpLink = (linkOptions: Options = {}) => {
+  const {
     uri = '/graphql',
     fetch: customFetch = fetch as unknown as WindowOrWorkerGlobalScope['fetch'],
     serializer: customSerializer = defaultSerializer,
@@ -139,7 +137,7 @@ export const createServerHttpLink = (linkOptions: HttpLink.Options = {}) => {
       headers: contextHeaders,
     };
 
-    //uses fallback, link, and then context to build options
+    // uses fallback, link, and then context to build options
     const { options, body } = selectHttpOptionsAndBody(
       operation,
       fallbackHttpConfig,
@@ -151,15 +149,15 @@ export const createServerHttpLink = (linkOptions: HttpLink.Options = {}) => {
     if (!(options as any).signal) {
       const { controller: _controller, signal } = createSignalIfSupported();
       controller = _controller;
-      if (controller) {
+      if (controller as unknown as boolean) {
         (options as any).signal = signal;
       }
     }
 
     // If requested, set method to GET if there are no mutations.
-    const definitionIsMutation = (d: DefinitionNode) => {
-      return d.kind === 'OperationDefinition' && d.operation === 'mutation';
-    };
+    const definitionIsMutation = (d: DefinitionNode) =>
+      d.kind === 'OperationDefinition' && d.operation === 'mutation';
+
     if (
       useGETForQueries &&
       !operation.query.definitions.some(definitionIsMutation)
@@ -176,12 +174,7 @@ export const createServerHttpLink = (linkOptions: HttpLink.Options = {}) => {
     }
 
     return new Observable(observer => {
-      resolvePromises(body, async (object) => {
-        if (object instanceof Promise) {
-          object = await object;
-        }
-        return object;
-      }).then(resolvedBody => {
+      getFinalPromise(body).then(resolvedBody => {
         if (options.method !== 'GET') {
           options.body = customSerializer(resolvedBody, customAppendFile);
           if (options.body instanceof FormData) {
@@ -249,7 +242,7 @@ export const createServerHttpLink = (linkOptions: HttpLink.Options = {}) => {
       return () => {
         // XXX support canceling this request
         // https://developers.google.com/web/updates/2017/09/abortable-fetch
-        if (controller) {
+        if (controller as unknown as boolean) {
           controller.abort();
         }
       };
@@ -273,7 +266,7 @@ function rewriteURIForGET(chosenURI: string, body: Body) {
   if (body.operationName) {
     addQueryParam('operationName', body.operationName);
   }
-  if (body.variables) {
+  if (body.variables != null) {
     let serializedVariables;
     try {
       serializedVariables = serializeFetchParameter(
@@ -285,7 +278,7 @@ function rewriteURIForGET(chosenURI: string, body: Body) {
     }
     addQueryParam('variables', serializedVariables);
   }
-  if (body.extensions) {
+  if (body.extensions != null) {
     let serializedExtensions;
     try {
       serializedExtensions = serializeFetchParameter(
@@ -304,8 +297,8 @@ function rewriteURIForGET(chosenURI: string, body: Body) {
   //     URL API and take a polyfill (whatwg-url@6) for older browsers that
   //     don't support URLSearchParams. Note that some browsers (and
   //     versions of whatwg-url) support URL but not URLSearchParams!
-  let fragment = '',
-    preFragment = chosenURI;
+  let fragment = '';
+  let preFragment = chosenURI;
   const fragmentStart = chosenURI.indexOf('#');
   if (fragmentStart !== -1) {
     fragment = chosenURI.substr(fragmentStart);
@@ -317,42 +310,38 @@ function rewriteURIForGET(chosenURI: string, body: Body) {
   return { newURI };
 }
 
-async function resolvePromises(object: any, resolver: ((o: any) => any)): Promise<any> {
-  if (!object) {
-    return object;
-  }
-
-  if (resolver) {
-    object = await resolver(object);
-  }
-
-  if (Array.isArray(object)) {
-    return object.map(async o => await resolvePromises(o, resolver));
-  } else if (typeof object === 'object') {
-    const keys = Object.keys(object);
-    for (let i = 0; i < keys.length; i++) {
-      const key = keys[i];
-      object[key] = await resolvePromises(object[key], resolver);
+function getFinalPromise(object: any): Promise<any> {
+  return Promise.resolve(object).then(resolvedObject => {
+    if (resolvedObject == null) {
+      return resolvedObject;
     }
-    return object;
-  }
 
-  return object;
+    if (Array.isArray(resolvedObject)) {
+
+      return Promise.all(resolvedObject.map(o => getFinalPromise(o)));
+
+    } else if (typeof resolvedObject === 'object') {
+
+      const keys = Object.keys(resolvedObject);
+      return Promise.all(keys.map(key => getFinalPromise(resolvedObject[key]))).then(awaitedValues => {
+        for (let i = 0; i < keys.length; i++) {
+          resolvedObject[keys[i]] = awaitedValues[i];
+        }
+        return resolvedObject;
+      });
+
+    }
+
+    return resolvedObject;
+  });
 }
 
 function defaultSerializer(
   body: any,
   appendFile: (form: FormData, index: string, file: File) => void,
 ): any {
-  const { clone, files } = extractFiles(body, undefined, (value: any) => {
-    if (
-      defaultIsExtractableFile(value) ||
-      (value && value.createReadStream)
-    ) {
-      return true;
-    }
-    return false;
-  });
+  const { clone, files } = extractFiles(body, undefined, (value: any) =>
+    defaultIsExtractableFile(value) || value?.createReadStream);
 
   const payload = serializeFetchParameter(clone, 'Payload');
 
@@ -377,7 +366,7 @@ function defaultSerializer(
   form.append('map', JSON.stringify(map));
 
   i = 0;
-  files.forEach((paths: Array<string>, file: File) => {
+  files.forEach((_paths: Array<string>, file: File) => {
     appendFile(form, (++i).toString(), file);
   });
 
@@ -385,7 +374,7 @@ function defaultSerializer(
 }
 
 function defaultAppendFile(form: FormData, index: string, file: File) {
-  if (file.createReadStream) {
+  if (file.createReadStream != null) {
     form.append(index, file.createReadStream(), {
       filename: file.filename,
       contentType: file.mimetype,
@@ -397,7 +386,7 @@ function defaultAppendFile(form: FormData, index: string, file: File) {
 
 export class ServerHttpLink extends ApolloLink {
   public requester: RequestHandler;
-  constructor(opts?: HttpLink.Options) {
+  constructor(opts?: HttpOptions) {
     super(createServerHttpLink(opts).request);
   }
 }

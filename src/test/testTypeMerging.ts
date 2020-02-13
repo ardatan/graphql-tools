@@ -1,15 +1,14 @@
-/* tslint:disable:no-unused-expression */
-
 // The below is meant to be an alternative canonical schema stitching example
 // which relies on type merging.
 
-import { expect } from 'chai';
-import { graphql } from 'graphql';
 import {
   mergeSchemas,
   addMocksToSchema,
   makeExecutableSchema,
 } from '../index';
+
+import { expect } from 'chai';
+import { graphql } from 'graphql';
 
 const chirpSchema = makeExecutableSchema({
   typeDefs: `
@@ -86,9 +85,9 @@ describe('merging using type merging', () => {
 
     const result = await graphql(mergedSchema, query);
 
-    expect(result.errors).to.be.undefined;
-    expect(result.data.userById.chirps[1].id).to.not.be.null;
-    expect(result.data.userById.chirps[1].text).to.not.be.null;
-    expect(result.data.userById.chirps[1].author.email).to.not.be.null;
+    expect(result.errors).to.equal(undefined);
+    expect(result.data.userById.chirps[1].id).to.not.equal(null);
+    expect(result.data.userById.chirps[1].text).to.not.equal(null);
+    expect(result.data.userById.chirps[1].author.email).to.not.equal(null);
   });
 });

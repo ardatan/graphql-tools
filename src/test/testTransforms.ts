@@ -1,18 +1,4 @@
-/* tslint:disable:no-unused-expression */
-
-import { expect } from 'chai';
-import {
-  GraphQLSchema,
-  GraphQLNamedType,
-  GraphQLScalarType,
-  graphql,
-  Kind,
-  SelectionSetNode,
-  print,
-  parse,
-} from 'graphql';
 import { makeExecutableSchema } from '../makeExecutableSchema';
-import { propertySchema, bookingSchema } from './testingSchemas';
 import {
   delegateToSchema,
   defaultMergedResolver
@@ -33,10 +19,24 @@ import {
   parseFragmentToInlineFragment
 } from '../utils';
 
+import { propertySchema, bookingSchema } from './testingSchemas';
+
+import { expect } from 'chai';
+import {
+  GraphQLSchema,
+  GraphQLNamedType,
+  GraphQLScalarType,
+  graphql,
+  Kind,
+  SelectionSetNode,
+  print,
+  parse,
+} from 'graphql';
+
 describe('transforms', () => {
   describe('base transform function', () => {
     let schema: GraphQLSchema;
-    let scalarTest = `
+    const scalarTest = `
       scalar TestScalar
       type TestingScalar {
         value: TestScalar
@@ -47,20 +47,18 @@ describe('transforms', () => {
       }
     `;
 
-    let scalarSchema: GraphQLSchema;
-
-    scalarSchema = makeExecutableSchema({
+    const scalarSchema = makeExecutableSchema({
       typeDefs: scalarTest,
       resolvers: {
         TestScalar: new GraphQLScalarType({
           name: 'TestScalar',
           description: undefined,
           serialize: value => (value as string).slice(1),
-          parseValue: value => `_${value}`,
-          parseLiteral: (ast: any) => `_${ast.value}`,
+          parseValue: value => `_${value as string}`,
+          parseLiteral: (ast: any) => `_${ast.value as string}`,
         }),
         Query: {
-          testingScalar(parent, args) {
+          testingScalar(_parent, args) {
             return {
               value: args.input[0] === '_' ? args.input : null
             };
@@ -229,7 +227,7 @@ describe('transforms', () => {
       filter = new FilterToSchema(bookingSchema);
     });
 
-    it('should remove empty selection sets on objects', async () => {
+    it('should remove empty selection sets on objects', () => {
       const query = parse(`
       query customerQuery($id: ID!) {
         customerById(id: $id) {
@@ -259,7 +257,7 @@ describe('transforms', () => {
       expect(print(filteredQuery.document)).to.equal(print(expected));
     });
 
-    it('should also remove variables when removing empty selection sets', async () => {
+    it('should also remove variables when removing empty selection sets', () => {
       const query = parse(`
       query customerQuery($id: ID!, $limit: Int) {
         customerById(id: $id) {
@@ -290,7 +288,7 @@ describe('transforms', () => {
       expect(print(filteredQuery.document)).to.equal(print(expected));
     });
 
-    it('should remove empty selection sets on wrapped objects (non-nullable/lists)', async () => {
+    it('should remove empty selection sets on wrapped objects (non-nullable/lists)', () => {
       const query = parse(`
       query bookingQuery($id: ID!) {
         bookingById(id: $id) {
@@ -377,7 +375,7 @@ describe('transforms', () => {
           }
         `,
       );
-      expect(result.errors).not.to.be.empty;
+      expect(result.errors).to.not.equal(undefined);
       expect(result.errors.length).to.equal(1);
       expect(result.errors[0].message).to.equal(
         'Cannot query field "customer" on type "Booking".'
@@ -443,12 +441,12 @@ describe('transforms', () => {
       `,
         resolvers: {
           Query: {
-            userById(parent, { id }) {
+            userById(_parent, { id }) {
               return data[id];
             },
           },
           Mutation: {
-            setUser(parent, { input }) {
+            setUser(_parent, { input }) {
               if (data[input.id]) {
                 return {
                   ...data[input.id],
@@ -456,7 +454,7 @@ describe('transforms', () => {
                 };
               }
             },
-            setAddress(parent, { input }) {
+            setAddress(_parent, { input }) {
               if (data[input.id]) {
                 return {
                   ...data[input.id].address,
@@ -497,7 +495,7 @@ describe('transforms', () => {
       `,
         resolvers: {
           Query: {
-            addressByUser(parent, { id }, context, info) {
+            addressByUser(_parent, { id }, context, info) {
               return delegateToSchema({
                 schema: subschema,
                 operation: 'query',
@@ -522,14 +520,14 @@ describe('transforms', () => {
                       selectionSet: subtree,
                     }),
                     // how to process the data result at path
-                    result => result && result.address,
+                    result => result?.address,
                   ),
                 ],
               });
             },
           },
           Mutation: {
-            async setUserAndAddress(parent, { input }, context, info) {
+            async setUserAndAddress(_parent, { input }, context, info) {
               const addressResult = await delegateToSchema({
                 schema: subschema,
                 operation: 'mutation',
@@ -673,7 +671,7 @@ describe('transforms', () => {
       `,
         resolvers: {
           Query: {
-            userById(parent, { id }) {
+            userById(_parent, { id }) {
               return data[id];
             },
           }
@@ -697,7 +695,7 @@ describe('transforms', () => {
       `,
         resolvers: {
           Query: {
-            addressByUser(parent, { id }, context, info) {
+            addressByUser(_parent, { id }, context, info) {
               return delegateToSchema({
                 schema: subschema,
                 operation: 'query',
@@ -833,7 +831,7 @@ describe('transforms', () => {
             }
           },
           Query: {
-            userById(parent, { id }) {
+            userById(_parent, { id }) {
               return data[id];
             },
           },
@@ -854,7 +852,7 @@ describe('transforms', () => {
         `,
         resolvers: {
           Query: {
-            addressByUser(parent, { id }, context, info) {
+            addressByUser(_parent, { id }, context, info) {
               return delegateToSchema({
                 schema: subschema,
                 operation: 'query',
@@ -882,13 +880,13 @@ describe('transforms', () => {
                       }],
                     }),
                     // how to process the data result at path
-                    resultTransformer: result => result && result.address,
+                    resultTransformer: result => result?.address,
                     errorPathTransformer: path => path.slice(1),
                   }),
                 ],
               });
             },
-            errorTest(parent, { id }, context, info) {
+            errorTest(_parent, { id }, context, info) {
               return delegateToSchema({
                 schema: subschema,
                 operation: 'query',
@@ -910,7 +908,7 @@ describe('transforms', () => {
                         selectionSet: subtree,
                       }],
                     }),
-                    resultTransformer: result => result && result.address,
+                    resultTransformer: result => result?.address,
                     errorPathTransformer: path => path.slice(1),
                   }),
                 ],
@@ -1046,7 +1044,7 @@ describe('transforms', () => {
         `,
         resolvers: {
           Query: {
-            userById(parent, { id }) {
+            userById(_parent, { id }) {
               return data[id];
             },
           },
@@ -1068,7 +1066,7 @@ describe('transforms', () => {
         `,
         resolvers: {
           Query: {
-            userById(parent, { id }, context, info) {
+            userById(_parent, { id }, context, info) {
               return delegateToSchema({
                 schema: subschema,
                 operation: 'query',
@@ -1079,12 +1077,12 @@ describe('transforms', () => {
                 transforms: [
                   new ReplaceFieldWithFragment(subschema, [
                     {
-                      field: `fullname`,
-                      fragment: `fragment UserName on User { name }`,
+                      field: 'fullname',
+                      fragment: 'fragment UserName on User { name }',
                     },
                     {
-                      field: `fullname`,
-                      fragment: `fragment UserSurname on User { surname }`,
+                      field: 'fullname',
+                      fragment: 'fragment UserSurname on User { surname }',
                     },
                   ]),
                 ],
@@ -1092,8 +1090,8 @@ describe('transforms', () => {
             },
           },
           User: {
-            fullname(parent, args, context, info) {
-              return `${parent.name} ${parent.surname}`;
+            fullname(parent, _args, _context, _info) {
+              return `${parent.name as string} ${parent.surname as string}`;
             },
           },
         },
@@ -1151,7 +1149,7 @@ describe('replaces field with processed fragment node', () => {
       `,
       resolvers: {
         Query: {
-          userById(parent, { id }) {
+          userById(_parent, { id }) {
             return data[id];
           },
         },
@@ -1173,7 +1171,7 @@ describe('replaces field with processed fragment node', () => {
       `,
       resolvers: {
         Query: {
-          userById(parent, { id }, context, info) {
+          userById(_parent, { id }, context, info) {
             return delegateToSchema({
               schema: subschema,
               operation: 'query',
@@ -1187,8 +1185,8 @@ describe('replaces field with processed fragment node', () => {
                     fullname: concatInlineFragments(
                       'User',
                       [
-                        parseFragmentToInlineFragment(`fragment UserName on User { name }`),
-                        parseFragmentToInlineFragment(`fragment UserSurname on User { surname }`),
+                        parseFragmentToInlineFragment('fragment UserName on User { name }'),
+                        parseFragmentToInlineFragment('fragment UserSurname on User { surname }'),
                       ],
                     ),
                   }
@@ -1198,8 +1196,8 @@ describe('replaces field with processed fragment node', () => {
           },
         },
         User: {
-          fullname(parent, args, context, info) {
-            return `${parent.name} ${parent.surname}`;
+          fullname(parent, _args, _context, _info) {
+            return `${parent.name as string} ${parent.surname as string}`;
           },
         },
       },

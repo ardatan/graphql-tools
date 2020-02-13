@@ -1,3 +1,8 @@
+import { Request } from '../Interfaces';
+import { serializeInputValue } from '../utils';
+
+import { Transform } from './transforms';
+
 import {
   ArgumentNode,
   DocumentNode,
@@ -15,13 +20,10 @@ import {
   TypeNode,
   VariableDefinitionNode,
 } from 'graphql';
-import { Request } from '../Interfaces';
-import { Transform } from './transforms';
-import { serializeInputValue } from '../utils';
 
 export default class AddArgumentsAsVariablesTransform implements Transform {
-  private targetSchema: GraphQLSchema;
-  private args: { [key: string]: any };
+  private readonly targetSchema: GraphQLSchema;
+  private readonly args: { [key: string]: any };
 
   constructor(targetSchema: GraphQLSchema, args: { [key: string]: any }) {
     this.targetSchema = targetSchema;
@@ -66,7 +68,8 @@ function addVariablesToRootField(
   const newVariables = {};
 
   const newOperations = operations.map((operation: OperationDefinitionNode) => {
-    let existingVariables = operation.variableDefinitions.map(
+    const originalVariableDefinitions = operation.variableDefinitions;
+    const existingVariables = originalVariableDefinitions.map(
       (variableDefinition: VariableDefinitionNode) =>
         variableDefinition.variable.name.value,
     );
@@ -77,13 +80,13 @@ function addVariablesToRootField(
     const generateVariableName = (argName: string) => {
       let varName;
       do {
-        varName = `_v${variableCounter}_${argName}`;
+        varName = `_v${variableCounter.toString()}_${argName}`;
         variableCounter++;
       } while (existingVariables.indexOf(varName) !== -1);
       return varName;
     };
 
-    let type: GraphQLObjectType;
+    let type: GraphQLObjectType | null | undefined;
     if (operation.operation === 'subscription') {
       type = targetSchema.getSubscriptionType();
     } else if (operation.operation === 'mutation') {
@@ -96,48 +99,53 @@ function addVariablesToRootField(
 
     operation.selectionSet.selections.forEach((selection: SelectionNode) => {
       if (selection.kind === Kind.FIELD) {
-        let newArgs: { [name: string]: ArgumentNode } = {};
-        selection.arguments.forEach((argument: ArgumentNode) => {
-          newArgs[argument.name.value] = argument;
-        });
+        const newArgs: { [name: string]: ArgumentNode } = {};
+        if (selection.arguments != null) {
+          selection.arguments.forEach((argument: ArgumentNode) => {
+            newArgs[argument.name.value] = argument;
+          });
+        }
         const name: string = selection.name.value;
-        const field: GraphQLField<any, any> = type.getFields()[name];
-        field.args.forEach((argument: GraphQLArgument) => {
-          if (argument.name in args) {
-            const variableName = generateVariableName(argument.name);
-            variableNames[argument.name] = variableName;
-            newArgs[argument.name] = {
-              kind: Kind.ARGUMENT,
-              name: {
-                kind: Kind.NAME,
-                value: argument.name,
-              },
-              value: {
-                kind: Kind.VARIABLE,
+
+        if (type != null) {
+          const field: GraphQLField<any, any> = type.getFields()[name];
+          field.args.forEach((argument: GraphQLArgument) => {
+            if (argument.name in args) {
+              const variableName = generateVariableName(argument.name);
+              variableNames[argument.name] = variableName;
+              newArgs[argument.name] = {
+                kind: Kind.ARGUMENT,
                 name: {
                   kind: Kind.NAME,
-                  value: variableName,
+                  value: argument.name,
                 },
-              },
-            };
-            existingVariables.push(variableName);
-            variables[variableName] = {
-              kind: Kind.VARIABLE_DEFINITION,
-              variable: {
-                kind: Kind.VARIABLE,
-                name: {
-                  kind: Kind.NAME,
-                  value: variableName,
+                value: {
+                  kind: Kind.VARIABLE,
+                  name: {
+                    kind: Kind.NAME,
+                    value: variableName,
+                  },
                 },
-              },
-              type: typeToAst(argument.type),
-            };
-            newVariables[variableName] = serializeInputValue(
-              argument.type,
-              args[argument.name],
-            );
-          }
-        });
+              };
+              existingVariables.push(variableName);
+              variables[variableName] = {
+                kind: Kind.VARIABLE_DEFINITION,
+                variable: {
+                  kind: Kind.VARIABLE,
+                  name: {
+                    kind: Kind.NAME,
+                    value: variableName,
+                  },
+                },
+                type: typeToAst(argument.type),
+              };
+              newVariables[variableName] = serializeInputValue(
+                argument.type,
+                args[argument.name],
+              );
+            }
+          });
+        }
 
         newSelectionSet.push({
           ...selection,
@@ -150,7 +158,7 @@ function addVariablesToRootField(
 
     return {
       ...operation,
-      variableDefinitions: operation.variableDefinitions.concat(
+      variableDefinitions: originalVariableDefinitions.concat(
         Object.keys(variables).map(varName => variables[varName]),
       ),
       selectionSet: {
@@ -180,9 +188,8 @@ function typeToAst(type: GraphQLInputType): TypeNode {
         kind: Kind.NON_NULL_TYPE,
         type: innerType,
       };
-    } else {
-      throw new Error('Incorrent inner non-null type');
     }
+    throw new Error('Incorrect inner non-null type');
   } else if (type instanceof GraphQLList) {
     return {
       kind: Kind.LIST_TYPE,

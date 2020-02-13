@@ -1,6 +1,6 @@
-import { GraphQLInterfaceType, GraphQLUnionType, GraphQLSchema } from 'graphql';
-
 import SchemaError from './SchemaError';
+
+import { GraphQLInterfaceType, GraphQLUnionType, GraphQLSchema } from 'graphql';
 
 // If we have any union or interface types throw if no there is no resolveType or isTypeOf resolvers
 function checkForResolveTypeResolver(
@@ -19,20 +19,14 @@ function checkForResolveTypeResolver(
         return;
       }
       if (!type.resolveType) {
-        if (requireResolversForResolveType === false) {
+        if (!requireResolversForResolveType) {
           return;
         }
-        if (requireResolversForResolveType === true) {
-          throw new SchemaError(
-            `Type "${type.name}" is missing a "resolveType" resolver`,
-          );
-        }
-        // tslint:disable-next-line:max-line-length
-        console.warn(
+        throw new SchemaError(
           `Type "${
             type.name
           }" is missing a "__resolveType" resolver. Pass false into `  +
-          `"resolverValidationOptions.requireResolversForResolveType" to disable this warning.`,
+          '"resolverValidationOptions.requireResolversForResolveType" to disable this error.',
         );
       }
     });

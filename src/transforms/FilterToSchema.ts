@@ -1,3 +1,8 @@
+import { Request } from '../Interfaces';
+import implementsAbstractType from '../utils/implementsAbstractType';
+
+import { Transform } from './transforms';
+
 import {
   ArgumentNode,
   DocumentNode,
@@ -20,12 +25,9 @@ import {
   visitWithTypeInfo,
   getNamedType,
 } from 'graphql';
-import { Request } from '../Interfaces';
-import implementsAbstractType from '../utils/implementsAbstractType';
-import { Transform } from './transforms';
 
 export default class FilterToSchema implements Transform {
-  private targetSchema: GraphQLSchema;
+  private readonly targetSchema: GraphQLSchema;
 
   constructor(targetSchema: GraphQLSchema) {
     this.targetSchema = targetSchema;
@@ -149,20 +151,22 @@ function filterToSchema(
 
 function collectFragmentVariables(
   targetSchema: GraphQLSchema,
-  fragmentSet: Object,
+  fragmentSet: object,
   validFragments: Array<FragmentDefinitionNode>,
   validFragmentsWithType: { [name: string]: GraphQLType },
   usedFragments: Array<string>,
 ) {
-  let usedVariables: Array<string> = [];
-  let newFragments: Array<FragmentDefinitionNode> = [];
+  let remainingFragments = usedFragments.slice();
 
-  while (usedFragments.length !== 0) {
-    const nextFragmentName = usedFragments.pop();
+  let usedVariables: Array<string> = [];
+  const newFragments: Array<FragmentDefinitionNode> = [];
+
+  while (remainingFragments.length !== 0) {
+    const nextFragmentName = remainingFragments.pop();
     const fragment = validFragments.find(
       fr => fr.name.value === nextFragmentName,
     );
-    if (fragment) {
+    if (fragment != null) {
       const name = nextFragmentName;
       const typeName = fragment.typeCondition.name.value;
       const type = targetSchema.getType(typeName);
@@ -176,7 +180,7 @@ function collectFragmentVariables(
         validFragmentsWithType,
         fragment.selectionSet,
         );
-      usedFragments = union(usedFragments, fragmentUsedFragments);
+      remainingFragments = union(remainingFragments, fragmentUsedFragments);
       usedVariables = union(usedVariables, fragmentUsedVariables);
 
       if (!fragmentSet[name]) {
@@ -228,11 +232,9 @@ function filterSelectionSet(
             return null;
           }
 
-          const argNames = (field.args || []).map(arg => arg.name);
-          if (node.arguments) {
-            let args = node.arguments.filter((arg: ArgumentNode) => {
-              return argNames.indexOf(arg.name.value) !== -1;
-            });
+          const argNames = (field.args != null ? field.args : []).map(arg => arg.name);
+          if (node.arguments != null) {
+            const args = node.arguments.filter((arg: ArgumentNode) => argNames.indexOf(arg.name.value) !== -1);
             if (args.length !== node.arguments.length) {
               return {
                 ...node,
@@ -248,8 +250,8 @@ function filterSelectionSet(
           resolvedType instanceof GraphQLObjectType ||
           resolvedType instanceof GraphQLInterfaceType
         ) {
-          const selections = node.selectionSet && node.selectionSet.selections || null;
-          if (!selections || selections.length === 0) {
+          const selections = node.selectionSet != null ? node.selectionSet.selections : null;
+          if (selections == null || selections.length === 0) {
             // need to remove any added variables. Is there a better way to do this?
             visit(node, {
               [Kind.VARIABLE](variableNode: VariableNode) {
@@ -271,23 +273,21 @@ function filterSelectionSet(
         const innerType = validFragments[node.name.value];
         if (!implementsAbstractType(schema, parentType, innerType)) {
           return null;
-        } else {
-          usedFragments.push(node.name.value);
-          return;
         }
-      } else {
-        return null;
+
+        usedFragments.push(node.name.value);
+        return;
       }
+
+      return null;
     },
     [Kind.INLINE_FRAGMENT]: {
       enter(node: InlineFragmentNode): null | undefined {
-        if (node.typeCondition) {
+        if (node.typeCondition != null) {
           const parentType = typeInfo.getParentType();
           const innerType = schema.getType(node.typeCondition.name.value);
           if (!implementsAbstractType(schema, parentType, innerType)) {
             return null;
-          } else {
-            return;
           }
         }
       },

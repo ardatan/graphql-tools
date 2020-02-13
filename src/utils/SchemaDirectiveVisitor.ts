@@ -1,15 +1,18 @@
+import { VisitableSchemaType } from '../Interfaces';
+
+import each from './each';
+import valueFromASTUntyped from './valueFromASTUntyped';
+
+import { SchemaVisitor } from './SchemaVisitor';
+import { visitSchema } from './visitSchema';
+
+import { getArgumentValues } from 'graphql/execution/values';
+
 import {
   GraphQLDirective,
   GraphQLSchema,
   DirectiveLocationEnum,
 } from 'graphql';
-
-import { getArgumentValues } from 'graphql/execution/values';
-import each from './each';
-import valueFromASTUntyped from './valueFromASTUntyped';
-import { VisitableSchemaType } from '../Interfaces';
-import { SchemaVisitor } from './SchemaVisitor';
-import { visitSchema } from './visitSchema';
 
 const hasOwn = Object.prototype.hasOwnProperty;
 
@@ -86,7 +89,7 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
   public static getDirectiveDeclaration(
     directiveName: string,
     schema: GraphQLSchema,
-  ): GraphQLDirective {
+  ): GraphQLDirective | null | undefined {
     return schema.getDirective(directiveName);
   }
 
@@ -114,7 +117,7 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
   ): {
     // The visitSchemaDirectives method returns a map from directive names to
     // lists of SchemaDirectiveVisitors created while visiting the schema.
-    [directiveName: string]: SchemaDirectiveVisitor[],
+    [directiveName: string]: Array<SchemaDirectiveVisitor>,
   } {
     // If the schema declares any directives for public consumption, record
     // them here so that we can properly coerce arguments when/if we encounter
@@ -125,7 +128,7 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
     // Map from directive names to lists of SchemaDirectiveVisitor instances
     // created while visiting the schema.
     const createdVisitors: {
-      [directiveName: string]: SchemaDirectiveVisitor[]
+      [directiveName: string]: Array<SchemaDirectiveVisitor>
     } = Object.create(null);
     Object.keys(directiveVisitors).forEach(directiveName => {
       createdVisitors[directiveName] = [];
@@ -134,9 +137,9 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
     function visitorSelector(
       type: VisitableSchemaType,
       methodName: string,
-    ): SchemaDirectiveVisitor[] {
-      const visitors: SchemaDirectiveVisitor[] = [];
-      const directiveNodes = type.astNode && type.astNode.directives;
+    ): Array<SchemaDirectiveVisitor> {
+      const visitors: Array<SchemaDirectiveVisitor> = [];
+      const directiveNodes = (type.astNode != null) ? type.astNode.directives : null;
       if (! directiveNodes) {
         return visitors;
       }
@@ -158,7 +161,7 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
         const decl = declaredDirectives[directiveName];
         let args: { [key: string]: any };
 
-        if (decl) {
+        if (decl != null) {
           // If this directive was explicitly declared, use the declared
           // argument types (and any default values) to check, coerce, and/or
           // supply default values for the given arguments.
@@ -167,9 +170,11 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
           // If this directive was not explicitly declared, just convert the
           // argument nodes to their corresponding JavaScript values.
           args = Object.create(null);
-          directiveNode.arguments.forEach(arg => {
-            args[arg.name.value] = valueFromASTUntyped(arg.value);
-          });
+          if (directiveNode.arguments != null) {
+            directiveNode.arguments.forEach(arg => {
+              args[arg.name.value] = valueFromASTUntyped(arg.value);
+            });
+          }
         }
 
         // As foretold in comments near the top of the visitSchemaDirectives
@@ -221,7 +226,7 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
     // be able to rely on that implementation.
     each(directiveVisitors, (visitorClass, directiveName) => {
       const decl = visitorClass.getDirectiveDeclaration(directiveName, schema);
-      if (decl) {
+      if (decl != null) {
         declaredDirectives[directiveName] = decl;
       }
     });
@@ -274,7 +279,6 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
 
 // Convert a string like "FIELD_DEFINITION" to "visitFieldDefinition".
 function directiveLocationToVisitorMethodName(loc: DirectiveLocationEnum) {
-  return 'visit' + loc.replace(/([^_]*)_?/g, (wholeMatch, part) => {
-    return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
-  });
+  return 'visit' + loc.replace(/([^_]*)_?/g, (_wholeMatch, part: string) =>
+    part.charAt(0).toUpperCase() + part.slice(1).toLowerCase());
 }

@@ -1,12 +1,12 @@
-/* tslint:disable:no-unused-expression */
+import { Request } from '../Interfaces';
+
+import { Transform } from './transforms';
+import WrapFields from './WrapFields';
 
 import { GraphQLSchema } from 'graphql';
-import { Request } from '../Interfaces';
-import { Transform } from './transforms';
-import { default as WrapFields } from './WrapFields';
 
 export default class WrapType implements Transform {
-  private transformer: Transform;
+  private readonly transformer: Transform;
 
   constructor(
     outerTypeName: string,

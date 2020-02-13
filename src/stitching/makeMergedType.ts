@@ -1,11 +1,12 @@
+import defaultMergedResolver from './defaultMergedResolver';
+import resolveFromParentTypename from './resolveFromParentTypename';
+
 import {
   GraphQLType,
   GraphQLObjectType,
   GraphQLInterfaceType,
   GraphQLUnionType,
 } from 'graphql';
-import defaultMergedResolver from './defaultMergedResolver';
-import resolveFromParentTypename from './resolveFromParentTypename';
 
 export function makeMergedType(type: GraphQLType): void {
   if (type instanceof GraphQLObjectType) {

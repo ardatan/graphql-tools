@@ -1,4 +1,13 @@
 import {
+  ICreateRequestFromInfo,
+  Operation,
+  Request,
+  SubschemaConfig,
+  isSubschemaConfig,
+} from '../Interfaces';
+import { serializeInputValue } from '../utils';
+
+import {
   ArgumentNode,
   FieldNode,
   FragmentDefinitionNode,
@@ -21,16 +30,6 @@ import {
   SelectionSetNode,
 } from 'graphql';
 
-import {
-  ICreateRequestFromInfo,
-  Operation,
-  Request,
-  SubschemaConfig,
-  isSubschemaConfig,
-} from '../Interfaces';
-
-import { serializeInputValue } from '../utils';
-
 export function getDelegatingOperation(
   parentType: GraphQLObjectType,
   schema: GraphQLSchema
@@ -39,9 +38,9 @@ export function getDelegatingOperation(
     return 'mutation';
   } else if (parentType === schema.getSubscriptionType()) {
     return 'subscription';
-  } else {
-    return 'query';
   }
+
+  return 'query';
 }
 
 export function createRequestFromInfo({
@@ -63,7 +62,7 @@ export function createRequestFromInfo({
     fieldName,
     args,
     selectionSet,
-    selectionSet ? undefined : (fieldNodes ? fieldNodes : info.fieldNodes),
+    selectionSet != null ? undefined : (fieldNodes != null ? fieldNodes: info.fieldNodes),
   );
 }
 
@@ -81,17 +80,20 @@ export function createRequest(
 ): Request {
   let argumentNodes: ReadonlyArray<ArgumentNode>;
 
-  if (!selectionSet && fieldNodes) {
+  let newSelectionSet: SelectionSetNode = selectionSet;
+  let newVariableDefinitions: ReadonlyArray<VariableDefinitionNode> = variableDefinitions;
+
+  if (!selectionSet && fieldNodes != null) {
     const selections: Array<SelectionNode> = fieldNodes.reduce(
-      (acc, fieldNode) => fieldNode.selectionSet ?
+      (acc, fieldNode) => fieldNode.selectionSet != null ?
         acc.concat(fieldNode.selectionSet.selections) :
         acc,
       [],
     );
 
-    selectionSet = selections.length ? {
+    newSelectionSet = selections.length ? {
       kind: Kind.SELECTION_SET,
-      selections: selections,
+      selections,
     } : undefined;
 
     argumentNodes = fieldNodes[0].arguments;
@@ -106,7 +108,7 @@ export function createRequest(
     variables[varName] = serializeInputValue(varType, variableValues[varName]);
   }
 
-  if (args) {
+  if (args != null) {
     const {
       arguments: updatedArguments,
       variableDefinitions: updatedVariableDefinitions,
@@ -121,7 +123,7 @@ export function createRequest(
       args,
       );
     argumentNodes = updatedArguments;
-    variableDefinitions = updatedVariableDefinitions;
+    newVariableDefinitions = updatedVariableDefinitions;
     variables = updatedVariableValues;
   }
 
@@ -129,7 +131,7 @@ export function createRequest(
     kind: Kind.FIELD,
     alias: null,
     arguments: argumentNodes,
-    selectionSet,
+    selectionSet: newSelectionSet,
     name: {
       kind: Kind.NAME,
       value: targetField || fieldNodes[0].name.value,
@@ -139,7 +141,7 @@ export function createRequest(
   const operationDefinition: OperationDefinitionNode = {
     kind: Kind.OPERATION_DEFINITION,
     operation: targetOperation,
-    variableDefinitions,
+    variableDefinitions: newVariableDefinitions,
     selectionSet: {
       kind: Kind.SELECTION_SET,
       selections: [rootfieldNode],
@@ -186,7 +188,7 @@ function updateArguments(
     type = schema.getQueryType();
   }
 
-  let varNames = variableDefinitions.reduce((acc, def) => {
+  const varNames = variableDefinitions.reduce((acc, def) => {
     acc[def.variable.name.value] = true;
     return acc;
   }, {});
@@ -204,7 +206,7 @@ function updateArguments(
       const argName = argument.name;
       let varName;
       do {
-        varName = `_v${numGeneratedVariables++}_${argName}`;
+        varName = `_v${(numGeneratedVariables++).toString()}_${argName}`;
       } while (varNames[varName]);
 
       updatedArgs[argument.name] = {
@@ -262,13 +264,13 @@ function astFromType(type: GraphQLType): TypeNode {
       kind: Kind.LIST_TYPE,
       type: astFromType(type.ofType),
     };
-  } else {
-    return {
-      kind: Kind.NAMED_TYPE,
-      name: {
-        kind: Kind.NAME,
-        value: type.name,
-      },
-    };
   }
+
+  return {
+    kind: Kind.NAMED_TYPE,
+    name: {
+      kind: Kind.NAME,
+      value: type.name,
+    },
+  };
 }

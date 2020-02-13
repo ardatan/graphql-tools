@@ -1,15 +1,13 @@
-/* tslint:disable:no-unused-expression */
-
-import { expect } from 'chai';
-
 import { makeExecutableSchema } from '../makeExecutableSchema';
 import {
   mergeSchemas,
   delegateToSchema
 } from '../stitching';
-import { graphql, GraphQLList } from 'graphql';
-import DataLoader from 'dataloader';
 import { IGraphQLToolsResolveInfo } from '../Interfaces';
+
+import DataLoader from 'dataloader';
+import { graphql, GraphQLList } from 'graphql';
+import { expect } from 'chai';
 
 describe('dataloader', () => {
   it('should work', async () => {
@@ -26,7 +24,7 @@ describe('dataloader', () => {
       `,
       resolvers: {
         Query: {
-          task: (root, { id }) => ({ id, text: `task ${id}`, userId: id }),
+          task: (_root, { id }) => ({ id, text: `task ${id as string}`, userId: id }),
         }
       },
     });
@@ -43,9 +41,7 @@ describe('dataloader', () => {
       `,
       resolvers: {
         Query: {
-          usersByIds: (root, { ids }) => {
-            return ids.map((id: string) => ({ id, email: `${id}@tasks.com` }));
-          },
+          usersByIds: (_root, { ids }) => ids.map((id: string) => ({ id, email: `${id}@tasks.com` })),
         }
       },
     });
@@ -63,8 +59,8 @@ describe('dataloader', () => {
       resolvers: {
         Task: {
           user: {
-            fragment: `... on Task { userId }`,
-            resolve(task, args, context, info) {
+            fragment: '... on Task { userId }',
+            resolve(task, _args, context, info) {
               return context.usersLoader.load({ id: task.userId, info });
             }
           }
@@ -73,7 +69,7 @@ describe('dataloader', () => {
     });
 
     const usersLoader = new DataLoader(async (keys: Array<{ id: any, info: IGraphQLToolsResolveInfo }>) => {
-      const users = delegateToSchema({
+      const users = await delegateToSchema({
         schema: userSchema,
         operation: 'query',
         fieldName: 'usersByIds',

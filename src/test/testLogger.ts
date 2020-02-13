@@ -1,11 +1,11 @@
-import { assert } from 'chai';
-import { graphql } from 'graphql';
 import { Logger } from '../Logger';
 import { makeExecutableSchema } from '../makeExecutableSchema';
-import 'mocha';
+
+import { assert } from 'chai';
+import { graphql } from 'graphql';
 
 describe('Logger', () => {
-  it('logs the errors', done => {
+  it('logs the errors', () => {
     const shorthand = `
       type RootQuery {
         just_a_field: Int
@@ -39,15 +39,14 @@ describe('Logger', () => {
     const testQuery = 'mutation { species, stuff }';
     const expected0 = 'Error in resolver RootMutation.species\noops!';
     const expected1 = 'Error in resolver RootMutation.stuff\noh noes!';
-    graphql(jsSchema, testQuery).then(() => {
+    return graphql(jsSchema, testQuery).then(() => {
       assert.equal(logger.errors.length, 2);
       assert.equal(logger.errors[0].message, expected0);
       assert.equal(logger.errors[1].message, expected1);
-      done();
     });
   });
 
-  it('also forwards the errors when you tell it to', done => {
+  it('also forwards the errors when you tell it to', () => {
     const shorthand = `
       type RootQuery {
         species(name: String): String
@@ -73,13 +72,12 @@ describe('Logger', () => {
       logger,
     });
     const testQuery = '{ species }';
-    graphql(jsSchema, testQuery).then(() => {
+    return graphql(jsSchema, testQuery).then(() => {
       assert.equal(loggedErr, logger.errors[0]);
-      done();
     });
   });
 
-  it('prints the errors when you want it to', done => {
+  it('prints the errors when you want it to', () => {
     const shorthand = `
       type RootQuery {
         species(name: String): String
@@ -90,7 +88,7 @@ describe('Logger', () => {
     `;
     const resolve = {
       RootQuery: {
-        species: (root: any, { name }: { name: string }) => {
+        species: (_root: any, { name }: { name: string }) => {
           if (name) {
             throw new Error(name);
           }
@@ -105,15 +103,14 @@ describe('Logger', () => {
       logger,
     });
     const testQuery = '{ q: species, p: species(name: "Peter") }';
-    graphql(jsSchema, testQuery).then(() => {
+    return graphql(jsSchema, testQuery).then(() => {
       const allErrors = logger.printAllErrors();
       assert.match(allErrors, /oops/);
       assert.match(allErrors, /Peter/);
-      done();
     });
   });
 
-  it('logs any Promise reject errors', done => {
+  it('logs any Promise reject errors', () => {
     const shorthand = `
       type RootQuery {
         just_a_field: Int
@@ -129,16 +126,12 @@ describe('Logger', () => {
     `;
     const resolve = {
       RootMutation: {
-        species: () => {
-          return new Promise((_, reject) => {
-            reject(new Error('oops!'));
-          });
-        },
-        stuff: () => {
-          return new Promise((_, reject) => {
-            reject(new Error('oh noes!'));
-          });
-        },
+        species: () => new Promise((_, reject) => {
+          reject(new Error('oops!'));
+        }),
+        stuff: () => new Promise((_, reject) => {
+          reject(new Error('oh noes!'));
+        }),
       },
     };
     const logger = new Logger();
@@ -151,15 +144,14 @@ describe('Logger', () => {
     const testQuery = 'mutation { species, stuff }';
     const expected0 = 'Error in resolver RootMutation.species\noops!';
     const expected1 = 'Error in resolver RootMutation.stuff\noh noes!';
-    graphql(jsSchema, testQuery).then(() => {
+    return graphql(jsSchema, testQuery).then(() => {
       assert.equal(logger.errors.length, 2);
       assert.equal(logger.errors[0].message, expected0);
       assert.equal(logger.errors[1].message, expected1);
-      done();
     });
   });
 
-  it('all Promise rejects will log an Error', done => {
+  it('all Promise rejects will log an Error', () => {
     const shorthand = `
       type RootQuery {
         species(name: String): String
@@ -170,11 +162,9 @@ describe('Logger', () => {
     `;
     const resolve = {
       RootQuery: {
-        species: () => {
-          return new Promise((_, reject) => {
-            reject('oops!');
-          });
-        },
+        species: () => new Promise((_, reject) => {
+            reject(new Error('oops!'));
+          }),
       },
     };
 
@@ -189,9 +179,8 @@ describe('Logger', () => {
     });
 
     const testQuery = '{ species }';
-    graphql(jsSchema, testQuery).then(() => {
+    return graphql(jsSchema, testQuery).then(() => {
       assert.equal(loggedErr, logger.errors[0]);
-      done();
     });
   });
 });

@@ -1,4 +1,17 @@
 import {
+  VisitableSchemaType,
+  VisitorSelector,
+  VisitSchemaKind,
+  NamedTypeVisitor,
+  SchemaVisitorMap,
+} from '../Interfaces';
+
+import updateEachKey from './updateEachKey';
+import { healSchema } from './heal';
+import { SchemaVisitor } from './SchemaVisitor';
+import each from './each';
+
+import {
   GraphQLEnumType,
   GraphQLInputObjectType,
   GraphQLInterfaceType,
@@ -8,13 +21,9 @@ import {
   GraphQLUnionType,
   isNamedType,
   GraphQLType,
+  GraphQLNamedType,
+  GraphQLInputField,
 } from 'graphql';
-
-import updateEachKey from './updateEachKey';
-import { VisitableSchemaType, VisitorSelector, VisitSchemaKind, SchemaVisitorMap, TypeVisitor } from '../Interfaces';
-import { healSchema } from './heal';
-import { SchemaVisitor } from './SchemaVisitor';
-import each from './each';
 
 // Generic function for visiting GraphQLSchema objects.
 export function visitSchema(
@@ -35,7 +44,7 @@ export function visitSchema(
   visitorOrVisitorSelector:
     VisitorSelector |
     Array<SchemaVisitor | SchemaVisitorMap> |
-    SchemaVisitorMap |
+    SchemaVisitor |
     SchemaVisitorMap,
 ): GraphQLSchema {
   const visitorSelector =
@@ -48,17 +57,18 @@ export function visitSchema(
   function callMethod<T extends VisitableSchemaType>(
     methodName: string,
     type: T,
-    ...args: any[]
-  ): T {
+    ...args: Array<any>
+  ): T | null {
     let visitors = visitorSelector(type, methodName);
     visitors = Array.isArray(visitors) ? visitors : [visitors];
 
+    let finalType: T | null = type;
     visitors.every(visitorOrVisitorDef => {
       let newType;
       if (visitorOrVisitorDef instanceof SchemaVisitor) {
-        newType = visitorOrVisitorDef[methodName](type, ...args);
+        newType = visitorOrVisitorDef[methodName](finalType, ...args);
       } else if (
-        isNamedType(type) && (
+        isNamedType(finalType) && (
           methodName === 'visitScalar' ||
           methodName === 'visitEnum' ||
           methodName === 'visitObject' ||
@@ -66,9 +76,9 @@ export function visitSchema(
           methodName === 'visitUnion' ||
           methodName === 'visitInterface'
         )) {
-        const specifiers = getTypeSpecifiers(type, schema);
+        const specifiers = getTypeSpecifiers(finalType, schema);
         const typeVisitor = getVisitor(visitorOrVisitorDef, specifiers);
-        newType = typeVisitor ? typeVisitor(type, schema) : undefined;
+        newType = typeVisitor != null ? typeVisitor(finalType, schema) : undefined;
       }
 
       if (typeof newType === 'undefined') {
@@ -77,46 +87,47 @@ export function visitSchema(
       }
 
       if (methodName === 'visitSchema' ||
-          type instanceof GraphQLSchema) {
-        throw new Error(`Method ${methodName} cannot replace schema with ${newType}`);
+          finalType instanceof GraphQLSchema) {
+        throw new Error(`Method ${methodName} cannot replace schema with ${newType as string}`);
       }
 
       if (newType === null) {
         // Stop the loop and return null form callMethod, which will cause
         // the type to be removed from the schema.
-        type = null;
+        finalType = null;
         return false;
       }
 
       // Update type to the new type returned by the visitor method, so that
       // later directives will see the new type, and callMethod will return
       // the final type.
-      type = newType;
+      finalType = newType;
       return true;
     });
 
     // If there were no directives for this type object, or if all visitor
     // methods returned nothing, type will be returned unmodified.
-    return type;
+    return finalType;
   }
 
   // Recursive helper function that calls any appropriate visitor methods for
   // each object in the schema, then traverses the object's children (if any).
-  function visit<T>(type: T): T {
+  function visit<T extends VisitableSchemaType>(type: T): T | null {
     if (type instanceof GraphQLSchema) {
       // Unlike the other types, the root GraphQLSchema object cannot be
       // replaced by visitor methods, because that would make life very hard
       // for SchemaVisitor subclasses that rely on the original schema object.
       callMethod('visitSchema', type);
 
-      each(type.getTypeMap(), (namedType, typeName) => {
-        if (! typeName.startsWith('__')) {
+      const typeMap: Record<string, GraphQLNamedType | null> = type.getTypeMap();
+      each(typeMap, (namedType, typeName) => {
+        if (!typeName.startsWith('__') && namedType != null) {
           // Call visit recursively to let it determine which concrete
           // subclass of GraphQLNamedType we found in the type map.
           // We do not use updateEachKey because we want to preserve
           // deleted types in the typeMap so that other types that reference
           // the deleted types can be healed.
-          type.getTypeMap()[typeName] = visit(namedType);
+          typeMap[typeName] = visit(namedType);
         }
       });
 
@@ -129,7 +140,7 @@ export function visitSchema(
       // type, or if this SchemaDirectiveVisitor subclass does not override
       // the visitObject method.
       const newObject = callMethod('visitObject', type);
-      if (newObject) {
+      if (newObject != null) {
         visitFields(newObject);
       }
       return newObject;
@@ -137,7 +148,7 @@ export function visitSchema(
 
     if (type instanceof GraphQLInterfaceType) {
       const newInterface = callMethod('visitInterface', type);
-      if (newInterface) {
+      if (newInterface != null) {
         visitFields(newInterface);
       }
       return newInterface;
@@ -146,14 +157,14 @@ export function visitSchema(
     if (type instanceof GraphQLInputObjectType) {
       const newInputObject = callMethod('visitInputObject', type);
 
-      if (newInputObject) {
-        updateEachKey(newInputObject.getFields(), field => {
+      if (newInputObject != null) {
+        const fieldMap = newInputObject.getFields() as Record<string, GraphQLInputField>;
+        updateEachKey(fieldMap, field => callMethod('visitInputFieldDefinition', field, {
           // Since we call a different method for input object fields, we
           // can't reuse the visitFields function here.
-          return callMethod('visitInputFieldDefinition', field, {
             objectType: newInputObject,
-          });
-        });
+          })
+        );
       }
 
       return newInputObject;
@@ -170,18 +181,17 @@ export function visitSchema(
     if (type instanceof GraphQLEnumType) {
       const newEnum = callMethod('visitEnum', type);
 
-      if (newEnum) {
-        updateEachKey(newEnum.getValues(), value => {
-          return callMethod('visitEnumValue', value, {
+      if (newEnum != null) {
+        updateEachKey(newEnum.getValues(), value =>
+          callMethod('visitEnumValue', value, {
             enumType: newEnum,
-          });
-        });
+          }));
       }
 
       return newEnum;
     }
 
-    throw new Error(`Unexpected schema type: ${type}`);
+    throw new Error(`Unexpected schema type: ${type as unknown as string}`);
   }
 
   function visitFields(type: GraphQLObjectType | GraphQLInterfaceType) {
@@ -201,17 +211,15 @@ export function visitSchema(
         objectType: type,
       });
 
-      if (newField && newField.args) {
-        updateEachKey(newField.args, arg => {
-          return callMethod('visitArgumentDefinition', arg, {
+      if (newField.args != null) {
+        updateEachKey(newField.args, arg => callMethod('visitArgumentDefinition', arg, {
             // Like visitFieldDefinition, visitArgumentDefinition takes a
             // second parameter that provides additional context, namely the
             // parent .field and grandparent .objectType. Remember that the
             // current GraphQLSchema is always available via this.schema.
             field: newField,
             objectType: type,
-          });
-        });
+          }));
       }
 
       return newField;
@@ -278,13 +286,13 @@ function getTypeSpecifiers(
 function getVisitor(
   visitorDef: SchemaVisitorMap,
   specifiers: Array<VisitSchemaKind>,
-): TypeVisitor {
-  let typeVisitor = null;
+): NamedTypeVisitor | null {
+  let typeVisitor: NamedTypeVisitor | undefined;
   const stack = [...specifiers];
   while (!typeVisitor && stack.length > 0) {
     const next = stack.pop();
-    typeVisitor = visitorDef[next];
+    typeVisitor = visitorDef[next] as NamedTypeVisitor;
   }
 
-  return typeVisitor;
+  return (typeVisitor != null) ? typeVisitor : null;
 }

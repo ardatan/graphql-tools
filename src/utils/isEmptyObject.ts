@@ -1,5 +1,5 @@
-export default function isEmptyObject(obj: Object): boolean {
-  if (!obj) {
+export default function isEmptyObject(obj: Record<string, any>): boolean {
+  if (obj == null) {
     return true;
   }
 

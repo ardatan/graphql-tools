@@ -10,7 +10,7 @@ export function renameFieldNode(fieldNode: FieldNode, name: string): FieldNode {
     ...fieldNode,
     alias: {
       kind: Kind.NAME,
-      value: fieldNode.alias ? fieldNode.alias.value : fieldNode.name.value,
+      value: fieldNode.alias != null ? fieldNode.alias.value : fieldNode.name.value,
     },
     name: {
       kind: Kind.NAME,
@@ -24,7 +24,7 @@ export function preAliasFieldNode(fieldNode: FieldNode, str: string): FieldNode 
     ...fieldNode,
     alias: {
       kind: Kind.NAME,
-      value: `${str}${fieldNode.alias ? fieldNode.alias.value : fieldNode.name.value}`,
+      value: `${str}${fieldNode.alias != null ? fieldNode.alias.value : fieldNode.name.value}`,
     }
   };
 }
@@ -54,40 +54,43 @@ export function wrapFieldNode(
 }
 
 export function collectFields(
-  selectionSet: SelectionSetNode,
+  selectionSet: SelectionSetNode | undefined,
   fragments: Record<string, FragmentDefinitionNode>,
   fields: Array<FieldNode> = [],
   visitedFragmentNames = {}
 ): Array<FieldNode> {
-  selectionSet.selections.forEach(selection => {
-    switch (selection.kind) {
-      case Kind.FIELD:
-        fields.push(selection);
-        break;
-      case Kind.INLINE_FRAGMENT:
-        collectFields(
-          selection.selectionSet,
-          fragments,
-          fields,
-          visitedFragmentNames
-        );
-        break;
-      case Kind.FRAGMENT_SPREAD:
-        const fragmentName = selection.name.value;
-        if (!visitedFragmentNames[fragmentName]) {
-          visitedFragmentNames[fragmentName] = true;
+  if (selectionSet != null) {
+    selectionSet.selections.forEach(selection => {
+      switch (selection.kind) {
+        case Kind.FIELD:
+          fields.push(selection);
+          break;
+        case Kind.INLINE_FRAGMENT:
           collectFields(
-            fragments[fragmentName].selectionSet,
+            selection.selectionSet,
             fragments,
             fields,
             visitedFragmentNames
           );
+          break;
+        case Kind.FRAGMENT_SPREAD: {
+          const fragmentName = selection.name.value;
+          if (!visitedFragmentNames[fragmentName]) {
+            visitedFragmentNames[fragmentName] = true;
+            collectFields(
+              fragments[fragmentName].selectionSet,
+              fragments,
+              fields,
+              visitedFragmentNames
+            );
+          }
+          break;
         }
-        break;
-      default: // unreachable
-        break;
-    }
-  });
+        default: // unreachable
+          break;
+      }
+    });
+  }
 
   return fields;
 }
@@ -105,11 +108,11 @@ export function hoistFieldNodes({
   delimeter?: string;
   fragments: Record<string, FragmentDefinitionNode>;
 }): Array<FieldNode> {
-  const alias = fieldNode.alias ? fieldNode.alias.value : fieldNode.name.value;
+  const alias = fieldNode.alias != null ? fieldNode.alias.value : fieldNode.name.value;
 
   let newFieldNodes: Array<FieldNode> = [];
 
-  if (path && path.length) {
+  if (path.length) {
     const remainingPathSegments = path.slice();
     const initialPathSegment = remainingPathSegments.shift();
 

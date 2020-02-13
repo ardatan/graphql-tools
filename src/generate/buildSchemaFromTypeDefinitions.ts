@@ -4,7 +4,9 @@ import {
   buildASTSchema,
   GraphQLSchema,
   DocumentNode,
+  ASTNode,
 } from 'graphql';
+
 import { ITypeDefinitions, GraphQLParseOptions } from '../Interfaces';
 
 import filterExtensionDefinitions from './filterExtensionDefinitions';
@@ -57,7 +59,7 @@ function buildSchemaFromTypeDefinitions(
 function isDocumentNode(
   typeDefinitions: ITypeDefinitions,
 ): typeDefinitions is DocumentNode {
-  return (<DocumentNode>typeDefinitions).kind !== undefined;
+  return (typeDefinitions as ASTNode).kind !== undefined;
 }
 
 export default buildSchemaFromTypeDefinitions;

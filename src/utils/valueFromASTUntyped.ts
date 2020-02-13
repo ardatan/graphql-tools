@@ -18,12 +18,13 @@ export default function valueFromASTUntyped(
     return valueNode.value;
   case Kind.LIST:
     return valueNode.values.map(valueFromASTUntyped);
-  case Kind.OBJECT:
+  case Kind.OBJECT: {
     const obj = Object.create(null);
     valueNode.fields.forEach(field => {
       obj[field.name.value] = valueFromASTUntyped(field.value);
     });
     return obj;
+  }
   /* istanbul ignore next */
   default:
     throw new Error('Unexpected value kind: ' + valueNode.kind);

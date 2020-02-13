@@ -1,31 +1,26 @@
+import { SubschemaConfig, IGraphQLToolsResolveInfo } from '../Interfaces';
+import { mergeDeep } from '../utils';
+
+import { handleNull } from './checkResultAndHandleErrors';
+import { relocatedError } from './errors';
+
 import {
   GraphQLError,
   GraphQLSchema,
   responsePathAsArray,
 } from 'graphql';
-import { SubschemaConfig, IGraphQLToolsResolveInfo } from '../Interfaces';
-import { handleNull } from './checkResultAndHandleErrors';
-import { relocatedError } from './errors';
-import { mergeDeep } from '../utils';
 
-export let OBJECT_SUBSCHEMA_SYMBOL: any;
-export let FIELD_SUBSCHEMA_MAP_SYMBOL: any;
-export let ERROR_SYMBOL: any;
-if (
+const hasSymbol =
   (typeof global !== 'undefined' && 'Symbol' in global) ||
-  (typeof window !== 'undefined' && 'Symbol' in window)
-) {
-  OBJECT_SUBSCHEMA_SYMBOL = Symbol('initialSubschema');
-  FIELD_SUBSCHEMA_MAP_SYMBOL = Symbol('subschemaMap');
-  ERROR_SYMBOL = Symbol('subschemaErrors');
-} else {
-  OBJECT_SUBSCHEMA_SYMBOL = Symbol('@@__initialSubschema');
-  FIELD_SUBSCHEMA_MAP_SYMBOL = Symbol('@@__subschemaMap');
-  ERROR_SYMBOL = '@@__subschemaErrors';
-}
+  // eslint-disable-next-line no-undef
+  (typeof window !== 'undefined' && 'Symbol' in window);
+
+export const OBJECT_SUBSCHEMA_SYMBOL = hasSymbol ? Symbol('initialSubschema') : '@@__initialSubschema';
+export const FIELD_SUBSCHEMA_MAP_SYMBOL = hasSymbol ? Symbol('subschemaMap') : '@@__subschemaMap';
+export const ERROR_SYMBOL = hasSymbol ? Symbol('subschemaErrors') : '@@__subschemaErrors';
 
 export function isProxiedResult(result: any) {
-  return result && result[ERROR_SYMBOL];
+  return (result != null) ? result[ERROR_SYMBOL] : result;
 }
 
 export function getSubschema(result: any, responseKey: string): GraphQLSchema | SubschemaConfig {
@@ -45,7 +40,7 @@ export function getErrors(
   result: any,
   pathSegment: string
 ): Array<GraphQLError> {
-  const errors = result && result[ERROR_SYMBOL];
+  const errors = (result != null) ? result[ERROR_SYMBOL] : result;
 
   if (!Array.isArray(errors)) {
     return null;
@@ -67,30 +62,30 @@ export function unwrapResult(
   info: IGraphQLToolsResolveInfo,
   path: Array<string>,
 ): any {
+
+  let newParent: any = parent;
   const pathLength = path.length;
   for (let i = 0; i < pathLength; i++) {
     const responseKey = path[i];
-    const errors = getErrors(parent, responseKey);
-    const subschema = getSubschema(parent, responseKey);
+    const errors = getErrors(newParent, responseKey);
+    const subschema = getSubschema(newParent, responseKey);
 
-    const object = parent[responseKey];
+    const object = newParent[responseKey];
     if (object == null) {
       return handleNull(info.fieldNodes, responsePathAsArray(info.path), errors);
     }
 
-    setErrors(object, errors.map(error => {
-      return relocatedError(
-        error,
-        error.nodes,
-        error.path ? error.path.slice(1) : undefined
-      );
-    }));
+    setErrors(object, errors.map(error => relocatedError(
+      error,
+      error.nodes,
+      error.path != null ? error.path.slice(1) : undefined
+    )));
     setObjectSubschema(object, subschema);
 
-    parent = object;
+    newParent = object;
   }
 
-  return parent;
+  return newParent;
 }
 
 export function dehoistResult(parent: any, delimeter: string = '__gqltf__'): any {
@@ -108,14 +103,14 @@ export function dehoistResult(parent: any, delimeter: string = '__gqltf__'): any
   });
 
   result[ERROR_SYMBOL] = parent[ERROR_SYMBOL].map((error: GraphQLError) => {
-    if (error.path) {
-      let path = error.path.slice();
+    if (error.path != null) {
+      const path = error.path.slice();
       const pathSegment = path.shift();
       const expandedPathSegment: Array<string | number> = (pathSegment as string).split(delimeter);
       return relocatedError(error, error.nodes, expandedPathSegment.concat(path));
-    } else {
-      return error;
     }
+
+    return error;
   });
 
   result[OBJECT_SUBSCHEMA_SYMBOL] = parent[OBJECT_SUBSCHEMA_SYMBOL];

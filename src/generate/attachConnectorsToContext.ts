@@ -1,10 +1,9 @@
-import { GraphQLSchema, GraphQLFieldResolver } from 'graphql';
-
-import { deprecated } from 'deprecated-decorator';
-
 import { IConnectors, IConnector, IConnectorCls } from '../Interfaces';
 
 import addSchemaLevelResolver from './addSchemaLevelResolver';
+
+import { deprecated } from 'deprecated-decorator';
+import { GraphQLSchema, GraphQLFieldResolver } from 'graphql';
 
 // takes a GraphQL-JS schema and an object of connectors, then attaches
 // the connectors to the context by wrapping each query or mutation resolve
@@ -15,7 +14,7 @@ const attachConnectorsToContext = deprecated<Function>(
     version: '0.7.0',
     url: 'https://github.com/apollostack/graphql-tools/issues/140',
   },
-  function(schema: GraphQLSchema, connectors: IConnectors): void {
+  (schema: GraphQLSchema, connectors: IConnectors): void => {
     if (!schema || !(schema instanceof GraphQLSchema)) {
       throw new Error(
         'schema must be an instance of GraphQLSchema. ' +
@@ -41,11 +40,7 @@ const attachConnectorsToContext = deprecated<Function>(
       );
     }
     schema['_apolloConnectorsAttached'] = true;
-    const attachconnectorFn: GraphQLFieldResolver<any, any> = (
-      root: any,
-      args: { [key: string]: any },
-      ctx: any,
-    ) => {
+    const attachconnectorFn: GraphQLFieldResolver<any, any> = (root, _args, ctx) => {
       if (typeof ctx !== 'object') {
         // if in any way possible, we should throw an error when the attachconnectors
         // function is called, not when a query is executed.
@@ -58,11 +53,11 @@ const attachConnectorsToContext = deprecated<Function>(
         ctx.connectors = {};
       }
       Object.keys(connectors).forEach(connectorName => {
-        let connector: IConnector = connectors[connectorName];
-        if (!!connector.prototype) {
-          ctx.connectors[connectorName] = new (<IConnectorCls>connector)(ctx);
+        const connector: IConnector = connectors[connectorName];
+        if (connector.prototype != null) {
+          ctx.connectors[connectorName] = new (connector as IConnectorCls)(ctx);
         } else {
-          throw new Error(`Connector must be a function or an class`);
+          throw new Error('Connector must be a function or an class');
         }
       });
       return root;

@@ -29,7 +29,7 @@ export function transformInputValue(type: GraphQLInputType, value: any, transfor
     return newValue;
   }
 
-  //unreachable, no other possible return value
+  // unreachable, no other possible return value
 }
 
 export function serializeInputValue(type: GraphQLInputType, value: any) {

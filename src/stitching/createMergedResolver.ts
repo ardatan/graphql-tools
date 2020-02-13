@@ -1,4 +1,5 @@
 import { IFieldResolver } from '../Interfaces';
+
 import { unwrapResult, dehoistResult } from './proxiedResult';
 import defaultMergedResolver from './defaultMergedResolver';
 
@@ -16,7 +17,7 @@ export function createMergedResolver({
       parent :
       defaultMergedResolver(parent, args, context, info);
 
-  const unwrappingResolver: IFieldResolver<any, any> = fromPath && fromPath.length ?
+  const unwrappingResolver: IFieldResolver<any, any> = fromPath != null ?
     (parent, args, context, info) =>
     parentErrorResolver(unwrapResult(parent, info, fromPath), args, context, info) :
     parentErrorResolver;

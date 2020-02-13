@@ -1,4 +1,29 @@
 import {
+  OnTypeConflict,
+  IResolversParameter,
+  isSubschemaConfig,
+  SchemaLikeObject,
+  IResolvers,
+  SubschemaConfig,
+} from '../Interfaces';
+import {
+  extractExtensionDefinitions,
+  addResolversToSchema,
+} from '../makeExecutableSchema';
+import { wrapSchema } from '../transforms';
+import {
+  SchemaDirectiveVisitor,
+  cloneDirective,
+  healSchema,
+  healTypes,
+  forEachField,
+  mergeDeep,
+} from '../utils';
+
+import typeFromAST from './typeFromAST';
+import { createMergeInfo, completeMergeInfo } from './mergeInfo';
+
+import {
   DocumentNode,
   GraphQLNamedType,
   GraphQLObjectType,
@@ -13,30 +38,8 @@ import {
   GraphQLInterfaceType,
   GraphQLUnionType,
   GraphQLEnumType,
+  ASTNode,
 } from 'graphql';
-import {
-  OnTypeConflict,
-  IResolversParameter,
-  isSubschemaConfig,
-  SchemaLikeObject,
-  IResolvers,
-  SubschemaConfig,
-} from '../Interfaces';
-import {
-  extractExtensionDefinitions,
-  addResolversToSchema,
-} from '../makeExecutableSchema';
-import typeFromAST from './typeFromAST';
-import { wrapSchema } from '../transforms';
-import {
-  SchemaDirectiveVisitor,
-  cloneDirective,
-  healSchema,
-  healTypes,
-  forEachField,
-  mergeDeep,
-} from '../utils';
-import { createMergeInfo, completeMergeInfo } from './mergeInfo';
 
 type MergeTypeCandidate = {
   type: GraphQLNamedType;
@@ -83,7 +86,7 @@ export default function mergeSchemas({
   if (typeDefs) {
     schemas.push(typeDefs);
   }
-  if (types) {
+  if (types != null) {
     schemas.push(types);
   }
   schemas = [...schemas, ...schemaLikeObjects];
@@ -138,15 +141,15 @@ export default function mergeSchemas({
       });
     } else if (
       typeof schemaLikeObject === 'string' ||
-      (schemaLikeObject && (schemaLikeObject as DocumentNode).kind === Kind.DOCUMENT)
+      (schemaLikeObject != null && (schemaLikeObject as ASTNode).kind === Kind.DOCUMENT)
     ) {
-      let parsedSchemaDocument =
+      const parsedSchemaDocument =
         typeof schemaLikeObject === 'string' ? parse(schemaLikeObject) : (schemaLikeObject as DocumentNode);
       parsedSchemaDocument.definitions.forEach(def => {
         const type = typeFromAST(def);
         if (type instanceof GraphQLDirective && mergeDirectives) {
           directives.push(type);
-        } else if (type && !(type instanceof GraphQLDirective)) {
+        } else if (type != null && !(type instanceof GraphQLDirective)) {
           addTypeCandidate(typeCandidates, type.name, {
             type,
           });
@@ -166,35 +169,30 @@ export default function mergeSchemas({
         });
       });
     } else {
-      throw new Error(`Invalid schema passed`);
+      throw new Error('Invalid schema passed');
     }
   });
 
   let mergeInfo = createMergeInfo(allSchemas, typeCandidates, mergeTypes);
 
+  let finalResolvers: IResolvers;
   if (typeof resolvers === 'function') {
-    console.warn(
-      'Passing functions as resolver parameter is deprecated. Use `info.mergeInfo` instead.',
-    );
-    resolvers = resolvers(mergeInfo) || {};
+    finalResolvers = resolvers(mergeInfo);
   } else if (Array.isArray(resolvers)) {
-    resolvers = resolvers.reduce((left, right) => {
-      if (typeof right === 'function') {
-        console.warn(
-          'Passing functions as resolver parameter is deprecated. Use `info.mergeInfo` instead.',
-        );
-        right = right(mergeInfo);
-      }
-      return mergeDeep(left, right);
-    }, {}) || {};
-    if (!resolvers) {
-      resolvers = {};
-    } else if (Array.isArray(resolvers)) {
-      resolvers = resolvers.reduce(mergeDeep, {});
+    finalResolvers = resolvers.reduce((left, right) =>
+      mergeDeep(left, (typeof right === 'function') ? right(mergeInfo) : right), {});
+    if (Array.isArray(resolvers)) {
+      finalResolvers = resolvers.reduce(mergeDeep, {});
     }
+  } else {
+    finalResolvers = resolvers;
   }
 
-  mergeInfo = completeMergeInfo(mergeInfo, resolvers);
+  if (finalResolvers == null) {
+    finalResolvers = {};
+  }
+
+  mergeInfo = completeMergeInfo(mergeInfo, finalResolvers);
 
   Object.keys(typeCandidates).forEach(typeName => {
     if (
@@ -204,13 +202,13 @@ export default function mergeSchemas({
         typeName === 'Subscription' ||
         (mergeTypes === true && !(typeCandidates[typeName][0].type instanceof GraphQLScalarType)) ||
         (typeof mergeTypes === 'function') && mergeTypes(typeName, typeCandidates[typeName]) ||
-        Array.isArray(mergeTypes) && mergeTypes.includes(typeName) ||
-        mergeInfo.mergedTypes[typeName]
+        (Array.isArray(mergeTypes) && mergeTypes.includes(typeName)) ||
+        mergeInfo.mergedTypes[typeName] != null
       )
     ) {
       typeMap[typeName] = merge(typeName, typeCandidates[typeName]);
     } else {
-      const candidateSelector = onTypeConflict ?
+      const candidateSelector = onTypeConflict != null ?
         onTypeConflictToCandidateSelector(onTypeConflict) :
         (cands: Array<MergeTypeCandidate>) => cands[cands.length - 1];
       typeMap[typeName] = candidateSelector(typeCandidates[typeName]).type;
@@ -237,19 +235,19 @@ export default function mergeSchemas({
 
   addResolversToSchema({
     schema: mergedSchema,
-    resolvers: resolvers as IResolvers,
+    resolvers: finalResolvers,
     inheritResolversFromInterfaces
   });
 
   forEachField(mergedSchema, field => {
-    if (field.resolve) {
+    if (field.resolve != null) {
       const fieldResolver = field.resolve;
       field.resolve = (parent, args, context, info) => {
         const newInfo = { ...info, mergeInfo };
         return fieldResolver(parent, args, context, newInfo);
       };
     }
-    if (field.subscribe) {
+    if (field.subscribe != null) {
       const fieldResolver = field.subscribe;
       field.subscribe = (parent, args, context, info) => {
         const newInfo = { ...info, mergeInfo };
@@ -258,7 +256,7 @@ export default function mergeSchemas({
     }
   });
 
-  if (schemaDirectives) {
+  if (schemaDirectives != null) {
     SchemaDirectiveVisitor.visitSchemaDirectives(
       mergedSchema,
       schemaDirectives,
@@ -296,12 +294,11 @@ function onTypeConflictToCandidateSelector(onTypeConflict: OnTypeConflict): Cand
         return prev;
       } else if (next.type === type) {
         return next;
-      } else {
-        return {
-          schemaName: 'unknown',
-          type
-        };
       }
+      return {
+        schemaName: 'unknown',
+        type
+      };
     });
 }
 
@@ -319,7 +316,7 @@ function merge(typeName: string, candidates: Array<MergeTypeCandidate>): GraphQL
       }), {}),
       interfaces: candidates.reduce((acc, candidate) => {
         const interfaces = (candidate.type as GraphQLObjectType).toConfig().interfaces;
-        return interfaces ? acc.concat(interfaces) : acc;
+        return (interfaces != null) ? acc.concat(interfaces) : acc;
       }, []),
     });
   } else if (initialCandidateType instanceof GraphQLInterfaceType) {
@@ -334,7 +331,7 @@ function merge(typeName: string, candidates: Array<MergeTypeCandidate>): GraphQL
     return new GraphQLUnionType({
       name: typeName,
       types: candidates.reduce(
-        (acc, candidate) => (candidate.type as GraphQLUnionType).toConfig().types,
+        (acc, candidate) => acc.concat((candidate.type as GraphQLUnionType).toConfig().types),
         [],
       ),
     });

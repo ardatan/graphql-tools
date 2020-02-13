@@ -1,12 +1,14 @@
+import { IResolverValidationOptions } from '../Interfaces';
+import { forEachField } from '../utils';
+
+import SchemaError from './SchemaError';
+
 import {
   GraphQLSchema,
   GraphQLField,
   getNamedType,
   GraphQLScalarType,
 } from 'graphql';
-import { IResolverValidationOptions } from '../Interfaces';
-import { forEachField } from '../utils';
-import SchemaError from './SchemaError';
 
 function assertResolversPresent(
   schema: GraphQLSchema,
@@ -56,8 +58,8 @@ function expectResolver(
   fieldName: string,
 ) {
   if (!field.resolve) {
+    // eslint-disable-next-line no-console
     console.warn(
-      // tslint:disable-next-line: max-line-length
       `Resolver missing for "${typeName}.${fieldName}". To disable this warning check https://github.com/apollostack/graphql-tools/issues/131`,
     );
     return;

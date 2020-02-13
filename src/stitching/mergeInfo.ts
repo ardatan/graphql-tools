@@ -1,13 +1,4 @@
 import {
-  GraphQLNamedType,
-  GraphQLObjectType,
-  GraphQLScalarType,
-  GraphQLSchema,
-  Kind,
-  SelectionNode,
-  SelectionSetNode,
-} from 'graphql';
-import {
   IDelegateToSchemaOptions,
   MergeInfo,
   IResolversParameter,
@@ -16,7 +7,6 @@ import {
   IGraphQLToolsResolveInfo,
   MergedTypeInfo,
 } from '../Interfaces';
-import delegateToSchema from './delegateToSchema';
 import {
   Transform,
   ExpandAbstractTypes,
@@ -28,6 +18,18 @@ import {
   typeContainsSelectionSet,
   parseSelectionSet,
 } from '../utils';
+
+import delegateToSchema from './delegateToSchema';
+
+import {
+  GraphQLNamedType,
+  GraphQLObjectType,
+  GraphQLScalarType,
+  GraphQLSchema,
+  Kind,
+  SelectionNode,
+  SelectionSetNode,
+} from 'graphql';
 import { TypeMap } from 'graphql/type/schema';
 
 type MergeTypeCandidate = {
@@ -50,12 +52,8 @@ export function createMergeInfo(
       args: { [key: string]: any },
       context: { [key: string]: any },
       info: IGraphQLToolsResolveInfo,
-      transforms?: Array<Transform>,
+      transforms: Array<Transform> = [],
     ) {
-      console.warn(
-        '`mergeInfo.delegate` is deprecated. ' +
-          'Use `mergeInfo.delegateToSchema and pass explicit schema instances.',
-      );
       const schema = guessSchemaByRootField(allSchemas, operation, fieldName);
       const expandTransforms = new ExpandAbstractTypes(info.schema, schema);
       const fragmentTransform = new AddReplacementFragments(schema, info.mergeInfo.replacementFragments);
@@ -67,7 +65,7 @@ export function createMergeInfo(
         context,
         info,
         transforms: [
-          ...(transforms || []),
+          ...transforms,
           expandTransforms,
           fragmentTransform,
         ],
@@ -98,21 +96,21 @@ function createMergedTypes(
     if (typeCandidates[typeName][0].type instanceof GraphQLObjectType) {
       const mergedTypeCandidates = typeCandidates[typeName]
         .filter(typeCandidate =>
-          typeCandidate.subschema &&
+          typeCandidate.subschema != null &&
           isSubschemaConfig(typeCandidate.subschema) &&
-          typeCandidate.subschema.merge &&
-          typeCandidate.subschema.merge[typeName]
+          typeCandidate.subschema.merge != null &&
+          typeCandidate.subschema.merge[typeName] != null
         );
 
       if (
         mergeTypes === true ||
         (typeof mergeTypes === 'function') && mergeTypes(typeName, typeCandidates[typeName]) ||
-        Array.isArray(mergeTypes) && mergeTypes.includes(typeName) ||
+        (Array.isArray(mergeTypes) && mergeTypes.includes(typeName)) ||
         mergedTypeCandidates.length
       ) {
         const subschemas: Array<SubschemaConfig> = [];
 
-        let requiredSelections: Array<SelectionNode> = [parseSelectionSet(`{ __typename }`).selections[0]];
+        let requiredSelections: Array<SelectionNode> = [parseSelectionSet('{ __typename }').selections[0]];
         const fields = Object.create({});
         const typeMaps: Map<SubschemaConfig, TypeMap> = new Map();
         const selectionSets: Map<SubschemaConfig, SelectionSetNode> = new Map();
@@ -124,7 +122,9 @@ function createMergedTypes(
           const type = transformedSubschema.getType(typeName) as GraphQLObjectType;
           const fieldMap = type.getFields();
           Object.keys(fieldMap).forEach(fieldName => {
-            fields[fieldName] = fields[fieldName] || [];
+            if (fields[fieldName] == null) {
+              fields[fieldName] = [];
+            }
             fields[fieldName].push(subschemaConfig);
           });
 
@@ -162,11 +162,11 @@ function createMergedTypes(
         };
 
         subschemas.forEach(subschema => {
-          const type = typeMaps.get(subschema)[typeName] as GraphQLObjectType<any, any>;
-          let subschemaMap = new Map();
+          const type = typeMaps.get(subschema)[typeName] as GraphQLObjectType;
+          const subschemaMap = new Map();
           subschemas.filter(s => s !== subschema).forEach(s => {
             const selectionSet = selectionSets.get(s);
-            if (selectionSet && typeContainsSelectionSet(type, selectionSet)) {
+            if (selectionSet != null && typeContainsSelectionSet(type, selectionSet)) {
               subschemaMap.set(selectionSet, true);
             }
           });
@@ -209,11 +209,15 @@ export function completeMergeInfo(
       const field = type[fieldName];
       if (field.selectionSet) {
         const selectionSet = parseSelectionSet(field.selectionSet);
-        replacementSelectionSets[typeName] = replacementSelectionSets[typeName] || {};
-        replacementSelectionSets[typeName][fieldName] = replacementSelectionSets[typeName][fieldName] || {
-          kind: Kind.SELECTION_SET,
-          selections: [],
-        };
+        if (replacementSelectionSets[typeName] == null) {
+          replacementSelectionSets[typeName] = {};
+        }
+        if (replacementSelectionSets[typeName][fieldName] == null) {
+          replacementSelectionSets[typeName][fieldName] = {
+            kind: Kind.SELECTION_SET,
+            selections: [],
+          };
+        }
         replacementSelectionSets[typeName][fieldName].selections =
           replacementSelectionSets[typeName][fieldName].selections.concat(selectionSet.selections);
       }
@@ -230,15 +234,21 @@ export function completeMergeInfo(
   mergeInfo.fragments.forEach(({ field, fragment }) => {
     const parsedFragment = parseFragmentToInlineFragment(fragment);
     const actualTypeName = parsedFragment.typeCondition.name.value;
-    mapping[actualTypeName] = mapping[actualTypeName] || {};
-    mapping[actualTypeName][field] = mapping[actualTypeName][field] || [];
+    if (mapping[actualTypeName] == null) {
+      mapping[actualTypeName] = {};
+    }
+    if (mapping[actualTypeName][field] == null) {
+      mapping[actualTypeName][field] = [];
+    }
     mapping[actualTypeName][field].push(parsedFragment);
   });
 
   const replacementFragments = Object.create(null);
   Object.keys(mapping).forEach(typeName => {
     Object.keys(mapping[typeName]).forEach(field => {
-      replacementFragments[typeName] = mapping[typeName] || {};
+      if (replacementFragments[typeName] == null) {
+        replacementFragments[typeName] = {};
+      }
       replacementFragments[typeName][field] = concatInlineFragments(
         typeName,
         mapping[typeName][field],
@@ -260,9 +270,9 @@ function operationToRootType(
     return schema.getSubscriptionType();
   } else if (operation === 'mutation') {
     return schema.getMutationType();
-  } else {
-    return schema.getQueryType();
   }
+
+  return schema.getQueryType();
 }
 
 function guessSchemaByRootField(
@@ -271,10 +281,10 @@ function guessSchemaByRootField(
   fieldName: string,
 ): GraphQLSchema {
   for (const schema of schemas) {
-    let rootObject = operationToRootType(operation, schema);
-    if (rootObject) {
+    const rootObject = operationToRootType(operation, schema);
+    if (rootObject != null) {
       const fields = rootObject.getFields();
-      if (fields[fieldName]) {
+      if (fields[fieldName] != null) {
         return schema;
       }
     }

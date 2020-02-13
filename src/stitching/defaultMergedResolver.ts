@@ -1,8 +1,10 @@
-import { defaultFieldResolver } from 'graphql';
+import { IGraphQLToolsResolveInfo } from '../Interfaces';
+
 import { getErrors, getSubschema } from './proxiedResult';
 import { handleResult } from './checkResultAndHandleErrors';
 import { getResponseKeyFromInfo } from './getResponseKeyFromInfo';
-import { IGraphQLToolsResolveInfo } from '../Interfaces';
+
+import { defaultFieldResolver } from 'graphql';
 
 // Resolver that knows how to:
 // a) handle aliases for proxied schemas

@@ -1,12 +1,13 @@
-import { FieldNode, visit, Kind, SelectionNode, SelectionSetNode } from 'graphql';
 import { Transform, Request, Result } from '../Interfaces';
+
+import { FieldNode, visit, Kind, SelectionNode, SelectionSetNode } from 'graphql';
 
 export type QueryWrapper = (subtree: SelectionSetNode) => SelectionNode | SelectionSetNode;
 
 export default class WrapQuery implements Transform {
-  private wrapper: QueryWrapper;
-  private extractor: (result: any) => any;
-  private path: Array<string>;
+  private readonly wrapper: QueryWrapper;
+  private readonly extractor: (result: any) => any;
+  private readonly path: Array<string>;
 
   constructor(path: Array<string>, wrapper: QueryWrapper, extractor: (result: any) => any) {
     this.path = path;
@@ -28,7 +29,7 @@ export default class WrapQuery implements Transform {
             // Selection can be either a single selection or a selection set. If it's just one selection,
             // let's wrap it in a selection set. Otherwise, keep it as is.
             const selectionSet =
-              wrapResult.kind === Kind.SELECTION_SET
+              wrapResult != null && wrapResult.kind === Kind.SELECTION_SET
                 ? wrapResult
                 : {
                     kind: Kind.SELECTION_SET,
@@ -41,7 +42,7 @@ export default class WrapQuery implements Transform {
             };
           }
         },
-        leave: (node: FieldNode) => {
+        leave: () => {
           fieldPath.pop();
         }
       }
@@ -54,7 +55,7 @@ export default class WrapQuery implements Transform {
 
   public transformResult(originalResult: Result): Result {
     const rootData = originalResult.data;
-    if (rootData) {
+    if (rootData != null) {
       let data = rootData;
       const path = [...this.path];
       while (path.length > 1) {

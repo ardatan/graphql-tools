@@ -8,16 +8,14 @@ import {
 
 export function concatInlineFragments(
   type: string,
-  fragments: InlineFragmentNode[],
+  fragments: Array<InlineFragmentNode>,
 ): InlineFragmentNode {
-  const fragmentSelections: SelectionNode[] = fragments.reduce(
-    (selections, fragment) => {
-      return selections.concat(fragment.selectionSet.selections);
-    },
+  const fragmentSelections: Array<SelectionNode> = fragments.reduce(
+    (selections, fragment) => selections.concat(fragment.selectionSet.selections),
     [],
   );
 
-  const deduplicatedFragmentSelection: SelectionNode[] = deduplicateSelection(
+  const deduplicatedFragmentSelection: Array<SelectionNode> = deduplicateSelection(
     fragmentSelections,
   );
 
@@ -37,43 +35,45 @@ export function concatInlineFragments(
   };
 }
 
-function deduplicateSelection(nodes: SelectionNode[]): SelectionNode[] {
+const hasOwn = Object.prototype.hasOwnProperty;
+
+function deduplicateSelection(nodes: Array<SelectionNode>): Array<SelectionNode> {
   const selectionMap = nodes.reduce<{ [key: string]: SelectionNode }>(
     (map, node) => {
       switch (node.kind) {
         case 'Field': {
-          if (node.alias) {
-            if (map.hasOwnProperty(node.alias.value)) {
+          if (node.alias != null) {
+            if (hasOwn.call(map, node.alias.value)) {
               return map;
-            } else {
-              return {
-                ...map,
-                [node.alias.value]: node,
-              };
             }
-          } else {
-            if (map.hasOwnProperty(node.name.value)) {
-              return map;
-            } else {
-              return {
-                ...map,
-                [node.name.value]: node,
-              };
-            }
-          }
-        }
-        case 'FragmentSpread': {
-          if (map.hasOwnProperty(node.name.value)) {
-            return map;
-          } else {
+
             return {
               ...map,
-              [node.name.value]: node,
+              [node.alias.value]: node,
             };
           }
+
+          if (hasOwn.call(map, node.name.value)) {
+            return map;
+          }
+
+          return {
+            ...map,
+            [node.name.value]: node,
+          };
+        }
+        case 'FragmentSpread': {
+          if (hasOwn.call(map, node.name.value)) {
+            return map;
+          }
+
+          return {
+            ...map,
+            [node.name.value]: node,
+          };
         }
         case 'InlineFragment': {
-          if (map.__fragment) {
+          if (map.__fragment != null) {
             const fragment = map.__fragment as InlineFragmentNode;
 
             return {
@@ -83,12 +83,12 @@ function deduplicateSelection(nodes: SelectionNode[]): SelectionNode[] {
                 [fragment, node],
               ),
             };
-          } else {
-            return {
-              ...map,
-              __fragment: node,
-            };
           }
+
+          return {
+            ...map,
+            __fragment: node,
+          };
         }
         default: {
           return map;

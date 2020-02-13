@@ -1,3 +1,7 @@
+import { Request, ReplacementSelectionSetMapping } from '../Interfaces';
+
+import { Transform } from './transforms';
+
 import {
   DocumentNode,
   GraphQLSchema,
@@ -8,12 +12,10 @@ import {
   visit,
   visitWithTypeInfo,
 } from 'graphql';
-import { Request, ReplacementSelectionSetMapping } from '../Interfaces';
-import { Transform } from './transforms';
 
 export default class AddReplacementSelectionSets implements Transform {
-  private schema: GraphQLSchema;
-  private mapping: ReplacementSelectionSetMapping;
+  private readonly schema: GraphQLSchema;
+  private readonly mapping: ReplacementSelectionSetMapping;
 
   constructor(
     schema: GraphQLSchema,
@@ -48,17 +50,17 @@ function replaceFieldsWithSelectionSet(
       [Kind.SELECTION_SET](
         node: SelectionSetNode,
       ): SelectionSetNode | null | undefined {
-        const parentType: GraphQLType = typeInfo.getParentType();
-        if (parentType) {
+        const parentType: GraphQLType | null | undefined = typeInfo.getParentType();
+        if (parentType != null) {
           const parentTypeName = parentType.name;
           let selections = node.selections;
 
-          if (mapping[parentTypeName]) {
+          if (mapping[parentTypeName] != null) {
             node.selections.forEach(selection => {
               if (selection.kind === Kind.FIELD) {
                 const name = selection.name.value;
                 const selectionSet = mapping[parentTypeName][name];
-                if (selectionSet) {
+                if (selectionSet != null) {
                   selections = selections.concat(selectionSet.selections);
                 }
               }

@@ -1,5 +1,27 @@
-/* tslint:disable:no-unused-expression */
+import mergeSchemas from '../stitching/mergeSchemas';
+import { SchemaDirectiveVisitor } from '../utils/SchemaDirectiveVisitor';
+import { makeExecutableSchema } from '../makeExecutableSchema';
+import {
+  IResolvers,
+  SubschemaConfig,
+} from '../Interfaces';
+import { delegateToSchema } from '../stitching';
+import { cloneSchema } from '../utils';
+import { getResolversFromSchema } from '../utils/getResolversFromSchema';
 
+import {
+  propertySchema as localPropertySchema,
+  productSchema as localProductSchema,
+  bookingSchema as localBookingSchema,
+  subscriptionSchema as localSubscriptionSchema,
+  remoteBookingSchema,
+  remotePropertySchema,
+  remoteProductSchema,
+  subscriptionPubSub,
+  subscriptionPubSubTrigger,
+} from './testingSchemas';
+
+import { forAwaitEach } from 'iterall';
 import { expect } from 'chai';
 import {
   graphql,
@@ -14,29 +36,8 @@ import {
   findDeprecatedUsages,
   printSchema,
 } from 'graphql';
-import mergeSchemas from '../stitching/mergeSchemas';
-import {
-  propertySchema as localPropertySchema,
-  productSchema as localProductSchema,
-  bookingSchema as localBookingSchema,
-  subscriptionSchema as localSubscriptionSchema,
-  remoteBookingSchema,
-  remotePropertySchema,
-  remoteProductSchema,
-  subscriptionPubSub,
-  subscriptionPubSubTrigger,
-} from './testingSchemas';
-import { SchemaDirectiveVisitor } from '../utils/SchemaDirectiveVisitor';
-import { forAwaitEach } from 'iterall';
-import { makeExecutableSchema } from '../makeExecutableSchema';
-import {
-  IResolvers,
-  SubschemaConfig,
-} from '../Interfaces';
-import { delegateToSchema } from '../stitching';
-import { cloneSchema } from '../utils';
-import { getResolversFromSchema } from '../utils/getResolversFromSchema';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const removeLocations = ({ locations, ...rest }: any): any => ({ ...rest });
 
 const testCombinations = [
@@ -69,7 +70,7 @@ const testCombinations = [
   }
 ];
 
-let scalarTest = `
+const scalarTest = `
   """
   Description of TestScalar.
   """
@@ -93,25 +94,23 @@ let scalarTest = `
   }
 `;
 
-let scalarSchema: GraphQLSchema;
-
-scalarSchema = makeExecutableSchema({
+const scalarSchema = makeExecutableSchema({
   typeDefs: scalarTest,
   resolvers: {
     TestScalar: new GraphQLScalarType({
       name: 'TestScalar',
       description: undefined,
       serialize: value => (value as string).slice(1),
-      parseValue: value => `_${value}`,
-      parseLiteral: (ast: any) => `_${ast.value}`,
+      parseValue: value => `_${value as string}`,
+      parseLiteral: (ast: any) => `_${ast.value as string}`,
     }),
     Query: {
-      testingScalar(parent, args) {
+      testingScalar(_parent, args) {
         return {
           value: args.input[0] === '_' ? args.input : null
         };
       },
-      listTestingScalar(parent, args) {
+      listTestingScalar(_parent, args) {
         return [{
           value: args.input[0] === '_' ? args.input : null
         }];
@@ -120,7 +119,7 @@ scalarSchema = makeExecutableSchema({
   },
 });
 
-let enumTest = `
+const enumTest = `
   """
   A type that uses an Enum.
   """
@@ -161,9 +160,7 @@ let enumTest = `
   }
 `;
 
-let enumSchema: GraphQLSchema;
-
-enumSchema = makeExecutableSchema({
+const enumSchema = makeExecutableSchema({
   typeDefs: enumTest,
   resolvers: {
     Color: {
@@ -176,7 +173,7 @@ enumSchema = makeExecutableSchema({
       __resolveType: () => 'EnumWrapper'
     },
     Query: {
-      color(parent, args) {
+      color(_parent, args) {
         return args.input === '#EA3232' ? args.input : null;
       },
       numericEnum() {
@@ -201,7 +198,7 @@ enumSchema = makeExecutableSchema({
   },
 });
 
-let linkSchema = `
+const linkSchema = `
   """
   A new type linking the Property type.
   """
@@ -315,7 +312,7 @@ const codeCoverageTypeDefs = `
   }
 `;
 
-let schemaDirectiveTypeDefs = `
+const schemaDirectiveTypeDefs = `
   directive @upper on FIELD_DEFINITION
 
   directive @withEnumArg(enumArg: DirectiveEnum = FOO) on FIELD_DEFINITION
@@ -332,12 +329,12 @@ let schemaDirectiveTypeDefs = `
   }
 `;
 
-testCombinations.forEach(async combination => {
+testCombinations.forEach(combination => {
   describe('merging ' + combination.name, () => {
-    let mergedSchema: GraphQLSchema,
-      propertySchema: GraphQLSchema | SubschemaConfig,
-      productSchema: GraphQLSchema | SubschemaConfig,
-      bookingSchema: GraphQLSchema | SubschemaConfig;
+    let mergedSchema: GraphQLSchema;
+    let propertySchema: GraphQLSchema | SubschemaConfig;
+    let productSchema: GraphQLSchema | SubschemaConfig;
+    let bookingSchema: GraphQLSchema | SubschemaConfig;
 
     before(async () => {
       propertySchema = await combination.property;
@@ -362,7 +359,7 @@ testCombinations.forEach(async combination => {
           upper: class extends SchemaDirectiveVisitor {
             public visitFieldDefinition(field: GraphQLField<any, any>) {
               const { resolve = defaultFieldResolver } = field;
-              field.resolve = async function(...args: any[]) {
+              field.resolve = async function(...args) {
                 const result = await resolve.apply(this, args);
                 if (typeof result === 'string') {
                   return result.toUpperCase();
@@ -391,19 +388,19 @@ testCombinations.forEach(async combination => {
                     context,
                     info,
                   );
-                } else {
-                  return delegateToSchema({
-                    schema: bookingSchema,
-                    operation: 'query',
-                    fieldName: 'bookingsByPropertyId',
-                    args: {
-                      propertyId: parent.id,
-                      limit: args.limit ? args.limit : null,
-                    },
-                    context,
-                    info,
-                  });
                 }
+
+                return delegateToSchema({
+                  schema: bookingSchema,
+                  operation: 'query',
+                  fieldName: 'bookingsByPropertyId',
+                  args: {
+                    propertyId: parent.id,
+                    limit: args.limit ? args.limit : null,
+                  },
+                  context,
+                  info,
+                });
               },
             },
             someField: {
@@ -415,7 +412,7 @@ testCombinations.forEach(async combination => {
           Booking: {
             property: {
               fragment: 'fragment BookingFragment on Booking { propertyId }',
-              resolve(parent, args, context, info) {
+              resolve(parent, _args, context, info) {
                 return delegateToSchema({
                   schema: propertySchema,
                   operation: 'query',
@@ -430,8 +427,8 @@ testCombinations.forEach(async combination => {
             },
             textDescription: {
               fragment: '... on Booking { id }',
-              resolve(parent, args, context, info) {
-                return `Booking #${parent.id}`;
+              resolve(parent, _args, _context, _info) {
+                return `Booking #${parent.id as string}`;
               },
             },
           },
@@ -442,7 +439,7 @@ testCombinations.forEach(async combination => {
           },
           LinkType: {
             property: {
-              resolve(parent, args, context, info) {
+              resolve(_parent, _args, context, info) {
                 return delegateToSchema({
                   schema: propertySchema,
                   operation: 'query',
@@ -462,7 +459,7 @@ testCombinations.forEach(async combination => {
             serialize: value => value,
           }),
           Query: {
-            delegateInterfaceTest(parent, args, context, info) {
+            delegateInterfaceTest(_parent, _args, context, info) {
               return delegateToSchema({
                 schema: propertySchema,
                 operation: 'query',
@@ -474,7 +471,7 @@ testCombinations.forEach(async combination => {
                 info,
               });
             },
-            delegateArgumentTest(parent, args, context, info) {
+            delegateArgumentTest(_parent, _args, context, info) {
               return delegateToSchema({
                 schema: propertySchema,
                 operation: 'query',
@@ -494,7 +491,7 @@ testCombinations.forEach(async combination => {
             node: {
               // fragment doesn't work
               fragment: '... on Node { id }',
-              resolve(parent, args, context, info) {
+              resolve(_parent, args, context, info) {
                 if (args.id.startsWith('p')) {
                   return delegateToSchema({
                     schema: propertySchema,
@@ -522,12 +519,12 @@ testCombinations.forEach(async combination => {
                     context,
                     info,
                   });
-                } else {
-                  throw new Error('invalid id');
                 }
+
+                throw new Error('invalid id');
               },
             },
-            async nodes(parent, args, context, info) {
+            async nodes(_parent, _args, context, info) {
               const bookings = await delegateToSchema({
                 schema: bookingSchema,
                 operation: 'query',
@@ -880,12 +877,14 @@ bookingById(id: "b1") {
               (result: ExecutionResult) => {
                 expect(result).to.have.property('data');
                 expect(result.data).to.deep.equal(mockNotification);
-                !notificationCnt++ ? done() : null;
+                if (!notificationCnt++) {
+                  done();
+                }
               },
             ).catch(done);
-          }).then(() => {
-            subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification);
-          }).catch(done);
+          })
+          .then(() => subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification))
+          .catch(done);
       });
 
       it('subscription errors are working correctly in merged schema', done => {
@@ -936,12 +935,14 @@ bookingById(id: "b1") {
                 expect(result.errors).to.have.lengthOf(1);
                 expect(result.errors).to.deep.equal(expectedResult.errors);
                 expect(result.data).to.deep.equal(expectedResult.data);
-                !notificationCnt++ ? done() : null;
+                if (!notificationCnt++) {
+                  done();
+                }
               },
             ).catch(done);
-          }).then(() => {
-            subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification);
-          }).catch(done);
+          })
+          .then(() => subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification))
+          .catch(done);
       });
 
       it('links in queries', async () => {
@@ -1436,7 +1437,7 @@ bookingById(id: "b1") {
           Booking: {
             property: {
               fragment: 'fragment BookingFragment on Booking { propertyId }',
-              resolve(parent, args, context, info) {
+              resolve(parent, _args, context, info) {
                 return delegateToSchema({
                   schema: propertySchema,
                   operation: 'query',
@@ -1463,7 +1464,7 @@ bookingById(id: "b1") {
         };
         const Query2: IResolvers = {
           Query: {
-            delegateInterfaceTest(parent, args, context, info) {
+            delegateInterfaceTest(_parent, _args, context, info) {
               return delegateToSchema({
                 schema: propertySchema,
                 operation: 'query',
@@ -1475,7 +1476,7 @@ bookingById(id: "b1") {
                 info,
               });
             },
-            delegateArgumentTest(parent, args, context, info) {
+            delegateArgumentTest(_parent, _args, context, info) {
               return delegateToSchema({
                 schema: propertySchema,
                 operation: 'query',
@@ -1495,7 +1496,7 @@ bookingById(id: "b1") {
             node: {
               // fragment doesn't work
               fragment: 'fragment NodeFragment on Node { id }',
-              resolve(parent, args, context, info) {
+              resolve(_parent, args, context, info) {
                 if (args.id.startsWith('p')) {
                   return delegateToSchema({
                     schema: propertySchema,
@@ -1523,9 +1524,9 @@ bookingById(id: "b1") {
                     context,
                     info,
                   });
-                } else {
-                  throw new Error('invalid id');
                 }
+
+                throw new Error('invalid id');
               },
             },
           },
@@ -1533,7 +1534,7 @@ bookingById(id: "b1") {
 
         const AsyncQuery: IResolvers = {
           Query: {
-            async nodes(parent, args, context, info) {
+            async nodes(_parent, _args, context, info) {
               const bookings = await delegateToSchema({
                 schema: bookingSchema,
                 operation: 'query',
@@ -2431,10 +2432,10 @@ fragment BookingFragment on Booking {
           );
 
           [propertyResult, mergedResult].forEach((result) => {
-            expect(result.errors).to.exist;
-            expect(result.errors.length > 0).to.be.true;
+            expect(result.errors).to.not.equal(undefined);
+            expect(result.errors.length > 0).to.equal(true);
             const error = result.errors[0];
-            expect(error.extensions).to.exist;
+            expect(error.extensions).to.not.equal(undefined);
             expect(error.extensions.code).to.equal('SOME_CUSTOM_CODE');
           });
         }
@@ -2880,7 +2881,7 @@ fragment BookingFragment on Booking {
 
         const result = await graphql(
           schema,
-          `{ book { cat: category } }`,
+          '{ book { cat: category } }',
         );
 
         expect(result.data.book.cat).to.equal('Test');
@@ -2888,7 +2889,7 @@ fragment BookingFragment on Booking {
     });
 
     describe('deprecation', () => {
-      it('should retain deprecation information', async () => {
+      it('should retain deprecation information', () => {
         const typeDefs = `
           type Query {
             book: Book
@@ -2916,9 +2917,8 @@ fragment BookingFragment on Booking {
         });
 
         const deprecatedUsages = findDeprecatedUsages(schema, parse(query));
-        expect(deprecatedUsages).not.empty;
         expect(deprecatedUsages.length).to.equal(1);
-        expect(deprecatedUsages.find(error => Boolean(error && error.message.match(/deprecated/) && error.message.match(/yolo/))));
+        expect(deprecatedUsages.find(error => (error.message.match(/deprecated/g) != null) && (error.message.match(/yolo/g) != null))).to.not.equal(undefined);
       });
     });
   });

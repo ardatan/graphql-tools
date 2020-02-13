@@ -1,20 +1,19 @@
-/* tslint:disable:no-unused-expression */
-
-import { expect } from 'chai';
-
 import { Server } from 'http';
 import { AddressInfo } from 'net';
 import { Readable } from 'stream';
+
+import { SubschemaConfig } from '../Interfaces';
+import { createServerHttpLink } from '../links';
+import { makeExecutableSchema } from '../makeExecutableSchema';
+import { mergeSchemas} from '../stitching';
+
+import { expect } from 'chai';
 import express, { Express } from 'express';
 import graphqlHTTP from 'express-graphql';
 import { GraphQLUpload, graphqlUploadExpress } from 'graphql-upload';
 import FormData from 'form-data';
 import fetch from 'node-fetch';
 import { buildSchema } from 'graphql';
-import { SubschemaConfig } from '../Interfaces';
-import { createServerHttpLink } from '../links';
-import { makeExecutableSchema } from '../makeExecutableSchema';
-import { mergeSchemas} from '../stitching';
 
 function streamToString(stream: Readable) {
   const chunks: Array<Buffer> = [];
@@ -49,7 +48,7 @@ function testGraphqlMultipartRequest(query: string, port: number) {
   body.append('map', '{ "1": ["variables.file"] }');
   body.append('1', 'abc', { filename: __filename });
 
-  return fetch(`http://localhost:${port}`, { method: 'POST', body });
+  return fetch(`http://localhost:${port.toString()}`, { method: 'POST', body });
 }
 
 describe('graphql upload', () => {
@@ -66,7 +65,7 @@ describe('graphql upload', () => {
       `,
       resolvers: {
         Mutation: {
-          upload: async (root, { file }) => {
+          upload: async (_root, { file }) => {
             const { createReadStream } = await file;
             const stream = createReadStream();
             const s = await streamToString(stream);
@@ -98,7 +97,7 @@ describe('graphql upload', () => {
     const subschema: SubschemaConfig = {
       schema: nonExecutableSchema,
       link: createServerHttpLink({
-        uri: `http://localhost:${remotePort}`,
+        uri: `http://localhost:${remotePort.toString()}`,
       }),
     };
 

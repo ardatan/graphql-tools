@@ -16,7 +16,8 @@ export default function extractExtensionDefinitions(ast: DocumentNode) {
       (def.kind as any) === enumExtensionDefinitionKind,
   );
 
-  return Object.assign({}, ast, {
+  return {
+    ...ast,
     definitions: extensionDefs,
-  });
+  };
 }

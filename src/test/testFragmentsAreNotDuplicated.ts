@@ -83,7 +83,7 @@ const variables = {
 
 function assertNoDuplicateFragmentErrors(result: ExecutionResult) {
   // Run assertion against each array element for better test failure output.
-  if (result.errors) {
+  if (result.errors != null) {
     result.errors.forEach(error => expect(error.message).to.equal(''));
   }
 }

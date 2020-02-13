@@ -1,6 +1,7 @@
-import { GraphQLSchema } from 'graphql';
 import { Request, Transform } from '../Interfaces';
 import { cloneSchema } from '../utils';
+
+import { GraphQLSchema } from 'graphql';
 
 export { Transform };
 
@@ -10,7 +11,7 @@ export function applySchemaTransforms(
 ): GraphQLSchema {
   return transforms.reduce(
     (schema: GraphQLSchema, transform: Transform) =>
-      transform.transformSchema ? transform.transformSchema(cloneSchema(schema)) : schema,
+      transform.transformSchema != null ? transform.transformSchema(cloneSchema(schema)) : schema,
     originalSchema,
   );
 }
@@ -21,7 +22,7 @@ export function applyRequestTransforms(
 ): Request {
   return transforms.reduce(
     (request: Request, transform: Transform) =>
-      transform.transformRequest
+      transform.transformRequest != null
         ? transform.transformRequest(request)
         : request,
 
@@ -35,7 +36,7 @@ export function applyResultTransforms(
 ): any {
   return transforms.reduceRight(
     (result: any, transform: Transform) =>
-      transform.transformResult ? transform.transformResult(result) : result,
+      transform.transformResult != null ? transform.transformResult(result) : result,
     originalResult,
   );
 }

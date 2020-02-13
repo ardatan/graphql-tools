@@ -1,5 +1,11 @@
-import { getNamedType, GraphQLInputObjectType, GraphQLSchema, GraphQLObjectType } from 'graphql';
 import { IDefaultValueIteratorFn } from '../Interfaces';
+
+import {
+  getNamedType,
+  GraphQLInputObjectType,
+  GraphQLSchema,
+  GraphQLObjectType,
+} from 'graphql';
 
 export function forEachDefaultValue(schema: GraphQLSchema, fn: IDefaultValueIteratorFn): void {
 

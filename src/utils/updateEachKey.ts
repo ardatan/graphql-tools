@@ -6,12 +6,12 @@ export default function updateEachKey<V>(
   arrayOrObject: IndexedObject<V>,
   // The callback can return nothing to leave the key untouched, null to remove
   // the key from the array or object, or a non-null V to replace the value.
-  callback: (value: V, key: string) => V | void,
+  updater: (value: V, key: string) => void | null | V,
 ) {
   let deletedCount = 0;
 
   Object.keys(arrayOrObject).forEach(key => {
-    const result = callback(arrayOrObject[key], key);
+    const result = updater(arrayOrObject[key], key);
 
     if (typeof result === 'undefined') {
       return;

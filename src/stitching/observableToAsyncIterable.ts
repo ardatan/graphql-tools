@@ -1,12 +1,13 @@
 import { Observable } from 'apollo-link';
 import { $$asyncIterator } from 'iterall';
+
 type Callback = (value?: any) => any;
 
 export function observableToAsyncIterable<T>(observable: Observable<T>): AsyncIterator<T> & {
   [$$asyncIterator]: () => AsyncIterator<T>,
 } {
-  const pullQueue: Callback[] = [];
-  const pushQueue: any[] = [];
+  const pullQueue: Array<Callback> = [];
+  const pushQueue: Array<any> = [];
 
   let listening = true;
 
@@ -26,20 +27,18 @@ export function observableToAsyncIterable<T>(observable: Observable<T>): AsyncIt
     }
   };
 
-  const pullValue = () => {
-    return new Promise(resolve => {
-      if (pushQueue.length !== 0) {
-        const element = pushQueue.shift();
-        // either {value: {errors: [...]}} or {value: ...}
-        resolve({
-          ...element,
-          done: false,
-        });
-      } else {
-        pullQueue.push(resolve);
-      }
-    });
-  };
+  const pullValue = () => new Promise(resolve => {
+    if (pushQueue.length !== 0) {
+      const element = pushQueue.shift();
+      // either {value: {errors: [...]}} or {value: ...}
+      resolve({
+        ...element,
+        done: false,
+      });
+    } else {
+      pullQueue.push(resolve);
+    }
+  });
 
   const subscription = observable.subscribe({
     next(value: any) {
@@ -61,7 +60,7 @@ export function observableToAsyncIterable<T>(observable: Observable<T>): AsyncIt
   };
 
   return {
-    async next() {
+    next() {
       return listening ? pullValue() : this.return();
     },
     return() {

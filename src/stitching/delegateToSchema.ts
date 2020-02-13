@@ -1,13 +1,4 @@
 import {
-  subscribe,
-  execute,
-  validate,
-  GraphQLSchema,
-  ExecutionResult,
-  GraphQLOutputType,
-} from 'graphql';
-
-import {
   IDelegateToSchemaOptions,
   IDelegateRequestOptions,
   Fetcher,
@@ -16,7 +7,6 @@ import {
   isSubschemaConfig,
   IGraphQLToolsResolveInfo,
 } from '../Interfaces';
-
 import {
   ExpandAbstractTypes,
   FilterToSchema,
@@ -34,12 +24,21 @@ import {
   createRequestFromInfo,
   getDelegatingOperation,
 } from './createRequest';
-
-import { ApolloLink, execute as executeLink } from 'apollo-link';
 import linkToFetcher from './linkToFetcher';
 import { observableToAsyncIterable } from './observableToAsyncIterable';
-import { isAsyncIterable } from 'iterall';
 import mapAsyncIterator from './mapAsyncIterator';
+import { combineErrors } from './errors';
+
+import { isAsyncIterable } from 'iterall';
+import { ApolloLink, execute as executeLink } from 'apollo-link';
+import {
+  subscribe,
+  execute,
+  validate,
+  GraphQLSchema,
+  ExecutionResult,
+  GraphQLOutputType,
+} from 'graphql';
 
 export default function delegateToSchema(
   options: IDelegateToSchemaOptions | GraphQLSchema,
@@ -95,7 +94,7 @@ function buildDelegationTransforms(
     new CheckResultAndHandleErrors(info, fieldName, subschemaOrSubschemaConfig, context, returnType, skipTypeMerging),
   ];
 
-  if (info.mergeInfo) {
+  if (info.mergeInfo != null) {
     delegationTransforms.push(
       new AddReplacementSelectionSets(info.schema, info.mergeInfo.replacementSelectionSets),
       new AddMergedTypeSelectionSets(info.schema, info.mergeInfo.mergedTypes),
@@ -108,7 +107,7 @@ function buildDelegationTransforms(
     new ExpandAbstractTypes(info.schema, targetSchema),
   );
 
-  if (info.mergeInfo) {
+  if (info.mergeInfo != null) {
     delegationTransforms.push(
       new AddReplacementFragments(targetSchema, info.mergeInfo.replacementFragments),
     );
@@ -136,16 +135,22 @@ export function delegateRequest({
   skipTypeMerging,
 }: IDelegateRequestOptions): any {
   let targetSchema: GraphQLSchema;
+  let targetRootValue: Record<string, any>;
+  let requestTransforms: Array<Transform> = transforms.slice();
   let subschemaConfig: SubschemaConfig;
 
   if (isSubschemaConfig(subschemaOrSubschemaConfig)) {
     subschemaConfig = subschemaOrSubschemaConfig;
     targetSchema = subschemaConfig.schema;
-    rootValue = rootValue || subschemaConfig.rootValue || info.rootValue;
-    transforms = transforms.concat((subschemaConfig.transforms || []).slice().reverse());
+    targetRootValue = rootValue != null ?
+      rootValue :
+      (subschemaConfig.rootValue != null ? subschemaConfig.rootValue : info.rootValue);
+    if (subschemaConfig.transforms != null) {
+      requestTransforms = requestTransforms.concat(subschemaConfig.transforms)
+    }
   } else {
     targetSchema = subschemaOrSubschemaConfig;
-    rootValue = rootValue || info.rootValue;
+    targetRootValue = rootValue != null ? rootValue : info.rootValue;
   }
 
   const delegationTransforms = buildDelegationTransforms(
@@ -155,140 +160,143 @@ export function delegateRequest({
     targetSchema,
     fieldName,
     returnType,
-    transforms,
+    requestTransforms.reverse(),
     skipTypeMerging,
   );
 
-  request = applyRequestTransforms(request, delegationTransforms);
+  const processedRequest = applyRequestTransforms(request, delegationTransforms);
 
   if (!skipValidation) {
-    const errors = validate(targetSchema, request.document);
+    const errors = validate(targetSchema, processedRequest.document);
     if (errors.length > 0) {
-      throw errors;
+      const combinedError: Error = combineErrors(errors);
+      throw combinedError;
     }
   }
 
   if (operation === 'query' || operation === 'mutation') {
 
-    const executor = createExecutor(targetSchema, rootValue, subschemaConfig);
+    const executor = createExecutor(targetSchema, targetRootValue, context, subschemaConfig);
 
     const executionResult: ExecutionResult | Promise<ExecutionResult> = executor({
-      document: request.document,
+      document: processedRequest.document,
       context,
-      variables: request.variables
+      variables: processedRequest.variables
     });
 
     if (executionResult instanceof Promise) {
       return executionResult.then((originalResult: any) =>
         applyResultTransforms(originalResult, delegationTransforms));
-    } else {
-      return applyResultTransforms(executionResult, delegationTransforms);
     }
-
-  } else if (operation === 'subscription') {
-
-    const subscriber = createSubscriber(targetSchema, rootValue, subschemaConfig);
-
-    return subscriber({
-      document: request.document,
-      context,
-      variables: request.variables,
-    }).then((subscriptionResult: AsyncIterableIterator<ExecutionResult> | ExecutionResult) => {
-      if (isAsyncIterable(subscriptionResult)) {
-        // "subscribe" to the subscription result and map the result through the transforms
-        return mapAsyncIterator<ExecutionResult, any>(subscriptionResult, result => {
-          const transformedResult = applyResultTransforms(result, delegationTransforms);
-          // wrap with fieldName to return for an additional round of resolutioon
-          // with payload as rootValue
-          return {
-            [info.fieldName]: transformedResult,
-          };
-        });
-      } else {
-        return applyResultTransforms(subscriptionResult, delegationTransforms);
-      }
-    });
+    return applyResultTransforms(executionResult, delegationTransforms);
 
   }
+
+  const subscriber = createSubscriber(targetSchema, targetRootValue, context, subschemaConfig);
+
+  return subscriber({
+    document: processedRequest.document,
+    context,
+    variables: processedRequest.variables,
+  }).then((subscriptionResult: AsyncIterableIterator<ExecutionResult> | ExecutionResult) => {
+    if (isAsyncIterable(subscriptionResult)) {
+      // "subscribe" to the subscription result and map the result through the transforms
+      return mapAsyncIterator<ExecutionResult, any>(subscriptionResult, result => {
+        const transformedResult = applyResultTransforms(result, delegationTransforms);
+        // wrap with fieldName to return for an additional round of resolutioon
+        // with payload as rootValue
+        return {
+          [info.fieldName]: transformedResult,
+        };
+      });
+    }
+
+    return applyResultTransforms(subscriptionResult, delegationTransforms);
+  });
+
 }
 
 
 function createExecutor(
   schema: GraphQLSchema,
   rootValue: Record<string, any>,
-  subschemaConfig?: SubschemaConfig
+  context: Record<string, any>,
+  subschemaConfig?: SubschemaConfig,
 ): Delegator {
   let fetcher: Fetcher;
-  if (subschemaConfig) {
-    if (subschemaConfig.dispatcher) {
+  let targetRootValue: Record<string, any> = rootValue;
+  if (subschemaConfig != null) {
+    if (subschemaConfig.dispatcher != null) {
       const dynamicLinkOrFetcher = subschemaConfig.dispatcher(context);
       fetcher = (typeof dynamicLinkOrFetcher === 'function') ?
         dynamicLinkOrFetcher :
         linkToFetcher(dynamicLinkOrFetcher);
-    } else if (subschemaConfig.link) {
+    } else if (subschemaConfig.link != null) {
       fetcher = linkToFetcher(subschemaConfig.link);
-    } else if (subschemaConfig.fetcher) {
+    } else if (subschemaConfig.fetcher != null) {
       fetcher = subschemaConfig.fetcher;
     }
 
-    if (!fetcher && !rootValue && subschemaConfig.rootValue) {
-      rootValue = subschemaConfig.rootValue;
+    if (!fetcher && !rootValue && subschemaConfig.rootValue != null) {
+      targetRootValue = subschemaConfig.rootValue;
     }
   }
 
-  if (fetcher) {
-    return ({ document, context, variables }) => fetcher({
+  if (fetcher != null) {
+    return ({ document, context: graphqlContext, variables }) => fetcher({
       query: document,
       variables,
-      context: { graphqlContext: context }
-    });
-  } else {
-    return ({ document, context, variables }) => execute({
-      schema,
-      document,
-      rootValue,
-      contextValue: context,
-      variableValues: variables,
+      context: { graphqlContext }
     });
   }
+
+  return ({ document, context: graphqlContext, variables }) => execute({
+    schema,
+    document,
+    rootValue: targetRootValue,
+    contextValue: graphqlContext,
+    variableValues: variables,
+  });
 }
 
 function createSubscriber(
   schema: GraphQLSchema,
   rootValue: Record<string, any>,
+  context: Record<string, any>,
   subschemaConfig?: SubschemaConfig
 ): Delegator {
   let link: ApolloLink;
+  let targetRootValue: Record<string, any> = rootValue;
 
-  if (subschemaConfig) {
-    if (subschemaConfig.dispatcher) {
+  if (subschemaConfig != null) {
+    if (subschemaConfig.dispatcher != null) {
       link = subschemaConfig.dispatcher(context) as ApolloLink;
-    } else if (subschemaConfig.link) {
+    } else if (subschemaConfig.link != null) {
       link = subschemaConfig.link;
     }
 
-    if (!link && !rootValue && subschemaConfig.rootValue) {
-      rootValue = subschemaConfig.rootValue;
+    if (!link && !rootValue && subschemaConfig.rootValue != null) {
+      targetRootValue = subschemaConfig.rootValue;
     }
   }
 
-  if (link) {
-    return ({ document, context, variables }) => {
+  if (link != null) {
+    return ({ document, context: graphqlContext, variables }) => {
       const operation = {
         query: document,
         variables,
-        context: { graphqlContext: context }
+        context: { graphqlContext }
       };
       const observable = executeLink(link, operation);
       return observableToAsyncIterable(observable);
     };
-  } else {
-    return ({ document, context, variables }) => subscribe({
-      schema,
-      document,
-      rootValue,
-      contextValue: context,
-      variableValues: variables,
-    });
-    }
+  }
+
+  return ({ document, context: graphqlContext, variables }) => subscribe({
+    schema,
+    document,
+    rootValue: targetRootValue,
+    contextValue: graphqlContext,
+    variableValues: variables,
+  });
 }

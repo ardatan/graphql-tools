@@ -1,3 +1,7 @@
+import { createNamedStub } from '../utils/stub';
+
+import resolveFromParentTypename from './resolveFromParentTypename';
+
 import {
   DefinitionNode,
   EnumTypeDefinitionNode,
@@ -29,8 +33,6 @@ import {
   GraphQLFieldConfig,
   StringValueNode,
 } from 'graphql';
-import resolveFromParentTypename from './resolveFromParentTypename';
-import { createNamedStub } from '../utils/stub';
 
 const backcompatOptions = { commentDescriptions: true };
 
@@ -150,19 +152,17 @@ function makeFields(
   const result: Record<string, GraphQLFieldConfig<any, any>> = {};
   nodes.forEach((node) => {
     const deprecatedDirective = node.directives.find(
-      (directive) =>
-        directive && directive.name && directive.name.value === 'deprecated',
+      directive => directive.name.value === 'deprecated',
     );
-    const deprecatedArgument =
-      deprecatedDirective &&
-      deprecatedDirective.arguments &&
-      deprecatedDirective.arguments.find(
-        (arg) => arg && arg.name && arg.name.value === 'reason',
+
+    let deprecationReason;
+
+    if (deprecatedDirective != null) {
+      const deprecatedArgument = deprecatedDirective.arguments.find(
+        arg => arg.name.value === 'reason',
       );
-    const deprecationReason =
-      deprecatedArgument &&
-      deprecatedArgument.value &&
-      (deprecatedArgument.value as StringValueNode).value;
+      deprecationReason = (deprecatedArgument.value as StringValueNode).value;
+    }
 
     result[node.name.value] = {
       type: resolveType(node.type, 'object') as GraphQLObjectType,
@@ -204,13 +204,13 @@ function resolveType(
 function makeDirective(node: DirectiveDefinitionNode): GraphQLDirective {
   const locations: Array<DirectiveLocationEnum> = [];
   node.locations.forEach(location => {
-    if (<DirectiveLocationEnum>location.value in DirectiveLocation) {
-      locations.push(<DirectiveLocationEnum>location.value);
+    if (location.value in DirectiveLocation) {
+      locations.push(location.value as DirectiveLocationEnum);
     }
   });
   return new GraphQLDirective({
     name: node.name.value,
-    description: node.description ? node.description.value : null,
+    description: node.description != null ? node.description.value : null,
     args: makeValues(node.arguments),
     locations,
   });

@@ -1,5 +1,3 @@
-/* tslint:disable:no-unused-expression */
-
 // The below is meant to be an alternative canonical schema stitching example
 // which intermingles local (mocked) resolvers and stitched schemas and does
 // not require use of the fragment field, because it follows best practices of
@@ -13,13 +11,14 @@
 // The fragment field is still necessary when working with a remote schema
 // where this is not possible.
 
-import { expect } from 'chai';
-import { graphql } from 'graphql';
 import {
   delegateToSchema,
   mergeSchemas,
   addMocksToSchema,
 } from '../index';
+
+import { expect } from 'chai';
+import { graphql } from 'graphql';
 
 const chirpTypeDefs = `
   type Chirp {
@@ -54,18 +53,16 @@ const chirpSchema = mergeSchemas({
   ],
   resolvers: {
     Chirp: {
-      author: (chirp, args, context, info) => {
-        return delegateToSchema({
-          schema: getSchema('authorSchema'),
-          operation: 'query',
-          fieldName: 'userById',
-          args: {
-            id: chirp.authorId
-          },
-          context,
-          info
-        });
-      }
+      author: (chirp, _args, context, info) => delegateToSchema({
+        schema: getSchema('authorSchema'),
+        operation: 'query',
+        fieldName: 'userById',
+        args: {
+          id: chirp.authorId
+        },
+        context,
+        info
+      })
     }
   }
 });
@@ -92,8 +89,7 @@ const authorSchema = mergeSchemas({
   ],
   resolvers: {
     User: {
-      chirps: (user, args, context, info) => {
-        return delegateToSchema({
+      chirps: (user, _args, context, info) => delegateToSchema({
           schema: getSchema('chirpSchema'),
           operation: 'query',
           fieldName: 'chirpsByAuthorId',
@@ -102,8 +98,7 @@ const authorSchema = mergeSchemas({
           },
           context,
           info
-        });
-      }
+        })
     }
   }
 });
@@ -143,9 +138,9 @@ describe('merging without specifying fragments', () => {
 
     const result = await graphql(mergedSchema, query);
 
-    expect(result.errors).to.be.undefined;
-    expect(result.data.userById.chirps[1].id).to.not.be.null;
-    expect(result.data.userById.chirps[1].text).to.not.be.null;
-    expect(result.data.userById.chirps[1].author.email).to.not.be.null;
+    expect(result.errors).to.equal(undefined);
+    expect(result.data.userById.chirps[1].id).to.not.equal(null);
+    expect(result.data.userById.chirps[1].text).to.not.equal(null);
+    expect(result.data.userById.chirps[1].author.email).to.not.equal(null);
   });
 });

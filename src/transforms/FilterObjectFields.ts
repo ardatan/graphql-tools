@@ -1,11 +1,12 @@
-import { GraphQLField, GraphQLSchema } from 'graphql';
 import { Transform } from './transforms';
 import TransformObjectFields from './TransformObjectFields';
+
+import { GraphQLField, GraphQLSchema } from 'graphql';
 
 export type ObjectFilter = (typeName: string, fieldName: string, field: GraphQLField<any, any>) => boolean;
 
 export default class FilterObjectFields implements Transform {
-  private transformer: TransformObjectFields;
+  private readonly transformer: TransformObjectFields;
 
   constructor(filter: ObjectFilter) {
     this.transformer = new TransformObjectFields(

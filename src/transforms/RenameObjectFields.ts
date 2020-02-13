@@ -1,18 +1,18 @@
-import { GraphQLField, GraphQLSchema } from 'graphql';
-import { Transform } from './transforms';
 import { Request } from '../Interfaces';
+
 import TransformObjectFields from './TransformObjectFields';
+import { Transform } from './transforms';
+
+import { GraphQLField, GraphQLSchema } from 'graphql';
 
 export default class RenameObjectFields implements Transform {
-  private transformer: TransformObjectFields;
+  private readonly transformer: TransformObjectFields;
 
   constructor(renamer: (typeName: string, fieldName: string, field: GraphQLField<any, any>) => string) {
     this.transformer = new TransformObjectFields(
-      (typeName: string, fieldName: string, field: GraphQLField<any, any>) => {
-        return {
+      (typeName: string, fieldName: string, field: GraphQLField<any, any>) => ({
           name: renamer(typeName, fieldName, field),
-        };
-      }
+        })
     );
   }
 

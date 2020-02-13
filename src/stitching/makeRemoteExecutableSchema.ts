@@ -1,7 +1,15 @@
-// This import doesn't actually import code - only the types.
-// Don't use ApolloLink to actually construct a link here.
-import { ApolloLink } from 'apollo-link';
+import { addResolversToSchema } from '../generate';
+import { Fetcher, Operation } from '../Interfaces';
+import { cloneSchema } from '../utils';
 
+import linkToFetcher, { execute } from './linkToFetcher';
+import { addTypenameToAbstract } from './addTypenameToAbstract';
+import { checkResultAndHandleErrors } from './checkResultAndHandleErrors';
+import { observableToAsyncIterable } from './observableToAsyncIterable';
+import mapAsyncIterator from './mapAsyncIterator';
+import { stripResolvers, generateProxyingResolvers } from './resolvers';
+
+import { ApolloLink } from 'apollo-link';
 import {
   GraphQLFieldResolver,
   GraphQLSchema,
@@ -11,16 +19,7 @@ import {
   BuildSchemaOptions,
   DocumentNode,
 } from 'graphql';
-import linkToFetcher, { execute } from './linkToFetcher';
-import { Fetcher, Operation } from '../Interfaces';
-import { addTypenameToAbstract } from './addTypenameToAbstract';
-import { checkResultAndHandleErrors } from './checkResultAndHandleErrors';
-import { observableToAsyncIterable } from './observableToAsyncIterable';
-import mapAsyncIterator from './mapAsyncIterator';
 import { Options as PrintSchemaOptions } from 'graphql/utilities/schemaPrinter';
-import { cloneSchema } from '../utils';
-import { stripResolvers, generateProxyingResolvers } from './resolvers';
-import { addResolversToSchema } from '../generate';
 
 export type ResolverFn = (
   rootValue?: any,
@@ -30,12 +29,11 @@ export type ResolverFn = (
 ) => AsyncIterator<any>;
 
 export default function makeRemoteExecutableSchema({
-  schema: targetSchema,
+  schema: schemaOrTypeDefs,
   link,
   fetcher,
   createResolver: customCreateResolver = createResolver,
   buildSchemaOptions,
-  printSchemaOptions = { commentDescriptions: true }
 }: {
   schema: GraphQLSchema | string;
   link?: ApolloLink;
@@ -44,31 +42,36 @@ export default function makeRemoteExecutableSchema({
   buildSchemaOptions?: BuildSchemaOptions;
   printSchemaOptions?: PrintSchemaOptions;
 }): GraphQLSchema {
-  if (!fetcher && link) {
-    fetcher = linkToFetcher(link);
+  let finalFetcher: Fetcher = fetcher;
+
+  if (finalFetcher == null && link != null) {
+    finalFetcher = linkToFetcher(link);
   }
 
-  if (typeof targetSchema === 'string') {
-    targetSchema = buildSchema(targetSchema, buildSchemaOptions);
-  }
+  const targetSchema = typeof schemaOrTypeDefs === 'string' ?
+    buildSchema(schemaOrTypeDefs, buildSchemaOptions) :
+    schemaOrTypeDefs;
 
   const remoteSchema = cloneSchema(targetSchema);
   stripResolvers(remoteSchema);
 
-  function createProxyingResolver(
-    schema: GraphQLSchema,
-    operation: Operation,
-  ): GraphQLFieldResolver<any, any> {
+  function createProxyingResolver({
+    operation,
+  }: {
+    operation: Operation;
+  }): GraphQLFieldResolver<any, any> {
     if (operation === 'query' || operation === 'mutation') {
-      return customCreateResolver(fetcher);
-    } else {
-      return createSubscriptionResolver(link);
+      return customCreateResolver(finalFetcher);
     }
+    return createSubscriptionResolver(link);
   }
 
   addResolversToSchema({
     schema: remoteSchema,
-    resolvers: generateProxyingResolvers({ schema: remoteSchema }, createProxyingResolver),
+    resolvers: generateProxyingResolvers({
+      subschemaConfig: { schema: remoteSchema },
+      createProxyingResolver,
+    }),
     resolverValidationOptions: {
       allowResolversNotInSchema: true,
     },
@@ -78,7 +81,7 @@ export default function makeRemoteExecutableSchema({
 }
 
 export function createResolver(fetcher: Fetcher): GraphQLFieldResolver<any, any> {
-  return async (root, args, context, info) => {
+  return async (_root, _args, context, info) => {
     const fragments = Object.keys(info.fragments).map(fragment => info.fragments[fragment]);
     let query: DocumentNode = {
       kind: Kind.DOCUMENT,
@@ -97,7 +100,7 @@ export function createResolver(fetcher: Fetcher): GraphQLFieldResolver<any, any>
 }
 
 function createSubscriptionResolver(link: ApolloLink): ResolverFn {
-  return (root, args, context, info) => {
+  return (_root, _args, context, info) => {
     const fragments = Object.keys(info.fragments).map(fragment => info.fragments[fragment]);
     let query: DocumentNode = {
       kind: Kind.DOCUMENT,

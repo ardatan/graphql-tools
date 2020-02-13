@@ -1,4 +1,21 @@
 import {
+  SubschemaConfig,
+  IGraphQLToolsResolveInfo,
+  isSubschemaConfig,
+  MergedTypeInfo,
+} from '../Interfaces';
+
+import {
+  relocatedError,
+  combineErrors,
+  getErrorsByPathSegment,
+} from './errors';
+import { getResponseKeyFromInfo } from './getResponseKeyFromInfo';
+import resolveFromParentTypename from './resolveFromParentTypename';
+import { setErrors, setObjectSubschema } from './proxiedResult';
+import { mergeFields } from './mergeFields';
+
+import {
   GraphQLResolveInfo,
   responsePathAsArray,
   getNullableType,
@@ -16,38 +33,19 @@ import {
   isAbstractType,
   GraphQLObjectType,
 } from 'graphql';
-import { getResponseKeyFromInfo } from './getResponseKeyFromInfo';
-import {
-  relocatedError,
-  combineErrors,
-  getErrorsByPathSegment,
-} from './errors';
-import {
-  SubschemaConfig,
-  IGraphQLToolsResolveInfo,
-  isSubschemaConfig,
-  MergedTypeInfo,
-} from '../Interfaces';
-import resolveFromParentTypename from './resolveFromParentTypename';
-import { setErrors, setObjectSubschema } from './proxiedResult';
-import { mergeFields } from './mergeFields';
 import { collectFields, ExecutionContext } from 'graphql/execution/execute';
 
 export function checkResultAndHandleErrors(
   result: ExecutionResult,
   context: Record<string, any>,
   info: GraphQLResolveInfo,
-  responseKey?: string,
+  responseKey: string = getResponseKeyFromInfo(info),
   subschema?: GraphQLSchema | SubschemaConfig,
   returnType: GraphQLOutputType = info.returnType,
   skipTypeMerging?: boolean,
 ): any {
-  if (!responseKey) {
-    responseKey = getResponseKeyFromInfo(info);
-  }
-
-  const errors = result.errors || [];
-  const data = result.data && result.data[responseKey];
+  const errors = result.errors != null ? result.errors : [];
+  const data = result.data != null ? result.data[responseKey] : undefined;
 
   return handleResult(data, errors, subschema, context, info, returnType, skipTypeMerging);
 }
@@ -87,18 +85,16 @@ function handleList(
 ) {
   const childErrors = getErrorsByPathSegment(errors);
 
-  list = list.map((listMember, index) => handleListMember(
+  return list.map((listMember, index) => handleListMember(
     getNullableType(type.ofType),
     listMember,
     index,
-    childErrors[index] || [],
+    childErrors[index] != null ? childErrors[index] : [],
     subschema,
     context,
     info,
     skipTypeMerging,
   ));
-
-  return list;
 }
 
 function handleListMember(
@@ -133,13 +129,11 @@ export function handleObject(
   info: IGraphQLToolsResolveInfo,
   skipTypeMerging?: boolean,
 ) {
-  setErrors(object, errors.map(error => {
-    return relocatedError(
-      error,
-      error.nodes,
-      error.path ? error.path.slice(1) : undefined
-    );
-  }));
+  setErrors(object, errors.map(error => relocatedError(
+    error,
+    error.nodes,
+    error.path != null ? error.path.slice(1) : undefined,
+  )));
 
   setObjectSubschema(object, subschema);
 
@@ -152,7 +146,11 @@ export function handleObject(
       info.schema.getTypeMap()[resolveFromParentTypename(object)].name :
       type.name;
   const mergedTypeInfo = info.mergeInfo.mergedTypes[typeName];
-  let targetSubschemas = mergedTypeInfo && mergedTypeInfo.subschemas;
+  let targetSubschemas: Array<SubschemaConfig>;
+
+  if (mergedTypeInfo != null) {
+    targetSubschemas = mergedTypeInfo.subschemas;
+  };
 
   if (!targetSubschemas) {
     return object;
@@ -189,8 +187,8 @@ function collectSubFields(info: IGraphQLToolsResolveInfo, typeName: string) {
   const visitedFragmentNames = Object.create(null);
   info.fieldNodes.forEach(fieldNode => {
     subFieldNodes = collectFields(
-      { schema: info.schema, variableValues: info.variableValues, fragments: info.fragments } as ExecutionContext,
-      info.schema.getType(typeName) as GraphQLObjectType<any, any>,
+      { schema: info.schema, variableValues: info.variableValues, fragments: info.fragments } as unknown as ExecutionContext,
+      info.schema.getType(typeName) as GraphQLObjectType,
       fieldNode.selectionSet,
       subFieldNodes,
       visitedFragmentNames,
@@ -244,17 +242,17 @@ export function handleNull(
 
       return result;
 
-    } else {
-      const childErrors = getErrorsByPathSegment(errors);
-
-      const result = new Array;
-      Object.keys(childErrors).forEach(pathSegment => {
-        result.push(handleNull(fieldNodes, [...path, parseInt(pathSegment, 10)], childErrors[pathSegment]));
-      });
-
-      return result;
     }
-  } else {
-    return null;
+
+    const childErrors = getErrorsByPathSegment(errors);
+
+    const result: Array<any> = [];
+    Object.keys(childErrors).forEach(pathSegment => {
+      result.push(handleNull(fieldNodes, [...path, parseInt(pathSegment, 10)], childErrors[pathSegment]));
+    });
+
+    return result;
   }
+
+  return null;
 }

@@ -14,7 +14,7 @@ export default function implementsAbstractType(
     return true;
   } else if (isCompositeType(typeA) && isCompositeType(typeB)) {
     return doTypesOverlap(schema, typeA, typeB);
-  } else {
-    return false;
   }
+
+  return false;
 }

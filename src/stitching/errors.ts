@@ -14,17 +14,28 @@ export function relocatedError(
       (originalError as GraphQLError).nodes,
       (originalError as GraphQLError).source,
       (originalError as GraphQLError).positions,
-      path ? path : (originalError as GraphQLError).path,
+      path != null ? path : (originalError as GraphQLError).path,
       (originalError as GraphQLError).originalError,
       (originalError as GraphQLError).extensions
     );
   }
 
+  if (originalError == null) {
+    return new GraphQLError(
+      undefined,
+      nodes,
+      undefined,
+      undefined,
+      path,
+      originalError,
+    );
+  }
+
   return new GraphQLError(
-    originalError && originalError.message,
-    (originalError && (originalError as any).nodes) || nodes,
-    originalError && (originalError as any).source,
-    originalError && (originalError as any).positions,
+    originalError.message,
+    ((originalError as GraphQLError).nodes != null) ? (originalError as GraphQLError).nodes : nodes,
+    (originalError as GraphQLError).source,
+    (originalError as GraphQLError).positions,
     path,
     originalError,
   );
@@ -34,7 +45,7 @@ export function slicedError(originalError: GraphQLError) {
   return relocatedError(
     originalError,
     originalError.nodes,
-    originalError.path ? originalError.path.slice(1) : undefined
+    (originalError.path != null) ? originalError.path.slice(1) : undefined
   );
 }
 
@@ -48,7 +59,7 @@ export function getErrorsByPathSegment(errors: ReadonlyArray<GraphQLError>): Rec
 
     const pathSegment = error.path[1];
 
-    const current = record[pathSegment] || [];
+    const current = (record[pathSegment] != null) ? record[pathSegment] : [];
     current.push(slicedError(error));
     record[pathSegment] = current;
   });
@@ -75,7 +86,7 @@ export function combineErrors(errors: ReadonlyArray<GraphQLError>): GraphQLError
       errors[0].originalError,
       errors[0].extensions
     );
-  } else {
-    return new CombinedError(errors.map(error => error.message).join('\n'), errors);
   }
+
+  return new CombinedError(errors.map(error => error.message).join('\n'), errors);
 }

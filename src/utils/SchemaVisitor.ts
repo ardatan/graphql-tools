@@ -20,7 +20,7 @@ export abstract class SchemaVisitor {
   // All SchemaVisitor instances are created while visiting a specific
   // GraphQLSchema object, so this property holds a reference to that object,
   // in case a visitor method needs to refer to this.schema.
-  public schema: GraphQLSchema;
+  public schema!: GraphQLSchema;
 
   // Determine if this SchemaVisitor (sub)class implements a particular
   // visitor method.
@@ -55,26 +55,47 @@ export abstract class SchemaVisitor {
   // type from the schema, a non-null value of the same type to update the
   // type in the schema, or nothing to leave the type as it was.
 
-  /* tslint:disable:no-empty */
-  public visitSchema(schema: GraphQLSchema): void {}
-  public visitScalar(scalar: GraphQLScalarType): GraphQLScalarType | void | null {}
-  public visitObject(object: GraphQLObjectType): GraphQLObjectType | void | null {}
-  public visitFieldDefinition(field: GraphQLField<any, any>, details: {
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  public visitSchema(_schema: GraphQLSchema): void {}
+
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  public visitScalar(_scalar: GraphQLScalarType): GraphQLScalarType | void | null {}
+
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  public visitObject(_object: GraphQLObjectType): GraphQLObjectType | void | null {}
+
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+
+  public visitFieldDefinition(_field: GraphQLField<any, any>, _details: {
     objectType: GraphQLObjectType | GraphQLInterfaceType,
-  }): GraphQLField<any, any> | void | null {}
-  public visitArgumentDefinition(argument: GraphQLArgument, details: {
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  }): GraphQLField<any, any> | void | null { }
+
+  public visitArgumentDefinition(_argument: GraphQLArgument, _details: {
     field: GraphQLField<any, any>,
     objectType: GraphQLObjectType | GraphQLInterfaceType,
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   }): GraphQLArgument | void | null {}
-  public visitInterface(iface: GraphQLInterfaceType): GraphQLInterfaceType | void | null {}
-  public visitUnion(union: GraphQLUnionType): GraphQLUnionType | void | null {}
-  public visitEnum(type: GraphQLEnumType): GraphQLEnumType | void | null {}
-  public visitEnumValue(value: GraphQLEnumValue, details: {
+
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  public visitInterface(_iface: GraphQLInterfaceType): GraphQLInterfaceType | void | null { }
+
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  public visitUnion(_union: GraphQLUnionType): GraphQLUnionType | void | null { }
+
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  public visitEnum(_type: GraphQLEnumType): GraphQLEnumType | void | null {}
+
+  public visitEnumValue(_value: GraphQLEnumValue, _details: {
     enumType: GraphQLEnumType,
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   }): GraphQLEnumValue | void | null {}
-  public visitInputObject(object: GraphQLInputObjectType): GraphQLInputObjectType | void | null {}
-  public visitInputFieldDefinition(field: GraphQLInputField, details: {
+
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  public visitInputObject(_object: GraphQLInputObjectType): GraphQLInputObjectType | void | null {}
+
+  public visitInputFieldDefinition(_field: GraphQLInputField, _details: {
     objectType: GraphQLInputObjectType,
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   }): GraphQLInputField | void | null {}
-  /* tslint:enable:no-empty */
 }

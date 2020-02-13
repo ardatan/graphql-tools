@@ -12,7 +12,7 @@ export function appendFields(
   fields: GraphQLFieldConfigMap<any, any>,
 ): void {
   let type = typeMap[typeName];
-  if (type) {
+  if (type != null) {
     const typeConfig = type.toConfig() as GraphQLObjectTypeConfig<any, any>;
     const originalFields = typeConfig.fields;
     const newFields = {};

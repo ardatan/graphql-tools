@@ -1,6 +1,6 @@
-import { GraphQLObjectType, GraphQLSchema } from 'graphql';
-
 import { IResolvers } from '../Interfaces';
+
+import { GraphQLObjectType, GraphQLSchema } from 'graphql';
 
 function extendResolversFromInterfaces(
   schema: GraphQLSchema,
@@ -24,10 +24,8 @@ function extendResolversFromInterfaces(
         ...interfaceResolvers,
         typeResolvers,
       );
-    } else {
-      if (typeResolvers) {
-        extendedResolvers[typeName] = typeResolvers;
-      }
+    } else if (typeResolvers != null) {
+      extendedResolvers[typeName] = typeResolvers;
     }
   });
 

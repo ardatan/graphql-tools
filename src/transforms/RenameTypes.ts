@@ -1,3 +1,8 @@
+import isSpecifiedScalarType from '../utils/isSpecifiedScalarType';
+import { Request, Result, VisitSchemaKind } from '../Interfaces';
+import { Transform } from '../transforms/transforms';
+import { visitSchema, cloneType } from '../utils';
+
 import {
   visit,
   GraphQLSchema,
@@ -6,10 +11,6 @@ import {
   GraphQLNamedType,
   GraphQLScalarType,
 } from 'graphql';
-import isSpecifiedScalarType from '../utils/isSpecifiedScalarType';
-import { Request, Result, VisitSchemaKind } from '../Interfaces';
-import { Transform } from '../transforms/transforms';
-import { visitSchema, cloneType } from '../utils';
 
 export type RenameOptions = {
   renameBuiltins: boolean;
@@ -17,11 +18,11 @@ export type RenameOptions = {
 };
 
 export default class RenameTypes implements Transform {
-  private renamer: (name: string) => string | undefined;
+  private readonly renamer: (name: string) => string | undefined;
   private map: { [key: string]: string };
   private reverseMap: { [key: string]: string };
-  private renameBuiltins: boolean;
-  private renameScalars: boolean;
+  private readonly renameBuiltins: boolean;
+  private readonly renameScalars: boolean;
 
   constructor(
     renamer: (name: string) => string | undefined,
@@ -30,7 +31,7 @@ export default class RenameTypes implements Transform {
     this.renamer = renamer;
     this.map = {};
     this.reverseMap = {};
-    const { renameBuiltins = false, renameScalars = true } = options || {};
+    const { renameBuiltins = false, renameScalars = true } = (options != null) ? options : {};
     this.renameBuiltins = renameBuiltins;
     this.renameScalars = renameScalars;
   }
@@ -55,7 +56,7 @@ export default class RenameTypes implements Transform {
         }
       },
 
-      [VisitSchemaKind.ROOT_OBJECT](type: GraphQLNamedType) {
+      [VisitSchemaKind.ROOT_OBJECT]() {
         return undefined;
       },
     });
@@ -103,8 +104,8 @@ export default class RenameTypes implements Transform {
           this.renamer(value[key]) : this.renameTypes(value[key]);
       });
       return value;
-    } else {
-      return value;
     }
+
+    return value;
   }
 }

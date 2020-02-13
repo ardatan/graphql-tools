@@ -1,9 +1,16 @@
-import { visit, Kind, SelectionSetNode, BREAK, FieldNode } from 'graphql';
 import { Transform, Request } from '../Interfaces';
 
+import {
+  visit,
+  Kind,
+  SelectionSetNode,
+  BREAK,
+  FieldNode,
+} from 'graphql';
+
 export default class ExtractField implements Transform {
-  private from: Array<string>;
-  private to: Array<string>;
+  private readonly from: Array<string>;
+  private readonly to: Array<string>;
 
   constructor({ from, to }: { from: Array<string>; to: Array<string> }) {
     this.from = from;
@@ -11,7 +18,7 @@ export default class ExtractField implements Transform {
   }
 
   public transformRequest(originalRequest: Request): Request {
-    let fromSelection: SelectionSetNode;
+    let fromSelection: SelectionSetNode | undefined;
     const ourPathFrom = JSON.stringify(this.from);
     const ourPathTo = JSON.stringify(this.to);
     let fieldPath: Array<string> = [];
@@ -24,7 +31,7 @@ export default class ExtractField implements Transform {
             return BREAK;
           }
         },
-        leave: (node: FieldNode) => {
+        leave: () => {
           fieldPath.pop();
         },
       },
@@ -35,14 +42,14 @@ export default class ExtractField implements Transform {
       [Kind.FIELD]: {
         enter: (node: FieldNode) => {
           fieldPath.push(node.name.value);
-          if (ourPathTo === JSON.stringify(fieldPath) && fromSelection) {
+          if (ourPathTo === JSON.stringify(fieldPath) && fromSelection != null) {
             return {
               ...node,
               selectionSet: fromSelection,
             };
           }
         },
-        leave: (node: FieldNode) => {
+        leave: () => {
           fieldPath.pop();
         },
       },

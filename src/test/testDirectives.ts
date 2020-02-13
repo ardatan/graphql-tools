@@ -1,9 +1,11 @@
-import { assert } from 'chai';
+import crypto from 'crypto';
+
 import { makeExecutableSchema } from '../makeExecutableSchema';
 import { VisitableSchemaType } from '../Interfaces';
 import { SchemaDirectiveVisitor } from '../utils/SchemaDirectiveVisitor';
 import { SchemaVisitor } from '../utils/SchemaVisitor';
 import { visitSchema } from '../utils/visitSchema';
+
 import {
   ExecutionResult,
   GraphQLArgument,
@@ -27,7 +29,9 @@ import {
   GraphQLOutputType,
 } from 'graphql';
 
-import formatDate = require('dateformat');
+import { assert } from 'chai';
+
+import formatDate from 'dateformat';
 
 const typeDefs = `
 directive @schemaDirective(role: String) on SCHEMA
@@ -103,7 +107,7 @@ describe('@directives', () => {
     function checkDirectives(
       type: VisitableSchemaType,
       typeDirectiveNames: [string],
-      fieldDirectiveMap: { [key: string]: string[] } = {},
+      fieldDirectiveMap: { [key: string]: Array<string> } = {},
     ) {
       assert.deepEqual(
         getDirectiveNames(type),
@@ -120,7 +124,7 @@ describe('@directives', () => {
 
     function getDirectiveNames(
       type: VisitableSchemaType,
-    ): string[] {
+    ): Array<string> {
       return type.astNode.directives.map(d => d.name.value);
     }
 
@@ -144,13 +148,13 @@ describe('@directives', () => {
       ['enumValueDirective'],
     );
 
-    checkDirectives(schema.getType('Date'), ['dateDirective']);
+    checkDirectives(schema.getType('Date') as GraphQLObjectType, ['dateDirective']);
 
-    checkDirectives(schema.getType('Named'), ['interfaceDirective'], {
+    checkDirectives(schema.getType('Named') as GraphQLObjectType, ['interfaceDirective'], {
       name: ['interfaceFieldDirective'],
     });
 
-    checkDirectives(schema.getType('PersonInput'), ['inputTypeDirective'], {
+    checkDirectives(schema.getType('PersonInput') as GraphQLObjectType, ['inputTypeDirective'], {
       name: ['inputFieldDirective'],
       gender: [],
     });
@@ -219,7 +223,7 @@ describe('@directives', () => {
   });
 
   it('can visit the schema itself', () => {
-    const visited: GraphQLSchema[] = [];
+    const visited: Array<GraphQLSchema> = [];
     const schema = makeExecutableSchema({ typeDefs });
     SchemaDirectiveVisitor.visitSchemaDirectives(schema, {
       schemaDirective: class extends SchemaDirectiveVisitor {
@@ -315,9 +319,8 @@ describe('@directives', () => {
 
   it('can check if a visitor method is implemented', () => {
     class Visitor extends SchemaVisitor {
-      public notVisitorMethod() {
-        return; // Just to keep the tslint:no-empty rule satisfied.
-      }
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      public notVisitorMethod() {}
 
       public visitObject(object: GraphQLObjectType) {
         return object;
@@ -348,7 +351,7 @@ describe('@directives', () => {
   it('can use visitSchema for simple visitor patterns', () => {
     class SimpleVisitor extends SchemaVisitor {
       public visitCount = 0;
-      public names: string[] = [];
+      public names: Array<string> = [];
 
       constructor(s: GraphQLSchema) {
         super();
@@ -371,7 +374,7 @@ describe('@directives', () => {
     const schema = makeExecutableSchema({ typeDefs });
     const visitor = new SimpleVisitor(schema);
     visitor.visit();
-    assert.deepEqual(visitor.names.sort(), [
+    assert.deepEqual(visitor.names.sort((a, b) => a.localeCompare(b)), [
       'Mutation',
       'Person',
       'Query',
@@ -387,7 +390,8 @@ describe('@directives', () => {
         // Pretend this class implements all visitor methods. This is safe
         // because the SchemaVisitor base class provides empty stubs for all
         // the visitor methods that might be called.
-        return methodNamesEncountered[name] = true;
+        methodNamesEncountered[name] = true;
+        return methodNamesEncountered[name];
       }
     }
 
@@ -411,10 +415,10 @@ describe('@directives', () => {
     });
 
     assert.deepEqual(
-      Object.keys(methodNamesEncountered).sort(),
+      Object.keys(methodNamesEncountered).sort((a, b) => a.localeCompare(b)),
       Object.keys(SchemaVisitor.prototype)
             .filter(name => name.startsWith('visit'))
-            .sort()
+            .sort((a, b) => a.localeCompare(b))
     );
   });
 
@@ -461,11 +465,12 @@ describe('@directives', () => {
               arg.defaultValue = 3;
               return true;
             }
+            return false;
           });
           return prev;
         }
 
-        public visitObject(object: GraphQLObjectType) {
+        public visitObject() {
           ++this.context.objectCount;
           assert.strictEqual(this.args.times, 3);
         }
@@ -487,9 +492,7 @@ describe('@directives', () => {
 
     assert.deepEqual(Object.keys(visitors), ['oyez']);
     assert.deepEqual(
-      visitors.oyez.map(v => {
-        return (v.visitedType as GraphQLObjectType | GraphQLField<any, any>).name;
-      }),
+      visitors.oyez.map(v => (v.visitedType as GraphQLObjectType | GraphQLField<any, any>).name),
       ['Courtroom', 'judge', 'marshall'],
     );
   });
@@ -506,7 +509,7 @@ describe('@directives', () => {
         upper: class extends SchemaDirectiveVisitor {
           public visitFieldDefinition(field: GraphQLField<any, any>) {
             const { resolve = defaultFieldResolver } = field;
-            field.resolve = async function (...args: any[]) {
+            field.resolve = async function (...args) {
               const result = await resolve.apply(this, args);
               if (typeof result === 'string') {
                 return result.toUpperCase();
@@ -553,7 +556,7 @@ describe('@directives', () => {
             const { resolve = defaultFieldResolver } = field;
             const { format } = this.args;
             field.type = GraphQLString;
-            field.resolve = async function (...args: any[]) {
+            field.resolve = async function (...args) {
               const date = await resolve.apply(this, args);
               return formatDate(date, format, true);
             };
@@ -594,9 +597,9 @@ describe('@directives', () => {
 
         field.type = GraphQLString;
         field.resolve = async function (source, { format, ...args }, context, info) {
-          format = format || defaultFormat;
+          const newFormat = format || defaultFormat;
           const date = await resolve.call(this, source, args, context, info);
-          return formatDate(date, format, true);
+          return formatDate(date, newFormat, true);
         };
       }
     }
@@ -626,9 +629,9 @@ describe('@directives', () => {
       }
     });
 
-    const resultNoArg = await graphql(schema, `query { today }`);
+    const resultNoArg = await graphql(schema, 'query { today }');
 
-    if (resultNoArg.errors) {
+    if (resultNoArg.errors != null) {
       assert.deepEqual(resultNoArg.errors, []);
     }
 
@@ -642,7 +645,7 @@ describe('@directives', () => {
       today(format: "dd mmm yyyy")
     }`);
 
-    if (resultWithArg.errors) {
+    if (resultWithArg.errors != null) {
       assert.deepEqual(resultWithArg.errors, []);
     }
 
@@ -655,7 +658,7 @@ describe('@directives', () => {
   it('can be used to implement the @intl example', () => {
     function translate(
       text: string,
-      path: string[],
+      path: Array<string>,
       locale: string,
     ) {
       assert.strictEqual(text, 'hello');
@@ -682,7 +685,7 @@ describe('@directives', () => {
             objectType: GraphQLObjectType,
           }) {
             const { resolve = defaultFieldResolver } = field;
-            field.resolve = async function (...args: any[]) {
+            field.resolve = async function (...args: Array<any>) {
               const defaultText = await resolve.apply(this, args);
               // In this example, path would be ["Query", "greeting"]:
               const path = [details.objectType.name, field.name];
@@ -736,6 +739,7 @@ describe('@directives', () => {
         this.ensureFieldsWrapped(type);
         (type as any)._requiredAuthRole = this.args.requires;
       }
+
       // Visitor methods for nested types like fields and arguments
       // also receive a details object that provides information about
       // the parent and grandparent types.
@@ -759,7 +763,7 @@ describe('@directives', () => {
         Object.keys(fields).forEach(fieldName => {
           const field = fields[fieldName];
           const { resolve = defaultFieldResolver } = field;
-          field.resolve = async function (...args: any[]) {
+          field.resolve = function (...args: Array<any>) {
             // Get the required Role from the field first, falling back
             // to the objectType if no Role is required by the field:
             const requiredRole =
@@ -771,7 +775,7 @@ describe('@directives', () => {
             }
 
             const context = args[2];
-            const user = await getUser(context.headers.authToken);
+            const user = getUser(context.headers.authToken);
             if (! user.hasRole(requiredRole)) {
               throw new Error('not authorized');
             }
@@ -840,18 +844,18 @@ describe('@directives', () => {
 
     function checkErrors(
       expectedCount: number,
-      ...expectedNames: string[]
+      ...expectedNames: Array<string>
     ) {
       return function ({ errors = [], data }: {
-        errors: any[],
+        errors: Array<any>,
         data: any,
       }) {
         assert.strictEqual(errors.length, expectedCount);
         assert(errors.every(error => error.message === 'not authorized'));
         const actualNames = errors.map(error => error.path.slice(-1)[0]);
         assert.deepEqual(
-          expectedNames.sort(),
-          actualNames.sort(),
+          expectedNames.sort((a, b) => a.localeCompare(b)),
+          actualNames.sort((a, b) => a.localeCompare(b)),
         );
         return data;
       };
@@ -874,13 +878,13 @@ describe('@directives', () => {
     class LimitedLengthType extends GraphQLScalarType {
       constructor(type: GraphQLScalarType, maxLength: number) {
         super({
-          name: `LengthAtMost${maxLength}`,
+          name: `LengthAtMost${maxLength.toString()}`,
 
           serialize(value: string) {
-            value = type.serialize(value);
-            assert.strictEqual(typeof value.length, 'number');
-            assert.isAtMost(value.length, maxLength);
-            return value;
+            const newValue = type.serialize(value);
+            assert.strictEqual(typeof newValue.length, 'number');
+            assert.isAtMost(newValue.length, maxLength);
+            return newValue;
           },
 
           parseValue(value: string) {
@@ -932,7 +936,7 @@ describe('@directives', () => {
             } else if (field.type instanceof GraphQLScalarType) {
               field.type = new LimitedLengthType(field.type, this.args.max);
             } else {
-              throw new Error(`Not a scalar type: ${field.type}`);
+              throw new Error(`Not a scalar type: ${field.type.toString()}`);
             }
           }
         }
@@ -947,7 +951,7 @@ describe('@directives', () => {
           }
         },
         Mutation: {
-          createBook(parent, args) {
+          createBook(_parent, args) {
             return args.book;
           }
         }
@@ -975,7 +979,7 @@ describe('@directives', () => {
     }
     `);
 
-    if (result.errors) {
+    if (result.errors != null) {
       assert.deepEqual(result.errors, []);
     }
 
@@ -1011,12 +1015,12 @@ describe('@directives', () => {
           public visitObject(type: GraphQLObjectType) {
             const { name, from } = this.args;
             type.getFields()[name] = Object.create({
-              name: name,
+              name,
               type: GraphQLID,
               description: 'Unique ID',
               args: [],
               resolve(object: any) {
-                const hash = require('crypto').createHash('sha1');
+                const hash = crypto.createHash('sha1');
                 hash.update(type.name);
                 from.forEach((fieldName: string) => {
                   hash.update(String(object[fieldName]));
@@ -1030,13 +1034,13 @@ describe('@directives', () => {
 
       resolvers: {
         Query: {
-          people(...args: any[]) {
+          people() {
             return [{
               personID: 1,
               name: 'Ben',
             }];
           },
-          locations(...args: any[]) {
+          locations() {
             return [{
               locationID: 1,
               address: '140 10th St',
@@ -1108,6 +1112,7 @@ describe('@directives', () => {
         assert.strictEqual(type, schema.getType('Human'));
         return true;
       }
+      return false;
     });
     assert.strictEqual(found, true);
 
@@ -1135,7 +1140,7 @@ describe('@directives', () => {
 
       schemaDirectives: {
         remove: class extends SchemaDirectiveVisitor {
-          public visitEnumValue(value: GraphQLEnumValue): null {
+          public visitEnumValue(): null {
             if (this.args.if) {
               return null;
             }
@@ -1239,7 +1244,7 @@ describe('@directives', () => {
             const { resolve = defaultFieldResolver } = field;
             const newField = {...field};
 
-            newField.resolve = async function(...args: any[]) {
+            newField.resolve = async function(...args: Array<any>) {
               const result = await resolve.apply(this, args);
               if (typeof result === 'string') {
                 return result.toUpperCase();
@@ -1253,7 +1258,7 @@ describe('@directives', () => {
         reverse: class extends SchemaDirectiveVisitor {
           public visitFieldDefinition(field: GraphQLField<any, any>) {
             const { resolve = defaultFieldResolver } = field;
-            field.resolve = async function(...args: any[]) {
+            field.resolve = async function(...args: Array<any>) {
               const result = await resolve.apply(this, args);
               if (typeof result === 'string') {
                 return result

@@ -5,9 +5,9 @@
 import { ILogger } from './Interfaces';
 
 export class Logger implements ILogger {
-  public errors: Error[];
-  public name: string;
-  private callback: Function;
+  public errors: Array<Error>;
+  public name: string | undefined;
+  private readonly callback: Function | undefined;
 
   constructor(name?: string, callback?: Function) {
     this.name = name;
@@ -23,13 +23,13 @@ export class Logger implements ILogger {
     }
   }
 
-  public printOneError(e: Error) {
-    return e.stack;
+  public printOneError(e: Error): string {
+    return e.stack ? e.stack : '';
   }
 
   public printAllErrors() {
     return this.errors.reduce(
-      (agg, e) => `${agg}\n${this.printOneError(e)}`,
+      (agg: string, e: Error) => `${agg}\n${this.printOneError(e)}`,
       '',
     );
   }

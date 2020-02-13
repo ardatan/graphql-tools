@@ -1,23 +1,23 @@
-/* tslint:disable:no-unused-expression */
+import { Request } from '../Interfaces';
+import { appendFields, removeFields } from '../utils/fields';
+import { hoistFieldNodes, healSchema } from '../utils';
+import { defaultMergedResolver, createMergedResolver } from '../stitching';
+
+import { Transform } from './transforms';
+import MapFields from './MapFields';
 
 import {
   GraphQLSchema,
   GraphQLObjectType,
 } from 'graphql';
-import { Request } from '../Interfaces';
-import { Transform } from './transforms';
-import { hoistFieldNodes, healSchema } from '../utils';
-import { defaultMergedResolver, createMergedResolver } from '../stitching';
-import { default as MapFields } from './MapFields';
-import { appendFields, removeFields } from '../utils/fields';
 
 export default class WrapFields implements Transform {
-  private outerTypeName: string;
-  private wrappingFieldNames: Array<string>;
-  private wrappingTypeNames: Array<string>;
-  private numWraps: number;
-  private fieldNames: Array<string>;
-  private transformer: Transform;
+  private readonly outerTypeName: string;
+  private readonly wrappingFieldNames: Array<string>;
+  private readonly wrappingTypeNames: Array<string>;
+  private readonly numWraps: number;
+  private readonly fieldNames: Array<string>;
+  private readonly transformer: Transform;
 
   constructor(
     outerTypeName: string,

@@ -1,3 +1,9 @@
+import isEmptyObject from '../utils/isEmptyObject';
+import { Request, VisitSchemaKind } from '../Interfaces';
+import { visitSchema } from '../utils/visitSchema';
+
+import { Transform } from './transforms';
+
 import {
   GraphQLObjectType,
   GraphQLSchema,
@@ -14,10 +20,6 @@ import {
   SelectionNode,
   FragmentDefinitionNode
 } from 'graphql';
-import isEmptyObject from '../utils/isEmptyObject';
-import { Request, VisitSchemaKind } from '../Interfaces';
-import { Transform } from './transforms';
-import { visitSchema } from '../utils/visitSchema';
 
 export type ObjectFieldTransformer = (
   typeName: string,
@@ -41,8 +43,8 @@ type FieldMapping = {
 type RenamedField = { name: string; field?: GraphQLFieldConfig<any, any> };
 
 export default class TransformObjectFields implements Transform {
-  private objectFieldTransformer: ObjectFieldTransformer;
-  private fieldNodeTransformer: FieldNodeTransformer;
+  private readonly objectFieldTransformer: ObjectFieldTransformer;
+  private readonly fieldNodeTransformer: FieldNodeTransformer;
   private transformedSchema: GraphQLSchema;
   private mapping: FieldMapping;
 
@@ -57,9 +59,7 @@ export default class TransformObjectFields implements Transform {
 
   public transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
     this.transformedSchema = visitSchema(originalSchema, {
-      [VisitSchemaKind.OBJECT_TYPE]: (type: GraphQLObjectType) => {
-        return this.transformFields(type, this.objectFieldTransformer);
-      }
+      [VisitSchemaKind.OBJECT_TYPE]: (type: GraphQLObjectType) => this.transformFields(type, this.objectFieldTransformer)
     });
 
     return this.transformedSchema;
@@ -102,7 +102,7 @@ export default class TransformObjectFields implements Transform {
         const newName = (transformedField as RenamedField).name;
 
         if (newName) {
-          newFields[newName] = (transformedField as RenamedField).field ?
+          newFields[newName] = (transformedField as RenamedField).field != null ?
             (transformedField as RenamedField).field :
             typeConfig.fields[fieldName];
 
@@ -118,14 +118,15 @@ export default class TransformObjectFields implements Transform {
         }
       }
     });
+
     if (isEmptyObject(newFields)) {
       return null;
-    } else {
-      return new GraphQLObjectType({
-        ...type.toConfig(),
-        fields: newFields,
-      });
     }
+
+    return new GraphQLObjectType({
+      ...type.toConfig(),
+      fields: newFields,
+    });
   }
 
   private transformDocument(
@@ -140,43 +141,55 @@ export default class TransformObjectFields implements Transform {
       visitWithTypeInfo(typeInfo, {
         [Kind.SELECTION_SET](node: SelectionSetNode): SelectionSetNode {
           const parentType: GraphQLType = typeInfo.getParentType();
-          if (parentType) {
+          if (parentType != null) {
             const parentTypeName = parentType.name;
             let newSelections: Array<SelectionNode> = [];
 
             node.selections.forEach(selection => {
-              if (selection.kind === Kind.FIELD) {
-                const newName = selection.name.value;
-
-                const transformedSelection = fieldNodeTransformer
-                  ? fieldNodeTransformer(parentTypeName, newName, selection, fragments)
-                  : selection;
-
-                if (Array.isArray(transformedSelection)) {
-                  newSelections = newSelections.concat(transformedSelection);
-                } else if (transformedSelection.kind === Kind.FIELD) {
-                  const oldName = mapping[parentTypeName] && mapping[parentTypeName][newName];
-                  if (oldName) {
-                    newSelections.push({
-                      ...transformedSelection,
-                      name: {
-                        kind: Kind.NAME,
-                        value: oldName
-                      },
-                      alias: {
-                        kind: Kind.NAME,
-                        value: newName
-                      }
-                    });
-                  } else {
-                    newSelections.push(transformedSelection);
-                  }
-                } else {
-                  newSelections.push(transformedSelection);
-                }
-              } else {
+              if (selection.kind !== Kind.FIELD) {
                 newSelections.push(selection);
+                return;
               }
+
+              const newName = selection.name.value;
+
+              const transformedSelection = fieldNodeTransformer != null
+                ? fieldNodeTransformer(parentTypeName, newName, selection, fragments)
+                : selection;
+
+              if (Array.isArray(transformedSelection)) {
+                newSelections = newSelections.concat(transformedSelection);
+                return;
+              }
+
+              if (transformedSelection.kind !== Kind.FIELD) {
+                newSelections.push(transformedSelection);
+                return;
+              }
+
+              const typeMapping = mapping[parentTypeName];
+              if (typeMapping == null) {
+                newSelections.push(transformedSelection);
+                return;
+              }
+
+              const oldName = mapping[parentTypeName][newName];
+              if (oldName == null) {
+                newSelections.push(transformedSelection);
+                return;
+              }
+
+              newSelections.push({
+                ...transformedSelection,
+                name: {
+                  kind: Kind.NAME,
+                  value: oldName
+                },
+                alias: {
+                  kind: Kind.NAME,
+                  value: newName
+                }
+              });
             });
 
             return {

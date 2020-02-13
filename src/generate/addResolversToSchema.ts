@@ -1,22 +1,9 @@
 import {
-  GraphQLField,
-  GraphQLEnumType,
-  GraphQLScalarType,
-  GraphQLSchema,
-  GraphQLObjectType,
-  GraphQLInterfaceType,
-  isSpecifiedScalarType,
-} from 'graphql';
-
-import {
   IResolvers,
   IResolverValidationOptions,
   IAddResolversToSchemaOptions,
 } from '../Interfaces';
 
-import SchemaError from './SchemaError';
-import checkForResolveTypeResolver from './checkForResolveTypeResolver';
-import extendResolversFromInterfaces from './extendResolversFromInterfaces';
 import {
   parseInputValue,
   serializeInputValue,
@@ -25,21 +12,31 @@ import {
   forEachDefaultValue,
 } from '../utils';
 
+import SchemaError from './SchemaError';
+import checkForResolveTypeResolver from './checkForResolveTypeResolver';
+import extendResolversFromInterfaces from './extendResolversFromInterfaces';
+
+import {
+  GraphQLField,
+  GraphQLEnumType,
+  GraphQLScalarType,
+  GraphQLSchema,
+  GraphQLObjectType,
+  GraphQLInterfaceType,
+  isSpecifiedScalarType,
+  GraphQLUnionType,
+} from 'graphql';
+
 function addResolversToSchema(
-  options: IAddResolversToSchemaOptions | GraphQLSchema,
+  schemaOrOptions: GraphQLSchema | IAddResolversToSchemaOptions,
   legacyInputResolvers?: IResolvers,
   legacyInputValidationOptions?: IResolverValidationOptions,
 ) {
-  if (options instanceof GraphQLSchema) {
-    console.warn(
-      'The addResolversToSchema function takes named options now; see IAddResolveFunctionsToSchemaOptions',
-    );
-    options = {
-      schema: options,
-      resolvers: legacyInputResolvers,
-      resolverValidationOptions: legacyInputValidationOptions,
-    };
-  }
+  const options: IAddResolversToSchemaOptions = (schemaOrOptions instanceof GraphQLSchema) ? {
+    schema: schemaOrOptions,
+    resolvers: legacyInputResolvers,
+    resolverValidationOptions: legacyInputValidationOptions,
+  } : schemaOrOptions;
 
   const {
     schema,
@@ -66,8 +63,7 @@ function addResolversToSchema(
 
     if (resolverType !== 'object' && resolverType !== 'function') {
       throw new SchemaError(
-        `"${typeName}" defined in resolvers, but has invalid value "${resolverValue}". A resolver's value ` +
-        `must be of type object or function.`,
+        `"${typeName}" defined in resolvers, but has invalid value "${resolverValue as string}". A resolver's value must be of type object or function.`,
       );
     }
 
@@ -151,8 +147,22 @@ function addResolversToSchema(
         ...config,
         values: newValues,
       });
-    } else {
-      // object type
+    } else if (type instanceof GraphQLUnionType) {
+      Object.keys(resolverValue).forEach(fieldName => {
+        if (fieldName.startsWith('__')) {
+          // this is for isTypeOf and resolveType and all the other stuff.
+          type[fieldName.substring(2)] = resolverValue[fieldName];
+          return;
+        }
+        if (allowResolversNotInSchema) {
+          return;
+        }
+
+        throw new SchemaError(
+          `${typeName} was defined in resolvers, but it's not an object`,
+        );
+      });
+    } else if (type instanceof GraphQLInterfaceType || type instanceof GraphQLObjectType) {
       Object.keys(resolverValue).forEach(fieldName => {
         if (fieldName.startsWith('__')) {
           // this is for isTypeOf and resolveType and all the other stuff.
@@ -160,21 +170,10 @@ function addResolversToSchema(
           return;
         }
 
-        if (!(
-          type instanceof GraphQLObjectType ||
-          type instanceof GraphQLInterfaceType
-        )) {
-          if (allowResolversNotInSchema) {
-            return;
-          }
-
-          throw new SchemaError(
-            `${typeName} was defined in resolvers, but it's not an object`,
-          );
-        }
-
         const fields = type.getFields();
-        if (!fields[fieldName]) {
+        const field = fields[fieldName];
+
+        if (field == null) {
           if (allowResolversNotInSchema) {
             return;
           }
@@ -183,7 +182,7 @@ function addResolversToSchema(
             `${typeName}.${fieldName} defined in resolvers, but not in schema`,
           );
         }
-        const field = fields[fieldName];
+
         const fieldResolve = resolverValue[fieldName];
         if (typeof fieldResolve === 'function') {
           // for convenience. Allows shorter syntax in resolver definition file
@@ -209,7 +208,7 @@ function addResolversToSchema(
   // reparse all default values with new parsing functions.
   forEachDefaultValue(schema, parseInputValue);
 
-  if (defaultFieldResolver) {
+  if (defaultFieldResolver != null) {
     forEachField(schema, field => {
       if (!field.resolve) {
         field.resolve = defaultFieldResolver;
@@ -222,7 +221,7 @@ function addResolversToSchema(
 
 function setFieldProperties(
   field: GraphQLField<any, any>,
-  propertiesObj: Object,
+  propertiesObj: Record<string, any>,
 ) {
   Object.keys(propertiesObj).forEach(propertyName => {
     field[propertyName] = propertiesObj[propertyName];

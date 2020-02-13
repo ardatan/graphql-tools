@@ -22,11 +22,11 @@ export function typeContainsSelectionSet(
     if (selection.kind === Kind.FIELD) {
       const field = fields[selection.name.value];
 
-      if (!field) {
+      if (field == null) {
         return false;
       }
 
-      if (selection.selectionSet) {
+      if (selection.selectionSet != null) {
         return typeContainsSelectionSet(
           getNamedType(field.type) as GraphQLObjectType,
           selection.selectionSet,

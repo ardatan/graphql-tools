@@ -1,35 +1,46 @@
-import { GraphQLSchema, DocumentNode } from 'graphql';
-import { buildClientSchema, parse } from 'graphql';
-import { getIntrospectionQuery } from 'graphql/utilities';
 import { ApolloLink } from 'apollo-link';
+import {
+  GraphQLSchema,
+  DocumentNode,
+  getIntrospectionQuery,
+  buildClientSchema,
+  parse,
+} from 'graphql';
+
 import { Fetcher } from '../Interfaces';
+
+import { combineErrors } from './errors';
 import linkToFetcher from './linkToFetcher';
 
 const parsedIntrospectionQuery: DocumentNode = parse(getIntrospectionQuery());
 
-export default async function introspectSchema(
-  fetcher: ApolloLink | Fetcher,
+export default function introspectSchema(
+  linkOrFetcher: ApolloLink | Fetcher,
   linkContext?: { [key: string]: any },
 ): Promise<GraphQLSchema> {
-  // Convert link to fetcher
-  if ((fetcher as ApolloLink).request) {
-    fetcher = linkToFetcher(fetcher as ApolloLink);
-  }
+  const fetcher = linkOrFetcher instanceof ApolloLink ?
+    linkToFetcher(linkOrFetcher) :
+    linkOrFetcher;
 
-  const introspectionResult = await (fetcher as Fetcher)({
+  return fetcher({
     query: parsedIntrospectionQuery,
     context: linkContext,
+  }).then(introspectionResult => {
+    if (
+      (Array.isArray(introspectionResult.errors) && introspectionResult.errors.length) ||
+      !introspectionResult.data.__schema
+    ) {
+      if (Array.isArray(introspectionResult.errors)) {
+        const combinedError: Error = combineErrors(introspectionResult.errors);
+        throw combinedError;
+      } else {
+        throw new Error('Could not obtain introspection result, received: ' + JSON.stringify(introspectionResult));
+      }
+    } else {
+      const schema = buildClientSchema(introspectionResult.data as {
+        __schema: any;
+      });
+      return schema;
+    }
   });
-
-  if (
-    (introspectionResult.errors && introspectionResult.errors.length) ||
-    !introspectionResult.data.__schema
-  ) {
-    throw introspectionResult.errors;
-  } else {
-    const schema = buildClientSchema(introspectionResult.data as {
-      __schema: any;
-    });
-    return schema;
-  }
 }

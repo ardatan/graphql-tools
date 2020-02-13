@@ -1,15 +1,18 @@
 import {
-  GraphQLSchema,
-  GraphQLFieldResolver,
-  GraphQLObjectType,
-} from 'graphql';
-import {
   IResolvers,
   Operation,
   SubschemaConfig,
 } from '../Interfaces';
+import { Transform } from '../transforms';
+
 import delegateToSchema from './delegateToSchema';
 import { makeMergedType } from './makeMergedType';
+
+import {
+  GraphQLSchema,
+  GraphQLFieldResolver,
+  GraphQLObjectType,
+} from 'graphql';
 
 export type Mapping = {
   [typeName: string]: {
@@ -20,14 +23,25 @@ export type Mapping = {
   };
 };
 
-export function generateProxyingResolvers(
-  subschemaConfig: SubschemaConfig,
-  createProxyingResolver: (
-    schema: GraphQLSchema | SubschemaConfig,
-    operation: Operation,
-    fieldName: string,
-  ) => GraphQLFieldResolver<any, any> = defaultCreateProxyingResolver,
-): IResolvers {
+export function generateProxyingResolvers({
+  subschemaConfig,
+  transforms,
+  createProxyingResolver = defaultCreateProxyingResolver,
+}: {
+  subschemaConfig: SubschemaConfig;
+  transforms?: Array<Transform>;
+  createProxyingResolver?: ({
+    schema,
+    transforms,
+    operation,
+    fieldName,
+  }: {
+    schema?: GraphQLSchema | SubschemaConfig;
+    transforms?: Array<Transform>;
+    operation?: Operation;
+    fieldName?: string;
+  }) => GraphQLFieldResolver<any, any>;
+}): IResolvers {
   const targetSchema = subschemaConfig.schema;
 
   const mapping = generateSimpleMapping(targetSchema);
@@ -41,11 +55,12 @@ export function generateProxyingResolvers(
       const resolverType =
         to.operation === 'subscription' ? 'subscribe' : 'resolve';
       result[name][from] = {
-        [resolverType]: createProxyingResolver(
-          subschemaConfig,
-          to.operation,
-          to.name,
-        ),
+        [resolverType]: createProxyingResolver({
+          schema: subschemaConfig,
+          transforms,
+          operation: to.operation,
+          fieldName: to.name,
+        }),
       };
     });
   });
@@ -58,13 +73,13 @@ export function generateSimpleMapping(targetSchema: GraphQLSchema): Mapping {
   const subscription = targetSchema.getSubscriptionType();
 
   const result: Mapping = {};
-  if (query) {
+  if (query != null) {
     result[query.name] = generateMappingFromObjectType(query, 'query');
   }
-  if (mutation) {
+  if (mutation != null) {
     result[mutation.name] = generateMappingFromObjectType(mutation, 'mutation');
   }
-  if (subscription) {
+  if (subscription != null) {
     result[subscription.name] = generateMappingFromObjectType(
       subscription,
       'subscription',
@@ -94,13 +109,13 @@ export function generateMappingFromObjectType(
   return result;
 }
 
-function defaultCreateProxyingResolver(
-  subschemaConfig: SubschemaConfig,
-  operation: Operation,
-  fieldName: string,
-): GraphQLFieldResolver<any, any> {
-  return (parent, args, context, info) => delegateToSchema({
-    schema: subschemaConfig,
+function defaultCreateProxyingResolver({
+  schema,
+}: {
+  schema: SubschemaConfig;
+}): GraphQLFieldResolver<any, any> {
+  return (_parent, _args, context, info) => delegateToSchema({
+    schema,
     context,
     info,
   });

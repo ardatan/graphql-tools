@@ -1,3 +1,6 @@
+import { healTypes } from './heal';
+import isSpecifiedScalarType from './isSpecifiedScalarType';
+
 import {
   GraphQLDirective,
   GraphQLEnumType,
@@ -9,8 +12,6 @@ import {
   GraphQLSchema,
   GraphQLUnionType,
 } from 'graphql';
-import { healTypes } from './heal';
-import isSpecifiedScalarType from './isSpecifiedScalarType';
 
 export function cloneDirective(directive: GraphQLDirective): GraphQLDirective {
   return new GraphQLDirective(directive.toConfig());
@@ -37,9 +38,9 @@ export function cloneType(type: GraphQLNamedType): GraphQLNamedType {
     return new GraphQLEnumType(type.toConfig());
   } else if (type instanceof GraphQLScalarType) {
     return isSpecifiedScalarType(type) ? type : new GraphQLScalarType(type.toConfig());
-  } else {
-    throw new Error(`Invalid type ${type}`);
   }
+
+  throw new Error(`Invalid type ${type as string}`);
 }
 
 export function cloneSchema(schema: GraphQLSchema): GraphQLSchema {
@@ -62,9 +63,9 @@ export function cloneSchema(schema: GraphQLSchema): GraphQLSchema {
 
   return new GraphQLSchema({
     ...schema.toConfig(),
-    query: query ? newTypeMap[query.name] : undefined,
-    mutation: mutation ? newTypeMap[mutation.name] : undefined,
-    subscription: subscription ? newTypeMap[subscription.name] : undefined,
+    query: query != null ? newTypeMap[query.name] : undefined,
+    mutation: mutation != null ? newTypeMap[mutation.name] : undefined,
+    subscription: subscription != null ? newTypeMap[subscription.name] : undefined,
     types: Object.keys(newTypeMap).map(typeName => newTypeMap[typeName]),
     directives: newDirectives,
   });

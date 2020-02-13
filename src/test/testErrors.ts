@@ -1,13 +1,12 @@
-import { expect, assert } from 'chai';
-import { GraphQLError, graphql } from 'graphql';
 import { relocatedError } from '../stitching/errors';
 import { getErrors, ERROR_SYMBOL } from '../stitching/proxiedResult';
 import { checkResultAndHandleErrors } from '../stitching/checkResultAndHandleErrors';
-
-import 'mocha';
 import { makeExecutableSchema } from '../makeExecutableSchema';
 import { mergeSchemas } from '../stitching';
 import { IGraphQLToolsResolveInfo } from '../Interfaces';
+
+import { expect, assert } from 'chai';
+import { GraphQLError, graphql } from 'graphql';
 
 class ErrorWithExtensions extends GraphQLError {
   constructor(message: string, code: string) {
@@ -34,13 +33,12 @@ describe('Errors', () => {
 
   describe('getErrors', () => {
     it('should return all errors including if path is not defined', () => {
-      const mockErrors = {
+      const error = {
+        message: 'Test error without path'
+      };
+      const mockErrors: any = {
         responseKey: '',
-        [ERROR_SYMBOL]: [
-          {
-            message: 'Test error without path'
-          } as GraphQLError
-        ]
+        [ERROR_SYMBOL]: [error],
       };
 
       assert.deepEqual(getErrors(mockErrors, 'responseKey'),
@@ -55,6 +53,7 @@ describe('Errors', () => {
         errors: [new GraphQLError('Test error')]
       };
       try {
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
         checkResultAndHandleErrors(result, {}, {} as IGraphQLToolsResolveInfo, 'responseKey');
       } catch (e) {
         assert.equal(e.message, 'Test error');
@@ -67,6 +66,7 @@ describe('Errors', () => {
         errors: [new ErrorWithExtensions('Test error', 'UNAUTHENTICATED')]
       };
       try {
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
         checkResultAndHandleErrors(result, {}, {} as IGraphQLToolsResolveInfo, 'responseKey');
       } catch (e) {
         assert.equal(e.message, 'Test error');
@@ -83,6 +83,7 @@ describe('Errors', () => {
         ]
       };
       try {
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
         checkResultAndHandleErrors(result, {}, {} as IGraphQLToolsResolveInfo, 'responseKey');
       } catch (e) {
         assert.equal(e.message, 'Error1\nError2');
@@ -125,7 +126,7 @@ describe('passes along errors for missing fields on list', () => {
     const mergedSchema = mergeSchemas({
       schemas: [schema]
     });
-    const result = await graphql(mergedSchema, `{ getOuter { innerList { mandatoryField } } }`);
+    const result = await graphql(mergedSchema, '{ getOuter { innerList { mandatoryField } } }');
     expect(result).to.deep.equal({
       data: {
         getOuter: null,
@@ -173,7 +174,7 @@ describe('passes along errors for missing fields on list', () => {
     const mergedSchema = mergeSchemas({
       schemas: [schema]
     });
-    const result = await graphql(mergedSchema, `{ getOuter { innerList { mandatoryField } } }`);
+    const result = await graphql(mergedSchema, '{ getOuter { innerList { mandatoryField } } }');
     expect(result).to.deep.equal({
       data: {
         getOuter: {
@@ -225,7 +226,7 @@ describe('passes along errors when list field errors', () => {
     const mergedSchema = mergeSchemas({
       schemas: [schema]
     });
-    const result = await graphql(mergedSchema, `{ getOuter { innerList { mandatoryField } } }`);
+    const result = await graphql(mergedSchema, '{ getOuter { innerList { mandatoryField } } }');
     expect(result).to.deep.equal({
       data: {
         getOuter: null,
@@ -272,7 +273,7 @@ describe('passes along errors when list field errors', () => {
     const mergedSchema = mergeSchemas({
       schemas: [schema]
     });
-    const result = await graphql(mergedSchema, `{ getOuter { innerList { mandatoryField } } }`);
+    const result = await graphql(mergedSchema, '{ getOuter { innerList { mandatoryField } } }');
     expect(result).to.deep.equal({
       data: {
         getOuter: {

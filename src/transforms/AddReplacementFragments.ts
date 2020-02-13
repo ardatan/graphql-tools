@@ -1,3 +1,7 @@
+import { Request, ReplacementFragmentMapping } from '../Interfaces';
+
+import { Transform } from './transforms';
+
 import {
   DocumentNode,
   GraphQLSchema,
@@ -8,12 +12,10 @@ import {
   visit,
   visitWithTypeInfo,
 } from 'graphql';
-import { Request, ReplacementFragmentMapping } from '../Interfaces';
-import { Transform } from './transforms';
 
 export default class AddReplacementFragments implements Transform {
-  private targetSchema: GraphQLSchema;
-  private mapping: ReplacementFragmentMapping;
+  private readonly targetSchema: GraphQLSchema;
+  private readonly mapping: ReplacementFragmentMapping;
 
   constructor(
     targetSchema: GraphQLSchema,
@@ -48,17 +50,17 @@ function replaceFieldsWithFragments(
       [Kind.SELECTION_SET](
         node: SelectionSetNode,
       ): SelectionSetNode | null | undefined {
-        const parentType: GraphQLType = typeInfo.getParentType();
-        if (parentType) {
+        const parentType: GraphQLType | null | undefined = typeInfo.getParentType();
+        if (parentType != null) {
           const parentTypeName = parentType.name;
           let selections = node.selections;
 
-          if (mapping[parentTypeName]) {
+          if (mapping[parentTypeName] != null) {
             node.selections.forEach(selection => {
               if (selection.kind === Kind.FIELD) {
                 const name = selection.name.value;
                 const fragment = mapping[parentTypeName][name];
-                if (fragment) {
+                if (fragment != null) {
                   selections = selections.concat(fragment);
                 }
               }

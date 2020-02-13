@@ -1,5 +1,3 @@
-import { defaultFieldResolver, GraphQLSchema, GraphQLFieldResolver } from 'graphql';
-
 import { IExecutableSchemaDefinition, ILogger } from './Interfaces';
 
 import {
@@ -19,6 +17,12 @@ import {
   SchemaError
 } from './generate';
 
+import {
+  defaultFieldResolver,
+  GraphQLSchema,
+  GraphQLFieldResolver,
+} from 'graphql';
+
 export function makeExecutableSchema<TContext = any>({
   typeDefs,
   resolvers = {},
@@ -26,8 +30,8 @@ export function makeExecutableSchema<TContext = any>({
   logger,
   allowUndefinedInResolve = true,
   resolverValidationOptions = {},
-  directiveResolvers = null,
-  schemaDirectives = null,
+  directiveResolvers,
+  schemaDirectives,
   parseOptions = {},
   inheritResolversFromInterfaces = false
 }: IExecutableSchemaDefinition<TContext>) {
@@ -40,10 +44,6 @@ export function makeExecutableSchema<TContext = any>({
     throw new SchemaError('Must provide typeDefs');
   }
 
-  if (!resolvers) {
-    throw new SchemaError('Must provide resolvers');
-  }
-
   // We allow passing in an array of resolver maps, in which case we merge them
   const resolverMap = Array.isArray(resolvers)
     ? resolvers.filter(resolverObj => typeof resolverObj === 'object').reduce(mergeDeep, {})
@@ -51,7 +51,7 @@ export function makeExecutableSchema<TContext = any>({
 
   // Arguments are now validated and cleaned up
 
-  let schema = buildSchemaFromTypeDefinitions(typeDefs, parseOptions);
+  const schema = buildSchemaFromTypeDefinitions(typeDefs, parseOptions);
 
   addResolversToSchema({
     schema,
@@ -66,7 +66,7 @@ export function makeExecutableSchema<TContext = any>({
     addCatchUndefinedToSchema(schema);
   }
 
-  if (logger) {
+  if (logger != null) {
     addErrorLoggingToSchema(schema, logger);
   }
 
@@ -76,17 +76,17 @@ export function makeExecutableSchema<TContext = any>({
     addSchemaLevelResolver(schema, resolvers['__schema'] as GraphQLFieldResolver<any, any>);
   }
 
-  if (connectors) {
+  if (connectors != null) {
     // connectors are optional, at least for now. That means you can just import them in the resolve
     // function if you want.
     attachConnectorsToContext(schema, connectors);
   }
 
-  if (directiveResolvers) {
+  if (directiveResolvers != null) {
     attachDirectiveResolvers(schema, directiveResolvers);
   }
 
-  if (schemaDirectives) {
+  if (schemaDirectives != null) {
     SchemaDirectiveVisitor.visitSchemaDirectives(schema, schemaDirectives);
   }
 
@@ -97,11 +97,9 @@ function decorateToCatchUndefined(
   fn: GraphQLFieldResolver<any, any>,
   hint: string
 ): GraphQLFieldResolver<any, any> {
-  if (typeof fn === 'undefined') {
-    fn = defaultFieldResolver;
-  }
+  const resolve = (fn == null) ? defaultFieldResolver : fn;
   return (root, args, ctx, info) => {
-    const result = fn(root, args, ctx, info);
+    const result = resolve(root, args, ctx, info);
     if (typeof result === 'undefined') {
       throw new Error(`Resolver for "${hint}" returned undefined`);
     }
@@ -116,7 +114,7 @@ export function addCatchUndefinedToSchema(schema: GraphQLSchema): void {
   });
 }
 
-export function addErrorLoggingToSchema(schema: GraphQLSchema, logger: ILogger): void {
+export function addErrorLoggingToSchema(schema: GraphQLSchema, logger?: ILogger): void {
   if (!logger) {
     throw new Error('Must provide a logger');
   }
