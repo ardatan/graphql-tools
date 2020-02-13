@@ -7,6 +7,7 @@
   "sideEffects": false,
   "scripts": {
     "clean": "rimraf dist",
+    "precompile": "npm run clean",
     "compile": "tsc",
     "pretest": "npm run clean && npm run compile",
     "test": "npm run testonly",
@@ -22,7 +23,8 @@
     "prerelease": "npm test",
     "prettier": "prettier --trailing-comma all --single-quote --write src/**/*.ts",
     "prettier:check": "prettier --trailing-comma all --single-quote --check src/**/*.ts",
-    "release": "standard-version"
+    "release": "npm run releaseonly",
+    "releaseonly": "standard-version"
   },
   "repository": {
     "type": "git",
