@@ -64,8 +64,7 @@ describe('Errors', () => {
         checkResultAndHandleErrors(
           result,
           {},
-          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-          {} as IGraphQLToolsResolveInfo,
+          ({} as unknown) as IGraphQLToolsResolveInfo,
           'responseKey',
         );
       } catch (e) {
@@ -82,8 +81,7 @@ describe('Errors', () => {
         checkResultAndHandleErrors(
           result,
           {},
-          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-          {} as IGraphQLToolsResolveInfo,
+          ({} as unknown) as IGraphQLToolsResolveInfo,
           'responseKey',
         );
       } catch (e) {
@@ -101,8 +99,7 @@ describe('Errors', () => {
         checkResultAndHandleErrors(
           result,
           {},
-          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-          {} as IGraphQLToolsResolveInfo,
+          ({} as unknown) as IGraphQLToolsResolveInfo,
           'responseKey',
         );
       } catch (e) {

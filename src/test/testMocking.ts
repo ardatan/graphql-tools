@@ -482,8 +482,7 @@ describe('Mock', () => {
         id: args.id,
         returnInt: 100,
       }),
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      Flying: (_root: any, _args: any): void => {},
+      Flying: (_root: any, _args: any) => ({}),
     };
     addMocksToSchema({ schema: jsSchema, mocks: mockMap });
     const testQuery = `{

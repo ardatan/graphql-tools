@@ -188,13 +188,6 @@ describe('generating schema from shorthand', () => {
       }
     `;
 
-    const resolve = {
-      RootQuery: {
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
-        species() {},
-      },
-    };
-
     const introspectionQuery = `{
       species: __type(name: "BirdSpecies"){
         name,
@@ -295,7 +288,7 @@ describe('generating schema from shorthand', () => {
 
     const jsSchema = makeExecutableSchema({
       typeDefs: shorthand,
-      resolvers: resolve,
+      resolvers: {},
     });
     const resultPromise = graphql(jsSchema, introspectionQuery);
     return resultPromise.then(result =>
