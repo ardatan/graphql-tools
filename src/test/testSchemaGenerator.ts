@@ -19,6 +19,7 @@ import {
   GraphQLBoolean,
   graphqlSync,
   GraphQLSchema,
+  versionInfo,
 } from 'graphql';
 
 import { Logger } from '../Logger';
@@ -257,7 +258,7 @@ describe('generating schema from shorthand', () => {
         },
         query: {
           name: 'RootQuery',
-          description: '',
+          description: null as string,
           fields: [
             {
               name: 'species',
@@ -1776,7 +1777,7 @@ describe('generating schema from shorthand', () => {
       }, errorMatcher);
     }
 
-    assertFieldError('Bird.id', {});
+    assertFieldError(versionInfo.major >= 15 ? 'Query.bird' : 'Bird.id', {});
     assertFieldError('Query.bird', {
       Bird: {
         id: (bird: { id: string }) => bird.id,

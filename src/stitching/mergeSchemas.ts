@@ -156,6 +156,7 @@ export default function mergeSchemas({
         typeof schemaLikeObject === 'string'
           ? parse(schemaLikeObject)
           : (schemaLikeObject as DocumentNode);
+
       parsedSchemaDocument.definitions.forEach(def => {
         const type = typeFromAST(def);
         if (type instanceof GraphQLDirective && mergeDirectives) {

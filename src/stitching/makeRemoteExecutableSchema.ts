@@ -8,7 +8,6 @@ import {
   BuildSchemaOptions,
   DocumentNode,
 } from 'graphql';
-import { Options as PrintSchemaOptions } from 'graphql/utilities/schemaPrinter';
 
 import { addResolversToSchema } from '../generate';
 import { Fetcher, Operation } from '../Interfaces';
@@ -40,7 +39,6 @@ export default function makeRemoteExecutableSchema({
   fetcher?: Fetcher;
   createResolver?: (fetcher: Fetcher) => GraphQLFieldResolver<any, any>;
   buildSchemaOptions?: BuildSchemaOptions;
-  printSchemaOptions?: PrintSchemaOptions;
 }): GraphQLSchema {
   let finalFetcher: Fetcher = fetcher;
 

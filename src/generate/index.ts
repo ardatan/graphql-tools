@@ -9,7 +9,10 @@ export { default as checkForResolveTypeResolver } from './checkForResolveTypeRes
 export { default as concatenateTypeDefs } from './concatenateTypeDefs';
 export { default as decorateWithLogger } from './decorateWithLogger';
 export { default as extendResolversFromInterfaces } from './extendResolversFromInterfaces';
-export { default as extractExtensionDefinitions } from './extractExtensionDefinitions';
+export {
+  extractExtensionDefinitions,
+  filterExtensionDefinitions,
+} from './extensionDefinitions';
 export { default as SchemaError } from './SchemaError';
 
 // for backwards compatibility
