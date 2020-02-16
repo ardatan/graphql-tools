@@ -15,6 +15,7 @@ import {
   ExecutionResult,
   Source,
   GraphQLResolveInfo,
+  versionInfo,
 } from 'graphql';
 import { forAwaitEach } from 'iterall';
 
@@ -272,7 +273,15 @@ const propertyRootTypeDefs = `
     foo: String
   }
 
-  type TestImpl2 implements TestInterface {
+  ${
+    versionInfo.major >= 15
+      ? `interface TestNestedInterface implements TestInterface {
+    kind: TestInterfaceKind
+    testString: String
+  }
+  type TestImpl2 implements TestNestedInterface & TestInterface {`
+      : 'type TestImpl2 implements TestInterface'
+  }
     kind: TestInterfaceKind
     testString: String
     bar: String

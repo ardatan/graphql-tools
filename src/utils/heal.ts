@@ -14,6 +14,7 @@ import {
   GraphQLSchema,
   GraphQLInputType,
   GraphQLOutputType,
+  versionInfo,
 } from 'graphql';
 
 import each from './each';
@@ -123,6 +124,9 @@ export function healTypes(
       return;
     } else if (type instanceof GraphQLInterfaceType) {
       healFields(type);
+      if (versionInfo.major >= 15) {
+        healInterfaces(type);
+      }
       return;
     } else if (type instanceof GraphQLUnionType) {
       healUnderlyingTypes(type);
@@ -151,7 +155,7 @@ export function healTypes(
     });
   }
 
-  function healInterfaces(type: GraphQLObjectType) {
+  function healInterfaces(type: GraphQLObjectType | GraphQLInterfaceType) {
     updateEachKey(type.getInterfaces(), iface => {
       const healedType = healType(iface) as GraphQLInterfaceType;
       return healedType;
@@ -209,7 +213,10 @@ function pruneTypes(
 ) {
   const implementedInterfaces = {};
   each(typeMap, namedType => {
-    if (namedType instanceof GraphQLObjectType) {
+    if (
+      namedType instanceof GraphQLObjectType ||
+      (versionInfo.major >= 15 && namedType instanceof GraphQLInterfaceType)
+    ) {
       each(namedType.getInterfaces(), iface => {
         implementedInterfaces[iface.name] = true;
       });

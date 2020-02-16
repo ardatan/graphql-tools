@@ -11,7 +11,10 @@ install:
   - npm install graphql@$GRAPHQL_CHANNEL
 
 script:
-  - npm test
+  - if [ $GRAPHQL_CHANNEL == 'rc' ];
+    then npm test && npm run lint && npm run prettier-check;
+    else npm test;
+  fi
   - npm run coverage
   - coveralls < ./coverage/lcov.info || true # if coveralls doesn't have it covered
 

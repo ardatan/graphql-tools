@@ -8,6 +8,7 @@ import {
   GraphQLScalarType,
   GraphQLSchema,
   GraphQLUnionType,
+  versionInfo,
 } from 'graphql';
 
 import { healTypes } from './heal';
@@ -25,7 +26,12 @@ export function cloneType(type: GraphQLNamedType): GraphQLNamedType {
       interfaces: config.interfaces.slice(),
     });
   } else if (type instanceof GraphQLInterfaceType) {
-    return new GraphQLInterfaceType(type.toConfig());
+    const config = type.toConfig();
+    return new GraphQLInterfaceType({
+      ...config,
+      interfaces:
+        versionInfo.major >= 15 ? config.interfaces.slice() : undefined,
+    });
   } else if (type instanceof GraphQLUnionType) {
     const config = type.toConfig();
     return new GraphQLUnionType({

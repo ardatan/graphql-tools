@@ -28,6 +28,7 @@ import {
   DirectiveLocation,
   GraphQLFieldConfig,
   StringValueNode,
+  versionInfo,
 } from 'graphql';
 
 import { createNamedStub } from '../utils/stub';
@@ -87,6 +88,17 @@ function makeInterfaceType(
   return new GraphQLInterfaceType({
     name: node.name.value,
     fields: () => makeFields(node.fields),
+    interfaces:
+      versionInfo.major >= 15
+        ? () =>
+            node.interfaces.map(
+              iface =>
+                createNamedStub(
+                  iface.name.value,
+                  'interface',
+                ) as GraphQLInterfaceType,
+            )
+        : undefined,
     description: getDescription(node, backcompatOptions),
     resolveType: parent => resolveFromParentTypename(parent),
   });

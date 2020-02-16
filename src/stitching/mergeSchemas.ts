@@ -14,6 +14,7 @@ import {
   GraphQLUnionType,
   GraphQLEnumType,
   ASTNode,
+  versionInfo,
 } from 'graphql';
 
 import {
@@ -361,6 +362,14 @@ function merge(
         }),
         {},
       ),
+      interfaces:
+        versionInfo.major >= 15
+          ? candidates.reduce((acc, candidate) => {
+              const interfaces = (candidate.type as GraphQLInterfaceType).toConfig()
+                .interfaces;
+              return interfaces != null ? acc.concat(interfaces) : acc;
+            }, [])
+          : undefined,
     });
   } else if (initialCandidateType instanceof GraphQLUnionType) {
     return new GraphQLUnionType({
