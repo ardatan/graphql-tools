@@ -46,13 +46,13 @@ export function wrapSchema(
 }
 
 export default function transformSchema(
-  subschema: GraphQLSchema,
+  subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig,
   transforms: Array<Transform>,
 ): GraphQLSchemaWithTransforms {
-  const schema: GraphQLSchemaWithTransforms = wrapSchema({
-    schema: subschema,
+  const schema: GraphQLSchemaWithTransforms = wrapSchema(
+    subschemaOrSubschemaConfig,
     transforms,
-  });
+  );
 
   schema.transforms = transforms.slice().reverse();
   return schema;

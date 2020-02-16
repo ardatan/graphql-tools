@@ -29,7 +29,6 @@ import { propertySchema, bookingSchema } from './testingSchemas';
 
 describe('transforms', () => {
   describe('base transform function', () => {
-    let schema: GraphQLSchema;
     const scalarTest = `
       scalar TestScalar
       type TestingScalar {
@@ -61,10 +60,38 @@ describe('transforms', () => {
       },
     });
 
-    before(() => {
-      schema = transformSchema(scalarSchema, []);
-    });
     it('should work', async () => {
+      const schema = transformSchema(scalarSchema, []);
+      const result = await graphql(
+        schema,
+        `
+          query($input: TestScalar) {
+            testingScalar(input: $input) {
+              value
+            }
+          }
+        `,
+        {},
+        {},
+        {
+          input: 'test',
+        },
+      );
+
+      expect(result).to.deep.equal({
+        data: {
+          testingScalar: {
+            value: 'test',
+          },
+        },
+      });
+    });
+
+    it('should work when specified as a schema configuration object', async () => {
+      const schema = transformSchema(
+        { schema: scalarSchema, transforms: [] },
+        [],
+      );
       const result = await graphql(
         schema,
         `
