@@ -258,7 +258,7 @@ describe('generating schema from shorthand', () => {
         },
         query: {
           name: 'RootQuery',
-          description: null as string,
+          description: versionInfo.major >= 15 ? (null as string) : '',
           fields: [
             {
               name: 'species',
