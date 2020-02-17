@@ -279,12 +279,17 @@ const propertyRootTypeDefs = `
     kind: TestInterfaceKind
     testString: String
   }
-  type TestImpl2 implements TestNestedInterface & TestInterface {`
-      : 'type TestImpl2 implements TestInterface'
-  }
+
+  type TestImpl2 implements TestNestedInterface & TestInterface {
     kind: TestInterfaceKind
     testString: String
     bar: String
+  }`
+      : `type TestImpl2 implements TestInterface {
+    kind: TestInterfaceKind
+    testString: String
+    bar: String
+  }`
   }
 
   type UnionImpl {
