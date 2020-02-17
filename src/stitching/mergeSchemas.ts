@@ -353,7 +353,7 @@ function merge(
       }, []),
     });
   } else if (initialCandidateType instanceof GraphQLInterfaceType) {
-    return new GraphQLInterfaceType({
+    const config = {
       name: typeName,
       fields: candidates.reduce(
         (acc, candidate) => ({
@@ -365,12 +365,13 @@ function merge(
       interfaces:
         versionInfo.major >= 15
           ? candidates.reduce((acc, candidate) => {
-              const interfaces = (candidate.type as GraphQLInterfaceType).toConfig()
+              const interfaces = (candidate.type as GraphQLObjectType).toConfig()
                 .interfaces;
               return interfaces != null ? acc.concat(interfaces) : acc;
             }, [])
           : undefined,
-    });
+    };
+    return new GraphQLInterfaceType(config);
   } else if (initialCandidateType instanceof GraphQLUnionType) {
     return new GraphQLUnionType({
       name: typeName,

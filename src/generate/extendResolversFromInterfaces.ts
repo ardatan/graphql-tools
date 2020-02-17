@@ -24,7 +24,7 @@ function extendResolversFromInterfaces(
       type instanceof GraphQLObjectType ||
       (versionInfo.major >= 15 && type instanceof GraphQLInterfaceType)
     ) {
-      const interfaceResolvers = type
+      const interfaceResolvers = (type as GraphQLObjectType)
         .getInterfaces()
         .map(iFace => resolvers[iFace.name]);
       extendedResolvers[typeName] = Object.assign(

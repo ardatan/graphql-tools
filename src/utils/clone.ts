@@ -9,6 +9,7 @@ import {
   GraphQLSchema,
   GraphQLUnionType,
   versionInfo,
+  GraphQLInterfaceTypeConfig,
 } from 'graphql';
 
 import { healTypes } from './heal';
@@ -26,12 +27,15 @@ export function cloneType(type: GraphQLNamedType): GraphQLNamedType {
       interfaces: config.interfaces.slice(),
     });
   } else if (type instanceof GraphQLInterfaceType) {
-    const config = type.toConfig();
-    return new GraphQLInterfaceType({
+    const config = ((type as unknown) as GraphQLObjectType).toConfig();
+    const newConfig = {
       ...config,
       interfaces:
         versionInfo.major >= 15 ? config.interfaces.slice() : undefined,
-    });
+    };
+    return new GraphQLInterfaceType(
+      (newConfig as unknown) as GraphQLInterfaceTypeConfig<any, any>,
+    );
   } else if (type instanceof GraphQLUnionType) {
     const config = type.toConfig();
     return new GraphQLUnionType({

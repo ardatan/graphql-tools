@@ -156,7 +156,7 @@ export function healTypes(
   }
 
   function healInterfaces(type: GraphQLObjectType | GraphQLInterfaceType) {
-    updateEachKey(type.getInterfaces(), iface => {
+    updateEachKey((type as GraphQLObjectType).getInterfaces(), iface => {
       const healedType = healType(iface) as GraphQLInterfaceType;
       return healedType;
     });
@@ -217,7 +217,7 @@ function pruneTypes(
       namedType instanceof GraphQLObjectType ||
       (versionInfo.major >= 15 && namedType instanceof GraphQLInterfaceType)
     ) {
-      each(namedType.getInterfaces(), iface => {
+      each((namedType as GraphQLObjectType).getInterfaces(), iface => {
         implementedInterfaces[iface.name] = true;
       });
     }

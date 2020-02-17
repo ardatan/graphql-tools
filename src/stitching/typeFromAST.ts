@@ -67,7 +67,7 @@ export default function typeFromAST(
 }
 
 function makeObjectType(node: ObjectTypeDefinitionNode): GraphQLObjectType {
-  return new GraphQLObjectType({
+  const config = {
     name: node.name.value,
     fields: () => makeFields(node.fields),
     interfaces: () =>
@@ -79,19 +79,20 @@ function makeObjectType(node: ObjectTypeDefinitionNode): GraphQLObjectType {
           ) as GraphQLInterfaceType,
       ),
     description: getDescription(node, backcompatOptions),
-  });
+  };
+  return new GraphQLObjectType(config);
 }
 
 function makeInterfaceType(
   node: InterfaceTypeDefinitionNode,
 ): GraphQLInterfaceType {
-  return new GraphQLInterfaceType({
+  const config = {
     name: node.name.value,
     fields: () => makeFields(node.fields),
     interfaces:
       versionInfo.major >= 15
         ? () =>
-            node.interfaces.map(
+            ((node as unknown) as ObjectTypeDefinitionNode).interfaces.map(
               iface =>
                 createNamedStub(
                   iface.name.value,
@@ -100,8 +101,9 @@ function makeInterfaceType(
             )
         : undefined,
     description: getDescription(node, backcompatOptions),
-    resolveType: parent => resolveFromParentTypename(parent),
-  });
+    resolveType: (parent: any) => resolveFromParentTypename(parent),
+  };
+  return new GraphQLInterfaceType(config);
 }
 
 function makeEnumType(node: EnumTypeDefinitionNode): GraphQLEnumType {
