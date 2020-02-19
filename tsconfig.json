@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "experimentalDecorators": true,
-    "lib": ["es7", "esnext.asynciterable"],
+    "lib": ["es7", "esnext.asynciterable", "dom"],
     "module": "commonjs",
     "target": "es5",
     "noImplicitAny": true,

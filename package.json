@@ -70,7 +70,6 @@
     "@types/mocha": "^7.0.1",
     "@types/node": "^13.7.1",
     "@types/node-fetch": "^2.5.4",
-    "@types/supertest": "^2.0.8",
     "@types/uuid": "^3.4.7",
     "@typescript-eslint/eslint-plugin": "^2.19.2",
     "@typescript-eslint/parser": "^2.19.2",
@@ -96,7 +95,7 @@
     "rimraf": "^3.0.2",
     "source-map-support": "^0.5.16",
     "standard-version": "^7.1.0",
-    "typescript": "3.7.5",
+    "typescript": "^3.7.5",
     "zen-observable-ts": "^0.8.20"
   }
 }
