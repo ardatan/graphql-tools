@@ -12,6 +12,7 @@ import {
   concatenateTypeDefs,
   SchemaError,
 } from '.';
+import filterExtensionDefinitions from './filterExtensionDefinitions';
 
 function buildSchemaFromTypeDefinitions(
   typeDefinitions: ITypeDefinitions,
@@ -38,10 +39,11 @@ function buildSchemaFromTypeDefinitions(
   }
 
   const backcompatOptions = { commentDescriptions: true };
+  const typesAst = filterExtensionDefinitions(astDocument);
 
   // TODO fix types https://github.com/apollographql/graphql-tools/issues/542
   let schema: GraphQLSchema = (buildASTSchema as any)(
-    astDocument,
+    typesAst,
     backcompatOptions,
   );
 
