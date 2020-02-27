@@ -19,7 +19,7 @@ import { SchemaDirectiveVisitor } from '../utils/SchemaDirectiveVisitor';
 import { makeExecutableSchema } from '../makeExecutableSchema';
 import { IResolvers, SubschemaConfig } from '../Interfaces';
 import { delegateToSchema } from '../stitching';
-import { cloneSchema } from '../utils';
+import { cloneSchema, graphqlVersion } from '../utils';
 import { getResolversFromSchema } from '../utils/getResolversFromSchema';
 
 import {
@@ -2379,18 +2379,15 @@ fragment BookingFragment on Booking {
             errorAlias: null,
           },
         });
-        expect(result.errors.map(removeLocations)).to.deep.equal([
+
+        const errorsWithoutLocations = result.errors.map(removeLocations);
+
+        const expectedErrors: Array<any> = [
           {
-            extensions: {
-              code: 'SOME_CUSTOM_CODE',
-            },
             message: 'Property.error error',
             path: ['propertyById', 'error'],
           },
           {
-            extensions: {
-              code: 'SOME_CUSTOM_CODE',
-            },
             message: 'Property.error error',
             path: ['propertyById', 'errorAlias'],
           },
@@ -2418,7 +2415,24 @@ fragment BookingFragment on Booking {
             message: 'Booking.error error',
             path: ['propertyById', 'bookings', 2, 'bookingErrorAlias'],
           },
-        ]);
+        ];
+
+        if (graphqlVersion() >= 14) {
+          expectedErrors[0].extensions = {
+            code: 'SOME_CUSTOM_CODE',
+          };
+          expectedErrors[1].extensions = {
+            code: 'SOME_CUSTOM_CODE',
+          };
+        }
+
+        expect(errorsWithoutLocations).to.deep.equal(expectedErrors);
+        expect(result.errors[0].extensions).to.deep.equal({
+          code: 'SOME_CUSTOM_CODE',
+        });
+        expect(result.errors[1].extensions).to.deep.equal({
+          code: 'SOME_CUSTOM_CODE',
+        });
       });
 
       it(
@@ -2727,38 +2741,40 @@ fragment BookingFragment on Booking {
         });
       });
 
-      it('interface extensions', async () => {
-        const result = await graphql(
-          mergedSchema,
-          `
-            query {
-              products {
-                id
-                __typename
-                ... on Downloadable {
-                  filesize
+      if (graphqlVersion() >= 13) {
+        it('interface extensions', async () => {
+          const result = await graphql(
+            mergedSchema,
+            `
+              query {
+                products {
+                  id
+                  __typename
+                  ... on Downloadable {
+                    filesize
+                  }
                 }
               }
-            }
-          `,
-        );
+            `,
+          );
 
-        expect(result).to.deep.equal({
-          data: {
-            products: [
-              {
-                id: 'pd1',
-                __typename: 'SimpleProduct',
-              },
-              {
-                id: 'pd2',
-                __typename: 'DownloadableProduct',
-                filesize: 1024,
-              },
-            ],
-          },
+          expect(result).to.deep.equal({
+            data: {
+              products: [
+                {
+                  id: 'pd1',
+                  __typename: 'SimpleProduct',
+                },
+                {
+                  id: 'pd2',
+                  __typename: 'DownloadableProduct',
+                  filesize: 1024,
+                },
+              ],
+            },
+          });
         });
-      });
+      }
 
       it('arbitrary transforms that return interfaces', async () => {
         const result = await graphql(

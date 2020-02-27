@@ -17,7 +17,7 @@ import {
 
 import isEmptyObject from '../utils/isEmptyObject';
 import { Request, VisitSchemaKind } from '../Interfaces';
-import { visitSchema } from '../utils/visitSchema';
+import { visitSchema, typeToConfig } from '../utils';
 
 import { Transform } from './transforms';
 
@@ -89,7 +89,7 @@ export default class TransformObjectFields implements Transform {
     type: GraphQLObjectType,
     objectFieldTransformer: ObjectFieldTransformer,
   ): GraphQLObjectType {
-    const typeConfig = type.toConfig();
+    const typeConfig = typeToConfig(type);
     const fields = type.getFields();
     const newFields = {};
 
@@ -130,7 +130,7 @@ export default class TransformObjectFields implements Transform {
     }
 
     return new GraphQLObjectType({
-      ...type.toConfig(),
+      ...typeToConfig(type),
       fields: newFields,
     });
   }

@@ -14,13 +14,13 @@ import {
   GraphQLSchema,
   GraphQLInputType,
   GraphQLOutputType,
-  versionInfo,
 } from 'graphql';
 
 import each from './each';
 import updateEachKey from './updateEachKey';
 import { isStub, getBuiltInForStub } from './stub';
 import { cloneSchema } from './clone';
+import { graphqlVersion } from './graphqlVersion';
 
 type NamedTypeMap = {
   [key: string]: GraphQLNamedType;
@@ -124,7 +124,7 @@ export function healTypes(
       return;
     } else if (type instanceof GraphQLInterfaceType) {
       healFields(type);
-      if (versionInfo.major >= 15) {
+      if (graphqlVersion() >= 15) {
         healInterfaces(type);
       }
       return;
@@ -215,7 +215,7 @@ function pruneTypes(
   each(typeMap, namedType => {
     if (
       namedType instanceof GraphQLObjectType ||
-      (versionInfo.major >= 15 && namedType instanceof GraphQLInterfaceType)
+      (graphqlVersion() >= 15 && namedType instanceof GraphQLInterfaceType)
     ) {
       each((namedType as GraphQLObjectType).getInterfaces(), iface => {
         implementedInterfaces[iface.name] = true;

@@ -7,10 +7,8 @@ import {
   GraphQLScalarType,
   FieldNode,
   printSchema,
-  GraphQLObjectTypeConfig,
   GraphQLFieldConfig,
   GraphQLObjectType,
-  versionInfo,
 } from 'graphql';
 import { forAwaitEach } from 'iterall';
 import { expect } from 'chai';
@@ -38,7 +36,13 @@ import {
 } from '../stitching';
 import { SubschemaConfig } from '../Interfaces';
 import isSpecifiedScalarType from '../utils/isSpecifiedScalarType';
-import { wrapFieldNode, renameFieldNode, hoistFieldNodes } from '../utils';
+import {
+  wrapFieldNode,
+  renameFieldNode,
+  hoistFieldNodes,
+  typeToConfig,
+  graphqlVersion,
+} from '../utils';
 
 import {
   propertySchema,
@@ -351,10 +355,7 @@ describe('transform object fields', () => {
             return undefined;
           }
           const type = propertySchema.getType(typeName) as GraphQLObjectType;
-          const typeConfig = type.toConfig() as GraphQLObjectTypeConfig<
-            any,
-            any
-          >;
+          const typeConfig = typeToConfig(type);
           const fieldConfig = typeConfig.fields[
             fieldName
           ] as GraphQLFieldConfig<any, any>;
@@ -529,7 +530,7 @@ describe('transform object fields', () => {
       `,
     );
 
-    expect(result).to.deep.equal({
+    const expectedResult: any = {
       errors: [
         {
           locations: [
@@ -541,7 +542,13 @@ describe('transform object fields', () => {
           message: 'Cannot query field "id" on type "Item".',
         },
       ],
-    });
+    };
+
+    if (graphqlVersion() < 14) {
+      expectedResult.errors[0].path = undefined;
+    }
+
+    expect(result).to.deep.equal(expectedResult);
   });
 });
 
@@ -568,7 +575,7 @@ describe('filter and rename object fields', () => {
   });
 
   it('should filter', () => {
-    if (versionInfo.major >= 15) {
+    if (graphqlVersion() >= 15) {
       expect(printSchema(transformedPropertySchema)).to.equal(`type Query {
   propertyById(id: ID!): New_Property
 }
@@ -626,7 +633,7 @@ type Query {
       },
     );
 
-    expect(result).to.deep.equal({
+    const expectedResult: any = {
       data: {
         propertyById: {
           // eslint-disable-next-line camelcase
@@ -643,9 +650,6 @@ type Query {
       },
       errors: [
         {
-          extensions: {
-            code: 'SOME_CUSTOM_CODE',
-          },
           locations: [
             {
               column: 13,
@@ -656,6 +660,17 @@ type Query {
           path: ['propertyById', 'new_error'],
         },
       ],
+    };
+
+    if (graphqlVersion() >= 14) {
+      expectedResult.errors[0].extensions = {
+        code: 'SOME_CUSTOM_CODE',
+      };
+    }
+
+    expect(result).to.deep.equal(expectedResult);
+    expect(result.errors[0].extensions).to.deep.equal({
+      code: 'SOME_CUSTOM_CODE',
     });
   });
 });
@@ -685,7 +700,7 @@ describe('WrapType transform', () => {
       },
     );
 
-    expect(result).to.deep.equal({
+    const expectedResult: any = {
       data: {
         namespace: {
           propertyById: {
@@ -697,9 +712,6 @@ describe('WrapType transform', () => {
       },
       errors: [
         {
-          extensions: {
-            code: 'SOME_CUSTOM_CODE',
-          },
           locations: [
             {
               column: 15,
@@ -710,6 +722,17 @@ describe('WrapType transform', () => {
           path: ['namespace', 'propertyById', 'error'],
         },
       ],
+    };
+
+    if (graphqlVersion() >= 14) {
+      expectedResult.errors[0].extensions = {
+        code: 'SOME_CUSTOM_CODE',
+      };
+    }
+
+    expect(result).to.deep.equal(expectedResult);
+    expect(result.errors[0].extensions).to.deep.equal({
+      code: 'SOME_CUSTOM_CODE',
     });
   });
 });
@@ -758,7 +781,7 @@ describe('schema transformation with extraction of nested fields', () => {
       },
     );
 
-    expect(result).to.deep.equal({
+    const expectedResult: any = {
       data: {
         propertyById: {
           id: 'p1',
@@ -769,9 +792,6 @@ describe('schema transformation with extraction of nested fields', () => {
       },
       errors: [
         {
-          extensions: {
-            code: 'SOME_CUSTOM_CODE',
-          },
           locations: [
             {
               column: 13,
@@ -782,6 +802,17 @@ describe('schema transformation with extraction of nested fields', () => {
           path: ['propertyById', 'renamedError'],
         },
       ],
+    };
+
+    if (graphqlVersion() >= 14) {
+      expectedResult.errors[0].extensions = {
+        code: 'SOME_CUSTOM_CODE',
+      };
+    }
+
+    expect(result).to.deep.equal(expectedResult);
+    expect(result.errors[0].extensions).to.deep.equal({
+      code: 'SOME_CUSTOM_CODE',
     });
   });
 
@@ -886,7 +917,7 @@ describe('schema transformation with wrapping of object fields', () => {
       },
     );
 
-    expect(result).to.deep.equal({
+    const expectedResult: any = {
       data: {
         propertyById: {
           test1: {
@@ -904,9 +935,6 @@ describe('schema transformation with wrapping of object fields', () => {
       },
       errors: [
         {
-          extensions: {
-            code: 'SOME_CUSTOM_CODE',
-          },
           locations: [
             {
               column: 11,
@@ -917,6 +945,17 @@ describe('schema transformation with wrapping of object fields', () => {
           path: ['propertyById', 'test1', 'innerWrap', 'two'],
         },
       ],
+    };
+
+    if (graphqlVersion() >= 14) {
+      expectedResult.errors[0].extensions = {
+        code: 'SOME_CUSTOM_CODE',
+      };
+    }
+
+    expect(result).to.deep.equal(expectedResult);
+    expect(result.errors[0].extensions).to.deep.equal({
+      code: 'SOME_CUSTOM_CODE',
     });
   });
 
@@ -959,7 +998,7 @@ describe('schema transformation with wrapping of object fields', () => {
         },
       );
 
-      expect(result).to.deep.equal({
+      const expectedResult: any = {
         data: {
           propertyById: {
             test1: {
@@ -973,9 +1012,6 @@ describe('schema transformation with wrapping of object fields', () => {
         },
         errors: [
           {
-            extensions: {
-              code: 'SOME_CUSTOM_CODE',
-            },
             locations: [
               {
                 column: 13,
@@ -986,6 +1022,17 @@ describe('schema transformation with wrapping of object fields', () => {
             path: ['propertyById', 'test1', 'two'],
           },
         ],
+      };
+
+      if (graphqlVersion() >= 14) {
+        expectedResult.errors[0].extensions = {
+          code: 'SOME_CUSTOM_CODE',
+        };
+      }
+
+      expect(result).to.deep.equal(expectedResult);
+      expect(result.errors[0].extensions).to.deep.equal({
+        code: 'SOME_CUSTOM_CODE',
       });
     });
 
@@ -1031,7 +1078,7 @@ describe('schema transformation with wrapping of object fields', () => {
         },
       );
 
-      expect(result).to.deep.equal({
+      const expectedResult: any = {
         data: {
           propertyById: {
             test1: {
@@ -1049,9 +1096,6 @@ describe('schema transformation with wrapping of object fields', () => {
         },
         errors: [
           {
-            extensions: {
-              code: 'SOME_CUSTOM_CODE',
-            },
             locations: [
               {
                 column: 13,
@@ -1062,6 +1106,17 @@ describe('schema transformation with wrapping of object fields', () => {
             path: ['propertyById', 'test1', 'innerWrap', 'two'],
           },
         ],
+      };
+
+      if (graphqlVersion() >= 14) {
+        expectedResult.errors[0].extensions = {
+          code: 'SOME_CUSTOM_CODE',
+        };
+      }
+
+      expect(result).to.deep.equal(expectedResult);
+      expect(result.errors[0].extensions).to.deep.equal({
+        code: 'SOME_CUSTOM_CODE',
       });
     });
   });
@@ -1105,7 +1160,7 @@ describe('schema transformation with renaming of object fields', () => {
       },
     );
 
-    expect(result).to.deep.equal({
+    const expectedResult: any = {
       data: {
         propertyById: {
           // eslint-disable-next-line camelcase
@@ -1114,9 +1169,6 @@ describe('schema transformation with renaming of object fields', () => {
       },
       errors: [
         {
-          extensions: {
-            code: 'SOME_CUSTOM_CODE',
-          },
           locations: [
             {
               column: 13,
@@ -1127,6 +1179,17 @@ describe('schema transformation with renaming of object fields', () => {
           path: ['propertyById', 'new_error'],
         },
       ],
+    };
+
+    if (graphqlVersion() >= 14) {
+      expectedResult.errors[0].extensions = {
+        code: 'SOME_CUSTOM_CODE',
+      };
+    }
+
+    expect(result).to.deep.equal(expectedResult);
+    expect(result.errors[0].extensions).to.deep.equal({
+      code: 'SOME_CUSTOM_CODE',
     });
   });
 });
@@ -1274,7 +1337,7 @@ describe('mergeSchemas', () => {
     const query = '{ getInput(input: {}) }';
     const response = await graphql(mergedSchema, query);
 
-    if (versionInfo.major >= 15) {
+    if (graphqlVersion() >= 15) {
       expect(printSchema(schema)).to.equal(`input InputWithDefault {
   field: String = "test"
 }

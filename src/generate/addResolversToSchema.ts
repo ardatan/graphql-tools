@@ -5,7 +5,6 @@ import {
   GraphQLSchema,
   GraphQLObjectType,
   GraphQLInterfaceType,
-  isSpecifiedScalarType,
   GraphQLUnionType,
 } from 'graphql';
 
@@ -20,6 +19,7 @@ import {
   healSchema,
   forEachField,
   forEachDefaultValue,
+  typeToConfig,
 } from '../utils';
 
 import SchemaError from './SchemaError';
@@ -82,35 +82,14 @@ function addResolversToSchema(
     }
 
     if (type instanceof GraphQLScalarType) {
-      if (isSpecifiedScalarType(type)) {
-        // Support -- without recommending -- overriding default scalar types
-        Object.keys(resolverValue).forEach(fieldName => {
-          if (fieldName.startsWith('__')) {
-            type[fieldName.substring(2)] = resolverValue[fieldName];
-          } else {
-            type[fieldName] = resolverValue[fieldName];
-          }
-        });
-      } else {
-        // Otherwise the existing schema types are not changed, just replaced.
-        const config = type.toConfig();
-
-        Object.keys(resolverValue).forEach(fieldName => {
-          // Below is necessary as legacy code for scalar type specification allowed
-          // hardcoding within the resolver an object with fields '__serialize',
-          // '__parse', and '__parseLiteral', see examples in testMocking.ts.
-          // Luckily, the fields on GraphQLScalarType and GraphQLScalarTypeConfig
-          // are named the same.
-          if (fieldName.startsWith('__')) {
-            config[fieldName.substring(2)] = resolverValue[fieldName];
-          } else {
-            config[fieldName] = resolverValue[fieldName];
-          }
-        });
-
-        // healSchema called later to update all fields to new type
-        typeMap[typeName] = new GraphQLScalarType(config);
-      }
+      // Support -- without recommending -- overriding default scalar types
+      Object.keys(resolverValue).forEach(fieldName => {
+        if (fieldName.startsWith('__')) {
+          type[fieldName.substring(2)] = resolverValue[fieldName];
+        } else {
+          type[fieldName] = resolverValue[fieldName];
+        }
+      });
     } else if (type instanceof GraphQLEnumType) {
       // We've encountered an enum resolver that is being used to provide an
       // internal enum value.
@@ -126,7 +105,7 @@ function addResolversToSchema(
         }
       });
 
-      const config = type.toConfig();
+      const config = typeToConfig(type);
 
       const values = type.getValues();
       const newValues = {};

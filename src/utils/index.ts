@@ -25,3 +25,16 @@ export {
   hoistFieldNodes,
 } from './fieldNodes';
 export { appendFields, removeFields } from './fields';
+export {
+  schemaToConfig,
+  typeToConfig,
+  objectTypeToConfig,
+  interfaceTypeToConfig,
+  unionTypeToConfig,
+  enumTypeToConfig,
+  scalarTypeToConfig,
+  inputObjectTypeToConfig,
+  directiveToConfig,
+} from './toConfig';
+export { createNamedStub } from './stub';
+export { graphqlVersion } from './graphqlVersion';

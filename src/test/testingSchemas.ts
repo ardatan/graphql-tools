@@ -15,13 +15,13 @@ import {
   ExecutionResult,
   Source,
   GraphQLResolveInfo,
-  versionInfo,
 } from 'graphql';
 import { forAwaitEach } from 'iterall';
 
 import introspectSchema from '../stitching/introspectSchema';
 import { IResolvers, Fetcher, SubschemaConfig } from '../Interfaces';
 import { makeExecutableSchema } from '../makeExecutableSchema';
+import { graphqlVersion } from '../utils';
 
 export type Location = {
   name: string;
@@ -274,13 +274,15 @@ const propertyRootTypeDefs = `
   }
 
   ${
-    versionInfo.major >= 15
+    graphqlVersion() >= 15
       ? `interface TestNestedInterface implements TestInterface {
     kind: TestInterfaceKind
     testString: String
   }
 
-  type TestImpl2 implements TestNestedInterface & TestInterface {
+  type TestImpl2 implements TestNestedInterface${
+    graphqlVersion() >= 13 ? ' &' : ', '
+  } TestInterface {
     kind: TestInterfaceKind
     testString: String
     bar: String
@@ -414,13 +416,17 @@ const propertyResolvers: IResolvers = {
 };
 
 const DownloadableProduct = `
-  type DownloadableProduct implements Product & Downloadable {
+  type DownloadableProduct implements Product${
+    graphqlVersion() >= 13 ? ' &' : ', '
+  } Downloadable {
     id: ID!
     url: String!
   }
 `;
 
-const SimpleProduct = `type SimpleProduct implements Product & Sellable {
+const SimpleProduct = `type SimpleProduct implements Product${
+  graphqlVersion() >= 13 ? ' &' : ', '
+} Sellable {
     id: ID!
     price: Int!
   }

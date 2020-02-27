@@ -19,7 +19,6 @@ import {
   GraphQLBoolean,
   graphqlSync,
   GraphQLSchema,
-  versionInfo,
 } from 'graphql';
 
 import { Logger } from '../Logger';
@@ -42,7 +41,7 @@ import {
   ITypeDefinitions,
   ILogger,
 } from '../Interfaces';
-import { visitSchema } from '../utils/visitSchema';
+import { visitSchema, graphqlVersion } from '../utils';
 import { addResolversToSchema } from '../generate';
 
 import TypeA from './circularSchemaA';
@@ -258,7 +257,7 @@ describe('generating schema from shorthand', () => {
         },
         query: {
           name: 'RootQuery',
-          description: versionInfo.major >= 15 ? (null as string) : '',
+          description: graphqlVersion() >= 15 ? (null as string) : '',
           fields: [
             {
               name: 'species',
@@ -1777,7 +1776,7 @@ describe('generating schema from shorthand', () => {
       }, errorMatcher);
     }
 
-    assertFieldError(versionInfo.major >= 15 ? 'Query.bird' : 'Bird.id', {});
+    assertFieldError(graphqlVersion() >= 15 ? 'Query.bird' : 'Bird.id', {});
     assertFieldError('Query.bird', {
       Bird: {
         id: (bird: { id: string }) => bird.id,

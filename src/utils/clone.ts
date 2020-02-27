@@ -8,48 +8,54 @@ import {
   GraphQLScalarType,
   GraphQLSchema,
   GraphQLUnionType,
-  versionInfo,
   GraphQLInterfaceTypeConfig,
 } from 'graphql';
 
 import { healTypes } from './heal';
 import isSpecifiedScalarType from './isSpecifiedScalarType';
+import { directiveToConfig, typeToConfig, schemaToConfig } from './toConfig';
+import { graphqlVersion } from './graphqlVersion';
 
 export function cloneDirective(directive: GraphQLDirective): GraphQLDirective {
-  return new GraphQLDirective(directive.toConfig());
+  return new GraphQLDirective(directiveToConfig(directive));
 }
 
 export function cloneType(type: GraphQLNamedType): GraphQLNamedType {
   if (type instanceof GraphQLObjectType) {
-    const config = type.toConfig();
+    const config = typeToConfig(type);
     return new GraphQLObjectType({
       ...config,
-      interfaces: config.interfaces.slice(),
+      interfaces:
+        typeof config.interfaces === 'function'
+          ? config.interfaces
+          : (config.interfaces as ReadonlyArray<GraphQLInterfaceType>).slice(),
     });
   } else if (type instanceof GraphQLInterfaceType) {
-    const config = ((type as unknown) as GraphQLObjectType).toConfig();
+    const config = typeToConfig((type as unknown) as GraphQLObjectType);
     const newConfig = {
       ...config,
       interfaces:
-        versionInfo.major >= 15 ? config.interfaces.slice() : undefined,
+        graphqlVersion() >= 15
+          ? (config.interfaces as ReadonlyArray<GraphQLInterfaceType>).slice()
+          : undefined,
     };
     return new GraphQLInterfaceType(
       (newConfig as unknown) as GraphQLInterfaceTypeConfig<any, any>,
     );
   } else if (type instanceof GraphQLUnionType) {
-    const config = type.toConfig();
+    const config = typeToConfig(type);
     return new GraphQLUnionType({
       ...config,
-      types: config.types.slice(),
+      types: (config.types as ReadonlyArray<GraphQLObjectType>).slice(),
     });
   } else if (type instanceof GraphQLInputObjectType) {
-    return new GraphQLInputObjectType(type.toConfig());
+    return new GraphQLInputObjectType(typeToConfig(type));
   } else if (type instanceof GraphQLEnumType) {
-    return new GraphQLEnumType(type.toConfig());
+    return new GraphQLEnumType(typeToConfig(type));
   } else if (type instanceof GraphQLScalarType) {
     return isSpecifiedScalarType(type)
       ? type
-      : new GraphQLScalarType(type.toConfig());
+      : new GraphQLScalarType(typeToConfig(type));
   }
 
   throw new Error(`Invalid type ${type as string}`);
@@ -76,7 +82,7 @@ export function cloneSchema(schema: GraphQLSchema): GraphQLSchema {
   const subscription = schema.getSubscriptionType();
 
   return new GraphQLSchema({
-    ...schema.toConfig(),
+    ...schemaToConfig(schema),
     query: query != null ? newTypeMap[query.name] : undefined,
     mutation: mutation != null ? newTypeMap[mutation.name] : undefined,
     subscription:

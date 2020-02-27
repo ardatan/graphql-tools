@@ -14,7 +14,6 @@ import {
   GraphQLUnionType,
   GraphQLEnumType,
   ASTNode,
-  versionInfo,
 } from 'graphql';
 
 import {
@@ -37,6 +36,9 @@ import {
   healTypes,
   forEachField,
   mergeDeep,
+  typeToConfig,
+  graphqlVersion,
+  getResolversFromSchema,
 } from '../utils';
 
 import typeFromAST from './typeFromAST';
@@ -244,11 +246,28 @@ export default function mergeSchemas({
       : undefined,
   });
 
-  extensions.forEach(extension => {
-    mergedSchema = (extendSchema as any)(mergedSchema, extension, {
-      commentDescriptions: true,
+  let proxyingResolvers: IResolvers;
+  if (graphqlVersion() >= 14) {
+    extensions.forEach(extension => {
+      mergedSchema = extendSchema(mergedSchema, extension, {
+        commentDescriptions: true,
+      });
     });
-  });
+  } else {
+    // extendSchema in graphql < v14 does not support subscriptions?
+    proxyingResolvers = getResolversFromSchema(mergedSchema);
+
+    extensions.forEach(extension => {
+      mergedSchema = extendSchema(mergedSchema, extension, {
+        commentDescriptions: true,
+      });
+    });
+
+    addResolversToSchema({
+      schema: mergedSchema,
+      resolvers: proxyingResolvers,
+    });
+  }
 
   addResolversToSchema({
     schema: mergedSchema,
@@ -342,12 +361,12 @@ function merge(
       fields: candidates.reduce(
         (acc, candidate) => ({
           ...acc,
-          ...(candidate.type as GraphQLObjectType).toConfig().fields,
+          ...typeToConfig(candidate.type as GraphQLObjectType).fields,
         }),
         {},
       ),
       interfaces: candidates.reduce((acc, candidate) => {
-        const interfaces = (candidate.type as GraphQLObjectType).toConfig()
+        const interfaces = typeToConfig(candidate.type as GraphQLObjectType)
           .interfaces;
         return interfaces != null ? acc.concat(interfaces) : acc;
       }, []),
@@ -358,15 +377,16 @@ function merge(
       fields: candidates.reduce(
         (acc, candidate) => ({
           ...acc,
-          ...(candidate.type as GraphQLObjectType).toConfig().fields,
+          ...typeToConfig(candidate.type as GraphQLObjectType).fields,
         }),
         {},
       ),
       interfaces:
-        versionInfo.major >= 15
+        graphqlVersion() >= 15
           ? candidates.reduce((acc, candidate) => {
-              const interfaces = (candidate.type as GraphQLObjectType).toConfig()
-                .interfaces;
+              const interfaces = typeToConfig(
+                candidate.type as GraphQLObjectType,
+              ).interfaces;
               return interfaces != null ? acc.concat(interfaces) : acc;
             }, [])
           : undefined,
@@ -377,7 +397,7 @@ function merge(
       name: typeName,
       types: candidates.reduce(
         (acc, candidate) =>
-          acc.concat((candidate.type as GraphQLUnionType).toConfig().types),
+          acc.concat(typeToConfig(candidate.type as GraphQLUnionType).types),
         [],
       ),
     });
@@ -387,7 +407,7 @@ function merge(
       values: candidates.reduce(
         (acc, candidate) => ({
           ...acc,
-          ...(candidate.type as GraphQLEnumType).toConfig().values,
+          ...typeToConfig(candidate.type as GraphQLEnumType).values,
         }),
         {},
       ),

@@ -2,11 +2,12 @@ import { ApolloLink } from 'apollo-link';
 import {
   GraphQLFieldResolver,
   GraphQLSchema,
-  buildSchema,
   Kind,
   GraphQLResolveInfo,
   BuildSchemaOptions,
   DocumentNode,
+  buildASTSchema,
+  parse,
 } from 'graphql';
 
 import { addResolversToSchema } from '../generate';
@@ -48,7 +49,7 @@ export default function makeRemoteExecutableSchema({
 
   const targetSchema =
     typeof schemaOrTypeDefs === 'string'
-      ? buildSchema(schemaOrTypeDefs, buildSchemaOptions)
+      ? buildASTSchema(parse(schemaOrTypeDefs), buildSchemaOptions)
       : schemaOrTypeDefs;
 
   const remoteSchema = cloneSchema(targetSchema);

@@ -1,11 +1,11 @@
 import {
   GraphQLObjectType,
   GraphQLSchema,
-  versionInfo,
   GraphQLInterfaceType,
 } from 'graphql';
 
 import { IResolvers } from '../Interfaces';
+import { graphqlVersion } from '../utils';
 
 function extendResolversFromInterfaces(
   schema: GraphQLSchema,
@@ -22,7 +22,7 @@ function extendResolversFromInterfaces(
     const type = schema.getType(typeName);
     if (
       type instanceof GraphQLObjectType ||
-      (versionInfo.major >= 15 && type instanceof GraphQLInterfaceType)
+      (graphqlVersion() >= 15 && type instanceof GraphQLInterfaceType)
     ) {
       const interfaceResolvers = (type as GraphQLObjectType)
         .getInterfaces()
