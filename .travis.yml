@@ -4,25 +4,29 @@ node_js:
   - "12"
   - "10"
 
-install: 
-  - npm config set spin=false
-  - npm install -g mocha coveralls
-  - npm install
-
-script:
-  - node_version=$(node -v); if [[ ${node_version:1:2} == 13 && $GRAPHQL_VERSION == 14 ]]; then npm run lint; fi
-  - node_version=$(node -v); if [[ ${node_version:1:2} == 13 && $GRAPHQL_VERSION == 14 ]]; then npm run prettier:check; fi
-  - npm run compile
-  - npm install graphql@$GRAPHQL_VERSION
-  - npm run testonly
-  - npm run coverage
-  - coveralls < ./coverage/lcov.info || true # if coveralls doesn't have it covered
-
-# Allow Travis tests to run in containers.
-sudo: false
-
 env:
   - GRAPHQL_VERSION='0.12'
   - GRAPHQL_VERSION='0.13'
   - GRAPHQL_VERSION='14'
   - GRAPHQL_VERSION='rc'
+
+install:
+  - npm config set spin=false
+  - npm install
+
+script:
+  - node_version=$(node -v); if [[ ${node_version:1:2} == 13 && $GRAPHQL_VERSION == 14 ]]; then
+      npm run lint;
+    fi
+  - node_version=$(node -v); if [[ ${node_version:1:2} == 13 && $GRAPHQL_VERSION == 14 ]]; then
+      npm run prettier:check;
+    fi
+  - npm run compile
+  - npm install graphql@$GRAPHQL_VERSION
+  - npm run testonly:cover
+
+after_success:
+  - npm run coverage
+
+# Allow Travis tests to run in containers.
+sudo: false
