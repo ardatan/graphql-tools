@@ -13,6 +13,7 @@ import { buildSchema } from 'graphql';
 import { mergeSchemas } from '../stitching';
 import { makeExecutableSchema } from '../makeExecutableSchema';
 import { createServerHttpLink } from '../links';
+import { GraphQLUpload as ServerGraphQLUpload } from '../scalars';
 import { SubschemaConfig } from '../Interfaces';
 
 function streamToString(stream: Readable) {
@@ -106,6 +107,9 @@ describe('graphql upload', () => {
 
     const gatewaySchema = mergeSchemas({
       schemas: [subschema],
+      resolvers: {
+        Upload: ServerGraphQLUpload,
+      },
     });
 
     const gatewayApp = express().use(
