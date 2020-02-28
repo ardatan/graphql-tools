@@ -7,7 +7,12 @@ node_js:
 env:
   - GRAPHQL_VERSION='0.12'
   - GRAPHQL_VERSION='0.13'
-  - GRAPHQL_VERSION='14'
+  - GRAPHQL_VERSION='14.1'
+  - GRAPHQL_VERSION='14.2'
+  - GRAPHQL_VERSION='14.3'
+  - GRAPHQL_VERSION='14.4'
+  - GRAPHQL_VERSION='14.5'
+  - GRAPHQL_VERSION='14.6'
   - GRAPHQL_VERSION='rc'
 
 install:
@@ -15,10 +20,10 @@ install:
   - npm install
 
 script:
-  - node_version=$(node -v); if [[ ${node_version:1:2} == 13 && $GRAPHQL_VERSION == 14 ]]; then
+  - node_version=$(node -v); if [[ ${node_version:1:2} == "13" && $GRAPHQL_VERSION == "14.6" ]]; then
       npm run lint;
     fi
-  - node_version=$(node -v); if [[ ${node_version:1:2} == 13 && $GRAPHQL_VERSION == 14 ]]; then
+  - node_version=$(node -v); if [[ ${node_version:1:2} == "13" && $GRAPHQL_VERSION == "14.6" ]]; then
       npm run prettier:check;
     fi
   - npm run compile
