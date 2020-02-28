@@ -3,6 +3,7 @@
 !dist/*
 !dist/generate/*
 !dist/links/*
+!dist/polyfills/*
 !dist/scalars/*
 !dist/stitching/*
 !dist/transforms/*

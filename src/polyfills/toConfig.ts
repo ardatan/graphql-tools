@@ -28,9 +28,12 @@ import {
   isEnumType,
   isScalarType,
   isInputObjectType,
+  isSchema,
+  isDirective,
+  isNamedType,
 } from 'graphql';
 
-import { graphqlVersion } from './graphqlVersion';
+import { graphqlVersion } from '../utils/graphqlVersion';
 
 export function schemaToConfig(schema: GraphQLSchema): GraphQLSchemaConfig {
   const newTypes: Array<GraphQLNamedType> = [];
@@ -66,6 +69,45 @@ export function schemaToConfig(schema: GraphQLSchema): GraphQLSchemaConfig {
   return schemaConfig;
 }
 
+export function toConfig(
+  schemaOrTypeOrDirective: GraphQLSchema,
+): GraphQLSchemaConfig;
+export function toConfig(
+  schemaOrTypeOrDirective: GraphQLObjectType,
+): GraphQLObjectTypeConfig<any, any>;
+export function toConfig(
+  schemaOrTypeOrDirective: GraphQLInterfaceType,
+): GraphQLInterfaceTypeConfig<any, any>;
+export function toConfig(
+  schemaOrTypeOrDirective: GraphQLUnionType,
+): GraphQLUnionTypeConfig<any, any>;
+export function toConfig(
+  schemaOrTypeOrDirective: GraphQLEnumType,
+): GraphQLEnumTypeConfig;
+export function toConfig(
+  schemaOrTypeOrDirective: GraphQLScalarType,
+): GraphQLScalarTypeConfig<any, any>;
+export function toConfig(
+  schemaOrTypeOrDirective: GraphQLInputObjectType,
+): GraphQLInputObjectTypeConfig;
+export function toConfig(
+  schemaOrTypeOrDirective: GraphQLDirective,
+): GraphQLDirectiveConfig;
+export function toConfig(schemaOrTypeOrDirective: any): any;
+export function toConfig(schemaOrTypeOrDirective: any) {
+  if (isSchema(schemaOrTypeOrDirective)) {
+    return schemaToConfig(schemaOrTypeOrDirective);
+  } else if (isDirective(schemaOrTypeOrDirective)) {
+    return directiveToConfig(schemaOrTypeOrDirective);
+  } else if (isNamedType(schemaOrTypeOrDirective)) {
+    return typeToConfig(schemaOrTypeOrDirective);
+  }
+
+  throw new Error(
+    `Unknown object ${(schemaOrTypeOrDirective as unknown) as string}`,
+  );
+}
+
 export function typeToConfig(
   type: GraphQLObjectType,
 ): GraphQLObjectTypeConfig<any, any>;
@@ -82,6 +124,7 @@ export function typeToConfig(
 export function typeToConfig(
   type: GraphQLInputObjectType,
 ): GraphQLInputObjectTypeConfig;
+export function typeToConfig(type: any): any;
 export function typeToConfig(type: any) {
   if (isObjectType(type)) {
     return objectTypeToConfig(type);

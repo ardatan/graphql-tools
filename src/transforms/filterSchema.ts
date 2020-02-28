@@ -9,7 +9,8 @@ import {
 } from 'graphql';
 
 import { GraphQLSchemaWithTransforms, VisitSchemaKind } from '../Interfaces';
-import { visitSchema, cloneSchema, typeToConfig } from '../utils';
+import { visitSchema, cloneSchema } from '../utils';
+import { toConfig } from '../polyfills';
 
 export type RootFieldFilter = (
   operation: 'Query' | 'Mutation' | 'Subscription',
@@ -65,7 +66,7 @@ function filterRootFields(
   operation: 'Query' | 'Mutation' | 'Subscription',
   rootFieldFilter: RootFieldFilter,
 ): GraphQLObjectType {
-  const config = typeToConfig(type);
+  const config = toConfig(type);
   Object.keys(config.fields).forEach(fieldName => {
     if (!rootFieldFilter(operation, fieldName)) {
       delete config.fields[fieldName];
@@ -78,7 +79,7 @@ function filterObjectFields(
   type: GraphQLObjectType,
   fieldFilter: FieldFilter,
 ): GraphQLObjectType {
-  const config = typeToConfig(type);
+  const config = toConfig(type);
   Object.keys(config.fields).forEach(fieldName => {
     if (!fieldFilter(type.name, fieldName)) {
       delete config.fields[fieldName];

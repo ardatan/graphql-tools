@@ -27,6 +27,7 @@ import {
   FilterRootFields,
   FilterObjectFields,
 } from '../transforms';
+import { isSpecifiedScalarType, toConfig } from '../polyfills';
 
 import { makeExecutableSchema } from '../makeExecutableSchema';
 import {
@@ -35,12 +36,10 @@ import {
   createMergedResolver,
 } from '../stitching';
 import { SubschemaConfig } from '../Interfaces';
-import isSpecifiedScalarType from '../utils/isSpecifiedScalarType';
 import {
   wrapFieldNode,
   renameFieldNode,
   hoistFieldNodes,
-  typeToConfig,
   graphqlVersion,
 } from '../utils';
 
@@ -355,7 +354,7 @@ describe('transform object fields', () => {
             return undefined;
           }
           const type = propertySchema.getType(typeName) as GraphQLObjectType;
-          const typeConfig = typeToConfig(type);
+          const typeConfig = toConfig(type);
           const fieldConfig = typeConfig.fields[
             fieldName
           ] as GraphQLFieldConfig<any, any>;

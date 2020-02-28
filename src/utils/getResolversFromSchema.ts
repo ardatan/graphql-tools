@@ -8,8 +8,8 @@ import {
 } from 'graphql';
 
 import { IResolvers } from '../Interfaces';
+import { isSpecifiedScalarType } from '../polyfills';
 
-import isSpecifiedScalarType from './isSpecifiedScalarType';
 import { cloneType } from './clone';
 
 export function getResolversFromSchema(schema: GraphQLSchema): IResolvers {

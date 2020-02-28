@@ -19,7 +19,7 @@ export const specifiedScalarTypes: Array<GraphQLScalarType> = [
   GraphQLID,
 ];
 
-export default function isSpecifiedScalarType(type: any): boolean {
+export function isSpecifiedScalarType(type: any): boolean {
   return (
     isNamedType(type) &&
     // Would prefer to use specifiedScalarTypes.some(), however %checks needs

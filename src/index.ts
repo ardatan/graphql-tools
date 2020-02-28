@@ -2,6 +2,7 @@ export * from './Interfaces';
 export * from './links';
 export * from './makeExecutableSchema';
 export * from './mock';
+export * from './polyfills';
 export * from './scalars';
 export * from './stitching';
 export * from './transforms';

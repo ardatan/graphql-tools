@@ -6,13 +6,12 @@ import {
   GraphQLResolveInfo,
   BuildSchemaOptions,
   DocumentNode,
-  buildASTSchema,
-  parse,
 } from 'graphql';
 
 import { addResolversToSchema } from '../generate';
 import { Fetcher, Operation } from '../Interfaces';
 import { cloneSchema } from '../utils';
+import { buildSchema } from '../polyfills';
 
 import linkToFetcher, { execute } from './linkToFetcher';
 import { addTypenameToAbstract } from './addTypenameToAbstract';
@@ -49,7 +48,7 @@ export default function makeRemoteExecutableSchema({
 
   const targetSchema =
     typeof schemaOrTypeDefs === 'string'
-      ? buildASTSchema(parse(schemaOrTypeDefs), buildSchemaOptions)
+      ? buildSchema(schemaOrTypeDefs, buildSchemaOptions)
       : schemaOrTypeDefs;
 
   const remoteSchema = cloneSchema(targetSchema);

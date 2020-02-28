@@ -19,8 +19,8 @@ import {
   healSchema,
   forEachField,
   forEachDefaultValue,
-  typeToConfig,
 } from '../utils';
+import { toConfig } from '../polyfills';
 
 import SchemaError from './SchemaError';
 import checkForResolveTypeResolver from './checkForResolveTypeResolver';
@@ -105,7 +105,7 @@ function addResolversToSchema(
         }
       });
 
-      const config = typeToConfig(type);
+      const config = toConfig(type);
 
       const values = type.getValues();
       const newValues = {};

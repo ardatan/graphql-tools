@@ -11,18 +11,18 @@ import {
   GraphQLInterfaceTypeConfig,
 } from 'graphql';
 
+import { isSpecifiedScalarType, toConfig } from '../polyfills';
+
 import { healTypes } from './heal';
-import isSpecifiedScalarType from './isSpecifiedScalarType';
-import { directiveToConfig, typeToConfig, schemaToConfig } from './toConfig';
 import { graphqlVersion } from './graphqlVersion';
 
 export function cloneDirective(directive: GraphQLDirective): GraphQLDirective {
-  return new GraphQLDirective(directiveToConfig(directive));
+  return new GraphQLDirective(toConfig(directive));
 }
 
 export function cloneType(type: GraphQLNamedType): GraphQLNamedType {
   if (type instanceof GraphQLObjectType) {
-    const config = typeToConfig(type);
+    const config = toConfig(type);
     return new GraphQLObjectType({
       ...config,
       interfaces:
@@ -31,7 +31,7 @@ export function cloneType(type: GraphQLNamedType): GraphQLNamedType {
           : (config.interfaces as ReadonlyArray<GraphQLInterfaceType>).slice(),
     });
   } else if (type instanceof GraphQLInterfaceType) {
-    const config = typeToConfig((type as unknown) as GraphQLObjectType);
+    const config = toConfig((type as unknown) as GraphQLObjectType);
     const newConfig = {
       ...config,
       interfaces:
@@ -43,19 +43,19 @@ export function cloneType(type: GraphQLNamedType): GraphQLNamedType {
       (newConfig as unknown) as GraphQLInterfaceTypeConfig<any, any>,
     );
   } else if (type instanceof GraphQLUnionType) {
-    const config = typeToConfig(type);
+    const config = toConfig(type);
     return new GraphQLUnionType({
       ...config,
       types: (config.types as ReadonlyArray<GraphQLObjectType>).slice(),
     });
   } else if (type instanceof GraphQLInputObjectType) {
-    return new GraphQLInputObjectType(typeToConfig(type));
+    return new GraphQLInputObjectType(toConfig(type));
   } else if (type instanceof GraphQLEnumType) {
-    return new GraphQLEnumType(typeToConfig(type));
+    return new GraphQLEnumType(toConfig(type));
   } else if (type instanceof GraphQLScalarType) {
     return isSpecifiedScalarType(type)
       ? type
-      : new GraphQLScalarType(typeToConfig(type));
+      : new GraphQLScalarType(toConfig(type));
   }
 
   throw new Error(`Invalid type ${type as string}`);
@@ -82,7 +82,7 @@ export function cloneSchema(schema: GraphQLSchema): GraphQLSchema {
   const subscription = schema.getSubscriptionType();
 
   return new GraphQLSchema({
-    ...schemaToConfig(schema),
+    ...toConfig(schema),
     query: query != null ? newTypeMap[query.name] : undefined,
     mutation: mutation != null ? newTypeMap[mutation.name] : undefined,
     subscription:
