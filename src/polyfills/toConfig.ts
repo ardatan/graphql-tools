@@ -36,6 +36,10 @@ import {
 import { graphqlVersion } from '../utils/graphqlVersion';
 
 export function schemaToConfig(schema: GraphQLSchema): GraphQLSchemaConfig {
+  if (schema.toConfig != null) {
+    return schema.toConfig();
+  }
+
   const newTypes: Array<GraphQLNamedType> = [];
 
   const types = schema.getTypeMap();
@@ -146,6 +150,10 @@ export function typeToConfig(type: any) {
 export function objectTypeToConfig(
   type: GraphQLObjectType,
 ): GraphQLObjectTypeConfig<any, any> {
+  if (type.toConfig != null) {
+    return type.toConfig();
+  }
+
   const typeConfig = {
     name: type.name,
     description: type.description,
@@ -164,6 +172,10 @@ export function objectTypeToConfig(
 export function interfaceTypeToConfig(
   type: GraphQLInterfaceType,
 ): GraphQLInterfaceTypeConfig<any, any> {
+  if (type.toConfig != null) {
+    return type.toConfig();
+  }
+
   const typeConfig = {
     name: type.name,
     description: type.description,
@@ -188,6 +200,10 @@ export function interfaceTypeToConfig(
 export function unionTypeToConfig(
   type: GraphQLUnionType,
 ): GraphQLUnionTypeConfig<any, any> {
+  if (type.toConfig != null) {
+    return type.toConfig();
+  }
+
   const typeConfig = {
     name: type.name,
     description: type.description,
@@ -203,6 +219,10 @@ export function unionTypeToConfig(
 }
 
 export function enumTypeToConfig(type: GraphQLEnumType): GraphQLEnumTypeConfig {
+  if (type.toConfig != null) {
+    return type.toConfig();
+  }
+
   const newValues = {};
 
   type.getValues().forEach(value => {
@@ -233,6 +253,10 @@ const hasOwn = Object.prototype.hasOwnProperty;
 export function scalarTypeToConfig(
   type: GraphQLScalarType,
 ): GraphQLScalarTypeConfig<any, any> {
+  if (type.toConfig != null) {
+    return type.toConfig();
+  }
+
   const typeConfig = {
     name: type.name,
     description: type.description,
@@ -266,6 +290,10 @@ export function scalarTypeToConfig(
 export function inputObjectTypeToConfig(
   type: GraphQLInputObjectType,
 ): GraphQLInputObjectTypeConfig {
+  if (type.toConfig != null) {
+    return type.toConfig();
+  }
+
   const newFields = {};
   const fields = type.getFields();
 
@@ -297,6 +325,10 @@ export function inputObjectTypeToConfig(
 export function directiveToConfig(
   directive: GraphQLDirective,
 ): GraphQLDirectiveConfig {
+  if (directive.toConfig != null) {
+    return directive.toConfig();
+  }
+
   const directiveConfig = {
     name: directive.name,
     description: directive.description,
