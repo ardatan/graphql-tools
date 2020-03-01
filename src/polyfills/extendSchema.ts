@@ -29,7 +29,6 @@ export function extendSchema(
 
   const fields = extendedSchema.getSubscriptionType().getFields();
   Object.keys(subscriptionResolvers).forEach(fieldName => {
-    fields[fieldName].resolve = subscriptionResolvers[fieldName].resolve;
     fields[fieldName].subscribe = subscriptionResolvers[fieldName].subscribe;
   });
 
