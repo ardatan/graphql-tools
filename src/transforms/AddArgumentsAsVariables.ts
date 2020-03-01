@@ -4,9 +4,7 @@ import {
   FragmentDefinitionNode,
   GraphQLArgument,
   GraphQLInputType,
-  GraphQLList,
   GraphQLField,
-  GraphQLNonNull,
   GraphQLObjectType,
   GraphQLSchema,
   Kind,
@@ -14,6 +12,8 @@ import {
   SelectionNode,
   TypeNode,
   VariableDefinitionNode,
+  isNonNullType,
+  isListType,
 } from 'graphql';
 
 import { Request } from '../Interfaces';
@@ -176,7 +176,7 @@ function addVariablesToRootField(
 }
 
 function typeToAst(type: GraphQLInputType): TypeNode {
-  if (type instanceof GraphQLNonNull) {
+  if (isNonNullType(type)) {
     const innerType = typeToAst(type.ofType);
     if (
       innerType.kind === Kind.LIST_TYPE ||
@@ -188,7 +188,7 @@ function typeToAst(type: GraphQLInputType): TypeNode {
       };
     }
     throw new Error('Incorrect inner non-null type');
-  } else if (type instanceof GraphQLList) {
+  } else if (isListType(type)) {
     return {
       kind: Kind.LIST_TYPE,
       type: typeToAst(type.ofType),

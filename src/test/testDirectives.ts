@@ -21,6 +21,9 @@ import {
   GraphQLUnionType,
   GraphQLInt,
   GraphQLOutputType,
+  isNonNullType,
+  isScalarType,
+  isListType,
 } from 'graphql';
 import { assert } from 'chai';
 import formatDate from 'dateformat';
@@ -963,14 +966,11 @@ describe('@directives', () => {
           }
 
           private wrapType(field: GraphQLInputField | GraphQLField<any, any>) {
-            if (
-              field.type instanceof GraphQLNonNull &&
-              field.type.ofType instanceof GraphQLScalarType
-            ) {
+            if (isNonNullType(field.type) && isScalarType(field.type.ofType)) {
               field.type = new GraphQLNonNull(
                 new LimitedLengthType(field.type.ofType, this.args.max),
               );
-            } else if (field.type instanceof GraphQLScalarType) {
+            } else if (isScalarType(field.type)) {
               field.type = new LimitedLengthType(field.type, this.args.max);
             } else {
               throw new Error(`Not a scalar type: ${field.type.toString()}`);
@@ -1151,7 +1151,7 @@ describe('@directives', () => {
 
     const Query = schema.getType('Query') as GraphQLObjectType;
     const peopleType = Query.getFields().people.type;
-    if (peopleType instanceof GraphQLList) {
+    if (isListType(peopleType)) {
       assert.strictEqual(peopleType.ofType, schema.getType('Human'));
     } else {
       throw new Error('Query.people not a GraphQLList type');

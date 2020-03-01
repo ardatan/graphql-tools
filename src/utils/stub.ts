@@ -8,6 +8,9 @@ import {
   GraphQLFloat,
   GraphQLBoolean,
   GraphQLID,
+  isObjectType,
+  isInterfaceType,
+  isInputObjectType,
 } from 'graphql';
 
 export function createNamedStub(
@@ -34,11 +37,7 @@ export function createNamedStub(
 }
 
 export function isStub(type: GraphQLNamedType): boolean {
-  if (
-    type instanceof GraphQLObjectType ||
-    type instanceof GraphQLInterfaceType ||
-    type instanceof GraphQLInterfaceType
-  ) {
+  if (isObjectType(type) || isInterfaceType(type) || isInputObjectType(type)) {
     const fields = type.getFields();
     const fieldNames = Object.keys(fields);
     return fieldNames.length === 1 && fields[fieldNames[0]].name === '__fake';

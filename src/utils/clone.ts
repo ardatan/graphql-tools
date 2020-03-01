@@ -9,6 +9,12 @@ import {
   GraphQLSchema,
   GraphQLUnionType,
   GraphQLInterfaceTypeConfig,
+  isObjectType,
+  isInterfaceType,
+  isUnionType,
+  isInputObjectType,
+  isEnumType,
+  isScalarType,
 } from 'graphql';
 
 import { isSpecifiedScalarType, toConfig } from '../polyfills';
@@ -21,7 +27,7 @@ export function cloneDirective(directive: GraphQLDirective): GraphQLDirective {
 }
 
 export function cloneType(type: GraphQLNamedType): GraphQLNamedType {
-  if (type instanceof GraphQLObjectType) {
+  if (isObjectType(type)) {
     const config = toConfig(type);
     return new GraphQLObjectType({
       ...config,
@@ -30,7 +36,7 @@ export function cloneType(type: GraphQLNamedType): GraphQLNamedType {
           ? config.interfaces
           : (config.interfaces as ReadonlyArray<GraphQLInterfaceType>).slice(),
     });
-  } else if (type instanceof GraphQLInterfaceType) {
+  } else if (isInterfaceType(type)) {
     const config = toConfig((type as unknown) as GraphQLObjectType);
     const newConfig = {
       ...config,
@@ -42,17 +48,17 @@ export function cloneType(type: GraphQLNamedType): GraphQLNamedType {
     return new GraphQLInterfaceType(
       (newConfig as unknown) as GraphQLInterfaceTypeConfig<any, any>,
     );
-  } else if (type instanceof GraphQLUnionType) {
+  } else if (isUnionType(type)) {
     const config = toConfig(type);
     return new GraphQLUnionType({
       ...config,
       types: (config.types as ReadonlyArray<GraphQLObjectType>).slice(),
     });
-  } else if (type instanceof GraphQLInputObjectType) {
+  } else if (isInputObjectType(type)) {
     return new GraphQLInputObjectType(toConfig(type));
-  } else if (type instanceof GraphQLEnumType) {
+  } else if (isEnumType(type)) {
     return new GraphQLEnumType(toConfig(type));
-  } else if (type instanceof GraphQLScalarType) {
+  } else if (isScalarType(type)) {
     return isSpecifiedScalarType(type)
       ? type
       : new GraphQLScalarType(toConfig(type));

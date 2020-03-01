@@ -7,6 +7,7 @@ import {
   GraphQLSchema,
   ExecutionResult,
   GraphQLOutputType,
+  isSchema,
 } from 'graphql';
 
 import {
@@ -40,7 +41,7 @@ import { combineErrors } from './errors';
 export default function delegateToSchema(
   options: IDelegateToSchemaOptions | GraphQLSchema,
 ): any {
-  if (options instanceof GraphQLSchema) {
+  if (isSchema(options)) {
     throw new Error(
       'Passing positional arguments to delegateToSchema is deprecated. ' +
         'Please pass named parameters instead.',

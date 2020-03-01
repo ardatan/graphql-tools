@@ -1,19 +1,24 @@
 import {
   GraphQLDirective,
-  GraphQLEnumType,
   GraphQLInputObjectType,
   GraphQLInterfaceType,
   GraphQLList,
   GraphQLObjectType,
   GraphQLNamedType,
   GraphQLNonNull,
-  GraphQLScalarType,
   GraphQLType,
   GraphQLUnionType,
   isNamedType,
   GraphQLSchema,
   GraphQLInputType,
   GraphQLOutputType,
+  isObjectType,
+  isInterfaceType,
+  isUnionType,
+  isInputObjectType,
+  isLeafType,
+  isListType,
+  isNonNullType,
 } from 'graphql';
 
 import each from './each';
@@ -118,26 +123,23 @@ export function healTypes(
   }
 
   function healNamedType(type: GraphQLNamedType) {
-    if (type instanceof GraphQLObjectType) {
+    if (isObjectType(type)) {
       healFields(type);
       healInterfaces(type);
       return;
-    } else if (type instanceof GraphQLInterfaceType) {
+    } else if (isInterfaceType(type)) {
       healFields(type);
       if (graphqlVersion() >= 15) {
         healInterfaces(type);
       }
       return;
-    } else if (type instanceof GraphQLUnionType) {
+    } else if (isUnionType(type)) {
       healUnderlyingTypes(type);
       return;
-    } else if (type instanceof GraphQLInputObjectType) {
+    } else if (isInputObjectType(type)) {
       healInputFields(type);
       return;
-    } else if (
-      type instanceof GraphQLScalarType ||
-      type instanceof GraphQLEnumType
-    ) {
+    } else if (isLeafType(type)) {
       return;
     }
 
@@ -178,10 +180,10 @@ export function healTypes(
 
   function healType<T extends GraphQLType>(type: T): GraphQLType | null {
     // Unwrap the two known wrapper types
-    if (type instanceof GraphQLList) {
+    if (isListType(type)) {
       const healedType = healType(type.ofType);
       return healedType != null ? new GraphQLList(healedType) : null;
-    } else if (type instanceof GraphQLNonNull) {
+    } else if (isNonNullType(type)) {
       const healedType = healType(type.ofType);
       return healedType != null ? new GraphQLNonNull(healedType) : null;
     } else if (isNamedType(type)) {
@@ -214,8 +216,8 @@ function pruneTypes(
   const implementedInterfaces = {};
   each(typeMap, namedType => {
     if (
-      namedType instanceof GraphQLObjectType ||
-      (graphqlVersion() >= 15 && namedType instanceof GraphQLInterfaceType)
+      isObjectType(namedType) ||
+      (graphqlVersion() >= 15 && isInterfaceType(namedType))
     ) {
       each((namedType as GraphQLObjectType).getInterfaces(), iface => {
         implementedInterfaces[iface.name] = true;
@@ -228,22 +230,19 @@ function pruneTypes(
   for (let i = 0; i < typeNames.length; i++) {
     const typeName = typeNames[i];
     const type = typeMap[typeName];
-    if (
-      type instanceof GraphQLObjectType ||
-      type instanceof GraphQLInputObjectType
-    ) {
+    if (isObjectType(type) || isInputObjectType(type)) {
       // prune types with no fields
       if (!Object.keys(type.getFields()).length) {
         typeMap[typeName] = null;
         prunedTypeMap = true;
       }
-    } else if (type instanceof GraphQLUnionType) {
+    } else if (isUnionType(type)) {
       // prune unions without underlying types
       if (!type.getTypes().length) {
         typeMap[typeName] = null;
         prunedTypeMap = true;
       }
-    } else if (type instanceof GraphQLInterfaceType) {
+    } else if (isInterfaceType(type)) {
       // prune interfaces without fields or without implementations
       if (
         !Object.keys(type.getFields()).length ||

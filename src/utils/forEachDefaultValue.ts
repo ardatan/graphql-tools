@@ -1,8 +1,8 @@
 import {
   getNamedType,
-  GraphQLInputObjectType,
   GraphQLSchema,
-  GraphQLObjectType,
+  isObjectType,
+  isInputObjectType,
 } from 'graphql';
 
 import { IDefaultValueIteratorFn } from '../Interfaces';
@@ -16,7 +16,7 @@ export function forEachDefaultValue(
     const type = typeMap[typeName];
 
     if (!getNamedType(type).name.startsWith('__')) {
-      if (type instanceof GraphQLObjectType) {
+      if (isObjectType(type)) {
         const fields = type.getFields();
         Object.keys(fields).forEach(fieldName => {
           const field = fields[fieldName];
@@ -25,7 +25,7 @@ export function forEachDefaultValue(
             arg.defaultValue = fn(arg.type, arg.defaultValue);
           });
         });
-      } else if (type instanceof GraphQLInputObjectType) {
+      } else if (isInputObjectType(type)) {
         const fields = type.getFields();
         Object.keys(fields).forEach(fieldName => {
           const field = fields[fieldName];

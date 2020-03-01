@@ -2,7 +2,6 @@ import {
   DocumentNode,
   GraphQLNamedType,
   GraphQLObjectType,
-  GraphQLScalarType,
   GraphQLSchema,
   getNamedType,
   isNamedType,
@@ -13,6 +12,13 @@ import {
   GraphQLUnionType,
   GraphQLEnumType,
   ASTNode,
+  isSchema,
+  isDirective,
+  isScalarType,
+  isObjectType,
+  isInterfaceType,
+  isUnionType,
+  isEnumType,
 } from 'graphql';
 
 import {
@@ -98,10 +104,7 @@ export default function mergeSchemas({
   schemas = [...schemas, ...schemaLikeObjects];
 
   schemas.forEach(schemaLikeObject => {
-    if (
-      schemaLikeObject instanceof GraphQLSchema ||
-      isSubschemaConfig(schemaLikeObject)
-    ) {
+    if (isSchema(schemaLikeObject) || isSubschemaConfig(schemaLikeObject)) {
       const schema = wrapSchema(schemaLikeObject);
 
       allSchemas.push(schema);
@@ -160,9 +163,9 @@ export default function mergeSchemas({
 
       parsedSchemaDocument.definitions.forEach(def => {
         const type = typeFromAST(def);
-        if (type instanceof GraphQLDirective && mergeDirectives) {
+        if (isDirective(type) && mergeDirectives) {
           directives.push(type);
-        } else if (type != null && !(type instanceof GraphQLDirective)) {
+        } else if (type != null && !isDirective(type)) {
           addTypeCandidate(typeCandidates, type.name, {
             type,
           });
@@ -216,7 +219,7 @@ export default function mergeSchemas({
       typeName === 'Mutation' ||
       typeName === 'Subscription' ||
       (mergeTypes === true &&
-        !(typeCandidates[typeName][0].type instanceof GraphQLScalarType)) ||
+        !isScalarType(typeCandidates[typeName][0].type)) ||
       (typeof mergeTypes === 'function' &&
         mergeTypes(typeName, typeCandidates[typeName])) ||
       (Array.isArray(mergeTypes) && mergeTypes.includes(typeName)) ||
@@ -336,7 +339,7 @@ function merge(
       `Cannot merge different type categories into common type ${typeName}.`,
     );
   }
-  if (initialCandidateType instanceof GraphQLObjectType) {
+  if (isObjectType(initialCandidateType)) {
     return new GraphQLObjectType({
       name: typeName,
       fields: candidates.reduce(
@@ -352,7 +355,7 @@ function merge(
         return interfaces != null ? acc.concat(interfaces) : acc;
       }, []),
     });
-  } else if (initialCandidateType instanceof GraphQLInterfaceType) {
+  } else if (isInterfaceType(initialCandidateType)) {
     const config = {
       name: typeName,
       fields: candidates.reduce(
@@ -372,7 +375,7 @@ function merge(
           : undefined,
     };
     return new GraphQLInterfaceType(config);
-  } else if (initialCandidateType instanceof GraphQLUnionType) {
+  } else if (isUnionType(initialCandidateType)) {
     return new GraphQLUnionType({
       name: typeName,
       types: candidates.reduce(
@@ -381,7 +384,7 @@ function merge(
         [],
       ),
     });
-  } else if (initialCandidateType instanceof GraphQLEnumType) {
+  } else if (isEnumType(initialCandidateType)) {
     return new GraphQLEnumType({
       name: typeName,
       values: candidates.reduce(
@@ -392,7 +395,7 @@ function merge(
         {},
       ),
     });
-  } else if (initialCandidateType instanceof GraphQLScalarType) {
+  } else if (isScalarType(initialCandidateType)) {
     throw new Error(
       `Cannot merge type ${typeName}. Merging not supported for GraphQLScalarType.`,
     );

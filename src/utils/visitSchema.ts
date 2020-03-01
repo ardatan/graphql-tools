@@ -1,15 +1,19 @@
 import {
-  GraphQLEnumType,
-  GraphQLInputObjectType,
   GraphQLInterfaceType,
   GraphQLObjectType,
-  GraphQLScalarType,
   GraphQLSchema,
-  GraphQLUnionType,
   isNamedType,
   GraphQLType,
   GraphQLNamedType,
   GraphQLInputField,
+  isSchema,
+  isObjectType,
+  isInterfaceType,
+  isInputObjectType,
+  isScalarType,
+  isUnionType,
+  isEnumType,
+  isInputType,
 } from 'graphql';
 
 import {
@@ -87,7 +91,7 @@ export function visitSchema(
         return true;
       }
 
-      if (methodName === 'visitSchema' || finalType instanceof GraphQLSchema) {
+      if (methodName === 'visitSchema' || isSchema(finalType)) {
         throw new Error(
           `Method ${methodName} cannot replace schema with ${newType as string}`,
         );
@@ -115,7 +119,7 @@ export function visitSchema(
   // Recursive helper function that calls any appropriate visitor methods for
   // each object in the schema, then traverses the object's children (if any).
   function visit<T extends VisitableSchemaType>(type: T): T | null {
-    if (type instanceof GraphQLSchema) {
+    if (isSchema(type)) {
       // Unlike the other types, the root GraphQLSchema object cannot be
       // replaced by visitor methods, because that would make life very hard
       // for SchemaVisitor subclasses that rely on the original schema object.
@@ -139,7 +143,7 @@ export function visitSchema(
       return type;
     }
 
-    if (type instanceof GraphQLObjectType) {
+    if (isObjectType(type)) {
       // Note that callMethod('visitObject', type) may not actually call any
       // methods, if there are no @directive annotations associated with this
       // type, or if this SchemaDirectiveVisitor subclass does not override
@@ -151,7 +155,7 @@ export function visitSchema(
       return newObject;
     }
 
-    if (type instanceof GraphQLInterfaceType) {
+    if (isInterfaceType(type)) {
       const newInterface = callMethod('visitInterface', type);
       if (newInterface != null) {
         visitFields(newInterface);
@@ -159,7 +163,7 @@ export function visitSchema(
       return newInterface;
     }
 
-    if (type instanceof GraphQLInputObjectType) {
+    if (isInputObjectType(type)) {
       const newInputObject = callMethod('visitInputObject', type);
 
       if (newInputObject != null) {
@@ -179,15 +183,15 @@ export function visitSchema(
       return newInputObject;
     }
 
-    if (type instanceof GraphQLScalarType) {
+    if (isScalarType(type)) {
       return callMethod('visitScalar', type);
     }
 
-    if (type instanceof GraphQLUnionType) {
+    if (isUnionType(type)) {
       return callMethod('visitUnion', type);
     }
 
-    if (type instanceof GraphQLEnumType) {
+    if (isEnumType(type)) {
       const newEnum = callMethod('visitEnum', type);
 
       if (newEnum != null) {
@@ -253,7 +257,7 @@ function getTypeSpecifiers(
   schema: GraphQLSchema,
 ): Array<VisitSchemaKind> {
   const specifiers = [VisitSchemaKind.TYPE];
-  if (type instanceof GraphQLObjectType) {
+  if (isObjectType(type)) {
     specifiers.push(
       VisitSchemaKind.COMPOSITE_TYPE,
       VisitSchemaKind.OBJECT_TYPE,
@@ -271,23 +275,23 @@ function getTypeSpecifiers(
         VisitSchemaKind.SUBSCRIPTION,
       );
     }
-  } else if (type instanceof GraphQLInputObjectType) {
+  } else if (isInputType(type)) {
     specifiers.push(VisitSchemaKind.INPUT_OBJECT_TYPE);
-  } else if (type instanceof GraphQLInterfaceType) {
+  } else if (isInterfaceType(type)) {
     specifiers.push(
       VisitSchemaKind.COMPOSITE_TYPE,
       VisitSchemaKind.ABSTRACT_TYPE,
       VisitSchemaKind.INTERFACE_TYPE,
     );
-  } else if (type instanceof GraphQLUnionType) {
+  } else if (isUnionType(type)) {
     specifiers.push(
       VisitSchemaKind.COMPOSITE_TYPE,
       VisitSchemaKind.ABSTRACT_TYPE,
       VisitSchemaKind.UNION_TYPE,
     );
-  } else if (type instanceof GraphQLEnumType) {
+  } else if (isEnumType(type)) {
     specifiers.push(VisitSchemaKind.ENUM_TYPE);
-  } else if (type instanceof GraphQLScalarType) {
+  } else if (isScalarType(type)) {
     specifiers.push(VisitSchemaKind.SCALAR_TYPE);
   }
 

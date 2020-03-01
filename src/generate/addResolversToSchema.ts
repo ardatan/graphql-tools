@@ -1,11 +1,13 @@
 import {
   GraphQLField,
   GraphQLEnumType,
-  GraphQLScalarType,
   GraphQLSchema,
-  GraphQLObjectType,
-  GraphQLInterfaceType,
-  GraphQLUnionType,
+  isSchema,
+  isScalarType,
+  isEnumType,
+  isUnionType,
+  isInterfaceType,
+  isObjectType,
 } from 'graphql';
 
 import {
@@ -31,14 +33,13 @@ function addResolversToSchema(
   legacyInputResolvers?: IResolvers,
   legacyInputValidationOptions?: IResolverValidationOptions,
 ) {
-  const options: IAddResolversToSchemaOptions =
-    schemaOrOptions instanceof GraphQLSchema
-      ? {
-          schema: schemaOrOptions,
-          resolvers: legacyInputResolvers,
-          resolverValidationOptions: legacyInputValidationOptions,
-        }
-      : schemaOrOptions;
+  const options: IAddResolversToSchemaOptions = isSchema(schemaOrOptions)
+    ? {
+        schema: schemaOrOptions,
+        resolvers: legacyInputResolvers,
+        resolverValidationOptions: legacyInputValidationOptions,
+      }
+    : schemaOrOptions;
 
   const {
     schema,
@@ -81,7 +82,7 @@ function addResolversToSchema(
       );
     }
 
-    if (type instanceof GraphQLScalarType) {
+    if (isScalarType(type)) {
       // Support -- without recommending -- overriding default scalar types
       Object.keys(resolverValue).forEach(fieldName => {
         if (fieldName.startsWith('__')) {
@@ -90,7 +91,7 @@ function addResolversToSchema(
           type[fieldName] = resolverValue[fieldName];
         }
       });
-    } else if (type instanceof GraphQLEnumType) {
+    } else if (isEnumType(type)) {
       // We've encountered an enum resolver that is being used to provide an
       // internal enum value.
       // Reference: https://www.apollographql.com/docs/graphql-tools/scalars.html#internal-values
@@ -126,7 +127,7 @@ function addResolversToSchema(
         ...config,
         values: newValues,
       });
-    } else if (type instanceof GraphQLUnionType) {
+    } else if (isUnionType(type)) {
       Object.keys(resolverValue).forEach(fieldName => {
         if (fieldName.startsWith('__')) {
           // this is for isTypeOf and resolveType and all the other stuff.
@@ -141,10 +142,7 @@ function addResolversToSchema(
           `${typeName} was defined in resolvers, but it's not an object`,
         );
       });
-    } else if (
-      type instanceof GraphQLInterfaceType ||
-      type instanceof GraphQLObjectType
-    ) {
+    } else if (isObjectType(type) || isInterfaceType(type)) {
       Object.keys(resolverValue).forEach(fieldName => {
         if (fieldName.startsWith('__')) {
           // this is for isTypeOf and resolveType and all the other stuff.

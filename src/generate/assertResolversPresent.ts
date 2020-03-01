@@ -2,7 +2,7 @@ import {
   GraphQLSchema,
   GraphQLField,
   getNamedType,
-  GraphQLScalarType,
+  isScalarType,
 } from 'graphql';
 
 import { IResolverValidationOptions } from '../Interfaces';
@@ -45,7 +45,7 @@ function assertResolversPresent(
     // requires a resolver on every field that returns a non-scalar type
     if (
       requireResolversForNonScalar &&
-      !(getNamedType(field.type) instanceof GraphQLScalarType)
+      !isScalarType(getNamedType(field.type))
     ) {
       expectResolver(field, typeName, fieldName);
     }

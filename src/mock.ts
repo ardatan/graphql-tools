@@ -2,9 +2,6 @@ import {
   graphql,
   GraphQLSchema,
   GraphQLObjectType,
-  GraphQLEnumType,
-  GraphQLUnionType,
-  GraphQLInterfaceType,
   GraphQLList,
   GraphQLType,
   GraphQLField,
@@ -13,8 +10,14 @@ import {
   getNamedType,
   GraphQLNamedType,
   GraphQLFieldResolver,
-  GraphQLNonNull,
   GraphQLNullableType,
+  isSchema,
+  isObjectType,
+  isUnionType,
+  isInterfaceType,
+  isListType,
+  isEnumType,
+  isAbstractType,
 } from 'graphql';
 import { v4 as uuid } from 'uuid';
 
@@ -37,7 +40,7 @@ function mockServer(
   preserveResolvers: boolean = false,
 ): IMockServer {
   let mySchema: GraphQLSchema;
-  if (!(schema instanceof GraphQLSchema)) {
+  if (!isSchema(schema)) {
     // TODO: provide useful error messages here if this fails
     mySchema = buildSchemaFromTypeDefinitions(schema);
   } else {
@@ -67,7 +70,7 @@ function addMocksToSchema({
   if (!schema) {
     throw new Error('Must provide schema to mock');
   }
-  if (!(schema instanceof GraphQLSchema)) {
+  if (!isSchema(schema)) {
     throw new Error('Value at "schema" must be of type GraphQLSchema');
   }
   if (!isObject(mocks)) {
@@ -141,36 +144,24 @@ function addMocksToSchema({
         return result;
       }
 
-      if (
-        fieldType instanceof GraphQLList ||
-        fieldType instanceof GraphQLNonNull
-      ) {
+      if (isListType(fieldType)) {
         return [
           mockType(fieldType.ofType)(root, args, context, info),
           mockType(fieldType.ofType)(root, args, context, info),
         ];
       }
-      if (
-        mockFunctionMap.has(fieldType.name) &&
-        !(
-          fieldType instanceof GraphQLUnionType ||
-          fieldType instanceof GraphQLInterfaceType
-        )
-      ) {
+      if (mockFunctionMap.has(fieldType.name) && !isAbstractType(fieldType)) {
         // the object passed doesn't have this field, so we apply the default mock
         const mock = mockFunctionMap.get(fieldType.name);
         return mock(root, args, context, info);
       }
-      if (fieldType instanceof GraphQLObjectType) {
+      if (isObjectType(fieldType)) {
         // objects don't return actual data, we only need to mock scalars!
         return {};
       }
       // if a mock function is provided for unionType or interfaceType, execute it to resolve the concrete type
       // otherwise randomly pick a type from all implementation types
-      if (
-        fieldType instanceof GraphQLUnionType ||
-        fieldType instanceof GraphQLInterfaceType
-      ) {
+      if (isAbstractType(fieldType)) {
         let implementationType;
         if (mockFunctionMap.has(fieldType.name)) {
           const mock = mockFunctionMap.get(fieldType.name);
@@ -189,7 +180,7 @@ function addMocksToSchema({
         };
       }
 
-      if (fieldType instanceof GraphQLEnumType) {
+      if (isEnumType(fieldType)) {
         return getRandomElement(fieldType.getValues()).value;
       }
 
@@ -360,10 +351,7 @@ function mergeMocks(genericMockFunction: () => any, customMock: any): any {
 }
 
 function getResolveType(namedFieldType: GraphQLNamedType) {
-  if (
-    namedFieldType instanceof GraphQLInterfaceType ||
-    namedFieldType instanceof GraphQLUnionType
-  ) {
+  if (isAbstractType(namedFieldType)) {
     return namedFieldType.resolveType;
   }
 }
@@ -377,10 +365,7 @@ function assignResolveType(type: GraphQLType, preserveResolvers: boolean) {
     return;
   }
 
-  if (
-    namedFieldType instanceof GraphQLUnionType ||
-    namedFieldType instanceof GraphQLInterfaceType
-  ) {
+  if (isInterfaceType(namedFieldType) || isUnionType(namedFieldType)) {
     // the default `resolveType` always returns null. We add a fallback
     // resolution that works with how unions and interface are mocked
     namedFieldType.resolveType = (

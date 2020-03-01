@@ -1,4 +1,4 @@
-import { getNamedType, GraphQLObjectType, GraphQLSchema } from 'graphql';
+import { getNamedType, GraphQLSchema, isObjectType } from 'graphql';
 
 import { IFieldIteratorFn } from '../Interfaces';
 
@@ -11,10 +11,7 @@ export function forEachField(
     const type = typeMap[typeName];
 
     // TODO: maybe have an option to include these?
-    if (
-      !getNamedType(type).name.startsWith('__') &&
-      type instanceof GraphQLObjectType
-    ) {
+    if (!getNamedType(type).name.startsWith('__') && isObjectType(type)) {
       const fields = type.getFields();
       Object.keys(fields).forEach(fieldName => {
         const field = fields[fieldName];

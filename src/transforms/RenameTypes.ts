@@ -4,7 +4,7 @@ import {
   NamedTypeNode,
   Kind,
   GraphQLNamedType,
-  GraphQLScalarType,
+  isScalarType,
 } from 'graphql';
 
 import { isSpecifiedScalarType } from '../polyfills';
@@ -43,7 +43,7 @@ export default class RenameTypes implements Transform {
         if (isSpecifiedScalarType(type) && !this.renameBuiltins) {
           return undefined;
         }
-        if (type instanceof GraphQLScalarType && !this.renameScalars) {
+        if (isScalarType(type) && !this.renameScalars) {
           return undefined;
         }
         const oldName = type.name;

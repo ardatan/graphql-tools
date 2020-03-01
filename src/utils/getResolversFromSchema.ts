@@ -1,10 +1,10 @@
 import {
   GraphQLSchema,
-  GraphQLScalarType,
-  GraphQLEnumType,
-  GraphQLObjectType,
-  GraphQLInterfaceType,
-  GraphQLUnionType,
+  isScalarType,
+  isEnumType,
+  isInterfaceType,
+  isUnionType,
+  isObjectType,
 } from 'graphql';
 
 import { IResolvers } from '../Interfaces';
@@ -20,30 +20,30 @@ export function getResolversFromSchema(schema: GraphQLSchema): IResolvers {
   Object.keys(typeMap).forEach(typeName => {
     const type = typeMap[typeName];
 
-    if (type instanceof GraphQLScalarType) {
+    if (isScalarType(type)) {
       if (!isSpecifiedScalarType(type)) {
         resolvers[typeName] = cloneType(type);
       }
-    } else if (type instanceof GraphQLEnumType) {
+    } else if (isEnumType(type)) {
       resolvers[typeName] = {};
 
       const values = type.getValues();
       values.forEach(value => {
         resolvers[typeName][value.name] = value.value;
       });
-    } else if (type instanceof GraphQLInterfaceType) {
+    } else if (isInterfaceType(type)) {
       if (type.resolveType != null) {
         resolvers[typeName] = {
           __resolveType: type.resolveType,
         };
       }
-    } else if (type instanceof GraphQLUnionType) {
+    } else if (isUnionType(type)) {
       if (type.resolveType != null) {
         resolvers[typeName] = {
           __resolveType: type.resolveType,
         };
       }
-    } else if (type instanceof GraphQLObjectType) {
+    } else if (isObjectType(type)) {
       resolvers[typeName] = {};
 
       if (type.isTypeOf != null) {

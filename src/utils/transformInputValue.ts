@@ -1,10 +1,11 @@
 import {
   GraphQLEnumType,
-  GraphQLInputObjectType,
   GraphQLInputType,
-  GraphQLList,
   GraphQLScalarType,
   getNullableType,
+  isLeafType,
+  isListType,
+  isInputObjectType,
 } from 'graphql';
 
 type InputValueTransformer = (
@@ -23,16 +24,13 @@ export function transformInputValue(
 
   const nullableType = getNullableType(type);
 
-  if (
-    nullableType instanceof GraphQLEnumType ||
-    nullableType instanceof GraphQLScalarType
-  ) {
+  if (isLeafType(nullableType)) {
     return transformer(nullableType, value);
-  } else if (nullableType instanceof GraphQLList) {
+  } else if (isListType(nullableType)) {
     return value.map((listMember: any) =>
       transformInputValue(nullableType.ofType, listMember, transformer),
     );
-  } else if (nullableType instanceof GraphQLInputObjectType) {
+  } else if (isInputObjectType(nullableType)) {
     const fields = nullableType.getFields();
     const newValue = {};
     Object.keys(value).forEach(key => {

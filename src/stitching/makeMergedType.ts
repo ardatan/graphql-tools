@@ -1,15 +1,10 @@
-import {
-  GraphQLType,
-  GraphQLObjectType,
-  GraphQLInterfaceType,
-  GraphQLUnionType,
-} from 'graphql';
+import { GraphQLType, isAbstractType, isObjectType } from 'graphql';
 
 import defaultMergedResolver from './defaultMergedResolver';
 import resolveFromParentTypename from './resolveFromParentTypename';
 
 export function makeMergedType(type: GraphQLType): void {
-  if (type instanceof GraphQLObjectType) {
+  if (isObjectType(type)) {
     type.isTypeOf = undefined;
 
     const fieldMap = type.getFields();
@@ -17,10 +12,7 @@ export function makeMergedType(type: GraphQLType): void {
       fieldMap[fieldName].resolve = defaultMergedResolver;
       fieldMap[fieldName].subscribe = null;
     });
-  } else if (
-    type instanceof GraphQLInterfaceType ||
-    type instanceof GraphQLUnionType
-  ) {
+  } else if (isAbstractType(type)) {
     type.resolveType = parent => resolveFromParentTypename(parent);
   }
 }

@@ -14,11 +14,11 @@ import {
   GraphQLField,
   GraphQLArgument,
   VariableDefinitionNode,
-  GraphQLList,
-  GraphQLNonNull,
   TypeNode,
   GraphQLType,
   SelectionSetNode,
+  isNonNullType,
+  isListType,
 } from 'graphql';
 
 import {
@@ -261,7 +261,7 @@ function updateArguments(
 }
 
 function astFromType(type: GraphQLType): TypeNode {
-  if (type instanceof GraphQLNonNull) {
+  if (isNonNullType(type)) {
     const innerType = astFromType(type.ofType);
     if (innerType.kind === Kind.NON_NULL_TYPE) {
       throw new Error(
@@ -274,7 +274,7 @@ function astFromType(type: GraphQLType): TypeNode {
       kind: Kind.NON_NULL_TYPE,
       type: innerType,
     };
-  } else if (type instanceof GraphQLList) {
+  } else if (isListType(type)) {
     return {
       kind: Kind.LIST_TYPE,
       type: astFromType(type.ofType),

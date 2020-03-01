@@ -6,9 +6,8 @@ import {
   visitWithTypeInfo,
   SelectionSetNode,
   Kind,
-  GraphQLInterfaceType,
-  GraphQLUnionType,
   GraphQLSchema,
+  isAbstractType,
 } from 'graphql';
 
 export function addTypenameToAbstract(
@@ -24,11 +23,7 @@ export function addTypenameToAbstract(
       ): SelectionSetNode | null | undefined {
         const parentType: GraphQLType = typeInfo.getParentType();
         let selections = node.selections;
-        if (
-          parentType != null &&
-          (parentType instanceof GraphQLInterfaceType ||
-            parentType instanceof GraphQLUnionType)
-        ) {
+        if (parentType != null && isAbstractType(parentType)) {
           selections = selections.concat({
             kind: Kind.FIELD,
             name: {

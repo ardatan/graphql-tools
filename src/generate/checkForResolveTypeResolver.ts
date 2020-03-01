@@ -1,4 +1,9 @@
-import { GraphQLInterfaceType, GraphQLUnionType, GraphQLSchema } from 'graphql';
+import {
+  GraphQLInterfaceType,
+  GraphQLUnionType,
+  GraphQLSchema,
+  isAbstractType,
+} from 'graphql';
 
 import SchemaError from './SchemaError';
 
@@ -10,12 +15,7 @@ function checkForResolveTypeResolver(
   Object.keys(schema.getTypeMap())
     .map(typeName => schema.getType(typeName))
     .forEach((type: GraphQLUnionType | GraphQLInterfaceType) => {
-      if (
-        !(
-          type instanceof GraphQLUnionType ||
-          type instanceof GraphQLInterfaceType
-        )
-      ) {
+      if (!isAbstractType(type)) {
         return;
       }
       if (!type.resolveType) {

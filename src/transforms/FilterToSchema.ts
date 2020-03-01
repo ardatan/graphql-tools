@@ -4,8 +4,6 @@ import {
   FieldNode,
   FragmentDefinitionNode,
   FragmentSpreadNode,
-  GraphQLInterfaceType,
-  GraphQLObjectType,
   GraphQLSchema,
   GraphQLType,
   InlineFragmentNode,
@@ -19,6 +17,8 @@ import {
   TypeInfo,
   visitWithTypeInfo,
   getNamedType,
+  isObjectType,
+  isInterfaceType,
 } from 'graphql';
 
 import { Request } from '../Interfaces';
@@ -222,10 +222,7 @@ function filterSelectionSet(
       [Kind.FIELD]: {
         enter(node: FieldNode): null | undefined | FieldNode {
           const parentType = typeInfo.getParentType();
-          if (
-            parentType instanceof GraphQLObjectType ||
-            parentType instanceof GraphQLInterfaceType
-          ) {
+          if (isObjectType(parentType) || isInterfaceType(parentType)) {
             const fields = parentType.getFields();
             const field =
               node.name.value === '__typename'
@@ -253,10 +250,7 @@ function filterSelectionSet(
         },
         leave(node: FieldNode): null | undefined | FieldNode {
           const resolvedType = getNamedType(typeInfo.getType());
-          if (
-            resolvedType instanceof GraphQLObjectType ||
-            resolvedType instanceof GraphQLInterfaceType
-          ) {
+          if (isObjectType(resolvedType) || isInterfaceType(resolvedType)) {
             const selections =
               node.selectionSet != null ? node.selectionSet.selections : null;
             if (selections == null || selections.length === 0) {

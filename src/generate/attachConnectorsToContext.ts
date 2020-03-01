@@ -1,5 +1,5 @@
 import { deprecated } from 'deprecated-decorator';
-import { GraphQLSchema, GraphQLFieldResolver } from 'graphql';
+import { GraphQLSchema, GraphQLFieldResolver, isSchema } from 'graphql';
 
 import { IConnectors, IConnector, IConnectorCls } from '../Interfaces';
 
@@ -15,7 +15,7 @@ const attachConnectorsToContext = deprecated<Function>(
     url: 'https://github.com/apollostack/graphql-tools/issues/140',
   },
   (schema: GraphQLSchema, connectors: IConnectors): void => {
-    if (!schema || !(schema instanceof GraphQLSchema)) {
+    if (!schema || !isSchema(schema)) {
       throw new Error(
         'schema must be an instance of GraphQLSchema. ' +
           'This error could be caused by installing more than one version of GraphQL-JS',

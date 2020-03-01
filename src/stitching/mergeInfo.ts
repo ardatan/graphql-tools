@@ -1,11 +1,12 @@
 import {
   GraphQLNamedType,
   GraphQLObjectType,
-  GraphQLScalarType,
   GraphQLSchema,
   Kind,
   SelectionNode,
   SelectionSetNode,
+  isObjectType,
+  isScalarType,
 } from 'graphql';
 import { TypeMap } from 'graphql/type/schema';
 
@@ -102,7 +103,7 @@ function createMergedTypes(
   const mergedTypes: Record<string, MergedTypeInfo> = {};
 
   Object.keys(typeCandidates).forEach(typeName => {
-    if (typeCandidates[typeName][0].type instanceof GraphQLObjectType) {
+    if (isObjectType(typeCandidates[typeName][0].type)) {
       const mergedTypeCandidates = typeCandidates[typeName].filter(
         typeCandidate =>
           typeCandidate.subschema != null &&
@@ -237,7 +238,7 @@ export function completeMergeInfo(
 
   Object.keys(resolvers).forEach(typeName => {
     const type = resolvers[typeName];
-    if (type instanceof GraphQLScalarType) {
+    if (isScalarType(type)) {
       return;
     }
     Object.keys(type).forEach(fieldName => {
