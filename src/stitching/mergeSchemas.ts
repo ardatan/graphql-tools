@@ -37,7 +37,6 @@ import { wrapSchema } from '../transforms';
 import {
   SchemaDirectiveVisitor,
   cloneDirective,
-  healSchema,
   healTypes,
   forEachField,
   mergeDeep,
@@ -282,8 +281,6 @@ export default function mergeSchemas({
       schemaDirectives,
     );
   }
-
-  healSchema(mergedSchema);
 
   return mergedSchema;
 }
