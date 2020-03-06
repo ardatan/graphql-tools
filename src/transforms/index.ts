@@ -16,6 +16,7 @@ export { default as FilterToSchema } from './FilterToSchema';
 export { default as AddTypenameToAbstract } from './AddTypenameToAbstract';
 
 export { default as RenameTypes } from './RenameTypes';
+export { default as RenameRootTypes } from './RenameRootTypes';
 export { default as FilterTypes } from './FilterTypes';
 export { default as TransformRootFields } from './TransformRootFields';
 export { default as RenameRootFields } from './RenameRootFields';

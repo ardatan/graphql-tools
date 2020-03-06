@@ -21,10 +21,11 @@ import {
   isNonNullType,
 } from 'graphql';
 
+import { toConfig } from '../polyfills';
+
 import each from './each';
 import updateEachKey from './updateEachKey';
 import { isStub, getBuiltInForStub } from './stub';
-import { cloneSchema } from './clone';
 import { graphqlVersion } from './graphqlVersion';
 
 type NamedTypeMap = {
@@ -36,11 +37,60 @@ const hasOwn = Object.prototype.hasOwnProperty;
 // Update any references to named schema types that disagree with the named
 // types found in schema.getTypeMap().
 export function healSchema(schema: GraphQLSchema): GraphQLSchema {
-  healTypes(schema.getTypeMap(), schema.getDirectives());
+  const typeMap = schema.getTypeMap();
+  const directives = schema.getDirectives();
+
+  const queryType = schema.getQueryType();
+  const mutationType = schema.getMutationType();
+  const subscriptionType = schema.getSubscriptionType();
+
+  const newQueryTypeName =
+    queryType != null
+      ? typeMap[queryType.name] != null
+        ? typeMap[queryType.name].name
+        : undefined
+      : undefined;
+  const newMutationTypeName =
+    mutationType != null
+      ? typeMap[mutationType.name] != null
+        ? typeMap[mutationType.name].name
+        : undefined
+      : undefined;
+  const newSubscriptionTypeName =
+    subscriptionType != null
+      ? typeMap[subscriptionType.name] != null
+        ? typeMap[subscriptionType.name].name
+        : undefined
+      : undefined;
+
+  healTypes(typeMap, directives);
+
+  const filteredTypeMap = {};
+
+  Object.keys(typeMap).forEach(typeName => {
+    if (!typeName.startsWith('__')) {
+      filteredTypeMap[typeName] = typeMap[typeName];
+    }
+  });
+
+  const healedSchema = new GraphQLSchema({
+    ...toConfig(schema),
+    query: newQueryTypeName ? filteredTypeMap[newQueryTypeName] : undefined,
+    mutation: newMutationTypeName
+      ? filteredTypeMap[newMutationTypeName]
+      : undefined,
+    subscription: newSubscriptionTypeName
+      ? filteredTypeMap[newSubscriptionTypeName]
+      : undefined,
+    types: Object.keys(filteredTypeMap).map(
+      typeName => filteredTypeMap[typeName],
+    ),
+    directives: directives.slice(),
+  });
 
   // Reconstruct the schema to reinitialize private variables
   // e.g. the stored implementation map and the proper root types.
-  Object.assign(schema, cloneSchema(schema));
+  Object.assign(schema, healedSchema);
 
   return schema;
 }

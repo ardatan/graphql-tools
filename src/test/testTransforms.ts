@@ -15,6 +15,7 @@ import { delegateToSchema, defaultMergedResolver } from '../stitching';
 import {
   transformSchema,
   RenameTypes,
+  RenameRootTypes,
   FilterTypes,
   WrapQuery,
   ExtractField,
@@ -24,6 +25,7 @@ import {
   AddReplacementFragments,
 } from '../transforms';
 import { concatInlineFragments, parseFragmentToInlineFragment } from '../utils';
+import { addMocksToSchema } from '../mock';
 
 import { propertySchema, bookingSchema } from './testingSchemas';
 
@@ -174,6 +176,63 @@ describe('transforms', () => {
           },
           propertyById: {
             id: 'p1',
+          },
+        },
+      });
+    });
+  });
+
+  describe('rename root type', () => {
+    let schema: GraphQLSchema;
+    before(() => {
+      const subschema = makeExecutableSchema({
+        typeDefs: `
+          schema {
+            query: QueryRoot
+            mutation: MutationRoot
+          }
+
+          type QueryRoot {
+            foo: String!
+          }
+
+          type MutationRoot {
+            doSomething: DoSomethingPayload!
+          }
+
+          type DoSomethingPayload {
+            query: QueryRoot!
+          }
+        `,
+      });
+
+      addMocksToSchema({ schema: subschema });
+
+      schema = transformSchema(subschema, [
+        new RenameRootTypes(name => (name === 'QueryRoot' ? 'Query' : name)),
+      ]);
+    });
+
+    it('should work', async () => {
+      const result = await graphql(
+        schema,
+        `
+          mutation {
+            doSomething {
+              query {
+                foo
+              }
+            }
+          }
+        `,
+      );
+
+      expect(result).to.deep.equal({
+        data: {
+          doSomething: {
+            query: {
+              foo: 'Hello World',
+            },
           },
         },
       });
