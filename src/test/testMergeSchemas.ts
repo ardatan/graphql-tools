@@ -14,13 +14,16 @@ import {
   printSchema,
 } from 'graphql';
 
-import mergeSchemas from '../stitching/mergeSchemas';
-import { SchemaDirectiveVisitor } from '../utils/SchemaDirectiveVisitor';
 import { makeExecutableSchema } from '../makeExecutableSchema';
 import { IResolvers, SubschemaConfig } from '../Interfaces';
-import { delegateToSchema } from '../stitching';
-import { cloneSchema, graphqlVersion } from '../utils';
-import { getResolversFromSchema } from '../utils/getResolversFromSchema';
+import { delegateToSchema, mergeSchemas } from '../stitching';
+import {
+  cloneSchema,
+  getResolversFromSchema,
+  graphqlVersion,
+  SchemaDirectiveVisitor,
+} from '../utils';
+import { addMocksToSchema } from '../mock';
 
 import {
   propertySchema as localPropertySchema,
@@ -3006,6 +3009,62 @@ fragment BookingFragment on Booking {
             author: {
               name: 'JRR Tolkien',
             },
+          },
+        },
+      });
+    });
+  });
+
+  describe('new root type name', () => {
+    it('works', async () => {
+      const bookSchema = makeExecutableSchema({
+        typeDefs: `
+          type Query {
+            book: Book
+          }
+          type Book {
+            name: String
+          }
+        `,
+      });
+
+      const movieSchema = makeExecutableSchema({
+        typeDefs: `
+          type Query {
+            movie: Movie
+          }
+
+          type Movie {
+            name: String
+          }
+        `,
+      });
+
+      addMocksToSchema({ schema: bookSchema });
+      addMocksToSchema({ schema: movieSchema });
+
+      const mergedSchema = mergeSchemas({
+        schemas: [bookSchema, movieSchema],
+        queryTypeName: 'RootQuery',
+      });
+
+      const result = await graphql(
+        mergedSchema,
+        `
+          query {
+            ... on RootQuery {
+              book {
+                name
+              }
+            }
+          }
+        `,
+      );
+
+      expect(result).to.deep.equal({
+        data: {
+          book: {
+            name: 'Hello World',
           },
         },
       });

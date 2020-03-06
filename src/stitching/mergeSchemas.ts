@@ -69,6 +69,9 @@ export default function mergeSchemas({
   inheritResolversFromInterfaces,
   mergeTypes = false,
   mergeDirectives,
+  queryTypeName = 'Query',
+  mutationTypeName = 'Mutation',
+  subscriptionTypeName = 'Subscription',
 }: {
   subschemas?: Array<GraphQLSchema | SubschemaConfig>;
   types?: Array<GraphQLNamedType>;
@@ -86,6 +89,9 @@ export default function mergeSchemas({
         mergeTypeCandidates: Array<MergeTypeCandidate>,
       ) => boolean);
   mergeDirectives?: boolean;
+  queryTypeName?: string;
+  mutationTypeName?: string;
+  subscriptionTypeName?: string;
 }): GraphQLSchema {
   const allSchemas: Array<GraphQLSchema> = [];
   const typeCandidates: { [name: string]: Array<MergeTypeCandidate> } = {};
@@ -109,13 +115,13 @@ export default function mergeSchemas({
       allSchemas.push(schema);
 
       const operationTypes = {
-        Query: schema.getQueryType(),
-        Mutation: schema.getMutationType(),
-        Subscription: schema.getSubscriptionType(),
+        [queryTypeName]: schema.getQueryType(),
+        [mutationTypeName]: schema.getMutationType(),
+        [subscriptionTypeName]: schema.getSubscriptionType(),
       };
 
       Object.keys(operationTypes).forEach(typeName => {
-        if (operationTypes[typeName]) {
+        if (operationTypes[typeName] != null) {
           addTypeCandidate(typeCandidates, typeName, {
             schema,
             type: operationTypes[typeName],
@@ -214,9 +220,9 @@ export default function mergeSchemas({
 
   Object.keys(typeCandidates).forEach(typeName => {
     if (
-      typeName === 'Query' ||
-      typeName === 'Mutation' ||
-      typeName === 'Subscription' ||
+      typeName === queryTypeName ||
+      typeName === mutationTypeName ||
+      typeName === subscriptionTypeName ||
       (mergeTypes === true &&
         !isScalarType(typeCandidates[typeName][0].type)) ||
       (typeof mergeTypes === 'function' &&
@@ -237,9 +243,9 @@ export default function mergeSchemas({
   healTypes(typeMap, directives, { skipPruning: true });
 
   let mergedSchema = new GraphQLSchema({
-    query: typeMap.Query as GraphQLObjectType,
-    mutation: typeMap.Mutation as GraphQLObjectType,
-    subscription: typeMap.Subscription as GraphQLObjectType,
+    query: typeMap[queryTypeName] as GraphQLObjectType,
+    mutation: typeMap[mutationTypeName] as GraphQLObjectType,
+    subscription: typeMap[subscriptionTypeName] as GraphQLObjectType,
     types: Object.keys(typeMap).map(key => typeMap[key]),
     directives: directives.length
       ? directives.map(directive => cloneDirective(directive))
