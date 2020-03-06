@@ -9,6 +9,9 @@ import { Transform } from '../transforms';
 
 import delegateToSchema from './delegateToSchema';
 import { makeMergedType } from './makeMergedType';
+import { getResponseKeyFromInfo } from './getResponseKeyFromInfo';
+import { getErrors, getSubschema } from './proxiedResult';
+import { handleResult } from './checkResultAndHandleErrors';
 
 export type Mapping = {
   [typeName: string]: {
@@ -112,13 +115,27 @@ function defaultCreateProxyingResolver({
   schema: SubschemaConfig;
   transforms: Array<Transform>;
 }): GraphQLFieldResolver<any, any> {
-  return (_parent, _args, context, info) =>
-    delegateToSchema({
+  return (parent, _args, context, info) => {
+    if (parent != null) {
+      const responseKey = getResponseKeyFromInfo(info);
+      const errors = getErrors(parent, responseKey);
+
+      // check to see if parent is a proxied result, possible if root types are also nested
+      if (errors != null) {
+        const result = parent[responseKey];
+        const subschema = getSubschema(parent, responseKey);
+
+        return handleResult(result, errors, subschema, context, info);
+      }
+    }
+
+    return delegateToSchema({
       schema,
       context,
       info,
       transforms,
     });
+  };
 }
 
 export function stripResolvers(schema: GraphQLSchema): void {
