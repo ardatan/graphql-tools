@@ -11,7 +11,11 @@ import {
 } from 'graphql';
 
 import { makeExecutableSchema } from '../makeExecutableSchema';
-import { delegateToSchema, defaultMergedResolver } from '../stitching';
+import {
+  delegateToSchema,
+  defaultMergedResolver,
+  mergeSchemas,
+} from '../stitching';
 import {
   transformSchema,
   RenameTypes,
@@ -183,8 +187,7 @@ describe('transforms', () => {
   });
 
   describe('rename root type', () => {
-    let schema: GraphQLSchema;
-    before(() => {
+    it('should work', async () => {
       const subschema = makeExecutableSchema({
         typeDefs: `
           schema {
@@ -208,12 +211,10 @@ describe('transforms', () => {
 
       addMocksToSchema({ schema: subschema });
 
-      schema = transformSchema(subschema, [
+      const schema = transformSchema(subschema, [
         new RenameRootTypes(name => (name === 'QueryRoot' ? 'Query' : name)),
       ]);
-    });
 
-    it('should work', async () => {
       const result = await graphql(
         schema,
         `
@@ -232,6 +233,88 @@ describe('transforms', () => {
           doSomething: {
             query: {
               foo: 'Hello World',
+            },
+          },
+        },
+      });
+    });
+
+    it('works with mergeSchemas', async () => {
+      const schemaWithCustomRootTypeNames = makeExecutableSchema({
+        typeDefs: `
+          schema {
+            query: QueryRoot
+            mutation: MutationRoot
+          }
+
+          type QueryRoot {
+            foo: String!
+          }
+
+          type MutationRoot {
+            doSomething: DoSomethingPayload!
+          }
+
+          type DoSomethingPayload {
+            somethingChanged: Boolean!
+            query: QueryRoot!
+          }
+        `,
+      });
+
+      addMocksToSchema({ schema: schemaWithCustomRootTypeNames });
+
+      const schemaWithDefaultRootTypeNames = makeExecutableSchema({
+        typeDefs: `
+          type Query {
+            bar: String!
+          }
+
+          type Mutation {
+            doSomethingElse: DoSomethingElsePayload!
+          }
+
+          type DoSomethingElsePayload {
+            somethingElseChanged: Boolean!
+            query: Query!
+          }
+        `,
+      });
+
+      addMocksToSchema({ schema: schemaWithDefaultRootTypeNames });
+
+      const mergedSchema = mergeSchemas({
+        subschemas: [
+          schemaWithCustomRootTypeNames,
+          {
+            schema: schemaWithDefaultRootTypeNames,
+            transforms: [new RenameRootTypes(name => `${name}Root`)],
+          },
+        ],
+        queryTypeName: 'QueryRoot',
+        mutationTypeName: 'MutationRoot',
+      });
+
+      const result = await graphql(
+        mergedSchema,
+        `
+          mutation {
+            doSomething {
+              query {
+                foo
+                bar
+              }
+            }
+          }
+        `,
+      );
+
+      expect(result).to.deep.equal({
+        data: {
+          doSomething: {
+            query: {
+              foo: 'Hello World',
+              bar: 'Hello World',
             },
           },
         },

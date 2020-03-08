@@ -120,12 +120,14 @@ function defaultCreateProxyingResolver({
       const responseKey = getResponseKeyFromInfo(info);
       const errors = getErrors(parent, responseKey);
 
-      // check to see if parent is a proxied result, possible if root types are also nested
       if (errors != null) {
-        const result = parent[responseKey];
         const subschema = getSubschema(parent, responseKey);
 
-        return handleResult(result, errors, subschema, context, info);
+        // if parent contains a proxied result from this subschema, can return that result
+        if (schema === subschema) {
+          const result = parent[responseKey];
+          return handleResult(result, errors, subschema, context, info);
+        }
       }
     }
 
