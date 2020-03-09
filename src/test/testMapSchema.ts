@@ -1,8 +1,14 @@
 import { expect } from 'chai';
-import { GraphQLSchema, GraphQLObjectType, graphqlSync } from 'graphql';
+import {
+  GraphQLFieldConfig,
+  GraphQLObjectType,
+  GraphQLSchema,
+  graphqlSync,
+} from 'graphql';
 
 import { makeExecutableSchema, mapSchema } from '../index';
 import { MapperKind } from '../utils/map';
+import { toConfig } from '../polyfills';
 
 describe('mapSchema', () => {
   it('does not throw', () => {
@@ -29,8 +35,10 @@ describe('mapSchema', () => {
 
     const newSchema = mapSchema(schema, {
       [MapperKind.QUERY]: type => {
-        const queryConfig = type.toConfig();
-        queryConfig.fields.version.resolve = () => 1;
+        const queryConfig = toConfig(type);
+        (queryConfig.fields as {
+          version: GraphQLFieldConfig<any, any>;
+        }).version.resolve = () => 1;
         return new GraphQLObjectType(queryConfig);
       },
     });
@@ -52,7 +60,7 @@ describe('mapSchema', () => {
 
     const newSchema = mapSchema(schema, {
       [MapperKind.QUERY]: type => {
-        const queryConfig = type.toConfig();
+        const queryConfig = toConfig(type);
         queryConfig.name = 'RootQuery';
         return new GraphQLObjectType(queryConfig);
       },
