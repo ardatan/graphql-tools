@@ -38,6 +38,9 @@ export default class RenameTypes implements Transform {
   }
 
   public transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
+    // Modification of specified scalar types is not recommended, but is supported.
+    // mapSchema does not support modification of specified scalar types,
+    // so must use visitSchema instead.
     return visitSchema(originalSchema, {
       [VisitSchemaKind.TYPE]: (type: GraphQLNamedType) => {
         if (isSpecifiedScalarType(type) && !this.renameBuiltins) {
