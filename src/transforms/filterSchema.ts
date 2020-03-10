@@ -8,9 +8,10 @@ import {
   GraphQLType,
 } from 'graphql';
 
-import { GraphQLSchemaWithTransforms, VisitSchemaKind } from '../Interfaces';
-import { visitSchema, cloneSchema } from '../utils';
+import { GraphQLSchemaWithTransforms } from '../Interfaces';
+import { mapSchema } from '../utils';
 import { toConfig } from '../polyfills';
+import { MapperKind } from '../utils/map';
 
 export type RootFieldFilter = (
   operation: 'Query' | 'Mutation' | 'Subscription',
@@ -30,31 +31,28 @@ export default function filterSchema({
   typeFilter?: (typeName: string, type: GraphQLType) => boolean;
   fieldFilter?: (typeName: string, fieldName: string) => boolean;
 }): GraphQLSchemaWithTransforms {
-  const filteredSchema: GraphQLSchemaWithTransforms = visitSchema(
-    cloneSchema(schema),
-    {
-      [VisitSchemaKind.QUERY]: (type: GraphQLObjectType) =>
-        filterRootFields(type, 'Query', rootFieldFilter),
-      [VisitSchemaKind.MUTATION]: (type: GraphQLObjectType) =>
-        filterRootFields(type, 'Mutation', rootFieldFilter),
-      [VisitSchemaKind.SUBSCRIPTION]: (type: GraphQLObjectType) =>
-        filterRootFields(type, 'Subscription', rootFieldFilter),
-      [VisitSchemaKind.OBJECT_TYPE]: (type: GraphQLObjectType) =>
-        typeFilter(type.name, type)
-          ? filterObjectFields(type, fieldFilter)
-          : null,
-      [VisitSchemaKind.INTERFACE_TYPE]: (type: GraphQLInterfaceType) =>
-        typeFilter(type.name, type) ? undefined : null,
-      [VisitSchemaKind.UNION_TYPE]: (type: GraphQLUnionType) =>
-        typeFilter(type.name, type) ? undefined : null,
-      [VisitSchemaKind.INPUT_OBJECT_TYPE]: (type: GraphQLInputObjectType) =>
-        typeFilter(type.name, type) ? undefined : null,
-      [VisitSchemaKind.ENUM_TYPE]: (type: GraphQLEnumType) =>
-        typeFilter(type.name, type) ? undefined : null,
-      [VisitSchemaKind.SCALAR_TYPE]: (type: GraphQLScalarType) =>
-        typeFilter(type.name, type) ? undefined : null,
-    },
-  );
+  const filteredSchema: GraphQLSchemaWithTransforms = mapSchema(schema, {
+    [MapperKind.QUERY]: (type: GraphQLObjectType) =>
+      filterRootFields(type, 'Query', rootFieldFilter),
+    [MapperKind.MUTATION]: (type: GraphQLObjectType) =>
+      filterRootFields(type, 'Mutation', rootFieldFilter),
+    [MapperKind.SUBSCRIPTION]: (type: GraphQLObjectType) =>
+      filterRootFields(type, 'Subscription', rootFieldFilter),
+    [MapperKind.OBJECT_TYPE]: (type: GraphQLObjectType) =>
+      typeFilter(type.name, type)
+        ? filterObjectFields(type, fieldFilter)
+        : null,
+    [MapperKind.INTERFACE_TYPE]: (type: GraphQLInterfaceType) =>
+      typeFilter(type.name, type) ? undefined : null,
+    [MapperKind.UNION_TYPE]: (type: GraphQLUnionType) =>
+      typeFilter(type.name, type) ? undefined : null,
+    [MapperKind.INPUT_OBJECT_TYPE]: (type: GraphQLInputObjectType) =>
+      typeFilter(type.name, type) ? undefined : null,
+    [MapperKind.ENUM_TYPE]: (type: GraphQLEnumType) =>
+      typeFilter(type.name, type) ? undefined : null,
+    [MapperKind.SCALAR_TYPE]: (type: GraphQLScalarType) =>
+      typeFilter(type.name, type) ? undefined : null,
+  });
 
   filteredSchema.transforms = schema.transforms;
 
