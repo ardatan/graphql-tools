@@ -4,11 +4,11 @@ import {
   GraphQLInputObjectType,
   GraphQLInterfaceType,
   GraphQLObjectType,
+  GraphQLObjectTypeConfig,
   GraphQLNamedType,
   GraphQLScalarType,
   GraphQLSchema,
   GraphQLUnionType,
-  GraphQLInterfaceTypeConfig,
   isObjectType,
   isInterfaceType,
   isUnionType,
@@ -34,25 +34,29 @@ export function cloneType(type: GraphQLNamedType): GraphQLNamedType {
       interfaces:
         typeof config.interfaces === 'function'
           ? config.interfaces
-          : (config.interfaces as ReadonlyArray<GraphQLInterfaceType>).slice(),
+          : config.interfaces.slice(),
     });
   } else if (isInterfaceType(type)) {
-    const config = toConfig((type as unknown) as GraphQLObjectType);
+    const config = toConfig(type);
     const newConfig = {
       ...config,
       interfaces:
         graphqlVersion() >= 15
-          ? (config.interfaces as ReadonlyArray<GraphQLInterfaceType>).slice()
+          ? typeof ((config as unknown) as GraphQLObjectTypeConfig<any, any>)
+              .interfaces === 'function'
+            ? ((config as unknown) as GraphQLObjectTypeConfig<any, any>)
+                .interfaces
+            : ((config as unknown) as {
+                interfaces: Array<GraphQLInterfaceType>;
+              }).interfaces.slice()
           : undefined,
     };
-    return new GraphQLInterfaceType(
-      (newConfig as unknown) as GraphQLInterfaceTypeConfig<any, any>,
-    );
+    return new GraphQLInterfaceType(newConfig);
   } else if (isUnionType(type)) {
     const config = toConfig(type);
     return new GraphQLUnionType({
       ...config,
-      types: (config.types as ReadonlyArray<GraphQLObjectType>).slice(),
+      types: config.types.slice(),
     });
   } else if (isInputObjectType(type)) {
     return new GraphQLInputObjectType(toConfig(type));

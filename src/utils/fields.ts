@@ -14,7 +14,7 @@ export function appendFields(
 ): void {
   let type = typeMap[typeName];
   if (type != null) {
-    const typeConfig = toConfig(type as GraphQLObjectType);
+    const typeConfig = toConfig(type);
     const originalFields = typeConfig.fields;
     const newFields = {};
     Object.keys(originalFields).forEach(fieldName => {
@@ -42,7 +42,7 @@ export function removeFields(
   testFn: (fieldName: string, field: GraphQLFieldConfig<any, any>) => boolean,
 ): GraphQLFieldConfigMap<any, any> {
   let type = typeMap[typeName];
-  const typeConfig = toConfig(type as GraphQLObjectType);
+  const typeConfig = toConfig(type);
   const originalFields = typeConfig.fields;
   const newFields = {};
   const removedFields = {};

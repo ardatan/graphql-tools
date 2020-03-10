@@ -1,10 +1,5 @@
 import { expect } from 'chai';
-import {
-  GraphQLFieldConfig,
-  GraphQLObjectType,
-  GraphQLSchema,
-  graphqlSync,
-} from 'graphql';
+import { GraphQLObjectType, GraphQLSchema, graphqlSync } from 'graphql';
 
 import { makeExecutableSchema, mapSchema } from '../index';
 import { MapperKind } from '../utils/map';
@@ -36,9 +31,7 @@ describe('mapSchema', () => {
     const newSchema = mapSchema(schema, {
       [MapperKind.QUERY]: type => {
         const queryConfig = toConfig(type);
-        (queryConfig.fields as {
-          version: GraphQLFieldConfig<any, any>;
-        }).version.resolve = () => 1;
+        queryConfig.fields.version.resolve = () => 1;
         return new GraphQLObjectType(queryConfig);
       },
     });

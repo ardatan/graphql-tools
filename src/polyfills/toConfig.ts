@@ -8,6 +8,7 @@ import {
   GraphQLObjectType,
   GraphQLObjectTypeConfig,
   GraphQLFieldConfigMap,
+  GraphQLInputFieldConfigMap,
   GraphQLInterfaceType,
   GraphQLInterfaceTypeConfig,
   GraphQLUnionType,
@@ -77,14 +78,21 @@ export function toConfig(
   schemaOrTypeOrDirective: GraphQLSchema,
 ): GraphQLSchemaConfig;
 export function toConfig(
-  schemaOrTypeOrDirective: GraphQLObjectType,
+  schemaOrTypeOrDirective: GraphQLObjectTypeConfig<any, any> & {
+    interfaces: Array<GraphQLInterfaceType>;
+    fields: GraphQLFieldConfigMap<any, any>;
+  },
 ): GraphQLObjectTypeConfig<any, any>;
 export function toConfig(
   schemaOrTypeOrDirective: GraphQLInterfaceType,
-): GraphQLInterfaceTypeConfig<any, any>;
+): GraphQLInterfaceTypeConfig<any, any> & {
+  fields: GraphQLFieldConfigMap<any, any>;
+};
 export function toConfig(
   schemaOrTypeOrDirective: GraphQLUnionType,
-): GraphQLUnionTypeConfig<any, any>;
+): GraphQLUnionTypeConfig<any, any> & {
+  types: Array<GraphQLObjectType>;
+};
 export function toConfig(
   schemaOrTypeOrDirective: GraphQLEnumType,
 ): GraphQLEnumTypeConfig;
@@ -93,7 +101,9 @@ export function toConfig(
 ): GraphQLScalarTypeConfig<any, any>;
 export function toConfig(
   schemaOrTypeOrDirective: GraphQLInputObjectType,
-): GraphQLInputObjectTypeConfig;
+): GraphQLInputObjectTypeConfig & {
+  fields: GraphQLInputFieldConfigMap;
+};
 export function toConfig(
   schemaOrTypeOrDirective: GraphQLDirective,
 ): GraphQLDirectiveConfig;

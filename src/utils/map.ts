@@ -8,7 +8,6 @@ import {
   GraphQLInterfaceType,
   GraphQLList,
   GraphQLObjectType,
-  GraphQLObjectTypeConfig,
   GraphQLNamedType,
   GraphQLNonNull,
   GraphQLScalarType,
@@ -311,25 +310,19 @@ export function rewireTypes(
   function rewireNamedType<T extends GraphQLNamedType>(type: T) {
     if (isObjectType(type)) {
       const objectConfig = toConfig(type);
-      objectConfig.fields = rewireFields(
-        objectConfig.fields as GraphQLFieldConfigMap<any, any>,
-      );
-      objectConfig.interfaces = rewireNamedTypes(
-        objectConfig.interfaces as Array<GraphQLInterfaceType>,
-      );
+      objectConfig.fields = rewireFields(objectConfig.fields);
+      objectConfig.interfaces = rewireNamedTypes(objectConfig.interfaces);
       return new GraphQLObjectType(objectConfig);
     } else if (isInterfaceType(type)) {
       const interfaceConfig = toConfig(type);
-      interfaceConfig.fields = rewireFields(
-        interfaceConfig.fields as GraphQLFieldConfigMap<any, any>,
-      );
+      interfaceConfig.fields = rewireFields(interfaceConfig.fields);
       if (graphqlVersion() >= 15) {
-        ((interfaceConfig as unknown) as GraphQLObjectTypeConfig<
-          any,
-          any
-        >).interfaces = rewireNamedTypes(
-          ((interfaceConfig as unknown) as GraphQLObjectTypeConfig<any, any>)
-            .interfaces as Array<GraphQLInterfaceType>,
+        ((interfaceConfig as unknown) as {
+          interfaces: Array<GraphQLObjectType>;
+        }).interfaces = rewireNamedTypes(
+          ((interfaceConfig as unknown) as {
+            interfaces: Array<GraphQLObjectType>;
+          }).interfaces,
         );
       }
       return new GraphQLInterfaceType(interfaceConfig);
