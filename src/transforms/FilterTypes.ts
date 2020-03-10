@@ -1,8 +1,7 @@
 import { GraphQLSchema, GraphQLNamedType } from 'graphql';
 
-import { Transform } from '../transforms/transforms';
-import { visitSchema } from '../utils/visitSchema';
-import { VisitSchemaKind } from '../Interfaces';
+import { Transform } from '../transforms';
+import { MapperKind, mapSchema } from '../utils';
 
 export default class FilterTypes implements Transform {
   private readonly filter: (type: GraphQLNamedType) => boolean;
@@ -12,8 +11,8 @@ export default class FilterTypes implements Transform {
   }
 
   public transformSchema(schema: GraphQLSchema): GraphQLSchema {
-    return visitSchema(schema, {
-      [VisitSchemaKind.TYPE]: (type: GraphQLNamedType) => {
+    return mapSchema(schema, {
+      [MapperKind.TYPE]: (type: GraphQLNamedType) => {
         if (this.filter(type)) {
           return undefined;
         }
