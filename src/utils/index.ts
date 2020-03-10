@@ -27,4 +27,4 @@ export {
 export { appendFields, removeFields } from './fields';
 export { createNamedStub } from './stub';
 export { graphqlVersion } from './graphqlVersion';
-export { mapSchema } from './map';
+export { mapSchema, MapperKind } from './map';
