@@ -6,9 +6,10 @@ import {
   GraphQLObjectType,
 } from 'graphql';
 
-import { Request, Result, VisitSchemaKind } from '../Interfaces';
+import { Request, Result } from '../Interfaces';
 import { Transform } from '../transforms/transforms';
-import { visitSchema, cloneType } from '../utils';
+import { mapSchema, MapperKind } from '../utils';
+import { toConfig } from '../polyfills';
 
 export default class RenameRootTypes implements Transform {
   private readonly renamer: (name: string) => string | undefined;
@@ -22,16 +23,17 @@ export default class RenameRootTypes implements Transform {
   }
 
   public transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
-    return visitSchema(originalSchema, {
-      [VisitSchemaKind.ROOT_OBJECT]: type => {
+    return mapSchema(originalSchema, {
+      [MapperKind.ROOT_OBJECT]: type => {
         const oldName = type.name;
         const newName = this.renamer(oldName);
         if (newName && newName !== oldName) {
           this.map[oldName] = type.name;
           this.reverseMap[newName] = oldName;
-          const newType = cloneType(type) as GraphQLObjectType;
-          newType.name = newName;
-          return newType;
+          return new GraphQLObjectType({
+            ...toConfig(type),
+            name: newName,
+          });
         }
       },
     });
