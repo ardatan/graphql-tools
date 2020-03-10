@@ -130,10 +130,13 @@ export function mapSchema(
       const specifiers = getTypeSpecifiers(originalTypeMap[typeName], schema);
       const typeMapper = getMapper(schemaMapper, specifiers);
 
-      newTypeMap[typeName] =
-        typeMapper != null
-          ? typeMapper(originalTypeMap[typeName], schema)
-          : originalTypeMap[typeName];
+      if (typeMapper != null) {
+        const newType = typeMapper(originalTypeMap[typeName], schema);
+        newTypeMap[typeName] =
+          newType !== undefined ? newType : originalTypeMap[typeName];
+      } else {
+        newTypeMap[typeName] = originalTypeMap[typeName];
+      }
     }
   });
 
@@ -411,7 +414,8 @@ export function rewireTypes(
         ? (new GraphQLNonNull(rewiredType) as T)
         : null;
     } else if (isNamedType(type)) {
-      return newTypeMap[type.name] as T;
+      const originalType = originalTypeMap[type.name];
+      return originalType != null ? (newTypeMap[originalType.name] as T) : null;
     }
 
     return null;
@@ -470,6 +474,8 @@ function pruneTypes(
       } else {
         prunedTypeMap = true;
       }
+    } else {
+      newTypeMap[typeName] = type;
     }
   }
 
