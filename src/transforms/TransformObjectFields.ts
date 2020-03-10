@@ -16,8 +16,8 @@ import {
 } from 'graphql';
 
 import isEmptyObject from '../utils/isEmptyObject';
-import { Request, VisitSchemaKind } from '../Interfaces';
-import { visitSchema } from '../utils';
+import { Request } from '../Interfaces';
+import { mapSchema, MapperKind } from '../utils';
 import { toConfig } from '../polyfills';
 
 import { Transform } from './transforms';
@@ -59,8 +59,8 @@ export default class TransformObjectFields implements Transform {
   }
 
   public transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
-    this.transformedSchema = visitSchema(originalSchema, {
-      [VisitSchemaKind.OBJECT_TYPE]: (type: GraphQLObjectType) =>
+    this.transformedSchema = mapSchema(originalSchema, {
+      [MapperKind.OBJECT_TYPE]: (type: GraphQLObjectType) =>
         this.transformFields(type, this.objectFieldTransformer),
     });
 
