@@ -19,8 +19,8 @@ import {
 
 import { isSpecifiedScalarType, toConfig } from '../polyfills';
 
-import { healTypes } from './heal';
 import { graphqlVersion } from './graphqlVersion';
+import { mapSchema } from './map';
 
 export function cloneDirective(directive: GraphQLDirective): GraphQLDirective {
   return new GraphQLDirective(toConfig(directive));
@@ -72,32 +72,5 @@ export function cloneType(type: GraphQLNamedType): GraphQLNamedType {
 }
 
 export function cloneSchema(schema: GraphQLSchema): GraphQLSchema {
-  const newDirectives = schema
-    .getDirectives()
-    .map(directive => cloneDirective(directive));
-
-  const originalTypeMap = schema.getTypeMap();
-  const newTypeMap = {};
-
-  Object.keys(originalTypeMap).forEach(typeName => {
-    if (!typeName.startsWith('__')) {
-      newTypeMap[typeName] = cloneType(originalTypeMap[typeName]);
-    }
-  });
-
-  healTypes(newTypeMap, newDirectives);
-
-  const query = schema.getQueryType();
-  const mutation = schema.getMutationType();
-  const subscription = schema.getSubscriptionType();
-
-  return new GraphQLSchema({
-    ...toConfig(schema),
-    query: query != null ? newTypeMap[query.name] : undefined,
-    mutation: mutation != null ? newTypeMap[mutation.name] : undefined,
-    subscription:
-      subscription != null ? newTypeMap[subscription.name] : undefined,
-    types: Object.keys(newTypeMap).map(typeName => newTypeMap[typeName]),
-    directives: newDirectives,
-  });
+  return mapSchema(schema);
 }
