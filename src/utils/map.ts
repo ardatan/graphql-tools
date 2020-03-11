@@ -279,11 +279,11 @@ export function rewireTypes(
     newTypeMap[newName] = namedType;
   });
 
-  const newDirectives = directives.map(directive => rewireDirective(directive));
-
   Object.keys(newTypeMap).forEach(typeName => {
     newTypeMap[typeName] = rewireNamedType(newTypeMap[typeName]);
   });
+
+  const newDirectives = directives.map(directive => rewireDirective(directive));
 
   return pruneTypes(newTypeMap, newDirectives);
 
