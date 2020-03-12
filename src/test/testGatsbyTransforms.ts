@@ -6,13 +6,12 @@ import {
   GraphQLNonNull,
   graphql,
 } from 'graphql';
-import { createHttpLink } from 'apollo-link-http';
-import fetch from 'node-fetch';
 
 import { VisitSchemaKind } from '../Interfaces';
 import { transformSchema, RenameTypes } from '../transforms';
-import { introspectSchema } from '../stitching';
 import { cloneType, healSchema, visitSchema } from '../utils';
+import { makeExecutableSchema } from '../makeExecutableSchema';
+import { addMocksToSchema } from '../mock';
 
 // see https://github.com/gatsbyjs/gatsby/blob/master/packages/gatsby-source-graphql/src/transforms.js
 // and https://github.com/gatsbyjs/gatsby/issues/22128
@@ -81,35 +80,76 @@ class StripNonQueryTransform {
 
 describe('Gatsby transforms', () => {
   it('work', async () => {
-    const link = createHttpLink({
-      uri: 'https://countries.trevorblades.com/',
-      fetch: (fetch as unknown) as WindowOrWorkerGlobalScope['fetch'],
+    const schema = makeExecutableSchema({
+      typeDefs: `
+      directive @cacheControl(maxAge: Int, scope: CacheControlScope) on FIELD_DEFINITION | OBJECT | INTERFACE
+
+      enum CacheControlScope {
+        PUBLIC
+        PRIVATE
+      }
+
+      type Continent {
+        code: String
+        name: String
+        countries: [Country]
+      }
+
+      type Country {
+        code: String
+        name: String
+        native: String
+        phone: String
+        continent: Continent
+        currency: String
+        languages: [Language]
+        emoji: String
+        emojiU: String
+        states: [State]
+      }
+
+      type Language {
+        code: String
+        name: String
+        native: String
+        rtl: Int
+      }
+
+      type Query {
+        continents: [Continent]
+        continent(code: String): Continent
+        countries: [Country]
+        country(code: String): Country
+        languages: [Language]
+        language(code: String): Language
+      }
+
+      type State {
+        code: String
+        name: String
+        country: Country
+      }
+
+      scalar Upload
+      `,
     });
-    const introspectionSchema = await introspectSchema(link);
-    const typeName = 'CountriesQuery';
-    const fieldName = 'countries';
-    const resolver = () => ({});
 
-    const schema = transformSchema(
-      {
-        schema: introspectionSchema,
-        link,
-      },
-      [
-        new StripNonQueryTransform(),
-        new RenameTypes(name => `${typeName}_${name}`),
-        new NamespaceUnderFieldTransform({
-          typeName,
-          fieldName,
-          resolver,
-        }),
-      ],
-    );
+    addMocksToSchema({ schema });
 
-    expect(schema).to.be.instanceOf(GraphQLSchema);
+    const transformedSchema = transformSchema(schema, [
+      new StripNonQueryTransform(),
+      new RenameTypes(name => `CountriesQuery_${name}`),
+      new NamespaceUnderFieldTransform({
+        typeName: 'CountriesQuery',
+        fieldName: 'countries',
+        resolver: () => ({}),
+      }),
+    ]);
+
+    expect(transformedSchema).to.be.instanceOf(GraphQLSchema);
 
     const result = await graphql(
-      schema,
+      transformedSchema,
       `
         {
           countries {
@@ -124,7 +164,7 @@ describe('Gatsby transforms', () => {
       data: {
         countries: {
           language: {
-            name: 'English',
+            name: 'Hello World',
           },
         },
       },

@@ -72,7 +72,6 @@
     "@types/uuid": "^7.0.0",
     "@typescript-eslint/eslint-plugin": "^2.21.0",
     "@typescript-eslint/parser": "^2.21.0",
-    "apollo-link-http": "^1.5.16",
     "babel-eslint": "^10.1.0",
     "body-parser": "^1.19.0",
     "chai": "^4.2.0",
