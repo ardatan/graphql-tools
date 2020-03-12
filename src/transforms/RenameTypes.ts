@@ -1,16 +1,27 @@
 import {
-  visit,
-  GraphQLSchema,
-  NamedTypeNode,
-  Kind,
+  GraphQLEnumType,
+  GraphQLInputObjectType,
+  GraphQLInterfaceType,
   GraphQLNamedType,
+  GraphQLObjectType,
+  GraphQLSchema,
+  GraphQLScalarType,
+  GraphQLUnionType,
+  Kind,
+  NamedTypeNode,
+  isEnumType,
+  isInputObjectType,
+  isInterfaceType,
+  isObjectType,
   isScalarType,
+  isUnionType,
+  visit,
 } from 'graphql';
 
-import { isSpecifiedScalarType } from '../polyfills';
-import { Request, Result, VisitSchemaKind } from '../Interfaces';
+import { isSpecifiedScalarType, toConfig } from '../polyfills';
+import { Request, Result } from '../Interfaces';
 import { Transform } from '../transforms/transforms';
-import { visitSchema, cloneType } from '../utils';
+import { mapSchema, MapperKind } from '../utils';
 
 export type RenameOptions = {
   renameBuiltins: boolean;
@@ -38,11 +49,8 @@ export default class RenameTypes implements Transform {
   }
 
   public transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
-    // Modification of specified scalar types is not recommended, but is supported.
-    // mapSchema does not support modification of specified scalar types,
-    // so must use visitSchema instead.
-    return visitSchema(originalSchema, {
-      [VisitSchemaKind.TYPE]: (type: GraphQLNamedType) => {
+    return mapSchema(originalSchema, {
+      [MapperKind.TYPE]: (type: GraphQLNamedType) => {
         if (isSpecifiedScalarType(type) && !this.renameBuiltins) {
           return undefined;
         }
@@ -54,13 +62,31 @@ export default class RenameTypes implements Transform {
         if (newName && newName !== oldName) {
           this.map[oldName] = type.name;
           this.reverseMap[newName] = oldName;
-          const newType = cloneType(type);
-          newType.name = newName;
-          return newType;
+
+          const newConfig = {
+            ...toConfig(type),
+            name: newName,
+          };
+
+          if (isObjectType(type)) {
+            return new GraphQLObjectType(newConfig);
+          } else if (isInterfaceType(type)) {
+            return new GraphQLInterfaceType(newConfig);
+          } else if (isUnionType(type)) {
+            return new GraphQLUnionType(newConfig);
+          } else if (isInputObjectType(type)) {
+            return new GraphQLInputObjectType(newConfig);
+          } else if (isEnumType(type)) {
+            return new GraphQLEnumType(newConfig);
+          } else if (isScalarType(type)) {
+            return new GraphQLScalarType(newConfig);
+          }
+
+          throw new Error(`Unknown type ${type as string}.`);
         }
       },
 
-      [VisitSchemaKind.ROOT_OBJECT]() {
+      [MapperKind.ROOT_OBJECT]() {
         return undefined;
       },
     });
