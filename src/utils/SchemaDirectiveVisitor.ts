@@ -2,6 +2,7 @@ import {
   GraphQLDirective,
   GraphQLSchema,
   DirectiveLocationEnum,
+  TypeSystemExtensionNode,
 } from 'graphql';
 import { getArgumentValues } from 'graphql/execution/values';
 
@@ -138,13 +139,19 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
       type: VisitableSchemaType,
       methodName: string,
     ): Array<SchemaDirectiveVisitor> {
-      const visitors: Array<SchemaDirectiveVisitor> = [];
-      const directiveNodes =
-        type.astNode != null ? type.astNode.directives : null;
-      if (!directiveNodes) {
-        return visitors;
+      let directiveNodes = type.astNode != null ? type.astNode.directives : [];
+
+      const extensionASTNodes: ReadonlyArray<TypeSystemExtensionNode> = (type as {
+        extensionASTNodes?: Array<TypeSystemExtensionNode>;
+      }).extensionASTNodes;
+
+      if (extensionASTNodes != null) {
+        extensionASTNodes.forEach(extensionASTNode => {
+          directiveNodes = directiveNodes.concat(extensionASTNode.directives);
+        });
       }
 
+      const visitors: Array<SchemaDirectiveVisitor> = [];
       directiveNodes.forEach(directiveNode => {
         const directiveName = directiveNode.name.value;
         if (!hasOwn.call(directiveVisitors, directiveName)) {
