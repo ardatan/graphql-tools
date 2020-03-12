@@ -59,15 +59,15 @@ export function schemaToConfig(schema: GraphQLSchema): GraphQLSchemaConfig {
     extensionASTNodes:
       schema.extensionASTNodes != null ? schema.extensionASTNodes : [],
     assumeValid:
-      ((schema as unknown) as { __validationErrors: boolean })
-        .__validationErrors !== undefined,
+      (schema as { __validationErrors?: boolean }).__validationErrors !==
+      undefined,
   };
 
   if (graphqlVersion() >= 15) {
-    ((schemaConfig as unknown) as {
-      description: string;
-    }).description = ((schema as unknown) as {
-      description: string;
+    (schemaConfig as {
+      description?: string;
+    }).description = (schema as {
+      description?: string;
     }).description;
   }
 
@@ -117,9 +117,7 @@ export function toConfig(schemaOrTypeOrDirective: any) {
     return typeToConfig(schemaOrTypeOrDirective);
   }
 
-  throw new Error(
-    `Unknown object ${(schemaOrTypeOrDirective as unknown) as string}`,
-  );
+  throw new Error(`Unknown object ${schemaOrTypeOrDirective as string}`);
 }
 
 export function typeToConfig(
@@ -154,7 +152,7 @@ export function typeToConfig(type: any) {
     return inputObjectTypeToConfig(type);
   }
 
-  throw new Error(`Unknown type ${(type as unknown) as string}`);
+  throw new Error(`Unknown type ${type as string}`);
 }
 
 export function objectTypeToConfig(

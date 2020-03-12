@@ -193,7 +193,7 @@ export function healTypes(
       return;
     }
 
-    throw new Error(`Unexpected schema type: ${(type as unknown) as string}`);
+    throw new Error(`Unexpected schema type: ${type as string}`);
   }
 
   function healFields(type: GraphQLObjectType | GraphQLInterfaceType) {
