@@ -14,6 +14,7 @@ import {
   GraphQLSchema,
   GraphQLType,
   GraphQLUnionType,
+  isDirective,
   isInterfaceType,
   isEnumType,
   isInputType,
@@ -127,8 +128,11 @@ export function mapSchema(
   const newTypeMap = {};
   Object.keys(originalTypeMap).forEach(typeName => {
     if (!typeName.startsWith('__')) {
-      const specifiers = getTypeSpecifiers(originalTypeMap[typeName], schema);
-      const typeMapper = getMapper(schemaMapper, specifiers);
+      const typeMapper = getMapper(
+        schema,
+        schemaMapper,
+        originalTypeMap[typeName],
+      );
 
       if (typeMapper != null) {
         const newType = typeMapper(originalTypeMap[typeName], schema);
@@ -164,19 +168,18 @@ export function mapSchema(
       : undefined;
 
   const originalDirectives = schema.getDirectives();
-  let newDirectives: Array<GraphQLDirective>;
-  const directiveMapper = schemaMapper[MapperKind.DIRECTIVE];
-  if (directiveMapper != null) {
-    newDirectives = [];
-    originalDirectives.forEach(directive => {
+  const newDirectives: Array<GraphQLDirective> = [];
+  originalDirectives.forEach(directive => {
+    const directiveMapper = getMapper(schema, schemaMapper, directive);
+    if (directiveMapper != null) {
       const newDirective = directiveMapper(directive, schema);
       if (newDirective != null) {
         newDirectives.push(newDirective);
       }
-    });
-  } else {
-    newDirectives = originalDirectives.slice();
-  }
+    } else {
+      newDirectives.push(directive);
+    }
+  });
 
   const { typeMap, directives } = rewireTypes(newTypeMap, newDirectives);
 
@@ -198,7 +201,7 @@ export function mapSchema(
 }
 
 function getTypeSpecifiers(
-  type: GraphQLType | GraphQLDirective,
+  type: GraphQLType,
   schema: GraphQLSchema,
 ): Array<MapperKind> {
   const specifiers = [MapperKind.TYPE];
@@ -238,17 +241,34 @@ function getTypeSpecifiers(
 }
 
 function getMapper(
+  schema: GraphQLSchema,
   schemaMapper: SchemaMapper,
-  specifiers: Array<MapperKind>,
-): NamedTypeMapper | null {
-  let typeMapper: NamedTypeMapper | undefined;
-  const stack = [...specifiers];
-  while (!typeMapper && stack.length > 0) {
-    const next = stack.pop();
-    typeMapper = schemaMapper[next] as NamedTypeMapper;
-  }
+  typeOrDirective: GraphQLNamedType,
+): NamedTypeMapper | null;
+function getMapper(
+  schema: GraphQLSchema,
+  schemaMapper: SchemaMapper,
+  typeOrDirective: GraphQLDirective,
+): DirectiveMapper | null;
+function getMapper(
+  schema: GraphQLSchema,
+  schemaMapper: SchemaMapper,
+  typeOrDirective: any,
+): any {
+  if (isNamedType(typeOrDirective)) {
+    const specifiers = getTypeSpecifiers(typeOrDirective, schema);
+    let typeMapper: NamedTypeMapper | undefined;
+    const stack = [...specifiers];
+    while (!typeMapper && stack.length > 0) {
+      const next = stack.pop();
+      typeMapper = schemaMapper[next] as NamedTypeMapper;
+    }
 
-  return typeMapper != null ? typeMapper : null;
+    return typeMapper != null ? typeMapper : null;
+  } else if (isDirective(typeOrDirective)) {
+    const directiveMapper = schemaMapper[MapperKind.DIRECTIVE];
+    return directiveMapper != null ? directiveMapper : null;
+  }
 }
 
 export function rewireTypes(
