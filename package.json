@@ -4,6 +4,10 @@
   "description": "Useful tools to create and manipulate GraphQL schemas.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "/dist",
+    "!/dist/test"
+  ],
   "sideEffects": false,
   "scripts": {
     "clean": "rimraf dist",
