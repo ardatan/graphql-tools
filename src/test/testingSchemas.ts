@@ -18,9 +18,9 @@ import {
 } from 'graphql';
 import { forAwaitEach } from 'iterall';
 
-import introspectSchema from '../stitching/introspectSchema';
+import introspectSchema from '../stitch/introspectSchema';
 import { IResolvers, Fetcher, SubschemaConfig } from '../Interfaces';
-import { makeExecutableSchema } from '../makeExecutableSchema';
+import { makeExecutableSchema } from '../generate';
 import { graphqlVersion } from '../utils';
 
 export type Location = {

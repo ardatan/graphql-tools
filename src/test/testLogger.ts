@@ -1,8 +1,8 @@
 import { assert } from 'chai';
 import { graphql } from 'graphql';
 
-import { Logger } from '../Logger';
-import { makeExecutableSchema } from '../makeExecutableSchema';
+import { makeExecutableSchema } from '../generate';
+import { Logger } from '../generate/Logger';
 
 describe('Logger', () => {
   it('logs the errors', () => {

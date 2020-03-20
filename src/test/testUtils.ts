@@ -3,7 +3,7 @@ import { GraphQLObjectType } from 'graphql';
 
 import { healSchema } from '../utils';
 import { toConfig } from '../polyfills';
-import { makeExecutableSchema } from '../makeExecutableSchema';
+import { makeExecutableSchema } from '../generate';
 
 describe('heal', () => {
   it('should prune empty types', () => {

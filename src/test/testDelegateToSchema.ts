@@ -1,8 +1,8 @@
 import { GraphQLSchema, graphql } from 'graphql';
 import { expect } from 'chai';
 
-import delegateToSchema from '../stitching/delegateToSchema';
-import mergeSchemas from '../stitching/mergeSchemas';
+import delegateToSchema from '../delegate/delegateToSchema';
+import mergeSchemas from '../stitch/mergeSchemas';
 import { IResolvers } from '../Interfaces';
 
 import {

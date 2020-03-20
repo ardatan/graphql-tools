@@ -1,11 +1,11 @@
 import { expect, assert } from 'chai';
 import { GraphQLError, graphql } from 'graphql';
 
-import { relocatedError } from '../stitching/errors';
-import { getErrors, ERROR_SYMBOL } from '../stitching/proxiedResult';
-import { checkResultAndHandleErrors } from '../stitching/checkResultAndHandleErrors';
-import { makeExecutableSchema } from '../makeExecutableSchema';
-import { mergeSchemas } from '../stitching';
+import { relocatedError } from '../stitch/errors';
+import { getErrors, ERROR_SYMBOL } from '../stitch/proxiedResult';
+import { checkResultAndHandleErrors } from '../delegate/checkResultAndHandleErrors';
+import { makeExecutableSchema } from '../generate';
+import { mergeSchemas } from '../stitch';
 import { IGraphQLToolsResolveInfo } from '../Interfaces';
 
 class ErrorWithExtensions extends GraphQLError {

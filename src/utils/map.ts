@@ -30,95 +30,12 @@ import {
 
 import { toConfig, isSpecifiedScalarType } from '../polyfills';
 import { graphqlVersion } from '../utils';
-
-export enum MapperKind {
-  TYPE = 'MapperKind.TYPE',
-  SCALAR_TYPE = 'MapperKind.SCALAR_TYPE',
-  ENUM_TYPE = 'MapperKind.ENUM_TYPE',
-  COMPOSITE_TYPE = 'MapperKind.COMPOSITE_TYPE',
-  OBJECT_TYPE = 'MapperKind.OBJECT_TYPE',
-  INPUT_OBJECT_TYPE = 'MapperKind.INPUT_OBJECT_TYPE',
-  ABSTRACT_TYPE = 'MapperKind.ABSTRACT_TYPE',
-  UNION_TYPE = 'MapperKind.UNION_TYPE',
-  INTERFACE_TYPE = 'MapperKind.INTERFACE_TYPE',
-  ROOT_OBJECT = 'MapperKind.ROOT_OBJECT',
-  QUERY = 'MapperKind.QUERY',
-  MUTATION = 'MapperKind.MUTATION',
-  SUBSCRIPTION = 'MapperKind.SUBSCRIPTION',
-  DIRECTIVE = 'MapperKind.DIRECTIVE',
-}
-
-export interface SchemaMapper {
-  [MapperKind.TYPE]?: NamedTypeMapper;
-  [MapperKind.SCALAR_TYPE]?: ScalarTypeMapper;
-  [MapperKind.ENUM_TYPE]?: EnumTypeMapper;
-  [MapperKind.COMPOSITE_TYPE]?: CompositeTypeMapper;
-  [MapperKind.OBJECT_TYPE]?: ObjectTypeMapper;
-  [MapperKind.INPUT_OBJECT_TYPE]?: InputObjectTypeMapper;
-  [MapperKind.ABSTRACT_TYPE]?: AbstractTypeMapper;
-  [MapperKind.UNION_TYPE]?: UnionTypeMapper;
-  [MapperKind.INTERFACE_TYPE]?: InterfaceTypeMapper;
-  [MapperKind.ROOT_OBJECT]?: ObjectTypeMapper;
-  [MapperKind.QUERY]?: ObjectTypeMapper;
-  [MapperKind.MUTATION]?: ObjectTypeMapper;
-  [MapperKind.SUBSCRIPTION]?: ObjectTypeMapper;
-  [MapperKind.DIRECTIVE]?: DirectiveMapper;
-}
-
-export type NamedTypeMapper = (
-  type: GraphQLNamedType,
-  schema: GraphQLSchema,
-) => GraphQLNamedType | null | undefined;
-
-export type ScalarTypeMapper = (
-  type: GraphQLScalarType,
-  schema: GraphQLSchema,
-) => GraphQLScalarType | null | undefined;
-
-export type EnumTypeMapper = (
-  type: GraphQLEnumType,
-  schema: GraphQLSchema,
-) => GraphQLEnumType | null | undefined;
-
-export type CompositeTypeMapper = (
-  type: GraphQLObjectType | GraphQLInterfaceType | GraphQLUnionType,
-  schema: GraphQLSchema,
-) =>
-  | GraphQLObjectType
-  | GraphQLInterfaceType
-  | GraphQLUnionType
-  | null
-  | undefined;
-
-export type ObjectTypeMapper = (
-  type: GraphQLObjectType,
-  schema: GraphQLSchema,
-) => GraphQLObjectType | null | undefined;
-
-export type InputObjectTypeMapper = (
-  type: GraphQLInputObjectType,
-  schema: GraphQLSchema,
-) => GraphQLInputObjectType | null | undefined;
-
-export type AbstractTypeMapper = (
-  type: GraphQLInterfaceType | GraphQLUnionType,
-  schema: GraphQLSchema,
-) => GraphQLInterfaceType | GraphQLUnionType | null | undefined;
-
-export type UnionTypeMapper = (
-  type: GraphQLUnionType,
-  schema: GraphQLSchema,
-) => GraphQLUnionType | null | undefined;
-
-export type InterfaceTypeMapper = (
-  type: GraphQLInterfaceType,
-  schema: GraphQLSchema,
-) => GraphQLInterfaceType | null | undefined;
-
-export type DirectiveMapper = (
-  directive: GraphQLDirective,
-  schema: GraphQLSchema,
-) => GraphQLDirective | null | undefined;
+import {
+  SchemaMapper,
+  MapperKind,
+  NamedTypeMapper,
+  DirectiveMapper,
+} from '../Interfaces';
 
 export function mapSchema(
   schema: GraphQLSchema,

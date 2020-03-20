@@ -8,7 +8,7 @@ import {
   graphql,
 } from 'graphql';
 
-import { makeRemoteExecutableSchema } from '../stitching';
+import { makeRemoteExecutableSchema } from '../wrap';
 import {
   propertySchema,
   subscriptionSchema,

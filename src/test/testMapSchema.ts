@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { GraphQLObjectType, GraphQLSchema, graphqlSync } from 'graphql';
 
 import { makeExecutableSchema, mapSchema } from '../index';
-import { MapperKind } from '../utils/map';
+import { MapperKind } from '../Interfaces';
 import { toConfig } from '../polyfills';
 
 describe('mapSchema', () => {

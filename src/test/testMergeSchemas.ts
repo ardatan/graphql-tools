@@ -14,9 +14,10 @@ import {
   printSchema,
 } from 'graphql';
 
-import { makeExecutableSchema } from '../makeExecutableSchema';
+import { delegateToSchema } from '../delegate';
+import { makeExecutableSchema } from '../generate';
 import { IResolvers, SubschemaConfig } from '../Interfaces';
-import { delegateToSchema, mergeSchemas } from '../stitching';
+import { mergeSchemas } from '../stitch';
 import {
   cloneSchema,
   getResolversFromSchema,

@@ -1,3 +1,4 @@
+export { default as filterSchema } from './filterSchema';
 export { cloneSchema, cloneDirective, cloneType } from './clone';
 export { healSchema, healTypes } from './heal';
 export { SchemaVisitor } from './SchemaVisitor';
@@ -27,4 +28,4 @@ export {
 export { appendFields, removeFields } from './fields';
 export { createNamedStub } from './stub';
 export { graphqlVersion } from './graphqlVersion';
-export { mapSchema, MapperKind } from './map';
+export { mapSchema } from './map';

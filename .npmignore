@@ -1,13 +1,14 @@
 *
 !dist/
 !dist/*
+!dist/delegate/*
 !dist/generate/*
 !dist/links/*
 !dist/polyfills/*
 !dist/scalars/*
-!dist/stitching/*
-!dist/transforms/*
+!dist/stitch/*
 !dist/utils/*
+!dist/wrap/*
 !package.json
 !*.md
 !*.png

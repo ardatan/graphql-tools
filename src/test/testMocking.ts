@@ -11,7 +11,7 @@ import {
   buildSchemaFromTypeDefinitions,
   addResolversToSchema,
   makeExecutableSchema,
-} from '../makeExecutableSchema';
+} from '../generate';
 import { IMocks } from '../Interfaces';
 
 describe('Mock', () => {

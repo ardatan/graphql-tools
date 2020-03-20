@@ -29,7 +29,7 @@ import {
 import { assert } from 'chai';
 import formatDate from 'dateformat';
 
-import { makeExecutableSchema } from '../makeExecutableSchema';
+import { makeExecutableSchema } from '../generate';
 import { VisitableSchemaType } from '../Interfaces';
 import {
   SchemaDirectiveVisitor,

@@ -21,7 +21,7 @@ import {
   GraphQLSchema,
 } from 'graphql';
 
-import { Logger } from '../Logger';
+import { Logger } from '../generate/Logger';
 import {
   makeExecutableSchema,
   SchemaError,
@@ -31,7 +31,8 @@ import {
   attachDirectiveResolvers,
   chainResolvers,
   concatenateTypeDefs,
-} from '../makeExecutableSchema';
+  addResolversToSchema,
+} from '../generate';
 import {
   IResolverValidationOptions,
   IResolvers,
@@ -42,7 +43,6 @@ import {
   ILogger,
 } from '../Interfaces';
 import { visitSchema, graphqlVersion } from '../utils';
-import { addResolversToSchema } from '../generate';
 
 import TypeA from './circularSchemaA';
 

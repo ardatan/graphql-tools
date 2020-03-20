@@ -10,8 +10,8 @@ import FormData from 'form-data';
 import fetch from 'node-fetch';
 import { buildSchema } from 'graphql';
 
-import { mergeSchemas } from '../stitching';
-import { makeExecutableSchema } from '../makeExecutableSchema';
+import { mergeSchemas } from '../stitch';
+import { makeExecutableSchema } from '../generate';
 import { createServerHttpLink } from '../links';
 import { GraphQLUpload as ServerGraphQLUpload } from '../scalars';
 import { SubschemaConfig } from '../Interfaces';

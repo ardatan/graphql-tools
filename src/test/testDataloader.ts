@@ -2,8 +2,9 @@ import DataLoader from 'dataloader';
 import { graphql, GraphQLList } from 'graphql';
 import { expect } from 'chai';
 
-import { makeExecutableSchema } from '../makeExecutableSchema';
-import { mergeSchemas, delegateToSchema } from '../stitching';
+import { delegateToSchema } from '../delegate';
+import { makeExecutableSchema } from '../generate';
+import { mergeSchemas } from '../stitch';
 import { IGraphQLToolsResolveInfo } from '../Interfaces';
 
 describe('dataloader', () => {

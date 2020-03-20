@@ -15,7 +15,6 @@ import { expect } from 'chai';
 
 import {
   transformSchema,
-  filterSchema,
   RenameTypes,
   RenameRootFields,
   RenameObjectFields,
@@ -26,17 +25,18 @@ import {
   HoistField,
   FilterRootFields,
   FilterObjectFields,
-} from '../transforms';
+} from '../wrap';
 import { isSpecifiedScalarType, toConfig } from '../polyfills';
 
-import { makeExecutableSchema } from '../makeExecutableSchema';
+import { delegateToSchema } from '../delegate';
+import { makeExecutableSchema } from '../generate';
 import {
-  delegateToSchema,
   mergeSchemas,
   createMergedResolver,
-} from '../stitching';
+} from '../stitch';
 import { SubschemaConfig } from '../Interfaces';
 import {
+  filterSchema,
   wrapFieldNode,
   renameFieldNode,
   hoistFieldNodes,

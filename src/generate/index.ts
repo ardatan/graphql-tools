@@ -14,6 +14,7 @@ export {
   filterExtensionDefinitions,
 } from './extensionDefinitions';
 export { default as SchemaError } from './SchemaError';
+export * from './makeExecutableSchema';
 
 // for backwards compatibility
 export { default as addResolveFunctionsToSchema } from './addResolversToSchema';

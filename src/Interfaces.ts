@@ -23,6 +23,7 @@ import {
   InlineFragmentNode,
   GraphQLOutputType,
   SelectionSetNode,
+  GraphQLDirective,
 } from 'graphql';
 
 import { TypeMap } from 'graphql/type/schema';
@@ -31,9 +32,6 @@ import { ApolloLink } from 'apollo-link';
 import { SchemaVisitor } from './utils/SchemaVisitor';
 import { SchemaDirectiveVisitor } from './utils/SchemaDirectiveVisitor';
 
-/* TODO: Add documentation */
-
-export type UnitOrList<Type> = Type | Array<Type>;
 export interface IResolverValidationOptions {
   requireResolversForArgs?: boolean;
   requireResolversForNonScalar?: boolean;
@@ -67,7 +65,7 @@ export interface IResolverOptions<TSource = any, TContext = any, TArgs = any> {
   __isTypeOf?: GraphQLIsTypeOfFn<TSource, TContext>;
 }
 
-export type Transform = {
+export interface Transform {
   transformSchema?: (schema: GraphQLSchema) => GraphQLSchema;
   transformRequest?: (originalRequest: Request) => Request;
   transformResult?: (result: Result) => Result;
@@ -90,8 +88,8 @@ export interface IFetcherOperation {
 
 export type Dispatcher = (context: any) => ApolloLink | Fetcher;
 
-export type SubschemaConfig = {
-  schema: GraphQLSchemaWithTransforms;
+export interface SubschemaConfig {
+  schema: GraphQLSchema;
   rootValue?: Record<string, any>;
   executor?: Delegator;
   subscriber?: Delegator;
@@ -102,7 +100,7 @@ export type SubschemaConfig = {
   merge?: Record<string, MergedTypeConfig>;
 };
 
-export type MergedTypeConfig = {
+export interface MergedTypeConfig {
   selectionSet?: string;
   fieldName?: string;
   args?: (originalResult: any) => Record<string, any>;
@@ -117,7 +115,7 @@ export type MergedTypeResolver = (
   selectionSet: SelectionSetNode,
 ) => any;
 
-export type GraphQLSchemaWithTransforms = GraphQLSchema & {
+export interface GraphQLSchemaWithTransforms extends GraphQLSchema {
   transforms?: Array<Transform>;
 };
 
@@ -160,9 +158,9 @@ export interface ICreateRequestFromInfo {
   fieldNodes?: ReadonlyArray<FieldNode>;
 }
 
-export type IDelegateRequestOptions = {
+export interface IDelegateRequestOptions extends IDelegateToSchemaOptions {
   request: Request;
-} & IDelegateToSchemaOptions;
+};
 
 export type Delegator = ({
   document,
@@ -174,7 +172,7 @@ export type Delegator = ({
   variables?: { [key: string]: any };
 }) => any;
 
-export type MergeInfo = {
+export interface MergeInfo {
   delegate: (
     type: 'query' | 'mutation' | 'subscription',
     fieldName: string,
@@ -193,15 +191,15 @@ export type MergeInfo = {
   delegateToSchema<TContext>(options: IDelegateToSchemaOptions<TContext>): any;
 };
 
-export type ReplacementSelectionSetMapping = {
+export interface ReplacementSelectionSetMapping {
   [typeName: string]: { [fieldName: string]: SelectionSetNode };
 };
 
-export type ReplacementFragmentMapping = {
+export interface ReplacementFragmentMapping {
   [typeName: string]: { [fieldName: string]: InlineFragmentNode };
 };
 
-export type MergedTypeInfo = {
+export interface MergedTypeInfo {
   subschemas: Array<SubschemaConfig>;
   selectionSet?: SelectionSetNode;
   uniqueFields: Record<string, SubschemaConfig>;
@@ -219,14 +217,18 @@ export type IFieldResolver<TSource, TContext, TArgs = Record<string, any>> = (
 ) => any;
 
 export type ITypedef = (() => Array<ITypedef>) | string | DocumentNode;
+
 export type ITypeDefinitions = ITypedef | Array<ITypedef>;
-export type IResolverObject<TSource = any, TContext = any, TArgs = any> = {
+
+export interface IResolverObject<TSource = any, TContext = any, TArgs = any> {
   [key: string]:
     | IFieldResolver<TSource, TContext, TArgs>
     | IResolverOptions<TSource, TContext>
     | IResolverObject<TSource, TContext>;
 };
-export type IEnumResolver = { [key: string]: string | number };
+
+export interface IEnumResolver { [key: string]: string | number };
+
 export interface IResolvers<TSource = any, TContext = any> {
   [key: string]:
     | (() => any)
@@ -235,6 +237,7 @@ export interface IResolvers<TSource = any, TContext = any> {
     | GraphQLScalarType
     | IEnumResolver;
 }
+
 export type IResolversParameter =
   | Array<IResolvers | ((mergeInfo: MergeInfo) => IResolvers)>
   | IResolvers
@@ -245,12 +248,14 @@ export interface ILogger {
 }
 
 export type IConnectorCls<TContext = any> = new (context?: TContext) => any;
+
 export type IConnectorFn<TContext = any> = (context?: TContext) => any;
+
 export type IConnector<TContext = any> =
   | IConnectorCls<TContext>
   | IConnectorFn<TContext>;
 
-export type IConnectors<TContext = any> = {
+export interface IConnectors<TContext = any> {
   [key: string]: IConnector<TContext>;
 };
 
@@ -279,6 +284,7 @@ export type IDefaultValueIteratorFn = (
 ) => void;
 
 export type NextResolverFn = () => Promise<any>;
+
 export type DirectiveResolverFn<TSource = any, TContext = any> = (
   next: NextResolverFn,
   source: TSource,
@@ -293,7 +299,9 @@ export interface IDirectiveResolvers<TSource = any, TContext = any> {
 
 /* XXX on mocks, args are optional, Not sure if a bug. */
 export type IMockFn = GraphQLFieldResolver<any, any>;
-export type IMocks = { [key: string]: IMockFn };
+
+export interface IMocks { [key: string]: IMockFn };
+
 export type IMockTypeFn = (
   type: GraphQLType,
   typeName?: string,
@@ -328,19 +336,17 @@ export type OnTypeConflict = (
 
 export type Operation = 'query' | 'mutation' | 'subscription';
 
-export type Request = {
+export interface Request {
   document: DocumentNode;
   variables: Record<string, any>;
   extensions?: Record<string, any>;
 };
 
-export type Result = ExecutionResult & {
+export interface Result extends ExecutionResult {
   extensions?: Record<string, any>;
 };
 
-export type ResolveType<T extends GraphQLType> = (type: T) => T;
-
-export type GraphQLParseOptions = {
+export interface GraphQLParseOptions {
   noLocation?: boolean;
   allowLegacySDLEmptyFields?: boolean;
   allowLegacySDLImplementsInterfaces?: boolean;
@@ -449,3 +455,92 @@ export type InterfaceTypeVisitor = (
   type: GraphQLInterfaceType,
   schema: GraphQLSchema,
 ) => GraphQLInterfaceType | null | undefined;
+
+export enum MapperKind {
+  TYPE = 'MapperKind.TYPE',
+  SCALAR_TYPE = 'MapperKind.SCALAR_TYPE',
+  ENUM_TYPE = 'MapperKind.ENUM_TYPE',
+  COMPOSITE_TYPE = 'MapperKind.COMPOSITE_TYPE',
+  OBJECT_TYPE = 'MapperKind.OBJECT_TYPE',
+  INPUT_OBJECT_TYPE = 'MapperKind.INPUT_OBJECT_TYPE',
+  ABSTRACT_TYPE = 'MapperKind.ABSTRACT_TYPE',
+  UNION_TYPE = 'MapperKind.UNION_TYPE',
+  INTERFACE_TYPE = 'MapperKind.INTERFACE_TYPE',
+  ROOT_OBJECT = 'MapperKind.ROOT_OBJECT',
+  QUERY = 'MapperKind.QUERY',
+  MUTATION = 'MapperKind.MUTATION',
+  SUBSCRIPTION = 'MapperKind.SUBSCRIPTION',
+  DIRECTIVE = 'MapperKind.DIRECTIVE',
+}
+
+export interface SchemaMapper {
+  [MapperKind.TYPE]?: NamedTypeMapper;
+  [MapperKind.SCALAR_TYPE]?: ScalarTypeMapper;
+  [MapperKind.ENUM_TYPE]?: EnumTypeMapper;
+  [MapperKind.COMPOSITE_TYPE]?: CompositeTypeMapper;
+  [MapperKind.OBJECT_TYPE]?: ObjectTypeMapper;
+  [MapperKind.INPUT_OBJECT_TYPE]?: InputObjectTypeMapper;
+  [MapperKind.ABSTRACT_TYPE]?: AbstractTypeMapper;
+  [MapperKind.UNION_TYPE]?: UnionTypeMapper;
+  [MapperKind.INTERFACE_TYPE]?: InterfaceTypeMapper;
+  [MapperKind.ROOT_OBJECT]?: ObjectTypeMapper;
+  [MapperKind.QUERY]?: ObjectTypeMapper;
+  [MapperKind.MUTATION]?: ObjectTypeMapper;
+  [MapperKind.SUBSCRIPTION]?: ObjectTypeMapper;
+  [MapperKind.DIRECTIVE]?: DirectiveMapper;
+}
+
+export type NamedTypeMapper = (
+  type: GraphQLNamedType,
+  schema: GraphQLSchema,
+) => GraphQLNamedType | null | undefined;
+
+export type ScalarTypeMapper = (
+  type: GraphQLScalarType,
+  schema: GraphQLSchema,
+) => GraphQLScalarType | null | undefined;
+
+export type EnumTypeMapper = (
+  type: GraphQLEnumType,
+  schema: GraphQLSchema,
+) => GraphQLEnumType | null | undefined;
+
+export type CompositeTypeMapper = (
+  type: GraphQLObjectType | GraphQLInterfaceType | GraphQLUnionType,
+  schema: GraphQLSchema,
+) =>
+  | GraphQLObjectType
+  | GraphQLInterfaceType
+  | GraphQLUnionType
+  | null
+  | undefined;
+
+export type ObjectTypeMapper = (
+  type: GraphQLObjectType,
+  schema: GraphQLSchema,
+) => GraphQLObjectType | null | undefined;
+
+export type InputObjectTypeMapper = (
+  type: GraphQLInputObjectType,
+  schema: GraphQLSchema,
+) => GraphQLInputObjectType | null | undefined;
+
+export type AbstractTypeMapper = (
+  type: GraphQLInterfaceType | GraphQLUnionType,
+  schema: GraphQLSchema,
+) => GraphQLInterfaceType | GraphQLUnionType | null | undefined;
+
+export type UnionTypeMapper = (
+  type: GraphQLUnionType,
+  schema: GraphQLSchema,
+) => GraphQLUnionType | null | undefined;
+
+export type InterfaceTypeMapper = (
+  type: GraphQLInterfaceType,
+  schema: GraphQLSchema,
+) => GraphQLInterfaceType | null | undefined;
+
+export type DirectiveMapper = (
+  directive: GraphQLDirective,
+  schema: GraphQLSchema,
+) => GraphQLDirective | null | undefined;
