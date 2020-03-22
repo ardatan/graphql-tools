@@ -23,6 +23,12 @@ import {
   GraphQLDirectiveConfig,
   GraphQLSchemaConfig,
   GraphQLNamedType,
+  GraphQLField,
+  GraphQLInputField,
+  GraphQLInputFieldConfig,
+  GraphQLInputFieldMap,
+  GraphQLArgumentConfig,
+  GraphQLFieldConfig,
   isObjectType,
   isInterfaceType,
   isUnionType,
@@ -74,50 +80,65 @@ export function schemaToConfig(schema: GraphQLSchema): GraphQLSchemaConfig {
   return schemaConfig;
 }
 
+export function toConfig(graphqlObject: GraphQLSchema): GraphQLSchemaConfig;
 export function toConfig(
-  schemaOrTypeOrDirective: GraphQLSchema,
-): GraphQLSchemaConfig;
-export function toConfig(
-  schemaOrTypeOrDirective: GraphQLObjectTypeConfig<any, any> & {
+  graphqlObject: GraphQLObjectTypeConfig<any, any> & {
     interfaces: Array<GraphQLInterfaceType>;
     fields: GraphQLFieldConfigMap<any, any>;
   },
 ): GraphQLObjectTypeConfig<any, any>;
 export function toConfig(
-  schemaOrTypeOrDirective: GraphQLInterfaceType,
+  graphqlObject: GraphQLInterfaceType,
 ): GraphQLInterfaceTypeConfig<any, any> & {
   fields: GraphQLFieldConfigMap<any, any>;
 };
 export function toConfig(
-  schemaOrTypeOrDirective: GraphQLUnionType,
+  graphqlObject: GraphQLUnionType,
 ): GraphQLUnionTypeConfig<any, any> & {
   types: Array<GraphQLObjectType>;
 };
+export function toConfig(graphqlObject: GraphQLEnumType): GraphQLEnumTypeConfig;
 export function toConfig(
-  schemaOrTypeOrDirective: GraphQLEnumType,
-): GraphQLEnumTypeConfig;
-export function toConfig(
-  schemaOrTypeOrDirective: GraphQLScalarType,
+  graphqlObject: GraphQLScalarType,
 ): GraphQLScalarTypeConfig<any, any>;
 export function toConfig(
-  schemaOrTypeOrDirective: GraphQLInputObjectType,
+  graphqlObject: GraphQLInputObjectType,
 ): GraphQLInputObjectTypeConfig & {
   fields: GraphQLInputFieldConfigMap;
 };
 export function toConfig(
-  schemaOrTypeOrDirective: GraphQLDirective,
+  graphqlObject: GraphQLDirective,
 ): GraphQLDirectiveConfig;
-export function toConfig(schemaOrTypeOrDirective: any): any;
-export function toConfig(schemaOrTypeOrDirective: any) {
-  if (isSchema(schemaOrTypeOrDirective)) {
-    return schemaToConfig(schemaOrTypeOrDirective);
-  } else if (isDirective(schemaOrTypeOrDirective)) {
-    return directiveToConfig(schemaOrTypeOrDirective);
-  } else if (isNamedType(schemaOrTypeOrDirective)) {
-    return typeToConfig(schemaOrTypeOrDirective);
+export function toConfig(
+  graphqlObject: GraphQLInputField,
+): GraphQLInputFieldConfig;
+export function toConfig(
+  graphqlObject: GraphQLField<any, any>,
+): GraphQLFieldConfig<any, any>;
+export function toConfig(graphqlObject: any): any;
+export function toConfig(graphqlObject: any) {
+  if (isSchema(graphqlObject)) {
+    return schemaToConfig(graphqlObject);
+  } else if (isDirective(graphqlObject)) {
+    return directiveToConfig(graphqlObject);
+  } else if (isNamedType(graphqlObject)) {
+    return typeToConfig(graphqlObject);
   }
 
-  throw new Error(`Unknown object ${schemaOrTypeOrDirective as string}`);
+  const ofType = graphqlObject.type;
+  if (ofType != null) {
+    if (ofType.defaultValue !== undefined) {
+      return inputFieldToConfig(graphqlObject);
+    } else if (
+      ofType.resolve !== undefined ||
+      ofType.subscribe !== undefined ||
+      ofType.args !== undefined
+    ) {
+      return fieldToConfig(graphqlObject);
+    }
+  }
+
+  throw new Error(`Unknown graphql object ${graphqlObject as string}`);
 }
 
 export function typeToConfig(
@@ -166,7 +187,7 @@ export function objectTypeToConfig(
     name: type.name,
     description: type.description,
     interfaces: type.getInterfaces(),
-    fields: fieldsToFieldsConfig(type.getFields()),
+    fields: fieldMapToConfig(type.getFields()),
     isTypeOf: type.isTypeOf,
     extensions: type.extensions,
     astNode: type.astNode,
@@ -187,7 +208,7 @@ export function interfaceTypeToConfig(
   const typeConfig = {
     name: type.name,
     description: type.description,
-    fields: fieldsToFieldsConfig(type.getFields()),
+    fields: fieldMapToConfig(type.getFields()),
     resolveType: type.resolveType,
     extensions: type.extensions,
     astNode: type.astNode,
@@ -302,25 +323,10 @@ export function inputObjectTypeToConfig(
     return type.toConfig();
   }
 
-  const newFields = {};
-  const fields = type.getFields();
-
-  Object.keys(fields).forEach(fieldName => {
-    const field = fields[fieldName];
-
-    newFields[fieldName] = {
-      description: field.description,
-      type: field.type,
-      defaultValue: field.defaultValue,
-      extensions: field.extensions,
-      astNode: field.astNode,
-    };
-  });
-
   const typeConfig = {
     name: type.name,
     description: type.description,
-    fields: newFields,
+    fields: inputFieldMapToConfig(type.getFields()),
     extensions: type.extensions,
     astNode: type.astNode,
     extensionASTNodes:
@@ -328,6 +334,30 @@ export function inputObjectTypeToConfig(
   };
 
   return typeConfig;
+}
+
+export function inputFieldMapToConfig(
+  fields: GraphQLInputFieldMap,
+): GraphQLInputFieldConfigMap {
+  const newFields = {};
+  Object.keys(fields).forEach(fieldName => {
+    const field = fields[fieldName];
+    newFields[fieldName] = toConfig(field);
+  });
+
+  return newFields;
+}
+
+export function inputFieldToConfig(
+  field: GraphQLInputField,
+): GraphQLInputFieldConfig {
+  return {
+    description: field.description,
+    type: field.type,
+    defaultValue: field.defaultValue,
+    extensions: field.extensions,
+    astNode: field.astNode,
+  };
 }
 
 export function directiveToConfig(
@@ -341,7 +371,7 @@ export function directiveToConfig(
     name: directive.name,
     description: directive.description,
     locations: directive.locations,
-    args: argsToArgsConfig(directive.args),
+    args: argumentMapToConfig(directive.args),
     isRepeatable: ((directive as unknown) as { isRepeatable: boolean })
       .isRepeatable,
     extensions: directive.extensions,
@@ -351,43 +381,51 @@ export function directiveToConfig(
   return directiveConfig;
 }
 
-function fieldsToFieldsConfig(
+export function fieldMapToConfig(
   fields: GraphQLFieldMap<any, any>,
 ): GraphQLFieldConfigMap<any, any> {
   const newFields = {};
 
   Object.keys(fields).forEach(fieldName => {
     const field = fields[fieldName];
-
-    newFields[fieldName] = {
-      description: field.description,
-      type: field.type,
-      args: argsToArgsConfig(field.args),
-      resolve: field.resolve,
-      subscribe: field.subscribe,
-      deprecationReason: field.deprecationReason,
-      extensions: field.extensions,
-      astNode: field.astNode,
-    };
+    newFields[fieldName] = toConfig(field);
   });
 
   return newFields;
 }
 
-function argsToArgsConfig(
+export function fieldToConfig(
+  field: GraphQLField<any, any>,
+): GraphQLFieldConfig<any, any> {
+  return {
+    description: field.description,
+    type: field.type,
+    args: argumentMapToConfig(field.args),
+    resolve: field.resolve,
+    subscribe: field.subscribe,
+    deprecationReason: field.deprecationReason,
+    extensions: field.extensions,
+    astNode: field.astNode,
+  };
+}
+
+export function argumentMapToConfig(
   args: ReadonlyArray<GraphQLArgument>,
 ): GraphQLFieldConfigArgumentMap {
   const newArguments = {};
-
   args.forEach(arg => {
-    newArguments[arg.name] = {
-      description: arg.description,
-      type: arg.type,
-      defaultValue: arg.defaultValue,
-      extensions: arg.extensions,
-      astNode: arg.astNode,
-    };
+    newArguments[arg.name] = argumentToConfig(arg);
   });
 
   return newArguments;
+}
+
+export function argumentToConfig(arg: GraphQLArgument): GraphQLArgumentConfig {
+  return {
+    description: arg.description,
+    type: arg.type,
+    defaultValue: arg.defaultValue,
+    extensions: arg.extensions,
+    astNode: arg.astNode,
+  };
 }

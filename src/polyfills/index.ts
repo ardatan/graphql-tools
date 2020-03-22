@@ -15,4 +15,10 @@ export {
   scalarTypeToConfig,
   inputObjectTypeToConfig,
   directiveToConfig,
+  inputFieldMapToConfig,
+  inputFieldToConfig,
+  fieldMapToConfig,
+  fieldToConfig,
+  argumentMapToConfig,
+  argumentToConfig,
 } from './toConfig';
