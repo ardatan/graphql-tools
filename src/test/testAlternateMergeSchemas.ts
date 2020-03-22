@@ -575,11 +575,7 @@ describe('filter and rename object fields', () => {
 
   it('should filter', () => {
     if (graphqlVersion() >= 15) {
-      expect(printSchema(transformedPropertySchema)).to.equal(`type Query {
-  propertyById(id: ID!): New_Property
-}
-
-type New_Property {
+      expect(printSchema(transformedPropertySchema)).to.equal(`type New_Property {
   new_id: ID!
   new_name: String!
   new_location: New_Location
@@ -588,6 +584,10 @@ type New_Property {
 
 type New_Location {
   name: String!
+}
+
+type Query {
+  propertyById(id: ID!): New_Property
 }
 `);
     } else {
