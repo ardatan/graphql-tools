@@ -20,10 +20,7 @@ import {
   MergedTypeInfo,
   Transform,
 } from '../Interfaces';
-import {
-  ExpandAbstractTypes,
-  AddReplacementFragments,
-} from '../wrap';
+import { ExpandAbstractTypes, AddReplacementFragments } from '../wrap';
 import {
   parseFragmentToInlineFragment,
   concatInlineFragments,

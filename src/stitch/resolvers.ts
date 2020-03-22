@@ -4,7 +4,12 @@ import {
   GraphQLObjectType,
 } from 'graphql';
 
-import { Transform, IResolvers, Operation, SubschemaConfig } from '../Interfaces';
+import {
+  Transform,
+  IResolvers,
+  Operation,
+  SubschemaConfig,
+} from '../Interfaces';
 import delegateToSchema from '../delegate/delegateToSchema';
 import { handleResult } from '../delegate/checkResultAndHandleErrors';
 

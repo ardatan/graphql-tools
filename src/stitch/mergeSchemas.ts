@@ -29,10 +29,7 @@ import {
   IResolvers,
   SubschemaConfig,
 } from '../Interfaces';
-import {
-  extractExtensionDefinitions,
-  addResolversToSchema,
-} from '../generate';
+import { extractExtensionDefinitions, addResolversToSchema } from '../generate';
 import { wrapSchema } from '../wrap';
 import {
   SchemaDirectiveVisitor,

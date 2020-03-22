@@ -1,7 +1,11 @@
 import { GraphQLSchema, GraphQLOutputType } from 'graphql';
 
 import { checkResultAndHandleErrors } from '../delegate/checkResultAndHandleErrors';
-import { Transform, SubschemaConfig, IGraphQLToolsResolveInfo } from '../Interfaces';
+import {
+  Transform,
+  SubschemaConfig,
+  IGraphQLToolsResolveInfo,
+} from '../Interfaces';
 
 export default class CheckResultAndHandleErrors implements Transform {
   private readonly context?: Record<string, any>;

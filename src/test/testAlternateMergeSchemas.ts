@@ -30,10 +30,7 @@ import { isSpecifiedScalarType, toConfig } from '../polyfills';
 
 import { delegateToSchema } from '../delegate';
 import { makeExecutableSchema } from '../generate';
-import {
-  mergeSchemas,
-  createMergedResolver,
-} from '../stitch';
+import { mergeSchemas, createMergedResolver } from '../stitch';
 import { SubschemaConfig } from '../Interfaces';
 import {
   filterSchema,
@@ -575,7 +572,8 @@ describe('filter and rename object fields', () => {
 
   it('should filter', () => {
     if (graphqlVersion() >= 15) {
-      expect(printSchema(transformedPropertySchema)).to.equal(`type New_Property {
+      expect(printSchema(transformedPropertySchema)).to
+        .equal(`type New_Property {
   new_id: ID!
   new_name: String!
   new_location: New_Location

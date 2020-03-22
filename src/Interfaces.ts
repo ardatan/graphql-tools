@@ -69,7 +69,7 @@ export interface Transform {
   transformSchema?: (schema: GraphQLSchema) => GraphQLSchema;
   transformRequest?: (originalRequest: Request) => Request;
   transformResult?: (result: Result) => Result;
-};
+}
 
 export interface IGraphQLToolsResolveInfo extends GraphQLResolveInfo {
   mergeInfo?: MergeInfo;
@@ -98,14 +98,14 @@ export interface SubschemaConfig {
   dispatcher?: Dispatcher;
   transforms?: Array<Transform>;
   merge?: Record<string, MergedTypeConfig>;
-};
+}
 
 export interface MergedTypeConfig {
   selectionSet?: string;
   fieldName?: string;
   args?: (originalResult: any) => Record<string, any>;
   resolve?: MergedTypeResolver;
-};
+}
 
 export type MergedTypeResolver = (
   originalResult: any,
@@ -117,7 +117,7 @@ export type MergedTypeResolver = (
 
 export interface GraphQLSchemaWithTransforms extends GraphQLSchema {
   transforms?: Array<Transform>;
-};
+}
 
 export type SchemaLikeObject =
   | SubschemaConfig
@@ -160,7 +160,7 @@ export interface ICreateRequestFromInfo {
 
 export interface IDelegateRequestOptions extends IDelegateToSchemaOptions {
   request: Request;
-};
+}
 
 export type Delegator = ({
   document,
@@ -189,15 +189,15 @@ export interface MergeInfo {
   replacementFragments: ReplacementFragmentMapping;
   mergedTypes: Record<string, MergedTypeInfo>;
   delegateToSchema<TContext>(options: IDelegateToSchemaOptions<TContext>): any;
-};
+}
 
 export interface ReplacementSelectionSetMapping {
   [typeName: string]: { [fieldName: string]: SelectionSetNode };
-};
+}
 
 export interface ReplacementFragmentMapping {
   [typeName: string]: { [fieldName: string]: InlineFragmentNode };
-};
+}
 
 export interface MergedTypeInfo {
   subschemas: Array<SubschemaConfig>;
@@ -207,7 +207,7 @@ export interface MergedTypeInfo {
   typeMaps: Map<SubschemaConfig, TypeMap>;
   selectionSets: Map<SubschemaConfig, SelectionSetNode>;
   containsSelectionSet: Map<SubschemaConfig, Map<SelectionSetNode, boolean>>;
-};
+}
 
 export type IFieldResolver<TSource, TContext, TArgs = Record<string, any>> = (
   source: TSource,
@@ -225,9 +225,11 @@ export interface IResolverObject<TSource = any, TContext = any, TArgs = any> {
     | IFieldResolver<TSource, TContext, TArgs>
     | IResolverOptions<TSource, TContext>
     | IResolverObject<TSource, TContext>;
-};
+}
 
-export interface IEnumResolver { [key: string]: string | number };
+export interface IEnumResolver {
+  [key: string]: string | number;
+}
 
 export interface IResolvers<TSource = any, TContext = any> {
   [key: string]:
@@ -257,7 +259,7 @@ export type IConnector<TContext = any> =
 
 export interface IConnectors<TContext = any> {
   [key: string]: IConnector<TContext>;
-};
+}
 
 export interface IExecutableSchemaDefinition<TContext = any> {
   typeDefs: ITypeDefinitions;
@@ -300,7 +302,9 @@ export interface IDirectiveResolvers<TSource = any, TContext = any> {
 /* XXX on mocks, args are optional, Not sure if a bug. */
 export type IMockFn = GraphQLFieldResolver<any, any>;
 
-export interface IMocks { [key: string]: IMockFn };
+export interface IMocks {
+  [key: string]: IMockFn;
+}
 
 export type IMockTypeFn = (
   type: GraphQLType,
@@ -340,18 +344,18 @@ export interface Request {
   document: DocumentNode;
   variables: Record<string, any>;
   extensions?: Record<string, any>;
-};
+}
 
 export interface Result extends ExecutionResult {
   extensions?: Record<string, any>;
-};
+}
 
 export interface GraphQLParseOptions {
   noLocation?: boolean;
   allowLegacySDLEmptyFields?: boolean;
   allowLegacySDLImplementsInterfaces?: boolean;
   experimentalFragmentVariables?: boolean;
-};
+}
 
 export type IndexedObject<V> = { [key: string]: V } | ReadonlyArray<V>;
 
