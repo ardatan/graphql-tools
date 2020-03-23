@@ -177,7 +177,7 @@ export function handleObject(
 ) {
   setErrors(
     object,
-    errors.map(error =>
+    errors.map((error) =>
       relocatedError(
         error,
         error.nodes,
@@ -206,7 +206,7 @@ export function handleObject(
     return object;
   }
 
-  targetSubschemas = targetSubschemas.filter(s => s !== subschema);
+  targetSubschemas = targetSubschemas.filter((s) => s !== subschema);
   if (!targetSubschemas.length) {
     return object;
   }
@@ -235,7 +235,7 @@ export function handleObject(
 function collectSubFields(info: IGraphQLToolsResolveInfo, typeName: string) {
   let subFieldNodes: Record<string, Array<FieldNode>> = Object.create(null);
   const visitedFragmentNames = Object.create(null);
-  info.fieldNodes.forEach(fieldNode => {
+  info.fieldNodes.forEach((fieldNode) => {
     subFieldNodes = collectFields(
       ({
         schema: info.schema,
@@ -263,8 +263,8 @@ function getFieldsNotInSubschema(
   const fields = (typeMap[typeName] as GraphQLObjectType).getFields();
 
   const fieldsNotInSchema: Array<FieldNode> = [];
-  Object.keys(subFieldNodes).forEach(responseName => {
-    subFieldNodes[responseName].forEach(subFieldNode => {
+  Object.keys(subFieldNodes).forEach((responseName) => {
+    subFieldNodes[responseName].forEach((subFieldNode) => {
       if (!fields[subFieldNode.name.value]) {
         fieldsNotInSchema.push(subFieldNode);
       }
@@ -280,13 +280,13 @@ export function handleNull(
   errors: ReadonlyArray<GraphQLError>,
 ) {
   if (errors.length) {
-    if (errors.some(error => !error.path || error.path.length < 2)) {
+    if (errors.some((error) => !error.path || error.path.length < 2)) {
       return relocatedError(combineErrors(errors), fieldNodes, path);
-    } else if (errors.some(error => typeof error.path[1] === 'string')) {
+    } else if (errors.some((error) => typeof error.path[1] === 'string')) {
       const childErrors = getErrorsByPathSegment(errors);
 
       const result = Object.create(null);
-      Object.keys(childErrors).forEach(pathSegment => {
+      Object.keys(childErrors).forEach((pathSegment) => {
         result[pathSegment] = handleNull(
           fieldNodes,
           [...path, pathSegment],
@@ -300,7 +300,7 @@ export function handleNull(
     const childErrors = getErrorsByPathSegment(errors);
 
     const result: Array<any> = [];
-    Object.keys(childErrors).forEach(pathSegment => {
+    Object.keys(childErrors).forEach((pathSegment) => {
       result.push(
         handleNull(
           fieldNodes,

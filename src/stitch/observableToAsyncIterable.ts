@@ -30,7 +30,7 @@ export function observableToAsyncIterable<T>(
   };
 
   const pullValue = () =>
-    new Promise(resolve => {
+    new Promise((resolve) => {
       if (pushQueue.length !== 0) {
         const element = pushQueue.shift();
         // either {value: {errors: [...]}} or {value: ...}
@@ -56,7 +56,7 @@ export function observableToAsyncIterable<T>(
     if (listening) {
       listening = false;
       subscription.unsubscribe();
-      pullQueue.forEach(resolve => resolve({ value: undefined, done: true }));
+      pullQueue.forEach((resolve) => resolve({ value: undefined, done: true }));
       pullQueue.length = 0;
       pushQueue.length = 0;
     }

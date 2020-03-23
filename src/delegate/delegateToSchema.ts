@@ -235,7 +235,7 @@ export function delegateRequest({
         // "subscribe" to the subscription result and map the result through the transforms
         return mapAsyncIterator<ExecutionResult, any>(
           subscriptionResult,
-          result => {
+          (result) => {
             const transformedResult = applyResultTransforms(
               result,
               delegationTransforms,

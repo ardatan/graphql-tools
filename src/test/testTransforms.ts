@@ -52,8 +52,8 @@ describe('transforms', () => {
         TestScalar: new GraphQLScalarType({
           name: 'TestScalar',
           description: undefined,
-          serialize: value => (value as string).slice(1),
-          parseValue: value => `_${value as string}`,
+          serialize: (value) => (value as string).slice(1),
+          parseValue: (value) => `_${value as string}`,
           parseLiteral: (ast: any) => `_${ast.value as string}`,
         }),
         Query: {
@@ -212,7 +212,7 @@ describe('transforms', () => {
       addMocksToSchema({ schema: subschema });
 
       const schema = transformSchema(subschema, [
-        new RenameRootTypes(name => (name === 'QueryRoot' ? 'Query' : name)),
+        new RenameRootTypes((name) => (name === 'QueryRoot' ? 'Query' : name)),
       ]);
 
       const result = await graphql(
@@ -288,7 +288,7 @@ describe('transforms', () => {
           schemaWithCustomRootTypeNames,
           {
             schema: schemaWithDefaultRootTypeNames,
-            transforms: [new RenameRootTypes(name => `${name}Root`)],
+            transforms: [new RenameRootTypes((name) => `${name}Root`)],
           },
         ],
         queryTypeName: 'QueryRoot',
@@ -683,7 +683,7 @@ describe('transforms', () => {
                       selectionSet: subtree,
                     }),
                     // how to process the data result at path
-                    result => result?.address,
+                    (result) => result?.address,
                   ),
                 ],
               });
@@ -874,7 +874,7 @@ describe('transforms', () => {
                     (subtree: SelectionSetNode) => {
                       const newSelectionSet = {
                         kind: Kind.SELECTION_SET,
-                        selections: subtree.selections.map(selection => {
+                        selections: subtree.selections.map((selection) => {
                           // just append fragments, not interesting for this
                           // test
                           if (
@@ -900,7 +900,7 @@ describe('transforms', () => {
                       return newSelectionSet;
                     },
                     // how to process the data result at path
-                    result => ({
+                    (result) => ({
                       streetAddress: result.addressStreetAddress,
                       zip: result.addressZip,
                     }),
@@ -909,7 +909,7 @@ describe('transforms', () => {
                   new WrapQuery(
                     ['userById', 'zip'],
                     (subtree: SelectionSetNode) => subtree,
-                    result => result,
+                    (result) => result,
                   ),
                 ],
               });
@@ -1048,8 +1048,8 @@ describe('transforms', () => {
                       ],
                     }),
                     // how to process the data result at path
-                    resultTransformer: result => result?.address,
-                    errorPathTransformer: path => path.slice(1),
+                    resultTransformer: (result) => result?.address,
+                    errorPathTransformer: (path) => path.slice(1),
                   }),
                 ],
               });
@@ -1078,8 +1078,8 @@ describe('transforms', () => {
                         },
                       ],
                     }),
-                    resultTransformer: result => result?.address,
-                    errorPathTransformer: path => path.slice(1),
+                    resultTransformer: (result) => result?.address,
+                    errorPathTransformer: (path) => path.slice(1),
                   }),
                 ],
               });

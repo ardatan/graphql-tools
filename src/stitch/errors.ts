@@ -52,7 +52,7 @@ export function getErrorsByPathSegment(
   errors: ReadonlyArray<GraphQLError>,
 ): Record<string, Array<GraphQLError>> {
   const record = Object.create(null);
-  errors.forEach(error => {
+  errors.forEach((error) => {
     if (!error.path || error.path.length < 2) {
       return;
     }
@@ -91,7 +91,7 @@ export function combineErrors(
   }
 
   return new CombinedError(
-    errors.map(error => error.message).join('\n'),
+    errors.map((error) => error.message).join('\n'),
     errors,
   );
 }

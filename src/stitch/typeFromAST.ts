@@ -72,7 +72,7 @@ function makeObjectType(node: ObjectTypeDefinitionNode): GraphQLObjectType {
     fields: () => makeFields(node.fields),
     interfaces: () =>
       node.interfaces.map(
-        iface =>
+        (iface) =>
           createNamedStub(
             iface.name.value,
             'interface',
@@ -93,7 +93,7 @@ function makeInterfaceType(
       graphqlVersion() >= 15
         ? () =>
             ((node as unknown) as ObjectTypeDefinitionNode).interfaces.map(
-              iface =>
+              (iface) =>
                 createNamedStub(
                   iface.name.value,
                   'interface',
@@ -108,7 +108,7 @@ function makeInterfaceType(
 
 function makeEnumType(node: EnumTypeDefinitionNode): GraphQLEnumType {
   const values = {};
-  node.values.forEach(value => {
+  node.values.forEach((value) => {
     values[value.name.value] = {
       description: getDescription(value, backcompatOptions),
     };
@@ -124,9 +124,11 @@ function makeUnionType(node: UnionTypeDefinitionNode): GraphQLUnionType {
   return new GraphQLUnionType({
     name: node.name.value,
     types: () =>
-      node.types.map(type => resolveType(type, 'object') as GraphQLObjectType),
+      node.types.map(
+        (type) => resolveType(type, 'object') as GraphQLObjectType,
+      ),
     description: getDescription(node, backcompatOptions),
-    resolveType: parent => resolveFromParentTypename(parent),
+    resolveType: (parent) => resolveFromParentTypename(parent),
   });
 }
 
@@ -158,16 +160,16 @@ function makeFields(
   nodes: ReadonlyArray<FieldDefinitionNode>,
 ): Record<string, GraphQLFieldConfig<any, any>> {
   const result: Record<string, GraphQLFieldConfig<any, any>> = {};
-  nodes.forEach(node => {
+  nodes.forEach((node) => {
     const deprecatedDirective = node.directives.find(
-      directive => directive.name.value === 'deprecated',
+      (directive) => directive.name.value === 'deprecated',
     );
 
     let deprecationReason;
 
     if (deprecatedDirective != null) {
       const deprecatedArgument = deprecatedDirective.arguments.find(
-        arg => arg.name.value === 'reason',
+        (arg) => arg.name.value === 'reason',
       );
       deprecationReason = (deprecatedArgument.value as StringValueNode).value;
     }
@@ -184,7 +186,7 @@ function makeFields(
 
 function makeValues(nodes: ReadonlyArray<InputValueDefinitionNode>) {
   const result = {};
-  nodes.forEach(node => {
+  nodes.forEach((node) => {
     const type = resolveType(node.type, 'input') as GraphQLInputType;
     result[node.name.value] = {
       type,
@@ -211,7 +213,7 @@ function resolveType(
 
 function makeDirective(node: DirectiveDefinitionNode): GraphQLDirective {
   const locations: Array<DirectiveLocationEnum> = [];
-  node.locations.forEach(location => {
+  node.locations.forEach((location) => {
     if (location.value in DirectiveLocation) {
       locations.push(location.value as DirectiveLocationEnum);
     }

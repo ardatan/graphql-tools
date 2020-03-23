@@ -18,7 +18,7 @@ export default function valueFromASTUntyped(valueNode: ValueNode): any {
       return valueNode.values.map(valueFromASTUntyped);
     case Kind.OBJECT: {
       const obj = Object.create(null);
-      valueNode.fields.forEach(field => {
+      valueNode.fields.forEach((field) => {
         obj[field.name.value] = valueFromASTUntyped(field.value);
       });
       return obj;

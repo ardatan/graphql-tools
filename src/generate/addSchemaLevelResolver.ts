@@ -15,14 +15,14 @@ function addSchemaLevelResolver(
     schema.getQueryType(),
     schema.getMutationType(),
     schema.getSubscriptionType(),
-  ].filter(x => Boolean(x));
-  rootTypes.forEach(type => {
+  ].filter((x) => Boolean(x));
+  rootTypes.forEach((type) => {
     if (type != null) {
       // XXX this should run at most once per request to simulate a true root resolver
       // for graphql-js this is an approximation that works with queries but not mutations
       const rootResolveFn = runAtMostOncePerRequest(fn);
       const fields = type.getFields();
-      Object.keys(fields).forEach(fieldName => {
+      Object.keys(fields).forEach((fieldName) => {
         // XXX if the type is a subscription, a same query AST will be ran multiple times so we
         // deactivate here the runOnce if it's a subscription. This may not be optimal though...
         if (type === schema.getSubscriptionType()) {
@@ -47,7 +47,7 @@ function wrapResolver(
   outerResolver: GraphQLFieldResolver<any, any>,
 ): GraphQLFieldResolver<any, any> {
   return (obj, args, ctx, info) =>
-    Promise.resolve(outerResolver(obj, args, ctx, info)).then(root => {
+    Promise.resolve(outerResolver(obj, args, ctx, info)).then((root) => {
       if (innerResolver != null) {
         return innerResolver(root, args, ctx, info);
       }

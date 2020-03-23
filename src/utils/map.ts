@@ -43,7 +43,7 @@ export function mapSchema(
 ): GraphQLSchema {
   const originalTypeMap = schema.getTypeMap();
   const newTypeMap = {};
-  Object.keys(originalTypeMap).forEach(typeName => {
+  Object.keys(originalTypeMap).forEach((typeName) => {
     if (!typeName.startsWith('__')) {
       const typeMapper = getMapper(
         schema,
@@ -86,7 +86,7 @@ export function mapSchema(
 
   const originalDirectives = schema.getDirectives();
   const newDirectives: Array<GraphQLDirective> = [];
-  originalDirectives.forEach(directive => {
+  originalDirectives.forEach((directive) => {
     const directiveMapper = getMapper(schema, schemaMapper, directive);
     if (directiveMapper != null) {
       const newDirective = directiveMapper(directive, schema);
@@ -112,7 +112,7 @@ export function mapSchema(
       newSubscriptionTypeName != null
         ? (typeMap[newSubscriptionTypeName] as GraphQLObjectType)
         : undefined,
-    types: Object.keys(typeMap).map(typeName => typeMap[typeName]),
+    types: Object.keys(typeMap).map((typeName) => typeMap[typeName]),
     directives,
   });
 }
@@ -197,7 +197,7 @@ export function rewireTypes(
 } {
   const newTypeMap: Record<string, GraphQLNamedType> = Object.create(null);
 
-  Object.keys(originalTypeMap).forEach(typeName => {
+  Object.keys(originalTypeMap).forEach((typeName) => {
     const namedType = originalTypeMap[typeName];
 
     if (namedType == null || typeName.startsWith('__')) {
@@ -216,11 +216,13 @@ export function rewireTypes(
     newTypeMap[newName] = namedType;
   });
 
-  Object.keys(newTypeMap).forEach(typeName => {
+  Object.keys(newTypeMap).forEach((typeName) => {
     newTypeMap[typeName] = rewireNamedType(newTypeMap[typeName]);
   });
 
-  const newDirectives = directives.map(directive => rewireDirective(directive));
+  const newDirectives = directives.map((directive) =>
+    rewireDirective(directive),
+  );
 
   return pruneTypes(newTypeMap, newDirectives);
 
@@ -234,7 +236,7 @@ export function rewireTypes(
     args: GraphQLFieldConfigArgumentMap,
   ): GraphQLFieldConfigArgumentMap {
     const rewiredArgs = {};
-    Object.keys(args).forEach(argName => {
+    Object.keys(args).forEach((argName) => {
       const arg = args[argName];
       const rewiredArgType = rewireType(arg.type);
       if (rewiredArgType != null) {
@@ -303,7 +305,7 @@ export function rewireTypes(
     fields: GraphQLFieldConfigMap<any, any>,
   ): GraphQLFieldConfigMap<any, any> {
     const rewiredFields = {};
-    Object.keys(fields).forEach(fieldName => {
+    Object.keys(fields).forEach((fieldName) => {
       const field = fields[fieldName];
       const rewiredFieldType = rewireType(field.type);
       if (rewiredFieldType != null) {
@@ -319,7 +321,7 @@ export function rewireTypes(
     fields: GraphQLInputFieldConfigMap,
   ): GraphQLInputFieldConfigMap {
     const rewiredFields = {};
-    Object.keys(fields).forEach(fieldName => {
+    Object.keys(fields).forEach((fieldName) => {
       const field = fields[fieldName];
       const rewiredFieldType = rewireType(field.type);
       if (rewiredFieldType != null) {
@@ -332,7 +334,7 @@ export function rewireTypes(
 
   function rewireNamedTypes<T extends GraphQLNamedType>(namedTypes: Array<T>) {
     const rewiredTypes: Array<T> = [];
-    namedTypes.forEach(namedType => {
+    namedTypes.forEach((namedType) => {
       const rewiredType = rewireType(namedType);
       if (rewiredType != null) {
         rewiredTypes.push(rewiredType);
@@ -369,14 +371,14 @@ function pruneTypes(
   const newTypeMap = {};
 
   const implementedInterfaces = {};
-  Object.keys(typeMap).forEach(typeName => {
+  Object.keys(typeMap).forEach((typeName) => {
     const namedType = typeMap[typeName];
 
     if (
       isObjectType(namedType) ||
       (graphqlVersion() >= 15 && isInterfaceType(namedType))
     ) {
-      (namedType as GraphQLObjectType).getInterfaces().forEach(iface => {
+      (namedType as GraphQLObjectType).getInterfaces().forEach((iface) => {
         implementedInterfaces[iface.name] = true;
       });
     }

@@ -26,7 +26,7 @@ export default function introspectSchema(
   return fetcher({
     query: parsedIntrospectionQuery,
     context: linkContext,
-  }).then(introspectionResult => {
+  }).then((introspectionResult) => {
     if (
       (Array.isArray(introspectionResult.errors) &&
         introspectionResult.errors.length) ||

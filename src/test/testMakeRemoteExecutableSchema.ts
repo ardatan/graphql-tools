@@ -72,7 +72,7 @@ describe('remote subscriptions', () => {
     });
   });
 
-  it('should work', done => {
+  it('should work', (done) => {
     const mockNotification = {
       notifications: {
         text: 'Hello world',
@@ -89,7 +89,7 @@ describe('remote subscriptions', () => {
 
     let notificationCnt = 0;
     subscribe(schema, subscription)
-      .then(results => {
+      .then((results) => {
         forAwaitEach(
           results as AsyncIterable<ExecutionResult>,
           (result: ExecutionResult) => {
@@ -107,7 +107,7 @@ describe('remote subscriptions', () => {
       .catch(done);
   });
 
-  it('should work without triggering multiple times per notification', done => {
+  it('should work without triggering multiple times per notification', (done) => {
     const mockNotification = {
       notifications: {
         text: 'Hello world',
@@ -123,7 +123,7 @@ describe('remote subscriptions', () => {
     `);
 
     let notificationCnt = 0;
-    const sub1 = subscribe(schema, subscription).then(results => {
+    const sub1 = subscribe(schema, subscription).then((results) => {
       forAwaitEach(
         results as AsyncIterable<ExecutionResult>,
         (result: ExecutionResult) => {
@@ -134,7 +134,7 @@ describe('remote subscriptions', () => {
       ).catch(done);
     });
 
-    const sub2 = subscribe(schema, subscription).then(results => {
+    const sub2 = subscribe(schema, subscription).then((results) => {
       forAwaitEach(
         results as AsyncIterable<ExecutionResult>,
         (result: ExecutionResult) => {

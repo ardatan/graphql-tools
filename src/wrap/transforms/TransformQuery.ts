@@ -29,8 +29,8 @@ export default class TransformQuery implements Transform {
   constructor({
     path,
     queryTransformer,
-    resultTransformer = result => result,
-    errorPathTransformer = errorPath => [].concat(errorPath),
+    resultTransformer = (result) => result,
+    errorPathTransformer = (errorPath) => [].concat(errorPath),
     fragments = {},
   }: {
     path: Array<string>;
@@ -53,7 +53,7 @@ export default class TransformQuery implements Transform {
     let index = 0;
     const newDocument = visit(document, {
       [Kind.FIELD]: {
-        enter: node => {
+        enter: (node) => {
           if (index === pathLength || node.name.value !== this.path[index]) {
             return false;
           }
@@ -115,7 +115,7 @@ export default class TransformQuery implements Transform {
   private transformErrors(
     errors: ReadonlyArray<GraphQLError>,
   ): ReadonlyArray<GraphQLError> {
-    return errors.map(error => {
+    return errors.map((error) => {
       const path: ReadonlyArray<string | number> = error.path;
 
       let match = true;

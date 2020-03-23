@@ -67,7 +67,7 @@ export function visitSchema(
     visitors = Array.isArray(visitors) ? visitors : [visitors];
 
     let finalType: T | null = type;
-    visitors.every(visitorOrVisitorDef => {
+    visitors.every((visitorOrVisitorDef) => {
       let newType;
       if (visitorOrVisitorDef instanceof SchemaVisitor) {
         newType = visitorOrVisitorDef[methodName](finalType, ...args);
@@ -93,7 +93,9 @@ export function visitSchema(
 
       if (methodName === 'visitSchema' || isSchema(finalType)) {
         throw new Error(
-          `Method ${methodName} cannot replace schema with ${newType as string}`,
+          `Method ${methodName} cannot replace schema with ${
+            newType as string
+          }`,
         );
       }
 
@@ -171,7 +173,7 @@ export function visitSchema(
           string,
           GraphQLInputField
         >;
-        updateEachKey(fieldMap, field =>
+        updateEachKey(fieldMap, (field) =>
           callMethod('visitInputFieldDefinition', field, {
             // Since we call a different method for input object fields, we
             // can't reuse the visitFields function here.
@@ -195,7 +197,7 @@ export function visitSchema(
       const newEnum = callMethod('visitEnum', type);
 
       if (newEnum != null) {
-        updateEachKey(newEnum.getValues(), value =>
+        updateEachKey(newEnum.getValues(), (value) =>
           callMethod('visitEnumValue', value, {
             enumType: newEnum,
           }),
@@ -209,7 +211,7 @@ export function visitSchema(
   }
 
   function visitFields(type: GraphQLObjectType | GraphQLInterfaceType) {
-    updateEachKey(type.getFields(), field => {
+    updateEachKey(type.getFields(), (field) => {
       // It would be nice if we could call visit(field) recursively here, but
       // GraphQLField is merely a type, not a value that can be detected using
       // an instanceof check, so we have to visit the fields in this lexical
@@ -226,7 +228,7 @@ export function visitSchema(
       });
 
       if (newField.args != null) {
-        updateEachKey(newField.args, arg =>
+        updateEachKey(newField.args, (arg) =>
           callMethod('visitArgumentDefinition', arg, {
             // Like visitFieldDefinition, visitArgumentDefinition takes a
             // second parameter that provides additional context, namely the

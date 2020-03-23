@@ -21,7 +21,7 @@ function attachDirectiveResolvers(
 
   const schemaDirectives = Object.create(null);
 
-  Object.keys(directiveResolvers).forEach(directiveName => {
+  Object.keys(directiveResolvers).forEach((directiveName) => {
     schemaDirectives[directiveName] = class extends SchemaDirectiveVisitor {
       public visitFieldDefinition(field: GraphQLField<any, any>) {
         const resolver = directiveResolvers[directiveName];

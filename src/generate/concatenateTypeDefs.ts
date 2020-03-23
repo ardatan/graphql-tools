@@ -28,7 +28,7 @@ function concatenateTypeDefs(
       );
     }
   });
-  return uniq(resolvedTypeDefinitions.map(x => x.trim())).join('\n');
+  return uniq(resolvedTypeDefinitions.map((x) => x.trim())).join('\n');
 }
 
 function uniq(array: Array<any>): Array<any> {

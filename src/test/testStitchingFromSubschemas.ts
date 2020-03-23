@@ -115,7 +115,7 @@ schemas['chirpSchema'] = chirpSchema;
 schemas['authorSchema'] = authorSchema;
 
 const mergedSchema = mergeSchemas({
-  schemas: Object.keys(schemas).map(schemaName => schemas[schemaName]),
+  schemas: Object.keys(schemas).map((schemaName) => schemas[schemaName]),
 });
 
 describe('merging without specifying fragments', () => {

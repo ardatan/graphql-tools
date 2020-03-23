@@ -28,7 +28,7 @@ export function extendSchema(
   const extendedSchema = graphqlExtendSchema(schema, extension, options);
 
   const fields = extendedSchema.getSubscriptionType().getFields();
-  Object.keys(subscriptionResolvers).forEach(fieldName => {
+  Object.keys(subscriptionResolvers).forEach((fieldName) => {
     fields[fieldName].subscribe = subscriptionResolvers[fieldName].subscribe;
   });
 

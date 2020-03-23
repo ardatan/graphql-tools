@@ -56,7 +56,7 @@ const attachConnectorsToContext = deprecated<Function>(
       if (typeof ctx.connectors === 'undefined') {
         ctx.connectors = {};
       }
-      Object.keys(connectors).forEach(connectorName => {
+      Object.keys(connectors).forEach((connectorName) => {
         const connector: IConnector = connectors[connectorName];
         if (connector.prototype != null) {
           ctx.connectors[connectorName] = new (connector as IConnectorCls)(ctx);

@@ -25,9 +25,9 @@ function buildDelegationPlan(
   const proxiableSubschemas: Array<SubschemaConfig> = [];
   const nonProxiableSubschemas: Array<SubschemaConfig> = [];
 
-  targetSubschemas.forEach(t => {
+  targetSubschemas.forEach((t) => {
     if (
-      sourceSubschemas.some(s => {
+      sourceSubschemas.some((s) => {
         const selectionSet = mergedTypeInfo.selectionSets.get(t);
         return mergedTypeInfo.containsSelectionSet.get(s).get(selectionSet);
       })
@@ -44,7 +44,7 @@ function buildDelegationPlan(
   // 2. for each selection:
 
   const delegationMap: Map<SubschemaConfig, Array<SelectionNode>> = new Map();
-  originalSelections.forEach(selection => {
+  originalSelections.forEach((selection) => {
     // 2a. use uniqueFields map to assign fields to subschema if one of possible subschemas
 
     const uniqueSubschema: SubschemaConfig = uniqueFields[selection.name.value];
@@ -65,14 +65,14 @@ function buildDelegationPlan(
 
       let nonUniqueSubschemas: Array<SubschemaConfig> =
         nonUniqueFields[selection.name.value];
-      nonUniqueSubschemas = nonUniqueSubschemas.filter(s =>
+      nonUniqueSubschemas = nonUniqueSubschemas.filter((s) =>
         proxiableSubschemas.includes(s),
       );
       if (nonUniqueSubschemas != null) {
         const subschemas: Array<SubschemaConfig> = Array.from(
           delegationMap.keys(),
         );
-        const existingSubschema = nonUniqueSubschemas.find(s =>
+        const existingSubschema = nonUniqueSubschemas.find((s) =>
           subschemas.includes(s),
         );
         if (existingSubschema != null) {
@@ -144,7 +144,7 @@ export function mergeFields(
   }
 
   return containsPromises
-    ? Promise.all(maybePromises).then(results =>
+    ? Promise.all(maybePromises).then((results) =>
         mergeFields(
           mergedTypeInfo,
           typeName,

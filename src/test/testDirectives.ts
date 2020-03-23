@@ -175,7 +175,7 @@ describe('@directives', () => {
     ) {
       assert.deepEqual(getDirectiveNames(type), typeDirectiveNames);
 
-      Object.keys(fieldDirectiveMap).forEach(key => {
+      Object.keys(fieldDirectiveMap).forEach((key) => {
         assert.deepEqual(
           getDirectiveNames((type as GraphQLObjectType).getFields()[key]),
           fieldDirectiveMap[key],
@@ -184,14 +184,14 @@ describe('@directives', () => {
     }
 
     function getDirectiveNames(type: VisitableSchemaType): Array<string> {
-      let directives = type.astNode.directives.map(d => d.name.value);
+      let directives = type.astNode.directives.map((d) => d.name.value);
       const extensionASTNodes = (type as {
         extensionASTNodes?: Array<TypeSystemExtensionNode>;
       }).extensionASTNodes;
       if (extensionASTNodes != null) {
-        extensionASTNodes.forEach(extensionASTNode => {
+        extensionASTNodes.forEach((extensionASTNode) => {
           directives = directives.concat(
-            extensionASTNode.directives.map(d => d.name.value),
+            extensionASTNode.directives.map((d) => d.name.value),
           );
         });
       }
@@ -577,7 +577,7 @@ describe('@directives', () => {
     assert.deepEqual(
       Object.keys(methodNamesEncountered).sort((a, b) => a.localeCompare(b)),
       Object.keys(SchemaVisitor.prototype)
-        .filter(name => name.startsWith('visit'))
+        .filter((name) => name.startsWith('visit'))
         .sort((a, b) => a.localeCompare(b)),
     );
   });
@@ -620,7 +620,7 @@ describe('@directives', () => {
           ) {
             assert.strictEqual(theSchema, schema);
             const prev = schema.getDirective(name);
-            prev.args.some(arg => {
+            prev.args.some((arg) => {
               if (arg.name === 'times') {
                 // Override the default value of the times argument to be 3
                 // instead of 5.
@@ -657,7 +657,8 @@ describe('@directives', () => {
     assert.deepEqual(Object.keys(visitors), ['oyez']);
     assert.deepEqual(
       visitors.oyez.map(
-        v => (v.visitedType as GraphQLObjectType | GraphQLField<any, any>).name,
+        (v) =>
+          (v.visitedType as GraphQLObjectType | GraphQLField<any, any>).name,
       ),
       ['Courtroom', 'judge', 'marshall'],
     );
@@ -675,7 +676,7 @@ describe('@directives', () => {
         upper: class extends SchemaDirectiveVisitor {
           public visitFieldDefinition(field: GraphQLField<any, any>) {
             const { resolve = defaultFieldResolver } = field;
-            field.resolve = async function(...args) {
+            field.resolve = async function (...args) {
               const result = await resolve.apply(this, args);
               if (typeof result === 'string') {
                 return result.toUpperCase();
@@ -725,7 +726,7 @@ describe('@directives', () => {
             const { resolve = defaultFieldResolver } = field;
             const { format } = this.args;
             field.type = GraphQLString;
-            field.resolve = async function(...args) {
+            field.resolve = async function (...args) {
               const date = await resolve.apply(this, args);
               return formatDate(date, format, true);
             };
@@ -770,7 +771,7 @@ describe('@directives', () => {
         );
 
         field.type = GraphQLString;
-        field.resolve = async function(
+        field.resolve = async function (
           source,
           { format, ...args },
           context,
@@ -861,7 +862,7 @@ describe('@directives', () => {
             },
           ) {
             const { resolve = defaultFieldResolver } = field;
-            field.resolve = async function(...args: Array<any>) {
+            field.resolve = async function (...args: Array<any>) {
               const defaultText = await resolve.apply(this, args);
               // In this example, path would be ["Query", "greeting"]:
               const path = [details.objectType.name, field.name];
@@ -936,10 +937,10 @@ describe('@directives', () => {
 
         const fields = objectType.getFields();
 
-        Object.keys(fields).forEach(fieldName => {
+        Object.keys(fields).forEach((fieldName) => {
           const field = fields[fieldName];
           const { resolve = defaultFieldResolver } = field;
-          field.resolve = function(...args: Array<any>) {
+          field.resolve = function (...args: Array<any>) {
             // Get the required Role from the field first, falling back
             // to the objectType if no Role is required by the field:
             const requiredRole =
@@ -1029,7 +1030,7 @@ describe('@directives', () => {
       expectedCount: number,
       ...expectedNames: Array<string>
     ) {
-      return function({
+      return function ({
         errors = [],
         data,
       }: {
@@ -1037,8 +1038,8 @@ describe('@directives', () => {
         data: any;
       }) {
         assert.strictEqual(errors.length, expectedCount);
-        assert(errors.every(error => error.message === 'not authorized'));
-        const actualNames = errors.map(error => error.path.slice(-1)[0]);
+        assert(errors.every((error) => error.message === 'not authorized'));
+        const actualNames = errors.map((error) => error.path.slice(-1)[0]);
         assert.deepEqual(
           expectedNames.sort((a, b) => a.localeCompare(b)),
           actualNames.sort((a, b) => a.localeCompare(b)),
@@ -1053,7 +1054,7 @@ describe('@directives', () => {
       execWithRole('REVIEWER').then(checkErrors(1, 'banned')),
       execWithRole('ADMIN')
         .then(checkErrors(0))
-        .then(data => {
+        .then((data) => {
           assert.strictEqual(data.users.length, 1);
           assert.strictEqual(data.users[0].banned, true);
           assert.strictEqual(data.users[0].canPost, false);
@@ -1265,7 +1266,7 @@ describe('@directives', () => {
       `,
       null,
       context,
-    ).then(result => {
+    ).then((result) => {
       const { data } = result;
 
       assert.deepEqual(data.people, [
@@ -1316,7 +1317,7 @@ describe('@directives', () => {
     );
 
     const WhateverUnion = schema.getType('WhateverUnion') as GraphQLUnionType;
-    const found = WhateverUnion.getTypes().some(type => {
+    const found = WhateverUnion.getTypes().some((type) => {
       if (type.name === 'Human') {
         assert.strictEqual(type, schema.getType('Human'));
         return true;
@@ -1357,7 +1358,7 @@ describe('@directives', () => {
 
     const AgeUnit = schema.getType('AgeUnit') as GraphQLEnumType;
     assert.deepEqual(
-      AgeUnit.getValues().map(value => value.name),
+      AgeUnit.getValues().map((value) => value.name),
       ['DOG_YEARS', 'PERSON_YEARS'],
     );
   });
@@ -1446,7 +1447,7 @@ describe('@directives', () => {
             const { resolve = defaultFieldResolver } = field;
             const newField = { ...field };
 
-            newField.resolve = async function(...args: Array<any>) {
+            newField.resolve = async function (...args: Array<any>) {
               const result = await resolve.apply(this, args);
               if (typeof result === 'string') {
                 return result.toUpperCase();
@@ -1460,13 +1461,10 @@ describe('@directives', () => {
         reverse: class extends SchemaDirectiveVisitor {
           public visitFieldDefinition(field: GraphQLField<any, any>) {
             const { resolve = defaultFieldResolver } = field;
-            field.resolve = async function(...args: Array<any>) {
+            field.resolve = async function (...args: Array<any>) {
               const result = await resolve.apply(this, args);
               if (typeof result === 'string') {
-                return result
-                  .split('')
-                  .reverse()
-                  .join('');
+                return result.split('').reverse().join('');
               }
               return result;
             };

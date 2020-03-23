@@ -40,7 +40,7 @@ export function wrapFieldNode(
   path: Array<string>,
 ): FieldNode {
   let newFieldNode = fieldNode;
-  path.forEach(fieldName => {
+  path.forEach((fieldName) => {
     newFieldNode = {
       kind: Kind.FIELD,
       name: {
@@ -64,7 +64,7 @@ export function collectFields(
   visitedFragmentNames = {},
 ): Array<FieldNode> {
   if (selectionSet != null) {
-    selectionSet.selections.forEach(selection => {
+    selectionSet.selections.forEach((selection) => {
       switch (selection.kind) {
         case Kind.FIELD:
           fields.push(selection);

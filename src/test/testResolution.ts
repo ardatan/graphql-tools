@@ -45,7 +45,7 @@ describe('Resolve', () => {
     };
     const schema = makeExecutableSchema({ typeDefs, resolvers });
     let schemaLevelResolverCalls = 0;
-    addSchemaLevelResolver(schema, root => {
+    addSchemaLevelResolver(schema, (root) => {
       schemaLevelResolverCalls += 1;
       return root;
     });
@@ -71,7 +71,7 @@ describe('Resolve', () => {
       });
     });
 
-    it('should isolate roots from the different operation types', done => {
+    it('should isolate roots from the different operation types', (done) => {
       schemaLevelResolverCalls = 0;
       const queryRoot = 'queryRoot';
       const mutationRoot = 'mutationRoot';
@@ -79,7 +79,7 @@ describe('Resolve', () => {
       const subscriptionRoot2 = 'subscriptionRoot2';
 
       let subsCbkCalls = 0;
-      const firstSubsTriggered = new Promise(resolveFirst => {
+      const firstSubsTriggered = new Promise((resolveFirst) => {
         subscribe(
           schema,
           parse(`
@@ -88,7 +88,7 @@ describe('Resolve', () => {
             }
           `),
         )
-          .then(results => {
+          .then((results) => {
             forAwaitEach(
               results as AsyncIterable<ExecutionResult>,
               (result: ExecutionResult) => {

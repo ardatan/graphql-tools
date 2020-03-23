@@ -33,7 +33,7 @@ export function transformInputValue(
   } else if (isInputObjectType(nullableType)) {
     const fields = nullableType.getFields();
     const newValue = {};
-    Object.keys(value).forEach(key => {
+    Object.keys(value).forEach((key) => {
       newValue[key] = transformInputValue(
         fields[key].type,
         value[key],

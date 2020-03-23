@@ -99,10 +99,10 @@ function createMergedTypes(
 ): Record<string, MergedTypeInfo> {
   const mergedTypes: Record<string, MergedTypeInfo> = {};
 
-  Object.keys(typeCandidates).forEach(typeName => {
+  Object.keys(typeCandidates).forEach((typeName) => {
     if (isObjectType(typeCandidates[typeName][0].type)) {
       const mergedTypeCandidates = typeCandidates[typeName].filter(
-        typeCandidate =>
+        (typeCandidate) =>
           typeCandidate.subschema != null &&
           isSubschemaConfig(typeCandidate.subschema) &&
           typeCandidate.subschema.merge != null &&
@@ -125,7 +125,7 @@ function createMergedTypes(
         const typeMaps: Map<SubschemaConfig, TypeMap> = new Map();
         const selectionSets: Map<SubschemaConfig, SelectionSetNode> = new Map();
 
-        mergedTypeCandidates.forEach(typeCandidate => {
+        mergedTypeCandidates.forEach((typeCandidate) => {
           const subschemaConfig = typeCandidate.subschema as SubschemaConfig;
           const transformedSubschema = typeCandidate.transformedSubschema;
           typeMaps.set(subschemaConfig, transformedSubschema.getTypeMap());
@@ -133,7 +133,7 @@ function createMergedTypes(
             typeName,
           ) as GraphQLObjectType;
           const fieldMap = type.getFields();
-          Object.keys(fieldMap).forEach(fieldName => {
+          Object.keys(fieldMap).forEach((fieldName) => {
             if (fields[fieldName] == null) {
               fields[fieldName] = [];
             }
@@ -184,12 +184,12 @@ function createMergedTypes(
           nonUniqueFields: Object.create({}),
         };
 
-        subschemas.forEach(subschema => {
+        subschemas.forEach((subschema) => {
           const type = typeMaps.get(subschema)[typeName] as GraphQLObjectType;
           const subschemaMap = new Map();
           subschemas
-            .filter(s => s !== subschema)
-            .forEach(s => {
+            .filter((s) => s !== subschema)
+            .forEach((s) => {
               const selectionSet = selectionSets.get(s);
               if (
                 selectionSet != null &&
@@ -204,7 +204,7 @@ function createMergedTypes(
           );
         });
 
-        Object.keys(fields).forEach(fieldName => {
+        Object.keys(fields).forEach((fieldName) => {
           const supportedBySubschemas = fields[fieldName];
           if (supportedBySubschemas.length === 1) {
             mergedTypes[typeName].uniqueFields[fieldName] =
@@ -233,12 +233,12 @@ export function completeMergeInfo(
 ): MergeInfo {
   const replacementSelectionSets = Object.create(null);
 
-  Object.keys(resolvers).forEach(typeName => {
+  Object.keys(resolvers).forEach((typeName) => {
     const type = resolvers[typeName];
     if (isScalarType(type)) {
       return;
     }
-    Object.keys(type).forEach(fieldName => {
+    Object.keys(type).forEach((fieldName) => {
       const field = type[fieldName];
       if (field.selectionSet) {
         const selectionSet = parseSelectionSet(field.selectionSet);
@@ -280,8 +280,8 @@ export function completeMergeInfo(
   });
 
   const replacementFragments = Object.create(null);
-  Object.keys(mapping).forEach(typeName => {
-    Object.keys(mapping[typeName]).forEach(field => {
+  Object.keys(mapping).forEach((typeName) => {
+    Object.keys(mapping[typeName]).forEach((field) => {
       if (replacementFragments[typeName] == null) {
         replacementFragments[typeName] = {};
       }

@@ -46,7 +46,7 @@ export function makeExecutableSchema<TContext = any>({
   // We allow passing in an array of resolver maps, in which case we merge them
   const resolverMap = Array.isArray(resolvers)
     ? resolvers
-        .filter(resolverObj => typeof resolverObj === 'object')
+        .filter((resolverObj) => typeof resolverObj === 'object')
         .reduce(mergeDeep, {})
     : resolvers;
 

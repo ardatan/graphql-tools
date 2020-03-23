@@ -131,7 +131,7 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
     const createdVisitors: {
       [directiveName: string]: Array<SchemaDirectiveVisitor>;
     } = Object.create(null);
-    Object.keys(directiveVisitors).forEach(directiveName => {
+    Object.keys(directiveVisitors).forEach((directiveName) => {
       createdVisitors[directiveName] = [];
     });
 
@@ -146,13 +146,13 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
       }).extensionASTNodes;
 
       if (extensionASTNodes != null) {
-        extensionASTNodes.forEach(extensionASTNode => {
+        extensionASTNodes.forEach((extensionASTNode) => {
           directiveNodes = directiveNodes.concat(extensionASTNode.directives);
         });
       }
 
       const visitors: Array<SchemaDirectiveVisitor> = [];
-      directiveNodes.forEach(directiveNode => {
+      directiveNodes.forEach((directiveNode) => {
         const directiveName = directiveNode.name.value;
         if (!hasOwn.call(directiveVisitors, directiveName)) {
           return;
@@ -179,7 +179,7 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
           // argument nodes to their corresponding JavaScript values.
           args = Object.create(null);
           if (directiveNode.arguments != null) {
-            directiveNode.arguments.forEach(arg => {
+            directiveNode.arguments.forEach((arg) => {
               args[arg.name.value] = valueFromASTUntyped(arg.value);
             });
           }
@@ -202,7 +202,7 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
       });
 
       if (visitors.length > 0) {
-        visitors.forEach(visitor => {
+        visitors.forEach((visitor) => {
           createdVisitors[visitor.name].push(visitor);
         });
       }
@@ -251,7 +251,7 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
       }
       const visitorClass = directiveVisitors[name];
 
-      each(decl.locations, loc => {
+      each(decl.locations, (loc) => {
         const visitorMethodName = directiveLocationToVisitorMethodName(loc);
         if (
           SchemaVisitor.implementsVisitorMethod(visitorMethodName) &&

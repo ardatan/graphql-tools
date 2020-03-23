@@ -68,8 +68,8 @@ export default class TransformObjectFields implements Transform {
   public transformRequest(originalRequest: Request): Request {
     const fragments = {};
     originalRequest.document.definitions
-      .filter(def => def.kind === Kind.FRAGMENT_DEFINITION)
-      .forEach(def => {
+      .filter((def) => def.kind === Kind.FRAGMENT_DEFINITION)
+      .forEach((def) => {
         fragments[(def as FragmentDefinitionNode).name.value] = def;
       });
     const document = this.transformDocument(
@@ -92,7 +92,7 @@ export default class TransformObjectFields implements Transform {
     const fields = type.getFields();
     const newFields = {};
 
-    Object.keys(fields).forEach(fieldName => {
+    Object.keys(fields).forEach((fieldName) => {
       const field = fields[fieldName];
       const transformedField = objectFieldTransformer(
         type.name,
@@ -151,7 +151,7 @@ export default class TransformObjectFields implements Transform {
               const parentTypeName = parentType.name;
               let newSelections: Array<SelectionNode> = [];
 
-              node.selections.forEach(selection => {
+              node.selections.forEach((selection) => {
                 if (selection.kind !== Kind.FIELD) {
                   newSelections.push(selection);
                   return;

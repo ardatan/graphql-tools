@@ -60,7 +60,7 @@ function proxyResolvers(spec: string): IResolvers {
     Location: {
       coordinates: {
         fragment: '... on Location { name }',
-        resolve: location => {
+        resolve: (location) => {
           const name = location.name;
           return findPropertyByLocationName(sampleData.Property, name).location
             .coordinates;
@@ -81,7 +81,7 @@ const proxyTypeDefs = `
 
 describe('stitching', () => {
   describe('delegateToSchema', () => {
-    ['standalone', 'info.mergeInfo'].forEach(spec => {
+    ['standalone', 'info.mergeInfo'].forEach((spec) => {
       describe(spec, () => {
         let schema: GraphQLSchema;
         before(() => {

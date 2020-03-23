@@ -138,7 +138,7 @@ describe('Gatsby transforms', () => {
 
     const transformedSchema = transformSchema(schema, [
       new StripNonQueryTransform(),
-      new RenameTypes(name => `CountriesQuery_${name}`),
+      new RenameTypes((name) => `CountriesQuery_${name}`),
       new NamespaceUnderFieldTransform({
         typeName: 'CountriesQuery',
         fieldName: 'countries',

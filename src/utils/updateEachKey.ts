@@ -10,7 +10,7 @@ export default function updateEachKey<V>(
 ) {
   let deletedCount = 0;
 
-  Object.keys(arrayOrObject).forEach(key => {
+  Object.keys(arrayOrObject).forEach((key) => {
     const result = updater(arrayOrObject[key], key);
 
     if (typeof result === 'undefined') {
@@ -28,7 +28,7 @@ export default function updateEachKey<V>(
 
   if (deletedCount > 0 && Array.isArray(arrayOrObject)) {
     // Remove any holes from the array due to deleted elements.
-    arrayOrObject.splice(0).forEach(elem => {
+    arrayOrObject.splice(0).forEach((elem) => {
       arrayOrObject.push(elem);
     });
   }

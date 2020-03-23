@@ -297,7 +297,7 @@ describe('merge schemas through transforms', () => {
     });
   });
 
-  it('local subscriptions should work even if root fields are renamed', done => {
+  it('local subscriptions should work even if root fields are renamed', (done) => {
     const originalNotification = {
       notifications: {
         text: 'Hello world',
@@ -319,7 +319,7 @@ describe('merge schemas through transforms', () => {
 
     let notificationCnt = 0;
     subscribe(mergedSchema, subscription)
-      .then(results => {
+      .then((results) => {
         forAwaitEach(
           results as AsyncIterable<ExecutionResult>,
           (result: ExecutionResult) => {
@@ -861,9 +861,9 @@ describe('schema transformation with extraction of nested fields', () => {
         },
         fieldNodeTransformerMap: {
           Property: {
-            locationName: fieldNode =>
+            locationName: (fieldNode) =>
               wrapFieldNode(renameFieldNode(fieldNode, 'name'), ['location']),
-            renamedError: fieldNode => renameFieldNode(fieldNode, 'error'),
+            renamedError: (fieldNode) => renameFieldNode(fieldNode, 'error'),
           },
         },
       }),
@@ -1243,7 +1243,7 @@ describe('schema transformation with renaming of object fields', () => {
         fieldNodeTransformerMap: {
           Property: {
             // eslint-disable-next-line camelcase
-            new_error: fieldNode => renameFieldNode(fieldNode, 'error'),
+            new_error: (fieldNode) => renameFieldNode(fieldNode, 'error'),
           },
         },
       }),
@@ -1471,8 +1471,8 @@ type Query {
         TestScalar: new GraphQLScalarType({
           name: 'TestScalar',
           description: undefined,
-          serialize: value => (value as string).slice(1),
-          parseValue: value => `_${value as string}`,
+          serialize: (value) => (value as string).slice(1),
+          parseValue: (value) => `_${value as string}`,
           parseLiteral: (ast: any) => `_${ast.value as string}`,
         }),
         Query: {
@@ -1486,8 +1486,8 @@ type Query {
         TestScalar: new GraphQLScalarType({
           name: 'TestScalar',
           description: undefined,
-          serialize: value => (value as string).slice(2),
-          parseValue: value => `__${value as string}`,
+          serialize: (value) => (value as string).slice(2),
+          parseValue: (value) => `__${value as string}`,
           parseLiteral: (ast: any) => `__${ast.value as string}`,
         }),
       },
@@ -1511,8 +1511,8 @@ type Query {
         TestScalar: new GraphQLScalarType({
           name: 'TestScalar',
           description: undefined,
-          serialize: value => (value as string).slice(1),
-          parseValue: value => `_${value as string}`,
+          serialize: (value) => (value as string).slice(1),
+          parseValue: (value) => `_${value as string}`,
           parseLiteral: (ast: any) => `_${ast.value as string}`,
         }),
         Query: {
@@ -1526,8 +1526,8 @@ type Query {
         TestScalar: new GraphQLScalarType({
           name: 'TestScalar',
           description: undefined,
-          serialize: value => (value as string).slice(2),
-          parseValue: value => `__${value as string}`,
+          serialize: (value) => (value as string).slice(2),
+          parseValue: (value) => `__${value as string}`,
           parseLiteral: (ast: any) => `__${ast.value as string}`,
         }),
       },
@@ -1696,7 +1696,7 @@ describe('onTypeConflict', () => {
   it('can use onTypeConflict to select first type', async () => {
     const mergedSchema = mergeSchemas({
       schemas: [schema1, schema2],
-      onTypeConflict: left => left,
+      onTypeConflict: (left) => left,
     });
     const result1 = await graphql(mergedSchema, '{ test1 { fieldB } }');
     expect(result1.data?.test1.fieldB).to.equal('B');
@@ -1750,7 +1750,7 @@ describe('mergeTypes', () => {
           getTest: (_parent, { id }) => ({ id }),
         },
         Test: {
-          field1: parent => parent.id,
+          field1: (parent) => parent.id,
         },
       },
     });
@@ -1763,7 +1763,7 @@ describe('mergeTypes', () => {
           getTest: (_parent, { id }) => ({ id }),
         },
         Test: {
-          field2: parent => parent.id,
+          field2: (parent) => parent.id,
         },
       },
     });

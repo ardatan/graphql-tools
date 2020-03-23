@@ -50,10 +50,10 @@ export function generateProxyingResolvers({
   const mapping = generateSimpleMapping(targetSchema);
 
   const result = {};
-  Object.keys(mapping).forEach(name => {
+  Object.keys(mapping).forEach((name) => {
     result[name] = {};
     const innerMapping = mapping[name];
-    Object.keys(innerMapping).forEach(from => {
+    Object.keys(innerMapping).forEach((from) => {
       const to = innerMapping[from];
       const resolverType =
         to.operation === 'subscription' ? 'subscribe' : 'resolve';
@@ -103,7 +103,7 @@ export function generateMappingFromObjectType(
 } {
   const result = {};
   const fields = type.getFields();
-  Object.keys(fields).forEach(fieldName => {
+  Object.keys(fields).forEach((fieldName) => {
     result[fieldName] = {
       name: fieldName,
       operation,
@@ -146,7 +146,7 @@ function defaultCreateProxyingResolver({
 
 export function stripResolvers(schema: GraphQLSchema): void {
   const typeMap = schema.getTypeMap();
-  Object.keys(typeMap).forEach(typeName => {
+  Object.keys(typeMap).forEach((typeName) => {
     if (!typeName.startsWith('__')) {
       makeMergedType(typeMap[typeName]);
     }

@@ -57,7 +57,7 @@ export default class WrapFields implements Transform {
       this.outerTypeName,
       !this.fieldNames
         ? () => true
-        : fieldName => this.fieldNames.includes(fieldName),
+        : (fieldName) => this.fieldNames.includes(fieldName),
     );
 
     let wrapIndex = this.numWraps - 1;

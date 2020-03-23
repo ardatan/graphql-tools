@@ -65,7 +65,7 @@ function filterRootFields(
   rootFieldFilter: RootFieldFilter,
 ): GraphQLObjectType {
   const config = toConfig(type);
-  Object.keys(config.fields).forEach(fieldName => {
+  Object.keys(config.fields).forEach((fieldName) => {
     if (!rootFieldFilter(operation, fieldName)) {
       delete config.fields[fieldName];
     }
@@ -78,7 +78,7 @@ function filterObjectFields(
   fieldFilter: FieldFilter,
 ): GraphQLObjectType {
   const config = toConfig(type);
-  Object.keys(config.fields).forEach(fieldName => {
+  Object.keys(config.fields).forEach((fieldName) => {
     if (!fieldFilter(type.name, fieldName)) {
       delete config.fields[fieldName];
     }

@@ -81,7 +81,7 @@ function addMocksToSchema({
 
   // use Map internally, because that API is nicer.
   const mockFunctionMap: Map<string, IMockFn> = new Map();
-  Object.keys(mocks).forEach(typeName => {
+  Object.keys(mocks).forEach((typeName) => {
     mockFunctionMap.set(typeName, mocks[typeName]);
   });
 
@@ -91,7 +91,7 @@ function addMocksToSchema({
     }
   });
 
-  const mockType = function(
+  const mockType = function (
     type: GraphQLType,
     _typeName?: string,
     fieldName?: string,
@@ -263,7 +263,7 @@ function addMocksToSchema({
           Promise.all([
             mockResolver(rootObject, args, context, info),
             oldResolver(rootObject, args, context, info),
-          ]).then(values => {
+          ]).then((values) => {
             const [mockedValue, resolvedValue] = values;
 
             // In case we couldn't mock
@@ -312,7 +312,7 @@ function copyOwnPropsIfNotPresent(
   target: Record<string, any>,
   source: Record<string, any>,
 ) {
-  Object.getOwnPropertyNames(source).forEach(prop => {
+  Object.getOwnPropertyNames(source).forEach((prop) => {
     if (!Object.getOwnPropertyDescriptor(target, prop)) {
       const propertyDescriptor = Object.getOwnPropertyDescriptor(source, prop);
       Object.defineProperty(
@@ -328,7 +328,7 @@ function copyOwnProps(
   target: Record<string, any>,
   ...sources: Array<Record<string, any>>
 ) {
-  sources.forEach(source => {
+  sources.forEach((source) => {
     let chain = source;
     while (chain != null) {
       copyOwnPropsIfNotPresent(target, chain);

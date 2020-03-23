@@ -24,7 +24,7 @@ export default class HoistField implements Transform {
     this.oldFieldName = this.pathToField.pop();
     this.transformer = new MapFields({
       [typeName]: {
-        [newFieldName]: fieldNode =>
+        [newFieldName]: (fieldNode) =>
           wrapFieldNode(
             renameFieldNode(fieldNode, this.oldFieldName),
             this.pathToField,
@@ -45,7 +45,7 @@ export default class HoistField implements Transform {
     const targetField = removeFields(
       typeMap,
       innerType.name,
-      fieldName => fieldName === this.oldFieldName,
+      (fieldName) => fieldName === this.oldFieldName,
     )[this.oldFieldName];
 
     const targetType = targetField.type as GraphQLObjectType;

@@ -29,7 +29,7 @@ describe('mapSchema', () => {
     });
 
     const newSchema = mapSchema(schema, {
-      [MapperKind.QUERY]: type => {
+      [MapperKind.QUERY]: (type) => {
         const queryConfig = toConfig(type);
         queryConfig.fields.version.resolve = () => 1;
         return new GraphQLObjectType(queryConfig);
@@ -52,7 +52,7 @@ describe('mapSchema', () => {
     });
 
     const newSchema = mapSchema(schema, {
-      [MapperKind.QUERY]: type => {
+      [MapperKind.QUERY]: (type) => {
         const queryConfig = toConfig(type);
         queryConfig.name = 'RootQuery';
         return new GraphQLObjectType(queryConfig);

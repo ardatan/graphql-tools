@@ -128,7 +128,7 @@ export default class RenameTypes implements Transform {
       });
       return value;
     } else if (typeof value === 'object') {
-      Object.keys(value).forEach(key => {
+      Object.keys(value).forEach((key) => {
         value[key] =
           key === '__typename'
             ? this.renamer(value[key])

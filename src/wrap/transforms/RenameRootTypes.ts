@@ -23,7 +23,7 @@ export default class RenameRootTypes implements Transform {
 
   public transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
     return mapSchema(originalSchema, {
-      [MapperKind.ROOT_OBJECT]: type => {
+      [MapperKind.ROOT_OBJECT]: (type) => {
         const oldName = type.name;
         const newName = this.renamer(oldName);
         if (newName && newName !== oldName) {
@@ -75,7 +75,7 @@ export default class RenameRootTypes implements Transform {
       });
       return value;
     } else if (typeof value === 'object') {
-      Object.keys(value).forEach(key => {
+      Object.keys(value).forEach((key) => {
         value[key] =
           key === '__typename'
             ? this.renamer(value[key])

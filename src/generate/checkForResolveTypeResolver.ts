@@ -13,7 +13,7 @@ function checkForResolveTypeResolver(
   requireResolversForResolveType?: boolean,
 ) {
   Object.keys(schema.getTypeMap())
-    .map(typeName => schema.getType(typeName))
+    .map((typeName) => schema.getType(typeName))
     .forEach((type: GraphQLUnionType | GraphQLInterfaceType) => {
       if (!isAbstractType(type)) {
         return;

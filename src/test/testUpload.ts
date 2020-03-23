@@ -19,7 +19,7 @@ import { SubschemaConfig } from '../Interfaces';
 function streamToString(stream: Readable) {
   const chunks: Array<Buffer> = [];
   return new Promise((resolve, reject) => {
-    stream.on('data', chunk => chunks.push(chunk));
+    stream.on('data', (chunk) => chunks.push(chunk));
     stream.on('error', reject);
     stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
   });
@@ -27,7 +27,7 @@ function streamToString(stream: Readable) {
 
 function startServer(e: Express): Promise<Server> {
   return new Promise((resolve, reject) => {
-    e.listen(undefined, 'localhost', function(error) {
+    e.listen(undefined, 'localhost', function (error) {
       if (error) {
         reject(error);
       } else {

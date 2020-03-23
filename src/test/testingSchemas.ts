@@ -173,7 +173,7 @@ export const sampleData: {
 };
 
 function values<T>(o: { [s: string]: T }): Array<T> {
-  return Object.keys(o).map(k => o[k]);
+  return Object.keys(o).map((k) => o[k]);
 }
 
 function coerceString(value: any): string {
@@ -209,7 +209,7 @@ function parseLiteral(ast: ValueNode): any {
       return parseFloat(ast.value);
     case Kind.OBJECT: {
       const value = Object.create(null);
-      ast.fields.forEach(field => {
+      ast.fields.forEach((field) => {
         value[field.name.value] = parseLiteral(field.value);
       });
 
@@ -689,8 +689,8 @@ const hasSubscriptionOperation = ({ query }: { query: any }): boolean => {
 
 function makeLinkFromSchema(schema: GraphQLSchema) {
   return new ApolloLink(
-    operation =>
-      new Observable(observer => {
+    (operation) =>
+      new Observable((observer) => {
         const { query, operationName, variables } = operation;
         const { graphqlContext } = operation.getContext();
         if (!hasSubscriptionOperation(operation)) {
@@ -702,11 +702,11 @@ function makeLinkFromSchema(schema: GraphQLSchema) {
             variables,
             operationName,
           )
-            .then(result => {
+            .then((result) => {
               observer.next(result);
               observer.complete();
             })
-            .catch(err => {
+            .catch((err) => {
               observer.error(err);
             });
         } else {
@@ -718,23 +718,23 @@ function makeLinkFromSchema(schema: GraphQLSchema) {
             variables,
             operationName,
           )
-            .then(results => {
+            .then((results) => {
               if (
                 typeof (results as AsyncIterator<ExecutionResult>).next ===
                 'function'
               ) {
                 forAwaitEach(
                   results as AsyncIterable<ExecutionResult>,
-                  result => observer.next(result),
+                  (result) => observer.next(result),
                 )
                   .then(() => observer.complete())
-                  .catch(err => observer.error(err));
+                  .catch((err) => observer.error(err));
               } else {
                 observer.next(results as LinkExecutionResult);
                 observer.complete();
               }
             })
-            .catch(err => {
+            .catch((err) => {
               observer.error(err);
             });
         }

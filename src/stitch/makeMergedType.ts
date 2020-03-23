@@ -8,11 +8,11 @@ export function makeMergedType(type: GraphQLType): void {
     type.isTypeOf = undefined;
 
     const fieldMap = type.getFields();
-    Object.keys(fieldMap).forEach(fieldName => {
+    Object.keys(fieldMap).forEach((fieldName) => {
       fieldMap[fieldName].resolve = defaultMergedResolver;
       fieldMap[fieldName].subscribe = null;
     });
   } else if (isAbstractType(type)) {
-    type.resolveType = parent => resolveFromParentTypename(parent);
+    type.resolveType = (parent) => resolveFromParentTypename(parent);
   }
 }

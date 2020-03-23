@@ -60,13 +60,15 @@ function addResolversToSchema(
 
   const typeMap = schema.getTypeMap();
 
-  Object.keys(resolvers).forEach(typeName => {
+  Object.keys(resolvers).forEach((typeName) => {
     const resolverValue = resolvers[typeName];
     const resolverType = typeof resolverValue;
 
     if (resolverType !== 'object' && resolverType !== 'function') {
       throw new SchemaError(
-        `"${typeName}" defined in resolvers, but has invalid value "${resolverValue as string}". A resolver's value must be of type object or function.`,
+        `"${typeName}" defined in resolvers, but has invalid value "${
+          resolverValue as string
+        }". A resolver's value must be of type object or function.`,
       );
     }
 
@@ -84,7 +86,7 @@ function addResolversToSchema(
 
     if (isScalarType(type)) {
       // Support -- without recommending -- overriding default scalar types
-      Object.keys(resolverValue).forEach(fieldName => {
+      Object.keys(resolverValue).forEach((fieldName) => {
         if (fieldName.startsWith('__')) {
           type[fieldName.substring(2)] = resolverValue[fieldName];
         } else {
@@ -95,7 +97,7 @@ function addResolversToSchema(
       // We've encountered an enum resolver that is being used to provide an
       // internal enum value.
       // Reference: https://www.apollographql.com/docs/graphql-tools/scalars.html#internal-values
-      Object.keys(resolverValue).forEach(fieldName => {
+      Object.keys(resolverValue).forEach((fieldName) => {
         if (!type.getValue(fieldName)) {
           if (allowResolversNotInSchema) {
             return;
@@ -110,7 +112,7 @@ function addResolversToSchema(
 
       const values = type.getValues();
       const newValues = {};
-      values.forEach(value => {
+      values.forEach((value) => {
         const newValue = Object.keys(resolverValue).includes(value.name)
           ? resolverValue[value.name]
           : value.name;
@@ -128,7 +130,7 @@ function addResolversToSchema(
         values: newValues,
       });
     } else if (isUnionType(type)) {
-      Object.keys(resolverValue).forEach(fieldName => {
+      Object.keys(resolverValue).forEach((fieldName) => {
         if (fieldName.startsWith('__')) {
           // this is for isTypeOf and resolveType and all the other stuff.
           type[fieldName.substring(2)] = resolverValue[fieldName];
@@ -143,7 +145,7 @@ function addResolversToSchema(
         );
       });
     } else if (isObjectType(type) || isInterfaceType(type)) {
-      Object.keys(resolverValue).forEach(fieldName => {
+      Object.keys(resolverValue).forEach((fieldName) => {
         if (fieldName.startsWith('__')) {
           // this is for isTypeOf and resolveType and all the other stuff.
           type[fieldName.substring(2)] = resolverValue[fieldName];
@@ -189,7 +191,7 @@ function addResolversToSchema(
   forEachDefaultValue(schema, parseInputValue);
 
   if (defaultFieldResolver != null) {
-    forEachField(schema, field => {
+    forEachField(schema, (field) => {
       if (!field.resolve) {
         field.resolve = defaultFieldResolver;
       }
@@ -203,7 +205,7 @@ function setFieldProperties(
   field: GraphQLField<any, any>,
   propertiesObj: Record<string, any>,
 ) {
-  Object.keys(propertiesObj).forEach(propertyName => {
+  Object.keys(propertiesObj).forEach((propertyName) => {
     field[propertyName] = propertiesObj[propertyName];
   });
 }

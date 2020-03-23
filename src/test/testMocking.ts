@@ -131,7 +131,7 @@ describe('Mock', () => {
       returnString
       returnID
     }`;
-    return graphql(jsSchema, testQuery).then(res => {
+    return graphql(jsSchema, testQuery).then((res) => {
       expect(res.data['returnInt']).to.be.within(-1000, 1000);
       expect(res.data['returnFloat']).to.be.within(-1000, 1000);
       expect(res.data['returnBoolean']).to.be.a('boolean');
@@ -167,9 +167,7 @@ describe('Mock', () => {
       .query(testQuery)
       .then((res: any) => {
         expect(res.data.returnInt).to.equal(12345);
-        expect(res.data.returnFloat)
-          .to.be.a('number')
-          .within(-1000, 1000);
+        expect(res.data.returnFloat).to.be.a('number').within(-1000, 1000);
         expect(res.data.returnBoolean).to.be.a('boolean');
         expect(res.data.returnString).to.be.a('string');
         expect(res.data.returnID).to.be.a('string');
@@ -245,9 +243,7 @@ describe('Mock', () => {
       .query(testQuery)
       .then((res: any) => {
         expect(res.data.returnInt).to.equal(12345);
-        expect(res.data.returnFloat)
-          .to.be.a('number')
-          .within(-1000, 1000);
+        expect(res.data.returnFloat).to.be.a('number').within(-1000, 1000);
         expect(res.data.returnBoolean).to.be.a('boolean');
         expect(res.data.returnString).to.be.a('string');
         expect(res.data.returnID).to.be.a('string');
@@ -287,7 +283,7 @@ describe('Mock', () => {
         }
       }
     }`;
-    return graphql(jsSchema, testQuery).then(_res => {
+    return graphql(jsSchema, testQuery).then((_res) => {
       // the resolveType has been called twice
       expect(spy).to.equal(2);
     });
@@ -301,7 +297,7 @@ describe('Mock', () => {
     const testQuery = `{
       returnEnum
     }`;
-    return graphql(jsSchema, testQuery).then(res => {
+    return graphql(jsSchema, testQuery).then((res) => {
       expect(res.data['returnEnum']).to.be.oneOf(['A', 'B', 'C']);
     });
   });
@@ -330,7 +326,7 @@ describe('Mock', () => {
         }
       }
     }`;
-    return graphql(jsSchema, testQuery).then(res => {
+    return graphql(jsSchema, testQuery).then((res) => {
       // XXX this test is expected to fail once every 2^40 times ;-)
       expect(res.data['returnBirdsAndBees']).to.deep.include({
         returnInt: 10,
@@ -371,7 +367,7 @@ describe('Mock', () => {
         }
       }
     }`;
-    return graphql(jsSchema, testQuery).then(res => {
+    return graphql(jsSchema, testQuery).then((res) => {
       expect(res.data['returnFlying']).to.deep.include({
         returnInt: 10,
         returnString: 'aha',
@@ -400,7 +396,9 @@ describe('Mock', () => {
         spy++;
         const { id } = args;
         const type = id.split(':')[0];
-        const __typename = ['Bird', 'Bee'].find(r => r.toLowerCase() === type);
+        const __typename = ['Bird', 'Bee'].find(
+          (r) => r.toLowerCase() === type,
+        );
         return { __typename };
       },
     };
@@ -416,7 +414,7 @@ describe('Mock', () => {
       }
     }`;
 
-    return graphql(jsSchema, testQuery).then(res => {
+    return graphql(jsSchema, testQuery).then((res) => {
       expect(spy).to.equal(1); // to make sure that Flying possible types are not randomly selected
       expect(res.data['node']).to.include({
         id: 'bee:123456',
@@ -443,7 +441,7 @@ describe('Mock', () => {
         const { id } = args;
         const type = id.split(':')[0];
         return {
-          __typename: ['Bird', 'Bee'].find(r => r.toLowerCase() === type),
+          __typename: ['Bird', 'Bee'].find((r) => r.toLowerCase() === type),
         };
       },
     };
@@ -461,7 +459,7 @@ describe('Mock', () => {
         }
       }`;
 
-    return graphql(jsSchema, testQuery).then(res => {
+    return graphql(jsSchema, testQuery).then((res) => {
       expect(spy).to.equal(1);
       expect(res.data['node2']).to.include({
         id: 'bee:123456',
@@ -492,7 +490,7 @@ describe('Mock', () => {
         }
       }`;
     const expected = 'Please return a __typename in "Flying"';
-    return graphql(jsSchema, testQuery).then(res => {
+    return graphql(jsSchema, testQuery).then((res) => {
       expect(res.errors[0].originalError.message).to.equal(expected);
     });
   });
@@ -505,7 +503,7 @@ describe('Mock', () => {
       returnMockError
     }`;
     const expected = 'No mock defined for type "MissingMockType"';
-    return graphql(jsSchema, testQuery).then(res => {
+    return graphql(jsSchema, testQuery).then((res) => {
       expect(res.errors[0].originalError.message).to.equal(expected);
     });
   });
@@ -534,7 +532,7 @@ describe('Mock', () => {
       returnMockError
     }`;
     const expected = 'No mock defined for type "MissingMockType"';
-    return graphql(jsSchema, testQuery).then(res => {
+    return graphql(jsSchema, testQuery).then((res) => {
       expect(res.errors[0].originalError.message).to.equal(expected);
     });
   });
@@ -565,7 +563,7 @@ describe('Mock', () => {
     const expected = {
       returnMockError: '10-11-2012',
     };
-    return graphql(jsSchema, testQuery).then(res => {
+    return graphql(jsSchema, testQuery).then((res) => {
       expect(res.data).to.deep.equal(expected);
       expect(res.errors).to.equal(undefined);
     });
@@ -578,7 +576,7 @@ describe('Mock', () => {
     const testQuery = `{
       returnInt
     }`;
-    return graphql(jsSchema, testQuery).then(res => {
+    return graphql(jsSchema, testQuery).then((res) => {
       expect(res.data['returnInt']).to.equal(55);
     });
   });
@@ -590,7 +588,7 @@ describe('Mock', () => {
     const testQuery = `{
       returnFloat
     }`;
-    return graphql(jsSchema, testQuery).then(res => {
+    return graphql(jsSchema, testQuery).then((res) => {
       expect(res.data['returnFloat']).to.equal(55.5);
     });
   });
@@ -601,7 +599,7 @@ describe('Mock', () => {
     const testQuery = `{
       returnString
     }`;
-    return graphql(jsSchema, testQuery).then(res => {
+    return graphql(jsSchema, testQuery).then((res) => {
       expect(res.data['returnString']).to.equal('a string');
     });
   });
@@ -612,7 +610,7 @@ describe('Mock', () => {
     const testQuery = `{
       returnBoolean
     }`;
-    return graphql(jsSchema, testQuery).then(res => {
+    return graphql(jsSchema, testQuery).then((res) => {
       expect(res.data['returnBoolean']).to.equal(true);
     });
   });
@@ -623,7 +621,7 @@ describe('Mock', () => {
     const testQuery = `{
       returnID
     }`;
-    return graphql(jsSchema, testQuery).then(res => {
+    return graphql(jsSchema, testQuery).then((res) => {
       expect(res.data['returnID']).to.equal('ea5bdc19');
     });
   });
@@ -634,7 +632,7 @@ describe('Mock', () => {
     const testQuery = `{
       returnNullableString
     }`;
-    return graphql(jsSchema, testQuery).then(res => {
+    return graphql(jsSchema, testQuery).then((res) => {
       expect(res.data['returnNullableString']).to.equal(null);
     });
   });
@@ -645,7 +643,7 @@ describe('Mock', () => {
     const testQuery = `{
       returnNonNullString
     }`;
-    return graphql(jsSchema, testQuery).then(res => {
+    return graphql(jsSchema, testQuery).then((res) => {
       expect(res.data['returnNonNullString']).to.equal('nonnull');
     });
   });
@@ -656,7 +654,7 @@ describe('Mock', () => {
     const testQuery = `{
       returnNonNullString
     }`;
-    return graphql(jsSchema, testQuery).then(res => {
+    return graphql(jsSchema, testQuery).then((res) => {
       expect(res.data).to.equal(null);
       expect(res.errors.length).to.equal(1);
     });
@@ -674,7 +672,7 @@ describe('Mock', () => {
     const expected = {
       returnObject: { returnInt: 123, returnString: 'abc' },
     };
-    return graphql(jsSchema, testQuery).then(res => {
+    return graphql(jsSchema, testQuery).then((res) => {
       expect(res.data).to.deep.equal(expected);
     });
   });
@@ -689,7 +687,7 @@ describe('Mock', () => {
     const expected = {
       returnListOfInt: [123, 123],
     };
-    return graphql(jsSchema, testQuery).then(res => {
+    return graphql(jsSchema, testQuery).then((res) => {
       expect(res.data).to.deep.equal(expected);
     });
   });
@@ -716,7 +714,7 @@ describe('Mock', () => {
         ],
       ],
     };
-    return graphql(jsSchema, testQuery).then(res => {
+    return graphql(jsSchema, testQuery).then((res) => {
       expect(res.data).to.deep.equal(expected);
     });
   });
@@ -753,7 +751,7 @@ describe('Mock', () => {
       returnFloat: 1.3, // b) from mock
       returnString: 'bar', // c) from resolvers, not masked by mock (and promise)
     };
-    return graphql(jsSchema, testQuery).then(res => {
+    return graphql(jsSchema, testQuery).then((res) => {
       expect(res.data).to.deep.equal(expected);
     });
   });
@@ -782,7 +780,7 @@ describe('Mock', () => {
       },
       returnInt: 15,
     };
-    return graphql(jsSchema, testQuery).then(res => {
+    return graphql(jsSchema, testQuery).then((res) => {
       expect(res.data).to.deep.equal(expected);
     });
   });
@@ -825,7 +823,7 @@ describe('Mock', () => {
         returnString: 'woot!?', // from the mock, see b)
       },
     };
-    return graphql(jsSchema, testQuery).then(res => {
+    return graphql(jsSchema, testQuery).then((res) => {
       expect(res.data).to.deep.equal(expected);
     });
   });
@@ -865,7 +863,7 @@ describe('Mock', () => {
         returnString: 'woot!?', // from the mock, see b)
       },
     };
-    return graphql(jsSchema, testQuery).then(res => {
+    return graphql(jsSchema, testQuery).then((res) => {
       expect(res.data).to.deep.equal(expected);
     });
   });
@@ -907,7 +905,7 @@ describe('Mock', () => {
         returnString: 'woot!?', // from the mock, see b)
       },
     };
-    return graphql(jsSchema, testQuery).then(res => {
+    return graphql(jsSchema, testQuery).then((res) => {
       expect(res.data).to.deep.equal(expected);
     });
   });
@@ -950,7 +948,7 @@ describe('Mock', () => {
       },
       returnString: 'woot!?', // from the mock, see a)
     };
-    return graphql(jsSchema, testQuery).then(res => {
+    return graphql(jsSchema, testQuery).then((res) => {
       expect(res.data).to.deep.equal(expected);
     });
   });
@@ -995,7 +993,7 @@ describe('Mock', () => {
       },
       returnString: 'woot!?', // from the mock, see a)
     };
-    return graphql(jsSchema, testQuery, undefined, {}).then(res => {
+    return graphql(jsSchema, testQuery, undefined, {}).then((res) => {
       expect(res.data).to.deep.equal(expected);
     });
   });
@@ -1041,7 +1039,7 @@ describe('Mock', () => {
       },
       returnString: 'woot!?', // from the mock, see a)
     };
-    return graphql(jsSchema, testQuery, undefined, {}).then(res => {
+    return graphql(jsSchema, testQuery, undefined, {}).then((res) => {
       expect(res.data).to.deep.equal(expected);
     });
   });
@@ -1076,7 +1074,7 @@ describe('Mock', () => {
       },
       returnString: null as string, // from the mock, see a)
     };
-    return graphql(jsSchema, testQuery, undefined, {}).then(res => {
+    return graphql(jsSchema, testQuery, undefined, {}).then((res) => {
       expect(res.data).to.deep.equal(expected);
     });
   });
@@ -1095,7 +1093,7 @@ describe('Mock', () => {
     const expected = {
       returnStringArgument: 'adieu',
     };
-    return graphql(jsSchema, testQuery).then(res => {
+    return graphql(jsSchema, testQuery).then((res) => {
       expect(res.data).to.deep.equal(expected);
     });
   });
@@ -1114,7 +1112,7 @@ describe('Mock', () => {
     const expected = {
       returnStringArgument: 'adieu',
     };
-    return graphql(jsSchema, testQuery).then(res => {
+    return graphql(jsSchema, testQuery).then((res) => {
       expect(res.data).to.deep.equal(expected);
     });
   });
@@ -1132,7 +1130,7 @@ describe('Mock', () => {
     const expected = {
       returnListOfInt: [12, 12, 12],
     };
-    return graphql(jsSchema, testQuery).then(res => {
+    return graphql(jsSchema, testQuery).then((res) => {
       expect(res.data).to.deep.equal(expected);
     });
   });
@@ -1147,7 +1145,7 @@ describe('Mock', () => {
     const testQuery = `{
       returnListOfInt
     }`;
-    return graphql(jsSchema, testQuery).then(res => {
+    return graphql(jsSchema, testQuery).then((res) => {
       expect(res.data['returnListOfInt']).to.have.length.within(10, 20);
       expect(res.data['returnListOfInt'][0]).to.equal(12);
     });
@@ -1167,7 +1165,7 @@ describe('Mock', () => {
       l3: returnListOfIntArg(l: 3)
       l5: returnListOfIntArg(l: 5)
     }`;
-    return graphql(jsSchema, testQuery).then(res => {
+    return graphql(jsSchema, testQuery).then((res) => {
       expect(res.data['l3'].length).to.equal(3);
       expect(res.data['l5'].length).to.equal(5);
     });
@@ -1188,7 +1186,7 @@ describe('Mock', () => {
     const expected = {
       returnListOfInt: [33, 33],
     };
-    return graphql(jsSchema, testQuery).then(res => {
+    return graphql(jsSchema, testQuery).then((res) => {
       expect(res.data).to.deep.equal(expected);
     });
   });
@@ -1218,7 +1216,7 @@ describe('Mock', () => {
         [12, 12, 12],
       ],
     };
-    return graphql(jsSchema, testQuery).then(res => {
+    return graphql(jsSchema, testQuery).then((res) => {
       expect(res.data).to.deep.equal(expected);
     });
   });
@@ -1242,7 +1240,7 @@ describe('Mock', () => {
     const expected = {
       returnListOfListOfIntArg: [[12], [12]],
     };
-    return graphql(jsSchema, testQuery).then(res => {
+    return graphql(jsSchema, testQuery).then((res) => {
       expect(res.data).to.deep.equal(expected);
     });
   });
@@ -1325,7 +1323,7 @@ describe('Mock', () => {
         ],
       },
     };
-    return graphql(jsSchema, testQuery).then(res => {
+    return graphql(jsSchema, testQuery).then((res) => {
       expect(res.data).to.deep.equal(expected);
     });
   });
@@ -1392,7 +1390,7 @@ describe('Mock', () => {
       date2: '2016-01-01T00:00:00.000Z',
       date3: '2016-05-04T00:00:00.000Z',
     };
-    return graphql(schema, query).then(res => {
+    return graphql(schema, query).then((res) => {
       expect(res.data).to.deep.equal(expected);
     });
   });
@@ -1471,7 +1469,7 @@ describe('Mock', () => {
         },
       },
     };
-    return graphql(schema, query).then(res => {
+    return graphql(schema, query).then((res) => {
       expect(res).to.deep.equal(expected);
     });
   });

@@ -90,7 +90,7 @@ export function unwrapResult(
 
     setErrors(
       object,
-      errors.map(error =>
+      errors.map((error) =>
         relocatedError(
           error,
           error.nodes,
@@ -112,12 +112,12 @@ export function dehoistResult(
 ): any {
   const result = Object.create(null);
 
-  Object.keys(parent).forEach(alias => {
+  Object.keys(parent).forEach((alias) => {
     let obj = result;
 
     const fieldNames = alias.split(delimeter);
     const fieldName = fieldNames.pop();
-    fieldNames.forEach(key => {
+    fieldNames.forEach((key) => {
       obj = obj[key] = obj[key] || Object.create(null);
     });
     obj[fieldName] = parent[alias];
@@ -152,7 +152,7 @@ export function mergeProxiedResults(target: any, ...sources: any): any {
   const fieldSubschemaMap = sources.reduce(
     (acc: Record<any, SubschemaConfig>, source: any) => {
       const subschema = source[OBJECT_SUBSCHEMA_SYMBOL];
-      Object.keys(source).forEach(key => {
+      Object.keys(source).forEach((key) => {
         acc[key] = subschema;
       });
       return acc;

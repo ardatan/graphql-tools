@@ -54,10 +54,10 @@ function addVariablesToRootField(
   newVariables: { [key: string]: any };
 } {
   const operations: Array<OperationDefinitionNode> = document.definitions.filter(
-    def => def.kind === Kind.OPERATION_DEFINITION,
+    (def) => def.kind === Kind.OPERATION_DEFINITION,
   ) as Array<OperationDefinitionNode>;
   const fragments: Array<FragmentDefinitionNode> = document.definitions.filter(
-    def => def.kind === Kind.FRAGMENT_DEFINITION,
+    (def) => def.kind === Kind.FRAGMENT_DEFINITION,
   ) as Array<FragmentDefinitionNode>;
 
   const variableNames = {};
@@ -145,7 +145,7 @@ function addVariablesToRootField(
 
         newSelectionSet.push({
           ...selection,
-          arguments: Object.keys(newArgs).map(argName => newArgs[argName]),
+          arguments: Object.keys(newArgs).map((argName) => newArgs[argName]),
         });
       } else {
         newSelectionSet.push(selection);
@@ -155,7 +155,7 @@ function addVariablesToRootField(
     return {
       ...operation,
       variableDefinitions: originalVariableDefinitions.concat(
-        Object.keys(variables).map(varName => variables[varName]),
+        Object.keys(variables).map((varName) => variables[varName]),
       ),
       selectionSet: {
         kind: Kind.SELECTION_SET,

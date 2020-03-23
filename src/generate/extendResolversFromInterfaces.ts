@@ -18,7 +18,7 @@ function extendResolversFromInterfaces(
   });
 
   const extendedResolvers: IResolvers = {};
-  typeNames.forEach(typeName => {
+  typeNames.forEach((typeName) => {
     const typeResolvers = resolvers[typeName];
     const type = schema.getType(typeName);
     if (
@@ -27,7 +27,7 @@ function extendResolversFromInterfaces(
     ) {
       const interfaceResolvers = (type as GraphQLObjectType)
         .getInterfaces()
-        .map(iFace => resolvers[iFace.name]);
+        .map((iFace) => resolvers[iFace.name]);
       extendedResolvers[typeName] = Object.assign(
         {},
         ...interfaceResolvers,

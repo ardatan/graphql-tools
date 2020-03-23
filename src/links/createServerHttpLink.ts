@@ -116,7 +116,7 @@ export const createServerHttpLink = (linkOptions: Options = {}) => {
     headers: requestOptions.headers,
   };
 
-  return new ApolloLink(operation => {
+  return new ApolloLink((operation) => {
     let chosenURI = selectURI(operation, uri);
 
     const context = operation.getContext();
@@ -183,9 +183,9 @@ export const createServerHttpLink = (linkOptions: Options = {}) => {
       chosenURI = newURI;
     }
 
-    return new Observable(observer => {
+    return new Observable((observer) => {
       getFinalPromise(body)
-        .then(resolvedBody => {
+        .then((resolvedBody) => {
           if (options.method !== 'GET') {
             options.body = customSerializer(resolvedBody, customAppendFile);
             if (options.body instanceof FormData) {
@@ -195,19 +195,19 @@ export const createServerHttpLink = (linkOptions: Options = {}) => {
           }
           return options;
         })
-        .then(newOptions => customFetch(chosenURI, newOptions))
-        .then(response => {
+        .then((newOptions) => customFetch(chosenURI, newOptions))
+        .then((response) => {
           operation.setContext({ response });
           return response;
         })
         .then(parseAndCheckHttpResponse(operation))
-        .then(result => {
+        .then((result) => {
           // we have data and can send it to back up the link chain
           observer.next(result);
           observer.complete();
           return result;
         })
-        .catch(err => {
+        .catch((err) => {
           // fetch was cancelled so it's already been cleaned up in the unsubscribe
           if (err.name === 'AbortError') {
             return;
@@ -322,18 +322,18 @@ function rewriteURIForGET(chosenURI: string, body: Body) {
 }
 
 function getFinalPromise(object: any): Promise<any> {
-  return Promise.resolve(object).then(resolvedObject => {
+  return Promise.resolve(object).then((resolvedObject) => {
     if (resolvedObject == null) {
       return resolvedObject;
     }
 
     if (Array.isArray(resolvedObject)) {
-      return Promise.all(resolvedObject.map(o => getFinalPromise(o)));
+      return Promise.all(resolvedObject.map((o) => getFinalPromise(o)));
     } else if (typeof resolvedObject === 'object') {
       const keys = Object.keys(resolvedObject);
       return Promise.all(
-        keys.map(key => getFinalPromise(resolvedObject[key])),
-      ).then(awaitedValues => {
+        keys.map((key) => getFinalPromise(resolvedObject[key])),
+      ).then((awaitedValues) => {
         for (let i = 0; i < keys.length; i++) {
           resolvedObject[keys[i]] = awaitedValues[i];
         }

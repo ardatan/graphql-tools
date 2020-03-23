@@ -101,8 +101,8 @@ const scalarSchema = makeExecutableSchema({
     TestScalar: new GraphQLScalarType({
       name: 'TestScalar',
       description: undefined,
-      serialize: value => (value as string).slice(1),
-      parseValue: value => `_${value as string}`,
+      serialize: (value) => (value as string).slice(1),
+      parseValue: (value) => `_${value as string}`,
       parseLiteral: (ast: any) => `_${ast.value as string}`,
     }),
     Query: {
@@ -332,7 +332,7 @@ const schemaDirectiveTypeDefs = `
   }
 `;
 
-testCombinations.forEach(combination => {
+testCombinations.forEach((combination) => {
   describe('merging ' + combination.name, () => {
     let mergedSchema: GraphQLSchema;
     let propertySchema: GraphQLSchema | SubschemaConfig;
@@ -362,7 +362,7 @@ testCombinations.forEach(combination => {
           upper: class extends SchemaDirectiveVisitor {
             public visitFieldDefinition(field: GraphQLField<any, any>) {
               const { resolve = defaultFieldResolver } = field;
-              field.resolve = async function(...args) {
+              field.resolve = async function (...args) {
                 const result = await resolve.apply(this, args);
                 if (typeof result === 'string') {
                   return result.toUpperCase();
@@ -459,7 +459,7 @@ testCombinations.forEach(combination => {
           TestScalar: new GraphQLScalarType({
             name: 'TestScalar',
             description: undefined,
-            serialize: value => value,
+            serialize: (value) => value,
           }),
           Query: {
             delegateInterfaceTest(_parent, _args, context, info) {
@@ -859,7 +859,7 @@ bookingById(id: "b1") {
         expect(mergedResult).to.deep.equal(bookingResult);
       });
 
-      it('local subscriptions working in merged schema', done => {
+      it('local subscriptions working in merged schema', (done) => {
         const mockNotification = {
           notifications: {
             text: 'Hello world',
@@ -876,7 +876,7 @@ bookingById(id: "b1") {
 
         let notificationCnt = 0;
         subscribe(mergedSchema, subscription)
-          .then(results => {
+          .then((results) => {
             forAwaitEach(
               results as AsyncIterable<ExecutionResult>,
               (result: ExecutionResult) => {
@@ -897,7 +897,7 @@ bookingById(id: "b1") {
           .catch(done);
       });
 
-      it('subscription errors are working correctly in merged schema', done => {
+      it('subscription errors are working correctly in merged schema', (done) => {
         const mockNotification = {
           notifications: {
             text: 'Hello world',
@@ -936,7 +936,7 @@ bookingById(id: "b1") {
 
         let notificationCnt = 0;
         subscribe(mergedSchema, subscription)
-          .then(results => {
+          .then((results) => {
             forAwaitEach(
               results as AsyncIterable<ExecutionResult>,
               (result: ExecutionResult) => {
@@ -1415,8 +1415,8 @@ bookingById(id: "b1") {
           TestScalar: new GraphQLScalarType({
             name: 'TestScalar',
             description: undefined,
-            serialize: value => value,
-            parseValue: value => value,
+            serialize: (value) => value,
+            parseValue: (value) => value,
             parseLiteral: () => null,
           }),
         };
@@ -2458,7 +2458,7 @@ fragment BookingFragment on Booking {
 
           const mergedResult = await graphql(mergedSchema, propertyQuery);
 
-          [propertyResult, mergedResult].forEach(result => {
+          [propertyResult, mergedResult].forEach((result) => {
             expect(result.errors).to.not.equal(undefined);
             expect(result.errors.length > 0).to.equal(true);
             const error = result.errors[0];
@@ -2946,7 +2946,7 @@ fragment BookingFragment on Booking {
         expect(deprecatedUsages.length).to.equal(1);
         expect(
           deprecatedUsages.find(
-            error =>
+            (error) =>
               error.message.match(/deprecated/g) != null &&
               error.message.match(/yolo/g) != null,
           ),

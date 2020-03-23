@@ -67,7 +67,7 @@ export function healSchema(schema: GraphQLSchema): GraphQLSchema {
 
   const filteredTypeMap = {};
 
-  Object.keys(typeMap).forEach(typeName => {
+  Object.keys(typeMap).forEach((typeName) => {
     if (!typeName.startsWith('__')) {
       filteredTypeMap[typeName] = typeMap[typeName];
     }
@@ -83,7 +83,7 @@ export function healSchema(schema: GraphQLSchema): GraphQLSchema {
       ? filteredTypeMap[newSubscriptionTypeName]
       : undefined,
     types: Object.keys(filteredTypeMap).map(
-      typeName => filteredTypeMap[typeName],
+      (typeName) => filteredTypeMap[typeName],
     ),
     directives: directives.slice(),
   });
@@ -138,7 +138,7 @@ export function healTypes(
 
   // Directive declaration argument types can refer to named types.
   each(directives, (decl: GraphQLDirective) => {
-    updateEachKey(decl.args, arg => {
+    updateEachKey(decl.args, (arg) => {
       arg.type = healType(arg.type) as GraphQLInputType;
       return arg.type === null ? null : arg;
     });
@@ -197,8 +197,8 @@ export function healTypes(
   }
 
   function healFields(type: GraphQLObjectType | GraphQLInterfaceType) {
-    updateEachKey(type.getFields(), field => {
-      updateEachKey(field.args, arg => {
+    updateEachKey(type.getFields(), (field) => {
+      updateEachKey(field.args, (arg) => {
         arg.type = healType(arg.type) as GraphQLInputType;
         return arg.type === null ? null : arg;
       });
@@ -208,14 +208,14 @@ export function healTypes(
   }
 
   function healInterfaces(type: GraphQLObjectType | GraphQLInterfaceType) {
-    updateEachKey((type as GraphQLObjectType).getInterfaces(), iface => {
+    updateEachKey((type as GraphQLObjectType).getInterfaces(), (iface) => {
       const healedType = healType(iface) as GraphQLInterfaceType;
       return healedType;
     });
   }
 
   function healInputFields(type: GraphQLInputObjectType) {
-    updateEachKey(type.getFields(), field => {
+    updateEachKey(type.getFields(), (field) => {
       field.type = healType(field.type) as GraphQLInputType;
       return field.type === null ? null : field;
     });
@@ -264,12 +264,12 @@ function pruneTypes(
   directives: ReadonlyArray<GraphQLDirective>,
 ) {
   const implementedInterfaces = {};
-  each(typeMap, namedType => {
+  each(typeMap, (namedType) => {
     if (
       isObjectType(namedType) ||
       (graphqlVersion() >= 15 && isInterfaceType(namedType))
     ) {
-      each((namedType as GraphQLObjectType).getInterfaces(), iface => {
+      each((namedType as GraphQLObjectType).getInterfaces(), (iface) => {
         implementedInterfaces[iface.name] = true;
       });
     }

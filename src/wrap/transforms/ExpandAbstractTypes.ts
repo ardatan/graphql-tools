@@ -50,15 +50,15 @@ function extractPossibleTypes(
 ) {
   const typeMap = sourceSchema.getTypeMap();
   const mapping: TypeMapping = {};
-  Object.keys(typeMap).forEach(typeName => {
+  Object.keys(typeMap).forEach((typeName) => {
     const type = typeMap[typeName];
     if (isAbstractType(type)) {
       const targetType = targetSchema.getType(typeName);
       if (!isAbstractType(targetType)) {
         const implementations = sourceSchema.getPossibleTypes(type);
         mapping[typeName] = implementations
-          .filter(impl => targetSchema.getType(impl.name))
-          .map(impl => impl.name);
+          .filter((impl) => targetSchema.getType(impl.name))
+          .map((impl) => impl.name);
       }
     }
   });
@@ -67,9 +67,9 @@ function extractPossibleTypes(
 
 function flipMapping(mapping: TypeMapping): TypeMapping {
   const result: TypeMapping = {};
-  Object.keys(mapping).forEach(typeName => {
+  Object.keys(mapping).forEach((typeName) => {
     const toTypeNames = mapping[typeName];
-    toTypeNames.forEach(toTypeName => {
+    toTypeNames.forEach((toTypeName) => {
       if (result[toTypeName] == null) {
         result[toTypeName] = [];
       }
@@ -86,13 +86,15 @@ function expandAbstractTypes(
   document: DocumentNode,
 ): DocumentNode {
   const operations: Array<OperationDefinitionNode> = document.definitions.filter(
-    def => def.kind === Kind.OPERATION_DEFINITION,
+    (def) => def.kind === Kind.OPERATION_DEFINITION,
   ) as Array<OperationDefinitionNode>;
   const fragments: Array<FragmentDefinitionNode> = document.definitions.filter(
-    def => def.kind === Kind.FRAGMENT_DEFINITION,
+    (def) => def.kind === Kind.FRAGMENT_DEFINITION,
   ) as Array<FragmentDefinitionNode>;
 
-  const existingFragmentNames = fragments.map(fragment => fragment.name.value);
+  const existingFragmentNames = fragments.map(
+    (fragment) => fragment.name.value,
+  );
   let fragmentCounter = 0;
   const generateFragmentName = (typeName: string) => {
     let fragmentName;
@@ -113,7 +115,7 @@ function expandAbstractTypes(
     const possibleTypes = mapping[fragment.typeCondition.name.value];
     if (possibleTypes != null) {
       fragmentReplacements[fragment.name.value] = [];
-      possibleTypes.forEach(possibleTypeName => {
+      possibleTypes.forEach((possibleTypeName) => {
         const name = generateFragmentName(possibleTypeName);
         existingFragmentNames.push(name);
         const newFragment: FragmentDefinitionNode = {
@@ -160,7 +162,7 @@ function expandAbstractTypes(
                 const possibleTypes =
                   mapping[selection.typeCondition.name.value];
                 if (possibleTypes != null) {
-                  possibleTypes.forEach(possibleType => {
+                  possibleTypes.forEach((possibleType) => {
                     const maybePossibleType = targetSchema.getType(
                       possibleType,
                     );
@@ -191,7 +193,7 @@ function expandAbstractTypes(
               const fragmentName = selection.name.value;
               const replacements = fragmentReplacements[fragmentName];
               if (replacements != null) {
-                replacements.forEach(replacement => {
+                replacements.forEach((replacement) => {
                   const typeName = replacement.typeName;
                   const maybeReplacementType = targetSchema.getType(typeName);
                   if (

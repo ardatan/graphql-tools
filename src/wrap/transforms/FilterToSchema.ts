@@ -49,10 +49,10 @@ function filterToSchema(
   variables: Record<string, any>,
 ): { document: DocumentNode; variables: Record<string, any> } {
   const operations: Array<OperationDefinitionNode> = document.definitions.filter(
-    def => def.kind === Kind.OPERATION_DEFINITION,
+    (def) => def.kind === Kind.OPERATION_DEFINITION,
   ) as Array<OperationDefinitionNode>;
   const fragments: Array<FragmentDefinitionNode> = document.definitions.filter(
-    def => def.kind === Kind.FRAGMENT_DEFINITION,
+    (def) => def.kind === Kind.FRAGMENT_DEFINITION,
   ) as Array<FragmentDefinitionNode>;
 
   let usedVariables: Array<string> = [];
@@ -135,7 +135,7 @@ function filterToSchema(
   });
 
   const newVariables: Record<string, any> = {};
-  usedVariables.forEach(variableName => {
+  usedVariables.forEach((variableName) => {
     newVariables[variableName] = variables[variableName];
   });
 
@@ -163,7 +163,7 @@ function collectFragmentVariables(
   while (remainingFragments.length !== 0) {
     const nextFragmentName = remainingFragments.pop();
     const fragment = validFragments.find(
-      fr => fr.name.value === nextFragmentName,
+      (fr) => fr.name.value === nextFragmentName,
     );
     if (fragment != null) {
       const name = nextFragmentName;
@@ -231,7 +231,7 @@ function filterSelectionSet(
             }
 
             const argNames = (field.args != null ? field.args : []).map(
-              arg => arg.name,
+              (arg) => arg.name,
             );
             if (node.arguments != null) {
               const args = node.arguments.filter(
@@ -307,8 +307,8 @@ function filterSelectionSet(
 function union(...arrays: Array<Array<string>>): Array<string> {
   const cache: { [key: string]: boolean } = {};
   const result: Array<string> = [];
-  arrays.forEach(array => {
-    array.forEach(item => {
+  arrays.forEach((array) => {
+    array.forEach((item) => {
       if (!cache[item]) {
         cache[item] = true;
         result.push(item);

@@ -160,7 +160,7 @@ export function createRequest(
 
   const fragmentDefinitions: Array<FragmentDefinitionNode> = Object.keys(
     fragments,
-  ).map(fragmentName => fragments[fragmentName]);
+  ).map((fragmentName) => fragments[fragmentName]);
 
   const document = {
     kind: Kind.DOCUMENT,
@@ -254,7 +254,7 @@ function updateArguments(
   });
 
   return {
-    arguments: Object.keys(updatedArgs).map(argName => updatedArgs[argName]),
+    arguments: Object.keys(updatedArgs).map((argName) => updatedArgs[argName]),
     variableDefinitions: newVariableDefinitions,
     variableValues,
   };

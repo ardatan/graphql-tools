@@ -108,7 +108,7 @@ export default function mergeSchemas({
   }
   schemas = [...schemas, ...schemaLikeObjects];
 
-  schemas.forEach(schemaLikeObject => {
+  schemas.forEach((schemaLikeObject) => {
     if (isSchema(schemaLikeObject) || isSubschemaConfig(schemaLikeObject)) {
       const schema = wrapSchema(schemaLikeObject);
 
@@ -120,7 +120,7 @@ export default function mergeSchemas({
         [subscriptionTypeName]: schema.getSubscriptionType(),
       };
 
-      Object.keys(operationTypes).forEach(typeName => {
+      Object.keys(operationTypes).forEach((typeName) => {
         if (operationTypes[typeName] != null) {
           addTypeCandidate(typeCandidates, typeName, {
             schema,
@@ -133,13 +133,13 @@ export default function mergeSchemas({
 
       if (mergeDirectives) {
         const directiveInstances = schema.getDirectives();
-        directiveInstances.forEach(directive => {
+        directiveInstances.forEach((directive) => {
           directives.push(directive);
         });
       }
 
       const originalTypeMap = schema.getTypeMap();
-      Object.keys(originalTypeMap).forEach(typeName => {
+      Object.keys(originalTypeMap).forEach((typeName) => {
         const type: GraphQLNamedType = originalTypeMap[typeName];
         if (
           isNamedType(type) &&
@@ -166,7 +166,7 @@ export default function mergeSchemas({
           ? parse(schemaLikeObject)
           : (schemaLikeObject as DocumentNode);
 
-      parsedSchemaDocument.definitions.forEach(def => {
+      parsedSchemaDocument.definitions.forEach((def) => {
         const type = typeFromAST(def);
         if (isDirective(type) && mergeDirectives) {
           directives.push(type);
@@ -184,7 +184,7 @@ export default function mergeSchemas({
         extensions.push(extensionsDocument);
       }
     } else if (Array.isArray(schemaLikeObject)) {
-      schemaLikeObject.forEach(type => {
+      schemaLikeObject.forEach((type) => {
         addTypeCandidate(typeCandidates, type.name, {
           type,
         });
@@ -218,7 +218,7 @@ export default function mergeSchemas({
 
   mergeInfo = completeMergeInfo(mergeInfo, finalResolvers);
 
-  Object.keys(typeCandidates).forEach(typeName => {
+  Object.keys(typeCandidates).forEach((typeName) => {
     if (
       typeName === queryTypeName ||
       typeName === mutationTypeName ||
@@ -246,13 +246,13 @@ export default function mergeSchemas({
     query: typeMap[queryTypeName] as GraphQLObjectType,
     mutation: typeMap[mutationTypeName] as GraphQLObjectType,
     subscription: typeMap[subscriptionTypeName] as GraphQLObjectType,
-    types: Object.keys(typeMap).map(key => typeMap[key]),
+    types: Object.keys(typeMap).map((key) => typeMap[key]),
     directives: directives.length
-      ? directives.map(directive => cloneDirective(directive))
+      ? directives.map((directive) => cloneDirective(directive))
       : undefined,
   });
 
-  extensions.forEach(extension => {
+  extensions.forEach((extension) => {
     mergedSchema = extendSchema(mergedSchema, extension, {
       commentDescriptions: true,
     });
@@ -264,7 +264,7 @@ export default function mergeSchemas({
     inheritResolversFromInterfaces,
   });
 
-  forEachField(mergedSchema, field => {
+  forEachField(mergedSchema, (field) => {
     if (field.resolve != null) {
       const fieldResolver = field.resolve;
       field.resolve = (parent, args, context, info) => {
@@ -305,7 +305,7 @@ function addTypeCandidate(
 function onTypeConflictToCandidateSelector(
   onTypeConflict: OnTypeConflict,
 ): CandidateSelector {
-  return cands =>
+  return (cands) =>
     cands.reduce((prev, next) => {
       const type = onTypeConflict(prev.type, next.type, {
         left: {
@@ -334,7 +334,7 @@ function merge(
   const initialCandidateType = candidates[0].type;
   if (
     candidates.some(
-      candidate =>
+      (candidate) =>
         candidate.type.constructor !== initialCandidateType.constructor,
     )
   ) {

@@ -3,7 +3,7 @@ import { GraphQLScalarType, GraphQLError } from 'graphql';
 const GraphQLUpload = new GraphQLScalarType({
   name: 'Upload',
   description: 'The `Upload` scalar type represents a file upload.',
-  parseValue: value => {
+  parseValue: (value) => {
     if (value != null && value.promise instanceof Promise) {
       // graphql-upload v10
       return value.promise;
@@ -14,8 +14,8 @@ const GraphQLUpload = new GraphQLScalarType({
     throw new GraphQLError('Upload value invalid.');
   },
   // serialization requires to support schema stitching
-  serialize: value => value,
-  parseLiteral: ast => {
+  serialize: (value) => value,
+  parseLiteral: (ast) => {
     throw new GraphQLError('Upload literal unsupported.', ast);
   },
 });

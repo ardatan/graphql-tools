@@ -17,7 +17,7 @@ export function getResolversFromSchema(schema: GraphQLSchema): IResolvers {
 
   const typeMap = schema.getTypeMap();
 
-  Object.keys(typeMap).forEach(typeName => {
+  Object.keys(typeMap).forEach((typeName) => {
     const type = typeMap[typeName];
 
     if (isScalarType(type)) {
@@ -28,7 +28,7 @@ export function getResolversFromSchema(schema: GraphQLSchema): IResolvers {
       resolvers[typeName] = {};
 
       const values = type.getValues();
-      values.forEach(value => {
+      values.forEach((value) => {
         resolvers[typeName][value.name] = value.value;
       });
     } else if (isInterfaceType(type)) {
@@ -51,7 +51,7 @@ export function getResolversFromSchema(schema: GraphQLSchema): IResolvers {
       }
 
       const fields = type.getFields();
-      Object.keys(fields).forEach(fieldName => {
+      Object.keys(fields).forEach((fieldName) => {
         const field = fields[fieldName];
 
         resolvers[typeName][fieldName] = {

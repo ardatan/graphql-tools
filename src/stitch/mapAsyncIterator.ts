@@ -59,7 +59,7 @@ function asyncMapValue<T, U>(
   value: T,
   callback: (value: T) => Promise<U> | U,
 ): Promise<U> {
-  return new Promise(resolve => resolve(callback(value)));
+  return new Promise((resolve) => resolve(callback(value)));
 }
 
 function iteratorResult<T>(value: T): IteratorResult<T> {

@@ -47,7 +47,7 @@ const mergedSchema = mergeSchemas({
       merge: {
         User: {
           fieldName: 'userById',
-          args: originalResult => ({ id: originalResult.id }),
+          args: (originalResult) => ({ id: originalResult.id }),
           selectionSet: '{ id }',
         },
       },
@@ -57,7 +57,7 @@ const mergedSchema = mergeSchemas({
       merge: {
         User: {
           fieldName: 'userById',
-          args: originalResult => ({ id: originalResult.id }),
+          args: (originalResult) => ({ id: originalResult.id }),
           selectionSet: '{ id }',
         },
       },
