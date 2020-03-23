@@ -1,7 +1,7 @@
 import { GraphQLError, GraphQLSchema, responsePathAsArray } from 'graphql';
 
 import { SubschemaConfig, IGraphQLToolsResolveInfo } from '../Interfaces';
-import { mergeDeep } from '../utils';
+import { mergeDeep } from '../utils/index';
 import { handleNull } from '../delegate/checkResultAndHandleErrors';
 
 import { relocatedError } from './errors';

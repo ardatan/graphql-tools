@@ -31,7 +31,7 @@ import {
   TokenKind,
 } from 'graphql';
 
-import { createNamedStub, graphqlVersion } from '../utils';
+import { createNamedStub, graphqlVersion } from '../utils/index';
 
 import resolveFromParentTypename from './resolveFromParentTypename';
 

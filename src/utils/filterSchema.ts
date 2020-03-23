@@ -9,7 +9,7 @@ import {
 } from 'graphql';
 
 import { GraphQLSchemaWithTransforms, MapperKind } from '../Interfaces';
-import { toConfig } from '../polyfills';
+import { toConfig } from '../polyfills/index';
 
 import { mapSchema } from './map';
 

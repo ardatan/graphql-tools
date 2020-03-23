@@ -1,6 +1,6 @@
 import { GraphQLSchema, GraphQLNamedType } from 'graphql';
 
-import { mapSchema } from '../../utils';
+import { mapSchema } from '../../utils/index';
 import { Transform, MapperKind } from '../../Interfaces';
 
 export default class FilterTypes implements Transform {

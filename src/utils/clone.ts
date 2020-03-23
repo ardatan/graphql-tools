@@ -17,7 +17,7 @@ import {
   isScalarType,
 } from 'graphql';
 
-import { isSpecifiedScalarType, toConfig } from '../polyfills';
+import { isSpecifiedScalarType, toConfig } from '../polyfills/index';
 
 import { graphqlVersion } from './graphqlVersion';
 import { mapSchema } from './map';

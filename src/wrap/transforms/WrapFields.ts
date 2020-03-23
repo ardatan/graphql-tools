@@ -6,8 +6,11 @@ import {
   healSchema,
   appendFields,
   removeFields,
-} from '../../utils';
-import { defaultMergedResolver, createMergedResolver } from '../../stitch';
+} from '../../utils/index';
+import {
+  defaultMergedResolver,
+  createMergedResolver,
+} from '../../stitch/index';
 
 import MapFields from './MapFields';
 

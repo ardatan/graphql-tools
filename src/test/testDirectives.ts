@@ -29,14 +29,14 @@ import {
 import { assert } from 'chai';
 import formatDate from 'dateformat';
 
-import { makeExecutableSchema } from '../generate';
+import { makeExecutableSchema } from '../generate/index';
 import { VisitableSchemaType } from '../Interfaces';
 import {
   SchemaDirectiveVisitor,
   SchemaVisitor,
   visitSchema,
   graphqlVersion,
-} from '../utils';
+} from '../utils/index';
 
 const typeDefs = `
 directive @schemaDirective(role: String) on SCHEMA

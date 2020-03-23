@@ -21,8 +21,8 @@ import {
   healSchema,
   forEachField,
   forEachDefaultValue,
-} from '../utils';
-import { toConfig } from '../polyfills';
+} from '../utils/index';
+import { toConfig } from '../polyfills/index';
 
 import SchemaError from './SchemaError';
 import checkForResolveTypeResolver from './checkForResolveTypeResolver';

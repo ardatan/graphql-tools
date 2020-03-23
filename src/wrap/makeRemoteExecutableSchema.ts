@@ -8,10 +8,10 @@ import {
   DocumentNode,
 } from 'graphql';
 
-import { addResolversToSchema } from '../generate';
+import { addResolversToSchema } from '../generate/index';
 import { Fetcher, Operation } from '../Interfaces';
-import { cloneSchema } from '../utils';
-import { buildSchema } from '../polyfills';
+import { cloneSchema } from '../utils/index';
+import { buildSchema } from '../polyfills/index';
 import { addTypenameToAbstract } from '../delegate/addTypenameToAbstract';
 import { checkResultAndHandleErrors } from '../delegate/checkResultAndHandleErrors';
 

@@ -17,8 +17,8 @@ import {
 
 import isEmptyObject from '../../utils/isEmptyObject';
 import { Transform, Request, MapperKind } from '../../Interfaces';
-import { mapSchema } from '../../utils';
-import { toConfig } from '../../polyfills';
+import { mapSchema } from '../../utils/index';
+import { toConfig } from '../../polyfills/index';
 
 export type ObjectFieldTransformer = (
   typeName: string,

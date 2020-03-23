@@ -14,17 +14,17 @@ import {
   printSchema,
 } from 'graphql';
 
-import { delegateToSchema } from '../delegate';
-import { makeExecutableSchema } from '../generate';
+import { delegateToSchema } from '../delegate/index';
+import { makeExecutableSchema } from '../generate/index';
 import { IResolvers, SubschemaConfig } from '../Interfaces';
-import { mergeSchemas } from '../stitch';
+import { mergeSchemas } from '../stitch/index';
 import {
   cloneSchema,
   getResolversFromSchema,
   graphqlVersion,
   SchemaDirectiveVisitor,
-} from '../utils';
-import { addMocksToSchema } from '../mock';
+} from '../utils/index';
+import { addMocksToSchema } from '../mock/index';
 
 import {
   propertySchema as localPropertySchema,

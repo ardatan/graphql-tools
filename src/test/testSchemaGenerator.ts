@@ -32,7 +32,7 @@ import {
   chainResolvers,
   concatenateTypeDefs,
   addResolversToSchema,
-} from '../generate';
+} from '../generate/index';
 import {
   IResolverValidationOptions,
   IResolvers,
@@ -42,7 +42,7 @@ import {
   ITypeDefinitions,
   ILogger,
 } from '../Interfaces';
-import { visitSchema, graphqlVersion } from '../utils';
+import { visitSchema, graphqlVersion } from '../utils/index';
 
 import TypeA from './circularSchemaA';
 

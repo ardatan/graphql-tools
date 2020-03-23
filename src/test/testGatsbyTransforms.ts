@@ -8,10 +8,10 @@ import {
 } from 'graphql';
 
 import { VisitSchemaKind } from '../Interfaces';
-import { transformSchema, RenameTypes } from '../wrap';
-import { cloneType, healSchema, visitSchema } from '../utils';
-import { makeExecutableSchema } from '../generate';
-import { addMocksToSchema } from '../mock';
+import { transformSchema, RenameTypes } from '../wrap/index';
+import { cloneType, healSchema, visitSchema } from '../utils/index';
+import { makeExecutableSchema } from '../generate/index';
+import { addMocksToSchema } from '../mock/index';
 
 // see https://github.com/gatsbyjs/gatsby/blob/master/packages/gatsby-source-graphql/src/transforms.js
 // and https://github.com/gatsbyjs/gatsby/issues/22128

@@ -1,6 +1,6 @@
 import { DocumentNode, DefinitionNode, Kind } from 'graphql';
 
-import { graphqlVersion } from '../utils';
+import { graphqlVersion } from '../utils/index';
 
 export function extractExtensionDefinitions(ast: DocumentNode) {
   const extensionDefs = ast.definitions.filter(

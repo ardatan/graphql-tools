@@ -21,7 +21,7 @@ import {
   isNonNullType,
 } from 'graphql';
 
-import { toConfig } from '../polyfills';
+import { toConfig } from '../polyfills/index';
 
 import each from './each';
 import updateEachKey from './updateEachKey';

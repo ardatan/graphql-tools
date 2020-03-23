@@ -10,10 +10,10 @@ import FormData from 'form-data';
 import fetch from 'node-fetch';
 import { buildSchema } from 'graphql';
 
-import { mergeSchemas } from '../stitch';
-import { makeExecutableSchema } from '../generate';
-import { createServerHttpLink } from '../links';
-import { GraphQLUpload as ServerGraphQLUpload } from '../scalars';
+import { mergeSchemas } from '../stitch/index';
+import { makeExecutableSchema } from '../generate/index';
+import { createServerHttpLink } from '../links/index';
+import { GraphQLUpload as ServerGraphQLUpload } from '../scalars/index';
 import { SubschemaConfig } from '../Interfaces';
 
 function streamToString(stream: Readable) {

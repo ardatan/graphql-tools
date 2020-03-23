@@ -28,7 +28,7 @@ import {
   SubschemaConfig,
   isSubschemaConfig,
 } from '../Interfaces';
-import { serializeInputValue } from '../utils';
+import { serializeInputValue } from '../utils/index';
 
 export function getDelegatingOperation(
   parentType: GraphQLObjectType,

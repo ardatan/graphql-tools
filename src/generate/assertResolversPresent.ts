@@ -6,7 +6,7 @@ import {
 } from 'graphql';
 
 import { IResolverValidationOptions } from '../Interfaces';
-import { forEachField } from '../utils';
+import { forEachField } from '../utils/index';
 
 import SchemaError from './SchemaError';
 

@@ -8,7 +8,7 @@ import {
 } from 'graphql';
 
 import { IResolvers } from '../Interfaces';
-import { isSpecifiedScalarType } from '../polyfills';
+import { isSpecifiedScalarType } from '../polyfills/index';
 
 import { cloneType } from './clone';
 

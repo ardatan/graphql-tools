@@ -6,12 +6,12 @@ import {
   GraphQLFieldResolver,
 } from 'graphql';
 
-import { addMocksToSchema, MockList, mockServer } from '../mock';
+import { addMocksToSchema, MockList, mockServer } from '../mock/index';
 import {
   buildSchemaFromTypeDefinitions,
   addResolversToSchema,
   makeExecutableSchema,
-} from '../generate';
+} from '../generate/index';
 import { IMocks } from '../Interfaces';
 
 describe('Mock', () => {

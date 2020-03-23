@@ -6,7 +6,7 @@ import {
 } from 'graphql';
 
 import { Transform, Request } from '../../Interfaces';
-import { toConfig } from '../../polyfills';
+import { toConfig } from '../../polyfills/index';
 
 import TransformObjectFields from './TransformObjectFields';
 

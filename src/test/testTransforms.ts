@@ -10,9 +10,9 @@ import {
   parse,
 } from 'graphql';
 
-import { delegateToSchema } from '../delegate';
-import { makeExecutableSchema } from '../generate';
-import { defaultMergedResolver, mergeSchemas } from '../stitch';
+import { delegateToSchema } from '../delegate/index';
+import { makeExecutableSchema } from '../generate/index';
+import { defaultMergedResolver, mergeSchemas } from '../stitch/index';
 import {
   transformSchema,
   RenameTypes,
@@ -24,9 +24,12 @@ import {
   FilterToSchema,
   TransformQuery,
   AddReplacementFragments,
-} from '../wrap';
-import { concatInlineFragments, parseFragmentToInlineFragment } from '../utils';
-import { addMocksToSchema } from '../mock';
+} from '../wrap/index';
+import {
+  concatInlineFragments,
+  parseFragmentToInlineFragment,
+} from '../utils/index';
+import { addMocksToSchema } from '../mock/index';
 
 import { propertySchema, bookingSchema } from './testingSchemas';
 

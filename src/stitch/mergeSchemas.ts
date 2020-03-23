@@ -29,8 +29,11 @@ import {
   IResolvers,
   SubschemaConfig,
 } from '../Interfaces';
-import { extractExtensionDefinitions, addResolversToSchema } from '../generate';
-import { wrapSchema } from '../wrap';
+import {
+  extractExtensionDefinitions,
+  addResolversToSchema,
+} from '../generate/index';
+import { wrapSchema } from '../wrap/index';
 import {
   SchemaDirectiveVisitor,
   cloneDirective,
@@ -38,8 +41,8 @@ import {
   forEachField,
   mergeDeep,
   graphqlVersion,
-} from '../utils';
-import { toConfig, extendSchema } from '../polyfills';
+} from '../utils/index';
+import { toConfig, extendSchema } from '../polyfills/index';
 
 import typeFromAST from './typeFromAST';
 import { createMergeInfo, completeMergeInfo } from './mergeInfo';

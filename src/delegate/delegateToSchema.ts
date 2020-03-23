@@ -30,7 +30,7 @@ import {
   CheckResultAndHandleErrors,
   applyRequestTransforms,
   applyResultTransforms,
-} from '../wrap';
+} from '../wrap/index';
 
 import linkToFetcher from '../stitch/linkToFetcher';
 import { observableToAsyncIterable } from '../stitch/observableToAsyncIterable';

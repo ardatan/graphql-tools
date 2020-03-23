@@ -20,13 +20,13 @@ import {
   MergedTypeInfo,
   Transform,
 } from '../Interfaces';
-import { ExpandAbstractTypes, AddReplacementFragments } from '../wrap';
+import { ExpandAbstractTypes, AddReplacementFragments } from '../wrap/index';
 import {
   parseFragmentToInlineFragment,
   concatInlineFragments,
   typeContainsSelectionSet,
   parseSelectionSet,
-} from '../utils';
+} from '../utils/index';
 
 import delegateToSchema from '../delegate/delegateToSchema';
 

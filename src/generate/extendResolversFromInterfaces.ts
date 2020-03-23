@@ -6,7 +6,7 @@ import {
 } from 'graphql';
 
 import { IResolvers } from '../Interfaces';
-import { graphqlVersion } from '../utils';
+import { graphqlVersion } from '../utils/index';
 
 function extendResolversFromInterfaces(
   schema: GraphQLSchema,

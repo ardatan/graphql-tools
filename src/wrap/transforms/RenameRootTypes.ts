@@ -7,8 +7,8 @@ import {
 } from 'graphql';
 
 import { Request, Result, MapperKind, Transform } from '../../Interfaces';
-import { mapSchema } from '../../utils';
-import { toConfig } from '../../polyfills';
+import { mapSchema } from '../../utils/index';
+import { toConfig } from '../../polyfills/index';
 
 export default class RenameRootTypes implements Transform {
   private readonly renamer: (name: string) => string | undefined;

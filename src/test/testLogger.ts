@@ -1,7 +1,7 @@
 import { assert } from 'chai';
 import { graphql } from 'graphql';
 
-import { makeExecutableSchema } from '../generate';
+import { makeExecutableSchema } from '../generate/index';
 import { Logger } from '../generate/Logger';
 
 describe('Logger', () => {

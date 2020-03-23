@@ -28,8 +28,8 @@ import {
   GraphQLObjectTypeConfig,
 } from 'graphql';
 
-import { toConfig, isSpecifiedScalarType } from '../polyfills';
-import { graphqlVersion } from '../utils';
+import { toConfig, isSpecifiedScalarType } from '../polyfills/index';
+import { graphqlVersion } from '../utils/index';
 import {
   SchemaMapper,
   MapperKind,

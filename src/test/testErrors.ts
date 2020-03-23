@@ -4,8 +4,8 @@ import { GraphQLError, graphql } from 'graphql';
 import { relocatedError } from '../stitch/errors';
 import { getErrors, ERROR_SYMBOL } from '../stitch/proxiedResult';
 import { checkResultAndHandleErrors } from '../delegate/checkResultAndHandleErrors';
-import { makeExecutableSchema } from '../generate';
-import { mergeSchemas } from '../stitch';
+import { makeExecutableSchema } from '../generate/index';
+import { mergeSchemas } from '../stitch/index';
 import { IGraphQLToolsResolveInfo } from '../Interfaces';
 
 class ErrorWithExtensions extends GraphQLError {

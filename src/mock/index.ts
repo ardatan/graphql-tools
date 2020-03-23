@@ -21,8 +21,8 @@ import {
 } from 'graphql';
 import { v4 as uuid } from 'uuid';
 
-import { buildSchemaFromTypeDefinitions } from '../generate';
-import { forEachField } from '../utils';
+import { buildSchemaFromTypeDefinitions } from '../generate/index';
+import { forEachField } from '../utils/index';
 
 import {
   IMocks,

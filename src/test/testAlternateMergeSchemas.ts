@@ -26,12 +26,12 @@ import {
   HoistField,
   FilterRootFields,
   FilterObjectFields,
-} from '../wrap';
-import { isSpecifiedScalarType, toConfig } from '../polyfills';
+} from '../wrap/index';
+import { isSpecifiedScalarType, toConfig } from '../polyfills/index';
 
-import { delegateToSchema } from '../delegate';
-import { makeExecutableSchema } from '../generate';
-import { mergeSchemas, createMergedResolver } from '../stitch';
+import { delegateToSchema } from '../delegate/index';
+import { makeExecutableSchema } from '../generate/index';
+import { mergeSchemas, createMergedResolver } from '../stitch/index';
 import { SubschemaConfig } from '../Interfaces';
 import {
   filterSchema,
@@ -39,7 +39,7 @@ import {
   renameFieldNode,
   hoistFieldNodes,
   graphqlVersion,
-} from '../utils';
+} from '../utils/index';
 
 import {
   propertySchema,
