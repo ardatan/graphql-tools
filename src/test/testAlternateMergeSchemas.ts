@@ -9,6 +9,7 @@ import {
   printSchema,
   GraphQLFieldConfig,
   GraphQLObjectType,
+  graphqlSync,
 } from 'graphql';
 import { forAwaitEach } from 'iterall';
 import { expect } from 'chai';
@@ -669,6 +670,112 @@ type Query {
     expect(result.errors[0].extensions).to.deep.equal({
       code: 'SOME_CUSTOM_CODE',
     });
+  });
+});
+
+describe('rename nested object fields with interfaces', () => {
+  it('should work', () => {
+    const originalNode = {
+      aList: [
+        {
+          anInnerObject: {
+            _linkType: 'linkedItem',
+            aString: 'Hello, world'
+          }
+        }
+      ]
+    };
+
+    const transformedNode = {
+      ALIST: [
+        {
+          ANINNEROBJECT: {
+            _linkType: 'linkedItem',
+            ASTRING: 'Hello, world'
+          }
+        }
+      ]
+    };
+
+    const originalSchema = makeExecutableSchema({
+      typeDefs: `
+        interface _Linkable {
+          _linkType: String!
+        }
+        type linkedItem implements _Linkable {
+          _linkType: String!
+          aString: String!
+        }
+        type aLink {
+          anInnerObject: _Linkable
+        }
+        type aObject {
+          aList: [aLink!]
+        }
+        type Query {
+          node: aObject
+        }
+      `,
+      resolvers: {
+        _Linkable: {
+          __resolveType: (linkable: { _linkType: string }) => linkable._linkType
+        },
+        Query: {
+          node: () => originalNode,
+        }
+      }
+    });
+
+    const transformedSchema = transformSchema(originalSchema, [
+      new RenameObjectFields((typeName, fieldName) => {
+        if (typeName === 'Query') {
+          return fieldName;
+        }
+
+        // Remote uses leading underscores for special fields. Leave them alone.
+        if (fieldName[0] === '_') {
+          return fieldName;
+        };
+
+        return fieldName.toUpperCase();
+      })
+    ]);
+
+    const originalQuery = `
+      query {
+        node {
+          aList {
+            anInnerObject {
+              _linkType
+              ... on linkedItem {
+                aString
+              }
+            }
+          }
+        }
+      }
+    `;
+
+    const transformedQuery = `
+      query {
+        node {
+          ALIST {
+            ANINNEROBJECT {
+              _linkType
+              ... on linkedItem {
+                ASTRING
+              }
+            }
+          }
+        }
+      }
+    `;
+
+    const originalResult = graphqlSync(originalSchema, originalQuery);
+    const transformedResult = graphqlSync(transformedSchema, transformedQuery);
+
+    expect(originalResult).to.deep.equal({ data: { node: originalNode }});
+    expect(transformedResult).to.deep.equal({ data: { node: transformedNode }});
   });
 });
 

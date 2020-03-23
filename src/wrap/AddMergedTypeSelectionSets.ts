@@ -45,33 +45,31 @@ function addMergedTypeSelectionSets(
   return visit(
     document,
     visitWithTypeInfo(typeInfo, {
-      leave: {
-        [Kind.SELECTION_SET](
-          node: SelectionSetNode,
-        ): SelectionSetNode | null | undefined {
-          const parentType:
-            | GraphQLType
-            | null
-            | undefined = typeInfo.getParentType();
-          if (parentType != null) {
-            const parentTypeName = parentType.name;
-            let selections = node.selections;
+      [Kind.SELECTION_SET](
+        node: SelectionSetNode,
+      ): SelectionSetNode | null | undefined {
+        const parentType:
+          | GraphQLType
+          | null
+          | undefined = typeInfo.getParentType();
+        if (parentType != null) {
+          const parentTypeName = parentType.name;
+          let selections = node.selections;
 
-            if (mapping[parentTypeName] != null) {
-              const selectionSet = mapping[parentTypeName].selectionSet;
-              if (selectionSet != null) {
-                selections = selections.concat(selectionSet.selections);
-              }
-            }
-
-            if (selections !== node.selections) {
-              return {
-                ...node,
-                selections,
-              };
+          if (mapping[parentTypeName] != null) {
+            const selectionSet = mapping[parentTypeName].selectionSet;
+            if (selectionSet != null) {
+              selections = selections.concat(selectionSet.selections);
             }
           }
-        },
+
+          if (selections !== node.selections) {
+            return {
+              ...node,
+              selections,
+            };
+          }
+        }
       },
     }),
   );

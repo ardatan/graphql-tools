@@ -73,52 +73,54 @@ function transformDocument(
   const newDocument: DocumentNode = visit(
     document,
     visitWithTypeInfo(typeInfo, {
-      [Kind.SELECTION_SET]: node => {
-        const parentType:
-          | GraphQLType
-          | null
-          | undefined = typeInfo.getParentType();
-        if (parentType != null) {
-          const parentTypeName = parentType.name;
-          const fieldNodeTransformers = fieldNodeTransformerMap[parentTypeName];
-          let newSelections: Array<SelectionNode> = [];
+      leave: {
+        [Kind.SELECTION_SET]: node => {
+          const parentType:
+            | GraphQLType
+            | null
+            | undefined = typeInfo.getParentType();
+          if (parentType != null) {
+            const parentTypeName = parentType.name;
+            const fieldNodeTransformers = fieldNodeTransformerMap[parentTypeName];
+            let newSelections: Array<SelectionNode> = [];
 
-          node.selections.forEach(selection => {
-            if (selection.kind === Kind.FIELD) {
-              const fieldName = selection.name.value;
+            node.selections.forEach(selection => {
+              if (selection.kind === Kind.FIELD) {
+                const fieldName = selection.name.value;
 
-              let transformedSelection;
-              if (fieldNodeTransformers != null) {
-                const fieldNodeTransformer = fieldNodeTransformers[fieldName];
-                if (fieldNodeTransformer != null) {
-                  transformedSelection = fieldNodeTransformer(
-                    selection,
-                    fragments,
-                  );
+                let transformedSelection;
+                if (fieldNodeTransformers != null) {
+                  const fieldNodeTransformer = fieldNodeTransformers[fieldName];
+                  if (fieldNodeTransformer != null) {
+                    transformedSelection = fieldNodeTransformer(
+                      selection,
+                      fragments,
+                    );
+                  } else {
+                    transformedSelection = selection;
+                  }
                 } else {
                   transformedSelection = selection;
                 }
-              } else {
-                transformedSelection = selection;
-              }
 
-              if (Array.isArray(transformedSelection)) {
-                newSelections = newSelections.concat(transformedSelection);
-              } else if (transformedSelection.kind === Kind.FIELD) {
-                newSelections.push(transformedSelection);
+                if (Array.isArray(transformedSelection)) {
+                  newSelections = newSelections.concat(transformedSelection);
+                } else if (transformedSelection.kind === Kind.FIELD) {
+                  newSelections.push(transformedSelection);
+                } else {
+                  newSelections.push(transformedSelection);
+                }
               } else {
-                newSelections.push(transformedSelection);
+                newSelections.push(selection);
               }
-            } else {
-              newSelections.push(selection);
-            }
-          });
+            });
 
-          return {
-            ...node,
-            selections: newSelections,
-          };
-        }
+            return {
+              ...node,
+              selections: newSelections,
+            };
+          }
+        },
       },
     }),
   );

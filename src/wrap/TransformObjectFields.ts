@@ -144,70 +144,72 @@ export default class TransformObjectFields implements Transform {
     const newDocument: DocumentNode = visit(
       document,
       visitWithTypeInfo(typeInfo, {
-        [Kind.SELECTION_SET](node: SelectionSetNode): SelectionSetNode {
-          const parentType: GraphQLType = typeInfo.getParentType();
-          if (parentType != null) {
-            const parentTypeName = parentType.name;
-            let newSelections: Array<SelectionNode> = [];
+        leave: {
+          [Kind.SELECTION_SET]: (node: SelectionSetNode): SelectionSetNode => {
+            const parentType: GraphQLType = typeInfo.getParentType();
+            if (parentType != null) {
+              const parentTypeName = parentType.name;
+              let newSelections: Array<SelectionNode> = [];
 
-            node.selections.forEach(selection => {
-              if (selection.kind !== Kind.FIELD) {
-                newSelections.push(selection);
-                return;
-              }
+              node.selections.forEach(selection => {
+                if (selection.kind !== Kind.FIELD) {
+                  newSelections.push(selection);
+                  return;
+                }
 
-              const newName = selection.name.value;
+                const newName = selection.name.value;
 
-              const transformedSelection =
-                fieldNodeTransformer != null
-                  ? fieldNodeTransformer(
-                      parentTypeName,
-                      newName,
-                      selection,
-                      fragments,
-                    )
-                  : selection;
+                const transformedSelection =
+                  fieldNodeTransformer != null
+                    ? fieldNodeTransformer(
+                        parentTypeName,
+                        newName,
+                        selection,
+                        fragments,
+                      )
+                    : selection;
 
-              if (Array.isArray(transformedSelection)) {
-                newSelections = newSelections.concat(transformedSelection);
-                return;
-              }
+                if (Array.isArray(transformedSelection)) {
+                  newSelections = newSelections.concat(transformedSelection);
+                  return;
+                }
 
-              if (transformedSelection.kind !== Kind.FIELD) {
-                newSelections.push(transformedSelection);
-                return;
-              }
+                if (transformedSelection.kind !== Kind.FIELD) {
+                  newSelections.push(transformedSelection);
+                  return;
+                }
 
-              const typeMapping = mapping[parentTypeName];
-              if (typeMapping == null) {
-                newSelections.push(transformedSelection);
-                return;
-              }
+                const typeMapping = mapping[parentTypeName];
+                if (typeMapping == null) {
+                  newSelections.push(transformedSelection);
+                  return;
+                }
 
-              const oldName = mapping[parentTypeName][newName];
-              if (oldName == null) {
-                newSelections.push(transformedSelection);
-                return;
-              }
+                const oldName = mapping[parentTypeName][newName];
+                if (oldName == null) {
+                  newSelections.push(transformedSelection);
+                  return;
+                }
 
-              newSelections.push({
-                ...transformedSelection,
-                name: {
-                  kind: Kind.NAME,
-                  value: oldName,
-                },
-                alias: {
-                  kind: Kind.NAME,
-                  value: newName,
-                },
+                newSelections.push({
+                  ...transformedSelection,
+                  name: {
+                    kind: Kind.NAME,
+                    value: oldName,
+                  },
+                  alias: {
+                    kind: Kind.NAME,
+                    value: newName,
+                  },
+                });
               });
-            });
 
-            return {
-              ...node,
-              selections: newSelections,
-            };
-          }
+              return {
+                ...node,
+                selections: newSelections,
+              };
+            }
+          },
         },
       }),
     );
