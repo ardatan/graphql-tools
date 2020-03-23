@@ -680,10 +680,10 @@ describe('rename nested object fields with interfaces', () => {
         {
           anInnerObject: {
             _linkType: 'linkedItem',
-            aString: 'Hello, world'
-          }
-        }
-      ]
+            aString: 'Hello, world',
+          },
+        },
+      ],
     };
 
     const transformedNode = {
@@ -691,10 +691,10 @@ describe('rename nested object fields with interfaces', () => {
         {
           ANINNEROBJECT: {
             _linkType: 'linkedItem',
-            ASTRING: 'Hello, world'
-          }
-        }
-      ]
+            ASTRING: 'Hello, world',
+          },
+        },
+      ],
     };
 
     const originalSchema = makeExecutableSchema({
@@ -718,12 +718,13 @@ describe('rename nested object fields with interfaces', () => {
       `,
       resolvers: {
         _Linkable: {
-          __resolveType: (linkable: { _linkType: string }) => linkable._linkType
+          __resolveType: (linkable: { _linkType: string }) =>
+            linkable._linkType,
         },
         Query: {
           node: () => originalNode,
-        }
-      }
+        },
+      },
     });
 
     const transformedSchema = transformSchema(originalSchema, [
@@ -735,10 +736,10 @@ describe('rename nested object fields with interfaces', () => {
         // Remote uses leading underscores for special fields. Leave them alone.
         if (fieldName[0] === '_') {
           return fieldName;
-        };
+        }
 
         return fieldName.toUpperCase();
-      })
+      }),
     ]);
 
     const originalQuery = `
@@ -774,8 +775,10 @@ describe('rename nested object fields with interfaces', () => {
     const originalResult = graphqlSync(originalSchema, originalQuery);
     const transformedResult = graphqlSync(transformedSchema, transformedQuery);
 
-    expect(originalResult).to.deep.equal({ data: { node: originalNode }});
-    expect(transformedResult).to.deep.equal({ data: { node: transformedNode }});
+    expect(originalResult).to.deep.equal({ data: { node: originalNode } });
+    expect(transformedResult).to.deep.equal({
+      data: { node: transformedNode },
+    });
   });
 });
 

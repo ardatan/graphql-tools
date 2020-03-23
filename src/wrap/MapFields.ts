@@ -81,7 +81,8 @@ function transformDocument(
             | undefined = typeInfo.getParentType();
           if (parentType != null) {
             const parentTypeName = parentType.name;
-            const fieldNodeTransformers = fieldNodeTransformerMap[parentTypeName];
+            const fieldNodeTransformers =
+              fieldNodeTransformerMap[parentTypeName];
             let newSelections: Array<SelectionNode> = [];
 
             node.selections.forEach(selection => {
