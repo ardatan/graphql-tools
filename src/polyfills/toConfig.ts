@@ -125,16 +125,28 @@ export function toConfig(graphqlObject: any) {
     return typeToConfig(graphqlObject);
   }
 
-  const ofType = graphqlObject.type;
-  if (ofType != null) {
-    if (ofType.defaultValue !== undefined) {
-      return inputFieldToConfig(graphqlObject);
-    } else if (
-      ofType.resolve !== undefined ||
-      ofType.subscribe !== undefined ||
-      ofType.args !== undefined
+  // Input and output fields do not have predicates defined, but using duck typing,
+  // type is defined for input and output fields
+  if (graphqlObject.type != null) {
+    if (
+      graphqlObject.args != null ||
+      graphqlObject.resolve != null ||
+      graphqlObject.subscribe != null
     ) {
       return fieldToConfig(graphqlObject);
+    } else if (
+      graphqlObject.defaultValue != null
+    ) {
+      return inputFieldToConfig(graphqlObject);
+    }
+
+    // Not all input and output fields can be checked by above in older versions
+    // of graphql, but almost all properties on the field and config are identical.
+    // In particular, just name and isDeprecated should be removed.
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { name, isDeprecated, ...rest } = graphqlObject;
+    return {
+      ...rest,
     }
   }
 
