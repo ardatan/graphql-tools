@@ -1,7 +1,6 @@
 import { GraphQLSchema } from 'graphql';
 
 import { addResolversToSchema } from '../generate/index';
-import { generateProxyingResolvers, stripResolvers } from '../stitch/resolvers';
 import {
   Transform,
   SubschemaConfig,
@@ -10,6 +9,7 @@ import {
 } from '../Interfaces';
 import { cloneSchema } from '../utils/index';
 
+import { generateProxyingResolvers, stripResolvers } from './resolvers';
 import { applySchemaTransforms } from './transforms';
 
 export function wrapSchema(

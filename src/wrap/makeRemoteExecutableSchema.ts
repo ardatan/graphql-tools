@@ -18,7 +18,8 @@ import { checkResultAndHandleErrors } from '../delegate/checkResultAndHandleErro
 import linkToFetcher, { execute } from '../stitch/linkToFetcher';
 import { observableToAsyncIterable } from '../stitch/observableToAsyncIterable';
 import mapAsyncIterator from '../stitch/mapAsyncIterator';
-import { stripResolvers, generateProxyingResolvers } from '../stitch/resolvers';
+
+import { stripResolvers, generateProxyingResolvers } from './resolvers';
 
 export type ResolverFn = (
   rootValue?: any,

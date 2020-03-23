@@ -13,9 +13,9 @@ import {
 import delegateToSchema from '../delegate/delegateToSchema';
 import { handleResult } from '../delegate/checkResultAndHandleErrors';
 
-import { makeMergedType } from './makeMergedType';
-import { getResponseKeyFromInfo } from './getResponseKeyFromInfo';
-import { getErrors, getSubschema } from './proxiedResult';
+import { makeMergedType } from '../stitch/makeMergedType';
+import { getResponseKeyFromInfo } from '../stitch/getResponseKeyFromInfo';
+import { getErrors, getSubschema } from '../stitch/proxiedResult';
 
 export type Mapping = {
   [typeName: string]: {
