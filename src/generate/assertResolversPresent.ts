@@ -13,7 +13,7 @@ import SchemaError from './SchemaError';
 function assertResolversPresent(
   schema: GraphQLSchema,
   resolverValidationOptions: IResolverValidationOptions = {},
-) {
+): void {
   const {
     requireResolversForArgs = false,
     requireResolversForNonScalar = false,

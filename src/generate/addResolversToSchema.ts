@@ -32,7 +32,7 @@ function addResolversToSchema(
   schemaOrOptions: GraphQLSchema | IAddResolversToSchemaOptions,
   legacyInputResolvers?: IResolvers,
   legacyInputValidationOptions?: IResolverValidationOptions,
-) {
+): GraphQLSchema {
   const options: IAddResolversToSchemaOptions = isSchema(schemaOrOptions)
     ? {
         schema: schemaOrOptions,
