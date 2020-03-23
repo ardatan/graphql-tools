@@ -1,17 +1,14 @@
 import {
   GraphQLSchema,
-  GraphQLType,
-  DocumentNode,
   FieldNode,
-  TypeInfo,
-  visit,
-  visitWithTypeInfo,
-  Kind,
   SelectionNode,
   FragmentDefinitionNode,
 } from 'graphql';
 
 import { Transform, Request } from '../Interfaces';
+import { toConfig } from '../polyfills';
+
+import TransformObjectFields from './TransformObjectFields';
 
 export type FieldNodeTransformer = (
   fieldNode: FieldNode,
@@ -25,105 +22,32 @@ export type FieldNodeTransformerMap = {
 };
 
 export default class MapFields implements Transform {
-  private schema: GraphQLSchema | undefined;
-  private readonly fieldNodeTransformerMap: FieldNodeTransformerMap;
+  private readonly transformer: TransformObjectFields;
 
   constructor(fieldNodeTransformerMap: FieldNodeTransformerMap) {
-    this.fieldNodeTransformerMap = fieldNodeTransformerMap;
+    this.transformer = new TransformObjectFields(
+      (_typeName, _fieldName, field) => toConfig(field),
+      (typeName, fieldName, fieldNode, fragments) => {
+        const typeTransformers = fieldNodeTransformerMap[typeName];
+        if (typeTransformers == null) {
+          return fieldNode;
+        }
+
+        const fieldNodeTransformer = typeTransformers[fieldName];
+        if (fieldNodeTransformer == null) {
+          return fieldNode;
+        }
+
+        return fieldNodeTransformer(fieldNode, fragments);
+      },
+    );
   }
 
   public transformSchema(schema: GraphQLSchema): GraphQLSchema {
-    this.schema = schema;
-    return schema;
+    return this.transformer.transformSchema(schema);
   }
 
-  public transformRequest(originalRequest: Request): Request {
-    if (!this.schema) {
-      throw new Error(
-        'MapFields transform required initialization with target schema within the transformSchema method.',
-      );
-    }
-
-    const fragments = {};
-    originalRequest.document.definitions
-      .filter(def => def.kind === Kind.FRAGMENT_DEFINITION)
-      .forEach(def => {
-        fragments[(def as FragmentDefinitionNode).name.value] = def;
-      });
-    const document = transformDocument(
-      originalRequest.document,
-      this.schema,
-      this.fieldNodeTransformerMap,
-      fragments,
-    );
-    return {
-      ...originalRequest,
-      document,
-    };
+  public transformRequest(request: Request): Request {
+    return this.transformer.transformRequest(request);
   }
-}
-
-function transformDocument(
-  document: DocumentNode,
-  schema: GraphQLSchema,
-  fieldNodeTransformerMap: FieldNodeTransformerMap,
-  fragments: Record<string, FragmentDefinitionNode> = {},
-): DocumentNode {
-  const typeInfo = new TypeInfo(schema);
-  const newDocument: DocumentNode = visit(
-    document,
-    visitWithTypeInfo(typeInfo, {
-      leave: {
-        [Kind.SELECTION_SET]: node => {
-          const parentType:
-            | GraphQLType
-            | null
-            | undefined = typeInfo.getParentType();
-          if (parentType != null) {
-            const parentTypeName = parentType.name;
-            const fieldNodeTransformers =
-              fieldNodeTransformerMap[parentTypeName];
-            let newSelections: Array<SelectionNode> = [];
-
-            node.selections.forEach(selection => {
-              if (selection.kind === Kind.FIELD) {
-                const fieldName = selection.name.value;
-
-                let transformedSelection;
-                if (fieldNodeTransformers != null) {
-                  const fieldNodeTransformer = fieldNodeTransformers[fieldName];
-                  if (fieldNodeTransformer != null) {
-                    transformedSelection = fieldNodeTransformer(
-                      selection,
-                      fragments,
-                    );
-                  } else {
-                    transformedSelection = selection;
-                  }
-                } else {
-                  transformedSelection = selection;
-                }
-
-                if (Array.isArray(transformedSelection)) {
-                  newSelections = newSelections.concat(transformedSelection);
-                } else if (transformedSelection.kind === Kind.FIELD) {
-                  newSelections.push(transformedSelection);
-                } else {
-                  newSelections.push(transformedSelection);
-                }
-              } else {
-                newSelections.push(selection);
-              }
-            });
-
-            return {
-              ...node,
-              selections: newSelections,
-            };
-          }
-        },
-      },
-    }),
-  );
-  return newDocument;
 }
