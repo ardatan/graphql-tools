@@ -9,24 +9,23 @@ import {
   visitWithTypeInfo,
 } from 'graphql';
 
-import {
-  Transform,
-  Request,
-  ReplacementSelectionSetMapping,
-} from '../Interfaces';
+import { Transform, Request, MergedTypeInfo } from '../../Interfaces';
 
-export default class AddReplacementSelectionSets implements Transform {
-  private readonly schema: GraphQLSchema;
-  private readonly mapping: ReplacementSelectionSetMapping;
+export default class AddMergedTypeFragments implements Transform {
+  private readonly targetSchema: GraphQLSchema;
+  private readonly mapping: Record<string, MergedTypeInfo>;
 
-  constructor(schema: GraphQLSchema, mapping: ReplacementSelectionSetMapping) {
-    this.schema = schema;
+  constructor(
+    targetSchema: GraphQLSchema,
+    mapping: Record<string, MergedTypeInfo>,
+  ) {
+    this.targetSchema = targetSchema;
     this.mapping = mapping;
   }
 
   public transformRequest(originalRequest: Request): Request {
-    const document = replaceFieldsWithSelectionSet(
-      this.schema,
+    const document = addMergedTypeSelectionSets(
+      this.targetSchema,
       originalRequest.document,
       this.mapping,
     );
@@ -37,12 +36,12 @@ export default class AddReplacementSelectionSets implements Transform {
   }
 }
 
-function replaceFieldsWithSelectionSet(
-  schema: GraphQLSchema,
+function addMergedTypeSelectionSets(
+  targetSchema: GraphQLSchema,
   document: DocumentNode,
-  mapping: ReplacementSelectionSetMapping,
+  mapping: Record<string, MergedTypeInfo>,
 ): DocumentNode {
-  const typeInfo = new TypeInfo(schema);
+  const typeInfo = new TypeInfo(targetSchema);
   return visit(
     document,
     visitWithTypeInfo(typeInfo, {
@@ -58,15 +57,10 @@ function replaceFieldsWithSelectionSet(
           let selections = node.selections;
 
           if (mapping[parentTypeName] != null) {
-            node.selections.forEach(selection => {
-              if (selection.kind === Kind.FIELD) {
-                const name = selection.name.value;
-                const selectionSet = mapping[parentTypeName][name];
-                if (selectionSet != null) {
-                  selections = selections.concat(selectionSet.selections);
-                }
-              }
-            });
+            const selectionSet = mapping[parentTypeName].selectionSet;
+            if (selectionSet != null) {
+              selections = selections.concat(selectionSet.selections);
+            }
           }
 
           if (selections !== node.selections) {

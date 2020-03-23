@@ -16,8 +16,8 @@ import {
   isListType,
 } from 'graphql';
 
-import { Transform, Request } from '../Interfaces';
-import { serializeInputValue } from '../utils';
+import { Transform, Request } from '../../Interfaces';
+import { serializeInputValue } from '../../utils';
 
 export default class AddArgumentsAsVariablesTransform implements Transform {
   private readonly targetSchema: GraphQLSchema;

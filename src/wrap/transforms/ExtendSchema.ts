@@ -1,8 +1,8 @@
 import { GraphQLSchema, extendSchema, parse } from 'graphql';
 
-import { Transform, IFieldResolver, IResolvers, Request } from '../Interfaces';
-import { addResolversToSchema } from '../generate';
-import { defaultMergedResolver } from '../stitch';
+import { Transform, IFieldResolver, IResolvers, Request } from '../../Interfaces';
+import { addResolversToSchema } from '../../generate';
+import { defaultMergedResolver } from '../../stitch';
 
 import MapFields, { FieldNodeTransformerMap } from './MapFields';
 

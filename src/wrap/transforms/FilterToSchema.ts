@@ -21,8 +21,8 @@ import {
   isInterfaceType,
 } from 'graphql';
 
-import { Transform, Request } from '../Interfaces';
-import implementsAbstractType from '../utils/implementsAbstractType';
+import { Transform, Request } from '../../Interfaces';
+import implementsAbstractType from '../../utils/implementsAbstractType';
 
 export default class FilterToSchema implements Transform {
   private readonly targetSchema: GraphQLSchema;

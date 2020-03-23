@@ -9,7 +9,7 @@ import {
   visitWithTypeInfo,
 } from 'graphql';
 
-import { Transform, Request, ReplacementFragmentMapping } from '../Interfaces';
+import { Transform, Request, ReplacementFragmentMapping } from '../../Interfaces';
 
 export default class AddReplacementFragments implements Transform {
   private readonly targetSchema: GraphQLSchema;

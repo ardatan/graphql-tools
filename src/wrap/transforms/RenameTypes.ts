@@ -18,9 +18,9 @@ import {
   visit,
 } from 'graphql';
 
-import { isSpecifiedScalarType, toConfig } from '../polyfills';
-import { Transform, Request, Result, MapperKind } from '../Interfaces';
-import { mapSchema } from '../utils';
+import { isSpecifiedScalarType, toConfig } from '../../polyfills';
+import { Transform, Request, Result, MapperKind } from '../../Interfaces';
+import { mapSchema } from '../../utils';
 
 export type RenameOptions = {
   renameBuiltins: boolean;

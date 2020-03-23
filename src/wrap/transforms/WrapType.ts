@@ -1,6 +1,6 @@
 import { GraphQLSchema } from 'graphql';
 
-import { Transform, Request } from '../Interfaces';
+import { Transform, Request } from '../../Interfaces';
 
 import WrapFields from './WrapFields';
 

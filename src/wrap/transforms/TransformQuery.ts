@@ -6,7 +6,7 @@ import {
   GraphQLError,
 } from 'graphql';
 
-import { Transform, Request, Result } from '../Interfaces';
+import { Transform, Request, Result } from '../../Interfaces';
 
 export type QueryTransformer = (
   selectionSet: SelectionSetNode,

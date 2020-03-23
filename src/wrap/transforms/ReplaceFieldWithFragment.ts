@@ -12,8 +12,8 @@ import {
   visitWithTypeInfo,
 } from 'graphql';
 
-import { concatInlineFragments } from '../utils';
-import { Transform, Request } from '../Interfaces';
+import { concatInlineFragments } from '../../utils';
+import { Transform, Request } from '../../Interfaces';
 
 export default class ReplaceFieldWithFragment implements Transform {
   private readonly targetSchema: GraphQLSchema;

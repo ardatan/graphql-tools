@@ -5,8 +5,8 @@ import {
   FragmentDefinitionNode,
 } from 'graphql';
 
-import { Transform, Request } from '../Interfaces';
-import { toConfig } from '../polyfills';
+import { Transform, Request } from '../../Interfaces';
+import { toConfig } from '../../polyfills';
 
 import TransformObjectFields from './TransformObjectFields';
 

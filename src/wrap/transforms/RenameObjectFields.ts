@@ -1,6 +1,6 @@
 import { GraphQLField, GraphQLSchema } from 'graphql';
 
-import { Transform, Request } from '../Interfaces';
+import { Transform, Request } from '../../Interfaces';
 
 import TransformObjectFields from './TransformObjectFields';
 

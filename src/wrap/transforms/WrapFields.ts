@@ -1,13 +1,13 @@
 import { GraphQLSchema, GraphQLObjectType } from 'graphql';
 
-import { Transform, Request } from '../Interfaces';
+import { Transform, Request } from '../../Interfaces';
 import {
   hoistFieldNodes,
   healSchema,
   appendFields,
   removeFields,
-} from '../utils';
-import { defaultMergedResolver, createMergedResolver } from '../stitch';
+} from '../../utils';
+import { defaultMergedResolver, createMergedResolver } from '../../stitch';
 
 import MapFields from './MapFields';
 

@@ -1,9 +1,9 @@
 import { GraphQLSchema, GraphQLObjectType, getNullableType } from 'graphql';
 
-import { healSchema, wrapFieldNode, renameFieldNode } from '../utils';
-import { createMergedResolver } from '../stitch';
-import { appendFields, removeFields } from '../utils/fields';
-import { Transform, Request } from '../Interfaces';
+import { healSchema, wrapFieldNode, renameFieldNode } from '../../utils';
+import { createMergedResolver } from '../../stitch';
+import { appendFields, removeFields } from '../../utils/fields';
+import { Transform, Request } from '../../Interfaces';
 
 import MapFields from './MapFields';
 

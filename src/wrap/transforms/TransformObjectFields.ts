@@ -15,10 +15,10 @@ import {
   FragmentDefinitionNode,
 } from 'graphql';
 
-import isEmptyObject from '../utils/isEmptyObject';
-import { Transform, Request, MapperKind } from '../Interfaces';
-import { mapSchema } from '../utils';
-import { toConfig } from '../polyfills';
+import isEmptyObject from '../../utils/isEmptyObject';
+import { Transform, Request, MapperKind } from '../../Interfaces';
+import { mapSchema } from '../../utils';
+import { toConfig } from '../../polyfills';
 
 export type ObjectFieldTransformer = (
   typeName: string,

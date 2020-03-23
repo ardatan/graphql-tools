@@ -6,7 +6,7 @@ import {
   SelectionSetNode,
 } from 'graphql';
 
-import { Transform, Request, Result } from '../Interfaces';
+import { Transform, Request, Result } from '../../Interfaces';
 
 export type QueryWrapper = (
   subtree: SelectionSetNode,
