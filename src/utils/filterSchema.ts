@@ -8,17 +8,15 @@ import {
   GraphQLType,
 } from 'graphql';
 
-import { GraphQLSchemaWithTransforms, MapperKind } from '../Interfaces';
+import {
+  GraphQLSchemaWithTransforms,
+  MapperKind,
+  FieldFilter,
+  RootFieldFilter,
+} from '../Interfaces';
 import { toConfig } from '../polyfills/index';
 
 import { mapSchema } from './map';
-
-export type RootFieldFilter = (
-  operation: 'Query' | 'Mutation' | 'Subscription',
-  rootFieldName: string,
-) => boolean;
-
-export type FieldFilter = (typeName: string, rootFieldName: string) => boolean;
 
 export default function filterSchema({
   schema,
@@ -66,7 +64,7 @@ function filterRootFields(
 ): GraphQLObjectType {
   const config = toConfig(type);
   Object.keys(config.fields).forEach((fieldName) => {
-    if (!rootFieldFilter(operation, fieldName)) {
+    if (!rootFieldFilter(operation, fieldName, config.fields[fieldName])) {
       delete config.fields[fieldName];
     }
   });
@@ -79,7 +77,7 @@ function filterObjectFields(
 ): GraphQLObjectType {
   const config = toConfig(type);
   Object.keys(config.fields).forEach((fieldName) => {
-    if (!fieldFilter(type.name, fieldName)) {
+    if (!fieldFilter(type.name, fieldName, config.fields[fieldName])) {
       delete config.fields[fieldName];
     }
   });

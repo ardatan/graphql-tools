@@ -16,6 +16,7 @@ import { expect } from 'chai';
 
 import {
   transformSchema,
+  wrapSchema,
   RenameTypes,
   RenameRootFields,
   RenameObjectFields,
@@ -26,6 +27,7 @@ import {
   HoistField,
   FilterRootFields,
   FilterObjectFields,
+  RenameInterfaceFields,
 } from '../wrap/index';
 import { isSpecifiedScalarType, toConfig } from '../polyfills/index';
 
@@ -408,6 +410,84 @@ describe('transform object fields', () => {
         },
       },
     });
+  });
+});
+
+describe('rename fields that implement interface fields', () => {
+  it('should work', () => {
+    const originalItem = {
+      id: '123',
+      camel: "I'm a camel!",
+    };
+
+    const originalSchema = makeExecutableSchema({
+      typeDefs: `
+        interface Node {
+          id: ID!
+        }
+        interface Item {
+          node: Node
+        }
+        type Camel implements Node {
+          id: ID!
+          camel: String!
+        }
+        type Query implements Item {
+          node: Node
+        }
+      `,
+      resolvers: {
+        Query: {
+          node: () => originalItem,
+        },
+        Node: {
+          __resolveType: () => 'Camel',
+        },
+      },
+    });
+
+    const wrappedSchema = wrapSchema(originalSchema, [
+      new RenameRootFields((_operation, fieldName) => {
+        if (fieldName === 'node') {
+          return '_node';
+        }
+        return fieldName;
+      }),
+      new RenameInterfaceFields((typeName, fieldName) => {
+        if (typeName === 'Item' && fieldName === 'node') {
+          return '_node';
+        }
+        return fieldName;
+      }),
+    ]);
+
+    const originalQuery = `
+      query {
+        node {
+          id
+          ... on Camel {
+            camel
+          }
+        }
+      }
+    `;
+
+    const newQuery = `
+      query {
+        _node {
+          id
+          ... on Camel {
+            camel
+          }
+        }
+      }
+    `;
+
+    const originalResult = graphqlSync(originalSchema, originalQuery);
+    expect(originalResult).to.deep.equal({ data: { node: originalItem } });
+
+    const newResult = graphqlSync(wrappedSchema, newQuery);
+    expect(newResult).to.deep.equal({ data: { _node: originalItem } });
   });
 });
 

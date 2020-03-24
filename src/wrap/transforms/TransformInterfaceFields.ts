@@ -1,4 +1,4 @@
-import { GraphQLSchema, GraphQLField, isObjectType } from 'graphql';
+import { GraphQLSchema, GraphQLField, isInterfaceType } from 'graphql';
 
 import {
   Transform,
@@ -9,16 +9,16 @@ import {
 
 import TransformCompositeFields from './TransformCompositeFields';
 
-export default class TransformObjectFields implements Transform {
-  private readonly objectFieldTransformer: FieldTransformer;
+export default class TransformInterfaceFields implements Transform {
+  private readonly interfaceFieldTransformer: FieldTransformer;
   private readonly fieldNodeTransformer: FieldNodeTransformer;
   private transformer: TransformCompositeFields;
 
   constructor(
-    objectFieldTransformer: FieldTransformer,
+    interfaceFieldTransformer: FieldTransformer,
     fieldNodeTransformer?: FieldNodeTransformer,
   ) {
-    this.objectFieldTransformer = objectFieldTransformer;
+    this.interfaceFieldTransformer = interfaceFieldTransformer;
     this.fieldNodeTransformer = fieldNodeTransformer;
   }
 
@@ -28,8 +28,8 @@ export default class TransformObjectFields implements Transform {
       fieldName: string,
       field: GraphQLField<any, any>,
     ) => {
-      if (isObjectType(originalSchema.getType(typeName))) {
-        return this.objectFieldTransformer(typeName, fieldName, field);
+      if (isInterfaceType(originalSchema.getType(typeName))) {
+        return this.interfaceFieldTransformer(typeName, fieldName, field);
       }
 
       return undefined;

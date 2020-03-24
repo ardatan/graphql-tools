@@ -1,10 +1,8 @@
 import { GraphQLSchema, GraphQLField, GraphQLFieldConfig } from 'graphql';
 
-import { Transform, Request } from '../../Interfaces';
+import { Transform, Request, FieldNodeTransformer } from '../../Interfaces';
 
-import TransformObjectFields, {
-  FieldNodeTransformer,
-} from './TransformObjectFields';
+import TransformObjectFields from './TransformObjectFields';
 
 export type RootTransformer = (
   operation: 'Query' | 'Mutation' | 'Subscription',

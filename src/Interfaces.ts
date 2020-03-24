@@ -24,6 +24,9 @@ import {
   GraphQLOutputType,
   SelectionSetNode,
   GraphQLDirective,
+  GraphQLFieldConfig,
+  FragmentDefinitionNode,
+  SelectionNode,
 } from 'graphql';
 
 import { TypeMap } from 'graphql/type/schema';
@@ -70,6 +73,36 @@ export interface Transform {
   transformRequest?: (originalRequest: Request) => Request;
   transformResult?: (result: Result) => Result;
 }
+
+export type FieldTransformer = (
+  typeName: string,
+  fieldName: string,
+  field: GraphQLField<any, any>,
+) => GraphQLFieldConfig<any, any> | RenamedField | null | undefined;
+
+export type FieldNodeTransformer = (
+  typeName: string,
+  fieldName: string,
+  fieldNode: FieldNode,
+  fragments: Record<string, FragmentDefinitionNode>,
+) => SelectionNode | Array<SelectionNode>;
+
+export type RenamedField = {
+  name: string;
+  field?: GraphQLFieldConfig<any, any>;
+};
+
+export type FieldFilter = (
+  typeName?: string,
+  fieldName?: string,
+  field?: GraphQLField<any, any>,
+) => boolean;
+
+export type RootFieldFilter = (
+  operation?: 'Query' | 'Mutation' | 'Subscription',
+  rootFieldName?: string,
+  field?: GraphQLField<any, any>,
+) => boolean;
 
 export interface IGraphQLToolsResolveInfo extends GraphQLResolveInfo {
   mergeInfo?: MergeInfo;
