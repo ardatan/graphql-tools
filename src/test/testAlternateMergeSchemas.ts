@@ -7,9 +7,8 @@ import {
   GraphQLScalarType,
   FieldNode,
   printSchema,
-  GraphQLFieldConfig,
-  GraphQLObjectType,
   graphqlSync,
+  GraphQLField,
 } from 'graphql';
 import { forAwaitEach } from 'iterall';
 import { expect } from 'chai';
@@ -349,17 +348,14 @@ describe('transform object fields', () => {
   before(() => {
     transformedPropertySchema = transformSchema(propertySchema, [
       new TransformObjectFields(
-        (typeName: string, fieldName: string) => {
+        (typeName: string, fieldName: string, field: GraphQLField<any, any>) => {
           if (typeName !== 'Property' || fieldName !== 'name') {
             return undefined;
           }
-          const type = propertySchema.getType(typeName) as GraphQLObjectType;
-          const typeConfig = toConfig(type);
-          const fieldConfig = typeConfig.fields[
-            fieldName
-          ] as GraphQLFieldConfig<any, any>;
-          fieldConfig.resolve = () => 'test';
-          return fieldConfig;
+          return {
+            ...toConfig(field),
+            resolve: () => 'test',
+          };
         },
         (typeName: string, fieldName: string, fieldNode: FieldNode) => {
           if (typeName !== 'Property' || fieldName !== 'name') {
