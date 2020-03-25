@@ -23,10 +23,9 @@ import {
 
 import {
   ICreateRequestFromInfo,
-  Operation,
   Request,
-  SubschemaConfig,
   isSubschemaConfig,
+  ICreateRequest,
 } from '../Interfaces';
 import { serializeInputValue } from '../utils/index';
 
@@ -45,43 +44,71 @@ export function getDelegatingOperation(
 
 export function createRequestFromInfo({
   info,
-  schema,
+  schema: subschemaOrSubschemaConfig,
+  transformedSchema,
   operation = getDelegatingOperation(info.parentType, info.schema),
   fieldName = info.fieldName,
   args,
   selectionSet,
   fieldNodes,
 }: ICreateRequestFromInfo): Request {
-  return createRequest(
-    info.schema,
-    info.fragments,
-    info.operation.variableDefinitions,
-    info.variableValues,
-    schema,
-    operation,
-    fieldName,
+  const sourceParentType = info.parentType;
+  const sourceFieldName = info.fieldName;
+
+  const fieldArguments = sourceParentType.getFields()[sourceFieldName].args;
+  const defaultArgs = {};
+  fieldArguments.forEach((argument) => {
+    if (argument.defaultValue != null) {
+      defaultArgs[argument.name] = argument.defaultValue;
+    }
+  });
+
+  let targetSchema;
+  if (transformedSchema != null) {
+    targetSchema = transformedSchema;
+  } else {
+    targetSchema = isSubschemaConfig(subschemaOrSubschemaConfig)
+      ? subschemaOrSubschemaConfig.schema
+      : subschemaOrSubschemaConfig;
+  }
+
+  return createRequest({
+    sourceSchema: info.schema,
+    sourceParentType,
+    sourceFieldName,
+    fragments: info.fragments,
+    variableDefinitions: info.operation.variableDefinitions,
+    variableValues: info.variableValues,
+    targetSchema,
+    targetOperation: operation,
+    targetField: fieldName,
     args,
     selectionSet,
-    selectionSet != null
-      ? undefined
-      : fieldNodes != null
-      ? fieldNodes
-      : info.fieldNodes,
-  );
+    fieldNodes:
+      selectionSet != null
+        ? undefined
+        : fieldNodes != null
+        ? fieldNodes
+        : info.fieldNodes,
+    defaultArgs,
+  });
 }
 
-export function createRequest(
-  sourceSchema: GraphQLSchema,
-  fragments: Record<string, FragmentDefinitionNode>,
-  variableDefinitions: ReadonlyArray<VariableDefinitionNode>,
-  variableValues: Record<string, any>,
-  targetSchemaOrSchemaConfig: GraphQLSchema | SubschemaConfig,
-  targetOperation: Operation,
-  targetField: string,
-  args: Record<string, any>,
-  selectionSet: SelectionSetNode,
-  fieldNodes: ReadonlyArray<FieldNode>,
-): Request {
+export function createRequest({
+  sourceSchema,
+  sourceParentType,
+  sourceFieldName,
+  fragments,
+  variableDefinitions,
+  variableValues,
+  targetSchema,
+  targetOperation,
+  targetField,
+  args,
+  selectionSet,
+  fieldNodes,
+  defaultArgs,
+}: ICreateRequest): Request {
   let argumentNodes: ReadonlyArray<ArgumentNode>;
 
   let newSelectionSet: SelectionSetNode = selectionSet;
@@ -118,24 +145,25 @@ export function createRequest(
     variables[varName] = serializeInputValue(varType, variableValues[varName]);
   }
 
-  if (args != null) {
-    const {
-      arguments: updatedArguments,
-      variableDefinitions: updatedVariableDefinitions,
-      variableValues: updatedVariableValues,
-    } = updateArguments(
-      targetSchemaOrSchemaConfig,
-      targetOperation,
-      targetField,
-      argumentNodes,
-      variableDefinitions,
-      variables,
-      args,
-    );
-    argumentNodes = updatedArguments;
-    newVariableDefinitions = updatedVariableDefinitions;
-    variables = updatedVariableValues;
-  }
+  const {
+    arguments: updatedArguments,
+    variableDefinitions: updatedVariableDefinitions,
+    variableValues: updatedVariableValues,
+  } = updateArguments(
+    sourceParentType,
+    sourceFieldName,
+    targetSchema,
+    targetOperation,
+    targetField,
+    argumentNodes,
+    variableDefinitions,
+    variables,
+    args,
+    defaultArgs,
+  );
+  argumentNodes = updatedArguments;
+  newVariableDefinitions = updatedVariableDefinitions;
+  variables = updatedVariableValues;
 
   const rootfieldNode: FieldNode = {
     kind: Kind.FIELD,
@@ -174,90 +202,127 @@ export function createRequest(
 }
 
 function updateArguments(
-  subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig,
+  sourceParentType: GraphQLObjectType,
+  sourceFieldName: string,
+  targetSchema: GraphQLSchema,
   operation: OperationTypeNode,
   fieldName: string,
   argumentNodes: ReadonlyArray<ArgumentNode> = [],
   variableDefinitions: ReadonlyArray<VariableDefinitionNode> = [],
   variableValues: Record<string, any> = {},
-  newArgsMap: Record<string, any> = {},
+  newArgs: Record<string, any> = {},
+  defaultArgs: Record<string, any> = {},
 ): {
   arguments: Array<ArgumentNode>;
   variableDefinitions: Array<VariableDefinitionNode>;
   variableValues: Record<string, any>;
 } {
-  const schema = isSubschemaConfig(subschemaOrSubschemaConfig)
-    ? subschemaOrSubschemaConfig.schema
-    : subschemaOrSubschemaConfig;
-
   let type: GraphQLObjectType;
   if (operation === 'subscription') {
-    type = schema.getSubscriptionType();
+    type = targetSchema.getSubscriptionType();
   } else if (operation === 'mutation') {
-    type = schema.getMutationType();
+    type = targetSchema.getMutationType();
   } else {
-    type = schema.getQueryType();
+    type = targetSchema.getQueryType();
   }
 
-  const varNames = variableDefinitions.reduce((acc, def) => {
-    acc[def.variable.name.value] = true;
-    return acc;
-  }, {});
+  const updatedVariableDefinitions = {};
+  const varNames = {};
+  variableDefinitions.forEach((def) => {
+    const varName = def.variable.name.value;
+    updatedVariableDefinitions[varName] = def;
+    varNames[varName] = true;
+  });
   let numGeneratedVariables = 0;
 
   const updatedArgs: Record<string, ArgumentNode> = {};
   argumentNodes.forEach((argument: ArgumentNode) => {
     updatedArgs[argument.name.value] = argument;
   });
-  const newVariableDefinitions: Array<VariableDefinitionNode> = [];
 
   const field: GraphQLField<any, any> = type.getFields()[fieldName];
-  field.args.forEach((argument: GraphQLArgument) => {
-    if (newArgsMap[argument.name]) {
+  if (field != null) {
+    field.args.forEach((argument: GraphQLArgument) => {
       const argName = argument.name;
-      let varName;
-      do {
-        varName = `_v${(numGeneratedVariables++).toString()}_${argName}`;
-      } while (varNames[varName]);
 
-      updatedArgs[argument.name] = {
-        kind: Kind.ARGUMENT,
-        name: {
-          kind: Kind.NAME,
-          value: argName,
-        },
-        value: {
-          kind: Kind.VARIABLE,
-          name: {
-            kind: Kind.NAME,
-            value: varName,
-          },
-        },
-      };
-      varNames[varName] = true;
-      newVariableDefinitions.push({
-        kind: Kind.VARIABLE_DEFINITION,
-        variable: {
-          kind: Kind.VARIABLE,
-          name: {
-            kind: Kind.NAME,
-            value: varName,
-          },
-        },
-        type: astFromType(argument.type),
-      });
-      variableValues[varName] = serializeInputValue(
-        argument.type,
-        newArgsMap[argName],
-      );
-    }
-  });
+      let newArg;
+      let argType;
+      if (newArgs[argName] != null) {
+        newArg = newArgs[argName];
+        argType = argument.type;
+      } else if (updatedArgs[argName] == null && defaultArgs[argName] != null) {
+        newArg = defaultArgs[argName];
+        const sourcefield = sourceParentType.getFields()[sourceFieldName];
+        argType = sourcefield.args.find((arg) => arg.name === argName).type;
+      }
+
+      if (newArg != null) {
+        numGeneratedVariables++;
+        updateArgument(
+          argName,
+          argType,
+          numGeneratedVariables,
+          varNames,
+          updatedArgs,
+          updatedVariableDefinitions,
+          variableValues,
+          newArg,
+        );
+      }
+    });
+  }
 
   return {
     arguments: Object.keys(updatedArgs).map((argName) => updatedArgs[argName]),
-    variableDefinitions: newVariableDefinitions,
+    variableDefinitions: Object.keys(updatedVariableDefinitions).map(
+      (varName) => updatedVariableDefinitions[varName],
+    ),
     variableValues,
   };
+}
+
+function updateArgument(
+  argName: string,
+  argType: GraphQLInputType,
+  numGeneratedVariables: number,
+  varNames: Record<string, boolean>,
+  updatedArgs: Record<string, ArgumentNode>,
+  updatedVariableDefinitions: Record<string, VariableDefinitionNode>,
+  variableValues: Record<string, any>,
+  newArg: any,
+) {
+  let varName;
+  do {
+    varName = `_v${numGeneratedVariables.toString()}_${argName}`;
+  } while (varNames[varName]);
+
+  updatedArgs[argName] = {
+    kind: Kind.ARGUMENT,
+    name: {
+      kind: Kind.NAME,
+      value: argName,
+    },
+    value: {
+      kind: Kind.VARIABLE,
+      name: {
+        kind: Kind.NAME,
+        value: varName,
+      },
+    },
+  };
+  varNames[varName] = true;
+  updatedVariableDefinitions[varName] = {
+    kind: Kind.VARIABLE_DEFINITION,
+    variable: {
+      kind: Kind.VARIABLE,
+      name: {
+        kind: Kind.NAME,
+        value: varName,
+      },
+    },
+    type: astFromType(argType),
+  };
+  variableValues[varName] = serializeInputValue(argType, newArg);
 }
 
 function astFromType(type: GraphQLType): TypeNode {

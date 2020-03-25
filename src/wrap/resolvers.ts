@@ -17,6 +17,8 @@ import { makeMergedType } from '../stitch/makeMergedType';
 import { getResponseKeyFromInfo } from '../stitch/getResponseKeyFromInfo';
 import { getErrors, getSubschema } from '../stitch/proxiedResult';
 
+import { applySchemaTransforms } from './transforms';
+
 export type Mapping = {
   [typeName: string]: {
     [fieldName: string]: {
@@ -119,6 +121,19 @@ function defaultCreateProxyingResolver({
   schema: SubschemaConfig;
   transforms: Array<Transform>;
 }): GraphQLFieldResolver<any, any> {
+  let schemaTransforms: Array<Transform> = [];
+  if (schema.transforms != null) {
+    schemaTransforms = schemaTransforms.concat(schema.transforms);
+  }
+  if (transforms != null) {
+    schemaTransforms = schemaTransforms.concat(transforms);
+  }
+
+  const transformedSchema = applySchemaTransforms(
+    schema.schema,
+    schemaTransforms,
+  );
+
   return (parent, _args, context, info) => {
     if (parent != null) {
       const responseKey = getResponseKeyFromInfo(info);
@@ -140,6 +155,7 @@ function defaultCreateProxyingResolver({
       context,
       info,
       transforms,
+      transformedSchema,
     });
   };
 }

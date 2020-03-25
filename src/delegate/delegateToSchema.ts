@@ -51,6 +51,7 @@ export default function delegateToSchema(
 
   const {
     schema: subschemaOrSubschemaConfig,
+    transformedSchema,
     info,
     operation = getDelegatingOperation(info.parentType, info.schema),
     fieldName = info.fieldName,
@@ -63,6 +64,7 @@ export default function delegateToSchema(
   const request = createRequestFromInfo({
     info,
     schema: subschemaOrSubschemaConfig,
+    transformedSchema,
     operation,
     fieldName,
     args,

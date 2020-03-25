@@ -27,6 +27,7 @@ import {
   FilterRootFields,
   FilterObjectFields,
   RenameInterfaceFields,
+  TransformRootFields,
 } from '../wrap/index';
 import { isSpecifiedScalarType, toConfig } from '../polyfills/index';
 
@@ -343,12 +344,14 @@ describe('merge schemas through transforms', () => {
 });
 
 describe('transform object fields', () => {
-  let transformedPropertySchema: GraphQLSchema;
-
-  before(() => {
-    transformedPropertySchema = transformSchema(propertySchema, [
+  it('should work to add a resolver', async () => {
+    const transformedPropertySchema = transformSchema(propertySchema, [
       new TransformObjectFields(
-        (typeName: string, fieldName: string, field: GraphQLField<any, any>) => {
+        (
+          typeName: string,
+          fieldName: string,
+          field: GraphQLField<any, any>,
+        ) => {
           if (typeName !== 'Property' || fieldName !== 'name') {
             return undefined;
           }
@@ -372,9 +375,7 @@ describe('transform object fields', () => {
         },
       ),
     ]);
-  });
 
-  it('should work', async () => {
     const result = await graphql(
       transformedPropertySchema,
       `
@@ -403,6 +404,43 @@ describe('transform object fields', () => {
           location: {
             name: 'Helsinki',
           },
+        },
+      },
+    });
+  });
+});
+
+describe('default values', () => {
+  it('should work to add a default value even when renaming root fields', async () => {
+    const transformedPropertySchema = transformSchema(propertySchema, [
+      new TransformRootFields(
+        (
+          typeName: string,
+          fieldName: string,
+          field: GraphQLField<any, any>,
+        ) => {
+          if (typeName === 'Query' && fieldName === 'jsonTest') {
+            const fieldConfig = toConfig(field);
+            fieldConfig.args.input.defaultValue = { test: 'test' };
+            return { name: 'renamedJsonTest', field: fieldConfig };
+          }
+        },
+      ),
+    ]);
+
+    const result = await graphql(
+      transformedPropertySchema,
+      `
+        query {
+          renamedJsonTest
+        }
+      `,
+    );
+
+    expect(result).to.deep.equal({
+      data: {
+        renamedJsonTest: {
+          test: 'test',
         },
       },
     });

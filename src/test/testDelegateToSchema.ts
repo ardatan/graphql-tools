@@ -4,6 +4,8 @@ import { expect } from 'chai';
 import delegateToSchema from '../delegate/delegateToSchema';
 import mergeSchemas from '../stitch/mergeSchemas';
 import { IResolvers } from '../Interfaces';
+import { makeExecutableSchema } from '../generate';
+import { wrapSchema } from '../wrap';
 
 import {
   propertySchema,
@@ -112,6 +114,100 @@ describe('stitching', () => {
           });
         });
       });
+    });
+  });
+});
+
+describe('schema delegation', () => {
+  it('should work even when there are default fields', async () => {
+    const schema = makeExecutableSchema({
+      typeDefs: `
+        scalar JSON
+        type Data {
+          json(input: JSON = "test"): JSON
+        }
+        type Query {
+          data: Data
+        }
+      `,
+      resolvers: {
+        Query: {
+          data: () => ({}),
+        },
+        Data: {
+          json: (_root, args, context, info) =>
+            delegateToSchema({
+              schema: propertySchema,
+              fieldName: 'jsonTest',
+              args,
+              context,
+              info,
+            }),
+        },
+      },
+    });
+
+    const result = await graphql(
+      schema,
+      `
+        query {
+          data {
+            json
+          }
+        }
+      `,
+    );
+
+    expect(result).to.deep.equal({
+      data: {
+        data: {
+          json: 'test',
+        },
+      },
+    });
+  });
+
+  it('should work even with variables', async () => {
+    const innerSchema = makeExecutableSchema({
+      typeDefs: `
+        type User {
+          id(show: Boolean): ID
+        }
+        type Query {
+          user: User
+        }
+      `,
+      resolvers: {
+        Query: {
+          user: () => ({}),
+        },
+        User: {
+          id: () => '123',
+        },
+      },
+    });
+    const schema = wrapSchema(innerSchema);
+
+    const result = await graphql(
+      schema,
+      `
+        query($show: Boolean) {
+          user {
+            id(show: $show)
+          }
+        }
+      `,
+      null,
+      null,
+      { show: true },
+    );
+
+    expect(result).to.deep.equal({
+      data: {
+        user: {
+          id: '123',
+        },
+      },
     });
   });
 });
