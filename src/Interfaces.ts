@@ -180,16 +180,12 @@ export interface IDelegateToSchemaOptions<TContext = { [key: string]: any }> {
   transforms?: Array<Transform>;
   skipValidation?: boolean;
   skipTypeMerging?: boolean;
-  transformedSchema?: GraphQLSchema;
 }
 
 export interface ICreateRequestFromInfo {
   info: IGraphQLToolsResolveInfo;
-  schema: GraphQLSchema | SubschemaConfig;
-  transformedSchema: GraphQLSchema;
   operation: Operation;
   fieldName: string;
-  args?: Record<string, any>;
   selectionSet?: SelectionSetNode;
   fieldNodes?: ReadonlyArray<FieldNode>;
 }
@@ -201,13 +197,10 @@ export interface ICreateRequest {
   fragments: Record<string, FragmentDefinitionNode>;
   variableDefinitions: ReadonlyArray<VariableDefinitionNode>;
   variableValues: Record<string, any>;
-  targetSchema: GraphQLSchema;
   targetOperation: Operation;
-  targetField: string;
-  args: Record<string, any>;
+  targetFieldName: string;
   selectionSet: SelectionSetNode;
   fieldNodes: ReadonlyArray<FieldNode>;
-  defaultArgs: Record<string, any>;
 }
 
 export interface IDelegateRequestOptions extends IDelegateToSchemaOptions {

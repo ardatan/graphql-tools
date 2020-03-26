@@ -2,6 +2,7 @@ export { default as CheckResultAndHandleErrors } from './CheckResultAndHandleErr
 export { default as ExpandAbstractTypes } from './ExpandAbstractTypes';
 export { default as AddReplacementSelectionSets } from './AddReplacementSelectionSets';
 export { default as AddMergedTypeSelectionSets } from './AddMergedTypeSelectionSets';
+export { default as AddArgumentsAsVariables } from './AddArgumentsAsVariables';
 export { default as FilterToSchema } from './FilterToSchema';
 export { default as AddTypenameToAbstract } from './AddTypenameToAbstract';
 
@@ -26,8 +27,6 @@ export { default as WrapFields } from './WrapFields';
 export { default as HoistField } from './HoistField';
 export { default as MapFields } from './MapFields';
 
-// implemented directly within initial query proxy creation
-export { default as AddArgumentsAsVariables } from './AddArgumentsAsVariables';
 // superseded by AddReplacementFragments
 export { default as ReplaceFieldWithFragment } from './ReplaceFieldWithFragment';
 // superseded by AddReplacementSelectionSets

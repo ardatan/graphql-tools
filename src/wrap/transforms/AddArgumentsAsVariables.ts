@@ -3,23 +3,20 @@ import {
   DocumentNode,
   FragmentDefinitionNode,
   GraphQLArgument,
-  GraphQLInputType,
   GraphQLField,
   GraphQLObjectType,
   GraphQLSchema,
   Kind,
   OperationDefinitionNode,
   SelectionNode,
-  TypeNode,
   VariableDefinitionNode,
-  isNonNullType,
-  isListType,
 } from 'graphql';
 
 import { Transform, Request } from '../../Interfaces';
 import { serializeInputValue } from '../../utils/index';
+import { updateArgument } from '../../utils/updateArgument';
 
-export default class AddArgumentsAsVariablesTransform implements Transform {
+export default class AddArgumentsAsVariables implements Transform {
   private readonly targetSchema: GraphQLSchema;
   private readonly args: { [key: string]: any };
 
@@ -31,28 +28,28 @@ export default class AddArgumentsAsVariablesTransform implements Transform {
   public transformRequest(originalRequest: Request): Request {
     const { document, newVariables } = addVariablesToRootField(
       this.targetSchema,
-      originalRequest.document,
+      originalRequest,
       this.args,
     );
-    const variables = {
-      ...originalRequest.variables,
-      ...newVariables,
-    };
+
     return {
       document,
-      variables,
+      variables: newVariables,
     };
   }
 }
 
 function addVariablesToRootField(
   targetSchema: GraphQLSchema,
-  document: DocumentNode,
+  originalRequest: Request,
   args: { [key: string]: any },
 ): {
   document: DocumentNode;
   newVariables: { [key: string]: any };
 } {
+  const document = originalRequest.document;
+  const variableValues = originalRequest.variables;
+
   const operations: Array<OperationDefinitionNode> = document.definitions.filter(
     (def) => def.kind === Kind.OPERATION_DEFINITION,
   ) as Array<OperationDefinitionNode>;
@@ -60,27 +57,12 @@ function addVariablesToRootField(
     (def) => def.kind === Kind.FRAGMENT_DEFINITION,
   ) as Array<FragmentDefinitionNode>;
 
-  const variableNames = {};
-  const newVariables = {};
-
   const newOperations = operations.map((operation: OperationDefinitionNode) => {
-    const originalVariableDefinitions = operation.variableDefinitions;
-    const existingVariables = originalVariableDefinitions.map(
-      (variableDefinition: VariableDefinitionNode) =>
-        variableDefinition.variable.name.value,
-    );
-
-    let variableCounter = 0;
-    const variables = {};
-
-    const generateVariableName = (argName: string) => {
-      let varName;
-      do {
-        varName = `_v${variableCounter.toString()}_${argName}`;
-        variableCounter++;
-      } while (existingVariables.indexOf(varName) !== -1);
-      return varName;
-    };
+    const variableDefinitionMap = {};
+    operation.variableDefinitions.forEach((def) => {
+      const varName = def.variable.name.value;
+      variableDefinitionMap[varName] = def;
+    });
 
     let type: GraphQLObjectType | null | undefined;
     if (operation.operation === 'subscription') {
@@ -90,62 +72,31 @@ function addVariablesToRootField(
     } else {
       type = targetSchema.getQueryType();
     }
-
     const newSelectionSet: Array<SelectionNode> = [];
 
     operation.selectionSet.selections.forEach((selection: SelectionNode) => {
       if (selection.kind === Kind.FIELD) {
-        const newArgs: { [name: string]: ArgumentNode } = {};
-        if (selection.arguments != null) {
-          selection.arguments.forEach((argument: ArgumentNode) => {
-            newArgs[argument.name.value] = argument;
-          });
-        }
-        const name: string = selection.name.value;
+        const argumentNodes = selection.arguments;
+        const argumentNodeMap: Record<string, ArgumentNode> = {};
+        argumentNodes.forEach((argument: ArgumentNode) => {
+          argumentNodeMap[argument.name.value] = argument;
+        });
 
-        if (type != null) {
-          const field: GraphQLField<any, any> = type.getFields()[name];
-          field.args.forEach((argument: GraphQLArgument) => {
-            if (argument.name in args) {
-              const variableName = generateVariableName(argument.name);
-              variableNames[argument.name] = variableName;
-              newArgs[argument.name] = {
-                kind: Kind.ARGUMENT,
-                name: {
-                  kind: Kind.NAME,
-                  value: argument.name,
-                },
-                value: {
-                  kind: Kind.VARIABLE,
-                  name: {
-                    kind: Kind.NAME,
-                    value: variableName,
-                  },
-                },
-              };
-              existingVariables.push(variableName);
-              variables[variableName] = {
-                kind: Kind.VARIABLE_DEFINITION,
-                variable: {
-                  kind: Kind.VARIABLE,
-                  name: {
-                    kind: Kind.NAME,
-                    value: variableName,
-                  },
-                },
-                type: typeToAst(argument.type),
-              };
-              newVariables[variableName] = serializeInputValue(
-                argument.type,
-                args[argument.name],
-              );
-            }
-          });
-        }
+        const targetField = type.getFields()[selection.name.value];
+
+        updateArguments(
+          targetField,
+          argumentNodeMap,
+          variableDefinitionMap,
+          variableValues,
+          args,
+        );
 
         newSelectionSet.push({
           ...selection,
-          arguments: Object.keys(newArgs).map((argName) => newArgs[argName]),
+          arguments: Object.keys(argumentNodeMap).map(
+            (argName) => argumentNodeMap[argName],
+          ),
         });
       } else {
         newSelectionSet.push(selection);
@@ -154,8 +105,8 @@ function addVariablesToRootField(
 
     return {
       ...operation,
-      variableDefinitions: originalVariableDefinitions.concat(
-        Object.keys(variables).map((varName) => variables[varName]),
+      variableDefinitions: Object.keys(variableDefinitionMap).map(
+        (varName) => variableDefinitionMap[varName],
       ),
       selectionSet: {
         kind: Kind.SELECTION_SET,
@@ -169,35 +120,36 @@ function addVariablesToRootField(
       ...document,
       definitions: [...newOperations, ...fragments],
     },
-    newVariables,
+    newVariables: variableValues,
   };
 }
 
-function typeToAst(type: GraphQLInputType): TypeNode {
-  if (isNonNullType(type)) {
-    const innerType = typeToAst(type.ofType);
-    if (
-      innerType.kind === Kind.LIST_TYPE ||
-      innerType.kind === Kind.NAMED_TYPE
-    ) {
-      return {
-        kind: Kind.NON_NULL_TYPE,
-        type: innerType,
-      };
-    }
-    throw new Error('Incorrect inner non-null type');
-  } else if (isListType(type)) {
-    return {
-      kind: Kind.LIST_TYPE,
-      type: typeToAst(type.ofType),
-    };
-  } else {
-    return {
-      kind: Kind.NAMED_TYPE,
-      name: {
-        kind: Kind.NAME,
-        value: type.toString(),
-      },
-    };
+function updateArguments(
+  targetField: GraphQLField<any, any>,
+  argumentNodeMap: Record<string, ArgumentNode>,
+  variableDefinitionMap: Record<string, VariableDefinitionNode>,
+  variableValues: Record<string, any>,
+  newArgs: Record<string, any>,
+): void {
+  if (targetField != null) {
+    targetField.args.forEach((argument: GraphQLArgument) => {
+      const argName = argument.name;
+      const argType = argument.type;
+
+      if (newArgs[argName] != null) {
+        const newArg = newArgs[argName];
+
+        if (newArg != null) {
+          updateArgument(
+            argName,
+            argType,
+            argumentNodeMap,
+            variableDefinitionMap,
+            variableValues,
+            serializeInputValue(argType, newArg),
+          );
+        }
+      }
+    });
   }
 }

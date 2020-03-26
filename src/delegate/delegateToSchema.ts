@@ -30,6 +30,7 @@ import {
   CheckResultAndHandleErrors,
   applyRequestTransforms,
   applyResultTransforms,
+  AddArgumentsAsVariables,
 } from '../wrap/index';
 
 import linkToFetcher from '../stitch/linkToFetcher';
@@ -50,24 +51,18 @@ export default function delegateToSchema(
   }
 
   const {
-    schema: subschemaOrSubschemaConfig,
-    transformedSchema,
     info,
     operation = getDelegatingOperation(info.parentType, info.schema),
     fieldName = info.fieldName,
     returnType = info.returnType,
-    args,
     selectionSet,
     fieldNodes,
   } = options;
 
   const request = createRequestFromInfo({
     info,
-    schema: subschemaOrSubschemaConfig,
-    transformedSchema,
     operation,
     fieldName,
-    args,
     selectionSet,
     fieldNodes,
   });
@@ -87,6 +82,7 @@ function buildDelegationTransforms(
   context: Record<string, any>,
   targetSchema: GraphQLSchema,
   fieldName: string,
+  args: Record<string, any>,
   returnType: GraphQLOutputType,
   transforms: Array<Transform>,
   skipTypeMerging: boolean,
@@ -125,6 +121,10 @@ function buildDelegationTransforms(
     );
   }
 
+  if (args != null) {
+    delegationTransforms.push(new AddArgumentsAsVariables(targetSchema, args));
+  }
+
   delegationTransforms.push(
     new FilterToSchema(targetSchema),
     new AddTypenameToAbstract(targetSchema),
@@ -140,6 +140,7 @@ export function delegateRequest({
   info,
   operation = getDelegatingOperation(info.parentType, info.schema),
   fieldName = info.fieldName,
+  args,
   returnType = info.returnType,
   context,
   transforms = [],
@@ -174,6 +175,7 @@ export function delegateRequest({
     context,
     targetSchema,
     fieldName,
+    args,
     returnType,
     requestTransforms.reverse(),
     skipTypeMerging,
