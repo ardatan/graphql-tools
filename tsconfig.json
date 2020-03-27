@@ -1,21 +1,27 @@
 {
   "compilerOptions": {
-    "experimentalDecorators": true,
+    "rootDir": "./src",
+    "outDir": "./dist",
+
     "lib": ["es7", "esnext.asynciterable", "dom"],
-    "module": "commonjs",
+
     "target": "es5",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "importHelpers": true,
+
     "noImplicitAny": true,
     "noImplicitUseStrict": true,
     "suppressImplicitAnyIndexErrors": true,
-    "moduleResolution": "node",
-    "emitDecoratorMetadata": true,
     "noUnusedLocals": true,
+
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+
     "sourceMap": true,
     "declaration": true,
-    "rootDir": "./src",
-    "outDir": "./dist",
-    "removeComments": false,
-    "esModuleInterop": true,
+    "removeComments": false
   },
   "exclude": ["node_modules", "dist"]
 }
