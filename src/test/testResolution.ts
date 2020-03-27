@@ -1,11 +1,12 @@
 import { assert } from 'chai';
-import { makeExecutableSchema, addSchemaLevelResolveFunction } from '..';
 import { parse, graphql, subscribe, ExecutionResult } from 'graphql';
 import { PubSub } from 'graphql-subscriptions';
 import { forAwaitEach } from 'iterall';
 
+import { makeExecutableSchema, addSchemaLevelResolver } from '..';
+
 describe('Resolve', () => {
-  describe('addSchemaLevelResolveFunction', () => {
+  describe('addSchemaLevelResolver', () => {
     const pubsub = new PubSub();
     const typeDefs = `
       type RootQuery {
@@ -43,14 +44,14 @@ describe('Resolve', () => {
       },
     };
     const schema = makeExecutableSchema({ typeDefs, resolvers });
-    let schemaLevelResolveFunctionCalls = 0;
-    addSchemaLevelResolveFunction(schema, root => {
-      schemaLevelResolveFunctionCalls += 1;
+    let schemaLevelResolverCalls = 0;
+    addSchemaLevelResolver(schema, (root) => {
+      schemaLevelResolverCalls += 1;
       return root;
     });
 
     it('should run the schema level resolver once in a same query', () => {
-      schemaLevelResolveFunctionCalls = 0;
+      schemaLevelResolverCalls = 0;
       const root = 'queryRoot';
       return graphql(
         schema,
@@ -66,19 +67,19 @@ describe('Resolve', () => {
           printRoot: root,
           printRootAgain: root,
         });
-        assert.equal(schemaLevelResolveFunctionCalls, 1);
+        assert.equal(schemaLevelResolverCalls, 1);
       });
     });
 
-    it('should isolate roots from the different operation types', done => {
-      schemaLevelResolveFunctionCalls = 0;
+    it('should isolate roots from the different operation types', (done) => {
+      schemaLevelResolverCalls = 0;
       const queryRoot = 'queryRoot';
       const mutationRoot = 'mutationRoot';
       const subscriptionRoot = 'subscriptionRoot';
       const subscriptionRoot2 = 'subscriptionRoot2';
 
       let subsCbkCalls = 0;
-      const firstSubsTriggered = new Promise(resolveFirst => {
+      const firstSubsTriggered = new Promise((resolveFirst) => {
         subscribe(
           schema,
           parse(`
@@ -87,14 +88,16 @@ describe('Resolve', () => {
             }
           `),
         )
-          .then(results => {
+          .then((results) => {
             forAwaitEach(
               results as AsyncIterable<ExecutionResult>,
               (result: ExecutionResult) => {
-                if (result.errors) {
+                if (result.errors != null) {
                   return done(
                     new Error(
-                      `Unexpected errors in GraphQL result: ${result.errors}`,
+                      `Unexpected errors in GraphQL result: ${JSON.stringify(
+                        result.errors,
+                      )}`,
                     ),
                   );
                 }
@@ -103,11 +106,11 @@ describe('Resolve', () => {
                 subsCbkCalls++;
                 try {
                   if (subsCbkCalls === 1) {
-                    assert.equal(schemaLevelResolveFunctionCalls, 1);
+                    assert.equal(schemaLevelResolverCalls, 1);
                     assert.deepEqual(subsData, { printRoot: subscriptionRoot });
                     return resolveFirst();
                   } else if (subsCbkCalls === 2) {
-                    assert.equal(schemaLevelResolveFunctionCalls, 4);
+                    assert.equal(schemaLevelResolverCalls, 4);
                     assert.deepEqual(subsData, {
                       printRoot: subscriptionRoot2,
                     });
@@ -120,11 +123,10 @@ describe('Resolve', () => {
               },
             ).catch(done);
           })
+          .then(() =>
+            pubsub.publish('printRootChannel', { printRoot: subscriptionRoot }),
+          )
           .catch(done);
-      });
-
-      setTimeout(() => {
-        pubsub.publish('printRootChannel', { printRoot: subscriptionRoot });
       });
 
       firstSubsTriggered
@@ -140,7 +142,7 @@ describe('Resolve', () => {
           ),
         )
         .then(({ data }) => {
-          assert.equal(schemaLevelResolveFunctionCalls, 2);
+          assert.equal(schemaLevelResolverCalls, 2);
           assert.deepEqual(data, { printRoot: queryRoot });
           return graphql(
             schema,
@@ -153,9 +155,11 @@ describe('Resolve', () => {
           );
         })
         .then(({ data: mutationData }) => {
-          assert.equal(schemaLevelResolveFunctionCalls, 3);
+          assert.equal(schemaLevelResolverCalls, 3);
           assert.deepEqual(mutationData, { printRoot: mutationRoot });
-          pubsub.publish('printRootChannel', { printRoot: subscriptionRoot2 });
+          return pubsub.publish('printRootChannel', {
+            printRoot: subscriptionRoot2,
+          });
         })
         .catch(done);
     });

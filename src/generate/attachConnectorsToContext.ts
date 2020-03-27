@@ -1,10 +1,9 @@
-import { GraphQLSchema, GraphQLFieldResolver } from 'graphql';
-
 import { deprecated } from 'deprecated-decorator';
+import { GraphQLSchema, GraphQLFieldResolver, isSchema } from 'graphql';
 
 import { IConnectors, IConnector, IConnectorCls } from '../Interfaces';
 
-import { addSchemaLevelResolveFunction } from '.';
+import addSchemaLevelResolver from './addSchemaLevelResolver';
 
 // takes a GraphQL-JS schema and an object of connectors, then attaches
 // the connectors to the context by wrapping each query or mutation resolve
@@ -15,8 +14,8 @@ const attachConnectorsToContext = deprecated<Function>(
     version: '0.7.0',
     url: 'https://github.com/apollostack/graphql-tools/issues/140',
   },
-  function(schema: GraphQLSchema, connectors: IConnectors): void {
-    if (!schema || !(schema instanceof GraphQLSchema)) {
+  (schema: GraphQLSchema, connectors: IConnectors): void => {
+    if (!schema || !isSchema(schema)) {
       throw new Error(
         'schema must be an instance of GraphQLSchema. ' +
           'This error could be caused by installing more than one version of GraphQL-JS',
@@ -42,9 +41,9 @@ const attachConnectorsToContext = deprecated<Function>(
     }
     schema['_apolloConnectorsAttached'] = true;
     const attachconnectorFn: GraphQLFieldResolver<any, any> = (
-      root: any,
-      args: { [key: string]: any },
-      ctx: any,
+      root,
+      _args,
+      ctx,
     ) => {
       if (typeof ctx !== 'object') {
         // if in any way possible, we should throw an error when the attachconnectors
@@ -57,17 +56,17 @@ const attachConnectorsToContext = deprecated<Function>(
       if (typeof ctx.connectors === 'undefined') {
         ctx.connectors = {};
       }
-      Object.keys(connectors).forEach(connectorName => {
-        let connector: IConnector = connectors[connectorName];
-        if (!!connector.prototype) {
-          ctx.connectors[connectorName] = new (<IConnectorCls>connector)(ctx);
+      Object.keys(connectors).forEach((connectorName) => {
+        const connector: IConnector = connectors[connectorName];
+        if (connector.prototype != null) {
+          ctx.connectors[connectorName] = new (connector as IConnectorCls)(ctx);
         } else {
-          throw new Error(`Connector must be a function or an class`);
+          throw new Error('Connector must be a function or an class');
         }
       });
       return root;
     };
-    addSchemaLevelResolveFunction(schema, attachconnectorFn);
+    addSchemaLevelResolver(schema, attachconnectorFn);
   },
 );
 

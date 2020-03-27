@@ -1,10 +1,11 @@
 {
   "compilerOptions": {
     "experimentalDecorators": true,
-    "lib": ["es7", "dom", "esnext.asynciterable"],
+    "lib": ["es7", "esnext.asynciterable", "dom"],
     "module": "commonjs",
     "target": "es5",
     "noImplicitAny": true,
+    "noImplicitUseStrict": true,
     "suppressImplicitAnyIndexErrors": true,
     "moduleResolution": "node",
     "emitDecoratorMetadata": true,
@@ -14,7 +15,7 @@
     "rootDir": "./src",
     "outDir": "./dist",
     "removeComments": false,
-    "noImplicitUseStrict": true,
+    "esModuleInterop": true,
   },
   "exclude": ["node_modules", "dist"]
 }

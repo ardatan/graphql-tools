@@ -1,13 +1,5 @@
-import { assert } from 'chai';
-import {
-  makeExecutableSchema,
-} from '../makeExecutableSchema';
-import {
-  VisitableSchemaType,
-  SchemaDirectiveVisitor,
-  SchemaVisitor,
-  visitSchema,
-} from '../schemaVisitor';
+import crypto from 'crypto';
+
 import {
   ExecutionResult,
   GraphQLArgument,
@@ -28,35 +20,68 @@ import {
   GraphQLList,
   GraphQLUnionType,
   GraphQLInt,
+  GraphQLOutputType,
+  isNonNullType,
+  isScalarType,
+  isListType,
+  TypeSystemExtensionNode,
 } from 'graphql';
+import { assert } from 'chai';
+import formatDate from 'dateformat';
 
-import formatDate = require('dateformat');
+import { makeExecutableSchema } from '../generate/index';
+import { VisitableSchemaType } from '../Interfaces';
+import {
+  SchemaDirectiveVisitor,
+  SchemaVisitor,
+  visitSchema,
+  graphqlVersion,
+} from '../utils/index';
 
 const typeDefs = `
 directive @schemaDirective(role: String) on SCHEMA
+directive @schemaExtensionDirective(role: String) on SCHEMA
 directive @queryTypeDirective on OBJECT
+directive @queryTypeExtensionDirective on OBJECT
 directive @queryFieldDirective on FIELD_DEFINITION
 directive @enumTypeDirective on ENUM
+directive @enumTypeExtensionDirective on ENUM
 directive @enumValueDirective on ENUM_VALUE
 directive @dateDirective(tz: String) on SCALAR
+directive @dateExtensionDirective(tz: String) on SCALAR
 directive @interfaceDirective on INTERFACE
+directive @interfaceExtensionDirective on INTERFACE
 directive @interfaceFieldDirective on FIELD_DEFINITION
 directive @inputTypeDirective on INPUT_OBJECT
+directive @inputTypeExtensionDirective on INPUT_OBJECT
 directive @inputFieldDirective on INPUT_FIELD_DEFINITION
 directive @mutationTypeDirective on OBJECT
+directive @mutationTypeExtensionDirective on OBJECT
 directive @mutationArgumentDirective on ARGUMENT_DEFINITION
 directive @mutationMethodDirective on FIELD_DEFINITION
 directive @objectTypeDirective on OBJECT
+directive @objectTypeExtensionDirective on OBJECT
 directive @objectFieldDirective on FIELD_DEFINITION
 directive @unionDirective on UNION
+directive @unionExtensionDirective on UNION
 
 schema @schemaDirective(role: "admin") {
   query: Query
   mutation: Mutation
 }
 
+${
+  graphqlVersion() >= 14
+    ? 'extend schema @schemaExtensionDirective(role: "admin")'
+    : ''
+}
+
 type Query @queryTypeDirective {
   people: [Person] @queryFieldDirective
+}
+
+${
+  graphqlVersion() >= 13 ? 'extend type Query @queryTypeExtensionDirective' : ''
 }
 
 enum Gender @enumTypeDirective {
@@ -65,15 +90,37 @@ enum Gender @enumTypeDirective {
   MALE
 }
 
+${
+  graphqlVersion() >= 14 ? 'extend enum Gender @enumTypeExtensionDirective' : ''
+}
+
 scalar Date @dateDirective(tz: "utc")
+
+${
+  graphqlVersion() >= 14
+    ? 'extend scalar Date @dateExtensionDirective(tz: "utc")'
+    : ''
+}
 
 interface Named @interfaceDirective {
   name: String! @interfaceFieldDirective
 }
 
+${
+  graphqlVersion() >= 13
+    ? 'extend interface Named @interfaceExtensionDirective'
+    : ''
+}
+
 input PersonInput @inputTypeDirective {
   name: String! @inputFieldDirective
   gender: Gender
+}
+
+${
+  graphqlVersion() >= 14
+    ? 'extend input PersonInput @inputTypeExtensionDirective'
+    : ''
 }
 
 type Mutation @mutationTypeDirective {
@@ -82,31 +129,53 @@ type Mutation @mutationTypeDirective {
   ): Person @mutationMethodDirective
 }
 
+${
+  graphqlVersion() >= 13
+    ? 'extend type Mutation @mutationTypeExtensionDirective'
+    : ''
+}
+
 type Person implements Named @objectTypeDirective {
   id: ID! @objectFieldDirective
   name: String!
 }
 
+${
+  graphqlVersion() >= 14
+    ? 'extend type Person @objectTypeExtensionDirective'
+    : ''
+}
+
 union WhateverUnion @unionDirective = Person | Query | Mutation
+
+${
+  graphqlVersion() >= 14
+    ? 'extend union WhateverUnion @unionExtensionDirective'
+    : ''
+}
 `;
 
 describe('@directives', () => {
   it('are included in the schema AST', () => {
     const schema = makeExecutableSchema({
       typeDefs,
+      resolvers: {
+        Gender: {
+          NONBINARY: 'NB',
+          FEMALE: 'F',
+          MALE: 'M',
+        },
+      },
     });
 
     function checkDirectives(
       type: VisitableSchemaType,
-      typeDirectiveNames: [string],
-      fieldDirectiveMap: { [key: string]: string[] } = {},
+      typeDirectiveNames: Array<string>,
+      fieldDirectiveMap: { [key: string]: Array<string> } = {},
     ) {
-      assert.deepEqual(
-        getDirectiveNames(type),
-        typeDirectiveNames,
-      );
+      assert.deepEqual(getDirectiveNames(type), typeDirectiveNames);
 
-      Object.keys(fieldDirectiveMap).forEach(key => {
+      Object.keys(fieldDirectiveMap).forEach((key) => {
         assert.deepEqual(
           getDirectiveNames((type as GraphQLObjectType).getFields()[key]),
           fieldDirectiveMap[key],
@@ -114,94 +183,185 @@ describe('@directives', () => {
       });
     }
 
-    function getDirectiveNames(
-      type: VisitableSchemaType,
-    ): string[] {
-      return type.astNode.directives.map(d => d.name.value);
+    function getDirectiveNames(type: VisitableSchemaType): Array<string> {
+      let directives = type.astNode.directives.map((d) => d.name.value);
+      const extensionASTNodes = (type as {
+        extensionASTNodes?: Array<TypeSystemExtensionNode>;
+      }).extensionASTNodes;
+      if (extensionASTNodes != null) {
+        extensionASTNodes.forEach((extensionASTNode) => {
+          directives = directives.concat(
+            extensionASTNode.directives.map((d) => d.name.value),
+          );
+        });
+      }
+      return directives;
     }
 
     assert.deepEqual(
       getDirectiveNames(schema),
-      ['schemaDirective'],
+      graphqlVersion() >= 14
+        ? ['schemaDirective', 'schemaExtensionDirective']
+        : ['schemaDirective'],
     );
 
-    checkDirectives(schema.getQueryType(), ['queryTypeDirective'], {
-      people: ['queryFieldDirective'],
-    });
+    checkDirectives(
+      schema.getQueryType(),
+      graphqlVersion() >= 13
+        ? ['queryTypeDirective', 'queryTypeExtensionDirective']
+        : ['queryTypeDirective'],
+      {
+        people: ['queryFieldDirective'],
+      },
+    );
 
     assert.deepEqual(
       getDirectiveNames(schema.getType('Gender')),
-      ['enumTypeDirective'],
+      graphqlVersion() >= 14
+        ? ['enumTypeDirective', 'enumTypeExtensionDirective']
+        : ['enumTypeDirective'],
     );
 
-    const nonBinary = (schema.getType('Gender') as GraphQLEnumType).getValues()[0];
-    assert.deepEqual(
-      getDirectiveNames(nonBinary),
-      ['enumValueDirective'],
+    const nonBinary = (schema.getType(
+      'Gender',
+    ) as GraphQLEnumType).getValues()[0];
+    assert.deepEqual(getDirectiveNames(nonBinary), ['enumValueDirective']);
+
+    checkDirectives(
+      schema.getType('Date') as GraphQLObjectType,
+      graphqlVersion() >= 14
+        ? ['dateDirective', 'dateExtensionDirective']
+        : ['dateDirective'],
     );
 
-    checkDirectives(schema.getType('Date'), ['dateDirective']);
+    checkDirectives(
+      schema.getType('Named') as GraphQLObjectType,
+      graphqlVersion() >= 13
+        ? ['interfaceDirective', 'interfaceExtensionDirective']
+        : ['interfaceDirective'],
+      {
+        name: ['interfaceFieldDirective'],
+      },
+    );
 
-    checkDirectives(schema.getType('Named'), ['interfaceDirective'], {
-      name: ['interfaceFieldDirective'],
-    });
+    checkDirectives(
+      schema.getType('PersonInput') as GraphQLObjectType,
+      graphqlVersion() >= 14
+        ? ['inputTypeDirective', 'inputTypeExtensionDirective']
+        : ['inputTypeDirective'],
+      {
+        name: ['inputFieldDirective'],
+        gender: [],
+      },
+    );
 
-    checkDirectives(schema.getType('PersonInput'), ['inputTypeDirective'], {
-      name: ['inputFieldDirective'],
-      gender: [],
-    });
-
-    checkDirectives(schema.getMutationType(), ['mutationTypeDirective'], {
-      addPerson: ['mutationMethodDirective'],
-    });
+    checkDirectives(
+      schema.getMutationType(),
+      graphqlVersion() >= 13
+        ? ['mutationTypeDirective', 'mutationTypeExtensionDirective']
+        : ['mutationTypeDirective'],
+      {
+        addPerson: ['mutationMethodDirective'],
+      },
+    );
     assert.deepEqual(
       getDirectiveNames(schema.getMutationType().getFields().addPerson.args[0]),
       ['mutationArgumentDirective'],
     );
 
-    checkDirectives(schema.getType('Person'), ['objectTypeDirective'], {
-      id: ['objectFieldDirective'],
-      name: [],
+    checkDirectives(
+      schema.getType('Person'),
+      graphqlVersion() >= 14
+        ? ['objectTypeDirective', 'objectTypeExtensionDirective']
+        : ['objectTypeDirective'],
+      {
+        id: ['objectFieldDirective'],
+        name: [],
+      },
+    );
+
+    checkDirectives(
+      schema.getType('WhateverUnion'),
+      graphqlVersion() >= 14
+        ? ['unionDirective', 'unionExtensionDirective']
+        : ['unionDirective'],
+    );
+  });
+
+  it('works with enum and its resolvers', () => {
+    const schema = makeExecutableSchema({
+      typeDefs: `
+        enum DateFormat {
+            LOCAL
+            ISO
+        }
+
+        directive @date(format: DateFormat) on FIELD_DEFINITION
+
+        scalar Date
+
+        type Query {
+          today: Date @date(format: LOCAL)
+        }
+      `,
+      resolvers: {
+        DateFormat: {
+          LOCAL: 'local',
+          ISO: 'iso',
+        },
+      },
     });
 
-    checkDirectives(schema.getType('WhateverUnion'), ['unionDirective']);
+    assert.exists(schema.getType('DateFormat'));
+    assert.lengthOf(schema.getDirectives(), 4);
+    assert.exists(schema.getDirective('date'));
   });
 
   it('can be implemented with SchemaDirectiveVisitor', () => {
-    const visited: Set<GraphQLObjectType> = new Set;
+    const visited: Set<GraphQLObjectType> = new Set();
     const schema = makeExecutableSchema({ typeDefs });
-    let visitCount = 0;
 
     SchemaDirectiveVisitor.visitSchemaDirectives(schema, {
       // The directive subclass can be defined anonymously inline!
       queryTypeDirective: class extends SchemaDirectiveVisitor {
         public static description = 'A @directive for query object types';
         public visitObject(object: GraphQLObjectType) {
+          assert.strictEqual(object, schema.getQueryType());
           visited.add(object);
-          visitCount++;
+        }
+      },
+      queryTypeExtensionDirective: class extends SchemaDirectiveVisitor {
+        public static description = 'A @directive for query object types';
+        public visitObject(object: GraphQLObjectType) {
+          assert.strictEqual(object, schema.getQueryType());
+          visited.add(object);
         }
       },
     });
 
     assert.strictEqual(visited.size, 1);
-    assert.strictEqual(visitCount, 1);
-    visited.forEach(object => {
-      assert.strictEqual(object, schema.getType('Query'));
-    });
   });
 
   it('can visit the schema itself', () => {
-    const visited: GraphQLSchema[] = [];
+    const visited: Array<GraphQLSchema> = [];
     const schema = makeExecutableSchema({ typeDefs });
     SchemaDirectiveVisitor.visitSchemaDirectives(schema, {
       schemaDirective: class extends SchemaDirectiveVisitor {
         public visitSchema(s: GraphQLSchema) {
           visited.push(s);
         }
-      }
+      },
+      schemaExtensionDirective: class extends SchemaDirectiveVisitor {
+        public visitSchema(s: GraphQLSchema) {
+          visited.push(s);
+        }
+      },
     });
-    assert.strictEqual(visited.length, 1);
+    assert.strictEqual(visited.length, graphqlVersion() >= 14 ? 2 : 1);
     assert.strictEqual(visited[0], schema);
+    if (graphqlVersion() >= 14) {
+      assert.strictEqual(visited[1], schema);
+    }
   });
 
   it('can visit fields within object types', () => {
@@ -221,10 +381,21 @@ describe('@directives', () => {
         }
       },
 
+      mutationTypeExtensionDirective: class extends SchemaDirectiveVisitor {
+        public visitObject(object: GraphQLObjectType) {
+          mutationObjectType = object;
+          assert.strictEqual(this.visitedType, object);
+          assert.strictEqual(object.name, 'Mutation');
+        }
+      },
+
       mutationMethodDirective: class extends SchemaDirectiveVisitor {
-        public visitFieldDefinition(field: GraphQLField<any, any>, details: {
-          objectType: GraphQLObjectType,
-        }) {
+        public visitFieldDefinition(
+          field: GraphQLField<any, any>,
+          details: {
+            objectType: GraphQLObjectType;
+          },
+        ) {
           assert.strictEqual(this.visitedType, field);
           assert.strictEqual(field.name, 'addPerson');
           assert.strictEqual(details.objectType, mutationObjectType);
@@ -234,10 +405,13 @@ describe('@directives', () => {
       },
 
       mutationArgumentDirective: class extends SchemaDirectiveVisitor {
-        public visitArgumentDefinition(arg: GraphQLArgument, details: {
-          field: GraphQLField<any, any>,
-          objectType: GraphQLObjectType,
-        }) {
+        public visitArgumentDefinition(
+          arg: GraphQLArgument,
+          details: {
+            field: GraphQLField<any, any>;
+            objectType: GraphQLObjectType;
+          },
+        ) {
           assert.strictEqual(this.visitedType, arg);
           assert.strictEqual(arg.name, 'input');
           assert.strictEqual(details.field, mutationField);
@@ -254,10 +428,21 @@ describe('@directives', () => {
         }
       },
 
+      enumTypeExtensionDirective: class extends SchemaDirectiveVisitor {
+        public visitEnum(enumType: GraphQLEnumType) {
+          assert.strictEqual(this.visitedType, enumType);
+          assert.strictEqual(enumType.name, 'Gender');
+          enumObjectType = enumType;
+        }
+      },
+
       enumValueDirective: class extends SchemaDirectiveVisitor {
-        public visitEnumValue(value: GraphQLEnumValue, details: {
-          enumType: GraphQLEnumType,
-        }) {
+        public visitEnumValue(
+          value: GraphQLEnumValue,
+          details: {
+            enumType: GraphQLEnumType;
+          },
+        ) {
           assert.strictEqual(this.visitedType, value);
           assert.strictEqual(value.name, 'NONBINARY');
           assert.strictEqual(value.value, 'NONBINARY');
@@ -273,23 +458,33 @@ describe('@directives', () => {
         }
       },
 
+      inputTypeExtensionDirective: class extends SchemaDirectiveVisitor {
+        public visitInputObject(object: GraphQLInputObjectType) {
+          inputObjectType = object;
+          assert.strictEqual(this.visitedType, object);
+          assert.strictEqual(object.name, 'PersonInput');
+        }
+      },
+
       inputFieldDirective: class extends SchemaDirectiveVisitor {
-        public visitInputFieldDefinition(field: GraphQLInputField, details: {
-          objectType: GraphQLInputObjectType,
-        }) {
+        public visitInputFieldDefinition(
+          field: GraphQLInputField,
+          details: {
+            objectType: GraphQLInputObjectType;
+          },
+        ) {
           assert.strictEqual(this.visitedType, field);
           assert.strictEqual(field.name, 'name');
           assert.strictEqual(details.objectType, inputObjectType);
         }
-      }
+      },
     });
   });
 
   it('can check if a visitor method is implemented', () => {
     class Visitor extends SchemaVisitor {
-      public notVisitorMethod() {
-        return; // Just to keep the tslint:no-empty rule satisfied.
-      }
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      public notVisitorMethod() {}
 
       public visitObject(object: GraphQLObjectType) {
         return object;
@@ -301,10 +496,7 @@ describe('@directives', () => {
       false,
     );
 
-    assert.strictEqual(
-      Visitor.implementsVisitorMethod('visitObject'),
-      true,
-    );
+    assert.strictEqual(Visitor.implementsVisitorMethod('visitObject'), true);
 
     assert.strictEqual(
       Visitor.implementsVisitorMethod('visitInputFieldDefinition'),
@@ -320,7 +512,7 @@ describe('@directives', () => {
   it('can use visitSchema for simple visitor patterns', () => {
     class SimpleVisitor extends SchemaVisitor {
       public visitCount = 0;
-      public names: string[] = [];
+      public names: Array<string> = [];
 
       constructor(s: GraphQLSchema) {
         super();
@@ -343,11 +535,10 @@ describe('@directives', () => {
     const schema = makeExecutableSchema({ typeDefs });
     const visitor = new SimpleVisitor(schema);
     visitor.visit();
-    assert.deepEqual(visitor.names.sort(), [
-      'Mutation',
-      'Person',
-      'Query',
-    ]);
+    assert.deepEqual(
+      visitor.names.sort((a, b) => a.localeCompare(b)),
+      ['Mutation', 'Person', 'Query'],
+    );
   });
 
   it('can use SchemaDirectiveVisitor as a no-op visitor', () => {
@@ -359,7 +550,8 @@ describe('@directives', () => {
         // Pretend this class implements all visitor methods. This is safe
         // because the SchemaVisitor base class provides empty stubs for all
         // the visitor methods that might be called.
-        return methodNamesEncountered[name] = true;
+        methodNamesEncountered[name] = true;
+        return methodNamesEncountered[name];
       }
     }
 
@@ -383,10 +575,10 @@ describe('@directives', () => {
     });
 
     assert.deepEqual(
-      Object.keys(methodNamesEncountered).sort(),
+      Object.keys(methodNamesEncountered).sort((a, b) => a.localeCompare(b)),
       Object.keys(SchemaVisitor.prototype)
-            .filter(name => name.startsWith('visit'))
-            .sort()
+        .filter((name) => name.startsWith('visit'))
+        .sort((a, b) => a.localeCompare(b)),
     );
   });
 
@@ -418,50 +610,56 @@ describe('@directives', () => {
       fieldCount: 0,
     };
 
-    const visitors = SchemaDirectiveVisitor.visitSchemaDirectives(schema, {
-      oyez: class extends SchemaDirectiveVisitor {
-        public static getDirectiveDeclaration(
-          name: string,
-          theSchema: GraphQLSchema,
-        ) {
-          assert.strictEqual(theSchema, schema);
-          const prev = schema.getDirective(name);
-          prev.args.some(arg => {
-            if (arg.name === 'times') {
-              // Override the default value of the times argument to be 3
-              // instead of 5.
-              arg.defaultValue = 3;
-              return true;
-            }
-          });
-          return prev;
-        }
+    const visitors = SchemaDirectiveVisitor.visitSchemaDirectives(
+      schema,
+      {
+        oyez: class extends SchemaDirectiveVisitor {
+          public static getDirectiveDeclaration(
+            name: string,
+            theSchema: GraphQLSchema,
+          ) {
+            assert.strictEqual(theSchema, schema);
+            const prev = schema.getDirective(name);
+            prev.args.some((arg) => {
+              if (arg.name === 'times') {
+                // Override the default value of the times argument to be 3
+                // instead of 5.
+                arg.defaultValue = 3;
+                return true;
+              }
+              return false;
+            });
+            return prev;
+          }
 
-        public visitObject(object: GraphQLObjectType) {
-          ++this.context.objectCount;
-          assert.strictEqual(this.args.times, 3);
-        }
-
-        public visitFieldDefinition(field: GraphQLField<any, any>) {
-          ++this.context.fieldCount;
-          if (field.name === 'judge') {
-            assert.strictEqual(this.args.times, 0);
-          } else if (field.name === 'marshall') {
+          public visitObject() {
+            ++this.context.objectCount;
             assert.strictEqual(this.args.times, 3);
           }
-          assert.strictEqual(this.args.party, 'IMPARTIAL');
-        }
-      }
-    }, context);
+
+          public visitFieldDefinition(field: GraphQLField<any, any>) {
+            ++this.context.fieldCount;
+            if (field.name === 'judge') {
+              assert.strictEqual(this.args.times, 0);
+            } else if (field.name === 'marshall') {
+              assert.strictEqual(this.args.times, 3);
+            }
+            assert.strictEqual(this.args.party, 'IMPARTIAL');
+          }
+        },
+      },
+      context,
+    );
 
     assert.strictEqual(context.objectCount, 1);
     assert.strictEqual(context.fieldCount, 2);
 
     assert.deepEqual(Object.keys(visitors), ['oyez']);
     assert.deepEqual(
-      visitors.oyez.map(v => {
-        return (v.visitedType as GraphQLObjectType | GraphQLField<any, any>).name;
-      }),
+      visitors.oyez.map(
+        (v) =>
+          (v.visitedType as GraphQLObjectType | GraphQLField<any, any>).name,
+      ),
       ['Courtroom', 'judge', 'marshall'],
     );
   });
@@ -478,7 +676,7 @@ describe('@directives', () => {
         upper: class extends SchemaDirectiveVisitor {
           public visitFieldDefinition(field: GraphQLField<any, any>) {
             const { resolve = defaultFieldResolver } = field;
-            field.resolve = async function (...args: any[]) {
+            field.resolve = async function (...args) {
               const result = await resolve.apply(this, args);
               if (typeof result === 'string') {
                 return result.toUpperCase();
@@ -486,24 +684,27 @@ describe('@directives', () => {
               return result;
             };
           }
-        }
+        },
       },
       resolvers: {
         Query: {
           hello() {
             return 'hello world';
-          }
-        }
-      }
+          },
+        },
+      },
     });
 
-    return graphql(schema, `
-    query {
-      hello
-    }
-    `).then(({ data }) => {
+    return graphql(
+      schema,
+      `
+        query {
+          hello
+        }
+      `,
+    ).then(({ data }) => {
       assert.deepEqual(data, {
-        hello: 'HELLO WORLD'
+        hello: 'HELLO WORLD',
       });
     });
   });
@@ -525,30 +726,33 @@ describe('@directives', () => {
             const { resolve = defaultFieldResolver } = field;
             const { format } = this.args;
             field.type = GraphQLString;
-            field.resolve = async function (...args: any[]) {
+            field.resolve = async function (...args) {
               const date = await resolve.apply(this, args);
               return formatDate(date, format, true);
             };
           }
-        }
+        },
       },
 
       resolvers: {
         Query: {
           today() {
             return new Date(1519688273858).toUTCString();
-          }
-        }
-      }
+          },
+        },
+      },
     });
 
-    return graphql(schema, `
-    query {
-      today
-    }
-    `).then(({ data }) => {
+    return graphql(
+      schema,
+      `
+        query {
+          today
+        }
+      `,
+    ).then(({ data }) => {
       assert.deepEqual(data, {
-        today: 'February 26, 2018'
+        today: 'February 26, 2018',
       });
     });
   });
@@ -559,16 +763,23 @@ describe('@directives', () => {
         const { resolve = defaultFieldResolver } = field;
         const { defaultFormat } = this.args;
 
-        field.args.push({
-          name: 'format',
-          type: GraphQLString
-        } as any);
+        field.args.push(
+          Object.create({
+            name: 'format',
+            type: GraphQLString,
+          }),
+        );
 
         field.type = GraphQLString;
-        field.resolve = async function (source, { format, ...args }, context, info) {
-          format = format || defaultFormat;
+        field.resolve = async function (
+          source,
+          { format, ...args },
+          context,
+          info,
+        ) {
+          const newFormat = format || defaultFormat;
           const date = await resolve.call(this, source, args, context, info);
-          return formatDate(date, format, true);
+          return formatDate(date, newFormat, true);
         };
       }
     }
@@ -586,50 +797,44 @@ describe('@directives', () => {
       }`,
 
       schemaDirectives: {
-        date: FormattableDateDirective
+        date: FormattableDateDirective,
       },
 
       resolvers: {
         Query: {
           today() {
             return new Date(1521131357195);
-          }
-        }
-      }
+          },
+        },
+      },
     });
 
-    const resultNoArg = await graphql(schema, `query { today }`);
+    const resultNoArg = await graphql(schema, 'query { today }');
 
-    if (resultNoArg.errors) {
+    if (resultNoArg.errors != null) {
       assert.deepEqual(resultNoArg.errors, []);
     }
 
-    assert.deepEqual(
-      resultNoArg.data,
-      { today: 'March 15, 2018' }
+    assert.deepEqual(resultNoArg.data, { today: 'March 15, 2018' });
+
+    const resultWithArg = await graphql(
+      schema,
+      `
+        query {
+          today(format: "dd mmm yyyy")
+        }
+      `,
     );
 
-    const resultWithArg = await graphql(schema, `
-    query {
-      today(format: "dd mmm yyyy")
-    }`);
-
-    if (resultWithArg.errors) {
+    if (resultWithArg.errors != null) {
       assert.deepEqual(resultWithArg.errors, []);
     }
 
-    assert.deepEqual(
-      resultWithArg.data,
-      { today: '15 Mar 2018' }
-    );
+    assert.deepEqual(resultWithArg.data, { today: '15 Mar 2018' });
   });
 
   it('can be used to implement the @intl example', () => {
-    function translate(
-      text: string,
-      path: string[],
-      locale: string,
-    ) {
+    function translate(text: string, path: Array<string>, locale: string) {
       assert.strictEqual(text, 'hello');
       assert.deepEqual(path, ['Query', 'greeting']);
       assert.strictEqual(locale, 'fr');
@@ -637,7 +842,7 @@ describe('@directives', () => {
     }
 
     const context = {
-      locale: 'fr'
+      locale: 'fr',
     };
 
     const schema = makeExecutableSchema({
@@ -650,11 +855,14 @@ describe('@directives', () => {
 
       schemaDirectives: {
         intl: class extends SchemaDirectiveVisitor {
-          public visitFieldDefinition(field: GraphQLField<any, any>, details: {
-            objectType: GraphQLObjectType,
-          }) {
+          public visitFieldDefinition(
+            field: GraphQLField<any, any>,
+            details: {
+              objectType: GraphQLObjectType;
+            },
+          ) {
             const { resolve = defaultFieldResolver } = field;
-            field.resolve = async function (...args: any[]) {
+            field.resolve = async function (...args: Array<any>) {
               const defaultText = await resolve.apply(this, args);
               // In this example, path would be ["Query", "greeting"]:
               const path = [details.objectType.name, field.name];
@@ -662,36 +870,36 @@ describe('@directives', () => {
               return translate(defaultText, path, context.locale);
             };
           }
-        }
+        },
       },
 
       resolvers: {
         Query: {
           greeting() {
             return 'hello';
-          }
-        }
-      }
+          },
+        },
+      },
     });
 
-    return graphql(schema, `
-    query {
-      greeting
-    }
-    `, null, context).then(({ data }) => {
+    return graphql(
+      schema,
+      `
+        query {
+          greeting
+        }
+      `,
+      null,
+      context,
+    ).then(({ data }) => {
       assert.deepEqual(data, {
-        greeting: 'bonjour'
+        greeting: 'bonjour',
       });
     });
   });
 
   it('can be used to implement the @auth example', async () => {
-    const roles = [
-      'UNKNOWN',
-      'USER',
-      'REVIEWER',
-      'ADMIN',
-    ];
+    const roles = ['UNKNOWN', 'USER', 'REVIEWER', 'ADMIN'];
 
     function getUser(token: string) {
       return {
@@ -699,7 +907,7 @@ describe('@directives', () => {
           const tokenIndex = roles.indexOf(token);
           const roleIndex = roles.indexOf(role);
           return roleIndex >= 0 && tokenIndex >= roleIndex;
-        }
+        },
       };
     }
 
@@ -708,6 +916,7 @@ describe('@directives', () => {
         this.ensureFieldsWrapped(type);
         (type as any)._requiredAuthRole = this.args.requires;
       }
+
       // Visitor methods for nested types like fields and arguments
       // also receive a details object that provides information about
       // the parent and grandparent types.
@@ -728,23 +937,23 @@ describe('@directives', () => {
 
         const fields = objectType.getFields();
 
-        Object.keys(fields).forEach(fieldName => {
+        Object.keys(fields).forEach((fieldName) => {
           const field = fields[fieldName];
           const { resolve = defaultFieldResolver } = field;
-          field.resolve = async function (...args: any[]) {
+          field.resolve = function (...args: Array<any>) {
             // Get the required Role from the field first, falling back
             // to the objectType if no Role is required by the field:
             const requiredRole =
               (field as any)._requiredAuthRole ||
               (objectType as any)._requiredAuthRole;
 
-            if (! requiredRole) {
+            if (!requiredRole) {
               return resolve.apply(this, args);
             }
 
             const context = args[2];
-            const user = await getUser(context.headers.authToken);
-            if (! user.hasRole(requiredRole)) {
+            const user = getUser(context.headers.authToken);
+            if (!user.hasRole(requiredRole)) {
               throw new Error('not authorized');
             }
 
@@ -778,52 +987,62 @@ describe('@directives', () => {
       }`,
 
       schemaDirectives: {
-        auth: AuthDirective
+        auth: AuthDirective,
       },
 
       resolvers: {
         Query: {
           users() {
-            return [{
-              banned: true,
-              canPost: false,
-              name: 'Ben'
-            }];
-          }
-        }
-      }
+            return [
+              {
+                banned: true,
+                canPost: false,
+                name: 'Ben',
+              },
+            ];
+          },
+        },
+      },
     });
 
     function execWithRole(role: string): Promise<ExecutionResult> {
-      return graphql(schema, `
-      query {
-        users {
-          name
-          banned
-          canPost
-        }
-      }
-      `, null, {
-        headers: {
-          authToken: role,
-        }
-      });
+      return graphql(
+        schema,
+        `
+          query {
+            users {
+              name
+              banned
+              canPost
+            }
+          }
+        `,
+        null,
+        {
+          headers: {
+            authToken: role,
+          },
+        },
+      );
     }
 
     function checkErrors(
       expectedCount: number,
-      ...expectedNames: string[]
+      ...expectedNames: Array<string>
     ) {
-      return function ({ errors = [], data }: {
-        errors: any[],
-        data: any,
+      return function ({
+        errors = [],
+        data,
+      }: {
+        errors: Array<any>;
+        data: any;
       }) {
         assert.strictEqual(errors.length, expectedCount);
-        assert(errors.every(error => error.message === 'not authorized'));
-        const actualNames = errors.map(error => error.path.slice(-1)[0]);
+        assert(errors.every((error) => error.message === 'not authorized'));
+        const actualNames = errors.map((error) => error.path.slice(-1)[0]);
         assert.deepEqual(
-          expectedNames.sort(),
-          actualNames.sort(),
+          expectedNames.sort((a, b) => a.localeCompare(b)),
+          actualNames.sort((a, b) => a.localeCompare(b)),
         );
         return data;
       };
@@ -833,12 +1052,14 @@ describe('@directives', () => {
       execWithRole('UNKNOWN').then(checkErrors(3, 'banned', 'canPost', 'name')),
       execWithRole('USER').then(checkErrors(2, 'banned', 'canPost')),
       execWithRole('REVIEWER').then(checkErrors(1, 'banned')),
-      execWithRole('ADMIN').then(checkErrors(0)).then(data => {
-        assert.strictEqual(data.users.length, 1);
-        assert.strictEqual(data.users[0].banned, true);
-        assert.strictEqual(data.users[0].canPost, false);
-        assert.strictEqual(data.users[0].name, 'Ben');
-      }),
+      execWithRole('ADMIN')
+        .then(checkErrors(0))
+        .then((data) => {
+          assert.strictEqual(data.users.length, 1);
+          assert.strictEqual(data.users[0].banned, true);
+          assert.strictEqual(data.users[0].canPost, false);
+          assert.strictEqual(data.users[0].name, 'Ben');
+        }),
     ]);
   });
 
@@ -846,13 +1067,13 @@ describe('@directives', () => {
     class LimitedLengthType extends GraphQLScalarType {
       constructor(type: GraphQLScalarType, maxLength: number) {
         super({
-          name: `LengthAtMost${maxLength}`,
+          name: `LengthAtMost${maxLength.toString()}`,
 
           serialize(value: string) {
-            value = type.serialize(value);
-            assert.strictEqual(typeof value.length, 'number');
-            assert.isAtMost(value.length, maxLength);
-            return value;
+            const newValue = type.serialize(value);
+            assert.strictEqual(typeof newValue.length, 'number');
+            assert.isAtMost(newValue.length, maxLength);
+            return newValue;
           },
 
           parseValue(value: string) {
@@ -861,7 +1082,7 @@ describe('@directives', () => {
 
           parseLiteral(ast: StringValueNode) {
             return type.parseLiteral(ast, {});
-          }
+          },
         });
       }
     }
@@ -897,64 +1118,69 @@ describe('@directives', () => {
           }
 
           private wrapType(field: GraphQLInputField | GraphQLField<any, any>) {
-            if (field.type instanceof GraphQLNonNull &&
-                field.type.ofType instanceof GraphQLScalarType) {
+            if (isNonNullType(field.type) && isScalarType(field.type.ofType)) {
               field.type = new GraphQLNonNull(
-                new LimitedLengthType(field.type.ofType, this.args.max));
-            } else if (field.type instanceof GraphQLScalarType) {
+                new LimitedLengthType(field.type.ofType, this.args.max),
+              );
+            } else if (isScalarType(field.type)) {
               field.type = new LimitedLengthType(field.type, this.args.max);
             } else {
-              throw new Error(`Not a scalar type: ${field.type}`);
+              throw new Error(`Not a scalar type: ${field.type.toString()}`);
             }
           }
-        }
+        },
       },
 
       resolvers: {
         Query: {
           books() {
-            return [{
-              title: 'abcdefghijklmnopqrstuvwxyz'
-            }];
-          }
+            return [
+              {
+                title: 'abcdefghijklmnopqrstuvwxyz',
+              },
+            ];
+          },
         },
         Mutation: {
-          createBook(parent, args) {
+          createBook(_parent, args) {
             return args.book;
-          }
-        }
-      }
+          },
+        },
+      },
     });
 
-    const { errors } = await graphql(schema, `
-    query {
-      books {
-        title
-      }
-    }
-    `);
+    const { errors } = await graphql(
+      schema,
+      `
+        query {
+          books {
+            title
+          }
+        }
+      `,
+    );
     assert.strictEqual(errors.length, 1);
-    assert.strictEqual(
-      errors[0].message,
-      'expected 26 to be at most 10',
+    assert.strictEqual(errors[0].message, 'expected 26 to be at most 10');
+
+    const result = await graphql(
+      schema,
+      `
+        mutation {
+          createBook(book: { title: "safe title" }) {
+            title
+          }
+        }
+      `,
     );
 
-    const result = await graphql(schema, `
-    mutation {
-      createBook(book: { title: "safe title" }) {
-        title
-      }
-    }
-    `);
-
-    if (result.errors) {
+    if (result.errors != null) {
       assert.deepEqual(result.errors, []);
     }
 
     assert.deepEqual(result.data, {
       createBook: {
-        title: 'safe title'
-      }
+        title: 'safe title',
+      },
     });
   });
 
@@ -982,114 +1208,126 @@ describe('@directives', () => {
         uniqueID: class extends SchemaDirectiveVisitor {
           public visitObject(type: GraphQLObjectType) {
             const { name, from } = this.args;
-            type.getFields()[name] = {
-              name: name,
+            type.getFields()[name] = Object.create({
+              name,
               type: GraphQLID,
               description: 'Unique ID',
               args: [],
               resolve(object: any) {
-                const hash = require('crypto').createHash('sha1');
+                const hash = crypto.createHash('sha1');
                 hash.update(type.name);
                 from.forEach((fieldName: string) => {
                   hash.update(String(object[fieldName]));
                 });
                 return hash.digest('hex');
-              }
-            } as any;
+              },
+            });
           }
-        }
+        },
       },
 
       resolvers: {
         Query: {
-          people(...args: any[]) {
-            return [{
-              personID: 1,
-              name: 'Ben',
-            }];
+          people() {
+            return [
+              {
+                personID: 1,
+                name: 'Ben',
+              },
+            ];
           },
-          locations(...args: any[]) {
-            return [{
-              locationID: 1,
-              address: '140 10th St',
-            }];
-          }
-        }
-      }
+          locations() {
+            return [
+              {
+                locationID: 1,
+                address: '140 10th St',
+              },
+            ];
+          },
+        },
+      },
     });
 
-    return graphql(schema, `
-    query {
-      people {
-        uid
-        personID
-        name
-      }
-      locations {
-        uid
-        locationID
-        address
-      }
-    }
-    `, null, context).then(result => {
+    return graphql(
+      schema,
+      `
+        query {
+          people {
+            uid
+            personID
+            name
+          }
+          locations {
+            uid
+            locationID
+            address
+          }
+        }
+      `,
+      null,
+      context,
+    ).then((result) => {
       const { data } = result;
 
-      assert.deepEqual(data.people, [{
-        uid: '580a207c8e94f03b93a2b01217c3cc218490571a',
-        personID: 1,
-        name: 'Ben',
-      }]);
+      assert.deepEqual(data.people, [
+        {
+          uid: '580a207c8e94f03b93a2b01217c3cc218490571a',
+          personID: 1,
+          name: 'Ben',
+        },
+      ]);
 
-      assert.deepEqual(data.locations, [{
-        uid: 'c31b71e6e23a7ae527f94341da333590dd7cba96',
-        locationID: 1,
-        address: '140 10th St',
-      }]);
+      assert.deepEqual(data.locations, [
+        {
+          uid: 'c31b71e6e23a7ae527f94341da333590dd7cba96',
+          locationID: 1,
+          address: '140 10th St',
+        },
+      ]);
     });
   });
 
   it('automatically updates references to changed types', () => {
-    let HumanType: GraphQLObjectType = null;
-
     const schema = makeExecutableSchema({
       typeDefs,
       schemaDirectives: {
         objectTypeDirective: class extends SchemaDirectiveVisitor {
           public visitObject(object: GraphQLObjectType) {
-            return HumanType = Object.create(object, {
-              name: { value: 'Human' }
+            return Object.create(object, {
+              name: { value: 'Human' },
             });
           }
-        }
-      }
+        },
+      },
     });
 
     const Query = schema.getType('Query') as GraphQLObjectType;
     const peopleType = Query.getFields().people.type;
-    if (peopleType instanceof GraphQLList) {
-      assert.strictEqual(peopleType.ofType, HumanType);
+    if (isListType(peopleType)) {
+      assert.strictEqual(peopleType.ofType, schema.getType('Human'));
     } else {
       throw new Error('Query.people not a GraphQLList type');
     }
 
     const Mutation = schema.getType('Mutation') as GraphQLObjectType;
     const addPersonResultType = Mutation.getFields().addPerson.type;
-    assert.strictEqual(addPersonResultType, HumanType);
+    assert.strictEqual(
+      addPersonResultType,
+      schema.getType('Human') as GraphQLOutputType,
+    );
 
     const WhateverUnion = schema.getType('WhateverUnion') as GraphQLUnionType;
-    const found = WhateverUnion.getTypes().some(type => {
+    const found = WhateverUnion.getTypes().some((type) => {
       if (type.name === 'Human') {
-        assert.strictEqual(type, HumanType);
+        assert.strictEqual(type, schema.getType('Human'));
         return true;
       }
+      return false;
     });
     assert.strictEqual(found, true);
 
     // Make sure that the Person type was actually removed.
-    assert.strictEqual(
-      typeof schema.getType('Person'),
-      'undefined'
-    );
+    assert.strictEqual(typeof schema.getType('Person'), 'undefined');
   });
 
   it('can remove enum values', () => {
@@ -1109,19 +1347,19 @@ describe('@directives', () => {
 
       schemaDirectives: {
         remove: class extends SchemaDirectiveVisitor {
-          public visitEnumValue(value: GraphQLEnumValue): null {
+          public visitEnumValue(): null {
             if (this.args.if) {
               return null;
             }
           }
-        }
-      }
+        },
+      },
     });
 
     const AgeUnit = schema.getType('AgeUnit') as GraphQLEnumType;
     assert.deepEqual(
-      AgeUnit.getValues().map(value => value.name),
-      ['DOG_YEARS', 'PERSON_YEARS']
+      AgeUnit.getValues().map((value) => value.name),
+      ['DOG_YEARS', 'PERSON_YEARS'],
     );
   });
 
@@ -1149,16 +1387,13 @@ describe('@directives', () => {
           public visitObject(object: GraphQLObjectType) {
             object.name = this.args.to;
           }
-        }
-      }
+        },
+      },
     });
 
     const Human = schema.getType('Human') as GraphQLObjectType;
     assert.strictEqual(Human.name, 'Human');
-    assert.strictEqual(
-      Human.getFields().heightInInches.type,
-      GraphQLInt,
-    );
+    assert.strictEqual(Human.getFields().heightInInches.type, GraphQLInt);
 
     const Person = schema.getType('Person') as GraphQLObjectType;
     assert.strictEqual(Person.name, 'Person');
@@ -1168,16 +1403,15 @@ describe('@directives', () => {
     );
 
     const Query = schema.getType('Query') as GraphQLObjectType;
-    const peopleType = Query.getFields().people.type as GraphQLList<GraphQLObjectType>;
-    assert.strictEqual(
-      peopleType.ofType,
-      Human
-    );
+    const peopleType = Query.getFields().people.type as GraphQLList<
+      GraphQLObjectType
+    >;
+    assert.strictEqual(peopleType.ofType, Human);
   });
 
   it('does not enforce query directive locations (issue #680)', () => {
     const visited = new Set<GraphQLObjectType>();
-    const schema = makeExecutableSchema({
+    makeExecutableSchema({
       typeDefs: `
       directive @hasScope(scope: [String]) on QUERY | FIELD | OBJECT
 
@@ -1191,14 +1425,11 @@ describe('@directives', () => {
             assert.strictEqual(object.name, 'Query');
             visited.add(object);
           }
-        }
-      }
+        },
+      },
     });
 
     assert.strictEqual(visited.size, 1);
-    visited.forEach(object => {
-      assert.strictEqual(schema.getType('Query'), object);
-    });
   });
 
   it('allows multiple directives when first replaces type (issue #851)', () => {
@@ -1214,9 +1445,9 @@ describe('@directives', () => {
         upper: class extends SchemaDirectiveVisitor {
           public visitFieldDefinition(field: GraphQLField<any, any>) {
             const { resolve = defaultFieldResolver } = field;
-            const newField = {...field};
+            const newField = { ...field };
 
-            newField.resolve = async function(...args: any[]) {
+            newField.resolve = async function (...args: Array<any>) {
               const result = await resolve.apply(this, args);
               if (typeof result === 'string') {
                 return result.toUpperCase();
@@ -1230,13 +1461,10 @@ describe('@directives', () => {
         reverse: class extends SchemaDirectiveVisitor {
           public visitFieldDefinition(field: GraphQLField<any, any>) {
             const { resolve = defaultFieldResolver } = field;
-            field.resolve = async function(...args: any[]) {
+            field.resolve = async function (...args: Array<any>) {
               const result = await resolve.apply(this, args);
               if (typeof result === 'string') {
-                return result
-                  .split('')
-                  .reverse()
-                  .join('');
+                return result.split('').reverse().join('');
               }
               return result;
             };

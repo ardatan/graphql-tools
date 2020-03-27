@@ -1,27 +1,82 @@
-/* tslint:disable:no-unused-expression */
-
 import { expect } from 'chai';
 import { forAwaitEach } from 'iterall';
-import { GraphQLSchema, ExecutionResult, subscribe, parse } from 'graphql';
 import {
+  GraphQLSchema,
+  ExecutionResult,
+  subscribe,
+  parse,
+  graphql,
+} from 'graphql';
+
+import { makeRemoteExecutableSchema } from '../wrap/index';
+import {
+  propertySchema,
   subscriptionSchema,
   subscriptionPubSubTrigger,
   subscriptionPubSub,
-  makeSchemaRemoteFromLink
+  makeSchemaRemoteFromLink,
 } from '../test/testingSchemas';
-import { makeRemoteExecutableSchema } from '../stitching';
+
+describe('remote queries', () => {
+  let schema: GraphQLSchema;
+  before(async () => {
+    const remoteSubschemaConfig = await makeSchemaRemoteFromLink(
+      propertySchema,
+    );
+    schema = makeRemoteExecutableSchema({
+      schema: remoteSubschemaConfig.schema,
+      link: remoteSubschemaConfig.link,
+    });
+  });
+
+  it('should work', async () => {
+    const query = `
+      {
+        interfaceTest(kind: ONE) {
+          kind
+          testString
+          ...on TestImpl1 {
+            foo
+          }
+          ...on TestImpl2 {
+            bar
+          }
+        }
+      }
+    `;
+
+    const expected = {
+      data: {
+        interfaceTest: {
+          foo: 'foo',
+          kind: 'ONE',
+          testString: 'test',
+        },
+      },
+    };
+
+    const result = await graphql(schema, query);
+    expect(result).to.deep.equal(expected);
+  });
+});
 
 describe('remote subscriptions', () => {
   let schema: GraphQLSchema;
   before(async () => {
-    schema = await makeSchemaRemoteFromLink(subscriptionSchema);
+    const remoteSubschemaConfig = await makeSchemaRemoteFromLink(
+      subscriptionSchema,
+    );
+    schema = makeRemoteExecutableSchema({
+      schema: remoteSubschemaConfig.schema,
+      link: remoteSubschemaConfig.link,
+    });
   });
 
-  it('should work', done => {
+  it('should work', (done) => {
     const mockNotification = {
       notifications: {
-        text: 'Hello world'
-      }
+        text: 'Hello world',
+      },
     };
 
     const subscription = parse(`
@@ -33,24 +88,30 @@ describe('remote subscriptions', () => {
     `);
 
     let notificationCnt = 0;
-    subscribe(schema, subscription).then(results =>
-      forAwaitEach(results as AsyncIterable<ExecutionResult>, (result: ExecutionResult) => {
-        expect(result).to.have.property('data');
-        expect(result.data).to.deep.equal(mockNotification);
-        !notificationCnt++ ? done() : null;
+    subscribe(schema, subscription)
+      .then((results) => {
+        forAwaitEach(
+          results as AsyncIterable<ExecutionResult>,
+          (result: ExecutionResult) => {
+            expect(result).to.have.property('data');
+            expect(result.data).to.deep.equal(mockNotification);
+            if (!notificationCnt++) {
+              done();
+            }
+          },
+        ).catch(done);
       })
-    );
-
-    setTimeout(() => {
-      subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification);
-    });
+      .then(() =>
+        subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification),
+      )
+      .catch(done);
   });
 
-  it('should work without triggering multiple times per notification', done => {
+  it('should work without triggering multiple times per notification', (done) => {
     const mockNotification = {
       notifications: {
-        text: 'Hello world'
-      }
+        text: 'Hello world',
+      },
     };
 
     const subscription = parse(`
@@ -62,29 +123,42 @@ describe('remote subscriptions', () => {
     `);
 
     let notificationCnt = 0;
-    subscribe(schema, subscription).then(results =>
-      forAwaitEach(results as AsyncIterable<ExecutionResult>, (result: ExecutionResult) => {
-        expect(result).to.have.property('data');
-        expect(result.data).to.deep.equal(mockNotification);
-        notificationCnt++;
-      })
-    );
-
-    subscribe(schema, subscription).then(results =>
-      forAwaitEach(results as AsyncIterable<ExecutionResult>, (result: ExecutionResult) => {
-        expect(result).to.have.property('data');
-        expect(result.data).to.deep.equal(mockNotification);
-      })
-    );
-
-    setTimeout(() => {
-      subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification);
-      subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification);
-      setTimeout(() => {
-        expect(notificationCnt).to.eq(2);
-        done();
-      });
+    const sub1 = subscribe(schema, subscription).then((results) => {
+      forAwaitEach(
+        results as AsyncIterable<ExecutionResult>,
+        (result: ExecutionResult) => {
+          expect(result).to.have.property('data');
+          expect(result.data).to.deep.equal(mockNotification);
+          notificationCnt++;
+        },
+      ).catch(done);
     });
+
+    const sub2 = subscribe(schema, subscription).then((results) => {
+      forAwaitEach(
+        results as AsyncIterable<ExecutionResult>,
+        (result: ExecutionResult) => {
+          expect(result).to.have.property('data');
+          expect(result.data).to.deep.equal(mockNotification);
+        },
+      ).catch(done);
+    });
+
+    Promise.all([sub1, sub2])
+      .then(() => {
+        subscriptionPubSub
+          .publish(subscriptionPubSubTrigger, mockNotification)
+          .catch(done);
+        subscriptionPubSub
+          .publish(subscriptionPubSubTrigger, mockNotification)
+          .catch(done);
+
+        setTimeout(() => {
+          expect(notificationCnt).to.eq(2);
+          done();
+        }, 0);
+      })
+      .catch(done);
   });
 });
 
@@ -109,7 +183,7 @@ describe('respects buildSchema options', () => {
   it('with comment descriptions', () => {
     const remoteSchema = makeRemoteExecutableSchema({
       schema,
-      buildSchemaOptions: { commentDescriptions: true }
+      buildSchemaOptions: { commentDescriptions: true },
     });
 
     const field = remoteSchema.getQueryType().getFields()['custom'];
