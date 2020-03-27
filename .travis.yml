@@ -1,18 +1,38 @@
 language: node_js
 node_js:
-  - "8"
+  - "13"
+  - "12"
   - "10"
+
+env:
+  - GRAPHQL_VERSION='0.12'
+  - GRAPHQL_VERSION='0.13'
+  - GRAPHQL_VERSION='14.0'
+  - GRAPHQL_VERSION='14.1'
+  - GRAPHQL_VERSION='14.2'
+  - GRAPHQL_VERSION='14.3'
+  - GRAPHQL_VERSION='14.4'
+  - GRAPHQL_VERSION='14.5'
+  - GRAPHQL_VERSION='14.6'
+  - GRAPHQL_VERSION='rc'
 
 install:
   - npm config set spin=false
-  - npm install -g coveralls
   - npm install
 
 script:
-  - npm test
-  - npm run lint
+  - node_version=$(node -v); if [[ ${node_version:1:2} == "13" && $GRAPHQL_VERSION == "14.6" ]]; then
+      npm run lint;
+    fi
+  - node_version=$(node -v); if [[ ${node_version:1:2} == "13" && $GRAPHQL_VERSION == "14.6" ]]; then
+      npm run prettier:check;
+    fi
+  - npm run compile
+  - npm install graphql@$GRAPHQL_VERSION
+  - npm run testonly:cover
+
+after_success:
   - npm run coverage
-  - coveralls < ./coverage/lcov.info || true # if coveralls doesn't have it covered
 
 # Allow Travis tests to run in containers.
 sudo: false

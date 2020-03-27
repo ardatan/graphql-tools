@@ -3,13 +3,11 @@ title: Schema transforms
 description: Automatically transforming schemas
 ---
 
-Schema transforms are a tool for making modified copies of `GraphQLSchema` objects, while preserving the possibility of delegating back to original schema.
+Schema transforms are a tool for making modified copies of `GraphQLSchema` objects, without changing the original schema implementation. This is especially useful when the original schema _cannot_ be changed, i.e. when using [remote schemas](/remote-schemas/).
 
-Transforms are useful when working with [remote schemas](/remote-schemas/), building GraphQL gateways that combine multiple schemas, and/or using [schema stitching](/schema-stitching/) to combine schemas together without conflicts between types or fields.
+Schema transforms can be useful when building GraphQL gateways that combine multiple schemas using [schema stitching](/schema-stitching/) to combine schemas together without conflicts between types or fields.
 
-While it's possible to modify a schema by hand, the manual approach requires a deep understanding of all the relationships between `GraphQLSchema` properties, which makes it error-prone and labor-intensive. Transforms provide a generic abstraction over all those details, which improves code quality and saves time, not only now but also in the future, because transforms are designed to be reused again and again.
-
-Each `Transform` may define three different kinds of transform functions:
+Schema transforms work by wrapping the original schema in a new 'gateway' schema that simply delegates all operations to the original subschema. Each schema transform includes a function that changes the gateway schema. It may also include an operation transform, i.e. functions that either modify the operation prior to delegation or modify the result prior to its return.
 
 ```ts
 interface Transform = {
@@ -18,8 +16,6 @@ interface Transform = {
   transformResult?: (result: Result) => Result;
 };
 ```
-
-The most commonly used transform function is `transformSchema`. However, some transforms require modifying incoming requests and/or outgoing results as well, especially if `transformSchema` adds or removes types or fields, since such changes require mapping new types/fields to the original types/fields at runtime.
 
 For example, let's consider changing the name of the type in a simple schema. Imagine we've written a function that takes a `GraphQLSchema` and replaces all instances of type `Test` with `NewTest`.
 
@@ -46,7 +42,7 @@ type Query {
 }
 ```
 
-At runtime, we want the `NewTest` type to be automatically mapped to the old `Test` type.
+On delegation to the original subschema, we want the `NewTest` type to be automatically mapped to the old `Test` type.
 
 At first glance, it might seem as though most queries work the same way as before:
 
@@ -102,11 +98,17 @@ type Result = ExecutionResult & {
 };
 ```
 
-### transformSchema
+### wrapSchema
 
 Given a `GraphQLSchema` and an array of `Transform` objects, produce a new schema with those transforms applied.
 
-Delegating resolvers will also be generated to map from new schema root fields to old schema root fields. Often these automatic resolvers are sufficient, so you don't have to implement your own.
+Delegating resolvers are generated to map from new schema root fields to old schema root fields. These automatic resolvers should be sufficient, so you don't have to implement your own.
+
+The delegating resolvers will apply the operation transforms defined by the `Transform` objects. Each provided `transformRequest` functions will be applies in reverse order, until the request matches the original schema. The `tranformResult` functions will be applied in the opposite order until the result matches the final gateway schema.
+
+### transformSchema
+
+For convenience, when using `transformSchema`, after schema transformation, the `transforms` property on a returned `transformedSchema` object will contains the operation transforms that were applied. This could be useful when manually delegating to the transformed schema, but has been deprecated in favor of specifying the transforms within a subschema configuration object. See the [schema stitching](/schema-stitching/) docs for further details.
 
 ## Built-in transforms
 
@@ -170,7 +172,57 @@ RenameRootFields(
 )
 ```
 
-### Other
+### Modifying object fields
+
+* `TransformObjectFields(objectFieldTransformer: ObjectFieldTransformer, fieldNodeTransformer?: FieldNodeTransformer))`: Given an object field transformer, arbitrarily transform fields. The `objectFieldTransformer` can return a `GraphQLFieldConfig` definition, a object with new `name` and a `field`, `null` to remove the field, or `undefined` to leave the field unchanged. The optional `fieldNodeTransformer`, if specified, is called upon any field of that type in the request; result transformation can be specified by wrapping the field's resolver within the `objectFieldTransformer`. In this way, a field can be fully arbitrarily modified in place.
+
+```ts
+TransformObjectFields(objectFieldTransformer: ObjectFieldTransformer, fieldNodeTransformer: FieldNodeTransformer)
+
+type ObjectFieldTransformer = (
+  typeName: string,
+  fieldName: string,
+  field: GraphQLField<any, any>,
+) =>
+  | GraphQLFieldConfig<any, any>
+  | { name: string; field: GraphQLFieldConfig<any, any> }
+  | null
+  | void;
+
+type FieldNodeTransformer = (
+  typeName: string,
+  fieldName: string,
+  fieldNode: FieldNode
+) => FieldNode;
+```
+
+* `FilterObjectFields(filter: ObjectFilter)`: Removes object fields for which the `filter` function returns `false`.
+
+```ts
+FilterObjectFields(filter: ObjectFilter)
+
+type ObjectFilter = (
+  typeName: string,
+  fieldName: string,
+  field: GraphQLField<any, any>,
+) => boolean;
+```
+
+* `RenameObjectFields(renamer)`: Rename object fields, by applying the `renamer` function to their names.
+
+```ts
+RenameObjectFields(
+  renamer: (
+    typeName: string,
+    fieldName: string,
+    field: GraphQLField<any, any>,
+  ) => string,
+)
+```
+
+### Additional Operation Transforms
+
+It may be sometimes useful to add additional transforms to manually change an operation request or result when using `delegateToSchema`. Common use cases may be move selections around or to wrap them. The following built-in transforms may be useful in those cases.
 
 * `ExtractField({ from: Array<string>, to: Array<string> })` - move selection at `from` path to `to` path.
 
@@ -243,15 +295,19 @@ transforms: [
     })
 ```
 
-* `ReplaceFieldWithFragment(targetSchema: GraphQLSchema, fragments: Array<{ field: string; fragment: string; }>)`: Replace the given fields with an inline fragment. Used by `mergeSchemas` to handle the `fragment` option.
+## delegateToSchema (delegation) transforms
 
-## delegateToSchema transforms
+The following transforms are automatically applied by `delegateToSchema` during schema delegation, to translate between source and target types and fields:
 
-The following transforms are automatically applied by `delegateToSchema` during schema delegation, to translate between new and old types and fields:
-
-* `AddArgumentsAsVariables`: Given a schema and arguments passed to a root field, make those arguments document variables.
-* `FilterToSchema`: Given a schema and document, remove all fields, variables and fragments for types that don't exist in that schema.
-* `AddTypenameToAbstract`: Add `__typename` to all abstract types in the document.
+* `ExpandAbstractTypes`: If an abstract type within a document does not exist within the target schema, expand the type to each and any of its implementations that do exist.
+* `FilterToSchema`: Remove all fields, variables and fragments for types that don't exist within the target schema.
+* `AddTypenameToAbstract`: Add `__typename` to all abstract types in the document, necessary for type resolution of interfaces within the source schema to work.
 * `CheckResultAndHandleErrors`: Given a result from a subschema, propagate errors so that they match the correct subfield. Also provide the correct key if aliases are used.
 
-By passing a custom `transforms` array to `delegateToSchema`, it's possible to run additional transforms before these default transforms, though it is currently not possible to disable the default transforms.
+By passing a custom `transforms` array to `delegateToSchema`, it's possible to run additional operation (request/result) transforms before these default transforms.
+
+## mergeSchemas (gateway/stitching) transforms
+
+* `AddReplacementSelectionSets(schema: GraphQLSchema, mapping: ReplacementSelectionSetMapping)`:  `mergeSchemas` adds selection sets on outgoing requests from the gateway, enabling delegation from fields specified on the gateway using fields obtained from the original requests. The selection sets can be added depending on the presence of fields within the request using the `selectionSet` option within the resolver map.  `mergeSchemas` creates the mapping at gateway startup. Selection sets are used instead of fragments as the selections are added prior to transformation (in case type names are changed).
+* `AddMergedTypeSelectionSets(schema: GraphQLSchema, mapping: Record<string, MergedTypeInfo>)`: `mergeSchemas` adds selection sets on outgoing requests from the gateway, enabling type merging from the initial result using any fields initially obtained. The mapping is created at gateway startup.
+* Deprecated: `ReplaceFieldWithFragment(targetSchema: GraphQLSchema, fragments: Array<{ field: string; fragment: string; }>)`: Replace the given fields with an inline fragment. Used by original `mergeSchemas` to add prespecified fragments to root fields, enabling delegation `fragment` option. Array was parsed at each delegation.

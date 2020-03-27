@@ -1,6 +1,6 @@
 import TypeA from './circularSchemaA';
 
-export default () => [
+const TypeB = () => [
   `
 type TypeB {
   id: ID
@@ -8,3 +8,5 @@ type TypeB {
 }`,
   TypeA,
 ];
+
+export default TypeB;

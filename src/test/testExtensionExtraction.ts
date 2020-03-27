@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { parse } from 'graphql';
-import extractExtensionDefinitons from '../generate/extractExtensionDefinitions';
-import 'mocha';
+
+import { extractExtensionDefinitions } from '../generate/extensionDefinitions';
 
 describe('Extension extraction', () => {
   it('extracts extended inputs', () => {
@@ -16,10 +16,12 @@ describe('Extension extraction', () => {
     `;
 
     const astDocument = parse(typeDefs);
-    const extensionAst = extractExtensionDefinitons(astDocument);
+    const extensionAst = extractExtensionDefinitions(astDocument);
 
     expect(extensionAst.definitions).to.have.length(1);
-    expect(extensionAst.definitions[0].kind).to.equal('InputObjectTypeExtension');
+    expect(extensionAst.definitions[0].kind).to.equal(
+      'InputObjectTypeExtension',
+    );
   });
 
   it('extracts extended unions', () => {
@@ -39,7 +41,7 @@ describe('Extension extraction', () => {
     `;
 
     const astDocument = parse(typeDefs);
-    const extensionAst = extractExtensionDefinitons(astDocument);
+    const extensionAst = extractExtensionDefinitions(astDocument);
 
     expect(extensionAst.definitions).to.have.length(1);
     expect(extensionAst.definitions[0].kind).to.equal('UnionTypeExtension');
@@ -58,10 +60,9 @@ describe('Extension extraction', () => {
     `;
 
     const astDocument = parse(typeDefs);
-    const extensionAst = extractExtensionDefinitons(astDocument);
+    const extensionAst = extractExtensionDefinitions(astDocument);
 
     expect(extensionAst.definitions).to.have.length(1);
     expect(extensionAst.definitions[0].kind).to.equal('EnumTypeExtension');
   });
 });
-
