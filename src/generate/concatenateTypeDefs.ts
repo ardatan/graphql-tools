@@ -1,18 +1,15 @@
-import { print, DocumentNode, ASTNode } from 'graphql';
+import { print, ASTNode } from 'graphql';
+
 import { ITypedef } from '../Interfaces';
 
-import { SchemaError } from '.';
+import SchemaError from './SchemaError';
 
 function concatenateTypeDefs(
-  typeDefinitionsAry: ITypedef[],
+  typeDefinitionsAry: Array<ITypedef>,
   calledFunctionRefs = [] as any,
 ): string {
-  let resolvedTypeDefinitions: string[] = [];
+  let resolvedTypeDefinitions: Array<string> = [];
   typeDefinitionsAry.forEach((typeDef: ITypedef) => {
-    if ((<DocumentNode>typeDef).kind !== undefined) {
-      typeDef = print(typeDef as ASTNode);
-    }
-
     if (typeof typeDef === 'function') {
       if (calledFunctionRefs.indexOf(typeDef) === -1) {
         calledFunctionRefs.push(typeDef);
@@ -22,6 +19,8 @@ function concatenateTypeDefs(
       }
     } else if (typeof typeDef === 'string') {
       resolvedTypeDefinitions.push(typeDef.trim());
+    } else if ((typeDef as ASTNode).kind !== undefined) {
+      resolvedTypeDefinitions.push(print(typeDef).trim());
     } else {
       const type = typeof typeDef;
       throw new SchemaError(
@@ -29,15 +28,17 @@ function concatenateTypeDefs(
       );
     }
   });
-  return uniq(resolvedTypeDefinitions.map(x => x.trim())).join('\n');
+  return uniq(resolvedTypeDefinitions.map((x) => x.trim())).join('\n');
 }
 
 function uniq(array: Array<any>): Array<any> {
-  return array.reduce((accumulator, currentValue) => {
-    return accumulator.indexOf(currentValue) === -1
-      ? [...accumulator, currentValue]
-      : accumulator;
-  }, []);
+  return array.reduce(
+    (accumulator, currentValue) =>
+      accumulator.indexOf(currentValue) === -1
+        ? [...accumulator, currentValue]
+        : accumulator,
+    [],
+  );
 }
 
 export default concatenateTypeDefs;

@@ -1,29 +1,129 @@
-/* tslint:disable:no-unused-expression */
-
 import { expect } from 'chai';
 import {
   GraphQLSchema,
   GraphQLNamedType,
+  GraphQLScalarType,
   graphql,
   Kind,
   SelectionSetNode,
   print,
   parse,
 } from 'graphql';
-import { makeExecutableSchema } from '../makeExecutableSchema';
-import { propertySchema, bookingSchema } from './testingSchemas';
-import delegateToSchema from '../stitching/delegateToSchema';
+
+import { delegateToSchema } from '../delegate/index';
+import { makeExecutableSchema } from '../generate/index';
+import { defaultMergedResolver, mergeSchemas } from '../stitch/index';
 import {
   transformSchema,
   RenameTypes,
+  RenameRootTypes,
   FilterTypes,
   WrapQuery,
   ExtractField,
   ReplaceFieldWithFragment,
   FilterToSchema,
-} from '../transforms';
+  TransformQuery,
+  AddReplacementFragments,
+} from '../wrap/index';
+import {
+  concatInlineFragments,
+  parseFragmentToInlineFragment,
+} from '../utils/index';
+import { addMocksToSchema } from '../mock/index';
+
+import { propertySchema, bookingSchema } from './testingSchemas';
 
 describe('transforms', () => {
+  describe('base transform function', () => {
+    const scalarTest = `
+      scalar TestScalar
+      type TestingScalar {
+        value: TestScalar
+      }
+
+      type Query {
+        testingScalar(input: TestScalar): TestingScalar
+      }
+    `;
+
+    const scalarSchema = makeExecutableSchema({
+      typeDefs: scalarTest,
+      resolvers: {
+        TestScalar: new GraphQLScalarType({
+          name: 'TestScalar',
+          description: undefined,
+          serialize: (value) => (value as string).slice(1),
+          parseValue: (value) => `_${value as string}`,
+          parseLiteral: (ast: any) => `_${ast.value as string}`,
+        }),
+        Query: {
+          testingScalar(_parent, args) {
+            return {
+              value: args.input[0] === '_' ? args.input : null,
+            };
+          },
+        },
+      },
+    });
+
+    it('should work', async () => {
+      const schema = transformSchema(scalarSchema, []);
+      const result = await graphql(
+        schema,
+        `
+          query($input: TestScalar) {
+            testingScalar(input: $input) {
+              value
+            }
+          }
+        `,
+        {},
+        {},
+        {
+          input: 'test',
+        },
+      );
+
+      expect(result).to.deep.equal({
+        data: {
+          testingScalar: {
+            value: 'test',
+          },
+        },
+      });
+    });
+
+    it('should work when specified as a schema configuration object', async () => {
+      const schema = transformSchema(
+        { schema: scalarSchema, transforms: [] },
+        [],
+      );
+      const result = await graphql(
+        schema,
+        `
+          query($input: TestScalar) {
+            testingScalar(input: $input) {
+              value
+            }
+          }
+        `,
+        {},
+        {},
+        {
+          input: 'test',
+        },
+      );
+
+      expect(result).to.deep.equal({
+        data: {
+          testingScalar: {
+            value: 'test',
+          },
+        },
+      });
+    });
+  });
+
   describe('rename type', () => {
     let schema: GraphQLSchema;
     before(() => {
@@ -86,11 +186,148 @@ describe('transforms', () => {
     });
   });
 
+  describe('rename root type', () => {
+    it('should work', async () => {
+      const subschema = makeExecutableSchema({
+        typeDefs: `
+          schema {
+            query: QueryRoot
+            mutation: MutationRoot
+          }
+
+          type QueryRoot {
+            foo: String!
+          }
+
+          type MutationRoot {
+            doSomething: DoSomethingPayload!
+          }
+
+          type DoSomethingPayload {
+            query: QueryRoot!
+          }
+        `,
+      });
+
+      addMocksToSchema({ schema: subschema });
+
+      const schema = transformSchema(subschema, [
+        new RenameRootTypes((name) => (name === 'QueryRoot' ? 'Query' : name)),
+      ]);
+
+      const result = await graphql(
+        schema,
+        `
+          mutation {
+            doSomething {
+              query {
+                foo
+              }
+            }
+          }
+        `,
+      );
+
+      expect(result).to.deep.equal({
+        data: {
+          doSomething: {
+            query: {
+              foo: 'Hello World',
+            },
+          },
+        },
+      });
+    });
+
+    it('works with mergeSchemas', async () => {
+      const schemaWithCustomRootTypeNames = makeExecutableSchema({
+        typeDefs: `
+          schema {
+            query: QueryRoot
+            mutation: MutationRoot
+          }
+
+          type QueryRoot {
+            foo: String!
+          }
+
+          type MutationRoot {
+            doSomething: DoSomethingPayload!
+          }
+
+          type DoSomethingPayload {
+            somethingChanged: Boolean!
+            query: QueryRoot!
+          }
+        `,
+      });
+
+      addMocksToSchema({ schema: schemaWithCustomRootTypeNames });
+
+      const schemaWithDefaultRootTypeNames = makeExecutableSchema({
+        typeDefs: `
+          type Query {
+            bar: String!
+          }
+
+          type Mutation {
+            doSomethingElse: DoSomethingElsePayload!
+          }
+
+          type DoSomethingElsePayload {
+            somethingElseChanged: Boolean!
+            query: Query!
+          }
+        `,
+      });
+
+      addMocksToSchema({ schema: schemaWithDefaultRootTypeNames });
+
+      const mergedSchema = mergeSchemas({
+        subschemas: [
+          schemaWithCustomRootTypeNames,
+          {
+            schema: schemaWithDefaultRootTypeNames,
+            transforms: [new RenameRootTypes((name) => `${name}Root`)],
+          },
+        ],
+        queryTypeName: 'QueryRoot',
+        mutationTypeName: 'MutationRoot',
+      });
+
+      const result = await graphql(
+        mergedSchema,
+        `
+          mutation {
+            doSomething {
+              query {
+                foo
+                bar
+              }
+            }
+          }
+        `,
+      );
+
+      expect(result).to.deep.equal({
+        data: {
+          doSomething: {
+            query: {
+              foo: 'Hello World',
+              bar: 'Hello World',
+            },
+          },
+        },
+      });
+    });
+  });
+
   describe('namespace', () => {
     let schema: GraphQLSchema;
     before(() => {
       const transforms = [
-        new RenameTypes((name: string) => `Property_${name}`),
+        new RenameTypes((name: string) => `_${name}`),
+        new RenameTypes((name: string) => `Property${name}`),
       ];
       schema = transformSchema(propertySchema, transforms);
     });
@@ -153,7 +390,7 @@ describe('transforms', () => {
       filter = new FilterToSchema(bookingSchema);
     });
 
-    it('should remove empty selection sets on objects', async () => {
+    it('should remove empty selection sets on objects', () => {
       const query = parse(`
       query customerQuery($id: ID!) {
         customerById(id: $id) {
@@ -168,8 +405,8 @@ describe('transforms', () => {
       const filteredQuery = filter.transformRequest({
         document: query,
         variables: {
-          id: 'c1'
-        }
+          id: 'c1',
+        },
       });
 
       const expected = parse(`
@@ -183,7 +420,7 @@ describe('transforms', () => {
       expect(print(filteredQuery.document)).to.equal(print(expected));
     });
 
-    it('should also remove variables when removing empty selection sets', async () => {
+    it('should also remove variables when removing empty selection sets', () => {
       const query = parse(`
       query customerQuery($id: ID!, $limit: Int) {
         customerById(id: $id) {
@@ -199,8 +436,8 @@ describe('transforms', () => {
         document: query,
         variables: {
           id: 'c1',
-          limit: 10
-        }
+          limit: 10,
+        },
       });
 
       const expected = parse(`
@@ -214,7 +451,7 @@ describe('transforms', () => {
       expect(print(filteredQuery.document)).to.equal(print(expected));
     });
 
-    it('should remove empty selection sets on wrapped objects (non-nullable/lists)', async () => {
+    it('should remove empty selection sets on wrapped objects (non-nullable/lists)', () => {
       const query = parse(`
       query bookingQuery($id: ID!) {
         bookingById(id: $id) {
@@ -229,8 +466,8 @@ describe('transforms', () => {
       const filteredQuery = filter.transformRequest({
         document: query,
         variables: {
-          id: 'b1'
-        }
+          id: 'b1',
+        },
       });
 
       const expected = parse(`
@@ -301,17 +538,17 @@ describe('transforms', () => {
           }
         `,
       );
-      expect(result.errors).not.to.be.empty;
+      expect(result.errors).to.not.equal(undefined);
       expect(result.errors.length).to.equal(1);
       expect(result.errors[0].message).to.equal(
-        'Cannot query field "customer" on type "Booking".'
+        'Cannot query field "customer" on type "Booking".',
       );
     });
   });
 
   describe('tree operations', () => {
     let data: any;
-    let subSchema: GraphQLSchema;
+    let subschema: GraphQLSchema;
     let schema: GraphQLSchema;
     before(() => {
       data = {
@@ -332,7 +569,7 @@ describe('transforms', () => {
           },
         },
       };
-      subSchema = makeExecutableSchema({
+      subschema = makeExecutableSchema({
         typeDefs: `
         type User {
           id: ID!
@@ -367,12 +604,12 @@ describe('transforms', () => {
       `,
         resolvers: {
           Query: {
-            userById(parent, { id }) {
+            userById(_parent, { id }) {
               return data[id];
             },
           },
           Mutation: {
-            setUser(parent, { input }) {
+            setUser(_parent, { input }) {
               if (data[input.id]) {
                 return {
                   ...data[input.id],
@@ -380,7 +617,7 @@ describe('transforms', () => {
                 };
               }
             },
-            setAddress(parent, { input }) {
+            setAddress(_parent, { input }) {
               if (data[input.id]) {
                 return {
                   ...data[input.id].address,
@@ -421,9 +658,9 @@ describe('transforms', () => {
       `,
         resolvers: {
           Query: {
-            addressByUser(parent, { id }, context, info) {
+            addressByUser(_parent, { id }, context, info) {
               return delegateToSchema({
-                schema: subSchema,
+                schema: subschema,
                 operation: 'query',
                 fieldName: 'userById',
                 args: { id },
@@ -446,16 +683,16 @@ describe('transforms', () => {
                       selectionSet: subtree,
                     }),
                     // how to process the data result at path
-                    result => result && result.address,
+                    (result) => result?.address,
                   ),
                 ],
               });
             },
           },
           Mutation: {
-            async setUserAndAddress(parent, { input }, context, info) {
+            async setUserAndAddress(_parent, { input }, context, info) {
               const addressResult = await delegateToSchema({
-                schema: subSchema,
+                schema: subschema,
                 operation: 'mutation',
                 fieldName: 'setAddress',
                 args: {
@@ -477,7 +714,7 @@ describe('transforms', () => {
                 ],
               });
               const userResult = await delegateToSchema({
-                schema: subSchema,
+                schema: subschema,
                 operation: 'mutation',
                 fieldName: 'setUser',
                 args: {
@@ -573,17 +810,17 @@ describe('transforms', () => {
   });
   describe('WrapQuery', () => {
     let data: any;
-    let subSchema: GraphQLSchema;
+    let subschema: GraphQLSchema;
     let schema: GraphQLSchema;
     before(() => {
       data = {
         u1: {
           id: 'user1',
           addressStreetAddress: 'Windy Shore 21 A 7',
-          addressZip: '12345'
-        }
+          addressZip: '12345',
+        },
       };
-      subSchema = makeExecutableSchema({
+      subschema = makeExecutableSchema({
         typeDefs: `
         type User {
           id: ID!
@@ -597,10 +834,10 @@ describe('transforms', () => {
       `,
         resolvers: {
           Query: {
-            userById(parent, { id }) {
+            userById(_parent, { id }) {
               return data[id];
             },
-          }
+          },
         },
       });
       schema = makeExecutableSchema({
@@ -621,9 +858,9 @@ describe('transforms', () => {
       `,
         resolvers: {
           Query: {
-            addressByUser(parent, { id }, context, info) {
+            addressByUser(_parent, { id }, context, info) {
               return delegateToSchema({
-                schema: subSchema,
+                schema: subschema,
                 operation: 'query',
                 fieldName: 'userById',
                 args: { id },
@@ -637,11 +874,13 @@ describe('transforms', () => {
                     (subtree: SelectionSetNode) => {
                       const newSelectionSet = {
                         kind: Kind.SELECTION_SET,
-                        selections: subtree.selections.map(selection => {
+                        selections: subtree.selections.map((selection) => {
                           // just append fragments, not interesting for this
                           // test
-                          if (selection.kind === Kind.INLINE_FRAGMENT ||
-                            selection.kind === Kind.FRAGMENT_SPREAD) {
+                          if (
+                            selection.kind === Kind.INLINE_FRAGMENT ||
+                            selection.kind === Kind.FRAGMENT_SPREAD
+                          ) {
                             return selection;
                           }
                           // prepend `address` to name and camelCase
@@ -650,27 +889,28 @@ describe('transforms', () => {
                             kind: Kind.FIELD,
                             name: {
                               kind: Kind.NAME,
-                              value: 'address' +
+                              value:
+                                'address' +
                                 oldFieldName.charAt(0).toUpperCase() +
-                                oldFieldName.slice(1)
-                            }
+                                oldFieldName.slice(1),
+                            },
                           };
-                        })
+                        }),
                       };
                       return newSelectionSet;
                     },
                     // how to process the data result at path
-                    result => ({
+                    (result) => ({
                       streetAddress: result.addressStreetAddress,
-                      zip: result.addressZip
-                    })
+                      zip: result.addressZip,
+                    }),
                   ),
                   // Wrap a second level field
                   new WrapQuery(
                     ['userById', 'zip'],
                     (subtree: SelectionSetNode) => subtree,
-                    result => result
-                  )
+                    (result) => result,
+                  ),
                 ],
               });
             },
@@ -703,11 +943,249 @@ describe('transforms', () => {
     });
   });
 
+  describe('TransformQuery', () => {
+    let data: any;
+    let subschema: GraphQLSchema;
+    let schema: GraphQLSchema;
+    before(() => {
+      data = {
+        u1: {
+          id: 'u1',
+          username: 'alice',
+          address: {
+            streetAddress: 'Windy Shore 21 A 7',
+            zip: '12345',
+          },
+        },
+        u2: {
+          id: 'u2',
+          username: 'bob',
+          address: {
+            streetAddress: 'Snowy Mountain 5 B 77',
+            zip: '54321',
+          },
+        },
+      };
+      subschema = makeExecutableSchema({
+        typeDefs: `
+          type User {
+            id: ID!
+            username: String
+            address: Address
+            errorTest: Address
+          }
+
+          type Address {
+            streetAddress: String
+            zip: String
+            errorTest: String
+          }
+
+          type Query {
+            userById(id: ID!): User
+          }
+        `,
+        resolvers: {
+          User: {
+            errorTest: () => {
+              throw new Error('Test Error!');
+            },
+          },
+          Address: {
+            errorTest: () => {
+              throw new Error('Test Error!');
+            },
+          },
+          Query: {
+            userById(_parent, { id }) {
+              return data[id];
+            },
+          },
+        },
+      });
+      schema = makeExecutableSchema({
+        typeDefs: `
+          type Address {
+            streetAddress: String
+            zip: String
+            errorTest: String
+          }
+
+          type Query {
+            addressByUser(id: ID!): Address
+            errorTest(id: ID!): Address
+          }
+        `,
+        resolvers: {
+          Query: {
+            addressByUser(_parent, { id }, context, info) {
+              return delegateToSchema({
+                schema: subschema,
+                operation: 'query',
+                fieldName: 'userById',
+                args: { id },
+                context,
+                info,
+                transforms: [
+                  // Wrap document takes a subtree as an AST node
+                  new TransformQuery({
+                    // path at which to apply wrapping and extracting
+                    path: ['userById'],
+                    queryTransformer: (subtree: SelectionSetNode) => ({
+                      kind: Kind.SELECTION_SET,
+                      selections: [
+                        {
+                          // we create a wrapping AST Field
+                          kind: Kind.FIELD,
+                          name: {
+                            kind: Kind.NAME,
+                            // that field is `address`
+                            value: 'address',
+                          },
+                          // Inside the field selection
+                          selectionSet: subtree,
+                        },
+                      ],
+                    }),
+                    // how to process the data result at path
+                    resultTransformer: (result) => result?.address,
+                    errorPathTransformer: (path) => path.slice(1),
+                  }),
+                ],
+              });
+            },
+            errorTest(_parent, { id }, context, info) {
+              return delegateToSchema({
+                schema: subschema,
+                operation: 'query',
+                fieldName: 'userById',
+                args: { id },
+                context,
+                info,
+                transforms: [
+                  new TransformQuery({
+                    path: ['userById'],
+                    queryTransformer: (subtree: SelectionSetNode) => ({
+                      kind: Kind.SELECTION_SET,
+                      selections: [
+                        {
+                          kind: Kind.FIELD,
+                          name: {
+                            kind: Kind.NAME,
+                            value: 'errorTest',
+                          },
+                          selectionSet: subtree,
+                        },
+                      ],
+                    }),
+                    resultTransformer: (result) => result?.address,
+                    errorPathTransformer: (path) => path.slice(1),
+                  }),
+                ],
+              });
+            },
+          },
+        },
+      });
+    });
+
+    it('wrapping delegation', async () => {
+      const result = await graphql(
+        schema,
+        `
+          query {
+            addressByUser(id: "u1") {
+              streetAddress
+              zip
+            }
+          }
+        `,
+      );
+
+      expect(result).to.deep.equal({
+        data: {
+          addressByUser: {
+            streetAddress: 'Windy Shore 21 A 7',
+            zip: '12345',
+          },
+        },
+      });
+    });
+
+    it('preserves errors from underlying fields', async () => {
+      const result = await graphql(
+        schema,
+        `
+          query {
+            addressByUser(id: "u1") {
+              errorTest
+            }
+          }
+        `,
+        {},
+        {},
+        {},
+        undefined,
+        defaultMergedResolver,
+      );
+
+      expect(result).to.deep.equal({
+        data: {
+          addressByUser: {
+            errorTest: null,
+          },
+        },
+        errors: [
+          {
+            locations: [
+              {
+                column: 15,
+                line: 4,
+              },
+            ],
+            message: 'Test Error!',
+            path: ['addressByUser', 'errorTest'],
+          },
+        ],
+      });
+    });
+
+    it('preserves errors from the wrapping field', async () => {
+      const result = await graphql(
+        schema,
+        `
+          query {
+            errorTest(id: "u1") {
+              errorTest
+            }
+          }
+        `,
+        {},
+        {},
+        {},
+        undefined,
+        defaultMergedResolver,
+      );
+
+      expect(result).to.deep.equal({
+        data: {
+          errorTest: null,
+        },
+        errors: [
+          {
+            locations: [],
+            message: 'Test Error!',
+            path: ['errorTest'],
+          },
+        ],
+      });
+    });
+  });
 
   describe('replaces field with fragments', () => {
     let data: any;
     let schema: GraphQLSchema;
-    let subSchema: GraphQLSchema;
+    let subschema: GraphQLSchema;
     before(() => {
       data = {
         u1: {
@@ -717,7 +1195,7 @@ describe('transforms', () => {
         },
       };
 
-      subSchema = makeExecutableSchema({
+      subschema = makeExecutableSchema({
         typeDefs: `
           type User {
             id: ID!
@@ -731,7 +1209,7 @@ describe('transforms', () => {
         `,
         resolvers: {
           Query: {
-            userById(parent, { id }) {
+            userById(_parent, { id }) {
               return data[id];
             },
           },
@@ -753,23 +1231,23 @@ describe('transforms', () => {
         `,
         resolvers: {
           Query: {
-            userById(parent, { id }, context, info) {
+            userById(_parent, { id }, context, info) {
               return delegateToSchema({
-                schema: subSchema,
+                schema: subschema,
                 operation: 'query',
                 fieldName: 'userById',
                 args: { id },
                 context,
                 info,
                 transforms: [
-                  new ReplaceFieldWithFragment(subSchema, [
+                  new ReplaceFieldWithFragment(subschema, [
                     {
-                      field: `fullname`,
-                      fragment: `fragment UserName on User { name }`,
+                      field: 'fullname',
+                      fragment: 'fragment UserName on User { name }',
                     },
                     {
-                      field: `fullname`,
-                      fragment: `fragment UserSurname on User { surname }`,
+                      field: 'fullname',
+                      fragment: 'fragment UserSurname on User { surname }',
                     },
                   ]),
                 ],
@@ -777,8 +1255,8 @@ describe('transforms', () => {
             },
           },
           User: {
-            fullname(parent, args, context, info) {
-              return `${parent.name} ${parent.surname}`;
+            fullname(parent, _args, _context, _info) {
+              return `${parent.name as string} ${parent.surname as string}`;
             },
           },
         },
@@ -805,6 +1283,112 @@ describe('transforms', () => {
           },
         },
       });
+    });
+  });
+});
+
+describe('replaces field with processed fragment node', () => {
+  let data: any;
+  let schema: GraphQLSchema;
+  let subschema: GraphQLSchema;
+  before(() => {
+    data = {
+      u1: {
+        id: 'u1',
+        name: 'joh',
+        surname: 'gats',
+      },
+    };
+
+    subschema = makeExecutableSchema({
+      typeDefs: `
+        type User {
+          id: ID!
+          name: String!
+          surname: String!
+        }
+
+        type Query {
+          userById(id: ID!): User
+        }
+      `,
+      resolvers: {
+        Query: {
+          userById(_parent, { id }) {
+            return data[id];
+          },
+        },
+      },
+    });
+
+    schema = makeExecutableSchema({
+      typeDefs: `
+        type User {
+          id: ID!
+          name: String!
+          surname: String!
+          fullname: String!
+        }
+
+        type Query {
+          userById(id: ID!): User
+        }
+      `,
+      resolvers: {
+        Query: {
+          userById(_parent, { id }, context, info) {
+            return delegateToSchema({
+              schema: subschema,
+              operation: 'query',
+              fieldName: 'userById',
+              args: { id },
+              context,
+              info,
+              transforms: [
+                new AddReplacementFragments(subschema, {
+                  User: {
+                    fullname: concatInlineFragments('User', [
+                      parseFragmentToInlineFragment(
+                        'fragment UserName on User { name }',
+                      ),
+                      parseFragmentToInlineFragment(
+                        'fragment UserSurname on User { surname }',
+                      ),
+                    ]),
+                  },
+                }),
+              ],
+            });
+          },
+        },
+        User: {
+          fullname(parent, _args, _context, _info) {
+            return `${parent.name as string} ${parent.surname as string}`;
+          },
+        },
+      },
+    });
+  });
+  it('should work', async () => {
+    const result = await graphql(
+      schema,
+      `
+        query {
+          userById(id: "u1") {
+            id
+            fullname
+          }
+        }
+      `,
+    );
+
+    expect(result).to.deep.equal({
+      data: {
+        userById: {
+          id: 'u1',
+          fullname: 'joh gats',
+        },
+      },
     });
   });
 });
