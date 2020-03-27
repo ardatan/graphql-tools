@@ -174,10 +174,10 @@ function updateArgumentsWithDefaults(
     const argName = argument.name;
     const sourceArgType = argument.type;
 
-    if (argumentNodeMap[argName] == null) {
+    if (argumentNodeMap[argName] === undefined) {
       const defaultValue = argument.defaultValue;
 
-      if (defaultValue != null) {
+      if (defaultValue !== undefined) {
         updateArgument(
           argName,
           sourceArgType,

@@ -84,13 +84,16 @@ function addVariablesToRootField(
 
         const targetField = type.getFields()[selection.name.value];
 
-        updateArguments(
-          targetField,
-          argumentNodeMap,
-          variableDefinitionMap,
-          variableValues,
-          args,
-        );
+        // excludes __typename
+        if (targetField != null) {
+          updateArguments(
+            targetField,
+            argumentNodeMap,
+            variableDefinitionMap,
+            variableValues,
+            args,
+          );
+        }
 
         newSelectionSet.push({
           ...selection,
@@ -124,6 +127,8 @@ function addVariablesToRootField(
   };
 }
 
+const hasOwn = Object.prototype.hasOwnProperty;
+
 function updateArguments(
   targetField: GraphQLField<any, any>,
   argumentNodeMap: Record<string, ArgumentNode>,
@@ -131,25 +136,19 @@ function updateArguments(
   variableValues: Record<string, any>,
   newArgs: Record<string, any>,
 ): void {
-  if (targetField != null) {
-    targetField.args.forEach((argument: GraphQLArgument) => {
-      const argName = argument.name;
-      const argType = argument.type;
+  targetField.args.forEach((argument: GraphQLArgument) => {
+    const argName = argument.name;
+    const argType = argument.type;
 
-      if (newArgs[argName] != null) {
-        const newArg = newArgs[argName];
-
-        if (newArg != null) {
-          updateArgument(
-            argName,
-            argType,
-            argumentNodeMap,
-            variableDefinitionMap,
-            variableValues,
-            serializeInputValue(argType, newArg),
-          );
-        }
-      }
-    });
-  }
+    if (hasOwn.call(newArgs, argName)) {
+      updateArgument(
+        argName,
+        argType,
+        argumentNodeMap,
+        variableDefinitionMap,
+        variableValues,
+        serializeInputValue(argType, newArgs[argName]),
+      );
+    }
+  });
 }
