@@ -1,7 +1,11 @@
 /* eslint-disable import/no-nodejs-modules */
 
 import { concat } from 'apollo-link';
-import { createUploadLink, formDataAppendFile, isExtractableFile } from 'apollo-upload-client';
+import {
+  createUploadLink,
+  formDataAppendFile,
+  isExtractableFile,
+} from 'apollo-upload-client';
 import FormData, { AppendOptions } from 'form-data';
 import fetch from 'node-fetch';
 
