@@ -19,7 +19,6 @@
     "precompile": "npm run clean",
     "compile": "rollup -c rollup.config.js",
     "test": "jest",
-    "posttest": "npm run lint && npm run prettier:check",
     "lint": "eslint --ext .js,.ts src",
     "lint:watch": "esw --watch --cache --ext .js,.ts src",
     "watch": "npm run compile -- --watch",
