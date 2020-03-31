@@ -29,7 +29,7 @@ script:
     fi
   - npm run compile
   - npm install graphql@$GRAPHQL_VERSION
-  - npm run testonly:cover
+  - npm run test
 
 # Allow Travis tests to run in containers.
 sudo: false
