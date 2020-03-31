@@ -1064,7 +1064,9 @@ describe('@directives', () => {
             expect(typeof newValue.length).toBe('number');
             if (newValue.length > maxLength) {
               throw new Error(
-                `expected ${newValue.length.toString(10)} to be at most ${maxLength.toString(10)}`,
+                `expected ${newValue.length.toString(
+                  10,
+                )} to be at most ${maxLength.toString(10)}`,
               );
             }
             return newValue;
