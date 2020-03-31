@@ -1,4 +1,3 @@
-import { expect } from 'chai';
 import { GraphQLObjectType } from 'graphql';
 
 import { healSchema } from '../utils/index';
@@ -6,7 +5,7 @@ import { toConfig } from '../polyfills/index';
 import { makeExecutableSchema } from '../generate/index';
 
 describe('heal', () => {
-  it('should prune empty types', () => {
+  test('should prune empty types', () => {
     const schema = makeExecutableSchema({
       typeDefs: `
       type WillBeEmptyObject {
@@ -29,6 +28,6 @@ describe('heal', () => {
     healSchema(schema);
 
     const healedTypeMap = schema.getTypeMap();
-    expect(healedTypeMap).not.to.haveOwnProperty('WillBeEmptyObject');
+    expect(healedTypeMap).not.toHaveProperty('WillBeEmptyObject');
   });
 });

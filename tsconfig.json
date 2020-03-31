@@ -6,7 +6,7 @@
     "lib": ["es7", "esnext.asynciterable", "dom"],
 
     "target": "es5",
-    "module": "commonjs",
+    "module": "es2015",
     "moduleResolution": "node",
     "esModuleInterop": true,
     "importHelpers": true,

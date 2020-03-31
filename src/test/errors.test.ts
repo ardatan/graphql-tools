@@ -1,4 +1,3 @@
-import { expect, assert } from 'chai';
 import { GraphQLError, graphql } from 'graphql';
 
 import { relocatedError } from '../stitch/errors';
@@ -16,7 +15,7 @@ class ErrorWithExtensions extends GraphQLError {
 
 describe('Errors', () => {
   describe('relocatedError', () => {
-    it('should adjust the path of a GraphqlError', () => {
+    test('should adjust the path of a GraphqlError', () => {
       const originalError = new GraphQLError('test', null, null, null, [
         'test',
       ]);
@@ -25,22 +24,22 @@ describe('Errors', () => {
         'test',
         1,
       ]);
-      assert.deepEqual(newError, expectedError);
+      expect(newError).toEqual(expectedError);
     });
 
-    it('should also locate a non GraphQLError', () => {
+    test('should also locate a non GraphQLError', () => {
       const originalError = new Error('test');
       const newError = relocatedError(originalError, null, ['test', 1]);
       const expectedError = new GraphQLError('test', null, null, null, [
         'test',
         1,
       ]);
-      assert.deepEqual(newError, expectedError);
+      expect(newError).toEqual(expectedError);
     });
   });
 
   describe('getErrors', () => {
-    it('should return all errors including if path is not defined', () => {
+    test('should return all errors including if path is not defined', () => {
       const error = {
         message: 'Test error without path',
       };
@@ -49,14 +48,14 @@ describe('Errors', () => {
         [ERROR_SYMBOL]: [error],
       };
 
-      assert.deepEqual(getErrors(mockErrors, 'responseKey'), [
+      expect(getErrors(mockErrors, 'responseKey')).toEqual([
         mockErrors[ERROR_SYMBOL][0],
       ]);
     });
   });
 
   describe('checkResultAndHandleErrors', () => {
-    it('persists single error', () => {
+    test('persists single error', () => {
       const result = {
         errors: [new GraphQLError('Test error')],
       };
@@ -68,12 +67,12 @@ describe('Errors', () => {
           'responseKey',
         );
       } catch (e) {
-        assert.equal(e.message, 'Test error');
-        assert.isUndefined(e.originalError.errors);
+        expect(e.message).toEqual('Test error');
+        expect(e.originalError.errors).toBeUndefined();
       }
     });
 
-    it('persists single error with extensions', () => {
+    test('persists single error with extensions', () => {
       const result = {
         errors: [new ErrorWithExtensions('Test error', 'UNAUTHENTICATED')],
       };
@@ -85,13 +84,13 @@ describe('Errors', () => {
           'responseKey',
         );
       } catch (e) {
-        assert.equal(e.message, 'Test error');
-        assert.equal(e.extensions && e.extensions.code, 'UNAUTHENTICATED');
-        assert.isUndefined(e.originalError.errors);
+        expect(e.message).toEqual('Test error');
+        expect(e.extensions && e.extensions.code).toEqual('UNAUTHENTICATED');
+        expect(e.originalError.errors).toBeUndefined();
       }
     });
 
-    it('combines errors and persists the original errors', () => {
+    test('combines errors and persists the original errors', () => {
       const result = {
         errors: [new GraphQLError('Error1'), new GraphQLError('Error2')],
       };
@@ -103,12 +102,12 @@ describe('Errors', () => {
           'responseKey',
         );
       } catch (e) {
-        assert.equal(e.message, 'Error1\nError2');
-        assert.isNotEmpty(e.originalError);
-        assert.isNotEmpty(e.originalError.errors);
-        assert.lengthOf(e.originalError.errors, result.errors.length);
+        expect(e.message).toEqual('Error1\nError2');
+        expect(e.originalError).toBeDefined();
+        expect(e.originalError.errors).toBeDefined();
+        expect(e.originalError.errors).toHaveLength(result.errors.length);
         result.errors.forEach((error, i) => {
-          assert.deepEqual(e.originalError.errors[i], error);
+          expect(e.originalError.errors[i]).toEqual(error);
         });
       }
     });
@@ -116,7 +115,7 @@ describe('Errors', () => {
 });
 
 describe('passes along errors for missing fields on list', () => {
-  it('if non-null', async () => {
+  test('if non-null', async () => {
     const typeDefs = `
       type Query {
         getOuter: Outer
@@ -147,7 +146,7 @@ describe('passes along errors for missing fields on list', () => {
       mergedSchema,
       '{ getOuter { innerList { mandatoryField } } }',
     );
-    expect(result).to.deep.equal({
+    expect(result).toEqual({
       data: {
         getOuter: null,
       },
@@ -167,7 +166,7 @@ describe('passes along errors for missing fields on list', () => {
     });
   });
 
-  it('even if nullable', async () => {
+  test('even if nullable', async () => {
     const typeDefs = `
       type Query {
         getOuter: Outer
@@ -198,7 +197,7 @@ describe('passes along errors for missing fields on list', () => {
       mergedSchema,
       '{ getOuter { innerList { mandatoryField } } }',
     );
-    expect(result).to.deep.equal({
+    expect(result).toEqual({
       data: {
         getOuter: {
           innerList: [{ mandatoryField: 'test' }, null],
@@ -222,7 +221,7 @@ describe('passes along errors for missing fields on list', () => {
 });
 
 describe('passes along errors when list field errors', () => {
-  it('if non-null', async () => {
+  test('if non-null', async () => {
     const typeDefs = `
       type Query {
         getOuter: Outer
@@ -253,7 +252,7 @@ describe('passes along errors when list field errors', () => {
       mergedSchema,
       '{ getOuter { innerList { mandatoryField } } }',
     );
-    expect(result).to.deep.equal({
+    expect(result).toEqual({
       data: {
         getOuter: null,
       },
@@ -272,7 +271,7 @@ describe('passes along errors when list field errors', () => {
     });
   });
 
-  it('even if nullable', async () => {
+  test('even if nullable', async () => {
     const typeDefs = `
       type Query {
         getOuter: Outer
@@ -303,7 +302,7 @@ describe('passes along errors when list field errors', () => {
       mergedSchema,
       '{ getOuter { innerList { mandatoryField } } }',
     );
-    expect(result).to.deep.equal({
+    expect(result).toEqual({
       data: {
         getOuter: {
           innerList: [{ mandatoryField: 'test' }, null],

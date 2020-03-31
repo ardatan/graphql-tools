@@ -11,7 +11,6 @@ import {
   GraphQLField,
 } from 'graphql';
 import { forAwaitEach } from 'iterall';
-import { expect } from 'chai';
 
 import {
   transformSchema,
@@ -49,7 +48,7 @@ import {
   subscriptionSchema,
   subscriptionPubSub,
   subscriptionPubSubTrigger,
-} from './testingSchemas';
+} from './fixtures/schemas';
 
 const linkSchema = `
   """
@@ -99,7 +98,7 @@ describe('merge schemas through transforms', () => {
   let bookingSubschemaConfig: SubschemaConfig;
   let mergedSchema: GraphQLSchema;
 
-  before(async () => {
+  beforeAll(async () => {
     bookingSubschemaConfig = await remoteBookingSchema;
 
     // namespace and strip schemas
@@ -230,7 +229,7 @@ describe('merge schemas through transforms', () => {
   });
 
   // FIXME fragemnt replacements
-  it('node should work', async () => {
+  test('node should work', async () => {
     const result = await graphql(
       mergedSchema,
       `
@@ -266,7 +265,7 @@ describe('merge schemas through transforms', () => {
       },
     );
 
-    expect(result).to.deep.equal({
+    expect(result).toEqual({
       data: {
         booking: {
           __typename: 'Bookings_Booking',
@@ -299,7 +298,7 @@ describe('merge schemas through transforms', () => {
     });
   });
 
-  it('local subscriptions should work even if root fields are renamed', (done) => {
+  test('local subscriptions should work even if root fields are renamed', (done) => {
     const originalNotification = {
       notifications: {
         text: 'Hello world',
@@ -312,12 +311,12 @@ describe('merge schemas through transforms', () => {
     };
 
     const subscription = parse(`
-      subscription Subscription {
-        Subscriptions_notifications {
-          text
+        subscription Subscription {
+          Subscriptions_notifications {
+            text
+          }
         }
-      }
-    `);
+      `);
 
     let notificationCnt = 0;
     subscribe(mergedSchema, subscription)
@@ -325,8 +324,8 @@ describe('merge schemas through transforms', () => {
         forAwaitEach(
           results as AsyncIterable<ExecutionResult>,
           (result: ExecutionResult) => {
-            expect(result).to.have.property('data');
-            expect(result.data).to.deep.equal(transformedNotification);
+            expect(result).toHaveProperty('data');
+            expect(result.data).toEqual(transformedNotification);
             if (!notificationCnt++) {
               return done();
             }
@@ -344,7 +343,7 @@ describe('merge schemas through transforms', () => {
 });
 
 describe('transform object fields', () => {
-  it('should work to add a resolver', async () => {
+  test('should work to add a resolver', async () => {
     const transformedPropertySchema = transformSchema(propertySchema, [
       new TransformObjectFields(
         (
@@ -396,7 +395,7 @@ describe('transform object fields', () => {
       },
     );
 
-    expect(result).to.deep.equal({
+    expect(result).toEqual({
       data: {
         propertyById: {
           id: 'p1',
@@ -411,7 +410,7 @@ describe('transform object fields', () => {
 });
 
 describe('default values', () => {
-  it('should work to add a default value even when renaming root fields', async () => {
+  test('should work to add a default value even when renaming root fields', async () => {
     const transformedPropertySchema = transformSchema(propertySchema, [
       new TransformRootFields(
         (
@@ -437,7 +436,7 @@ describe('default values', () => {
       `,
     );
 
-    expect(result).to.deep.equal({
+    expect(result).toEqual({
       data: {
         renamedJsonTest: {
           test: 'test',
@@ -448,7 +447,7 @@ describe('default values', () => {
 });
 
 describe('rename fields that implement interface fields', () => {
-  it('should work', () => {
+  test('should work', () => {
     const originalItem = {
       id: '123',
       camel: "I'm a camel!",
@@ -518,17 +517,17 @@ describe('rename fields that implement interface fields', () => {
     `;
 
     const originalResult = graphqlSync(originalSchema, originalQuery);
-    expect(originalResult).to.deep.equal({ data: { node: originalItem } });
+    expect(originalResult).toEqual({ data: { node: originalItem } });
 
     const newResult = graphqlSync(wrappedSchema, newQuery);
-    expect(newResult).to.deep.equal({ data: { _node: originalItem } });
+    expect(newResult).toEqual({ data: { _node: originalItem } });
   });
 });
 
 describe('transform object fields', () => {
   let schema: GraphQLSchema;
 
-  before(() => {
+  beforeAll(() => {
     const ITEM = {
       id: '123',
       // eslint-disable-next-line camelcase
@@ -588,7 +587,7 @@ describe('transform object fields', () => {
     ]);
   });
 
-  it('renaming should work', async () => {
+  test('renaming should work', async () => {
     const result = await graphql(
       schema,
       `
@@ -611,7 +610,7 @@ describe('transform object fields', () => {
       camelCase: "I'm a camel!",
     };
 
-    expect(result).to.deep.equal({
+    expect(result).toEqual({
       data: {
         item: TRANSFORMED_ITEM,
         items: {
@@ -625,7 +624,7 @@ describe('transform object fields', () => {
     });
   });
 
-  it('filtering should work', async () => {
+  test('filtering should work', async () => {
     const result = await graphql(
       schema,
       `
@@ -659,14 +658,14 @@ describe('transform object fields', () => {
       expectedResult.errors[0].path = undefined;
     }
 
-    expect(result).to.deep.equal(expectedResult);
+    expect(result).toEqual(expectedResult);
   });
 });
 
 describe('filter and rename object fields', () => {
   let transformedPropertySchema: GraphQLSchema;
 
-  before(() => {
+  beforeAll(() => {
     transformedPropertySchema = filterSchema({
       schema: transformSchema(propertySchema, [
         new RenameTypes((name: string) => `New_${name}`),
@@ -685,10 +684,9 @@ describe('filter and rename object fields', () => {
     });
   });
 
-  it('should filter', () => {
+  test('should filter', () => {
     if (graphqlVersion() >= 15) {
-      expect(printSchema(transformedPropertySchema)).to
-        .equal(`type New_Property {
+      expect(printSchema(transformedPropertySchema)).toBe(`type New_Property {
   new_id: ID!
   new_name: String!
   new_location: New_Location
@@ -704,8 +702,7 @@ type Query {
 }
 `);
     } else {
-      expect(printSchema(transformedPropertySchema)).to
-        .equal(`type New_Location {
+      expect(printSchema(transformedPropertySchema)).toBe(`type New_Location {
   name: String!
 }
 
@@ -723,7 +720,7 @@ type Query {
     }
   });
 
-  it('should work', async () => {
+  test('should work', async () => {
     const result = await graphql(
       transformedPropertySchema,
       `
@@ -780,15 +777,15 @@ type Query {
       };
     }
 
-    expect(result).to.deep.equal(expectedResult);
-    expect(result.errors[0].extensions).to.deep.equal({
+    expect(result).toEqual(expectedResult);
+    expect(result.errors[0].extensions).toEqual({
       code: 'SOME_CUSTOM_CODE',
     });
   });
 });
 
 describe('rename nested object fields with interfaces', () => {
-  it('should work', () => {
+  test('should work', () => {
     const originalNode = {
       aList: [
         {
@@ -889,15 +886,15 @@ describe('rename nested object fields with interfaces', () => {
     const originalResult = graphqlSync(originalSchema, originalQuery);
     const transformedResult = graphqlSync(transformedSchema, transformedQuery);
 
-    expect(originalResult).to.deep.equal({ data: { node: originalNode } });
-    expect(transformedResult).to.deep.equal({
+    expect(originalResult).toEqual({ data: { node: originalNode } });
+    expect(transformedResult).toEqual({
       data: { node: transformedNode },
     });
   });
 });
 
 describe('WrapType transform', () => {
-  it('should work', async () => {
+  test('should work', async () => {
     const transformedPropertySchema = transformSchema(propertySchema, [
       new WrapType('Query', 'Namespace_Query', 'namespace'),
     ]);
@@ -951,15 +948,15 @@ describe('WrapType transform', () => {
       };
     }
 
-    expect(result).to.deep.equal(expectedResult);
-    expect(result.errors[0].extensions).to.deep.equal({
+    expect(result).toEqual(expectedResult);
+    expect(result.errors[0].extensions).toEqual({
       code: 'SOME_CUSTOM_CODE',
     });
   });
 });
 
 describe('schema transformation with extraction of nested fields', () => {
-  it('should work via ExtendSchema transform', async () => {
+  test('should work via ExtendSchema transform', async () => {
     const transformedPropertySchema = transformSchema(propertySchema, [
       new ExtendSchema({
         typeDefs: `
@@ -1031,13 +1028,13 @@ describe('schema transformation with extraction of nested fields', () => {
       };
     }
 
-    expect(result).to.deep.equal(expectedResult);
-    expect(result.errors[0].extensions).to.deep.equal({
+    expect(result).toEqual(expectedResult);
+    expect(result.errors[0].extensions).toEqual({
       code: 'SOME_CUSTOM_CODE',
     });
   });
 
-  it('should work via HoistField transform', async () => {
+  test('should work via HoistField transform', async () => {
     const transformedPropertySchema = transformSchema(propertySchema, [
       new HoistField('Property', ['location', 'name'], 'locationName'),
     ]);
@@ -1058,7 +1055,7 @@ describe('schema transformation with extraction of nested fields', () => {
       },
     );
 
-    expect(result).to.deep.equal({
+    expect(result).toEqual({
       data: {
         propertyById: {
           test: 'Helsinki',
@@ -1069,7 +1066,7 @@ describe('schema transformation with extraction of nested fields', () => {
 });
 
 describe('schema transformation with wrapping of object fields', () => {
-  it('should work via ExtendSchema transform', async () => {
+  test('should work via ExtendSchema transform', async () => {
     const transformedPropertySchema = transformSchema(propertySchema, [
       new ExtendSchema({
         typeDefs: `
@@ -1174,14 +1171,14 @@ describe('schema transformation with wrapping of object fields', () => {
       };
     }
 
-    expect(result).to.deep.equal(expectedResult);
-    expect(result.errors[0].extensions).to.deep.equal({
+    expect(result).toEqual(expectedResult);
+    expect(result.errors[0].extensions).toEqual({
       code: 'SOME_CUSTOM_CODE',
     });
   });
 
   describe('WrapFields transform', () => {
-    it('should work', async () => {
+    test('should work', async () => {
       const transformedPropertySchema = transformSchema(propertySchema, [
         new WrapFields(
           'Property',
@@ -1251,13 +1248,13 @@ describe('schema transformation with wrapping of object fields', () => {
         };
       }
 
-      expect(result).to.deep.equal(expectedResult);
-      expect(result.errors[0].extensions).to.deep.equal({
+      expect(result).toEqual(expectedResult);
+      expect(result.errors[0].extensions).toEqual({
         code: 'SOME_CUSTOM_CODE',
       });
     });
 
-    it('should work, even with multiple fields', async () => {
+    test('should work, even with multiple fields', async () => {
       const transformedPropertySchema = transformSchema(propertySchema, [
         new WrapFields(
           'Property',
@@ -1335,8 +1332,8 @@ describe('schema transformation with wrapping of object fields', () => {
         };
       }
 
-      expect(result).to.deep.equal(expectedResult);
-      expect(result.errors[0].extensions).to.deep.equal({
+      expect(result).toEqual(expectedResult);
+      expect(result.errors[0].extensions).toEqual({
         code: 'SOME_CUSTOM_CODE',
       });
     });
@@ -1346,7 +1343,7 @@ describe('schema transformation with wrapping of object fields', () => {
 describe('schema transformation with renaming of object fields', () => {
   let transformedPropertySchema: GraphQLSchema;
 
-  before(() => {
+  beforeAll(() => {
     transformedPropertySchema = transformSchema(propertySchema, [
       new ExtendSchema({
         typeDefs: `
@@ -1364,7 +1361,7 @@ describe('schema transformation with renaming of object fields', () => {
     ]);
   });
 
-  it('should work, even with aliases, and should preserve errors', async () => {
+  test('should work, even with aliases, and should preserve errors', async () => {
     const result = await graphql(
       transformedPropertySchema,
       `
@@ -1408,8 +1405,15 @@ describe('schema transformation with renaming of object fields', () => {
       };
     }
 
-    expect(result).to.deep.equal(expectedResult);
-    expect(result.errors[0].extensions).to.deep.equal({
+    expect(result.data).toEqual(expectedResult.data);
+    expect(result.errors).toHaveLength(1);
+    expect(result.errors[0].locations).toEqual(
+      expectedResult.errors[0].locations,
+    );
+    expect(result.errors[0].message).toEqual(expectedResult.errors[0].message);
+    expect(result.errors[0].path).toEqual(expectedResult.errors[0].path);
+    // expect(result).toEqual(expectedResult);
+    expect(result.errors[0].extensions).toEqual({
       code: 'SOME_CUSTOM_CODE',
     });
   });
@@ -1445,7 +1449,7 @@ describe('interface resolver inheritance', () => {
     },
   };
 
-  it('copies resolvers from interface', async () => {
+  test('copies resolvers from interface', async () => {
     const mergedSchema = mergeSchemas({
       schemas: [
         // pull in an executable schema just so mergeSchema doesn't complain
@@ -1458,7 +1462,7 @@ describe('interface resolver inheritance', () => {
     });
     const query = '{ user { id name } }';
     const response = await graphql(mergedSchema, query);
-    expect(response).to.deep.equal({
+    expect(response).toEqual({
       data: {
         user: {
           id: 'Node:1',
@@ -1468,7 +1472,7 @@ describe('interface resolver inheritance', () => {
     });
   });
 
-  it('does not copy resolvers from interface when flag is false', async () => {
+  test('does not copy resolvers from interface when flag is false', async () => {
     const mergedSchema = mergeSchemas({
       schemas: [
         // pull in an executable schema just so mergeSchema doesn't complain
@@ -1481,14 +1485,14 @@ describe('interface resolver inheritance', () => {
     });
     const query = '{ user { id name } }';
     const response = await graphql(mergedSchema, query);
-    expect(response.errors.length).to.equal(1);
-    expect(response.errors[0].message).to.equal(
+    expect(response.errors.length).toBe(1);
+    expect(response.errors[0].message).toBe(
       'Cannot return null for non-nullable field User.id.',
     );
-    expect(response.errors[0].path).to.deep.equal(['user', 'id']);
+    expect(response.errors[0].path).toEqual(['user', 'id']);
   });
 
-  it('does not copy resolvers from interface when flag is not provided', async () => {
+  test('does not copy resolvers from interface when flag is not provided', async () => {
     const mergedSchema = mergeSchemas({
       schemas: [
         // pull in an executable schema just so mergeSchema doesn't complain
@@ -1500,16 +1504,16 @@ describe('interface resolver inheritance', () => {
     });
     const query = '{ user { id name } }';
     const response = await graphql(mergedSchema, query);
-    expect(response.errors.length).to.equal(1);
-    expect(response.errors[0].message).to.equal(
+    expect(response.errors.length).toBe(1);
+    expect(response.errors[0].message).toBe(
       'Cannot return null for non-nullable field User.id.',
     );
-    expect(response.errors[0].path).to.deep.equal(['user', 'id']);
+    expect(response.errors[0].path).toEqual(['user', 'id']);
   });
 });
 
 describe('mergeSchemas', () => {
-  it('can merge null root fields', async () => {
+  test('can merge null root fields', async () => {
     const schema = makeExecutableSchema({
       typeDefs: `
         type Query {
@@ -1531,11 +1535,11 @@ describe('mergeSchemas', () => {
 
     const query = '{ test { field } }';
     const response = await graphql(mergedSchema, query);
-    expect(response.data.test).to.equal(null);
-    expect(response.errors).to.equal(undefined);
+    expect(response.data.test).toBe(null);
+    expect(response.errors).toBeUndefined();
   });
 
-  it('can merge default input types', async () => {
+  test('can merge default input types', async () => {
     const schema = makeExecutableSchema({
       typeDefs: `
         input InputWithDefault {
@@ -1559,7 +1563,7 @@ describe('mergeSchemas', () => {
     const response = await graphql(mergedSchema, query);
 
     if (graphqlVersion() >= 15) {
-      expect(printSchema(schema)).to.equal(`input InputWithDefault {
+      expect(printSchema(schema)).toBe(`input InputWithDefault {
   field: String = "test"
 }
 
@@ -1568,12 +1572,12 @@ type Query {
 }
 `);
     } else {
-      expect(printSchema(schema)).to.equal(printSchema(mergedSchema));
+      expect(printSchema(schema)).toBe(printSchema(mergedSchema));
     }
-    expect(response.data?.getInput).to.equal('test');
+    expect(response.data?.getInput).toBe('test');
   });
 
-  it('can override scalars with new internal values', async () => {
+  test('can override scalars with new internal values', async () => {
     const schema = makeExecutableSchema({
       typeDefs: `
         scalar TestScalar
@@ -1610,17 +1614,17 @@ type Query {
     const query = '{ getTestScalar }';
     const response = await graphql(mergedSchema, query);
 
-    expect(response.data?.getTestScalar).to.equal('test');
+    expect(response.data?.getTestScalar).toBe('test');
   });
 
-  it('can override scalars with new internal values when using default input types', async () => {
+  test('can override scalars with new internal values when using default input types', async () => {
     const schema = makeExecutableSchema({
       typeDefs: `
-        scalar TestScalar
-        type Query {
-          getTestScalar(input: TestScalar = "test"): TestScalar
-        }
-      `,
+          scalar TestScalar
+          type Query {
+            getTestScalar(input: TestScalar = "test"): TestScalar
+          }
+        `,
       resolvers: {
         TestScalar: new GraphQLScalarType({
           name: 'TestScalar',
@@ -1650,10 +1654,10 @@ type Query {
     const query = '{ getTestScalar }';
     const response = await graphql(mergedSchema, query);
 
-    expect(response.data?.getTestScalar).to.equal('test');
+    expect(response.data?.getTestScalar).toBe('test');
   });
 
-  it('can use @include directives', async () => {
+  test('can use @include directives', async () => {
     const schema = makeExecutableSchema({
       typeDefs: `
         type WrappingType {
@@ -1700,10 +1704,10 @@ type Query {
       }
     `;
     const response = await graphql(mergedSchema, query);
-    expect(response.data?.get2.subfield).to.equal('test');
+    expect(response.data?.get2.subfield).toBe('test');
   });
 
-  it('can use functions in subfields', async () => {
+  test('can use functions in subfields', async () => {
     const schema = makeExecutableSchema({
       typeDefs: `
         type WrappingObject {
@@ -1728,7 +1732,7 @@ type Query {
 
     const query = '{ wrappingObject { functionField } }';
     const response = await graphql(mergedSchema, query);
-    expect(response.data?.wrappingObject.functionField).to.equal(8);
+    expect(response.data?.wrappingObject.functionField).toBe(8);
   });
 });
 
@@ -1786,36 +1790,36 @@ describe('onTypeConflict', () => {
     });
   });
 
-  it('by default takes last type', async () => {
+  test('by default takes last type', async () => {
     const mergedSchema = mergeSchemas({
       schemas: [schema1, schema2],
     });
     const result1 = await graphql(mergedSchema, '{ test2 { fieldC } }');
-    expect(result1.data?.test2.fieldC).to.equal('C');
+    expect(result1.data?.test2.fieldC).toBe('C');
     const result2 = await graphql(mergedSchema, '{ test2 { fieldB } }');
-    expect(result2.data).to.equal(undefined);
+    expect(result2.data).toBeUndefined();
   });
 
-  it('can use onTypeConflict to select last type', async () => {
+  test('can use onTypeConflict to select last type', async () => {
     const mergedSchema = mergeSchemas({
       schemas: [schema1, schema2],
       onTypeConflict: (_left, right) => right,
     });
     const result1 = await graphql(mergedSchema, '{ test2 { fieldC } }');
-    expect(result1.data?.test2.fieldC).to.equal('C');
+    expect(result1.data?.test2.fieldC).toBe('C');
     const result2 = await graphql(mergedSchema, '{ test2 { fieldB } }');
-    expect(result2.data).to.equal(undefined);
+    expect(result2.data).toBeUndefined();
   });
 
-  it('can use onTypeConflict to select first type', async () => {
+  test('can use onTypeConflict to select first type', async () => {
     const mergedSchema = mergeSchemas({
       schemas: [schema1, schema2],
       onTypeConflict: (left) => left,
     });
     const result1 = await graphql(mergedSchema, '{ test1 { fieldB } }');
-    expect(result1.data?.test1.fieldB).to.equal('B');
+    expect(result1.data?.test1.fieldB).toBe('B');
     const result2 = await graphql(mergedSchema, '{ test1 { fieldC } }');
-    expect(result2.data).to.equal(undefined);
+    expect(result2.data).toBeUndefined();
   });
 });
 
@@ -1883,7 +1887,7 @@ describe('mergeTypes', () => {
     });
   });
 
-  it('can merge types', async () => {
+  test('can merge types', async () => {
     const subschemaConfig1: SubschemaConfig = {
       schema: schema1,
       merge: {
@@ -1943,7 +1947,7 @@ describe('mergeTypes', () => {
         }
       `,
     );
-    expect(result1).to.deep.equal({
+    expect(result1).toEqual({
       data: {
         rootField1: {
           test: {
