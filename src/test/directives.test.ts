@@ -1060,11 +1060,11 @@ describe('@directives', () => {
           name: `LengthAtMost${maxLength.toString()}`,
 
           serialize(value: string) {
-            const newValue = type.serialize(value);
+            const newValue: string = type.serialize(value);
             expect(typeof newValue.length).toBe('number');
             if (newValue.length > maxLength) {
               throw new Error(
-                `expected ${newValue.length} to be at most ${maxLength}`,
+                `expected ${newValue.length.toString(10)} to be at most ${maxLength.toString(10)}`,
               );
             }
             return newValue;
