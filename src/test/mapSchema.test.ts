@@ -1,4 +1,3 @@
-import { expect } from 'chai';
 import { GraphQLObjectType, GraphQLSchema, graphqlSync } from 'graphql';
 
 import { makeExecutableSchema, mapSchema } from '../index';
@@ -6,7 +5,7 @@ import { MapperKind } from '../Interfaces';
 import { toConfig } from '../polyfills/index';
 
 describe('mapSchema', () => {
-  it('does not throw', () => {
+  test('does not throw', () => {
     const schema = makeExecutableSchema({
       typeDefs: `
         type Query {
@@ -16,10 +15,10 @@ describe('mapSchema', () => {
     });
 
     const newSchema = mapSchema(schema, {});
-    expect(newSchema).to.be.instanceOf(GraphQLSchema);
+    expect(newSchema).toBeInstanceOf(GraphQLSchema);
   });
 
-  it('can add a resolver', () => {
+  test('can add a resolver', () => {
     const schema = makeExecutableSchema({
       typeDefs: `
         type Query {
@@ -36,13 +35,13 @@ describe('mapSchema', () => {
       },
     });
 
-    expect(newSchema).to.be.instanceOf(GraphQLSchema);
+    expect(newSchema).toBeInstanceOf(GraphQLSchema);
 
     const result = graphqlSync(newSchema, '{ version }');
-    expect(result.data.version).to.equal(1);
+    expect(result.data.version).toBe(1);
   });
 
-  it('can change the root query name', () => {
+  test('can change the root query name', () => {
     const schema = makeExecutableSchema({
       typeDefs: `
         type Query {
@@ -59,7 +58,7 @@ describe('mapSchema', () => {
       },
     });
 
-    expect(newSchema).to.be.instanceOf(GraphQLSchema);
-    expect(newSchema.getQueryType().name).to.equal('RootQuery');
+    expect(newSchema).toBeInstanceOf(GraphQLSchema);
+    expect(newSchema.getQueryType().name).toBe('RootQuery');
   });
 });

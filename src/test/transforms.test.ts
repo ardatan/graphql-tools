@@ -1,4 +1,3 @@
-import { expect } from 'chai';
 import {
   GraphQLSchema,
   GraphQLNamedType,
@@ -31,7 +30,7 @@ import {
 } from '../utils/index';
 import { addMocksToSchema } from '../mock/index';
 
-import { propertySchema, bookingSchema } from './testingSchemas';
+import { propertySchema, bookingSchema } from './fixtures/schemas';
 
 describe('transforms', () => {
   describe('base transform function', () => {
@@ -66,7 +65,7 @@ describe('transforms', () => {
       },
     });
 
-    it('should work', async () => {
+    test('should work', async () => {
       const schema = transformSchema(scalarSchema, []);
       const result = await graphql(
         schema,
@@ -84,7 +83,7 @@ describe('transforms', () => {
         },
       );
 
-      expect(result).to.deep.equal({
+      expect(result).toEqual({
         data: {
           testingScalar: {
             value: 'test',
@@ -93,7 +92,7 @@ describe('transforms', () => {
       });
     });
 
-    it('should work when specified as a schema configuration object', async () => {
+    test('should work when specified as a schema configuration object', async () => {
       const schema = transformSchema(
         { schema: scalarSchema, transforms: [] },
         [],
@@ -114,7 +113,7 @@ describe('transforms', () => {
         },
       );
 
-      expect(result).to.deep.equal({
+      expect(result).toEqual({
         data: {
           testingScalar: {
             value: 'test',
@@ -126,7 +125,7 @@ describe('transforms', () => {
 
   describe('rename type', () => {
     let schema: GraphQLSchema;
-    before(() => {
+    beforeAll(() => {
       const transforms = [
         new RenameTypes(
           (name: string) =>
@@ -143,7 +142,7 @@ describe('transforms', () => {
       ];
       schema = transformSchema(propertySchema, transforms);
     });
-    it('should work', async () => {
+    test('should work', async () => {
       const result = await graphql(
         schema,
         `
@@ -171,7 +170,7 @@ describe('transforms', () => {
         },
       );
 
-      expect(result).to.deep.equal({
+      expect(result).toEqual({
         data: {
           dateTimeTest: '1987-09-25T12:00:00',
           defaultInputTest: 'bar',
@@ -187,7 +186,7 @@ describe('transforms', () => {
   });
 
   describe('rename root type', () => {
-    it('should work', async () => {
+    test('should work', async () => {
       const subschema = makeExecutableSchema({
         typeDefs: `
           schema {
@@ -228,7 +227,7 @@ describe('transforms', () => {
         `,
       );
 
-      expect(result).to.deep.equal({
+      expect(result).toEqual({
         data: {
           doSomething: {
             query: {
@@ -239,7 +238,7 @@ describe('transforms', () => {
       });
     });
 
-    it('works with mergeSchemas', async () => {
+    test('works with mergeSchemas', async () => {
       const schemaWithCustomRootTypeNames = makeExecutableSchema({
         typeDefs: `
           schema {
@@ -309,7 +308,7 @@ describe('transforms', () => {
         `,
       );
 
-      expect(result).to.deep.equal({
+      expect(result).toEqual({
         data: {
           doSomething: {
             query: {
@@ -324,14 +323,14 @@ describe('transforms', () => {
 
   describe('namespace', () => {
     let schema: GraphQLSchema;
-    before(() => {
+    beforeAll(() => {
       const transforms = [
         new RenameTypes((name: string) => `_${name}`),
         new RenameTypes((name: string) => `Property${name}`),
       ];
       schema = transformSchema(propertySchema, transforms);
     });
-    it('should work', async () => {
+    test('should work', async () => {
       const result = await graphql(
         schema,
         `
@@ -363,7 +362,7 @@ describe('transforms', () => {
         },
       );
 
-      expect(result).to.deep.equal({
+      expect(result).toEqual({
         data: {
           dateTimeTest: '1987-09-25T12:00:00',
           defaultInputTest: 'bar',
@@ -386,11 +385,11 @@ describe('transforms', () => {
 
   describe('filter to schema', () => {
     let filter: FilterToSchema;
-    before(() => {
+    beforeAll(() => {
       filter = new FilterToSchema(bookingSchema);
     });
 
-    it('should remove empty selection sets on objects', () => {
+    test('should remove empty selection sets on objects', () => {
       const query = parse(`
       query customerQuery($id: ID!) {
         customerById(id: $id) {
@@ -417,10 +416,10 @@ describe('transforms', () => {
         }
       }
       `);
-      expect(print(filteredQuery.document)).to.equal(print(expected));
+      expect(print(filteredQuery.document)).toBe(print(expected));
     });
 
-    it('should also remove variables when removing empty selection sets', () => {
+    test('should also remove variables when removing empty selection sets', () => {
       const query = parse(`
       query customerQuery($id: ID!, $limit: Int) {
         customerById(id: $id) {
@@ -448,21 +447,21 @@ describe('transforms', () => {
         }
       }
       `);
-      expect(print(filteredQuery.document)).to.equal(print(expected));
+      expect(print(filteredQuery.document)).toBe(print(expected));
     });
 
-    it('should remove empty selection sets on wrapped objects (non-nullable/lists)', () => {
+    test('should remove empty selection sets on wrapped objects (non-nullable/lists)', () => {
       const query = parse(`
-      query bookingQuery($id: ID!) {
-        bookingById(id: $id) {
-          id
-          propertyId
-          customer {
-            favoriteFood
+        query bookingQuery($id: ID!) {
+          bookingById(id: $id) {
+            id
+            propertyId
+            customer {
+              favoriteFood
+            }
           }
         }
-      }
-      `);
+        `);
       const filteredQuery = filter.transformRequest({
         document: query,
         variables: {
@@ -471,20 +470,20 @@ describe('transforms', () => {
       });
 
       const expected = parse(`
-      query bookingQuery($id: ID!) {
-        bookingById(id: $id) {
-          id
-          propertyId
+        query bookingQuery($id: ID!) {
+          bookingById(id: $id) {
+            id
+            propertyId
+          }
         }
-      }
-      `);
-      expect(print(filteredQuery.document)).to.equal(print(expected));
+        `);
+      expect(print(filteredQuery.document)).toBe(print(expected));
     });
   });
 
   describe('filter type', () => {
     let schema: GraphQLSchema;
-    before(() => {
+    beforeAll(() => {
       const typeNames = ['ID', 'String', 'DateTime', 'Query', 'Booking'];
       const transforms = [
         new FilterTypes(
@@ -494,7 +493,7 @@ describe('transforms', () => {
       schema = transformSchema(bookingSchema, transforms);
     });
 
-    it('should work normally', async () => {
+    test('should work normally', async () => {
       const result = await graphql(
         schema,
         `
@@ -509,7 +508,7 @@ describe('transforms', () => {
         `,
       );
 
-      expect(result).to.deep.equal({
+      expect(result).toEqual({
         data: {
           bookingById: {
             endTime: '2016-06-03',
@@ -521,7 +520,7 @@ describe('transforms', () => {
       });
     });
 
-    it('should error on removed types', async () => {
+    test('should error on removed types', async () => {
       const result = await graphql(
         schema,
         `
@@ -538,9 +537,9 @@ describe('transforms', () => {
           }
         `,
       );
-      expect(result.errors).to.not.equal(undefined);
-      expect(result.errors.length).to.equal(1);
-      expect(result.errors[0].message).to.equal(
+      expect(result.errors).toBeDefined();
+      expect(result.errors.length).toBe(1);
+      expect(result.errors[0].message).toBe(
         'Cannot query field "customer" on type "Booking".',
       );
     });
@@ -550,7 +549,7 @@ describe('transforms', () => {
     let data: any;
     let subschema: GraphQLSchema;
     let schema: GraphQLSchema;
-    before(() => {
+    beforeAll(() => {
       data = {
         u1: {
           id: 'u1',
@@ -736,7 +735,7 @@ describe('transforms', () => {
       });
     });
 
-    it('wrapping delegation', async () => {
+    test('wrapping delegation', async () => {
       const result = await graphql(
         schema,
         `
@@ -749,7 +748,7 @@ describe('transforms', () => {
         `,
       );
 
-      expect(result).to.deep.equal({
+      expect(result).toEqual({
         data: {
           addressByUser: {
             streetAddress: 'Windy Shore 21 A 7',
@@ -759,7 +758,7 @@ describe('transforms', () => {
       });
     });
 
-    it('extracting delegation', async () => {
+    test('extracting delegation', async () => {
       const result = await graphql(
         schema,
         `
@@ -795,7 +794,7 @@ describe('transforms', () => {
           },
         },
       );
-      expect(result).to.deep.equal({
+      expect(result).toEqual({
         data: {
           setUserAndAddress: {
             username: 'new-username',
@@ -812,7 +811,7 @@ describe('transforms', () => {
     let data: any;
     let subschema: GraphQLSchema;
     let schema: GraphQLSchema;
-    before(() => {
+    beforeAll(() => {
       data = {
         u1: {
           id: 'user1',
@@ -919,7 +918,7 @@ describe('transforms', () => {
       });
     });
 
-    it('wrapping delegation, returning selectionSet', async () => {
+    test('wrapping delegation, returning selectionSet', async () => {
       const result = await graphql(
         schema,
         `
@@ -932,7 +931,7 @@ describe('transforms', () => {
         `,
       );
 
-      expect(result).to.deep.equal({
+      expect(result).toEqual({
         data: {
           addressByUser: {
             streetAddress: 'Windy Shore 21 A 7',
@@ -947,7 +946,7 @@ describe('transforms', () => {
     let data: any;
     let subschema: GraphQLSchema;
     let schema: GraphQLSchema;
-    before(() => {
+    beforeAll(() => {
       data = {
         u1: {
           id: 'u1',
@@ -1089,7 +1088,7 @@ describe('transforms', () => {
       });
     });
 
-    it('wrapping delegation', async () => {
+    test('wrapping delegation', async () => {
       const result = await graphql(
         schema,
         `
@@ -1102,7 +1101,7 @@ describe('transforms', () => {
         `,
       );
 
-      expect(result).to.deep.equal({
+      expect(result).toEqual({
         data: {
           addressByUser: {
             streetAddress: 'Windy Shore 21 A 7',
@@ -1112,7 +1111,7 @@ describe('transforms', () => {
       });
     });
 
-    it('preserves errors from underlying fields', async () => {
+    test('preserves errors from underlying fields', async () => {
       const result = await graphql(
         schema,
         `
@@ -1129,7 +1128,7 @@ describe('transforms', () => {
         defaultMergedResolver,
       );
 
-      expect(result).to.deep.equal({
+      expect(result).toEqual({
         data: {
           addressByUser: {
             errorTest: null,
@@ -1150,7 +1149,7 @@ describe('transforms', () => {
       });
     });
 
-    it('preserves errors from the wrapping field', async () => {
+    test('preserves errors from the wrapping field', async () => {
       const result = await graphql(
         schema,
         `
@@ -1167,7 +1166,7 @@ describe('transforms', () => {
         defaultMergedResolver,
       );
 
-      expect(result).to.deep.equal({
+      expect(result).toEqual({
         data: {
           errorTest: null,
         },
@@ -1186,7 +1185,7 @@ describe('transforms', () => {
     let data: any;
     let schema: GraphQLSchema;
     let subschema: GraphQLSchema;
-    before(() => {
+    beforeAll(() => {
       data = {
         u1: {
           id: 'u1',
@@ -1262,7 +1261,7 @@ describe('transforms', () => {
         },
       });
     });
-    it('should work', async () => {
+    test('should work', async () => {
       const result = await graphql(
         schema,
         `
@@ -1275,7 +1274,7 @@ describe('transforms', () => {
         `,
       );
 
-      expect(result).to.deep.equal({
+      expect(result).toEqual({
         data: {
           userById: {
             id: 'u1',
@@ -1291,7 +1290,7 @@ describe('replaces field with processed fragment node', () => {
   let data: any;
   let schema: GraphQLSchema;
   let subschema: GraphQLSchema;
-  before(() => {
+  beforeAll(() => {
     data = {
       u1: {
         id: 'u1',
@@ -1369,7 +1368,7 @@ describe('replaces field with processed fragment node', () => {
       },
     });
   });
-  it('should work', async () => {
+  test('should work', async () => {
     const result = await graphql(
       schema,
       `
@@ -1382,7 +1381,7 @@ describe('replaces field with processed fragment node', () => {
       `,
     );
 
-    expect(result).to.deep.equal({
+    expect(result).toEqual({
       data: {
         userById: {
           id: 'u1',

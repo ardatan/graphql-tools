@@ -1,4 +1,3 @@
-import { expect } from 'chai';
 import {
   graphql,
   GraphQLResolveInfo,
@@ -89,27 +88,29 @@ describe('Mock', () => {
     },
   };
 
-  it('throws an error if you forget to pass schema', () => {
-    expect(() => addMocksToSchema({})).to.throw('Must provide schema to mock');
+  test('throws an error if you forget to pass schema', () => {
+    expect(() => addMocksToSchema({})).toThrowError(
+      'Must provide schema to mock',
+    );
   });
 
-  it('throws an error if the property "schema" on the first argument is not of type GraphQLSchema', () => {
+  test('throws an error if the property "schema" on the first argument is not of type GraphQLSchema', () => {
     expect(() =>
       addMocksToSchema({ schema: ({} as unknown) as GraphQLSchema }),
-    ).to.throw('Value at "schema" must be of type GraphQLSchema');
+    ).toThrowError('Value at "schema" must be of type GraphQLSchema');
   });
 
-  it('throws an error if second argument is not a Map', () => {
+  test('throws an error if second argument is not a Map', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     expect(() =>
       addMocksToSchema({
         schema: jsSchema,
         mocks: (['a'] as unknown) as IMocks,
       }),
-    ).to.throw('mocks must be of type Object');
+    ).toThrowError('mocks must be of type Object');
   });
 
-  it('throws an error if mockFunctionMap contains a non-function thingy', () => {
+  test('throws an error if mockFunctionMap contains a non-function thingy', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = { Int: 55 };
     expect(() =>
@@ -117,10 +118,10 @@ describe('Mock', () => {
         schema: jsSchema,
         mocks: (mockMap as unknown) as IMocks,
       }),
-    ).to.throw('mockFunctionMap[Int] must be a function');
+    ).toThrowError('mockFunctionMap[Int] must be a function');
   });
 
-  it('mocks the default types for you', () => {
+  test('mocks the default types for you', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {};
     addMocksToSchema({ schema: jsSchema, mocks: mockMap });
@@ -132,15 +133,17 @@ describe('Mock', () => {
       returnID
     }`;
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data['returnInt']).to.be.within(-1000, 1000);
-      expect(res.data['returnFloat']).to.be.within(-1000, 1000);
-      expect(res.data['returnBoolean']).to.be.a('boolean');
-      expect(res.data['returnString']).to.be.a('string');
-      expect(res.data['returnID']).to.be.a('string');
+      expect(res.data['returnInt']).toBeGreaterThanOrEqual(-1000);
+      expect(res.data['returnInt']).toBeLessThanOrEqual(1000);
+      expect(res.data['returnFloat']).toBeGreaterThanOrEqual(-1000);
+      expect(res.data['returnFloat']).toBeLessThanOrEqual(1000);
+      expect(typeof res.data['returnBoolean']).toBe('boolean');
+      expect(typeof res.data['returnString']).toBe('string');
+      expect(typeof res.data['returnID']).toBe('string');
     });
   });
 
-  it('lets you use mockServer for convenience', () => {
+  test('lets you use mockServer for convenience', () => {
     const testQuery = `{
       returnInt
       returnFloat
@@ -166,19 +169,20 @@ describe('Mock', () => {
     return mockServer(shorthand, mockMap)
       .query(testQuery)
       .then((res: any) => {
-        expect(res.data.returnInt).to.equal(12345);
-        expect(res.data.returnFloat).to.be.a('number').within(-1000, 1000);
-        expect(res.data.returnBoolean).to.be.a('boolean');
-        expect(res.data.returnString).to.be.a('string');
-        expect(res.data.returnID).to.be.a('string');
+        expect(res.data.returnInt).toBe(12345);
+        expect(res.data.returnFloat).toBeGreaterThanOrEqual(-1000);
+        expect(res.data.returnFloat).toBeLessThanOrEqual(1000);
+        expect(typeof res.data.returnBoolean).toBe('boolean');
+        expect(typeof res.data.returnString).toBe('string');
+        expect(typeof res.data.returnID).toBe('string');
         // tests that resolveType is correctly set for unions and interfaces
         // and that the correct mock function is used
-        expect(res.data.returnBirdsAndBees[0].returnInt).to.equal(54321);
-        expect(res.data.returnBirdsAndBees[1].returnInt).to.equal(54321);
+        expect(res.data.returnBirdsAndBees[0].returnInt).toBe(54321);
+        expect(res.data.returnBirdsAndBees[1].returnInt).toBe(54321);
       });
   });
 
-  it('mockServer is able to preserveResolvers of a prebuilt schema', () => {
+  test('mockServer is able to preserveResolvers of a prebuilt schema', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const resolvers = {
       RootQuery: {
@@ -206,16 +210,16 @@ describe('Mock', () => {
     return mockServer(jsSchema, mockMap, true)
       .query(testQuery)
       .then((res: any) => {
-        expect(res.data.returnInt).to.equal(12345);
-        expect(res.data.returnString).to.equal('someString');
+        expect(res.data.returnInt).toBe(12345);
+        expect(res.data.returnString).toBe('someString');
         // tests that resolveType is correctly set for unions and interfaces
         // and that the correct mock function is used
-        expect(res.data.returnBirdsAndBees[0].returnInt).to.equal(54321);
-        expect(res.data.returnBirdsAndBees[1].returnInt).to.equal(54321);
+        expect(res.data.returnBirdsAndBees[0].returnInt).toBe(54321);
+        expect(res.data.returnBirdsAndBees[1].returnInt).toBe(54321);
       });
   });
 
-  it('lets you use mockServer with prebuilt schema', () => {
+  test('lets you use mockServer with prebuilt schema', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const testQuery = `{
       returnInt
@@ -242,19 +246,20 @@ describe('Mock', () => {
     return mockServer(jsSchema, mockMap)
       .query(testQuery)
       .then((res: any) => {
-        expect(res.data.returnInt).to.equal(12345);
-        expect(res.data.returnFloat).to.be.a('number').within(-1000, 1000);
-        expect(res.data.returnBoolean).to.be.a('boolean');
-        expect(res.data.returnString).to.be.a('string');
-        expect(res.data.returnID).to.be.a('string');
+        expect(res.data.returnInt).toBe(12345);
+        expect(res.data.returnFloat).toBeGreaterThanOrEqual(-1000);
+        expect(res.data.returnFloat).toBeLessThanOrEqual(1000);
+        expect(typeof res.data.returnBoolean).toBe('boolean');
+        expect(typeof res.data.returnString).toBe('string');
+        expect(typeof res.data.returnID).toBe('string');
         // tests that resolveType is correctly set for unions and interfaces
         // and that the correct mock function is used
-        expect(res.data.returnBirdsAndBees[0].returnInt).to.equal(54321);
-        expect(res.data.returnBirdsAndBees[1].returnInt).to.equal(54321);
+        expect(res.data.returnBirdsAndBees[0].returnInt).toBe(54321);
+        expect(res.data.returnBirdsAndBees[1].returnInt).toBe(54321);
       });
   });
 
-  it('does not mask resolveType functions if you tell it not to', () => {
+  test('does not mask resolveType functions if you tell it not to', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     let spy = 0;
     const resolvers = {
@@ -285,12 +290,12 @@ describe('Mock', () => {
     }`;
     return graphql(jsSchema, testQuery).then((_res) => {
       // the resolveType has been called twice
-      expect(spy).to.equal(2);
+      expect(spy).toBe(2);
     });
   });
 
   // TODO test mockServer with precompiled schema
-  it('can mock Enum', () => {
+  test('can mock Enum', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {};
     addMocksToSchema({ schema: jsSchema, mocks: mockMap });
@@ -298,11 +303,11 @@ describe('Mock', () => {
       returnEnum
     }`;
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data['returnEnum']).to.be.oneOf(['A', 'B', 'C']);
+      expect(['A', 'B', 'C']).toContain(res.data['returnEnum']);
     });
   });
 
-  it('can mock Unions', () => {
+  test('can mock Unions', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     addResolversToSchema(jsSchema, resolveFunctions);
     const mockMap = {
@@ -328,18 +333,22 @@ describe('Mock', () => {
     }`;
     return graphql(jsSchema, testQuery).then((res) => {
       // XXX this test is expected to fail once every 2^40 times ;-)
-      expect(res.data['returnBirdsAndBees']).to.deep.include({
-        returnInt: 10,
-        returnString: 'aha',
-      });
-      return expect(res.data['returnBirdsAndBees']).to.deep.include({
-        returnInt: 10,
-        returnEnum: 'A',
-      });
+      expect(res.data['returnBirdsAndBees']).toContainEqual(
+        expect.objectContaining({
+          returnInt: 10,
+          returnString: 'aha',
+        }),
+      );
+      return expect(res.data['returnBirdsAndBees']).toContainEqual(
+        expect.objectContaining({
+          returnInt: 10,
+          returnEnum: 'A',
+        }),
+      );
     });
   });
 
-  it('can mock Interfaces by default', () => {
+  test('can mock Interfaces by default', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     addResolversToSchema(jsSchema, resolveFunctions);
     const mockMap = {
@@ -368,18 +377,22 @@ describe('Mock', () => {
       }
     }`;
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data['returnFlying']).to.deep.include({
-        returnInt: 10,
-        returnString: 'aha',
-      });
-      return expect(res.data['returnFlying']).to.deep.include({
-        returnInt: 10,
-        returnEnum: 'A',
-      });
+      expect(res.data['returnFlying']).toContainEqual(
+        expect.objectContaining({
+          returnInt: 10,
+          returnString: 'aha',
+        }),
+      );
+      return expect(res.data['returnFlying']).toContainEqual(
+        expect.objectContaining({
+          returnInt: 10,
+          returnEnum: 'A',
+        }),
+      );
     });
   });
 
-  it('can support explicit Interface mock', () => {
+  test('can support explicit Interface mock', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     addResolversToSchema(jsSchema, resolveFunctions);
     let spy = 0;
@@ -415,15 +428,15 @@ describe('Mock', () => {
     }`;
 
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(spy).to.equal(1); // to make sure that Flying possible types are not randomly selected
-      expect(res.data['node']).to.include({
+      expect(spy).toBe(1); // to make sure that Flying possible types are not randomly selected
+      expect(res.data['node']).toMatchObject({
         id: 'bee:123456',
         returnInt: 200,
       });
     });
   });
 
-  it('can support explicit UnionType mock', () => {
+  test('can support explicit UnionType mock', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     addResolversToSchema(jsSchema, resolveFunctions);
     let spy = 0;
@@ -460,15 +473,15 @@ describe('Mock', () => {
       }`;
 
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(spy).to.equal(1);
-      expect(res.data['node2']).to.include({
+      expect(spy).toBe(1);
+      expect(res.data['node2']).toMatchObject({
         id: 'bee:123456',
         returnEnum: 'A',
       });
     });
   });
 
-  it('throws an error when __typename is not returned within an explicit interface mock', () => {
+  test('throws an error when __typename is not returned within an explicit interface mock', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     addResolversToSchema(jsSchema, resolveFunctions);
     const mockMap = {
@@ -484,18 +497,18 @@ describe('Mock', () => {
     };
     addMocksToSchema({ schema: jsSchema, mocks: mockMap });
     const testQuery = `{
-        node(id:"bee:123456"){
-          id,
-          returnInt
-        }
-      }`;
+          node(id:"bee:123456"){
+            id,
+            returnInt
+          }
+        }`;
     const expected = 'Please return a __typename in "Flying"';
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.errors[0].originalError.message).to.equal(expected);
+      expect(res.errors[0].originalError.message).toBe(expected);
     });
   });
 
-  it('throws an error in resolve if mock type is not defined', () => {
+  test('throws an error in resolve if mock type is not defined', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {};
     addMocksToSchema({ schema: jsSchema, mocks: mockMap });
@@ -504,11 +517,11 @@ describe('Mock', () => {
     }`;
     const expected = 'No mock defined for type "MissingMockType"';
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.errors[0].originalError.message).to.equal(expected);
+      expect(res.errors[0].originalError.message).toBe(expected);
     });
   });
 
-  it('throws an error in resolve if mock type is not defined and resolver failed', () => {
+  test('throws an error in resolve if mock type is not defined and resolver failed', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const resolvers = {
       MissingMockType: {
@@ -529,15 +542,15 @@ describe('Mock', () => {
       preserveResolvers: true,
     });
     const testQuery = `{
-      returnMockError
-    }`;
+        returnMockError
+      }`;
     const expected = 'No mock defined for type "MissingMockType"';
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.errors[0].originalError.message).to.equal(expected);
+      expect(res.errors[0].originalError.message).toBe(expected);
     });
   });
 
-  it('can preserve scalar resolvers', () => {
+  test('can preserve scalar resolvers', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const resolvers = {
       MissingMockType: {
@@ -564,12 +577,12 @@ describe('Mock', () => {
       returnMockError: '10-11-2012',
     };
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data).to.deep.equal(expected);
-      expect(res.errors).to.equal(undefined);
+      expect(res.data).toEqual(expected);
+      expect(res.errors).toBeUndefined();
     });
   });
 
-  it('can mock an Int', () => {
+  test('can mock an Int', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = { Int: () => 55 };
     addMocksToSchema({ schema: jsSchema, mocks: mockMap });
@@ -577,11 +590,11 @@ describe('Mock', () => {
       returnInt
     }`;
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data['returnInt']).to.equal(55);
+      expect(res.data['returnInt']).toBe(55);
     });
   });
 
-  it('can mock a Float', () => {
+  test('can mock a Float', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = { Float: () => 55.5 };
     addMocksToSchema({ schema: jsSchema, mocks: mockMap });
@@ -589,10 +602,10 @@ describe('Mock', () => {
       returnFloat
     }`;
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data['returnFloat']).to.equal(55.5);
+      expect(res.data['returnFloat']).toBe(55.5);
     });
   });
-  it('can mock a String', () => {
+  test('can mock a String', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = { String: () => 'a string' };
     addMocksToSchema({ schema: jsSchema, mocks: mockMap });
@@ -600,10 +613,10 @@ describe('Mock', () => {
       returnString
     }`;
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data['returnString']).to.equal('a string');
+      expect(res.data['returnString']).toBe('a string');
     });
   });
-  it('can mock a Boolean', () => {
+  test('can mock a Boolean', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = { Boolean: () => true };
     addMocksToSchema({ schema: jsSchema, mocks: mockMap });
@@ -611,10 +624,10 @@ describe('Mock', () => {
       returnBoolean
     }`;
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data['returnBoolean']).to.equal(true);
+      expect(res.data['returnBoolean']).toBe(true);
     });
   });
-  it('can mock an ID', () => {
+  test('can mock an ID', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = { ID: () => 'ea5bdc19' };
     addMocksToSchema({ schema: jsSchema, mocks: mockMap });
@@ -622,10 +635,10 @@ describe('Mock', () => {
       returnID
     }`;
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data['returnID']).to.equal('ea5bdc19');
+      expect(res.data['returnID']).toBe('ea5bdc19');
     });
   });
-  it('nullable type is nullable', () => {
+  test('nullable type is nullable', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = { String: (): null => null };
     addMocksToSchema({ schema: jsSchema, mocks: mockMap });
@@ -633,10 +646,10 @@ describe('Mock', () => {
       returnNullableString
     }`;
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data['returnNullableString']).to.equal(null);
+      expect(res.data['returnNullableString']).toBe(null);
     });
   });
-  it('can mock a nonNull type', () => {
+  test('can mock a nonNull type', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = { String: () => 'nonnull' };
     addMocksToSchema({ schema: jsSchema, mocks: mockMap });
@@ -644,10 +657,10 @@ describe('Mock', () => {
       returnNonNullString
     }`;
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data['returnNonNullString']).to.equal('nonnull');
+      expect(res.data['returnNonNullString']).toBe('nonnull');
     });
   });
-  it('nonNull type is not nullable', () => {
+  test('nonNull type is not nullable', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = { String: (): null => null };
     addMocksToSchema({ schema: jsSchema, mocks: mockMap });
@@ -655,11 +668,11 @@ describe('Mock', () => {
       returnNonNullString
     }`;
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data).to.equal(null);
-      expect(res.errors.length).to.equal(1);
+      expect(res.data).toBe(null);
+      expect(res.errors.length).toBe(1);
     });
   });
-  it('can mock object types', () => {
+  test('can mock object types', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {
       String: () => 'abc',
@@ -673,11 +686,11 @@ describe('Mock', () => {
       returnObject: { returnInt: 123, returnString: 'abc' },
     };
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data).to.deep.equal(expected);
+      expect(res.data).toEqual(expected);
     });
   });
 
-  it('can mock a list of ints', () => {
+  test('can mock a list of ints', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = { Int: () => 123 };
     addMocksToSchema({ schema: jsSchema, mocks: mockMap });
@@ -688,11 +701,11 @@ describe('Mock', () => {
       returnListOfInt: [123, 123],
     };
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data).to.deep.equal(expected);
+      expect(res.data).toEqual(expected);
     });
   });
 
-  it('can mock a list of lists of objects', () => {
+  test('can mock a list of lists of objects', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {
       String: () => 'a',
@@ -715,11 +728,11 @@ describe('Mock', () => {
       ],
     };
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data).to.deep.equal(expected);
+      expect(res.data).toEqual(expected);
     });
   });
 
-  it('does not mask resolvers if you tell it not to', () => {
+  test('does not mask resolvers if you tell it not to', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {
       RootQuery: () => ({
@@ -752,11 +765,11 @@ describe('Mock', () => {
       returnString: 'bar', // c) from resolvers, not masked by mock (and promise)
     };
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data).to.deep.equal(expected);
+      expect(res.data).toEqual(expected);
     });
   });
 
-  it('lets you mock non-leaf types conveniently', () => {
+  test('lets you mock non-leaf types conveniently', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {
       Bird: () => ({
@@ -781,11 +794,11 @@ describe('Mock', () => {
       returnInt: 15,
     };
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data).to.deep.equal(expected);
+      expect(res.data).toEqual(expected);
     });
   });
 
-  it('lets you mock and resolve non-leaf types concurrently', () => {
+  test('lets you mock and resolve non-leaf types concurrently', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const resolvers = {
       RootQuery: {
@@ -824,11 +837,11 @@ describe('Mock', () => {
       },
     };
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data).to.deep.equal(expected);
+      expect(res.data).toEqual(expected);
     });
   });
 
-  it('lets you mock and resolve non-leaf types concurrently, support promises', () => {
+  test('lets you mock and resolve non-leaf types concurrently, support promises', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const resolvers = {
       RootQuery: {
@@ -852,11 +865,11 @@ describe('Mock', () => {
       preserveResolvers: true,
     });
     const testQuery = `{
-      returnObject{
-        returnInt
-        returnString
-      }
-    }`;
+        returnObject{
+          returnInt
+          returnString
+        }
+      }`;
     const expected = {
       returnObject: {
         returnInt: 12, // from the resolver, see a)
@@ -864,11 +877,11 @@ describe('Mock', () => {
       },
     };
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data).to.deep.equal(expected);
+      expect(res.data).toEqual(expected);
     });
   });
 
-  it('lets you mock and resolve non-leaf types concurrently, support defineProperty', () => {
+  test('lets you mock and resolve non-leaf types concurrently, support defineProperty', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const objProxy = {};
     Object.defineProperty(
@@ -894,11 +907,11 @@ describe('Mock', () => {
       preserveResolvers: true,
     });
     const testQuery = `{
-      returnObject{
-        returnInt
-        returnString
-      }
-    }`;
+        returnObject{
+          returnInt
+          returnString
+        }
+      }`;
     const expected = {
       returnObject: {
         returnInt: 12, // from the resolver, see a)
@@ -906,11 +919,11 @@ describe('Mock', () => {
       },
     };
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data).to.deep.equal(expected);
+      expect(res.data).toEqual(expected);
     });
   });
 
-  it('let you mock with preserving resolvers, also when using logger', () => {
+  test('let you mock with preserving resolvers, also when using logger', () => {
     const resolvers = {
       RootQuery: {
         returnString: () => 'woot!?', // a) resolve of a string
@@ -949,11 +962,11 @@ describe('Mock', () => {
       returnString: 'woot!?', // from the mock, see a)
     };
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data).to.deep.equal(expected);
+      expect(res.data).toEqual(expected);
     });
   });
 
-  it('let you mock with preserving resolvers, also when using connectors', () => {
+  test('let you mock with preserving resolvers, also when using connectors', () => {
     const resolvers = {
       RootQuery: {
         returnString: () => 'woot!?', // a) resolve of a string
@@ -980,12 +993,12 @@ describe('Mock', () => {
       preserveResolvers: true,
     });
     const testQuery = `{
-      returnObject {
-        returnInt
-          returnString
-      }
-      returnString
-    }`;
+        returnObject {
+          returnInt
+            returnString
+        }
+        returnString
+      }`;
     const expected = {
       returnObject: {
         returnInt: 123, // from the mock, see b)
@@ -994,11 +1007,11 @@ describe('Mock', () => {
       returnString: 'woot!?', // from the mock, see a)
     };
     return graphql(jsSchema, testQuery, undefined, {}).then((res) => {
-      expect(res.data).to.deep.equal(expected);
+      expect(res.data).toEqual(expected);
     });
   });
 
-  it('let you mock with preserving resolvers, also when using both connectors and logger', () => {
+  test('let you mock with preserving resolvers, also when using both connectors and logger', () => {
     const resolvers = {
       RootQuery: {
         returnString: () => 'woot!?', // a) resolve of a string
@@ -1026,12 +1039,12 @@ describe('Mock', () => {
       preserveResolvers: true,
     });
     const testQuery = `{
-      returnObject {
-        returnInt
-          returnString
-      }
-      returnString
-    }`;
+        returnObject {
+          returnInt
+            returnString
+        }
+        returnString
+      }`;
     const expected = {
       returnObject: {
         returnInt: 123, // from the mock, see b)
@@ -1040,11 +1053,11 @@ describe('Mock', () => {
       returnString: 'woot!?', // from the mock, see a)
     };
     return graphql(jsSchema, testQuery, undefined, {}).then((res) => {
-      expect(res.data).to.deep.equal(expected);
+      expect(res.data).toEqual(expected);
     });
   });
 
-  it('let you resolve null with mocking and preserving resolvers', () => {
+  test('let you resolve null with mocking and preserving resolvers', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const resolvers = {
       RootQuery: {
@@ -1075,11 +1088,11 @@ describe('Mock', () => {
       returnString: null as string, // from the mock, see a)
     };
     return graphql(jsSchema, testQuery, undefined, {}).then((res) => {
-      expect(res.data).to.deep.equal(expected);
+      expect(res.data).toEqual(expected);
     });
   });
 
-  it('lets you mock root query fields', () => {
+  test('lets you mock root query fields', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {
       RootQuery: () => ({
@@ -1094,11 +1107,11 @@ describe('Mock', () => {
       returnStringArgument: 'adieu',
     };
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data).to.deep.equal(expected);
+      expect(res.data).toEqual(expected);
     });
   });
 
-  it('lets you mock root mutation fields', () => {
+  test('lets you mock root mutation fields', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {
       RootMutation: () => ({
@@ -1113,11 +1126,11 @@ describe('Mock', () => {
       returnStringArgument: 'adieu',
     };
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data).to.deep.equal(expected);
+      expect(res.data).toEqual(expected);
     });
   });
 
-  it('lets you mock a list of a certain length', () => {
+  test('lets you mock a list of a certain length', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {
       RootQuery: () => ({ returnListOfInt: () => new MockList(3) }),
@@ -1131,11 +1144,11 @@ describe('Mock', () => {
       returnListOfInt: [12, 12, 12],
     };
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data).to.deep.equal(expected);
+      expect(res.data).toEqual(expected);
     });
   });
 
-  it('lets you mock a list of a random length', () => {
+  test('lets you mock a list of a random length', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {
       RootQuery: () => ({ returnListOfInt: () => new MockList([10, 20]) }),
@@ -1146,12 +1159,13 @@ describe('Mock', () => {
       returnListOfInt
     }`;
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data['returnListOfInt']).to.have.length.within(10, 20);
-      expect(res.data['returnListOfInt'][0]).to.equal(12);
+      expect(res.data['returnListOfInt'].length).toBeGreaterThanOrEqual(10);
+      expect(res.data['returnListOfInt'].length).toBeLessThanOrEqual(20);
+      expect(res.data['returnListOfInt'][0]).toBe(12);
     });
   });
 
-  it('lets you mock a list of specific variable length', () => {
+  test('lets you mock a list of specific variable length', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {
       RootQuery: () => ({
@@ -1166,12 +1180,12 @@ describe('Mock', () => {
       l5: returnListOfIntArg(l: 5)
     }`;
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data['l3'].length).to.equal(3);
-      expect(res.data['l5'].length).to.equal(5);
+      expect(res.data['l3'].length).toBe(3);
+      expect(res.data['l5'].length).toBe(5);
     });
   });
 
-  it('lets you provide a function for your MockList', () => {
+  test('lets you provide a function for your MockList', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {
       RootQuery: () => ({
@@ -1187,18 +1201,20 @@ describe('Mock', () => {
       returnListOfInt: [33, 33],
     };
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data).to.deep.equal(expected);
+      expect(res.data).toEqual(expected);
     });
   });
 
-  it('throws an error if the second argument to MockList is not a function', () => {
+  test('throws an error if the second argument to MockList is not a function', () => {
     expect(
       () =>
         new MockList(5, ('abc' as unknown) as GraphQLFieldResolver<any, any>),
-    ).to.throw('Second argument to MockList must be a function or undefined');
+    ).toThrowError(
+      'Second argument to MockList must be a function or undefined',
+    );
   });
 
-  it('lets you nest MockList in MockList', () => {
+  test('lets you nest MockList in MockList', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {
       RootQuery: () => ({
@@ -1217,11 +1233,11 @@ describe('Mock', () => {
       ],
     };
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data).to.deep.equal(expected);
+      expect(res.data).toEqual(expected);
     });
   });
 
-  it('lets you use arguments in nested MockList', () => {
+  test('lets you use arguments in nested MockList', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {
       RootQuery: () => ({
@@ -1241,11 +1257,11 @@ describe('Mock', () => {
       returnListOfListOfIntArg: [[12], [12]],
     };
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data).to.deep.equal(expected);
+      expect(res.data).toEqual(expected);
     });
   });
 
-  it('works for a slightly more elaborate example', () => {
+  test('works for a slightly more elaborate example', () => {
     const short = `
       type Thread {
         id: ID!
@@ -1291,7 +1307,9 @@ describe('Mock', () => {
         posts: (_o: any, a: { [key: string]: any }) =>
           new MockList(
             ITEMS_PER_PAGE * a['num'],
-            (_oi: any, ai: { [key: string]: any }) => ({ id: ai['num'] }),
+            (_oi: any, ai: { [key: string]: any }) => ({
+              id: ai['num'],
+            }),
           ),
       }),
       Post: () => ({
@@ -1324,11 +1342,11 @@ describe('Mock', () => {
       },
     };
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data).to.deep.equal(expected);
+      expect(res.data).toEqual(expected);
     });
   });
 
-  it('works for resolvers returning javascript Dates', () => {
+  test('works for resolvers returning javascript Dates', () => {
     const typeDefs = `
       scalar Date
 
@@ -1391,11 +1409,11 @@ describe('Mock', () => {
       date3: '2016-05-04T00:00:00.000Z',
     };
     return graphql(schema, query).then((res) => {
-      expect(res.data).to.deep.equal(expected);
+      expect(res.data).toEqual(expected);
     });
   });
 
-  it('allows instanceof checks in __resolveType', () => {
+  test('allows instanceof checks in __resolveType', () => {
     class Account {
       public id: string;
       public username: string;
@@ -1470,7 +1488,7 @@ describe('Mock', () => {
       },
     };
     return graphql(schema, query).then((res) => {
-      expect(res).to.deep.equal(expected);
+      expect(res).toEqual(expected);
     });
   });
 

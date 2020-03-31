@@ -1,6 +1,5 @@
 import DataLoader from 'dataloader';
 import { graphql, GraphQLList } from 'graphql';
-import { expect } from 'chai';
 
 import { delegateToSchema } from '../delegate/index';
 import { makeExecutableSchema } from '../generate/index';
@@ -8,7 +7,7 @@ import { mergeSchemas } from '../stitch/index';
 import { IGraphQLToolsResolveInfo } from '../Interfaces';
 
 describe('dataloader', () => {
-  it('should work', async () => {
+  test('should work', async () => {
     const taskSchema = makeExecutableSchema({
       typeDefs: `
         type Task {
@@ -82,12 +81,12 @@ describe('dataloader', () => {
           returnType: new GraphQLList(keys[0].info.returnType),
         });
 
-        expect(users).to.deep.equal([
-          {
+        expect(users).toContainEqual(
+          expect.objectContaining({
             id: '1',
             email: '1@tasks.com',
-          },
-        ]);
+          }),
+        );
 
         return users;
       },
@@ -106,7 +105,7 @@ describe('dataloader', () => {
 
     const result = await graphql(schema, query, null, { usersLoader });
 
-    expect(result).to.deep.equal({
+    expect(result).toEqual({
       data: {
         task: {
           id: '1',

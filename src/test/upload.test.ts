@@ -2,7 +2,6 @@ import { Server } from 'http';
 import { AddressInfo } from 'net';
 import { Readable } from 'stream';
 
-import { expect } from 'chai';
 import express, { Express } from 'express';
 import graphqlHTTP from 'express-graphql';
 import { GraphQLUpload, graphqlUploadExpress } from 'graphql-upload';
@@ -56,7 +55,7 @@ function testGraphqlMultipartRequest(query: string, port: number) {
 }
 
 describe('graphql upload', () => {
-  it('should return a file after uploading one', async () => {
+  test('should return a file after uploading one', async () => {
     const remoteSchema = makeExecutableSchema({
       typeDefs: `
         scalar Upload
@@ -126,7 +125,7 @@ describe('graphql upload', () => {
     `;
     const res = await testGraphqlMultipartRequest(query, gatewayPort);
 
-    expect(await res.json()).to.deep.equal({
+    expect(await res.json()).toEqual({
       data: {
         upload: 'abc',
       },

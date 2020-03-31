@@ -1,4 +1,3 @@
-import { expect } from 'chai';
 import { forAwaitEach } from 'iterall';
 import {
   GraphQLSchema,
@@ -15,11 +14,11 @@ import {
   subscriptionPubSubTrigger,
   subscriptionPubSub,
   makeSchemaRemoteFromLink,
-} from '../test/testingSchemas';
+} from './fixtures/schemas';
 
 describe('remote queries', () => {
   let schema: GraphQLSchema;
-  before(async () => {
+  beforeAll(async () => {
     const remoteSubschemaConfig = await makeSchemaRemoteFromLink(
       propertySchema,
     );
@@ -29,7 +28,7 @@ describe('remote queries', () => {
     });
   });
 
-  it('should work', async () => {
+  test('should work', async () => {
     const query = `
       {
         interfaceTest(kind: ONE) {
@@ -56,13 +55,13 @@ describe('remote queries', () => {
     };
 
     const result = await graphql(schema, query);
-    expect(result).to.deep.equal(expected);
+    expect(result).toEqual(expected);
   });
 });
 
 describe('remote subscriptions', () => {
   let schema: GraphQLSchema;
-  before(async () => {
+  beforeAll(async () => {
     const remoteSubschemaConfig = await makeSchemaRemoteFromLink(
       subscriptionSchema,
     );
@@ -72,7 +71,7 @@ describe('remote subscriptions', () => {
     });
   });
 
-  it('should work', (done) => {
+  test('should work', (done) => {
     const mockNotification = {
       notifications: {
         text: 'Hello world',
@@ -93,8 +92,8 @@ describe('remote subscriptions', () => {
         forAwaitEach(
           results as AsyncIterable<ExecutionResult>,
           (result: ExecutionResult) => {
-            expect(result).to.have.property('data');
-            expect(result.data).to.deep.equal(mockNotification);
+            expect(result).toHaveProperty('data');
+            expect(result.data).toEqual(mockNotification);
             if (!notificationCnt++) {
               done();
             }
@@ -107,7 +106,7 @@ describe('remote subscriptions', () => {
       .catch(done);
   });
 
-  it('should work without triggering multiple times per notification', (done) => {
+  test('should work without triggering multiple times per notification', (done) => {
     const mockNotification = {
       notifications: {
         text: 'Hello world',
@@ -115,20 +114,20 @@ describe('remote subscriptions', () => {
     };
 
     const subscription = parse(`
-      subscription Subscription {
-        notifications {
-          text
+        subscription Subscription {
+          notifications {
+            text
+          }
         }
-      }
-    `);
+      `);
 
     let notificationCnt = 0;
     const sub1 = subscribe(schema, subscription).then((results) => {
       forAwaitEach(
         results as AsyncIterable<ExecutionResult>,
         (result: ExecutionResult) => {
-          expect(result).to.have.property('data');
-          expect(result.data).to.deep.equal(mockNotification);
+          expect(result).toHaveProperty('data');
+          expect(result.data).toEqual(mockNotification);
           notificationCnt++;
         },
       ).catch(done);
@@ -138,8 +137,8 @@ describe('remote subscriptions', () => {
       forAwaitEach(
         results as AsyncIterable<ExecutionResult>,
         (result: ExecutionResult) => {
-          expect(result).to.have.property('data');
-          expect(result.data).to.deep.equal(mockNotification);
+          expect(result).toHaveProperty('data');
+          expect(result.data).toEqual(mockNotification);
         },
       ).catch(done);
     });
@@ -154,7 +153,7 @@ describe('remote subscriptions', () => {
           .catch(done);
 
         setTimeout(() => {
-          expect(notificationCnt).to.eq(2);
+          expect(notificationCnt).toBe(2);
           done();
         }, 0);
       })
@@ -173,22 +172,22 @@ describe('respects buildSchema options', () => {
   scalar CustomScalar
 `;
 
-  it('without comment descriptions', () => {
+  test('without comment descriptions', () => {
     const remoteSchema = makeRemoteExecutableSchema({ schema });
 
     const customScalar = remoteSchema.getType('CustomScalar');
-    expect(customScalar.description).to.eq(undefined);
+    expect(customScalar.description).toBeUndefined();
   });
 
-  it('with comment descriptions', () => {
+  test('with comment descriptions', () => {
     const remoteSchema = makeRemoteExecutableSchema({
       schema,
       buildSchemaOptions: { commentDescriptions: true },
     });
 
     const field = remoteSchema.getQueryType().getFields()['custom'];
-    expect(field.description).to.eq('Field description');
+    expect(field.description).toBe('Field description');
     const customScalar = remoteSchema.getType('CustomScalar');
-    expect(customScalar.description).to.eq('Scalar description');
+    expect(customScalar.description).toBe('Scalar description');
   });
 });

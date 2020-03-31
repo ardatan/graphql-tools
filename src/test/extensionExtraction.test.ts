@@ -1,10 +1,9 @@
-import { expect } from 'chai';
 import { parse } from 'graphql';
 
 import { extractExtensionDefinitions } from '../generate/extensionDefinitions';
 
 describe('Extension extraction', () => {
-  it('extracts extended inputs', () => {
+  test('extracts extended inputs', () => {
     const typeDefs = `
       input Input {
         foo: String
@@ -18,13 +17,11 @@ describe('Extension extraction', () => {
     const astDocument = parse(typeDefs);
     const extensionAst = extractExtensionDefinitions(astDocument);
 
-    expect(extensionAst.definitions).to.have.length(1);
-    expect(extensionAst.definitions[0].kind).to.equal(
-      'InputObjectTypeExtension',
-    );
+    expect(extensionAst.definitions).toHaveLength(1);
+    expect(extensionAst.definitions[0].kind).toBe('InputObjectTypeExtension');
   });
 
-  it('extracts extended unions', () => {
+  test('extracts extended unions', () => {
     const typeDefs = `
       type Person {
         name: String!
@@ -43,11 +40,11 @@ describe('Extension extraction', () => {
     const astDocument = parse(typeDefs);
     const extensionAst = extractExtensionDefinitions(astDocument);
 
-    expect(extensionAst.definitions).to.have.length(1);
-    expect(extensionAst.definitions[0].kind).to.equal('UnionTypeExtension');
+    expect(extensionAst.definitions).toHaveLength(1);
+    expect(extensionAst.definitions[0].kind).toBe('UnionTypeExtension');
   });
 
-  it('extracts extended enums', () => {
+  test('extracts extended enums', () => {
     const typeDefs = `
       enum Color {
         RED
@@ -62,7 +59,7 @@ describe('Extension extraction', () => {
     const astDocument = parse(typeDefs);
     const extensionAst = extractExtensionDefinitions(astDocument);
 
-    expect(extensionAst.definitions).to.have.length(1);
-    expect(extensionAst.definitions[0].kind).to.equal('EnumTypeExtension');
+    expect(extensionAst.definitions).toHaveLength(1);
+    expect(extensionAst.definitions[0].kind).toBe('EnumTypeExtension');
   });
 });

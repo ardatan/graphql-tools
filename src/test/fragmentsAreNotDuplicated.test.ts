@@ -1,10 +1,9 @@
-import { expect } from 'chai';
 import { ExecutionResult, graphql } from 'graphql';
 
 import { addMocksToSchema, makeExecutableSchema, transformSchema } from '..';
 
 describe('Merging schemas', () => {
-  it('should not throw `There can be only one fragment named "FieldName"` errors', async () => {
+  test('should not throw `There can be only one fragment named "FieldName"` errors', async () => {
     const originalSchema = makeExecutableSchema({
       typeDefs: rawSchema,
     });
@@ -81,6 +80,6 @@ const variables = {
 function assertNoDuplicateFragmentErrors(result: ExecutionResult) {
   // Run assertion against each array element for better test failure output.
   if (result.errors != null) {
-    result.errors.forEach((error) => expect(error.message).to.equal(''));
+    result.errors.forEach((error) => expect(error.message).toBe(''));
   }
 }

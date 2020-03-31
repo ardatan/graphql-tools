@@ -25,14 +25,11 @@ script:
       npm run lint;
     fi
   - node_version=$(node -v); if [[ ${node_version:1:2} == "13" && $GRAPHQL_VERSION == "14.6" ]]; then
-      npm run prettier:check;
+      npm run format:check;
     fi
   - npm run compile
   - npm install graphql@$GRAPHQL_VERSION
   - npm run testonly:cover
-
-after_success:
-  - npm run coverage
 
 # Allow Travis tests to run in containers.
 sudo: false
