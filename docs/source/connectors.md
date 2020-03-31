@@ -99,11 +99,4 @@ You can improve the situation by adding a per-request cache with `dataloader`, F
 
 One important thing to understand about `dataloader` is that it caches the results forever, unless told otherwise. So we really want to make sure we create a new instance for _every_ request sent to our server, so that we de-duplicate fetches in one query but not across multiple requests or, even worse, multiple users.
 
-At this point, the code becomes a bit more complex, so we won't reproduce it here. Check out the GitHunt-API example for the details:
-
-1. The [GitHub connector](https://github.com/apollostack/GitHunt-API/blob/cc67a4506c31310b4ba8d811dda11d258c7d60d6/api/github/connector.js), which uses DataLoader, passes along API keys, and does extra caching with GitHub's eTag feature.
-2. The [GitHub model](https://github.com/apollostack/GitHunt-API/blob/cc67a4506c31310b4ba8d811dda11d258c7d60d6/api/github/models.js), which defines some helpful functions to fetch users and repositories.
-3. The [GraphQL context](https://github.com/apollostack/GitHunt-API/blob/cc67a4506c31310b4ba8d811dda11d258c7d60d6/api/index.js#L67-L73), which includes the models, initialized with the connector for every request.
-4. The [resolvers](https://github.com/apollostack/GitHunt-API/blob/cc67a4506c31310b4ba8d811dda11d258c7d60d6/api/sql/schema.js#L63), which use the model from the context to actually fetch the object.
-
-The code is more decoupled than necessary for a small example, but it's done that way intentionally to demonstrate how a larger API could be laid out.
+At this point, the code becomes a bit more complex, so we won't reproduce it here.
