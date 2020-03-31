@@ -1,19 +1,11 @@
 language: node_js
 node_js:
-  - "13"
   - "12"
   - "10"
 
 env:
-  - GRAPHQL_VERSION='0.12'
   - GRAPHQL_VERSION='0.13'
-  - GRAPHQL_VERSION='14.0'
-  - GRAPHQL_VERSION='14.1'
-  - GRAPHQL_VERSION='14.2'
-  - GRAPHQL_VERSION='14.3'
-  - GRAPHQL_VERSION='14.4'
-  - GRAPHQL_VERSION='14.5'
-  - GRAPHQL_VERSION='14.6'
+  - GRAPHQL_VERSION='latest'
   - GRAPHQL_VERSION='rc'
 
 install:
@@ -21,10 +13,10 @@ install:
   - npm install
 
 script:
-  - node_version=$(node -v); if [[ ${node_version:1:2} == "13" && $GRAPHQL_VERSION == "14.6" ]]; then
+  - if [[ $GRAPHQL_VERSION == "latest" ]]; then
       npm run lint;
     fi
-  - node_version=$(node -v); if [[ ${node_version:1:2} == "13" && $GRAPHQL_VERSION == "14.6" ]]; then
+  - if [[ $GRAPHQL_VERSION == "latest" ]]; then
       npm run format:check;
     fi
   - npm run compile
