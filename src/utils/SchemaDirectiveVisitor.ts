@@ -58,7 +58,10 @@ const hasOwn = Object.prototype.hasOwnProperty;
 // parameter types, and more details about the properties exposed by instances
 // of the SchemaDirectiveVisitor class.
 
-export class SchemaDirectiveVisitor extends SchemaVisitor {
+export class SchemaDirectiveVisitor<
+  TArgs = { [name: string]: any },
+  TContext = { [key: string]: any }
+> extends SchemaVisitor {
   // The name of the directive this visitor is allowed to visit (that is, the
   // identifier that appears after the @ character in the schema). Note that
   // this property is per-instance rather than static because subclasses of
@@ -71,7 +74,7 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
   // A map from parameter names to argument values, as obtained from a
   // specific occurrence of a @directive(arg1: value1, arg2: value2, ...) in
   // the schema. Visitor methods may refer to this object via this.args.
-  public args: { [name: string]: any };
+  public args: TArgs;
 
   // A reference to the type object that this visitor was created to visit.
   public visitedType: VisitableSchemaType;
@@ -79,7 +82,7 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
   // A shared object that will be available to all visitor instances via
   // this.context. Callers of visitSchemaDirectives can provide their own
   // object, or just use the default empty object.
-  public context: { [key: string]: any };
+  public context: TContext;
 
   // Override this method to return a custom GraphQLDirective (or modify one
   // already present in the schema) to enforce argument types, provide default
@@ -275,10 +278,10 @@ export class SchemaDirectiveVisitor extends SchemaVisitor {
   // subclasses (not instances) to visitSchemaDirectives.
   protected constructor(config: {
     name: string;
-    args: { [name: string]: any };
+    args: TArgs;
     visitedType: VisitableSchemaType;
     schema: GraphQLSchema;
-    context: { [key: string]: any };
+    context: TContext;
   }) {
     super();
     this.name = config.name;
