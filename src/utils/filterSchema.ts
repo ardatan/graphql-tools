@@ -14,7 +14,7 @@ import {
   FieldFilter,
   RootFieldFilter,
 } from '../Interfaces';
-import { toConfig } from '../polyfills/index';
+import { toConfig } from '../polyfills/toConfig';
 
 import { mapSchema } from './map';
 

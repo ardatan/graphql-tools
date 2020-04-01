@@ -1,11 +1,11 @@
 import { GraphQLError, graphql } from 'graphql';
 
-import { relocatedError } from '../stitch/errors';
-import { getErrors, ERROR_SYMBOL } from '../stitch/proxiedResult';
+import { relocatedError, getErrors } from '../stitch/errors';
 import { checkResultAndHandleErrors } from '../delegate/checkResultAndHandleErrors';
 import { makeExecutableSchema } from '../generate/index';
 import { mergeSchemas } from '../stitch/index';
 import { IGraphQLToolsResolveInfo } from '../Interfaces';
+import { ERROR_SYMBOL } from '../stitch/symbols';
 
 class ErrorWithExtensions extends GraphQLError {
   constructor(message: string, code: string) {

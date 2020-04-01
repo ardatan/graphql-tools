@@ -3,8 +3,9 @@ import { defaultFieldResolver } from 'graphql';
 import { IGraphQLToolsResolveInfo } from '../Interfaces';
 import { handleResult } from '../delegate/checkResultAndHandleErrors';
 
-import { getErrors, getSubschema } from './proxiedResult';
+import { getSubschema } from './subSchema';
 import { getResponseKeyFromInfo } from './getResponseKeyFromInfo';
+import { getErrors } from './errors';
 
 /**
  * Resolver that knows how to:

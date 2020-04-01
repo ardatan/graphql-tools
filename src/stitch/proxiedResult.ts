@@ -1,70 +1,19 @@
-import { GraphQLError, GraphQLSchema, responsePathAsArray } from 'graphql';
+import { GraphQLError, responsePathAsArray } from 'graphql';
 
 import { SubschemaConfig, IGraphQLToolsResolveInfo } from '../Interfaces';
 import { mergeDeep } from '../utils/index';
-import { handleNull } from '../delegate/checkResultAndHandleErrors';
+import { handleNull } from '../delegate/results/handleNull';
 
-import { relocatedError } from './errors';
-
-const hasSymbol =
-  (typeof global !== 'undefined' && 'Symbol' in global) ||
-  // eslint-disable-next-line no-undef
-  (typeof window !== 'undefined' && 'Symbol' in window);
-
-export const OBJECT_SUBSCHEMA_SYMBOL = hasSymbol
-  ? Symbol('initialSubschema')
-  : '@@__initialSubschema';
-export const FIELD_SUBSCHEMA_MAP_SYMBOL = hasSymbol
-  ? Symbol('subschemaMap')
-  : '@@__subschemaMap';
-export const ERROR_SYMBOL = hasSymbol
-  ? Symbol('subschemaErrors')
-  : '@@__subschemaErrors';
+import { relocatedError, setErrors, getErrors } from './errors';
+import {
+  ERROR_SYMBOL,
+  FIELD_SUBSCHEMA_MAP_SYMBOL,
+  OBJECT_SUBSCHEMA_SYMBOL,
+} from './symbols';
+import { getSubschema, setObjectSubschema } from './subSchema';
 
 export function isProxiedResult(result: any) {
   return result != null ? result[ERROR_SYMBOL] : result;
-}
-
-export function getSubschema(
-  result: any,
-  responseKey: string,
-): GraphQLSchema | SubschemaConfig {
-  const subschema =
-    result[FIELD_SUBSCHEMA_MAP_SYMBOL] &&
-    result[FIELD_SUBSCHEMA_MAP_SYMBOL][responseKey];
-  return subschema ? subschema : result[OBJECT_SUBSCHEMA_SYMBOL];
-}
-
-export function setObjectSubschema(
-  result: any,
-  subschema: GraphQLSchema | SubschemaConfig,
-) {
-  result[OBJECT_SUBSCHEMA_SYMBOL] = subschema;
-}
-
-export function setErrors(result: any, errors: Array<GraphQLError>) {
-  result[ERROR_SYMBOL] = errors;
-}
-
-export function getErrors(
-  result: any,
-  pathSegment: string,
-): Array<GraphQLError> {
-  const errors = result != null ? result[ERROR_SYMBOL] : result;
-
-  if (!Array.isArray(errors)) {
-    return null;
-  }
-
-  const fieldErrors = [];
-
-  for (const error of errors) {
-    if (!error.path || error.path[0] === pathSegment) {
-      fieldErrors.push(error);
-    }
-  }
-
-  return fieldErrors;
 }
 
 export function unwrapResult(
