@@ -1,4 +1,3 @@
-import { expect } from 'chai';
 import {
   GraphQLObjectType,
   GraphQLSchema,
@@ -79,7 +78,7 @@ class StripNonQueryTransform {
 }
 
 describe('Gatsby transforms', () => {
-  it('work', async () => {
+  test('work', async () => {
     const schema = makeExecutableSchema({
       typeDefs: `
       directive @cacheControl(maxAge: Int, scope: CacheControlScope) on FIELD_DEFINITION | OBJECT | INTERFACE
@@ -146,7 +145,7 @@ describe('Gatsby transforms', () => {
       }),
     ]);
 
-    expect(transformedSchema).to.be.instanceOf(GraphQLSchema);
+    expect(transformedSchema).toBeInstanceOf(GraphQLSchema);
 
     const result = await graphql(
       transformedSchema,
@@ -160,7 +159,7 @@ describe('Gatsby transforms', () => {
         }
       `,
     );
-    expect(result).to.deep.equal({
+    expect(result).toEqual({
       data: {
         countries: {
           language: {

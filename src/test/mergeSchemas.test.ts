@@ -1,5 +1,4 @@
 import { forAwaitEach } from 'iterall';
-import { expect } from 'chai';
 import {
   graphql,
   GraphQLSchema,
@@ -36,7 +35,7 @@ import {
   remoteProductSchema,
   subscriptionPubSub,
   subscriptionPubSubTrigger,
-} from './testingSchemas';
+} from './fixtures/schemas';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const removeLocations = ({ locations, ...rest }: any): any => ({ ...rest });
@@ -339,7 +338,7 @@ testCombinations.forEach((combination) => {
     let productSchema: GraphQLSchema | SubschemaConfig;
     let bookingSchema: GraphQLSchema | SubschemaConfig;
 
-    before(async () => {
+    beforeAll(async () => {
       propertySchema = await combination.property;
       bookingSchema = await combination.booking;
       productSchema = await combination.product;
@@ -550,7 +549,7 @@ testCombinations.forEach((combination) => {
     });
 
     describe('basic', () => {
-      it('works with context', async () => {
+      test('works with context', async () => {
         const propertyResult = await graphql(
           localPropertySchema,
           `
@@ -577,16 +576,16 @@ testCombinations.forEach((combination) => {
           },
         );
 
-        expect(propertyResult).to.deep.equal({
+        expect(propertyResult).toEqual({
           data: {
             contextTest: '"Foo"',
           },
         });
 
-        expect(mergedResult).to.deep.equal(propertyResult);
+        expect(mergedResult).toEqual(propertyResult);
       });
 
-      it('works with custom scalars', async () => {
+      test('works with custom scalars', async () => {
         const propertyResult = await graphql(
           localPropertySchema,
           `
@@ -611,7 +610,7 @@ testCombinations.forEach((combination) => {
           `,
         );
 
-        expect(propertyResult).to.deep.equal({
+        expect(propertyResult).toEqual({
           data: {
             dateTimeTest: '1987-09-25T12:00:00',
             test1: { foo: 'bar' },
@@ -619,10 +618,10 @@ testCombinations.forEach((combination) => {
             test3: '6',
           },
         });
-        expect(mergedResult).to.deep.equal(propertyResult);
+        expect(mergedResult).toEqual(propertyResult);
       });
 
-      it('works with custom scalars', async () => {
+      test('works with custom scalars', async () => {
         const scalarResult = await graphql(
           scalarSchema,
           `
@@ -651,7 +650,7 @@ testCombinations.forEach((combination) => {
           `,
         );
 
-        expect(scalarResult).to.deep.equal({
+        expect(scalarResult).toEqual({
           data: {
             testingScalar: {
               value: 'test',
@@ -663,10 +662,10 @@ testCombinations.forEach((combination) => {
             ],
           },
         });
-        expect(mergedResult).to.deep.equal(scalarResult);
+        expect(mergedResult).toEqual(scalarResult);
       });
 
-      it('works with custom enums', async () => {
+      test('works with custom enums', async () => {
         const enumResult = await graphql(
           enumSchema,
           `
@@ -737,7 +736,7 @@ testCombinations.forEach((combination) => {
           `,
         );
 
-        expect(enumResult).to.deep.equal({
+        expect(enumResult).toEqual({
           data: {
             color: 'RED',
             numericEnum: 'TEST',
@@ -770,10 +769,10 @@ testCombinations.forEach((combination) => {
             },
           },
         });
-        expect(mergedResult).to.deep.equal(enumResult);
+        expect(mergedResult).toEqual(enumResult);
       });
 
-      it('queries', async () => {
+      test('queries', async () => {
         const propertyFragment = `
 propertyById(id: "p1") {
   id
@@ -808,7 +807,7 @@ bookingById(id: "b1") {
       ${bookingFragment}
     }`,
         );
-        expect(mergedResult).to.deep.equal({
+        expect(mergedResult).toEqual({
           data: {
             ...propertyResult.data,
             ...bookingResult.data,
@@ -817,7 +816,7 @@ bookingById(id: "b1") {
       });
 
       // Technically mutations are not idempotent, but they are in our test schemas
-      it('mutations', async () => {
+      test('mutations', async () => {
         const mutationFragment = `
       mutation Mutation($input: BookingInput!) {
         addBooking(input: $input) {
@@ -856,10 +855,10 @@ bookingById(id: "b1") {
           },
         );
 
-        expect(mergedResult).to.deep.equal(bookingResult);
+        expect(mergedResult).toEqual(bookingResult);
       });
 
-      it('local subscriptions working in merged schema', (done) => {
+      test('local subscriptions working in merged schema', (done) => {
         const mockNotification = {
           notifications: {
             text: 'Hello world',
@@ -880,8 +879,8 @@ bookingById(id: "b1") {
             forAwaitEach(
               results as AsyncIterable<ExecutionResult>,
               (result: ExecutionResult) => {
-                expect(result).to.have.property('data');
-                expect(result.data).to.deep.equal(mockNotification);
+                expect(result).toHaveProperty('data');
+                expect(result.data).toEqual(mockNotification);
                 if (!notificationCnt++) {
                   done();
                 }
@@ -897,7 +896,7 @@ bookingById(id: "b1") {
           .catch(done);
       });
 
-      it('subscription errors are working correctly in merged schema', (done) => {
+      test('subscription errors are working correctly in merged schema', (done) => {
         const mockNotification = {
           notifications: {
             text: 'Hello world',
@@ -940,11 +939,11 @@ bookingById(id: "b1") {
             forAwaitEach(
               results as AsyncIterable<ExecutionResult>,
               (result: ExecutionResult) => {
-                expect(result).to.have.property('data');
-                expect(result).to.have.property('errors');
-                expect(result.errors).to.have.lengthOf(1);
-                expect(result.errors).to.deep.equal(expectedResult.errors);
-                expect(result.data).to.deep.equal(expectedResult.data);
+                expect(result).toHaveProperty('data');
+                expect(result).toHaveProperty('errors');
+                expect(result.errors).toHaveLength(1);
+                expect(result.errors).toEqual(expectedResult.errors);
+                expect(result.data).toEqual(expectedResult.data);
                 if (!notificationCnt++) {
                   done();
                 }
@@ -960,7 +959,7 @@ bookingById(id: "b1") {
           .catch(done);
       });
 
-      it('links in queries', async () => {
+      test('links in queries', async () => {
         const mergedResult = await graphql(
           mergedSchema,
           `
@@ -1000,7 +999,7 @@ bookingById(id: "b1") {
           `,
         );
 
-        expect(mergedResult).to.deep.equal({
+        expect(mergedResult).toEqual({
           data: {
             firstProperty: {
               id: 'p2',
@@ -1035,7 +1034,7 @@ bookingById(id: "b1") {
         });
       });
 
-      it('interfaces', async () => {
+      test('interfaces', async () => {
         const query = `
           query {
             test1: interfaceTest(kind: ONE) {
@@ -1066,7 +1065,7 @@ bookingById(id: "b1") {
         const propertyResult = await graphql(localPropertySchema, query);
         const mergedResult = await graphql(mergedSchema, query);
 
-        expect(propertyResult).to.deep.equal({
+        expect(propertyResult).toEqual({
           data: {
             test1: {
               __typename: 'TestImpl1',
@@ -1083,7 +1082,7 @@ bookingById(id: "b1") {
           },
         });
 
-        expect(mergedResult).to.deep.equal(propertyResult);
+        expect(mergedResult).toEqual(propertyResult);
 
         const delegateQuery = `
           query {
@@ -1101,7 +1100,7 @@ bookingById(id: "b1") {
 
         const mergedDelegate = await graphql(mergedSchema, delegateQuery);
 
-        expect(mergedDelegate).to.deep.equal({
+        expect(mergedDelegate).toEqual({
           data: {
             withTypeName: {
               __typename: 'TestImpl1',
@@ -1116,7 +1115,7 @@ bookingById(id: "b1") {
         });
       });
 
-      it('unions', async () => {
+      test('unions', async () => {
         const mergedResult = await graphql(
           mergedSchema,
           `
@@ -1135,7 +1134,7 @@ bookingById(id: "b1") {
           `,
         );
 
-        expect(mergedResult).to.deep.equal({
+        expect(mergedResult).toEqual({
           data: {
             customerById: {
               name: 'Exampler Customer',
@@ -1145,7 +1144,7 @@ bookingById(id: "b1") {
         });
       });
 
-      it('unions with alias', async () => {
+      test('unions with alias', async () => {
         const mergedResult = await graphql(
           mergedSchema,
           `
@@ -1169,7 +1168,7 @@ bookingById(id: "b1") {
           `,
         );
 
-        expect(mergedResult).to.deep.equal({
+        expect(mergedResult).toEqual({
           data: {
             customerById: {
               name: 'Exampler Customer',
@@ -1180,7 +1179,7 @@ bookingById(id: "b1") {
         });
       });
 
-      it('unions implementing interface', async () => {
+      test('unions implementing interface', async () => {
         const query = `
           query {
             test1: unionTest(output: "Interface") {
@@ -1211,7 +1210,7 @@ bookingById(id: "b1") {
           }
         `;
         const mergedResult = await graphql(mergedSchema, query);
-        expect(mergedResult).to.deep.equal({
+        expect(mergedResult).toEqual({
           data: {
             test1: {
               kind: 'ONE',
@@ -1225,7 +1224,7 @@ bookingById(id: "b1") {
         });
       });
 
-      it('interfaces spread from top level functions', async () => {
+      test('interfaces spread from top level functions', async () => {
         const mergedResult = await graphql(
           mergedSchema,
           `
@@ -1251,7 +1250,7 @@ bookingById(id: "b1") {
           `,
         );
 
-        expect(mergedResult).to.deep.equal({
+        expect(mergedResult).toEqual({
           data: {
             first: {
               id: 'c1',
@@ -1265,7 +1264,7 @@ bookingById(id: "b1") {
         });
       });
 
-      it('unions implementing an interface', async () => {
+      test('unions implementing an interface', async () => {
         const mergedResult = await graphql(
           mergedSchema,
           `
@@ -1293,7 +1292,7 @@ bookingById(id: "b1") {
           `,
         );
 
-        expect(mergedResult).to.deep.equal({
+        expect(mergedResult).toEqual({
           data: {
             customerById: {
               name: 'Exampler Customer',
@@ -1304,7 +1303,7 @@ bookingById(id: "b1") {
         });
       });
 
-      it('input objects with default', async () => {
+      test('input objects with default', async () => {
         const mergedResult = await graphql(
           mergedSchema,
           `
@@ -1315,7 +1314,7 @@ bookingById(id: "b1") {
           `,
         );
 
-        expect(mergedResult).to.deep.equal({
+        expect(mergedResult).toEqual({
           data: {
             one: 'Foo',
             two: 'Bar',
@@ -1323,7 +1322,7 @@ bookingById(id: "b1") {
         });
       });
 
-      it('deep links', async () => {
+      test('deep links', async () => {
         const mergedResult = await graphql(
           mergedSchema,
           `
@@ -1346,7 +1345,7 @@ bookingById(id: "b1") {
           `,
         );
 
-        expect(mergedResult).to.deep.equal({
+        expect(mergedResult).toEqual({
           data: {
             propertyById: {
               id: 'p2',
@@ -1368,7 +1367,7 @@ bookingById(id: "b1") {
         });
       });
 
-      it('link arguments', async () => {
+      test('link arguments', async () => {
         const mergedResult = await graphql(
           mergedSchema,
           `
@@ -1387,7 +1386,7 @@ bookingById(id: "b1") {
           `,
         );
 
-        expect(mergedResult).to.deep.equal({
+        expect(mergedResult).toEqual({
           data: {
             propertyById: {
               id: 'p1',
@@ -1405,12 +1404,12 @@ bookingById(id: "b1") {
         });
       });
 
-      it('removes `isTypeOf` checks from proxied schemas', () => {
+      test('removes `isTypeOf` checks from proxied schemas', () => {
         const Booking = mergedSchema.getType('Booking') as GraphQLObjectType;
-        expect(Booking.isTypeOf).to.equal(undefined);
+        expect(Booking.isTypeOf).toBeUndefined();
       });
 
-      it('should merge resolvers when passed an array of resolver objects', async () => {
+      test('should merge resolvers when passed an array of resolver objects', async () => {
         const Scalars = {
           TestScalar: new GraphQLScalarType({
             name: 'TestScalar',
@@ -1609,12 +1608,12 @@ bookingById(id: "b1") {
             test3: '6',
           },
         };
-        expect(mergedResult).to.deep.equal(expected);
+        expect(mergedResult).toEqual(expected);
       });
     });
 
     describe('fragments', () => {
-      it('named', async () => {
+      test('named', async () => {
         const propertyFragment = `
 fragment PropertyFragment on Property {
   id
@@ -1676,7 +1675,7 @@ fragment BookingFragment on Booking {
           `,
         );
 
-        expect(mergedResult).to.deep.equal({
+        expect(mergedResult).toEqual({
           data: {
             ...propertyResult.data,
             ...bookingResult.data,
@@ -1684,7 +1683,7 @@ fragment BookingFragment on Booking {
         });
       });
 
-      it('inline', async () => {
+      test('inline', async () => {
         const propertyFragment = `
 propertyById(id: "p1") {
   ... on Property {
@@ -1724,7 +1723,7 @@ bookingById(id: "b1") {
     }`,
         );
 
-        expect(mergedResult).to.deep.equal({
+        expect(mergedResult).toEqual({
           data: {
             ...propertyResult.data,
             ...bookingResult.data,
@@ -1732,7 +1731,7 @@ bookingById(id: "b1") {
         });
       });
 
-      it('containing links', async () => {
+      test('containing links', async () => {
         const mergedResult = await graphql(
           mergedSchema,
           `
@@ -1765,7 +1764,7 @@ bookingById(id: "b1") {
           `,
         );
 
-        expect(mergedResult).to.deep.equal({
+        expect(mergedResult).toEqual({
           data: {
             propertyById: {
               id: 'p2',
@@ -1787,7 +1786,7 @@ bookingById(id: "b1") {
         });
       });
 
-      it('overlapping selections', async () => {
+      test('overlapping selections', async () => {
         const propertyFragment1 = `
 fragment PropertyFragment1 on Property {
   id
@@ -1862,7 +1861,7 @@ fragment BookingFragment on Booking {
           `,
         );
 
-        expect(mergedResult).to.deep.equal({
+        expect(mergedResult).toEqual({
           data: {
             ...propertyResult.data,
             ...bookingResult.data,
@@ -1870,7 +1869,7 @@ fragment BookingFragment on Booking {
         });
       });
 
-      it('containing fragment on outer type', async () => {
+      test('containing fragment on outer type', async () => {
         const mergedResult = await graphql(
           mergedSchema,
           `
@@ -1905,7 +1904,7 @@ fragment BookingFragment on Booking {
           `,
         );
 
-        expect(mergedResult).to.deep.equal({
+        expect(mergedResult).toEqual({
           data: {
             propertyById: {
               id: 'p2',
@@ -1927,7 +1926,7 @@ fragment BookingFragment on Booking {
         });
       });
 
-      it('containing links and overlapping fragments on relation', async () => {
+      test('containing links and overlapping fragments on relation', async () => {
         const mergedResult = await graphql(
           mergedSchema,
           `
@@ -1962,7 +1961,7 @@ fragment BookingFragment on Booking {
           `,
         );
 
-        expect(mergedResult).to.deep.equal({
+        expect(mergedResult).toEqual({
           data: {
             propertyById: {
               id: 'p2',
@@ -1984,7 +1983,7 @@ fragment BookingFragment on Booking {
         });
       });
 
-      it('containing links and single fragment on relation', async () => {
+      test('containing links and single fragment on relation', async () => {
         const mergedResult = await graphql(
           mergedSchema,
           `
@@ -2013,7 +2012,7 @@ fragment BookingFragment on Booking {
           `,
         );
 
-        expect(mergedResult).to.deep.equal({
+        expect(mergedResult).toEqual({
           data: {
             propertyById: {
               id: 'p2',
@@ -2037,7 +2036,7 @@ fragment BookingFragment on Booking {
     });
 
     describe('variables', () => {
-      it('basic', async () => {
+      test('basic', async () => {
         const propertyFragment = `
           propertyById(id: $p1) {
             id
@@ -2089,7 +2088,7 @@ fragment BookingFragment on Booking {
           },
         );
 
-        expect(mergedResult).to.deep.equal({
+        expect(mergedResult).toEqual({
           data: {
             ...propertyResult.data,
             ...bookingResult.data,
@@ -2097,7 +2096,7 @@ fragment BookingFragment on Booking {
         });
       });
 
-      it('in link selections', async () => {
+      test('in link selections', async () => {
         const mergedResult = await graphql(
           mergedSchema,
           `
@@ -2130,7 +2129,7 @@ fragment BookingFragment on Booking {
           },
         );
 
-        expect(mergedResult).to.deep.equal({
+        expect(mergedResult).toEqual({
           data: {
             propertyById: {
               id: 'p1',
@@ -2151,7 +2150,7 @@ fragment BookingFragment on Booking {
     });
 
     describe('aliases', () => {
-      it('aliases', async () => {
+      test('aliases', async () => {
         const result = await graphql(
           mergedSchema,
           `
@@ -2177,7 +2176,7 @@ fragment BookingFragment on Booking {
           `,
         );
 
-        expect(result).to.deep.equal({
+        expect(result).toEqual({
           data: {
             property: {
               id: 'p1',
@@ -2222,7 +2221,7 @@ fragment BookingFragment on Booking {
         });
       });
 
-      it('aliases subschema queries', async () => {
+      test('aliases subschema queries', async () => {
         const result = await graphql(
           mergedSchema,
           `
@@ -2246,7 +2245,7 @@ fragment BookingFragment on Booking {
           `,
         );
 
-        expect(result).to.deep.equal({
+        expect(result).toEqual({
           data: {
             customerById: {
               id: 'c1',
@@ -2279,7 +2278,7 @@ fragment BookingFragment on Booking {
     });
 
     describe('errors', () => {
-      it('root level', async () => {
+      test('root level', async () => {
         const propertyFragment = `
                 errorTest
               `;
@@ -2315,11 +2314,11 @@ fragment BookingFragment on Booking {
             ${bookingFragment}
           }`,
         );
-        expect(mergedResult.data).to.deep.equal({
+        expect(mergedResult.data).toEqual({
           ...propertyResult.data,
           ...bookingResult.data,
         });
-        expect(mergedResult.errors.map(removeLocations)).to.deep.equal(
+        expect(mergedResult.errors.map(removeLocations)).toEqual(
           propertyResult.errors.map(removeLocations),
         );
 
@@ -2333,8 +2332,8 @@ fragment BookingFragment on Booking {
               `,
         );
 
-        expect(mergedResult2.data).to.equal(null);
-        expect(mergedResult2.errors.map(removeLocations)).to.deep.equal([
+        expect(mergedResult2.data).toBe(null);
+        expect(mergedResult2.errors.map(removeLocations)).toEqual([
           {
             message: 'Sample error non-null!',
             path: ['errorTestNonNull'],
@@ -2342,7 +2341,7 @@ fragment BookingFragment on Booking {
         ]);
       });
 
-      it('nested errors', async () => {
+      test('nested errors', async () => {
         const result = await graphql(
           mergedSchema,
           `
@@ -2360,7 +2359,7 @@ fragment BookingFragment on Booking {
           `,
         );
 
-        expect(result.data).to.deep.equal({
+        expect(result.data).toEqual({
           propertyById: {
             bookings: [
               {
@@ -2430,26 +2429,26 @@ fragment BookingFragment on Booking {
           };
         }
 
-        expect(errorsWithoutLocations).to.deep.equal(expectedErrors);
-        expect(result.errors[0].extensions).to.deep.equal({
+        expect(errorsWithoutLocations).toEqual(expectedErrors);
+        expect(result.errors[0].extensions).toEqual({
           code: 'SOME_CUSTOM_CODE',
         });
-        expect(result.errors[1].extensions).to.deep.equal({
+        expect(result.errors[1].extensions).toEqual({
           code: 'SOME_CUSTOM_CODE',
         });
       });
 
-      it(
+      test(
         'should preserve custom error extensions from the original schema, ' +
           'when merging schemas',
         async () => {
           const propertyQuery = `
-            query {
-              properties(limit: 1) {
-                error
-              }
+          query {
+            properties(limit: 1) {
+              error
             }
-          `;
+          }
+        `;
 
           const propertyResult = await graphql(
             localPropertySchema,
@@ -2459,63 +2458,63 @@ fragment BookingFragment on Booking {
           const mergedResult = await graphql(mergedSchema, propertyQuery);
 
           [propertyResult, mergedResult].forEach((result) => {
-            expect(result.errors).to.not.equal(undefined);
-            expect(result.errors.length > 0).to.equal(true);
+            expect(result.errors).toBeDefined();
+            expect(result.errors.length > 0).toBe(true);
             const error = result.errors[0];
-            expect(error.extensions).to.not.equal(undefined);
-            expect(error.extensions.code).to.equal('SOME_CUSTOM_CODE');
+            expect(error.extensions).toBeDefined();
+            expect(error.extensions.code).toBe('SOME_CUSTOM_CODE');
           });
         },
       );
     });
 
     describe('types in schema extensions', () => {
-      it('should parse descriptions on new types', () => {
-        expect(mergedSchema.getType('AnotherNewScalar').description).to.equal(
+      test('should parse descriptions on new types', () => {
+        expect(mergedSchema.getType('AnotherNewScalar').description).toBe(
           'Description of AnotherNewScalar.',
         );
 
-        expect(mergedSchema.getType('TestingScalar').description).to.equal(
+        expect(mergedSchema.getType('TestingScalar').description).toBe(
           'A type that uses TestScalar.',
         );
 
-        expect(mergedSchema.getType('Color').description).to.equal(
+        expect(mergedSchema.getType('Color').description).toBe(
           'A type that uses an Enum.',
         );
 
-        expect(mergedSchema.getType('NumericEnum').description).to.equal(
+        expect(mergedSchema.getType('NumericEnum').description).toBe(
           'A type that uses an Enum with a numeric constant.',
         );
 
-        expect(mergedSchema.getType('LinkType').description).to.equal(
+        expect(mergedSchema.getType('LinkType').description).toBe(
           'A new type linking the Property type.',
         );
 
-        expect(mergedSchema.getType('LinkType').description).to.equal(
+        expect(mergedSchema.getType('LinkType').description).toBe(
           'A new type linking the Property type.',
         );
       });
 
-      it('should parse descriptions on new fields', () => {
+      test('should parse descriptions on new fields', () => {
         const Query = mergedSchema.getQueryType();
-        expect(Query.getFields().linkTest.description).to.equal(
+        expect(Query.getFields().linkTest.description).toBe(
           'A new field on the root query.',
         );
 
         const Booking = mergedSchema.getType('Booking') as GraphQLObjectType;
-        expect(Booking.getFields().property.description).to.equal(
+        expect(Booking.getFields().property.description).toBe(
           'The property of the booking.',
         );
 
         const Property = mergedSchema.getType('Property') as GraphQLObjectType;
         const bookingsField = Property.getFields().bookings;
-        expect(bookingsField.description).to.equal('A list of bookings.');
-        expect(bookingsField.args[0].description).to.equal(
+        expect(bookingsField.description).toBe('A list of bookings.');
+        expect(bookingsField.args[0].description).toBe(
           'The maximum number of bookings to retrieve.',
         );
       });
 
-      it('should allow defining new types in link type', async () => {
+      test('should allow defining new types in link type', async () => {
         const result = await graphql(
           mergedSchema,
           `
@@ -2530,7 +2529,7 @@ fragment BookingFragment on Booking {
           `,
         );
 
-        expect(result).to.deep.equal({
+        expect(result).toEqual({
           data: {
             linkTest: {
               test: 'test',
@@ -2544,7 +2543,7 @@ fragment BookingFragment on Booking {
     });
 
     describe('merge info defined interfaces', () => {
-      it('inline fragments on existing types in subschema', async () => {
+      test('inline fragments on existing types in subschema', async () => {
         const result = await graphql(
           mergedSchema,
           `
@@ -2572,7 +2571,7 @@ fragment BookingFragment on Booking {
           },
         );
 
-        expect(result).to.deep.equal({
+        expect(result).toEqual({
           data: {
             property: {
               id: 'p1',
@@ -2587,7 +2586,7 @@ fragment BookingFragment on Booking {
         });
       });
 
-      it('inline fragments on non-compatible sub schema types', async () => {
+      test('inline fragments on non-compatible sub schema types', async () => {
         const result = await graphql(
           mergedSchema,
           `
@@ -2615,7 +2614,7 @@ fragment BookingFragment on Booking {
           },
         );
 
-        expect(result).to.deep.equal({
+        expect(result).toEqual({
           data: {
             node: {
               __typename: 'Booking',
@@ -2627,7 +2626,7 @@ fragment BookingFragment on Booking {
         });
       });
 
-      it('fragments on non-compatible sub schema types', async () => {
+      test('fragments on non-compatible sub schema types', async () => {
         const result = await graphql(
           mergedSchema,
           `
@@ -2661,7 +2660,7 @@ fragment BookingFragment on Booking {
           },
         );
 
-        expect(result).to.deep.equal({
+        expect(result).toEqual({
           data: {
             node: {
               __typename: 'Booking',
@@ -2673,7 +2672,7 @@ fragment BookingFragment on Booking {
         });
       });
 
-      it('fragments on interfaces in merged schema', async () => {
+      test('fragments on interfaces in merged schema', async () => {
         const result = await graphql(
           mergedSchema,
           `
@@ -2701,7 +2700,7 @@ fragment BookingFragment on Booking {
           },
         );
 
-        expect(result).to.deep.equal({
+        expect(result).toEqual({
           data: {
             node: {
               id: 'b1',
@@ -2712,7 +2711,7 @@ fragment BookingFragment on Booking {
         });
       });
 
-      it('multi-interface filter', async () => {
+      test('multi-interface filter', async () => {
         const result = await graphql(
           mergedSchema,
           `
@@ -2728,7 +2727,7 @@ fragment BookingFragment on Booking {
           `,
         );
 
-        expect(result).to.deep.equal({
+        expect(result).toEqual({
           data: {
             products: [
               {
@@ -2746,7 +2745,7 @@ fragment BookingFragment on Booking {
       });
 
       if (graphqlVersion() >= 13) {
-        it('interface extensions', async () => {
+        test('interface extensions', async () => {
           const result = await graphql(
             mergedSchema,
             `
@@ -2762,7 +2761,7 @@ fragment BookingFragment on Booking {
             `,
           );
 
-          expect(result).to.deep.equal({
+          expect(result).toEqual({
             data: {
               products: [
                 {
@@ -2780,7 +2779,7 @@ fragment BookingFragment on Booking {
         });
       }
 
-      it('arbitrary transforms that return interfaces', async () => {
+      test('arbitrary transforms that return interfaces', async () => {
         const result = await graphql(
           mergedSchema,
           `
@@ -2799,7 +2798,7 @@ fragment BookingFragment on Booking {
           `,
         );
 
-        expect(result).to.deep.equal({
+        expect(result).toEqual({
           data: {
             nodes: [
               {
@@ -2841,7 +2840,7 @@ fragment BookingFragment on Booking {
     });
 
     describe('schema directives', () => {
-      it('should work with schema directives', async () => {
+      test('should work with schema directives', async () => {
         const result = await graphql(
           mergedSchema,
           `
@@ -2853,7 +2852,7 @@ fragment BookingFragment on Booking {
           `,
         );
 
-        expect(result).to.deep.equal({
+        expect(result).toEqual({
           data: {
             propertyById: {
               someField: 'SOMEFIELD',
@@ -2864,7 +2863,7 @@ fragment BookingFragment on Booking {
     });
 
     describe('regression', () => {
-      it('should not pass extra arguments to delegates', async () => {
+      test('should not pass extra arguments to delegates', async () => {
         const result = await graphql(
           mergedSchema,
           `
@@ -2876,7 +2875,7 @@ fragment BookingFragment on Booking {
           `,
         );
 
-        expect(result).to.deep.equal({
+        expect(result).toEqual({
           data: {
             delegateArgumentTest: {
               id: 'p1',
@@ -2885,16 +2884,16 @@ fragment BookingFragment on Booking {
         });
       });
 
-      it('defaultMergedResolver should work with aliases if parent merged resolver is manually overwritten', async () => {
+      test('defaultMergedResolver should work with aliases if parent merged resolver is manually overwritten', async () => {
         // Source: https://github.com/apollographql/graphql-tools/issues/967
         const typeDefs = `
-          type Query {
-            book: Book
-          }
-          type Book {
-            category: String!
-          }
-        `;
+            type Query {
+              book: Book
+            }
+            type Book {
+              category: String!
+            }
+          `;
         let schema = makeExecutableSchema({ typeDefs });
 
         const resolvers = {
@@ -2910,12 +2909,12 @@ fragment BookingFragment on Booking {
 
         const result = await graphql(schema, '{ book { cat: category } }');
 
-        expect(result.data.book.cat).to.equal('Test');
+        expect(result.data.book.cat).toBe('Test');
       });
     });
 
     describe('deprecation', () => {
-      it('should retain deprecation information', () => {
+      test('should retain deprecation information', () => {
         const typeDefs = `
           type Query {
             book: Book
@@ -2943,20 +2942,20 @@ fragment BookingFragment on Booking {
         });
 
         const deprecatedUsages = findDeprecatedUsages(schema, parse(query));
-        expect(deprecatedUsages.length).to.equal(1);
+        expect(deprecatedUsages.length).toBe(1);
         expect(
           deprecatedUsages.find(
             (error) =>
               error.message.match(/deprecated/g) != null &&
               error.message.match(/yolo/g) != null,
           ),
-        ).to.not.equal(undefined);
+        ).toBeDefined();
       });
     });
   });
 
   describe('scalars without executable schema', () => {
-    it('can merge and query schema', async () => {
+    test('can merge and query schema', async () => {
       const BookSchema = `
         type Book {
           name: String
@@ -3004,7 +3003,7 @@ fragment BookingFragment on Booking {
         },
       );
 
-      expect(result).to.deep.equal({
+      expect(result).toEqual({
         data: {
           book: {
             author: {
@@ -3017,7 +3016,7 @@ fragment BookingFragment on Booking {
   });
 
   describe('new root type name', () => {
-    it('works', async () => {
+    test('works', async () => {
       const bookSchema = makeExecutableSchema({
         typeDefs: `
           type Query {
@@ -3062,7 +3061,7 @@ fragment BookingFragment on Booking {
         `,
       );
 
-      expect(result).to.deep.equal({
+      expect(result).toEqual({
         data: {
           book: {
             name: 'Hello World',
