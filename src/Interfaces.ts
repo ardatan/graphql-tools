@@ -65,6 +65,7 @@ export interface IResolverOptions<TSource = any, TContext = any, TArgs = any> {
   fragment?: string;
   resolve?: IFieldResolver<TSource, TContext, TArgs>;
   subscribe?: IFieldResolver<TSource, TContext, TArgs>;
+  extensions?: Record<string, any>;
   __resolveType?: GraphQLTypeResolver<TSource, TContext>;
   __isTypeOf?: GraphQLIsTypeOfFn<TSource, TContext>;
 }

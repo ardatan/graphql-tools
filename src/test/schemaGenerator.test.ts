@@ -382,6 +382,31 @@ describe('generating schema from shorthand', () => {
     expect(jsSchema.getQueryType().getFields().bar).toBeDefined();
   });
 
+  test('allow for a map of extensions in field resolver', () => {
+    const jsSchema = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        type Query {
+          foo: String
+        }
+      `,
+      resolvers: {
+        Query: {
+          foo: {
+            resolve() {
+              return 'Foo';
+            },
+            extensions: {
+              verbose: true,
+            },
+          },
+        },
+      },
+    });
+    const extensions = jsSchema.getQueryType().getFields().foo.extensions;
+    expect(extensions).toHaveProperty('verbose');
+    expect(extensions.verbose).toBe(true);
+  });
+
   test('can concatenateTypeDefs created by a function inside a closure', () => {
     const typeA = { typeDefs: () => ['type TypeA { foo: String }'] };
     const typeB = { typeDefs: () => ['type TypeB { bar: String }'] };
