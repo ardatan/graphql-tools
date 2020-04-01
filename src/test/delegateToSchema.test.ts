@@ -1,5 +1,4 @@
 import { GraphQLSchema, graphql } from 'graphql';
-import { expect } from 'chai';
 
 import delegateToSchema from '../delegate/delegateToSchema';
 import mergeSchemas from '../stitch/mergeSchemas';
@@ -12,7 +11,7 @@ import {
   bookingSchema,
   sampleData,
   Property,
-} from './testingSchemas';
+} from './fixtures/schemas';
 
 function findPropertyByLocationName(
   properties: { [key: string]: Property },
@@ -86,13 +85,13 @@ describe('stitching', () => {
     ['standalone', 'info.mergeInfo'].forEach((spec) => {
       describe(spec, () => {
         let schema: GraphQLSchema;
-        before(() => {
+        beforeAll(() => {
           schema = mergeSchemas({
             schemas: [bookingSchema, propertySchema, proxyTypeDefs],
             resolvers: proxyResolvers(spec),
           });
         });
-        it('should add fragments for deep types', async () => {
+        test('should add fragments for deep types', async () => {
           const result = await graphql(
             schema,
             COORDINATES_QUERY,
@@ -101,7 +100,7 @@ describe('stitching', () => {
             { bookingId: 'b1' },
           );
 
-          expect(result).to.deep.equal({
+          expect(result).toEqual({
             data: {
               bookingById: {
                 property: {
@@ -119,7 +118,7 @@ describe('stitching', () => {
 });
 
 describe('schema delegation', () => {
-  it('should work even when there are default fields', async () => {
+  test('should work even when there are default fields', async () => {
     const schema = makeExecutableSchema({
       typeDefs: `
         scalar JSON
@@ -158,7 +157,7 @@ describe('schema delegation', () => {
       `,
     );
 
-    expect(result).to.deep.equal({
+    expect(result).toEqual({
       data: {
         data: {
           json: 'test',
@@ -167,7 +166,7 @@ describe('schema delegation', () => {
     });
   });
 
-  it('should work even with variables', async () => {
+  test('should work even with variables', async () => {
     const innerSchema = makeExecutableSchema({
       typeDefs: `
         type User {
@@ -202,7 +201,7 @@ describe('schema delegation', () => {
       { show: true },
     );
 
-    expect(result).to.deep.equal({
+    expect(result).toEqual({
       data: {
         user: {
           id: '123',

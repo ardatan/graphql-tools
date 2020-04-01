@@ -11,7 +11,6 @@
 // The fragment field is still necessary when working with a remote schema
 // where this is not possible.
 
-import { expect } from 'chai';
 import { graphql } from 'graphql';
 
 import { delegateToSchema, mergeSchemas, addMocksToSchema } from '../index';
@@ -119,7 +118,7 @@ const mergedSchema = mergeSchemas({
 });
 
 describe('merging without specifying fragments', () => {
-  it('works', async () => {
+  test('works', async () => {
     const query = `
       query {
         userById(id: 5) {
@@ -136,9 +135,9 @@ describe('merging without specifying fragments', () => {
 
     const result = await graphql(mergedSchema, query);
 
-    expect(result.errors).to.equal(undefined);
-    expect(result.data.userById.chirps[1].id).to.not.equal(null);
-    expect(result.data.userById.chirps[1].text).to.not.equal(null);
-    expect(result.data.userById.chirps[1].author.email).to.not.equal(null);
+    expect(result.errors).toBeUndefined();
+    expect(result.data.userById.chirps[1].id).not.toBe(null);
+    expect(result.data.userById.chirps[1].text).not.toBe(null);
+    expect(result.data.userById.chirps[1].author.email).not.toBe(null);
   });
 });

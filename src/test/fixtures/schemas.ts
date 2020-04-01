@@ -18,10 +18,10 @@ import {
 } from 'graphql';
 import { forAwaitEach } from 'iterall';
 
-import introspectSchema from '../stitch/introspectSchema';
-import { IResolvers, Fetcher, SubschemaConfig } from '../Interfaces';
-import { makeExecutableSchema } from '../generate/index';
-import { graphqlVersion } from '../utils/index';
+import introspectSchema from '../../stitch/introspectSchema';
+import { IResolvers, Fetcher, SubschemaConfig } from '../../Interfaces';
+import { makeExecutableSchema } from '../../generate/index';
+import { graphqlVersion } from '../../utils/index';
 
 export type Location = {
   name: string;

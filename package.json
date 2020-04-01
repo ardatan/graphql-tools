@@ -2,31 +2,29 @@
   "name": "graphql-tools",
   "version": "5.0.0-alpha.0",
   "description": "Useful tools to create and manipulate GraphQL schemas.",
-  "main": "dist/index.js",
+  "sideEffects": false,
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
+  "typings": "dist/index.d.ts",
+  "typescript": {
+    "definition": "dist/index.d.ts"
+  },
   "files": [
     "/dist",
     "!/dist/test"
   ],
-  "sideEffects": false,
   "scripts": {
     "clean": "rimraf dist",
-    "build": "npm run compile",
     "precompile": "npm run clean",
-    "compile": "tsc",
-    "pretest": "npm run clean && npm run compile",
-    "test": "npm run testonly",
-    "posttest": "npm run lint && npm run prettier:check",
+    "compile": "rollup -c rollup.config.js",
+    "test": "jest",
     "lint": "eslint --ext .js,.ts src",
     "lint:watch": "esw --watch --cache --ext .js,.ts src",
-    "watch": "tsc -w",
-    "testonly": "mocha --reporter spec --full-trace ./dist/test/**.js --require source-map-support/register",
-    "testonly:cover": "nyc npm run testonly",
-    "testonly:watch": "mocha -w --reporter spec --full-trace ./dist/test/**.js --require source-map-support/register",
-    "coverage": "nyc report --reporter=text-lcov | coveralls",
+    "watch": "npm run compile -- --watch",
     "prepublishOnly": "npm run compile",
-    "prettier": "prettier --trailing-comma all --single-quote --write src/**/*.ts",
-    "prettier:check": "prettier --trailing-comma all --single-quote --check src/**/*.ts"
+    "format": "prettier --write src/**/*.ts",
+    "format:check": "prettier --check src/**/*.ts"
   },
   "repository": {
     "type": "git",
@@ -45,9 +43,9 @@
   "author": "Jonas Helfer <jonas@helfer.email>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/apollostack/graphql-tools/issues"
+    "url": "https://github.com/apollographql/graphql-tools/issues"
   },
-  "homepage": "https://github.com/apollostack/graphql-tools#readme",
+  "homepage": "https://github.com/apollographql/graphql-tools#readme",
   "dependencies": {
     "apollo-link": "^1.2.13",
     "apollo-link-http-common": "^0.2.15",
@@ -63,13 +61,13 @@
     "graphql": "^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0-rc"
   },
   "devDependencies": {
-    "@types/chai": "4.2.11",
+    "@rollup/plugin-node-resolve": "7.1.1",
     "@types/dateformat": "3.0.1",
     "@types/express": "4.17.3",
     "@types/extract-files": "3.1.0",
     "@types/graphql-type-json": "0.3.2",
     "@types/graphql-upload": "8.0.3",
-    "@types/mocha": "7.0.2",
+    "@types/jest": "25.1.4",
     "@types/node": "13.9.3",
     "@types/node-fetch": "2.5.5",
     "@types/uuid": "7.0.2",
@@ -77,8 +75,6 @@
     "@typescript-eslint/parser": "2.25.0",
     "babel-eslint": "10.1.0",
     "body-parser": "1.19.0",
-    "chai": "4.2.0",
-    "coveralls": "3.0.11",
     "dataloader": "2.0.0",
     "dateformat": "3.0.3",
     "eslint": "6.8.0",
@@ -90,12 +86,18 @@
     "graphql-subscriptions": "1.1.0",
     "graphql-type-json": "0.3.1",
     "graphql-upload": "10.0.0",
-    "mocha": "7.1.1",
-    "nyc": "15.0.0",
+    "jest": "25.2.4",
     "prettier": "2.0.2",
     "rimraf": "3.0.2",
-    "source-map-support": "0.5.16",
+    "rollup": "2.3.1",
+    "rollup-plugin-auto-external": "2.0.0",
+    "rollup-plugin-typescript2": "0.27.0",
+    "ts-jest": "25.3.0",
     "typescript": "3.8.3",
     "zen-observable-ts": "0.8.20"
+  },
+  "prettier": {
+    "singleQuote": true,
+    "trailingComma": "all"
   }
 }
