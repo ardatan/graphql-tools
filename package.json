@@ -1,6 +1,6 @@
 {
   "name": "graphql-tools",
-  "version": "5.0.0-alpha.0",
+  "version": "5.0.0-alpha.1",
   "description": "Useful tools to create and manipulate GraphQL schemas.",
   "sideEffects": false,
   "main": "dist/index.cjs.js",
@@ -10,10 +10,6 @@
   "typescript": {
     "definition": "dist/index.d.ts"
   },
-  "files": [
-    "/dist",
-    "!/dist/test"
-  ],
   "scripts": {
     "clean": "rimraf dist",
     "precompile": "npm run clean",
@@ -24,7 +20,8 @@
     "watch": "npm run compile -- --watch",
     "prepublishOnly": "npm run compile",
     "format": "prettier --write src/**/*.ts",
-    "format:check": "prettier --check src/**/*.ts"
+    "format:check": "prettier --check src/**/*.ts",
+    "release": "npm run compile && npm publish dist"
   },
   "repository": {
     "type": "git",
@@ -91,6 +88,7 @@
     "rimraf": "3.0.2",
     "rollup": "2.3.1",
     "rollup-plugin-auto-external": "2.0.0",
+    "rollup-plugin-generate-package-json": "3.2.0",
     "rollup-plugin-typescript2": "0.27.0",
     "ts-jest": "25.3.0",
     "typescript": "3.8.3",
