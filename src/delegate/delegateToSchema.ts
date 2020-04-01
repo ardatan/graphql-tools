@@ -20,18 +20,18 @@ import {
   IGraphQLToolsResolveInfo,
   Transform,
 } from '../Interfaces';
+import ExpandAbstractTypes from '../wrap/transforms/ExpandAbstractTypes';
+import FilterToSchema from '../wrap/transforms/FilterToSchema';
+import AddReplacementSelectionSets from '../wrap/transforms/AddReplacementSelectionSets';
+import AddReplacementFragments from '../wrap/transforms/AddReplacementFragments';
+import AddMergedTypeSelectionSets from '../wrap/transforms/AddMergedTypeSelectionSets';
+import AddTypenameToAbstract from '../wrap/transforms/AddTypenameToAbstract';
+import CheckResultAndHandleErrors from '../wrap/transforms/CheckResultAndHandleErrors';
+import AddArgumentsAsVariables from '../wrap/transforms/AddArgumentsAsVariables';
 import {
-  ExpandAbstractTypes,
-  FilterToSchema,
-  AddReplacementSelectionSets,
-  AddReplacementFragments,
-  AddMergedTypeSelectionSets,
-  AddTypenameToAbstract,
-  CheckResultAndHandleErrors,
   applyRequestTransforms,
   applyResultTransforms,
-  AddArgumentsAsVariables,
-} from '../wrap/index';
+} from '../wrap/transforms';
 
 import linkToFetcher from '../stitch/linkToFetcher';
 import { observableToAsyncIterable } from '../stitch/observableToAsyncIterable';

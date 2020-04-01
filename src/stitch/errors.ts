@@ -1,5 +1,7 @@
 import { GraphQLError, ASTNode } from 'graphql';
 
+import { ERROR_SYMBOL } from './symbols';
+
 export function relocatedError(
   originalError: Error | GraphQLError,
   nodes: ReadonlyArray<ASTNode>,
@@ -94,4 +96,29 @@ export function combineErrors(
     errors.map((error) => error.message).join('\n'),
     errors,
   );
+}
+
+export function setErrors(result: any, errors: Array<GraphQLError>) {
+  result[ERROR_SYMBOL] = errors;
+}
+
+export function getErrors(
+  result: any,
+  pathSegment: string,
+): Array<GraphQLError> {
+  const errors = result != null ? result[ERROR_SYMBOL] : result;
+
+  if (!Array.isArray(errors)) {
+    return null;
+  }
+
+  const fieldErrors = [];
+
+  for (const error of errors) {
+    if (!error.path || error.path[0] === pathSegment) {
+      fieldErrors.push(error);
+    }
+  }
+
+  return fieldErrors;
 }
