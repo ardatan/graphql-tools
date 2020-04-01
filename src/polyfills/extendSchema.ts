@@ -4,7 +4,7 @@ import {
   extendSchema as graphqlExtendSchema,
 } from 'graphql';
 
-import { getResolversFromSchema } from '../utils/index';
+import { getResolversFromSchema } from '../utils/getResolversFromSchema';
 import { IResolverOptions } from '../Interfaces';
 
 // polyfill for graphql < v14.2 which does not support subscriptions

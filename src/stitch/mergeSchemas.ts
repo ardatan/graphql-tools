@@ -33,7 +33,7 @@ import {
   extractExtensionDefinitions,
   addResolversToSchema,
 } from '../generate/index';
-import { wrapSchema } from '../wrap/index';
+import { wrapSchema } from '../wrap/wrapSchema';
 import {
   SchemaDirectiveVisitor,
   cloneDirective,

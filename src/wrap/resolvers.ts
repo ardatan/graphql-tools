@@ -15,7 +15,8 @@ import { handleResult } from '../delegate/checkResultAndHandleErrors';
 
 import { makeMergedType } from '../stitch/makeMergedType';
 import { getResponseKeyFromInfo } from '../stitch/getResponseKeyFromInfo';
-import { getErrors, getSubschema } from '../stitch/proxiedResult';
+import { getSubschema } from '../stitch/subSchema';
+import { getErrors } from '../stitch/errors';
 
 export type Mapping = {
   [typeName: string]: {
