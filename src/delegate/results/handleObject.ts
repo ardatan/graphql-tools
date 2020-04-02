@@ -6,7 +6,9 @@ import {
   FieldNode,
   GraphQLObjectType,
 } from 'graphql';
-import { collectFields, ExecutionContext } from 'graphql/execution/execute';
+import { ExecutionContext } from 'graphql/execution/execute';
+
+import { collectFields } from '../../utils/collectFields';
 
 import {
   SubschemaConfig,
