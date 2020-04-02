@@ -20,7 +20,7 @@ script:
     fi
   - npm run compile
   - if [[ $GRAPHQL_VERSION == "legacy" ]]; then
-      npm install graphql@0.13.0;
+      npm install graphql@0.13;
     fi
   - npm run test
 
