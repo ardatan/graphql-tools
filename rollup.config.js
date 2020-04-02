@@ -33,6 +33,11 @@ export default {
       file: 'dist/index.esm.js',
       format: 'esm',
     },
+    {
+      ...commonOutputOptions,
+      file: 'dist/index.mjs',
+      format: 'esm',
+    },
   ],
 };
 
@@ -64,6 +69,10 @@ function rewritePackageJson(pkg) {
   newPkg.types = 'index.d.ts';
   newPkg.typescript = {
     definition: newPkg.typings,
+  };
+  newPkg.exports = {
+    require: newPkg.main,
+    default: 'index.mjs',
   };
 
   return newPkg;
