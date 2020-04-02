@@ -4,9 +4,8 @@ node_js:
   - "10"
 
 env:
-  - GRAPHQL_VERSION='0.13'
+  - GRAPHQL_VERSION='legacy'
   - GRAPHQL_VERSION='latest'
-  - GRAPHQL_VERSION='rc'
 
 install:
   - npm config set spin=false
@@ -20,7 +19,9 @@ script:
       npm run format:check;
     fi
   - npm run compile
-  - npm install graphql@$GRAPHQL_VERSION
+  - if [[ $GRAPHQL_VERSION == "legacy" ]]; then
+      npm install graphql@0.13;
+    fi
   - npm run test
 
 # Allow Travis tests to run in containers.
