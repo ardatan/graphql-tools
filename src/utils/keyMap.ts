@@ -22,7 +22,7 @@
  *
  */
 export function keyMap<T>(
-  list: readonly T[],
+  list: ReadonlyArray<T>,
   keyFn: (item: T) => string,
 ): { [name: string]: T } {
   return list.reduce((map, item) => {

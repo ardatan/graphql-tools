@@ -7,6 +7,7 @@ import {
   GraphQLObjectType,
 } from 'graphql';
 import { ExecutionContext } from 'graphql/execution/execute';
+
 import { collectFields } from '../../utils/collectFields';
 
 import {

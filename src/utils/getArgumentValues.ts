@@ -9,6 +9,7 @@ import {
   Kind,
   print,
 } from 'graphql';
+
 import { keyMap } from './keyMap';
 import { inspect } from './inspect';
 
@@ -27,7 +28,7 @@ export function getArgumentValues(
 ): { [argument: string]: any } {
   const coercedValues = {};
 
-  /* istanbul ignore next (See https://github.com/graphql/graphql-js/issues/2203) */
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   const argumentNodes = node.arguments ?? [];
   const argNodeMap = keyMap(argumentNodes, (arg) => arg.name.value);
 

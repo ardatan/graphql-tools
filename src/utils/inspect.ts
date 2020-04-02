@@ -8,12 +8,14 @@ export function inspect(value: any): string {
   return formatValue(value, []);
 }
 
-function formatValue(value: any, seenValues: any[]): string {
+function formatValue(value: any, seenValues: Array<any>): string {
   switch (typeof value) {
     case 'string':
       return JSON.stringify(value);
     case 'function':
-      return value.name ? `[function ${value.name}]` : '[function]';
+      return value.name
+        ? `[function ${(value as Function).name}]`
+        : '[function]';
     case 'object':
       if (value === null) {
         return 'null';
@@ -24,7 +26,10 @@ function formatValue(value: any, seenValues: any[]): string {
   }
 }
 
-function formatObjectValue(value: any, previouslySeenValues: any[]): string {
+function formatObjectValue(
+  value: any,
+  previouslySeenValues: Array<any>,
+): string {
   if (previouslySeenValues.indexOf(value) !== -1) {
     return '[Circular]';
   }
@@ -48,7 +53,7 @@ function formatObjectValue(value: any, previouslySeenValues: any[]): string {
   return formatObject(value, seenValues);
 }
 
-function formatObject(object: any, seenValues: any[]) {
+function formatObject(object: any, seenValues: Array<any>) {
   const keys = Object.keys(object);
   if (keys.length === 0) {
     return '{}';
@@ -59,14 +64,14 @@ function formatObject(object: any, seenValues: any[]) {
   }
 
   const properties = keys.map((key) => {
-    const value: any = formatValue(object[key], seenValues);
+    const value = formatValue(object[key], seenValues);
     return key + ': ' + value;
   });
 
   return '{ ' + properties.join(', ') + ' }';
 }
 
-function formatArray(array: any[], seenValues: any[]): string {
+function formatArray(array: Array<any>, seenValues: Array<any>): string {
   if (array.length === 0) {
     return '[]';
   }
@@ -86,7 +91,7 @@ function formatArray(array: any[], seenValues: any[]): string {
   if (remaining === 1) {
     items.push('... 1 more item');
   } else if (remaining > 1) {
-    items.push(`... ${remaining} more items`);
+    items.push(`... ${remaining.toString(10)} more items`);
   }
 
   return '[' + items.join(', ') + ']';
