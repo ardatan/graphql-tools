@@ -41,6 +41,8 @@ import {
 } from 'graphql';
 
 import { graphqlVersion } from '../utils/graphqlVersion';
+import { hasOwnProperty } from '../utils/hasOwnProperty';
+import keyValMap from '../utils/keyValMap';
 
 export function schemaToConfig(schema: GraphQLSchema): GraphQLSchemaConfig {
   if (schema.toConfig != null) {
@@ -262,17 +264,17 @@ export function enumTypeToConfig(type: GraphQLEnumType): GraphQLEnumTypeConfig {
     return type.toConfig();
   }
 
-  const newValues = {};
-
-  type.getValues().forEach((value) => {
-    newValues[value.name] = {
+  const newValues = keyValMap(
+    type.getValues(),
+    (value) => value.name,
+    (value) => ({
       description: value.description,
       value: value.value,
       deprecationReason: value.deprecationReason,
       extensions: value.extensions,
       astNode: value.astNode,
-    };
-  });
+    }),
+  );
 
   const typeConfig = {
     name: type.name,
@@ -287,8 +289,6 @@ export function enumTypeToConfig(type: GraphQLEnumType): GraphQLEnumTypeConfig {
   return typeConfig;
 }
 
-const hasOwn = Object.prototype.hasOwnProperty;
-
 export function scalarTypeToConfig(
   type: GraphQLScalarType,
 ): GraphQLScalarTypeConfig<any, any> {
@@ -300,19 +300,19 @@ export function scalarTypeToConfig(
     name: type.name,
     description: type.description,
     serialize:
-      graphqlVersion() >= 14 || hasOwn.call(type, 'serialize')
+      graphqlVersion() >= 14 || hasOwnProperty(type, 'serialize')
         ? type.serialize
         : ((type as unknown) as {
             _scalarConfig: GraphQLScalarTypeConfig<any, any>;
           })._scalarConfig.serialize,
     parseValue:
-      graphqlVersion() >= 14 || hasOwn.call(type, 'parseValue')
+      graphqlVersion() >= 14 || hasOwnProperty(type, 'parseValue')
         ? type.parseValue
         : ((type as unknown) as {
             _scalarConfig: GraphQLScalarTypeConfig<any, any>;
           })._scalarConfig.parseValue,
     parseLiteral:
-      graphqlVersion() >= 14 || hasOwn.call(type, 'parseLiteral')
+      graphqlVersion() >= 14 || hasOwnProperty(type, 'parseLiteral')
         ? type.parseLiteral
         : ((type as unknown) as {
             _scalarConfig: GraphQLScalarTypeConfig<any, any>;
@@ -349,13 +349,11 @@ export function inputObjectTypeToConfig(
 export function inputFieldMapToConfig(
   fields: GraphQLInputFieldMap,
 ): GraphQLInputFieldConfigMap {
-  const newFields = {};
-  Object.keys(fields).forEach((fieldName) => {
-    const field = fields[fieldName];
-    newFields[fieldName] = toConfig(field);
-  });
-
-  return newFields;
+  return keyValMap(
+    Object.keys(fields),
+    (fieldName) => fieldName,
+    (fieldName) => toConfig(fields[fieldName]),
+  );
 }
 
 export function inputFieldToConfig(
@@ -394,14 +392,11 @@ export function directiveToConfig(
 export function fieldMapToConfig(
   fields: GraphQLFieldMap<any, any>,
 ): GraphQLFieldConfigMap<any, any> {
-  const newFields = {};
-
-  Object.keys(fields).forEach((fieldName) => {
-    const field = fields[fieldName];
-    newFields[fieldName] = toConfig(field);
-  });
-
-  return newFields;
+  return keyValMap(
+    Object.keys(fields),
+    (fieldName) => fieldName,
+    (fieldName) => toConfig(fields[fieldName]),
+  );
 }
 
 export function fieldToConfig(

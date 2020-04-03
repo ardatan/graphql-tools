@@ -12,6 +12,7 @@ import {
 
 import { keyMap } from './keyMap';
 import { inspect } from './inspect';
+import toObjMap from './toObjMap';
 
 /**
  * Prepares an object map of argument values given a list of argument
@@ -24,8 +25,10 @@ import { inspect } from './inspect';
 export function getArgumentValues(
   def: GraphQLField<any, any> | GraphQLDirective,
   node: FieldNode | DirectiveNode,
-  variableValues?: { [variableName: string]: any },
-): { [argument: string]: any } {
+  variableValues: Record<string, any> = {},
+): Record<string, any> {
+  const variableMap = toObjMap(variableValues);
+
   const coercedValues = {};
 
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
@@ -55,10 +58,7 @@ export function getArgumentValues(
 
     if (valueNode.kind === Kind.VARIABLE) {
       const variableName = valueNode.name.value;
-      if (
-        variableValues == null ||
-        !hasOwnProperty(variableValues, variableName)
-      ) {
+      if (variableValues == null || !(variableName in variableMap)) {
         if (argDef.defaultValue !== undefined) {
           coercedValues[name] = argDef.defaultValue;
         } else if (isNonNullType(argType)) {
@@ -94,8 +94,4 @@ export function getArgumentValues(
     coercedValues[name] = coercedValue;
   }
   return coercedValues;
-}
-
-function hasOwnProperty(obj: any, prop: string): boolean {
-  return Object.prototype.hasOwnProperty.call(obj, prop);
 }

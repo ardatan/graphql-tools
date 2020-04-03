@@ -3,10 +3,5 @@ export default function isEmptyObject(obj: Record<string, any>): boolean {
     return true;
   }
 
-  for (const key in obj) {
-    if (Object.hasOwnProperty.call(obj, key)) {
-      return false;
-    }
-  }
-  return true;
+  return Object.keys(obj).length === 0;
 }

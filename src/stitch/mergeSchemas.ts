@@ -94,8 +94,11 @@ export default function mergeSchemas({
   subscriptionTypeName?: string;
 }): GraphQLSchema {
   const allSchemas: Array<GraphQLSchema> = [];
-  const typeCandidates: { [name: string]: Array<MergeTypeCandidate> } = {};
-  const typeMap: { [name: string]: GraphQLNamedType } = {};
+  const typeCandidates: Record<
+    string,
+    Array<MergeTypeCandidate>
+  > = Object.create(null);
+  const typeMap: Record<string, GraphQLNamedType> = Object.create(null);
   const extensions: Array<DocumentNode> = [];
   const directives: Array<GraphQLDirective> = [];
 
@@ -228,7 +231,7 @@ export default function mergeSchemas({
       (typeof mergeTypes === 'function' &&
         mergeTypes(typeName, typeCandidates[typeName])) ||
       (Array.isArray(mergeTypes) && mergeTypes.includes(typeName)) ||
-      mergeInfo.mergedTypes[typeName] != null
+      typeName in mergeInfo.mergedTypes
     ) {
       typeMap[typeName] = merge(typeName, typeCandidates[typeName]);
     } else {
@@ -292,11 +295,11 @@ export default function mergeSchemas({
 }
 
 function addTypeCandidate(
-  typeCandidates: { [name: string]: Array<MergeTypeCandidate> },
+  typeCandidates: Record<string, Array<MergeTypeCandidate>>,
   name: string,
   typeCandidate: MergeTypeCandidate,
 ) {
-  if (!typeCandidates[name]) {
+  if (!(name in typeCandidates)) {
     typeCandidates[name] = [];
   }
   typeCandidates[name].push(typeCandidate);

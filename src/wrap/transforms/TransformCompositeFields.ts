@@ -60,7 +60,7 @@ export default class TransformCompositeFields implements Transform {
   }
 
   public transformRequest(originalRequest: Request): Request {
-    const fragments = {};
+    const fragments = Object.create(null);
     originalRequest.document.definitions
       .filter((def) => def.kind === Kind.FRAGMENT_DEFINITION)
       .forEach((def) => {
@@ -110,7 +110,7 @@ export default class TransformCompositeFields implements Transform {
 
           if (newName !== fieldName) {
             const typeName = type.name;
-            if (!this.mapping[typeName]) {
+            if (!(typeName in this.mapping)) {
               this.mapping[typeName] = {};
             }
             this.mapping[typeName][newName] = fieldName;

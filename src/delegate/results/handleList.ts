@@ -32,7 +32,7 @@ export function handleList(
       getNullableType(type.ofType),
       listMember,
       index,
-      childErrors[index] != null ? childErrors[index] : [],
+      index in childErrors ? childErrors[index] : [],
       subschema,
       context,
       info,

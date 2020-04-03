@@ -10,8 +10,6 @@ import { Request, Result, MapperKind, Transform } from '../../Interfaces';
 import { mapSchema } from '../../utils/index';
 import { toConfig } from '../../polyfills/index';
 
-const hasOwn = Object.prototype.hasOwnProperty;
-
 export default class RenameRootTypes implements Transform {
   private readonly renamer: (name: string) => string | undefined;
   private map: { [key: string]: string };
@@ -19,8 +17,8 @@ export default class RenameRootTypes implements Transform {
 
   constructor(renamer: (name: string) => string | undefined) {
     this.renamer = renamer;
-    this.map = {};
-    this.reverseMap = {};
+    this.map = Object.create(null);
+    this.reverseMap = Object.create(null);
   }
 
   public transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
@@ -84,7 +82,7 @@ export default class RenameRootTypes implements Transform {
     Object.keys(object).forEach((key) => {
       const value = object[key];
       if (key === '__typename') {
-        if (hasOwn.call(this.map, value)) {
+        if (value in this.map) {
           object[key] = this.map[value];
         }
       } else {

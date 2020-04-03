@@ -23,6 +23,7 @@ import {
   forEachDefaultValue,
 } from '../utils/index';
 import { toConfig } from '../polyfills/index';
+import keyValMap from '../utils/keyValMap';
 
 import SchemaError from './SchemaError';
 import checkForResolveTypeResolver from './checkForResolveTypeResolver';
@@ -111,18 +112,21 @@ function addResolversToSchema(
       const config = toConfig(type);
 
       const values = type.getValues();
-      const newValues = {};
-      values.forEach((value) => {
-        const newValue = Object.keys(resolverValue).includes(value.name)
-          ? resolverValue[value.name]
-          : value.name;
-        newValues[value.name] = {
-          value: newValue,
-          deprecationReason: value.deprecationReason,
-          description: value.description,
-          astNode: value.astNode,
-        };
-      });
+      const newValues = keyValMap(
+        values,
+        (value) => value.name,
+        (value) => {
+          const newValue = Object.keys(resolverValue).includes(value.name)
+            ? resolverValue[value.name]
+            : value.name;
+          return {
+            value: newValue,
+            deprecationReason: value.deprecationReason,
+            description: value.description,
+            astNode: value.astNode,
+          };
+        },
+      );
 
       // healSchema called later to update all fields to new type
       typeMap[typeName] = new GraphQLEnumType({

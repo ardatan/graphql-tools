@@ -32,6 +32,7 @@ import {
 } from 'graphql';
 
 import { createNamedStub, graphqlVersion } from '../utils/index';
+import keyValMap from '../utils/keyValMap';
 
 import resolveFromParentTypename from './resolveFromParentTypename';
 
@@ -107,12 +108,14 @@ function makeInterfaceType(
 }
 
 function makeEnumType(node: EnumTypeDefinitionNode): GraphQLEnumType {
-  const values = {};
-  node.values.forEach((value) => {
-    values[value.name.value] = {
+  const values = keyValMap(
+    node.values,
+    (value) => value.name.value,
+    (value) => ({
       description: getDescription(value, backcompatOptions),
-    };
-  });
+    }),
+  );
+
   return new GraphQLEnumType({
     name: node.name.value,
     values,
@@ -159,42 +162,46 @@ function makeInputObjectType(
 function makeFields(
   nodes: ReadonlyArray<FieldDefinitionNode>,
 ): Record<string, GraphQLFieldConfig<any, any>> {
-  const result: Record<string, GraphQLFieldConfig<any, any>> = {};
-  nodes.forEach((node) => {
-    const deprecatedDirective = node.directives.find(
-      (directive) => directive.name.value === 'deprecated',
-    );
-
-    let deprecationReason;
-
-    if (deprecatedDirective != null) {
-      const deprecatedArgument = deprecatedDirective.arguments.find(
-        (arg) => arg.name.value === 'reason',
+  return keyValMap(
+    nodes,
+    (node) => node.name.value,
+    (node) => {
+      const deprecatedDirective = node.directives.find(
+        (directive) => directive.name.value === 'deprecated',
       );
-      deprecationReason = (deprecatedArgument.value as StringValueNode).value;
-    }
 
-    result[node.name.value] = {
-      type: resolveType(node.type, 'object') as GraphQLObjectType,
-      args: makeValues(node.arguments),
-      description: getDescription(node, backcompatOptions),
-      deprecationReason,
-    };
-  });
-  return result;
+      let deprecationReason;
+
+      if (deprecatedDirective != null) {
+        const deprecatedArgument = deprecatedDirective.arguments.find(
+          (arg) => arg.name.value === 'reason',
+        );
+        deprecationReason = (deprecatedArgument.value as StringValueNode).value;
+      }
+
+      return {
+        type: resolveType(node.type, 'object') as GraphQLObjectType,
+        args: makeValues(node.arguments),
+        description: getDescription(node, backcompatOptions),
+        deprecationReason,
+      };
+    },
+  );
 }
 
 function makeValues(nodes: ReadonlyArray<InputValueDefinitionNode>) {
-  const result = {};
-  nodes.forEach((node) => {
-    const type = resolveType(node.type, 'input') as GraphQLInputType;
-    result[node.name.value] = {
-      type,
-      defaultValue: node.defaultValue,
-      description: getDescription(node, backcompatOptions),
-    };
-  });
-  return result;
+  return keyValMap(
+    nodes,
+    (node) => node.name.value,
+    (node) => {
+      const type = resolveType(node.type, 'input') as GraphQLInputType;
+      return {
+        type,
+        defaultValue: node.defaultValue,
+        description: getDescription(node, backcompatOptions),
+      };
+    },
+  );
 }
 
 function resolveType(

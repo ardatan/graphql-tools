@@ -23,6 +23,7 @@ import {
 
 import { Transform, Request } from '../../Interfaces';
 import implementsAbstractType from '../../utils/implementsAbstractType';
+import keyValMap from '../../utils/keyValMap';
 
 export default class FilterToSchema implements Transform {
   private readonly targetSchema: GraphQLSchema;
@@ -67,12 +68,11 @@ function filterToSchema(
     },
   );
 
-  const validFragmentsWithType: { [name: string]: GraphQLType } = {};
-  validFragments.forEach((fragment: FragmentDefinitionNode) => {
-    const typeName = fragment.typeCondition.name.value;
-    const type = targetSchema.getType(typeName);
-    validFragmentsWithType[fragment.name.value] = type;
-  });
+  const validFragmentsWithType = keyValMap(
+    validFragments,
+    (fragment) => fragment.name.value,
+    (fragment) => targetSchema.getType(fragment.typeCondition.name.value),
+  );
 
   let fragmentSet = Object.create(null);
 
@@ -134,10 +134,10 @@ function filterToSchema(
     });
   });
 
-  const newVariables: Record<string, any> = {};
-  usedVariables.forEach((variableName) => {
-    newVariables[variableName] = variables[variableName];
-  });
+  const newVariables = usedVariables.reduce((acc, variableName) => {
+    acc[variableName] = variables[variableName];
+    return acc;
+  }, {});
 
   return {
     document: {
@@ -182,7 +182,7 @@ function collectFragmentVariables(
       remainingFragments = union(remainingFragments, fragmentUsedFragments);
       usedVariables = union(usedVariables, fragmentUsedVariables);
 
-      if (!fragmentSet[name]) {
+      if (!(name in fragmentSet)) {
         fragmentSet[name] = true;
         newFragments.push({
           kind: Kind.FRAGMENT_DEFINITION,
@@ -305,11 +305,11 @@ function filterSelectionSet(
 }
 
 function union(...arrays: Array<Array<string>>): Array<string> {
-  const cache: { [key: string]: boolean } = {};
+  const cache: Record<string, boolean> = Object.create(null);
   const result: Array<string> = [];
   arrays.forEach((array) => {
     array.forEach((item) => {
-      if (!cache[item]) {
+      if (!(item in cache)) {
         cache[item] = true;
         result.push(item);
       }

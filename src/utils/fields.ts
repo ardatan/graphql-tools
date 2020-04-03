@@ -7,6 +7,8 @@ import { TypeMap } from 'graphql/type/schema';
 
 import { toConfig } from '../polyfills/index';
 
+import toObjMap from './toObjMap';
+
 export function appendFields(
   typeMap: TypeMap,
   typeName: string,
@@ -15,11 +17,8 @@ export function appendFields(
   let type = typeMap[typeName];
   if (type != null) {
     const typeConfig = toConfig(type);
-    const originalFields = typeConfig.fields;
-    const newFields = {};
-    Object.keys(originalFields).forEach((fieldName) => {
-      newFields[fieldName] = originalFields[fieldName];
-    });
+
+    const newFields = toObjMap(typeConfig.fields);
     Object.keys(fields).forEach((fieldName) => {
       newFields[fieldName] = fields[fieldName];
     });

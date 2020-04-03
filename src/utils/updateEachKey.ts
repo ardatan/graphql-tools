@@ -1,10 +1,9 @@
 import { IndexedObject } from '../Interfaces';
 
-// A more powerful version of each that has the ability to replace or remove
-// array or object keys.
+// A generic updater function for arrays or objects.
 export default function updateEachKey<V>(
   arrayOrObject: IndexedObject<V>,
-  // The callback can return nothing to leave the key untouched, null to remove
+  // The callback can return nothing or undefined to leave the key untouched, null to remove
   // the key from the array or object, or a non-null V to replace the value.
   updater: (value: V, key: string) => void | null | V,
 ) {

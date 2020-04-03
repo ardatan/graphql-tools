@@ -31,14 +31,16 @@ export default class ReplaceFieldWithFragment implements Transform {
     for (const { field, fragment } of fragments) {
       const parsedFragment = parseFragmentToInlineFragment(fragment);
       const actualTypeName = parsedFragment.typeCondition.name.value;
-      if (this.mapping[actualTypeName] == null) {
-        this.mapping[actualTypeName] = {};
+      if (!(actualTypeName in this.mapping)) {
+        this.mapping[actualTypeName] = Object.create(null);
       }
 
-      if (this.mapping[actualTypeName][field] == null) {
-        this.mapping[actualTypeName][field] = [parsedFragment];
+      const typeMapping = this.mapping[actualTypeName];
+
+      if (!(field in typeMapping)) {
+        typeMapping[field] = [parsedFragment];
       } else {
-        this.mapping[actualTypeName][field].push(parsedFragment);
+        typeMapping[field].push(parsedFragment);
       }
     }
   }
@@ -77,7 +79,7 @@ function replaceFieldsWithFragments(
           const parentTypeName = parentType.name;
           let selections = node.selections;
 
-          if (mapping[parentTypeName] != null) {
+          if (parentTypeName in mapping) {
             node.selections.forEach((selection) => {
               if (selection.kind === Kind.FIELD) {
                 const name = selection.name.value;

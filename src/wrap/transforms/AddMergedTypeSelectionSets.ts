@@ -56,7 +56,7 @@ function addMergedTypeSelectionSets(
           const parentTypeName = parentType.name;
           let selections = node.selections;
 
-          if (mapping[parentTypeName] != null) {
+          if (parentTypeName in mapping) {
             const selectionSet = mapping[parentTypeName].selectionSet;
             if (selectionSet != null) {
               selections = selections.concat(selectionSet.selections);

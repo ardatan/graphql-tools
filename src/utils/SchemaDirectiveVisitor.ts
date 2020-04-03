@@ -7,13 +7,13 @@ import {
 
 import { VisitableSchemaType } from '../Interfaces';
 
-import each from './each';
 import valueFromASTUntyped from './valueFromASTUntyped';
 import { SchemaVisitor } from './SchemaVisitor';
 import { visitSchema } from './visitSchema';
 import { getArgumentValues } from './getArgumentValues';
-
-const hasOwn = Object.prototype.hasOwnProperty;
+import keyValMap from './keyValMap';
+import toObjMap from './toObjMap';
+import { keyMap } from './keyMap';
 
 // This class represents a reusable implementation of a @directive that may
 // appear in a GraphQL schema written in Schema Definition Language.
@@ -100,27 +100,23 @@ export class SchemaDirectiveVisitor<
   // instance to visit the object decorated by the @directive.
   public static visitSchemaDirectives(
     schema: GraphQLSchema,
-    directiveVisitors: {
-      // The keys of this object correspond to directive names as they appear
-      // in the schema, and the values should be subclasses (not instances!)
-      // of the SchemaDirectiveVisitor class. This distinction is important
-      // because a new SchemaDirectiveVisitor instance will be created each
-      // time a matching directive is found in the schema AST, with arguments
-      // and other metadata specific to that occurrence. To help prevent the
-      // mistake of passing instances, the SchemaDirectiveVisitor constructor
-      // method is marked as protected.
-      [directiveName: string]: typeof SchemaDirectiveVisitor;
-    },
+    // The keys of this object correspond to directive names as they appear
+    // in the schema, and the values should be subclasses (not instances!)
+    // of the SchemaDirectiveVisitor class. This distinction is important
+    // because a new SchemaDirectiveVisitor instance will be created each
+    // time a matching directive is found in the schema AST, with arguments
+    // and other metadata specific to that occurrence. To help prevent the
+    // mistake of passing instances, the SchemaDirectiveVisitor constructor
+    // method is marked as protected.
+    directiveVisitors: Record<string, typeof SchemaDirectiveVisitor>,
     // Optional context object that will be available to all visitor instances
     // via this.context. Defaults to an empty null-prototype object.
     context: {
       [key: string]: any;
     } = Object.create(null),
-  ): {
     // The visitSchemaDirectives method returns a map from directive names to
     // lists of SchemaDirectiveVisitors created while visiting the schema.
-    [directiveName: string]: Array<SchemaDirectiveVisitor>;
-  } {
+  ): Record<string, Array<SchemaDirectiveVisitor>> {
     // If the schema declares any directives for public consumption, record
     // them here so that we can properly coerce arguments when/if we encounter
     // an occurrence of the directive while walking the schema below.
@@ -131,12 +127,13 @@ export class SchemaDirectiveVisitor<
 
     // Map from directive names to lists of SchemaDirectiveVisitor instances
     // created while visiting the schema.
-    const createdVisitors: {
-      [directiveName: string]: Array<SchemaDirectiveVisitor>;
-    } = Object.create(null);
-    Object.keys(directiveVisitors).forEach((directiveName) => {
-      createdVisitors[directiveName] = [];
-    });
+    const createdVisitors = keyValMap(
+      Object.keys(directiveVisitors),
+      (item) => item,
+      (): Array<SchemaDirectiveVisitor> => [],
+    );
+
+    const directiveVisitorMap = toObjMap(directiveVisitors);
 
     function visitorSelector(
       type: VisitableSchemaType,
@@ -157,11 +154,11 @@ export class SchemaDirectiveVisitor<
       const visitors: Array<SchemaDirectiveVisitor> = [];
       directiveNodes.forEach((directiveNode) => {
         const directiveName = directiveNode.name.value;
-        if (!hasOwn.call(directiveVisitors, directiveName)) {
+        if (!(directiveName in directiveVisitorMap)) {
           return;
         }
 
-        const visitorClass = directiveVisitors[directiveName];
+        const visitorClass = directiveVisitorMap[directiveName];
 
         // Avoid creating visitor objects if visitorClass does not override
         // the visitor method named by methodName.
@@ -220,41 +217,39 @@ export class SchemaDirectiveVisitor<
 
   protected static getDeclaredDirectives(
     schema: GraphQLSchema,
-    directiveVisitors: {
-      [directiveName: string]: typeof SchemaDirectiveVisitor;
-    },
+    directiveVisitors: Record<string, typeof SchemaDirectiveVisitor>,
   ) {
-    const declaredDirectives: {
-      [directiveName: string]: GraphQLDirective;
-    } = Object.create(null);
+    const directiveVisitorMap = toObjMap(directiveVisitors);
 
-    each(schema.getDirectives(), (decl: GraphQLDirective) => {
-      declaredDirectives[decl.name] = decl;
-    });
-
+    const declaredDirectives = keyMap(schema.getDirectives(), (d) => d.name);
     // If the visitor subclass overrides getDirectiveDeclaration, and it
     // returns a non-null GraphQLDirective, use that instead of any directive
     // declared in the schema itself. Reasoning: if a SchemaDirectiveVisitor
     // goes to the trouble of implementing getDirectiveDeclaration, it should
     // be able to rely on that implementation.
-    each(directiveVisitors, (visitorClass, directiveName) => {
-      const decl = visitorClass.getDirectiveDeclaration(directiveName, schema);
-      if (decl != null) {
-        declaredDirectives[directiveName] = decl;
-      }
-    });
+    Object.entries(directiveVisitors).forEach(
+      ([directiveName, visitorClass]) => {
+        const decl = visitorClass.getDirectiveDeclaration(
+          directiveName,
+          schema,
+        );
+        if (decl != null) {
+          declaredDirectives[directiveName] = decl;
+        }
+      },
+    );
 
-    each(declaredDirectives, (decl, name) => {
-      if (!hasOwn.call(directiveVisitors, name)) {
+    Object.entries(declaredDirectives).forEach(([name, decl]) => {
+      if (!(name in directiveVisitorMap)) {
         // SchemaDirectiveVisitors.visitSchemaDirectives might be called
         // multiple times with partial directiveVisitors maps, so it's not
         // necessarily an error for directiveVisitors to be missing an
         // implementation of a directive that was declared in the schema.
         return;
       }
-      const visitorClass = directiveVisitors[name];
+      const visitorClass = directiveVisitorMap[name];
 
-      each(decl.locations, (loc) => {
+      decl.locations.forEach((loc) => {
         const visitorMethodName = directiveLocationToVisitorMethodName(loc);
         if (
           SchemaVisitor.implementsVisitorMethod(visitorMethodName) &&

@@ -19,7 +19,7 @@ export function updateArgument(
   let numGeneratedVariables = 0;
   do {
     varName = `_v${(numGeneratedVariables++).toString()}_${argName}`;
-  } while (variableDefinitionsMap[varName] != null);
+  } while (varName in variableDefinitionsMap);
 
   argumentNodes[argName] = {
     kind: Kind.ARGUMENT,

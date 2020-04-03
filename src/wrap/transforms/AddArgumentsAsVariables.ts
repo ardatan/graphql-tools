@@ -15,14 +15,16 @@ import {
 import { Transform, Request } from '../../Interfaces';
 import { serializeInputValue } from '../../utils/index';
 import { updateArgument } from '../../utils/updateArgument';
+import toObjMap from '../../utils/toObjMap';
+import keyValMap from '../../utils/keyValMap';
 
 export default class AddArgumentsAsVariables implements Transform {
   private readonly targetSchema: GraphQLSchema;
-  private readonly args: { [key: string]: any };
+  private readonly args: Record<string, any>;
 
-  constructor(targetSchema: GraphQLSchema, args: { [key: string]: any }) {
+  constructor(targetSchema: GraphQLSchema, args: Record<string, any>) {
     this.targetSchema = targetSchema;
-    this.args = args;
+    this.args = toObjMap(args);
   }
 
   public transformRequest(originalRequest: Request): Request {
@@ -58,11 +60,11 @@ function addVariablesToRootField(
   ) as Array<FragmentDefinitionNode>;
 
   const newOperations = operations.map((operation: OperationDefinitionNode) => {
-    const variableDefinitionMap = {};
-    operation.variableDefinitions.forEach((def) => {
-      const varName = def.variable.name.value;
-      variableDefinitionMap[varName] = def;
-    });
+    const variableDefinitionMap = keyValMap(
+      operation.variableDefinitions,
+      (def) => def.variable.name.value,
+      (def) => def,
+    );
 
     let type: GraphQLObjectType | null | undefined;
     if (operation.operation === 'subscription') {
@@ -77,10 +79,11 @@ function addVariablesToRootField(
     operation.selectionSet.selections.forEach((selection: SelectionNode) => {
       if (selection.kind === Kind.FIELD) {
         const argumentNodes = selection.arguments;
-        const argumentNodeMap: Record<string, ArgumentNode> = {};
-        argumentNodes.forEach((argument: ArgumentNode) => {
-          argumentNodeMap[argument.name.value] = argument;
-        });
+        const argumentNodeMap = keyValMap(
+          argumentNodes,
+          (argument) => argument.name.value,
+          (argument) => argument,
+        );
 
         const targetField = type.getFields()[selection.name.value];
 
@@ -127,8 +130,6 @@ function addVariablesToRootField(
   };
 }
 
-const hasOwn = Object.prototype.hasOwnProperty;
-
 function updateArguments(
   targetField: GraphQLField<any, any>,
   argumentNodeMap: Record<string, ArgumentNode>,
@@ -140,7 +141,7 @@ function updateArguments(
     const argName = argument.name;
     const argType = argument.type;
 
-    if (hasOwn.call(newArgs, argName)) {
+    if (argName in newArgs) {
       updateArgument(
         argName,
         argType,

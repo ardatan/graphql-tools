@@ -13,7 +13,6 @@ import {
   GraphQLScalarType,
   ValueNode,
   ExecutionResult,
-  Source,
   GraphQLResolveInfo,
 } from 'graphql';
 import { forAwaitEach } from 'iterall';
@@ -576,8 +575,8 @@ const bookingResolvers: IResolvers = {
   },
 
   Booking: {
-    __isTypeOf(source: Source, _context: any, _info: GraphQLResolveInfo) {
-      return Object.prototype.hasOwnProperty.call(source, 'id');
+    __isTypeOf(possibleBooking: any, _context: any, _info: GraphQLResolveInfo) {
+      return possibleBooking.id != null;
     },
     customer(parent: Booking) {
       return sampleData.Customer[parent.customerId];

@@ -49,7 +49,7 @@ function extractPossibleTypes(
   targetSchema: GraphQLSchema,
 ) {
   const typeMap = sourceSchema.getTypeMap();
-  const mapping: TypeMapping = {};
+  const mapping: TypeMapping = Object.create(null);
   Object.keys(typeMap).forEach((typeName) => {
     const type = typeMap[typeName];
     if (isAbstractType(type)) {
@@ -66,11 +66,11 @@ function extractPossibleTypes(
 }
 
 function flipMapping(mapping: TypeMapping): TypeMapping {
-  const result: TypeMapping = {};
+  const result: TypeMapping = Object.create(null);
   Object.keys(mapping).forEach((typeName) => {
     const toTypeNames = mapping[typeName];
     toTypeNames.forEach((toTypeName) => {
-      if (result[toTypeName] == null) {
+      if (!(toTypeName in result)) {
         result[toTypeName] = [];
       }
       result[toTypeName].push(typeName);
@@ -106,9 +106,10 @@ function expandAbstractTypes(
   };
 
   const newFragments: Array<FragmentDefinitionNode> = [];
-  const fragmentReplacements: {
-    [fragmentName: string]: Array<{ fragmentName: string; typeName: string }>;
-  } = {};
+  const fragmentReplacements: Record<
+    string,
+    Array<{ fragmentName: string; typeName: string }>
+  > = Object.create(null);
 
   fragments.forEach((fragment: FragmentDefinitionNode) => {
     newFragments.push(fragment);
@@ -191,9 +192,8 @@ function expandAbstractTypes(
               }
             } else if (selection.kind === Kind.FRAGMENT_SPREAD) {
               const fragmentName = selection.name.value;
-              const replacements = fragmentReplacements[fragmentName];
-              if (replacements != null) {
-                replacements.forEach((replacement) => {
+              if (fragmentName in fragmentReplacements) {
+                fragmentReplacements[fragmentName].forEach((replacement) => {
                   const typeName = replacement.typeName;
                   const maybeReplacementType = targetSchema.getType(typeName);
                   if (
@@ -213,7 +213,7 @@ function expandAbstractTypes(
             }
           });
 
-          if (reverseMapping[parentType.name] != null) {
+          if (parentType.name in reverseMapping) {
             newSelections.push({
               kind: Kind.FIELD,
               name: {
