@@ -17,7 +17,7 @@ export function handleNull(
     } else if (errors.some((error) => typeof error.path[1] === 'string')) {
       const childErrors = getErrorsByPathSegment(errors);
 
-      const result = Object.create(null);
+      const result = {};
       Object.keys(childErrors).forEach((pathSegment) => {
         result[pathSegment] = handleNull(
           fieldNodes,

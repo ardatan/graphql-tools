@@ -36,8 +36,6 @@ export function concatInlineFragments(
   };
 }
 
-const hasOwn = Object.prototype.hasOwnProperty;
-
 function deduplicateSelection(
   nodes: Array<SelectionNode>,
 ): Array<SelectionNode> {
@@ -46,7 +44,7 @@ function deduplicateSelection(
       switch (node.kind) {
         case 'Field': {
           if (node.alias != null) {
-            if (hasOwn.call(map, node.alias.value)) {
+            if (node.alias.value in map) {
               return map;
             }
 
@@ -56,7 +54,7 @@ function deduplicateSelection(
             };
           }
 
-          if (hasOwn.call(map, node.name.value)) {
+          if (node.name.value in map) {
             return map;
           }
 
@@ -66,7 +64,7 @@ function deduplicateSelection(
           };
         }
         case 'FragmentSpread': {
-          if (hasOwn.call(map, node.name.value)) {
+          if (node.name.value in map) {
             return map;
           }
 
@@ -98,7 +96,7 @@ function deduplicateSelection(
         }
       }
     },
-    {},
+    Object.create(null),
   );
 
   const selection = Object.keys(selectionMap).reduce(

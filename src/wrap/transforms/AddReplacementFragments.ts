@@ -60,7 +60,7 @@ function replaceFieldsWithFragments(
           const parentTypeName = parentType.name;
           let selections = node.selections;
 
-          if (mapping[parentTypeName] != null) {
+          if (parentTypeName in mapping) {
             node.selections.forEach((selection) => {
               if (selection.kind === Kind.FIELD) {
                 const name = selection.name.value;

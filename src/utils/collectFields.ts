@@ -38,7 +38,7 @@ export function collectFields(
           continue;
         }
         const name = getFieldEntryKey(selection);
-        if (!fields[name]) {
+        if (!(name in fields)) {
           fields[name] = [];
         }
         fields[name].push(selection);

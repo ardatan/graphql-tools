@@ -120,7 +120,7 @@ function getFieldsNotInSubschema(
   const fieldsNotInSchema: Array<FieldNode> = [];
   Object.keys(subFieldNodes).forEach((responseName) => {
     subFieldNodes[responseName].forEach((subFieldNode) => {
-      if (!fields[subFieldNode.name.value]) {
+      if (!(subFieldNode.name.value in fields)) {
         fieldsNotInSchema.push(subFieldNode);
       }
     });

@@ -61,7 +61,7 @@ export function getErrorsByPathSegment(
 
     const pathSegment = error.path[1];
 
-    const current = record[pathSegment] != null ? record[pathSegment] : [];
+    const current = pathSegment in record ? record[pathSegment] : [];
     current.push(slicedError(error));
     record[pathSegment] = current;
   });

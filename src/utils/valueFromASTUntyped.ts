@@ -1,5 +1,7 @@
 import { ValueNode, Kind } from 'graphql';
 
+import keyValMap from './keyValMap';
+
 // Similar to the graphql-js function of the same name, slightly simplified:
 // https://github.com/graphql/graphql-js/blob/master/src/utilities/valueFromASTUntyped.js
 export default function valueFromASTUntyped(valueNode: ValueNode): any {
@@ -17,11 +19,11 @@ export default function valueFromASTUntyped(valueNode: ValueNode): any {
     case Kind.LIST:
       return valueNode.values.map(valueFromASTUntyped);
     case Kind.OBJECT: {
-      const obj = Object.create(null);
-      valueNode.fields.forEach((field) => {
-        obj[field.name.value] = valueFromASTUntyped(field.value);
-      });
-      return obj;
+      return keyValMap(
+        valueNode.fields,
+        (field) => field.name.value,
+        (field) => valueFromASTUntyped(field.value),
+      );
     }
     /* istanbul ignore next */
     default:

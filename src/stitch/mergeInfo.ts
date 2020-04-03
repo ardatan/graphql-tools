@@ -30,6 +30,7 @@ import {
 } from '../utils/index';
 
 import delegateToSchema from '../delegate/delegateToSchema';
+import { hasOwnProperty } from '../utils/hasOwnProperty';
 
 type MergeTypeCandidate = {
   type: GraphQLNamedType;
@@ -98,7 +99,7 @@ function createMergedTypes(
         mergeTypeCandidates: Array<MergeTypeCandidate>,
       ) => boolean),
 ): Record<string, MergedTypeInfo> {
-  const mergedTypes: Record<string, MergedTypeInfo> = {};
+  const mergedTypes: Record<string, MergedTypeInfo> = Object.create(null);
 
   Object.keys(typeCandidates).forEach((typeName) => {
     if (isObjectType(typeCandidates[typeName][0].type)) {
@@ -107,7 +108,7 @@ function createMergedTypes(
           typeCandidate.subschema != null &&
           isSubschemaConfig(typeCandidate.subschema) &&
           typeCandidate.subschema.merge != null &&
-          typeCandidate.subschema.merge[typeName] != null,
+          hasOwnProperty(typeCandidate.subschema.merge, typeName),
       );
 
       if (
@@ -135,7 +136,7 @@ function createMergedTypes(
           ) as GraphQLObjectType;
           const fieldMap = type.getFields();
           Object.keys(fieldMap).forEach((fieldName) => {
-            if (fields[fieldName] == null) {
+            if (!(fieldName in fields)) {
               fields[fieldName] = [];
             }
             fields[fieldName].push(subschemaConfig);
@@ -243,18 +244,20 @@ export function completeMergeInfo(
       const field = type[fieldName];
       if (field.selectionSet) {
         const selectionSet = parseSelectionSet(field.selectionSet);
-        if (replacementSelectionSets[typeName] == null) {
-          replacementSelectionSets[typeName] = {};
+        if (!(typeName in replacementSelectionSets)) {
+          replacementSelectionSets[typeName] = Object.create(null);
         }
-        if (replacementSelectionSets[typeName][fieldName] == null) {
-          replacementSelectionSets[typeName][fieldName] = {
+
+        const typeReplacementSelectionSets = replacementSelectionSets[typeName];
+        if (!(fieldName in typeReplacementSelectionSets)) {
+          typeReplacementSelectionSets[fieldName] = {
             kind: Kind.SELECTION_SET,
             selections: [],
           };
         }
-        replacementSelectionSets[typeName][
+        typeReplacementSelectionSets[
           fieldName
-        ].selections = replacementSelectionSets[typeName][
+        ].selections = typeReplacementSelectionSets[
           fieldName
         ].selections.concat(selectionSet.selections);
       }
@@ -267,26 +270,30 @@ export function completeMergeInfo(
     });
   });
 
-  const mapping = {};
+  const mapping = Object.create(null);
   mergeInfo.fragments.forEach(({ field, fragment }) => {
     const parsedFragment = parseFragmentToInlineFragment(fragment);
     const actualTypeName = parsedFragment.typeCondition.name.value;
-    if (mapping[actualTypeName] == null) {
-      mapping[actualTypeName] = {};
+    if (!(actualTypeName in mapping)) {
+      mapping[actualTypeName] = Object.create(null);
     }
-    if (mapping[actualTypeName][field] == null) {
-      mapping[actualTypeName][field] = [];
+
+    const typeMapping = mapping[actualTypeName];
+    if (!(field in typeMapping)) {
+      typeMapping[field] = [];
     }
-    mapping[actualTypeName][field].push(parsedFragment);
+    typeMapping[field].push(parsedFragment);
   });
 
   const replacementFragments = Object.create(null);
   Object.keys(mapping).forEach((typeName) => {
     Object.keys(mapping[typeName]).forEach((field) => {
-      if (replacementFragments[typeName] == null) {
-        replacementFragments[typeName] = {};
+      if (!(typeName in replacementFragments)) {
+        replacementFragments[typeName] = Object.create(null);
       }
-      replacementFragments[typeName][field] = concatInlineFragments(
+
+      const typeReplacementFragments = replacementFragments[typeName];
+      typeReplacementFragments[field] = concatInlineFragments(
         typeName,
         mapping[typeName][field],
       );
@@ -321,7 +328,7 @@ function guessSchemaByRootField(
     const rootObject = operationToRootType(operation, schema);
     if (rootObject != null) {
       const fields = rootObject.getFields();
-      if (fields[fieldName] != null) {
+      if (fieldName in fields) {
         return schema;
       }
     }

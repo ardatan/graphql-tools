@@ -19,6 +19,7 @@ import {
 import { ICreateRequestFromInfo, Request, ICreateRequest } from '../Interfaces';
 import { serializeInputValue } from '../utils/index';
 import { updateArgument } from '../utils/updateArgument';
+import { keyMap } from '../utils/keyMap';
 
 export function getDelegatingOperation(
   parentType: GraphQLObjectType,
@@ -94,8 +95,8 @@ export function createRequest({
     argumentNodes = [];
   }
 
-  const newVariables = {};
-  const variableDefinitionMap = {};
+  const newVariables = Object.create(null);
+  const variableDefinitionMap = Object.create(null);
   variableDefinitions.forEach((def) => {
     const varName = def.variable.name.value;
     variableDefinitionMap[varName] = def;
@@ -109,10 +110,7 @@ export function createRequest({
     );
   });
 
-  const argumentNodeMap: Record<string, ArgumentNode> = {};
-  argumentNodes.forEach((argument: ArgumentNode) => {
-    argumentNodeMap[argument.name.value] = argument;
-  });
+  const argumentNodeMap = keyMap(argumentNodes, (arg) => arg.name.value);
 
   updateArgumentsWithDefaults(
     sourceParentType,

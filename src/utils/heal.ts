@@ -23,16 +23,11 @@ import {
 
 import { toConfig } from '../polyfills/index';
 
-import each from './each';
 import updateEachKey from './updateEachKey';
 import { isStub, getBuiltInForStub } from './stub';
 import { graphqlVersion } from './graphqlVersion';
 
-type NamedTypeMap = {
-  [key: string]: GraphQLNamedType;
-};
-
-const hasOwn = Object.prototype.hasOwnProperty;
+type NamedTypeMap = Record<string, GraphQLNamedType>;
 
 // Update any references to named schema types that disagree with the named
 // types found in schema.getTypeMap().
@@ -110,7 +105,7 @@ export function healTypes(
   // schema.getTypeMap() have changed, the keys of the type map need to
   // be updated accordingly.
 
-  each(originalTypeMap, (namedType, typeName) => {
+  Object.entries(originalTypeMap).forEach(([typeName, namedType]) => {
     if (namedType == null || typeName.startsWith('__')) {
       return;
     }
@@ -120,7 +115,7 @@ export function healTypes(
       return;
     }
 
-    if (hasOwn.call(actualNamedTypeMap, actualName)) {
+    if (actualName in actualNamedTypeMap) {
       throw new Error(`Duplicate schema type name ${actualName}`);
     }
 
@@ -132,24 +127,21 @@ export function healTypes(
   });
 
   // Now add back every named type by its actual name.
-  each(actualNamedTypeMap, (namedType, typeName) => {
+  Object.entries(actualNamedTypeMap).forEach(([typeName, namedType]) => {
     originalTypeMap[typeName] = namedType;
   });
 
   // Directive declaration argument types can refer to named types.
-  each(directives, (decl: GraphQLDirective) => {
+  directives.forEach((decl: GraphQLDirective) => {
     updateEachKey(decl.args, (arg) => {
       arg.type = healType(arg.type) as GraphQLInputType;
       return arg.type === null ? null : arg;
     });
   });
 
-  each(originalTypeMap, (namedType, typeName) => {
+  Object.entries(originalTypeMap).forEach(([typeName, namedType]) => {
     // Heal all named types, except for dangling references, kept only to redirect.
-    if (
-      !typeName.startsWith('__') &&
-      hasOwn.call(actualNamedTypeMap, typeName)
-    ) {
+    if (!typeName.startsWith('__') && typeName in actualNamedTypeMap) {
       if (namedType != null) {
         healNamedType(namedType);
       }
@@ -160,10 +152,7 @@ export function healTypes(
     // Dangling references to renamed types should remain in the schema
     // during healing, but must be removed now, so that the following
     // invariant holds for all names: schema.getType(name).name === name
-    if (
-      !typeName.startsWith('__') &&
-      !hasOwn.call(actualNamedTypeMap, typeName)
-    ) {
+    if (!typeName.startsWith('__') && !(typeName in actualNamedTypeMap)) {
       return null;
     }
   });
@@ -264,12 +253,12 @@ function pruneTypes(
   directives: ReadonlyArray<GraphQLDirective>,
 ) {
   const implementedInterfaces = {};
-  each(typeMap, (namedType) => {
+  Object.values(typeMap).forEach((namedType) => {
     if (
       isObjectType(namedType) ||
       (graphqlVersion() >= 15 && isInterfaceType(namedType))
     ) {
-      each((namedType as GraphQLObjectType).getInterfaces(), (iface) => {
+      (namedType as GraphQLObjectType).getInterfaces().forEach((iface) => {
         implementedInterfaces[iface.name] = true;
       });
     }
@@ -296,7 +285,7 @@ function pruneTypes(
       // prune interfaces without fields or without implementations
       if (
         !Object.keys(type.getFields()).length ||
-        !implementedInterfaces[type.name]
+        !(type.name in implementedInterfaces)
       ) {
         typeMap[typeName] = null;
         prunedTypeMap = true;

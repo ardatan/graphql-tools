@@ -8,6 +8,8 @@ import {
   isInputObjectType,
 } from 'graphql';
 
+import keyValMap from './keyValMap';
+
 type InputValueTransformer = (
   type: GraphQLEnumType | GraphQLScalarType,
   originalValue: any,
@@ -17,7 +19,7 @@ export function transformInputValue(
   type: GraphQLInputType,
   value: any,
   transformer: InputValueTransformer,
-) {
+): any {
   if (value == null) {
     return value;
   }
@@ -32,15 +34,11 @@ export function transformInputValue(
     );
   } else if (isInputObjectType(nullableType)) {
     const fields = nullableType.getFields();
-    const newValue = {};
-    Object.keys(value).forEach((key) => {
-      newValue[key] = transformInputValue(
-        fields[key].type,
-        value[key],
-        transformer,
-      );
-    });
-    return newValue;
+    return keyValMap(
+      Object.keys(value),
+      (key) => key,
+      (key) => transformInputValue(fields[key].type, value[key], transformer),
+    );
   }
 
   // unreachable, no other possible return value

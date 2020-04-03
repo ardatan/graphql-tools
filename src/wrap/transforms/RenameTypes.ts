@@ -22,8 +22,6 @@ import { isSpecifiedScalarType, toConfig } from '../../polyfills/index';
 import { Transform, Request, Result, MapperKind } from '../../Interfaces';
 import { mapSchema } from '../../utils/index';
 
-const hasOwn = Object.prototype.hasOwnProperty;
-
 export type RenameOptions = {
   renameBuiltins: boolean;
   renameScalars: boolean;
@@ -31,8 +29,8 @@ export type RenameOptions = {
 
 export default class RenameTypes implements Transform {
   private readonly renamer: (name: string) => string | undefined;
-  private map: { [key: string]: string };
-  private reverseMap: { [key: string]: string };
+  private map: Record<string, string>;
+  private reverseMap: Record<string, string>;
   private readonly renameBuiltins: boolean;
   private readonly renameScalars: boolean;
 
@@ -41,8 +39,8 @@ export default class RenameTypes implements Transform {
     options?: RenameOptions,
   ) {
     this.renamer = renamer;
-    this.map = {};
-    this.reverseMap = {};
+    this.map = Object.create(null);
+    this.reverseMap = Object.create(null);
     const { renameBuiltins = false, renameScalars = true } =
       options != null ? options : {};
     this.renameBuiltins = renameBuiltins;
@@ -137,7 +135,7 @@ export default class RenameTypes implements Transform {
     Object.keys(object).forEach((key) => {
       const value = object[key];
       if (key === '__typename') {
-        if (hasOwn.call(this.map, value)) {
+        if (value in this.map) {
           object[key] = this.map[value];
         }
       } else {

@@ -9,9 +9,9 @@ import {
 import FormData, { AppendOptions } from 'form-data';
 import fetch from 'node-fetch';
 
-import { AwaitVariablesLink } from './AwaitVariablesLink';
+import { hasOwnProperty } from '../utils/hasOwnProperty';
 
-const hasOwn = Object.prototype.hasOwnProperty;
+import { AwaitVariablesLink } from './AwaitVariablesLink';
 
 class FormDataWithStreamSupport extends FormData {
   private hasUnknowableLength: boolean;
@@ -38,7 +38,7 @@ class FormDataWithStreamSupport extends FormData {
       !Buffer.isBuffer(value) &&
       typeof value !== 'string' &&
       !value.path &&
-      !(value.readable && hasOwn.call(value, 'httpVersion'))
+      !(value.readable && hasOwnProperty(value, 'httpVersion'))
     ) {
       this.hasUnknowableLength = true;
     }

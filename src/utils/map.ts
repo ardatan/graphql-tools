@@ -43,7 +43,7 @@ export function mapSchema(
   schemaMapper: SchemaMapper = {},
 ): GraphQLSchema {
   const originalTypeMap = schema.getTypeMap();
-  const newTypeMap = {};
+  const newTypeMap = Object.create(null);
   Object.keys(originalTypeMap).forEach((typeName) => {
     if (!typeName.startsWith('__')) {
       const typeMapper = getMapper(

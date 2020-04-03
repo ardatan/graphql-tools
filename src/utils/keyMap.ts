@@ -24,7 +24,7 @@
 export function keyMap<T>(
   list: ReadonlyArray<T>,
   keyFn: (item: T) => string,
-): { [name: string]: T } {
+): Record<string, T> {
   return list.reduce((map, item) => {
     map[keyFn(item)] = item;
     return map;

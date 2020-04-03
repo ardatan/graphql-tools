@@ -27,7 +27,6 @@ import {
 import updateEachKey from './updateEachKey';
 import { healSchema } from './heal';
 import { SchemaVisitor } from './SchemaVisitor';
-import each from './each';
 
 // Generic function for visiting GraphQLSchema objects.
 export function visitSchema(
@@ -131,7 +130,7 @@ export function visitSchema(
         string,
         GraphQLNamedType | null
       > = type.getTypeMap();
-      each(typeMap, (namedType, typeName) => {
+      Object.entries(typeMap).forEach(([typeName, namedType]) => {
         if (!typeName.startsWith('__') && namedType != null) {
           // Call visit recursively to let it determine which concrete
           // subclass of GraphQLNamedType we found in the type map.
