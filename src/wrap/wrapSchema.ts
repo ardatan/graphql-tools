@@ -23,9 +23,6 @@ export function wrapSchema(
   addResolversToSchema({
     schema,
     resolvers: generateProxyingResolvers({ subschemaConfig, transforms }),
-    resolverValidationOptions: {
-      allowResolversNotInSchema: true,
-    },
   });
 
   let schemaTransforms: Array<Transform> = [];
