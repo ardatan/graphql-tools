@@ -27,7 +27,7 @@ import {
 import {
   concatInlineFragments,
   parseFragmentToInlineFragment,
-} from '../utils/index';
+} from '../utils/fragments';
 import { addMocksToSchema } from '../mock/index';
 
 import { propertySchema, bookingSchema } from './fixtures/schemas';

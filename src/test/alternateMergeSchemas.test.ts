@@ -32,15 +32,15 @@ import { isSpecifiedScalarType, toConfig } from '../polyfills/index';
 
 import { delegateToSchema } from '../delegate/index';
 import { makeExecutableSchema } from '../generate/index';
-import { mergeSchemas, createMergedResolver } from '../stitch/index';
+import { mergeSchemas } from '../stitch/index';
+import { createMergedResolver } from '../stitch/createMergedResolver';
 import { SubschemaConfig } from '../Interfaces';
+import { filterSchema, graphqlVersion } from '../utils/index';
 import {
-  filterSchema,
   wrapFieldNode,
   renameFieldNode,
   hoistFieldNodes,
-  graphqlVersion,
-} from '../utils/index';
+} from '../utils/fieldNodes';
 
 import {
   propertySchema,

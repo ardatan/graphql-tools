@@ -25,9 +25,11 @@ import AddReplacementFragments from '../wrap/transforms/AddReplacementFragments'
 import {
   parseFragmentToInlineFragment,
   concatInlineFragments,
+} from '../utils/fragments';
+import {
   typeContainsSelectionSet,
   parseSelectionSet,
-} from '../utils/index';
+} from '../utils/selectionSets';
 
 import delegateToSchema from '../delegate/delegateToSchema';
 import { hasOwnProperty } from '../utils/hasOwnProperty';
