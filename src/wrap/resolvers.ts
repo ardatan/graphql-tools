@@ -18,15 +18,6 @@ import { getResponseKeyFromInfo } from '../stitch/getResponseKeyFromInfo';
 import { getSubschema } from '../stitch/subSchema';
 import { getErrors } from '../stitch/errors';
 
-export type Mapping = {
-  [typeName: string]: {
-    [fieldName: string]: {
-      name: string;
-      operation: Operation;
-    };
-  };
-};
-
 export function generateProxyingResolvers({
   subschemaConfig,
   transforms,
@@ -48,69 +39,35 @@ export function generateProxyingResolvers({
 }): IResolvers {
   const targetSchema = subschemaConfig.schema;
 
-  const mapping = generateSimpleMapping(targetSchema);
-
-  const result = {};
-  Object.keys(mapping).forEach((name) => {
-    result[name] = {};
-    const innerMapping = mapping[name];
-    Object.keys(innerMapping).forEach((from) => {
-      const to = innerMapping[from];
-      const resolverType =
-        to.operation === 'subscription' ? 'subscribe' : 'resolve';
-      result[name][from] = {
-        [resolverType]: createProxyingResolver({
-          schema: subschemaConfig,
-          transforms,
-          operation: to.operation,
-          fieldName: to.name,
-        }),
-      };
-    });
-  });
-  return result;
-}
-
-export function generateSimpleMapping(targetSchema: GraphQLSchema): Mapping {
-  const query = targetSchema.getQueryType();
-  const mutation = targetSchema.getMutationType();
-  const subscription = targetSchema.getSubscriptionType();
-
-  const result: Mapping = {};
-  if (query != null) {
-    result[query.name] = generateMappingFromObjectType(query, 'query');
-  }
-  if (mutation != null) {
-    result[mutation.name] = generateMappingFromObjectType(mutation, 'mutation');
-  }
-  if (subscription != null) {
-    result[subscription.name] = generateMappingFromObjectType(
-      subscription,
-      'subscription',
-    );
-  }
-
-  return result;
-}
-
-export function generateMappingFromObjectType(
-  type: GraphQLObjectType,
-  operation: Operation,
-): {
-  [fieldName: string]: {
-    name: string;
-    operation: Operation;
+  const operationTypes: Record<Operation, GraphQLObjectType> = {
+    query: targetSchema.getQueryType(),
+    mutation: targetSchema.getMutationType(),
+    subscription: targetSchema.getSubscriptionType(),
   };
-} {
-  const result = {};
-  const fields = type.getFields();
-  Object.keys(fields).forEach((fieldName) => {
-    result[fieldName] = {
-      name: fieldName,
-      operation,
-    };
+
+  const resolvers = {};
+  Object.keys(operationTypes).forEach((operation: Operation) => {
+    const rootType = operationTypes[operation];
+    if (rootType != null) {
+      const typeName = rootType.name;
+      const fields = rootType.getFields();
+      resolvers[typeName] = {};
+      Object.keys(fields).forEach((fieldName) => {
+        const resolveField =
+          operation === 'subscription' ? 'subscribe' : 'resolve';
+        resolvers[typeName][fieldName] = {
+          [resolveField]: createProxyingResolver({
+            schema: subschemaConfig,
+            operation,
+            fieldName,
+            transforms,
+          }),
+        };
+      });
+    }
   });
-  return result;
+
+  return resolvers;
 }
 
 function defaultCreateProxyingResolver({
@@ -125,13 +82,21 @@ function defaultCreateProxyingResolver({
       const responseKey = getResponseKeyFromInfo(info);
       const errors = getErrors(parent, responseKey);
 
+      // Check to see if the parent contains a proxied result
       if (errors != null) {
         const subschema = getSubschema(parent, responseKey);
 
-        // if parent contains a proxied result from this subschema, can return that result
+        // If there is a proxied result from this subschema, return it
+        // This can happen even for a root field when the root type ia
+        // also nested as a field within a different type.
         if (schema === subschema) {
-          const result = parent[responseKey];
-          return handleResult(result, errors, subschema, context, info);
+          return handleResult(
+            parent[responseKey],
+            errors,
+            subschema,
+            context,
+            info,
+          );
         }
       }
     }
