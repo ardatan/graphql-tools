@@ -12,7 +12,7 @@ import {
   visitWithTypeInfo,
 } from 'graphql';
 
-import { concatInlineFragments } from '../../utils/index';
+import { concatInlineFragments } from '../../utils/fragments';
 import { Transform, Request } from '../../Interfaces';
 
 export default class ReplaceFieldWithFragment implements Transform {

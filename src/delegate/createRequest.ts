@@ -17,7 +17,7 @@ import {
 } from 'graphql';
 
 import { ICreateRequestFromInfo, Request, ICreateRequest } from '../Interfaces';
-import { serializeInputValue } from '../utils/index';
+import { serializeInputValue } from '../utils/transformInputValue';
 import { updateArgument } from '../utils/updateArgument';
 import { keyMap } from '../utils/keyMap';
 

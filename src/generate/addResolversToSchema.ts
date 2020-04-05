@@ -15,13 +15,11 @@ import {
   IResolverValidationOptions,
   IAddResolversToSchemaOptions,
 } from '../Interfaces';
+import { healSchema, forEachField, forEachDefaultValue } from '../utils/index';
 import {
   parseInputValue,
   serializeInputValue,
-  healSchema,
-  forEachField,
-  forEachDefaultValue,
-} from '../utils/index';
+} from '../utils/transformInputValue';
 import { toConfig } from '../polyfills/index';
 import keyValMap from '../utils/keyValMap';
 
