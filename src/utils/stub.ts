@@ -11,12 +11,31 @@ import {
   isObjectType,
   isInterfaceType,
   isInputObjectType,
+  TypeNode,
+  Kind,
+  GraphQLType,
+  GraphQLList,
+  GraphQLNonNull,
+  GraphQLOutputType,
+  GraphQLInputType,
 } from 'graphql';
 
 export function createNamedStub(
   name: string,
-  type: 'object' | 'interface' | 'input',
-): GraphQLObjectType | GraphQLInputObjectType | GraphQLInterfaceType {
+  type: 'object',
+): GraphQLObjectType;
+export function createNamedStub(
+  name: string,
+  type: 'interface',
+): GraphQLInterfaceType;
+export function createNamedStub(
+  name: string,
+  type: 'input',
+): GraphQLInputObjectType;
+export function createNamedStub(
+  name: string,
+  type: any,
+): GraphQLObjectType | GraphQLInterfaceType | GraphQLInputObjectType {
   let constructor: any;
   if (type === 'object') {
     constructor = GraphQLObjectType;
@@ -36,7 +55,27 @@ export function createNamedStub(
   });
 }
 
-export function isStub(type: GraphQLNamedType): boolean {
+export function createStub(node: TypeNode, type: 'output'): GraphQLOutputType;
+export function createStub(node: TypeNode, type: 'input'): GraphQLInputType;
+export function createStub(
+  node: TypeNode,
+  type: 'output' | 'input',
+): GraphQLType;
+export function createStub(node: TypeNode, type: any): any {
+  switch (node.kind) {
+    case Kind.LIST_TYPE:
+      return new GraphQLList(createStub(node.type, type));
+    case Kind.NON_NULL_TYPE:
+      return new GraphQLNonNull(createStub(node.type, type));
+    default:
+      if (type === 'output') {
+        return createNamedStub(node.name.value, 'object');
+      }
+      return createNamedStub(node.name.value, 'input');
+  }
+}
+
+export function isNamedStub(type: GraphQLNamedType): boolean {
   if (isObjectType(type) || isInterfaceType(type) || isInputObjectType(type)) {
     const fields = type.getFields();
     const fieldNames = Object.keys(fields);

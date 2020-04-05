@@ -4,14 +4,10 @@ import {
   FieldDefinitionNode,
   GraphQLEnumType,
   GraphQLInputObjectType,
-  GraphQLInputType,
   GraphQLInterfaceType,
-  GraphQLList,
   GraphQLNamedType,
-  GraphQLNonNull,
   GraphQLObjectType,
   GraphQLScalarType,
-  GraphQLType,
   GraphQLUnionType,
   InputObjectTypeDefinitionNode,
   InputValueDefinitionNode,
@@ -19,7 +15,6 @@ import {
   Kind,
   ObjectTypeDefinitionNode,
   ScalarTypeDefinitionNode,
-  TypeNode,
   UnionTypeDefinitionNode,
   GraphQLDirective,
   DirectiveDefinitionNode,
@@ -31,7 +26,8 @@ import {
   TokenKind,
 } from 'graphql';
 
-import { createNamedStub, graphqlVersion } from '../utils/index';
+import { graphqlVersion } from '../utils/index';
+import { createStub, createNamedStub } from '../utils/stub';
 import keyValMap from '../utils/keyValMap';
 
 import resolveFromParentTypename from './resolveFromParentTypename';
@@ -72,12 +68,8 @@ function makeObjectType(node: ObjectTypeDefinitionNode): GraphQLObjectType {
     name: node.name.value,
     fields: () => makeFields(node.fields),
     interfaces: () =>
-      node.interfaces.map(
-        (iface) =>
-          createNamedStub(
-            iface.name.value,
-            'interface',
-          ) as GraphQLInterfaceType,
+      node.interfaces.map((iface) =>
+        createNamedStub(iface.name.value, 'interface'),
       ),
     description: getDescription(node, backcompatOptions),
   };
@@ -93,12 +85,8 @@ function makeInterfaceType(
     interfaces:
       graphqlVersion() >= 15
         ? () =>
-            ((node as unknown) as ObjectTypeDefinitionNode).interfaces.map(
-              (iface) =>
-                createNamedStub(
-                  iface.name.value,
-                  'interface',
-                ) as GraphQLInterfaceType,
+            node.interfaces.map((iface) =>
+              createNamedStub(iface.name.value, 'interface'),
             )
         : undefined,
     description: getDescription(node, backcompatOptions),
@@ -127,9 +115,7 @@ function makeUnionType(node: UnionTypeDefinitionNode): GraphQLUnionType {
   return new GraphQLUnionType({
     name: node.name.value,
     types: () =>
-      node.types.map(
-        (type) => resolveType(type, 'object') as GraphQLObjectType,
-      ),
+      node.types.map((type) => createNamedStub(type.name.value, 'object')),
     description: getDescription(node, backcompatOptions),
     resolveType: (parent) => resolveFromParentTypename(parent),
   });
@@ -180,7 +166,7 @@ function makeFields(
       }
 
       return {
-        type: resolveType(node.type, 'object') as GraphQLObjectType,
+        type: createStub(node.type, 'output'),
         args: makeValues(node.arguments),
         description: getDescription(node, backcompatOptions),
         deprecationReason,
@@ -194,7 +180,7 @@ function makeValues(nodes: ReadonlyArray<InputValueDefinitionNode>) {
     nodes,
     (node) => node.name.value,
     (node) => {
-      const type = resolveType(node.type, 'input') as GraphQLInputType;
+      const type = createStub(node.type, 'input');
       return {
         type,
         defaultValue: node.defaultValue,
@@ -202,20 +188,6 @@ function makeValues(nodes: ReadonlyArray<InputValueDefinitionNode>) {
       };
     },
   );
-}
-
-function resolveType(
-  node: TypeNode,
-  type: 'object' | 'interface' | 'input',
-): GraphQLType {
-  switch (node.kind) {
-    case Kind.LIST_TYPE:
-      return new GraphQLList(resolveType(node.type, type));
-    case Kind.NON_NULL_TYPE:
-      return new GraphQLNonNull(resolveType(node.type, type));
-    default:
-      return createNamedStub(node.name.value, type);
-  }
 }
 
 function makeDirective(node: DirectiveDefinitionNode): GraphQLDirective {

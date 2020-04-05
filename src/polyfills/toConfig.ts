@@ -90,10 +90,11 @@ export function toConfig(
   },
 ): GraphQLObjectTypeConfig<any, any>;
 export function toConfig(
-  graphqlObject: GraphQLInterfaceType,
-): GraphQLInterfaceTypeConfig<any, any> & {
-  fields: GraphQLFieldConfigMap<any, any>;
-};
+  graphqlObject: GraphQLInterfaceType & {
+    interfaces: Array<GraphQLInterfaceType>;
+    fields: GraphQLFieldConfigMap<any, any>;
+  },
+): GraphQLInterfaceTypeConfig<any, any>;
 export function toConfig(
   graphqlObject: GraphQLUnionType,
 ): GraphQLUnionTypeConfig<any, any> & {
@@ -217,7 +218,7 @@ export function interfaceTypeToConfig(
     return type.toConfig();
   }
 
-  const typeConfig = {
+  const typeConfig: GraphQLInterfaceTypeConfig<any, any> = {
     name: type.name,
     description: type.description,
     fields: fieldMapToConfig(type.getFields()),
@@ -229,10 +230,7 @@ export function interfaceTypeToConfig(
   };
 
   if (graphqlVersion() >= 15) {
-    ((typeConfig as unknown) as GraphQLObjectTypeConfig<
-      any,
-      any
-    >).interfaces = ((type as unknown) as GraphQLObjectType).getInterfaces();
+    typeConfig.interfaces = type.getInterfaces();
   }
 
   return typeConfig;
@@ -380,8 +378,7 @@ export function directiveToConfig(
     description: directive.description,
     locations: directive.locations,
     args: argumentMapToConfig(directive.args),
-    isRepeatable: ((directive as unknown) as { isRepeatable: boolean })
-      .isRepeatable,
+    isRepeatable: directive.isRepeatable,
     extensions: directive.extensions,
     astNode: directive.astNode,
   };
