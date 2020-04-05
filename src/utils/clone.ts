@@ -4,7 +4,6 @@ import {
   GraphQLInputObjectType,
   GraphQLInterfaceType,
   GraphQLObjectType,
-  GraphQLObjectTypeConfig,
   GraphQLNamedType,
   GraphQLScalarType,
   GraphQLSchema,
@@ -43,13 +42,9 @@ export function cloneType(type: GraphQLNamedType): GraphQLNamedType {
       ...config,
       interfaces:
         graphqlVersion() >= 15
-          ? typeof ((config as unknown) as GraphQLObjectTypeConfig<any, any>)
-              .interfaces === 'function'
-            ? ((config as unknown) as GraphQLObjectTypeConfig<any, any>)
-                .interfaces
-            : ((config as unknown) as {
-                interfaces: Array<GraphQLInterfaceType>;
-              }).interfaces.slice()
+          ? typeof config.interfaces === 'function'
+            ? config.interfaces
+            : config.interfaces.slice()
           : undefined,
     };
     return new GraphQLInterfaceType(newConfig);

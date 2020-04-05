@@ -1,9 +1,4 @@
-import {
-  GraphQLObjectType,
-  GraphQLSchema,
-  isObjectType,
-  isInterfaceType,
-} from 'graphql';
+import { GraphQLSchema, isObjectType, isInterfaceType } from 'graphql';
 
 import { IResolvers } from '../Interfaces';
 import { graphqlVersion } from '../utils/index';
@@ -25,7 +20,7 @@ function extendResolversFromInterfaces(
       isObjectType(type) ||
       (graphqlVersion() >= 15 && isInterfaceType(type))
     ) {
-      const interfaceResolvers = (type as GraphQLObjectType)
+      const interfaceResolvers = type
         .getInterfaces()
         .map((iFace) => resolvers[iFace.name]);
       extendedResolvers[typeName] = Object.assign(

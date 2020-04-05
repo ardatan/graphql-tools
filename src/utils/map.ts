@@ -25,7 +25,6 @@ import {
   isObjectType,
   isScalarType,
   isUnionType,
-  GraphQLObjectTypeConfig,
 } from 'graphql';
 
 import { toConfig } from '../polyfills/toConfig';
@@ -264,14 +263,7 @@ export function rewireTypes(
         fields: () => rewireFields(config.fields),
       };
       if (graphqlVersion() >= 15) {
-        ((newConfig as unknown) as GraphQLObjectTypeConfig<
-          any,
-          any
-        >).interfaces = () =>
-          rewireNamedTypes(
-            ((config as unknown) as { interfaces: Array<GraphQLInterfaceType> })
-              .interfaces,
-          );
+        newConfig.interfaces = () => rewireNamedTypes(config.interfaces);
       }
       return new GraphQLInterfaceType(newConfig);
     } else if (isUnionType(type)) {
@@ -333,7 +325,9 @@ export function rewireTypes(
     return rewiredFields;
   }
 
-  function rewireNamedTypes<T extends GraphQLNamedType>(namedTypes: Array<T>) {
+  function rewireNamedTypes<T extends GraphQLNamedType>(
+    namedTypes: Array<T>,
+  ): Array<T> {
     const rewiredTypes: Array<T> = [];
     namedTypes.forEach((namedType) => {
       const rewiredType = rewireType(namedType);
@@ -379,7 +373,7 @@ function pruneTypes(
       isObjectType(namedType) ||
       (graphqlVersion() >= 15 && isInterfaceType(namedType))
     ) {
-      (namedType as GraphQLObjectType).getInterfaces().forEach((iface) => {
+      namedType.getInterfaces().forEach((iface) => {
         implementedInterfaces[iface.name] = true;
       });
     }

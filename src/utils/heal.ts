@@ -24,7 +24,7 @@ import {
 import { toConfig } from '../polyfills/index';
 
 import updateEachKey from './updateEachKey';
-import { isStub, getBuiltInForStub } from './stub';
+import { isNamedStub, getBuiltInForStub } from './stub';
 import { graphqlVersion } from './graphqlVersion';
 
 type NamedTypeMap = Record<string, GraphQLNamedType>;
@@ -197,7 +197,7 @@ export function healTypes(
   }
 
   function healInterfaces(type: GraphQLObjectType | GraphQLInterfaceType) {
-    updateEachKey((type as GraphQLObjectType).getInterfaces(), (iface) => {
+    updateEachKey(type.getInterfaces(), (iface) => {
       const healedType = healType(iface) as GraphQLInterfaceType;
       return healedType;
     });
@@ -234,7 +234,7 @@ export function healTypes(
       // the official type will be undefined, not null.
       let officialType = originalTypeMap[type.name];
       if (officialType === undefined) {
-        if (isStub(type)) {
+        if (isNamedStub(type)) {
           officialType = getBuiltInForStub(type);
         } else {
           officialType = type;
@@ -258,7 +258,7 @@ function pruneTypes(
       isObjectType(namedType) ||
       (graphqlVersion() >= 15 && isInterfaceType(namedType))
     ) {
-      (namedType as GraphQLObjectType).getInterfaces().forEach((iface) => {
+      namedType.getInterfaces().forEach((iface) => {
         implementedInterfaces[iface.name] = true;
       });
     }
