@@ -1,15 +1,9 @@
-export {
-  applySchemaTransforms,
-  applyRequestTransforms,
-  applyResultTransforms,
-} from './transforms';
-
-export { transformSchema } from './transformSchema';
 export { wrapSchema } from './wrapSchema';
+export { transformSchema } from './transformSchema';
 
 export * from './transforms/index';
 
 export {
   default as makeRemoteExecutableSchema,
-  createResolver as defaultCreateRemoteResolver,
+  defaultCreateRemoteResolver,
 } from './makeRemoteExecutableSchema';

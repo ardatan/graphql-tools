@@ -32,7 +32,7 @@ export default function makeRemoteExecutableSchema({
   schema: schemaOrTypeDefs,
   link,
   fetcher,
-  createResolver: customCreateResolver = createResolver,
+  createResolver = defaultCreateRemoteResolver,
   buildSchemaOptions,
 }: {
   schema: GraphQLSchema | string;
@@ -61,7 +61,7 @@ export default function makeRemoteExecutableSchema({
     operation: Operation;
   }): GraphQLFieldResolver<any, any> {
     if (operation === 'query' || operation === 'mutation') {
-      return customCreateResolver(finalFetcher);
+      return createResolver(finalFetcher);
     }
     return createSubscriptionResolver(link);
   }
@@ -80,7 +80,7 @@ export default function makeRemoteExecutableSchema({
   return remoteSchema;
 }
 
-export function createResolver(
+export function defaultCreateRemoteResolver(
   fetcher: Fetcher,
 ): GraphQLFieldResolver<any, any> {
   return async (_root, _args, context, info) => {
