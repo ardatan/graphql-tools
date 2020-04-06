@@ -33,12 +33,16 @@ export default function makeRemoteExecutableSchema({
   link,
   fetcher,
   createResolver = defaultCreateRemoteResolver,
+  createSubscriptionResolver = defaultCreateRemoteSubscriptionResolver,
   buildSchemaOptions,
 }: {
   schema: GraphQLSchema | string;
   link?: ApolloLink;
   fetcher?: Fetcher;
   createResolver?: (fetcher: Fetcher) => GraphQLFieldResolver<any, any>;
+  createSubscriptionResolver?: (
+    link: ApolloLink,
+  ) => GraphQLFieldResolver<any, any>;
   buildSchemaOptions?: BuildSchemaOptions;
 }): GraphQLSchema {
   let finalFetcher: Fetcher = fetcher;
@@ -52,30 +56,25 @@ export default function makeRemoteExecutableSchema({
       ? buildSchema(schemaOrTypeDefs, buildSchemaOptions)
       : schemaOrTypeDefs;
 
-  const remoteSchema = cloneSchema(targetSchema);
-  stripResolvers(remoteSchema);
-
-  function createProxyingResolver({
+  const createProxyingResolver = ({
     operation,
   }: {
     operation: Operation;
-  }): GraphQLFieldResolver<any, any> {
+  }): GraphQLFieldResolver<any, any> => {
     if (operation === 'query' || operation === 'mutation') {
       return createResolver(finalFetcher);
     }
     return createSubscriptionResolver(link);
-  }
+  };
 
-  addResolversToSchema({
-    schema: remoteSchema,
-    resolvers: generateProxyingResolvers({
-      subschemaConfig: { schema: remoteSchema },
-      createProxyingResolver,
-    }),
-    resolverValidationOptions: {
-      allowResolversNotInSchema: true,
-    },
+  const resolvers = generateProxyingResolvers({
+    subschemaConfig: { schema: targetSchema, createProxyingResolver },
   });
+
+  const remoteSchema = cloneSchema(targetSchema);
+
+  stripResolvers(remoteSchema);
+  addResolversToSchema({ schema: remoteSchema, resolvers });
 
   return remoteSchema;
 }
@@ -103,7 +102,9 @@ export function defaultCreateRemoteResolver(
   };
 }
 
-function createSubscriptionResolver(link: ApolloLink): ResolverFn {
+export function defaultCreateRemoteSubscriptionResolver(
+  link: ApolloLink,
+): GraphQLFieldResolver<any, any> {
   return (_root, _args, context, info) => {
     const fragments = Object.keys(info.fragments).map(
       (fragment) => info.fragments[fragment],
