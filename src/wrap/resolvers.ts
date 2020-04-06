@@ -21,21 +21,9 @@ import { getErrors } from '../stitch/errors';
 export function generateProxyingResolvers({
   subschemaConfig,
   transforms,
-  createProxyingResolver = defaultCreateProxyingResolver,
 }: {
   subschemaConfig: SubschemaConfig;
   transforms?: Array<Transform>;
-  createProxyingResolver?: ({
-    schema,
-    transforms,
-    operation,
-    fieldName,
-  }: {
-    schema?: GraphQLSchema | SubschemaConfig;
-    transforms?: Array<Transform>;
-    operation?: Operation;
-    fieldName?: string;
-  }) => GraphQLFieldResolver<any, any>;
 }): IResolvers {
   const targetSchema = subschemaConfig.schema;
 
@@ -44,6 +32,11 @@ export function generateProxyingResolvers({
     mutation: targetSchema.getMutationType(),
     subscription: targetSchema.getSubscriptionType(),
   };
+
+  const createProxyingResolver =
+    subschemaConfig.createProxyingResolver != null
+      ? subschemaConfig.createProxyingResolver
+      : defaultCreateProxyingResolver;
 
   const resolvers = {};
   Object.keys(operationTypes).forEach((operation: Operation) => {
@@ -58,9 +51,8 @@ export function generateProxyingResolvers({
         resolvers[typeName][fieldName] = {
           [resolveField]: createProxyingResolver({
             schema: subschemaConfig,
-            operation,
-            fieldName,
             transforms,
+            operation,
           }),
         };
       });

@@ -6,4 +6,5 @@ export * from './transforms/index';
 export {
   default as makeRemoteExecutableSchema,
   defaultCreateRemoteResolver,
+  defaultCreateRemoteSubscriptionResolver,
 } from './makeRemoteExecutableSchema';

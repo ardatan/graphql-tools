@@ -18,12 +18,15 @@ export function wrapSchema(
     : { schema: subschemaOrSubschemaConfig };
 
   const schema = cloneSchema(subschemaConfig.schema);
+
   stripResolvers(schema);
 
-  addResolversToSchema({
-    schema,
-    resolvers: generateProxyingResolvers({ subschemaConfig, transforms }),
+  const resolvers = generateProxyingResolvers({
+    subschemaConfig,
+    transforms,
   });
+
+  addResolversToSchema({ schema, resolvers });
 
   let schemaTransforms: Array<Transform> = [];
   if (subschemaConfig.transforms != null) {

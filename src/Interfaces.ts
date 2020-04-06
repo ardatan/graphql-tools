@@ -133,6 +133,7 @@ export interface SubschemaConfig {
   dispatcher?: Dispatcher;
   transforms?: Array<Transform>;
   merge?: Record<string, MergedTypeConfig>;
+  createProxyingResolver?: CreateProxyingResolverFn;
 }
 
 export interface MergedTypeConfig {
@@ -594,3 +595,13 @@ export type DirectiveMapper = (
   directive: GraphQLDirective,
   schema: GraphQLSchema,
 ) => GraphQLDirective | null | undefined;
+
+export interface ICreateProxyingResolverOptions {
+  schema?: GraphQLSchema | SubschemaConfig;
+  transforms?: Array<Transform>;
+  operation?: Operation;
+}
+
+export type CreateProxyingResolverFn = (
+  options: ICreateProxyingResolverOptions,
+) => GraphQLFieldResolver<any, any>;
