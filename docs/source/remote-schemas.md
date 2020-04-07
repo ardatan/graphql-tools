@@ -167,7 +167,7 @@ export default async () => {
 
 ### makeRemoteExecutableSchema(options)
 
-`makeExecutableSchema` takes a single argument: an object of options. The `schema` and either a `fetcher` or a `link` options are required.
+`makeRemoteExecutableSchema` takes a single argument: an object of options. The `schema` and either a `fetcher` or a `link` options are required.
 
 ```js
 import { makeRemoteExecutableSchema } from 'graphql-tools';
