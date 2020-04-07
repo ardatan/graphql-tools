@@ -2,6 +2,8 @@ import autoExternal from 'rollup-plugin-auto-external';
 import resolveNode from '@rollup/plugin-node-resolve';
 import generatePackageJson from 'rollup-plugin-generate-package-json';
 import rollupTypescript from 'rollup-plugin-typescript2';
+import path from 'path';
+import fs from 'fs';
 
 const commonOutputOptions = {
   preferConst: true,
@@ -21,6 +23,7 @@ export default {
       baseContents: rewritePackageJson,
     }),
     rollupTypescript(),
+    copyFiles(['README.md', 'LICENSE']),
   ],
   output: [
     {
@@ -76,4 +79,17 @@ function rewritePackageJson(pkg) {
   };
 
   return newPkg;
+}
+
+function copyFiles(paths) {
+  return {
+    name: 'copy-files',
+    generateBundle(outputOptions) {
+      const outputPath = outputOptions.dir || path.dirname(outputOptions.file);
+
+      paths.forEach((file) => {
+        fs.copyFileSync(file, path.join(outputPath, path.basename(file)));
+      });
+    },
+  };
 }
