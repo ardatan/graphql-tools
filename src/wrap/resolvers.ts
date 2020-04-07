@@ -40,20 +40,29 @@ export function generateProxyingResolvers({
 
   const resolvers = {};
   Object.keys(operationTypes).forEach((operation: Operation) => {
+    const resolveField = operation === 'subscription' ? 'subscribe' : 'resolve';
+
     const rootType = operationTypes[operation];
     if (rootType != null) {
       const typeName = rootType.name;
       const fields = rootType.getFields();
+
       resolvers[typeName] = {};
       Object.keys(fields).forEach((fieldName) => {
-        const resolveField =
-          operation === 'subscription' ? 'subscribe' : 'resolve';
+        const proxyingResolver = createProxyingResolver(
+          subschemaConfig,
+          transforms,
+          operation,
+          fieldName,
+        );
+
+        const finalResolver = createPossiblyNestedProxyingResolver(
+          subschemaConfig,
+          proxyingResolver,
+        );
+
         resolvers[typeName][fieldName] = {
-          [resolveField]: createProxyingResolver({
-            schema: subschemaConfig,
-            transforms,
-            operation,
-          }),
+          [resolveField]: finalResolver,
         };
       });
     }
@@ -62,14 +71,11 @@ export function generateProxyingResolvers({
   return resolvers;
 }
 
-function defaultCreateProxyingResolver({
-  schema,
-  transforms,
-}: {
-  schema: SubschemaConfig;
-  transforms: Array<Transform>;
-}): GraphQLFieldResolver<any, any> {
-  return (parent, _args, context, info) => {
+function createPossiblyNestedProxyingResolver(
+  subschemaConfig: SubschemaConfig,
+  proxyingResolver: GraphQLFieldResolver<any, any>,
+): GraphQLFieldResolver<any, any> {
+  return (parent, args, context, info) => {
     if (parent != null) {
       const responseKey = getResponseKeyFromInfo(info);
       const errors = getErrors(parent, responseKey);
@@ -81,7 +87,7 @@ function defaultCreateProxyingResolver({
         // If there is a proxied result from this subschema, return it
         // This can happen even for a root field when the root type ia
         // also nested as a field within a different type.
-        if (schema === subschema) {
+        if (subschemaConfig === subschema) {
           return handleResult(
             parent[responseKey],
             errors,
@@ -93,13 +99,21 @@ function defaultCreateProxyingResolver({
       }
     }
 
-    return delegateToSchema({
+    return proxyingResolver(parent, args, context, info);
+  };
+}
+
+export function defaultCreateProxyingResolver(
+  schema: GraphQLSchema | SubschemaConfig,
+  transforms: Array<Transform>,
+): GraphQLFieldResolver<any, any> {
+  return (_parent, _args, context, info) =>
+    delegateToSchema({
       schema,
       context,
       info,
       transforms,
     });
-  };
 }
 
 export function stripResolvers(schema: GraphQLSchema): void {

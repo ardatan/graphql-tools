@@ -126,14 +126,12 @@ export type Dispatcher = (context: any) => ApolloLink | Fetcher;
 export interface SubschemaConfig {
   schema: GraphQLSchema;
   rootValue?: Record<string, any>;
-  executor?: Delegator;
-  subscriber?: Delegator;
   link?: ApolloLink;
   fetcher?: Fetcher;
   dispatcher?: Dispatcher;
+  createProxyingResolver?: CreateProxyingResolverFn;
   transforms?: Array<Transform>;
   merge?: Record<string, MergedTypeConfig>;
-  createProxyingResolver?: CreateProxyingResolverFn;
 }
 
 export interface MergedTypeConfig {
@@ -596,12 +594,9 @@ export type DirectiveMapper = (
   schema: GraphQLSchema,
 ) => GraphQLDirective | null | undefined;
 
-export interface ICreateProxyingResolverOptions {
-  schema?: GraphQLSchema | SubschemaConfig;
-  transforms?: Array<Transform>;
-  operation?: Operation;
-}
-
 export type CreateProxyingResolverFn = (
-  options: ICreateProxyingResolverOptions,
+  schema: GraphQLSchema | SubschemaConfig,
+  transforms: Array<Transform>,
+  operation: Operation,
+  fieldName: string,
 ) => GraphQLFieldResolver<any, any>;

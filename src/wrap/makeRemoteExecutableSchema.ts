@@ -8,9 +8,7 @@ import {
   DocumentNode,
 } from 'graphql';
 
-import { addResolversToSchema } from '../generate/index';
-import { Fetcher, Operation } from '../Interfaces';
-import { cloneSchema } from '../utils/index';
+import { Fetcher } from '../Interfaces';
 import { buildSchema } from '../polyfills/index';
 import { addTypenameToAbstract } from '../delegate/addTypenameToAbstract';
 import { checkResultAndHandleErrors } from '../delegate/checkResultAndHandleErrors';
@@ -19,7 +17,7 @@ import linkToFetcher, { execute } from '../stitch/linkToFetcher';
 import { observableToAsyncIterable } from '../stitch/observableToAsyncIterable';
 import mapAsyncIterator from '../stitch/mapAsyncIterator';
 
-import { stripResolvers, generateProxyingResolvers } from './resolvers';
+import { wrapSchema } from './wrapSchema';
 
 export type ResolverFn = (
   rootValue?: any,
@@ -56,27 +54,15 @@ export default function makeRemoteExecutableSchema({
       ? buildSchema(schemaOrTypeDefs, buildSchemaOptions)
       : schemaOrTypeDefs;
 
-  const createProxyingResolver = ({
-    operation,
-  }: {
-    operation: Operation;
-  }): GraphQLFieldResolver<any, any> => {
-    if (operation === 'query' || operation === 'mutation') {
-      return createResolver(finalFetcher);
-    }
-    return createSubscriptionResolver(link);
-  };
-
-  const resolvers = generateProxyingResolvers({
-    subschemaConfig: { schema: targetSchema, createProxyingResolver },
+  return wrapSchema({
+    schema: targetSchema,
+    createProxyingResolver: (_schema, _transforms, operation) => {
+      if (operation === 'query' || operation === 'mutation') {
+        return createResolver(finalFetcher);
+      }
+      return createSubscriptionResolver(link);
+    },
   });
-
-  const remoteSchema = cloneSchema(targetSchema);
-
-  stripResolvers(remoteSchema);
-  addResolversToSchema({ schema: remoteSchema, resolvers });
-
-  return remoteSchema;
 }
 
 export function defaultCreateRemoteResolver(
