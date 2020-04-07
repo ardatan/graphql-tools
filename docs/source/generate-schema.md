@@ -130,6 +130,31 @@ const typeDefs = [`
 `]
 ```
 
+If one of the types extended needs a resolver you can use `makeExecutableSchema` like this:
+
+```js
+const barsResolver = {
+  Query: {
+    bars(parent, args, context, info) {
+      // ...
+    }
+  }
+};
+
+const foosResolver = {
+  Query: {
+    foos(parent, args, context, info) {
+      // ...
+    }
+  }
+}
+
+const schema = makeExecutableSchema({
+  typeDefs,
+  resolvers: [barsResolver, foosResolver]
+})
+```
+
 ## Learning the GraphQL schema language
 
 The official documentation on graphql.org now has [a section about GraphQL schemas](http://graphql.org/learn/schema/) which explains all of the different schema features and how to use them with the schema language.
@@ -204,7 +229,7 @@ const jsSchema = makeExecutableSchema({
 
 - `typeDefs` is a required argument and should be an GraphQL schema language string or array of GraphQL schema language strings or a function that takes no arguments and returns an array of GraphQL schema language strings. The order of the strings in the array is not important, but it must include a schema definition.
 
-- `resolvers` is an optional argument _(empty object by default)_ and should be an object that follows the pattern explained in [article on resolvers](/resolvers/).
+- `resolvers` is an optional argument _(empty object by default)_ and should be an object or an array of objects that follow the pattern explained in [article on resolvers](/resolvers/)
 
 - `logger` is an optional argument, which can be used to print errors to the server console that are usually swallowed by GraphQL. The `logger` argument should be an object with a `log` function, eg. `const logger = { log: e => console.log(e) }`
 
