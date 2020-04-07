@@ -175,7 +175,7 @@ type ProductList implements List {
 }
 `
 
-const typeResolvers = {
+const resolvers = {
   List: {
     __resolveType(data) {
       return data.typename // typename property must be set by your mock functions
@@ -185,7 +185,7 @@ const typeResolvers = {
 
 const schema = makeExecutableSchema({
   typeDefs,
-  typeResolvers
+  resolvers
 })
 
 addMocksToSchema({
