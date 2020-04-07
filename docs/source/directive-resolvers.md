@@ -2,9 +2,8 @@
 ## Directive example
 
 Let's take a look at how we can create `@upper` Directive to upper-case a string returned from resolve on Field
-[See a complete runnable example on Launchpad.](https://launchpad.graphql.com/p00rw37qx0)
 
-To start, let's grab the schema definition string from the `makeExecutableSchema` example [in the "Generating a schema" article](/tools/graphql-tools/generate-schema.html#example).
+To start, let's grab the schema definition string from the `makeExecutableSchema` example [in the "Generating a schema" article](/generate-schema/#example).
 
 ```js
 import { makeExecutableSchema } from 'graphql-tools';
@@ -65,7 +64,6 @@ graphql(schema, query).then((result) => console.log('Got result', result));
 ## Multi-Directives example
 
 Multi-Directives on a field will be apply with LTR order.
-[See a complete runnable example on Launchpad.](https://launchpad.graphql.com/nx945rq1x7)
 
 ```js
 // graphql-tools combines a schema string with resolvers.
