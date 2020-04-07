@@ -24,7 +24,7 @@
 
 #### Bug Fixes
 
-- Avoid using internal api of `graphql-js` [#1331][https://github.com/apollographql/graphql-tools/pull/1331]
+- Avoid using internal api of `graphql-js` [#1331](https://github.com/apollographql/graphql-tools/pull/1331)
 - Filter unused variables from map when proxying requests
 - Preserve subscription errors when using makeRemoteExecutableSchema
 - Preserve extensions when transforming schemas
@@ -42,6 +42,7 @@
 - Fix Circular Dependencies [#924](https://github.com/apollographql/graphql-tools/issues/924) [PR #1326](https://github.com/apollographql/graphql-tools/pull/1326)
 - Fix types [#1298](https://github.com/apollographql/graphql-tools/issues/1298) [#1279](https://github.com/apollographql/graphql-tools/issues/1279) [#837](https://github.com/apollographql/graphql-tools/issues/837) [#1307](https://github.com/apollographql/graphql-tools/issues/1307) [#1325](https://github.com/apollographql/graphql-tools/issues/1325) [#1324](https://github.com/apollographql/graphql-tools/issues/1324)
 - issues involving importing directories [#1242](https://github.com/apollographql/graphql-tools/issues/1242) [#1307](https://github.com/apollographql/graphql-tools/issues/1307)
+- fix n^2 problem within makeRemoteExecutableSchema [#1346](https://github.com/apollographql/graphql-tools/issues/1346) [PR #1352](https://github.com/apollographql/graphql-tools/pulls/1352)
 
 ### 4.0.7
 
