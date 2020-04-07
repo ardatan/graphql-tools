@@ -63,14 +63,14 @@ To implement a schema directive using `SchemaDirectiveVisitor`, simply create a 
 * `visitSchema(schema: GraphQLSchema)`
 * `visitScalar(scalar: GraphQLScalarType)`
 * `visitObject(object: GraphQLObjectType)`
-* `visitFieldDefinition(field: GraphQLField<any, any>)`
-* `visitArgumentDefinition(argument: GraphQLArgument)`
+* `visitFieldDefinition(field: GraphQLField<any, any>, details: { objectType: GraphQLObjectType | GraphQLInterfaceType })`
+* `visitArgumentDefinition(argument: GraphQLArgument, objectType: GraphQLObjectType | GraphQLInterfaceType })`
 * `visitInterface(iface: GraphQLInterfaceType)`
 * `visitUnion(union: GraphQLUnionType)`
 * `visitEnum(type: GraphQLEnumType)`
-* `visitEnumValue(value: GraphQLEnumValue)`
+* `visitEnumValue(value: GraphQLEnumValue, details: { enumType: GraphQLEnumType })`
 * `visitInputObject(object: GraphQLInputObjectType)`
-* `visitInputFieldDefinition(field: GraphQLInputField)`
+* `visitInputFieldDefinition(field: GraphQLInputField, details: { objectType: GraphQLInputObjectType })`
 
 By overriding methods like `visitObject`, a subclass of `SchemaDirectiveVisitor` expresses interest in certain schema types such as `GraphQLObjectType` (the first parameter type of `visitObject`).
 
