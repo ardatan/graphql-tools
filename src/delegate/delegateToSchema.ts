@@ -8,13 +8,13 @@ import {
   ExecutionResult,
   GraphQLOutputType,
   isSchema,
+  DocumentNode,
 } from 'graphql';
 
 import {
   IDelegateToSchemaOptions,
   IDelegateRequestOptions,
   Fetcher,
-  Delegator,
   SubschemaConfig,
   isSubschemaConfig,
   IGraphQLToolsResolveInfo,
@@ -202,9 +202,7 @@ export function delegateRequest({
       subschemaConfig,
     );
 
-    const executionResult:
-      | ExecutionResult
-      | Promise<ExecutionResult> = executor({
+    const executionResult = executor({
       document: processedRequest.document,
       context,
       variables: processedRequest.variables,
@@ -263,7 +261,15 @@ function createExecutor(
   rootValue: Record<string, any>,
   context: Record<string, any>,
   subschemaConfig?: SubschemaConfig,
-): Delegator {
+): ({
+  document,
+  context,
+  variables,
+}: {
+  document: DocumentNode;
+  context?: Record<string, any>;
+  variables?: Record<string, any>;
+}) => Promise<ExecutionResult> | ExecutionResult {
   let fetcher: Fetcher;
   let targetRootValue: Record<string, any> = rootValue;
   if (subschemaConfig != null) {
@@ -308,7 +314,15 @@ function createSubscriber(
   rootValue: Record<string, any>,
   context: Record<string, any>,
   subschemaConfig?: SubschemaConfig,
-): Delegator {
+): ({
+  document,
+  context,
+  variables,
+}: {
+  document: DocumentNode;
+  context?: Record<string, any>;
+  variables?: Record<string, any>;
+}) => Promise<AsyncIterator<ExecutionResult> | ExecutionResult> {
   let link: ApolloLink;
   let targetRootValue: Record<string, any> = rootValue;
 
@@ -332,7 +346,7 @@ function createSubscriber(
         context: { graphqlContext },
       };
       const observable = executeLink(link, operation);
-      return observableToAsyncIterable(observable);
+      return Promise.resolve(observableToAsyncIterable(observable));
     };
   }
 

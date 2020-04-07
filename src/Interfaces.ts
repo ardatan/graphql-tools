@@ -207,16 +207,6 @@ export interface IDelegateRequestOptions extends IDelegateToSchemaOptions {
   request: Request;
 }
 
-export type Delegator = ({
-  document,
-  context,
-  variables,
-}: {
-  document: DocumentNode;
-  context?: { [key: string]: any };
-  variables?: { [key: string]: any };
-}) => any;
-
 export interface MergeInfo {
   delegate: (
     type: 'query' | 'mutation' | 'subscription',
