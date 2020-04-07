@@ -2,29 +2,15 @@ import { ApolloLink } from 'apollo-link';
 import {
   GraphQLFieldResolver,
   GraphQLSchema,
-  Kind,
-  GraphQLResolveInfo,
   BuildSchemaOptions,
-  DocumentNode,
 } from 'graphql';
 
 import { Fetcher } from '../Interfaces';
 import { buildSchema } from '../polyfills/index';
-import { addTypenameToAbstract } from '../delegate/addTypenameToAbstract';
-import { checkResultAndHandleErrors } from '../delegate/checkResultAndHandleErrors';
-
-import linkToFetcher, { execute } from '../stitch/linkToFetcher';
-import { observableToAsyncIterable } from '../stitch/observableToAsyncIterable';
-import mapAsyncIterator from '../stitch/mapAsyncIterator';
+import linkToFetcher from '../stitch/linkToFetcher';
+import { delegateToSchema } from '../delegate';
 
 import { wrapSchema } from './wrapSchema';
-
-export type ResolverFn = (
-  rootValue?: any,
-  args?: any,
-  context?: any,
-  info?: GraphQLResolveInfo,
-) => AsyncIterator<any>;
 
 export default function makeRemoteExecutableSchema({
   schema: schemaOrTypeDefs,
@@ -68,50 +54,21 @@ export default function makeRemoteExecutableSchema({
 export function defaultCreateRemoteResolver(
   fetcher: Fetcher,
 ): GraphQLFieldResolver<any, any> {
-  return async (_root, _args, context, info) => {
-    const fragments = Object.keys(info.fragments).map(
-      (fragment) => info.fragments[fragment],
-    );
-    let query: DocumentNode = {
-      kind: Kind.DOCUMENT,
-      definitions: [info.operation, ...fragments],
-    };
-
-    query = addTypenameToAbstract(info.schema, query);
-
-    const result = await fetcher({
-      query,
-      variables: info.variableValues,
-      context: { graphqlContext: context },
+  return (_parent, _args, context, info) =>
+    delegateToSchema({
+      schema: { schema: info.schema, fetcher },
+      context,
+      info,
     });
-    return checkResultAndHandleErrors(result, context, info);
-  };
 }
 
 export function defaultCreateRemoteSubscriptionResolver(
   link: ApolloLink,
 ): GraphQLFieldResolver<any, any> {
-  return (_root, _args, context, info) => {
-    const fragments = Object.keys(info.fragments).map(
-      (fragment) => info.fragments[fragment],
-    );
-    let query: DocumentNode = {
-      kind: Kind.DOCUMENT,
-      definitions: [info.operation, ...fragments],
-    };
-
-    query = addTypenameToAbstract(info.schema, query);
-
-    const operation = {
-      query,
-      variables: info.variableValues,
-      context: { graphqlContext: context },
-    };
-
-    const observable = execute(link, operation);
-    const originalAsyncIterator = observableToAsyncIterable(observable);
-    return mapAsyncIterator(originalAsyncIterator, (result) => ({
-      [info.fieldName]: checkResultAndHandleErrors(result, context, info),
-    }));
-  };
+  return (_parent, _args, context, info) =>
+    delegateToSchema({
+      schema: { schema: info.schema, link },
+      context,
+      info,
+    });
 }
