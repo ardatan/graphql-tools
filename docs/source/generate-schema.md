@@ -193,12 +193,12 @@ const jsSchema = makeExecutableSchema({
   typeDefs,
   resolvers, // optional
   logger, // optional
-  allowUndefinedInResolve = false, // optional
-  resolverValidationOptions = {}, // optional
-  directiveResolvers = null, // optional
-  schemaDirectives = null,  // optional
-  parseOptions = {},  // optional
-  inheritResolversFromInterfaces = false  // optional
+  allowUndefinedInResolve: false, // optional
+  resolverValidationOptions: {}, // optional
+  directiveResolvers: null, // optional
+  schemaDirectives: null,  // optional
+  parseOptions: {},  // optional
+  inheritResolversFromInterfaces: false  // optional
 });
 ```
 
