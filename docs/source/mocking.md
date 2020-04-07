@@ -126,7 +126,7 @@ You can read some background and flavor on this approach in our blog post, ["Moc
 
 ## Mocking interfaces
 
-You will need resolvers to mock interfaces. By default [`addMocksToSchema`](#addmockfunctionstoschema) will overwrite resolver functions.
+You will need resolvers to mock interfaces. By default [`addMocksToSchema`](#addmockstoschema) will overwrite resolver functions.
 By setting the property `preserveResolvers` on the options object to `true`, the type resolvers will be preserved.
 
 ```js

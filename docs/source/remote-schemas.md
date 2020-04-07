@@ -15,9 +15,9 @@ We've chosen to split this functionality up to give you the flexibility to choos
 
 ```js
 import { HttpLink } from 'apollo-link-http';
-import fetch from 'node-fetch';
+import fetch from 'cross-fetch';
 
-const link = new HttpLink({ uri: 'http://api.githunt.com/graphql', fetch });
+const link = new HttpLink({ uri: 'http://example.com/graphql', fetch });
 
 export default async () => {
   const schema = await introspectSchema(link);
@@ -46,9 +46,9 @@ Basic usage
 
 ```js
 import { HttpLink } from 'apollo-link-http';
-import fetch from 'node-fetch';
+import fetch from 'cross-fetch';
 
-const link = new HttpLink({ uri: 'http://api.githunt.com/graphql', fetch });
+const link = new HttpLink({ uri: 'http://example.com/graphql', fetch });
 
 export default async () => {
   const schema = await introspectSchema(link);
@@ -67,9 +67,9 @@ Authentication headers from context
 ```js
 import { setContext } from 'apollo-link-context';
 import { HttpLink } from 'apollo-link-http';
-import fetch from 'node-fetch';
+import fetch from 'cross-fetch';
 
-const http = new HttpLink({ uri: 'http://api.githunt.com/graphql', fetch });
+const http = new HttpLink({ uri: 'http://example.com/graphql', fetch });
 
 const link = setContext((request, previousContext) => ({
   headers: {
@@ -92,7 +92,7 @@ export default async () => {
 
 ### Fetcher API
 
-You can also use a fetcher (like apollo-fetch or node-fetch) instead of a link. A fetcher is a function that takes one argument, an object that describes an operation:
+You can also use a fetcher (like cross-fetch) instead of a link. A fetcher is a function that takes one argument, an object that describes an operation:
 
 ```js
 type Fetcher = (operation: Operation) => Promise<ExecutionResult>;
@@ -105,58 +105,17 @@ type Operation {
 }
 ```
 
-<h3 id="fetcher-apollo-fetch" title="Using apollo-fetch">
-  Using <a href="https://github.com/apollographql/apollo-fetch">apollo-fetch</a>
+### Using cross-fetch
 
 Basic usage
 
 ```js
-import { createApolloFetch } from 'apollo-fetch';
-
-const fetcher = createApolloFetch({ uri: 'http://api.githunt.com/graphql'});
-
-export const createSchema =  async () => {
-  const schema = makeRemoteExecutableSchema({
-    schema: await introspectSchema(fetcher),
-    fetcher,
-  });
-  return schema
-}
-```
-
-Authentication headers from context
-
-```js
-const fetcher = createApolloFetch({ uri: 'http://api.githunt.com/graphql'});
-fetcher.use(({ request, options }, next) => {
-  if (!options.headers) {
-    options.headers = {};
-  }
-  options.headers['Authorization'] = `Bearer ${request.context.authKey}`;
-
-  next();
-});
-
-export default async () => {
-  const schema = makeRemoteExecutableSchema({
-    schema: await introspectSchema(fetcher),
-    fetcher,
-  });
-  return schema
-}
-```
-
-### Using node-fetch
-
-Basic usage
-
-```js
-import fetch from 'node-fetch';
+import fetch from 'cross-fetch';
 import { print } from 'graphql';
 
 const fetcher = async ({ query: queryDocument, variables, operationName, context }) => {
   const query = print(queryDocument);
-  const fetchResult = await fetch('http://api.githunt.com/graphql', {
+  const fetchResult = await fetch('http://example.com/graphql', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -178,12 +137,12 @@ export default async () => {
 Authentication headers from context
 
 ```js
-import fetch from 'node-fetch';
+import fetch from 'cross-fetch';
 import { print } from 'graphql':
 
 const fetcher = async ({ query: queryDocument, variables, operationName, context }) => {
   const query = print(queryDocument);
-  const fetchResult = await fetch('http://api.githunt.com/graphql', {
+  const fetchResult = await fetch('http://example.com/graphql', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

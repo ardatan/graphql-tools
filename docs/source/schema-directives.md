@@ -32,7 +32,7 @@ However, the API we provide for _using_ a schema directive is extremely simple. 
 
 ```js
 import { makeExecutableSchema } from "graphql-tools";
-import { RenameDirective } from "rename-directive-package";
+import { RenameDirective } from "fake-rename-directive-package";
 
 const typeDefs = `
 type Person @rename(to: "Human") {
