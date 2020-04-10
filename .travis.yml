@@ -1,23 +1,28 @@
 language: node_js
 node_js:
-  - "6"
-  - "8"
+  - "12"
   - "10"
+
+env:
+  - GRAPHQL_VERSION='legacy'
+  - GRAPHQL_VERSION='latest'
 
 install:
   - npm config set spin=false
-  - npm install -g coveralls
   - npm install
-  - npm install graphql@$GRAPHQL_VERSION
 
 script:
-  - npm test
-  - npm run lint
-  - npm run coverage
-  - coveralls < ./coverage/lcov.info || true # if coveralls doesn't have it covered
+  - if [[ $GRAPHQL_VERSION == "latest" ]]; then
+      npm run lint;
+    fi
+  - if [[ $GRAPHQL_VERSION == "latest" ]]; then
+      npm run format:check;
+    fi
+  - npm run compile
+  - if [[ $GRAPHQL_VERSION == "legacy" ]]; then
+      npm install graphql@0.13;
+    fi
+  - npm run test
 
 # Allow Travis tests to run in containers.
 sudo: false
-
-env:
-  - GRAPHQL_VERSION='^14.0'

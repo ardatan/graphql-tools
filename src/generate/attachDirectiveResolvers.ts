@@ -1,10 +1,11 @@
 import { GraphQLSchema, GraphQLField, defaultFieldResolver } from 'graphql';
+
 import { IDirectiveResolvers } from '../Interfaces';
-import { SchemaDirectiveVisitor } from '../schemaVisitor';
+import { SchemaDirectiveVisitor } from '../utils/SchemaDirectiveVisitor';
 
 function attachDirectiveResolvers(
   schema: GraphQLSchema,
-  directiveResolvers: IDirectiveResolvers<any, any>,
+  directiveResolvers: IDirectiveResolvers,
 ) {
   if (typeof directiveResolvers !== 'object') {
     throw new Error(
@@ -20,16 +21,24 @@ function attachDirectiveResolvers(
 
   const schemaDirectives = Object.create(null);
 
-  Object.keys(directiveResolvers).forEach(directiveName => {
+  Object.keys(directiveResolvers).forEach((directiveName) => {
     schemaDirectives[directiveName] = class extends SchemaDirectiveVisitor {
       public visitFieldDefinition(field: GraphQLField<any, any>) {
         const resolver = directiveResolvers[directiveName];
-        const originalResolver = field.resolve || defaultFieldResolver;
+        const originalResolver =
+          field.resolve != null ? field.resolve : defaultFieldResolver;
         const directiveArgs = this.args;
-        field.resolve = (...args: any[]) => {
+        field.resolve = (...args) => {
           const [source /* original args */, , context, info] = args;
           return resolver(
-            async () => originalResolver.apply(field, args),
+            () =>
+              new Promise((resolve, reject) => {
+                const result = originalResolver.apply(field, args);
+                if (result instanceof Error) {
+                  reject(result);
+                }
+                resolve(result);
+              }),
             source,
             directiveArgs,
             context,

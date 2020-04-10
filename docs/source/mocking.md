@@ -11,12 +11,10 @@ Even with a backend that is already built, mocking allows you to test your UI wi
 
 Let's take a look at how we can mock a GraphQL schema with just one line of code, using the default mocking logic you get out of the box with `graphql-tools`.
 
-[See a complete runnable example on Launchpad.](https://launchpad.graphql.com/98lq7vz8r)
-
-To start, let's grab the schema definition string from the `makeExecutableSchema` example [in the "Generating a schema" article](./generate-schema.html#example).
+To start, let's grab the schema definition string from the `makeExecutableSchema` example [in the "Generating a schema" article](/generate-schema/#example).
 
 ```js
-import { makeExecutableSchema, addMockFunctionsToSchema } from 'graphql-tools';
+import { makeExecutableSchema, addMocksToSchema } from 'graphql-tools';
 import { graphql } from 'graphql';
 
 // Fill this in with the schema string
@@ -26,7 +24,7 @@ const schemaString = `...`;
 const schema = makeExecutableSchema({ typeDefs: schemaString });
 
 // Add mocks, modifies schema in place
-addMockFunctionsToSchema({ schema });
+addMocksToSchema({ schema });
 
 const query = `
 query tasksForUser {
@@ -128,13 +126,13 @@ You can read some background and flavor on this approach in our blog post, ["Moc
 
 ## Mocking interfaces
 
-You will need resolvers to mock interfaces. By default [`addMockFunctionsToSchema`](#addMockFunctionsToSchema) will overwrite resolver functions.
+You will need resolvers to mock interfaces. By default [`addMocksToSchema`](#addmockstoschema) will overwrite resolver functions.
 By setting the property `preserveResolvers` on the options object to `true`, the type resolvers will be preserved.
 
 ```js
 import {
   makeExecutableSchema,
-  addMockFunctionsToSchema
+  addMocksToSchema
 } from 'graphql-tools'
 import mocks from './mocks' // your mock functions
 
@@ -177,7 +175,7 @@ type ProductList implements List {
 }
 `
 
-const typeResolvers = {
+const resolvers = {
   List: {
     __resolveType(data) {
       return data.typename // typename property must be set by your mock functions
@@ -187,10 +185,10 @@ const typeResolvers = {
 
 const schema = makeExecutableSchema({
   typeDefs,
-  typeResolvers
+  resolvers
 })
 
-addMockFunctionsToSchema({
+addMocksToSchema({
     schema,
     mocks,
     preserveResolvers: true
@@ -211,24 +209,24 @@ import * as introspectionResult from 'schema.json';
 
 const schema = buildClientSchema(introspectionResult);
 
-addMockFunctionsToSchema({schema});
+addMocksToSchema({schema});
 ```
 
 ## API
 
-### addMockFunctionsToSchema
+### addMocksToSchema
 
 ```js
-import { addMockFunctionsToSchema } from 'graphql-tools';
+import { addMocksToSchema } from 'graphql-tools';
 
-addMockFunctionsToSchema({
+addMocksToSchema({
   schema,
   mocks: {},
   preserveResolvers: false,
 });
 ```
 
-Given an instance of GraphQLSchema and a mock object, `addMockFunctionsToSchema` modifies the schema in place to return mock data for any valid query that is sent to the server. If `mocks` is not passed, the defaults will be used for each of the scalar types. If `preserveResolvers` is set to `true`, existing resolve functions will not be overwritten to provide mock data. This can be used to mock some parts of the server and not others.
+Given an instance of GraphQLSchema and a mock object, `addMocksToSchema` modifies the schema in place to return mock data for any valid query that is sent to the server. If `mocks` is not passed, the defaults will be used for each of the scalar types. If `preserveResolvers` is set to `true`, existing resolvers will not be overwritten to provide mock data. This can be used to mock some parts of the server and not others.
 
 ### MockList
 
@@ -249,7 +247,7 @@ import { mockServer } from 'graphql-tools';
 // or a GraphQLSchema object (eg the result of `buildSchema` from `graphql`)
 const schema = `...`
 
-// Same mocks object that `addMockFunctionsToSchema` takes above
+// Same mocks object that `addMocksToSchema` takes above
 const mocks = {}
 preserveResolvers = false
 
@@ -264,6 +262,6 @@ server.query(query, variables)
   })
 ```
 
-`mockServer` is just a convenience wrapper on top of `addMockFunctionsToSchema`. It adds your mock resolvers to your schema and returns a client that will correctly execute
+`mockServer` is just a convenience wrapper on top of `addMocksToSchema`. It adds your mock resolvers to your schema and returns a client that will correctly execute
 your query with variables. **Note**: when executing queries from the returned server,
 `context` and `root` will both equal `{}`.

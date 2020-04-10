@@ -1,4 +1,5 @@
 {
+  "baseBranches": ["master", "next"],
   "packageFiles": ["docs/package.json"],
   "pathRules": [
     {
