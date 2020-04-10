@@ -30,7 +30,7 @@ const resolverMap = {
 ```
 > Note: If you are using mocking, the `preserveResolvers` argument of [`addMockFunctionsToSchema`](/docs/graphql-tools/mocking.html#addMockFunctionsToSchema) must be set to `true` if you don't want your resolvers to be overwritten by mock resolvers.
 
-Note that you don't have to put all of your resolvers in one object. Refer to the ["modularizing resolvers"](/docs/apollo-server/essentials/data.html#modularizing-resolvers) section to learn how to combine multiple resolver maps into one.
+Note that you don't have to put all of your resolvers in one object. Refer to the ["modularizing resolvers"](/docs/apollo-server/data/resolvers/#modularizing-resolvers) section to learn how to combine multiple resolver maps into one.
 
 ## Resolver function signature
 
