@@ -1,9 +1,5 @@
 import { PubSub } from 'graphql-subscriptions';
-import {
-  ApolloLink,
-  Observable,
-  ExecutionResult as LinkExecutionResult,
-} from 'apollo-link';
+import { ApolloLink, Observable } from 'apollo-link';
 import {
   GraphQLSchema,
   graphql,
@@ -12,13 +8,17 @@ import {
   Kind,
   GraphQLScalarType,
   ValueNode,
-  ExecutionResult,
   GraphQLResolveInfo,
 } from 'graphql';
 import { forAwaitEach } from 'iterall';
 
 import introspectSchema from '../../stitch/introspectSchema';
-import { IResolvers, Fetcher, SubschemaConfig } from '../../Interfaces';
+import {
+  IResolvers,
+  Fetcher,
+  SubschemaConfig,
+  ExecutionResult,
+} from '../../Interfaces';
 import { makeExecutableSchema } from '../../generate/index';
 import { graphqlVersion } from '../../utils/index';
 
@@ -729,7 +729,7 @@ function makeLinkFromSchema(schema: GraphQLSchema) {
                   .then(() => observer.complete())
                   .catch((err) => observer.error(err));
               } else {
-                observer.next(results as LinkExecutionResult);
+                observer.next(results as ExecutionResult);
                 observer.complete();
               }
             })

@@ -1,7 +1,6 @@
 import {
   GraphQLSchema,
   GraphQLField,
-  ExecutionResult,
   GraphQLInputType,
   GraphQLType,
   GraphQLNamedType,
@@ -28,13 +27,54 @@ import {
   FragmentDefinitionNode,
   SelectionNode,
   VariableDefinitionNode,
+  OperationDefinitionNode,
+  GraphQLError,
+  ExecutionResult as GraphQLExecutionResult,
 } from 'graphql';
 
-import { TypeMap } from 'graphql/type/schema';
 import { ApolloLink } from 'apollo-link';
 
 import { SchemaVisitor } from './utils/SchemaVisitor';
 import { SchemaDirectiveVisitor } from './utils/SchemaDirectiveVisitor';
+
+// graphql-js < v15 backwards compatible ExecutionResult
+// See: https://github.com/graphql/graphql-js/pull/2490
+
+export interface ExecutionResult<
+  TData = {
+    [key: string]: any;
+  }
+> extends GraphQLExecutionResult {
+  data?: TData | null;
+  extensions?: Record<string, any>;
+}
+
+// for backwards compatibility
+export type Result = ExecutionResult;
+
+// graphql-js non-exported typings
+
+export type TypeMap = Record<string, GraphQLNamedType>;
+
+export interface GraphQLExecutionContext {
+  schema: GraphQLSchema;
+  fragments: { [key: string]: FragmentDefinitionNode };
+  rootValue: any;
+  contextValue: any;
+  operation: OperationDefinitionNode;
+  variableValues: { [key: string]: any };
+  fieldResolver: GraphQLFieldResolver<any, any>;
+  errors: Array<GraphQLError>;
+}
+
+export interface GraphQLParseOptions {
+  noLocation?: boolean;
+  allowLegacySDLEmptyFields?: boolean;
+  allowLegacySDLImplementsInterfaces?: boolean;
+  experimentalFragmentVariables?: boolean;
+}
+
+// graphql-tools typings
 
 export interface IResolverValidationOptions {
   requireResolversForArgs?: boolean;
@@ -71,9 +111,9 @@ export interface IResolverOptions<TSource = any, TContext = any, TArgs = any> {
 }
 
 export interface Transform {
-  transformSchema?: (schema: GraphQLSchema) => GraphQLSchema;
+  transformSchema?: (originalSchema: GraphQLSchema) => GraphQLSchema;
   transformRequest?: (originalRequest: Request) => Request;
-  transformResult?: (result: Result) => Result;
+  transformResult?: (originalResult: ExecutionResult) => ExecutionResult;
 }
 
 export type FieldTransformer = (
@@ -379,17 +419,6 @@ export interface Request {
   document: DocumentNode;
   variables: Record<string, any>;
   extensions?: Record<string, any>;
-}
-
-export interface Result extends ExecutionResult {
-  extensions?: Record<string, any>;
-}
-
-export interface GraphQLParseOptions {
-  noLocation?: boolean;
-  allowLegacySDLEmptyFields?: boolean;
-  allowLegacySDLImplementsInterfaces?: boolean;
-  experimentalFragmentVariables?: boolean;
 }
 
 export type IndexedObject<V> = { [key: string]: V } | ReadonlyArray<V>;

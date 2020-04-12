@@ -8,7 +8,6 @@ import {
   isObjectType,
   isScalarType,
 } from 'graphql';
-import { TypeMap } from 'graphql/type/schema';
 
 import {
   IDelegateToSchemaOptions,
@@ -19,6 +18,7 @@ import {
   IGraphQLToolsResolveInfo,
   MergedTypeInfo,
   Transform,
+  TypeMap,
 } from '../Interfaces';
 import ExpandAbstractTypes from '../wrap/transforms/ExpandAbstractTypes';
 import AddReplacementFragments from '../wrap/transforms/AddReplacementFragments';

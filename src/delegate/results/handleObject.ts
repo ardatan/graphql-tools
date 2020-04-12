@@ -6,7 +6,6 @@ import {
   FieldNode,
   GraphQLObjectType,
 } from 'graphql';
-import { ExecutionContext } from 'graphql/execution/execute';
 
 import { collectFields } from '../../utils/collectFields';
 
@@ -15,6 +14,7 @@ import {
   IGraphQLToolsResolveInfo,
   MergedTypeInfo,
   isSubschemaConfig,
+  GraphQLExecutionContext,
 } from '../../Interfaces';
 import { setErrors, relocatedError } from '../../stitch/errors';
 import { setObjectSubschema } from '../../stitch/subSchema';
@@ -96,7 +96,7 @@ function collectSubFields(info: IGraphQLToolsResolveInfo, typeName: string) {
         schema: info.schema,
         variableValues: info.variableValues,
         fragments: info.fragments,
-      } as unknown) as ExecutionContext,
+      } as unknown) as GraphQLExecutionContext,
       info.schema.getType(typeName) as GraphQLObjectType,
       fieldNode.selectionSet,
       subFieldNodes,

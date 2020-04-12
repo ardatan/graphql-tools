@@ -19,7 +19,12 @@ import {
 } from 'graphql';
 
 import { isSpecifiedScalarType, toConfig } from '../../polyfills/index';
-import { Transform, Request, Result, MapperKind } from '../../Interfaces';
+import {
+  Transform,
+  Request,
+  ExecutionResult,
+  MapperKind,
+} from '../../Interfaces';
 import { mapSchema } from '../../utils/index';
 
 export type RenameOptions = {
@@ -112,7 +117,7 @@ export default class RenameTypes implements Transform {
     };
   }
 
-  public transformResult(result: Result): Result {
+  public transformResult(result: ExecutionResult): ExecutionResult {
     return {
       ...result,
       data: this.transformData(result.data),
