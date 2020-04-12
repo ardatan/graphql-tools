@@ -6,8 +6,7 @@ import {
 import { TypeMap } from 'graphql/type/schema';
 
 import { toConfig } from '../polyfills/index';
-
-import toObjMap from './toObjMap';
+import toObjMap from '../esUtils/toObjMap';
 
 export function appendFields(
   typeMap: TypeMap,

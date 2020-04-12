@@ -41,8 +41,8 @@ import {
 } from 'graphql';
 
 import { graphqlVersion } from '../utils/graphqlVersion';
-import { hasOwnProperty } from '../utils/hasOwnProperty';
-import keyValMap from '../utils/keyValMap';
+import { hasOwnProperty } from '../esUtils/hasOwnProperty';
+import keyValMap from '../esUtils/keyValMap';
 
 export function schemaToConfig(schema: GraphQLSchema): GraphQLSchemaConfig {
   if (schema.toConfig != null) {

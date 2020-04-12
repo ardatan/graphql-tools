@@ -6,14 +6,14 @@ import {
 } from 'graphql';
 
 import { VisitableSchemaType } from '../Interfaces';
+import keyValMap from '../esUtils/keyValMap';
+import toObjMap from '../esUtils/toObjMap';
+import { keyMap } from '../esUtils/keyMap';
 
 import valueFromASTUntyped from './valueFromASTUntyped';
 import { SchemaVisitor } from './SchemaVisitor';
 import { visitSchema } from './visitSchema';
 import { getArgumentValues } from './getArgumentValues';
-import keyValMap from './keyValMap';
-import toObjMap from './toObjMap';
-import { keyMap } from './keyMap';
 
 // This class represents a reusable implementation of a @directive that may
 // appear in a GraphQL schema written in Schema Definition Language.

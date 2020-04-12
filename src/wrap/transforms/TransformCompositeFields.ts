@@ -15,7 +15,7 @@ import {
   GraphQLObjectType,
 } from 'graphql';
 
-import isEmptyObject from '../../utils/isEmptyObject';
+import isEmptyObject from '../../esUtils/isEmptyObject';
 import {
   Transform,
   Request,

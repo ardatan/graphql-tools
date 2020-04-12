@@ -1,6 +1,6 @@
 import { ValueNode, Kind } from 'graphql';
 
-import keyValMap from './keyValMap';
+import keyValMap from '../esUtils/keyValMap';
 
 // Similar to the graphql-js function of the same name, slightly simplified:
 // https://github.com/graphql/graphql-js/blob/master/src/utilities/valueFromASTUntyped.js

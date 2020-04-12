@@ -23,8 +23,8 @@ import {
   NamedTypeVisitor,
   SchemaVisitorMap,
 } from '../Interfaces';
+import updateEachKey from '../esUtils/updateEachKey';
 
-import updateEachKey from './updateEachKey';
 import { healSchema } from './heal';
 import { SchemaVisitor } from './SchemaVisitor';
 

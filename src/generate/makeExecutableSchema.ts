@@ -5,11 +5,8 @@ import {
 } from 'graphql';
 
 import { IExecutableSchemaDefinition, ILogger } from '../Interfaces';
-import {
-  SchemaDirectiveVisitor,
-  forEachField,
-  mergeDeep,
-} from '../utils/index';
+import { SchemaDirectiveVisitor, forEachField } from '../utils/index';
+import { mergeDeep } from '../esUtils/mergeDeep';
 
 import attachDirectiveResolvers from './attachDirectiveResolvers';
 import assertResolversPresent from './assertResolversPresent';
