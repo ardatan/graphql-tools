@@ -19,7 +19,7 @@ import {
 import { ICreateRequestFromInfo, Request, ICreateRequest } from '../Interfaces';
 import { serializeInputValue } from '../utils/transformInputValue';
 import { updateArgument } from '../utils/updateArgument';
-import { keyMap } from '../utils/keyMap';
+import { keyMap } from '../esUtils/keyMap';
 
 export function getDelegatingOperation(
   parentType: GraphQLObjectType,

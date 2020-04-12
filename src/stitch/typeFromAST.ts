@@ -28,7 +28,7 @@ import {
 
 import { graphqlVersion } from '../utils/index';
 import { createStub, createNamedStub } from '../utils/stub';
-import keyValMap from '../utils/keyValMap';
+import keyValMap from '../esUtils/keyValMap';
 
 import resolveFromParentTypename from './resolveFromParentTypename';
 

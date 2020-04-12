@@ -8,7 +8,7 @@ import {
   isInputObjectType,
 } from 'graphql';
 
-import keyValMap from './keyValMap';
+import keyValMap from '../esUtils/keyValMap';
 
 type InputValueTransformer = (
   type: GraphQLEnumType | GraphQLScalarType,

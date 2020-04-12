@@ -7,6 +7,5 @@ export { visitSchema } from './visitSchema';
 export { getResolversFromSchema } from './getResolversFromSchema';
 export { forEachField } from './forEachField';
 export { forEachDefaultValue } from './forEachDefaultValue';
-export { mergeDeep } from './mergeDeep';
 export { graphqlVersion } from './graphqlVersion';
 export { mapSchema } from './map';

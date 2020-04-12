@@ -23,7 +23,7 @@ import {
 
 import { Transform, Request } from '../../Interfaces';
 import implementsAbstractType from '../../utils/implementsAbstractType';
-import keyValMap from '../../utils/keyValMap';
+import keyValMap from '../../esUtils/keyValMap';
 
 export default class FilterToSchema implements Transform {
   private readonly targetSchema: GraphQLSchema;

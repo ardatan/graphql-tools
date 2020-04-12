@@ -39,9 +39,9 @@ import {
   cloneDirective,
   healTypes,
   forEachField,
-  mergeDeep,
   graphqlVersion,
 } from '../utils/index';
+import { mergeDeep } from '../esUtils/mergeDeep';
 import { toConfig, extendSchema } from '../polyfills/index';
 
 import typeFromAST from './typeFromAST';

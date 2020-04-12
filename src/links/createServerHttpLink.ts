@@ -9,7 +9,7 @@ import {
 import FormData, { AppendOptions } from 'form-data';
 import fetch from 'node-fetch';
 
-import { hasOwnProperty } from '../utils/hasOwnProperty';
+import { hasOwnProperty } from '../esUtils/hasOwnProperty';
 
 import { AwaitVariablesLink } from './AwaitVariablesLink';
 

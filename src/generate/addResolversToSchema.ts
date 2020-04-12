@@ -21,7 +21,7 @@ import {
   serializeInputValue,
 } from '../utils/transformInputValue';
 import { toConfig } from '../polyfills/index';
-import keyValMap from '../utils/keyValMap';
+import keyValMap from '../esUtils/keyValMap';
 
 import SchemaError from './SchemaError';
 import checkForResolveTypeResolver from './checkForResolveTypeResolver';

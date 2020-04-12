@@ -22,8 +22,8 @@ import {
 } from 'graphql';
 
 import { toConfig } from '../polyfills/index';
+import updateEachKey from '../esUtils/updateEachKey';
 
-import updateEachKey from './updateEachKey';
 import { isNamedStub, getBuiltInForStub } from './stub';
 import { graphqlVersion } from './graphqlVersion';
 

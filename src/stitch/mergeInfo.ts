@@ -32,7 +32,7 @@ import {
 } from '../utils/selectionSets';
 
 import delegateToSchema from '../delegate/delegateToSchema';
-import { hasOwnProperty } from '../utils/hasOwnProperty';
+import { hasOwnProperty } from '../esUtils/hasOwnProperty';
 
 type MergeTypeCandidate = {
   type: GraphQLNamedType;

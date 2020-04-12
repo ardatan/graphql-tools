@@ -10,9 +10,10 @@ import {
   print,
 } from 'graphql';
 
-import { keyMap } from './keyMap';
+import { keyMap } from '../esUtils/keyMap';
+import toObjMap from '../esUtils/toObjMap';
+
 import { inspect } from './inspect';
-import toObjMap from './toObjMap';
 
 /**
  * Prepares an object map of argument values given a list of argument

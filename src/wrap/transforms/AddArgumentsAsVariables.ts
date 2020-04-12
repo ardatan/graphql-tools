@@ -15,8 +15,8 @@ import {
 import { Transform, Request } from '../../Interfaces';
 import { serializeInputValue } from '../../utils/transformInputValue';
 import { updateArgument } from '../../utils/updateArgument';
-import toObjMap from '../../utils/toObjMap';
-import keyValMap from '../../utils/keyValMap';
+import toObjMap from '../../esUtils/toObjMap';
+import keyValMap from '../../esUtils/keyValMap';
 
 export default class AddArgumentsAsVariables implements Transform {
   private readonly targetSchema: GraphQLSchema;
