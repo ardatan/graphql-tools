@@ -19,9 +19,9 @@ export default function introspectSchema(
   linkContext?: { [key: string]: any },
 ): Promise<GraphQLSchema> {
   const fetcher =
-    linkOrFetcher instanceof ApolloLink
-      ? linkToFetcher(linkOrFetcher)
-      : linkOrFetcher;
+    typeof linkOrFetcher === 'function'
+      ? linkOrFetcher
+      : linkToFetcher(linkOrFetcher);
 
   return fetcher({
     query: parsedIntrospectionQuery,
