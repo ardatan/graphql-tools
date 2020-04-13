@@ -5,11 +5,12 @@ import {
   IFieldResolver,
   IResolvers,
   Request,
+  FieldNodeMappers,
 } from '../../Interfaces';
 import { addResolversToSchema } from '../../generate/index';
 import { defaultMergedResolver } from '../../stitch/index';
 
-import MapFields, { FieldNodeTransformerMap } from './MapFields';
+import MapFields from './MapFields';
 
 export default class ExtendSchema implements Transform {
   private readonly typeDefs: string | undefined;
@@ -26,7 +27,7 @@ export default class ExtendSchema implements Transform {
     typeDefs?: string;
     resolvers?: IResolvers;
     defaultFieldResolver?: IFieldResolver<any, any>;
-    fieldNodeTransformerMap?: FieldNodeTransformerMap;
+    fieldNodeTransformerMap?: FieldNodeMappers;
   }) {
     this.typeDefs = typeDefs;
     this.resolvers = resolvers;

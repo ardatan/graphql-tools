@@ -24,13 +24,9 @@ import {
   Request,
   ExecutionResult,
   MapperKind,
+  RenameTypesOptions,
 } from '../../Interfaces';
 import { mapSchema } from '../../utils/index';
-
-export type RenameOptions = {
-  renameBuiltins: boolean;
-  renameScalars: boolean;
-};
 
 export default class RenameTypes implements Transform {
   private readonly renamer: (name: string) => string | undefined;
@@ -41,7 +37,7 @@ export default class RenameTypes implements Transform {
 
   constructor(
     renamer: (name: string) => string | undefined,
-    options?: RenameOptions,
+    options?: RenameTypesOptions,
   ) {
     this.renamer = renamer;
     this.map = Object.create(null);
