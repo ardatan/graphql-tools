@@ -58,6 +58,8 @@ const jsSchema = makeExecutableSchema({ typeDefs: schemaString, resolvers: resol
 
 Remark : `GraphQLJSON` is a [`GraphQLScalarType`](http://graphql.org/graphql-js/type/#graphqlscalartype) instance.
 
+For a set of popular scalar types that are ready to reuse, try out the [GraphQL Scalars npm library](https://github.com/urigo/graphql-scalars).
+
 ### Custom `GraphQLScalarType` instance
 
 If needed, you can define your own [GraphQLScalarType](http://graphql.org/graphql-js/type/#graphqlscalartype) instance. This can be done the following way :
