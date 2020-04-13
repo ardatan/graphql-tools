@@ -120,7 +120,13 @@ export type FieldTransformer = (
   typeName: string,
   fieldName: string,
   field: GraphQLField<any, any>,
-) => GraphQLFieldConfig<any, any> | RenamedField | null | undefined;
+) => GraphQLFieldConfig<any, any> | RenamedFieldConfig | null | undefined;
+
+export type RootFieldTransformer = (
+  operation: 'Query' | 'Mutation' | 'Subscription',
+  fieldName: string,
+  field: GraphQLField<any, any>,
+) => GraphQLFieldConfig<any, any> | RenamedFieldConfig | null | undefined;
 
 export type FieldNodeTransformer = (
   typeName: string,
@@ -129,10 +135,17 @@ export type FieldNodeTransformer = (
   fragments: Record<string, FragmentDefinitionNode>,
 ) => SelectionNode | Array<SelectionNode>;
 
-export type RenamedField = {
+export type FieldNodeMapper = (
+  fieldNode: FieldNode,
+  fragments: Record<string, FragmentDefinitionNode>,
+) => SelectionNode | Array<SelectionNode>;
+
+export type FieldNodeMappers = Record<string, Record<string, FieldNodeMapper>>;
+
+export interface RenamedFieldConfig {
   name: string;
   field?: GraphQLFieldConfig<any, any>;
-};
+}
 
 export type FieldFilter = (
   typeName?: string,
@@ -145,6 +158,11 @@ export type RootFieldFilter = (
   rootFieldName?: string,
   field?: GraphQLField<any, any>,
 ) => boolean;
+
+export type RenameTypesOptions = {
+  renameBuiltins: boolean;
+  renameScalars: boolean;
+};
 
 export interface IGraphQLToolsResolveInfo extends GraphQLResolveInfo {
   mergeInfo?: MergeInfo;

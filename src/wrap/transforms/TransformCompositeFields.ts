@@ -22,22 +22,16 @@ import {
   MapperKind,
   FieldTransformer,
   FieldNodeTransformer,
-  RenamedField,
+  RenamedFieldConfig,
 } from '../../Interfaces';
 import { mapSchema } from '../../utils/index';
 import { toConfig } from '../../polyfills/index';
-
-type FieldMapping = {
-  [typeName: string]: {
-    [newFieldName: string]: string;
-  };
-};
 
 export default class TransformCompositeFields implements Transform {
   private readonly fieldTransformer: FieldTransformer;
   private readonly fieldNodeTransformer: FieldNodeTransformer;
   private transformedSchema: GraphQLSchema;
-  private mapping: FieldMapping;
+  private mapping: Record<string, Record<string, string>>;
 
   constructor(
     fieldTransformer: FieldTransformer,
@@ -100,12 +94,12 @@ export default class TransformCompositeFields implements Transform {
       if (typeof transformedField === 'undefined') {
         newFields[fieldName] = typeConfig.fields[fieldName];
       } else if (transformedField !== null) {
-        const newName = (transformedField as RenamedField).name;
+        const newName = (transformedField as RenamedFieldConfig).name;
 
         if (newName) {
           newFields[newName] =
-            (transformedField as RenamedField).field != null
-              ? (transformedField as RenamedField).field
+            (transformedField as RenamedFieldConfig).field != null
+              ? (transformedField as RenamedFieldConfig).field
               : typeConfig.fields[fieldName];
 
           if (newName !== fieldName) {
@@ -140,7 +134,7 @@ export default class TransformCompositeFields implements Transform {
 
   private transformDocument(
     document: DocumentNode,
-    mapping: FieldMapping,
+    mapping: Record<string, Record<string, string>>,
     fieldNodeTransformer?: FieldNodeTransformer,
     fragments: Record<string, FragmentDefinitionNode> = {},
   ): DocumentNode {

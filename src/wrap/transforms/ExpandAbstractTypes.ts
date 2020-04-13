@@ -17,12 +17,10 @@ import {
 import implementsAbstractType from '../../utils/implementsAbstractType';
 import { Transform, Request } from '../../Interfaces';
 
-type TypeMapping = { [key: string]: Array<string> };
-
 export default class ExpandAbstractTypes implements Transform {
   private readonly targetSchema: GraphQLSchema;
-  private readonly mapping: TypeMapping;
-  private readonly reverseMapping: TypeMapping;
+  private readonly mapping: Record<string, Array<string>>;
+  private readonly reverseMapping: Record<string, Array<string>>;
 
   constructor(sourceSchema: GraphQLSchema, targetSchema: GraphQLSchema) {
     this.targetSchema = targetSchema;
@@ -49,7 +47,7 @@ function extractPossibleTypes(
   targetSchema: GraphQLSchema,
 ) {
   const typeMap = sourceSchema.getTypeMap();
-  const mapping: TypeMapping = Object.create(null);
+  const mapping: Record<string, Array<string>> = Object.create(null);
   Object.keys(typeMap).forEach((typeName) => {
     const type = typeMap[typeName];
     if (isAbstractType(type)) {
@@ -65,8 +63,10 @@ function extractPossibleTypes(
   return mapping;
 }
 
-function flipMapping(mapping: TypeMapping): TypeMapping {
-  const result: TypeMapping = Object.create(null);
+function flipMapping(
+  mapping: Record<string, Array<string>>,
+): Record<string, Array<string>> {
+  const result: Record<string, Array<string>> = Object.create(null);
   Object.keys(mapping).forEach((typeName) => {
     const toTypeNames = mapping[typeName];
     toTypeNames.forEach((toTypeName) => {
@@ -81,8 +81,8 @@ function flipMapping(mapping: TypeMapping): TypeMapping {
 
 function expandAbstractTypes(
   targetSchema: GraphQLSchema,
-  mapping: TypeMapping,
-  reverseMapping: TypeMapping,
+  mapping: Record<string, Array<string>>,
+  reverseMapping: Record<string, Array<string>>,
   document: DocumentNode,
 ): DocumentNode {
   const operations: Array<OperationDefinitionNode> = document.definitions.filter(
