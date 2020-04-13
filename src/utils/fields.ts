@@ -3,10 +3,10 @@ import {
   GraphQLObjectType,
   GraphQLFieldConfig,
 } from 'graphql';
-import { TypeMap } from 'graphql/type/schema';
 
 import { toConfig } from '../polyfills/index';
 import toObjMap from '../esUtils/toObjMap';
+import { TypeMap } from '../Interfaces';
 
 export function appendFields(
   typeMap: TypeMap,

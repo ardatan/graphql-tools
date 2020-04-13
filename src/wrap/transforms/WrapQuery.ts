@@ -6,7 +6,7 @@ import {
   SelectionSetNode,
 } from 'graphql';
 
-import { Transform, Request, Result } from '../../Interfaces';
+import { Transform, Request, ExecutionResult } from '../../Interfaces';
 
 export type QueryWrapper = (
   subtree: SelectionSetNode,
@@ -65,7 +65,7 @@ export default class WrapQuery implements Transform {
     };
   }
 
-  public transformResult(originalResult: Result): Result {
+  public transformResult(originalResult: ExecutionResult): ExecutionResult {
     const rootData = originalResult.data;
     if (rootData != null) {
       let data = rootData;

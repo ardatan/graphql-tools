@@ -6,7 +6,12 @@ import {
   GraphQLObjectType,
 } from 'graphql';
 
-import { Request, Result, MapperKind, Transform } from '../../Interfaces';
+import {
+  Request,
+  ExecutionResult,
+  MapperKind,
+  Transform,
+} from '../../Interfaces';
 import { mapSchema } from '../../utils/index';
 import { toConfig } from '../../polyfills/index';
 
@@ -59,7 +64,7 @@ export default class RenameRootTypes implements Transform {
     };
   }
 
-  public transformResult(result: Result): Result {
+  public transformResult(result: ExecutionResult): ExecutionResult {
     return {
       ...result,
       data: this.transformData(result.data),

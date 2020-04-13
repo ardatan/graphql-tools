@@ -6,7 +6,7 @@ import {
   GraphQLError,
 } from 'graphql';
 
-import { Transform, Request, Result } from '../../Interfaces';
+import { Transform, Request, ExecutionResult } from '../../Interfaces';
 
 export type QueryTransformer = (
   selectionSet: SelectionSetNode,
@@ -83,7 +83,7 @@ export default class TransformQuery implements Transform {
     };
   }
 
-  public transformResult(originalResult: Result): Result {
+  public transformResult(originalResult: ExecutionResult): ExecutionResult {
     const data = this.transformData(originalResult.data);
     const errors = originalResult.errors;
     return {

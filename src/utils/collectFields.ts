@@ -1,4 +1,3 @@
-import { ExecutionContext } from 'graphql/execution/execute';
 import {
   GraphQLObjectType,
   SelectionSetNode,
@@ -14,6 +13,8 @@ import {
   isAbstractType,
 } from 'graphql';
 
+import { GraphQLExecutionContext } from '../Interfaces';
+
 /**
  * Given a selectionSet, adds all of the fields in that selection to
  * the passed in map of fields, and returns it at the end.
@@ -25,7 +26,7 @@ import {
  * @internal
  */
 export function collectFields(
-  exeContext: ExecutionContext,
+  exeContext: GraphQLExecutionContext,
   runtimeType: GraphQLObjectType,
   selectionSet: SelectionSetNode,
   fields: Record<string, Array<FieldNode>>,
@@ -95,7 +96,7 @@ export function collectFields(
  * directives, where @skip has higher precedence than @include.
  */
 function shouldIncludeNode(
-  exeContext: ExecutionContext,
+  exeContext: GraphQLExecutionContext,
   node: FragmentSpreadNode | FieldNode | InlineFragmentNode,
 ): boolean {
   const skip = getDirectiveValues(
@@ -125,7 +126,7 @@ function shouldIncludeNode(
  * Determines if a fragment is applicable to the given type.
  */
 function doesFragmentConditionMatch(
-  exeContext: ExecutionContext,
+  exeContext: GraphQLExecutionContext,
   fragment: FragmentDefinitionNode | InlineFragmentNode,
   type: GraphQLObjectType,
 ): boolean {
