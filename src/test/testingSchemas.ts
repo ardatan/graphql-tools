@@ -24,7 +24,7 @@ import { PubSub } from 'graphql-subscriptions';
 
 type ExecutionResultDataDefault = {
   [key: string]: any;
-}
+};
 
 export type Location = {
   name: string;
