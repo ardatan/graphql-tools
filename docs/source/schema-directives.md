@@ -32,7 +32,7 @@ However, the API we provide for _using_ a schema directive is extremely simple. 
 
 ```js
 import { makeExecutableSchema } from "graphql-tools";
-import { RenameDirective } from "rename-directive-package";
+import { RenameDirective } from "fake-rename-directive-package";
 
 const typeDefs = `
 type Person @rename(to: "Human") {
@@ -56,21 +56,21 @@ Everything you read below addresses some aspect of how a directive like `@rename
 
 Since the GraphQL specification does not discuss any specific implementation strategy for directives, it's up to each GraphQL server framework to expose an API for implementing new directives.
 
-If you're using Apollo Server, you are also likely to be using the [`graphql-tools`](https://github.com/apollographql/graphql-tools) npm package, which provides a convenient yet powerful tool for implementing directive syntax: the [`SchemaDirectiveVisitor`](https://github.com/apollographql/graphql-tools/blob/wip-schema-directives/src/schemaVisitor.ts) class.
+If you're using Apollo Server, you are also likely to be using the [`graphql-tools`](https://github.com/apollographql/graphql-tools) npm package, which provides a convenient yet powerful tool for implementing directive syntax: the [`SchemaDirectiveVisitor`](https://github.com/apollographql/graphql-tools/blob/master/src/utils/SchemaDirectiveVisitor.ts) class.
 
 To implement a schema directive using `SchemaDirectiveVisitor`, simply create a subclass of `SchemaDirectiveVisitor` that overrides one or more of the following visitor methods:
 
 * `visitSchema(schema: GraphQLSchema)`
 * `visitScalar(scalar: GraphQLScalarType)`
 * `visitObject(object: GraphQLObjectType)`
-* `visitFieldDefinition(field: GraphQLField<any, any>)`
-* `visitArgumentDefinition(argument: GraphQLArgument)`
+* `visitFieldDefinition(field: GraphQLField<any, any>, details: { objectType: GraphQLObjectType | GraphQLInterfaceType })`
+* `visitArgumentDefinition(argument: GraphQLArgument, objectType: GraphQLObjectType | GraphQLInterfaceType })`
 * `visitInterface(iface: GraphQLInterfaceType)`
 * `visitUnion(union: GraphQLUnionType)`
 * `visitEnum(type: GraphQLEnumType)`
-* `visitEnumValue(value: GraphQLEnumValue)`
+* `visitEnumValue(value: GraphQLEnumValue, details: { enumType: GraphQLEnumType })`
 * `visitInputObject(object: GraphQLInputObjectType)`
-* `visitInputFieldDefinition(field: GraphQLInputField)`
+* `visitInputFieldDefinition(field: GraphQLInputField, details: { objectType: GraphQLInputObjectType })`
 
 By overriding methods like `visitObject`, a subclass of `SchemaDirectiveVisitor` expresses interest in certain schema types such as `GraphQLObjectType` (the first parameter type of `visitObject`).
 
@@ -460,11 +460,10 @@ class LengthDirective extends SchemaDirectiveVisitor {
   // Replace field.type with a custom GraphQLScalarType that enforces the
   // length restriction.
   wrapType(field) {
-    if (field.type instanceof GraphQLNonNull &&
-        field.type.ofType instanceof GraphQLScalarType) {
+    if (isNonNullType(field.type) && isScalarType(field.type.ofType)) {
       field.type = new GraphQLNonNull(
         new LimitedLengthType(field.type.ofType, this.args.max));
-    } else if (field.type instanceof GraphQLScalarType) {
+    } else if (isScalarType(field.type)) {
       field.type = new LimitedLengthType(field.type, this.args.max);
     } else {
       throw new Error(`Not a scalar type: ${field.type}`);

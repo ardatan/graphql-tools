@@ -73,9 +73,9 @@ Decorators can be selectively applied to:
 * A specific field
 * An argument
 
-Decorators can modify the behavior of the parts of the schema they are applied to. Sometimes that requires modifying other parts of the schema. For instance, the @validateRange decorator modifies the behavior of the containing field's resolve function.
+Decorators can modify the behavior of the parts of the schema they are applied to. Sometimes that requires modifying other parts of the schema. For instance, the @validateRange decorator modifies the behavior of the containing field's resolver.
 
-In general, decorators either add, remove or modify an attribute of the thing they wrap. The most common type of decorator (e.g. @adminOnly, @log, @connector) will wrap one or more field's resolve functions to alter the execution behavior of the GraphQL schema, but other decorators (e.g. @description) may add attributes to a type, field or argument. It is also possible for a type decorator to add a field to the type (e.g. @id(fields: ["uuid"]) can add the __id field).
+In general, decorators either add, remove or modify an attribute of the thing they wrap. The most common type of decorator (e.g. @adminOnly, @log, @connector) will wrap one or more field resolvers to alter the execution behavior of the GraphQL schema, but other decorators (e.g. @description) may add attributes to a type, field or argument. It is also possible for a type decorator to add a field to the type (e.g. @id(fields: ["uuid"]) can add the __id field).
 
 
 ## Schema decorator API
@@ -120,7 +120,7 @@ class SampleFieldDecorator extends SchemaDecorator {
     return (wrappedThing, { schema, type, field, context }) => {
       // use this.config ...
       // use args
-      // modify wrappedThing's properties, resolve functions, etc.
+      // modify wrappedThing's properties, resolvers, etc.
     }
   }
 }

@@ -2,8 +2,7 @@
 
 [![npm version](https://badge.fury.io/js/graphql-tools.svg)](https://badge.fury.io/js/graphql-tools)
 [![Build Status](https://travis-ci.org/apollographql/graphql-tools.svg?branch=master)](https://travis-ci.org/apollographql/graphql-tools)
-[![Coverage Status](https://coveralls.io/repos/github/apollographql/graphql-tools/badge.svg?branch=master)](https://coveralls.io/github/apollographql/graphql-tools?branch=master)
-[![Get on Slack](https://img.shields.io/badge/slack-join-orange.svg)](http://www.apollostack.com/#slack)
+[![Discord Chat](https://img.shields.io/discord/625400653321076807)](https://discord.gg/xud7bH9)
 
 This package provides a few useful ways to create a GraphQL schema:
 
@@ -121,5 +120,5 @@ Contributions, issues and feature requests are very welcome. If you are using th
 
 ## Maintainers
 
-- [@hwillson](https://github.com/hwillson) (Apollo)
-- [@benjamn](https://github.com/benjamn) (Apollo)
+- [@yaacovCR](https://github.com/yaacovCR)
+- [@kamilkisiela](https://github.com/kamilkisiela) ([The Guild](https://github.com/the-guild-org))

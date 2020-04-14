@@ -7,8 +7,6 @@ The graphql-tools package allows you to create a GraphQL.js GraphQLSchema instan
 
 ## Example
 
-[See the complete live example in Apollo Launchpad.](https://launchpad.graphql.com/1jzxrj179)
-
 When using `graphql-tools`, you describe the schema as a GraphQL type language string:
 
 ```js
@@ -132,6 +130,31 @@ const typeDefs = [`
 `]
 ```
 
+If one of the types extended needs a resolver you can use `makeExecutableSchema` like this:
+
+```js
+const barsResolver = {
+  Query: {
+    bars(parent, args, context, info) {
+      // ...
+    }
+  }
+};
+
+const foosResolver = {
+  Query: {
+    foos(parent, args, context, info) {
+      // ...
+    }
+  }
+}
+
+const schema = makeExecutableSchema({
+  typeDefs,
+  resolvers: [barsResolver, foosResolver]
+})
+```
+
 ## Learning the GraphQL schema language
 
 The official documentation on graphql.org now has [a section about GraphQL schemas](http://graphql.org/learn/schema/) which explains all of the different schema features and how to use them with the schema language.
@@ -195,31 +218,31 @@ const jsSchema = makeExecutableSchema({
   typeDefs,
   resolvers, // optional
   logger, // optional
-  allowUndefinedInResolve = false, // optional
-  resolverValidationOptions = {}, // optional
-  directiveResolvers = null, // optional
-  schemaDirectives = null,  // optional
-  parseOptions = {},  // optional
-  inheritResolversFromInterfaces = false  // optional
+  allowUndefinedInResolve: false, // optional
+  resolverValidationOptions: {}, // optional
+  directiveResolvers: null, // optional
+  schemaDirectives: null,  // optional
+  parseOptions: {},  // optional
+  inheritResolversFromInterfaces: false  // optional
 });
 ```
 
 - `typeDefs` is a required argument and should be an GraphQL schema language string or array of GraphQL schema language strings or a function that takes no arguments and returns an array of GraphQL schema language strings. The order of the strings in the array is not important, but it must include a schema definition.
 
-- `resolvers` is an optional argument _(empty object by default)_ and should be an object that follows the pattern explained in [article on resolvers](/resolvers/).
+- `resolvers` is an optional argument _(empty object by default)_ and should be an object or an array of objects that follow the pattern explained in [article on resolvers](/resolvers/)
 
 - `logger` is an optional argument, which can be used to print errors to the server console that are usually swallowed by GraphQL. The `logger` argument should be an object with a `log` function, eg. `const logger = { log: e => console.log(e) }`
 
 - `parseOptions` is an optional argument which allows customization of parse when specifying `typeDefs` as a string.
 
-- `allowUndefinedInResolve` is an optional argument, which is `true` by default. When set to `false`, causes your resolve functions to throw errors if they return undefined, which can help make debugging easier.
+- `allowUndefinedInResolve` is an optional argument, which is `true` by default. When set to `false`, causes your resolver to throw errors if they return undefined, which can help make debugging easier.
 
 - `resolverValidationOptions` is an optional argument which accepts an `ResolverValidationOptions` object which has the following boolean properties:
-  - `requireResolversForArgs` will cause `makeExecutableSchema` to throw an error if no resolve function is defined for a field that has arguments.
+  - `requireResolversForArgs` will cause `makeExecutableSchema` to throw an error if no resolver is defined for a field that has arguments.
 
   - `requireResolversForNonScalar` will cause `makeExecutableSchema` to throw an error if a non-scalar field has no resolver defined. Setting this to `true` can be helpful in catching errors, but defaults to `false` to avoid confusing behavior for those coming from other GraphQL libraries.
 
-  - `requireResolversForAllFields` asserts that *all* fields have a valid resolve function.
+  - `requireResolversForAllFields` asserts that *all* fields have valid resolvers.
 
   - `requireResolversForResolveType` will require a `resolveType()` method for Interface and Union types. This can be passed in with the field resolvers as `__resolveType()`. False to disable the warning.
 
