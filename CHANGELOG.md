@@ -2,6 +2,12 @@
 
 ### Next
 
+### 5.0.0
+
+That is a major release where we went through all issues and PRs and got the library back into great shape.
+All known issues with schema stitching had been fixed.
+The main person which did the heavy lifting is [@yaacovCR](https://github.com/yaacovCR) which made the work alone on his own fork for many months.
+
 #### Features
 
 - Support GraphQL v15 [#1332](https://github.com/apollographql/graphql-tools/pull/1332)
