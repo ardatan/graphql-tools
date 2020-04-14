@@ -1,7 +1,7 @@
 language: node_js
 node_js:
-  - "12"
   - "10"
+  - "12"
 
 env:
   - GRAPHQL_VERSION='legacy'
