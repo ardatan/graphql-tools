@@ -1,5 +1,9 @@
 # Change log
 
+### 4.0.8
+
+* Update `peerDependencies` range for `graphql` to include `graphql@15.x`.
+
 ### 4.0.7
 
 * Filter `extensions` prior to passing them to `buildASTSchema`, in an effort to provide minimum compatibilty for `graphql@14`-compatible schemas with the upcoming `graphql@15` release. This PR does not, however, bring support for newer `graphql@15` features like interfaces implementing interfaces. [#1284](https://github.com/apollographql/graphql-tools/pull/1284)
