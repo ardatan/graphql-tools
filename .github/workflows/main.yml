@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  test:
+    name: Testing on ${{matrix.os}} and Node ${{matrix.node_version}}
+    runs-on: ${{matrix.os}}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node_version: [10, 12, 13]
+    steps:
+      - name: Checkout Master
+        uses: actions/checkout@v1
+      - name: Use Node ${{matrix.node_version}}
+        uses: actions/setup-node@master
+        with:
+          version: ${{ matrix.node_version }}
+      - name: Install Dependencies using Yarn
+        run: yarn install
+      - name: Format Check
+        run: yarn format:check
+      - name: Lint
+        run: yarn lint
+      - name: Build
+        run: yarn build
+      - name: Test
+        run: yarn test --logHeapUsage
+
+  deploy-website:
+    name: Deploy Website
+    runs-on: ubuntu-latest
+    if: contains(github.ref, 'master')
+    steps:
+      - name: Checkout Master
+        uses: actions/checkout@v1
+      - name: Use Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: '13.x'
+      - name: Change directory to Docs
+        run: cd docs/
+      - name: Install Dependencies using Yarn
+        run: yarn install
+      - name: Build
+        run: yarn build
+      - name: Deploy 🚀
+        uses: JamesIves/github-pages-deploy-action@releases/v3
+        with:
+          ACCESS_TOKEN: ${{ secrets.PAGES_TOKEN }}
+          BRANCH: gh-pages # The branch the action should deploy to.
+          FOLDER: docs/public # The folder the action should deploy.
