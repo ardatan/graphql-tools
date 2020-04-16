@@ -30,9 +30,44 @@ jobs:
       - name: Lint
         run: yarn lint
       - name: Build
-        run: yarn compile
+        run: yarn build
       - name: Test
         run: yarn test --logHeapUsage
+
+    publish-canary:
+      name: Publish Canary
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout Master
+          uses: actions/checkout@v1
+        - name: Use Node
+          uses: actions/setup-node@v1
+          with:
+            node-version: '13.x'
+        - name: Install Dependencies using Yarn
+          run: yarn install
+        - name: Build
+          run: yarn build
+        - name: Release Canary
+          id: canary
+          uses: 'kamilkisiela/release-canary@master'
+          if: github.repository == 'urigo/graphql-tools'
+          with:
+            npm-token: ${{ secrets.NODE_AUTH_TOKEN }}
+            npm-script: 'ci:release:canary'
+        - name: Publish a message
+          if: steps.canary.outputs.released
+          uses: 'kamilkisiela/pr-comment@master'
+          with:
+            message: |
+              The latest changes of this PR are available as alpha in npm: `${{ steps.canary.outputs.version }}`
+
+              Quickly update your package.json by running:
+
+                  npx match-version @graphql-mesh ${{ steps.canary.outputs.version }}
+            bot-token: ${{ secrets.GH_API_TOKEN }}
+            bot: 'theguild-bot'
+            github-token: ${{ secrets.GITHUB_TOKEN }}
 
   deploy-website:
     name: Deploy Website
@@ -54,6 +89,6 @@ jobs:
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@releases/v3
         with:
-          ACCESS_TOKEN: ${{ secrets.PAGES_TOKEN }}
+          ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BRANCH: gh-pages # The branch the action should deploy to.
           FOLDER: docs/public # The folder the action should deploy.
