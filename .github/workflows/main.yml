@@ -30,7 +30,7 @@ jobs:
       - name: Lint
         run: yarn lint
       - name: Build
-        run: yarn build
+        run: yarn compile
       - name: Test
         run: yarn test --logHeapUsage
 
