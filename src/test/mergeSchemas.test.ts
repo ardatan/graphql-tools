@@ -11,7 +11,6 @@ import {
   defaultFieldResolver,
   findDeprecatedUsages,
   printSchema,
-  GraphQLError,
 } from 'graphql';
 
 import { delegateToSchema } from '../delegate/index';
