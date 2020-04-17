@@ -40,7 +40,6 @@ import {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const removeLocations = ({ locations, ...rest }: any): any => ({ ...rest });
-const errorToObject = (error: GraphQLError): GraphQLError => ({ ...error });
 
 const testCombinations = [
   {
