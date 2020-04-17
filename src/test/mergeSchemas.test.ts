@@ -11,6 +11,7 @@ import {
   defaultFieldResolver,
   findDeprecatedUsages,
   printSchema,
+  GraphQLError,
 } from 'graphql';
 
 import { delegateToSchema } from '../delegate/index';
@@ -39,6 +40,7 @@ import {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const removeLocations = ({ locations, ...rest }: any): any => ({ ...rest });
+const errorToObject = (error: GraphQLError): GraphQLError => ({ ...error });
 
 const testCombinations = [
   {
@@ -2389,16 +2391,10 @@ fragment BookingFragment on Booking {
           {
             message: 'Property.error error',
             path: ['propertyById', 'error'],
-            extensions: {
-              code: 'SOME_CUSTOM_CODE',
-            },
           },
           {
             message: 'Property.error error',
             path: ['propertyById', 'errorAlias'],
-            extensions: {
-              code: 'SOME_CUSTOM_CODE',
-            },
           },
           {
             message: 'Booking.error error',
@@ -2425,6 +2421,11 @@ fragment BookingFragment on Booking {
             path: ['propertyById', 'bookings', 2, 'bookingErrorAlias'],
           },
         ];
+
+        if (graphqlVersion() >= 14) {
+          expectedErrors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
+          expectedErrors[1].extensions = { code: 'SOME_CUSTOM_CODE' };
+        }
 
         expect(errorsWithoutLocations).toEqual(expectedErrors);
       });

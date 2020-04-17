@@ -767,12 +767,13 @@ type Query {
           ],
           message: 'Property.error error',
           path: ['propertyById', 'new_error'],
-          extensions: {
-            code: 'SOME_CUSTOM_CODE',
-          },
         },
       ],
     };
+
+    if (graphqlVersion() >= 14) {
+      expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
+    }
 
     expect(result).toEqual(expectedResult);
   });
@@ -932,12 +933,13 @@ describe('WrapType transform', () => {
           ],
           message: 'Property.error error',
           path: ['namespace', 'propertyById', 'error'],
-          extensions: {
-            code: 'SOME_CUSTOM_CODE',
-          },
         },
       ],
     };
+
+    if (graphqlVersion() >= 14) {
+      expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
+    }
 
     expect(result).toEqual(expectedResult);
   });
@@ -1006,12 +1008,13 @@ describe('schema transformation with extraction of nested fields', () => {
           ],
           message: 'Property.error error',
           path: ['propertyById', 'renamedError'],
-          extensions: {
-            code: 'SOME_CUSTOM_CODE',
-          },
         },
       ],
     };
+
+    if (graphqlVersion() >= 14) {
+      expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
+    }
 
     expect(result).toEqual(expectedResult);
   });
@@ -1143,12 +1146,13 @@ describe('schema transformation with wrapping of object fields', () => {
           ],
           message: 'Property.error error',
           path: ['propertyById', 'test1', 'innerWrap', 'two'],
-          extensions: {
-            code: 'SOME_CUSTOM_CODE',
-          },
         },
       ],
     };
+
+    if (graphqlVersion() >= 14) {
+      expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
+    }
 
     expect(result).toEqual(expectedResult);
   });
@@ -1214,12 +1218,13 @@ describe('schema transformation with wrapping of object fields', () => {
             ],
             message: 'Property.error error',
             path: ['propertyById', 'test1', 'two'],
-            extensions: {
-              code: 'SOME_CUSTOM_CODE',
-            },
           },
         ],
       };
+
+      if (graphqlVersion() >= 14) {
+        expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
+      }
 
       expect(result).toEqual(expectedResult);
     });
@@ -1292,12 +1297,13 @@ describe('schema transformation with wrapping of object fields', () => {
             ],
             message: 'Property.error error',
             path: ['propertyById', 'test1', 'innerWrap', 'two'],
-            extensions: {
-              code: 'SOME_CUSTOM_CODE',
-            },
           },
         ],
       };
+
+      if (graphqlVersion() >= 14) {
+        expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
+      }
 
       expect(result).toEqual(expectedResult);
     });
@@ -1359,12 +1365,13 @@ describe('schema transformation with renaming of object fields', () => {
           ],
           message: 'Property.error error',
           path: ['propertyById', 'new_error'],
-          extensions: {
-            code: 'SOME_CUSTOM_CODE',
-          },
         },
       ],
     };
+
+    if (graphqlVersion() >= 14) {
+      expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
+    }
 
     expect(result).toEqual(expectedResult);
   });
