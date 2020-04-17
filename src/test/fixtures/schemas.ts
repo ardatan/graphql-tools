@@ -420,10 +420,9 @@ const propertyResolvers: IResolvers = {
 
   Property: {
     error() {
-      const error = new CustomError('Property.error error', {
+      throw new CustomError('Property.error error', {
         code: 'SOME_CUSTOM_CODE',
       });
-      throw error;
     },
   },
 };
