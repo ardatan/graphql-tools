@@ -8,6 +8,7 @@ import {
   print,
   parse,
 } from 'graphql';
+import { createError } from 'apollo-errors';
 
 import { delegateToSchema } from '../delegate/index';
 import { makeExecutableSchema } from '../generate/index';
@@ -120,6 +121,32 @@ describe('transforms', () => {
           },
         },
       });
+    });
+
+    test('should not change error type', async () => {
+      const customError = createError('TestError', {
+        data: { code: '123' },
+        message: 'TestError Error',
+      });
+
+      const subschema = makeExecutableSchema({
+        typeDefs: `
+          type Query {
+            errorTest: String
+          }
+        `,
+        resolvers: {
+          Query: {
+            errorTest: () => customError,
+          },
+        },
+      });
+      const schema = transformSchema(subschema, []);
+
+      const query = 'query { errorTest }';
+      const originalResult = await graphql(subschema, query);
+      const transformedResult = await graphql(schema, query);
+      expect(originalResult).toEqual(transformedResult);
     });
   });
 
@@ -1149,7 +1176,7 @@ describe('transforms', () => {
       });
     });
 
-    test('preserves errors from the wrapping field', async () => {
+    test('preserves errors when delegating from a root field to an error', async () => {
       const result = await graphql(
         schema,
         `
@@ -1170,13 +1197,7 @@ describe('transforms', () => {
         data: {
           errorTest: null,
         },
-        errors: [
-          {
-            locations: [],
-            message: 'Test Error!',
-            path: ['errorTest'],
-          },
-        ],
+        errors: [new Error('Test Error!')],
       });
     });
   });

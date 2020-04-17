@@ -42,7 +42,6 @@ export function unwrapResult(
       errors.map((error) =>
         relocatedError(
           error,
-          error.nodes,
           error.path != null ? error.path.slice(1) : undefined,
         ),
       ),
@@ -79,11 +78,7 @@ export function dehoistResult(
       const expandedPathSegment: Array<
         string | number
       > = (pathSegment as string).split(delimeter);
-      return relocatedError(
-        error,
-        error.nodes,
-        expandedPathSegment.concat(path),
-      );
+      return relocatedError(error, expandedPathSegment.concat(path));
     }
 
     return error;

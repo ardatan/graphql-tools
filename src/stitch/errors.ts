@@ -1,51 +1,25 @@
-import { GraphQLError, ASTNode } from 'graphql';
+import { GraphQLError } from 'graphql';
 
 import { ERROR_SYMBOL } from './symbols';
 
 export function relocatedError(
-  originalError: Error | GraphQLError,
-  nodes: ReadonlyArray<ASTNode>,
+  originalError: GraphQLError,
   path: ReadonlyArray<string | number>,
 ): GraphQLError {
-  if (Array.isArray((originalError as GraphQLError).path)) {
-    return new GraphQLError(
-      (originalError as GraphQLError).message,
-      (originalError as GraphQLError).nodes,
-      (originalError as GraphQLError).source,
-      (originalError as GraphQLError).positions,
-      path != null ? path : (originalError as GraphQLError).path,
-      (originalError as GraphQLError).originalError,
-      (originalError as GraphQLError).extensions,
-    );
-  }
-
-  if (originalError == null) {
-    return new GraphQLError(
-      undefined,
-      nodes,
-      undefined,
-      undefined,
-      path,
-      originalError,
-    );
-  }
-
   return new GraphQLError(
     originalError.message,
-    (originalError as GraphQLError).nodes != null
-      ? (originalError as GraphQLError).nodes
-      : nodes,
-    (originalError as GraphQLError).source,
-    (originalError as GraphQLError).positions,
-    path,
-    originalError,
+    originalError.nodes,
+    originalError.source,
+    originalError.positions,
+    path != null ? path : originalError.path,
+    originalError.originalError,
+    originalError.extensions,
   );
 }
 
 export function slicedError(originalError: GraphQLError) {
   return relocatedError(
     originalError,
-    originalError.nodes,
     originalError.path != null ? originalError.path.slice(1) : undefined,
   );
 }
@@ -69,32 +43,36 @@ export function getErrorsByPathSegment(
   return record;
 }
 
-class CombinedError extends Error {
-  public errors: ReadonlyArray<GraphQLError>;
-  constructor(message: string, errors: ReadonlyArray<GraphQLError>) {
-    super(message);
+class CombinedError extends GraphQLError {
+  public errors: ReadonlyArray<Error>;
+  constructor(message: string, errors: ReadonlyArray<Error>) {
+    super(
+      message,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+    );
     this.errors = errors;
   }
 }
 
 export function combineErrors(
   errors: ReadonlyArray<GraphQLError>,
-): GraphQLError | CombinedError {
+): Error | GraphQLError {
   if (errors.length === 1) {
-    return new GraphQLError(
-      errors[0].message,
-      errors[0].nodes,
-      errors[0].source,
-      errors[0].positions,
-      errors[0].path,
-      errors[0].originalError,
-      errors[0].extensions,
-    );
+    return errors[0].originalError != null
+      ? errors[0].originalError
+      : errors[0];
   }
 
   return new CombinedError(
     errors.map((error) => error.message).join('\n'),
-    errors,
+    errors.map((error) =>
+      error.originalError != null ? error.originalError : error,
+    ),
   );
 }
 

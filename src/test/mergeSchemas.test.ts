@@ -2389,10 +2389,16 @@ fragment BookingFragment on Booking {
           {
             message: 'Property.error error',
             path: ['propertyById', 'error'],
+            extensions: {
+              code: 'SOME_CUSTOM_CODE',
+            },
           },
           {
             message: 'Property.error error',
             path: ['propertyById', 'errorAlias'],
+            extensions: {
+              code: 'SOME_CUSTOM_CODE',
+            },
           },
           {
             message: 'Booking.error error',
@@ -2420,22 +2426,7 @@ fragment BookingFragment on Booking {
           },
         ];
 
-        if (graphqlVersion() >= 14) {
-          expectedErrors[0].extensions = {
-            code: 'SOME_CUSTOM_CODE',
-          };
-          expectedErrors[1].extensions = {
-            code: 'SOME_CUSTOM_CODE',
-          };
-        }
-
         expect(errorsWithoutLocations).toEqual(expectedErrors);
-        expect(result.errors[0].extensions).toEqual({
-          code: 'SOME_CUSTOM_CODE',
-        });
-        expect(result.errors[1].extensions).toEqual({
-          code: 'SOME_CUSTOM_CODE',
-        });
       });
 
       test(

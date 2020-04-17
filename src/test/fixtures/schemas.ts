@@ -22,6 +22,16 @@ import {
 import { makeExecutableSchema } from '../../generate/index';
 import { graphqlVersion } from '../../utils/index';
 
+export class CustomError extends Error {
+  public extensions: Record<string, any>;
+  constructor(message: string, extensions: Record<string, any>) {
+    super(message);
+    this.name = 'CustomError';
+    Object.setPrototypeOf(this, new.target.prototype);
+    this.extensions = extensions;
+  }
+}
+
 export type Location = {
   name: string;
   coordinates: string;
@@ -405,10 +415,9 @@ const propertyResolvers: IResolvers = {
 
   Property: {
     error() {
-      const error = new Error('Property.error error');
-      (error as any).extensions = {
+      const error = new CustomError('Property.error error', {
         code: 'SOME_CUSTOM_CODE',
-      };
+      });
       throw error;
     },
   },
