@@ -772,15 +772,10 @@ type Query {
     };
 
     if (graphqlVersion() >= 14) {
-      expectedResult.errors[0].extensions = {
-        code: 'SOME_CUSTOM_CODE',
-      };
+      expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
     }
 
     expect(result).toEqual(expectedResult);
-    expect(result.errors[0].extensions).toEqual({
-      code: 'SOME_CUSTOM_CODE',
-    });
   });
 });
 
@@ -943,15 +938,10 @@ describe('WrapType transform', () => {
     };
 
     if (graphqlVersion() >= 14) {
-      expectedResult.errors[0].extensions = {
-        code: 'SOME_CUSTOM_CODE',
-      };
+      expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
     }
 
     expect(result).toEqual(expectedResult);
-    expect(result.errors[0].extensions).toEqual({
-      code: 'SOME_CUSTOM_CODE',
-    });
   });
 });
 
@@ -1023,15 +1013,10 @@ describe('schema transformation with extraction of nested fields', () => {
     };
 
     if (graphqlVersion() >= 14) {
-      expectedResult.errors[0].extensions = {
-        code: 'SOME_CUSTOM_CODE',
-      };
+      expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
     }
 
     expect(result).toEqual(expectedResult);
-    expect(result.errors[0].extensions).toEqual({
-      code: 'SOME_CUSTOM_CODE',
-    });
   });
 
   test('should work via HoistField transform', async () => {
@@ -1166,15 +1151,10 @@ describe('schema transformation with wrapping of object fields', () => {
     };
 
     if (graphqlVersion() >= 14) {
-      expectedResult.errors[0].extensions = {
-        code: 'SOME_CUSTOM_CODE',
-      };
+      expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
     }
 
     expect(result).toEqual(expectedResult);
-    expect(result.errors[0].extensions).toEqual({
-      code: 'SOME_CUSTOM_CODE',
-    });
   });
 
   describe('WrapFields transform', () => {
@@ -1243,15 +1223,10 @@ describe('schema transformation with wrapping of object fields', () => {
       };
 
       if (graphqlVersion() >= 14) {
-        expectedResult.errors[0].extensions = {
-          code: 'SOME_CUSTOM_CODE',
-        };
+        expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
       }
 
       expect(result).toEqual(expectedResult);
-      expect(result.errors[0].extensions).toEqual({
-        code: 'SOME_CUSTOM_CODE',
-      });
     });
 
     test('should work, even with multiple fields', async () => {
@@ -1327,15 +1302,10 @@ describe('schema transformation with wrapping of object fields', () => {
       };
 
       if (graphqlVersion() >= 14) {
-        expectedResult.errors[0].extensions = {
-          code: 'SOME_CUSTOM_CODE',
-        };
+        expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
       }
 
       expect(result).toEqual(expectedResult);
-      expect(result.errors[0].extensions).toEqual({
-        code: 'SOME_CUSTOM_CODE',
-      });
     });
   });
 });
@@ -1400,22 +1370,10 @@ describe('schema transformation with renaming of object fields', () => {
     };
 
     if (graphqlVersion() >= 14) {
-      expectedResult.errors[0].extensions = {
-        code: 'SOME_CUSTOM_CODE',
-      };
+      expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
     }
 
-    expect(result.data).toEqual(expectedResult.data);
-    expect(result.errors).toHaveLength(1);
-    expect(result.errors[0].locations).toEqual(
-      expectedResult.errors[0].locations,
-    );
-    expect(result.errors[0].message).toEqual(expectedResult.errors[0].message);
-    expect(result.errors[0].path).toEqual(expectedResult.errors[0].path);
-    // expect(result).toEqual(expectedResult);
-    expect(result.errors[0].extensions).toEqual({
-      code: 'SOME_CUSTOM_CODE',
-    });
+    expect(result).toEqual(expectedResult);
   });
 });
 

@@ -16,7 +16,7 @@ import {
   isSubschemaConfig,
   GraphQLExecutionContext,
 } from '../../Interfaces';
-import { setErrors, relocatedError } from '../../stitch/errors';
+import { setErrors, slicedError } from '../../stitch/errors';
 import { setObjectSubschema } from '../../stitch/subSchema';
 import resolveFromParentTypename from '../../stitch/resolveFromParentTypename';
 import { mergeFields } from '../../stitch/mergeFields';
@@ -32,13 +32,7 @@ export function handleObject(
 ) {
   setErrors(
     object,
-    errors.map((error) =>
-      relocatedError(
-        error,
-        error.nodes,
-        error.path != null ? error.path.slice(1) : undefined,
-      ),
-    ),
+    errors.map((error) => slicedError(error)),
   );
 
   setObjectSubschema(object, subschema);

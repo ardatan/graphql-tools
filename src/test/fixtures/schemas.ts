@@ -9,6 +9,7 @@ import {
   GraphQLScalarType,
   ValueNode,
   GraphQLResolveInfo,
+  GraphQLError,
 } from 'graphql';
 import { forAwaitEach } from 'iterall';
 
@@ -21,6 +22,20 @@ import {
 } from '../../Interfaces';
 import { makeExecutableSchema } from '../../generate/index';
 import { graphqlVersion } from '../../utils/index';
+
+export class CustomError extends GraphQLError {
+  constructor(message: string, extensions: Record<string, any>) {
+    super(
+      message,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      extensions,
+    );
+  }
+}
 
 export type Location = {
   name: string;
@@ -405,11 +420,9 @@ const propertyResolvers: IResolvers = {
 
   Property: {
     error() {
-      const error = new Error('Property.error error');
-      (error as any).extensions = {
+      throw new CustomError('Property.error error', {
         code: 'SOME_CUSTOM_CODE',
-      };
-      throw error;
+      });
     },
   },
 };

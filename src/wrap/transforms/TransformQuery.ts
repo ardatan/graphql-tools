@@ -7,6 +7,7 @@ import {
 } from 'graphql';
 
 import { Transform, Request, ExecutionResult } from '../../Interfaces';
+import { relocatedError } from '../../stitch/errors';
 
 export type QueryTransformer = (
   selectionSet: SelectionSetNode,
@@ -134,15 +135,7 @@ export default class TransformQuery implements Transform {
             .concat(this.errorPathTransformer(path.slice(index)))
         : path;
 
-      return new GraphQLError(
-        error.message,
-        error.nodes,
-        error.source,
-        error.positions,
-        newPath,
-        error.originalError,
-        error.extensions,
-      );
+      return relocatedError(error, newPath);
     });
   }
 }

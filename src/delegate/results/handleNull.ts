@@ -1,10 +1,6 @@
 import { FieldNode, GraphQLError } from 'graphql';
 
-import {
-  getErrorsByPathSegment,
-  combineErrors,
-  relocatedError,
-} from '../../stitch/errors';
+import { getErrorsByPathSegment, combineErrors } from '../../stitch/errors';
 
 export function handleNull(
   fieldNodes: ReadonlyArray<FieldNode>,
@@ -13,7 +9,7 @@ export function handleNull(
 ) {
   if (errors.length) {
     if (errors.some((error) => !error.path || error.path.length < 2)) {
-      return relocatedError(combineErrors(errors), fieldNodes, path);
+      return combineErrors(errors);
     } else if (errors.some((error) => typeof error.path[1] === 'string')) {
       const childErrors = getErrorsByPathSegment(errors);
 
