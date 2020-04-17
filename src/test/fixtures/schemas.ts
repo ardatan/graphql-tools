@@ -9,6 +9,7 @@ import {
   GraphQLScalarType,
   ValueNode,
   GraphQLResolveInfo,
+  GraphQLError,
 } from 'graphql';
 import { forAwaitEach } from 'iterall';
 
@@ -22,13 +23,17 @@ import {
 import { makeExecutableSchema } from '../../generate/index';
 import { graphqlVersion } from '../../utils/index';
 
-export class CustomError extends Error {
-  public extensions: Record<string, any>;
+export class CustomError extends GraphQLError {
   constructor(message: string, extensions: Record<string, any>) {
-    super(message);
-    this.name = 'CustomError';
-    Object.setPrototypeOf(this, new.target.prototype);
-    this.extensions = extensions;
+    super(
+      message,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      extensions,
+    );
   }
 }
 
