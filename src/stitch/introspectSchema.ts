@@ -16,7 +16,7 @@ const parsedIntrospectionQuery: DocumentNode = parse(getIntrospectionQuery());
 
 export default function introspectSchema(
   linkOrFetcher: ApolloLink | Fetcher,
-  linkContext?: { [key: string]: any },
+  linkContext?: Record<string, any>,
 ): Promise<GraphQLSchema> {
   const fetcher =
     typeof linkOrFetcher === 'function'

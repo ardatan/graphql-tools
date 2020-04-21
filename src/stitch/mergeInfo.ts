@@ -56,8 +56,8 @@ export function createMergeInfo(
     delegate(
       operation: 'query' | 'mutation' | 'subscription',
       fieldName: string,
-      args: { [key: string]: any },
-      context: { [key: string]: any },
+      args: Record<string, any>,
+      context: Record<string, any>,
       info: IGraphQLToolsResolveInfo,
       transforms: Array<Transform> = [],
     ) {

@@ -736,9 +736,9 @@ describe('Mock', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {
       RootQuery: () => ({
-        returnInt: (_root: any, _args: { [key: string]: any }) => 42, // a) in resolvers, will not be used
-        returnFloat: (_root: any, _args: { [key: string]: any }) => 1.3, // b) not in resolvers, will be used
-        returnString: (_root: any, _args: { [key: string]: any }) =>
+        returnInt: (_root: any, _args: Record<string, any>) => 42, // a) in resolvers, will not be used
+        returnFloat: (_root: any, _args: Record<string, any>) => 1.3, // b) not in resolvers, will be used
+        returnString: (_root: any, _args: Record<string, any>) =>
           Promise.resolve('foo'), // c) in resolvers, will not be used
       }),
     };
@@ -1096,7 +1096,7 @@ describe('Mock', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {
       RootQuery: () => ({
-        returnStringArgument: (_o: any, a: { [key: string]: any }) => a['s'],
+        returnStringArgument: (_o: any, a: Record<string, any>) => a['s'],
       }),
     };
     addMocksToSchema({ schema: jsSchema, mocks: mockMap });
@@ -1115,7 +1115,7 @@ describe('Mock', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {
       RootMutation: () => ({
-        returnStringArgument: (_o: any, a: { [key: string]: any }) => a['s'],
+        returnStringArgument: (_o: any, a: Record<string, any>) => a['s'],
       }),
     };
     addMocksToSchema({ schema: jsSchema, mocks: mockMap });
@@ -1169,7 +1169,7 @@ describe('Mock', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {
       RootQuery: () => ({
-        returnListOfIntArg: (_o: any, a: { [key: string]: any }) =>
+        returnListOfIntArg: (_o: any, a: Record<string, any>) =>
           new MockList(a['l']),
       }),
       Int: () => 12,
@@ -1244,7 +1244,7 @@ describe('Mock', () => {
         returnListOfListOfIntArg: () =>
           new MockList(
             2,
-            (_o: any, a: { [key: string]: any }) => new MockList(a['l']),
+            (_o: any, a: Record<string, any>) => new MockList(a['l']),
           ),
       }),
       Int: () => 12,
@@ -1298,16 +1298,16 @@ describe('Mock', () => {
     // unintuitive corner-cases
     const mockMap = {
       RootQuery: () => ({
-        thread: (_o: any, a: { [key: string]: any }) => ({ id: a['id'] }),
-        threads: (_o: any, a: { [key: string]: any }) =>
+        thread: (_o: any, a: Record<string, any>) => ({ id: a['id'] }),
+        threads: (_o: any, a: Record<string, any>) =>
           new MockList(ITEMS_PER_PAGE * a['num']),
       }),
       Thread: () => ({
         name: 'Lorem Ipsum',
-        posts: (_o: any, a: { [key: string]: any }) =>
+        posts: (_o: any, a: Record<string, any>) =>
           new MockList(
             ITEMS_PER_PAGE * a['num'],
-            (_oi: any, ai: { [key: string]: any }) => ({
+            (_oi: any, ai: Record<string, any>) => ({
               id: ai['num'],
             }),
           ),

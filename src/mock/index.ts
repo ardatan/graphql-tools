@@ -105,7 +105,7 @@ function addMocksToSchema({
     // 3. if there's no mock defined, use the default mocks for this type
     return (
       root: any,
-      args: { [key: string]: any },
+      args: Record<string, any>,
       context: any,
       info: GraphQLResolveInfo,
     ): any => {
@@ -227,7 +227,7 @@ function addMocksToSchema({
           ) {
             mockResolver = (
               root: any,
-              args: { [key: string]: any },
+              args: Record<string, any>,
               context: any,
               info: GraphQLResolveInfo,
             ) => {
@@ -256,7 +256,7 @@ function addMocksToSchema({
         const oldResolver = field.resolve;
         field.resolve = (
           rootObject: any,
-          args: { [key: string]: any },
+          args: Record<string, any>,
           context: any,
           info: GraphQLResolveInfo,
         ) =>
@@ -400,7 +400,7 @@ class MockList {
 
   public mock(
     root: any,
-    args: { [key: string]: any },
+    args: Record<string, any>,
     context: any,
     info: GraphQLResolveInfo,
     fieldType: GraphQLList<any>,

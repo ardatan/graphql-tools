@@ -24,7 +24,7 @@ export abstract class SchemaVisitor {
 
   // Determine if this SchemaVisitor (sub)class implements a particular
   // visitor method.
-  public static implementsVisitorMethod(methodName: string) {
+  public static implementsVisitorMethod(methodName: string): boolean {
     if (!methodName.startsWith('visit')) {
       return false;
     }

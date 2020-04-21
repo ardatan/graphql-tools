@@ -1,7 +1,6 @@
 import {
   ArgumentNode,
   FieldNode,
-  FragmentDefinitionNode,
   Kind,
   OperationDefinitionNode,
   SelectionNode,
@@ -14,6 +13,8 @@ import {
   GraphQLArgument,
   VariableDefinitionNode,
   SelectionSetNode,
+  DefinitionNode,
+  DocumentNode,
 } from 'graphql';
 
 import { ICreateRequestFromInfo, Request, ICreateRequest } from '../Interfaces';
@@ -72,9 +73,12 @@ export function createRequest({
   selectionSet,
   fieldNodes,
 }: ICreateRequest): Request {
-  let argumentNodes: ReadonlyArray<ArgumentNode>;
   let newSelectionSet: SelectionSetNode = selectionSet;
-  if (!selectionSet && fieldNodes != null) {
+  let argumentNodeMap: Record<string, ArgumentNode>;
+
+  if (selectionSet != null && fieldNodes == null) {
+    argumentNodeMap = Object.create(null);
+  } else {
     const selections: Array<SelectionNode> = fieldNodes.reduce(
       (acc, fieldNode) =>
         fieldNode.selectionSet != null
@@ -90,47 +94,47 @@ export function createRequest({
         }
       : undefined;
 
-    argumentNodes = fieldNodes[0].arguments;
-  } else {
-    argumentNodes = [];
+    argumentNodeMap = keyMap(fieldNodes[0].arguments, (arg) => arg.name.value);
   }
 
   const newVariables = Object.create(null);
   const variableDefinitionMap = Object.create(null);
-  variableDefinitions.forEach((def) => {
-    const varName = def.variable.name.value;
-    variableDefinitionMap[varName] = def;
-    const varType = typeFromAST(
-      sourceSchema,
-      def.type as NamedTypeNode,
-    ) as GraphQLInputType;
-    newVariables[varName] = serializeInputValue(
-      varType,
-      variableValues[varName],
+
+  if (sourceSchema != null && variableDefinitions != null) {
+    variableDefinitions.forEach((def) => {
+      const varName = def.variable.name.value;
+      variableDefinitionMap[varName] = def;
+      const varType = typeFromAST(
+        sourceSchema,
+        def.type as NamedTypeNode,
+      ) as GraphQLInputType;
+      newVariables[varName] = serializeInputValue(
+        varType,
+        variableValues[varName],
+      );
+    });
+  }
+
+  if (sourceParentType != null) {
+    updateArgumentsWithDefaults(
+      sourceParentType,
+      sourceFieldName,
+      argumentNodeMap,
+      variableDefinitionMap,
+      newVariables,
     );
-  });
-
-  const argumentNodeMap = keyMap(argumentNodes, (arg) => arg.name.value);
-
-  updateArgumentsWithDefaults(
-    sourceParentType,
-    sourceFieldName,
-    argumentNodeMap,
-    variableDefinitionMap,
-    newVariables,
-  );
+  }
 
   const rootfieldNode: FieldNode = {
     kind: Kind.FIELD,
-    alias: null,
     arguments: Object.keys(argumentNodeMap).map(
       (argName) => argumentNodeMap[argName],
     ),
-    selectionSet: newSelectionSet,
     name: {
       kind: Kind.NAME,
       value: targetFieldName || fieldNodes[0].name.value,
     },
+    selectionSet: newSelectionSet,
   };
 
   const operationDefinition: OperationDefinitionNode = {
@@ -145,13 +149,17 @@ export function createRequest({
     },
   };
 
-  const fragmentDefinitions: Array<FragmentDefinitionNode> = Object.keys(
-    fragments,
-  ).map((fragmentName) => fragments[fragmentName]);
+  let definitions: Array<DefinitionNode> = [operationDefinition];
 
-  const document = {
+  if (fragments != null) {
+    definitions = definitions.concat(
+      Object.keys(fragments).map((fragmentName) => fragments[fragmentName]),
+    );
+  }
+
+  const document: DocumentNode = {
     kind: Kind.DOCUMENT,
-    definitions: [operationDefinition, ...fragmentDefinitions],
+    definitions,
   };
 
   return {

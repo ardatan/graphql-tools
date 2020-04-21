@@ -1,4 +1,6 @@
-export default function toObjMap(obj: any): Record<string, any> {
+export default function toObjMap<T>(obj: {
+  [key: string]: T;
+}): Record<string, T> {
   if (Object.getPrototypeOf(obj) === null) {
     return obj;
   }
