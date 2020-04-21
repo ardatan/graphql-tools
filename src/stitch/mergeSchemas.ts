@@ -28,6 +28,7 @@ import {
   SchemaLikeObject,
   IResolvers,
   SubschemaConfig,
+  SchemaDirectiveVisitorClass,
 } from '../Interfaces';
 import {
   extractExtensionDefinitions,
@@ -79,7 +80,7 @@ export default function mergeSchemas({
   schemas?: Array<SchemaLikeObject>;
   onTypeConflict?: OnTypeConflict;
   resolvers?: IResolversParameter;
-  schemaDirectives?: { [name: string]: typeof SchemaDirectiveVisitor };
+  schemaDirectives?: Record<string, SchemaDirectiveVisitorClass>;
   inheritResolversFromInterfaces?: boolean;
   mergeTypes?:
     | boolean
