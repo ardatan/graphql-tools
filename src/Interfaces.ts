@@ -37,6 +37,14 @@ import { ApolloLink } from 'apollo-link';
 import { SchemaVisitor } from './utils/SchemaVisitor';
 import { SchemaDirectiveVisitor } from './utils/SchemaDirectiveVisitor';
 
+export interface SchemaDirectiveVisitorClass{
+  new(...args: any): SchemaDirectiveVisitor,
+  getDirectiveDeclaration(
+    directiveName: string,
+    schema: GraphQLSchema,
+  ): GraphQLDirective | null | undefined
+}
+
 // graphql-js < v15 backwards compatible ExecutionResult
 // See: https://github.com/graphql/graphql-js/pull/2490
 
@@ -362,7 +370,7 @@ export interface IExecutableSchemaDefinition<TContext = any> {
   allowUndefinedInResolve?: boolean;
   resolverValidationOptions?: IResolverValidationOptions;
   directiveResolvers?: IDirectiveResolvers<any, TContext>;
-  schemaDirectives?: { [name: string]: typeof SchemaDirectiveVisitor };
+  schemaDirectives?: Record<string, SchemaDirectiveVisitorClass>;
   parseOptions?: GraphQLParseOptions;
   inheritResolversFromInterfaces?: boolean;
 }

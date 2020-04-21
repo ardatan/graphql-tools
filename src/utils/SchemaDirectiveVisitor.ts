@@ -5,7 +5,7 @@ import {
   TypeSystemExtensionNode,
 } from 'graphql';
 
-import { VisitableSchemaType } from '../Interfaces';
+import { VisitableSchemaType, SchemaDirectiveVisitorClass } from '../Interfaces';
 import keyValMap from '../esUtils/keyValMap';
 import toObjMap from '../esUtils/toObjMap';
 import { keyMap } from '../esUtils/keyMap';
@@ -59,8 +59,8 @@ import { getArgumentValues } from './getArgumentValues';
 // of the SchemaDirectiveVisitor class.
 
 export class SchemaDirectiveVisitor<
-  TArgs = { [name: string]: any },
-  TContext = { [key: string]: any }
+  TArgs = Record<string, any>,
+  TContext = Record<string, any>,
 > extends SchemaVisitor {
   // The name of the directive this visitor is allowed to visit (that is, the
   // identifier that appears after the @ character in the schema). Note that
@@ -108,7 +108,7 @@ export class SchemaDirectiveVisitor<
     // and other metadata specific to that occurrence. To help prevent the
     // mistake of passing instances, the SchemaDirectiveVisitor constructor
     // method is marked as protected.
-    directiveVisitors: Record<string, typeof SchemaDirectiveVisitor>,
+    directiveVisitors: Record<string, SchemaDirectiveVisitorClass>,
     // Optional context object that will be available to all visitor instances
     // via this.context. Defaults to an empty null-prototype object.
     context: {
@@ -217,8 +217,8 @@ export class SchemaDirectiveVisitor<
 
   protected static getDeclaredDirectives(
     schema: GraphQLSchema,
-    directiveVisitors: Record<string, typeof SchemaDirectiveVisitor>,
-  ) {
+    directiveVisitors: Record<string, SchemaDirectiveVisitorClass>,
+  ): Record<string, GraphQLDirective> {
     const directiveVisitorMap = toObjMap(directiveVisitors);
 
     const declaredDirectives = keyMap(schema.getDirectives(), (d) => d.name);
