@@ -257,16 +257,16 @@ export interface ICreateRequestFromInfo {
 }
 
 export interface ICreateRequest {
-  sourceSchema: GraphQLSchema;
-  sourceParentType: GraphQLObjectType;
-  sourceFieldName: string;
-  fragments: Record<string, FragmentDefinitionNode>;
-  variableDefinitions: ReadonlyArray<VariableDefinitionNode>;
-  variableValues: Record<string, any>;
+  sourceSchema?: GraphQLSchema;
+  sourceParentType?: GraphQLObjectType;
+  sourceFieldName?: string;
+  fragments?: Record<string, FragmentDefinitionNode>;
+  variableDefinitions?: ReadonlyArray<VariableDefinitionNode>;
+  variableValues?: Record<string, any>;
   targetOperation: Operation;
   targetFieldName: string;
-  selectionSet: SelectionSetNode;
-  fieldNodes: ReadonlyArray<FieldNode>;
+  selectionSet?: SelectionSetNode;
+  fieldNodes?: ReadonlyArray<FieldNode>;
 }
 
 export interface IDelegateRequestOptions extends IDelegateToSchemaOptions {
