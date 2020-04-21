@@ -37,12 +37,12 @@ import { ApolloLink } from 'apollo-link';
 import { SchemaVisitor } from './utils/SchemaVisitor';
 import { SchemaDirectiveVisitor } from './utils/SchemaDirectiveVisitor';
 
-export interface SchemaDirectiveVisitorClass{
-  new(...args: any): SchemaDirectiveVisitor,
+export interface SchemaDirectiveVisitorClass {
+  new (...args: any): SchemaDirectiveVisitor;
   getDirectiveDeclaration(
     directiveName: string,
     schema: GraphQLSchema,
-  ): GraphQLDirective | null | undefined
+  ): GraphQLDirective | null | undefined;
 }
 
 // graphql-js < v15 backwards compatible ExecutionResult

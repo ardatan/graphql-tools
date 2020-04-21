@@ -5,7 +5,10 @@ import {
   TypeSystemExtensionNode,
 } from 'graphql';
 
-import { VisitableSchemaType, SchemaDirectiveVisitorClass } from '../Interfaces';
+import {
+  VisitableSchemaType,
+  SchemaDirectiveVisitorClass,
+} from '../Interfaces';
 import keyValMap from '../esUtils/keyValMap';
 import toObjMap from '../esUtils/toObjMap';
 import { keyMap } from '../esUtils/keyMap';
@@ -60,7 +63,7 @@ import { getArgumentValues } from './getArgumentValues';
 
 export class SchemaDirectiveVisitor<
   TArgs = Record<string, any>,
-  TContext = Record<string, any>,
+  TContext = Record<string, any>
 > extends SchemaVisitor {
   // The name of the directive this visitor is allowed to visit (that is, the
   // identifier that appears after the @ character in the schema). Note that
