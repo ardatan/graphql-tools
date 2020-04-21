@@ -7,6 +7,7 @@ module.exports = {
   rootDir: process.cwd(),
   globals: {
     'ts-jest': {
+      diagnostics: false,
       tsConfig: 'tsconfig.json'
     }
   },
