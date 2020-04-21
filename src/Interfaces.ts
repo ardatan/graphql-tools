@@ -37,22 +37,13 @@ import { ApolloLink } from 'apollo-link';
 import { SchemaVisitor } from './utils/SchemaVisitor';
 import { SchemaDirectiveVisitor } from './utils/SchemaDirectiveVisitor';
 
-export interface SchemaDirectiveVisitorClass {
-  new (...args: any): SchemaDirectiveVisitor;
-  getDirectiveDeclaration(
-    directiveName: string,
-    schema: GraphQLSchema,
-  ): GraphQLDirective | null | undefined;
-}
+export type SchemaDirectiveVisitorClass = typeof SchemaDirectiveVisitor;
 
 // graphql-js < v15 backwards compatible ExecutionResult
 // See: https://github.com/graphql/graphql-js/pull/2490
 
-export interface ExecutionResult<
-  TData = {
-    [key: string]: any;
-  }
-> extends GraphQLExecutionResult {
+export interface ExecutionResult<TData = Record<string, any>>
+  extends GraphQLExecutionResult {
   data?: TData | null;
   extensions?: Record<string, any>;
 }
@@ -66,11 +57,11 @@ export type TypeMap = Record<string, GraphQLNamedType>;
 
 export interface GraphQLExecutionContext {
   schema: GraphQLSchema;
-  fragments: { [key: string]: FragmentDefinitionNode };
+  fragments: Record<string, FragmentDefinitionNode>;
   rootValue: any;
   contextValue: any;
   operation: OperationDefinitionNode;
-  variableValues: { [key: string]: any };
+  variableValues: Record<string, any>;
   fieldResolver: GraphQLFieldResolver<any, any>;
   errors: Array<GraphQLError>;
 }
@@ -183,8 +174,8 @@ export type Fetcher = (
 export interface IFetcherOperation {
   query: DocumentNode;
   operationName?: string;
-  variables?: { [key: string]: any };
-  context?: { [key: string]: any };
+  variables?: Record<string, any>;
+  context?: Record<string, any>;
 }
 
 export type Dispatcher = (context: any) => ApolloLink | Fetcher;
@@ -232,12 +223,12 @@ export function isSubschemaConfig(
   return Boolean((value as SubschemaConfig).schema);
 }
 
-export interface IDelegateToSchemaOptions<TContext = { [key: string]: any }> {
+export interface IDelegateToSchemaOptions<TContext = Record<string, any>> {
   schema: GraphQLSchema | SubschemaConfig;
   operation?: Operation;
   fieldName?: string;
   returnType?: GraphQLOutputType;
-  args?: { [key: string]: any };
+  args?: Record<string, any>;
   selectionSet?: SelectionSetNode;
   fieldNodes?: ReadonlyArray<FieldNode>;
   context?: TContext;
@@ -277,8 +268,8 @@ export interface MergeInfo {
   delegate: (
     type: 'query' | 'mutation' | 'subscription',
     fieldName: string,
-    args: { [key: string]: any },
-    context: { [key: string]: any },
+    args: Record<string, any>,
+    context: Record<string, any>,
     info: GraphQLResolveInfo,
     transforms?: Array<Transform>,
   ) => any;
@@ -328,18 +319,16 @@ export interface IResolverObject<TSource = any, TContext = any, TArgs = any> {
     | IResolverObject<TSource, TContext>;
 }
 
-export interface IEnumResolver {
-  [key: string]: string | number;
-}
+export type IEnumResolver = Record<string, string | number>;
 
-export interface IResolvers<TSource = any, TContext = any> {
-  [key: string]:
-    | (() => any)
-    | IResolverObject<TSource, TContext>
-    | IResolverOptions<TSource, TContext>
-    | GraphQLScalarType
-    | IEnumResolver;
-}
+export type IResolvers<TSource = any, TContext = any> = Record<
+  string,
+  | (() => any)
+  | IResolverObject<TSource, TContext>
+  | IResolverOptions<TSource, TContext>
+  | GraphQLScalarType
+  | IEnumResolver
+>;
 
 export type IResolversParameter =
   | Array<IResolvers | ((mergeInfo: MergeInfo) => IResolvers)>
@@ -358,9 +347,7 @@ export type IConnector<TContext = any> =
   | IConnectorCls<TContext>
   | IConnectorFn<TContext>;
 
-export interface IConnectors<TContext = any> {
-  [key: string]: IConnector<TContext>;
-}
+export type IConnectors<TContext = any> = Record<string, IConnector<TContext>>;
 
 export interface IExecutableSchemaDefinition<TContext = any> {
   typeDefs: ITypeDefinitions;
@@ -422,7 +409,7 @@ export interface IMockOptions {
 export interface IMockServer {
   query: (
     query: string,
-    vars?: { [key: string]: any },
+    vars?: Record<string, any>,
   ) => Promise<ExecutionResult>;
 }
 
@@ -447,7 +434,7 @@ export interface Request {
   extensions?: Record<string, any>;
 }
 
-export type IndexedObject<V> = { [key: string]: V } | ReadonlyArray<V>;
+export type IndexedObject<V> = Record<string, V> | ReadonlyArray<V>;
 
 export type VisitableSchemaType =
   | GraphQLSchema

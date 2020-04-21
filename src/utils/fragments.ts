@@ -39,65 +39,62 @@ export function concatInlineFragments(
 function deduplicateSelection(
   nodes: Array<SelectionNode>,
 ): Array<SelectionNode> {
-  const selectionMap = nodes.reduce<{ [key: string]: SelectionNode }>(
-    (map, node) => {
-      switch (node.kind) {
-        case 'Field': {
-          if (node.alias != null) {
-            if (node.alias.value in map) {
-              return map;
-            }
-
-            return {
-              ...map,
-              [node.alias.value]: node,
-            };
-          }
-
-          if (node.name.value in map) {
+  const selectionMap = nodes.reduce((map, node) => {
+    switch (node.kind) {
+      case 'Field': {
+        if (node.alias != null) {
+          if (node.alias.value in map) {
             return map;
           }
 
           return {
             ...map,
-            [node.name.value]: node,
+            [node.alias.value]: node,
           };
         }
-        case 'FragmentSpread': {
-          if (node.name.value in map) {
-            return map;
-          }
 
-          return {
-            ...map,
-            [node.name.value]: node,
-          };
-        }
-        case 'InlineFragment': {
-          if (map.__fragment != null) {
-            const fragment = map.__fragment as InlineFragmentNode;
-
-            return {
-              ...map,
-              __fragment: concatInlineFragments(
-                fragment.typeCondition.name.value,
-                [fragment, node],
-              ),
-            };
-          }
-
-          return {
-            ...map,
-            __fragment: node,
-          };
-        }
-        default: {
+        if (node.name.value in map) {
           return map;
         }
+
+        return {
+          ...map,
+          [node.name.value]: node,
+        };
       }
-    },
-    Object.create(null),
-  );
+      case 'FragmentSpread': {
+        if (node.name.value in map) {
+          return map;
+        }
+
+        return {
+          ...map,
+          [node.name.value]: node,
+        };
+      }
+      case 'InlineFragment': {
+        if (map.__fragment != null) {
+          const fragment = map.__fragment as InlineFragmentNode;
+
+          return {
+            ...map,
+            __fragment: concatInlineFragments(
+              fragment.typeCondition.name.value,
+              [fragment, node],
+            ),
+          };
+        }
+
+        return {
+          ...map,
+          __fragment: node,
+        };
+      }
+      default: {
+        return map;
+      }
+    }
+  }, Object.create(null));
 
   const selection = Object.keys(selectionMap).reduce(
     (selectionList, node) => selectionList.concat(selectionMap[node]),

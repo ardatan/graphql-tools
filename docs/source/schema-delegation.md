@@ -118,8 +118,8 @@ delegateToSchema(options: {
   schema: GraphQLSchema;
   operation: 'query' | 'mutation' | 'subscription';
   fieldName: string;
-  args?: { [key: string]: any };
-  context: { [key: string]: any };
+  args?: Record<string, any>;
+  context: Record<string, any>;
   info: GraphQLResolveInfo;
   transforms?: Array<Transform>;
 }): Promise<any>
@@ -137,7 +137,7 @@ The operation type to use during the delegation.
 
 A root field in a subschema from which the query should start.
 
-#### args: { [key: string]: any }
+#### args: Record<string, any>
 
 Additional arguments to be passed to the field. Arguments passed to the field that is being resolved will be preserved if the subschema expects them, so you don't have to pass existing arguments explicitly, though you could use the additional arguments to override the existing ones. For example:
 
@@ -187,7 +187,7 @@ const resolvers = {
 };
 ```
 
-#### context: { [key: string]: any }
+#### context: Record<string, any>
 
 GraphQL context that is going to be passed to the subschema execution or subsciption call.
 

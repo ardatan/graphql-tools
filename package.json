@@ -15,6 +15,8 @@
     "precompile": "npm run clean",
     "compile": "rollup -c rollup.config.js",
     "test": "jest",
+    "check": "tsc --noemit",
+    "check:watch": "tsc --watch --noemit",
     "lint": "eslint --ext .js,.ts src",
     "lint:watch": "esw --watch --cache --ext .js,.ts src",
     "watch": "npm run compile -- --watch",

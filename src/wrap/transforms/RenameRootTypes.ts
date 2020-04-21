@@ -17,8 +17,8 @@ import { toConfig } from '../../polyfills/index';
 
 export default class RenameRootTypes implements Transform {
   private readonly renamer: (name: string) => string | undefined;
-  private map: { [key: string]: string };
-  private reverseMap: { [key: string]: string };
+  private map: Record<string, string>;
+  private reverseMap: Record<string, string>;
 
   constructor(renamer: (name: string) => string | undefined) {
     this.renamer = renamer;

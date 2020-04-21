@@ -62,8 +62,8 @@ import { getArgumentValues } from './getArgumentValues';
 // of the SchemaDirectiveVisitor class.
 
 export class SchemaDirectiveVisitor<
-  TArgs = Record<string, any>,
-  TContext = Record<string, any>
+  TArgs = any,
+  TContext = any
 > extends SchemaVisitor {
   // The name of the directive this visitor is allowed to visit (that is, the
   // identifier that appears after the @ character in the schema). Note that
@@ -114,9 +114,7 @@ export class SchemaDirectiveVisitor<
     directiveVisitors: Record<string, SchemaDirectiveVisitorClass>,
     // Optional context object that will be available to all visitor instances
     // via this.context. Defaults to an empty null-prototype object.
-    context: {
-      [key: string]: any;
-    } = Object.create(null),
+    context: Record<string, any> = Object.create(null),
     // The visitSchemaDirectives method returns a map from directive names to
     // lists of SchemaDirectiveVisitors created while visiting the schema.
   ): Record<string, Array<SchemaDirectiveVisitor>> {
@@ -170,7 +168,7 @@ export class SchemaDirectiveVisitor<
         }
 
         const decl = declaredDirectives[directiveName];
-        let args: { [key: string]: any };
+        let args: Record<string, any>;
 
         if (decl != null) {
           // If this directive was explicitly declared, use the declared
