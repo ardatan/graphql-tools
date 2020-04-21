@@ -10,7 +10,7 @@ on:
 
 jobs:
   test:
-    name: Testing and Node ${{matrix.node_version}}
+    name: Testing on Node ${{matrix.node_version}} w/ GraphQL ${{matrix.graphql_version}}
     runs-on: ubuntu-latest
     strategy:
       matrix:
