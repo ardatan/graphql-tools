@@ -88,11 +88,10 @@ const testSchema = `
 const testResolvers = {
   __schema: () => ({ stuff: 'stuff', species: 'ROOT' }),
   RootQuery: {
-    usecontext: (_r: any, _a: { [key: string]: any }, ctx: any) =>
-      ctx.usecontext,
-    useTestConnector: (_r: any, _a: { [key: string]: any }, ctx: any) =>
+    usecontext: (_r: any, _a: Record<string, any>, ctx: any) => ctx.usecontext,
+    useTestConnector: (_r: any, _a: Record<string, any>, ctx: any) =>
       ctx.connectors.TestConnector.get(),
-    useContextConnector: (_r: any, _a: { [key: string]: any }, ctx: any) =>
+    useContextConnector: (_r: any, _a: Record<string, any>, ctx: any) =>
       ctx.connectors.ContextConnector.get(),
     species: (root: any, { name }: { name: string }) =>
       (root.species as string) + name,
@@ -1984,7 +1983,7 @@ describe('providing useful errors from resolvers', () => {
     `;
     const resolve = {
       RootQuery: {
-        thread(_root: any, args: { [key: string]: any }) {
+        thread(_root: any, args: Record<string, any>) {
           return args;
         },
       },
@@ -2024,7 +2023,7 @@ describe('providing useful errors from resolvers', () => {
       `;
     const resolve = {
       RootQuery: {
-        thread(_root: any, _args: { [key: string]: any }) {
+        thread(_root: any, _args: Record<string, any>) {
           return { name: (): any => undefined };
         },
       },
@@ -2061,7 +2060,7 @@ describe('providing useful errors from resolvers', () => {
     `;
     const resolve = {
       RootQuery: {
-        thread(_root: any, args: { [key: string]: any }) {
+        thread(_root: any, args: Record<string, any>) {
           return { name: () => args['name'] };
         },
       },
@@ -2170,15 +2169,12 @@ describe('Attaching connectors to schema', () => {
     test('runs only once per query', () => {
       const simpleResolvers = {
         RootQuery: {
-          usecontext: (_r: any, _a: { [key: string]: any }, ctx: any) =>
+          usecontext: (_r: any, _a: Record<string, any>, ctx: any) =>
             ctx.usecontext,
-          useTestConnector: (_r: any, _a: { [key: string]: any }, ctx: any) =>
+          useTestConnector: (_r: any, _a: Record<string, any>, ctx: any) =>
             ctx.connectors.TestConnector.get(),
-          useContextConnector: (
-            _r: any,
-            _a: { [key: string]: any },
-            ctx: any,
-          ) => ctx.connectors.ContextConnector.get(),
+          useContextConnector: (_r: any, _a: Record<string, any>, ctx: any) =>
+            ctx.connectors.ContextConnector.get(),
           species: (root: any, { name }: { name: string }) =>
             (root.species as string) + name,
         },
@@ -2212,15 +2208,12 @@ describe('Attaching connectors to schema', () => {
     test('runs twice for two queries', () => {
       const simpleResolvers = {
         RootQuery: {
-          usecontext: (_r: any, _a: { [key: string]: any }, ctx: any) =>
+          usecontext: (_r: any, _a: Record<string, any>, ctx: any) =>
             ctx.usecontext,
-          useTestConnector: (_r: any, _a: { [key: string]: any }, ctx: any) =>
+          useTestConnector: (_r: any, _a: Record<string, any>, ctx: any) =>
             ctx.connectors.TestConnector.get(),
-          useContextConnector: (
-            _r: any,
-            _a: { [key: string]: any },
-            ctx: any,
-          ) => ctx.connectors.ContextConnector.get(),
+          useContextConnector: (_r: any, _a: Record<string, any>, ctx: any) =>
+            ctx.connectors.ContextConnector.get(),
           species: (root: any, { name }: { name: string }) =>
             (root.species as string) + name,
         },
@@ -2267,7 +2260,7 @@ describe('Attaching connectors to schema', () => {
         typeDefs: testSchema,
         resolvers: testResolvers,
       });
-      const rootResolver = (_o: any, _a: { [key: string]: any }, ctx: any) => {
+      const rootResolver = (_o: any, _a: Record<string, any>, ctx: any) => {
         ctx['usecontext'] = 'ABC';
       };
       addSchemaLevelResolver(jsSchema, rootResolver);
@@ -2285,7 +2278,7 @@ describe('Attaching connectors to schema', () => {
     test('can attach with existing static connectors', () => {
       const resolvers = {
         RootQuery: {
-          testString(_root: any, _args: { [key: string]: any }, ctx: any) {
+          testString(_root: any, _args: Record<string, any>, ctx: any) {
             return ctx.connectors.staticString;
           },
         },

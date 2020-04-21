@@ -170,7 +170,7 @@ describe('@directives', () => {
     function checkDirectives(
       type: VisitableSchemaType,
       typeDirectiveNames: Array<string>,
-      fieldDirectiveMap: { [key: string]: Array<string> } = {},
+      fieldDirectiveMap: Record<string, Array<string>> = {},
     ) {
       expect(getDirectiveNames(type)).toEqual(typeDirectiveNames);
 

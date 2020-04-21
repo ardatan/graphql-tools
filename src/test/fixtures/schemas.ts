@@ -78,11 +78,11 @@ export type Vehicle = {
 };
 
 export const sampleData: {
-  Property: { [key: string]: Property };
-  Product: { [key: string]: Product };
-  Booking: { [key: string]: Booking };
-  Customer: { [key: string]: Customer };
-  Vehicle: { [key: string]: Vehicle };
+  Property: Record<string, Property>;
+  Product: Record<string, Product>;
+  Booking: Record<string, Booking>;
+  Customer: Record<string, Customer>;
+  Vehicle: Record<string, Vehicle>;
 } = {
   Product: {
     pd1: {

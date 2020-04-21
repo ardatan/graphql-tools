@@ -382,15 +382,11 @@ The `delegateToSchema` method:
 ```js
 delegateToSchema<TContext>(options: IDelegateToSchemaOptions<TContext>): any;
 
-interface IDelegateToSchemaOptions<TContext = {
-    [key: string]: any;
-}> {
+interface IDelegateToSchemaOptions<TContext = Record<string, any>> {
     schema: GraphQLSchema;
     operation: Operation;
     fieldName: string;
-    args?: {
-        [key: string]: any;
-    };
+    args?: Record<string, any>;
     context: TContext;
     info: GraphQLResolveInfo;
     transforms?: Array<Transform>;

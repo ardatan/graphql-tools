@@ -14,7 +14,7 @@ import {
 } from './fixtures/schemas';
 
 function findPropertyByLocationName(
-  properties: { [key: string]: Property },
+  properties: Record<string, Property>,
   name: string,
 ): Property | undefined {
   for (const key of Object.keys(properties)) {

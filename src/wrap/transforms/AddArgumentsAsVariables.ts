@@ -44,10 +44,10 @@ export default class AddArgumentsAsVariables implements Transform {
 function addVariablesToRootField(
   targetSchema: GraphQLSchema,
   originalRequest: Request,
-  args: { [key: string]: any },
+  args: Record<string, any>,
 ): {
   document: DocumentNode;
-  newVariables: { [key: string]: any };
+  newVariables: Record<string, any>;
 } {
   const document = originalRequest.document;
   const variableValues = originalRequest.variables;

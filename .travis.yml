@@ -13,6 +13,9 @@ install:
 
 script:
   - if [[ $GRAPHQL_VERSION == "latest" ]]; then
+      npm run check;
+    fi
+  - if [[ $GRAPHQL_VERSION == "latest" ]]; then
       npm run lint;
     fi
   - if [[ $GRAPHQL_VERSION == "latest" ]]; then
