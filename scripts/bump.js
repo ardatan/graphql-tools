@@ -1,5 +1,5 @@
 const semver = require('semver');
-const packageJson = require('./dist/package.json');
+const packageJson = require('../dist/package.json');
 const fs = require('fs');
 const cp = require('child_process');
 

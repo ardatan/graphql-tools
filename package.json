@@ -24,7 +24,7 @@
     "format": "prettier --write src/**/*.ts",
     "format:check": "prettier --check src/**/*.ts",
     "release": "yarn build && npm publish dist",
-    "ci:release:canary": "node bump.js && npm publish dist --tag alpha"
+    "ci:release:canary": "node scripts/bump.js && npm publish dist --tag alpha"
   },
   "repository": {
     "type": "git",
