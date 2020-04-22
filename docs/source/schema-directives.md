@@ -50,7 +50,7 @@ const schema = makeExecutableSchema({
 
 That's it. The implementation of `RenameDirective` takes care of everything else. If you understand what the directive is supposed to do to your schema, then you do not have to worry about how it works.
 
-Everything you read below addresses some aspect of how a directive like `@rename(to: ...)` could be implemented. If that's not something you care about right now, feel free to skim the rest of this document. When you need it, it will be here.
+Everything you read below addresses some aspect of how a directive like `@rename(to: ...)` could be implemented. If that's not something you care about right now, feel free to skip the rest of this document. When you need it, it will be here.
 
 ## Implementing schema directives
 
