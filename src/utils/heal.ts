@@ -197,10 +197,13 @@ export function healTypes(
   }
 
   function healInterfaces(type: GraphQLObjectType | GraphQLInterfaceType) {
-    updateEachKey(type.getInterfaces(), (iface) => {
-      const healedType = healType(iface) as GraphQLInterfaceType;
-      return healedType;
-    });
+    updateEachKey(
+      ((type as unknown) as GraphQLObjectType).getInterfaces(),
+      (iface) => {
+        const healedType = healType(iface) as GraphQLInterfaceType;
+        return healedType;
+      },
+    );
   }
 
   function healInputFields(type: GraphQLInputObjectType) {
