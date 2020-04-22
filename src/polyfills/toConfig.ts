@@ -233,7 +233,7 @@ export function interfaceTypeToConfig(
     ((typeConfig as unknown) as GraphQLObjectTypeConfig<
       any,
       any
-    >).interfaces = type.getInterfaces();
+    >).interfaces = ((type as unknown) as GraphQLObjectType).getInterfaces();
   }
 
   return typeConfig;

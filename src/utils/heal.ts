@@ -261,9 +261,11 @@ function pruneTypes(
       isObjectType(namedType) ||
       (graphqlVersion() >= 15 && isInterfaceType(namedType))
     ) {
-      namedType.getInterfaces().forEach((iface) => {
-        implementedInterfaces[iface.name] = true;
-      });
+      ((namedType as unknown) as GraphQLObjectType)
+        .getInterfaces()
+        .forEach((iface) => {
+          implementedInterfaces[iface.name] = true;
+        });
     }
   });
 
