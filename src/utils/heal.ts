@@ -197,10 +197,13 @@ export function healTypes(
   }
 
   function healInterfaces(type: GraphQLObjectType | GraphQLInterfaceType) {
-    updateEachKey(type.getInterfaces(), (iface) => {
-      const healedType = healType(iface) as GraphQLInterfaceType;
-      return healedType;
-    });
+    updateEachKey(
+      ((type as unknown) as GraphQLObjectType).getInterfaces(),
+      (iface) => {
+        const healedType = healType(iface) as GraphQLInterfaceType;
+        return healedType;
+      },
+    );
   }
 
   function healInputFields(type: GraphQLInputObjectType) {
@@ -258,9 +261,11 @@ function pruneTypes(
       isObjectType(namedType) ||
       (graphqlVersion() >= 15 && isInterfaceType(namedType))
     ) {
-      namedType.getInterfaces().forEach((iface) => {
-        implementedInterfaces[iface.name] = true;
-      });
+      ((namedType as unknown) as GraphQLObjectType)
+        .getInterfaces()
+        .forEach((iface) => {
+          implementedInterfaces[iface.name] = true;
+        });
     }
   });
 

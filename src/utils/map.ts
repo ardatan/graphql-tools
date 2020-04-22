@@ -8,6 +8,7 @@ import {
   GraphQLInterfaceType,
   GraphQLList,
   GraphQLObjectType,
+  GraphQLObjectTypeConfig,
   GraphQLNamedType,
   GraphQLNonNull,
   GraphQLScalarType,
@@ -263,7 +264,10 @@ export function rewireTypes(
         fields: () => rewireFields(config.fields),
       };
       if (graphqlVersion() >= 15) {
-        newConfig.interfaces = () => rewireNamedTypes(config.interfaces);
+        ((newConfig as unknown) as GraphQLObjectTypeConfig<
+          any,
+          any
+        >).interfaces = () => rewireNamedTypes(config.interfaces);
       }
       return new GraphQLInterfaceType(newConfig);
     } else if (isUnionType(type)) {
@@ -373,9 +377,11 @@ function pruneTypes(
       isObjectType(namedType) ||
       (graphqlVersion() >= 15 && isInterfaceType(namedType))
     ) {
-      namedType.getInterfaces().forEach((iface) => {
-        implementedInterfaces[iface.name] = true;
-      });
+      ((namedType as unknown) as GraphQLObjectType)
+        .getInterfaces()
+        .forEach((iface) => {
+          implementedInterfaces[iface.name] = true;
+        });
     }
   });
 

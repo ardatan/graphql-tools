@@ -230,7 +230,10 @@ export function interfaceTypeToConfig(
   };
 
   if (graphqlVersion() >= 15) {
-    typeConfig.interfaces = type.getInterfaces();
+    ((typeConfig as unknown) as GraphQLObjectTypeConfig<
+      any,
+      any
+    >).interfaces = ((type as unknown) as GraphQLObjectType).getInterfaces();
   }
 
   return typeConfig;

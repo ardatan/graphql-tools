@@ -1,0 +1,112 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  check:
+    name: Running code checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Master
+        uses: actions/checkout@v1
+      - name: Use Node
+        uses: actions/setup-node@master
+        with:
+          version: 12
+      - name: Install Dependencies using Yarn
+        run: yarn install
+      - name: Format Check
+        run: yarn format:check
+      - name: Lint Check
+        run: yarn lint
+
+  test:
+    name: Testing on Node ${{matrix.node_version}} w/ GraphQL ${{matrix.graphql_version}}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node_version: [10, 12, 13]
+        graphql_version: [latest, legacy]
+    steps:
+      - name: Checkout Master
+        uses: actions/checkout@v1
+      - name: Use Node ${{matrix.node_version}}
+        uses: actions/setup-node@master
+        with:
+          version: ${{ matrix.node_version }}
+      - name: Install Dependencies using Yarn
+        run: yarn install
+      - name: Install Legacy GraphQL
+        run: yarn add -D -W graphql@14 && node ./scripts/match-graphql.js
+        if: matrix.graphql_version == 'legacy'
+      - name: Compile Check
+        run: yarn run check
+      - name: Build
+        run: yarn build
+      - name: Test
+        run: yarn test --logHeapUsage
+
+  publish-canary:
+    name: Publish Canary
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Master
+        uses: actions/checkout@v1
+      - name: Use Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: '13.x'
+      - name: Install Dependencies using Yarn
+        run: yarn install
+      - name: Build
+        run: yarn build
+      - name: Release Canary
+        id: canary
+        uses: 'kamilkisiela/release-canary@master'
+        if: github.repository == 'urigo/graphql-tools'
+        with:
+          npm-token: ${{ secrets.NODE_AUTH_TOKEN }}
+          npm-script: 'ci:release:canary'
+      - name: Publish a message
+        if: steps.canary.outputs.released
+        uses: 'kamilkisiela/pr-comment@master'
+        with:
+          message: |
+            The latest changes of this PR are available as alpha in npm: `${{ steps.canary.outputs.version }}`
+
+            Quickly update your package.json by running:
+
+                npx match-version graphql-tools ${{ steps.canary.outputs.version }}
+          bot-token: ${{ secrets.GH_API_TOKEN }}
+          bot: 'theguild-bot'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy-website:
+    name: Deploy Website
+    runs-on: ubuntu-latest
+    if: contains(github.ref, 'master')
+    steps:
+      - name: Checkout Master
+        uses: actions/checkout@v1
+      - name: Use Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: '13.x'
+      - name: Change directory to Docs
+        run: cd docs/
+      - name: Install Dependencies using Yarn
+        run: yarn install
+      - name: Build
+        run: yarn build
+      - name: Deploy 🚀
+        uses: JamesIves/github-pages-deploy-action@releases/v3
+        with:
+          ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: gh-pages # The branch the action should deploy to.
+          FOLDER: docs/public # The folder the action should deploy.

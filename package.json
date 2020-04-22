@@ -12,18 +12,19 @@
   },
   "scripts": {
     "clean": "rimraf dist",
-    "precompile": "npm run clean",
-    "compile": "rollup -c rollup.config.js",
+    "prebuild": "yarn clean",
+    "build": "rollup -c rollup.config.js",
     "test": "jest",
     "check": "tsc --noemit",
     "check:watch": "tsc --watch --noemit",
     "lint": "eslint --ext .js,.ts src",
     "lint:watch": "esw --watch --cache --ext .js,.ts src",
-    "watch": "npm run compile -- --watch",
-    "prepublishOnly": "npm run compile",
+    "watch": "yarn build -- --watch",
+    "prepublishOnly": "yarn build",
     "format": "prettier --write src/**/*.ts",
     "format:check": "prettier --check src/**/*.ts",
-    "release": "npm run compile && npm publish dist"
+    "release": "yarn build && npm publish dist",
+    "ci:release:canary": "node bump.js && npm publish dist --tag alpha"
   },
   "repository": {
     "type": "git",

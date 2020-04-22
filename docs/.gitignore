@@ -8,4 +8,6 @@ public/*
 docs.json
 _multiconfig.yml
 .cache
-!package-lock.json
+package-lock.json
+yarn.lock
+

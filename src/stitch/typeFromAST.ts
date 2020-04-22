@@ -85,8 +85,8 @@ function makeInterfaceType(
     interfaces:
       graphqlVersion() >= 15
         ? () =>
-            node.interfaces.map((iface) =>
-              createNamedStub(iface.name.value, 'interface'),
+            ((node as unknown) as ObjectTypeDefinitionNode).interfaces.map(
+              (iface) => createNamedStub(iface.name.value, 'interface'),
             )
         : undefined,
     description: getDescription(node, backcompatOptions),
