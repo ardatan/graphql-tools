@@ -7,4 +7,4 @@ const gitHash = cp.spawnSync('git', ['rev-parse', '--short', 'HEAD']).stdout.toS
 const alphaVersion = semver.inc(packageJson.version, 'prerelease', true, gitHash);
 packageJson.version = alphaVersion;
 
-fs.writeFileSync('./dist/package.json', JSON.stringify(packageJson, null, 2));
+fs.writeFileSync('../dist/package.json', JSON.stringify(packageJson, null, 2));
