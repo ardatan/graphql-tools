@@ -9,6 +9,25 @@ on:
       - master
 
 jobs:
+  check:
+    name: Running code checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Master
+        uses: actions/checkout@v1
+      - name: Use Node
+        uses: actions/setup-node@master
+        with:
+          version: 12
+      - name: Install Dependencies using Yarn
+        run: yarn install
+      - name: Compile Check
+        run: yarn run check
+      - name: Format Check
+        run: yarn format:check
+      - name: Lint Check
+        run: yarn lint
+
   test:
     name: Testing on Node ${{matrix.node_version}} w/ GraphQL ${{matrix.graphql_version}}
     runs-on: ubuntu-latest
@@ -28,12 +47,6 @@ jobs:
       - name: Install Legacy GraphQL
         run: yarn add -D -W graphql@14 && node ./scripts/match-graphql.js
         if: matrix.graphql_version == 'legacy'
-      - name: Typescript Check
-        run: yarn run check
-      - name: Format Check
-        run: yarn format:check
-      - name: Lint
-        run: yarn lint
       - name: Build
         run: yarn build
       - name: Test
