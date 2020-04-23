@@ -218,7 +218,7 @@ describe('respects buildSchema options', () => {
           fieldA: 1,
           fieldB: 2,
           field3: 3,
-        }
+        },
       });
     };
     const remoteSchema = makeRemoteExecutableSchema({
@@ -238,8 +238,8 @@ describe('respects buildSchema options', () => {
           fieldA: 1,
           fieldB: 2,
           field3: 3,
-        }
-      })
+        },
+      });
 
       expect(calls).toHaveLength(1);
       expect(print(calls[0].query)).toEqual(print(query));
@@ -252,8 +252,8 @@ describe('respects buildSchema options', () => {
           fieldA: 1,
           fieldB: 2,
           field3: 3,
-        }
-      })
+        },
+      });
 
       expect(calls).toHaveLength(3);
       expect(print(calls[0].query)).toEqual(`\
