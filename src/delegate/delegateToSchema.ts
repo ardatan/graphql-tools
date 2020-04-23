@@ -204,8 +204,9 @@ export function delegateRequest({
 
     const executionResult = executor({
       document: processedRequest.document,
-      context,
       variables: processedRequest.variables,
+      context,
+      info,
     });
 
     if (executionResult instanceof Promise) {
@@ -225,8 +226,9 @@ export function delegateRequest({
 
   return subscriber({
     document: processedRequest.document,
-    context,
     variables: processedRequest.variables,
+    context,
+    info,
   }).then(
     (
       subscriptionResult:
@@ -263,12 +265,14 @@ function createExecutor(
   subschemaConfig?: SubschemaConfig,
 ): ({
   document,
-  context,
   variables,
+  context,
+  info,
 }: {
   document: DocumentNode;
-  context?: Record<string, any>;
-  variables?: Record<string, any>;
+  variables: Record<string, any>;
+  context: Record<string, any>;
+  info: GraphQLResolveInfo;
 }) => Promise<ExecutionResult> | ExecutionResult {
   let fetcher: Fetcher;
   let targetRootValue: Record<string, any> = rootValue;
@@ -291,11 +295,16 @@ function createExecutor(
   }
 
   if (fetcher != null) {
-    return ({ document, context: graphqlContext, variables }) =>
+    return ({
+      document: query,
+      variables,
+      context: graphqlContext,
+      info: graphqlResolveInfo,
+    }) =>
       fetcher({
-        query: document,
+        query,
         variables,
-        context: { graphqlContext },
+        context: { graphqlContext, graphqlResolveInfo },
       });
   }
 
@@ -316,12 +325,14 @@ function createSubscriber(
   subschemaConfig?: SubschemaConfig,
 ): ({
   document,
-  context,
   variables,
+  context,
+  info,
 }: {
   document: DocumentNode;
-  context?: Record<string, any>;
-  variables?: Record<string, any>;
+  variables: Record<string, any>;
+  context: Record<string, any>;
+  info: GraphQLResolveInfo;
 }) => Promise<AsyncIterator<ExecutionResult> | ExecutionResult> {
   let link: ApolloLink;
   let targetRootValue: Record<string, any> = rootValue;
@@ -350,7 +361,7 @@ function createSubscriber(
     };
   }
 
-  return ({ document, context: graphqlContext, variables }) =>
+  return ({ document, variables, context: graphqlContext }) =>
     subscribe({
       schema,
       document,

@@ -173,16 +173,22 @@ declare module 'graphql' {
 // eslint-disable-next-line  @typescript-eslint/no-empty-interface
 export interface IGraphQLToolsResolveInfo extends GraphQLResolveInfo {}
 
-export type Fetcher = (
-  operation: IFetcherOperation,
-) => Promise<ExecutionResult>;
+export type Fetcher = (options: IFetcherOptions) => Promise<ExecutionResult>;
 
-export interface IFetcherOperation {
+export interface IFetcherOptions {
   query: DocumentNode;
   operationName?: string;
   variables?: Record<string, any>;
-  context?: Record<string, any>;
+  context?: {
+    graphqlContext?: Record<string, any>;
+    graphqlResolveInfo?: GraphQLResolveInfo;
+    [key: string]: any;
+  };
 }
+
+// for backwards compatibility
+// eslint-disable-next-line  @typescript-eslint/no-empty-interface
+export interface IFetcherOperation extends IFetcherOptions {}
 
 export type Dispatcher = (context: any) => ApolloLink | Fetcher;
 
