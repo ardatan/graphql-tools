@@ -223,7 +223,10 @@ export function isSubschemaConfig(
   return Boolean((value as SubschemaConfig).schema);
 }
 
-export interface IDelegateToSchemaOptions<TContext = Record<string, any>, TArgs = Record<string, any>> {
+export interface IDelegateToSchemaOptions<
+  TContext = Record<string, any>,
+  TArgs = Record<string, any>
+> {
   schema: GraphQLSchema | SubschemaConfig;
   operation?: Operation;
   fieldName?: string;
@@ -280,7 +283,9 @@ export interface MergeInfo {
   replacementSelectionSets: ReplacementSelectionSetMapping;
   replacementFragments: ReplacementFragmentMapping;
   mergedTypes: Record<string, MergedTypeInfo>;
-  delegateToSchema<TContext, TArgs>(options: IDelegateToSchemaOptions<TContext, TArgs>): any;
+  delegateToSchema<TContext, TArgs>(
+    options: IDelegateToSchemaOptions<TContext, TArgs>,
+  ): any;
 }
 
 export interface ReplacementSelectionSetMapping {
@@ -301,7 +306,12 @@ export interface MergedTypeInfo {
   containsSelectionSet: Map<SubschemaConfig, Map<SelectionSetNode, boolean>>;
 }
 
-export type IFieldResolver<TSource, TContext, TArgs = Record<string, any>, TReturn = any> = (
+export type IFieldResolver<
+  TSource,
+  TContext,
+  TArgs = Record<string, any>,
+  TReturn = any
+> = (
   source: TSource,
   args: TArgs,
   context: TContext,

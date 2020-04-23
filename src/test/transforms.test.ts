@@ -578,9 +578,12 @@ describe('transforms', () => {
     // Use case: breaking apart monolithic GQL codebase into microservices.
     // E.g. strip out types/fields from the monolith slowly and re-add them
     // as stitched resolvers to another service.
-    it('should allow stitching a previously filtered field onto a type', async () => {
+    it('should allow stitching a previously filtered field onto a type', () => {
       const filteredSchema = transformSchema(propertySchema, [
-        new FilterObjectFields((typeName, fieldName) => `${typeName}.${fieldName}` !== 'Property.location'),
+        new FilterObjectFields(
+          (typeName, fieldName) =>
+            `${typeName}.${fieldName}` !== 'Property.location',
+        ),
       ]);
 
       assertValidSchema(filteredSchema);
@@ -598,8 +601,7 @@ describe('transforms', () => {
 
       assertValidSchema(mergedSchema);
     });
-
-  })
+  });
 
   describe('tree operations', () => {
     let data: any;
