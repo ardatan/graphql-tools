@@ -6,6 +6,7 @@ export default class SchemaError extends Error {
   constructor(message: string) {
     super(message);
     this.message = message;
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (Error.captureStackTrace) {
       Error.captureStackTrace(this, this.constructor);
     }
