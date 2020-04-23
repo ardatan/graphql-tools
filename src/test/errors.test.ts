@@ -1,10 +1,9 @@
-import { GraphQLError, graphql } from 'graphql';
+import { GraphQLError, GraphQLResolveInfo, graphql } from 'graphql';
 
 import { relocatedError, getErrors } from '../stitch/errors';
 import { checkResultAndHandleErrors } from '../delegate/checkResultAndHandleErrors';
 import { makeExecutableSchema } from '../generate/index';
 import { mergeSchemas } from '../stitch/index';
-import { IGraphQLToolsResolveInfo } from '../Interfaces';
 import { ERROR_SYMBOL } from '../stitch/symbols';
 
 class ErrorWithExtensions extends GraphQLError {
@@ -53,7 +52,7 @@ describe('Errors', () => {
         checkResultAndHandleErrors(
           result,
           {},
-          ({} as unknown) as IGraphQLToolsResolveInfo,
+          ({} as unknown) as GraphQLResolveInfo,
           'responseKey',
         );
       } catch (e) {
@@ -70,7 +69,7 @@ describe('Errors', () => {
         checkResultAndHandleErrors(
           result,
           {},
-          ({} as unknown) as IGraphQLToolsResolveInfo,
+          ({} as unknown) as GraphQLResolveInfo,
           'responseKey',
         );
       } catch (e) {
@@ -88,7 +87,7 @@ describe('Errors', () => {
         checkResultAndHandleErrors(
           result,
           {},
-          ({} as unknown) as IGraphQLToolsResolveInfo,
+          ({} as unknown) as GraphQLResolveInfo,
           'responseKey',
         );
       } catch (e) {
