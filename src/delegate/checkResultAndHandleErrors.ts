@@ -11,7 +11,7 @@ import {
   GraphQLSchema,
 } from 'graphql';
 
-import { SubschemaConfig, IGraphQLToolsResolveInfo } from '../Interfaces';
+import { SubschemaConfig } from '../Interfaces';
 import { getResponseKeyFromInfo } from '../stitch/getResponseKeyFromInfo';
 
 import { handleNull } from './results/handleNull';
@@ -46,7 +46,7 @@ export function handleResult(
   errors: ReadonlyArray<GraphQLError>,
   subschema: GraphQLSchema | SubschemaConfig,
   context: Record<string, any>,
-  info: IGraphQLToolsResolveInfo,
+  info: GraphQLResolveInfo,
   returnType = info.returnType,
   skipTypeMerging?: boolean,
 ): any {

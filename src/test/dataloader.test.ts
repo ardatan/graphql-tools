@@ -1,10 +1,9 @@
 import DataLoader from 'dataloader';
-import { graphql, GraphQLList } from 'graphql';
+import { graphql, GraphQLList, GraphQLResolveInfo } from 'graphql';
 
 import { delegateToSchema } from '../delegate/index';
 import { makeExecutableSchema } from '../generate/index';
 import { mergeSchemas } from '../stitch/index';
-import { IGraphQLToolsResolveInfo } from '../Interfaces';
 
 describe('dataloader', () => {
   test('should work', async () => {
@@ -68,7 +67,7 @@ describe('dataloader', () => {
     });
 
     const usersLoader = new DataLoader(
-      async (keys: Array<{ id: any; info: IGraphQLToolsResolveInfo }>) => {
+      async (keys: Array<{ id: any; info: GraphQLResolveInfo }>) => {
         const users = await delegateToSchema({
           schema: userSchema,
           operation: 'query',

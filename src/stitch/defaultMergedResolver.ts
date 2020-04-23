@@ -1,6 +1,5 @@
-import { defaultFieldResolver } from 'graphql';
+import { defaultFieldResolver, GraphQLResolveInfo } from 'graphql';
 
-import { IGraphQLToolsResolveInfo } from '../Interfaces';
 import { handleResult } from '../delegate/checkResultAndHandleErrors';
 
 import { getSubschema } from './subSchema';
@@ -17,7 +16,7 @@ export default function defaultMergedResolver(
   parent: Record<string, any>,
   args: Record<string, any>,
   context: Record<string, any>,
-  info: IGraphQLToolsResolveInfo,
+  info: GraphQLResolveInfo,
 ) {
   if (!parent) {
     return null;

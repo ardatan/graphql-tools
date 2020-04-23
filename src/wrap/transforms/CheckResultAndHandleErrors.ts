@@ -1,22 +1,18 @@
-import { GraphQLSchema, GraphQLOutputType } from 'graphql';
+import { GraphQLSchema, GraphQLOutputType, GraphQLResolveInfo } from 'graphql';
 
 import { checkResultAndHandleErrors } from '../../delegate/checkResultAndHandleErrors';
-import {
-  Transform,
-  SubschemaConfig,
-  IGraphQLToolsResolveInfo,
-} from '../../Interfaces';
+import { Transform, SubschemaConfig } from '../../Interfaces';
 
 export default class CheckResultAndHandleErrors implements Transform {
   private readonly context?: Record<string, any>;
-  private readonly info: IGraphQLToolsResolveInfo;
+  private readonly info: GraphQLResolveInfo;
   private readonly fieldName?: string;
   private readonly subschema?: GraphQLSchema | SubschemaConfig;
   private readonly returnType?: GraphQLOutputType;
   private readonly typeMerge?: boolean;
 
   constructor(
-    info: IGraphQLToolsResolveInfo,
+    info: GraphQLResolveInfo,
     fieldName?: string,
     subschema?: GraphQLSchema | SubschemaConfig,
     context?: Record<string, any>,
