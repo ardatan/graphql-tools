@@ -10,7 +10,7 @@ import {
   graphqlSync,
   GraphQLField,
 } from 'graphql';
-import { forAwaitEach } from 'iterall';
+
 
 import {
   transformSchema,
@@ -41,6 +41,8 @@ import {
   renameFieldNode,
   hoistFieldNodes,
 } from '../utils/fieldNodes';
+
+import { forAwaitEach } from './forAwaitEach';
 
 import {
   propertySchema,

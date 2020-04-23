@@ -6,9 +6,11 @@ import {
   graphqlSync,
 } from 'graphql';
 import { PubSub } from 'graphql-subscriptions';
-import { forAwaitEach } from 'iterall';
 
 import { makeExecutableSchema, addSchemaLevelResolver } from '..';
+
+import { forAwaitEach } from './forAwaitEach';
+
 
 describe('Resolve', () => {
   describe('addSchemaLevelResolver', () => {

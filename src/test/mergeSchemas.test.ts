@@ -1,4 +1,3 @@
-import { forAwaitEach } from 'iterall';
 import {
   graphql,
   GraphQLSchema,
@@ -24,6 +23,8 @@ import {
   SchemaDirectiveVisitor,
 } from '../utils/index';
 import { addMocksToSchema } from '../mock/index';
+
+import { forAwaitEach } from './forAwaitEach';
 
 import {
   propertySchema as localPropertySchema,

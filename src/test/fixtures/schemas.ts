@@ -11,7 +11,8 @@ import {
   GraphQLResolveInfo,
   GraphQLError,
 } from 'graphql';
-import { forAwaitEach } from 'iterall';
+
+import { forAwaitEach } from '../forAwaitEach';
 
 import introspectSchema from '../../stitch/introspectSchema';
 import {

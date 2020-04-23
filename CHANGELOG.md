@@ -236,7 +236,7 @@ The main person which did the heavy lifting is [@yaacovCR](https://github.com/ya
 
 ### v2.21.0
 
-- Make iterall a runtime dependency [PR #627](https://github.com/apollographql/graphql-tools/pull/627)
+- Make ./forAwaitEach a runtime dependency [PR #627](https://github.com/apollographql/graphql-tools/pull/627)
 - Added support for lexical parser options [PR #567](https://github.com/apollographql/graphql-tools/pull/567)
 - Support `graphql@^0.13.0` [PR #567](https://github.com/apollographql/graphql-tools/pull/567)
 - Don't use `Symbol` in incompatible envs [Issue #535](https://github.com/apollographql/graphql-tools/issues/535) [PR #631](https://github.com/apollographql/graphql-tools/pull/631)
