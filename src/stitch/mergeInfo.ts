@@ -32,7 +32,6 @@ import {
 } from '../utils/selectionSets';
 
 import delegateToSchema from '../delegate/delegateToSchema';
-import { hasOwnProperty } from '../esUtils/hasOwnProperty';
 
 type MergeTypeCandidate = {
   type: GraphQLNamedType;
@@ -110,7 +109,7 @@ function createMergedTypes(
           typeCandidate.subschema != null &&
           isSubschemaConfig(typeCandidate.subschema) &&
           typeCandidate.subschema.merge != null &&
-          hasOwnProperty(typeCandidate.subschema.merge, typeName),
+          typeName in typeCandidate.subschema.merge,
       );
 
       if (

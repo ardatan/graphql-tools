@@ -2,6 +2,7 @@ import { GraphQLError, responsePathAsArray, GraphQLResolveInfo } from 'graphql';
 
 import { SubschemaConfig } from '../Interfaces';
 import { mergeDeep } from '../esUtils/mergeDeep';
+
 import { handleNull } from '../delegate/results/handleNull';
 
 import { relocatedError, setErrors, getErrors } from './errors';
@@ -103,7 +104,7 @@ export function mergeProxiedResults(target: any, ...sources: any): any {
     },
     {},
   );
-  const result = mergeDeep(target, ...sources);
+  const result = sources.reduce(mergeDeep, target);
   result[ERROR_SYMBOL] = errors;
   result[FIELD_SUBSCHEMA_MAP_SYMBOL] = target[FIELD_SUBSCHEMA_MAP_SYMBOL]
     ? mergeDeep(target[FIELD_SUBSCHEMA_MAP_SYMBOL], fieldSubschemaMap)

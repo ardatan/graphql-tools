@@ -25,8 +25,6 @@ import {
   NamedTypeVisitor,
   SchemaVisitorMap,
 } from '../Interfaces';
-import updateEachKey from '../esUtils/updateEachKey';
-import keyValMap from '../esUtils/keyValMap';
 
 import { healSchema } from './heal';
 import { SchemaVisitor } from './SchemaVisitor';
@@ -175,13 +173,20 @@ export function visitSchema(
           string,
           GraphQLInputField
         >;
-        updateEachKey(fieldMap, (field) =>
-          callMethod('visitInputFieldDefinition', field, {
-            // Since we call a different method for input object fields, we
-            // can't reuse the visitFields function here.
-            objectType: newInputObject,
-          }),
-        );
+        for (const key of Object.keys(fieldMap)) {
+          fieldMap[key] = callMethod(
+            'visitInputFieldDefinition',
+            fieldMap[key],
+            {
+              // Since we call a different method for input object fields, we
+              // can't reuse the visitFields function here.
+              objectType: newInputObject,
+            },
+          );
+          if (!fieldMap[key]) {
+            delete fieldMap[key];
+          }
+        }
       }
 
       return newInputObject;
@@ -199,17 +204,14 @@ export function visitSchema(
       let newEnum = callMethod('visitEnum', type);
 
       if (newEnum != null) {
-        const newValues: Array<GraphQLEnumValue> = [];
-
-        updateEachKey(newEnum.getValues(), (value) => {
-          const newValue = callMethod('visitEnumValue', value, {
-            enumType: newEnum,
-          });
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-          if (newValue) {
-            newValues.push(newValue);
-          }
-        });
+        const newValues: Array<GraphQLEnumValue> = newEnum
+          .getValues()
+          .map((value) =>
+            callMethod('visitEnumValue', value, {
+              enumType: newEnum,
+            }),
+          )
+          .filter(Boolean);
 
         // Recreate the enum type if any of the values changed
         const valuesUpdated = newValues.some(
@@ -218,15 +220,17 @@ export function visitSchema(
         if (valuesUpdated) {
           newEnum = new GraphQLEnumType({
             ...(newEnum as GraphQLEnumType).toConfig(),
-            values: keyValMap(
-              newValues,
-              (value) => value.name,
-              (value) => ({
-                value: value.value,
-                deprecationReason: value.deprecationReason,
-                description: value.description,
-                astNode: value.astNode,
+            values: newValues.reduce(
+              (prev, value) => ({
+                ...prev,
+                [value.name]: {
+                  value: value.value,
+                  deprecationReason: value.deprecationReason,
+                  description: value.description,
+                  astNode: value.astNode,
+                },
               }),
+              {},
             ),
           }) as GraphQLEnumType & T;
         }
@@ -239,7 +243,8 @@ export function visitSchema(
   }
 
   function visitFields(type: GraphQLObjectType | GraphQLInterfaceType) {
-    updateEachKey(type.getFields(), (field) => {
+    const fieldMap = type.getFields();
+    for (const [key, field] of Object.entries(fieldMap)) {
       // It would be nice if we could call visit(field) recursively here, but
       // GraphQLField is merely a type, not a value that can be detected using
       // an instanceof check, so we have to visit the fields in this lexical
@@ -256,20 +261,27 @@ export function visitSchema(
       });
 
       if (newField.args != null) {
-        updateEachKey(newField.args, (arg) =>
-          callMethod('visitArgumentDefinition', arg, {
-            // Like visitFieldDefinition, visitArgumentDefinition takes a
-            // second parameter that provides additional context, namely the
-            // parent .field and grandparent .objectType. Remember that the
-            // current GraphQLSchema is always available via this.schema.
-            field: newField,
-            objectType: type,
-          }),
-        );
+        newField.args = newField.args
+          .map((arg) =>
+            callMethod('visitArgumentDefinition', arg, {
+              // Like visitFieldDefinition, visitArgumentDefinition takes a
+              // second parameter that provides additional context, namely the
+              // parent .field and grandparent .objectType. Remember that the
+              // current GraphQLSchema is always available via this.schema.
+              field: newField,
+              objectType: type,
+            }),
+          )
+          .filter(Boolean);
       }
 
-      return newField;
-    });
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      if (newField) {
+        fieldMap[key] = newField;
+      } else {
+        delete fieldMap[key];
+      }
+    }
   }
 
   visit(schema);

@@ -5,7 +5,6 @@ import {
 } from 'graphql';
 
 import { toConfig } from '../polyfills/index';
-import toObjMap from '../esUtils/toObjMap';
 import { TypeMap } from '../Interfaces';
 
 export function appendFields(
@@ -17,7 +16,14 @@ export function appendFields(
   if (type != null) {
     const typeConfig = toConfig(type);
 
-    const newFields = toObjMap(typeConfig.fields);
+    const newFields: any = Object.entries(typeConfig.fields).reduce(
+      (prev, [key, val]) => ({
+        ...prev,
+        [key]: val,
+      }),
+      {},
+    );
+
     Object.keys(fields).forEach((fieldName) => {
       newFields[fieldName] = fields[fieldName];
     });

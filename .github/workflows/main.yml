@@ -69,7 +69,7 @@ jobs:
       - name: Release Canary
         id: canary
         uses: 'kamilkisiela/release-canary@master'
-        if: github.repository == 'urigo/graphql-tools'
+        if: github.repository == 'ardatan/graphql-tools'
         with:
           npm-token: ${{ secrets.NODE_AUTH_TOKEN }}
           npm-script: 'ci:release:canary'

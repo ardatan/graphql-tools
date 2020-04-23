@@ -1,5 +1,7 @@
 const semver = require('semver');
-const packageJson = require('../dist/package.json');
+const path = require('path');
+const packageJsonPath = path.resolve(__dirname, '../dist/package.json');
+const packageJson = require(packageJsonPath);
 const fs = require('fs');
 const cp = require('child_process');
 
@@ -7,4 +9,6 @@ const gitHash = cp.spawnSync('git', ['rev-parse', '--short', 'HEAD']).stdout.toS
 const alphaVersion = semver.inc(packageJson.version, 'prerelease', true, gitHash);
 packageJson.version = alphaVersion;
 
-fs.writeFileSync('../dist/package.json', JSON.stringify(packageJson, null, 2));
+fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
+
+console.log(`${packageJson.name} => ${packageJson.version}`);

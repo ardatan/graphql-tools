@@ -22,7 +22,6 @@ import {
 } from 'graphql';
 
 import { toConfig } from '../polyfills/index';
-import updateEachKey from '../esUtils/updateEachKey';
 
 import { isNamedStub, getBuiltInForStub } from './stub';
 import { graphqlVersion } from './graphqlVersion';
@@ -133,9 +132,9 @@ export function healTypes(
 
   // Directive declaration argument types can refer to named types.
   directives.forEach((decl: GraphQLDirective) => {
-    updateEachKey(decl.args, (arg) => {
+    decl.args = decl.args.filter((arg) => {
       arg.type = healType(arg.type) as GraphQLInputType;
-      return arg.type === null ? null : arg;
+      return arg.type !== null;
     });
   });
 
@@ -148,14 +147,11 @@ export function healTypes(
     }
   });
 
-  updateEachKey(originalTypeMap, (_namedType, typeName) => {
-    // Dangling references to renamed types should remain in the schema
-    // during healing, but must be removed now, so that the following
-    // invariant holds for all names: schema.getType(name).name === name
+  for (const typeName of Object.keys(originalTypeMap)) {
     if (!typeName.startsWith('__') && !(typeName in actualNamedTypeMap)) {
-      return null;
+      delete originalTypeMap[typeName];
     }
-  });
+  }
 
   if (!config.skipPruning) {
     pruneTypes(originalTypeMap, directives);
@@ -186,38 +182,51 @@ export function healTypes(
   }
 
   function healFields(type: GraphQLObjectType | GraphQLInterfaceType) {
-    updateEachKey(type.getFields(), (field) => {
-      updateEachKey(field.args, (arg) => {
-        arg.type = healType(arg.type) as GraphQLInputType;
-        return arg.type === null ? null : arg;
-      });
+    const fieldMap = type.getFields();
+    for (const [key, field] of Object.entries(fieldMap)) {
+      field.args
+        .map((arg) => {
+          arg.type = healType(arg.type) as GraphQLInputType;
+          return arg.type === null ? null : arg;
+        })
+        .filter(Boolean);
       field.type = healType(field.type) as GraphQLOutputType;
-      return field.type === null ? null : field;
-    });
+      if (field.type === null) {
+        delete fieldMap[key];
+      }
+    }
   }
 
   function healInterfaces(type: GraphQLObjectType | GraphQLInterfaceType) {
-    updateEachKey(
-      ((type as unknown) as GraphQLObjectType).getInterfaces(),
-      (iface) => {
-        const healedType = healType(iface) as GraphQLInterfaceType;
-        return healedType;
-      },
-    );
+    if ('getInterfaces' in type) {
+      const interfaces = type.getInterfaces();
+      interfaces.push(
+        ...interfaces
+          .splice(0)
+          .map((iface) => healType(iface) as any)
+          .filter(Boolean),
+      );
+    }
   }
 
   function healInputFields(type: GraphQLInputObjectType) {
-    updateEachKey(type.getFields(), (field) => {
+    const fieldMap = type.getFields();
+    for (const [key, field] of Object.entries(fieldMap)) {
       field.type = healType(field.type) as GraphQLInputType;
-      return field.type === null ? null : field;
-    });
+      if (field.type === null) {
+        delete fieldMap[key];
+      }
+    }
   }
 
   function healUnderlyingTypes(type: GraphQLUnionType) {
-    updateEachKey(type.getTypes(), (t: GraphQLOutputType) => {
-      const healedType = healType(t) as GraphQLOutputType;
-      return healedType;
-    });
+    const types = type.getTypes();
+    types.push(
+      ...types
+        .splice(0)
+        .map((t) => healType(t) as any)
+        .filter(Boolean),
+    );
   }
 
   function healType<T extends GraphQLType>(type: T): GraphQLType | null {

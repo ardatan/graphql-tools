@@ -1,4 +1,3 @@
-import { isAsyncIterable } from 'iterall';
 import { ApolloLink, execute as executeLink } from 'apollo-link';
 import {
   subscribe,
@@ -235,10 +234,10 @@ export function delegateRequest({
         | AsyncIterableIterator<ExecutionResult>
         | ExecutionResult,
     ) => {
-      if (isAsyncIterable(subscriptionResult)) {
+      if (Symbol.asyncIterator in subscriptionResult) {
         // "subscribe" to the subscription result and map the result through the transforms
         return mapAsyncIterator<ExecutionResult, any>(
-          subscriptionResult,
+          subscriptionResult as AsyncIterableIterator<ExecutionResult>,
           (result) => {
             const transformedResult = applyResultTransforms(
               result,

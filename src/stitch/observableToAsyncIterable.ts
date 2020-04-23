@@ -1,12 +1,11 @@
 import { Observable } from 'apollo-link';
-import { $$asyncIterator } from 'iterall';
 
 type Callback = (value?: any) => any;
 
 export function observableToAsyncIterable<T>(
   observable: Observable<T>,
 ): AsyncIterator<T> & {
-  [$$asyncIterator]: () => AsyncIterator<T>;
+  [Symbol.asyncIterator]: () => AsyncIterator<T>;
 } {
   const pullQueue: Array<Callback> = [];
   const pushQueue: Array<any> = [];
@@ -74,7 +73,7 @@ export function observableToAsyncIterable<T>(
       emptyQueue();
       return Promise.reject(error);
     },
-    [$$asyncIterator]() {
+    [Symbol.asyncIterator]() {
       return this;
     },
   };

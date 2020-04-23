@@ -20,7 +20,6 @@ import {
 import { ICreateRequestFromInfo, Request, ICreateRequest } from '../Interfaces';
 import { serializeInputValue } from '../utils/transformInputValue';
 import { updateArgument } from '../utils/updateArgument';
-import { keyMap } from '../esUtils/keyMap';
 
 export function getDelegatingOperation(
   parentType: GraphQLObjectType,
@@ -94,7 +93,13 @@ export function createRequest({
         }
       : undefined;
 
-    argumentNodeMap = keyMap(fieldNodes[0].arguments, (arg) => arg.name.value);
+    argumentNodeMap = fieldNodes[0].arguments.reduce(
+      (prev, curr) => ({
+        ...prev,
+        [curr.name.value]: curr,
+      }),
+      {},
+    );
   }
 
   const newVariables = Object.create(null);

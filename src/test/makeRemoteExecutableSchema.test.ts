@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { forAwaitEach } from 'iterall';
+import { forAwaitEach } from './forAwaitEach';
 import {
   GraphQLSchema,
   ExecutionResult,

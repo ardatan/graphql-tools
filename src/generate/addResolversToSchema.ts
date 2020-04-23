@@ -8,6 +8,7 @@ import {
   isUnionType,
   isInterfaceType,
   isObjectType,
+  GraphQLEnumValueConfigMap,
 } from 'graphql';
 
 import {
@@ -21,7 +22,6 @@ import {
   serializeInputValue,
 } from '../utils/transformInputValue';
 import { toConfig } from '../polyfills/index';
-import keyValMap from '../esUtils/keyValMap';
 
 import SchemaError from './SchemaError';
 import checkForResolveTypeResolver from './checkForResolveTypeResolver';
@@ -110,20 +110,19 @@ function addResolversToSchema(
       const config = toConfig(type);
 
       const values = type.getValues();
-      const newValues = keyValMap(
-        values,
-        (value) => value.name,
-        (value) => {
-          const newValue = Object.keys(resolverValue).includes(value.name)
-            ? resolverValue[value.name]
-            : value.name;
-          return {
-            value: newValue,
+      const newValues = values.reduce<GraphQLEnumValueConfigMap>(
+        (prev, value) => ({
+          ...prev,
+          [value.name]: {
+            value: Object.keys(resolverValue).includes(value.name)
+              ? resolverValue[value.name]
+              : value.name,
             deprecationReason: value.deprecationReason,
             description: value.description,
             astNode: value.astNode,
-          };
-        },
+          },
+        }),
+        {},
       );
 
       // healSchema called later to update all fields to new type
