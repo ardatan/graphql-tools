@@ -1,4 +1,10 @@
-import { parse, graphql, subscribe, ExecutionResult } from 'graphql';
+import {
+  parse,
+  graphql,
+  subscribe,
+  ExecutionResult,
+  graphqlSync,
+} from 'graphql';
 import { PubSub } from 'graphql-subscriptions';
 import { forAwaitEach } from 'iterall';
 
@@ -161,6 +167,20 @@ describe('Resolve', () => {
           });
         })
         .catch(done);
+    });
+
+    it('should not force an otherwise synchronous operation to be asynchronous', () => {
+      const queryRoot = 'queryRoot';
+      // This will throw an error if schema has any asynchronous resolvers
+      graphqlSync(
+        schema,
+        `
+          query TestQuery {
+            printRoot
+          }
+        `,
+        queryRoot,
+      );
     });
   });
 });

@@ -25,6 +25,7 @@ import {
   FilterToSchema,
   TransformQuery,
   AddReplacementFragments,
+  FilterObjectFields,
 } from '../wrap/index';
 import {
   concatInlineFragments,
@@ -577,8 +578,6 @@ describe('transforms', () => {
     });
   });
 
-
-
   describe('filtering a type from a union', () => {
     let schema: GraphQLSchema;
     beforeEach(() => {
@@ -638,6 +637,34 @@ describe('transforms', () => {
     });
   });
 
+  describe('filter fields', () => {
+    // Use case: breaking apart monolithic GQL codebase into microservices.
+    // E.g. strip out types/fields from the monolith slowly and re-add them
+    // as stitched resolvers to another service.
+    it('should allow stitching a previously filtered field onto a type', () => {
+      const filteredSchema = transformSchema(propertySchema, [
+        new FilterObjectFields(
+          (typeName, fieldName) =>
+            `${typeName}.${fieldName}` !== 'Property.location',
+        ),
+      ]);
+
+      assertValidSchema(filteredSchema);
+
+      const mergedSchema = mergeSchemas({
+        schemas: [
+          filteredSchema,
+          `
+            extend type Property {
+              location: Location
+            }
+          `,
+        ],
+      });
+
+      assertValidSchema(mergedSchema);
+    });
+  });
 
   describe('tree operations', () => {
     let data: any;
@@ -1410,15 +1437,20 @@ describe('replaces field with processed fragment node', () => {
 
     schema = makeExecutableSchema({
       typeDefs: `
-        type User {
+        type User implements Named {
           id: ID!
           name: String!
           surname: String!
           fullname: String!
+          specialName: String!
         }
 
         type Query {
           userById(id: ID!): User
+        }
+
+        interface Named {
+          specialName: String!
         }
       `,
       resolvers: {
@@ -1441,6 +1473,7 @@ describe('replaces field with processed fragment node', () => {
                       parseFragmentToInlineFragment(
                         'fragment UserSurname on User { surname }',
                       ),
+                      parseFragmentToInlineFragment('... on Named { name }'),
                     ]),
                   },
                 }),
@@ -1451,6 +1484,9 @@ describe('replaces field with processed fragment node', () => {
         User: {
           fullname(parent, _args, _context, _info) {
             return `${parent.name as string} ${parent.surname as string}`;
+          },
+          specialName() {
+            return data.u1.name;
           },
         },
       },
@@ -1474,6 +1510,27 @@ describe('replaces field with processed fragment node', () => {
         userById: {
           id: 'u1',
           fullname: 'joh gats',
+        },
+      },
+    });
+  });
+
+  it('should accept fragments and resolvers that rely on an interface the type implements', async () => {
+    const result = await graphql(
+      schema,
+      `
+        query {
+          userById(id: "u1") {
+            specialName
+          }
+        }
+      `,
+    );
+
+    expect(result).toEqual({
+      data: {
+        userById: {
+          specialName: data.u1.name,
         },
       },
     });

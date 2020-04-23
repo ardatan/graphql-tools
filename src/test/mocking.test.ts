@@ -392,6 +392,42 @@ describe('Mock', () => {
     });
   });
 
+  it('can mock nullable Interfaces', () => {
+    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+
+    addResolversToSchema(jsSchema, resolveFunctions);
+
+    const mockMap = {
+      Bird: (): null => null,
+      Bee: (): null => null,
+      Flying: (_: any, args: any) => {
+        const { id } = args;
+        const type = id.split(':')[0];
+        // tslint:disable-next-line
+        const __typename = ['Bird', 'Bee'].find(
+          (r) => r.toLowerCase() === type,
+        );
+        return { __typename };
+      },
+    };
+
+    addMocksToSchema({
+      schema: jsSchema,
+      mocks: mockMap,
+      preserveResolvers: true,
+    });
+
+    const testQuery = `{
+      node(id: "someid") {
+        id
+      }
+    }`;
+
+    return graphql(jsSchema, testQuery).then((res) => {
+      expect(res.data['node']).toEqual(null);
+    });
+  });
+
   test('can support explicit Interface mock', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     addResolversToSchema(jsSchema, resolveFunctions);
@@ -1489,6 +1525,76 @@ describe('Mock', () => {
     };
     return graphql(schema, query).then((res) => {
       expect(res).toEqual(expected);
+    });
+  });
+
+  it('should preserve resolvers for custom scalars if preserveResolvers: true', async () => {
+    // Construct a schema, using GraphQL schema language
+    const typeDefs = /* GraphQL */ `
+      scalar DateTime
+
+      type SomeObject {
+        floatResolved: Float
+        floatMocked: Float
+        dateResolved: DateTime
+        dateMocked: DateTime
+      }
+
+      type Query {
+        someObject: SomeObject
+      }
+    `;
+
+    // Provide resolver functions for your schema fields
+    const resolvers = {
+      Query: {
+        someObject() {
+          return {
+            floatResolved: 42.2,
+            dateResolved: '2018-11-11T11:11:11.270Z',
+          };
+        },
+      },
+    };
+
+    const schema = makeExecutableSchema({
+      typeDefs,
+      resolvers,
+    });
+
+    const mocks = {
+      Float: () => 777,
+      DateTime: () => '2000-01-01T00:00:00.270Z',
+    };
+
+    addMocksToSchema({
+      schema,
+      mocks,
+      preserveResolvers: true,
+    });
+    const result = await graphql({
+      schema,
+      source: /* GraphQL */ `
+        query {
+          someObject {
+            floatResolved
+            floatMocked
+            dateResolved
+            dateMocked
+          }
+        }
+      `,
+    });
+
+    expect(result).toEqual({
+      data: {
+        someObject: {
+          floatResolved: 42.2,
+          floatMocked: 777,
+          dateResolved: '2018-11-11T11:11:11.270Z',
+          dateMocked: '2000-01-01T00:00:00.270Z',
+        },
+      },
     });
   });
 
