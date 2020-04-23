@@ -404,7 +404,9 @@ describe('Mock', () => {
         const { id } = args;
         const type = id.split(':')[0];
         // tslint:disable-next-line
-        const __typename = ['Bird', 'Bee'].find(r => r.toLowerCase() === type);
+        const __typename = ['Bird', 'Bee'].find(
+          (r) => r.toLowerCase() === type,
+        );
         return { __typename };
       },
     };
@@ -421,11 +423,10 @@ describe('Mock', () => {
       }
     }`;
 
-    return graphql(jsSchema, testQuery).then(res => {
+    return graphql(jsSchema, testQuery).then((res) => {
       expect(res.data['node']).toEqual(null);
     });
   });
-
 
   test('can support explicit Interface mock', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
@@ -1529,18 +1530,18 @@ describe('Mock', () => {
 
   it('should preserve resolvers for custom scalars if preserveResolvers: true', async () => {
     // Construct a schema, using GraphQL schema language
-    const typeDefs = /* GraphQL */`
+    const typeDefs = /* GraphQL */ `
       scalar DateTime
 
       type SomeObject {
-          floatResolved: Float
-          floatMocked: Float
-          dateResolved: DateTime
-          dateMocked: DateTime
+        floatResolved: Float
+        floatMocked: Float
+        dateResolved: DateTime
+        dateMocked: DateTime
       }
 
       type Query {
-          someObject: SomeObject
+        someObject: SomeObject
       }
     `;
 
@@ -1551,8 +1552,8 @@ describe('Mock', () => {
           return {
             floatResolved: 42.2,
             dateResolved: '2018-11-11T11:11:11.270Z',
-          }
-        }
+          };
+        },
       },
     };
 
@@ -1570,33 +1571,32 @@ describe('Mock', () => {
       schema,
       mocks,
       preserveResolvers: true,
-    })
+    });
     const result = await graphql({
       schema,
-      source: /* GraphQL */`
-      query {
+      source: /* GraphQL */ `
+        query {
           someObject {
-              floatResolved
-              floatMocked
-              dateResolved
-              dateMocked
+            floatResolved
+            floatMocked
+            dateResolved
+            dateMocked
           }
-      }`,
-    })
+        }
+      `,
+    });
 
     expect(result).toEqual({
-      'data': {
-        'someObject': {
-          'floatResolved': 42.2,
-          'floatMocked': 777,
-          'dateResolved': '2018-11-11T11:11:11.270Z',
-          'dateMocked': '2000-01-01T00:00:00.270Z'
-        }
-      }
-    })
-
-
-  })
+      data: {
+        someObject: {
+          floatResolved: 42.2,
+          floatMocked: 777,
+          dateResolved: '2018-11-11T11:11:11.270Z',
+          dateMocked: '2000-01-01T00:00:00.270Z',
+        },
+      },
+    });
+  });
 
   // TODO add a test that checks that even when merging defaults, lists invoke
   // the function for every object, not just once per list.

@@ -1379,9 +1379,7 @@ describe('replaces field with processed fragment node', () => {
                       parseFragmentToInlineFragment(
                         'fragment UserSurname on User { surname }',
                       ),
-                      parseFragmentToInlineFragment(
-                        '... on Named { name }',
-                      )
+                      parseFragmentToInlineFragment('... on Named { name }'),
                     ]),
                   },
                 }),
