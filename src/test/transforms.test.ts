@@ -7,6 +7,7 @@ import {
   SelectionSetNode,
   print,
   parse,
+  assertValidSchema,
 } from 'graphql';
 import { createError } from 'apollo-errors';
 
@@ -24,6 +25,7 @@ import {
   FilterToSchema,
   TransformQuery,
   AddReplacementFragments,
+  FilterObjectFields,
 } from '../wrap/index';
 import {
   concatInlineFragments,
@@ -571,6 +573,33 @@ describe('transforms', () => {
       );
     });
   });
+
+  describe('filter fields', () => {
+    // Use case: breaking apart monolithic GQL codebase into microservices.
+    // E.g. strip out types/fields from the monolith slowly and re-add them
+    // as stitched resolvers to another service.
+    it('should allow stitching a previously filtered field onto a type', async () => {
+      const filteredSchema = transformSchema(propertySchema, [
+        new FilterObjectFields((typeName, fieldName) => `${typeName}.${fieldName}` !== 'Property.location'),
+      ]);
+
+      assertValidSchema(filteredSchema);
+
+      const mergedSchema = mergeSchemas({
+        schemas: [
+          filteredSchema,
+          `
+            extend type Property {
+              location: Location
+            }
+          `,
+        ],
+      });
+
+      assertValidSchema(mergedSchema);
+    });
+
+  })
 
   describe('tree operations', () => {
     let data: any;
