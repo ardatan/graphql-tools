@@ -1527,6 +1527,77 @@ describe('Mock', () => {
     });
   });
 
+  it('should preserve resolvers for custom scalars if preserveResolvers: true', async () => {
+    // Construct a schema, using GraphQL schema language
+    const typeDefs = /* GraphQL */`
+      scalar DateTime
+
+      type SomeObject {
+          floatResolved: Float
+          floatMocked: Float
+          dateResolved: DateTime
+          dateMocked: DateTime
+      }
+
+      type Query {
+          someObject: SomeObject
+      }
+    `;
+
+    // Provide resolver functions for your schema fields
+    const resolvers = {
+      Query: {
+        someObject() {
+          return {
+            floatResolved: 42.2,
+            dateResolved: '2018-11-11T11:11:11.270Z',
+          }
+        }
+      },
+    };
+
+    const schema = makeExecutableSchema({
+      typeDefs,
+      resolvers,
+    });
+
+    const mocks = {
+      Float: () => 777,
+      DateTime: () => '2000-01-01T00:00:00.270Z',
+    };
+
+    addMocksToSchema({
+      schema,
+      mocks,
+      preserveResolvers: true,
+    })
+    const result = await graphql({
+      schema,
+      source: /* GraphQL */`
+      query {
+          someObject {
+              floatResolved
+              floatMocked
+              dateResolved
+              dateMocked
+          }
+      }`,
+    })
+
+    expect(result).toEqual({
+      'data': {
+        'someObject': {
+          'floatResolved': 42.2,
+          'floatMocked': 777,
+          'dateResolved': '2018-11-11T11:11:11.270Z',
+          'dateMocked': '2000-01-01T00:00:00.270Z'
+        }
+      }
+    })
+
+
+  })
+
   // TODO add a test that checks that even when merging defaults, lists invoke
   // the function for every object, not just once per list.
 
