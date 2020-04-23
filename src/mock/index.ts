@@ -165,9 +165,10 @@ function addMocksToSchema({
       // otherwise randomly pick a type from all implementation types
       if (isAbstractType(fieldType)) {
         let implementationType;
+        let interfaceMockObj: any = {};
         if (mockFunctionMap.has(fieldType.name)) {
           const mock = mockFunctionMap.get(fieldType.name);
-          const interfaceMockObj = mock(root, args, context, info);
+          interfaceMockObj = mock(root, args, context, info);
           if (!interfaceMockObj || !interfaceMockObj.__typename) {
             return Error(`Please return a __typename in "${fieldType.name}"`);
           }
@@ -178,6 +179,7 @@ function addMocksToSchema({
         }
         return {
           __typename: implementationType,
+          ...interfaceMockObj,
           ...mockType(implementationType)(root, args, context, info),
         };
       }
