@@ -1,9 +1,10 @@
 {
-  "packageFiles": ["docs/package.json"],
-  "pathRules": [
-    {
-      "paths": ["docs/package.json"],
-      "extends": ["apollo-docs"]
-    }
-  ]
+  "extends": [
+    "config:base",
+    "docker:disable"
+  ],
+  "automerge": true,
+  "major": {
+    "automerge": false
+  }
 }

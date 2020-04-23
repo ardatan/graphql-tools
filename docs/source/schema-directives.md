@@ -32,7 +32,7 @@ However, the API we provide for _using_ a schema directive is extremely simple. 
 
 ```js
 import { makeExecutableSchema } from "graphql-tools";
-import { RenameDirective } from "rename-directive-package";
+import { RenameDirective } from "fake-rename-directive-package";
 
 const typeDefs = `
 type Person @rename(to: "Human") {
@@ -50,27 +50,27 @@ const schema = makeExecutableSchema({
 
 That's it. The implementation of `RenameDirective` takes care of everything else. If you understand what the directive is supposed to do to your schema, then you do not have to worry about how it works.
 
-Everything you read below addresses some aspect of how a directive like `@rename(to: ...)` could be implemented. If that's not something you care about right now, feel free to skim the rest of this document. When you need it, it will be here.
+Everything you read below addresses some aspect of how a directive like `@rename(to: ...)` could be implemented. If that's not something you care about right now, feel free to skip the rest of this document. When you need it, it will be here.
 
 ## Implementing schema directives
 
 Since the GraphQL specification does not discuss any specific implementation strategy for directives, it's up to each GraphQL server framework to expose an API for implementing new directives.
 
-If you're using Apollo Server, you are also likely to be using the [`graphql-tools`](https://github.com/apollographql/graphql-tools) npm package, which provides a convenient yet powerful tool for implementing directive syntax: the [`SchemaDirectiveVisitor`](https://github.com/apollographql/graphql-tools/blob/wip-schema-directives/src/schemaVisitor.ts) class.
+If you're using Apollo Server, you are also likely to be using the [`graphql-tools`](https://github.com/apollographql/graphql-tools) npm package, which provides a convenient yet powerful tool for implementing directive syntax: the [`SchemaDirectiveVisitor`](https://github.com/apollographql/graphql-tools/blob/master/src/utils/SchemaDirectiveVisitor.ts) class.
 
 To implement a schema directive using `SchemaDirectiveVisitor`, simply create a subclass of `SchemaDirectiveVisitor` that overrides one or more of the following visitor methods:
 
 * `visitSchema(schema: GraphQLSchema)`
 * `visitScalar(scalar: GraphQLScalarType)`
 * `visitObject(object: GraphQLObjectType)`
-* `visitFieldDefinition(field: GraphQLField<any, any>)`
-* `visitArgumentDefinition(argument: GraphQLArgument)`
+* `visitFieldDefinition(field: GraphQLField<any, any>, details: { objectType: GraphQLObjectType | GraphQLInterfaceType })`
+* `visitArgumentDefinition(argument: GraphQLArgument, objectType: GraphQLObjectType | GraphQLInterfaceType })`
 * `visitInterface(iface: GraphQLInterfaceType)`
 * `visitUnion(union: GraphQLUnionType)`
 * `visitEnum(type: GraphQLEnumType)`
-* `visitEnumValue(value: GraphQLEnumValue)`
+* `visitEnumValue(value: GraphQLEnumValue, details: { enumType: GraphQLEnumType })`
 * `visitInputObject(object: GraphQLInputObjectType)`
-* `visitInputFieldDefinition(field: GraphQLInputField)`
+* `visitInputFieldDefinition(field: GraphQLInputField, details: { objectType: GraphQLInputObjectType })`
 
 By overriding methods like `visitObject`, a subclass of `SchemaDirectiveVisitor` expresses interest in certain schema types such as `GraphQLObjectType` (the first parameter type of `visitObject`).
 
@@ -344,7 +344,7 @@ GraphQL is great for internationalization, since a GraphQL server can access unl
 
 Imagine a hypothetical `@auth` directive that takes an argument `requires` of type `Role`, which defaults to `ADMIN`. This `@auth` directive can appear on an `OBJECT` like `User` to set default access permissions for all `User` fields, as well as appearing on individual fields, to enforce field-specific `@auth` restrictions:
 
-```gql
+```graphql
 directive @auth(
   requires: Role = ADMIN,
 ) on OBJECT | FIELD_DEFINITION
@@ -460,11 +460,10 @@ class LengthDirective extends SchemaDirectiveVisitor {
   // Replace field.type with a custom GraphQLScalarType that enforces the
   // length restriction.
   wrapType(field) {
-    if (field.type instanceof GraphQLNonNull &&
-        field.type.ofType instanceof GraphQLScalarType) {
+    if (isNonNullType(field.type) && isScalarType(field.type.ofType)) {
       field.type = new GraphQLNonNull(
         new LimitedLengthType(field.type.ofType, this.args.max));
-    } else if (field.type instanceof GraphQLScalarType) {
+    } else if (isScalarType(field.type)) {
       field.type = new LimitedLengthType(field.type, this.args.max);
     } else {
       throw new Error(`Not a scalar type: ${field.type}`);
@@ -673,7 +672,7 @@ We believe confining this logic to your schema is more sustainable than burdenin
 
 Before `SchemaDirectiveVisitor` was implemented, the `makeExecutableSchema` function took a `directiveResolvers` option that could be used for implementing certain kinds of `@directive`s on fields that have resolver functions.
 
-The new abstraction is more general, since it can visit any kind of schema syntax, and do much more than just wrap resolver functions. However, the old `directiveResolvers` API has been [left in place](directive-resolvers.html) for backwards compatibility, though it is now implemented in terms of `SchemaDirectiveVisitor`:
+The new abstraction is more general, since it can visit any kind of schema syntax, and do much more than just wrap resolver functions. However, the old `directiveResolvers` API has been [left in place](directive-resolvers) for backwards compatibility, though it is now implemented in terms of `SchemaDirectiveVisitor`:
 
 ```typescript
 function attachDirectiveResolvers(

@@ -1,72 +1,150 @@
 # Change log
 
-### vNext
+### Next
 
-* Make `WrapQuery` work for non-root fields <br />
+- Fix visitEnumValue to allow modifying the enum value  <br/>
+  [@danielrearden](https://github.com/danielrearden) in [#1003](https://github.com/ardatan/graphql-tools/pull/1391)
+
+### 5.0.0
+
+That is a major release where we went through all issues and PRs and got the library back into great shape.
+All known issues with schema stitching had been fixed.
+The main person which did the heavy lifting is [@yaacovCR](https://github.com/yaacovCR) which made the work alone on his own fork for many months.
+
+#### Features
+
+- Support GraphQL v15 [#1332](https://github.com/apollographql/graphql-tools/pull/1332)
+- Adds [graphql-upload](https://github.com/jaydenseric/graphql-upload) compatible scalar and link for proxying remote file uploads [#671](https://github.com/apollographql/graphql-tools/issues/671)
+- Add ability to merge fields from types from different schemas
+- Add transforms to wrap, extract, and rename fields [#1183](https://github.com/apollographql/graphql-tools/issues/1183)
+- Add transform to filter object fields [#819](https://github.com/apollographql/graphql-tools/issues/819)
+- Exports visitSchema, SchemaVisitor, healSchema, healTypes, cloneSchema, cloneType, cloneDirective to enable more custom transforms. [#1070](https://github.com/apollographql/graphql-tools/issues/1070)
+- Allow removing extra delegation layers by passing fetcher/link options directly to delegateToSchema, mergeSchemas, and transformSchema and by filtering directly with filterSchema without additional transformation round [#1165](https://github.com/apollographql/graphql-tools/issues/1165)
+- Support CJS and ESM [#913](https://github.com/apollographql/graphql-tools/issues/913) [PR #1320](https://github.com/apollographql/graphql-tools/pull/1320) [PR #1329](https://github.com/apollographql/graphql-tools/pull/1329)
+- Add TransformQuery transform to allow delegating to subfields with error preservation [#543](https://github.com/apollographql/graphql-tools/issues/543) [PR #1307](https://github.com/apollographql/graphql-tools/pull/1307)
+- add WrapType transform to namespace subschema root queries (not for use with mutations) [#961](https://github.com/apollographql/graphql-tools/issues/961) [#439](https://github.com/apollographql/graphql-tools/issues/439) [PR #1307](https://github.com/apollographql/graphql-tools/pull/1307)
+- Add HoistFields transform to hoist subfields from field to parent type [#781](https://github.com/apollographql/graphql-tools/issues/781) [PR #1307](https://github.com/apollographql/graphql-tools/pull/1307)
+- Add ability to specify custom root type names, with new transform RenameRootTypes that allows changing a subschemas root type, a necessary transform when the subschema includes the root query type within another output type [#892](https://github.com/apollographql/graphql-tools/issues/892) [PR #1307](https://github.com/apollographql/graphql-tools/pull/1307)
+- Add type merging, and otherwise restore onTypeConflict [#1133](https://github.com/apollographql/graphql-tools/issues/1133) [#1118](https://github.com/apollographql/graphql-tools/issues/1118) [#1044](https://github.com/apollographql/graphql-tools/issues/1044) [#863](https://github.com/apollographql/graphql-tools/issues/863) [#642](https://github.com/apollographql/graphql-tools/issues/642) [#447](https://github.com/apollographql/graphql-tools/issues/447) [PR #1307](https://github.com/apollographql/graphql-tools/pull/1307)
+- Expose createRequest functionality for alternative method of batching besides using links [#724](https://github.com/apollographql/graphql-tools/issues/724) [PR #1307](https://github.com/apollographql/graphql-tools/pull/1307)
+- Provide support for GraphQLUpload scalar with schema stitching [#671](https://github.com/apollographql/graphql-tools/issues/671) [PR #1307](https://github.com/apollographql/graphql-tools/pull/1307)
+- Let `makeRemoteExecutableSchema`, `wrapSchema`, `transformSchema`, `mergeSchemas` to specify a custom delegating resolver [#1302](https://github.com/apollographql/graphql-tools/issues/1302)
+- Expose `mapSchema` (which creates new schemas), `visitSchema` (which modifies existing schemas), `healSchema` (which visitSchema uses), `toConfig`, as well as additional utility functions [#1070](https://github.com/apollographql/graphql-tools/issues/1070) [#922](https://github.com/apollographql/graphql-tools/issues/922) [#786](https://github.com/apollographql/graphql-tools/issues/786) [#761](https://github.com/apollographql/graphql-tools/issues/761) [PR #1307](https://github.com/apollographql/graphql-tools/pull/1307)
+
+#### Bug Fixes
+
+- Avoid using internal api of `graphql-js` [#1331](https://github.com/apollographql/graphql-tools/pull/1331)
+- Filter unused variables from map when proxying requests
+- Preserve subscription errors when using makeRemoteExecutableSchema
+- Preserve extensions when transforming schemas
+- Fix merging and transforming of custom scalars and enums [#501](https://github.com/apollographql/graphql-tools/issues/501), [#1056](https://github.com/apollographql/graphql-tools/issues/1056), [#1200](https://github.com/apollographql/graphql-tools/issues/1200)
+- Allow renaming of subscription root fields [#997](https://github.com/apollographql/graphql-tools/issues/997), [#1002](https://github.com/apollographql/graphql-tools/issues/1002)
+- Fix alias resolution to no longer incorrectly fallback to non-aliased field when null [#1171](https://github.com/apollographql/graphql-tools/issues/1171)
+- Do not remove default directives (skip, include, deprecated) when not merging custom directives [#1159](https://github.com/apollographql/graphql-tools/issues/1159)
+- Fixes errors support [#743](https://github.com/apollographql/graphql-tools/issues/743), [#1037](https://github.com/apollographql/graphql-tools/issues/1037), [#1046](https://github.com/apollographql/graphql-tools/issues/1046)
+- Fix mergeSchemas to allow resolvers to return fields defined as functions [#1061](https://github.com/apollographql/graphql-tools/issues/1061)
+- Fix default values with mergeSchemas and addResolveFunctionsToSchema [#1121](https://github.com/apollographql/graphql-tools/issues/1121)
+- Fix interface and union healing
+- Fix stitching unions of types with enums
+- Fix mocking to work when schema stitching
+- Fix lost directives when adding an enum resolver
+- Fix Circular Dependencies [#924](https://github.com/apollographql/graphql-tools/issues/924) [PR #1326](https://github.com/apollographql/graphql-tools/pull/1326)
+- Fix types [#1298](https://github.com/apollographql/graphql-tools/issues/1298) [#1279](https://github.com/apollographql/graphql-tools/issues/1279) [#837](https://github.com/apollographql/graphql-tools/issues/837) [#1307](https://github.com/apollographql/graphql-tools/issues/1307) [#1325](https://github.com/apollographql/graphql-tools/issues/1325) [#1324](https://github.com/apollographql/graphql-tools/issues/1324)
+- issues involving importing directories [#1242](https://github.com/apollographql/graphql-tools/issues/1242) [#1307](https://github.com/apollographql/graphql-tools/issues/1307)
+- fix n^2 problem within makeRemoteExecutableSchema [#1346](https://github.com/apollographql/graphql-tools/issues/1346) [PR #1352](https://github.com/apollographql/graphql-tools/pulls/1352)
+
+### 4.0.7
+
+- Filter `extensions` prior to passing them to `buildASTSchema`, in an effort to provide minimum compatibilty for `graphql@14`-compatible schemas with the upcoming `graphql@15` release. This PR does not, however, bring support for newer `graphql@15` features like interfaces implementing interfaces. [#1284](https://github.com/apollographql/graphql-tools/pull/1284)
+
+### 4.0.6
+
+- Use `getIntrospectionQuery` instead of deprecated `introspectionQuery` constant from graphql-js
+  [@derek-miller](https://github.com/derek-miller) in [#1228](https://github.com/apollographql/graphql-tools/pull/1228)
+
+### 4.0.5
+
+- Fixes a bug where schemas with scalars could not be merged when passed to
+  `mergeSchemas` as a string or `GraphQLSchema`. <br/>
+  [@hayes](https://github.com/hayes) in [#1062](https://github.com/apollographql/graphql-tools/pull/1062)
+- Make `mergeSchemas` optionally merge directive definitions. <br/>
+  [@freiksenet](https://github.com/freiksenet) in [#1003](https://github.com/apollographql/graphql-tools/pull/1003)
+- Allow user-provided `buildSchema` options. <br/>
+  [@trevor-scheer](https://github.com/trevor-scheer) in [#1154](https://github.com/apollographql/graphql-tools/pull/1154)
+- Fix `delegateToSchema` to allow delegation to subscriptions with different root field names, allows
+  the use of the `RenameRootFields` transform with subscriptions,
+  pull request [#1104](https://github.com/apollographql/graphql-tools/pull/1104), fixes
+  [#997](https://github.com/apollographql/graphql-tools/issues/997). <br/>
+- Add transformers to rename, filter, and arbitrarily transform object fields. <br/>
+  Fixes [#819](https://github.com/apollographql/graphql-tools/issues/819).
+
+### 4.0.4
+
+- Make `WrapQuery` work for non-root fields <br />
   [@mdlavin](https://github.com/mdlavin) in
   [#1007](https://github.com/apollographql/graphql-tools/pull/1008)
-* Update `IFieldResolver` to allow specified return type  <br />
-  [@hedvigoscar](https://github.com/hedvigoscar) in [#968](https://github.com/apollographql/graphql-tools/pull/968)
-* Update resolvers.md to clarify array usage <br />
+- Update resolvers.md to clarify array usage <br />
   [@alvin777](https://github.com/alvin777) in
   [#1005](https://github.com/apollographql/graphql-tools/pull/1005)
-* Add missing property to `mergeSchemas` api reference. <br />
+- Add missing property to `mergeSchemas` api reference. <br />
   [@PlayMa256](https://github.com/PlayMa256) in
   [#1014](https://github.com/apollographql/graphql-tools/pull/1014)
-* Documentation updates for mockServer <br/>
+- Documentation updates for mockServer <br/>
   [@dougshamoo](https://github.com/dougshamoo) in [#1012](https://github.com/apollographql/graphql-tools/pull/1012)
-* Fix default merged resolver behavior <br/>
+- Fix default merged resolver behavior <br/>
   [@mfix22](https://github.com/mfix22) in [#983](https://github.com/apollographql/graphql-tools/pull/983)
-* Use `TArgs` generic wherever `IFieldResolver` is used.  <br/>
-  [@brikou](https://github.com/brikou) in [#955](https://github.com/apollographql/graphql-tools/pull/955)  
+- Use `TArgs` generic wherever `IFieldResolver` is used. <br/>
+  [@brikou](https://github.com/brikou) in [#955](https://github.com/apollographql/graphql-tools/pull/955)
+- Include deprecations from string SDL in mergeSchemas. <br/>
+  [@evans](https://github.com/evans) in [#1041](https://github.com/apollographql/graphql-tools/pull/1041)
 
 ### 4.0.3
 
-* Replaced broken link in docs homepage with Launchpad example <br />
+- Replaced broken link in docs homepage with Launchpad example <br />
   [@kriss1897](https://github.com/kriss1897) in
   [#965](https://github.com/apollographql/graphql-tools/pull/965)
-* Fix invalid query in schema delegation example. <br />
+- Fix invalid query in schema delegation example. <br />
   [@nico29](https://github.com/nico29) in
   [#980](https://github.com/apollographql/graphql-tools/pull/980)
-* Update package.json `repository` field. <br />
+- Update package.json `repository` field. <br />
   [@dlukeomalley](https://github.com/dlukeomalley) in
   [#979](https://github.com/apollographql/graphql-tools/pull/979)
-* Add support for passing a parsed schema ast to `mergeSchemas` <br/>
+- Add support for passing a parsed schema ast to `mergeSchemas` <br/>
   [@ganemone](https://github.com/ganemone) in
   [#977](https://github.com/apollographql/graphql-tools/pull/977)
-* Changes to `extractExtensionDefinitions` to support `graphql-js` union and enum extensions. <br/>
+- Changes to `extractExtensionDefinitions` to support `graphql-js` union and enum extensions. <br/>
   [@jansuchy](https://github.com/jansuchy) in [#951](https://github.com/apollographql/graphql-tools/pull/951)
-* Add docs for `mockServer` (closes [#951](https://github.com/apollographql/graphql-tools/issues/94))<br/>
+- Add docs for `mockServer` (closes [#951](https://github.com/apollographql/graphql-tools/issues/94))<br/>
   [@mfix22](https://github.com/mfix22) in [PR #982](https://github.com/apollographql/graphql-tools/pull/982)
-* Fix regression where custom scalars were incorrectly replaced while recreating schema with `visitSchema`. <br/>
+- Fix regression where custom scalars were incorrectly replaced while recreating schema with `visitSchema`. <br/>
   [@tgriesser](https://github.com/tgriesser) in [#985](https://github.com/apollographql/graphql-tools/pull/985)
 
 ### 4.0.2
 
-* Fix regression in enum input mapping. <br/>
+- Fix regression in enum input mapping. <br/>
   [@tgriesser](https://github.com/tgriesser) in [#974](https://github.com/apollographql/graphql-tools/pull/974)
 
 ### 4.0.1
 
-* Fix [regression](https://github.com/apollographql/graphql-tools/issues/962) in enum internal value mapping. <br/>
+- Fix [regression](https://github.com/apollographql/graphql-tools/issues/962) in enum internal value mapping. <br/>
   [@tgriesser](https://github.com/tgriesser) in [#973](https://github.com/apollographql/graphql-tools/pull/973)
 
 ### 4.0.0
 
-* Support `graphql` and `@types/graphql` 14.x. <br />
+- Support `graphql` and `@types/graphql` 14.x. <br />
   **NOTE:** `graphql` 14 includes [breaking changes](https://github.com/graphql/graphql-js/releases/tag/v14.0.0). We're bumping the major version of `graphql-tools` to accommodate those breaking changes. If you're planning on using `graphql` 14 with `graphql-tools` 4.0.0, please make sure you've reviewed the `graphql` breaking changes list.
   [@hwillson](https://github.com/hwillson) in [#953](https://github.com/apollographql/graphql-tools/pull/953)
-* Fix template strings usage in guessSchemaByRootField error message. <br/>
+- Fix template strings usage in guessSchemaByRootField error message. <br/>
   [@nagelflorian](https://github.com/nagelflorian) in [#936](https://github.com/apollographql/graphql-tools/pull/936)
-* Update `IFieldResolver` to allow typed input args. <br/>
+- Update `IFieldResolver` to allow typed input args. <br/>
   [@luk3thomas](https://github.com/luk3thomas) in [#932](https://github.com/apollographql/graphql-tools/pull/932)
-* Changes to `extractExtensionDefinitions` to properly support `graphql-js` input extensions. <br/>
+- Changes to `extractExtensionDefinitions` to properly support `graphql-js` input extensions. <br/>
   [@jure](https://github.com/jure) in [#948](https://github.com/apollographql/graphql-tools/pull/948)
-* Stop automatically shallow cloning (via object spread syntax) transformed subscription results. Transformed subscription results are not always objects, which means object spreading can lead to invalid results. <br/>
+- Stop automatically shallow cloning (via object spread syntax) transformed subscription results. Transformed subscription results are not always objects, which means object spreading can lead to invalid results. <br/>
   [@ericlewis](https://github.com/ericlewis) in [#928](https://github.com/apollographql/graphql-tools/pull/928)
-* Re-use errors with an `extensions` property to make compatible with Apollo Server and it's built-in errors. <br/>
+- Re-use errors with an `extensions` property to make compatible with Apollo Server and it's built-in errors. <br/>
   [@edorsey](https://github.com/edorsey) in [#925](https://github.com/apollographql/graphql-tools/pull/925)
-* Documentation updates. <br/>
+- Documentation updates. <br/>
   [@Amorites](https://github.com/Amorites) in [#944](https://github.com/apollographql/graphql-tools/pull/944) <br/>
   [@trevor-scheer](https://github.com/trevor-scheer) in [#946](https://github.com/apollographql/graphql-tools/pull/946) <br/>
   [@dnalborczyk](https://github.com/dnalborczyk) in [#934](https://github.com/apollographql/graphql-tools/pull/934) <br/>
@@ -74,358 +152,358 @@
 
 ### v3.1.1
 
-* Revert the added `casual` dependency for mocking, since it was causing issues for people using `graphql-tools` in the browser.
+- Revert the added `casual` dependency for mocking, since it was causing issues for people using `graphql-tools` in the browser.
 
 ### v3.1.0
 
-* Loosens the apollo-link dependency [PR #765](https://github.com/apollographql/graphql-tools/pull/765)
-* Use `getDescription` from `graphql-js` package [PR #672](https://github.com/apollographql/graphql-tools/pull/672)
-* Update `IResolvers` to use source & context generics and to support all resolver use cases. [#896](https://github.com/apollographql/graphql-tools/pull/896)
-* `WrapQuery`'s `wrapper` param can now return a SelectionSet. [PR #902](https://github.com/apollographql/graphql-tools/pull/902) [Issue #901](https://github.com/apollographql/graphql-tools/issues/901)
-* Add null to return type of directive visitors in the TypeScript definition.
-* Make sure mergeSchemas keeps Enum descriptions and deprecation status. [PR 898](https://github.com/apollographql/graphql-tools/pull/898/)
-* Add `inheritResolversFromInterfaces` option to `mergeSchemas` [PR #812](https://github.com/apollographql/graphql-tools/pull/812)
-* Added filtering of empty selection sets in FilterToSchema [#827](https://github.com/apollographql/graphql-tools/pull/827)
-* Add support for overlapping fragments in ReplaceFieldWithFragment. [#894](https://github.com/apollographql/graphql-tools/issues/894)
-* `delegateToSchema` now behaves like `info.mergeInfo.delegateToSchema` for fragment handling [Issue #876](https://github.com/apollographql/graphql-tools/issues/876) [PR #885](https://github.com/apollographql/graphql-tools/pull/885)
-* Make schema transforms work with subscriptions, make it so that subscription errors don't disappear when using mergeSchemas [#793](https://github.com/apollographql/graphql-tools/issues/793) [#780](https://github.com/apollographql/graphql-tools/issues/780)
+- Loosens the apollo-link dependency [PR #765](https://github.com/apollographql/graphql-tools/pull/765)
+- Use `getDescription` from `graphql-js` package [PR #672](https://github.com/apollographql/graphql-tools/pull/672)
+- Update `IResolvers` to use source & context generics and to support all resolver use cases. [#896](https://github.com/apollographql/graphql-tools/pull/896)
+- `WrapQuery`'s `wrapper` param can now return a SelectionSet. [PR #902](https://github.com/apollographql/graphql-tools/pull/902) [Issue #901](https://github.com/apollographql/graphql-tools/issues/901)
+- Add null to return type of directive visitors in the TypeScript definition.
+- Make sure mergeSchemas keeps Enum descriptions and deprecation status. [PR 898](https://github.com/apollographql/graphql-tools/pull/898/)
+- Add `inheritResolversFromInterfaces` option to `mergeSchemas` [PR #812](https://github.com/apollographql/graphql-tools/pull/812)
+- Added filtering of empty selection sets in FilterToSchema [#827](https://github.com/apollographql/graphql-tools/pull/827)
+- Add support for overlapping fragments in ReplaceFieldWithFragment. [#894](https://github.com/apollographql/graphql-tools/issues/894)
+- `delegateToSchema` now behaves like `info.mergeInfo.delegateToSchema` for fragment handling [Issue #876](https://github.com/apollographql/graphql-tools/issues/876) [PR #885](https://github.com/apollographql/graphql-tools/pull/885)
+- Make schema transforms work with subscriptions, make it so that subscription errors don't disappear when using mergeSchemas [#793](https://github.com/apollographql/graphql-tools/issues/793) [#780](https://github.com/apollographql/graphql-tools/issues/780)
 
 ### v3.0.5
 
-* Update apollo-link to 1.2.2 [#785](https://github.com/apollographql/graphql-tools/pull/785)
+- Update apollo-link to 1.2.2 [#785](https://github.com/apollographql/graphql-tools/pull/785)
 
 ### v3.0.4
 
-* Make sure `dist/generate` isn't excluded when published.
+- Make sure `dist/generate` isn't excluded when published.
 
 ### v3.0.3
 
-* Pass on operation name when stitching schemas.
+- Pass on operation name when stitching schemas.
   [Issue #522](https://github.com/apollographql/graphql-tools/issues/522)
   [PR #849](https://github.com/apollographql/graphql-tools/pull/849)
-* Fixed errors that occurred when a fragment field argument used a variable
+- Fixed errors that occurred when a fragment field argument used a variable
   defined in the parent query.
   [Issue #753](https://github.com/apollographql/graphql-tools/issues/753)
   [PR #806](https://github.com/apollographql/graphql-tools/pull/806)
 
 ### v3.0.2
 
-* Fixed duplicate fragments getting added during transform in `FilterToSchema` [#778](https://github.com/apollographql/graphql-tools/pull/778)
-* Fixed a visitType error printing the name of the variable typeName rather than its value due to a template string being incorrectly formatted. [#783](https://github.com/apollographql/graphql-tools/pull/783)
+- Fixed duplicate fragments getting added during transform in `FilterToSchema` [#778](https://github.com/apollographql/graphql-tools/pull/778)
+- Fixed a visitType error printing the name of the variable typeName rather than its value due to a template string being incorrectly formatted. [#783](https://github.com/apollographql/graphql-tools/pull/783)
 
 ### v3.0.1
 
-* Fixed an array cloning bug in the `RenameTypes` transform
+- Fixed an array cloning bug in the `RenameTypes` transform
   [#756](https://github.com/apollographql/graphql-tools/pull/756)
 
-* Fixed a fragments bug in the `ReplaceFieldWithFragment` transform
+- Fixed a fragments bug in the `ReplaceFieldWithFragment` transform
   [#763](https://github.com/apollographql/graphql-tools/pull/763)
 
 ### v3.0.0
 
-* Schema transforms and delegation
+- Schema transforms and delegation
 
-  * Substantial rewrite of internals of `mergeSchemas` and `delegateToSchema`
-  * A new API for schema transforms has been introduced: [Docs](https://www.apollographql.com/docs/graphql-tools/schema-transforms.html)
-  * `delegateToSchema` is now a public API: [Docs](https://www.apollographql.com/docs/graphql-tools/schema-delegation.html)
-  * `delegateToSchema` now accepts an object of named parameters; positional arguments are deprecated
-  * `delegateToSchema` no longer accepts `fragmentReplacements`; instead use `transforms`
-  * `info.mergeInfo.delegateToSchema` is now the preferred delegation API, rather than `info.mergeInfo.delegate`
+  - Substantial rewrite of internals of `mergeSchemas` and `delegateToSchema`
+  - A new API for schema transforms has been introduced: [Docs](https://www.apollographql.com/docs/graphql-tools/schema-transforms.html)
+  - `delegateToSchema` is now a public API: [Docs](https://www.apollographql.com/docs/graphql-tools/schema-delegation.html)
+  - `delegateToSchema` now accepts an object of named parameters; positional arguments are deprecated
+  - `delegateToSchema` no longer accepts `fragmentReplacements`; instead use `transforms`
+  - `info.mergeInfo.delegateToSchema` is now the preferred delegation API, rather than `info.mergeInfo.delegate`
 
-* Other changes
-  * Add `commentDescription` to `printSchema` call to match other uses [PR #745](https://github.com/apollographql/graphql-tools/pull/745)
-  * Add `createResolver` option to `makeRemoteExecutableSchema` [PR #734](https://github.com/apollographql/graphql-tools/pull/734)
+- Other changes
+  - Add `commentDescription` to `printSchema` call to match other uses [PR #745](https://github.com/apollographql/graphql-tools/pull/745)
+  - Add `createResolver` option to `makeRemoteExecutableSchema` [PR #734](https://github.com/apollographql/graphql-tools/pull/734)
 
 ### v2.24.0
 
-* Allow `extend interface` definitions in merged schemas [PR #703](https://github.com/apollographql/graphql-tools/pull/703)
-* Fix typo in `@deprecated` example in `schema-directives.md` [PR #706](https://github.com/apollographql/graphql-tools/pull/706)
-* Fix timezone bug in test for `@date` directive [PR #686](https://github.com/apollographql/graphql-tools/pull/686)
-* Expose `defaultMergedResolver` for schema stitching [PR #685](https://github.com/apollographql/graphql-tools/pull/685)
-* Add `requireResolversForResolveType` to resolver validation options [PR #698](https://github.com/apollographql/graphql-tools/pull/698)
-* Add `inheritResolversFromInterfaces` option to `makeExecutableSchema` and `addResolveFunctionsToSchema` [PR #720](https://github.com/apollographql/graphql-tools/pull/720)
+- Allow `extend interface` definitions in merged schemas [PR #703](https://github.com/apollographql/graphql-tools/pull/703)
+- Fix typo in `@deprecated` example in `schema-directives.md` [PR #706](https://github.com/apollographql/graphql-tools/pull/706)
+- Fix timezone bug in test for `@date` directive [PR #686](https://github.com/apollographql/graphql-tools/pull/686)
+- Expose `defaultMergedResolver` for schema stitching [PR #685](https://github.com/apollographql/graphql-tools/pull/685)
+- Add `requireResolversForResolveType` to resolver validation options [PR #698](https://github.com/apollographql/graphql-tools/pull/698)
+- Add `inheritResolversFromInterfaces` option to `makeExecutableSchema` and `addResolveFunctionsToSchema` [PR #720](https://github.com/apollographql/graphql-tools/pull/720)
 
 ### v2.23.0
 
-* The `SchemaDirectiveVisitor` abstraction for implementing reusable schema `@directive`s has landed. Read our [blog post](https://dev-blog.apollodata.com/reusable-graphql-schema-directives-131fb3a177d1) about this new functionality, and/or check out the [documentation](https://www.apollographql.com/docs/graphql-tools/schema-directives.html) for even more examples. [PR #640](https://github.com/apollographql/graphql-tools/pull/640)
+- The `SchemaDirectiveVisitor` abstraction for implementing reusable schema `@directive`s has landed. Read our [blog post](https://dev-blog.apollodata.com/reusable-graphql-schema-directives-131fb3a177d1) about this new functionality, and/or check out the [documentation](https://www.apollographql.com/docs/graphql-tools/schema-directives.html) for even more examples. [PR #640](https://github.com/apollographql/graphql-tools/pull/640)
 
 ### v2.22.0
 
-* When concatenating errors maintain a reference to the original for use downstream [Issue #480](https://github.com/apollographql/graphql-tools/issues/480) [PR #637](https://github.com/apollographql/graphql-tools/pull/637)
-* Improve generic typings for several resolver-related interfaces [PR #662](https://github.com/apollographql/graphql-tools/pull/662)
-* Remove copied apollo-link code [PR #670](https://github.com/apollographql/graphql-tools/pull/670)
-* Handle undefined path in `getErrorsFromParent` [PR #667](https://github.com/apollographql/graphql-tools/pull/667)
+- When concatenating errors maintain a reference to the original for use downstream [Issue #480](https://github.com/apollographql/graphql-tools/issues/480) [PR #637](https://github.com/apollographql/graphql-tools/pull/637)
+- Improve generic typings for several resolver-related interfaces [PR #662](https://github.com/apollographql/graphql-tools/pull/662)
+- Remove copied apollo-link code [PR #670](https://github.com/apollographql/graphql-tools/pull/670)
+- Handle undefined path in `getErrorsFromParent` [PR #667](https://github.com/apollographql/graphql-tools/pull/667)
 
 ### v2.21.0
 
-* Make iterall a runtime dependency [PR #627](https://github.com/apollographql/graphql-tools/pull/627)
-* Added support for lexical parser options [PR #567](https://github.com/apollographql/graphql-tools/pull/567)
-* Support `graphql@^0.13.0` [PR #567](https://github.com/apollographql/graphql-tools/pull/567)
-* Don't use `Symbol` in incompatible envs [Issue #535](https://github.com/apollographql/graphql-tools/issues/535) [PR #631](https://github.com/apollographql/graphql-tools/pull/631)
+- Make iterall a runtime dependency [PR #627](https://github.com/apollographql/graphql-tools/pull/627)
+- Added support for lexical parser options [PR #567](https://github.com/apollographql/graphql-tools/pull/567)
+- Support `graphql@^0.13.0` [PR #567](https://github.com/apollographql/graphql-tools/pull/567)
+- Don't use `Symbol` in incompatible envs [Issue #535](https://github.com/apollographql/graphql-tools/issues/535) [PR #631](https://github.com/apollographql/graphql-tools/pull/631)
 
 ### v2.20.2
 
-* Pass through apollo-link-http errors to originalError [PR #621](https://github.com/apollographql/graphql-tools/pull/621)
+- Pass through apollo-link-http errors to originalError [PR #621](https://github.com/apollographql/graphql-tools/pull/621)
 
 ### v2.20.1
 
-* Fix `error.path` could be `undefined` for schema stitching [PR #617](https://github.com/apollographql/graphql-tools/pull/617)
+- Fix `error.path` could be `undefined` for schema stitching [PR #617](https://github.com/apollographql/graphql-tools/pull/617)
 
 ### v2.20.0
 
-* Recreate enums and scalars for more consistent behaviour of merged schemas [PR #613](https://github.com/apollographql/graphql-tools/pull/613)
-* `makeExecutableSchema` and `mergeSchema` now accept an array of `IResolver` [PR #612](https://github.com/apollographql/graphql-tools/pull/612) [PR #576](https://github.com/apollographql/graphql-tools/pull/576) [PR #577](https://github.com/apollographql/graphql-tools/pull/577)
-* Fix `delegateToSchema.ts` to remove duplicate new variable definitions when delegating to schemas [PR #607](https://github.com/apollographql/graphql-tools/pull/607)
-* Fix duplicate subscriptions for schema stitching [PR #609](https://github.com/apollographql/graphql-tools/pull/609)
+- Recreate enums and scalars for more consistent behaviour of merged schemas [PR #613](https://github.com/apollographql/graphql-tools/pull/613)
+- `makeExecutableSchema` and `mergeSchema` now accept an array of `IResolver` [PR #612](https://github.com/apollographql/graphql-tools/pull/612) [PR #576](https://github.com/apollographql/graphql-tools/pull/576) [PR #577](https://github.com/apollographql/graphql-tools/pull/577)
+- Fix `delegateToSchema.ts` to remove duplicate new variable definitions when delegating to schemas [PR #607](https://github.com/apollographql/graphql-tools/pull/607)
+- Fix duplicate subscriptions for schema stitching [PR #609](https://github.com/apollographql/graphql-tools/pull/609)
 
 ### v2.19.0
 
-* Also recreate `astNode` property for fields, not only types, when recreating schemas. [PR #580](https://github.com/apollographql/graphql-tools/pull/580)
-* Fix `delegateToSchema.js` to accept and move forward args with zero or false values [PR #586](https://github.com/apollographql/graphql-tools/pull/586)
+- Also recreate `astNode` property for fields, not only types, when recreating schemas. [PR #580](https://github.com/apollographql/graphql-tools/pull/580)
+- Fix `delegateToSchema.js` to accept and move forward args with zero or false values [PR #586](https://github.com/apollographql/graphql-tools/pull/586)
 
 ### v2.18.0
 
-* Fix a bug where inline fragments got filtered in merged schemas when a type implemented multiple interfaces [PR #546](https://github.com/apollographql/graphql-tools/pull/546)
-* IEnumResolver value can be a `number` type [PR #568](https://github.com/apollographql/graphql-tools/pull/568)
+- Fix a bug where inline fragments got filtered in merged schemas when a type implemented multiple interfaces [PR #546](https://github.com/apollographql/graphql-tools/pull/546)
+- IEnumResolver value can be a `number` type [PR #568](https://github.com/apollographql/graphql-tools/pull/568)
 
 ### v2.17.0
 
-* Include `astNode` property in schema recreation [PR #569](https://github.com/apollographql/graphql-tools/pull/569)
+- Include `astNode` property in schema recreation [PR #569](https://github.com/apollographql/graphql-tools/pull/569)
 
 ### v2.16.0
 
-* Added GraphQL Subscriptions support for schema stitching and `makeRemoteExecutableSchema` [PR #563](https://github.com/apollographql/graphql-tools/pull/563)
-* Make `apollo-link` a direct dependency [PR #561](https://github.com/apollographql/graphql-tools/pull/561)
-* Update tests to use `graphql-js@0.12` docstring format [PR #559](https://github.com/apollographql/graphql-tools/pull/559)
+- Added GraphQL Subscriptions support for schema stitching and `makeRemoteExecutableSchema` [PR #563](https://github.com/apollographql/graphql-tools/pull/563)
+- Make `apollo-link` a direct dependency [PR #561](https://github.com/apollographql/graphql-tools/pull/561)
+- Update tests to use `graphql-js@0.12` docstring format [PR #559](https://github.com/apollographql/graphql-tools/pull/559)
 
 ### v2.15.0
 
-* Validate query before delegation [PR #551](https://github.com/apollographql/graphql-tools/pull/551)
+- Validate query before delegation [PR #551](https://github.com/apollographql/graphql-tools/pull/551)
 
 ### v2.14.1
 
-* Add guard against invalid schemas being constructed from AST [PR #547](https://github.com/apollographql/graphql-tools/pull/547)
+- Add guard against invalid schemas being constructed from AST [PR #547](https://github.com/apollographql/graphql-tools/pull/547)
 
 ### v2.14.0
 
 Update to add support for `graphql@0.12`, and drop versions before `0.11` from the peer dependencies list. The `graphql` package has some breaking changes you might need to be aware of, but there aren't any breaking changes in `graphql-tools` itself, or common usage patterns, so we are shipping this as a minor version. We're also running tests on this package with _both_ `graphql@0.11` and `graphql@0.12` until we confirm most users have updated.
 
-* Visit the [`graphql` releases page](https://github.com/graphql/graphql-js/releases) to keep track of for breaking changes to the underlying package.
-* [PR #541](https://github.com/apollographql/graphql-tools/pull/541)
+- Visit the [`graphql` releases page](https://github.com/graphql/graphql-js/releases) to keep track of for breaking changes to the underlying package.
+- [PR #541](https://github.com/apollographql/graphql-tools/pull/541)
 
 ### v2.13.0
 
-* (Experimental) Added support for custom directives on FIELD_DEFINITION that wrap resolvers with custom reusable logic. [Issue #212](https://github.com/apollographql/graphql-tools/issues/212) [PR #518](https://github.com/apollographql/graphql-tools/pull/518) and [PR #529](https://github.com/apollographql/graphql-tools/pull/529)
+- (Experimental) Added support for custom directives on FIELD_DEFINITION that wrap resolvers with custom reusable logic. [Issue #212](https://github.com/apollographql/graphql-tools/issues/212) [PR #518](https://github.com/apollographql/graphql-tools/pull/518) and [PR #529](https://github.com/apollographql/graphql-tools/pull/529)
 
 ### v2.12.0
 
-* Allow passing in a string `schema` to `makeRemoteExecutableSchema` [PR #521](https://github.com/apollographql/graphql-tools/pull/521)
+- Allow passing in a string `schema` to `makeRemoteExecutableSchema` [PR #521](https://github.com/apollographql/graphql-tools/pull/521)
 
 ### v2.11.0
 
-* Merge schema now can accept resolvers in a plain object format, mergeInfo added to GraphQLResolveInfo object in merged schema resolvers [PR #511](https://github.com/apollographql/graphql-tools/pull/511)
+- Merge schema now can accept resolvers in a plain object format, mergeInfo added to GraphQLResolveInfo object in merged schema resolvers [PR #511](https://github.com/apollographql/graphql-tools/pull/511)
 
 ### v2.10.0
 
-* Added basic support for custom Enums [Issue #363](https://github.com/apollographql/graphql-tools/issues/363) [PR #507](https://github.com/apollographql/graphql-tools/pull/507) [Read the docs here](https://www.apollographql.com/docs/graphql-tools/scalars.html#enums)
+- Added basic support for custom Enums [Issue #363](https://github.com/apollographql/graphql-tools/issues/363) [PR #507](https://github.com/apollographql/graphql-tools/pull/507) [Read the docs here](https://www.apollographql.com/docs/graphql-tools/scalars.html#enums)
 
 ### v2.9.0
 
-* Added basic subscription support for local schemas [Issue #420](https://github.com/apollographql/graphql-tools/issues/420) [PR #463](https://github.com/apollographql/graphql-tools/pull/463)
-* Fix input object default value not propagating to merged schema [Issue #497](https://github.com/apollographql/graphql-tools/issues/497) [PR #498](PR #463](https://github.com/apollographql/graphql-tools/pull/498)
+- Added basic subscription support for local schemas [Issue #420](https://github.com/apollographql/graphql-tools/issues/420) [PR #463](https://github.com/apollographql/graphql-tools/pull/463)
+- Fix input object default value not propagating to merged schema [Issue #497](https://github.com/apollographql/graphql-tools/issues/497) [PR #498](PR #463](https://github.com/apollographql/graphql-tools/pull/498)
 
 ### v2.8.0
 
-* Add the option `resolverValidationOptions.allowResolversNotInSchema` to allow resolvers to be set even when they are not defined in the schemas [PR #444](https://github.com/apollographql/graphql-tools/pull/444)
-* Fix schema stitching bug when aliases are used with union types and fragments [PR #482](https://github.com/apollographql/graphql-tools/pull/482)
-* Remove `isTypeOf` guards from merged schemas [PR #484](https://github.com/apollographql/graphql-tools/pull/484)
+- Add the option `resolverValidationOptions.allowResolversNotInSchema` to allow resolvers to be set even when they are not defined in the schemas [PR #444](https://github.com/apollographql/graphql-tools/pull/444)
+- Fix schema stitching bug when aliases are used with union types and fragments [PR #482](https://github.com/apollographql/graphql-tools/pull/482)
+- Remove `isTypeOf` guards from merged schemas [PR #484](https://github.com/apollographql/graphql-tools/pull/484)
 
 ### v2.7.2
 
-* Incompatible fragments are now properly filtered [PR #470](https://github.com/apollographql/graphql-tools/pull/470)
+- Incompatible fragments are now properly filtered [PR #470](https://github.com/apollographql/graphql-tools/pull/470)
 
 ### v2.7.1
 
-* Made `resolvers` parameter optional for `mergeSchemas` [Issue #461](https://github.com/apollographql/graphql-tools/issues/461) [PR #462](https://github.com/apollographql/graphql-tools/pull/462)
-* Make it possible to define interfaces in schema extensions [PR #464](https://github.com/apollographql/graphql-tools/pull/464)
+- Made `resolvers` parameter optional for `mergeSchemas` [Issue #461](https://github.com/apollographql/graphql-tools/issues/461) [PR #462](https://github.com/apollographql/graphql-tools/pull/462)
+- Make it possible to define interfaces in schema extensions [PR #464](https://github.com/apollographql/graphql-tools/pull/464)
 
 ### v2.7.0
 
-* Upgraded versions of dependencies
+- Upgraded versions of dependencies
 
 ### v2.6.1
 
-* Fix one place where `apollo-link` was being used directly
+- Fix one place where `apollo-link` was being used directly
 
 ### v2.6.0
 
-* Removed direct dependency on Apollo Link, while keeping the API the same, to work around a Launchpad npm installation issue temporarily.
-* Parse type, field, and argument descriptions in `typeFromAST`. This allows the
+- Removed direct dependency on Apollo Link, while keeping the API the same, to work around a Launchpad npm installation issue temporarily.
+- Parse type, field, and argument descriptions in `typeFromAST`. This allows the
   descriptions to be part of the schema when using helpers like `mergeSchemas()`.
 
 ### v2.5.0
 
-* Add ability to pass types in extension strings [Issue #427](https://github.com/apollographql/graphql-tools/issues/427) [PR #430](https://github.com/apollographql/graphql-tools/pull/430)
+- Add ability to pass types in extension strings [Issue #427](https://github.com/apollographql/graphql-tools/issues/427) [PR #430](https://github.com/apollographql/graphql-tools/pull/430)
 
 ### v2.4.0
 
-* Translate errors better in merged schema [Issue #419](https://github.com/apollographql/graphql-tools/issues/419) [PR #425](https://github.com/apollographql/graphql-tools/pull/425)
+- Translate errors better in merged schema [Issue #419](https://github.com/apollographql/graphql-tools/issues/419) [PR #425](https://github.com/apollographql/graphql-tools/pull/425)
 
 ### v2.3.0
 
-* Fix alias issues [Issue #415](https://github.com/apollographql/graphql-tools/issues/415) [PR #418](https://github.com/apollographql/graphql-tools/pull/418)
-* Make `@types/graphql` a dev dependency and make it's version as flexible as `graphql` [PR #421](https://github.com/apollographql/graphql-tools/pull/421)
+- Fix alias issues [Issue #415](https://github.com/apollographql/graphql-tools/issues/415) [PR #418](https://github.com/apollographql/graphql-tools/pull/418)
+- Make `@types/graphql` a dev dependency and make it's version as flexible as `graphql` [PR #421](https://github.com/apollographql/graphql-tools/pull/421)
 
 ### v2.2.1
 
-* Fix inability to add recursive queries [PR #413](https://github.com/apollographql/graphql-tools/pull/413)
+- Fix inability to add recursive queries [PR #413](https://github.com/apollographql/graphql-tools/pull/413)
 
 ### v2.2.0
 
-* Change link API to pass GraphQL context as `graphqlContext` field of link
+- Change link API to pass GraphQL context as `graphqlContext` field of link
   context to avoid merging problems
-* Fix alias problems in schema merging [PR #411](https://github.com/apollographql/graphql-tools/pull/411)
+- Fix alias problems in schema merging [PR #411](https://github.com/apollographql/graphql-tools/pull/411)
 
 ### v2.1.0
 
-* Added support for passing an Apollo Link instead of a fetcher
+- Added support for passing an Apollo Link instead of a fetcher
 
 ### v2.0.0
 
-* Add schema merging utilities [PR #382](https://github.com/apollographql/graphql-tools/pull/382)
+- Add schema merging utilities [PR #382](https://github.com/apollographql/graphql-tools/pull/382)
 
 ### v1.2.3
 
-* Update package.json to allow GraphQL.js 0.11 [Issue #394](https://github.com/apollographql/graphql-tools/issues/394) [PR #395](https://github.com/apollographql/graphql-tools/pull/395)
+- Update package.json to allow GraphQL.js 0.11 [Issue #394](https://github.com/apollographql/graphql-tools/issues/394) [PR #395](https://github.com/apollographql/graphql-tools/pull/395)
 
 ### v1.2.1
 
-* Fix typings for resolver options: [Issue #372](https://github.com/apollographql/graphql-tools/issues/372) [PR #374](https://github.com/apollographql/graphql-tools/pull/374)
+- Fix typings for resolver options: [Issue #372](https://github.com/apollographql/graphql-tools/issues/372) [PR #374](https://github.com/apollographql/graphql-tools/pull/374)
 
 ### v.1.2.0
 
-* Use defaultFieldResolver from graphql-js package instead of own one [PR #373](https://github.com/apollographql/graphql-tools/pull/373)
-* Remove `lodash` dependency [PR #356](https://github.com/apollographql/graphql-tools/pull/356)
+- Use defaultFieldResolver from graphql-js package instead of own one [PR #373](https://github.com/apollographql/graphql-tools/pull/373)
+- Remove `lodash` dependency [PR #356](https://github.com/apollographql/graphql-tools/pull/356)
 
 ### v.1.1.0
 
-* Improve mocking of union and interface types [PR #332](https://github.com/apollographql/graphql-tools/pull/332)
+- Improve mocking of union and interface types [PR #332](https://github.com/apollographql/graphql-tools/pull/332)
 
 ### v1.0.0
 
-* Add argument validation in `addMockFunctionsToSchema` for 'schema' property in parameter object [PR #321](https://github.com/apollographql/graphql-tools/pull/321)
+- Add argument validation in `addMockFunctionsToSchema` for 'schema' property in parameter object [PR #321](https://github.com/apollographql/graphql-tools/pull/321)
 
 ### v0.11.0
 
-* Remove dependency on `graphql-subscription` and use an interface for PubSub [PR #295](https://github.com/apollographql/graphql-tools/pull/295)
-* Support schema AST as a type definition input [PR #300](https://github.com/apollographql/graphql-tools/pull/300)
-* Update graphql typings to 0.9.0 [PR #298](https://github.com/apollographql/graphql-tools/pull/298)
+- Remove dependency on `graphql-subscription` and use an interface for PubSub [PR #295](https://github.com/apollographql/graphql-tools/pull/295)
+- Support schema AST as a type definition input [PR #300](https://github.com/apollographql/graphql-tools/pull/300)
+- Update graphql typings to 0.9.0 [PR #298](https://github.com/apollographql/graphql-tools/pull/298)
 
 ### v0.10.1
 
-* Update dependencies [PR #287](https://github.com/apollographql/graphql-tools/pull/287)
+- Update dependencies [PR #287](https://github.com/apollographql/graphql-tools/pull/287)
 
 ### v0.10.0
 
-* Restrict version range of graphql-js peer dependency to ^0.8.0 || ^0.9.0 [PR #266](https://github.com/apollographql/graphql-tools/pull/266)
+- Restrict version range of graphql-js peer dependency to ^0.8.0 || ^0.9.0 [PR #266](https://github.com/apollographql/graphql-tools/pull/266)
 
 ### v0.9.2
 
-* Update graphql-js dependency to include 0.9.0 [PR #264](https://github.com/apollostack/graphql-tools/pull/264)
-* Fix logErrors option so it logs errors if resolve function returns a promise [PR #262](https://github.com/apollostack/graphql-tools/pull/262)
+- Update graphql-js dependency to include 0.9.0 [PR #264](https://github.com/apollostack/graphql-tools/pull/264)
+- Fix logErrors option so it logs errors if resolve function returns a promise [PR #262](https://github.com/apollostack/graphql-tools/pull/262)
 
 ### v0.9.1
 
-* use function reference instead of string for concatenateTypeDefs. [PR #252](https://github.com/apollostack/graphql-tools/pull/252)
+- use function reference instead of string for concatenateTypeDefs. [PR #252](https://github.com/apollostack/graphql-tools/pull/252)
 
 ### v0.9.0
 
-* Migrate from `typed-graphql` to `@types/graphql`. [PR #249](https://github.com/apollostack/graphql-tools/pull/249)
+- Migrate from `typed-graphql` to `@types/graphql`. [PR #249](https://github.com/apollostack/graphql-tools/pull/249)
 
 ### v0.8.4
 
-* `addSchemaLevelResolveFunction` resolves once per operation type and not once globally. [#220](https://github.com/apollostack/graphql-tools/pull/220)
-* Replace node-uuid with uuid package [#227](https://github.com/apollostack/graphql-tools/pull/227)
-* Fix issue that prevented usage of custom scalars as arguments [#224](https://github.com/apollostack/graphql-tools/pull/224)
+- `addSchemaLevelResolveFunction` resolves once per operation type and not once globally. [#220](https://github.com/apollostack/graphql-tools/pull/220)
+- Replace node-uuid with uuid package [#227](https://github.com/apollostack/graphql-tools/pull/227)
+- Fix issue that prevented usage of custom scalars as arguments [#224](https://github.com/apollostack/graphql-tools/pull/224)
 
 ### v0.8.3
 
-* Remove peer dependency on `graphql-subscriptions`. [#210](https://github.com/apollostack/graphql-tools/pull/210)
+- Remove peer dependency on `graphql-subscriptions`. [#210](https://github.com/apollostack/graphql-tools/pull/210)
 
 ### v0.8.2
 
-* Accept an async function for the schema level resolver. ([@ephemer](https://github.com/ephemer) in [#199](https://github.com/apollostack/graphql-tools/pull/199))
-* Fix for new custom scalar support introduced in `0.8.1`. ([@oricordeau](https://github.com/oricordeau) in [#203](https://github.com/apollostack/graphql-tools/pull/203))
+- Accept an async function for the schema level resolver. ([@ephemer](https://github.com/ephemer) in [#199](https://github.com/apollostack/graphql-tools/pull/199))
+- Fix for new custom scalar support introduced in `0.8.1`. ([@oricordeau](https://github.com/oricordeau) in [#203](https://github.com/apollostack/graphql-tools/pull/203))
 
 ### v0.8.1
 
-* Support custom scalar types developed for GraphQL.js, such as [graphql-type-json](https://github.com/taion/graphql-type-json). ([@oricordeau](https://github.com/oricordeau) in [#189](https://github.com/apollostack/graphql-tools/pull/189))
+- Support custom scalar types developed for GraphQL.js, such as [graphql-type-json](https://github.com/taion/graphql-type-json). ([@oricordeau](https://github.com/oricordeau) in [#189](https://github.com/apollostack/graphql-tools/pull/189))
 
 ### v0.8.0
 
-* Update default resolve function to match the one from GraphQL.js ([@stubailo](https://github.com/stubailo) in [#183](https://github.com/apollostack/graphql-tools/pull/183))
-* Move `typed-graphql` to `optionalDependencies` ([@stubailo](https://github.com/stubailo) in [#183](https://github.com/apollostack/graphql-tools/pull/183))
-* Set new defaults for resolver validation to match GraphQL.js so that developers need to opt-in to advanced validation ([@stubailo](https://github.com/stubailo) in [#183](https://github.com/apollostack/graphql-tools/pull/183)):
-  * `requireResolversForArgs = false` \* `requireResolversForNonScalar = false`
+- Update default resolve function to match the one from GraphQL.js ([@stubailo](https://github.com/stubailo) in [#183](https://github.com/apollostack/graphql-tools/pull/183))
+- Move `typed-graphql` to `optionalDependencies` ([@stubailo](https://github.com/stubailo) in [#183](https://github.com/apollostack/graphql-tools/pull/183))
+- Set new defaults for resolver validation to match GraphQL.js so that developers need to opt-in to advanced validation ([@stubailo](https://github.com/stubailo) in [#183](https://github.com/apollostack/graphql-tools/pull/183)):
+  - `requireResolversForArgs = false` \* `requireResolversForNonScalar = false`
 
 ### v0.7.2
 
-* Eliminated babel and moved to native ES5 compilation. ([@DxCx](https://github.com/DxCx) in [#147](https://github.com/apollostack/graphql-tools/pull/147))
+- Eliminated babel and moved to native ES5 compilation. ([@DxCx](https://github.com/DxCx) in [#147](https://github.com/apollostack/graphql-tools/pull/147))
 
 ### v0.7.1
 
-* Fix dependency on lodash
+- Fix dependency on lodash
 
 ### v0.7.0
 
-* Various Bugfixes ([@DxCx](https://github.com/DxCx) in [#129](https://github.com/apollostack/graphql-tools/pull/129)) - Istanbul coverage was not working well due to Istanbul bug [#549](https://github.com/gotwarlost/istanbul/issues/549) - Bluebird promise was not converted well on tests - "console.warn" got overwritten on tests
+- Various Bugfixes ([@DxCx](https://github.com/DxCx) in [#129](https://github.com/apollostack/graphql-tools/pull/129)) - Istanbul coverage was not working well due to Istanbul bug [#549](https://github.com/gotwarlost/istanbul/issues/549) - Bluebird promise was not converted well on tests - "console.warn" got overwritten on tests
 
-* Migrated code from Javascript to Typescript ([@DxCx](https://github.com/DxCx) in [#129](https://github.com/apollostack/graphql-tools/pull/129))
+- Migrated code from Javascript to Typescript ([@DxCx](https://github.com/DxCx) in [#129](https://github.com/apollostack/graphql-tools/pull/129))
 
-* Deprecated addConnectorsToContext ([@DxCx](https://github.com/DxCx) in [#129](https://github.com/apollostack/graphql-tools/pull/129))
+- Deprecated addConnectorsToContext ([@DxCx](https://github.com/DxCx) in [#129](https://github.com/apollostack/graphql-tools/pull/129))
 
-* Removed deprecated aplloServer ([@DxCx](https://github.com/DxCx) in [#129](https://github.com/apollostack/graphql-tools/pull/129))
+- Removed deprecated aplloServer ([@DxCx](https://github.com/DxCx) in [#129](https://github.com/apollostack/graphql-tools/pull/129))
 
-* Removed testing on Node 5 ([@DxCx](https://github.com/DxCx) in [#129](https://github.com/apollostack/graphql-tools/pull/129))
+- Removed testing on Node 5 ([@DxCx](https://github.com/DxCx) in [#129](https://github.com/apollostack/graphql-tools/pull/129))
 
-* Changed GraphQL typings requirement from peer to standard ([@DxCx](https://github.com/DxCx) in [#129](https://github.com/apollostack/graphql-tools/pull/129))
+- Changed GraphQL typings requirement from peer to standard ([@DxCx](https://github.com/DxCx) in [#129](https://github.com/apollostack/graphql-tools/pull/129))
 
-* Change the missing resolve function validator to show a warning instead of an error ([@nicolaslopezj](https://github.com/nicolaslopezj) in [#134](https://github.com/apollostack/graphql-tools/pull/134))
+- Change the missing resolve function validator to show a warning instead of an error ([@nicolaslopezj](https://github.com/nicolaslopezj) in [#134](https://github.com/apollostack/graphql-tools/pull/134))
 
-* Add missing type annotations to avoid typescript compiler errors when 'noImplicitAny' is enabled ([@almilo](https://github.com/almilo) in [#133](https://github.com/apollostack/graphql-tools/pull/133))
+- Add missing type annotations to avoid typescript compiler errors when 'noImplicitAny' is enabled ([@almilo](https://github.com/almilo) in [#133](https://github.com/apollostack/graphql-tools/pull/133))
 
 ### v0.6.6
 
-* Added embedded Typescript definitions ([@DxCx](https://github.com/DxCx) in [#120](https://github.com/apollostack/graphql-tools/pull/120))
+- Added embedded Typescript definitions ([@DxCx](https://github.com/DxCx) in [#120](https://github.com/apollostack/graphql-tools/pull/120))
 
-* Fix issue in addMockFunctionsToSchema when preserveResolvers is true and connector/logger is used. ([@DxCx](https://github.com/DxCx) in [#121](https://github.com/apollostack/graphql-tools/pull/121))
+- Fix issue in addMockFunctionsToSchema when preserveResolvers is true and connector/logger is used. ([@DxCx](https://github.com/DxCx) in [#121](https://github.com/apollostack/graphql-tools/pull/121))
 
-* Fix multiple issues in addMockFunctionsToSchema when preserveResolvers is true (support for Promises, and props defined using Object.defineProperty) ([@sebastienbarre](https://github.com/sebastienbarre) in [#115](https://github.com/apollostack/graphql-tools/pull/115))
+- Fix multiple issues in addMockFunctionsToSchema when preserveResolvers is true (support for Promises, and props defined using Object.defineProperty) ([@sebastienbarre](https://github.com/sebastienbarre) in [#115](https://github.com/apollostack/graphql-tools/pull/115))
 
-* Make allowUndefinedInResolve true by default ([@jbaxleyiii](https://github.com/jbaxleyiii) in [#117](https://github.com/apollostack/graphql-tools/pull/117))
+- Make allowUndefinedInResolve true by default ([@jbaxleyiii](https://github.com/jbaxleyiii) in [#117](https://github.com/apollostack/graphql-tools/pull/117))
 
-* Add `requireResolversForAllFields` resolver validation option ([@nevir](https://github.com/nevir) in [#107](https://github.com/apollostack/graphql-tools/pull/107))
+- Add `requireResolversForAllFields` resolver validation option ([@nevir](https://github.com/nevir) in [#107](https://github.com/apollostack/graphql-tools/pull/107))
 
 ### v0.6.4
 
-* Make mocking partial objects match expected behavior ([@sebastienbarre](https://github.com/sebastienbarre) in [#96](https://github.com/apollostack/graphql-tools/pull/96))
-* Improved behavior when mocking interfaces & unions ([@itajaja](https://github.com/itajaja) in [#102](https://github.com/apollostack/graphql-tools/pull/102))
+- Make mocking partial objects match expected behavior ([@sebastienbarre](https://github.com/sebastienbarre) in [#96](https://github.com/apollostack/graphql-tools/pull/96))
+- Improved behavior when mocking interfaces & unions ([@itajaja](https://github.com/itajaja) in [#102](https://github.com/apollostack/graphql-tools/pull/102))
 
 ### v0.6.3
 
-* Unpin babel-core version to solve build problem (PR [#92](https://github.com/apollographql/graphql-tools/pull/92))
-* Added support for `extend` keyword to schemaGenerator (PR [#90](https://github.com/apollostack/graphql-tools/pull/90))
+- Unpin babel-core version to solve build problem (PR [#92](https://github.com/apollographql/graphql-tools/pull/92))
+- Added support for `extend` keyword to schemaGenerator (PR [#90](https://github.com/apollostack/graphql-tools/pull/90))
 
 ### v0.6.2
 
-* Fix a bug with addSchemaLevelResolveFunction. It now runs once per tick (PR [#91](https://github.com/apollographql/graphql-tools/pull/91))
+- Fix a bug with addSchemaLevelResolveFunction. It now runs once per tick (PR [#91](https://github.com/apollographql/graphql-tools/pull/91))
 
 ### v0.5.2
 
-* Add addSchemaLevelResolveFunction to exports
-* Remove dist folder before prepublish to make sure files deleted in source are not included in build
+- Add addSchemaLevelResolveFunction to exports
+- Remove dist folder before prepublish to make sure files deleted in source are not included in build
 
 ### v0.5.1
 
-* Updated GraphQL dependency to 0.6.0
-* Removed all tracer code, including `Tracer`, `addTracingToResolvers` and `decorateWithTracer`
+- Updated GraphQL dependency to 0.6.0
+- Removed all tracer code, including `Tracer`, `addTracingToResolvers` and `decorateWithTracer`

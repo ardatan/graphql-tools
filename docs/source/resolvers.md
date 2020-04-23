@@ -10,7 +10,7 @@ Keep in mind that GraphQL resolvers can return [promises](https://developer.mozi
 
 ## Resolver map
 
-In order to respond to queries, a schema needs to have resolve functions for all fields. Resolve functions cannot be included in the GraphQL schema language, so they must be added separately. This collection of functions is called the "resolver map".
+In order to respond to queries, a schema needs to have resolvers for all fields. Resolvers are per field functions that are given a parent object, arguments, and the execution context, and are responsible for returning a result for that field. Resolvers cannot be included in the GraphQL schema language, so they must be added separately. The collection of resolvers is called the "resolver map".
 
 The `resolverMap` object (`IResolvers`) should have a map of resolvers for each relevant GraphQL Object Type. The following is an example of a valid `resolverMap` object:
 
@@ -28,9 +28,9 @@ const resolverMap = {
   },
 };
 ```
-> Note: If you are using mocking, the `preserveResolvers` argument of [`addMockFunctionsToSchema`](/docs/graphql-tools/mocking.html#addMockFunctionsToSchema) must be set to `true` if you don't want your resolvers to be overwritten by mock resolvers.
+> Note: If you are using mocking, the `preserveResolvers` argument of [`addMocksToSchema`](/mocking/#addmockstoschema) must be set to `true` if you don't want your resolvers to be overwritten by mock resolvers.
 
-Note that you don't have to put all of your resolvers in one object. Refer to the ["modularizing the schema"](/docs/graphql-tools/generate-schema.html#modularizing) section to learn how to combine multiple resolver maps into one.
+Note that you don't have to put all of your resolvers in one object. Refer to the ["modularizing the schema"](/generate-schema/) section to learn how to combine multiple resolver maps into one.
 
 ## Resolver function signature
 
@@ -42,9 +42,9 @@ fieldName(obj, args, context, info) { result }
 
 These arguments have the following meanings and conventional names:
 
-1. `obj`: The object that contains the result returned from the resolver on the parent field, or, in the case of a top-level `Query` field, the `rootValue` passed from the [server configuration](/docs/apollo-server/setup.html). This argument enables the nested nature of GraphQL queries.
+1. `obj`: The object that contains the result returned from the resolver on the parent field, or, in the case of a top-level `Query` field, the `rootValue` passed from the [server configuration](https://www.apollographql.com/docs/apollo-server/setup/). This argument enables the nested nature of GraphQL queries.
 2. `args`: An object with the arguments passed into the field in the query. For example, if the field was called with `author(name: "Ada")`, the `args` object would be: `{ "name": "Ada" }`.
-3. `context`: This is an object shared by all resolvers in a particular query, and is used to contain per-request state, including authentication information, dataloader instances, and anything else that should be taken into account when resolving the query. If you're using Apollo Server, [read about how to set the context in the setup documentation](/docs/apollo-server/essentials/data.html#context).
+3. `context`: This is an object shared by all resolvers in a particular query, and is used to contain per-request state, including authentication information, dataloader instances, and anything else that should be taken into account when resolving the query. If you're using Apollo Server, [read about how to set the context in the setup documentation](https://www.apollographql.com/docs/apollo-server/essentials/data/#context).
 4. `info`: This argument should only be used in advanced cases, but it contains information about the execution state of the query, including the field name, path to the field from the root, and more. It's only documented in the [GraphQL.js source code](https://github.com/graphql/graphql-js/blob/c82ff68f52722c20f10da69c9e50a030a1f218ae/src/type/definition.js#L489-L500).
 
 ### Resolver result format
@@ -53,7 +53,7 @@ Resolvers in GraphQL can return different kinds of results which are treated dif
 
 1. `null` or `undefined` - this indicates the object could not be found. If your schema says that field is _nullable_, then the result will have a `null` value at that position. If the field is `non-null`, the result will "bubble up" to the nearest nullable field and that result will be set to `null`. This is to ensure that the API consumer never gets a `null` value when they were expecting a result.
 2. An array - this is only valid if the schema indicates that the result of a field should be a list. The sub-selection of the query will run once for every item in this array.
-3. A promise - resolvers often do asynchronous actions like fetching from a database or backend API, so they can return promises. This can be combined with arrays, so a resolver can return: 
+3. A promise - resolvers often do asynchronous actions like fetching from a database or backend API, so they can return promises. This can be combined with arrays, so a resolver can return:
     1. A promise that resolves an array
     2. An array of promises
 4. A scalar or object value - a resolver can also return any other kind of value, which doesn't have any special meaning but is simply passed down into any nested resolvers, as described in the next section.
@@ -93,6 +93,16 @@ You don't need to specify resolvers for _every_ type in your schema. If you don'
 2. Calls a function on `obj` with the relevant field name and passes the query arguments into that function
 
 So, in the example query above, the `name` and `title` fields wouldn't need a resolver if the Post and Author objects retrieved from the backend already had those fields.
+
+### Class method resolvers
+
+When returning an object or a class instance from a parent resolver, we are implicitly relying the GraphQL.js default resolver logic described above to execute the child resolvers. As such, class method resolvers have the following interface:
+
+```js
+class Type {
+    fieldName(args, context, info) { result }
+}
+```
 
 ## Unions and interfaces
 
@@ -144,15 +154,13 @@ const resolverMap = {
 
 In addition to using a resolver map with `makeExecutableSchema`, you can use it with any GraphQL.js schema by importing the following function from `graphql-tools`:
 
-<h3 id="addResolveFunctionsToSchema" title="addResolveFunctionsToSchema">
-  addResolveFunctionsToSchema({ schema, resolvers, resolverValidationOptions?, inheritResolversFromInterfaces? })
-</h3>
+### addResolversToSchema({ schema, resolvers, resolverValidationOptions?, inheritResolversFromInterfaces? })
 
-`addResolveFunctionsToSchema` takes an options object of `IAddResolveFunctionsToSchemaOptions` and modifies the schema in place by attaching the resolvers to the relevant types.
+`addResolversToSchema` takes an options object of `IAddResolveFunctionsToSchemaOptions` and modifies the schema in place by attaching the resolvers to the relevant types.
 
 
 ```js
-import { addResolveFunctionsToSchema } from 'graphql-tools';
+import { addResolversToSchema } from 'graphql-tools';
 
 const resolvers = {
   RootQuery: {
@@ -164,10 +172,10 @@ const resolvers = {
   },
 };
 
-addResolveFunctionsToSchema({ schema, resolvers });
+addResolversToSchema({ schema, resolvers });
 ```
 
-The `IAddResolveFunctionsToSchemaOptions` object has 4 properties that are described in [`makeExecutableSchema`](/docs/graphql-tools/generate-schema.html#makeExecutableSchema).
+The `IAddResolveFunctionsToSchemaOptions` object has 4 properties that are described in [`makeExecutableSchema`](/generate-schema/#makeexecutableschemaoptions).
 ```ts
 export interface IAddResolveFunctionsToSchemaOptions {
   schema: GraphQLSchema;
@@ -177,13 +185,11 @@ export interface IAddResolveFunctionsToSchemaOptions {
 }
 ```
 
-<h3 id="addSchemaLevelResolveFunction" title="addSchemaLevelResolveFunction">
-  addSchemaLevelResolveFunction(schema, rootResolveFunction)
-</h3>
+### addSchemaLevelResolver(schema, rootResolveFunction)
 
-Some operations, such as authentication, need to be done only once per query. Logically, these operations belong in an obj resolve function, but unfortunately GraphQL-JS does not let you define one. `addSchemaLevelResolveFunction` solves this by modifying the GraphQLSchema that is passed as the first argument.
+Some operations, such as authentication, need to be done only once per query. Logically, these operations belong in a schema level resolver field resolver, but unfortunately GraphQL-JS does not let you define one. `addSchemaLevelResolver` solves this by modifying the GraphQLSchema that is passed as the first argument.
 
-<h2 id="companion-tools" title="Companion tools">Companion tools</h2>
+## Companion tools
 
 Modules and extensions built by the community.
 
@@ -203,7 +209,7 @@ const isAuthenticated = (root, args, context, info) => {
 }
 ```
 
-Which could be used it in an actual field resolver like this:
+Which could be used in an actual field resolver like this:
 
 ```js
 import { combineResolvers } from 'graphql-resolvers'

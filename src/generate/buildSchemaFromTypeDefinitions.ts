@@ -4,14 +4,17 @@ import {
   buildASTSchema,
   GraphQLSchema,
   DocumentNode,
+  ASTNode,
 } from 'graphql';
+
 import { ITypeDefinitions, GraphQLParseOptions } from '../Interfaces';
 
 import {
   extractExtensionDefinitions,
-  concatenateTypeDefs,
-  SchemaError,
-} from '.';
+  filterExtensionDefinitions,
+} from './extensionDefinitions';
+import concatenateTypeDefs from './concatenateTypeDefs';
+import SchemaError from './SchemaError';
 
 function buildSchemaFromTypeDefinitions(
   typeDefinitions: ITypeDefinitions,
@@ -37,18 +40,14 @@ function buildSchemaFromTypeDefinitions(
     astDocument = parse(myDefinitions, parseOptions);
   }
 
-  const backcompatOptions = { commentDescriptions: true };
+  const typesAst = filterExtensionDefinitions(astDocument);
 
-  // TODO fix types https://github.com/apollographql/graphql-tools/issues/542
-  let schema: GraphQLSchema = (buildASTSchema as any)(
-    astDocument,
-    backcompatOptions,
-  );
+  const backcompatOptions = { commentDescriptions: true };
+  let schema: GraphQLSchema = buildASTSchema(typesAst, backcompatOptions);
 
   const extensionsAst = extractExtensionDefinitions(astDocument);
   if (extensionsAst.definitions.length > 0) {
-    // TODO fix types https://github.com/apollographql/graphql-tools/issues/542
-    schema = (extendSchema as any)(schema, extensionsAst, backcompatOptions);
+    schema = extendSchema(schema, extensionsAst, backcompatOptions);
   }
 
   return schema;
@@ -57,7 +56,7 @@ function buildSchemaFromTypeDefinitions(
 function isDocumentNode(
   typeDefinitions: ITypeDefinitions,
 ): typeDefinitions is DocumentNode {
-  return (<DocumentNode>typeDefinitions).kind !== undefined;
+  return (typeDefinitions as ASTNode).kind !== undefined;
 }
 
 export default buildSchemaFromTypeDefinitions;
