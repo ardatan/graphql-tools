@@ -9,7 +9,7 @@ This document is intended as a design document for people who want to write conn
 This is a draft at the moment, and not the final document. Chances are that the spec will change as we learn about the better ways to build GraphQL servers. It should be pretty close to the final version though, so if you want to get started and build connectors for specific backends, this document is a good starting point.
 
 
-Technically you could write a GraphQL server without connectors and models by writing all your logic directly into the resolve functions, but in most cases that's not ideal. Connectors and models are a way of organizing code in a GraphQL server, and you should use them to keep your server modular. If the need arises, you can always write optimized queries directly in your resolvers or models.
+Technically you could write a GraphQL server without connectors and models by writing all your logic directly into the resolvers, but in most cases that's not ideal. Connectors and models are a way of organizing code in a GraphQL server, and you should use them to keep your server modular. If the need arises, you can always write optimized queries directly in your resolvers or models.
 
 Let's use an example schema, because it's always easier to explain things with examples:
 ```
@@ -60,7 +60,7 @@ Both batching and caching are more important in GraphQL than in traditional endp
 
 Models are the glue between connectors - which are backend-specific - and GraphQL types - which are app-specific. They are very similar to models in ORMs, such as Rails' Active Record.
 
-Let's say for example that you have two types, Author and Post, which are both stored in MySQL. Rather than calling the MySQL connector directly from your resolve functions, you should create models for Author and Post, which use the MySQL connector. This additional level of abstraction helps separate the data fetching logic from the GraphQL schema, which makes reusing and refactoring it easier.
+Let's say for example that you have two types, Author and Post, which are both stored in MySQL. Rather than calling the MySQL connector directly from your resolvers, you should create models for Author and Post, which use the MySQL connector. This additional level of abstraction helps separate the data fetching logic from the GraphQL schema, which makes reusing and refactoring it easier.
 
 In the example schema above, the Authors model would have the following methods:
 ```
@@ -150,7 +150,7 @@ app.use('/graphql', apolloServer({
 });
 ```
 
-Step 4: Calling models in resolve functions
+Step 4: Calling models in resolvers
 ```
 function resolve(author, args, ctx){
   return ctx.models.Author.getById(author.id, ctx);
