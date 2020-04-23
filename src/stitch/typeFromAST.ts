@@ -193,7 +193,10 @@ function makeValues(
       ...prev,
       [node.name.value]: {
         type: createStub(node.type, 'input'),
-        defaultValue: valueFromASTUntyped(node.defaultValue),
+        defaultValue:
+          node.defaultValue != null
+            ? valueFromASTUntyped(node.defaultValue)
+            : undefined,
         description: getDescription(node, backcompatOptions),
         astNode: node,
       },
