@@ -15,7 +15,6 @@ import {
   GraphQLObjectType,
 } from 'graphql';
 
-import isEmptyObject from '../../esUtils/isEmptyObject';
 import {
   Transform,
   Request,
@@ -115,7 +114,7 @@ export default class TransformCompositeFields implements Transform {
       }
     });
 
-    if (isEmptyObject(newFields)) {
+    if (newFields == null || Object.keys(newFields).length === 0) {
       return null;
     }
 

@@ -19,11 +19,11 @@ import {
   getNamedType,
   isObjectType,
   isInterfaceType,
+  GraphQLNamedType,
 } from 'graphql';
 
 import { Transform, Request } from '../../Interfaces';
 import implementsAbstractType from '../../utils/implementsAbstractType';
-import keyValMap from '../../esUtils/keyValMap';
 
 export default class FilterToSchema implements Transform {
   private readonly targetSchema: GraphQLSchema;
@@ -68,11 +68,10 @@ function filterToSchema(
     },
   );
 
-  const validFragmentsWithType = keyValMap(
-    validFragments,
-    (fragment) => fragment.name.value,
-    (fragment) => targetSchema.getType(fragment.typeCondition.name.value),
-  );
+  const validFragmentsWithType: Record<string, GraphQLNamedType> = validFragments.reduce((prev, fragment) => ({
+    ...prev,
+    [fragment.name.value]: targetSchema.getType(fragment.typeCondition.name.value)
+  }), {});
 
   let fragmentSet = Object.create(null);
 

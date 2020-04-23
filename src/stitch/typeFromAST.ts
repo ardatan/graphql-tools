@@ -24,11 +24,12 @@ import {
   StringValueNode,
   Location,
   TokenKind,
+  GraphQLEnumValueConfigMap,
+  GraphQLFieldConfigArgumentMap,
 } from 'graphql';
 
 import { graphqlVersion } from '../utils/index';
 import { createStub, createNamedStub } from '../utils/stub';
-import keyValMap from '../esUtils/keyValMap';
 
 import resolveFromParentTypename from './resolveFromParentTypename';
 
@@ -96,13 +97,12 @@ function makeInterfaceType(
 }
 
 function makeEnumType(node: EnumTypeDefinitionNode): GraphQLEnumType {
-  const values = keyValMap(
-    node.values,
-    (value) => value.name.value,
-    (value) => ({
+  const values = node.values.reduce<GraphQLEnumValueConfigMap>((prev, value) => ({
+    ...prev,
+    [value.name.value]: {
       description: getDescription(value, backcompatOptions),
-    }),
-  );
+    }
+  }), {})
 
   return new GraphQLEnumType({
     name: node.name.value,
@@ -148,46 +148,41 @@ function makeInputObjectType(
 function makeFields(
   nodes: ReadonlyArray<FieldDefinitionNode>,
 ): Record<string, GraphQLFieldConfig<any, any>> {
-  return keyValMap(
-    nodes,
-    (node) => node.name.value,
-    (node) => {
-      const deprecatedDirective = node.directives.find(
-        (directive) => directive.name.value === 'deprecated',
+  return nodes.reduce((prev, node) => {
+    const deprecatedDirective = node.directives.find(
+      (directive) => directive.name.value === 'deprecated',
+    );
+
+    let deprecationReason;
+
+    if (deprecatedDirective != null) {
+      const deprecatedArgument = deprecatedDirective.arguments.find(
+        (arg) => arg.name.value === 'reason',
       );
+      deprecationReason = (deprecatedArgument.value as StringValueNode).value;
+    }
 
-      let deprecationReason;
-
-      if (deprecatedDirective != null) {
-        const deprecatedArgument = deprecatedDirective.arguments.find(
-          (arg) => arg.name.value === 'reason',
-        );
-        deprecationReason = (deprecatedArgument.value as StringValueNode).value;
-      }
-
-      return {
+    return {
+      ...prev,
+      [node.name.value]: {
         type: createStub(node.type, 'output'),
         args: makeValues(node.arguments),
         description: getDescription(node, backcompatOptions),
         deprecationReason,
-      };
-    },
-  );
+      }
+    } ;
+  }, {});
 }
 
-function makeValues(nodes: ReadonlyArray<InputValueDefinitionNode>) {
-  return keyValMap(
-    nodes,
-    (node) => node.name.value,
-    (node) => {
-      const type = createStub(node.type, 'input');
-      return {
-        type,
-        defaultValue: node.defaultValue,
-        description: getDescription(node, backcompatOptions),
-      };
-    },
-  );
+function makeValues(nodes: ReadonlyArray<InputValueDefinitionNode>): GraphQLFieldConfigArgumentMap {
+  return nodes.reduce((prev, node) => ({
+    ...prev,
+    [node.name.value]: {
+      type: createStub(node.type, 'input'),
+      defaultValue: node.defaultValue,
+      description: getDescription(node, backcompatOptions),
+    }
+  }), {});
 }
 
 function makeDirective(node: DirectiveDefinitionNode): GraphQLDirective {

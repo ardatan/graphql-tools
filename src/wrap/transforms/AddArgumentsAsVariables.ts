@@ -15,8 +15,6 @@ import {
 import { Transform, Request } from '../../Interfaces';
 import { serializeInputValue } from '../../utils/transformInputValue';
 import { updateArgument } from '../../utils/updateArgument';
-import toObjMap from '../../esUtils/toObjMap';
-import keyValMap from '../../esUtils/keyValMap';
 
 export default class AddArgumentsAsVariables implements Transform {
   private readonly targetSchema: GraphQLSchema;
@@ -24,7 +22,10 @@ export default class AddArgumentsAsVariables implements Transform {
 
   constructor(targetSchema: GraphQLSchema, args: Record<string, any>) {
     this.targetSchema = targetSchema;
-    this.args = toObjMap(args);
+    this.args = Object.entries(args).reduce((prev, [key, val]) => ({
+      ...prev,
+      [key]: val,
+    }), {});
   }
 
   public transformRequest(originalRequest: Request): Request {
@@ -60,11 +61,10 @@ function addVariablesToRootField(
   ) as Array<FragmentDefinitionNode>;
 
   const newOperations = operations.map((operation: OperationDefinitionNode) => {
-    const variableDefinitionMap = keyValMap(
-      operation.variableDefinitions,
-      (def) => def.variable.name.value,
-      (def) => def,
-    );
+    const variableDefinitionMap: Record<string, VariableDefinitionNode> = operation.variableDefinitions.reduce((prev, def) => ({
+      ...prev,
+      [def.variable.name.value]: def,
+    }), {});
 
     let type: GraphQLObjectType | null | undefined;
     if (operation.operation === 'subscription') {
@@ -79,11 +79,10 @@ function addVariablesToRootField(
     operation.selectionSet.selections.forEach((selection: SelectionNode) => {
       if (selection.kind === Kind.FIELD) {
         const argumentNodes = selection.arguments;
-        const argumentNodeMap = keyValMap(
-          argumentNodes,
-          (argument) => argument.name.value,
-          (argument) => argument,
-        );
+        const argumentNodeMap: Record<string, ArgumentNode> = argumentNodes.reduce((prev, argument) => ({
+          ...prev,
+          [argument.name.value]: argument,
+        }),{});
 
         const targetField = type.getFields()[selection.name.value];
 

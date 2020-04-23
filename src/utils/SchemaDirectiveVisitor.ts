@@ -9,9 +9,6 @@ import {
   VisitableSchemaType,
   SchemaDirectiveVisitorClass,
 } from '../Interfaces';
-import keyValMap from '../esUtils/keyValMap';
-import toObjMap from '../esUtils/toObjMap';
-import { keyMap } from '../esUtils/keyMap';
 
 import valueFromASTUntyped from './valueFromASTUntyped';
 import { SchemaVisitor } from './SchemaVisitor';
@@ -128,13 +125,15 @@ export class SchemaDirectiveVisitor<
 
     // Map from directive names to lists of SchemaDirectiveVisitor instances
     // created while visiting the schema.
-    const createdVisitors = keyValMap(
-      Object.keys(directiveVisitors),
-      (item) => item,
-      (): Array<SchemaDirectiveVisitor> => [],
-    );
+    const createdVisitors: Record<string, Array<any>> = Object.keys(directiveVisitors).reduce((prev, item) => ({
+      ...prev,
+      [item]: []
+    }), {});
 
-    const directiveVisitorMap = toObjMap(directiveVisitors);
+    const directiveVisitorMap: Record<string, typeof SchemaDirectiveVisitor> = Object.keys(directiveVisitors).reduce((prev, key) => ({
+      ...prev,
+      [key]: directiveVisitors[key],
+    }),{});
 
     function visitorSelector(
       type: VisitableSchemaType,
@@ -220,9 +219,15 @@ export class SchemaDirectiveVisitor<
     schema: GraphQLSchema,
     directiveVisitors: Record<string, SchemaDirectiveVisitorClass>,
   ): Record<string, GraphQLDirective> {
-    const directiveVisitorMap = toObjMap(directiveVisitors);
+    const directiveVisitorMap: Record<string, typeof SchemaDirectiveVisitor> = Object.keys(directiveVisitors).reduce((prev, key) => ({
+      ...prev,
+      [key]: directiveVisitors[key],
+    }),{});
 
-    const declaredDirectives = keyMap(schema.getDirectives(), (d) => d.name);
+    const declaredDirectives: Record<string, GraphQLDirective> = schema.getDirectives().reduce((prev, curr) => ({
+      ...prev,
+      [curr.name]: curr,
+    }), {});
     // If the visitor subclass overrides getDirectiveDeclaration, and it
     // returns a non-null GraphQLDirective, use that instead of any directive
     // declared in the schema itself. Reasoning: if a SchemaDirectiveVisitor

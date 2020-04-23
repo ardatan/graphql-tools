@@ -19,7 +19,10 @@ import {
   isInterfaceType,
   isUnionType,
   isEnumType,
+  GraphQLInterfaceTypeConfig,
 } from 'graphql';
+
+import { mergeDeep } from '../esUtils/mergeDeep';
 
 import {
   OnTypeConflict,
@@ -42,7 +45,6 @@ import {
   forEachField,
   graphqlVersion,
 } from '../utils/index';
-import { mergeDeep } from '../esUtils/mergeDeep';
 import { toConfig, extendSchema } from '../polyfills/index';
 
 import typeFromAST from './typeFromAST';
@@ -210,7 +212,7 @@ export default function mergeSchemas({
       {},
     );
     if (Array.isArray(resolvers)) {
-      finalResolvers = resolvers.reduce(mergeDeep, {});
+      finalResolvers = resolvers.reduce<any>(mergeDeep, {});
     }
   } else {
     finalResolvers = resolvers;
@@ -362,7 +364,7 @@ function merge(
       }, []),
     });
   } else if (isInterfaceType(initialCandidateType)) {
-    const config = {
+    const config: GraphQLInterfaceTypeConfig<any, any> = {
       name: typeName,
       fields: candidates.reduce(
         (acc, candidate) => ({

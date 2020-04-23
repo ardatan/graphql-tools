@@ -38,11 +38,10 @@ import {
   isSchema,
   isDirective,
   isNamedType,
+  GraphQLEnumValueConfigMap,
 } from 'graphql';
 
 import { graphqlVersion } from '../utils/graphqlVersion';
-import { hasOwnProperty } from '../esUtils/hasOwnProperty';
-import keyValMap from '../esUtils/keyValMap';
 
 export function schemaToConfig(schema: GraphQLSchema): GraphQLSchemaConfig {
   if (schema.toConfig != null) {
@@ -265,19 +264,18 @@ export function enumTypeToConfig(type: GraphQLEnumType): GraphQLEnumTypeConfig {
     return type.toConfig();
   }
 
-  const newValues = keyValMap(
-    type.getValues(),
-    (value) => value.name,
-    (value) => ({
+  const newValues = type.getValues().reduce<GraphQLEnumValueConfigMap>((prev, value) => ({
+    ...prev,
+    [value.name]: {
       description: value.description,
       value: value.value,
       deprecationReason: value.deprecationReason,
       extensions: value.extensions,
       astNode: value.astNode,
-    }),
-  );
+    }
+  }), {});
 
-  const typeConfig = {
+  const typeConfig: GraphQLEnumTypeConfig = {
     name: type.name,
     description: type.description,
     values: newValues,
@@ -301,19 +299,19 @@ export function scalarTypeToConfig(
     name: type.name,
     description: type.description,
     serialize:
-      graphqlVersion() >= 14 || hasOwnProperty(type, 'serialize')
+      graphqlVersion() >= 14 || 'serialize' in type
         ? type.serialize
         : ((type as unknown) as {
             _scalarConfig: GraphQLScalarTypeConfig<any, any>;
           })._scalarConfig.serialize,
     parseValue:
-      graphqlVersion() >= 14 || hasOwnProperty(type, 'parseValue')
+      graphqlVersion() >= 14 || 'parseValue' in type
         ? type.parseValue
         : ((type as unknown) as {
             _scalarConfig: GraphQLScalarTypeConfig<any, any>;
           })._scalarConfig.parseValue,
     parseLiteral:
-      graphqlVersion() >= 14 || hasOwnProperty(type, 'parseLiteral')
+      graphqlVersion() >= 14 || 'parseLiteral' in type
         ? type.parseLiteral
         : ((type as unknown) as {
             _scalarConfig: GraphQLScalarTypeConfig<any, any>;
@@ -350,11 +348,10 @@ export function inputObjectTypeToConfig(
 export function inputFieldMapToConfig(
   fields: GraphQLInputFieldMap,
 ): GraphQLInputFieldConfigMap {
-  return keyValMap(
-    Object.keys(fields),
-    (fieldName) => fieldName,
-    (fieldName) => toConfig(fields[fieldName]),
-  );
+  return Object.keys(fields).reduce((prev, fieldName) => ({
+    ...prev,
+    [fieldName]: toConfig(fields[fieldName])
+  }), {});
 }
 
 export function inputFieldToConfig(
@@ -392,11 +389,10 @@ export function directiveToConfig(
 export function fieldMapToConfig(
   fields: GraphQLFieldMap<any, any>,
 ): GraphQLFieldConfigMap<any, any> {
-  return keyValMap(
-    Object.keys(fields),
-    (fieldName) => fieldName,
-    (fieldName) => toConfig(fields[fieldName]),
-  );
+  return Object.keys(fields).reduce((prev, fieldName) => ({
+    ...prev,
+    [fieldName]: toConfig(fields[fieldName])
+  }), {});
 }
 
 export function fieldToConfig(

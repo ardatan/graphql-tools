@@ -4,9 +4,10 @@ import {
   GraphQLFieldResolver,
 } from 'graphql';
 
+import { mergeDeep } from '../esUtils/mergeDeep';
+
 import { IExecutableSchemaDefinition, ILogger } from '../Interfaces';
 import { SchemaDirectiveVisitor, forEachField } from '../utils/index';
-import { mergeDeep } from '../esUtils/mergeDeep';
 
 import attachDirectiveResolvers from './attachDirectiveResolvers';
 import assertResolversPresent from './assertResolversPresent';
@@ -41,7 +42,7 @@ export function makeExecutableSchema<TContext = any>({
   }
 
   // We allow passing in an array of resolver maps, in which case we merge them
-  const resolverMap = Array.isArray(resolvers)
+  const resolverMap: any = Array.isArray(resolvers)
     ? resolvers
         .filter((resolverObj) => typeof resolverObj === 'object')
         .reduce(mergeDeep, {})

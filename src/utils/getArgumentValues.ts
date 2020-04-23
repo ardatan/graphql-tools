@@ -8,10 +8,8 @@ import {
   GraphQLError,
   Kind,
   print,
+  ArgumentNode,
 } from 'graphql';
-
-import { keyMap } from '../esUtils/keyMap';
-import toObjMap from '../esUtils/toObjMap';
 
 import { inspect } from './inspect';
 
@@ -28,13 +26,19 @@ export function getArgumentValues(
   node: FieldNode | DirectiveNode,
   variableValues: Record<string, any> = {},
 ): Record<string, any> {
-  const variableMap = toObjMap(variableValues);
+  const variableMap: Record<string, any> = Object.entries(variableValues).reduce((prev, [key, value]) => ({
+    ...prev,
+    [key]: value,
+  }), {});
 
   const coercedValues = {};
 
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   const argumentNodes = node.arguments ?? [];
-  const argNodeMap = keyMap(argumentNodes, (arg) => arg.name.value);
+  const argNodeMap: Record<string, ArgumentNode> = argumentNodes.reduce((prev, arg) => ({
+    ...prev,
+    [arg.name.value]: arg,
+  }), {});
 
   for (const argDef of def.args) {
     const name = argDef.name;
