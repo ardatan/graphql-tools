@@ -9,6 +9,7 @@ import {
   printSchema,
   graphqlSync,
   GraphQLField,
+  assertValidSchema,
 } from 'graphql';
 
 import {
@@ -1916,5 +1917,21 @@ describe('mergeTypes', () => {
         },
       },
     });
+  });
+});
+
+describe('mergeSchemas handles typeDefs with default values', () => {
+  test('it works', () => {
+    const typeDefs = `
+      type Query {
+        foo(arg: String = "1"): String
+      }
+    `;
+
+    const schema = makeExecutableSchema({ typeDefs });
+    assertValidSchema(schema);
+
+    const mergedSchema = mergeSchemas({ typeDefs });
+    assertValidSchema(mergedSchema);
   });
 });

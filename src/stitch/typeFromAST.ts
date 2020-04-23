@@ -26,6 +26,7 @@ import {
   TokenKind,
   GraphQLEnumValueConfigMap,
   GraphQLFieldConfigArgumentMap,
+  valueFromASTUntyped,
 } from 'graphql';
 
 import { graphqlVersion } from '../utils/index';
@@ -67,12 +68,13 @@ export default function typeFromAST(
 function makeObjectType(node: ObjectTypeDefinitionNode): GraphQLObjectType {
   const config = {
     name: node.name.value,
-    fields: () => makeFields(node.fields),
+    description: getDescription(node, backcompatOptions),
     interfaces: () =>
       node.interfaces.map((iface) =>
         createNamedStub(iface.name.value, 'interface'),
       ),
-    description: getDescription(node, backcompatOptions),
+    fields: () => makeFields(node.fields),
+    astNode: node,
   };
   return new GraphQLObjectType(config);
 }
@@ -82,7 +84,7 @@ function makeInterfaceType(
 ): GraphQLInterfaceType {
   const config = {
     name: node.name.value,
-    fields: () => makeFields(node.fields),
+    description: getDescription(node, backcompatOptions),
     interfaces:
       graphqlVersion() >= 15
         ? () =>
@@ -90,8 +92,9 @@ function makeInterfaceType(
               (iface) => createNamedStub(iface.name.value, 'interface'),
             )
         : undefined,
-    description: getDescription(node, backcompatOptions),
+    fields: () => makeFields(node.fields),
     resolveType: (parent: any) => resolveFromParentTypename(parent),
+    astNode: node,
   };
   return new GraphQLInterfaceType(config);
 }
@@ -109,18 +112,20 @@ function makeEnumType(node: EnumTypeDefinitionNode): GraphQLEnumType {
 
   return new GraphQLEnumType({
     name: node.name.value,
-    values,
     description: getDescription(node, backcompatOptions),
+    values,
+    astNode: node,
   });
 }
 
 function makeUnionType(node: UnionTypeDefinitionNode): GraphQLUnionType {
   return new GraphQLUnionType({
     name: node.name.value,
+    description: getDescription(node, backcompatOptions),
     types: () =>
       node.types.map((type) => createNamedStub(type.name.value, 'object')),
-    description: getDescription(node, backcompatOptions),
     resolveType: (parent) => resolveFromParentTypename(parent),
+    astNode: node,
   });
 }
 
@@ -135,6 +140,7 @@ function makeScalarType(node: ScalarTypeDefinitionNode): GraphQLScalarType {
     // always pass validation.
     parseValue: () => false,
     parseLiteral: () => false,
+    astNode: node,
   });
 }
 
@@ -143,8 +149,9 @@ function makeInputObjectType(
 ): GraphQLInputObjectType {
   return new GraphQLInputObjectType({
     name: node.name.value,
-    fields: () => makeValues(node.fields),
     description: getDescription(node, backcompatOptions),
+    fields: () => makeValues(node.fields),
+    astNode: node,
   });
 }
 
@@ -169,9 +176,10 @@ function makeFields(
       ...prev,
       [node.name.value]: {
         type: createStub(node.type, 'output'),
-        args: makeValues(node.arguments),
         description: getDescription(node, backcompatOptions),
+        args: makeValues(node.arguments),
         deprecationReason,
+        astNode: node,
       },
     };
   }, {});
@@ -185,8 +193,12 @@ function makeValues(
       ...prev,
       [node.name.value]: {
         type: createStub(node.type, 'input'),
-        defaultValue: node.defaultValue,
+        defaultValue:
+          node.defaultValue != null
+            ? valueFromASTUntyped(node.defaultValue)
+            : undefined,
         description: getDescription(node, backcompatOptions),
+        astNode: node,
       },
     }),
     {},
@@ -203,8 +215,10 @@ function makeDirective(node: DirectiveDefinitionNode): GraphQLDirective {
   return new GraphQLDirective({
     name: node.name.value,
     description: node.description != null ? node.description.value : null,
-    args: makeValues(node.arguments),
     locations,
+    isRepeatable: node.repeatable,
+    args: makeValues(node.arguments),
+    astNode: node,
   });
 }
 
