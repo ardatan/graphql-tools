@@ -301,12 +301,12 @@ export interface MergedTypeInfo {
   containsSelectionSet: Map<SubschemaConfig, Map<SelectionSetNode, boolean>>;
 }
 
-export type IFieldResolver<TSource, TContext, TArgs = Record<string, any>> = (
+export type IFieldResolver<TSource, TContext, TArgs = Record<string, any>, TReturn = any> = (
   source: TSource,
   args: TArgs,
   context: TContext,
   info: IGraphQLToolsResolveInfo,
-) => any;
+) => TReturn;
 
 export type ITypedef = (() => Array<ITypedef>) | string | DocumentNode;
 
