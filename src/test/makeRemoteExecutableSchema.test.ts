@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { forAwaitEach } from 'iterall';
 import {
   GraphQLSchema,
@@ -5,6 +6,8 @@ import {
   subscribe,
   parse,
   graphql,
+  execute,
+  print,
 } from 'graphql';
 
 import { makeRemoteExecutableSchema } from '../wrap/index';
@@ -190,5 +193,84 @@ describe('respects buildSchema options', () => {
     expect(field.description).toBe('Field description');
     const customScalar = remoteSchema.getType('CustomScalar');
     expect(customScalar.description).toBe('Scalar description');
+  });
+
+  describe('when query for multiple fields', () => {
+    const schema = `
+    type Query {
+      fieldA: Int!
+      fieldB: Int!
+      field3: Int!
+    }
+  `;
+    const query = parse(`
+    query {
+      fieldA
+      fieldB
+      field3
+    }
+  `);
+    let calls: Array<any> = [];
+    const fetcher = (args: any) => {
+      calls.push(args);
+      return Promise.resolve({
+        data: {
+          fieldA: 1,
+          fieldB: 2,
+          field3: 3,
+        },
+      });
+    };
+    const remoteSchema = makeRemoteExecutableSchema({
+      fetcher,
+      schema,
+    });
+
+    beforeEach(() => {
+      calls = [];
+    });
+
+    // One of the two tests below should work depending upon what the correct intended behaviour is
+    it.skip('forwards one upstream query', async () => {
+      const result = await execute(remoteSchema, query);
+      expect(result).toEqual({
+        data: {
+          fieldA: 1,
+          fieldB: 2,
+          field3: 3,
+        },
+      });
+
+      expect(calls).toHaveLength(1);
+      expect(print(calls[0].query)).toEqual(print(query));
+    });
+
+    it('forwards three upstream queries', async () => {
+      const result = await execute(remoteSchema, query);
+      expect(result).toEqual({
+        data: {
+          fieldA: 1,
+          fieldB: 2,
+          field3: 3,
+        },
+      });
+
+      expect(calls).toHaveLength(3);
+      expect(print(calls[0].query)).toEqual(`\
+{
+  fieldA
+}
+`);
+      expect(print(calls[1].query)).toEqual(`\
+{
+  fieldB
+}
+`);
+      expect(print(calls[2].query)).toEqual(`\
+{
+  field3
+}
+`);
+    });
   });
 });
