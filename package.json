@@ -86,7 +86,7 @@
     "graphql-type-json": "0.3.1",
     "graphql-upload": "10.0.0",
     "jest": "25.4.0",
-    "prettier": "2.0.4",
+    "prettier": "2.0.5",
     "rimraf": "3.0.2",
     "rollup": "2.6.1",
     "rollup-plugin-auto-external": "2.0.0",
