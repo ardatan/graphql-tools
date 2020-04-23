@@ -2,6 +2,7 @@ import {
   GraphQLList,
   GraphQLSchema,
   GraphQLError,
+  GraphQLResolveInfo,
   getNullableType,
   GraphQLType,
   responsePathAsArray,
@@ -10,7 +11,7 @@ import {
   isListType,
 } from 'graphql';
 
-import { SubschemaConfig, IGraphQLToolsResolveInfo } from '../../Interfaces';
+import { SubschemaConfig } from '../../Interfaces';
 import { getErrorsByPathSegment } from '../../stitch/errors';
 
 import { handleNull } from './handleNull';
@@ -22,7 +23,7 @@ export function handleList(
   errors: ReadonlyArray<GraphQLError>,
   subschema: GraphQLSchema | SubschemaConfig,
   context: Record<string, any>,
-  info: IGraphQLToolsResolveInfo,
+  info: GraphQLResolveInfo,
   skipTypeMerging?: boolean,
 ) {
   const childErrors = getErrorsByPathSegment(errors);
@@ -48,7 +49,7 @@ function handleListMember(
   errors: ReadonlyArray<GraphQLError>,
   subschema: GraphQLSchema | SubschemaConfig,
   context: Record<string, any>,
-  info: IGraphQLToolsResolveInfo,
+  info: GraphQLResolveInfo,
   skipTypeMerging?: boolean,
 ): any {
   if (listMember == null) {

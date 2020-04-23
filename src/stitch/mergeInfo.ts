@@ -1,6 +1,7 @@
 import {
   GraphQLNamedType,
   GraphQLObjectType,
+  GraphQLResolveInfo,
   GraphQLSchema,
   Kind,
   SelectionNode,
@@ -15,7 +16,6 @@ import {
   IResolversParameter,
   isSubschemaConfig,
   SubschemaConfig,
-  IGraphQLToolsResolveInfo,
   MergedTypeInfo,
   Transform,
   TypeMap,
@@ -57,7 +57,7 @@ export function createMergeInfo(
       fieldName: string,
       args: Record<string, any>,
       context: Record<string, any>,
-      info: IGraphQLToolsResolveInfo,
+      info: GraphQLResolveInfo,
       transforms: Array<Transform> = [],
     ) {
       const schema = guessSchemaByRootField(allSchemas, operation, fieldName);

@@ -1,8 +1,8 @@
-import { GraphQLError, responsePathAsArray } from 'graphql';
+import { GraphQLError, responsePathAsArray, GraphQLResolveInfo } from 'graphql';
 
+import { SubschemaConfig } from '../Interfaces';
 import { mergeDeep } from '../esUtils/mergeDeep';
 
-import { SubschemaConfig, IGraphQLToolsResolveInfo } from '../Interfaces';
 import { handleNull } from '../delegate/results/handleNull';
 
 import { relocatedError, setErrors, getErrors } from './errors';
@@ -19,7 +19,7 @@ export function isProxiedResult(result: any) {
 
 export function unwrapResult(
   parent: any,
-  info: IGraphQLToolsResolveInfo,
+  info: GraphQLResolveInfo,
   path: Array<string>,
 ): any {
   let newParent: any = parent;

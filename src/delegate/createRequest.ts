@@ -93,10 +93,13 @@ export function createRequest({
         }
       : undefined;
 
-    argumentNodeMap = fieldNodes[0].arguments.reduce((prev, curr) => ({
-      ...prev,
-      [curr.name.value]: curr,
-    }), {});
+    argumentNodeMap = fieldNodes[0].arguments.reduce(
+      (prev, curr) => ({
+        ...prev,
+        [curr.name.value]: curr,
+      }),
+      {},
+    );
   }
 
   const newVariables = Object.create(null);

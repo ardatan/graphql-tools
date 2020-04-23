@@ -16,10 +16,13 @@ export function appendFields(
   if (type != null) {
     const typeConfig = toConfig(type);
 
-    const newFields: any = Object.entries(typeConfig.fields).reduce((prev, [key, val]) => ({
-      ...prev,
-      [key]: val,
-    }),{});
+    const newFields: any = Object.entries(typeConfig.fields).reduce(
+      (prev, [key, val]) => ({
+        ...prev,
+        [key]: val,
+      }),
+      {},
+    );
 
     Object.keys(fields).forEach((fieldName) => {
       newFields[fieldName] = fields[fieldName];

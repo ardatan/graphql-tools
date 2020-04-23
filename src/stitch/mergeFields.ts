@@ -1,10 +1,6 @@
-import { FieldNode, SelectionNode, Kind } from 'graphql';
+import { FieldNode, SelectionNode, Kind, GraphQLResolveInfo } from 'graphql';
 
-import {
-  SubschemaConfig,
-  IGraphQLToolsResolveInfo,
-  MergedTypeInfo,
-} from '../Interfaces';
+import { SubschemaConfig, MergedTypeInfo } from '../Interfaces';
 
 import { mergeProxiedResults } from './proxiedResult';
 
@@ -102,7 +98,7 @@ export function mergeFields(
   sourceSubschemas: Array<SubschemaConfig>,
   targetSubschemas: Array<SubschemaConfig>,
   context: Record<string, any>,
-  info: IGraphQLToolsResolveInfo,
+  info: GraphQLResolveInfo,
 ): any {
   if (!originalSelections.length) {
     return object;

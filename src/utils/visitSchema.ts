@@ -174,11 +174,15 @@ export function visitSchema(
           GraphQLInputField
         >;
         for (const key of Object.keys(fieldMap)) {
-          fieldMap[key] = callMethod('visitInputFieldDefinition', fieldMap[key], {
-            // Since we call a different method for input object fields, we
-            // can't reuse the visitFields function here.
-            objectType: newInputObject,
-          })
+          fieldMap[key] = callMethod(
+            'visitInputFieldDefinition',
+            fieldMap[key],
+            {
+              // Since we call a different method for input object fields, we
+              // can't reuse the visitFields function here.
+              objectType: newInputObject,
+            },
+          );
           if (!fieldMap[key]) {
             delete fieldMap[key];
           }
@@ -200,9 +204,14 @@ export function visitSchema(
       let newEnum = callMethod('visitEnum', type);
 
       if (newEnum != null) {
-        const newValues: Array<GraphQLEnumValue> = newEnum.getValues().map(value => callMethod('visitEnumValue', value, {
-          enumType: newEnum,
-        })).filter(Boolean);
+        const newValues: Array<GraphQLEnumValue> = newEnum
+          .getValues()
+          .map((value) =>
+            callMethod('visitEnumValue', value, {
+              enumType: newEnum,
+            }),
+          )
+          .filter(Boolean);
 
         // Recreate the enum type if any of the values changed
         const valuesUpdated = newValues.some(
@@ -211,15 +220,18 @@ export function visitSchema(
         if (valuesUpdated) {
           newEnum = new GraphQLEnumType({
             ...(newEnum as GraphQLEnumType).toConfig(),
-            values: newValues.reduce((prev, value) => ({
-              ...prev,
-              [value.name]: {
-                value: value.value,
-                deprecationReason: value.deprecationReason,
-                description: value.description,
-                astNode: value.astNode,
-              }
-            }), {}),
+            values: newValues.reduce(
+              (prev, value) => ({
+                ...prev,
+                [value.name]: {
+                  value: value.value,
+                  deprecationReason: value.deprecationReason,
+                  description: value.description,
+                  astNode: value.astNode,
+                },
+              }),
+              {},
+            ),
           }) as GraphQLEnumType & T;
         }
       }
@@ -249,14 +261,18 @@ export function visitSchema(
       });
 
       if (newField.args != null) {
-        newField.args = newField.args.map(arg => callMethod('visitArgumentDefinition', arg, {
-          // Like visitFieldDefinition, visitArgumentDefinition takes a
-          // second parameter that provides additional context, namely the
-          // parent .field and grandparent .objectType. Remember that the
-          // current GraphQLSchema is always available via this.schema.
-          field: newField,
-          objectType: type,
-        })).filter(Boolean);
+        newField.args = newField.args
+          .map((arg) =>
+            callMethod('visitArgumentDefinition', arg, {
+              // Like visitFieldDefinition, visitArgumentDefinition takes a
+              // second parameter that provides additional context, namely the
+              // parent .field and grandparent .objectType. Remember that the
+              // current GraphQLSchema is always available via this.schema.
+              field: newField,
+              objectType: type,
+            }),
+          )
+          .filter(Boolean);
       }
 
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
@@ -265,7 +281,7 @@ export function visitSchema(
       } else {
         delete fieldMap[key];
       }
-    };
+    }
   }
 
   visit(schema);

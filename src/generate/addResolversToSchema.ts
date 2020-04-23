@@ -110,17 +110,20 @@ function addResolversToSchema(
       const config = toConfig(type);
 
       const values = type.getValues();
-      const newValues = values.reduce<GraphQLEnumValueConfigMap>((prev, value) => ({
-        ...prev,
-        [value.name]: {
-          value: Object.keys(resolverValue).includes(value.name)
-          ? resolverValue[value.name]
-          : value.name,
-          deprecationReason: value.deprecationReason,
-          description: value.description,
-          astNode: value.astNode,
-        },
-      }), {});
+      const newValues = values.reduce<GraphQLEnumValueConfigMap>(
+        (prev, value) => ({
+          ...prev,
+          [value.name]: {
+            value: Object.keys(resolverValue).includes(value.name)
+              ? resolverValue[value.name]
+              : value.name,
+            deprecationReason: value.deprecationReason,
+            description: value.description,
+            astNode: value.astNode,
+          },
+        }),
+        {},
+      );
 
       // healSchema called later to update all fields to new type
       typeMap[typeName] = new GraphQLEnumType({

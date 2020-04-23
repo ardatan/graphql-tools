@@ -17,10 +17,13 @@ export default function valueFromASTUntyped(valueNode: ValueNode): any {
     case Kind.LIST:
       return valueNode.values.map(valueFromASTUntyped);
     case Kind.OBJECT: {
-      return valueNode.fields.reduce((prev, field) => ({
-        ...prev,
-        [field.name.value]: valueFromASTUntyped(field.value),
-      }),{});
+      return valueNode.fields.reduce(
+        (prev, field) => ({
+          ...prev,
+          [field.name.value]: valueFromASTUntyped(field.value),
+        }),
+        {},
+      );
     }
     /* istanbul ignore next */
     default:

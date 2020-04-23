@@ -163,9 +163,15 @@ export type RenameTypesOptions = {
   renameScalars: boolean;
 };
 
-export interface IGraphQLToolsResolveInfo extends GraphQLResolveInfo {
-  mergeInfo?: MergeInfo;
+declare module 'graphql' {
+  interface GraphQLResolveInfo {
+    mergeInfo?: MergeInfo;
+  }
 }
+
+// for backwards compatibility
+// eslint-disable-next-line  @typescript-eslint/no-empty-interface
+export interface IGraphQLToolsResolveInfo extends GraphQLResolveInfo {}
 
 export type Fetcher = (
   operation: IFetcherOperation,
@@ -201,7 +207,7 @@ export interface MergedTypeConfig {
 export type MergedTypeResolver = (
   originalResult: any,
   context: Record<string, any>,
-  info: IGraphQLToolsResolveInfo,
+  info: GraphQLResolveInfo,
   subschema: GraphQLSchema | SubschemaConfig,
   selectionSet: SelectionSetNode,
 ) => any;
@@ -235,7 +241,7 @@ export interface IDelegateToSchemaOptions<
   selectionSet?: SelectionSetNode;
   fieldNodes?: ReadonlyArray<FieldNode>;
   context?: TContext;
-  info: IGraphQLToolsResolveInfo;
+  info: GraphQLResolveInfo;
   rootValue?: Record<string, any>;
   transforms?: Array<Transform>;
   skipValidation?: boolean;
@@ -243,7 +249,7 @@ export interface IDelegateToSchemaOptions<
 }
 
 export interface ICreateRequestFromInfo {
-  info: IGraphQLToolsResolveInfo;
+  info: GraphQLResolveInfo;
   operation: Operation;
   fieldName: string;
   selectionSet?: SelectionSetNode;
@@ -315,7 +321,7 @@ export type IFieldResolver<
   source: TSource,
   args: TArgs,
   context: TContext,
-  info: IGraphQLToolsResolveInfo,
+  info: GraphQLResolveInfo,
 ) => TReturn;
 
 export type ITypedef = (() => Array<ITypedef>) | string | DocumentNode;

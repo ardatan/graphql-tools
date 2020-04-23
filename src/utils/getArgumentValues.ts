@@ -26,19 +26,27 @@ export function getArgumentValues(
   node: FieldNode | DirectiveNode,
   variableValues: Record<string, any> = {},
 ): Record<string, any> {
-  const variableMap: Record<string, any> = Object.entries(variableValues).reduce((prev, [key, value]) => ({
-    ...prev,
-    [key]: value,
-  }), {});
+  const variableMap: Record<string, any> = Object.entries(
+    variableValues,
+  ).reduce(
+    (prev, [key, value]) => ({
+      ...prev,
+      [key]: value,
+    }),
+    {},
+  );
 
   const coercedValues = {};
 
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   const argumentNodes = node.arguments ?? [];
-  const argNodeMap: Record<string, ArgumentNode> = argumentNodes.reduce((prev, arg) => ({
-    ...prev,
-    [arg.name.value]: arg,
-  }), {});
+  const argNodeMap: Record<string, ArgumentNode> = argumentNodes.reduce(
+    (prev, arg) => ({
+      ...prev,
+      [arg.name.value]: arg,
+    }),
+    {},
+  );
 
   for (const argDef of def.args) {
     const name = argDef.name;

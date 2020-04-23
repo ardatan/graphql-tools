@@ -125,15 +125,26 @@ export class SchemaDirectiveVisitor<
 
     // Map from directive names to lists of SchemaDirectiveVisitor instances
     // created while visiting the schema.
-    const createdVisitors: Record<string, Array<any>> = Object.keys(directiveVisitors).reduce((prev, item) => ({
-      ...prev,
-      [item]: []
-    }), {});
+    const createdVisitors: Record<string, Array<any>> = Object.keys(
+      directiveVisitors,
+    ).reduce(
+      (prev, item) => ({
+        ...prev,
+        [item]: [],
+      }),
+      {},
+    );
 
-    const directiveVisitorMap: Record<string, typeof SchemaDirectiveVisitor> = Object.keys(directiveVisitors).reduce((prev, key) => ({
-      ...prev,
-      [key]: directiveVisitors[key],
-    }),{});
+    const directiveVisitorMap: Record<
+      string,
+      typeof SchemaDirectiveVisitor
+    > = Object.keys(directiveVisitors).reduce(
+      (prev, key) => ({
+        ...prev,
+        [key]: directiveVisitors[key],
+      }),
+      {},
+    );
 
     function visitorSelector(
       type: VisitableSchemaType,
@@ -219,15 +230,27 @@ export class SchemaDirectiveVisitor<
     schema: GraphQLSchema,
     directiveVisitors: Record<string, SchemaDirectiveVisitorClass>,
   ): Record<string, GraphQLDirective> {
-    const directiveVisitorMap: Record<string, typeof SchemaDirectiveVisitor> = Object.keys(directiveVisitors).reduce((prev, key) => ({
-      ...prev,
-      [key]: directiveVisitors[key],
-    }),{});
+    const directiveVisitorMap: Record<
+      string,
+      typeof SchemaDirectiveVisitor
+    > = Object.keys(directiveVisitors).reduce(
+      (prev, key) => ({
+        ...prev,
+        [key]: directiveVisitors[key],
+      }),
+      {},
+    );
 
-    const declaredDirectives: Record<string, GraphQLDirective> = schema.getDirectives().reduce((prev, curr) => ({
-      ...prev,
-      [curr.name]: curr,
-    }), {});
+    const declaredDirectives: Record<
+      string,
+      GraphQLDirective
+    > = schema.getDirectives().reduce(
+      (prev, curr) => ({
+        ...prev,
+        [curr.name]: curr,
+      }),
+      {},
+    );
     // If the visitor subclass overrides getDirectiveDeclaration, and it
     // returns a non-null GraphQLDirective, use that instead of any directive
     // declared in the schema itself. Reasoning: if a SchemaDirectiveVisitor

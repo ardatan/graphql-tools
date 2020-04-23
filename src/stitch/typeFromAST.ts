@@ -97,12 +97,15 @@ function makeInterfaceType(
 }
 
 function makeEnumType(node: EnumTypeDefinitionNode): GraphQLEnumType {
-  const values = node.values.reduce<GraphQLEnumValueConfigMap>((prev, value) => ({
-    ...prev,
-    [value.name.value]: {
-      description: getDescription(value, backcompatOptions),
-    }
-  }), {})
+  const values = node.values.reduce<GraphQLEnumValueConfigMap>(
+    (prev, value) => ({
+      ...prev,
+      [value.name.value]: {
+        description: getDescription(value, backcompatOptions),
+      },
+    }),
+    {},
+  );
 
   return new GraphQLEnumType({
     name: node.name.value,
@@ -169,20 +172,25 @@ function makeFields(
         args: makeValues(node.arguments),
         description: getDescription(node, backcompatOptions),
         deprecationReason,
-      }
-    } ;
+      },
+    };
   }, {});
 }
 
-function makeValues(nodes: ReadonlyArray<InputValueDefinitionNode>): GraphQLFieldConfigArgumentMap {
-  return nodes.reduce((prev, node) => ({
-    ...prev,
-    [node.name.value]: {
-      type: createStub(node.type, 'input'),
-      defaultValue: node.defaultValue,
-      description: getDescription(node, backcompatOptions),
-    }
-  }), {});
+function makeValues(
+  nodes: ReadonlyArray<InputValueDefinitionNode>,
+): GraphQLFieldConfigArgumentMap {
+  return nodes.reduce(
+    (prev, node) => ({
+      ...prev,
+      [node.name.value]: {
+        type: createStub(node.type, 'input'),
+        defaultValue: node.defaultValue,
+        description: getDescription(node, backcompatOptions),
+      },
+    }),
+    {},
+  );
 }
 
 function makeDirective(node: DirectiveDefinitionNode): GraphQLDirective {

@@ -132,7 +132,7 @@ export function healTypes(
 
   // Directive declaration argument types can refer to named types.
   directives.forEach((decl: GraphQLDirective) => {
-    decl.args = decl.args.filter(arg => {
+    decl.args = decl.args.filter((arg) => {
       arg.type = healType(arg.type) as GraphQLInputType;
       return arg.type !== null;
     });
@@ -184,10 +184,12 @@ export function healTypes(
   function healFields(type: GraphQLObjectType | GraphQLInterfaceType) {
     const fieldMap = type.getFields();
     for (const [key, field] of Object.entries(fieldMap)) {
-      field.args.map(arg => {
-        arg.type = healType(arg.type) as GraphQLInputType;
-        return arg.type === null ? null : arg;
-      }).filter(Boolean);
+      field.args
+        .map((arg) => {
+          arg.type = healType(arg.type) as GraphQLInputType;
+          return arg.type === null ? null : arg;
+        })
+        .filter(Boolean);
       field.type = healType(field.type) as GraphQLOutputType;
       if (field.type === null) {
         delete fieldMap[key];
@@ -199,8 +201,11 @@ export function healTypes(
     if ('getInterfaces' in type) {
       const interfaces = type.getInterfaces();
       interfaces.push(
-        ...interfaces.splice(0).map(iface => healType(iface) as any).filter(Boolean),
-      )
+        ...interfaces
+          .splice(0)
+          .map((iface) => healType(iface) as any)
+          .filter(Boolean),
+      );
     }
   }
 
@@ -208,7 +213,7 @@ export function healTypes(
     const fieldMap = type.getFields();
     for (const [key, field] of Object.entries(fieldMap)) {
       field.type = healType(field.type) as GraphQLInputType;
-      if (field.type === null ){
+      if (field.type === null) {
         delete fieldMap[key];
       }
     }
@@ -217,7 +222,10 @@ export function healTypes(
   function healUnderlyingTypes(type: GraphQLUnionType) {
     const types = type.getTypes();
     types.push(
-      ...types.splice(0).map(t => healType(t) as any).filter(Boolean),
+      ...types
+        .splice(0)
+        .map((t) => healType(t) as any)
+        .filter(Boolean),
     );
   }
 

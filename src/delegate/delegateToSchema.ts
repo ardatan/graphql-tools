@@ -9,6 +9,7 @@ import {
   GraphQLOutputType,
   isSchema,
   DocumentNode,
+  GraphQLResolveInfo,
 } from 'graphql';
 
 import {
@@ -17,7 +18,6 @@ import {
   Fetcher,
   SubschemaConfig,
   isSubschemaConfig,
-  IGraphQLToolsResolveInfo,
   Transform,
 } from '../Interfaces';
 import ExpandAbstractTypes from '../wrap/transforms/ExpandAbstractTypes';
@@ -78,7 +78,7 @@ export default function delegateToSchema(
 
 function buildDelegationTransforms(
   subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig,
-  info: IGraphQLToolsResolveInfo,
+  info: GraphQLResolveInfo,
   context: Record<string, any>,
   targetSchema: GraphQLSchema,
   fieldName: string,

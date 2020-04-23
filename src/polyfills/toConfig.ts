@@ -264,16 +264,19 @@ export function enumTypeToConfig(type: GraphQLEnumType): GraphQLEnumTypeConfig {
     return type.toConfig();
   }
 
-  const newValues = type.getValues().reduce<GraphQLEnumValueConfigMap>((prev, value) => ({
-    ...prev,
-    [value.name]: {
-      description: value.description,
-      value: value.value,
-      deprecationReason: value.deprecationReason,
-      extensions: value.extensions,
-      astNode: value.astNode,
-    }
-  }), {});
+  const newValues = type.getValues().reduce<GraphQLEnumValueConfigMap>(
+    (prev, value) => ({
+      ...prev,
+      [value.name]: {
+        description: value.description,
+        value: value.value,
+        deprecationReason: value.deprecationReason,
+        extensions: value.extensions,
+        astNode: value.astNode,
+      },
+    }),
+    {},
+  );
 
   const typeConfig: GraphQLEnumTypeConfig = {
     name: type.name,
@@ -348,10 +351,13 @@ export function inputObjectTypeToConfig(
 export function inputFieldMapToConfig(
   fields: GraphQLInputFieldMap,
 ): GraphQLInputFieldConfigMap {
-  return Object.keys(fields).reduce((prev, fieldName) => ({
-    ...prev,
-    [fieldName]: toConfig(fields[fieldName])
-  }), {});
+  return Object.keys(fields).reduce(
+    (prev, fieldName) => ({
+      ...prev,
+      [fieldName]: toConfig(fields[fieldName]),
+    }),
+    {},
+  );
 }
 
 export function inputFieldToConfig(
@@ -389,10 +395,13 @@ export function directiveToConfig(
 export function fieldMapToConfig(
   fields: GraphQLFieldMap<any, any>,
 ): GraphQLFieldConfigMap<any, any> {
-  return Object.keys(fields).reduce((prev, fieldName) => ({
-    ...prev,
-    [fieldName]: toConfig(fields[fieldName])
-  }), {});
+  return Object.keys(fields).reduce(
+    (prev, fieldName) => ({
+      ...prev,
+      [fieldName]: toConfig(fields[fieldName]),
+    }),
+    {},
+  );
 }
 
 export function fieldToConfig(

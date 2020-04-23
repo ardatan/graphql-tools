@@ -5,13 +5,13 @@ import {
   isAbstractType,
   FieldNode,
   GraphQLObjectType,
+  GraphQLResolveInfo,
 } from 'graphql';
 
 import { collectFields } from '../../utils/collectFields';
 
 import {
   SubschemaConfig,
-  IGraphQLToolsResolveInfo,
   MergedTypeInfo,
   isSubschemaConfig,
   GraphQLExecutionContext,
@@ -27,7 +27,7 @@ export function handleObject(
   errors: ReadonlyArray<GraphQLError>,
   subschema: GraphQLSchema | SubschemaConfig,
   context: Record<string, any>,
-  info: IGraphQLToolsResolveInfo,
+  info: GraphQLResolveInfo,
   skipTypeMerging?: boolean,
 ) {
   setErrors(
@@ -81,7 +81,7 @@ export function handleObject(
   );
 }
 
-function collectSubFields(info: IGraphQLToolsResolveInfo, typeName: string) {
+function collectSubFields(info: GraphQLResolveInfo, typeName: string) {
   let subFieldNodes: Record<string, Array<FieldNode>> = Object.create(null);
   const visitedFragmentNames = Object.create(null);
   info.fieldNodes.forEach((fieldNode) => {
