@@ -14,6 +14,8 @@ import {
   isUnionType,
   isEnumType,
   isInputType,
+  GraphQLEnumValue,
+  GraphQLEnumType,
 } from 'graphql';
 
 import {
@@ -24,6 +26,7 @@ import {
   SchemaVisitorMap,
 } from '../Interfaces';
 import updateEachKey from '../esUtils/updateEachKey';
+import keyValMap from '../esUtils/keyValMap';
 
 import { healSchema } from './heal';
 import { SchemaVisitor } from './SchemaVisitor';
@@ -193,14 +196,40 @@ export function visitSchema(
     }
 
     if (isEnumType(type)) {
-      const newEnum = callMethod('visitEnum', type);
+      let newEnum = callMethod('visitEnum', type);
 
       if (newEnum != null) {
-        updateEachKey(newEnum.getValues(), (value) =>
-          callMethod('visitEnumValue', value, {
+        const newValues: Array<GraphQLEnumValue> = [];
+
+        updateEachKey(newEnum.getValues(), (value) => {
+          const newValue = callMethod('visitEnumValue', value, {
             enumType: newEnum,
-          }),
+          });
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+          if (newValue) {
+            newValues.push(newValue);
+          }
+        });
+
+        // Recreate the enum type if any of the values changed
+        const valuesUpdated = newValues.some(
+          (value, index) => value !== newEnum.getValues()[index],
         );
+        if (valuesUpdated) {
+          newEnum = new GraphQLEnumType({
+            ...(newEnum as GraphQLEnumType).toConfig(),
+            values: keyValMap(
+              newValues,
+              (value) => value.name,
+              (value) => ({
+                value: value.value,
+                deprecationReason: value.deprecationReason,
+                description: value.description,
+                astNode: value.astNode,
+              }),
+            ),
+          }) as GraphQLEnumType & T;
+        }
       }
 
       return newEnum;

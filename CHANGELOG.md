@@ -2,6 +2,9 @@
 
 ### Next
 
+- Fix visitEnumValue to allow modifying the enum value  <br/>
+  [@danielrearden](https://github.com/danielrearden) in [#1003](https://github.com/ardatan/graphql-tools/pull/1391)
+
 ### 5.0.0
 
 That is a major release where we went through all issues and PRs and got the library back into great shape.

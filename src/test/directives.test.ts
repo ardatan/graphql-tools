@@ -1358,6 +1358,41 @@ describe('@directives', () => {
     ]);
   });
 
+  test("can modify enum value's value", () => {
+    const schema = makeExecutableSchema({
+      typeDefs: `
+      directive @value(new: String!) on ENUM_VALUE
+
+      type Query {
+        device: Device
+      }
+
+      enum Device {
+        PHONE
+        TABLET
+        LAPTOP @value(new: "COMPUTER")
+      }`,
+
+      schemaDirectives: {
+        value: class extends SchemaDirectiveVisitor {
+          public visitEnumValue(value: GraphQLEnumValue): GraphQLEnumValue {
+            return {
+              ...value,
+              value: this.args.new,
+            };
+          }
+        },
+      },
+    });
+
+    const Device = schema.getType('Device') as GraphQLEnumType;
+    expect(Device.getValues().map((value) => value.value)).toEqual([
+      'PHONE',
+      'TABLET',
+      'COMPUTER',
+    ]);
+  });
+
   test('can swap names of GraphQLNamedType objects', () => {
     const schema = makeExecutableSchema({
       typeDefs: `
