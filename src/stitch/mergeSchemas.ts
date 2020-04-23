@@ -373,13 +373,12 @@ function merge(
         }),
         {},
       ),
-      interfaces:
-        graphqlVersion() >= 15
-          ? candidates.reduce((acc, candidate) => {
-              const interfaces = toConfig(candidate.type).interfaces;
-              return interfaces != null ? acc.concat(interfaces) : acc;
-            }, [])
-          : undefined,
+      ...(graphqlVersion() >= 15 ? {
+        interfaces: candidates.reduce((acc, candidate) => {
+            const interfaces = toConfig(candidate.type).interfaces;
+            return interfaces != null ? acc.concat(interfaces) : acc;
+          }, []),
+      } : {}) as any,
     };
     return new GraphQLInterfaceType(config);
   } else if (isUnionType(initialCandidateType)) {
