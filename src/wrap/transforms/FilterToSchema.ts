@@ -68,10 +68,18 @@ function filterToSchema(
     },
   );
 
-  const validFragmentsWithType: Record<string, GraphQLNamedType> = validFragments.reduce((prev, fragment) => ({
-    ...prev,
-    [fragment.name.value]: targetSchema.getType(fragment.typeCondition.name.value)
-  }), {});
+  const validFragmentsWithType: Record<
+    string,
+    GraphQLNamedType
+  > = validFragments.reduce(
+    (prev, fragment) => ({
+      ...prev,
+      [fragment.name.value]: targetSchema.getType(
+        fragment.typeCondition.name.value,
+      ),
+    }),
+    {},
+  );
 
   let fragmentSet = Object.create(null);
 

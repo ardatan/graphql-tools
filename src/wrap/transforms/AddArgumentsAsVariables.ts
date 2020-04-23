@@ -22,10 +22,13 @@ export default class AddArgumentsAsVariables implements Transform {
 
   constructor(targetSchema: GraphQLSchema, args: Record<string, any>) {
     this.targetSchema = targetSchema;
-    this.args = Object.entries(args).reduce((prev, [key, val]) => ({
-      ...prev,
-      [key]: val,
-    }), {});
+    this.args = Object.entries(args).reduce(
+      (prev, [key, val]) => ({
+        ...prev,
+        [key]: val,
+      }),
+      {},
+    );
   }
 
   public transformRequest(originalRequest: Request): Request {
@@ -61,10 +64,16 @@ function addVariablesToRootField(
   ) as Array<FragmentDefinitionNode>;
 
   const newOperations = operations.map((operation: OperationDefinitionNode) => {
-    const variableDefinitionMap: Record<string, VariableDefinitionNode> = operation.variableDefinitions.reduce((prev, def) => ({
-      ...prev,
-      [def.variable.name.value]: def,
-    }), {});
+    const variableDefinitionMap: Record<
+      string,
+      VariableDefinitionNode
+    > = operation.variableDefinitions.reduce(
+      (prev, def) => ({
+        ...prev,
+        [def.variable.name.value]: def,
+      }),
+      {},
+    );
 
     let type: GraphQLObjectType | null | undefined;
     if (operation.operation === 'subscription') {
@@ -79,10 +88,16 @@ function addVariablesToRootField(
     operation.selectionSet.selections.forEach((selection: SelectionNode) => {
       if (selection.kind === Kind.FIELD) {
         const argumentNodes = selection.arguments;
-        const argumentNodeMap: Record<string, ArgumentNode> = argumentNodes.reduce((prev, argument) => ({
-          ...prev,
-          [argument.name.value]: argument,
-        }),{});
+        const argumentNodeMap: Record<
+          string,
+          ArgumentNode
+        > = argumentNodes.reduce(
+          (prev, argument) => ({
+            ...prev,
+            [argument.name.value]: argument,
+          }),
+          {},
+        );
 
         const targetField = type.getFields()[selection.name.value];
 

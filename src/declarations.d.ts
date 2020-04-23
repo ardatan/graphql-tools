@@ -1,5 +1,5 @@
 /* eslint-disable import/unambiguous */
-type Reducer<T,R> = (prev: Partial<R>, curr: T) => R;
+type Reducer<T, R> = (prev: Partial<R>, curr: T) => R;
 
 interface ReadonlyArray<T> {
   reduce<R>(reducer: Reducer<T, R>, target: Partial<R>): R;
