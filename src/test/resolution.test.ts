@@ -11,7 +11,6 @@ import { makeExecutableSchema, addSchemaLevelResolver } from '..';
 
 import { forAwaitEach } from './forAwaitEach';
 
-
 describe('Resolve', () => {
   describe('addSchemaLevelResolver', () => {
     const pubsub = new PubSub();

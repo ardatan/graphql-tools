@@ -11,7 +11,6 @@ import {
   GraphQLField,
 } from 'graphql';
 
-
 import {
   transformSchema,
   wrapSchema,
