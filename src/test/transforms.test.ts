@@ -603,10 +603,6 @@ describe('transforms', () => {
             name
             vehicle {
               __typename
-              ... on Bike {
-                id
-                bikeType
-              }
             }
           }
         }
@@ -622,8 +618,6 @@ describe('transforms', () => {
             name: 'Exampler Customer',
             vehicle: {
               __typename: 'Bike',
-              id: 'v1',
-              bikeType: 'MOUNTAIN',
             },
           },
         },
