@@ -1343,15 +1343,20 @@ describe('replaces field with processed fragment node', () => {
 
     schema = makeExecutableSchema({
       typeDefs: `
-        type User {
+        type User implements Named {
           id: ID!
           name: String!
           surname: String!
           fullname: String!
+          specialName: String!
         }
 
         type Query {
           userById(id: ID!): User
+        }
+
+        interface Named {
+          specialName: String!
         }
       `,
       resolvers: {
@@ -1374,6 +1379,9 @@ describe('replaces field with processed fragment node', () => {
                       parseFragmentToInlineFragment(
                         'fragment UserSurname on User { surname }',
                       ),
+                      parseFragmentToInlineFragment(
+                        '... on Named { name }',
+                      )
                     ]),
                   },
                 }),
@@ -1384,6 +1392,9 @@ describe('replaces field with processed fragment node', () => {
         User: {
           fullname(parent, _args, _context, _info) {
             return `${parent.name as string} ${parent.surname as string}`;
+          },
+          specialName() {
+            return data.u1.name;
           },
         },
       },
@@ -1407,6 +1418,27 @@ describe('replaces field with processed fragment node', () => {
         userById: {
           id: 'u1',
           fullname: 'joh gats',
+        },
+      },
+    });
+  });
+
+  it('should accept fragments and resolvers that rely on an interface the type implements', async () => {
+    const result = await graphql(
+      schema,
+      `
+        query {
+          userById(id: "u1") {
+            specialName
+          }
+        }
+      `,
+    );
+
+    expect(result).toEqual({
+      data: {
+        userById: {
+          specialName: data.u1.name,
         },
       },
     });
