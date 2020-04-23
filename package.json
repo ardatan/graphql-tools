@@ -49,7 +49,6 @@
   "dependencies": {
     "apollo-link": "^1.2.14",
     "apollo-upload-client": "^13.0.0",
-    "dataloader": "2.0.0",
     "deprecated-decorator": "^0.1.6",
     "form-data": "^3.0.0",
     "iterall": "^1.3.0",
