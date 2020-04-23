@@ -10,3 +10,5 @@ const alphaVersion = semver.inc(packageJson.version, 'prerelease', true, gitHash
 packageJson.version = alphaVersion;
 
 fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
+
+console.log(`${packageJson.name} => ${packageJson.version}`);
