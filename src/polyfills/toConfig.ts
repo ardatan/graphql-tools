@@ -81,76 +81,53 @@ export function schemaToConfig(schema: GraphQLSchema): GraphQLSchemaConfig {
   return schemaConfig;
 }
 
-export function toConfig(graphqlObject: GraphQLSchema): GraphQLSchemaConfig;
-export function toConfig(
-  graphqlObject: GraphQLObjectTypeConfig<any, any> & {
-    interfaces: Array<GraphQLInterfaceType>;
-    fields: GraphQLFieldConfigMap<any, any>;
-  },
-): GraphQLObjectTypeConfig<any, any>;
-export function toConfig(
-  graphqlObject: GraphQLInterfaceType & {
-    interfaces: Array<GraphQLInterfaceType>;
-    fields: GraphQLFieldConfigMap<any, any>;
-  },
-): GraphQLInterfaceTypeConfig<any, any>;
-export function toConfig(
-  graphqlObject: GraphQLUnionType,
-): GraphQLUnionTypeConfig<any, any> & {
-  types: Array<GraphQLObjectType>;
-};
-export function toConfig(graphqlObject: GraphQLEnumType): GraphQLEnumTypeConfig;
-export function toConfig(
-  graphqlObject: GraphQLScalarType,
-): GraphQLScalarTypeConfig<any, any>;
-export function toConfig(
-  graphqlObject: GraphQLInputObjectType,
-): GraphQLInputObjectTypeConfig & {
-  fields: GraphQLInputFieldConfigMap;
-};
-export function toConfig(
-  graphqlObject: GraphQLDirective,
-): GraphQLDirectiveConfig;
-export function toConfig(
-  graphqlObject: GraphQLInputField,
-): GraphQLInputFieldConfig;
-export function toConfig(
-  graphqlObject: GraphQLField<any, any>,
-): GraphQLFieldConfig<any, any>;
-export function toConfig(graphqlObject: any): any;
-export function toConfig(graphqlObject: any) {
+type GraphQLObject = GraphQLSchema | GraphQLDirective | GraphQLNamedType  | GraphQLInputField | GraphQLField<any, any>;
+type GraphQLConfig<T> =
+  T extends GraphQLSchema ? GraphQLSchemaConfig :
+  T extends GraphQLDirective ? GraphQLDirectiveConfig :
+  T extends GraphQLObjectType ? GraphQLObjectTypeConfig<any, any> :
+  T extends GraphQLInterfaceType ? GraphQLInterfaceTypeConfig<any, any> :
+  T extends GraphQLUnionType ? GraphQLUnionTypeConfig<any, any> :
+  T extends GraphQLEnumType ? GraphQLEnumTypeConfig :
+  T extends GraphQLScalarType ? GraphQLScalarTypeConfig<any, any> :
+  T extends GraphQLField<any, any> ? GraphQLFieldConfig<any, any> :
+  T extends GraphQLInputField ? GraphQLInputFieldConfig :
+  never;
+
+export function toConfig<T extends GraphQLObject>(graphqlObject: T): GraphQLConfig<T> {
   if (isSchema(graphqlObject)) {
-    return schemaToConfig(graphqlObject);
+    return schemaToConfig(graphqlObject) as GraphQLConfig<T>;
   } else if (isDirective(graphqlObject)) {
-    return directiveToConfig(graphqlObject);
+    return directiveToConfig(graphqlObject) as GraphQLConfig<T>;
   } else if (isNamedType(graphqlObject)) {
-    return typeToConfig(graphqlObject);
+    return typeToConfig(graphqlObject) as GraphQLConfig<T>;
   }
 
   // Input and output fields do not have predicates defined, but using duck typing,
   // type is defined for input and output fields
-  if (graphqlObject.type != null) {
+  if ((graphqlObject as GraphQLField<any, any> | GraphQLInputField).type != null) {
     if (
-      graphqlObject.args != null ||
-      graphqlObject.resolve != null ||
-      graphqlObject.subscribe != null
+      (graphqlObject as GraphQLField<any, any>).args != null ||
+      (graphqlObject as GraphQLField<any, any>).resolve != null ||
+      (graphqlObject as GraphQLField<any, any>).subscribe != null
     ) {
-      return fieldToConfig(graphqlObject);
-    } else if (graphqlObject.defaultValue !== undefined) {
-      return inputFieldToConfig(graphqlObject);
+      return fieldToConfig((graphqlObject as GraphQLField<any, any>)) as GraphQLConfig<T>;
+    } else if ((graphqlObject as GraphQLInputField).defaultValue !== undefined) {
+      return inputFieldToConfig((graphqlObject as GraphQLInputField)) as GraphQLConfig<T>;
     }
 
     // Not all input and output fields can be checked by above in older versions
     // of graphql, but almost all properties on the field and config are identical.
     // In particular, just name and isDeprecated should be removed.
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { name, isDeprecated, ...rest } = graphqlObject;
-    return {
+    const { name, isDeprecated, ...rest } = graphqlObject as { name: string, isDeprecated: boolean };
+    const config = {
       ...rest,
     };
+    return config as unknown as GraphQLConfig<T>;
   }
 
-  throw new Error(`Unknown graphql object ${graphqlObject as string}`);
+  throw new Error(`Unknown graphql object ${graphqlObject as unknown as string}`);
 }
 
 export function typeToConfig(
@@ -169,7 +146,7 @@ export function typeToConfig(
 export function typeToConfig(
   type: GraphQLInputObjectType,
 ): GraphQLInputObjectTypeConfig;
-export function typeToConfig(type: any): any;
+export function typeToConfig(type: GraphQLNamedType): any;
 export function typeToConfig(type: any) {
   if (isObjectType(type)) {
     return objectTypeToConfig(type);

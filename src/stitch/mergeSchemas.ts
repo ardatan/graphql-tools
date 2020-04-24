@@ -397,7 +397,7 @@ function merge(
       values: candidates.reduce(
         (acc, candidate) => ({
           ...acc,
-          ...toConfig(candidate.type).values,
+          ...toConfig(candidate.type as GraphQLEnumType).values,
         }),
         {},
       ),
