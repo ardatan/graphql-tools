@@ -62,6 +62,9 @@ function Home() {
         <div className="container">
           <h1 className="hero__title">{siteConfig.title}</h1>
           <p className="hero__subtitle">{siteConfig.tagline}</p>
+          <p>
+          <img src="https://img.shields.io/npm/v/graphql-tools?color=%231441d6&label=stable&style=for-the-badge" />
+          </p>
           <div className={styles.buttons}>
             <Link
               className={classnames(
