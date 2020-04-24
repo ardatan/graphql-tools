@@ -8,7 +8,7 @@ By this point in the documentation, you know how to generate a GraphQL.js schema
 
 ## Basic fetching
 
-As you have read on the [resolvers page](/docsresolvers/#resolver-result-format), resolvers in GraphQL.js can return Promises. This means it's easy to fetch data using any library that returns a promise for the result:
+As you have read on the [resolvers page](/docs/resolvers/#resolver-result-format), resolvers in GraphQL.js can return Promises. This means it's easy to fetch data using any library that returns a promise for the result:
 
 ```js
 import { fetch } from 'cross-fetch';

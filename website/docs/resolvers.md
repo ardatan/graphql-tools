@@ -176,7 +176,7 @@ const resolvers = {
 addResolversToSchema({ schema, resolvers });
 ```
 
-The `IAddResolveFunctionsToSchemaOptions` object has 4 properties that are described in [`makeExecutableSchema`](/docsgenerate-schema/#makeexecutableschemaoptions).
+The `IAddResolveFunctionsToSchemaOptions` object has 4 properties that are described in [`makeExecutableSchema`](/docs/generate-schema/#makeexecutableschemaoptions).
 ```ts
 export interface IAddResolveFunctionsToSchemaOptions {
   schema: GraphQLSchema;

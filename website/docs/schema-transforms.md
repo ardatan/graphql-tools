@@ -4,9 +4,9 @@ title: Schema transforms
 description: Automatically transforming schemas
 ---
 
-Schema transforms are a tool for making modified copies of `GraphQLSchema` objects, without changing the original schema implementation. This is especially useful when the original schema _cannot_ be changed, i.e. when using [remote schemas](/docsremote-schemas/).
+Schema transforms are a tool for making modified copies of `GraphQLSchema` objects, without changing the original schema implementation. This is especially useful when the original schema _cannot_ be changed, i.e. when using [remote schemas](/docs/remote-schemas/).
 
-Schema transforms can be useful when building GraphQL gateways that combine multiple schemas using [schema stitching](/docsschema-stitching/) to combine schemas together without conflicts between types or fields.
+Schema transforms can be useful when building GraphQL gateways that combine multiple schemas using [schema stitching](/docs/schema-stitching/) to combine schemas together without conflicts between types or fields.
 
 Schema transforms work by wrapping the original schema in a new 'gateway' schema that simply delegates all operations to the original subschema. Each schema transform includes a function that changes the gateway schema. It may also include an operation transform, i.e. functions that either modify the operation prior to delegation or modify the result prior to its return.
 
@@ -109,7 +109,7 @@ The delegating resolvers will apply the operation transforms defined by the `Tra
 
 ### transformSchema
 
-For convenience, when using `transformSchema`, after schema transformation, the `transforms` property on a returned `transformedSchema` object will contains the operation transforms that were applied. This could be useful when manually delegating to the transformed schema, but has been deprecated in favor of specifying the transforms within a subschema configuration object. See the [schema stitching](/docsschema-stitching/) docs for further details.
+For convenience, when using `transformSchema`, after schema transformation, the `transforms` property on a returned `transformedSchema` object will contains the operation transforms that were applied. This could be useful when manually delegating to the transformed schema, but has been deprecated in favor of specifying the transforms within a subschema configuration object. See the [schema stitching](/docs/schema-stitching/) docs for further details.
 
 ## Built-in transforms
 

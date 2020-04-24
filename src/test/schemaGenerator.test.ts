@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 // TODO: reduce code repetition in this file.
 // see https://github.com/apollostack/graphql-tools/issues/26
 
-import { GraphQLJSON } from 'graphql-type-json';
+import { typeDefs as scalarTypeDefs, resolvers as scalarResolvers } from 'graphql-scalars';
 import {
   graphql,
   GraphQLResolveInfo,
@@ -732,12 +733,14 @@ describe('generating schema from shorthand', () => {
 
   describe('scalar types', () => {
     test('supports passing a GraphQLScalarType in resolveFunctions', () => {
-      // Here GraphQLJSON is used as an example of non-default GraphQLScalarType
+      const scalarNames = Object.keys(scalarResolvers);
       const shorthand = `
-        scalar JSON
+        ${scalarTypeDefs.join('\n')}
 
         type Foo {
-          aField: JSON
+          ${scalarNames.map(
+            scalarName => `${scalarName.toLowerCase()}Field: ${scalarName}`
+          ).join('\n')}
         }
 
         type Query {
@@ -745,17 +748,19 @@ describe('generating schema from shorthand', () => {
         }
       `;
       const resolveFunctions = {
-        JSON: GraphQLJSON,
+        ...scalarResolvers
       };
       const jsSchema = makeExecutableSchema({
         typeDefs: shorthand,
         resolvers: resolveFunctions,
       });
       expect(jsSchema.getQueryType().name).toBe('Query');
-      expect(jsSchema.getType('JSON')).toBeInstanceOf(GraphQLScalarType);
-      expect(jsSchema.getType('JSON')).toHaveProperty('description');
-      expect(typeof jsSchema.getType('JSON').description).toBe('string');
-      expect(jsSchema.getType('JSON')['description'].length).toBeGreaterThan(0);
+      for (const scalarName of scalarNames) {
+        expect(jsSchema.getType(scalarName)).toBeInstanceOf(GraphQLScalarType);
+        expect(jsSchema.getType(scalarName)).toHaveProperty('description');
+        expect(typeof jsSchema.getType(scalarName).description).toBe('string');
+        expect(jsSchema.getType(scalarName)['description'].length).toBeGreaterThan(0);
+      }
     });
 
     test('supports passing a default scalar type', () => {

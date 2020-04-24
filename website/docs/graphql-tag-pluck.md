@@ -1,6 +1,6 @@
 ---
 id: graphql-tag-pluck
-title: GraphQL Tag Pluck
+title: Extracting GraphQL definitions from code files
 sidebar_label: GraphQL Tag Pluck
 ---
 
@@ -63,7 +63,7 @@ gqlPluckFromCodeString(
 
 // Returns string
 gqlPluckFromCodeStringSync(
-    filePath, 
+    filePath,
     fs.readFileSync(filePath, 'utf8'),
 );
 ```

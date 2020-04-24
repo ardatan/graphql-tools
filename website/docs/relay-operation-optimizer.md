@@ -1,7 +1,7 @@
 ---
 id: relay-operation-optimizer
-title: Optimizing operations using Relay
-sidebar_label: Optimizing operations using Relay
+title: Optimizing operations using Relay Compiler
+sidebar_label: Relay Operation Optimizer
 ---
 
 `@graphql-toolkit/relay-operation-optimizer` is a package for bringing the benefits of Relay Compiler to GraphQL Toolkit
