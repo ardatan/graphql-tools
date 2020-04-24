@@ -138,10 +138,10 @@ export class SchemaDirectiveVisitor<
     const directiveVisitorMap: Record<
       string,
       typeof SchemaDirectiveVisitor
-    > = Object.keys(directiveVisitors).reduce(
-      (prev, key) => ({
+    > = Object.entries(directiveVisitors).reduce(
+      (prev, [key, value]) => ({
         ...prev,
-        [key]: directiveVisitors[key],
+        [key]: value
       }),
       {},
     );
@@ -230,16 +230,6 @@ export class SchemaDirectiveVisitor<
     schema: GraphQLSchema,
     directiveVisitors: Record<string, SchemaDirectiveVisitorClass>,
   ): Record<string, GraphQLDirective> {
-    const directiveVisitorMap: Record<
-      string,
-      typeof SchemaDirectiveVisitor
-    > = Object.keys(directiveVisitors).reduce(
-      (prev, key) => ({
-        ...prev,
-        [key]: directiveVisitors[key],
-      }),
-      {},
-    );
 
     const declaredDirectives: Record<
       string,
@@ -269,14 +259,14 @@ export class SchemaDirectiveVisitor<
     );
 
     Object.entries(declaredDirectives).forEach(([name, decl]) => {
-      if (!(name in directiveVisitorMap)) {
+      if (!(name in directiveVisitors)) {
         // SchemaDirectiveVisitors.visitSchemaDirectives might be called
         // multiple times with partial directiveVisitors maps, so it's not
         // necessarily an error for directiveVisitors to be missing an
         // implementation of a directive that was declared in the schema.
         return;
       }
-      const visitorClass = directiveVisitorMap[name];
+      const visitorClass = directiveVisitors[name];
 
       decl.locations.forEach((loc) => {
         const visitorMethodName = directiveLocationToVisitorMethodName(loc);

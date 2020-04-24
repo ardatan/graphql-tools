@@ -19,7 +19,6 @@ import {
   isEnumType,
   isAbstractType,
 } from 'graphql';
-import { v4 as uuid } from 'uuid';
 
 import { buildSchemaFromTypeDefinitions } from '../generate/index';
 import { forEachField } from '../utils/index';
@@ -54,12 +53,20 @@ function mockServer(
   return { query: (query, vars) => graphql(mySchema, query, {}, {}, vars) };
 }
 
+function uuidv4() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    // eslint-disable-next-line eqeqeq
+    const r = Math.random() * 16 | 0; const v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
 const defaultMockMap: Map<string, IMockFn> = new Map();
 defaultMockMap.set('Int', () => Math.round(Math.random() * 200) - 100);
 defaultMockMap.set('Float', () => Math.random() * 200 - 100);
 defaultMockMap.set('String', () => 'Hello World');
 defaultMockMap.set('Boolean', () => Math.random() > 0.5);
-defaultMockMap.set('ID', () => uuid());
+defaultMockMap.set('ID', () => uuidv4());
 
 // TODO allow providing a seed such that lengths of list could be deterministic
 // this could be done by using casual to get a random list length if the casual
