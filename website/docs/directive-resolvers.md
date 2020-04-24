@@ -1,6 +1,6 @@
 ---
 id: directive-resolvers
-title: Directive Resolvers
+title: Directive resolvers
 description: A set of utilities to build your JavaScript GraphQL schema in a concise and powerful way.
 ---
 

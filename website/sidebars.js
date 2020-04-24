@@ -5,6 +5,7 @@ module.exports = {
     'introduction',
     'generate-schema',
     'resolvers',
+    'resolvers-composition',
     'scalars',
     'mocking',
     'connectors',
@@ -13,6 +14,17 @@ module.exports = {
     'schema-delegation',
     'remote-schemas',
     'schema-transforms',
-    'schema-stitching'
+    {
+      'Schema merging': [
+        'merge-typedefs',
+        'merge-resolvers',
+        'schema-stitching',
+      ]
+    },
+    'server-setup',
+    'schema-loading',
+    'documents-loading',
+    'graphql-tag-pluck',
+    'relay-operation-optimizer'
   ],
 };

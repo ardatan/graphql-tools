@@ -19,63 +19,63 @@ module.exports = {
         {
           to: 'docs/introduction',
           activeBasePath: 'docs',
-          label: 'Docs',
-          position: 'left',
+          label: 'API & Documentation',
+          position: 'right',
         },
-        {to: 'blog', label: 'Blog', position: 'left'},
         {
-          href: 'https://github.com/facebook/docusaurus',
+          href: 'https://github.com/ardatan/graphql-tools',
           label: 'GitHub',
           position: 'right',
+        },
+        {
+          href: 'https://the-guild.dev/connected-build?utm_source=github&utm_medium=release-note&utm_campaign=tools#section-contact',
+          label: 'Contact Us',
+          position: 'right'
         },
       ],
     },
     footer: {
       style: 'dark',
       links: [
-        {
+/* {
           title: 'Docs',
           items: [
             {
               label: 'Style Guide',
-              to: 'docs/doc1',
+              to: 'docs/doc1'
             },
             {
               label: 'Second Doc',
-              to: 'docs/doc2',
-            },
-          ],
-        },
+              to: 'docs/doc2'
+            }
+          ]
+        }, */
         {
           title: 'Community',
           items: [
             {
-              label: 'Stack Overflow',
-              href: 'https://stackoverflow.com/questions/tagged/docusaurus',
+              label: 'Discord',
+              href: 'http://bit.ly/guild-chat'
             },
             {
-              label: 'Discord',
-              href: 'https://discordapp.com/invite/docusaurus',
-            },
-          ],
+              label: 'Stack Overflow',
+              href: 'https://stackoverflow.com/questions/tagged/graphql-mesh'
+            }
+          ]
         },
         {
           title: 'Social',
           items: [
             {
-              label: 'Blog',
-              to: 'blog',
-            },
-            {
               label: 'GitHub',
-              href: 'https://github.com/facebook/docusaurus',
+              href: 'https://github.com/Urigo/graphql-mesh/'
             },
             {
               label: 'Twitter',
-              href: 'https://twitter.com/docusaurus',
-            },
-          ],
-        },
+              href: 'https://twitter.com/TheGuildDev'
+            }
+          ]
+        }
       ],
       copyright: `Copyright © ${new Date().getFullYear()} The Guild, Inc. Built with Docusaurus.`,
     },
