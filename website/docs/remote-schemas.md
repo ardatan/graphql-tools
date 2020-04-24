@@ -4,7 +4,7 @@ title: Remote schemas
 description: Generate GraphQL schema objects that delegate to a remote server
 ---
 
-It can be valuable to be able to treat remote GraphQL endpoints as if they were local executable schemas. This is especially useful for [schema stitching](/schema-stitching/), but there may be other use cases.
+It can be valuable to be able to treat remote GraphQL endpoints as if they were local executable schemas. This is especially useful for [schema stitching](/docsschema-stitching/), but there may be other use cases.
 
 Generally, to create a remote schema, you need three steps:
 

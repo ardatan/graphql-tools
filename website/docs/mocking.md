@@ -12,7 +12,7 @@ Even with a backend that is already built, mocking allows you to test your UI wi
 
 Let's take a look at how we can mock a GraphQL schema with just one line of code, using the default mocking logic you get out of the box with `graphql-tools`.
 
-To start, let's grab the schema definition string from the `makeExecutableSchema` example [in the "Generating a schema" article](/generate-schema/#example).
+To start, let's grab the schema definition string from the `makeExecutableSchema` example [in the "Generating a schema" article](/docsgenerate-schema/#example).
 
 ```js
 import { makeExecutableSchema, addMocksToSchema } from 'graphql-tools';

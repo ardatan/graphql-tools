@@ -1,4 +1,6 @@
-const { resolve } = require('path');
+/* eslint-disable no-implicit-coercion */
+/* eslint-disable import/no-commonjs */
+/* eslint-disable import/unambiguous */
 const CI = !!process.env.CI;
 
 module.exports = {

@@ -1,7 +1,6 @@
 export { default as addSchemaLevelResolver } from './addSchemaLevelResolver';
 export { default as assertResolversPresent } from './assertResolversPresent';
 export { default as attachDirectiveResolvers } from './attachDirectiveResolvers';
-export { default as attachConnectorsToContext } from './attachConnectorsToContext';
 export { default as buildSchemaFromTypeDefinitions } from './buildSchemaFromTypeDefinitions';
 export { chainResolvers } from './chainResolvers';
 export { default as concatenateTypeDefs } from './concatenateTypeDefs';

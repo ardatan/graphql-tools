@@ -29,9 +29,9 @@ const resolverMap = {
   },
 };
 ```
-> Note: If you are using mocking, the `preserveResolvers` argument of [`addMocksToSchema`](/mocking/#addmockstoschema) must be set to `true` if you don't want your resolvers to be overwritten by mock resolvers.
+> Note: If you are using mocking, the `preserveResolvers` argument of [`addMocksToSchema`](/docs/mocking/#addmockstoschema) must be set to `true` if you don't want your resolvers to be overwritten by mock resolvers.
 
-Note that you don't have to put all of your resolvers in one object. Refer to the ["modularizing the schema"](/generate-schema/) section to learn how to combine multiple resolver maps into one.
+Note that you don't have to put all of your resolvers in one object. Refer to the ["merging resolvers"](/docs/merge-resolvers/) section to learn how to combine multiple resolver maps into one.
 
 ## Resolver function signature
 
@@ -176,7 +176,7 @@ const resolvers = {
 addResolversToSchema({ schema, resolvers });
 ```
 
-The `IAddResolveFunctionsToSchemaOptions` object has 4 properties that are described in [`makeExecutableSchema`](/generate-schema/#makeexecutableschemaoptions).
+The `IAddResolveFunctionsToSchemaOptions` object has 4 properties that are described in [`makeExecutableSchema`](/docsgenerate-schema/#makeexecutableschemaoptions).
 ```ts
 export interface IAddResolveFunctionsToSchemaOptions {
   schema: GraphQLSchema;
@@ -227,4 +227,4 @@ const resolverMap = {
 }
 ```
 
-> Have a project which improves resolvers development? Send us a [pull request](https://github.com/apollographql/graphql-tools/blob/master/CONTRIBUTING.md)!
+> Have a project which improves resolvers development? Send us a [pull request](https://github.com/ardatan/graphql-tools/blob/master/CONTRIBUTING.md)!

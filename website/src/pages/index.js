@@ -8,32 +8,29 @@ import styles from './styles.module.css';
 
 const features = [
   {
-    title: <>Easy to Use</>,
-    imageUrl: 'img/undraw_docusaurus_mountain.svg',
+    title: <>The GraphQL-first philosophy</>,
+    imageUrl: 'img/graphql.svg',
     description: (
       <>
-        Docusaurus was designed from the ground up to be easily installed and
-        used to get your website up and running quickly.
+      Use the GraphQL schema definition language to <a href="/docs/generate-schema">generate a schema</a> with full support for resolvers, interfaces, unions, and custom scalars. The schema produced is completely compatible with <a href="https://github.com/graphql/graphql-js">GraphQL.js</a>.
       </>
     ),
   },
   {
-    title: <>Focus on What Matters</>,
-    imageUrl: 'img/undraw_docusaurus_tree.svg',
+    title: <>Mock your GraphQL API</>,
+    imageUrl: 'img/flask.svg',
     description: (
       <>
-        Docusaurus lets you focus on your docs, and we&apos;ll do the chores. Go
-        ahead and move your docs into the <code>docs</code> directory.
+      With GraphQL Tools, you can <a href="/docs/mocking">mock your GraphQL API</a> with fine-grained per-type mocking for fast prototyping without any datasources.
       </>
     ),
   },
   {
-    title: <>Powered by React</>,
-    imageUrl: 'img/undraw_docusaurus_react.svg',
+    title: <>Stitch multiple GraphQL Schemas</>,
+    imageUrl: 'img/needle.svg',
     description: (
       <>
-        Extend or customize your website layout by reusing React. Docusaurus can
-        be extended while reusing the same header and footer.
+        Automatically <a href="/docs/schema-stitching">stitch multiple schemas together</a> into one larger API in a simple, fast and powerful way
       </>
     ),
   },
@@ -65,6 +62,9 @@ function Home() {
         <div className="container">
           <h1 className="hero__title">{siteConfig.title}</h1>
           <p className="hero__subtitle">{siteConfig.tagline}</p>
+          <p>
+          <img src="https://img.shields.io/npm/v/graphql-tools?color=%231441d6&label=stable&style=for-the-badge" />
+          </p>
           <div className={styles.buttons}>
             <Link
               className={classnames(

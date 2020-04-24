@@ -6,7 +6,7 @@ import express, { Express } from 'express';
 import graphqlHTTP from 'express-graphql';
 import { GraphQLUpload, graphqlUploadExpress } from 'graphql-upload';
 import FormData from 'form-data';
-import fetch from 'node-fetch';
+import { fetch } from 'cross-fetch';
 import { buildSchema } from 'graphql';
 
 import { stitchSchemas } from '../stitch/index';
@@ -51,7 +51,10 @@ function testGraphqlMultipartRequest(query: string, port: number) {
   body.append('map', '{ "1": ["variables.file"] }');
   body.append('1', 'abc', { filename: __filename });
 
-  return fetch(`http://localhost:${port.toString()}`, { method: 'POST', body });
+  return fetch(`http://localhost:${port.toString()}`, {
+    method: 'POST',
+    body: (body as unknown) as BodyInit,
+  });
 }
 
 describe('graphql upload', () => {

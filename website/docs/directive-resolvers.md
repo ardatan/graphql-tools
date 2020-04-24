@@ -1,6 +1,6 @@
 ---
 id: directive-resolvers
-title: Directive Resolvers
+title: Directive resolvers
 description: A set of utilities to build your JavaScript GraphQL schema in a concise and powerful way.
 ---
 
@@ -8,7 +8,7 @@ description: A set of utilities to build your JavaScript GraphQL schema in a con
 
 Let's take a look at how we can create `@upper` Directive to upper-case a string returned from resolve on Field
 
-To start, let's grab the schema definition string from the `makeExecutableSchema` example [in the "Generating a schema" article](/generate-schema/#example).
+To start, let's grab the schema definition string from the `makeExecutableSchema` example [in the "Generating a schema" article](/docsgenerate-schema/#example).
 
 ```js
 import { makeExecutableSchema } from 'graphql-tools';
@@ -84,7 +84,7 @@ const typeDefs = `
   }
 `;
 
-// Customs directives, check https://github.com/apollographql/graphql-tools/pull/518
+// Customs directives, check https://github.com/ardatan/graphql-tools/pull/518
 // for more examples
 const directiveResolvers = {
   upper(

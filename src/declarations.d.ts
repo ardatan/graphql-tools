@@ -8,3 +8,4 @@ interface ReadonlyArray<T> {
 interface Array<T> {
   reduce<R>(reducer: Reducer<T, R>, target: Partial<R>): R;
 }
+declare module 'apollo-upload-client';

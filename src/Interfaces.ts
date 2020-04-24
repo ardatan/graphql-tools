@@ -401,20 +401,9 @@ export interface ILogger {
   log: (error: Error) => void;
 }
 
-export type IConnectorCls<TContext = any> = new (context?: TContext) => any;
-
-export type IConnectorFn<TContext = any> = (context?: TContext) => any;
-
-export type IConnector<TContext = any> =
-  | IConnectorCls<TContext>
-  | IConnectorFn<TContext>;
-
-export type IConnectors<TContext = any> = Record<string, IConnector<TContext>>;
-
 export interface IExecutableSchemaDefinition<TContext = any> {
   typeDefs: ITypeDefinitions;
   resolvers?: IResolvers<any, TContext> | Array<IResolvers<any, TContext>>;
-  connectors?: IConnectors<TContext>;
   logger?: ILogger;
   allowUndefinedInResolve?: boolean;
   resolverValidationOptions?: IResolverValidationOptions;

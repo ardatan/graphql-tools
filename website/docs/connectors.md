@@ -8,15 +8,16 @@ By this point in the documentation, you know how to generate a GraphQL.js schema
 
 ## Basic fetching
 
-As you have read on the [resolvers page](/resolvers/#resolver-result-format), resolvers in GraphQL.js can return Promises. This means it's easy to fetch data using any library that returns a promise for the result:
+As you have read on the [resolvers page](/docsresolvers/#resolver-result-format), resolvers in GraphQL.js can return Promises. This means it's easy to fetch data using any library that returns a promise for the result:
 
 ```js
-import rp from 'request-promise';
+import { fetch } from 'cross-fetch';
 
 const resolverMap = {
   Query: {
-    gitHubRepository(root, args, context) {
-      return rp({ uri: `https://api.github.com/repos/${args.name}` });
+    async gitHubRepository(root, args, context) {
+      const response = await fetch(`https://api.github.com/repos/${args.name}`);
+      return response.json();
     }
   }
 }
@@ -28,17 +29,13 @@ As you start to have more different resolvers that need to access the GitHub API
 
 ```js
 // github-connector.js
-import rp from 'request-promise';
+import { fetch } from 'cross-fetch';
 
 // This gives you a place to put GitHub API keys, for example
 const { GITHUB_API_KEY, GITHUB_API_SECRET } = process.env;
-const qs = { GITHUB_API_KEY, GITHUB_API_SECRET };
 
 export function getRepositoryByName(name) {
-  return rp({
-    uri: `https://api.github.com/repos/${name}`,
-    qs,
-  });
+  const response = fetch(`https://api.github.com/repos/${name}?GITHUB_API_KEY=${GITHUB_API_KEY}&GITHUB_API_SECRET=${GITHUB_API_SECRET}`);
 }
 ```
 
