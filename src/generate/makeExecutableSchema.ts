@@ -8,14 +8,14 @@ import { mergeDeep } from '../esUtils/mergeDeep';
 
 import { IExecutableSchemaDefinition, ILogger } from '../Interfaces';
 import { SchemaDirectiveVisitor, forEachField } from '../utils/index';
+import SchemaError from '../utils/SchemaError';
+import addResolversToSchema from '../addResolvers/addResolversToSchema';
 
 import attachDirectiveResolvers from './attachDirectiveResolvers';
 import assertResolversPresent from './assertResolversPresent';
-import addResolversToSchema from './addResolversToSchema';
 import addSchemaLevelResolver from './addSchemaLevelResolver';
 import buildSchemaFromTypeDefinitions from './buildSchemaFromTypeDefinitions';
 import decorateWithLogger from './decorateWithLogger';
-import SchemaError from './SchemaError';
 
 export function makeExecutableSchema<TContext = any>({
   typeDefs,

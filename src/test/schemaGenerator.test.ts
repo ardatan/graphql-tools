@@ -2,7 +2,10 @@
 // TODO: reduce code repetition in this file.
 // see https://github.com/apollostack/graphql-tools/issues/26
 
-import { typeDefs as scalarTypeDefs, resolvers as scalarResolvers } from 'graphql-scalars';
+import {
+  typeDefs as scalarTypeDefs,
+  resolvers as scalarResolvers,
+} from 'graphql-scalars';
 import {
   graphql,
   GraphQLResolveInfo,
@@ -22,6 +25,7 @@ import {
 } from 'graphql';
 
 import { Logger } from '../generate/Logger';
+import { addResolversToSchema } from '../addResolvers/index';
 import {
   makeExecutableSchema,
   addErrorLoggingToSchema,
@@ -29,7 +33,6 @@ import {
   attachDirectiveResolvers,
   chainResolvers,
   concatenateTypeDefs,
-  addResolversToSchema,
 } from '../generate/index';
 import {
   IResolverValidationOptions,
@@ -738,9 +741,11 @@ describe('generating schema from shorthand', () => {
         ${scalarTypeDefs.join('\n')}
 
         type Foo {
-          ${scalarNames.map(
-            scalarName => `${scalarName.toLowerCase()}Field: ${scalarName}`
-          ).join('\n')}
+          ${scalarNames
+            .map(
+              (scalarName) => `${scalarName.toLowerCase()}Field: ${scalarName}`,
+            )
+            .join('\n')}
         }
 
         type Query {
@@ -748,7 +753,7 @@ describe('generating schema from shorthand', () => {
         }
       `;
       const resolveFunctions = {
-        ...scalarResolvers
+        ...scalarResolvers,
       };
       const jsSchema = makeExecutableSchema({
         typeDefs: shorthand,
@@ -759,7 +764,9 @@ describe('generating schema from shorthand', () => {
         expect(jsSchema.getType(scalarName)).toBeInstanceOf(GraphQLScalarType);
         expect(jsSchema.getType(scalarName)).toHaveProperty('description');
         expect(typeof jsSchema.getType(scalarName).description).toBe('string');
-        expect(jsSchema.getType(scalarName)['description'].length).toBeGreaterThan(0);
+        expect(
+          jsSchema.getType(scalarName)['description'].length,
+        ).toBeGreaterThan(0);
       }
     });
 

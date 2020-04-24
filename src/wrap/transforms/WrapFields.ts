@@ -4,8 +4,8 @@ import { Transform, Request } from '../../Interfaces';
 import { healSchema } from '../../utils/index';
 import { hoistFieldNodes } from '../../utils/fieldNodes';
 import { appendFields, removeFields } from '../../utils/fields';
-import { defaultMergedResolver } from '../../stitch/index';
-import { createMergedResolver } from '../../stitch/createMergedResolver';
+import { defaultMergedResolver } from '../../delegate/index';
+import { createMergedResolver } from '../../delegate/createMergedResolver';
 
 import MapFields from './MapFields';
 

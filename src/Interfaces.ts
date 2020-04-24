@@ -30,6 +30,7 @@ import {
   OperationDefinitionNode,
   GraphQLError,
   ExecutionResult as GraphQLExecutionResult,
+  BuildSchemaOptions,
 } from 'graphql';
 
 import { ApolloLink } from 'apollo-link';
@@ -220,6 +221,45 @@ export type MergedTypeResolver = (
 
 export interface GraphQLSchemaWithTransforms extends GraphQLSchema {
   transforms?: Array<Transform>;
+}
+
+export type MergeTypeCandidate = {
+  type: GraphQLNamedType;
+  schema?: GraphQLSchema;
+  subschema?: GraphQLSchema | SubschemaConfig;
+  transformedSubschema?: GraphQLSchema;
+};
+
+export type MergeTypeFilter = (
+  mergeTypeCandidates: Array<MergeTypeCandidate>,
+  typeName: string,
+) => boolean;
+
+export interface IMakeRemoteExecutableSchemaOptions {
+  schema: GraphQLSchema | string;
+  link?: ApolloLink;
+  fetcher?: Fetcher;
+  createResolver?: (fetcher: Fetcher) => GraphQLFieldResolver<any, any>;
+  createSubscriptionResolver?: (
+    link: ApolloLink,
+  ) => GraphQLFieldResolver<any, any>;
+  buildSchemaOptions?: BuildSchemaOptions;
+}
+
+export interface IStitchSchemasOptions {
+  subschemas?: Array<GraphQLSchema | SubschemaConfig>;
+  types?: Array<GraphQLNamedType>;
+  typeDefs?: string | DocumentNode;
+  schemas?: Array<SchemaLikeObject>;
+  onTypeConflict?: OnTypeConflict;
+  resolvers?: IResolversParameter;
+  schemaDirectives?: Record<string, SchemaDirectiveVisitorClass>;
+  inheritResolversFromInterfaces?: boolean;
+  mergeTypes?: boolean | Array<string> | MergeTypeFilter;
+  mergeDirectives?: boolean;
+  queryTypeName?: string;
+  mutationTypeName?: string;
+  subscriptionTypeName?: string;
 }
 
 export type SchemaLikeObject =

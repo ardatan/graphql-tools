@@ -9,7 +9,7 @@ import FormData from 'form-data';
 import { fetch } from 'cross-fetch';
 import { buildSchema } from 'graphql';
 
-import { mergeSchemas } from '../stitch/index';
+import { stitchSchemas } from '../stitch/index';
 import { makeExecutableSchema } from '../generate/index';
 import { createServerHttpLink } from '../links/index';
 import { GraphQLUpload as ServerGraphQLUpload } from '../scalars/index';
@@ -107,7 +107,7 @@ describe('graphql upload', () => {
       }),
     };
 
-    const gatewaySchema = mergeSchemas({
+    const gatewaySchema = stitchSchemas({
       schemas: [subschema],
       resolvers: {
         Upload: ServerGraphQLUpload,

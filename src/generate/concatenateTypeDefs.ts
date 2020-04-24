@@ -2,7 +2,7 @@ import { print, ASTNode } from 'graphql';
 
 import { ITypedef } from '../Interfaces';
 
-import SchemaError from './SchemaError';
+import SchemaError from '../utils/SchemaError';
 
 function concatenateTypeDefs(
   typeDefinitionsAry: Array<ITypedef>,

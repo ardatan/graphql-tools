@@ -6,11 +6,11 @@ import {
 
 import { Transform, Operation, SubschemaConfig } from '../Interfaces';
 import delegateToSchema from '../delegate/delegateToSchema';
-import { handleResult } from '../delegate/checkResultAndHandleErrors';
+import { handleResult } from '../delegate/results/handleResult';
 
-import { getResponseKeyFromInfo } from '../stitch/getResponseKeyFromInfo';
-import { getSubschema } from '../stitch/subSchema';
-import { getErrors } from '../stitch/errors';
+import { getResponseKeyFromInfo } from '../utils/getResponseKeyFromInfo';
+import { getSubschema } from '../delegate/subSchema';
+import { getErrors } from '../delegate/errors';
 
 export function generateProxyingResolvers({
   subschemaConfig,

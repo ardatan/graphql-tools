@@ -1,10 +1,10 @@
 import { GraphQLError, GraphQLResolveInfo, graphql } from 'graphql';
 
-import { relocatedError, getErrors } from '../stitch/errors';
-import { checkResultAndHandleErrors } from '../delegate/checkResultAndHandleErrors';
+import { relocatedError, getErrors } from '../delegate/errors';
+import { checkResultAndHandleErrors } from '../delegate/transforms/CheckResultAndHandleErrors';
 import { makeExecutableSchema } from '../generate/index';
-import { mergeSchemas } from '../stitch/index';
-import { ERROR_SYMBOL } from '../stitch/symbols';
+import { stitchSchemas } from '../stitch/index';
+import { ERROR_SYMBOL } from '../delegate/symbols';
 
 class ErrorWithExtensions extends GraphQLError {
   constructor(message: string, code: string) {
@@ -128,14 +128,14 @@ describe('passes along errors for missing fields on list', () => {
       },
     });
 
-    const mergedSchema = mergeSchemas({
+    const stitchedSchema = stitchSchemas({
       schemas: [schema],
     });
 
     const query = '{ getOuter { innerList { mandatoryField } } }';
     const originalResult = await graphql(schema, query);
-    const mergedResult = await graphql(mergedSchema, query);
-    expect(mergedResult).toEqual(originalResult);
+    const stitchedResult = await graphql(stitchedSchema, query);
+    expect(stitchedResult).toEqual(originalResult);
   });
 
   test('even if nullable', async () => {
@@ -162,14 +162,14 @@ describe('passes along errors for missing fields on list', () => {
       },
     });
 
-    const mergedSchema = mergeSchemas({
+    const stitchedSchema = stitchSchemas({
       schemas: [schema],
     });
 
     const query = '{ getOuter { innerList { mandatoryField } } }';
     const originalResult = await graphql(schema, query);
-    const mergedResult = await graphql(mergedSchema, query);
-    expect(mergedResult).toEqual(originalResult);
+    const stitchedResult = await graphql(stitchedSchema, query);
+    expect(stitchedResult).toEqual(originalResult);
   });
 });
 
@@ -198,14 +198,14 @@ describe('passes along errors when list field errors', () => {
       },
     });
 
-    const mergedSchema = mergeSchemas({
+    const stitchedSchema = stitchSchemas({
       schemas: [schema],
     });
 
     const query = '{ getOuter { innerList { mandatoryField } } }';
     const originalResult = await graphql(schema, query);
-    const mergedResult = await graphql(mergedSchema, query);
-    expect(mergedResult).toEqual(originalResult);
+    const stitchedResult = await graphql(stitchedSchema, query);
+    expect(stitchedResult).toEqual(originalResult);
   });
 
   test('even if nullable', async () => {
@@ -232,13 +232,13 @@ describe('passes along errors when list field errors', () => {
       },
     });
 
-    const mergedSchema = mergeSchemas({
+    const stitchedSchema = stitchSchemas({
       schemas: [schema],
     });
 
     const query = '{ getOuter { innerList { mandatoryField } } }';
     const originalResult = await graphql(schema, query);
-    const mergedResult = await graphql(mergedSchema, query);
-    expect(mergedResult).toEqual(originalResult);
+    const stitchedResult = await graphql(stitchedSchema, query);
+    expect(stitchedResult).toEqual(originalResult);
   });
 });

@@ -14,7 +14,7 @@ import {
 
 import { forAwaitEach } from '../forAwaitEach';
 
-import introspectSchema from '../../stitch/introspectSchema';
+import { introspectSchema } from '../../introspect/index';
 import {
   IResolvers,
   Fetcher,

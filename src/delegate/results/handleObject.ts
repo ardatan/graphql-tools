@@ -16,10 +16,10 @@ import {
   isSubschemaConfig,
   GraphQLExecutionContext,
 } from '../../Interfaces';
-import { setErrors, slicedError } from '../../stitch/errors';
-import { setObjectSubschema } from '../../stitch/subSchema';
-import resolveFromParentTypename from '../../stitch/resolveFromParentTypename';
-import { mergeFields } from '../../stitch/mergeFields';
+import { setErrors, slicedError } from '../errors';
+import { setObjectSubschema } from '../subSchema';
+import { mergeFields } from '../mergeFields';
+import resolveFromParentTypename from '../../utils/resolveFromParentTypename';
 
 export function handleObject(
   type: GraphQLCompositeType,

@@ -1,7 +1,7 @@
 import { GraphQLSchema, graphql } from 'graphql';
 
 import delegateToSchema from '../delegate/delegateToSchema';
-import mergeSchemas from '../stitch/mergeSchemas';
+import stitchSchemas from '../stitch/stitchSchemas';
 import { IResolvers } from '../Interfaces';
 import { makeExecutableSchema } from '../generate';
 import { wrapSchema } from '../wrap';
@@ -86,7 +86,7 @@ describe('stitching', () => {
       describe(spec, () => {
         let schema: GraphQLSchema;
         beforeAll(() => {
-          schema = mergeSchemas({
+          schema = stitchSchemas({
             schemas: [bookingSchema, propertySchema, proxyTypeDefs],
             resolvers: proxyResolvers(spec),
           });

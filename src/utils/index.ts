@@ -9,3 +9,4 @@ export { forEachField } from './forEachField';
 export { forEachDefaultValue } from './forEachDefaultValue';
 export { graphqlVersion } from './graphqlVersion';
 export { mapSchema } from './map';
+export { default as SchemaError } from './SchemaError';

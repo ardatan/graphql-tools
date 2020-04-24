@@ -5,7 +5,7 @@ import {
   isAbstractType,
 } from 'graphql';
 
-import SchemaError from './SchemaError';
+import SchemaError from '../utils/SchemaError';
 
 // If we have any union or interface types throw if no there is no resolveType or isTypeOf resolvers
 function checkForResolveTypeResolver(

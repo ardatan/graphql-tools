@@ -22,8 +22,8 @@ import {
   serializeInputValue,
 } from '../utils/transformInputValue';
 import { toConfig } from '../polyfills/index';
+import SchemaError from '../utils/SchemaError';
 
-import SchemaError from './SchemaError';
 import checkForResolveTypeResolver from './checkForResolveTypeResolver';
 import extendResolversFromInterfaces from './extendResolversFromInterfaces';
 

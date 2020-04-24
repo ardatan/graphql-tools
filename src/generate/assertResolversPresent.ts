@@ -8,7 +8,7 @@ import {
 import { IResolverValidationOptions } from '../Interfaces';
 import { forEachField } from '../utils/index';
 
-import SchemaError from './SchemaError';
+import SchemaError from '../utils/SchemaError';
 
 function assertResolversPresent(
   schema: GraphQLSchema,

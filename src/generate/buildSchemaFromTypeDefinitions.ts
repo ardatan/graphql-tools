@@ -8,13 +8,13 @@ import {
 } from 'graphql';
 
 import { ITypeDefinitions, GraphQLParseOptions } from '../Interfaces';
+import SchemaError from '../utils/SchemaError';
 
 import {
   extractExtensionDefinitions,
   filterExtensionDefinitions,
 } from './extensionDefinitions';
 import concatenateTypeDefs from './concatenateTypeDefs';
-import SchemaError from './SchemaError';
 
 function buildSchemaFromTypeDefinitions(
   typeDefinitions: ITypeDefinitions,

@@ -5,41 +5,15 @@ import {
   isCompositeType,
   isLeafType,
   isListType,
-  ExecutionResult,
   GraphQLError,
-  GraphQLOutputType,
   GraphQLSchema,
 } from 'graphql';
 
-import { SubschemaConfig } from '../Interfaces';
-import { getResponseKeyFromInfo } from '../stitch/getResponseKeyFromInfo';
+import { SubschemaConfig } from '../../Interfaces';
 
-import { handleNull } from './results/handleNull';
-import { handleObject } from './results/handleObject';
-import { handleList } from './results/handleList';
-
-export function checkResultAndHandleErrors(
-  result: ExecutionResult,
-  context: Record<string, any>,
-  info: GraphQLResolveInfo,
-  responseKey: string = getResponseKeyFromInfo(info),
-  subschema?: GraphQLSchema | SubschemaConfig,
-  returnType: GraphQLOutputType = info.returnType,
-  skipTypeMerging?: boolean,
-): any {
-  const errors = result.errors != null ? result.errors : [];
-  const data = result.data != null ? result.data[responseKey] : undefined;
-
-  return handleResult(
-    data,
-    errors,
-    subschema,
-    context,
-    info,
-    returnType,
-    skipTypeMerging,
-  );
-}
+import { handleNull } from './handleNull';
+import { handleObject } from './handleObject';
+import { handleList } from './handleList';
 
 export function handleResult(
   result: any,

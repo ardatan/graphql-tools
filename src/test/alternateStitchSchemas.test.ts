@@ -32,8 +32,8 @@ import { isSpecifiedScalarType, toConfig } from '../polyfills/index';
 
 import { delegateToSchema } from '../delegate/index';
 import { makeExecutableSchema } from '../generate/index';
-import { mergeSchemas } from '../stitch/index';
-import { createMergedResolver } from '../stitch/createMergedResolver';
+import { stitchSchemas } from '../stitch/index';
+import { createMergedResolver } from '../delegate/createMergedResolver';
 import { SubschemaConfig } from '../Interfaces';
 import { filterSchema, graphqlVersion } from '../utils/index';
 import {
@@ -98,7 +98,7 @@ const linkSchema = `
 
 describe('merge schemas through transforms', () => {
   let bookingSubschemaConfig: SubschemaConfig;
-  let mergedSchema: GraphQLSchema;
+  let stitchedSchema: GraphQLSchema;
 
   beforeAll(async () => {
     bookingSubschemaConfig = await remoteBookingSchema;
@@ -150,7 +150,7 @@ describe('merge schemas through transforms', () => {
       transforms: subscriptionSchemaTransforms,
     };
 
-    mergedSchema = mergeSchemas({
+    stitchedSchema = stitchSchemas({
       subschemas: [propertySubschema, bookingSubschema, subscriptionSubschema],
       typeDefs: linkSchema,
       resolvers: {
@@ -233,7 +233,7 @@ describe('merge schemas through transforms', () => {
   // FIXME fragemnt replacements
   test('node should work', async () => {
     const result = await graphql(
-      mergedSchema,
+      stitchedSchema,
       `
         query($pid: ID!, $bid: ID!) {
           property: node(id: $pid) {
@@ -321,7 +321,7 @@ describe('merge schemas through transforms', () => {
       `);
 
     let notificationCnt = 0;
-    subscribe(mergedSchema, subscription)
+    subscribe(stitchedSchema, subscription)
       .then((results) => {
         forAwaitEach(
           results as AsyncIterable<ExecutionResult>,
@@ -1410,7 +1410,7 @@ describe('interface resolver inheritance', () => {
   };
 
   test('copies resolvers from interface', async () => {
-    const mergedSchema = mergeSchemas({
+    const stitchedSchema = stitchSchemas({
       schemas: [
         // pull in an executable schema just so mergeSchema doesn't complain
         // about not finding default types (e.g. ID)
@@ -1421,7 +1421,7 @@ describe('interface resolver inheritance', () => {
       inheritResolversFromInterfaces: true,
     });
     const query = '{ user { id name } }';
-    const response = await graphql(mergedSchema, query);
+    const response = await graphql(stitchedSchema, query);
     expect(response).toEqual({
       data: {
         user: {
@@ -1433,7 +1433,7 @@ describe('interface resolver inheritance', () => {
   });
 
   test('does not copy resolvers from interface when flag is false', async () => {
-    const mergedSchema = mergeSchemas({
+    const stitchedSchema = stitchSchemas({
       schemas: [
         // pull in an executable schema just so mergeSchema doesn't complain
         // about not finding default types (e.g. ID)
@@ -1444,7 +1444,7 @@ describe('interface resolver inheritance', () => {
       inheritResolversFromInterfaces: false,
     });
     const query = '{ user { id name } }';
-    const response = await graphql(mergedSchema, query);
+    const response = await graphql(stitchedSchema, query);
     expect(response.errors.length).toBe(1);
     expect(response.errors[0].message).toBe(
       'Cannot return null for non-nullable field User.id.',
@@ -1453,7 +1453,7 @@ describe('interface resolver inheritance', () => {
   });
 
   test('does not copy resolvers from interface when flag is not provided', async () => {
-    const mergedSchema = mergeSchemas({
+    const stitchedSchema = stitchSchemas({
       schemas: [
         // pull in an executable schema just so mergeSchema doesn't complain
         // about not finding default types (e.g. ID)
@@ -1463,7 +1463,7 @@ describe('interface resolver inheritance', () => {
       resolvers,
     });
     const query = '{ user { id name } }';
-    const response = await graphql(mergedSchema, query);
+    const response = await graphql(stitchedSchema, query);
     expect(response.errors.length).toBe(1);
     expect(response.errors[0].message).toBe(
       'Cannot return null for non-nullable field User.id.',
@@ -1472,7 +1472,7 @@ describe('interface resolver inheritance', () => {
   });
 });
 
-describe('mergeSchemas', () => {
+describe('stitchSchemas', () => {
   test('can merge null root fields', async () => {
     const schema = makeExecutableSchema({
       typeDefs: `
@@ -1489,12 +1489,12 @@ describe('mergeSchemas', () => {
         },
       },
     });
-    const mergedSchema = mergeSchemas({
+    const stitchedSchema = stitchSchemas({
       schemas: [schema],
     });
 
     const query = '{ test { field } }';
-    const response = await graphql(mergedSchema, query);
+    const response = await graphql(stitchedSchema, query);
     expect(response.data.test).toBe(null);
     expect(response.errors).toBeUndefined();
   });
@@ -1515,12 +1515,12 @@ describe('mergeSchemas', () => {
         },
       },
     });
-    const mergedSchema = mergeSchemas({
+    const stitchedSchema = stitchSchemas({
       schemas: [schema],
     });
 
     const query = '{ getInput(input: {}) }';
-    const response = await graphql(mergedSchema, query);
+    const response = await graphql(stitchedSchema, query);
 
     if (graphqlVersion() >= 15) {
       expect(printSchema(schema)).toBe(`input InputWithDefault {
@@ -1532,7 +1532,7 @@ type Query {
 }
 `);
     } else {
-      expect(printSchema(schema)).toBe(printSchema(mergedSchema));
+      expect(printSchema(schema)).toBe(printSchema(stitchedSchema));
     }
     expect(response.data?.getInput).toBe('test');
   });
@@ -1558,7 +1558,7 @@ type Query {
         },
       },
     });
-    const mergedSchema = mergeSchemas({
+    const stitchedSchema = stitchSchemas({
       schemas: [schema],
       resolvers: {
         TestScalar: new GraphQLScalarType({
@@ -1572,7 +1572,7 @@ type Query {
     });
 
     const query = '{ getTestScalar }';
-    const response = await graphql(mergedSchema, query);
+    const response = await graphql(stitchedSchema, query);
 
     expect(response.data?.getTestScalar).toBe('test');
   });
@@ -1598,7 +1598,7 @@ type Query {
         },
       },
     });
-    const mergedSchema = mergeSchemas({
+    const stitchedSchema = stitchSchemas({
       schemas: [schema],
       resolvers: {
         TestScalar: new GraphQLScalarType({
@@ -1612,7 +1612,7 @@ type Query {
     });
 
     const query = '{ getTestScalar }';
-    const response = await graphql(mergedSchema, query);
+    const response = await graphql(stitchedSchema, query);
 
     expect(response.data?.getTestScalar).toBe('test');
   });
@@ -1633,7 +1633,7 @@ type Query {
         },
       },
     });
-    const mergedSchema = mergeSchemas({
+    const stitchedSchema = stitchSchemas({
       schemas: [
         schema,
         `
@@ -1663,7 +1663,7 @@ type Query {
         }
       }
     `;
-    const response = await graphql(mergedSchema, query);
+    const response = await graphql(stitchedSchema, query);
     expect(response.data?.get2.subfield).toBe('test');
   });
 
@@ -1679,7 +1679,7 @@ type Query {
       `,
     });
 
-    const mergedSchema = mergeSchemas({
+    const stitchedSchema = stitchSchemas({
       schemas: [schema],
       resolvers: {
         Query: {
@@ -1691,7 +1691,7 @@ type Query {
     });
 
     const query = '{ wrappingObject { functionField } }';
-    const response = await graphql(mergedSchema, query);
+    const response = await graphql(stitchedSchema, query);
     expect(response.data?.wrappingObject.functionField).toBe(8);
   });
 });
@@ -1751,34 +1751,34 @@ describe('onTypeConflict', () => {
   });
 
   test('by default takes last type', async () => {
-    const mergedSchema = mergeSchemas({
+    const stitchedSchema = stitchSchemas({
       schemas: [schema1, schema2],
     });
-    const result1 = await graphql(mergedSchema, '{ test2 { fieldC } }');
+    const result1 = await graphql(stitchedSchema, '{ test2 { fieldC } }');
     expect(result1.data?.test2.fieldC).toBe('C');
-    const result2 = await graphql(mergedSchema, '{ test2 { fieldB } }');
+    const result2 = await graphql(stitchedSchema, '{ test2 { fieldB } }');
     expect(result2.data).toBeUndefined();
   });
 
   test('can use onTypeConflict to select last type', async () => {
-    const mergedSchema = mergeSchemas({
+    const stitchedSchema = stitchSchemas({
       schemas: [schema1, schema2],
       onTypeConflict: (_left, right) => right,
     });
-    const result1 = await graphql(mergedSchema, '{ test2 { fieldC } }');
+    const result1 = await graphql(stitchedSchema, '{ test2 { fieldC } }');
     expect(result1.data?.test2.fieldC).toBe('C');
-    const result2 = await graphql(mergedSchema, '{ test2 { fieldB } }');
+    const result2 = await graphql(stitchedSchema, '{ test2 { fieldB } }');
     expect(result2.data).toBeUndefined();
   });
 
   test('can use onTypeConflict to select first type', async () => {
-    const mergedSchema = mergeSchemas({
+    const stitchedSchema = stitchSchemas({
       schemas: [schema1, schema2],
       onTypeConflict: (left) => left,
     });
-    const result1 = await graphql(mergedSchema, '{ test1 { fieldB } }');
+    const result1 = await graphql(stitchedSchema, '{ test1 { fieldB } }');
     expect(result1.data?.test1.fieldB).toBe('B');
-    const result2 = await graphql(mergedSchema, '{ test1 { fieldC } }');
+    const result2 = await graphql(stitchedSchema, '{ test1 { fieldC } }');
     expect(result2.data).toBeUndefined();
   });
 });
@@ -1888,12 +1888,12 @@ describe('mergeTypes', () => {
       },
     };
 
-    const mergedSchema = mergeSchemas({
+    const stitchedSchema = stitchSchemas({
       subschemas: [subschemaConfig1, subschemaConfig2],
     });
 
     const result1 = await graphql(
-      mergedSchema,
+      stitchedSchema,
       `
         {
           rootField1 {
@@ -1920,7 +1920,7 @@ describe('mergeTypes', () => {
   });
 });
 
-describe('mergeSchemas handles typeDefs with default values', () => {
+describe('stitchSchemas handles typeDefs with default values', () => {
   test('it works', () => {
     const typeDefs = `
       type Query {
@@ -1931,7 +1931,7 @@ describe('mergeSchemas handles typeDefs with default values', () => {
     const schema = makeExecutableSchema({ typeDefs });
     assertValidSchema(schema);
 
-    const mergedSchema = mergeSchemas({ typeDefs });
-    assertValidSchema(mergedSchema);
+    const stitchedSchema = stitchSchemas({ typeDefs });
+    assertValidSchema(stitchedSchema);
   });
 });

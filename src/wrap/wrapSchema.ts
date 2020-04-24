@@ -14,12 +14,12 @@ import {
 } from '../Interfaces';
 
 import { toConfig } from '../polyfills';
-import { defaultMergedResolver } from '../stitch';
+import { defaultMergedResolver } from '../delegate';
 import { mapSchema } from '../utils';
-import resolveFromParentTypename from '../stitch/resolveFromParentTypename';
+import resolveFromParentTypename from '../utils/resolveFromParentTypename';
+import { applySchemaTransforms } from '../utils/transforms';
 
 import { generateProxyingResolvers } from './generateProxyingResolvers';
-import { applySchemaTransforms } from './transforms';
 
 export function wrapSchema(
   subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig,

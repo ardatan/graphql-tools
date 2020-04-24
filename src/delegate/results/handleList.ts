@@ -12,7 +12,7 @@ import {
 } from 'graphql';
 
 import { SubschemaConfig } from '../../Interfaces';
-import { getErrorsByPathSegment } from '../../stitch/errors';
+import { getErrorsByPathSegment } from '../errors';
 
 import { handleNull } from './handleNull';
 import { handleObject } from './handleObject';

@@ -7,7 +7,7 @@ import {
 } from 'graphql';
 
 import { Transform, Request, ExecutionResult } from '../../Interfaces';
-import { relocatedError } from '../../stitch/errors';
+import { relocatedError } from '../../delegate/errors';
 
 export type QueryTransformer = (
   selectionSet: SelectionSetNode,

@@ -6,9 +6,9 @@ import {
 } from 'graphql';
 
 import { addMocksToSchema, MockList, mockServer } from '../mock/index';
+import { addResolversToSchema } from '../addResolvers/index';
 import {
   buildSchemaFromTypeDefinitions,
-  addResolversToSchema,
   makeExecutableSchema,
 } from '../generate/index';
 import { IMocks } from '../Interfaces';

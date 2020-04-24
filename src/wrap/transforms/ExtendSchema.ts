@@ -7,8 +7,8 @@ import {
   Request,
   FieldNodeMappers,
 } from '../../Interfaces';
-import { addResolversToSchema } from '../../generate/index';
-import { defaultMergedResolver } from '../../stitch/index';
+import { addResolversToSchema } from '../../addResolvers/index';
+import { defaultMergedResolver } from '../../delegate/index';
 
 import MapFields from './MapFields';
 

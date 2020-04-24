@@ -19,9 +19,10 @@ import {
   MergedTypeInfo,
   Transform,
   TypeMap,
+  MergeTypeFilter,
 } from '../Interfaces';
-import ExpandAbstractTypes from '../wrap/transforms/ExpandAbstractTypes';
-import AddReplacementFragments from '../wrap/transforms/AddReplacementFragments';
+import ExpandAbstractTypes from '../delegate/transforms/ExpandAbstractTypes';
+import AddReplacementFragments from '../delegate/transforms/AddReplacementFragments';
 import {
   parseFragmentToInlineFragment,
   concatInlineFragments,
@@ -42,14 +43,8 @@ type MergeTypeCandidate = {
 
 export function createMergeInfo(
   allSchemas: Array<GraphQLSchema>,
-  typeCandidates: { [name: string]: Array<MergeTypeCandidate> },
-  mergeTypes?:
-    | boolean
-    | Array<string>
-    | ((
-        typeName: string,
-        mergeTypeCandidates: Array<MergeTypeCandidate>,
-      ) => boolean),
+  typeCandidates: Record<string, Array<MergeTypeCandidate>>,
+  mergeTypes?: boolean | Array<string> | MergeTypeFilter,
 ): MergeInfo {
   return {
     delegate(
@@ -91,14 +86,8 @@ export function createMergeInfo(
 }
 
 function createMergedTypes(
-  typeCandidates: { [name: string]: Array<MergeTypeCandidate> },
-  mergeTypes?:
-    | boolean
-    | Array<string>
-    | ((
-        typeName: string,
-        mergeTypeCandidates: Array<MergeTypeCandidate>,
-      ) => boolean),
+  typeCandidates: Record<string, Array<MergeTypeCandidate>>,
+  mergeTypes?: boolean | Array<string> | MergeTypeFilter,
 ): Record<string, MergedTypeInfo> {
   const mergedTypes: Record<string, MergedTypeInfo> = Object.create(null);
 
@@ -115,7 +104,7 @@ function createMergedTypes(
       if (
         mergeTypes === true ||
         (typeof mergeTypes === 'function' &&
-          mergeTypes(typeName, typeCandidates[typeName])) ||
+          mergeTypes(typeCandidates[typeName], typeName)) ||
         (Array.isArray(mergeTypes) && mergeTypes.includes(typeName)) ||
         mergedTypeCandidates.length
       ) {

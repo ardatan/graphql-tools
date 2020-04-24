@@ -26,17 +26,14 @@ import { mergeDeep } from '../esUtils/mergeDeep';
 
 import {
   OnTypeConflict,
-  IResolversParameter,
   isSubschemaConfig,
   SchemaLikeObject,
   IResolvers,
-  SubschemaConfig,
-  SchemaDirectiveVisitorClass,
+  IStitchSchemasOptions,
+  MergeTypeCandidate,
 } from '../Interfaces';
-import {
-  extractExtensionDefinitions,
-  addResolversToSchema,
-} from '../generate/index';
+import { addResolversToSchema } from '../addResolvers/index';
+import { extractExtensionDefinitions } from '../generate/index';
 import { wrapSchema } from '../wrap/wrapSchema';
 import {
   SchemaDirectiveVisitor,
@@ -50,18 +47,11 @@ import { toConfig, extendSchema } from '../polyfills/index';
 import typeFromAST from './typeFromAST';
 import { createMergeInfo, completeMergeInfo } from './mergeInfo';
 
-type MergeTypeCandidate = {
-  type: GraphQLNamedType;
-  schema?: GraphQLSchema;
-  subschema?: GraphQLSchema | SubschemaConfig;
-  transformedSubschema?: GraphQLSchema;
-};
-
 type CandidateSelector = (
   candidates: Array<MergeTypeCandidate>,
 ) => MergeTypeCandidate;
 
-export default function mergeSchemas({
+export default function stitchSchemas({
   subschemas = [],
   types = [],
   typeDefs,
@@ -75,27 +65,7 @@ export default function mergeSchemas({
   queryTypeName = 'Query',
   mutationTypeName = 'Mutation',
   subscriptionTypeName = 'Subscription',
-}: {
-  subschemas?: Array<GraphQLSchema | SubschemaConfig>;
-  types?: Array<GraphQLNamedType>;
-  typeDefs?: string | DocumentNode;
-  schemas?: Array<SchemaLikeObject>;
-  onTypeConflict?: OnTypeConflict;
-  resolvers?: IResolversParameter;
-  schemaDirectives?: Record<string, SchemaDirectiveVisitorClass>;
-  inheritResolversFromInterfaces?: boolean;
-  mergeTypes?:
-    | boolean
-    | Array<string>
-    | ((
-        typeName: string,
-        mergeTypeCandidates: Array<MergeTypeCandidate>,
-      ) => boolean);
-  mergeDirectives?: boolean;
-  queryTypeName?: string;
-  mutationTypeName?: string;
-  subscriptionTypeName?: string;
-}): GraphQLSchema {
+}: IStitchSchemasOptions): GraphQLSchema {
   const allSchemas: Array<GraphQLSchema> = [];
   const typeCandidates: Record<
     string,
@@ -232,7 +202,7 @@ export default function mergeSchemas({
       (mergeTypes === true &&
         !isScalarType(typeCandidates[typeName][0].type)) ||
       (typeof mergeTypes === 'function' &&
-        mergeTypes(typeName, typeCandidates[typeName])) ||
+        mergeTypes(typeCandidates[typeName], typeName)) ||
       (Array.isArray(mergeTypes) && mergeTypes.includes(typeName)) ||
       typeName in mergeInfo.mergedTypes
     ) {
@@ -248,7 +218,7 @@ export default function mergeSchemas({
 
   healTypes(typeMap, directives, { skipPruning: true });
 
-  let mergedSchema = new GraphQLSchema({
+  let stitchedSchema = new GraphQLSchema({
     query: typeMap[queryTypeName] as GraphQLObjectType,
     mutation: typeMap[mutationTypeName] as GraphQLObjectType,
     subscription: typeMap[subscriptionTypeName] as GraphQLObjectType,
@@ -259,18 +229,18 @@ export default function mergeSchemas({
   });
 
   extensions.forEach((extension) => {
-    mergedSchema = extendSchema(mergedSchema, extension, {
+    stitchedSchema = extendSchema(stitchedSchema, extension, {
       commentDescriptions: true,
     });
   });
 
   addResolversToSchema({
-    schema: mergedSchema,
+    schema: stitchedSchema,
     resolvers: finalResolvers,
     inheritResolversFromInterfaces,
   });
 
-  forEachField(mergedSchema, (field) => {
+  forEachField(stitchedSchema, (field) => {
     if (field.resolve != null) {
       const fieldResolver = field.resolve;
       field.resolve = (parent, args, context, info) => {
@@ -289,12 +259,12 @@ export default function mergeSchemas({
 
   if (schemaDirectives != null) {
     SchemaDirectiveVisitor.visitSchemaDirectives(
-      mergedSchema,
+      stitchedSchema,
       schemaDirectives,
     );
   }
 
-  return mergedSchema;
+  return stitchedSchema;
 }
 
 function addTypeCandidate(
