@@ -1,7 +1,7 @@
 ---
 id: merge-schemas
-title: `GraphQLSchema` merging
-sidebar_label: `GraphQLSchema` merging
+title: GraphQLSchema merging
+sidebar_label: GraphQLSchema merging
 ---
 
 ```TODO: Add differences between merging and stitching```
