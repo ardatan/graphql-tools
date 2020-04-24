@@ -4,16 +4,10 @@ import {
   GraphQLObjectType,
 } from 'graphql';
 
-import {
-  Transform,
-  IResolvers,
-  Operation,
-  SubschemaConfig,
-} from '../Interfaces';
+import { Transform, Operation, SubschemaConfig } from '../Interfaces';
 import delegateToSchema from '../delegate/delegateToSchema';
 import { handleResult } from '../delegate/checkResultAndHandleErrors';
 
-import { makeMergedType } from '../stitch/makeMergedType';
 import { getResponseKeyFromInfo } from '../stitch/getResponseKeyFromInfo';
 import { getSubschema } from '../stitch/subSchema';
 import { getErrors } from '../stitch/errors';
@@ -24,7 +18,7 @@ export function generateProxyingResolvers({
 }: {
   subschemaConfig: SubschemaConfig;
   transforms?: Array<Transform>;
-}): IResolvers {
+}): Record<string, Record<string, GraphQLFieldResolver<any, any>>> {
   const targetSchema = subschemaConfig.schema;
 
   const operationTypes: Record<Operation, GraphQLObjectType> = {
@@ -114,13 +108,4 @@ export function defaultCreateProxyingResolver(
       info,
       transforms,
     });
-}
-
-export function stripResolvers(schema: GraphQLSchema): void {
-  const typeMap = schema.getTypeMap();
-  Object.keys(typeMap).forEach((typeName) => {
-    if (!typeName.startsWith('__')) {
-      makeMergedType(typeMap[typeName]);
-    }
-  });
 }

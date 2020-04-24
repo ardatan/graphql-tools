@@ -1,7 +1,7 @@
 export { wrapSchema } from './wrapSchema';
 export { transformSchema } from './transformSchema';
 
-export { defaultCreateProxyingResolver } from './resolvers';
+export { defaultCreateProxyingResolver } from './generateProxyingResolvers';
 
 export * from './transforms/index';
 

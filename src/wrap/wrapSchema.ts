@@ -1,10 +1,24 @@
-import { GraphQLSchema } from 'graphql';
+import {
+  GraphQLSchema,
+  GraphQLObjectType,
+  GraphQLInterfaceType,
+  GraphQLUnionType,
+  GraphQLFieldResolver,
+} from 'graphql';
 
-import addResolversToSchema from '../generate/addResolversToSchema';
-import { Transform, SubschemaConfig, isSubschemaConfig } from '../Interfaces';
-import { cloneSchema } from '../utils/clone';
+import {
+  Transform,
+  SubschemaConfig,
+  isSubschemaConfig,
+  MapperKind,
+} from '../Interfaces';
 
-import { generateProxyingResolvers, stripResolvers } from './resolvers';
+import { toConfig } from '../polyfills';
+import { defaultMergedResolver } from '../stitch';
+import { mapSchema } from '../utils';
+import resolveFromParentTypename from '../stitch/resolveFromParentTypename';
+
+import { generateProxyingResolvers } from './generateProxyingResolvers';
 import { applySchemaTransforms } from './transforms';
 
 export function wrapSchema(
@@ -17,16 +31,15 @@ export function wrapSchema(
     ? subschemaOrSubschemaConfig
     : { schema: subschemaOrSubschemaConfig };
 
-  const schema = cloneSchema(subschemaConfig.schema);
-
-  stripResolvers(schema);
-
-  const resolvers = generateProxyingResolvers({
+  const proxyingResolvers = generateProxyingResolvers({
     subschemaConfig,
     transforms,
   });
 
-  addResolversToSchema({ schema, resolvers });
+  const schema = createWrappingSchema(
+    subschemaConfig.schema,
+    proxyingResolvers,
+  );
 
   let schemaTransforms: Array<Transform> = [];
   if (subschemaConfig.transforms != null) {
@@ -37,4 +50,48 @@ export function wrapSchema(
   }
 
   return applySchemaTransforms(schema, schemaTransforms);
+}
+
+function createWrappingSchema(
+  schema: GraphQLSchema,
+  proxyingResolvers: Record<
+    string,
+    Record<string, GraphQLFieldResolver<any, any>>
+  >,
+) {
+  return mapSchema(schema, {
+    [MapperKind.ROOT_OBJECT]: (type) => {
+      const config = toConfig(type);
+
+      Object.keys(config.fields).forEach((fieldName) => {
+        config.fields[fieldName] = {
+          ...config.fields[fieldName],
+          ...proxyingResolvers[type.name][fieldName],
+        };
+      });
+
+      return new GraphQLObjectType(config);
+    },
+    [MapperKind.OBJECT_TYPE]: (type) => {
+      const config = toConfig(type);
+      config.isTypeOf = undefined;
+
+      Object.keys(config.fields).forEach((fieldName) => {
+        config.fields[fieldName].resolve = defaultMergedResolver;
+        config.fields[fieldName].subscribe = null;
+      });
+
+      return new GraphQLObjectType(config);
+    },
+    [MapperKind.INTERFACE_TYPE]: (type) => {
+      const config = toConfig(type);
+      config.resolveType = (parent) => resolveFromParentTypename(parent);
+      return new GraphQLInterfaceType(config);
+    },
+    [MapperKind.UNION_TYPE]: (type) => {
+      const config = toConfig(type);
+      config.resolveType = (parent) => resolveFromParentTypename(parent);
+      return new GraphQLUnionType(config);
+    },
+  });
 }
