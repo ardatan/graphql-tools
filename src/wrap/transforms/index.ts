@@ -1,11 +1,3 @@
-export { default as CheckResultAndHandleErrors } from './CheckResultAndHandleErrors';
-export { default as ExpandAbstractTypes } from './ExpandAbstractTypes';
-export { default as AddReplacementSelectionSets } from './AddReplacementSelectionSets';
-export { default as AddMergedTypeSelectionSets } from './AddMergedTypeSelectionSets';
-export { default as AddArgumentsAsVariables } from './AddArgumentsAsVariables';
-export { default as FilterToSchema } from './FilterToSchema';
-export { default as AddTypenameToAbstract } from './AddTypenameToAbstract';
-
 export { default as RenameTypes } from './RenameTypes';
 export { default as FilterTypes } from './FilterTypes';
 export { default as RenameRootTypes } from './RenameRootTypes';
@@ -27,10 +19,6 @@ export { default as WrapFields } from './WrapFields';
 export { default as HoistField } from './HoistField';
 export { default as MapFields } from './MapFields';
 
-// superseded by AddReplacementFragments
-export { default as ReplaceFieldWithFragment } from './ReplaceFieldWithFragment';
-// superseded by AddReplacementSelectionSets
-export { default as AddReplacementFragments } from './AddReplacementFragments';
 // superseded by TransformQuery
 export { default as WrapQuery } from './WrapQuery';
 export { default as ExtractField } from './ExtractField';

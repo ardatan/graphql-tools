@@ -1,6 +1,6 @@
 import { FieldNode, GraphQLError } from 'graphql';
 
-import { getErrorsByPathSegment, combineErrors } from '../../stitch/errors';
+import { getErrorsByPathSegment, combineErrors } from '../errors';
 
 export function handleNull(
   fieldNodes: ReadonlyArray<FieldNode>,

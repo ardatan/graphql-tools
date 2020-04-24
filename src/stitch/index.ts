@@ -1,5 +1,4 @@
-import introspectSchema from './introspectSchema';
-import mergeSchemas from './mergeSchemas';
-import defaultMergedResolver from './defaultMergedResolver';
+export { default as stitchSchemas } from './stitchSchemas';
 
-export { introspectSchema, mergeSchemas, defaultMergedResolver };
+// for backwards compatibility
+export { default as mergeSchemas } from './stitchSchemas';

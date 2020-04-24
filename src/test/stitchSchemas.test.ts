@@ -15,7 +15,7 @@ import {
 import { delegateToSchema } from '../delegate/index';
 import { makeExecutableSchema } from '../generate/index';
 import { IResolvers, SubschemaConfig } from '../Interfaces';
-import { mergeSchemas } from '../stitch/index';
+import { stitchSchemas } from '../stitch/index';
 import {
   cloneSchema,
   getResolversFromSchema,
@@ -334,7 +334,7 @@ const schemaDirectiveTypeDefs = `
 
 testCombinations.forEach((combination) => {
   describe('merging ' + combination.name, () => {
-    let mergedSchema: GraphQLSchema;
+    let stitchedSchema: GraphQLSchema;
     let propertySchema: GraphQLSchema | SubschemaConfig;
     let productSchema: GraphQLSchema | SubschemaConfig;
     let bookingSchema: GraphQLSchema | SubschemaConfig;
@@ -344,7 +344,7 @@ testCombinations.forEach((combination) => {
       bookingSchema = await combination.booking;
       productSchema = await combination.product;
 
-      mergedSchema = mergeSchemas({
+      stitchedSchema = stitchSchemas({
         schemas: [
           propertySchema,
           bookingSchema,
@@ -564,8 +564,8 @@ testCombinations.forEach((combination) => {
           },
         );
 
-        const mergedResult = await graphql(
-          mergedSchema,
+        const stitchedResult = await graphql(
+          stitchedSchema,
           `
             query {
               contextTest(key: "test")
@@ -583,7 +583,7 @@ testCombinations.forEach((combination) => {
           },
         });
 
-        expect(mergedResult).toEqual(propertyResult);
+        expect(stitchedResult).toEqual(propertyResult);
       });
 
       test('works with custom scalars', async () => {
@@ -599,8 +599,8 @@ testCombinations.forEach((combination) => {
           `,
         );
 
-        const mergedResult = await graphql(
-          mergedSchema,
+        const stitchedResult = await graphql(
+          stitchedSchema,
           `
             query {
               dateTimeTest
@@ -619,7 +619,7 @@ testCombinations.forEach((combination) => {
             test3: '6',
           },
         });
-        expect(mergedResult).toEqual(propertyResult);
+        expect(stitchedResult).toEqual(propertyResult);
       });
 
       test('works with custom scalars', async () => {
@@ -637,8 +637,8 @@ testCombinations.forEach((combination) => {
           `,
         );
 
-        const mergedResult = await graphql(
-          mergedSchema,
+        const stitchedResult = await graphql(
+          stitchedSchema,
           `
             query {
               testingScalar(input: "test") {
@@ -663,7 +663,7 @@ testCombinations.forEach((combination) => {
             ],
           },
         });
-        expect(mergedResult).toEqual(scalarResult);
+        expect(stitchedResult).toEqual(scalarResult);
       });
 
       test('works with custom enums', async () => {
@@ -702,8 +702,8 @@ testCombinations.forEach((combination) => {
           `,
         );
 
-        const mergedResult = await graphql(
-          mergedSchema,
+        const stitchedResult = await graphql(
+          stitchedSchema,
           `
             query {
               color(input: RED)
@@ -770,7 +770,7 @@ testCombinations.forEach((combination) => {
             },
           },
         });
-        expect(mergedResult).toEqual(enumResult);
+        expect(stitchedResult).toEqual(enumResult);
       });
 
       test('queries', async () => {
@@ -801,14 +801,14 @@ bookingById(id: "b1") {
           `query { ${bookingFragment} }`,
         );
 
-        const mergedResult = await graphql(
-          mergedSchema,
+        const stitchedResult = await graphql(
+          stitchedSchema,
           `query {
       ${propertyFragment}
       ${bookingFragment}
     }`,
         );
-        expect(mergedResult).toEqual({
+        expect(stitchedResult).toEqual({
           data: {
             ...propertyResult.data,
             ...bookingResult.data,
@@ -846,8 +846,8 @@ bookingById(id: "b1") {
             input,
           },
         );
-        const mergedResult = await graphql(
-          mergedSchema,
+        const stitchedResult = await graphql(
+          stitchedSchema,
           mutationFragment,
           {},
           {},
@@ -856,7 +856,7 @@ bookingById(id: "b1") {
           },
         );
 
-        expect(mergedResult).toEqual(bookingResult);
+        expect(stitchedResult).toEqual(bookingResult);
       });
 
       test('local subscriptions working in merged schema', (done) => {
@@ -875,7 +875,7 @@ bookingById(id: "b1") {
         `);
 
         let notificationCnt = 0;
-        subscribe(mergedSchema, subscription)
+        subscribe(stitchedSchema, subscription)
           .then((results) => {
             forAwaitEach(
               results as AsyncIterable<ExecutionResult>,
@@ -935,7 +935,7 @@ bookingById(id: "b1") {
         `);
 
         let notificationCnt = 0;
-        subscribe(mergedSchema, subscription)
+        subscribe(stitchedSchema, subscription)
           .then((results) => {
             forAwaitEach(
               results as AsyncIterable<ExecutionResult>,
@@ -961,8 +961,8 @@ bookingById(id: "b1") {
       });
 
       test('links in queries', async () => {
-        const mergedResult = await graphql(
-          mergedSchema,
+        const stitchedResult = await graphql(
+          stitchedSchema,
           `
             query {
               firstProperty: propertyById(id: "p2") {
@@ -1000,7 +1000,7 @@ bookingById(id: "b1") {
           `,
         );
 
-        expect(mergedResult).toEqual({
+        expect(stitchedResult).toEqual({
           data: {
             firstProperty: {
               id: 'p2',
@@ -1064,7 +1064,7 @@ bookingById(id: "b1") {
           }
         `;
         const propertyResult = await graphql(localPropertySchema, query);
-        const mergedResult = await graphql(mergedSchema, query);
+        const stitchedResult = await graphql(stitchedSchema, query);
 
         expect(propertyResult).toEqual({
           data: {
@@ -1083,7 +1083,7 @@ bookingById(id: "b1") {
           },
         });
 
-        expect(mergedResult).toEqual(propertyResult);
+        expect(stitchedResult).toEqual(propertyResult);
 
         const delegateQuery = `
           query {
@@ -1099,7 +1099,7 @@ bookingById(id: "b1") {
           }
         `;
 
-        const mergedDelegate = await graphql(mergedSchema, delegateQuery);
+        const mergedDelegate = await graphql(stitchedSchema, delegateQuery);
 
         expect(mergedDelegate).toEqual({
           data: {
@@ -1117,8 +1117,8 @@ bookingById(id: "b1") {
       });
 
       test('unions', async () => {
-        const mergedResult = await graphql(
-          mergedSchema,
+        const stitchedResult = await graphql(
+          stitchedSchema,
           `
             query {
               customerById(id: "c1") {
@@ -1135,7 +1135,7 @@ bookingById(id: "b1") {
           `,
         );
 
-        expect(mergedResult).toEqual({
+        expect(stitchedResult).toEqual({
           data: {
             customerById: {
               name: 'Exampler Customer',
@@ -1146,8 +1146,8 @@ bookingById(id: "b1") {
       });
 
       test('unions with alias', async () => {
-        const mergedResult = await graphql(
-          mergedSchema,
+        const stitchedResult = await graphql(
+          stitchedSchema,
           `
             query {
               customerById(id: "c1") {
@@ -1169,7 +1169,7 @@ bookingById(id: "b1") {
           `,
         );
 
-        expect(mergedResult).toEqual({
+        expect(stitchedResult).toEqual({
           data: {
             customerById: {
               name: 'Exampler Customer',
@@ -1210,8 +1210,8 @@ bookingById(id: "b1") {
             }
           }
         `;
-        const mergedResult = await graphql(mergedSchema, query);
-        expect(mergedResult).toEqual({
+        const stitchedResult = await graphql(stitchedSchema, query);
+        expect(stitchedResult).toEqual({
           data: {
             test1: {
               kind: 'ONE',
@@ -1226,8 +1226,8 @@ bookingById(id: "b1") {
       });
 
       test('interfaces spread from top level functions', async () => {
-        const mergedResult = await graphql(
-          mergedSchema,
+        const stitchedResult = await graphql(
+          stitchedSchema,
           `
             query {
               first: customerById(id: "c1") {
@@ -1251,7 +1251,7 @@ bookingById(id: "b1") {
           `,
         );
 
-        expect(mergedResult).toEqual({
+        expect(stitchedResult).toEqual({
           data: {
             first: {
               id: 'c1',
@@ -1266,8 +1266,8 @@ bookingById(id: "b1") {
       });
 
       test('unions implementing an interface', async () => {
-        const mergedResult = await graphql(
-          mergedSchema,
+        const stitchedResult = await graphql(
+          stitchedSchema,
           `
             query {
               customerById(id: "c1") {
@@ -1293,7 +1293,7 @@ bookingById(id: "b1") {
           `,
         );
 
-        expect(mergedResult).toEqual({
+        expect(stitchedResult).toEqual({
           data: {
             customerById: {
               name: 'Exampler Customer',
@@ -1305,8 +1305,8 @@ bookingById(id: "b1") {
       });
 
       test('input objects with default', async () => {
-        const mergedResult = await graphql(
-          mergedSchema,
+        const stitchedResult = await graphql(
+          stitchedSchema,
           `
             query {
               one: defaultInputTest(input: {})
@@ -1315,7 +1315,7 @@ bookingById(id: "b1") {
           `,
         );
 
-        expect(mergedResult).toEqual({
+        expect(stitchedResult).toEqual({
           data: {
             one: 'Foo',
             two: 'Bar',
@@ -1324,8 +1324,8 @@ bookingById(id: "b1") {
       });
 
       test('deep links', async () => {
-        const mergedResult = await graphql(
-          mergedSchema,
+        const stitchedResult = await graphql(
+          stitchedSchema,
           `
             query {
               propertyById(id: "p2") {
@@ -1346,7 +1346,7 @@ bookingById(id: "b1") {
           `,
         );
 
-        expect(mergedResult).toEqual({
+        expect(stitchedResult).toEqual({
           data: {
             propertyById: {
               id: 'p2',
@@ -1369,8 +1369,8 @@ bookingById(id: "b1") {
       });
 
       test('link arguments', async () => {
-        const mergedResult = await graphql(
-          mergedSchema,
+        const stitchedResult = await graphql(
+          stitchedSchema,
           `
             query {
               propertyById(id: "p1") {
@@ -1387,7 +1387,7 @@ bookingById(id: "b1") {
           `,
         );
 
-        expect(mergedResult).toEqual({
+        expect(stitchedResult).toEqual({
           data: {
             propertyById: {
               id: 'p1',
@@ -1406,7 +1406,7 @@ bookingById(id: "b1") {
       });
 
       test('removes `isTypeOf` checks from proxied schemas', () => {
-        const Booking = mergedSchema.getType('Booking') as GraphQLObjectType;
+        const Booking = stitchedSchema.getType('Booking') as GraphQLObjectType;
         expect(Booking.isTypeOf).toBeUndefined();
       });
 
@@ -1568,7 +1568,7 @@ bookingById(id: "b1") {
             },
           },
         };
-        const schema = mergeSchemas({
+        const schema = stitchSchemas({
           schemas: [
             propertySchema,
             bookingSchema,
@@ -1590,7 +1590,7 @@ bookingById(id: "b1") {
           ],
         });
 
-        const mergedResult = await graphql(
+        const stitchedResult = await graphql(
           schema,
           `
             query {
@@ -1609,7 +1609,7 @@ bookingById(id: "b1") {
             test3: '6',
           },
         };
-        expect(mergedResult).toEqual(expected);
+        expect(stitchedResult).toEqual(expected);
       });
     });
 
@@ -1659,8 +1659,8 @@ fragment BookingFragment on Booking {
           `,
         );
 
-        const mergedResult = await graphql(
-          mergedSchema,
+        const stitchedResult = await graphql(
+          stitchedSchema,
           `
             ${bookingFragment}
             ${propertyFragment}
@@ -1676,7 +1676,7 @@ fragment BookingFragment on Booking {
           `,
         );
 
-        expect(mergedResult).toEqual({
+        expect(stitchedResult).toEqual({
           data: {
             ...propertyResult.data,
             ...bookingResult.data,
@@ -1716,15 +1716,15 @@ bookingById(id: "b1") {
           `query { ${bookingFragment} }`,
         );
 
-        const mergedResult = await graphql(
-          mergedSchema,
+        const stitchedResult = await graphql(
+          stitchedSchema,
           `query {
       ${propertyFragment}
       ${bookingFragment}
     }`,
         );
 
-        expect(mergedResult).toEqual({
+        expect(stitchedResult).toEqual({
           data: {
             ...propertyResult.data,
             ...bookingResult.data,
@@ -1733,8 +1733,8 @@ bookingById(id: "b1") {
       });
 
       test('containing links', async () => {
-        const mergedResult = await graphql(
-          mergedSchema,
+        const stitchedResult = await graphql(
+          stitchedSchema,
           `
             query {
               propertyById(id: "p2") {
@@ -1765,7 +1765,7 @@ bookingById(id: "b1") {
           `,
         );
 
-        expect(mergedResult).toEqual({
+        expect(stitchedResult).toEqual({
           data: {
             propertyById: {
               id: 'p2',
@@ -1843,8 +1843,8 @@ fragment BookingFragment on Booking {
           `,
         );
 
-        const mergedResult = await graphql(
-          mergedSchema,
+        const stitchedResult = await graphql(
+          stitchedSchema,
           `
             ${bookingFragment}
             ${propertyFragment1}
@@ -1862,7 +1862,7 @@ fragment BookingFragment on Booking {
           `,
         );
 
-        expect(mergedResult).toEqual({
+        expect(stitchedResult).toEqual({
           data: {
             ...propertyResult.data,
             ...bookingResult.data,
@@ -1871,8 +1871,8 @@ fragment BookingFragment on Booking {
       });
 
       test('containing fragment on outer type', async () => {
-        const mergedResult = await graphql(
-          mergedSchema,
+        const stitchedResult = await graphql(
+          stitchedSchema,
           `
             query {
               propertyById(id: "p2") {
@@ -1905,7 +1905,7 @@ fragment BookingFragment on Booking {
           `,
         );
 
-        expect(mergedResult).toEqual({
+        expect(stitchedResult).toEqual({
           data: {
             propertyById: {
               id: 'p2',
@@ -1928,8 +1928,8 @@ fragment BookingFragment on Booking {
       });
 
       test('containing links and overlapping fragments on relation', async () => {
-        const mergedResult = await graphql(
-          mergedSchema,
+        const stitchedResult = await graphql(
+          stitchedSchema,
           `
             query {
               propertyById(id: "p2") {
@@ -1962,7 +1962,7 @@ fragment BookingFragment on Booking {
           `,
         );
 
-        expect(mergedResult).toEqual({
+        expect(stitchedResult).toEqual({
           data: {
             propertyById: {
               id: 'p2',
@@ -1985,8 +1985,8 @@ fragment BookingFragment on Booking {
       });
 
       test('containing links and single fragment on relation', async () => {
-        const mergedResult = await graphql(
-          mergedSchema,
+        const stitchedResult = await graphql(
+          stitchedSchema,
           `
             query {
               propertyById(id: "p2") {
@@ -2013,7 +2013,7 @@ fragment BookingFragment on Booking {
           `,
         );
 
-        expect(mergedResult).toEqual({
+        expect(stitchedResult).toEqual({
           data: {
             propertyById: {
               id: 'p2',
@@ -2075,8 +2075,8 @@ fragment BookingFragment on Booking {
           },
         );
 
-        const mergedResult = await graphql(
-          mergedSchema,
+        const stitchedResult = await graphql(
+          stitchedSchema,
           `query($p1: ID!, $b1: ID!) {
         ${propertyFragment}
         ${bookingFragment}
@@ -2089,7 +2089,7 @@ fragment BookingFragment on Booking {
           },
         );
 
-        expect(mergedResult).toEqual({
+        expect(stitchedResult).toEqual({
           data: {
             ...propertyResult.data,
             ...bookingResult.data,
@@ -2098,8 +2098,8 @@ fragment BookingFragment on Booking {
       });
 
       test('in link selections', async () => {
-        const mergedResult = await graphql(
-          mergedSchema,
+        const stitchedResult = await graphql(
+          stitchedSchema,
           `
             query($limit: Int) {
               propertyById(id: "p1") {
@@ -2130,7 +2130,7 @@ fragment BookingFragment on Booking {
           },
         );
 
-        expect(mergedResult).toEqual({
+        expect(stitchedResult).toEqual({
           data: {
             propertyById: {
               id: 'p1',
@@ -2153,7 +2153,7 @@ fragment BookingFragment on Booking {
     describe('aliases', () => {
       test('aliases', async () => {
         const result = await graphql(
-          mergedSchema,
+          stitchedSchema,
           `
             query {
               property: propertyById(id: "p1") {
@@ -2224,7 +2224,7 @@ fragment BookingFragment on Booking {
 
       test('aliases subschema queries', async () => {
         const result = await graphql(
-          mergedSchema,
+          stitchedSchema,
           `
             query {
               customerById(id: "c1") {
@@ -2308,23 +2308,23 @@ fragment BookingFragment on Booking {
                 }`,
         );
 
-        const mergedResult = await graphql(
-          mergedSchema,
+        const stitchedResult = await graphql(
+          stitchedSchema,
           `query {
             ${propertyFragment}
             ${bookingFragment}
           }`,
         );
-        expect(mergedResult.data).toEqual({
+        expect(stitchedResult.data).toEqual({
           ...propertyResult.data,
           ...bookingResult.data,
         });
-        expect(mergedResult.errors.map(removeLocations)).toEqual(
+        expect(stitchedResult.errors.map(removeLocations)).toEqual(
           propertyResult.errors.map(removeLocations),
         );
 
-        const mergedResult2 = await graphql(
-          mergedSchema,
+        const stitchedResult2 = await graphql(
+          stitchedSchema,
           `
                 query {
                   errorTestNonNull
@@ -2333,8 +2333,8 @@ fragment BookingFragment on Booking {
               `,
         );
 
-        expect(mergedResult2.data).toBe(null);
-        expect(mergedResult2.errors.map(removeLocations)).toEqual([
+        expect(stitchedResult2.data).toBe(null);
+        expect(stitchedResult2.errors.map(removeLocations)).toEqual([
           {
             message: 'Sample error non-null!',
             path: ['errorTestNonNull'],
@@ -2344,7 +2344,7 @@ fragment BookingFragment on Booking {
 
       test('nested errors', async () => {
         const result = await graphql(
-          mergedSchema,
+          stitchedSchema,
           `
             query {
               propertyById(id: "p1") {
@@ -2446,9 +2446,9 @@ fragment BookingFragment on Booking {
             propertyQuery,
           );
 
-          const mergedResult = await graphql(mergedSchema, propertyQuery);
+          const stitchedResult = await graphql(stitchedSchema, propertyQuery);
 
-          [propertyResult, mergedResult].forEach((result) => {
+          [propertyResult, stitchedResult].forEach((result) => {
             expect(result.errors).toBeDefined();
             expect(result.errors.length > 0).toBe(true);
             const error = result.errors[0];
@@ -2461,43 +2461,45 @@ fragment BookingFragment on Booking {
 
     describe('types in schema extensions', () => {
       test('should parse descriptions on new types', () => {
-        expect(mergedSchema.getType('AnotherNewScalar').description).toBe(
+        expect(stitchedSchema.getType('AnotherNewScalar').description).toBe(
           'Description of AnotherNewScalar.',
         );
 
-        expect(mergedSchema.getType('TestingScalar').description).toBe(
+        expect(stitchedSchema.getType('TestingScalar').description).toBe(
           'A type that uses TestScalar.',
         );
 
-        expect(mergedSchema.getType('Color').description).toBe(
+        expect(stitchedSchema.getType('Color').description).toBe(
           'A type that uses an Enum.',
         );
 
-        expect(mergedSchema.getType('NumericEnum').description).toBe(
+        expect(stitchedSchema.getType('NumericEnum').description).toBe(
           'A type that uses an Enum with a numeric constant.',
         );
 
-        expect(mergedSchema.getType('LinkType').description).toBe(
+        expect(stitchedSchema.getType('LinkType').description).toBe(
           'A new type linking the Property type.',
         );
 
-        expect(mergedSchema.getType('LinkType').description).toBe(
+        expect(stitchedSchema.getType('LinkType').description).toBe(
           'A new type linking the Property type.',
         );
       });
 
       test('should parse descriptions on new fields', () => {
-        const Query = mergedSchema.getQueryType();
+        const Query = stitchedSchema.getQueryType();
         expect(Query.getFields().linkTest.description).toBe(
           'A new field on the root query.',
         );
 
-        const Booking = mergedSchema.getType('Booking') as GraphQLObjectType;
+        const Booking = stitchedSchema.getType('Booking') as GraphQLObjectType;
         expect(Booking.getFields().property.description).toBe(
           'The property of the booking.',
         );
 
-        const Property = mergedSchema.getType('Property') as GraphQLObjectType;
+        const Property = stitchedSchema.getType(
+          'Property',
+        ) as GraphQLObjectType;
         const bookingsField = Property.getFields().bookings;
         expect(bookingsField.description).toBe('A list of bookings.');
         expect(bookingsField.args[0].description).toBe(
@@ -2507,7 +2509,7 @@ fragment BookingFragment on Booking {
 
       test('should allow defining new types in link type', async () => {
         const result = await graphql(
-          mergedSchema,
+          stitchedSchema,
           `
             query {
               linkTest {
@@ -2536,7 +2538,7 @@ fragment BookingFragment on Booking {
     describe('merge info defined interfaces', () => {
       test('inline fragments on existing types in subschema', async () => {
         const result = await graphql(
-          mergedSchema,
+          stitchedSchema,
           `
             query($pid: ID!, $bid: ID!) {
               property: node(id: $pid) {
@@ -2579,7 +2581,7 @@ fragment BookingFragment on Booking {
 
       test('inline fragments on non-compatible sub schema types', async () => {
         const result = await graphql(
-          mergedSchema,
+          stitchedSchema,
           `
             query($bid: ID!) {
               node(id: $bid) {
@@ -2619,7 +2621,7 @@ fragment BookingFragment on Booking {
 
       test('fragments on non-compatible sub schema types', async () => {
         const result = await graphql(
-          mergedSchema,
+          stitchedSchema,
           `
             query($bid: ID!) {
               node(id: $bid) {
@@ -2665,7 +2667,7 @@ fragment BookingFragment on Booking {
 
       test('fragments on interfaces in merged schema', async () => {
         const result = await graphql(
-          mergedSchema,
+          stitchedSchema,
           `
             query($bid: ID!) {
               node(id: $bid) {
@@ -2704,7 +2706,7 @@ fragment BookingFragment on Booking {
 
       test('multi-interface filter', async () => {
         const result = await graphql(
-          mergedSchema,
+          stitchedSchema,
           `
             query {
               products {
@@ -2738,7 +2740,7 @@ fragment BookingFragment on Booking {
       if (graphqlVersion() >= 13) {
         test('interface extensions', async () => {
           const result = await graphql(
-            mergedSchema,
+            stitchedSchema,
             `
               query {
                 products {
@@ -2772,7 +2774,7 @@ fragment BookingFragment on Booking {
 
       test('arbitrary transforms that return interfaces', async () => {
         const result = await graphql(
-          mergedSchema,
+          stitchedSchema,
           `
             query {
               nodes {
@@ -2833,7 +2835,7 @@ fragment BookingFragment on Booking {
     describe('schema directives', () => {
       test('should work with schema directives', async () => {
         const result = await graphql(
-          mergedSchema,
+          stitchedSchema,
           `
             query {
               propertyById(id: "p1") {
@@ -2856,7 +2858,7 @@ fragment BookingFragment on Booking {
     describe('regression', () => {
       test('should not pass extra arguments to delegates', async () => {
         const result = await graphql(
-          mergedSchema,
+          stitchedSchema,
           `
             query {
               delegateArgumentTest(arbitraryArg: 5) {
@@ -2893,7 +2895,7 @@ fragment BookingFragment on Booking {
           },
         };
 
-        schema = mergeSchemas({
+        schema = stitchSchemas({
           schemas: [schema],
           resolvers,
         });
@@ -2927,7 +2929,7 @@ fragment BookingFragment on Booking {
           },
         };
 
-        const schema = mergeSchemas({
+        const schema = stitchSchemas({
           schemas: [propertySchema, typeDefs],
           resolvers,
         });
@@ -2978,7 +2980,7 @@ fragment BookingFragment on Booking {
       };
 
       const result = await graphql(
-        mergeSchemas({ schemas: [BookSchema, AuthorSchema], resolvers }),
+        stitchSchemas({ schemas: [BookSchema, AuthorSchema], resolvers }),
         `
           query {
             book {
@@ -3034,13 +3036,13 @@ fragment BookingFragment on Booking {
       addMocksToSchema({ schema: bookSchema });
       addMocksToSchema({ schema: movieSchema });
 
-      const mergedSchema = mergeSchemas({
+      const stitchedSchema = stitchSchemas({
         schemas: [bookSchema, movieSchema],
         queryTypeName: 'RootQuery',
       });
 
       const result = await graphql(
-        mergedSchema,
+        stitchedSchema,
         `
           query {
             ... on RootQuery {

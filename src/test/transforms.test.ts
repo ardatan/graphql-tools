@@ -11,9 +11,15 @@ import {
 } from 'graphql';
 import { createError } from 'apollo-errors';
 
-import { delegateToSchema } from '../delegate/index';
+import {
+  delegateToSchema,
+  defaultMergedResolver,
+  ReplaceFieldWithFragment,
+  FilterToSchema,
+  AddReplacementFragments,
+} from '../delegate/index';
 import { makeExecutableSchema } from '../generate/index';
-import { defaultMergedResolver, mergeSchemas } from '../stitch/index';
+import { stitchSchemas } from '../stitch/index';
 import {
   transformSchema,
   RenameTypes,
@@ -21,10 +27,7 @@ import {
   FilterTypes,
   WrapQuery,
   ExtractField,
-  ReplaceFieldWithFragment,
-  FilterToSchema,
   TransformQuery,
-  AddReplacementFragments,
   FilterObjectFields,
 } from '../wrap/index';
 import {
@@ -267,7 +270,7 @@ describe('transforms', () => {
       });
     });
 
-    test('works with mergeSchemas', async () => {
+    test('works with stitchSchemas', async () => {
       const schemaWithCustomRootTypeNames = makeExecutableSchema({
         typeDefs: `
           schema {
@@ -311,7 +314,7 @@ describe('transforms', () => {
 
       addMocksToSchema({ schema: schemaWithDefaultRootTypeNames });
 
-      const mergedSchema = mergeSchemas({
+      const stitchedSchema = stitchSchemas({
         subschemas: [
           schemaWithCustomRootTypeNames,
           {
@@ -324,7 +327,7 @@ describe('transforms', () => {
       });
 
       const result = await graphql(
-        mergedSchema,
+        stitchedSchema,
         `
           mutation {
             doSomething {
@@ -588,7 +591,7 @@ describe('transforms', () => {
 
       assertValidSchema(filteredSchema);
 
-      const mergedSchema = mergeSchemas({
+      const stitchedSchema = stitchSchemas({
         schemas: [
           filteredSchema,
           `
@@ -599,7 +602,7 @@ describe('transforms', () => {
         ],
       });
 
-      assertValidSchema(mergedSchema);
+      assertValidSchema(stitchedSchema);
     });
   });
 

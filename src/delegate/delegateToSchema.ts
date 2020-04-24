@@ -19,24 +19,24 @@ import {
   isSubschemaConfig,
   Transform,
 } from '../Interfaces';
-import ExpandAbstractTypes from '../wrap/transforms/ExpandAbstractTypes';
-import FilterToSchema from '../wrap/transforms/FilterToSchema';
-import AddReplacementSelectionSets from '../wrap/transforms/AddReplacementSelectionSets';
-import AddReplacementFragments from '../wrap/transforms/AddReplacementFragments';
-import AddMergedTypeSelectionSets from '../wrap/transforms/AddMergedTypeSelectionSets';
-import AddTypenameToAbstract from '../wrap/transforms/AddTypenameToAbstract';
-import CheckResultAndHandleErrors from '../wrap/transforms/CheckResultAndHandleErrors';
-import AddArgumentsAsVariables from '../wrap/transforms/AddArgumentsAsVariables';
 import {
   applyRequestTransforms,
   applyResultTransforms,
-} from '../wrap/transforms';
+} from '../utils/transforms';
 
-import linkToFetcher from '../stitch/linkToFetcher';
-import { observableToAsyncIterable } from '../stitch/observableToAsyncIterable';
-import mapAsyncIterator from '../stitch/mapAsyncIterator';
-import { combineErrors } from '../stitch/errors';
+import linkToFetcher from '../links/linkToFetcher';
+import mapAsyncIterator from '../esUtils/mapAsyncIterator';
 
+import ExpandAbstractTypes from './transforms/ExpandAbstractTypes';
+import FilterToSchema from './transforms/FilterToSchema';
+import AddReplacementSelectionSets from './transforms/AddReplacementSelectionSets';
+import AddReplacementFragments from './transforms/AddReplacementFragments';
+import AddMergedTypeSelectionSets from './transforms/AddMergedTypeSelectionSets';
+import AddTypenameToAbstract from './transforms/AddTypenameToAbstract';
+import CheckResultAndHandleErrors from './transforms/CheckResultAndHandleErrors';
+import AddArgumentsAsVariables from './transforms/AddArgumentsAsVariables';
+import { observableToAsyncIterable } from './observableToAsyncIterable';
+import { combineErrors } from './errors';
 import { createRequestFromInfo, getDelegatingOperation } from './createRequest';
 
 export default function delegateToSchema(

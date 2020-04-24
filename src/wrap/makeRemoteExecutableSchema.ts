@@ -1,13 +1,9 @@
 import { ApolloLink } from 'apollo-link';
-import {
-  GraphQLFieldResolver,
-  GraphQLSchema,
-  BuildSchemaOptions,
-} from 'graphql';
+import { GraphQLFieldResolver, GraphQLSchema } from 'graphql';
 
-import { Fetcher } from '../Interfaces';
+import { Fetcher, IMakeRemoteExecutableSchemaOptions } from '../Interfaces';
 import { buildSchema } from '../polyfills/index';
-import linkToFetcher from '../stitch/linkToFetcher';
+import linkToFetcher from '../links/linkToFetcher';
 import { delegateToSchema } from '../delegate';
 
 import { wrapSchema } from './wrapSchema';
@@ -19,16 +15,7 @@ export default function makeRemoteExecutableSchema({
   createResolver = defaultCreateRemoteResolver,
   createSubscriptionResolver = defaultCreateRemoteSubscriptionResolver,
   buildSchemaOptions,
-}: {
-  schema: GraphQLSchema | string;
-  link?: ApolloLink;
-  fetcher?: Fetcher;
-  createResolver?: (fetcher: Fetcher) => GraphQLFieldResolver<any, any>;
-  createSubscriptionResolver?: (
-    link: ApolloLink,
-  ) => GraphQLFieldResolver<any, any>;
-  buildSchemaOptions?: BuildSchemaOptions;
-}): GraphQLSchema {
+}: IMakeRemoteExecutableSchemaOptions): GraphQLSchema {
   let finalFetcher: Fetcher = fetcher;
 
   if (finalFetcher == null && link != null) {

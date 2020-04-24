@@ -3,7 +3,7 @@ import { GraphQLError, responsePathAsArray, GraphQLResolveInfo } from 'graphql';
 import { SubschemaConfig } from '../Interfaces';
 import { mergeDeep } from '../esUtils/mergeDeep';
 
-import { handleNull } from '../delegate/results/handleNull';
+import { handleNull } from './results/handleNull';
 
 import { relocatedError, setErrors, getErrors } from './errors';
 import {

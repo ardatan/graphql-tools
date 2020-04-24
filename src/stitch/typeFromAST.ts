@@ -31,8 +31,7 @@ import {
 
 import { graphqlVersion } from '../utils/index';
 import { createStub, createNamedStub } from '../utils/stub';
-
-import resolveFromParentTypename from './resolveFromParentTypename';
+import resolveFromParentTypename from '../utils/resolveFromParentTypename';
 
 const backcompatOptions = { commentDescriptions: true };
 

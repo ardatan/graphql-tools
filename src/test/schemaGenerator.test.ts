@@ -21,6 +21,7 @@ import {
 } from 'graphql';
 
 import { Logger } from '../generate/Logger';
+import { addResolversToSchema } from '../addResolvers/index';
 import {
   makeExecutableSchema,
   addErrorLoggingToSchema,
@@ -29,7 +30,6 @@ import {
   attachDirectiveResolvers,
   chainResolvers,
   concatenateTypeDefs,
-  addResolversToSchema,
 } from '../generate/index';
 import {
   IResolverValidationOptions,

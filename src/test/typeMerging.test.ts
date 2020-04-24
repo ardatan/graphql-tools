@@ -3,7 +3,11 @@
 
 import { graphql } from 'graphql';
 
-import { mergeSchemas, addMocksToSchema, makeExecutableSchema } from '../index';
+import {
+  stitchSchemas,
+  addMocksToSchema,
+  makeExecutableSchema,
+} from '../index';
 
 const chirpSchema = makeExecutableSchema({
   typeDefs: `
@@ -39,7 +43,7 @@ const authorSchema = makeExecutableSchema({
 
 addMocksToSchema({ schema: authorSchema });
 
-const mergedSchema = mergeSchemas({
+const stitchedSchema = stitchSchemas({
   subschemas: [
     {
       schema: chirpSchema,
@@ -81,7 +85,7 @@ describe('merging using type merging', () => {
       }
     `;
 
-    const result = await graphql(mergedSchema, query);
+    const result = await graphql(stitchedSchema, query);
 
     expect(result.errors).toBeUndefined();
     expect(result.data.userById.chirps[1].id).not.toBe(null);

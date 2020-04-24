@@ -13,7 +13,7 @@
 
 import { graphql } from 'graphql';
 
-import { delegateToSchema, mergeSchemas, addMocksToSchema } from '../index';
+import { delegateToSchema, stitchSchemas, addMocksToSchema } from '../index';
 
 const chirpTypeDefs = `
   type Chirp {
@@ -35,7 +35,7 @@ const authorTypeDefs = `
 const schemas = {};
 const getSchema = (name: string) => schemas[name];
 
-const chirpSchema = mergeSchemas({
+const chirpSchema = stitchSchemas({
   schemas: [
     chirpTypeDefs,
     authorTypeDefs,
@@ -73,7 +73,7 @@ addMocksToSchema({
   preserveResolvers: true,
 });
 
-const authorSchema = mergeSchemas({
+const authorSchema = stitchSchemas({
   schemas: [
     chirpTypeDefs,
     authorTypeDefs,
@@ -113,7 +113,7 @@ addMocksToSchema({
 schemas['chirpSchema'] = chirpSchema;
 schemas['authorSchema'] = authorSchema;
 
-const mergedSchema = mergeSchemas({
+const stitchedSchema = stitchSchemas({
   schemas: Object.keys(schemas).map((schemaName) => schemas[schemaName]),
 });
 
@@ -133,7 +133,7 @@ describe('merging without specifying fragments', () => {
       }
     `;
 
-    const result = await graphql(mergedSchema, query);
+    const result = await graphql(stitchedSchema, query);
 
     expect(result.errors).toBeUndefined();
     expect(result.data.userById.chirps[1].id).not.toBe(null);

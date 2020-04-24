@@ -8,13 +8,13 @@ import {
 } from 'graphql';
 
 import { Fetcher } from '../Interfaces';
+import linkToFetcher from '../links/linkToFetcher';
 
-import { combineErrors } from './errors';
-import linkToFetcher from './linkToFetcher';
+import { combineErrors } from '../delegate/errors';
 
 const parsedIntrospectionQuery: DocumentNode = parse(getIntrospectionQuery());
 
-export default function introspectSchema(
+export function introspectSchema(
   linkOrFetcher: ApolloLink | Fetcher,
   linkContext?: Record<string, any>,
 ): Promise<GraphQLSchema> {

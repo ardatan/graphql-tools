@@ -10,7 +10,7 @@ Schema stitching is the process of creating a single GraphQL schema from multipl
 
 One of the main benefits of GraphQL is that we can query all of our data as part of one schema, and get everything we need in one request. But as the schema grows, it might become cumbersome to manage it all as one codebase, and it starts to make sense to split it into different modules. We may also want to decompose your schema into separate microservices, which can be developed and deployed independently. We may also want to integrate our own schema with remote schemas.
 
-In these cases, we use `mergeSchemas` to combine multiple GraphQL schemas together and produce a new schema that knows how to delegate parts of the query to the relevant subschemas. These subschemas can be either local to the server, or running on a remote server. They can even be services offered by 3rd parties, allowing us to connect to external data and create mashups.
+In these cases, we use `stitchSchemas` to combine multiple GraphQL schemas together and produce a new schema that knows how to delegate parts of the query to the relevant subschemas. These subschemas can be either local to the server, or running on a remote server. They can even be services offered by 3rd parties, allowing us to connect to external data and create mashups.
 
 ## Basic example
 
@@ -20,7 +20,7 @@ In this example we'll stitch together two very simple schemas. In this case, we'
 import {
   makeExecutableSchema,
   addMocksToSchema,
-  mergeSchemas,
+  stitchSchemas,
 } from 'graphql-tools';
 
 // Mocked chirp schema
@@ -59,7 +59,7 @@ const authorSchema = makeExecutableSchema({
 
 addMocksToSchema({ schema: authorSchema });
 
-export const schema = mergeSchemas({
+export const schema = stitchSchemas({
   subschemas: [
     { schema: chirpSchema, },
     { schema: authorSchema, },
@@ -104,7 +104,7 @@ const linkTypeDefs = `
 We can now merge these three schemas together:
 
 ```js
-export const schema = mergeSchemas({
+export const schema = stitchSchemas({
   subschemas: [
     { schema: chirpSchema, },
     { schema: authorSchema, },
@@ -119,14 +119,14 @@ We won't be able to query `User.chirps` or `Chirp.author` yet, however, because 
 
 How should these resolvers be implemented? When we resolve `User.chirps` or `Chirp.author`, we want to _delegate_ to the relevant root fields. To get from a user to the user's chirps, for example, we'll want to use the `id` of the user to call `Query.chirpsByAuthorId`. And to get from a chirp to its author, we can use the chirp's `authorId` field to call the existing `Query.userById` field.
 
-Resolvers can use the `delegateToSchema` function to forward parts of queries (or even whole new queries) to one of the subschemas that was passed to `mergeSchemas` (or any other schema).
+Resolvers can use the `delegateToSchema` function to forward parts of queries (or even whole new queries) to one of the subschemas that was passed to `stitchSchemas` (or any other schema).
 
 In order to delegate to these root fields, we'll need to make sure we've actually requested the `id` of the user or the `authorId` of the chirp. To avoid forcing users to add these fields to their queries manually, resolvers on a merged schema can define a `fragment` property that specifies the required fields, and they will be added to the query automatically.
 
 A complete implementation of schema stitching for these schemas might look like this:
 
 ```js
-const schema = mergeSchemas({
+const schema = stitchSchemas({
   subschemas: [
     { schema: chirpSchema, },
     { schema: authorSchema, },
@@ -181,7 +181,7 @@ For example, suppose we transform the `chirpSchema` by removing the `chirpsByAut
 import {
   makeExecutableSchema,
   addMocksToSchema,
-  mergeSchemas,
+  stitchSchemas,
   FilterRootFields,
   RenameTypes,
   RenameRootFields,
@@ -228,7 +228,7 @@ const chirpSubschema = {
   transforms: chirpSchemaTransforms,
 }
 
-export const schema = mergeSchemas({
+export const schema = stitchSchemas({
   subschemas: [
     chirpSubschema,
     { schema: authorSchema },
@@ -295,7 +295,7 @@ In order to merge with a remote schema, we specify different options within the 
 
 The remote schema may be obtained either via introspection or any other source. A link is a generic ApolloLink method of connecting to a schema, also used by Apollo Client.
 
-Specifying the remote schema options within the `mergeSchemas` call itself allows for skipping an additional round of delegation. The old method of using [makeRemoteExecutableSchema](/remote-schemas/) to create a local proxy for the remote schema would still work, and the same arguments are supported. See the [remote schema](/remote-schemas/) docs for further description of the options available. Subschema configuration allows for specifying an ApolloLink `link`, any fetcher method (if not using subscriptions), or a dispatcher function that takes the graphql `context` object as an argument and dynamically returns a link object or fetcher method.
+Specifying the remote schema options within the `stitchSchemas` call itself allows for skipping an additional round of delegation. The old method of using [makeRemoteExecutableSchema](/remote-schemas/) to create a local proxy for the remote schema would still work, and the same arguments are supported. See the [remote schema](/remote-schemas/) docs for further description of the options available. Subschema configuration allows for specifying an ApolloLink `link`, any fetcher method (if not using subscriptions), or a dispatcher function that takes the graphql `context` object as an argument and dynamically returns a link object or fetcher method.
 
 ## API
 
@@ -321,7 +321,7 @@ export type SchemaLikeObject =
   DocumentNode |
   Array<GraphQLNamedType>;
 
-mergeSchemas({
+stitchSchemas({
   subschemas: Array<SubschemaConfig>;
   types: Array<GraphQLNamedType>;
   typeDefs: string | DocumentNode;
@@ -413,9 +413,9 @@ type OnTypeConflict = (
 ) => GraphQLNamedType;
 ```
 
-The `onTypeConflict` option to `mergeSchemas` allows customization of type resolving logic.
+The `onTypeConflict` option to `stitchSchemas` allows customization of type resolving logic.
 
-The default behavior of `mergeSchemas` is to take the *last* encountered type of all the types with the same name, with a warning that type conflicts have been encountered. If specified, `onTypeConflict` enables explicit selection of the winning type.
+The default behavior of `stitchSchemas` is to take the *last* encountered type of all the types with the same name, with a warning that type conflicts have been encountered. If specified, `onTypeConflict` enables explicit selection of the winning type.
 
 For example, here's how we could select the *first* type among multiple types with the same name:
 
@@ -435,7 +435,7 @@ const onTypeConflict = (left, right, info) => {
 }
 ```
 
-When using schema transforms, `onTypeConflict` is often unnecessary, since transforms can be used to prevent conflicts before merging schemas. However, if you're not using schema transforms, `onTypeConflict` can be a quick way to make `mergeSchemas` produce more desirable results.
+When using schema transforms, `onTypeConflict` is often unnecessary, since transforms can be used to prevent conflicts before merging schemas. However, if you're not using schema transforms, `onTypeConflict` can be a quick way to make `stitchSchemas` produce more desirable results.
 
 #### inheritResolversFromInterfaces
 

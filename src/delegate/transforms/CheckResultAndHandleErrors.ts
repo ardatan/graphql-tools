@@ -1,7 +1,13 @@
-import { GraphQLSchema, GraphQLOutputType, GraphQLResolveInfo } from 'graphql';
+import {
+  GraphQLResolveInfo,
+  ExecutionResult,
+  GraphQLOutputType,
+  GraphQLSchema,
+} from 'graphql';
 
-import { checkResultAndHandleErrors } from '../../delegate/checkResultAndHandleErrors';
 import { Transform, SubschemaConfig } from '../../Interfaces';
+import { getResponseKeyFromInfo } from '../../utils/getResponseKeyFromInfo';
+import { handleResult } from '../results/handleResult';
 
 export default class CheckResultAndHandleErrors implements Transform {
   private readonly context?: Record<string, any>;
@@ -38,4 +44,27 @@ export default class CheckResultAndHandleErrors implements Transform {
       this.typeMerge,
     );
   }
+}
+
+export function checkResultAndHandleErrors(
+  result: ExecutionResult,
+  context: Record<string, any>,
+  info: GraphQLResolveInfo,
+  responseKey: string = getResponseKeyFromInfo(info),
+  subschema?: GraphQLSchema | SubschemaConfig,
+  returnType: GraphQLOutputType = info.returnType,
+  skipTypeMerging?: boolean,
+): any {
+  const errors = result.errors != null ? result.errors : [];
+  const data = result.data != null ? result.data[responseKey] : undefined;
+
+  return handleResult(
+    data,
+    errors,
+    subschema,
+    context,
+    info,
+    returnType,
+    skipTypeMerging,
+  );
 }

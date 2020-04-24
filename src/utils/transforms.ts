@@ -1,7 +1,8 @@
 import { GraphQLSchema } from 'graphql';
 
 import { Request, Transform } from '../Interfaces';
-import { cloneSchema } from '../utils/index';
+
+import { cloneSchema } from './index';
 
 export function applySchemaTransforms(
   originalSchema: GraphQLSchema,

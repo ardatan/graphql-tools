@@ -2,7 +2,7 @@ import { GraphQLSchema, GraphQLObjectType, getNullableType } from 'graphql';
 
 import { healSchema } from '../../utils/index';
 import { wrapFieldNode, renameFieldNode } from '../../utils/fieldNodes';
-import { createMergedResolver } from '../../stitch/createMergedResolver';
+import { createMergedResolver } from '../../delegate/createMergedResolver';
 import { appendFields, removeFields } from '../../utils/fields';
 import { Transform, Request } from '../../Interfaces';
 

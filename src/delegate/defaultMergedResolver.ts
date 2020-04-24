@@ -1,9 +1,9 @@
 import { defaultFieldResolver, GraphQLResolveInfo } from 'graphql';
 
-import { handleResult } from '../delegate/checkResultAndHandleErrors';
+import { getResponseKeyFromInfo } from '../utils/getResponseKeyFromInfo';
 
+import { handleResult } from './results/handleResult';
 import { getSubschema } from './subSchema';
-import { getResponseKeyFromInfo } from './getResponseKeyFromInfo';
 import { getErrors } from './errors';
 
 /**
