@@ -1,4 +1,5 @@
 ---
+id: generate-schema
 title: Generating a schema
 description: Generate a GraphQL schema from the concise type definition language.
 ---

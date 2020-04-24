@@ -1,7 +1,6 @@
 {
   "extends": [
-    "config:base",
-    "docker:disable"
+    "config:base"
   ],
   "automerge": true,
   "major": {

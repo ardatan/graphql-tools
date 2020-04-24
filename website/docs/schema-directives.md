@@ -1,4 +1,5 @@
 ---
+id: schema-directives
 title: Schema directives
 description: Using and implementing custom directives to transform schema types, fields, and arguments
 ---

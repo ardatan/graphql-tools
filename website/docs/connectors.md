@@ -1,4 +1,5 @@
 ---
+id: connectors
 title: Data fetching
 description: How to fetch data from your GraphQL resolvers.
 ---

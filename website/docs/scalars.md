@@ -1,4 +1,5 @@
 ---
+id: scalars
 title: Custom scalars and enums
 description: Add custom scalar and enum types to your graphql-tools generated schema.
 ---

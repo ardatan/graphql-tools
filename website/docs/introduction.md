@@ -1,5 +1,5 @@
 ---
-title: graphql-tools
+title: Introduction
 description: A set of utilities to build your JavaScript GraphQL schema in a concise and powerful way.
 ---
 

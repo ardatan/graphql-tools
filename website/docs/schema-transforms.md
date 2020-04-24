@@ -1,4 +1,5 @@
 ---
+id: schema-transforms
 title: Schema transforms
 description: Automatically transforming schemas
 ---

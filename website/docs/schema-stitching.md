@@ -1,4 +1,5 @@
 ---
+id: schema-stitching
 title: Schema stitching
 description: Combining multiple GraphQL APIs into one
 ---

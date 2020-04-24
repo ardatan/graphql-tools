@@ -1,4 +1,5 @@
 ---
+id: remote-schemas
 title: Remote schemas
 description: Generate GraphQL schema objects that delegate to a remote server
 ---

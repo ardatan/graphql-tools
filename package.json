@@ -28,7 +28,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/apollographql/graphql-tools.git"
+    "url": "git+https://github.com/ardatan/graphql-tools.git"
   },
   "keywords": [
     "GraphQL",
@@ -43,9 +43,9 @@
   "author": "Jonas Helfer <jonas@helfer.email>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/apollographql/graphql-tools/issues"
+    "url": "https://github.com/ardatan/graphql-tools/issues"
   },
-  "homepage": "https://github.com/apollographql/graphql-tools#readme",
+  "homepage": "https://github.com/ardatan/graphql-tools#readme",
   "dependencies": {
     "apollo-link": "^1.2.14",
     "apollo-upload-client": "^13.0.0",

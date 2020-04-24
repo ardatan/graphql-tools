@@ -1,5 +1,3 @@
-/* eslint-disable import/no-nodejs-modules */
-
 import { concat } from 'apollo-link';
 import {
   createUploadLink,

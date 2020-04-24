@@ -1,4 +1,5 @@
 ---
+id: resolvers
 title: Resolvers
 description: Writing resolvers with graphql-tools
 ---
