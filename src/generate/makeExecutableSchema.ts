@@ -12,7 +12,6 @@ import { SchemaDirectiveVisitor, forEachField } from '../utils/index';
 import attachDirectiveResolvers from './attachDirectiveResolvers';
 import assertResolversPresent from './assertResolversPresent';
 import addResolversToSchema from './addResolversToSchema';
-import attachConnectorsToContext from './attachConnectorsToContext';
 import addSchemaLevelResolver from './addSchemaLevelResolver';
 import buildSchemaFromTypeDefinitions from './buildSchemaFromTypeDefinitions';
 import decorateWithLogger from './decorateWithLogger';
@@ -21,7 +20,6 @@ import SchemaError from './SchemaError';
 export function makeExecutableSchema<TContext = any>({
   typeDefs,
   resolvers = {},
-  connectors,
   logger,
   allowUndefinedInResolve = true,
   resolverValidationOptions = {},
@@ -76,12 +74,6 @@ export function makeExecutableSchema<TContext = any>({
       schema,
       resolvers['__schema'] as GraphQLFieldResolver<any, any>,
     );
-  }
-
-  if (connectors != null) {
-    // connectors are optional, at least for now. That means you can just import them in the resolve
-    // function if you want.
-    attachConnectorsToContext(schema, connectors);
   }
 
   if (directiveResolvers != null) {

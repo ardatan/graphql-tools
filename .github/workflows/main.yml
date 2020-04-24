@@ -51,6 +51,8 @@ jobs:
         run: yarn build
       - name: Test
         run: yarn test --logHeapUsage
+        env:
+          CI: true
 
   publish-canary:
     name: Publish Canary
