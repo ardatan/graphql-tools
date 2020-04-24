@@ -1,7 +1,7 @@
 ---
 id: schema-loading
-title: Loading schemas
-sidebar_label: Loading schemas
+title: Schema loading
+sidebar_label: Schema loading
 ---
 
 These utils are useful for scanning, loading and building a GraphQL schema from any input.

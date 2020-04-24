@@ -18,9 +18,10 @@ module.exports = {
       'Schema merging': [
         'merge-typedefs',
         'merge-resolvers',
-        'schema-stitching',
+        'merge-schemas',
       ]
     },
+    'schema-stitching',
     'server-setup',
     'schema-loading',
     'documents-loading',

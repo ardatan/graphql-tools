@@ -1,7 +1,7 @@
 ---
 id: documents-loading
-title: Loading documents
-sidebar_label: Loading documents
+title: Documents loading
+sidebar_label: Documents loading
 ---
 
 Similar to schema loading - but meant to use for GraphQL documents (query/mutation/subscription/fragment).
