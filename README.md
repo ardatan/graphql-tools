@@ -1,4 +1,4 @@
-# GraphQL-tools: generate and mock GraphQL.js schemas
+![tool](https://www.graphql-tools.com/img/banner.gif)
 
 [![npm version](https://badge.fury.io/js/graphql-tools.svg)](https://badge.fury.io/js/graphql-tools)
 [![CI](https://github.com/ardatan/graphql-toolkit/workflows/CI/badge.svg)](https://github.com/ardatan/graphql-toolkit/actions)
