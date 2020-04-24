@@ -19,7 +19,9 @@ describe('heal', () => {
     });
     const originalTypeMap = schema.getTypeMap();
 
-    const config = toConfig(originalTypeMap['WillBeEmptyObject']);
+    const config = toConfig(
+      originalTypeMap['WillBeEmptyObject'] as GraphQLObjectType,
+    );
     originalTypeMap['WillBeEmptyObject'] = new GraphQLObjectType({
       ...config,
       fields: {},

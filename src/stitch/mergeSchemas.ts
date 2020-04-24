@@ -354,12 +354,13 @@ function merge(
       fields: candidates.reduce(
         (acc, candidate) => ({
           ...acc,
-          ...toConfig(candidate.type).fields,
+          ...toConfig(candidate.type as GraphQLObjectType).fields,
         }),
         {},
       ),
       interfaces: candidates.reduce((acc, candidate) => {
-        const interfaces = toConfig(candidate.type).interfaces;
+        const interfaces = toConfig(candidate.type as GraphQLObjectType)
+          .interfaces;
         return interfaces != null ? acc.concat(interfaces) : acc;
       }, []),
     });
@@ -369,14 +370,16 @@ function merge(
       fields: candidates.reduce(
         (acc, candidate) => ({
           ...acc,
-          ...toConfig(candidate.type).fields,
+          ...toConfig(candidate.type as GraphQLInterfaceType).fields,
         }),
         {},
       ),
       ...((graphqlVersion() >= 15
         ? {
             interfaces: candidates.reduce((acc, candidate) => {
-              const interfaces = toConfig(candidate.type).interfaces;
+              const interfaces = toConfig(
+                candidate.type as GraphQLInterfaceType,
+              ).interfaces;
               return interfaces != null ? acc.concat(interfaces) : acc;
             }, []),
           }
@@ -387,7 +390,8 @@ function merge(
     return new GraphQLUnionType({
       name: typeName,
       types: candidates.reduce(
-        (acc, candidate) => acc.concat(toConfig(candidate.type).types),
+        (acc, candidate) =>
+          acc.concat(toConfig(candidate.type as GraphQLUnionType).types),
         [],
       ),
     });
