@@ -1,24 +1,24 @@
 # GraphQL-tools: generate and mock GraphQL.js schemas
 
 [![npm version](https://badge.fury.io/js/graphql-tools.svg)](https://badge.fury.io/js/graphql-tools)
-[![Build Status](https://travis-ci.org/apollographql/graphql-tools.svg?branch=master)](https://travis-ci.org/apollographql/graphql-tools)
+[![CI](https://github.com/ardatan/graphql-toolkit/workflows/CI/badge.svg)](https://github.com/ardatan/graphql-toolkit/actions)
 [![Discord Chat](https://img.shields.io/discord/625400653321076807)](https://discord.gg/xud7bH9)
 
 This package provides a few useful ways to create a GraphQL schema:
 
-1. Use the GraphQL schema language to [generate a schema](https://www.apollographql.com/docs/graphql-tools/generate-schema.html) with full support for resolvers, interfaces, unions, and custom scalars. The schema produced is completely compatible with [GraphQL.js](https://github.com/graphql/graphql-js).
-2. [Mock your GraphQL API](https://www.apollographql.com/docs/graphql-tools/mocking.html) with fine-grained per-type mocking
-3. Automatically [stitch multiple schemas together](https://www.apollographql.com/docs/graphql-tools/schema-stitching.html) into one larger API
+1. Use the GraphQL schema language to [generate a schema](https://graphql-tools.com/docs/generate-schema) with full support for resolvers, interfaces, unions, and custom scalars. The schema produced is completely compatible with [GraphQL.js](https://github.com/graphql/graphql-js).
+2. [Mock your GraphQL API](https://graphql-tools.com/docs/mocking) with fine-grained per-type mocking
+3. Automatically [stitch multiple schemas together](https://graphql-tools.com/docs/schema-stitching) into one larger API
 
 ## Documentation
 
-[Read the docs.](https://www.apollographql.com/docs/graphql-tools/)
+[Read the docs.](https://graphql-tools.com/docs/introduction)
 
 ## Binding to HTTP
 
-If you want to bind your JavaScript GraphQL schema to an HTTP server, we recommend using [Apollo Server](https://github.com/apollographql/apollo-server/), which supports every popular Node HTTP server library including Express, Koa, Hapi, and more.
+If you want to bind your JavaScript GraphQL schema to an HTTP server, you can use [`express-graphql`](https://github.com/graphql/express-graphql).
 
-JavaScript GraphQL servers are often developed with `graphql-tools` and `apollo-server-express` together: One to write the schema and resolver code, and the other to connect it to a web server.
+You can develop your Javascript based GraphQL API with `graphql-tools` and `express-graphql` together: One to write the schema and resolver code, and the other to connect it to a web server.
 
 ## Example
 
@@ -112,7 +112,7 @@ const executableSchema = makeExecutableSchema({
 });
 ```
 
-This example has the entire type definition in one string and all resolvers in one file, but you can combine types and resolvers from multiple files and objects, as documented in the [modularizing the schema](https://www.apollographql.com/docs/graphql-tools/generate-schema.html#modularizing) section of the docs.
+This example has the entire type definition in one string and all resolvers in one file, but you can combine types and resolvers from multiple files and objects, as documented in the [modularizing type definitions](https://graphql-tools/merge-typedefs.html) and [merging resolvers](https://graphql-tools/merge-resolvers.html) section of the docs.
 
 ## Contributions
 
@@ -122,3 +122,6 @@ Contributions, issues and feature requests are very welcome. If you are using th
 
 - [@yaacovCR](https://github.com/yaacovCR)
 - [@kamilkisiela](https://github.com/kamilkisiela) ([The Guild](https://github.com/the-guild-org))
+- [@Urigo](https://github.com/Urigo) ([The Guild](https://github.com/the-guild-org))
+- [@ardatan](https://github.com/ardatan) ([The Guild](https://github.com/the-guild-org))
+- [@dotansimha](https://github.com/dotansimha) ([The Guild](https://github.com/the-guild-org))

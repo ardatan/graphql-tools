@@ -57,7 +57,7 @@ Everything you read below addresses some aspect of how a directive like `@rename
 
 Since the GraphQL specification does not discuss any specific implementation strategy for directives, it's up to each GraphQL server framework to expose an API for implementing new directives.
 
-If you're using Apollo Server, you are also likely to be using the [`graphql-tools`](https://github.com/apollographql/graphql-tools) npm package, which provides a convenient yet powerful tool for implementing directive syntax: the [`SchemaDirectiveVisitor`](https://github.com/apollographql/graphql-tools/blob/master/src/utils/SchemaDirectiveVisitor.ts) class.
+If you're using Apollo Server, you are also likely to be using the [`graphql-tools`](https://github.com/ardatan/graphql-tools) npm package, which provides a convenient yet powerful tool for implementing directive syntax: the [`SchemaDirectiveVisitor`](https://github.com/ardatan/graphql-tools/blob/master/src/utils/SchemaDirectiveVisitor.ts) class.
 
 To implement a schema directive using `SchemaDirectiveVisitor`, simply create a subclass of `SchemaDirectiveVisitor` that overrides one or more of the following visitor methods:
 

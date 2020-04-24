@@ -15,9 +15,9 @@ Even though we recommend a specific way of building GraphQL servers, you can use
 
 ## Using GraphQL with HTTP
 
-If you want to bind your JavaScript GraphQL schema to an HTTP server, we recommend using [Apollo Server](https://www.apollographql.com/docs/apollo-server/), which supports every popular Node HTTP server library including Express, Koa, Hapi, and more.
+If you want to bind your JavaScript GraphQL schema to an HTTP server, you can use [`express-graphql`](https://github.com/graphql/express-graphql).
 
-JavaScript GraphQL servers are often developed with `graphql-tools` and `apollo-server-express` together: One to write the schema and resolver code, and the other to connect it to a web server.
+You can develop your Javascript based GraphQL API with `graphql-tools` and `express-graphql` together: One to write the schema and resolver code, and the other to connect it to a web server.
 
 ## The GraphQL-first philosophy
 
