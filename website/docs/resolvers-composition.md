@@ -4,7 +4,11 @@ title: Resolvers composition
 sidebar_label: Resolvers composition
 ---
 
-`composeResolvers` is a method in `@graphql-toolkit/common` package that accepts `IResolvers` object and mappings for composition functions that would be run before resolver itself.
+Composition tool for GraphQL, with helpers to combine multiple resolvers into one, specify dependencies between fields, and more.
+
+When developing a GraphQL server, it is common to perform some authorization logic on your resolvers, usually based on the context of a request. With Resolvers Composition you can easily accomplish that and still make the code decoupled - thus testable - by combining multiple single-logic resolvers into one.
+
+The following is an example of a simple logged-in authorization logic:
 
 Instead of doing this,
 
@@ -72,3 +76,5 @@ const resolversComposition = {
 
 const composedResolvers = composeResolvers(resolvers, resolversComposition);
 ```
+
+`composeResolvers` is a method in `@graphql-toolkit/common` package that accepts `IResolvers` object and mappings for composition functions that would be run before resolver itself.

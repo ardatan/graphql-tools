@@ -190,41 +190,4 @@ export interface IAddResolveFunctionsToSchemaOptions {
 
 Some operations, such as authentication, need to be done only once per query. Logically, these operations belong in a schema level resolver field resolver, but unfortunately GraphQL-JS does not let you define one. `addSchemaLevelResolver` solves this by modifying the GraphQLSchema that is passed as the first argument.
 
-## Companion tools
-
-Modules and extensions built by the community.
-
-### [graphql-resolvers](https://github.com/lucasconstantino/graphql-resolvers)
-
-Composition library for GraphQL, with helpers to combine multiple resolvers into one, specify dependencies between fields, and more.
-
-When developing a GraphQL server, it is common to perform some authorization logic on your resolvers, usually based on the context of a request. With `graphql-resolvers` you can easily accomplish that and still make the code decoupled - thus testable - by combining multiple single-logic resolvers into one.
-
-The following is an example of a simple logged-in authorization logic:
-
-```js
-const isAuthenticated = (root, args, context, info) => {
-  if (!context.user) {
-    return new Error('Not authenticated')
-  }
-}
-```
-
-Which could be used in an actual field resolver like this:
-
-```js
-import { combineResolvers } from 'graphql-resolvers'
-
-const protectedField = (root, args, context, info) => 'Protected field value'
-
-const resolverMap = {
-  Query: {
-    protectedField: combineResolvers(
-      isAuthenticated,
-      protectedField
-    )
-  }
-}
-```
-
-> Have a project which improves resolvers development? Send us a [pull request](https://github.com/ardatan/graphql-tools/blob/master/CONTRIBUTING.md)!
+> You can check [Resolvers Composition](/docs/resolvers-composition) to compose resolvers with an authentication layer, and some checking operations etc.
