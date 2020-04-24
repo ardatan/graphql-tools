@@ -171,7 +171,7 @@ const schema = mergeSchemas({
 
 ## Using with Transforms
 
-Often, when creating a GraphQL gateway that combines multiple existing schemas, we might want to modify one of the schemas. The most common tasks include renaming some of the types, and filtering the root fields. By using [transforms](/docsschema-transforms/) with schema stitching, we can easily tweak the subschemas before merging them together. (In earlier versions of graphql-tools, this required an additional round of delegation prior to merging, but transforms can now be specifying directly when merging using the new subschema configuration objects.)
+Often, when creating a GraphQL gateway that combines multiple existing schemas, we might want to modify one of the schemas. The most common tasks include renaming some of the types, and filtering the root fields. By using [transforms](/docs/schema-transforms/) with schema stitching, we can easily tweak the subschemas before merging them together. (In earlier versions of graphql-tools, this required an additional round of delegation prior to merging, but transforms can now be specifying directly when merging using the new subschema configuration objects.)
 
 For example, suppose we transform the `chirpSchema` by removing the `chirpsByAuthorId` field and add a `Chirp_` prefix to all types and field names, in order to make it very clear which types and fields came from `chirpSchema`:
 
@@ -293,7 +293,7 @@ In order to merge with a remote schema, we specify different options within the 
 
 The remote schema may be obtained either via introspection or any other source. A link is a generic ApolloLink method of connecting to a schema, also used by Apollo Client.
 
-Specifying the remote schema options within the `mergeSchemas` call itself allows for skipping an additional round of delegation. The old method of using [makeRemoteExecutableSchema](/docsremote-schemas/) to create a local proxy for the remote schema would still work, and the same arguments are supported. See the [remote schema](/docsremote-schemas/) docs for further description of the options available. Subschema configuration allows for specifying an ApolloLink `link`, any fetcher method (if not using subscriptions), or a dispatcher function that takes the graphql `context` object as an argument and dynamically returns a link object or fetcher method.
+Specifying the remote schema options within the `mergeSchemas` call itself allows for skipping an additional round of delegation. The old method of using [makeRemoteExecutableSchema](/docs/remote-schemas/) to create a local proxy for the remote schema would still work, and the same arguments are supported. See the [remote schema](/docs/remote-schemas/) docs for further description of the options available. Subschema configuration allows for specifying an ApolloLink `link`, any fetcher method (if not using subscriptions), or a dispatcher function that takes the graphql `context` object as an argument and dynamically returns a link object or fetcher method.
 
 ## API
 
@@ -350,7 +350,7 @@ This is the main function that implements schema stitching. Read below for a des
 
 #### resolvers
 
-`resolvers` accepts resolvers in same format as [makeExecutableSchema](/docsresolvers/). It can also take an Array of resolvers. One addition to the resolver format is the possibility to specify a `fragment` for a resolver. The `fragment` must be a GraphQL fragment definition string, specifying which fields from the parent schema are required for the resolver to function properly.
+`resolvers` accepts resolvers in same format as [makeExecutableSchema](/docs/resolvers/). It can also take an Array of resolvers. One addition to the resolver format is the possibility to specify a `fragment` for a resolver. The `fragment` must be a GraphQL fragment definition string, specifying which fields from the parent schema are required for the resolver to function properly.
 
 ```js
 resolvers: {
@@ -392,7 +392,7 @@ interface IDelegateToSchemaOptions<TContext = Record<string, any>> {
 }
 ```
 
-As described in the documentation above, `delegateToSchema` allows delegating to any `GraphQLSchema` object, optionally applying transforms in the process. See [Schema Delegation](/docsschema-delegation/) and the [*Using with transforms*](#using-with-transforms) section of this document.
+As described in the documentation above, `delegateToSchema` allows delegating to any `GraphQLSchema` object, optionally applying transforms in the process. See [Schema Delegation](/docs/schema-delegation/) and the [*Using with transforms*](#using-with-transforms) section of this document.
 
 #### onTypeConflict
 
@@ -437,4 +437,4 @@ When using schema transforms, `onTypeConflict` is often unnecessary, since trans
 
 #### inheritResolversFromInterfaces
 
-The `inheritResolversFromInterfaces` option is simply passed through to `addResolversToSchema`, which is called when adding resolvers to the schema under the covers. See [`addResolversToSchema`](/docsresolvers/#addresolverstoschema-schema-resolvers-resolvervalidationoptions-inheritresolversfrominterfaces-) for more info.
+The `inheritResolversFromInterfaces` option is simply passed through to `addResolversToSchema`, which is called when adding resolvers to the schema under the covers. See [`addResolversToSchema`](/docs/resolvers/#addresolverstoschema-schema-resolvers-resolvervalidationoptions-inheritresolversfrominterfaces-) for more info.

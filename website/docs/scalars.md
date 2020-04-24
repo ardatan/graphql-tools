@@ -14,7 +14,7 @@ To define a custom scalar you simply add it to the schema string with the follow
 scalar MyCustomScalar
 ```
 
-Afterwards, you have to define the behavior of your `MyCustomScalar` custom scalar by passing an instance of the [`GraphQLScalarType`](http://graphql.org/graphql-js/type/#graphqlscalartype) class in the [resolver map](/docsresolvers/#resolver-map). This instance can be defined in a [dependency package](#using-a-package) or [in your own code](#custom-graphqlscalartype-instance).
+Afterwards, you have to define the behavior of your `MyCustomScalar` custom scalar by passing an instance of the [`GraphQLScalarType`](http://graphql.org/graphql-js/type/#graphqlscalartype) class in the [resolver map](/docs/resolvers/#resolver-map). This instance can be defined in a [dependency package](#using-a-package) or [in your own code](#custom-graphqlscalartype-instance).
 
 For more information about GraphQL's type system, please refer to the [official documentation](http://graphql.org/graphql-js/type/) or to the [Learning GraphQL](https://github.com/mugli/learning-graphql/blob/master/7.%20Deep%20Dive%20into%20GraphQL%20Type%20System.md) tutorial.
 
@@ -22,19 +22,19 @@ Note that [Apollo Client does not currently have a way to automatically interpre
 
 ### Using a package
 
-Here, we'll take the [graphql-type-json](https://github.com/taion/graphql-type-json) package as an example to demonstrate what can be done. This npm package defines a JSON GraphQL scalar type.
+Here, we'll take the [graphql-scalars](https://github.com/Urigo/graphql-scalars) package as an example to demonstrate what can be done. This npm package defines a JSON GraphQL scalar type.
 
-Add the `graphql-type-json` package to your project's dependencies :
+Add the `graphql-scalars` package to your project's dependencies :
 
 ```shell
-$ npm install --save graphql-type-json
+$ npm install --save graphql-scalars
 ```
 
 In your JavaScript code, require the type defined by in the npm package and use it :
 
 ```js
 import { makeExecutableSchema } from 'graphql-tools';
-import GraphQLJSON from 'graphql-type-json';
+import { GraphQLJSON } from 'graphql-scalars';
 
 const schemaString = `
 
