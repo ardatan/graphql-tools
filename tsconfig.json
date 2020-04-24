@@ -3,9 +3,9 @@
     "rootDir": "./src",
     "outDir": "./dist",
 
-    "lib": ["es7", "esnext.asynciterable", "dom"],
+    "lib": ["esnext", "dom"],
 
-    "target": "es5",
+    "target": "es2015",
     "module": "es2015",
     "moduleResolution": "node",
     "esModuleInterop": true,

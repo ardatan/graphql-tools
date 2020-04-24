@@ -25,7 +25,6 @@ import {
   makeExecutableSchema,
   addErrorLoggingToSchema,
   addSchemaLevelResolver,
-  attachConnectorsToContext,
   attachDirectiveResolvers,
   chainResolvers,
   concatenateTypeDefs,
@@ -76,8 +75,6 @@ function expectWarning(fn: () => void, warnMatcher?: string) {
 const testSchema = `
       type RootQuery {
         usecontext: String
-        useTestConnector: String
-        useContextConnector: String
         species(name: String): String
         stuff: String
       }
@@ -89,34 +86,9 @@ const testResolvers = {
   __schema: () => ({ stuff: 'stuff', species: 'ROOT' }),
   RootQuery: {
     usecontext: (_r: any, _a: Record<string, any>, ctx: any) => ctx.usecontext,
-    useTestConnector: (_r: any, _a: Record<string, any>, ctx: any) =>
-      ctx.connectors.TestConnector.get(),
-    useContextConnector: (_r: any, _a: Record<string, any>, ctx: any) =>
-      ctx.connectors.ContextConnector.get(),
     species: (root: any, { name }: { name: string }) =>
       (root.species as string) + name,
   },
-};
-class TestConnector {
-  public get() {
-    return 'works';
-  }
-}
-
-class ContextConnector {
-  private readonly str: string;
-
-  constructor(ctx: any) {
-    this.str = ctx.str;
-  }
-
-  public get() {
-    return this.str;
-  }
-}
-const testConnectors = {
-  TestConnector,
-  ContextConnector,
 };
 
 describe('generating schema from shorthand', () => {
@@ -2134,7 +2106,7 @@ describe('Add error logging to schema', () => {
   });
 });
 
-describe('Attaching connectors to schema', () => {
+describe('Attaching external data fetchers to schema', () => {
   describe('Schema level resolver', () => {
     test('actually runs', () => {
       const jsSchema = makeExecutableSchema({
@@ -2171,10 +2143,6 @@ describe('Attaching connectors to schema', () => {
         RootQuery: {
           usecontext: (_r: any, _a: Record<string, any>, ctx: any) =>
             ctx.usecontext,
-          useTestConnector: (_r: any, _a: Record<string, any>, ctx: any) =>
-            ctx.connectors.TestConnector.get(),
-          useContextConnector: (_r: any, _a: Record<string, any>, ctx: any) =>
-            ctx.connectors.ContextConnector.get(),
           species: (root: any, { name }: { name: string }) =>
             (root.species as string) + name,
         },
@@ -2210,10 +2178,6 @@ describe('Attaching connectors to schema', () => {
         RootQuery: {
           usecontext: (_r: any, _a: Record<string, any>, ctx: any) =>
             ctx.usecontext,
-          useTestConnector: (_r: any, _a: Record<string, any>, ctx: any) =>
-            ctx.connectors.TestConnector.get(),
-          useContextConnector: (_r: any, _a: Record<string, any>, ctx: any) =>
-            ctx.connectors.ContextConnector.get(),
           species: (root: any, { name }: { name: string }) =>
             (root.species as string) + name,
         },
@@ -2275,198 +2239,8 @@ describe('Attaching connectors to schema', () => {
       });
     });
 
-    test('can attach with existing static connectors', () => {
-      const resolvers = {
-        RootQuery: {
-          testString(_root: any, _args: Record<string, any>, ctx: any) {
-            return ctx.connectors.staticString;
-          },
-        },
-      };
-      const typeDefs = `
-          type RootQuery {
-            testString: String
-          }
-
-          schema {
-            query: RootQuery
-          }
-      `;
-      const jsSchema = makeExecutableSchema({
-        typeDefs,
-        resolvers,
-        connectors: testConnectors,
-      });
-      const query = `{
-        testString
-      }`;
-      const expected = {
-        testString: 'Hi You!',
-      };
-      return graphql(
-        jsSchema,
-        query,
-        {},
-        {
-          connectors: {
-            staticString: 'Hi You!',
-          },
-        },
-      ).then((res) => {
-        expect(res.data).toEqual(expected);
-      });
-    });
   });
 
-  test('actually attaches the connectors', () => {
-    const jsSchema = makeExecutableSchema({
-      typeDefs: testSchema,
-      resolvers: testResolvers,
-    });
-    attachConnectorsToContext(jsSchema, testConnectors);
-    const query = `{
-      useTestConnector
-    }`;
-    const expected = {
-      useTestConnector: 'works',
-    };
-    return graphql(jsSchema, query, {}, {}).then((res) => {
-      expect(res.data).toEqual(expected);
-    });
-  });
-
-  test('actually passes the context to the connector constructor', () => {
-    const jsSchema = makeExecutableSchema({
-      typeDefs: testSchema,
-      resolvers: testResolvers,
-    });
-    attachConnectorsToContext(jsSchema, testConnectors);
-    const query = `{
-      useContextConnector
-    }`;
-    const expected = {
-      useContextConnector: 'YOYO',
-    };
-    return graphql(jsSchema, query, {}, { str: 'YOYO' }).then((res) => {
-      expect(res.data).toEqual(expected);
-    });
-  });
-
-  test('throws error if trying to attach connectors twice', () => {
-    const jsSchema = makeExecutableSchema({
-      typeDefs: testSchema,
-      resolvers: testResolvers,
-    });
-    attachConnectorsToContext(jsSchema, testConnectors);
-    return expect(() =>
-      attachConnectorsToContext(jsSchema, testConnectors),
-    ).toThrowError(
-      'Connectors already attached to context, cannot attach more than once',
-    );
-  });
-
-  test('throws error during execution if context is not an object', () => {
-    const jsSchema = makeExecutableSchema({
-      typeDefs: testSchema,
-      resolvers: testResolvers,
-    });
-    attachConnectorsToContext(jsSchema, { someConnector: {} });
-    const query = `{
-      useTestConnector
-    }`;
-    return graphql(jsSchema, query, {}, 'notObject').then((res) => {
-      expect(res.errors[0].originalError.message).toBe(
-        'Cannot attach connector because context is not an object: string',
-      );
-    });
-  });
-
-  test('throws error if trying to attach non-functional connectors', () => {
-    const jsSchema = makeExecutableSchema({
-      typeDefs: testSchema,
-      resolvers: testResolvers,
-    });
-    attachConnectorsToContext(jsSchema, { testString: 'a' });
-    const query = `{
-      species(name: "strix")
-      stuff
-      useTestConnector
-    }`;
-    return graphql(jsSchema, query, undefined, {}).then((res) => {
-      expect(res.errors[0].originalError.message).toBe(
-        'Connector must be a function or an class',
-      );
-    });
-  });
-
-  test('does not interfere with schema level resolver', () => {
-    const jsSchema = makeExecutableSchema({
-      typeDefs: testSchema,
-      resolvers: testResolvers,
-    });
-    const rootResolver = () => ({ stuff: 'stuff', species: 'ROOT' });
-    addSchemaLevelResolver(jsSchema, rootResolver);
-    attachConnectorsToContext(jsSchema, testConnectors);
-    const query = `{
-      species(name: "strix")
-      stuff
-      useTestConnector
-    }`;
-    const expected = {
-      species: 'ROOTstrix',
-      stuff: 'stuff',
-      useTestConnector: 'works',
-    };
-    return graphql(jsSchema, query, {}, {}).then((res) => {
-      expect(res.data).toEqual(expected);
-    });
-    // TODO test schemaLevelResolve function with wrong arguments
-  });
-
-  // TODO test attachConnectors with wrong arguments
-  test('throws error if no schema is passed', () => {
-    expect(() => attachConnectorsToContext()).toThrowError(
-      'schema must be an instance of GraphQLSchema. ' +
-        'This error could be caused by installing more than one version of GraphQL-JS',
-    );
-  });
-
-  test('throws error if schema is not an instance of GraphQLSchema', () => {
-    expect(() => attachConnectorsToContext({})).toThrowError(
-      'schema must be an instance of GraphQLSchema. ' +
-        'This error could be caused by installing more than one version of GraphQL-JS',
-    );
-  });
-
-  test('throws error if connectors argument is an array', () => {
-    const jsSchema = makeExecutableSchema({
-      typeDefs: testSchema,
-      resolvers: testResolvers,
-    });
-    expect(() => attachConnectorsToContext(jsSchema, [1])).toThrowError(
-      'Expected connectors to be of type object, got Array',
-    );
-  });
-
-  test('throws error if connectors argument is an empty object', () => {
-    const jsSchema = makeExecutableSchema({
-      typeDefs: testSchema,
-      resolvers: testResolvers,
-    });
-    return expect(() => attachConnectorsToContext(jsSchema, {})).toThrowError(
-      'Expected connectors to not be an empty object',
-    );
-  });
-
-  test('throws error if connectors argument is not an object', () => {
-    const jsSchema = makeExecutableSchema({
-      typeDefs: testSchema,
-      resolvers: testResolvers,
-    });
-    return expect(() => attachConnectorsToContext(jsSchema, 'a')).toThrowError(
-      'Expected connectors to be of type object, got string',
-    );
-  });
 });
 
 describe('Generating a full graphQL schema with resolvers and connectors', () => {
@@ -2474,18 +2248,15 @@ describe('Generating a full graphQL schema with resolvers and connectors', () =>
     const schema = makeExecutableSchema({
       typeDefs: testSchema,
       resolvers: testResolvers,
-      connectors: testConnectors,
     });
     const query = `{
       species(name: "uhu")
       stuff
       usecontext
-      useTestConnector
     }`;
     const expected = {
       species: 'ROOTuhu',
       stuff: 'stuff',
-      useTestConnector: 'works',
       usecontext: 'ABC',
     };
     return graphql(schema, query, {}, { usecontext: 'ABC' }).then((res) => {

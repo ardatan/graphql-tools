@@ -5,7 +5,7 @@ import {
   isExtractableFile,
 } from 'apollo-upload-client';
 import FormData, { AppendOptions } from 'form-data';
-import fetch from 'node-fetch';
+import { fetch } from 'cross-fetch';
 
 import { AwaitVariablesLink } from './AwaitVariablesLink';
 
