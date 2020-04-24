@@ -2238,9 +2238,7 @@ describe('Attaching external data fetchers to schema', () => {
         expect(res.data).toEqual(expected);
       });
     });
-
   });
-
 });
 
 describe('Generating a full graphQL schema with resolvers and connectors', () => {

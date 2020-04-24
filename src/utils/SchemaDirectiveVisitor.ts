@@ -141,7 +141,7 @@ export class SchemaDirectiveVisitor<
     > = Object.entries(directiveVisitors).reduce(
       (prev, [key, value]) => ({
         ...prev,
-        [key]: value
+        [key]: value,
       }),
       {},
     );
@@ -230,7 +230,6 @@ export class SchemaDirectiveVisitor<
     schema: GraphQLSchema,
     directiveVisitors: Record<string, SchemaDirectiveVisitorClass>,
   ): Record<string, GraphQLDirective> {
-
     const declaredDirectives: Record<
       string,
       GraphQLDirective

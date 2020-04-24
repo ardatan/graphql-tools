@@ -564,7 +564,7 @@ describe('@directives', () => {
     });
 
     for (const methodName of methodNamesEncountered) {
-      expect(methodName in SchemaVisitor.prototype).toBeTruthy()
+      expect(methodName in SchemaVisitor.prototype).toBeTruthy();
     }
   });
 

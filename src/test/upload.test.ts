@@ -51,7 +51,10 @@ function testGraphqlMultipartRequest(query: string, port: number) {
   body.append('map', '{ "1": ["variables.file"] }');
   body.append('1', 'abc', { filename: __filename });
 
-  return fetch(`http://localhost:${port.toString()}`, { method: 'POST', body: body as unknown as BodyInit });
+  return fetch(`http://localhost:${port.toString()}`, {
+    method: 'POST',
+    body: (body as unknown) as BodyInit,
+  });
 }
 
 describe('graphql upload', () => {
