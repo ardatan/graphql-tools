@@ -1,7 +1,7 @@
 import { GraphQLError, GraphQLResolveInfo, graphql } from 'graphql';
 
 import { relocatedError, getErrors } from '../delegate/errors';
-import { checkResultAndHandleErrors } from '../delegate/transforms/checkResultAndHandleErrors';
+import { checkResultAndHandleErrors } from '../delegate/transforms/CheckResultAndHandleErrors';
 import { makeExecutableSchema } from '../generate/index';
 import { stitchSchemas } from '../stitch/index';
 import { ERROR_SYMBOL } from '../delegate/symbols';
