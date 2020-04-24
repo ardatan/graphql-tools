@@ -63,23 +63,36 @@ export default class RenameTypes implements Transform {
           this.map[oldName] = newName;
           this.reverseMap[newName] = oldName;
 
-          const newConfig = {
-            ...toConfig(type),
-            name: newName,
-          };
-
           if (isObjectType(type)) {
-            return new GraphQLObjectType(newConfig);
+            return new GraphQLObjectType({
+              ...toConfig(type),
+              name: newName,
+            });
           } else if (isInterfaceType(type)) {
-            return new GraphQLInterfaceType(newConfig);
+            return new GraphQLInterfaceType({
+              ...toConfig(type),
+              name: newName,
+            });
           } else if (isUnionType(type)) {
-            return new GraphQLUnionType(newConfig);
+            return new GraphQLUnionType({
+              ...toConfig(type),
+              name: newName,
+            });
           } else if (isInputObjectType(type)) {
-            return new GraphQLInputObjectType(newConfig);
+            return new GraphQLInputObjectType({
+              ...toConfig(type),
+              name: newName,
+            });
           } else if (isEnumType(type)) {
-            return new GraphQLEnumType(newConfig);
+            return new GraphQLEnumType({
+              ...toConfig(type),
+              name: newName,
+            });
           } else if (isScalarType(type)) {
-            return new GraphQLScalarType(newConfig);
+            return new GraphQLScalarType({
+              ...toConfig(type),
+              name: newName,
+            });
           }
 
           throw new Error(`Unknown type ${type as string}.`);

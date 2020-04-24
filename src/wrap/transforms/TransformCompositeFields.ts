@@ -81,7 +81,10 @@ export default class TransformCompositeFields implements Transform {
     fieldTransformer: FieldTransformer,
   ): GraphQLInterfaceType;
 
-  private transformFields(type: any, fieldTransformer: FieldTransformer): any {
+  private transformFields(
+    type: GraphQLObjectType | GraphQLInterfaceType,
+    fieldTransformer: FieldTransformer,
+  ): any {
     const typeConfig = toConfig(type);
     const fields = type.getFields();
     const newFields = {};
