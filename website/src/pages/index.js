@@ -59,23 +59,21 @@ function Home() {
       title="Welcome"
       description={siteConfig.tagline}>
       <header className={classnames('hero hero--primary', styles.heroBanner)}>
-        <div className="container">
  {/*         <h1 className="hero__title">{siteConfig.title}</h1>
   <p className="hero__subtitle">{siteConfig.tagline}</p>*/}
-          <img src="/img/banner.gif" />
-          <p>
-            <img src="https://img.shields.io/npm/v/graphql-tools?color=%231441d6&label=stable&style=for-the-badge" />
-          </p>
-          <div className={styles.buttons}>
-            <Link
-              className={classnames(
-                'button button--outline button--secondary button--lg',
-                styles.getStarted,
-              )}
-              to={useBaseUrl('docs/introduction')}>
-              View Docs
-            </Link>
-          </div>
+        <img src="/img/banner.gif" className={styles.heroImage} />
+        <p>
+          <img src="https://img.shields.io/npm/v/graphql-tools?color=%231441d6&label=stable&style=for-the-badge" />
+        </p>
+        <div className={styles.buttons}>
+          <Link
+            className={classnames(
+              'button button--outline button--secondary button--lg',
+              styles.getStarted,
+            )}
+            to={useBaseUrl('docs/introduction')}>
+            View Docs
+          </Link>
         </div>
       </header>
       <main>

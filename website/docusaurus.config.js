@@ -10,10 +10,10 @@ module.exports = {
   projectName: 'graphql-tools', // Usually your repo name.
   themeConfig: {
     navbar: {
-      title: 'GraphQL Tools',
+      // title: 'GraphQL Tools',
       logo: {
         alt: 'GraphQL Tools Logo',
-        src: 'img/logo.svg',
+        src: 'img/logo.png',
       },
       links: [
         {

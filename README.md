@@ -1,4 +1,4 @@
-![tool](https://www.graphql-tools.com/img/banner.gif)
+[![toolskit](https://user-images.githubusercontent.com/20847995/80261023-feb6e380-8691-11ea-8680-5747fa02c5d8.gif)](https://graphql-tools.com)
 
 [![npm version](https://badge.fury.io/js/graphql-tools.svg)](https://badge.fury.io/js/graphql-tools)
 [![CI](https://github.com/ardatan/graphql-toolkit/workflows/CI/badge.svg)](https://github.com/ardatan/graphql-toolkit/actions)
