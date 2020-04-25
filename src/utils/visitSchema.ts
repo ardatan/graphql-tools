@@ -29,6 +29,15 @@ import {
 import { healSchema } from './heal';
 import { SchemaVisitor } from './SchemaVisitor';
 
+function isSchemaVisitor(obj: any): obj is SchemaVisitor {
+  if ('schema' in obj && isSchema(obj.schema)) {
+    if ('visitSchema' in obj && typeof obj.visitSchema === 'function') {
+      return true;
+    }
+  }
+  return false;
+}
+
 // Generic function for visiting GraphQLSchema objects.
 export function visitSchema(
   schema: GraphQLSchema,
@@ -69,7 +78,7 @@ export function visitSchema(
     let finalType: T | null = type;
     visitors.every((visitorOrVisitorDef) => {
       let newType;
-      if (visitorOrVisitorDef instanceof SchemaVisitor) {
+      if (isSchemaVisitor(visitorOrVisitorDef)) {
         newType = visitorOrVisitorDef[methodName](finalType, ...args);
       } else if (
         isNamedType(finalType) &&

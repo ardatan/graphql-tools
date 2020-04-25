@@ -34,7 +34,7 @@ export abstract class SchemaVisitor {
       return false;
     }
 
-    if (this === SchemaVisitor) {
+    if (this.name === 'SchemaVisitor') {
       // The SchemaVisitor class implements every visitor method.
       return true;
     }

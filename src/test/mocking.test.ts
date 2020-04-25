@@ -1,9 +1,13 @@
+/* eslint-disable camelcase */
 import {
   graphql,
   GraphQLResolveInfo,
   GraphQLSchema,
   GraphQLFieldResolver,
+  buildSchema,
 } from 'graphql';
+
+import { sentence, first_name } from 'casual';
 
 import { addMocksToSchema, MockList, mockServer } from '../mock/index';
 import { addResolversToSchema } from '../addResolvers/index';
@@ -1519,6 +1523,55 @@ describe('Mock', () => {
         },
       },
     });
+  });
+
+  it('should work with casual and MockList', async () => {
+    const mocks = {
+      Date: () => new Date(),
+      Review: () => ({
+        sentence,
+      }),
+      User: () => ({
+        first_name,
+      }),
+      Query: () => ({
+        reviews: () => new MockList([1, 4]),
+      }),
+    };
+
+    const schema = buildSchema(/* GraphQL */ `
+      scalar Date
+      type Review {
+        sentence: String
+        user: User
+      }
+      type User {
+        first_name: String
+      }
+      type Query {
+        reviews: [Review]
+      }
+    `);
+
+    addMocksToSchema({ schema, mocks });
+
+    const result = await graphql({
+      schema,
+      source: /* GraphQL */ `
+        {
+          reviews {
+            sentence
+            user {
+              first_name
+            }
+          }
+        }
+      `,
+    });
+
+    expect(result.data?.reviews?.length <= 4).toBeTruthy();
+    expect(typeof result.data?.reviews[0]?.sentence).toBe('string');
+    expect(typeof result.data?.reviews[0]?.user?.first_name).toBe('string');
   });
 
   // TODO add a test that checks that even when merging defaults, lists invoke
