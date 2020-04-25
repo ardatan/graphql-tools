@@ -62,9 +62,9 @@ function Home() {
  {/*         <h1 className="hero__title">{siteConfig.title}</h1>
   <p className="hero__subtitle">{siteConfig.tagline}</p>*/}
         <img src="/img/banner.gif" className={styles.heroImage} />
-        <p>
+        <a href="https://npmjs.com/graphql-tools" className={styles.npmBadge}>
           <img src="https://img.shields.io/npm/v/graphql-tools?color=%231441d6&label=stable&style=for-the-badge" />
-        </p>
+        </a>
         <div className={styles.buttons}>
           <Link
             className={classnames(
@@ -72,7 +72,7 @@ function Home() {
               styles.getStarted,
             )}
             to={useBaseUrl('docs/introduction')}>
-            View Docs
+            Get Started
           </Link>
         </div>
       </header>

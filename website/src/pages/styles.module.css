@@ -7,7 +7,7 @@
 .heroBanner {
   /*padding: 4rem 0;*/
   padding: 0;
-  padding-bottom: 2rem;
+  padding-bottom: 1rem;
   text-align: center;
   position: relative;
   overflow: hidden;
@@ -20,7 +20,8 @@
 .heroImage {
   width: 100%;
   max-width: 1218px;
-  margin-bottom: -100px;
+  margin-bottom: -110px;
+  -webkit-box-reflect: right;
 }
 
 @media screen and (max-width: 966px) {
@@ -32,10 +33,16 @@
   }
 }
 
+.npmBadge {
+  margin-bottom: 6px !important;
+  z-index: 1;
+}
+
 .buttons {
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 1;
 }
 
 .features {
@@ -56,4 +63,27 @@
 
 .featureContent {
   text-align: center;
+}
+
+.getStarted {
+  cursor: pointer;
+  border: 1px solid var(--ifm-link-color);
+  border-radius: 3px;
+  color: var(--ifm-link-color) !important;
+  display: inline-block;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.2em;
+  padding: 10px;
+  text-decoration: none !important;
+  text-transform: uppercase;
+  transition: background 0.3s, color 0.3s;
+  margin: 5px;
+  background: transparent;
+}
+
+.getStarted:hover {
+  background: var(--ifm-link-color);
+  color: #fff !important;
+  text-decoration: none;
 }

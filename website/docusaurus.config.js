@@ -9,6 +9,7 @@ module.exports = {
   organizationName: 'ardatan', // Usually your GitHub org/user name.
   projectName: 'graphql-tools', // Usually your repo name.
   themeConfig: {
+    defaultDarkMode: true,
     navbar: {
       // title: 'GraphQL Tools',
       logo: {
