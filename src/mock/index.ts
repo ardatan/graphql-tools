@@ -388,10 +388,15 @@ function assignResolveType(type: GraphQLType, preserveResolvers: boolean) {
   }
 }
 
-export function isMockList(obj: any): obj is MockList  {
-  if (typeof obj?.len === 'number' ||
-  (Array.isArray(obj?.len) && typeof obj?.len[0] === 'number')) {
-    if (typeof obj.wrappedFunction === 'undefined' || typeof obj.wrappedFunction === 'function') {
+export function isMockList(obj: any): obj is MockList {
+  if (
+    typeof obj?.len === 'number' ||
+    (Array.isArray(obj?.len) && typeof obj?.len[0] === 'number')
+  ) {
+    if (
+      typeof obj.wrappedFunction === 'undefined' ||
+      typeof obj.wrappedFunction === 'function'
+    ) {
       return true;
     }
   }
@@ -473,4 +478,3 @@ export function addMockFunctionsToSchema({
 }: IMockOptions): void {
   addMocksToSchema({ schema, mocks, preserveResolvers });
 }
-

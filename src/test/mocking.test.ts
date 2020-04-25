@@ -1535,29 +1535,29 @@ describe('Mock', () => {
         first_name,
       }),
       Query: () => ({
-        reviews: () => new MockList([1, 4])
+        reviews: () => new MockList([1, 4]),
       }),
     };
 
-    const schema = buildSchema(/* GraphQL */`
-        scalar Date
-        type Review {
-          sentence: String
-          user: User
-        }
-        type User {
-          first_name: String
-        }
-        type Query {
-          reviews: [Review]
-        }
-      `);
+    const schema = buildSchema(/* GraphQL */ `
+      scalar Date
+      type Review {
+        sentence: String
+        user: User
+      }
+      type User {
+        first_name: String
+      }
+      type Query {
+        reviews: [Review]
+      }
+    `);
 
     addMocksToSchema({ schema, mocks });
 
     const result = await graphql({
       schema,
-      source: /* GraphQL */`
+      source: /* GraphQL */ `
         {
           reviews {
             sentence
@@ -1566,14 +1566,13 @@ describe('Mock', () => {
             }
           }
         }
-      `
+      `,
     });
 
     expect(result.data?.reviews?.length <= 4).toBeTruthy();
     expect(typeof result.data?.reviews[0]?.sentence).toBe('string');
     expect(typeof result.data?.reviews[0]?.user?.first_name).toBe('string');
-
-  })
+  });
 
   // TODO add a test that checks that even when merging defaults, lists invoke
   // the function for every object, not just once per list.
