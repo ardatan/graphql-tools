@@ -1535,7 +1535,7 @@ describe('Mock', () => {
         first_name,
       }),
       Query: () => ({
-        reviews: () => new MockList([0, 3])
+        reviews: () => new MockList([1, 4])
       }),
     };
 
@@ -1569,7 +1569,7 @@ describe('Mock', () => {
       `
     });
 
-    expect(result.data?.reviews?.length <= 3).toBeTruthy();
+    expect(result.data?.reviews?.length <= 4).toBeTruthy();
     expect(typeof result.data?.reviews[0]?.sentence).toBe('string');
     expect(typeof result.data?.reviews[0]?.user?.first_name).toBe('string');
 
