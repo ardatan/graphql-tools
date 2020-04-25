@@ -30,3 +30,13 @@ app.listen(3000, () => {
     console.info('Listening on http://localhost:3000/graphql');
 });
 ```
+
+And you can test your queries using built-in [GraphiQL](https://github.com/graphql/graphiql/tree/master/packages/graphiql);
+
+<iframe
+  src="https://codesandbox.io/embed/angry-night-e3x06?autoresize=1&fontsize=14&hidenavigation=1&theme=dark"
+  style={{width:"100%", height: "500px", "border":0, "borderRadius": "4px", overflow:"hidden"}}
+  title="express-graphql-tools-example"
+  allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr"
+  sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
+></iframe>

@@ -19,7 +19,8 @@
 
 .heroImage {
   width: 100%;
-  margin-bottom: -8.5rem;
+  max-width: 1218px;
+  margin-bottom: -100px;
 }
 
 @media screen and (max-width: 966px) {
@@ -45,6 +46,14 @@
 }
 
 .featureImage {
-  height: 200px;
-  width: 200px;
+  height: 150px;
+  width: 150px;
+}
+
+.featureTitle {
+  text-align: center;
+}
+
+.featureContent {
+  text-align: center;
 }
