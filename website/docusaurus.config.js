@@ -37,7 +37,7 @@ module.exports = {
     },
     algolia: {
       // appId: 'graphql-tools',
-      apiKey: 'api-key',
+      apiKey: 'ee4c137daf1262df2ca2faacaf83fa4e',
       indexName: 'graphql-tools',
       algoliaOptions: {}, // Optional, if provided by Algolia
     },
