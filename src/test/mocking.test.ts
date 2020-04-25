@@ -307,6 +307,20 @@ describe('Mock', () => {
     });
   });
 
+  test('can mock Enum with a certain value', () => {
+    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    const mockMap = {
+      SomeEnum: () => 'C',
+    };
+    addMocksToSchema({ schema: jsSchema, mocks: mockMap });
+    const testQuery = `{
+      returnEnum
+    }`;
+    return graphql(jsSchema, testQuery).then((res) => {
+      expect('C').toBe(res.data['returnEnum']);
+    });
+  });
+
   test('can mock Unions', () => {
     const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     addResolversToSchema(jsSchema, resolveFunctions);
