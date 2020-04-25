@@ -35,7 +35,7 @@ import {
 /**
  * This function wraps addMocksToSchema for more convenience
  */
-function mockServer(
+export function mockServer(
   schema: GraphQLSchema | ITypeDefinitions,
   mocks: IMocks,
   preserveResolvers: boolean = false,
@@ -72,7 +72,7 @@ defaultMockMap.set('ID', () => uuidv4());
 // TODO allow providing a seed such that lengths of list could be deterministic
 // this could be done by using casual to get a random list length if the casual
 // object is global.
-function addMocksToSchema({
+export function addMocksToSchema({
   schema,
   mocks = {},
   preserveResolvers = false,
@@ -127,7 +127,7 @@ function addMocksToSchema({
         // if we're here, the field is already defined
         if (typeof root[fieldName] === 'function') {
           result = root[fieldName](root, args, context, info);
-          if (result instanceof MockList) {
+          if (isMockList(result)) {
             result = result.mock(
               root,
               args,
@@ -388,7 +388,18 @@ function assignResolveType(type: GraphQLType, preserveResolvers: boolean) {
   }
 }
 
-class MockList {
+export function isMockList(obj: any): obj is MockList  {
+  if (typeof obj?.len === 'number' ||
+  (Array.isArray(obj?.len) && typeof obj?.len[0] === 'number')) {
+    if (typeof obj.wrappedFunction === 'undefined' || typeof obj.wrappedFunction === 'function') {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+export class MockList {
   private readonly len: number | Array<number>;
   private readonly wrappedFunction: GraphQLFieldResolver<any, any> | undefined;
 
@@ -426,7 +437,7 @@ class MockList {
     for (let i = 0; i < arr.length; i++) {
       if (typeof this.wrappedFunction === 'function') {
         const res = this.wrappedFunction(root, args, context, info);
-        if (res instanceof MockList) {
+        if (isMockList(res)) {
           const nullableType = getNullableType(fieldType.ofType) as GraphQLList<
             any
           >;
@@ -455,7 +466,7 @@ class MockList {
 
 // retain addMockFunctionsToSchema for backwards compatibility
 
-function addMockFunctionsToSchema({
+export function addMockFunctionsToSchema({
   schema,
   mocks = {},
   preserveResolvers = false,
@@ -463,4 +474,3 @@ function addMockFunctionsToSchema({
   addMocksToSchema({ schema, mocks, preserveResolvers });
 }
 
-export { addMocksToSchema, addMockFunctionsToSchema, MockList, mockServer };
