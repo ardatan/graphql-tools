@@ -355,7 +355,7 @@ export function enumTypeToConfig(type: GraphQLEnumType): GraphQLEnumTypeConfig {
         description: value.description,
         value: value.value,
         deprecationReason: value.deprecationReason,
-        extensions: value.extensions,
+        extensions: (value as any).extensions,
         astNode: value.astNode,
       },
     }),
@@ -438,7 +438,7 @@ export function inputFieldToConfig(
     defaultValue: field.defaultValue,
     extensions: field.extensions,
     astNode: field.astNode,
-  };
+  } as any;
 }
 
 export function directiveToConfig(
@@ -448,17 +448,15 @@ export function directiveToConfig(
     return (directive as any).toConfig();
   }
 
-  const directiveConfig = {
+  return {
     name: directive.name,
     description: directive.description,
     locations: directive.locations,
     args: argumentMapToConfig(directive.args),
-    isRepeatable: directive.isRepeatable,
+    isRepeatable: (directive as any).isRepeatable,
     extensions: directive.extensions,
     astNode: directive.astNode,
-  };
-
-  return directiveConfig;
+  } as any;
 }
 
 export function fieldMapToConfig(
@@ -483,9 +481,9 @@ export function fieldToConfig(
     resolve: field.resolve,
     subscribe: field.subscribe,
     deprecationReason: field.deprecationReason,
-    extensions: field.extensions,
+    extensions: (field as any).extensions,
     astNode: field.astNode,
-  };
+  } as any;
 }
 
 export function argumentMapToConfig(
@@ -504,7 +502,7 @@ export function argumentToConfig(arg: GraphQLArgument): GraphQLArgumentConfig {
     description: arg.description,
     type: arg.type,
     defaultValue: arg.defaultValue,
-    extensions: arg.extensions,
+    extensions: (arg as any).extensions,
     astNode: arg.astNode,
-  };
+  } as any;
 }

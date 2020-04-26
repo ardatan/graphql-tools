@@ -210,7 +210,7 @@ function makeDirective(node: DirectiveDefinitionNode): GraphQLDirective {
     name: node.name.value,
     description: node.description != null ? node.description.value : null,
     locations,
-    isRepeatable: (node as { repeatable: boolean }).repeatable,
+    isRepeatable: (node as any).repeatable,
     args: makeValues([...node.arguments]),
     astNode: node,
   });

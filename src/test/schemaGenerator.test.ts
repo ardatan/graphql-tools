@@ -381,9 +381,8 @@ describe('generating schema from shorthand', () => {
         },
       },
     });
-    const extensions = (jsSchema.getQueryType().getFields().foo as {
-      extensions: any;
-    }).extensions;
+    const extensions = (jsSchema.getQueryType().getFields().foo as any)
+      .extensions;
     expect(extensions).toHaveProperty('verbose');
     expect(extensions.verbose).toBe(true);
   });

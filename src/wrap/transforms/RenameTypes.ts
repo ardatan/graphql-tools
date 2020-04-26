@@ -51,7 +51,7 @@ export default class RenameTypes implements Transform {
   public transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
     return mapSchema(originalSchema, {
       [MapperKind.TYPE]: (type: GraphQLNamedType) => {
-        if (isSpecifiedScalarType(type) && !this.renameBuiltins) {
+        if (isSpecifiedScalarType(type as GraphQLScalarType) && !this.renameBuiltins) {
           return undefined;
         }
         if (isScalarType(type) && !this.renameScalars) {
