@@ -19,8 +19,8 @@ import {
   isInterfaceType,
   isUnionType,
   isEnumType,
-  GraphQLInterfaceTypeConfig,
   extendSchema,
+  GraphQLFieldConfigMap,
 } from 'graphql';
 
 import { mergeDeep } from '../esUtils/mergeDeep';
@@ -334,9 +334,9 @@ function merge(
       }, []),
     });
   } else if (isInterfaceType(initialCandidateType)) {
-    const config: GraphQLInterfaceTypeConfig<any, any> = {
+    const config = {
       name: typeName,
-      fields: candidates.reduce(
+      fields: candidates.reduce<GraphQLFieldConfigMap<any, any>>(
         (acc, candidate) => ({
           ...acc,
           ...(candidate.type as GraphQLInterfaceType).toConfig().fields,

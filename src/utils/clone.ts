@@ -37,12 +37,7 @@ export function cloneType(type: GraphQLNamedType): GraphQLNamedType {
     const config = type.toConfig();
     const newConfig = {
       ...config,
-      interfaces:
-        'interfaces' in config
-          ? typeof config.interfaces === 'function'
-            ? config.interfaces
-            : config.interfaces.slice()
-          : undefined,
+      interfaces: [...config.interfaces]
     };
     return new GraphQLInterfaceType(newConfig);
   } else if (isUnionType(type)) {
