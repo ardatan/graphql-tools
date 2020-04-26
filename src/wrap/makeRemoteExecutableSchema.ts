@@ -10,7 +10,7 @@ import { delegateToSchema } from '../delegate';
 
 import { wrapSchema } from './wrapSchema';
 
-export default function makeRemoteExecutableSchema({
+export function makeRemoteExecutableSchema({
   schema: schemaOrTypeDefs,
   executor,
   subscriber,
