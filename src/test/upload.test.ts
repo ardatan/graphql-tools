@@ -14,6 +14,7 @@ import { makeExecutableSchema } from '../generate/index';
 import { createServerHttpLink } from '../links/index';
 import { GraphQLUpload as ServerGraphQLUpload } from '../scalars/index';
 import { SubschemaConfig } from '../Interfaces';
+import linkToExecutor from '../links/linkToExecutor';
 
 function streamToString(stream: Readable) {
   const chunks: Array<Buffer> = [];
@@ -102,9 +103,11 @@ describe('graphql upload', () => {
 
     const subschema: SubschemaConfig = {
       schema: nonExecutableSchema,
-      link: createServerHttpLink({
-        uri: `http://localhost:${remotePort.toString()}`,
-      }),
+      executor: linkToExecutor(
+        createServerHttpLink({
+          uri: `http://localhost:${remotePort.toString()}`,
+        })
+      ),
     };
 
     const gatewaySchema = stitchSchemas({

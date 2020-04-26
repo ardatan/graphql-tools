@@ -856,6 +856,7 @@ bookingById(id: "b1") {
           },
         );
 
+        stitchedResult.errors?.forEach(e => console.error(e.originalError));
         expect(stitchedResult).toEqual(bookingResult);
       });
 

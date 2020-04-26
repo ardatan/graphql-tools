@@ -1,5 +1,4 @@
 import { PubSub } from 'graphql-subscriptions';
-import { ApolloLink, Observable } from 'apollo-link';
 import {
   GraphQLSchema,
   graphql,
@@ -12,14 +11,12 @@ import {
   GraphQLError,
 } from 'graphql';
 
-import { forAwaitEach } from '../forAwaitEach';
-
 import { introspectSchema } from '../../introspect/index';
 import {
   IResolvers,
-  Fetcher,
+  Executor,
+  Subscriber,
   SubschemaConfig,
-  ExecutionResult,
 } from '../../Interfaces';
 import { makeExecutableSchema } from '../../generate/index';
 import { graphqlVersion } from '../../utils/index';
@@ -289,20 +286,20 @@ const propertyRootTypeDefs = `
   }
 
   ${
-    graphqlVersion() >= 15
-      ? `interface TestNestedInterface implements TestInterface {
+  graphqlVersion() >= 15
+    ? `interface TestNestedInterface implements TestInterface {
     kind: TestInterfaceKind
     testString: String
   }
 
   type TestImpl2 implements TestNestedInterface${
     graphqlVersion() >= 13 ? ' &' : ', '
-  } TestInterface {
+    } TestInterface {
     kind: TestInterfaceKind
     testString: String
     bar: String
   }`
-      : `type TestImpl2 implements TestInterface {
+    : `type TestImpl2 implements TestInterface {
     kind: TestInterfaceKind
     testString: String
     bar: String
@@ -369,27 +366,27 @@ const propertyResolvers: IResolvers = {
     interfaceTest(_root, { kind }) {
       return kind === 'ONE'
         ? {
-            kind: 'ONE',
-            testString: 'test',
-            foo: 'foo',
-          }
+          kind: 'ONE',
+          testString: 'test',
+          foo: 'foo',
+        }
         : {
-            kind: 'TWO',
-            testString: 'test',
-            bar: 'bar',
-          };
+          kind: 'TWO',
+          testString: 'test',
+          bar: 'bar',
+        };
     },
 
     unionTest(_root, { output }) {
       return output === 'Interface'
         ? {
-            kind: 'ONE',
-            testString: 'test',
-            foo: 'foo',
-          }
+          kind: 'ONE',
+          testString: 'test',
+          foo: 'foo',
+        }
         : {
-            someField: 'Bar',
-          };
+          someField: 'Bar',
+        };
     },
 
     errorTest() {
@@ -430,7 +427,7 @@ const propertyResolvers: IResolvers = {
 
 const DownloadableProduct = `
   type DownloadableProduct implements Product${
-    graphqlVersion() >= 13 ? ' &' : ', '
+  graphqlVersion() >= 13 ? ' &' : ', '
   } Downloadable {
     id: ID!
     url: String!
@@ -439,7 +436,7 @@ const DownloadableProduct = `
 
 const SimpleProduct = `type SimpleProduct implements Product${
   graphqlVersion() >= 13 ? ' &' : ', '
-} Sellable {
+  } Sellable {
     id: ID!
     price: Int!
   }
@@ -688,113 +685,43 @@ export const subscriptionSchema: GraphQLSchema = makeExecutableSchema({
   resolvers: subscriptionResolvers,
 });
 
-const hasSubscriptionOperation = ({ query }: { query: any }): boolean => {
-  for (const definition of query.definitions) {
-    if (definition.kind === 'OperationDefinition') {
-      const operation = definition.operation;
-      if (operation === 'subscription') {
-        return true;
-      }
-    }
-  }
-  return false;
-};
-
-function makeLinkFromSchema(schema: GraphQLSchema) {
-  return new ApolloLink(
-    (operation) =>
-      new Observable((observer) => {
-        const { query, operationName, variables } = operation;
-        const { graphqlContext } = operation.getContext();
-        if (!hasSubscriptionOperation(operation)) {
-          graphql(
-            schema,
-            print(query),
-            null,
-            graphqlContext,
-            variables,
-            operationName,
-          )
-            .then((result) => {
-              observer.next(result);
-              observer.complete();
-            })
-            .catch((err) => {
-              observer.error(err);
-            });
-        } else {
-          subscribe(
-            schema,
-            query,
-            null,
-            graphqlContext,
-            variables,
-            operationName,
-          )
-            .then((results) => {
-              if (
-                typeof (results as AsyncIterator<ExecutionResult>).next ===
-                'function'
-              ) {
-                forAwaitEach(
-                  results as AsyncIterable<ExecutionResult>,
-                  (result) => observer.next(result),
-                )
-                  .then(() => observer.complete())
-                  .catch((err) => observer.error(err));
-              } else {
-                observer.next(results as ExecutionResult);
-                observer.complete();
-              }
-            })
-            .catch((err) => {
-              observer.error(err);
-            });
-        }
-      }),
+function makeExecutorFromSchema(schema: GraphQLSchema): Executor {
+  return async ({ document, variables, context }) => graphql(
+    schema,
+    print(document),
+    null,
+    context,
+    variables,
   );
 }
 
-export async function makeSchemaRemoteFromLink(
+function makeSubscriberFromSchema(schema: GraphQLSchema): Subscriber {
+  return async ({ document, variables, context }) => subscribe(
+    schema,
+    document,
+    null,
+    context,
+    variables,
+  )
+}
+
+export async function makeSchemaRemote(
   schema: GraphQLSchema,
 ): Promise<SubschemaConfig> {
-  const link = makeLinkFromSchema(schema);
-  const clientSchema = await introspectSchema(link);
+  const executor = makeExecutorFromSchema(schema);
+  const subscriber = makeSubscriberFromSchema(schema);
+  const clientSchema = await introspectSchema(executor);
   return {
     schema: clientSchema,
-    link,
+    executor,
+    subscriber,
   };
 }
 
-export async function makeSchemaRemoteFromDispatchedLink(
-  schema: GraphQLSchema,
-): Promise<SubschemaConfig> {
-  const link = makeLinkFromSchema(schema);
-  const clientSchema = await introspectSchema(link);
-  return {
-    schema: clientSchema,
-    dispatcher: () => link,
-  };
-}
-
-// ensure fetcher support exists from the 2.0 api
-async function makeExecutableSchemaFromDispatchedFetcher(
-  schema: GraphQLSchema,
-): Promise<SubschemaConfig> {
-  const fetcher: Fetcher = ({ query, operationName, variables, context }) =>
-    graphql(schema, print(query), null, context, variables, operationName);
-
-  const clientSchema = await introspectSchema(fetcher);
-  return {
-    schema: clientSchema,
-    fetcher,
-  };
-}
-
-export const remotePropertySchema = makeSchemaRemoteFromLink(propertySchema);
-export const remoteProductSchema = makeSchemaRemoteFromDispatchedLink(
+export const remotePropertySchema = makeSchemaRemote(propertySchema);
+export const remoteProductSchema = makeSchemaRemote(
   productSchema,
 );
-export const remoteBookingSchema = makeExecutableSchemaFromDispatchedFetcher(
+export const remoteBookingSchema = makeSchemaRemote(
   bookingSchema,
 );

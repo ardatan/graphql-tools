@@ -18,7 +18,7 @@ Afterwards, you have to define the behavior of your `MyCustomScalar` custom scal
 
 For more information about GraphQL's type system, please refer to the [official documentation](http://graphql.org/graphql-js/type/) or to the [Learning GraphQL](https://github.com/mugli/learning-graphql/blob/master/7.%20Deep%20Dive%20into%20GraphQL%20Type%20System.md) tutorial.
 
-Note that [Apollo Client does not currently have a way to automatically interpret custom scalars](https://github.com/apollostack/apollo-client/issues/585), so there's no way to automatically reverse the serialization on the client.
+Note that most of popular GraphQL clients does not currently have a way to automatically interpret custom scalars, so there's no way to automatically reverse the serialization on the client.
 
 ### Using a package
 

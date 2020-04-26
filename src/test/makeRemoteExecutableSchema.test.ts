@@ -2,7 +2,6 @@
 import { forAwaitEach } from './forAwaitEach';
 import {
   GraphQLSchema,
-  ExecutionResult,
   subscribe,
   parse,
   graphql,
@@ -17,19 +16,16 @@ import {
   subscriptionSchema,
   subscriptionPubSubTrigger,
   subscriptionPubSub,
-  makeSchemaRemoteFromLink,
+  makeSchemaRemote,
 } from './fixtures/schemas';
 
 describe('remote queries', () => {
   let schema: GraphQLSchema;
   beforeAll(async () => {
-    const remoteSubschemaConfig = await makeSchemaRemoteFromLink(
+    const remoteSubschemaConfig = await makeSchemaRemote(
       propertySchema,
     );
-    schema = makeRemoteExecutableSchema({
-      schema: remoteSubschemaConfig.schema,
-      link: remoteSubschemaConfig.link,
-    });
+    schema = makeRemoteExecutableSchema(remoteSubschemaConfig);
   });
 
   test('should work', async () => {
@@ -66,13 +62,10 @@ describe('remote queries', () => {
 describe('remote subscriptions', () => {
   let schema: GraphQLSchema;
   beforeAll(async () => {
-    const remoteSubschemaConfig = await makeSchemaRemoteFromLink(
+    const remoteSubschemaConfig = await makeSchemaRemote(
       subscriptionSchema,
     );
-    schema = makeRemoteExecutableSchema({
-      schema: remoteSubschemaConfig.schema,
-      link: remoteSubschemaConfig.link,
-    });
+    schema = makeRemoteExecutableSchema(remoteSubschemaConfig);
   });
 
   test('should work', (done) => {
@@ -94,8 +87,8 @@ describe('remote subscriptions', () => {
     subscribe(schema, subscription)
       .then((results) => {
         forAwaitEach(
-          results as AsyncIterable<ExecutionResult>,
-          (result: ExecutionResult) => {
+          results,
+          result => {
             expect(result).toHaveProperty('data');
             expect(result.data).toEqual(mockNotification);
             if (!notificationCnt++) {
@@ -128,8 +121,8 @@ describe('remote subscriptions', () => {
     let notificationCnt = 0;
     const sub1 = subscribe(schema, subscription).then((results) => {
       forAwaitEach(
-        results as AsyncIterable<ExecutionResult>,
-        (result: ExecutionResult) => {
+        results,
+        result => {
           expect(result).toHaveProperty('data');
           expect(result.data).toEqual(mockNotification);
           notificationCnt++;
@@ -139,8 +132,8 @@ describe('remote subscriptions', () => {
 
     const sub2 = subscribe(schema, subscription).then((results) => {
       forAwaitEach(
-        results as AsyncIterable<ExecutionResult>,
-        (result: ExecutionResult) => {
+        results,
+        result => {
           expect(result).toHaveProperty('data');
           expect(result.data).toEqual(mockNotification);
         },
@@ -211,7 +204,7 @@ describe('respects buildSchema options', () => {
     }
   `);
     let calls: Array<any> = [];
-    const fetcher = (args: any) => {
+    const executor = (args: any) => {
       calls.push(args);
       return Promise.resolve({
         data: {
@@ -222,8 +215,8 @@ describe('respects buildSchema options', () => {
       });
     };
     const remoteSchema = makeRemoteExecutableSchema({
-      fetcher,
       schema,
+      executor,
     });
 
     beforeEach(() => {
@@ -242,7 +235,7 @@ describe('respects buildSchema options', () => {
       });
 
       expect(calls).toHaveLength(1);
-      expect(print(calls[0].query)).toEqual(print(query));
+      expect(print(calls[0].document)).toEqual(print(query));
     });
 
     it('forwards three upstream queries', async () => {
@@ -256,17 +249,17 @@ describe('respects buildSchema options', () => {
       });
 
       expect(calls).toHaveLength(3);
-      expect(print(calls[0].query)).toEqual(`\
+      expect(print(calls[0].document)).toEqual(`\
 {
   fieldA
 }
 `);
-      expect(print(calls[1].query)).toEqual(`\
+      expect(print(calls[1].document)).toEqual(`\
 {
   fieldB
 }
 `);
-      expect(print(calls[2].query)).toEqual(`\
+      expect(print(calls[2].document)).toEqual(`\
 {
   field3
 }

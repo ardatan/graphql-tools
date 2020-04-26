@@ -33,8 +33,6 @@ import {
   BuildSchemaOptions,
 } from 'graphql';
 
-import { ApolloLink } from 'apollo-link';
-
 import { SchemaVisitor } from './utils/SchemaVisitor';
 import { SchemaDirectiveVisitor } from './utils/SchemaDirectiveVisitor';
 
@@ -170,35 +168,20 @@ declare module 'graphql' {
   }
 }
 
-// for backwards compatibility
-// eslint-disable-next-line  @typescript-eslint/no-empty-interface
-export interface IGraphQLToolsResolveInfo extends GraphQLResolveInfo {}
-
-export type Fetcher = (options: IFetcherOptions) => Promise<ExecutionResult>;
-
-export interface IFetcherOptions {
-  query: DocumentNode;
-  operationName?: string;
-  variables?: Record<string, any>;
-  context?: {
-    graphqlContext?: Record<string, any>;
-    graphqlResolveInfo?: GraphQLResolveInfo;
-    [key: string]: any;
-  };
+export interface ExecutionParams<TArgs = Record<string, any>, TContext = any> {
+  document: DocumentNode;
+  variables?: TArgs;
+  context?: TContext;
+  info?: GraphQLResolveInfo;
 }
-
-// for backwards compatibility
-// eslint-disable-next-line  @typescript-eslint/no-empty-interface
-export interface IFetcherOperation extends IFetcherOptions {}
-
-export type Dispatcher = (context: any) => ApolloLink | Fetcher;
+export type Executor = (params: ExecutionParams) => Promise<ExecutionResult> | ExecutionResult;
+export type Subscriber = (params: ExecutionParams) => Promise<AsyncIterator<ExecutionResult> | ExecutionResult>;
 
 export interface SubschemaConfig {
   schema: GraphQLSchema;
   rootValue?: Record<string, any>;
-  link?: ApolloLink;
-  fetcher?: Fetcher;
-  dispatcher?: Dispatcher;
+  executor?: Executor;
+  subscriber?: Subscriber;
   createProxyingResolver?: CreateProxyingResolverFn;
   transforms?: Array<Transform>;
   merge?: Record<string, MergedTypeConfig>;
@@ -237,12 +220,9 @@ export type MergeTypeFilter = (
 
 export interface IMakeRemoteExecutableSchemaOptions {
   schema: GraphQLSchema | string;
-  link?: ApolloLink;
-  fetcher?: Fetcher;
-  createResolver?: (fetcher: Fetcher) => GraphQLFieldResolver<any, any>;
-  createSubscriptionResolver?: (
-    link: ApolloLink,
-  ) => GraphQLFieldResolver<any, any>;
+  executor?: Executor;
+  createResolver?: (executor: Executor, subscriber: Subscriber) => GraphQLFieldResolver<any, any>;
+  subscriber?: Subscriber;
   buildSchemaOptions?: BuildSchemaOptions;
 }
 

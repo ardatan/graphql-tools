@@ -256,13 +256,7 @@ rules:
   no-nested-ternary: off
   no-new-object: error
   no-plusplus: off
-  no-restricted-syntax:
-    - error
-    - selector: 'FunctionDeclaration[async=true]'
-      message: >
-        async functions are not allowed inside package source code because
-        older versions of NodeJS do not support them without additional
-        runtime dependencies. Instead, use explicit Promises.
+  no-restricted-syntax: off
   no-tabs: error
   no-ternary: off
   no-underscore-dangle: off
@@ -429,7 +423,7 @@ overrides:
       '@typescript-eslint/no-throw-literal': error
       '@typescript-eslint/no-type-alias': off # TODO consider
       '@typescript-eslint/no-unnecessary-boolean-literal-compare': error
-      '@typescript-eslint/no-unnecessary-condition': error
+      '@typescript-eslint/no-unnecessary-condition': off
       '@typescript-eslint/no-unnecessary-qualifier': error
       '@typescript-eslint/no-unnecessary-type-arguments': error
       '@typescript-eslint/no-unnecessary-type-assertion': error

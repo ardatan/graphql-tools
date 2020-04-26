@@ -1,4 +1,3 @@
-import { ApolloLink, execute as executeLink } from 'apollo-link';
 import {
   subscribe,
   execute,
@@ -7,25 +6,25 @@ import {
   ExecutionResult,
   GraphQLOutputType,
   isSchema,
-  DocumentNode,
   GraphQLResolveInfo,
 } from 'graphql';
 
 import {
   IDelegateToSchemaOptions,
   IDelegateRequestOptions,
-  Fetcher,
   SubschemaConfig,
   isSubschemaConfig,
   Transform,
+  Executor,
+  Subscriber,
 } from '../Interfaces';
 import {
   applyRequestTransforms,
   applyResultTransforms,
 } from '../utils/transforms';
 
-import linkToFetcher from '../links/linkToFetcher';
 import mapAsyncIterator from '../esUtils/mapAsyncIterator';
+
 
 import ExpandAbstractTypes from './transforms/ExpandAbstractTypes';
 import FilterToSchema from './transforms/FilterToSchema';
@@ -35,7 +34,6 @@ import AddMergedTypeSelectionSets from './transforms/AddMergedTypeSelectionSets'
 import AddTypenameToAbstract from './transforms/AddTypenameToAbstract';
 import CheckResultAndHandleErrors from './transforms/CheckResultAndHandleErrors';
 import AddArgumentsAsVariables from './transforms/AddArgumentsAsVariables';
-import { observableToAsyncIterable } from './observableToAsyncIterable';
 import { combineErrors } from './errors';
 import { createRequestFromInfo, getDelegatingOperation } from './createRequest';
 
@@ -194,11 +192,9 @@ export function delegateRequest({
   }
 
   if (operation === 'query' || operation === 'mutation') {
-    const executor = createExecutor(
+    const executor = subschemaConfig?.executor || createDefaultExecutor(
       targetSchema,
-      targetRootValue,
-      context,
-      subschemaConfig,
+      subschemaConfig?.rootValue || targetRootValue,
     );
 
     const executionResult = executor({
@@ -216,11 +212,9 @@ export function delegateRequest({
     return applyResultTransforms(executionResult, delegationTransforms);
   }
 
-  const subscriber = createSubscriber(
+  const subscriber = subschemaConfig?.subscriber || createDefaultSubscriber(
     targetSchema,
-    targetRootValue,
-    context,
-    subschemaConfig,
+    subschemaConfig?.rootValue || targetRootValue,
   );
 
   return subscriber({
@@ -257,115 +251,30 @@ export function delegateRequest({
   );
 }
 
-function createExecutor(
+function createDefaultExecutor(
   schema: GraphQLSchema,
   rootValue: Record<string, any>,
-  context: Record<string, any>,
-  subschemaConfig?: SubschemaConfig,
-): ({
-  document,
-  variables,
-  context,
-  info,
-}: {
-  document: DocumentNode;
-  variables: Record<string, any>;
-  context: Record<string, any>;
-  info: GraphQLResolveInfo;
-}) => Promise<ExecutionResult> | ExecutionResult {
-  let fetcher: Fetcher;
-  let targetRootValue: Record<string, any> = rootValue;
-  if (subschemaConfig != null) {
-    if (subschemaConfig.dispatcher != null) {
-      const dynamicLinkOrFetcher = subschemaConfig.dispatcher(context);
-      fetcher =
-        typeof dynamicLinkOrFetcher === 'function'
-          ? dynamicLinkOrFetcher
-          : linkToFetcher(dynamicLinkOrFetcher);
-    } else if (subschemaConfig.link != null) {
-      fetcher = linkToFetcher(subschemaConfig.link);
-    } else if (subschemaConfig.fetcher != null) {
-      fetcher = subschemaConfig.fetcher;
-    }
-
-    if (!fetcher && !rootValue && subschemaConfig.rootValue != null) {
-      targetRootValue = subschemaConfig.rootValue;
-    }
-  }
-
-  if (fetcher != null) {
-    return ({
-      document: query,
-      variables,
-      context: graphqlContext,
-      info: graphqlResolveInfo,
-    }) =>
-      fetcher({
-        query,
-        variables,
-        context: { graphqlContext, graphqlResolveInfo },
-      });
-  }
-
-  return ({ document, context: graphqlContext, variables }) =>
-    execute({
+): Executor {
+  return ({ document, context, variables, info }) =>
+    execute(
       schema,
       document,
-      rootValue: targetRootValue,
-      contextValue: graphqlContext,
-      variableValues: variables,
-    });
+      rootValue || info.rootValue,
+      context,
+      variables,
+    );
 }
 
-function createSubscriber(
+function createDefaultSubscriber(
   schema: GraphQLSchema,
   rootValue: Record<string, any>,
-  context: Record<string, any>,
-  subschemaConfig?: SubschemaConfig,
-): ({
-  document,
-  variables,
-  context,
-  info,
-}: {
-  document: DocumentNode;
-  variables: Record<string, any>;
-  context: Record<string, any>;
-  info: GraphQLResolveInfo;
-}) => Promise<AsyncIterator<ExecutionResult> | ExecutionResult> {
-  let link: ApolloLink;
-  let targetRootValue: Record<string, any> = rootValue;
-
-  if (subschemaConfig != null) {
-    if (subschemaConfig.dispatcher != null) {
-      link = subschemaConfig.dispatcher(context) as ApolloLink;
-    } else if (subschemaConfig.link != null) {
-      link = subschemaConfig.link;
-    }
-
-    if (!link && !rootValue && subschemaConfig.rootValue != null) {
-      targetRootValue = subschemaConfig.rootValue;
-    }
-  }
-
-  if (link != null) {
-    return ({ document, context: graphqlContext, variables }) => {
-      const operation = {
-        query: document,
-        variables,
-        context: { graphqlContext },
-      };
-      const observable = executeLink(link, operation);
-      return Promise.resolve(observableToAsyncIterable(observable));
-    };
-  }
-
-  return ({ document, variables, context: graphqlContext }) =>
-    subscribe({
+): Subscriber {
+  return ({ document, context, variables, info }) =>
+    subscribe(
       schema,
       document,
-      rootValue: targetRootValue,
-      contextValue: graphqlContext,
-      variableValues: variables,
-    });
+      rootValue || info.rootValue,
+      context,
+      variables,
+    )
 }
