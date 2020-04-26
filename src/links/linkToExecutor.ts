@@ -4,7 +4,7 @@ import { Executor } from '../Interfaces';
 
 export { execute } from 'apollo-link';
 
-export default function linkToExecutor(link: ApolloLink): Executor {
+export function linkToExecutor(link: ApolloLink): Executor {
   return ({ document, variables, context, info }): Promise<ExecutionResult> =>
     toPromise(
       execute(link, {

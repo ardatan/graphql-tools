@@ -23,7 +23,7 @@ import {
   applyResultTransforms,
 } from '../utils/transforms';
 
-import mapAsyncIterator from '../esUtils/mapAsyncIterator';
+import { mapAsyncIterator } from '../utils/mapAsyncIterator';
 
 import ExpandAbstractTypes from './transforms/ExpandAbstractTypes';
 import FilterToSchema from './transforms/FilterToSchema';
@@ -36,13 +36,13 @@ import AddArgumentsAsVariables from './transforms/AddArgumentsAsVariables';
 import { combineErrors } from './errors';
 import { createRequestFromInfo, getDelegatingOperation } from './createRequest';
 
-export default function delegateToSchema(
+export function delegateToSchema(
   options: IDelegateToSchemaOptions | GraphQLSchema,
 ): any {
   if (isSchema(options)) {
     throw new Error(
       'Passing positional arguments to delegateToSchema is deprecated. ' +
-        'Please pass named parameters instead.',
+      'Please pass named parameters instead.',
     );
   }
 
@@ -155,8 +155,8 @@ export function delegateRequest({
       rootValue != null
         ? rootValue
         : subschemaConfig.rootValue != null
-        ? subschemaConfig.rootValue
-        : info.rootValue;
+          ? subschemaConfig.rootValue
+          : info.rootValue;
     if (subschemaConfig.transforms != null) {
       requestTransforms = requestTransforms.concat(subschemaConfig.transforms);
     }

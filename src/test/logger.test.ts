@@ -1,7 +1,8 @@
 import { graphql } from 'graphql';
 
 import { makeExecutableSchema } from '../generate/index';
-import { Logger } from '../generate/Logger';
+
+import { Logger } from './Logger';
 
 describe('Logger', () => {
   test('logs the errors', () => {

@@ -2,9 +2,7 @@ import { print, ASTNode } from 'graphql';
 
 import { ITypedef } from '../Interfaces';
 
-import SchemaError from '../utils/SchemaError';
-
-function concatenateTypeDefs(
+export function concatenateTypeDefs(
   typeDefinitionsAry: Array<ITypedef>,
   calledFunctionRefs = [] as any,
 ): string {
@@ -23,7 +21,7 @@ function concatenateTypeDefs(
       resolvedTypeDefinitions.push(print(typeDef).trim());
     } else {
       const type = typeof typeDef;
-      throw new SchemaError(
+      throw new Error(
         `typeDef array must contain only strings and functions, got ${type}`,
       );
     }
@@ -40,5 +38,3 @@ function uniq(array: Array<any>): Array<any> {
     [],
   );
 }
-
-export default concatenateTypeDefs;

@@ -2,7 +2,7 @@ import { GraphQLSchema } from 'graphql';
 
 import { IResolvers } from '../Interfaces';
 
-function extendResolversFromInterfaces(
+export function extendResolversFromInterfaces(
   schema: GraphQLSchema,
   resolvers: IResolvers,
 ) {
@@ -31,5 +31,3 @@ function extendResolversFromInterfaces(
 
   return extendedResolvers;
 }
-
-export default extendResolversFromInterfaces;

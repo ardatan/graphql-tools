@@ -14,7 +14,7 @@ import { makeExecutableSchema } from '../generate/index';
 import { createServerHttpLink } from '../links/index';
 import { GraphQLUpload as ServerGraphQLUpload } from '../scalars/index';
 import { SubschemaConfig } from '../Interfaces';
-import linkToExecutor from '../links/linkToExecutor';
+import { linkToExecutor } from '../links/linkToExecutor';
 
 function streamToString(stream: Readable) {
   const chunks: Array<Buffer> = [];

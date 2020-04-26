@@ -24,7 +24,6 @@ import {
   GraphQLSchema,
 } from 'graphql';
 
-import { Logger } from '../generate/Logger';
 import { addResolversToSchema } from '../addResolvers/index';
 import {
   makeExecutableSchema,
@@ -44,6 +43,8 @@ import {
   ILogger,
 } from '../Interfaces';
 import { visitSchema } from '../utils/index';
+
+import { Logger } from './Logger';
 
 import TypeA from './fixtures/circularSchemaA';
 

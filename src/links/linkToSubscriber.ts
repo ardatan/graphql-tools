@@ -6,7 +6,7 @@ import { observableToAsyncIterable } from './observableToAsyncIterable';
 
 export { execute } from 'apollo-link';
 
-export default function linkToSubscriber(link: ApolloLink): Subscriber {
+export function linkToSubscriber(link: ApolloLink): Subscriber {
   return ({ document, variables, context, info }) =>
     Promise.resolve(
       observableToAsyncIterable(

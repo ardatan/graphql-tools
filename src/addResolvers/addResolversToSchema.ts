@@ -21,22 +21,21 @@ import {
   parseInputValue,
   serializeInputValue,
 } from '../utils/transformInputValue';
-import SchemaError from '../utils/SchemaError';
 
-import checkForResolveTypeResolver from './checkForResolveTypeResolver';
-import extendResolversFromInterfaces from './extendResolversFromInterfaces';
+import { checkForResolveTypeResolver } from './checkForResolveTypeResolver';
+import { extendResolversFromInterfaces } from './extendResolversFromInterfaces';
 
-function addResolversToSchema(
+export function addResolversToSchema(
   schemaOrOptions: GraphQLSchema | IAddResolversToSchemaOptions,
   legacyInputResolvers?: IResolvers,
   legacyInputValidationOptions?: IResolverValidationOptions,
 ): GraphQLSchema {
   const options: IAddResolversToSchemaOptions = isSchema(schemaOrOptions)
     ? {
-        schema: schemaOrOptions,
-        resolvers: legacyInputResolvers,
-        resolverValidationOptions: legacyInputValidationOptions,
-      }
+      schema: schemaOrOptions,
+      resolvers: legacyInputResolvers,
+      resolverValidationOptions: legacyInputValidationOptions,
+    }
     : schemaOrOptions;
 
   const {
@@ -63,9 +62,9 @@ function addResolversToSchema(
     const resolverType = typeof resolverValue;
 
     if (resolverType !== 'object' && resolverType !== 'function') {
-      throw new SchemaError(
+      throw new Error(
         `"${typeName}" defined in resolvers, but has invalid value "${
-          resolverValue as string
+        resolverValue as string
         }". A resolver's value must be of type object or function.`,
       );
     }
@@ -77,7 +76,7 @@ function addResolversToSchema(
         return;
       }
 
-      throw new SchemaError(
+      throw new Error(
         `"${typeName}" defined in resolvers, but not in schema`,
       );
     }
@@ -100,7 +99,7 @@ function addResolversToSchema(
           if (allowResolversNotInSchema) {
             return;
           }
-          throw new SchemaError(
+          throw new Error(
             `${typeName}.${fieldName} was defined in resolvers, but enum is not in schema`,
           );
         }
@@ -140,7 +139,7 @@ function addResolversToSchema(
           return;
         }
 
-        throw new SchemaError(
+        throw new Error(
           `${typeName} was defined in resolvers, but it's not an object`,
         );
       });
@@ -160,7 +159,7 @@ function addResolversToSchema(
             return;
           }
 
-          throw new SchemaError(
+          throw new Error(
             `${typeName}.${fieldName} defined in resolvers, but not in schema`,
           );
         }
@@ -171,7 +170,7 @@ function addResolversToSchema(
           field.resolve = fieldResolve;
         } else {
           if (typeof fieldResolve !== 'object') {
-            throw new SchemaError(
+            throw new Error(
               `Resolver ${typeName}.${fieldName} must be object or function`,
             );
           }
@@ -209,5 +208,3 @@ function setFieldProperties(
     field[propertyName] = propertiesObj[propertyName];
   });
 }
-
-export default addResolversToSchema;

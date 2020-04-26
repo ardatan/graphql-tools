@@ -8,9 +8,7 @@ import {
 import { IResolverValidationOptions } from '../Interfaces';
 import { forEachField } from '../utils/index';
 
-import SchemaError from '../utils/SchemaError';
-
-function assertResolversPresent(
+export function assertResolversPresent(
   schema: GraphQLSchema,
   resolverValidationOptions: IResolverValidationOptions = {},
 ): void {
@@ -65,10 +63,9 @@ function expectResolver(
     return;
   }
   if (typeof field.resolve !== 'function') {
-    throw new SchemaError(
+    throw new Error(
       `Resolver "${typeName}.${fieldName}" must be a function`,
     );
   }
 }
 
-export default assertResolversPresent;

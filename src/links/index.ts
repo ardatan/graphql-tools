@@ -1,4 +1,4 @@
-import { createServerHttpLink } from './createServerHttpLink';
-import { AwaitVariablesLink } from './AwaitVariablesLink';
-
-export { createServerHttpLink, AwaitVariablesLink };
+export { createServerHttpLink } from './createServerHttpLink';
+export { AwaitVariablesLink } from './AwaitVariablesLink';
+export { linkToExecutor } from './linkToExecutor';
+export { linkToSubscriber } from './linkToSubscriber';
