@@ -43,7 +43,7 @@ jobs:
       - name: Install Dependencies using Yarn
         run: yarn install
       - name: Install Legacy GraphQL
-        run: yarn add -D -W graphql@14.0.0 && node ./scripts/match-graphql.js
+        run: yarn add -D -W graphql@14.0.0 @types/graphql@14.0.0 && node ./scripts/match-graphql.js
         if: matrix.graphql_version == 'legacy'
       - name: Compile Check
         run: yarn run check
