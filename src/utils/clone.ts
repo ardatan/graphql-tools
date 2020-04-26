@@ -34,10 +34,14 @@ export function cloneType(type: GraphQLNamedType): GraphQLNamedType {
           : config.interfaces.slice(),
     });
   } else if (isInterfaceType(type)) {
-    const config = type.toConfig();
+    const config = type.toConfig() as any;
     const newConfig = {
       ...config,
-      interfaces: [...config.interfaces]
+      interfaces: [
+        ...((typeof config.interfaces === 'function'
+          ? config.interfaces()
+          : config.interfaces) || []),
+      ],
     };
     return new GraphQLInterfaceType(newConfig);
   } else if (isUnionType(type)) {
