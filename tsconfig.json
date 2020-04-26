@@ -3,7 +3,7 @@
     "rootDir": "./src",
     "outDir": "./dist",
 
-    "lib": ["esnext", "dom"],
+    "lib": ["esnext"],
 
     "target": "es2015",
     "module": "es2015",

@@ -2,7 +2,6 @@ import { GraphQLObjectType, GraphQLSchema, graphqlSync } from 'graphql';
 
 import { makeExecutableSchema, mapSchema } from '../index';
 import { MapperKind } from '../Interfaces';
-import { toConfig } from '../polyfills/index';
 
 describe('mapSchema', () => {
   test('does not throw', () => {
@@ -29,7 +28,7 @@ describe('mapSchema', () => {
 
     const newSchema = mapSchema(schema, {
       [MapperKind.QUERY]: (type) => {
-        const queryConfig = toConfig(type);
+        const queryConfig = type.toConfig();
         queryConfig.fields.version.resolve = () => 1;
         return new GraphQLObjectType(queryConfig);
       },
@@ -52,7 +51,7 @@ describe('mapSchema', () => {
 
     const newSchema = mapSchema(schema, {
       [MapperKind.QUERY]: (type) => {
-        const queryConfig = toConfig(type);
+        const queryConfig = type.toConfig();
         queryConfig.name = 'RootQuery';
         return new GraphQLObjectType(queryConfig);
       },

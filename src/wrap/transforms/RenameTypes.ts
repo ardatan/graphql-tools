@@ -14,11 +14,11 @@ import {
   isInterfaceType,
   isObjectType,
   isScalarType,
+  isSpecifiedScalarType,
   isUnionType,
   visit,
 } from 'graphql';
 
-import { isSpecifiedScalarType, toConfig } from '../../polyfills/index';
 import {
   Transform,
   Request,
@@ -65,32 +65,32 @@ export default class RenameTypes implements Transform {
 
           if (isObjectType(type)) {
             return new GraphQLObjectType({
-              ...toConfig(type),
+              ...type.toConfig(),
               name: newName,
             });
           } else if (isInterfaceType(type)) {
             return new GraphQLInterfaceType({
-              ...toConfig(type),
+              ...type.toConfig(),
               name: newName,
             });
           } else if (isUnionType(type)) {
             return new GraphQLUnionType({
-              ...toConfig(type),
+              ...type.toConfig(),
               name: newName,
             });
           } else if (isInputObjectType(type)) {
             return new GraphQLInputObjectType({
-              ...toConfig(type),
+              ...type.toConfig(),
               name: newName,
             });
           } else if (isEnumType(type)) {
             return new GraphQLEnumType({
-              ...toConfig(type),
+              ...type.toConfig(),
               name: newName,
             });
           } else if (isScalarType(type)) {
             return new GraphQLScalarType({
-              ...toConfig(type),
+              ...type.toConfig(),
               name: newName,
             });
           }

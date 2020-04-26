@@ -1,7 +1,7 @@
 import { GraphQLObjectType } from 'graphql';
 
 import { healSchema } from '../utils/index';
-import { toConfig } from '../polyfills/index';
+
 import { makeExecutableSchema } from '../generate/index';
 
 describe('heal', () => {
@@ -19,9 +19,9 @@ describe('heal', () => {
     });
     const originalTypeMap = schema.getTypeMap();
 
-    const config = toConfig(
-      originalTypeMap['WillBeEmptyObject'] as GraphQLObjectType,
-    );
+    const config = (originalTypeMap[
+      'WillBeEmptyObject'
+    ] as GraphQLObjectType).toConfig();
     originalTypeMap['WillBeEmptyObject'] = new GraphQLObjectType({
       ...config,
       fields: {},

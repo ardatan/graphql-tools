@@ -9,7 +9,6 @@ import {
   parse,
   assertValidSchema,
 } from 'graphql';
-import { createError } from 'apollo-errors';
 
 import {
   delegateToSchema,
@@ -37,6 +36,12 @@ import {
 import { addMocksToSchema } from '../mock/index';
 
 import { propertySchema, bookingSchema } from './fixtures/schemas';
+
+function createError<T>(message: string, extra?: T) {
+  const error = new Error(message);
+  Object.assign(error, extra);
+  return error as Error & T;
+}
 
 describe('transforms', () => {
   describe('base transform function', () => {
