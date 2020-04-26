@@ -10,6 +10,10 @@ import {
   graphqlSync,
   GraphQLField,
   assertValidSchema,
+  GraphQLFieldConfig,
+  isSpecifiedScalarType,
+  GraphQLNamedType,
+  GraphQLFieldConfigArgumentMap,
 } from 'graphql';
 
 import {
@@ -28,7 +32,6 @@ import {
   RenameInterfaceFields,
   TransformRootFields,
 } from '../wrap/index';
-import { isSpecifiedScalarType, toConfig } from '../polyfills/index';
 
 import { delegateToSchema } from '../delegate/index';
 import { makeExecutableSchema } from '../generate/index';
@@ -357,8 +360,17 @@ describe('transform object fields', () => {
             return undefined;
           }
           return {
-            ...toConfig(field),
+            description: field.deprecationReason,
+            type: field.type,
+            args: field.args.reduce<GraphQLFieldConfigArgumentMap>((prev, curr) => ({
+              ...prev,
+              [curr.name]: curr,
+            }),{}),
             resolve: () => 'test',
+            subscribe: field.subscribe,
+            deprecationReason: field.deprecationReason,
+            extensions: field.extensions,
+            astNode: field.astNode,
           };
         },
         (typeName: string, fieldName: string, fieldNode: FieldNode) => {
@@ -421,7 +433,19 @@ describe('default values', () => {
           field: GraphQLField<any, any>,
         ) => {
           if (typeName === 'Query' && fieldName === 'jsonTest') {
-            const fieldConfig = toConfig(field);
+            const fieldConfig: GraphQLFieldConfig<any, any> = {
+                description: field.deprecationReason,
+                type: field.type,
+                args: field.args.reduce<GraphQLFieldConfigArgumentMap>((prev, curr) => ({
+                  ...prev,
+                  [curr.name]: curr,
+                }),{}),
+                resolve: field.resolve,
+                subscribe: field.subscribe,
+                deprecationReason: field.deprecationReason,
+                extensions: field.extensions,
+                astNode: field.astNode,
+             };
             fieldConfig.args.input.defaultValue = { test: 'test' };
             return { name: 'renamedJsonTest', field: fieldConfig };
           }
@@ -682,7 +706,7 @@ describe('filter and rename object fields', () => {
       typeFilter: (typeName: string, type) =>
         typeName === 'New_Property' ||
         typeName === 'New_Location' ||
-        isSpecifiedScalarType(type),
+        isSpecifiedScalarType(type as GraphQLNamedType),
     });
   });
 

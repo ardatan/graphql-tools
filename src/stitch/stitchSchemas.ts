@@ -20,6 +20,7 @@ import {
   isUnionType,
   isEnumType,
   GraphQLInterfaceTypeConfig,
+  extendSchema,
 } from 'graphql';
 
 import { mergeDeep } from '../esUtils/mergeDeep';
@@ -42,7 +43,6 @@ import {
   forEachField,
   graphqlVersion,
 } from '../utils/index';
-import { toConfig, extendSchema } from '../polyfills/index';
 
 import typeFromAST from './typeFromAST';
 import { createMergeInfo, completeMergeInfo } from './mergeInfo';
@@ -324,12 +324,12 @@ function merge(
       fields: candidates.reduce(
         (acc, candidate) => ({
           ...acc,
-          ...toConfig(candidate.type as GraphQLObjectType).fields,
+          ...(candidate.type as GraphQLObjectType).toConfig().fields,
         }),
         {},
       ),
       interfaces: candidates.reduce((acc, candidate) => {
-        const interfaces = toConfig(candidate.type as GraphQLObjectType)
+        const interfaces = (candidate.type as GraphQLObjectType).toConfig()
           .interfaces;
         return interfaces != null ? acc.concat(interfaces) : acc;
       }, []),
@@ -340,19 +340,19 @@ function merge(
       fields: candidates.reduce(
         (acc, candidate) => ({
           ...acc,
-          ...toConfig(candidate.type as GraphQLInterfaceType).fields,
+          ...(candidate.type as GraphQLInterfaceType).toConfig().fields,
         }),
         {},
       ),
       ...((graphqlVersion() >= 15
         ? {
-            interfaces: candidates.reduce((acc, candidate) => {
-              const interfaces = toConfig(
-                candidate.type as GraphQLInterfaceType,
-              ).interfaces;
-              return interfaces != null ? acc.concat(interfaces) : acc;
-            }, []),
-          }
+          interfaces: candidates.reduce((acc, candidate) => {
+            const interfaces = (
+              candidate.type as GraphQLInterfaceType
+            ).toConfig().interfaces;
+            return interfaces != null ? acc.concat(interfaces) : acc;
+          }, []),
+        }
         : {}) as any),
     };
     return new GraphQLInterfaceType(config);
@@ -361,7 +361,7 @@ function merge(
       name: typeName,
       types: candidates.reduce(
         (acc, candidate) =>
-          acc.concat(toConfig(candidate.type as GraphQLUnionType).types),
+          acc.concat((candidate.type as GraphQLUnionType).toConfig().types),
         [],
       ),
     });
@@ -371,7 +371,7 @@ function merge(
       values: candidates.reduce(
         (acc, candidate) => ({
           ...acc,
-          ...toConfig(candidate.type as GraphQLEnumType).values,
+          ...(candidate.type as GraphQLEnumType).toConfig().values,
         }),
         {},
       ),

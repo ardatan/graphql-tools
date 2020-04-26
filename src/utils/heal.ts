@@ -21,7 +21,7 @@ import {
   isNonNullType,
 } from 'graphql';
 
-import { toConfig } from '../polyfills/index';
+
 
 import { isNamedStub, getBuiltInForStub } from './stub';
 import { graphqlVersion } from './graphqlVersion';
@@ -68,7 +68,7 @@ export function healSchema(schema: GraphQLSchema): GraphQLSchema {
   });
 
   const healedSchema = new GraphQLSchema({
-    ...toConfig(schema),
+    ...schema.toConfig(),
     query: newQueryTypeName ? filteredTypeMap[newQueryTypeName] : undefined,
     mutation: newMutationTypeName
       ? filteredTypeMap[newMutationTypeName]

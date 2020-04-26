@@ -21,7 +21,6 @@ import {
   parseInputValue,
   serializeInputValue,
 } from '../utils/transformInputValue';
-import { toConfig } from '../polyfills/index';
 import SchemaError from '../utils/SchemaError';
 
 import checkForResolveTypeResolver from './checkForResolveTypeResolver';
@@ -107,7 +106,7 @@ function addResolversToSchema(
         }
       });
 
-      const config = toConfig(type);
+      const config = type.toConfig();
 
       const values = type.getValues();
       const newValues = values.reduce<GraphQLEnumValueConfigMap>(

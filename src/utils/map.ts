@@ -26,10 +26,10 @@ import {
   isObjectType,
   isScalarType,
   isUnionType,
+  isSpecifiedScalarType,
 } from 'graphql';
 
-import { toConfig } from '../polyfills/toConfig';
-import { isSpecifiedScalarType } from '../polyfills/isSpecifiedScalarType';
+
 import { graphqlVersion } from '../utils/graphqlVersion';
 import {
   SchemaMapper,
@@ -102,7 +102,7 @@ export function mapSchema(
   const { typeMap, directives } = rewireTypes(newTypeMap, newDirectives);
 
   return new GraphQLSchema({
-    ...toConfig(schema),
+    ...schema.toConfig(),
     query: newQueryTypeName
       ? (typeMap[newQueryTypeName] as GraphQLObjectType)
       : undefined,
@@ -228,7 +228,7 @@ export function rewireTypes(
   return pruneTypes(newTypeMap, newDirectives);
 
   function rewireDirective(directive: GraphQLDirective): GraphQLDirective {
-    const directiveConfig = toConfig(directive);
+    const directiveConfig = directive.toConfig();
     directiveConfig.args = rewireArgs(directiveConfig.args);
     return new GraphQLDirective(directiveConfig);
   }
@@ -250,7 +250,7 @@ export function rewireTypes(
 
   function rewireNamedType<T extends GraphQLNamedType>(type: T) {
     if (isObjectType(type)) {
-      const config = toConfig(type);
+      const config = type.toConfig() as any;
       const newConfig = {
         ...config,
         fields: () => rewireFields(config.fields),
@@ -258,7 +258,7 @@ export function rewireTypes(
       };
       return new GraphQLObjectType(newConfig);
     } else if (isInterfaceType(type)) {
-      const config = toConfig(type);
+      const config = type.toConfig() as any;
       const newConfig = {
         ...config,
         fields: () => rewireFields(config.fields),
@@ -271,27 +271,27 @@ export function rewireTypes(
       }
       return new GraphQLInterfaceType(newConfig);
     } else if (isUnionType(type)) {
-      const config = toConfig(type);
+      const config = type.toConfig() as any;
       const newConfig = {
         ...config,
         types: () => rewireNamedTypes(config.types),
       };
       return new GraphQLUnionType(newConfig);
     } else if (isInputObjectType(type)) {
-      const config = toConfig(type);
+      const config = type.toConfig() as any;
       const newConfig = {
         ...config,
         fields: () => rewireInputFields(config.fields),
       };
       return new GraphQLInputObjectType(newConfig);
     } else if (isEnumType(type)) {
-      const enumConfig = toConfig(type);
+      const enumConfig = type.toConfig() as any;
       return new GraphQLEnumType(enumConfig);
     } else if (isScalarType(type)) {
       if (isSpecifiedScalarType(type)) {
         return type;
       }
-      const scalarConfig = toConfig(type);
+      const scalarConfig = type.toConfig() as any;
       return new GraphQLScalarType(scalarConfig);
     }
 
