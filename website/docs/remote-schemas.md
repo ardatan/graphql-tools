@@ -11,6 +11,7 @@ Generally, to create a remote schema, you need three steps:
 1. Create a [executor](#creating-a-executor) that can retrieve results from that schema
 2. Use [`introspectSchema`](#introspectschemaexecutor-context) to get the schema of the remote server
 3. Use [`makeRemoteExecutableSchema`](#makeremoteexecutableschemaoptions) to create a schema that uses the executor to delegate requests to the underlying service
+4. Create a [subscriber][#creating-a-subscriber] that can retrieve real time results from that schema (Optional only if you are using GraphQL Subscriptions)
 
 ### Creating an executor
 
@@ -129,3 +130,6 @@ introspectSchema(executor).then((schema) => {
 // or, with async/await:
 const schema = await introspectSchema(executor);
 ```
+
+## Creating a subscriber
+> TODO
