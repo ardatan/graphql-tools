@@ -156,9 +156,10 @@ describe('@directives', () => {
       return directives;
     }
 
-    expect(getDirectiveNames(schema)).toEqual(
-      ['schemaDirective', 'schemaExtensionDirective'],
-    );
+    expect(getDirectiveNames(schema)).toEqual([
+      'schemaDirective',
+      'schemaExtensionDirective',
+    ]);
 
     checkDirectives(
       schema.getQueryType(),
@@ -168,19 +169,20 @@ describe('@directives', () => {
       },
     );
 
-    expect(getDirectiveNames(schema.getType('Gender'))).toEqual(
-      ['enumTypeDirective', 'enumTypeExtensionDirective'],
-    );
+    expect(getDirectiveNames(schema.getType('Gender'))).toEqual([
+      'enumTypeDirective',
+      'enumTypeExtensionDirective',
+    ]);
 
     const nonBinary = (schema.getType(
       'Gender',
     ) as GraphQLEnumType).getValues()[0];
     expect(getDirectiveNames(nonBinary)).toEqual(['enumValueDirective']);
 
-    checkDirectives(
-      schema.getType('Date') as GraphQLObjectType,
-      ['dateDirective', 'dateExtensionDirective'],
-    );
+    checkDirectives(schema.getType('Date') as GraphQLObjectType, [
+      'dateDirective',
+      'dateExtensionDirective',
+    ]);
 
     checkDirectives(
       schema.getType('Named') as GraphQLObjectType,
@@ -219,10 +221,10 @@ describe('@directives', () => {
       },
     );
 
-    checkDirectives(
-      schema.getType('WhateverUnion'),
-      ['unionDirective', 'unionExtensionDirective'],
-    );
+    checkDirectives(schema.getType('WhateverUnion'), [
+      'unionDirective',
+      'unionExtensionDirective',
+    ]);
   });
 
   test('works with enum and its resolvers', () => {

@@ -714,24 +714,30 @@ describe('filter and rename object fields', () => {
 
   test('should filter', () => {
     const printedSchema = printSchema(transformedPropertySchema);
-    expect(printedSchema).toContain(`
+    expect(printedSchema).toContain(
+      `
 type New_Property {
   new_id: ID!
   new_name: String!
   new_location: New_Location
   new_error: String
 }
-    `.trim());
-    expect(printedSchema).toContain(`
+    `.trim(),
+    );
+    expect(printedSchema).toContain(
+      `
 type New_Location {
   name: String!
 }
-    `.trim());
-    expect(printedSchema).toContain(`
+    `.trim(),
+    );
+    expect(printedSchema).toContain(
+      `
 type Query {
   propertyById(id: ID!): New_Property
 }
-    `.trim());
+    `.trim(),
+    );
   });
 
   test('should work', async () => {
@@ -1021,7 +1027,7 @@ describe('schema transformation with extraction of nested fields', () => {
         },
       ],
     };
-      expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
+    expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
 
     expect(result).toEqual(expectedResult);
   });
@@ -1156,7 +1162,7 @@ describe('schema transformation with wrapping of object fields', () => {
         },
       ],
     };
-      expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
+    expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
 
     expect(result).toEqual(expectedResult);
   });
@@ -1226,7 +1232,7 @@ describe('schema transformation with wrapping of object fields', () => {
         ],
       };
 
-        expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
+      expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
 
       expect(result).toEqual(expectedResult);
     });
@@ -1303,7 +1309,7 @@ describe('schema transformation with wrapping of object fields', () => {
         ],
       };
 
-        expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
+      expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
 
       expect(result).toEqual(expectedResult);
     });
@@ -1368,7 +1374,7 @@ describe('schema transformation with renaming of object fields', () => {
         },
       ],
     };
-      expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
+    expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
 
     expect(result).toEqual(expectedResult);
   });
@@ -1518,16 +1524,20 @@ describe('stitchSchemas', () => {
     const response = await graphql(stitchedSchema, query);
 
     const printedSchema = printSchema(schema);
-    expect(printedSchema).toContain(`
+    expect(printedSchema).toContain(
+      `
 input InputWithDefault {
   field: String = "test"
 }
-    `.trim());
-    expect(printedSchema).toContain(`
+    `.trim(),
+    );
+    expect(printedSchema).toContain(
+      `
 type Query {
   getInput(input: InputWithDefault!): String
 }
-    `.trim());
+    `.trim(),
+    );
     expect(response.data?.getInput).toBe('test');
   });
 

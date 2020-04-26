@@ -83,9 +83,12 @@ function makeInterfaceType(
   const config = {
     name: node.name.value,
     description: getDescription(node, backcompatOptions),
-    interfaces: 'interfaces' in node ? node.interfaces.map(
-      (iface) => createNamedStub(iface.name.value, 'interface'),
-    ): [],
+    interfaces:
+      'interfaces' in node
+        ? node.interfaces.map((iface) =>
+            createNamedStub(iface.name.value, 'interface'),
+          )
+        : [],
     fields: () => makeFields(node.fields),
     resolveType: (parent: any) => resolveFromParentTypename(parent),
     astNode: node,

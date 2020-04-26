@@ -1,6 +1,4 @@
-import {
-  GraphQLSchema,
-} from 'graphql';
+import { GraphQLSchema } from 'graphql';
 
 import { IResolvers } from '../Interfaces';
 
@@ -17,9 +15,7 @@ function extendResolversFromInterfaces(
   typeNames.forEach((typeName) => {
     const typeResolvers = resolvers[typeName];
     const type = schema.getType(typeName);
-    if (
-      'getInterfaces' in type
-    ) {
+    if ('getInterfaces' in type) {
       const interfaceResolvers = type
         .getInterfaces()
         .map((iFace) => resolvers[iFace.name]);

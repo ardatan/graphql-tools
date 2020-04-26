@@ -264,10 +264,9 @@ function pruneTypes(
   const implementedInterfaces = {};
   Object.values(typeMap).forEach((namedType) => {
     if ('getInterfaces' in namedType) {
-      namedType.getInterfaces()
-        .forEach((iface) => {
-          implementedInterfaces[iface.name] = true;
-        });
+      namedType.getInterfaces().forEach((iface) => {
+        implementedInterfaces[iface.name] = true;
+      });
     }
   });
 
