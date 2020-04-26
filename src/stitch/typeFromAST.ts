@@ -213,7 +213,7 @@ function makeDirective(node: DirectiveDefinitionNode): GraphQLDirective {
     isRepeatable: (node as any).repeatable,
     args: makeValues([...node.arguments]),
     astNode: node,
-  });
+  } as any);
 }
 
 // graphql < v13 does not export getDescription

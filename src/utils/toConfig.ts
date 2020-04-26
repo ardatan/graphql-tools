@@ -436,7 +436,7 @@ export function inputFieldToConfig(
     description: field.description,
     type: field.type,
     defaultValue: field.defaultValue,
-    extensions: field.extensions,
+    extensions: (field as any).extensions,
     astNode: field.astNode,
   } as any;
 }
@@ -454,7 +454,7 @@ export function directiveToConfig(
     locations: directive.locations,
     args: argumentMapToConfig(directive.args),
     isRepeatable: (directive as any).isRepeatable,
-    extensions: directive.extensions,
+    extensions: (directive as any).extensions,
     astNode: directive.astNode,
   } as any;
 }
