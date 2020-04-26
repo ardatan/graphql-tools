@@ -9,6 +9,7 @@ import {
   ValueNode,
   GraphQLResolveInfo,
   GraphQLError,
+  GraphQLInterfaceType,
 } from 'graphql';
 
 import { introspectSchema } from '../../introspect/index';
@@ -19,7 +20,6 @@ import {
   SubschemaConfig,
 } from '../../Interfaces';
 import { makeExecutableSchema } from '../../generate/index';
-import { graphqlVersion } from '../../utils/index';
 
 export class CustomError extends GraphQLError {
   constructor(message: string, extensions: Record<string, any>) {
@@ -286,15 +286,13 @@ const propertyRootTypeDefs = `
   }
 
   ${
-  graphqlVersion() >= 15
-    ? `interface TestNestedInterface implements TestInterface {
+    'getInterfaces' in GraphQLInterfaceType.prototype
+      ? `interface TestNestedInterface implements TestInterface {
     kind: TestInterfaceKind
     testString: String
   }
 
-  type TestImpl2 implements TestNestedInterface${
-    graphqlVersion() >= 13 ? ' &' : ', '
-    } TestInterface {
+  type TestImpl2 implements TestNestedInterface & TestInterface {
     kind: TestInterfaceKind
     testString: String
     bar: String
@@ -426,17 +424,13 @@ const propertyResolvers: IResolvers = {
 };
 
 const DownloadableProduct = `
-  type DownloadableProduct implements Product${
-  graphqlVersion() >= 13 ? ' &' : ', '
-  } Downloadable {
+  type DownloadableProduct implements Product & Downloadable {
     id: ID!
     url: String!
   }
 `;
 
-const SimpleProduct = `type SimpleProduct implements Product${
-  graphqlVersion() >= 13 ? ' &' : ', '
-  } Sellable {
+const SimpleProduct = `type SimpleProduct implements Product & Sellable {
     id: ID!
     price: Int!
   }

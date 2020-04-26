@@ -1,11 +1,10 @@
-import { GraphQLFieldResolver, GraphQLSchema } from 'graphql';
+import { buildSchema, GraphQLFieldResolver, GraphQLSchema } from 'graphql';
 
 import {
   IMakeRemoteExecutableSchemaOptions,
   Executor,
   Subscriber,
 } from '../Interfaces';
-import { buildSchema } from '../polyfills/index';
 import { delegateToSchema } from '../delegate';
 
 import { wrapSchema } from './wrapSchema';

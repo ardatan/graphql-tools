@@ -24,7 +24,6 @@ import {
   RenamedFieldConfig,
 } from '../../Interfaces';
 import { mapSchema } from '../../utils/index';
-import { toConfig } from '../../polyfills/index';
 
 export default class TransformCompositeFields implements Transform {
   private readonly fieldTransformer: FieldTransformer;
@@ -85,7 +84,7 @@ export default class TransformCompositeFields implements Transform {
     type: GraphQLObjectType | GraphQLInterfaceType,
     fieldTransformer: FieldTransformer,
   ): any {
-    const typeConfig = toConfig(type);
+    const typeConfig = type.toConfig();
     const fields = type.getFields();
     const newFields = {};
 
@@ -123,12 +122,12 @@ export default class TransformCompositeFields implements Transform {
 
     if (isObjectType(type)) {
       return new GraphQLObjectType({
-        ...toConfig(type),
+        ...type.toConfig(),
         fields: newFields,
       });
     } else if (isInterfaceType(type)) {
       return new GraphQLInterfaceType({
-        ...toConfig(type),
+        ...type.toConfig(),
         fields: newFields,
       });
     }

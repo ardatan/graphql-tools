@@ -43,7 +43,7 @@ import {
   ITypeDefinitions,
   ILogger,
 } from '../Interfaces';
-import { visitSchema, graphqlVersion } from '../utils/index';
+import { visitSchema } from '../utils/index';
 
 import TypeA from './fixtures/circularSchemaA';
 
@@ -154,6 +154,10 @@ describe('generating schema from shorthand', () => {
         name: String!,
         wingspan: Int
       }
+
+      """
+      Root Query definition
+      """
       type RootQuery {
         species(name: String!): [BirdSpecies]
       }
@@ -232,7 +236,7 @@ describe('generating schema from shorthand', () => {
         },
         query: {
           name: 'RootQuery',
-          description: graphqlVersion() >= 15 ? (null as string) : '',
+          description: 'Root Query definition',
           fields: [
             {
               name: 'species',
@@ -1777,7 +1781,6 @@ describe('generating schema from shorthand', () => {
       }, errorMatcher);
     }
 
-    assertFieldError(graphqlVersion() >= 15 ? 'Query.bird' : 'Bird.id', {});
     assertFieldError('Query.bird', {
       Bird: {
         id: (bird: { id: string }) => bird.id,

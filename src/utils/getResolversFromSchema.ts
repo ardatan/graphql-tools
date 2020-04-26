@@ -5,10 +5,10 @@ import {
   isInterfaceType,
   isUnionType,
   isObjectType,
+  isSpecifiedScalarType,
 } from 'graphql';
 
 import { IResolvers } from '../Interfaces';
-import { isSpecifiedScalarType } from '../polyfills/isSpecifiedScalarType';
 
 import { cloneType } from './clone';
 

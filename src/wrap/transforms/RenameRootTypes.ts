@@ -13,7 +13,6 @@ import {
   Transform,
 } from '../../Interfaces';
 import { mapSchema } from '../../utils/index';
-import { toConfig } from '../../polyfills/index';
 
 export default class RenameRootTypes implements Transform {
   private readonly renamer: (name: string) => string | undefined;
@@ -35,7 +34,7 @@ export default class RenameRootTypes implements Transform {
           this.map[oldName] = newName;
           this.reverseMap[newName] = oldName;
           return new GraphQLObjectType({
-            ...toConfig(type),
+            ...type.toConfig(),
             name: newName,
           });
         }

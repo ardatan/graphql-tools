@@ -29,7 +29,6 @@ import {
   valueFromASTUntyped,
 } from 'graphql';
 
-import { graphqlVersion } from '../utils/index';
 import { createStub, createNamedStub } from '../utils/stub';
 import resolveFromParentTypename from '../utils/resolveFromParentTypename';
 
@@ -84,13 +83,9 @@ function makeInterfaceType(
   const config = {
     name: node.name.value,
     description: getDescription(node, backcompatOptions),
-    interfaces:
-      graphqlVersion() >= 15
-        ? () =>
-            ((node as unknown) as ObjectTypeDefinitionNode).interfaces.map(
-              (iface) => createNamedStub(iface.name.value, 'interface'),
-            )
-        : undefined,
+    interfaces: ((node as any) as ObjectTypeDefinitionNode).interfaces?.map(
+      (iface) => createNamedStub(iface.name.value, 'interface'),
+    ),
     fields: () => makeFields(node.fields),
     resolveType: (parent: any) => resolveFromParentTypename(parent),
     astNode: node,

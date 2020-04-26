@@ -13,7 +13,6 @@ import {
   MapperKind,
 } from '../Interfaces';
 
-import { toConfig } from '../polyfills';
 import { defaultMergedResolver } from '../delegate';
 import { mapSchema } from '../utils';
 import resolveFromParentTypename from '../utils/resolveFromParentTypename';
@@ -61,7 +60,7 @@ function createWrappingSchema(
 ) {
   return mapSchema(schema, {
     [MapperKind.ROOT_OBJECT]: (type) => {
-      const config = toConfig(type);
+      const config = type.toConfig();
 
       Object.keys(config.fields).forEach((fieldName) => {
         config.fields[fieldName] = {
@@ -73,7 +72,7 @@ function createWrappingSchema(
       return new GraphQLObjectType(config);
     },
     [MapperKind.OBJECT_TYPE]: (type) => {
-      const config = toConfig(type);
+      const config = type.toConfig();
       config.isTypeOf = undefined;
 
       Object.keys(config.fields).forEach((fieldName) => {
@@ -84,12 +83,12 @@ function createWrappingSchema(
       return new GraphQLObjectType(config);
     },
     [MapperKind.INTERFACE_TYPE]: (type) => {
-      const config = toConfig(type);
+      const config = type.toConfig();
       config.resolveType = (parent) => resolveFromParentTypename(parent);
       return new GraphQLInterfaceType(config);
     },
     [MapperKind.UNION_TYPE]: (type) => {
-      const config = toConfig(type);
+      const config = type.toConfig();
       config.resolveType = (parent) => resolveFromParentTypename(parent);
       return new GraphQLUnionType(config);
     },
