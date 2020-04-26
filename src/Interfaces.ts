@@ -221,8 +221,8 @@ export type MergeTypeFilter = (
 export interface IMakeRemoteExecutableSchemaOptions {
   schema: GraphQLSchema | string;
   executor?: Executor;
-  createResolver?: (executor: Executor, subscriber: Subscriber) => GraphQLFieldResolver<any, any>;
   subscriber?: Subscriber;
+  createResolver?: (executor: Executor, subscriber: Subscriber) => GraphQLFieldResolver<any, any>;
   buildSchemaOptions?: BuildSchemaOptions;
 }
 

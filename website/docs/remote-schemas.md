@@ -103,7 +103,7 @@ const schema = makeRemoteExecutableSchema({
 });
 ```
 
-Given a GraphQL.js schema (can be a non-executable client schema made by `buildClientSchema`) and a [cetcher](#creating-an-executor), produce a GraphQL Schema that routes all requests to the executor.
+Given a GraphQL.js schema (can be a non-executable client schema made by `buildClientSchema`) and a [executor](#creating-an-executor), produce a GraphQL Schema that routes all requests to the executor.
 
 You can also pass a `createResolver` function to `makeRemoteExecutableSchema` to override how the fetch resolvers are created and executed. The `createResolver` param accepts an `Executor` as its first argument and returns a resolver function. This opens up the possibility for users to create batching mechanisms for fetches.
 ```js
