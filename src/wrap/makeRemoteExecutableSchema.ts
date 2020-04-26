@@ -1,6 +1,10 @@
 import { GraphQLFieldResolver, GraphQLSchema } from 'graphql';
 
-import { IMakeRemoteExecutableSchemaOptions, Executor, Subscriber } from '../Interfaces';
+import {
+  IMakeRemoteExecutableSchemaOptions,
+  Executor,
+  Subscriber,
+} from '../Interfaces';
 import { buildSchema } from '../polyfills/index';
 import { delegateToSchema } from '../delegate';
 
@@ -20,13 +24,14 @@ export default function makeRemoteExecutableSchema({
 
   return wrapSchema({
     schema: targetSchema,
-    createProxyingResolver: (_schema, _transforms, _operation) => createResolver(executor, subscriber),
+    createProxyingResolver: (_schema, _transforms, _operation) =>
+      createResolver(executor, subscriber),
   });
 }
 
 export function defaultCreateRemoteResolver(
   executor: Executor,
-  subscriber: Subscriber
+  subscriber: Subscriber,
 ): GraphQLFieldResolver<any, any> {
   return (_parent, _args, context, info) =>
     delegateToSchema({
@@ -35,4 +40,3 @@ export function defaultCreateRemoteResolver(
       info,
     });
 }
-

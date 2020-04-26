@@ -22,9 +22,7 @@ import {
 describe('remote queries', () => {
   let schema: GraphQLSchema;
   beforeAll(async () => {
-    const remoteSubschemaConfig = await makeSchemaRemote(
-      propertySchema,
-    );
+    const remoteSubschemaConfig = await makeSchemaRemote(propertySchema);
     schema = makeRemoteExecutableSchema(remoteSubschemaConfig);
   });
 
@@ -62,9 +60,7 @@ describe('remote queries', () => {
 describe('remote subscriptions', () => {
   let schema: GraphQLSchema;
   beforeAll(async () => {
-    const remoteSubschemaConfig = await makeSchemaRemote(
-      subscriptionSchema,
-    );
+    const remoteSubschemaConfig = await makeSchemaRemote(subscriptionSchema);
     schema = makeRemoteExecutableSchema(remoteSubschemaConfig);
   });
 
@@ -86,16 +82,13 @@ describe('remote subscriptions', () => {
     let notificationCnt = 0;
     subscribe(schema, subscription)
       .then((results) => {
-        forAwaitEach(
-          results,
-          result => {
-            expect(result).toHaveProperty('data');
-            expect(result.data).toEqual(mockNotification);
-            if (!notificationCnt++) {
-              done();
-            }
-          },
-        ).catch(done);
+        forAwaitEach(results, (result) => {
+          expect(result).toHaveProperty('data');
+          expect(result.data).toEqual(mockNotification);
+          if (!notificationCnt++) {
+            done();
+          }
+        }).catch(done);
       })
       .then(() =>
         subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification),
@@ -120,24 +113,18 @@ describe('remote subscriptions', () => {
 
     let notificationCnt = 0;
     const sub1 = subscribe(schema, subscription).then((results) => {
-      forAwaitEach(
-        results,
-        result => {
-          expect(result).toHaveProperty('data');
-          expect(result.data).toEqual(mockNotification);
-          notificationCnt++;
-        },
-      ).catch(done);
+      forAwaitEach(results, (result) => {
+        expect(result).toHaveProperty('data');
+        expect(result.data).toEqual(mockNotification);
+        notificationCnt++;
+      }).catch(done);
     });
 
     const sub2 = subscribe(schema, subscription).then((results) => {
-      forAwaitEach(
-        results,
-        result => {
-          expect(result).toHaveProperty('data');
-          expect(result.data).toEqual(mockNotification);
-        },
-      ).catch(done);
+      forAwaitEach(results, (result) => {
+        expect(result).toHaveProperty('data');
+        expect(result.data).toEqual(mockNotification);
+      }).catch(done);
     });
 
     Promise.all([sub1, sub2])

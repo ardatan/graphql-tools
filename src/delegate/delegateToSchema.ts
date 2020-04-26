@@ -25,7 +25,6 @@ import {
 
 import mapAsyncIterator from '../esUtils/mapAsyncIterator';
 
-
 import ExpandAbstractTypes from './transforms/ExpandAbstractTypes';
 import FilterToSchema from './transforms/FilterToSchema';
 import AddReplacementSelectionSets from './transforms/AddReplacementSelectionSets';
@@ -192,10 +191,12 @@ export function delegateRequest({
   }
 
   if (operation === 'query' || operation === 'mutation') {
-    const executor = subschemaConfig?.executor || createDefaultExecutor(
-      targetSchema,
-      subschemaConfig?.rootValue || targetRootValue,
-    );
+    const executor =
+      subschemaConfig?.executor ||
+      createDefaultExecutor(
+        targetSchema,
+        subschemaConfig?.rootValue || targetRootValue,
+      );
 
     const executionResult = executor({
       document: processedRequest.document,
@@ -212,10 +213,12 @@ export function delegateRequest({
     return applyResultTransforms(executionResult, delegationTransforms);
   }
 
-  const subscriber = subschemaConfig?.subscriber || createDefaultSubscriber(
-    targetSchema,
-    subschemaConfig?.rootValue || targetRootValue,
-  );
+  const subscriber =
+    subschemaConfig?.subscriber ||
+    createDefaultSubscriber(
+      targetSchema,
+      subschemaConfig?.rootValue || targetRootValue,
+    );
 
   return subscriber({
     document: processedRequest.document,
@@ -256,13 +259,7 @@ function createDefaultExecutor(
   rootValue: Record<string, any>,
 ): Executor {
   return ({ document, context, variables, info }) =>
-    execute(
-      schema,
-      document,
-      rootValue || info.rootValue,
-      context,
-      variables,
-    );
+    execute(schema, document, rootValue || info.rootValue, context, variables);
 }
 
 function createDefaultSubscriber(
@@ -276,5 +273,5 @@ function createDefaultSubscriber(
       rootValue || info.rootValue,
       context,
       variables,
-    )
+    );
 }

@@ -6,7 +6,6 @@ import {
   parse,
 } from 'graphql';
 
-
 import { Executor } from '../Interfaces';
 
 import { combineErrors } from '../delegate/errors';
@@ -31,7 +30,7 @@ export async function introspectSchema(
     } else {
       throw new Error(
         'Could not obtain introspection result, received: ' +
-        JSON.stringify(introspectionResult),
+          JSON.stringify(introspectionResult),
       );
     }
   } else {

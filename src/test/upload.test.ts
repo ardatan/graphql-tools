@@ -106,7 +106,7 @@ describe('graphql upload', () => {
       executor: linkToExecutor(
         createServerHttpLink({
           uri: `http://localhost:${remotePort.toString()}`,
-        })
+        }),
       ),
     };
 
