@@ -12,7 +12,6 @@ import {
   assertValidSchema,
   GraphQLFieldConfig,
   isSpecifiedScalarType,
-  GraphQLNamedType,
 } from 'graphql';
 
 import {
