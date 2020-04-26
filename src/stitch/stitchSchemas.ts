@@ -41,7 +41,6 @@ import {
   cloneDirective,
   healTypes,
   forEachField,
-  graphqlVersion,
 } from '../utils/index';
 
 import typeFromAST from './typeFromAST';
@@ -344,15 +343,13 @@ function merge(
         }),
         {},
       ),
-      ...((graphqlVersion() >= 15
-        ? {
-            interfaces: candidates.reduce((acc, candidate) => {
-              const interfaces = (candidate.type as GraphQLObjectType).toConfig()
-                .interfaces;
-              return interfaces != null ? acc.concat(interfaces) : acc;
-            }, []),
-          }
-        : {}) as any),
+      interfaces: candidates.reduce((acc, candidate) => {
+        const candidateConfig = candidate.type.toConfig();
+        if ('interfaces' in candidateConfig) {
+          return acc.concat(candidateConfig.interfaces);
+        }
+        return acc;
+      }, []),
     };
     return new GraphQLInterfaceType(config);
   } else if (isUnionType(initialCandidateType)) {

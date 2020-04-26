@@ -14,11 +14,9 @@ import {
   isInputObjectType,
   isEnumType,
   isScalarType,
-  GraphQLObjectTypeConfig,
   isSpecifiedScalarType,
 } from 'graphql';
 
-import { graphqlVersion } from './graphqlVersion';
 import { mapSchema } from './map';
 
 export function cloneDirective(directive: GraphQLDirective): GraphQLDirective {
@@ -40,14 +38,10 @@ export function cloneType(type: GraphQLNamedType): GraphQLNamedType {
     const newConfig = {
       ...config,
       interfaces:
-        graphqlVersion() >= 15
-          ? typeof ((config as unknown) as GraphQLObjectTypeConfig<any, any>)
-              .interfaces === 'function'
-            ? ((config as unknown) as GraphQLObjectTypeConfig<any, any>)
-                .interfaces
-            : ((config as unknown) as {
-                interfaces: Array<GraphQLInterfaceType>;
-              }).interfaces.slice()
+        'interfaces' in config
+          ? typeof config.interfaces === 'function'
+            ? config.interfaces
+            : config.interfaces.slice()
           : undefined,
     };
     return new GraphQLInterfaceType(newConfig);

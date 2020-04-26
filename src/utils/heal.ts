@@ -22,7 +22,6 @@ import {
 } from 'graphql';
 
 import { isNamedStub, getBuiltInForStub } from './stub';
-import { graphqlVersion } from './graphqlVersion';
 
 type NamedTypeMap = Record<string, GraphQLNamedType>;
 
@@ -162,7 +161,7 @@ export function healTypes(
       return;
     } else if (isInterfaceType(type)) {
       healFields(type);
-      if (graphqlVersion() >= 15) {
+      if ('getInterfaces' in type) {
         healInterfaces(type);
       }
       return;
@@ -264,12 +263,8 @@ function pruneTypes(
 ) {
   const implementedInterfaces = {};
   Object.values(typeMap).forEach((namedType) => {
-    if (
-      isObjectType(namedType) ||
-      (graphqlVersion() >= 15 && isInterfaceType(namedType))
-    ) {
-      ((namedType as unknown) as GraphQLObjectType)
-        .getInterfaces()
+    if ('getInterfaces' in namedType) {
+      namedType.getInterfaces()
         .forEach((iface) => {
           implementedInterfaces[iface.name] = true;
         });

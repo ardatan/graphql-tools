@@ -38,7 +38,7 @@ import { makeExecutableSchema } from '../generate/index';
 import { stitchSchemas } from '../stitch/index';
 import { createMergedResolver } from '../delegate/createMergedResolver';
 import { SubschemaConfig } from '../Interfaces';
-import { filterSchema, graphqlVersion } from '../utils/index';
+import { filterSchema } from '../utils/index';
 import {
   wrapFieldNode,
   renameFieldNode,
@@ -686,10 +686,6 @@ describe('transform object fields', () => {
       ],
     };
 
-    if (graphqlVersion() < 14) {
-      expectedResult.errors[0].path = undefined;
-    }
-
     expect(result).toEqual(expectedResult);
   });
 });
@@ -717,39 +713,25 @@ describe('filter and rename object fields', () => {
   });
 
   test('should filter', () => {
-    if (graphqlVersion() >= 15) {
-      expect(printSchema(transformedPropertySchema)).toBe(`type New_Property {
-  new_id: ID!
-  new_name: String!
-  new_location: New_Location
-  new_error: String
-}
-
-type New_Location {
-  name: String!
-}
-
-type Query {
-  propertyById(id: ID!): New_Property
-}
-`);
-    } else {
-      expect(printSchema(transformedPropertySchema)).toBe(`type New_Location {
-  name: String!
-}
-
+    const printedSchema = printSchema(transformedPropertySchema);
+    expect(printedSchema).toContain(`
 type New_Property {
   new_id: ID!
   new_name: String!
   new_location: New_Location
   new_error: String
 }
-
+    `.trim());
+    expect(printedSchema).toContain(`
+type New_Location {
+  name: String!
+}
+    `.trim());
+    expect(printedSchema).toContain(`
 type Query {
   propertyById(id: ID!): New_Property
 }
-`);
-    }
+    `.trim());
   });
 
   test('should work', async () => {
@@ -803,9 +785,7 @@ type Query {
       ],
     };
 
-    if (graphqlVersion() >= 14) {
-      expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
-    }
+    expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
 
     expect(result).toEqual(expectedResult);
   });
@@ -969,9 +949,7 @@ describe('WrapType transform', () => {
       ],
     };
 
-    if (graphqlVersion() >= 14) {
-      expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
-    }
+    expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
 
     expect(result).toEqual(expectedResult);
   });
@@ -1043,10 +1021,7 @@ describe('schema transformation with extraction of nested fields', () => {
         },
       ],
     };
-
-    if (graphqlVersion() >= 14) {
       expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
-    }
 
     expect(result).toEqual(expectedResult);
   });
@@ -1181,10 +1156,7 @@ describe('schema transformation with wrapping of object fields', () => {
         },
       ],
     };
-
-    if (graphqlVersion() >= 14) {
       expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
-    }
 
     expect(result).toEqual(expectedResult);
   });
@@ -1254,9 +1226,7 @@ describe('schema transformation with wrapping of object fields', () => {
         ],
       };
 
-      if (graphqlVersion() >= 14) {
         expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
-      }
 
       expect(result).toEqual(expectedResult);
     });
@@ -1333,9 +1303,7 @@ describe('schema transformation with wrapping of object fields', () => {
         ],
       };
 
-      if (graphqlVersion() >= 14) {
         expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
-      }
 
       expect(result).toEqual(expectedResult);
     });
@@ -1400,10 +1368,7 @@ describe('schema transformation with renaming of object fields', () => {
         },
       ],
     };
-
-    if (graphqlVersion() >= 14) {
       expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
-    }
 
     expect(result).toEqual(expectedResult);
   });
@@ -1552,18 +1517,17 @@ describe('stitchSchemas', () => {
     const query = '{ getInput(input: {}) }';
     const response = await graphql(stitchedSchema, query);
 
-    if (graphqlVersion() >= 15) {
-      expect(printSchema(schema)).toBe(`input InputWithDefault {
+    const printedSchema = printSchema(schema);
+    expect(printedSchema).toContain(`
+input InputWithDefault {
   field: String = "test"
 }
-
+    `.trim());
+    expect(printedSchema).toContain(`
 type Query {
   getInput(input: InputWithDefault!): String
 }
-`);
-    } else {
-      expect(printSchema(schema)).toBe(printSchema(stitchedSchema));
-    }
+    `.trim());
     expect(response.data?.getInput).toBe('test');
   });
 

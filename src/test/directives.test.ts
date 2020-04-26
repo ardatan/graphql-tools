@@ -34,7 +34,6 @@ import {
   SchemaDirectiveVisitor,
   SchemaVisitor,
   visitSchema,
-  graphqlVersion,
 } from '../utils/index';
 
 const typeDefs = `
@@ -69,19 +68,13 @@ schema @schemaDirective(role: "admin") {
   mutation: Mutation
 }
 
-${
-  graphqlVersion() >= 14
-    ? 'extend schema @schemaExtensionDirective(role: "admin")'
-    : ''
-}
+extend schema @schemaExtensionDirective(role: "admin")
 
 type Query @queryTypeDirective {
   people: [Person] @queryFieldDirective
 }
 
-${
-  graphqlVersion() >= 13 ? 'extend type Query @queryTypeExtensionDirective' : ''
-}
+extend type Query @queryTypeExtensionDirective
 
 enum Gender @enumTypeDirective {
   NONBINARY @enumValueDirective
@@ -89,70 +82,37 @@ enum Gender @enumTypeDirective {
   MALE
 }
 
-${
-  graphqlVersion() >= 14 ? 'extend enum Gender @enumTypeExtensionDirective' : ''
-}
-
+extend enum Gender @enumTypeExtensionDirective
 scalar Date @dateDirective(tz: "utc")
 
-${
-  graphqlVersion() >= 14
-    ? 'extend scalar Date @dateExtensionDirective(tz: "utc")'
-    : ''
-}
-
+extend scalar Date @dateExtensionDirective(tz: "utc")
 interface Named @interfaceDirective {
   name: String! @interfaceFieldDirective
 }
 
-${
-  graphqlVersion() >= 13
-    ? 'extend interface Named @interfaceExtensionDirective'
-    : ''
-}
-
+extend interface Named @interfaceExtensionDirective
 input PersonInput @inputTypeDirective {
   name: String! @inputFieldDirective
   gender: Gender
 }
 
-${
-  graphqlVersion() >= 14
-    ? 'extend input PersonInput @inputTypeExtensionDirective'
-    : ''
-}
-
+extend input PersonInput @inputTypeExtensionDirective
 type Mutation @mutationTypeDirective {
   addPerson(
     input: PersonInput @mutationArgumentDirective
   ): Person @mutationMethodDirective
 }
 
-${
-  graphqlVersion() >= 13
-    ? 'extend type Mutation @mutationTypeExtensionDirective'
-    : ''
-}
-
+extend type Mutation @mutationTypeExtensionDirective
 type Person implements Named @objectTypeDirective {
   id: ID! @objectFieldDirective
   name: String!
 }
 
-${
-  graphqlVersion() >= 14
-    ? 'extend type Person @objectTypeExtensionDirective'
-    : ''
-}
-
+extend type Person @objectTypeExtensionDirective
 union WhateverUnion @unionDirective = Person | Query | Mutation
 
-${
-  graphqlVersion() >= 14
-    ? 'extend union WhateverUnion @unionExtensionDirective'
-    : ''
-}
-`;
+extend union WhateverUnion @unionExtensionDirective`;
 
 describe('@directives', () => {
   test('are included in the schema AST', () => {
@@ -197,25 +157,19 @@ describe('@directives', () => {
     }
 
     expect(getDirectiveNames(schema)).toEqual(
-      graphqlVersion() >= 14
-        ? ['schemaDirective', 'schemaExtensionDirective']
-        : ['schemaDirective'],
+      ['schemaDirective', 'schemaExtensionDirective'],
     );
 
     checkDirectives(
       schema.getQueryType(),
-      graphqlVersion() >= 13
-        ? ['queryTypeDirective', 'queryTypeExtensionDirective']
-        : ['queryTypeDirective'],
+      ['queryTypeDirective', 'queryTypeExtensionDirective'],
       {
         people: ['queryFieldDirective'],
       },
     );
 
     expect(getDirectiveNames(schema.getType('Gender'))).toEqual(
-      graphqlVersion() >= 14
-        ? ['enumTypeDirective', 'enumTypeExtensionDirective']
-        : ['enumTypeDirective'],
+      ['enumTypeDirective', 'enumTypeExtensionDirective'],
     );
 
     const nonBinary = (schema.getType(
@@ -225,16 +179,12 @@ describe('@directives', () => {
 
     checkDirectives(
       schema.getType('Date') as GraphQLObjectType,
-      graphqlVersion() >= 14
-        ? ['dateDirective', 'dateExtensionDirective']
-        : ['dateDirective'],
+      ['dateDirective', 'dateExtensionDirective'],
     );
 
     checkDirectives(
       schema.getType('Named') as GraphQLObjectType,
-      graphqlVersion() >= 13
-        ? ['interfaceDirective', 'interfaceExtensionDirective']
-        : ['interfaceDirective'],
+      ['interfaceDirective', 'interfaceExtensionDirective'],
       {
         name: ['interfaceFieldDirective'],
       },
@@ -242,9 +192,7 @@ describe('@directives', () => {
 
     checkDirectives(
       schema.getType('PersonInput') as GraphQLObjectType,
-      graphqlVersion() >= 14
-        ? ['inputTypeDirective', 'inputTypeExtensionDirective']
-        : ['inputTypeDirective'],
+      ['inputTypeDirective', 'inputTypeExtensionDirective'],
       {
         name: ['inputFieldDirective'],
         gender: [],
@@ -253,9 +201,7 @@ describe('@directives', () => {
 
     checkDirectives(
       schema.getMutationType(),
-      graphqlVersion() >= 13
-        ? ['mutationTypeDirective', 'mutationTypeExtensionDirective']
-        : ['mutationTypeDirective'],
+      ['mutationTypeDirective', 'mutationTypeExtensionDirective'],
       {
         addPerson: ['mutationMethodDirective'],
       },
@@ -266,9 +212,7 @@ describe('@directives', () => {
 
     checkDirectives(
       schema.getType('Person'),
-      graphqlVersion() >= 14
-        ? ['objectTypeDirective', 'objectTypeExtensionDirective']
-        : ['objectTypeDirective'],
+      ['objectTypeDirective', 'objectTypeExtensionDirective'],
       {
         id: ['objectFieldDirective'],
         name: [],
@@ -277,9 +221,7 @@ describe('@directives', () => {
 
     checkDirectives(
       schema.getType('WhateverUnion'),
-      graphqlVersion() >= 14
-        ? ['unionDirective', 'unionExtensionDirective']
-        : ['unionDirective'],
+      ['unionDirective', 'unionExtensionDirective'],
     );
   });
 
@@ -352,11 +294,9 @@ describe('@directives', () => {
         }
       },
     });
-    expect(visited.length).toBe(graphqlVersion() >= 14 ? 2 : 1);
+    expect(visited.length).toBe(2);
     expect(visited[0]).toBe(schema);
-    if (graphqlVersion() >= 14) {
-      expect(visited[1]).toBe(schema);
-    }
+    expect(visited[1]).toBe(schema);
   });
 
   test('can visit fields within object types', () => {

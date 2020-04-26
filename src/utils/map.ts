@@ -8,7 +8,6 @@ import {
   GraphQLInterfaceType,
   GraphQLList,
   GraphQLObjectType,
-  GraphQLObjectTypeConfig,
   GraphQLNamedType,
   GraphQLNonNull,
   GraphQLScalarType,
@@ -29,7 +28,6 @@ import {
   isSpecifiedScalarType,
 } from 'graphql';
 
-import { graphqlVersion } from '../utils/graphqlVersion';
 import {
   SchemaMapper,
   MapperKind,
@@ -262,11 +260,8 @@ export function rewireTypes(
         ...config,
         fields: () => rewireFields(config.fields),
       };
-      if (graphqlVersion() >= 15) {
-        ((newConfig as unknown) as GraphQLObjectTypeConfig<
-          any,
-          any
-        >).interfaces = () => rewireNamedTypes(config.interfaces);
+      if ('interfaces' in newConfig) {
+        newConfig.interfaces = () => rewireNamedTypes(config.interfaces);
       }
       return new GraphQLInterfaceType(newConfig);
     } else if (isUnionType(type)) {
@@ -372,12 +367,8 @@ function pruneTypes(
   Object.keys(typeMap).forEach((typeName) => {
     const namedType = typeMap[typeName];
 
-    if (
-      isObjectType(namedType) ||
-      (graphqlVersion() >= 15 && isInterfaceType(namedType))
-    ) {
-      ((namedType as unknown) as GraphQLObjectType)
-        .getInterfaces()
+    if ('getInterfaces' in namedType) {
+      namedType.getInterfaces()
         .forEach((iface) => {
           implementedInterfaces[iface.name] = true;
         });
