@@ -29,7 +29,6 @@ import {
   isSpecifiedScalarType,
 } from 'graphql';
 
-
 import { graphqlVersion } from '../utils/graphqlVersion';
 import {
   SchemaMapper,

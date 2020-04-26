@@ -21,8 +21,6 @@ import {
   isNonNullType,
 } from 'graphql';
 
-
-
 import { isNamedStub, getBuiltInForStub } from './stub';
 import { graphqlVersion } from './graphqlVersion';
 

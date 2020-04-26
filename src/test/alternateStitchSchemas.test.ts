@@ -362,10 +362,13 @@ describe('transform object fields', () => {
           return {
             description: field.deprecationReason,
             type: field.type,
-            args: field.args.reduce<GraphQLFieldConfigArgumentMap>((prev, curr) => ({
-              ...prev,
-              [curr.name]: curr,
-            }),{}),
+            args: field.args.reduce<GraphQLFieldConfigArgumentMap>(
+              (prev, curr) => ({
+                ...prev,
+                [curr.name]: curr,
+              }),
+              {},
+            ),
             resolve: () => 'test',
             subscribe: field.subscribe,
             deprecationReason: field.deprecationReason,
@@ -434,18 +437,21 @@ describe('default values', () => {
         ) => {
           if (typeName === 'Query' && fieldName === 'jsonTest') {
             const fieldConfig: GraphQLFieldConfig<any, any> = {
-                description: field.deprecationReason,
-                type: field.type,
-                args: field.args.reduce<GraphQLFieldConfigArgumentMap>((prev, curr) => ({
+              description: field.deprecationReason,
+              type: field.type,
+              args: field.args.reduce<GraphQLFieldConfigArgumentMap>(
+                (prev, curr) => ({
                   ...prev,
                   [curr.name]: curr,
-                }),{}),
-                resolve: field.resolve,
-                subscribe: field.subscribe,
-                deprecationReason: field.deprecationReason,
-                extensions: field.extensions,
-                astNode: field.astNode,
-             };
+                }),
+                {},
+              ),
+              resolve: field.resolve,
+              subscribe: field.subscribe,
+              deprecationReason: field.deprecationReason,
+              extensions: field.extensions,
+              astNode: field.astNode,
+            };
             fieldConfig.args.input.defaultValue = { test: 'test' };
             return { name: 'renamedJsonTest', field: fieldConfig };
           }

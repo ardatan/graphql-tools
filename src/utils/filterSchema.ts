@@ -16,7 +16,6 @@ import {
   RootFieldFilter,
 } from '../Interfaces';
 
-
 import { mapSchema } from './map';
 
 export default function filterSchema({

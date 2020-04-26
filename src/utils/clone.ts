@@ -18,7 +18,6 @@ import {
   isSpecifiedScalarType,
 } from 'graphql';
 
-
 import { graphqlVersion } from './graphqlVersion';
 import { mapSchema } from './map';
 

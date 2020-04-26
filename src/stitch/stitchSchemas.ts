@@ -346,13 +346,12 @@ function merge(
       ),
       ...((graphqlVersion() >= 15
         ? {
-          interfaces: candidates.reduce((acc, candidate) => {
-            const interfaces = (
-              candidate.type as GraphQLInterfaceType
-            ).toConfig().interfaces;
-            return interfaces != null ? acc.concat(interfaces) : acc;
-          }, []),
-        }
+            interfaces: candidates.reduce((acc, candidate) => {
+              const interfaces = (candidate.type as GraphQLInterfaceType).toConfig()
+                .interfaces;
+              return interfaces != null ? acc.concat(interfaces) : acc;
+            }, []),
+          }
         : {}) as any),
     };
     return new GraphQLInterfaceType(config);

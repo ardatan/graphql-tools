@@ -4,7 +4,6 @@ import {
   GraphQLFieldConfig,
 } from 'graphql';
 
-
 import { TypeMap } from '../Interfaces';
 
 export function appendFields(
