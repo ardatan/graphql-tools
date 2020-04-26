@@ -63,9 +63,6 @@ function expectResolver(
     return;
   }
   if (typeof field.resolve !== 'function') {
-    throw new Error(
-      `Resolver "${typeName}.${fieldName}" must be a function`,
-    );
+    throw new Error(`Resolver "${typeName}.${fieldName}" must be a function`);
   }
 }
-

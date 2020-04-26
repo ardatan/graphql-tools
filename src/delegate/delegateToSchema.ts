@@ -42,7 +42,7 @@ export function delegateToSchema(
   if (isSchema(options)) {
     throw new Error(
       'Passing positional arguments to delegateToSchema is deprecated. ' +
-      'Please pass named parameters instead.',
+        'Please pass named parameters instead.',
     );
   }
 
@@ -155,8 +155,8 @@ export function delegateRequest({
       rootValue != null
         ? rootValue
         : subschemaConfig.rootValue != null
-          ? subschemaConfig.rootValue
-          : info.rootValue;
+        ? subschemaConfig.rootValue
+        : info.rootValue;
     if (subschemaConfig.transforms != null) {
       requestTransforms = requestTransforms.concat(subschemaConfig.transforms);
     }

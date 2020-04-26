@@ -32,10 +32,10 @@ export function addResolversToSchema(
 ): GraphQLSchema {
   const options: IAddResolversToSchemaOptions = isSchema(schemaOrOptions)
     ? {
-      schema: schemaOrOptions,
-      resolvers: legacyInputResolvers,
-      resolverValidationOptions: legacyInputValidationOptions,
-    }
+        schema: schemaOrOptions,
+        resolvers: legacyInputResolvers,
+        resolverValidationOptions: legacyInputValidationOptions,
+      }
     : schemaOrOptions;
 
   const {
@@ -64,7 +64,7 @@ export function addResolversToSchema(
     if (resolverType !== 'object' && resolverType !== 'function') {
       throw new Error(
         `"${typeName}" defined in resolvers, but has invalid value "${
-        resolverValue as string
+          resolverValue as string
         }". A resolver's value must be of type object or function.`,
       );
     }
@@ -76,9 +76,7 @@ export function addResolversToSchema(
         return;
       }
 
-      throw new Error(
-        `"${typeName}" defined in resolvers, but not in schema`,
-      );
+      throw new Error(`"${typeName}" defined in resolvers, but not in schema`);
     }
 
     if (isScalarType(type)) {

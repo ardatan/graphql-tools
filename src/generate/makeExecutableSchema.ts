@@ -29,9 +29,7 @@ export function makeExecutableSchema<TContext = any>({
 }: IExecutableSchemaDefinition<TContext>) {
   // Validate and clean up arguments
   if (typeof resolverValidationOptions !== 'object') {
-    throw new Error(
-      'Expected `resolverValidationOptions` to be an object',
-    );
+    throw new Error('Expected `resolverValidationOptions` to be an object');
   }
 
   if (!typeDefs) {
@@ -41,8 +39,8 @@ export function makeExecutableSchema<TContext = any>({
   // We allow passing in an array of resolver maps, in which case we merge them
   const resolverMap: any = Array.isArray(resolvers)
     ? resolvers
-      .filter((resolverObj) => typeof resolverObj === 'object')
-      .reduce(mergeDeep, {})
+        .filter((resolverObj) => typeof resolverObj === 'object')
+        .reduce(mergeDeep, {})
     : resolvers;
 
   // Arguments are now validated and cleaned up

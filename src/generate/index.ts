@@ -10,4 +10,3 @@ export {
   filterExtensionDefinitions,
 } from './extensionDefinitions';
 export * from './makeExecutableSchema';
-
