@@ -17,6 +17,7 @@ import {
 } from '../Interfaces';
 
 import { mapSchema } from './map';
+import { toConfig } from './toConfig';
 
 export default function filterSchema({
   schema,
@@ -62,7 +63,7 @@ function filterRootFields(
   operation: 'Query' | 'Mutation' | 'Subscription',
   rootFieldFilter: RootFieldFilter,
 ): GraphQLObjectType {
-  const config = type.toConfig();
+  const config = toConfig(type);
   Object.keys(config.fields).forEach((fieldName) => {
     if (
       !rootFieldFilter(
@@ -81,7 +82,7 @@ function filterObjectFields(
   type: GraphQLObjectType,
   fieldFilter: FieldFilter,
 ): GraphQLObjectType {
-  const config = type.toConfig();
+  const config = toConfig(type);
   Object.keys(config.fields).forEach((fieldName) => {
     if (
       !fieldFilter(

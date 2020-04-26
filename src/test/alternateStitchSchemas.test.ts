@@ -13,7 +13,6 @@ import {
   GraphQLFieldConfig,
   isSpecifiedScalarType,
   GraphQLNamedType,
-  GraphQLFieldConfigArgumentMap,
 } from 'graphql';
 
 import {
@@ -38,7 +37,7 @@ import { makeExecutableSchema } from '../generate/index';
 import { stitchSchemas } from '../stitch/index';
 import { createMergedResolver } from '../delegate/createMergedResolver';
 import { SubschemaConfig } from '../Interfaces';
-import { filterSchema } from '../utils/index';
+import { filterSchema, toConfig } from '../utils/index';
 import {
   wrapFieldNode,
   renameFieldNode,
@@ -360,20 +359,8 @@ describe('transform object fields', () => {
             return undefined;
           }
           return {
-            description: field.deprecationReason,
-            type: field.type,
-            args: field.args.reduce<GraphQLFieldConfigArgumentMap>(
-              (prev, curr) => ({
-                ...prev,
-                [curr.name]: curr,
-              }),
-              {},
-            ),
+            ...toConfig(field),
             resolve: () => 'test',
-            subscribe: field.subscribe,
-            deprecationReason: field.deprecationReason,
-            extensions: field.extensions,
-            astNode: field.astNode,
           };
         },
         (typeName: string, fieldName: string, fieldNode: FieldNode) => {
@@ -436,22 +423,7 @@ describe('default values', () => {
           field: GraphQLField<any, any>,
         ) => {
           if (typeName === 'Query' && fieldName === 'jsonTest') {
-            const fieldConfig: GraphQLFieldConfig<any, any> = {
-              description: field.deprecationReason,
-              type: field.type,
-              args: field.args.reduce<GraphQLFieldConfigArgumentMap>(
-                (prev, curr) => ({
-                  ...prev,
-                  [curr.name]: curr,
-                }),
-                {},
-              ),
-              resolve: field.resolve,
-              subscribe: field.subscribe,
-              deprecationReason: field.deprecationReason,
-              extensions: field.extensions,
-              astNode: field.astNode,
-            };
+            const fieldConfig: GraphQLFieldConfig<any, any> = toConfig(field);
             fieldConfig.args.input.defaultValue = { test: 'test' };
             return { name: 'renamedJsonTest', field: fieldConfig };
           }

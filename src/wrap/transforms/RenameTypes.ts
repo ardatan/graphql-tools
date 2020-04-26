@@ -26,7 +26,7 @@ import {
   MapperKind,
   RenameTypesOptions,
 } from '../../Interfaces';
-import { mapSchema } from '../../utils/index';
+import { mapSchema, toConfig } from '../../utils/index';
 
 export default class RenameTypes implements Transform {
   private readonly renamer: (name: string) => string | undefined;
@@ -65,32 +65,32 @@ export default class RenameTypes implements Transform {
 
           if (isObjectType(type)) {
             return new GraphQLObjectType({
-              ...type.toConfig(),
+              ...toConfig(type),
               name: newName,
             });
           } else if (isInterfaceType(type)) {
             return new GraphQLInterfaceType({
-              ...type.toConfig(),
+              ...toConfig(type),
               name: newName,
             });
           } else if (isUnionType(type)) {
             return new GraphQLUnionType({
-              ...type.toConfig(),
+              ...toConfig(type),
               name: newName,
             });
           } else if (isInputObjectType(type)) {
             return new GraphQLInputObjectType({
-              ...type.toConfig(),
+              ...toConfig(type),
               name: newName,
             });
           } else if (isEnumType(type)) {
             return new GraphQLEnumType({
-              ...type.toConfig(),
+              ...toConfig(type),
               name: newName,
             });
           } else if (isScalarType(type)) {
             return new GraphQLScalarType({
-              ...type.toConfig(),
+              ...toConfig(type),
               name: newName,
             });
           }

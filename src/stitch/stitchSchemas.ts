@@ -41,6 +41,7 @@ import {
   cloneDirective,
   healTypes,
   forEachField,
+  toConfig,
 } from '../utils/index';
 
 import typeFromAST from './typeFromAST';
@@ -323,12 +324,12 @@ function merge(
       fields: candidates.reduce(
         (acc, candidate) => ({
           ...acc,
-          ...(candidate.type as GraphQLObjectType).toConfig().fields,
+          ...toConfig(candidate.type as GraphQLObjectType).fields,
         }),
         {},
       ),
       interfaces: candidates.reduce((acc, candidate) => {
-        const interfaces = (candidate.type as GraphQLObjectType).toConfig()
+        const interfaces = toConfig(candidate.type as GraphQLObjectType)
           .interfaces;
         return interfaces != null ? acc.concat(interfaces) : acc;
       }, []),
@@ -339,12 +340,12 @@ function merge(
       fields: candidates.reduce<GraphQLFieldConfigMap<any, any>>(
         (acc, candidate) => ({
           ...acc,
-          ...(candidate.type as GraphQLInterfaceType).toConfig().fields,
+          ...toConfig(candidate.type as GraphQLInterfaceType).fields,
         }),
         {},
       ),
       interfaces: candidates.reduce((acc, candidate) => {
-        const candidateConfig = candidate.type.toConfig();
+        const candidateConfig = toConfig(candidate.type);
         if ('interfaces' in candidateConfig) {
           return acc.concat(candidateConfig.interfaces);
         }
@@ -357,7 +358,7 @@ function merge(
       name: typeName,
       types: candidates.reduce(
         (acc, candidate) =>
-          acc.concat((candidate.type as GraphQLUnionType).toConfig().types),
+          acc.concat(toConfig(candidate.type as GraphQLUnionType).types),
         [],
       ),
     });
@@ -367,7 +368,7 @@ function merge(
       values: candidates.reduce(
         (acc, candidate) => ({
           ...acc,
-          ...(candidate.type as GraphQLEnumType).toConfig().values,
+          ...toConfig(candidate.type as GraphQLEnumType).values,
         }),
         {},
       ),

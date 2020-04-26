@@ -6,6 +6,8 @@ import {
 
 import { TypeMap } from '../Interfaces';
 
+import { toConfig } from './toConfig';
+
 export function appendFields(
   typeMap: TypeMap,
   typeName: string,
@@ -13,7 +15,7 @@ export function appendFields(
 ): void {
   let type = typeMap[typeName];
   if (type != null) {
-    const typeConfig = (type as GraphQLObjectType).toConfig();
+    const typeConfig = toConfig(type as GraphQLObjectType);
 
     const newFields: any = Object.entries(typeConfig.fields).reduce(
       (prev, [key, val]) => ({
@@ -45,7 +47,7 @@ export function removeFields(
   testFn: (fieldName: string, field: GraphQLFieldConfig<any, any>) => boolean,
 ): GraphQLFieldConfigMap<any, any> {
   let type = typeMap[typeName];
-  const typeConfig = (type as GraphQLObjectType).toConfig();
+  const typeConfig = toConfig(type as GraphQLObjectType);
   const originalFields = typeConfig.fields;
   const newFields = {};
   const removedFields = {};

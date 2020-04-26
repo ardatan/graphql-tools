@@ -18,14 +18,15 @@ import {
 } from 'graphql';
 
 import { mapSchema } from './map';
+import { toConfig } from './toConfig';
 
 export function cloneDirective(directive: GraphQLDirective): GraphQLDirective {
-  return new GraphQLDirective(directive.toConfig());
+  return new GraphQLDirective(toConfig(directive));
 }
 
 export function cloneType(type: GraphQLNamedType): GraphQLNamedType {
   if (isObjectType(type)) {
-    const config = type.toConfig();
+    const config = toConfig(type);
     return new GraphQLObjectType({
       ...config,
       interfaces:
@@ -34,7 +35,7 @@ export function cloneType(type: GraphQLNamedType): GraphQLNamedType {
           : config.interfaces.slice(),
     });
   } else if (isInterfaceType(type)) {
-    const config = type.toConfig() as any;
+    const config = toConfig(type) as any;
     const newConfig = {
       ...config,
       interfaces: [
@@ -45,19 +46,19 @@ export function cloneType(type: GraphQLNamedType): GraphQLNamedType {
     };
     return new GraphQLInterfaceType(newConfig);
   } else if (isUnionType(type)) {
-    const config = type.toConfig();
+    const config = toConfig(type);
     return new GraphQLUnionType({
       ...config,
       types: config.types.slice(),
     });
   } else if (isInputObjectType(type)) {
-    return new GraphQLInputObjectType(type.toConfig());
+    return new GraphQLInputObjectType(toConfig(type));
   } else if (isEnumType(type)) {
-    return new GraphQLEnumType(type.toConfig());
+    return new GraphQLEnumType(toConfig(type));
   } else if (isScalarType(type)) {
     return isSpecifiedScalarType(type)
       ? type
-      : new GraphQLScalarType(type.toConfig());
+      : new GraphQLScalarType(toConfig(type));
   }
 
   throw new Error(`Invalid type ${type as string}`);

@@ -28,6 +28,7 @@ import {
 
 import { healSchema } from './heal';
 import { SchemaVisitor } from './SchemaVisitor';
+import { toConfig } from './toConfig';
 
 function isSchemaVisitor(obj: any): obj is SchemaVisitor {
   if ('schema' in obj && isSchema(obj.schema)) {
@@ -228,7 +229,7 @@ export function visitSchema(
         );
         if (valuesUpdated) {
           newEnum = new GraphQLEnumType({
-            ...(newEnum as GraphQLEnumType).toConfig(),
+            ...toConfig(newEnum as GraphQLEnumType),
             values: newValues.reduce(
               (prev, value) => ({
                 ...prev,

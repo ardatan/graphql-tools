@@ -22,6 +22,7 @@ import {
 } from 'graphql';
 
 import { isNamedStub, getBuiltInForStub } from './stub';
+import { toConfig } from './toConfig';
 
 type NamedTypeMap = Record<string, GraphQLNamedType>;
 
@@ -65,7 +66,7 @@ export function healSchema(schema: GraphQLSchema): GraphQLSchema {
   });
 
   const healedSchema = new GraphQLSchema({
-    ...schema.toConfig(),
+    ...toConfig(schema),
     query: newQueryTypeName ? filteredTypeMap[newQueryTypeName] : undefined,
     mutation: newMutationTypeName
       ? filteredTypeMap[newMutationTypeName]

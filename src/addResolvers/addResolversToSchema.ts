@@ -23,6 +23,8 @@ import {
 } from '../utils/transformInputValue';
 import SchemaError from '../utils/SchemaError';
 
+import { toConfig } from '../utils/toConfig';
+
 import checkForResolveTypeResolver from './checkForResolveTypeResolver';
 import extendResolversFromInterfaces from './extendResolversFromInterfaces';
 
@@ -106,7 +108,7 @@ function addResolversToSchema(
         }
       });
 
-      const config = type.toConfig();
+      const config = toConfig(type);
 
       const values = type.getValues();
       const newValues = values.reduce<GraphQLEnumValueConfigMap>(
