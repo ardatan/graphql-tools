@@ -680,7 +680,7 @@ describe('filter and rename object fields', () => {
       typeFilter: (typeName: string, type) =>
         typeName === 'New_Property' ||
         typeName === 'New_Location' ||
-        isSpecifiedScalarType(type as GraphQLNamedType),
+        isSpecifiedScalarType(type as GraphQLScalarType),
     });
   });
 

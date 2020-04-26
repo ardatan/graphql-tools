@@ -144,7 +144,7 @@ function makeInputObjectType(
   return new GraphQLInputObjectType({
     name: node.name.value,
     description: getDescription(node, backcompatOptions),
-    fields: () => makeValues(node.fields),
+    fields: () => makeValues([...node.fields]),
     astNode: node,
   });
 }
@@ -171,7 +171,7 @@ function makeFields(
       [node.name.value]: {
         type: createStub(node.type, 'output'),
         description: getDescription(node, backcompatOptions),
-        args: makeValues(node.arguments),
+        args: makeValues([...node.arguments]),
         deprecationReason,
         astNode: node,
       },
@@ -180,7 +180,7 @@ function makeFields(
 }
 
 function makeValues(
-  nodes: ReadonlyArray<InputValueDefinitionNode>,
+  nodes: Array<InputValueDefinitionNode>,
 ): GraphQLFieldConfigArgumentMap {
   return nodes.reduce(
     (prev, node) => ({
@@ -210,8 +210,8 @@ function makeDirective(node: DirectiveDefinitionNode): GraphQLDirective {
     name: node.name.value,
     description: node.description != null ? node.description.value : null,
     locations,
-    isRepeatable: node.repeatable,
-    args: makeValues(node.arguments),
+    isRepeatable: (node as { repeatable: boolean }).repeatable,
+    args: makeValues([...node.arguments]),
     astNode: node,
   });
 }

@@ -51,8 +51,8 @@ import {
 } from 'graphql';
 
 export function schemaToConfig(schema: GraphQLSchema): GraphQLSchemaConfig {
-  if (schema.toConfig != null) {
-    return schema.toConfig();
+  if ((schema as any).toConfig != null) {
+    return (schema as any).toConfig();
   }
 
   const newTypes: Array<GraphQLNamedType> = [];
@@ -68,7 +68,7 @@ export function schemaToConfig(schema: GraphQLSchema): GraphQLSchemaConfig {
     subscription: schema.getSubscriptionType(),
     types: newTypes,
     directives: schema.getDirectives().slice(),
-    extensions: schema.extensions,
+    extensions: (schema as any).extensions,
     astNode: schema.astNode,
     extensionASTNodes:
       schema.extensionASTNodes != null ? schema.extensionASTNodes : [],
@@ -275,8 +275,8 @@ export function typeToConfig<T extends GraphQLNamedType>(
 export function objectTypeToConfig(
   type: GraphQLObjectType,
 ): GraphQLObjectTypeConfig<any, any> {
-  if (type.toConfig != null) {
-    return type.toConfig();
+  if ((type as any).toConfig != null) {
+    return (type as any).toConfig();
   }
 
   const typeConfig = {
@@ -285,7 +285,7 @@ export function objectTypeToConfig(
     interfaces: type.getInterfaces(),
     fields: fieldMapToConfig(type.getFields()),
     isTypeOf: type.isTypeOf,
-    extensions: type.extensions,
+    extensions: (type as any).extensions,
     astNode: type.astNode,
     extensionASTNodes:
       type.extensionASTNodes != null ? type.extensionASTNodes : [],
@@ -297,16 +297,16 @@ export function objectTypeToConfig(
 export function interfaceTypeToConfig(
   type: GraphQLInterfaceType,
 ): GraphQLInterfaceTypeConfig<any, any> {
-  if (type.toConfig != null) {
-    return type.toConfig();
+  if ((type as any).toConfig != null) {
+    return (type as any).toConfig();
   }
 
-  const typeConfig: GraphQLInterfaceTypeConfig<any, any> = {
+  const typeConfig = {
     name: type.name,
     description: type.description,
     fields: fieldMapToConfig(type.getFields()),
     resolveType: type.resolveType,
-    extensions: type.extensions,
+    extensions: (type as any).extensions,
     astNode: type.astNode,
     extensionASTNodes:
       type.extensionASTNodes != null ? type.extensionASTNodes : [],
@@ -325,8 +325,8 @@ export function interfaceTypeToConfig(
 export function unionTypeToConfig(
   type: GraphQLUnionType,
 ): GraphQLUnionTypeConfig<any, any> {
-  if (type.toConfig != null) {
-    return type.toConfig();
+  if ((type as any).toConfig != null) {
+    return (type as any).toConfig();
   }
 
   const typeConfig = {
@@ -334,7 +334,7 @@ export function unionTypeToConfig(
     description: type.description,
     types: type.getTypes(),
     resolveType: type.resolveType,
-    extensions: type.extensions,
+    extensions: (type as any).extensions,
     astNode: type.astNode,
     extensionASTNodes:
       type.extensionASTNodes != null ? type.extensionASTNodes : [],
@@ -344,8 +344,8 @@ export function unionTypeToConfig(
 }
 
 export function enumTypeToConfig(type: GraphQLEnumType): GraphQLEnumTypeConfig {
-  if (type.toConfig != null) {
-    return type.toConfig();
+  if ((type as any).toConfig != null) {
+    return (type as any).toConfig();
   }
 
   const newValues = type.getValues().reduce<GraphQLEnumValueConfigMap>(
@@ -362,11 +362,11 @@ export function enumTypeToConfig(type: GraphQLEnumType): GraphQLEnumTypeConfig {
     {},
   );
 
-  const typeConfig: GraphQLEnumTypeConfig = {
+  const typeConfig = {
     name: type.name,
     description: type.description,
     values: newValues,
-    extensions: type.extensions,
+    extensions: (type as any).extensions,
     astNode: type.astNode,
     extensionASTNodes:
       type.extensionASTNodes != null ? type.extensionASTNodes : [],
@@ -378,8 +378,8 @@ export function enumTypeToConfig(type: GraphQLEnumType): GraphQLEnumTypeConfig {
 export function scalarTypeToConfig(
   type: GraphQLScalarType,
 ): GraphQLScalarTypeConfig<any, any> {
-  if (type.toConfig != null) {
-    return type.toConfig();
+  if ((type as any).toConfig != null) {
+    return (type as any).toConfig();
   }
 
   const typeConfig = {
@@ -388,7 +388,7 @@ export function scalarTypeToConfig(
     serialize: type.serialize,
     parseValue: type.parseValue,
     parseLiteral: type.parseLiteral,
-    extensions: type.extensions,
+    extensions: (type as any).extensions,
     astNode: type.astNode,
     extensionASTNodes:
       type.extensionASTNodes != null ? type.extensionASTNodes : [],
@@ -400,15 +400,15 @@ export function scalarTypeToConfig(
 export function inputObjectTypeToConfig(
   type: GraphQLInputObjectType,
 ): GraphQLInputObjectTypeConfig {
-  if (type.toConfig != null) {
-    return type.toConfig();
+  if ((type as any).toConfig != null) {
+    return (type as any).toConfig();
   }
 
   const typeConfig = {
     name: type.name,
     description: type.description,
     fields: inputFieldMapToConfig(type.getFields()),
-    extensions: type.extensions,
+    extensions: (type as any).extensions,
     astNode: type.astNode,
     extensionASTNodes:
       type.extensionASTNodes != null ? type.extensionASTNodes : [],
@@ -444,8 +444,8 @@ export function inputFieldToConfig(
 export function directiveToConfig(
   directive: GraphQLDirective,
 ): GraphQLDirectiveConfig {
-  if (directive.toConfig != null) {
-    return directive.toConfig();
+  if ((directive as any).toConfig != null) {
+    return (directive as any).toConfig();
   }
 
   const directiveConfig = {

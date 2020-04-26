@@ -33,7 +33,7 @@ export function unwrapResult(
     if (object == null) {
       return handleNull(
         info.fieldNodes,
-        responsePathAsArray(info.path),
+        [...responsePathAsArray(info.path)],
         errors,
       );
     }
