@@ -4,7 +4,7 @@ title: Extracting GraphQL definitions from code files
 sidebar_label: GraphQL Tag Pluck
 ---
 
-`@graphql-toolkit/graphql-tag-pluck` will take JavaScript code as an input and will pluck all template literals provided to `graphql-tag`.
+`@graphql-tools/graphql-tag-pluck` will take JavaScript code as an input and will pluck all template literals provided to `graphql-tag`.
 
 **Input:**
 
@@ -46,14 +46,14 @@ Originally created because of https://graphql-code-generator.com/.
 
 ### Usage
 
-`@graphql-toolkit/graphql-tag-pluck` is installable via NPM (or Yarn):
+`@graphql-tools/graphql-tag-pluck` is installable via NPM (or Yarn):
 
-    $ npm install @graphql-toolkit/graphql-tag-pluck
+    $ npm install @graphql-tools/graphql-tag-pluck
 
 Once installed you can pluck GraphQL template literals using one of the following methods:
 
 ```js
-import { gqlPluckFromCodeStringSync, gqlPluckFromCodeString } from '@graphql-toolkit/graphql-tag-pluck';
+import { gqlPluckFromCodeStringSync, gqlPluckFromCodeString } from '@graphql-tools/graphql-tag-pluck';
 
 // Returns promise
 gqlPluckFromCodeString(
@@ -84,7 +84,7 @@ supported file extensions are: `.js`, `.jsx`, `.ts`, `.tsx`, `.flow`, `.flow.js`
 
 ### Options
 
-It is recommended to look at the [source code](https://github.com/ardatan/graphql-toolkit/blob/master/packages/graphql-tag-pluck/src/visitor.ts) for a clearer understanding of the transformation options.
+It is recommended to look at the [source code](https://github.com/ardatan/graphql-tools/blob/master/packages/graphql-tag-pluck/src/visitor.ts) for a clearer understanding of the transformation options.
 
 - **`gqlMagicComment`**
 

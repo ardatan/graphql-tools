@@ -1,0 +1,8 @@
+type B {
+  hello: String!
+  c1: C
+}
+
+type C {
+  field: String
+}

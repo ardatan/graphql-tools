@@ -9,7 +9,7 @@ sidebar_label: GraphQLSchema merging
 You can use `mergeSchemas` to merge `GraphQLSchema` objects together with extra `typeDefs` and `resolvers`.
 
 ```ts
-const { mergeSchemas } = require('@graphql-toolkit/schema-merging');
+const { mergeSchemas } = require('@graphql-tools/schema-merging');
 
 const mergedSchema = mergeSchemas({
     schemas: [

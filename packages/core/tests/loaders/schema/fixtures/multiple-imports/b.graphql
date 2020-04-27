@@ -1,0 +1,11 @@
+type Query {
+  b: B
+}
+
+type Mutation {
+  b: B
+}
+
+type B {
+  x: String
+} 

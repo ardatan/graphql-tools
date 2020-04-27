@@ -1,0 +1,5 @@
+# import Query.*, Mutation.* from "a.graphql"
+
+# import Query.*, Mutation.* from "b.graphql"
+
+# import Query.*, Mutation.* from "c.graphql" 

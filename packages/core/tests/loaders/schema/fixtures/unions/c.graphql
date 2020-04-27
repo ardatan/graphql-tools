@@ -1,0 +1,11 @@
+type C1 {
+  c1: ID
+}
+
+type C2 {
+  c2: ID
+}
+
+type C3 {
+  c3: ID
+}

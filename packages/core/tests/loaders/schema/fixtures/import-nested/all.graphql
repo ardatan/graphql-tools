@@ -1,0 +1,4 @@
+# import Query.first, Query.second from "a.graphql"
+# import Query.third from "b.graphql"
+
+type Query

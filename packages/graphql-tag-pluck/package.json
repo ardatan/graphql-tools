@@ -1,0 +1,39 @@
+{
+  "name": "@graphql-tools/graphql-tag-pluck",
+  "version": "5.0.0",
+  "description": "Pluck graphql-tag template literals",
+  "license": "MIT",
+  "repository": "git@github.com:ardatan/graphql-tools.git",
+  "scripts": {
+    "prepack": "bob prepack"
+  },
+  "sideEffects": false,
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
+  "typings": "dist/index.d.ts",
+  "typescript": {
+    "definition": "dist/index.d.ts"
+  },
+  "peerDependencies": {
+    "graphql": "^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0"
+  },
+  "dependencies": {
+    "@babel/parser": "7.9.4",
+    "@babel/traverse": "7.9.5",
+    "@babel/types": "7.9.5",
+    "@graphql-tools/common": "5.0.0"
+  },
+  "optionalDependencies": {
+    "vue-template-compiler": "^2.6.11"
+  },
+  "devDependencies": {
+    "@types/babel__traverse": "7.0.10",
+    "@types/fs-extra": "8.1.0",
+    "fs-extra": "9.0.0",
+    "vue-template-compiler": "2.6.11"
+  },
+  "publishConfig": {
+    "access": "public",
+    "directory": "dist"
+  }
+}

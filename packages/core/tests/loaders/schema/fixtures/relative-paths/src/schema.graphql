@@ -1,0 +1,10 @@
+# import Post from "../database/schema.graphql"
+
+type Query {
+  feed: [Post!]!
+}
+
+type Mutation {
+  createDraft(title: String!, text: String): Post
+  publish(id: ID!): Post
+}

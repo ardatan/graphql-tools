@@ -1,0 +1,7 @@
+# import * from 'c.graphql'
+
+type B {
+  hello: String!
+  c1: C1
+  c2: C2
+}

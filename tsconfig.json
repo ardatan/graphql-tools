@@ -1,27 +1,33 @@
 {
   "compilerOptions": {
-    "rootDir": "./src",
-    "outDir": "./dist",
+    "incremental": true,
 
-    "lib": ["esnext"],
+    "outDir": "dist",
+    "baseUrl": ".",
 
-    "target": "es2015",
-    "module": "es2015",
+    "target": "es2018",
+    "module": "esnext",
     "moduleResolution": "node",
+    "lib": ["esnext"],
+    "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "importHelpers": true,
-
-    "noImplicitAny": true,
-    "noImplicitUseStrict": true,
-    "suppressImplicitAnyIndexErrors": true,
-    "noUnusedLocals": true,
-
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-
+    "resolveJsonModule": true,
     "sourceMap": true,
     "declaration": true,
-    "removeComments": false
+
+    "suppressImplicitAnyIndexErrors": true,
+    "noImplicitAny": true,
+    "alwaysStrict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "skipLibCheck": true,
+
+    "paths": {
+      "@graphql-tools/*-loader": ["packages/loaders/*/src/index.ts"],
+      "@graphql-tools/*": ["packages/*/src/index.ts"]
+    }
   },
-  "exclude": ["node_modules", "dist"]
+  "include": ["packages"],
+  "exclude": ["**/node_modules", "**/dist"]
 }

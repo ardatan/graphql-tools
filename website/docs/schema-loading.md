@@ -19,10 +19,10 @@ Specifiying the loader is not necessary. The user need only provide the inputs. 
 ## Usage
 
 ```ts
-const { loadSchema } = require('@graphql-toolkit/core');
-const { UrlLoader } = require('@graphql-toolkit/url-loader');
-const { JsonFileLoader } = require('@graphql-toolkit/json-file-loader');
-const { GraphQLFileLoader } = require('@graphql-toolkit/graphql-file-loader');
+const { loadSchema } = require('@graphql-tools/core');
+const { UrlLoader } = require('@graphql-tools/url-loader');
+const { JsonFileLoader } = require('@graphql-tools/json-file-loader');
+const { GraphQLFileLoader } = require('@graphql-tools/graphql-file-loader');
 
 const schema1 = loadSchema('type A { foo: String }');   // load from string w/ no loaders
 

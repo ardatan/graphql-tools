@@ -1,0 +1,13 @@
+src
+node_modules
+tests
+!dist
+.circleci
+.prettierrc
+bump.js
+jest.config.js
+tsconfig.json
+yarn.lock
+yarn-error.log
+bundle-test
+*.tgz

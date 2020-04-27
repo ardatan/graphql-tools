@@ -1,0 +1,5 @@
+union A = B | C
+
+type B {
+    field: String
+}

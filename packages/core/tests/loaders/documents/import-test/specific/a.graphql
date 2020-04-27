@@ -1,0 +1,7 @@
+# import FooFragment from 'b.graphql'
+
+query FooQuery {
+    foo {
+        ...FooFragment
+    }
+}

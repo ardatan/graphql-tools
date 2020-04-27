@@ -1,0 +1,16 @@
+interface B {
+  B: String!
+}
+
+type C {
+  typeCinB: String
+}
+
+type UnusedType {
+  d: String!
+}
+
+enum UnusedEnum {
+  ONE
+  TWO
+}

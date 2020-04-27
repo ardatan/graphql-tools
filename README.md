@@ -1,7 +1,7 @@
 [![toolskit](https://user-images.githubusercontent.com/20847995/80261023-feb6e380-8691-11ea-8680-5747fa02c5d8.gif)](https://graphql-tools.com)
 
 [![npm version](https://badge.fury.io/js/graphql-tools.svg)](https://badge.fury.io/js/graphql-tools)
-[![CI](https://github.com/ardatan/graphql-toolkit/workflows/CI/badge.svg)](https://github.com/ardatan/graphql-toolkit/actions)
+[![CI](https://github.com/ardatan/graphql-tools/workflows/CI/badge.svg)](https://github.com/ardatan/graphql-tools/actions)
 [![Discord Chat](https://img.shields.io/discord/625400653321076807)](https://discord.gg/xud7bH9)
 
 This package provides a few useful ways to create a GraphQL schema:
@@ -104,7 +104,7 @@ export default resolvers;
 At the end, the schema and resolvers are combined using `makeExecutableSchema`:
 
 ```js
-import { makeExecutableSchema } from 'graphql-tools';
+import { makeExecutableSchema } from '@graphql-tools/schema-stitching';
 
 const executableSchema = makeExecutableSchema({
   typeDefs,

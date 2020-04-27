@@ -1,0 +1,15 @@
+type Query {
+    posts(filter: PostFilter): [Post]
+    hello: String
+}
+
+type Post {
+    field1: String
+}
+
+input PostFilter {
+    field3: Int}
+
+type Dummy {
+    field2: String
+}

@@ -19,7 +19,7 @@ import {
   makeExecutableSchema,
   addMocksToSchema,
   stitchSchemas,
-} from 'graphql-tools';
+} from '@graphql-tools/schema-stitching';
 
 // Mocked chirp schema
 // We don't worry about the schema implementation right now since we're just
@@ -183,7 +183,7 @@ import {
   FilterRootFields,
   RenameTypes,
   RenameRootFields,
-} from 'graphql-tools';
+} from '@graphql-tools/schema-stitching';
 
 // Mocked chirp schema; we don't want to worry about the schema
 // implementation right now since we're just demonstrating

@@ -1,0 +1,3 @@
+type MyMutation {
+    c: String
+}

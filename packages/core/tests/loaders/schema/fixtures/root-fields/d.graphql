@@ -1,0 +1,10 @@
+# import User from './e.graphql'
+
+extend type Query {
+    me: User
+    post: Post
+}
+
+type Post {
+    id: ID!
+}

@@ -1,0 +1,6 @@
+# import C from "c.graphql"
+
+interface B {
+  second: Float
+  c: [C!]!
+}
