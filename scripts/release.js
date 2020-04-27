@@ -1,6 +1,6 @@
 const { argv } = require('yargs');
 const { sync: glob } = require('globby');
-const { writeFileSync } = require('fs-extra');
+const { writeFile } = require('fs-extra');
 const { resolve, dirname, join } = require('path');
 const semver = require('semver');
 const cp = require('child_process');
@@ -26,7 +26,7 @@ async function release() {
     const packageNames = packageJsonPaths.map(packageJsonPath => require(packageJsonPath).name);
 
     rootPackageJson.version = version;
-    writeFileSync(resolve(__dirname, '../package.json'), JSON.stringify(rootPackageJson, null, 2));
+    await writeFile(resolve(__dirname, '../package.json'), JSON.stringify(rootPackageJson, null, 2));
     await Promise.all(packageJsonPaths.map(async packageJsonPath => {
         const packageJson = require(packageJsonPath);
         packageJson.version = version;
@@ -40,7 +40,7 @@ async function release() {
                 packageJson.devDependencies[dependency] = version;
             }
         }
-        writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
+        await writeFile(packageJsonPath, JSON.stringify(packageJson, null, 2));
         if (!packageJson.private) {
             const distDirName = (packageJson.publishConfig && packageJson.publishConfig.directory) || '';
             const distPath = join(dirname(packageJsonPath), distDirName);
@@ -55,13 +55,20 @@ async function release() {
             distPackageJson.publishConfig = {
                 access: (packageJson.publishConfig && packageJson.publishConfig.access) || 'public'
             }
-            writeFileSync(distPackageJsonPath, JSON.stringify(distPackageJson, null, 2));
-
-            const publishSpawn = cp.spawn('npm', ['publish', distPath, '--tag', tag, '--access', distPackageJson.publishConfig.access]);
-            if(publishSpawn.status !== 0) {
-                const error = publishSpawn.stderr.toString('utf8').trim();
-                throw error;
-            }
+            await writeFile(distPackageJsonPath, JSON.stringify(distPackageJson, null, 2));
+            return new Promise((resolve, reject) => {
+                const publishSpawn = cp.spawn('npm', ['publish', distPath, '--tag', tag, '--access', distPackageJson.publishConfig.access]);
+                publishSpawn.on("error", function (error) {
+                    reject(new Error(command + " " + args.join(" ") + " in " + cwd + " encountered error " + error.message));
+                });
+                publishSpawn.on("exit", function(code) {
+                    if (code !== 0) {
+                        reject(new Error(command + " " + args.join(" ") + " in " + cwd + " exited with code " + code));
+                    } else {
+                        resolve();
+                    }
+                });
+            });
         }
     }))
     console.info(`${tag} => ${version}`);
