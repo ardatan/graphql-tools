@@ -23,6 +23,9 @@
   "dependencies": {
     "tslib": "1.11.1"
   },
+  "devDependencies": {
+    "casual": "1.6.2"
+  },
   "publishConfig": {
     "access": "public",
     "directory": "dist"
