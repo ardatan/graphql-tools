@@ -3,7 +3,7 @@ import { GraphQLSchema, GraphQLField, defaultFieldResolver } from 'graphql';
 import { IDirectiveResolvers } from '../Interfaces';
 import { SchemaDirectiveVisitor } from '../utils/SchemaDirectiveVisitor';
 
-function attachDirectiveResolvers(
+export function attachDirectiveResolvers(
   schema: GraphQLSchema,
   directiveResolvers: IDirectiveResolvers,
 ) {
@@ -51,5 +51,3 @@ function attachDirectiveResolvers(
 
   SchemaDirectiveVisitor.visitSchemaDirectives(schema, schemaDirectives);
 }
-
-export default attachDirectiveResolvers;

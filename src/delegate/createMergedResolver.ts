@@ -1,7 +1,7 @@
 import { IFieldResolver } from '../Interfaces';
 
 import { unwrapResult, dehoistResult } from './proxiedResult';
-import defaultMergedResolver from './defaultMergedResolver';
+import { defaultMergedResolver } from './defaultMergedResolver';
 
 export function createMergedResolver({
   fromPath,

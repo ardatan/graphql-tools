@@ -7,7 +7,7 @@ import {
   extendSchema,
 } from 'graphql';
 
-import { mergeDeep } from '../esUtils/mergeDeep';
+import { mergeDeep } from '../utils/mergeDeep';
 
 import {
   SchemaLikeObject,
@@ -22,13 +22,12 @@ import {
   SchemaDirectiveVisitor,
   cloneDirective,
   rewireTypes,
-  SchemaError,
 } from '../utils/index';
 
-import addSchemaLevelResolver from './addSchemaLevelResolver';
+import { addSchemaLevelResolver } from './addSchemaLevelResolver';
 import { addErrorLoggingToSchema, addCatchUndefinedToSchema } from './decorate';
-import assertResolversPresent from './assertResolversPresent';
-import attachDirectiveResolvers from './attachDirectiveResolvers';
+import { assertResolversPresent } from './assertResolversPresent';
+import { attachDirectiveResolvers } from './attachDirectiveResolvers';
 import { buildDocumentFromTypeDefinitions } from './buildSchemaFromTypeDefinitions';
 import { buildTypeCandidates, buildTypeMap } from './typeCandidates';
 import { createMergeInfo, completeMergeInfo, addMergeInfo } from './mergeInfo';
@@ -50,9 +49,7 @@ export function makeExecutableSchema({
   parseOptions = {},
 }: IMakeExecutableSchemaOptions): GraphQLSchema {
   if (typeof resolverValidationOptions !== 'object') {
-    throw new SchemaError(
-      'Expected `resolverValidationOptions` to be an object',
-    );
+    throw new Error('Expected `resolverValidationOptions` to be an object');
   }
 
   const allSchemas: Array<GraphQLSchema> = [];

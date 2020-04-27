@@ -6,7 +6,7 @@ import {
 
 // wraps all resolvers of query, mutation or subscription fields
 // with the provided function to simulate a root schema level resolver
-function addSchemaLevelResolver(
+export function addSchemaLevelResolver(
   schema: GraphQLSchema,
   fn: GraphQLFieldResolver<any, any>,
 ): void {
@@ -99,5 +99,3 @@ function runAtMostOncePerRequest(
     return value;
   };
 }
-
-export default addSchemaLevelResolver;

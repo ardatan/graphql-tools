@@ -32,7 +32,7 @@ import {
   parseSelectionSet,
 } from '../utils/selectionSets';
 
-import delegateToSchema from '../delegate/delegateToSchema';
+import { delegateToSchema } from '../delegate/delegateToSchema';
 import { forEachField } from '../utils';
 
 type MergeTypeCandidate = {

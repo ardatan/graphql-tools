@@ -8,23 +8,18 @@ import {
 } from 'graphql';
 
 import { ITypeDefinitions, GraphQLParseOptions } from '../Interfaces';
-import SchemaError from '../utils/SchemaError';
 
 import {
   extractExtensionDefinitions,
   filterExtensionDefinitions,
 } from './definitions';
-import concatenateTypeDefs from './concatenateTypeDefs';
+import { concatenateTypeDefs } from './concatenateTypeDefs';
 
-export default function buildSchemaFromTypeDefinitions(
+export function buildSchemaFromTypeDefinitions(
   typeDefinitions: ITypeDefinitions,
   parseOptions?: GraphQLParseOptions,
 ): GraphQLSchema {
-  const document = buildDocumentFromTypeDefinitions(
-    typeDefinitions,
-    parseOptions,
-  );
-
+  const document = buildDocumentFromTypeDefinitions(typeDefinitions, parseOptions);
   const typesAst = filterExtensionDefinitions(document);
 
   const backcompatOptions = { commentDescriptions: true };
@@ -57,7 +52,7 @@ export function buildDocumentFromTypeDefinitions(
     document = typeDefinitions;
   } else {
     const type = typeof typeDefinitions;
-    throw new SchemaError(
+    throw new Error(
       `typeDefs must be a string, array or schema AST, got ${type}`,
     );
   }

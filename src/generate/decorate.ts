@@ -7,7 +7,7 @@ import {
 import { ILogger } from '../Interfaces';
 import { forEachField } from '../utils/index';
 
-import decorateWithLogger from './decorateWithLogger';
+import { decorateWithLogger } from './decorateWithLogger';
 
 function decorateToCatchUndefined(
   fn: GraphQLFieldResolver<any, any>,

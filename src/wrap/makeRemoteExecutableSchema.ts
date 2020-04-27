@@ -1,26 +1,21 @@
-import { ApolloLink } from 'apollo-link';
-import { GraphQLFieldResolver, GraphQLSchema, buildSchema } from 'graphql';
+import { buildSchema, GraphQLFieldResolver, GraphQLSchema } from 'graphql';
 
-import { Fetcher, IMakeRemoteExecutableSchemaOptions } from '../Interfaces';
-import linkToFetcher from '../links/linkToFetcher';
+import {
+  IMakeRemoteExecutableSchemaOptions,
+  Executor,
+  Subscriber,
+} from '../Interfaces';
 import { delegateToSchema } from '../delegate';
 
 import { wrapSchema } from './wrapSchema';
 
-export default function makeRemoteExecutableSchema({
+export function makeRemoteExecutableSchema({
   schema: schemaOrTypeDefs,
-  link,
-  fetcher,
+  executor,
+  subscriber,
   createResolver = defaultCreateRemoteResolver,
-  createSubscriptionResolver = defaultCreateRemoteSubscriptionResolver,
   buildSchemaOptions,
 }: IMakeRemoteExecutableSchemaOptions): GraphQLSchema {
-  let finalFetcher: Fetcher = fetcher;
-
-  if (finalFetcher == null && link != null) {
-    finalFetcher = linkToFetcher(link);
-  }
-
   const targetSchema =
     typeof schemaOrTypeDefs === 'string'
       ? buildSchema(schemaOrTypeDefs, buildSchemaOptions)
@@ -28,32 +23,18 @@ export default function makeRemoteExecutableSchema({
 
   return wrapSchema({
     schema: targetSchema,
-    createProxyingResolver: (_schema, _transforms, operation) => {
-      if (operation === 'query' || operation === 'mutation') {
-        return createResolver(finalFetcher);
-      }
-      return createSubscriptionResolver(link);
-    },
+    createProxyingResolver: (_schema, _transforms, _operation) =>
+      createResolver(executor, subscriber),
   });
 }
 
 export function defaultCreateRemoteResolver(
-  fetcher: Fetcher,
+  executor: Executor,
+  subscriber: Subscriber,
 ): GraphQLFieldResolver<any, any> {
   return (_parent, _args, context, info) =>
     delegateToSchema({
-      schema: { schema: info.schema, fetcher },
-      context,
-      info,
-    });
-}
-
-export function defaultCreateRemoteSubscriptionResolver(
-  link: ApolloLink,
-): GraphQLFieldResolver<any, any> {
-  return (_parent, _args, context, info) =>
-    delegateToSchema({
-      schema: { schema: info.schema, link },
+      schema: { schema: info.schema, executor, subscriber },
       context,
       info,
     });

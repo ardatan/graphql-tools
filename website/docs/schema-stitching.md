@@ -282,16 +282,16 @@ In order to merge with a remote schema, we specify different options within the 
   subschemas: [
     {
       schema: nonExecutableChirpSchema,
-      link: chirpSchemaLink
+      executor: chirpSchemaExecutor,
       transforms: chirpSchemaTransforms,
     },
     { schema: authorSchema },
   ],
 ```
 
-The remote schema may be obtained either via introspection or any other source. A link is a generic ApolloLink method of connecting to a schema, also used by Apollo Client.
+The remote schema may be obtained either via introspection or any other source. An executor is a generic method of connecting to a schema.
 
-Specifying the remote subschema options within the `makeExecutableSchema` call itself allows for skipping an additional round of delegation. The old method of using [makeRemoteExecutableSchema](/docs/remote-schemas/) to create a local proxy for the remote schema would still work, and the same arguments are supported. See the [remote schema](/docs/remote-schemas/) docs for further description of the options available. Subschema configuration allows for specifying an ApolloLink `link`, any fetcher method (if not using subscriptions), or a dispatcher function that takes the graphql `context` object as an argument and dynamically returns a link object or fetcher method.
+Specifying the remote schema options within the `stitchSchemas` call itself allows for skipping an additional round of delegation. The old method of using [makeRemoteExecutableSchema](/docs/remote-schemas/) to create a local proxy for the remote schema would still work, and the same arguments are supported. See the [remote schema](/docs/remote-schemas/) docs for further description of the options available. Subschema configuration allows for specifying an executor method for query and mutation operations, and a subscriber function for subscription operations.
 
 ## API
 
@@ -302,11 +302,8 @@ Specifying the remote subschema options within the `makeExecutableSchema` call i
 export type SubschemaConfig = {
   schema: GraphQLSchema;
   rootValue?: Record<string, any>;
-  executor?: Delegator;
-  subscriber?: Delegator;
-  link?: ApolloLink;
-  fetcher?: Fetcher;
-  dispatcher?: Dispatcher;
+  executor?: Executor;
+  subscriber?: Subscriber;
   transforms?: Array<Transform>;
 };
 

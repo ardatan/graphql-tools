@@ -7,7 +7,7 @@ import { ILogger } from '../Interfaces';
  * logger: an object instance of type Logger
  * hint: an optional hint to add to the error's message
  */
-function decorateWithLogger(
+export function decorateWithLogger(
   fn: GraphQLFieldResolver<any, any>,
   logger: ILogger,
   hint: string,
@@ -52,5 +52,3 @@ function decorateWithLogger(
     }
   };
 }
-
-export default decorateWithLogger;

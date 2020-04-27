@@ -40,3 +40,6 @@ And you can test your queries using built-in [GraphiQL](https://github.com/graph
   allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr"
   sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
 ></iframe>
+
+## Adding Subscriptions support
+> TODO

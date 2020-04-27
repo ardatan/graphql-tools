@@ -1,5 +1,3 @@
-export { default as addResolversToSchema } from './addResolversToSchema';
-export { default as checkForResolveTypeResolver } from './checkForResolveTypeResolver';
-export { default as extendResolversFromInterfaces } from './extendResolversFromInterfaces';
-
-export { default as addResolveFunctionsToSchema } from './addResolversToSchema';
+export { addResolversToSchema } from './addResolversToSchema';
+export { checkForResolveTypeResolver } from './checkForResolveTypeResolver';
+export { extendResolversFromInterfaces } from './extendResolversFromInterfaces';
