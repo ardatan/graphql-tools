@@ -1,4 +1,4 @@
-import { GraphQLSchema, extendSchema, parse } from 'graphql';
+import { GraphQLSchema, parse } from 'graphql';
 
 import {
   Transform,
@@ -9,6 +9,8 @@ import {
 } from '../../Interfaces';
 import { addResolversToSchema } from '../../addResolvers/index';
 import { defaultMergedResolver } from '../../delegate/index';
+
+import { extendSchemaWithSubscriptions } from '../../utils/extendSchemaWithSubscriptions';
 
 import MapFields from './MapFields';
 
@@ -45,7 +47,7 @@ export default class ExtendSchema implements Transform {
 
     return addResolversToSchema({
       schema: this.typeDefs
-        ? extendSchema(schema, parse(this.typeDefs))
+        ? extendSchemaWithSubscriptions(schema, parse(this.typeDefs), {})
         : schema,
       resolvers: this.resolvers != null ? this.resolvers : {},
       defaultFieldResolver: this.defaultFieldResolver,

@@ -19,7 +19,6 @@ import {
   isInterfaceType,
   isUnionType,
   isEnumType,
-  extendSchema,
   GraphQLFieldConfigMap,
 } from 'graphql';
 
@@ -43,6 +42,8 @@ import {
   forEachField,
   toConfig,
 } from '../utils/index';
+
+import { extendSchemaWithSubscriptions } from '../utils/extendSchemaWithSubscriptions';
 
 import typeFromAST from './typeFromAST';
 import { createMergeInfo, completeMergeInfo } from './mergeInfo';
@@ -229,7 +230,7 @@ export default function stitchSchemas({
   });
 
   extensions.forEach((extension) => {
-    stitchedSchema = extendSchema(stitchedSchema, extension, {
+    stitchedSchema = extendSchemaWithSubscriptions(stitchedSchema, extension, {
       commentDescriptions: true,
     });
   });

@@ -8,6 +8,7 @@ import {
   print,
   parse,
   assertValidSchema,
+  printSchema,
 } from 'graphql';
 
 import {

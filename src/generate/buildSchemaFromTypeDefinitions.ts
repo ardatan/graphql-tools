@@ -1,6 +1,5 @@
 import {
   parse,
-  extendSchema,
   buildASTSchema,
   GraphQLSchema,
   DocumentNode,
@@ -9,6 +8,8 @@ import {
 
 import { ITypeDefinitions, GraphQLParseOptions } from '../Interfaces';
 import SchemaError from '../utils/SchemaError';
+
+import { extendSchemaWithSubscriptions } from '../utils/extendSchemaWithSubscriptions';
 
 import {
   extractExtensionDefinitions,
@@ -47,7 +48,7 @@ function buildSchemaFromTypeDefinitions(
 
   const extensionsAst = extractExtensionDefinitions(astDocument);
   if (extensionsAst.definitions.length > 0) {
-    schema = extendSchema(schema, extensionsAst, backcompatOptions);
+    schema = extendSchemaWithSubscriptions(schema, extensionsAst, backcompatOptions);
   }
 
   return schema;
