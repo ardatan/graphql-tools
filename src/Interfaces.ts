@@ -174,8 +174,12 @@ export interface ExecutionParams<TArgs = Record<string, any>, TContext = any> {
   context?: TContext;
   info?: GraphQLResolveInfo;
 }
-export type Executor = (params: ExecutionParams) => Promise<ExecutionResult> | ExecutionResult;
-export type Subscriber = (params: ExecutionParams) => Promise<AsyncIterator<ExecutionResult> | ExecutionResult>;
+export type Executor = (
+  params: ExecutionParams,
+) => Promise<ExecutionResult> | ExecutionResult;
+export type Subscriber = (
+  params: ExecutionParams,
+) => Promise<AsyncIterator<ExecutionResult> | ExecutionResult>;
 
 export interface SubschemaConfig {
   schema: GraphQLSchema;
@@ -222,11 +226,14 @@ export interface IMakeRemoteExecutableSchemaOptions {
   schema: GraphQLSchema | string;
   executor?: Executor;
   subscriber?: Subscriber;
-  createResolver?: (executor: Executor, subscriber: Subscriber) => GraphQLFieldResolver<any, any>;
+  createResolver?: (
+    executor: Executor,
+    subscriber: Subscriber,
+  ) => GraphQLFieldResolver<any, any>;
   buildSchemaOptions?: BuildSchemaOptions;
 }
 
-export interface IMakeExecutableSchemaOptions<TContext = any> {
+export interface IEx<TContext = any> {
   typeDefs?: ITypeDefinitions;
   parseOptions?: GraphQLParseOptions;
   subschemas?: Array<GraphQLSchema | SubschemaConfig>;
@@ -241,6 +248,27 @@ export interface IMakeExecutableSchemaOptions<TContext = any> {
   allowUndefinedInResolve?: boolean;
   schemaDirectives?: Record<string, SchemaDirectiveVisitorClass>;
   directiveResolvers?: IDirectiveResolvers<any, TContext>;
+}
+
+export interface IExecutableSchemaDefinition<TContext = any> {
+  typeDefs?: ITypeDefinitions;
+  parseOptions?: GraphQLParseOptions;
+  resolvers?: IResolversParameter;
+  resolverValidationOptions?: IResolverValidationOptions;
+  inheritResolversFromInterfaces?: boolean;
+  logger?: ILogger;
+  allowUndefinedInResolve?: boolean;
+  schemaDirectives?: Record<string, SchemaDirectiveVisitorClass>;
+  directiveResolvers?: IDirectiveResolvers<any, TContext>;
+}
+
+export interface IStitchSchemasOptions<TContext = any>
+  extends IExecutableSchemaDefinition<TContext> {
+  subschemas?: Array<GraphQLSchema | SubschemaConfig>;
+  types?: Array<GraphQLNamedType>;
+  onTypeConflict?: OnTypeConflict;
+  mergeTypes?: boolean | Array<string> | MergeTypeFilter;
+  mergeDirectives?: boolean;
 }
 
 export type SchemaLikeObject =

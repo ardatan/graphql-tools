@@ -4,6 +4,7 @@
 import { graphql } from 'graphql';
 
 import { addMocksToSchema, makeExecutableSchema } from '../index';
+import { stitchSchemas } from '../stitch';
 
 const chirpSchema = makeExecutableSchema({
   typeDefs: `
@@ -39,7 +40,7 @@ const authorSchema = makeExecutableSchema({
 
 addMocksToSchema({ schema: authorSchema });
 
-const stitchedSchema = makeExecutableSchema({
+const stitchedSchema = stitchSchemas({
   subschemas: [
     {
       schema: chirpSchema,

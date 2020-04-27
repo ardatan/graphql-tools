@@ -14,6 +14,7 @@ import { createServerHttpLink } from '../links/index';
 import { GraphQLUpload as ServerGraphQLUpload } from '../scalars/index';
 import { SubschemaConfig } from '../Interfaces';
 import { linkToExecutor } from '../links/linkToExecutor';
+import { stitchSchemas } from '../stitch';
 
 function streamToString(stream: Readable) {
   const chunks: Array<Buffer> = [];
@@ -109,7 +110,7 @@ describe('graphql upload', () => {
       ),
     };
 
-    const gatewaySchema = makeExecutableSchema({
+    const gatewaySchema = stitchSchemas({
       subschemas: [subschema],
       resolvers: {
         Upload: ServerGraphQLUpload,

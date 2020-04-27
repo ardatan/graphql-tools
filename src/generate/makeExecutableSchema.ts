@@ -1,152 +1,56 @@
-import {
-  DocumentNode,
-  GraphQLObjectType,
-  GraphQLSchema,
-  GraphQLDirective,
-  specifiedDirectives,
-  extendSchema,
-} from 'graphql';
+import { GraphQLFieldResolver } from 'graphql';
 
 import { mergeDeep } from '../utils/mergeDeep';
 
-import {
-  SchemaLikeObject,
-  IResolvers,
-  IMakeExecutableSchemaOptions,
-  MergeTypeCandidate,
-  MergeInfo,
-  IResolversParameter,
-} from '../Interfaces';
-import { addResolversToSchema } from '../addResolvers/index';
-import {
-  SchemaDirectiveVisitor,
-  cloneDirective,
-  rewireTypes,
-} from '../utils/index';
+import { IExecutableSchemaDefinition } from '../Interfaces';
+import { SchemaDirectiveVisitor } from '../utils/index';
+import { addResolversToSchema } from '../addResolvers/addResolversToSchema';
 
-import { addSchemaLevelResolver } from './addSchemaLevelResolver';
-import { addErrorLoggingToSchema, addCatchUndefinedToSchema } from './decorate';
-import { assertResolversPresent } from './assertResolversPresent';
 import { attachDirectiveResolvers } from './attachDirectiveResolvers';
-import { buildDocumentFromTypeDefinitions } from './buildSchemaFromTypeDefinitions';
-import { buildTypeCandidates, buildTypeMap } from './typeCandidates';
-import { createMergeInfo, completeMergeInfo, addMergeInfo } from './mergeInfo';
+import { assertResolversPresent } from './assertResolversPresent';
+import { addSchemaLevelResolver } from './addSchemaLevelResolver';
+import { buildSchemaFromTypeDefinitions } from './buildSchemaFromTypeDefinitions';
+import { addErrorLoggingToSchema, addCatchUndefinedToSchema } from './decorate';
 
-export function makeExecutableSchema({
-  subschemas = [],
-  types = [],
+export function makeExecutableSchema<TContext = any>({
   typeDefs,
-  onTypeConflict,
   resolvers = {},
-  schemaDirectives,
-  inheritResolversFromInterfaces = false,
-  mergeTypes = false,
-  mergeDirectives,
   logger,
   allowUndefinedInResolve = true,
   resolverValidationOptions = {},
   directiveResolvers,
+  schemaDirectives,
   parseOptions = {},
-}: IMakeExecutableSchemaOptions): GraphQLSchema {
+  inheritResolversFromInterfaces = false,
+}: IExecutableSchemaDefinition<TContext>) {
+  // Validate and clean up arguments
   if (typeof resolverValidationOptions !== 'object') {
     throw new Error('Expected `resolverValidationOptions` to be an object');
   }
 
-  const allSchemas: Array<GraphQLSchema> = [];
-  const typeCandidates: Record<
-    string,
-    Array<MergeTypeCandidate>
-  > = Object.create(null);
-  const extensions: Array<DocumentNode> = [];
-  const directives: Array<GraphQLDirective> = [];
-  const schemaDefs = Object.create(null);
-  const operationTypeNames = {
-    query: 'Query',
-    mutation: 'Mutation',
-    subscription: 'Subscription',
-  };
-
-  const schemaLikeObjects: Array<SchemaLikeObject> = [...subschemas];
-  if (typeDefs) {
-    schemaLikeObjects.push(
-      buildDocumentFromTypeDefinitions(typeDefs, parseOptions),
-    );
-  }
-  if (types != null) {
-    schemaLikeObjects.push(types);
+  if (!typeDefs) {
+    throw new Error('Must provide typeDefs');
   }
 
-  buildTypeCandidates({
-    schemaLikeObjects,
-    allSchemas,
-    typeCandidates,
-    extensions,
-    directives,
-    schemaDefs,
-    operationTypeNames,
-    mergeDirectives,
-  });
+  // We allow passing in an array of resolver maps, in which case we merge them
+  const resolverMap: any = Array.isArray(resolvers)
+    ? resolvers
+        .filter((resolverObj) => typeof resolverObj === 'object')
+        .reduce(mergeDeep, {})
+    : resolvers;
 
-  let mergeInfo: MergeInfo;
+  // Arguments are now validated and cleaned up
 
-  if (subschemas.length) {
-    mergeInfo = createMergeInfo(allSchemas, typeCandidates, mergeTypes);
-  }
-
-  const finalResolvers = getFinalResolvers(resolvers, mergeInfo);
-
-  if (subschemas.length) {
-    mergeInfo = completeMergeInfo(mergeInfo, finalResolvers);
-  }
-
-  const typeMap = buildTypeMap({
-    typeCandidates,
-    mergeTypes,
-    mergeInfo,
-    onTypeConflict,
-    operationTypeNames,
-  });
-
-  const {
-    typeMap: newTypeMap,
-    directives: newDirectives,
-  } = rewireTypes(typeMap, directives, { skipPruning: true });
-
-  let schema = new GraphQLSchema({
-    query: newTypeMap[operationTypeNames.query] as GraphQLObjectType,
-    mutation: newTypeMap[operationTypeNames.mutation] as GraphQLObjectType,
-    subscription: newTypeMap[
-      operationTypeNames.subscription
-    ] as GraphQLObjectType,
-    types: Object.keys(newTypeMap).map((key) => newTypeMap[key]),
-    directives: newDirectives.length
-      ? specifiedDirectives
-          .slice()
-          .concat(newDirectives.map((directive) => cloneDirective(directive)))
-      : undefined,
-    astNode: schemaDefs.schemaDef,
-    extensionASTNodes: schemaDefs.schemaExtensions,
-    extensions: null,
-  });
-
-  extensions.forEach((extension) => {
-    schema = extendSchema(schema, extension, {
-      commentDescriptions: true,
-    });
-  });
+  const schema = buildSchemaFromTypeDefinitions(typeDefs, parseOptions);
 
   addResolversToSchema({
     schema,
-    resolvers: finalResolvers,
+    resolvers: resolverMap,
     resolverValidationOptions,
     inheritResolversFromInterfaces,
   });
 
   assertResolversPresent(schema, resolverValidationOptions);
-
-  if (subschemas.length) {
-    addMergeInfo(schema, mergeInfo);
-  }
 
   if (!allowUndefinedInResolve) {
     addCatchUndefinedToSchema(schema);
@@ -156,10 +60,13 @@ export function makeExecutableSchema({
     addErrorLoggingToSchema(schema, logger);
   }
 
-  if (typeof finalResolvers['__schema'] === 'function') {
+  if (typeof resolvers['__schema'] === 'function') {
     // TODO a bit of a hack now, better rewrite generateSchema to attach it there.
     // not doing that now, because I'd have to rewrite a lot of tests.
-    addSchemaLevelResolver(schema, finalResolvers['__schema']);
+    addSchemaLevelResolver(
+      schema,
+      resolvers['__schema'] as GraphQLFieldResolver<any, any>,
+    );
   }
 
   if (directiveResolvers != null) {
@@ -171,30 +78,4 @@ export function makeExecutableSchema({
   }
 
   return schema;
-}
-
-function getFinalResolvers(
-  resolvers: IResolversParameter,
-  mergeInfo: MergeInfo,
-): IResolvers {
-  let finalResolvers: IResolvers;
-
-  if (typeof resolvers === 'function') {
-    finalResolvers = resolvers(mergeInfo);
-  } else if (Array.isArray(resolvers)) {
-    finalResolvers = resolvers.reduce(
-      (left, right) =>
-        mergeDeep(left, typeof right === 'function' ? right(mergeInfo) : right),
-      {},
-    );
-    finalResolvers = resolvers.reduce<any>(mergeDeep, {});
-  } else {
-    finalResolvers = resolvers;
-  }
-
-  if (finalResolvers == null) {
-    finalResolvers = {};
-  }
-
-  return finalResolvers;
 }

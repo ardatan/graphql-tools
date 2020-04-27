@@ -33,6 +33,7 @@ import {
   parseFragmentToInlineFragment,
 } from '../utils/fragments';
 import { addMocksToSchema } from '../mock/index';
+import { stitchSchemas } from '../stitch';
 
 import { propertySchema, bookingSchema } from './fixtures/schemas';
 
@@ -318,7 +319,7 @@ describe('transforms', () => {
 
       addMocksToSchema({ schema: schemaWithDefaultRootTypeNames });
 
-      const stitchedSchema = makeExecutableSchema({
+      const stitchedSchema = stitchSchemas({
         subschemas: [
           schemaWithCustomRootTypeNames,
           {
@@ -599,7 +600,7 @@ describe('transforms', () => {
 
       assertValidSchema(filteredSchema);
 
-      const stitchedSchema = makeExecutableSchema({
+      const stitchedSchema = stitchSchemas({
         subschemas: [filteredSchema],
         typeDefs: `
           extend type Property {

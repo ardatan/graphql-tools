@@ -4,6 +4,7 @@ import { delegateToSchema } from '../delegate/index';
 import { IResolvers } from '../Interfaces';
 import { makeExecutableSchema } from '../generate/index';
 import { wrapSchema } from '../wrap';
+import { stitchSchemas } from '../stitch';
 
 import {
   propertySchema,
@@ -85,7 +86,7 @@ describe('stitching', () => {
       describe(spec, () => {
         let schema: GraphQLSchema;
         beforeAll(() => {
-          schema = makeExecutableSchema({
+          schema = stitchSchemas({
             subschemas: [bookingSchema, propertySchema],
             typeDefs: proxyTypeDefs,
             resolvers: proxyResolvers(spec),

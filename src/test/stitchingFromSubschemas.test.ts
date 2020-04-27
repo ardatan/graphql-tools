@@ -18,6 +18,7 @@ import {
   makeExecutableSchema,
   addMocksToSchema,
 } from '../index';
+import { stitchSchemas } from '../stitch';
 
 const chirpTypeDefs = `
   type Chirp {
@@ -117,7 +118,7 @@ addMocksToSchema({
 schemas['chirpSchema'] = chirpSchema;
 schemas['authorSchema'] = authorSchema;
 
-const stitchedSchema = makeExecutableSchema({
+const stitchedSchema = stitchSchemas({
   subschemas: Object.keys(schemas).map((schemaName) => schemas[schemaName]),
 });
 

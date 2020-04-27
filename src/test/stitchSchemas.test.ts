@@ -21,6 +21,7 @@ import {
   SchemaDirectiveVisitor,
 } from '../utils/index';
 import { addMocksToSchema } from '../mock/index';
+import { stitchSchemas } from '../stitch';
 
 import { forAwaitEach } from './forAwaitEach';
 
@@ -342,7 +343,7 @@ testCombinations.forEach((combination) => {
       bookingSchema = await combination.booking;
       productSchema = await combination.product;
 
-      stitchedSchema = makeExecutableSchema({
+      stitchedSchema = stitchSchemas({
         subschemas: [
           propertySchema,
           bookingSchema,
@@ -1568,7 +1569,7 @@ bookingById(id: "b1") {
             },
           },
         };
-        const schema = makeExecutableSchema({
+        const schema = stitchSchemas({
           subschemas: [
             propertySchema,
             bookingSchema,
@@ -2889,7 +2890,7 @@ fragment BookingFragment on Booking {
           },
         };
 
-        schema = makeExecutableSchema({
+        schema = stitchSchemas({
           subschemas: [schema],
           resolvers,
         });
@@ -2923,7 +2924,7 @@ fragment BookingFragment on Booking {
           },
         };
 
-        const schema = makeExecutableSchema({
+        const schema = stitchSchemas({
           subschemas: [propertySchema],
           typeDefs,
           resolvers,
@@ -2975,7 +2976,7 @@ fragment BookingFragment on Booking {
       };
 
       const result = await graphql(
-        makeExecutableSchema({
+        stitchSchemas({
           typeDefs: [BookSchema, AuthorSchema],
           resolvers,
         }),
@@ -3034,7 +3035,7 @@ fragment BookingFragment on Booking {
       addMocksToSchema({ schema: bookSchema });
       addMocksToSchema({ schema: movieSchema });
 
-      const stitchedSchema = makeExecutableSchema({
+      const stitchedSchema = stitchSchemas({
         subschemas: [bookSchema, movieSchema],
         typeDefs: `
           schema {

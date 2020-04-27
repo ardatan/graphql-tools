@@ -43,6 +43,7 @@ import {
   renameFieldNode,
   hoistFieldNodes,
 } from '../utils/fieldNodes';
+import { stitchSchemas } from '../stitch';
 
 import { forAwaitEach } from './forAwaitEach';
 
@@ -152,7 +153,7 @@ describe('merge schemas through transforms', () => {
       transforms: subscriptionSchemaTransforms,
     };
 
-    stitchedSchema = makeExecutableSchema({
+    stitchedSchema = stitchSchemas({
       subschemas: [propertySubschema, bookingSubschema, subscriptionSubschema],
       typeDefs: linkSchema,
       resolvers: {
@@ -1410,7 +1411,7 @@ describe('interface resolver inheritance', () => {
   };
 
   test('copies resolvers from interface', async () => {
-    const stitchedSchema = makeExecutableSchema({
+    const stitchedSchema = stitchSchemas({
       typeDefs: testSchemaWithInterfaceResolvers,
       resolvers,
       inheritResolversFromInterfaces: true,
@@ -1428,7 +1429,7 @@ describe('interface resolver inheritance', () => {
   });
 
   test('does not copy resolvers from interface when flag is false', async () => {
-    const stitchedSchema = makeExecutableSchema({
+    const stitchedSchema = stitchSchemas({
       typeDefs: testSchemaWithInterfaceResolvers,
       resolvers,
       inheritResolversFromInterfaces: false,
@@ -1443,7 +1444,7 @@ describe('interface resolver inheritance', () => {
   });
 
   test('does not copy resolvers from interface when flag is not provided', async () => {
-    const stitchedSchema = makeExecutableSchema({
+    const stitchedSchema = stitchSchemas({
       typeDefs: testSchemaWithInterfaceResolvers,
       resolvers,
     });
@@ -1459,7 +1460,7 @@ describe('interface resolver inheritance', () => {
 
 describe('stitchSchemas', () => {
   test('can merge null root fields', async () => {
-    const schema = makeExecutableSchema({
+    const schema = stitchSchemas({
       typeDefs: `
         type Query {
           test: Test
@@ -1474,7 +1475,7 @@ describe('stitchSchemas', () => {
         },
       },
     });
-    const stitchedSchema = makeExecutableSchema({
+    const stitchedSchema = stitchSchemas({
       subschemas: [schema],
     });
 
@@ -1485,7 +1486,7 @@ describe('stitchSchemas', () => {
   });
 
   test('can merge default input types', async () => {
-    const schema = makeExecutableSchema({
+    const schema = stitchSchemas({
       typeDefs: `
         input InputWithDefault {
           field: String = "test"
@@ -1500,7 +1501,7 @@ describe('stitchSchemas', () => {
         },
       },
     });
-    const stitchedSchema = makeExecutableSchema({
+    const stitchedSchema = stitchSchemas({
       subschemas: [schema],
     });
 
@@ -1526,7 +1527,7 @@ type Query {
   });
 
   test('can override scalars with new internal values', async () => {
-    const schema = makeExecutableSchema({
+    const schema = stitchSchemas({
       typeDefs: `
         scalar TestScalar
         type Query {
@@ -1546,7 +1547,7 @@ type Query {
         },
       },
     });
-    const stitchedSchema = makeExecutableSchema({
+    const stitchedSchema = stitchSchemas({
       subschemas: [schema],
       resolvers: {
         TestScalar: new GraphQLScalarType({
@@ -1566,7 +1567,7 @@ type Query {
   });
 
   test('can override scalars with new internal values when using default input types', async () => {
-    const schema = makeExecutableSchema({
+    const schema = stitchSchemas({
       typeDefs: `
           scalar TestScalar
           type Query {
@@ -1586,7 +1587,7 @@ type Query {
         },
       },
     });
-    const stitchedSchema = makeExecutableSchema({
+    const stitchedSchema = stitchSchemas({
       subschemas: [schema],
       resolvers: {
         TestScalar: new GraphQLScalarType({
@@ -1606,7 +1607,7 @@ type Query {
   });
 
   test('can use @include directives', async () => {
-    const schema = makeExecutableSchema({
+    const schema = stitchSchemas({
       typeDefs: `
         type WrappingType {
           subfield: String
@@ -1621,7 +1622,7 @@ type Query {
         },
       },
     });
-    const stitchedSchema = makeExecutableSchema({
+    const stitchedSchema = stitchSchemas({
       subschemas: [schema],
       typeDefs: `
         type Query {
@@ -1654,7 +1655,7 @@ type Query {
   });
 
   test('can use functions in subfields', async () => {
-    const schema = makeExecutableSchema({
+    const schema = stitchSchemas({
       typeDefs: `
         type WrappingObject {
           functionField: Int!
@@ -1665,7 +1666,7 @@ type Query {
       `,
     });
 
-    const stitchedSchema = makeExecutableSchema({
+    const stitchedSchema = stitchSchemas({
       subschemas: [schema],
       resolvers: {
         Query: {
@@ -1737,7 +1738,7 @@ describe('onTypeConflict', () => {
   });
 
   test('by default takes last type', async () => {
-    const stitchedSchema = makeExecutableSchema({
+    const stitchedSchema = stitchSchemas({
       subschemas: [schema1, schema2],
     });
     const result1 = await graphql(stitchedSchema, '{ test2 { fieldC } }');
@@ -1747,7 +1748,7 @@ describe('onTypeConflict', () => {
   });
 
   test('can use onTypeConflict to select last type', async () => {
-    const stitchedSchema = makeExecutableSchema({
+    const stitchedSchema = stitchSchemas({
       subschemas: [schema1, schema2],
       onTypeConflict: (_left, right) => right,
     });
@@ -1758,7 +1759,7 @@ describe('onTypeConflict', () => {
   });
 
   test('can use onTypeConflict to select first type', async () => {
-    const stitchedSchema = makeExecutableSchema({
+    const stitchedSchema = stitchSchemas({
       subschemas: [schema1, schema2],
       onTypeConflict: (left) => left,
     });
@@ -1874,7 +1875,7 @@ describe('mergeTypes', () => {
       },
     };
 
-    const stitchedSchema = makeExecutableSchema({
+    const stitchedSchema = stitchSchemas({
       subschemas: [subschemaConfig1, subschemaConfig2],
     });
 
@@ -1914,10 +1915,10 @@ describe('stitchSchemas handles typeDefs with default values', () => {
       }
     `;
 
-    const schema = makeExecutableSchema({ typeDefs });
+    const schema = stitchSchemas({ typeDefs });
     assertValidSchema(schema);
 
-    const stitchedSchema = makeExecutableSchema({ typeDefs });
+    const stitchedSchema = stitchSchemas({ typeDefs });
     assertValidSchema(stitchedSchema);
   });
 });

@@ -19,7 +19,10 @@ export function buildSchemaFromTypeDefinitions(
   typeDefinitions: ITypeDefinitions,
   parseOptions?: GraphQLParseOptions,
 ): GraphQLSchema {
-  const document = buildDocumentFromTypeDefinitions(typeDefinitions, parseOptions);
+  const document = buildDocumentFromTypeDefinitions(
+    typeDefinitions,
+    parseOptions,
+  );
   const typesAst = filterExtensionDefinitions(document);
 
   const backcompatOptions = { commentDescriptions: true };

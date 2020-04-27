@@ -4,6 +4,7 @@ import { relocatedError, getErrors } from '../delegate/errors';
 import { checkResultAndHandleErrors } from '../delegate/transforms/CheckResultAndHandleErrors';
 import { makeExecutableSchema } from '../generate/index';
 import { ERROR_SYMBOL } from '../delegate/symbols';
+import { stitchSchemas } from '../stitch';
 
 class ErrorWithExtensions extends GraphQLError {
   constructor(message: string, code: string) {
@@ -127,7 +128,7 @@ describe('passes along errors for missing fields on list', () => {
       },
     });
 
-    const stitchedSchema = makeExecutableSchema({
+    const stitchedSchema = stitchSchemas({
       subschemas: [schema],
     });
 
@@ -161,7 +162,7 @@ describe('passes along errors for missing fields on list', () => {
       },
     });
 
-    const stitchedSchema = makeExecutableSchema({
+    const stitchedSchema = stitchSchemas({
       subschemas: [schema],
     });
 
@@ -197,7 +198,7 @@ describe('passes along errors when list field errors', () => {
       },
     });
 
-    const stitchedSchema = makeExecutableSchema({
+    const stitchedSchema = stitchSchemas({
       subschemas: [schema],
     });
 
@@ -231,7 +232,7 @@ describe('passes along errors when list field errors', () => {
       },
     });
 
-    const stitchedSchema = makeExecutableSchema({
+    const stitchedSchema = stitchSchemas({
       subschemas: [schema],
     });
 

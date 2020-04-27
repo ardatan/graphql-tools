@@ -37,7 +37,8 @@ import {
   extractDirectiveDefinitions,
   extractSchemaDefinition,
   extractSchemaExtensions,
-} from './definitions';
+} from '../generate/definitions';
+
 import typeFromAST from './typeFromAST';
 
 type CandidateSelector = (
