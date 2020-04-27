@@ -4,18 +4,17 @@ import {
   GraphQLFieldResolver,
 } from 'graphql';
 
-import { mergeDeep } from '../esUtils/mergeDeep';
+import { mergeDeep } from '../utils/mergeDeep';
 
 import { IExecutableSchemaDefinition, ILogger } from '../Interfaces';
 import { SchemaDirectiveVisitor, forEachField } from '../utils/index';
-import SchemaError from '../utils/SchemaError';
-import addResolversToSchema from '../addResolvers/addResolversToSchema';
+import { addResolversToSchema } from '../addResolvers/addResolversToSchema';
 
-import attachDirectiveResolvers from './attachDirectiveResolvers';
-import assertResolversPresent from './assertResolversPresent';
-import addSchemaLevelResolver from './addSchemaLevelResolver';
-import buildSchemaFromTypeDefinitions from './buildSchemaFromTypeDefinitions';
-import decorateWithLogger from './decorateWithLogger';
+import { attachDirectiveResolvers } from './attachDirectiveResolvers';
+import { assertResolversPresent } from './assertResolversPresent';
+import { addSchemaLevelResolver } from './addSchemaLevelResolver';
+import { buildSchemaFromTypeDefinitions } from './buildSchemaFromTypeDefinitions';
+import { decorateWithLogger } from './decorateWithLogger';
 
 export function makeExecutableSchema<TContext = any>({
   typeDefs,
@@ -30,13 +29,11 @@ export function makeExecutableSchema<TContext = any>({
 }: IExecutableSchemaDefinition<TContext>) {
   // Validate and clean up arguments
   if (typeof resolverValidationOptions !== 'object') {
-    throw new SchemaError(
-      'Expected `resolverValidationOptions` to be an object',
-    );
+    throw new Error('Expected `resolverValidationOptions` to be an object');
   }
 
   if (!typeDefs) {
-    throw new SchemaError('Must provide typeDefs');
+    throw new Error('Must provide typeDefs');
   }
 
   // We allow passing in an array of resolver maps, in which case we merge them

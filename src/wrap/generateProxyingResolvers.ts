@@ -5,7 +5,7 @@ import {
 } from 'graphql';
 
 import { Transform, Operation, SubschemaConfig } from '../Interfaces';
-import delegateToSchema from '../delegate/delegateToSchema';
+import { delegateToSchema } from '../delegate/delegateToSchema';
 import { handleResult } from '../delegate/results/handleResult';
 
 import { getResponseKeyFromInfo } from '../utils/getResponseKeyFromInfo';

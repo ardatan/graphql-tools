@@ -12,7 +12,7 @@ import { getErrors } from './errors';
  * b) handle errors from proxied schemas
  * c) handle external to internal enum coversion
  */
-export default function defaultMergedResolver(
+export function defaultMergedResolver(
   parent: Record<string, any>,
   args: Record<string, any>,
   context: Record<string, any>,

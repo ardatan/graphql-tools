@@ -6,7 +6,6 @@ export { defaultCreateProxyingResolver } from './generateProxyingResolvers';
 export * from './transforms/index';
 
 export {
-  default as makeRemoteExecutableSchema,
+  makeRemoteExecutableSchema,
   defaultCreateRemoteResolver,
-  defaultCreateRemoteSubscriptionResolver,
 } from './makeRemoteExecutableSchema';

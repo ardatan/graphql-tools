@@ -23,7 +23,7 @@ import {
   GraphQLFieldConfigMap,
 } from 'graphql';
 
-import { mergeDeep } from '../esUtils/mergeDeep';
+import { mergeDeep } from '../utils/mergeDeep';
 
 import {
   OnTypeConflict,
@@ -50,7 +50,7 @@ type CandidateSelector = (
   candidates: Array<MergeTypeCandidate>,
 ) => MergeTypeCandidate;
 
-export default function stitchSchemas({
+export function stitchSchemas({
   subschemas = [],
   types = [],
   typeDefs,

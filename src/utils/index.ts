@@ -8,4 +8,3 @@ export { getResolversFromSchema } from './getResolversFromSchema';
 export { forEachField } from './forEachField';
 export { forEachDefaultValue } from './forEachDefaultValue';
 export { mapSchema } from './map';
-export { default as SchemaError } from './SchemaError';

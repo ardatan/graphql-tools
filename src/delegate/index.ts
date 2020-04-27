@@ -1,13 +1,5 @@
-import delegateToSchema, { delegateRequest } from './delegateToSchema';
-import { createRequestFromInfo, createRequest } from './createRequest';
-import defaultMergedResolver from './defaultMergedResolver';
-
-export {
-  delegateToSchema,
-  createRequestFromInfo,
-  createRequest,
-  delegateRequest,
-  defaultMergedResolver,
-};
+export { delegateToSchema, delegateRequest } from './delegateToSchema';
+export { createRequestFromInfo, createRequest } from './createRequest';
+export { defaultMergedResolver } from './defaultMergedResolver';
 
 export * from './transforms/index';

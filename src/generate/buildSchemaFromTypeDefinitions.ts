@@ -8,15 +8,14 @@ import {
 } from 'graphql';
 
 import { ITypeDefinitions, GraphQLParseOptions } from '../Interfaces';
-import SchemaError from '../utils/SchemaError';
 
 import {
   extractExtensionDefinitions,
   filterExtensionDefinitions,
 } from './extensionDefinitions';
-import concatenateTypeDefs from './concatenateTypeDefs';
+import { concatenateTypeDefs } from './concatenateTypeDefs';
 
-function buildSchemaFromTypeDefinitions(
+export function buildSchemaFromTypeDefinitions(
   typeDefinitions: ITypeDefinitions,
   parseOptions?: GraphQLParseOptions,
 ): GraphQLSchema {
@@ -29,7 +28,7 @@ function buildSchemaFromTypeDefinitions(
   } else if (typeof myDefinitions !== 'string') {
     if (!Array.isArray(myDefinitions)) {
       const type = typeof myDefinitions;
-      throw new SchemaError(
+      throw new Error(
         `typeDefs must be a string, array or schema AST, got ${type}`,
       );
     }
@@ -58,5 +57,3 @@ function isDocumentNode(
 ): typeDefinitions is DocumentNode {
   return (typeDefinitions as ASTNode).kind !== undefined;
 }
-
-export default buildSchemaFromTypeDefinitions;

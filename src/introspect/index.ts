@@ -1,4 +1,3 @@
-import { ApolloLink } from 'apollo-link';
 import {
   GraphQLSchema,
   DocumentNode,
@@ -7,47 +6,39 @@ import {
   parse,
 } from 'graphql';
 
-import { Fetcher } from '../Interfaces';
-import linkToFetcher from '../links/linkToFetcher';
+import { Executor } from '../Interfaces';
 
 import { combineErrors } from '../delegate/errors';
 
-const parsedIntrospectionQuery: DocumentNode = parse(getIntrospectionQuery());
-
-export function introspectSchema(
-  linkOrFetcher: ApolloLink | Fetcher,
-  linkContext?: Record<string, any>,
+export async function introspectSchema(
+  executor: Executor,
+  context?: Record<string, any>,
 ): Promise<GraphQLSchema> {
-  const fetcher =
-    typeof linkOrFetcher === 'function'
-      ? linkOrFetcher
-      : linkToFetcher(linkOrFetcher);
-
-  return fetcher({
-    query: parsedIntrospectionQuery,
-    context: linkContext,
-  }).then((introspectionResult) => {
-    if (
-      (Array.isArray(introspectionResult.errors) &&
-        introspectionResult.errors.length) ||
-      !introspectionResult.data.__schema
-    ) {
-      if (Array.isArray(introspectionResult.errors)) {
-        const combinedError: Error = combineErrors(introspectionResult.errors);
-        throw combinedError;
-      } else {
-        throw new Error(
-          'Could not obtain introspection result, received: ' +
-            JSON.stringify(introspectionResult),
-        );
-      }
-    } else {
-      const schema = buildClientSchema(
-        introspectionResult.data as {
-          __schema: any;
-        },
-      );
-      return schema;
-    }
+  const parsedIntrospectionQuery: DocumentNode = parse(getIntrospectionQuery());
+  const introspectionResult = await executor({
+    document: parsedIntrospectionQuery,
+    context,
   });
+  if (
+    (Array.isArray(introspectionResult.errors) &&
+      introspectionResult.errors.length) ||
+    !introspectionResult.data.__schema
+  ) {
+    if (Array.isArray(introspectionResult.errors)) {
+      const combinedError: Error = combineErrors(introspectionResult.errors);
+      throw combinedError;
+    } else {
+      throw new Error(
+        'Could not obtain introspection result, received: ' +
+          JSON.stringify(introspectionResult),
+      );
+    }
+  } else {
+    const schema = buildClientSchema(
+      introspectionResult.data as {
+        __schema: any;
+      },
+    );
+    return schema;
+  }
 }

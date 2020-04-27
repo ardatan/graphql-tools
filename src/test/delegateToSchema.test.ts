@@ -1,7 +1,7 @@
 import { GraphQLSchema, graphql } from 'graphql';
 
-import delegateToSchema from '../delegate/delegateToSchema';
-import stitchSchemas from '../stitch/stitchSchemas';
+import { delegateToSchema } from '../delegate/delegateToSchema';
+import { stitchSchemas } from '../stitch/stitchSchemas';
 import { IResolvers } from '../Interfaces';
 import { makeExecutableSchema } from '../generate';
 import { wrapSchema } from '../wrap';
