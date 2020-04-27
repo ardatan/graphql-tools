@@ -1,5 +1,5 @@
 {
-  "name": "@graphql-tools/common",
+  "name": "@graphql-tools/utils",
   "version": "5.0.0",
   "description": "Common package containting utils and types for GraphQL tools",
   "repository": "git@github.com:ardatan/graphql-tools.git",

@@ -3,7 +3,7 @@ import { groupBy, keyBy, isEqual, uniqBy, flatten } from 'lodash';
 import { LoadTypedefsOptions } from '../load-typedefs';
 import { loadFile, loadFileSync } from '../load-typedefs/load-file';
 import { completeDefinitionPool } from './definition';
-import { Source, compareNodes } from '@graphql-tools/common';
+import { Source, compareNodes } from '@graphql-tools/utils';
 
 /**
  * Describes the information from a single import line

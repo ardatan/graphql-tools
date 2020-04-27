@@ -20,7 +20,7 @@ import {
   GraphQLInterfaceType,
 } from 'graphql';
 import * as deepMerge from 'deepmerge';
-import { Maybe } from '@graphql-tools/common';
+import { Maybe } from '@graphql-tools/utils';
 
 export type ExtensionsObject = Record<string, any>;
 

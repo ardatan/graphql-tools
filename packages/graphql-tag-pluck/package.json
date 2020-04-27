@@ -21,7 +21,7 @@
     "@babel/parser": "7.9.4",
     "@babel/traverse": "7.9.5",
     "@babel/types": "7.9.5",
-    "@graphql-tools/common": "5.0.0"
+    "@graphql-tools/utils": "5.0.0"
   },
   "optionalDependencies": {
     "vue-template-compiler": "^2.6.11"

@@ -1,4 +1,4 @@
-import { loadSchema, loadSchemaSync } from '@graphql-tools/core';
+import { loadSchema, loadSchemaSync } from '@graphql-tools/load';
 import { JsonFileLoader } from '@graphql-tools/json-file-loader';
 import { isSchema, GraphQLObjectType, GraphQLInterfaceType } from 'graphql';
 import { runTests, useMonorepo } from '../../../../testing/utils';

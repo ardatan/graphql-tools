@@ -1,11 +1,11 @@
-import { parseImportLine, parseSDL, loadTypedefs, LoadTypedefsOptions, OPERATION_KINDS, loadTypedefsSync } from '@graphql-tools/core';
+import { parseImportLine, parseSDL, loadTypedefs, LoadTypedefsOptions, OPERATION_KINDS, loadTypedefsSync } from '@graphql-tools/load';
 import * as fs from 'fs';
 import { print } from 'graphql';
 import { UrlLoader } from '@graphql-tools/url-loader';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { JsonFileLoader } from '@graphql-tools/json-file-loader';
 import { CodeFileLoader } from '@graphql-tools/code-file-loader';
-import { parseGraphQLSDL, Source } from '@graphql-tools/common';
+import { parseGraphQLSDL, Source } from '@graphql-tools/utils';
 import { mergeTypeDefs } from '@graphql-tools/schema-merging';
 import '../../../../testing/to-be-similar-gql-doc';
 import { runTests } from '../../../../testing/utils';

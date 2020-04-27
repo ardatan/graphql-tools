@@ -1,4 +1,4 @@
-import { loadDocuments, loadDocumentsSync } from '@graphql-tools/core';
+import { loadDocuments, loadDocumentsSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { separateOperations } from 'graphql';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';

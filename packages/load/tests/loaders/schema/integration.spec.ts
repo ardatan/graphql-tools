@@ -1,4 +1,4 @@
-import { loadSchema, loadSchemaSync } from '@graphql-tools/core';
+import { loadSchema, loadSchemaSync } from '@graphql-tools/load';
 import { CodeFileLoader } from '@graphql-tools/code-file-loader';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { printSchema } from 'graphql';

@@ -1,4 +1,4 @@
-import { Source } from '@graphql-tools/common';
+import { Source } from '@graphql-tools/utils';
 import { Kind } from 'graphql';
 import { LoadTypedefsOptions, loadTypedefs, loadTypedefsSync, UnnormalizedTypeDefPointer } from './load-typedefs';
 

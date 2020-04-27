@@ -9,7 +9,7 @@ import {
 } from '@graphql-tools/schema-stitching';
 import { mergeTypeDefs, Config } from './typedefs-mergers/merge-typedefs';
 import { mergeResolvers } from './merge-resolvers';
-import { extractResolversFromSchema, ResolversComposerMapping, composeResolvers, asArray } from '@graphql-tools/common';
+import { extractResolversFromSchema, ResolversComposerMapping, composeResolvers, asArray } from '@graphql-tools/utils';
 import { mergeExtensions, extractExtensionsFromSchema, applyExtensions, SchemaExtensions } from './extensions';
 
 export interface MergeSchemasConfig<Resolvers extends IResolvers = IResolvers> extends Config, BuildSchemaOptions {

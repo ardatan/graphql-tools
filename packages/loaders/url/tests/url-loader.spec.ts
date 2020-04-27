@@ -1,6 +1,6 @@
 import { makeExecutableSchema } from '@graphql-tools/schema-stitching';
 import { UrlLoader } from '../src';
-import { printSchemaWithDirectives } from '@graphql-tools/common';
+import { printSchemaWithDirectives } from '@graphql-tools/utils';
 import nock from 'nock';
 import { mockGraphQLServer } from '../../../testing/utils';
 

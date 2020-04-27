@@ -2,7 +2,7 @@ import { Config } from './merge-typedefs';
 import { FieldDefinitionNode, InputValueDefinitionNode, TypeNode, NameNode } from 'graphql';
 import { extractType, isWrappingTypeNode, isListTypeNode, isNonNullTypeNode, printTypeNode } from './utils';
 import { mergeDirectives } from './directives';
-import { isNotEqual, compareNodes } from '@graphql-tools/common';
+import { isNotEqual, compareNodes } from '@graphql-tools/utils';
 import { mergeArguments } from './arguments';
 
 function fieldAlreadyExists(fieldsArr: ReadonlyArray<any>, otherField: any): boolean {

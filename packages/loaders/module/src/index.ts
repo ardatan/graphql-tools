@@ -5,7 +5,7 @@ import {
   printSchemaWithDirectives,
   SingleFileOptions,
   Source,
-} from '@graphql-tools/common';
+} from '@graphql-tools/utils';
 
 const InvalidError = new Error(`Imported object was not a string, DocumentNode or GraphQLSchema`);
 const createLoadError = (error: any) =>

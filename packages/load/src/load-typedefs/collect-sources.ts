@@ -1,4 +1,4 @@
-import { Source, isDocumentString, parseGraphQLSDL, asArray, printSchemaWithDirectives } from '@graphql-tools/common';
+import { Source, isDocumentString, parseGraphQLSDL, asArray, printSchemaWithDirectives } from '@graphql-tools/utils';
 import { isSchema, Kind, parse } from 'graphql';
 import isGlob from 'is-glob';
 import { LoadTypedefsOptions } from '../load-typedefs';

@@ -12,7 +12,7 @@ import {
   DocumentLoader,
   SingleFileOptions,
   printSchemaWithDirectives,
-} from '@graphql-tools/common';
+} from '@graphql-tools/utils';
 import { isWebUri } from 'valid-url';
 import { fetch as crossFetch } from 'cross-fetch';
 import { makeRemoteExecutableSchema, Executor } from '@graphql-tools/schema-stitching';

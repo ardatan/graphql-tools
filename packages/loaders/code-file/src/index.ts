@@ -10,7 +10,7 @@ import {
   isValidPath,
   parseGraphQLSDL,
   printSchemaWithDirectives,
-} from '@graphql-tools/common';
+} from '@graphql-tools/utils';
 import {
   GraphQLTagPluckOptions,
   gqlPluckFromCodeString,

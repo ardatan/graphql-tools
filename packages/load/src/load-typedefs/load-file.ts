@@ -1,4 +1,4 @@
-import { Source, debugLog } from '@graphql-tools/common';
+import { Source, debugLog } from '@graphql-tools/utils';
 import { LoadTypedefsOptions } from '../load-typedefs';
 
 export async function loadFile(pointer: string, options: LoadTypedefsOptions): Promise<Source> {

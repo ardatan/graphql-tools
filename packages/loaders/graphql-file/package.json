@@ -22,7 +22,7 @@
     "input": "./src/index.ts"
   },
   "dependencies": {
-    "@graphql-tools/common": "5.0.0",
+    "@graphql-tools/utils": "5.0.0",
     "tslib": "1.11.1"
   },
   "publishConfig": {

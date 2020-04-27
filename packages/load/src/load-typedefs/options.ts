@@ -1,4 +1,4 @@
-import { resolveBuiltinModule, resolveBuiltinModuleSync } from '@graphql-tools/common';
+import { resolveBuiltinModule, resolveBuiltinModuleSync } from '@graphql-tools/utils';
 import { LoadTypedefsOptions } from './../load-typedefs';
 
 function applyDefaultOptions<T>(options: LoadTypedefsOptions<Partial<T>>) {

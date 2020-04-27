@@ -1,4 +1,4 @@
-import { parseGraphQLSDL, parseGraphQLJSON, Source } from '@graphql-tools/common';
+import { parseGraphQLSDL, parseGraphQLJSON, Source } from '@graphql-tools/utils';
 
 export function parse<T>({
   path,

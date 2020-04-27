@@ -1,5 +1,5 @@
 import { DefinitionNode } from 'graphql';
-import { Source, SingleFileOptions, Loader, compareStrings } from '@graphql-tools/common';
+import { Source, SingleFileOptions, Loader, compareStrings } from '@graphql-tools/utils';
 import { normalizePointers } from './utils/pointers';
 import { RawModule } from './import-parser';
 import { prepareOptions, prepareOptionsSync } from './load-typedefs/options';

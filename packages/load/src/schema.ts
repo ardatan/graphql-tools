@@ -2,7 +2,7 @@ import { loadTypedefs, LoadTypedefsOptions, UnnormalizedTypeDefPointer, loadType
 import { GraphQLSchema, BuildSchemaOptions, DocumentNode, Source as GraphQLSource, print } from 'graphql';
 import { OPERATION_KINDS } from './documents';
 import { mergeSchemasAsync, mergeSchemas, MergeSchemasConfig } from '@graphql-tools/schema-merging';
-import { Source } from '@graphql-tools/common';
+import { Source } from '@graphql-tools/utils';
 
 export type LoadSchemaOptions = BuildSchemaOptions &
   LoadTypedefsOptions &

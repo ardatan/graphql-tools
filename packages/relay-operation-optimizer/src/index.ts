@@ -1,4 +1,4 @@
-import { printSchemaWithDirectives, SchemaPrintOptions } from '@graphql-tools/common';
+import { printSchemaWithDirectives, SchemaPrintOptions } from '@graphql-tools/utils';
 import { parse, GraphQLSchema, DefinitionNode, DocumentNode, ParseOptions, concatAST } from 'graphql';
 
 import { transform as skipRedundantNodesTransform } from 'relay-compiler/lib/transforms/SkipRedundantNodesTransform';

@@ -6,7 +6,7 @@ import {
   isValidPath,
   parseGraphQLSDL,
   SingleFileOptions,
-} from '@graphql-tools/common';
+} from '@graphql-tools/utils';
 
 const FILE_EXTENSIONS = ['.gql', '.gqls', '.graphql', '.graphqls'];
 

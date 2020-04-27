@@ -1,6 +1,6 @@
 import { InputValueDefinitionNode } from 'graphql';
 import { Config } from '.';
-import { compareNodes } from '@graphql-tools/common';
+import { compareNodes } from '@graphql-tools/utils';
 
 export function mergeArguments(
   args1: InputValueDefinitionNode[],

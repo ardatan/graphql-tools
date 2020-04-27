@@ -13,7 +13,7 @@ It also extracts usages of `gql` from code files using [`@graphql-tools/graphql-
 ## Usage
 
 ```ts
-const { loadDocuments } = require('@graphql-tools/core');
+const { loadDocuments } = require('@graphql-tools/load');
 const { GraphQLFileLoader } = require('@graphql-tools/graphql-file-loader');
 const { CodeFileLoader } = require('@graphql-tools/code-file-loader');
 

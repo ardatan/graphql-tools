@@ -1,4 +1,4 @@
-import { SchemaLoader, Source } from '@graphql-tools/common';
+import { SchemaLoader, Source } from '@graphql-tools/utils';
 import { fetch } from 'cross-fetch';
 import { buildClientSchema } from 'graphql';
 

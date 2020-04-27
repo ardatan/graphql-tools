@@ -5,7 +5,7 @@ import {
   DocumentLoader,
   isValidPath,
   SingleFileOptions,
-} from '@graphql-tools/common';
+} from '@graphql-tools/utils';
 
 const FILE_EXTENSIONS = ['.json'];
 

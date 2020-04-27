@@ -1,4 +1,4 @@
-import { loadSchema, loadSchemaSync } from '@graphql-tools/core';
+import { loadSchema, loadSchemaSync } from '@graphql-tools/load';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { CodeFileLoader } from '@graphql-tools/code-file-loader';
 import { runTests, useMonorepo } from '../../../../testing/utils';

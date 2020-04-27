@@ -1,4 +1,4 @@
-import { debugLog } from '@graphql-tools/common';
+import { debugLog } from '@graphql-tools/utils';
 import { DocumentNode, DefinitionNode, Kind } from 'graphql';
 
 export const filterKind = (content: DocumentNode, filterKinds: null | string[]) => {

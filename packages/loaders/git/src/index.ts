@@ -1,4 +1,4 @@
-import { UniversalLoader, SingleFileOptions } from '@graphql-tools/common';
+import { UniversalLoader, SingleFileOptions } from '@graphql-tools/utils';
 import {
   GraphQLTagPluckOptions,
   gqlPluckFromCodeString,

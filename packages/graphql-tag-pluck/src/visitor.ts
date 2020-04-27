@@ -7,7 +7,7 @@ import {
   isImportDefaultSpecifier,
   isImportSpecifier,
 } from '@babel/types';
-import { asArray } from '@graphql-tools/common';
+import { asArray } from '@graphql-tools/utils';
 
 const defaults: GraphQLTagPluckOptions = {
   modules: [
