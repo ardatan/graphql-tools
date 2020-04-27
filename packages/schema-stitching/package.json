@@ -21,6 +21,7 @@
     "input": "./src/index.ts"
   },
   "devDependencies": {
+    "@types/dateformat": "3.0.1",
     "dataloader": "2.0.0",
     "dateformat": "3.0.3",
     "graphql-scalars": "1.1.2"
