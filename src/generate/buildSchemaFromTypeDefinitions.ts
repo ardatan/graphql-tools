@@ -48,7 +48,11 @@ function buildSchemaFromTypeDefinitions(
 
   const extensionsAst = extractExtensionDefinitions(astDocument);
   if (extensionsAst.definitions.length > 0) {
-    schema = extendSchemaWithSubscriptions(schema, extensionsAst, backcompatOptions);
+    schema = extendSchemaWithSubscriptions(
+      schema,
+      extensionsAst,
+      backcompatOptions,
+    );
   }
 
   return schema;

@@ -1,9 +1,4 @@
-
-import {
-  DocumentNode,
-  GraphQLSchema,
-  extendSchema,
-} from 'graphql';
+import { DocumentNode, GraphQLSchema, extendSchema } from 'graphql';
 
 import { getResolversFromSchema } from '../utils/getResolversFromSchema';
 import { IResolverOptions } from '../Interfaces';
