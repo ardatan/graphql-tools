@@ -49,16 +49,3 @@ jobs:
         run: yarn build
       - name: Test
         run: yarn test --logHeapUsage
-  check-configuration:
-    name: Check Configuration Schema
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@master
-
-      - name: Detect Changes
-        uses: kamilkisiela/graphql-inspector@master
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          schema: 'master:schema.graphql'
