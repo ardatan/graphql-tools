@@ -147,7 +147,7 @@ export function makeExecutableSchema({
     directives: newDirectives,
   } = rewireTypes(typeMap, directives, { skipPruning: true });
 
-  let stitchedSchema = new GraphQLSchema({
+  const config = {
     query: newTypeMap[operationTypeNames.query] as GraphQLObjectType,
     mutation: newTypeMap[operationTypeNames.mutation] as GraphQLObjectType,
     subscription: newTypeMap[
@@ -162,8 +162,8 @@ export function makeExecutableSchema({
     description: schemaDefs.schemaDef?.description?.value,
     astNode: schemaDefs.schemaDef,
     extensionASTNodes: schemaDefs.schemaExtensions,
-    extensions: null,
-  });
+  };
+  let stitchedSchema = new GraphQLSchema(config);
 
   extensions.forEach((extension) => {
     stitchedSchema = extendSchema(stitchedSchema, extension, {
@@ -457,9 +457,9 @@ function merge(
     );
   }
   if (isObjectType(initialCandidateType)) {
-    return new GraphQLObjectType({
+    const config = {
       name: typeName,
-      fields: candidates.reduce(
+      fields: candidates.reduce<GraphQLFieldConfigMap<any, any>>(
         (acc, candidate) => ({
           ...acc,
           ...(candidate.type as GraphQLObjectType).toConfig().fields,
@@ -475,7 +475,8 @@ function merge(
       extensions: initialCandidateType.extensions,
       astNode: initialCandidateType.astNode,
       extensionASTNodes: initialCandidateType.extensionASTNodes,
-    });
+    };
+    return new GraphQLObjectType(config);
   } else if (isInterfaceType(initialCandidateType)) {
     const config = {
       name: typeName,

@@ -82,15 +82,16 @@ function makeObjectType(node: ObjectTypeDefinitionNode): GraphQLObjectType {
 function makeInterfaceType(
   node: InterfaceTypeDefinitionNode,
 ): GraphQLInterfaceType {
-  return new GraphQLInterfaceType({
+  const config = {
     name: node.name.value,
     description: getDescription(node, backcompatOptions),
-    interfaces: ((node as any) as ObjectTypeDefinitionNode).interfaces?.map(
+    interfaces: ((node as unknown) as ObjectTypeDefinitionNode).interfaces?.map(
       (iface) => createNamedStub(iface.name.value, 'interface'),
     ),
     fields: () => makeFields(node.fields),
     astNode: node,
-  });
+  };
+  return new GraphQLInterfaceType(config);
 }
 
 function makeEnumType(node: EnumTypeDefinitionNode): GraphQLEnumType {

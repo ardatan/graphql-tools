@@ -112,7 +112,11 @@ export function rewireTypes(
         fields: () => rewireFields(config.fields),
       };
       if ('interfaces' in newConfig) {
-        newConfig.interfaces = () => rewireNamedTypes(config.interfaces);
+        newConfig.interfaces = () =>
+          rewireNamedTypes(
+            ((config as unknown) as { interfaces: Array<GraphQLInterfaceType> })
+              .interfaces,
+          );
       }
       return new GraphQLInterfaceType(newConfig);
     } else if (isUnionType(type)) {
