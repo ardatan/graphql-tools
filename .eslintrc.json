@@ -56,7 +56,7 @@
   "ignorePatterns": [
     "dist",
     "node_modules",
-    "packages/core/tests/loaders/schema",
+    "packages/load/tests/loaders/schema",
     "website",
     "scripts",
     "packages/loaders/code-file/tests/test-files"
