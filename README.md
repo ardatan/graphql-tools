@@ -6,6 +6,9 @@
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
 [![renovate-app badge][renovate-badge]][renovate-app]
 
+[renovate-badge]: https://img.shields.io/badge/renovate-app-blue.svg
+[renovate-app]: https://renovateapp.com/
+
 This package provides a few useful ways to create a GraphQL schema:
 
 1. Use the GraphQL schema language to [generate a schema](https://graphql-tools.com/docs/generate-schema) with full support for resolvers, interfaces, unions, and custom scalars. The schema produced is completely compatible with [GraphQL.js](https://github.com/graphql/graphql-js).
