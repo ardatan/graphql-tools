@@ -10,6 +10,10 @@ import {
   graphqlSync,
   GraphQLField,
   assertValidSchema,
+  GraphQLFieldConfig,
+  isSpecifiedScalarType,
+  GraphQLNamedType,
+  GraphQLFieldConfigArgumentMap,
 } from 'graphql';
 
 import {
@@ -28,13 +32,12 @@ import {
   RenameInterfaceFields,
   TransformRootFields,
 } from '../wrap/index';
-import { isSpecifiedScalarType, toConfig } from '../polyfills/index';
 
 import { delegateToSchema } from '../delegate/index';
 import { makeExecutableSchema } from '../generate/index';
 import { createMergedResolver } from '../delegate/createMergedResolver';
 import { SubschemaConfig } from '../Interfaces';
-import { filterSchema, graphqlVersion } from '../utils/index';
+import { filterSchema } from '../utils/index';
 import {
   wrapFieldNode,
   renameFieldNode,
@@ -356,8 +359,20 @@ describe('transform object fields', () => {
             return undefined;
           }
           return {
-            ...toConfig(field),
+            description: field.deprecationReason,
+            type: field.type,
+            args: field.args.reduce<GraphQLFieldConfigArgumentMap>(
+              (prev, curr) => ({
+                ...prev,
+                [curr.name]: curr,
+              }),
+              {},
+            ),
             resolve: () => 'test',
+            subscribe: field.subscribe,
+            deprecationReason: field.deprecationReason,
+            extensions: field.extensions,
+            astNode: field.astNode,
           };
         },
         (typeName: string, fieldName: string, fieldNode: FieldNode) => {
@@ -420,7 +435,22 @@ describe('default values', () => {
           field: GraphQLField<any, any>,
         ) => {
           if (typeName === 'Query' && fieldName === 'jsonTest') {
-            const fieldConfig = toConfig(field);
+            const fieldConfig: GraphQLFieldConfig<any, any> = {
+              description: field.deprecationReason,
+              type: field.type,
+              args: field.args.reduce<GraphQLFieldConfigArgumentMap>(
+                (prev, curr) => ({
+                  ...prev,
+                  [curr.name]: curr,
+                }),
+                {},
+              ),
+              resolve: field.resolve,
+              subscribe: field.subscribe,
+              deprecationReason: field.deprecationReason,
+              extensions: field.extensions,
+              astNode: field.astNode,
+            };
             fieldConfig.args.input.defaultValue = { test: 'test' };
             return { name: 'renamedJsonTest', field: fieldConfig };
           }
@@ -655,10 +685,6 @@ describe('transform object fields', () => {
       ],
     };
 
-    if (graphqlVersion() < 14) {
-      expectedResult.errors[0].path = undefined;
-    }
-
     expect(result).toEqual(expectedResult);
   });
 });
@@ -681,44 +707,36 @@ describe('filter and rename object fields', () => {
       typeFilter: (typeName: string, type) =>
         typeName === 'New_Property' ||
         typeName === 'New_Location' ||
-        isSpecifiedScalarType(type),
+        isSpecifiedScalarType(type as GraphQLNamedType),
     });
   });
 
   test('should filter', () => {
-    if (graphqlVersion() >= 15) {
-      expect(printSchema(transformedPropertySchema)).toBe(`type New_Property {
-  new_id: ID!
-  new_name: String!
-  new_location: New_Location
-  new_error: String
-}
-
-type New_Location {
-  name: String!
-}
-
-type Query {
-  propertyById(id: ID!): New_Property
-}
-`);
-    } else {
-      expect(printSchema(transformedPropertySchema)).toBe(`type New_Location {
-  name: String!
-}
-
+    const printedSchema = printSchema(transformedPropertySchema);
+    expect(printedSchema).toContain(
+      `
 type New_Property {
   new_id: ID!
   new_name: String!
   new_location: New_Location
   new_error: String
 }
-
+    `.trim(),
+    );
+    expect(printedSchema).toContain(
+      `
+type New_Location {
+  name: String!
+}
+    `.trim(),
+    );
+    expect(printedSchema).toContain(
+      `
 type Query {
   propertyById(id: ID!): New_Property
 }
-`);
-    }
+    `.trim(),
+    );
   });
 
   test('should work', async () => {
@@ -772,9 +790,7 @@ type Query {
       ],
     };
 
-    if (graphqlVersion() >= 14) {
-      expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
-    }
+    expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
 
     expect(result).toEqual(expectedResult);
   });
@@ -938,9 +954,7 @@ describe('WrapType transform', () => {
       ],
     };
 
-    if (graphqlVersion() >= 14) {
-      expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
-    }
+    expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
 
     expect(result).toEqual(expectedResult);
   });
@@ -1012,10 +1026,7 @@ describe('schema transformation with extraction of nested fields', () => {
         },
       ],
     };
-
-    if (graphqlVersion() >= 14) {
-      expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
-    }
+    expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
 
     expect(result).toEqual(expectedResult);
   });
@@ -1150,10 +1161,7 @@ describe('schema transformation with wrapping of object fields', () => {
         },
       ],
     };
-
-    if (graphqlVersion() >= 14) {
-      expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
-    }
+    expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
 
     expect(result).toEqual(expectedResult);
   });
@@ -1223,9 +1231,7 @@ describe('schema transformation with wrapping of object fields', () => {
         ],
       };
 
-      if (graphqlVersion() >= 14) {
-        expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
-      }
+      expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
 
       expect(result).toEqual(expectedResult);
     });
@@ -1302,9 +1308,7 @@ describe('schema transformation with wrapping of object fields', () => {
         ],
       };
 
-      if (graphqlVersion() >= 14) {
-        expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
-      }
+      expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
 
       expect(result).toEqual(expectedResult);
     });
@@ -1369,10 +1373,7 @@ describe('schema transformation with renaming of object fields', () => {
         },
       ],
     };
-
-    if (graphqlVersion() >= 14) {
-      expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
-    }
+    expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
 
     expect(result).toEqual(expectedResult);
   });
@@ -1506,18 +1507,21 @@ describe('stitchSchemas', () => {
     const query = '{ getInput(input: {}) }';
     const response = await graphql(stitchedSchema, query);
 
-    if (graphqlVersion() >= 15) {
-      expect(printSchema(schema)).toBe(`input InputWithDefault {
+    const printedSchema = printSchema(schema);
+    expect(printedSchema).toContain(
+      `
+input InputWithDefault {
   field: String = "test"
 }
-
+    `.trim(),
+    );
+    expect(printedSchema).toContain(
+      `
 type Query {
   getInput(input: InputWithDefault!): String
 }
-`);
-    } else {
-      expect(printSchema(schema)).toBe(printSchema(stitchedSchema));
-    }
+    `.trim(),
+    );
     expect(response.data?.getInput).toBe('test');
   });
 

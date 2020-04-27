@@ -7,7 +7,6 @@ export { visitSchema } from './visitSchema';
 export { getResolversFromSchema } from './getResolversFromSchema';
 export { forEachField } from './forEachField';
 export { forEachDefaultValue } from './forEachDefaultValue';
-export { graphqlVersion } from './graphqlVersion';
 export { mapSchema } from './map';
 export { rewireTypes } from './rewire';
 export { default as SchemaError } from './SchemaError';

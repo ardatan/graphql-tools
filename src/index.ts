@@ -5,7 +5,6 @@ export * from './generate';
 export * from './introspect';
 export * from './links';
 export * from './mock';
-export * from './polyfills';
 export * from './scalars';
 export * from './wrap';
 export * from './utils';

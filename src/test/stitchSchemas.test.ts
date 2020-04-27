@@ -18,7 +18,6 @@ import { IResolvers, SubschemaConfig } from '../Interfaces';
 import {
   cloneSchema,
   getResolversFromSchema,
-  graphqlVersion,
   SchemaDirectiveVisitor,
 } from '../utils/index';
 import { addMocksToSchema } from '../mock/index';
@@ -2420,10 +2419,8 @@ fragment BookingFragment on Booking {
           },
         ];
 
-        if (graphqlVersion() >= 14) {
-          expectedErrors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
-          expectedErrors[1].extensions = { code: 'SOME_CUSTOM_CODE' };
-        }
+        expectedErrors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
+        expectedErrors[1].extensions = { code: 'SOME_CUSTOM_CODE' };
 
         expect(errorsWithoutLocations).toEqual(expectedErrors);
       });
@@ -2736,40 +2733,38 @@ fragment BookingFragment on Booking {
         });
       });
 
-      if (graphqlVersion() >= 13) {
-        test('interface extensions', async () => {
-          const result = await graphql(
-            stitchedSchema,
-            `
-              query {
-                products {
-                  id
-                  __typename
-                  ... on Downloadable {
-                    filesize
-                  }
+      test('interface extensions', async () => {
+        const result = await graphql(
+          stitchedSchema,
+          `
+            query {
+              products {
+                id
+                __typename
+                ... on Downloadable {
+                  filesize
                 }
               }
-            `,
-          );
+            }
+          `,
+        );
 
-          expect(result).toEqual({
-            data: {
-              products: [
-                {
-                  id: 'pd1',
-                  __typename: 'SimpleProduct',
-                },
-                {
-                  id: 'pd2',
-                  __typename: 'DownloadableProduct',
-                  filesize: 1024,
-                },
-              ],
-            },
-          });
+        expect(result).toEqual({
+          data: {
+            products: [
+              {
+                id: 'pd1',
+                __typename: 'SimpleProduct',
+              },
+              {
+                id: 'pd2',
+                __typename: 'DownloadableProduct',
+                filesize: 1024,
+              },
+            ],
+          },
         });
-      }
+      });
 
       test('arbitrary transforms that return interfaces', async () => {
         const result = await graphql(

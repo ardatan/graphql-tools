@@ -14,7 +14,6 @@ import {
   isUnionType,
 } from 'graphql';
 
-import { toConfig } from '../polyfills/toConfig';
 import {
   SchemaMapper,
   MapperKind,
@@ -88,7 +87,7 @@ export function mapSchema(
   const { typeMap, directives } = rewireTypes(newTypeMap, newDirectives);
 
   return new GraphQLSchema({
-    ...toConfig(schema),
+    ...schema.toConfig(),
     query: newQueryTypeName
       ? (typeMap[newQueryTypeName] as GraphQLObjectType)
       : undefined,

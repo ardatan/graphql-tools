@@ -14,25 +14,21 @@ import {
   isInputObjectType,
   isEnumType,
   isScalarType,
-  GraphQLObjectTypeConfig,
   isSpecifiedDirective,
+  isSpecifiedScalarType,
 } from 'graphql';
 
-import { isSpecifiedScalarType } from '../polyfills/isSpecifiedScalarType';
-import { toConfig } from '../polyfills/toConfig';
-
-import { graphqlVersion } from './graphqlVersion';
 import { mapSchema } from './map';
 
 export function cloneDirective(directive: GraphQLDirective): GraphQLDirective {
   return isSpecifiedDirective(directive)
     ? directive
-    : new GraphQLDirective(toConfig(directive));
+    : new GraphQLDirective(directive.toConfig());
 }
 
 export function cloneType(type: GraphQLNamedType): GraphQLNamedType {
   if (isObjectType(type)) {
-    const config = toConfig(type);
+    const config = type.toConfig();
     return new GraphQLObjectType({
       ...config,
       interfaces:
@@ -41,35 +37,30 @@ export function cloneType(type: GraphQLNamedType): GraphQLNamedType {
           : config.interfaces.slice(),
     });
   } else if (isInterfaceType(type)) {
-    const config = toConfig(type);
+    const config = type.toConfig() as any;
     const newConfig = {
       ...config,
-      interfaces:
-        graphqlVersion() >= 15
-          ? typeof ((config as unknown) as GraphQLObjectTypeConfig<any, any>)
-              .interfaces === 'function'
-            ? ((config as unknown) as GraphQLObjectTypeConfig<any, any>)
-                .interfaces
-            : ((config as unknown) as {
-                interfaces: Array<GraphQLInterfaceType>;
-              }).interfaces.slice()
-          : undefined,
+      interfaces: [
+        ...((typeof config.interfaces === 'function'
+          ? config.interfaces()
+          : config.interfaces) || []),
+      ],
     };
     return new GraphQLInterfaceType(newConfig);
   } else if (isUnionType(type)) {
-    const config = toConfig(type);
+    const config = type.toConfig();
     return new GraphQLUnionType({
       ...config,
       types: config.types.slice(),
     });
   } else if (isInputObjectType(type)) {
-    return new GraphQLInputObjectType(toConfig(type));
+    return new GraphQLInputObjectType(type.toConfig());
   } else if (isEnumType(type)) {
-    return new GraphQLEnumType(toConfig(type));
+    return new GraphQLEnumType(type.toConfig());
   } else if (isScalarType(type)) {
     return isSpecifiedScalarType(type)
       ? type
-      : new GraphQLScalarType(toConfig(type));
+      : new GraphQLScalarType(type.toConfig());
   }
 
   throw new Error(`Invalid type ${type as string}`);

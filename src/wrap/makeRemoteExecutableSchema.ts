@@ -1,8 +1,7 @@
 import { ApolloLink } from 'apollo-link';
-import { GraphQLFieldResolver, GraphQLSchema } from 'graphql';
+import { GraphQLFieldResolver, GraphQLSchema, buildSchema } from 'graphql';
 
 import { Fetcher, IMakeRemoteExecutableSchemaOptions } from '../Interfaces';
-import { buildSchema } from '../polyfills/index';
 import linkToFetcher from '../links/linkToFetcher';
 import { delegateToSchema } from '../delegate';
 
