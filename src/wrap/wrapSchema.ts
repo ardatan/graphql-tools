@@ -15,7 +15,6 @@ import {
 
 import { defaultMergedResolver } from '../delegate';
 import { mapSchema } from '../utils';
-import resolveFromParentTypename from '../utils/resolveFromParentTypename';
 import { applySchemaTransforms } from '../utils/transforms';
 
 import { generateProxyingResolvers } from './generateProxyingResolvers';
@@ -84,12 +83,12 @@ function createWrappingSchema(
     },
     [MapperKind.INTERFACE_TYPE]: (type) => {
       const config = type.toConfig();
-      config.resolveType = (parent) => resolveFromParentTypename(parent);
+      delete config.resolveType;
       return new GraphQLInterfaceType(config);
     },
     [MapperKind.UNION_TYPE]: (type) => {
       const config = type.toConfig();
-      config.resolveType = (parent) => resolveFromParentTypename(parent);
+      delete config.resolveType;
       return new GraphQLUnionType(config);
     },
   });

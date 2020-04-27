@@ -226,20 +226,15 @@ export interface IMakeRemoteExecutableSchemaOptions {
   buildSchemaOptions?: BuildSchemaOptions;
 }
 
-export interface IStitchSchemasOptions {
+export interface IStitchSchemasOptions<TContext = any>
+  extends Omit<IExecutableSchemaDefinition<TContext>, 'typeDefs'> {
   subschemas?: Array<GraphQLSchema | SubschemaConfig>;
+  typeDefs?: ITypeDefinitions;
   types?: Array<GraphQLNamedType>;
-  typeDefs?: string | DocumentNode;
   schemas?: Array<SchemaLikeObject>;
   onTypeConflict?: OnTypeConflict;
-  resolvers?: IResolversParameter;
-  schemaDirectives?: Record<string, SchemaDirectiveVisitorClass>;
-  inheritResolversFromInterfaces?: boolean;
   mergeTypes?: boolean | Array<string> | MergeTypeFilter;
   mergeDirectives?: boolean;
-  queryTypeName?: string;
-  mutationTypeName?: string;
-  subscriptionTypeName?: string;
 }
 
 export type SchemaLikeObject =
@@ -250,7 +245,7 @@ export type SchemaLikeObject =
   | Array<GraphQLNamedType>;
 
 export function isSubschemaConfig(
-  value: SchemaLikeObject,
+  value: any,
 ): value is SubschemaConfig {
   return Boolean((value as SubschemaConfig).schema);
 }
