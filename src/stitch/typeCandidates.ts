@@ -61,7 +61,9 @@ export function buildTypeCandidates({
   operationTypeNames,
   mergeDirectives,
 }: {
-  schemaLikeObjects: Array<GraphQLSchema | SubschemaConfig | DocumentNode | GraphQLNamedType>;
+  schemaLikeObjects: Array<
+    GraphQLSchema | SubschemaConfig | DocumentNode | GraphQLNamedType
+  >;
   allSchemas: Array<GraphQLSchema>;
   typeCandidates: Record<string, Array<MergeTypeCandidate>>;
   extensions: Array<DocumentNode>;

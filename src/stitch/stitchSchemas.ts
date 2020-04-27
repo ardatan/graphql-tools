@@ -75,7 +75,9 @@ export function stitchSchemas({
     subscription: 'Subscription',
   };
 
-  let schemaLikeObjects: Array<GraphQLSchema | SubschemaConfig | DocumentNode | GraphQLNamedType> = [...subschemas];
+  let schemaLikeObjects: Array<
+    GraphQLSchema | SubschemaConfig | DocumentNode | GraphQLNamedType
+  > = [...subschemas];
   if (typeDefs) {
     schemaLikeObjects.push(
       buildDocumentFromTypeDefinitions(typeDefs, parseOptions),
@@ -87,7 +89,10 @@ export function stitchSchemas({
   schemas.forEach((schemaLikeObject) => {
     if (isSchema(schemaLikeObject) || isSubschemaConfig(schemaLikeObject)) {
       schemaLikeObjects.push(schemaLikeObject);
-    } else if (typeof schemaLikeObject === 'string' || isDocumentNode(schemaLikeObject)) {
+    } else if (
+      typeof schemaLikeObject === 'string' ||
+      isDocumentNode(schemaLikeObject)
+    ) {
       schemaLikeObjects.push(
         buildDocumentFromTypeDefinitions(schemaLikeObject, parseOptions),
       );
@@ -215,8 +220,6 @@ function getFinalResolvers(
   return finalResolvers;
 }
 
-export function isDocumentNode(
-  object: any,
-): object is DocumentNode {
+export function isDocumentNode(object: any): object is DocumentNode {
   return (object as ASTNode).kind !== undefined;
 }

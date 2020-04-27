@@ -332,7 +332,7 @@ describe('transforms', () => {
             query: QueryRoot
             mutation: MutationRoot
           }
-        `
+        `,
       });
 
       const result = await graphql(
