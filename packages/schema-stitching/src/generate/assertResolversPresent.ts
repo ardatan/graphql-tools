@@ -43,7 +43,12 @@ function expectResolver(field: GraphQLField<any, any>, typeName: string, fieldNa
   if (!field.resolve) {
     // eslint-disable-next-line no-console
     console.warn(
-      `Resolver missing for "${typeName}.${fieldName}". To disable this warning check https://github.com/apollostack/graphql-tools/issues/131`
+      `Resolver missing for "${typeName}.${fieldName}".
+To disable this warning check pass;
+resolverValidationOptions: {
+  requireResolversForNonScalar: false
+}
+      `
     );
     return;
   }
