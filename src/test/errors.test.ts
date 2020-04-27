@@ -3,7 +3,6 @@ import { GraphQLError, GraphQLResolveInfo, graphql } from 'graphql';
 import { relocatedError, getErrors } from '../delegate/errors';
 import { checkResultAndHandleErrors } from '../delegate/transforms/CheckResultAndHandleErrors';
 import { makeExecutableSchema } from '../generate/index';
-import { stitchSchemas } from '../stitch/index';
 import { ERROR_SYMBOL } from '../delegate/symbols';
 
 class ErrorWithExtensions extends GraphQLError {
@@ -128,8 +127,8 @@ describe('passes along errors for missing fields on list', () => {
       },
     });
 
-    const stitchedSchema = stitchSchemas({
-      schemas: [schema],
+    const stitchedSchema = makeExecutableSchema({
+      subschemas: [schema],
     });
 
     const query = '{ getOuter { innerList { mandatoryField } } }';
@@ -162,8 +161,8 @@ describe('passes along errors for missing fields on list', () => {
       },
     });
 
-    const stitchedSchema = stitchSchemas({
-      schemas: [schema],
+    const stitchedSchema = makeExecutableSchema({
+      subschemas: [schema],
     });
 
     const query = '{ getOuter { innerList { mandatoryField } } }';
@@ -198,8 +197,8 @@ describe('passes along errors when list field errors', () => {
       },
     });
 
-    const stitchedSchema = stitchSchemas({
-      schemas: [schema],
+    const stitchedSchema = makeExecutableSchema({
+      subschemas: [schema],
     });
 
     const query = '{ getOuter { innerList { mandatoryField } } }';
@@ -232,8 +231,8 @@ describe('passes along errors when list field errors', () => {
       },
     });
 
-    const stitchedSchema = stitchSchemas({
-      schemas: [schema],
+    const stitchedSchema = makeExecutableSchema({
+      subschemas: [schema],
     });
 
     const query = '{ getOuter { innerList { mandatoryField } } }';

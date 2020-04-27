@@ -3,7 +3,6 @@ import { graphql, GraphQLList, GraphQLResolveInfo } from 'graphql';
 
 import { delegateToSchema } from '../delegate/index';
 import { makeExecutableSchema } from '../generate/index';
-import { stitchSchemas } from '../stitch/index';
 
 describe('dataloader', () => {
   test('should work', async () => {
@@ -47,8 +46,8 @@ describe('dataloader', () => {
       },
     });
 
-    const schema = stitchSchemas({
-      schemas: [taskSchema, userSchema],
+    const schema = makeExecutableSchema({
+      subschemas: [taskSchema, userSchema],
       typeDefs: `
         extend type Task {
           user: User!

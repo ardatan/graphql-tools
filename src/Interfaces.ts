@@ -246,26 +246,26 @@ export interface IMakeRemoteExecutableSchemaOptions {
   buildSchemaOptions?: BuildSchemaOptions;
 }
 
-export interface IStitchSchemasOptions {
+export interface IMakeExecutableSchemaOptions<TContext = any> {
+  typeDefs?: ITypeDefinitions;
+  parseOptions?: GraphQLParseOptions;
   subschemas?: Array<GraphQLSchema | SubschemaConfig>;
   types?: Array<GraphQLNamedType>;
-  typeDefs?: string | DocumentNode;
-  schemas?: Array<SchemaLikeObject>;
   onTypeConflict?: OnTypeConflict;
-  resolvers?: IResolversParameter;
-  schemaDirectives?: Record<string, SchemaDirectiveVisitorClass>;
-  inheritResolversFromInterfaces?: boolean;
   mergeTypes?: boolean | Array<string> | MergeTypeFilter;
   mergeDirectives?: boolean;
-  queryTypeName?: string;
-  mutationTypeName?: string;
-  subscriptionTypeName?: string;
+  resolvers?: IResolversParameter;
+  resolverValidationOptions?: IResolverValidationOptions;
+  inheritResolversFromInterfaces?: boolean;
+  logger?: ILogger;
+  allowUndefinedInResolve?: boolean;
+  schemaDirectives?: Record<string, SchemaDirectiveVisitorClass>;
+  directiveResolvers?: IDirectiveResolvers<any, TContext>;
 }
 
 export type SchemaLikeObject =
   | SubschemaConfig
   | GraphQLSchema
-  | string
   | DocumentNode
   | Array<GraphQLNamedType>;
 
@@ -372,7 +372,7 @@ export type IFieldResolver<
 
 export type ITypedef = (() => Array<ITypedef>) | string | DocumentNode;
 
-export type ITypeDefinitions = ITypedef | Array<ITypedef>;
+export type ITypeDefinitions = string | Array<ITypedef> | DocumentNode;
 
 export interface IResolverObject<TSource = any, TContext = any, TArgs = any> {
   [key: string]:
@@ -399,18 +399,6 @@ export type IResolversParameter =
 
 export interface ILogger {
   log: (error: Error) => void;
-}
-
-export interface IExecutableSchemaDefinition<TContext = any> {
-  typeDefs: ITypeDefinitions;
-  resolvers?: IResolvers<any, TContext> | Array<IResolvers<any, TContext>>;
-  logger?: ILogger;
-  allowUndefinedInResolve?: boolean;
-  resolverValidationOptions?: IResolverValidationOptions;
-  directiveResolvers?: IDirectiveResolvers<any, TContext>;
-  schemaDirectives?: Record<string, SchemaDirectiveVisitorClass>;
-  parseOptions?: GraphQLParseOptions;
-  inheritResolversFromInterfaces?: boolean;
 }
 
 export type IFieldIteratorFn = (

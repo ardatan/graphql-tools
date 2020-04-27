@@ -19,7 +19,6 @@ import {
   AddReplacementFragments,
 } from '../delegate/index';
 import { makeExecutableSchema } from '../generate/index';
-import { stitchSchemas } from '../stitch/index';
 import {
   transformSchema,
   RenameTypes,
@@ -314,7 +313,7 @@ describe('transforms', () => {
 
       addMocksToSchema({ schema: schemaWithDefaultRootTypeNames });
 
-      const stitchedSchema = stitchSchemas({
+      const stitchedSchema = makeExecutableSchema({
         subschemas: [
           schemaWithCustomRootTypeNames,
           {
@@ -322,8 +321,12 @@ describe('transforms', () => {
             transforms: [new RenameRootTypes((name) => `${name}Root`)],
           },
         ],
-        queryTypeName: 'QueryRoot',
-        mutationTypeName: 'MutationRoot',
+        typeDefs: `
+          schema {
+            query: QueryRoot
+            mutation: MutationRoot
+          }
+        `,
       });
 
       const result = await graphql(
@@ -591,15 +594,13 @@ describe('transforms', () => {
 
       assertValidSchema(filteredSchema);
 
-      const stitchedSchema = stitchSchemas({
-        schemas: [
-          filteredSchema,
-          `
-            extend type Property {
-              location: Location
-            }
-          `,
-        ],
+      const stitchedSchema = makeExecutableSchema({
+        subschemas: [filteredSchema],
+        typeDefs: `
+          extend type Property {
+            location: Location
+          }
+        `,
       });
 
       assertValidSchema(stitchedSchema);

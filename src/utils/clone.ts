@@ -15,6 +15,7 @@ import {
   isEnumType,
   isScalarType,
   GraphQLObjectTypeConfig,
+  isSpecifiedDirective,
 } from 'graphql';
 
 import { isSpecifiedScalarType } from '../polyfills/isSpecifiedScalarType';
@@ -24,7 +25,9 @@ import { graphqlVersion } from './graphqlVersion';
 import { mapSchema } from './map';
 
 export function cloneDirective(directive: GraphQLDirective): GraphQLDirective {
-  return new GraphQLDirective(toConfig(directive));
+  return isSpecifiedDirective(directive)
+    ? directive
+    : new GraphQLDirective(toConfig(directive));
 }
 
 export function cloneType(type: GraphQLNamedType): GraphQLNamedType {

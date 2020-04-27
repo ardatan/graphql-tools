@@ -1,9 +1,8 @@
 import { GraphQLSchema, graphql } from 'graphql';
 
-import delegateToSchema from '../delegate/delegateToSchema';
-import stitchSchemas from '../stitch/stitchSchemas';
+import { delegateToSchema } from '../delegate/index';
 import { IResolvers } from '../Interfaces';
-import { makeExecutableSchema } from '../generate';
+import { makeExecutableSchema } from '../generate/index';
 import { wrapSchema } from '../wrap';
 
 import {
@@ -86,8 +85,9 @@ describe('stitching', () => {
       describe(spec, () => {
         let schema: GraphQLSchema;
         beforeAll(() => {
-          schema = stitchSchemas({
-            schemas: [bookingSchema, propertySchema, proxyTypeDefs],
+          schema = makeExecutableSchema({
+            subschemas: [bookingSchema, propertySchema],
+            typeDefs: proxyTypeDefs,
             resolvers: proxyResolvers(spec),
           });
         });

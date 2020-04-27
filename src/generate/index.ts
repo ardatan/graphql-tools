@@ -8,8 +8,9 @@ export { default as decorateWithLogger } from './decorateWithLogger';
 export {
   extractExtensionDefinitions,
   filterExtensionDefinitions,
-} from './extensionDefinitions';
-export * from './makeExecutableSchema';
+} from './definitions';
+export * from './decorate';
+export { makeExecutableSchema } from './makeExecutableSchema';
 
 // for backwards compatibility
 export { default as addSchemaLevelResolveFunction } from './addSchemaLevelResolver';
