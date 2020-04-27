@@ -1,6 +1,6 @@
 import { ApolloLink, execute } from 'apollo-link';
 
-import { Subscriber } from '../Interfaces';
+import { Subscriber } from '@graphql-tools/schema-stitching';
 
 import { observableToAsyncIterable } from './observableToAsyncIterable';
 

@@ -26,7 +26,6 @@
   "dependencies": {
     "aggregate-error": "3.0.1",
     "camel-case": "4.1.1",
-    "@graphql-tools/schema-stitching": "5.0.0",
     "lodash": "4.17.15"
   },
   "publishConfig": {

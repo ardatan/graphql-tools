@@ -24,11 +24,11 @@ import {
   GraphQLSchema,
 } from 'graphql';
 
-import { addResolversToSchema } from '../src/addResolvers/index';
 import {
   makeExecutableSchema,
   addErrorLoggingToSchema,
   addSchemaLevelResolver,
+  addResolversToSchema,
   attachDirectiveResolvers,
   chainResolvers,
   concatenateTypeDefs,

@@ -6,10 +6,11 @@ import {
   ILogger,
   addResolversToSchema,
   addErrorLoggingToSchema,
+  getResolversFromSchema,
 } from '@graphql-tools/schema-stitching';
 import { mergeTypeDefs, Config } from './typedefs-mergers/merge-typedefs';
 import { mergeResolvers } from './merge-resolvers';
-import { extractResolversFromSchema, ResolversComposerMapping, composeResolvers, asArray } from '@graphql-tools/utils';
+import { ResolversComposerMapping, composeResolvers, asArray } from '@graphql-tools/utils';
 import { mergeExtensions, extractExtensionsFromSchema, applyExtensions, SchemaExtensions } from './extensions';
 
 export interface MergeSchemasConfig<Resolvers extends IResolvers = IResolvers> extends Config, BuildSchemaOptions {
@@ -35,7 +36,7 @@ export function mergeSchemas(config: MergeSchemasConfig) {
   const extractedResolvers: IResolvers<any, any>[] = [];
   const extractedExtensions: SchemaExtensions[] = [];
   for (const schema of config.schemas) {
-    extractedResolvers.push(extractResolversFromSchema(schema));
+    extractedResolvers.push(getResolversFromSchema(schema));
     extractedExtensions.push(extractExtensionsFromSchema(schema));
   }
   extractedResolvers.push(...ensureResolvers(config));
@@ -49,7 +50,7 @@ export function mergeSchemas(config: MergeSchemasConfig) {
 export async function mergeSchemasAsync(config: MergeSchemasConfig) {
   const [typeDefs, resolvers, extensions] = await Promise.all([
     mergeTypes(config),
-    Promise.all(config.schemas.map(async schema => extractResolversFromSchema(schema))).then(extractedResolvers =>
+    Promise.all(config.schemas.map(async schema => getResolversFromSchema(schema))).then(extractedResolvers =>
       composeResolvers(
         mergeResolvers([...extractedResolvers, ...ensureResolvers(config)], config),
         config.resolversComposition || {}

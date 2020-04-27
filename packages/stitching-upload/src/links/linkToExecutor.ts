@@ -1,6 +1,6 @@
 import { ApolloLink, toPromise, execute, ExecutionResult } from 'apollo-link';
 
-import { Executor } from '../Interfaces';
+import { Executor } from '@graphql-tools/schema-stitching';
 
 export { execute } from 'apollo-link';
 

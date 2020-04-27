@@ -1,7 +1,7 @@
 import { GraphQLSchema, extendSchema, parse } from 'graphql';
 
 import { Transform, IFieldResolver, IResolvers, Request, FieldNodeMappers } from '../../Interfaces';
-import { addResolversToSchema } from '../../addResolvers/index';
+import { addResolversToSchema } from '../../generate/index';
 import { defaultMergedResolver } from '../../delegate/index';
 
 import MapFields from './MapFields';

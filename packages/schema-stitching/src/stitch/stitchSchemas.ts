@@ -33,8 +33,7 @@ import {
   IStitchSchemasOptions,
   MergeTypeCandidate,
 } from '../Interfaces';
-import { addResolversToSchema } from '../addResolvers/index';
-import { extractExtensionDefinitions } from '../generate/index';
+import { addResolversToSchema, extractExtensionDefinitions } from '../generate/index';
 import { wrapSchema } from '../wrap/wrapSchema';
 import { SchemaDirectiveVisitor, cloneDirective, healTypes, forEachField } from '../utils/index';
 

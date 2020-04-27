@@ -1,8 +1,13 @@
-import { GraphQLDirective, GraphQLSchema, DirectiveLocationEnum, TypeSystemExtensionNode } from 'graphql';
+import {
+  GraphQLDirective,
+  GraphQLSchema,
+  DirectiveLocationEnum,
+  TypeSystemExtensionNode,
+  valueFromASTUntyped,
+} from 'graphql';
 
 import { VisitableSchemaType, SchemaDirectiveVisitorClass } from '../Interfaces';
 
-import valueFromASTUntyped from './valueFromASTUntyped';
 import { SchemaVisitor } from './SchemaVisitor';
 import { visitSchema } from './visitSchema';
 import { getArgumentValues } from './getArgumentValues';

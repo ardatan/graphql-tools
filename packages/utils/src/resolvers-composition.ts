@@ -1,17 +1,16 @@
-import { IResolvers, IFieldResolver } from '@graphql-tools/schema-stitching';
 import { chainFunctions, asArray } from './helpers';
 import { flattenArray } from './flatten-array';
 import { get, set } from 'lodash';
-import { isScalarType } from 'graphql';
+import { isScalarType, GraphQLFieldResolver } from 'graphql';
 
-export type ResolversComposition<Resolver extends IFieldResolver<any, any> = IFieldResolver<any, any>> = (
+export type ResolversComposition<Resolver extends GraphQLFieldResolver<any, any> = GraphQLFieldResolver<any, any>> = (
   next: Resolver
 ) => Resolver;
 
-export type ResolversComposerMapping<Resolvers extends IResolvers = IResolvers> =
+export type ResolversComposerMapping<Resolvers extends Record<string, any> = Record<string, any>> =
   | {
       [TypeName in keyof Resolvers]?: {
-        [FieldName in keyof Resolvers[TypeName]]: Resolvers[TypeName][FieldName] extends IFieldResolver<any, any>
+        [FieldName in keyof Resolvers[TypeName]]: Resolvers[TypeName][FieldName] extends GraphQLFieldResolver<any, any>
           ?
               | ResolversComposition<Resolvers[TypeName][FieldName]>
               | Array<ResolversComposition<Resolvers[TypeName][FieldName]>>
@@ -22,7 +21,7 @@ export type ResolversComposerMapping<Resolvers extends IResolvers = IResolvers> 
       [path: string]: ResolversComposition | ResolversComposition[];
     };
 
-function resolveRelevantMappings<Resolvers extends IResolvers>(
+function resolveRelevantMappings<Resolvers extends Record<string, any> = Record<string, any>>(
   resolvers: Resolvers,
   path: string,
   allMappings: ResolversComposerMapping<Resolvers>
@@ -92,7 +91,7 @@ function resolveRelevantMappings<Resolvers extends IResolvers>(
  * @param mapping - resolvers composition mapping
  * @hidden
  */
-export function composeResolvers<Resolvers extends IResolvers>(
+export function composeResolvers<Resolvers extends Record<string, any>>(
   resolvers: Resolvers,
   mapping: ResolversComposerMapping<Resolvers> = {}
 ): Resolvers {
