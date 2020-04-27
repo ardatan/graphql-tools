@@ -18,13 +18,13 @@ async function release() {
         version = semver.inc(version, 'prerelease', true, 'alpha-' + gitHash);
         tag = 'canary';
     }
-    
+
     const workspaceGlobs = rootPackageJson.workspaces.map(workspace => workspace + '/package.json');
-    
+
     const packageJsonPaths = glob(workspaceGlobs).map(packageJsonPath => resolve(process.cwd(), packageJsonPath));
-    
+
     const packageNames = packageJsonPaths.map(packageJsonPath => require(packageJsonPath).name);
-    
+
     rootPackageJson.version = version;
     writeFileSync(resolve(__dirname, '../package.json'), JSON.stringify(rootPackageJson, null, 2));
     await Promise.all(packageJsonPaths.map(async packageJsonPath => {
@@ -57,7 +57,7 @@ async function release() {
             }
             writeFileSync(distPackageJsonPath, JSON.stringify(distPackageJson, null, 2));
 
-            const publishSpawn = cp.spawnSync('npm', ['publish', distPath, '--tag', tag, '--access', distPackageJson.publishConfig.access]);
+            const publishSpawn = cp.spawn('npm', ['publish', distPath, '--tag', tag, '--access', distPackageJson.publishConfig.access]);
             if(publishSpawn.status !== 0) {
                 const error = publishSpawn.stderr.toString('utf8').trim();
                 throw error;
