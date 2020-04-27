@@ -14,13 +14,16 @@ import {
   isInputObjectType,
   isEnumType,
   isScalarType,
+  isSpecifiedDirective,
   isSpecifiedScalarType,
 } from 'graphql';
 
 import { mapSchema } from './map';
 
 export function cloneDirective(directive: GraphQLDirective): GraphQLDirective {
-  return new GraphQLDirective(directive.toConfig());
+  return isSpecifiedDirective(directive)
+    ? directive
+    : new GraphQLDirective(directive.toConfig());
 }
 
 export function cloneType(type: GraphQLNamedType): GraphQLNamedType {

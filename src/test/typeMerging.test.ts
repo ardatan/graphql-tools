@@ -3,11 +3,8 @@
 
 import { graphql } from 'graphql';
 
-import {
-  stitchSchemas,
-  addMocksToSchema,
-  makeExecutableSchema,
-} from '../index';
+import { addMocksToSchema, makeExecutableSchema } from '../index';
+import { stitchSchemas } from '../stitch';
 
 const chirpSchema = makeExecutableSchema({
   typeDefs: `

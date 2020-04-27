@@ -107,10 +107,6 @@ Delegating resolvers are generated to map from new schema root fields to old sch
 
 The delegating resolvers will apply the operation transforms defined by the `Transform` objects. Each provided `transformRequest` functions will be applies in reverse order, until the request matches the original schema. The `tranformResult` functions will be applied in the opposite order until the result matches the final gateway schema.
 
-### transformSchema
-
-For convenience, when using `transformSchema`, after schema transformation, the `transforms` property on a returned `transformedSchema` object will contains the operation transforms that were applied. This could be useful when manually delegating to the transformed schema, but has been deprecated in favor of specifying the transforms within a subschema configuration object. See the [schema stitching](/docs/schema-stitching/) docs for further details.
-
 ## Built-in transforms
 
 Built-in transforms are ready-made classes implementing the `Transform` interface. They are intended to cover many of the most common schema transformation use cases, but they also serve as examples of how to implement transforms for your own needs.
@@ -307,8 +303,7 @@ The following transforms are automatically applied by `delegateToSchema` during 
 
 By passing a custom `transforms` array to `delegateToSchema`, it's possible to run additional operation (request/result) transforms before these default transforms.
 
-## stitchSchemas (gateway/stitching) transforms
+## delegatation (gateway/stitching) transforms
 
 * `AddReplacementSelectionSets(schema: GraphQLSchema, mapping: ReplacementSelectionSetMapping)`:  `stitchSchemas` adds selection sets on outgoing requests from the gateway, enabling delegation from fields specified on the gateway using fields obtained from the original requests. The selection sets can be added depending on the presence of fields within the request using the `selectionSet` option within the resolver map.  `stitchSchemas` creates the mapping at gateway startup. Selection sets are used instead of fragments as the selections are added prior to transformation (in case type names are changed).
 * `AddMergedTypeSelectionSets(schema: GraphQLSchema, mapping: Record<string, MergedTypeInfo>)`: `stitchSchemas` adds selection sets on outgoing requests from the gateway, enabling type merging from the initial result using any fields initially obtained. The mapping is created at gateway startup.
-* Deprecated: `ReplaceFieldWithFragment(targetSchema: GraphQLSchema, fragments: Array<{ field: string; fragment: string; }>)`: Replace the given fields with an inline fragment. Used by original `stitchSchemas` to add prespecified fragments to root fields, enabling delegation `fragment` option. Array was parsed at each delegation.

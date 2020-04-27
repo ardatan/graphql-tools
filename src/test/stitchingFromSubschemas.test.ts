@@ -13,7 +13,12 @@
 
 import { graphql } from 'graphql';
 
-import { delegateToSchema, stitchSchemas, addMocksToSchema } from '../index';
+import {
+  delegateToSchema,
+  makeExecutableSchema,
+  addMocksToSchema,
+} from '../index';
+import { stitchSchemas } from '../stitch';
 
 const chirpTypeDefs = `
   type Chirp {
@@ -35,8 +40,8 @@ const authorTypeDefs = `
 const schemas = {};
 const getSchema = (name: string) => schemas[name];
 
-const chirpSchema = stitchSchemas({
-  schemas: [
+const chirpSchema = makeExecutableSchema({
+  typeDefs: [
     chirpTypeDefs,
     authorTypeDefs,
     `
@@ -73,8 +78,8 @@ addMocksToSchema({
   preserveResolvers: true,
 });
 
-const authorSchema = stitchSchemas({
-  schemas: [
+const authorSchema = makeExecutableSchema({
+  typeDefs: [
     chirpTypeDefs,
     authorTypeDefs,
     `
@@ -114,7 +119,7 @@ schemas['chirpSchema'] = chirpSchema;
 schemas['authorSchema'] = authorSchema;
 
 const stitchedSchema = stitchSchemas({
-  schemas: Object.keys(schemas).map((schemaName) => schemas[schemaName]),
+  subschemas: Object.keys(schemas).map((schemaName) => schemas[schemaName]),
 });
 
 describe('merging without specifying fragments', () => {

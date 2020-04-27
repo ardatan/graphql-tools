@@ -22,7 +22,7 @@ export function concatenateTypeDefs(
     } else {
       const type = typeof typeDef;
       throw new Error(
-        `typeDef array must contain only strings and functions, got ${type}`,
+        `typeDef array must contain only strings, documents, or functions, got ${type}`,
       );
     }
   });

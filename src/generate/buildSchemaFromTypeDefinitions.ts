@@ -12,39 +12,23 @@ import { ITypeDefinitions, GraphQLParseOptions } from '../Interfaces';
 import {
   extractExtensionDefinitions,
   filterExtensionDefinitions,
-} from './extensionDefinitions';
+} from './definitions';
 import { concatenateTypeDefs } from './concatenateTypeDefs';
 
 export function buildSchemaFromTypeDefinitions(
   typeDefinitions: ITypeDefinitions,
   parseOptions?: GraphQLParseOptions,
 ): GraphQLSchema {
-  // TODO: accept only array here, otherwise interfaces get confusing.
-  let myDefinitions = typeDefinitions;
-  let astDocument: DocumentNode;
-
-  if (isDocumentNode(typeDefinitions)) {
-    astDocument = typeDefinitions;
-  } else if (typeof myDefinitions !== 'string') {
-    if (!Array.isArray(myDefinitions)) {
-      const type = typeof myDefinitions;
-      throw new Error(
-        `typeDefs must be a string, array or schema AST, got ${type}`,
-      );
-    }
-    myDefinitions = concatenateTypeDefs(myDefinitions);
-  }
-
-  if (typeof myDefinitions === 'string') {
-    astDocument = parse(myDefinitions, parseOptions);
-  }
-
-  const typesAst = filterExtensionDefinitions(astDocument);
+  const document = buildDocumentFromTypeDefinitions(
+    typeDefinitions,
+    parseOptions,
+  );
+  const typesAst = filterExtensionDefinitions(document);
 
   const backcompatOptions = { commentDescriptions: true };
   let schema: GraphQLSchema = buildASTSchema(typesAst, backcompatOptions);
 
-  const extensionsAst = extractExtensionDefinitions(astDocument);
+  const extensionsAst = extractExtensionDefinitions(document);
   if (extensionsAst.definitions.length > 0) {
     schema = extendSchema(schema, extensionsAst, backcompatOptions);
   }
@@ -56,4 +40,25 @@ function isDocumentNode(
   typeDefinitions: ITypeDefinitions,
 ): typeDefinitions is DocumentNode {
   return (typeDefinitions as ASTNode).kind !== undefined;
+}
+
+export function buildDocumentFromTypeDefinitions(
+  typeDefinitions: ITypeDefinitions,
+  parseOptions?: GraphQLParseOptions,
+): DocumentNode {
+  let document: DocumentNode;
+  if (typeof typeDefinitions === 'string') {
+    document = parse(typeDefinitions, parseOptions);
+  } else if (Array.isArray(typeDefinitions)) {
+    document = parse(concatenateTypeDefs(typeDefinitions), parseOptions);
+  } else if (isDocumentNode(typeDefinitions)) {
+    document = typeDefinitions;
+  } else {
+    const type = typeof typeDefinitions;
+    throw new Error(
+      `typeDefs must be a string, array or schema AST, got ${type}`,
+    );
+  }
+
+  return document;
 }

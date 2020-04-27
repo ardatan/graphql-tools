@@ -243,12 +243,8 @@ export function healTypes(
       // the official type will be undefined, not null.
       let officialType = originalTypeMap[type.name];
       if (officialType === undefined) {
-        if (isNamedStub(type)) {
-          officialType = getBuiltInForStub(type);
-        } else {
-          officialType = type;
-        }
-        originalTypeMap[type.name] = officialType;
+        officialType = isNamedStub(type) ? getBuiltInForStub(type) : type;
+        originalTypeMap[officialType.name] = officialType;
       }
       return officialType;
     }

@@ -1,10 +1,10 @@
 import { GraphQLSchema, graphql } from 'graphql';
 
-import { delegateToSchema } from '../delegate/delegateToSchema';
-import { stitchSchemas } from '../stitch/stitchSchemas';
+import { delegateToSchema } from '../delegate/index';
 import { IResolvers } from '../Interfaces';
-import { makeExecutableSchema } from '../generate';
+import { makeExecutableSchema } from '../generate/index';
 import { wrapSchema } from '../wrap';
+import { stitchSchemas } from '../stitch';
 
 import {
   propertySchema,
@@ -87,7 +87,8 @@ describe('stitching', () => {
         let schema: GraphQLSchema;
         beforeAll(() => {
           schema = stitchSchemas({
-            schemas: [bookingSchema, propertySchema, proxyTypeDefs],
+            subschemas: [bookingSchema, propertySchema],
+            typeDefs: proxyTypeDefs,
             resolvers: proxyResolvers(spec),
           });
         });

@@ -15,13 +15,13 @@ import {
 import { delegateToSchema } from '../delegate/index';
 import { makeExecutableSchema } from '../generate/index';
 import { IResolvers, SubschemaConfig } from '../Interfaces';
-import { stitchSchemas } from '../stitch/index';
 import {
   cloneSchema,
   getResolversFromSchema,
   SchemaDirectiveVisitor,
 } from '../utils/index';
 import { addMocksToSchema } from '../mock/index';
+import { stitchSchemas } from '../stitch';
 
 import { forAwaitEach } from './forAwaitEach';
 
@@ -344,16 +344,18 @@ testCombinations.forEach((combination) => {
       productSchema = await combination.product;
 
       stitchedSchema = stitchSchemas({
-        schemas: [
+        subschemas: [
           propertySchema,
           bookingSchema,
           productSchema,
-          interfaceExtensionTest,
           scalarSchema,
           enumSchema,
+          localSubscriptionSchema,
+        ],
+        typeDefs: [
+          interfaceExtensionTest,
           linkSchema,
           loneExtend,
-          localSubscriptionSchema,
           codeCoverageTypeDefs,
           schemaDirectiveTypeDefs,
         ],
@@ -1568,16 +1570,14 @@ bookingById(id: "b1") {
           },
         };
         const schema = stitchSchemas({
-          schemas: [
+          subschemas: [
             propertySchema,
             bookingSchema,
             productSchema,
-            scalarTest,
             enumSchema,
-            linkSchema,
-            loneExtend,
             localSubscriptionSchema,
           ],
+          typeDefs: [scalarTest, linkSchema, loneExtend],
           resolvers: [
             Scalars,
             Enums,
@@ -2891,7 +2891,7 @@ fragment BookingFragment on Booking {
         };
 
         schema = stitchSchemas({
-          schemas: [schema],
+          subschemas: [schema],
           resolvers,
         });
 
@@ -2925,7 +2925,8 @@ fragment BookingFragment on Booking {
         };
 
         const schema = stitchSchemas({
-          schemas: [propertySchema, typeDefs],
+          subschemas: [propertySchema],
+          typeDefs,
           resolvers,
         });
 
@@ -2975,7 +2976,10 @@ fragment BookingFragment on Booking {
       };
 
       const result = await graphql(
-        stitchSchemas({ schemas: [BookSchema, AuthorSchema], resolvers }),
+        stitchSchemas({
+          typeDefs: [BookSchema, AuthorSchema],
+          resolvers,
+        }),
         `
           query {
             book {
@@ -3032,8 +3036,12 @@ fragment BookingFragment on Booking {
       addMocksToSchema({ schema: movieSchema });
 
       const stitchedSchema = stitchSchemas({
-        schemas: [bookSchema, movieSchema],
-        queryTypeName: 'RootQuery',
+        subschemas: [bookSchema, movieSchema],
+        typeDefs: `
+          schema {
+            query: RootQuery
+          }
+        `,
       });
 
       const result = await graphql(

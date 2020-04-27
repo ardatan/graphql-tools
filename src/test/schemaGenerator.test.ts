@@ -101,12 +101,6 @@ describe('generating schema from shorthand', () => {
     expect(() => makeExecutableSchema(undefined)).toThrowError('undefined');
   });
 
-  test('throws an error if typeDefinitionNodes are not provided', () => {
-    expect(() =>
-      makeExecutableSchema({ typeDefs: undefined, resolvers: {} }),
-    ).toThrowError('Must provide typeDefs');
-  });
-
   test('throws an error if no resolveFunctions are provided', () => {
     expect(() =>
       makeExecutableSchema({ typeDefs: 'blah', resolvers: {} }),
@@ -131,7 +125,7 @@ describe('generating schema from shorthand', () => {
         resolvers: {},
       }),
     ).toThrowError(
-      'typeDef array must contain only strings and functions, got number',
+      'typeDef array must contain only strings, documents, or functions, got number',
     );
   });
 

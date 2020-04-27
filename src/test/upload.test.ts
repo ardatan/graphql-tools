@@ -9,12 +9,12 @@ import FormData from 'form-data';
 import { fetch } from 'cross-fetch';
 import { buildSchema } from 'graphql';
 
-import { stitchSchemas } from '../stitch/index';
 import { makeExecutableSchema } from '../generate/index';
 import { createServerHttpLink } from '../links/index';
 import { GraphQLUpload as ServerGraphQLUpload } from '../scalars/index';
 import { SubschemaConfig } from '../Interfaces';
 import { linkToExecutor } from '../links/linkToExecutor';
+import { stitchSchemas } from '../stitch';
 
 function streamToString(stream: Readable) {
   const chunks: Array<Buffer> = [];
@@ -111,7 +111,7 @@ describe('graphql upload', () => {
     };
 
     const gatewaySchema = stitchSchemas({
-      schemas: [subschema],
+      subschemas: [subschema],
       resolvers: {
         Upload: ServerGraphQLUpload,
       },

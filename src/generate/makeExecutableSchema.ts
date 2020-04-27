@@ -1,20 +1,16 @@
-import {
-  defaultFieldResolver,
-  GraphQLSchema,
-  GraphQLFieldResolver,
-} from 'graphql';
+import { GraphQLFieldResolver } from 'graphql';
 
 import { mergeDeep } from '../utils/mergeDeep';
 
-import { IExecutableSchemaDefinition, ILogger } from '../Interfaces';
-import { SchemaDirectiveVisitor, forEachField } from '../utils/index';
+import { IExecutableSchemaDefinition } from '../Interfaces';
+import { SchemaDirectiveVisitor } from '../utils/index';
 import { addResolversToSchema } from '../addResolvers/addResolversToSchema';
 
 import { attachDirectiveResolvers } from './attachDirectiveResolvers';
 import { assertResolversPresent } from './assertResolversPresent';
 import { addSchemaLevelResolver } from './addSchemaLevelResolver';
 import { buildSchemaFromTypeDefinitions } from './buildSchemaFromTypeDefinitions';
-import { decorateWithLogger } from './decorateWithLogger';
+import { addErrorLoggingToSchema, addCatchUndefinedToSchema } from './decorate';
 
 export function makeExecutableSchema<TContext = any>({
   typeDefs,
@@ -82,41 +78,4 @@ export function makeExecutableSchema<TContext = any>({
   }
 
   return schema;
-}
-
-function decorateToCatchUndefined(
-  fn: GraphQLFieldResolver<any, any>,
-  hint: string,
-): GraphQLFieldResolver<any, any> {
-  const resolve = fn == null ? defaultFieldResolver : fn;
-  return (root, args, ctx, info) => {
-    const result = resolve(root, args, ctx, info);
-    if (typeof result === 'undefined') {
-      throw new Error(`Resolver for "${hint}" returned undefined`);
-    }
-    return result;
-  };
-}
-
-export function addCatchUndefinedToSchema(schema: GraphQLSchema): void {
-  forEachField(schema, (field, typeName, fieldName) => {
-    const errorHint = `${typeName}.${fieldName}`;
-    field.resolve = decorateToCatchUndefined(field.resolve, errorHint);
-  });
-}
-
-export function addErrorLoggingToSchema(
-  schema: GraphQLSchema,
-  logger?: ILogger,
-): void {
-  if (!logger) {
-    throw new Error('Must provide a logger');
-  }
-  if (typeof logger.log !== 'function') {
-    throw new Error('Logger.log must be a function');
-  }
-  forEachField(schema, (field, typeName, fieldName) => {
-    const errorHint = `${typeName}.${fieldName}`;
-    field.resolve = decorateWithLogger(field.resolve, logger, errorHint);
-  });
 }

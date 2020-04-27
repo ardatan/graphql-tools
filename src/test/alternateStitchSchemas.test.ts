@@ -35,7 +35,6 @@ import {
 
 import { delegateToSchema } from '../delegate/index';
 import { makeExecutableSchema } from '../generate/index';
-import { stitchSchemas } from '../stitch/index';
 import { createMergedResolver } from '../delegate/createMergedResolver';
 import { SubschemaConfig } from '../Interfaces';
 import { filterSchema } from '../utils/index';
@@ -44,6 +43,7 @@ import {
   renameFieldNode,
   hoistFieldNodes,
 } from '../utils/fieldNodes';
+import { stitchSchemas } from '../stitch';
 
 import { forAwaitEach } from './forAwaitEach';
 
@@ -1412,12 +1412,7 @@ describe('interface resolver inheritance', () => {
 
   test('copies resolvers from interface', async () => {
     const stitchedSchema = stitchSchemas({
-      schemas: [
-        // pull in an executable schema just so mergeSchema doesn't complain
-        // about not finding default types (e.g. ID)
-        propertySchema,
-        testSchemaWithInterfaceResolvers,
-      ],
+      typeDefs: testSchemaWithInterfaceResolvers,
       resolvers,
       inheritResolversFromInterfaces: true,
     });
@@ -1435,12 +1430,7 @@ describe('interface resolver inheritance', () => {
 
   test('does not copy resolvers from interface when flag is false', async () => {
     const stitchedSchema = stitchSchemas({
-      schemas: [
-        // pull in an executable schema just so mergeSchema doesn't complain
-        // about not finding default types (e.g. ID)
-        propertySchema,
-        testSchemaWithInterfaceResolvers,
-      ],
+      typeDefs: testSchemaWithInterfaceResolvers,
       resolvers,
       inheritResolversFromInterfaces: false,
     });
@@ -1455,12 +1445,7 @@ describe('interface resolver inheritance', () => {
 
   test('does not copy resolvers from interface when flag is not provided', async () => {
     const stitchedSchema = stitchSchemas({
-      schemas: [
-        // pull in an executable schema just so mergeSchema doesn't complain
-        // about not finding default types (e.g. ID)
-        propertySchema,
-        testSchemaWithInterfaceResolvers,
-      ],
+      typeDefs: testSchemaWithInterfaceResolvers,
       resolvers,
     });
     const query = '{ user { id name } }';
@@ -1475,7 +1460,7 @@ describe('interface resolver inheritance', () => {
 
 describe('stitchSchemas', () => {
   test('can merge null root fields', async () => {
-    const schema = makeExecutableSchema({
+    const schema = stitchSchemas({
       typeDefs: `
         type Query {
           test: Test
@@ -1491,7 +1476,7 @@ describe('stitchSchemas', () => {
       },
     });
     const stitchedSchema = stitchSchemas({
-      schemas: [schema],
+      subschemas: [schema],
     });
 
     const query = '{ test { field } }';
@@ -1501,7 +1486,7 @@ describe('stitchSchemas', () => {
   });
 
   test('can merge default input types', async () => {
-    const schema = makeExecutableSchema({
+    const schema = stitchSchemas({
       typeDefs: `
         input InputWithDefault {
           field: String = "test"
@@ -1517,7 +1502,7 @@ describe('stitchSchemas', () => {
       },
     });
     const stitchedSchema = stitchSchemas({
-      schemas: [schema],
+      subschemas: [schema],
     });
 
     const query = '{ getInput(input: {}) }';
@@ -1542,7 +1527,7 @@ type Query {
   });
 
   test('can override scalars with new internal values', async () => {
-    const schema = makeExecutableSchema({
+    const schema = stitchSchemas({
       typeDefs: `
         scalar TestScalar
         type Query {
@@ -1563,7 +1548,7 @@ type Query {
       },
     });
     const stitchedSchema = stitchSchemas({
-      schemas: [schema],
+      subschemas: [schema],
       resolvers: {
         TestScalar: new GraphQLScalarType({
           name: 'TestScalar',
@@ -1582,7 +1567,7 @@ type Query {
   });
 
   test('can override scalars with new internal values when using default input types', async () => {
-    const schema = makeExecutableSchema({
+    const schema = stitchSchemas({
       typeDefs: `
           scalar TestScalar
           type Query {
@@ -1603,7 +1588,7 @@ type Query {
       },
     });
     const stitchedSchema = stitchSchemas({
-      schemas: [schema],
+      subschemas: [schema],
       resolvers: {
         TestScalar: new GraphQLScalarType({
           name: 'TestScalar',
@@ -1622,7 +1607,7 @@ type Query {
   });
 
   test('can use @include directives', async () => {
-    const schema = makeExecutableSchema({
+    const schema = stitchSchemas({
       typeDefs: `
         type WrappingType {
           subfield: String
@@ -1638,14 +1623,12 @@ type Query {
       },
     });
     const stitchedSchema = stitchSchemas({
-      schemas: [
-        schema,
-        `
-          type Query {
-            get2: WrappingType
-          }
-        `,
-      ],
+      subschemas: [schema],
+      typeDefs: `
+        type Query {
+          get2: WrappingType
+        }
+      `,
       resolvers: {
         Query: {
           get2: (_root, _args, context, info) =>
@@ -1672,7 +1655,7 @@ type Query {
   });
 
   test('can use functions in subfields', async () => {
-    const schema = makeExecutableSchema({
+    const schema = stitchSchemas({
       typeDefs: `
         type WrappingObject {
           functionField: Int!
@@ -1684,7 +1667,7 @@ type Query {
     });
 
     const stitchedSchema = stitchSchemas({
-      schemas: [schema],
+      subschemas: [schema],
       resolvers: {
         Query: {
           wrappingObject: () => ({
@@ -1756,7 +1739,7 @@ describe('onTypeConflict', () => {
 
   test('by default takes last type', async () => {
     const stitchedSchema = stitchSchemas({
-      schemas: [schema1, schema2],
+      subschemas: [schema1, schema2],
     });
     const result1 = await graphql(stitchedSchema, '{ test2 { fieldC } }');
     expect(result1.data?.test2.fieldC).toBe('C');
@@ -1766,7 +1749,7 @@ describe('onTypeConflict', () => {
 
   test('can use onTypeConflict to select last type', async () => {
     const stitchedSchema = stitchSchemas({
-      schemas: [schema1, schema2],
+      subschemas: [schema1, schema2],
       onTypeConflict: (_left, right) => right,
     });
     const result1 = await graphql(stitchedSchema, '{ test2 { fieldC } }');
@@ -1777,7 +1760,7 @@ describe('onTypeConflict', () => {
 
   test('can use onTypeConflict to select first type', async () => {
     const stitchedSchema = stitchSchemas({
-      schemas: [schema1, schema2],
+      subschemas: [schema1, schema2],
       onTypeConflict: (left) => left,
     });
     const result1 = await graphql(stitchedSchema, '{ test1 { fieldB } }');
@@ -1932,7 +1915,7 @@ describe('stitchSchemas handles typeDefs with default values', () => {
       }
     `;
 
-    const schema = makeExecutableSchema({ typeDefs });
+    const schema = stitchSchemas({ typeDefs });
     assertValidSchema(schema);
 
     const stitchedSchema = stitchSchemas({ typeDefs });
