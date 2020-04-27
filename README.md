@@ -112,7 +112,7 @@ const executableSchema = makeExecutableSchema({
 });
 ```
 
-This example has the entire type definition in one string and all resolvers in one file, but you can combine types and resolvers from multiple files and objects, as documented in the [modularizing type definitions](https://graphql-tools.com/merge-typedefs) and [merging resolvers](https://graphql-tools.com/docs/merge-resolvers) section of the docs.
+This example has the entire type definition in one string and all resolvers in one file, but you can combine types and resolvers from multiple files and objects, as documented in the [modularizing type definitions](https://graphql-tools.com/docs/merge-typedefs) and [merging resolvers](https://graphql-tools.com/docs/merge-resolvers) section of the docs.
 
 ## Contributions
 
