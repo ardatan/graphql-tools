@@ -8,7 +8,6 @@ import {
   GraphQLInterfaceType,
   GraphQLList,
   GraphQLObjectType,
-  GraphQLObjectTypeConfig,
   GraphQLNamedType,
   GraphQLNonNull,
   GraphQLScalarType,
@@ -23,12 +22,9 @@ import {
   isObjectType,
   isScalarType,
   isUnionType,
+  isSpecifiedScalarType,
 } from 'graphql';
 
-import { toConfig } from '../polyfills/toConfig';
-import { isSpecifiedScalarType } from '../polyfills/isSpecifiedScalarType';
-
-import { graphqlVersion } from './graphqlVersion';
 import { getBuiltInForStub, isNamedStub } from './stub';
 
 export function rewireTypes(
@@ -80,7 +76,7 @@ export function rewireTypes(
     : pruneTypes(newTypeMap, newDirectives);
 
   function rewireDirective(directive: GraphQLDirective): GraphQLDirective {
-    const directiveConfig = toConfig(directive);
+    const directiveConfig = directive.toConfig();
     directiveConfig.args = rewireArgs(directiveConfig.args);
     return new GraphQLDirective(directiveConfig);
   }
@@ -102,7 +98,7 @@ export function rewireTypes(
 
   function rewireNamedType<T extends GraphQLNamedType>(type: T) {
     if (isObjectType(type)) {
-      const config = toConfig(type);
+      const config = (type as GraphQLObjectType).toConfig();
       const newConfig = {
         ...config,
         fields: () => rewireFields(config.fields),
@@ -110,40 +106,37 @@ export function rewireTypes(
       };
       return new GraphQLObjectType(newConfig);
     } else if (isInterfaceType(type)) {
-      const config = toConfig(type);
-      const newConfig = {
+      const config = (type as GraphQLInterfaceType).toConfig();
+      const newConfig: any = {
         ...config,
         fields: () => rewireFields(config.fields),
       };
-      if (graphqlVersion() >= 15) {
-        ((newConfig as unknown) as GraphQLObjectTypeConfig<
-          any,
-          any
-        >).interfaces = () => rewireNamedTypes(config.interfaces);
+      if ('interfaces' in newConfig) {
+        newConfig.interfaces = () => rewireNamedTypes(config.interfaces);
       }
       return new GraphQLInterfaceType(newConfig);
     } else if (isUnionType(type)) {
-      const config = toConfig(type);
+      const config = (type as GraphQLUnionType).toConfig();
       const newConfig = {
         ...config,
         types: () => rewireNamedTypes(config.types),
       };
       return new GraphQLUnionType(newConfig);
     } else if (isInputObjectType(type)) {
-      const config = toConfig(type);
+      const config = (type as GraphQLInputObjectType).toConfig();
       const newConfig = {
         ...config,
         fields: () => rewireInputFields(config.fields),
       };
       return new GraphQLInputObjectType(newConfig);
     } else if (isEnumType(type)) {
-      const enumConfig = toConfig(type);
+      const enumConfig = (type as GraphQLEnumType).toConfig();
       return new GraphQLEnumType(enumConfig);
     } else if (isScalarType(type)) {
       if (isSpecifiedScalarType(type)) {
         return type;
       }
-      const scalarConfig = toConfig(type);
+      const scalarConfig = (type as GraphQLScalarType).toConfig();
       return new GraphQLScalarType(scalarConfig);
     }
 
@@ -229,15 +222,10 @@ function pruneTypes(
   Object.keys(typeMap).forEach((typeName) => {
     const namedType = typeMap[typeName];
 
-    if (
-      isObjectType(namedType) ||
-      (graphqlVersion() >= 15 && isInterfaceType(namedType))
-    ) {
-      ((namedType as unknown) as GraphQLObjectType)
-        .getInterfaces()
-        .forEach((iface) => {
-          implementedInterfaces[iface.name] = true;
-        });
+    if ('getInterfaces' in namedType) {
+      namedType.getInterfaces().forEach((iface) => {
+        implementedInterfaces[iface.name] = true;
+      });
     }
   });
 

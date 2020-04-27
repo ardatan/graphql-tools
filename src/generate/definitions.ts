@@ -6,8 +6,6 @@ import {
   SchemaDefinitionNode,
 } from 'graphql';
 
-import { graphqlVersion } from '../utils/index';
-
 export function extractTypeDefinitions(ast: DocumentNode) {
   const typeDefs = ast.definitions.filter(
     (def: DefinitionNode) =>
@@ -60,7 +58,7 @@ export function extractExtensionDefinitions(ast: DocumentNode) {
   const extensionDefs = ast.definitions.filter(
     (def: DefinitionNode) =>
       def.kind === Kind.OBJECT_TYPE_EXTENSION ||
-      (graphqlVersion() >= 13 && def.kind === Kind.INTERFACE_TYPE_EXTENSION) ||
+      def.kind === Kind.INTERFACE_TYPE_EXTENSION ||
       def.kind === Kind.INPUT_OBJECT_TYPE_EXTENSION ||
       def.kind === Kind.UNION_TYPE_EXTENSION ||
       def.kind === Kind.ENUM_TYPE_EXTENSION ||
@@ -78,7 +76,7 @@ export function extractTypeExtensionDefinitions(ast: DocumentNode) {
   const extensionDefs = ast.definitions.filter(
     (def: DefinitionNode) =>
       def.kind === Kind.OBJECT_TYPE_EXTENSION ||
-      (graphqlVersion() >= 13 && def.kind === Kind.INTERFACE_TYPE_EXTENSION) ||
+      def.kind === Kind.INTERFACE_TYPE_EXTENSION ||
       def.kind === Kind.INPUT_OBJECT_TYPE_EXTENSION ||
       def.kind === Kind.UNION_TYPE_EXTENSION ||
       def.kind === Kind.ENUM_TYPE_EXTENSION ||

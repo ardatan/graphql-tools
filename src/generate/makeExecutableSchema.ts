@@ -16,10 +16,11 @@ import {
   isInterfaceType,
   isUnionType,
   isEnumType,
-  GraphQLInterfaceTypeConfig,
   SchemaDefinitionNode,
   SchemaExtensionNode,
   specifiedDirectives,
+  extendSchema,
+  GraphQLFieldConfigMap,
 } from 'graphql';
 
 import { mergeDeep } from '../esUtils/mergeDeep';
@@ -42,10 +43,8 @@ import {
   cloneDirective,
   rewireTypes,
   forEachField,
-  graphqlVersion,
   SchemaError,
 } from '../utils/index';
-import { toConfig, extendSchema } from '../polyfills/index';
 
 import addSchemaLevelResolver from './addSchemaLevelResolver';
 import { addErrorLoggingToSchema, addCatchUndefinedToSchema } from './decorate';
@@ -160,6 +159,7 @@ export function makeExecutableSchema({
           .slice()
           .concat(newDirectives.map((directive) => cloneDirective(directive)))
       : undefined,
+    description: schemaDefs.schemaDef?.description?.value,
     astNode: schemaDefs.schemaDef,
     extensionASTNodes: schemaDefs.schemaExtensions,
     extensions: null,
@@ -462,39 +462,38 @@ function merge(
       fields: candidates.reduce(
         (acc, candidate) => ({
           ...acc,
-          ...toConfig(candidate.type as GraphQLObjectType).fields,
+          ...(candidate.type as GraphQLObjectType).toConfig().fields,
         }),
         {},
       ),
       interfaces: candidates.reduce((acc, candidate) => {
-        const interfaces = toConfig(candidate.type as GraphQLObjectType)
+        const interfaces = (candidate.type as GraphQLObjectType).toConfig()
           .interfaces;
         return interfaces != null ? acc.concat(interfaces) : acc;
       }, []),
+      description: initialCandidateType.description,
       extensions: initialCandidateType.extensions,
       astNode: initialCandidateType.astNode,
       extensionASTNodes: initialCandidateType.extensionASTNodes,
     });
   } else if (isInterfaceType(initialCandidateType)) {
-    const config: GraphQLInterfaceTypeConfig<any, any> = {
+    const config = {
       name: typeName,
-      fields: candidates.reduce(
+      fields: candidates.reduce<GraphQLFieldConfigMap<any, any>>(
         (acc, candidate) => ({
           ...acc,
-          ...toConfig(candidate.type as GraphQLInterfaceType).fields,
+          ...(candidate.type as GraphQLInterfaceType).toConfig().fields,
         }),
         {},
       ),
-      ...((graphqlVersion() >= 15
-        ? {
-            interfaces: candidates.reduce((acc, candidate) => {
-              const interfaces = toConfig(
-                candidate.type as GraphQLInterfaceType,
-              ).interfaces;
-              return interfaces != null ? acc.concat(interfaces) : acc;
-            }, []),
-          }
-        : {}) as any),
+      interfaces: candidates.reduce((acc, candidate) => {
+        const candidateConfig = candidate.type.toConfig();
+        if ('interfaces' in candidateConfig) {
+          return acc.concat(candidateConfig.interfaces);
+        }
+        return acc;
+      }, []),
+      description: initialCandidateType.description,
       extensions: initialCandidateType.extensions,
       astNode: initialCandidateType.astNode,
       extensionASTNodes: initialCandidateType.extensionASTNodes,
@@ -505,9 +504,10 @@ function merge(
       name: typeName,
       types: candidates.reduce(
         (acc, candidate) =>
-          acc.concat(toConfig(candidate.type as GraphQLUnionType).types),
+          acc.concat((candidate.type as GraphQLUnionType).toConfig().types),
         [],
       ),
+      description: initialCandidateType.description,
       extensions: initialCandidateType.extensions,
       astNode: initialCandidateType.astNode,
       extensionASTNodes: initialCandidateType.extensionASTNodes,
@@ -518,10 +518,11 @@ function merge(
       values: candidates.reduce(
         (acc, candidate) => ({
           ...acc,
-          ...toConfig(candidate.type as GraphQLEnumType).values,
+          ...(candidate.type as GraphQLEnumType).toConfig().values,
         }),
         {},
       ),
+      description: initialCandidateType.description,
       extensions: initialCandidateType.extensions,
       astNode: initialCandidateType.astNode,
       extensionASTNodes: initialCandidateType.extensionASTNodes,
