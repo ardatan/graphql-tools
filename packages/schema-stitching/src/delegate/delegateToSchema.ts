@@ -15,8 +15,7 @@ import {
   SubschemaConfig,
   isSubschemaConfig,
   Transform,
-  Executor,
-  Subscriber,
+  ExecutionParams,
 } from '../Interfaces';
 import { applyRequestTransforms, applyResultTransforms } from '../utils/transforms';
 
@@ -118,7 +117,7 @@ export function delegateRequest({
   transforms = [],
   skipValidation,
   skipTypeMerging,
-}: IDelegateRequestOptions): any {
+}: IDelegateRequestOptions) {
   let targetSchema: GraphQLSchema;
   let targetRootValue: Record<string, any>;
   let requestTransforms: Array<Transform> = transforms.slice();
@@ -204,12 +203,12 @@ export function delegateRequest({
   });
 }
 
-function createDefaultExecutor(schema: GraphQLSchema, rootValue: Record<string, any>): Executor {
-  return ({ document, context, variables, info }) =>
+function createDefaultExecutor(schema: GraphQLSchema, rootValue: Record<string, any>) {
+  return ({ document, context, variables, info }: ExecutionParams) =>
     execute(schema, document, rootValue || info.rootValue, context, variables);
 }
 
-function createDefaultSubscriber(schema: GraphQLSchema, rootValue: Record<string, any>): Subscriber {
-  return ({ document, context, variables, info }) =>
-    subscribe(schema, document, rootValue || info.rootValue, context, variables);
+function createDefaultSubscriber(schema: GraphQLSchema, rootValue: Record<string, any>) {
+  return ({ document, context, variables, info }: ExecutionParams) =>
+    subscribe(schema, document, rootValue || info.rootValue, context, variables) as any;
 }
