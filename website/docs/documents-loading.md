@@ -1,6 +1,6 @@
 ---
 id: documents-loading
-title: Documents loading
+title: Loading GraphQL operation documents from different sources
 sidebar_label: Documents loading
 ---
 

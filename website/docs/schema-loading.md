@@ -1,6 +1,6 @@
 ---
 id: schema-loading
-title: Schema loading
+title: Loading GraphQL Schemas from different sources
 sidebar_label: Schema loading
 ---
 

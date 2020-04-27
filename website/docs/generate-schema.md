@@ -1,6 +1,6 @@
 ---
 id: generate-schema
-title: Generating a schema
+title: Generating an executable schema
 description: Generate a GraphQL schema from the concise type definition language.
 ---
 
