@@ -170,10 +170,7 @@ export function makeExecutableSchema({
   }
 
   if (schemaDirectives != null) {
-    SchemaDirectiveVisitor.visitSchemaDirectives(
-      schema,
-      schemaDirectives,
-    );
+    SchemaDirectiveVisitor.visitSchemaDirectives(schema, schemaDirectives);
   }
 
   return schema;
