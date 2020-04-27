@@ -8,7 +8,7 @@ Schema stitching is the process of creating a single GraphQL schema from multipl
 
 One of the main benefits of GraphQL is that we can query all of our data as part of one schema, and get everything we need in one request. But as the schema grows, it might become cumbersome to manage it all as one codebase, and it starts to make sense to split it into different modules. We may also want to decompose your schema into separate microservices, which can be developed and deployed independently. We may also want to integrate our own schema with remote schemas.
 
-In these cases, we use `stitchSchemas` to combine multiple GraphQL schemas together and produce a new schema that knows how to delegate parts of the query to the relevant subschemas. These subschemas can be either local to the server, or running on a remote server. They can even be services offered by 3rd parties, allowing us to connect to external data and create mashups.
+In these cases, we can use `makeExecutableSchema` to combine multiple existing GraphQL schemas together and produce a new schema that knows how to delegate parts of the query to the relevant subschemas. These subschemas can be either local to the server, or running on a remote server. They can even be services offered by 3rd parties, allowing us to connect to external data and create mashups.
 
 ## Basic example
 
@@ -18,7 +18,6 @@ In this example we'll stitch together two very simple schemas. In this case, we'
 import {
   makeExecutableSchema,
   addMocksToSchema,
-  stitchSchemas,
 } from 'graphql-tools';
 
 // Mocked chirp schema
@@ -57,7 +56,7 @@ const authorSchema = makeExecutableSchema({
 
 addMocksToSchema({ schema: authorSchema });
 
-export const schema = stitchSchemas({
+export const schema = makeExecutableSchema({
   subschemas: [
     { schema: chirpSchema, },
     { schema: authorSchema, },
@@ -65,7 +64,7 @@ export const schema = stitchSchemas({
 });
 ```
 
-Note the new `subschemas` property with an array of subschema configuration objects. This syntax is a bit more verbose, but we shall see how it provides multiple benefits:
+Note the new `subschemas` property with an array of subschema configuration objects. This syntax is a bit verbose, but we shall see how it provides multiple benefits:
 1. transforms can be specified on the subschema config object, avoiding creation of a new schema with a new round of delegation in order to transform a schema prior to merging.
 2. remote schema configuration options can be specified, also avoiding an additional round of schema proxying.
 
@@ -102,7 +101,7 @@ const linkTypeDefs = `
 We can now merge these three schemas together:
 
 ```js
-export const schema = stitchSchemas({
+export const schema = makeExecutableSchema({
   subschemas: [
     { schema: chirpSchema, },
     { schema: authorSchema, },
@@ -117,14 +116,14 @@ We won't be able to query `User.chirps` or `Chirp.author` yet, however, because 
 
 How should these resolvers be implemented? When we resolve `User.chirps` or `Chirp.author`, we want to _delegate_ to the relevant root fields. To get from a user to the user's chirps, for example, we'll want to use the `id` of the user to call `Query.chirpsByAuthorId`. And to get from a chirp to its author, we can use the chirp's `authorId` field to call the existing `Query.userById` field.
 
-Resolvers can use the `delegateToSchema` function to forward parts of queries (or even whole new queries) to one of the subschemas that was passed to `stitchSchemas` (or any other schema).
+Resolvers can use the `delegateToSchema` function to forward parts of queries (or even whole new queries) to one of the subschemas that was passed to `makeExecutableSchema` (or even potentially other schemas).
 
 In order to delegate to these root fields, we'll need to make sure we've actually requested the `id` of the user or the `authorId` of the chirp. To avoid forcing users to add these fields to their queries manually, resolvers on a merged schema can define a `fragment` property that specifies the required fields, and they will be added to the query automatically.
 
 A complete implementation of schema stitching for these schemas might look like this:
 
 ```js
-const schema = stitchSchemas({
+const schema = makeExecutableSchema({
   subschemas: [
     { schema: chirpSchema, },
     { schema: authorSchema, },
@@ -179,7 +178,6 @@ For example, suppose we transform the `chirpSchema` by removing the `chirpsByAut
 import {
   makeExecutableSchema,
   addMocksToSchema,
-  stitchSchemas,
   FilterRootFields,
   RenameTypes,
   RenameRootFields,
@@ -226,7 +224,7 @@ const chirpSubschema = {
   transforms: chirpSchemaTransforms,
 }
 
-export const schema = stitchSchemas({
+export const schema = makeExecutableSchema({
   subschemas: [
     chirpSubschema,
     { schema: authorSchema },
@@ -293,7 +291,7 @@ In order to merge with a remote schema, we specify different options within the 
 
 The remote schema may be obtained either via introspection or any other source. A link is a generic ApolloLink method of connecting to a schema, also used by Apollo Client.
 
-Specifying the remote schema options within the `stitchSchemas` call itself allows for skipping an additional round of delegation. The old method of using [makeRemoteExecutableSchema](/docs/remote-schemas/) to create a local proxy for the remote schema would still work, and the same arguments are supported. See the [remote schema](/docs/remote-schemas/) docs for further description of the options available. Subschema configuration allows for specifying an ApolloLink `link`, any fetcher method (if not using subscriptions), or a dispatcher function that takes the graphql `context` object as an argument and dynamically returns a link object or fetcher method.
+Specifying the remote subschema options within the `makeExecutableSchema` call itself allows for skipping an additional round of delegation. The old method of using [makeRemoteExecutableSchema](/docs/remote-schemas/) to create a local proxy for the remote schema would still work, and the same arguments are supported. See the [remote schema](/docs/remote-schemas/) docs for further description of the options available. Subschema configuration allows for specifying an ApolloLink `link`, any fetcher method (if not using subscriptions), or a dispatcher function that takes the graphql `context` object as an argument and dynamically returns a link object or fetcher method.
 
 ## API
 
@@ -312,18 +310,10 @@ export type SubschemaConfig = {
   transforms?: Array<Transform>;
 };
 
-export type SchemaLikeObject =
-  SubschemaConfig |
-  GraphQLSchema |
-  string |
-  DocumentNode |
-  Array<GraphQLNamedType>;
-
-stitchSchemas({
-  subschemas: Array<SubschemaConfig>;
-  types: Array<GraphQLNamedType>;
+makeExecutableSchema({
+  subschemas: Array<GraphQLSchema | SubschemaConfig>;
   typeDefs: string | DocumentNode;
-  schemas: Array<SchemaLikeObject>;
+  types: Array<GraphQLNamedType>;
   resolvers?: Array<IResolvers> | IResolvers;
   onTypeConflict?: (
     left: GraphQLNamedType,
@@ -411,9 +401,9 @@ type OnTypeConflict = (
 ) => GraphQLNamedType;
 ```
 
-The `onTypeConflict` option to `stitchSchemas` allows customization of type resolving logic.
+The `onTypeConflict` option to `makeExecutableSchema` allows customization of type resolving logic.
 
-The default behavior of `stitchSchemas` is to take the *last* encountered type of all the types with the same name, with a warning that type conflicts have been encountered. If specified, `onTypeConflict` enables explicit selection of the winning type.
+The default behavior of `makeExecutableSchema` is to take the *last* encountered type of all the types with the same name, with a warning that type conflicts have been encountered. If specified, `onTypeConflict` enables explicit selection of the winning type.
 
 For example, here's how we could select the *first* type among multiple types with the same name:
 
@@ -433,7 +423,7 @@ const onTypeConflict = (left, right, info) => {
 }
 ```
 
-When using schema transforms, `onTypeConflict` is often unnecessary, since transforms can be used to prevent conflicts before merging schemas. However, if you're not using schema transforms, `onTypeConflict` can be a quick way to make `stitchSchemas` produce more desirable results.
+When using schema transforms, `onTypeConflict` is often unnecessary, since transforms can be used to prevent conflicts before merging schemas. However, if you're not using schema transforms, `onTypeConflict` can be a quick way to make `makeExecutableSchema` produce more desirable results.
 
 #### inheritResolversFromInterfaces
 
