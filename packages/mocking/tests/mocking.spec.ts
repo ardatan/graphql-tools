@@ -9,13 +9,10 @@ import {
 
 import { sentence, first_name } from 'casual';
 
-import { addMocksToSchema, MockList, mockServer } from '../src/mock/index';
-import { addResolversToSchema } from '../src/addResolvers/index';
-import {
+import { addMocksToSchema, MockList, mockServer, IMocks } from '../src';
+import { addResolversToSchema,
   buildSchemaFromTypeDefinitions,
-  makeExecutableSchema,
-} from '../src/generate/index';
-import { IMocks } from '../src/Interfaces';
+  makeExecutableSchema, } from '@graphql-tools/schema-stitching';
 
 describe('Mock', () => {
   const shorthand = `

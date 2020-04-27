@@ -17,9 +17,9 @@ In this example we'll stitch together two very simple schemas. In this case, we'
 ```js
 import {
   makeExecutableSchema,
-  addMocksToSchema,
   stitchSchemas,
 } from '@graphql-tools/schema-stitching';
+import { addMocksToSchema } from '@graphql-tools/mocking';
 
 // Mocked chirp schema
 // We don't worry about the schema implementation right now since we're just

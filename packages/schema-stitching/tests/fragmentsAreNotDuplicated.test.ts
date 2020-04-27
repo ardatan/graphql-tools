@@ -1,6 +1,7 @@
 import { ExecutionResult, graphql } from 'graphql';
 
-import { addMocksToSchema, makeExecutableSchema, transformSchema } from '../src';
+import { makeExecutableSchema, transformSchema } from '../src';
+import { addMocksToSchema } from '@graphql-tools/mocking';
 
 describe('Merging schemas', () => {
   test('should not throw `There can be only one fragment named "FieldName"` errors', async () => {

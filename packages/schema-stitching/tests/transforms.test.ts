@@ -33,7 +33,7 @@ import {
   concatInlineFragments,
   parseFragmentToInlineFragment,
 } from '../src/utils/fragments';
-import { addMocksToSchema } from '../src/mock/index';
+import { addMocksToSchema } from '@graphql-tools/mocking';
 
 import { propertySchema, bookingSchema } from './fixtures/schemas';
 

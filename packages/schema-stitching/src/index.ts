@@ -4,7 +4,6 @@ export * from './delegate';
 export * from './generate';
 export * from './introspect';
 export * from './links';
-export * from './mock';
 export * from './scalars';
 export * from './stitch';
 export * from './wrap';

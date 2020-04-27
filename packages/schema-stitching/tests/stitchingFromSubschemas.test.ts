@@ -11,9 +11,10 @@
 // The fragment field is still necessary when working with a remote schema
 // where this is not possible.
 
-import { graphql } from 'graphql';
+import { graphql, GraphQLSchema } from 'graphql';
 
-import { delegateToSchema, stitchSchemas, addMocksToSchema } from '../src/index';
+import { delegateToSchema, stitchSchemas } from '../src/index';
+import { addMocksToSchema } from '@graphql-tools/mocking';
 
 const chirpTypeDefs = `
   type Chirp {
@@ -32,7 +33,7 @@ const authorTypeDefs = `
   }
 `;
 
-const schemas = {};
+const schemas: Record<string, GraphQLSchema> = {};
 const getSchema = (name: string) => schemas[name];
 
 const chirpSchema = stitchSchemas({

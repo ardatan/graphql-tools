@@ -21,7 +21,7 @@ import {
   getResolversFromSchema,
   SchemaDirectiveVisitor,
 } from '../src/utils/index';
-import { addMocksToSchema } from '../src/mock/index';
+import { addMocksToSchema } from '@graphql-tools/mocking';
 
 import { forAwaitEach } from './forAwaitEach';
 

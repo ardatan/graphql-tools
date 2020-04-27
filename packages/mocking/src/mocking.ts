@@ -20,10 +20,8 @@ import {
   isAbstractType,
 } from 'graphql';
 
-import { buildSchemaFromTypeDefinitions } from '../generate/index';
-import { forEachField } from '../utils/index';
-
-import { IMocks, IMockServer, IMockOptions, IMockFn, IMockTypeFn, ITypeDefinitions } from '../Interfaces';
+import { buildSchemaFromTypeDefinitions, forEachField, ITypeDefinitions } from '@graphql-tools/schema-stitching';
+import { IMocks, IMockServer, IMockFn, IMockOptions, IMockTypeFn } from './types';
 
 /**
  * This function wraps addMocksToSchema for more convenience
