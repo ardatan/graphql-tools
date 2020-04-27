@@ -1,11 +1,4 @@
-import {
-  buildClientSchema,
-  parse,
-  IntrospectionQuery,
-  print,
-  getIntrospectionQuery,
-  IntrospectionOptions,
-} from 'graphql';
+import { print, IntrospectionOptions } from 'graphql';
 import {
   SchemaPointerSingle,
   Source,
@@ -15,7 +8,7 @@ import {
 } from '@graphql-tools/utils';
 import { isWebUri } from 'valid-url';
 import { fetch as crossFetch } from 'cross-fetch';
-import { makeRemoteExecutableSchema, Executor } from '@graphql-tools/schema-stitching';
+import { makeRemoteExecutableSchema, introspectSchema, AsyncExecutor } from '@graphql-tools/schema-stitching';
 
 export type FetchFn = typeof import('cross-fetch').fetch;
 
@@ -70,7 +63,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       ...headers,
     };
 
-    const executor: Executor = async ({ document, variables }) => {
+    const executor: AsyncExecutor = async ({ document, variables }) => {
       const fetchResult = await fetch(pointer, {
         method,
         ...(method === 'POST'
@@ -83,29 +76,8 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       return fetchResult.json();
     };
 
-    const body = await executor({
-      document: parse(getIntrospectionQuery({ descriptions: true, ...options })),
-      variables: {},
-      context: {},
-    });
+    const clientSchema = await introspectSchema(executor);
 
-    let errorMessage;
-
-    if (body.errors && body.errors.length > 0) {
-      errorMessage = body.errors.map((item: Error) => item.message).join(', ');
-    } else if (!body.data) {
-      errorMessage = JSON.stringify(body, null, 2);
-    }
-
-    if (errorMessage) {
-      throw new Error('Unable to download schema from remote: ' + errorMessage);
-    }
-
-    if (!body.data.__schema) {
-      throw new Error('Invalid schema provided!');
-    }
-
-    const clientSchema = buildClientSchema(body.data as IntrospectionQuery, options);
     const remoteExecutableSchema = makeRemoteExecutableSchema({
       schema: printSchemaWithDirectives(clientSchema, options), // Keep descriptions
       executor,

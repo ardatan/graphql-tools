@@ -168,8 +168,21 @@ export interface ExecutionParams<TArgs = Record<string, any>, TContext = any> {
   context?: TContext;
   info?: GraphQLResolveInfo;
 }
-export type Executor = (params: ExecutionParams) => Promise<ExecutionResult> | ExecutionResult;
-export type Subscriber = (params: ExecutionParams) => Promise<AsyncIterator<ExecutionResult> | ExecutionResult>;
+
+export type AsyncExecutor = <
+  TReturn = Record<string, any>,
+  TArgs = Record<string, any>,
+  TContext = Record<string, any>
+>(
+  params: ExecutionParams<TArgs, TContext>
+) => Promise<ExecutionResult<TReturn>>;
+export type SyncExecutor = <TReturn = Record<string, any>, TArgs = Record<string, any>, TContext = Record<string, any>>(
+  params: ExecutionParams<TArgs, TContext>
+) => ExecutionResult<TReturn>;
+export type Executor = AsyncExecutor | SyncExecutor;
+export type Subscriber = <TReturn = Record<string, any>, TArgs = Record<string, any>, TContext = Record<string, any>>(
+  params: ExecutionParams<TArgs, TContext>
+) => Promise<AsyncIterator<ExecutionResult<TReturn>> | ExecutionResult<TReturn>>;
 
 export interface SubschemaConfig {
   schema: GraphQLSchema;

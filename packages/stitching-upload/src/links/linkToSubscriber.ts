@@ -1,23 +1,22 @@
-import { ApolloLink, execute } from 'apollo-link';
+import { ApolloLink, execute, FetchResult, Observable } from 'apollo-link';
 
-import { Subscriber } from '@graphql-tools/schema-stitching';
+import { Subscriber, ExecutionParams } from '@graphql-tools/schema-stitching';
 
 import { observableToAsyncIterable } from './observableToAsyncIterable';
 
-export { execute } from 'apollo-link';
-
-export function linkToSubscriber(link: ApolloLink): Subscriber {
-  return ({ document, variables, context, info }) =>
-    Promise.resolve(
-      observableToAsyncIterable(
-        execute(link, {
-          query: document,
-          variables,
-          context: {
-            graphqlContext: context,
-            graphqlResolveInfo: info,
-          },
-        })
-      )
-    );
-}
+export const linkToSubscriber = (link: ApolloLink): Subscriber => async <TReturn, TArgs, TContext>({
+  document,
+  variables,
+  context,
+  info,
+}: ExecutionParams<TArgs, TContext>) =>
+  observableToAsyncIterable(
+    execute(link, {
+      query: document,
+      variables,
+      context: {
+        graphqlContext: context,
+        graphqlResolveInfo: info,
+      },
+    }) as Observable<FetchResult<TReturn>>
+  );

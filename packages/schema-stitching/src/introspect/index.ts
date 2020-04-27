@@ -1,15 +1,17 @@
-import { GraphQLSchema, DocumentNode, getIntrospectionQuery, buildClientSchema, parse } from 'graphql';
+import {
+  GraphQLSchema,
+  DocumentNode,
+  getIntrospectionQuery,
+  buildClientSchema,
+  parse,
+  IntrospectionQuery,
+} from 'graphql';
 
-import { Executor } from '../Interfaces';
+import { AsyncExecutor, SyncExecutor, ExecutionResult } from '../Interfaces';
 
 import { combineErrors } from '../delegate/errors';
 
-export async function introspectSchema(executor: Executor, context?: Record<string, any>): Promise<GraphQLSchema> {
-  const parsedIntrospectionQuery: DocumentNode = parse(getIntrospectionQuery());
-  const introspectionResult = await executor({
-    document: parsedIntrospectionQuery,
-    context,
-  });
+function getSchemaFromIntrospection(introspectionResult: ExecutionResult<IntrospectionQuery>): GraphQLSchema {
   if (
     (Array.isArray(introspectionResult.errors) && introspectionResult.errors.length) ||
     !introspectionResult.data.__schema
@@ -21,11 +23,27 @@ export async function introspectSchema(executor: Executor, context?: Record<stri
       throw new Error('Could not obtain introspection result, received: ' + JSON.stringify(introspectionResult));
     }
   } else {
-    const schema = buildClientSchema(
-      introspectionResult.data as {
-        __schema: any;
-      }
-    );
-    return schema;
+    return buildClientSchema(introspectionResult.data);
   }
+}
+
+export async function introspectSchema(executor: AsyncExecutor, context?: Record<string, any>): Promise<GraphQLSchema> {
+  const parsedIntrospectionQuery: DocumentNode = parse(getIntrospectionQuery());
+  const introspectionResult = await executor<IntrospectionQuery>({
+    document: parsedIntrospectionQuery,
+    context,
+  });
+  return getSchemaFromIntrospection(introspectionResult);
+}
+
+export function introspectSchemaSync(executor: SyncExecutor, context?: Record<string, any>): GraphQLSchema {
+  const parsedIntrospectionQuery: DocumentNode = parse(getIntrospectionQuery());
+  const introspectionResult = executor<IntrospectionQuery>({
+    document: parsedIntrospectionQuery,
+    context,
+  });
+  if ('then' in introspectionResult) {
+    throw new Error(`executor returned promise. It must be sync!`);
+  }
+  return getSchemaFromIntrospection(introspectionResult);
 }

@@ -26,14 +26,15 @@ type CustomQuery {
 
   describe('handle', () => {
     it('Should throw an error when introspection is not valid', async () => {
-      const scope = nock(testHost).post(testPath).reply(200, {data: {}});
+      const brokenData = {data: {}};
+      const scope = nock(testHost).post(testPath).reply(200, brokenData);
 
       try {
         await loader.load(testUrl, {});
         throw new Error(SHOULD_NOT_GET_HERE_ERROR);
       } catch (e) {
         expect(e.message).not.toBe(SHOULD_NOT_GET_HERE_ERROR);
-        expect(e.message).toBe('Invalid schema provided!');
+        expect(e.message).toBe('Could not obtain introspection result, received: ' + JSON.stringify(brokenData));
       }
 
       scope.done();
