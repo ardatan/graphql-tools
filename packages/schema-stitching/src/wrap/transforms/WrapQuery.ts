@@ -1,6 +1,6 @@
 import { FieldNode, visit, Kind, SelectionNode, SelectionSetNode } from 'graphql';
 
-import { Transform, Request, ExecutionResult } from '../../Interfaces';
+import { Transform, Request, ExecutionResult } from '@graphql-tools/utils';
 
 export type QueryWrapper = (subtree: SelectionSetNode) => SelectionNode | SelectionSetNode;
 

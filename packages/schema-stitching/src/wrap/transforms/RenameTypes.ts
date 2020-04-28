@@ -19,8 +19,7 @@ import {
   visit,
 } from 'graphql';
 
-import { Transform, Request, ExecutionResult, MapperKind, RenameTypesOptions } from '../../Interfaces';
-import { mapSchema } from '../../utils/index';
+import { Transform, Request, ExecutionResult, MapperKind, RenameTypesOptions, mapSchema } from '@graphql-tools/utils';
 
 export default class RenameTypes implements Transform {
   private readonly renamer: (name: string) => string | undefined;

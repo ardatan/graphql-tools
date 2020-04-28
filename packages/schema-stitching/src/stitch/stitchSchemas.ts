@@ -23,19 +23,21 @@ import {
   GraphQLFieldConfigMap,
 } from 'graphql';
 
-import { mergeDeep } from '../utils/mergeDeep';
-
+import { addResolversToSchema, extractExtensionDefinitions } from '@graphql-tools/schema-generator';
+import { wrapSchema } from '../wrap/wrapSchema';
 import {
+  SchemaDirectiveVisitor,
+  cloneDirective,
+  healTypes,
+  forEachField,
+  mergeDeep,
   OnTypeConflict,
   isSubschemaConfig,
   SchemaLikeObject,
   IResolvers,
   IStitchSchemasOptions,
   MergeTypeCandidate,
-} from '../Interfaces';
-import { addResolversToSchema, extractExtensionDefinitions } from '../generate/index';
-import { wrapSchema } from '../wrap/wrapSchema';
-import { SchemaDirectiveVisitor, cloneDirective, healTypes, forEachField } from '../utils/index';
+} from '@graphql-tools/utils';
 
 import typeFromAST from './typeFromAST';
 import { createMergeInfo, completeMergeInfo } from './mergeInfo';

@@ -1,7 +1,6 @@
 import { visit, GraphQLSchema, NamedTypeNode, Kind, GraphQLObjectType } from 'graphql';
 
-import { Request, ExecutionResult, MapperKind, Transform } from '../../Interfaces';
-import { mapSchema } from '../../utils/index';
+import { Request, ExecutionResult, MapperKind, Transform, mapSchema } from '@graphql-tools/utils';
 
 export default class RenameRootTypes implements Transform {
   private readonly renamer: (name: string) => string | undefined;

@@ -35,16 +35,14 @@ import {
 } from '../src/wrap/index';
 
 import { delegateToSchema } from '../src/delegate/index';
-import { makeExecutableSchema } from '../src/generate/index';
+import { makeExecutableSchema } from '@graphql-tools/schema-generator';
 import { stitchSchemas } from '../src/stitch/index';
 import { createMergedResolver } from '../src/delegate/createMergedResolver';
-import { SubschemaConfig } from '../src/Interfaces';
-import { filterSchema } from '../src/utils/index';
 import {
   wrapFieldNode,
   renameFieldNode,
-  hoistFieldNodes,
-} from '../src/utils/fieldNodes';
+  hoistFieldNodes, filterSchema, SubschemaConfig
+} from '@graphql-tools/utils';
 
 import { forAwaitEach } from './forAwaitEach';
 

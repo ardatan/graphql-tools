@@ -6,12 +6,17 @@ import {
   GraphQLFieldResolver,
 } from 'graphql';
 
-import { Transform, SubschemaConfig, isSubschemaConfig, MapperKind } from '../Interfaces';
+import {
+  Transform,
+  SubschemaConfig,
+  isSubschemaConfig,
+  MapperKind,
+  mapSchema,
+  resolveFromParentTypename,
+  applySchemaTransforms,
+} from '@graphql-tools/utils';
 
 import { defaultMergedResolver } from '../delegate';
-import { mapSchema } from '../utils';
-import resolveFromParentTypename from '../utils/resolveFromParentTypename';
-import { applySchemaTransforms } from '../utils/transforms';
 
 import { generateProxyingResolvers } from './generateProxyingResolvers';
 

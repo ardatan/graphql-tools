@@ -8,13 +8,17 @@ import {
   GraphQLResolveInfo,
 } from 'graphql';
 
-import { collectFields } from '../../utils/collectFields';
-
-import { SubschemaConfig, MergedTypeInfo, isSubschemaConfig, GraphQLExecutionContext } from '../../Interfaces';
+import {
+  collectFields,
+  SubschemaConfig,
+  MergedTypeInfo,
+  isSubschemaConfig,
+  GraphQLExecutionContext,
+  resolveFromParentTypename,
+} from '@graphql-tools/utils';
 import { setErrors, slicedError } from '../errors';
 import { setObjectSubschema } from '../subSchema';
 import { mergeFields } from '../mergeFields';
-import resolveFromParentTypename from '../../utils/resolveFromParentTypename';
 
 export function handleObject(
   type: GraphQLCompositeType,

@@ -2,7 +2,7 @@ import { GraphQLError, GraphQLResolveInfo, graphql } from 'graphql';
 
 import { relocatedError, getErrors } from '../src/delegate/errors';
 import { checkResultAndHandleErrors } from '../src/delegate/transforms/CheckResultAndHandleErrors';
-import { makeExecutableSchema } from '../src/generate/index';
+import { makeExecutableSchema } from '@graphql-tools/schema-generator';
 import { stitchSchemas } from '../src/stitch/index';
 import { ERROR_SYMBOL } from '../src/delegate/symbols';
 

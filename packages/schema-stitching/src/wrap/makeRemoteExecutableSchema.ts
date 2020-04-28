@@ -1,6 +1,6 @@
 import { buildSchema, GraphQLFieldResolver, GraphQLSchema } from 'graphql';
 
-import { IMakeRemoteExecutableSchemaOptions, Executor, Subscriber } from '../Interfaces';
+import { IMakeRemoteExecutableSchemaOptions, Executor, Subscriber } from '@graphql-tools/utils';
 import { delegateToSchema } from '../delegate';
 
 import { wrapSchema } from './wrapSchema';

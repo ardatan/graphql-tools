@@ -8,7 +8,7 @@ import {
 } from 'graphql';
 import { PubSub } from 'graphql-subscriptions';
 
-import { makeExecutableSchema, addSchemaLevelResolver } from '../src';
+import { makeExecutableSchema, addSchemaLevelResolver } from '@graphql-tools/schema-generator';
 
 import { forAwaitEach } from './forAwaitEach';
 

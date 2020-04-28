@@ -1,9 +1,6 @@
 import { GraphQLSchema, GraphQLObjectType } from 'graphql';
 
-import { Transform, Request } from '../../Interfaces';
-import { healSchema } from '../../utils/index';
-import { hoistFieldNodes } from '../../utils/fieldNodes';
-import { appendFields, removeFields } from '../../utils/fields';
+import { Transform, Request, healSchema, hoistFieldNodes, appendFields, removeFields } from '@graphql-tools/utils';
 import { defaultMergedResolver } from '../../delegate/index';
 import { createMergedResolver } from '../../delegate/createMergedResolver';
 

@@ -16,10 +16,10 @@ import {
   isSubschemaConfig,
   Transform,
   ExecutionParams,
-} from '../Interfaces';
-import { applyRequestTransforms, applyResultTransforms } from '../utils/transforms';
-
-import { mapAsyncIterator } from '../utils/mapAsyncIterator';
+  applyRequestTransforms,
+  applyResultTransforms,
+  mapAsyncIterator,
+} from '@graphql-tools/utils';
 
 import ExpandAbstractTypes from './transforms/ExpandAbstractTypes';
 import FilterToSchema from './transforms/FilterToSchema';

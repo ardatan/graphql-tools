@@ -1,10 +1,9 @@
 import { GraphQLSchema, GraphQLFieldResolver, GraphQLObjectType } from 'graphql';
 
-import { Transform, Operation, SubschemaConfig } from '../Interfaces';
+import { Transform, Operation, SubschemaConfig, getResponseKeyFromInfo } from '@graphql-tools/utils';
 import { delegateToSchema } from '../delegate/delegateToSchema';
 import { handleResult } from '../delegate/results/handleResult';
 
-import { getResponseKeyFromInfo } from '../utils/getResponseKeyFromInfo';
 import { getSubschema } from '../delegate/subSchema';
 import { getErrors } from '../delegate/errors';
 

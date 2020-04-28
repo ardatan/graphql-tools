@@ -12,7 +12,7 @@ import { sentence, first_name } from 'casual';
 import { addMocksToSchema, MockList, mockServer, IMocks } from '../src';
 import { addResolversToSchema,
   buildSchemaFromTypeDefinitions,
-  makeExecutableSchema, } from '@graphql-tools/schema-stitching';
+  makeExecutableSchema, } from '@graphql-tools/schema-generator';
 
 describe('Mock', () => {
   const shorthand = `

@@ -1,6 +1,6 @@
 import { FieldNode, SelectionNode, Kind, GraphQLResolveInfo } from 'graphql';
 
-import { SubschemaConfig, MergedTypeInfo } from '../Interfaces';
+import { SubschemaConfig, MergedTypeInfo } from '@graphql-tools/utils';
 
 import { mergeProxiedResults } from './proxiedResult';
 

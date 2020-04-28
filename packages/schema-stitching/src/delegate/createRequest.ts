@@ -17,9 +17,13 @@ import {
   DocumentNode,
 } from 'graphql';
 
-import { ICreateRequestFromInfo, Request, ICreateRequest } from '../Interfaces';
-import { serializeInputValue } from '../utils/transformInputValue';
-import { updateArgument } from '../utils/updateArgument';
+import {
+  ICreateRequestFromInfo,
+  Request,
+  ICreateRequest,
+  serializeInputValue,
+  updateArgument,
+} from '@graphql-tools/utils';
 
 export function getDelegatingOperation(parentType: GraphQLObjectType, schema: GraphQLSchema): OperationTypeNode {
   if (parentType === schema.getMutationType()) {

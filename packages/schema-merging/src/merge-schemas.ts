@@ -1,16 +1,17 @@
 import { GraphQLSchema, DocumentNode, buildASTSchema, BuildSchemaOptions, buildSchema } from 'graphql';
+import { addResolversToSchema, addErrorLoggingToSchema } from '@graphql-tools/schema-generator';
+import { mergeTypeDefs, Config } from './typedefs-mergers/merge-typedefs';
+import { mergeResolvers } from './merge-resolvers';
 import {
   IResolvers,
   SchemaDirectiveVisitor,
   IResolverValidationOptions,
   ILogger,
-  addResolversToSchema,
-  addErrorLoggingToSchema,
+  ResolversComposerMapping,
+  composeResolvers,
+  asArray,
   getResolversFromSchema,
-} from '@graphql-tools/schema-stitching';
-import { mergeTypeDefs, Config } from './typedefs-mergers/merge-typedefs';
-import { mergeResolvers } from './merge-resolvers';
-import { ResolversComposerMapping, composeResolvers, asArray } from '@graphql-tools/utils';
+} from '@graphql-tools/utils';
 import { mergeExtensions, extractExtensionsFromSchema, applyExtensions, SchemaExtensions } from './extensions';
 
 export interface MergeSchemasConfig<Resolvers extends IResolvers = IResolvers> extends Config, BuildSchemaOptions {

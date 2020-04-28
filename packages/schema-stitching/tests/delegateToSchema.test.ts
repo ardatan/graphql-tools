@@ -2,8 +2,8 @@ import { GraphQLSchema, graphql } from 'graphql';
 
 import { delegateToSchema } from '../src/delegate/delegateToSchema';
 import { stitchSchemas } from '../src/stitch/stitchSchemas';
-import { IResolvers } from '../src/Interfaces';
-import { makeExecutableSchema } from '../src/generate';
+import { IResolvers } from '@graphql-tools/utils';
+import { makeExecutableSchema } from '@graphql-tools/schema-generator';
 import { wrapSchema } from '../src/wrap';
 
 import {

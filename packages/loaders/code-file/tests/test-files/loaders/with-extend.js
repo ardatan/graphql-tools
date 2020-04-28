@@ -1,4 +1,4 @@
-const { makeExecutableSchema } = require('@graphql-tools/schema-stitching');
+const { makeExecutableSchema } = require('@graphql-tools/schema-generator');
 
 const schema = makeExecutableSchema({
   typeDefs: /* GraphQL */ `

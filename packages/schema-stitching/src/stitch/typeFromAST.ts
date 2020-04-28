@@ -29,8 +29,7 @@ import {
   valueFromASTUntyped,
 } from 'graphql';
 
-import { createStub, createNamedStub } from '../utils/stub';
-import resolveFromParentTypename from '../utils/resolveFromParentTypename';
+import { createStub, createNamedStub, resolveFromParentTypename } from '@graphql-tools/utils';
 
 const backcompatOptions = { commentDescriptions: true };
 

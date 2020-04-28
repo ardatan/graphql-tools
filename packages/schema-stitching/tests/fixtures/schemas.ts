@@ -15,11 +15,12 @@ import {
 import { introspectSchema } from '../../src/introspect/index';
 import {
   IResolvers,
-  Executor,
-  Subscriber,
+  ExecutionResult,
   SubschemaConfig,
-} from '../../src/Interfaces';
-import { makeExecutableSchema } from '../../src/generate/index';
+  ExecutionParams,
+} from '@graphql-tools/utils';
+import { makeExecutableSchema } from '@graphql-tools/schema-generator';
+import { PromiseOrValue } from 'graphql/jsutils/PromiseOrValue';
 
 export class CustomError extends GraphQLError {
   constructor(message: string, extensions: Record<string, any>) {
@@ -679,24 +680,24 @@ export const subscriptionSchema: GraphQLSchema = makeExecutableSchema({
   resolvers: subscriptionResolvers,
 });
 
-function makeExecutorFromSchema(schema: GraphQLSchema): Executor {
-  return async ({ document, variables, context }) => graphql(
+function makeExecutorFromSchema(schema: GraphQLSchema) {
+  return async <TReturn, TArgs, TContext>({ document, variables, context }: ExecutionParams<TArgs, TContext>) => graphql(
     schema,
     print(document),
     null,
     context,
     variables,
-  );
+  ) as PromiseOrValue<ExecutionResult<TReturn>>;
 }
 
-function makeSubscriberFromSchema(schema: GraphQLSchema): Subscriber {
-  return async ({ document, variables, context }) => subscribe(
+function makeSubscriberFromSchema(schema: GraphQLSchema) {
+  return async <TReturn, TArgs, TContext>({ document, variables, context }: ExecutionParams<TArgs, TContext>) => subscribe(
     schema,
     document,
     null,
     context,
     variables,
-  )
+  ) as Promise<AsyncIterator<ExecutionResult<TReturn>> | ExecutionResult<TReturn>>
 }
 
 export async function makeSchemaRemote(

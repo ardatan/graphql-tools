@@ -9,7 +9,9 @@ import FormData from 'form-data';
 import { fetch } from 'cross-fetch';
 import { buildSchema } from 'graphql';
 
-import { makeExecutableSchema, stitchSchemas, SubschemaConfig } from '@graphql-tools/schema-stitching';
+import { makeExecutableSchema } from '@graphql-tools/schema-generator';
+import { stitchSchemas } from '@graphql-tools/schema-stitching'
+import { SubschemaConfig } from '@graphql-tools/utils'
 import { createServerHttpLink, GraphQLUpload as ServerGraphQLUpload, linkToExecutor } from '../src';
 
 function streamToString(stream: Readable) {

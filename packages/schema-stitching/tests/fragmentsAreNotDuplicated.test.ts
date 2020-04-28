@@ -1,6 +1,7 @@
 import { ExecutionResult, graphql } from 'graphql';
 
-import { makeExecutableSchema, transformSchema } from '../src';
+import { transformSchema } from '../src';
+import { makeExecutableSchema } from '@graphql-tools/schema-generator'
 import { addMocksToSchema } from '@graphql-tools/mocking';
 
 describe('Merging schemas', () => {

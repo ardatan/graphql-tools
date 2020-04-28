@@ -12,9 +12,7 @@ import {
   VariableDefinitionNode,
 } from 'graphql';
 
-import { Transform, Request } from '../../Interfaces';
-import { serializeInputValue } from '../../utils/transformInputValue';
-import { updateArgument } from '../../utils/updateArgument';
+import { Transform, Request, serializeInputValue, updateArgument } from '@graphql-tools/utils';
 
 export default class AddArgumentsAsVariables implements Transform {
   private readonly targetSchema: GraphQLSchema;
