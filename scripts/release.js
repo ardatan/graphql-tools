@@ -58,12 +58,15 @@ async function release() {
             await writeFile(distPackageJsonPath, JSON.stringify(distPackageJson, null, 2));
             return new Promise((resolve, reject) => {
                 const publishSpawn = cp.spawn('npm', ['publish', distPath, '--tag', tag, '--access', distPackageJson.publishConfig.access]);
-                publishSpawn.on("error", function (error) {
-                    reject(new Error(command + " " + args.join(" ") + " in " + cwd + " encountered error " + error.message));
-                });
-                publishSpawn.on("exit", function(code) {
+                publishSpawn.stdout.on('data', (data) => {
+                    console.info(data.toString('utf8'));
+                })
+                publishSpawn.stderr.on('message', function(message) {
+                    console.error(message.toString('utf8'));
+                })
+                publishSpawn.on("exit", function(code, signal) {
                     if (code !== 0) {
-                        reject(new Error(command + " " + args.join(" ") + " in " + cwd + " exited with code " + code));
+                        reject(new Error(`npm publish exited with code: ${code} and signal: ${signal}`));
                     } else {
                         resolve();
                     }
