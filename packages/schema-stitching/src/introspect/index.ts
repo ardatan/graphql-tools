@@ -7,7 +7,7 @@ import {
   IntrospectionQuery,
 } from 'graphql';
 
-import { AsyncExecutor, SyncExecutor, ExecutionResult } from '../Interfaces';
+import { AsyncExecutor, SyncExecutor, ExecutionResult } from '@graphql-tools/utils';
 
 import { combineErrors } from '../delegate/errors';
 
@@ -43,7 +43,7 @@ export function introspectSchemaSync(executor: SyncExecutor, context?: Record<st
     context,
   });
   if ('then' in introspectionResult) {
-    throw new Error(`executor returned promise. It must be sync!`);
+    throw new Error(`Executor cannot return promise value in introspectSchemaSync!`);
   }
   return getSchemaFromIntrospection(introspectionResult);
 }

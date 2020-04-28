@@ -1,4 +1,4 @@
-import { IFieldResolver } from '../Interfaces';
+import { IFieldResolver } from '@graphql-tools/utils';
 
 import { unwrapResult, dehoistResult } from './proxiedResult';
 import { defaultMergedResolver } from './defaultMergedResolver';

@@ -32,15 +32,9 @@ import {
   GraphQLDeprecatedDirective,
 } from 'graphql';
 
-import { createStub, createNamedStub } from '../utils/stub';
+import { createStub, createNamedStub } from '@graphql-tools/utils';
 
 const backcompatOptions = { commentDescriptions: true };
-
-export type GetType = (
-  name: string,
-  // this is a hack
-  type: 'object' | 'interface' | 'input'
-) => GraphQLObjectType | GraphQLInputObjectType | GraphQLInterfaceType;
 
 export default function typeFromAST(node: DefinitionNode): GraphQLNamedType | GraphQLDirective | null {
   switch (node.kind) {

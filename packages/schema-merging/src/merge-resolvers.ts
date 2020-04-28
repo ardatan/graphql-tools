@@ -1,4 +1,4 @@
-import { IResolvers } from '@graphql-tools/schema-stitching';
+import { IResolvers } from '@graphql-tools/utils';
 import * as deepMerge from 'deepmerge';
 import { isScalarType } from 'graphql';
 

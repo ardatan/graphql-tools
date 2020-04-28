@@ -22,8 +22,8 @@ import {
   FieldTransformer,
   FieldNodeTransformer,
   RenamedFieldConfig,
-} from '../../Interfaces';
-import { mapSchema } from '../../utils/index';
+  mapSchema,
+} from '@graphql-tools/utils';
 
 export default class TransformCompositeFields implements Transform {
   private readonly fieldTransformer: FieldTransformer;

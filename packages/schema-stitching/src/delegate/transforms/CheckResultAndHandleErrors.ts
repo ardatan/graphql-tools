@@ -1,7 +1,6 @@
 import { GraphQLResolveInfo, ExecutionResult, GraphQLOutputType, GraphQLSchema } from 'graphql';
 
-import { Transform, SubschemaConfig } from '../../Interfaces';
-import { getResponseKeyFromInfo } from '../../utils/getResponseKeyFromInfo';
+import { Transform, SubschemaConfig, getResponseKeyFromInfo } from '@graphql-tools/utils';
 import { handleResult } from '../results/handleResult';
 
 export default class CheckResultAndHandleErrors implements Transform {

@@ -1,6 +1,6 @@
 import { GraphQLSchema } from 'graphql';
 
-import { Transform, SubschemaConfig, GraphQLSchemaWithTransforms } from '../Interfaces';
+import { Transform, SubschemaConfig, GraphQLSchemaWithTransforms } from '@graphql-tools/utils';
 
 import { wrapSchema } from './wrapSchema';
 

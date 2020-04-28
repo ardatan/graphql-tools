@@ -26,6 +26,7 @@
     "graphql-upload": "~10.0.0"
   },
   "dependencies": {
+    "@graphql-tools/utils": "5.0.0",
     "apollo-link": "1.2.14",
     "apollo-upload-client": "13.0.0",
     "form-data": "3.0.0",

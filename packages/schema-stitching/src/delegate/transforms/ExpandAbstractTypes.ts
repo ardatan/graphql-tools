@@ -14,8 +14,7 @@ import {
   visitWithTypeInfo,
 } from 'graphql';
 
-import implementsAbstractType from '../../utils/implementsAbstractType';
-import { Transform, Request } from '../../Interfaces';
+import { implementsAbstractType, Transform, Request } from '@graphql-tools/utils';
 
 export default class ExpandAbstractTypes implements Transform {
   private readonly targetSchema: GraphQLSchema;

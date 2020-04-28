@@ -13,14 +13,14 @@ import {
 } from 'graphql';
 
 import { delegateToSchema } from '../src/delegate/index';
-import { makeExecutableSchema } from '../src/generate/index';
-import { IResolvers, SubschemaConfig } from '../src/Interfaces';
+import { makeExecutableSchema } from '@graphql-tools/schema-generator';
 import { stitchSchemas } from '../src/stitch/index';
 import {
   cloneSchema,
   getResolversFromSchema,
   SchemaDirectiveVisitor,
-} from '../src/utils/index';
+  IResolvers, SubschemaConfig
+} from '@graphql-tools/utils';
 import { addMocksToSchema } from '@graphql-tools/mocking';
 
 import { forAwaitEach } from './forAwaitEach';

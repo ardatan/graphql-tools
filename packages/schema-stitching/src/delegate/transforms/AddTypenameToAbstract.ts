@@ -10,7 +10,7 @@ import {
   isAbstractType,
 } from 'graphql';
 
-import { Transform, Request } from '../../Interfaces';
+import { Transform, Request } from '@graphql-tools/utils';
 
 export default class AddTypenameToAbstract implements Transform {
   private readonly targetSchema: GraphQLSchema;

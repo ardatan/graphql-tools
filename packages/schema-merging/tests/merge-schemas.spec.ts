@@ -1,5 +1,5 @@
-import { makeExecutableSchema } from '@graphql-tools/schema-stitching';
-import { graphql, buildSchema, GraphQLScalarType, Kind, buildASTSchema, GraphQLSchema, ListValueNode } from 'graphql';
+import { makeExecutableSchema } from '@graphql-tools/schema-generator';
+import { graphql, buildSchema, GraphQLScalarType, Kind, GraphQLSchema, ListValueNode } from 'graphql';
 import { mergeSchemas, mergeSchemasAsync } from '../src/merge-schemas';
 
 describe('Merge Schemas', () => {

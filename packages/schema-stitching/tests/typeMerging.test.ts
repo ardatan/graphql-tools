@@ -3,10 +3,8 @@
 
 import { graphql } from 'graphql';
 
-import {
-  stitchSchemas,
-  makeExecutableSchema,
-} from '../src/index';
+import { makeExecutableSchema } from '@graphql-tools/schema-generator';
+import { stitchSchemas } from '@graphql-tools/schema-stitching';
 
 import { addMocksToSchema } from '@graphql-tools/mocking';
 

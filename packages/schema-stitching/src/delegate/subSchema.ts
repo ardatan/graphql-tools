@@ -1,6 +1,6 @@
 import { GraphQLSchema } from 'graphql';
 
-import { SubschemaConfig } from '../Interfaces';
+import { SubschemaConfig } from '@graphql-tools/utils';
 
 import { FIELD_SUBSCHEMA_MAP_SYMBOL, OBJECT_SUBSCHEMA_SYMBOL } from './symbols';
 

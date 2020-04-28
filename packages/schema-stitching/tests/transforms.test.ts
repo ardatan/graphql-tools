@@ -17,7 +17,7 @@ import {
   FilterToSchema,
   AddReplacementFragments,
 } from '../src/delegate/index';
-import { makeExecutableSchema } from '../src/generate/index';
+import { makeExecutableSchema } from '@graphql-tools/schema-generator';
 import { stitchSchemas } from '../src/stitch/index';
 import {
   transformSchema,
@@ -32,7 +32,7 @@ import {
 import {
   concatInlineFragments,
   parseFragmentToInlineFragment,
-} from '../src/utils/fragments';
+} from '@graphql-tools/utils';
 import { addMocksToSchema } from '@graphql-tools/mocking';
 
 import { propertySchema, bookingSchema } from './fixtures/schemas';

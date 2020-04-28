@@ -13,7 +13,7 @@ const graphqlHTTP = require('express-graphql');
 const typeDefs = require('./graphql/types');
 const resolvers = require('./graphql/resolvers');
 
-const { makeExecutableSchema } = require('@graphql-tools/schema-stitching');
+const { makeExecutableSchema } = require('@graphql-tools/schema-generator');
 
 const schema = makeExecutableSchema({
     typeDefs,

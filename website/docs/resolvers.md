@@ -161,7 +161,7 @@ In addition to using a resolver map with `makeExecutableSchema`, you can use it 
 
 
 ```js
-import { addResolversToSchema } from '@graphql-tools/schema-stitching';
+import { addResolversToSchema } from '@graphql-tools/schema-generator';
 
 const resolvers = {
   RootQuery: {

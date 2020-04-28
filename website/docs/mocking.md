@@ -15,7 +15,7 @@ Let's take a look at how we can mock a GraphQL schema with just one line of code
 To start, let's grab the schema definition string from the `makeExecutableSchema` example [in the "Generating a schema" article](/docs/generate-schema/#example).
 
 ```js
-import { makeExecutableSchema } from '@graphql-tools/schema-stitching';
+import { makeExecutableSchema } from '@graphql-tools/schema-generator';
 import { addMocksToSchema } from '@graphql-tools/mocking';
 import { graphql } from 'graphql';
 
@@ -189,7 +189,7 @@ You will need resolvers to mock interfaces. By default [`addMocksToSchema`](#add
 By setting the property `preserveResolvers` on the options object to `true`, the type resolvers will be preserved.
 
 ```js
-import { makeExecutableSchema } from '@graphql-tools/schema-stitching';
+import { makeExecutableSchema } from '@graphql-tools/schema-generator';
 import { addMocksToSchema } from '@graphql-tools/mocking';
 import mocks from './mocks' // your mock functions
 

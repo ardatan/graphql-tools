@@ -1,6 +1,6 @@
 import { GraphQLSchema, GraphQLField, isInterfaceType } from 'graphql';
 
-import { Transform, Request, FieldTransformer, FieldNodeTransformer } from '../../Interfaces';
+import { Transform, Request, FieldTransformer, FieldNodeTransformer } from '@graphql-tools/utils';
 
 import TransformCompositeFields from './TransformCompositeFields';
 

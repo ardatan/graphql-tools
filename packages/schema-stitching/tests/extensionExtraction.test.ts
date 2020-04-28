@@ -1,6 +1,6 @@
 import { parse } from 'graphql';
 
-import { extractExtensionDefinitions } from '../src/generate/extensionDefinitions';
+import { extractExtensionDefinitions } from '@graphql-tools/schema-generator';
 
 describe('Extension extraction', () => {
   test('extracts extended inputs', () => {

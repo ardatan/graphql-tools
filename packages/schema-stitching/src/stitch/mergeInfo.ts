@@ -20,14 +20,16 @@ import {
   Transform,
   TypeMap,
   MergeTypeFilter,
-} from '../Interfaces';
+  parseFragmentToInlineFragment,
+  concatInlineFragments,
+  typeContainsSelectionSet,
+  parseSelectionSet,
+  forEachField,
+} from '@graphql-tools/utils';
 import ExpandAbstractTypes from '../delegate/transforms/ExpandAbstractTypes';
 import AddReplacementFragments from '../delegate/transforms/AddReplacementFragments';
-import { parseFragmentToInlineFragment, concatInlineFragments } from '../utils/fragments';
-import { typeContainsSelectionSet, parseSelectionSet } from '../utils/selectionSets';
 
 import { delegateToSchema } from '../delegate/delegateToSchema';
-import { forEachField } from '../utils';
 
 type MergeTypeCandidate = {
   type: GraphQLNamedType;

@@ -1,4 +1,4 @@
-import { makeExecutableSchema } from '@graphql-tools/schema-stitching';
+import { makeExecutableSchema } from '@graphql-tools/schema-generator';
 import { UrlLoader } from '../src';
 import { printSchemaWithDirectives } from '@graphql-tools/utils';
 import nock from 'nock';

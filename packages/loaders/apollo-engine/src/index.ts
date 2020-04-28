@@ -1,8 +1,18 @@
-import { SchemaLoader, Source } from '@graphql-tools/utils';
+import { SchemaLoader, Source, SingleFileOptions } from '@graphql-tools/utils';
 import { fetch } from 'cross-fetch';
 import { buildClientSchema } from 'graphql';
 
-export class ApolloEngineLoader implements SchemaLoader {
+export interface ApolloEngineOptions extends SingleFileOptions {
+  engine: {
+    endpoint: string;
+    apiKey: string;
+  };
+  graph: string;
+  variant: string;
+  headers?: Record<string, string>;
+}
+
+export class ApolloEngineLoader implements SchemaLoader<ApolloEngineOptions> {
   loaderId() {
     return 'apollo-engine';
   }
@@ -15,7 +25,7 @@ export class ApolloEngineLoader implements SchemaLoader {
     return false;
   }
 
-  async load(_: 'apollo-engine', options: any): Promise<Source> {
+  async load(_: 'apollo-engine', options: ApolloEngineOptions): Promise<Source> {
     const response = await fetch(options.engine.endpoint, {
       method: 'POST',
       headers: {
@@ -23,6 +33,9 @@ export class ApolloEngineLoader implements SchemaLoader {
         'apollo-client-name': 'Apollo Language Server',
         'apollo-client-reference-id': '146d29c0-912c-46d3-b686-920e52586be6',
         'apollo-client-version': '2.6.8',
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        ...options.headers,
       },
       body: JSON.stringify({
         query: SCHEMA_QUERY,

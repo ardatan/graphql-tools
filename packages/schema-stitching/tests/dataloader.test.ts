@@ -2,7 +2,7 @@ import DataLoader from 'dataloader';
 import { graphql, GraphQLList, GraphQLResolveInfo } from 'graphql';
 
 import { delegateToSchema } from '../src/delegate/index';
-import { makeExecutableSchema } from '../src/generate/index';
+import { makeExecutableSchema } from '@graphql-tools/schema-generator';
 import { stitchSchemas } from '../src/stitch/index';
 
 describe('dataloader', () => {

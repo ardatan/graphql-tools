@@ -5,10 +5,11 @@ import {
   DocumentLoader,
   SingleFileOptions,
   printSchemaWithDirectives,
+  AsyncExecutor,
 } from '@graphql-tools/utils';
 import { isWebUri } from 'valid-url';
 import { fetch as crossFetch } from 'cross-fetch';
-import { makeRemoteExecutableSchema, introspectSchema, AsyncExecutor } from '@graphql-tools/schema-stitching';
+import { makeRemoteExecutableSchema, introspectSchema } from '@graphql-tools/schema-stitching';
 
 export type FetchFn = typeof import('cross-fetch').fetch;
 

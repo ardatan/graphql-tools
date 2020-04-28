@@ -1,4 +1,5 @@
-import { makeExecutableSchema, RenameTypes, transformSchema } from '@graphql-tools/schema-stitching';
+import { RenameTypes, transformSchema } from '@graphql-tools/schema-stitching';
+import { makeExecutableSchema } from '@graphql-tools/schema-generator';
 import { buildSchema, printSchema } from 'graphql';
 import { printSchemaWithDirectives } from '../src';
 import { GraphQLJSON } from 'graphql-scalars';

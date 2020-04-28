@@ -11,7 +11,7 @@ import {
   isListType,
 } from 'graphql';
 
-import { SubschemaConfig } from '../../Interfaces';
+import { SubschemaConfig } from '@graphql-tools/utils';
 import { getErrorsByPathSegment } from '../errors';
 
 import { handleNull } from './handleNull';

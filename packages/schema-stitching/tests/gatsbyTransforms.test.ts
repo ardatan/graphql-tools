@@ -6,10 +6,9 @@ import {
   graphql,
 } from 'graphql';
 
-import { VisitSchemaKind } from '../src/Interfaces';
+import { VisitSchemaKind, cloneType, healSchema, visitSchema } from '@graphql-tools/utils';
 import { transformSchema, RenameTypes } from '../src/wrap/index';
-import { cloneType, healSchema, visitSchema } from '../src/utils/index';
-import { makeExecutableSchema } from '../src/generate/index';
+import { makeExecutableSchema } from '@graphql-tools/schema-generator';
 import { addMocksToSchema } from '@graphql-tools/mocking';
 
 // see https://github.com/gatsbyjs/gatsby/blob/master/packages/gatsby-source-graphql/src/transforms.js

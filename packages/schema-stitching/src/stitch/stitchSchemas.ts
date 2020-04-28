@@ -10,26 +10,29 @@ import {
   GraphQLNamedType,
 } from 'graphql';
 
-import { mergeDeep } from '../utils/mergeDeep';
-
 import {
+  SchemaDirectiveVisitor,
+  cloneDirective,
+  mergeDeep,
+  SubschemaConfig,
+  isSubschemaConfig,
+  IResolversParameter,
   IResolvers,
   IStitchSchemasOptions,
-  MergeTypeCandidate,
   MergeInfo,
-  IResolversParameter,
-  isSubschemaConfig,
-  SubschemaConfig,
-} from '../Interfaces';
-import { SchemaDirectiveVisitor, cloneDirective, rewireTypes } from '../utils/index';
+  MergeTypeCandidate,
+  rewireTypes,
+} from '@graphql-tools/utils';
 
-import { addResolversToSchema } from '../generate/addResolversToSchema';
-import { addSchemaLevelResolver } from '../generate/addSchemaLevelResolver';
-import { addErrorLoggingToSchema } from '../generate/addErrorLoggingToSchema';
-import { addCatchUndefinedToSchema } from '../generate/addCatchUndefinedToSchema';
-import { assertResolversPresent } from '../generate/assertResolversPresent';
-import { attachDirectiveResolvers } from '../generate/attachDirectiveResolvers';
-import { buildDocumentFromTypeDefinitions } from '../generate/buildSchemaFromTypeDefinitions';
+import {
+  addResolversToSchema,
+  addSchemaLevelResolver,
+  addErrorLoggingToSchema,
+  addCatchUndefinedToSchema,
+  assertResolversPresent,
+  attachDirectiveResolvers,
+  buildDocumentFromTypeDefinitions,
+} from '@graphql-tools/schema-generator';
 
 import { buildTypeCandidates, buildTypeMap } from './typeCandidates';
 import { createMergeInfo, completeMergeInfo, addMergeInfo } from './mergeInfo';

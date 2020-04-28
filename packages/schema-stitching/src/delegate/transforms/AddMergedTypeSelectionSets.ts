@@ -9,7 +9,7 @@ import {
   visitWithTypeInfo,
 } from 'graphql';
 
-import { Transform, Request, MergedTypeInfo } from '../../Interfaces';
+import { Transform, Request, MergedTypeInfo } from '@graphql-tools/utils';
 
 export default class AddMergedTypeFragments implements Transform {
   private readonly targetSchema: GraphQLSchema;

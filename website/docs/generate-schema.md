@@ -93,7 +93,7 @@ const resolvers = {
 At the end, the schema and resolvers are combined using `makeExecutableSchema`:
 
 ```js
-import { makeExecutableSchema } from '@graphql-tools/schema-stitching';
+import { makeExecutableSchema } from '@graphql-tools/schema-generator';
 
 export const schema = makeExecutableSchema({
   typeDefs,
@@ -213,7 +213,7 @@ This [GraphQL schema language cheat sheet](https://raw.githubusercontent.com/sog
 `makeExecutableSchema` takes a single argument: an object of options. Only the `typeDefs` option is required.
 
 ```
-import { makeExecutableSchema } from '@graphql-tools/schema-stitching';
+import { makeExecutableSchema } from '@graphql-tools/schema-generator';
 
 const jsSchema = makeExecutableSchema({
   typeDefs,

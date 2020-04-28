@@ -33,7 +33,7 @@ $ npm install --save graphql-scalars
 In your JavaScript code, require the type defined by in the npm package and use it :
 
 ```js
-import { makeExecutableSchema } from '@graphql-tools/schema-stitching';
+import { makeExecutableSchema } from '@graphql-tools/schema-generator';
 import { GraphQLJSON } from 'graphql-scalars';
 
 const schemaString = `

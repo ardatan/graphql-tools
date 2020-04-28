@@ -1,6 +1,6 @@
 import gql from 'graphql-tag';
 import { composeResolvers, ResolversComposerMapping } from '../src';
-import { makeExecutableSchema } from '@graphql-tools/schema-stitching';
+import { makeExecutableSchema } from '@graphql-tools/schema-generator';
 import { execute, GraphQLScalarType, Kind } from 'graphql';
 import { createAsyncIterator } from 'iterall';
 
