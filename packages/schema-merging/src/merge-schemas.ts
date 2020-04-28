@@ -7,8 +7,6 @@ import {
   SchemaDirectiveVisitor,
   IResolverValidationOptions,
   ILogger,
-  ResolversComposerMapping,
-  composeResolvers,
   asArray,
   getResolversFromSchema,
 } from '@graphql-tools/utils';
@@ -18,7 +16,6 @@ export interface MergeSchemasConfig<Resolvers extends IResolvers = IResolvers> e
   schemas: GraphQLSchema[];
   typeDefs?: (DocumentNode | string)[] | DocumentNode | string;
   resolvers?: Resolvers | Resolvers[];
-  resolversComposition?: ResolversComposerMapping<Resolvers>;
   schemaDirectives?: { [directiveName: string]: typeof SchemaDirectiveVisitor };
   resolverValidationOptions?: IResolverValidationOptions;
   logger?: ILogger;
@@ -42,7 +39,7 @@ export function mergeSchemas(config: MergeSchemasConfig) {
   }
   extractedResolvers.push(...ensureResolvers(config));
 
-  const resolvers = composeResolvers(mergeResolvers(extractedResolvers, config), config.resolversComposition || {});
+  const resolvers = mergeResolvers(extractedResolvers, config);
   const extensions = mergeExtensions(extractedExtensions);
 
   return makeSchema({ resolvers, typeDefs, extensions }, config);
@@ -52,10 +49,7 @@ export async function mergeSchemasAsync(config: MergeSchemasConfig) {
   const [typeDefs, resolvers, extensions] = await Promise.all([
     mergeTypes(config),
     Promise.all(config.schemas.map(async schema => getResolversFromSchema(schema))).then(extractedResolvers =>
-      composeResolvers(
-        mergeResolvers([...extractedResolvers, ...ensureResolvers(config)], config),
-        config.resolversComposition || {}
-      )
+      mergeResolvers([...extractedResolvers, ...ensureResolvers(config)], config)
     ),
     Promise.all(config.schemas.map(async schema => extractExtensionsFromSchema(schema))).then(extractedExtensions =>
       mergeExtensions(extractedExtensions)

@@ -1,10 +1,9 @@
 import { GraphQLError, GraphQLResolveInfo, graphql } from 'graphql';
 
-import { relocatedError, getErrors } from '../src/delegate/errors';
+import { relocatedError, getErrors, ERROR_SYMBOL } from '@graphql-tools/utils';
 import { checkResultAndHandleErrors } from '../src/delegate/transforms/CheckResultAndHandleErrors';
 import { makeExecutableSchema } from '@graphql-tools/schema-generator';
 import { stitchSchemas } from '../src/stitch/index';
-import { ERROR_SYMBOL } from '../src/delegate/symbols';
 
 class ErrorWithExtensions extends GraphQLError {
   constructor(message: string, code: string) {

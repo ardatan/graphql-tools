@@ -1,4 +1,3 @@
-import AggregateError from 'aggregate-error';
 import {
   Kind,
   validate,
@@ -10,6 +9,7 @@ import {
   ASTVisitor,
 } from 'graphql';
 import { Source } from './loaders';
+import { CombinedError } from './errors';
 
 export type ValidationRule = (context: ValidationContext) => ASTVisitor;
 const DEFAULT_EFFECTIVE_RULES = createDefaultRules();
@@ -90,7 +90,7 @@ export function checkValidationErrors(loadDocumentErrors: ReadonlyArray<LoadDocu
       }
     }
 
-    throw new AggregateError(errors);
+    throw new CombinedError(errors);
   }
 }
 

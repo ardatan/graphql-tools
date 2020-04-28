@@ -21,13 +21,9 @@
   "buildOptions": {
     "input": "./src/index.ts"
   },
-  "devDependencies": {
-    "@types/deepmerge": "2.2.0"
-  },
   "dependencies": {
     "@graphql-tools/schema-generator": "5.0.0",
     "@graphql-tools/utils": "5.0.0",
-    "deepmerge": "4.2.2",
     "tslib": "1.11.1"
   },
   "publishConfig": {

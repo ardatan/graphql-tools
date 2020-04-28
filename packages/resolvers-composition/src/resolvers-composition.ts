@@ -1,7 +1,8 @@
-import { chainFunctions, asArray } from './helpers';
+import { chainFunctions } from './helpers';
 import { flattenArray } from './flatten-array';
 import { get, set } from 'lodash';
 import { isScalarType, GraphQLFieldResolver } from 'graphql';
+import { asArray } from '@graphql-tools/utils';
 
 export type ResolversComposition<Resolver extends GraphQLFieldResolver<any, any> = GraphQLFieldResolver<any, any>> = (
   next: Resolver

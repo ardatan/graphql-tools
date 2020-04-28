@@ -1,35 +1,7 @@
-import { IResolvers } from '@graphql-tools/utils';
-import * as deepMerge from 'deepmerge';
-import { isScalarType } from 'graphql';
+import { IResolvers, mergeDeep } from '@graphql-tools/utils';
 
 export type ResolversFactory<TContext> = (...args: any[]) => IResolvers<any, TContext>;
 export type ResolversDefinition<TContext> = IResolvers<any, TContext> | ResolversFactory<TContext>;
-
-const isMergeableObject = (target: any): target is object => {
-  if (!target) {
-    return false;
-  }
-
-  if (typeof target !== 'object') {
-    return false;
-  }
-
-  const stringValue = Object.prototype.toString.call(target);
-
-  if (stringValue === '[object RegExp]') {
-    return false;
-  }
-
-  if (stringValue === '[object Date]') {
-    return false;
-  }
-
-  if (isScalarType(target)) {
-    return false;
-  }
-
-  return true;
-};
 
 export interface MergeResolversOptions {
   exclusions?: string[];
@@ -61,10 +33,10 @@ export function mergeResolvers<TContext, T extends ResolversDefinition<TContext>
   if (resolversFactories.length) {
     result = ((...args: any[]) => {
       const resultsOfFactories = resolversFactories.map(factory => factory(...args));
-      return deepMerge.all([...resolvers, ...resultsOfFactories], { isMergeableObject }) as any;
+      return resolvers.concat(resultsOfFactories).reduce(mergeDeep, {});
     }) as any;
   } else {
-    result = (deepMerge.all(resolvers, { isMergeableObject }) as IResolvers<any, TContext>) as T;
+    result = resolvers.reduce(mergeDeep, {});
   }
   if (options && options.exclusions) {
     for (const exclusion of options.exclusions) {

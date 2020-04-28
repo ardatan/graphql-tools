@@ -1,6 +1,5 @@
-import { checkValidationErrors, validateGraphQlDocuments } from '../src';
+import { checkValidationErrors, validateGraphQlDocuments, CombinedError } from '../src';
 import { buildSchema, parse, GraphQLError } from 'graphql';
-import AggregateError from 'aggregate-error';
 
 describe('validateGraphQlDocuments', () => {
   it('Should throw an informative error when validation errors happens, also check for fragments validation even why they are duplicated', async () => {
@@ -55,7 +54,7 @@ describe('validateGraphQlDocuments', () => {
       checkValidationErrors(result);
       expect(true).toBeFalsy();
     } catch (errors) {
-      expect(errors).toBeInstanceOf(AggregateError);
+      expect(errors).toBeInstanceOf(CombinedError);
       const generator = errors[Symbol.iterator]();
 
       const error = generator.next().value;
@@ -117,7 +116,7 @@ describe('checkValidationErrors', () => {
       errors = _errors;
     }
 
-    expect(errors).toBeInstanceOf(AggregateError);
+    expect(errors).toBeInstanceOf(CombinedError);
 
     let error;
     const generator = errors[Symbol.iterator]();

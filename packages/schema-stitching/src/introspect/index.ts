@@ -7,9 +7,7 @@ import {
   IntrospectionQuery,
 } from 'graphql';
 
-import { AsyncExecutor, SyncExecutor, ExecutionResult } from '@graphql-tools/utils';
-
-import { combineErrors } from '../delegate/errors';
+import { AsyncExecutor, SyncExecutor, ExecutionResult, CombinedError } from '@graphql-tools/utils';
 
 function getSchemaFromIntrospection(introspectionResult: ExecutionResult<IntrospectionQuery>): GraphQLSchema {
   if (
@@ -17,8 +15,12 @@ function getSchemaFromIntrospection(introspectionResult: ExecutionResult<Introsp
     !introspectionResult.data.__schema
   ) {
     if (Array.isArray(introspectionResult.errors)) {
-      const combinedError: Error = combineErrors(introspectionResult.errors);
-      throw combinedError;
+      if (introspectionResult.errors.length > 1) {
+        const combinedError = new CombinedError(introspectionResult.errors);
+        throw combinedError;
+      }
+      const error = introspectionResult.errors[0];
+      throw error.originalError || error;
     } else {
       throw new Error('Could not obtain introspection result, received: ' + JSON.stringify(introspectionResult));
     }
