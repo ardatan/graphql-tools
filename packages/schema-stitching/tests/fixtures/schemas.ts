@@ -12,12 +12,12 @@ import {
   GraphQLInterfaceType,
 } from 'graphql';
 
-import { introspectSchema } from '../../src/introspect/index';
 import {
   IResolvers,
   ExecutionResult,
   SubschemaConfig,
   ExecutionParams,
+  introspectSchema,
 } from '@graphql-tools/utils';
 import { makeExecutableSchema } from '@graphql-tools/schema-generator';
 import { PromiseOrValue } from 'graphql/jsutils/PromiseOrValue';
