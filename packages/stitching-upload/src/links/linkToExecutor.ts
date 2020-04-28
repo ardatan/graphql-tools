@@ -1,6 +1,6 @@
 import { ApolloLink, toPromise, execute, Observable, FetchResult } from 'apollo-link';
 
-import { AsyncExecutor, ExecutionParams } from '@graphql-tools/schema-stitching';
+import { AsyncExecutor, ExecutionParams } from '@graphql-tools/utils';
 
 export const linkToExecutor = (link: ApolloLink): AsyncExecutor => <TReturn, TArgs, TContext>({
   document,
