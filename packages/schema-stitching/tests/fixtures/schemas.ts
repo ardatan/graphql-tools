@@ -297,7 +297,7 @@ const propertyRootTypeDefs = `
     testString: String
     bar: String
   }`
-    : `type TestImpl2 implements TestInterface {
+      : `type TestImpl2 implements TestInterface {
     kind: TestInterfaceKind
     testString: String
     bar: String
@@ -364,27 +364,27 @@ const propertyResolvers: IResolvers = {
     interfaceTest(_root, { kind }) {
       return kind === 'ONE'
         ? {
-          kind: 'ONE',
-          testString: 'test',
-          foo: 'foo',
-        }
+            kind: 'ONE',
+            testString: 'test',
+            foo: 'foo',
+          }
         : {
-          kind: 'TWO',
-          testString: 'test',
-          bar: 'bar',
-        };
+            kind: 'TWO',
+            testString: 'test',
+            bar: 'bar',
+          };
     },
 
     unionTest(_root, { output }) {
       return output === 'Interface'
         ? {
-          kind: 'ONE',
-          testString: 'test',
-          foo: 'foo',
-        }
+            kind: 'ONE',
+            testString: 'test',
+            foo: 'foo',
+          }
         : {
-          someField: 'Bar',
-        };
+            someField: 'Bar',
+          };
     },
 
     errorTest() {
@@ -680,23 +680,13 @@ export const subscriptionSchema: GraphQLSchema = makeExecutableSchema({
 });
 
 function makeExecutorFromSchema(schema: GraphQLSchema): Executor {
-  return async ({ document, variables, context }) => graphql(
-    schema,
-    print(document),
-    null,
-    context,
-    variables,
-  );
+  return async ({ document, variables, context }) =>
+    graphql(schema, print(document), null, context, variables);
 }
 
 function makeSubscriberFromSchema(schema: GraphQLSchema): Subscriber {
-  return async ({ document, variables, context }) => subscribe(
-    schema,
-    document,
-    null,
-    context,
-    variables,
-  )
+  return async ({ document, variables, context }) =>
+    subscribe(schema, document, null, context, variables);
 }
 
 export async function makeSchemaRemote(
@@ -713,9 +703,5 @@ export async function makeSchemaRemote(
 }
 
 export const remotePropertySchema = makeSchemaRemote(propertySchema);
-export const remoteProductSchema = makeSchemaRemote(
-  productSchema,
-);
-export const remoteBookingSchema = makeSchemaRemote(
-  bookingSchema,
-);
+export const remoteProductSchema = makeSchemaRemote(productSchema);
+export const remoteBookingSchema = makeSchemaRemote(bookingSchema);

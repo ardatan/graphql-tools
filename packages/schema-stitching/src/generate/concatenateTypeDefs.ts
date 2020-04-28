@@ -16,7 +16,7 @@ export function concatenateTypeDefs(typeDefinitionsAry: Array<ITypedef>, calledF
       resolvedTypeDefinitions.push(print(typeDef).trim());
     } else {
       const type = typeof typeDef;
-      throw new Error(`typeDef array must contain only strings and functions, got ${type}`);
+      throw new Error(`typeDef array must contain only strings, documents, or functions, got ${type}`);
     }
   });
   return uniq(resolvedTypeDefinitions.map(x => x.trim())).join('\n');

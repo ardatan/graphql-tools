@@ -27,6 +27,7 @@ import { parseFragmentToInlineFragment, concatInlineFragments } from '../utils/f
 import { typeContainsSelectionSet, parseSelectionSet } from '../utils/selectionSets';
 
 import { delegateToSchema } from '../delegate/delegateToSchema';
+import { forEachField } from '../utils';
 
 type MergeTypeCandidate = {
   type: GraphQLNamedType;
@@ -283,4 +284,23 @@ function guessSchemaByRootField(
     }
   }
   throw new Error(`Could not find subschema with field \`${operation}.${fieldName}\``);
+}
+
+export function addMergeInfo(stitchedSchema: GraphQLSchema, mergeInfo: MergeInfo): void {
+  forEachField(stitchedSchema, field => {
+    if (field.resolve != null) {
+      const fieldResolver = field.resolve;
+      field.resolve = (parent, args, context, info) => {
+        const newInfo = { ...info, mergeInfo };
+        return fieldResolver(parent, args, context, newInfo);
+      };
+    }
+    if (field.subscribe != null) {
+      const fieldResolver = field.subscribe;
+      field.subscribe = (parent, args, context, info) => {
+        const newInfo = { ...info, mergeInfo };
+        return fieldResolver(parent, args, context, newInfo);
+      };
+    }
+  });
 }

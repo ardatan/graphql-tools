@@ -27,10 +27,12 @@ import {
   GraphQLEnumValueConfigMap,
   GraphQLFieldConfigArgumentMap,
   valueFromASTUntyped,
+  EnumValueDefinitionNode,
+  getDirectiveValues,
+  GraphQLDeprecatedDirective,
 } from 'graphql';
 
 import { createStub, createNamedStub } from '../utils/stub';
-import resolveFromParentTypename from '../utils/resolveFromParentTypename';
 
 const backcompatOptions = { commentDescriptions: true };
 
@@ -76,11 +78,10 @@ function makeInterfaceType(node: InterfaceTypeDefinitionNode): GraphQLInterfaceT
   const config = {
     name: node.name.value,
     description: getDescription(node, backcompatOptions),
-    interfaces: ((node as any) as ObjectTypeDefinitionNode).interfaces?.map(iface =>
+    interfaces: ((node as unknown) as ObjectTypeDefinitionNode).interfaces?.map(iface =>
       createNamedStub(iface.name.value, 'interface')
     ),
     fields: () => makeFields(node.fields),
-    resolveType: (parent: any) => resolveFromParentTypename(parent),
     astNode: node,
   };
   return new GraphQLInterfaceType(config);
@@ -92,6 +93,8 @@ function makeEnumType(node: EnumTypeDefinitionNode): GraphQLEnumType {
       ...prev,
       [value.name.value]: {
         description: getDescription(value, backcompatOptions),
+        deprecationReason: getDeprecationReason(value),
+        astNode: value,
       },
     }),
     {}
@@ -110,7 +113,6 @@ function makeUnionType(node: UnionTypeDefinitionNode): GraphQLUnionType {
     name: node.name.value,
     description: getDescription(node, backcompatOptions),
     types: () => node.types.map(type => createNamedStub(type.name.value, 'object')),
-    resolveType: parent => resolveFromParentTypename(parent),
     astNode: node,
   });
 }
@@ -119,13 +121,9 @@ function makeScalarType(node: ScalarTypeDefinitionNode): GraphQLScalarType {
   return new GraphQLScalarType({
     name: node.name.value,
     description: getDescription(node, backcompatOptions),
-    serialize: () => null,
-    // Note: validation calls the parse functions to determine if a
-    // literal value is correct. Returning null would cause use of custom
-    // scalars to always fail validation. Returning false causes them to
-    // always pass validation.
-    parseValue: () => false,
-    parseLiteral: () => false,
+    serialize: value => value,
+    parseValue: value => value,
+    parseLiteral: value => value,
     astNode: node,
   });
 }
@@ -140,27 +138,19 @@ function makeInputObjectType(node: InputObjectTypeDefinitionNode): GraphQLInputO
 }
 
 function makeFields(nodes: ReadonlyArray<FieldDefinitionNode>): Record<string, GraphQLFieldConfig<any, any>> {
-  return nodes.reduce((prev, node) => {
-    const deprecatedDirective = node.directives.find(directive => directive.name.value === 'deprecated');
-
-    let deprecationReason;
-
-    if (deprecatedDirective != null) {
-      const deprecatedArgument = deprecatedDirective.arguments.find(arg => arg.name.value === 'reason');
-      deprecationReason = (deprecatedArgument.value as StringValueNode).value;
-    }
-
-    return {
+  return nodes.reduce(
+    (prev, node) => ({
       ...prev,
       [node.name.value]: {
         type: createStub(node.type, 'output'),
         description: getDescription(node, backcompatOptions),
         args: makeValues(node.arguments),
-        deprecationReason,
+        deprecationReason: getDeprecationReason(node),
         astNode: node,
       },
-    };
-  }, {});
+    }),
+    {}
+  );
 }
 
 function makeValues(nodes: ReadonlyArray<InputValueDefinitionNode>): GraphQLFieldConfigArgumentMap {
@@ -292,4 +282,9 @@ function leadingWhitespace(str: string) {
 
 function isBlank(str: string) {
   return leadingWhitespace(str) === str.length;
+}
+
+function getDeprecationReason(node: EnumValueDefinitionNode | FieldDefinitionNode): string {
+  const deprecated = getDirectiveValues(GraphQLDeprecatedDirective, node);
+  return deprecated?.reason;
 }

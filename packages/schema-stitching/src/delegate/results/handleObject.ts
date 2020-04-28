@@ -14,7 +14,6 @@ import { SubschemaConfig, MergedTypeInfo, isSubschemaConfig, GraphQLExecutionCon
 import { setErrors, slicedError } from '../errors';
 import { setObjectSubschema } from '../subSchema';
 import { mergeFields } from '../mergeFields';
-import resolveFromParentTypename from '../../utils/resolveFromParentTypename';
 
 export function handleObject(
   type: GraphQLCompositeType,
@@ -36,7 +35,7 @@ export function handleObject(
     return object;
   }
 
-  const typeName = isAbstractType(type) ? info.schema.getTypeMap()[resolveFromParentTypename(object)].name : type.name;
+  const typeName = isAbstractType(type) ? info.schema.getTypeMap()[object.__typename].name : type.name;
   const mergedTypeInfo = info.mergeInfo.mergedTypes[typeName];
   let targetSubschemas: Array<SubschemaConfig>;
 
