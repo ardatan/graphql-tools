@@ -28,7 +28,7 @@ import {
   MergeInfo,
   MergeTypeFilter,
   SubschemaConfig,
-} from '../Interfaces';
+} from '@graphql-tools/utils';
 import { wrapSchema } from '../wrap/wrapSchema';
 
 import {
