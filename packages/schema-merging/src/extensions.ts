@@ -19,8 +19,7 @@ import {
   GraphQLEnumValue,
   GraphQLInterfaceType,
 } from 'graphql';
-import * as deepMerge from 'deepmerge';
-import { Maybe } from '@graphql-tools/utils';
+import { Maybe, mergeDeep } from '@graphql-tools/utils';
 
 export type ExtensionsObject = Record<string, any>;
 
@@ -142,13 +141,13 @@ export function travelSchemaPossibleExtensions(
 
 export function mergeExtensions(extensions: SchemaExtensions[]): SchemaExtensions {
   return extensions.reduce(
-    (result, extensionObj) => deepMerge.all([result, extensionObj]) as SchemaExtensions,
+    (result, extensionObj) => [result, extensionObj].reduce<SchemaExtensions>(mergeDeep, {}),
     {} as SchemaExtensions
   );
 }
 
 function applyExtensionObject(obj: { extensions: Maybe<Readonly<Record<string, any>>> }, extensions: ExtensionsObject) {
-  obj.extensions = deepMerge.all([obj.extensions || {}, extensions || {}]);
+  obj.extensions = [obj.extensions || {}, extensions || {}].reduce(mergeDeep, {});
 }
 
 export function applyExtensions(schema: GraphQLSchema, extensions: SchemaExtensions): GraphQLSchema {

@@ -1,13 +1,6 @@
 import { parse, ASTNode } from 'graphql';
+
 export const asArray = <T>(fns: T | T[]) => (Array.isArray(fns) ? fns : fns ? [fns] : []);
-
-export function chainFunctions(funcs: any[]) {
-  if (funcs.length === 1) {
-    return funcs[0];
-  }
-
-  return funcs.reduce((a, b) => (...args: any[]) => a(b(...args)));
-}
 
 export function isEqual<T>(a: T, b: T): boolean {
   if (Array.isArray(a) && Array.isArray(b)) {

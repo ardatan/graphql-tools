@@ -1,7 +1,6 @@
 import { visit, Kind, SelectionSetNode, FragmentDefinitionNode, GraphQLError } from 'graphql';
 
-import { Transform, Request, ExecutionResult } from '@graphql-tools/utils';
-import { relocatedError } from '../../delegate/errors';
+import { Transform, Request, ExecutionResult, relocatedError } from '@graphql-tools/utils';
 
 export type QueryTransformer = (
   selectionSet: SelectionSetNode,

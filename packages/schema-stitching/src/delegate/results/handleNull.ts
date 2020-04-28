@@ -1,6 +1,6 @@
 import { FieldNode, GraphQLError } from 'graphql';
 
-import { getErrorsByPathSegment, combineErrors } from '../errors';
+import { getErrorsByPathSegment, CombinedError } from '@graphql-tools/utils';
 
 export function handleNull(
   fieldNodes: ReadonlyArray<FieldNode>,
@@ -9,7 +9,12 @@ export function handleNull(
 ) {
   if (errors.length) {
     if (errors.some(error => !error.path || error.path.length < 2)) {
-      return combineErrors(errors);
+      if (errors.length > 1) {
+        const combinedError = new CombinedError(errors);
+        return combinedError;
+      }
+      const error = errors[0];
+      return error.originalError || error;
     } else if (errors.some(error => typeof error.path[1] === 'string')) {
       const childErrors = getErrorsByPathSegment(errors);
 

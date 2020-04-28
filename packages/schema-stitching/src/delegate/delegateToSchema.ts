@@ -19,6 +19,7 @@ import {
   applyRequestTransforms,
   applyResultTransforms,
   mapAsyncIterator,
+  CombinedError,
 } from '@graphql-tools/utils';
 
 import ExpandAbstractTypes from './transforms/ExpandAbstractTypes';
@@ -29,7 +30,6 @@ import AddMergedTypeSelectionSets from './transforms/AddMergedTypeSelectionSets'
 import AddTypenameToAbstract from './transforms/AddTypenameToAbstract';
 import CheckResultAndHandleErrors from './transforms/CheckResultAndHandleErrors';
 import AddArgumentsAsVariables from './transforms/AddArgumentsAsVariables';
-import { combineErrors } from './errors';
 import { createRequestFromInfo, getDelegatingOperation } from './createRequest';
 
 export function delegateToSchema(options: IDelegateToSchemaOptions | GraphQLSchema): any {
@@ -153,8 +153,12 @@ export function delegateRequest({
   if (!skipValidation) {
     const errors = validate(targetSchema, processedRequest.document);
     if (errors.length > 0) {
-      const combinedError: Error = combineErrors(errors);
-      throw combinedError;
+      if (errors.length > 1) {
+        const combinedError = new CombinedError(errors);
+        throw combinedError;
+      }
+      const error = errors[0];
+      throw error.originalError || error;
     }
   }
 

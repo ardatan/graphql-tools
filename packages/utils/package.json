@@ -19,14 +19,11 @@
     "graphql": "^14.0.0 || ^15.0.0"
   },
   "devDependencies": {
-    "@types/aggregate-error": "1.0.1",
     "graphql-scalars": "1.1.2",
     "iterall": "1.3.0"
   },
   "dependencies": {
-    "aggregate-error": "3.0.1",
-    "camel-case": "4.1.1",
-    "lodash": "4.17.15"
+    "camel-case": "4.1.1"
   },
   "publishConfig": {
     "access": "public",
