@@ -1,8 +1,9 @@
 import { FieldNode, SelectionNode, Kind, GraphQLResolveInfo } from 'graphql';
 
-import { SubschemaConfig, MergedTypeInfo } from '@graphql-tools/utils';
+import { SubschemaConfig } from '@graphql-tools/utils';
 
 import { mergeProxiedResults } from './proxiedResult';
+import { MergedTypeInfo } from './types';
 
 function buildDelegationPlan(
   mergedTypeInfo: MergedTypeInfo,

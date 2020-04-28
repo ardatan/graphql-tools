@@ -11,7 +11,6 @@ import {
 import {
   collectFields,
   SubschemaConfig,
-  MergedTypeInfo,
   isSubschemaConfig,
   GraphQLExecutionContext,
   setErrors,
@@ -19,6 +18,7 @@ import {
 } from '@graphql-tools/utils';
 import { setObjectSubschema } from '../subSchema';
 import { mergeFields } from '../mergeFields';
+import { MergedTypeInfo } from '../types';
 
 export function handleObject(
   type: GraphQLCompositeType,

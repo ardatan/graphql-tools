@@ -1,5 +1,4 @@
 import {
-  GraphQLNamedType,
   GraphQLObjectType,
   GraphQLResolveInfo,
   GraphQLSchema,
@@ -11,15 +10,10 @@ import {
 } from 'graphql';
 
 import {
-  IDelegateToSchemaOptions,
-  MergeInfo,
-  IResolversParameter,
   isSubschemaConfig,
   SubschemaConfig,
-  MergedTypeInfo,
   Transform,
   TypeMap,
-  MergeTypeFilter,
   parseFragmentToInlineFragment,
   concatInlineFragments,
   typeContainsSelectionSet,
@@ -30,13 +24,8 @@ import ExpandAbstractTypes from '../delegate/transforms/ExpandAbstractTypes';
 import AddReplacementFragments from '../delegate/transforms/AddReplacementFragments';
 
 import { delegateToSchema } from '../delegate/delegateToSchema';
-
-type MergeTypeCandidate = {
-  type: GraphQLNamedType;
-  schema?: GraphQLSchema;
-  subschema?: GraphQLSchema | SubschemaConfig;
-  transformedSubschema?: GraphQLSchema;
-};
+import { IDelegateToSchemaOptions, MergedTypeInfo } from '../delegate/types';
+import { MergeTypeCandidate, MergeInfo, IResolversParameter, MergeTypeFilter } from './types';
 
 export function createMergeInfo(
   allSchemas: Array<GraphQLSchema>,

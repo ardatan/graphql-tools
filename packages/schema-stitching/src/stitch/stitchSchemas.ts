@@ -16,11 +16,7 @@ import {
   mergeDeep,
   SubschemaConfig,
   isSubschemaConfig,
-  IResolversParameter,
   IResolvers,
-  IStitchSchemasOptions,
-  MergeInfo,
-  MergeTypeCandidate,
   rewireTypes,
 } from '@graphql-tools/utils';
 
@@ -36,6 +32,7 @@ import {
 
 import { buildTypeCandidates, buildTypeMap } from './typeCandidates';
 import { createMergeInfo, completeMergeInfo, addMergeInfo } from './mergeInfo';
+import { MergeTypeCandidate, IStitchSchemasOptions, MergeInfo, IResolversParameter } from './types';
 
 export function stitchSchemas({
   subschemas = [],

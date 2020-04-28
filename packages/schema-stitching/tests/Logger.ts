@@ -2,7 +2,7 @@
  * A very simple class for logging errors
  */
 
-import { ILogger } from '../src/Interfaces';
+import { ILogger } from '@graphql-tools/schema-generator';
 
 export class Logger implements ILogger {
   public errors: Array<Error>;

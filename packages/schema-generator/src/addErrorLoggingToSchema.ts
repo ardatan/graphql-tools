@@ -1,6 +1,7 @@
 import { GraphQLSchema } from 'graphql';
-import { forEachField, ILogger } from '@graphql-tools/utils';
+import { forEachField } from '@graphql-tools/utils';
 import { decorateWithLogger } from './decorateWithLogger';
+import { ILogger } from './types';
 
 export function addErrorLoggingToSchema(schema: GraphQLSchema, logger?: ILogger): void {
   if (!logger) {

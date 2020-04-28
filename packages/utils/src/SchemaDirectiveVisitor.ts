@@ -6,7 +6,7 @@ import {
   valueFromASTUntyped,
 } from 'graphql';
 
-import { VisitableSchemaType, SchemaDirectiveVisitorClass } from './Interfaces';
+import { VisitableSchemaType } from './Interfaces';
 
 import { SchemaVisitor } from './SchemaVisitor';
 import { visitSchema } from './visitSchema';
@@ -54,6 +54,8 @@ import { getArgumentValues } from './getArgumentValues';
 // See below for a complete list of overridable visitor methods, their
 // parameter types, and more details about the properties exposed by instances
 // of the SchemaDirectiveVisitor class.
+
+export type SchemaDirectiveVisitorClass = typeof SchemaDirectiveVisitor;
 
 export class SchemaDirectiveVisitor<TArgs = any, TContext = any> extends SchemaVisitor {
   // The name of the directive this visitor is allowed to visit (that is, the

@@ -1,6 +1,5 @@
-import { chainFunctions } from './helpers';
-import { flattenArray } from './flatten-array';
-import { get, set } from 'lodash';
+import { chainFunctions } from './chain-functions';
+import { get, set, flatten } from 'lodash';
 import { isScalarType, GraphQLFieldResolver } from 'graphql';
 import { asArray } from '@graphql-tools/utils';
 
@@ -39,7 +38,7 @@ function resolveRelevantMappings<Resolvers extends Record<string, any> = Record<
     const fieldName = splitted[1];
 
     if (typeName === '*') {
-      return flattenArray(
+      return flatten(
         Object.keys(resolvers).map(typeName =>
           resolveRelevantMappings(resolvers, `${typeName}.${fieldName}`, allMappings)
         )
@@ -47,7 +46,7 @@ function resolveRelevantMappings<Resolvers extends Record<string, any> = Record<
     }
 
     if (fieldName === '*') {
-      return flattenArray(
+      return flatten(
         Object.keys(resolvers[typeName]).map(field =>
           resolveRelevantMappings(resolvers, `${typeName}.${field}`, allMappings)
         )
@@ -74,7 +73,7 @@ function resolveRelevantMappings<Resolvers extends Record<string, any> = Record<
   } else if (splitted.length === 1) {
     const typeName = splitted[0];
 
-    return flattenArray(
+    return flatten(
       Object.keys(resolvers[typeName]).map(fieldName =>
         resolveRelevantMappings(resolvers, `${typeName}.${fieldName}`, allMappings)
       )

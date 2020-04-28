@@ -10,8 +10,6 @@ import {
 } from 'graphql';
 
 import {
-  IDelegateToSchemaOptions,
-  IDelegateRequestOptions,
   SubschemaConfig,
   isSubschemaConfig,
   Transform,
@@ -31,6 +29,7 @@ import AddTypenameToAbstract from './transforms/AddTypenameToAbstract';
 import CheckResultAndHandleErrors from './transforms/CheckResultAndHandleErrors';
 import AddArgumentsAsVariables from './transforms/AddArgumentsAsVariables';
 import { createRequestFromInfo, getDelegatingOperation } from './createRequest';
+import { IDelegateToSchemaOptions, IDelegateRequestOptions } from './types';
 
 export function delegateToSchema(options: IDelegateToSchemaOptions | GraphQLSchema): any {
   if (isSchema(options)) {

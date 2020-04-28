@@ -19,7 +19,6 @@ import {
   GraphQLInterfaceType,
   GraphQLObjectType,
   InlineFragmentNode,
-  GraphQLOutputType,
   SelectionSetNode,
   GraphQLDirective,
   GraphQLFieldConfig,
@@ -33,9 +32,6 @@ import {
 } from 'graphql';
 
 import { SchemaVisitor } from './SchemaVisitor';
-import { SchemaDirectiveVisitor } from './SchemaDirectiveVisitor';
-
-export type SchemaDirectiveVisitorClass = typeof SchemaDirectiveVisitor;
 
 // graphql-js < v15 backwards compatible ExecutionResult
 // See: https://github.com/graphql/graphql-js/pull/2490
@@ -156,12 +152,6 @@ export type RenameTypesOptions = {
   renameScalars: boolean;
 };
 
-declare module 'graphql' {
-  interface GraphQLResolveInfo {
-    mergeInfo?: MergeInfo;
-  }
-}
-
 export interface ExecutionParams<TArgs = Record<string, any>, TContext = any> {
   document: DocumentNode;
   variables?: TArgs;
@@ -213,15 +203,6 @@ export interface GraphQLSchemaWithTransforms extends GraphQLSchema {
   transforms?: Array<Transform>;
 }
 
-export type MergeTypeCandidate = {
-  type: GraphQLNamedType;
-  schema?: GraphQLSchema;
-  subschema?: GraphQLSchema | SubschemaConfig;
-  transformedSubschema?: GraphQLSchema;
-};
-
-export type MergeTypeFilter = (mergeTypeCandidates: Array<MergeTypeCandidate>, typeName: string) => boolean;
-
 export interface IMakeRemoteExecutableSchemaOptions {
   schema: GraphQLSchema | string;
   executor?: Executor;
@@ -230,44 +211,10 @@ export interface IMakeRemoteExecutableSchemaOptions {
   buildSchemaOptions?: BuildSchemaOptions;
 }
 
-export interface IStitchSchemasOptions<TContext = any> extends Omit<IExecutableSchemaDefinition<TContext>, 'typeDefs'> {
-  subschemas?: Array<GraphQLSchema | SubschemaConfig>;
-  typeDefs?: ITypeDefinitions;
-  types?: Array<GraphQLNamedType>;
-  schemas?: Array<SchemaLikeObject>;
-  onTypeConflict?: OnTypeConflict;
-  mergeTypes?: boolean | Array<string> | MergeTypeFilter;
-  mergeDirectives?: boolean;
-}
-
 export type SchemaLikeObject = SubschemaConfig | GraphQLSchema | string | DocumentNode | Array<GraphQLNamedType>;
 
 export function isSubschemaConfig(value: any): value is SubschemaConfig {
   return Boolean((value as SubschemaConfig).schema);
-}
-
-export interface IDelegateToSchemaOptions<TContext = Record<string, any>, TArgs = Record<string, any>> {
-  schema: GraphQLSchema | SubschemaConfig;
-  operation?: Operation;
-  fieldName?: string;
-  returnType?: GraphQLOutputType;
-  args?: TArgs;
-  selectionSet?: SelectionSetNode;
-  fieldNodes?: ReadonlyArray<FieldNode>;
-  context?: TContext;
-  info: GraphQLResolveInfo;
-  rootValue?: Record<string, any>;
-  transforms?: Array<Transform>;
-  skipValidation?: boolean;
-  skipTypeMerging?: boolean;
-}
-
-export interface ICreateRequestFromInfo {
-  info: GraphQLResolveInfo;
-  operation: Operation;
-  fieldName: string;
-  selectionSet?: SelectionSetNode;
-  fieldNodes?: ReadonlyArray<FieldNode>;
 }
 
 export interface ICreateRequest {
@@ -283,45 +230,12 @@ export interface ICreateRequest {
   fieldNodes?: ReadonlyArray<FieldNode>;
 }
 
-export interface IDelegateRequestOptions extends IDelegateToSchemaOptions {
-  request: Request;
-}
-
-export interface MergeInfo {
-  delegate: (
-    type: 'query' | 'mutation' | 'subscription',
-    fieldName: string,
-    args: Record<string, any>,
-    context: Record<string, any>,
-    info: GraphQLResolveInfo,
-    transforms?: Array<Transform>
-  ) => any;
-  fragments: Array<{
-    field: string;
-    fragment: string;
-  }>;
-  replacementSelectionSets: ReplacementSelectionSetMapping;
-  replacementFragments: ReplacementFragmentMapping;
-  mergedTypes: Record<string, MergedTypeInfo>;
-  delegateToSchema<TContext, TArgs>(options: IDelegateToSchemaOptions<TContext, TArgs>): any;
-}
-
 export interface ReplacementSelectionSetMapping {
   [typeName: string]: { [fieldName: string]: SelectionSetNode };
 }
 
 export interface ReplacementFragmentMapping {
   [typeName: string]: { [fieldName: string]: InlineFragmentNode };
-}
-
-export interface MergedTypeInfo {
-  subschemas: Array<SubschemaConfig>;
-  selectionSet?: SelectionSetNode;
-  uniqueFields: Record<string, SubschemaConfig>;
-  nonUniqueFields: Record<string, Array<SubschemaConfig>>;
-  typeMaps: Map<SubschemaConfig, TypeMap>;
-  selectionSets: Map<SubschemaConfig, SelectionSetNode>;
-  containsSelectionSet: Map<SubschemaConfig, Map<SelectionSetNode, boolean>>;
 }
 
 export type IFieldResolver<TSource, TContext, TArgs = Record<string, any>, TReturn = any> = (
@@ -353,27 +267,6 @@ export type IResolvers<TSource = any, TContext = any> = Record<
   | IEnumResolver
 >;
 
-export type IResolversParameter =
-  | Array<IResolvers | ((mergeInfo: MergeInfo) => IResolvers)>
-  | IResolvers
-  | ((mergeInfo: MergeInfo) => IResolvers);
-
-export interface ILogger {
-  log: (error: Error) => void;
-}
-
-export interface IExecutableSchemaDefinition<TContext = any> {
-  typeDefs: ITypeDefinitions;
-  resolvers?: IResolvers<any, TContext> | Array<IResolvers<any, TContext>>;
-  logger?: ILogger;
-  allowUndefinedInResolve?: boolean;
-  resolverValidationOptions?: IResolverValidationOptions;
-  directiveResolvers?: IDirectiveResolvers<any, TContext>;
-  schemaDirectives?: Record<string, SchemaDirectiveVisitorClass>;
-  parseOptions?: GraphQLParseOptions;
-  inheritResolversFromInterfaces?: boolean;
-}
-
 export type IFieldIteratorFn = (fieldDef: GraphQLField<any, any>, typeName: string, fieldName: string) => void;
 
 export type IDefaultValueIteratorFn = (type: GraphQLInputType, value: any) => void;
@@ -391,19 +284,6 @@ export type DirectiveResolverFn<TSource = any, TContext = any> = (
 export interface IDirectiveResolvers<TSource = any, TContext = any> {
   [directiveName: string]: DirectiveResolverFn<TSource, TContext>;
 }
-
-export type OnTypeConflict = (
-  left: GraphQLNamedType,
-  right: GraphQLNamedType,
-  info?: {
-    left: {
-      schema?: GraphQLSchema | SubschemaConfig;
-    };
-    right: {
-      schema?: GraphQLSchema | SubschemaConfig;
-    };
-  }
-) => GraphQLNamedType;
 
 export type Operation = 'query' | 'mutation' | 'subscription';
 

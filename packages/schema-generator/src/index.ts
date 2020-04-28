@@ -11,4 +11,5 @@ export { checkForResolveTypeResolver } from './checkForResolveTypeResolver';
 export { extendResolversFromInterfaces } from './extendResolversFromInterfaces';
 export { addErrorLoggingToSchema } from './addErrorLoggingToSchema';
 export { addCatchUndefinedToSchema } from './addCatchUndefinedToSchema';
-export { makeExecutableSchema } from './makeExecutableSchema';
+export * from './makeExecutableSchema';
+export * from './types';

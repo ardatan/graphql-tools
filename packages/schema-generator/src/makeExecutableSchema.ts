@@ -1,6 +1,6 @@
 import { GraphQLFieldResolver } from 'graphql';
 
-import { mergeDeep, IExecutableSchemaDefinition, SchemaDirectiveVisitor } from '@graphql-tools/utils';
+import { mergeDeep, SchemaDirectiveVisitor } from '@graphql-tools/utils';
 import { addResolversToSchema } from './addResolversToSchema';
 
 import { attachDirectiveResolvers } from './attachDirectiveResolvers';
@@ -9,6 +9,7 @@ import { addSchemaLevelResolver } from './addSchemaLevelResolver';
 import { buildSchemaFromTypeDefinitions } from './buildSchemaFromTypeDefinitions';
 import { addErrorLoggingToSchema } from './addErrorLoggingToSchema';
 import { addCatchUndefinedToSchema } from './addCatchUndefinedToSchema';
+import { IExecutableSchemaDefinition } from './types';
 
 export function makeExecutableSchema<TContext = any>({
   typeDefs,

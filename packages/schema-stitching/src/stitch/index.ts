@@ -1,1 +1,1 @@
-export { stitchSchemas } from './stitchSchemas';
+export * from './stitchSchemas';

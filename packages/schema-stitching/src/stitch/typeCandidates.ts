@@ -21,14 +21,7 @@ import {
   GraphQLFieldConfigMap,
 } from 'graphql';
 
-import {
-  OnTypeConflict,
-  isSubschemaConfig,
-  MergeTypeCandidate,
-  MergeInfo,
-  MergeTypeFilter,
-  SubschemaConfig,
-} from '@graphql-tools/utils';
+import { isSubschemaConfig, SubschemaConfig } from '@graphql-tools/utils';
 import { wrapSchema } from '../wrap/wrapSchema';
 
 import {
@@ -40,6 +33,7 @@ import {
 } from './definitions';
 
 import typeFromAST from './typeFromAST';
+import { MergeTypeCandidate, MergeTypeFilter, OnTypeConflict, MergeInfo } from './types';
 
 type CandidateSelector = (candidates: Array<MergeTypeCandidate>) => MergeTypeCandidate;
 

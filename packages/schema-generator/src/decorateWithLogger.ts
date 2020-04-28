@@ -1,6 +1,5 @@
 import { defaultFieldResolver, GraphQLFieldResolver } from 'graphql';
-
-import { ILogger } from '@graphql-tools/utils';
+import { ILogger } from './types';
 
 /*
  * fn: The function to decorate with the logger
