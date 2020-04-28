@@ -327,8 +327,12 @@ describe('transforms', () => {
             transforms: [new RenameRootTypes((name) => `${name}Root`)],
           },
         ],
-        queryTypeName: 'QueryRoot',
-        mutationTypeName: 'MutationRoot',
+        typeDefs: `
+          schema {
+            query: QueryRoot
+            mutation: MutationRoot
+          }
+        `,
       });
 
       const result = await graphql(

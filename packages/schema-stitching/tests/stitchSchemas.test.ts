@@ -3033,7 +3033,11 @@ fragment BookingFragment on Booking {
 
       const stitchedSchema = stitchSchemas({
         schemas: [bookSchema, movieSchema],
-        queryTypeName: 'RootQuery',
+        typeDefs: `
+          schema {
+            query: RootQuery
+          }
+        `,
       });
 
       const result = await graphql(

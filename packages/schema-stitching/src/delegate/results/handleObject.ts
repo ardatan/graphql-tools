@@ -14,7 +14,6 @@ import {
   MergedTypeInfo,
   isSubschemaConfig,
   GraphQLExecutionContext,
-  resolveFromParentTypename,
   setErrors,
   slicedError,
 } from '@graphql-tools/utils';
@@ -41,7 +40,7 @@ export function handleObject(
     return object;
   }
 
-  const typeName = isAbstractType(type) ? info.schema.getTypeMap()[resolveFromParentTypename(object)].name : type.name;
+  const typeName = isAbstractType(type) ? info.schema.getTypeMap()[object.__typename].name : type.name;
   const mergedTypeInfo = info.mergeInfo.mergedTypes[typeName];
   let targetSubschemas: Array<SubschemaConfig>;
 

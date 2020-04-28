@@ -24,6 +24,7 @@ import {
   concatInlineFragments,
   typeContainsSelectionSet,
   parseSelectionSet,
+  forEachField,
 } from '@graphql-tools/utils';
 import ExpandAbstractTypes from '../delegate/transforms/ExpandAbstractTypes';
 import AddReplacementFragments from '../delegate/transforms/AddReplacementFragments';
@@ -285,4 +286,23 @@ function guessSchemaByRootField(
     }
   }
   throw new Error(`Could not find subschema with field \`${operation}.${fieldName}\``);
+}
+
+export function addMergeInfo(stitchedSchema: GraphQLSchema, mergeInfo: MergeInfo): void {
+  forEachField(stitchedSchema, field => {
+    if (field.resolve != null) {
+      const fieldResolver = field.resolve;
+      field.resolve = (parent, args, context, info) => {
+        const newInfo = { ...info, mergeInfo };
+        return fieldResolver(parent, args, context, newInfo);
+      };
+    }
+    if (field.subscribe != null) {
+      const fieldResolver = field.subscribe;
+      field.subscribe = (parent, args, context, info) => {
+        const newInfo = { ...info, mergeInfo };
+        return fieldResolver(parent, args, context, newInfo);
+      };
+    }
+  });
 }

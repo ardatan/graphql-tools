@@ -12,12 +12,10 @@ import {
   isSubschemaConfig,
   MapperKind,
   mapSchema,
-  resolveFromParentTypename,
   applySchemaTransforms,
 } from '@graphql-tools/utils';
 
 import { defaultMergedResolver } from '../delegate';
-
 import { generateProxyingResolvers } from './generateProxyingResolvers';
 
 export function wrapSchema(
@@ -76,12 +74,12 @@ function createWrappingSchema(
     },
     [MapperKind.INTERFACE_TYPE]: type => {
       const config = type.toConfig();
-      config.resolveType = parent => resolveFromParentTypename(parent);
+      delete config.resolveType;
       return new GraphQLInterfaceType(config);
     },
     [MapperKind.UNION_TYPE]: type => {
       const config = type.toConfig();
-      config.resolveType = parent => resolveFromParentTypename(parent);
+      delete config.resolveType;
       return new GraphQLUnionType(config);
     },
   });
