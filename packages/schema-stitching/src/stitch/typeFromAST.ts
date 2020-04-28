@@ -121,10 +121,10 @@ function makeScalarType(node: ScalarTypeDefinitionNode): GraphQLScalarType {
   return new GraphQLScalarType({
     name: node.name.value,
     description: getDescription(node, backcompatOptions),
-    serialize: value => value,
-    parseValue: value => value,
-    parseLiteral: value => value,
     astNode: node,
+    // TODO: serialize default property setting can be dropped once
+    // upstream graphql-js TypeScript typings are updated, likely in v16
+    serialize: value => value,
   });
 }
 
