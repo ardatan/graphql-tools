@@ -1,7 +1,8 @@
 import { parse } from 'graphql';
 
-import { createRequest } from '../src/delegate';
 import { parseSelectionSet } from '@graphql-tools/utils';
+
+import { createRequest } from '../src/delegate';
 
 function removeLocations(value: any): any {
   if (value == null) {

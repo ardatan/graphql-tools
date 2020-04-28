@@ -4,9 +4,10 @@
 import { graphql } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema-generator';
-import { stitchSchemas } from '@graphql-tools/schema-stitching';
 
 import { addMocksToSchema } from '@graphql-tools/mocking';
+
+import { stitchSchemas } from '../src/stitchSchemas';
 
 const chirpSchema = makeExecutableSchema({
   typeDefs: `

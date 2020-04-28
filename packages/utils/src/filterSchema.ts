@@ -7,9 +7,10 @@ import {
   GraphQLUnionType,
   GraphQLType,
   GraphQLField,
+  GraphQLSchema,
 } from 'graphql';
 
-import { GraphQLSchemaWithTransforms, MapperKind, FieldFilter, RootFieldFilter } from './Interfaces';
+import { MapperKind, FieldFilter, RootFieldFilter } from './Interfaces';
 
 import { mapSchema } from './map';
 
@@ -19,12 +20,12 @@ export function filterSchema({
   typeFilter = () => true,
   fieldFilter = () => true,
 }: {
-  schema: GraphQLSchemaWithTransforms;
+  schema: GraphQLSchema;
   rootFieldFilter?: RootFieldFilter;
   typeFilter?: (typeName: string, type: GraphQLType) => boolean;
   fieldFilter?: (typeName: string, fieldName: string) => boolean;
-}): GraphQLSchemaWithTransforms {
-  const filteredSchema: GraphQLSchemaWithTransforms = mapSchema(schema, {
+}): GraphQLSchema {
+  const filteredSchema: GraphQLSchema = mapSchema(schema, {
     [MapperKind.QUERY]: (type: GraphQLObjectType) => filterRootFields(type, 'Query', rootFieldFilter),
     [MapperKind.MUTATION]: (type: GraphQLObjectType) => filterRootFields(type, 'Mutation', rootFieldFilter),
     [MapperKind.SUBSCRIPTION]: (type: GraphQLObjectType) => filterRootFields(type, 'Subscription', rootFieldFilter),
@@ -36,8 +37,6 @@ export function filterSchema({
     [MapperKind.ENUM_TYPE]: (type: GraphQLEnumType) => (typeFilter(type.name, type) ? undefined : null),
     [MapperKind.SCALAR_TYPE]: (type: GraphQLScalarType) => (typeFilter(type.name, type) ? undefined : null),
   });
-
-  filteredSchema.transforms = schema.transforms;
 
   return filteredSchema;
 }

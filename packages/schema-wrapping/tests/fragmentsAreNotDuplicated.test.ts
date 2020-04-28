@@ -1,8 +1,9 @@
 import { ExecutionResult, graphql } from 'graphql';
 
-import { transformSchema } from '../src';
 import { makeExecutableSchema } from '@graphql-tools/schema-generator'
 import { addMocksToSchema } from '@graphql-tools/mocking';
+
+import { wrapSchema } from '../src/wrap';
 
 describe('Merging schemas', () => {
   test('should not throw `There can be only one fragment named "FieldName"` errors', async () => {
@@ -21,7 +22,7 @@ describe('Merging schemas', () => {
     );
     assertNoDuplicateFragmentErrors(originalResult);
 
-    const transformedSchema = transformSchema(originalSchema, []);
+    const transformedSchema = wrapSchema(originalSchema, []);
 
     const transformedResult = await graphql(
       transformedSchema,

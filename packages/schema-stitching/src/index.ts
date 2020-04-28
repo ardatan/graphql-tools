@@ -1,4 +1,1 @@
-export * from './delegate';
-export * from './introspect';
-export * from './stitch';
-export * from './wrap';
+export { stitchSchemas } from './stitchSchemas';

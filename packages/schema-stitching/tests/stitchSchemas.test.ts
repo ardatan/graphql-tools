@@ -12,9 +12,9 @@ import {
   printSchema,
 } from 'graphql';
 
-import { delegateToSchema } from '../src/delegate/index';
+import { delegateToSchema } from '@graphql-tools/schema-wrapping';
 import { makeExecutableSchema } from '@graphql-tools/schema-generator';
-import { stitchSchemas } from '../src/stitch/index';
+import { stitchSchemas } from '../src/stitchSchemas';
 import {
   cloneSchema,
   getResolversFromSchema,

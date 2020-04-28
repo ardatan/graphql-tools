@@ -32,6 +32,7 @@ import {
   attachDirectiveResolvers,
   chainResolvers,
   concatenateTypeDefs,
+  ILogger,
 } from '@graphql-tools/schema-generator';
 
 import {
@@ -41,7 +42,6 @@ import {
   NextResolverFn,
   VisitSchemaKind,
   ITypeDefinitions,
-  ILogger,
   visitSchema
 } from '@graphql-tools/utils';
 

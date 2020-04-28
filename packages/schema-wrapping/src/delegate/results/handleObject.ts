@@ -16,7 +16,7 @@ import {
   setErrors,
   slicedError,
 } from '@graphql-tools/utils';
-import { setObjectSubschema } from '../subSchema';
+import { setObjectSubschema } from '../subschema';
 import { mergeFields } from '../mergeFields';
 import { MergedTypeInfo } from '../types';
 

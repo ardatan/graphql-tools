@@ -1,5 +1,3 @@
-/* eslint-disable */
-import { forAwaitEach } from './forAwaitEach';
 import {
   GraphQLSchema,
   subscribe,
@@ -9,7 +7,9 @@ import {
   print,
 } from 'graphql';
 
-import { makeRemoteExecutableSchema } from '../src/wrap/index';
+import { makeRemoteExecutableSchema } from '../src/wrap/makeRemoteExecutableSchema';
+
+import { forAwaitEach } from './forAwaitEach';
 
 import {
   propertySchema,
@@ -177,21 +177,21 @@ describe('respects buildSchema options', () => {
 
   describe('when query for multiple fields', () => {
     const schema = `
-    type Query {
-      fieldA: Int!
-      fieldB: Int!
-      field3: Int!
-    }
-  `;
+      type Query {
+        fieldA: Int!
+        fieldB: Int!
+        field3: Int!
+      }
+    `;
     const query = parse(`
-    query {
-      fieldA
-      fieldB
-      field3
-    }
-  `);
+      query {
+        fieldA
+        fieldB
+        field3
+      }
+    `);
     let calls: Array<any> = [];
-    const executor = (args: any) => {
+    const executor = (args: any): any => {
       calls.push(args);
       return Promise.resolve({
         data: {
@@ -208,21 +208,6 @@ describe('respects buildSchema options', () => {
 
     beforeEach(() => {
       calls = [];
-    });
-
-    // One of the two tests below should work depending upon what the correct intended behaviour is
-    it.skip('forwards one upstream query', async () => {
-      const result = await execute(remoteSchema, query);
-      expect(result).toEqual({
-        data: {
-          fieldA: 1,
-          fieldB: 2,
-          field3: 3,
-        },
-      });
-
-      expect(calls).toHaveLength(1);
-      expect(print(calls[0].document)).toEqual(print(query));
     });
 
     it('forwards three upstream queries', async () => {

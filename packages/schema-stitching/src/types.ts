@@ -1,4 +1,4 @@
-import { GraphQLNamedType, GraphQLSchema } from 'graphql';
+import { GraphQLNamedType, GraphQLSchema, SelectionSetNode } from 'graphql';
 import {
   SubschemaConfig,
   ReplacementSelectionSetMapping,
@@ -7,9 +7,10 @@ import {
   ITypeDefinitions,
   SchemaLikeObject,
   Transform,
+  TypeMap,
 } from '@graphql-tools/utils';
 import { GraphQLResolveInfo } from 'graphql/type';
-import { IDelegateToSchemaOptions, MergedTypeInfo } from '../delegate/types';
+import { IDelegateToSchemaOptions } from '@graphql-tools/schema-wrapping';
 import { IExecutableSchemaDefinition } from '@graphql-tools/schema-generator';
 
 export type MergeTypeCandidate = {
@@ -25,6 +26,16 @@ declare module 'graphql' {
   interface GraphQLResolveInfo {
     mergeInfo?: MergeInfo;
   }
+}
+
+export interface MergedTypeInfo {
+  subschemas: Array<SubschemaConfig>;
+  selectionSet?: SelectionSetNode;
+  uniqueFields: Record<string, SubschemaConfig>;
+  nonUniqueFields: Record<string, Array<SubschemaConfig>>;
+  typeMaps: Map<SubschemaConfig, TypeMap>;
+  selectionSets: Map<SubschemaConfig, SelectionSetNode>;
+  containsSelectionSet: Map<SubschemaConfig, Map<SelectionSetNode, boolean>>;
 }
 
 export interface MergeInfo {

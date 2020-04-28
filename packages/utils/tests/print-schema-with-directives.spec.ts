@@ -1,4 +1,4 @@
-import { RenameTypes, transformSchema } from '@graphql-tools/schema-stitching';
+import { RenameTypes, wrapSchema } from '../../schema-wrapping/src/wrap/';
 import { makeExecutableSchema } from '@graphql-tools/schema-generator';
 import { buildSchema, printSchema } from 'graphql';
 import { printSchemaWithDirectives } from '../src';
@@ -103,7 +103,7 @@ describe('printSchemaWithDirectives', () => {
 
     const schema = buildSchema(printedSchema);
 
-    const transformedSchema = transformSchema(schema, [
+    const transformedSchema = wrapSchema(schema, [
       new RenameTypes(typeName => `My${typeName}`)
     ]);
     const printedTransformedSchema = printSchemaWithDirectives(transformedSchema);

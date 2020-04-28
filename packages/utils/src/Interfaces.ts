@@ -199,10 +199,6 @@ export type MergedTypeResolver = (
   selectionSet: SelectionSetNode
 ) => any;
 
-export interface GraphQLSchemaWithTransforms extends GraphQLSchema {
-  transforms?: Array<Transform>;
-}
-
 export interface IMakeRemoteExecutableSchemaOptions {
   schema: GraphQLSchema | string;
   executor?: Executor;

@@ -22,7 +22,7 @@ import {
 } from 'graphql';
 
 import { isSubschemaConfig, SubschemaConfig } from '@graphql-tools/utils';
-import { wrapSchema } from '../wrap/wrapSchema';
+import { wrapSchema } from '@graphql-tools/schema-wrapping';
 
 import {
   extractTypeDefinitions,

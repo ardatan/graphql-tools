@@ -7,9 +7,10 @@ import {
 } from 'graphql';
 
 import { VisitSchemaKind, cloneType, healSchema, visitSchema } from '@graphql-tools/utils';
-import { transformSchema, RenameTypes } from '../src/wrap/index';
 import { makeExecutableSchema } from '@graphql-tools/schema-generator';
 import { addMocksToSchema } from '@graphql-tools/mocking';
+
+import { wrapSchema, RenameTypes } from '../src/wrap';
 
 // see https://github.com/gatsbyjs/gatsby/blob/master/packages/gatsby-source-graphql/src/transforms.js
 // and https://github.com/gatsbyjs/gatsby/issues/22128
@@ -134,7 +135,7 @@ describe('Gatsby transforms', () => {
 
     addMocksToSchema({ schema });
 
-    const transformedSchema = transformSchema(schema, [
+    const transformedSchema = wrapSchema(schema, [
       new StripNonQueryTransform(),
       new RenameTypes((name) => `CountriesQuery_${name}`),
       new NamespaceUnderFieldTransform({

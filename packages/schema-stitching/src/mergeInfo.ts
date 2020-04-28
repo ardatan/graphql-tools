@@ -20,12 +20,14 @@ import {
   parseSelectionSet,
   forEachField,
 } from '@graphql-tools/utils';
-import ExpandAbstractTypes from '../delegate/transforms/ExpandAbstractTypes';
-import AddReplacementFragments from '../delegate/transforms/AddReplacementFragments';
+import {
+  ExpandAbstractTypes,
+  AddReplacementFragments,
+  delegateToSchema,
+  IDelegateToSchemaOptions,
+} from '@graphql-tools/schema-wrapping';
 
-import { delegateToSchema } from '../delegate/delegateToSchema';
-import { IDelegateToSchemaOptions, MergedTypeInfo } from '../delegate/types';
-import { MergeTypeCandidate, MergeInfo, IResolversParameter, MergeTypeFilter } from './types';
+import { MergeTypeCandidate, MergedTypeInfo, MergeInfo, IResolversParameter, MergeTypeFilter } from './types';
 
 export function createMergeInfo(
   allSchemas: Array<GraphQLSchema>,

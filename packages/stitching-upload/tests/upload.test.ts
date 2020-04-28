@@ -10,9 +10,10 @@ import { fetch } from 'cross-fetch';
 import { buildSchema } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema-generator';
-import { stitchSchemas } from '@graphql-tools/schema-stitching'
 import { SubschemaConfig } from '@graphql-tools/utils'
 import { createServerHttpLink, GraphQLUpload as ServerGraphQLUpload, linkToExecutor } from '../src';
+
+import { stitchSchemas } from '@graphql-tools/schema-stitching'
 
 function streamToString(stream: Readable) {
   const chunks: Array<Buffer> = [];

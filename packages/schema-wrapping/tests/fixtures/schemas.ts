@@ -12,7 +12,7 @@ import {
   GraphQLInterfaceType,
 } from 'graphql';
 
-import { introspectSchema } from '@graphql-tools/schema-wrapping';
+import { introspectSchema } from '../../src/introspect';
 import {
   IResolvers,
   ExecutionResult,

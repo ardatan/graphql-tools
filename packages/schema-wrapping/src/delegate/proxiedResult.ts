@@ -5,7 +5,7 @@ import { SubschemaConfig, mergeDeep, ERROR_SYMBOL, relocatedError, setErrors, ge
 import { handleNull } from './results/handleNull';
 
 import { FIELD_SUBSCHEMA_MAP_SYMBOL, OBJECT_SUBSCHEMA_SYMBOL } from './symbols';
-import { getSubschema, setObjectSubschema } from './subSchema';
+import { getSubschema, setObjectSubschema } from './subschema';
 
 export function isProxiedResult(result: any) {
   return result != null ? result[ERROR_SYMBOL] : result;
