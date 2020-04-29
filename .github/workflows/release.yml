@@ -24,7 +24,7 @@ jobs:
         uses: actions/setup-node@v1
         with:
           # Setup .npmrc file to publish to npm
-          node-version: '13.x'
+          node-version: '14.x'
           registry-url: 'https://registry.npmjs.org/:_authToken=${{ secrets.NODE_AUTH_TOKEN }}'
       - name: Get yarn cache
         id: yarn-cache

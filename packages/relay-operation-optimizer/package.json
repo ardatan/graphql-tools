@@ -9,9 +9,6 @@
   },
   "license": "MIT",
   "repository": "git@github.com:ardatan/graphql-tools.git",
-  "scripts": {
-    "prepack": "bob prepack"
-  },
   "keywords": [
     "graphql",
     "codegen",

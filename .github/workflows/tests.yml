@@ -16,7 +16,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
-        node_version: [10, 12, 13]
+        node_version: [10, 14]
     steps:
       - name: Checkout Master
         uses: actions/checkout@v1

@@ -5,9 +5,6 @@
   "repository": "git@github.com:ardatan/graphql-tools.git",
   "author": "Dotan Simha <dotansimha@gmail.com>",
   "license": "MIT",
-  "scripts": {
-    "prepack": "bob prepack"
-  },
   "sideEffects": false,
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
