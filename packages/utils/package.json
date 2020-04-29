@@ -20,6 +20,7 @@
   },
   "devDependencies": {
     "@graphql-tools/schema-generator": "5.0.0",
+    "@graphql-tools/schema-wrapping": "5.0.0",
     "@types/dateformat": "3.0.1",
     "dateformat": "3.0.3",
     "graphql-scalars": "1.1.2"

@@ -1,4 +1,4 @@
-import { RenameTypes, wrapSchema } from '../../schema-wrapping/src/wrap/';
+import { RenameTypes, wrapSchema } from '@graphql-tools/schema-wrapping';
 import { makeExecutableSchema } from '@graphql-tools/schema-generator';
 import { buildSchema, printSchema } from 'graphql';
 import { printSchemaWithDirectives } from '../src';

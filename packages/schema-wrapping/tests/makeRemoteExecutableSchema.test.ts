@@ -1,3 +1,4 @@
+import { forAwaitEach } from './forAwaitEach';
 import {
   GraphQLSchema,
   subscribe,
@@ -7,9 +8,7 @@ import {
   print,
 } from 'graphql';
 
-import { makeRemoteExecutableSchema } from '../src/wrap/makeRemoteExecutableSchema';
-
-import { forAwaitEach } from './forAwaitEach';
+import { makeRemoteExecutableSchema } from '../src/wrap/index';
 
 import {
   propertySchema,
