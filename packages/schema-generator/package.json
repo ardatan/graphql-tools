@@ -17,6 +17,9 @@
   "peerDependencies": {
     "graphql": "^14.0.0 || ^15.0.0"
   },
+  "devDependencies": {
+    "graphql-scalars": "1.1.2"
+  },
   "buildOptions": {
     "input": "./src/index.ts"
   },

@@ -1,9 +1,10 @@
 import DataLoader from 'dataloader';
 import { graphql, GraphQLList, GraphQLResolveInfo } from 'graphql';
 
-import { delegateToSchema } from '../src/delegate/index';
+import { delegateToSchema } from '@graphql-tools/schema-wrapping';
 import { makeExecutableSchema } from '@graphql-tools/schema-generator';
-import { stitchSchemas } from '../src/stitch/index';
+
+import { stitchSchemas } from '../src/stitchSchemas';
 
 describe('dataloader', () => {
   test('should work', async () => {

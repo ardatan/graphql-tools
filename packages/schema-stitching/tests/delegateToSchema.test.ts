@@ -1,10 +1,10 @@
 import { GraphQLSchema, graphql } from 'graphql';
 
-import { delegateToSchema } from '../src/delegate/delegateToSchema';
-import { stitchSchemas } from '../src/stitch/stitchSchemas';
-import { IResolvers } from '@graphql-tools/utils';
+import { delegateToSchema, wrapSchema } from '@graphql-tools/schema-wrapping';
 import { makeExecutableSchema } from '@graphql-tools/schema-generator';
-import { wrapSchema } from '../src/wrap';
+import { IResolvers } from '@graphql-tools/utils';
+
+import { stitchSchemas } from '../src/stitchSchemas';
 
 import {
   propertySchema,

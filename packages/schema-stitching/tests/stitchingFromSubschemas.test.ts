@@ -13,8 +13,10 @@
 
 import { graphql, GraphQLSchema } from 'graphql';
 
-import { delegateToSchema, stitchSchemas } from '../src/index';
+import { delegateToSchema } from '@graphql-tools/schema-wrapping';
 import { addMocksToSchema } from '@graphql-tools/mocking';
+
+import { stitchSchemas } from '../src/stitchSchemas';
 
 const chirpTypeDefs = `
   type Chirp {

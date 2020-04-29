@@ -1,15 +1,19 @@
 import { ApolloLink, execute, FetchResult, Observable } from 'apollo-link';
 
-import { Subscriber, ExecutionParams } from '@graphql-tools/utils';
-
 import { observableToAsyncIterable } from './observableToAsyncIterable';
+import { GraphQLResolveInfo, DocumentNode } from 'graphql';
 
-export const linkToSubscriber = (link: ApolloLink): Subscriber => async <TReturn, TArgs, TContext>({
+export const linkToSubscriber = (link: ApolloLink) => async <TReturn, TArgs, TContext>({
   document,
   variables,
   context,
   info,
-}: ExecutionParams<TArgs, TContext>) =>
+}: {
+  document: DocumentNode;
+  variables: TArgs;
+  context: TContext;
+  info: GraphQLResolveInfo;
+}) =>
   observableToAsyncIterable(
     execute(link, {
       query: document,

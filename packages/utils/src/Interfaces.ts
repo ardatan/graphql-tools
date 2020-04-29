@@ -28,7 +28,6 @@ import {
   OperationDefinitionNode,
   GraphQLError,
   ExecutionResult as GraphQLExecutionResult,
-  BuildSchemaOptions,
 } from 'graphql';
 
 import { SchemaVisitor } from './SchemaVisitor';
@@ -151,71 +150,6 @@ export type RenameTypesOptions = {
   renameBuiltins: boolean;
   renameScalars: boolean;
 };
-
-export interface ExecutionParams<TArgs = Record<string, any>, TContext = any> {
-  document: DocumentNode;
-  variables?: TArgs;
-  context?: TContext;
-  info?: GraphQLResolveInfo;
-}
-
-export type AsyncExecutor = <
-  TReturn = Record<string, any>,
-  TArgs = Record<string, any>,
-  TContext = Record<string, any>
->(
-  params: ExecutionParams<TArgs, TContext>
-) => Promise<ExecutionResult<TReturn>>;
-export type SyncExecutor = <TReturn = Record<string, any>, TArgs = Record<string, any>, TContext = Record<string, any>>(
-  params: ExecutionParams<TArgs, TContext>
-) => ExecutionResult<TReturn>;
-export type Executor = AsyncExecutor | SyncExecutor;
-export type Subscriber = <TReturn = Record<string, any>, TArgs = Record<string, any>, TContext = Record<string, any>>(
-  params: ExecutionParams<TArgs, TContext>
-) => Promise<AsyncIterator<ExecutionResult<TReturn>> | ExecutionResult<TReturn>>;
-
-export interface SubschemaConfig {
-  schema: GraphQLSchema;
-  rootValue?: Record<string, any>;
-  executor?: Executor;
-  subscriber?: Subscriber;
-  createProxyingResolver?: CreateProxyingResolverFn;
-  transforms?: Array<Transform>;
-  merge?: Record<string, MergedTypeConfig>;
-}
-
-export interface MergedTypeConfig {
-  selectionSet?: string;
-  fieldName?: string;
-  args?: (originalResult: any) => Record<string, any>;
-  resolve?: MergedTypeResolver;
-}
-
-export type MergedTypeResolver = (
-  originalResult: any,
-  context: Record<string, any>,
-  info: GraphQLResolveInfo,
-  subschema: GraphQLSchema | SubschemaConfig,
-  selectionSet: SelectionSetNode
-) => any;
-
-export interface GraphQLSchemaWithTransforms extends GraphQLSchema {
-  transforms?: Array<Transform>;
-}
-
-export interface IMakeRemoteExecutableSchemaOptions {
-  schema: GraphQLSchema | string;
-  executor?: Executor;
-  subscriber?: Subscriber;
-  createResolver?: (executor: Executor, subscriber: Subscriber) => GraphQLFieldResolver<any, any>;
-  buildSchemaOptions?: BuildSchemaOptions;
-}
-
-export type SchemaLikeObject = SubschemaConfig | GraphQLSchema | string | DocumentNode | Array<GraphQLNamedType>;
-
-export function isSubschemaConfig(value: any): value is SubschemaConfig {
-  return Boolean((value as SubschemaConfig).schema);
-}
 
 export interface ICreateRequest {
   sourceSchema?: GraphQLSchema;
@@ -450,10 +384,3 @@ export type DirectiveMapper = (
   directive: GraphQLDirective,
   schema: GraphQLSchema
 ) => GraphQLDirective | null | undefined;
-
-export type CreateProxyingResolverFn = (
-  schema: GraphQLSchema | SubschemaConfig,
-  transforms: Array<Transform>,
-  operation: Operation,
-  fieldName: string
-) => GraphQLFieldResolver<any, any>;

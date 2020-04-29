@@ -1,13 +1,17 @@
-import { ApolloLink, toPromise, execute, Observable, FetchResult } from 'apollo-link';
+import { ApolloLink, toPromise, execute, Observable, FetchResult, DocumentNode } from 'apollo-link';
+import { GraphQLResolveInfo } from 'graphql/type';
 
-import { AsyncExecutor, ExecutionParams } from '@graphql-tools/utils';
-
-export const linkToExecutor = (link: ApolloLink): AsyncExecutor => <TReturn, TArgs, TContext>({
+export const linkToExecutor = (link: ApolloLink) => <TReturn, TArgs, TContext>({
   document,
   variables,
   context,
   info,
-}: ExecutionParams<TArgs, TContext>) =>
+}: {
+  document: DocumentNode;
+  variables: TArgs;
+  context: TContext;
+  info: GraphQLResolveInfo;
+}) =>
   toPromise(
     execute(link, {
       query: document,

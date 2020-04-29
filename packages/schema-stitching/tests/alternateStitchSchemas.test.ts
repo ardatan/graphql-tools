@@ -18,7 +18,6 @@ import {
 } from 'graphql';
 
 import {
-  transformSchema,
   wrapSchema,
   RenameTypes,
   RenameRootFields,
@@ -32,17 +31,18 @@ import {
   FilterObjectFields,
   RenameInterfaceFields,
   TransformRootFields,
-} from '../src/wrap/index';
+  delegateToSchema,
+  createMergedResolver
+} from '@graphql-tools/schema-wrapping';
 
-import { delegateToSchema } from '../src/delegate/index';
 import { makeExecutableSchema } from '@graphql-tools/schema-generator';
-import { stitchSchemas } from '../src/stitch/index';
-import { createMergedResolver } from '../src/delegate/createMergedResolver';
 import {
   wrapFieldNode,
   renameFieldNode,
   hoistFieldNodes, filterSchema, SubschemaConfig
 } from '@graphql-tools/utils';
+
+import { stitchSchemas } from '../src/stitchSchemas';
 
 import { forAwaitEach } from './forAwaitEach';
 
@@ -346,7 +346,7 @@ describe('merge schemas through transforms', () => {
 
 describe('transform object fields', () => {
   test('should work to add a resolver', async () => {
-    const transformedPropertySchema = transformSchema(propertySchema, [
+    const transformedPropertySchema = wrapSchema(propertySchema, [
       new TransformObjectFields(
         (
           typeName: string,
@@ -425,7 +425,7 @@ describe('transform object fields', () => {
 
 describe('default values', () => {
   test('should work to add a default value even when renaming root fields', async () => {
-    const transformedPropertySchema = transformSchema(propertySchema, [
+    const transformedPropertySchema = wrapSchema(propertySchema, [
       new TransformRootFields(
         (
           typeName: string,
@@ -594,7 +594,7 @@ describe('transform object fields', () => {
       },
     });
 
-    schema = transformSchema(itemSchema, [
+    schema = wrapSchema(itemSchema, [
       new FilterObjectFields((_typeName, fieldName) => {
         if (fieldName === 'id') {
           return false;
@@ -692,7 +692,7 @@ describe('filter and rename object fields', () => {
 
   beforeAll(() => {
     transformedPropertySchema = filterSchema({
-      schema: transformSchema(propertySchema, [
+      schema: wrapSchema(propertySchema, [
         new RenameTypes((name: string) => `New_${name}`),
         new RenameObjectFields((typeName: string, fieldName: string) =>
           typeName === 'New_Property' ? `new_${fieldName}` : fieldName,
@@ -848,7 +848,7 @@ describe('rename nested object fields with interfaces', () => {
       },
     });
 
-    const transformedSchema = transformSchema(originalSchema, [
+    const transformedSchema = wrapSchema(originalSchema, [
       new RenameObjectFields((typeName, fieldName) => {
         if (typeName === 'Query') {
           return fieldName;
@@ -905,7 +905,7 @@ describe('rename nested object fields with interfaces', () => {
 
 describe('WrapType transform', () => {
   test('should work', async () => {
-    const transformedPropertySchema = transformSchema(propertySchema, [
+    const transformedPropertySchema = wrapSchema(propertySchema, [
       new WrapType('Query', 'Namespace_Query', 'namespace'),
     ]);
     const result = await graphql(
@@ -960,7 +960,7 @@ describe('WrapType transform', () => {
 
 describe('schema transformation with extraction of nested fields', () => {
   test('should work via ExtendSchema transform', async () => {
-    const transformedPropertySchema = transformSchema(propertySchema, [
+    const transformedPropertySchema = wrapSchema(propertySchema, [
       new ExtendSchema({
         typeDefs: `
           extend type Property {
@@ -1030,7 +1030,7 @@ describe('schema transformation with extraction of nested fields', () => {
   });
 
   test('should work via HoistField transform', async () => {
-    const transformedPropertySchema = transformSchema(propertySchema, [
+    const transformedPropertySchema = wrapSchema(propertySchema, [
       new HoistField('Property', ['location', 'name'], 'locationName'),
     ]);
 
@@ -1062,7 +1062,7 @@ describe('schema transformation with extraction of nested fields', () => {
 
 describe('schema transformation with wrapping of object fields', () => {
   test('should work via ExtendSchema transform', async () => {
-    const transformedPropertySchema = transformSchema(propertySchema, [
+    const transformedPropertySchema = wrapSchema(propertySchema, [
       new ExtendSchema({
         typeDefs: `
           extend type Property {
@@ -1166,7 +1166,7 @@ describe('schema transformation with wrapping of object fields', () => {
 
   describe('WrapFields transform', () => {
     test('should work', async () => {
-      const transformedPropertySchema = transformSchema(propertySchema, [
+      const transformedPropertySchema = wrapSchema(propertySchema, [
         new WrapFields(
           'Property',
           ['outerWrap'],
@@ -1235,7 +1235,7 @@ describe('schema transformation with wrapping of object fields', () => {
     });
 
     test('should work, even with multiple fields', async () => {
-      const transformedPropertySchema = transformSchema(propertySchema, [
+      const transformedPropertySchema = wrapSchema(propertySchema, [
         new WrapFields(
           'Property',
           ['outerWrap', 'innerWrap'],
@@ -1317,7 +1317,7 @@ describe('schema transformation with renaming of object fields', () => {
   let transformedPropertySchema: GraphQLSchema;
 
   beforeAll(() => {
-    transformedPropertySchema = transformSchema(propertySchema, [
+    transformedPropertySchema = wrapSchema(propertySchema, [
       new ExtendSchema({
         typeDefs: `
           extend type Property {
