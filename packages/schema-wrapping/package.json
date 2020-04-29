@@ -20,16 +20,13 @@
   "buildOptions": {
     "input": "./src/index.ts"
   },
-  "devDependencies": {
-    "@types/dateformat": "3.0.1",
-    "dataloader": "2.0.0",
-    "dateformat": "3.0.3",
-    "graphql-scalars": "1.1.2"
-  },
   "dependencies": {
     "@graphql-tools/schema-generator": "5.0.0",
     "@graphql-tools/utils": "5.0.0",
     "tslib": "1.11.1"
+  },
+  "devDependencies": {
+    "@graphql-tools/mocking": "5.0.0"
   },
   "publishConfig": {
     "access": "public",

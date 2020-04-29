@@ -22,6 +22,7 @@
   },
   "devDependencies": {
     "@types/graphql-upload": "8.0.3",
+    "@graphql-tools/schema-wrapping": "5.0.0",
     "express-graphql": "0.9.0",
     "graphql-upload": "~10.0.0"
   },

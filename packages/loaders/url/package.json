@@ -27,8 +27,8 @@
   },
   "dependencies": {
     "@graphql-tools/utils": "5.0.0",
+    "@graphql-tools/schema-wrapping": "5.0.0",
     "cross-fetch": "3.0.4",
-    "@graphql-tools/schema-stitching": "5.0.0",
     "tslib": "1.11.1",
     "valid-url": "1.0.9"
   },
