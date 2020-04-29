@@ -21,8 +21,9 @@
     "input": "./src/index.ts"
   },
   "devDependencies": {
+    "@graphql-tools/schema-generator": "5.0.0",
+    "@graphql-tools/schema-stitching": "5.0.0",
     "@types/graphql-upload": "8.0.3",
-    "@graphql-tools/schema-wrapping": "5.0.0",
     "express-graphql": "0.9.0",
     "graphql-upload": "~10.0.0"
   },
