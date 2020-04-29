@@ -109,7 +109,7 @@ export default resolvers;
 At the end, the schema and resolvers are combined using `makeExecutableSchema`:
 
 ```js
-import { makeExecutableSchema } from '@graphql-tools/schema-generator';
+import { makeExecutableSchema } from '@graphql-tools/schema';
 
 const executableSchema = makeExecutableSchema({
   typeDefs,

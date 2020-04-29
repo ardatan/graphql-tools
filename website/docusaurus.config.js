@@ -7,7 +7,7 @@ module.exports = {
   baseUrl: '/',
   favicon: 'img/favicon.ico',
   organizationName: 'ardatan', // Usually your GitHub org/user name.
-  projectName: '@graphql-tools/schema-stitching', // Usually your repo name.
+  projectName: '@graphql-tools/stitch', // Usually your repo name.
   themeConfig: {
     defaultDarkMode: true,
     navbar: {
@@ -36,9 +36,9 @@ module.exports = {
       ],
     },
     algolia: {
-      // appId: '@graphql-tools/schema-stitching',
+      // appId: '@graphql-tools/stitch',
       apiKey: 'ee4c137daf1262df2ca2faacaf83fa4e',
-      indexName: '@graphql-tools/schema-stitching',
+      indexName: '@graphql-tools/stitch',
       algoliaOptions: {}, // Optional, if provided by Algolia
     },
     footer: {

@@ -1,6 +1,6 @@
 import { GraphQLObjectType, GraphQLSchema, graphqlSync } from 'graphql';
 
-import { makeExecutableSchema } from '@graphql-tools/schema-generator';
+import { makeExecutableSchema } from '@graphql-tools/schema';
 import { MapperKind, mapSchema } from '@graphql-tools/utils';
 
 describe('mapSchema', () => {

@@ -1,5 +1,5 @@
-import { RenameTypes, wrapSchema } from '@graphql-tools/schema-wrapping';
-import { makeExecutableSchema } from '@graphql-tools/schema-generator';
+import { RenameTypes, wrapSchema } from '@graphql-tools/wrap';
+import { makeExecutableSchema } from '@graphql-tools/schema';
 import { buildSchema, printSchema } from 'graphql';
 import { printSchemaWithDirectives } from '../src';
 import { GraphQLJSON } from 'graphql-scalars';

@@ -6,7 +6,7 @@ import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { JsonFileLoader } from '@graphql-tools/json-file-loader';
 import { CodeFileLoader } from '@graphql-tools/code-file-loader';
 import { parseGraphQLSDL, Source } from '@graphql-tools/utils';
-import { mergeTypeDefs } from '@graphql-tools/schema-merging';
+import { mergeTypeDefs } from '@graphql-tools/merge';
 import '../../../../testing/to-be-similar-gql-doc';
 import { runTests } from '../../../../testing/utils';
 

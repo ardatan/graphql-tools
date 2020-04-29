@@ -1,5 +1,5 @@
 import { Source, printSchemaWithDirectives, fixSchemaAst } from '@graphql-tools/utils';
-import { printWithComments, resetComments } from '@graphql-tools/schema-merging';
+import { printWithComments, resetComments } from '@graphql-tools/merge';
 import { Kind, parse, Source as GraphQLSource, DefinitionNode } from 'graphql';
 import { isEmptySDL, processImportSyntax, processImportSyntaxSync } from '../import-parser';
 import { filterKind } from '../filter-document-kind';

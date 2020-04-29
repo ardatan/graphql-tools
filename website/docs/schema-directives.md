@@ -32,7 +32,7 @@ Most of this document is concerned with _implementing_ schema directives, and so
 However, the API we provide for _using_ a schema directive is extremely simple. Just import the implementation of the directive, then pass it to `makeExecutableSchema` via the `schemaDirectives` argument, which is an object that maps directive names to directive implementations:
 
 ```js
-import { makeExecutableSchema } from "@graphql-tools/schema-generator";
+import { makeExecutableSchema } from "@graphql-tools/schema";
 import { RenameDirective } from "fake-rename-directive-package";
 
 const typeDefs = `
@@ -98,7 +98,7 @@ class DeprecatedDirective extends SchemaDirectiveVisitor {
 In order to apply this implementation to a schema that contains `@deprecated` directives, simply pass the `DeprecatedDirective` class to the `makeExecutableSchema` function via the `schemaDirectives` option:
 
 ```typescript
-import { makeExecutableSchema } from "@graphql-tools/schema-generator";
+import { makeExecutableSchema } from "@graphql-tools/schema";
 
 const typeDefs = `
 type ExampleType {

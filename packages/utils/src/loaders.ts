@@ -1,12 +1,11 @@
 import { DocumentNode, GraphQLSchema, ParseOptions, BuildSchemaOptions } from 'graphql';
 import { GraphQLSchemaValidationOptions } from 'graphql/type/schema';
 
-export declare class Source {
+export interface Source {
   document?: DocumentNode;
   schema?: GraphQLSchema;
   rawSDL?: string;
   location?: string;
-  constructor({ document, location, schema }: { document?: DocumentNode; location?: string; schema?: GraphQLSchema });
 }
 
 export type SingleFileOptions = ParseOptions &

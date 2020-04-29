@@ -42,7 +42,7 @@ Just like your type definitions, you can choose to import files manually:
 
 ```js
 // ./graphql/resolvers/index.js
-const { mergeResolvers } = require('@graphql-tools/schema-merging');
+const { mergeResolvers } = require('@graphql-tools/merge');
 const clientResolver = require('./clientResolver');
 const productResolver = require('./productResolver');
 
@@ -58,8 +58,8 @@ Or automatically:
 ```js
 // ./graphql/resolvers.js
 const path = require('path');
-const { mergeResolvers } = require('@graphql-tools/schema-merging');
-const { loadFiles } = require('@graphql-tools/file-loading');
+const { mergeResolvers } = require('@graphql-tools/merge');
+const { loadFiles } = require('@graphql-tools/load-files');
 
 const resolversArray = loadFiles(path.join(__dirname, './resolvers'));
 
@@ -74,8 +74,8 @@ Only these values are supported now. `'.ts', '.js', '.gql', '.graphql', '.graphq
 ```js
 // ./graphql/resolvers.js
 const path = require('path');
-const { mergeResolvers } = require('@graphql-tools/schema-merging');
-const { loadFiles } = require('@graphql-tools/file-loading');
+const { mergeResolvers } = require('@graphql-tools/merge');
+const { loadFiles } = require('@graphql-tools/load-files');
 
 const resolversArray = loadFiles(path.join(__dirname, './resolvers'), { extensions: ['.js'] });
 
@@ -93,8 +93,8 @@ Then setup your `fileLoader` like so, and you're in business:
 ```js
 // ./graphql/resolvers/index.js/ts
 const path = require('path');
-const { mergeResolvers } = require('@graphql-tools/schema-merging');
-const { loadFiles } = require('@graphql-tools/file-loading');
+const { mergeResolvers } = require('@graphql-tools/merge');
+const { loadFiles } = require('@graphql-tools/load-files');
 
 const resolversArray = loadFiles(path.join(__dirname, "./**/*.resolvers.*"));
 module.exports = mergeResolvers(resolversArray);

@@ -15,9 +15,9 @@ In these cases, we use `stitchSchemas` to combine multiple GraphQL schemas toget
 In this example we'll stitch together two very simple schemas. In this case, we're dealing with two schemas that implement a system with users and "chirps"&mdash;small snippets of text that users can post.
 
 ```js
-import { makeExecutableSchema } from '@graphql-tools/schema-generator';
-import { addMocksToSchema } from '@graphql-tools/mocking';
-import { stitchSchemas } from '@graphql-tools/schema-stitching';
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import { addMocksToSchema } from '@graphql-tools/mock';
+import { stitchSchemas } from '@graphql-tools/stitch';
 
 // Mocked chirp schema
 // We don't worry about the schema implementation right now since we're just
@@ -174,14 +174,14 @@ Often, when creating a GraphQL gateway that combines multiple existing schemas, 
 For example, suppose we transform the `chirpSchema` by removing the `chirpsByAuthorId` field and add a `Chirp_` prefix to all types and field names, in order to make it very clear which types and fields came from `chirpSchema`:
 
 ```ts
-import { makeExecutableSchema } from '@graphql-tools/schema-generator';
-import { addMocksToSchema } from '@graphql-tools/mocking';
-import { stitchSchemas } from '@graphql-tools/schema-stitching';
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import { addMocksToSchema } from '@graphql-tools/mock';
+import { stitchSchemas } from '@graphql-tools/stitch';
 import {
   FilterRootFields,
   RenameTypes,
   RenameRootFields,
-} from '@graphql-tools/schema-wrapping';
+} from '@graphql-tools/wrap';
 
 // Mocked chirp schema; we don't want to worry about the schema
 // implementation right now since we're just demonstrating

@@ -1,5 +1,5 @@
 import { GraphQLSchema } from 'graphql';
-import { makeExecutableSchema } from '@graphql-tools/schema-generator';
+import { makeExecutableSchema } from '@graphql-tools/schema';
 import { getDirectives } from '../src';
 
 describe('getDirectives', () => {

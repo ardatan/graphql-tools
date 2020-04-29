@@ -176,7 +176,7 @@ const schema = new GraphQLSchema({
 To apply these decorators, the function `applySchemaDecorators(schema)` has to be called like so:
 
 ```es6
-import { applySchemaDecorators } from '@graphql-tools/schema-stitching';
+import { applySchemaDecorators } from '@graphql-tools/stitch';
 
 const schema = new GraphQLSchema({
   // schema definition here

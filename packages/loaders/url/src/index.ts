@@ -8,7 +8,8 @@ import {
 } from '@graphql-tools/utils';
 import { isWebUri } from 'valid-url';
 import { fetch as crossFetch } from 'cross-fetch';
-import { AsyncExecutor, makeRemoteExecutableSchema, introspectSchema } from '@graphql-tools/schema-wrapping';
+import { makeRemoteExecutableSchema, introspectSchema } from '@graphql-tools/wrap';
+import { AsyncExecutor } from '@graphql-tools/delegate';
 
 export type FetchFn = typeof import('cross-fetch').fetch;
 

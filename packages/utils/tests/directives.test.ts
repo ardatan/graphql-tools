@@ -28,7 +28,7 @@ import {
 } from 'graphql';
 import formatDate from 'dateformat';
 
-import { makeExecutableSchema } from '@graphql-tools/schema-generator';
+import { makeExecutableSchema } from '@graphql-tools/schema';
 import { VisitableSchemaType, SchemaDirectiveVisitor,
   SchemaVisitor,
   visitSchema,

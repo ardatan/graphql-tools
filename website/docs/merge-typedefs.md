@@ -80,12 +80,12 @@ There are two ways you can use this package:
 
 ### Manually import each type
 
-If you decide to have manual control of each file that gets merged, all you need is the `mergeTypeDefs(types)` function from `@graphql-tools/schema-merging` package.
+If you decide to have manual control of each file that gets merged, all you need is the `mergeTypeDefs(types)` function from `@graphql-tools/merge` package.
 
 Ability to merge a GQL Type defined multiple times in separate files. Will throw an error when fieldDefintitons have conflicting values defined. See [PR #118](https://github.com/okgrow/merge-graphql-schemas/pull/118) for more details.
 ```js
 // ./graphql/types/index.js
-const { mergeTypeDefs } = require('@graphql-tools/schema-merging');
+const { mergeTypeDefs } = require('@graphql-tools/merge');
 const clientType = require('./clientType');
 const productType = require('./productType');
 
@@ -102,13 +102,13 @@ module.exports = mergeTypeDefs(types, { all: true });
 
 ### Import everything from a specified folder
 
-In this way we use the `loadFiles` function from `@graphql-tools/file-loading` to import all files from the specified folder.
+In this way we use the `loadFiles` function from `@graphql-tools/load-files` to import all files from the specified folder.
 
 ```js
 // ./graphql/typeDefs.js
 const path = require('path');
-const { loadFiles } = require('@graphql-tools/file-loading');
-const { mergeTypeDefs } = require('@graphql-tools/schema-merging');
+const { loadFiles } = require('@graphql-tools/load-files');
+const { mergeTypeDefs } = require('@graphql-tools/merge');
 
 const typesArray = loadFiles(path.join(__dirname, './types'));
 
@@ -170,8 +170,8 @@ Here's how your `index` file could look like:
 
 ```js
 const path = require('path');
-const { loadFiles } = require('@graphql-tools/file-loading');
-const { mergeTypeDefs } = require('@graphql-tools/schema-merging');
+const { loadFiles } = require('@graphql-tools/load-files');
+const { mergeTypeDefs } = require('@graphql-tools/merge');
 
 const typesArray = loadFiles(path.join(__dirname, '.'), { recursive: true })
 
@@ -196,8 +196,8 @@ Here's how your `index` file could look like:
 
 ```js
 const path = require('path');
-const { loadFiles } = require('@graphql-tools/file-loading');
-const { mergeTypeDefs } = require('@graphql-tools/schema-merging');
+const { loadFiles } = require('@graphql-tools/load-files');
+const { mergeTypeDefs } = require('@graphql-tools/merge');
 
 const typesArray = loadFiles(path.join(__dirname, 'graphql/**/*.graphql'))
 
@@ -209,8 +209,8 @@ module.exports = mergeTypeDefs(typesArray, { all: true })
 Since the output of `mergeTypeDefs` is just a string, after you merge your types, you can save it to a file to be passed around to other systems. Here is an example using ES6 modules:
 
 ```js
-const { loadFiles } = require('@graphql-tools/file-loading');
-const { mergeTypeDefs } = require('@graphql-tools/schema-merging');
+const { loadFiles } = require('@graphql-tools/load-files');
+const { mergeTypeDefs } = require('@graphql-tools/merge');
 const fs = require('fs');
 
 const typeDefs = mergeTypeDefs(loadFiles(`${__dirname}/schema/**/*.graphql`), { all: true });

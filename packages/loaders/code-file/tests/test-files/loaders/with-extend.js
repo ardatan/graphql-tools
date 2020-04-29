@@ -1,4 +1,4 @@
-const { makeExecutableSchema } = require('@graphql-tools/schema-generator');
+const { makeExecutableSchema } = require('@graphql-tools/schema');
 
 const schema = makeExecutableSchema({
   typeDefs: /* GraphQL */ `
