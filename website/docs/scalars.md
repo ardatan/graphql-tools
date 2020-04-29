@@ -67,7 +67,7 @@ If needed, you can define your own [GraphQLScalarType](http://graphql.org/graphq
 
 ```js
 import { GraphQLScalarType } from 'graphql';
-import { makeExecutableSchema } from '@graphql-tools/schema-stitching';
+import { makeExecutableSchema } from '@graphql-tools/schema-generator';
 
 const myCustomScalarType = new GraphQLScalarType({
   name: 'MyCustomScalar',

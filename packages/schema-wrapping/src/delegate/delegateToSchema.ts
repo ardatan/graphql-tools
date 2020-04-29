@@ -10,10 +10,7 @@ import {
 } from 'graphql';
 
 import {
-  SubschemaConfig,
-  isSubschemaConfig,
   Transform,
-  ExecutionParams,
   applyRequestTransforms,
   applyResultTransforms,
   mapAsyncIterator,
@@ -29,7 +26,13 @@ import AddTypenameToAbstract from './transforms/AddTypenameToAbstract';
 import CheckResultAndHandleErrors from './transforms/CheckResultAndHandleErrors';
 import AddArgumentsAsVariables from './transforms/AddArgumentsAsVariables';
 import { createRequestFromInfo, getDelegatingOperation } from './createRequest';
-import { IDelegateToSchemaOptions, IDelegateRequestOptions } from './types';
+import {
+  IDelegateToSchemaOptions,
+  IDelegateRequestOptions,
+  SubschemaConfig,
+  isSubschemaConfig,
+  ExecutionParams,
+} from './types';
 
 export function delegateToSchema(options: IDelegateToSchemaOptions | GraphQLSchema): any {
   if (isSchema(options)) {

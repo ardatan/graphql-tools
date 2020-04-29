@@ -9,7 +9,7 @@ import {
   GraphQLSchema,
 } from 'graphql';
 
-import { SubschemaConfig } from '@graphql-tools/utils';
+import { SubschemaConfig } from '../types';
 
 import { handleNull } from './handleNull';
 import { handleObject } from './handleObject';

@@ -10,8 +10,6 @@ import {
 } from 'graphql';
 
 import {
-  isSubschemaConfig,
-  SubschemaConfig,
   Transform,
   TypeMap,
   parseFragmentToInlineFragment,
@@ -25,6 +23,8 @@ import {
   AddReplacementFragments,
   delegateToSchema,
   IDelegateToSchemaOptions,
+  isSubschemaConfig,
+  SubschemaConfig,
 } from '@graphql-tools/schema-wrapping';
 
 import { MergeTypeCandidate, MergedTypeInfo, MergeInfo, IResolversParameter, MergeTypeFilter } from './types';

@@ -10,15 +10,7 @@ import {
   GraphQLNamedType,
 } from 'graphql';
 
-import {
-  SchemaDirectiveVisitor,
-  cloneDirective,
-  mergeDeep,
-  SubschemaConfig,
-  isSubschemaConfig,
-  IResolvers,
-  rewireTypes,
-} from '@graphql-tools/utils';
+import { SchemaDirectiveVisitor, cloneDirective, mergeDeep, IResolvers, rewireTypes } from '@graphql-tools/utils';
 
 import {
   addResolversToSchema,
@@ -33,6 +25,7 @@ import {
 import { buildTypeCandidates, buildTypeMap } from './typeCandidates';
 import { createMergeInfo, completeMergeInfo, addMergeInfo } from './mergeInfo';
 import { MergeTypeCandidate, IStitchSchemasOptions, MergeInfo, IResolversParameter } from './types';
+import { SubschemaConfig, isSubschemaConfig } from '@graphql-tools/schema-wrapping';
 
 export function stitchSchemas({
   subschemas = [],

@@ -15,9 +15,9 @@ In these cases, we use `stitchSchemas` to combine multiple GraphQL schemas toget
 In this example we'll stitch together two very simple schemas. In this case, we're dealing with two schemas that implement a system with users and "chirps"&mdash;small snippets of text that users can post.
 
 ```js
-import { stitchSchemas } from '@graphql-tools/schema-stitching';
 import { makeExecutableSchema } from '@graphql-tools/schema-generator';
 import { addMocksToSchema } from '@graphql-tools/mocking';
+import { stitchSchemas } from '@graphql-tools/schema-stitching';
 
 // Mocked chirp schema
 // We don't worry about the schema implementation right now since we're just
@@ -176,12 +176,12 @@ For example, suppose we transform the `chirpSchema` by removing the `chirpsByAut
 ```ts
 import { makeExecutableSchema } from '@graphql-tools/schema-generator';
 import { addMocksToSchema } from '@graphql-tools/mocking';
+import { stitchSchemas } from '@graphql-tools/schema-stitching';
 import {
-  stitchSchemas,
   FilterRootFields,
   RenameTypes,
   RenameRootFields,
-} from '@graphql-tools/schema-stitching';
+} from '@graphql-tools/schema-wrapping';
 
 // Mocked chirp schema; we don't want to worry about the schema
 // implementation right now since we're just demonstrating

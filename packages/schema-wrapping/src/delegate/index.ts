@@ -7,4 +7,4 @@ export { getSubschema } from './subschema';
 
 export * from './transforms';
 
-export { IDelegateToSchemaOptions } from './types';
+export * from './types';

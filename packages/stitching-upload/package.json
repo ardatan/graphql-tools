@@ -21,14 +21,11 @@
     "input": "./src/index.ts"
   },
   "devDependencies": {
-    "@graphql-tools/schema-generator": "5.0.0",
-    "@graphql-tools/schema-stitching": "5.0.0",
     "@types/graphql-upload": "8.0.3",
     "express-graphql": "0.9.0",
     "graphql-upload": "~10.0.0"
   },
   "dependencies": {
-    "@graphql-tools/utils": "5.0.0",
     "apollo-link": "1.2.14",
     "apollo-upload-client": "13.0.0",
     "form-data": "3.0.0",

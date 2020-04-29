@@ -21,8 +21,7 @@ import {
   GraphQLFieldConfigMap,
 } from 'graphql';
 
-import { isSubschemaConfig, SubschemaConfig } from '@graphql-tools/utils';
-import { wrapSchema } from '@graphql-tools/schema-wrapping';
+import { wrapSchema, isSubschemaConfig, SubschemaConfig } from '@graphql-tools/schema-wrapping';
 
 import {
   extractTypeDefinitions,

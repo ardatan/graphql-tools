@@ -1,11 +1,12 @@
 import { GraphQLError, responsePathAsArray, GraphQLResolveInfo } from 'graphql';
 
-import { SubschemaConfig, mergeDeep, ERROR_SYMBOL, relocatedError, setErrors, getErrors } from '@graphql-tools/utils';
+import { mergeDeep, ERROR_SYMBOL, relocatedError, setErrors, getErrors } from '@graphql-tools/utils';
 
 import { handleNull } from './results/handleNull';
 
 import { FIELD_SUBSCHEMA_MAP_SYMBOL, OBJECT_SUBSCHEMA_SYMBOL } from './symbols';
 import { getSubschema, setObjectSubschema } from './subschema';
+import { SubschemaConfig } from './types';
 
 export function isProxiedResult(result: any) {
   return result != null ? result[ERROR_SYMBOL] : result;

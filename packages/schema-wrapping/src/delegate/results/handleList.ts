@@ -11,10 +11,11 @@ import {
   isListType,
 } from 'graphql';
 
-import { SubschemaConfig, getErrorsByPathSegment } from '@graphql-tools/utils';
+import { getErrorsByPathSegment } from '@graphql-tools/utils';
 
 import { handleNull } from './handleNull';
 import { handleObject } from './handleObject';
+import { SubschemaConfig } from '../types';
 
 export function handleList(
   type: GraphQLList<any>,

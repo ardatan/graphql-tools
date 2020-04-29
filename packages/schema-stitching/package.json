@@ -21,7 +21,6 @@
     "input": "./src/index.ts"
   },
   "devDependencies": {
-    "@graphql-tools/mocking": "5.0.0",
     "dataloader": "2.0.0"
   },
   "dependencies": {

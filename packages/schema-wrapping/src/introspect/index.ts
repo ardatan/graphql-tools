@@ -7,7 +7,8 @@ import {
   IntrospectionQuery,
 } from 'graphql';
 
-import { AsyncExecutor, SyncExecutor, ExecutionResult, CombinedError } from '@graphql-tools/utils';
+import { ExecutionResult, CombinedError } from '@graphql-tools/utils';
+import { AsyncExecutor, SyncExecutor } from '../delegate/types';
 
 function getSchemaFromIntrospection(introspectionResult: ExecutionResult<IntrospectionQuery>): GraphQLSchema {
   if (
