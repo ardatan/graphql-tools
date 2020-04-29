@@ -1,3 +1,8 @@
+import globby, { sync as globbySync, GlobbyOptions } from 'globby';
+import unixify from 'unixify';
+import { extname } from 'path';
+import { readFile, stat, statSync, readFileSync } from 'fs-extra';
+
 const DEFAULT_IGNORED_EXTENSIONS = ['spec', 'test', 'd', 'map'];
 const DEFAULT_EXTENSIONS = ['gql', 'graphql', 'graphqls', 'ts', 'js'];
 const DEFAULT_EXPORT_NAMES = ['typeDefs', 'schema'];
@@ -10,14 +15,26 @@ function asArray<T>(obj: T | T[]): T[] {
   }
 }
 
-function isDirectory(path: string) {
-  const { existsSync, statSync } = require('fs');
-  return existsSync(path) && statSync(path).isDirectory();
+function isDirectorySync(path: string) {
+  try {
+    const pathStat = statSync(path);
+    return pathStat.isDirectory();
+  } catch (e) {
+    return false;
+  }
 }
 
-function scanForFiles(globStr: string | string[], globOptions: import('globby').GlobbyOptions = {}): string[] {
-  const globby = require('globby');
-  return globby.sync(globStr, { absolute: true, ...globOptions });
+async function isDirectory(path: string) {
+  try {
+    const pathStat = await stat(path);
+    return pathStat.isDirectory();
+  } catch (e) {
+    return false;
+  }
+}
+
+function scanForFilesSync(globStr: string | string[], globOptions: GlobbyOptions = {}): string[] {
+  return globbySync(globStr, { absolute: true, ...globOptions });
 }
 
 function buildGlob(
@@ -61,7 +78,7 @@ export interface LoadFilesOptions {
   extensions?: string[];
   useRequire?: boolean;
   requireMethod?: any;
-  globOptions?: import('globby').GlobbyOptions;
+  globOptions?: GlobbyOptions;
   exportNames?: string[];
   recursive?: boolean;
   ignoreIndex?: boolean;
@@ -80,15 +97,14 @@ const LoadFilesDefaultOptions: LoadFilesOptions = {
   ignoreIndex: false,
 };
 
-export function loadFiles<T = any>(
+export function loadFilesSync<T = any>(
   pattern: string | string[],
   options: LoadFilesOptions = LoadFilesDefaultOptions
 ): T[] {
   const execOptions = { ...LoadFilesDefaultOptions, ...options };
-  const unixify = require('unixify');
-  const relevantPaths = scanForFiles(
+  const relevantPaths = scanForFilesSync(
     asArray(pattern).map(path =>
-      isDirectory(path)
+      isDirectorySync(path)
         ? buildGlob(unixify(path), execOptions.extensions, execOptions.ignoredExtensions, execOptions.recursive)
         : unixify(path)
     ),
@@ -105,7 +121,6 @@ export function loadFiles<T = any>(
         return false;
       }
 
-      const { extname } = require('path');
       const extension = extname(path);
 
       if (extension.endsWith('.js') || extension.endsWith('.ts') || execOptions.useRequire) {
@@ -138,18 +153,13 @@ export function loadFiles<T = any>(
 
         return extractedExport;
       } else {
-        const { readFileSync } = require('fs');
         return readFileSync(path, { encoding: 'utf-8' });
       }
     })
     .filter(v => v);
 }
 
-async function scanForFilesAsync(
-  globStr: string | string[],
-  globOptions: import('globby').GlobbyOptions = {}
-): Promise<string[]> {
-  const { default: globby } = await import('globby');
+async function scanForFiles(globStr: string | string[], globOptions: GlobbyOptions = {}): Promise<string[]> {
   return globby(globStr, { absolute: true, ...globOptions });
 }
 
@@ -178,13 +188,12 @@ const checkExtension = (
   return false;
 };
 
-export async function loadFilesAsync(
+export async function loadFiles(
   pattern: string | string[],
   options: LoadFilesOptions = LoadFilesDefaultOptions
 ): Promise<any[]> {
   const execOptions = { ...LoadFilesDefaultOptions, ...options };
-  const unixify = await import('unixify').then(m => m.default || m);
-  const relevantPaths = await scanForFilesAsync(
+  const relevantPaths = await scanForFiles(
     asArray(pattern).map(path =>
       isDirectory(path)
         ? buildGlob(unixify(path), execOptions.extensions, execOptions.ignoredExtensions, execOptions.recursive)
@@ -194,7 +203,6 @@ export async function loadFilesAsync(
   );
 
   const require$ = (path: string) => import(path).catch(async () => require(path));
-  const { extname } = await import('path');
 
   return Promise.all(
     relevantPaths
@@ -216,9 +224,6 @@ export async function loadFilesAsync(
 
           return extractedExport;
         } else {
-          const {
-            promises: { readFile },
-          } = await import('fs');
           return readFile(path, { encoding: 'utf-8' });
         }
       })
@@ -229,6 +234,3 @@ function isIndex(path: string, extensions: string[] = []): boolean {
   const IS_INDEX = /(\/|\\)index\.[^\/\\]+$/i; // (/ or \) AND `index.` AND (everything except \ and /)(end of line)
   return IS_INDEX.test(path) && extensions.some(ext => path.endsWith('.' + ext));
 }
-
-export { loadFilesAsync as loadSchemaFilesAsync, loadFiles as loadSchemaFiles };
-export { loadFilesAsync as loadResolversFilesAsync, loadFiles as loadResolversFiles };

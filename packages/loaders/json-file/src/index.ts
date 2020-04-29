@@ -6,13 +6,13 @@ import {
   isValidPath,
   SingleFileOptions,
 } from '@graphql-tools/utils';
+import { isAbsolute, resolve } from 'path';
+import { exists, existsSync, readFile, readFileSync } from 'fs-extra';
+import { cwd } from 'process';
 
 const FILE_EXTENSIONS = ['.json'];
 
-export interface JsonFileLoaderOptions extends SingleFileOptions {
-  fs?: typeof import('fs');
-  path?: typeof import('path');
-}
+export interface JsonFileLoaderOptions extends SingleFileOptions {}
 
 export class JsonFileLoader implements DocumentLoader {
   loaderId(): string {
@@ -20,16 +20,20 @@ export class JsonFileLoader implements DocumentLoader {
   }
 
   async canLoad(pointer: SchemaPointerSingle, options: JsonFileLoaderOptions): Promise<boolean> {
-    return this.canLoadSync(pointer, options);
+    if (isValidPath(pointer)) {
+      if (FILE_EXTENSIONS.find(extension => pointer.endsWith(extension))) {
+        const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || cwd(), pointer);
+        return new Promise(resolve => exists(normalizedFilePath, resolve));
+      }
+    }
+
+    return false;
   }
 
   canLoadSync(pointer: SchemaPointerSingle, options: JsonFileLoaderOptions): boolean {
-    if (isValidPath(pointer) && options.path && options.fs) {
-      const { resolve, isAbsolute } = options.path;
-
+    if (isValidPath(pointer)) {
       if (FILE_EXTENSIONS.find(extension => pointer.endsWith(extension))) {
-        const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || process.cwd(), pointer);
-        const { existsSync } = options.fs;
+        const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || cwd(), pointer);
 
         if (existsSync(normalizedFilePath)) {
           return true;
@@ -41,15 +45,20 @@ export class JsonFileLoader implements DocumentLoader {
   }
 
   async load(pointer: SchemaPointerSingle, options: JsonFileLoaderOptions): Promise<Source> {
-    return this.loadSync(pointer, options);
+    const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || cwd(), pointer);
+
+    try {
+      const jsonContent: string = await readFile(normalizedFilePath, { encoding: 'utf8' });
+      return parseGraphQLJSON(pointer, jsonContent, options);
+    } catch (e) {
+      throw new Error(`Unable to read JSON file: ${normalizedFilePath}: ${e.message || e}`);
+    }
   }
 
   loadSync(pointer: SchemaPointerSingle, options: JsonFileLoaderOptions): Source {
-    const { resolve: resolvePath, isAbsolute } = options.path;
-    const normalizedFilepath = isAbsolute(pointer) ? pointer : resolvePath(options.cwd || process.cwd(), pointer);
+    const normalizedFilepath = isAbsolute(pointer) ? pointer : resolve(options.cwd || cwd(), pointer);
 
     try {
-      const { readFileSync } = options.fs;
       const jsonContent = readFileSync(normalizedFilepath, 'utf8');
       return parseGraphQLJSON(pointer, jsonContent, options);
     } catch (e) {

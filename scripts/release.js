@@ -5,6 +5,7 @@ const { resolve, dirname, join } = require('path');
 const semver = require('semver');
 const cp = require('child_process');
 const rootPackageJson = require('../package.json');
+const { cwd } = require('process');
 
 async function release() {
 
@@ -21,7 +22,7 @@ async function release() {
 
     const workspaceGlobs = rootPackageJson.workspaces.map(workspace => workspace + '/package.json');
 
-    const packageJsonPaths = glob(workspaceGlobs).map(packageJsonPath => resolve(process.cwd(), packageJsonPath));
+    const packageJsonPaths = glob(workspaceGlobs).map(packageJsonPath => resolve(cwd(), packageJsonPath));
 
     const packageNames = packageJsonPaths.map(packageJsonPath => require(packageJsonPath).name);
 

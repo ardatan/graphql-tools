@@ -3,6 +3,7 @@ import { UrlLoader } from '../src';
 import { printSchemaWithDirectives } from '@graphql-tools/utils';
 import nock from 'nock';
 import { mockGraphQLServer } from '../../../testing/utils';
+import { cwd } from 'process';
 
 const SHOULD_NOT_GET_HERE_ERROR = 'SHOULD_NOT_GET_HERE';
 
@@ -110,7 +111,7 @@ type CustomQuery {
     });
 
     it('Absolute file path should not be accepted as URL', async () => {
-      expect(await loader.canLoad(process.cwd(), {})).toBeFalsy();
+      expect(await loader.canLoad(cwd(), {})).toBeFalsy();
     });
   });
 });

@@ -1,12 +1,13 @@
 import { UrlLoader, LoadFromUrlOptions } from '@graphql-tools/url-loader';
 import { PrismaDefinitionClass, Environment } from 'prisma-yml';
+import { join } from 'path';
+import { exists } from 'fs-extra';
+import { homedir } from 'os';
+import { cwd } from 'process';
 
 interface PrismaLoaderOptions extends LoadFromUrlOptions {
   envVars?: { [key: string]: string };
   graceful?: boolean;
-  fs?: typeof import('fs');
-  path?: typeof import('path');
-  os?: typeof import('os');
   cwd?: string;
 }
 
@@ -15,30 +16,20 @@ export class PrismaLoader extends UrlLoader {
     return 'prisma';
   }
 
-  async canLoad(prismaConfigFilePath: string, options: PrismaLoaderOptions) {
-    if (
-      typeof prismaConfigFilePath === 'string' &&
-      prismaConfigFilePath.endsWith('prisma.yml') &&
-      options.fs &&
-      options.path &&
-      options.os
-    ) {
-      const path = options.path || (await import('path'));
-      const joinedYmlPath = path.join(options.cwd || process.cwd(), prismaConfigFilePath);
-      const fs = options.fs.promises;
-      if (await fs.stat(joinedYmlPath).catch(_ => false)) {
-        return true;
-      }
+  async canLoad(prismaConfigFilePath: string, options: PrismaLoaderOptions): Promise<boolean> {
+    if (typeof prismaConfigFilePath === 'string' && prismaConfigFilePath.endsWith('prisma.yml')) {
+      const joinedYmlPath = join(options.cwd || cwd(), prismaConfigFilePath);
+      return new Promise(resolve => exists(joinedYmlPath, resolve));
     }
     return false;
   }
 
   async load(prismaConfigFilePath: string, options: PrismaLoaderOptions) {
-    const { graceful, envVars = {}, os = await import('os'), path = await import('path') } = options;
-    const home = os.homedir();
+    const { graceful, envVars = {} } = options;
+    const home = homedir();
     const env = new Environment(home);
     await env.load();
-    const joinedYmlPath = path.join(process.cwd(), prismaConfigFilePath);
+    const joinedYmlPath = join(options.cwd || cwd(), prismaConfigFilePath);
     const definition = new PrismaDefinitionClass(env, joinedYmlPath, envVars);
     await definition.load({}, undefined, graceful);
     const serviceName = definition.service!;

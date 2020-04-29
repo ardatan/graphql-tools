@@ -2,7 +2,7 @@ import { DefinitionNode } from 'graphql';
 import { Source, SingleFileOptions, Loader, compareStrings } from '@graphql-tools/utils';
 import { normalizePointers } from './utils/pointers';
 import { RawModule } from './import-parser';
-import { prepareOptions, prepareOptionsSync } from './load-typedefs/options';
+import { applyDefaultOptions } from './load-typedefs/options';
 import { collectSources, collectSourcesSync } from './load-typedefs/collect-sources';
 import { parseSource, parseSourceSync } from './load-typedefs/parse';
 import { useLimit } from './utils/helpers';
@@ -19,9 +19,6 @@ export type LoadTypedefsOptions<ExtraConfig = { [key: string]: any }> = SingleFi
     sort?: boolean;
     skipGraphQLImport?: boolean;
     forceGraphQLImport?: boolean;
-    fs?: typeof import('fs');
-    path?: typeof import('path');
-    os?: typeof import('os');
   };
 
 export type UnnormalizedTypeDefPointer = { [key: string]: any } | string;
@@ -33,7 +30,7 @@ export async function loadTypedefs<AdditionalConfig = {}>(
   const pointerOptionMap = normalizePointers(pointerOrPointers);
   const globOptions: any = {};
 
-  await prepareOptions<AdditionalConfig>(options);
+  applyDefaultOptions<AdditionalConfig>(options);
 
   const sources = await collectSources({
     pointerOptionMap,
@@ -73,7 +70,7 @@ export function loadTypedefsSync<AdditionalConfig = {}>(
   const pointerOptionMap = normalizePointers(pointerOrPointers);
   const globOptions: any = {};
 
-  prepareOptionsSync<AdditionalConfig>(options);
+  applyDefaultOptions<AdditionalConfig>(options);
 
   const sources = collectSourcesSync({
     pointerOptionMap,

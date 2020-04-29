@@ -17,7 +17,11 @@
   },
   "dependencies": {
     "globby": "11.0.0",
-    "unixify": "1.0.0"
+    "unixify": "1.0.0",
+    "fs-extra": "9.0.0"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "8.1.0"
   },
   "publishConfig": {
     "access": "public",

@@ -6,6 +6,8 @@ import { loadFile, loadFileSync } from './load-file';
 import { stringToHash, useStack, StackNext, StackFn } from '../utils/helpers';
 import { useCustomLoader, useCustomLoaderSync } from '../utils/custom-loader';
 import { useQueue, useSyncQueue } from '../utils/queue';
+import unixify from 'unixify';
+import globby, { sync as globbySync } from 'globby';
 
 type AddSource = (data: { pointer: string; source: Source; noCache?: boolean }) => void;
 type AddGlob = (data: { pointer: string; pointerOptions: any }) => void;
@@ -26,7 +28,6 @@ export async function collectSources<TOptions>({
   const globs: string[] = [];
   const globOptions: any = {};
   const queue = useQueue<void>({ concurrency: CONCURRENCY_LIMIT });
-  const unixify = await import('unixify').then(m => m.default || m);
 
   const { addSource, addGlob, collect } = createHelpers({
     sources,
@@ -56,11 +57,9 @@ export async function collectSources<TOptions>({
   if (globs.length) {
     includeIgnored({
       options,
-      unixify,
       globs,
     });
 
-    const { default: globby } = await import('globby');
     const paths = await globby(globs, createGlobbyOptions(options));
 
     collectSourcesFromGlobals({
@@ -91,9 +90,6 @@ export function collectSourcesSync<TOptions>({
   const globs: string[] = [];
   const globOptions: any = {};
   const queue = useSyncQueue<void>();
-  let unixify = require('unixify');
-
-  unixify = unixify.default || unixify;
 
   const { addSource, addGlob, collect } = createHelpers({
     sources,
@@ -123,12 +119,10 @@ export function collectSourcesSync<TOptions>({
   if (globs.length) {
     includeIgnored({
       options,
-      unixify,
       globs,
     });
 
-    const globby = require('globby');
-    const paths = globby.sync(globs, createGlobbyOptions(options));
+    const paths = globbySync(globs, createGlobbyOptions(options));
 
     collectSourcesFromGlobalsSync({
       filepaths: paths,
@@ -194,7 +188,7 @@ function includeIgnored<
   T extends {
     ignore?: string | string[];
   }
->({ options, unixify, globs }: { options: T; unixify: any; globs: string[] }) {
+>({ options, globs }: { options: T; globs: string[] }) {
   if (options.ignore) {
     const ignoreList = asArray(options.ignore)
       .map(g => `!(${g})`)

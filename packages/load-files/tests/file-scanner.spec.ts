@@ -1,4 +1,4 @@
-import { loadResolversFiles, loadSchemaFiles, loadFilesAsync } from '@graphql-tools/load-files';
+import { loadFilesSync, loadFiles } from '@graphql-tools/load-files';
 import { print } from 'graphql';
 
 function testSchemaDir({ path, expected, note, extensions, ignoreIndex }: { path: string; expected: any; note: string; extensions?: string[] | null; ignoreIndex?: boolean }) {
@@ -10,7 +10,7 @@ function testSchemaDir({ path, expected, note, extensions, ignoreIndex }: { path
       },
       requireMethod: jest.requireActual,
     };
-    const result = loadSchemaFiles(path, extensions ? { ...options, extensions } : options);
+    const result = loadFilesSync(path, extensions ? { ...options, extensions } : options);
 
     expect(result.length).toBe(expected.length);
     expect(result.map(res => {
@@ -29,7 +29,7 @@ function testSchemaDir({ path, expected, note, extensions, ignoreIndex }: { path
       },
       requireMethod: jest.requireActual,
     };
-    const result = await loadFilesAsync(path, extensions ? { ...options, extensions } : options);
+    const result = await loadFiles(path, extensions ? { ...options, extensions } : options);
 
     expect(result.length).toBe(expected.length);
     expect(result.map(res => {
@@ -54,7 +54,7 @@ function testResolversDir({ path, expected, note, extensions, compareValue, igno
       },
       requireMethod: jest.requireActual,
     };
-    const result = loadResolversFiles(path, extensions ? { ...options, extensions } : options);
+    const result = loadFilesSync(path, extensions ? { ...options, extensions } : options);
 
     expect(result.length).toBe(expected.length);
 
@@ -71,7 +71,7 @@ function testResolversDir({ path, expected, note, extensions, compareValue, igno
       },
       requireMethod: jest.requireActual,
     };
-    const result = await loadFilesAsync(path, extensions ? { ...options, extensions } : options);
+    const result = await loadFiles(path, extensions ? { ...options, extensions } : options);
 
     expect(result.length).toBe(expected.length);
 

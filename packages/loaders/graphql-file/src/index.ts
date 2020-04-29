@@ -7,13 +7,13 @@ import {
   parseGraphQLSDL,
   SingleFileOptions,
 } from '@graphql-tools/utils';
+import { isAbsolute, resolve } from 'path';
+import { exists, existsSync, readFile, readFileSync } from 'fs-extra';
+import { cwd } from 'process';
 
 const FILE_EXTENSIONS = ['.gql', '.gqls', '.graphql', '.graphqls'];
 
-export interface GraphQLFileLoaderOptions extends SingleFileOptions {
-  fs?: typeof import('fs');
-  path?: typeof import('path');
-}
+export interface GraphQLFileLoaderOptions extends SingleFileOptions {}
 
 export class GraphQLFileLoader implements UniversalLoader<GraphQLFileLoaderOptions> {
   loaderId(): string {
@@ -24,20 +24,21 @@ export class GraphQLFileLoader implements UniversalLoader<GraphQLFileLoaderOptio
     pointer: SchemaPointerSingle | DocumentPointerSingle,
     options: GraphQLFileLoaderOptions
   ): Promise<boolean> {
-    return this.canLoadSync(pointer, options);
+    if (isValidPath(pointer)) {
+      if (FILE_EXTENSIONS.find(extension => pointer.endsWith(extension))) {
+        const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || cwd(), pointer);
+        return new Promise(resolve => exists(normalizedFilePath, resolve));
+      }
+    }
+
+    return false;
   }
 
   canLoadSync(pointer: SchemaPointerSingle | DocumentPointerSingle, options: GraphQLFileLoaderOptions): boolean {
-    if (isValidPath(pointer) && options.path && options.fs) {
-      const { resolve, isAbsolute } = options.path;
-
+    if (isValidPath(pointer)) {
       if (FILE_EXTENSIONS.find(extension => pointer.endsWith(extension))) {
-        const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || process.cwd(), pointer);
-        const { existsSync } = options.fs;
-
-        if (existsSync(normalizedFilePath)) {
-          return true;
-        }
+        const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || cwd(), pointer);
+        return existsSync(normalizedFilePath);
       }
     }
 
@@ -45,15 +46,16 @@ export class GraphQLFileLoader implements UniversalLoader<GraphQLFileLoaderOptio
   }
 
   async load(pointer: SchemaPointerSingle | DocumentPointerSingle, options: GraphQLFileLoaderOptions): Promise<Source> {
-    return this.loadSync(pointer, options);
+    const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || cwd(), pointer);
+    const rawSDL: string = await readFile(normalizedFilePath, { encoding: 'utf8' });
+
+    return parseGraphQLSDL(pointer, rawSDL.trim(), options);
   }
 
   loadSync(pointer: SchemaPointerSingle | DocumentPointerSingle, options: GraphQLFileLoaderOptions): Source {
-    const { resolve, isAbsolute } = options.path;
-    const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || process.cwd(), pointer);
-    const { readFileSync } = options.fs;
-    const rawSDL = readFileSync(normalizedFilePath, 'utf-8').trim();
+    const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || cwd(), pointer);
+    const rawSDL = readFileSync(normalizedFilePath, { encoding: 'utf8' });
 
-    return parseGraphQLSDL(pointer, rawSDL, options);
+    return parseGraphQLSDL(pointer, rawSDL.trim(), options);
   }
 }

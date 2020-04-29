@@ -17,12 +17,13 @@ import {
   gqlPluckFromCodeStringSync,
 } from '@graphql-tools/graphql-tag-pluck';
 import { tryToLoadFromExport, tryToLoadFromExportSync } from './load-from-module';
+import { isAbsolute, resolve } from 'path';
+import { exists, existsSync, readFileSync, readFile } from 'fs-extra';
+import { cwd } from 'process';
 
 export type CodeFileLoaderOptions = {
   require?: string | string[];
   pluckConfig?: GraphQLTagPluckOptions;
-  fs?: typeof import('fs');
-  path?: typeof import('path');
   noPluck?: boolean;
 } & SingleFileOptions;
 
@@ -37,17 +38,20 @@ export class CodeFileLoader implements UniversalLoader<CodeFileLoaderOptions> {
     pointer: SchemaPointerSingle | DocumentPointerSingle,
     options: CodeFileLoaderOptions
   ): Promise<boolean> {
-    return this.canLoadSync(pointer, options);
+    if (isValidPath(pointer)) {
+      if (FILE_EXTENSIONS.find(extension => pointer.endsWith(extension))) {
+        const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || cwd(), pointer);
+        return new Promise(resolve => exists(normalizedFilePath, resolve));
+      }
+    }
+
+    return false;
   }
 
   canLoadSync(pointer: SchemaPointerSingle | DocumentPointerSingle, options: CodeFileLoaderOptions): boolean {
-    if (isValidPath(pointer) && options.path && options.fs) {
-      const { resolve, isAbsolute } = options.path;
-
+    if (isValidPath(pointer)) {
       if (FILE_EXTENSIONS.find(extension => pointer.endsWith(extension))) {
-        const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || process.cwd(), pointer);
-        const { existsSync } = options.fs;
-
+        const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || cwd(), pointer);
         if (existsSync(normalizedFilePath)) {
           return true;
         }
@@ -64,7 +68,7 @@ export class CodeFileLoader implements UniversalLoader<CodeFileLoaderOptions> {
 
     if (!options.noPluck) {
       try {
-        const content = getContent(normalizedFilePath, options);
+        const content = await readFile(normalizedFilePath, { encoding: 'utf-8' });
         const sdl = await gqlPluckFromCodeString(normalizedFilePath, content, options.pluckConfig);
 
         if (sdl) {
@@ -107,7 +111,7 @@ export class CodeFileLoader implements UniversalLoader<CodeFileLoaderOptions> {
 
     if (!options.noPluck) {
       try {
-        const content = getContent(normalizedFilePath, options);
+        const content = readFileSync(normalizedFilePath, { encoding: 'utf-8' });
         const sdl = gqlPluckFromCodeStringSync(normalizedFilePath, content, options.pluckConfig);
 
         if (sdl) {
@@ -172,11 +176,5 @@ function ensureAbsolutePath(
   pointer: SchemaPointerSingle | DocumentPointerSingle,
   options: CodeFileLoaderOptions
 ): string {
-  const { resolve, isAbsolute } = options.path;
-
-  return isAbsolute(pointer) ? pointer : resolve(options.cwd || process.cwd(), pointer);
-}
-
-function getContent(filepath: string, options: CodeFileLoaderOptions): string {
-  return options.fs.readFileSync(filepath, { encoding: 'utf-8' });
+  return isAbsolute(pointer) ? pointer : resolve(options.cwd || cwd(), pointer);
 }

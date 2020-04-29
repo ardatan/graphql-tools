@@ -18,8 +18,12 @@
   "dependencies": {
     "@graphql-tools/utils": "5.0.0",
     "@graphql-tools/url-loader": "5.0.0",
+    "fs-extra": "9.0.0",
     "prisma-yml": "1.34.10",
     "tslib": "1.11.1"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "8.1.0"
   },
   "publishConfig": {
     "access": "public",

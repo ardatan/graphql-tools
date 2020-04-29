@@ -2,6 +2,7 @@ import { GraphQLSchema, execute, parse } from 'graphql';
 import { resolve } from 'path';
 import { existsSync } from 'fs';
 import nock from 'nock';
+import { cwd } from 'process';
 
 type PromiseOf<T extends (...args: any[]) => any> = T extends (...args: any[]) => Promise<infer R> ? R : ReturnType<T>;
 
@@ -59,8 +60,7 @@ export function useMonorepo({ dirname }: { dirname: string }) {
 
 function findProjectDir(dirname: string): string | never {
   const originalDirname = dirname;
-  const cwd = process.cwd();
-  const stopDir = resolve(cwd, '..');
+  const stopDir = resolve(cwd(), '..');
 
   while (dirname !== stopDir) {
     try {

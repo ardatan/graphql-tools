@@ -4,6 +4,9 @@ import { LoadTypedefsOptions } from '../load-typedefs';
 import { loadFile, loadFileSync } from '../load-typedefs/load-file';
 import { completeDefinitionPool } from './definition';
 import { Source, compareNodes } from '@graphql-tools/utils';
+import { resolve, dirname, join } from 'path';
+import { realpathSync } from 'fs-extra';
+import resolveFrom from 'resolve-from';
 
 /**
  * Describes the information from a single import line
@@ -205,22 +208,15 @@ export function isEmptySDL(sdl: string): boolean {
  * @returns Full resolved path to a file
  */
 export function resolveModuleFilePath(filePath: string, importFrom: string, options: LoadTypedefsOptions): string {
-  const { fs, path } = options;
+  const fullPath = resolve(options.cwd, filePath);
+  const dirName = dirname(fullPath);
 
-  if (fs && path) {
-    const fullPath = path.resolve(options.cwd, filePath);
-    const dirName = path.dirname(fullPath);
-
-    if (isGraphQLFile(fullPath) && isGraphQLFile(importFrom)) {
-      try {
-        return fs.realpathSync(path.join(dirName, importFrom));
-      } catch (e) {
-        if (e.code === 'ENOENT') {
-          let resolveFrom = require('resolve-from');
-          resolveFrom = resolveFrom.default || resolveFrom;
-
-          return resolveFrom(dirName, importFrom);
-        }
+  if (isGraphQLFile(fullPath) && isGraphQLFile(importFrom)) {
+    try {
+      return realpathSync(join(dirName, importFrom));
+    } catch (e) {
+      if (e.code === 'ENOENT') {
+        return resolveFrom(dirName, importFrom);
       }
     }
   }

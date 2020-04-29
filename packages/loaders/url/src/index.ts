@@ -26,12 +26,12 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     return 'url';
   }
 
-  async canLoad(pointer: SchemaPointerSingle, options: LoadFromUrlOptions): Promise<boolean> {
-    return this.canLoadSync(pointer, options);
+  async canLoad(pointer: SchemaPointerSingle, _options: LoadFromUrlOptions): Promise<boolean> {
+    return !!isWebUri(pointer);
   }
 
-  canLoadSync(pointer: SchemaPointerSingle, _options: LoadFromUrlOptions): boolean {
-    return !!isWebUri(pointer);
+  canLoadSync(_pointer: SchemaPointerSingle, _options: LoadFromUrlOptions): boolean {
+    return false;
   }
 
   async load(pointer: SchemaPointerSingle, options: LoadFromUrlOptions): Promise<Source> {

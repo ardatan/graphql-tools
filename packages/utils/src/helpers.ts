@@ -47,48 +47,6 @@ export function isValidPath(str: string): boolean {
   return typeof str === 'string' && !invalidPathRegex.test(str);
 }
 
-export async function resolveBuiltinModule<Module>(moduleName: string, option?: Module | string): Promise<Module> {
-  if (typeof option === 'object') {
-    return option;
-  }
-
-  try {
-    if (typeof option === 'string') {
-      return await import(option);
-    }
-
-    return await import(moduleName);
-  } catch (e) {
-    // tslint:disable-next-line: no-console
-    console.warn(`
-      ${option || moduleName} module couldn't be found for built-in ${moduleName}.
-      Please provide a working module in your loader options!
-    `);
-    return null;
-  }
-}
-
-export function resolveBuiltinModuleSync<Module>(moduleName: string, option?: Module | string): Module {
-  if (typeof option === 'object') {
-    return option;
-  }
-
-  try {
-    if (typeof option === 'string') {
-      return require(option);
-    }
-
-    return require(moduleName);
-  } catch (e) {
-    // tslint:disable-next-line: no-console
-    console.warn(`
-      ${option || moduleName} module couldn't be found for built-in ${moduleName}.
-      Please provide a working module in your loader options!
-    `);
-    return null;
-  }
-}
-
 export function compareStrings<A, B>(a: A, b: B) {
   if (a.toString() < b.toString()) {
     return -1;
