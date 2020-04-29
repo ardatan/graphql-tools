@@ -160,7 +160,7 @@ By default, the `summary` field will always return 2 entries. To change this, we
 
 ```js
 {
-  Person: () =>({
+  Usage: () =>({
     summary: () => new MockList([0, 12]),
   }),
 }
