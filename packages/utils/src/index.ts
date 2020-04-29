@@ -42,3 +42,4 @@ export * from './mapAsyncIterator';
 export * from './updateArgument';
 export * from './implementsAbstractType';
 export * from './errors';
+export * from './toConfig';
