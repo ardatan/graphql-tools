@@ -1,22 +1,17 @@
-const { readFileSync, writeFileSync } = require('fs');
+const { writeJSONSync } = require('fs-extra');
 const { resolve } = require('path');
 
-const pkgPath = resolve(process.cwd(), 'package.json');
+const pkgPath = resolve(process.cwd(), './package.json');
 
-const pkg = JSON.parse(
-  readFileSync(pkgPath, {
-    encoding: 'utf-8',
-  })
-);
+const pkg = require(pkgPath);
 
-const version = pkg.devDependencies.graphql;
+const version = process.argv[2];
 
-for (const dependency in pkg.resolutions) {
-  if (pkg.resolutions.hasOwnProperty(dependency)) {
-    pkg.resolutions[dependency] = `^${version}`;
-  }
+pkg.resolutions = pkg.resolutions || {};
+if (!pkg.resolutions.graphql.startsWith(version)){
+  pkg.resolutions.graphql = `^${version}`;
 }
 
-writeFileSync(pkgPath, JSON.stringify(pkg, null, 2), {
-  encoding: 'utf-8',
+writeJSONSync(pkgPath, pkg, {
+  spaces: 2
 });

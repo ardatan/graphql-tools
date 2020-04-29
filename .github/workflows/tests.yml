@@ -17,6 +17,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest]
         node_version: [10, 14]
+        graphql_version: [14, 15]
     steps:
       - name: Checkout Master
         uses: actions/checkout@v1
@@ -34,6 +35,8 @@ jobs:
           key: ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-yarn-
+      - name: Install Legacy GraphQL
+        run: node ./scripts/match-graphql.js ${{matrix.graphql_version}}
       - name: Install Dependencies using Yarn
         run: yarn install && git checkout yarn.lock
       - name: Cache Jest
