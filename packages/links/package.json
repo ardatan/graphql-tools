@@ -1,5 +1,5 @@
 {
-  "name": "@graphql-tools/stitching-upload",
+  "name": "@graphql-tools/links",
   "version": "5.0.0",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": "git@github.com:ardatan/graphql-tools.git",
