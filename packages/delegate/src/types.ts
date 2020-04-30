@@ -6,7 +6,6 @@ import {
   DocumentNode,
   GraphQLResolveInfo,
   GraphQLFieldResolver,
-  GraphQLNamedType,
 } from 'graphql';
 import { Operation, Transform, Request, TypeMap, ExecutionResult } from '@graphql-tools/utils';
 
@@ -101,8 +100,6 @@ export type MergedTypeResolver = (
   subschema: GraphQLSchema | SubschemaConfig,
   selectionSet: SelectionSetNode
 ) => any;
-
-export type SchemaLikeObject = SubschemaConfig | GraphQLSchema | string | DocumentNode | Array<GraphQLNamedType>;
 
 export function isSubschemaConfig(value: any): value is SubschemaConfig {
   return Boolean((value as SubschemaConfig).schema);

@@ -1,4 +1,4 @@
-import { GraphQLNamedType, GraphQLSchema, GraphQLResolveInfo, SelectionSetNode } from 'graphql';
+import { GraphQLNamedType, GraphQLSchema, GraphQLResolveInfo, SelectionSetNode, DocumentNode } from 'graphql';
 import {
   ReplacementSelectionSetMapping,
   ReplacementFragmentMapping,
@@ -7,7 +7,7 @@ import {
   Transform,
   TypeMap,
 } from '@graphql-tools/utils';
-import { IDelegateToSchemaOptions, SubschemaConfig, SchemaLikeObject } from '@graphql-tools/delegate';
+import { IDelegateToSchemaOptions, SubschemaConfig } from '@graphql-tools/delegate';
 import { IExecutableSchemaDefinition } from '@graphql-tools/schema';
 
 export type MergeTypeCandidate = {
@@ -58,6 +58,8 @@ export type IResolversParameter =
   | Array<IResolvers | ((mergeInfo: MergeInfo) => IResolvers)>
   | IResolvers
   | ((mergeInfo: MergeInfo) => IResolvers);
+
+export type SchemaLikeObject = SubschemaConfig | GraphQLSchema | string | DocumentNode | Array<GraphQLNamedType>;
 
 export interface IStitchSchemasOptions<TContext = any> extends Omit<IExecutableSchemaDefinition<TContext>, 'typeDefs'> {
   subschemas?: Array<GraphQLSchema | SubschemaConfig>;
