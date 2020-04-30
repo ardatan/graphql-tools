@@ -16,9 +16,7 @@
     "graphql": "^14.0.0 || ^15.0.0"
   },
   "devDependencies": {
-    "@types/fs-extra": "8.1.0",
     "@types/is-glob": "4.0.1",
-    "@types/lodash": "4.14.150",
     "@types/valid-url": "1.0.3",
     "graphql-tag": "2.10.3",
     "graphql-type-json": "0.3.1"
@@ -26,13 +24,10 @@
   "dependencies": {
     "@graphql-tools/utils": "5.0.0",
     "@graphql-tools/merge": "5.0.0",
-    "fs-extra": "9.0.0",
     "globby": "11.0.0",
-    "import-from": "^3.0.0",
+    "import-from": "3.0.0",
     "is-glob": "4.0.1",
-    "lodash": "4.17.15",
     "p-limit": "2.3.0",
-    "resolve-from": "5.0.0",
     "tslib": "1.11.1",
     "unixify": "1.0.0",
     "valid-url": "1.0.9"

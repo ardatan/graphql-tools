@@ -10,7 +10,7 @@ import {
 import { isAbsolute, resolve } from 'path';
 import { exists, existsSync, readFile, readFileSync } from 'fs-extra';
 import { cwd as processCwd } from 'process';
-import { processImport } from 'packages/import/src';
+import { processImport } from '@graphql-tools/import';
 
 const FILE_EXTENSIONS = ['.gql', '.gqls', '.graphql', '.graphqls'];
 

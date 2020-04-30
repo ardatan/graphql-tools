@@ -22,5 +22,8 @@
   "dependencies": {
     "fs-extra": "9.0.0",
     "resolve-from": "5.0.0"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "8.1.0",
   }
 }
