@@ -12,7 +12,7 @@ const importSchema = (schema: string, schemas?: Record<string, string>) => {
   }))
 };
 
-const parseSDL = (content: string) => content.split('\n').map(str => str.trim()).filter(str => str.startsWith('# import ') || str.startsWith('#import ')).map(parseImportLine);
+const parseSDL = (content: string) => content.split('\n').map(str => str.trim()).filter(str => str.startsWith('# import ') || str.startsWith('#import ')).map(str => parseImportLine(str.replace('#', '').trim()));
 
 describe('importSchema', () => {
   test('parseImportLine: parse single import', () => {
@@ -100,7 +100,7 @@ describe('importSchema', () => {
 
   test('parse: multi line import', () => {
     const sdl = `\
-          # import A from "a.graphql"
+          # import A from 'a.graphql'
           # import * from "b.graphql"
             `;
     expect(parseSDL(sdl)).toEqual([
@@ -344,7 +344,6 @@ describe('importSchema', () => {
     const expectedSDL = /* GraphQL */`\
           type Query {
             greet: String!
-            hello: String!
           }
 
           type A {
