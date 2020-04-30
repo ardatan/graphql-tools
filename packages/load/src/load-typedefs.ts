@@ -1,17 +1,14 @@
-import { DefinitionNode } from 'graphql';
 import { Source, SingleFileOptions, Loader, compareStrings } from '@graphql-tools/utils';
 import { normalizePointers } from './utils/pointers';
-import { RawModule } from './import-parser';
 import { applyDefaultOptions } from './load-typedefs/options';
 import { collectSources, collectSourcesSync } from './load-typedefs/collect-sources';
-import { parseSource, parseSourceSync } from './load-typedefs/parse';
+import { parseSource } from './load-typedefs/parse';
 import { useLimit } from './utils/helpers';
 
 const CONCURRENCY_LIMIT = 100;
 
 export type LoadTypedefsOptions<ExtraConfig = { [key: string]: any }> = SingleFileOptions &
   ExtraConfig & {
-    processedFiles?: Map<string, RawModule[]>;
     cache?: { [key: string]: Source };
     loaders: Loader[];
     filterKinds?: string[];
@@ -38,7 +35,6 @@ export async function loadTypedefs<AdditionalConfig = {}>(
   });
 
   const validSources: Source[] = [];
-  const definitionsCacheForImport: DefinitionNode[][] = [];
 
   // If we have few k of files it may be an issue
   const limit = useLimit(CONCURRENCY_LIMIT);
@@ -54,7 +50,6 @@ export async function loadTypedefs<AdditionalConfig = {}>(
           addValidSource(source) {
             validSources.push(source);
           },
-          cache: definitionsCacheForImport,
         })
       )
     )
@@ -78,10 +73,9 @@ export function loadTypedefsSync<AdditionalConfig = {}>(
   });
 
   const validSources: Source[] = [];
-  const definitionsCacheForImport: DefinitionNode[][] = [];
 
   sources.forEach(partialSource => {
-    parseSourceSync({
+    parseSource({
       partialSource,
       options,
       globOptions,
@@ -89,7 +83,6 @@ export function loadTypedefsSync<AdditionalConfig = {}>(
       addValidSource(source) {
         validSources.push(source);
       },
-      cache: definitionsCacheForImport,
     });
   });
 
