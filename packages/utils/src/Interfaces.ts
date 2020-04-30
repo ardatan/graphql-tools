@@ -227,8 +227,6 @@ export interface Request {
   extensions?: Record<string, any>;
 }
 
-export type IndexedObject<V> = Record<string, V> | ReadonlyArray<V>;
-
 export type VisitableSchemaType =
   | GraphQLSchema
   | GraphQLObjectType
