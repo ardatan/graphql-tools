@@ -1,0 +1,11 @@
+# import B from 'b.graphql'
+type Query {
+  greet: String!
+}
+
+type A {
+  # test 1
+  first: String
+  second: Float
+  b: B
+}

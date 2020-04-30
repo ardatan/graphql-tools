@@ -1,0 +1,23 @@
+type C1 {
+  id: ID!
+}
+
+type C2 {
+  id: ID!
+}
+
+type C3 {
+  id: ID!
+}
+
+type Query {
+  hello: String!
+}
+
+type Mutation {
+  hello: String!
+}
+
+type Subscription {
+  hello: String!
+}
