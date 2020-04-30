@@ -24,6 +24,6 @@
     "resolve-from": "5.0.0"
   },
   "devDependencies": {
-    "@types/fs-extra": "8.1.0",
+    "@types/fs-extra": "8.1.0"
   }
 }
