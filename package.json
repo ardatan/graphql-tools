@@ -81,7 +81,7 @@
     "jest": "25.5.2",
     "prettier": "2.0.5",
     "rimraf": "3.0.2",
-    "rollup": "2.7.5",
+    "rollup": "2.7.6",
     "rollup-plugin-auto-external": "2.0.0",
     "rollup-plugin-generate-package-json": "3.2.0",
     "rollup-plugin-typescript2": "0.27.0",
