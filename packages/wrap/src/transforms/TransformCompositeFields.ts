@@ -23,6 +23,7 @@ import {
   FieldNodeTransformer,
   RenamedFieldConfig,
   mapSchema,
+  fieldToFieldConfig,
 } from '@graphql-tools/utils';
 
 export default class TransformCompositeFields implements Transform {
@@ -70,7 +71,6 @@ export default class TransformCompositeFields implements Transform {
   private transformFields(type: GraphQLInterfaceType, fieldTransformer: FieldTransformer): GraphQLInterfaceType;
 
   private transformFields(type: GraphQLObjectType | GraphQLInterfaceType, fieldTransformer: FieldTransformer): any {
-    const typeConfig = type.toConfig();
     const fields = type.getFields();
     const newFields = {};
 
@@ -79,7 +79,7 @@ export default class TransformCompositeFields implements Transform {
       const transformedField = fieldTransformer(type.name, fieldName, field);
 
       if (typeof transformedField === 'undefined') {
-        newFields[fieldName] = typeConfig.fields[fieldName];
+        newFields[fieldName] = fieldToFieldConfig(fields[fieldName]);
       } else if (transformedField !== null) {
         const newName = (transformedField as RenamedFieldConfig).name;
 
@@ -87,7 +87,7 @@ export default class TransformCompositeFields implements Transform {
           newFields[newName] =
             (transformedField as RenamedFieldConfig).field != null
               ? (transformedField as RenamedFieldConfig).field
-              : typeConfig.fields[fieldName];
+              : fieldToFieldConfig(fields[fieldName]);
 
           if (newName !== fieldName) {
             const typeName = type.name;

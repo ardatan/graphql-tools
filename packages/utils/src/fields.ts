@@ -1,26 +1,27 @@
 import { GraphQLFieldConfigMap, GraphQLObjectType, GraphQLFieldConfig } from 'graphql';
 
 import { TypeMap } from './Interfaces';
+import { fieldToFieldConfig } from './toConfig';
 
 export function appendFields(typeMap: TypeMap, typeName: string, fields: GraphQLFieldConfigMap<any, any>): void {
   let type = typeMap[typeName];
   if (type != null) {
-    const typeConfig = (type as GraphQLObjectType).toConfig();
-
-    const newFields: any = Object.entries(typeConfig.fields).reduce(
-      (prev, [key, val]) => ({
-        ...prev,
-        [key]: val,
+    const newFieldConfigMap: GraphQLFieldConfigMap<any, any> = Object.entries(
+      (type as GraphQLObjectType).getFields()
+    ).reduce(
+      (acc, [fieldName, field]) => ({
+        ...acc,
+        [fieldName]: fieldToFieldConfig(field),
       }),
       {}
     );
 
     Object.keys(fields).forEach(fieldName => {
-      newFields[fieldName] = fields[fieldName];
+      newFieldConfigMap[fieldName] = fields[fieldName];
     });
     type = new GraphQLObjectType({
-      ...typeConfig,
-      fields: newFields,
+      ...(type as GraphQLObjectType).toConfig(),
+      fields: newFieldConfigMap,
     });
   } else {
     type = new GraphQLObjectType({
@@ -37,19 +38,21 @@ export function removeFields(
   testFn: (fieldName: string, field: GraphQLFieldConfig<any, any>) => boolean
 ): GraphQLFieldConfigMap<any, any> {
   let type = typeMap[typeName];
-  const typeConfig = (type as GraphQLObjectType).toConfig();
-  const originalFields = typeConfig.fields;
+
+  const originalFields = (type as GraphQLObjectType).getFields();
   const newFields = {};
   const removedFields = {};
   Object.keys(originalFields).forEach(fieldName => {
-    if (testFn(fieldName, originalFields[fieldName])) {
-      removedFields[fieldName] = originalFields[fieldName];
+    const originalFieldConfig = fieldToFieldConfig(originalFields[fieldName]);
+    if (testFn(fieldName, originalFieldConfig)) {
+      removedFields[fieldName] = originalFieldConfig;
     } else {
-      newFields[fieldName] = originalFields[fieldName];
+      newFields[fieldName] = originalFieldConfig;
     }
   });
+
   type = new GraphQLObjectType({
-    ...typeConfig,
+    ...(type as GraphQLObjectType).toConfig(),
     fields: newFields,
   });
   typeMap[typeName] = type;
