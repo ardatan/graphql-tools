@@ -78,7 +78,7 @@
     "graphql-subscriptions": "1.1.0",
     "graphql-scalars": "1.1.2",
     "graphql-upload": "10.0.0",
-    "jest": "25.5.2",
+    "jest": "25.5.3",
     "prettier": "2.0.5",
     "rimraf": "3.0.2",
     "rollup": "2.7.6",
