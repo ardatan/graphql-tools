@@ -47,7 +47,7 @@ describe('loadSchema', () => {
     });
 
     test('import and merge Query types from few different files', async () => {
-      const schema = await load('./tests/loaders/schema/fixtures/multiple-root/*/schema.graphql', {
+      const schema = await load('../import/tests/schema/fixtures/multiple-root/*/schema.graphql', {
         loaders: [new GraphQLFileLoader()]
       });
       const schemaStr = printSchema(schema);
