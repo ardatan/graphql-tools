@@ -16,10 +16,8 @@ import {
   GraphQLInputObjectType,
   GraphQLInterfaceType,
   GraphQLObjectType,
-  InlineFragmentNode,
   SelectionSetNode,
   GraphQLDirective,
-  GraphQLFieldConfig,
   FragmentDefinitionNode,
   SelectionNode,
   VariableDefinitionNode,
@@ -135,36 +133,12 @@ export interface Transform {
   transformResult?: (originalResult: ExecutionResult) => ExecutionResult;
 }
 
-export type FieldTransformer = (
-  typeName: string,
-  fieldName: string,
-  field: GraphQLField<any, any>
-) => GraphQLFieldConfig<any, any> | RenamedFieldConfig | null | undefined;
-
-export type RootFieldTransformer = (
-  operation: 'Query' | 'Mutation' | 'Subscription',
-  fieldName: string,
-  field: GraphQLField<any, any>
-) => GraphQLFieldConfig<any, any> | RenamedFieldConfig | null | undefined;
-
-export type FieldNodeTransformer = (
-  typeName: string,
-  fieldName: string,
-  fieldNode: FieldNode,
-  fragments: Record<string, FragmentDefinitionNode>
-) => SelectionNode | Array<SelectionNode>;
-
 export type FieldNodeMapper = (
   fieldNode: FieldNode,
   fragments: Record<string, FragmentDefinitionNode>
 ) => SelectionNode | Array<SelectionNode>;
 
 export type FieldNodeMappers = Record<string, Record<string, FieldNodeMapper>>;
-
-export interface RenamedFieldConfig {
-  name: string;
-  field?: GraphQLFieldConfig<any, any>;
-}
 
 export type FieldFilter = (typeName?: string, fieldName?: string, field?: GraphQLField<any, any>) => boolean;
 
@@ -190,14 +164,6 @@ export interface ICreateRequest {
   targetFieldName: string;
   selectionSet?: SelectionSetNode;
   fieldNodes?: ReadonlyArray<FieldNode>;
-}
-
-export interface ReplacementSelectionSetMapping {
-  [typeName: string]: { [fieldName: string]: SelectionSetNode };
-}
-
-export interface ReplacementFragmentMapping {
-  [typeName: string]: { [fieldName: string]: InlineFragmentNode };
 }
 
 export type IFieldResolver<TSource, TContext, TArgs = Record<string, any>, TReturn = any> = (

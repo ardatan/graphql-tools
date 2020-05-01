@@ -6,6 +6,7 @@ import {
   DocumentNode,
   GraphQLResolveInfo,
   GraphQLFieldResolver,
+  InlineFragmentNode,
 } from 'graphql';
 import { Operation, Transform, Request, TypeMap, ExecutionResult } from '@graphql-tools/utils';
 
@@ -91,6 +92,14 @@ export interface MergedTypeConfig {
   fieldName?: string;
   args?: (originalResult: any) => Record<string, any>;
   resolve?: MergedTypeResolver;
+}
+
+export interface ReplacementSelectionSetMapping {
+  [typeName: string]: { [fieldName: string]: SelectionSetNode };
+}
+
+export interface ReplacementFragmentMapping {
+  [typeName: string]: { [fieldName: string]: InlineFragmentNode };
 }
 
 export type MergedTypeResolver = (

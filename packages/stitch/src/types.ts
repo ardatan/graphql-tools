@@ -1,12 +1,6 @@
 import { GraphQLNamedType, GraphQLSchema, SelectionSetNode, DocumentNode } from 'graphql';
-import {
-  ReplacementSelectionSetMapping,
-  ReplacementFragmentMapping,
-  IResolvers,
-  ITypeDefinitions,
-  TypeMap,
-} from '@graphql-tools/utils';
-import { SubschemaConfig } from '@graphql-tools/delegate';
+import { IResolvers, ITypeDefinitions, TypeMap } from '@graphql-tools/utils';
+import { SubschemaConfig, ReplacementSelectionSetMapping, ReplacementFragmentMapping } from '@graphql-tools/delegate';
 import { IExecutableSchemaDefinition } from '@graphql-tools/schema';
 
 export type MergeTypeCandidate = {
