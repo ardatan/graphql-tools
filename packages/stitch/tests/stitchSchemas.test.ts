@@ -3047,4 +3047,199 @@ fragment BookingFragment on Booking {
       });
     });
   });
+
+  describe('stitching from existing interfaces', () => {
+    test('works', async () => {
+      const STOCK_RECORDS = {
+        1: {
+          id: 1,
+          stock: 100,
+        },
+      };
+
+      const stockSchema = makeExecutableSchema({
+        typeDefs: `
+          type StockRecord {
+            id: ID!
+            stock: Int!
+          }
+          type Query {
+            stockRecord(id: ID!): StockRecord
+          }
+        `,
+        resolvers: {
+          Query: {
+            stockRecord: (_, { id }) => STOCK_RECORDS[id],
+          },
+        },
+      });
+
+      const PRODUCTS = [
+        {
+          id: 1,
+          title: "T-Shirt",
+        },
+      ];
+
+      const COLLECTIONS = [
+        {
+          id: 1,
+          name: "Apparel",
+          products: PRODUCTS,
+        },
+      ];
+
+      const productSchema = makeExecutableSchema({
+        typeDefs: `
+          interface IProduct {
+            id: ID!
+            title: String!
+          }
+          type Product implements IProduct {
+            id: ID!
+            title: String!
+          }
+          type Collection {
+            id: ID!
+            name: String!
+            products: [Product!]!
+          }
+          type Query {
+            collections: [Collection!]!
+          }
+        `,
+        resolvers: {
+          Query: {
+            collections: () => COLLECTIONS,
+          },
+        },
+      });
+
+      const stitchedSchema = stitchSchemas({
+        inheritResolversFromInterfaces: true,
+        subschemas: [stockSchema, productSchema],
+        resolvers: {
+          IProduct: {
+            stockRecord: {
+              selectionSet: `{ id } `,
+              resolve: (obj, _args, _context, info) => delegateToSchema({
+                schema: stockSchema,
+                operation: "query",
+                fieldName: "stockRecord",
+                args: { id: obj.id },
+                info,
+              }),
+            },
+          },
+        },
+        typeDefs: `
+          extend interface IProduct {
+            stockRecord: StockRecord
+          }
+          extend type Product {
+            stockRecord: StockRecord
+          }
+        `,
+      });
+
+      const concreteResult = await graphql(
+        stitchedSchema,
+        `
+          query {
+            collections {
+              name
+              products {
+                title
+                stockRecord {
+                  stock
+                }
+              }
+            }
+          }
+        `,
+      );
+
+      expect(concreteResult).toEqual({
+        data: {
+          collections: [{
+            name: 'Apparel',
+            products: [{
+              title: 'T-Shirt',
+              stockRecord: {
+                stock: 100,
+              }
+            }]
+          }]
+        }
+      });
+
+      const fragmentResult = await graphql(
+        stitchedSchema,
+        `
+          query {
+              collections {
+              name
+              products {
+                ...InterfaceFragment
+              }
+            }
+          }
+
+          fragment InterfaceFragment on IProduct {
+            title
+            stockRecord {
+              stock
+            }
+          }
+        `,
+      );
+
+      expect(fragmentResult).toEqual({
+        data: {
+          collections: [{
+            name: 'Apparel',
+            products: [{
+              title: 'T-Shirt',
+              stockRecord: {
+                stock: 100
+              }
+            }]
+          }]
+        }
+      });
+
+      const interfaceResult = await graphql(
+        stitchedSchema,
+        `
+          query {
+            collections {
+              name
+              products {
+                ... on IProduct {
+                  title
+                  stockRecord {
+                    stock
+                  }
+                }
+              }
+            }
+          }
+        `,
+      );
+
+      expect(interfaceResult).toEqual({
+        data: {
+          collections: [{
+            name: 'Apparel',
+            products: [{
+              title: 'T-Shirt',
+              stockRecord: {
+                stock: 100
+              }
+            }]
+          }]
+        }
+      });
+    });
+  });
 });
