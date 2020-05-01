@@ -20,11 +20,12 @@ import {
   assertResolversPresent,
   attachDirectiveResolvers,
   buildDocumentFromTypeDefinitions,
+  extendResolversFromInterfaces,
 } from '@graphql-tools/schema';
 
 import { buildTypeCandidates, buildTypeMap } from './typeCandidates';
 import { createMergeInfo, completeMergeInfo, addMergeInfo } from './mergeInfo';
-import { MergeTypeCandidate, IStitchSchemasOptions, MergeInfo, IResolversParameter } from './types';
+import { MergeTypeCandidate, IStitchSchemasOptions, MergeInfo } from './types';
 import { SubschemaConfig, isSubschemaConfig } from '@graphql-tools/delegate';
 
 export function stitchSchemas({
@@ -48,7 +49,6 @@ export function stitchSchemas({
     throw new Error('Expected `resolverValidationOptions` to be an object');
   }
 
-  const allSchemas: Array<GraphQLSchema> = [];
   const typeCandidates: Record<string, Array<MergeTypeCandidate>> = Object.create(null);
   const extensions: Array<DocumentNode> = [];
   const directives: Array<GraphQLDirective> = [];
@@ -80,7 +80,6 @@ export function stitchSchemas({
 
   buildTypeCandidates({
     schemaLikeObjects,
-    allSchemas,
     typeCandidates,
     extensions,
     directives,
@@ -91,11 +90,7 @@ export function stitchSchemas({
 
   let mergeInfo: MergeInfo;
 
-  mergeInfo = createMergeInfo(allSchemas, typeCandidates, mergeTypes);
-
-  const finalResolvers = getFinalResolvers(resolvers, mergeInfo);
-
-  mergeInfo = completeMergeInfo(mergeInfo, finalResolvers);
+  mergeInfo = createMergeInfo(typeCandidates, mergeTypes);
 
   const typeMap = buildTypeMap({
     typeCandidates,
@@ -126,11 +121,20 @@ export function stitchSchemas({
     });
   });
 
+  // We allow passing in an array of resolver maps, in which case we merge them
+  const resolverMap: IResolvers = Array.isArray(resolvers) ? resolvers.reduce(mergeDeep, {}) : resolvers;
+
+  const finalResolvers = inheritResolversFromInterfaces
+    ? extendResolversFromInterfaces(schema, resolverMap)
+    : resolverMap;
+
+  mergeInfo = completeMergeInfo(mergeInfo, finalResolvers);
+
   addResolversToSchema({
     schema,
     resolvers: finalResolvers,
     resolverValidationOptions,
-    inheritResolversFromInterfaces,
+    inheritResolversFromInterfaces: false,
   });
 
   assertResolversPresent(schema, resolverValidationOptions);
@@ -160,28 +164,6 @@ export function stitchSchemas({
   }
 
   return schema;
-}
-
-function getFinalResolvers(resolvers: IResolversParameter, mergeInfo: MergeInfo): IResolvers {
-  let finalResolvers: IResolvers;
-
-  if (typeof resolvers === 'function') {
-    finalResolvers = resolvers(mergeInfo);
-  } else if (Array.isArray(resolvers)) {
-    finalResolvers = resolvers.reduce(
-      (left, right) => mergeDeep(left, typeof right === 'function' ? right(mergeInfo) : right),
-      {}
-    );
-    finalResolvers = resolvers.reduce<any>(mergeDeep, {});
-  } else {
-    finalResolvers = resolvers;
-  }
-
-  if (finalResolvers == null) {
-    finalResolvers = {};
-  }
-
-  return finalResolvers;
 }
 
 export function isDocumentNode(object: any): object is DocumentNode {

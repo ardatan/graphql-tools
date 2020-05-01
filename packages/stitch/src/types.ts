@@ -1,13 +1,6 @@
-import { GraphQLNamedType, GraphQLSchema, GraphQLResolveInfo, SelectionSetNode, DocumentNode } from 'graphql';
-import {
-  ReplacementSelectionSetMapping,
-  ReplacementFragmentMapping,
-  IResolvers,
-  ITypeDefinitions,
-  Transform,
-  TypeMap,
-} from '@graphql-tools/utils';
-import { IDelegateToSchemaOptions, SubschemaConfig } from '@graphql-tools/delegate';
+import { GraphQLNamedType, GraphQLSchema, SelectionSetNode, DocumentNode } from 'graphql';
+import { IResolvers, ITypeDefinitions, TypeMap } from '@graphql-tools/utils';
+import { SubschemaConfig, ReplacementSelectionSetMapping, ReplacementFragmentMapping } from '@graphql-tools/delegate';
 import { IExecutableSchemaDefinition } from '@graphql-tools/schema';
 
 export type MergeTypeCandidate = {
@@ -36,14 +29,6 @@ export interface MergedTypeInfo {
 }
 
 export interface MergeInfo {
-  delegate: (
-    type: 'query' | 'mutation' | 'subscription',
-    fieldName: string,
-    args: Record<string, any>,
-    context: Record<string, any>,
-    info: GraphQLResolveInfo,
-    transforms?: Array<Transform>
-  ) => any;
   fragments: Array<{
     field: string;
     fragment: string;
@@ -51,7 +36,6 @@ export interface MergeInfo {
   replacementSelectionSets: ReplacementSelectionSetMapping;
   replacementFragments: ReplacementFragmentMapping;
   mergedTypes: Record<string, MergedTypeInfo>;
-  delegateToSchema<TContext, TArgs>(options: IDelegateToSchemaOptions<TContext, TArgs>): any;
 }
 
 export type IResolversParameter =
@@ -83,3 +67,10 @@ export type OnTypeConflict = (
     };
   }
 ) => GraphQLNamedType;
+
+declare module '@graphql-tools/utils' {
+  interface IFieldResolverOptions<TSource = any, TContext = any, TArgs = any> {
+    fragment?: string;
+    selectionSet?: string;
+  }
+}

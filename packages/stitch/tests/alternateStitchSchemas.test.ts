@@ -164,7 +164,7 @@ describe('merge schemas through transforms', () => {
           // delegating directly, no subschemas or mergeInfo
           node: (_parent, args, context, info) => {
             if (args.id.startsWith('p')) {
-              return info.mergeInfo.delegateToSchema({
+              return delegateToSchema({
                 schema: propertySubschema,
                 operation: 'query',
                 fieldName: 'propertyById',
@@ -199,7 +199,7 @@ describe('merge schemas through transforms', () => {
         },
         Properties_Property: {
           bookings: {
-            fragment: 'fragment PropertyFragment on Property { id }',
+            selectionSet: '{ id }',
             resolve: (parent, args, context, info) =>
               delegateToSchema({
                 schema: bookingSubschema,
@@ -216,9 +216,9 @@ describe('merge schemas through transforms', () => {
         },
         Bookings_Booking: {
           property: {
-            fragment: 'fragment BookingFragment on Booking { propertyId }',
+            selectionSet: '{ propertyId }',
             resolve: (parent, _args, context, info) =>
-              info.mergeInfo.delegateToSchema({
+              delegateToSchema({
                 schema: propertySubschema,
                 operation: 'query',
                 fieldName: 'propertyById',

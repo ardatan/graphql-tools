@@ -58,7 +58,7 @@ describe('dataloader', () => {
       resolvers: {
         Task: {
           user: {
-            fragment: '... on Task { userId }',
+            selectionSet: '{ userId }',
             resolve(task, _args, context, info) {
               return context.usersLoader.load({ id: task.userId, info });
             },

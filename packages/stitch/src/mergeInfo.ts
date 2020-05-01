@@ -1,6 +1,5 @@
 import {
   GraphQLObjectType,
-  GraphQLResolveInfo,
   GraphQLSchema,
   Kind,
   SelectionNode,
@@ -10,59 +9,25 @@ import {
 } from 'graphql';
 
 import {
-  Transform,
-  TypeMap,
   parseFragmentToInlineFragment,
   concatInlineFragments,
   typeContainsSelectionSet,
   parseSelectionSet,
   forEachField,
+  TypeMap,
+  IResolvers,
+  IFieldResolverOptions,
 } from '@graphql-tools/utils';
-import {
-  ExpandAbstractTypes,
-  AddReplacementFragments,
-  delegateToSchema,
-  IDelegateToSchemaOptions,
-  isSubschemaConfig,
-  SubschemaConfig,
-} from '@graphql-tools/delegate';
 
-import { MergeTypeCandidate, MergedTypeInfo, MergeInfo, IResolversParameter, MergeTypeFilter } from './types';
+import { delegateToSchema, isSubschemaConfig, SubschemaConfig } from '@graphql-tools/delegate';
+
+import { MergeTypeCandidate, MergedTypeInfo, MergeInfo, MergeTypeFilter } from './types';
 
 export function createMergeInfo(
-  allSchemas: Array<GraphQLSchema>,
   typeCandidates: Record<string, Array<MergeTypeCandidate>>,
   mergeTypes?: boolean | Array<string> | MergeTypeFilter
 ): MergeInfo {
   return {
-    delegate(
-      operation: 'query' | 'mutation' | 'subscription',
-      fieldName: string,
-      args: Record<string, any>,
-      context: Record<string, any>,
-      info: GraphQLResolveInfo,
-      transforms: Array<Transform> = []
-    ) {
-      const schema = guessSchemaByRootField(allSchemas, operation, fieldName);
-      const expandTransforms = new ExpandAbstractTypes(info.schema, schema);
-      const fragmentTransform = new AddReplacementFragments(schema, info.mergeInfo.replacementFragments);
-      return delegateToSchema({
-        schema,
-        operation,
-        fieldName,
-        args,
-        context,
-        info,
-        transforms: [...transforms, expandTransforms, fragmentTransform],
-      });
-    },
-
-    delegateToSchema(options: IDelegateToSchemaOptions) {
-      return delegateToSchema({
-        ...options,
-        transforms: options.transforms,
-      });
-    },
     fragments: [],
     replacementSelectionSets: undefined,
     replacementFragments: undefined,
@@ -180,7 +145,7 @@ function createMergedTypes(
   return mergedTypes;
 }
 
-export function completeMergeInfo(mergeInfo: MergeInfo, resolvers: IResolversParameter): MergeInfo {
+export function completeMergeInfo(mergeInfo: MergeInfo, resolvers: IResolvers): MergeInfo {
   const replacementSelectionSets = Object.create(null);
 
   Object.keys(resolvers).forEach(typeName => {
@@ -189,7 +154,7 @@ export function completeMergeInfo(mergeInfo: MergeInfo, resolvers: IResolversPar
       return;
     }
     Object.keys(type).forEach(fieldName => {
-      const field = type[fieldName];
+      const field = type[fieldName] as IFieldResolverOptions;
       if (field.selectionSet) {
         const selectionSet = parseSelectionSet(field.selectionSet);
         if (!(typeName in replacementSelectionSets)) {
@@ -247,36 +212,6 @@ export function completeMergeInfo(mergeInfo: MergeInfo, resolvers: IResolversPar
   mergeInfo.replacementFragments = replacementFragments;
 
   return mergeInfo;
-}
-
-function operationToRootType(
-  operation: 'query' | 'mutation' | 'subscription',
-  schema: GraphQLSchema
-): GraphQLObjectType {
-  if (operation === 'subscription') {
-    return schema.getSubscriptionType();
-  } else if (operation === 'mutation') {
-    return schema.getMutationType();
-  }
-
-  return schema.getQueryType();
-}
-
-function guessSchemaByRootField(
-  schemas: Array<GraphQLSchema>,
-  operation: 'query' | 'mutation' | 'subscription',
-  fieldName: string
-): GraphQLSchema {
-  for (const schema of schemas) {
-    const rootObject = operationToRootType(operation, schema);
-    if (rootObject != null) {
-      const fields = rootObject.getFields();
-      if (fieldName in fields) {
-        return schema;
-      }
-    }
-  }
-  throw new Error(`Could not find subschema with field \`${operation}.${fieldName}\``);
 }
 
 export function addMergeInfo(stitchedSchema: GraphQLSchema, mergeInfo: MergeInfo): void {
