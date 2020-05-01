@@ -9,7 +9,8 @@ import {
   visitWithTypeInfo,
 } from 'graphql';
 
-import { Transform, Request, ReplacementSelectionSetMapping } from '@graphql-tools/utils';
+import { Transform, Request } from '@graphql-tools/utils';
+import { ReplacementSelectionSetMapping } from '../types';
 
 export default class AddReplacementSelectionSets implements Transform {
   private readonly schema: GraphQLSchema;

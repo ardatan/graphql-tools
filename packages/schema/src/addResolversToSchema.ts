@@ -58,12 +58,22 @@ export function addResolversToSchema(
     const resolverValue = resolvers[typeName];
     const resolverType = typeof resolverValue;
 
-    if (resolverType !== 'object' && resolverType !== 'function') {
-      throw new Error(
-        `"${typeName}" defined in resolvers, but has invalid value "${
-          resolverValue as string
-        }". A resolver's value must be of type object or function.`
-      );
+    if (typeName === '__schema') {
+      if (resolverType !== 'function') {
+        throw new Error(
+          `"${typeName}" defined in resolvers, but has invalid value "${
+            (resolverValue as unknown) as string
+          }". A schema resolver's value must be of type object or function.`
+        );
+      }
+    } else {
+      if (resolverType !== 'object') {
+        throw new Error(
+          `"${typeName}" defined in resolvers, but has invalid value "${
+            (resolverValue as unknown) as string
+          }". The resolver's value must be of type object.`
+        );
+      }
     }
 
     const type = schema.getType(typeName);
@@ -86,15 +96,14 @@ export function addResolversToSchema(
         }
       });
     } else if (isEnumType(type)) {
-      // We've encountered an enum resolver that is being used to provide an
-      // internal enum value.
-      // Reference: https://www.apollographql.com/docs/graphql-tools/scalars.html#internal-values
       Object.keys(resolverValue).forEach(fieldName => {
-        if (!type.getValue(fieldName)) {
+        if (fieldName.startsWith('__')) {
+          type[fieldName.substring(2)] = resolverValue[fieldName];
+        } else if (!type.getValue(fieldName)) {
           if (allowResolversNotInSchema) {
             return;
           }
-          throw new Error(`${typeName}.${fieldName} was defined in resolvers, but enum is not in schema`);
+          throw new Error(`${typeName}.${fieldName} was defined in resolvers, but not present within ${typeName}`);
         }
       });
 
@@ -130,7 +139,9 @@ export function addResolversToSchema(
           return;
         }
 
-        throw new Error(`${typeName} was defined in resolvers, but it's not an object`);
+        throw new Error(
+          `${typeName}.${fieldName} was defined in resolvers, but ${typeName} is not an object or interface type`
+        );
       });
     } else if (isObjectType(type) || isInterfaceType(type)) {
       Object.keys(resolverValue).forEach(fieldName => {

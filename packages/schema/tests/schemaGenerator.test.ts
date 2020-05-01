@@ -1560,7 +1560,7 @@ describe('generating schema from shorthand', () => {
     expect(() =>
       makeExecutableSchema({ typeDefs: short, resolvers: rf }),
     ).toThrowError(
-      "Searchable was defined in resolvers, but it's not an object",
+      "Searchable.name was defined in resolvers, but Searchable is not an object or interface type",
     );
 
     expect(() =>
@@ -1630,8 +1630,8 @@ describe('generating schema from shorthand', () => {
     expect(() =>
       makeExecutableSchema({ typeDefs: short, resolvers: rf }),
     ).toThrowError(
-      '"Searchable" defined in resolvers, but has invalid value "undefined". A resolver\'s value ' +
-      'must be of type object or function.',
+      '"Searchable" defined in resolvers, but has invalid value "undefined". The resolver\'s value ' +
+      'must be of type object.',
     );
   });
 
@@ -1703,7 +1703,7 @@ describe('generating schema from shorthand', () => {
     expect(() =>
       makeExecutableSchema({ typeDefs: short, resolvers: rf }),
     ).toThrowError(
-      'Color.NO_RESOLVER was defined in resolvers, but enum is not in schema',
+      'Color.NO_RESOLVER was defined in resolvers, but not present within Color',
     );
 
     expect(() =>

@@ -38,39 +38,33 @@ const COORDINATES_QUERY = `
   }
 `;
 
-function proxyResolvers(spec: string): IResolvers {
-  return {
-    Booking: {
-      property: {
-        fragment: '... on Booking { propertyId }',
-        resolve(booking, _args, context, info) {
-          const delegateFn =
-            spec === 'standalone'
-              ? delegateToSchema
-              : info.mergeInfo.delegateToSchema;
-          return delegateFn?.({
-            schema: propertySchema,
-            operation: 'query',
-            fieldName: 'propertyById',
-            args: { id: booking.propertyId },
-            context,
-            info,
-          });
-        },
+const proxyResolvers: IResolvers = {
+  Booking: {
+    property: {
+      selectionSet: '{ propertyId }',
+      resolve(booking, _args, context, info) {
+        return delegateToSchema({
+          schema: propertySchema,
+          operation: 'query',
+          fieldName: 'propertyById',
+          args: { id: booking.propertyId },
+          context,
+          info,
+        });
       },
     },
-    Location: {
-      coordinates: {
-        fragment: '... on Location { name }',
-        resolve: (location) => {
-          const name = location.name;
-          return findPropertyByLocationName(sampleData.Property, name).location
-            .coordinates;
-        },
+  },
+  Location: {
+    coordinates: {
+      selectionSet: '{ name }',
+      resolve: (location) => {
+        const name = location.name;
+        return findPropertyByLocationName(sampleData.Property, name).location
+          .coordinates;
       },
     },
-  };
-}
+  },
+};
 
 const proxyTypeDefs = `
   extend type Booking {
@@ -83,36 +77,32 @@ const proxyTypeDefs = `
 
 describe('stitching', () => {
   describe('delegateToSchema', () => {
-    ['standalone', 'info.mergeInfo'].forEach((spec) => {
-      describe(spec, () => {
-        let schema: GraphQLSchema;
-        beforeAll(() => {
-          schema = stitchSchemas({
-            schemas: [bookingSchema, propertySchema, proxyTypeDefs],
-            resolvers: proxyResolvers(spec),
-          });
-        });
-        test('should add fragments for deep types', async () => {
-          const result = await graphql(
-            schema,
-            COORDINATES_QUERY,
-            {},
-            {},
-            { bookingId: 'b1' },
-          );
+    let schema: GraphQLSchema;
+    beforeAll(() => {
+      schema = stitchSchemas({
+        schemas: [bookingSchema, propertySchema, proxyTypeDefs],
+        resolvers: proxyResolvers,
+      });
+    });
+    test('should add fragments for deep types', async () => {
+      const result = await graphql(
+        schema,
+        COORDINATES_QUERY,
+        {},
+        {},
+        { bookingId: 'b1' },
+      );
 
-          expect(result).toEqual({
-            data: {
-              bookingById: {
-                property: {
-                  location: {
-                    coordinates: sampleData.Property.p1.location.coordinates,
-                  },
-                },
+      expect(result).toEqual({
+        data: {
+          bookingById: {
+            property: {
+              location: {
+                coordinates: sampleData.Property.p1.location.coordinates,
               },
             },
-          });
-        });
+          },
+        },
       });
     });
   });

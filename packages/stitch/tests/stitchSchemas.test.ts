@@ -375,23 +375,8 @@ testCombinations.forEach((combination) => {
         resolvers: {
           Property: {
             bookings: {
-              fragment: '... on Property { id }',
+              selectionSet: '{ id }',
               resolve(parent, args, context, info) {
-                if (combination.name === 'local') {
-                  // Use the old mergeInfo.delegate API just this once, to make
-                  // sure it continues to work.
-                  return info.mergeInfo.delegate(
-                    'query',
-                    'bookingsByPropertyId',
-                    {
-                      propertyId: parent.id,
-                      limit: args.limit ? args.limit : null,
-                    },
-                    context,
-                    info,
-                  );
-                }
-
                 return delegateToSchema({
                   schema: bookingSchema,
                   operation: 'query',
@@ -413,7 +398,7 @@ testCombinations.forEach((combination) => {
           },
           Booking: {
             property: {
-              fragment: 'fragment BookingFragment on Booking { propertyId }',
+              selectionSet: '{ propertyId }',
               resolve(parent, _args, context, info) {
                 return delegateToSchema({
                   schema: propertySchema,
@@ -428,7 +413,7 @@ testCombinations.forEach((combination) => {
               },
             },
             textDescription: {
-              fragment: '... on Booking { id }',
+              selectionSet: '{ id }',
               resolve(parent, _args, _context, _info) {
                 return `Booking #${parent.id as string}`;
               },
@@ -491,8 +476,7 @@ testCombinations.forEach((combination) => {
               };
             },
             node: {
-              // fragment doesn't work
-              fragment: '... on Node { id }',
+              selectionSet: '{ id }',
               resolve(_parent, args, context, info) {
                 if (args.id.startsWith('p')) {
                   return delegateToSchema({
@@ -1430,7 +1414,7 @@ bookingById(id: "b1") {
         const PropertyResolvers: IResolvers = {
           Property: {
             bookings: {
-              fragment: 'fragment PropertyFragment on Property { id }',
+              selectionSet: '{ id }',
               resolve(parent, args, context, info) {
                 return delegateToSchema({
                   schema: bookingSchema,
@@ -1450,7 +1434,7 @@ bookingById(id: "b1") {
         const LinkResolvers: IResolvers = {
           Booking: {
             property: {
-              fragment: 'fragment BookingFragment on Booking { propertyId }',
+              selectionSet: '{ propertyId }',
               resolve(parent, _args, context, info) {
                 return delegateToSchema({
                   schema: propertySchema,
@@ -1508,8 +1492,7 @@ bookingById(id: "b1") {
               };
             },
             node: {
-              // fragment doesn't work
-              fragment: 'fragment NodeFragment on Node { id }',
+              selectionSet: '{ id }',
               resolve(_parent, args, context, info) {
                 if (args.id.startsWith('p')) {
                   return delegateToSchema({
@@ -3059,6 +3042,201 @@ fragment BookingFragment on Booking {
             name: 'Hello World',
           },
         },
+      });
+    });
+  });
+
+  describe('stitching from existing interfaces', () => {
+    test('works', async () => {
+      const STOCK_RECORDS = {
+        1: {
+          id: 1,
+          stock: 100,
+        },
+      };
+
+      const stockSchema = makeExecutableSchema({
+        typeDefs: `
+          type StockRecord {
+            id: ID!
+            stock: Int!
+          }
+          type Query {
+            stockRecord(id: ID!): StockRecord
+          }
+        `,
+        resolvers: {
+          Query: {
+            stockRecord: (_, { id }) => STOCK_RECORDS[id],
+          },
+        },
+      });
+
+      const PRODUCTS = [
+        {
+          id: 1,
+          title: "T-Shirt",
+        },
+      ];
+
+      const COLLECTIONS = [
+        {
+          id: 1,
+          name: "Apparel",
+          products: PRODUCTS,
+        },
+      ];
+
+      const productSchema = makeExecutableSchema({
+        typeDefs: `
+          interface IProduct {
+            id: ID!
+            title: String!
+          }
+          type Product implements IProduct {
+            id: ID!
+            title: String!
+          }
+          type Collection {
+            id: ID!
+            name: String!
+            products: [Product!]!
+          }
+          type Query {
+            collections: [Collection!]!
+          }
+        `,
+        resolvers: {
+          Query: {
+            collections: () => COLLECTIONS,
+          },
+        },
+      });
+
+      const stitchedSchema = stitchSchemas({
+        inheritResolversFromInterfaces: true,
+        subschemas: [stockSchema, productSchema],
+        resolvers: {
+          IProduct: {
+            stockRecord: {
+              selectionSet: `{ id } `,
+              resolve: (obj, _args, _context, info) => delegateToSchema({
+                schema: stockSchema,
+                operation: "query",
+                fieldName: "stockRecord",
+                args: { id: obj.id },
+                info,
+              }),
+            },
+          },
+        },
+        typeDefs: `
+          extend interface IProduct {
+            stockRecord: StockRecord
+          }
+          extend type Product {
+            stockRecord: StockRecord
+          }
+        `,
+      });
+
+      const concreteResult = await graphql(
+        stitchedSchema,
+        `
+          query {
+            collections {
+              name
+              products {
+                title
+                stockRecord {
+                  stock
+                }
+              }
+            }
+          }
+        `,
+      );
+
+      expect(concreteResult).toEqual({
+        data: {
+          collections: [{
+            name: 'Apparel',
+            products: [{
+              title: 'T-Shirt',
+              stockRecord: {
+                stock: 100,
+              }
+            }]
+          }]
+        }
+      });
+
+      const fragmentResult = await graphql(
+        stitchedSchema,
+        `
+          query {
+              collections {
+              name
+              products {
+                ...InterfaceFragment
+              }
+            }
+          }
+
+          fragment InterfaceFragment on IProduct {
+            title
+            stockRecord {
+              stock
+            }
+          }
+        `,
+      );
+
+      expect(fragmentResult).toEqual({
+        data: {
+          collections: [{
+            name: 'Apparel',
+            products: [{
+              title: 'T-Shirt',
+              stockRecord: {
+                stock: 100
+              }
+            }]
+          }]
+        }
+      });
+
+      const interfaceResult = await graphql(
+        stitchedSchema,
+        `
+          query {
+            collections {
+              name
+              products {
+                ... on IProduct {
+                  title
+                  stockRecord {
+                    stock
+                  }
+                }
+              }
+            }
+          }
+        `,
+      );
+
+      expect(interfaceResult).toEqual({
+        data: {
+          collections: [{
+            name: 'Apparel',
+            products: [{
+              title: 'T-Shirt',
+              stockRecord: {
+                stock: 100
+              }
+            }]
+          }]
+        }
       });
     });
   });
