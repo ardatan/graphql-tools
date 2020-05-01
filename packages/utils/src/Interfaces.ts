@@ -5,8 +5,6 @@ import {
   GraphQLNamedType,
   GraphQLFieldResolver,
   GraphQLResolveInfo,
-  GraphQLIsTypeOfFn,
-  GraphQLTypeResolver,
   GraphQLScalarType,
   DocumentNode,
   FieldNode,
@@ -28,6 +26,8 @@ import {
   OperationDefinitionNode,
   GraphQLError,
   ExecutionResult as GraphQLExecutionResult,
+  GraphQLOutputType,
+  FieldDefinitionNode,
 } from 'graphql';
 
 import { SchemaVisitor } from './SchemaVisitor';
@@ -92,13 +92,42 @@ export interface IAddResolversToSchemaOptions {
   inheritResolversFromInterfaces?: boolean;
 }
 
-export interface IResolverOptions<TSource = any, TContext = any, TArgs = any> {
+interface ScalarTypeToResolverMap {
+  name: '__name';
+  description: '__description';
+  serialize: '__serialize';
+  parseValue: '__parseValue';
+  parseLiteral: '__parseLiteral';
+  extensions: '__extensions';
+  astNode: '__astNode';
+  extensionASTNodes: '__extensionASTNodes';
+}
+
+export type IScalarTypeResolver = GraphQLScalarType & Rename<GraphQLScalarType, ScalarTypeToResolverMap>;
+
+interface EnumTypeToResolverMap {
+  name: '__name';
+  description?: '__description';
+  values: '__values';
+  extensions: '__extensions';
+  astNode: '__astNode';
+  extensionASTNodes: '__extensionASTNodes';
+}
+
+export type IEnumTypeResolver = Record<string, any> & Rename<GraphQLEnumType, EnumTypeToResolverMap>;
+
+export interface IFieldResolverOptions<TSource = any, TContext = any, TArgs = any> {
   fragment?: string;
+  name?: string;
+  description?: string;
+  type?: GraphQLOutputType;
+  args?: Array<GraphQLArgument>;
   resolve?: IFieldResolver<TSource, TContext, TArgs>;
   subscribe?: IFieldResolver<TSource, TContext, TArgs>;
+  isDeprecated?: boolean;
+  deprecationReason?: string;
   extensions?: Record<string, any>;
-  __resolveType?: GraphQLTypeResolver<TSource, TContext>;
-  __isTypeOf?: GraphQLIsTypeOfFn<TSource, TContext>;
+  astNode?: FieldDefinitionNode;
 }
 
 export interface Transform {
@@ -183,22 +212,75 @@ export type ITypedef = (() => Array<ITypedef>) | string | DocumentNode;
 
 export type ITypeDefinitions = ITypedef | Array<ITypedef>;
 
-export interface IResolverObject<TSource = any, TContext = any, TArgs = any> {
-  [key: string]:
-    | IFieldResolver<TSource, TContext, TArgs>
-    | IResolverOptions<TSource, TContext>
-    | IResolverObject<TSource, TContext>;
+interface ObjectTypeToResolverMap {
+  name: '__name';
+  description: '__description';
+  interfaces: '__interfaces';
+  fields: '__fields';
+  isTypeOf: '__isTypeOf';
+  extensions: '__extensions';
+  astNode: '__astNode';
+  extensionASTNodes: '__extensionASTNodes';
 }
 
-export type IEnumResolver = Record<string, string | number>;
+export type IObjectTypeResolver<TSource = any, TContext = any, TArgs = any> = {
+  [key: string]: IFieldResolver<TSource, TContext, TArgs> | IFieldResolverOptions<TSource, TContext>;
+} & Rename<GraphQLObjectType<any, any>, ObjectTypeToResolverMap>;
 
-export type IResolvers<TSource = any, TContext = any> = Record<
+interface InterfaceTypeToResolverMap {
+  name: '__name';
+  description: '__description';
+  interfaces: '__interfaces';
+  fields: '__fields';
+  resolveType: '__resolveType';
+  extensions: '__extensions';
+  astNode: '__astNode';
+  extensionASTNodes: '__extensionASTNodes';
+}
+
+export type IInterfaceTypeResolver<TSource = any, TContext = any, TArgs = any> = {
+  [key: string]: IFieldResolver<TSource, TContext, TArgs> | IFieldResolverOptions<TSource, TContext>;
+} & Rename<GraphQLInterfaceType, InterfaceTypeToResolverMap>;
+
+interface UnionTypeToResolverMap {
+  name: '__name';
+  description: '__description';
+  types: '__types';
+  resolveType: '__resolveType';
+  extensions: '__extensions';
+  astNode: '__astNode';
+  extensionASTNodes: '__extensionASTNodes';
+}
+
+export type IUnionTypeResolver = Rename<GraphQLUnionType, UnionTypeToResolverMap>;
+
+export interface InputObjectTypeToResolverMap {
+  name: '__name';
+  description: '__description';
+  fields: '__fields';
+  extensions: '__extensions';
+  astNode: '__astNode';
+  extensionASTNodes: '__extensionASTNodes';
+}
+
+export type IInputObjectTypeResolver = Rename<GraphQLInputObjectType, InputObjectTypeToResolverMap>;
+
+export type ISchemaLevelResolver<TSource, TContext, TArgs = Record<string, any>, TReturn = any> = IFieldResolver<
+  TSource,
+  TContext,
+  TArgs,
+  TReturn
+>;
+
+export type IResolvers<TSource = any, TContext = any, TArgs = Record<string, any>, TReturn = any> = Record<
   string,
-  | (() => any)
-  | IResolverObject<TSource, TContext>
-  | IResolverOptions<TSource, TContext>
-  | GraphQLScalarType
-  | IEnumResolver
+  | ISchemaLevelResolver<TSource, TContext, TArgs, TReturn>
+  | IObjectTypeResolver<TSource, TContext>
+  | IInterfaceTypeResolver<TSource, TContext>
+  | IUnionTypeResolver
+  | IScalarTypeResolver
+  | IEnumTypeResolver
+  | IInputObjectTypeResolver
 >;
 
 export type IFieldIteratorFn = (fieldDef: GraphQLField<any, any>, typeName: string, fieldName: string) => void;

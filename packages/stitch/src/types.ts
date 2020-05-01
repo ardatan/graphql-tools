@@ -1,13 +1,12 @@
-import { GraphQLNamedType, GraphQLSchema, GraphQLResolveInfo, SelectionSetNode, DocumentNode } from 'graphql';
+import { GraphQLNamedType, GraphQLSchema, SelectionSetNode, DocumentNode } from 'graphql';
 import {
   ReplacementSelectionSetMapping,
   ReplacementFragmentMapping,
   IResolvers,
   ITypeDefinitions,
-  Transform,
   TypeMap,
 } from '@graphql-tools/utils';
-import { IDelegateToSchemaOptions, SubschemaConfig } from '@graphql-tools/delegate';
+import { SubschemaConfig } from '@graphql-tools/delegate';
 import { IExecutableSchemaDefinition } from '@graphql-tools/schema';
 
 export type MergeTypeCandidate = {
@@ -36,14 +35,6 @@ export interface MergedTypeInfo {
 }
 
 export interface MergeInfo {
-  delegate: (
-    type: 'query' | 'mutation' | 'subscription',
-    fieldName: string,
-    args: Record<string, any>,
-    context: Record<string, any>,
-    info: GraphQLResolveInfo,
-    transforms?: Array<Transform>
-  ) => any;
   fragments: Array<{
     field: string;
     fragment: string;
@@ -51,7 +42,6 @@ export interface MergeInfo {
   replacementSelectionSets: ReplacementSelectionSetMapping;
   replacementFragments: ReplacementFragmentMapping;
   mergedTypes: Record<string, MergedTypeInfo>;
-  delegateToSchema<TContext, TArgs>(options: IDelegateToSchemaOptions<TContext, TArgs>): any;
 }
 
 export type IResolversParameter =

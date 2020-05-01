@@ -377,21 +377,6 @@ testCombinations.forEach((combination) => {
             bookings: {
               fragment: '... on Property { id }',
               resolve(parent, args, context, info) {
-                if (combination.name === 'local') {
-                  // Use the old mergeInfo.delegate API just this once, to make
-                  // sure it continues to work.
-                  return info.mergeInfo.delegate(
-                    'query',
-                    'bookingsByPropertyId',
-                    {
-                      propertyId: parent.id,
-                      limit: args.limit ? args.limit : null,
-                    },
-                    context,
-                    info,
-                  );
-                }
-
                 return delegateToSchema({
                   schema: bookingSchema,
                   operation: 'query',

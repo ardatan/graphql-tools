@@ -43,7 +43,6 @@ function isDocumentNode(schemaLikeObject: any): schemaLikeObject is DocumentNode
 
 export function buildTypeCandidates({
   schemaLikeObjects,
-  allSchemas,
   typeCandidates,
   extensions,
   directives,
@@ -52,7 +51,6 @@ export function buildTypeCandidates({
   mergeDirectives,
 }: {
   schemaLikeObjects: Array<GraphQLSchema | SubschemaConfig | DocumentNode | GraphQLNamedType>;
-  allSchemas: Array<GraphQLSchema>;
   typeCandidates: Record<string, Array<MergeTypeCandidate>>;
   extensions: Array<DocumentNode>;
   directives: Array<GraphQLDirective>;
@@ -81,8 +79,6 @@ export function buildTypeCandidates({
   schemaLikeObjects.forEach(schemaLikeObject => {
     if (isSchema(schemaLikeObject) || isSubschemaConfig(schemaLikeObject)) {
       const schema = wrapSchema(schemaLikeObject);
-
-      allSchemas.push(schema);
 
       const operationTypes = {
         query: schema.getQueryType(),
