@@ -73,3 +73,10 @@ export type OnTypeConflict = (
     };
   }
 ) => GraphQLNamedType;
+
+declare module '@graphql-tools/utils' {
+  interface IFieldResolverOptions<TSource = any, TContext = any, TArgs = any> {
+    fragment?: string;
+    selectionSet?: string;
+  }
+}

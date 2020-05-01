@@ -16,13 +16,10 @@ import {
   forEachField,
   TypeMap,
   IResolvers,
+  IFieldResolverOptions,
 } from '@graphql-tools/utils';
 
-import {
-  delegateToSchema,
-  isSubschemaConfig,
-  SubschemaConfig,
-} from '@graphql-tools/delegate';
+import { delegateToSchema, isSubschemaConfig, SubschemaConfig } from '@graphql-tools/delegate';
 
 import { MergeTypeCandidate, MergedTypeInfo, MergeInfo, MergeTypeFilter } from './types';
 
@@ -157,7 +154,7 @@ export function completeMergeInfo(mergeInfo: MergeInfo, resolvers: IResolvers): 
       return;
     }
     Object.keys(type).forEach(fieldName => {
-      const field = type[fieldName];
+      const field = type[fieldName] as IFieldResolverOptions;
       if (field.selectionSet) {
         const selectionSet = parseSelectionSet(field.selectionSet);
         if (!(typeName in replacementSelectionSets)) {

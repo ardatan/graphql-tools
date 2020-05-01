@@ -117,7 +117,6 @@ interface EnumTypeToResolverMap {
 export type IEnumTypeResolver = Record<string, any> & Rename<GraphQLEnumType, EnumTypeToResolverMap>;
 
 export interface IFieldResolverOptions<TSource = any, TContext = any, TArgs = any> {
-  fragment?: string;
   name?: string;
   description?: string;
   type?: GraphQLOutputType;
