@@ -199,7 +199,7 @@ describe('merge schemas through transforms', () => {
         },
         Properties_Property: {
           bookings: {
-            fragment: 'fragment PropertyFragment on Property { id }',
+            selectionSet: '{ id }',
             resolve: (parent, args, context, info) =>
               delegateToSchema({
                 schema: bookingSubschema,
@@ -216,7 +216,7 @@ describe('merge schemas through transforms', () => {
         },
         Bookings_Booking: {
           property: {
-            fragment: 'fragment BookingFragment on Booking { propertyId }',
+            selectionSet: '{ propertyId }',
             resolve: (parent, _args, context, info) =>
               delegateToSchema({
                 schema: propertySubschema,

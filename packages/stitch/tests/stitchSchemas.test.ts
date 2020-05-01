@@ -375,7 +375,7 @@ testCombinations.forEach((combination) => {
         resolvers: {
           Property: {
             bookings: {
-              fragment: '... on Property { id }',
+              selectionSet: '{ id }',
               resolve(parent, args, context, info) {
                 return delegateToSchema({
                   schema: bookingSchema,
@@ -398,7 +398,7 @@ testCombinations.forEach((combination) => {
           },
           Booking: {
             property: {
-              fragment: 'fragment BookingFragment on Booking { propertyId }',
+              selectionSet: '{ propertyId }',
               resolve(parent, _args, context, info) {
                 return delegateToSchema({
                   schema: propertySchema,
@@ -413,7 +413,7 @@ testCombinations.forEach((combination) => {
               },
             },
             textDescription: {
-              fragment: '... on Booking { id }',
+              selectionSet: '{ id }',
               resolve(parent, _args, _context, _info) {
                 return `Booking #${parent.id as string}`;
               },
@@ -476,8 +476,7 @@ testCombinations.forEach((combination) => {
               };
             },
             node: {
-              // fragment doesn't work
-              fragment: '... on Node { id }',
+              selectionSet: '{ id }',
               resolve(_parent, args, context, info) {
                 if (args.id.startsWith('p')) {
                   return delegateToSchema({
@@ -1415,7 +1414,7 @@ bookingById(id: "b1") {
         const PropertyResolvers: IResolvers = {
           Property: {
             bookings: {
-              fragment: 'fragment PropertyFragment on Property { id }',
+              selectionSet: '{ id }',
               resolve(parent, args, context, info) {
                 return delegateToSchema({
                   schema: bookingSchema,
@@ -1435,7 +1434,7 @@ bookingById(id: "b1") {
         const LinkResolvers: IResolvers = {
           Booking: {
             property: {
-              fragment: 'fragment BookingFragment on Booking { propertyId }',
+              selectionSet: '{ propertyId }',
               resolve(parent, _args, context, info) {
                 return delegateToSchema({
                   schema: propertySchema,
@@ -1493,8 +1492,7 @@ bookingById(id: "b1") {
               };
             },
             node: {
-              // fragment doesn't work
-              fragment: 'fragment NodeFragment on Node { id }',
+              selectionSet: '{ id }',
               resolve(_parent, args, context, info) {
                 if (args.id.startsWith('p')) {
                   return delegateToSchema({

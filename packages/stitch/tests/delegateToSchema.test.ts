@@ -41,7 +41,7 @@ const COORDINATES_QUERY = `
 const proxyResolvers: IResolvers = {
   Booking: {
     property: {
-      fragment: '... on Booking { propertyId }',
+      selectionSet: '{ propertyId }',
       resolve(booking, _args, context, info) {
         return delegateToSchema({
           schema: propertySchema,
@@ -56,7 +56,7 @@ const proxyResolvers: IResolvers = {
   },
   Location: {
     coordinates: {
-      fragment: '... on Location { name }',
+      selectionSet: '{ name }',
       resolve: (location) => {
         const name = location.name;
         return findPropertyByLocationName(sampleData.Property, name).location
