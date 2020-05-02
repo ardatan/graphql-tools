@@ -10,21 +10,16 @@ on:
 
 jobs:
   lint:
-    name: Lint on ${{matrix.os}} and Node ${{matrix.node_version}}
+    name: Lint
     timeout-minutes: 10
-    runs-on: ${{matrix.os}}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-        node_version: [10, 14]
-        graphql_version: [14, 15]
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout Master
         uses: actions/checkout@v1
-      - name: Use Node ${{matrix.node_version}}
+      - name: Use Node 14
         uses: actions/setup-node@master
         with:
-          version: ${{ matrix.node_version }}
+          node-version: 14
       - name: Get yarn cache
         id: yarn-cache
         run: echo "::set-output name=dir::$(yarn cache dir)"
@@ -35,14 +30,12 @@ jobs:
           key: ${{ runner.os }}-${{matrix.node_version}}-${{matrix.graphql_version}}-yarn-${{ hashFiles('yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-${{matrix.node_version}}-${{matrix.graphql_version}}-yarn
-      - name: Use GraphQL v${{matrix.graphql_version}}
-        run: node ./scripts/match-graphql.js ${{matrix.graphql_version}}
       - name: Install Dependencies using Yarn
         run: yarn install && git checkout yarn.lock
       - name: Lint
         run: yarn lint
   build:
-    name: Build on ${{matrix.os}} and Node ${{matrix.node_version}}
+    name: Type Checking on ${{matrix.os}} and Node ${{matrix.node_version}}
     timeout-minutes: 10
     runs-on: ${{matrix.os}}
     strategy:
@@ -56,7 +49,7 @@ jobs:
       - name: Use Node ${{matrix.node_version}}
         uses: actions/setup-node@master
         with:
-          version: ${{ matrix.node_version }}
+          node-version: ${{ matrix.node_version }}
       - name: Get yarn cache
         id: yarn-cache
         run: echo "::set-output name=dir::$(yarn cache dir)"
@@ -72,7 +65,7 @@ jobs:
       - name: Install Dependencies using Yarn
         run: yarn install && git checkout yarn.lock
       - name: Build
-        run: yarn build
+        run: yarn ts:transpile
   test:
     name: Test on ${{matrix.os}} and Node ${{matrix.node_version}}
     timeout-minutes: 10
@@ -88,7 +81,7 @@ jobs:
       - name: Use Node ${{matrix.node_version}}
         uses: actions/setup-node@master
         with:
-          version: ${{ matrix.node_version }}
+          node-version: ${{ matrix.node_version }}
       - name: Get yarn cache
         id: yarn-cache
         run: echo "::set-output name=dir::$(yarn cache dir)"

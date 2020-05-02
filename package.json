@@ -5,7 +5,8 @@
   "private": true,
   "scripts": {
     "deploy:website": "cd website && yarn deploy",
-    "build": "tsc --project tsconfig.build.json && bob build",
+    "ts:transpile": "tsc --project tsconfig.build.json",
+    "build": "yarn ts:transpile && bob build",
     "lint": "eslint --ext .ts .",
     "prettier": "prettier --ignore-path .gitignore --write --list-different \"**/*.{ts,tsx,graphql,yml}\"",
     "prettier:check": "prettier --ignore-path .gitignore --check \"**/*.{ts,tsx,graphql,yml}\"",
