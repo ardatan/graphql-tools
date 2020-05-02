@@ -9,8 +9,72 @@ on:
       - master
 
 jobs:
+  lint:
+    name: Lint on ${{matrix.os}} and Node ${{matrix.node_version}}
+    timeout-minutes: 10
+    runs-on: ${{matrix.os}}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node_version: [10, 14]
+        graphql_version: [14, 15]
+    steps:
+      - name: Checkout Master
+        uses: actions/checkout@v1
+      - name: Use Node ${{matrix.node_version}}
+        uses: actions/setup-node@master
+        with:
+          version: ${{ matrix.node_version }}
+      - name: Get yarn cache
+        id: yarn-cache
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+      - name: Cache Yarn
+        uses: actions/cache@v1
+        with:
+          path: ${{ steps.yarn-cache.outputs.dir }}
+          key: ${{ runner.os }}-${{matrix.node_version}}-${{matrix.graphql_version}}-yarn-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{matrix.node_version}}-${{matrix.graphql_version}}-yarn
+      - name: Use GraphQL v${{matrix.graphql_version}}
+        run: node ./scripts/match-graphql.js ${{matrix.graphql_version}}
+      - name: Install Dependencies using Yarn
+        run: yarn install && git checkout yarn.lock
+      - name: Lint
+        run: yarn lint
+  build:
+    name: Build on ${{matrix.os}} and Node ${{matrix.node_version}}
+    timeout-minutes: 10
+    runs-on: ${{matrix.os}}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node_version: [10, 14]
+        graphql_version: [14, 15]
+    steps:
+      - name: Checkout Master
+        uses: actions/checkout@v1
+      - name: Use Node ${{matrix.node_version}}
+        uses: actions/setup-node@master
+        with:
+          version: ${{ matrix.node_version }}
+      - name: Get yarn cache
+        id: yarn-cache
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+      - name: Cache Yarn
+        uses: actions/cache@v1
+        with:
+          path: ${{ steps.yarn-cache.outputs.dir }}
+          key: ${{ runner.os }}-${{matrix.node_version}}-${{matrix.graphql_version}}-yarn-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{matrix.node_version}}-${{matrix.graphql_version}}-yarn
+      - name: Use GraphQL v${{matrix.graphql_version}}
+        run: node ./scripts/match-graphql.js ${{matrix.graphql_version}}
+      - name: Install Dependencies using Yarn
+        run: yarn install && git checkout yarn.lock
+      - name: Build
+        run: yarn build
   test:
-    name: Testing on ${{matrix.os}} and Node ${{matrix.node_version}}
+    name: Test on ${{matrix.os}} and Node ${{matrix.node_version}}
     timeout-minutes: 10
     runs-on: ${{matrix.os}}
     strategy:
@@ -46,9 +110,5 @@ jobs:
           key: ${{ runner.os }}-${{matrix.node_version}}-${{matrix.graphql_version}}-jest-${{ hashFiles('yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-${{matrix.node_version}}-${{matrix.graphql_version}}-jest-
-      - name: Lint
-        run: yarn lint
-      - name: Build
-        run: yarn build
       - name: Test
         run: yarn test --logHeapUsage
