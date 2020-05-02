@@ -1,8 +1,9 @@
 import { GraphQLSchema, GraphQLField } from 'graphql';
 
-import { Transform, Request, FieldNodeTransformer, RootFieldTransformer } from '@graphql-tools/utils';
+import { Transform, Request } from '@graphql-tools/utils';
 
 import TransformObjectFields from './TransformObjectFields';
+import { RootFieldTransformer, FieldNodeTransformer } from '../types';
 
 export default class TransformRootFields implements Transform {
   private readonly transformer: TransformObjectFields;

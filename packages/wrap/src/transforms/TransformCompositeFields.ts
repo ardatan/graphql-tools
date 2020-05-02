@@ -15,16 +15,8 @@ import {
   GraphQLObjectType,
 } from 'graphql';
 
-import {
-  Transform,
-  Request,
-  MapperKind,
-  FieldTransformer,
-  FieldNodeTransformer,
-  RenamedFieldConfig,
-  mapSchema,
-  fieldToFieldConfig,
-} from '@graphql-tools/utils';
+import { Transform, Request, MapperKind, mapSchema, fieldToFieldConfig } from '@graphql-tools/utils';
+import { FieldTransformer, FieldNodeTransformer, RenamedFieldConfig } from '../types';
 
 export default class TransformCompositeFields implements Transform {
   private readonly fieldTransformer: FieldTransformer;
