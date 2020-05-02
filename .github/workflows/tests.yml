@@ -35,7 +35,7 @@ jobs:
       - name: Lint
         run: yarn lint
   build:
-    name: Type Checking on ${{matrix.os}} and Node ${{matrix.node_version}}
+    name: Build on ${{matrix.os}}, Node ${{matrix.node_version}} and GraphQL v${{matrix.graphql_version}}
     timeout-minutes: 10
     runs-on: ${{matrix.os}}
     strategy:
@@ -67,7 +67,7 @@ jobs:
       - name: Build
         run: yarn ts:transpile
   test:
-    name: Test on ${{matrix.os}} and Node ${{matrix.node_version}}
+    name: Test on ${{matrix.os}}, Node ${{matrix.node_version}} and GraphQL v${{matrix.graphql_version}}
     timeout-minutes: 10
     runs-on: ${{matrix.os}}
     strategy:
