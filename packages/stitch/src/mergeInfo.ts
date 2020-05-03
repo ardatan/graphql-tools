@@ -24,10 +24,12 @@ import { delegateToSchema, isSubschemaConfig, SubschemaConfig } from '@graphql-t
 import { MergeTypeCandidate, MergedTypeInfo, MergeInfo, MergeTypeFilter } from './types';
 
 export function createMergeInfo(
+  transformedSchemas: Map<GraphQLSchema | SubschemaConfig, GraphQLSchema>,
   typeCandidates: Record<string, Array<MergeTypeCandidate>>,
   mergeTypes?: boolean | Array<string> | MergeTypeFilter
 ): MergeInfo {
   return {
+    transformedSchemas,
     fragments: [],
     replacementSelectionSets: undefined,
     replacementFragments: undefined,

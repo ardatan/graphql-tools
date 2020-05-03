@@ -49,16 +49,6 @@ export function stitchSchemas({
     throw new Error('Expected `resolverValidationOptions` to be an object');
   }
 
-  const typeCandidates: Record<string, Array<MergeTypeCandidate>> = Object.create(null);
-  const extensions: Array<DocumentNode> = [];
-  const directives: Array<GraphQLDirective> = [];
-  const schemaDefs = Object.create(null);
-  const operationTypeNames = {
-    query: 'Query',
-    mutation: 'Mutation',
-    subscription: 'Subscription',
-  };
-
   let schemaLikeObjects: Array<GraphQLSchema | SubschemaConfig | DocumentNode | GraphQLNamedType> = [...subschemas];
   if (typeDefs) {
     schemaLikeObjects.push(buildDocumentFromTypeDefinitions(typeDefs, parseOptions));
@@ -78,8 +68,20 @@ export function stitchSchemas({
     }
   });
 
+  const transformedSchemas: Map<GraphQLSchema | SubschemaConfig, GraphQLSchema> = new Map();
+  const typeCandidates: Record<string, Array<MergeTypeCandidate>> = Object.create(null);
+  const extensions: Array<DocumentNode> = [];
+  const directives: Array<GraphQLDirective> = [];
+  const schemaDefs = Object.create(null);
+  const operationTypeNames = {
+    query: 'Query',
+    mutation: 'Mutation',
+    subscription: 'Subscription',
+  };
+
   buildTypeCandidates({
     schemaLikeObjects,
+    transformedSchemas,
     typeCandidates,
     extensions,
     directives,
@@ -90,7 +92,7 @@ export function stitchSchemas({
 
   let mergeInfo: MergeInfo;
 
-  mergeInfo = createMergeInfo(typeCandidates, mergeTypes);
+  mergeInfo = createMergeInfo(transformedSchemas, typeCandidates, mergeTypes);
 
   const typeMap = buildTypeMap({
     typeCandidates,

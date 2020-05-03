@@ -22,6 +22,7 @@ export interface IDelegateToSchemaOptions<TContext = Record<string, any>, TArgs 
   info: GraphQLResolveInfo;
   rootValue?: Record<string, any>;
   transforms?: Array<Transform>;
+  transformedSchema?: GraphQLSchema;
   skipValidation?: boolean;
   skipTypeMerging?: boolean;
 }
