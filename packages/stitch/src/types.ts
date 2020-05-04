@@ -29,6 +29,7 @@ export interface MergedTypeInfo {
 }
 
 export interface MergeInfo {
+  transformedSchemas: Map<GraphQLSchema | SubschemaConfig, GraphQLSchema>;
   fragments: Array<{
     field: string;
     fragment: string;

@@ -17,7 +17,7 @@ export function makeRemoteExecutableSchema({
 
   return wrapSchema({
     schema: targetSchema,
-    createProxyingResolver: (_schema, _transforms, _operation) => createResolver(executor, subscriber),
+    createProxyingResolver: () => createResolver(executor, subscriber),
   });
 }
 

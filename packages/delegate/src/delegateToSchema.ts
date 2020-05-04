@@ -18,6 +18,7 @@ import {
 } from '@graphql-tools/utils';
 
 import ExpandAbstractTypes from './transforms/ExpandAbstractTypes';
+import WrapConcreteTypes from './transforms/WrapConcreteTypes';
 import FilterToSchema from './transforms/FilterToSchema';
 import AddReplacementSelectionSets from './transforms/AddReplacementSelectionSets';
 import AddReplacementFragments from './transforms/AddReplacementFragments';
@@ -76,6 +77,7 @@ function buildDelegationTransforms(
   args: Record<string, any>,
   returnType: GraphQLOutputType,
   transforms: Array<Transform>,
+  transformedSchema: GraphQLSchema,
   skipTypeMerging: boolean
 ): Array<Transform> {
   let delegationTransforms: Array<Transform> = [
@@ -89,9 +91,15 @@ function buildDelegationTransforms(
     );
   }
 
-  delegationTransforms = delegationTransforms.concat(transforms);
+  const transformedTargetSchema =
+    info.mergeInfo == null
+      ? transformedSchema ?? targetSchema
+      : transformedSchema ?? info.mergeInfo.transformedSchemas.get(subschemaOrSubschemaConfig) ?? targetSchema;
 
-  delegationTransforms.push(new ExpandAbstractTypes(info.schema, targetSchema));
+  delegationTransforms.push(new WrapConcreteTypes(returnType, transformedTargetSchema));
+  delegationTransforms.push(new ExpandAbstractTypes(info.schema, transformedTargetSchema));
+
+  delegationTransforms = delegationTransforms.concat(transforms);
 
   if (info.mergeInfo != null) {
     delegationTransforms.push(new AddReplacementFragments(targetSchema, info.mergeInfo.replacementFragments));
@@ -117,6 +125,7 @@ export function delegateRequest({
   returnType = info.returnType,
   context,
   transforms = [],
+  transformedSchema,
   skipValidation,
   skipTypeMerging,
 }: IDelegateRequestOptions) {
@@ -147,6 +156,7 @@ export function delegateRequest({
     args,
     returnType,
     requestTransforms.reverse(),
+    transformedSchema,
     skipTypeMerging
   );
 

@@ -7,6 +7,9 @@ import {
   GraphQLResolveInfo,
   GraphQLFieldResolver,
   InlineFragmentNode,
+  FragmentDefinitionNode,
+  GraphQLObjectType,
+  VariableDefinitionNode,
 } from 'graphql';
 import { Operation, Transform, Request, TypeMap, ExecutionResult } from '@graphql-tools/utils';
 
@@ -22,6 +25,7 @@ export interface IDelegateToSchemaOptions<TContext = Record<string, any>, TArgs 
   info: GraphQLResolveInfo;
   rootValue?: Record<string, any>;
   transforms?: Array<Transform>;
+  transformedSchema?: GraphQLSchema;
   skipValidation?: boolean;
   skipTypeMerging?: boolean;
 }
@@ -34,6 +38,19 @@ export interface ICreateRequestFromInfo {
   info: GraphQLResolveInfo;
   operation: Operation;
   fieldName: string;
+  selectionSet?: SelectionSetNode;
+  fieldNodes?: ReadonlyArray<FieldNode>;
+}
+
+export interface ICreateRequest {
+  sourceSchema?: GraphQLSchema;
+  sourceParentType?: GraphQLObjectType;
+  sourceFieldName?: string;
+  fragments?: Record<string, FragmentDefinitionNode>;
+  variableDefinitions?: ReadonlyArray<VariableDefinitionNode>;
+  variableValues?: Record<string, any>;
+  targetOperation: Operation;
+  targetFieldName: string;
   selectionSet?: SelectionSetNode;
   fieldNodes?: ReadonlyArray<FieldNode>;
 }
@@ -70,12 +87,15 @@ export type Subscriber = <TReturn = Record<string, any>, TArgs = Record<string, 
   params: ExecutionParams<TArgs, TContext>
 ) => Promise<AsyncIterator<ExecutionResult<TReturn>> | ExecutionResult<TReturn>>;
 
-export type CreateProxyingResolverFn = (
-  schema: GraphQLSchema | SubschemaConfig,
-  transforms: Array<Transform>,
-  operation: Operation,
-  fieldName: string
-) => GraphQLFieldResolver<any, any>;
+export interface ICreateProxyingResolverOptions {
+  schema: GraphQLSchema | SubschemaConfig;
+  transforms?: Array<Transform>;
+  transformedSchema?: GraphQLSchema;
+  operation?: Operation;
+  fieldName?: string;
+}
+
+export type CreateProxyingResolverFn = (options: ICreateProxyingResolverOptions) => GraphQLFieldResolver<any, any>;
 
 export interface SubschemaConfig {
   schema: GraphQLSchema;
