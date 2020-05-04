@@ -18,6 +18,7 @@ import {
 } from '@graphql-tools/utils';
 
 import ExpandAbstractTypes from './transforms/ExpandAbstractTypes';
+import WrapConcreteTypes from './transforms/WrapConcreteTypes';
 import FilterToSchema from './transforms/FilterToSchema';
 import AddReplacementSelectionSets from './transforms/AddReplacementSelectionSets';
 import AddReplacementFragments from './transforms/AddReplacementFragments';
@@ -95,6 +96,7 @@ function buildDelegationTransforms(
       ? transformedSchema ?? targetSchema
       : transformedSchema ?? info.mergeInfo.transformedSchemas.get(subschemaOrSubschemaConfig) ?? targetSchema;
 
+  delegationTransforms.push(new WrapConcreteTypes(returnType, transformedTargetSchema));
   delegationTransforms.push(new ExpandAbstractTypes(info.schema, transformedTargetSchema));
 
   delegationTransforms = delegationTransforms.concat(transforms);
