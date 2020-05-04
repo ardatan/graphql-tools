@@ -72,7 +72,7 @@ function createPossiblyNestedProxyingResolver(
         // If there is a proxied result from this subschema, return it
         // This can happen even for a root field when the root type ia
         // also nested as a field within a different type.
-        if (subschemaOrSubschemaConfig === subschema) {
+        if (subschemaOrSubschemaConfig === subschema && parent[responseKey] !== undefined) {
           return handleResult(parent[responseKey], errors, subschema, context, info);
         }
       }
