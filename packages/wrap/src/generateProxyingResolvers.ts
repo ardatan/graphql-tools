@@ -1,6 +1,6 @@
 import { GraphQLSchema, GraphQLFieldResolver, GraphQLObjectType } from 'graphql';
 
-import { Transform, Operation, getResponseKeyFromInfo, getErrors } from '@graphql-tools/utils';
+import { Transform, Operation, getResponseKeyFromInfo, getErrors, applySchemaTransforms } from '@graphql-tools/utils';
 import {
   delegateToSchema,
   getSubschema,
@@ -8,6 +8,7 @@ import {
   SubschemaConfig,
   isSubschemaConfig,
   CreateProxyingResolverFn,
+  ICreateProxyingResolverOptions,
 } from '@graphql-tools/delegate';
 
 export function generateProxyingResolvers(
@@ -15,14 +16,22 @@ export function generateProxyingResolvers(
   transforms: Array<Transform>
 ): Record<string, Record<string, GraphQLFieldResolver<any, any>>> {
   let targetSchema: GraphQLSchema;
+  let schemaTransforms: Array<Transform> = [];
   let createProxyingResolver: CreateProxyingResolverFn;
 
   if (isSubschemaConfig(subschemaOrSubschemaConfig)) {
     targetSchema = subschemaOrSubschemaConfig.schema;
     createProxyingResolver = subschemaOrSubschemaConfig.createProxyingResolver ?? defaultCreateProxyingResolver;
+    if (subschemaOrSubschemaConfig.transforms != null) {
+      schemaTransforms = schemaTransforms.concat(subschemaOrSubschemaConfig.transforms);
+    }
   } else {
     targetSchema = subschemaOrSubschemaConfig;
     createProxyingResolver = defaultCreateProxyingResolver;
+  }
+
+  if (transforms != null) {
+    schemaTransforms = schemaTransforms.concat(transforms);
   }
 
   const operationTypes: Record<Operation, GraphQLObjectType> = {
@@ -42,7 +51,13 @@ export function generateProxyingResolvers(
 
       resolvers[typeName] = {};
       Object.keys(fields).forEach(fieldName => {
-        const proxyingResolver = createProxyingResolver(subschemaOrSubschemaConfig, transforms, operation, fieldName);
+        const proxyingResolver = createProxyingResolver({
+          schema: subschemaOrSubschemaConfig,
+          transforms,
+          transformedSchema: applySchemaTransforms(targetSchema, schemaTransforms),
+          operation,
+          fieldName,
+        });
 
         const finalResolver = createPossiblyNestedProxyingResolver(subschemaOrSubschemaConfig, proxyingResolver);
 
@@ -82,15 +97,17 @@ function createPossiblyNestedProxyingResolver(
   };
 }
 
-export function defaultCreateProxyingResolver(
-  schema: GraphQLSchema | SubschemaConfig,
-  transforms: Array<Transform>
-): GraphQLFieldResolver<any, any> {
+export function defaultCreateProxyingResolver({
+  schema,
+  transforms,
+  transformedSchema,
+}: ICreateProxyingResolverOptions): GraphQLFieldResolver<any, any> {
   return (_parent, _args, context, info) =>
     delegateToSchema({
       schema,
       context,
       info,
       transforms,
+      transformedSchema,
     });
 }

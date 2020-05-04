@@ -87,12 +87,15 @@ export type Subscriber = <TReturn = Record<string, any>, TArgs = Record<string, 
   params: ExecutionParams<TArgs, TContext>
 ) => Promise<AsyncIterator<ExecutionResult<TReturn>> | ExecutionResult<TReturn>>;
 
-export type CreateProxyingResolverFn = (
-  schema: GraphQLSchema | SubschemaConfig,
-  transforms: Array<Transform>,
-  operation: Operation,
-  fieldName: string
-) => GraphQLFieldResolver<any, any>;
+export interface ICreateProxyingResolverOptions {
+  schema: GraphQLSchema | SubschemaConfig;
+  transforms?: Array<Transform>;
+  transformedSchema?: GraphQLSchema;
+  operation?: Operation;
+  fieldName?: string;
+}
+
+export type CreateProxyingResolverFn = (options: ICreateProxyingResolverOptions) => GraphQLFieldResolver<any, any>;
 
 export interface SubschemaConfig {
   schema: GraphQLSchema;
