@@ -7,6 +7,9 @@ import {
   GraphQLResolveInfo,
   GraphQLFieldResolver,
   InlineFragmentNode,
+  FragmentDefinitionNode,
+  GraphQLObjectType,
+  VariableDefinitionNode,
 } from 'graphql';
 import { Operation, Transform, Request, TypeMap, ExecutionResult } from '@graphql-tools/utils';
 
@@ -35,6 +38,19 @@ export interface ICreateRequestFromInfo {
   info: GraphQLResolveInfo;
   operation: Operation;
   fieldName: string;
+  selectionSet?: SelectionSetNode;
+  fieldNodes?: ReadonlyArray<FieldNode>;
+}
+
+export interface ICreateRequest {
+  sourceSchema?: GraphQLSchema;
+  sourceParentType?: GraphQLObjectType;
+  sourceFieldName?: string;
+  fragments?: Record<string, FragmentDefinitionNode>;
+  variableDefinitions?: ReadonlyArray<VariableDefinitionNode>;
+  variableValues?: Record<string, any>;
+  targetOperation: Operation;
+  targetFieldName: string;
   selectionSet?: SelectionSetNode;
   fieldNodes?: ReadonlyArray<FieldNode>;
 }

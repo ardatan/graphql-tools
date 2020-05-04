@@ -16,11 +16,9 @@ import {
   GraphQLInputObjectType,
   GraphQLInterfaceType,
   GraphQLObjectType,
-  SelectionSetNode,
   GraphQLDirective,
   FragmentDefinitionNode,
   SelectionNode,
-  VariableDefinitionNode,
   OperationDefinitionNode,
   GraphQLError,
   ExecutionResult as GraphQLExecutionResult,
@@ -143,19 +141,6 @@ export type RenameTypesOptions = {
   renameBuiltins: boolean;
   renameScalars: boolean;
 };
-
-export interface ICreateRequest {
-  sourceSchema?: GraphQLSchema;
-  sourceParentType?: GraphQLObjectType;
-  sourceFieldName?: string;
-  fragments?: Record<string, FragmentDefinitionNode>;
-  variableDefinitions?: ReadonlyArray<VariableDefinitionNode>;
-  variableValues?: Record<string, any>;
-  targetOperation: Operation;
-  targetFieldName: string;
-  selectionSet?: SelectionSetNode;
-  fieldNodes?: ReadonlyArray<FieldNode>;
-}
 
 export type IFieldResolver<TSource, TContext, TArgs = Record<string, any>, TReturn = any> = (
   source: TSource,
