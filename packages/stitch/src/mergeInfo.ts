@@ -13,10 +13,10 @@ import {
   concatInlineFragments,
   typeContainsSelectionSet,
   parseSelectionSet,
-  forEachField,
   TypeMap,
   IResolvers,
   IFieldResolverOptions,
+  mapSchemaByField,
 } from '@graphql-tools/utils';
 
 import { delegateToSchema, isSubschemaConfig, SubschemaConfig } from '@graphql-tools/delegate';
@@ -216,21 +216,18 @@ export function completeMergeInfo(mergeInfo: MergeInfo, resolvers: IResolvers): 
   return mergeInfo;
 }
 
-export function addMergeInfo(stitchedSchema: GraphQLSchema, mergeInfo: MergeInfo): void {
-  forEachField(stitchedSchema, field => {
-    if (field.resolve != null) {
-      const fieldResolver = field.resolve;
-      field.resolve = (parent, args, context, info) => {
-        const newInfo = { ...info, mergeInfo };
-        return fieldResolver(parent, args, context, newInfo);
-      };
+export function addMergeInfo(stitchedSchema: GraphQLSchema, mergeInfo: MergeInfo): GraphQLSchema {
+  return mapSchemaByField(stitchedSchema, ([fieldName, originalFieldConfig]) => {
+    const newFieldConfig = { ...originalFieldConfig };
+    const resolver = originalFieldConfig.resolve;
+    if (resolver != null) {
+      newFieldConfig.resolve = (parent, args, context, info) => resolver(parent, args, context, { ...info, mergeInfo });
     }
-    if (field.subscribe != null) {
-      const fieldResolver = field.subscribe;
-      field.subscribe = (parent, args, context, info) => {
-        const newInfo = { ...info, mergeInfo };
-        return fieldResolver(parent, args, context, newInfo);
-      };
+    const subscriber = originalFieldConfig.subscribe;
+    if (subscriber != null) {
+      newFieldConfig.subscribe = (parent, args, context, info) =>
+        subscriber(parent, args, context, { ...info, mergeInfo });
     }
+    return [fieldName, newFieldConfig];
   });
 }

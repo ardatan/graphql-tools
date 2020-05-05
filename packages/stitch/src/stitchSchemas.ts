@@ -141,7 +141,7 @@ export function stitchSchemas({
 
   assertResolversPresent(schema, resolverValidationOptions);
 
-  addMergeInfo(schema, mergeInfo);
+  schema = addMergeInfo(schema, mergeInfo);
 
   if (!allowUndefinedInResolve) {
     addCatchUndefinedToSchema(schema);
