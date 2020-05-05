@@ -24,6 +24,7 @@ import {
   ExecutionResult as GraphQLExecutionResult,
   GraphQLOutputType,
   FieldDefinitionNode,
+  GraphQLFieldConfig,
 } from 'graphql';
 
 import { SchemaVisitor } from './SchemaVisitor';
@@ -405,3 +406,7 @@ export type DirectiveMapper = (
   directive: GraphQLDirective,
   schema: GraphQLSchema
 ) => GraphQLDirective | null | undefined;
+
+export type FieldMapper = (
+  originalField: [string, GraphQLFieldConfig<any, any>]
+) => [string, GraphQLFieldConfig<any, any>] | null | undefined;

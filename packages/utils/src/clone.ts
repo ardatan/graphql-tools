@@ -18,7 +18,7 @@ import {
   isSpecifiedDirective,
 } from 'graphql';
 
-import { mapSchema } from './map';
+import { mapSchema } from './mapSchema';
 
 export function cloneDirective(directive: GraphQLDirective): GraphQLDirective {
   return isSpecifiedDirective(directive) ? directive : new GraphQLDirective(directive.toConfig());

@@ -12,7 +12,7 @@ import {
 
 import { MapperKind, FieldFilter, RootFieldFilter } from './Interfaces';
 
-import { mapSchema } from './map';
+import { mapSchema } from './mapSchema';
 
 export function filterSchema({
   schema,
