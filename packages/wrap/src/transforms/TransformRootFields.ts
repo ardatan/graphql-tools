@@ -1,4 +1,4 @@
-import { GraphQLSchema, GraphQLField } from 'graphql';
+import { GraphQLSchema, GraphQLFieldConfig } from 'graphql';
 
 import { Transform, Request } from '@graphql-tools/utils';
 
@@ -9,9 +9,13 @@ export default class TransformRootFields implements Transform {
   private readonly transformer: TransformObjectFields;
 
   constructor(rootFieldTransformer: RootFieldTransformer, fieldNodeTransformer?: FieldNodeTransformer) {
-    const rootToObjectFieldTransformer = (typeName: string, fieldName: string, field: GraphQLField<any, any>) => {
+    const rootToObjectFieldTransformer = (
+      typeName: string,
+      fieldName: string,
+      fieldConfig: GraphQLFieldConfig<any, any>
+    ) => {
       if (typeName === 'Query' || typeName === 'Mutation' || typeName === 'Subscription') {
-        return rootFieldTransformer(typeName, fieldName, field);
+        return rootFieldTransformer(typeName, fieldName, fieldConfig);
       }
 
       return undefined;

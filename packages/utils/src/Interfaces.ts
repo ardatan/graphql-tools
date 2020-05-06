@@ -130,12 +130,16 @@ export type FieldNodeMapper = (
 
 export type FieldNodeMappers = Record<string, Record<string, FieldNodeMapper>>;
 
-export type FieldFilter = (typeName?: string, fieldName?: string, field?: GraphQLField<any, any>) => boolean;
+export type FieldFilter = (
+  typeName?: string,
+  fieldName?: string,
+  fieldConfig?: GraphQLFieldConfig<any, any>
+) => boolean;
 
 export type RootFieldFilter = (
   operation?: 'Query' | 'Mutation' | 'Subscription',
   rootFieldName?: string,
-  field?: GraphQLField<any, any>
+  fieldConfig?: GraphQLFieldConfig<any, any>
 ) => boolean;
 
 export type RenameTypesOptions = {
