@@ -1,32 +1,34 @@
 import { GraphQLFieldConfigMap, GraphQLObjectType, GraphQLFieldConfig } from 'graphql';
 
 import { TypeMap } from './Interfaces';
-import { fieldToFieldConfig } from './toConfig';
 
-export function appendFields(typeMap: TypeMap, typeName: string, fields: GraphQLFieldConfigMap<any, any>): void {
+export function appendFields(
+  typeMap: TypeMap,
+  typeName: string,
+  additionalFields: GraphQLFieldConfigMap<any, any>
+): void {
   let type = typeMap[typeName];
   if (type != null) {
-    const newFieldConfigMap: GraphQLFieldConfigMap<any, any> = Object.entries(
-      (type as GraphQLObjectType).getFields()
-    ).reduce(
-      (acc, [fieldName, field]) => ({
-        ...acc,
-        [fieldName]: fieldToFieldConfig(field),
-      }),
-      {}
-    );
+    const config = (type as GraphQLObjectType).toConfig();
+    const originalFieldConfigMap = config.fields;
 
-    Object.keys(fields).forEach(fieldName => {
-      newFieldConfigMap[fieldName] = fields[fieldName];
+    const newFieldConfigMap = {};
+    Object.keys(config.fields).forEach(fieldName => {
+      newFieldConfigMap[fieldName] = originalFieldConfigMap[fieldName];
     });
+
+    Object.keys(additionalFields).forEach(fieldName => {
+      newFieldConfigMap[fieldName] = additionalFields[fieldName];
+    });
+
     type = new GraphQLObjectType({
-      ...(type as GraphQLObjectType).toConfig(),
+      ...config,
       fields: newFieldConfigMap,
     });
   } else {
     type = new GraphQLObjectType({
       name: typeName,
-      fields,
+      fields: additionalFields,
     });
   }
   typeMap[typeName] = type;
@@ -39,21 +41,23 @@ export function removeFields(
 ): GraphQLFieldConfigMap<any, any> {
   let type = typeMap[typeName];
 
-  const originalFields = (type as GraphQLObjectType).getFields();
-  const newFields = {};
+  const config = (type as GraphQLObjectType).toConfig();
+  const originalFieldConfigMap = config.fields;
+
+  const newFieldConfigMap = {};
   const removedFields = {};
-  Object.keys(originalFields).forEach(fieldName => {
-    const originalFieldConfig = fieldToFieldConfig(originalFields[fieldName]);
+  Object.keys(originalFieldConfigMap).forEach(fieldName => {
+    const originalFieldConfig = originalFieldConfigMap[fieldName];
     if (testFn(fieldName, originalFieldConfig)) {
       removedFields[fieldName] = originalFieldConfig;
     } else {
-      newFields[fieldName] = originalFieldConfig;
+      newFieldConfigMap[fieldName] = originalFieldConfig;
     }
   });
 
   type = new GraphQLObjectType({
-    ...(type as GraphQLObjectType).toConfig(),
-    fields: newFields,
+    ...config,
+    fields: newFieldConfigMap,
   });
   typeMap[typeName] = type;
 
