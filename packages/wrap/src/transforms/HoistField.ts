@@ -1,14 +1,6 @@
 import { GraphQLSchema, GraphQLObjectType, getNullableType } from 'graphql';
 
-import {
-  healSchema,
-  wrapFieldNode,
-  renameFieldNode,
-  appendFields,
-  removeFields,
-  Transform,
-  Request,
-} from '@graphql-tools/utils';
+import { wrapFieldNode, renameFieldNode, appendFields, removeFields, Transform, Request } from '@graphql-tools/utils';
 
 import MapFields from './MapFields';
 import { createMergedResolver } from '@graphql-tools/delegate';
@@ -36,29 +28,29 @@ export default class HoistField implements Transform {
   }
 
   public transformSchema(schema: GraphQLSchema): GraphQLSchema {
-    const typeMap = schema.getTypeMap();
-
     const innerType: GraphQLObjectType = this.pathToField.reduce(
       (acc, pathSegment) => getNullableType(acc.getFields()[pathSegment].type) as GraphQLObjectType,
-      typeMap[this.typeName] as GraphQLObjectType
+      schema.getType(this.typeName) as GraphQLObjectType
     );
 
-    const targetField = removeFields(typeMap, innerType.name, fieldName => fieldName === this.oldFieldName)[
-      this.oldFieldName
-    ];
+    let [newSchema, targetFieldConfigMap] = removeFields(
+      schema,
+      innerType.name,
+      fieldName => fieldName === this.oldFieldName
+    );
+
+    const targetField = targetFieldConfigMap[this.oldFieldName];
 
     const targetType = targetField.type as GraphQLObjectType;
 
-    appendFields(typeMap, this.typeName, {
+    newSchema = appendFields(newSchema, this.typeName, {
       [this.newFieldName]: {
         type: targetType,
         resolve: createMergedResolver({ fromPath: this.pathToField }),
       },
     });
 
-    healSchema(schema);
-
-    return this.transformer.transformSchema(schema);
+    return this.transformer.transformSchema(newSchema);
   }
 
   public transformRequest(originalRequest: Request): Request {

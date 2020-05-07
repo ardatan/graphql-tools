@@ -159,10 +159,8 @@ function mapDirectives(
   originalDirectives.forEach(directive => {
     const directiveMapper = getDirectiveMapper(schemaMapper);
     if (directiveMapper != null) {
-      const newDirective = directiveMapper(directive, schema);
-      if (newDirective != null) {
-        newDirectives.push(newDirective);
-      }
+      const maybeNewDirective = directiveMapper(directive, schema);
+      newDirectives.push(maybeNewDirective !== undefined ? maybeNewDirective : directive);
     } else {
       newDirectives.push(directive);
     }

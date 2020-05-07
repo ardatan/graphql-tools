@@ -1,6 +1,6 @@
 import { GraphQLSchema, GraphQLObjectType } from 'graphql';
 
-import { Transform, Request, healSchema, hoistFieldNodes, appendFields, removeFields } from '@graphql-tools/utils';
+import { Transform, Request, hoistFieldNodes, getFields, modifyFields, createNamedStub } from '@graphql-tools/utils';
 import { createMergedResolver, defaultMergedResolver } from '@graphql-tools/delegate';
 
 import MapFields from './MapFields';
@@ -41,38 +41,56 @@ export default class WrapFields implements Transform {
   }
 
   public transformSchema(schema: GraphQLSchema): GraphQLSchema {
-    const typeMap = schema.getTypeMap();
-
-    const targetFields = removeFields(
-      typeMap,
+    const targetFieldConfigMap = getFields(
+      schema,
       this.outerTypeName,
       !this.fieldNames ? () => true : fieldName => this.fieldNames.includes(fieldName)
     );
 
+    const innerMostFieldNames = Object.keys(targetFieldConfigMap);
+
+    const remove = [
+      {
+        typeName: this.outerTypeName,
+        testFn: (fieldName: string) => innerMostFieldNames.includes(fieldName),
+      },
+    ];
+
     let wrapIndex = this.numWraps - 1;
 
     const innerMostWrappingTypeName = this.wrappingTypeNames[wrapIndex];
-    appendFields(typeMap, innerMostWrappingTypeName, targetFields);
+    const append = [
+      {
+        typeName: innerMostWrappingTypeName,
+        additionalFields: targetFieldConfigMap,
+      },
+    ];
 
     for (wrapIndex--; wrapIndex > -1; wrapIndex--) {
-      appendFields(typeMap, this.wrappingTypeNames[wrapIndex], {
-        [this.wrappingFieldNames[wrapIndex + 1]]: {
-          type: typeMap[this.wrappingTypeNames[wrapIndex + 1]] as GraphQLObjectType,
-          resolve: defaultMergedResolver,
+      append.push({
+        typeName: this.wrappingTypeNames[wrapIndex],
+        additionalFields: {
+          [this.wrappingFieldNames[wrapIndex + 1]]: {
+            type: createNamedStub(this.wrappingTypeNames[wrapIndex + 1], 'object') as GraphQLObjectType,
+            resolve: defaultMergedResolver,
+          },
         },
       });
     }
 
-    appendFields(typeMap, this.outerTypeName, {
-      [this.wrappingFieldNames[0]]: {
-        type: typeMap[this.wrappingTypeNames[0]] as GraphQLObjectType,
-        resolve: createMergedResolver({ dehoist: true }),
+    append.push({
+      typeName: this.outerTypeName,
+      additionalFields: {
+        [this.wrappingFieldNames[0]]: {
+          type: createNamedStub(this.wrappingTypeNames[0], 'object') as GraphQLObjectType,
+          resolve: createMergedResolver({ dehoist: true }),
+        },
       },
     });
 
-    healSchema(schema);
+    const newSchema = modifyFields(schema, { append, remove });
 
-    return this.transformer.transformSchema(schema);
+    return this.transformer.transformSchema(newSchema);
   }
 
   public transformRequest(originalRequest: Request): Request {
