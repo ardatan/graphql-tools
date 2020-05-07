@@ -16,7 +16,8 @@ import {
   TypeMap,
   IResolvers,
   IFieldResolverOptions,
-  mapSchemaByField,
+  mapSchema,
+  MapperKind,
 } from '@graphql-tools/utils';
 
 import { delegateToSchema, isSubschemaConfig, SubschemaConfig } from '@graphql-tools/delegate';
@@ -217,17 +218,20 @@ export function completeMergeInfo(mergeInfo: MergeInfo, resolvers: IResolvers): 
 }
 
 export function addMergeInfo(stitchedSchema: GraphQLSchema, mergeInfo: MergeInfo): GraphQLSchema {
-  return mapSchemaByField(stitchedSchema, ([fieldName, originalFieldConfig]) => {
-    const newFieldConfig = { ...originalFieldConfig };
-    const resolver = originalFieldConfig.resolve;
-    if (resolver != null) {
-      newFieldConfig.resolve = (parent, args, context, info) => resolver(parent, args, context, { ...info, mergeInfo });
-    }
-    const subscriber = originalFieldConfig.subscribe;
-    if (subscriber != null) {
-      newFieldConfig.subscribe = (parent, args, context, info) =>
-        subscriber(parent, args, context, { ...info, mergeInfo });
-    }
-    return [fieldName, newFieldConfig];
+  return mapSchema(stitchedSchema, {
+    [MapperKind.OBJECT_FIELD]: originalFieldConfig => {
+      const newFieldConfig = { ...originalFieldConfig };
+      const resolver = originalFieldConfig.resolve;
+      if (resolver != null) {
+        newFieldConfig.resolve = (parent, args, context, info) =>
+          resolver(parent, args, context, { ...info, mergeInfo });
+      }
+      const subscriber = originalFieldConfig.subscribe;
+      if (subscriber != null) {
+        newFieldConfig.subscribe = (parent, args, context, info) =>
+          subscriber(parent, args, context, { ...info, mergeInfo });
+      }
+      return newFieldConfig;
+    },
   });
 }

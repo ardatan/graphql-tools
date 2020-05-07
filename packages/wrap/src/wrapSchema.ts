@@ -6,7 +6,7 @@ import {
   GraphQLFieldResolver,
 } from 'graphql';
 
-import { Transform, MapperKind, mapSchema, applySchemaTransforms, fieldToFieldConfig } from '@graphql-tools/utils';
+import { Transform, MapperKind, mapSchema, applySchemaTransforms } from '@graphql-tools/utils';
 
 import { SubschemaConfig, isSubschemaConfig, defaultMergedResolver } from '@graphql-tools/delegate';
 import { generateProxyingResolvers } from './generateProxyingResolvers';
@@ -45,10 +45,10 @@ function createWrappingSchema(
     [MapperKind.ROOT_OBJECT]: type => {
       const config = type.toConfig();
 
-      const fields = type.getFields();
-      Object.keys(fields).forEach(fieldName => {
-        config.fields[fieldName] = {
-          ...fieldToFieldConfig(fields[fieldName]),
+      const fieldConfigMap = config.fields;
+      Object.keys(fieldConfigMap).forEach(fieldName => {
+        fieldConfigMap[fieldName] = {
+          ...fieldConfigMap[fieldName],
           ...proxyingResolvers[type.name][fieldName],
         };
       });

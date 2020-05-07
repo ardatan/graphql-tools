@@ -1,4 +1,4 @@
-import { GraphQLField, GraphQLSchema } from 'graphql';
+import { GraphQLSchema, GraphQLFieldConfig } from 'graphql';
 
 import { Transform, RootFieldFilter } from '@graphql-tools/utils';
 
@@ -9,8 +9,12 @@ export default class FilterRootFields implements Transform {
 
   constructor(filter: RootFieldFilter) {
     this.transformer = new TransformRootFields(
-      (operation: 'Query' | 'Mutation' | 'Subscription', fieldName: string, field: GraphQLField<any, any>) => {
-        if (filter(operation, fieldName, field)) {
+      (
+        operation: 'Query' | 'Mutation' | 'Subscription',
+        fieldName: string,
+        fieldConfig: GraphQLFieldConfig<any, any>
+      ) => {
+        if (filter(operation, fieldName, fieldConfig)) {
           return undefined;
         }
 

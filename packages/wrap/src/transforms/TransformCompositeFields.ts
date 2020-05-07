@@ -15,8 +15,8 @@ import {
   GraphQLObjectType,
 } from 'graphql';
 
-import { Transform, Request, MapperKind, mapSchema, fieldToFieldConfig } from '@graphql-tools/utils';
-import { FieldTransformer, FieldNodeTransformer, RenamedFieldConfig } from '../types';
+import { Transform, Request, MapperKind, mapSchema } from '@graphql-tools/utils';
+import { FieldTransformer, FieldNodeTransformer } from '../types';
 
 export default class TransformCompositeFields implements Transform {
   private readonly fieldTransformer: FieldTransformer;
@@ -63,50 +63,47 @@ export default class TransformCompositeFields implements Transform {
   private transformFields(type: GraphQLInterfaceType, fieldTransformer: FieldTransformer): GraphQLInterfaceType;
 
   private transformFields(type: GraphQLObjectType | GraphQLInterfaceType, fieldTransformer: FieldTransformer): any {
-    const fields = type.getFields();
-    const newFields = {};
+    const config = type.toConfig();
 
-    Object.keys(fields).forEach(fieldName => {
-      const field = fields[fieldName];
-      const transformedField = fieldTransformer(type.name, fieldName, field);
+    const originalFieldConfigMap = config.fields;
+    const newFieldConfigMap = {};
 
-      if (typeof transformedField === 'undefined') {
-        newFields[fieldName] = fieldToFieldConfig(fields[fieldName]);
-      } else if (transformedField !== null) {
-        const newName = (transformedField as RenamedFieldConfig).name;
+    Object.keys(originalFieldConfigMap).forEach(fieldName => {
+      const originalfieldConfig = originalFieldConfigMap[fieldName];
+      const transformedField = fieldTransformer(type.name, fieldName, originalfieldConfig);
 
-        if (newName) {
-          newFields[newName] =
-            (transformedField as RenamedFieldConfig).field != null
-              ? (transformedField as RenamedFieldConfig).field
-              : fieldToFieldConfig(fields[fieldName]);
+      if (transformedField === undefined) {
+        newFieldConfigMap[fieldName] = originalfieldConfig;
+      } else if (Array.isArray(transformedField)) {
+        const newFieldName = transformedField[0];
+        const newFieldConfig = transformedField[1];
+        newFieldConfigMap[newFieldName] = newFieldConfig;
 
-          if (newName !== fieldName) {
-            const typeName = type.name;
-            if (!(typeName in this.mapping)) {
-              this.mapping[typeName] = {};
-            }
-            this.mapping[typeName][newName] = fieldName;
+        if (newFieldName !== fieldName) {
+          const typeName = type.name;
+          if (!(typeName in this.mapping)) {
+            this.mapping[typeName] = {};
           }
-        } else {
-          newFields[fieldName] = transformedField;
+          this.mapping[typeName][newFieldName] = fieldName;
         }
+      } else if (transformedField != null) {
+        newFieldConfigMap[fieldName] = transformedField;
       }
     });
 
-    if (newFields == null || Object.keys(newFields).length === 0) {
+    if (!Object.keys(newFieldConfigMap).length) {
       return null;
     }
 
     if (isObjectType(type)) {
       return new GraphQLObjectType({
         ...type.toConfig(),
-        fields: newFields,
+        fields: newFieldConfigMap,
       });
     } else if (isInterfaceType(type)) {
       return new GraphQLInterfaceType({
         ...type.toConfig(),
-        fields: newFields,
+        fields: newFieldConfigMap,
       });
     }
   }

@@ -26,7 +26,6 @@ export * from './getResolversFromSchema';
 export * from './forEachField';
 export * from './forEachDefaultValue';
 export * from './mapSchema';
-export * from './mapSchemaByField';
 export * from './rewire';
 export * from './mergeDeep';
 export * from './Interfaces';

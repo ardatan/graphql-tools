@@ -6,7 +6,6 @@ import {
   GraphQLScalarType,
   GraphQLUnionType,
   GraphQLType,
-  GraphQLField,
   GraphQLSchema,
 } from 'graphql';
 
@@ -48,7 +47,7 @@ function filterRootFields(
 ): GraphQLObjectType {
   const config = type.toConfig();
   Object.keys(config.fields).forEach(fieldName => {
-    if (!rootFieldFilter(operation, fieldName, (config.fields[fieldName] as unknown) as GraphQLField<any, any>)) {
+    if (!rootFieldFilter(operation, fieldName, config.fields[fieldName])) {
       delete config.fields[fieldName];
     }
   });
@@ -58,7 +57,7 @@ function filterRootFields(
 function filterObjectFields(type: GraphQLObjectType, fieldFilter: FieldFilter): GraphQLObjectType {
   const config = type.toConfig();
   Object.keys(config.fields).forEach(fieldName => {
-    if (!fieldFilter(type.name, fieldName, (config.fields[fieldName] as unknown) as GraphQLField<any, any>)) {
+    if (!fieldFilter(type.name, fieldName, config.fields[fieldName])) {
       delete config.fields[fieldName];
     }
   });

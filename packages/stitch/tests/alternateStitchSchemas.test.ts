@@ -9,12 +9,10 @@ import {
   FieldNode,
   printSchema,
   graphqlSync,
-  GraphQLField,
   assertValidSchema,
   GraphQLFieldConfig,
   isSpecifiedScalarType,
   GraphQLNamedType,
-  GraphQLFieldConfigArgumentMap,
 } from 'graphql';
 
 import {
@@ -355,26 +353,15 @@ describe('transform object fields', () => {
         (
           typeName: string,
           fieldName: string,
-          field: GraphQLField<any, any>,
+          fieldConfig: GraphQLFieldConfig<any, any>,
         ) => {
           if (typeName !== 'Property' || fieldName !== 'name') {
             return undefined;
           }
           return {
-            description: field.deprecationReason,
-            type: field.type,
-            args: field.args.reduce<GraphQLFieldConfigArgumentMap>(
-              (prev, curr) => ({
-                ...prev,
-                [curr.name]: curr,
-              }),
-              {},
-            ),
+            ...fieldConfig,
+            description: fieldConfig.deprecationReason,
             resolve: () => 'test',
-            subscribe: field.subscribe,
-            deprecationReason: field.deprecationReason,
-            extensions: field.extensions,
-            astNode: field.astNode,
           };
         },
         (typeName: string, fieldName: string, fieldNode: FieldNode) => {
@@ -434,27 +421,23 @@ describe('default values', () => {
         (
           typeName: string,
           fieldName: string,
-          field: GraphQLField<any, any>,
+          fieldConfig: GraphQLFieldConfig<any, any>,
         ) => {
           if (typeName === 'Query' && fieldName === 'jsonTest') {
-            const fieldConfig: GraphQLFieldConfig<any, any> = {
-              description: field.deprecationReason,
-              type: field.type,
-              args: field.args.reduce<GraphQLFieldConfigArgumentMap>(
-                (prev, curr) => ({
-                  ...prev,
-                  [curr.name]: curr,
-                }),
-                {},
-              ),
-              resolve: field.resolve,
-              subscribe: field.subscribe,
-              deprecationReason: field.deprecationReason,
-              extensions: field.extensions,
-              astNode: field.astNode,
-            };
-            fieldConfig.args.input.defaultValue = { test: 'test' };
-            return { name: 'renamedJsonTest', field: fieldConfig };
+            return [
+              'renamedJsonTest',
+              {
+                ...fieldConfig,
+                description: fieldConfig.deprecationReason,
+                args: {
+                  ...fieldConfig.args,
+                  input: {
+                    ...fieldConfig.args.input,
+                    defaultValue: { test: 'test' }
+                  }
+                }
+              }
+            ];
           }
         },
       ),

@@ -1,4 +1,4 @@
-import { GraphQLSchema, GraphQLField, isInterfaceType } from 'graphql';
+import { GraphQLSchema, isInterfaceType, GraphQLFieldConfig } from 'graphql';
 
 import { Transform, Request } from '@graphql-tools/utils';
 import { FieldTransformer, FieldNodeTransformer } from '../types';
@@ -16,9 +16,13 @@ export default class TransformInterfaceFields implements Transform {
   }
 
   public transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
-    const compositeToObjectFieldTransformer = (typeName: string, fieldName: string, field: GraphQLField<any, any>) => {
+    const compositeToObjectFieldTransformer = (
+      typeName: string,
+      fieldName: string,
+      fieldConfig: GraphQLFieldConfig<any, any>
+    ) => {
       if (isInterfaceType(originalSchema.getType(typeName))) {
-        return this.interfaceFieldTransformer(typeName, fieldName, field);
+        return this.interfaceFieldTransformer(typeName, fieldName, fieldConfig);
       }
 
       return undefined;

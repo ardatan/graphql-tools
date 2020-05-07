@@ -1,4 +1,4 @@
-import { GraphQLField, GraphQLSchema } from 'graphql';
+import { GraphQLSchema, GraphQLFieldConfig } from 'graphql';
 
 import { Transform, Request } from '@graphql-tools/utils';
 
@@ -8,12 +8,18 @@ export default class RenameRootFields implements Transform {
   private readonly transformer: TransformRootFields;
 
   constructor(
-    renamer: (operation: 'Query' | 'Mutation' | 'Subscription', name: string, field: GraphQLField<any, any>) => string
+    renamer: (
+      operation: 'Query' | 'Mutation' | 'Subscription',
+      name: string,
+      fieldConfig: GraphQLFieldConfig<any, any>
+    ) => string
   ) {
     this.transformer = new TransformRootFields(
-      (operation: 'Query' | 'Mutation' | 'Subscription', fieldName: string, field: GraphQLField<any, any>) => ({
-        name: renamer(operation, fieldName, field),
-      })
+      (
+        operation: 'Query' | 'Mutation' | 'Subscription',
+        fieldName: string,
+        fieldConfig: GraphQLFieldConfig<any, any>
+      ) => [renamer(operation, fieldName, fieldConfig), fieldConfig]
     );
   }
 

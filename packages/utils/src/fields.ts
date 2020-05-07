@@ -1,61 +1,131 @@
-import { GraphQLFieldConfigMap, GraphQLObjectType, GraphQLFieldConfig } from 'graphql';
+import { GraphQLFieldConfigMap, GraphQLObjectType, GraphQLFieldConfig, GraphQLSchema } from 'graphql';
+import { MapperKind } from './Interfaces';
+import { mapSchema } from './mapSchema';
+import { rewireTypes } from './rewire';
 
-import { TypeMap } from './Interfaces';
-import { fieldToFieldConfig } from './toConfig';
+export function modifyFields(
+  schema: GraphQLSchema,
+  {
+    append = [],
+    remove = [],
+  }: {
+    append?: Array<{ typeName: string; additionalFields: GraphQLFieldConfigMap<any, any> }>;
+    remove?: Array<{
+      typeName: string;
+      testFn: (fieldName: string, field: GraphQLFieldConfig<any, any>) => boolean;
+    }>;
+  }
+): GraphQLSchema {
+  const queryType = schema.getQueryType();
+  const mutationType = schema.getMutationType();
+  const subscriptionType = schema.getSubscriptionType();
 
-export function appendFields(typeMap: TypeMap, typeName: string, fields: GraphQLFieldConfigMap<any, any>): void {
-  let type = typeMap[typeName];
-  if (type != null) {
-    const newFieldConfigMap: GraphQLFieldConfigMap<any, any> = Object.entries(
-      (type as GraphQLObjectType).getFields()
-    ).reduce(
-      (acc, [fieldName, field]) => ({
-        ...acc,
-        [fieldName]: fieldToFieldConfig(field),
-      }),
-      {}
-    );
+  const queryTypeName = queryType != null ? queryType.name : undefined;
+  const mutationTypeName = mutationType != null ? mutationType.name : undefined;
+  const subscriptionTypeName = subscriptionType != null ? subscriptionType.name : undefined;
 
-    Object.keys(fields).forEach(fieldName => {
-      newFieldConfigMap[fieldName] = fields[fieldName];
+  const config = schema.toConfig();
+
+  const originalTypeMap = {};
+  config.types.forEach(type => {
+    originalTypeMap[type.name] = type;
+  });
+
+  remove.forEach(({ typeName, testFn }) => {
+    const config = (originalTypeMap[typeName] as GraphQLObjectType).toConfig();
+    const originalFieldConfigMap = config.fields;
+    const newFieldConfigMap = {};
+    Object.keys(originalFieldConfigMap).forEach(fieldName => {
+      if (!testFn(fieldName, originalFieldConfigMap[fieldName])) {
+        newFieldConfigMap[fieldName] = originalFieldConfigMap[fieldName];
+      }
     });
-    type = new GraphQLObjectType({
-      ...(type as GraphQLObjectType).toConfig(),
+    originalTypeMap[typeName] = new GraphQLObjectType({
+      ...config,
       fields: newFieldConfigMap,
     });
-  } else {
-    type = new GraphQLObjectType({
-      name: typeName,
-      fields,
-    });
-  }
-  typeMap[typeName] = type;
-}
+  });
 
-export function removeFields(
-  typeMap: TypeMap,
-  typeName: string,
-  testFn: (fieldName: string, field: GraphQLFieldConfig<any, any>) => boolean
-): GraphQLFieldConfigMap<any, any> {
-  let type = typeMap[typeName];
-
-  const originalFields = (type as GraphQLObjectType).getFields();
-  const newFields = {};
-  const removedFields = {};
-  Object.keys(originalFields).forEach(fieldName => {
-    const originalFieldConfig = fieldToFieldConfig(originalFields[fieldName]);
-    if (testFn(fieldName, originalFieldConfig)) {
-      removedFields[fieldName] = originalFieldConfig;
+  append.forEach(({ typeName, additionalFields }) => {
+    if (originalTypeMap[typeName] == null) {
+      originalTypeMap[typeName] = new GraphQLObjectType({
+        name: typeName,
+        fields: additionalFields,
+      });
     } else {
-      newFields[fieldName] = originalFieldConfig;
+      const config = (originalTypeMap[typeName] as GraphQLObjectType).toConfig();
+      const originalFieldConfigMap = config.fields;
+      const newFieldConfigMap = {};
+      Object.keys(originalFieldConfigMap).forEach(fieldName => {
+        newFieldConfigMap[fieldName] = originalFieldConfigMap[fieldName];
+      });
+      Object.keys(additionalFields).forEach(fieldName => {
+        newFieldConfigMap[fieldName] = additionalFields[fieldName];
+      });
+      originalTypeMap[typeName] = new GraphQLObjectType({
+        ...config,
+        fields: newFieldConfigMap,
+      });
     }
   });
 
-  type = new GraphQLObjectType({
-    ...(type as GraphQLObjectType).toConfig(),
-    fields: newFields,
-  });
-  typeMap[typeName] = type;
+  const { typeMap, directives } = rewireTypes(originalTypeMap, config.directives);
 
-  return removedFields;
+  return new GraphQLSchema({
+    ...config,
+    query: queryTypeName ? (typeMap[queryTypeName] as GraphQLObjectType) : undefined,
+    mutation: mutationTypeName ? (typeMap[mutationTypeName] as GraphQLObjectType) : undefined,
+    subscription: subscriptionTypeName != null ? (typeMap[subscriptionTypeName] as GraphQLObjectType) : undefined,
+    types: Object.keys(typeMap).map(typeName => typeMap[typeName]),
+    directives,
+  });
+}
+
+export function appendFields(
+  schema: GraphQLSchema,
+  typeName: string,
+  additionalFields: GraphQLFieldConfigMap<any, any>
+): GraphQLSchema {
+  return modifyFields(schema, { append: [{ typeName, additionalFields }] });
+}
+
+export function removeFields(
+  schema: GraphQLSchema,
+  typeName: string,
+  testFn: (fieldName: string, field: GraphQLFieldConfig<any, any>) => boolean
+): [GraphQLSchema, GraphQLFieldConfigMap<any, any>] {
+  const selectedFields = getFields(schema, typeName, testFn);
+  const selectedFieldNames = Object.keys(selectedFields);
+  const newSchema = modifyFields(schema, {
+    remove: [{ typeName, testFn: fieldName => selectedFieldNames.includes(fieldName) }],
+  });
+
+  return [newSchema, selectedFields];
+}
+
+export function getFields(
+  schema: GraphQLSchema,
+  typeName: string,
+  testFn: (fieldName: string, field: GraphQLFieldConfig<any, any>) => boolean
+): GraphQLFieldConfigMap<any, any> {
+  const selectedFields = {};
+  mapSchema(schema, {
+    [MapperKind.OBJECT_TYPE]: type => {
+      if (type.name === typeName) {
+        const config = type.toConfig();
+        const originalFieldConfigMap = config.fields;
+
+        Object.keys(originalFieldConfigMap).forEach(fieldName => {
+          const originalFieldConfig = originalFieldConfigMap[fieldName];
+          if (testFn(fieldName, originalFieldConfig)) {
+            selectedFields[fieldName] = originalFieldConfig;
+          }
+        });
+      }
+
+      return undefined;
+    },
+  });
+
+  return selectedFields;
 }

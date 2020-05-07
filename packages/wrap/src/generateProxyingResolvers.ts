@@ -34,6 +34,8 @@ export function generateProxyingResolvers(
     schemaTransforms = schemaTransforms.concat(transforms);
   }
 
+  const transformedSchema = applySchemaTransforms(targetSchema, schemaTransforms);
+
   const operationTypes: Record<Operation, GraphQLObjectType> = {
     query: targetSchema.getQueryType(),
     mutation: targetSchema.getMutationType(),
@@ -54,7 +56,7 @@ export function generateProxyingResolvers(
         const proxyingResolver = createProxyingResolver({
           schema: subschemaOrSubschemaConfig,
           transforms,
-          transformedSchema: applySchemaTransforms(targetSchema, schemaTransforms),
+          transformedSchema,
           operation,
           fieldName,
         });

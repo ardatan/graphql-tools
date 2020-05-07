@@ -1,4 +1,4 @@
-import { GraphQLField, GraphQLSchema } from 'graphql';
+import { GraphQLSchema, GraphQLFieldConfig } from 'graphql';
 
 import { Transform, Request } from '@graphql-tools/utils';
 
@@ -7,11 +7,12 @@ import TransformObjectFields from './TransformObjectFields';
 export default class RenameObjectFields implements Transform {
   private readonly transformer: TransformObjectFields;
 
-  constructor(renamer: (typeName: string, fieldName: string, field: GraphQLField<any, any>) => string) {
+  constructor(renamer: (typeName: string, fieldName: string, fieldConfig: GraphQLFieldConfig<any, any>) => string) {
     this.transformer = new TransformObjectFields(
-      (typeName: string, fieldName: string, field: GraphQLField<any, any>) => ({
-        name: renamer(typeName, fieldName, field),
-      })
+      (typeName: string, fieldName: string, fieldConfig: GraphQLFieldConfig<any, any>) => [
+        renamer(typeName, fieldName, fieldConfig),
+        fieldConfig,
+      ]
     );
   }
 

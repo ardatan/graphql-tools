@@ -1,4 +1,4 @@
-import { GraphQLField, GraphQLSchema } from 'graphql';
+import { GraphQLSchema, GraphQLFieldConfig } from 'graphql';
 
 import { Transform, FieldFilter } from '@graphql-tools/utils';
 
@@ -9,8 +9,8 @@ export default class FilterInterfaceFields implements Transform {
 
   constructor(filter: FieldFilter) {
     this.transformer = new TransformInterfaceFields(
-      (typeName: string, fieldName: string, field: GraphQLField<any, any>) =>
-        filter(typeName, fieldName, field) ? undefined : null
+      (typeName: string, fieldName: string, fieldConfig: GraphQLFieldConfig<any, any>) =>
+        filter(typeName, fieldName, fieldConfig) ? undefined : null
     );
   }
 

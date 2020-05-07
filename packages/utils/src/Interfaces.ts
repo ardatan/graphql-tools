@@ -25,6 +25,7 @@ import {
   GraphQLOutputType,
   FieldDefinitionNode,
   GraphQLFieldConfig,
+  GraphQLInputFieldConfig,
 } from 'graphql';
 
 import { SchemaVisitor } from './SchemaVisitor';
@@ -130,12 +131,16 @@ export type FieldNodeMapper = (
 
 export type FieldNodeMappers = Record<string, Record<string, FieldNodeMapper>>;
 
-export type FieldFilter = (typeName?: string, fieldName?: string, field?: GraphQLField<any, any>) => boolean;
+export type FieldFilter = (
+  typeName?: string,
+  fieldName?: string,
+  fieldConfig?: GraphQLFieldConfig<any, any>
+) => boolean;
 
 export type RootFieldFilter = (
   operation?: 'Query' | 'Mutation' | 'Subscription',
   rootFieldName?: string,
-  field?: GraphQLField<any, any>
+  fieldConfig?: GraphQLFieldConfig<any, any>
 ) => boolean;
 
 export type RenameTypesOptions = {
@@ -353,6 +358,15 @@ export enum MapperKind {
   MUTATION = 'MapperKind.MUTATION',
   SUBSCRIPTION = 'MapperKind.SUBSCRIPTION',
   DIRECTIVE = 'MapperKind.DIRECTIVE',
+  FIELD = 'MapperKind.FIELD',
+  COMPOSITE_FIELD = 'MapperKind.COMPOSITE_FIELD',
+  OBJECT_FIELD = 'MapperKind.OBJECT_FIELD',
+  ROOT_FIELD = 'MapperKind.ROOT_FIELD',
+  QUERY_ROOT_FIELD = 'MapperKind.QUERY_ROOT_FIELD',
+  MUTATION_ROOT_FIELD = 'MapperKind.MUTATION_ROOT_FIELD',
+  SUBSCRIPTION_ROOT_FIELD = 'MapperKind.SUBSCRIPTION_ROOT_FIELD',
+  INTERFACE_FIELD = 'MapperKind.INTERFACE_FIELD',
+  INPUT_OBJECT_FIELD = 'MapperKind.INPUT_OBJECT_FIELD',
 }
 
 export interface SchemaMapper {
@@ -370,6 +384,13 @@ export interface SchemaMapper {
   [MapperKind.MUTATION]?: ObjectTypeMapper;
   [MapperKind.SUBSCRIPTION]?: ObjectTypeMapper;
   [MapperKind.DIRECTIVE]?: DirectiveMapper;
+  [MapperKind.OBJECT_FIELD]?: ObjectFieldMapper;
+  [MapperKind.ROOT_FIELD]?: ObjectFieldMapper;
+  [MapperKind.QUERY_ROOT_FIELD]?: ObjectFieldMapper;
+  [MapperKind.MUTATION_ROOT_FIELD]?: ObjectFieldMapper;
+  [MapperKind.SUBSCRIPTION_ROOT_FIELD]?: ObjectFieldMapper;
+  [MapperKind.INTERFACE_FIELD]?: InterfaceFieldMapper;
+  [MapperKind.INPUT_OBJECT_FIELD]?: InputObjectFieldMapper;
 }
 
 export type NamedTypeMapper = (type: GraphQLNamedType, schema: GraphQLSchema) => GraphQLNamedType | null | undefined;
@@ -407,6 +428,13 @@ export type DirectiveMapper = (
   schema: GraphQLSchema
 ) => GraphQLDirective | null | undefined;
 
-export type FieldMapper = (
-  originalField: [string, GraphQLFieldConfig<any, any>]
-) => [string, GraphQLFieldConfig<any, any>] | null | undefined;
+export type FieldMapper<
+  F extends GraphQLFieldConfig<any, any> | GraphQLInputFieldConfig,
+  T extends GraphQLObjectType | GraphQLInterfaceType | GraphQLInputObjectType
+> = (fieldConfig: F, fieldName: string, type: T, schema: GraphQLSchema) => F | [string, F] | null | undefined;
+
+export type ObjectFieldMapper = FieldMapper<GraphQLFieldConfig<any, any>, GraphQLObjectType>;
+
+export type InterfaceFieldMapper = FieldMapper<GraphQLFieldConfig<any, any>, GraphQLInterfaceType>;
+
+export type InputObjectFieldMapper = FieldMapper<GraphQLInputFieldConfig, GraphQLInputObjectType>;

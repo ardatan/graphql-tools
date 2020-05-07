@@ -137,10 +137,10 @@ TransformRootFields(transformer: RootTransformer)
 type RootTransformer = (
   operation: 'Query' | 'Mutation' | 'Subscription',
   fieldName: string,
-  field: GraphQLField<any, any>,
+  fieldConfig: GraphQLField<any, any>,
 ) =>
   | GraphQLFieldConfig<any, any>
-  | { name: string; field: GraphQLFieldConfig<any, any> }
+  | [string, GraphQLFieldConfig<any, any>]
   | null
   | void;
 ```
@@ -153,7 +153,7 @@ FilterRootFields(filter: RootFilter)
 type RootFilter = (
   operation: 'Query' | 'Mutation' | 'Subscription',
   fieldName: string,
-  field: GraphQLField<any, any>,
+  fieldConfig: GraphQLFieldConfig<any, any>,
 ) => boolean;
 ```
 
@@ -164,14 +164,14 @@ RenameRootFields(
   renamer: (
     operation: 'Query' | 'Mutation' | 'Subscription',
     name: string,
-    field: GraphQLField<any, any>,
+    fieldConfig: GraphQLFieldConfig<any, any>,
   ) => string,
 )
 ```
 
 ### Modifying object fields
 
-* `TransformObjectFields(objectFieldTransformer: ObjectFieldTransformer, fieldNodeTransformer?: FieldNodeTransformer))`: Given an object field transformer, arbitrarily transform fields. The `objectFieldTransformer` can return a `GraphQLFieldConfig` definition, a object with new `name` and a `field`, `null` to remove the field, or `undefined` to leave the field unchanged. The optional `fieldNodeTransformer`, if specified, is called upon any field of that type in the request; result transformation can be specified by wrapping the field's resolver within the `objectFieldTransformer`. In this way, a field can be fully arbitrarily modified in place.
+* `TransformObjectFields(objectFieldTransformer: ObjectFieldTransformer, fieldNodeTransformer?: FieldNodeTransformer))`: Given an object field transformer, arbitrarily transform fields. The `objectFieldTransformer` can return a `GraphQLFieldConfig` definition, an array with first member being the new field name and second member being the new `GraphQLFieldConfig` definition, `null` to remove the field, or `undefined` to leave the field unchanged. The optional `fieldNodeTransformer`, if specified, is called upon any field of that type in the request; result transformation can be specified by wrapping the field's resolver within the `objectFieldTransformer`. In this way, a field can be fully arbitrarily modified in place.
 
 ```ts
 TransformObjectFields(objectFieldTransformer: ObjectFieldTransformer, fieldNodeTransformer: FieldNodeTransformer)
@@ -179,10 +179,10 @@ TransformObjectFields(objectFieldTransformer: ObjectFieldTransformer, fieldNodeT
 type ObjectFieldTransformer = (
   typeName: string,
   fieldName: string,
-  field: GraphQLField<any, any>,
+  fieldConfig: GraphQLFieldConfig<any, any>,
 ) =>
   | GraphQLFieldConfig<any, any>
-  | { name: string; field: GraphQLFieldConfig<any, any> }
+  | [string, GraphQLFieldConfig<any, any>]
   | null
   | void;
 
@@ -201,7 +201,7 @@ FilterObjectFields(filter: ObjectFilter)
 type ObjectFilter = (
   typeName: string,
   fieldName: string,
-  field: GraphQLField<any, any>,
+  fieldConfig: GraphQLFieldConfig<any, any>,
 ) => boolean;
 ```
 
@@ -212,7 +212,7 @@ RenameObjectFields(
   renamer: (
     typeName: string,
     fieldName: string,
-    field: GraphQLField<any, any>,
+    fieldConfig: GraphQLFieldConfig<any, any>,
   ) => string,
 )
 ```
