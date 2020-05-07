@@ -1,6 +1,6 @@
 import { GraphQLSchema, GraphQLObjectType } from 'graphql';
 
-import { Transform, Request, hoistFieldNodes, getFields, modifyFields, createNamedStub } from '@graphql-tools/utils';
+import { Transform, Request, hoistFieldNodes, getFields, modifyFields } from '@graphql-tools/utils';
 import { createMergedResolver, defaultMergedResolver } from '@graphql-tools/delegate';
 
 import MapFields from './MapFields';
@@ -41,7 +41,7 @@ export default class WrapFields implements Transform {
   }
 
   public transformSchema(schema: GraphQLSchema): GraphQLSchema {
-    const targetFieldConfigMap = getFields(
+    let targetFieldConfigMap = getFields(
       schema,
       this.outerTypeName,
       !this.fieldNames ? () => true : fieldName => this.fieldNames.includes(fieldName)
@@ -59,6 +59,19 @@ export default class WrapFields implements Transform {
     let wrapIndex = this.numWraps - 1;
 
     const innerMostWrappingTypeName = this.wrappingTypeNames[wrapIndex];
+
+    let baseWrappingType = new GraphQLObjectType({
+      name: innerMostWrappingTypeName,
+      fields: targetFieldConfigMap,
+    });
+
+    // Appending is still necessary to support wrapping with a pre-existing type.
+    // modifyFields lets you use the incomplete type within a field config map
+    // as it employes rewiring and will use the correct final type.
+    //
+    // In fact, the baseWrappingType could even be a stub type with no fields
+    // as long as it has the correct name.
+
     const append = [
       {
         typeName: innerMostWrappingTypeName,
@@ -67,14 +80,23 @@ export default class WrapFields implements Transform {
     ];
 
     for (wrapIndex--; wrapIndex > -1; wrapIndex--) {
-      append.push({
-        typeName: this.wrappingTypeNames[wrapIndex],
-        additionalFields: {
-          [this.wrappingFieldNames[wrapIndex + 1]]: {
-            type: createNamedStub(this.wrappingTypeNames[wrapIndex + 1], 'object') as GraphQLObjectType,
-            resolve: defaultMergedResolver,
-          },
+      targetFieldConfigMap = {
+        [this.wrappingFieldNames[wrapIndex + 1]]: {
+          type: baseWrappingType,
+          resolve: defaultMergedResolver,
         },
+      };
+
+      const wrappingTypeName = this.wrappingTypeNames[wrapIndex];
+
+      baseWrappingType = new GraphQLObjectType({
+        name: wrappingTypeName,
+        fields: targetFieldConfigMap,
+      });
+
+      append.push({
+        typeName: wrappingTypeName,
+        additionalFields: targetFieldConfigMap,
       });
     }
 
@@ -82,7 +104,7 @@ export default class WrapFields implements Transform {
       typeName: this.outerTypeName,
       additionalFields: {
         [this.wrappingFieldNames[0]]: {
-          type: createNamedStub(this.wrappingTypeNames[0], 'object') as GraphQLObjectType,
+          type: baseWrappingType,
           resolve: createMergedResolver({ dehoist: true }),
         },
       },
