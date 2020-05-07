@@ -42,6 +42,9 @@ export interface ExecutionResult<TData = Record<string, any>> extends GraphQLExe
 export type Result = ExecutionResult;
 
 // graphql-js non-exported typings
+
+export type TypeMap = Record<string, GraphQLNamedType>;
+
 export interface GraphQLExecutionContext {
   schema: GraphQLSchema;
   fragments: Record<string, FragmentDefinitionNode>;
