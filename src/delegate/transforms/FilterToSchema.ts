@@ -142,7 +142,10 @@ function filterToSchema(
   });
 
   const newVariables = usedVariables.reduce((acc, variableName) => {
-    acc[variableName] = variables[variableName];
+    const variableValue = variables[variableName];
+    if (variableValue !== undefined) {
+      acc[variableName] = variableValue;
+    }
     return acc;
   }, {});
 
