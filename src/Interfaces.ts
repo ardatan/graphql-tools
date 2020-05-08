@@ -174,8 +174,12 @@ export interface ExecutionParams<TArgs = Record<string, any>, TContext = any> {
   context?: TContext;
   info?: GraphQLResolveInfo;
 }
-export type Executor = (params: ExecutionParams) => Promise<ExecutionResult> | ExecutionResult;
-export type Subscriber = (params: ExecutionParams) => Promise<AsyncIterator<ExecutionResult> | ExecutionResult>;
+export type Executor = (
+  params: ExecutionParams,
+) => Promise<ExecutionResult> | ExecutionResult;
+export type Subscriber = (
+  params: ExecutionParams,
+) => Promise<AsyncIterator<ExecutionResult> | ExecutionResult>;
 
 export interface SubschemaConfig {
   schema: GraphQLSchema;
@@ -222,7 +226,10 @@ export interface IMakeRemoteExecutableSchemaOptions {
   schema: GraphQLSchema | string;
   executor?: Executor;
   subscriber?: Subscriber;
-  createResolver?: (executor: Executor, subscriber: Subscriber) => GraphQLFieldResolver<any, any>;
+  createResolver?: (
+    executor: Executor,
+    subscriber: Subscriber,
+  ) => GraphQLFieldResolver<any, any>;
   buildSchemaOptions?: BuildSchemaOptions;
 }
 

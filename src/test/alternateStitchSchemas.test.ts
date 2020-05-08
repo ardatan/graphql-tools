@@ -438,9 +438,9 @@ describe('optional arguments', () => {
     `,
     resolvers: {
       Query: {
-        test: (_root, args, _context) => args.arg === undefined
-      }
-    }
+        test: (_root, args, _context) => args.arg === undefined,
+      },
+    },
   });
 
   const stitchedSchema = stitchSchemas({
@@ -483,14 +483,25 @@ describe('optional arguments', () => {
       }
     `;
 
-    const originalResult = await graphql(schema, query, {}, {}, { arg: undefined });
+    const originalResult = await graphql(
+      schema,
+      query,
+      {},
+      {},
+      { arg: undefined },
+    );
     expect(originalResult.data.test).toEqual(false);
 
-    const stitchedResult = await graphql(stitchedSchema, query, {}, {}, { arg: undefined });
+    const stitchedResult = await graphql(
+      stitchedSchema,
+      query,
+      {},
+      {},
+      { arg: undefined },
+    );
     expect(stitchedResult.data.test).toEqual(false);
   });
 });
-
 
 describe('default values', () => {
   test('should work to add a default value even when renaming root fields', async () => {
