@@ -42,5 +42,9 @@ export function updateArgument(
     type: astFromType(argType),
   };
 
-  variableValues[varName] = newArg;
+  if (newArg === undefined) {
+    delete variableValues[varName];
+  } else {
+    variableValues[varName] = newArg;
+  }
 }

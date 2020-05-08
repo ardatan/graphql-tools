@@ -153,7 +153,7 @@ function makeValues(nodes: ReadonlyArray<InputValueDefinitionNode>): GraphQLFiel
       ...prev,
       [node.name.value]: {
         type: createStub(node.type, 'input'),
-        defaultValue: node.defaultValue != null ? valueFromASTUntyped(node.defaultValue) : undefined,
+        defaultValue: node.defaultValue !== undefined ? valueFromASTUntyped(node.defaultValue) : undefined,
         description: getDescription(node, backcompatOptions),
         astNode: node,
       },

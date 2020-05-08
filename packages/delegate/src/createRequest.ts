@@ -98,7 +98,10 @@ export function createRequest({
       const varName = def.variable.name.value;
       variableDefinitionMap[varName] = def;
       const varType = typeFromAST(sourceSchema, def.type as NamedTypeNode) as GraphQLInputType;
-      newVariables[varName] = serializeInputValue(varType, variableValues[varName]);
+      const serializedValue = serializeInputValue(varType, variableValues[varName]);
+      if (serializedValue !== undefined) {
+        newVariables[varName] = serializedValue;
+      }
     });
   }
 
