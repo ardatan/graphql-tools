@@ -426,6 +426,83 @@ describe('transform object fields', () => {
   });
 });
 
+describe('optional arguments', () => {
+  const schema = makeExecutableSchema({
+    typeDefs: `
+      enum Arg {
+        possibleArg
+      }
+      type Query {
+        test(arg: Arg): Boolean
+      }
+    `,
+    resolvers: {
+      Query: {
+        test: (_root, args, _context) => args.arg === undefined,
+      },
+    },
+  });
+
+  const stitchedSchema = stitchSchemas({
+    schemas: [schema],
+  });
+
+  it('work with schema stitching', async () => {
+    const query = `
+      {
+        test
+      }
+    `;
+
+    const originalResult = await graphql(schema, query);
+    expect(originalResult.data.test).toEqual(true);
+
+    const stitchedResult = await graphql(stitchedSchema, query);
+    expect(stitchedResult.data.test).toEqual(true);
+  });
+
+  it('work with schema stitching when using variables', async () => {
+    const query = `
+      query test($arg: Arg) {
+        test(arg: $arg)
+      }
+    `;
+
+    const originalResult = await graphql(schema, query);
+    expect(originalResult.data.test).toEqual(true);
+
+    const stitchedResult = await graphql(stitchedSchema, query);
+    expect(stitchedResult.data.test).toEqual(true);
+  });
+
+  // See https://github.com/graphql/graphql-js/issues/2533
+  it('may not work as expected when explicitly passing in an undefined value', async () => {
+    const query = `
+      query test($arg: Arg) {
+        test(arg: $arg)
+      }
+    `;
+
+    const originalResult = await graphql(
+      schema,
+      query,
+      {},
+      {},
+      { arg: undefined },
+    );
+    expect(originalResult.data.test).toEqual(false);
+
+    const stitchedResult = await graphql(
+      stitchedSchema,
+      query,
+      {},
+      {},
+      { arg: undefined },
+    );
+    expect(stitchedResult.data.test).toEqual(false);
+  });
+});
+
 describe('default values', () => {
   test('should work to add a default value even when renaming root fields', async () => {
     const transformedPropertySchema = transformSchema(propertySchema, [

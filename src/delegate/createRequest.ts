@@ -113,10 +113,13 @@ export function createRequest({
         sourceSchema,
         def.type as NamedTypeNode,
       ) as GraphQLInputType;
-      newVariables[varName] = serializeInputValue(
+      const serializedValue = serializeInputValue(
         varType,
         variableValues[varName],
       );
+      if (serializedValue !== undefined) {
+        newVariables[varName] = serializedValue;
+      }
     });
   }
 

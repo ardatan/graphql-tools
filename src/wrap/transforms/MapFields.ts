@@ -12,10 +12,13 @@ export default class MapFields implements Transform {
       (_typeName, _fieldName, field) => ({
         description: field.deprecationReason,
         type: field.type,
-        args: field.args.reduce<GraphQLFieldConfigArgumentMap>((prev, curr) => ({
-          ...prev,
-          [curr.name]: curr,
-        }), {}),
+        args: field.args.reduce<GraphQLFieldConfigArgumentMap>(
+          (prev, curr) => ({
+            ...prev,
+            [curr.name]: curr,
+          }),
+          {},
+        ),
         resolve: field.resolve,
         subscribe: field.subscribe,
         deprecationReason: field.deprecationReason,
