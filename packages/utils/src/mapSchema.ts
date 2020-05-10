@@ -18,15 +18,24 @@ import {
   GraphQLObjectTypeConfig,
   GraphQLInterfaceTypeConfig,
   GraphQLInputObjectTypeConfig,
+  isLeafType,
 } from 'graphql';
 
-import { SchemaMapper, MapperKind, NamedTypeMapper, DirectiveMapper, FieldMapper } from './Interfaces';
+import {
+  SchemaMapper,
+  MapperKind,
+  NamedTypeMapper,
+  DirectiveMapper,
+  FieldMapper,
+  IDefaultValueIteratorFn,
+} from './Interfaces';
 
 import { rewireTypes } from './rewire';
+import { serializeInputValue, parseInputValue } from './transformInputValue';
 
 export function mapSchema(schema: GraphQLSchema, schemaMapper: SchemaMapper = {}): GraphQLSchema {
   const originalTypeMap = schema.getTypeMap();
-  let newTypeMap = mapTypes(originalTypeMap, schema, schemaMapper);
+  let newTypeMap = mapTypesConvertingDefaultValues(originalTypeMap, schema, schemaMapper);
   newTypeMap = mapFields(newTypeMap, schema, schemaMapper);
 
   const originalDirectives = schema.getDirectives();
@@ -63,21 +72,70 @@ export function mapSchema(schema: GraphQLSchema, schemaMapper: SchemaMapper = {}
   });
 }
 
-function mapTypes(
+function mapTypesConvertingDefaultValues(
   originalTypeMap: Record<string, GraphQLNamedType>,
   schema: GraphQLSchema,
   schemaMapper: SchemaMapper
+): Record<string, GraphQLNamedType> {
+  let newTypeMap = mapDefaultValues(originalTypeMap, schema, serializeInputValue);
+
+  newTypeMap = mapTypes(newTypeMap, schema, schemaMapper, type => isLeafType(type));
+
+  newTypeMap = mapDefaultValues(newTypeMap, schema, parseInputValue);
+
+  return mapTypes(newTypeMap, schema, schemaMapper, type => !isLeafType(type));
+}
+
+function mapDefaultValues(
+  originalTypeMap: Record<string, GraphQLNamedType>,
+  schema: GraphQLSchema,
+  fn: IDefaultValueIteratorFn
+): Record<string, GraphQLNamedType> {
+  return mapTypes(originalTypeMap, schema, {
+    [MapperKind.OBJECT_FIELD]: fieldConfig => {
+      const originalArgumentConfigMap = fieldConfig.args;
+      const newArgumentConfigMap = {};
+      Object.keys(originalArgumentConfigMap).forEach(argName => {
+        const originalArgument = originalArgumentConfigMap[argName];
+        newArgumentConfigMap[argName] = {
+          ...originalArgument,
+          defaultValue: fn(originalArgument.type, originalArgument.defaultValue),
+        };
+      });
+      return {
+        ...fieldConfig,
+        args: newArgumentConfigMap,
+      };
+    },
+    [MapperKind.INPUT_OBJECT_FIELD]: (inputFieldConfig, _fieldName, type) => {
+      return {
+        ...inputFieldConfig,
+        defaultValue: fn(type, inputFieldConfig.defaultValue),
+      };
+    },
+  });
+}
+
+function mapTypes(
+  originalTypeMap: Record<string, GraphQLNamedType>,
+  schema: GraphQLSchema,
+  schemaMapper: SchemaMapper,
+  testFn: (originalType: GraphQLNamedType) => boolean = () => true
 ): Record<string, GraphQLNamedType> {
   const newTypeMap = {};
 
   Object.keys(originalTypeMap).forEach(typeName => {
     if (!typeName.startsWith('__')) {
       const originalType = originalTypeMap[typeName];
-      const typeMapper = getTypeMapper(schema, schemaMapper, originalType);
+      if (originalType != null && testFn(originalType)) {
+        const typeMapper = getTypeMapper(schema, schemaMapper, originalType);
 
-      if (typeMapper != null) {
-        const maybeNewType = typeMapper(originalType, schema);
-        newTypeMap[typeName] = maybeNewType !== undefined ? maybeNewType : originalType;
+        if (typeMapper != null) {
+          const maybeNewType = typeMapper(originalType, schema);
+          newTypeMap[typeName] = maybeNewType !== undefined ? maybeNewType : originalType;
+        } else {
+          newTypeMap[typeName] = originalType;
+        }
       } else {
         newTypeMap[typeName] = originalType;
       }
