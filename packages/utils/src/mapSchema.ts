@@ -6,7 +6,6 @@ import {
   GraphQLType,
   isInterfaceType,
   isEnumType,
-  isInputType,
   isObjectType,
   isScalarType,
   isUnionType,
@@ -234,7 +233,7 @@ function getTypeSpecifiers(type: GraphQLType, schema: GraphQLSchema): Array<Mapp
     } else if (type === subscription) {
       specifiers.push(MapperKind.ROOT_OBJECT, MapperKind.SUBSCRIPTION);
     }
-  } else if (isInputType(type)) {
+  } else if (isInputObjectType(type)) {
     specifiers.push(MapperKind.INPUT_OBJECT_TYPE);
   } else if (isInterfaceType(type)) {
     specifiers.push(MapperKind.COMPOSITE_TYPE, MapperKind.ABSTRACT_TYPE, MapperKind.INTERFACE_TYPE);
@@ -279,7 +278,7 @@ function getFieldSpecifiers(type: GraphQLType, schema: GraphQLSchema): Array<Map
     } else if (type === subscription) {
       specifiers.push(MapperKind.ROOT_FIELD, MapperKind.SUBSCRIPTION_ROOT_FIELD);
     }
-  } else if (isInputType(type)) {
+  } else if (isInputObjectType(type)) {
     specifiers.push(MapperKind.INPUT_OBJECT_FIELD);
   } else if (isInterfaceType(type)) {
     specifiers.push(MapperKind.COMPOSITE_FIELD, MapperKind.INTERFACE_FIELD);
