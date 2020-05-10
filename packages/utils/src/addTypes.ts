@@ -1,7 +1,7 @@
-// enhanceSchema uses toConfig to create a new schema with a new or replaced
+// addTypes uses toConfig to create a new schema with a new or replaced
 // type or directive. Rewiring is employed so that the replaced type can be
 // reconnected with the existing types.
-// Re
+//
 // Rewiring is employed even for new types or directives as a convenience, so
 // that type references within the new type or directive do not have to be to
 // the identical objects within the original schema.
@@ -36,7 +36,7 @@ import {
 } from 'graphql';
 import { rewireTypes } from './rewire';
 
-export function enhanceSchema(
+export function addTypes(
   schema: GraphQLSchema,
   newTypesOrDirectives: Array<GraphQLNamedType | GraphQLDirective>
 ): GraphQLSchema {

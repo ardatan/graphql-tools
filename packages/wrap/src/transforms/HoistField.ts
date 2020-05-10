@@ -1,6 +1,13 @@
 import { GraphQLSchema, GraphQLObjectType, getNullableType } from 'graphql';
 
-import { wrapFieldNode, renameFieldNode, appendFields, removeFields, Transform, Request } from '@graphql-tools/utils';
+import {
+  wrapFieldNode,
+  renameFieldNode,
+  appendObjectFields,
+  removeObjectFields,
+  Transform,
+  Request,
+} from '@graphql-tools/utils';
 
 import MapFields from './MapFields';
 import { createMergedResolver } from '@graphql-tools/delegate';
@@ -33,7 +40,7 @@ export default class HoistField implements Transform {
       schema.getType(this.typeName) as GraphQLObjectType
     );
 
-    let [newSchema, targetFieldConfigMap] = removeFields(
+    let [newSchema, targetFieldConfigMap] = removeObjectFields(
       schema,
       innerType.name,
       fieldName => fieldName === this.oldFieldName
@@ -43,7 +50,7 @@ export default class HoistField implements Transform {
 
     const targetType = targetField.type as GraphQLObjectType;
 
-    newSchema = appendFields(newSchema, this.typeName, {
+    newSchema = appendObjectFields(newSchema, this.typeName, {
       [this.newFieldName]: {
         type: targetType,
         resolve: createMergedResolver({ fromPath: this.pathToField }),

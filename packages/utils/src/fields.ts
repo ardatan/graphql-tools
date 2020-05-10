@@ -1,15 +1,15 @@
 import { GraphQLFieldConfigMap, GraphQLObjectType, GraphQLFieldConfig, GraphQLSchema } from 'graphql';
 import { MapperKind } from './Interfaces';
 import { mapSchema } from './mapSchema';
-import { enhanceSchema } from './enhanceSchema';
+import { addTypes } from './addTypes';
 
-export function appendFields(
+export function appendObjectFields(
   schema: GraphQLSchema,
   typeName: string,
   additionalFields: GraphQLFieldConfigMap<any, any>
 ): GraphQLSchema {
   if (schema.getType(typeName) == null) {
-    return enhanceSchema(schema, [
+    return addTypes(schema, [
       new GraphQLObjectType({
         name: typeName,
         fields: additionalFields,
@@ -40,7 +40,7 @@ export function appendFields(
   });
 }
 
-export function removeFields(
+export function removeObjectFields(
   schema: GraphQLSchema,
   typeName: string,
   testFn: (fieldName: string, field: GraphQLFieldConfig<any, any>) => boolean

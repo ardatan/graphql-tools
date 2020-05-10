@@ -1,6 +1,6 @@
 import { GraphQLSchema, GraphQLObjectType } from 'graphql';
 
-import { Transform, Request, hoistFieldNodes, removeFields, appendFields } from '@graphql-tools/utils';
+import { Transform, Request, hoistFieldNodes, removeObjectFields, appendObjectFields } from '@graphql-tools/utils';
 import { createMergedResolver, defaultMergedResolver } from '@graphql-tools/delegate';
 
 import MapFields from './MapFields';
@@ -41,7 +41,7 @@ export default class WrapFields implements Transform {
   }
 
   public transformSchema(schema: GraphQLSchema): GraphQLSchema {
-    let [newSchema, targetFieldConfigMap] = removeFields(
+    let [newSchema, targetFieldConfigMap] = removeObjectFields(
       schema,
       this.outerTypeName,
       !this.fieldNames ? () => true : fieldName => this.fieldNames.includes(fieldName)
@@ -51,12 +51,12 @@ export default class WrapFields implements Transform {
     let wrappingTypeName = this.wrappingTypeNames[wrapIndex];
     let wrappingFieldName = this.wrappingFieldNames[wrapIndex];
 
-    newSchema = appendFields(newSchema, wrappingTypeName, targetFieldConfigMap);
+    newSchema = appendObjectFields(newSchema, wrappingTypeName, targetFieldConfigMap);
 
     for (wrapIndex--; wrapIndex > -1; wrapIndex--) {
       const nextWrappingTypeName = this.wrappingTypeNames[wrapIndex];
 
-      newSchema = appendFields(newSchema, nextWrappingTypeName, {
+      newSchema = appendObjectFields(newSchema, nextWrappingTypeName, {
         [wrappingFieldName]: {
           type: newSchema.getType(wrappingTypeName) as GraphQLObjectType,
           resolve: defaultMergedResolver,
@@ -67,7 +67,7 @@ export default class WrapFields implements Transform {
       wrappingFieldName = this.wrappingFieldNames[wrapIndex];
     }
 
-    newSchema = appendFields(newSchema, this.outerTypeName, {
+    newSchema = appendObjectFields(newSchema, this.outerTypeName, {
       [wrappingFieldName]: {
         type: newSchema.getType(wrappingTypeName) as GraphQLObjectType,
         resolve: createMergedResolver({ dehoist: true }),
