@@ -26,6 +26,7 @@ import {
 } from 'graphql';
 
 import { getBuiltInForStub, isNamedStub } from './stub';
+import { TypeMap } from './Interfaces';
 
 export function rewireTypes(
   originalTypeMap: Record<string, GraphQLNamedType | null>,
@@ -36,10 +37,10 @@ export function rewireTypes(
     skipPruning: false,
   }
 ): {
-  typeMap: Record<string, GraphQLNamedType>;
+  typeMap: TypeMap;
   directives: Array<GraphQLDirective>;
 } {
-  const newTypeMap: Record<string, GraphQLNamedType> = Object.create(null);
+  const newTypeMap: TypeMap = Object.create(null);
 
   Object.keys(originalTypeMap).forEach(typeName => {
     const namedType = originalTypeMap[typeName];
@@ -199,10 +200,10 @@ export function rewireTypes(
 }
 
 function pruneTypes(
-  typeMap: Record<string, GraphQLNamedType>,
+  typeMap: TypeMap,
   directives: Array<GraphQLDirective>
 ): {
-  typeMap: Record<string, GraphQLNamedType>;
+  typeMap: TypeMap;
   directives: Array<GraphQLDirective>;
 } {
   const newTypeMap = {};

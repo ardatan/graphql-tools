@@ -19,10 +19,9 @@ import {
   getNamedType,
   isObjectType,
   isInterfaceType,
-  GraphQLNamedType,
 } from 'graphql';
 
-import { Transform, Request, implementsAbstractType } from '@graphql-tools/utils';
+import { Transform, Request, implementsAbstractType, TypeMap } from '@graphql-tools/utils';
 
 export default class FilterToSchema implements Transform {
   private readonly targetSchema: GraphQLSchema;
@@ -61,7 +60,7 @@ function filterToSchema(
     return Boolean(targetSchema.getType(typeName));
   });
 
-  const validFragmentsWithType: Record<string, GraphQLNamedType> = validFragments.reduce(
+  const validFragmentsWithType: TypeMap = validFragments.reduce(
     (prev, fragment) => ({
       ...prev,
       [fragment.name.value]: targetSchema.getType(fragment.typeCondition.name.value),

@@ -24,6 +24,7 @@ import {
 import {
   SchemaMapper,
   MapperKind,
+  TypeMap,
   NamedTypeMapper,
   DirectiveMapper,
   FieldMapper,
@@ -73,10 +74,10 @@ export function mapSchema(schema: GraphQLSchema, schemaMapper: SchemaMapper = {}
 }
 
 function mapTypesConvertingDefaultValues(
-  originalTypeMap: Record<string, GraphQLNamedType>,
+  originalTypeMap: TypeMap,
   schema: GraphQLSchema,
   schemaMapper: SchemaMapper
-): Record<string, GraphQLNamedType> {
+): TypeMap {
   let newTypeMap = mapDefaultValues(originalTypeMap, schema, serializeInputValue);
 
   newTypeMap = mapTypes(newTypeMap, schema, schemaMapper, type => isLeafType(type));
@@ -86,11 +87,7 @@ function mapTypesConvertingDefaultValues(
   return mapTypes(newTypeMap, schema, schemaMapper, type => !isLeafType(type));
 }
 
-function mapDefaultValues(
-  originalTypeMap: Record<string, GraphQLNamedType>,
-  schema: GraphQLSchema,
-  fn: IDefaultValueIteratorFn
-): Record<string, GraphQLNamedType> {
+function mapDefaultValues(originalTypeMap: TypeMap, schema: GraphQLSchema, fn: IDefaultValueIteratorFn): TypeMap {
   return mapTypes(originalTypeMap, schema, {
     [MapperKind.OBJECT_FIELD]: fieldConfig => {
       const originalArgumentConfigMap = fieldConfig.args;
@@ -117,11 +114,11 @@ function mapDefaultValues(
 }
 
 function mapTypes(
-  originalTypeMap: Record<string, GraphQLNamedType>,
+  originalTypeMap: TypeMap,
   schema: GraphQLSchema,
   schemaMapper: SchemaMapper,
   testFn: (originalType: GraphQLNamedType) => boolean = () => true
-): Record<string, GraphQLNamedType> {
+): TypeMap {
   const newTypeMap = {};
 
   Object.keys(originalTypeMap).forEach(typeName => {
@@ -145,11 +142,7 @@ function mapTypes(
   return newTypeMap;
 }
 
-function mapFields(
-  originalTypeMap: Record<string, GraphQLNamedType>,
-  schema: GraphQLSchema,
-  schemaMapper: SchemaMapper
-): Record<string, GraphQLNamedType> {
+function mapFields(originalTypeMap: TypeMap, schema: GraphQLSchema, schemaMapper: SchemaMapper): TypeMap {
   const newTypeMap = {};
 
   Object.keys(originalTypeMap).forEach(typeName => {

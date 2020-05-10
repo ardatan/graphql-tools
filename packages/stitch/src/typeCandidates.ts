@@ -34,6 +34,7 @@ import {
 
 import typeFromAST from './typeFromAST';
 import { MergeTypeCandidate, MergeTypeFilter, OnTypeConflict, MergeInfo } from './types';
+import { TypeMap } from '@graphql-tools/utils';
 
 type CandidateSelector = (candidates: Array<MergeTypeCandidate>) => MergeTypeCandidate;
 
@@ -202,8 +203,8 @@ export function buildTypeMap({
   mergeInfo: MergeInfo;
   onTypeConflict: OnTypeConflict;
   operationTypeNames: Record<string, any>;
-}): Record<string, GraphQLNamedType> {
-  const typeMap: Record<string, GraphQLNamedType> = Object.create(null);
+}): TypeMap {
+  const typeMap: TypeMap = Object.create(null);
 
   Object.keys(typeCandidates).forEach(typeName => {
     if (
