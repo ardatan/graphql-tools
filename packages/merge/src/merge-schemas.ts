@@ -74,11 +74,11 @@ function makeSchema(
   }: { resolvers: IResolvers; typeDefs: string | DocumentNode; extensions: SchemaExtensions },
   config: MergeSchemasConfig
 ) {
-  const schema = typeof typeDefs === 'string' ? buildSchema(typeDefs, config) : buildASTSchema(typeDefs, config);
+  let schema = typeof typeDefs === 'string' ? buildSchema(typeDefs, config) : buildASTSchema(typeDefs, config);
 
   // add resolvers
   if (resolvers) {
-    addResolversToSchema({
+    schema = addResolversToSchema({
       schema,
       resolvers,
       resolverValidationOptions: {
@@ -90,7 +90,7 @@ function makeSchema(
 
   // use logger
   if (config.logger) {
-    addErrorLoggingToSchema(schema, config.logger);
+    schema = addErrorLoggingToSchema(schema, config.logger);
   }
 
   // use schema directives

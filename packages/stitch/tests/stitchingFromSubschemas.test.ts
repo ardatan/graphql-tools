@@ -38,7 +38,7 @@ const authorTypeDefs = `
 const schemas: Record<string, GraphQLSchema> = {};
 const getSchema = (name: string) => schemas[name];
 
-const chirpSchema = stitchSchemas({
+let chirpSchema = stitchSchemas({
   schemas: [
     chirpTypeDefs,
     authorTypeDefs,
@@ -66,7 +66,7 @@ const chirpSchema = stitchSchemas({
   },
 });
 
-addMocksToSchema({
+chirpSchema = addMocksToSchema({
   schema: chirpSchema,
   mocks: {
     Chirp: () => ({
@@ -76,7 +76,7 @@ addMocksToSchema({
   preserveResolvers: true,
 });
 
-const authorSchema = stitchSchemas({
+let authorSchema = stitchSchemas({
   schemas: [
     chirpTypeDefs,
     authorTypeDefs,
@@ -103,7 +103,7 @@ const authorSchema = stitchSchemas({
   },
 });
 
-addMocksToSchema({
+authorSchema = addMocksToSchema({
   schema: authorSchema,
   mocks: {
     User: () => ({

@@ -132,7 +132,7 @@ const schema = loadSchemaSync(join(__dirname, './schema.graphql'));
 const resolvers = {};
 
 // Add resolvers to the schema
-addResolversToSchema({
+const schemaWithResolvers = addResolversToSchema({
     schema,
     resolvers,
 });
@@ -141,7 +141,7 @@ const app = express();
 
 app.use(
     graphqlHTTP({
-        schema,
+        schemaWithResolvers,
         graphiql: true,
     })
 );

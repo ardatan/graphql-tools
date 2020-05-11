@@ -4,25 +4,25 @@ import {
   GraphQLObjectType,
   GraphQLList,
   GraphQLType,
-  GraphQLField,
   GraphQLResolveInfo,
   getNullableType,
   getNamedType,
-  GraphQLNamedType,
   GraphQLFieldResolver,
   GraphQLNullableType,
   isSchema,
   isObjectType,
-  isUnionType,
   isInterfaceType,
   isListType,
   isEnumType,
   isAbstractType,
+  GraphQLInterfaceType,
+  GraphQLUnionType,
+  GraphQLTypeResolver,
 } from 'graphql';
 
 import { buildSchemaFromTypeDefinitions } from '@graphql-tools/schema';
 import { IMocks, IMockServer, IMockFn, IMockOptions, IMockTypeFn } from './types';
-import { forEachField, ITypeDefinitions } from '@graphql-tools/utils';
+import { ITypeDefinitions, mapSchema, MapperKind } from '@graphql-tools/utils';
 
 /**
  * This function wraps addMocksToSchema for more convenience
@@ -40,7 +40,7 @@ export function mockServer(
     mySchema = schema;
   }
 
-  addMocksToSchema({ schema: mySchema, mocks, preserveResolvers });
+  mySchema = addMocksToSchema({ schema: mySchema, mocks, preserveResolvers });
 
   return { query: (query, vars) => graphql(mySchema, query, {}, {}, vars) };
 }
@@ -64,7 +64,7 @@ defaultMockMap.set('ID', () => uuidv4());
 // TODO allow providing a seed such that lengths of list could be deterministic
 // this could be done by using casual to get a random list length if the casual
 // object is global.
-export function addMocksToSchema({ schema, mocks = {}, preserveResolvers = false }: IMockOptions): void {
+export function addMocksToSchema({ schema, mocks = {}, preserveResolvers = false }: IMockOptions): GraphQLSchema {
   if (!schema) {
     throw new Error('Must provide schema to mock');
   }
@@ -181,43 +181,74 @@ export function addMocksToSchema({ schema, mocks = {}, preserveResolvers = false
     };
   };
 
-  forEachField(schema, (field: GraphQLField<any, any>, typeName: string, fieldName: string) => {
-    assignResolveType(field.type, preserveResolvers);
-    let mockResolver: GraphQLFieldResolver<any, any> = mockType(field.type, typeName, fieldName);
+  return mapSchema(schema, {
+    [MapperKind.ABSTRACT_TYPE]: type => {
+      const oldResolveType = type.resolveType;
+      if (preserveResolvers && oldResolveType != null && oldResolveType.length) {
+        return;
+      }
 
-    // we have to handle the root mutation and root query types differently,
-    // because no resolver is called at the root.
-    const queryType = schema.getQueryType();
-    const isOnQueryType = queryType != null && queryType.name === typeName;
+      // the default `resolveType` always returns null. We add a fallback
+      // resolution that works with how unions and interface are mocked
+      const resolveType: GraphQLTypeResolver<any, any> = (data, _context, info: GraphQLResolveInfo) =>
+        info.schema.getType(data.__typename) as GraphQLObjectType;
 
-    const mutationType = schema.getMutationType();
-    const isOnMutationType = mutationType != null && mutationType.name === typeName;
+      if (isInterfaceType(type)) {
+        return new GraphQLInterfaceType({
+          ...type.toConfig(),
+          resolveType,
+        });
+      } else {
+        return new GraphQLUnionType({
+          ...type.toConfig(),
+          resolveType,
+        });
+      }
+    },
+    [MapperKind.OBJECT_FIELD]: (fieldConfig, fieldName, typeName) => {
+      const fieldType = fieldConfig.type;
+      const fieldResolver = fieldConfig.resolve;
+      const newFieldConfig = {
+        ...fieldConfig,
+      };
 
-    if (isOnQueryType || isOnMutationType) {
-      if (mockFunctionMap.has(typeName)) {
-        const rootMock = mockFunctionMap.get(typeName);
-        // XXX: BUG in here, need to provide proper signature for rootMock.
-        if (typeof rootMock(undefined, {}, {}, {} as any)[fieldName] === 'function') {
-          mockResolver = (root: any, args: Record<string, any>, context: any, info: GraphQLResolveInfo) => {
-            const updatedRoot = root ?? {}; // TODO: should we clone instead?
-            updatedRoot[fieldName] = rootMock(root, args, context, info)[fieldName];
-            // XXX this is a bit of a hack to still use mockType, which
-            // lets you mock lists etc. as well
-            // otherwise we could just set field.resolve to rootMock()[fieldName]
-            // it's like pretending there was a resolver that ran before
-            // the root resolver.
-            return mockType(field.type, typeName, fieldName)(updatedRoot, args, context, info);
-          };
+      let mockResolver: GraphQLFieldResolver<any, any> = mockType(fieldType, typeName, fieldName);
+
+      // we have to handle the root mutation and root query types differently,
+      // because no resolver is called at the root.
+      const queryType = schema.getQueryType();
+      const isOnQueryType = queryType != null && queryType.name === typeName;
+
+      const mutationType = schema.getMutationType();
+      const isOnMutationType = mutationType != null && mutationType.name === typeName;
+
+      if (isOnQueryType || isOnMutationType) {
+        if (mockFunctionMap.has(typeName)) {
+          const rootMock = mockFunctionMap.get(typeName);
+          // XXX: BUG in here, need to provide proper signature for rootMock.
+          if (typeof rootMock(undefined, {}, {}, {} as any)[fieldName] === 'function') {
+            mockResolver = (root: any, args: Record<string, any>, context: any, info: GraphQLResolveInfo) => {
+              const updatedRoot = root ?? {}; // TODO: should we clone instead?
+              updatedRoot[fieldName] = rootMock(root, args, context, info)[fieldName];
+              // XXX this is a bit of a hack to still use mockType, which
+              // lets you mock lists etc. as well
+              // otherwise we could just set field.resolve to rootMock()[fieldName]
+              // it's like pretending there was a resolver that ran before
+              // the root resolver.
+              return mockType(fieldConfig.type, typeName, fieldName)(updatedRoot, args, context, info);
+            };
+          }
         }
       }
-    }
-    if (!preserveResolvers || !field.resolve) {
-      field.resolve = mockResolver;
-    } else {
-      const oldResolver = field.resolve;
-      field.resolve = (rootObject: any, args: Record<string, any>, context: any, info: GraphQLResolveInfo) =>
-        Promise.all([mockResolver(rootObject, args, context, info), oldResolver(rootObject, args, context, info)]).then(
-          values => {
+      if (!preserveResolvers || !fieldResolver) {
+        newFieldConfig.resolve = mockResolver;
+      } else {
+        const oldResolver = fieldResolver;
+        newFieldConfig.resolve = (rootObject: any, args: Record<string, any>, context: any, info: GraphQLResolveInfo) =>
+          Promise.all([
+            mockResolver(rootObject, args, context, info),
+            oldResolver(rootObject, args, context, info),
+          ]).then(values => {
             const [mockedValue, resolvedValue] = values;
 
             // In case we couldn't mock
@@ -240,9 +271,11 @@ export function addMocksToSchema({ schema, mocks = {}, preserveResolvers = false
               return copyOwnProps(emptyObject, resolvedValue, mockedValue);
             }
             return undefined !== resolvedValue ? resolvedValue : mockedValue;
-          }
-        );
-    }
+          });
+      }
+
+      return newFieldConfig;
+    },
   });
 }
 
@@ -292,29 +325,6 @@ function mergeMocks(genericMockFunction: () => any, customMock: any): any {
     return mergeObjects(genericMockFunction(), customMock);
   }
   return customMock;
-}
-
-function getResolveType(namedFieldType: GraphQLNamedType) {
-  if (isAbstractType(namedFieldType)) {
-    return namedFieldType.resolveType;
-  }
-}
-
-function assignResolveType(type: GraphQLType, preserveResolvers: boolean) {
-  const fieldType = getNullableType(type) as GraphQLNullableType;
-  const namedFieldType = getNamedType(fieldType);
-
-  const oldResolveType = getResolveType(namedFieldType);
-  if (preserveResolvers && oldResolveType != null && oldResolveType.length) {
-    return;
-  }
-
-  if (isInterfaceType(namedFieldType) || isUnionType(namedFieldType)) {
-    // the default `resolveType` always returns null. We add a fallback
-    // resolution that works with how unions and interface are mocked
-    namedFieldType.resolveType = (data: any, _context: any, info: GraphQLResolveInfo) =>
-      info.schema.getType(data.__typename) as GraphQLObjectType;
-  }
 }
 
 export function isMockList(obj: any): obj is MockList {
@@ -376,10 +386,4 @@ export class MockList {
   private randint(low: number, high: number): number {
     return Math.floor(Math.random() * (high - low + 1) + low);
   }
-}
-
-// retain addMockFunctionsToSchema for backwards compatibility
-
-export function addMockFunctionsToSchema({ schema, mocks = {}, preserveResolvers = false }: IMockOptions): void {
-  addMocksToSchema({ schema, mocks, preserveResolvers });
 }

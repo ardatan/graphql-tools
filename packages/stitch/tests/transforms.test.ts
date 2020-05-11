@@ -14,7 +14,7 @@ import { propertySchema } from './fixtures/schemas';
 
 describe('rename root type', () => {
   test('works with stitchSchemas', async () => {
-    const schemaWithCustomRootTypeNames = makeExecutableSchema({
+    let schemaWithCustomRootTypeNames = makeExecutableSchema({
       typeDefs: `
         schema {
           query: QueryRoot
@@ -36,9 +36,9 @@ describe('rename root type', () => {
       `,
     });
 
-    addMocksToSchema({ schema: schemaWithCustomRootTypeNames });
+    schemaWithCustomRootTypeNames = addMocksToSchema({ schema: schemaWithCustomRootTypeNames });
 
-    const schemaWithDefaultRootTypeNames = makeExecutableSchema({
+    let schemaWithDefaultRootTypeNames = makeExecutableSchema({
       typeDefs: `
         type Query {
           bar: String!
@@ -55,7 +55,7 @@ describe('rename root type', () => {
       `,
     });
 
-    addMocksToSchema({ schema: schemaWithDefaultRootTypeNames });
+    schemaWithDefaultRootTypeNames = addMocksToSchema({ schema: schemaWithDefaultRootTypeNames });
 
     const stitchedSchema = stitchSchemas({
       subschemas: [

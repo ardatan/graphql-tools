@@ -815,7 +815,7 @@ describe('generating schema from shorthand', () => {
           foo: () => ({ aField: true }),
         },
       };
-      const jsSchema = makeExecutableSchema({
+      let jsSchema = makeExecutableSchema({
         typeDefs: shorthand,
         resolvers: resolveFunctions,
       });
@@ -828,7 +828,7 @@ describe('generating schema from shorthand', () => {
       `;
       const result = graphqlSync(jsSchema, testQuery);
       expect(result.data.foo.aField).toBe(false);
-      addResolversToSchema({
+      jsSchema = addResolversToSchema({
         schema: jsSchema,
         resolvers: {
           Boolean: {
@@ -1338,12 +1338,12 @@ describe('generating schema from shorthand', () => {
         },
       };
 
-      const jsSchema = makeExecutableSchema({
+      let jsSchema = makeExecutableSchema({
         typeDefs: shorthand,
         resolvers: resolveFunctions,
       });
 
-      addResolversToSchema({
+      jsSchema = addResolversToSchema({
         schema: jsSchema,
         resolvers: {
           Color: {
@@ -1907,12 +1907,12 @@ describe('Add error logging to schema', () => {
 describe('Attaching external data fetchers to schema', () => {
   describe('Schema level resolver', () => {
     test('actually runs', () => {
-      const jsSchema = makeExecutableSchema({
+      let jsSchema = makeExecutableSchema({
         typeDefs: testSchema,
         resolvers: testResolvers,
       });
       const rootResolver = () => ({ species: 'ROOT' });
-      addSchemaLevelResolver(jsSchema, rootResolver);
+      jsSchema = addSchemaLevelResolver(jsSchema, rootResolver);
       const query = `{
         species(name: "strix")
       }`;
@@ -1922,12 +1922,12 @@ describe('Attaching external data fetchers to schema', () => {
     });
 
     test('can wrap fields that do not have a resolver defined', () => {
-      const jsSchema = makeExecutableSchema({
+      let jsSchema = makeExecutableSchema({
         typeDefs: testSchema,
         resolvers: testResolvers,
       });
       const rootResolver = () => ({ stuff: 'stuff' });
-      addSchemaLevelResolver(jsSchema, rootResolver);
+      jsSchema = addSchemaLevelResolver(jsSchema, rootResolver);
       const query = `{
         stuff
       }`;
@@ -1945,7 +1945,7 @@ describe('Attaching external data fetchers to schema', () => {
             (root.species as string) + name,
         },
       };
-      const jsSchema = makeExecutableSchema({
+      let jsSchema = makeExecutableSchema({
         typeDefs: testSchema,
         resolvers: simpleResolvers,
       });
@@ -1957,7 +1957,7 @@ describe('Attaching external data fetchers to schema', () => {
         }
         return { stuff: 'EEE', species: 'EEE' };
       };
-      addSchemaLevelResolver(jsSchema, rootResolver);
+      jsSchema = addSchemaLevelResolver(jsSchema, rootResolver);
       const query = `{
         species(name: "strix")
         stuff
@@ -1980,7 +1980,7 @@ describe('Attaching external data fetchers to schema', () => {
             (root.species as string) + name,
         },
       };
-      const jsSchema = makeExecutableSchema({
+      let jsSchema = makeExecutableSchema({
         typeDefs: testSchema,
         resolvers: simpleResolvers,
       });
@@ -1996,7 +1996,7 @@ describe('Attaching external data fetchers to schema', () => {
         }
         return { stuff: 'EEE', species: 'EEE' };
       };
-      addSchemaLevelResolver(jsSchema, rootResolver);
+      jsSchema = addSchemaLevelResolver(jsSchema, rootResolver);
       const query = `{
         species(name: "strix")
         stuff
@@ -2018,14 +2018,14 @@ describe('Attaching external data fetchers to schema', () => {
     });
 
     test('can attach things to context', () => {
-      const jsSchema = makeExecutableSchema({
+      let jsSchema = makeExecutableSchema({
         typeDefs: testSchema,
         resolvers: testResolvers,
       });
       const rootResolver = (_o: any, _a: Record<string, any>, ctx: any) => {
         ctx.usecontext = 'ABC';
       };
-      addSchemaLevelResolver(jsSchema, rootResolver);
+      jsSchema = addSchemaLevelResolver(jsSchema, rootResolver);
       const query = `{
         usecontext
       }`;

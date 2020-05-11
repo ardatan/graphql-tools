@@ -78,7 +78,7 @@ class StripNonQueryTransform {
 
 describe('Gatsby transforms', () => {
   test('work', async () => {
-    const schema = makeExecutableSchema({
+    let schema = makeExecutableSchema({
       typeDefs: `
       directive @cacheControl(maxAge: Int, scope: CacheControlScope) on FIELD_DEFINITION | OBJECT | INTERFACE
 
@@ -132,7 +132,7 @@ describe('Gatsby transforms', () => {
       `,
     });
 
-    addMocksToSchema({ schema });
+    schema = addMocksToSchema({ schema });
 
     const transformedSchema = wrapSchema(schema, [
       new StripNonQueryTransform(),

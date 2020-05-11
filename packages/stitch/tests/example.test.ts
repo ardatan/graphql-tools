@@ -7,7 +7,7 @@ import { stitchSchemas } from '@graphql-tools/stitch';
 
 describe('basic stitching example', () => {
   test('works', async () => {
-    const chirpSchema = makeExecutableSchema({
+    let chirpSchema = makeExecutableSchema({
       typeDefs: `
         type Chirp {
           id: ID!
@@ -22,10 +22,10 @@ describe('basic stitching example', () => {
       `
     });
 
-    addMocksToSchema({ schema: chirpSchema });
+    chirpSchema = addMocksToSchema({ schema: chirpSchema });
 
     // Mocked author schema
-    const authorSchema = makeExecutableSchema({
+    let authorSchema = makeExecutableSchema({
       typeDefs: `
         type User {
           id: ID!
@@ -38,7 +38,7 @@ describe('basic stitching example', () => {
       `
     });
 
-    addMocksToSchema({ schema: authorSchema });
+    authorSchema = addMocksToSchema({ schema: authorSchema });
 
     const linkTypeDefs = `
       extend type User {
@@ -116,7 +116,7 @@ describe('basic stitching example', () => {
 describe('stitching to interfaces', () => {
   let stitchedSchema: GraphQLSchema;
   beforeAll(() => {
-    const chirpSchema = makeExecutableSchema({
+    let chirpSchema = makeExecutableSchema({
       typeDefs: `
         interface Node {
           id: ID!
@@ -135,9 +135,9 @@ describe('stitching to interfaces', () => {
       `
     });
 
-    addMocksToSchema({ schema: chirpSchema });
+    chirpSchema = addMocksToSchema({ schema: chirpSchema });
 
-    const authorSchema = makeExecutableSchema({
+    let authorSchema = makeExecutableSchema({
       typeDefs: `
         interface Node {
           id: ID!
@@ -154,7 +154,7 @@ describe('stitching to interfaces', () => {
       `
     });
 
-    addMocksToSchema({ schema: authorSchema });
+    authorSchema = addMocksToSchema({ schema: authorSchema });
 
     const linkTypeDefs = `
       extend type User {

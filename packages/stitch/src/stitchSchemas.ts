@@ -132,7 +132,7 @@ export function stitchSchemas({
 
   mergeInfo = completeMergeInfo(mergeInfo, finalResolvers);
 
-  addResolversToSchema({
+  schema = addResolversToSchema({
     schema,
     resolvers: finalResolvers,
     resolverValidationOptions,
@@ -144,17 +144,17 @@ export function stitchSchemas({
   schema = addMergeInfo(schema, mergeInfo);
 
   if (!allowUndefinedInResolve) {
-    addCatchUndefinedToSchema(schema);
+    schema = addCatchUndefinedToSchema(schema);
   }
 
   if (logger != null) {
-    addErrorLoggingToSchema(schema, logger);
+    schema = addErrorLoggingToSchema(schema, logger);
   }
 
   if (typeof finalResolvers['__schema'] === 'function') {
     // TODO a bit of a hack now, better rewrite generateSchema to attach it there.
     // not doing that now, because I'd have to rewrite a lot of tests.
-    addSchemaLevelResolver(schema, finalResolvers['__schema']);
+    schema = addSchemaLevelResolver(schema, finalResolvers['__schema']);
   }
 
   if (directiveResolvers != null) {

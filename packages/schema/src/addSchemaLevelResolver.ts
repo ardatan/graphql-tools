@@ -1,28 +1,30 @@
 import { defaultFieldResolver, GraphQLSchema, GraphQLFieldResolver } from 'graphql';
+import { mapSchema, MapperKind } from '@graphql-tools/utils';
 
 // wraps all resolvers of query, mutation or subscription fields
 // with the provided function to simulate a root schema level resolver
-export function addSchemaLevelResolver(schema: GraphQLSchema, fn: GraphQLFieldResolver<any, any>): void {
+export function addSchemaLevelResolver(schema: GraphQLSchema, fn: GraphQLFieldResolver<any, any>): GraphQLSchema {
   // TODO test that schema is a schema, fn is a function
-  const rootTypes = [schema.getQueryType(), schema.getMutationType(), schema.getSubscriptionType()].filter(x =>
-    Boolean(x)
-  );
-  rootTypes.forEach(type => {
-    if (type != null) {
+  const fnToRunOnlyOnce = runAtMostOncePerRequest(fn);
+  return mapSchema(schema, {
+    [MapperKind.ROOT_FIELD]: (fieldConfig, _fieldName, typeName, schema) => {
       // XXX this should run at most once per request to simulate a true root resolver
       // for graphql-js this is an approximation that works with queries but not mutations
-      const rootResolveFn = runAtMostOncePerRequest(fn);
-      const fields = type.getFields();
-      Object.keys(fields).forEach(fieldName => {
-        // XXX if the type is a subscription, a same query AST will be ran multiple times so we
-        // deactivate here the runOnce if it's a subscription. This may not be optimal though...
-        if (type === schema.getSubscriptionType()) {
-          fields[fieldName].resolve = wrapResolver(fields[fieldName].resolve, fn);
-        } else {
-          fields[fieldName].resolve = wrapResolver(fields[fieldName].resolve, rootResolveFn);
-        }
-      });
-    }
+      // XXX if the type is a subscription, a same query AST will be ran multiple times so we
+      // deactivate here the runOnce if it's a subscription. This may not be optimal though...
+      const subscription = schema.getSubscriptionType();
+      if (subscription != null && subscription.name === typeName) {
+        return {
+          ...fieldConfig,
+          resolve: wrapResolver(fieldConfig.resolve, fn),
+        };
+      }
+
+      return {
+        ...fieldConfig,
+        resolve: wrapResolver(fieldConfig.resolve, fnToRunOnlyOnce),
+      };
+    },
   });
 }
 

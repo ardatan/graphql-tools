@@ -50,9 +50,9 @@ describe('Resolve', () => {
         },
       },
     };
-    const schema = makeExecutableSchema({ typeDefs, resolvers });
+    let schema = makeExecutableSchema({ typeDefs, resolvers });
     let schemaLevelResolverCalls = 0;
-    addSchemaLevelResolver(schema, (root) => {
+    schema = addSchemaLevelResolver(schema, (root) => {
       schemaLevelResolverCalls += 1;
       return root;
     });

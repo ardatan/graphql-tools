@@ -390,6 +390,7 @@ export interface SchemaMapper {
   [MapperKind.MUTATION_ROOT_FIELD]?: ObjectFieldMapper;
   [MapperKind.SUBSCRIPTION_ROOT_FIELD]?: ObjectFieldMapper;
   [MapperKind.INTERFACE_FIELD]?: InterfaceFieldMapper;
+  [MapperKind.COMPOSITE_FIELD]?: CompositeFieldMapper;
   [MapperKind.INPUT_OBJECT_FIELD]?: InputObjectFieldMapper;
 }
 
@@ -428,13 +429,19 @@ export type DirectiveMapper = (
   schema: GraphQLSchema
 ) => GraphQLDirective | null | undefined;
 
-export type FieldMapper<
-  F extends GraphQLFieldConfig<any, any> | GraphQLInputFieldConfig,
-  T extends GraphQLObjectType | GraphQLInterfaceType | GraphQLInputObjectType
-> = (fieldConfig: F, fieldName: string, type: T, schema: GraphQLSchema) => F | [string, F] | null | undefined;
+export type GenericFieldMapper<F extends GraphQLFieldConfig<any, any> | GraphQLInputFieldConfig> = (
+  fieldConfig: F,
+  fieldName: string,
+  typeName: string,
+  schema: GraphQLSchema
+) => F | [string, F] | null | undefined;
 
-export type ObjectFieldMapper = FieldMapper<GraphQLFieldConfig<any, any>, GraphQLObjectType>;
+export type FieldMapper = GenericFieldMapper<GraphQLFieldConfig<any, any> | GraphQLInputFieldConfig>;
 
-export type InterfaceFieldMapper = FieldMapper<GraphQLFieldConfig<any, any>, GraphQLInterfaceType>;
+export type ObjectFieldMapper = GenericFieldMapper<GraphQLFieldConfig<any, any>>;
 
-export type InputObjectFieldMapper = FieldMapper<GraphQLInputFieldConfig, GraphQLInputObjectType>;
+export type InterfaceFieldMapper = GenericFieldMapper<GraphQLFieldConfig<any, any>>;
+
+export type CompositeFieldMapper = GenericFieldMapper<GraphQLFieldConfig<any, any>>;
+
+export type InputObjectFieldMapper = GenericFieldMapper<GraphQLInputFieldConfig>;
