@@ -29,16 +29,16 @@ module.exports = {
           position: 'right',
         },
         {
-          href: 'https://the-guild.dev/connected-build?utm_source=github&utm_medium=release-note&utm_campaign=tools#section-contact',
+          href: 'https://the-guild.dev/contact',
           label: 'Contact Us',
           position: 'right'
         },
       ],
     },
     algolia: {
-      // appId: '@graphql-tools/stitch',
+      // appId: 'graphql',
       apiKey: 'ee4c137daf1262df2ca2faacaf83fa4e',
-      indexName: '@graphql-tools/stitch',
+      indexName: 'graphql',
       algoliaOptions: {}, // Optional, if provided by Algolia
     },
     footer: {
