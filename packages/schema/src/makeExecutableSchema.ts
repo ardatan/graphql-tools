@@ -36,9 +36,9 @@ export function makeExecutableSchema<TContext = any>({
 
   // Arguments are now validated and cleaned up
 
-  const schema = buildSchemaFromTypeDefinitions(typeDefs, parseOptions);
+  let schema = buildSchemaFromTypeDefinitions(typeDefs, parseOptions);
 
-  addResolversToSchema({
+  schema = addResolversToSchema({
     schema,
     resolvers: resolverMap,
     resolverValidationOptions,
@@ -48,19 +48,21 @@ export function makeExecutableSchema<TContext = any>({
   assertResolversPresent(schema, resolverValidationOptions);
 
   if (!allowUndefinedInResolve) {
-    addCatchUndefinedToSchema(schema);
+    schema = addCatchUndefinedToSchema(schema);
   }
 
   if (logger != null) {
-    addErrorLoggingToSchema(schema, logger);
+    schema = addErrorLoggingToSchema(schema, logger);
   }
 
   if (typeof resolvers['__schema'] === 'function') {
     // TODO a bit of a hack now, better rewrite generateSchema to attach it there.
     // not doing that now, because I'd have to rewrite a lot of tests.
-    addSchemaLevelResolver(schema, resolvers['__schema'] as GraphQLFieldResolver<any, any>);
+    schema = addSchemaLevelResolver(schema, resolvers['__schema'] as GraphQLFieldResolver<any, any>);
   }
 
+  // directive resolvers are implemented using SchemaDirectiveVisitor.visitSchemaDirectives
+  // schema visiting modifies the schema in place
   if (directiveResolvers != null) {
     attachDirectiveResolvers(schema, directiveResolvers);
   }

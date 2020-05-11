@@ -210,7 +210,7 @@ This [GraphQL schema language cheat sheet](https://raw.githubusercontent.com/sog
 
 ### makeExecutableSchema(options)
 
-`makeExecutableSchema` takes a single argument: an object of options. Only the `typeDefs` option is required.
+`makeExecutableSchema` takes a single argument: an object of options. Only the `typeDefs` option is required. It returns a new schema, modified as specified.
 
 ```
 import { makeExecutableSchema } from '@graphql-tools/schema';

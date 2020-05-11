@@ -2988,7 +2988,7 @@ fragment BookingFragment on Booking {
 
   describe('new root type name', () => {
     test('works', async () => {
-      const bookSchema = makeExecutableSchema({
+      let bookSchema = makeExecutableSchema({
         typeDefs: `
           type Query {
             book: Book
@@ -2999,7 +2999,7 @@ fragment BookingFragment on Booking {
         `,
       });
 
-      const movieSchema = makeExecutableSchema({
+      let movieSchema = makeExecutableSchema({
         typeDefs: `
           type Query {
             movie: Movie
@@ -3011,8 +3011,8 @@ fragment BookingFragment on Booking {
         `,
       });
 
-      addMocksToSchema({ schema: bookSchema });
-      addMocksToSchema({ schema: movieSchema });
+      bookSchema = addMocksToSchema({ schema: bookSchema });
+      movieSchema = addMocksToSchema({ schema: movieSchema });
 
       const stitchedSchema = stitchSchemas({
         schemas: [bookSchema, movieSchema],

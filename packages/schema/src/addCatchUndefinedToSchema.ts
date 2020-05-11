@@ -1,5 +1,5 @@
 import { GraphQLFieldResolver, defaultFieldResolver, GraphQLSchema } from 'graphql';
-import { forEachField } from '@graphql-tools/utils';
+import { mapSchema, MapperKind } from '@graphql-tools/utils';
 
 function decorateToCatchUndefined(fn: GraphQLFieldResolver<any, any>, hint: string): GraphQLFieldResolver<any, any> {
   const resolve = fn == null ? defaultFieldResolver : fn;
@@ -12,9 +12,11 @@ function decorateToCatchUndefined(fn: GraphQLFieldResolver<any, any>, hint: stri
   };
 }
 
-export function addCatchUndefinedToSchema(schema: GraphQLSchema): void {
-  forEachField(schema, (field, typeName, fieldName) => {
-    const errorHint = `${typeName}.${fieldName}`;
-    field.resolve = decorateToCatchUndefined(field.resolve, errorHint);
+export function addCatchUndefinedToSchema(schema: GraphQLSchema): GraphQLSchema {
+  return mapSchema(schema, {
+    [MapperKind.OBJECT_FIELD]: (fieldConfig, fieldName, typeName) => ({
+      ...fieldConfig,
+      resolve: decorateToCatchUndefined(fieldConfig.resolve, `${typeName}.${fieldName}`),
+    }),
   });
 }

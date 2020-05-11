@@ -22,8 +22,7 @@ import {
 } from 'graphql';
 
 import { isNamedStub, getBuiltInForStub } from './stub';
-
-type NamedTypeMap = Record<string, GraphQLNamedType>;
+import { TypeMap } from './Interfaces';
 
 // Update any references to named schema types that disagree with the named
 // types found in schema.getTypeMap().
@@ -85,7 +84,7 @@ export function healTypes(
     skipPruning: false,
   }
 ) {
-  const actualNamedTypeMap: NamedTypeMap = Object.create(null);
+  const actualNamedTypeMap: TypeMap = Object.create(null);
 
   // If any of the .name properties of the GraphQLNamedType objects in
   // schema.getTypeMap() have changed, the keys of the type map need to

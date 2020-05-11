@@ -9,7 +9,7 @@ import { addMocksToSchema } from '@graphql-tools/mock';
 
 import { stitchSchemas } from '../src/stitchSchemas';
 
-const chirpSchema = makeExecutableSchema({
+let chirpSchema = makeExecutableSchema({
   typeDefs: `
     type Chirp {
       id: ID!
@@ -27,9 +27,9 @@ const chirpSchema = makeExecutableSchema({
   `,
 });
 
-addMocksToSchema({ schema: chirpSchema });
+chirpSchema = addMocksToSchema({ schema: chirpSchema });
 
-const authorSchema = makeExecutableSchema({
+let authorSchema = makeExecutableSchema({
   typeDefs: `
     type User {
       id: ID!
@@ -41,7 +41,7 @@ const authorSchema = makeExecutableSchema({
   `,
 });
 
-addMocksToSchema({ schema: authorSchema });
+authorSchema = addMocksToSchema({ schema: authorSchema });
 
 const stitchedSchema = stitchSchemas({
   subschemas: [

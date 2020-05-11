@@ -223,7 +223,7 @@ describe('transforms', () => {
 
   describe('rename root type', () => {
     test('should work', async () => {
-      const subschema = makeExecutableSchema({
+      let subschema = makeExecutableSchema({
         typeDefs: `
           schema {
             query: QueryRoot
@@ -244,7 +244,7 @@ describe('transforms', () => {
         `,
       });
 
-      addMocksToSchema({ schema: subschema });
+      subschema = addMocksToSchema({ schema: subschema });
 
       const schema = wrapSchema(subschema, [
         new RenameRootTypes((name) => (name === 'QueryRoot' ? 'Query' : name)),

@@ -2,7 +2,7 @@ import { GraphQLSchema } from 'graphql';
 
 import { IResolvers, IObjectTypeResolver } from '@graphql-tools/utils';
 
-export function extendResolversFromInterfaces(schema: GraphQLSchema, resolvers: IResolvers) {
+export function extendResolversFromInterfaces(schema: GraphQLSchema, resolvers: IResolvers): IResolvers {
   const typeNames = Object.keys({
     ...schema.getTypeMap(),
     ...resolvers,

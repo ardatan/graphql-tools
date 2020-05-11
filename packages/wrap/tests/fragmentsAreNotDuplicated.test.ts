@@ -6,11 +6,11 @@ import { addMocksToSchema } from '@graphql-tools/mock';
 
 describe('Merging schemas', () => {
   test('should not throw `There can be only one fragment named "FieldName"` errors', async () => {
-    const originalSchema = makeExecutableSchema({
+    let originalSchema = makeExecutableSchema({
       typeDefs: rawSchema,
     });
 
-    addMocksToSchema({ schema: originalSchema });
+    originalSchema = addMocksToSchema({ schema: originalSchema });
 
     const originalResult = await graphql(
       originalSchema,
