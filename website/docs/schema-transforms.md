@@ -171,12 +171,12 @@ RenameRootFields(
 
 ### Modifying object fields
 
-* `TransformObjectFields(objectFieldTransformer: ObjectFieldTransformer, fieldNodeTransformer?: FieldNodeTransformer))`: Given an object field transformer, arbitrarily transform fields. The `objectFieldTransformer` can return a `GraphQLFieldConfig` definition, an array with first member being the new field name and second member being the new `GraphQLFieldConfig` definition, `null` to remove the field, or `undefined` to leave the field unchanged. The optional `fieldNodeTransformer`, if specified, is called upon any field of that type in the request; result transformation can be specified by wrapping the field's resolver within the `objectFieldTransformer`. In this way, a field can be fully arbitrarily modified in place.
+* `TransformObjectFields(objectFieldTransformer: FieldTransformer, fieldNodeTransformer?: FieldNodeTransformer))`: Given a field transformer, arbitrarily transform fields. The `objectFieldTransformer` can return a `GraphQLFieldConfig` definition, an array with first member being the new field name and second member being the new `GraphQLFieldConfig` definition, `null` to remove the field, or `undefined` to leave the field unchanged. The optional `fieldNodeTransformer`, if specified, is called upon any field of that type in the request; result transformation can be specified by wrapping the field's resolver within the `objectFieldTransformer`.
 
 ```ts
-TransformObjectFields(objectFieldTransformer: ObjectFieldTransformer, fieldNodeTransformer: FieldNodeTransformer)
+TransformObjectFields(objectFieldTransformer: FieldTransformer, fieldNodeTransformer: FieldNodeTransformer)
 
-type ObjectFieldTransformer = (
+export type FieldTransformer = (
   typeName: string,
   fieldName: string,
   fieldConfig: GraphQLFieldConfig<any, any>,
@@ -184,13 +184,14 @@ type ObjectFieldTransformer = (
   | GraphQLFieldConfig<any, any>
   | [string, GraphQLFieldConfig<any, any>]
   | null
-  | void;
+  | undefined;
 
-type FieldNodeTransformer = (
+export type FieldNodeTransformer = (
   typeName: string,
   fieldName: string,
-  fieldNode: FieldNode
-) => FieldNode;
+  fieldNode: FieldNode,
+  fragments: Record<string, FragmentDefinitionNode>
+) => SelectionNode | Array<SelectionNode>;
 ```
 
 * `FilterObjectFields(filter: ObjectFilter)`: Removes object fields for which the `filter` function returns `false`.
