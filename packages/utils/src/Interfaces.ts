@@ -390,6 +390,7 @@ export interface SchemaMapper {
   [MapperKind.MUTATION]?: ObjectTypeMapper;
   [MapperKind.SUBSCRIPTION]?: ObjectTypeMapper;
   [MapperKind.DIRECTIVE]?: DirectiveMapper;
+  [MapperKind.FIELD]?: GenericFieldMapper<GraphQLFieldConfig<any, any> | GraphQLInputFieldConfig>;
   [MapperKind.OBJECT_FIELD]?: FieldMapper;
   [MapperKind.ROOT_FIELD]?: FieldMapper;
   [MapperKind.QUERY_ROOT_FIELD]?: FieldMapper;
