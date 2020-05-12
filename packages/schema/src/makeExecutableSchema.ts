@@ -64,7 +64,7 @@ export function makeExecutableSchema<TContext = any>({
   // directive resolvers are implemented using SchemaDirectiveVisitor.visitSchemaDirectives
   // schema visiting modifies the schema in place
   if (directiveResolvers != null) {
-    attachDirectiveResolvers(schema, directiveResolvers);
+    schema = attachDirectiveResolvers(schema, directiveResolvers);
   }
 
   if (schemaDirectives != null) {

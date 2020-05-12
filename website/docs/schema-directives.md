@@ -679,7 +679,7 @@ The new abstraction is more general, since it can visit any kind of schema synta
 function attachDirectiveResolvers(
   schema: GraphQLSchema,
   directiveResolvers: IDirectiveResolvers<any, any>,
-) {
+): GraphQLSchema {
   const schemaDirectives = Object.create(null);
 
   Object.keys(directiveResolvers).forEach(directiveName => {
