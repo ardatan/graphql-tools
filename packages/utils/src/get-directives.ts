@@ -19,6 +19,9 @@ import {
   GraphQLScalarTypeConfig,
   GraphQLEnumTypeConfig,
   GraphQLInputObjectTypeConfig,
+  GraphQLEnumValue,
+  GraphQLEnumValueConfig,
+  EnumValueDefinitionNode,
 } from 'graphql';
 
 import { getArgumentValues } from './getArgumentValues';
@@ -30,6 +33,7 @@ type SchemaOrTypeNode =
   | SchemaExtensionNode
   | TypeDefinitionNode
   | TypeExtensionNode
+  | EnumValueDefinitionNode
   | FieldDefinitionNode
   | InputValueDefinitionNode;
 
@@ -42,6 +46,8 @@ type DirectableGraphQLObject =
   | GraphQLUnionTypeConfig<any, any>
   | GraphQLScalarTypeConfig<any, any>
   | GraphQLEnumTypeConfig
+  | GraphQLEnumValue
+  | GraphQLEnumValueConfig
   | GraphQLInputObjectTypeConfig
   | GraphQLField<any, any>
   | GraphQLInputField

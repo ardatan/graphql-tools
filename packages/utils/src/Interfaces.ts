@@ -27,6 +27,7 @@ import {
   GraphQLFieldConfig,
   GraphQLInputFieldConfig,
   GraphQLArgumentConfig,
+  GraphQLEnumValueConfig,
 } from 'graphql';
 
 import { SchemaVisitor } from './SchemaVisitor';
@@ -352,6 +353,7 @@ export enum MapperKind {
   TYPE = 'MapperKind.TYPE',
   SCALAR_TYPE = 'MapperKind.SCALAR_TYPE',
   ENUM_TYPE = 'MapperKind.ENUM_TYPE',
+  ENUM_VALUE = 'MapperKind.ENUM_VALUE',
   COMPOSITE_TYPE = 'MapperKind.COMPOSITE_TYPE',
   OBJECT_TYPE = 'MapperKind.OBJECT_TYPE',
   INPUT_OBJECT_TYPE = 'MapperKind.INPUT_OBJECT_TYPE',
@@ -379,6 +381,7 @@ export interface SchemaMapper {
   [MapperKind.TYPE]?: NamedTypeMapper;
   [MapperKind.SCALAR_TYPE]?: ScalarTypeMapper;
   [MapperKind.ENUM_TYPE]?: EnumTypeMapper;
+  [MapperKind.ENUM_VALUE]?: EnumValueMapper;
   [MapperKind.COMPOSITE_TYPE]?: CompositeTypeMapper;
   [MapperKind.OBJECT_TYPE]?: ObjectTypeMapper;
   [MapperKind.INPUT_OBJECT_TYPE]?: InputObjectTypeMapper;
@@ -407,6 +410,12 @@ export type NamedTypeMapper = (type: GraphQLNamedType, schema: GraphQLSchema) =>
 export type ScalarTypeMapper = (type: GraphQLScalarType, schema: GraphQLSchema) => GraphQLScalarType | null | undefined;
 
 export type EnumTypeMapper = (type: GraphQLEnumType, schema: GraphQLSchema) => GraphQLEnumType | null | undefined;
+
+export type EnumValueMapper = (
+  value: GraphQLEnumValueConfig,
+  typeName: string,
+  schema: GraphQLSchema
+) => GraphQLEnumValueConfig | [string, GraphQLEnumValueConfig] | null | undefined;
 
 export type CompositeTypeMapper = (
   type: GraphQLObjectType | GraphQLInterfaceType | GraphQLUnionType,

@@ -23,6 +23,7 @@ import {
   isNamedType,
   GraphQLList,
   GraphQLNonNull,
+  GraphQLEnumType,
 } from 'graphql';
 
 import {
@@ -34,6 +35,7 @@ import {
   GenericFieldMapper,
   IDefaultValueIteratorFn,
   ArgumentMapper,
+  EnumValueMapper,
 } from './Interfaces';
 
 import { rewireTypes } from './rewire';
@@ -44,6 +46,7 @@ export function mapSchema(schema: GraphQLSchema, schemaMapper: SchemaMapper = {}
 
   let newTypeMap = mapDefaultValues(originalTypeMap, schema, serializeInputValue);
   newTypeMap = mapTypes(newTypeMap, schema, schemaMapper, type => isLeafType(type));
+  newTypeMap = mapEnumValues(newTypeMap, schema, schemaMapper);
   newTypeMap = mapDefaultValues(newTypeMap, schema, parseInputValue);
 
   newTypeMap = mapTypes(newTypeMap, schema, schemaMapper, type => !isLeafType(type));
@@ -111,6 +114,42 @@ function mapTypes(
   });
 
   return newTypeMap;
+}
+
+function mapEnumValues(originalTypeMap: TypeMap, schema: GraphQLSchema, schemaMapper: SchemaMapper): TypeMap {
+  const enumValueMapper = getEnumValueMapper(schemaMapper);
+  if (!enumValueMapper) {
+    return originalTypeMap;
+  }
+
+  return mapTypes(
+    originalTypeMap,
+    schema,
+    {
+      [MapperKind.ENUM_TYPE]: type => {
+        const config = type.toConfig();
+        const originalEnumValueConfigMap = config.values;
+        const newEnumValueConfigMap = {};
+        Object.keys(originalEnumValueConfigMap).forEach(enumValueName => {
+          const originalEnumValueConfig = originalEnumValueConfigMap[enumValueName];
+          const mappedEnumValue = enumValueMapper(originalEnumValueConfig, type.name, schema);
+          if (mappedEnumValue === undefined) {
+            newEnumValueConfigMap[enumValueName] = originalEnumValueConfig;
+          } else if (Array.isArray(mappedEnumValue)) {
+            const [newEnumValueName, newEnumValueConfig] = mappedEnumValue;
+            newEnumValueConfigMap[newEnumValueName] = newEnumValueConfig;
+          } else if (mappedEnumValue !== null) {
+            newEnumValueConfigMap[enumValueName] = mappedEnumValue;
+          }
+        });
+        return new GraphQLEnumType({
+          ...config,
+          values: newEnumValueConfigMap,
+        });
+      },
+    },
+    type => isEnumType(type)
+  );
 }
 
 function mapDefaultValues(originalTypeMap: TypeMap, schema: GraphQLSchema, fn: IDefaultValueIteratorFn): TypeMap {
@@ -306,15 +345,19 @@ function mapDirectives(
   schema: GraphQLSchema,
   schemaMapper: SchemaMapper
 ): Array<GraphQLDirective> {
+  const directiveMapper = getDirectiveMapper(schemaMapper);
+  if (directiveMapper == null) {
+    return originalDirectives.slice();
+  }
+
   const newDirectives: Array<GraphQLDirective> = [];
 
   originalDirectives.forEach(directive => {
-    const directiveMapper = getDirectiveMapper(schemaMapper);
-    if (directiveMapper != null) {
-      const maybeNewDirective = directiveMapper(directive, schema);
-      newDirectives.push(maybeNewDirective !== undefined ? maybeNewDirective : directive);
-    } else {
+    const mappedDirective = directiveMapper(directive, schema);
+    if (mappedDirective === undefined) {
       newDirectives.push(directive);
+    } else if (mappedDirective !== null) {
+      newDirectives.push(mappedDirective);
     }
   });
 
@@ -413,4 +456,9 @@ function getArgumentMapper(schemaMapper: SchemaMapper): ArgumentMapper | null {
 function getDirectiveMapper(schemaMapper: SchemaMapper): DirectiveMapper | null {
   const directiveMapper = schemaMapper[MapperKind.DIRECTIVE];
   return directiveMapper != null ? directiveMapper : null;
+}
+
+function getEnumValueMapper(schemaMapper: SchemaMapper): EnumValueMapper | null {
+  const enumValueMapper = schemaMapper[MapperKind.ENUM_VALUE];
+  return enumValueMapper != null ? enumValueMapper : null;
 }
