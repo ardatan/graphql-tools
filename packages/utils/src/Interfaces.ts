@@ -26,6 +26,7 @@ import {
   FieldDefinitionNode,
   GraphQLFieldConfig,
   GraphQLInputFieldConfig,
+  GraphQLArgumentConfig,
 } from 'graphql';
 
 import { SchemaVisitor } from './SchemaVisitor';
@@ -366,6 +367,7 @@ export enum MapperKind {
   MUTATION_ROOT_FIELD = 'MapperKind.MUTATION_ROOT_FIELD',
   SUBSCRIPTION_ROOT_FIELD = 'MapperKind.SUBSCRIPTION_ROOT_FIELD',
   INTERFACE_FIELD = 'MapperKind.INTERFACE_FIELD',
+  ARGUMENT = 'MapperKind.ARGUMENT',
   INPUT_OBJECT_FIELD = 'MapperKind.INPUT_OBJECT_FIELD',
 }
 
@@ -391,6 +393,7 @@ export interface SchemaMapper {
   [MapperKind.SUBSCRIPTION_ROOT_FIELD]?: FieldMapper;
   [MapperKind.INTERFACE_FIELD]?: FieldMapper;
   [MapperKind.COMPOSITE_FIELD]?: FieldMapper;
+  [MapperKind.ARGUMENT]?: ArgumentMapper;
   [MapperKind.INPUT_OBJECT_FIELD]?: InputFieldMapper;
 }
 
@@ -437,5 +440,12 @@ export type GenericFieldMapper<F extends GraphQLFieldConfig<any, any> | GraphQLI
 ) => F | [string, F] | null | undefined;
 
 export type FieldMapper = GenericFieldMapper<GraphQLFieldConfig<any, any>>;
+
+export type ArgumentMapper = (
+  argumentConfig: GraphQLArgumentConfig,
+  fieldName: string,
+  typeName: string,
+  schema: GraphQLSchema
+) => GraphQLArgumentConfig | [string, GraphQLArgumentConfig] | null | undefined;
 
 export type InputFieldMapper = GenericFieldMapper<GraphQLInputFieldConfig>;
