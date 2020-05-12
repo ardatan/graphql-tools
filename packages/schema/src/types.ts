@@ -5,6 +5,7 @@ import {
   IDirectiveResolvers,
   SchemaDirectiveVisitorClass,
   GraphQLParseOptions,
+  SchemaTransform,
 } from 'packages/utils/src';
 
 export interface ILogger {
@@ -19,6 +20,7 @@ export interface IExecutableSchemaDefinition<TContext = any> {
   resolverValidationOptions?: IResolverValidationOptions;
   directiveResolvers?: IDirectiveResolvers<any, TContext>;
   schemaDirectives?: Record<string, SchemaDirectiveVisitorClass>;
+  schemaTransforms?: Array<SchemaTransform>;
   parseOptions?: GraphQLParseOptions;
   inheritResolversFromInterfaces?: boolean;
 }

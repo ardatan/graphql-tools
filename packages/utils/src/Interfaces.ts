@@ -119,10 +119,14 @@ export interface IFieldResolverOptions<TSource = any, TContext = any, TArgs = an
   astNode?: FieldDefinitionNode;
 }
 
+export type SchemaTransform = (originalSchema: GraphQLSchema) => GraphQLSchema;
+export type RequestTransform = (originalRequest: Request) => Request;
+export type ResultTransform = (originalResult: ExecutionResult) => ExecutionResult;
+
 export interface Transform {
-  transformSchema?: (originalSchema: GraphQLSchema) => GraphQLSchema;
-  transformRequest?: (originalRequest: Request) => Request;
-  transformResult?: (originalResult: ExecutionResult) => ExecutionResult;
+  transformSchema?: SchemaTransform;
+  transformRequest?: RequestTransform;
+  transformResult?: ResultTransform;
 }
 
 export type FieldNodeMapper = (
