@@ -223,6 +223,7 @@ const jsSchema = makeExecutableSchema({
   resolverValidationOptions: {}, // optional
   directiveResolvers: null, // optional
   schemaDirectives: null,  // optional
+  schemaTransforms: [],  // optional
   parseOptions: {},  // optional
   inheritResolversFromInterfaces: false  // optional
 });
@@ -250,3 +251,7 @@ const jsSchema = makeExecutableSchema({
   - `allowResolversNotInSchema` turns off the functionality which throws errors when resolvers are found which are not present in the schema. Defaults to `false`, to help catch common errors.
 
 - `inheritResolversFromInterfaces` GraphQL Objects that implement interfaces will inherit missing resolvers from their interface types defined in the `resolvers` object.
+
+- `schemaTransforms` is an optional argument _(empty array by default)_ and should be an array of schema transformation functions, essentially designed to enable the use of [directive-based functional schema transformation](/docs/schema-directives/)
+
+- `schemaDirectives` is an optional argument _(empty object by default)_ and can be used to specify the [earlier class-based implementation of schema directives](/docs/legacy-schema-directives/)

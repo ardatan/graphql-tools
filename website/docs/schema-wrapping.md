@@ -1,14 +1,14 @@
 ---
-id: schema-transforms
-title: Schema transforms
-description: Automatically transforming schemas
+id: schema-wrapping
+title: Schema Wrapping
+description: Wrap schemas to automatically modify schemas, requests and results
 ---
 
-Schema transforms are a tool for making modified copies of `GraphQLSchema` objects, without changing the original schema implementation. This is especially useful when the original schema _cannot_ be changed, i.e. when using [remote schemas](/docs/remote-schemas/).
+Schema wrapping is a method of making modified copies of `GraphQLSchema` objects, without changing the original schema implementation. This is especially useful when the original schema _cannot_ be changed, i.e. when using [remote schemas](/docs/remote-schemas/).
 
-Schema transforms can be useful when building GraphQL gateways that combine multiple schemas using [schema stitching](/docs/schema-stitching/) to combine schemas together without conflicts between types or fields.
+Schema wrapping can be useful when building GraphQL gateways that combine multiple schemas using [schema stitching](/docs/schema-stitching/) to combine schemas together without conflicts between types or fields.
 
-Schema transforms work by wrapping the original schema in a new 'gateway' schema that simply delegates all operations to the original subschema. Each schema transform includes a function that changes the gateway schema. It may also include an operation transform, i.e. functions that either modify the operation prior to delegation or modify the result prior to its return.
+Schema wrapping works by wrapping the original schema in a new 'gateway' schema that simply delegates all operations to the original subschema. A series of 'transforms' are applied to modify the schema after the initial wrapping is complete. Each transform includes a schema transformation function that changes the gateway schema. It may also include operation transforms, i.e. functions that either modify the operation prior to delegation or modify the result prior to its return.
 
 ```ts
 interface Transform = {
@@ -101,7 +101,7 @@ type Result = ExecutionResult & {
 
 ### wrapSchema
 
-Given a `GraphQLSchema` and an array of `Transform` objects, produce a new schema with those transforms applied.
+Given a `GraphQLSchema` and an array of `Transform` objects, `wrapSchema` produces a new schema with those transforms applied.
 
 Delegating resolvers are generated to map from new schema root fields to old schema root fields. These automatic resolvers should be sufficient, so you don't have to implement your own.
 

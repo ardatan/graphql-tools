@@ -353,7 +353,6 @@ export enum MapperKind {
   TYPE = 'MapperKind.TYPE',
   SCALAR_TYPE = 'MapperKind.SCALAR_TYPE',
   ENUM_TYPE = 'MapperKind.ENUM_TYPE',
-  ENUM_VALUE = 'MapperKind.ENUM_VALUE',
   COMPOSITE_TYPE = 'MapperKind.COMPOSITE_TYPE',
   OBJECT_TYPE = 'MapperKind.OBJECT_TYPE',
   INPUT_OBJECT_TYPE = 'MapperKind.INPUT_OBJECT_TYPE',
@@ -373,15 +372,15 @@ export enum MapperKind {
   MUTATION_ROOT_FIELD = 'MapperKind.MUTATION_ROOT_FIELD',
   SUBSCRIPTION_ROOT_FIELD = 'MapperKind.SUBSCRIPTION_ROOT_FIELD',
   INTERFACE_FIELD = 'MapperKind.INTERFACE_FIELD',
-  ARGUMENT = 'MapperKind.ARGUMENT',
   INPUT_OBJECT_FIELD = 'MapperKind.INPUT_OBJECT_FIELD',
+  ARGUMENT = 'MapperKind.ARGUMENT',
+  ENUM_VALUE = 'MapperKind.ENUM_VALUE',
 }
 
 export interface SchemaMapper {
   [MapperKind.TYPE]?: NamedTypeMapper;
   [MapperKind.SCALAR_TYPE]?: ScalarTypeMapper;
   [MapperKind.ENUM_TYPE]?: EnumTypeMapper;
-  [MapperKind.ENUM_VALUE]?: EnumValueMapper;
   [MapperKind.COMPOSITE_TYPE]?: CompositeTypeMapper;
   [MapperKind.OBJECT_TYPE]?: ObjectTypeMapper;
   [MapperKind.INPUT_OBJECT_TYPE]?: InputObjectTypeMapper;
@@ -392,7 +391,7 @@ export interface SchemaMapper {
   [MapperKind.QUERY]?: ObjectTypeMapper;
   [MapperKind.MUTATION]?: ObjectTypeMapper;
   [MapperKind.SUBSCRIPTION]?: ObjectTypeMapper;
-  [MapperKind.DIRECTIVE]?: DirectiveMapper;
+  [MapperKind.ENUM_VALUE]?: EnumValueMapper;
   [MapperKind.FIELD]?: GenericFieldMapper<GraphQLFieldConfig<any, any> | GraphQLInputFieldConfig>;
   [MapperKind.OBJECT_FIELD]?: FieldMapper;
   [MapperKind.ROOT_FIELD]?: FieldMapper;
@@ -403,6 +402,7 @@ export interface SchemaMapper {
   [MapperKind.COMPOSITE_FIELD]?: FieldMapper;
   [MapperKind.ARGUMENT]?: ArgumentMapper;
   [MapperKind.INPUT_OBJECT_FIELD]?: InputFieldMapper;
+  [MapperKind.DIRECTIVE]?: DirectiveMapper;
 }
 
 export type NamedTypeMapper = (type: GraphQLNamedType, schema: GraphQLSchema) => GraphQLNamedType | null | undefined;

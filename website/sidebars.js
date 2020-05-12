@@ -10,10 +10,11 @@ module.exports = {
     'mocking',
     'connectors',
     'schema-directives',
+    'legacy-schema-directives',
     'directive-resolvers',
     'schema-delegation',
     'remote-schemas',
-    'schema-transforms',
+    'schema-wrapping',
     {
       'Schema merging': [
         'merge-typedefs',

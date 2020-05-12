@@ -223,6 +223,47 @@ describe('@directives', () => {
     });
   });
 
+  test('can be used to implement the @deprecated example', () => {
+    function deprecatedDirective(directiveName: string): SchemaTransform {
+      return schema => mapSchema(schema, {
+        [MapperKind.OBJECT_FIELD]: (fieldConfig) => {
+          const directives = getDirectives(schema, fieldConfig);
+          const directiveArgumentMap = directives[directiveName];
+          if (directiveArgumentMap) {
+            fieldConfig.deprecationReason = directiveArgumentMap.reason;
+            return fieldConfig;
+          }
+        },
+        [MapperKind.ENUM_VALUE]: (enumValueConfig) => {
+          const directives = getDirectives(schema, enumValueConfig);
+          const directiveArgumentMap = directives[directiveName];
+          if (directiveArgumentMap) {
+            enumValueConfig.deprecationReason = directiveArgumentMap.reason;
+            return enumValueConfig;
+          }
+        }
+      });
+    }
+
+    const schema = makeExecutableSchema({
+      typeDefs: `
+        directive @deprecated(reason: String) on FIELD_DEFINITION | ENUM_VALUE
+
+        type ExampleType {
+          newField: String
+          oldField: String @deprecated(reason: "Use \`newField\`.")
+        }
+
+        type Query {
+          rootField: ExampleType
+        }
+      `,
+      schemaTransforms: [deprecatedDirective('deprecated')],
+    });
+
+    expect((schema.getType('ExampleType') as GraphQLObjectType).getFields().oldField.deprecationReason).toBe('Use \`newField\`.')
+  });
+
   test('can be used to implement the @date example', () => {
     function dateDirective(directiveName: string): SchemaTransform {
       return schema => mapSchema(schema, {
