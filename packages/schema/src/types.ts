@@ -6,7 +6,7 @@ import {
   SchemaDirectiveVisitorClass,
   GraphQLParseOptions,
   SchemaTransform,
-} from 'packages/utils/src';
+} from '@graphql-tools/utils';
 
 export interface ILogger {
   log: (error: Error) => void;
