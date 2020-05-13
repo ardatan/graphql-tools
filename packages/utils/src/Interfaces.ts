@@ -28,6 +28,23 @@ import {
   GraphQLInputFieldConfig,
   GraphQLArgumentConfig,
   GraphQLEnumValueConfig,
+  GraphQLScalarSerializer,
+  GraphQLScalarValueParser,
+  GraphQLScalarLiteralParser,
+  ScalarTypeDefinitionNode,
+  ScalarTypeExtensionNode,
+  EnumTypeDefinitionNode,
+  EnumTypeExtensionNode,
+  GraphQLIsTypeOfFn,
+  ObjectTypeDefinitionNode,
+  ObjectTypeExtensionNode,
+  InterfaceTypeExtensionNode,
+  InterfaceTypeDefinitionNode,
+  GraphQLTypeResolver,
+  UnionTypeDefinitionNode,
+  UnionTypeExtensionNode,
+  InputObjectTypeExtensionNode,
+  InputObjectTypeDefinitionNode,
 } from 'graphql';
 
 import { SchemaVisitor } from './SchemaVisitor';
@@ -83,29 +100,24 @@ export interface IAddResolversToSchemaOptions {
   inheritResolversFromInterfaces?: boolean;
 }
 
-interface ScalarTypeToResolverMap {
-  name: '__name';
-  description: '__description';
-  serialize: '__serialize';
-  parseValue: '__parseValue';
-  parseLiteral: '__parseLiteral';
-  extensions: '__extensions';
-  astNode: '__astNode';
-  extensionASTNodes: '__extensionASTNodes';
-}
+export type IScalarTypeResolver = GraphQLScalarType & {
+  __name?: string;
+  __description?: string;
+  __serialize?: GraphQLScalarSerializer<any>;
+  __parseValue?: GraphQLScalarValueParser<any>;
+  __parseLiteral?: GraphQLScalarLiteralParser<any>;
+  __extensions?: Record<string, any>;
+  __astNode?: ScalarTypeDefinitionNode;
+  __extensionASTNodes?: Array<ScalarTypeExtensionNode>;
+};
 
-export type IScalarTypeResolver = GraphQLScalarType & Rename<GraphQLScalarType, ScalarTypeToResolverMap>;
-
-interface EnumTypeToResolverMap {
-  name: '__name';
-  description?: '__description';
-  values: '__values';
-  extensions: '__extensions';
-  astNode: '__astNode';
-  extensionASTNodes: '__extensionASTNodes';
-}
-
-export type IEnumTypeResolver = Record<string, any> & Rename<GraphQLEnumType, EnumTypeToResolverMap>;
+export type IEnumTypeResolver = Record<string, any> & {
+  __name?: string;
+  __description?: string;
+  __extensions?: Record<string, any>;
+  __astNode?: EnumTypeDefinitionNode;
+  __extensionASTNodes?: Array<EnumTypeExtensionNode>;
+};
 
 export interface IFieldResolverOptions<TSource = any, TContext = any, TArgs = any> {
   name?: string;
@@ -165,58 +177,44 @@ export type ITypedef = (() => Array<ITypedef>) | string | DocumentNode;
 
 export type ITypeDefinitions = ITypedef | Array<ITypedef>;
 
-interface ObjectTypeToResolverMap {
-  name: '__name';
-  description: '__description';
-  interfaces: '__interfaces';
-  fields: '__fields';
-  isTypeOf: '__isTypeOf';
-  extensions: '__extensions';
-  astNode: '__astNode';
-  extensionASTNodes: '__extensionASTNodes';
-}
-
 export type IObjectTypeResolver<TSource = any, TContext = any, TArgs = any> = {
   [key: string]: IFieldResolver<TSource, TContext, TArgs> | IFieldResolverOptions<TSource, TContext>;
-} & Rename<GraphQLObjectType<any, any>, ObjectTypeToResolverMap>;
-
-interface InterfaceTypeToResolverMap {
-  name: '__name';
-  description: '__description';
-  interfaces: '__interfaces';
-  fields: '__fields';
-  resolveType: '__resolveType';
-  extensions: '__extensions';
-  astNode: '__astNode';
-  extensionASTNodes: '__extensionASTNodes';
-}
+} & {
+  __name?: string;
+  __description?: string;
+  __isTypeOf?: GraphQLIsTypeOfFn<TSource, TContext>;
+  __extensions?: Record<string, any>;
+  __astNode?: ObjectTypeDefinitionNode;
+  __extensionASTNodes?: ObjectTypeExtensionNode;
+};
 
 export type IInterfaceTypeResolver<TSource = any, TContext = any, TArgs = any> = {
   [key: string]: IFieldResolver<TSource, TContext, TArgs> | IFieldResolverOptions<TSource, TContext>;
-} & Rename<GraphQLInterfaceType, InterfaceTypeToResolverMap>;
+} & {
+  __name?: string;
+  __description?: string;
+  __resolveType?: GraphQLTypeResolver<any, any>;
+  __extensions?: Record<string, any>;
+  __astNode?: InterfaceTypeDefinitionNode;
+  __extensionASTNodes?: Array<InterfaceTypeExtensionNode>;
+};
 
-interface UnionTypeToResolverMap {
-  name: '__name';
-  description: '__description';
-  types: '__types';
-  resolveType: '__resolveType';
-  extensions: '__extensions';
-  astNode: '__astNode';
-  extensionASTNodes: '__extensionASTNodes';
-}
+export type IUnionTypeResolver = {
+  __name?: string;
+  __description?: string;
+  __resolveType?: GraphQLTypeResolver<any, any>;
+  __extensions?: Record<string, any>;
+  __astNode?: UnionTypeDefinitionNode;
+  __extensionASTNodes?: Array<UnionTypeExtensionNode>;
+};
 
-export type IUnionTypeResolver = Rename<GraphQLUnionType, UnionTypeToResolverMap>;
-
-export interface InputObjectTypeToResolverMap {
-  name: '__name';
-  description: '__description';
-  fields: '__fields';
-  extensions: '__extensions';
-  astNode: '__astNode';
-  extensionASTNodes: '__extensionASTNodes';
-}
-
-export type IInputObjectTypeResolver = Rename<GraphQLInputObjectType, InputObjectTypeToResolverMap>;
+export type IInputObjectTypeResolver = {
+  __name?: string;
+  __description?: string;
+  __extensions?: Record<string, any>;
+  __astNode?: InputObjectTypeDefinitionNode;
+  __extensionASTNodes?: Array<InputObjectTypeExtensionNode>;
+};
 
 export type ISchemaLevelResolver<TSource, TContext, TArgs = Record<string, any>, TReturn = any> = IFieldResolver<
   TSource,
