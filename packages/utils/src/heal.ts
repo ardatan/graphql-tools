@@ -21,57 +21,38 @@ import {
   isNonNullType,
 } from 'graphql';
 
-import { isNamedStub, getBuiltInForStub } from './stub';
 import { TypeMap } from './Interfaces';
 
 // Update any references to named schema types that disagree with the named
 // types found in schema.getTypeMap().
+//
+// healSchema and its callers (visitSchema/visitSchemaDirectives) all modify the schema in place.
+// Therefore, private variables (such as the stored implementation map and the proper root types)
+// are not updated.
+//
+// If this causes issues, the schema could be more aggressively healed as follows:
+//
+// healSchema(schema);
+// const config = schema.toConfig()
+// const healedSchema = new GraphQLSchema({
+//   ...config,
+//   query: schema.getType('<desired new root query type name>'),
+//   mutation: schema.getType('<desired new root mutation type name>'),
+//   subscription: schema.getType('<desired new root subscription type name>'),
+// });
+//
+// One can then also -- if necessary --  assign the correct private variables to the initial schema
+// as follows:
+// Object.assign(schema, healedSchema);
+//
+// These steps are not taken automatically to preserve backwards compatibility with graphql-tools v4.
+// See https://github.com/ardatan/graphql-tools/issues/1462
+//
+// They were briefly taken in v5, but can now be phased out as they were only required when other
+// areas of the codebase were using healSchema and visitSchema more extensively.
+//
 export function healSchema(schema: GraphQLSchema): GraphQLSchema {
-  const typeMap = schema.getTypeMap();
-  const directives = schema.getDirectives();
-
-  const queryType = schema.getQueryType();
-  const mutationType = schema.getMutationType();
-  const subscriptionType = schema.getSubscriptionType();
-
-  const newQueryTypeName =
-    queryType != null ? (typeMap[queryType.name] != null ? typeMap[queryType.name].name : undefined) : undefined;
-  const newMutationTypeName =
-    mutationType != null
-      ? typeMap[mutationType.name] != null
-        ? typeMap[mutationType.name].name
-        : undefined
-      : undefined;
-  const newSubscriptionTypeName =
-    subscriptionType != null
-      ? typeMap[subscriptionType.name] != null
-        ? typeMap[subscriptionType.name].name
-        : undefined
-      : undefined;
-
-  healTypes(typeMap, directives);
-
-  const filteredTypeMap = {};
-
-  Object.keys(typeMap).forEach(typeName => {
-    if (!typeName.startsWith('__')) {
-      filteredTypeMap[typeName] = typeMap[typeName];
-    }
-  });
-
-  const healedSchema = new GraphQLSchema({
-    ...schema.toConfig(),
-    query: newQueryTypeName ? filteredTypeMap[newQueryTypeName] : undefined,
-    mutation: newMutationTypeName ? filteredTypeMap[newMutationTypeName] : undefined,
-    subscription: newSubscriptionTypeName ? filteredTypeMap[newSubscriptionTypeName] : undefined,
-    types: Object.keys(filteredTypeMap).map(typeName => filteredTypeMap[typeName]),
-    directives: directives.slice(),
-  });
-
-  // Reconstruct the schema to reinitialize private variables
-  // e.g. the stored implementation map and the proper root types.
-  Object.assign(schema, healedSchema);
-
+  healTypes(schema.getTypeMap(), schema.getDirectives());
   return schema;
 }
 
@@ -230,15 +211,12 @@ export function healTypes(
       // of truth for all named schema types.
       // Note that new types can still be simply added by adding a field, as
       // the official type will be undefined, not null.
-      let officialType = originalTypeMap[type.name];
-      if (officialType === undefined) {
-        officialType = isNamedStub(type) ? getBuiltInForStub(type) : type;
-        originalTypeMap[officialType.name] = officialType;
+      const officialType = originalTypeMap[type.name];
+      if (officialType && type !== officialType) {
+        return officialType as T;
       }
-      return officialType;
     }
-
-    return null;
+    return type;
   }
 }
 
