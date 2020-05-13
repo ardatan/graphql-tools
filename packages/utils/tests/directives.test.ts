@@ -25,6 +25,7 @@ import {
   isScalarType,
   isListType,
   TypeSystemExtensionNode,
+  GraphQLError,
 } from 'graphql';
 import formatDate from 'dateformat';
 
@@ -1456,6 +1457,104 @@ describe('@directives', () => {
       expect(data).toEqual({
         hello: 'DLROW OLLEH',
       });
+    });
+  });
+
+  test('preserves ability to create fields of different types with same name (issue 1462)', () => {
+    function validateStr(value: any, {
+      min = null,
+      message = null,
+    } : {
+      min: number,
+      message: string,
+    }) {
+      console.log(value, min, message);
+      if(min && value.length < min) {
+        throw new GraphQLError(message || `Please ensure the value is at least ${min} characters.`);
+      }
+    }
+
+    class ConstraintType extends GraphQLScalarType {
+      constructor(
+        type: GraphQLScalarType,
+        args: {
+          min: number,
+          message: string,
+        },
+      ) {
+        super({
+          name: 'ConstraintType',
+          serialize: (value) => type.serialize(value),
+          parseValue: (value) => {
+            const trimmed = value.trim();
+            validateStr(trimmed, args);
+            return type.parseValue(trimmed);
+          }
+        });
+      }
+    }
+
+    class ConstraintDirective extends SchemaDirectiveVisitor {
+      visitInputFieldDefinition(field: GraphQLInputField) {
+        if (isNonNullType(field.type) && isScalarType(field.type.ofType)) {
+          field.type = new GraphQLNonNull(
+            new ConstraintType(field.type.ofType, this.args)
+          );
+        } else if (isScalarType(field.type)) {
+          field.type = new ConstraintType(field.type, this.args);
+        } else {
+          throw new Error(`Not a scalar type: ${field.type}`);
+        }
+      }
+    }
+
+    const schema = makeExecutableSchema({
+      typeDefs: `
+        directive @constraint(min: Int, message: String) on INPUT_FIELD_DEFINITION
+
+        input BookInput {
+          name: String! @constraint(min: 10, message: "Book input error!")
+        }
+
+        input AuthorInput {
+          name: String! @constraint(min: 4, message: "Author input error")
+        }
+
+        type Query {
+          getBookById(id: Int): String
+        }
+
+        type Mutation {
+          createBook(input: BookInput!): String
+          createAuthor(input: AuthorInput!): String
+        }
+      `,
+      resolvers: {
+        Mutation: {
+          createBook() {
+            return 'yes';
+          },
+          createAuthor() {
+            return 'no';
+          }
+        }
+      },
+      schemaDirectives: {
+        constraint: ConstraintDirective
+      }
+    });
+
+    return graphql(
+      schema,
+      `
+        mutation {
+          createAuthor(input: {
+            name: "M"
+          })
+        }
+      `,
+    ).then(({ errors }) => {
+      expect(errors[0].message).toEqual('Author input error');
     });
   });
 });
