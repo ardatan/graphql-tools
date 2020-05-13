@@ -25,7 +25,6 @@ import {
   isScalarType,
   isListType,
   TypeSystemExtensionNode,
-  GraphQLError,
 } from 'graphql';
 import formatDate from 'dateformat';
 
@@ -1468,9 +1467,8 @@ describe('@directives', () => {
       min: number,
       message: string,
     }) {
-      console.log(value, min, message);
       if(min && value.length < min) {
-        throw new GraphQLError(message || `Please ensure the value is at least ${min} characters.`);
+        throw new Error(message || `Please ensure the value is at least ${min} characters.`);
       }
     }
 
@@ -1554,7 +1552,7 @@ describe('@directives', () => {
         }
       `,
     ).then(({ errors }) => {
-      expect(errors[0].message).toEqual('Author input error');
+      expect(errors[0].originalError).toEqual(new Error('Author input error'));
     });
   });
 });
