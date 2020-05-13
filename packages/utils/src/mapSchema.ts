@@ -23,6 +23,7 @@ import {
   isNamedType,
   GraphQLList,
   GraphQLNonNull,
+  GraphQLEnumType,
 } from 'graphql';
 
 import {
@@ -33,6 +34,8 @@ import {
   DirectiveMapper,
   GenericFieldMapper,
   IDefaultValueIteratorFn,
+  ArgumentMapper,
+  EnumValueMapper,
 } from './Interfaces';
 
 import { rewireTypes } from './rewire';
@@ -43,10 +46,12 @@ export function mapSchema(schema: GraphQLSchema, schemaMapper: SchemaMapper = {}
 
   let newTypeMap = mapDefaultValues(originalTypeMap, schema, serializeInputValue);
   newTypeMap = mapTypes(newTypeMap, schema, schemaMapper, type => isLeafType(type));
+  newTypeMap = mapEnumValues(newTypeMap, schema, schemaMapper);
   newTypeMap = mapDefaultValues(newTypeMap, schema, parseInputValue);
 
   newTypeMap = mapTypes(newTypeMap, schema, schemaMapper, type => !isLeafType(type));
   newTypeMap = mapFields(newTypeMap, schema, schemaMapper);
+  newTypeMap = mapArguments(newTypeMap, schema, schemaMapper);
 
   const originalDirectives = schema.getDirectives();
   const newDirectives = mapDirectives(originalDirectives, schema, schemaMapper);
@@ -111,56 +116,71 @@ function mapTypes(
   return newTypeMap;
 }
 
-function mapDefaultValues(typeMap: TypeMap, schema: GraphQLSchema, fn: IDefaultValueIteratorFn): TypeMap {
-  return mapFields(typeMap, schema, {
-    [MapperKind.OBJECT_FIELD]: fieldConfig => {
-      const originalArgumentConfigMap = fieldConfig.args;
+function mapEnumValues(originalTypeMap: TypeMap, schema: GraphQLSchema, schemaMapper: SchemaMapper): TypeMap {
+  const enumValueMapper = getEnumValueMapper(schemaMapper);
+  if (!enumValueMapper) {
+    return originalTypeMap;
+  }
 
-      if (originalArgumentConfigMap == null) {
-        return fieldConfig;
-      }
-
-      const argNames = Object.keys(originalArgumentConfigMap);
-      if (!argNames.length) {
-        return fieldConfig;
-      }
-
-      const newArgumentConfigMap = {};
-      Object.keys(originalArgumentConfigMap).forEach(argName => {
-        const originalArgument = originalArgumentConfigMap[argName];
-        if (originalArgument === undefined) {
-          newArgumentConfigMap[argName] = originalArgument;
-        } else {
-          const maybeNewType = getNewType(typeMap, originalArgument.type);
-          if (maybeNewType == null) {
-            newArgumentConfigMap[argName] = originalArgument;
-          } else {
-            newArgumentConfigMap[argName] = {
-              ...originalArgument,
-              defaultValue: fn(maybeNewType, originalArgument.defaultValue),
-            };
+  return mapTypes(
+    originalTypeMap,
+    schema,
+    {
+      [MapperKind.ENUM_TYPE]: type => {
+        const config = type.toConfig();
+        const originalEnumValueConfigMap = config.values;
+        const newEnumValueConfigMap = {};
+        Object.keys(originalEnumValueConfigMap).forEach(enumValueName => {
+          const originalEnumValueConfig = originalEnumValueConfigMap[enumValueName];
+          const mappedEnumValue = enumValueMapper(originalEnumValueConfig, type.name, schema);
+          if (mappedEnumValue === undefined) {
+            newEnumValueConfigMap[enumValueName] = originalEnumValueConfig;
+          } else if (Array.isArray(mappedEnumValue)) {
+            const [newEnumValueName, newEnumValueConfig] = mappedEnumValue;
+            newEnumValueConfigMap[newEnumValueName] = newEnumValueConfig;
+          } else if (mappedEnumValue !== null) {
+            newEnumValueConfigMap[enumValueName] = mappedEnumValue;
           }
-        }
-      });
-
-      return {
-        ...fieldConfig,
-        args: newArgumentConfigMap,
-      };
+        });
+        return new GraphQLEnumType({
+          ...config,
+          values: newEnumValueConfigMap,
+        });
+      },
     },
+    type => isEnumType(type)
+  );
+}
+
+function mapDefaultValues(originalTypeMap: TypeMap, schema: GraphQLSchema, fn: IDefaultValueIteratorFn): TypeMap {
+  const newTypeMap = mapArguments(originalTypeMap, schema, {
+    [MapperKind.ARGUMENT]: argumentConfig => {
+      if (argumentConfig.defaultValue === undefined) {
+        return argumentConfig;
+      }
+
+      const maybeNewType = getNewType(originalTypeMap, argumentConfig.type);
+      if (maybeNewType != null) {
+        return {
+          ...argumentConfig,
+          defaultValue: fn(maybeNewType, argumentConfig.defaultValue),
+        };
+      }
+    },
+  });
+
+  return mapFields(newTypeMap, schema, {
     [MapperKind.INPUT_OBJECT_FIELD]: inputFieldConfig => {
       if (inputFieldConfig.defaultValue === undefined) {
         return inputFieldConfig;
-      } else {
-        const maybeNewType = getNewType(typeMap, inputFieldConfig.type);
-        if (maybeNewType == null) {
-          return inputFieldConfig;
-        } else {
-          return {
-            ...inputFieldConfig,
-            defaultValue: fn(maybeNewType, inputFieldConfig.defaultValue),
-          };
-        }
+      }
+
+      const maybeNewType = getNewType(newTypeMap, inputFieldConfig.type);
+      if (maybeNewType != null) {
+        return {
+          ...inputFieldConfig,
+          defaultValue: fn(maybeNewType, inputFieldConfig.defaultValue),
+        };
       }
     },
   });
@@ -180,6 +200,7 @@ function getNewType<T extends GraphQLType>(newTypeMap: TypeMap, type: T): T | nu
 
   return null;
 }
+
 function mapFields(originalTypeMap: TypeMap, schema: GraphQLSchema, schemaMapper: SchemaMapper): TypeMap {
   const newTypeMap = {};
 
@@ -237,20 +258,106 @@ function mapFields(originalTypeMap: TypeMap, schema: GraphQLSchema, schemaMapper
   return newTypeMap;
 }
 
+function mapArguments(originalTypeMap: TypeMap, schema: GraphQLSchema, schemaMapper: SchemaMapper): TypeMap {
+  const newTypeMap = {};
+
+  Object.keys(originalTypeMap).forEach(typeName => {
+    if (!typeName.startsWith('__')) {
+      const originalType = originalTypeMap[typeName];
+
+      if (!isObjectType(originalType) && !isInterfaceType(originalType)) {
+        newTypeMap[typeName] = originalType;
+        return;
+      }
+
+      const argumentMapper = getArgumentMapper(schemaMapper);
+      if (argumentMapper == null) {
+        newTypeMap[typeName] = originalType;
+        return;
+      }
+
+      const config = originalType.toConfig();
+
+      const originalFieldConfigMap = config.fields;
+      const newFieldConfigMap = {};
+      Object.keys(originalFieldConfigMap).forEach(fieldName => {
+        const originalFieldConfig = originalFieldConfigMap[fieldName];
+        const originalArgumentConfigMap = originalFieldConfig.args;
+
+        if (originalArgumentConfigMap == null) {
+          newFieldConfigMap[fieldName] = originalFieldConfig;
+          return;
+        }
+
+        const argumentNames = Object.keys(originalArgumentConfigMap);
+
+        if (!argumentNames.length) {
+          newFieldConfigMap[fieldName] = originalFieldConfig;
+          return;
+        }
+
+        const newArgumentConfigMap = {};
+
+        argumentNames.forEach(argumentName => {
+          const originalArgumentConfig = originalArgumentConfigMap[argumentName];
+
+          const mappedArgument = argumentMapper(originalArgumentConfig, fieldName, typeName, schema);
+
+          if (mappedArgument === undefined) {
+            newArgumentConfigMap[argumentName] = originalArgumentConfig;
+          } else if (Array.isArray(mappedArgument)) {
+            const [newArgumentName, newArgumentConfig] = mappedArgument;
+            newArgumentConfigMap[newArgumentName] = newArgumentConfig;
+          } else if (mappedArgument !== null) {
+            newArgumentConfigMap[argumentName] = mappedArgument;
+          }
+        });
+        newFieldConfigMap[fieldName] = {
+          ...originalFieldConfig,
+          args: newArgumentConfigMap,
+        };
+      });
+
+      if (isObjectType(originalType)) {
+        newTypeMap[typeName] = new GraphQLObjectType({
+          ...((config as unknown) as GraphQLObjectTypeConfig<any, any>),
+          fields: newFieldConfigMap,
+        });
+      } else if (isInterfaceType(originalType)) {
+        newTypeMap[typeName] = new GraphQLInterfaceType({
+          ...((config as unknown) as GraphQLInterfaceTypeConfig<any, any>),
+          fields: newFieldConfigMap,
+        });
+      } else {
+        newTypeMap[typeName] = new GraphQLInputObjectType({
+          ...((config as unknown) as GraphQLInputObjectTypeConfig),
+          fields: newFieldConfigMap,
+        });
+      }
+    }
+  });
+
+  return newTypeMap;
+}
+
 function mapDirectives(
   originalDirectives: ReadonlyArray<GraphQLDirective>,
   schema: GraphQLSchema,
   schemaMapper: SchemaMapper
 ): Array<GraphQLDirective> {
+  const directiveMapper = getDirectiveMapper(schemaMapper);
+  if (directiveMapper == null) {
+    return originalDirectives.slice();
+  }
+
   const newDirectives: Array<GraphQLDirective> = [];
 
   originalDirectives.forEach(directive => {
-    const directiveMapper = getDirectiveMapper(schemaMapper);
-    if (directiveMapper != null) {
-      const maybeNewDirective = directiveMapper(directive, schema);
-      newDirectives.push(maybeNewDirective !== undefined ? maybeNewDirective : directive);
-    } else {
+    const mappedDirective = directiveMapper(directive, schema);
+    if (mappedDirective === undefined) {
       newDirectives.push(directive);
+    } else if (mappedDirective !== null) {
+      newDirectives.push(mappedDirective);
     }
   });
 
@@ -341,7 +448,17 @@ function getFieldMapper<F extends GraphQLFieldConfig<any, any> | GraphQLInputFie
   return fieldMapper != null ? fieldMapper : null;
 }
 
+function getArgumentMapper(schemaMapper: SchemaMapper): ArgumentMapper | null {
+  const argumentMapper = schemaMapper[MapperKind.ARGUMENT];
+  return argumentMapper != null ? argumentMapper : null;
+}
+
 function getDirectiveMapper(schemaMapper: SchemaMapper): DirectiveMapper | null {
   const directiveMapper = schemaMapper[MapperKind.DIRECTIVE];
   return directiveMapper != null ? directiveMapper : null;
+}
+
+function getEnumValueMapper(schemaMapper: SchemaMapper): EnumValueMapper | null {
+  const enumValueMapper = schemaMapper[MapperKind.ENUM_VALUE];
+  return enumValueMapper != null ? enumValueMapper : null;
 }

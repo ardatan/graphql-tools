@@ -169,10 +169,10 @@ const directiveResolvers = {
   // directive resolvers implement
 };
 
-attachDirectiveResolvers(
+schemaWithDirectiveResolvers = attachDirectiveResolvers(
   schema,
   directiveResolvers,
 );
 ```
 
-Given an instance of GraphQLSchema and a `directiveResolvers` map object, `attachDirectiveResolvers` wrap all field's resolver with directive resolvers.
+Given an instance of GraphQLSchema and a `directiveResolvers` map object, `attachDirectiveResolvers` returns a new schema in which all fields' resolver have been wrapped with directive resolvers.

@@ -19,6 +19,7 @@ export function makeExecutableSchema<TContext = any>({
   resolverValidationOptions = {},
   directiveResolvers,
   schemaDirectives,
+  schemaTransforms = [],
   parseOptions = {},
   inheritResolversFromInterfaces = false,
 }: IExecutableSchemaDefinition<TContext>) {
@@ -61,10 +62,14 @@ export function makeExecutableSchema<TContext = any>({
     schema = addSchemaLevelResolver(schema, resolvers['__schema'] as GraphQLFieldResolver<any, any>);
   }
 
+  schemaTransforms.forEach(schemaTransform => {
+    schema = schemaTransform(schema);
+  });
+
   // directive resolvers are implemented using SchemaDirectiveVisitor.visitSchemaDirectives
   // schema visiting modifies the schema in place
   if (directiveResolvers != null) {
-    attachDirectiveResolvers(schema, directiveResolvers);
+    schema = attachDirectiveResolvers(schema, directiveResolvers);
   }
 
   if (schemaDirectives != null) {

@@ -43,6 +43,7 @@ export function stitchSchemas({
   allowUndefinedInResolve = true,
   resolverValidationOptions = {},
   directiveResolvers,
+  schemaTransforms = [],
   parseOptions = {},
 }: IStitchSchemasOptions): GraphQLSchema {
   if (typeof resolverValidationOptions !== 'object') {
@@ -157,8 +158,12 @@ export function stitchSchemas({
     schema = addSchemaLevelResolver(schema, finalResolvers['__schema']);
   }
 
+  schemaTransforms.forEach(schemaTransform => {
+    schema = schemaTransform(schema);
+  });
+
   if (directiveResolvers != null) {
-    attachDirectiveResolvers(schema, directiveResolvers);
+    schema = attachDirectiveResolvers(schema, directiveResolvers);
   }
 
   if (schemaDirectives != null) {
