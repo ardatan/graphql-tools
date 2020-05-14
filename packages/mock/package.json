@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/mock",
-  "version": "5.0.0",
+  "version": "6.0.0-alpha.1",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": "git@github.com:ardatan/graphql-tools.git",
   "license": "MIT",
@@ -18,8 +18,8 @@
     "input": "./src/index.ts"
   },
   "dependencies": {
-    "@graphql-tools/schema": "5.0.0",
-    "@graphql-tools/utils": "5.0.0",
+    "@graphql-tools/schema": "6.0.0-alpha.1",
+    "@graphql-tools/utils": "6.0.0-alpha.1",
     "tslib": "1.11.1"
   },
   "devDependencies": {
