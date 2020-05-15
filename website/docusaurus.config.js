@@ -87,6 +87,13 @@ module.exports = {
       copyright: `Copyright © ${new Date().getFullYear()} The Guild, Inc. Built with Docusaurus.`,
     },
   },
+  scripts: [
+    {
+      src: 'https://the-guild.dev/static/banner.js',
+      async: true,
+      defer: true,
+    },
+  ],
   presets: [
     [
       '@docusaurus/preset-classic',
