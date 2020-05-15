@@ -51,7 +51,7 @@
     "apollo-upload-client": "13.0.0",
     "form-data": "3.0.0",
     "cross-fetch": "3.0.4",
-    "tslib": "1.13.0"
+    "tslib": "2.0.0"
   },
   "peerDependencies": {
     "graphql": "^14.0.0 || ^15.0.0"
