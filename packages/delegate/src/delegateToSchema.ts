@@ -7,6 +7,11 @@ import {
   GraphQLOutputType,
   isSchema,
   GraphQLResolveInfo,
+  FieldDefinitionNode,
+  getOperationAST,
+  OperationTypeNode,
+  GraphQLObjectType,
+  OperationDefinitionNode,
 } from 'graphql';
 
 import {
@@ -68,6 +73,28 @@ export function delegateToSchema(options: IDelegateToSchemaOptions | GraphQLSche
   });
 }
 
+function getDelegationReturnType(
+  info: GraphQLResolveInfo,
+  targetSchema: GraphQLSchema,
+  operation: OperationTypeNode,
+  fieldName: string
+): GraphQLOutputType {
+  if (info != null) {
+    return info.returnType;
+  }
+
+  let rootType: GraphQLObjectType<any, any>;
+  if (operation === 'query') {
+    rootType = targetSchema.getQueryType();
+  } else if (operation === 'mutation') {
+    rootType = targetSchema.getMutationType();
+  } else {
+    rootType = targetSchema.getSubscriptionType();
+  }
+
+  return rootType.getFields()[fieldName].type;
+}
+
 function buildDelegationTransforms(
   subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig,
   info: GraphQLResolveInfo,
@@ -84,7 +111,7 @@ function buildDelegationTransforms(
     new CheckResultAndHandleErrors(info, fieldName, subschemaOrSubschemaConfig, context, returnType, skipTypeMerging),
   ];
 
-  if (info.mergeInfo != null) {
+  if (info?.mergeInfo != null) {
     delegationTransforms.push(
       new AddReplacementSelectionSets(info.schema, info.mergeInfo.replacementSelectionSets),
       new AddMergedTypeSelectionSets(info.schema, info.mergeInfo.mergedTypes)
@@ -92,16 +119,19 @@ function buildDelegationTransforms(
   }
 
   const transformedTargetSchema =
-    info.mergeInfo == null
+    info?.mergeInfo == null
       ? transformedSchema ?? targetSchema
       : transformedSchema ?? info.mergeInfo.transformedSchemas.get(subschemaOrSubschemaConfig) ?? targetSchema;
 
   delegationTransforms.push(new WrapConcreteTypes(returnType, transformedTargetSchema));
-  delegationTransforms.push(new ExpandAbstractTypes(info.schema, transformedTargetSchema));
+
+  if (info != null) {
+    delegationTransforms.push(new ExpandAbstractTypes(info.schema, transformedTargetSchema));
+  }
 
   delegationTransforms = delegationTransforms.concat(transforms);
 
-  if (info.mergeInfo != null) {
+  if (info?.mergeInfo != null) {
     delegationTransforms.push(new AddReplacementFragments(targetSchema, info.mergeInfo.replacementFragments));
   }
 
@@ -119,16 +149,34 @@ export function delegateRequest({
   schema: subschemaOrSubschemaConfig,
   rootValue,
   info,
-  operation = getDelegatingOperation(info.parentType, info.schema),
-  fieldName = info.fieldName,
+  operation,
+  fieldName,
   args,
-  returnType = info.returnType,
+  returnType,
   context,
   transforms = [],
   transformedSchema,
   skipValidation,
   skipTypeMerging,
 }: IDelegateRequestOptions) {
+  let operationDefinition: OperationDefinitionNode;
+  let targetOperation: OperationTypeNode;
+  let targetFieldName: string;
+
+  if (operation == null) {
+    operationDefinition = getOperationAST(request.document, undefined);
+    targetOperation = operationDefinition.operation;
+  } else {
+    targetOperation = operation;
+  }
+
+  if (fieldName == null) {
+    operationDefinition = operationDefinition ?? getOperationAST(request.document, undefined);
+    targetFieldName = ((operationDefinition.selectionSet.selections[0] as unknown) as FieldDefinitionNode).name.value;
+  } else {
+    targetFieldName = fieldName;
+  }
+
   let targetSchema: GraphQLSchema;
   let targetRootValue: Record<string, any>;
   let requestTransforms: Array<Transform> = transforms.slice();
@@ -137,14 +185,13 @@ export function delegateRequest({
   if (isSubschemaConfig(subschemaOrSubschemaConfig)) {
     subschemaConfig = subschemaOrSubschemaConfig;
     targetSchema = subschemaConfig.schema;
-    targetRootValue =
-      rootValue != null ? rootValue : subschemaConfig.rootValue != null ? subschemaConfig.rootValue : info.rootValue;
+    targetRootValue = rootValue ?? subschemaConfig?.rootValue ?? info?.rootValue;
     if (subschemaConfig.transforms != null) {
       requestTransforms = requestTransforms.concat(subschemaConfig.transforms);
     }
   } else {
     targetSchema = subschemaOrSubschemaConfig;
-    targetRootValue = rootValue != null ? rootValue : info.rootValue;
+    targetRootValue = rootValue ?? info?.rootValue;
   }
 
   const delegationTransforms = buildDelegationTransforms(
@@ -152,9 +199,9 @@ export function delegateRequest({
     info,
     context,
     targetSchema,
-    fieldName,
+    targetFieldName,
     args,
-    returnType,
+    returnType ?? getDelegationReturnType(info, targetSchema, targetOperation, targetFieldName),
     requestTransforms.reverse(),
     transformedSchema,
     skipTypeMerging
@@ -174,7 +221,7 @@ export function delegateRequest({
     }
   }
 
-  if (operation === 'query' || operation === 'mutation') {
+  if (targetOperation === 'query' || targetOperation === 'mutation') {
     const executor =
       subschemaConfig?.executor || createDefaultExecutor(targetSchema, subschemaConfig?.rootValue || targetRootValue);
 
@@ -209,7 +256,7 @@ export function delegateRequest({
           // wrap with fieldName to return for an additional round of resolutioon
           // with payload as rootValue
           return {
-            [info.fieldName]: transformedResult,
+            [targetFieldName]: transformedResult,
           };
         }
       );
@@ -221,10 +268,10 @@ export function delegateRequest({
 
 function createDefaultExecutor(schema: GraphQLSchema, rootValue: Record<string, any>) {
   return ({ document, context, variables, info }: ExecutionParams) =>
-    execute(schema, document, rootValue || info.rootValue, context, variables);
+    execute(schema, document, rootValue ?? info?.rootValue, context, variables);
 }
 
 function createDefaultSubscriber(schema: GraphQLSchema, rootValue: Record<string, any>) {
   return ({ document, context, variables, info }: ExecutionParams) =>
-    subscribe(schema, document, rootValue || info.rootValue, context, variables) as any;
+    subscribe(schema, document, rootValue ?? info?.rootValue, context, variables) as any;
 }

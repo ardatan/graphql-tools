@@ -30,8 +30,9 @@ export interface IDelegateToSchemaOptions<TContext = Record<string, any>, TArgs 
   skipTypeMerging?: boolean;
 }
 
-export interface IDelegateRequestOptions extends IDelegateToSchemaOptions {
+export interface IDelegateRequestOptions extends Omit<IDelegateToSchemaOptions, 'info'> {
   request: Request;
+  info?: GraphQLResolveInfo;
 }
 
 export interface ICreateRequestFromInfo {

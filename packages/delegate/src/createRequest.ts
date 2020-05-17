@@ -35,7 +35,7 @@ export function createRequestFromInfo({
   operation = getDelegatingOperation(info.parentType, info.schema),
   fieldName = info.fieldName,
   selectionSet,
-  fieldNodes,
+  fieldNodes = info.fieldNodes,
 }: ICreateRequestFromInfo): Request {
   return createRequest({
     sourceSchema: info.schema,
@@ -47,7 +47,7 @@ export function createRequestFromInfo({
     targetOperation: operation,
     targetFieldName: fieldName,
     selectionSet,
-    fieldNodes: selectionSet != null ? undefined : fieldNodes != null ? fieldNodes : info.fieldNodes,
+    fieldNodes,
   });
 }
 
@@ -66,7 +66,7 @@ export function createRequest({
   let newSelectionSet: SelectionSetNode = selectionSet;
   let argumentNodeMap: Record<string, ArgumentNode>;
 
-  if (selectionSet != null && fieldNodes == null) {
+  if (fieldNodes == null) {
     argumentNodeMap = Object.create(null);
   } else {
     const selections: Array<SelectionNode> = fieldNodes.reduce(
