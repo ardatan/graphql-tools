@@ -1,8 +1,6 @@
 import { GraphQLSchema, graphql } from 'graphql';
 
 import { delegateToSchema } from '@graphql-tools/delegate';
-import { wrapSchema } from '@graphql-tools/wrap';
-import { makeExecutableSchema } from '@graphql-tools/schema';
 import { IResolvers } from '@graphql-tools/utils';
 
 import { stitchSchemas } from '../src/stitchSchemas';
@@ -104,100 +102,6 @@ describe('stitching', () => {
           },
         },
       });
-    });
-  });
-});
-
-describe('schema delegation', () => {
-  test('should work even when there are default fields', async () => {
-    const schema = makeExecutableSchema({
-      typeDefs: `
-        scalar JSON
-        type Data {
-          json(input: JSON = "test"): JSON
-        }
-        type Query {
-          data: Data
-        }
-      `,
-      resolvers: {
-        Query: {
-          data: () => ({}),
-        },
-        Data: {
-          json: (_root, args, context, info) =>
-            delegateToSchema({
-              schema: propertySchema,
-              fieldName: 'jsonTest',
-              args,
-              context,
-              info,
-            }),
-        },
-      },
-    });
-
-    const result = await graphql(
-      schema,
-      `
-        query {
-          data {
-            json
-          }
-        }
-      `,
-    );
-
-    expect(result).toEqual({
-      data: {
-        data: {
-          json: 'test',
-        },
-      },
-    });
-  });
-
-  test('should work even with variables', async () => {
-    const innerSchema = makeExecutableSchema({
-      typeDefs: `
-        type User {
-          id(show: Boolean): ID
-        }
-        type Query {
-          user: User
-        }
-      `,
-      resolvers: {
-        Query: {
-          user: () => ({}),
-        },
-        User: {
-          id: () => '123',
-        },
-      },
-    });
-    const schema = wrapSchema(innerSchema);
-
-    const result = await graphql(
-      schema,
-      `
-        query($show: Boolean) {
-          user {
-            id(show: $show)
-          }
-        }
-      `,
-      null,
-      null,
-      { show: true },
-    );
-
-    expect(result).toEqual({
-      data: {
-        user: {
-          id: '123',
-        },
-      },
     });
   });
 });
