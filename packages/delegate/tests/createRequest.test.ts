@@ -1,4 +1,4 @@
-import { graphql } from 'graphql';
+import { graphql, Kind } from 'graphql';
 
 import { createRequest } from '../src/createRequest';
 import { makeExecutableSchema } from '@graphql-tools/schema';
@@ -27,7 +27,7 @@ describe('bare requests', () => {
       `,
       resolvers: {
         Query: {
-          delegate: (_root, args, context, info) => {
+          delegate: (_root, args) => {
             const request = createRequest({
               targetOperation: 'query',
               targetFieldName: 'test',
@@ -35,10 +35,7 @@ describe('bare requests', () => {
             return delegateRequest({
               request,
               schema: innerSchema,
-              fieldName: 'test',
               args,
-              context,
-              info
             });
           },
         },
