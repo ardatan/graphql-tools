@@ -7,7 +7,7 @@ import {
   GraphQLFieldConfigMap,
 } from 'graphql';
 
-import { mapSchema, MapperKind, removeObjectFields, addTypes, appendObjectFields } from '@graphql-tools/utils';
+import { mapSchema, MapperKind, addTypes, modifyObjectFields } from '@graphql-tools/utils';
 import { wrapSchema, RenameTypes } from '../src';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { addMocksToSchema } from '@graphql-tools/mock';
@@ -36,21 +36,18 @@ class NamespaceUnderFieldTransform {
   }
 
   transformSchema(schema: GraphQLSchema) {
-    const query = schema.getQueryType();
+    const queryConfig = schema.getQueryType().toConfig();
 
-    let [newSchema, fields] = removeObjectFields(schema, query.name, () => true);
-
-    const nestedType = new GraphQLObjectType({
-        ...query.toConfig(),
-        name: this.typeName,
-        fields,
+    const nestedQuery = new GraphQLObjectType({
+      ...queryConfig,
+      name: this.typeName,
     });
 
-    newSchema = addTypes(newSchema, [nestedType]);
+    let newSchema = addTypes(schema, [nestedQuery]);
 
     const newRootFieldConfigMap: GraphQLFieldConfigMap<any, any> = {
       [this.fieldName]: {
-        type: new GraphQLNonNull(nestedType),
+        type: new GraphQLNonNull(nestedQuery),
         resolve: (parent, args, context, info) => {
           if (this.resolver != null) {
             return this.resolver(parent, args, context, info);
@@ -61,7 +58,7 @@ class NamespaceUnderFieldTransform {
       },
     };
 
-    newSchema = appendObjectFields(newSchema, query.name, newRootFieldConfigMap);
+    [newSchema] = modifyObjectFields(newSchema, queryConfig.name, () => true, newRootFieldConfigMap);
 
     return newSchema;
   }
