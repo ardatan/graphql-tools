@@ -1,6 +1,13 @@
 import { GraphQLSchema, GraphQLObjectType } from 'graphql';
 
-import { Transform, Request, hoistFieldNodes, removeObjectFields, appendObjectFields } from '@graphql-tools/utils';
+import {
+  Transform,
+  Request,
+  hoistFieldNodes,
+  appendObjectFields,
+  selectObjectFields,
+  modifyObjectFields,
+} from '@graphql-tools/utils';
 import { createMergedResolver, defaultMergedResolver } from '@graphql-tools/delegate';
 
 import MapFields from './MapFields';
@@ -41,7 +48,7 @@ export default class WrapFields implements Transform {
   }
 
   public transformSchema(schema: GraphQLSchema): GraphQLSchema {
-    let [newSchema, targetFieldConfigMap] = removeObjectFields(
+    const targetFieldConfigMap = selectObjectFields(
       schema,
       this.outerTypeName,
       !this.fieldNames ? () => true : fieldName => this.fieldNames.includes(fieldName)
@@ -51,7 +58,7 @@ export default class WrapFields implements Transform {
     let wrappingTypeName = this.wrappingTypeNames[wrapIndex];
     let wrappingFieldName = this.wrappingFieldNames[wrapIndex];
 
-    newSchema = appendObjectFields(newSchema, wrappingTypeName, targetFieldConfigMap);
+    let newSchema = appendObjectFields(schema, wrappingTypeName, targetFieldConfigMap);
 
     for (wrapIndex--; wrapIndex > -1; wrapIndex--) {
       const nextWrappingTypeName = this.wrappingTypeNames[wrapIndex];
@@ -67,12 +74,18 @@ export default class WrapFields implements Transform {
       wrappingFieldName = this.wrappingFieldNames[wrapIndex];
     }
 
-    newSchema = appendObjectFields(newSchema, this.outerTypeName, {
-      [wrappingFieldName]: {
-        type: newSchema.getType(wrappingTypeName) as GraphQLObjectType,
-        resolve: createMergedResolver({ dehoist: true }),
-      },
-    });
+    const selectedFieldNames = Object.keys(targetFieldConfigMap);
+    [newSchema] = modifyObjectFields(
+      newSchema,
+      this.outerTypeName,
+      fieldName => selectedFieldNames.includes(fieldName),
+      {
+        [wrappingFieldName]: {
+          type: newSchema.getType(wrappingTypeName) as GraphQLObjectType,
+          resolve: createMergedResolver({ dehoist: true }),
+        },
+      }
+    );
 
     return this.transformer.transformSchema(newSchema);
   }
