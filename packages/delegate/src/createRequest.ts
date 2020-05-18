@@ -81,13 +81,18 @@ export function createRequest({
         }
       : undefined;
 
-    argumentNodeMap = fieldNodes[0].arguments.reduce(
-      (prev, curr) => ({
-        ...prev,
-        [curr.name.value]: curr,
-      }),
-      {}
-    );
+    argumentNodeMap = {};
+
+    const args = fieldNodes[0]?.arguments;
+    if (args) {
+      argumentNodeMap = args.reduce(
+        (prev, curr) => ({
+          ...prev,
+          [curr.name.value]: curr,
+        }),
+        argumentNodeMap
+      );
+    }
   }
 
   const newVariables = Object.create(null);

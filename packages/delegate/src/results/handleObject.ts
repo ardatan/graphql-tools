@@ -29,7 +29,7 @@ export function handleObject(
 
   setObjectSubschema(object, subschema);
 
-  if (skipTypeMerging || !info.mergeInfo) {
+  if (skipTypeMerging || !info?.mergeInfo) {
     return object;
   }
 
