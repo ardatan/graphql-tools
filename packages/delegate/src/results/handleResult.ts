@@ -27,7 +27,7 @@ export function handleResult(
   const type = getNullableType(returnType);
 
   if (result == null) {
-    return handleNull(info.fieldNodes, responsePathAsArray(info.path), errors);
+    return handleNull(info?.fieldNodes, responsePathAsArray(info?.path), errors);
   }
 
   if (isLeafType(type)) {
