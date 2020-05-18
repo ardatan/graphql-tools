@@ -5,7 +5,6 @@ import {
   GraphQLResolveInfo,
   getNullableType,
   GraphQLType,
-  responsePathAsArray,
   isLeafType,
   isCompositeType,
   isListType,
@@ -32,7 +31,6 @@ export function handleList(
     handleListMember(
       getNullableType(type.ofType),
       listMember,
-      index,
       index in childErrors ? childErrors[index] : [],
       subschema,
       context,
@@ -45,7 +43,6 @@ export function handleList(
 function handleListMember(
   type: GraphQLType,
   listMember: any,
-  index: number,
   errors: ReadonlyArray<GraphQLError>,
   subschema: GraphQLSchema | SubschemaConfig,
   context: Record<string, any>,
@@ -53,7 +50,7 @@ function handleListMember(
   skipTypeMerging?: boolean
 ): any {
   if (listMember == null) {
-    return handleNull(info.fieldNodes, [...responsePathAsArray(info.path), index], errors);
+    return handleNull(errors);
   }
 
   if (isLeafType(type)) {

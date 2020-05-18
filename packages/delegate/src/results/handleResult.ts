@@ -1,6 +1,5 @@
 import {
   GraphQLResolveInfo,
-  responsePathAsArray,
   getNullableType,
   isCompositeType,
   isLeafType,
@@ -27,7 +26,7 @@ export function handleResult(
   const type = getNullableType(returnType);
 
   if (result == null) {
-    return handleNull(info?.fieldNodes, responsePathAsArray(info?.path), errors);
+    return handleNull(errors);
   }
 
   if (isLeafType(type)) {

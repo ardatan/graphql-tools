@@ -1,12 +1,8 @@
-import { FieldNode, GraphQLError } from 'graphql';
+import { GraphQLError } from 'graphql';
 
 import { getErrorsByPathSegment, CombinedError } from '@graphql-tools/utils';
 
-export function handleNull(
-  fieldNodes: ReadonlyArray<FieldNode>,
-  path: Array<string | number>,
-  errors: ReadonlyArray<GraphQLError>
-) {
+export function handleNull(errors: ReadonlyArray<GraphQLError>) {
   if (errors.length) {
     if (errors.some(error => !error.path || error.path.length < 2)) {
       if (errors.length > 1) {
@@ -20,7 +16,7 @@ export function handleNull(
 
       const result = {};
       Object.keys(childErrors).forEach(pathSegment => {
-        result[pathSegment] = handleNull(fieldNodes, [...path, pathSegment], childErrors[pathSegment]);
+        result[pathSegment] = handleNull(childErrors[pathSegment]);
       });
 
       return result;
@@ -30,7 +26,7 @@ export function handleNull(
 
     const result: Array<any> = [];
     Object.keys(childErrors).forEach(pathSegment => {
-      result.push(handleNull(fieldNodes, [...path, parseInt(pathSegment, 10)], childErrors[pathSegment]));
+      result.push(handleNull(childErrors[pathSegment]));
     });
 
     return result;
