@@ -147,6 +147,10 @@ export function mergeExtensions(extensions: SchemaExtensions[]): SchemaExtension
 }
 
 function applyExtensionObject(obj: { extensions: Maybe<Readonly<Record<string, any>>> }, extensions: ExtensionsObject) {
+  if (!obj) {
+    return;
+  }
+
   obj.extensions = [obj.extensions || {}, extensions || {}].reduce(mergeDeep, {});
 }
 
@@ -155,29 +159,35 @@ export function applyExtensions(schema: GraphQLSchema, extensions: SchemaExtensi
 
   for (const [typeName, data] of Object.entries(extensions.types || {})) {
     const type = schema.getType(typeName);
-    applyExtensionObject(type, data.extensions);
 
-    if (data.type === 'object' || data.type === 'interface') {
-      for (const [fieldName, fieldData] of Object.entries(data.fields)) {
-        const field = (type as GraphQLObjectType).getFields()[fieldName];
-        applyExtensionObject(field, fieldData.extensions);
+    if (type) {
+      applyExtensionObject(type, data.extensions);
 
-        for (const [arg, argData] of Object.entries(fieldData.arguments)) {
-          applyExtensionObject(
-            field.args.find(a => a.name === arg),
-            argData
-          );
+      if (data.type === 'object' || data.type === 'interface') {
+        for (const [fieldName, fieldData] of Object.entries(data.fields)) {
+          const field = (type as GraphQLObjectType).getFields()[fieldName];
+
+          if (field) {
+            applyExtensionObject(field, fieldData.extensions);
+
+            for (const [arg, argData] of Object.entries(fieldData.arguments)) {
+              applyExtensionObject(
+                field.args.find(a => a.name === arg),
+                argData
+              );
+            }
+          }
         }
-      }
-    } else if (data.type === 'input') {
-      for (const [fieldName, fieldData] of Object.entries(data.fields)) {
-        const field = (type as GraphQLObjectType).getFields()[fieldName];
-        applyExtensionObject(field, fieldData.extensions);
-      }
-    } else if (data.type === 'enum') {
-      for (const [valueName, valueData] of Object.entries(data.values)) {
-        const value = (type as GraphQLEnumType).getValue(valueName);
-        applyExtensionObject(value, valueData);
+      } else if (data.type === 'input') {
+        for (const [fieldName, fieldData] of Object.entries(data.fields)) {
+          const field = (type as GraphQLObjectType).getFields()[fieldName];
+          applyExtensionObject(field, fieldData.extensions);
+        }
+      } else if (data.type === 'enum') {
+        for (const [valueName, valueData] of Object.entries(data.values)) {
+          const value = (type as GraphQLEnumType).getValue(valueName);
+          applyExtensionObject(value, valueData);
+        }
       }
     }
   }
