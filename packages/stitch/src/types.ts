@@ -12,12 +12,6 @@ export type MergeTypeCandidate = {
 
 export type MergeTypeFilter = (mergeTypeCandidates: Array<MergeTypeCandidate>, typeName: string) => boolean;
 
-declare module 'graphql' {
-  interface GraphQLResolveInfo {
-    mergeInfo?: MergeInfo;
-  }
-}
-
 export interface MergedTypeInfo {
   subschemas: Array<SubschemaConfig>;
   selectionSet?: SelectionSetNode;
@@ -28,7 +22,7 @@ export interface MergedTypeInfo {
   containsSelectionSet: Map<SubschemaConfig, Map<SelectionSetNode, boolean>>;
 }
 
-export interface MergeInfo {
+export interface StitchingInfo {
   transformedSchemas: Map<GraphQLSchema | SubschemaConfig, GraphQLSchema>;
   fragments: Array<{
     field: string;

@@ -24,8 +24,8 @@ import {
 } from '@graphql-tools/schema';
 
 import { buildTypeCandidates, buildTypeMap } from './typeCandidates';
-import { createMergeInfo, completeMergeInfo, addMergeInfo } from './mergeInfo';
-import { MergeTypeCandidate, IStitchSchemasOptions, MergeInfo } from './types';
+import { createStitchingInfo, completeStitchingInfo, addStitchingInfo } from './stitchingInfo';
+import { MergeTypeCandidate, IStitchSchemasOptions, StitchingInfo } from './types';
 import { SubschemaConfig, isSubschemaConfig } from '@graphql-tools/delegate';
 
 export function stitchSchemas({
@@ -91,14 +91,14 @@ export function stitchSchemas({
     mergeDirectives,
   });
 
-  let mergeInfo: MergeInfo;
+  let stitchingInfo: StitchingInfo;
 
-  mergeInfo = createMergeInfo(transformedSchemas, typeCandidates, mergeTypes);
+  stitchingInfo = createStitchingInfo(transformedSchemas, typeCandidates, mergeTypes);
 
   const typeMap = buildTypeMap({
     typeCandidates,
     mergeTypes,
-    mergeInfo,
+    stitchingInfo,
     onTypeConflict,
     operationTypeNames,
   });
@@ -131,7 +131,7 @@ export function stitchSchemas({
     ? extendResolversFromInterfaces(schema, resolverMap)
     : resolverMap;
 
-  mergeInfo = completeMergeInfo(mergeInfo, finalResolvers);
+  stitchingInfo = completeStitchingInfo(stitchingInfo, finalResolvers);
 
   schema = addResolversToSchema({
     schema,
@@ -142,7 +142,7 @@ export function stitchSchemas({
 
   assertResolversPresent(schema, resolverValidationOptions);
 
-  schema = addMergeInfo(schema, mergeInfo);
+  schema = addStitchingInfo(schema, stitchingInfo);
 
   if (!allowUndefinedInResolve) {
     schema = addCatchUndefinedToSchema(schema);

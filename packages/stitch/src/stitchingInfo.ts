@@ -16,19 +16,17 @@ import {
   TypeMap,
   IResolvers,
   IFieldResolverOptions,
-  mapSchema,
-  MapperKind,
 } from '@graphql-tools/utils';
 
 import { delegateToSchema, isSubschemaConfig, SubschemaConfig } from '@graphql-tools/delegate';
 
-import { MergeTypeCandidate, MergedTypeInfo, MergeInfo, MergeTypeFilter } from './types';
+import { MergeTypeCandidate, MergedTypeInfo, StitchingInfo, MergeTypeFilter } from './types';
 
-export function createMergeInfo(
+export function createStitchingInfo(
   transformedSchemas: Map<GraphQLSchema | SubschemaConfig, GraphQLSchema>,
   typeCandidates: Record<string, Array<MergeTypeCandidate>>,
   mergeTypes?: boolean | Array<string> | MergeTypeFilter
-): MergeInfo {
+): StitchingInfo {
   return {
     transformedSchemas,
     fragments: [],
@@ -148,7 +146,7 @@ function createMergedTypes(
   return mergedTypes;
 }
 
-export function completeMergeInfo(mergeInfo: MergeInfo, resolvers: IResolvers): MergeInfo {
+export function completeStitchingInfo(stitchingInfo: StitchingInfo, resolvers: IResolvers): StitchingInfo {
   const replacementSelectionSets = Object.create(null);
 
   Object.keys(resolvers).forEach(typeName => {
@@ -176,7 +174,7 @@ export function completeMergeInfo(mergeInfo: MergeInfo, resolvers: IResolvers): 
         );
       }
       if (field.fragment) {
-        mergeInfo.fragments.push({
+        stitchingInfo.fragments.push({
           field: fieldName,
           fragment: field.fragment,
         });
@@ -185,7 +183,7 @@ export function completeMergeInfo(mergeInfo: MergeInfo, resolvers: IResolvers): 
   });
 
   const mapping = Object.create(null);
-  mergeInfo.fragments.forEach(({ field, fragment }) => {
+  stitchingInfo.fragments.forEach(({ field, fragment }) => {
     const parsedFragment = parseFragmentToInlineFragment(fragment);
     const actualTypeName = parsedFragment.typeCondition.name.value;
     if (!(actualTypeName in mapping)) {
@@ -211,27 +209,18 @@ export function completeMergeInfo(mergeInfo: MergeInfo, resolvers: IResolvers): 
     });
   });
 
-  mergeInfo.replacementSelectionSets = replacementSelectionSets;
-  mergeInfo.replacementFragments = replacementFragments;
+  stitchingInfo.replacementSelectionSets = replacementSelectionSets;
+  stitchingInfo.replacementFragments = replacementFragments;
 
-  return mergeInfo;
+  return stitchingInfo;
 }
 
-export function addMergeInfo(stitchedSchema: GraphQLSchema, mergeInfo: MergeInfo): GraphQLSchema {
-  return mapSchema(stitchedSchema, {
-    [MapperKind.OBJECT_FIELD]: originalFieldConfig => {
-      const newFieldConfig = { ...originalFieldConfig };
-      const resolver = originalFieldConfig.resolve;
-      if (resolver != null) {
-        newFieldConfig.resolve = (parent, args, context, info) =>
-          resolver(parent, args, context, { ...info, mergeInfo });
-      }
-      const subscriber = originalFieldConfig.subscribe;
-      if (subscriber != null) {
-        newFieldConfig.subscribe = (parent, args, context, info) =>
-          subscriber(parent, args, context, { ...info, mergeInfo });
-      }
-      return newFieldConfig;
+export function addStitchingInfo(stitchedSchema: GraphQLSchema, stitchingInfo: StitchingInfo): GraphQLSchema {
+  return new GraphQLSchema({
+    ...stitchedSchema.toConfig(),
+    extensions: {
+      ...stitchedSchema.extensions,
+      stitchingInfo,
     },
   });
 }

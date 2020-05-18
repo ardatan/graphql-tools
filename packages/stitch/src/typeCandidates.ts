@@ -33,7 +33,7 @@ import {
 } from './definitions';
 
 import typeFromAST from './typeFromAST';
-import { MergeTypeCandidate, MergeTypeFilter, OnTypeConflict, MergeInfo } from './types';
+import { MergeTypeCandidate, MergeTypeFilter, OnTypeConflict, StitchingInfo } from './types';
 import { TypeMap } from '@graphql-tools/utils';
 
 type CandidateSelector = (candidates: Array<MergeTypeCandidate>) => MergeTypeCandidate;
@@ -194,13 +194,13 @@ function addTypeCandidate(
 export function buildTypeMap({
   typeCandidates,
   mergeTypes,
-  mergeInfo,
+  stitchingInfo,
   onTypeConflict,
   operationTypeNames,
 }: {
   typeCandidates: Record<string, Array<MergeTypeCandidate>>;
   mergeTypes: boolean | Array<string> | MergeTypeFilter;
-  mergeInfo: MergeInfo;
+  stitchingInfo: StitchingInfo;
   onTypeConflict: OnTypeConflict;
   operationTypeNames: Record<string, any>;
 }): TypeMap {
@@ -214,7 +214,7 @@ export function buildTypeMap({
       (mergeTypes === true && !isScalarType(typeCandidates[typeName][0].type)) ||
       (typeof mergeTypes === 'function' && mergeTypes(typeCandidates[typeName], typeName)) ||
       (Array.isArray(mergeTypes) && mergeTypes.includes(typeName)) ||
-      (mergeInfo != null && typeName in mergeInfo.mergedTypes)
+      (stitchingInfo != null && typeName in stitchingInfo.mergedTypes)
     ) {
       typeMap[typeName] = merge(typeName, typeCandidates[typeName]);
     } else {

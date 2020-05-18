@@ -159,7 +159,7 @@ describe('merge schemas through transforms', () => {
       typeDefs: linkSchema,
       resolvers: {
         Query: {
-          // delegating directly, no subschemas or mergeInfo
+          // delegating directly, no subschemas or stitchingInfo
           node: (_parent, args, context, info) => {
             if (args.id.startsWith('p')) {
               return delegateToSchema({

@@ -22,6 +22,8 @@ export function handleObject(
   info: GraphQLResolveInfo,
   skipTypeMerging?: boolean
 ) {
+  const stitchingInfo = info?.schema.extensions?.stitchingInfo;
+
   setErrors(
     object,
     errors.map(error => slicedError(error))
@@ -29,12 +31,12 @@ export function handleObject(
 
   setObjectSubschema(object, subschema);
 
-  if (skipTypeMerging || !info?.mergeInfo) {
+  if (skipTypeMerging || !stitchingInfo) {
     return object;
   }
 
   const typeName = isAbstractType(type) ? info.schema.getTypeMap()[object.__typename].name : type.name;
-  const mergedTypeInfo = info.mergeInfo.mergedTypes[typeName];
+  const mergedTypeInfo = stitchingInfo.mergedTypes[typeName];
   let targetSubschemas: Array<SubschemaConfig>;
 
   if (mergedTypeInfo != null) {
