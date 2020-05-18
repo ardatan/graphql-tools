@@ -1,4 +1,4 @@
-import { GraphQLError, GraphQLResolveInfo } from 'graphql';
+import { GraphQLError } from 'graphql';
 
 import { mergeDeep, ERROR_SYMBOL, relocatedError, setErrors, getErrors } from '@graphql-tools/utils';
 
@@ -12,7 +12,7 @@ export function isProxiedResult(result: any) {
   return result != null ? result[ERROR_SYMBOL] : result;
 }
 
-export function unwrapResult(parent: any, info: GraphQLResolveInfo, path: Array<string>): any {
+export function unwrapResult(parent: any, path: Array<string>): any {
   let newParent: any = parent;
   const pathLength = path.length;
   for (let i = 0; i < pathLength; i++) {
