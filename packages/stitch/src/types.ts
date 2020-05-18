@@ -1,5 +1,5 @@
 import { GraphQLNamedType, GraphQLSchema, SelectionSetNode, DocumentNode } from 'graphql';
-import { IResolvers, ITypeDefinitions, TypeMap } from '@graphql-tools/utils';
+import { ITypeDefinitions, TypeMap } from '@graphql-tools/utils';
 import { SubschemaConfig, ReplacementSelectionSetMapping, ReplacementFragmentMapping } from '@graphql-tools/delegate';
 import { IExecutableSchemaDefinition } from '@graphql-tools/schema';
 
@@ -38,11 +38,6 @@ export interface MergeInfo {
   replacementFragments: ReplacementFragmentMapping;
   mergedTypes: Record<string, MergedTypeInfo>;
 }
-
-export type IResolversParameter =
-  | Array<IResolvers | ((mergeInfo: MergeInfo) => IResolvers)>
-  | IResolvers
-  | ((mergeInfo: MergeInfo) => IResolvers);
 
 export type SchemaLikeObject = SubschemaConfig | GraphQLSchema | string | DocumentNode | Array<GraphQLNamedType>;
 
