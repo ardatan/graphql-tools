@@ -1,4 +1,4 @@
-import { GraphQLError, responsePathAsArray, GraphQLResolveInfo } from 'graphql';
+import { GraphQLError, GraphQLResolveInfo } from 'graphql';
 
 import { mergeDeep, ERROR_SYMBOL, relocatedError, setErrors, getErrors } from '@graphql-tools/utils';
 
@@ -22,7 +22,7 @@ export function unwrapResult(parent: any, info: GraphQLResolveInfo, path: Array<
 
     const object = newParent[responseKey];
     if (object == null) {
-      return handleNull(info.fieldNodes, responsePathAsArray(info.path), errors);
+      return handleNull(errors);
     }
 
     setErrors(
