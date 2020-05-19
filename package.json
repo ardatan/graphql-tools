@@ -37,7 +37,7 @@
     "graphql": "^14.0.0 || ^15.0.0"
   },
   "devDependencies": {
-    "@types/fs-extra": "9.0.0",
+    "@types/fs-extra": "9.0.1",
     "@types/jest": "25.2.3",
     "@types/node": "13.13.6",
     "jest": "26.0.1",
