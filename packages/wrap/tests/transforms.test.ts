@@ -31,7 +31,7 @@ import {
   defaultMergedResolver,
   ReplaceFieldWithFragment,
   FilterToSchema,
-  AddReplacementFragments,
+  AddFragmentsByField,
 } from '@graphql-tools/delegate';
 
 import { propertySchema, bookingSchema } from './fixtures/schemas';
@@ -1297,7 +1297,7 @@ describe('replaces field with processed fragment node', () => {
               context,
               info,
               transforms: [
-                new AddReplacementFragments(subschema, {
+                new AddFragmentsByField(subschema, {
                   User: {
                     fullname: concatInlineFragments('User', [
                       parseFragmentToInlineFragment(

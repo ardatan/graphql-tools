@@ -10,19 +10,18 @@ import {
 } from 'graphql';
 
 import { Transform, Request } from '@graphql-tools/utils';
-import { ReplacementSelectionSetMapping } from '../types';
 
-export default class AddReplacementSelectionSets implements Transform {
+export default class AddSelectionSetsByField implements Transform {
   private readonly schema: GraphQLSchema;
-  private readonly mapping: ReplacementSelectionSetMapping;
+  private readonly mapping: Record<string, Record<string, SelectionSetNode>>;
 
-  constructor(schema: GraphQLSchema, mapping: ReplacementSelectionSetMapping) {
+  constructor(schema: GraphQLSchema, mapping: Record<string, Record<string, SelectionSetNode>>) {
     this.schema = schema;
     this.mapping = mapping;
   }
 
   public transformRequest(originalRequest: Request): Request {
-    const document = replaceFieldsWithSelectionSet(this.schema, originalRequest.document, this.mapping);
+    const document = addSelectionSetsByField(this.schema, originalRequest.document, this.mapping);
     return {
       ...originalRequest,
       document,
@@ -30,10 +29,10 @@ export default class AddReplacementSelectionSets implements Transform {
   }
 }
 
-function replaceFieldsWithSelectionSet(
+function addSelectionSetsByField(
   schema: GraphQLSchema,
   document: DocumentNode,
-  mapping: ReplacementSelectionSetMapping
+  mapping: Record<string, Record<string, SelectionSetNode>>
 ): DocumentNode {
   const typeInfo = new TypeInfo(schema);
   return visit(

@@ -1,6 +1,13 @@
-import { GraphQLNamedType, GraphQLSchema, SelectionSetNode, DocumentNode, SelectionNode } from 'graphql';
+import {
+  GraphQLNamedType,
+  GraphQLSchema,
+  SelectionSetNode,
+  DocumentNode,
+  SelectionNode,
+  InlineFragmentNode,
+} from 'graphql';
 import { ITypeDefinitions, TypeMap } from '@graphql-tools/utils';
-import { SubschemaConfig, ReplacementSelectionSetMapping, ReplacementFragmentMapping } from '@graphql-tools/delegate';
+import { SubschemaConfig } from '@graphql-tools/delegate';
 import { IExecutableSchemaDefinition } from '@graphql-tools/schema';
 
 export type MergeTypeCandidate = {
@@ -24,9 +31,9 @@ export interface MergedTypeInfo {
 
 export interface StitchingInfo {
   transformedSchemas: Map<GraphQLSchema | SubschemaConfig, GraphQLSchema>;
-  mergedTypesSelectionSets: Record<string, SelectionSetNode>;
-  replacementSelectionSets: ReplacementSelectionSetMapping;
-  replacementFragments: ReplacementFragmentMapping;
+  fragmentsByField: Record<string, Record<string, InlineFragmentNode>>;
+  selectionSetsByField: Record<string, Record<string, SelectionSetNode>>;
+  selectionSetsByType: Record<string, SelectionSetNode>;
   mergedTypes: Record<string, MergedTypeInfo>;
 }
 

@@ -7,22 +7,22 @@ import {
   TypeInfo,
   visit,
   visitWithTypeInfo,
+  InlineFragmentNode,
 } from 'graphql';
 
 import { Transform, Request } from '@graphql-tools/utils';
-import { ReplacementFragmentMapping } from '../types';
 
-export default class AddReplacementFragments implements Transform {
+export default class AddFragmentsByField implements Transform {
   private readonly targetSchema: GraphQLSchema;
-  private readonly mapping: ReplacementFragmentMapping;
+  private readonly mapping: Record<string, Record<string, InlineFragmentNode>>;
 
-  constructor(targetSchema: GraphQLSchema, mapping: ReplacementFragmentMapping) {
+  constructor(targetSchema: GraphQLSchema, mapping: Record<string, Record<string, InlineFragmentNode>>) {
     this.targetSchema = targetSchema;
     this.mapping = mapping;
   }
 
   public transformRequest(originalRequest: Request): Request {
-    const document = replaceFieldsWithFragments(this.targetSchema, originalRequest.document, this.mapping);
+    const document = addFragmentsByField(this.targetSchema, originalRequest.document, this.mapping);
     return {
       ...originalRequest,
       document,
@@ -30,10 +30,10 @@ export default class AddReplacementFragments implements Transform {
   }
 }
 
-function replaceFieldsWithFragments(
+function addFragmentsByField(
   targetSchema: GraphQLSchema,
   document: DocumentNode,
-  mapping: ReplacementFragmentMapping
+  mapping: Record<string, Record<string, InlineFragmentNode>>
 ): DocumentNode {
   const typeInfo = new TypeInfo(targetSchema);
   return visit(

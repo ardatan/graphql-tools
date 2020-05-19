@@ -28,7 +28,7 @@ export function createStitchingInfo(
   mergeTypes?: boolean | Array<string> | MergeTypeFilter
 ): StitchingInfo {
   const mergedTypes = createMergedTypes(typeCandidates, mergeTypes);
-  const mergedTypesSelectionSets: Record<string, SelectionSetNode> = Object.entries(mergedTypes).reduce(
+  const selectionSetsByType: Record<string, SelectionSetNode> = Object.entries(mergedTypes).reduce(
     (acc, [typeName, mergedTypeInfo]) => {
       if (mergedTypeInfo.requiredSelections != null) {
         acc[typeName] = {
@@ -43,9 +43,9 @@ export function createStitchingInfo(
 
   return {
     transformedSchemas,
-    mergedTypesSelectionSets,
-    replacementSelectionSets: undefined,
-    replacementFragments: undefined,
+    fragmentsByField: undefined,
+    selectionSetsByField: undefined,
+    selectionSetsByType,
     mergedTypes,
   };
 }
@@ -157,7 +157,7 @@ function createMergedTypes(
 }
 
 export function completeStitchingInfo(stitchingInfo: StitchingInfo, resolvers: IResolvers): StitchingInfo {
-  const replacementSelectionSets = Object.create(null);
+  const selectionSetsByField = Object.create(null);
   const rawFragments: Array<{ field: string; fragment: string }> = [];
 
   Object.keys(resolvers).forEach(typeName => {
@@ -169,20 +169,19 @@ export function completeStitchingInfo(stitchingInfo: StitchingInfo, resolvers: I
       const field = type[fieldName] as IFieldResolverOptions;
       if (field.selectionSet) {
         const selectionSet = parseSelectionSet(field.selectionSet);
-        if (!(typeName in replacementSelectionSets)) {
-          replacementSelectionSets[typeName] = Object.create(null);
+        if (!(typeName in selectionSetsByField)) {
+          selectionSetsByField[typeName] = Object.create(null);
         }
 
-        const typeReplacementSelectionSets = replacementSelectionSets[typeName];
-        if (!(fieldName in typeReplacementSelectionSets)) {
-          typeReplacementSelectionSets[fieldName] = {
+        if (!(fieldName in selectionSetsByField[typeName])) {
+          selectionSetsByField[typeName][fieldName] = {
             kind: Kind.SELECTION_SET,
             selections: [],
           };
         }
-        typeReplacementSelectionSets[fieldName].selections = typeReplacementSelectionSets[fieldName].selections.concat(
-          selectionSet.selections
-        );
+        selectionSetsByField[typeName][fieldName].selections = selectionSetsByField[typeName][
+          fieldName
+        ].selections.concat(selectionSet.selections);
       }
       if (field.fragment) {
         rawFragments.push({
@@ -193,35 +192,33 @@ export function completeStitchingInfo(stitchingInfo: StitchingInfo, resolvers: I
     });
   });
 
-  const mapping = Object.create(null);
+  const parsedFragments = Object.create(null);
   rawFragments.forEach(({ field, fragment }) => {
     const parsedFragment = parseFragmentToInlineFragment(fragment);
     const actualTypeName = parsedFragment.typeCondition.name.value;
-    if (!(actualTypeName in mapping)) {
-      mapping[actualTypeName] = Object.create(null);
+    if (!(actualTypeName in parsedFragments)) {
+      parsedFragments[actualTypeName] = Object.create(null);
     }
 
-    const typeMapping = mapping[actualTypeName];
-    if (!(field in typeMapping)) {
-      typeMapping[field] = [];
+    if (!(field in parsedFragments[actualTypeName])) {
+      parsedFragments[actualTypeName][field] = [];
     }
-    typeMapping[field].push(parsedFragment);
+    parsedFragments[actualTypeName][field].push(parsedFragment);
   });
 
-  const replacementFragments = Object.create(null);
-  Object.keys(mapping).forEach(typeName => {
-    Object.keys(mapping[typeName]).forEach(field => {
-      if (!(typeName in replacementFragments)) {
-        replacementFragments[typeName] = Object.create(null);
+  const fragmentsByField = Object.create(null);
+  Object.keys(parsedFragments).forEach(typeName => {
+    Object.keys(parsedFragments[typeName]).forEach(field => {
+      if (!(typeName in fragmentsByField)) {
+        fragmentsByField[typeName] = Object.create(null);
       }
 
-      const typeReplacementFragments = replacementFragments[typeName];
-      typeReplacementFragments[field] = concatInlineFragments(typeName, mapping[typeName][field]);
+      fragmentsByField[typeName][field] = concatInlineFragments(typeName, parsedFragments[typeName][field]);
     });
   });
 
-  stitchingInfo.replacementSelectionSets = replacementSelectionSets;
-  stitchingInfo.replacementFragments = replacementFragments;
+  stitchingInfo.selectionSetsByField = selectionSetsByField;
+  stitchingInfo.fragmentsByField = fragmentsByField;
 
   return stitchingInfo;
 }

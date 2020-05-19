@@ -11,7 +11,7 @@ import {
 
 import { Transform, Request } from '@graphql-tools/utils';
 
-export default class AddMergedTypeFragments implements Transform {
+export default class AddSelectionSetsByType implements Transform {
   private readonly targetSchema: GraphQLSchema;
   private readonly mapping: Record<string, SelectionSetNode>;
 
@@ -21,7 +21,7 @@ export default class AddMergedTypeFragments implements Transform {
   }
 
   public transformRequest(originalRequest: Request): Request {
-    const document = addMergedTypeSelectionSets(this.targetSchema, originalRequest.document, this.mapping);
+    const document = addSelectionSetsByType(this.targetSchema, originalRequest.document, this.mapping);
     return {
       ...originalRequest,
       document,
@@ -29,7 +29,7 @@ export default class AddMergedTypeFragments implements Transform {
   }
 }
 
-function addMergedTypeSelectionSets(
+function addSelectionSetsByType(
   targetSchema: GraphQLSchema,
   document: DocumentNode,
   mapping: Record<string, SelectionSetNode>
