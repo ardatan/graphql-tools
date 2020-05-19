@@ -13,6 +13,7 @@ import {
   DirectiveNode,
   FieldDefinitionNode,
   InputValueDefinitionNode,
+  EnumValueDefinitionNode,
 } from 'graphql';
 import { SchemaPrintOptions } from './types';
 import { createSchemaDefinition } from './create-schema-definition';
@@ -20,13 +21,7 @@ import { createSchemaDefinition } from './create-schema-definition';
 export function printSchemaWithDirectives(schema: GraphQLSchema, _options: SchemaPrintOptions = {}): string {
   const typesMap = schema.getTypeMap();
 
-  const result: string[] = [
-    createSchemaDefinition({
-      query: schema.getQueryType(),
-      mutation: schema.getMutationType(),
-      subscription: schema.getSubscriptionType(),
-    }),
-  ];
+  const result: string[] = [getSchemaDefinition(schema)];
 
   for (const typeName in typesMap) {
     const type = typesMap[typeName];
@@ -101,10 +96,37 @@ function correctType<TMap extends { [key: string]: GraphQLNamedType }, TName ext
           | FieldDefinitionNode
         )[]).find(field => field.name.value === fieldDefinitionNode.name.value);
         (fieldDefinitionNode.directives as DirectiveNode[]) = originalFieldDefinitionNode?.directives as DirectiveNode[];
+        if ('arguments' in fieldDefinitionNode && 'arguments' in originalFieldDefinitionNode) {
+          for (const argument of fieldDefinitionNode.arguments) {
+            const originalArgumentNode = (originalFieldDefinitionNode as FieldDefinitionNode).arguments?.find(
+              arg => arg.name.value === argument.name.value
+            );
+            (argument.directives as DirectiveNode[]) = originalArgumentNode.directives as DirectiveNode[];
+          }
+        }
+      }
+    } else if ('values' in fixedAstNode && 'values' in originalAstNode) {
+      for (const valueDefinitionNode of fixedAstNode.values) {
+        const originalValueDefinitionNode = (originalAstNode.values as EnumValueDefinitionNode[]).find(
+          valueNode => valueNode.name.value === valueDefinitionNode.name.value
+        );
+        (valueDefinitionNode.directives as DirectiveNode[]) = originalValueDefinitionNode?.directives as DirectiveNode[];
       }
     }
   }
   type.astNode = fixedAstNode;
 
   return type;
+}
+
+function getSchemaDefinition(schema: GraphQLSchema) {
+  if (schema.astNode) {
+    return print(schema.astNode);
+  } else {
+    return createSchemaDefinition({
+      query: schema.getQueryType(),
+      mutation: schema.getMutationType(),
+      subscription: schema.getSubscriptionType(),
+    });
+  }
 }

@@ -116,5 +116,49 @@ describe('printSchemaWithDirectives', () => {
     expect(printedTransformedSchema).not.toContain(/* GraphQL */`foo: Foo`);
     expect(printedTransformedSchema).toContain(/* GraphQL */`foo: MyFoo`);
   });
+  it('should print all directives', async () => {
+    const typeDefs = /* GraphQL */`
+        directive @SCHEMA on SCHEMA
+        directive @SCALAR on SCALAR
+        directive @OBJECT on OBJECT
+        directive @ARGUMENT_DEFINITION on ARGUMENT_DEFINITION
+        directive @FIELD_DEFINITION on FIELD_DEFINITION
+        directive @INTERFACE on INTERFACE
+        directive @UNION on UNION
+        directive @ENUM on ENUM
+        directive @ENUM_VALUE on ENUM_VALUE
+        directive @INPUT_OBJECT on INPUT_OBJECT
+        directive @INPUT_FIELD_DEFINITION on INPUT_FIELD_DEFINITION
 
+        schema @SCHEMA {
+          query: SomeType
+        }
+
+        scalar DateTime @SCALAR
+
+        type SomeType @OBJECT {
+          someField(someArg: Int! @ARGUMENT_DEFINITION): String @FIELD_DEFINITION
+        }
+
+        interface SomeInterface @INTERFACE {
+          someField: String
+        }
+
+        union SomeUnion @UNION = SomeType
+
+        enum SomeEnum @ENUM {
+          someEnumValue @ENUM_VALUE
+        }
+
+        input SomeInputType @INPUT_OBJECT {
+          someInputField: String @INPUT_FIELD_DEFINITION
+        }
+    `;
+    const schema = buildSchema(typeDefs);
+    const printedSchema = printSchemaWithDirectives(schema);
+    const printedSchemaLines = typeDefs.split('\n');
+    for (const line of printedSchemaLines) {
+      expect(printedSchema).toContain(line.trim());
+    }
+  })
 });
