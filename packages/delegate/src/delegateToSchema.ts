@@ -39,6 +39,7 @@ import {
   isSubschemaConfig,
   ExecutionParams,
 } from './types';
+import { StitchingInfo } from 'packages/stitch/src/types';
 
 export function delegateToSchema(options: IDelegateToSchemaOptions | GraphQLSchema): any {
   if (isSchema(options)) {
@@ -107,21 +108,23 @@ function buildDelegationTransforms(
   transformedSchema: GraphQLSchema,
   skipTypeMerging: boolean
 ): Array<Transform> {
+  const stitchingInfo: StitchingInfo = info?.schema.extensions?.stitchingInfo;
+
   let delegationTransforms: Array<Transform> = [
     new CheckResultAndHandleErrors(info, fieldName, subschemaOrSubschemaConfig, context, returnType, skipTypeMerging),
   ];
 
-  if (info?.mergeInfo != null) {
+  if (stitchingInfo != null) {
     delegationTransforms.push(
-      new AddReplacementSelectionSets(info.schema, info.mergeInfo.replacementSelectionSets),
-      new AddMergedTypeSelectionSets(info.schema, info.mergeInfo.mergedTypes)
+      new AddReplacementSelectionSets(info.schema, stitchingInfo.replacementSelectionSets),
+      new AddMergedTypeSelectionSets(info.schema, stitchingInfo.mergedTypes)
     );
   }
 
   const transformedTargetSchema =
-    info?.mergeInfo == null
+    stitchingInfo == null
       ? transformedSchema ?? targetSchema
-      : transformedSchema ?? info.mergeInfo.transformedSchemas.get(subschemaOrSubschemaConfig) ?? targetSchema;
+      : transformedSchema ?? stitchingInfo.transformedSchemas.get(subschemaOrSubschemaConfig) ?? targetSchema;
 
   delegationTransforms.push(new WrapConcreteTypes(returnType, transformedTargetSchema));
 
@@ -131,8 +134,8 @@ function buildDelegationTransforms(
 
   delegationTransforms = delegationTransforms.concat(transforms);
 
-  if (info?.mergeInfo != null) {
-    delegationTransforms.push(new AddReplacementFragments(targetSchema, info.mergeInfo.replacementFragments));
+  if (stitchingInfo != null) {
+    delegationTransforms.push(new AddReplacementFragments(targetSchema, stitchingInfo.replacementFragments));
   }
 
   if (args != null) {
