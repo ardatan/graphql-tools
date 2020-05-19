@@ -135,7 +135,7 @@ export class SchemaDirectiveVisitor<TArgs = any, TContext = any> extends SchemaV
     );
 
     function visitorSelector(type: VisitableSchemaType, methodName: string): Array<SchemaDirectiveVisitor> {
-      let directiveNodes = type.astNode != null ? type.astNode.directives : [];
+      let directiveNodes = type?.astNode?.directives ?? [];
 
       const extensionASTNodes: ReadonlyArray<TypeSystemExtensionNode> = (type as {
         extensionASTNodes?: Array<TypeSystemExtensionNode>;
@@ -143,7 +143,9 @@ export class SchemaDirectiveVisitor<TArgs = any, TContext = any> extends SchemaV
 
       if (extensionASTNodes != null) {
         extensionASTNodes.forEach(extensionASTNode => {
-          directiveNodes = directiveNodes.concat(extensionASTNode.directives);
+          if (extensionASTNode.directives != null) {
+            directiveNodes = directiveNodes.concat(extensionASTNode.directives);
+          }
         });
       }
 

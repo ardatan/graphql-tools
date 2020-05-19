@@ -74,22 +74,24 @@ export function getDirectives(schema: GraphQLSchema, node: DirectableGraphQLObje
   const result: DirectiveUseMap = {};
 
   astNodes.forEach(astNode => {
-    astNode.directives.forEach(directive => {
-      const schemaDirective = schemaDirectiveMap[directive.name.value];
-      if (schemaDirective) {
-        const directiveValue = getDirectiveValues(schemaDirective, astNode);
+    if (astNode.directives) {
+      astNode.directives.forEach(directive => {
+        const schemaDirective = schemaDirectiveMap[directive.name.value];
+        if (schemaDirective) {
+          const directiveValue = getDirectiveValues(schemaDirective, astNode);
 
-        if (schemaDirective.isRepeatable) {
-          if (result[schemaDirective.name]) {
-            result[schemaDirective.name] = result[schemaDirective.name].concat([directiveValue]);
+          if (schemaDirective.isRepeatable) {
+            if (result[schemaDirective.name]) {
+              result[schemaDirective.name] = result[schemaDirective.name].concat([directiveValue]);
+            } else {
+              result[schemaDirective.name] = [directiveValue];
+            }
           } else {
-            result[schemaDirective.name] = [directiveValue];
+            result[schemaDirective.name] = directiveValue;
           }
-        } else {
-          result[schemaDirective.name] = directiveValue;
         }
-      }
-    });
+      });
+    }
   });
 
   return result;
