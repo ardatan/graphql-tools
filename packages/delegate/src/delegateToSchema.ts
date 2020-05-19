@@ -117,7 +117,7 @@ function buildDelegationTransforms(
   if (stitchingInfo != null) {
     delegationTransforms.push(
       new AddReplacementSelectionSets(info.schema, stitchingInfo.replacementSelectionSets),
-      new AddMergedTypeSelectionSets(info.schema, stitchingInfo.mergedTypes)
+      new AddMergedTypeSelectionSets(info.schema, stitchingInfo.mergedTypesSelectionSets)
     );
   }
 

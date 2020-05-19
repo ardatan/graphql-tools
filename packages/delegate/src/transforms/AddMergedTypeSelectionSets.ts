@@ -10,13 +10,12 @@ import {
 } from 'graphql';
 
 import { Transform, Request } from '@graphql-tools/utils';
-import { MergedTypeInfo } from '../types';
 
 export default class AddMergedTypeFragments implements Transform {
   private readonly targetSchema: GraphQLSchema;
-  private readonly mapping: Record<string, MergedTypeInfo>;
+  private readonly mapping: Record<string, SelectionSetNode>;
 
-  constructor(targetSchema: GraphQLSchema, mapping: Record<string, MergedTypeInfo>) {
+  constructor(targetSchema: GraphQLSchema, mapping: Record<string, SelectionSetNode>) {
     this.targetSchema = targetSchema;
     this.mapping = mapping;
   }
@@ -33,7 +32,7 @@ export default class AddMergedTypeFragments implements Transform {
 function addMergedTypeSelectionSets(
   targetSchema: GraphQLSchema,
   document: DocumentNode,
-  mapping: Record<string, MergedTypeInfo>
+  mapping: Record<string, SelectionSetNode>
 ): DocumentNode {
   const typeInfo = new TypeInfo(targetSchema);
   return visit(
@@ -46,7 +45,7 @@ function addMergedTypeSelectionSets(
           let selections = node.selections;
 
           if (parentTypeName in mapping) {
-            const selectionSet = mapping[parentTypeName].selectionSet;
+            const selectionSet = mapping[parentTypeName];
             if (selectionSet != null) {
               selections = selections.concat(selectionSet.selections);
             }

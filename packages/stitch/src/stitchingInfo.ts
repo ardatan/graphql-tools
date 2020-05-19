@@ -27,11 +27,26 @@ export function createStitchingInfo(
   typeCandidates: Record<string, Array<MergeTypeCandidate>>,
   mergeTypes?: boolean | Array<string> | MergeTypeFilter
 ): StitchingInfo {
+  const mergedTypes = createMergedTypes(typeCandidates, mergeTypes);
+  const mergedTypesSelectionSets: Record<string, SelectionSetNode> = Object.entries(mergedTypes).reduce(
+    (acc, [typeName, mergedTypeInfo]) => {
+      if (mergedTypeInfo.requiredSelections != null) {
+        acc[typeName] = {
+          kind: Kind.SELECTION_SET,
+          selections: mergedTypeInfo.requiredSelections,
+        };
+      }
+      return acc;
+    },
+    {}
+  );
+
   return {
     transformedSchemas,
+    mergedTypesSelectionSets,
     replacementSelectionSets: undefined,
     replacementFragments: undefined,
-    mergedTypes: createMergedTypes(typeCandidates, mergeTypes),
+    mergedTypes,
   };
 }
 
@@ -105,6 +120,7 @@ function createMergedTypes(
         mergedTypes[typeName] = {
           subschemas,
           typeMaps,
+          requiredSelections,
           selectionSets,
           containsSelectionSet: new Map(),
           uniqueFields: Object.create({}),
@@ -133,11 +149,6 @@ function createMergedTypes(
             mergedTypes[typeName].nonUniqueFields[fieldName] = supportedBySubschemas;
           }
         });
-
-        mergedTypes[typeName].selectionSet = {
-          kind: Kind.SELECTION_SET,
-          selections: requiredSelections,
-        };
       }
     }
   });

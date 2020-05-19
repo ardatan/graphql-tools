@@ -137,6 +137,7 @@ export function isSubschemaConfig(value: any): value is SubschemaConfig {
 
 export interface StitchingInfo {
   transformedSchemas: Map<GraphQLSchema | SubschemaConfig, GraphQLSchema>;
+  mergedTypesSelectionSets: Record<string, SelectionSetNode>;
   replacementSelectionSets: ReplacementSelectionSetMapping;
   replacementFragments: ReplacementFragmentMapping;
   mergedTypes: Record<string, MergedTypeInfo>;

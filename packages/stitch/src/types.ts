@@ -1,4 +1,4 @@
-import { GraphQLNamedType, GraphQLSchema, SelectionSetNode, DocumentNode } from 'graphql';
+import { GraphQLNamedType, GraphQLSchema, SelectionSetNode, DocumentNode, SelectionNode } from 'graphql';
 import { ITypeDefinitions, TypeMap } from '@graphql-tools/utils';
 import { SubschemaConfig, ReplacementSelectionSetMapping, ReplacementFragmentMapping } from '@graphql-tools/delegate';
 import { IExecutableSchemaDefinition } from '@graphql-tools/schema';
@@ -14,7 +14,7 @@ export type MergeTypeFilter = (mergeTypeCandidates: Array<MergeTypeCandidate>, t
 
 export interface MergedTypeInfo {
   subschemas: Array<SubschemaConfig>;
-  selectionSet?: SelectionSetNode;
+  requiredSelections: Array<SelectionNode>;
   uniqueFields: Record<string, SubschemaConfig>;
   nonUniqueFields: Record<string, Array<SubschemaConfig>>;
   typeMaps: Map<SubschemaConfig, TypeMap>;
@@ -24,6 +24,7 @@ export interface MergedTypeInfo {
 
 export interface StitchingInfo {
   transformedSchemas: Map<GraphQLSchema | SubschemaConfig, GraphQLSchema>;
+  mergedTypesSelectionSets: Record<string, SelectionSetNode>;
   replacementSelectionSets: ReplacementSelectionSetMapping;
   replacementFragments: ReplacementFragmentMapping;
   mergedTypes: Record<string, MergedTypeInfo>;
