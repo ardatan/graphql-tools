@@ -27,6 +27,9 @@ module.exports = {
     'schema-loading',
     'documents-loading',
     'graphql-tag-pluck',
-    'relay-operation-optimizer'
+    'relay-operation-optimizer',
+    'migration-from-tools-v5',
+    'migration-from-toolkit',
+    'migration-from-merge-graphql-schemas'
   ],
 };

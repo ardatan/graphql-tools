@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - master
+      - move-graphql-toolkit
   pull_request:
     branches:
       - master
+      - move-graphql-toolkit
 jobs:
   publish-canary:
     name: Publish Canary
