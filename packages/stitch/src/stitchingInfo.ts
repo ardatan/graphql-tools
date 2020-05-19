@@ -29,7 +29,6 @@ export function createStitchingInfo(
 ): StitchingInfo {
   return {
     transformedSchemas,
-    fragments: [],
     replacementSelectionSets: undefined,
     replacementFragments: undefined,
     mergedTypes: createMergedTypes(typeCandidates, mergeTypes),
@@ -148,6 +147,7 @@ function createMergedTypes(
 
 export function completeStitchingInfo(stitchingInfo: StitchingInfo, resolvers: IResolvers): StitchingInfo {
   const replacementSelectionSets = Object.create(null);
+  const rawFragments: Array<{ field: string; fragment: string }> = [];
 
   Object.keys(resolvers).forEach(typeName => {
     const type = resolvers[typeName];
@@ -174,7 +174,7 @@ export function completeStitchingInfo(stitchingInfo: StitchingInfo, resolvers: I
         );
       }
       if (field.fragment) {
-        stitchingInfo.fragments.push({
+        rawFragments.push({
           field: fieldName,
           fragment: field.fragment,
         });
@@ -183,7 +183,7 @@ export function completeStitchingInfo(stitchingInfo: StitchingInfo, resolvers: I
   });
 
   const mapping = Object.create(null);
-  stitchingInfo.fragments.forEach(({ field, fragment }) => {
+  rawFragments.forEach(({ field, fragment }) => {
     const parsedFragment = parseFragmentToInlineFragment(fragment);
     const actualTypeName = parsedFragment.typeCondition.name.value;
     if (!(actualTypeName in mapping)) {

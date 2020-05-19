@@ -134,3 +134,10 @@ export type MergedTypeResolver = (
 export function isSubschemaConfig(value: any): value is SubschemaConfig {
   return Boolean((value as SubschemaConfig).schema);
 }
+
+export interface StitchingInfo {
+  transformedSchemas: Map<GraphQLSchema | SubschemaConfig, GraphQLSchema>;
+  replacementSelectionSets: ReplacementSelectionSetMapping;
+  replacementFragments: ReplacementFragmentMapping;
+  mergedTypes: Record<string, MergedTypeInfo>;
+}

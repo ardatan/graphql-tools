@@ -24,10 +24,6 @@ export interface MergedTypeInfo {
 
 export interface StitchingInfo {
   transformedSchemas: Map<GraphQLSchema | SubschemaConfig, GraphQLSchema>;
-  fragments: Array<{
-    field: string;
-    fragment: string;
-  }>;
   replacementSelectionSets: ReplacementSelectionSetMapping;
   replacementFragments: ReplacementFragmentMapping;
   mergedTypes: Record<string, MergedTypeInfo>;
