@@ -120,7 +120,7 @@ function correctType<TMap extends { [key: string]: GraphQLNamedType }, TName ext
 }
 
 function getSchemaDefinition(schema: GraphQLSchema) {
-  if (schema.astNode) {
+  if (!Object.getOwnPropertyDescriptor(schema, 'astNode').get && schema.astNode) {
     return print(schema.astNode);
   } else {
     return createSchemaDefinition({
