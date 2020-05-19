@@ -1,4 +1,4 @@
-const { writeFileSync } = require('fs-extra');
+const { writeFileSync } = require('fs');
 const { resolve } = require('path');
 const { argv, cwd } = require('process');
 
