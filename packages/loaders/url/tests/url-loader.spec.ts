@@ -11,7 +11,9 @@ describe('Schema URL Loader', () => {
   const loader = new UrlLoader();
 
   const testTypeDefs = /* GraphQL */`
-schema { query: CustomQuery }
+schema {
+  query: CustomQuery
+}
 """Test type comment"""
 type CustomQuery {
   """Test field comment"""
