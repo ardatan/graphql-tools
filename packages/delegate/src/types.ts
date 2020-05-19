@@ -115,14 +115,6 @@ export interface MergedTypeConfig {
   resolve?: MergedTypeResolver;
 }
 
-export interface ReplacementSelectionSetMapping {
-  [typeName: string]: { [fieldName: string]: SelectionSetNode };
-}
-
-export interface ReplacementFragmentMapping {
-  [typeName: string]: { [fieldName: string]: InlineFragmentNode };
-}
-
 export type MergedTypeResolver = (
   originalResult: any,
   context: Record<string, any>,
@@ -133,4 +125,12 @@ export type MergedTypeResolver = (
 
 export function isSubschemaConfig(value: any): value is SubschemaConfig {
   return Boolean((value as SubschemaConfig).schema);
+}
+
+export interface StitchingInfo {
+  transformedSchemas: Map<GraphQLSchema | SubschemaConfig, GraphQLSchema>;
+  fragmentsByField: Record<string, Record<string, InlineFragmentNode>>;
+  selectionSetsByField: Record<string, Record<string, SelectionSetNode>>;
+  selectionSetsByType: Record<string, SelectionSetNode>;
+  mergedTypes: Record<string, MergedTypeInfo>;
 }

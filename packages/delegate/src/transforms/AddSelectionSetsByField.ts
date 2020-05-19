@@ -10,19 +10,18 @@ import {
 } from 'graphql';
 
 import { Transform, Request } from '@graphql-tools/utils';
-import { MergedTypeInfo } from '../types';
 
-export default class AddMergedTypeFragments implements Transform {
-  private readonly targetSchema: GraphQLSchema;
-  private readonly mapping: Record<string, MergedTypeInfo>;
+export default class AddSelectionSetsByField implements Transform {
+  private readonly schema: GraphQLSchema;
+  private readonly mapping: Record<string, Record<string, SelectionSetNode>>;
 
-  constructor(targetSchema: GraphQLSchema, mapping: Record<string, MergedTypeInfo>) {
-    this.targetSchema = targetSchema;
+  constructor(schema: GraphQLSchema, mapping: Record<string, Record<string, SelectionSetNode>>) {
+    this.schema = schema;
     this.mapping = mapping;
   }
 
   public transformRequest(originalRequest: Request): Request {
-    const document = addMergedTypeSelectionSets(this.targetSchema, originalRequest.document, this.mapping);
+    const document = addSelectionSetsByField(this.schema, originalRequest.document, this.mapping);
     return {
       ...originalRequest,
       document,
@@ -30,12 +29,12 @@ export default class AddMergedTypeFragments implements Transform {
   }
 }
 
-function addMergedTypeSelectionSets(
-  targetSchema: GraphQLSchema,
+function addSelectionSetsByField(
+  schema: GraphQLSchema,
   document: DocumentNode,
-  mapping: Record<string, MergedTypeInfo>
+  mapping: Record<string, Record<string, SelectionSetNode>>
 ): DocumentNode {
-  const typeInfo = new TypeInfo(targetSchema);
+  const typeInfo = new TypeInfo(schema);
   return visit(
     document,
     visitWithTypeInfo(typeInfo, {
@@ -46,10 +45,15 @@ function addMergedTypeSelectionSets(
           let selections = node.selections;
 
           if (parentTypeName in mapping) {
-            const selectionSet = mapping[parentTypeName].selectionSet;
-            if (selectionSet != null) {
-              selections = selections.concat(selectionSet.selections);
-            }
+            node.selections.forEach(selection => {
+              if (selection.kind === Kind.FIELD) {
+                const name = selection.name.value;
+                const selectionSet = mapping[parentTypeName][name];
+                if (selectionSet != null) {
+                  selections = selections.concat(selectionSet.selections);
+                }
+              }
+            });
           }
 
           if (selections !== node.selections) {

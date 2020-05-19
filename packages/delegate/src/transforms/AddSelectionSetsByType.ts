@@ -10,19 +10,18 @@ import {
 } from 'graphql';
 
 import { Transform, Request } from '@graphql-tools/utils';
-import { ReplacementSelectionSetMapping } from '../types';
 
-export default class AddReplacementSelectionSets implements Transform {
-  private readonly schema: GraphQLSchema;
-  private readonly mapping: ReplacementSelectionSetMapping;
+export default class AddSelectionSetsByType implements Transform {
+  private readonly targetSchema: GraphQLSchema;
+  private readonly mapping: Record<string, SelectionSetNode>;
 
-  constructor(schema: GraphQLSchema, mapping: ReplacementSelectionSetMapping) {
-    this.schema = schema;
+  constructor(targetSchema: GraphQLSchema, mapping: Record<string, SelectionSetNode>) {
+    this.targetSchema = targetSchema;
     this.mapping = mapping;
   }
 
   public transformRequest(originalRequest: Request): Request {
-    const document = replaceFieldsWithSelectionSet(this.schema, originalRequest.document, this.mapping);
+    const document = addSelectionSetsByType(this.targetSchema, originalRequest.document, this.mapping);
     return {
       ...originalRequest,
       document,
@@ -30,12 +29,12 @@ export default class AddReplacementSelectionSets implements Transform {
   }
 }
 
-function replaceFieldsWithSelectionSet(
-  schema: GraphQLSchema,
+function addSelectionSetsByType(
+  targetSchema: GraphQLSchema,
   document: DocumentNode,
-  mapping: ReplacementSelectionSetMapping
+  mapping: Record<string, SelectionSetNode>
 ): DocumentNode {
-  const typeInfo = new TypeInfo(schema);
+  const typeInfo = new TypeInfo(targetSchema);
   return visit(
     document,
     visitWithTypeInfo(typeInfo, {
@@ -46,15 +45,10 @@ function replaceFieldsWithSelectionSet(
           let selections = node.selections;
 
           if (parentTypeName in mapping) {
-            node.selections.forEach(selection => {
-              if (selection.kind === Kind.FIELD) {
-                const name = selection.name.value;
-                const selectionSet = mapping[parentTypeName][name];
-                if (selectionSet != null) {
-                  selections = selections.concat(selectionSet.selections);
-                }
-              }
-            });
+            const selectionSet = mapping[parentTypeName];
+            if (selectionSet != null) {
+              selections = selections.concat(selectionSet.selections);
+            }
           }
 
           if (selections !== node.selections) {

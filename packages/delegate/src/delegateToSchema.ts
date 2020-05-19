@@ -25,9 +25,9 @@ import {
 import ExpandAbstractTypes from './transforms/ExpandAbstractTypes';
 import WrapConcreteTypes from './transforms/WrapConcreteTypes';
 import FilterToSchema from './transforms/FilterToSchema';
-import AddReplacementSelectionSets from './transforms/AddReplacementSelectionSets';
-import AddReplacementFragments from './transforms/AddReplacementFragments';
-import AddMergedTypeSelectionSets from './transforms/AddMergedTypeSelectionSets';
+import AddFragmentsByField from './transforms/AddFragmentsByField';
+import AddSelectionSetsByField from './transforms/AddSelectionSetsByField';
+import AddSelectionSetsByType from './transforms/AddSelectionSetsByType';
 import AddTypenameToAbstract from './transforms/AddTypenameToAbstract';
 import CheckResultAndHandleErrors from './transforms/CheckResultAndHandleErrors';
 import AddArgumentsAsVariables from './transforms/AddArgumentsAsVariables';
@@ -38,8 +38,8 @@ import {
   SubschemaConfig,
   isSubschemaConfig,
   ExecutionParams,
+  StitchingInfo,
 } from './types';
-import { StitchingInfo } from 'packages/stitch/src/types';
 
 export function delegateToSchema(options: IDelegateToSchemaOptions | GraphQLSchema): any {
   if (isSchema(options)) {
@@ -116,8 +116,8 @@ function buildDelegationTransforms(
 
   if (stitchingInfo != null) {
     delegationTransforms.push(
-      new AddReplacementSelectionSets(info.schema, stitchingInfo.replacementSelectionSets),
-      new AddMergedTypeSelectionSets(info.schema, stitchingInfo.mergedTypes)
+      new AddSelectionSetsByField(info.schema, stitchingInfo.selectionSetsByField),
+      new AddSelectionSetsByType(info.schema, stitchingInfo.selectionSetsByType)
     );
   }
 
@@ -135,7 +135,7 @@ function buildDelegationTransforms(
   delegationTransforms = delegationTransforms.concat(transforms);
 
   if (stitchingInfo != null) {
-    delegationTransforms.push(new AddReplacementFragments(targetSchema, stitchingInfo.replacementFragments));
+    delegationTransforms.push(new AddFragmentsByField(targetSchema, stitchingInfo.fragmentsByField));
   }
 
   if (args != null) {
