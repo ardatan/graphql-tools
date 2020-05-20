@@ -1,4 +1,4 @@
-import { GraphQLObjectType, GraphQLSchema, graphqlSync } from 'graphql';
+import { GraphQLObjectType, GraphQLSchema, graphqlSync, GraphQLString } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { MapperKind, mapSchema } from '@graphql-tools/utils';
@@ -59,5 +59,46 @@ describe('mapSchema', () => {
 
     expect(newSchema).toBeInstanceOf(GraphQLSchema);
     expect(newSchema.getQueryType().name).toBe('RootQuery');
+  });
+
+  test('can copy nonstandard properties', () => {
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          'test': {
+            type: GraphQLString
+          }
+        }
+      })
+    });
+
+    const symbol = Symbol('symbol');
+
+    Object.defineProperty(
+      schema.getQueryType(),
+      symbol,
+      {
+        enumerable: false,
+        configurable: false,
+        value: symbol,
+      }
+    );
+
+    Object.defineProperty(
+      schema.getQueryType(),
+      'value',
+      {
+        enumerable: false,
+        configurable: false,
+        value: 'value',
+      }
+    );
+
+    const newSchema = mapSchema(schema, {});
+
+    expect(newSchema).toBeInstanceOf(GraphQLSchema);
+    expect((newSchema.getQueryType() as unknown as { symbol: symbol })[symbol]).toBe(symbol);
+    expect((newSchema.getQueryType() as unknown as { value: string }).value).toBe('value');
   });
 });
