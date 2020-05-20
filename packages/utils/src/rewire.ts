@@ -27,6 +27,7 @@ import {
 
 import { getBuiltInForStub, isNamedStub } from './stub';
 import { TypeMap } from './Interfaces';
+import { reannotateObject } from './reannotateObject';
 
 export function rewireTypes(
   originalTypeMap: Record<string, GraphQLNamedType | null>,
@@ -62,7 +63,7 @@ export function rewireTypes(
   });
 
   Object.keys(newTypeMap).forEach(typeName => {
-    newTypeMap[typeName] = rewireNamedType(newTypeMap[typeName]);
+    newTypeMap[typeName] = reannotateObject(rewireNamedType(newTypeMap[typeName]), newTypeMap[typeName]);
   });
 
   const newDirectives = directives.map(directive => rewireDirective(directive));
