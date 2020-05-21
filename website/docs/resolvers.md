@@ -176,15 +176,18 @@ const resolvers = {
 const schemaWithResolvers = addResolversToSchema({ schema, resolvers });
 ```
 
-The `IAddResolveFunctionsToSchemaOptions` object has 4 properties that are described in [`makeExecutableSchema`](/docs/generate-schema/#makeexecutableschemaoptions).
+The `IAddResolveFunctionsToSchemaOptions` object consists of several of the underlying properties used to configure [`makeExecutableSchema` and described there](/docs/generate-schema/#makeexecutableschemaoptions).
 ```ts
 export interface IAddResolveFunctionsToSchemaOptions {
   schema: GraphQLSchema;
   resolvers: IResolvers;
   resolverValidationOptions?: IResolverValidationOptions;
   inheritResolversFromInterfaces?: boolean;
+  updateResolversInPlace?: boolean;
 }
 ```
+
+Additonally, the `updateResolversInPlace` property, when set to true, changes `addResolversToSchema` behavior to modify the original schema in place without recreating it. By default, a new schema will be returned without modification of the original schema.
 
 ### addSchemaLevelResolver(schema, rootResolveFunction)
 
