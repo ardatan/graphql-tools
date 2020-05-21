@@ -7,7 +7,7 @@ module.exports = {
   baseUrl: '/',
   favicon: 'img/favicon.ico',
   organizationName: 'ardatan', // Usually your GitHub org/user name.
-  projectName: '@graphql-tools/stitch', // Usually your repo name.
+  projectName: 'graphql-tools', // Usually your repo name.
   themeConfig: {
     defaultDarkMode: true,
     navbar: {
