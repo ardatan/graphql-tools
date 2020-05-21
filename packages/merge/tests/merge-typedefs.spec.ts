@@ -1,5 +1,6 @@
 import { mergeTypeDefs, mergeGraphQLTypes } from '../src';
-import { makeExecutableSchema, mergeSchemas } from 'graphql-tools';
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import { stitchSchemas } from '@graphql-tools/stitch'
 import { buildSchema, buildClientSchema, print, parse } from 'graphql';
 import { stripWhitespaces } from './utils';
 import gql from 'graphql-tag';
@@ -761,7 +762,7 @@ describe('Merge TypeDefs', () => {
       );
     });
     it('should handle extend types when GraphQLSchema is the source', () => {
-      const schema = mergeSchemas({
+      const schema = stitchSchemas({
         schemas: [
           `
           type Query {
@@ -805,7 +806,7 @@ describe('Merge TypeDefs', () => {
     });
 
     it('should handle extend input types', () => {
-      const schema = mergeSchemas({
+      const schema = stitchSchemas({
         schemas: [
           `
           type Query {
