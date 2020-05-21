@@ -1,6 +1,6 @@
 ---
 id: schema-wrapping
-title: Schema Wrapping
+title: Schema wrapping
 description: Wrap schemas to automatically modify schemas, requests and results
 ---
 
