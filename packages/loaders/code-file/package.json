@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/code-file-loader",
-  "version": "6.0.0-alpha.2",
+  "version": "6.0.0",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": "git@github.com:ardatan/graphql-tools.git",
   "author": "Dotan Simha <dotansimha@gmail.com>",
@@ -16,8 +16,8 @@
     "graphql": "^14.0.0 || ^15.0.0"
   },
   "dependencies": {
-    "@graphql-tools/utils": "6.0.0-alpha.2",
-    "@graphql-tools/graphql-tag-pluck": "6.0.0-alpha.2",
+    "@graphql-tools/utils": "6.0.0",
+    "@graphql-tools/graphql-tag-pluck": "6.0.0",
     "fs-extra": "9.0.0",
     "tslib": "~2.0.0"
   },
