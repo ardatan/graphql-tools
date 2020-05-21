@@ -89,6 +89,9 @@ export default async () => {
 }
 ```
 
+## Creating a subscriber
+> TODO
+
 ## API
 
 ### introspectSchema(executor, [context])
@@ -171,8 +174,6 @@ const schema = wrapSchema({
 
 Note that within the `defaultCreateProxyingResolver` function, `delegateToSchema` receives `executor` and `subscriber` functions stored on the subschema config object originally passed to `wrapSchema`. As above, use of the the `createProxyingResolver` option is helpful when you want to customize additional functionality at resolver creation time. If you just want to customize how things are proxied at the time that they are proxied, you can make do just with custom executors and subscribers.
 
-## Creating a subscriber
-> TODO
 
 ### makeRemoteExecutableSchema(options)
 
