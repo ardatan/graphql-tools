@@ -1,0 +1,6 @@
+type Query {
+  first: String
+  second: Float
+  third: String
+  unused: String
+}

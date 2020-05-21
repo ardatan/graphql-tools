@@ -1,6 +1,6 @@
 ---
 id: schema-loading
-title: Schema loading
+title: Loading GraphQL Schemas from different sources
 sidebar_label: Schema loading
 ---
 
@@ -19,34 +19,135 @@ Specifiying the loader is not necessary. The user need only provide the inputs. 
 ## Usage
 
 ```ts
-const { loadSchema } = require('@graphql-toolkit/core');
-const { UrlLoader } = require('@graphql-toolkit/url-loader');
-const { JsonFileLoader } = require('@graphql-toolkit/json-file-loader');
-const { GraphQLFileLoader } = require('@graphql-toolkit/graphql-file-loader');
+const { loadSchema } = require('@graphql-tools/load');
+const { UrlLoader } = require('@graphql-tools/url-loader');
+const { JsonFileLoader } = require('@graphql-tools/json-file-loader');
+const { GraphQLFileLoader } = require('@graphql-tools/graphql-file-loader');
 
-const schema1 = loadSchema('type A { foo: String }');   // load from string w/ no loaders
+const schema1 = await loadSchema('type A { foo: String }');   // load from string w/ no loaders
 
-const schema2 = loadSchema('http://localhost:3000/graphql', {   // load from endpoint
+const schema2 = await loadSchema('http://localhost:3000/graphql', {   // load from endpoint
     loaders: [
         new UrlLoader()
     ]
 });
 
-const schema3 = loadSchema('./schema.json', {   // load from local json file
+const schema3 = await loadSchema('./schema.json', {   // load from local json file
     loaders: [
         new JsonFileLoader()
     ]
 });
 
-const schema4 = loadSchema('schema.graphql', {  // load from a single schema file
+const schema4 = await loadSchema('schema.graphql', {  // load from a single schema file
     loaders: [
         new GraphQLFileLoader()
     ]
 });
 
-const schema5 = loadSchema('./src/**/*.graphql', { // load from multiple files using glob
+const schema5 = await loadSchema('./src/**/*.graphql', { // load from multiple files using glob
     loaders: [
         new GraphQLFileLoader()
     ]
 });
+```
+
+### Using `#import` expression
+
+Assume the following directory structure:
+
+```
+.
+├── schema.graphql
+├── posts.graphql
+└── comments.graphql
+```
+
+`schema.graphql`
+
+```graphql
+# import Post from "posts.graphql"
+
+type Query {
+  posts: [Post]
+}
+```
+
+`posts.graphql`
+
+```graphql
+# import Comment from 'comments.graphql'
+
+type Post {
+  comments: [Comment]
+  id: ID!
+  text: String!
+  tags: [String]
+}
+```
+
+`comments.graphql`
+
+```graphql
+type Comment {
+  id: ID!
+  text: String!
+}
+```
+
+Running `loadSchema` produces the following output:
+
+```graphql
+type Query {
+  posts: [Post]
+}
+
+type Post {
+  comments: [Comment]
+  id: ID!
+  text: String!
+  tags: [String]
+}
+
+type Comment {
+  id: ID!
+  text: String!
+}
+```
+### Binding to HTTP Server
+
+You can extend loaded schema
+
+```ts
+import { join } from 'path';
+import { loadSchemaSync } from '@graphql-tools/load';
+import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
+import { addResolversToSchema } from '@graphql-tools/schema';
+import * as express from 'express';
+import * as graphqlHTTP from 'express-graphql';
+
+// Load schema from the file
+const schema = loadSchemaSync(join(__dirname, './schema.graphql'));
+
+// Write some resolvers
+const resolvers = {};
+
+// Add resolvers to the schema
+const schemaWithResolvers = addResolversToSchema({
+    schema,
+    resolvers,
+});
+
+const app = express();
+
+app.use(
+    graphqlHTTP({
+        schemaWithResolvers,
+        graphiql: true,
+    })
+);
+
+app.listen(4000, () => {
+    console.info(`Server listening on http://localhost:4000`)
+})
+
 ```

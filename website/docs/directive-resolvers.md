@@ -11,7 +11,7 @@ Let's take a look at how we can create `@upper` Directive to upper-case a string
 To start, let's grab the schema definition string from the `makeExecutableSchema` example [in the "Generating a schema" article](/docs/generate-schema/#example).
 
 ```js
-import { makeExecutableSchema } from 'graphql-tools';
+import { makeExecutableSchema } from '@graphql-tools/schema';
 import { graphql } from 'graphql';
 
 // Construct a schema, using GraphQL schema language
@@ -72,7 +72,7 @@ Multi-Directives on a field will be apply with LTR order.
 
 ```js
 // graphql-tools combines a schema string with resolvers.
-import { makeExecutableSchema } from 'graphql-tools';
+import { makeExecutableSchema } from '@graphql-tools/schema';
 
 // Construct a schema, using GraphQL schema language
 const typeDefs = `
@@ -146,7 +146,7 @@ The result with query `{foo}` will be:
 ### directiveResolvers option
 
 ```js
-import { makeExecutableSchema } from 'graphql-tools';
+import { makeExecutableSchema } from '@graphql-tools/schema';
 
 const directiveResolvers = {
   // directive resolvers implement
@@ -163,16 +163,16 @@ const schema = makeExecutableSchema({
 ### attachDirectiveResolvers
 
 ```js
-import { attachDirectiveResolvers } from 'graphql-tools';
+import { attachDirectiveResolvers } from '@graphql-tools/utils';
 
 const directiveResolvers = {
   // directive resolvers implement
 };
 
-attachDirectiveResolvers(
+schemaWithDirectiveResolvers = attachDirectiveResolvers(
   schema,
   directiveResolvers,
 );
 ```
 
-Given an instance of GraphQLSchema and a `directiveResolvers` map object, `attachDirectiveResolvers` wrap all field's resolver with directive resolvers.
+Given an instance of GraphQLSchema and a `directiveResolvers` map object, `attachDirectiveResolvers` returns a new schema in which all fields' resolver have been wrapped with directive resolvers.

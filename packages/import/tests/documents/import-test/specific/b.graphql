@@ -1,0 +1,7 @@
+# import BarFragment from 'c.graphql'
+
+fragment FooFragment on Foo {
+    bar {
+        ...BarFragment
+    }
+}

@@ -1,22 +1,18 @@
-const { readFileSync, writeFileSync } = require('fs');
+const { writeFileSync } = require('fs');
 const { resolve } = require('path');
+const { argv, cwd } = require('process');
 
-const pkgPath = resolve(process.cwd(), 'package.json');
+const pkgPath = resolve(cwd(), './package.json');
 
-const pkg = JSON.parse(
-  readFileSync(pkgPath, {
-    encoding: 'utf-8',
-  })
-);
+const pkg = require(pkgPath);
 
-const version = pkg.devDependencies.graphql;
+const version = argv[2];
 
-for (const dependency in pkg.resolutions) {
-  if (pkg.resolutions.hasOwnProperty(dependency)) {
-    pkg.resolutions[dependency] = `^${version}`;
-  }
+pkg.resolutions = pkg.resolutions || {};
+if (pkg.resolutions.graphql.startsWith(version)){
+  console.info(`GraphQL v${version} already installed! Skipping.`)
 }
 
-writeFileSync(pkgPath, JSON.stringify(pkg, null, 2), {
-  encoding: 'utf-8',
-});
+pkg.resolutions.graphql = `^${version}`;
+
+writeFileSync(pkgPath, JSON.stringify(pkg, null, 2), 'utf8');

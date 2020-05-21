@@ -14,7 +14,7 @@ Delegation is performed by one function, `delegateToSchema`, called from within 
 The `graphql-tools` package provides several related tools for managing schema delegation:
 
 * [Remote schemas](/docs/remote-schemas/) - turning a remote GraphQL endpoint into a local schema
-* [Schema transforms](/docs/schema-transforms/) - modifying existing schemas to make delegation easier
+* [Schema wrapping](/docs/schema-wrapping/) - modifying existing schemas -- usually remote, but possibly local -- when wrapping them to make delegation easier
 * [Schema stitching](/docs/schema-stitching/) - merging multiple schemas into one
 
 ## Motivational example
@@ -196,6 +196,6 @@ GraphQL context that is going to be passed to the subschema execution or subscip
 
 GraphQL resolve info of the current resolver. Provides access to the subquery that starts at the current resolver.
 
-#### transforms: Array< Transform >
+#### transforms: Array < Transform >
 
-Any additional operation [transforms](/docs/schema-transforms/) to apply to the query and results. Could be the same operation transforms used in conjunction with schema transformation. For convenience, after schema transformation, `transformedSchema.transforms` contains the transforms that were applied.
+Any additional operation [transforms](/docs/schema-wrapping/) to apply to the query and results. Transforms are specified similarly to the transforms used in conjunction with schema wrapping, but only the operational components of transforms will be used by `delegateToSchema`, i.e. any specified `transformRequest` and `transformResult` functions.

@@ -1,0 +1,6 @@
+# import * from "shared"
+
+type A {
+  first: String
+  second: Shared
+}

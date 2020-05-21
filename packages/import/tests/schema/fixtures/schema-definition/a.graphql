@@ -1,0 +1,7 @@
+# import MyQuery from './b.graphql'
+# import MyMutation from './c.graphql'
+
+schema {
+    query: MyQuery
+    mutation: MyMutation
+}

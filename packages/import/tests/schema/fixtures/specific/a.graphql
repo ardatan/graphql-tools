@@ -1,0 +1,7 @@
+# import B from "b.graphql"
+# import C from "c.graphql"
+
+type User implements B {
+  b: String!
+  c: [C!]!
+}

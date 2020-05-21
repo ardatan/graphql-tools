@@ -1,0 +1,6 @@
+# import B from 'graphql-import-test/b.graphql'
+
+type A {
+  id: ID!
+  author: B!
+}

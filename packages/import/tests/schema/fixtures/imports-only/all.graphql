@@ -1,0 +1,2 @@
+# import Query.* from "a.graphql"
+# import Query.* from "b.graphql"

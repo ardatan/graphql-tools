@@ -1,0 +1,4 @@
+scalar X
+type B {
+  private: Int
+}

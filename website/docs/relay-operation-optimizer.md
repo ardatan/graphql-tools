@@ -4,7 +4,7 @@ title: Optimizing operations using Relay Compiler
 sidebar_label: Relay Operation Optimizer
 ---
 
-`@graphql-toolkit/relay-operation-optimizer` is a package for bringing the benefits of Relay Compiler to GraphQL Toolkit
+`@graphql-tools/relay-operation-optimizer` is a package for bringing the benefits of Relay Compiler to GraphQL tools
 
 ### Current List of Features
 
@@ -18,5 +18,5 @@ sidebar_label: Relay Operation Optimizer
 
 ## Install Instructions
 
-`yarn add -D -E @graphql-toolkit/relay-operation-optimizer`
+`yarn add -D -E @graphql-tools/relay-operation-optimizer`
 

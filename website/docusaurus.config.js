@@ -7,7 +7,7 @@ module.exports = {
   baseUrl: '/',
   favicon: 'img/favicon.ico',
   organizationName: 'ardatan', // Usually your GitHub org/user name.
-  projectName: 'graphql-tools', // Usually your repo name.
+  projectName: '@graphql-tools/stitch', // Usually your repo name.
   themeConfig: {
     defaultDarkMode: true,
     navbar: {
@@ -36,9 +36,9 @@ module.exports = {
       ],
     },
     algolia: {
-      // appId: 'graphql-tools',
+      // appId: 'graphql',
       apiKey: 'ee4c137daf1262df2ca2faacaf83fa4e',
-      indexName: 'graphql-tools',
+      indexName: 'graphql',
       algoliaOptions: {}, // Optional, if provided by Algolia
     },
     footer: {
@@ -66,7 +66,7 @@ module.exports = {
             },
             {
               label: 'Stack Overflow',
-              href: 'https://stackoverflow.com/questions/tagged/graphql-mesh'
+              href: 'https://stackoverflow.com/questions/tagged/graphql-tools'
             }
           ]
         },
@@ -75,7 +75,7 @@ module.exports = {
           items: [
             {
               label: 'GitHub',
-              href: 'https://github.com/Urigo/graphql-mesh/'
+              href: 'https://github.com/Urigo/graphql-tools/'
             },
             {
               label: 'Twitter',

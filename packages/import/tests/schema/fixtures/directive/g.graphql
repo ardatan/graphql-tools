@@ -1,0 +1,9 @@
+type Review {
+  id: ID
+}
+
+extend type User @key(fields: "id") {
+  id: ID! @external
+  email: String @external
+  reviews: [Review] @requires(fields: "email")
+}

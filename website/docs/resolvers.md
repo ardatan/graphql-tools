@@ -157,11 +157,11 @@ In addition to using a resolver map with `makeExecutableSchema`, you can use it 
 
 ### addResolversToSchema({ schema, resolvers, resolverValidationOptions?, inheritResolversFromInterfaces? })
 
-`addResolversToSchema` takes an options object of `IAddResolveFunctionsToSchemaOptions` and modifies the schema in place by attaching the resolvers to the relevant types.
+`addResolversToSchema` takes an options object of `IAddResolveFunctionsToSchemaOptions` and returns a new schema with resolvers attached to the relevant types.
 
 
 ```js
-import { addResolversToSchema } from 'graphql-tools';
+import { addResolversToSchema } from '@graphql-tools/schema';
 
 const resolvers = {
   RootQuery: {
@@ -173,7 +173,7 @@ const resolvers = {
   },
 };
 
-addResolversToSchema({ schema, resolvers });
+const schemaWithResolvers = addResolversToSchema({ schema, resolvers });
 ```
 
 The `IAddResolveFunctionsToSchemaOptions` object has 4 properties that are described in [`makeExecutableSchema`](/docs/generate-schema/#makeexecutableschemaoptions).
@@ -188,6 +188,6 @@ export interface IAddResolveFunctionsToSchemaOptions {
 
 ### addSchemaLevelResolver(schema, rootResolveFunction)
 
-Some operations, such as authentication, need to be done only once per query. Logically, these operations belong in a schema level resolver field resolver, but unfortunately GraphQL-JS does not let you define one. `addSchemaLevelResolver` solves this by modifying the GraphQLSchema that is passed as the first argument.
+Some operations, such as authentication, need to be done only once per query. Logically, these operations belong in a schema level resolver field resolver, but unfortunately GraphQL-JS does not let you define one. `addSchemaLevelResolver` solves this by returning a new schema with the addition of a root resolve function.
 
 > You can check [Resolvers Composition](/docs/resolvers-composition) to compose resolvers with an authentication layer, and some checking operations etc.

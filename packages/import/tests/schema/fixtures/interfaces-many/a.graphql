@@ -1,0 +1,7 @@
+# import B from "b.graphql"
+
+type A implements B {
+  # test 1
+  first: String
+  second: Float
+}

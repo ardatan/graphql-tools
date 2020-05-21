@@ -1,0 +1,7 @@
+type C {
+  id: ID!
+}
+
+type X {
+  hide: Boolean
+}

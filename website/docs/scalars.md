@@ -33,7 +33,7 @@ $ npm install --save graphql-scalars
 In your JavaScript code, require the type defined by in the npm package and use it :
 
 ```js
-import { makeExecutableSchema } from 'graphql-tools';
+import { makeExecutableSchema } from '@graphql-tools/schema';
 import { GraphQLJSON } from 'graphql-scalars';
 
 const schemaString = `
@@ -67,7 +67,7 @@ If needed, you can define your own [GraphQLScalarType](http://graphql.org/graphq
 
 ```js
 import { GraphQLScalarType } from 'graphql';
-import { makeExecutableSchema } from 'graphql-tools';
+import { makeExecutableSchema } from '@graphql-tools/schema';
 
 const myCustomScalarType = new GraphQLScalarType({
   name: 'MyCustomScalar',

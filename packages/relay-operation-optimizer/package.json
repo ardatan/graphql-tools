@@ -1,0 +1,52 @@
+{
+  "name": "@graphql-tools/relay-operation-optimizer",
+  "version": "6.0.0-alpha.2",
+  "description": "Package for optimizing your GraphQL operations relay style.",
+  "author": {
+    "name": "Laurin Quast",
+    "email": "laurinquast@googlemail.com",
+    "url": "https://github.com/n1ru4l"
+  },
+  "license": "MIT",
+  "repository": "git@github.com:ardatan/graphql-tools.git",
+  "keywords": [
+    "graphql",
+    "codegen",
+    "graphql-codegen",
+    "plugin",
+    "relay"
+  ],
+  "sideEffects": false,
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
+  "typings": "dist/index.d.ts",
+  "typescript": {
+    "definition": "dist/index.d.ts"
+  },
+  "peerDependencies": {
+    "graphql": "^14.0.0 || ^15.0.0"
+  },
+  "dependencies": {
+    "@graphql-tools/utils": "6.0.0-alpha.2",
+    "relay-compiler": "9.1.0"
+  },
+  "devDependencies": {
+    "@types/relay-compiler": "8.0.0"
+  },
+  "buildOptions": {
+    "external": [
+      "relay-compiler/lib/transforms/SkipRedundantNodesTransform",
+      "relay-compiler/lib/transforms/InlineFragmentsTransform",
+      "relay-compiler/lib/transforms/ApplyFragmentArgumentTransform",
+      "relay-compiler/lib/transforms/FlattenTransform",
+      "relay-compiler/lib/core/CompilerContext",
+      "relay-compiler/lib/core/RelayParser",
+      "relay-compiler/lib/core/IRPrinter",
+      "relay-compiler/lib/core/Schema"
+    ]
+  },
+  "publishConfig": {
+    "access": "public",
+    "directory": "dist"
+  }
+}

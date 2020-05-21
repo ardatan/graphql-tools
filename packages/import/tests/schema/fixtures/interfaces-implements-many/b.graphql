@@ -1,0 +1,11 @@
+interface B {
+  id: ID!
+}
+
+type B1 implements B {
+  id: ID!
+}
+
+type B2 implements B {
+  id: ID!
+}

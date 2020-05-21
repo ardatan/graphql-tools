@@ -1,0 +1,30 @@
+{
+  "name": "@graphql-tools/utils",
+  "version": "6.0.0-alpha.2",
+  "description": "Common package containting utils and types for GraphQL tools",
+  "repository": "git@github.com:ardatan/graphql-tools.git",
+  "author": "Dotan Simha <dotansimha@gmail.com>",
+  "license": "MIT",
+  "sideEffects": false,
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
+  "typings": "dist/index.d.ts",
+  "typescript": {
+    "definition": "dist/index.d.ts"
+  },
+  "peerDependencies": {
+    "graphql": "^14.0.0 || ^15.0.0"
+  },
+  "devDependencies": {
+    "@types/dateformat": "3.0.1",
+    "dateformat": "3.0.3",
+    "graphql-scalars": "1.1.2"
+  },
+  "dependencies": {
+    "camel-case": "4.1.1"
+  },
+  "publishConfig": {
+    "access": "public",
+    "directory": "dist"
+  }
+}

@@ -1,0 +1,3 @@
+# import Query.third from "c.graphql"
+
+type Query

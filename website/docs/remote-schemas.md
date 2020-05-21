@@ -95,7 +95,7 @@ export default async () => {
 `makeRemoteExecutableSchema` takes a single argument: an object of options. The `schema` and a `executor` options are required.
 
 ```js
-import { makeRemoteExecutableSchema } from 'graphql-tools';
+import { makeRemoteExecutableSchema } from '@graphql-tools/wrap';
 
 const schema = makeRemoteExecutableSchema({
   schema,
@@ -121,7 +121,7 @@ const schema = makeRemoteExecutableSchema({
 Use `executor` to build a client schema using introspection query. This function makes it easier to use `makeRemoteExecutableSchema`. As a result, you get a promise to a non-executable GraphQL.js schema object. Accepts optional second argument `context`, which is passed to the executor; see the docs about executors above for more details.
 
 ```js
-import { introspectSchema } from 'graphql-tools';
+import { introspectSchema } from '@graphql-tools/wrap';
 
 introspectSchema(executor).then((schema) => {
   // use the schema

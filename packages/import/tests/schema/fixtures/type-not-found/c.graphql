@@ -1,0 +1,3 @@
+type Test {
+    myfield(post: Post): String
+}

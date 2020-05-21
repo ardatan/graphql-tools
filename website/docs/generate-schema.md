@@ -1,6 +1,6 @@
 ---
 id: generate-schema
-title: Generating a schema
+title: Generating an executable schema
 description: Generate a GraphQL schema from the concise type definition language.
 ---
 
@@ -93,7 +93,7 @@ const resolvers = {
 At the end, the schema and resolvers are combined using `makeExecutableSchema`:
 
 ```js
-import { makeExecutableSchema } from 'graphql-tools';
+import { makeExecutableSchema } from '@graphql-tools/schema';
 
 export const schema = makeExecutableSchema({
   typeDefs,
@@ -210,10 +210,10 @@ This [GraphQL schema language cheat sheet](https://raw.githubusercontent.com/sog
 
 ### makeExecutableSchema(options)
 
-`makeExecutableSchema` takes a single argument: an object of options. Only the `typeDefs` option is required.
+`makeExecutableSchema` takes a single argument: an object of options. Only the `typeDefs` option is required. It returns a new schema, modified as specified.
 
 ```
-import { makeExecutableSchema } from 'graphql-tools';
+import { makeExecutableSchema } from '@graphql-tools/schema';
 
 const jsSchema = makeExecutableSchema({
   typeDefs,
@@ -223,6 +223,7 @@ const jsSchema = makeExecutableSchema({
   resolverValidationOptions: {}, // optional
   directiveResolvers: null, // optional
   schemaDirectives: null,  // optional
+  schemaTransforms: [],  // optional
   parseOptions: {},  // optional
   inheritResolversFromInterfaces: false  // optional
 });
@@ -250,3 +251,7 @@ const jsSchema = makeExecutableSchema({
   - `allowResolversNotInSchema` turns off the functionality which throws errors when resolvers are found which are not present in the schema. Defaults to `false`, to help catch common errors.
 
 - `inheritResolversFromInterfaces` GraphQL Objects that implement interfaces will inherit missing resolvers from their interface types defined in the `resolvers` object.
+
+- `schemaTransforms` is an optional argument _(empty array by default)_ and should be an array of schema transformation functions, essentially designed to enable the use of [directive-based functional schema transformation](/docs/schema-directives/)
+
+- `schemaDirectives` is an optional argument _(empty object by default)_ and can be used to specify the [earlier class-based implementation of schema directives](/docs/legacy-schema-directives/)

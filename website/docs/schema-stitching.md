@@ -15,16 +15,14 @@ In these cases, we use `stitchSchemas` to combine multiple GraphQL schemas toget
 In this example we'll stitch together two very simple schemas. In this case, we're dealing with two schemas that implement a system with users and "chirps"&mdash;small snippets of text that users can post.
 
 ```js
-import {
-  makeExecutableSchema,
-  addMocksToSchema,
-  stitchSchemas,
-} from 'graphql-tools';
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import { addMocksToSchema } from '@graphql-tools/mock';
+import { stitchSchemas } from '@graphql-tools/stitch';
 
 // Mocked chirp schema
 // We don't worry about the schema implementation right now since we're just
 // demonstrating schema stitching.
-const chirpSchema = makeExecutableSchema({
+let chirpSchema = makeExecutableSchema({
   typeDefs: `
     type Chirp {
       id: ID!
@@ -39,10 +37,10 @@ const chirpSchema = makeExecutableSchema({
   `
 });
 
-addMocksToSchema({ schema: chirpSchema });
+chirpSchema = addMocksToSchema({ schema: chirpSchema });
 
 // Mocked author schema
-const authorSchema = makeExecutableSchema({
+let authorSchema = makeExecutableSchema({
   typeDefs: `
     type User {
       id: ID!
@@ -55,7 +53,7 @@ const authorSchema = makeExecutableSchema({
   `
 });
 
-addMocksToSchema({ schema: authorSchema });
+authorSchema = addMocksToSchema({ schema: authorSchema });
 
 export const schema = stitchSchemas({
   subschemas: [
@@ -119,7 +117,7 @@ How should these resolvers be implemented? When we resolve `User.chirps` or `Chi
 
 Resolvers can use the `delegateToSchema` function to forward parts of queries (or even whole new queries) to one of the subschemas that was passed to `stitchSchemas` (or any other schema).
 
-In order to delegate to these root fields, we'll need to make sure we've actually requested the `id` of the user or the `authorId` of the chirp. To avoid forcing users to add these fields to their queries manually, resolvers on a merged schema can define a `fragment` property that specifies the required fields, and they will be added to the query automatically.
+In order to delegate to these root fields, we'll need to make sure we've actually requested the `id` of the user or the `authorId` of the chirp. To avoid forcing users to add these fields to their queries manually, resolvers on a merged schema can define a `selectionSet` property that specifies the required fields, and they will be added to the query automatically.
 
 A complete implementation of schema stitching for these schemas might look like this:
 
@@ -133,7 +131,7 @@ const schema = stitchSchemas({
   resolvers: {
     User: {
       chirps: {
-        fragment: `... on User { id }`,
+        selectionSet: `{ id }`,
         resolve(user, args, context, info) {
           return delegateToSchema({
             schema: chirpSchema,
@@ -150,7 +148,7 @@ const schema = stitchSchemas({
     },
     Chirp: {
       author: {
-        fragment: `... on Chirp { authorId }`,
+        selectionSet: `{ authorId }`,
         resolve(chirp, args, context, info) {
           return delegateToSchema({
             schema: authorSchema,
@@ -176,19 +174,19 @@ Often, when creating a GraphQL gateway that combines multiple existing schemas, 
 For example, suppose we transform the `chirpSchema` by removing the `chirpsByAuthorId` field and add a `Chirp_` prefix to all types and field names, in order to make it very clear which types and fields came from `chirpSchema`:
 
 ```ts
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import { addMocksToSchema } from '@graphql-tools/mock';
+import { stitchSchemas } from '@graphql-tools/stitch';
 import {
-  makeExecutableSchema,
-  addMocksToSchema,
-  stitchSchemas,
   FilterRootFields,
   RenameTypes,
   RenameRootFields,
-} from 'graphql-tools';
+} from '@graphql-tools/wrap';
 
 // Mocked chirp schema; we don't want to worry about the schema
 // implementation right now since we're just demonstrating
 // schema stitching
-const chirpSchema = makeExecutableSchema({
+let chirpSchema = makeExecutableSchema({
   typeDefs: `
     type Chirp {
       id: ID!
@@ -203,7 +201,7 @@ const chirpSchema = makeExecutableSchema({
   `
 });
 
-addMocksToSchema({ schema: chirpSchema });
+chirpSchema = addMocksToSchema({ schema: chirpSchema });
 
 // create transforms
 
@@ -236,7 +234,7 @@ export const schema = stitchSchemas({
   resolvers: {
     User: {
       chirps: {
-        fragment: `... on User { id }`,
+        selectionSet: `{ id }`,
         resolve(user, args, context, info) {
           return delegateToSchema({
             schema: chirpSubschema,
@@ -253,7 +251,7 @@ export const schema = stitchSchemas({
     },
     Chirp_Chirp: {
       author: {
-        fragment: `... on Chirp { authorId }`,
+        selectionSet: `{ authorId }`,
         resolve(chirp, args, context, info) {
           return delegateToSchema({
             schema: authorSchema,
@@ -272,9 +270,7 @@ export const schema = stitchSchemas({
 });
 ```
 
-Notice that `resolvers.Chirp_Chirp` has been renamed from just `Chirp`, but `resolvers.Chirp_Chirp.author.fragment` still refers to the original `Chirp` type and `authorId` field, rather than `Chirp_Chirp` and `Chirp_authorId`.
-
-Also, when we call `delegateToSchema` in the `User.chirps` resolvers, we can delegate to the original `chirpsByAuthorId` field, even though it has been filtered out of the final schema.
+Notice that when we call `delegateToSchema` in the `User.chirps` resolvers, we can delegate to the original `chirpsByAuthorId` field, even though it has been filtered out of the final schema.
 
 ## Working with remote schemas
 
@@ -347,7 +343,7 @@ This is the main function that implements schema stitching. Read below for a des
 
 #### resolvers
 
-`resolvers` accepts resolvers in same format as [makeExecutableSchema](/docs/resolvers/). It can also take an Array of resolvers. One addition to the resolver format is the possibility to specify a `fragment` for a resolver. The `fragment` must be a GraphQL fragment definition string, specifying which fields from the parent schema are required for the resolver to function properly.
+`resolvers` accepts resolvers in same format as [makeExecutableSchema](/docs/resolvers/). It can also take an Array of resolvers. One addition to the resolver format is the possibility to specify a `selectionSet` for a resolver. The `selectionSet` must be a GraphQL selection set definition string, specifying which fields from the parent schema are required for the resolver to function properly.
 
 ```js
 resolvers: {

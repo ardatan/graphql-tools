@@ -15,7 +15,8 @@ Let's take a look at how we can mock a GraphQL schema with just one line of code
 To start, let's grab the schema definition string from the `makeExecutableSchema` example [in the "Generating a schema" article](/docs/generate-schema/#example).
 
 ```js
-import { makeExecutableSchema, addMocksToSchema } from 'graphql-tools';
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import { addMocksToSchema } from '@graphql-tools/mock';
 import { graphql } from 'graphql';
 
 // Fill this in with the schema string
@@ -24,8 +25,8 @@ const schemaString = `...`;
 // Make a GraphQL schema with no resolvers
 const schema = makeExecutableSchema({ typeDefs: schemaString });
 
-// Add mocks, modifies schema in place
-addMocksToSchema({ schema });
+// Create a new schema with mocks
+const schemaWithMocks = addMocksToSchema({ schema });
 
 const query = `
 query tasksForUser {
@@ -33,7 +34,7 @@ query tasksForUser {
 }
 `;
 
-graphql(schema, query).then((result) => console.log('Got result', result));
+graphql(schemaWithMocks, query).then((result) => console.log('Got result', result));
 ```
 
 > Note: If your schema has custom scalar types, you still need to define the `__serialize`, `__parseValue`, and `__parseLiteral` functions, and pass them inside the second argument to `makeExecutableSchema`.
@@ -103,7 +104,7 @@ Similarly, if you want to mock a **random** value for the Custom Scalar, you can
 The final step is to use the `mocks` object and `schema` to mock the server.
 
 ```js
-import { addMockFunctionsToSchema, mockServer } from 'graphql-tools';
+import { addMocksToSchema, mockServer } from '@graphql-tools/mock';
 // Mock object.
 const mocks = {
   Int: () => 6,
@@ -114,8 +115,8 @@ const mocks = {
 const preserveResolvers = false;
 // Mock the server passing the schema, mocks object and preserverResolvers arguments.
 const server = mockServer(schema, mocks, preserveResolvers);
-// Alternatively, you can call addMockFunctionsToSchema with the same arguments.
-addMockFunctionsToSchema({
+// Alternatively, you can call addMocksToSchema with the same arguments.
+const schemaWithMocks = addMocksToSchema({
   schema,
   mocks,
   preserveResolvers,
@@ -188,10 +189,8 @@ You will need resolvers to mock interfaces. By default [`addMocksToSchema`](#add
 By setting the property `preserveResolvers` on the options object to `true`, the type resolvers will be preserved.
 
 ```js
-import {
-  makeExecutableSchema,
-  addMocksToSchema
-} from 'graphql-tools'
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import { addMocksToSchema } from '@graphql-tools/mock';
 import mocks from './mocks' // your mock functions
 
 const typeDefs = `
@@ -246,10 +245,10 @@ const schema = makeExecutableSchema({
   resolvers
 })
 
-addMocksToSchema({
-    schema,
-    mocks,
-    preserveResolvers: true
+const schemaWithMocks = addMocksToSchema({
+  schema,
+  mocks,
+  preserveResolvers: true
 })
 ```
 
@@ -267,7 +266,7 @@ import * as introspectionResult from 'schema.json';
 
 const schema = buildClientSchema(introspectionResult);
 
-addMocksToSchema({schema});
+const schemaWithMocks = addMocksToSchema({schema});
 ```
 
 ## API
@@ -275,21 +274,21 @@ addMocksToSchema({schema});
 ### addMocksToSchema
 
 ```js
-import { addMocksToSchema } from 'graphql-tools';
+import { addMocksToSchema } from '@graphql-tools/mock';
 
-addMocksToSchema({
+const schemaWithMocks = addMocksToSchema({
   schema,
   mocks: {},
   preserveResolvers: false,
 });
 ```
 
-Given an instance of GraphQLSchema and a mock object, `addMocksToSchema` modifies the schema in place to return mock data for any valid query that is sent to the server. If `mocks` is not passed, the defaults will be used for each of the scalar types. If `preserveResolvers` is set to `true`, existing resolvers will not be overwritten to provide mock data. This can be used to mock some parts of the server and not others.
+Given an instance of GraphQLSchema and a mock object, `addMocksToSchema` returns a new schema that can return mock data for any valid query that is sent to the server. If `mocks` is not passed, the defaults will be used for each of the scalar types. If `preserveResolvers` is set to `true`, existing resolvers will not be overwritten to provide mock data. This can be used to mock some parts of the server and not others.
 
 ### MockList
 
 ```js
-import { MockList } from 'graphql-tools';
+import { MockList } from '@graphql-tools/mock';
 
 new MockList(length: number | number[], mockFunction: Function);
 ```
@@ -299,7 +298,7 @@ This is an object you can return from your mock resolvers which calls the `mockF
 ### mockServer
 
 ```js
-import { mockServer } from 'graphql-tools';
+import { mockServer } from '@graphql-tools/mock';
 
 // This can be an SDL schema string (eg the result of `buildClientSchema` above)
 // or a GraphQLSchema object (eg the result of `buildSchema` from `graphql`)

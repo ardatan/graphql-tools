@@ -1,0 +1,3 @@
+fragment BarFragment on Bar {
+    baz
+}

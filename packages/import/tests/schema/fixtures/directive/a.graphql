@@ -1,0 +1,5 @@
+#import * from 'd.graphql'
+type A {
+  first: String @upper
+  second: String @withB @deprecated
+}
