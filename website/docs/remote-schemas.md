@@ -89,14 +89,14 @@ export default async () => {
 }
 ```
 
-## Creating a subscriber
+### Creating a subscriber
 > TODO
 
 ## API
 
 ### introspectSchema(executor, [context])
 
-Use `executor` to build a client schema using introspection query. This function makes it easier to use `makeRemoteExecutableSchema`. As a result, you get a promise to a non-executable GraphQL.js schema object. Accepts optional second argument `context`, which is passed to the executor; see the docs about executors above for more details.
+Use `executor` to obtain a non-executable client schema from a remote schema using a full introspection query. `introspectSchema` is used to acquire the non-executable form of a remote schema that must be passed to `wrapSchema`. It returns a promise to a non-executable GraphQL.js schema object. Accepts optional second argument `context`, which is passed to the executor; see the docs about executors above for more details.
 
 ```js
 import { introspectSchema } from '@graphql-tools/wrap';
