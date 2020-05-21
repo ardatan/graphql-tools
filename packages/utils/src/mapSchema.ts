@@ -40,7 +40,6 @@ import {
 
 import { rewireTypes } from './rewire';
 import { serializeInputValue, parseInputValue } from './transformInputValue';
-import { reannotateObject } from './reannotateObject';
 
 export function mapSchema(schema: GraphQLSchema, schemaMapper: SchemaMapper = {}): GraphQLSchema {
   const originalTypeMap = schema.getTypeMap();
@@ -78,18 +77,14 @@ export function mapSchema(schema: GraphQLSchema, schemaMapper: SchemaMapper = {}
 
   const { typeMap, directives } = rewireTypes(newTypeMap, newDirectives);
 
-  return reannotateObject(
-    new GraphQLSchema({
-      ...schema.toConfig(),
-      query: newQueryTypeName ? (typeMap[newQueryTypeName] as GraphQLObjectType) : undefined,
-      mutation: newMutationTypeName ? (typeMap[newMutationTypeName] as GraphQLObjectType) : undefined,
-      subscription:
-        newSubscriptionTypeName != null ? (typeMap[newSubscriptionTypeName] as GraphQLObjectType) : undefined,
-      types: Object.keys(typeMap).map(typeName => typeMap[typeName]),
-      directives,
-    }),
-    schema
-  );
+  return new GraphQLSchema({
+    ...schema.toConfig(),
+    query: newQueryTypeName ? (typeMap[newQueryTypeName] as GraphQLObjectType) : undefined,
+    mutation: newMutationTypeName ? (typeMap[newMutationTypeName] as GraphQLObjectType) : undefined,
+    subscription: newSubscriptionTypeName != null ? (typeMap[newSubscriptionTypeName] as GraphQLObjectType) : undefined,
+    types: Object.keys(typeMap).map(typeName => typeMap[typeName]),
+    directives,
+  });
 }
 
 function mapTypes(
@@ -123,7 +118,7 @@ function mapTypes(
         return;
       }
 
-      newTypeMap[typeName] = reannotateObject(maybeNewType, originalType);
+      newTypeMap[typeName] = maybeNewType;
     }
   });
 
@@ -251,13 +246,10 @@ function mapFields(originalTypeMap: TypeMap, schema: GraphQLSchema, schemaMapper
       });
 
       if (isObjectType(originalType)) {
-        newTypeMap[typeName] = reannotateObject(
-          new GraphQLObjectType({
-            ...((config as unknown) as GraphQLObjectTypeConfig<any, any>),
-            fields: newFieldConfigMap,
-          }),
-          originalType
-        );
+        newTypeMap[typeName] = new GraphQLObjectType({
+          ...((config as unknown) as GraphQLObjectTypeConfig<any, any>),
+          fields: newFieldConfigMap,
+        });
       } else if (isInterfaceType(originalType)) {
         newTypeMap[typeName] = new GraphQLInterfaceType({
           ...((config as unknown) as GraphQLInterfaceTypeConfig<any, any>),
@@ -336,13 +328,10 @@ function mapArguments(originalTypeMap: TypeMap, schema: GraphQLSchema, schemaMap
       });
 
       if (isObjectType(originalType)) {
-        newTypeMap[typeName] = reannotateObject(
-          new GraphQLObjectType({
-            ...((config as unknown) as GraphQLObjectTypeConfig<any, any>),
-            fields: newFieldConfigMap,
-          }),
-          originalType
-        );
+        newTypeMap[typeName] = new GraphQLObjectType({
+          ...((config as unknown) as GraphQLObjectTypeConfig<any, any>),
+          fields: newFieldConfigMap,
+        });
       } else if (isInterfaceType(originalType)) {
         newTypeMap[typeName] = new GraphQLInterfaceType({
           ...((config as unknown) as GraphQLInterfaceTypeConfig<any, any>),
@@ -377,7 +366,7 @@ function mapDirectives(
     if (mappedDirective === undefined) {
       newDirectives.push(directive);
     } else if (mappedDirective !== null) {
-      newDirectives.push(reannotateObject(mappedDirective, directive));
+      newDirectives.push(mappedDirective);
     }
   });
 
