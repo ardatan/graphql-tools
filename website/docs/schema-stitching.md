@@ -423,10 +423,7 @@ Specifying the remote schema options within the `stitchSchemas` call itself allo
 
 ## API
 
-### schemas
-
 ```ts
-
 export type SubschemaConfig = {
   schema: GraphQLSchema;
   rootValue?: Record<string, any>;
@@ -465,19 +462,19 @@ stitchSchemas({
 
 This is the main function that implements schema stitching. Note that in addition to the above arguments, the function also takes all the same arguments as [`makeExecutableSchema`](/docs/generate-schema/). Read below for a description of each option.
 
-#### subschemas
+### subschemas
 
 `subschemas` is an array of `GraphQLSchema` or `SubschemaConfig` objects. These subschemas are wrapped with proxying resolvers in the final schema.
 
-#### types
+### types
 
 Additional types to add to the final type map, most useful for custom scalars or enums.
 
-#### typeDefs
+### typeDefs
 
 Strings or parsed documents that can contain additional types or type extensions. Note that type extensions are always applied last, while types are defined in the order in which they are provided.
 
-#### resolvers
+### resolvers
 
 `resolvers` accepts resolvers in same format as [makeExecutableSchema](/docs/resolvers/). It can also take an Array of resolvers. One addition to the resolver format is the possibility to specify a `selectionSet` for a resolver. The `selectionSet` must be a GraphQL selection set definition string, specifying which fields from the parent schema are required for the resolver to function properly.
 
@@ -503,7 +500,7 @@ resolvers: {
 }
 ```
 
-#### delegateToSchema
+### delegateToSchema
 
 The `delegateToSchema` method:
 
