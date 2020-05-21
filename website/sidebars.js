@@ -10,7 +10,7 @@ module.exports = {
     'mocking',
     'connectors',
     'schema-directives',
-    'legacy-schema-directives',
+    // 'legacy-schema-directives',
     'directive-resolvers',
     'schema-delegation',
     'remote-schemas',
@@ -28,8 +28,12 @@ module.exports = {
     'documents-loading',
     'graphql-tag-pluck',
     'relay-operation-optimizer',
-    'migration-from-tools-v5',
-    'migration-from-toolkit',
-    'migration-from-merge-graphql-schemas'
+    {
+      'Migration': [
+        'migration-from-tools-v5',
+        'migration-from-toolkit',
+        'migration-from-merge-graphql-schemas'
+      ]
+    }
   ],
 };

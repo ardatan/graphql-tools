@@ -196,6 +196,6 @@ GraphQL context that is going to be passed to the subschema execution or subscip
 
 GraphQL resolve info of the current resolver. Provides access to the subquery that starts at the current resolver.
 
-#### transforms: Array<Transform>
+#### transforms: Array < Transform >
 
 Any additional operation [transforms](/docs/schema-wrapping/) to apply to the query and results. Transforms are specified similarly to the transforms used in conjunction with schema wrapping, but only the operational components of transforms will be used by `delegateToSchema`, i.e. any specified `transformRequest` and `transformResult` functions.
