@@ -19,11 +19,11 @@ Majority of schema modification functions has been renamed and they now return n
 - `addConnectorsToContext` has been deprecated, attaching context manually is clearer
  - - See [#140](https://github.com/ardatan/graphql-tools/issues/140)
 
-> Schema modification functions operating on fields now similarly take a schema as a parameter and return a new schema, rather than modifying the passed in typeMap (and requiring manual schema healing)
+Schema modification functions operating on fields now similarly take a schema as a parameter and return a new schema, rather than modifying the passed in typeMap (and requiring manual schema healing)
  - - `appendObjectFields`
  - - `removeObjectFields`
 
-> Abstract types that use resolveType properties to return an actual type rather than a type name may be unstable when using graphql-tools, as these types are hidden from the type map and cannot be recreated. These resolveType resolvers should be relatively easy to rewrite to use the name of a known `GraphQLObject` type included within the schema’s type map. This may limit the use of `graphql-tools` for advanced schemas that rely on dynamic abstract types, but greatly simplifies the code base.
+Abstract types that use resolveType properties to return an actual type rather than a type name may be unstable when using graphql-tools, as these types are hidden from the type map and cannot be recreated. These resolveType resolvers should be relatively easy to rewrite to use the name of a known `GraphQLObject` type included within the schema’s type map. This may limit the use of `graphql-tools` for advanced schemas that rely on dynamic abstract types, but greatly simplifies the code base.
 
 #### Remote Schema & Wrapping (`makeRemoteExecutableSchema` and `@graphql-tools/wrap`)
 
