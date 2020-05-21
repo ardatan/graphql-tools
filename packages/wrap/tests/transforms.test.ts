@@ -102,7 +102,7 @@ describe('transforms', () => {
       });
     });
 
-    test('should work when specified as a schema configuration object', async () => {
+    test('should work when specified as a subschema configuration object', async () => {
       const schema = wrapSchema(
         { schema: scalarSchema, transforms: [] },
         [],

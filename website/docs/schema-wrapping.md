@@ -107,6 +107,8 @@ Delegating resolvers are generated to map from new schema root fields to old sch
 
 The delegating resolvers will apply the operation transforms defined by the `Transform` objects. Each provided `transformRequest` functions will be applies in reverse order, until the request matches the original schema. The `tranformResult` functions will be applied in the opposite order until the result matches the final gateway schema.
 
+Remote schemas can also be wrapped! In fact, this is the primary use case. See documentation regarding [remote schemas](/docs/remote-schemas/) for further details about remote schemas. Note that as explained there, when wrapping remote schemas, you will be wrapping a subschema config object, and the array of transforms should be defined on that object rather than as a second argument to `wrapSchema`.
+
 ## Built-in transforms
 
 Built-in transforms are ready-made classes implementing the `Transform` interface. They are intended to cover many of the most common schema transformation use cases, but they also serve as examples of how to implement transforms for your own needs.

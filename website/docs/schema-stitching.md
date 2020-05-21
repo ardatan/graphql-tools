@@ -64,8 +64,8 @@ export const schema = stitchSchemas({
 ```
 
 Note the new `subschemas` property with an array of subschema configuration objects. This syntax is a bit more verbose, but we shall see how it provides multiple benefits:
-1. transforms can be specified on the subschema config object, avoiding creation of a new schema with a new round of delegation in order to transform a schema prior to merging.
-2. remote schema configuration options can be specified, also avoiding an additional round of schema proxying.
+1. transforms should be specified on the subschema config object, avoiding creation of a new schema with a new round of delegation in order to transform a schema prior to merging. This also makes it simple to include the necessary transforms when delegating, as you will pass the entire subschema configuration object to `delegateToSchema` instead of just the schema, with the required transforms included for free.
+2. remote subschema configuration options can be specified, also avoiding an additional round of schema proxying. That's three rounds of delegations reduce to one!
 
 This gives us a new schema with the root fields on `Query` from both schemas (along with the `User` and `Chirp` types):
 
@@ -272,6 +272,136 @@ export const schema = stitchSchemas({
 
 Notice that when we call `delegateToSchema` in the `User.chirps` resolvers, we can delegate to the original `chirpsByAuthorId` field, even though it has been filtered out of the final schema.
 
+## Merging types
+
+We are still stuck exposing the `authorId` field within the `Chirp` type even though we actually just want to include an `author`. We can always use transforms to filter out the `authorId` field, but it would be nice if this could be made more ergonomical. It also makes stitching somewhat more difficult when the authorId is not directly exposed -- for example, in a situation where we do not control the remote subschema in question.
+
+What is the chirps subschema also had its own self-contained user concept, and we just wanted to combine the relevant fields from both subschemas?
+
+```js
+let chirpSchema = makeExecutableSchema({
+  typeDefs: `
+    type Chirp {
+      id: ID!
+      text: String
+      author: User
+    }
+
+    type User {
+      id: ID!
+      chirps: [Chirp]
+    }
+
+    type Query {
+      chirpById(id: ID!): Chirp
+      chirpsByUserId(id: ID!): [Chirp]
+      userById(id: ID!): User
+    }
+  `
+});
+
+chirpSchema = addMocksToSchema({ schema: chirpSchema });
+
+// Mocked author schema
+let authorSchema = makeExecutableSchema({
+  typeDefs: `
+    type User {
+      id: ID!
+      email: String
+    }
+
+    type Query {
+      userById(id: ID!): User
+    }
+  `
+});
+
+authorSchema = addMocksToSchema({ schema: authorSchema });
+```
+
+This can now be accomplished by turning on type merging!
+
+```js
+const stitchedSchema = stitchSchemas({
+  subschemas: [
+    {
+      schema: chirpSchema,
+      merge: {
+        User: {
+          fieldName: 'userById',
+          args: (originalResult) => ({ id: originalResult.id }),
+          selectionSet: '{ id }',
+        },
+      },
+    },
+    {
+      schema: authorSchema,
+      merge: {
+        User: {
+          fieldName: 'userById',
+          args: (originalResult) => ({ id: originalResult.id }),
+          selectionSet: '{ id }',
+        },
+      },
+    },
+  ],
+  mergeTypes: true,
+});
+```
+
+The `merge` property on the `SubschemaConfig` object determines how types are merged, and is a map of `MergedTypeConfig` objects:
+
+```ts
+export interface MergedTypeConfig {
+  selectionSet?: string;
+  fieldName?: string;
+  args?: (originalResult: any) => Record<string, any>;
+  resolve?: MergedTypeResolver;
+}
+
+export type MergedTypeResolver = (
+  originalResult: any, // initial final result from a subschema
+  context: Record<string, any>, // gateway context
+  info: GraphQLResolveInfo, // gateway info
+  subschema: GraphQLSchema | SubschemaConfig, // the additional implementing subschema from which to retrieve data
+  selectionSet: SelectionSetNode // the additional fields required from that subschema
+) => any;
+```
+
+Type merging simply merges types with the same name, but is smart enough to apply the passed subschema transforms prior to merging types, so the types have to be identical on the gateway, not the individual subschema.
+
+All merged types returned by any subschema will delegate as necessary to subschemas also implementing the type, using the provided `resolve` function of type `MergedTypeResolver`.
+
+The simplified magic above happens because if left unspecified, we provide a default type-merging resolver for you, which uses the other `MergedTypeConfig` options, as follows:
+
+```ts
+mergedTypeConfig.resolve = (originalResult, context, info, schemaOrSubschemaConfig, selectionSet) =>
+  delegateToSchema({
+    schema: schemaOrSubschemaConfig,
+    operation: 'query',
+    fieldName: mergedTypeConfig.fieldName,
+    args: mergedTypeConfig.args(originalResult),
+    selectionSet,
+    context,
+    info,
+    skipTypeMerging: true,
+  });
+```
+
+When providing your own type-merging resolver, note the very important `skipTypeMerging` setting. Without this option, your gateway will keep busy merging types forever, as each result returned from each subschema will trigger another round of delegation to the other implementing subschemas!
+
+Finally, you may wish to fine-tune which types are merged. Besides taking a boolean value, you can also specify an array of type names, or a function of type `MergeTypeFilter` that takes the potential types and decides dynamically how to merge.
+
+```ts
+export type MergeTypeCandidate = {
+  type: GraphQLNamedType;
+  subschema?: GraphQLSchema | SubschemaConfig; // undefined if the type is added to the gateway directly, not from a subschema
+  transformedSubschema?: GraphQLSchema; // the target schema of the above after any subschema config schema transformations are applied
+};
+
+export type MergeTypeFilter = (mergeTypeCandidates: Array<MergeTypeCandidate>, typeName: string) => boolean;
+```
+
 ## Working with remote schemas
 
 In order to merge with a remote schema, we specify different options within the subschema configuration object that describe how to connect to the remote schema. For example:
@@ -330,16 +460,22 @@ stitchSchemas({
       };
     },
   ) => GraphQLNamedType;
-  inheritResolversFromInterfaces?: boolean;
-  schemaDirectives?: Record<string, SchemaDirectiveVisitorClass>;
 })
 ```
 
-This is the main function that implements schema stitching. Read below for a description of each option.
+This is the main function that implements schema stitching. Note that in addition to the above arguments, the function also takes all the same arguments as [`makeExecutableSchema`](/docs/generate-schema/). Read below for a description of each option.
 
-#### schemas
+#### subschemas
 
-`schemas` is an array of `GraphQLSchema` objects, schema strings, or lists of `GraphQLNamedType`s. Strings can contain type extensions or GraphQL types, which will be added to resulting schema. Note that type extensions are always applied last, while types are defined in the order in which they are provided. Using the `subschemas` and `typeDefs` parameters is preferred, as these parameter names better describe whether the includes types will be wrapped or will be imported directly into the outer schema.
+`subschemas` is an array of `GraphQLSchema` or `SubschemaConfig` objects. These subschemas are wrapped with proxying resolvers in the final schema.
+
+#### types
+
+Additional types to add to the final type map, most useful for custom scalars or enums.
+
+#### typeDefs
+
+Strings or parsed documents that can contain additional types or type extensions. Note that type extensions are always applied last, while types are defined in the order in which they are provided.
 
 #### resolvers
 
@@ -349,7 +485,7 @@ This is the main function that implements schema stitching. Read below for a des
 resolvers: {
   Booking: {
     property: {
-      fragment: '... on Booking { propertyId }',
+      selectionSet: '{ propertyId }',
       resolve(parent, args, context, info) {
         return delegateToSchema({
           schema: bookingSchema,
@@ -375,7 +511,7 @@ The `delegateToSchema` method:
 delegateToSchema<TContext>(options: IDelegateToSchemaOptions<TContext>): any;
 
 interface IDelegateToSchemaOptions<TContext = Record<string, any>> {
-    schema: GraphQLSchema;
+    schemaOrSchemaConfig: GraphQLSchema | SubschemaConfig;
     operation: Operation;
     fieldName: string;
     args?: Record<string, any>;
@@ -385,7 +521,7 @@ interface IDelegateToSchemaOptions<TContext = Record<string, any>> {
 }
 ```
 
-As described in the documentation above, `delegateToSchema` allows delegating to any `GraphQLSchema` object, optionally applying transforms in the process. See [Schema Delegation](/docs/schema-delegation/) and the [*Using with transforms*](#using-with-transforms) section of this document.
+As described in the documentation above, `delegateToSchema` allows delegating to any `GraphQLSchema` or `SubschemaConfig` object. Transforms do not have to be re-specified when passing a `SubschemaConfig` object, which is the preserved workflow. Additional transforms can also be passed as needed. See [Schema Delegation](/docs/schema-delegation/) and the [*Using with transforms*](#using-with-transforms) section of this document.
 
 #### onTypeConflict
 
