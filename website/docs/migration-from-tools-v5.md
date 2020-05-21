@@ -27,7 +27,7 @@ Majority of schema modification functions has been renamed and they now return n
 
 #### Remote Schema & Wrapping (`makeRemoteExecutableSchema` and `@graphql-tools/wrap`)
 
-- Remote schema wrapping is now accomplished by using executors and subscribers rather than fetchers and links. Functions that convert links to executors/subscribers are included with @graphql-tools/links. See https://github.com/ardatan/graphql-tools/blob/move-graphql-toolkit/website/docs/remote-schemas.md.
+- Remote schema wrapping is now accomplished by using executors and subscribers rather than fetchers and links. Functions that convert links to executors/subscribers are included with @graphql-tools/links. [See the docs](/docs/remote-schemas).
 
 - `Transform`<*>`Field Transforms` now all take a `fieldTransformer` with altered `FieldTransformer` type.
 A FieldTransformer receives a field config as an argument rather than a field, so that library users are spared having to call fieldToFieldConfig. A `FieldTransformer` can return an array of type `[string, GraphQLFieldConfig<any, any>]` instead of an object `{ name: string, field: GraphQLFieldConfig<any, any> }` if it wishes to rename the field, the tuple is less verbose and the object is misnamed, it should be { newName, newFieldConfig } anyway.

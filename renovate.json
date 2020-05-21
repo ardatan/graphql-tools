@@ -1,5 +1,5 @@
 {
-  "baseBranches": ["master", "move-graphql-toolkit"],
+  "baseBranches": ["master"],
   "extends": [
     "config:base"
   ],
