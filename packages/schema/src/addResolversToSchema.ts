@@ -8,6 +8,13 @@ import {
   GraphQLFieldConfig,
   GraphQLObjectType,
   isSpecifiedScalarType,
+  GraphQLFieldResolver,
+  isScalarType,
+  isEnumType,
+  isUnionType,
+  isInterfaceType,
+  isObjectType,
+  GraphQLField,
 } from 'graphql';
 
 import {
@@ -16,6 +23,11 @@ import {
   IAddResolversToSchemaOptions,
   mapSchema,
   MapperKind,
+  forEachDefaultValue,
+  serializeInputValue,
+  healSchema,
+  parseInputValue,
+  forEachField,
 } from '@graphql-tools/utils';
 
 import { checkForResolveTypeResolver } from './checkForResolveTypeResolver';
@@ -40,6 +52,7 @@ export function addResolversToSchema(
     defaultFieldResolver,
     resolverValidationOptions = {},
     inheritResolversFromInterfaces = false,
+    updateResolversInPlace = false,
   } = options;
 
   const { allowResolversNotInSchema = false, requireResolversForResolveType } = resolverValidationOptions;
@@ -79,7 +92,6 @@ export function addResolversToSchema(
         throw new Error(`"${typeName}" defined in resolvers, but not in schema`);
       } else if (isSpecifiedScalarType(type)) {
         // allow -- without recommending -- overriding of specified scalar types
-        const resolverValue = resolvers[typeName];
         Object.keys(resolverValue).forEach(fieldName => {
           if (fieldName.startsWith('__')) {
             type[fieldName.substring(2)] = resolverValue[fieldName];
@@ -91,6 +103,145 @@ export function addResolversToSchema(
     }
   });
 
+  schema = updateResolversInPlace
+    ? addResolversToExistingSchema({
+        schema,
+        resolvers,
+        defaultFieldResolver,
+        allowResolversNotInSchema,
+      })
+    : createNewSchemaWithResolvers({
+        schema,
+        resolvers,
+        defaultFieldResolver,
+        allowResolversNotInSchema,
+      });
+
+  checkForResolveTypeResolver(schema, requireResolversForResolveType);
+
+  return schema;
+}
+
+function addResolversToExistingSchema({
+  schema,
+  resolvers,
+  defaultFieldResolver,
+  allowResolversNotInSchema,
+}: {
+  schema: GraphQLSchema;
+  resolvers: IResolvers;
+  defaultFieldResolver: GraphQLFieldResolver<any, any>;
+  allowResolversNotInSchema: boolean;
+}): GraphQLSchema {
+  const typeMap = schema.getTypeMap();
+  Object.keys(resolvers).forEach(typeName => {
+    if (typeName !== '__schema') {
+      const type = schema.getType(typeName);
+      const resolverValue = resolvers[typeName];
+
+      if (isScalarType(type)) {
+        Object.keys(resolverValue).forEach(fieldName => {
+          if (fieldName.startsWith('__')) {
+            type[fieldName.substring(2)] = resolverValue[fieldName];
+          } else {
+            type[fieldName] = resolverValue[fieldName];
+          }
+        });
+      } else if (isEnumType(type)) {
+        const config = type.toConfig();
+        const enumValueConfigMap = config.values;
+
+        Object.keys(resolverValue).forEach(fieldName => {
+          if (fieldName.startsWith('__')) {
+            config[fieldName.substring(2)] = resolverValue[fieldName];
+          } else if (!enumValueConfigMap[fieldName]) {
+            if (allowResolversNotInSchema) {
+              return;
+            }
+            throw new Error(`${type.name}.${fieldName} was defined in resolvers, but not present within ${type.name}`);
+          } else {
+            enumValueConfigMap[fieldName].value = resolverValue[fieldName];
+          }
+        });
+
+        typeMap[typeName] = new GraphQLEnumType(config);
+      } else if (isUnionType(type)) {
+        Object.keys(resolverValue).forEach(fieldName => {
+          if (fieldName.startsWith('__')) {
+            type[fieldName.substring(2)] = resolverValue[fieldName];
+            return;
+          }
+          if (allowResolversNotInSchema) {
+            return;
+          }
+
+          throw new Error(
+            `${type.name}.${fieldName} was defined in resolvers, but ${type.name} is not an object or interface type`
+          );
+        });
+      } else if (isObjectType(type) || isInterfaceType(type)) {
+        Object.keys(resolverValue).forEach(fieldName => {
+          if (fieldName.startsWith('__')) {
+            // this is for isTypeOf and resolveType and all the other stuff.
+            type[fieldName.substring(2)] = resolverValue[fieldName];
+            return;
+          }
+
+          const fields = type.getFields();
+          const field = fields[fieldName];
+
+          if (field == null) {
+            if (allowResolversNotInSchema) {
+              return;
+            }
+
+            throw new Error(`${typeName}.${fieldName} defined in resolvers, but not in schema`);
+          }
+
+          const fieldResolve = resolverValue[fieldName];
+          if (typeof fieldResolve === 'function') {
+            // for convenience. Allows shorter syntax in resolver definition file
+            field.resolve = fieldResolve;
+          } else {
+            if (typeof fieldResolve !== 'object') {
+              throw new Error(`Resolver ${typeName}.${fieldName} must be object or function`);
+            }
+            setFieldProperties(field, fieldResolve);
+          }
+        });
+      }
+    }
+  });
+
+  // serialize all default values prior to healing fields with new scalar/enum types.
+  forEachDefaultValue(schema, serializeInputValue);
+  // schema may have new scalar/enum types that require healing
+  healSchema(schema);
+  // reparse all default values with new parsing functions.
+  forEachDefaultValue(schema, parseInputValue);
+
+  if (defaultFieldResolver != null) {
+    forEachField(schema, field => {
+      if (!field.resolve) {
+        field.resolve = defaultFieldResolver;
+      }
+    });
+  }
+
+  return schema;
+}
+
+function createNewSchemaWithResolvers({
+  schema,
+  resolvers,
+  defaultFieldResolver,
+  allowResolversNotInSchema,
+}: {
+  schema: GraphQLSchema;
+  resolvers: IResolvers;
+  defaultFieldResolver: GraphQLFieldResolver<any, any>;
+  allowResolversNotInSchema: boolean;
+}): GraphQLSchema {
   schema = mapSchema(schema, {
     [MapperKind.SCALAR_TYPE]: type => {
       const config = type.toConfig();
@@ -227,8 +378,6 @@ export function addResolversToSchema(
     },
   });
 
-  checkForResolveTypeResolver(schema, requireResolversForResolveType);
-
   if (defaultFieldResolver != null) {
     schema = mapSchema(schema, {
       [MapperKind.OBJECT_FIELD]: fieldConfig => ({
@@ -241,7 +390,10 @@ export function addResolversToSchema(
   return schema;
 }
 
-function setFieldProperties(field: GraphQLFieldConfig<any, any>, propertiesObj: Record<string, any>) {
+function setFieldProperties(
+  field: GraphQLField<any, any> | GraphQLFieldConfig<any, any>,
+  propertiesObj: Record<string, any>
+) {
   Object.keys(propertiesObj).forEach(propertyName => {
     field[propertyName] = propertiesObj[propertyName];
   });

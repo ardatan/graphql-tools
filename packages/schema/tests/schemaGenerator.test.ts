@@ -1360,6 +1360,53 @@ describe('generating schema from shorthand', () => {
     });
   });
 
+    test('supports modifying the schema in place', () => {
+    const shorthand = `
+      enum Color {
+        RED
+      }
+
+      schema {
+        query: Query
+      }
+
+      type Query {
+        colorTest(color: Color = RED): String
+      }
+    `;
+
+    const testQuery = `{
+      red: colorTest
+      }`;
+
+    const resolveFunctions = {
+      Color: {
+        RED: '#EA3232',
+      },
+      Query: {
+        colorTest(_root: any, args: { color: string }) {
+          return args.color;
+        },
+      },
+    };
+
+    const jsSchema = makeExecutableSchema({
+      typeDefs: shorthand,
+    });
+
+    addResolversToSchema({
+      schema: jsSchema,
+      resolvers: resolveFunctions,
+      updateResolversInPlace: true,
+    });
+
+    const resultPromise = graphql(jsSchema, testQuery);
+    return resultPromise.then((result) => {
+      expect(result.data.red).toEqual('#EA3232');
+      expect(result.errors).toEqual(undefined);
+    });
+  });
+
   test('can set description and deprecation reason', () => {
     const shorthand = `
       type BirdSpecies {

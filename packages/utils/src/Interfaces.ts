@@ -98,6 +98,7 @@ export interface IAddResolversToSchemaOptions {
   defaultFieldResolver?: IFieldResolver<any, any>;
   resolverValidationOptions?: IResolverValidationOptions;
   inheritResolversFromInterfaces?: boolean;
+  updateResolversInPlace?: boolean;
 }
 
 export type IScalarTypeResolver = GraphQLScalarType & {
