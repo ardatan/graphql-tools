@@ -11,3 +11,4 @@ export * from '@graphql-tools/resolvers-composition';
 export * from '@graphql-tools/schema';
 export * from '@graphql-tools/stitch';
 export * from '@graphql-tools/utils';
+export * from '@graphql-tools/wrap';

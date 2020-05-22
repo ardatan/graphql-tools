@@ -95,7 +95,7 @@ export function composeResolvers<Resolvers extends Record<string, any>>(
   resolvers: Resolvers,
   mapping: ResolversComposerMapping<Resolvers> = {}
 ): Resolvers {
-  const mappingResult: { [path: string]: (...args: any[]) => any[] } = {};
+  const mappingResult: { [path: string]: ((...args: any[]) => any)[] } = {};
 
   Object.keys(mapping).map((resolverPath: string) => {
     if (mapping[resolverPath] instanceof Array || typeof mapping[resolverPath] === 'function') {
