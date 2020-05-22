@@ -216,13 +216,9 @@ const linkSchema = `
     id: ID!
   }
 
-  extend type Car implements Node {
-    fakeFieldToSatisfyOldGraphQLRemoveAfter12: String
-  }
+  extend type Car implements Node
 
-  extend type Bike implements Node {
-    fakeFieldToSatisfyOldGraphQLRemoveAfter12: String
-  }
+  extend type Bike implements Node
 
   extend type Booking implements Node {
     """
