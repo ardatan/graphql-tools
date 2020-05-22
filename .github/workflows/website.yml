@@ -43,4 +43,4 @@ jobs:
       - name: Deploy 🚀
         run: yarn deploy:website
         env:
-          GIT_USER: theguild-bot
+          GIT_USER: ardatan
