@@ -172,33 +172,36 @@ describe('@directives', () => {
   });
 
   test('can be used to implement the @upper example', () => {
-    function upperDirective(directiveName: string): SchemaTransform {
-      return schema => mapSchema(schema, {
-        [MapperKind.OBJECT_FIELD]: (fieldConfig) => {
-          const directives = getDirectives(schema, fieldConfig);
-          if (directives[directiveName]) {
-            const { resolve = defaultFieldResolver } = fieldConfig;
-            fieldConfig.resolve = async function (source, args, context, info) {
-              const result = await resolve(source, args, context, info);
-              if (typeof result === 'string') {
-                return result.toUpperCase();
+    function upperDirective(directiveName: string) {
+      return {
+        upperDirectiveTypeDefs: `directive @${directiveName} on FIELD_DEFINITION`,
+        upperDirectiveTransformer: (schema: GraphQLSchema) => mapSchema(schema, {
+          [MapperKind.OBJECT_FIELD]: (fieldConfig) => {
+            const directives = getDirectives(schema, fieldConfig);
+            if (directives[directiveName]) {
+              const { resolve = defaultFieldResolver } = fieldConfig;
+              fieldConfig.resolve = async function (source, args, context, info) {
+                const result = await resolve(source, args, context, info);
+                if (typeof result === 'string') {
+                  return result.toUpperCase();
+                }
+                return result;
               }
-              return result;
+              return fieldConfig;
             }
-            return fieldConfig;
           }
-        }
-      });
+        })
+      };
     }
 
-    const schema = makeExecutableSchema({
-      typeDefs: `
-        directive @upper on FIELD_DEFINITION
+    const { upperDirectiveTypeDefs, upperDirectiveTransformer } = upperDirective('upper');
 
+    const schema = makeExecutableSchema({
+      typeDefs: [upperDirectiveTypeDefs, `
         type Query {
           hello: String @upper
         }
-      `,
+      `],
       resolvers: {
         Query: {
           hello() {
@@ -206,7 +209,7 @@ describe('@directives', () => {
           },
         },
       },
-      schemaTransforms: [upperDirective('upper')],
+      schemaTransforms: [upperDirectiveTransformer],
     });
 
     return graphql(
@@ -224,31 +227,34 @@ describe('@directives', () => {
   });
 
   test('can be used to implement the @deprecated example', () => {
-    function deprecatedDirective(directiveName: string): SchemaTransform {
-      return schema => mapSchema(schema, {
-        [MapperKind.OBJECT_FIELD]: (fieldConfig) => {
-          const directives = getDirectives(schema, fieldConfig);
-          const directiveArgumentMap = directives[directiveName];
-          if (directiveArgumentMap) {
-            fieldConfig.deprecationReason = directiveArgumentMap.reason;
-            return fieldConfig;
+    function deprecatedDirective(directiveName: string) {
+      return {
+        deprecatedDirectiveTypeDefs: `directive @${directiveName}(reason: String) on FIELD_DEFINITION | ENUM_VALUE`,
+        deprecatedDirectiveTransformer: (schema: GraphQLSchema) => mapSchema(schema, {
+          [MapperKind.OBJECT_FIELD]: (fieldConfig) => {
+            const directives = getDirectives(schema, fieldConfig);
+            const directiveArgumentMap = directives[directiveName];
+            if (directiveArgumentMap) {
+              fieldConfig.deprecationReason = directiveArgumentMap.reason;
+              return fieldConfig;
+            }
+          },
+          [MapperKind.ENUM_VALUE]: (enumValueConfig) => {
+            const directives = getDirectives(schema, enumValueConfig);
+            const directiveArgumentMap = directives[directiveName];
+            if (directiveArgumentMap) {
+              enumValueConfig.deprecationReason = directiveArgumentMap.reason;
+              return enumValueConfig;
+            }
           }
-        },
-        [MapperKind.ENUM_VALUE]: (enumValueConfig) => {
-          const directives = getDirectives(schema, enumValueConfig);
-          const directiveArgumentMap = directives[directiveName];
-          if (directiveArgumentMap) {
-            enumValueConfig.deprecationReason = directiveArgumentMap.reason;
-            return enumValueConfig;
-          }
-        }
-      });
+        }),
+      };
     }
 
-    const schema = makeExecutableSchema({
-      typeDefs: `
-        directive @deprecated(reason: String) on FIELD_DEFINITION | ENUM_VALUE
+    const { deprecatedDirectiveTypeDefs, deprecatedDirectiveTransformer } = deprecatedDirective('deprecated');
 
+    const schema = makeExecutableSchema({
+      typeDefs: [deprecatedDirectiveTypeDefs, `
         type ExampleType {
           newField: String
           oldField: String @deprecated(reason: "Use \`newField\`.")
@@ -257,43 +263,46 @@ describe('@directives', () => {
         type Query {
           rootField: ExampleType
         }
-      `,
-      schemaTransforms: [deprecatedDirective('deprecated')],
+      `],
+      schemaTransforms: [deprecatedDirectiveTransformer],
     });
 
     expect((schema.getType('ExampleType') as GraphQLObjectType).getFields().oldField.deprecationReason).toBe('Use \`newField\`.')
   });
 
   test('can be used to implement the @date example', () => {
-    function dateDirective(directiveName: string): SchemaTransform {
-      return schema => mapSchema(schema, {
-        [MapperKind.OBJECT_FIELD]: (fieldConfig) => {
-          const directives = getDirectives(schema, fieldConfig);
-          const directiveArgumentMap = directives[directiveName];
-          if (directiveArgumentMap) {
-            const { resolve = defaultFieldResolver } = fieldConfig;
-            const { format } = directiveArgumentMap;
-            fieldConfig.resolve = async function (source, args, context, info) {
-              const date = await resolve(source, args, context, info);
-              return formatDate(date, format, true);
+    function dateDirective(directiveName: string) {
+      return {
+        dateDirectiveTypeDefs: `directive @${directiveName}(format: String) on FIELD_DEFINITION`,
+        dateDirectiveTransformer: (schema: GraphQLSchema) => mapSchema(schema, {
+          [MapperKind.OBJECT_FIELD]: (fieldConfig) => {
+            const directives = getDirectives(schema, fieldConfig);
+            const directiveArgumentMap = directives[directiveName];
+            if (directiveArgumentMap) {
+              const { resolve = defaultFieldResolver } = fieldConfig;
+              const { format } = directiveArgumentMap;
+              fieldConfig.resolve = async function (source, args, context, info) {
+                const date = await resolve(source, args, context, info);
+                return formatDate(date, format, true);
 
+              }
+              return fieldConfig;
             }
-            return fieldConfig;
           }
-        }
-      });
+        }),
+      };
     }
 
-    const schema = makeExecutableSchema({
-      typeDefs: `
-        directive @date(format: String) on FIELD_DEFINITION
+    const { dateDirectiveTypeDefs, dateDirectiveTransformer } = dateDirective('date');
 
+    const schema = makeExecutableSchema({
+      typeDefs: [dateDirectiveTypeDefs, `
         scalar Date
 
         type Query {
           today: Date @date(format: "mmmm d, yyyy")
         }
-      `,
+      `],
       resolvers: {
         Query: {
           today() {
@@ -301,7 +310,7 @@ describe('@directives', () => {
           },
         },
       },
-      schemaTransforms: [dateDirective('date')],
+      schemaTransforms: [dateDirectiveTransformer],
     });
 
     return graphql(
@@ -319,48 +328,52 @@ describe('@directives', () => {
   });
 
   test('can be used to implement the @date by adding an argument', async () => {
-    function formattableDateDirective(directiveName: string): SchemaTransform {
-      return schema => mapSchema(schema, {
-        [MapperKind.OBJECT_FIELD]: (fieldConfig) => {
-          const directives = getDirectives(schema, fieldConfig);
-          const directiveArgumentMap = directives[directiveName];
-          if (directiveArgumentMap) {
-            const { resolve = defaultFieldResolver } = fieldConfig;
-            const { defaultFormat } = directiveArgumentMap;
+    function formattableDateDirective(directiveName: string) {
+      return {
+        formattableDateDirectiveTypeDefs: `directive @${directiveName}(
+            defaultFormat: String = "mmmm d, yyyy"
+          ) on FIELD_DEFINITION
+        `,
+        formattableDateDirectiveTransformer: (schema: GraphQLSchema) => mapSchema(schema, {
+          [MapperKind.OBJECT_FIELD]: (fieldConfig) => {
+            const directives = getDirectives(schema, fieldConfig);
+            const directiveArgumentMap = directives[directiveName];
+            if (directiveArgumentMap) {
+              const { resolve = defaultFieldResolver } = fieldConfig;
+              const { defaultFormat } = directiveArgumentMap;
 
-            fieldConfig.args['format'] = {
-              type: GraphQLString,
-            };
+              fieldConfig.args['format'] = {
+                type: GraphQLString,
+              };
 
-            fieldConfig.type = GraphQLString;
-            fieldConfig.resolve = async function (
-              source,
-              { format, ...args },
-              context,
-              info,
-            ) {
-              const newFormat = format || defaultFormat;
-              const date = await resolve(source, args, context, info);
-              return formatDate(date, newFormat, true);
-            };
-            return fieldConfig;
+              fieldConfig.type = GraphQLString;
+              fieldConfig.resolve = async function (
+                source,
+                { format, ...args },
+                context,
+                info,
+              ) {
+                const newFormat = format || defaultFormat;
+                const date = await resolve(source, args, context, info);
+                return formatDate(date, newFormat, true);
+              };
+              return fieldConfig;
+            }
           }
-        }
-      });
+        }),
+      };
     }
 
-    const schema = makeExecutableSchema({
-      typeDefs: `
-        directive @date(
-          defaultFormat: String = "mmmm d, yyyy"
-        ) on FIELD_DEFINITION
+    const { formattableDateDirectiveTypeDefs, formattableDateDirectiveTransformer } = formattableDateDirective('date');
 
+    const schema = makeExecutableSchema({
+      typeDefs: [formattableDateDirectiveTypeDefs, `
         scalar Date
 
         type Query {
           today: Date @date
         }
-      `,
+      `],
       resolvers: {
         Query: {
           today() {
@@ -368,7 +381,7 @@ describe('@directives', () => {
           },
         },
       },
-      schemaTransforms: [formattableDateDirective('date')]
+      schemaTransforms: [formattableDateDirectiveTransformer],
     });
 
     const resultNoArg = await graphql(schema, 'query { today }');
@@ -396,50 +409,10 @@ describe('@directives', () => {
   });
 
   test('can be used to implement the @auth example', async () => {
-    const roles = ['UNKNOWN', 'USER', 'REVIEWER', 'ADMIN'];
-
-    function getUser(token: string) {
-      return {
-        hasRole(role: string) {
-          const tokenIndex = roles.indexOf(token);
-          const roleIndex = roles.indexOf(role);
-          return roleIndex >= 0 && tokenIndex >= roleIndex;
-        },
-      };
-    }
-
-    function authDirective(directiveName: string): SchemaTransform {
+    function authDirective(directiveName: string, getUserFn: (token: string) => { hasRole: (role: string) => boolean} ) {
       const typeDirectiveArgumentMaps: Record<string, any> = {};
-      return schema => mapSchema(schema, {
-        [MapperKind.TYPE]: (type) => {
-          const typeDirectives = getDirectives(schema, type);
-          typeDirectiveArgumentMaps[type.name] = typeDirectives[directiveName];
-          return undefined;
-        },
-        [MapperKind.OBJECT_FIELD]: (fieldConfig, _fieldName, typeName) => {
-          const fieldDirectives = getDirectives(schema, fieldConfig);
-          const directiveArgumentMap = fieldDirectives[directiveName] ?? typeDirectiveArgumentMaps[typeName];
-          if (directiveArgumentMap) {
-            const { requires } = directiveArgumentMap;
-            if (requires) {
-              const { resolve = defaultFieldResolver } = fieldConfig;
-              fieldConfig.resolve = function (source, args, context, info) {
-                const user = getUser(context.headers.authToken);
-                if (!user.hasRole(requires)) {
-                  throw new Error('not authorized');
-                }
-                return resolve(source, args, context, info);
-              }
-              return fieldConfig;
-            }
-          }
-        }
-      });
-    }
-
-    const schema = makeExecutableSchema({
-      typeDefs: `
-        directive @auth(
+      return {
+        authDirectiveTypeDefs: `directive @${directiveName}(
           requires: Role = ADMIN,
         ) on OBJECT | FIELD_DEFINITION
 
@@ -448,8 +421,50 @@ describe('@directives', () => {
           REVIEWER
           USER
           UNKNOWN
-        }
+        }`,
+        authDirectiveTransformer: (schema: GraphQLSchema) => mapSchema(schema, {
+          [MapperKind.TYPE]: (type) => {
+            const typeDirectives = getDirectives(schema, type);
+            typeDirectiveArgumentMaps[type.name] = typeDirectives[directiveName];
+            return undefined;
+          },
+          [MapperKind.OBJECT_FIELD]: (fieldConfig, _fieldName, typeName) => {
+            const fieldDirectives = getDirectives(schema, fieldConfig);
+            const directiveArgumentMap = fieldDirectives[directiveName] ?? typeDirectiveArgumentMaps[typeName];
+            if (directiveArgumentMap) {
+              const { requires } = directiveArgumentMap;
+              if (requires) {
+                const { resolve = defaultFieldResolver } = fieldConfig;
+                fieldConfig.resolve = function (source, args, context, info) {
+                  const user = getUserFn(context.headers.authToken);
+                  if (!user.hasRole(requires)) {
+                    throw new Error('not authorized');
+                  }
+                  return resolve(source, args, context, info);
+                }
+                return fieldConfig;
+              }
+            }
+          }
+        })
+      };
+    };
 
+    function getUser(token: string) {
+      const roles = ['UNKNOWN', 'USER', 'REVIEWER', 'ADMIN'];
+      return {
+        hasRole: (role: string) => {
+          const tokenIndex = roles.indexOf(token);
+          const roleIndex = roles.indexOf(role);
+          return roleIndex >= 0 && tokenIndex >= roleIndex;
+        },
+      };
+    }
+
+    const { authDirectiveTypeDefs, authDirectiveTransformer } = authDirective('auth', getUser);
+
+    const schema = makeExecutableSchema({
+      typeDefs: [authDirectiveTypeDefs, `
         type User @auth(requires: USER) {
           name: String
           banned: Boolean @auth(requires: ADMIN)
@@ -459,7 +474,7 @@ describe('@directives', () => {
         type Query {
           users: [User]
         }
-      `,
+      `],
       resolvers: {
         Query: {
           users() {
@@ -473,7 +488,7 @@ describe('@directives', () => {
           },
         },
       },
-      schemaTransforms: [authDirective('auth')]
+      schemaTransforms: [authDirectiveTransformer],
     });
 
     function execWithRole(role: string): Promise<ExecutionResult> {
@@ -536,36 +551,36 @@ describe('@directives', () => {
   });
 
   test('can be used to implement the @length example', async () => {
-    class LimitedLengthType extends GraphQLScalarType {
-      constructor(type: GraphQLScalarType, maxLength: number) {
-        super({
-          name: `${type.name}WithLengthAtMost${maxLength.toString()}`,
+    function lengthDirective(directiveName: string) {
+      class LimitedLengthType extends GraphQLScalarType {
+        constructor(type: GraphQLScalarType, maxLength: number) {
+          super({
+            name: `${type.name}WithLengthAtMost${maxLength.toString()}`,
 
-          serialize(value: string) {
-            const newValue: string = type.serialize(value);
-            expect(typeof newValue.length).toBe('number');
-            if (newValue.length > maxLength) {
-              throw new Error(
-                `expected ${newValue.length.toString(
-                  10,
-                )} to be at most ${maxLength.toString(10)}`,
-              );
-            }
-            return newValue;
-          },
+            serialize(value: string) {
+              const newValue: string = type.serialize(value);
+              expect(typeof newValue.length).toBe('number');
+              if (newValue.length > maxLength) {
+                throw new Error(
+                  `expected ${newValue.length.toString(
+                    10,
+                  )} to be at most ${maxLength.toString(10)}`,
+                );
+              }
+              return newValue;
+            },
 
-          parseValue(value: string) {
-            return type.parseValue(value);
-          },
+            parseValue(value: string) {
+              return type.parseValue(value);
+            },
 
-          parseLiteral(ast: StringValueNode) {
-            return type.parseLiteral(ast, {});
-          },
-        });
+            parseLiteral(ast: StringValueNode) {
+              return type.parseLiteral(ast, {});
+            },
+          });
+        }
       }
-    }
 
-    function lengthDirective(directiveName: string): SchemaTransform {
       const limitedLengthTypes: Record<string, Record<number, GraphQLScalarType>> = {};
 
       function getLimitedLengthType(type: GraphQLScalarType, maxLength: number): GraphQLScalarType {
@@ -597,22 +612,25 @@ describe('@directives', () => {
         }
       }
 
-      return schema => mapSchema(schema, {
-        [MapperKind.FIELD]: (fieldConfig) => {
-          const directives = getDirectives(schema, fieldConfig);
-          const directiveArgumentMap = directives[directiveName];
-          if (directiveArgumentMap) {
-            wrapType(fieldConfig, directiveArgumentMap);
-            return fieldConfig;
+      return {
+        lengthDirectiveTypeDefs: `directive @${directiveName}(max: Int) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION`,
+        lengthDirectiveTransformer: (schema: GraphQLSchema) => mapSchema(schema, {
+          [MapperKind.FIELD]: (fieldConfig) => {
+            const directives = getDirectives(schema, fieldConfig);
+            const directiveArgumentMap = directives[directiveName];
+            if (directiveArgumentMap) {
+              wrapType(fieldConfig, directiveArgumentMap);
+              return fieldConfig;
+            }
           }
-        }
-      });
-    }
+        }),
+      };
+    };
+
+    const { lengthDirectiveTypeDefs, lengthDirectiveTransformer } = lengthDirective('length');
 
     const schema = makeExecutableSchema({
-      typeDefs: `
-        directive @length(max: Int) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
-
+      typeDefs: [lengthDirectiveTypeDefs, `
         type Query {
           books: [Book]
         }
@@ -627,7 +645,7 @@ describe('@directives', () => {
 
         input BookInput {
           title: String! @length(max: 10)
-        }`
+        }`]
       ,
       resolvers: {
         Query: {
@@ -645,7 +663,7 @@ describe('@directives', () => {
           },
         },
       },
-      schemaTransforms: [lengthDirective('length')],
+      schemaTransforms: [lengthDirectiveTransformer],
     });
 
     const { errors } = await graphql(
@@ -684,37 +702,40 @@ describe('@directives', () => {
   });
 
   test('can be used to implement the @uniqueID example', () => {
-    function uniqueIDDirective(directiveName: string): SchemaTransform {
-      return schema => mapSchema(schema, {
-        [MapperKind.OBJECT_TYPE]: (type) => {
-          const directives = getDirectives(schema, type);
-          const directiveArgumentMap = directives[directiveName];
-          if (directiveArgumentMap) {
-            const { name, from } = directiveArgumentMap;
-            const config = type.toConfig();
-            config.fields[name] = {
-              type: GraphQLID,
-              description: 'Unique ID',
-              args: {},
-              resolve(object: any) {
-                const hash = createHash('sha1');
-                hash.update(type.name);
-                from.forEach((fieldName: string) => {
-                  hash.update(String(object[fieldName]));
-                });
-                return hash.digest('hex');
-              },
-            };
-            return new GraphQLObjectType(config);
+    function uniqueIDDirective(directiveName: string) {
+      return {
+        uniqueIDDirectiveTypeDefs: `directive @${directiveName}(name: String, from: [String]) on OBJECT`,
+        uniqueIDDirectiveTransformer: (schema: GraphQLSchema) => mapSchema(schema, {
+          [MapperKind.OBJECT_TYPE]: (type) => {
+            const directives = getDirectives(schema, type);
+            const directiveArgumentMap = directives[directiveName];
+            if (directiveArgumentMap) {
+              const { name, from } = directiveArgumentMap;
+              const config = type.toConfig();
+              config.fields[name] = {
+                type: GraphQLID,
+                description: 'Unique ID',
+                args: {},
+                resolve(object: any) {
+                  const hash = createHash('sha1');
+                  hash.update(type.name);
+                  from.forEach((fieldName: string) => {
+                    hash.update(String(object[fieldName]));
+                  });
+                  return hash.digest('hex');
+                },
+              };
+              return new GraphQLObjectType(config);
+            }
           }
-        }
-      });
+        }),
+      };
     }
 
-    const schema = makeExecutableSchema({
-      typeDefs: `
-        directive @uniqueID(name: String, from: [String]) on OBJECT
+    const { uniqueIDDirectiveTypeDefs, uniqueIDDirectiveTransformer } = uniqueIDDirective('uniqueID');
 
+    const schema = makeExecutableSchema({
+      typeDefs: [uniqueIDDirectiveTypeDefs, `
         type Query {
           people: [Person]
           locations: [Location]
@@ -729,7 +750,7 @@ describe('@directives', () => {
           locationID: Int
           address: String
         }
-      `,
+      `],
       resolvers: {
         Query: {
           people() {
@@ -750,7 +771,7 @@ describe('@directives', () => {
           },
         },
       },
-      schemaTransforms: [uniqueIDDirective('uniqueID')]
+      schemaTransforms: [uniqueIDDirectiveTransformer],
     });
 
     return graphql(
