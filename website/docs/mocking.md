@@ -290,7 +290,7 @@ Given an instance of GraphQLSchema and a mock object, `addMocksToSchema` returns
 ```js
 import { MockList } from '@graphql-tools/mock';
 
-new MockList(length: number | number[], mockFunction: Function);
+new MockList(length: number | number[], mockFunction: (...args: any[]) => any);
 ```
 
 This is an object you can return from your mock resolvers which calls the `mockFunction` once for each list item. The first argument can either be an exact length, or an inclusive range of possible lengths for the list, in case you want to see how your UI responds to varying lists of data.

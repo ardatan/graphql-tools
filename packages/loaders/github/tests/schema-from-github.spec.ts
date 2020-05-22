@@ -30,7 +30,7 @@ function normalize(doc: string): string {
 test('load schema from Github', async () => {
   let headers: Record<string, string> = {};
   let query: string;
-  let variables: {};
+  let variables: any;
   let operationName: string;
 
   const server = nock('https://api.github.com').post('/graphql').reply(function reply(_, body: any) {

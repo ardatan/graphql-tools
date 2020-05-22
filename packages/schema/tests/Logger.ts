@@ -7,9 +7,9 @@ import { ILogger } from '@graphql-tools/schema';
 export class Logger implements ILogger {
   public errors: Array<Error>;
   public name: string | undefined;
-  private readonly callback: Function | undefined;
+  private readonly callback: (...args: any[]) => any | undefined;
 
-  constructor(name?: string, callback?: Function) {
+  constructor(name?: string, callback?: (...args: any[]) => any) {
     this.name = name;
     this.errors = [];
     this.callback = callback;

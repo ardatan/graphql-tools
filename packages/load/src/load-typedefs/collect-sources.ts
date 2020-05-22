@@ -200,7 +200,7 @@ function includeIgnored<
   }
 }
 
-function createGlobbyOptions<T extends object>(options: T): any {
+function createGlobbyOptions(options: any): any {
   return { absolute: true, ...options, ignore: [] };
 }
 

@@ -103,5 +103,5 @@ function createDefaultRules() {
     ignored.push(rule.replace(/Rule$/, ''));
   });
 
-  return specifiedRules.filter((f: Function) => !ignored.includes(f.name));
+  return specifiedRules.filter((f: (...args: any[]) => any) => !ignored.includes(f.name));
 }

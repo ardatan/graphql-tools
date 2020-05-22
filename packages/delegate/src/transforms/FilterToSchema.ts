@@ -131,7 +131,7 @@ function filterToSchema(
 
 function collectFragmentVariables(
   targetSchema: GraphQLSchema,
-  fragmentSet: object,
+  fragmentSet: any,
   validFragments: Array<FragmentDefinitionNode>,
   validFragmentsWithType: { [name: string]: GraphQLType },
   usedFragments: Array<string>

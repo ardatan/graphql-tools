@@ -31,7 +31,6 @@
     "@typescript-eslint/explicit-function-return-type": "off",
     "@typescript-eslint/ban-ts-ignore": "off",
     "@typescript-eslint/return-await": "error",
-    "@typescript-eslint/class-name-casing": "error",
     "@typescript-eslint/naming-convention": "error",
     "@typescript-eslint/interface-name-prefix": "off"
   },

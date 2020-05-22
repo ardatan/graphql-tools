@@ -41,7 +41,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
 
     if (options) {
       if (Array.isArray(options.headers)) {
-        headers = options.headers.reduce((prev: object, v: object) => ({ ...prev, ...v }), {});
+        headers = options.headers.reduce((prev: any, v: any) => ({ ...prev, ...v }), {});
       } else if (typeof options.headers === 'object') {
         headers = options.headers;
       }

@@ -55,8 +55,6 @@ import { getArgumentValues } from './getArgumentValues';
 // parameter types, and more details about the properties exposed by instances
 // of the SchemaDirectiveVisitor class.
 
-export type SchemaDirectiveVisitorClass = typeof SchemaDirectiveVisitor;
-
 export class SchemaDirectiveVisitor<TArgs = any, TContext = any> extends SchemaVisitor {
   // The name of the directive this visitor is allowed to visit (that is, the
   // identifier that appears after the @ character in the schema). Note that
@@ -289,3 +287,5 @@ function directiveLocationToVisitorMethodName(loc: DirectiveLocationEnum) {
     loc.replace(/([^_]*)_?/g, (_wholeMatch, part: string) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
   );
 }
+
+export type SchemaDirectiveVisitorClass = typeof SchemaDirectiveVisitor;

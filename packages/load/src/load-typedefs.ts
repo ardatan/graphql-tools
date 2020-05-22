@@ -20,7 +20,7 @@ export type LoadTypedefsOptions<ExtraConfig = { [key: string]: any }> = SingleFi
 
 export type UnnormalizedTypeDefPointer = { [key: string]: any } | string;
 
-export async function loadTypedefs<AdditionalConfig = {}>(
+export async function loadTypedefs<AdditionalConfig = Record<string, unknown>>(
   pointerOrPointers: UnnormalizedTypeDefPointer | UnnormalizedTypeDefPointer[],
   options: LoadTypedefsOptions<Partial<AdditionalConfig>>
 ): Promise<Source[]> {
@@ -58,7 +58,7 @@ export async function loadTypedefs<AdditionalConfig = {}>(
   return prepareResult({ options, pointerOptionMap, validSources });
 }
 
-export function loadTypedefsSync<AdditionalConfig = {}>(
+export function loadTypedefsSync<AdditionalConfig = Record<string, unknown>>(
   pointerOrPointers: UnnormalizedTypeDefPointer | UnnormalizedTypeDefPointer[],
   options: LoadTypedefsOptions<Partial<AdditionalConfig>>
 ): Source[] {

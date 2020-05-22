@@ -13,7 +13,7 @@ function formatValue(value: any, seenValues: Array<any>): string {
     case 'string':
       return JSON.stringify(value);
     case 'function':
-      return value.name ? `[function ${(value as Function).name}]` : '[function]';
+      return value.name ? `[function ${(value as (...args: any[]) => any).name}]` : '[function]';
     case 'object':
       if (value === null) {
         return 'null';
