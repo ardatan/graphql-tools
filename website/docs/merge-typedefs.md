@@ -112,7 +112,7 @@ const { mergeTypeDefs } = require('@graphql-tools/merge');
 
 const typesArray = loadFiles(path.join(__dirname, './types'));
 
-module.exports mergeTypeDefs(typesArray, { all: true });
+module.exports = mergeTypeDefs(typesArray, { all: true });
 ```
 When using the `loadFiles` function you can also implement your type definitions using `.graphql` or `.gql` or `.graphqls` files.
 
