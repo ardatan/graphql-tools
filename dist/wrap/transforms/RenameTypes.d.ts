@@ -1,0 +1,15 @@
+import { GraphQLSchema } from 'graphql';
+import { Transform, Request, ExecutionResult, RenameTypesOptions } from '../../Interfaces';
+export default class RenameTypes implements Transform {
+    private readonly renamer;
+    private map;
+    private reverseMap;
+    private readonly renameBuiltins;
+    private readonly renameScalars;
+    constructor(renamer: (name: string) => string | undefined, options?: RenameTypesOptions);
+    transformSchema(originalSchema: GraphQLSchema): GraphQLSchema;
+    transformRequest(originalRequest: Request): Request;
+    transformResult(result: ExecutionResult): ExecutionResult;
+    private transformData;
+    private transformObject;
+}
