@@ -89,14 +89,19 @@ function correctType<TMap extends { [key: string]: GraphQLNamedType }, TName ext
   const originalAstNode = type?.astNode;
   if (originalAstNode) {
     (fixedAstNode.directives as DirectiveNode[]) = originalAstNode?.directives as DirectiveNode[];
-    if ('fields' in fixedAstNode && 'fields' in originalAstNode) {
+    if (fixedAstNode && 'fields' in fixedAstNode && originalAstNode && 'fields' in originalAstNode) {
       for (const fieldDefinitionNode of fixedAstNode.fields) {
         const originalFieldDefinitionNode = (originalAstNode.fields as (
           | InputValueDefinitionNode
           | FieldDefinitionNode
         )[]).find(field => field.name.value === fieldDefinitionNode.name.value);
         (fieldDefinitionNode.directives as DirectiveNode[]) = originalFieldDefinitionNode?.directives as DirectiveNode[];
-        if ('arguments' in fieldDefinitionNode && 'arguments' in originalFieldDefinitionNode) {
+        if (
+          fieldDefinitionNode &&
+          'arguments' in fieldDefinitionNode &&
+          originalFieldDefinitionNode &&
+          'arguments' in originalFieldDefinitionNode
+        ) {
           for (const argument of fieldDefinitionNode.arguments) {
             const originalArgumentNode = (originalFieldDefinitionNode as FieldDefinitionNode).arguments?.find(
               arg => arg.name.value === argument.name.value
@@ -105,7 +110,7 @@ function correctType<TMap extends { [key: string]: GraphQLNamedType }, TName ext
           }
         }
       }
-    } else if ('values' in fixedAstNode && 'values' in originalAstNode) {
+    } else if (fixedAstNode && 'values' in fixedAstNode && originalAstNode && 'values' in originalAstNode) {
       for (const valueDefinitionNode of fixedAstNode.values) {
         const originalValueDefinitionNode = (originalAstNode.values as EnumValueDefinitionNode[]).find(
           valueNode => valueNode.name.value === valueDefinitionNode.name.value
