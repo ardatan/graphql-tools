@@ -6289,10 +6289,10 @@ graphql-request@^1.5.0:
   dependencies:
     cross-fetch "2.2.2"
 
-graphql-scalars@1.1.2:
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/graphql-scalars/-/graphql-scalars-1.1.2.tgz#4646de16afa39de95f0dd2c3160703a39f11efc2"
-  integrity sha512-6fWb766SdKOFmCSqIXaJINlywVTGokIeHT4xy/OJwTCdxWJ9UwJuzwoEtvkVroYKjI7KLca8AalSzvP2nHK0vg==
+graphql-scalars@1.1.3:
+  version "1.1.3"
+  resolved "https://registry.yarnpkg.com/graphql-scalars/-/graphql-scalars-1.1.3.tgz#3f5ae13870eb8eacc03bfbeae46c0000ec8a9d43"
+  integrity sha512-uReVUBYgs+OEDVWTCYv+TpVqPft0EmpIcf8EJXFh7YiXGYsKtReC7U2jAXM77CJ86+JHqiZzSjjL9qOCqGEYVw==
 
 graphql-subscriptions@^1.0.0:
   version "1.1.0"
