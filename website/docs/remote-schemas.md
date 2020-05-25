@@ -8,11 +8,11 @@ It can be valuable to be able to treat remote GraphQL endpoints as if they were 
 
 Generally, to create a remote schema, you generally need just three steps:
 
-1. Create a [executor](#creating-a-executor) that can retrieve results from that schema
+1. Create a [executor](#creating-an-executor) that can retrieve results from that schema
 2. Use [`introspectSchema`](#introspectschemaexecutor-context) to get the non-executable schema of the remote server
 3. Use [`wrapSchema`](#wrapSchema) to create a schema that uses the executor to delegate requests to the underlying service
 
-You can optionally also include a [subscriber][#creating-a-subscriber] that can retrieve real time subcription results from the remote schema (only if you are using GraphQL Subscriptions)
+You can optionally also include a [subscriber](#creating-a-subscriber) that can retrieve real time subcription results from the remote schema (only if you are using GraphQL Subscriptions)
 
 ### Creating an executor
 
@@ -74,7 +74,7 @@ const executor = async ({ document, variables, context }) => {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${context.authKey}`,
     },
-    body: JSON.stringify({ query, variables, operationName })
+    body: JSON.stringify({ query, variables })
   });
   return fetchResult.json();
 };
@@ -90,7 +90,59 @@ export default async () => {
 ```
 
 ### Creating a subscriber
-> TODO
+For subscriptions, we need to define a subscriber that returns `AsyncIterator`. Other than that, it has the similar API with `executor`.
+
+```ts
+type Subscriber = (operation: Operation) => Promise<AsyncIterator<ExecutionResult>>;
+```
+
+#### Using `subscriptions-transport-ws`
+You can learn more about [`subscriptions-transport-ws`](https://github.com/apollographql/subscriptions-transport-ws).
+
+```ts
+import { Executor, Subscriber, wrapSchema } from '@graphql-tools/wrap';
+import { fetch } from 'cross-fetch';
+import { print } from 'graphql';
+import { observableToAsyncIterable } from '@graphql-tools/utils';
+import { SubscriptionClient } from 'subscriptions-transport-ws';
+
+const HTTP_GRAPHQL_ENDPOINT = 'http://localhost:3000/graphql';
+const WS_GRAPHQL_ENDPOINT = 'ws://localhost:3000/graphql';
+
+const executor: Executor = async ({ document, variables }) => {
+  const query = print(document);
+  const fetchResult = await fetch(HTTP_GRAPHQL_ENDPOINT, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ query, variables })
+  });
+  return fetchResult.json();
+};
+
+const subscriptionClient = new SubscriptionClient(WS_GRAPHQL_ENDPOINT, {
+  reconnect: true,
+});
+
+const subscriber: Subscriber = ({ document, variables, context, info }) => observableToAsyncIterable(
+  subscriptionClient.request({
+    query: document,
+    variables,
+    context,
+  })
+);
+
+export default async () => {
+  const schema = wrapSchema({
+    schema: await introspectSchema(executor),
+    executor,
+    subscriber,
+  });
+
+  return schema
+}
+```
 
 ## API
 

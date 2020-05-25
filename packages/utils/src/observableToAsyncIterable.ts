@@ -1,6 +1,18 @@
-import { Observable } from 'apollo-link';
+export interface Observer<T> {
+  next?: (value: T) => void;
+  error?: (error: Error) => void;
+  complete?: () => void;
+}
 
-type Callback = (value?: any) => any;
+export interface Observable<T> {
+  subscribe(
+    observer: Observer<T>
+  ): {
+    unsubscribe: () => void;
+  };
+}
+
+export type Callback = (value?: any) => any;
 
 export function observableToAsyncIterable<T>(
   observable: Observable<T>

@@ -1,5 +1,5 @@
-import { ApolloLink, toPromise, execute, Observable, FetchResult, DocumentNode } from 'apollo-link';
-import { GraphQLResolveInfo } from 'graphql/type';
+import { ApolloLink, toPromise, execute, Observable, FetchResult } from 'apollo-link';
+import { DocumentNode, GraphQLResolveInfo } from 'graphql';
 
 export const linkToExecutor = (link: ApolloLink) => <TReturn, TArgs, TContext>({
   document,

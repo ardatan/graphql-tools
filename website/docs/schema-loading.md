@@ -115,7 +115,7 @@ type Comment {
 ```
 ### Binding to HTTP Server
 
-You can extend loaded schema
+You can extend loaded schema with resolvers
 
 ```ts
 import { join } from 'path';
@@ -126,7 +126,11 @@ import * as express from 'express';
 import * as graphqlHTTP from 'express-graphql';
 
 // Load schema from the file
-const schema = loadSchemaSync(join(__dirname, './schema.graphql'));
+const schema = loadSchemaSync(join(__dirname, './schema.graphql'), {
+  loaders: [
+    new GraphQLFileLoader(),
+  ]
+});
 
 // Write some resolvers
 const resolvers = {};
@@ -141,7 +145,7 @@ const app = express();
 
 app.use(
     graphqlHTTP({
-        schemaWithResolvers,
+        schema: schemaWithResolvers,
         graphiql: true,
     })
 );
