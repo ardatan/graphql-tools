@@ -24,6 +24,13 @@
     "@graphql-tools/import": "6.0.0",
     "@graphql-tools/links": "6.0.0",
     "@graphql-tools/load": "6.0.0",
+    "@graphql-tools/code-file-loader": "6.0.0",
+    "@graphql-tools/git-loader": "6.0.0",
+    "@graphql-tools/github-loader": "6.0.0",
+    "@graphql-tools/graphql-file-loader": "6.0.0",
+    "@graphql-tools/json-file-loader": "6.0.0",
+    "@graphql-tools/module-loader": "6.0.0",
+    "@graphql-tools/url-loader": "6.0.0",
     "@graphql-tools/load-files": "6.0.0",
     "@graphql-tools/merge": "6.0.0",
     "@graphql-tools/mock": "6.0.0",
@@ -31,6 +38,7 @@
     "@graphql-tools/resolvers-composition": "6.0.0",
     "@graphql-tools/schema": "6.0.0",
     "@graphql-tools/stitch": "6.0.0",
-    "@graphql-tools/utils": "6.0.0"
+    "@graphql-tools/utils": "6.0.0",
+    "@graphql-tools/wrap": "6.0.0"
   }
 }

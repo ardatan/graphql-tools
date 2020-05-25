@@ -1,6 +1,7 @@
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { graphql, buildSchema, GraphQLScalarType, Kind, GraphQLSchema, ListValueNode } from 'graphql';
 import { mergeSchemas, mergeSchemasAsync } from '../src/merge-schemas';
+import { printSchemaWithDirectives } from '@graphql-tools/utils';
 
 describe('Merge Schemas', () => {
     it('Should include extensions in merged schemas', () => {
@@ -411,7 +412,7 @@ describe('Merge Schemas', () => {
 
         expect(merged.getDirective('date')).toBeDefined();
       });
-      it.only('should merge a lot of directives but without high memory usage', () => {
+      it('should merge a lot of directives but without high memory usage', () => {
           let num = 100;
           const base = buildSchema(/* GraphQL */`
               directive @access(roles: [String]) on FIELD_DEFINITION
@@ -429,4 +430,73 @@ describe('Merge Schemas', () => {
 
         expect((prev.getQueryType().getFields().test.astNode.directives[0].arguments[0].value as ListValueNode).values).toHaveLength(1);
       });
+      it('should merge schemas with custom scalars', () => {
+        const GraphQLUUID = new GraphQLScalarType({
+            name: 'UUID',
+            serialize: val => val,
+            parseValue: val => val,
+            parseLiteral: valueNode => {
+                if (valueNode.kind === 'StringValue') {
+                    return valueNode.value;
+                }
+                return null;
+            }
+        })
+        const countrySchema = makeExecutableSchema({
+          typeDefs: /* GraphQL */`
+            scalar UUID
+            type Country {
+              id: UUID!
+              name: String
+            }
+            type Query {
+              country: Country
+            }
+          `,
+          resolvers: {
+            UUID: GraphQLUUID,
+          }
+        })
+
+
+        const citySchema = makeExecutableSchema({
+          typeDefs: /* GraphQL */`
+            scalar UUID
+            type City {
+              id: ID!
+              name: String
+            }
+            type Query {
+              city: City
+            }
+          `,
+        })
+
+        const mergedSchema = mergeSchemas({
+            schemas: [
+                countrySchema,
+                citySchema,
+            ]
+        });
+        const printedSchema = printSchemaWithDirectives(mergedSchema);
+
+        expect(printedSchema).toContain(/* GraphQL */`
+type Query {
+  country: Country
+  city: City
+}`.trim());
+expect(printedSchema).toContain(/* GraphQL */`
+scalar UUID
+`.trim());
+expect(printedSchema).toContain(/* GraphQL */`
+type Country {
+  id: UUID!
+  name: String
+}`.trim());
+expect(printedSchema).toContain(/* GraphQL */`
+type City {
+  id: ID!
+  name: String
+}`.trim());
+      })
 });

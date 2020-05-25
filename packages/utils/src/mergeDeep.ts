@@ -1,10 +1,16 @@
-export function mergeDeep(target: any, ...sources: any): any {
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+import { isScalarType } from 'graphql';
+
+export function mergeDeep(target: any, ...sources: any[]): any {
+  if (isScalarType(target)) {
+    return target;
+  }
   const output = {
     ...target,
   };
-  sources.forEach((source: any) => {
+  for (const source of sources) {
     if (isObject(target) && isObject(source)) {
-      Object.keys(source).forEach(key => {
+      for (const key in source) {
         if (isObject(source[key])) {
           if (!(key in target)) {
             Object.assign(output, { [key]: source[key] });
@@ -14,9 +20,9 @@ export function mergeDeep(target: any, ...sources: any): any {
         } else {
           Object.assign(output, { [key]: source[key] });
         }
-      });
+      }
     }
-  });
+  }
   return output;
 }
 
