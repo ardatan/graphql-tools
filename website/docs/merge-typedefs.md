@@ -206,15 +206,18 @@ module.exports = mergeTypeDefs(typesArray, { all: true })
 
 ### Output the string of typeDefs
 
-Since the output of `mergeTypeDefs` is just a string, after you merge your types, you can save it to a file to be passed around to other systems. Here is an example using ES6 modules:
+Since the output of `mergeTypeDefs` is `DocumentNode`, after you merge your types, you can save it to a file to be passed around to other systems. Here is an example using ES6 modules:
 
 ```js
 const { loadFiles } = require('@graphql-tools/load-files');
 const { mergeTypeDefs } = require('@graphql-tools/merge');
+const { print } = require('graphql');
 const fs = require('fs');
 
-const typeDefs = mergeTypeDefs(loadFiles(`${__dirname}/schema/**/*.graphql`), { all: true });
-fs.writeFileSync('joined.graphql', typeDefs);
+const loadedFiles = loadFiles(`${__dirname}/schema/**/*.graphql`);
+const typeDefs = mergeTypeDefs(loadedFiles, { all: true });
+const printedTypeDefs = print(typeDefs);
+fs.writeFileSync('joined.graphql', printedTypeDefs);
 ```
 
 ### Merging nested Types
