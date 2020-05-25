@@ -32,7 +32,8 @@ module.exports = {
       'Migration': [
         'migration-from-tools-v5',
         'migration-from-toolkit',
-        'migration-from-merge-graphql-schemas'
+        'migration-from-merge-graphql-schemas',
+        'migration-from-import'
       ]
     }
   ],
