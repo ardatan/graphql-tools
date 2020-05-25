@@ -31,8 +31,9 @@
     "@typescript-eslint/explicit-function-return-type": "off",
     "@typescript-eslint/ban-ts-ignore": "off",
     "@typescript-eslint/return-await": "error",
-    "@typescript-eslint/naming-convention": "error",
-    "@typescript-eslint/interface-name-prefix": "off"
+    "@typescript-eslint/naming-convention": "off",
+    "@typescript-eslint/interface-name-prefix": "off",
+    "@typescript-eslint/explicit-module-boundary-types": "off"
   },
   "env": {
     "es6": true,
