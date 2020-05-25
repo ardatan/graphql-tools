@@ -40,7 +40,7 @@ const resolvers ={
 You can do;
 
 ```js
-const { composeResolvers } = require('@graphql-tools/utils');
+const { composeResolvers } = require('@graphql-tools/resolvers-composition');
 
 const resolvers ={
     Query: {
@@ -77,4 +77,4 @@ const resolversComposition = {
 const composedResolvers = composeResolvers(resolvers, resolversComposition);
 ```
 
-`composeResolvers` is a method in `@graphql-tools/utils` package that accepts `IResolvers` object and mappings for composition functions that would be run before resolver itself.
+`composeResolvers` is a method in `@graphql-tools/resolvers-composition` package that accepts `IResolvers` object and mappings for composition functions that would be run before resolver itself.
