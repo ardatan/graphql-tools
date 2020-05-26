@@ -1,6 +1,7 @@
 ---
 id: migration-from-toolkit
 title: Migration from GraphQL Toolkit
+sidebar_label: From GraphQL Toolkit
 description: Migration from GraphQL Toolkit
 ---
 

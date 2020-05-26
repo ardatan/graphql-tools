@@ -1,5 +1,8 @@
-
-## Loaders
+---
+id: loaders
+title: Loaders
+sidebar_label: Loaders
+---
 There are a lot of loaders that load your schemas and documents from different sources. You need to provide those loaders under `loaders` parameter like below;
 
 ### GraphQL File Loader

@@ -23,7 +23,7 @@ After;
 ```ts
 import { loadSchemaSync } from '@graphql-tools/load';
 import { GraphQLFileLoader } from '@graphql-tools/code-file-loader';
-import { GraphQLFileLoader } from '@graphql-tools/schema';
+import { addResolversToSchema } from '@graphql-tools/schema';
 
 const schema = loadSchemaSync(join(__dirname, 'schema.graphql'));
 const resolvers = {

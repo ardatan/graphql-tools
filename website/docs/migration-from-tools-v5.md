@@ -1,6 +1,7 @@
 ---
 id: migration-from-tools-v5
 title: Migration from v4 & v5
+sidebar_label: From v4 & v5
 description: Migration from GraphQL Tools v4 & v5
 ---
 

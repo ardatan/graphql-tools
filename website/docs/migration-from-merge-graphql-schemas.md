@@ -1,6 +1,7 @@
 ---
 id: migration-from-merge-graphql-schemas
 title: Migration from Merge GraphQL Schemas
+sidebar_label: From Merge GraphQL Schemas
 description: Migration from Merge GraphQL Schemas
 ---
 
