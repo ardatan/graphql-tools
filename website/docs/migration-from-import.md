@@ -18,7 +18,7 @@ After;
 import { loadSchema } from '@graphql-tools/load';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 
-const typeDefs = loadSchema(join(__dirname, 'schema.graphql'), {
+const typeDefs = await loadSchema(join(__dirname, 'schema.graphql'), {
   loaders: [
     new GraphQLFileLoader(),
   ],
