@@ -9,16 +9,29 @@ GraphQL Import was an NPM package that allows you import and export definitions 
 Before;
 ```ts
 import { importSchema } from 'graphql-import';
+import { makeExecutableSchema } from 'graphql-tools';
 
 const typeDefs = importSchema(join(__dirname, 'schema.graphql'));
+const resolvers = {
+  Query: {...}
+};
+const schema = makeExecutableSchema({ typeDefs, resolvers });
 ```
 
 After;
 ```ts
-import { loadSchemasSync } from '@graphql-tools/load';
+import { loadSchemaSync } from '@graphql-tools/load';
 import { GraphQLFileLoader } from '@graphql-tools/code-file-loader';
+import { GraphQLFileLoader } from '@graphql-tools/schema';
 
-const typeDefs = loadSchemasSync(join(__dirname, 'schema.graphql'));
+const schema = loadSchemaSync(join(__dirname, 'schema.graphql'));
+const resolvers = {
+  Query: {...}
+};
+const schemaWithResolvers = addResolversToSchema({
+  schema,
+  resolvers,
+});
 ```
 
 You can learn more about those new packages in [Schema Loading](/docs/schema-loading) section.
