@@ -15,10 +15,10 @@ const typeDefs = importSchema(join(__dirname, 'schema.graphql'));
 
 After;
 ```ts
-import { loadSchemasSync } from '@graphql-tools/load';
-import { GraphQLFileLoader } from '@graphql-tools/code-file-loader';
+import { loadSchema } from '@graphql-tools/load';
+import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 
-const typeDefs = loadSchemasSync(join(__dirname, 'schema.graphql'), {
+const typeDefs = loadSchema(join(__dirname, 'schema.graphql'), {
   loaders: [
     new GraphQLFileLoader(),
   ],
