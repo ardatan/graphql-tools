@@ -18,7 +18,11 @@ After;
 import { loadSchemasSync } from '@graphql-tools/load';
 import { GraphQLFileLoader } from '@graphql-tools/code-file-loader';
 
-const typeDefs = loadSchemasSync(join(__dirname, 'schema.graphql'));
+const typeDefs = loadSchemasSync(join(__dirname, 'schema.graphql'), {
+  loaders: [
+    new GraphQLFileLoader(),
+  ],
+});
 ```
 
 You can learn more about those new packages in [Schema Loading](/docs/schema-loading) section.
