@@ -1,6 +1,7 @@
 ---
 id: migration-from-import
 title: Migration from GraphQL Import
+sidebar_label: From GraphQL Import
 description: Migration from GraphQL Import
 ---
 

@@ -39,3 +39,14 @@ const document4 = loadDocuments('./src/my-component.ts', {  // load from code fi
 
 
 ```
+
+`loadDocuments` return an array of document sources and these source objects have the following structure;
+```ts
+interface DocumentSource {
+  document: DocumentNode; // Object representation of GraphQL Content
+  rawSDL: string; // SDL in text
+  location: string; // Way to access to that source
+}
+```
+
+> You can learn more about [loaders](/docs/loaders) to load documents from different sources.

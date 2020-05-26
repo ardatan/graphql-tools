@@ -155,3 +155,5 @@ app.listen(4000, () => {
 })
 
 ```
+
+> You can learn more about [loaders](/docs/loaders) to load schemas from different sources.
