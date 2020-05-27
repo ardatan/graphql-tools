@@ -1,15 +1,17 @@
-import { print, IntrospectionOptions } from 'graphql';
+import { print, IntrospectionOptions, DocumentNode } from 'graphql';
 import {
   SchemaPointerSingle,
   Source,
   DocumentLoader,
   SingleFileOptions,
-  printSchemaWithDirectives,
+  observableToAsyncIterable,
+  ExecutionResult,
 } from '@graphql-tools/utils';
 import { isWebUri } from 'valid-url';
 import { fetch as crossFetch } from 'cross-fetch';
-import { makeRemoteExecutableSchema, introspectSchema } from '@graphql-tools/wrap';
-import { AsyncExecutor } from '@graphql-tools/delegate';
+import { introspectSchema, makeRemoteExecutableSchema, IMakeRemoteExecutableSchemaOptions } from '@graphql-tools/wrap';
+import { SubscriptionClient } from 'subscriptions-transport-ws';
+import { w3cwebsocket } from 'websocket';
 
 export type FetchFn = typeof import('cross-fetch').fetch;
 
@@ -19,6 +21,8 @@ export interface LoadFromUrlOptions extends SingleFileOptions, Partial<Introspec
   headers?: Headers;
   customFetch?: FetchFn | string;
   method?: 'GET' | 'POST';
+  enableSubscriptions?: boolean;
+  webSocketImpl?: typeof w3cwebsocket | string;
 }
 
 export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
@@ -26,18 +30,19 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     return 'url';
   }
 
-  async canLoad(pointer: SchemaPointerSingle, _options: LoadFromUrlOptions): Promise<boolean> {
-    return !!isWebUri(pointer);
+  async canLoad(pointer: SchemaPointerSingle, options: LoadFromUrlOptions): Promise<boolean> {
+    return this.canLoadSync(pointer, options);
   }
 
-  canLoadSync(_pointer: SchemaPointerSingle, _options: LoadFromUrlOptions): boolean {
-    return false;
+  canLoadSync(pointer: SchemaPointerSingle, _options: LoadFromUrlOptions): boolean {
+    return !!isWebUri(pointer);
   }
 
   async load(pointer: SchemaPointerSingle, options: LoadFromUrlOptions): Promise<Source> {
     let headers = {};
     let fetch = crossFetch;
     let method: 'GET' | 'POST' = 'POST';
+    let webSocketImpl = w3cwebsocket;
 
     if (options) {
       if (Array.isArray(options.headers)) {
@@ -53,6 +58,15 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
         }
       }
 
+      if (options.webSocketImpl) {
+        if (typeof options.webSocketImpl === 'string') {
+          const [moduleName, webSocketImplName] = options.webSocketImpl.split('#');
+          webSocketImpl = await import(moduleName).then(module =>
+            webSocketImplName ? module[webSocketImplName] : module
+          );
+        }
+      }
+
       if (options.method) {
         method = options.method;
       }
@@ -64,8 +78,10 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       ...headers,
     };
 
-    const executor: AsyncExecutor = async ({ document, variables }) => {
-      const fetchResult = await fetch(pointer, {
+    const HTTP_URL = pointer.replace('ws:', 'http:').replace('wss:', 'https:');
+
+    const executor = async ({ document, variables }: { document: DocumentNode; variables: any }) => {
+      const fetchResult = await fetch(HTTP_URL, {
         method,
         ...(method === 'POST'
           ? {
@@ -77,12 +93,34 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       return fetchResult.json();
     };
 
-    const clientSchema = await introspectSchema(executor);
+    const schema = await introspectSchema(executor);
 
-    const remoteExecutableSchema = makeRemoteExecutableSchema({
-      schema: printSchemaWithDirectives(clientSchema, options), // Keep descriptions
+    const remoteExecutableSchemaOptions: IMakeRemoteExecutableSchemaOptions = {
+      schema,
       executor,
-    });
+    };
+
+    if (options.enableSubscriptions) {
+      const WS_URL = pointer.replace('http:', 'ws:').replace('https:', 'wss:');
+      const subscriptionClient = new SubscriptionClient(WS_URL, {}, webSocketImpl);
+
+      remoteExecutableSchemaOptions.subscriber = async <TReturn, TArgs>({
+        document,
+        variables,
+      }: {
+        document: DocumentNode;
+        variables: TArgs;
+      }) => {
+        return observableToAsyncIterable(
+          subscriptionClient.request({
+            query: document,
+            variables,
+          })
+        ) as AsyncIterator<ExecutionResult<TReturn>>;
+      };
+    }
+
+    const remoteExecutableSchema = makeRemoteExecutableSchema(remoteExecutableSchemaOptions);
 
     return {
       location: pointer,

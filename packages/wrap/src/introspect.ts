@@ -11,22 +11,17 @@ import { ExecutionResult, CombinedError } from '@graphql-tools/utils';
 import { AsyncExecutor, SyncExecutor } from '@graphql-tools/delegate';
 
 function getSchemaFromIntrospection(introspectionResult: ExecutionResult<IntrospectionQuery>): GraphQLSchema {
-  if (
-    (Array.isArray(introspectionResult.errors) && introspectionResult.errors.length) ||
-    !introspectionResult.data.__schema
-  ) {
-    if (Array.isArray(introspectionResult.errors)) {
-      if (introspectionResult.errors.length > 1) {
-        const combinedError = new CombinedError(introspectionResult.errors);
-        throw combinedError;
-      }
-      const error = introspectionResult.errors[0];
-      throw error.originalError || error;
-    } else {
-      throw new Error('Could not obtain introspection result, received: ' + JSON.stringify(introspectionResult));
-    }
-  } else {
+  if (introspectionResult?.data?.__schema) {
     return buildClientSchema(introspectionResult.data);
+  } else if (introspectionResult?.errors?.length) {
+    if (introspectionResult.errors.length > 1) {
+      const combinedError = new CombinedError(introspectionResult.errors);
+      throw combinedError;
+    }
+    const error = introspectionResult.errors[0];
+    throw error.originalError || error;
+  } else {
+    throw new Error('Could not obtain introspection result, received: ' + JSON.stringify(introspectionResult));
   }
 }
 
