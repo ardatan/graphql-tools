@@ -163,7 +163,7 @@ const schema = makeExecutableSchema({
 ### attachDirectiveResolvers
 
 ```js
-import { attachDirectiveResolvers } from '@graphql-tools/utils';
+import { attachDirectiveResolvers } from '@graphql-tools/schema';
 
 const directiveResolvers = {
   // directive resolvers implement
