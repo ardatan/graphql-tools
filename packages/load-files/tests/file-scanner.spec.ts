@@ -140,6 +140,11 @@ describe('file scanner', function() {
       note: 'should include index by default',
       extensions: ['graphql'],
     });
+    testSchemaDir({
+      path: './test-assets/1/*.graphql',
+      expected: [schemaContent],
+      note: 'non-directory pattern',
+    });
   });
 
   describe('resolvers', () => {
@@ -204,6 +209,11 @@ describe('file scanner', function() {
       extensions: ['js'],
       compareValue: true,
       ignoreIndex: true,
+    });
+    testResolversDir({
+      path: './test-assets/6/*.resolvers.js',
+      expected: [{ MyType: { f: 1 } }],
+      note: 'non-directory pattern',
     });
   });
 });

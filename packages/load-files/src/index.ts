@@ -194,10 +194,12 @@ export async function loadFiles(
 ): Promise<any[]> {
   const execOptions = { ...LoadFilesDefaultOptions, ...options };
   const relevantPaths = await scanForFiles(
-    asArray(pattern).map(path =>
-      isDirectory(path)
-        ? buildGlob(unixify(path), execOptions.extensions, execOptions.ignoredExtensions, execOptions.recursive)
-        : unixify(path)
+    await Promise.all(
+      asArray(pattern).map(async path =>
+        (await isDirectory(path))
+          ? buildGlob(unixify(path), execOptions.extensions, execOptions.ignoredExtensions, execOptions.recursive)
+          : unixify(path)
+      )
     ),
     options.globOptions
   );
