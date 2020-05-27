@@ -46,8 +46,6 @@ jobs:
         run: npm run release
         env:
           RELEASE_VERSION: ${{ github.event.release.tag_name }}
-      - name: Clean NPM Credentials
-        run: rm .npmrc
       - name: Commit updated package.json files
         run: |
           git add .

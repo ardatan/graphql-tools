@@ -1,6 +1,6 @@
 {
   "name": "graphql-tools-monorepo",
-  "version": "6.0.2",
+  "version": "6.0.3",
   "description": "Useful tools to create and manipulate GraphQL schemas.",
   "private": true,
   "scripts": {

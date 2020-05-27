@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/git-loader",
-  "version": "6.0.2",
+  "version": "6.0.3",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": "git@github.com:ardatan/graphql-tools.git",
   "author": "Dotan Simha <dotansimha@gmail.com>",
@@ -16,8 +16,8 @@
     "graphql": "^14.0.0 || ^15.0.0"
   },
   "dependencies": {
-    "@graphql-tools/utils": "6.0.2",
-    "@graphql-tools/graphql-tag-pluck": "6.0.2",
+    "@graphql-tools/utils": "6.0.3",
+    "@graphql-tools/graphql-tag-pluck": "6.0.3",
     "simple-git": "2.5.0"
   },
   "buildOptions": {
