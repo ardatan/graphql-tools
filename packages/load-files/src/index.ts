@@ -1,7 +1,7 @@
 import globby, { sync as globbySync, GlobbyOptions } from 'globby';
 import unixify from 'unixify';
 import { extname } from 'path';
-import { readFile, stat, statSync, readFileSync } from 'fs-extra';
+import { readFile, statSync, readFileSync } from 'fs-extra';
 
 const DEFAULT_IGNORED_EXTENSIONS = ['spec', 'test', 'd', 'map'];
 const DEFAULT_EXTENSIONS = ['gql', 'graphql', 'graphqls', 'ts', 'js'];
@@ -18,15 +18,6 @@ function asArray<T>(obj: T | T[]): T[] {
 function isDirectorySync(path: string) {
   try {
     const pathStat = statSync(path);
-    return pathStat.isDirectory();
-  } catch (e) {
-    return false;
-  }
-}
-
-async function isDirectory(path: string) {
-  try {
-    const pathStat = await stat(path);
     return pathStat.isDirectory();
   } catch (e) {
     return false;
@@ -195,7 +186,7 @@ export async function loadFiles(
   const execOptions = { ...LoadFilesDefaultOptions, ...options };
   const relevantPaths = await scanForFiles(
     asArray(pattern).map(path =>
-      isDirectory(path)
+      isDirectorySync(path)
         ? buildGlob(unixify(path), execOptions.extensions, execOptions.ignoredExtensions, execOptions.recursive)
         : unixify(path)
     ),

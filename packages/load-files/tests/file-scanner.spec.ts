@@ -89,6 +89,11 @@ describe('file scanner', function() {
   describe('schema', () => {
     const schemaContent = `type MyType { f: String }`;
     testSchemaDir({
+      path: './test-assets/1/*.graphql',
+      expected: [schemaContent],
+      note: 'minimatch pattern',
+    });
+    testSchemaDir({
       path: './test-assets/1',
       expected: [schemaContent],
       note: 'one file',
@@ -143,6 +148,11 @@ describe('file scanner', function() {
   });
 
   describe('resolvers', () => {
+    testResolversDir({
+      path: './test-assets/6/*.resolvers.js',
+      expected: [{ MyType: { f: 1 } }],
+      note: 'minimatch pattern',
+    });
     testResolversDir({
       path: './test-assets/6',
       expected: [{ MyType: { f: 1 } }],
