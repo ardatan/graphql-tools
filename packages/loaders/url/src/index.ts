@@ -1,4 +1,4 @@
-import { print, IntrospectionOptions, DocumentNode } from 'graphql';
+import { print, IntrospectionOptions, DocumentNode, GraphQLResolveInfo } from 'graphql';
 import {
   SchemaPointerSingle,
   Source,
@@ -23,6 +23,7 @@ export interface LoadFromUrlOptions extends SingleFileOptions, Partial<Introspec
   method?: 'GET' | 'POST';
   enableSubscriptions?: boolean;
   webSocketImpl?: typeof w3cwebsocket | string;
+  useGETForQueries?: boolean;
 }
 
 export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
@@ -41,7 +42,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
   async load(pointer: SchemaPointerSingle, options: LoadFromUrlOptions): Promise<Source> {
     let headers = {};
     let fetch = crossFetch;
-    let method: 'GET' | 'POST' = 'POST';
+    let defaultMethod: 'GET' | 'POST' = 'POST';
     let webSocketImpl = w3cwebsocket;
 
     if (options) {
@@ -68,7 +69,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       }
 
       if (options.method) {
-        method = options.method;
+        defaultMethod = options.method;
       }
     }
 
@@ -80,7 +81,19 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
 
     const HTTP_URL = pointer.replace('ws:', 'http:').replace('wss:', 'https:');
 
-    const executor = async ({ document, variables }: { document: DocumentNode; variables: any }) => {
+    const executor = async ({
+      document,
+      variables,
+      info,
+    }: {
+      document: DocumentNode;
+      variables: any;
+      info: GraphQLResolveInfo;
+    }) => {
+      let method = defaultMethod;
+      if (options.useGETForQueries && info.operation.operation === 'query') {
+        method = 'GET';
+      }
       const fetchResult = await fetch(HTTP_URL, {
         method,
         ...(method === 'POST'
