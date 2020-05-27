@@ -89,11 +89,6 @@ describe('file scanner', function() {
   describe('schema', () => {
     const schemaContent = `type MyType { f: String }`;
     testSchemaDir({
-      path: './test-assets/1/*.graphql',
-      expected: [schemaContent],
-      note: 'minimatch pattern',
-    });
-    testSchemaDir({
       path: './test-assets/1',
       expected: [schemaContent],
       note: 'one file',
@@ -145,14 +140,14 @@ describe('file scanner', function() {
       note: 'should include index by default',
       extensions: ['graphql'],
     });
+    testSchemaDir({
+      path: './test-assets/1/*.graphql',
+      expected: [schemaContent],
+      note: 'non-directory pattern',
+    });
   });
 
   describe('resolvers', () => {
-    testResolversDir({
-      path: './test-assets/6/*.resolvers.js',
-      expected: [{ MyType: { f: 1 } }],
-      note: 'minimatch pattern',
-    });
     testResolversDir({
       path: './test-assets/6',
       expected: [{ MyType: { f: 1 } }],
@@ -214,6 +209,11 @@ describe('file scanner', function() {
       extensions: ['js'],
       compareValue: true,
       ignoreIndex: true,
+    });
+    testResolversDir({
+      path: './test-assets/6/*.resolvers.js',
+      expected: [{ MyType: { f: 1 } }],
+      note: 'non-directory pattern',
     });
   });
 });
