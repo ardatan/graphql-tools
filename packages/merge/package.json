@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/merge",
-  "version": "6.0.1",
+  "version": "6.0.2",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": "git@github.com:ardatan/graphql-tools.git",
   "author": "Dotan Simha <dotansimha@gmail.com>",
@@ -19,8 +19,8 @@
     "input": "./src/index.ts"
   },
   "dependencies": {
-    "@graphql-tools/schema": "6.0.1",
-    "@graphql-tools/utils": "6.0.1",
+    "@graphql-tools/schema": "6.0.2",
+    "@graphql-tools/utils": "6.0.2",
     "tslib": "~2.0.0"
   },
   "publishConfig": {
