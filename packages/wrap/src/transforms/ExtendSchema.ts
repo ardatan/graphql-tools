@@ -30,6 +30,8 @@ export default class ExtendSchema implements Transform {
   }
 
   public transformSchema(schema: GraphQLSchema): GraphQLSchema {
+    // MapFields's transformSchema function does not actually modify the schema --
+    // it saves the current schema state, to be used later to transform requests.
     this.transformer.transformSchema(schema);
 
     return addResolversToSchema({
