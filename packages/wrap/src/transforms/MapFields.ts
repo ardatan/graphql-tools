@@ -2,13 +2,13 @@ import { GraphQLSchema } from 'graphql';
 
 import { Transform, Request, FieldNodeMappers } from '@graphql-tools/utils';
 
-import TransformObjectFields from './TransformObjectFields';
+import TransformCompositeFields from './TransformCompositeFields';
 
 export default class MapFields implements Transform {
-  private readonly transformer: TransformObjectFields;
+  private readonly transformer: TransformCompositeFields;
 
   constructor(fieldNodeTransformerMap: FieldNodeMappers) {
-    this.transformer = new TransformObjectFields(
+    this.transformer = new TransformCompositeFields(
       (_typeName, _fieldName, fieldConfig) => fieldConfig,
       (typeName, fieldName, fieldNode, fragments) => {
         const typeTransformers = fieldNodeTransformerMap[typeName];
