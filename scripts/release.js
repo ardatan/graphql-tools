@@ -6,6 +6,9 @@ const semver = require('semver');
 const cp = require('child_process');
 const rootPackageJson = require('../package.json');
 const { cwd } = require('process');
+const pLimit = require('p-limit');
+
+const useLimit = pLimit(3);
 
 async function release() {
 
@@ -31,7 +34,7 @@ async function release() {
 
     rootPackageJson.version = version;
     await writeFile(resolve(__dirname, '../package.json'), JSON.stringify(rootPackageJson, null, 2));
-    await Promise.all(packageJsonPaths.map(async packageJsonPath => {
+    await Promise.all(packageJsonPaths.map(packageJsonPath => useLimit(async () => {
         const packageJson = require(packageJsonPath);
         packageJson.version = version;
         for (const dependency in packageJson.dependencies) {
@@ -77,7 +80,7 @@ async function release() {
                 });
             });
         }
-    }))
+    })));
     console.info(`Released successfully!`);
     console.info(`${tag} => ${version}`);
 }
