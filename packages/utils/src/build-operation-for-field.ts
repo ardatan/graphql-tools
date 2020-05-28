@@ -242,16 +242,7 @@ function resolveSelectionSet({
             }) as SelectionSetNode,
           };
         })
-        .filter(f => {
-          if (f) {
-            if ('selectionSet' in f) {
-              return f.selectionSet?.selections?.length;
-            } else {
-              return true;
-            }
-          }
-          return false;
-        }),
+        .filter(fragmentNode => fragmentNode?.selectionSet?.selections?.length > 0),
     };
   }
 
@@ -294,7 +285,8 @@ function resolveSelectionSet({
               selectedFields,
             }) as SelectionSetNode,
           };
-        }),
+        })
+        .filter(fragmentNode => fragmentNode?.selectionSet?.selections?.length > 0),
     };
   }
 
@@ -328,8 +320,8 @@ function resolveSelectionSet({
           });
         })
         .map(fieldName => {
-          const selectedNestedFields = !selectedFields || selectedFields[fieldName];
-          if (selectedNestedFields) {
+          const isSelected = selectedFields ? selectedFields[fieldName] : true;
+          if (isSelected) {
             return resolveField({
               type: type,
               field: fields[fieldName],
@@ -342,7 +334,7 @@ function resolveSelectionSet({
               schema,
               depth,
               argNames,
-              selectedFields: selectedFields[fieldName],
+              selectedFields: selectedFields && selectedFields[fieldName],
             });
           }
         })
