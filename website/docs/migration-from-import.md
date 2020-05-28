@@ -25,10 +25,9 @@ import { loadSchemaSync } from '@graphql-tools/load';
 import { GraphQLFileLoader } from '@graphql-tools/code-file-loader';
 import { addResolversToSchema } from '@graphql-tools/schema';
 
-const schema = loadSchemaSync(join(__dirname, 'schema.graphql'));
-const resolvers = {
-  Query: {...}
-};
+const schema = loadSchemaSync(join(__dirname, 'schema.graphql'), { loaders: [new GraphQLFileLoader()] });
+const resolvers = { Query: {...} };
+
 const schemaWithResolvers = addResolversToSchema({
   schema,
   resolvers,
