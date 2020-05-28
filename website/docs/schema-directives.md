@@ -193,7 +193,7 @@ function restDirective(directiveName: string) {
         const directiveArgumentMap = directives[directiveName];
         if (directiveArgumentMap) {
           const { url } = directiveArgumentMap;
-          field.resolve = () => fetch(url);
+          fieldConfig.resolve = () => fetch(url);
           return fieldConfig;
         }
       }
