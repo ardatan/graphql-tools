@@ -59,9 +59,9 @@ Or automatically:
 // ./graphql/resolvers.js
 const path = require('path');
 const { mergeResolvers } = require('@graphql-tools/merge');
-const { loadFiles } = require('@graphql-tools/load-files');
+const { loadFilesSync } = require('@graphql-tools/load-files');
 
-const resolversArray = loadFiles(path.join(__dirname, './resolvers'));
+const resolversArray = loadFilesSync(path.join(__dirname, './resolvers'));
 
 module.exports = mergeResolvers(resolversArray);
 ```
@@ -75,9 +75,9 @@ Only these values are supported now. `'.ts', '.js', '.gql', '.graphql', '.graphq
 // ./graphql/resolvers.js
 const path = require('path');
 const { mergeResolvers } = require('@graphql-tools/merge');
-const { loadFiles } = require('@graphql-tools/load-files');
+const { loadFilesSync } = require('@graphql-tools/load-files');
 
-const resolversArray = loadFiles(path.join(__dirname, './resolvers'), { extensions: ['.js'] });
+const resolversArray = loadFilesSync(path.join(__dirname, './resolvers'), { extensions: ['.js'] });
 
 module.exports = mergeResolvers(resolversArray);
 ```
@@ -94,9 +94,9 @@ Then setup your `fileLoader` like so, and you're in business:
 // ./graphql/resolvers/index.js/ts
 const path = require('path');
 const { mergeResolvers } = require('@graphql-tools/merge');
-const { loadFiles } = require('@graphql-tools/load-files');
+const { loadFilesSync } = require('@graphql-tools/load-files');
 
-const resolversArray = loadFiles(path.join(__dirname, "./**/*.resolvers.*"));
+const resolversArray = loadFilesSync(path.join(__dirname, "./**/*.resolvers.*"));
 module.exports = mergeResolvers(resolversArray);
 ```
 With this approach, you're free to structure resolver files as you see fit. Of course,
