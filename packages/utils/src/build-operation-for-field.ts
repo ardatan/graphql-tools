@@ -51,6 +51,12 @@ export type Skip = string[];
 export type Force = string[];
 export type Ignore = string[];
 
+export type SelectedFields =
+  | {
+      [key: string]: SelectedFields;
+    }
+  | boolean;
+
 export function buildOperationNodeForField({
   schema,
   kind,
@@ -60,6 +66,7 @@ export function buildOperationNodeForField({
   depthLimit,
   circularReferenceDepth,
   argNames,
+  selectedFields,
 }: {
   schema: GraphQLSchema;
   kind: OperationTypeNode;
@@ -69,6 +76,7 @@ export function buildOperationNodeForField({
   depthLimit?: number;
   circularReferenceDepth?: number;
   argNames?: string[];
+  selectedFields?: SelectedFields;
 }) {
   resetOperationVariables();
   resetFieldMap();
@@ -82,6 +90,7 @@ export function buildOperationNodeForField({
     depthLimit: depthLimit || Infinity,
     circularReferenceDepth: circularReferenceDepth || 1,
     argNames,
+    selectedFields,
   });
 
   // attach variables
@@ -102,6 +111,7 @@ function buildOperationAndCollectVariables({
   depthLimit,
   circularReferenceDepth,
   argNames,
+  selectedFields,
 }: {
   schema: GraphQLSchema;
   fieldName: string;
@@ -111,6 +121,7 @@ function buildOperationAndCollectVariables({
   depthLimit: number;
   circularReferenceDepth: number;
   argNames?: string[];
+  selectedFields?: SelectedFields;
 }): OperationDefinitionNode {
   const typeMap: Record<OperationTypeNode, GraphQLObjectType> = {
     query: schema.getQueryType()!,
@@ -154,6 +165,7 @@ function buildOperationAndCollectVariables({
           schema,
           depth: 0,
           argNames,
+          selectedFields,
         }),
       ],
     },
@@ -173,6 +185,7 @@ function resolveSelectionSet({
   schema,
   depth,
   argNames,
+  selectedFields,
 }: {
   parent: GraphQLNamedType;
   type: GraphQLNamedType;
@@ -185,6 +198,7 @@ function resolveSelectionSet({
   circularReferenceDepth: number;
   schema: GraphQLSchema;
   depth: number;
+  selectedFields: SelectedFields;
   argNames?: string[];
 }): SelectionSetNode | void {
   if (depth > depthLimit) {
@@ -224,6 +238,7 @@ function resolveSelectionSet({
               schema,
               depth,
               argNames,
+              selectedFields,
             }) as SelectionSetNode,
           };
         })
@@ -276,6 +291,7 @@ function resolveSelectionSet({
               schema,
               depth,
               argNames,
+              selectedFields,
             }) as SelectionSetNode,
           };
         }),
@@ -312,19 +328,23 @@ function resolveSelectionSet({
           });
         })
         .map(fieldName => {
-          return resolveField({
-            type: type,
-            field: fields[fieldName],
-            models,
-            path: [...path, fieldName],
-            ancestors,
-            ignore,
-            depthLimit,
-            circularReferenceDepth,
-            schema,
-            depth,
-            argNames,
-          });
+          const selectedNestedFields = !selectedFields || selectedFields[fieldName];
+          if (selectedNestedFields) {
+            return resolveField({
+              type: type,
+              field: fields[fieldName],
+              models,
+              path: [...path, fieldName],
+              ancestors,
+              ignore,
+              depthLimit,
+              circularReferenceDepth,
+              schema,
+              depth,
+              argNames,
+              selectedFields: selectedFields[fieldName],
+            });
+          }
         })
         .filter(f => {
           if (f) {
@@ -398,6 +418,7 @@ function resolveField({
   schema,
   depth,
   argNames,
+  selectedFields,
 }: {
   type: GraphQLObjectType;
   field: GraphQLField<any, any>;
@@ -410,6 +431,7 @@ function resolveField({
   circularReferenceDepth: number;
   schema: GraphQLSchema;
   depth: number;
+  selectedFields: SelectedFields;
   argNames?: string[];
 }): SelectionNode {
   const namedType = getNamedType(field.type);
@@ -480,6 +502,7 @@ function resolveField({
           schema,
           depth: depth + 1,
           argNames,
+          selectedFields,
         }) || undefined,
       arguments: args,
     };
