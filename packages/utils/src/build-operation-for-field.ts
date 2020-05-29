@@ -201,7 +201,7 @@ function resolveSelectionSet({
   selectedFields: SelectedFields;
   argNames?: string[];
 }): SelectionSetNode | void {
-  if (depth > depthLimit) {
+  if (typeof selectedFields === 'boolean' && depth > depthLimit) {
     return;
   }
   if (isUnionType(type)) {
