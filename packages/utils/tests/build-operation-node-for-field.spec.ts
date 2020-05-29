@@ -526,14 +526,13 @@ test('selectedFields', async () => {
     schema,
     kind: 'query',
     field: 'user',
-    models,
-    ignore: [],
     selectedFields: {
       favoriteFood: {
         dough: true,
         toppings: true,
         asian: true,
-      }
+      },
+      shelf: true, // Add all nested fields
     }
   })!;
 
@@ -551,6 +550,10 @@ test('selectedFields', async () => {
                 asian
               }
             }
+          }
+          shelf {
+            id
+            title
           }
         }
       }

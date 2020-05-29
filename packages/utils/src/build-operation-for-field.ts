@@ -66,7 +66,7 @@ export function buildOperationNodeForField({
   depthLimit,
   circularReferenceDepth,
   argNames,
-  selectedFields,
+  selectedFields = true,
 }: {
   schema: GraphQLSchema;
   kind: OperationTypeNode;
@@ -121,7 +121,7 @@ function buildOperationAndCollectVariables({
   depthLimit: number;
   circularReferenceDepth: number;
   argNames?: string[];
-  selectedFields?: SelectedFields;
+  selectedFields: SelectedFields;
 }): OperationDefinitionNode {
   const typeMap: Record<OperationTypeNode, GraphQLObjectType> = {
     query: schema.getQueryType()!,
@@ -320,8 +320,8 @@ function resolveSelectionSet({
           });
         })
         .map(fieldName => {
-          const isSelected = selectedFields ? selectedFields[fieldName] : true;
-          if (isSelected) {
+          const selectedSubFields = typeof selectedFields === 'object' ? selectedFields[fieldName] : true;
+          if (selectedSubFields) {
             return resolveField({
               type: type,
               field: fields[fieldName],
@@ -334,7 +334,7 @@ function resolveSelectionSet({
               schema,
               depth,
               argNames,
-              selectedFields: selectedFields && selectedFields[fieldName],
+              selectedFields: selectedSubFields,
             });
           }
         })
