@@ -288,6 +288,5 @@ function createDefaultSubscriber(schema: GraphQLSchema, rootValue: Record<string
       contextValue: context,
       variableValues: variables,
       rootValue: rootValue ?? info?.rootValue,
-      subscribeFieldResolver: payload => payload,
     }) as any;
 }
