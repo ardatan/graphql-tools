@@ -519,3 +519,44 @@ test('arguments', async () => {
     `)
   );
 });
+
+test('selectedFields', async () => {
+
+  const document = buildOperationNodeForField({
+    schema,
+    kind: 'query',
+    field: 'user',
+    selectedFields: {
+      favoriteFood: {
+        dough: true,
+        toppings: true,
+        asian: true,
+      },
+      shelf: true, // Add all nested fields
+    }
+  })!;
+
+  expect(clean(document)).toEqual(
+    clean(/* GraphQL */ `
+      query userQuery($id: ID!) {
+        user(id: $id) {
+          favoriteFood {
+            ... on Pizza {
+              dough
+              toppings
+            }
+            ... on Salad {
+              ... on Coleslaw {
+                asian
+              }
+            }
+          }
+          shelf {
+            id
+            title
+          }
+        }
+      }
+    `)
+  );
+})
