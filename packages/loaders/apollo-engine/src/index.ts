@@ -4,13 +4,15 @@ import { buildClientSchema } from 'graphql';
 
 export interface ApolloEngineOptions extends SingleFileOptions {
   engine: {
-    endpoint: string;
+    endpoint?: string;
     apiKey: string;
   };
   graph: string;
   variant: string;
   headers?: Record<string, string>;
 }
+
+const DEFAULT_APOLLO_ENDPOINT = 'https://engine-graphql.apollographql.com/api/graphql';
 
 export class ApolloEngineLoader implements SchemaLoader<ApolloEngineOptions> {
   loaderId() {
@@ -26,7 +28,7 @@ export class ApolloEngineLoader implements SchemaLoader<ApolloEngineOptions> {
   }
 
   async load(_: 'apollo-engine', options: ApolloEngineOptions): Promise<Source> {
-    const response = await fetch(options.engine.endpoint, {
+    const response = await fetch(options.engine.endpoint || DEFAULT_APOLLO_ENDPOINT, {
       method: 'POST',
       headers: {
         'x-api-key': options.engine.apiKey,
