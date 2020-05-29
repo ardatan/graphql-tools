@@ -1,4 +1,4 @@
-import { GraphQLSchema, GraphQLFieldResolver, GraphQLObjectType } from 'graphql';
+import { GraphQLSchema, GraphQLFieldResolver, GraphQLObjectType, GraphQLResolveInfo } from 'graphql';
 
 import { Transform, Operation, getResponseKeyFromInfo, getErrors, applySchemaTransforms } from '@graphql-tools/utils';
 import {
@@ -64,7 +64,8 @@ export function generateProxyingResolvers(
         if (operation === 'subscription') {
           resolvers[typeName][fieldName] = {
             subscribe: finalResolver,
-            resolve: (payload: any) => payload[fieldName],
+            resolve: (payload: any, _: never, __: never, { fieldName: targetFieldName }: GraphQLResolveInfo) =>
+              payload[targetFieldName],
           };
         } else {
           resolvers[typeName][fieldName] = {
