@@ -271,10 +271,22 @@ export function delegateRequest({
 
 function createDefaultExecutor(schema: GraphQLSchema, rootValue: Record<string, any>) {
   return ({ document, context, variables, info }: ExecutionParams) =>
-    execute(schema, document, rootValue ?? info?.rootValue, context, variables);
+    execute({
+      schema,
+      document,
+      contextValue: context,
+      variableValues: variables,
+      rootValue: rootValue ?? info?.rootValue,
+    });
 }
 
 function createDefaultSubscriber(schema: GraphQLSchema, rootValue: Record<string, any>) {
   return ({ document, context, variables, info }: ExecutionParams) =>
-    subscribe(schema, document, rootValue ?? info?.rootValue, context, variables) as any;
+    subscribe({
+      schema,
+      document,
+      contextValue: context,
+      variableValues: variables,
+      rootValue: rootValue ?? info?.rootValue,
+    }) as any;
 }

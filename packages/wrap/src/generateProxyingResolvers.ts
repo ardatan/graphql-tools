@@ -1,4 +1,4 @@
-import { GraphQLSchema, GraphQLFieldResolver, GraphQLObjectType } from 'graphql';
+import { GraphQLSchema, GraphQLFieldResolver, GraphQLObjectType, GraphQLResolveInfo } from 'graphql';
 
 import { Transform, Operation, getResponseKeyFromInfo, getErrors, applySchemaTransforms } from '@graphql-tools/utils';
 import {
@@ -44,8 +44,6 @@ export function generateProxyingResolvers(
 
   const resolvers = {};
   Object.keys(operationTypes).forEach((operation: Operation) => {
-    const resolveField = operation === 'subscription' ? 'subscribe' : 'resolve';
-
     const rootType = operationTypes[operation];
     if (rootType != null) {
       const typeName = rootType.name;
@@ -63,9 +61,17 @@ export function generateProxyingResolvers(
 
         const finalResolver = createPossiblyNestedProxyingResolver(subschemaOrSubschemaConfig, proxyingResolver);
 
-        resolvers[typeName][fieldName] = {
-          [resolveField]: finalResolver,
-        };
+        if (operation === 'subscription') {
+          resolvers[typeName][fieldName] = {
+            subscribe: finalResolver,
+            resolve: (payload: any, _: never, __: never, { fieldName: targetFieldName }: GraphQLResolveInfo) =>
+              payload[targetFieldName],
+          };
+        } else {
+          resolvers[typeName][fieldName] = {
+            resolve: finalResolver,
+          };
+        }
       });
     }
   });
