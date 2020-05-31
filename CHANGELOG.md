@@ -2,6 +2,10 @@
 
 ### Next
 
+#### Features
+
+- Exports generateProxyingResolvers and handleResult for clients to use. [#1568](https://github.com/ardatan/graphql-tools/issues/1568)
+
 ### 5.0.0
 
 That is a major release where we went through all issues and PRs and got the library back into great shape.
