@@ -1,5 +1,5 @@
 export { wrapSchema } from './wrapSchema';
-export { defaultCreateProxyingResolver } from './generateProxyingResolvers';
+export { defaultCreateProxyingResolver, generateProxyingResolvers } from './generateProxyingResolvers';
 
 export * from './transforms/index';
 
