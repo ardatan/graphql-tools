@@ -4,4 +4,5 @@ type A {
   first: String
   second: Float
   b: B
+  date: Date
 }
