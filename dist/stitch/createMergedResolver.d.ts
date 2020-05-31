@@ -1,6 +1,0 @@
-import { IFieldResolver } from '../Interfaces';
-export declare function createMergedResolver({ fromPath, dehoist, delimeter, }: {
-    fromPath?: Array<string>;
-    dehoist?: boolean;
-    delimeter?: string;
-}): IFieldResolver<any, any>;
