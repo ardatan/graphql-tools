@@ -4,7 +4,7 @@
 
 #### Features
 
-- Exports generateProxyingResolvers and handleResult for clients to use. [#1568](https://github.com/ardatan/graphql-tools/issues/1568)
+- Exports `generateProxyingResolver` and `handleResult` for clients to use. [#1568](https://github.com/ardatan/graphql-tools/issues/1568)
 
 ### 5.0.0
 
