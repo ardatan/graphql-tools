@@ -1,13 +1,11 @@
-import { linkToExecutor } from '@graphql-tools/links';
-import { makeExecutableSchema } from '@graphql-tools/schema';
-import { wrapSchema } from '@graphql-tools/wrap';
+import { ExecutionResult, GraphQLError, graphql, buildSchema } from 'graphql';
+
 import { ApolloLink, Observable } from 'apollo-link';
-import gql from 'graphql-tag';
 
-import { stitchSchemas } from '../src/stitchSchemas';
-import { ExecutionResult, GraphQLError, graphql } from 'graphql';
+import { linkToExecutor } from '@graphql-tools/links';
+import { stitchSchemas } from '@graphql-tools/stitch';
 
-export const typeDefs = gql`
+const typeDefs = `
   input LoginInput {
     username: String
     password: String
@@ -38,12 +36,19 @@ const link = new ApolloLink(operation => {
       },
       'whatever@wrongpass': {
         errors: [
-          ({
-            message: 'INVALID_CREDENTIALS',
-            path: ['login'],
-          } as unknown) as GraphQLError,
+          // note that even for testing purposes, you have to return an Error object with a path here
+          // which can conveniently be creating using the GraphQLError constructor
+          new GraphQLError(
+            'INVALID_CREDENTIALS',
+            undefined,
+            undefined,
+            undefined,
+            ['login'],
+          )
         ],
-        data: null,
+        data: {
+          login: null
+        },
       },
     };
 
@@ -57,49 +62,53 @@ const link = new ApolloLink(operation => {
   });
 });
 
-const authSchema = wrapSchema({
-  executor: linkToExecutor(link),
-  schema: makeExecutableSchema({ typeDefs }),
+const authSchema = stitchSchemas({
+  schemas: [{
+    schema: buildSchema(typeDefs),
+    executor: linkToExecutor(link),
+  }]
 });
 
-const stitchedSchema = stitchSchemas({
-  subschemas: [{ schema: authSchema }],
-});
+const login = (username: string, password: string) => graphql(
+  authSchema, `
+    mutation Login($username: String!, $password: String!) {
+      login(input: { username: $username, password: $password }) {
+        accessToken
+      }
+    }
+  `,
+  undefined,
+  undefined,
+  { username, password }
+);
 
 describe('Repro for issue #1571', () => {
-  it.each`
-    username      | password      | response
-    ${'whatever'} | ${'goodpass'} | ${{
+  it('can log in', async () => {
+    const expectedResult: ExecutionResult = {
       data: {
         login: {
           accessToken: 'at',
         },
       },
-    }}
-    ${'whatever'} | ${'wrongpass'} | ${{
-      errors: [{
-        message: 'INVALID_CREDENTIALS',
-        path: ['login'],
-      }],
+    };
+
+    const result = await login('whatever', 'goodpass');
+    expect(result).toEqual(expectedResult);
+  });
+
+  it('can receive error', async () => {
+    const expectedResult: ExecutionResult = {
       data: null,
-    }}
-  `(
-    'should return the expected response for $username@$password',
-    async ({ username, password, response }: { username: string; password: string; response: string }) => {
-      const stitchedResult = await graphql(
-        stitchedSchema,
-        `
-          mutation Login($username: String!, $password: String!) {
-            login(input: { username: $username, password: $password }) {
-              accessToken
-            }
-          }
-        `,
+      errors: [new GraphQLError(
+        'INVALID_CREDENTIALS',
         undefined,
         undefined,
-        { username, password },
-      );
-      expect(stitchedResult).toEqual(response);
-    },
-  );
+        undefined,
+        ['login']
+      )],
+    }
+
+    const result = await login('whatever', 'wrongpass');
+    expect(result).toEqual(expectedResult);
+  });
 });
