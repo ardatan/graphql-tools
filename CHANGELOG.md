@@ -2,8 +2,9 @@
 
 ### Next
 
-- Fix visitEnumValue to allow modifying the enum value  <br/>
+- Fix visitEnumValue to allow modifying the enum value <br/>
   [@danielrearden](https://github.com/danielrearden) in [#1003](https://github.com/ardatan/graphql-tools/pull/1391)
+- Export `generateProxyingResolvers` from `@graphql-tools/wrap`.
 
 ### 5.0.0
 
