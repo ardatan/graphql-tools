@@ -5,6 +5,7 @@
 - Fix visitEnumValue to allow modifying the enum value <br/>
   [@danielrearden](https://github.com/danielrearden) in [#1003](https://github.com/ardatan/graphql-tools/pull/1391)
 - Export `generateProxyingResolvers` from `@graphql-tools/wrap`.
+- Fix `stitchSchemas` from `@graphql-tools/stitch` from the case there the typeDefs array is empty. [#1575](https://github.com/ardatan/graphql-tools/pull/1575)
 
 ### 5.0.0
 

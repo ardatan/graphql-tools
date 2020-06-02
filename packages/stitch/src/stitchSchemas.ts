@@ -51,7 +51,7 @@ export function stitchSchemas({
   }
 
   let schemaLikeObjects: Array<GraphQLSchema | SubschemaConfig | DocumentNode | GraphQLNamedType> = [...subschemas];
-  if (typeDefs) {
+  if ((typeDefs && !Array.isArray(typeDefs)) || (Array.isArray(typeDefs) && typeDefs.length)) {
     schemaLikeObjects.push(buildDocumentFromTypeDefinitions(typeDefs, parseOptions));
   }
   if (types != null) {
