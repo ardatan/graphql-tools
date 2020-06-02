@@ -2982,6 +2982,36 @@ fragment BookingFragment on Booking {
     });
   });
 
+  describe('empty typeDefs array', () => {
+    test('works', async () => {
+      const typeDefs = `
+      type Query {
+        book: Book
+      }
+      type Book {
+        category: String!
+      }
+    `;
+      let schema = makeExecutableSchema({ typeDefs });
+
+      const resolvers = {
+        Query: {
+          book: () => ({ category: 'Test' }),
+        },
+      };
+
+      schema = stitchSchemas({
+        schemas: [schema],
+        resolvers,
+        typeDefs: [],
+      });
+
+      const result = await graphql(schema, '{ book { cat: category } }');
+
+      expect(result.data.book.cat).toBe('Test');
+    });
+  });
+
   describe('new root type name', () => {
     test('works', async () => {
       let bookSchema = makeExecutableSchema({

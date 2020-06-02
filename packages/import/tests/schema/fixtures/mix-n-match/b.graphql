@@ -1,4 +1,5 @@
 # import C1, C2 from '../import-all/c.graphql'
+scalar Date
 type B {
   hello: String!
   c1: C1

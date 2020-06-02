@@ -11,7 +11,6 @@ export interface Source {
 export type SingleFileOptions = ParseOptions &
   GraphQLSchemaValidationOptions &
   BuildSchemaOptions & {
-    noRequire?: boolean;
     cwd?: string;
   };
 

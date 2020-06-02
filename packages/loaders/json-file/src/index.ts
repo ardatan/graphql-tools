@@ -7,7 +7,7 @@ import {
   SingleFileOptions,
 } from '@graphql-tools/utils';
 import { isAbsolute, resolve } from 'path';
-import { exists, existsSync, readFile, readFileSync } from 'fs-extra';
+import { readFile, readFileSync, pathExists, pathExistsSync } from 'fs-extra';
 import { cwd } from 'process';
 
 const FILE_EXTENSIONS = ['.json'];
@@ -23,7 +23,7 @@ export class JsonFileLoader implements DocumentLoader {
     if (isValidPath(pointer)) {
       if (FILE_EXTENSIONS.find(extension => pointer.endsWith(extension))) {
         const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || cwd(), pointer);
-        return new Promise(resolve => exists(normalizedFilePath, resolve));
+        return pathExists(normalizedFilePath);
       }
     }
 
@@ -35,9 +35,7 @@ export class JsonFileLoader implements DocumentLoader {
       if (FILE_EXTENSIONS.find(extension => pointer.endsWith(extension))) {
         const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || cwd(), pointer);
 
-        if (existsSync(normalizedFilePath)) {
-          return true;
-        }
+        return pathExistsSync(normalizedFilePath);
       }
     }
 

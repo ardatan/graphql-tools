@@ -35,12 +35,14 @@ export const mergeTypes = (types: any[], options?: { schemaDefinition?: boolean,
 So if you want to have exact behavior, you can use the options above. Other than that, the API and behavior are almost same.
 
 ```ts
-import { mergeTypes, mergeResolvers, loadFiles } from 'merge-graphql-schemas';
+import { mergeTypes, mergeResolvers, fileLoader } from 'merge-graphql-schemas';
 ```
 
 should become
 
 ```ts
 import { mergeTypeDefs, mergeResolvers } from '@graphql-tools/merge';
-import { loadFiles } from '@graphql-tools/load-files';
+import { loadFilesSync } from '@graphql-tools/load-files';
 ```
+
+So you can replace `mergeTypes` with `mergeTypeDefs` and `fileLoader` with `loadFilesSync`.

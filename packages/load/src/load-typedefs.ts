@@ -14,8 +14,6 @@ export type LoadTypedefsOptions<ExtraConfig = { [key: string]: any }> = SingleFi
     filterKinds?: string[];
     ignore?: string | string[];
     sort?: boolean;
-    skipGraphQLImport?: boolean;
-    forceGraphQLImport?: boolean;
   };
 
 export type UnnormalizedTypeDefPointer = { [key: string]: any } | string;

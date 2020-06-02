@@ -18,13 +18,14 @@ import {
 } from '@graphql-tools/graphql-tag-pluck';
 import { tryToLoadFromExport, tryToLoadFromExportSync } from './load-from-module';
 import { isAbsolute, resolve } from 'path';
-import { exists, existsSync, readFileSync, readFile } from 'fs-extra';
+import { readFileSync, readFile, pathExists, pathExistsSync } from 'fs-extra';
 import { cwd } from 'process';
 
 export type CodeFileLoaderOptions = {
   require?: string | string[];
   pluckConfig?: GraphQLTagPluckOptions;
   noPluck?: boolean;
+  noRequire?: boolean;
 } & SingleFileOptions;
 
 const FILE_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx', '.vue'];
@@ -41,7 +42,7 @@ export class CodeFileLoader implements UniversalLoader<CodeFileLoaderOptions> {
     if (isValidPath(pointer)) {
       if (FILE_EXTENSIONS.find(extension => pointer.endsWith(extension))) {
         const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || cwd(), pointer);
-        return new Promise(resolve => exists(normalizedFilePath, resolve));
+        return pathExists(normalizedFilePath);
       }
     }
 
@@ -52,9 +53,7 @@ export class CodeFileLoader implements UniversalLoader<CodeFileLoaderOptions> {
     if (isValidPath(pointer)) {
       if (FILE_EXTENSIONS.find(extension => pointer.endsWith(extension))) {
         const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || cwd(), pointer);
-        if (existsSync(normalizedFilePath)) {
-          return true;
-        }
+        return pathExistsSync(normalizedFilePath);
       }
     }
 

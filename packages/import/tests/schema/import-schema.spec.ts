@@ -6,7 +6,7 @@ import { Kind, print } from 'graphql';
 
 const importSchema = (schema: string, schemas?: Record<string, string>) => {
   const document = processImport(schema, __dirname, schemas);
-  return print(mergeTypeDefs(document.definitions.map(definition => ({ kind: Kind.DOCUMENT, definitions: [definition]})), {
+  return print(mergeTypeDefs(document.definitions.map(definition => ({ kind: Kind.DOCUMENT, definitions: [definition] })), {
     sort: true,
     useSchemaDefinition: false,
   }))
@@ -290,10 +290,13 @@ describe('importSchema', () => {
 
   test(`importSchema: import all mix 'n match`, () => {
     const expectedSDL = /* GraphQL */`\
+          scalar Date
+
           type A {
             first: String
             second: Float
             b: B
+            date: Date
           }
 
           type C1 {
