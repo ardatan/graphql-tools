@@ -2,13 +2,13 @@ import { GraphQLError } from 'graphql';
 
 export const ERROR_SYMBOL = Symbol('subschemaErrors');
 
-export function relocatedError(originalError: GraphQLError, path: ReadonlyArray<string | number>): GraphQLError {
+export function relocatedError(originalError: GraphQLError, path?: ReadonlyArray<string | number>): GraphQLError {
   return new GraphQLError(
     originalError.message,
     originalError.nodes,
     originalError.source,
     originalError.positions,
-    path != null ? path : originalError.path,
+    path === null ? undefined : path === undefined ? originalError.path : path,
     originalError.originalError,
     originalError.extensions
   );

@@ -1,6 +1,6 @@
 import { GraphQLError } from 'graphql';
 
-import { getErrorsByPathSegment, CombinedError } from '@graphql-tools/utils';
+import { getErrorsByPathSegment, CombinedError, relocatedError } from '@graphql-tools/utils';
 
 export function handleNull(errors: ReadonlyArray<GraphQLError>) {
   if (errors.length) {
@@ -10,7 +10,7 @@ export function handleNull(errors: ReadonlyArray<GraphQLError>) {
         return combinedError;
       }
       const error = errors[0];
-      return error.originalError || error;
+      return error.originalError || relocatedError(error, null);
     } else if (errors.some(error => typeof error.path[1] === 'string')) {
       const childErrors = getErrorsByPathSegment(errors);
 

@@ -16,6 +16,7 @@ import { introspectSchema } from '../../src/introspect';
 import {
   IResolvers,
   ExecutionResult,
+  mapAsyncIterator,
 } from '@graphql-tools/utils';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { SubschemaConfig, ExecutionParams } from '@graphql-tools/delegate';
@@ -680,23 +681,36 @@ export const subscriptionSchema: GraphQLSchema = makeExecutableSchema({
 });
 
 function makeExecutorFromSchema(schema: GraphQLSchema) {
-  return async <TReturn, TArgs, TContext>({ document, variables, context }: ExecutionParams<TArgs, TContext>) => graphql(
-    schema,
-    print(document),
-    null,
-    context,
-    variables,
-  ) as PromiseOrValue<ExecutionResult<TReturn>>;
+  return async <TReturn, TArgs, TContext>({ document, variables, context }: ExecutionParams<TArgs, TContext>) => {
+    const result = graphql(
+      schema,
+      print(document),
+      null,
+      context,
+      variables,
+    ) as PromiseOrValue<ExecutionResult<TReturn>>;
+    if (result instanceof Promise) {
+      return result.then(originalResult => JSON.parse(JSON.stringify(originalResult)));
+    }
+    return JSON.parse(JSON.stringify(result));
+  };
 }
 
 function makeSubscriberFromSchema(schema: GraphQLSchema) {
-  return async <TReturn, TArgs, TContext>({ document, variables, context }: ExecutionParams<TArgs, TContext>) => subscribe(
-    schema,
-    document,
-    null,
-    context,
-    variables,
-  ) as Promise<AsyncIterator<ExecutionResult<TReturn>> | ExecutionResult<TReturn>>
+  return async <TReturn, TArgs, TContext>({ document, variables, context }: ExecutionParams<TArgs, TContext>) => {
+    const result = subscribe(
+      schema,
+      document,
+      null,
+      context,
+      variables,
+    ) as Promise<AsyncIterator<ExecutionResult<TReturn>> | ExecutionResult<TReturn>>;
+    if (result instanceof Promise) {
+      return result.then(asyncIterator =>
+        mapAsyncIterator(asyncIterator as AsyncIterator<ExecutionResult>, (originalResult: ExecutionResult<TReturn>) => JSON.parse(JSON.stringify(originalResult))));
+    }
+    return JSON.parse(JSON.stringify(result));
+  };
 }
 
 export async function makeSchemaRemote(

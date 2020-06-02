@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/graphql-tag-pluck",
-  "version": "6.0.5",
+  "version": "6.0.6",
   "description": "Pluck graphql-tag template literals",
   "license": "MIT",
   "repository": "git@github.com:ardatan/graphql-tools.git",
@@ -18,13 +18,13 @@
     "@babel/parser": "7.10.2",
     "@babel/traverse": "7.10.1",
     "@babel/types": "7.10.2",
-    "@graphql-tools/utils": "6.0.5"
+    "@graphql-tools/utils": "6.0.6"
   },
   "optionalDependencies": {
     "vue-template-compiler": "^2.6.11"
   },
   "devDependencies": {
-    "@types/babel__traverse": "7.0.11",
+    "@types/babel__traverse": "7.0.12",
     "vue-template-compiler": "2.6.11"
   },
   "publishConfig": {
