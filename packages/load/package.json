@@ -24,7 +24,7 @@
   "dependencies": {
     "@graphql-tools/utils": "6.0.5",
     "@graphql-tools/merge": "6.0.5",
-    "globby": "11.0.0",
+    "globby": "11.0.1",
     "import-from": "3.0.0",
     "is-glob": "4.0.1",
     "p-limit": "2.3.0",
