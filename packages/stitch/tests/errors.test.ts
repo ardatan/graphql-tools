@@ -1,10 +1,9 @@
 import { graphql, GraphQLError, buildSchema } from 'graphql';
 
+import { Executor } from '@graphql-tools/delegate';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-
-import { stitchSchemas } from '../src/stitchSchemas';
+import { stitchSchemas } from '@graphql-tools/stitch';
 import { ExecutionResult } from '@graphql-tools/utils';
-import { Executor } from 'packages/delegate/src';
 
 describe('passes along errors for missing fields on list', () => {
   test('if non-null', async () => {
