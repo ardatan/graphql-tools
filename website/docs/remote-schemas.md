@@ -21,9 +21,9 @@ You can use an executor with an HTTP Client implementation (like cross-fetch). A
 We've chosen to split this functionality up to give you the flexibility to choose when to do the introspection step. For example, you might already have the remote schema information, allowing you to skip the `introspectSchema` step entirely. Here's a complete example:
 
 ```js
-type Executor = (operation: Operation) => Promise<ExecutionResult>;
+type Executor = (operation: ExecutionParams) => Promise<ExecutionResult>;
 
-type Operation {
+type ExecutionParams = {
   document: DocumentNode;
   variables?: Object;
   context?: Object;
@@ -93,7 +93,7 @@ export default async () => {
 For subscriptions, we need to define a subscriber that returns `AsyncIterator`. Other than that, it has the similar API with `executor`.
 
 ```ts
-type Subscriber = (operation: Operation) => Promise<AsyncIterator<ExecutionResult>>;
+type Subscriber = (executionParams: ExecutionParams) => Promise<AsyncIterator<ExecutionResult>>;
 ```
 
 #### Using `subscriptions-transport-ws`
@@ -188,7 +188,7 @@ export interface ICreateProxyingResolverOptions {
   schemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig;   // target schema for delegation
   transforms?: Array<Transform>;   // array of transformations to apply
   transformedSchema?: GraphQLSchema;   // pre-processed result of applying those transforms to the target schema
-  operation?: Operation;   // target operation type
+  operation?: Operation;   // target operation type = 'query' | 'mutation' | 'subscription'
   fieldName?: string;   // target root field name
 };
 ```
