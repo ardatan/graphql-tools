@@ -1407,6 +1407,63 @@
     url "^0.11.0"
     webpack-sources "^1.4.3"
 
+"@graphql-tools/graphql-file-loader@6.0.5":
+  version "6.0.5"
+  resolved "https://registry.yarnpkg.com/@graphql-tools/graphql-file-loader/-/graphql-file-loader-6.0.5.tgz#c7b487528546e44f1a9a0d1fc996c81029e76dd8"
+  integrity sha512-TSrD48/9bj1Ps4ne78PBurO/yP0wv7Qyjzg/Lfg04Apqw4cezVYIyqcTPGnXArQra1w/yORHw4726CKeZ96fbg==
+  dependencies:
+    "@graphql-tools/import" "6.0.5"
+    "@graphql-tools/utils" "6.0.5"
+    fs-extra "9.0.0"
+    tslib "~2.0.0"
+
+"@graphql-tools/import@6.0.5":
+  version "6.0.5"
+  resolved "https://registry.yarnpkg.com/@graphql-tools/import/-/import-6.0.5.tgz#743a3cfb41523944367bc24a4df5feaa9f42de61"
+  integrity sha512-SPv/hrQg6uVrliFo7Bj9kM6RKEW4u1+jsDQF/x76x92gxNTtfd231mYZTbbqYXdsZ4P0fZR+FxBN2wIRJaMDWQ==
+  dependencies:
+    fs-extra "9.0.0"
+    resolve-from "5.0.0"
+
+"@graphql-tools/load@6.0.5":
+  version "6.0.5"
+  resolved "https://registry.yarnpkg.com/@graphql-tools/load/-/load-6.0.5.tgz#1049cce06b0ae35d928824bfbe04b9b3038ef249"
+  integrity sha512-XERawStpQcky11zHVo3m7DieY8yBpC6n1rZbjv5JKi40Iik0MpNWsKfApBVxL461xeiCARNjN/YMxvnfe92HTg==
+  dependencies:
+    "@graphql-tools/merge" "6.0.5"
+    "@graphql-tools/utils" "6.0.5"
+    globby "11.0.0"
+    import-from "3.0.0"
+    is-glob "4.0.1"
+    p-limit "2.3.0"
+    tslib "~2.0.0"
+    unixify "1.0.0"
+    valid-url "1.0.9"
+
+"@graphql-tools/merge@6.0.5":
+  version "6.0.5"
+  resolved "https://registry.yarnpkg.com/@graphql-tools/merge/-/merge-6.0.5.tgz#fc17a1087571ae63773ff15e4289173d6c707035"
+  integrity sha512-ep7dwXaoNo47EkNpHoGKVHj4r/364IKMzdF8vBQC77DpIZtdNj8L3EgaSvUD40GoajGlTYP2lz/WAZb23JxlOQ==
+  dependencies:
+    "@graphql-tools/schema" "6.0.5"
+    "@graphql-tools/utils" "6.0.5"
+    tslib "~2.0.0"
+
+"@graphql-tools/schema@6.0.5":
+  version "6.0.5"
+  resolved "https://registry.yarnpkg.com/@graphql-tools/schema/-/schema-6.0.5.tgz#6dc6f15861a48f2b8f82407b0701b3ec0476e7ce"
+  integrity sha512-F1MAW2uufz5O6fSUTdb72MMICbgP0km7l7wbsOC0izeEG/EqvvAs0dBDzvC6cNokDz/X/PCHhIdunK9o7XY/0g==
+  dependencies:
+    "@graphql-tools/utils" "6.0.5"
+    tslib "~2.0.0"
+
+"@graphql-tools/utils@6.0.5":
+  version "6.0.5"
+  resolved "https://registry.yarnpkg.com/@graphql-tools/utils/-/utils-6.0.5.tgz#f46462ded39388cc28e1a1477e3e5c82185f9910"
+  integrity sha512-RRBx+ZKrw82dFXaXqh5lLNtjF9uD28G9OXESTj404+JSuz+eLbP0LIA/S6bcdUFfWqppgoswkK1sngvNpelKrg==
+  dependencies:
+    camel-case "4.1.1"
+
 "@hapi/address@2.x.x":
   version "2.1.4"
   resolved "https://registry.yarnpkg.com/@hapi/address/-/address-2.1.4.tgz#5d67ed43f3fd41a69d4b9ff7b56e7c0d1d0a81e5"
@@ -8317,10 +8374,10 @@ lines-and-columns@^1.1.6:
   resolved "https://registry.yarnpkg.com/lines-and-columns/-/lines-and-columns-1.1.6.tgz#1c00c743b433cd0a4e80758f7b64a57440d9ff00"
   integrity sha1-HADHQ7QzzQpOgHWPe2SldEDZ/wA=
 
-lint-staged@10.2.7:
-  version "10.2.7"
-  resolved "https://registry.yarnpkg.com/lint-staged/-/lint-staged-10.2.7.tgz#6e47860af3d86a6a01849cbf8ba80f7754aae6eb"
-  integrity sha512-srod2bTpF8riaLz+Bgr6v0mI/nSntE8M9jbh4WwAhoosx0G7RKEUIG7mI5Nu5SMbTF9o8GROPgK0Lhf5cDnUUw==
+lint-staged@10.2.8:
+  version "10.2.8"
+  resolved "https://registry.yarnpkg.com/lint-staged/-/lint-staged-10.2.8.tgz#fcc76158c9d17f5f6238678dc2f4fe98535b2f68"
+  integrity sha512-36VUVhZuTJUG0yuSv66o+/Cep9Uwp+od6VkjNxQjHKWvHClVD0SjAZx++4H3zgdr6DxPoUl1y/PVygfPhzAXQQ==
   dependencies:
     chalk "^4.0.0"
     cli-truncate "2.1.0"
