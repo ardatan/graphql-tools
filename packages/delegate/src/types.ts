@@ -13,8 +13,10 @@ import {
 } from 'graphql';
 import { Operation, Transform, Request, TypeMap, ExecutionResult } from '@graphql-tools/utils';
 
+import { Subschema } from './Subschema';
+
 export interface IDelegateToSchemaOptions<TContext = Record<string, any>, TArgs = Record<string, any>> {
-  schema: GraphQLSchema | SubschemaConfig;
+  schema: GraphQLSchema | SubschemaConfig | Subschema;
   operation?: Operation;
   fieldName?: string;
   returnType?: GraphQLOutputType;
@@ -122,10 +124,6 @@ export type MergedTypeResolver = (
   subschema: GraphQLSchema | SubschemaConfig,
   selectionSet: SelectionSetNode
 ) => any;
-
-export function isSubschemaConfig(value: any): value is SubschemaConfig {
-  return Boolean((value as SubschemaConfig).schema);
-}
 
 export interface StitchingInfo {
   transformedSchemas: Map<GraphQLSchema | SubschemaConfig, GraphQLSchema>;
