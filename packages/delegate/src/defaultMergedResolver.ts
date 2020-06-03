@@ -3,7 +3,7 @@ import { defaultFieldResolver, GraphQLResolveInfo } from 'graphql';
 import { getResponseKeyFromInfo, getErrors } from '@graphql-tools/utils';
 
 import { handleResult } from './results/handleResult';
-import { getSubschema } from './Subschema';
+import { getSubschema } from './Subschemas';
 
 /**
  * Resolver that knows how to:

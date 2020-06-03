@@ -39,7 +39,7 @@ import {
   ExecutionParams,
   StitchingInfo,
 } from './types';
-import { isSubschemaConfig } from './Subschema';
+import { isSubschemaConfig } from './Subschemas';
 
 export function delegateToSchema(options: IDelegateToSchemaOptions | GraphQLSchema): any {
   if (isSchema(options)) {
