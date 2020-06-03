@@ -120,7 +120,7 @@ export const schema = new GraphQLSchema(...);
 > This loader only supports Node environment because it relies on File System of your platform.
 
 ### URL Loader
-This loader generates (a fully executable remote schema using @graphql-tools/wrap)[/docs/remote-schema] from a URL endpoint.
+This loader generates [(a fully executable remote schema using @graphql-tools/wrap)](/docs/remote-schemas) from a URL endpoint.
 
 ```ts
 const schema = await loadSchema('http://localhost:3000/graphql', {
