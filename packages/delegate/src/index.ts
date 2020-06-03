@@ -7,4 +7,6 @@ export { getSubschema } from './subschema';
 
 export * from './transforms';
 
+export { Subschema } from './GraphQLSubschema';
+
 export * from './types';

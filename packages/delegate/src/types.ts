@@ -13,8 +13,10 @@ import {
 } from 'graphql';
 import { Operation, Transform, Request, TypeMap, ExecutionResult } from '@graphql-tools/utils';
 
+import { Subschema } from './GraphQLSubschema';
+
 export interface IDelegateToSchemaOptions<TContext = Record<string, any>, TArgs = Record<string, any>> {
-  schema: GraphQLSchema | SubschemaConfig;
+  schema: GraphQLSchema | SubschemaConfig | Subschema;
   operation?: Operation;
   fieldName?: string;
   returnType?: GraphQLOutputType;
