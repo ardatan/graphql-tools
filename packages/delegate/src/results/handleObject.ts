@@ -9,9 +9,9 @@ import {
 } from 'graphql';
 
 import { collectFields, GraphQLExecutionContext, setErrors, slicedError } from '@graphql-tools/utils';
-import { setObjectSubschema } from '../subschema';
+import { setObjectSubschema, isSubschemaConfig } from '../Subschema';
 import { mergeFields } from '../mergeFields';
-import { MergedTypeInfo, SubschemaConfig, isSubschemaConfig } from '../types';
+import { MergedTypeInfo, SubschemaConfig } from '../types';
 
 export function handleObject(
   type: GraphQLCompositeType,
