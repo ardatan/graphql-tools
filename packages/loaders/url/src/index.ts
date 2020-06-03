@@ -56,6 +56,8 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
         if (typeof options.customFetch === 'string') {
           const [moduleName, fetchFnName] = options.customFetch.split('#');
           fetch = await import(moduleName).then(module => (fetchFnName ? module[fetchFnName] : module));
+        } else {
+          fetch = options.customFetch;
         }
       }
 
@@ -65,6 +67,8 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
           webSocketImpl = await import(moduleName).then(module =>
             webSocketImplName ? module[webSocketImplName] : module
           );
+        } else {
+          webSocketImpl = options.webSocketImpl;
         }
       }
 

@@ -6,11 +6,19 @@ description: Generate GraphQL schema objects that delegate to a remote server
 
 It can be valuable to be able to treat remote GraphQL endpoints as if they were local executable schemas. This is especially useful for [schema stitching](/docs/schema-stitching/), but there may be other use cases.
 
+There two ways to create remote schemas;
+
+## Use Loaders to load schemas easily
+
+Check out [Schema Loading](/docs/schema-loading) to load schemas from an URL and/or different sources easily without implementing an executor or subscriber.
+
+## Create a remote executable schema with custom executor and subscriber methods
+
 Generally, to create a remote schema, you generally need just three steps:
 
 1. Create a [executor](#creating-an-executor) that can retrieve results from that schema
 2. Use [`introspectSchema`](#introspectschemaexecutor-context) to get the non-executable schema of the remote server
-3. Use [`wrapSchema`](#wrapSchema) to create a schema that uses the executor to delegate requests to the underlying service
+3. Use [`wrapSchema`](#wrapschemaschemaconfig) to create a schema that uses the executor to delegate requests to the underlying service
 
 You can optionally also include a [subscriber](#creating-a-subscriber) that can retrieve real time subcription results from the remote schema (only if you are using GraphQL Subscriptions)
 
