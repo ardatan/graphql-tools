@@ -125,7 +125,7 @@ This loader generates (a fully executable remote schema using @graphql-tools/wra
 ```ts
 const schema = await loadSchema('http://localhost:3000/graphql', {
   loaders: [
-    new UrlFileLoader(),
+    new UrlLoader(),
   ]
 });
 ```
@@ -135,7 +135,7 @@ You can provide custom headers, HTTP method and custom W3C fetch method.
 ```ts
 const schema = await loadSchema('http://localhost:3000/graphql', {
   loaders: [
-    new UrlFileLoader(),
+    new UrlLoader(),
   ],
   headers: {
     Accept: 'application/json',
@@ -151,7 +151,7 @@ In browser this remote schema can be called using vanilla GraphQL-js and act lik
 ```ts
 const schema = await loadSchema('http://localhost:3000/graphql', {
   loaders: [
-    new UrlFileLoader(),
+    new UrlLoader(),
   ]
 });
 
