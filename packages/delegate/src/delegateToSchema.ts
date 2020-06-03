@@ -4,42 +4,28 @@ import {
   validate,
   GraphQLSchema,
   ExecutionResult,
-  GraphQLOutputType,
   isSchema,
-  GraphQLResolveInfo,
   FieldDefinitionNode,
   getOperationAST,
   OperationTypeNode,
-  GraphQLObjectType,
   OperationDefinitionNode,
+  DocumentNode,
+  GraphQLOutputType,
+  GraphQLObjectType,
 } from 'graphql';
 
-import {
-  Transform,
-  applyRequestTransforms,
-  applyResultTransforms,
-  mapAsyncIterator,
-  CombinedError,
-} from '@graphql-tools/utils';
+import { mapAsyncIterator, CombinedError, Transform } from '@graphql-tools/utils';
 
-import ExpandAbstractTypes from './transforms/ExpandAbstractTypes';
-import WrapConcreteTypes from './transforms/WrapConcreteTypes';
-import FilterToSchema from './transforms/FilterToSchema';
-import AddFragmentsByField from './transforms/AddFragmentsByField';
-import AddSelectionSetsByField from './transforms/AddSelectionSetsByField';
-import AddSelectionSetsByType from './transforms/AddSelectionSetsByType';
-import AddTypenameToAbstract from './transforms/AddTypenameToAbstract';
-import CheckResultAndHandleErrors from './transforms/CheckResultAndHandleErrors';
-import AddArgumentsAsVariables from './transforms/AddArgumentsAsVariables';
-import { createRequestFromInfo, getDelegatingOperation } from './createRequest';
 import {
   IDelegateToSchemaOptions,
   IDelegateRequestOptions,
   SubschemaConfig,
   ExecutionParams,
-  StitchingInfo,
 } from './types';
+
 import { isSubschemaConfig } from './Subschema';
+import { createRequestFromInfo, getDelegatingOperation } from './createRequest';
+import { Transformer } from './Transformer';
 
 export function delegateToSchema(options: IDelegateToSchemaOptions | GraphQLSchema): any {
   if (isSchema(options)) {
@@ -75,15 +61,10 @@ export function delegateToSchema(options: IDelegateToSchemaOptions | GraphQLSche
 }
 
 function getDelegationReturnType(
-  info: GraphQLResolveInfo,
   targetSchema: GraphQLSchema,
   operation: OperationTypeNode,
   fieldName: string
 ): GraphQLOutputType {
-  if (info != null) {
-    return info.returnType;
-  }
-
   let rootType: GraphQLObjectType<any, any>;
   if (operation === 'query') {
     rootType = targetSchema.getQueryType();
@@ -94,57 +75,6 @@ function getDelegationReturnType(
   }
 
   return rootType.getFields()[fieldName].type;
-}
-
-function buildDelegationTransforms(
-  subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig,
-  info: GraphQLResolveInfo,
-  context: Record<string, any>,
-  targetSchema: GraphQLSchema,
-  fieldName: string,
-  args: Record<string, any>,
-  returnType: GraphQLOutputType,
-  transforms: Array<Transform>,
-  transformedSchema: GraphQLSchema,
-  skipTypeMerging: boolean
-): Array<Transform> {
-  const stitchingInfo: StitchingInfo = info?.schema.extensions?.stitchingInfo;
-
-  let delegationTransforms: Array<Transform> = [
-    new CheckResultAndHandleErrors(info, fieldName, subschemaOrSubschemaConfig, context, returnType, skipTypeMerging),
-  ];
-
-  if (stitchingInfo != null) {
-    delegationTransforms.push(
-      new AddSelectionSetsByField(info.schema, stitchingInfo.selectionSetsByField),
-      new AddSelectionSetsByType(info.schema, stitchingInfo.selectionSetsByType)
-    );
-  }
-
-  const transformedTargetSchema =
-    stitchingInfo == null
-      ? transformedSchema ?? targetSchema
-      : transformedSchema ?? stitchingInfo.transformedSchemas.get(subschemaOrSubschemaConfig) ?? targetSchema;
-
-  delegationTransforms.push(new WrapConcreteTypes(returnType, transformedTargetSchema));
-
-  if (info != null) {
-    delegationTransforms.push(new ExpandAbstractTypes(info.schema, transformedTargetSchema));
-  }
-
-  delegationTransforms = delegationTransforms.concat(transforms);
-
-  if (stitchingInfo != null) {
-    delegationTransforms.push(new AddFragmentsByField(targetSchema, stitchingInfo.fragmentsByField));
-  }
-
-  if (args != null) {
-    delegationTransforms.push(new AddArgumentsAsVariables(targetSchema, args));
-  }
-
-  delegationTransforms.push(new FilterToSchema(targetSchema), new AddTypenameToAbstract(targetSchema));
-
-  return delegationTransforms;
 }
 
 export function delegateRequest({
@@ -161,6 +91,7 @@ export function delegateRequest({
   transformedSchema,
   skipValidation,
   skipTypeMerging,
+  binding,
 }: IDelegateRequestOptions) {
   let operationDefinition: OperationDefinitionNode;
   let targetOperation: OperationTypeNode;
@@ -182,46 +113,44 @@ export function delegateRequest({
 
   let targetSchema: GraphQLSchema;
   let targetRootValue: Record<string, any>;
-  let requestTransforms: Array<Transform> = transforms.slice();
   let subschemaConfig: SubschemaConfig;
 
+  let allTransforms: Array<Transform>;
   if (isSubschemaConfig(subschemaOrSubschemaConfig)) {
     subschemaConfig = subschemaOrSubschemaConfig;
     targetSchema = subschemaConfig.schema;
     targetRootValue = rootValue ?? subschemaConfig?.rootValue ?? info?.rootValue;
-    if (subschemaConfig.transforms != null) {
-      requestTransforms = requestTransforms.concat(subschemaConfig.transforms);
-    }
+    allTransforms =
+      subschemaOrSubschemaConfig.transforms != null
+        ? subschemaOrSubschemaConfig.transforms.concat(transforms)
+        : transforms;
   } else {
     targetSchema = subschemaOrSubschemaConfig;
     targetRootValue = rootValue ?? info?.rootValue;
+    allTransforms = transforms;
   }
 
-  const delegationTransforms = buildDelegationTransforms(
-    subschemaOrSubschemaConfig,
-    info,
-    context,
+  const delegationContext = {
+    subschema: subschemaOrSubschemaConfig,
     targetSchema,
-    targetFieldName,
+    operation: targetOperation,
+    fieldName: targetFieldName,
     args,
-    returnType ?? getDelegationReturnType(info, targetSchema, targetOperation, targetFieldName),
-    requestTransforms.reverse(),
-    transformedSchema,
-    skipTypeMerging
-  );
+    context,
+    info,
+    returnType:
+      returnType ?? info?.returnType ?? getDelegationReturnType(targetSchema, targetOperation, targetFieldName),
+    transforms: allTransforms,
+    transformedSchema: transformedSchema ?? targetSchema,
+    skipTypeMerging,
+  };
 
-  const processedRequest = applyRequestTransforms(request, delegationTransforms);
+  const transformer = new Transformer(delegationContext, binding);
+
+  const processedRequest = transformer.transformRequest(request);
 
   if (!skipValidation) {
-    const errors = validate(targetSchema, processedRequest.document);
-    if (errors.length > 0) {
-      if (errors.length > 1) {
-        const combinedError = new CombinedError(errors);
-        throw combinedError;
-      }
-      const error = errors[0];
-      throw error.originalError || error;
-    }
+    validateRequest(targetSchema, processedRequest.document);
   }
 
   if (targetOperation === 'query' || targetOperation === 'mutation') {
@@ -236,9 +165,9 @@ export function delegateRequest({
     });
 
     if (executionResult instanceof Promise) {
-      return executionResult.then((originalResult: any) => applyResultTransforms(originalResult, delegationTransforms));
+      return executionResult.then(originalResult => transformer.transformResult(originalResult));
     }
-    return applyResultTransforms(executionResult, delegationTransforms);
+    return transformer.transformResult(executionResult);
   }
 
   const subscriber =
@@ -254,19 +183,26 @@ export function delegateRequest({
       // "subscribe" to the subscription result and map the result through the transforms
       return mapAsyncIterator<ExecutionResult, any>(
         subscriptionResult as AsyncIterableIterator<ExecutionResult>,
-        result => {
-          const transformedResult = applyResultTransforms(result, delegationTransforms);
-          // wrap with fieldName to return for an additional round of resolutioon
-          // with payload as rootValue
-          return {
-            [targetFieldName]: transformedResult,
-          };
-        }
+        originalResult => ({
+          [targetFieldName]: transformer.transformResult(originalResult),
+        })
       );
     }
 
-    return applyResultTransforms(subscriptionResult, delegationTransforms);
+    return transformer.transformResult(subscriptionResult as ExecutionResult);
   });
+}
+
+function validateRequest(targetSchema: GraphQLSchema, document: DocumentNode) {
+  const errors = validate(targetSchema, document);
+  if (errors.length > 0) {
+    if (errors.length > 1) {
+      const combinedError = new CombinedError(errors);
+      throw combinedError;
+    }
+    const error = errors[0];
+    throw error.originalError || error;
+  }
 }
 
 function createDefaultExecutor(schema: GraphQLSchema, rootValue: Record<string, any>) {
