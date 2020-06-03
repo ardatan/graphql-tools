@@ -13,7 +13,7 @@ import {
 } from 'graphql';
 import { Operation, Transform, Request, TypeMap, ExecutionResult } from '@graphql-tools/utils';
 
-import { Subschema } from './Subschemas';
+import { Subschema } from './Subschema';
 
 export interface IDelegateToSchemaOptions<TContext = Record<string, any>, TArgs = Record<string, any>> {
   schema: GraphQLSchema | SubschemaConfig | Subschema;

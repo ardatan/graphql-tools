@@ -9,7 +9,7 @@ import {
 } from 'graphql';
 
 import { collectFields, GraphQLExecutionContext, setErrors, slicedError } from '@graphql-tools/utils';
-import { setObjectSubschema, isSubschemaConfig } from '../Subschemas';
+import { setObjectSubschema, isSubschemaConfig } from '../Subschema';
 import { mergeFields } from '../mergeFields';
 import { MergedTypeInfo, SubschemaConfig } from '../types';
 
