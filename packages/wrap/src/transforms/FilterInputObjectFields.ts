@@ -9,7 +9,7 @@ import { InputObjectNodeTransformer } from '../types';
 export default class FilterInputObjectFields implements Transform {
   private readonly transformer: TransformInputFields;
 
-  constructor(filter: InputFieldFilter, inputObjectNodeTransformer: InputObjectNodeTransformer) {
+  constructor(filter: InputFieldFilter, inputObjectNodeTransformer?: InputObjectNodeTransformer) {
     this.transformer = new TransformInputFields(
       (typeName: string, fieldName: string, inputFieldConfig: GraphQLInputFieldConfig) =>
         filter(typeName, fieldName, inputFieldConfig) ? undefined : null,
