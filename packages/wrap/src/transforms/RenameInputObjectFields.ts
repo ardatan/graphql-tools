@@ -2,17 +2,17 @@ import { GraphQLSchema, GraphQLInputFieldConfig, ObjectFieldNode } from 'graphql
 
 import { Transform, Request, mapSchema, MapperKind } from '@graphql-tools/utils';
 
-import TransformInputFields from './TransformInputFields';
+import TransformInputObjectFields from './TransformInputObjectFields';
 import { DelegationContext } from 'packages/delegate/src';
 
 export default class RenameInputObjectFields implements Transform {
   private readonly renamer: (typeName: string, fieldName: string, inputFieldConfig: GraphQLInputFieldConfig) => string;
-  private readonly transformer: TransformInputFields;
+  private readonly transformer: TransformInputObjectFields;
   private reverseMap: Record<string, Record<string, string>>;
 
   constructor(renamer: (typeName: string, fieldName: string, inputFieldConfig: GraphQLInputFieldConfig) => string) {
     this.renamer = renamer;
-    this.transformer = new TransformInputFields(
+    this.transformer = new TransformInputObjectFields(
       (typeName: string, inputFieldName: string, inputFieldConfig: GraphQLInputFieldConfig) => {
         const newName = renamer(typeName, inputFieldName, inputFieldConfig);
         if (newName !== undefined && newName !== inputFieldName) {

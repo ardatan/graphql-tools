@@ -2,15 +2,15 @@ import { GraphQLSchema, GraphQLInputFieldConfig } from 'graphql';
 
 import { Transform, Request, InputFieldFilter } from '@graphql-tools/utils';
 
-import TransformInputFields from './TransformInputFields';
+import TransformInputObjectFields from './TransformInputObjectFields';
 import { DelegationContext } from 'packages/delegate/src';
 import { InputObjectNodeTransformer } from '../types';
 
 export default class FilterInputObjectFields implements Transform {
-  private readonly transformer: TransformInputFields;
+  private readonly transformer: TransformInputObjectFields;
 
   constructor(filter: InputFieldFilter, inputObjectNodeTransformer?: InputObjectNodeTransformer) {
-    this.transformer = new TransformInputFields(
+    this.transformer = new TransformInputObjectFields(
       (typeName: string, fieldName: string, inputFieldConfig: GraphQLInputFieldConfig) =>
         filter(typeName, fieldName, inputFieldConfig) ? undefined : null,
       undefined,
