@@ -11,6 +11,9 @@ export { default as FilterObjectFields } from './FilterObjectFields';
 export { default as TransformInterfaceFields } from './TransformInterfaceFields';
 export { default as RenameInterfaceFields } from './RenameInterfaceFields';
 export { default as FilterInterfaceFields } from './FilterInterfaceFields';
+export { default as TransformInputFields } from './TransformInputFields';
+export { default as RenameInputObjectFields } from './RenameInputObjectFields';
+export { default as FilterInputObjectFields } from './FilterInputObjectFields';
 export { default as TransformQuery } from './TransformQuery';
 
 export { default as ExtendSchema } from './ExtendSchema';
