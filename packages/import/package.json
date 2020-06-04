@@ -20,7 +20,7 @@
     "directory": "dist"
   },
   "dependencies": {
-    "fs-extra": "9.0.0",
+    "fs-extra": "9.0.1",
     "resolve-from": "5.0.0"
   }
 }
