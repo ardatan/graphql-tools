@@ -134,8 +134,16 @@ export interface IFieldResolverOptions<TSource = any, TContext = any, TArgs = an
 }
 
 export type SchemaTransform = (originalSchema: GraphQLSchema) => GraphQLSchema;
-export type RequestTransform = (originalRequest: Request) => Request;
-export type ResultTransform = (originalResult: ExecutionResult) => ExecutionResult;
+export type RequestTransform = (
+  originalRequest: Request,
+  delegationContext?: Record<string, any>,
+  transformationContext?: Record<string, any>
+) => Request;
+export type ResultTransform = (
+  originalResult: ExecutionResult,
+  delegationContext?: Record<string, any>,
+  transformationContext?: Record<string, any>
+) => ExecutionResult;
 
 export interface Transform {
   transformSchema?: SchemaTransform;

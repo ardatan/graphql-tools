@@ -5,6 +5,6 @@ export { createMergedResolver } from './createMergedResolver';
 export { handleResult } from './results/handleResult';
 export { Subschema, isSubschema, isSubschemaConfig, getSubschema } from './Subschema';
 
+export * from './delegationBindings';
 export * from './transforms';
-
 export * from './types';
