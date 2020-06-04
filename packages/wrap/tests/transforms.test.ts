@@ -7,6 +7,8 @@ import {
   SelectionSetNode,
   print,
   parse,
+  GraphQLInputObjectType,
+  astFromValue,
 } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
@@ -35,6 +37,7 @@ import {
 } from '@graphql-tools/delegate';
 
 import { propertySchema, bookingSchema } from './fixtures/schemas';
+import TransformInputFields from '../src/transforms/TransformInputFields';
 
 function createError<T>(message: string, extra?: T) {
   const error = new Error(message);
@@ -1366,6 +1369,74 @@ describe('replaces field with processed fragment node', () => {
           specialName: data.u1.name,
         },
       },
+    });
+  });
+
+  describe('transform input type', () => {
+    test('it works', async () => {
+      const schema = makeExecutableSchema({
+        typeDefs: `
+          input InputObject {
+            field1: String
+            field2: String
+          }
+
+          type OutputObject {
+            field1: String
+            field2: String
+          }
+
+          type Query {
+            test(argument: InputObject): OutputObject
+          }
+        `,
+        resolvers: {
+          Query: {
+            test: (_root, args) => {
+              return args.argument;
+            }
+          }
+        }
+      });
+
+      const transformedSchema = wrapSchema(schema, [
+        new TransformInputFields(
+          (typeName, fieldName) => {
+            if (typeName === 'InputObject' && fieldName === 'field2') {
+              return null;
+            }
+          },
+          undefined,
+          (typeName, inputObjectNode) => {
+            if (typeName === 'InputObject') {
+              return {
+                ...inputObjectNode,
+                fields: [...inputObjectNode.fields, {
+                  kind: Kind.OBJECT_FIELD,
+                  name: {
+                    kind: Kind.NAME,
+                    value: 'field2',
+                  },
+                  value: astFromValue('field2', (schema.getType('InputObject') as GraphQLInputObjectType).getFields()['field2'].type),
+                }],
+              };
+            }
+          }
+        )
+      ]);
+
+      const query = `{
+        test(argument: {
+          field1: "field1"
+        }) {
+          field1
+          field2
+        }
+      }`;
+
+      const result = await graphql(transformedSchema, query);
+      expect(result.data.test.field1).toBe('field1');
+      expect(result.data.test.field2).toBe('field2');
     });
   });
 });
