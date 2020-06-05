@@ -2,12 +2,16 @@ import {
   GraphQLSchema,
   GraphQLFieldResolver,
   BuildSchemaOptions,
+  GraphQLInputFieldConfig,
   GraphQLFieldConfig,
   FieldNode,
   FragmentDefinitionNode,
   SelectionNode,
+  ObjectFieldNode,
+  ObjectValueNode,
 } from 'graphql';
-import { Executor, Subscriber } from '@graphql-tools/delegate';
+import { Executor, Subscriber, DelegationContext } from '@graphql-tools/delegate';
+import { Request } from '@graphql-tools/utils';
 
 export interface IMakeRemoteExecutableSchemaOptions {
   schema: GraphQLSchema | string;
@@ -16,6 +20,27 @@ export interface IMakeRemoteExecutableSchemaOptions {
   createResolver?: (executor: Executor, subscriber: Subscriber) => GraphQLFieldResolver<any, any>;
   buildSchemaOptions?: BuildSchemaOptions;
 }
+
+export type InputFieldTransformer = (
+  typeName: string,
+  fieldName: string,
+  inputFieldConfig: GraphQLInputFieldConfig
+) => GraphQLInputFieldConfig | [string, GraphQLInputFieldConfig] | null | undefined;
+
+export type InputFieldNodeTransformer = (
+  typeName: string,
+  fieldName: string,
+  inputFieldNode: ObjectFieldNode,
+  delegationContext: DelegationContext,
+  request: Request
+) => ObjectFieldNode | Array<ObjectFieldNode>;
+
+export type InputObjectNodeTransformer = (
+  typeName: string,
+  inputObjectNode: ObjectValueNode,
+  delegationContext: DelegationContext,
+  request: Request
+) => ObjectValueNode;
 
 export type FieldTransformer = (
   typeName: string,

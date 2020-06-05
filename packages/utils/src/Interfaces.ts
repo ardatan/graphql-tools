@@ -158,6 +158,12 @@ export type FieldNodeMapper = (
 
 export type FieldNodeMappers = Record<string, Record<string, FieldNodeMapper>>;
 
+export type InputFieldFilter = (
+  typeName?: string,
+  fieldName?: string,
+  inputFieldConfig?: GraphQLInputFieldConfig
+) => boolean;
+
 export type FieldFilter = (
   typeName?: string,
   fieldName?: string,
