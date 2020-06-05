@@ -9,7 +9,8 @@ import {
 } from '@graphql-tools/utils';
 import { isWebUri } from 'valid-url';
 import { fetch as crossFetch } from 'cross-fetch';
-import { introspectSchema, makeRemoteExecutableSchema, IMakeRemoteExecutableSchemaOptions } from '@graphql-tools/wrap';
+import { AsyncExecutor, Subscriber, SubschemaConfig } from '@graphql-tools/delegate';
+import { introspectSchema, wrapSchema } from '@graphql-tools/wrap';
 import { SubscriptionClient } from 'subscriptions-transport-ws';
 import { w3cwebsocket } from 'websocket';
 
@@ -39,7 +40,60 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     return !!isWebUri(pointer);
   }
 
-  async load(pointer: SchemaPointerSingle, options: LoadFromUrlOptions): Promise<Source> {
+  buildAsyncExecutor({
+    pointer,
+    fetch,
+    extraHeaders,
+    defaultMethod,
+    useGETForQueries,
+  }: {
+    pointer: string;
+    fetch: typeof crossFetch;
+    extraHeaders: any;
+    defaultMethod: 'GET' | 'POST';
+    useGETForQueries: boolean;
+  }): AsyncExecutor {
+    const HTTP_URL = pointer.replace('ws:', 'http:').replace('wss:', 'https:');
+    return async ({
+      document,
+      variables,
+      info,
+    }: {
+      document: DocumentNode;
+      variables: any;
+      info: GraphQLResolveInfo;
+    }) => {
+      let method = defaultMethod;
+      if (useGETForQueries && info.operation.operation === 'query') {
+        method = 'GET';
+      }
+      const fetchResult = await fetch(HTTP_URL, {
+        method,
+        ...(method === 'POST'
+          ? {
+              body: JSON.stringify({ query: print(document), variables }),
+            }
+          : {}),
+        headers: extraHeaders,
+      });
+      return fetchResult.json();
+    };
+  }
+
+  buildSubscriber(pointer: string, webSocketImpl: typeof w3cwebsocket): Subscriber {
+    const WS_URL = pointer.replace('http:', 'ws:').replace('https:', 'wss:');
+    const subscriptionClient = new SubscriptionClient(WS_URL, {}, webSocketImpl);
+    return async <TReturn, TArgs>({ document, variables }: { document: DocumentNode; variables: TArgs }) => {
+      return observableToAsyncIterable(
+        subscriptionClient.request({
+          query: document,
+          variables,
+        })
+      ) as AsyncIterator<ExecutionResult<TReturn>>;
+    };
+  }
+
+  async getSubschemaConfig(pointer: SchemaPointerSingle, options: LoadFromUrlOptions): Promise<SubschemaConfig> {
     let headers = {};
     let fetch = crossFetch;
     let defaultMethod: 'GET' | 'POST' = 'POST';
@@ -83,61 +137,31 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       ...headers,
     };
 
-    const HTTP_URL = pointer.replace('ws:', 'http:').replace('wss:', 'https:');
-
-    const executor = async ({
-      document,
-      variables,
-      info,
-    }: {
-      document: DocumentNode;
-      variables: any;
-      info: GraphQLResolveInfo;
-    }) => {
-      let method = defaultMethod;
-      if (options.useGETForQueries && info.operation.operation === 'query') {
-        method = 'GET';
-      }
-      const fetchResult = await fetch(HTTP_URL, {
-        method,
-        ...(method === 'POST'
-          ? {
-              body: JSON.stringify({ query: print(document), variables }),
-            }
-          : {}),
-        headers: extraHeaders,
-      });
-      return fetchResult.json();
-    };
+    const executor = this.buildAsyncExecutor({
+      pointer,
+      fetch,
+      extraHeaders,
+      defaultMethod,
+      useGETForQueries: options.useGETForQueries,
+    });
 
     const schema = await introspectSchema(executor);
 
-    const remoteExecutableSchemaOptions: IMakeRemoteExecutableSchemaOptions = {
+    const remoteExecutableSchemaOptions: SubschemaConfig = {
       schema,
       executor,
     };
 
     if (options.enableSubscriptions) {
-      const WS_URL = pointer.replace('http:', 'ws:').replace('https:', 'wss:');
-      const subscriptionClient = new SubscriptionClient(WS_URL, {}, webSocketImpl);
-
-      remoteExecutableSchemaOptions.subscriber = async <TReturn, TArgs>({
-        document,
-        variables,
-      }: {
-        document: DocumentNode;
-        variables: TArgs;
-      }) => {
-        return observableToAsyncIterable(
-          subscriptionClient.request({
-            query: document,
-            variables,
-          })
-        ) as AsyncIterator<ExecutionResult<TReturn>>;
-      };
+      remoteExecutableSchemaOptions.subscriber = this.buildSubscriber(pointer, webSocketImpl);
     }
 
-    const remoteExecutableSchema = makeRemoteExecutableSchema(remoteExecutableSchemaOptions);
+    return remoteExecutableSchemaOptions;
+  }
+
+  async load(pointer: SchemaPointerSingle, options: LoadFromUrlOptions): Promise<Source> {
+    const remoteExecutableSchemaOptions = await this.getSubschemaConfig(pointer, options);
+    const remoteExecutableSchema = wrapSchema(remoteExecutableSchemaOptions);
 
     return {
       location: pointer,

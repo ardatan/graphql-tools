@@ -23,6 +23,7 @@
     "supertest": "4.0.2"
   },
   "dependencies": {
+    "@graphql-tools/delegate": "6.0.7",
     "@graphql-tools/wrap": "6.0.7",
     "@graphql-tools/utils": "6.0.7",
     "@types/websocket": "1.0.0",
