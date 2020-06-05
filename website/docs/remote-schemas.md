@@ -177,7 +177,7 @@ const schema = wrapSchema({
 
 Transforms are further described within the [general schema wrapping section](/docs/schema-wrapping/). When using a schema configuration object, transforms should be placed as a property within the configuration, rather than as a separate argument to `wrapSchema`.
 
-Batching and caching can be accomplished by specifying customized executors that manage this for you. We export a `linkToExector` function that can be used to transform the [`HTTPLinkDataloader`](https://github.com/prisma-labs/http-link-dataloader) Apollo-style link (created by Prisma) that will batch and cache all requests. Per request caching is a simple add-on, as the `executor` function is provided the context, so a global `executor` specified by wrapSchema can simply forward all arguments to a request-specific `executor` provided on the context.
+Batching and caching can be accomplished by specifying customized executors that manage this for you. We export a `linkToExecutor` function in `@graphql-tools/links` package that can be used to transform the [`HTTPLinkDataloader`](https://github.com/prisma-labs/http-link-dataloader) Apollo-style link (created by Prisma) that will batch and cache all requests. Per request caching is a simple add-on, as the `executor` function is provided the context, so a global `executor` specified by wrapSchema can simply forward all arguments to a request-specific `executor` provided on the context.
 
 For users who need to customize the root proxying resolvers at the time that the wrapping schema is generated, you can also specify a custom `createProxyingResolver` function that will create your own root resolvers for the new outer, wrapping schema. This function has the following signature:
 
