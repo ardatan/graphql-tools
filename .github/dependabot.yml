@@ -11,3 +11,5 @@ updates:
       interval: "daily"
     # Disable rebasing for npm pull requests
     rebase-strategy: "auto"
+    labels:
+      - "automerge dependencies"
