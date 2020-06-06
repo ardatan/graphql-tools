@@ -1,5 +1,5 @@
 import { loadTypedefs } from '@graphql-tools/load';
-import { GraphQLFileLoader } from 'packages/graphql-tools/src';
+import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { concatAST } from 'graphql';
 
 export default function (this: any, path: string) {

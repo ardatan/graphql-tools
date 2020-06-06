@@ -3,7 +3,7 @@ import { GraphQLSchema, GraphQLInputFieldConfig } from 'graphql';
 import { Transform, Request, InputFieldFilter } from '@graphql-tools/utils';
 
 import TransformInputObjectFields from './TransformInputObjectFields';
-import { DelegationContext } from 'packages/delegate/src';
+import { DelegationContext } from '@graphql-tools/delegate';
 import { InputObjectNodeTransformer } from '../types';
 
 export default class FilterInputObjectFields implements Transform {

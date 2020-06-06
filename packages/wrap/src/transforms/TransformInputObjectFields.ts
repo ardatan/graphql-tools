@@ -14,7 +14,7 @@ import {
 
 import { Transform, Request, MapperKind, mapSchema } from '@graphql-tools/utils';
 import { InputFieldTransformer, InputFieldNodeTransformer, InputObjectNodeTransformer } from '../types';
-import { DelegationContext } from 'packages/delegate/src';
+import { DelegationContext } from '@graphql-tools/delegate';
 
 export default class TransformInputObjectFields implements Transform {
   private readonly inputFieldTransformer: InputFieldTransformer;
