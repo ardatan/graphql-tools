@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/utils",
-  "version": "6.0.7",
+  "version": "6.0.8",
   "description": "Common package containting utils and types for GraphQL tools",
   "repository": "git@github.com:ardatan/graphql-tools.git",
   "author": "Dotan Simha <dotansimha@gmail.com>",
