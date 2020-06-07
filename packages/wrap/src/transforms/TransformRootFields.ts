@@ -6,24 +6,42 @@ import TransformObjectFields from './TransformObjectFields';
 import { RootFieldTransformer, FieldNodeTransformer } from '../types';
 
 export default class TransformRootFields implements Transform {
-  private readonly transformer: TransformObjectFields;
+  private readonly rootFieldTransformer: RootFieldTransformer;
+  private readonly fieldNodeTransformer: FieldNodeTransformer;
+  private transformer: TransformObjectFields;
 
   constructor(rootFieldTransformer: RootFieldTransformer, fieldNodeTransformer?: FieldNodeTransformer) {
+    this.rootFieldTransformer = rootFieldTransformer;
+    this.fieldNodeTransformer = fieldNodeTransformer;
+  }
+
+  public transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
+    const queryTypeName = originalSchema.getQueryType()?.name;
+    const mutationTypeName = originalSchema.getMutationType()?.name;
+    const subscriptionTypeName = originalSchema.getSubscriptionType()?.name;
+
     const rootToObjectFieldTransformer = (
       typeName: string,
       fieldName: string,
       fieldConfig: GraphQLFieldConfig<any, any>
     ) => {
-      if (typeName === 'Query' || typeName === 'Mutation' || typeName === 'Subscription') {
-        return rootFieldTransformer(typeName, fieldName, fieldConfig);
+      if (typeName === queryTypeName) {
+        return this.rootFieldTransformer('Query', fieldName, fieldConfig);
+      }
+
+      if (typeName === mutationTypeName) {
+        return this.rootFieldTransformer('Mutation', fieldName, fieldConfig);
+      }
+
+      if (typeName === subscriptionTypeName) {
+        return this.rootFieldTransformer('Subscription', fieldName, fieldConfig);
       }
 
       return undefined;
     };
-    this.transformer = new TransformObjectFields(rootToObjectFieldTransformer, fieldNodeTransformer);
-  }
 
-  public transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
+    this.transformer = new TransformObjectFields(rootToObjectFieldTransformer, this.fieldNodeTransformer);
+
     return this.transformer.transformSchema(originalSchema);
   }
 
