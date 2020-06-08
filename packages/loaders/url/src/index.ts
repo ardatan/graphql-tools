@@ -9,7 +9,7 @@ import {
 } from '@graphql-tools/utils';
 import { isWebUri } from 'valid-url';
 import { fetch as crossFetch } from 'cross-fetch';
-import { AsyncExecutor, Subscriber, SubschemaConfig } from '@graphql-tools/delegate';
+import { AsyncExecutor, Subscriber } from '@graphql-tools/delegate';
 import { introspectSchema, wrapSchema } from '@graphql-tools/wrap';
 import { SubscriptionClient } from 'subscriptions-transport-ws';
 import { w3cwebsocket } from 'websocket';
@@ -93,7 +93,10 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     };
   }
 
-  async getSubschemaConfig(pointer: SchemaPointerSingle, options: LoadFromUrlOptions): Promise<SubschemaConfig> {
+  async getExecutorAndSubscriber(
+    pointer: SchemaPointerSingle,
+    options: LoadFromUrlOptions
+  ): Promise<{ executor: AsyncExecutor; subscriber: Subscriber }> {
     let headers = {};
     let fetch = crossFetch;
     let defaultMethod: 'GET' | 'POST' = 'POST';
@@ -145,23 +148,31 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       useGETForQueries: options.useGETForQueries,
     });
 
-    const schema = await introspectSchema(executor);
-
-    const remoteExecutableSchemaOptions: SubschemaConfig = {
-      schema,
-      executor,
-    };
+    let subscriber: Subscriber;
 
     if (options.enableSubscriptions) {
-      remoteExecutableSchemaOptions.subscriber = this.buildSubscriber(pointer, webSocketImpl);
+      subscriber = this.buildSubscriber(pointer, webSocketImpl);
     }
 
-    return remoteExecutableSchemaOptions;
+    return {
+      executor,
+      subscriber,
+    };
+  }
+
+  async getSubschemaConfig(pointer: SchemaPointerSingle, options: LoadFromUrlOptions) {
+    const { executor, subscriber } = await this.getExecutorAndSubscriber(pointer, options);
+    return {
+      schema: await introspectSchema(executor),
+      executor,
+      subscriber,
+    };
   }
 
   async load(pointer: SchemaPointerSingle, options: LoadFromUrlOptions): Promise<Source> {
-    const remoteExecutableSchemaOptions = await this.getSubschemaConfig(pointer, options);
-    const remoteExecutableSchema = wrapSchema(remoteExecutableSchemaOptions);
+    const subschemaConfig = await this.getSubschemaConfig(pointer, options);
+
+    const remoteExecutableSchema = wrapSchema(subschemaConfig);
 
     return {
       location: pointer,
