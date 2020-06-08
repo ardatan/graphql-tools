@@ -66,7 +66,7 @@ export default class RenameInputObjectFields implements Transform {
     return this.transformer.transformSchema(originalSchema);
   }
 
-  public transformRequest(originalRequest: Request, delegationContext: DelegationContext): Request {
+  public transformRequest(originalRequest: Request, delegationContext?: DelegationContext): Request {
     return this.transformer.transformRequest(originalRequest, delegationContext);
   }
 }
