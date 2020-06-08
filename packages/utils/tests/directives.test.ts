@@ -250,7 +250,6 @@ describe('@directives', () => {
     });
 
     expect(schema.getType('DateFormat')).toBeDefined();
-    expect(schema.getDirectives()).toHaveLength(4);
     expect(schema.getDirective('date')).toBeDefined();
   });
 
