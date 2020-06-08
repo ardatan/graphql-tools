@@ -70,6 +70,7 @@ export function observableToAsyncIterable<T>(observable: Observable<T>): AsyncIt
       emptyQueue();
       return Promise.reject(error);
     },
+    //@ts-ignore
     [$$asyncIterator]() {
       return this;
     },
