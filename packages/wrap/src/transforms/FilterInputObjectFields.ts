@@ -3,7 +3,6 @@ import { GraphQLSchema, GraphQLInputFieldConfig } from 'graphql';
 import { Transform, Request, InputFieldFilter } from '@graphql-tools/utils';
 
 import TransformInputObjectFields from './TransformInputObjectFields';
-import { DelegationContext } from '@graphql-tools/delegate';
 import { InputObjectNodeTransformer } from '../types';
 
 export default class FilterInputObjectFields implements Transform {
@@ -22,7 +21,7 @@ export default class FilterInputObjectFields implements Transform {
     return this.transformer.transformSchema(originalSchema);
   }
 
-  public transformRequest(originalRequest: Request, delegationContext?: DelegationContext): Request {
+  public transformRequest(originalRequest: Request, delegationContext?: Record<string, any>): Request {
     return this.transformer.transformRequest(originalRequest, delegationContext);
   }
 }
