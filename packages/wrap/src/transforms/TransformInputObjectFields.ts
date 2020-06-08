@@ -43,7 +43,7 @@ export default class TransformInputObjectFields implements Transform {
     return this.transformedSchema;
   }
 
-  public transformRequest(originalRequest: Request, delegationContext?: DelegationContext): Request {
+  public transformRequest(originalRequest: Request, delegationContext?: Record<string, any>): Request {
     const fragments = Object.create(null);
     originalRequest.document.definitions
       .filter(def => def.kind === Kind.FRAGMENT_DEFINITION)
@@ -56,7 +56,8 @@ export default class TransformInputObjectFields implements Transform {
       this.inputFieldNodeTransformer,
       this.inputObjectNodeTransformer,
       originalRequest,
-      delegationContext
+      // cast to DelegationContext as workaround to avoid breaking change in types until next major version
+      delegationContext as DelegationContext
     );
     return {
       ...originalRequest,
