@@ -43,7 +43,7 @@ export default class TransformInputObjectFields implements Transform {
     return this.transformedSchema;
   }
 
-  public transformRequest(originalRequest: Request, delegationContext: DelegationContext): Request {
+  public transformRequest(originalRequest: Request, delegationContext?: Record<string, any>): Request {
     const fragments = Object.create(null);
     originalRequest.document.definitions
       .filter(def => def.kind === Kind.FRAGMENT_DEFINITION)
@@ -55,8 +55,9 @@ export default class TransformInputObjectFields implements Transform {
       this.mapping,
       this.inputFieldNodeTransformer,
       this.inputObjectNodeTransformer,
-      delegationContext,
-      originalRequest
+      originalRequest,
+      // cast to DelegationContext as workaround to avoid breaking change in types until next major version
+      delegationContext as DelegationContext
     );
     return {
       ...originalRequest,
@@ -108,8 +109,8 @@ export default class TransformInputObjectFields implements Transform {
     mapping: Record<string, Record<string, string>>,
     inputFieldNodeTransformer: InputFieldNodeTransformer,
     inputObjectNodeTransformer: InputObjectNodeTransformer,
-    delegationContext: DelegationContext,
-    request: Request
+    request: Request,
+    delegationContext?: DelegationContext
   ): DocumentNode {
     const typeInfo = new TypeInfo(this.transformedSchema);
     const newDocument: DocumentNode = visit(
@@ -127,7 +128,7 @@ export default class TransformInputObjectFields implements Transform {
 
                 const transformedInputField =
                   inputFieldNodeTransformer != null
-                    ? inputFieldNodeTransformer(parentTypeName, newName, inputField, delegationContext, request)
+                    ? inputFieldNodeTransformer(parentTypeName, newName, inputField, request, delegationContext)
                     : inputField;
 
                 if (Array.isArray(transformedInputField)) {
@@ -182,7 +183,7 @@ export default class TransformInputObjectFields implements Transform {
               };
 
               return inputObjectNodeTransformer != null
-                ? inputObjectNodeTransformer(parentTypeName, newNode, delegationContext, request)
+                ? inputObjectNodeTransformer(parentTypeName, newNode, request, delegationContext)
                 : newNode;
             }
           },

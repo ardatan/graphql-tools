@@ -3,7 +3,6 @@ import { GraphQLSchema, GraphQLInputFieldConfig, ObjectFieldNode } from 'graphql
 import { Transform, Request, mapSchema, MapperKind } from '@graphql-tools/utils';
 
 import TransformInputObjectFields from './TransformInputObjectFields';
-import { DelegationContext } from '@graphql-tools/delegate';
 
 export default class RenameInputObjectFields implements Transform {
   private readonly renamer: (typeName: string, fieldName: string, inputFieldConfig: GraphQLInputFieldConfig) => string;
@@ -66,7 +65,7 @@ export default class RenameInputObjectFields implements Transform {
     return this.transformer.transformSchema(originalSchema);
   }
 
-  public transformRequest(originalRequest: Request, delegationContext: DelegationContext): Request {
+  public transformRequest(originalRequest: Request, delegationContext?: Record<string, any>): Request {
     return this.transformer.transformRequest(originalRequest, delegationContext);
   }
 }

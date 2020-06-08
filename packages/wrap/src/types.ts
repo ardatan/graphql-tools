@@ -31,15 +31,15 @@ export type InputFieldNodeTransformer = (
   typeName: string,
   fieldName: string,
   inputFieldNode: ObjectFieldNode,
-  delegationContext: DelegationContext,
-  request: Request
+  request: Request,
+  delegationContext?: DelegationContext
 ) => ObjectFieldNode | Array<ObjectFieldNode>;
 
 export type InputObjectNodeTransformer = (
   typeName: string,
   inputObjectNode: ObjectValueNode,
-  delegationContext: DelegationContext,
-  request: Request
+  request: Request,
+  delegationContext?: DelegationContext
 ) => ObjectValueNode;
 
 export type FieldTransformer = (
