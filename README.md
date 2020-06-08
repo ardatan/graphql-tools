@@ -1,3 +1,7 @@
+To publish this private fork, run the following Jenkins job: https://jenkins.tray.io/job/graphql-tools-release/
+
+--------------------------------
+
 # GraphQL-tools: generate and mock GraphQL.js schemas
 
 [![npm version](https://badge.fury.io/js/graphql-tools.svg)](https://badge.fury.io/js/graphql-tools)
