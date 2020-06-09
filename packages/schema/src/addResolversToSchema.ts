@@ -28,6 +28,7 @@ import {
   healSchema,
   parseInputValue,
   forEachField,
+  mergeDeep,
 } from '@graphql-tools/utils';
 
 import { checkForResolveTypeResolver } from './checkForResolveTypeResolver';
@@ -163,6 +164,20 @@ function addResolversToExistingSchema(
         Object.keys(resolverValue).forEach(fieldName => {
           if (fieldName.startsWith('__')) {
             type[fieldName.substring(2)] = resolverValue[fieldName];
+          } else if (fieldName === 'astNode' && type.astNode != null) {
+            type.astNode = {
+              ...type.astNode,
+              description: (resolverValue as GraphQLScalarType)?.astNode?.description ?? type.astNode.description,
+              directives: (type.astNode.directives ?? []).concat(
+                (resolverValue as GraphQLScalarType)?.astNode?.directives ?? []
+              ),
+            };
+          } else if (fieldName === 'extensionASTNodes' && type.extensionASTNodes != null) {
+            type.extensionASTNodes = ([] ?? type.extensionASTNodes).concat(
+              (resolverValue as GraphQLScalarType)?.extensionASTNodes ?? []
+            );
+          } else if (fieldName === 'extensions' && type.extensions != null) {
+            type.extensions = mergeDeep({}, type.extensions, (resolverValue as GraphQLScalarType).extensions);
           } else {
             type[fieldName] = resolverValue[fieldName];
           }
@@ -174,6 +189,20 @@ function addResolversToExistingSchema(
         Object.keys(resolverValue).forEach(fieldName => {
           if (fieldName.startsWith('__')) {
             config[fieldName.substring(2)] = resolverValue[fieldName];
+          } else if (fieldName === 'astNode' && config.astNode != null) {
+            config.astNode = {
+              ...config.astNode,
+              description: (resolverValue as GraphQLScalarType)?.astNode?.description ?? config.astNode.description,
+              directives: (config.astNode.directives ?? []).concat(
+                (resolverValue as GraphQLEnumType)?.astNode?.directives ?? []
+              ),
+            };
+          } else if (fieldName === 'extensionASTNodes' && config.extensionASTNodes != null) {
+            config.extensionASTNodes = config.extensionASTNodes.concat(
+              (resolverValue as GraphQLEnumType)?.extensionASTNodes ?? []
+            );
+          } else if (fieldName === 'extensions' && config.extensions != null) {
+            type.extensions = mergeDeep({}, config.extensions, (resolverValue as GraphQLEnumType).extensions);
           } else if (enumValueConfigMap[fieldName]) {
             enumValueConfigMap[fieldName].value = resolverValue[fieldName];
           }
@@ -242,6 +271,20 @@ function createNewSchemaWithResolvers(
         Object.keys(resolverValue).forEach(fieldName => {
           if (fieldName.startsWith('__')) {
             config[fieldName.substring(2)] = resolverValue[fieldName];
+          } else if (fieldName === 'astNode' && config.astNode != null) {
+            config.astNode = {
+              ...config.astNode,
+              description: (resolverValue as GraphQLScalarType)?.astNode?.description ?? config.astNode.description,
+              directives: (config.astNode.directives ?? []).concat(
+                (resolverValue as GraphQLScalarType)?.astNode?.directives ?? []
+              ),
+            };
+          } else if (fieldName === 'extensionASTNodes' && config.extensionASTNodes != null) {
+            config.extensionASTNodes = config.extensionASTNodes.concat(
+              (resolverValue as GraphQLScalarType)?.extensionASTNodes ?? []
+            );
+          } else if (fieldName === 'extensions' && config.extensions != null) {
+            config.extensions = mergeDeep({}, type.extensions, (resolverValue as GraphQLScalarType).extensions);
           } else {
             config[fieldName] = resolverValue[fieldName];
           }
@@ -260,6 +303,20 @@ function createNewSchemaWithResolvers(
         Object.keys(resolverValue).forEach(fieldName => {
           if (fieldName.startsWith('__')) {
             config[fieldName.substring(2)] = resolverValue[fieldName];
+          } else if (fieldName === 'astNode' && config.astNode != null) {
+            config.astNode = {
+              ...config.astNode,
+              description: (resolverValue as GraphQLScalarType)?.astNode?.description ?? config.astNode.description,
+              directives: (config.astNode.directives ?? []).concat(
+                (resolverValue as GraphQLEnumType)?.astNode?.directives ?? []
+              ),
+            };
+          } else if (fieldName === 'extensionASTNodes' && config.extensionASTNodes != null) {
+            config.extensionASTNodes = config.extensionASTNodes.concat(
+              (resolverValue as GraphQLEnumType)?.extensionASTNodes ?? []
+            );
+          } else if (fieldName === 'extensions' && config.extensions != null) {
+            config.extensions = mergeDeep({}, type.extensions, (resolverValue as GraphQLEnumType).extensions);
           } else if (enumValueConfigMap[fieldName]) {
             enumValueConfigMap[fieldName].value = resolverValue[fieldName];
           }

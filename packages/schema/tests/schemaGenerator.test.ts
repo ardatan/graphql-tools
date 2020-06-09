@@ -838,6 +838,35 @@ describe('generating schema from shorthand', () => {
       });
     });
 
+    test('retains original scalar directives when passing in scalars in resolve functions', () => {
+      const schema = makeExecutableSchema({
+        typeDefs: `
+          directive @test on SCALAR
+
+          scalar Test @test
+
+          type Query {
+            test: Test
+          }
+        `,
+        resolvers: {
+          Test: new GraphQLScalarType({
+            name: 'Test',
+            description: 'Test resolver',
+            serialize: (value) => value,
+            parseValue: (value) => value,
+          }),
+          Query: {
+            test: () => 42,
+          },
+        },
+      });
+
+      const testType = schema.getType('Test');
+      expect(testType).toBeInstanceOf(GraphQLScalarType);
+      expect(testType.astNode.directives.length).toBe(1);
+    });
+
     test('retains scalars after walking/recreating the schema', () => {
       const shorthand = `
         scalar Test
