@@ -68,7 +68,7 @@ export function dehoistResult(parent: any, delimeter = '__gqltf__'): any {
 }
 
 export function mergeProxiedResults(target: any, ...sources: any): any {
-  const errors = target[ERROR_SYMBOL].concat(sources.map((source: any) => source[ERROR_SYMBOL]));
+  const errors = target[ERROR_SYMBOL].concat(...sources.map((source: any) => source[ERROR_SYMBOL]));
   const fieldSubschemaMap = sources.reduce((acc: Record<any, SubschemaConfig>, source: any) => {
     const subschema = source[OBJECT_SUBSCHEMA_SYMBOL];
     Object.keys(source).forEach(key => {
