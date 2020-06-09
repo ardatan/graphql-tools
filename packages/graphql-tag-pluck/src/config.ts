@@ -36,7 +36,7 @@ export default function generateConfig(
   const flowPlugins = [['flow', { all: true }], 'flowComments'];
 
   // If line has @flow header, include flow plug-ins
-  const dynamicFlowPlugins = /^\/\/ *@flow *\n/.test(code) || /^\/\* *@flow *\*\/ *\n/.test(code) ? flowPlugins : [];
+  const dynamicFlowPlugins = code.includes('@flow') ? flowPlugins : [];
 
   const fileExt = getExtNameFromFilePath(filePath);
   switch (fileExt) {

@@ -429,6 +429,43 @@ describe('graphql-tag-pluck', () => {
         }
       `));
     });
+
+    it('should pluck graphql-tag template literals from .js file with @flow strict-local', async () => {
+      const gqlString = await pluck('tmp-XXXXXX.js', freeText(`
+        // @flow strict-local
+  
+        import gql from 'graphql-tag'
+        import { Document } from 'graphql'
+  
+        const fragment: Document = gql\`
+          fragment Foo on FooType {
+            id
+          }
+        \`
+  
+        const doc: Document = gql\`
+          query foo {
+            foo {
+              ...Foo
+            }
+          }
+  
+          \${fragment}
+        \`
+      `));
+  
+      expect(gqlString).toEqual(freeText(`
+        fragment Foo on FooType {
+          id
+        }
+  
+        query foo {
+          foo {
+            ...Foo
+          }
+        }
+      `));
+    });
   
     it('should NOT pluck graphql-tag template literals from .js file without a @flow header', async () => {  
       const fail = Error('Function did not throw');
