@@ -6,6 +6,7 @@
   [@danielrearden](https://github.com/danielrearden) in [#1003](https://github.com/ardatan/graphql-tools/pull/1391)
 - Export `generateProxyingResolvers` from `@graphql-tools/wrap`.
 - Fix `stitchSchemas` from `@graphql-tools/stitch` from the case there the typeDefs array is empty. [#1575](https://github.com/ardatan/graphql-tools/pull/1575)
+- Fix @graphql-tools/graphql-tag-pluck for flow projects using // @flow strict-local
 
 ### 5.0.0
 
