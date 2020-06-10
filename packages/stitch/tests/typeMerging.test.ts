@@ -74,6 +74,7 @@ describe('merging using type merging', () => {
     const query = `
       query {
         userById(id: 5) {
+          __typename
           chirps {
             id
             textAlias: text
