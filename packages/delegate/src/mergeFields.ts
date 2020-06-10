@@ -40,6 +40,10 @@ function buildDelegationPlan(
 
   const delegationMap: Map<SubschemaConfig, Array<SelectionNode>> = new Map();
   originalSelections.forEach(selection => {
+    if (selection.name.value === '__typename') {
+      return;
+    }
+
     // 2a. use uniqueFields map to assign fields to subschema if one of possible subschemas
 
     const uniqueSubschema: SubschemaConfig = uniqueFields[selection.name.value];

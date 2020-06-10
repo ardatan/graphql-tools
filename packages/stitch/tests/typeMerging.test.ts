@@ -89,6 +89,7 @@ describe('merging using type merging', () => {
     const result = await graphql(stitchedSchema, query);
 
     expect(result.errors).toBeUndefined();
+    expect(result.data.userById.__typename).toBe('User');
     expect(result.data.userById.chirps[1].id).not.toBe(null);
     expect(result.data.userById.chirps[1].text).not.toBe(null);
     expect(result.data.userById.chirps[1].author.email).not.toBe(null);
