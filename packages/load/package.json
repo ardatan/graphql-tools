@@ -19,7 +19,7 @@
     "@types/is-glob": "4.0.1",
     "@types/valid-url": "1.0.3",
     "graphql-tag": "2.10.3",
-    "graphql-type-json": "0.3.1"
+    "graphql-type-json": "0.3.2"
   },
   "dependencies": {
     "@graphql-tools/utils": "6.0.9",
