@@ -28,7 +28,6 @@ import {
   healSchema,
   parseInputValue,
   forEachField,
-  mergeDeep,
 } from '@graphql-tools/utils';
 
 import { checkForResolveTypeResolver } from './checkForResolveTypeResolver';
@@ -176,8 +175,12 @@ function addResolversToExistingSchema(
             type.extensionASTNodes = ([] ?? type.extensionASTNodes).concat(
               (resolverValue as GraphQLScalarType)?.extensionASTNodes ?? []
             );
-          } else if (fieldName === 'extensions' && type.extensions != null) {
-            type.extensions = mergeDeep({}, type.extensions, (resolverValue as GraphQLScalarType).extensions);
+          } else if (
+            fieldName === 'extensions' &&
+            type.extensions != null &&
+            (resolverValue as GraphQLScalarType).extensions != null
+          ) {
+            type.extensions = Object.assign({}, type.extensions, (resolverValue as GraphQLScalarType).extensions);
           } else {
             type[fieldName] = resolverValue[fieldName];
           }
@@ -201,8 +204,12 @@ function addResolversToExistingSchema(
             config.extensionASTNodes = config.extensionASTNodes.concat(
               (resolverValue as GraphQLEnumType)?.extensionASTNodes ?? []
             );
-          } else if (fieldName === 'extensions' && config.extensions != null) {
-            type.extensions = mergeDeep({}, config.extensions, (resolverValue as GraphQLEnumType).extensions);
+          } else if (
+            fieldName === 'extensions' &&
+            type.extensions != null &&
+            (resolverValue as GraphQLEnumType).extensions != null
+          ) {
+            type.extensions = Object.assign({}, type.extensions, (resolverValue as GraphQLEnumType).extensions);
           } else if (enumValueConfigMap[fieldName]) {
             enumValueConfigMap[fieldName].value = resolverValue[fieldName];
           }
@@ -283,8 +290,12 @@ function createNewSchemaWithResolvers(
             config.extensionASTNodes = config.extensionASTNodes.concat(
               (resolverValue as GraphQLScalarType)?.extensionASTNodes ?? []
             );
-          } else if (fieldName === 'extensions' && config.extensions != null) {
-            config.extensions = mergeDeep({}, type.extensions, (resolverValue as GraphQLScalarType).extensions);
+          } else if (
+            fieldName === 'extensions' &&
+            config.extensions != null &&
+            (resolverValue as GraphQLScalarType).extensions != null
+          ) {
+            config.extensions = Object.assign({}, type.extensions, (resolverValue as GraphQLScalarType).extensions);
           } else {
             config[fieldName] = resolverValue[fieldName];
           }
@@ -315,8 +326,12 @@ function createNewSchemaWithResolvers(
             config.extensionASTNodes = config.extensionASTNodes.concat(
               (resolverValue as GraphQLEnumType)?.extensionASTNodes ?? []
             );
-          } else if (fieldName === 'extensions' && config.extensions != null) {
-            config.extensions = mergeDeep({}, type.extensions, (resolverValue as GraphQLEnumType).extensions);
+          } else if (
+            fieldName === 'extensions' &&
+            config.extensions != null &&
+            (resolverValue as GraphQLEnumType).extensions != null
+          ) {
+            config.extensions = Object.assign({}, type.extensions, (resolverValue as GraphQLEnumType).extensions);
           } else if (enumValueConfigMap[fieldName]) {
             enumValueConfigMap[fieldName].value = resolverValue[fieldName];
           }
