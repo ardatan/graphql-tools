@@ -374,12 +374,13 @@ All merged types returned by any subschema will delegate as necessary to subsche
 
 The simplified magic above happens because if left unspecified, we provide a default type-merging resolver for you, which uses the other `MergedTypeConfig` options, as follows:
 
-```ts
+```js
 mergedTypeConfig.resolve = (originalResult, context, info, schemaOrSubschemaConfig, selectionSet) =>
   delegateToSchema({
     schema: schemaOrSubschemaConfig,
     operation: 'query',
     fieldName: mergedTypeConfig.fieldName,
+    returnType: getNamedType(info.returnType),
     args: mergedTypeConfig.args(originalResult),
     selectionSet,
     context,
