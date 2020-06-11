@@ -6,6 +6,8 @@ import {
   SelectionSetNode,
   isObjectType,
   isScalarType,
+  getNamedType,
+  GraphQLOutputType,
 } from 'graphql';
 
 import {
@@ -106,6 +108,7 @@ function createMergedTypes(
                 schema: subschema,
                 operation: 'query',
                 fieldName: mergedTypeConfig.fieldName,
+                returnType: getNamedType(info.returnType) as GraphQLOutputType,
                 args: mergedTypeConfig.args(originalResult),
                 selectionSet,
                 context,
