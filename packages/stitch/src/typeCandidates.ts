@@ -1,27 +1,15 @@
 import {
   DocumentNode,
   GraphQLNamedType,
-  GraphQLObjectType,
   GraphQLSchema,
   getNamedType,
   isNamedType,
   GraphQLDirective,
-  GraphQLInterfaceType,
-  GraphQLUnionType,
-  GraphQLEnumType,
   ASTNode,
   isSchema,
   isScalarType,
-  isObjectType,
-  isInterfaceType,
-  isUnionType,
-  isEnumType,
-  isInputObjectType,
   SchemaDefinitionNode,
   SchemaExtensionNode,
-  GraphQLFieldConfigMap,
-  GraphQLInputObjectType,
-  GraphQLInputFieldConfigMap,
 } from 'graphql';
 
 import { wrapSchema } from '@graphql-tools/wrap';
@@ -38,6 +26,7 @@ import {
 import typeFromAST from './typeFromAST';
 import { MergeTypeCandidate, MergeTypeFilter, OnTypeConflict, StitchingInfo } from './types';
 import { TypeMap } from '@graphql-tools/utils';
+import { mergeCandidates } from './mergeCandidates';
 
 type CandidateSelector = (candidates: Array<MergeTypeCandidate>) => MergeTypeCandidate;
 
@@ -219,7 +208,7 @@ export function buildTypeMap({
       (Array.isArray(mergeTypes) && mergeTypes.includes(typeName)) ||
       (stitchingInfo != null && typeName in stitchingInfo.mergedTypes)
     ) {
-      typeMap[typeName] = merge(typeName, typeCandidates[typeName]);
+      typeMap[typeName] = mergeCandidates(typeName, typeCandidates[typeName]);
     } else {
       const candidateSelector =
         onTypeConflict != null
@@ -253,103 +242,4 @@ function onTypeConflictToCandidateSelector(onTypeConflict: OnTypeConflict): Cand
         type,
       };
     });
-}
-
-function merge(typeName: string, candidates: Array<MergeTypeCandidate>): GraphQLNamedType {
-  const initialCandidateType = candidates[0].type;
-  if (candidates.some(candidate => candidate.type.constructor !== initialCandidateType.constructor)) {
-    throw new Error(`Cannot merge different type categories into common type ${typeName}.`);
-  }
-  if (isObjectType(initialCandidateType)) {
-    const config = {
-      name: typeName,
-      fields: candidates.reduce<GraphQLFieldConfigMap<any, any>>(
-        (acc, candidate) => ({
-          ...acc,
-          ...(candidate.type as GraphQLObjectType).toConfig().fields,
-        }),
-        {}
-      ),
-      interfaces: candidates.reduce((acc, candidate) => {
-        const interfaces = (candidate.type as GraphQLObjectType).toConfig().interfaces;
-        return interfaces != null ? acc.concat(interfaces) : acc;
-      }, []),
-      description: initialCandidateType.description,
-      extensions: initialCandidateType.extensions,
-      astNode: initialCandidateType.astNode,
-      extensionASTNodes: initialCandidateType.extensionASTNodes,
-    };
-    return new GraphQLObjectType(config);
-  } else if (isInputObjectType(initialCandidateType)) {
-    const config = {
-      name: typeName,
-      fields: candidates.reduce<GraphQLInputFieldConfigMap>(
-        (acc, candidate) => ({
-          ...acc,
-          ...(candidate.type as GraphQLInputObjectType).toConfig().fields,
-        }),
-        {}
-      ),
-      description: initialCandidateType.description,
-      extensions: initialCandidateType.extensions,
-      astNode: initialCandidateType.astNode,
-      extensionASTNodes: initialCandidateType.extensionASTNodes,
-    };
-    return new GraphQLInputObjectType(config);
-  } else if (isInterfaceType(initialCandidateType)) {
-    const config = {
-      name: typeName,
-      fields: candidates.reduce<GraphQLFieldConfigMap<any, any>>(
-        (acc, candidate) => ({
-          ...acc,
-          ...(candidate.type as GraphQLInterfaceType).toConfig().fields,
-        }),
-        {}
-      ),
-      interfaces: candidates.reduce((acc, candidate) => {
-        const candidateConfig = candidate.type.toConfig();
-        if ('interfaces' in candidateConfig) {
-          return acc.concat(candidateConfig.interfaces);
-        }
-        return acc;
-      }, []),
-      description: initialCandidateType.description,
-      extensions: initialCandidateType.extensions,
-      astNode: initialCandidateType.astNode,
-      extensionASTNodes: initialCandidateType.extensionASTNodes,
-    };
-    return new GraphQLInterfaceType(config);
-  } else if (isUnionType(initialCandidateType)) {
-    return new GraphQLUnionType({
-      name: typeName,
-      types: candidates.reduce(
-        (acc, candidate) => acc.concat((candidate.type as GraphQLUnionType).toConfig().types),
-        []
-      ),
-      description: initialCandidateType.description,
-      extensions: initialCandidateType.extensions,
-      astNode: initialCandidateType.astNode,
-      extensionASTNodes: initialCandidateType.extensionASTNodes,
-    });
-  } else if (isEnumType(initialCandidateType)) {
-    return new GraphQLEnumType({
-      name: typeName,
-      values: candidates.reduce(
-        (acc, candidate) => ({
-          ...acc,
-          ...(candidate.type as GraphQLEnumType).toConfig().values,
-        }),
-        {}
-      ),
-      description: initialCandidateType.description,
-      extensions: initialCandidateType.extensions,
-      astNode: initialCandidateType.astNode,
-      extensionASTNodes: initialCandidateType.extensionASTNodes,
-    });
-  } else if (isScalarType(initialCandidateType)) {
-    throw new Error(`Cannot merge type ${typeName}. Merging not supported for GraphQLScalarType.`);
-  } else {
-    // not reachable.
-    throw new Error(`Type ${typeName} has unknown GraphQL type.`);
-  }
 }

@@ -22,9 +22,10 @@
   },
   "dependencies": {
     "@graphql-tools/delegate": "6.0.9",
+    "@graphql-tools/merge": "6.0.9",
     "@graphql-tools/schema": "6.0.9",
-    "@graphql-tools/wrap": "6.0.9",
     "@graphql-tools/utils": "6.0.9",
+    "@graphql-tools/wrap": "6.0.9",
     "tslib": "~2.0.0"
   },
   "publishConfig": {
