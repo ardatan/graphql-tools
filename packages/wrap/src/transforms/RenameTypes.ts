@@ -95,7 +95,7 @@ export default class RenameTypes implements Transform {
   }
 
   public transformRequest(originalRequest: Request): Request {
-    const newDocument = visit(originalRequest.document, {
+    const document = visit(originalRequest.document, {
       [Kind.NAMED_TYPE]: (node: NamedTypeNode) => {
         const name = node.name.value;
         if (name in this.reverseMap) {
@@ -109,9 +109,10 @@ export default class RenameTypes implements Transform {
         }
       },
     });
+
     return {
-      document: newDocument,
-      variables: originalRequest.variables,
+      ...originalRequest,
+      document,
     };
   }
 

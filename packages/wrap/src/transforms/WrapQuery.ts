@@ -16,10 +16,9 @@ export default class WrapQuery implements Transform {
   }
 
   public transformRequest(originalRequest: Request): Request {
-    const document = originalRequest.document;
     const fieldPath: Array<string> = [];
     const ourPath = JSON.stringify(this.path);
-    const newDocument = visit(document, {
+    const document = visit(originalRequest.document, {
       [Kind.FIELD]: {
         enter: (node: FieldNode) => {
           fieldPath.push(node.name.value);
@@ -49,7 +48,7 @@ export default class WrapQuery implements Transform {
     });
     return {
       ...originalRequest,
-      document: newDocument,
+      document,
     };
   }
 
