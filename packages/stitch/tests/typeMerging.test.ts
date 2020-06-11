@@ -16,6 +16,7 @@ let chirpSchema = makeExecutableSchema({
       text: String
       author: User
       coAuthors: [User]
+      authorGroups: [[User]]
     }
 
     type User {
@@ -83,6 +84,9 @@ describe('merging using type merging', () => {
               email
             }
             coAuthors {
+              email
+            }
+            authorGroups {
               email
             }
           }
