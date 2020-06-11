@@ -31,13 +31,13 @@ interface PruningContext {
 }
 
 export interface PruneSchemaOptions {
-  skipEmptyCompositeTypePruning: boolean;
-  skipUnimplementedInterfacesPruning: boolean;
-  skipEmptyUnionPruning: boolean;
-  skipUnusedTypesPruning: boolean;
+  skipEmptyCompositeTypePruning?: boolean;
+  skipUnimplementedInterfacesPruning?: boolean;
+  skipEmptyUnionPruning?: boolean;
+  skipUnusedTypesPruning?: boolean;
 }
 
-export function pruneSchema(schema: GraphQLSchema, options: PruneSchemaOptions): GraphQLSchema {
+export function pruneSchema(schema: GraphQLSchema, options: PruneSchemaOptions = {}): GraphQLSchema {
   const pruningContext: PruningContext = {
     schema,
     unusedTypes: Object.create(null),
