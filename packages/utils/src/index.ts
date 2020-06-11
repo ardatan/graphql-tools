@@ -28,6 +28,7 @@ export * from './forEachDefaultValue';
 export * from './mapSchema';
 export * from './addTypes';
 export * from './rewire';
+export * from './prune';
 export * from './mergeDeep';
 export * from './Interfaces';
 export * from './fieldNodes';
