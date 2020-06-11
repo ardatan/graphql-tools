@@ -1853,6 +1853,10 @@ describe('mergeTypes', () => {
 
   beforeEach(() => {
     const typeDefs1 = `
+      input ObjectInput {
+        val: String!
+      }
+
       type Query {
         rootField1: Wrapper
         getTest(id: ID): Test
@@ -1981,6 +1985,18 @@ describe('mergeTypes', () => {
         },
       },
     });
+
+    const stitchedSchemaWithMerge = stitchSchemas({
+      subschemas: [subschemaConfig1, subschemaConfig2],
+      mergeTypes: true,
+    })
+
+    const result2 = await graphql(
+      stitchedSchemaWithMerge,
+      `{ rootField1 { test { id } } }`
+    );
+
+    expect(result2).toEqual({ data: { rootField1: { test: { id: '1' } } } })
   });
 });
 

@@ -16,9 +16,12 @@ import {
   isInterfaceType,
   isUnionType,
   isEnumType,
+  isInputObjectType,
   SchemaDefinitionNode,
   SchemaExtensionNode,
   GraphQLFieldConfigMap,
+  GraphQLInputObjectType,
+  GraphQLInputFieldConfigMap,
 } from 'graphql';
 
 import { wrapSchema } from '@graphql-tools/wrap';
@@ -277,6 +280,22 @@ function merge(typeName: string, candidates: Array<MergeTypeCandidate>): GraphQL
       extensionASTNodes: initialCandidateType.extensionASTNodes,
     };
     return new GraphQLObjectType(config);
+  } else if (isInputObjectType(initialCandidateType)) {
+    const config = {
+      name: typeName,
+      fields: candidates.reduce<GraphQLInputFieldConfigMap>(
+        (acc, candidate) => ({
+          ...acc,
+          ...(candidate.type as GraphQLInputObjectType).toConfig().fields,
+        }),
+        {}
+      ),
+      description: initialCandidateType.description,
+      extensions: initialCandidateType.extensions,
+      astNode: initialCandidateType.astNode,
+      extensionASTNodes: initialCandidateType.extensionASTNodes,
+    };
+    return new GraphQLInputObjectType(config);
   } else if (isInterfaceType(initialCandidateType)) {
     const config = {
       name: typeName,
