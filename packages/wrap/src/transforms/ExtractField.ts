@@ -32,7 +32,7 @@ export default class ExtractField implements Transform {
     });
 
     fieldPath = [];
-    const newDocument = visit(originalRequest.document, {
+    const document = visit(originalRequest.document, {
       [Kind.FIELD]: {
         enter: (node: FieldNode) => {
           fieldPath.push(node.name.value);
@@ -48,9 +48,10 @@ export default class ExtractField implements Transform {
         },
       },
     });
+
     return {
       ...originalRequest,
-      document: newDocument,
+      document,
     };
   }
 }

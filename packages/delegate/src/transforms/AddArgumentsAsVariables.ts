@@ -30,11 +30,12 @@ export default class AddArgumentsAsVariables implements Transform {
   }
 
   public transformRequest(originalRequest: Request): Request {
-    const { document, newVariables } = addVariablesToRootField(this.targetSchema, originalRequest, this.args);
+    const { document, variables } = addVariablesToRootField(this.targetSchema, originalRequest, this.args);
 
     return {
+      ...originalRequest,
       document,
-      variables: newVariables,
+      variables,
     };
   }
 }
@@ -45,7 +46,7 @@ function addVariablesToRootField(
   args: Record<string, any>
 ): {
   document: DocumentNode;
-  newVariables: Record<string, any>;
+  variables: Record<string, any>;
 } {
   const document = originalRequest.document;
   const variableValues = originalRequest.variables;
@@ -118,7 +119,7 @@ function addVariablesToRootField(
       ...document,
       definitions: [...newOperations, ...fragments],
     },
-    newVariables: variableValues,
+    variables: variableValues,
   };
 }
 

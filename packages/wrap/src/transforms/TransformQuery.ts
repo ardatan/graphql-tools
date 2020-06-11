@@ -39,11 +39,9 @@ export default class TransformQuery implements Transform {
   }
 
   public transformRequest(originalRequest: Request): Request {
-    const document = originalRequest.document;
-
     const pathLength = this.path.length;
     let index = 0;
-    const newDocument = visit(document, {
+    const document = visit(originalRequest.document, {
       [Kind.FIELD]: {
         enter: node => {
           if (index === pathLength || node.name.value !== this.path[index]) {
@@ -66,9 +64,10 @@ export default class TransformQuery implements Transform {
         },
       },
     });
+
     return {
       ...originalRequest,
-      document: newDocument,
+      document,
     };
   }
 
