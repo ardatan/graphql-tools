@@ -30,7 +30,7 @@ interface PruningContext {
   implementations: Record<string, Record<string, boolean>>;
 }
 
-interface PruneSchemaOptions {
+export interface PruneSchemaOptions {
   skipEmptyCompositeTypePruning: boolean;
   skipUnimplementedInterfacesPruning: boolean;
   skipEmptyUnionPruning: boolean;
