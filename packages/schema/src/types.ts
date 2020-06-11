@@ -24,5 +24,5 @@ export interface IExecutableSchemaDefinition<TContext = any> {
   schemaTransforms?: Array<SchemaTransform>;
   parseOptions?: GraphQLParseOptions;
   inheritResolversFromInterfaces?: boolean;
-  pruningOptions: PruneSchemaOptions;
+  pruningOptions?: PruneSchemaOptions;
 }
