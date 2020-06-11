@@ -6,6 +6,8 @@ sidebar_label: Relay Operation Optimizer
 
 `@graphql-tools/relay-operation-optimizer` is a package for bringing the benefits of Relay Compiler to GraphQL tools. This package is used in [`flattenGeneratedTypes` feature of GraphQL Code Generator](https://graphql-code-generator.com/docs/plugins/relay-operation-optimizer).
 
+This package has been created by [Laurin Quast (n1ru4l)](https://github.com/n1ru4l) as [a GraphQL Code Generator plugin](https://github.com/n1ru4l/graphql-codegen-relay-plugins).
+
 ### Current List of Features
 
 - [Optimize Queries](https://relay.dev/docs/en/compiler-architecture#transforms) TL;DR: reduce query size
@@ -38,7 +40,7 @@ fragment UserAvatar on User {
 
 How would you reuse this fragment with different values for the `width` and `height` arguments?
 
-Previously there have been two ways I would have tackled this:
+Previously there have been two ways:
 
 **1. Write a new fragment with different parameters**
 
@@ -92,8 +94,6 @@ It is basically impossible to use a different width and height for the second us
 Furthermore, when using different fragments you have to be really careful with your variable names, because of variable name clashes.
 
 Given those limitations, it is pretty obvious that this “solution” does not scale well.
-
-**I have experienced this limitation before and I am amazed how Relay solves it**
 
 Relay simply uses custom GraphQL directives to address this issue.
 
@@ -187,7 +187,7 @@ query ProfileQuery {
 }
 ```
 
-I also built a [relay-compiler REPL](https://relay-compiler-repl.netlify.com/) (use it for convincing your team 😉).
+[Laurin Quast](https://github.com/n1ru4l) also built a [relay-compiler REPL](https://relay-compiler-repl.netlify.com/) (use it for convincing your team 😉).
 
 Of course, you can also read more about those in the [Official Relay Documentation](https://relay.dev/docs/en/compiler-architecture#transforms).
 
