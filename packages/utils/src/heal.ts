@@ -121,6 +121,9 @@ export function healTypes(
   }
 
   if (!config.skipPruning) {
+    // TODO:
+    // consider removing the default level of pruning in v7,
+    // see comments below on the pruneTypes function.
     pruneTypes(originalTypeMap, directives);
   }
 
@@ -220,6 +223,14 @@ export function healTypes(
   }
 }
 
+// TODO:
+// consider removing the default level of pruning in v7
+//
+// Pruning was introduced into healSchema in v5, so legacy schema directives relying on pruning
+// during healing are likely to be rare. pruning is now recommended via the dedicated pruneSchema
+// function which does not force pruning on library users and gives granular control in terms of
+// pruning types. pruneSchema does recreate the schema -- a parallel version that prunes in place
+// could be considered.
 function pruneTypes(typeMap: Record<string, GraphQLNamedType | null>, directives: ReadonlyArray<GraphQLDirective>) {
   const implementedInterfaces = {};
   Object.values(typeMap).forEach(namedType => {

@@ -67,6 +67,9 @@ export function rewireTypes(
 
   const newDirectives = directives.map(directive => rewireDirective(directive));
 
+  // TODO:
+  // consider removing the default level of pruning in v7,
+  // see comments below on the pruneTypes function.
   return options.skipPruning
     ? {
         typeMap: newTypeMap,
@@ -199,6 +202,13 @@ export function rewireTypes(
   }
 }
 
+// TODO:
+// consider removing the default level of pruning in v7
+//
+// Pruning during mapSchema limits the ability to create an unpruned schema, which may be of use
+// to some library users. pruning is now recommended via the dedicated pruneSchema function
+// which does not force pruning on library users and gives granular control in terms of pruning
+// types.
 function pruneTypes(
   typeMap: TypeMap,
   directives: Array<GraphQLDirective>
