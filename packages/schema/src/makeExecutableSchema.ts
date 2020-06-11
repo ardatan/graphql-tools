@@ -22,7 +22,7 @@ export function makeExecutableSchema<TContext = any>({
   schemaTransforms = [],
   parseOptions = {},
   inheritResolversFromInterfaces = false,
-  pruningOptions = {},
+  pruningOptions,
 }: IExecutableSchemaDefinition<TContext>) {
   // Validate and clean up arguments
   if (typeof resolverValidationOptions !== 'object') {
