@@ -6,6 +6,7 @@ import {
   SchemaDirectiveVisitorClass,
   GraphQLParseOptions,
   SchemaTransform,
+  PruneSchemaOptions,
 } from '@graphql-tools/utils';
 
 export interface ILogger {
@@ -23,4 +24,5 @@ export interface IExecutableSchemaDefinition<TContext = any> {
   schemaTransforms?: Array<SchemaTransform>;
   parseOptions?: GraphQLParseOptions;
   inheritResolversFromInterfaces?: boolean;
+  pruningOptions: PruneSchemaOptions;
 }

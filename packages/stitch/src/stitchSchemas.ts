@@ -10,7 +10,14 @@ import {
   GraphQLNamedType,
 } from 'graphql';
 
-import { SchemaDirectiveVisitor, cloneDirective, mergeDeep, IResolvers, rewireTypes } from '@graphql-tools/utils';
+import {
+  SchemaDirectiveVisitor,
+  cloneDirective,
+  mergeDeep,
+  IResolvers,
+  rewireTypes,
+  pruneSchema,
+} from '@graphql-tools/utils';
 
 import {
   addResolversToSchema,
@@ -45,6 +52,7 @@ export function stitchSchemas({
   directiveResolvers,
   schemaTransforms = [],
   parseOptions = {},
+  pruningOptions,
 }: IStitchSchemasOptions): GraphQLSchema {
   if (typeof resolverValidationOptions !== 'object') {
     throw new Error('Expected `resolverValidationOptions` to be an object');
@@ -170,7 +178,7 @@ export function stitchSchemas({
     SchemaDirectiveVisitor.visitSchemaDirectives(schema, schemaDirectives);
   }
 
-  return schema;
+  return pruningOptions ? pruneSchema(schema, pruningOptions) : schema;
 }
 
 export function isDocumentNode(object: any): object is DocumentNode {

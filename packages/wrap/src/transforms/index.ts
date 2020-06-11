@@ -17,6 +17,7 @@ export { default as FilterInputObjectFields } from './FilterInputObjectFields';
 export { default as TransformQuery } from './TransformQuery';
 
 export { default as ExtendSchema } from './ExtendSchema';
+export { default as PruneSchema } from './PruneSchema';
 export { default as WrapType } from './WrapType';
 export { default as WrapFields } from './WrapFields';
 export { default as HoistField } from './HoistField';

@@ -1,6 +1,6 @@
 import { GraphQLFieldResolver } from 'graphql';
 
-import { mergeDeep, SchemaDirectiveVisitor } from '@graphql-tools/utils';
+import { mergeDeep, SchemaDirectiveVisitor, pruneSchema } from '@graphql-tools/utils';
 import { addResolversToSchema } from './addResolversToSchema';
 
 import { attachDirectiveResolvers } from './attachDirectiveResolvers';
@@ -22,6 +22,7 @@ export function makeExecutableSchema<TContext = any>({
   schemaTransforms = [],
   parseOptions = {},
   inheritResolversFromInterfaces = false,
+  pruningOptions,
 }: IExecutableSchemaDefinition<TContext>) {
   // Validate and clean up arguments
   if (typeof resolverValidationOptions !== 'object') {
@@ -76,5 +77,5 @@ export function makeExecutableSchema<TContext = any>({
     SchemaDirectiveVisitor.visitSchemaDirectives(schema, schemaDirectives);
   }
 
-  return schema;
+  return pruningOptions ? pruneSchema(schema, pruningOptions) : schema;
 }
