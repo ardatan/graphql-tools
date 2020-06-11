@@ -30,7 +30,14 @@ interface PruningContext {
   implementations: Record<string, Record<string, boolean>>;
 }
 
-export function pruneSchema(schema: GraphQLSchema): GraphQLSchema {
+interface PruneSchemaOptions {
+  skipEmptyCompositeTypePruning: boolean;
+  skipUnimplementedInterfacesPruning: boolean;
+  skipEmptyUnionPruning: boolean;
+  skipUnusedTypesPruning: boolean;
+}
+
+export function pruneSchema(schema: GraphQLSchema, options: PruneSchemaOptions): GraphQLSchema {
   const pruningContext: PruningContext = {
     schema,
     unusedTypes: Object.create(null),
@@ -54,26 +61,32 @@ export function pruneSchema(schema: GraphQLSchema): GraphQLSchema {
   return mapSchema(schema, {
     [MapperKind.TYPE]: (type: GraphQLNamedType) => {
       if (isObjectType(type) || isInputObjectType(type)) {
-        // prune types with no fields or are unused
-        if (!Object.keys(type.getFields()).length || pruningContext.unusedTypes[type.name]) {
-          return null;
-        }
-      } else if (isUnionType(type)) {
-        // prune unions without underlying types or are unused
-        if (!type.getTypes().length || pruningContext.unusedTypes[type.name]) {
-          return null;
-        }
-      } else if (isInterfaceType(type)) {
-        // prune interfaces without fields or without implementations or are unused
         if (
-          !Object.keys(type.getFields()).length ||
-          !Object.keys(pruningContext.implementations[type.name]).length ||
-          pruningContext.unusedTypes[type.name]
+          (!Object.keys(type.getFields()).length && !options.skipEmptyCompositeTypePruning) ||
+          (pruningContext.unusedTypes[type.name] && !options.skipUnusedTypesPruning)
         ) {
           return null;
         }
-      } else if (pruningContext.unusedTypes[type.name]) {
-        return null;
+      } else if (isUnionType(type)) {
+        if (
+          (!type.getTypes().length && !options.skipEmptyUnionPruning) ||
+          (pruningContext.unusedTypes[type.name] && !options.skipUnusedTypesPruning)
+        ) {
+          return null;
+        }
+      } else if (isInterfaceType(type)) {
+        if (
+          (!Object.keys(type.getFields()).length && !options.skipEmptyCompositeTypePruning) ||
+          (!Object.keys(pruningContext.implementations[type.name]).length &&
+            !options.skipUnimplementedInterfacesPruning) ||
+          (pruningContext.unusedTypes[type.name] && !options.skipUnusedTypesPruning)
+        ) {
+          return null;
+        }
+      } else {
+        if (pruningContext.unusedTypes[type.name] && !options.skipUnusedTypesPruning) {
+          return null;
+        }
       }
     },
   });
