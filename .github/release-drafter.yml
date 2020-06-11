@@ -13,6 +13,8 @@ categories:
   - title: '🧰 Maintenance'
     label: 'chore'
 change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
+exclude-labels:
+  - dependencies
 version-resolver:
   major:
     labels:
