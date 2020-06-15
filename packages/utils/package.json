@@ -21,6 +21,7 @@
     "graphql-scalars": "1.1.5"
   },
   "dependencies": {
+    "aggregate-error": "3.0.1",
     "camel-case": "4.1.1"
   },
   "publishConfig": {

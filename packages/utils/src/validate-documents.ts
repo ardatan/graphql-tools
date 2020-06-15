@@ -9,7 +9,7 @@ import {
   ASTVisitor,
 } from 'graphql';
 import { Source } from './loaders';
-import { CombinedError } from './errors';
+import AggregateError from 'aggregate-error';
 
 export type ValidationRule = (context: ValidationContext) => ASTVisitor;
 const DEFAULT_EFFECTIVE_RULES = createDefaultRules();
@@ -90,7 +90,7 @@ export function checkValidationErrors(loadDocumentErrors: ReadonlyArray<LoadDocu
       }
     }
 
-    throw new CombinedError(errors);
+    throw new AggregateError(errors);
   }
 }
 
