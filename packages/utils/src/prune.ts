@@ -14,7 +14,8 @@ import {
   isInputObjectType,
 } from 'graphql';
 
-import { mapSchema, MapperKind } from '@graphql-tools/utils';
+import { mapSchema } from './mapSchema';
+import { MapperKind } from './Interfaces';
 
 type NamedOutputType =
   | GraphQLObjectType
