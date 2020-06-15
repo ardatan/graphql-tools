@@ -7,15 +7,16 @@ import {
   IntrospectionQuery,
 } from 'graphql';
 
-import { ExecutionResult, CombinedError } from '@graphql-tools/utils';
+import { ExecutionResult } from '@graphql-tools/utils';
 import { AsyncExecutor, SyncExecutor } from '@graphql-tools/delegate';
+import AggregateError from 'aggregate-error';
 
 function getSchemaFromIntrospection(introspectionResult: ExecutionResult<IntrospectionQuery>): GraphQLSchema {
   if (introspectionResult?.data?.__schema) {
     return buildClientSchema(introspectionResult.data);
   } else if (introspectionResult?.errors?.length) {
     if (introspectionResult.errors.length > 1) {
-      const combinedError = new CombinedError(introspectionResult.errors);
+      const combinedError = new AggregateError(introspectionResult.errors);
       throw combinedError;
     }
     const error = introspectionResult.errors[0];

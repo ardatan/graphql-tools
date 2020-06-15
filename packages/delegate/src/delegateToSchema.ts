@@ -14,18 +14,15 @@ import {
   GraphQLObjectType,
 } from 'graphql';
 
-import { mapAsyncIterator, CombinedError, Transform } from '@graphql-tools/utils';
+import { mapAsyncIterator, Transform } from '@graphql-tools/utils';
 
-import {
-  IDelegateToSchemaOptions,
-  IDelegateRequestOptions,
-  SubschemaConfig,
-  ExecutionParams,
-} from './types';
+import { IDelegateToSchemaOptions, IDelegateRequestOptions, SubschemaConfig, ExecutionParams } from './types';
 
 import { isSubschemaConfig } from './Subschema';
 import { createRequestFromInfo, getDelegatingOperation } from './createRequest';
 import { Transformer } from './Transformer';
+
+import AggregateError from 'aggregate-error';
 
 export function delegateToSchema(options: IDelegateToSchemaOptions | GraphQLSchema): any {
   if (isSchema(options)) {
@@ -197,7 +194,7 @@ function validateRequest(targetSchema: GraphQLSchema, document: DocumentNode) {
   const errors = validate(targetSchema, document);
   if (errors.length > 0) {
     if (errors.length > 1) {
-      const combinedError = new CombinedError(errors);
+      const combinedError = new AggregateError(errors);
       throw combinedError;
     }
     const error = errors[0];

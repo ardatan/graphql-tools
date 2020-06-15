@@ -35,22 +35,6 @@ export function getErrorsByPathSegment(errors: ReadonlyArray<GraphQLError>): Rec
   return record;
 }
 
-export class CombinedError extends GraphQLError {
-  public errors: ReadonlyArray<Error>;
-  constructor(errors: ReadonlyArray<Error>) {
-    const message = errors.map(error => error.message).join('\n');
-    super(message, undefined, undefined, undefined, undefined, undefined, undefined);
-    const actualErrors = errors.map((error: GraphQLError) =>
-      error.originalError != null ? error.originalError : error
-    );
-    this.errors = actualErrors;
-  }
-
-  [Symbol.iterator]() {
-    return this.errors[Symbol.iterator]();
-  }
-}
-
 export function setErrors(result: any, errors: Array<GraphQLError>) {
   result[ERROR_SYMBOL] = errors;
 }
