@@ -67,16 +67,21 @@ export function dehoistResult(parent: any, delimeter = '__gqltf__'): any {
   return result;
 }
 
-export function mergeProxiedResults(target: any, ...sources: any): any {
-  const errors = target[ERROR_SYMBOL].concat(...sources.map((source: any) => source[ERROR_SYMBOL]));
-  const fieldSubschemaMap = sources.reduce((acc: Record<any, SubschemaConfig>, source: any) => {
+export function mergeProxiedResults(target: any, ...sources: any[]): any {
+  const errors = target[ERROR_SYMBOL].concat(
+    ...sources.map((source: any) => (source instanceof Error ? source : source[ERROR_SYMBOL]))
+  );
+
+  const filteredSources = sources.filter(source => !(source instanceof Error));
+
+  const fieldSubschemaMap = filteredSources.reduce((acc: Record<any, SubschemaConfig>, source: any) => {
     const subschema = source[OBJECT_SUBSCHEMA_SYMBOL];
     Object.keys(source).forEach(key => {
       acc[key] = subschema;
     });
     return acc;
   }, {});
-  const result = sources.reduce(mergeDeep, target);
+  const result = filteredSources.reduce(mergeDeep, target);
   result[ERROR_SYMBOL] = errors;
   result[FIELD_SUBSCHEMA_MAP_SYMBOL] = target[FIELD_SUBSCHEMA_MAP_SYMBOL]
     ? mergeDeep(target[FIELD_SUBSCHEMA_MAP_SYMBOL], fieldSubschemaMap)

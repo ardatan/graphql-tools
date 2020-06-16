@@ -71,6 +71,55 @@ const stitchedSchema = stitchSchemas({
   mergeTypes: true,
 });
 
+
+const failureSchema = addMocksToSchema({
+  schema: makeExecutableSchema({
+    typeDefs: `
+      type User {
+        id: ID!
+        fail: Boolean
+      }
+
+      type Query {
+        userById(id: ID!): User
+      }
+    `
+  }),
+  mocks: {
+    Query() {
+      return ({
+        userById() { throw new Error("failure message"); }
+      })
+    },
+  }
+})
+
+const stichedFailureSchema = stitchSchemas({
+  subschemas: [
+    {
+      schema: failureSchema,
+      merge: {
+        User: {
+          fieldName: 'userById',
+          selectionSet: '{ id }',
+          args: (originalResult) => ({ id: originalResult.id }),
+        }
+      }
+    },
+    {
+      schema: stitchedSchema,
+      merge: {
+        User: {
+          fieldName: 'userById',
+          selectionSet: '{ id }',
+          args: (originalResult) => ({ id: originalResult.id }),
+        }
+      }
+    },
+  ],
+  mergeTypes: true
+})
+
 describe('merging using type merging', () => {
   test('works', async () => {
     const query = `
@@ -102,4 +151,21 @@ describe('merging using type merging', () => {
     expect(result.data.userById.chirps[1].text).not.toBe(null);
     expect(result.data.userById.chirps[1].author.email).not.toBe(null);
   });
+
+  test("handle toplevel failures on subschema queries", async() => {
+    const query = `
+      query {
+        userById(id: 5) {  id  email fail }
+      }
+    `
+
+    const result = await graphql(stichedFailureSchema, query)
+
+    expect(result.errors).not.toBeUndefined()
+    expect(result.data).toMatchObject({ userById: { fail: null }})
+    expect(result.errors).toMatchObject([{
+      message: "failure message",
+      path: ["userById", "fail"]
+    }])
+  })
 });
