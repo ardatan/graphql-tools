@@ -18,7 +18,7 @@
   "dependencies": {
     "@graphql-tools/utils": "6.0.10",
     "@graphql-tools/graphql-tag-pluck": "6.0.10",
-    "simple-git": "2.6.0"
+    "simple-git": "2.7.0"
   },
   "buildOptions": {
     "external": [
