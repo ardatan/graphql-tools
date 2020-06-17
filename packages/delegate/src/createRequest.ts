@@ -48,6 +48,7 @@ export function createRequestFromInfo({
     targetFieldName: fieldName,
     selectionSet,
     fieldNodes,
+    operationName: info.operation.name,
   });
 }
 
@@ -62,6 +63,7 @@ export function createRequest({
   targetFieldName,
   selectionSet,
   fieldNodes,
+  operationName,
 }: ICreateRequest): Request {
   let newSelectionSet: SelectionSetNode = selectionSet;
   let argumentNodeMap: Record<string, ArgumentNode>;
@@ -138,6 +140,7 @@ export function createRequest({
       kind: Kind.SELECTION_SET,
       selections: [rootfieldNode],
     },
+    name: operationName,
   };
 
   let definitions: Array<DefinitionNode> = [operationDefinition];

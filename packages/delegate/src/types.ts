@@ -11,6 +11,7 @@ import {
   GraphQLObjectType,
   VariableDefinitionNode,
   OperationTypeNode,
+  NameNode,
 } from 'graphql';
 
 import { Operation, Transform, Request, TypeMap, ExecutionResult } from '@graphql-tools/utils';
@@ -75,6 +76,7 @@ export interface ICreateRequest {
   targetFieldName: string;
   selectionSet?: SelectionSetNode;
   fieldNodes?: ReadonlyArray<FieldNode>;
+  operationName?: NameNode;
 }
 
 export interface MergedTypeInfo {
