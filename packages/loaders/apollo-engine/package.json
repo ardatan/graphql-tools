@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@graphql-tools/utils": "6.0.10",
-    "cross-fetch": "3.0.4",
+    "cross-fetch": "3.0.5",
     "tslib": "~2.0.0"
   },
   "publishConfig": {
