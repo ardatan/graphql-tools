@@ -1,6 +1,6 @@
 import { defaultFieldResolver, GraphQLResolveInfo } from 'graphql';
 
-import { getResponseKeyFromInfo, getErrors } from '@graphql-tools/utils';
+import { getResponseKeyFromInfo, getErrors, getDepth } from '@graphql-tools/utils';
 
 import { handleResult } from './results/handleResult';
 import { getSubschema } from './Subschema';
@@ -32,6 +32,7 @@ export function defaultMergedResolver(
 
   const result = parent[responseKey];
   const subschema = getSubschema(parent, responseKey);
+  const depth = getDepth(parent);
 
-  return handleResult(result, errors, subschema, context, info);
+  return handleResult(result, errors, depth, subschema, context, info);
 }

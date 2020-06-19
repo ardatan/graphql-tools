@@ -1,12 +1,19 @@
-import { GraphQLError } from 'graphql';
-
-import { mergeDeep, ERROR_SYMBOL, relocatedError, setErrors, getErrors } from '@graphql-tools/utils';
+import {
+  mergeDeep,
+  ERROR_SYMBOL,
+  relocatedError,
+  setErrors,
+  getErrors,
+  getDepth,
+  setDepth,
+} from '@graphql-tools/utils';
 
 import { handleNull } from './results/handleNull';
 
 import { FIELD_SUBSCHEMA_MAP_SYMBOL, OBJECT_SUBSCHEMA_SYMBOL } from './symbols';
 import { getSubschema, setObjectSubschema } from './Subschema';
 import { SubschemaConfig } from './types';
+import { GraphQLError } from 'graphql';
 
 export function isProxiedResult(result: any) {
   return result != null ? result[ERROR_SYMBOL] : result;
@@ -18,6 +25,7 @@ export function unwrapResult(parent: any, path: Array<string>): any {
   for (let i = 0; i < pathLength; i++) {
     const responseKey = path[i];
     const errors = getErrors(newParent, responseKey);
+    let depth = getDepth(newParent);
     const subschema = getSubschema(newParent, responseKey);
 
     const object = newParent[responseKey];
@@ -25,10 +33,13 @@ export function unwrapResult(parent: any, path: Array<string>): any {
       return handleNull(errors);
     }
 
+    depth = depth + 1;
     setErrors(
       object,
-      errors.map(error => relocatedError(error, error.path != null ? error.path.slice(1) : undefined))
+      errors.map(error => relocatedError(error, path.splice(depth, 0, responseKey))),
+      depth
     );
+    setDepth(object, depth);
     setObjectSubschema(object, subschema);
 
     newParent = object;
@@ -52,14 +63,14 @@ export function dehoistResult(parent: any, delimeter = '__gqltf__'): any {
   });
 
   result[ERROR_SYMBOL] = parent[ERROR_SYMBOL].map((error: GraphQLError) => {
-    if (error.path != null) {
-      const path = error.path.slice();
-      const pathSegment = path.shift();
-      const expandedPathSegment: Array<string | number> = (pathSegment as string).split(delimeter);
-      return relocatedError(error, expandedPathSegment.concat(path));
-    }
-
-    return error;
+    const path = error.relativePath.slice();
+    const pathSegment = path.pop();
+    const expandedPathSegment: Array<string | number> = (pathSegment as string).split(delimeter);
+    return {
+      relativePath: path.concat(expandedPathSegment),
+      // setting path to null will cause issues for errors that bubble up from non nullable fields
+      graphQLError: relocatedError(error.graphQLError, null),
+    };
   });
 
   result[OBJECT_SUBSCHEMA_SYMBOL] = parent[OBJECT_SUBSCHEMA_SYMBOL];
@@ -68,7 +79,7 @@ export function dehoistResult(parent: any, delimeter = '__gqltf__'): any {
 }
 
 export function mergeProxiedResults(target: any, ...sources: any): any {
-  const errors = target[ERROR_SYMBOL].concat(...sources.map((source: any) => source[ERROR_SYMBOL]));
+  const errors = Object.assign(target[ERROR_SYMBOL], ...sources.map((source: any) => source[ERROR_SYMBOL]));
   const fieldSubschemaMap = sources.reduce((acc: Record<any, SubschemaConfig>, source: any) => {
     const subschema = source[OBJECT_SUBSCHEMA_SYMBOL];
     Object.keys(source).forEach(key => {

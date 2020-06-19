@@ -16,7 +16,8 @@ import { handleList } from './handleList';
 
 export function handleResult(
   result: any,
-  errors: ReadonlyArray<GraphQLError>,
+  errors: Array<GraphQLError>,
+  depth: number,
   subschema: GraphQLSchema | SubschemaConfig,
   context: Record<string, any>,
   info: GraphQLResolveInfo,
@@ -32,8 +33,8 @@ export function handleResult(
   if (isLeafType(type)) {
     return type.parseValue(result);
   } else if (isCompositeType(type)) {
-    return handleObject(type, result, errors, subschema, context, info, skipTypeMerging);
+    return handleObject(type, result, errors, depth, subschema, context, info, skipTypeMerging);
   } else if (isListType(type)) {
-    return handleList(type, result, errors, subschema, context, info, skipTypeMerging);
+    return handleList(type, result, errors, depth, subschema, context, info, skipTypeMerging);
   }
 }

@@ -19,19 +19,22 @@ import { SubschemaConfig } from '../types';
 export function handleList(
   type: GraphQLList<any>,
   list: Array<any>,
-  errors: ReadonlyArray<GraphQLError>,
+  errors: Array<GraphQLError>,
+  depth: number,
   subschema: GraphQLSchema | SubschemaConfig,
   context: Record<string, any>,
   info: GraphQLResolveInfo,
   skipTypeMerging?: boolean
 ) {
-  const childErrors = getErrorsByPathSegment(errors);
+  const newDepth = depth + 1;
+  const childErrors = getErrorsByPathSegment(errors, newDepth);
 
   return list.map((listMember, index) =>
     handleListMember(
       getNullableType(type.ofType),
       listMember,
-      index in childErrors ? childErrors[index] : [],
+      childErrors[index] ?? [],
+      newDepth,
       subschema,
       context,
       info,
@@ -43,7 +46,8 @@ export function handleList(
 function handleListMember(
   type: GraphQLType,
   listMember: any,
-  errors: ReadonlyArray<GraphQLError>,
+  errors: Array<GraphQLError>,
+  depth: number,
   subschema: GraphQLSchema | SubschemaConfig,
   context: Record<string, any>,
   info: GraphQLResolveInfo,
@@ -56,8 +60,8 @@ function handleListMember(
   if (isLeafType(type)) {
     return type.parseValue(listMember);
   } else if (isCompositeType(type)) {
-    return handleObject(type, listMember, errors, subschema, context, info, skipTypeMerging);
+    return handleObject(type, listMember, errors, depth, subschema, context, info, skipTypeMerging);
   } else if (isListType(type)) {
-    return handleList(type, listMember, errors, subschema, context, info, skipTypeMerging);
+    return handleList(type, listMember, errors, depth, subschema, context, info, skipTypeMerging);
   }
 }

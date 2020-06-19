@@ -30,13 +30,18 @@ describe('Errors', () => {
       const error = {
         message: 'Test error without path',
       };
+      const relativeError = {
+        graphQLError: error,
+      };
       const mockErrors: any = {
-        responseKey: '',
-        [ERROR_SYMBOL]: [error],
+        responseKey: null,
+        [ERROR_SYMBOL]: {
+          'responseKey': [relativeError],
+        },
       };
 
       expect(getErrors(mockErrors, 'responseKey')).toEqual([
-        mockErrors[ERROR_SYMBOL][0],
+        mockErrors[ERROR_SYMBOL].responseKey[0],
       ]);
     });
   });

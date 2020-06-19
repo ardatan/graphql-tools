@@ -1,6 +1,17 @@
 import { GraphQLError } from 'graphql';
 
 export const ERROR_SYMBOL = Symbol('subschemaErrors');
+export const DEPTH_SYMBOL = Symbol('proxiedResultDepth');
+
+export function toGraphQLErrors(
+  errors: ReadonlyArray<GraphQLError>,
+  sourcePath: Array<string | number>
+): Array<GraphQLError> {
+  return errors.map(error => {
+    const relativePath = error.path?.slice(1) || [];
+    return relocatedError(error, sourcePath.concat(relativePath));
+  });
+}
 
 export function relocatedError(originalError: GraphQLError, path?: ReadonlyArray<string | number>): GraphQLError {
   return new GraphQLError(
@@ -14,45 +25,41 @@ export function relocatedError(originalError: GraphQLError, path?: ReadonlyArray
   );
 }
 
-export function slicedError(originalError: GraphQLError) {
-  return relocatedError(originalError, originalError.path != null ? originalError.path.slice(1) : undefined);
-}
+export function getErrorsByPathSegment(
+  errors: Array<GraphQLError>,
+  depth: number
+): Record<string, Array<GraphQLError>> {
+  return errors.reduce((acc, error) => {
+    const pathSegment = (error.path && error.path[depth]) ?? '__root';
 
-export function getErrorsByPathSegment(errors: ReadonlyArray<GraphQLError>): Record<string, Array<GraphQLError>> {
-  const record = Object.create(null);
-  errors.forEach(error => {
-    if (!error.path || error.path.length < 2) {
-      return;
+    if (pathSegment in acc) {
+      acc[pathSegment].push(error);
+    } else {
+      acc[pathSegment] = [error];
     }
 
-    const pathSegment = error.path[1];
-
-    const current = pathSegment in record ? record[pathSegment] : [];
-    current.push(slicedError(error));
-    record[pathSegment] = current;
-  });
-
-  return record;
+    return acc;
+  }, Object.create(null));
 }
 
-export function setErrors(result: any, errors: Array<GraphQLError>) {
-  result[ERROR_SYMBOL] = errors;
+export function setErrors(result: any, map: Record<string, Array<GraphQLError>>) {
+  result[ERROR_SYMBOL] = map;
 }
 
-export function getErrors(result: any, pathSegment: string): Array<GraphQLError> {
-  const errors = result != null ? result[ERROR_SYMBOL] : result;
+export function getErrors(result: any, pathSegment: string | number): Array<GraphQLError> {
+  const proxiedErrors: Record<string, Array<GraphQLError>> = result[ERROR_SYMBOL];
 
-  if (!Array.isArray(errors)) {
+  if (proxiedErrors == null) {
     return null;
   }
 
-  const fieldErrors = [];
+  return proxiedErrors[pathSegment] ?? [];
+}
 
-  for (const error of errors) {
-    if (!error.path || error.path[0] === pathSegment) {
-      fieldErrors.push(error);
-    }
-  }
+export function setDepth(result: any, depth: number) {
+  result[DEPTH_SYMBOL] = depth;
+}
 
-  return fieldErrors;
+export function getDepth(result: any): number {
+  return result[DEPTH_SYMBOL];
 }

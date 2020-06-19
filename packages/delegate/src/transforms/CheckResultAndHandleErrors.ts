@@ -1,6 +1,6 @@
-import { GraphQLResolveInfo, ExecutionResult, GraphQLOutputType, GraphQLSchema } from 'graphql';
+import { GraphQLResolveInfo, ExecutionResult, GraphQLOutputType, GraphQLSchema, responsePathAsArray } from 'graphql';
 
-import { Transform, getResponseKeyFromInfo } from '@graphql-tools/utils';
+import { Transform, getResponseKeyFromInfo, toGraphQLErrors } from '@graphql-tools/utils';
 import { handleResult } from '../results/handleResult';
 import { SubschemaConfig } from '../types';
 
@@ -50,8 +50,9 @@ export function checkResultAndHandleErrors(
   returnType: GraphQLOutputType = info.returnType,
   skipTypeMerging?: boolean
 ): any {
-  const errors = result.errors != null ? result.errors : [];
+  const sourcePath = info != null ? responsePathAsArray(info.path) : [];
+  const errors = result.errors != null ? toGraphQLErrors(result.errors, sourcePath) : [];
   const data = result.data != null ? result.data[responseKey] : undefined;
 
-  return handleResult(data, errors, subschema, context, info, returnType, skipTypeMerging);
+  return handleResult(data, errors, sourcePath.length - 1, subschema, context, info, returnType, skipTypeMerging);
 }

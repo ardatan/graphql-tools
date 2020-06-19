@@ -8,7 +8,13 @@ import {
   GraphQLResolveInfo,
 } from 'graphql';
 
-import { collectFields, GraphQLExecutionContext, setErrors, slicedError } from '@graphql-tools/utils';
+import {
+  collectFields,
+  GraphQLExecutionContext,
+  setErrors,
+  setDepth,
+  getErrorsByPathSegment,
+} from '@graphql-tools/utils';
 import { setObjectSubschema, isSubschemaConfig } from '../Subschema';
 import { mergeFields } from '../mergeFields';
 import { MergedTypeInfo, SubschemaConfig } from '../types';
@@ -16,7 +22,8 @@ import { MergedTypeInfo, SubschemaConfig } from '../types';
 export function handleObject(
   type: GraphQLCompositeType,
   object: any,
-  errors: ReadonlyArray<GraphQLError>,
+  errors: Array<GraphQLError>,
+  depth: number,
   subschema: GraphQLSchema | SubschemaConfig,
   context: Record<string, any>,
   info: GraphQLResolveInfo,
@@ -24,11 +31,10 @@ export function handleObject(
 ) {
   const stitchingInfo = info?.schema.extensions?.stitchingInfo;
 
-  setErrors(
-    object,
-    errors.map(error => slicedError(error))
-  );
-
+  const newDepth = depth + 1;
+  const newErrorMap = getErrorsByPathSegment(errors, newDepth);
+  setErrors(object, newErrorMap);
+  setDepth(object, newDepth);
   setObjectSubschema(object, subschema);
 
   if (skipTypeMerging || !stitchingInfo) {

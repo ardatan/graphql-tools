@@ -1,6 +1,13 @@
 import { GraphQLSchema, GraphQLFieldResolver, GraphQLObjectType, GraphQLResolveInfo } from 'graphql';
 
-import { Transform, Operation, getResponseKeyFromInfo, getErrors, applySchemaTransforms } from '@graphql-tools/utils';
+import {
+  Transform,
+  Operation,
+  getResponseKeyFromInfo,
+  getErrors,
+  applySchemaTransforms,
+  getDepth,
+} from '@graphql-tools/utils';
 import {
   delegateToSchema,
   getSubschema,
@@ -91,12 +98,13 @@ function createPossiblyNestedProxyingResolver(
       // Check to see if the parent contains a proxied result
       if (errors != null) {
         const subschema = getSubschema(parent, responseKey);
+        const depth = getDepth(parent);
 
         // If there is a proxied result from this subschema, return it
         // This can happen even for a root field when the root type ia
         // also nested as a field within a different type.
         if (subschemaOrSubschemaConfig === subschema && parent[responseKey] !== undefined) {
-          return handleResult(parent[responseKey], errors, subschema, context, info);
+          return handleResult(parent[responseKey], errors, depth, subschema, context, info);
         }
       }
     }
