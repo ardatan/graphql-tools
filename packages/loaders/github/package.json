@@ -18,7 +18,7 @@
   "dependencies": {
     "@graphql-tools/utils": "6.0.10",
     "@graphql-tools/graphql-tag-pluck": "6.0.10",
-    "cross-fetch": "3.0.4"
+    "cross-fetch": "3.0.5"
   },
   "publishConfig": {
     "access": "public",
