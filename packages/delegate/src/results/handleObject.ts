@@ -54,13 +54,13 @@ export function handleObject(
 
   const subFields = collectSubFields(info, object.__typename);
 
-  const selections = getFieldsNotInSubschema(subFields, subschema, mergedTypeInfo, object.__typename);
+  const fieldNodes = getFieldsNotInSubschema(subFields, subschema, mergedTypeInfo, object.__typename);
 
   return mergeFields(
     mergedTypeInfo,
     typeName,
     object,
-    selections,
+    fieldNodes,
     [subschema as SubschemaConfig],
     targetSubschemas,
     context,
@@ -68,7 +68,7 @@ export function handleObject(
   );
 }
 
-function collectSubFields(info: GraphQLResolveInfo, typeName: string) {
+function collectSubFields(info: GraphQLResolveInfo, typeName: string): Record<string, Array<FieldNode>> {
   let subFieldNodes: Record<string, Array<FieldNode>> = Object.create(null);
   const visitedFragmentNames = Object.create(null);
   info.fieldNodes.forEach(fieldNode => {
