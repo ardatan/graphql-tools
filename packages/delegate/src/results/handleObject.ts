@@ -11,7 +11,7 @@ import {
 import { collectFields, GraphQLExecutionContext, setErrors, slicedError } from '@graphql-tools/utils';
 import { setObjectSubschema, isSubschemaConfig } from '../Subschema';
 import { mergeFields } from '../mergeFields';
-import { MergedTypeInfo, SubschemaConfig } from '../types';
+import { MergedTypeInfo, SubschemaConfig, StitchingInfo } from '../types';
 
 export function handleObject(
   type: GraphQLCompositeType,
@@ -69,19 +69,39 @@ export function handleObject(
 function collectSubFields(info: GraphQLResolveInfo, typeName: string): Record<string, Array<FieldNode>> {
   let subFieldNodes: Record<string, Array<FieldNode>> = Object.create(null);
   const visitedFragmentNames = Object.create(null);
+
+  const type = info.schema.getType(typeName) as GraphQLObjectType;
+  const partialExecutionContext = ({
+    schema: info.schema,
+    variableValues: info.variableValues,
+    fragments: info.fragments,
+  } as unknown) as GraphQLExecutionContext;
+
   info.fieldNodes.forEach(fieldNode => {
     subFieldNodes = collectFields(
-      ({
-        schema: info.schema,
-        variableValues: info.variableValues,
-        fragments: info.fragments,
-      } as unknown) as GraphQLExecutionContext,
-      info.schema.getType(typeName) as GraphQLObjectType,
+      partialExecutionContext,
+      type,
       fieldNode.selectionSet,
       subFieldNodes,
       visitedFragmentNames
     );
   });
+
+  const selectionSetsByField = (info.schema.extensions.stitchingInfo as StitchingInfo).selectionSetsByField;
+
+  Object.keys(subFieldNodes).forEach(responseName => {
+    const fieldName = subFieldNodes[responseName][0].name.value;
+    if (selectionSetsByField[typeName] && selectionSetsByField[typeName][fieldName]) {
+      subFieldNodes = collectFields(
+        partialExecutionContext,
+        type,
+        selectionSetsByField[typeName][fieldName],
+        subFieldNodes,
+        visitedFragmentNames
+      );
+    }
+  });
+
   return subFieldNodes;
 }
 
