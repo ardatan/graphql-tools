@@ -39,7 +39,7 @@ export function buildTypeCandidates({
   transformedSchemas,
   typeCandidates,
   extensions,
-  directives,
+  directiveMap,
   schemaDefs,
   operationTypeNames,
   mergeDirectives,
@@ -48,7 +48,7 @@ export function buildTypeCandidates({
   transformedSchemas: Map<GraphQLSchema | SubschemaConfig, GraphQLSchema>;
   typeCandidates: Record<string, Array<MergeTypeCandidate>>;
   extensions: Array<DocumentNode>;
-  directives: Array<GraphQLDirective>;
+  directiveMap: Record<string, GraphQLDirective>;
   schemaDefs: {
     schemaDef: SchemaDefinitionNode;
     schemaExtensions: Array<SchemaExtensionNode>;
@@ -96,7 +96,7 @@ export function buildTypeCandidates({
 
       if (mergeDirectives) {
         schema.getDirectives().forEach(directive => {
-          directives.push(directive);
+          directiveMap[directive.name] = directive;
         });
       }
 
@@ -131,7 +131,8 @@ export function buildTypeCandidates({
 
       const directivesDocument = extractDirectiveDefinitions(schemaLikeObject);
       directivesDocument.definitions.forEach(def => {
-        directives.push(typeFromAST(def) as GraphQLDirective);
+        const directive = typeFromAST(def) as GraphQLDirective;
+        directiveMap[directive.name] = directive;
       });
 
       const extensionsDocument = extractTypeExtensionDefinitions(schemaLikeObject);
