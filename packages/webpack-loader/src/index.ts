@@ -9,6 +9,7 @@ export default function (this: any, path: string) {
 
   loadTypedefs(path, {
     loaders: [new GraphQLFileLoader()],
+    noLocation: true,
   }).then(sources => {
     const documentStrs = sources.map(source => source.rawSDL).join('\n');
     const mergedDoc = parse(documentStrs, { noLocation: true });
