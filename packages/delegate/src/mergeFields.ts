@@ -48,33 +48,42 @@ function buildDelegationPlan(
 
     const uniqueSubschema: SubschemaConfig = uniqueFields[selection.name.value];
     if (uniqueSubschema != null) {
-      if (proxiableSubschemas.includes(uniqueSubschema)) {
-        const existingSubschema = delegationMap.get(uniqueSubschema);
-        if (existingSubschema != null) {
-          existingSubschema.push(selection);
-        } else {
-          delegationMap.set(uniqueSubschema, [selection]);
-        }
-      } else {
+      if (!proxiableSubschemas.includes(uniqueSubschema)) {
         unproxiableSelections.push(selection);
+        return;
       }
-    } else {
-      // 2b. use nonUniqueFields to assign to a possible subschema,
-      //     preferring one of the subschemas already targets of delegation
 
-      let nonUniqueSubschemas: Array<SubschemaConfig> = nonUniqueFields[selection.name.value];
-      nonUniqueSubschemas = nonUniqueSubschemas.filter(s => proxiableSubschemas.includes(s));
-      if (nonUniqueSubschemas != null) {
-        const subschemas: Array<SubschemaConfig> = Array.from(delegationMap.keys());
-        const existingSubschema = nonUniqueSubschemas.find(s => subschemas.includes(s));
-        if (existingSubschema != null) {
-          delegationMap.get(existingSubschema).push(selection);
-        } else {
-          delegationMap.set(nonUniqueSubschemas[0], [selection]);
-        }
+      const existingSubschema = delegationMap.get(uniqueSubschema);
+      if (existingSubschema != null) {
+        existingSubschema.push(selection);
       } else {
-        unproxiableSelections.push(selection);
+        delegationMap.set(uniqueSubschema, [selection]);
       }
+
+      return;
+    }
+
+    // 2b. use nonUniqueFields to assign to a possible subschema,
+    //     preferring one of the subschemas already targets of delegation
+
+    let nonUniqueSubschemas: Array<SubschemaConfig> = nonUniqueFields[selection.name.value];
+    if (nonUniqueSubschemas == null) {
+      unproxiableSelections.push(selection);
+      return;
+    }
+
+    nonUniqueSubschemas = nonUniqueSubschemas.filter(s => proxiableSubschemas.includes(s));
+    if (nonUniqueSubschemas == null) {
+      unproxiableSelections.push(selection);
+      return;
+    }
+
+    const subschemas: Array<SubschemaConfig> = Array.from(delegationMap.keys());
+    const existingSubschema = nonUniqueSubschemas.find(s => subschemas.includes(s));
+    if (existingSubschema != null) {
+      delegationMap.get(existingSubschema).push(selection);
+    } else {
+      delegationMap.set(nonUniqueSubschemas[0], [selection]);
     }
   });
 
