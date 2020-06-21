@@ -1,6 +1,6 @@
 import { loadTypedefs } from '@graphql-tools/load';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
-import { parse } from 'graphql';
+import { concatAST } from 'graphql';
 
 export default function (this: any, path: string) {
   const callback = this.async();
@@ -11,8 +11,8 @@ export default function (this: any, path: string) {
     loaders: [new GraphQLFileLoader()],
     noLocation: true,
   }).then(sources => {
-    const documentStrs = sources.map(source => source.rawSDL).join('\n');
-    const mergedDoc = parse(documentStrs, { noLocation: true });
+    const documents = sources.map(source => source.document);
+    const mergedDoc = concatAST(documents);
     return callback(null, `module.exports = ${JSON.stringify(mergedDoc)}`);
   });
 }
