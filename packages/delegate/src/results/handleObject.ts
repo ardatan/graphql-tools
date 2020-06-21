@@ -52,9 +52,7 @@ export function handleObject(
     return object;
   }
 
-  const subFields = collectSubFields(info, object.__typename);
-
-  const fieldNodes = getFieldsNotInSubschema(subFields, subschema, mergedTypeInfo, object.__typename);
+  const fieldNodes = getFieldsNotInSubschema(info, subschema, mergedTypeInfo, object.__typename);
 
   return mergeFields(
     mergedTypeInfo,
@@ -88,7 +86,7 @@ function collectSubFields(info: GraphQLResolveInfo, typeName: string): Record<st
 }
 
 function getFieldsNotInSubschema(
-  subFieldNodes: Record<string, Array<FieldNode>>,
+  info: GraphQLResolveInfo,
   subschema: GraphQLSchema | SubschemaConfig,
   mergedTypeInfo: MergedTypeInfo,
   typeName: string
@@ -96,13 +94,14 @@ function getFieldsNotInSubschema(
   const typeMap = isSubschemaConfig(subschema) ? mergedTypeInfo.typeMaps.get(subschema) : subschema.getTypeMap();
   const fields = (typeMap[typeName] as GraphQLObjectType).getFields();
 
-  const fieldsNotInSchema: Array<FieldNode> = [];
+  const subFieldNodes = collectSubFields(info, typeName);
+
+  let fieldsNotInSchema: Array<FieldNode> = [];
   Object.keys(subFieldNodes).forEach(responseName => {
-    subFieldNodes[responseName].forEach(subFieldNode => {
-      if (!(subFieldNode.name.value in fields)) {
-        fieldsNotInSchema.push(subFieldNode);
-      }
-    });
+    const fieldName = subFieldNodes[responseName][0].name.value;
+    if (!(fieldName in fields)) {
+      fieldsNotInSchema = fieldsNotInSchema.concat(subFieldNodes[responseName]);
+    }
   });
 
   return fieldsNotInSchema;
