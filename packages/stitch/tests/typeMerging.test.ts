@@ -7,6 +7,8 @@ import { makeExecutableSchema } from '@graphql-tools/schema';
 
 import { addMocksToSchema } from '@graphql-tools/mock';
 
+import { delegateToSchema } from '@graphql-tools/delegate';
+
 import { stitchSchemas } from '../src/stitchSchemas';
 
 let chirpSchema = makeExecutableSchema({
@@ -103,3 +105,133 @@ describe('merging using type merging', () => {
     expect(result.data.userById.chirps[1].author.email).not.toBe(null);
   });
 });
+
+describe('merge types and extend', () => {
+  test('should work', async () => {
+    const resultSchema = makeExecutableSchema({
+      typeDefs: `
+        type Query {
+          resultById(id: ID!): String
+        }
+      `,
+      resolvers: {
+        Query: {
+          resultById: () => 'ok',
+        },
+      },
+    });
+
+    const containerSchemaA = makeExecutableSchema({
+      typeDefs: `
+          type Container {
+            id: ID!
+            resultId: ID!
+          }
+
+          type Query {
+            containerById(id: ID!): Container
+          }
+      `,
+      resolvers: {
+        Query: {
+          containerById: () => ({ id: 'Container', resultId: 'Result' }),
+        },
+      },
+    });
+
+    const containerSchemaB = makeExecutableSchema({
+      typeDefs: `
+        type Container {
+          id: ID!
+        }
+
+        type Query {
+          containerById(id: ID!): Container
+          rootContainer: Container!
+        }
+      `,
+      resolvers: {
+        Query: {
+          containerById: () => ({ id: 'Container' }),
+          rootContainer: () => ({ id: 'Container' }),
+        },
+      },
+    });
+
+    const schema = stitchSchemas({
+      subschemas: [
+        {
+          schema: resultSchema,
+        },
+        {
+          schema: containerSchemaA,
+          merge: {
+            Container: {
+              fieldName: 'containerById',
+              args: ({ id }) => ({ id }),
+              selectionSet: '{ id }',
+            },
+          },
+        },
+        {
+          schema: containerSchemaB,
+          merge: {
+            Container: {
+              fieldName: 'containerById',
+              args: ({ id }) => ({ id }),
+              selectionSet: '{ id }',
+            },
+          },
+        },
+      ],
+      mergeTypes: true,
+      typeDefs: `
+        extend type Container {
+          result: String!
+        }
+      `,
+      resolvers: {
+        Container: {
+          result: {
+            selectionSet: `{ resultId }`,
+            resolve(container, _args, context, info) {
+              return delegateToSchema({
+                schema: resultSchema,
+                operation: 'query',
+                fieldName: 'resultById',
+                args: {
+                  id: container.resultId,
+                },
+                context,
+                info,
+              });
+            },
+          },
+        },
+      },
+    });
+
+    const result = await graphql(
+      schema,
+      `
+        query TestQuery {
+          rootContainer {
+            id
+            result
+          }
+        }
+      `,
+    );
+
+    const expectedResult = {
+      data: {
+        rootContainer: {
+          id: 'Container',
+          result: 'ok',
+        }
+      }
+    }
+
+    expect(result).toEqual(expectedResult);
+  })
+})
