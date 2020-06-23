@@ -9,7 +9,7 @@ import {
   ASTVisitor,
 } from 'graphql';
 import { Source } from './loaders';
-import { AggregateError } from '@ardatan/aggregate-error';
+import AggregateError from '@ardatan/aggregate-error';
 
 export type ValidationRule = (context: ValidationContext) => ASTVisitor;
 const DEFAULT_EFFECTIVE_RULES = createDefaultRules();

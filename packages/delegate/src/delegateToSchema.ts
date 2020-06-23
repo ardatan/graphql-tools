@@ -22,7 +22,7 @@ import { isSubschemaConfig } from './Subschema';
 import { createRequestFromInfo, getDelegatingOperation } from './createRequest';
 import { Transformer } from './Transformer';
 
-import { AggregateError } from '@ardatan/aggregate-error';
+import AggregateError from '@ardatan/aggregate-error';
 
 export function delegateToSchema(options: IDelegateToSchemaOptions | GraphQLSchema): any {
   if (isSchema(options)) {
