@@ -58,7 +58,7 @@
     invariant "^2.2.4"
     semver "^5.5.0"
 
-"@babel/core@7.9.0", "@babel/core@^7.0.0", "@babel/core@^7.1.0", "@babel/core@^7.7.5":
+"@babel/core@7.9.0":
   version "7.9.0"
   resolved "https://registry.yarnpkg.com/@babel/core/-/core-7.9.0.tgz#ac977b538b77e132ff706f3b8a4dbad09c03c56e"
   integrity sha512-kWc7L0fw1xwvI0zi8OKVBuxRVefwGOrKSQMvrQ3dW+bIIavBY3/NpXmpjMy7bQnLgwgzWQZ8TlM57YHpHNHz4w==
@@ -80,7 +80,7 @@
     semver "^5.4.1"
     source-map "^0.5.0"
 
-"@babel/core@^7.9.0":
+"@babel/core@^7.0.0", "@babel/core@^7.1.0", "@babel/core@^7.7.5", "@babel/core@^7.9.0":
   version "7.9.6"
   resolved "https://registry.yarnpkg.com/@babel/core/-/core-7.9.6.tgz#d9aa1f580abf3b2286ef40b6904d390904c63376"
   integrity sha512-nD3deLvbsApbHAHttzIssYqgb883yU/d9roe4RZymBCDaZryMJDbptVpEpeQuRh4BJ+SYI8le9YGxKvFEvl1Wg==
@@ -1006,14 +1006,7 @@
     "@babel/helper-plugin-utils" "^7.8.3"
     "@babel/plugin-transform-typescript" "^7.9.0"
 
-"@babel/runtime@^7.0.0", "@babel/runtime@^7.9.2":
-  version "7.9.2"
-  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.9.2.tgz#d90df0583a3a252f09aaa619665367bae518db06"
-  integrity sha512-NE2DtOdufG7R5vnfQUTehdTfNycfUANEtCa9PssN9O/xmTzP4E08UI797ixaei6hBEVL9BI/PsdJS5x7mWoB9Q==
-  dependencies:
-    regenerator-runtime "^0.13.4"
-
-"@babel/runtime@^7.1.2", "@babel/runtime@^7.5.5", "@babel/runtime@^7.8.4":
+"@babel/runtime@^7.0.0", "@babel/runtime@^7.1.2", "@babel/runtime@^7.5.5", "@babel/runtime@^7.8.4", "@babel/runtime@^7.9.2":
   version "7.9.6"
   resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.9.6.tgz#a9102eb5cadedf3f31d08a9ecf294af7827ea29f"
   integrity sha512-64AF1xY3OAkFHqOb9s4jpgk1Mm5vDZ4L3acHvAml+53nO1XbXLuDodsVpO4OIUsmemlUHMxNdYMNJmsvOwLrvQ==
@@ -1080,10 +1073,10 @@
   resolved "https://registry.yarnpkg.com/@csstools/convert-colors/-/convert-colors-1.4.0.tgz#ad495dc41b12e75d588c6db8b9834f08fa131eb7"
   integrity sha512-5a6wqoJV/xEdbRNKVo6I4hO3VjyDq//8q2f9I6PBAvMesJHFauXDorcNCsr9RzvsZnaWi5NYCcfyqP1QeFHFbw==
 
-"@docusaurus/core@2.0.0-alpha.56":
-  version "2.0.0-alpha.56"
-  resolved "https://registry.yarnpkg.com/@docusaurus/core/-/core-2.0.0-alpha.56.tgz#8e0ded61e3b19fbc5f483a300497e674f6452ea4"
-  integrity sha512-+P/2T6aeBcwJbg4a7Y/6CrGL4GKDjTESKwhf41naGsA4v98o5P23eIiKngBvfTPVwHXu3MDShE6UU+lnFqBXyQ==
+"@docusaurus/core@2.0.0-alpha.58":
+  version "2.0.0-alpha.58"
+  resolved "https://registry.yarnpkg.com/@docusaurus/core/-/core-2.0.0-alpha.58.tgz#3d9c5540c14c31ac55fc8fa4778e4c4e82fbe993"
+  integrity sha512-7VW7IQKTxTIeCXxzraLdTqRtYSmEG2ZJDt07z26NjK+17XyNQc0IoJs7M3xhjzaeP0s/CpYe5Yl+pgp6TIXqoA==
   dependencies:
     "@babel/core" "^7.9.0"
     "@babel/plugin-syntax-dynamic-import" "^7.8.3"
@@ -1092,7 +1085,7 @@
     "@babel/preset-react" "^7.9.4"
     "@babel/preset-typescript" "^7.9.0"
     "@babel/runtime" "^7.9.2"
-    "@docusaurus/utils" "^2.0.0-alpha.56"
+    "@docusaurus/utils" "^2.0.0-alpha.58"
     "@endiliey/static-site-generator-webpack-plugin" "^4.0.0"
     "@svgr/webpack" "^5.4.0"
     babel-loader "^8.1.0"
@@ -1100,7 +1093,6 @@
     cache-loader "^4.1.0"
     chalk "^3.0.0"
     chokidar "^3.3.0"
-    classnames "^2.2.6"
     commander "^4.0.1"
     copy-webpack-plugin "^5.0.5"
     core-js "^2.6.5"
@@ -1128,7 +1120,7 @@
     react-dev-utils "^10.2.1"
     react-helmet "^6.0.0-beta"
     react-loadable "^5.5.0"
-    react-loadable-ssr-addon "^0.2.0"
+    react-loadable-ssr-addon "^0.2.3"
     react-router "^5.1.2"
     react-router-config "^5.1.1"
     react-router-dom "^5.1.2"
@@ -1282,17 +1274,6 @@
     "@types/webpack" "^4.41.0"
     commander "^4.0.1"
     querystring "0.2.0"
-
-"@docusaurus/utils@^2.0.0-alpha.56":
-  version "2.0.0-alpha.56"
-  resolved "https://registry.yarnpkg.com/@docusaurus/utils/-/utils-2.0.0-alpha.56.tgz#2fd1d070351cd86f3614240b63a915b2e121150e"
-  integrity sha512-CMII7BYMQ5Dg9sHcejbxbyHTCG4CHQc/uFasL8FNXkHn7crw5Pz2re+IutSklE2SEI5lOZtMl5Lt8HKDvHzG1g==
-  dependencies:
-    escape-string-regexp "^2.0.0"
-    fs-extra "^8.1.0"
-    gray-matter "^4.0.2"
-    lodash.camelcase "^4.3.0"
-    lodash.kebabcase "^4.1.1"
 
 "@docusaurus/utils@^2.0.0-alpha.58":
   version "2.0.0-alpha.58"
@@ -3899,7 +3880,7 @@ class-utils@^0.3.5:
     isobject "^3.0.0"
     static-extend "^0.1.1"
 
-classnames@2.2.6, classnames@^2.2.5, classnames@^2.2.6:
+classnames@2.2.6, classnames@^2.2.5:
   version "2.2.6"
   resolved "https://registry.yarnpkg.com/classnames/-/classnames-2.2.6.tgz#43935bffdd291f326dad0a205309b38d00f650ce"
   integrity sha512-JR/iSQOSt+LQIWwrwEzJ9uk0xfN3mTVYMwt1Ir5mUcSN6pU+V4zQFFaJsclJbPuAUQH+yfWef6tm7l1quW3C8Q==
@@ -10792,10 +10773,10 @@ react-is@^16.12.0, react-is@^16.6.0, react-is@^16.7.0, react-is@^16.8.1:
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-16.13.1.tgz#789729a4dc36de2999dc156dd6c1d9c18cea56a4"
   integrity sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==
 
-react-loadable-ssr-addon@^0.2.0:
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/react-loadable-ssr-addon/-/react-loadable-ssr-addon-0.2.0.tgz#fbf4ebfa9cfd6eadb3c346f0459e1cee01c9cae8"
-  integrity sha512-gTfPaxWZa5mHKeSOE61RpoLe7hyjcJHgNa5m0ZZGV3OCkWsOKlfYgoBxXzu9ENg/ePR/kFd5H3ncF4K5eyyNTQ==
+react-loadable-ssr-addon@^0.2.3:
+  version "0.2.3"
+  resolved "https://registry.yarnpkg.com/react-loadable-ssr-addon/-/react-loadable-ssr-addon-0.2.3.tgz#55057abf95628d47727c68e966a6b3a53cde34e0"
+  integrity sha512-vPCqsmiafAMDcS9MLgXw3m4yMI40v1UeI8FTYJJkjf85LugKNnHf6D9yoDTzYwp8wEGF5viekwOD03ZPxSwnQQ==
 
 react-loadable@^5.5.0:
   version "5.5.0"
