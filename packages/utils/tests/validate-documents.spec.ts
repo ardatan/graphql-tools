@@ -1,6 +1,6 @@
 import { checkValidationErrors, validateGraphQlDocuments } from '../src';
 import { buildSchema, parse, GraphQLError } from 'graphql';
-import AggregateError from 'aggregate-error';
+import AggregateError from '@ardatan/aggregate-error';
 
 describe('validateGraphQlDocuments', () => {
   it('Should throw an informative error when validation errors happens, also check for fragments validation even why they are duplicated', async () => {

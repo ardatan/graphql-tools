@@ -9,7 +9,7 @@ import {
 
 import { ExecutionResult } from '@graphql-tools/utils';
 import { AsyncExecutor, SyncExecutor } from '@graphql-tools/delegate';
-import AggregateError from 'aggregate-error';
+import AggregateError from '@ardatan/aggregate-error';
 
 function getSchemaFromIntrospection(introspectionResult: ExecutionResult<IntrospectionQuery>): GraphQLSchema {
   if (introspectionResult?.data?.__schema) {
