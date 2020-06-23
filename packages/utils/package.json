@@ -18,7 +18,7 @@
   "devDependencies": {
     "@types/dateformat": "3.0.1",
     "dateformat": "3.0.3",
-    "graphql-scalars": "1.1.5"
+    "graphql-scalars": "1.1.7"
   },
   "dependencies": {
     "aggregate-error": "3.0.1",

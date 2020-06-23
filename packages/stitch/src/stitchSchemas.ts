@@ -10,14 +10,7 @@ import {
   GraphQLNamedType,
 } from 'graphql';
 
-import {
-  SchemaDirectiveVisitor,
-  cloneDirective,
-  mergeDeep,
-  IResolvers,
-  rewireTypes,
-  pruneSchema,
-} from '@graphql-tools/utils';
+import { SchemaDirectiveVisitor, mergeDeep, IResolvers, rewireTypes, pruneSchema } from '@graphql-tools/utils';
 
 import {
   addResolversToSchema,
@@ -58,22 +51,40 @@ export function stitchSchemas({
     throw new Error('Expected `resolverValidationOptions` to be an object');
   }
 
+  schemas.forEach(schemaLikeObject => {
+    if (
+      !isSchema(schemaLikeObject) &&
+      !isSubschemaConfig(schemaLikeObject) &&
+      typeof schemaLikeObject !== 'string' &&
+      !isDocumentNode(schemaLikeObject) &&
+      !Array.isArray(schemaLikeObject)
+    ) {
+      throw new Error('Invalid schema passed');
+    }
+  });
+
   let schemaLikeObjects: Array<GraphQLSchema | SubschemaConfig | DocumentNode | GraphQLNamedType> = [...subschemas];
+  schemas.forEach(schemaLikeObject => {
+    if (isSchema(schemaLikeObject) || isSubschemaConfig(schemaLikeObject)) {
+      schemaLikeObjects.push(schemaLikeObject);
+    }
+  });
+
   if ((typeDefs && !Array.isArray(typeDefs)) || (Array.isArray(typeDefs) && typeDefs.length)) {
     schemaLikeObjects.push(buildDocumentFromTypeDefinitions(typeDefs, parseOptions));
   }
+  schemas.forEach(schemaLikeObject => {
+    if (typeof schemaLikeObject === 'string' || isDocumentNode(schemaLikeObject)) {
+      schemaLikeObjects.push(buildDocumentFromTypeDefinitions(schemaLikeObject, parseOptions));
+    }
+  });
+
   if (types != null) {
     schemaLikeObjects = schemaLikeObjects.concat(types);
   }
   schemas.forEach(schemaLikeObject => {
-    if (isSchema(schemaLikeObject) || isSubschemaConfig(schemaLikeObject)) {
-      schemaLikeObjects.push(schemaLikeObject);
-    } else if (typeof schemaLikeObject === 'string' || isDocumentNode(schemaLikeObject)) {
-      schemaLikeObjects.push(buildDocumentFromTypeDefinitions(schemaLikeObject, parseOptions));
-    } else if (Array.isArray(schemaLikeObject)) {
+    if (Array.isArray(schemaLikeObject)) {
       schemaLikeObjects = schemaLikeObjects.concat(schemaLikeObject);
-    } else {
-      throw new Error('Invalid schema passed');
     }
   });
 
@@ -81,6 +92,10 @@ export function stitchSchemas({
   const typeCandidates: Record<string, Array<MergeTypeCandidate>> = Object.create(null);
   const extensions: Array<DocumentNode> = [];
   const directives: Array<GraphQLDirective> = [];
+  const directiveMap: Record<string, GraphQLDirective> = specifiedDirectives.reduce((acc, directive) => {
+    acc[directive.name] = directive;
+    return acc;
+  }, Object.create(null));
   const schemaDefs = Object.create(null);
   const operationTypeNames = {
     query: 'Query',
@@ -93,10 +108,14 @@ export function stitchSchemas({
     transformedSchemas,
     typeCandidates,
     extensions,
-    directives,
+    directiveMap,
     schemaDefs,
     operationTypeNames,
     mergeDirectives,
+  });
+
+  Object.keys(directiveMap).forEach(directiveName => {
+    directives.push(directiveMap[directiveName]);
   });
 
   let stitchingInfo: StitchingInfo;
@@ -118,9 +137,7 @@ export function stitchSchemas({
     mutation: newTypeMap[operationTypeNames.mutation] as GraphQLObjectType,
     subscription: newTypeMap[operationTypeNames.subscription] as GraphQLObjectType,
     types: Object.keys(newTypeMap).map(key => newTypeMap[key]),
-    directives: newDirectives.length
-      ? specifiedDirectives.slice().concat(newDirectives.map(directive => cloneDirective(directive)))
-      : undefined,
+    directives: newDirectives,
     astNode: schemaDefs.schemaDef,
     extensionASTNodes: schemaDefs.schemaExtensions,
     extensions: null,

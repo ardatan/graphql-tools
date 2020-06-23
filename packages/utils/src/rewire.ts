@@ -23,6 +23,7 @@ import {
   isScalarType,
   isUnionType,
   isSpecifiedScalarType,
+  isSpecifiedDirective,
 } from 'graphql';
 
 import { getBuiltInForStub, isNamedStub } from './stub';
@@ -78,6 +79,9 @@ export function rewireTypes(
     : pruneTypes(newTypeMap, newDirectives);
 
   function rewireDirective(directive: GraphQLDirective): GraphQLDirective {
+    if (isSpecifiedDirective(directive)) {
+      return directive;
+    }
     const directiveConfig = directive.toConfig();
     directiveConfig.args = rewireArgs(directiveConfig.args);
     return new GraphQLDirective(directiveConfig);

@@ -7,6 +7,8 @@ import { makeExecutableSchema } from '@graphql-tools/schema';
 
 import { addMocksToSchema } from '@graphql-tools/mock';
 
+import { delegateToSchema } from '@graphql-tools/delegate';
+
 import { stitchSchemas } from '../src/stitchSchemas';
 
 let chirpSchema = makeExecutableSchema({
@@ -71,6 +73,55 @@ const stitchedSchema = stitchSchemas({
   mergeTypes: true,
 });
 
+
+const failureSchema = addMocksToSchema({
+  schema: makeExecutableSchema({
+    typeDefs: `
+      type User {
+        id: ID!
+        fail: Boolean
+      }
+
+      type Query {
+        userById(id: ID!): User
+      }
+    `
+  }),
+  mocks: {
+    Query() {
+      return ({
+        userById() { throw new Error("failure message"); }
+      })
+    },
+  }
+})
+
+const stichedFailureSchema = stitchSchemas({
+  subschemas: [
+    {
+      schema: failureSchema,
+      merge: {
+        User: {
+          fieldName: 'userById',
+          selectionSet: '{ id }',
+          args: (originalResult) => ({ id: originalResult.id }),
+        }
+      }
+    },
+    {
+      schema: stitchedSchema,
+      merge: {
+        User: {
+          fieldName: 'userById',
+          selectionSet: '{ id }',
+          args: (originalResult) => ({ id: originalResult.id }),
+        }
+      }
+    },
+  ],
+  mergeTypes: true
+})
+
 describe('merging using type merging', () => {
   test('works', async () => {
     const query = `
@@ -102,4 +153,151 @@ describe('merging using type merging', () => {
     expect(result.data.userById.chirps[1].text).not.toBe(null);
     expect(result.data.userById.chirps[1].author.email).not.toBe(null);
   });
+
+  test("handle toplevel failures on subschema queries", async() => {
+    const query = `
+      query {
+        userById(id: 5) {  id  email fail }
+      }
+    `
+
+    const result = await graphql(stichedFailureSchema, query)
+
+    expect(result.errors).not.toBeUndefined()
+    expect(result.data).toMatchObject({ userById: { fail: null }})
+    expect(result.errors).toMatchObject([{
+      message: "failure message",
+      path: ["userById", "fail"]
+    }])
+  })
 });
+
+describe('merge types and extend', () => {
+  test('should work', async () => {
+    const resultSchema = makeExecutableSchema({
+      typeDefs: `
+        type Query {
+          resultById(id: ID!): String
+        }
+      `,
+      resolvers: {
+        Query: {
+          resultById: () => 'ok',
+        },
+      },
+    });
+
+    const containerSchemaA = makeExecutableSchema({
+      typeDefs: `
+          type Container {
+            id: ID!
+            resultId: ID!
+          }
+
+          type Query {
+            containerById(id: ID!): Container
+          }
+      `,
+      resolvers: {
+        Query: {
+          containerById: () => ({ id: 'Container', resultId: 'Result' }),
+        },
+      },
+    });
+
+    const containerSchemaB = makeExecutableSchema({
+      typeDefs: `
+        type Container {
+          id: ID!
+        }
+
+        type Query {
+          containerById(id: ID!): Container
+          rootContainer: Container!
+        }
+      `,
+      resolvers: {
+        Query: {
+          containerById: () => ({ id: 'Container' }),
+          rootContainer: () => ({ id: 'Container' }),
+        },
+      },
+    });
+
+    const schema = stitchSchemas({
+      subschemas: [
+        {
+          schema: resultSchema,
+        },
+        {
+          schema: containerSchemaA,
+          merge: {
+            Container: {
+              fieldName: 'containerById',
+              args: ({ id }) => ({ id }),
+              selectionSet: '{ id }',
+            },
+          },
+        },
+        {
+          schema: containerSchemaB,
+          merge: {
+            Container: {
+              fieldName: 'containerById',
+              args: ({ id }) => ({ id }),
+              selectionSet: '{ id }',
+            },
+          },
+        },
+      ],
+      mergeTypes: true,
+      typeDefs: `
+        extend type Container {
+          result: String!
+        }
+      `,
+      resolvers: {
+        Container: {
+          result: {
+            selectionSet: `{ resultId }`,
+            resolve(container, _args, context, info) {
+              return delegateToSchema({
+                schema: resultSchema,
+                operation: 'query',
+                fieldName: 'resultById',
+                args: {
+                  id: container.resultId,
+                },
+                context,
+                info,
+              });
+            },
+          },
+        },
+      },
+    });
+
+    const result = await graphql(
+      schema,
+      `
+        query TestQuery {
+          rootContainer {
+            id
+            result
+          }
+        }
+      `,
+    );
+
+    const expectedResult = {
+      data: {
+        rootContainer: {
+          id: 'Container',
+          result: 'ok',
+        }
+      }
+    }
+
+    expect(result).toEqual(expectedResult);
+  })
+})

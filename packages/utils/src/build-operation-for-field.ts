@@ -24,6 +24,7 @@ import {
   NonNullTypeNode,
   OperationTypeNode,
   isInterfaceType,
+  isEnumType,
   Kind,
 } from 'graphql';
 import { camelCase } from 'camel-case';
@@ -472,7 +473,7 @@ function resolveField({
   }
   fieldTypeMap.set(fieldName, field.type.toString());
 
-  if (!isScalarType(namedType)) {
+  if (!isScalarType(namedType) && !isEnumType(namedType)) {
     return {
       kind: Kind.FIELD,
       name: {
