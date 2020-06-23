@@ -1,6 +1,6 @@
 import { GraphQLError } from 'graphql';
 
-import AggregateError from 'aggregate-error';
+import { AggregateError } from '@ardatan/aggregate-error';
 import { getErrorsByPathSegment, relocatedError } from '@graphql-tools/utils';
 
 export function handleNull(errors: ReadonlyArray<GraphQLError>) {
