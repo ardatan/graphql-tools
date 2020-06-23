@@ -1,7 +1,7 @@
-import { mergeTypeDefs, mergeGraphQLTypes } from '../src';
+import { mergeDirectives, mergeTypeDefs, mergeGraphQLTypes } from '../src';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch'
-import { buildSchema, buildClientSchema, print, parse } from 'graphql';
+import { buildSchema, buildClientSchema, print, parse, Kind } from 'graphql';
 import { stripWhitespaces } from './utils';
 import gql from 'graphql-tag';
 import { readFileSync } from 'fs';
@@ -1272,4 +1272,76 @@ describe('Merge TypeDefs', () => {
     expect(result).toContain(`#  - second line2`);
   });
 
+  describe.each([['normal', false], ['reverse', true]])('mergeDirectives', (direction, value) => {
+    const config = {
+      reverseDirectives: value,
+    };
+
+    it(`should merge with both schema directives undefined in ${direction} order`, () => {
+      expect(mergeDirectives(undefined, undefined, config)).toEqual([]);
+    });
+
+    it(`should merge with first schema directives set in ${direction} order`, () => {
+      const directives = [{
+        kind: Kind.DIRECTIVE,
+        name: {
+          kind: Kind.NAME,
+          value: 'firstDirective'
+        }
+      }];
+      expect(mergeDirectives(directives, undefined, config)).toEqual(directives);
+    });
+
+    it(`should merge with second schema directives set in ${direction} order`, () => {
+      const directives = [{
+        kind: Kind.DIRECTIVE,
+        name: {
+          kind: Kind.NAME,
+          value: 'firstDirective'
+        }
+      }];
+      expect(mergeDirectives(undefined, directives, config)).toEqual(directives);
+    });
+
+    it(`should merge with both schema directives set in ${direction} order`, () => {
+      const directives = [{
+        kind: Kind.DIRECTIVE,
+        name: {
+          kind: Kind.NAME,
+          value: 'firstDirective'
+        }
+      }];
+      expect(mergeDirectives(directives, directives, config)).toEqual(directives);
+    });
+
+    it(`should merge with both schema directives set, one of which has arguments in ${direction} order`, () => {
+      const directivesOne = [{
+        kind: Kind.DIRECTIVE,
+        name: {
+          kind: Kind.NAME,
+          value: 'firstDirective'
+        }
+      }];
+      const directivesTwo = [{
+        kind: Kind.DIRECTIVE,
+        name: {
+          kind: Kind.NAME,
+          value: 'firstDirective'
+        },
+        arguments: [{
+          kind: Kind.ARGUMENT,
+          name: {
+            kind: Kind.NAME,
+            value: 'firstArg'
+          },
+          value: {
+            kind: Kind.STRING,
+            value: 'arg'
+          }
+        }]
+      }];
+
+      expect(mergeDirectives(directivesOne, directivesTwo, config)).toEqual(directivesTwo);
+    });
+  })
 });

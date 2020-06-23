@@ -10,7 +10,7 @@ function nameAlreadyExists(name: NameNode, namesArr: ReadonlyArray<NameNode>): b
   return namesArr.some(({ value }) => value === name.value);
 }
 
-function mergeArguments(a1: ArgumentNode[], a2: ArgumentNode[]): ArgumentNode[] {
+function mergeArguments(a1: readonly ArgumentNode[], a2: readonly ArgumentNode[]): ArgumentNode[] {
   const result: ArgumentNode[] = [...a2];
 
   for (const argument of a1) {
@@ -57,8 +57,8 @@ function deduplicateDirectives(directives: ReadonlyArray<DirectiveNode>): Direct
 }
 
 export function mergeDirectives(
-  d1: ReadonlyArray<DirectiveNode>,
-  d2: ReadonlyArray<DirectiveNode>,
+  d1: ReadonlyArray<DirectiveNode> = [],
+  d2: ReadonlyArray<DirectiveNode> = [],
   config?: Config
 ): DirectiveNode[] {
   const reverseOrder: boolean = config && config.reverseDirectives;
@@ -71,8 +71,8 @@ export function mergeDirectives(
       const existingDirectiveIndex = result.findIndex(d => d.name.value === directive.name.value);
       const existingDirective = result[existingDirectiveIndex];
       (result[existingDirectiveIndex] as any).arguments = mergeArguments(
-        directive.arguments as any,
-        existingDirective.arguments as any
+        directive.arguments || [],
+        existingDirective.arguments || []
       );
     } else {
       result.push(directive);
