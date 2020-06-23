@@ -20,6 +20,10 @@ export function optimizeDocuments(
   documents: DocumentNode[],
   options: OptimizeDocumentsOptions = {}
 ) {
+  options = {
+    noLocation: true,
+    ...options,
+  };
   // @TODO way for users to define directives they use, otherwise relay will throw an unknown directive error
   // Maybe we can scan the queries and add them dynamically without users having to do some extra stuff
   // transformASTSchema creates a new schema instance instead of mutating the old one

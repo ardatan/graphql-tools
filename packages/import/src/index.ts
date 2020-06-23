@@ -102,7 +102,9 @@ function visitFile(
       const fileDefinitionMap = new Map<string, Set<DefinitionNode>>();
       // To prevent circular dependency
       visitedFiles.set(filePath, fileDefinitionMap);
-      const document = parse(new Source(otherLines, filePath));
+      const document = parse(new Source(otherLines, filePath), {
+        noLocation: true,
+      });
       for (const definition of document.definitions) {
         if ('name' in definition || definition.kind === Kind.SCHEMA_DEFINITION) {
           const definitionName = 'name' in definition ? definition.name.value : 'schema';
