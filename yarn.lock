@@ -6370,10 +6370,10 @@ graphql-request@^1.5.0:
   dependencies:
     cross-fetch "2.2.2"
 
-graphql-scalars@1.2.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/graphql-scalars/-/graphql-scalars-1.2.0.tgz#e84f507467e9fac69354c6abd1f43e795fe9a1d1"
-  integrity sha512-t8xfFOaNNB+puqTGnAyURfAGXKYOVHjOc5nykz02Sesr/Fr9iKtbsDx+uk7d9D3LoWRYO2yi3/F41Ee5cQ00ew==
+graphql-scalars@1.2.1:
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/graphql-scalars/-/graphql-scalars-1.2.1.tgz#21a79393a74d090018993487b457afc4f866259c"
+  integrity sha512-G+A1B4C7Ww/LuNZbmpyTF97yN+Fx1k2fFuyGOWGrzHZAbu5vxA4puHgfjAskJbX0c9MKyDLVJBd4dmNcwgWuGQ==
   optionalDependencies:
     mongodb "*"
 
