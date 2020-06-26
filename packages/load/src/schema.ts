@@ -33,7 +33,7 @@ export async function loadSchema(
 
   const schema = await mergeSchemasAsync(mergeSchemasOptions);
 
-  if (options.includeSources) {
+  if (options?.includeSources) {
     includeSources(schema, sources);
   }
 
@@ -58,7 +58,7 @@ export function loadSchemaSync(
 
   const schema = mergeSchemas(mergeSchemasOptions);
 
-  if (options.includeSources) {
+  if (options?.includeSources) {
     includeSources(schema, sources);
   }
 
