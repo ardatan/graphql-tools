@@ -35,6 +35,7 @@ export type DelegationBinding = (delegationContext: DelegationContext) => Array<
 
 export interface IDelegateToSchemaOptions<TContext = Record<string, any>, TArgs = Record<string, any>> {
   schema: GraphQLSchema | SubschemaConfig | Subschema;
+  operationName?: string;
   operation?: Operation;
   fieldName?: string;
   returnType?: GraphQLOutputType;
@@ -58,6 +59,7 @@ export interface IDelegateRequestOptions extends Omit<IDelegateToSchemaOptions, 
 
 export interface ICreateRequestFromInfo {
   info: GraphQLResolveInfo;
+  operationName?: string;
   operation: Operation;
   fieldName: string;
   selectionSet?: SelectionSetNode;
@@ -72,6 +74,7 @@ export interface ICreateRequest {
   variableDefinitions?: ReadonlyArray<VariableDefinitionNode>;
   variableValues?: Record<string, any>;
   targetOperation: Operation;
+  targetOperationName?: string;
   targetFieldName: string;
   selectionSet?: SelectionSetNode;
   fieldNodes?: ReadonlyArray<FieldNode>;

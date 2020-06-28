@@ -15,7 +15,7 @@ export function setObjectSubschema(result: any, subschema: GraphQLSchema | Subsc
   result[OBJECT_SUBSCHEMA_SYMBOL] = subschema;
 }
 
-export function isSubschemaConfig(value: any): value is SubschemaConfig {
+export function isSubschemaConfig(value: any): value is SubschemaConfig | Subschema {
   return Boolean((value as SubschemaConfig).schema);
 }
 

@@ -32,6 +32,7 @@ export function getDelegatingOperation(parentType: GraphQLObjectType, schema: Gr
 
 export function createRequestFromInfo({
   info,
+  operationName,
   operation = getDelegatingOperation(info.parentType, info.schema),
   fieldName = info.fieldName,
   selectionSet,
@@ -44,6 +45,7 @@ export function createRequestFromInfo({
     fragments: info.fragments,
     variableDefinitions: info.operation.variableDefinitions,
     variableValues: info.variableValues,
+    targetOperationName: operationName,
     targetOperation: operation,
     targetFieldName: fieldName,
     selectionSet,
@@ -58,6 +60,7 @@ export function createRequest({
   fragments,
   variableDefinitions,
   variableValues,
+  targetOperationName,
   targetOperation,
   targetFieldName,
   selectionSet,
@@ -130,8 +133,16 @@ export function createRequest({
     selectionSet: newSelectionSet,
   };
 
+  const operationName = targetOperationName
+    ? {
+        kind: Kind.NAME,
+        value: targetOperationName,
+      }
+    : undefined;
+
   const operationDefinition: OperationDefinitionNode = {
     kind: Kind.OPERATION_DEFINITION,
+    name: operationName,
     operation: targetOperation,
     variableDefinitions: Object.keys(variableDefinitionMap).map(varName => variableDefinitionMap[varName]),
     selectionSet: {

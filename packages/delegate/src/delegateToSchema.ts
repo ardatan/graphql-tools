@@ -33,6 +33,7 @@ export function delegateToSchema(options: IDelegateToSchemaOptions | GraphQLSche
 
   const {
     info,
+    operationName,
     operation = getDelegatingOperation(info.parentType, info.schema),
     fieldName = info.fieldName,
     returnType = info.returnType,
@@ -46,6 +47,7 @@ export function delegateToSchema(options: IDelegateToSchemaOptions | GraphQLSche
     fieldName,
     selectionSet,
     fieldNodes,
+    operationName,
   });
 
   return delegateRequest({
