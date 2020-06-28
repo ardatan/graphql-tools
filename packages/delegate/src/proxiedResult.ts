@@ -79,7 +79,7 @@ export function mergeProxiedResults(target: any, ...sources: Array<any>): any {
 
   const result = results.reduce(mergeDeep, target);
   result[FIELD_SUBSCHEMA_MAP_SYMBOL] = target[FIELD_SUBSCHEMA_MAP_SYMBOL]
-    ? mergeDeep(target[FIELD_SUBSCHEMA_MAP_SYMBOL], fieldSubschemaMap)
+    ? Object.assign({}, target[FIELD_SUBSCHEMA_MAP_SYMBOL], fieldSubschemaMap)
     : fieldSubschemaMap;
 
   const errors = sources.map((source: any) => (source instanceof Error ? source : source[ERROR_SYMBOL]));

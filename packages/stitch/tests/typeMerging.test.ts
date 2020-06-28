@@ -11,119 +11,70 @@ import { delegateToSchema } from '@graphql-tools/delegate';
 
 import { stitchSchemas } from '../src/stitchSchemas';
 
-let chirpSchema = makeExecutableSchema({
-  typeDefs: `
-    type Chirp {
-      id: ID!
-      text: String
-      author: User
-      coAuthors: [User]
-      authorGroups: [[User]]
-    }
-
-    type User {
-      id: ID!
-      chirps: [Chirp]
-    }
-    type Query {
-      userById(id: ID!): User
-    }
-  `,
-});
-
-chirpSchema = addMocksToSchema({ schema: chirpSchema });
-
-let authorSchema = makeExecutableSchema({
-  typeDefs: `
-    type User {
-      id: ID!
-      email: String
-    }
-    type Query {
-      userById(id: ID!): User
-    }
-  `,
-});
-
-authorSchema = addMocksToSchema({ schema: authorSchema });
-
-const stitchedSchema = stitchSchemas({
-  subschemas: [
-    {
-      schema: chirpSchema,
-      merge: {
-        User: {
-          fieldName: 'userById',
-          args: (originalResult) => ({ id: originalResult.id }),
-          selectionSet: '{ id }',
-        },
-      },
-    },
-    {
-      schema: authorSchema,
-      merge: {
-        User: {
-          fieldName: 'userById',
-          args: (originalResult) => ({ id: originalResult.id }),
-          selectionSet: '{ id }',
-        },
-      },
-    },
-  ],
-  mergeTypes: true,
-});
-
-
-const failureSchema = addMocksToSchema({
-  schema: makeExecutableSchema({
-    typeDefs: `
-      type User {
-        id: ID!
-        fail: Boolean
-      }
-
-      type Query {
-        userById(id: ID!): User
-      }
-    `
-  }),
-  mocks: {
-    Query() {
-      return ({
-        userById() { throw new Error("failure message"); }
-      })
-    },
-  }
-})
-
-const stichedFailureSchema = stitchSchemas({
-  subschemas: [
-    {
-      schema: failureSchema,
-      merge: {
-        User: {
-          fieldName: 'userById',
-          selectionSet: '{ id }',
-          args: (originalResult) => ({ id: originalResult.id }),
-        }
-      }
-    },
-    {
-      schema: stitchedSchema,
-      merge: {
-        User: {
-          fieldName: 'userById',
-          selectionSet: '{ id }',
-          args: (originalResult) => ({ id: originalResult.id }),
-        }
-      }
-    },
-  ],
-  mergeTypes: true
-})
-
 describe('merging using type merging', () => {
   test('works', async () => {
+    let chirpSchema = makeExecutableSchema({
+      typeDefs: `
+        type Chirp {
+          id: ID!
+          text: String
+          author: User
+          coAuthors: [User]
+          authorGroups: [[User]]
+        }
+
+        type User {
+          id: ID!
+          chirps: [Chirp]
+        }
+        type Query {
+          userById(id: ID!): User
+        }
+      `,
+    });
+
+    chirpSchema = addMocksToSchema({ schema: chirpSchema });
+
+    let authorSchema = makeExecutableSchema({
+      typeDefs: `
+        type User {
+          id: ID!
+          email: String
+        }
+        type Query {
+          userById(id: ID!): User
+        }
+      `,
+    });
+
+    authorSchema = addMocksToSchema({ schema: authorSchema });
+
+    const stitchedSchema = stitchSchemas({
+      subschemas: [
+        {
+          schema: chirpSchema,
+          merge: {
+            User: {
+              fieldName: 'userById',
+              args: (originalResult) => ({ id: originalResult.id }),
+              selectionSet: '{ id }',
+            },
+          },
+        },
+        {
+          schema: authorSchema,
+          merge: {
+            User: {
+              fieldName: 'userById',
+              args: (originalResult) => ({ id: originalResult.id }),
+              selectionSet: '{ id }',
+            },
+          },
+        },
+      ],
+      mergeTypes: true,
+    });
+
     const query = `
       query {
         userById(id: 5) {
@@ -154,26 +105,82 @@ describe('merging using type merging', () => {
     expect(result.data.userById.chirps[1].author.email).not.toBe(null);
   });
 
-  test("handle toplevel failures on subschema queries", async() => {
+  test("handle top level failures on subschema queries", async() => {
+    let userSchema = makeExecutableSchema({
+      typeDefs: `
+        type User {
+          id: ID!
+          email: String
+        }
+        type Query {
+          userById(id: ID!): User
+        }
+      `,
+    });
+
+    userSchema = addMocksToSchema({ schema: userSchema });
+
+    const failureSchema = makeExecutableSchema({
+      typeDefs: `
+        type User {
+          id: ID!
+          fail: Boolean
+        }
+
+        type Query {
+          userById(id: ID!): User
+        }
+      `,
+      resolvers: {
+        Query: {
+          userById: () => { throw new Error("failure message"); },
+        }
+      }
+    });
+
+    const stitchedSchema = stitchSchemas({
+      subschemas: [
+        {
+          schema: failureSchema,
+          merge: {
+            User: {
+              fieldName: 'userById',
+              selectionSet: '{ id }',
+              args: (originalResult) => ({ id: originalResult.id }),
+            }
+          }
+        },
+        {
+          schema: userSchema,
+          merge: {
+            User: {
+              fieldName: 'userById',
+              selectionSet: '{ id }',
+              args: (originalResult) => ({ id: originalResult.id }),
+            }
+          }
+        },
+      ],
+      mergeTypes: true
+    });
+
     const query = `
       query {
         userById(id: 5) {  id  email fail }
       }
-    `
+    `;
 
-    const result = await graphql(stichedFailureSchema, query)
+    const result = await graphql(stitchedSchema, query);
 
-    expect(result.errors).not.toBeUndefined()
-    expect(result.data).toMatchObject({ userById: { fail: null }})
+    expect(result.errors).not.toBeUndefined();
+    expect(result.data).toMatchObject({ userById: { fail: null }});
     expect(result.errors).toMatchObject([{
       message: "failure message",
       path: ["userById", "fail"]
-    }])
-  })
-});
+    }]);
+  });
 
-describe('merge types and extend', () => {
-  test('should work', async () => {
+  test('merging types and type extensions should work together', async () => {
     const resultSchema = makeExecutableSchema({
       typeDefs: `
         type Query {
@@ -299,5 +306,5 @@ describe('merge types and extend', () => {
     }
 
     expect(result).toEqual(expectedResult);
-  })
-})
+  });
+});
