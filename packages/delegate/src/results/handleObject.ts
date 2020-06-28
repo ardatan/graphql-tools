@@ -87,15 +87,28 @@ function collectSubFields(info: GraphQLResolveInfo, typeName: string): Record<st
     );
   });
 
-  const selectionSetsByField = (info.schema.extensions.stitchingInfo as StitchingInfo).selectionSetsByField;
+  const stitchingInfo = info.schema.extensions.stitchingInfo as StitchingInfo;
+  const selectionSetsByType = stitchingInfo.selectionSetsByType;
+  const selectionSetsByField = stitchingInfo.selectionSetsByField;
 
   Object.keys(subFieldNodes).forEach(responseName => {
     const fieldName = subFieldNodes[responseName][0].name.value;
-    if (selectionSetsByField[typeName] && selectionSetsByField[typeName][fieldName]) {
+    const typeSelectionSet = selectionSetsByType[typeName];
+    if (typeSelectionSet != null) {
       subFieldNodes = collectFields(
         partialExecutionContext,
         type,
-        selectionSetsByField[typeName][fieldName],
+        typeSelectionSet,
+        subFieldNodes,
+        visitedFragmentNames
+      );
+    }
+    const fieldSelectionSet = selectionSetsByField?.[typeName]?.[fieldName];
+    if (fieldSelectionSet != null) {
+      subFieldNodes = collectFields(
+        partialExecutionContext,
+        type,
+        fieldSelectionSet,
         subFieldNodes,
         visitedFragmentNames
       );
