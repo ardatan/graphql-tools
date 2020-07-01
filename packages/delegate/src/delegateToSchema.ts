@@ -3,7 +3,6 @@ import {
   execute,
   validate,
   GraphQLSchema,
-  ExecutionResult,
   isSchema,
   FieldDefinitionNode,
   getOperationAST,
@@ -14,7 +13,7 @@ import {
   GraphQLObjectType,
 } from 'graphql';
 
-import { mapAsyncIterator, Transform } from '@graphql-tools/utils';
+import { mapAsyncIterator, Transform, ExecutionResult } from '@graphql-tools/utils';
 
 import { IDelegateToSchemaOptions, IDelegateRequestOptions, SubschemaConfig, ExecutionParams } from './types';
 

@@ -7,7 +7,6 @@ import {
   defaultFieldResolver,
   graphql,
   GraphQLString,
-  ExecutionResult,
   GraphQLScalarType,
   StringValueNode,
   GraphQLInputFieldConfig,
@@ -31,6 +30,7 @@ import {
   mapSchema,
   MapperKind,
   getDirectives,
+  ExecutionResult,
 } from '@graphql-tools/utils';
 
 const typeDefs = `

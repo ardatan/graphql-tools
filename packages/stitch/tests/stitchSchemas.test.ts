@@ -6,7 +6,6 @@ import {
   GraphQLScalarType,
   subscribe,
   parse,
-  ExecutionResult,
   defaultFieldResolver,
   findDeprecatedUsages,
   printSchema,
@@ -20,6 +19,7 @@ import {
   getResolversFromSchema,
   SchemaDirectiveVisitor,
   IResolvers,
+  ExecutionResult,
 } from '@graphql-tools/utils';
 import { addMocksToSchema } from '@graphql-tools/mock';
 

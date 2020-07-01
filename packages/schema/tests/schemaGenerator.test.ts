@@ -13,7 +13,6 @@ import {
   Kind,
   IntValueNode,
   parse,
-  ExecutionResult,
   GraphQLError,
   GraphQLEnumType,
   execute,
@@ -42,7 +41,8 @@ import {
   NextResolverFn,
   VisitSchemaKind,
   ITypeDefinitions,
-  visitSchema
+  visitSchema,
+  ExecutionResult
 } from '@graphql-tools/utils';
 
 import TypeA from './fixtures/circularSchemaA';
