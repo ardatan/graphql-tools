@@ -1,4 +1,4 @@
-import { loadTypedefs } from '@graphql-tools/load';
+import { loadTypedefsSync } from '@graphql-tools/load';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { concatAST, DocumentNode, visit, isExecutableDefinitionNode, StringValueNode } from 'graphql';
 import { getOptions } from 'loader-utils';
@@ -40,31 +40,31 @@ function removeDescriptions(doc: DocumentNode): DocumentNode {
   return doc;
 }
 
-export default function (this: any, path: string) {
+export default function loader(this: any, path: string) {
   const callback = this.async();
 
   this.cacheable();
 
   const options = getOptions(this);
 
-  loadTypedefs(path, {
+  const sources = loadTypedefsSync(path, {
     loaders: [new GraphQLFileLoader()],
     noLocation: true,
     ...options,
-  }).then(sources => {
-    const documents = sources.map(source => source.document);
-    const mergedDoc = concatAST(documents);
-
-    const transformations: Array<(doc: DocumentNode) => DocumentNode> = [];
-
-    if (options.removeDescriptions) {
-      transformations.push(removeDescriptions);
-    }
-
-    const transformedDoc = transformations.reduce((doc: DocumentNode, transform) => transform(doc), mergedDoc);
-
-    const exportStatement = options.commonjs === false ? `export default ` : `module.exports = `;
-
-    return callback(null, `${exportStatement} ${JSON.stringify(transformedDoc)}`);
   });
+
+  const documents = sources.map(source => source.document);
+  const mergedDoc = concatAST(documents);
+
+  const transformations: Array<(doc: DocumentNode) => DocumentNode> = [];
+
+  if (options.removeDescriptions) {
+    transformations.push(removeDescriptions);
+  }
+
+  const transformedDoc = transformations.reduce((doc: DocumentNode, transform) => transform(doc), mergedDoc);
+
+  const exportStatement = options.commonjs === false ? `export default ` : `module.exports = `;
+
+  return callback(null, `${exportStatement} ${JSON.stringify(transformedDoc)}`);
 }
