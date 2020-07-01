@@ -41,8 +41,6 @@ function removeDescriptions(doc: DocumentNode): DocumentNode {
 }
 
 export default function loader(this: any, path: string) {
-  const callback = this.async();
-
   this.cacheable();
 
   const options = getOptions(this);
@@ -66,5 +64,5 @@ export default function loader(this: any, path: string) {
 
   const exportStatement = options.commonjs === false ? `export default ` : `module.exports = `;
 
-  return callback(null, `${exportStatement} ${JSON.stringify(transformedDoc)}`);
+  return `${exportStatement} ${JSON.stringify(transformedDoc)}`;
 }
