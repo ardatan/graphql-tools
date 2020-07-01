@@ -40,12 +40,12 @@ function removeDescriptions(doc: DocumentNode): DocumentNode {
   return doc;
 }
 
-export default function loader(this: any, path: string) {
+export default function loader(this: any) {
   this.cacheable();
 
   const options = getOptions(this);
 
-  const sources = loadTypedefsSync(path, {
+  const sources = loadTypedefsSync(this.resourcePath, {
     loaders: [new GraphQLFileLoader()],
     noLocation: true,
     ...options,
@@ -62,7 +62,7 @@ export default function loader(this: any, path: string) {
 
   const transformedDoc = transformations.reduce((doc: DocumentNode, transform) => transform(doc), mergedDoc);
 
-  const exportStatement = options.commonjs === false ? `export default` : `module.exports =`;
+  const exportStatement = options.esModule === true ? `export default` : `module.exports =`;
 
   return `${exportStatement} ${JSON.stringify(transformedDoc)}`;
 }
