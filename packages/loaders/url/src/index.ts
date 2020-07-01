@@ -1,4 +1,4 @@
-import { print, IntrospectionOptions, DocumentNode, GraphQLResolveInfo } from 'graphql';
+import { print, IntrospectionOptions, DocumentNode, GraphQLResolveInfo, Kind } from 'graphql';
 import {
   SchemaPointerSingle,
   Source,
@@ -54,18 +54,17 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     useGETForQueries: boolean;
   }): AsyncExecutor {
     const HTTP_URL = pointer.replace('ws:', 'http:').replace('wss:', 'https:');
-    return async ({
-      document,
-      variables,
-      info,
-    }: {
-      document: DocumentNode;
-      variables: any;
-      info: GraphQLResolveInfo;
-    }) => {
+    return async ({ document, variables }: { document: DocumentNode; variables: any; info: GraphQLResolveInfo }) => {
       let method = defaultMethod;
-      if (useGETForQueries && info.operation.operation === 'query') {
+      if (useGETForQueries) {
         method = 'GET';
+        for (const definition of document.definitions) {
+          if (definition.kind === Kind.OPERATION_DEFINITION) {
+            if (definition.operation !== 'query') {
+              method = defaultMethod;
+            }
+          }
+        }
       }
       const fetchResult = await fetch(HTTP_URL, {
         method,
