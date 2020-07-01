@@ -62,7 +62,7 @@ export default function loader(this: any, path: string) {
 
   const transformedDoc = transformations.reduce((doc: DocumentNode, transform) => transform(doc), mergedDoc);
 
-  const exportStatement = options.commonjs === false ? `export default ` : `module.exports = `;
+  const exportStatement = options.commonjs === false ? `export default` : `module.exports =`;
 
   return `${exportStatement} ${JSON.stringify(transformedDoc)}`;
 }

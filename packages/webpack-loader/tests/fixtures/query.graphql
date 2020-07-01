@@ -1,0 +1,7 @@
+# import "./fragment.graphql"
+
+query getChats {
+  chats {
+    ...chatFragment
+  }
+}

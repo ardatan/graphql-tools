@@ -1,0 +1,4 @@
+fragment chatFragment on Chat {
+  id
+  title
+}
