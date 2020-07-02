@@ -107,12 +107,14 @@ function createPossiblyNestedProxyingResolver(
 
 export function defaultCreateProxyingResolver({
   schema,
+  operation,
   transforms,
   transformedSchema,
 }: ICreateProxyingResolverOptions): GraphQLFieldResolver<any, any> {
   return (_parent, _args, context, info) =>
     delegateToSchema({
       schema,
+      operation,
       context,
       info,
       transforms,
