@@ -201,17 +201,19 @@ export interface ICreateProxyingResolverOptions {
 };
 ```
 
-You may not need all the options to accomplish what you need. For example, the default proxying resolver creator just uses a subset of the passed arguments:
+You may not need all the options to accomplish what you need. For example, the default proxying resolver creator just uses a subset of the passed arguments, with the fieldName inferred:
 
 ```ts
 export function defaultCreateProxyingResolver({
   schemaOrSubschemaConfig,
+  operation,
   transforms,
   transformedSchema,
 }: ICreateProxyingResolverOptions): GraphQLFieldResolver<any, any> {
   return (_parent, _args, context, info) =>
     delegateToSchema({
       schema: schemaOrSubschemaConfig,
+      operation,
       context,
       info,
       transforms,

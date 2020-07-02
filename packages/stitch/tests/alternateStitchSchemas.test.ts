@@ -969,11 +969,11 @@ describe('rename nested object fields with interfaces', () => {
 
 describe('WrapType query transform', () => {
   test('should work', async () => {
-    const transformedPropertySchema = wrapSchema(bookingSchema, [
+    const transformedBookingSchema = wrapSchema(bookingSchema, [
       new WrapType('Query', 'Namespace_Query', 'namespace'),
     ]);
     const result = await graphql(
-      transformedPropertySchema,
+      transformedBookingSchema,
       `
         query($bid: ID!) {
           namespace {
@@ -1024,11 +1024,11 @@ describe('WrapType query transform', () => {
 
 describe('WrapType mutation transform', () => {
   test('should work', async () => {
-    const transformedPropertySchema = wrapSchema(bookingSchema, [
+    const transformedBookingSchema = wrapSchema(bookingSchema, [
       new WrapType('Mutation', 'Namespace_Mutation', 'namespace'),
     ]);
     const result = await graphql(
-      transformedPropertySchema,
+      transformedBookingSchema,
       `
         mutation($bi: BookingInput!) {
           namespace {
@@ -1070,8 +1070,8 @@ describe('WrapType mutation transform', () => {
         {
           locations: [
             {
-              column: 13,
-              line: 8,
+              column: 15,
+              line: 9,
             },
           ],
           message: 'Booking.error error',
