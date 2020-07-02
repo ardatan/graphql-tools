@@ -48,6 +48,7 @@ import { stitchSchemas } from '../src/stitchSchemas';
 import { forAwaitEach } from './forAwaitEach';
 
 import {
+  bookingSchema,
   propertySchema,
   remoteBookingSchema,
   subscriptionSchema,
@@ -966,19 +967,20 @@ describe('rename nested object fields with interfaces', () => {
   });
 });
 
-describe('WrapType transform', () => {
+describe('WrapType query transform', () => {
   test('should work', async () => {
-    const transformedPropertySchema = wrapSchema(propertySchema, [
+    const transformedPropertySchema = wrapSchema(bookingSchema, [
       new WrapType('Query', 'Namespace_Query', 'namespace'),
     ]);
     const result = await graphql(
       transformedPropertySchema,
       `
-        query($pid: ID!) {
+        query($bid: ID!) {
           namespace {
-            propertyById(id: $pid) {
+            bookingById(id: $bid) {
               id
-              name
+              startTime
+              endTime
               error
             }
           }
@@ -987,16 +989,17 @@ describe('WrapType transform', () => {
       undefined,
       undefined,
       {
-        pid: 'p1',
+        bid: 'b1',
       },
     );
 
     const expectedResult: any = {
       data: {
         namespace: {
-          propertyById: {
-            id: 'p1',
-            name: 'Super great hotel',
+          bookingById: {
+            id: 'b1',
+            startTime: '2016-05-04',
+            endTime: '2016-06-03',
             error: null,
           },
         },
@@ -1006,16 +1009,76 @@ describe('WrapType transform', () => {
           locations: [
             {
               column: 15,
-              line: 7,
+              line: 8,
             },
           ],
-          message: 'Property.error error',
-          path: ['namespace', 'propertyById', 'error'],
+          message: 'Booking.error error',
+          path: ['namespace', 'bookingById', 'error'],
         },
       ],
     };
 
-    expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
+    expect(result).toEqual(expectedResult);
+  });
+});
+
+describe('WrapType mutation transform', () => {
+  test('should work', async () => {
+    const transformedPropertySchema = wrapSchema(bookingSchema, [
+      new WrapType('Mutation', 'Namespace_Mutation', 'namespace'),
+    ]);
+    const result = await graphql(
+      transformedPropertySchema,
+      `
+        mutation($bi: BookingInput!) {
+          namespace {
+            addBooking(input: $bi) {
+              id
+              propertyId
+              startTime,
+              endTime,
+              error
+            }
+          }
+        }
+      `,
+      undefined,
+      undefined,
+      {
+        bi: {
+          propertyId: "p1",
+          customerId: "c1",
+          startTime: "2020-07-02",
+          endTime: "2020-07-03",
+        },
+      },
+    );
+
+    const expectedResult: any = {
+      data: {
+        namespace: {
+          addBooking: {
+            id: "newId",
+            propertyId: "p1",
+            startTime: "2020-07-02",
+            endTime: "2020-07-03",
+            error: null,
+          },
+        },
+      },
+      errors: [
+        {
+          locations: [
+            {
+              column: 13,
+              line: 8,
+            },
+          ],
+          message: 'Booking.error error',
+          path: ['namespace', 'addBooking', 'error'],
+        },
+      ],
+    };
 
     expect(result).toEqual(expectedResult);
   });
