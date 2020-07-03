@@ -9,6 +9,7 @@ import {
   SelectionNode,
   ObjectFieldNode,
   ObjectValueNode,
+  GraphQLError,
 } from 'graphql';
 import { Executor, Subscriber, DelegationContext } from '@graphql-tools/delegate';
 import { Request } from '@graphql-tools/utils';
@@ -58,5 +59,15 @@ export type FieldNodeTransformer = (
   typeName: string,
   fieldName: string,
   fieldNode: FieldNode,
-  fragments: Record<string, FragmentDefinitionNode>
+  fragments: Record<string, FragmentDefinitionNode>,
+  context: Record<string, any>
 ) => SelectionNode | Array<SelectionNode>;
+
+export type DataTransformer = (value: any, context?: Record<string, any>) => any;
+
+export type ObjectValueTransformerMap = Record<string, DataTransformer>;
+
+export type ErrorsTransformer = (
+  errors: ReadonlyArray<GraphQLError>,
+  context: Record<string, any>
+) => Array<GraphQLError>;
