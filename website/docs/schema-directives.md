@@ -153,7 +153,7 @@ function upperDirective(directiveName: string) {
 }
 
 const { upperDirectiveTypeDefs, upperDirectiveTransformer } = upperDirective('upper');
-const { upperCaseDirectiveTypeDefs, upperCaseDirectiveTransformer } = upperDirective('upperCase');
+const { upperDirectiveTypeDefs: upperCaseDirectiveTypeDefs, upperDirectiveTransformer:upperCaseDirectiveTransformer } = upperDirective('upperCase');
 
 const schema = makeExecutableSchema({
   typeDefs: [upperDirectiveTypeDefs, upperCaseDirectiveTypeDefs, `
