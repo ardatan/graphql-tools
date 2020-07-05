@@ -1,8 +1,17 @@
 import { GraphQLSchema, extendSchema, parse } from 'graphql';
 
-import { Transform, IFieldResolver, IResolvers, Request, FieldNodeMappers } from '@graphql-tools/utils';
+import {
+  Transform,
+  IFieldResolver,
+  IResolvers,
+  Request,
+  FieldNodeMappers,
+  ExecutionResult,
+} from '@graphql-tools/utils';
 import { addResolversToSchema } from '@graphql-tools/schema';
 import { defaultMergedResolver } from '@graphql-tools/delegate';
+
+import { ObjectValueTransformerMap, ErrorsTransformer } from '../types';
 
 import MapFields from './MapFields';
 
@@ -17,16 +26,24 @@ export default class ExtendSchema implements Transform {
     resolvers = {},
     defaultFieldResolver,
     fieldNodeTransformerMap,
+    objectValueTransformerMap,
+    errorsTransformer,
   }: {
     typeDefs?: string;
     resolvers?: IResolvers;
     defaultFieldResolver?: IFieldResolver<any, any>;
     fieldNodeTransformerMap?: FieldNodeMappers;
+    objectValueTransformerMap?: ObjectValueTransformerMap;
+    errorsTransformer?: ErrorsTransformer;
   }) {
     this.typeDefs = typeDefs;
     this.resolvers = resolvers;
     this.defaultFieldResolver = defaultFieldResolver != null ? defaultFieldResolver : defaultMergedResolver;
-    this.transformer = new MapFields(fieldNodeTransformerMap != null ? fieldNodeTransformerMap : {});
+    this.transformer = new MapFields(
+      fieldNodeTransformerMap != null ? fieldNodeTransformerMap : {},
+      objectValueTransformerMap,
+      errorsTransformer
+    );
   }
 
   public transformSchema(schema: GraphQLSchema): GraphQLSchema {
@@ -41,7 +58,19 @@ export default class ExtendSchema implements Transform {
     });
   }
 
-  public transformRequest(originalRequest: Request): Request {
-    return this.transformer.transformRequest(originalRequest);
+  public transformRequest(
+    originalRequest: Request,
+    delegationContext?: Record<string, any>,
+    transformationContext?: Record<string, any>
+  ): Request {
+    return this.transformer.transformRequest(originalRequest, delegationContext, transformationContext);
+  }
+
+  public transformResult(
+    originalResult: ExecutionResult,
+    delegationContext?: Record<string, any>,
+    transformationContext?: Record<string, any>
+  ): ExecutionResult {
+    return this.transformer.transformResult(originalResult, delegationContext, transformationContext);
   }
 }

@@ -19,7 +19,15 @@ import {
   visit,
 } from 'graphql';
 
-import { Transform, Request, ExecutionResult, MapperKind, RenameTypesOptions, mapSchema } from '@graphql-tools/utils';
+import {
+  Transform,
+  Request,
+  ExecutionResult,
+  MapperKind,
+  RenameTypesOptions,
+  mapSchema,
+  visitData,
+} from '@graphql-tools/utils';
 
 export default class RenameTypes implements Transform {
   private readonly renamer: (name: string) => string | undefined;
@@ -119,34 +127,13 @@ export default class RenameTypes implements Transform {
   public transformResult(result: ExecutionResult): ExecutionResult {
     return {
       ...result,
-      data: this.transformData(result.data),
-    };
-  }
-
-  private transformData(data: any): any {
-    if (data == null) {
-      return data;
-    } else if (Array.isArray(data)) {
-      return data.map(value => this.transformData(value));
-    } else if (typeof data === 'object') {
-      return this.transformObject(data);
-    }
-
-    return data;
-  }
-
-  private transformObject(object: Record<string, any>): Record<string, any> {
-    Object.keys(object).forEach(key => {
-      const value = object[key];
-      if (key === '__typename') {
-        if (value in this.map) {
-          object[key] = this.map[value];
+      data: visitData(result.data, object => {
+        const typeName = object?.__typename;
+        if (typeName != null && typeName in this.map) {
+          object.__typename = this.map[typeName];
         }
-      } else {
-        object[key] = this.transformData(value);
-      }
-    });
-
-    return object;
+        return object;
+      }),
+    };
   }
 }
