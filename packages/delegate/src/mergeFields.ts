@@ -1,15 +1,16 @@
-import { FieldNode, SelectionNode, Kind, GraphQLResolveInfo } from 'graphql';
+import { FieldNode, SelectionNode, Kind, GraphQLResolveInfo, SelectionSetNode } from 'graphql';
 
 import { mergeProxiedResults } from './proxiedResult';
 import { MergedTypeInfo, SubschemaConfig } from './types';
+import { memoize4 } from './memoize';
 
-function buildDelegationPlan(
+const buildDelegationPlan = memoize4(function (
   mergedTypeInfo: MergedTypeInfo,
   fieldNodes: Array<FieldNode>,
   sourceSubschemas: Array<SubschemaConfig>,
   targetSubschemas: Array<SubschemaConfig>
 ): {
-  delegationMap: Map<SubschemaConfig, Array<SelectionNode>>;
+  delegationMap: Map<SubschemaConfig, SelectionSetNode>;
   unproxiableFieldNodes: Array<FieldNode>;
   proxiableSubschemas: Array<SubschemaConfig>;
   nonProxiableSubschemas: Array<SubschemaConfig>;
@@ -87,13 +88,22 @@ function buildDelegationPlan(
     }
   });
 
+  const finalDelegationMap: Map<SubschemaConfig, SelectionSetNode> = new Map();
+
+  delegationMap.forEach((selections, subschema) => {
+    finalDelegationMap.set(subschema, {
+      kind: Kind.SELECTION_SET,
+      selections,
+    });
+  });
+
   return {
-    delegationMap,
+    delegationMap: finalDelegationMap,
     unproxiableFieldNodes,
     proxiableSubschemas,
     nonProxiableSubschemas,
   };
-}
+});
 
 export function mergeFields(
   mergedTypeInfo: MergedTypeInfo,
@@ -120,22 +130,15 @@ export function mergeFields(
     return object;
   }
 
-  const maybePromises: Promise<any> | any = [];
-  delegationMap.forEach((selections: Array<SelectionNode>, s: SubschemaConfig) => {
-    const maybePromise = s.merge[typeName].resolve(object, context, info, s, {
-      kind: Kind.SELECTION_SET,
-      selections,
-    });
-    maybePromises.push(maybePromise);
-  });
-
   let containsPromises = false;
-  for (const maybePromise of maybePromises) {
-    if (maybePromise instanceof Promise) {
+  const maybePromises: Promise<any> | any = [];
+  delegationMap.forEach((selectionSet: SelectionSetNode, s: SubschemaConfig) => {
+    const maybePromise = s.merge[typeName].resolve(object, context, info, s, selectionSet);
+    maybePromises.push(maybePromise);
+    if (!containsPromises && maybePromise instanceof Promise) {
       containsPromises = true;
-      break;
     }
-  }
+  });
 
   return containsPromises
     ? Promise.all(maybePromises).then(results =>
