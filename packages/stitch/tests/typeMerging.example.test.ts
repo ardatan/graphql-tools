@@ -1,9 +1,11 @@
 // Conversion of Apollo Federation demo from https://github.com/apollographql/federation-demo.
 // See: https://github.com/ardatan/graphql-tools/issues/1697
 
-import { graphql, ExecutionResult } from 'graphql';
+import { graphql } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
+
+import { ExecutionResult } from '@graphql-tools/utils';
 
 import { stitchSchemas } from '../src/stitchSchemas';
 

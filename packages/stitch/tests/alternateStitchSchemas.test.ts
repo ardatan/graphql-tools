@@ -1,7 +1,6 @@
 import {
   graphql,
   GraphQLSchema,
-  ExecutionResult,
   subscribe,
   parse,
   GraphQLScalarType,
@@ -40,7 +39,9 @@ import { makeExecutableSchema } from '@graphql-tools/schema';
 import {
   wrapFieldNode,
   renameFieldNode,
-  hoistFieldNodes, filterSchema
+  hoistFieldNodes,
+  filterSchema,
+  ExecutionResult,
 } from '@graphql-tools/utils';
 
 import { stitchSchemas } from '../src/stitchSchemas';

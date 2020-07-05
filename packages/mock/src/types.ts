@@ -1,4 +1,6 @@
-import { GraphQLFieldResolver, GraphQLType, GraphQLSchema, ExecutionResult } from 'graphql';
+import { GraphQLFieldResolver, GraphQLType, GraphQLSchema } from 'graphql';
+
+import { ExecutionResult } from '@graphql-tools/utils';
 
 /* XXX on mocks, args are optional, Not sure if a bug. */
 export type IMockFn = GraphQLFieldResolver<any, any>;

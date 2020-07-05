@@ -3,12 +3,13 @@ import {
   parse,
   graphql,
   subscribe,
-  ExecutionResult,
   graphqlSync,
 } from 'graphql';
 import { PubSub } from 'graphql-subscriptions';
 
 import { makeExecutableSchema, addSchemaLevelResolver } from '@graphql-tools/schema';
+
+import { ExecutionResult } from '@graphql-tools/utils';
 
 import { forAwaitEach } from './forAwaitEach';
 

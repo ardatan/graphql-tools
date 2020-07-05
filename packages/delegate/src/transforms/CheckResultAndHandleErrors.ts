@@ -1,6 +1,6 @@
-import { GraphQLResolveInfo, ExecutionResult, GraphQLOutputType, GraphQLSchema } from 'graphql';
+import { GraphQLResolveInfo, GraphQLOutputType, GraphQLSchema } from 'graphql';
 
-import { Transform, getResponseKeyFromInfo } from '@graphql-tools/utils';
+import { Transform, getResponseKeyFromInfo, ExecutionResult } from '@graphql-tools/utils';
 import { handleResult } from '../results/handleResult';
 import { SubschemaConfig } from '../types';
 

@@ -1,7 +1,6 @@
 import { createHash } from 'crypto';
 
 import {
-  ExecutionResult,
   GraphQLArgument,
   GraphQLEnumType,
   GraphQLEnumValue,
@@ -29,9 +28,12 @@ import {
 import formatDate from 'dateformat';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { VisitableSchemaType, SchemaDirectiveVisitor,
+import {
+  VisitableSchemaType,
+  SchemaDirectiveVisitor,
   SchemaVisitor,
   visitSchema,
+  ExecutionResult,
 } from '@graphql-tools/utils';
 
 const typeDefs = `
