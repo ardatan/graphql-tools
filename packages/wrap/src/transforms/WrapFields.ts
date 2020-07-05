@@ -71,13 +71,17 @@ export default class WrapFields implements Transform {
     this.transformer = new MapFields(
       {
         [outerTypeName]: {
-          [outerMostWrappingFieldName]: (fieldNode, fragments, context: WrapFieldsTransformationContext) =>
+          [outerMostWrappingFieldName]: (
+            fieldNode,
+            fragments,
+            transformationContext: WrapFieldsTransformationContext
+          ) =>
             hoistFieldNodes({
               fieldNode,
               path: remainingWrappingFieldNames,
               fieldNames,
               fragments,
-              context,
+              transformationContext,
               prefix,
             }),
         },
@@ -199,7 +203,7 @@ function hoistFieldNodes({
   fieldNames,
   path,
   fragments,
-  context,
+  transformationContext,
   prefix,
   index = 0,
   wrappingPath = [],
@@ -208,7 +212,7 @@ function hoistFieldNodes({
   fieldNames?: Array<string>;
   path: Array<string>;
   fragments: Record<string, FragmentDefinitionNode>;
-  context: WrapFieldsTransformationContext;
+  transformationContext: WrapFieldsTransformationContext;
   prefix: string;
   index?: number;
   wrappingPath?: ReadonlyArray<string>;
@@ -229,7 +233,7 @@ function hoistFieldNodes({
             fieldNames,
             path,
             fragments,
-            context,
+            transformationContext,
             prefix,
             index: index + 1,
             wrappingPath: newWrappingPath,
@@ -240,10 +244,10 @@ function hoistFieldNodes({
   } else {
     collectFields(fieldNode.selectionSet, fragments).forEach((possibleFieldNode: FieldNode) => {
       if (!fieldNames || fieldNames.includes(possibleFieldNode.name.value)) {
-        const nextIndex = context.nextIndex;
-        context.nextIndex++;
+        const nextIndex = transformationContext.nextIndex;
+        transformationContext.nextIndex++;
         const indexingAlias = `__${prefix}${nextIndex}__`;
-        context.paths[indexingAlias] = {
+        transformationContext.paths[indexingAlias] = {
           pathToField: wrappingPath.concat([alias]),
           alias: possibleFieldNode.alias != null ? possibleFieldNode.alias.value : possibleFieldNode.name.value,
         };

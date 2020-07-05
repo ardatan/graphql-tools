@@ -154,7 +154,7 @@ export interface Transform {
 export type FieldNodeMapper = (
   fieldNode: FieldNode,
   fragments: Record<string, FragmentDefinitionNode>,
-  context: Record<string, any>
+  transformationContext: Record<string, any>
 ) => SelectionNode | Array<SelectionNode>;
 
 export type FieldNodeMappers = Record<string, Record<string, FieldNodeMapper>>;

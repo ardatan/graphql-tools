@@ -16,7 +16,7 @@ export default class MapFields implements Transform {
   ) {
     this.transformer = new TransformCompositeFields(
       (_typeName, _fieldName, fieldConfig) => fieldConfig,
-      (typeName, fieldName, fieldNode, fragments, context) => {
+      (typeName, fieldName, fieldNode, fragments, transformationContext) => {
         const typeTransformers = fieldNodeTransformerMap[typeName];
         if (typeTransformers == null) {
           return undefined;
@@ -27,10 +27,10 @@ export default class MapFields implements Transform {
           return undefined;
         }
 
-        return fieldNodeTransformer(fieldNode, fragments, context);
+        return fieldNodeTransformer(fieldNode, fragments, transformationContext);
       },
       objectValueTransformerMap != null
-        ? (data, context) => {
+        ? (data, transformationContext) => {
             if (data == null) {
               return data;
             }
@@ -45,7 +45,7 @@ export default class MapFields implements Transform {
               return data;
             }
 
-            return transformer(data, context);
+            return transformer(data, transformationContext);
           }
         : undefined,
       errorsTransformer != null ? errorsTransformer : undefined

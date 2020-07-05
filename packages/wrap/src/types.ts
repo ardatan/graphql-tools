@@ -60,14 +60,14 @@ export type FieldNodeTransformer = (
   fieldName: string,
   fieldNode: FieldNode,
   fragments: Record<string, FragmentDefinitionNode>,
-  context: Record<string, any>
+  transformationContext: Record<string, any>
 ) => SelectionNode | Array<SelectionNode>;
 
-export type DataTransformer = (value: any, context?: Record<string, any>) => any;
+export type DataTransformer = (value: any, transformationContext?: Record<string, any>) => any;
 
 export type ObjectValueTransformerMap = Record<string, DataTransformer>;
 
 export type ErrorsTransformer = (
   errors: ReadonlyArray<GraphQLError>,
-  context: Record<string, any>
+  transformationContext: Record<string, any>
 ) => Array<GraphQLError>;
