@@ -3,6 +3,7 @@ import { GraphQLSchema, FieldNode, GraphQLObjectType, GraphQLResolveInfo } from 
 import { collectFields, GraphQLExecutionContext } from '@graphql-tools/utils';
 import { isSubschemaConfig } from './Subschema';
 import { MergedTypeInfo, SubschemaConfig, StitchingInfo } from './types';
+import { memoize3and1 } from './memoize';
 
 function collectSubFields(info: GraphQLResolveInfo, typeName: string): Record<string, Array<FieldNode>> {
   let subFieldNodes: Record<string, Array<FieldNode>> = Object.create(null);
@@ -56,7 +57,7 @@ function collectSubFields(info: GraphQLResolveInfo, typeName: string): Record<st
   return subFieldNodes;
 }
 
-export function getFieldsNotInSubschema(
+export const getFieldsNotInSubschema = memoize3and1(function (
   info: GraphQLResolveInfo,
   subschema: GraphQLSchema | SubschemaConfig,
   mergedTypeInfo: MergedTypeInfo,
@@ -76,4 +77,4 @@ export function getFieldsNotInSubschema(
   });
 
   return fieldsNotInSchema;
-}
+});

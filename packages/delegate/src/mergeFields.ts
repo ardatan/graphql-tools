@@ -2,8 +2,9 @@ import { FieldNode, SelectionNode, Kind, GraphQLResolveInfo, SelectionSetNode } 
 
 import { mergeProxiedResults } from './proxiedResult';
 import { MergedTypeInfo, SubschemaConfig } from './types';
+import { memoize4 } from './memoize';
 
-function buildDelegationPlan(
+const buildDelegationPlan = memoize4(function (
   mergedTypeInfo: MergedTypeInfo,
   fieldNodes: Array<FieldNode>,
   sourceSubschemas: Array<SubschemaConfig>,
@@ -102,7 +103,7 @@ function buildDelegationPlan(
     proxiableSubschemas,
     nonProxiableSubschemas,
   };
-}
+});
 
 export function mergeFields(
   mergedTypeInfo: MergedTypeInfo,
