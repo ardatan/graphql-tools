@@ -120,8 +120,16 @@ function createMergedTypes(
           subschemas.push(subschemaConfig);
         });
 
+        const targetSubschemas: Map<SubschemaConfig, Array<SubschemaConfig>> = new Map();
+        subschemas.forEach(subschema => {
+          const filteredSubschemas = subschemas.filter(s => s !== subschema);
+          if (filteredSubschemas.length) {
+            targetSubschemas.set(subschema, filteredSubschemas);
+          }
+        });
+
         mergedTypes[typeName] = {
-          subschemas,
+          targetSubschemas,
           typeMaps,
           requiredSelections,
           selectionSets,

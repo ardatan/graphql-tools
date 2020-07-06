@@ -20,7 +20,7 @@ export type MergeTypeCandidate = {
 export type MergeTypeFilter = (mergeTypeCandidates: Array<MergeTypeCandidate>, typeName: string) => boolean;
 
 export interface MergedTypeInfo {
-  subschemas: Array<SubschemaConfig>;
+  targetSubschemas: Map<SubschemaConfig, Array<SubschemaConfig>>;
   requiredSelections: Array<SelectionNode>;
   uniqueFields: Record<string, SubschemaConfig>;
   nonUniqueFields: Record<string, Array<SubschemaConfig>>;

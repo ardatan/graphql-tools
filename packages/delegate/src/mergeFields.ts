@@ -2,16 +2,13 @@ import { FieldNode, SelectionNode, Kind, GraphQLResolveInfo, SelectionSetNode } 
 
 import { mergeProxiedResults } from './proxiedResult';
 import { MergedTypeInfo, SubschemaConfig } from './types';
-import { memoize4 } from './memoize';
+import { memoize3, memoize2 } from './memoize';
 
-const buildDelegationPlan = memoize4(function (
+const sortSubschemasByProxiability = memoize3(function (
   mergedTypeInfo: MergedTypeInfo,
-  fieldNodes: Array<FieldNode>,
-  sourceSubschemas: Array<SubschemaConfig>,
+  sourceSubschemaOrSourceSubschemas: SubschemaConfig | Array<SubschemaConfig>,
   targetSubschemas: Array<SubschemaConfig>
 ): {
-  delegationMap: Map<SubschemaConfig, SelectionSetNode>;
-  unproxiableFieldNodes: Array<FieldNode>;
   proxiableSubschemas: Array<SubschemaConfig>;
   nonProxiableSubschemas: Array<SubschemaConfig>;
 } {
@@ -21,6 +18,9 @@ const buildDelegationPlan = memoize4(function (
   const proxiableSubschemas: Array<SubschemaConfig> = [];
   const nonProxiableSubschemas: Array<SubschemaConfig> = [];
 
+  const sourceSubschemas = Array.isArray(sourceSubschemaOrSourceSubschemas)
+    ? sourceSubschemaOrSourceSubschemas
+    : [sourceSubschemaOrSourceSubschemas];
   targetSubschemas.forEach(t => {
     if (
       sourceSubschemas.some(s => {
@@ -34,6 +34,20 @@ const buildDelegationPlan = memoize4(function (
     }
   });
 
+  return {
+    proxiableSubschemas,
+    nonProxiableSubschemas,
+  };
+});
+
+const buildDelegationPlan = memoize3(function (
+  mergedTypeInfo: MergedTypeInfo,
+  fieldNodes: Array<FieldNode>,
+  proxiableSubschemas: Array<SubschemaConfig>
+): {
+  delegationMap: Map<SubschemaConfig, SelectionSetNode>;
+  unproxiableFieldNodes: Array<FieldNode>;
+} {
   const { uniqueFields, nonUniqueFields } = mergedTypeInfo;
   const unproxiableFieldNodes: Array<FieldNode> = [];
 
@@ -100,9 +114,16 @@ const buildDelegationPlan = memoize4(function (
   return {
     delegationMap: finalDelegationMap,
     unproxiableFieldNodes,
-    proxiableSubschemas,
-    nonProxiableSubschemas,
   };
+});
+
+const combineSubschemas = memoize2(function (
+  subschemaOrSubschemas: SubschemaConfig | Array<SubschemaConfig>,
+  additionalSubschemas: Array<SubschemaConfig>
+): Array<SubschemaConfig> {
+  return Array.isArray(subschemaOrSubschemas)
+    ? subschemaOrSubschemas.concat(additionalSubschemas)
+    : [subschemaOrSubschemas].concat(additionalSubschemas);
 });
 
 export function mergeFields(
@@ -110,7 +131,7 @@ export function mergeFields(
   typeName: string,
   object: any,
   fieldNodes: Array<FieldNode>,
-  sourceSubschemas: Array<SubschemaConfig>,
+  sourceSubschemaOrSourceSubschemas: SubschemaConfig | Array<SubschemaConfig>,
   targetSubschemas: Array<SubschemaConfig>,
   context: Record<string, any>,
   info: GraphQLResolveInfo
@@ -119,12 +140,13 @@ export function mergeFields(
     return object;
   }
 
-  const { delegationMap, unproxiableFieldNodes, proxiableSubschemas, nonProxiableSubschemas } = buildDelegationPlan(
+  const { proxiableSubschemas, nonProxiableSubschemas } = sortSubschemasByProxiability(
     mergedTypeInfo,
-    fieldNodes,
-    sourceSubschemas,
+    sourceSubschemaOrSourceSubschemas,
     targetSubschemas
   );
+
+  const { delegationMap, unproxiableFieldNodes } = buildDelegationPlan(mergedTypeInfo, fieldNodes, proxiableSubschemas);
 
   if (!delegationMap.size) {
     return object;
@@ -147,7 +169,7 @@ export function mergeFields(
           typeName,
           mergeProxiedResults(object, ...results),
           unproxiableFieldNodes,
-          sourceSubschemas.concat(proxiableSubschemas),
+          combineSubschemas(sourceSubschemaOrSourceSubschemas, proxiableSubschemas),
           nonProxiableSubschemas,
           context,
           info
@@ -158,7 +180,7 @@ export function mergeFields(
         typeName,
         mergeProxiedResults(object, ...maybePromises),
         unproxiableFieldNodes,
-        sourceSubschemas.concat(proxiableSubschemas),
+        combineSubschemas(sourceSubschemaOrSourceSubschemas, proxiableSubschemas),
         nonProxiableSubschemas,
         context,
         info
