@@ -1,12 +1,11 @@
 import { GraphQLError } from 'graphql';
 
-import { mergeDeep, ERROR_SYMBOL, relocatedError, setErrors, getErrors } from '@graphql-tools/utils';
+import { ERROR_SYMBOL, relocatedError, setErrors, getErrors } from '@graphql-tools/utils';
 
-import { handleNull } from './results/handleNull';
+import { OBJECT_SUBSCHEMA_SYMBOL } from '../symbols';
+import { getSubschema, setObjectSubschema } from '../Subschema';
 
-import { FIELD_SUBSCHEMA_MAP_SYMBOL, OBJECT_SUBSCHEMA_SYMBOL } from './symbols';
-import { getSubschema, setObjectSubschema } from './Subschema';
-import { SubschemaConfig } from './types';
+import { handleNull } from './handleNull';
 
 export function isProxiedResult(result: any) {
   return result != null ? result[ERROR_SYMBOL] : result;
@@ -63,27 +62,6 @@ export function dehoistResult(parent: any, delimeter = '__gqltf__'): any {
   });
 
   result[OBJECT_SUBSCHEMA_SYMBOL] = parent[OBJECT_SUBSCHEMA_SYMBOL];
-
-  return result;
-}
-
-export function mergeProxiedResults(target: any, ...sources: Array<any>): any {
-  const results = sources.filter(source => !(source instanceof Error));
-  const fieldSubschemaMap = results.reduce((acc: Record<any, SubschemaConfig>, source: any) => {
-    const subschema = source[OBJECT_SUBSCHEMA_SYMBOL];
-    Object.keys(source).forEach(key => {
-      acc[key] = subschema;
-    });
-    return acc;
-  }, {});
-
-  const result = results.reduce(mergeDeep, target);
-  result[FIELD_SUBSCHEMA_MAP_SYMBOL] = target[FIELD_SUBSCHEMA_MAP_SYMBOL]
-    ? Object.assign({}, target[FIELD_SUBSCHEMA_MAP_SYMBOL], fieldSubschemaMap)
-    : fieldSubschemaMap;
-
-  const errors = sources.map((source: any) => (source instanceof Error ? source : source[ERROR_SYMBOL]));
-  result[ERROR_SYMBOL] = target[ERROR_SYMBOL].concat(...errors);
 
   return result;
 }

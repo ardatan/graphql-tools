@@ -1,8 +1,9 @@
 import { GraphQLSchema, FieldNode, GraphQLObjectType, GraphQLResolveInfo } from 'graphql';
 
 import { collectFields, GraphQLExecutionContext } from '@graphql-tools/utils';
-import { isSubschemaConfig } from './Subschema';
-import { MergedTypeInfo, SubschemaConfig, StitchingInfo } from './types';
+import { isSubschemaConfig } from '../Subschema';
+import { MergedTypeInfo, SubschemaConfig, StitchingInfo } from '../types';
+
 import { memoizeInfoAnd2Objectsand1Primitive } from './memoize';
 
 function collectSubFields(info: GraphQLResolveInfo, typeName: string): Record<string, Array<FieldNode>> {

@@ -1,6 +1,6 @@
 import { IFieldResolver } from '@graphql-tools/utils';
 
-import { unwrapResult, dehoistResult } from './proxiedResult';
+import { unwrapResult, dehoistResult } from './results/proxiedResult';
 import { defaultMergedResolver } from './defaultMergedResolver';
 
 export function createMergedResolver({
