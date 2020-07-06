@@ -19,7 +19,7 @@
   },
   "devDependencies": {
     "@types/graphql-upload": "8.0.3",
-    "express-graphql": "0.9.0",
+    "express-graphql": "0.10.2",
     "graphql-upload": "11.0.0"
   },
   "dependencies": {
