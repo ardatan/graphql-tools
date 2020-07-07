@@ -5617,10 +5617,10 @@ expect@^26.1.0:
     jest-message-util "^26.1.0"
     jest-regex-util "^26.0.0"
 
-express-graphql@0.10.2:
-  version "0.10.2"
-  resolved "https://registry.yarnpkg.com/express-graphql/-/express-graphql-0.10.2.tgz#1b83a9f2a07cb04e59b34fd0396bba81a2c67121"
-  integrity sha512-OV8L1li3e2kFegslfyxY/Geh0JCRy/pmZUQmiRP+B3LUuRq4w8D+esjZodhW4vh8N0SeA5fFZ1UvbnVkt/fGOw==
+express-graphql@0.11.0:
+  version "0.11.0"
+  resolved "https://registry.yarnpkg.com/express-graphql/-/express-graphql-0.11.0.tgz#48089f0d40074d7783c65ff86dd9cae95afea2ef"
+  integrity sha512-IMYmF2aIBKKfo8c+EENBNR8FAy91QHboxfaHe1omCyb49GJXsToUgcjjIF/PfWJdzn0Ofp6JJvcsODQJrqpz2g==
   dependencies:
     accepts "^1.3.7"
     content-type "^1.0.4"
