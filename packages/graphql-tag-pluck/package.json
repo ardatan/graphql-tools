@@ -24,7 +24,7 @@
     "vue-template-compiler": "^2.6.11"
   },
   "devDependencies": {
-    "@types/babel__traverse": "7.0.12",
+    "@types/babel__traverse": "7.0.13",
     "vue-template-compiler": "2.6.11"
   },
   "publishConfig": {
