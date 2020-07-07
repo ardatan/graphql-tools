@@ -3,7 +3,7 @@ import { AddressInfo } from 'net';
 import { Readable } from 'stream';
 
 import express, { Express } from 'express';
-import graphqlHTTP from 'express-graphql';
+import { graphqlHTTP } from 'express-graphql';
 import { GraphQLUpload, graphqlUploadExpress } from 'graphql-upload';
 import FormData from 'form-data';
 import { fetch } from 'cross-fetch';
