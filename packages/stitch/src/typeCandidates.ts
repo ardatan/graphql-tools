@@ -7,9 +7,9 @@ import {
   GraphQLDirective,
   ASTNode,
   isSchema,
-  isScalarType,
   SchemaDefinitionNode,
   SchemaExtensionNode,
+  isSpecifiedScalarType,
 } from 'graphql';
 
 import { wrapSchema } from '@graphql-tools/wrap';
@@ -204,7 +204,7 @@ export function buildTypeMap({
       typeName === operationTypeNames.query ||
       typeName === operationTypeNames.mutation ||
       typeName === operationTypeNames.subscription ||
-      (mergeTypes === true && !isScalarType(typeCandidates[typeName][0].type)) ||
+      (mergeTypes === true && !typeCandidates[typeName].some(candidate => isSpecifiedScalarType(candidate.type))) ||
       (typeof mergeTypes === 'function' && mergeTypes(typeCandidates[typeName], typeName)) ||
       (Array.isArray(mergeTypes) && mergeTypes.includes(typeName)) ||
       (stitchingInfo != null && typeName in stitchingInfo.mergedTypes)
