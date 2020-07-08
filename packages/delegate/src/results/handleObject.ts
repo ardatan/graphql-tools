@@ -5,8 +5,9 @@ import { setErrors, slicedError } from '@graphql-tools/utils';
 import { SubschemaConfig } from '../types';
 
 import { setObjectSubschema } from '../Subschema';
-import { mergeFields } from '../mergeFields';
-import { getFieldsNotInSubschema } from '../getFieldsNotInSubschema';
+
+import { mergeFields } from './mergeFields';
+import { getFieldsNotInSubschema } from './getFieldsNotInSubschema';
 
 export function handleObject(
   type: GraphQLCompositeType,
@@ -35,26 +36,21 @@ export function handleObject(
   let targetSubschemas: Array<SubschemaConfig>;
 
   if (mergedTypeInfo != null) {
-    targetSubschemas = mergedTypeInfo.subschemas;
+    targetSubschemas = mergedTypeInfo.targetSubschemas.get(subschema);
   }
 
   if (!targetSubschemas) {
     return object;
   }
 
-  targetSubschemas = targetSubschemas.filter(s => s !== subschema);
-  if (!targetSubschemas.length) {
-    return object;
-  }
-
-  const fieldNodes = getFieldsNotInSubschema(info, subschema, mergedTypeInfo, object.__typename);
+  const fieldNodes = getFieldsNotInSubschema(info, subschema, mergedTypeInfo, typeName);
 
   return mergeFields(
     mergedTypeInfo,
     typeName,
     object,
     fieldNodes,
-    [subschema as SubschemaConfig],
+    subschema as SubschemaConfig,
     targetSubschemas,
     context,
     info
