@@ -135,7 +135,8 @@ export interface SubschemaConfig {
 export interface MergedTypeConfig {
   selectionSet?: string;
   fieldName?: string;
-  args?: (originalResult: any) => Record<string, any>;
+  args?: (source: any) => Record<string, any>;
+  key?: (originalResult: any) => any;
   resolve?: MergedTypeResolver;
 }
 

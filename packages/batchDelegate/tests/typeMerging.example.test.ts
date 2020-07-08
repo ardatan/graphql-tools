@@ -1,16 +1,16 @@
-// Conversion of Apollo Federation demo from https://github.com/apollographql/federation-demo.
-// See: https://github.com/ardatan/graphql-tools/issues/1697
+// Conversion of Apollo Federation demo
+// Compare: https://github.com/apollographql/federation-demo
+// See also:
+// https://github.com/ardatan/graphql-tools/issues/1697
+// https://github.com/ardatan/graphql-tools/issues/1710
 
 import { graphql } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
-
 import { ExecutionResult } from '@graphql-tools/utils';
-
-import { stitchSchemas } from '../src/stitchSchemas';
+import { stitchSchemas } from '@graphql-tools/stitch';
 
 describe('merging using type merging', () => {
-
   const users = [
     {
       id: '1',
@@ -31,6 +31,7 @@ describe('merging using type merging', () => {
       type Query {
         me: User
         _userById(id: ID!): User
+        _usersById(ids: [ID!]!): [User]
       }
       type User {
         id: ID!
@@ -42,6 +43,7 @@ describe('merging using type merging', () => {
       Query: {
         me: () => users[0],
         _userById: (_root, { id }) => users.find(user => user.id === id),
+        _usersById: (_root, { ids }) => ids.map((id: any) => users.find(user => user.id === id)),
       },
     },
   });
@@ -111,6 +113,7 @@ describe('merging using type merging', () => {
       type Query {
         topProducts(first: Int = 5): [Product]
         _productByUpc(upc: String!): Product
+        _productsByUpc(upcs: [String!]!): [Product]
       }
       type Product {
         upc: String!
@@ -123,6 +126,7 @@ describe('merging using type merging', () => {
       Query: {
         topProducts: (_root, args) => products.slice(0, args.first),
         _productByUpc: (_root, { upc }) => products.find(product => product.upc === upc),
+        _productsByUpc: (_root, { upcs }) => upcs.map((upc: any) => products.find(product => product.upc === upc)),
       }
     },
   });
@@ -179,8 +183,10 @@ describe('merging using type merging', () => {
       }
       type Query {
         _userById(id: ID!): User
+        _usersById(ids: [ID!]!): [User]
         _reviewById(id: ID!): Review
         _productByUpc(upc: String!): Product
+        _productsByUpc(upcs: [String!]!): [Product]
       }
     `,
     resolvers: {
@@ -201,7 +207,9 @@ describe('merging using type merging', () => {
       Query: {
         _reviewById: (_root, { id }) => reviews.find(review => review.id === id),
         _userById: (_root, { id }) => ({ id }),
+        _usersById: (_root, { ids }) => ids.map((id: string) => ({ id })),
         _productByUpc: (_, { upc }) => ({ upc }),
+        _productsByUpc: (_, { upcs }) => upcs.map((upc: string) => ({ upc })),
       },
     }
   });
@@ -212,8 +220,8 @@ describe('merging using type merging', () => {
         schema: accountsSchema,
         merge: {
           User: {
-            fieldName: '_userById',
             selectionSet: '{ id }',
+            fieldName: '_userById',
             args: ({ id }) => ({ id })
           }
         }
@@ -222,8 +230,8 @@ describe('merging using type merging', () => {
         schema: inventorySchema,
         merge: {
           Product: {
-            fieldName: '_productByUpc',
             selectionSet: '{ upc weight price }',
+            fieldName: '_productByUpc',
             args: ({ upc, weight, price }) => ({ upc, weight, price }),
           }
         }
@@ -232,8 +240,8 @@ describe('merging using type merging', () => {
         schema: productsSchema,
         merge: {
           Product: {
-            fieldName: '_productByUpc',
             selectionSet: '{ upc }',
+            fieldName: '_productByUpc',
             args: ({ upc }) => ({ upc }),
           }
         }
@@ -242,13 +250,14 @@ describe('merging using type merging', () => {
         schema: reviewsSchema,
         merge: {
           User: {
-            fieldName: '_userById',
             selectionSet: '{ id }',
-            args: ({ id }) => ({ id }),
+            fieldName: '_usersById',
+            args: (ids) => ({ ids }),
+            key: ({ id }) => id,
           },
           Product: {
-            fieldName: '_productByUpc',
             selectionSet: '{ upc }',
+            fieldName: '_productByUpc',
             args: ({ upc }) => ({ upc }),
           },
         }

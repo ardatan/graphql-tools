@@ -19,6 +19,7 @@
     "directory": "dist"
   },
   "dependencies": {
+    "@graphql-tools/batchDelegate": "6.0.12",
     "@graphql-tools/delegate": "6.0.12",
     "@graphql-tools/graphql-tag-pluck": "6.0.12",
     "@graphql-tools/import": "6.0.12",

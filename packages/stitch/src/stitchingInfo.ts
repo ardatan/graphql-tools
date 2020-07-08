@@ -21,6 +21,7 @@ import {
 } from '@graphql-tools/utils';
 
 import { delegateToSchema, isSubschemaConfig, SubschemaConfig } from '@graphql-tools/delegate';
+import { createBatchDelegateFn } from '@graphql-tools/batchDelegate';
 
 import { MergeTypeCandidate, MergedTypeInfo, StitchingInfo, MergeTypeFilter } from './types';
 
@@ -103,18 +104,42 @@ function createMergedTypes(
           }
 
           if (!mergedTypeConfig.resolve) {
-            mergedTypeConfig.resolve = (originalResult, context, info, subschema, selectionSet) =>
-              delegateToSchema({
-                schema: subschema,
-                operation: 'query',
-                fieldName: mergedTypeConfig.fieldName,
-                returnType: getNamedType(info.returnType) as GraphQLOutputType,
-                args: mergedTypeConfig.args(originalResult),
-                selectionSet,
-                context,
-                info,
-                skipTypeMerging: true,
-              });
+            if (mergedTypeConfig.key != null) {
+              const batchDelegateToSubschema = createBatchDelegateFn(
+                mergedTypeConfig.args,
+                ({ schema, selectionSet, context, info }) => ({
+                  schema,
+                  operation: 'query',
+                  fieldName: mergedTypeConfig.fieldName,
+                  selectionSet,
+                  context,
+                  info,
+                  skipTypeMerging: true,
+                })
+              );
+
+              mergedTypeConfig.resolve = (originalResult, context, info, subschema, selectionSet) =>
+                batchDelegateToSubschema({
+                  key: mergedTypeConfig.key(originalResult),
+                  schema: subschema,
+                  context,
+                  info,
+                  selectionSet,
+                });
+            } else {
+              mergedTypeConfig.resolve = (originalResult, context, info, subschema, selectionSet) =>
+                delegateToSchema({
+                  schema: subschema,
+                  operation: 'query',
+                  fieldName: mergedTypeConfig.fieldName,
+                  returnType: getNamedType(info.returnType) as GraphQLOutputType,
+                  args: mergedTypeConfig.args(originalResult),
+                  selectionSet,
+                  context,
+                  info,
+                  skipTypeMerging: true,
+                });
+            }
           }
 
           subschemas.push(subschemaConfig);
