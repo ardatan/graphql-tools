@@ -21,7 +21,7 @@ import {
 } from '@graphql-tools/utils';
 
 import { delegateToSchema, isSubschemaConfig, SubschemaConfig } from '@graphql-tools/delegate';
-import { createBatchDelegateFn } from '@graphql-tools/batchDelegate';
+import { createBatchDelegateFn } from '@graphql-tools/batch-delegate';
 
 import { MergeTypeCandidate, MergedTypeInfo, StitchingInfo, MergeTypeFilter } from './types';
 

@@ -1,4 +1,4 @@
-export * from '@graphql-tools/batchDelegate';
+export * from '@graphql-tools/batch-delegate';
 export * from '@graphql-tools/delegate';
 export * from '@graphql-tools/graphql-tag-pluck';
 export * from '@graphql-tools/import';

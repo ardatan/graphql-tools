@@ -21,7 +21,7 @@
     "dataloader": "2.0.0"
   },
   "dependencies": {
-    "@graphql-tools/batchDelegate": "6.0.12",
+    "@graphql-tools/batch-delegate": "6.0.12",
     "@graphql-tools/delegate": "6.0.12",
     "@graphql-tools/merge": "6.0.12",
     "@graphql-tools/schema": "6.0.12",
