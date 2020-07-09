@@ -70,14 +70,14 @@ module.exports = mergeResolvers(resolversArray);
 This means that you should be careful with Queries, Mutations or Subscriptions with naming conflicts.
 
 You can also load files with specified extensions by setting the extensions option.
-Only these values are supported now. `'.ts', '.js', '.gql', '.graphql', '.graphqls'`
+Only these values are supported now. `'ts', 'js', 'gql', 'graphql', 'graphqls'`
 ```js
 // ./graphql/resolvers.js
 const path = require('path');
 const { mergeResolvers } = require('@graphql-tools/merge');
 const { loadFilesSync } = require('@graphql-tools/load-files');
 
-const resolversArray = loadFilesSync(path.join(__dirname, './resolvers'), { extensions: ['.js'] });
+const resolversArray = loadFilesSync(path.join(__dirname, './resolvers'), { extensions: ['js'] });
 
 module.exports = mergeResolvers(resolversArray);
 ```

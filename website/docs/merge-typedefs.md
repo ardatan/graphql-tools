@@ -116,6 +116,19 @@ module.exports = mergeTypeDefs(typesArray, { all: true });
 ```
 When using the `loadFilesSync` function you can also implement your type definitions using `.graphql` or `.gql` or `.graphqls` files.
 
+You can also load files with specified extensions by setting the extensions option.
+Only these values are supported now. `'ts', 'js', 'gql', 'graphql', 'graphqls'`
+```js
+// ./graphql/typeDefs.js
+const path = require('path');
+const { loadFilesSync } = require('@graphql-tools/load-files');
+const { mergeTypeDefs } = require('@graphql-tools/merge');
+
+const typesArray = loadFilesSync(path.join(__dirname, './types'), { extensions: ['graphql'] });
+
+module.exports = mergeTypeDefs(typesArray, { all: true });
+```
+
 > The `loadFilesSync` function will by default ignore files named `index.js` or `index.ts` (use `{ignoreIndex: false}` option to change this behavior). This allows you to create your index file inside the actual types folder if desired.
 
 ```graphql
