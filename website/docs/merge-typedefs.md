@@ -129,7 +129,7 @@ const typesArray = loadFilesSync(path.join(__dirname, './types'), { extensions: 
 module.exports = mergeTypeDefs(typesArray, { all: true });
 ```
 
-> The `loadFilesSync` function will by default ignore files named `index.js` or `index.ts` (use `{ignoreIndex: false}` option to change this behavior). This allows you to create your index file inside the actual types folder if desired.
+> By default, the `loadFilesSync` function will not ignore files named `index.js` or `index.ts`, but you can set the `ignoreIndex` option to `true` to enable this behavior. This allows you to create your index file inside the actual types folder if desired.
 
 ```graphql
 # ./graphql/types/clientType.graphql
