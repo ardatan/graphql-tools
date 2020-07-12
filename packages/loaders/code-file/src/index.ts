@@ -21,6 +21,9 @@ import { isAbsolute, resolve } from 'path';
 import { readFileSync, readFile, pathExists, pathExistsSync } from 'fs-extra';
 import { cwd } from 'process';
 
+/**
+ * Additional options for loading from a code file
+ */
 export type CodeFileLoaderOptions = {
   require?: string | string[];
   pluckConfig?: GraphQLTagPluckOptions;
@@ -30,6 +33,20 @@ export type CodeFileLoaderOptions = {
 
 const FILE_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx', '.vue'];
 
+/**
+ * This loader loads GraphQL documents and type definitions from code files
+ * using `graphql-tag-pluck`.
+ *
+ * ```js
+ * const documents = await loadDocuments('queries/*.js', {
+ *   loaders: [
+ *     new CodeFileLoader()
+ *   ]
+ * });
+ * ```
+ *
+ * Supported extensions include: `.ts`, `.tsx`, `.js`, `.jsx`, `.vue`
+ */
 export class CodeFileLoader implements UniversalLoader<CodeFileLoaderOptions> {
   loaderId(): string {
     return 'code-file';

@@ -25,7 +25,16 @@ import { IMocks, IMockServer, IMockFn, IMockOptions, IMockTypeFn } from './types
 import { ITypeDefinitions, mapSchema, MapperKind } from '@graphql-tools/utils';
 
 /**
- * This function wraps addMocksToSchema for more convenience
+ * A convenience wrapper on top of addMocksToSchema. It adds your mock resolvers
+ * to your schema and returns a client that will correctly execute your query with
+ * variables. Note: when executing queries from the returned server, context and
+ * root will both equal `{}`.
+ * @param schema The schema to which to add mocks. This can also be a set of type
+ * definitions instead.
+ * @param mocks The mocks to add to the schema.
+ * @param preserveResolvers Set to `true` to prevent existing resolvers from being
+ * overwritten to provide mock data. This can be used to mock some parts of the
+ * server and not others.
  */
 export function mockServer(
   schema: GraphQLSchema | ITypeDefinitions,
@@ -64,6 +73,12 @@ defaultMockMap.set('ID', () => uuidv4());
 // TODO allow providing a seed such that lengths of list could be deterministic
 // this could be done by using casual to get a random list length if the casual
 // object is global.
+
+/**
+ * Given an instance of GraphQLSchema and a mock object, returns a new schema
+ * that can return mock data for any valid query that is sent to the server.
+ * @param options Options object
+ */
 export function addMocksToSchema({ schema, mocks = {}, preserveResolvers = false }: IMockOptions): GraphQLSchema {
   if (!schema) {
     throw new Error('Must provide schema to mock');
@@ -327,6 +342,9 @@ function mergeMocks(genericMockFunction: () => any, customMock: any): any {
   return customMock;
 }
 
+/**
+ * @internal
+ */
 export function isMockList(obj: any): obj is MockList {
   if (typeof obj?.len === 'number' || (Array.isArray(obj?.len) && typeof obj?.len[0] === 'number')) {
     if (typeof obj.wrappedFunction === 'undefined' || typeof obj.wrappedFunction === 'function') {
@@ -337,21 +355,33 @@ export function isMockList(obj: any): obj is MockList {
   return false;
 }
 
+/**
+ * This is an object you can return from your mock resolvers which calls the
+ * provided `mockFunction` once for each list item.
+ */
 export class MockList {
   private readonly len: number | Array<number>;
   private readonly wrappedFunction: GraphQLFieldResolver<any, any> | undefined;
 
-  // wrappedFunction can return another MockList or a value
-  constructor(len: number | Array<number>, wrappedFunction?: GraphQLFieldResolver<any, any>) {
-    this.len = len;
-    if (typeof wrappedFunction !== 'undefined') {
-      if (typeof wrappedFunction !== 'function') {
+  /**
+   * @param length Either the exact length of items to return or an inclusive
+   * range of possible lengths.
+   * @param mockFunction The function to call for each item in the list to
+   * resolve it. It can return another MockList or a value.
+   */
+  constructor(length: number | Array<number>, mockFunction?: GraphQLFieldResolver<any, any>) {
+    this.len = length;
+    if (typeof mockFunction !== 'undefined') {
+      if (typeof mockFunction !== 'function') {
         throw new Error('Second argument to MockList must be a function or undefined');
       }
-      this.wrappedFunction = wrappedFunction;
+      this.wrappedFunction = mockFunction;
     }
   }
 
+  /**
+   * @internal
+   */
   public mock(
     root: any,
     args: Record<string, any>,

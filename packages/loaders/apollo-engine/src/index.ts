@@ -2,6 +2,9 @@ import { SchemaLoader, Source, SingleFileOptions } from '@graphql-tools/utils';
 import { fetch } from 'cross-fetch';
 import { buildClientSchema } from 'graphql';
 
+/**
+ * Additional options for loading from Apollo Engine
+ */
 export interface ApolloEngineOptions extends SingleFileOptions {
   engine: {
     endpoint?: string;
@@ -14,6 +17,9 @@ export interface ApolloEngineOptions extends SingleFileOptions {
 
 const DEFAULT_APOLLO_ENDPOINT = 'https://engine-graphql.apollographql.com/api/graphql';
 
+/**
+ * This loader loads a schema from Apollo Engine
+ */
 export class ApolloEngineLoader implements SchemaLoader<ApolloEngineOptions> {
   loaderId() {
     return 'apollo-engine';
@@ -65,6 +71,9 @@ export class ApolloEngineLoader implements SchemaLoader<ApolloEngineOptions> {
   }
 }
 
+/**
+ * @internal
+ */
 export const SCHEMA_QUERY = /* GraphQL */ `
   query GetSchemaByTag($tag: String!, $id: ID!) {
     service(id: $id) {

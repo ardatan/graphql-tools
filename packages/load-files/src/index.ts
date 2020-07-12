@@ -73,14 +73,25 @@ function extractExports(fileExport: any, exportNames: string[]): any | null {
   return fileExport;
 }
 
+/**
+ * Additional options for loading files
+ */
 export interface LoadFilesOptions {
+  // Extensions to explicitly ignore. Defaults to `['spec', 'test', 'd', 'map']`
   ignoredExtensions?: string[];
+  // Extensions to include when loading files. Defaults to `['gql', 'graphql', 'graphqls', 'ts', 'js']`
   extensions?: string[];
+  // Load files using `require` regardless of the file extension
   useRequire?: boolean;
+  // An alternative to `require` to use if `require` would be used to load a file
   requireMethod?: any;
+  // Additional options to pass to globby
   globOptions?: GlobbyOptions;
+  // Named exports to extract from each file. Defaults to ['typeDefs', 'schema']
   exportNames?: string[];
+  // Load files from nested directories. Set to `false` to only search the top-level directory.
   recursive?: boolean;
+  // Set to `true` to ignore files named `index.js` and `index.ts`
   ignoreIndex?: boolean;
 }
 
@@ -97,6 +108,11 @@ const LoadFilesDefaultOptions: LoadFilesOptions = {
   ignoreIndex: false,
 };
 
+/**
+ * Synchronously loads files using the provided glob pattern.
+ * @param pattern Glob pattern or patterns to use when loading files
+ * @param options Additional options
+ */
 export function loadFilesSync<T = any>(
   pattern: string | string[],
   options: LoadFilesOptions = LoadFilesDefaultOptions
@@ -188,6 +204,11 @@ const checkExtension = (
   return false;
 };
 
+/**
+ * Asynchronously loads files using the provided glob pattern.
+ * @param pattern Glob pattern or patterns to use when loading files
+ * @param options Additional options
+ */
 export async function loadFiles(
   pattern: string | string[],
   options: LoadFilesOptions = LoadFilesDefaultOptions

@@ -14,7 +14,13 @@ import { processImport } from '@graphql-tools/import';
 
 const FILE_EXTENSIONS = ['.gql', '.gqls', '.graphql', '.graphqls'];
 
+/**
+ * Additional options for loading from a GraphQL file
+ */
 export interface GraphQLFileLoaderOptions extends SingleFileOptions {
+  /**
+   * Set to `true` to disable handling `#import` syntax
+   */
   skipGraphQLImport?: boolean;
 }
 
@@ -23,6 +29,29 @@ function isGraphQLImportFile(rawSDL: string) {
   return trimmedRawSDL.startsWith('# import') || trimmedRawSDL.startsWith('#import');
 }
 
+/**
+ * This loader loads documents and type definitions from `.graphql` files.
+ *
+ * You can load a single source:
+ *
+ * ```js
+ * const schema = await loadSchema('schema.graphql', {
+ *   loaders: [
+ *     new GraphQLFileLoader()
+ *   ]
+ * });
+ * ```
+ *
+ * Or provide a glob pattern to load multiple sources:
+ *
+ * ```js
+ * const schema = await loadSchema('graphql/*.graphql', {
+ *   loaders: [
+ *     new GraphQLFileLoader()
+ *   ]
+ * });
+ * ```
+ */
 export class GraphQLFileLoader implements UniversalLoader<GraphQLFileLoaderOptions> {
   loaderId(): string {
     return 'graphql-file';
