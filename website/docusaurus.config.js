@@ -99,7 +99,7 @@ module.exports = {
       '@docusaurus/preset-classic',
       {
         docs: {
-          sidebarPath: require.resolve('./sidebars.js'),
+          sidebarPath: require.resolve('./sidebars.json'),
           editUrl:
             'https://github.com/ardatan/graphql-tools/edit/master/website/',
         },
