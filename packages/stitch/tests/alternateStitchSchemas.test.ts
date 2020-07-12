@@ -36,6 +36,7 @@ import {
 } from '@graphql-tools/delegate';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
+import { addMocksToSchema } from '@graphql-tools/mock';
 import {
   wrapFieldNode,
   renameFieldNode,
@@ -1436,6 +1437,46 @@ describe('schema transformation with wrapping of object fields', () => {
       expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
 
       expect(result).toEqual(expectedResult);
+    });
+
+    test('should work with selectionSets', async () => {
+      let subschema = makeExecutableSchema({
+        typeDefs: `
+          type Query {
+            user: User
+          }
+          type User {
+            id: ID
+          }
+        `,
+      });
+
+      subschema = addMocksToSchema({ schema: subschema });
+      const stitchedSchema = stitchSchemas({
+        subschemas: [{
+          schema: subschema,
+          transforms: [
+            new WrapFields('Query', ['wrapped'], [`WrappedQuery`]),
+          ],
+        }],
+        typeDefs: `
+          extend type User {
+            dummy: String
+          }
+        `,
+        resolvers: {
+          User: {
+            dummy: {
+              selectionSet: `{ id }`,
+              resolve: (user: any) => user.id,
+            },
+          },
+        },
+      });
+
+      const query = '{ wrapped { user { dummy } } }';
+      const result = await graphql(stitchedSchema, query);
+      expect(result.data.wrapped.user.dummy).not.toEqual(null);
     });
   });
 });

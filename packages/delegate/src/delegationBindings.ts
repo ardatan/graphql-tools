@@ -2,12 +2,11 @@ import { Transform } from '@graphql-tools/utils';
 
 import { StitchingInfo, DelegationContext } from './types';
 
+import AddSelectionSets from './transforms/AddSelectionSets';
 import ExpandAbstractTypes from './transforms/ExpandAbstractTypes';
 import WrapConcreteTypes from './transforms/WrapConcreteTypes';
 import FilterToSchema from './transforms/FilterToSchema';
 import AddFragmentsByField from './transforms/AddFragmentsByField';
-import AddSelectionSetsByField from './transforms/AddSelectionSetsByField';
-import AddSelectionSetsByType from './transforms/AddSelectionSetsByType';
 import AddTypenameToAbstract from './transforms/AddTypenameToAbstract';
 import CheckResultAndHandleErrors from './transforms/CheckResultAndHandleErrors';
 import AddArgumentsAsVariables from './transforms/AddArgumentsAsVariables';
@@ -39,8 +38,12 @@ export function defaultDelegationBinding(delegationContext: DelegationContext): 
 
   if (stitchingInfo != null) {
     delegationTransforms = delegationTransforms.concat([
-      new AddSelectionSetsByField(info.schema, stitchingInfo.selectionSetsByField),
-      new AddSelectionSetsByType(info.schema, stitchingInfo.selectionSetsByType),
+      new AddSelectionSets(
+        info.schema,
+        stitchingInfo.selectionSetsByType,
+        stitchingInfo.selectionSetsByField,
+        returnType
+      ),
       new WrapConcreteTypes(returnType, transformedSchema),
       new ExpandAbstractTypes(info.schema, transformedSchema),
     ]);
