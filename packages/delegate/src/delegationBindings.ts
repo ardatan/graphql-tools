@@ -40,9 +40,10 @@ export function defaultDelegationBinding(delegationContext: DelegationContext): 
     delegationTransforms = delegationTransforms.concat([
       new AddSelectionSets(
         info.schema,
+        returnType,
         stitchingInfo.selectionSetsByType,
         stitchingInfo.selectionSetsByField,
-        returnType
+        stitchingInfo.dynamicSelectionSetsByField
       ),
       new WrapConcreteTypes(returnType, transformedSchema),
       new ExpandAbstractTypes(info.schema, transformedSchema),
