@@ -969,8 +969,8 @@ describe('rename nested object fields with interfaces', () => {
   });
 });
 
-describe('WrapType query transform', () => {
-  test('should work', async () => {
+describe('WrapType', () => {
+  test('Query transform should work', async () => {
     const transformedBookingSchema = wrapSchema(bookingSchema, [
       new WrapType('Query', 'Namespace_Query', 'namespace'),
     ]);
@@ -1022,10 +1022,8 @@ describe('WrapType query transform', () => {
 
     expect(result).toEqual(expectedResult);
   });
-});
 
-describe('WrapType mutation transform', () => {
-  test('should work', async () => {
+  test('Mutation transform should work', async () => {
     const transformedBookingSchema = wrapSchema(bookingSchema, [
       new WrapType('Mutation', 'Namespace_Mutation', 'namespace'),
     ]);
@@ -1080,6 +1078,70 @@ describe('WrapType mutation transform', () => {
           path: ['namespace', 'addBooking', 'error'],
         },
       ],
+    };
+
+    expect(result).toEqual(expectedResult);
+  });
+
+  test('namespacing different subschemas with overlapping root field names', async () => {
+    const typeDefGen = (i: number) => `
+      type Query {
+        test: Test${i}Response
+      }
+
+      type Test${i}Response {
+        aString: String!
+      }
+    `;
+
+    const resolverGen = (i: number) => ({
+      Query: {
+        test: () => ({
+          aString: `test${i}`,
+        }),
+      },
+    });
+
+    const subschemaGen = (i: number) => ({
+      schema: makeExecutableSchema({
+        typeDefs: typeDefGen(i),
+        resolvers: resolverGen(i)
+      }),
+      transforms: [new WrapType(`Query`, `Test${i}_Query`, `test${i}`)]
+    });
+
+    const stitchedSchema = stitchSchemas({
+      subschemas: [subschemaGen(1), subschemaGen(2)]
+    });
+
+    const query = `{
+      test1 {
+        test {
+          aString
+        }
+      }
+      test2 {
+        test {
+          aString
+        }
+      }
+    }`;
+
+    const result = await graphql(stitchedSchema, query);
+
+    const expectedResult = {
+      data: {
+        test1: {
+          test: {
+            aString: 'test1',
+          },
+        },
+        test2: {
+          test: {
+            aString: 'test2',
+          },
+        },
+      },
     };
 
     expect(result).toEqual(expectedResult);
