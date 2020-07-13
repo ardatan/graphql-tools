@@ -10,6 +10,10 @@ import {
   GraphQLInputObjectType,
   ObjectValueNode,
   ObjectFieldNode,
+  InputObjectTypeDefinitionNode,
+  InputObjectTypeExtensionNode,
+  GraphQLInputFieldConfig,
+  InputValueDefinitionNode,
 } from 'graphql';
 
 import { Transform, Request, MapperKind, mapSchema } from '@graphql-tools/utils';
@@ -80,7 +84,6 @@ export default class TransformInputObjectFields implements Transform {
       } else if (Array.isArray(transformedField)) {
         const newFieldName = transformedField[0];
         const newFieldConfig = transformedField[1];
-        newInputFieldConfigMap[newFieldName] = newFieldConfig;
 
         if (newFieldName !== fieldName) {
           const typeName = type.name;
@@ -88,7 +91,19 @@ export default class TransformInputObjectFields implements Transform {
             this.mapping[typeName] = {};
           }
           this.mapping[typeName][newFieldName] = fieldName;
+
+          if (newFieldConfig.astNode != null) {
+            newFieldConfig.astNode = {
+              ...newFieldConfig.astNode,
+              name: {
+                ...newFieldConfig.astNode.name,
+                value: newFieldName,
+              },
+            };
+          }
         }
+
+        newInputFieldConfigMap[newFieldName] = newFieldConfig;
       } else if (transformedField != null) {
         newInputFieldConfigMap[fieldName] = transformedField;
       }
@@ -98,9 +113,12 @@ export default class TransformInputObjectFields implements Transform {
       return null;
     }
 
+    const oldConfig = type.toConfig();
     return new GraphQLInputObjectType({
-      ...type.toConfig(),
+      ...oldConfig,
       fields: newInputFieldConfigMap,
+      astNode: rebuildAstNode(oldConfig.astNode, newInputFieldConfigMap),
+      extensionASTNodes: rebuildExtensionAstNodes(oldConfig.extensionASTNodes),
     });
   }
 
@@ -192,4 +210,43 @@ export default class TransformInputObjectFields implements Transform {
     );
     return newDocument;
   }
+}
+
+function rebuildAstNode(
+  astNode: InputObjectTypeDefinitionNode,
+  inputFieldConfigMap: Record<string, GraphQLInputFieldConfig>
+): InputObjectTypeDefinitionNode {
+  if (astNode == null) {
+    return undefined;
+  }
+
+  const newAstNode: InputObjectTypeDefinitionNode = {
+    ...astNode,
+    fields: undefined,
+  };
+
+  const fields: Array<InputValueDefinitionNode> = [];
+  Object.values(inputFieldConfigMap).forEach(inputFieldConfig => {
+    if (inputFieldConfig.astNode != null) {
+      fields.push(inputFieldConfig.astNode);
+    }
+  });
+
+  return {
+    ...newAstNode,
+    fields,
+  };
+}
+
+function rebuildExtensionAstNodes(
+  extensionASTNodes: ReadonlyArray<InputObjectTypeExtensionNode>
+): Array<InputObjectTypeExtensionNode> {
+  if (!extensionASTNodes?.length) {
+    return [];
+  }
+
+  return extensionASTNodes.map(node => ({
+    ...node,
+    fields: undefined,
+  }));
 }
