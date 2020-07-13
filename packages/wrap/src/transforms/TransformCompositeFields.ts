@@ -280,6 +280,7 @@ function rebuildAstNode<TypeDefinitionNode extends ObjectTypeDefinitionNode | In
       newAstNode = {
         ...newAstNode,
         ...node,
+        kind: newAstNode.kind,
         fields: undefined,
       };
     });
