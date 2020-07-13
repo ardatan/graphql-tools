@@ -141,16 +141,16 @@ export default class TransformCompositeFields implements Transform {
       return new GraphQLObjectType({
         ...oldConfig,
         fields: newFieldConfigMap,
-        astNode: rebuildAstNode(oldConfig.astNode, oldConfig.extensionASTNodes, newFieldConfigMap),
-        extensionASTNodes: [],
+        astNode: rebuildAstNode(oldConfig.astNode, newFieldConfigMap),
+        extensionASTNodes: rebuildExtensionAstNodes(oldConfig.extensionASTNodes),
       });
     } else if (isInterfaceType(type)) {
       const oldConfig = type.toConfig();
       return new GraphQLInterfaceType({
         ...type.toConfig(),
         fields: newFieldConfigMap,
-        astNode: rebuildAstNode(oldConfig.astNode, oldConfig.extensionASTNodes, newFieldConfigMap),
-        extensionASTNodes: [],
+        astNode: rebuildAstNode(oldConfig.astNode, newFieldConfigMap),
+        extensionASTNodes: rebuildExtensionAstNodes(oldConfig.extensionASTNodes),
       });
     }
   }
@@ -261,30 +261,16 @@ export default class TransformCompositeFields implements Transform {
 
 function rebuildAstNode<TypeDefinitionNode extends ObjectTypeDefinitionNode | InterfaceTypeDefinitionNode>(
   astNode: TypeDefinitionNode,
-  extensionASTNodes: ReadonlyArray<
-    TypeDefinitionNode extends ObjectTypeDefinitionNode ? ObjectTypeExtensionNode : InterfaceTypeExtensionNode
-  >,
   fieldConfigMap: Record<string, GraphQLFieldConfig<any, any>>
 ): TypeDefinitionNode {
-  if (astNode == null && !extensionASTNodes?.length) {
+  if (astNode == null) {
     return undefined;
   }
 
-  let newAstNode: TypeDefinitionNode = {
+  const newAstNode: TypeDefinitionNode = {
     ...astNode,
     fields: undefined,
   };
-
-  if (extensionASTNodes != null) {
-    extensionASTNodes.forEach(node => {
-      newAstNode = {
-        ...newAstNode,
-        ...node,
-        kind: newAstNode.kind,
-        fields: undefined,
-      };
-    });
-  }
 
   const fields: Array<FieldDefinitionNode> = [];
   Object.values(fieldConfigMap).forEach(fieldConfig => {
@@ -297,4 +283,17 @@ function rebuildAstNode<TypeDefinitionNode extends ObjectTypeDefinitionNode | In
     ...newAstNode,
     fields,
   };
+}
+
+function rebuildExtensionAstNodes<TypeExtensionNode extends ObjectTypeExtensionNode | InterfaceTypeExtensionNode>(
+  extensionASTNodes: ReadonlyArray<TypeExtensionNode>
+): Array<TypeExtensionNode> {
+  if (!extensionASTNodes?.length) {
+    return [];
+  }
+
+  return extensionASTNodes.map(node => ({
+    ...node,
+    fields: undefined,
+  }));
 }

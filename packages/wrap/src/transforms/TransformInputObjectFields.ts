@@ -117,8 +117,8 @@ export default class TransformInputObjectFields implements Transform {
     return new GraphQLInputObjectType({
       ...oldConfig,
       fields: newInputFieldConfigMap,
-      astNode: rebuildAstNode(oldConfig.astNode, oldConfig.extensionASTNodes, newInputFieldConfigMap),
-      extensionASTNodes: [],
+      astNode: rebuildAstNode(oldConfig.astNode, newInputFieldConfigMap),
+      extensionASTNodes: rebuildExtensionAstNodes(oldConfig.extensionASTNodes),
     });
   }
 
@@ -214,33 +214,21 @@ export default class TransformInputObjectFields implements Transform {
 
 function rebuildAstNode(
   astNode: InputObjectTypeDefinitionNode,
-  extensionASTNodes: ReadonlyArray<InputObjectTypeExtensionNode>,
-  fieldConfigMap: Record<string, GraphQLInputFieldConfig>
+  inputFieldConfigMap: Record<string, GraphQLInputFieldConfig>
 ): InputObjectTypeDefinitionNode {
-  if (astNode == null && !extensionASTNodes?.length) {
+  if (astNode == null) {
     return undefined;
   }
 
-  let newAstNode: InputObjectTypeDefinitionNode = {
+  const newAstNode: InputObjectTypeDefinitionNode = {
     ...astNode,
     fields: undefined,
   };
 
-  if (extensionASTNodes != null) {
-    extensionASTNodes.forEach(node => {
-      newAstNode = {
-        ...newAstNode,
-        ...node,
-        kind: newAstNode.kind,
-        fields: undefined,
-      };
-    });
-  }
-
   const fields: Array<InputValueDefinitionNode> = [];
-  Object.values(fieldConfigMap).forEach(fieldConfig => {
-    if (fieldConfig.astNode != null) {
-      fields.push(fieldConfig.astNode);
+  Object.values(inputFieldConfigMap).forEach(inputFieldConfig => {
+    if (inputFieldConfig.astNode != null) {
+      fields.push(inputFieldConfig.astNode);
     }
   });
 
@@ -248,4 +236,17 @@ function rebuildAstNode(
     ...newAstNode,
     fields,
   };
+}
+
+function rebuildExtensionAstNodes(
+  extensionASTNodes: ReadonlyArray<InputObjectTypeExtensionNode>
+): Array<InputObjectTypeExtensionNode> {
+  if (!extensionASTNodes?.length) {
+    return [];
+  }
+
+  return extensionASTNodes.map(node => ({
+    ...node,
+    fields: undefined,
+  }));
 }

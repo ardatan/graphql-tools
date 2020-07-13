@@ -42,8 +42,8 @@ export function appendObjectFields(
         return new GraphQLObjectType({
           ...config,
           fields: newFieldConfigMap,
-          astNode: rebuildAstNode(config.astNode, config.extensionASTNodes, newFieldConfigMap),
-          extensionASTNodes: [],
+          astNode: rebuildAstNode(config.astNode, newFieldConfigMap),
+          extensionASTNodes: rebuildExtensionAstNodes(config.extensionASTNodes),
         });
       }
     },
@@ -75,8 +75,8 @@ export function removeObjectFields(
         return new GraphQLObjectType({
           ...config,
           fields: newFieldConfigMap,
-          astNode: rebuildAstNode(config.astNode, config.extensionASTNodes, newFieldConfigMap),
-          extensionASTNodes: [],
+          astNode: rebuildAstNode(config.astNode, newFieldConfigMap),
+          extensionASTNodes: rebuildExtensionAstNodes(config.extensionASTNodes),
         });
       }
     },
@@ -143,8 +143,8 @@ export function modifyObjectFields(
         return new GraphQLObjectType({
           ...config,
           fields: newFieldConfigMap,
-          astNode: rebuildAstNode(config.astNode, config.extensionASTNodes, newFieldConfigMap),
-          extensionASTNodes: [],
+          astNode: rebuildAstNode(config.astNode, newFieldConfigMap),
+          extensionASTNodes: rebuildExtensionAstNodes(config.extensionASTNodes),
         });
       }
     },
@@ -155,28 +155,16 @@ export function modifyObjectFields(
 
 function rebuildAstNode(
   astNode: ObjectTypeDefinitionNode,
-  extensionASTNodes: ReadonlyArray<ObjectTypeExtensionNode>,
   fieldConfigMap: Record<string, GraphQLFieldConfig<any, any>>
 ): ObjectTypeDefinitionNode {
-  if (astNode == null && !extensionASTNodes?.length) {
+  if (astNode == null) {
     return undefined;
   }
 
-  let newAstNode: ObjectTypeDefinitionNode = {
+  const newAstNode: ObjectTypeDefinitionNode = {
     ...astNode,
     fields: undefined,
   };
-
-  if (extensionASTNodes != null) {
-    extensionASTNodes.forEach(node => {
-      newAstNode = {
-        ...newAstNode,
-        ...node,
-        kind: newAstNode.kind,
-        fields: undefined,
-      };
-    });
-  }
 
   const fields: Array<FieldDefinitionNode> = [];
   Object.values(fieldConfigMap).forEach(fieldConfig => {
@@ -189,4 +177,17 @@ function rebuildAstNode(
     ...newAstNode,
     fields,
   };
+}
+
+function rebuildExtensionAstNodes(
+  extensionASTNodes: ReadonlyArray<ObjectTypeExtensionNode>
+): Array<ObjectTypeExtensionNode> {
+  if (!extensionASTNodes?.length) {
+    return [];
+  }
+
+  return extensionASTNodes.map(node => ({
+    ...node,
+    fields: undefined,
+  }));
 }
