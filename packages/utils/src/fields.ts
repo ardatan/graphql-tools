@@ -1,4 +1,12 @@
-import { GraphQLFieldConfigMap, GraphQLObjectType, GraphQLFieldConfig, GraphQLSchema } from 'graphql';
+import {
+  GraphQLFieldConfigMap,
+  GraphQLObjectType,
+  GraphQLFieldConfig,
+  GraphQLSchema,
+  ObjectTypeDefinitionNode,
+  ObjectTypeExtensionNode,
+  FieldDefinitionNode,
+} from 'graphql';
 import { MapperKind } from './Interfaces';
 import { mapSchema } from './mapSchema';
 import { addTypes } from './addTypes';
@@ -34,6 +42,8 @@ export function appendObjectFields(
         return new GraphQLObjectType({
           ...config,
           fields: newFieldConfigMap,
+          astNode: rebuildAstNode(config.astNode, config.extensionASTNodes, newFieldConfigMap),
+          extensionASTNodes: [],
         });
       }
     },
@@ -65,6 +75,8 @@ export function removeObjectFields(
         return new GraphQLObjectType({
           ...config,
           fields: newFieldConfigMap,
+          astNode: rebuildAstNode(config.astNode, config.extensionASTNodes, newFieldConfigMap),
+          extensionASTNodes: [],
         });
       }
     },
@@ -131,10 +143,50 @@ export function modifyObjectFields(
         return new GraphQLObjectType({
           ...config,
           fields: newFieldConfigMap,
+          astNode: rebuildAstNode(config.astNode, config.extensionASTNodes, newFieldConfigMap),
+          extensionASTNodes: [],
         });
       }
     },
   });
 
   return [newSchema, removedFields];
+}
+
+function rebuildAstNode(
+  astNode: ObjectTypeDefinitionNode,
+  extensionASTNodes: ReadonlyArray<ObjectTypeExtensionNode>,
+  fieldConfigMap: Record<string, GraphQLFieldConfig<any, any>>
+): ObjectTypeDefinitionNode {
+  if (astNode == null && !extensionASTNodes?.length) {
+    return undefined;
+  }
+
+  let newAstNode: ObjectTypeDefinitionNode = {
+    ...astNode,
+    fields: undefined,
+  };
+
+  if (extensionASTNodes != null) {
+    extensionASTNodes.forEach(node => {
+      newAstNode = {
+        ...newAstNode,
+        ...node,
+        kind: newAstNode.kind,
+        fields: undefined,
+      };
+    });
+  }
+
+  const fields: Array<FieldDefinitionNode> = [];
+  Object.values(fieldConfigMap).forEach(fieldConfig => {
+    if (fieldConfig.astNode != null) {
+      fields.push(fieldConfig.astNode);
+    }
+  });
+
+  return {
+    ...newAstNode,
+    fields,
+  };
 }

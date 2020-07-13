@@ -217,7 +217,7 @@ function rebuildAstNode(
   extensionASTNodes: ReadonlyArray<InputObjectTypeExtensionNode>,
   fieldConfigMap: Record<string, GraphQLInputFieldConfig>
 ): InputObjectTypeDefinitionNode {
-  if (astNode == null && !extensionASTNodes.length) {
+  if (astNode == null && !extensionASTNodes?.length) {
     return undefined;
   }
 

@@ -266,7 +266,7 @@ function rebuildAstNode<TypeDefinitionNode extends ObjectTypeDefinitionNode | In
   >,
   fieldConfigMap: Record<string, GraphQLFieldConfig<any, any>>
 ): TypeDefinitionNode {
-  if (astNode == null && !extensionASTNodes.length) {
+  if (astNode == null && !extensionASTNodes?.length) {
     return undefined;
   }
 
