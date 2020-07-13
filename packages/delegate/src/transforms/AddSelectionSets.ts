@@ -8,9 +8,9 @@ export default class AddSelectionSetsByField implements Transform {
 
   constructor(
     sourceSchema: GraphQLSchema,
+    initialType: GraphQLOutputType,
     selectionSetsByType: Record<string, SelectionSetNode>,
-    selectionSetsByField: Record<string, Record<string, SelectionSetNode>>,
-    initialType: GraphQLOutputType
+    selectionSetsByField: Record<string, Record<string, SelectionSetNode>>
   ) {
     this.transformer = new VisitSelectionSets(sourceSchema, initialType, (node, typeInfo) =>
       visitSelectionSet(node, typeInfo, selectionSetsByType, selectionSetsByField)
