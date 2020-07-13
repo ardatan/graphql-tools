@@ -42,7 +42,8 @@ export function defaultDelegationBinding(delegationContext: DelegationContext): 
         info.schema,
         returnType,
         stitchingInfo.selectionSetsByType,
-        stitchingInfo.selectionSetsByField
+        stitchingInfo.selectionSetsByField,
+        stitchingInfo.dynamicSelectionSetsByField
       ),
       new WrapConcreteTypes(returnType, transformedSchema),
       new ExpandAbstractTypes(info.schema, transformedSchema),

@@ -1,4 +1,4 @@
-import { GraphQLSchema, SelectionSetNode, TypeInfo, GraphQLOutputType, Kind } from 'graphql';
+import { GraphQLSchema, SelectionSetNode, TypeInfo, GraphQLOutputType, Kind, FieldNode } from 'graphql';
 
 import { Transform, Request } from '@graphql-tools/utils';
 import VisitSelectionSets from './VisitSelectionSets';
@@ -10,10 +10,11 @@ export default class AddSelectionSetsByField implements Transform {
     sourceSchema: GraphQLSchema,
     initialType: GraphQLOutputType,
     selectionSetsByType: Record<string, SelectionSetNode>,
-    selectionSetsByField: Record<string, Record<string, SelectionSetNode>>
+    selectionSetsByField: Record<string, Record<string, SelectionSetNode>>,
+    dynamicSelectionSetsByField: Record<string, Record<string, Array<(node: FieldNode) => SelectionSetNode>>>
   ) {
     this.transformer = new VisitSelectionSets(sourceSchema, initialType, (node, typeInfo) =>
-      visitSelectionSet(node, typeInfo, selectionSetsByType, selectionSetsByField)
+      visitSelectionSet(node, typeInfo, selectionSetsByType, selectionSetsByField, dynamicSelectionSetsByField)
     );
   }
 
@@ -26,7 +27,8 @@ function visitSelectionSet(
   node: SelectionSetNode,
   typeInfo: TypeInfo,
   selectionSetsByType: Record<string, SelectionSetNode>,
-  selectionSetsByField: Record<string, Record<string, SelectionSetNode>>
+  selectionSetsByField: Record<string, Record<string, SelectionSetNode>>,
+  dynamicSelectionSetsByField: Record<string, Record<string, Array<(node: FieldNode) => SelectionSetNode>>>
 ): SelectionSetNode {
   const parentType = typeInfo.getParentType();
   if (parentType != null) {
@@ -47,6 +49,23 @@ function visitSelectionSet(
           const selectionSet = selectionSetsByField[parentTypeName][name];
           if (selectionSet != null) {
             selections = selections.concat(selectionSet.selections);
+          }
+        }
+      });
+    }
+
+    if (parentTypeName in dynamicSelectionSetsByField) {
+      node.selections.forEach(selection => {
+        if (selection.kind === Kind.FIELD) {
+          const name = selection.name.value;
+          const dynamicSelectionSets = dynamicSelectionSetsByField[parentTypeName][name];
+          if (dynamicSelectionSets != null) {
+            dynamicSelectionSets.forEach(selectionSetFn => {
+              const selectionSet = selectionSetFn(selection);
+              if (selectionSet != null) {
+                selections = selections.concat(selectionSet.selections);
+              }
+            });
           }
         }
       });

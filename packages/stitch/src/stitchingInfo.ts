@@ -47,8 +47,9 @@ export function createStitchingInfo(
   return {
     transformedSchemas,
     fragmentsByField: undefined,
-    selectionSetsByField: undefined,
     selectionSetsByType,
+    selectionSetsByField: undefined,
+    dynamicSelectionSetsByField: undefined,
     mergedTypes,
   };
 }
@@ -194,6 +195,7 @@ function createMergedTypes(
 
 export function completeStitchingInfo(stitchingInfo: StitchingInfo, resolvers: IResolvers): StitchingInfo {
   const selectionSetsByField = Object.create(null);
+  const dynamicSelectionSetsByField = Object.create(null);
   const rawFragments: Array<{ field: string; fragment: string }> = [];
 
   Object.keys(resolvers).forEach(typeName => {
@@ -204,20 +206,32 @@ export function completeStitchingInfo(stitchingInfo: StitchingInfo, resolvers: I
     Object.keys(type).forEach(fieldName => {
       const field = type[fieldName] as IFieldResolverOptions;
       if (field.selectionSet) {
-        const selectionSet = parseSelectionSet(field.selectionSet);
-        if (!(typeName in selectionSetsByField)) {
-          selectionSetsByField[typeName] = Object.create(null);
-        }
+        if (typeof field.selectionSet === 'function') {
+          if (!(typeName in selectionSetsByField)) {
+            dynamicSelectionSetsByField[typeName] = Object.create(null);
+          }
 
-        if (!(fieldName in selectionSetsByField[typeName])) {
-          selectionSetsByField[typeName][fieldName] = {
-            kind: Kind.SELECTION_SET,
-            selections: [],
-          };
+          if (!(fieldName in selectionSetsByField[typeName])) {
+            dynamicSelectionSetsByField[typeName][fieldName] = [];
+          }
+
+          dynamicSelectionSetsByField[typeName][fieldName].push(field.selectionSet);
+        } else {
+          const selectionSet = parseSelectionSet(field.selectionSet);
+          if (!(typeName in selectionSetsByField)) {
+            selectionSetsByField[typeName] = Object.create(null);
+          }
+
+          if (!(fieldName in selectionSetsByField[typeName])) {
+            selectionSetsByField[typeName][fieldName] = {
+              kind: Kind.SELECTION_SET,
+              selections: [],
+            };
+          }
+          selectionSetsByField[typeName][fieldName].selections = selectionSetsByField[typeName][
+            fieldName
+          ].selections.concat(selectionSet.selections);
         }
-        selectionSetsByField[typeName][fieldName].selections = selectionSetsByField[typeName][
-          fieldName
-        ].selections.concat(selectionSet.selections);
       }
       if (field.fragment) {
         rawFragments.push({
@@ -254,6 +268,7 @@ export function completeStitchingInfo(stitchingInfo: StitchingInfo, resolvers: I
   });
 
   stitchingInfo.selectionSetsByField = selectionSetsByField;
+  stitchingInfo.dynamicSelectionSetsByField = dynamicSelectionSetsByField;
   stitchingInfo.fragmentsByField = fragmentsByField;
 
   return stitchingInfo;
