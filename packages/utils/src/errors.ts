@@ -1,6 +1,7 @@
 import { GraphQLError } from 'graphql';
 
 export const ERROR_SYMBOL = Symbol('subschemaErrors');
+export const DEPTH_SYMBOL = Symbol('subschemaDepth');
 
 export function relocatedError(originalError: GraphQLError, path?: ReadonlyArray<string | number>): GraphQLError {
   return new GraphQLError(
