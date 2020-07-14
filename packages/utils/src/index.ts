@@ -38,6 +38,7 @@ export * from './selectionSets';
 export * from './getResponseKeyFromInfo';
 export * from './transforms';
 export * from './fields';
+export * from './renameType';
 export * from './collectFields';
 export * from './transformInputValue';
 export * from './mapAsyncIterator';
