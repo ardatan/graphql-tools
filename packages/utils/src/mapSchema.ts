@@ -147,16 +147,17 @@ function mapEnumValues(originalTypeMap: TypeMap, schema: GraphQLSchema, schemaMa
         const config = type.toConfig();
         const originalEnumValueConfigMap = config.values;
         const newEnumValueConfigMap = {};
-        Object.keys(originalEnumValueConfigMap).forEach(enumValueName => {
-          const originalEnumValueConfig = originalEnumValueConfigMap[enumValueName];
-          const mappedEnumValue = enumValueMapper(originalEnumValueConfig, type.name, schema);
+        Object.keys(originalEnumValueConfigMap).forEach(externalValue => {
+          const originalEnumValueConfig = originalEnumValueConfigMap[externalValue];
+          const mappedEnumValue = enumValueMapper(originalEnumValueConfig, type.name, schema, externalValue);
           if (mappedEnumValue === undefined) {
-            newEnumValueConfigMap[enumValueName] = originalEnumValueConfig;
+            newEnumValueConfigMap[externalValue] = originalEnumValueConfig;
           } else if (Array.isArray(mappedEnumValue)) {
-            const [newEnumValueName, newEnumValueConfig] = mappedEnumValue;
-            newEnumValueConfigMap[newEnumValueName] = newEnumValueConfig;
+            const [newExternalValue, newEnumValueConfig] = mappedEnumValue;
+            newEnumValueConfigMap[newExternalValue] =
+              newEnumValueConfig === undefined ? originalEnumValueConfig : newEnumValueConfig;
           } else if (mappedEnumValue !== null) {
-            newEnumValueConfigMap[enumValueName] = mappedEnumValue;
+            newEnumValueConfigMap[externalValue] = mappedEnumValue;
           }
         });
         return new GraphQLEnumType({
@@ -256,7 +257,7 @@ function mapFields(originalTypeMap: TypeMap, schema: GraphQLSchema, schemaMapper
               },
             };
           }
-          newFieldConfigMap[newFieldName] = newFieldConfig;
+          newFieldConfigMap[newFieldName] = newFieldConfig === undefined ? originalFieldConfig : newFieldConfig;
         } else if (mappedField !== null) {
           newFieldConfigMap[fieldName] = mappedField;
         }

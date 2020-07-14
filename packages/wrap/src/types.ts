@@ -10,6 +10,7 @@ import {
   ObjectFieldNode,
   ObjectValueNode,
   GraphQLError,
+  GraphQLEnumValueConfig,
 } from 'graphql';
 import { Executor, Subscriber, DelegationContext } from '@graphql-tools/delegate';
 import { Request } from '@graphql-tools/utils';
@@ -54,6 +55,12 @@ export type RootFieldTransformer = (
   fieldName: string,
   fieldConfig: GraphQLFieldConfig<any, any>
 ) => GraphQLFieldConfig<any, any> | [string, GraphQLFieldConfig<any, any>] | null | undefined;
+
+export type EnumValueTransformer = (
+  typeName: string,
+  externalValue: string,
+  enumValueConfig: GraphQLEnumValueConfig
+) => GraphQLEnumValueConfig | [string, GraphQLEnumValueConfig] | null | undefined;
 
 export type FieldNodeTransformer = (
   typeName: string,

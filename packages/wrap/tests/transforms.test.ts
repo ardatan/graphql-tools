@@ -28,6 +28,7 @@ import {
   TransformQuery,
   FilterInputObjectFields,
   RenameInputObjectFields,
+  TransformEnumValues,
 } from '@graphql-tools/wrap';
 
 import {
@@ -1485,5 +1486,39 @@ describe('replaces field with processed fragment node', () => {
     const result = await graphql(transformedSchema, query);
     expect(result.data.test.field1).toBe('field1');
     expect(result.data.test.field2).toBe('field2');
+  });
+});
+
+describe('transform enum values', () => {
+  test('works', async () => {
+    const schema = makeExecutableSchema({
+      typeDefs: `
+        enum TestEnum {
+          ONE
+        }
+
+        type Query {
+          test(argument: [TestEnum]): TestEnum
+        }
+      `,
+      resolvers: {
+        Query: {
+          test: () => 'ONE',
+        }
+      }
+    });
+
+    const transformedSchema = wrapSchema(schema, [
+      new TransformEnumValues(
+        (_typeName, _externalValue, valueConfig) => ['TWO', valueConfig],
+      )
+    ]);
+
+    const query = `{
+      test(argument: [TWO])
+    }`;
+
+    const result = await graphql(transformedSchema, query);
+    expect(result.errors).toBeUndefined();
   });
 });
