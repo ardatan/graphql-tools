@@ -9,16 +9,6 @@ import {
   SelectionSetNode,
   SelectionNode,
   FragmentDefinitionNode,
-  GraphQLInterfaceType,
-  isObjectType,
-  isInterfaceType,
-  GraphQLObjectType,
-  GraphQLFieldConfig,
-  FieldDefinitionNode,
-  ObjectTypeDefinitionNode,
-  InterfaceTypeDefinitionNode,
-  ObjectTypeExtensionNode,
-  InterfaceTypeExtensionNode,
 } from 'graphql';
 
 import { Transform, Request, MapperKind, mapSchema, visitData, ExecutionResult } from '@graphql-tools/utils';
@@ -48,8 +38,20 @@ export default class TransformCompositeFields implements Transform {
 
   public transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
     this.transformedSchema = mapSchema(originalSchema, {
-      [MapperKind.OBJECT_TYPE]: (type: GraphQLObjectType) => this.transformFields(type, this.fieldTransformer),
-      [MapperKind.INTERFACE_TYPE]: (type: GraphQLInterfaceType) => this.transformFields(type, this.fieldTransformer),
+      [MapperKind.COMPOSITE_FIELD]: (fieldConfig, fieldName, typeName) => {
+        const transformedField = this.fieldTransformer(typeName, fieldName, fieldConfig);
+        if (Array.isArray(transformedField)) {
+          const newFieldName = transformedField[0];
+
+          if (newFieldName !== fieldName) {
+            if (!(typeName in this.mapping)) {
+              this.mapping[typeName] = {};
+            }
+            this.mapping[typeName][newFieldName] = fieldName;
+          }
+        }
+        return transformedField;
+      },
     });
     this.typeInfo = new TypeInfo(this.transformedSchema);
 
@@ -86,73 +88,6 @@ export default class TransformCompositeFields implements Transform {
       result.errors = this.errorsTransformer(result.errors, transformationContext);
     }
     return result;
-  }
-
-  private transformFields(type: GraphQLObjectType, fieldTransformer: FieldTransformer): GraphQLObjectType;
-
-  private transformFields(type: GraphQLInterfaceType, fieldTransformer: FieldTransformer): GraphQLInterfaceType;
-
-  private transformFields(type: GraphQLObjectType | GraphQLInterfaceType, fieldTransformer: FieldTransformer): any {
-    const config = type.toConfig();
-
-    const originalFieldConfigMap = config.fields;
-    const newFieldConfigMap = {};
-
-    Object.keys(originalFieldConfigMap).forEach(fieldName => {
-      const originalfieldConfig = originalFieldConfigMap[fieldName];
-      const transformedField = fieldTransformer(type.name, fieldName, originalfieldConfig);
-
-      if (transformedField === undefined) {
-        newFieldConfigMap[fieldName] = originalfieldConfig;
-      } else if (Array.isArray(transformedField)) {
-        const newFieldName = transformedField[0];
-        const newFieldConfig = transformedField[1];
-
-        if (newFieldName !== fieldName) {
-          const typeName = type.name;
-          if (!(typeName in this.mapping)) {
-            this.mapping[typeName] = {};
-          }
-          this.mapping[typeName][newFieldName] = fieldName;
-
-          if (newFieldConfig.astNode != null) {
-            newFieldConfig.astNode = {
-              ...newFieldConfig.astNode,
-              name: {
-                ...newFieldConfig.astNode.name,
-                value: newFieldName,
-              },
-            };
-          }
-        }
-
-        newFieldConfigMap[newFieldName] = newFieldConfig;
-      } else if (transformedField != null) {
-        newFieldConfigMap[fieldName] = transformedField;
-      }
-    });
-
-    if (!Object.keys(newFieldConfigMap).length) {
-      return null;
-    }
-
-    if (isObjectType(type)) {
-      const oldConfig = type.toConfig();
-      return new GraphQLObjectType({
-        ...oldConfig,
-        fields: newFieldConfigMap,
-        astNode: rebuildAstNode(oldConfig.astNode, newFieldConfigMap),
-        extensionASTNodes: rebuildExtensionAstNodes(oldConfig.extensionASTNodes),
-      });
-    } else if (isInterfaceType(type)) {
-      const oldConfig = type.toConfig();
-      return new GraphQLInterfaceType({
-        ...type.toConfig(),
-        fields: newFieldConfigMap,
-        astNode: rebuildAstNode(oldConfig.astNode, newFieldConfigMap),
-        extensionASTNodes: rebuildExtensionAstNodes(oldConfig.extensionASTNodes),
-      });
-    }
   }
 
   private transformDocument(
@@ -257,43 +192,4 @@ export default class TransformCompositeFields implements Transform {
       selections: newSelections,
     };
   }
-}
-
-function rebuildAstNode<TypeDefinitionNode extends ObjectTypeDefinitionNode | InterfaceTypeDefinitionNode>(
-  astNode: TypeDefinitionNode,
-  fieldConfigMap: Record<string, GraphQLFieldConfig<any, any>>
-): TypeDefinitionNode {
-  if (astNode == null) {
-    return undefined;
-  }
-
-  const newAstNode: TypeDefinitionNode = {
-    ...astNode,
-    fields: undefined,
-  };
-
-  const fields: Array<FieldDefinitionNode> = [];
-  Object.values(fieldConfigMap).forEach(fieldConfig => {
-    if (fieldConfig.astNode != null) {
-      fields.push(fieldConfig.astNode);
-    }
-  });
-
-  return {
-    ...newAstNode,
-    fields,
-  };
-}
-
-function rebuildExtensionAstNodes<TypeExtensionNode extends ObjectTypeExtensionNode | InterfaceTypeExtensionNode>(
-  extensionASTNodes: ReadonlyArray<TypeExtensionNode>
-): Array<TypeExtensionNode> {
-  if (!extensionASTNodes?.length) {
-    return [];
-  }
-
-  return extensionASTNodes.map(node => ({
-    ...node,
-    fields: undefined,
-  }));
 }
