@@ -5,12 +5,18 @@ const identifiersToLookFor = ['default', 'schema', 'typeDefs', 'data'];
 
 // Pick exports
 
+/**
+ * @internal
+ */
 export function pickExportFromModule({ module, filepath }: { module: any; filepath: string }) {
   ensureModule({ module, filepath });
 
   return resolveModule(ensureExports({ module, filepath }));
 }
 
+/**
+ * @internal
+ */
 export function pickExportFromModuleSync({ module, filepath }: { module: any; filepath: string }) {
   ensureModule({ module, filepath });
 

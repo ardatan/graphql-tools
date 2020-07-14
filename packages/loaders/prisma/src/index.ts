@@ -5,12 +5,18 @@ import { pathExists } from 'fs-extra';
 import { homedir } from 'os';
 import { cwd } from 'process';
 
-interface PrismaLoaderOptions extends LoadFromUrlOptions {
+/**
+ * additional options for loading from a `prisma.yml` file
+ */
+export interface PrismaLoaderOptions extends LoadFromUrlOptions {
   envVars?: { [key: string]: string };
   graceful?: boolean;
   cwd?: string;
 }
 
+/**
+ * This loader loads a schema from a `prisma.yml` file
+ */
 export class PrismaLoader extends UrlLoader {
   loaderId() {
     return 'prisma';

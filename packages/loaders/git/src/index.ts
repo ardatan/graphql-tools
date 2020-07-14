@@ -27,10 +27,27 @@ function extractData(
   };
 }
 
-type GitLoaderOptions = SingleFileOptions & { pluckConfig: GraphQLTagPluckOptions };
+/**
+ * Additional options for loading from git
+ */
+export type GitLoaderOptions = SingleFileOptions & {
+  /**
+   * Additional options to pass to `graphql-tag-pluck`
+   */
+  pluckConfig: GraphQLTagPluckOptions;
+};
 
 const createInvalidExtensionError = (path: string) => new Error(`Invalid file extension: ${path}`);
 
+/**
+ * This loader loads a file from git.
+ *
+ * ```js
+ * const typeDefs = await loadTypedefs('git:someBranch:some/path/to/file.js', {
+ *   loaders: [new GitLoader()],
+ * })
+ * ```
+ */
 export class GitLoader implements UniversalLoader {
   loaderId() {
     return 'git-loader';

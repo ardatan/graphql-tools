@@ -8,6 +8,9 @@ const createCommand = ({ ref, path }: Input) => {
   return [`${ref}:${path}`];
 };
 
+/**
+ * @internal
+ */
 export async function loadFromGit(input: Input): Promise<string | never> {
   try {
     const git = simplegit();
@@ -17,6 +20,9 @@ export async function loadFromGit(input: Input): Promise<string | never> {
   }
 }
 
+/**
+ * @internal
+ */
 export function loadFromGitSync(input: Input): string | never {
   try {
     const git = simplegitSync();

@@ -18,6 +18,13 @@ export type LoadTypedefsOptions<ExtraConfig = { [key: string]: any }> = SingleFi
 
 export type UnnormalizedTypeDefPointer = { [key: string]: any } | string;
 
+/**
+ * Asynchronously loads any GraphQL documents (i.e. executable documents like
+ * operations and fragments as well as type system definitions) from the
+ * provided pointers.
+ * @param pointerOrPointers Pointers to the sources to load the documents from
+ * @param options Additional options
+ */
 export async function loadTypedefs<AdditionalConfig = Record<string, unknown>>(
   pointerOrPointers: UnnormalizedTypeDefPointer | UnnormalizedTypeDefPointer[],
   options: LoadTypedefsOptions<Partial<AdditionalConfig>>
@@ -56,6 +63,13 @@ export async function loadTypedefs<AdditionalConfig = Record<string, unknown>>(
   return prepareResult({ options, pointerOptionMap, validSources });
 }
 
+/**
+ * Synchronously loads any GraphQL documents (i.e. executable documents like
+ * operations and fragments as well as type system definitions) from the
+ * provided pointers.
+ * @param pointerOrPointers Pointers to the sources to load the documents from
+ * @param options Additional options
+ */
 export function loadTypedefsSync<AdditionalConfig = Record<string, unknown>>(
   pointerOrPointers: UnnormalizedTypeDefPointer | UnnormalizedTypeDefPointer[],
   options: LoadTypedefsOptions<Partial<AdditionalConfig>>

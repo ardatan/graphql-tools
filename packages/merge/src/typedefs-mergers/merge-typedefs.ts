@@ -73,6 +73,10 @@ export function mergeGraphQLSchemas(
   return mergeGraphQLTypes(types, config);
 }
 
+/**
+ * Merges multiple type definitions into a single `DocumentNode`
+ * @param types The type definitions to be merged
+ */
 export function mergeTypeDefs(types: Array<string | Source | DocumentNode | GraphQLSchema>): DocumentNode;
 export function mergeTypeDefs(
   types: Array<string | Source | DocumentNode | GraphQLSchema>,

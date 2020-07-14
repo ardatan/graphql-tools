@@ -1,5 +1,8 @@
 import { parseGraphQLSDL, parseGraphQLJSON, Source } from '@graphql-tools/utils';
 
+/**
+ * @internal
+ */
 export function parse<T>({
   path,
   pointer,

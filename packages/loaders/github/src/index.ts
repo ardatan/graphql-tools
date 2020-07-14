@@ -23,11 +23,30 @@ function extractData(
   };
 }
 
+/**
+ * Additional options for loading from GitHub
+ */
 export interface GithubLoaderOptions extends SingleFileOptions {
+  /**
+   * A GitHub access token
+   */
   token: string;
+  /**
+   * Additional options to pass to `graphql-tag-pluck`
+   */
   pluckConfig?: GraphQLTagPluckOptions;
 }
 
+/**
+ * This loader loads a file from GitHub.
+ *
+ * ```js
+ * const typeDefs = await loadTypedefs('github:githubUser/githubRepo#branchName:path/to/file.ts', {
+ *   loaders: [new GithubLoader()],
+ *   token: YOUR_GITHUB_TOKEN,
+ * })
+ * ```
+ */
 export class GithubLoader implements UniversalLoader<GithubLoaderOptions> {
   loaderId() {
     return 'github-loader';
