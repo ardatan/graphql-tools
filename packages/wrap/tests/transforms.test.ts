@@ -1489,7 +1489,7 @@ describe('replaces field with processed fragment node', () => {
   });
 });
 
-describe('transform enum values', () => {
+describe('transform TransformEnumValues', () => {
   test('works', async () => {
     const schema = makeExecutableSchema({
       typeDefs: `
@@ -1498,7 +1498,7 @@ describe('transform enum values', () => {
         }
 
         type Query {
-          test(argument: [TestEnum]): TestEnum
+          test(argument: TestEnum): TestEnum
         }
       `,
       resolvers: {
@@ -1510,15 +1510,47 @@ describe('transform enum values', () => {
 
     const transformedSchema = wrapSchema(schema, [
       new TransformEnumValues(
-        (_typeName, _externalValue, valueConfig) => ['TWO', valueConfig],
+        (_typeName, _externalValue, valueConfig) => ['UNO', valueConfig],
       )
     ]);
 
     const query = `{
-      test(argument: [TWO])
+      test(argument: UNO)
     }`;
 
     const result = await graphql(transformedSchema, query);
+    expect(result.errors).toBeUndefined();
+  });
+
+  test('works with variables', async () => {
+    const schema = makeExecutableSchema({
+      typeDefs: `
+        enum TestEnum {
+          ONE
+        }
+
+        type Query {
+          test(argument: TestEnum): TestEnum
+        }
+      `,
+      resolvers: {
+        Query: {
+          test: () => 'ONE',
+        }
+      }
+    });
+
+    const transformedSchema = wrapSchema(schema, [
+      new TransformEnumValues(
+        (_typeName, _externalValue, valueConfig) => ['UNO', valueConfig],
+      )
+    ]);
+
+    const query = `query Test($test: TestEnum) {
+      test(argument: $test)
+    }`;
+
+    const result = await graphql(transformedSchema, query, undefined, undefined, { test: 'UNO' });
     expect(result.errors).toBeUndefined();
   });
 });

@@ -24,14 +24,9 @@ import {
   GraphQLList,
   GraphQLNonNull,
   GraphQLEnumType,
-  ObjectTypeDefinitionNode,
-  InterfaceTypeDefinitionNode,
-  InputObjectTypeDefinitionNode,
-  InputObjectTypeExtensionNode,
-  InterfaceTypeExtensionNode,
-  ObjectTypeExtensionNode,
   InputValueDefinitionNode,
   FieldDefinitionNode,
+  Kind,
 } from 'graphql';
 
 import {
@@ -264,28 +259,26 @@ function mapFields(originalTypeMap: TypeMap, schema: GraphQLSchema, schemaMapper
       });
 
       if (isObjectType(originalType)) {
-        newTypeMap[typeName] = new GraphQLObjectType({
-          ...(config as GraphQLObjectTypeConfig<any, any>),
-          fields: newFieldConfigMap,
-          astNode: rebuildAstNode((config as GraphQLObjectTypeConfig<any, any>).astNode, newFieldConfigMap),
-          extensionASTNodes: rebuildExtensionAstNodes((config as GraphQLObjectTypeConfig<any, any>).extensionASTNodes),
-        });
+        newTypeMap[typeName] = correctASTNodes(
+          new GraphQLObjectType({
+            ...(config as GraphQLObjectTypeConfig<any, any>),
+            fields: newFieldConfigMap,
+          })
+        );
       } else if (isInterfaceType(originalType)) {
-        newTypeMap[typeName] = new GraphQLInterfaceType({
-          ...(config as GraphQLInterfaceTypeConfig<any, any>),
-          fields: newFieldConfigMap,
-          astNode: rebuildAstNode((config as GraphQLInterfaceTypeConfig<any, any>).astNode, newFieldConfigMap),
-          extensionASTNodes: rebuildExtensionAstNodes(
-            (config as GraphQLInterfaceTypeConfig<any, any>).extensionASTNodes
-          ),
-        });
+        newTypeMap[typeName] = correctASTNodes(
+          new GraphQLInterfaceType({
+            ...(config as GraphQLInterfaceTypeConfig<any, any>),
+            fields: newFieldConfigMap,
+          })
+        );
       } else {
-        newTypeMap[typeName] = new GraphQLInputObjectType({
-          ...(config as GraphQLInputObjectTypeConfig),
-          fields: newFieldConfigMap,
-          astNode: rebuildAstNode((config as GraphQLInputObjectTypeConfig).astNode, newFieldConfigMap),
-          extensionASTNodes: rebuildExtensionAstNodes((config as GraphQLInputObjectTypeConfig).extensionASTNodes),
-        });
+        newTypeMap[typeName] = correctASTNodes(
+          new GraphQLInputObjectType({
+            ...(config as GraphQLInputObjectTypeConfig),
+            fields: newFieldConfigMap,
+          })
+        );
       }
     }
   });
@@ -498,48 +491,87 @@ function getEnumValueMapper(schemaMapper: SchemaMapper): EnumValueMapper | null 
   return enumValueMapper != null ? enumValueMapper : null;
 }
 
-export function rebuildAstNode<
-  TypeDefinitionNode extends ObjectTypeDefinitionNode | InterfaceTypeDefinitionNode | InputObjectTypeDefinitionNode
->(
-  astNode: TypeDefinitionNode,
-  fieldOrInputFieldConfigMap: Record<
-    string,
-    TypeDefinitionNode extends ObjectTypeDefinitionNode | InterfaceTypeDefinitionNode
-      ? GraphQLFieldConfig<any, any>
-      : GraphQLInputFieldConfig
-  >
-): TypeDefinitionNode {
-  if (astNode == null) {
-    return undefined;
-  }
-
-  const newAstNode: TypeDefinitionNode = {
-    ...astNode,
-    fields: undefined,
-  };
-
-  const fields: Array<FieldDefinitionNode | InputValueDefinitionNode> = [];
-  Object.values(fieldOrInputFieldConfigMap).forEach(fieldOrInputFieldConfig => {
-    if (fieldOrInputFieldConfig.astNode != null) {
-      fields.push(fieldOrInputFieldConfig.astNode);
+export function correctASTNodes(type: GraphQLObjectType): GraphQLObjectType;
+export function correctASTNodes(type: GraphQLInterfaceType): GraphQLInterfaceType;
+export function correctASTNodes(type: GraphQLInputObjectType): GraphQLInputObjectType;
+export function correctASTNodes(type: GraphQLEnumType): GraphQLEnumType;
+export function correctASTNodes(type: GraphQLNamedType): GraphQLNamedType {
+  if (isObjectType(type)) {
+    const config = (type as GraphQLObjectType).toConfig();
+    if (config.astNode != null) {
+      const fields: Array<FieldDefinitionNode> = [];
+      Object.values(config.fields).forEach(fieldConfig => {
+        if (fieldConfig.astNode != null) {
+          fields.push(fieldConfig.astNode);
+        }
+      });
+      config.astNode = {
+        ...config.astNode,
+        kind: Kind.OBJECT_TYPE_DEFINITION,
+        fields,
+      };
     }
-  });
 
-  return {
-    ...newAstNode,
-    fields,
-  };
-}
+    if (config.extensionASTNodes != null) {
+      config.extensionASTNodes = config.extensionASTNodes.map(node => ({
+        ...node,
+        kind: Kind.OBJECT_TYPE_EXTENSION,
+        fields: undefined,
+      }));
+    }
 
-export function rebuildExtensionAstNodes<
-  TypeExtensionNode extends ObjectTypeExtensionNode | InterfaceTypeExtensionNode | InputObjectTypeExtensionNode
->(extensionASTNodes: ReadonlyArray<TypeExtensionNode>): Array<TypeExtensionNode> {
-  if (!extensionASTNodes?.length) {
-    return [];
+    return new GraphQLObjectType(config);
+  } else if (isInterfaceType(type)) {
+    const config = (type as GraphQLInterfaceType).toConfig();
+    if (config.astNode != null) {
+      const fields: Array<FieldDefinitionNode> = [];
+      Object.values(config.fields).forEach(fieldConfig => {
+        if (fieldConfig.astNode != null) {
+          fields.push(fieldConfig.astNode);
+        }
+      });
+      config.astNode = {
+        ...config.astNode,
+        kind: Kind.INTERFACE_TYPE_DEFINITION,
+        fields,
+      };
+    }
+
+    if (config.extensionASTNodes != null) {
+      config.extensionASTNodes = config.extensionASTNodes.map(node => ({
+        ...node,
+        kind: Kind.INTERFACE_TYPE_EXTENSION,
+        fields: undefined,
+      }));
+    }
+
+    return new GraphQLInterfaceType(config);
+  } else if (isInputObjectType(type)) {
+    const config = (type as GraphQLInputObjectType).toConfig();
+    if (config.astNode != null) {
+      const fields: Array<InputValueDefinitionNode> = [];
+      Object.values(config.fields).forEach(fieldConfig => {
+        if (fieldConfig.astNode != null) {
+          fields.push(fieldConfig.astNode);
+        }
+      });
+      config.astNode = {
+        ...config.astNode,
+        kind: Kind.INPUT_OBJECT_TYPE_DEFINITION,
+        fields,
+      };
+    }
+
+    if (config.extensionASTNodes != null) {
+      config.extensionASTNodes = config.extensionASTNodes.map(node => ({
+        ...node,
+        kind: Kind.INPUT_OBJECT_TYPE_EXTENSION,
+        fields: undefined,
+      }));
+    }
+
+    return new GraphQLInputObjectType(config);
+  } else {
+    return type;
   }
-
-  return extensionASTNodes.map(node => ({
-    ...node,
-    fields: undefined,
-  }));
 }

@@ -6,6 +6,13 @@ import {
   visitWithTypeInfo,
   GraphQLEnumType,
   GraphQLEnumValueConfig,
+  OperationDefinitionNode,
+  FragmentDefinitionNode,
+  VariableDefinitionNode,
+  ArgumentNode,
+  GraphQLArgument,
+  FieldNode,
+  EnumValueNode,
 } from 'graphql';
 
 import {
@@ -16,6 +23,8 @@ import {
   ExecutionResult,
   visitResult,
   ResultVisitorMap,
+  updateArgument,
+  transformInputValue,
 } from '@graphql-tools/utils';
 import { EnumValueTransformer } from '../types';
 
@@ -62,25 +71,45 @@ export default class TransformEnumValues implements Transform {
     _delegationContext: Record<string, any>,
     transformationContext: TransformEnumValuesTransformationContext
   ): Request {
-    const document = visit(
-      originalRequest.document,
-      visitWithTypeInfo(this.typeInfo, {
-        [Kind.ENUM]: node => {
-          const typeName = (this.typeInfo.getInputType() as GraphQLEnumType).name;
-          const newExternalValue = this.reverseMapping[typeName]?.[node.value];
-          if (newExternalValue != null) {
-            return {
-              ...node,
-              value: newExternalValue,
-            };
-          }
-        },
-      })
-    );
+    const document = originalRequest.document;
+    const variableValues = originalRequest.variables;
+
+    const operations: Array<OperationDefinitionNode> = document.definitions.filter(
+      def => def.kind === Kind.OPERATION_DEFINITION
+    ) as Array<OperationDefinitionNode>;
+    const fragments: Array<FragmentDefinitionNode> = document.definitions.filter(
+      def => def.kind === Kind.FRAGMENT_DEFINITION
+    ) as Array<FragmentDefinitionNode>;
+
+    const newOperations = operations.map((operation: OperationDefinitionNode) => {
+      const variableDefinitionMap: Record<string, VariableDefinitionNode> = operation.variableDefinitions.reduce(
+        (prev, def) => ({
+          ...prev,
+          [def.variable.name.value]: def,
+        }),
+        {}
+      );
+      const newOperation = visit(
+        operation,
+        visitWithTypeInfo(this.typeInfo, {
+          [Kind.FIELD]: node =>
+            transformFieldNode(node, this.typeInfo, variableDefinitionMap, variableValues, this.reverseMapping),
+          [Kind.ENUM]: node => transformEnumValueNode(node, this.typeInfo, this.reverseMapping),
+        })
+      );
+      return {
+        ...newOperation,
+        variableDefinitions: Object.keys(variableDefinitionMap).map(varName => variableDefinitionMap[varName]),
+      };
+    });
 
     const transformedRequest = {
       ...originalRequest,
-      document,
+      document: {
+        ...document,
+        definitions: [...newOperations, ...fragments],
+      },
+      variables: variableValues,
     };
 
     transformationContext.transformedRequest = transformedRequest;
@@ -129,4 +158,71 @@ function transformEnumValue(
     }
   }
   return transformedEnumValue;
+}
+
+function transformFieldNode(
+  field: FieldNode,
+  typeInfo: TypeInfo,
+  variableDefinitionMap: Record<string, VariableDefinitionNode>,
+  variableValues: Record<string, any>,
+  reverseMapping: Record<string, Record<string, string>>
+): FieldNode {
+  const targetField = typeInfo.getFieldDef();
+
+  if (!targetField.name.startsWith('__')) {
+    const argumentNodes = field.arguments;
+    if (argumentNodes != null) {
+      const argumentNodeMap: Record<string, ArgumentNode> = argumentNodes.reduce(
+        (prev, argument) => ({
+          ...prev,
+          [argument.name.value]: argument,
+        }),
+        Object.create(null)
+      );
+
+      targetField.args.forEach((argument: GraphQLArgument) => {
+        const argName = argument.name;
+        const argType = argument.type;
+
+        if (argName in argumentNodeMap) {
+          const argumentNode = argumentNodeMap[argName];
+          const argValue = argumentNode.value;
+          if (argValue.kind === Kind.VARIABLE) {
+            updateArgument(
+              argName,
+              argType,
+              argumentNodeMap,
+              variableDefinitionMap,
+              variableValues,
+              transformInputValue(argType, variableValues[argValue.name.value], (t, v) => {
+                const typeName = t.name;
+                const newExternalValue = reverseMapping[typeName]?.[v];
+                return newExternalValue != null ? newExternalValue : v;
+              })
+            );
+          }
+        }
+      });
+
+      return {
+        ...field,
+        arguments: Object.keys(argumentNodeMap).map(argName => argumentNodeMap[argName]),
+      };
+    }
+  }
+}
+
+function transformEnumValueNode(
+  enumValueNode: EnumValueNode,
+  typeInfo: TypeInfo,
+  reverseMapping: Record<string, Record<string, string>>
+): EnumValueNode {
+  const typeName = (typeInfo.getInputType() as GraphQLEnumType).name;
+  const newExternalValue = reverseMapping[typeName]?.[enumValueNode.value];
+  if (newExternalValue != null) {
+    return {
+      ...enumValueNode,
+      value: newExternalValue,
+    };
+  }
 }
