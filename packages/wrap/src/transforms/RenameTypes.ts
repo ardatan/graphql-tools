@@ -1,21 +1,10 @@
 import {
-  GraphQLEnumType,
-  GraphQLInputObjectType,
-  GraphQLInterfaceType,
   GraphQLNamedType,
-  GraphQLObjectType,
   GraphQLSchema,
-  GraphQLScalarType,
-  GraphQLUnionType,
   Kind,
   NamedTypeNode,
-  isEnumType,
-  isInputObjectType,
-  isInterfaceType,
-  isObjectType,
   isScalarType,
   isSpecifiedScalarType,
-  isUnionType,
   visit,
 } from 'graphql';
 
@@ -27,6 +16,7 @@ import {
   RenameTypesOptions,
   mapSchema,
   visitData,
+  renameType,
 } from '@graphql-tools/utils';
 
 export default class RenameTypes implements Transform {
@@ -60,159 +50,7 @@ export default class RenameTypes implements Transform {
           this.map[oldName] = newName;
           this.reverseMap[newName] = oldName;
 
-          if (isObjectType(type)) {
-            return new GraphQLObjectType({
-              ...type.toConfig(),
-              name: newName,
-              astNode:
-                type.astNode == null
-                  ? type.astNode
-                  : {
-                      ...type.astNode,
-                      name: {
-                        ...type.astNode.name,
-                        value: newName,
-                      },
-                    },
-              extensionASTNodes:
-                type.extensionASTNodes == null
-                  ? type.extensionASTNodes
-                  : type.extensionASTNodes.map(node => ({
-                      ...node,
-                      name: {
-                        ...node.name,
-                        value: newName,
-                      },
-                    })),
-            });
-          } else if (isInterfaceType(type)) {
-            return new GraphQLInterfaceType({
-              ...type.toConfig(),
-              name: newName,
-              astNode:
-                type.astNode == null
-                  ? type.astNode
-                  : {
-                      ...type.astNode,
-                      name: {
-                        ...type.astNode.name,
-                        value: newName,
-                      },
-                    },
-              extensionASTNodes:
-                type.extensionASTNodes == null
-                  ? type.extensionASTNodes
-                  : type.extensionASTNodes.map(node => ({
-                      ...node,
-                      name: {
-                        ...node.name,
-                        value: newName,
-                      },
-                    })),
-            });
-          } else if (isUnionType(type)) {
-            return new GraphQLUnionType({
-              ...type.toConfig(),
-              name: newName,
-              astNode:
-                type.astNode == null
-                  ? type.astNode
-                  : {
-                      ...type.astNode,
-                      name: {
-                        ...type.astNode.name,
-                        value: newName,
-                      },
-                    },
-              extensionASTNodes:
-                type.extensionASTNodes == null
-                  ? type.extensionASTNodes
-                  : type.extensionASTNodes.map(node => ({
-                      ...node,
-                      name: {
-                        ...node.name,
-                        value: newName,
-                      },
-                    })),
-            });
-          } else if (isInputObjectType(type)) {
-            return new GraphQLInputObjectType({
-              ...type.toConfig(),
-              name: newName,
-              astNode:
-                type.astNode == null
-                  ? type.astNode
-                  : {
-                      ...type.astNode,
-                      name: {
-                        ...type.astNode.name,
-                        value: newName,
-                      },
-                    },
-              extensionASTNodes:
-                type.extensionASTNodes == null
-                  ? type.extensionASTNodes
-                  : type.extensionASTNodes.map(node => ({
-                      ...node,
-                      name: {
-                        ...node.name,
-                        value: newName,
-                      },
-                    })),
-            });
-          } else if (isEnumType(type)) {
-            return new GraphQLEnumType({
-              ...type.toConfig(),
-              name: newName,
-              astNode:
-                type.astNode == null
-                  ? type.astNode
-                  : {
-                      ...type.astNode,
-                      name: {
-                        ...type.astNode.name,
-                        value: newName,
-                      },
-                    },
-              extensionASTNodes:
-                type.extensionASTNodes == null
-                  ? type.extensionASTNodes
-                  : type.extensionASTNodes.map(node => ({
-                      ...node,
-                      name: {
-                        ...node.name,
-                        value: newName,
-                      },
-                    })),
-            });
-          } else if (isScalarType(type)) {
-            return new GraphQLScalarType({
-              ...type.toConfig(),
-              name: newName,
-              astNode:
-                type.astNode == null
-                  ? type.astNode
-                  : {
-                      ...type.astNode,
-                      name: {
-                        ...type.astNode.name,
-                        value: newName,
-                      },
-                    },
-              extensionASTNodes:
-                type.extensionASTNodes == null
-                  ? type.extensionASTNodes
-                  : type.extensionASTNodes.map(node => ({
-                      ...node,
-                      name: {
-                        ...node.name,
-                        value: newName,
-                      },
-                    })),
-            });
-          }
-
-          throw new Error(`Unknown type ${type as string}.`);
+          return renameType(type, newName);
         }
       },
 
