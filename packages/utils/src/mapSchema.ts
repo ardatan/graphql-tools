@@ -27,6 +27,7 @@ import {
   InputValueDefinitionNode,
   FieldDefinitionNode,
   Kind,
+  EnumValueDefinitionNode,
 } from 'graphql';
 
 import {
@@ -155,10 +156,12 @@ function mapEnumValues(originalTypeMap: TypeMap, schema: GraphQLSchema, schemaMa
             newEnumValueConfigMap[externalValue] = mappedEnumValue;
           }
         });
-        return new GraphQLEnumType({
-          ...config,
-          values: newEnumValueConfigMap,
-        });
+        return correctASTNodes(
+          new GraphQLEnumType({
+            ...config,
+            values: newEnumValueConfigMap,
+          })
+        );
       },
     },
     type => isEnumType(type)
@@ -571,6 +574,29 @@ export function correctASTNodes(type: GraphQLNamedType): GraphQLNamedType {
     }
 
     return new GraphQLInputObjectType(config);
+  } else if (isEnumType(type)) {
+    const config = (type as GraphQLEnumType).toConfig();
+    if (config.astNode != null) {
+      const values: Array<EnumValueDefinitionNode> = [];
+      Object.values(config.values).forEach(enumValueConfig => {
+        if (enumValueConfig.astNode != null) {
+          values.push(enumValueConfig.astNode);
+        }
+      });
+      config.astNode = {
+        ...config.astNode,
+        values,
+      };
+    }
+
+    if (config.extensionASTNodes != null) {
+      config.extensionASTNodes = config.extensionASTNodes.map(node => ({
+        ...node,
+        values: undefined,
+      }));
+    }
+
+    return new GraphQLEnumType(config);
   } else {
     return type;
   }
