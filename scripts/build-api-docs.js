@@ -14,7 +14,7 @@ const sidebarsPath = path.join(__dirname, '../website/sidebars.json')
 const gitRemote = execSync('git remote -v', { encoding: 'utf-8' })
   .split('\n')
   .map(line => line.split('\t'))
-  .find(([_name, description]) => description === 'git@github.com:ardatan/graphql-tools.git (fetch)')
+  .find(([_name, description]) => description === 'git@github.com:ardatan/graphql-tools.git (fetch)' || description === 'https://github.com/ardatan/graphql-tools (fetch)')
 const gitRemoteName = gitRemote && gitRemote[0]
 if (!gitRemoteName) {
   console.log('Unable to locate upstream git remote')
