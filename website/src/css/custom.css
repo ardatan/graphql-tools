@@ -27,3 +27,7 @@
 .navbar__logo {
   height: 64px !important;
 }
+
+.menu button {
+  margin-bottom: 70px;
+}
