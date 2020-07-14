@@ -497,7 +497,7 @@ function getEnumValueMapper(schemaMapper: SchemaMapper): EnumValueMapper | null 
   return enumValueMapper != null ? enumValueMapper : null;
 }
 
-function rebuildAstNode<
+export function rebuildAstNode<
   TypeDefinitionNode extends ObjectTypeDefinitionNode | InterfaceTypeDefinitionNode | InputObjectTypeDefinitionNode
 >(
   astNode: TypeDefinitionNode,
@@ -530,7 +530,7 @@ function rebuildAstNode<
   };
 }
 
-function rebuildExtensionAstNodes<
+export function rebuildExtensionAstNodes<
   TypeExtensionNode extends ObjectTypeExtensionNode | InterfaceTypeExtensionNode | InputObjectTypeExtensionNode
 >(extensionASTNodes: ReadonlyArray<TypeExtensionNode>): Array<TypeExtensionNode> {
   if (!extensionASTNodes?.length) {
