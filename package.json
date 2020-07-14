@@ -44,7 +44,7 @@
     "ts-jest": "26.1.2",
     "typescript": "3.9.6",
     "@typescript-eslint/eslint-plugin": "3.6.1",
-    "@typescript-eslint/parser": "3.6.0",
+    "@typescript-eslint/parser": "3.6.1",
     "bob-the-bundler": "1.0.2",
     "eslint": "7.4.0",
     "eslint-config-prettier": "6.11.0",
