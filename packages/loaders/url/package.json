@@ -30,7 +30,7 @@
     "cross-fetch": "3.0.5",
     "tslib": "~2.0.0",
     "valid-url": "1.0.9",
-    "subscriptions-transport-ws": "0.9.16",
+    "subscriptions-transport-ws": "0.9.17",
     "websocket": "1.0.31"
   },
   "publishConfig": {
