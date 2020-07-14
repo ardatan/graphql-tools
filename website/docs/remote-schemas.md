@@ -108,7 +108,8 @@ type Subscriber = (executionParams: ExecutionParams) => Promise<AsyncIterator<Ex
 You can learn more about [`subscriptions-transport-ws`](https://github.com/apollographql/subscriptions-transport-ws).
 
 ```ts
-import { Executor, Subscriber, wrapSchema } from '@graphql-tools/wrap';
+import { wrapSchema, introspectSchema } from '@graphql-tools/wrap';
+import { Executor, Subscriber } from '@graphql-tools/delegate';
 import { fetch } from 'cross-fetch';
 import { print } from 'graphql';
 import { observableToAsyncIterable } from '@graphql-tools/utils';
