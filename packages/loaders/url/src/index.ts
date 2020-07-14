@@ -1,3 +1,4 @@
+/* eslint-disable no-case-declarations */
 import { print, IntrospectionOptions, DocumentNode, GraphQLResolveInfo, Kind } from 'graphql';
 import {
   SchemaPointerSingle,
@@ -101,15 +102,31 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
           }
         }
       }
-      const fetchResult = await fetch(HTTP_URL, {
-        method,
-        ...(method === 'POST'
-          ? {
-              body: JSON.stringify({ query: print(document), variables }),
-            }
-          : {}),
-        headers: extraHeaders,
-      });
+
+      let fetchResult: Response;
+      const query = print(document);
+      switch (method) {
+        case 'GET':
+          const urlObj = new URL(HTTP_URL);
+          urlObj.searchParams.set('query', query);
+          urlObj.searchParams.set(variables, JSON.stringify(variables));
+          const finalUrl = urlObj.toString();
+          fetchResult = await fetch(finalUrl, {
+            method: 'GET',
+            headers: extraHeaders,
+          });
+          break;
+        case 'POST':
+          fetchResult = await fetch(HTTP_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+              query,
+              variables,
+            }),
+            headers: extraHeaders,
+          });
+          break;
+      }
       return fetchResult.json();
     };
   }
