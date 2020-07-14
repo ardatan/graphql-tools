@@ -151,7 +151,8 @@ export type MergedTypeResolver = (
 export interface StitchingInfo {
   transformedSchemas: Map<GraphQLSchema | SubschemaConfig, GraphQLSchema>;
   fragmentsByField: Record<string, Record<string, InlineFragmentNode>>;
-  selectionSetsByField: Record<string, Record<string, SelectionSetNode>>;
   selectionSetsByType: Record<string, SelectionSetNode>;
+  selectionSetsByField: Record<string, Record<string, SelectionSetNode>>;
+  dynamicSelectionSetsByField: Record<string, Record<string, Array<(node: FieldNode) => SelectionSetNode>>>;
   mergedTypes: Record<string, MergedTypeInfo>;
 }

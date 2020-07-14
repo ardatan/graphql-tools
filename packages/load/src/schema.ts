@@ -15,6 +15,11 @@ export type LoadSchemaOptions = BuildSchemaOptions &
     includeSources?: boolean;
   };
 
+/**
+ * Asynchronously loads a schema from the provided pointers.
+ * @param schemaPointers Pointers to the sources to load the schema from
+ * @param options Additional options
+ */
 export async function loadSchema(
   schemaPointers: UnnormalizedTypeDefPointer | UnnormalizedTypeDefPointer[],
   options: LoadSchemaOptions
@@ -40,6 +45,11 @@ export async function loadSchema(
   return schema;
 }
 
+/**
+ * Synchronously loads a schema from the provided pointers.
+ * @param schemaPointers Pointers to the sources to load the schema from
+ * @param options Additional options
+ */
 export function loadSchemaSync(
   schemaPointers: UnnormalizedTypeDefPointer | UnnormalizedTypeDefPointer[],
   options: LoadSchemaOptions

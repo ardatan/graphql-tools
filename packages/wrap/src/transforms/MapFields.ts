@@ -15,7 +15,7 @@ export default class MapFields implements Transform {
     errorsTransformer?: ErrorsTransformer
   ) {
     this.transformer = new TransformCompositeFields(
-      (_typeName, _fieldName, fieldConfig) => fieldConfig,
+      () => undefined,
       (typeName, fieldName, fieldNode, fragments, transformationContext) => {
         const typeTransformers = fieldNodeTransformerMap[typeName];
         if (typeTransformers == null) {

@@ -84,20 +84,65 @@ export interface GraphQLParseOptions {
 
 // graphql-tools typings
 
+/**
+ * Options for validating resolvers
+ */
 export interface IResolverValidationOptions {
+  /**
+   * Set to `true` to require a resolver to be defined for any field that has
+   * arguments. Defaults to `false`.
+   */
   requireResolversForArgs?: boolean;
+  /**
+   * Set to `true` to require a resolver to be defined for any field which has
+   * a return type that isn't a scalar. Defaults to `false`.
+   */
   requireResolversForNonScalar?: boolean;
+  /**
+   * Set to `true` to require a resolver for be defined for all fields defined
+   * in the schema. Defaults to `false`.
+   */
   requireResolversForAllFields?: boolean;
+  /**
+   * Set to `true` to require a `resolveType()` for Interface and Union types.
+   * Defaults to `false`.
+   */
   requireResolversForResolveType?: boolean;
+  /**
+   * Set to `false` to require all defined resolvers to match fields that
+   * actually exist in the schema. Defaults to `true`.
+   */
   allowResolversNotInSchema?: boolean;
 }
 
+/**
+ * Configuration object for adding resolvers to a schema
+ */
 export interface IAddResolversToSchemaOptions {
+  /**
+   * The schema to which to add resolvers
+   */
   schema: GraphQLSchema;
+  /**
+   * Object describing the field resolvers to add to the provided schema
+   */
   resolvers: IResolvers;
+  /**
+   * Override the default field resolver provided by `graphql-js`
+   */
   defaultFieldResolver?: IFieldResolver<any, any>;
+  /**
+   * Additional options for validating the provided resolvers
+   */
   resolverValidationOptions?: IResolverValidationOptions;
+  /**
+   * GraphQL object types that implement interfaces will inherit any missing
+   * resolvers from their interface types defined in the `resolvers` object
+   */
   inheritResolversFromInterfaces?: boolean;
+  /**
+   * Set to `true` to modify the existing schema instead of creating a new one
+   */
   updateResolversInPlace?: boolean;
 }
 

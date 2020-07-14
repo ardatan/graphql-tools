@@ -30,6 +30,15 @@ function extractData(
   };
 }
 
+/**
+ * * This loader loads documents and type definitions from a Node module
+ *
+ * ```js
+ * const schema = await loadSchema('module:someModuleName#someNamedExport', {
+ *   loaders: [new ModuleLoader()],
+ * })
+ * ```
+ */
 export class ModuleLoader implements UniversalLoader {
   loaderId() {
     return 'module-loader';

@@ -5,6 +5,7 @@ import {
   DocumentNode,
   SelectionNode,
   InlineFragmentNode,
+  FieldNode,
 } from 'graphql';
 import { ITypeDefinitions, TypeMap } from '@graphql-tools/utils';
 import { SubschemaConfig } from '@graphql-tools/delegate';
@@ -32,8 +33,9 @@ export interface MergedTypeInfo {
 export interface StitchingInfo {
   transformedSchemas: Map<GraphQLSchema | SubschemaConfig, GraphQLSchema>;
   fragmentsByField: Record<string, Record<string, InlineFragmentNode>>;
-  selectionSetsByField: Record<string, Record<string, SelectionSetNode>>;
   selectionSetsByType: Record<string, SelectionSetNode>;
+  selectionSetsByField: Record<string, Record<string, SelectionSetNode>>;
+  dynamicSelectionSetsByField: Record<string, Record<string, Array<(node: FieldNode) => SelectionSetNode>>>;
   mergedTypes: Record<string, MergedTypeInfo>;
 }
 
@@ -65,6 +67,6 @@ export type OnTypeConflict = (
 declare module '@graphql-tools/utils' {
   interface IFieldResolverOptions<TSource = any, TContext = any, TArgs = any> {
     fragment?: string;
-    selectionSet?: string;
+    selectionSet?: string | ((node: FieldNode) => SelectionSetNode);
   }
 }

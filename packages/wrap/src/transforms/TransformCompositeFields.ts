@@ -9,10 +9,6 @@ import {
   SelectionSetNode,
   SelectionNode,
   FragmentDefinitionNode,
-  GraphQLInterfaceType,
-  isObjectType,
-  isInterfaceType,
-  GraphQLObjectType,
 } from 'graphql';
 
 import { Transform, Request, MapperKind, mapSchema, visitData, ExecutionResult } from '@graphql-tools/utils';
@@ -42,8 +38,20 @@ export default class TransformCompositeFields implements Transform {
 
   public transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
     this.transformedSchema = mapSchema(originalSchema, {
-      [MapperKind.OBJECT_TYPE]: (type: GraphQLObjectType) => this.transformFields(type, this.fieldTransformer),
-      [MapperKind.INTERFACE_TYPE]: (type: GraphQLInterfaceType) => this.transformFields(type, this.fieldTransformer),
+      [MapperKind.COMPOSITE_FIELD]: (fieldConfig, fieldName, typeName) => {
+        const transformedField = this.fieldTransformer(typeName, fieldName, fieldConfig);
+        if (Array.isArray(transformedField)) {
+          const newFieldName = transformedField[0];
+
+          if (newFieldName !== fieldName) {
+            if (!(typeName in this.mapping)) {
+              this.mapping[typeName] = {};
+            }
+            this.mapping[typeName][newFieldName] = fieldName;
+          }
+        }
+        return transformedField;
+      },
     });
     this.typeInfo = new TypeInfo(this.transformedSchema);
 
@@ -80,56 +88,6 @@ export default class TransformCompositeFields implements Transform {
       result.errors = this.errorsTransformer(result.errors, transformationContext);
     }
     return result;
-  }
-
-  private transformFields(type: GraphQLObjectType, fieldTransformer: FieldTransformer): GraphQLObjectType;
-
-  private transformFields(type: GraphQLInterfaceType, fieldTransformer: FieldTransformer): GraphQLInterfaceType;
-
-  private transformFields(type: GraphQLObjectType | GraphQLInterfaceType, fieldTransformer: FieldTransformer): any {
-    const config = type.toConfig();
-
-    const originalFieldConfigMap = config.fields;
-    const newFieldConfigMap = {};
-
-    Object.keys(originalFieldConfigMap).forEach(fieldName => {
-      const originalfieldConfig = originalFieldConfigMap[fieldName];
-      const transformedField = fieldTransformer(type.name, fieldName, originalfieldConfig);
-
-      if (transformedField === undefined) {
-        newFieldConfigMap[fieldName] = originalfieldConfig;
-      } else if (Array.isArray(transformedField)) {
-        const newFieldName = transformedField[0];
-        const newFieldConfig = transformedField[1];
-        newFieldConfigMap[newFieldName] = newFieldConfig;
-
-        if (newFieldName !== fieldName) {
-          const typeName = type.name;
-          if (!(typeName in this.mapping)) {
-            this.mapping[typeName] = {};
-          }
-          this.mapping[typeName][newFieldName] = fieldName;
-        }
-      } else if (transformedField != null) {
-        newFieldConfigMap[fieldName] = transformedField;
-      }
-    });
-
-    if (!Object.keys(newFieldConfigMap).length) {
-      return null;
-    }
-
-    if (isObjectType(type)) {
-      return new GraphQLObjectType({
-        ...type.toConfig(),
-        fields: newFieldConfigMap,
-      });
-    } else if (isInterfaceType(type)) {
-      return new GraphQLInterfaceType({
-        ...type.toConfig(),
-        fields: newFieldConfigMap,
-      });
-    }
   }
 
   private transformDocument(

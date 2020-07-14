@@ -9,6 +9,7 @@ jobs:
     name: Deploy Website
     timeout-minutes: 10
     runs-on: ubuntu-latest
+    if: contains(github.event.head_commit.message, '[deploy_website]') || contains(github.ref, 'refs/tags/')
     steps:
       - name: Checkout Master
         uses: actions/checkout@v1
@@ -40,6 +41,8 @@ jobs:
             ${{ runner.os }}-14-15-yarn-
       - name: Install Dependencies using Yarn
         run: yarn install && git checkout yarn.lock
+      - name: Build API Docs
+        run: yarn build:api-docs
       - name: Deploy 🚀
         run: yarn deploy:website
         env:

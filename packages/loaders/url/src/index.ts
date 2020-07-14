@@ -18,15 +18,50 @@ export type FetchFn = typeof import('cross-fetch').fetch;
 
 type Headers = Record<string, string> | Array<Record<string, string>>;
 
+/**
+ * Additional options for loading from a URL
+ */
 export interface LoadFromUrlOptions extends SingleFileOptions, Partial<IntrospectionOptions> {
+  /**
+   * Additional headers to include when querying the original schema
+   */
   headers?: Headers;
+  /**
+   * A custom `fetch` implementation to use when querying the original schema.
+   * Defaults to `cross-fetch`
+   */
   customFetch?: FetchFn | string;
+  /**
+   * HTTP method to use when querying the original schema.
+   */
   method?: 'GET' | 'POST';
+  /**
+   * Whether to enable subscriptions on the loaded schema
+   */
   enableSubscriptions?: boolean;
+  /**
+   * Custom WebSocket implementation used by the loaded schema if subscriptions
+   * are enabled
+   */
   webSocketImpl?: typeof w3cwebsocket | string;
+  /**
+   * Whether to use the GET HTTP method for queries when querying the original schema
+   */
   useGETForQueries?: boolean;
 }
 
+/**
+ * This loader loads a schema from a URL. The loaded schema is a fully-executable,
+ * remote schema since it's created using [@graphql-tools/wrap](remote-schemas).
+ *
+ * ```
+ * const schema = await loadSchema('http://localhost:3000/graphql', {
+ *   loaders: [
+ *     new UrlLoader(),
+ *   ]
+ * });
+ * ```
+ */
 export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
   loaderId(): string {
     return 'url';

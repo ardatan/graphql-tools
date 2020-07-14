@@ -1,6 +1,9 @@
 import { DocumentNode, GraphQLSchema } from 'graphql';
 import { pickExportFromModule, pickExportFromModuleSync } from './exports';
 
+/**
+ * @internal
+ */
 export async function tryToLoadFromExport(rawFilePath: string): Promise<GraphQLSchema | DocumentNode> {
   try {
     const filepath = ensureFilepath(rawFilePath);
@@ -13,6 +16,9 @@ export async function tryToLoadFromExport(rawFilePath: string): Promise<GraphQLS
   }
 }
 
+/**
+ * @internal
+ */
 export function tryToLoadFromExportSync(rawFilePath: string): GraphQLSchema | DocumentNode {
   try {
     const filepath = ensureFilepath(rawFilePath);
@@ -25,6 +31,9 @@ export function tryToLoadFromExportSync(rawFilePath: string): GraphQLSchema | Do
   }
 }
 
+/**
+ * @internal
+ */
 function ensureFilepath(filepath: string) {
   if (typeof require !== 'undefined' && require.cache) {
     filepath = require.resolve(filepath);

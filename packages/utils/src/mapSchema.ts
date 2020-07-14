@@ -24,6 +24,14 @@ import {
   GraphQLList,
   GraphQLNonNull,
   GraphQLEnumType,
+  ObjectTypeDefinitionNode,
+  InterfaceTypeDefinitionNode,
+  InputObjectTypeDefinitionNode,
+  InputObjectTypeExtensionNode,
+  InterfaceTypeExtensionNode,
+  ObjectTypeExtensionNode,
+  InputValueDefinitionNode,
+  FieldDefinitionNode,
 } from 'graphql';
 
 import {
@@ -239,6 +247,15 @@ function mapFields(originalTypeMap: TypeMap, schema: GraphQLSchema, schemaMapper
           newFieldConfigMap[fieldName] = originalFieldConfig;
         } else if (Array.isArray(mappedField)) {
           const [newFieldName, newFieldConfig] = mappedField;
+          if (newFieldConfig.astNode != null) {
+            newFieldConfig.astNode = {
+              ...newFieldConfig.astNode,
+              name: {
+                ...newFieldConfig.astNode.name,
+                value: newFieldName,
+              },
+            };
+          }
           newFieldConfigMap[newFieldName] = newFieldConfig;
         } else if (mappedField !== null) {
           newFieldConfigMap[fieldName] = mappedField;
@@ -247,18 +264,26 @@ function mapFields(originalTypeMap: TypeMap, schema: GraphQLSchema, schemaMapper
 
       if (isObjectType(originalType)) {
         newTypeMap[typeName] = new GraphQLObjectType({
-          ...((config as unknown) as GraphQLObjectTypeConfig<any, any>),
+          ...(config as GraphQLObjectTypeConfig<any, any>),
           fields: newFieldConfigMap,
+          astNode: rebuildAstNode((config as GraphQLObjectTypeConfig<any, any>).astNode, newFieldConfigMap),
+          extensionASTNodes: rebuildExtensionAstNodes((config as GraphQLObjectTypeConfig<any, any>).extensionASTNodes),
         });
       } else if (isInterfaceType(originalType)) {
         newTypeMap[typeName] = new GraphQLInterfaceType({
-          ...((config as unknown) as GraphQLInterfaceTypeConfig<any, any>),
+          ...(config as GraphQLInterfaceTypeConfig<any, any>),
           fields: newFieldConfigMap,
+          astNode: rebuildAstNode((config as GraphQLInterfaceTypeConfig<any, any>).astNode, newFieldConfigMap),
+          extensionASTNodes: rebuildExtensionAstNodes(
+            (config as GraphQLInterfaceTypeConfig<any, any>).extensionASTNodes
+          ),
         });
       } else {
         newTypeMap[typeName] = new GraphQLInputObjectType({
-          ...((config as unknown) as GraphQLInputObjectTypeConfig),
+          ...(config as GraphQLInputObjectTypeConfig),
           fields: newFieldConfigMap,
+          astNode: rebuildAstNode((config as GraphQLInputObjectTypeConfig).astNode, newFieldConfigMap),
+          extensionASTNodes: rebuildExtensionAstNodes((config as GraphQLInputObjectTypeConfig).extensionASTNodes),
         });
       }
     }
@@ -470,4 +495,50 @@ function getDirectiveMapper(schemaMapper: SchemaMapper): DirectiveMapper | null 
 function getEnumValueMapper(schemaMapper: SchemaMapper): EnumValueMapper | null {
   const enumValueMapper = schemaMapper[MapperKind.ENUM_VALUE];
   return enumValueMapper != null ? enumValueMapper : null;
+}
+
+export function rebuildAstNode<
+  TypeDefinitionNode extends ObjectTypeDefinitionNode | InterfaceTypeDefinitionNode | InputObjectTypeDefinitionNode
+>(
+  astNode: TypeDefinitionNode,
+  fieldOrInputFieldConfigMap: Record<
+    string,
+    TypeDefinitionNode extends ObjectTypeDefinitionNode | InterfaceTypeDefinitionNode
+      ? GraphQLFieldConfig<any, any>
+      : GraphQLInputFieldConfig
+  >
+): TypeDefinitionNode {
+  if (astNode == null) {
+    return undefined;
+  }
+
+  const newAstNode: TypeDefinitionNode = {
+    ...astNode,
+    fields: undefined,
+  };
+
+  const fields: Array<FieldDefinitionNode | InputValueDefinitionNode> = [];
+  Object.values(fieldOrInputFieldConfigMap).forEach(fieldOrInputFieldConfig => {
+    if (fieldOrInputFieldConfig.astNode != null) {
+      fields.push(fieldOrInputFieldConfig.astNode);
+    }
+  });
+
+  return {
+    ...newAstNode,
+    fields,
+  };
+}
+
+export function rebuildExtensionAstNodes<
+  TypeExtensionNode extends ObjectTypeExtensionNode | InterfaceTypeExtensionNode | InputObjectTypeExtensionNode
+>(extensionASTNodes: ReadonlyArray<TypeExtensionNode>): Array<TypeExtensionNode> {
+  if (!extensionASTNodes?.length) {
+    return [];
+  }
+
+  return extensionASTNodes.map(node => ({
+    ...node,
+    fields: undefined,
+  }));
 }
