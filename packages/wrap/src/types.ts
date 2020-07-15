@@ -70,6 +70,8 @@ export type FieldNodeTransformer = (
   transformationContext: Record<string, any>
 ) => SelectionNode | Array<SelectionNode>;
 
+export type LeafValueTransformer = (typeName: string, value: any) => any;
+
 export type DataTransformer = (value: any, transformationContext?: Record<string, any>) => any;
 
 export type ObjectValueTransformerMap = Record<string, DataTransformer>;

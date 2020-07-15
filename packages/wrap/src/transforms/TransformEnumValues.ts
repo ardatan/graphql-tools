@@ -1,56 +1,35 @@
-import {
-  GraphQLSchema,
-  visit,
-  Kind,
-  TypeInfo,
-  visitWithTypeInfo,
-  GraphQLEnumType,
-  GraphQLEnumValueConfig,
-  OperationDefinitionNode,
-  FragmentDefinitionNode,
-  VariableDefinitionNode,
-  ArgumentNode,
-  GraphQLArgument,
-  FieldNode,
-  EnumValueNode,
-} from 'graphql';
+import { GraphQLSchema, GraphQLEnumValueConfig, ExecutionResult } from 'graphql';
 
-import {
-  Transform,
-  Request,
-  MapperKind,
-  mapSchema,
-  ExecutionResult,
-  visitResult,
-  ResultVisitorMap,
-  updateArgument,
-  transformInputValue,
-} from '@graphql-tools/utils';
-import { EnumValueTransformer } from '../types';
+import { Transform, Request, MapperKind, mapSchema } from '@graphql-tools/utils';
 
-interface TransformEnumValuesTransformationContext {
-  transformedRequest: Request;
-}
+import { EnumValueTransformer, LeafValueTransformer } from '../types';
+
+import MapLeafValues, { MapLeafValuesTransformationContext } from './MapLeafValues';
 
 export default class TransformEnumValues implements Transform {
   private readonly enumValueTransformer: EnumValueTransformer;
-  private originalSchema: GraphQLSchema;
+  private readonly transformer: MapLeafValues;
   private transformedSchema: GraphQLSchema;
-  private typeInfo: TypeInfo;
   private mapping: Record<string, Record<string, string>>;
   private reverseMapping: Record<string, Record<string, string>>;
-  private resultVisitorMap: ResultVisitorMap;
 
-  constructor(enumValueTransformer: EnumValueTransformer) {
+  constructor(
+    enumValueTransformer: EnumValueTransformer,
+    inputValueTransformer?: LeafValueTransformer,
+    outputValueTransformer?: LeafValueTransformer
+  ) {
     this.enumValueTransformer = enumValueTransformer;
+    this.mapping = Object.create(null);
+    this.reverseMapping = Object.create(null);
+    this.transformer = new MapLeafValues(
+      generateInputValueTransformer(inputValueTransformer, this.reverseMapping),
+      generateOutputValueTransformer(outputValueTransformer, this.mapping)
+    );
   }
 
   public transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
-    this.originalSchema = originalSchema;
-    this.mapping = Object.create(null);
-    this.reverseMapping = Object.create(null);
-    this.resultVisitorMap = Object.create(null);
-    this.transformedSchema = mapSchema(originalSchema, {
+    const transformedSchema = this.transformer.transformSchema(originalSchema);
+    this.transformedSchema = mapSchema(transformedSchema, {
       [MapperKind.ENUM_VALUE]: (valueConfig, typeName, _schema, externalValue) =>
         transformEnumValue(
           typeName,
@@ -58,76 +37,26 @@ export default class TransformEnumValues implements Transform {
           valueConfig,
           this.enumValueTransformer,
           this.mapping,
-          this.reverseMapping,
-          this.resultVisitorMap
+          this.reverseMapping
         ),
     });
-    this.typeInfo = new TypeInfo(this.transformedSchema);
     return this.transformedSchema;
   }
 
   public transformRequest(
     originalRequest: Request,
-    _delegationContext: Record<string, any>,
-    transformationContext: TransformEnumValuesTransformationContext
+    delegationContext: Record<string, any>,
+    transformationContext: MapLeafValuesTransformationContext
   ): Request {
-    const document = originalRequest.document;
-    const variableValues = originalRequest.variables;
-
-    const operations: Array<OperationDefinitionNode> = document.definitions.filter(
-      def => def.kind === Kind.OPERATION_DEFINITION
-    ) as Array<OperationDefinitionNode>;
-    const fragments: Array<FragmentDefinitionNode> = document.definitions.filter(
-      def => def.kind === Kind.FRAGMENT_DEFINITION
-    ) as Array<FragmentDefinitionNode>;
-
-    const newOperations = operations.map((operation: OperationDefinitionNode) => {
-      const variableDefinitionMap: Record<string, VariableDefinitionNode> = operation.variableDefinitions.reduce(
-        (prev, def) => ({
-          ...prev,
-          [def.variable.name.value]: def,
-        }),
-        {}
-      );
-      const newOperation = visit(
-        operation,
-        visitWithTypeInfo(this.typeInfo, {
-          [Kind.FIELD]: node =>
-            transformFieldNode(node, this.typeInfo, variableDefinitionMap, variableValues, this.reverseMapping),
-          [Kind.ENUM]: node => transformEnumValueNode(node, this.typeInfo, this.reverseMapping),
-        })
-      );
-      return {
-        ...newOperation,
-        variableDefinitions: Object.keys(variableDefinitionMap).map(varName => variableDefinitionMap[varName]),
-      };
-    });
-
-    const transformedRequest = {
-      ...originalRequest,
-      document: {
-        ...document,
-        definitions: [...newOperations, ...fragments],
-      },
-      variables: variableValues,
-    };
-
-    transformationContext.transformedRequest = transformedRequest;
-
-    return transformedRequest;
+    return this.transformer.transformRequest(originalRequest, delegationContext, transformationContext);
   }
 
   public transformResult(
     originalResult: ExecutionResult,
-    _delegationContext: Record<string, any>,
-    transformationContext: TransformEnumValuesTransformationContext
+    delegationContext: Record<string, any>,
+    transformationContext: MapLeafValuesTransformationContext
   ) {
-    return visitResult(
-      originalResult,
-      transformationContext.transformedRequest,
-      this.originalSchema,
-      this.resultVisitorMap
-    );
+    return this.transformer.transformResult(originalResult, delegationContext, transformationContext);
   }
 }
 
@@ -137,8 +66,7 @@ function transformEnumValue(
   enumValueConfig: GraphQLEnumValueConfig,
   enumValueTransformer: EnumValueTransformer,
   mapping: Record<string, Record<string, string>>,
-  reverseMapping: Record<string, Record<string, string>>,
-  resultVisitorMap: ResultVisitorMap
+  reverseMapping: Record<string, Record<string, string>>
 ): GraphQLEnumValueConfig | [string, GraphQLEnumValueConfig] {
   const transformedEnumValue = enumValueTransformer(typeName, externalValue, enumValueConfig);
   if (Array.isArray(transformedEnumValue)) {
@@ -148,10 +76,6 @@ function transformEnumValue(
       if (!(typeName in mapping)) {
         mapping[typeName] = Object.create(null);
         reverseMapping[typeName] = Object.create(null);
-        resultVisitorMap[typeName] = (externalValue: string) => {
-          const newExternalValue = mapping[typeName][externalValue];
-          return newExternalValue == null ? externalValue : newExternalValue;
-        };
       }
       mapping[typeName][externalValue] = newExternalValue;
       reverseMapping[typeName][newExternalValue] = externalValue;
@@ -160,69 +84,29 @@ function transformEnumValue(
   return transformedEnumValue;
 }
 
-function transformFieldNode(
-  field: FieldNode,
-  typeInfo: TypeInfo,
-  variableDefinitionMap: Record<string, VariableDefinitionNode>,
-  variableValues: Record<string, any>,
+function mapEnumValues(typeName: string, value: string, mapping: Record<string, Record<string, string>>): string {
+  const newExternalValue = mapping[typeName]?.[value];
+  return newExternalValue != null ? newExternalValue : value;
+}
+
+function generateInputValueTransformer(
+  inputValueTransformer: LeafValueTransformer,
   reverseMapping: Record<string, Record<string, string>>
-): FieldNode {
-  const targetField = typeInfo.getFieldDef();
-
-  if (!targetField.name.startsWith('__')) {
-    const argumentNodes = field.arguments;
-    if (argumentNodes != null) {
-      const argumentNodeMap: Record<string, ArgumentNode> = argumentNodes.reduce(
-        (prev, argument) => ({
-          ...prev,
-          [argument.name.value]: argument,
-        }),
-        Object.create(null)
-      );
-
-      targetField.args.forEach((argument: GraphQLArgument) => {
-        const argName = argument.name;
-        const argType = argument.type;
-
-        if (argName in argumentNodeMap) {
-          const argumentNode = argumentNodeMap[argName];
-          const argValue = argumentNode.value;
-          if (argValue.kind === Kind.VARIABLE) {
-            updateArgument(
-              argName,
-              argType,
-              argumentNodeMap,
-              variableDefinitionMap,
-              variableValues,
-              transformInputValue(argType, variableValues[argValue.name.value], (t, v) => {
-                const typeName = t.name;
-                const newExternalValue = reverseMapping[typeName]?.[v];
-                return newExternalValue != null ? newExternalValue : v;
-              })
-            );
-          }
-        }
-      });
-
-      return {
-        ...field,
-        arguments: Object.keys(argumentNodeMap).map(argName => argumentNodeMap[argName]),
-      };
-    }
+): LeafValueTransformer {
+  if (inputValueTransformer == null) {
+    return (typeName, value) => mapEnumValues(typeName, value, reverseMapping);
+  } else {
+    return (typeName, value) => mapEnumValues(typeName, inputValueTransformer(typeName, value), reverseMapping);
   }
 }
 
-function transformEnumValueNode(
-  enumValueNode: EnumValueNode,
-  typeInfo: TypeInfo,
-  reverseMapping: Record<string, Record<string, string>>
-): EnumValueNode {
-  const typeName = (typeInfo.getInputType() as GraphQLEnumType).name;
-  const newExternalValue = reverseMapping[typeName]?.[enumValueNode.value];
-  if (newExternalValue != null) {
-    return {
-      ...enumValueNode,
-      value: newExternalValue,
-    };
+function generateOutputValueTransformer(
+  outputValueTransformer: LeafValueTransformer,
+  mapping: Record<string, Record<string, string>>
+): LeafValueTransformer {
+  if (outputValueTransformer == null) {
+    return (typeName, value) => mapEnumValues(typeName, value, mapping);
+  } else {
+    return (typeName, value) => outputValueTransformer(typeName, mapEnumValues(typeName, value, mapping));
   }
 }

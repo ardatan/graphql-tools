@@ -9,6 +9,7 @@ import {
   parse,
   astFromValue,
   GraphQLString,
+  GraphQLEnumType,
 } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
@@ -28,6 +29,7 @@ import {
   TransformQuery,
   FilterInputObjectFields,
   RenameInputObjectFields,
+  MapLeafValues,
   TransformEnumValues,
 } from '@graphql-tools/wrap';
 
@@ -1489,7 +1491,55 @@ describe('replaces field with processed fragment node', () => {
   });
 });
 
-describe('transform TransformEnumValues', () => {
+describe('MapLeafValues', () => {
+  test('works', async () => {
+    const schema = makeExecutableSchema({
+      typeDefs: `
+        enum TestEnum {
+          ONE
+          TWO
+          THREE
+        }
+
+        type Query {
+          testEnum(argument: TestEnum): TestEnum
+          testScalar(argument: Int): Int
+        }
+      `,
+      resolvers: {
+        Query: {
+          testEnum: (_root, { argument }) => argument,
+          testScalar: (_root, { argument }) => argument,
+        }
+      }
+    });
+
+    const valueIterator = (typeName: string, value: any) => {
+      if (typeName === 'TestEnum') {
+        return value === 'ONE' ? 'TWO' : value === 'TWO' ? 'THREE' : 'ONE';
+      } else if (typeName === 'Int') {
+        return value + 5;
+      } else {
+        return value;
+      }
+    };
+
+    const transformedSchema = wrapSchema(schema, [
+      new MapLeafValues(valueIterator, valueIterator),
+    ]);
+
+    const query = `{
+      testEnum(argument: ONE)
+      testScalar(argument: 5)
+    }`;
+
+    const result = await graphql(transformedSchema, query);
+    expect(result.data.testEnum).toBe('THREE');
+    expect(result.data.testScalar).toBe(15);
+  });
+});
+
+describe('TransformEnumValues', () => {
   test('works', async () => {
     const schema = makeExecutableSchema({
       typeDefs: `
@@ -1503,7 +1553,7 @@ describe('transform TransformEnumValues', () => {
       `,
       resolvers: {
         Query: {
-          test: () => 'ONE',
+          test: (_root, { argument }) => argument,
         }
       }
     });
@@ -1521,6 +1571,41 @@ describe('transform TransformEnumValues', () => {
     const result = await graphql(transformedSchema, query);
     expect(result.errors).toBeUndefined();
   });
+  test('allows modification of external and internal values', async () => {
+    const schema = makeExecutableSchema({
+      typeDefs: `
+        enum TestEnum {
+          ONE
+        }
+
+        type Query {
+          test(argument: TestEnum): TestEnum
+        }
+      `,
+      resolvers: {
+        Query: {
+          test: (_root, { argument }) => argument,
+        }
+      }
+    });
+
+    const transformedSchema = wrapSchema(schema, [
+      new TransformEnumValues(
+        (_typeName, _externalValue, valueConfig) => ['UNO', {
+          ...valueConfig,
+          value: 'ONE',
+        }],
+      )
+    ]);
+
+    const query = `{
+      test(argument: UNO)
+    }`;
+
+    const result = await graphql(transformedSchema, query);
+    expect(result.errors).toBeUndefined();
+    expect((transformedSchema.getType('TestEnum') as GraphQLEnumType).getValue('UNO').value).toBe('ONE');
+  });
 
   test('works with variables', async () => {
     const schema = makeExecutableSchema({
@@ -1535,7 +1620,7 @@ describe('transform TransformEnumValues', () => {
       `,
       resolvers: {
         Query: {
-          test: () => 'ONE',
+          test: (_root, { argument }) => argument,
         }
       }
     });
