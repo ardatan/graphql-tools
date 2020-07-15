@@ -179,21 +179,21 @@ export interface IFieldResolverOptions<TSource = any, TContext = any, TArgs = an
 }
 
 export type SchemaTransform = (originalSchema: GraphQLSchema) => GraphQLSchema;
-export type RequestTransform = (
+export type RequestTransform<T = Record<string, any>> = (
   originalRequest: Request,
   delegationContext?: Record<string, any>,
-  transformationContext?: Record<string, any>
+  transformationContext?: T
 ) => Request;
-export type ResultTransform = (
+export type ResultTransform<T = Record<string, any>> = (
   originalResult: ExecutionResult,
   delegationContext?: Record<string, any>,
-  transformationContext?: Record<string, any>
+  transformationContext?: T
 ) => ExecutionResult;
 
-export interface Transform {
+export interface Transform<T = Record<string, any>> {
   transformSchema?: SchemaTransform;
-  transformRequest?: RequestTransform;
-  transformResult?: ResultTransform;
+  transformRequest?: RequestTransform<T>;
+  transformResult?: ResultTransform<T>;
 }
 
 export type FieldNodeMapper = (
