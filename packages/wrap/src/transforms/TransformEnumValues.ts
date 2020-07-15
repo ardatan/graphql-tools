@@ -22,8 +22,8 @@ export default class TransformEnumValues implements Transform {
     this.mapping = Object.create(null);
     this.reverseMapping = Object.create(null);
     this.transformer = new MapLeafValues(
-      generateInputValueTransformer(inputValueTransformer, this.reverseMapping),
-      generateOutputValueTransformer(outputValueTransformer, this.mapping)
+      generateValueTransformer(inputValueTransformer, this.reverseMapping),
+      generateValueTransformer(outputValueTransformer, this.mapping)
     );
   }
 
@@ -89,24 +89,13 @@ function mapEnumValues(typeName: string, value: string, mapping: Record<string, 
   return newExternalValue != null ? newExternalValue : value;
 }
 
-function generateInputValueTransformer(
-  inputValueTransformer: LeafValueTransformer,
+function generateValueTransformer(
+  valueTransformer: LeafValueTransformer,
   reverseMapping: Record<string, Record<string, string>>
 ): LeafValueTransformer {
-  if (inputValueTransformer == null) {
+  if (valueTransformer == null) {
     return (typeName, value) => mapEnumValues(typeName, value, reverseMapping);
   } else {
-    return (typeName, value) => mapEnumValues(typeName, inputValueTransformer(typeName, value), reverseMapping);
-  }
-}
-
-function generateOutputValueTransformer(
-  outputValueTransformer: LeafValueTransformer,
-  mapping: Record<string, Record<string, string>>
-): LeafValueTransformer {
-  if (outputValueTransformer == null) {
-    return (typeName, value) => mapEnumValues(typeName, value, mapping);
-  } else {
-    return (typeName, value) => outputValueTransformer(typeName, mapEnumValues(typeName, value, mapping));
+    return (typeName, value) => mapEnumValues(typeName, valueTransformer(typeName, value), reverseMapping);
   }
 }
