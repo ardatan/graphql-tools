@@ -48,13 +48,20 @@ export function mergeResolvers<TContext, T extends ResolversDefinition<TContext>
   }
 
   if (resolversDefinitions.length === 1) {
-    return resolversDefinitions[0];
+    const singleDefinition = resolversDefinitions[0];
+    if (Array.isArray(singleDefinition)) {
+      return mergeResolvers(singleDefinition);
+    }
+    return singleDefinition;
   }
 
   const resolversFactories = new Array<ResolversFactory<TContext>>();
   const resolvers = new Array<IResolvers<any, TContext>>();
 
-  for (const resolversDefinition of resolversDefinitions) {
+  for (let resolversDefinition of resolversDefinitions) {
+    if (Array.isArray(resolversDefinition)) {
+      resolversDefinition = mergeResolvers(resolversDefinition);
+    }
     if (typeof resolversDefinition === 'function') {
       resolversFactories.push(resolversDefinition as ResolversFactory<TContext>);
     } else if (typeof resolversDefinition === 'object') {
