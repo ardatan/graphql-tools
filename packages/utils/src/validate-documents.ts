@@ -12,7 +12,6 @@ import { Source } from './loaders';
 import AggregateError from '@ardatan/aggregate-error';
 
 export type ValidationRule = (context: ValidationContext) => ASTVisitor;
-const DEFAULT_EFFECTIVE_RULES = createDefaultRules();
 
 export interface LoadDocumentError {
   readonly filePath: string;
@@ -22,8 +21,9 @@ export interface LoadDocumentError {
 export async function validateGraphQlDocuments(
   schema: GraphQLSchema,
   documentFiles: Source[],
-  effectiveRules: ValidationRule[] = DEFAULT_EFFECTIVE_RULES
+  effectiveRules?: ValidationRule[]
 ): Promise<ReadonlyArray<LoadDocumentError>> {
+  effectiveRules = effectiveRules || createDefaultRules();
   const allFragments: FragmentDefinitionNode[] = [];
 
   documentFiles.forEach(documentFile => {
