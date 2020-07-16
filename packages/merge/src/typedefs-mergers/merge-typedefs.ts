@@ -59,20 +59,6 @@ export interface Config {
   convertExtensions?: boolean;
 }
 
-export function mergeGraphQLSchemas(
-  types: Array<string | Source | DocumentNode | GraphQLSchema>,
-  config?: Omit<Partial<Config>, 'commentDescriptions'>
-) {
-  // tslint:disable-next-line: no-console
-  console.info(`
-    GraphQL tools/Epoxy
-    Deprecation Notice;
-    'mergeGraphQLSchemas' is deprecated and will be removed in the next version.
-    Please use 'mergeTypeDefs' instead!
-  `);
-  return mergeGraphQLTypes(types, config);
-}
-
 /**
  * Merges multiple type definitions into a single `DocumentNode`
  * @param types The type definitions to be merged
@@ -124,6 +110,9 @@ export function mergeGraphQLTypes(
 
   const allNodes: ReadonlyArray<DefinitionNode> = types
     .map<DocumentNode>(type => {
+      if (Array.isArray(type)) {
+        type = mergeTypeDefs(type);
+      }
       if (isSchema(type)) {
         return parse(printSchemaWithDirectives(type));
       } else if (isStringTypes(type) || isSourceTypes(type)) {
