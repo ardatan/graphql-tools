@@ -10,6 +10,7 @@ import {
   ObjectFieldNode,
   ObjectValueNode,
   GraphQLError,
+  GraphQLEnumValueConfig,
 } from 'graphql';
 import { Executor, Subscriber, DelegationContext } from '@graphql-tools/delegate';
 import { Request } from '@graphql-tools/utils';
@@ -55,6 +56,12 @@ export type RootFieldTransformer = (
   fieldConfig: GraphQLFieldConfig<any, any>
 ) => GraphQLFieldConfig<any, any> | [string, GraphQLFieldConfig<any, any>] | null | undefined;
 
+export type EnumValueTransformer = (
+  typeName: string,
+  externalValue: string,
+  enumValueConfig: GraphQLEnumValueConfig
+) => GraphQLEnumValueConfig | [string, GraphQLEnumValueConfig] | null | undefined;
+
 export type FieldNodeTransformer = (
   typeName: string,
   fieldName: string,
@@ -62,6 +69,8 @@ export type FieldNodeTransformer = (
   fragments: Record<string, FragmentDefinitionNode>,
   transformationContext: Record<string, any>
 ) => SelectionNode | Array<SelectionNode>;
+
+export type LeafValueTransformer = (typeName: string, value: any) => any;
 
 export type DataTransformer = (value: any, transformationContext?: Record<string, any>) => any;
 

@@ -1,6 +1,6 @@
 import { GraphQLFieldConfigMap, GraphQLObjectType, GraphQLFieldConfig, GraphQLSchema } from 'graphql';
 import { MapperKind } from './Interfaces';
-import { mapSchema, rebuildAstNode, rebuildExtensionAstNodes } from './mapSchema';
+import { mapSchema, correctASTNodes } from './mapSchema';
 import { addTypes } from './addTypes';
 
 export function appendObjectFields(
@@ -31,12 +31,12 @@ export function appendObjectFields(
           newFieldConfigMap[fieldName] = additionalFields[fieldName];
         });
 
-        return new GraphQLObjectType({
-          ...config,
-          fields: newFieldConfigMap,
-          astNode: rebuildAstNode(config.astNode, newFieldConfigMap),
-          extensionASTNodes: rebuildExtensionAstNodes(config.extensionASTNodes),
-        });
+        return correctASTNodes(
+          new GraphQLObjectType({
+            ...config,
+            fields: newFieldConfigMap,
+          })
+        );
       }
     },
   });
@@ -64,12 +64,12 @@ export function removeObjectFields(
           }
         });
 
-        return new GraphQLObjectType({
-          ...config,
-          fields: newFieldConfigMap,
-          astNode: rebuildAstNode(config.astNode, newFieldConfigMap),
-          extensionASTNodes: rebuildExtensionAstNodes(config.extensionASTNodes),
-        });
+        return correctASTNodes(
+          new GraphQLObjectType({
+            ...config,
+            fields: newFieldConfigMap,
+          })
+        );
       }
     },
   });
@@ -132,12 +132,12 @@ export function modifyObjectFields(
           newFieldConfigMap[fieldName] = fieldConfig;
         });
 
-        return new GraphQLObjectType({
-          ...config,
-          fields: newFieldConfigMap,
-          astNode: rebuildAstNode(config.astNode, newFieldConfigMap),
-          extensionASTNodes: rebuildExtensionAstNodes(config.extensionASTNodes),
-        });
+        return correctASTNodes(
+          new GraphQLObjectType({
+            ...config,
+            fields: newFieldConfigMap,
+          })
+        );
       }
     },
   });

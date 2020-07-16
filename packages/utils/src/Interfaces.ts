@@ -471,9 +471,10 @@ export type ScalarTypeMapper = (type: GraphQLScalarType, schema: GraphQLSchema) 
 export type EnumTypeMapper = (type: GraphQLEnumType, schema: GraphQLSchema) => GraphQLEnumType | null | undefined;
 
 export type EnumValueMapper = (
-  value: GraphQLEnumValueConfig,
+  valueConfig: GraphQLEnumValueConfig,
   typeName: string,
-  schema: GraphQLSchema
+  schema: GraphQLSchema,
+  externalValue: string
 ) => GraphQLEnumValueConfig | [string, GraphQLEnumValueConfig] | null | undefined;
 
 export type CompositeTypeMapper = (
