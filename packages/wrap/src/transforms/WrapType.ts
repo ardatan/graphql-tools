@@ -17,16 +17,16 @@ export default class WrapType implements Transform {
 
   public transformRequest(
     originalRequest: Request,
-    delegationContext: Record<string, any>,
-    transformationContext: Record<string, any>
+    delegationContext?: Record<string, any>,
+    transformationContext?: Record<string, any>
   ): Request {
     return this.transformer.transformRequest(originalRequest, delegationContext, transformationContext);
   }
 
   public transformResult(
     originalResult: ExecutionResult,
-    delegationContext: Record<string, any>,
-    transformationContext: Record<string, any>
+    delegationContext?: Record<string, any>,
+    transformationContext?: Record<string, any>
   ): ExecutionResult {
     return this.transformer.transformResult(originalResult, delegationContext, transformationContext);
   }
