@@ -30,7 +30,7 @@ export interface MapLeafValuesTransformationContext {
   transformedRequest: Request;
 }
 
-export default class MapLeafValues implements Transform {
+export default class MapLeafValues implements Transform<MapLeafValuesTransformationContext> {
   private readonly inputValueTransformer: LeafValueTransformer;
   private readonly outputValueTransformer: LeafValueTransformer;
   private readonly resultVisitorMap: ResultVisitorMap;
@@ -60,8 +60,8 @@ export default class MapLeafValues implements Transform {
 
   public transformRequest(
     originalRequest: Request,
-    _delegationContext: Record<string, any>,
-    transformationContext: MapLeafValuesTransformationContext
+    _delegationContext?: Record<string, any>,
+    transformationContext?: MapLeafValuesTransformationContext
   ): Request {
     const document = originalRequest.document;
     const variableValues = originalRequest.variables;
@@ -73,7 +73,7 @@ export default class MapLeafValues implements Transform {
       def => def.kind === Kind.FRAGMENT_DEFINITION
     ) as Array<FragmentDefinitionNode>;
 
-    const newOperations = transformOperations(operations, this.inputValueTransformer, this.typeInfo, variableValues);
+    const newOperations = this.transformOperations(operations, variableValues);
 
     const transformedRequest = {
       ...originalRequest,
@@ -91,8 +91,8 @@ export default class MapLeafValues implements Transform {
 
   public transformResult(
     originalResult: ExecutionResult,
-    _delegationContext: Record<string, any>,
-    transformationContext: MapLeafValuesTransformationContext
+    _delegationContext?: Record<string, any>,
+    transformationContext?: MapLeafValuesTransformationContext
   ) {
     return visitResult(
       originalResult,
@@ -101,87 +101,82 @@ export default class MapLeafValues implements Transform {
       this.resultVisitorMap
     );
   }
-}
 
-function transformOperations(
-  operations: Array<OperationDefinitionNode>,
-  inputValueTransformer: LeafValueTransformer,
-  typeInfo: TypeInfo,
-  variableValues: Record<string, any>
-): Array<OperationDefinitionNode> {
-  return operations.map((operation: OperationDefinitionNode) => {
-    const variableDefinitionMap: Record<string, VariableDefinitionNode> = operation.variableDefinitions.reduce(
-      (prev, def) => ({
-        ...prev,
-        [def.variable.name.value]: def,
-      }),
-      {}
-    );
-
-    const newOperation = visit(
-      operation,
-      visitWithTypeInfo(typeInfo, {
-        [Kind.FIELD]: node =>
-          transformFieldNode(node, inputValueTransformer, typeInfo, variableDefinitionMap, variableValues),
-      })
-    );
-
-    return {
-      ...newOperation,
-      variableDefinitions: Object.keys(variableDefinitionMap).map(varName => variableDefinitionMap[varName]),
-    };
-  });
-}
-
-function transformFieldNode(
-  field: FieldNode,
-  inputValueTransformer: LeafValueTransformer,
-  typeInfo: TypeInfo,
-  variableDefinitionMap: Record<string, VariableDefinitionNode>,
-  variableValues: Record<string, any>
-): FieldNode {
-  const targetField = typeInfo.getFieldDef();
-
-  if (!targetField.name.startsWith('__')) {
-    const argumentNodes = field.arguments;
-    if (argumentNodes != null) {
-      const argumentNodeMap: Record<string, ArgumentNode> = argumentNodes.reduce(
-        (prev, argument) => ({
+  private transformOperations(
+    operations: Array<OperationDefinitionNode>,
+    variableValues: Record<string, any>
+  ): Array<OperationDefinitionNode> {
+    return operations.map((operation: OperationDefinitionNode) => {
+      const variableDefinitionMap: Record<string, VariableDefinitionNode> = operation.variableDefinitions.reduce(
+        (prev, def) => ({
           ...prev,
-          [argument.name.value]: argument,
+          [def.variable.name.value]: def,
         }),
-        Object.create(null)
+        {}
       );
 
-      targetField.args.forEach((argument: GraphQLArgument) => {
-        const argName = argument.name;
-        const argType = argument.type;
-
-        const argumentNode = argumentNodeMap[argName];
-        const argValue = argumentNode?.value;
-
-        let value: any;
-        if (argValue != null) {
-          value = valueFromAST(argValue, argType, variableValues);
-        }
-
-        updateArgument(
-          argName,
-          argType,
-          argumentNodeMap,
-          variableDefinitionMap,
-          variableValues,
-          transformInputValue(argType, value, (t, v) => {
-            const newValue = inputValueTransformer(t.name, v);
-            return newValue === undefined ? v : newValue;
-          })
-        );
-      });
+      const newOperation = visit(
+        operation,
+        visitWithTypeInfo(this.typeInfo, {
+          [Kind.FIELD]: node => this.transformFieldNode(node, variableDefinitionMap, variableValues),
+        })
+      );
 
       return {
-        ...field,
-        arguments: Object.keys(argumentNodeMap).map(argName => argumentNodeMap[argName]),
+        ...newOperation,
+        variableDefinitions: Object.keys(variableDefinitionMap).map(varName => variableDefinitionMap[varName]),
       };
+    });
+  }
+
+  private transformFieldNode(
+    field: FieldNode,
+    variableDefinitionMap: Record<string, VariableDefinitionNode>,
+    variableValues: Record<string, any>
+  ): FieldNode {
+    const targetField = this.typeInfo.getFieldDef();
+
+    if (!targetField.name.startsWith('__')) {
+      const argumentNodes = field.arguments;
+      if (argumentNodes != null) {
+        const argumentNodeMap: Record<string, ArgumentNode> = argumentNodes.reduce(
+          (prev, argument) => ({
+            ...prev,
+            [argument.name.value]: argument,
+          }),
+          Object.create(null)
+        );
+
+        targetField.args.forEach((argument: GraphQLArgument) => {
+          const argName = argument.name;
+          const argType = argument.type;
+
+          const argumentNode = argumentNodeMap[argName];
+          const argValue = argumentNode?.value;
+
+          let value: any;
+          if (argValue != null) {
+            value = valueFromAST(argValue, argType, variableValues);
+          }
+
+          updateArgument(
+            argName,
+            argType,
+            argumentNodeMap,
+            variableDefinitionMap,
+            variableValues,
+            transformInputValue(argType, value, (t, v) => {
+              const newValue = this.inputValueTransformer(t.name, v);
+              return newValue === undefined ? v : newValue;
+            })
+          );
+        });
+
+        return {
+          ...field,
+          arguments: Object.keys(argumentNodeMap).map(argName => argumentNodeMap[argName]),
+        };
+      }
     }
   }
 }

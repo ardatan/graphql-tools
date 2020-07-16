@@ -6,7 +6,7 @@ import { EnumValueTransformer, LeafValueTransformer } from '../types';
 
 import MapLeafValues, { MapLeafValuesTransformationContext } from './MapLeafValues';
 
-export default class TransformEnumValues implements Transform {
+export default class TransformEnumValues implements Transform<MapLeafValuesTransformationContext> {
   private readonly enumValueTransformer: EnumValueTransformer;
   private readonly transformer: MapLeafValues;
   private transformedSchema: GraphQLSchema;
@@ -31,57 +31,47 @@ export default class TransformEnumValues implements Transform {
     const transformedSchema = this.transformer.transformSchema(originalSchema);
     this.transformedSchema = mapSchema(transformedSchema, {
       [MapperKind.ENUM_VALUE]: (valueConfig, typeName, _schema, externalValue) =>
-        transformEnumValue(
-          typeName,
-          externalValue,
-          valueConfig,
-          this.enumValueTransformer,
-          this.mapping,
-          this.reverseMapping
-        ),
+        this.transformEnumValue(typeName, externalValue, valueConfig),
     });
     return this.transformedSchema;
   }
 
   public transformRequest(
     originalRequest: Request,
-    delegationContext: Record<string, any>,
-    transformationContext: MapLeafValuesTransformationContext
+    delegationContext?: Record<string, any>,
+    transformationContext?: MapLeafValuesTransformationContext
   ): Request {
     return this.transformer.transformRequest(originalRequest, delegationContext, transformationContext);
   }
 
   public transformResult(
     originalResult: ExecutionResult,
-    delegationContext: Record<string, any>,
-    transformationContext: MapLeafValuesTransformationContext
+    delegationContext?: Record<string, any>,
+    transformationContext?: MapLeafValuesTransformationContext
   ) {
     return this.transformer.transformResult(originalResult, delegationContext, transformationContext);
   }
-}
 
-function transformEnumValue(
-  typeName: string,
-  externalValue: string,
-  enumValueConfig: GraphQLEnumValueConfig,
-  enumValueTransformer: EnumValueTransformer,
-  mapping: Record<string, Record<string, string>>,
-  reverseMapping: Record<string, Record<string, string>>
-): GraphQLEnumValueConfig | [string, GraphQLEnumValueConfig] {
-  const transformedEnumValue = enumValueTransformer(typeName, externalValue, enumValueConfig);
-  if (Array.isArray(transformedEnumValue)) {
-    const newExternalValue = transformedEnumValue[0];
+  private transformEnumValue(
+    typeName: string,
+    externalValue: string,
+    enumValueConfig: GraphQLEnumValueConfig
+  ): GraphQLEnumValueConfig | [string, GraphQLEnumValueConfig] {
+    const transformedEnumValue = this.enumValueTransformer(typeName, externalValue, enumValueConfig);
+    if (Array.isArray(transformedEnumValue)) {
+      const newExternalValue = transformedEnumValue[0];
 
-    if (newExternalValue !== externalValue) {
-      if (!(typeName in mapping)) {
-        mapping[typeName] = Object.create(null);
-        reverseMapping[typeName] = Object.create(null);
+      if (newExternalValue !== externalValue) {
+        if (!(typeName in this.mapping)) {
+          this.mapping[typeName] = Object.create(null);
+          this.reverseMapping[typeName] = Object.create(null);
+        }
+        this.mapping[typeName][externalValue] = newExternalValue;
+        this.reverseMapping[typeName][newExternalValue] = externalValue;
       }
-      mapping[typeName][externalValue] = newExternalValue;
-      reverseMapping[typeName][newExternalValue] = externalValue;
     }
+    return transformedEnumValue;
   }
-  return transformedEnumValue;
 }
 
 function mapEnumValues(typeName: string, value: string, mapping: Record<string, Record<string, string>>): string {
@@ -91,11 +81,11 @@ function mapEnumValues(typeName: string, value: string, mapping: Record<string, 
 
 function generateValueTransformer(
   valueTransformer: LeafValueTransformer,
-  reverseMapping: Record<string, Record<string, string>>
+  mapping: Record<string, Record<string, string>>
 ): LeafValueTransformer {
   if (valueTransformer == null) {
-    return (typeName, value) => mapEnumValues(typeName, value, reverseMapping);
+    return (typeName, value) => mapEnumValues(typeName, value, mapping);
   } else {
-    return (typeName, value) => mapEnumValues(typeName, valueTransformer(typeName, value), reverseMapping);
+    return (typeName, value) => mapEnumValues(typeName, valueTransformer(typeName, value), mapping);
   }
 }
