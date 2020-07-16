@@ -42,7 +42,7 @@ function defaultWrappingResolver(
   return defaultMergedResolver(parent, args, context, info);
 }
 
-export default class WrapFields implements Transform {
+export default class WrapFields implements Transform<WrapFieldsTransformationContext> {
   private readonly outerTypeName: string;
   private readonly wrappingFieldNames: Array<string>;
   private readonly wrappingTypeNames: Array<string>;
@@ -138,8 +138,8 @@ export default class WrapFields implements Transform {
 
   public transformRequest(
     originalRequest: Request,
-    delegationContext: Record<string, any>,
-    transformationContext: WrapFieldsTransformationContext
+    delegationContext?: Record<string, any>,
+    transformationContext?: WrapFieldsTransformationContext
   ): Request {
     transformationContext.nextIndex = 0;
     transformationContext.paths = Object.create(null);
@@ -148,8 +148,8 @@ export default class WrapFields implements Transform {
 
   public transformResult(
     originalResult: ExecutionResult,
-    delegationContext: Record<string, any>,
-    transformationContext: WrapFieldsTransformationContext
+    delegationContext?: Record<string, any>,
+    transformationContext?: WrapFieldsTransformationContext
   ): ExecutionResult {
     return this.transformer.transformResult(originalResult, delegationContext, transformationContext);
   }
