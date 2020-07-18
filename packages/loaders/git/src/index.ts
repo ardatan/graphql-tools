@@ -34,10 +34,8 @@ export type GitLoaderOptions = SingleFileOptions & {
   /**
    * Additional options to pass to `graphql-tag-pluck`
    */
-  pluckConfig: GraphQLTagPluckOptions;
+  pluckConfig?: GraphQLTagPluckOptions;
 };
-
-const createInvalidExtensionError = (path: string) => new Error(`Invalid file extension: ${path}`);
 
 /**
  * This loader loads a file from git.
@@ -72,7 +70,10 @@ export class GitLoader implements UniversalLoader {
 
     const rawSDL = await gqlPluckFromCodeString(pointer, content, options.pluckConfig);
 
-    return ensureSource({ rawSDL, pointer, path });
+    return {
+      location: pointer,
+      rawSDL,
+    };
   }
 
   loadSync(pointer: string, options: GitLoaderOptions) {
@@ -86,17 +87,9 @@ export class GitLoader implements UniversalLoader {
 
     const rawSDL = gqlPluckFromCodeStringSync(pointer, content, options.pluckConfig);
 
-    return ensureSource({ rawSDL, pointer, path });
-  }
-}
-
-function ensureSource({ rawSDL, pointer, path }: { rawSDL: string; pointer: string; path: string }) {
-  if (rawSDL) {
     return {
       location: pointer,
       rawSDL,
     };
   }
-
-  throw createInvalidExtensionError(path);
 }

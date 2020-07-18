@@ -1,11 +1,10 @@
-import simplegit from 'simple-git/promise';
-import simplegitSync from 'simple-git';
+import { exec, execSync } from 'child_process';
 
 type Input = { ref: string; path: string };
 
-const createLoadError = (error: any) => new Error('Unable to load schema from git: ' + error);
+const createLoadError = (error: any) => new Error('Unable to load file from git: ' + error);
 const createCommand = ({ ref, path }: Input) => {
-  return [`${ref}:${path}`];
+  return `git show ${ref}:${path}`;
 };
 
 /**
@@ -13,8 +12,15 @@ const createCommand = ({ ref, path }: Input) => {
  */
 export async function loadFromGit(input: Input): Promise<string | never> {
   try {
-    const git = simplegit();
-    return await git.show(createCommand(input));
+    return await new Promise((resolve, reject) => {
+      exec(createCommand(input), { encoding: 'utf-8' }, (error, stdout) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(stdout);
+        }
+      });
+    });
   } catch (error) {
     throw createLoadError(error);
   }
@@ -25,8 +31,7 @@ export async function loadFromGit(input: Input): Promise<string | never> {
  */
 export function loadFromGitSync(input: Input): string | never {
   try {
-    const git = simplegitSync();
-    return git.show(createCommand(input));
+    return execSync(createCommand(input), { encoding: 'utf-8' });
   } catch (error) {
     throw createLoadError(error);
   }
