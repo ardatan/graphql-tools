@@ -1,61 +1,38 @@
-import { ASTNode, parse, DocumentNode, DefinitionNode, print } from 'graphql';
-import { compareNodes } from '@graphql-tools/utils';
+import matchers from 'expect/build/matchers';
+import { parse, DocumentNode } from 'graphql';
 
 declare global {
   namespace jest {
     interface Matchers<R, T> {
       /**
-       * Normalizes whitespace and performs string comparisons
+       * Parses the provided string into a DocumentNode and then compares the
+       * actual value (which should also be a DocumentNode) to it. Any `loc`
+       * properties are stripped from both objects, so the location of nodes
+       * inside each document doesn't matter but everything else (i.e. the order
+       * of the nodes) does.
        */
       toBeSimilarGqlDoc(expected: string): R;
     }
   }
 }
 
-function sortRecursive(a: ASTNode) {
-  for (const attr in a) {
-    if (a[attr] instanceof Array) {
-      if (a[attr].length === 1) {
-        sortRecursive(a[attr][0]);
-      }
-      a[attr].sort((b: ASTNode, c: ASTNode) => {
-        sortRecursive(b);
-        sortRecursive(c);
-        return compareNodes(b, c);
-      });
-    }
-  }
-}
-
-function normalizeDocumentString(docStr: string) {
-  const doc = parse(docStr, { noLocation: true }) as DocumentNode & { definitions: DefinitionNode[] };
-  sortRecursive(doc);
-  return print(doc);
-}
-
 expect.extend({
-  toBeSimilarGqlDoc(received: string, expected: string) {
-    const strippedReceived = normalizeDocumentString(received);
-    const strippedExpected = normalizeDocumentString(expected);
-
-    if (strippedReceived.trim() === strippedExpected.trim()) {
-      return {
-        message: () =>
-          `expected
-       ${received}
-       not to be a string containing (ignoring indents)
-       ${expected}`,
-        pass: true,
-      };
-    } else {
-      return {
-        message: () =>
-          `expected
-       ${received}
-       to be a string containing (ignoring indents)
-       ${expected}`,
-        pass: false,
-      };
-    }
+  toBeSimilarGqlDoc(this, received: DocumentNode, expectedString: string, ...rest) {
+    const expected = parse(expectedString, { noLocation: true });
+    return matchers.toMatchObject(stripLocation(received), stripLocation(expected));
   },
 });
+
+function stripLocation(obj: any): any {
+  if (Array.isArray(obj)) {
+    return obj.map(stripLocation);
+  } else if (obj && typeof obj === 'object') {
+    return Object.keys(obj).reduce((acc, key) => {
+      if (key !== 'loc') {
+        acc[key] = stripLocation(obj[key]);
+      }
+      return acc;
+    }, {});
+  }
+  return obj;
+}

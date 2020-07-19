@@ -1,7 +1,7 @@
 import { loadSchema, loadSchemaSync } from '@graphql-tools/load';
 import { CodeFileLoader } from '@graphql-tools/code-file-loader';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
-import { printSchema } from 'graphql';
+import { printSchema, parse } from 'graphql';
 import { runTests, useMonorepo } from '../../../../testing/utils';
 import '../../../../testing/to-be-similar-gql-doc';
 
@@ -50,9 +50,9 @@ describe('loadSchema', () => {
       const schema = await load('../import/tests/schema/fixtures/multiple-root/*/schema.graphql', {
         loaders: [new GraphQLFileLoader()]
       });
-      const schemaStr = printSchema(schema);
+      const schemaDocument = parse(printSchema(schema));
 
-      expect(schemaStr).toBeSimilarGqlDoc(/* GraphQL */`
+      expect(schemaDocument).toBeSimilarGqlDoc(/* GraphQL */`
         type Query {
           a: A
           b: B

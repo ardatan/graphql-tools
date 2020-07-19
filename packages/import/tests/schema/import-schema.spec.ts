@@ -2,14 +2,14 @@ import * as fs from 'fs';
 import '../../../testing/to-be-similar-gql-doc';
 import { parseImportLine, processImport } from '../../src';
 import { mergeTypeDefs } from '@graphql-tools/merge';
-import { Kind, print } from 'graphql';
+import { Kind } from 'graphql';
 
 const importSchema = (schema: string, schemas?: Record<string, string>) => {
   const document = processImport(schema, __dirname, schemas);
-  return print(mergeTypeDefs(document.definitions.map(definition => ({ kind: Kind.DOCUMENT, definitions: [definition] })), {
+  return mergeTypeDefs(document.definitions.map(definition => ({ kind: Kind.DOCUMENT, definitions: [definition] })), {
     sort: true,
     useSchemaDefinition: false,
-  }))
+  })
 };
 
 const parseSDL = (content: string) => content.split('\n').map(str => str.trim()).filter(str => str.startsWith('# import ') || str.startsWith('#import ')).map(str => parseImportLine(str.replace('#', '').trim()));
