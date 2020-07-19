@@ -689,6 +689,12 @@ describe('transform object fields', () => {
         }
         return fieldName;
       }),
+      new RenameObjectFields((_typeName, fieldName) => {
+        if (fieldName === 'camelCase') {
+          return 'prefixCamelCase';
+        }
+        return fieldName;
+      }),
     ]);
   });
 
@@ -698,12 +704,12 @@ describe('transform object fields', () => {
       `
         query {
           item {
-            camelCase
+            prefixCamelCase
           }
           items {
             edges {
               node {
-                camelCase
+                prefixCamelCase
               }
             }
           }
@@ -712,7 +718,7 @@ describe('transform object fields', () => {
     );
 
     const TRANSFORMED_ITEM = {
-      camelCase: "I'm a camel!",
+      prefixCamelCase: "I'm a camel!",
     };
 
     expect(result).toEqual({
