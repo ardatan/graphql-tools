@@ -75,7 +75,7 @@ export class JsonFileLoader implements DocumentLoader {
       const jsonContent: string = await readFile(normalizedFilePath, { encoding: 'utf8' });
       return parseGraphQLJSON(pointer, jsonContent, options);
     } catch (e) {
-      throw new Error(`Unable to read JSON file: ${normalizedFilePath}: ${e.message || e}`);
+      throw new Error(`Unable to read JSON file: ${normalizedFilePath}: ${e.message || /* istanbul ignore next */ e}`);
     }
   }
 
@@ -86,7 +86,7 @@ export class JsonFileLoader implements DocumentLoader {
       const jsonContent = readFileSync(normalizedFilepath, 'utf8');
       return parseGraphQLJSON(pointer, jsonContent, options);
     } catch (e) {
-      throw new Error(`Unable to read JSON file: ${normalizedFilepath}: ${e.message || e}`);
+      throw new Error(`Unable to read JSON file: ${normalizedFilepath}: ${e.message || /* istanbul ignore next */ e}`);
     }
   }
 }

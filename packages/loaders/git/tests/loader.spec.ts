@@ -24,15 +24,15 @@ describe('GitLoader', () => {
       sync: loader.canLoadSync.bind(loader),
     })(canLoad => {
       it('should return true for a valid pointer', async () => {
-        expect(canLoad(getPointer('some-file.graphql'))).resolves.toBe(true);
+        await expect(canLoad(getPointer('some-file.graphql'))).resolves.toBe(true);
       });
 
       it('should return false if pointer does not begin with "git:"', async () => {
-        expect(canLoad(getPointer('some-file.graphql').substring(4))).resolves.toBe(false);
+        await expect(canLoad(getPointer('some-file.graphql').substring(4))).resolves.toBe(false);
       });
 
       it('should return false if pointer is not a string', async () => {
-        expect(canLoad(42 as any)).resolves.toBe(false);
+        await expect(canLoad(42 as any)).resolves.toBe(false);
       });
     });
   });

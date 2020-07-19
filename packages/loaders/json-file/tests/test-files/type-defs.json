@@ -1,0 +1,60 @@
+{
+  "kind": "Document",
+  "definitions": [
+    {
+      "kind": "ObjectTypeDefinition",
+      "name": {
+        "kind": "Name",
+        "value": "Query",
+        "loc": {
+          "start": 6,
+          "end": 11
+        }
+      },
+      "interfaces": [],
+      "directives": [],
+      "fields": [
+        {
+          "kind": "FieldDefinition",
+          "name": {
+            "kind": "Name",
+            "value": "hello",
+            "loc": {
+              "start": 16,
+              "end": 21
+            }
+          },
+          "arguments": [],
+          "type": {
+            "kind": "NamedType",
+            "name": {
+              "kind": "Name",
+              "value": "String",
+              "loc": {
+                "start": 23,
+                "end": 29
+              }
+            },
+            "loc": {
+              "start": 23,
+              "end": 29
+            }
+          },
+          "directives": [],
+          "loc": {
+            "start": 16,
+            "end": 29
+          }
+        }
+      ],
+      "loc": {
+        "start": 1,
+        "end": 31
+      }
+    }
+  ],
+  "loc": {
+    "start": 0,
+    "end": 32
+  }
+}
