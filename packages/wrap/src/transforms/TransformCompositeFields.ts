@@ -182,7 +182,7 @@ export default class TransformCompositeFields implements Transform {
         },
         alias: {
           kind: Kind.NAME,
-          value: newName,
+          value: transformedSelection.alias?.value ?? newName,
         },
       });
     });
