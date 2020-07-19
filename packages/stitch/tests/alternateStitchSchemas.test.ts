@@ -11,6 +11,7 @@ import {
   GraphQLFieldConfig,
   isSpecifiedScalarType,
   GraphQLNamedType,
+  Kind,
 } from 'graphql';
 
 import {
@@ -216,7 +217,16 @@ describe('merge schemas through transforms', () => {
         },
         Bookings_Booking: {
           property: {
-            selectionSet: '{ propertyId }',
+            selectionSet: () => ({
+              kind: Kind.SELECTION_SET,
+              selections: [{
+                kind: Kind.FIELD,
+                name: {
+                  kind: Kind.NAME,
+                  value: 'propertyId',
+                }
+              }]
+            }),
             resolve: (parent, _args, context, info) =>
               delegateToSchema({
                 schema: propertySubschema,

@@ -207,11 +207,11 @@ export function completeStitchingInfo(stitchingInfo: StitchingInfo, resolvers: I
       const field = type[fieldName] as IFieldResolverOptions;
       if (field.selectionSet) {
         if (typeof field.selectionSet === 'function') {
-          if (!(typeName in selectionSetsByField)) {
+          if (!(typeName in dynamicSelectionSetsByField)) {
             dynamicSelectionSetsByField[typeName] = Object.create(null);
           }
 
-          if (!(fieldName in selectionSetsByField[typeName])) {
+          if (!(fieldName in dynamicSelectionSetsByField[typeName])) {
             dynamicSelectionSetsByField[typeName][fieldName] = [];
           }
 
