@@ -17,6 +17,7 @@ change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
 exclude-labels:
   - dependencies
   - docs
+  - testing
 version-resolver:
   major:
     labels:
