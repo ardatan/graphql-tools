@@ -41,7 +41,7 @@ export function typeContainsSelectionSet(type: GraphQLObjectType, selectionSet: 
 export function selectionSetWithFieldArgs(selectionSet: string, mapping?: Record<string, string[]>): SelectionSetNode {
   selectionSet = JSON.stringify(parseSelectionSet(selectionSet));
   return (field: FieldNode) => {
-    const selectionSetCopy = JSON.parse(selectionSet) as SelectionSetNode;
+    const selectionSetCopy = JSON.parse(selectionSet);
 
     for (const selection of selectionSetCopy.selections) {
       if (selection.kind === Kind.FIELD) {
@@ -59,6 +59,6 @@ export function selectionSetWithFieldArgs(selectionSet: string, mapping?: Record
       }
     }
 
-    return selectionSetCopy;
+    return selectionSetCopy as SelectionSetNode;
   };
 }
