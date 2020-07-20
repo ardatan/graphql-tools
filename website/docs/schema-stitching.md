@@ -181,7 +181,7 @@ const linkTypeDefs = `
 
 This argument in the gateway schema won't do anything until passed through to the underlying subservice requests. How we pass this input through depends on which subservice manages the association data.
 
-First, let's say that the Chirps service manages the association and implements a `since` param for scoping the returned Chirp results. This simply requires passing the resolver argument through to `delegateToSchema` arguments:
+First, let's say that the Chirps service manages the association and implements a `since` param for scoping the returned Chirp results. This simply requires passing the resolver argument through to `delegateToSchema`:
 
 ```js
 export default {
@@ -206,7 +206,7 @@ export default {
 };
 ```
 
-Alternatively, let's say that the Users service manages the association and implements a `User.chirpIds(since: DateTime)` method to stitch from. In this configuration, gateway arguments will need to passthrough with the initial `selectionSet` for User data. The `selectionSetWithFieldArgs` utility handles this:
+Alternatively, let's say that the Users service manages the association and implements a `User.chirpIds(since: DateTime):[Int]` method to stitch from. In this configuration, resolver arguments will need to passthrough with the initial `selectionSet` for User data. The `selectionSetWithFieldArgs` utility handles this:
 
 ```js
 import { selectionSetWithFieldArgs } from '@graphql-tools/utils';
@@ -232,7 +232,7 @@ export default {
 };
 ```
 
-By default, `selectionSetWithFieldArgs` will passthrough all arguments from the gateway field to _all_ root fields of the selection set. For advanced selection sets that request multiple fields, you may provide an additional mapping of selection names with their respective arguments:
+By default, `selectionSetWithFieldArgs` will passthrough all arguments from the gateway field to _all_ root fields in the selection set. For complex selections that request multiple fields, you may provide an additional mapping of selection names with their respective arguments:
 
 ```js
 selectionSetWithFieldArgs('{ id chirpIds }', { chirpIds: ['since'] })

@@ -1,4 +1,12 @@
-import { OperationDefinitionNode, SelectionSetNode, parse, Kind, GraphQLObjectType, getNamedType } from 'graphql';
+import {
+  OperationDefinitionNode,
+  SelectionSetNode,
+  FieldNode,
+  parse,
+  Kind,
+  GraphQLObjectType,
+  getNamedType,
+} from 'graphql';
 
 export function parseSelectionSet(selectionSet: string): SelectionSetNode {
   const query = parse(selectionSet).definitions[0] as OperationDefinitionNode;
@@ -32,7 +40,7 @@ export function typeContainsSelectionSet(type: GraphQLObjectType, selectionSet: 
 
 export function selectionSetWithFieldArgs(selectionSet: string, mapping?: Record<string, string[]>): SelectionSetNode {
   selectionSet = JSON.stringify(parseSelectionSet(selectionSet));
-  return field => {
+  return (field: FieldNode) => {
     const selectionSetCopy = JSON.parse(selectionSet) as SelectionSetNode;
 
     for (const selection of selectionSetCopy.selections) {

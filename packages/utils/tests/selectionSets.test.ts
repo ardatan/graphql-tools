@@ -2,11 +2,11 @@ import { parseSelectionSet, selectionSetWithFieldArgs } from '../src/selectionSe
 
 describe('selectionSetWithFieldArgs', () => {
 
-  const PUBLIC_FIELD = parseSelectionSet('{ posts(pageNumber: 1, perPage: 7) }').selections[0];
+  const GATEWAY_FIELD = parseSelectionSet('{ posts(pageNumber: 1, perPage: 7) }').selections[0];
 
   test('passes all arguments to a hint selection set', () => {
     const selectionSet = selectionSetWithFieldArgs('{ postIds }');
-    const result = selectionSet(PUBLIC_FIELD).selections[0];
+    const result = selectionSet(GATEWAY_FIELD).selections[0];
 
     expect(result.name.value).toEqual('postIds');
     expect(result.arguments.length).toEqual(2);
@@ -18,7 +18,7 @@ describe('selectionSetWithFieldArgs', () => {
 
   test('passes mapped arguments to a hint selection set', () => {
     const selectionSet = selectionSetWithFieldArgs('{ id postIds }', { postIds: ['pageNumber'] });
-    const result = selectionSet(PUBLIC_FIELD);
+    const result = selectionSet(GATEWAY_FIELD);
 
     expect(result.selections.length).toEqual(2);
     expect(result.selections[0].name.value).toEqual('id');
