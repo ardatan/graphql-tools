@@ -167,6 +167,77 @@ const schema = stitchSchemas({
 });
 ```
 
+### Passing arguments between resolvers
+
+As a stitching implementation scales, we encounter situations where it's impractical to pass around exhaustive sets of records between services. For example, what if a User has tens of thousands of Chirps? We'll want to add scoping arguments into our gateway schema to address this:
+
+```js
+const linkTypeDefs = `
+  extend type User {
+    chirps(since: DateTime): [Chirp]
+  }
+`;
+```
+
+This argument in the gateway schema won't do anything until passed through to the underlying subservice requests. How we pass this input through depends on which subservice manages the association data.
+
+First, let's say that the Chirps service manages the association and implements a `since` param for scoping the returned Chirp results. This simply requires passing the resolver argument through to `delegateToSchema` arguments:
+
+```js
+export default {
+  User: {
+    chirps: {
+      selectionSet: `{ id }`,
+      resolve(user, args, context, info) {
+        return delegateToSchema({
+          schema: chirpSchema,
+          operation: 'query',
+          fieldName: 'chirpsByAuthorId',
+          args: {
+            authorId: user.id,
+            since: args.since
+          },
+          context,
+          info,
+        });
+      },
+    },
+  }
+};
+```
+
+Alternatively, let's say that the Users service manages the association and implements a `User.chirpIds(since: DateTime)` method to stitch from. In this configuration, gateway arguments will need to passthrough with the initial `selectionSet` for User data. The `selectionSetWithFieldArgs` utility handles this:
+
+```js
+import { selectionSetWithFieldArgs } from '@graphql-tools/utils';
+
+export default {
+  User: {
+    chirps: {
+      selectionSet: selectionSetWithFieldArgs('{ chirpIds }'),
+      resolve(user, args, context, info) {
+        return delegateToSchema({
+          schema: chirpSchema,
+          operation: 'query',
+          fieldName: 'chirpsById',
+          args: {
+            ids: user.chirpIds,
+          },
+          context,
+          info,
+        });
+      },
+    },
+  }
+};
+```
+
+By default, `selectionSetWithFieldArgs` will passthrough all arguments from the gateway field to _all_ root fields of the selection set. For advanced selection sets that request multiple fields, you may provide an additional mapping of selection names with their respective arguments:
+
+```js
+selectionSetWithFieldArgs('{ id chirpIds }', { chirpIds: ['since'] })
+```
+
 ## Using with Transforms
 
 Often, when creating a GraphQL gateway that combines multiple existing schemas, we might want to modify one of the schemas. The most common tasks include renaming some of the types, and filtering the root fields. By using [transforms](/docs/schema-transforms/) with schema stitching, we can easily tweak the subschemas before merging them together. (In earlier versions of graphql-tools, this required an additional round of delegation prior to merging, but transforms can now be specifying directly when merging using the new subschema configuration objects.)
