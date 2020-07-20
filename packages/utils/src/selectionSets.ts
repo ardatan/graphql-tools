@@ -29,3 +29,29 @@ export function typeContainsSelectionSet(type: GraphQLObjectType, selectionSet: 
 
   return true;
 }
+
+export function selectionSetWithFieldArgs(selectionSet: string, mapping?: object): SelectionSetNode {
+  selectionSet = JSON.stringify(parseSelectionSet(selectionSet));
+  return field => {
+    const selectionSetCopy = JSON.parse(selectionSet) as SelectionSetNode;
+
+    for (let selection of selectionSetCopy.selections) {
+      if (selection.kind === Kind.FIELD) {
+        if (!mapping) {
+          selection.arguments = field.arguments.slice();
+
+        } else if (selection.name.value in mapping) {
+          const selectionArgs = mapping[selection.name.value];
+
+          for (let fieldArg of field.arguments) {
+            if (selectionArgs.includes(fieldArg.name.value)) {
+              selection.arguments.push(fieldArg);
+            }
+          }
+        }
+      }
+    }
+
+    return selectionSetCopy;
+  };
+}
