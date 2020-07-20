@@ -40,7 +40,7 @@ const document4 = loadDocuments('./src/my-component.ts', {  // load from code fi
 
 ```
 
-`loadDocuments` return an array of document sources and these source objects have the following structure;
+`loadDocuments` returns an array of document sources. Each source object has the following structure:
 ```ts
 interface DocumentSource {
   document: DocumentNode; // Object representation of GraphQL Content
@@ -48,5 +48,7 @@ interface DocumentSource {
   location: string; // Way to access to that source
 }
 ```
+
+`loadDocuments` takes in additional configuration via the `options` object (the second argument). There are some defaults to be aware of - to learn more, see [the full API documentation](/docs/api/modules/load/#loaddocuments).
 
 > You can learn more about [loaders](/docs/loaders) to load documents from different sources.
