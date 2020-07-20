@@ -63,7 +63,7 @@ export class GraphQLFileLoader implements UniversalLoader<GraphQLFileLoaderOptio
   ): Promise<boolean> {
     if (isValidPath(pointer)) {
       if (FILE_EXTENSIONS.find(extension => pointer.endsWith(extension))) {
-        const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd, pointer);
+        const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || processCwd(), pointer);
         return pathExists(normalizedFilePath);
       }
     }
@@ -74,7 +74,7 @@ export class GraphQLFileLoader implements UniversalLoader<GraphQLFileLoaderOptio
   canLoadSync(pointer: SchemaPointerSingle | DocumentPointerSingle, options: GraphQLFileLoaderOptions): boolean {
     if (isValidPath(pointer)) {
       if (FILE_EXTENSIONS.find(extension => pointer.endsWith(extension))) {
-        const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd, pointer);
+        const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || processCwd(), pointer);
         return pathExistsSync(normalizedFilePath);
       }
     }
@@ -83,15 +83,14 @@ export class GraphQLFileLoader implements UniversalLoader<GraphQLFileLoaderOptio
   }
 
   async load(pointer: SchemaPointerSingle | DocumentPointerSingle, options: GraphQLFileLoaderOptions): Promise<Source> {
-    const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd, pointer);
+    const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || processCwd(), pointer);
     const rawSDL: string = await readFile(normalizedFilePath, { encoding: 'utf8' });
 
     return this.handleFileContent(rawSDL, pointer, options);
   }
 
   loadSync(pointer: SchemaPointerSingle | DocumentPointerSingle, options: GraphQLFileLoaderOptions): Source {
-    const cwd = options.cwd || processCwd();
-    const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(cwd, pointer);
+    const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || processCwd(), pointer);
     const rawSDL = readFileSync(normalizedFilePath, { encoding: 'utf8' });
     return this.handleFileContent(rawSDL, pointer, options);
   }

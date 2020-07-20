@@ -9,7 +9,7 @@ import {
 
 const InvalidError = new Error(`Imported object was not a string, DocumentNode or GraphQLSchema`);
 const createLoadError = (error: any) =>
-  new Error('Unable to load schema from module: ' + `${error && error.message ? error.message : error}`);
+  new Error('Unable to load schema from module: ' + `${error.message || /* istanbul ignore next */ error}`);
 
 // module:node/module#export
 function extractData(
@@ -104,7 +104,7 @@ export class ModuleLoader implements UniversalLoader {
   }
 
   private extractFromModule(mod: any, modulePath: string, identifier?: string) {
-    const thing = mod[!identifier || identifier === 'default' ? 'default' : identifier];
+    const thing = identifier ? mod[identifier] : mod;
 
     if (!thing) {
       throw new Error('Unable to import an object from module: ' + modulePath);
@@ -120,10 +120,10 @@ export class ModuleLoader implements UniversalLoader {
 
     const imported = await import(modulePath);
 
-    return this.extractFromModule(imported, modulePath, exportName);
+    return this.extractFromModule(imported, modulePath, exportName || 'default');
   }
 
-  private async importModuleSync(pointer: string) {
+  private importModuleSync(pointer: string) {
     const { modulePath, exportName } = extractData(pointer);
 
     const imported = require(modulePath);
