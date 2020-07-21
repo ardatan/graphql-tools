@@ -3,7 +3,6 @@ import {
   SelectionSetNode,
   SelectionNode,
   FieldNode,
-  ArgumentNode,
   parse,
   Kind,
   GraphQLObjectType,
@@ -40,9 +39,12 @@ export function typeContainsSelectionSet(type: GraphQLObjectType, selectionSet: 
   return true;
 }
 
-export function selectionSetWithFieldArgs(selectionSet: string, mapping?: Record<string, string[]>): SelectionSetNode {
+export const selectionSetWithFieldArgs: (
+  selectionSet: string,
+  mapping?: Record<string, string[]>
+) => (field: FieldNode) => SelectionSetNode = (selectionSet: string, mapping?: Record<string, string[]>) => {
   const selectionSetDef = parseSelectionSet(selectionSet);
-  return (field: FieldNode) => {
+  return (field: FieldNode): SelectionSetNode => {
     const selections = selectionSetDef.selections.map(
       (selectionNode): SelectionNode => {
         if (selectionNode.kind === Kind.FIELD) {
@@ -52,7 +54,7 @@ export function selectionSetWithFieldArgs(selectionSet: string, mapping?: Record
             const selectionArgs = mapping[selectionNode.name.value];
             return {
               ...selectionNode,
-              arguments: field.arguments.filter((arg): ArgumentNode => selectionArgs.includes(arg.name.value)),
+              arguments: field.arguments.filter((arg): boolean => selectionArgs.includes(arg.name.value)),
             };
           }
         }
@@ -62,4 +64,4 @@ export function selectionSetWithFieldArgs(selectionSet: string, mapping?: Record
 
     return { ...selectionSetDef, selections };
   };
-}
+};
