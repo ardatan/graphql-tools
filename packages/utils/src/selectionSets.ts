@@ -1,7 +1,9 @@
 import {
   OperationDefinitionNode,
   SelectionSetNode,
+  SelectionNode,
   FieldNode,
+  ArgumentNode,
   parse,
   Kind,
   GraphQLObjectType,
@@ -39,26 +41,25 @@ export function typeContainsSelectionSet(type: GraphQLObjectType, selectionSet: 
 }
 
 export function selectionSetWithFieldArgs(selectionSet: string, mapping?: Record<string, string[]>): SelectionSetNode {
-  selectionSet = JSON.stringify(parseSelectionSet(selectionSet));
+  const selectionSetDef = parseSelectionSet(selectionSet);
   return (field: FieldNode) => {
-    const selectionSetCopy = JSON.parse(selectionSet);
-
-    for (const selection of selectionSetCopy.selections) {
-      if (selection.kind === Kind.FIELD) {
-        if (!mapping) {
-          selection.arguments = field.arguments.slice();
-        } else if (selection.name.value in mapping) {
-          const selectionArgs = mapping[selection.name.value];
-
-          for (const fieldArg of field.arguments) {
-            if (selectionArgs.includes(fieldArg.name.value)) {
-              selection.arguments.push(fieldArg);
-            }
+    const selections = selectionSetDef.selections.map(
+      (selectionNode): SelectionNode => {
+        if (selectionNode.kind === Kind.FIELD) {
+          if (!mapping) {
+            return { ...selectionNode, arguments: field.arguments.slice() };
+          } else if (selectionNode.name.value in mapping) {
+            const selectionArgs = mapping[selectionNode.name.value];
+            return {
+              ...selectionNode,
+              arguments: field.arguments.filter((arg): ArgumentNode => selectionArgs.includes(arg.name.value)),
+            };
           }
         }
+        return selectionNode;
       }
-    }
+    );
 
-    return selectionSetCopy as SelectionSetNode;
+    return { ...selectionSetDef, selections };
   };
 }
