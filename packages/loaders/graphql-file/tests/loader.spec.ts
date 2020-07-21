@@ -1,9 +1,11 @@
 import { join } from 'path';
 
+import { print } from 'graphql'
 import { Source } from '@graphql-tools/utils';
 
 import { GraphQLFileLoader } from '../src';
 import { runTests } from '../../../testing/utils';
+import '../../../testing/to-be-similar-gql-doc'
 
 describe('GraphQLFileLoader', () => {
   const loader = new GraphQLFileLoader();
@@ -59,9 +61,32 @@ describe('GraphQLFileLoader', () => {
         expect(result.document).toBeDefined();
       });
 
-      it('should load file with #import expression', async () => {
+      it('should load type definitions document with #import expression', async () => {
         const result: Source = await load(getPointer('type-defs-with-import.graphql'), {});
-        expect(result.document?.definitions.length).toBe(2);
+        expect(print(result.document!)).toBeSimilarGqlDoc(/* GraphQL */`
+          type Query {
+            a: A
+          }
+
+          type A {
+            b: String
+          }
+        `)
+      });
+
+      it('should load executable document with #import expression', async () => {
+        const result: Source = await load(getPointer('executable.graphql'), {});
+        expect(print(result.document!)).toBeSimilarGqlDoc(/* GraphQL */`
+          query MyQuery {
+            a {
+              ...AFragment
+            }
+          }
+
+          fragment AFragment on A {
+            b
+          }
+        `)
       });
     });
   });

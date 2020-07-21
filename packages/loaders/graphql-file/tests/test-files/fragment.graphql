@@ -1,0 +1,3 @@
+fragment AFragment on A {
+  b
+}

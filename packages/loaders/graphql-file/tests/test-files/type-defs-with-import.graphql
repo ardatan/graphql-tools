@@ -1,5 +1,5 @@
-#import Mutation from "./import-me.graphql"
+#import A from "./import-me.graphql"
 
 type Query {
-  hello: String
+  a: A
 }
