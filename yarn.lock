@@ -2925,10 +2925,10 @@ apollo-tracing@^0.11.1:
     apollo-server-env "^2.4.5"
     apollo-server-plugin-base "^0.9.1"
 
-apollo-upload-client@14.0.0:
-  version "14.0.0"
-  resolved "https://registry.yarnpkg.com/apollo-upload-client/-/apollo-upload-client-14.0.0.tgz#ff861b145b61e5e8749ec920ce55beb5a96e8609"
-  integrity sha512-TsyF21imH38N/PrjjbBf9gcgHdhlg/wxlgQGqg2jUWSO1Djtulw6mjb5ufcVyo0qvqvXb0siTs43Ohk+TFZgOw==
+apollo-upload-client@14.0.1:
+  version "14.0.1"
+  resolved "https://registry.yarnpkg.com/apollo-upload-client/-/apollo-upload-client-14.0.1.tgz#62ca85c4e45d48c2e73cabcdd7cc639492dacb4b"
+  integrity sha512-2Ebh5LQukHpGNebAWRdf9i3t91mJbZAyEG7WVrw9Mx3bxKIQ+4iYmBz3XV+pK8lqs8332i4k3D46hGdXDc5/gg==
   dependencies:
     "@apollo/client" "^3.0.2"
     "@babel/runtime" "^7.10.5"
