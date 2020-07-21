@@ -1,12 +1,13 @@
-import { parseSelectionSet, selectionSetWithFieldArgs } from '../src/selectionSets';
+import { parseSelectionSet } from '@graphql-tools/utils';
+import { forwardArgsToSelectionSet } from '../src';
 
-describe('selectionSetWithFieldArgs', () => {
+describe('forwardArgsToSelectionSet', () => {
 
   const GATEWAY_FIELD = parseSelectionSet('{ posts(pageNumber: 1, perPage: 7) }').selections[0];
 
   test('passes all arguments to a hint selection set', () => {
-    const selectionSet = selectionSetWithFieldArgs('{ postIds }');
-    const result = selectionSet(GATEWAY_FIELD).selections[0];
+    const buildSelectionSet = forwardArgsToSelectionSet('{ postIds }');
+    const result = buildSelectionSet(GATEWAY_FIELD).selections[0];
 
     expect(result.name.value).toEqual('postIds');
     expect(result.arguments.length).toEqual(2);
@@ -17,8 +18,8 @@ describe('selectionSetWithFieldArgs', () => {
   });
 
   test('passes mapped arguments to a hint selection set', () => {
-    const selectionSet = selectionSetWithFieldArgs('{ id postIds }', { postIds: ['pageNumber'] });
-    const result = selectionSet(GATEWAY_FIELD);
+    const buildSelectionSet = forwardArgsToSelectionSet('{ id postIds }', { postIds: ['pageNumber'] });
+    const result = buildSelectionSet(GATEWAY_FIELD);
 
     expect(result.selections.length).toEqual(2);
     expect(result.selections[0].name.value).toEqual('id');

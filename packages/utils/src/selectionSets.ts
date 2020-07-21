@@ -1,13 +1,4 @@
-import {
-  OperationDefinitionNode,
-  SelectionSetNode,
-  SelectionNode,
-  FieldNode,
-  parse,
-  Kind,
-  GraphQLObjectType,
-  getNamedType,
-} from 'graphql';
+import { OperationDefinitionNode, SelectionSetNode, parse, Kind, GraphQLObjectType, getNamedType } from 'graphql';
 
 export function parseSelectionSet(selectionSet: string): SelectionSetNode {
   const query = parse(selectionSet).definitions[0] as OperationDefinitionNode;
@@ -38,30 +29,3 @@ export function typeContainsSelectionSet(type: GraphQLObjectType, selectionSet: 
 
   return true;
 }
-
-export const selectionSetWithFieldArgs: (
-  selectionSet: string,
-  mapping?: Record<string, string[]>
-) => (field: FieldNode) => SelectionSetNode = (selectionSet: string, mapping?: Record<string, string[]>) => {
-  const selectionSetDef = parseSelectionSet(selectionSet);
-  return (field: FieldNode): SelectionSetNode => {
-    const selections = selectionSetDef.selections.map(
-      (selectionNode): SelectionNode => {
-        if (selectionNode.kind === Kind.FIELD) {
-          if (!mapping) {
-            return { ...selectionNode, arguments: field.arguments.slice() };
-          } else if (selectionNode.name.value in mapping) {
-            const selectionArgs = mapping[selectionNode.name.value];
-            return {
-              ...selectionNode,
-              arguments: field.arguments.filter((arg): boolean => selectionArgs.includes(arg.name.value)),
-            };
-          }
-        }
-        return selectionNode;
-      }
-    );
-
-    return { ...selectionSetDef, selections };
-  };
-};

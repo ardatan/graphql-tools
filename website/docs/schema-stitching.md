@@ -206,15 +206,15 @@ export default {
 };
 ```
 
-Alternatively, let's say that the Users service manages the association and implements a `User.chirpIds(since: DateTime):[Int]` method to stitch from. In this configuration, resolver arguments will need to passthrough with the initial `selectionSet` for User data. The `selectionSetWithFieldArgs` utility handles this:
+Alternatively, let's say that the Users service manages the association and implements a `User.chirpIds(since: DateTime):[Int]` method to stitch from. In this configuration, resolver arguments will need to passthrough with the initial `selectionSet` for User data. The `forwardArgsToSelectionSet` helper handles this:
 
 ```js
-import { selectionSetWithFieldArgs } from '@graphql-tools/utils';
+import { forwardArgsToSelectionSet } from '@graphql-tools/stitch';
 
 export default {
   User: {
     chirps: {
-      selectionSet: selectionSetWithFieldArgs('{ chirpIds }'),
+      selectionSet: forwardArgsToSelectionSet('{ chirpIds }'),
       resolve(user, args, context, info) {
         return delegateToSchema({
           schema: chirpSchema,
@@ -232,11 +232,13 @@ export default {
 };
 ```
 
-By default, `selectionSetWithFieldArgs` will passthrough all arguments from the gateway field to _all_ root fields in the selection set. For complex selections that request multiple fields, you may provide an additional mapping of selection names with their respective arguments:
+By default, `forwardArgsToSelectionSet` will passthrough all arguments from the gateway field to _all_ root fields in the selection set. For complex selections that request multiple fields, you may provide an additional mapping of selection names with their respective arguments:
 
 ```js
-selectionSetWithFieldArgs('{ id chirpIds }', { chirpIds: ['since'] })
+forwardArgsToSelectionSet('{ id chirpIds }', { chirpIds: ['since'] })
 ```
+
+Note that a dynamic `selectionSet` is simply a function that recieves a GraphQL `FieldNode` (the gateway field) and returns a `SelectionSet`. This dynamic capability can support a wide range of custom stitching configurations.
 
 ## Using with Transforms
 
