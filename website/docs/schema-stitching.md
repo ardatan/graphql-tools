@@ -238,7 +238,7 @@ By default, `forwardArgsToSelectionSet` will passthrough all arguments from the 
 forwardArgsToSelectionSet('{ id chirpIds }', { chirpIds: ['since'] })
 ```
 
-Note that a dynamic `selectionSet` is simply a function that recieves a GraphQL `FieldNode` (the gateway field) and returns a `SelectionSet`. This dynamic capability can support a wide range of custom stitching configurations.
+Note that a dynamic `selectionSet` is simply a function that recieves a GraphQL `FieldNode` (the gateway field) and returns a `SelectionSetNode`. This dynamic capability can support a wide range of custom stitching configurations.
 
 ## Using with Transforms
 
