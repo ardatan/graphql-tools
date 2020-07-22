@@ -1,4 +1,4 @@
-import { parse, DocumentNode, Location, Kind, DefinitionNode } from 'graphql';
+import { parse, DocumentNode, print, Kind, DefinitionNode, FragmentDefinitionNode } from 'graphql';
 
 /**
  * Strip insignificant whitespace
@@ -18,8 +18,8 @@ const fragmentSourceMap: {
   };
 } = {};
 
-function cacheKeyFromLoc(loc: Location) {
-  return normalize(loc.source.body.substring(loc.start, loc.end));
+function cacheKeyFromFragment(fragment: FragmentDefinitionNode): string {
+  return normalize(print(fragment));
 }
 
 /**
@@ -36,7 +36,7 @@ function processFragments(ast: DocumentNode) {
 
     if (fragmentDefinition.kind === Kind.FRAGMENT_DEFINITION) {
       const fragmentName = fragmentDefinition.name.value;
-      const sourceKey = cacheKeyFromLoc(fragmentDefinition.loc);
+      const sourceKey = cacheKeyFromFragment(fragmentDefinition);
 
       // We know something about this fragment
       if (fragmentSourceMap.hasOwnProperty(fragmentName) && !fragmentSourceMap[fragmentName][sourceKey]) {
@@ -66,7 +66,9 @@ export function parseDocument(doc: string) {
     return docCache[cacheKey];
   }
 
-  const parsed = parse(doc, { noLocation: true });
+  const parsed = parse(doc, {
+    noLocation: true,
+  });
   if (!parsed || parsed.kind !== 'Document') {
     throw new Error('Not a valid GraphQL document.');
   }
