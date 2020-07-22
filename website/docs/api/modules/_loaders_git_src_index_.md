@@ -6,7 +6,7 @@ sidebar_label: "git-loader"
 
 ### Classes
 
-* [GitLoader](../classes/_loaders_git_src_index_.gitloader)
+* [GitLoader](/docs/api/classes/_loaders_git_src_index_.gitloader)
 
 ### Type aliases
 

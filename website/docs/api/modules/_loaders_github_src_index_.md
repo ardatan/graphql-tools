@@ -6,8 +6,8 @@ sidebar_label: "github-loader"
 
 ### Classes
 
-* [GithubLoader](../classes/_loaders_github_src_index_.githubloader)
+* [GithubLoader](/docs/api/classes/_loaders_github_src_index_.githubloader)
 
 ### Interfaces
 
-* [GithubLoaderOptions](../interfaces/_loaders_github_src_index_.githubloaderoptions)
+* [GithubLoaderOptions](/docs/api/interfaces/_loaders_github_src_index_.githubloaderoptions)

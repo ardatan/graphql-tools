@@ -18,7 +18,7 @@ const typeDefs = await loadTypedefs('git:someBranch:some/path/to/file.js', {
 
 ## Implements
 
-* [Loader](../interfaces/_utils_src_index_.loader)
+* [Loader](/docs/api/interfaces/_utils_src_index_.loader)
 
 ## Index
 
@@ -36,7 +36,7 @@ const typeDefs = await loadTypedefs('git:someBranch:some/path/to/file.js', {
 
 ▸ **canLoad**(`pointer`: string): *Promise‹boolean›*
 
-*Defined in [packages/loaders/git/src/index.ts:56](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/git/src/index.ts#L56)*
+*Defined in [packages/loaders/git/src/index.ts:54](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/git/src/index.ts#L54)*
 
 **Parameters:**
 
@@ -52,7 +52,7 @@ ___
 
 ▸ **canLoadSync**(`pointer`: string): *boolean*
 
-*Defined in [packages/loaders/git/src/index.ts:60](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/git/src/index.ts#L60)*
+*Defined in [packages/loaders/git/src/index.ts:58](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/git/src/index.ts#L58)*
 
 **Parameters:**
 
@@ -66,9 +66,9 @@ ___
 
 ###  load
 
-▸ **load**(`pointer`: string, `options`: [GitLoaderOptions](../modules/_loaders_git_src_index_.md#gitloaderoptions)): *Promise‹[Source](../interfaces/_utils_src_index_.source) | object›*
+▸ **load**(`pointer`: string, `options`: [GitLoaderOptions](../modules/_loaders_git_src_index_.md#gitloaderoptions)): *Promise‹[Source](/docs/api/interfaces/_utils_src_index_.source)›*
 
-*Defined in [packages/loaders/git/src/index.ts:64](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/git/src/index.ts#L64)*
+*Defined in [packages/loaders/git/src/index.ts:62](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/git/src/index.ts#L62)*
 
 **Parameters:**
 
@@ -77,15 +77,15 @@ Name | Type |
 `pointer` | string |
 `options` | [GitLoaderOptions](../modules/_loaders_git_src_index_.md#gitloaderoptions) |
 
-**Returns:** *Promise‹[Source](../interfaces/_utils_src_index_.source) | object›*
+**Returns:** *Promise‹[Source](/docs/api/interfaces/_utils_src_index_.source)›*
 
 ___
 
 ###  loadSync
 
-▸ **loadSync**(`pointer`: string, `options`: [GitLoaderOptions](../modules/_loaders_git_src_index_.md#gitloaderoptions)): *[Source](../interfaces/_utils_src_index_.source) | object*
+▸ **loadSync**(`pointer`: string, `options`: [GitLoaderOptions](../modules/_loaders_git_src_index_.md#gitloaderoptions)): *[Source](/docs/api/interfaces/_utils_src_index_.source)*
 
-*Defined in [packages/loaders/git/src/index.ts:78](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/git/src/index.ts#L78)*
+*Defined in [packages/loaders/git/src/index.ts:79](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/git/src/index.ts#L79)*
 
 **Parameters:**
 
@@ -94,7 +94,7 @@ Name | Type |
 `pointer` | string |
 `options` | [GitLoaderOptions](../modules/_loaders_git_src_index_.md#gitloaderoptions) |
 
-**Returns:** *[Source](../interfaces/_utils_src_index_.source) | object*
+**Returns:** *[Source](/docs/api/interfaces/_utils_src_index_.source)*
 
 ___
 
@@ -102,8 +102,8 @@ ___
 
 ▸ **loaderId**(): *string*
 
-*Implementation of [Loader](../interfaces/_utils_src_index_.loader)*
+*Implementation of [Loader](/docs/api/interfaces/_utils_src_index_.loader)*
 
-*Defined in [packages/loaders/git/src/index.ts:52](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/git/src/index.ts#L52)*
+*Defined in [packages/loaders/git/src/index.ts:50](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/git/src/index.ts#L50)*
 
 **Returns:** *string*

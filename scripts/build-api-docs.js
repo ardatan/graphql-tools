@@ -1,24 +1,28 @@
-const fs = require('fs')
-const path = require('path')
-const rimraf = require('rimraf')
+const fs = require('fs');
+const path = require('path');
+const rimraf = require('rimraf');
 const TypeDoc = require('typedoc');
 const { transpileModule } = require('typescript');
-const { execSync } = require('child_process')
+const { execSync } = require('child_process');
 
 // Where to generate the API docs
 const outputDir = path.join(__dirname, '../website/docs/api');
 // sidebars.json
-const sidebarsPath = path.join(__dirname, '../website/sidebars.json')
+const sidebarsPath = path.join(__dirname, '../website/sidebars.json');
 
 // Get the upstream git remote -- we don't want to assume it exists or is named "upstream"
 const gitRemote = execSync('git remote -v', { encoding: 'utf-8' })
   .split('\n')
   .map(line => line.split('\t'))
-  .find(([_name, description]) => description === 'git@github.com:ardatan/graphql-tools.git (fetch)' || description === 'https://github.com/ardatan/graphql-tools (fetch)')
-const gitRemoteName = gitRemote && gitRemote[0]
+  .find(
+    ([_name, description]) =>
+      description === 'git@github.com:ardatan/graphql-tools.git (fetch)' ||
+      description === 'https://github.com/ardatan/graphql-tools (fetch)'
+  );
+const gitRemoteName = gitRemote && gitRemote[0];
 if (!gitRemoteName) {
-  console.log('Unable to locate upstream git remote')
-  process.exit(1)
+  console.log('Unable to locate upstream git remote');
+  process.exit(1);
 }
 
 // An array of tuples where the first element is the package's name and the
@@ -42,10 +46,10 @@ const modules = [
   ['@graphql-tools/prisma-loader', 'packages/loaders/prisma/src/index.ts'],
   ['@graphql-tools/graphql-tag-pluck', 'packages/graphql-tag-pluck/src/index.ts'],
   ['@graphql-tools/utils', 'packages/utils/src/index.ts'],
-]
+];
 
 // Delete existing docs
-rimraf.sync(outputDir)
+rimraf.sync(outputDir);
 
 // Initialize TypeDoc
 const typeDoc = new TypeDoc.Application();
@@ -76,42 +80,48 @@ typeDoc.generateDocs(project, outputDir);
 // See https://github.com/tgreyuk/typedoc-plugin-markdown/pull/128
 ['classes', 'enums', 'interfaces', 'modules'].forEach(dirName => {
   fs.readdirSync(path.join(outputDir, dirName)).forEach(fileName => {
-    const filePath = path.join(outputDir, dirName, fileName)
-    const contents = fs.readFileSync(filePath, 'utf-8')
+    const filePath = path.join(outputDir, dirName, fileName);
+    const contents = fs
+      .readFileSync(filePath, 'utf-8')
       // Escape angle brackets
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
-      // Strip .md extension from any links
+      // Fix links
       .replace(/\[([^\]]+)\]\(([^)]+).md\)/g, '[$1]($2)')
-    fs.writeFileSync(filePath, contents)
-  })
-})
+      .replace(/\[([^\]]+)\]\((\.\.\/(classes|interfaces|enums)\/([^\)]+))\)/g, '[$1](/docs/api/$3/$4)');
+    fs.writeFileSync(filePath, contents);
+  });
+});
 
 // Remove the generated "index.md" file
-fs.unlinkSync(path.join(outputDir, 'index.md'))
+fs.unlinkSync(path.join(outputDir, 'index.md'));
 
 // Update each module 's frontmatter and title
 modules.forEach(([name, originalFilePath]) => {
-  const filePath = path.join(outputDir, 'modules', convertEntryFilePath(originalFilePath))
+  const filePath = path.join(outputDir, 'modules', convertEntryFilePath(originalFilePath));
   if (!fs.existsSync(filePath)) {
-    return
+    return;
   }
-  const id = convertNameToId(name)
-  fs.writeFileSync(filePath, fs.readFileSync(filePath, 'utf-8').replace(
-    /^---.+---\n\n## Index/s, `
+  const id = convertNameToId(name);
+  fs.writeFileSync(
+    filePath,
+    fs.readFileSync(filePath, 'utf-8').replace(
+      /^---.+---\n\n## Index/s,
+      `
 ---
 id: "${id}"
 title: "${name}"
 sidebar_label: "${id}"
 ---`.substring(1)
-  ))
-})
+    )
+  );
+});
 
 // Update sidebars.json
-const sidebars = require(sidebarsPath)
+const sidebars = require(sidebarsPath);
 sidebars.someSidebar.find(category => category['API Reference'])['API Reference'] = [
   {
-    Modules: modules.map(([name]) => `api/modules/${convertNameToId(name)}`)
+    Modules: modules.map(([name]) => `api/modules/${convertNameToId(name)}`),
   },
   {
     Classes: getSidebarItemsByDirectory('classes'),
@@ -122,29 +132,30 @@ sidebars.someSidebar.find(category => category['API Reference'])['API Reference'
   {
     Enums: getSidebarItemsByDirectory('enums'),
   },
-]
-fs.writeFileSync(sidebarsPath, JSON.stringify(sidebars, null, 2))
+];
+fs.writeFileSync(sidebarsPath, JSON.stringify(sidebars, null, 2));
 
 function convertEntryFilePath(filePath) {
-  const { dir, name } = path.parse(filePath)
-  return `_${dir.split('/').slice(1).join('_').replace(/-/g, '_')}_${name}_.md`
+  const { dir, name } = path.parse(filePath);
+  return `_${dir.split('/').slice(1).join('_').replace(/-/g, '_')}_${name}_.md`;
 }
 
 function convertNameToId(name) {
-  return name.replace(/@graphql-tools\//g, '')
+  return name.replace(/@graphql-tools\//g, '');
 }
 
 function getSidebarItemsByDirectory(dirName) {
-  return fs.readdirSync(path.join(outputDir, dirName))
-    .map((fileName) => `api/${dirName}/${path.parse(fileName).name}`)
+  return fs
+    .readdirSync(path.join(outputDir, dirName))
+    .map(fileName => `api/${dirName}/${path.parse(fileName).name}`)
     .sort((a, b) => {
-      const aName = a.split('.').pop()
-      const bName = b.split('.').pop()
+      const aName = a.split('.').pop();
+      const bName = b.split('.').pop();
       if (aName < bName) {
-        return -1
+        return -1;
       } else if (aName > bName) {
-        return 1
+        return 1;
       }
-      return 0
-    })
+      return 0;
+    });
 }

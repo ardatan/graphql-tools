@@ -16,15 +16,15 @@ sidebar_label: "Loader"
 
 ## Implemented by
 
-* [ApolloEngineLoader](../classes/_loaders_apollo_engine_src_index_.apolloengineloader)
-* [CodeFileLoader](../classes/_loaders_code_file_src_index_.codefileloader)
-* [GitLoader](../classes/_loaders_git_src_index_.gitloader)
-* [GithubLoader](../classes/_loaders_github_src_index_.githubloader)
-* [GraphQLFileLoader](../classes/_loaders_graphql_file_src_index_.graphqlfileloader)
-* [JsonFileLoader](../classes/_loaders_json_file_src_index_.jsonfileloader)
-* [ModuleLoader](../classes/_loaders_module_src_index_.moduleloader)
-* [PrismaLoader](../classes/_loaders_prisma_src_index_.prismaloader)
-* [UrlLoader](../classes/_loaders_url_src_index_.urlloader)
+* [ApolloEngineLoader](/docs/api/classes/_loaders_apollo_engine_src_index_.apolloengineloader)
+* [CodeFileLoader](/docs/api/classes/_loaders_code_file_src_index_.codefileloader)
+* [GitLoader](/docs/api/classes/_loaders_git_src_index_.gitloader)
+* [GithubLoader](/docs/api/classes/_loaders_github_src_index_.githubloader)
+* [GraphQLFileLoader](/docs/api/classes/_loaders_graphql_file_src_index_.graphqlfileloader)
+* [JsonFileLoader](/docs/api/classes/_loaders_json_file_src_index_.jsonfileloader)
+* [ModuleLoader](/docs/api/classes/_loaders_module_src_index_.moduleloader)
+* [PrismaLoader](/docs/api/classes/_loaders_prisma_src_index_.prismaloader)
+* [UrlLoader](/docs/api/classes/_loaders_url_src_index_.urlloader)
 
 ## Index
 

@@ -10,7 +10,7 @@ sidebar_label: "HoistField"
 
 ## Implements
 
-* [Transform](../interfaces/_utils_src_index_.transform)
+* [Transform](/docs/api/interfaces/_utils_src_index_.transform)
 
 ## Index
 
@@ -47,7 +47,7 @@ Name | Type | Default |
 
 ###  transformRequest
 
-▸ **transformRequest**(`originalRequest`: [Request](../interfaces/_utils_src_index_.request), `delegationContext?`: Record‹string, any›, `transformationContext?`: Record‹string, any›): *[Request](../interfaces/_utils_src_index_.request)*
+▸ **transformRequest**(`originalRequest`: [Request](/docs/api/interfaces/_utils_src_index_.request), `delegationContext?`: Record‹string, any›, `transformationContext?`: Record‹string, any›): *[Request](/docs/api/interfaces/_utils_src_index_.request)*
 
 *Defined in [packages/wrap/src/transforms/HoistField.ts:72](https://github.com/ardatan/graphql-tools/blob/master/packages/wrap/src/transforms/HoistField.ts#L72)*
 
@@ -55,17 +55,17 @@ Name | Type | Default |
 
 Name | Type |
 ------ | ------ |
-`originalRequest` | [Request](../interfaces/_utils_src_index_.request) |
+`originalRequest` | [Request](/docs/api/interfaces/_utils_src_index_.request) |
 `delegationContext?` | Record‹string, any› |
 `transformationContext?` | Record‹string, any› |
 
-**Returns:** *[Request](../interfaces/_utils_src_index_.request)*
+**Returns:** *[Request](/docs/api/interfaces/_utils_src_index_.request)*
 
 ___
 
 ###  transformResult
 
-▸ **transformResult**(`originalResult`: [ExecutionResult](../interfaces/_utils_src_index_.executionresult), `delegationContext?`: Record‹string, any›, `transformationContext?`: Record‹string, any›): *[ExecutionResult](../interfaces/_utils_src_index_.executionresult)*
+▸ **transformResult**(`originalResult`: [ExecutionResult](/docs/api/interfaces/_utils_src_index_.executionresult), `delegationContext?`: Record‹string, any›, `transformationContext?`: Record‹string, any›): *[ExecutionResult](/docs/api/interfaces/_utils_src_index_.executionresult)*
 
 *Defined in [packages/wrap/src/transforms/HoistField.ts:80](https://github.com/ardatan/graphql-tools/blob/master/packages/wrap/src/transforms/HoistField.ts#L80)*
 
@@ -73,11 +73,11 @@ ___
 
 Name | Type |
 ------ | ------ |
-`originalResult` | [ExecutionResult](../interfaces/_utils_src_index_.executionresult) |
+`originalResult` | [ExecutionResult](/docs/api/interfaces/_utils_src_index_.executionresult) |
 `delegationContext?` | Record‹string, any› |
 `transformationContext?` | Record‹string, any› |
 
-**Returns:** *[ExecutionResult](../interfaces/_utils_src_index_.executionresult)*
+**Returns:** *[ExecutionResult](/docs/api/interfaces/_utils_src_index_.executionresult)*
 
 ___
 

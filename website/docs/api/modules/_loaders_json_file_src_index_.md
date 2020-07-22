@@ -6,8 +6,8 @@ sidebar_label: "json-file-loader"
 
 ### Classes
 
-* [JsonFileLoader](../classes/_loaders_json_file_src_index_.jsonfileloader)
+* [JsonFileLoader](/docs/api/classes/_loaders_json_file_src_index_.jsonfileloader)
 
 ### Interfaces
 
-* [JsonFileLoaderOptions](../interfaces/_loaders_json_file_src_index_.jsonfileloaderoptions)
+* [JsonFileLoaderOptions](/docs/api/interfaces/_loaders_json_file_src_index_.jsonfileloaderoptions)

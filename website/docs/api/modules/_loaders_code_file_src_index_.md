@@ -6,7 +6,7 @@ sidebar_label: "code-file-loader"
 
 ### Classes
 
-* [CodeFileLoader](../classes/_loaders_code_file_src_index_.codefileloader)
+* [CodeFileLoader](/docs/api/classes/_loaders_code_file_src_index_.codefileloader)
 
 ### Type aliases
 

@@ -6,4 +6,4 @@ sidebar_label: "module-loader"
 
 ### Classes
 
-* [ModuleLoader](../classes/_loaders_module_src_index_.moduleloader)
+* [ModuleLoader](/docs/api/classes/_loaders_module_src_index_.moduleloader)

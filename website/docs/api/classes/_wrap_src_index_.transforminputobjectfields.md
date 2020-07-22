@@ -10,7 +10,7 @@ sidebar_label: "TransformInputObjectFields"
 
 ## Implements
 
-* [Transform](../interfaces/_utils_src_index_.transform)
+* [Transform](/docs/api/interfaces/_utils_src_index_.transform)
 
 ## Index
 
@@ -45,18 +45,18 @@ Name | Type |
 
 ###  transformRequest
 
-▸ **transformRequest**(`originalRequest`: [Request](../interfaces/_utils_src_index_.request), `delegationContext?`: Record‹string, any›): *[Request](../interfaces/_utils_src_index_.request)*
+▸ **transformRequest**(`originalRequest`: [Request](/docs/api/interfaces/_utils_src_index_.request), `delegationContext?`: Record‹string, any›): *[Request](/docs/api/interfaces/_utils_src_index_.request)*
 
-*Defined in [packages/wrap/src/transforms/TransformInputObjectFields.ts:46](https://github.com/ardatan/graphql-tools/blob/master/packages/wrap/src/transforms/TransformInputObjectFields.ts#L46)*
+*Defined in [packages/wrap/src/transforms/TransformInputObjectFields.ts:58](https://github.com/ardatan/graphql-tools/blob/master/packages/wrap/src/transforms/TransformInputObjectFields.ts#L58)*
 
 **Parameters:**
 
 Name | Type |
 ------ | ------ |
-`originalRequest` | [Request](../interfaces/_utils_src_index_.request) |
+`originalRequest` | [Request](/docs/api/interfaces/_utils_src_index_.request) |
 `delegationContext?` | Record‹string, any› |
 
-**Returns:** *[Request](../interfaces/_utils_src_index_.request)*
+**Returns:** *[Request](/docs/api/interfaces/_utils_src_index_.request)*
 
 ___
 

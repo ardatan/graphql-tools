@@ -21,7 +21,7 @@ sidebar_label: "LoadDocumentError"
 
 • **errors**: *ReadonlyArray‹GraphQLError›*
 
-*Defined in [packages/utils/src/validate-documents.ts:19](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/validate-documents.ts#L19)*
+*Defined in [packages/utils/src/validate-documents.ts:18](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/validate-documents.ts#L18)*
 
 ___
 
@@ -29,4 +29,4 @@ ___
 
 • **filePath**: *string*
 
-*Defined in [packages/utils/src/validate-documents.ts:18](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/validate-documents.ts#L18)*
+*Defined in [packages/utils/src/validate-documents.ts:17](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/validate-documents.ts#L17)*

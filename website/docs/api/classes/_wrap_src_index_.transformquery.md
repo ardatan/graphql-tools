@@ -10,7 +10,7 @@ sidebar_label: "TransformQuery"
 
 ## Implements
 
-* [Transform](../interfaces/_utils_src_index_.transform)
+* [Transform](/docs/api/interfaces/_utils_src_index_.transform)
 
 ## Index
 
@@ -49,7 +49,7 @@ Name | Type |
 
 ###  transformRequest
 
-▸ **transformRequest**(`originalRequest`: [Request](../interfaces/_utils_src_index_.request)): *[Request](../interfaces/_utils_src_index_.request)*
+▸ **transformRequest**(`originalRequest`: [Request](/docs/api/interfaces/_utils_src_index_.request)): *[Request](/docs/api/interfaces/_utils_src_index_.request)*
 
 *Defined in [packages/wrap/src/transforms/TransformQuery.ts:41](https://github.com/ardatan/graphql-tools/blob/master/packages/wrap/src/transforms/TransformQuery.ts#L41)*
 
@@ -57,15 +57,15 @@ Name | Type |
 
 Name | Type |
 ------ | ------ |
-`originalRequest` | [Request](../interfaces/_utils_src_index_.request) |
+`originalRequest` | [Request](/docs/api/interfaces/_utils_src_index_.request) |
 
-**Returns:** *[Request](../interfaces/_utils_src_index_.request)*
+**Returns:** *[Request](/docs/api/interfaces/_utils_src_index_.request)*
 
 ___
 
 ###  transformResult
 
-▸ **transformResult**(`originalResult`: [ExecutionResult](../interfaces/_utils_src_index_.executionresult)): *[ExecutionResult](../interfaces/_utils_src_index_.executionresult)*
+▸ **transformResult**(`originalResult`: [ExecutionResult](/docs/api/interfaces/_utils_src_index_.executionresult)): *[ExecutionResult](/docs/api/interfaces/_utils_src_index_.executionresult)*
 
 *Defined in [packages/wrap/src/transforms/TransformQuery.ts:74](https://github.com/ardatan/graphql-tools/blob/master/packages/wrap/src/transforms/TransformQuery.ts#L74)*
 
@@ -73,6 +73,6 @@ ___
 
 Name | Type |
 ------ | ------ |
-`originalResult` | [ExecutionResult](../interfaces/_utils_src_index_.executionresult) |
+`originalResult` | [ExecutionResult](/docs/api/interfaces/_utils_src_index_.executionresult) |
 
-**Returns:** *[ExecutionResult](../interfaces/_utils_src_index_.executionresult)*
+**Returns:** *[ExecutionResult](/docs/api/interfaces/_utils_src_index_.executionresult)*

@@ -6,9 +6,9 @@ sidebar_label: "merge"
 
 ### Interfaces
 
-* [Config](../interfaces/_merge_src_index_.config)
-* [MergeResolversOptions](../interfaces/_merge_src_index_.mergeresolversoptions)
-* [MergeSchemasConfig](../interfaces/_merge_src_index_.mergeschemasconfig)
+* [Config](/docs/api/interfaces/_merge_src_index_.config)
+* [MergeResolversOptions](/docs/api/interfaces/_merge_src_index_.mergeresolversoptions)
+* [MergeSchemasConfig](/docs/api/interfaces/_merge_src_index_.mergeschemasconfig)
 
 ### Type aliases
 
@@ -58,7 +58,6 @@ sidebar_label: "merge"
 * [mergeExtensions](_merge_src_index_.md#mergeextensions)
 * [mergeFields](_merge_src_index_.md#mergefields)
 * [mergeGraphQLNodes](_merge_src_index_.md#mergegraphqlnodes)
-* [mergeGraphQLSchemas](_merge_src_index_.md#mergegraphqlschemas)
 * [mergeGraphQLTypes](_merge_src_index_.md#mergegraphqltypes)
 * [mergeInputType](_merge_src_index_.md#mergeinputtype)
 * [mergeInterface](_merge_src_index_.md#mergeinterface)
@@ -597,7 +596,7 @@ ___
 
 ###  mergeArguments
 
-▸ **mergeArguments**(`args1`: InputValueDefinitionNode[], `args2`: InputValueDefinitionNode[], `config`: [Config](../interfaces/_merge_src_index_.config)): *InputValueDefinitionNode[]*
+▸ **mergeArguments**(`args1`: InputValueDefinitionNode[], `args2`: InputValueDefinitionNode[], `config`: [Config](/docs/api/interfaces/_merge_src_index_.config)): *InputValueDefinitionNode[]*
 
 *Defined in [packages/merge/src/typedefs-mergers/arguments.ts:5](https://github.com/ardatan/graphql-tools/blob/master/packages/merge/src/typedefs-mergers/arguments.ts#L5)*
 
@@ -607,7 +606,7 @@ Name | Type |
 ------ | ------ |
 `args1` | InputValueDefinitionNode[] |
 `args2` | InputValueDefinitionNode[] |
-`config` | [Config](../interfaces/_merge_src_index_.config) |
+`config` | [Config](/docs/api/interfaces/_merge_src_index_.config) |
 
 **Returns:** *InputValueDefinitionNode[]*
 
@@ -632,7 +631,7 @@ ___
 
 ###  mergeDirectives
 
-▸ **mergeDirectives**(`d1`: ReadonlyArray‹DirectiveNode›, `d2`: ReadonlyArray‹DirectiveNode›, `config?`: [Config](../interfaces/_merge_src_index_.config)): *DirectiveNode[]*
+▸ **mergeDirectives**(`d1`: ReadonlyArray‹DirectiveNode›, `d2`: ReadonlyArray‹DirectiveNode›, `config?`: [Config](/docs/api/interfaces/_merge_src_index_.config)): *DirectiveNode[]*
 
 *Defined in [packages/merge/src/typedefs-mergers/directives.ts:59](https://github.com/ardatan/graphql-tools/blob/master/packages/merge/src/typedefs-mergers/directives.ts#L59)*
 
@@ -642,7 +641,7 @@ Name | Type | Default |
 ------ | ------ | ------ |
 `d1` | ReadonlyArray‹DirectiveNode› | [] |
 `d2` | ReadonlyArray‹DirectiveNode› | [] |
-`config?` | [Config](../interfaces/_merge_src_index_.config) | - |
+`config?` | [Config](/docs/api/interfaces/_merge_src_index_.config) | - |
 
 **Returns:** *DirectiveNode[]*
 
@@ -650,7 +649,7 @@ ___
 
 ###  mergeEnum
 
-▸ **mergeEnum**(`e1`: EnumTypeDefinitionNode | EnumTypeExtensionNode, `e2`: EnumTypeDefinitionNode | EnumTypeExtensionNode, `config?`: [Config](../interfaces/_merge_src_index_.config)): *EnumTypeDefinitionNode | EnumTypeExtensionNode*
+▸ **mergeEnum**(`e1`: EnumTypeDefinitionNode | EnumTypeExtensionNode, `e2`: EnumTypeDefinitionNode | EnumTypeExtensionNode, `config?`: [Config](/docs/api/interfaces/_merge_src_index_.config)): *EnumTypeDefinitionNode | EnumTypeExtensionNode*
 
 *Defined in [packages/merge/src/typedefs-mergers/enum.ts:6](https://github.com/ardatan/graphql-tools/blob/master/packages/merge/src/typedefs-mergers/enum.ts#L6)*
 
@@ -660,7 +659,7 @@ Name | Type |
 ------ | ------ |
 `e1` | EnumTypeDefinitionNode &#124; EnumTypeExtensionNode |
 `e2` | EnumTypeDefinitionNode &#124; EnumTypeExtensionNode |
-`config?` | [Config](../interfaces/_merge_src_index_.config) |
+`config?` | [Config](/docs/api/interfaces/_merge_src_index_.config) |
 
 **Returns:** *EnumTypeDefinitionNode | EnumTypeExtensionNode*
 
@@ -668,7 +667,7 @@ ___
 
 ###  mergeEnumValues
 
-▸ **mergeEnumValues**(`first`: ReadonlyArray‹EnumValueDefinitionNode›, `second`: ReadonlyArray‹EnumValueDefinitionNode›, `config`: [Config](../interfaces/_merge_src_index_.config)): *EnumValueDefinitionNode[]*
+▸ **mergeEnumValues**(`first`: ReadonlyArray‹EnumValueDefinitionNode›, `second`: ReadonlyArray‹EnumValueDefinitionNode›, `config`: [Config](/docs/api/interfaces/_merge_src_index_.config)): *EnumValueDefinitionNode[]*
 
 *Defined in [packages/merge/src/typedefs-mergers/enum-values.ts:6](https://github.com/ardatan/graphql-tools/blob/master/packages/merge/src/typedefs-mergers/enum-values.ts#L6)*
 
@@ -678,7 +677,7 @@ Name | Type |
 ------ | ------ |
 `first` | ReadonlyArray‹EnumValueDefinitionNode› |
 `second` | ReadonlyArray‹EnumValueDefinitionNode› |
-`config` | [Config](../interfaces/_merge_src_index_.config) |
+`config` | [Config](/docs/api/interfaces/_merge_src_index_.config) |
 
 **Returns:** *EnumValueDefinitionNode[]*
 
@@ -702,7 +701,7 @@ ___
 
 ###  mergeFields
 
-▸ **mergeFields**‹**T**›(`type`: object, `f1`: ReadonlyArray‹T›, `f2`: ReadonlyArray‹T›, `config`: [Config](../interfaces/_merge_src_index_.config)): *T[]*
+▸ **mergeFields**‹**T**›(`type`: object, `f1`: ReadonlyArray‹T›, `f2`: ReadonlyArray‹T›, `config`: [Config](/docs/api/interfaces/_merge_src_index_.config)): *T[]*
 
 *Defined in [packages/merge/src/typedefs-mergers/fields.ts:25](https://github.com/ardatan/graphql-tools/blob/master/packages/merge/src/typedefs-mergers/fields.ts#L25)*
 
@@ -722,7 +721,7 @@ Name | Type |
 
 ▪ **f2**: *ReadonlyArray‹T›*
 
-▪ **config**: *[Config](../interfaces/_merge_src_index_.config)*
+▪ **config**: *[Config](/docs/api/interfaces/_merge_src_index_.config)*
 
 **Returns:** *T[]*
 
@@ -730,7 +729,7 @@ ___
 
 ###  mergeGraphQLNodes
 
-▸ **mergeGraphQLNodes**(`nodes`: ReadonlyArray‹DefinitionNode›, `config?`: [Config](../interfaces/_merge_src_index_.config)): *[MergedResultMap](_merge_src_index_.md#mergedresultmap)*
+▸ **mergeGraphQLNodes**(`nodes`: ReadonlyArray‹DefinitionNode›, `config?`: [Config](/docs/api/interfaces/_merge_src_index_.config)): *[MergedResultMap](_merge_src_index_.md#mergedresultmap)*
 
 *Defined in [packages/merge/src/typedefs-mergers/merge-nodes.ts:28](https://github.com/ardatan/graphql-tools/blob/master/packages/merge/src/typedefs-mergers/merge-nodes.ts#L28)*
 
@@ -739,41 +738,24 @@ ___
 Name | Type |
 ------ | ------ |
 `nodes` | ReadonlyArray‹DefinitionNode› |
-`config?` | [Config](../interfaces/_merge_src_index_.config) |
+`config?` | [Config](/docs/api/interfaces/_merge_src_index_.config) |
 
 **Returns:** *[MergedResultMap](_merge_src_index_.md#mergedresultmap)*
 
 ___
 
-###  mergeGraphQLSchemas
-
-▸ **mergeGraphQLSchemas**(`types`: Array‹string | Source | DocumentNode | GraphQLSchema›, `config?`: Omit‹Partial‹[Config](../interfaces/_merge_src_index_.config)›, "commentDescriptions"›): *OperationDefinitionNode | FragmentDefinitionNode | SchemaDefinitionNode | ScalarTypeDefinitionNode | ObjectTypeDefinitionNode | InterfaceTypeDefinitionNode | UnionTypeDefinitionNode | EnumTypeDefinitionNode | InputObjectTypeDefinitionNode | DirectiveDefinitionNode | SchemaExtensionNode | ScalarTypeExtensionNode | ObjectTypeExtensionNode | InterfaceTypeExtensionNode | UnionTypeExtensionNode | EnumTypeExtensionNode | InputObjectTypeExtensionNode[]*
-
-*Defined in [packages/merge/src/typedefs-mergers/merge-typedefs.ts:62](https://github.com/ardatan/graphql-tools/blob/master/packages/merge/src/typedefs-mergers/merge-typedefs.ts#L62)*
-
-**Parameters:**
-
-Name | Type |
------- | ------ |
-`types` | Array‹string &#124; Source &#124; DocumentNode &#124; GraphQLSchema› |
-`config?` | Omit‹Partial‹[Config](../interfaces/_merge_src_index_.config)›, "commentDescriptions"› |
-
-**Returns:** *OperationDefinitionNode | FragmentDefinitionNode | SchemaDefinitionNode | ScalarTypeDefinitionNode | ObjectTypeDefinitionNode | InterfaceTypeDefinitionNode | UnionTypeDefinitionNode | EnumTypeDefinitionNode | InputObjectTypeDefinitionNode | DirectiveDefinitionNode | SchemaExtensionNode | ScalarTypeExtensionNode | ObjectTypeExtensionNode | InterfaceTypeExtensionNode | UnionTypeExtensionNode | EnumTypeExtensionNode | InputObjectTypeExtensionNode[]*
-
-___
-
 ###  mergeGraphQLTypes
 
-▸ **mergeGraphQLTypes**(`types`: Array‹string | Source | DocumentNode | GraphQLSchema›, `config`: [Config](../interfaces/_merge_src_index_.config)): *DefinitionNode[]*
+▸ **mergeGraphQLTypes**(`types`: Array‹string | Source | DocumentNode | GraphQLSchema›, `config`: [Config](/docs/api/interfaces/_merge_src_index_.config)): *DefinitionNode[]*
 
-*Defined in [packages/merge/src/typedefs-mergers/merge-typedefs.ts:119](https://github.com/ardatan/graphql-tools/blob/master/packages/merge/src/typedefs-mergers/merge-typedefs.ts#L119)*
+*Defined in [packages/merge/src/typedefs-mergers/merge-typedefs.ts:105](https://github.com/ardatan/graphql-tools/blob/master/packages/merge/src/typedefs-mergers/merge-typedefs.ts#L105)*
 
 **Parameters:**
 
 Name | Type |
 ------ | ------ |
 `types` | Array‹string &#124; Source &#124; DocumentNode &#124; GraphQLSchema› |
-`config` | [Config](../interfaces/_merge_src_index_.config) |
+`config` | [Config](/docs/api/interfaces/_merge_src_index_.config) |
 
 **Returns:** *DefinitionNode[]*
 
@@ -781,7 +763,7 @@ ___
 
 ###  mergeInputType
 
-▸ **mergeInputType**(`node`: InputObjectTypeDefinitionNode | InputObjectTypeExtensionNode, `existingNode`: InputObjectTypeDefinitionNode | InputObjectTypeExtensionNode, `config?`: [Config](../interfaces/_merge_src_index_.config)): *InputObjectTypeDefinitionNode | InputObjectTypeExtensionNode*
+▸ **mergeInputType**(`node`: InputObjectTypeDefinitionNode | InputObjectTypeExtensionNode, `existingNode`: InputObjectTypeDefinitionNode | InputObjectTypeExtensionNode, `config?`: [Config](/docs/api/interfaces/_merge_src_index_.config)): *InputObjectTypeDefinitionNode | InputObjectTypeExtensionNode*
 
 *Defined in [packages/merge/src/typedefs-mergers/input-type.ts:7](https://github.com/ardatan/graphql-tools/blob/master/packages/merge/src/typedefs-mergers/input-type.ts#L7)*
 
@@ -791,7 +773,7 @@ Name | Type |
 ------ | ------ |
 `node` | InputObjectTypeDefinitionNode &#124; InputObjectTypeExtensionNode |
 `existingNode` | InputObjectTypeDefinitionNode &#124; InputObjectTypeExtensionNode |
-`config?` | [Config](../interfaces/_merge_src_index_.config) |
+`config?` | [Config](/docs/api/interfaces/_merge_src_index_.config) |
 
 **Returns:** *InputObjectTypeDefinitionNode | InputObjectTypeExtensionNode*
 
@@ -799,7 +781,7 @@ ___
 
 ###  mergeInterface
 
-▸ **mergeInterface**(`node`: InterfaceTypeDefinitionNode | InterfaceTypeExtensionNode, `existingNode`: InterfaceTypeDefinitionNode | InterfaceTypeExtensionNode, `config`: [Config](../interfaces/_merge_src_index_.config)): *InterfaceTypeDefinitionNode | InterfaceTypeExtensionNode*
+▸ **mergeInterface**(`node`: InterfaceTypeDefinitionNode | InterfaceTypeExtensionNode, `existingNode`: InterfaceTypeDefinitionNode | InterfaceTypeExtensionNode, `config`: [Config](/docs/api/interfaces/_merge_src_index_.config)): *InterfaceTypeDefinitionNode | InterfaceTypeExtensionNode*
 
 *Defined in [packages/merge/src/typedefs-mergers/interface.ts:6](https://github.com/ardatan/graphql-tools/blob/master/packages/merge/src/typedefs-mergers/interface.ts#L6)*
 
@@ -809,7 +791,7 @@ Name | Type |
 ------ | ------ |
 `node` | InterfaceTypeDefinitionNode &#124; InterfaceTypeExtensionNode |
 `existingNode` | InterfaceTypeDefinitionNode &#124; InterfaceTypeExtensionNode |
-`config` | [Config](../interfaces/_merge_src_index_.config) |
+`config` | [Config](/docs/api/interfaces/_merge_src_index_.config) |
 
 **Returns:** *InterfaceTypeDefinitionNode | InterfaceTypeExtensionNode*
 
@@ -817,7 +799,7 @@ ___
 
 ###  mergeNamedTypeArray
 
-▸ **mergeNamedTypeArray**(`first`: ReadonlyArray‹NamedTypeNode›, `second`: ReadonlyArray‹NamedTypeNode›, `config`: [Config](../interfaces/_merge_src_index_.config)): *NamedTypeNode[]*
+▸ **mergeNamedTypeArray**(`first`: ReadonlyArray‹NamedTypeNode›, `second`: ReadonlyArray‹NamedTypeNode›, `config`: [Config](/docs/api/interfaces/_merge_src_index_.config)): *NamedTypeNode[]*
 
 *Defined in [packages/merge/src/typedefs-mergers/merge-named-type-array.ts:9](https://github.com/ardatan/graphql-tools/blob/master/packages/merge/src/typedefs-mergers/merge-named-type-array.ts#L9)*
 
@@ -827,7 +809,7 @@ Name | Type |
 ------ | ------ |
 `first` | ReadonlyArray‹NamedTypeNode› |
 `second` | ReadonlyArray‹NamedTypeNode› |
-`config` | [Config](../interfaces/_merge_src_index_.config) |
+`config` | [Config](/docs/api/interfaces/_merge_src_index_.config) |
 
 **Returns:** *NamedTypeNode[]*
 
@@ -835,7 +817,7 @@ ___
 
 ###  mergeResolvers
 
-▸ **mergeResolvers**‹**TContext**, **T**›(`resolversDefinitions`: T[], `options?`: [MergeResolversOptions](../interfaces/_merge_src_index_.mergeresolversoptions)): *T*
+▸ **mergeResolvers**‹**TContext**, **T**›(`resolversDefinitions`: T[], `options?`: [MergeResolversOptions](/docs/api/interfaces/_merge_src_index_.mergeresolversoptions)): *T*
 
 *Defined in [packages/merge/src/merge-resolvers.ts:42](https://github.com/ardatan/graphql-tools/blob/master/packages/merge/src/merge-resolvers.ts#L42)*
 
@@ -852,7 +834,7 @@ Deep merges multiple resolver definition objects into a single definition.
 Name | Type | Description |
 ------ | ------ | ------ |
 `resolversDefinitions` | T[] | Resolver definitions to be merged |
-`options?` | [MergeResolversOptions](../interfaces/_merge_src_index_.mergeresolversoptions) | Additional options  ```js const { mergeResolvers } = require('@graphql-tools/merge'); const clientResolver = require('./clientResolver'); const productResolver = require('./productResolver');  const resolvers = mergeResolvers([  clientResolver,  productResolver, ]); ```  If you don't want to manually create the array of resolver objects, you can also use this function along with loadFiles:  ```js const path = require('path'); const { mergeResolvers } = require('@graphql-tools/merge'); const { loadFilesSync } = require('@graphql-tools/load-files');  const resolversArray = loadFilesSync(path.join(__dirname, './resolvers'));  const resolvers = mergeResolvers(resolversArray) ```  |
+`options?` | [MergeResolversOptions](/docs/api/interfaces/_merge_src_index_.mergeresolversoptions) | Additional options  ```js const { mergeResolvers } = require('@graphql-tools/merge'); const clientResolver = require('./clientResolver'); const productResolver = require('./productResolver');  const resolvers = mergeResolvers([  clientResolver,  productResolver, ]); ```  If you don't want to manually create the array of resolver objects, you can also use this function along with loadFiles:  ```js const path = require('path'); const { mergeResolvers } = require('@graphql-tools/merge'); const { loadFilesSync } = require('@graphql-tools/load-files');  const resolversArray = loadFilesSync(path.join(__dirname, './resolvers'));  const resolvers = mergeResolvers(resolversArray) ```  |
 
 **Returns:** *T*
 
@@ -860,7 +842,7 @@ ___
 
 ###  mergeSchemas
 
-▸ **mergeSchemas**(`config`: [MergeSchemasConfig](../interfaces/_merge_src_index_.mergeschemasconfig)): *GraphQLSchema‹›*
+▸ **mergeSchemas**(`config`: [MergeSchemasConfig](/docs/api/interfaces/_merge_src_index_.mergeschemasconfig)): *GraphQLSchema‹›*
 
 *Defined in [packages/merge/src/merge-schemas.ts:56](https://github.com/ardatan/graphql-tools/blob/master/packages/merge/src/merge-schemas.ts#L56)*
 
@@ -870,7 +852,7 @@ Synchronously merges multiple schemas, typeDefinitions and/or resolvers into a s
 
 Name | Type | Description |
 ------ | ------ | ------ |
-`config` | [MergeSchemasConfig](../interfaces/_merge_src_index_.mergeschemasconfig) | Configuration object  |
+`config` | [MergeSchemasConfig](/docs/api/interfaces/_merge_src_index_.mergeschemasconfig) | Configuration object  |
 
 **Returns:** *GraphQLSchema‹›*
 
@@ -878,7 +860,7 @@ ___
 
 ###  mergeSchemasAsync
 
-▸ **mergeSchemasAsync**(`config`: [MergeSchemasConfig](../interfaces/_merge_src_index_.mergeschemasconfig)): *Promise‹GraphQLSchema‹››*
+▸ **mergeSchemasAsync**(`config`: [MergeSchemasConfig](/docs/api/interfaces/_merge_src_index_.mergeschemasconfig)): *Promise‹GraphQLSchema‹››*
 
 *Defined in [packages/merge/src/merge-schemas.ts:76](https://github.com/ardatan/graphql-tools/blob/master/packages/merge/src/merge-schemas.ts#L76)*
 
@@ -888,7 +870,7 @@ Synchronously merges multiple schemas, typeDefinitions and/or resolvers into a s
 
 Name | Type | Description |
 ------ | ------ | ------ |
-`config` | [MergeSchemasConfig](../interfaces/_merge_src_index_.mergeschemasconfig) | Configuration object  |
+`config` | [MergeSchemasConfig](/docs/api/interfaces/_merge_src_index_.mergeschemasconfig) | Configuration object  |
 
 **Returns:** *Promise‹GraphQLSchema‹››*
 
@@ -896,7 +878,7 @@ ___
 
 ###  mergeType
 
-▸ **mergeType**(`node`: ObjectTypeDefinitionNode | ObjectTypeExtensionNode, `existingNode`: ObjectTypeDefinitionNode | ObjectTypeExtensionNode, `config?`: [Config](../interfaces/_merge_src_index_.config)): *ObjectTypeDefinitionNode | ObjectTypeExtensionNode*
+▸ **mergeType**(`node`: ObjectTypeDefinitionNode | ObjectTypeExtensionNode, `existingNode`: ObjectTypeDefinitionNode | ObjectTypeExtensionNode, `config?`: [Config](/docs/api/interfaces/_merge_src_index_.config)): *ObjectTypeDefinitionNode | ObjectTypeExtensionNode*
 
 *Defined in [packages/merge/src/typedefs-mergers/type.ts:7](https://github.com/ardatan/graphql-tools/blob/master/packages/merge/src/typedefs-mergers/type.ts#L7)*
 
@@ -906,7 +888,7 @@ Name | Type |
 ------ | ------ |
 `node` | ObjectTypeDefinitionNode &#124; ObjectTypeExtensionNode |
 `existingNode` | ObjectTypeDefinitionNode &#124; ObjectTypeExtensionNode |
-`config?` | [Config](../interfaces/_merge_src_index_.config) |
+`config?` | [Config](/docs/api/interfaces/_merge_src_index_.config) |
 
 **Returns:** *ObjectTypeDefinitionNode | ObjectTypeExtensionNode*
 
@@ -916,7 +898,7 @@ ___
 
 ▸ **mergeTypeDefs**(`types`: Array‹string | Source | DocumentNode | GraphQLSchema›): *DocumentNode*
 
-*Defined in [packages/merge/src/typedefs-mergers/merge-typedefs.ts:80](https://github.com/ardatan/graphql-tools/blob/master/packages/merge/src/typedefs-mergers/merge-typedefs.ts#L80)*
+*Defined in [packages/merge/src/typedefs-mergers/merge-typedefs.ts:66](https://github.com/ardatan/graphql-tools/blob/master/packages/merge/src/typedefs-mergers/merge-typedefs.ts#L66)*
 
 Merges multiple type definitions into a single `DocumentNode`
 
@@ -928,29 +910,29 @@ Name | Type | Description |
 
 **Returns:** *DocumentNode*
 
-▸ **mergeTypeDefs**(`types`: Array‹string | Source | DocumentNode | GraphQLSchema›, `config?`: Partial‹[Config](../interfaces/_merge_src_index_.config)› & object): *string*
+▸ **mergeTypeDefs**(`types`: Array‹string | Source | DocumentNode | GraphQLSchema›, `config?`: Partial‹[Config](/docs/api/interfaces/_merge_src_index_.config)› & object): *string*
 
-*Defined in [packages/merge/src/typedefs-mergers/merge-typedefs.ts:81](https://github.com/ardatan/graphql-tools/blob/master/packages/merge/src/typedefs-mergers/merge-typedefs.ts#L81)*
+*Defined in [packages/merge/src/typedefs-mergers/merge-typedefs.ts:67](https://github.com/ardatan/graphql-tools/blob/master/packages/merge/src/typedefs-mergers/merge-typedefs.ts#L67)*
 
 **Parameters:**
 
 Name | Type |
 ------ | ------ |
 `types` | Array‹string &#124; Source &#124; DocumentNode &#124; GraphQLSchema› |
-`config?` | Partial‹[Config](../interfaces/_merge_src_index_.config)› & object |
+`config?` | Partial‹[Config](/docs/api/interfaces/_merge_src_index_.config)› & object |
 
 **Returns:** *string*
 
-▸ **mergeTypeDefs**(`types`: Array‹string | Source | DocumentNode | GraphQLSchema›, `config?`: Omit‹Partial‹[Config](../interfaces/_merge_src_index_.config)›, "commentDescriptions"›): *DocumentNode*
+▸ **mergeTypeDefs**(`types`: Array‹string | Source | DocumentNode | GraphQLSchema›, `config?`: Omit‹Partial‹[Config](/docs/api/interfaces/_merge_src_index_.config)›, "commentDescriptions"›): *DocumentNode*
 
-*Defined in [packages/merge/src/typedefs-mergers/merge-typedefs.ts:85](https://github.com/ardatan/graphql-tools/blob/master/packages/merge/src/typedefs-mergers/merge-typedefs.ts#L85)*
+*Defined in [packages/merge/src/typedefs-mergers/merge-typedefs.ts:71](https://github.com/ardatan/graphql-tools/blob/master/packages/merge/src/typedefs-mergers/merge-typedefs.ts#L71)*
 
 **Parameters:**
 
 Name | Type |
 ------ | ------ |
 `types` | Array‹string &#124; Source &#124; DocumentNode &#124; GraphQLSchema› |
-`config?` | Omit‹Partial‹[Config](../interfaces/_merge_src_index_.config)›, "commentDescriptions"› |
+`config?` | Omit‹Partial‹[Config](/docs/api/interfaces/_merge_src_index_.config)›, "commentDescriptions"› |
 
 **Returns:** *DocumentNode*
 
@@ -958,7 +940,7 @@ ___
 
 ###  mergeUnion
 
-▸ **mergeUnion**(`first`: UnionTypeDefinitionNode | UnionTypeExtensionNode, `second`: UnionTypeDefinitionNode | UnionTypeExtensionNode, `config?`: [Config](../interfaces/_merge_src_index_.config)): *UnionTypeDefinitionNode | UnionTypeExtensionNode*
+▸ **mergeUnion**(`first`: UnionTypeDefinitionNode | UnionTypeExtensionNode, `second`: UnionTypeDefinitionNode | UnionTypeExtensionNode, `config?`: [Config](/docs/api/interfaces/_merge_src_index_.config)): *UnionTypeDefinitionNode | UnionTypeExtensionNode*
 
 *Defined in [packages/merge/src/typedefs-mergers/union.ts:6](https://github.com/ardatan/graphql-tools/blob/master/packages/merge/src/typedefs-mergers/union.ts#L6)*
 
@@ -968,7 +950,7 @@ Name | Type |
 ------ | ------ |
 `first` | UnionTypeDefinitionNode &#124; UnionTypeExtensionNode |
 `second` | UnionTypeDefinitionNode &#124; UnionTypeExtensionNode |
-`config?` | [Config](../interfaces/_merge_src_index_.config) |
+`config?` | [Config](/docs/api/interfaces/_merge_src_index_.config) |
 
 **Returns:** *UnionTypeDefinitionNode | UnionTypeExtensionNode*
 

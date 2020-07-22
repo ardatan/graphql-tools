@@ -10,7 +10,7 @@ sidebar_label: "FilterObjectFields"
 
 ## Implements
 
-* [Transform](../interfaces/_utils_src_index_.transform)
+* [Transform](/docs/api/interfaces/_utils_src_index_.transform)
 
 ## Index
 
