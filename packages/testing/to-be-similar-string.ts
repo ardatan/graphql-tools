@@ -1,4 +1,4 @@
-import { compareNodes } from '@graphql-tools/utils';
+import { normalizeString } from './utils';
 
 declare global {
   namespace jest {
@@ -11,14 +11,10 @@ declare global {
   }
 }
 
-function normalize(str: string) {
-  return str.replace(/[\s,]+/g, ' ').trim();
-}
-
 expect.extend({
   toBeSimilarString(received: string, expected: string) {
-    const strippedReceived = normalize(received);
-    const strippedExpected = normalize(expected);
+    const strippedReceived = normalizeString(received);
+    const strippedExpected = normalizeString(expected);
 
     if (strippedReceived.trim() === strippedExpected.trim()) {
       return {
