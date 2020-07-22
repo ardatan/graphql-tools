@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/website",
-  "version": "6.0.14",
+  "version": "6.0.15",
   "private": true,
   "scripts": {
     "start": "docusaurus start",
