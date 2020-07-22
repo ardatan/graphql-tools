@@ -10,7 +10,7 @@ sidebar_label: "WrapFields"
 
 ## Implements
 
-* [Transform](../interfaces/_utils_src_index_.transform)
+* [Transform](/docs/api/interfaces/_utils_src_index_.transform)‹WrapFieldsTransformationContext›
 
 ## Index
 
@@ -49,7 +49,7 @@ Name | Type | Default |
 
 ###  transformRequest
 
-▸ **transformRequest**(`originalRequest`: [Request](../interfaces/_utils_src_index_.request), `delegationContext`: Record‹string, any›, `transformationContext`: WrapFieldsTransformationContext): *[Request](../interfaces/_utils_src_index_.request)*
+▸ **transformRequest**(`originalRequest`: [Request](/docs/api/interfaces/_utils_src_index_.request), `delegationContext?`: Record‹string, any›, `transformationContext?`: WrapFieldsTransformationContext): *[Request](/docs/api/interfaces/_utils_src_index_.request)*
 
 *Defined in [packages/wrap/src/transforms/WrapFields.ts:139](https://github.com/ardatan/graphql-tools/blob/master/packages/wrap/src/transforms/WrapFields.ts#L139)*
 
@@ -57,17 +57,17 @@ Name | Type | Default |
 
 Name | Type |
 ------ | ------ |
-`originalRequest` | [Request](../interfaces/_utils_src_index_.request) |
-`delegationContext` | Record‹string, any› |
-`transformationContext` | WrapFieldsTransformationContext |
+`originalRequest` | [Request](/docs/api/interfaces/_utils_src_index_.request) |
+`delegationContext?` | Record‹string, any› |
+`transformationContext?` | WrapFieldsTransformationContext |
 
-**Returns:** *[Request](../interfaces/_utils_src_index_.request)*
+**Returns:** *[Request](/docs/api/interfaces/_utils_src_index_.request)*
 
 ___
 
 ###  transformResult
 
-▸ **transformResult**(`originalResult`: [ExecutionResult](../interfaces/_utils_src_index_.executionresult), `delegationContext`: Record‹string, any›, `transformationContext`: WrapFieldsTransformationContext): *[ExecutionResult](../interfaces/_utils_src_index_.executionresult)*
+▸ **transformResult**(`originalResult`: [ExecutionResult](/docs/api/interfaces/_utils_src_index_.executionresult), `delegationContext?`: Record‹string, any›, `transformationContext?`: WrapFieldsTransformationContext): *[ExecutionResult](/docs/api/interfaces/_utils_src_index_.executionresult)*
 
 *Defined in [packages/wrap/src/transforms/WrapFields.ts:149](https://github.com/ardatan/graphql-tools/blob/master/packages/wrap/src/transforms/WrapFields.ts#L149)*
 
@@ -75,11 +75,11 @@ ___
 
 Name | Type |
 ------ | ------ |
-`originalResult` | [ExecutionResult](../interfaces/_utils_src_index_.executionresult) |
-`delegationContext` | Record‹string, any› |
-`transformationContext` | WrapFieldsTransformationContext |
+`originalResult` | [ExecutionResult](/docs/api/interfaces/_utils_src_index_.executionresult) |
+`delegationContext?` | Record‹string, any› |
+`transformationContext?` | WrapFieldsTransformationContext |
 
-**Returns:** *[ExecutionResult](../interfaces/_utils_src_index_.executionresult)*
+**Returns:** *[ExecutionResult](/docs/api/interfaces/_utils_src_index_.executionresult)*
 
 ___
 

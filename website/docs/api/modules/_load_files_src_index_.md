@@ -6,7 +6,7 @@ sidebar_label: "load-files"
 
 ### Interfaces
 
-* [LoadFilesOptions](../interfaces/_load_files_src_index_.loadfilesoptions)
+* [LoadFilesOptions](/docs/api/interfaces/_load_files_src_index_.loadfilesoptions)
 
 ### Functions
 
@@ -17,7 +17,7 @@ sidebar_label: "load-files"
 
 ###  loadFiles
 
-▸ **loadFiles**(`pattern`: string | string[], `options`: [LoadFilesOptions](../interfaces/_load_files_src_index_.loadfilesoptions)): *Promise‹any[]›*
+▸ **loadFiles**(`pattern`: string | string[], `options`: [LoadFilesOptions](/docs/api/interfaces/_load_files_src_index_.loadfilesoptions)): *Promise‹any[]›*
 
 *Defined in [packages/load-files/src/index.ts:212](https://github.com/ardatan/graphql-tools/blob/master/packages/load-files/src/index.ts#L212)*
 
@@ -28,7 +28,7 @@ Asynchronously loads files using the provided glob pattern.
 Name | Type | Default | Description |
 ------ | ------ | ------ | ------ |
 `pattern` | string &#124; string[] | - | Glob pattern or patterns to use when loading files |
-`options` | [LoadFilesOptions](../interfaces/_load_files_src_index_.loadfilesoptions) | LoadFilesDefaultOptions | Additional options  |
+`options` | [LoadFilesOptions](/docs/api/interfaces/_load_files_src_index_.loadfilesoptions) | LoadFilesDefaultOptions | Additional options  |
 
 **Returns:** *Promise‹any[]›*
 
@@ -36,7 +36,7 @@ ___
 
 ###  loadFilesSync
 
-▸ **loadFilesSync**‹**T**›(`pattern`: string | string[], `options`: [LoadFilesOptions](../interfaces/_load_files_src_index_.loadfilesoptions)): *T[]*
+▸ **loadFilesSync**‹**T**›(`pattern`: string | string[], `options`: [LoadFilesOptions](/docs/api/interfaces/_load_files_src_index_.loadfilesoptions)): *T[]*
 
 *Defined in [packages/load-files/src/index.ts:116](https://github.com/ardatan/graphql-tools/blob/master/packages/load-files/src/index.ts#L116)*
 
@@ -51,6 +51,6 @@ Synchronously loads files using the provided glob pattern.
 Name | Type | Default | Description |
 ------ | ------ | ------ | ------ |
 `pattern` | string &#124; string[] | - | Glob pattern or patterns to use when loading files |
-`options` | [LoadFilesOptions](../interfaces/_load_files_src_index_.loadfilesoptions) | LoadFilesDefaultOptions | Additional options  |
+`options` | [LoadFilesOptions](/docs/api/interfaces/_load_files_src_index_.loadfilesoptions) | LoadFilesDefaultOptions | Additional options  |
 
 **Returns:** *T[]*

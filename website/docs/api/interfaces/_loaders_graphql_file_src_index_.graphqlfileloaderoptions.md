@@ -164,6 +164,6 @@ ___
 
 • **skipGraphQLImport**? : *boolean*
 
-*Defined in [packages/loaders/graphql-file/src/index.ts:24](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/graphql-file/src/index.ts#L24)*
+*Defined in [packages/loaders/graphql-file/src/index.ts:26](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/graphql-file/src/index.ts#L26)*
 
 Set to `true` to disable handling `#import` syntax

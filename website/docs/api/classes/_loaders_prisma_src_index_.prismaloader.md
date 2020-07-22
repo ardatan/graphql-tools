@@ -14,7 +14,7 @@ This loader loads a schema from a `prisma.yml` file
 
 ## Implements
 
-* [Loader](../interfaces/_utils_src_index_.loader)‹[LoadFromUrlOptions](../interfaces/_loaders_url_src_index_.loadfromurloptions)›
+* [Loader](/docs/api/interfaces/_utils_src_index_.loader)‹[LoadFromUrlOptions](/docs/api/interfaces/_loaders_url_src_index_.loadfromurloptions)›
 
 ## Index
 
@@ -38,7 +38,7 @@ This loader loads a schema from a `prisma.yml` file
 
 *Inherited from [UrlLoader](_loaders_url_src_index_.urlloader).[buildAsyncExecutor](_loaders_url_src_index_.urlloader.md#buildasyncexecutor)*
 
-*Defined in [packages/loaders/url/src/index.ts:78](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L78)*
+*Defined in [packages/loaders/url/src/index.ts:79](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L79)*
 
 **Parameters:**
 
@@ -62,7 +62,7 @@ ___
 
 *Inherited from [UrlLoader](_loaders_url_src_index_.urlloader).[buildSubscriber](_loaders_url_src_index_.urlloader.md#buildsubscriber)*
 
-*Defined in [packages/loaders/url/src/index.ts:117](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L117)*
+*Defined in [packages/loaders/url/src/index.ts:134](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L134)*
 
 **Parameters:**
 
@@ -77,7 +77,7 @@ ___
 
 ###  canLoad
 
-▸ **canLoad**(`prismaConfigFilePath`: string, `options`: [PrismaLoaderOptions](../interfaces/_loaders_prisma_src_index_.prismaloaderoptions)): *Promise‹boolean›*
+▸ **canLoad**(`prismaConfigFilePath`: string, `options`: [PrismaLoaderOptions](/docs/api/interfaces/_loaders_prisma_src_index_.prismaloaderoptions)): *Promise‹boolean›*
 
 *Overrides [UrlLoader](_loaders_url_src_index_.urlloader).[canLoad](_loaders_url_src_index_.urlloader.md#canload)*
 
@@ -88,7 +88,7 @@ ___
 Name | Type |
 ------ | ------ |
 `prismaConfigFilePath` | string |
-`options` | [PrismaLoaderOptions](../interfaces/_loaders_prisma_src_index_.prismaloaderoptions) |
+`options` | [PrismaLoaderOptions](/docs/api/interfaces/_loaders_prisma_src_index_.prismaloaderoptions) |
 
 **Returns:** *Promise‹boolean›*
 
@@ -96,18 +96,18 @@ ___
 
 ###  canLoadSync
 
-▸ **canLoadSync**(`pointer`: [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle), `_options`: [LoadFromUrlOptions](../interfaces/_loaders_url_src_index_.loadfromurloptions)): *boolean*
+▸ **canLoadSync**(`pointer`: [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle), `_options`: [LoadFromUrlOptions](/docs/api/interfaces/_loaders_url_src_index_.loadfromurloptions)): *boolean*
 
 *Inherited from [UrlLoader](_loaders_url_src_index_.urlloader).[canLoadSync](_loaders_url_src_index_.urlloader.md#canloadsync)*
 
-*Defined in [packages/loaders/url/src/index.ts:74](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L74)*
+*Defined in [packages/loaders/url/src/index.ts:75](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L75)*
 
 **Parameters:**
 
 Name | Type |
 ------ | ------ |
 `pointer` | [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle) |
-`_options` | [LoadFromUrlOptions](../interfaces/_loaders_url_src_index_.loadfromurloptions) |
+`_options` | [LoadFromUrlOptions](/docs/api/interfaces/_loaders_url_src_index_.loadfromurloptions) |
 
 **Returns:** *boolean*
 
@@ -115,18 +115,18 @@ ___
 
 ###  getExecutorAndSubscriber
 
-▸ **getExecutorAndSubscriber**(`pointer`: [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle), `options`: [LoadFromUrlOptions](../interfaces/_loaders_url_src_index_.loadfromurloptions)): *Promise‹object›*
+▸ **getExecutorAndSubscriber**(`pointer`: [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle), `options`: [LoadFromUrlOptions](/docs/api/interfaces/_loaders_url_src_index_.loadfromurloptions)): *Promise‹object›*
 
 *Inherited from [UrlLoader](_loaders_url_src_index_.urlloader).[getExecutorAndSubscriber](_loaders_url_src_index_.urlloader.md#getexecutorandsubscriber)*
 
-*Defined in [packages/loaders/url/src/index.ts:130](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L130)*
+*Defined in [packages/loaders/url/src/index.ts:147](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L147)*
 
 **Parameters:**
 
 Name | Type |
 ------ | ------ |
 `pointer` | [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle) |
-`options` | [LoadFromUrlOptions](../interfaces/_loaders_url_src_index_.loadfromurloptions) |
+`options` | [LoadFromUrlOptions](/docs/api/interfaces/_loaders_url_src_index_.loadfromurloptions) |
 
 **Returns:** *Promise‹object›*
 
@@ -134,18 +134,18 @@ ___
 
 ###  getSubschemaConfig
 
-▸ **getSubschemaConfig**(`pointer`: [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle), `options`: [LoadFromUrlOptions](../interfaces/_loaders_url_src_index_.loadfromurloptions)): *Promise‹object›*
+▸ **getSubschemaConfig**(`pointer`: [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle), `options`: [LoadFromUrlOptions](/docs/api/interfaces/_loaders_url_src_index_.loadfromurloptions)): *Promise‹object›*
 
 *Inherited from [UrlLoader](_loaders_url_src_index_.urlloader).[getSubschemaConfig](_loaders_url_src_index_.urlloader.md#getsubschemaconfig)*
 
-*Defined in [packages/loaders/url/src/index.ts:197](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L197)*
+*Defined in [packages/loaders/url/src/index.ts:214](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L214)*
 
 **Parameters:**
 
 Name | Type |
 ------ | ------ |
 `pointer` | [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle) |
-`options` | [LoadFromUrlOptions](../interfaces/_loaders_url_src_index_.loadfromurloptions) |
+`options` | [LoadFromUrlOptions](/docs/api/interfaces/_loaders_url_src_index_.loadfromurloptions) |
 
 **Returns:** *Promise‹object›*
 
@@ -153,7 +153,7 @@ ___
 
 ###  load
 
-▸ **load**(`prismaConfigFilePath`: string, `options`: [PrismaLoaderOptions](../interfaces/_loaders_prisma_src_index_.prismaloaderoptions)): *Promise‹[Source](../interfaces/_utils_src_index_.source)›*
+▸ **load**(`prismaConfigFilePath`: string, `options`: [PrismaLoaderOptions](/docs/api/interfaces/_loaders_prisma_src_index_.prismaloaderoptions)): *Promise‹[Source](/docs/api/interfaces/_utils_src_index_.source)›*
 
 *Overrides [UrlLoader](_loaders_url_src_index_.urlloader).[load](_loaders_url_src_index_.urlloader.md#load)*
 
@@ -164,9 +164,9 @@ ___
 Name | Type |
 ------ | ------ |
 `prismaConfigFilePath` | string |
-`options` | [PrismaLoaderOptions](../interfaces/_loaders_prisma_src_index_.prismaloaderoptions) |
+`options` | [PrismaLoaderOptions](/docs/api/interfaces/_loaders_prisma_src_index_.prismaloaderoptions) |
 
-**Returns:** *Promise‹[Source](../interfaces/_utils_src_index_.source)›*
+**Returns:** *Promise‹[Source](/docs/api/interfaces/_utils_src_index_.source)›*
 
 ___
 
@@ -176,7 +176,7 @@ ___
 
 *Inherited from [UrlLoader](_loaders_url_src_index_.urlloader).[loadSync](_loaders_url_src_index_.urlloader.md#loadsync)*
 
-*Defined in [packages/loaders/url/src/index.ts:217](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L217)*
+*Defined in [packages/loaders/url/src/index.ts:234](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L234)*
 
 **Returns:** *never*
 
@@ -186,7 +186,7 @@ ___
 
 ▸ **loaderId**(): *string*
 
-*Implementation of [Loader](../interfaces/_utils_src_index_.loader)*
+*Implementation of [Loader](/docs/api/interfaces/_utils_src_index_.loader)*
 
 *Overrides [UrlLoader](_loaders_url_src_index_.urlloader).[loaderId](_loaders_url_src_index_.urlloader.md#loaderid)*
 

@@ -10,7 +10,7 @@ sidebar_label: "RenameTypes"
 
 ## Implements
 
-* [Transform](../interfaces/_utils_src_index_.transform)
+* [Transform](/docs/api/interfaces/_utils_src_index_.transform)
 
 ## Index
 
@@ -30,7 +30,7 @@ sidebar_label: "RenameTypes"
 
 \+ **new RenameTypes**(`renamer`: function, `options?`: [RenameTypesOptions](../modules/_utils_src_index_.md#renametypesoptions)): *[RenameTypes](_wrap_src_index_.renametypes)*
 
-*Defined in [packages/wrap/src/transforms/RenameTypes.ts:37](https://github.com/ardatan/graphql-tools/blob/master/packages/wrap/src/transforms/RenameTypes.ts#L37)*
+*Defined in [packages/wrap/src/transforms/RenameTypes.ts:27](https://github.com/ardatan/graphql-tools/blob/master/packages/wrap/src/transforms/RenameTypes.ts#L27)*
 
 **Parameters:**
 
@@ -52,33 +52,33 @@ Name | Type |
 
 ###  transformRequest
 
-▸ **transformRequest**(`originalRequest`: [Request](../interfaces/_utils_src_index_.request)): *[Request](../interfaces/_utils_src_index_.request)*
+▸ **transformRequest**(`originalRequest`: [Request](/docs/api/interfaces/_utils_src_index_.request)): *[Request](/docs/api/interfaces/_utils_src_index_.request)*
 
-*Defined in [packages/wrap/src/transforms/RenameTypes.ts:105](https://github.com/ardatan/graphql-tools/blob/master/packages/wrap/src/transforms/RenameTypes.ts#L105)*
+*Defined in [packages/wrap/src/transforms/RenameTypes.ts:63](https://github.com/ardatan/graphql-tools/blob/master/packages/wrap/src/transforms/RenameTypes.ts#L63)*
 
 **Parameters:**
 
 Name | Type |
 ------ | ------ |
-`originalRequest` | [Request](../interfaces/_utils_src_index_.request) |
+`originalRequest` | [Request](/docs/api/interfaces/_utils_src_index_.request) |
 
-**Returns:** *[Request](../interfaces/_utils_src_index_.request)*
+**Returns:** *[Request](/docs/api/interfaces/_utils_src_index_.request)*
 
 ___
 
 ###  transformResult
 
-▸ **transformResult**(`result`: [ExecutionResult](../interfaces/_utils_src_index_.executionresult)): *[ExecutionResult](../interfaces/_utils_src_index_.executionresult)*
+▸ **transformResult**(`result`: [ExecutionResult](/docs/api/interfaces/_utils_src_index_.executionresult)): *[ExecutionResult](/docs/api/interfaces/_utils_src_index_.executionresult)*
 
-*Defined in [packages/wrap/src/transforms/RenameTypes.ts:127](https://github.com/ardatan/graphql-tools/blob/master/packages/wrap/src/transforms/RenameTypes.ts#L127)*
+*Defined in [packages/wrap/src/transforms/RenameTypes.ts:85](https://github.com/ardatan/graphql-tools/blob/master/packages/wrap/src/transforms/RenameTypes.ts#L85)*
 
 **Parameters:**
 
 Name | Type |
 ------ | ------ |
-`result` | [ExecutionResult](../interfaces/_utils_src_index_.executionresult) |
+`result` | [ExecutionResult](/docs/api/interfaces/_utils_src_index_.executionresult) |
 
-**Returns:** *[ExecutionResult](../interfaces/_utils_src_index_.executionresult)*
+**Returns:** *[ExecutionResult](/docs/api/interfaces/_utils_src_index_.executionresult)*
 
 ___
 
@@ -86,7 +86,7 @@ ___
 
 ▸ **transformSchema**(`originalSchema`: GraphQLSchema): *GraphQLSchema*
 
-*Defined in [packages/wrap/src/transforms/RenameTypes.ts:48](https://github.com/ardatan/graphql-tools/blob/master/packages/wrap/src/transforms/RenameTypes.ts#L48)*
+*Defined in [packages/wrap/src/transforms/RenameTypes.ts:38](https://github.com/ardatan/graphql-tools/blob/master/packages/wrap/src/transforms/RenameTypes.ts#L38)*
 
 **Parameters:**
 

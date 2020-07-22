@@ -122,7 +122,7 @@ ___
 
 *Inherited from [LoadFromUrlOptions](_loaders_url_src_index_.loadfromurloptions).[customFetch](_loaders_url_src_index_.loadfromurloptions.md#optional-customfetch)*
 
-*Defined in [packages/loaders/url/src/index.ts:33](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L33)*
+*Defined in [packages/loaders/url/src/index.ts:34](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L34)*
 
 A custom `fetch` implementation to use when querying the original schema.
 Defaults to `cross-fetch`
@@ -145,7 +145,7 @@ ___
 
 *Inherited from [LoadFromUrlOptions](_loaders_url_src_index_.loadfromurloptions).[enableSubscriptions](_loaders_url_src_index_.loadfromurloptions.md#optional-enablesubscriptions)*
 
-*Defined in [packages/loaders/url/src/index.ts:41](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L41)*
+*Defined in [packages/loaders/url/src/index.ts:42](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L42)*
 
 Whether to enable subscriptions on the loaded schema
 
@@ -202,7 +202,7 @@ ___
 
 *Inherited from [LoadFromUrlOptions](_loaders_url_src_index_.loadfromurloptions).[headers](_loaders_url_src_index_.loadfromurloptions.md#optional-headers)*
 
-*Defined in [packages/loaders/url/src/index.ts:28](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L28)*
+*Defined in [packages/loaders/url/src/index.ts:29](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L29)*
 
 Additional headers to include when querying the original schema
 
@@ -214,7 +214,7 @@ ___
 
 *Inherited from [LoadFromUrlOptions](_loaders_url_src_index_.loadfromurloptions).[method](_loaders_url_src_index_.loadfromurloptions.md#optional-method)*
 
-*Defined in [packages/loaders/url/src/index.ts:37](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L37)*
+*Defined in [packages/loaders/url/src/index.ts:38](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L38)*
 
 HTTP method to use when querying the original schema.
 
@@ -240,7 +240,7 @@ ___
 
 *Inherited from [LoadFromUrlOptions](_loaders_url_src_index_.loadfromurloptions).[useGETForQueries](_loaders_url_src_index_.loadfromurloptions.md#optional-usegetforqueries)*
 
-*Defined in [packages/loaders/url/src/index.ts:50](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L50)*
+*Defined in [packages/loaders/url/src/index.ts:51](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L51)*
 
 Whether to use the GET HTTP method for queries when querying the original schema
 
@@ -252,7 +252,7 @@ ___
 
 *Inherited from [LoadFromUrlOptions](_loaders_url_src_index_.loadfromurloptions).[webSocketImpl](_loaders_url_src_index_.loadfromurloptions.md#optional-websocketimpl)*
 
-*Defined in [packages/loaders/url/src/index.ts:46](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L46)*
+*Defined in [packages/loaders/url/src/index.ts:47](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L47)*
 
 Custom WebSocket implementation used by the loaded schema if subscriptions
 are enabled

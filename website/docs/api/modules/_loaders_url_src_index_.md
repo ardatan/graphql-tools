@@ -6,11 +6,11 @@ sidebar_label: "url-loader"
 
 ### Classes
 
-* [UrlLoader](../classes/_loaders_url_src_index_.urlloader)
+* [UrlLoader](/docs/api/classes/_loaders_url_src_index_.urlloader)
 
 ### Interfaces
 
-* [LoadFromUrlOptions](../interfaces/_loaders_url_src_index_.loadfromurloptions)
+* [LoadFromUrlOptions](/docs/api/interfaces/_loaders_url_src_index_.loadfromurloptions)
 
 ### Type aliases
 
@@ -22,4 +22,4 @@ sidebar_label: "url-loader"
 
 Ƭ **FetchFn**: *fetch*
 
-*Defined in [packages/loaders/url/src/index.ts:17](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L17)*
+*Defined in [packages/loaders/url/src/index.ts:18](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L18)*

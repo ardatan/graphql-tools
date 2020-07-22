@@ -24,7 +24,7 @@ sidebar_label: "IMakeRemoteExecutableSchemaOptions"
 
 • **buildSchemaOptions**? : *BuildSchemaOptions*
 
-*Defined in [packages/wrap/src/types.ts:22](https://github.com/ardatan/graphql-tools/blob/master/packages/wrap/src/types.ts#L22)*
+*Defined in [packages/wrap/src/types.ts:23](https://github.com/ardatan/graphql-tools/blob/master/packages/wrap/src/types.ts#L23)*
 
 ___
 
@@ -32,7 +32,7 @@ ___
 
 • **createResolver**? : *function*
 
-*Defined in [packages/wrap/src/types.ts:21](https://github.com/ardatan/graphql-tools/blob/master/packages/wrap/src/types.ts#L21)*
+*Defined in [packages/wrap/src/types.ts:22](https://github.com/ardatan/graphql-tools/blob/master/packages/wrap/src/types.ts#L22)*
 
 #### Type declaration:
 
@@ -51,7 +51,7 @@ ___
 
 • **executor**? : *Executor*
 
-*Defined in [packages/wrap/src/types.ts:19](https://github.com/ardatan/graphql-tools/blob/master/packages/wrap/src/types.ts#L19)*
+*Defined in [packages/wrap/src/types.ts:20](https://github.com/ardatan/graphql-tools/blob/master/packages/wrap/src/types.ts#L20)*
 
 ___
 
@@ -59,7 +59,7 @@ ___
 
 • **schema**: *GraphQLSchema | string*
 
-*Defined in [packages/wrap/src/types.ts:18](https://github.com/ardatan/graphql-tools/blob/master/packages/wrap/src/types.ts#L18)*
+*Defined in [packages/wrap/src/types.ts:19](https://github.com/ardatan/graphql-tools/blob/master/packages/wrap/src/types.ts#L19)*
 
 ___
 
@@ -67,4 +67,4 @@ ___
 
 • **subscriber**? : *Subscriber*
 
-*Defined in [packages/wrap/src/types.ts:20](https://github.com/ardatan/graphql-tools/blob/master/packages/wrap/src/types.ts#L20)*
+*Defined in [packages/wrap/src/types.ts:21](https://github.com/ardatan/graphql-tools/blob/master/packages/wrap/src/types.ts#L21)*

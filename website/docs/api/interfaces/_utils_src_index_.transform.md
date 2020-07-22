@@ -4,37 +4,43 @@ title: "Transform"
 sidebar_label: "Transform"
 ---
 
+## Type parameters
+
+▪ **T**
+
 ## Hierarchy
 
 * **Transform**
 
 ## Implemented by
 
-* [ExtendSchema](../classes/_wrap_src_index_.extendschema)
-* [ExtractField](../classes/_wrap_src_index_.extractfield)
-* [FilterInputObjectFields](../classes/_wrap_src_index_.filterinputobjectfields)
-* [FilterInterfaceFields](../classes/_wrap_src_index_.filterinterfacefields)
-* [FilterObjectFields](../classes/_wrap_src_index_.filterobjectfields)
-* [FilterRootFields](../classes/_wrap_src_index_.filterrootfields)
-* [FilterTypes](../classes/_wrap_src_index_.filtertypes)
-* [HoistField](../classes/_wrap_src_index_.hoistfield)
-* [MapFields](../classes/_wrap_src_index_.mapfields)
-* [PruneTypes](../classes/_wrap_src_index_.prunetypes)
-* [RenameInputObjectFields](../classes/_wrap_src_index_.renameinputobjectfields)
-* [RenameInterfaceFields](../classes/_wrap_src_index_.renameinterfacefields)
-* [RenameObjectFields](../classes/_wrap_src_index_.renameobjectfields)
-* [RenameRootFields](../classes/_wrap_src_index_.renamerootfields)
-* [RenameRootTypes](../classes/_wrap_src_index_.renameroottypes)
-* [RenameTypes](../classes/_wrap_src_index_.renametypes)
-* [TransformCompositeFields](../classes/_wrap_src_index_.transformcompositefields)
-* [TransformInputObjectFields](../classes/_wrap_src_index_.transforminputobjectfields)
-* [TransformInterfaceFields](../classes/_wrap_src_index_.transforminterfacefields)
-* [TransformObjectFields](../classes/_wrap_src_index_.transformobjectfields)
-* [TransformQuery](../classes/_wrap_src_index_.transformquery)
-* [TransformRootFields](../classes/_wrap_src_index_.transformrootfields)
-* [WrapFields](../classes/_wrap_src_index_.wrapfields)
-* [WrapQuery](../classes/_wrap_src_index_.wrapquery)
-* [WrapType](../classes/_wrap_src_index_.wraptype)
+* [ExtendSchema](/docs/api/classes/_wrap_src_index_.extendschema)
+* [ExtractField](/docs/api/classes/_wrap_src_index_.extractfield)
+* [FilterInputObjectFields](/docs/api/classes/_wrap_src_index_.filterinputobjectfields)
+* [FilterInterfaceFields](/docs/api/classes/_wrap_src_index_.filterinterfacefields)
+* [FilterObjectFields](/docs/api/classes/_wrap_src_index_.filterobjectfields)
+* [FilterRootFields](/docs/api/classes/_wrap_src_index_.filterrootfields)
+* [FilterTypes](/docs/api/classes/_wrap_src_index_.filtertypes)
+* [HoistField](/docs/api/classes/_wrap_src_index_.hoistfield)
+* [MapFields](/docs/api/classes/_wrap_src_index_.mapfields)
+* [MapLeafValues](/docs/api/classes/_wrap_src_index_.mapleafvalues)
+* [PruneTypes](/docs/api/classes/_wrap_src_index_.prunetypes)
+* [RenameInputObjectFields](/docs/api/classes/_wrap_src_index_.renameinputobjectfields)
+* [RenameInterfaceFields](/docs/api/classes/_wrap_src_index_.renameinterfacefields)
+* [RenameObjectFields](/docs/api/classes/_wrap_src_index_.renameobjectfields)
+* [RenameRootFields](/docs/api/classes/_wrap_src_index_.renamerootfields)
+* [RenameRootTypes](/docs/api/classes/_wrap_src_index_.renameroottypes)
+* [RenameTypes](/docs/api/classes/_wrap_src_index_.renametypes)
+* [TransformCompositeFields](/docs/api/classes/_wrap_src_index_.transformcompositefields)
+* [TransformEnumValues](/docs/api/classes/_wrap_src_index_.transformenumvalues)
+* [TransformInputObjectFields](/docs/api/classes/_wrap_src_index_.transforminputobjectfields)
+* [TransformInterfaceFields](/docs/api/classes/_wrap_src_index_.transforminterfacefields)
+* [TransformObjectFields](/docs/api/classes/_wrap_src_index_.transformobjectfields)
+* [TransformQuery](/docs/api/classes/_wrap_src_index_.transformquery)
+* [TransformRootFields](/docs/api/classes/_wrap_src_index_.transformrootfields)
+* [WrapFields](/docs/api/classes/_wrap_src_index_.wrapfields)
+* [WrapQuery](/docs/api/classes/_wrap_src_index_.wrapquery)
+* [WrapType](/docs/api/classes/_wrap_src_index_.wraptype)
 
 ## Index
 
@@ -48,7 +54,7 @@ sidebar_label: "Transform"
 
 ### `Optional` transformRequest
 
-• **transformRequest**? : *[RequestTransform](../modules/_utils_src_index_.md#requesttransform)*
+• **transformRequest**? : *[RequestTransform](../modules/_utils_src_index_.md#requesttransform)‹T›*
 
 *Defined in [packages/utils/src/Interfaces.ts:195](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/Interfaces.ts#L195)*
 
@@ -56,7 +62,7 @@ ___
 
 ### `Optional` transformResult
 
-• **transformResult**? : *[ResultTransform](../modules/_utils_src_index_.md#resulttransform)*
+• **transformResult**? : *[ResultTransform](../modules/_utils_src_index_.md#resulttransform)‹T›*
 
 *Defined in [packages/utils/src/Interfaces.ts:196](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/Interfaces.ts#L196)*
 

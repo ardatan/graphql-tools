@@ -10,7 +10,7 @@ sidebar_label: "PruneTypes"
 
 ## Implements
 
-* [Transform](../interfaces/_utils_src_index_.transform)
+* [Transform](/docs/api/interfaces/_utils_src_index_.transform)
 
 ## Index
 
@@ -26,7 +26,7 @@ sidebar_label: "PruneTypes"
 
 ###  constructor
 
-\+ **new PruneTypes**(`options`: [PruneSchemaOptions](../interfaces/_utils_src_index_.pruneschemaoptions)): *[PruneTypes](_wrap_src_index_.prunetypes)*
+\+ **new PruneTypes**(`options`: [PruneSchemaOptions](/docs/api/interfaces/_utils_src_index_.pruneschemaoptions)): *[PruneTypes](_wrap_src_index_.prunetypes)*
 
 *Defined in [packages/wrap/src/transforms/PruneSchema.ts:6](https://github.com/ardatan/graphql-tools/blob/master/packages/wrap/src/transforms/PruneSchema.ts#L6)*
 
@@ -34,7 +34,7 @@ sidebar_label: "PruneTypes"
 
 Name | Type |
 ------ | ------ |
-`options` | [PruneSchemaOptions](../interfaces/_utils_src_index_.pruneschemaoptions) |
+`options` | [PruneSchemaOptions](/docs/api/interfaces/_utils_src_index_.pruneschemaoptions) |
 
 **Returns:** *[PruneTypes](_wrap_src_index_.prunetypes)*
 

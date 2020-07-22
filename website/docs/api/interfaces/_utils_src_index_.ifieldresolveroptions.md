@@ -29,12 +29,12 @@ sidebar_label: "IFieldResolverOptions"
 
 • **fragment**? : *string*
 
-*Defined in [packages/stitch/src/types.ts:67](https://github.com/ardatan/graphql-tools/blob/master/packages/stitch/src/types.ts#L67)*
+*Defined in [packages/stitch/src/types.ts:69](https://github.com/ardatan/graphql-tools/blob/master/packages/stitch/src/types.ts#L69)*
 
 ___
 
 ### `Optional` selectionSet
 
-• **selectionSet**? : *string*
+• **selectionSet**? : *string | function*
 
-*Defined in [packages/stitch/src/types.ts:68](https://github.com/ardatan/graphql-tools/blob/master/packages/stitch/src/types.ts#L68)*
+*Defined in [packages/stitch/src/types.ts:70](https://github.com/ardatan/graphql-tools/blob/master/packages/stitch/src/types.ts#L70)*

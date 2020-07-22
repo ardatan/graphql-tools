@@ -23,7 +23,7 @@ const schema = await loadSchema('http://localhost:3000/graphql', {
 
 ## Implements
 
-* [Loader](../interfaces/_utils_src_index_.loader)‹[LoadFromUrlOptions](../interfaces/_loaders_url_src_index_.loadfromurloptions)›
+* [Loader](/docs/api/interfaces/_utils_src_index_.loader)‹[LoadFromUrlOptions](/docs/api/interfaces/_loaders_url_src_index_.loadfromurloptions)›
 
 ## Index
 
@@ -45,7 +45,7 @@ const schema = await loadSchema('http://localhost:3000/graphql', {
 
 ▸ **buildAsyncExecutor**(`__namedParameters`: object): *AsyncExecutor*
 
-*Defined in [packages/loaders/url/src/index.ts:78](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L78)*
+*Defined in [packages/loaders/url/src/index.ts:79](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L79)*
 
 **Parameters:**
 
@@ -67,7 +67,7 @@ ___
 
 ▸ **buildSubscriber**(`pointer`: string, `webSocketImpl`: typeof w3cwebsocket): *Subscriber*
 
-*Defined in [packages/loaders/url/src/index.ts:117](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L117)*
+*Defined in [packages/loaders/url/src/index.ts:134](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L134)*
 
 **Parameters:**
 
@@ -82,16 +82,16 @@ ___
 
 ###  canLoad
 
-▸ **canLoad**(`pointer`: [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle), `options`: [LoadFromUrlOptions](../interfaces/_loaders_url_src_index_.loadfromurloptions)): *Promise‹boolean›*
+▸ **canLoad**(`pointer`: [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle), `options`: [LoadFromUrlOptions](/docs/api/interfaces/_loaders_url_src_index_.loadfromurloptions)): *Promise‹boolean›*
 
-*Defined in [packages/loaders/url/src/index.ts:70](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L70)*
+*Defined in [packages/loaders/url/src/index.ts:71](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L71)*
 
 **Parameters:**
 
 Name | Type |
 ------ | ------ |
 `pointer` | [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle) |
-`options` | [LoadFromUrlOptions](../interfaces/_loaders_url_src_index_.loadfromurloptions) |
+`options` | [LoadFromUrlOptions](/docs/api/interfaces/_loaders_url_src_index_.loadfromurloptions) |
 
 **Returns:** *Promise‹boolean›*
 
@@ -99,16 +99,16 @@ ___
 
 ###  canLoadSync
 
-▸ **canLoadSync**(`pointer`: [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle), `_options`: [LoadFromUrlOptions](../interfaces/_loaders_url_src_index_.loadfromurloptions)): *boolean*
+▸ **canLoadSync**(`pointer`: [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle), `_options`: [LoadFromUrlOptions](/docs/api/interfaces/_loaders_url_src_index_.loadfromurloptions)): *boolean*
 
-*Defined in [packages/loaders/url/src/index.ts:74](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L74)*
+*Defined in [packages/loaders/url/src/index.ts:75](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L75)*
 
 **Parameters:**
 
 Name | Type |
 ------ | ------ |
 `pointer` | [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle) |
-`_options` | [LoadFromUrlOptions](../interfaces/_loaders_url_src_index_.loadfromurloptions) |
+`_options` | [LoadFromUrlOptions](/docs/api/interfaces/_loaders_url_src_index_.loadfromurloptions) |
 
 **Returns:** *boolean*
 
@@ -116,16 +116,16 @@ ___
 
 ###  getExecutorAndSubscriber
 
-▸ **getExecutorAndSubscriber**(`pointer`: [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle), `options`: [LoadFromUrlOptions](../interfaces/_loaders_url_src_index_.loadfromurloptions)): *Promise‹object›*
+▸ **getExecutorAndSubscriber**(`pointer`: [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle), `options`: [LoadFromUrlOptions](/docs/api/interfaces/_loaders_url_src_index_.loadfromurloptions)): *Promise‹object›*
 
-*Defined in [packages/loaders/url/src/index.ts:130](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L130)*
+*Defined in [packages/loaders/url/src/index.ts:147](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L147)*
 
 **Parameters:**
 
 Name | Type |
 ------ | ------ |
 `pointer` | [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle) |
-`options` | [LoadFromUrlOptions](../interfaces/_loaders_url_src_index_.loadfromurloptions) |
+`options` | [LoadFromUrlOptions](/docs/api/interfaces/_loaders_url_src_index_.loadfromurloptions) |
 
 **Returns:** *Promise‹object›*
 
@@ -133,16 +133,16 @@ ___
 
 ###  getSubschemaConfig
 
-▸ **getSubschemaConfig**(`pointer`: [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle), `options`: [LoadFromUrlOptions](../interfaces/_loaders_url_src_index_.loadfromurloptions)): *Promise‹object›*
+▸ **getSubschemaConfig**(`pointer`: [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle), `options`: [LoadFromUrlOptions](/docs/api/interfaces/_loaders_url_src_index_.loadfromurloptions)): *Promise‹object›*
 
-*Defined in [packages/loaders/url/src/index.ts:197](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L197)*
+*Defined in [packages/loaders/url/src/index.ts:214](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L214)*
 
 **Parameters:**
 
 Name | Type |
 ------ | ------ |
 `pointer` | [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle) |
-`options` | [LoadFromUrlOptions](../interfaces/_loaders_url_src_index_.loadfromurloptions) |
+`options` | [LoadFromUrlOptions](/docs/api/interfaces/_loaders_url_src_index_.loadfromurloptions) |
 
 **Returns:** *Promise‹object›*
 
@@ -150,18 +150,18 @@ ___
 
 ###  load
 
-▸ **load**(`pointer`: [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle), `options`: [LoadFromUrlOptions](../interfaces/_loaders_url_src_index_.loadfromurloptions)): *Promise‹[Source](../interfaces/_utils_src_index_.source)›*
+▸ **load**(`pointer`: [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle), `options`: [LoadFromUrlOptions](/docs/api/interfaces/_loaders_url_src_index_.loadfromurloptions)): *Promise‹[Source](/docs/api/interfaces/_utils_src_index_.source)›*
 
-*Defined in [packages/loaders/url/src/index.ts:206](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L206)*
+*Defined in [packages/loaders/url/src/index.ts:223](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L223)*
 
 **Parameters:**
 
 Name | Type |
 ------ | ------ |
 `pointer` | [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle) |
-`options` | [LoadFromUrlOptions](../interfaces/_loaders_url_src_index_.loadfromurloptions) |
+`options` | [LoadFromUrlOptions](/docs/api/interfaces/_loaders_url_src_index_.loadfromurloptions) |
 
-**Returns:** *Promise‹[Source](../interfaces/_utils_src_index_.source)›*
+**Returns:** *Promise‹[Source](/docs/api/interfaces/_utils_src_index_.source)›*
 
 ___
 
@@ -169,7 +169,7 @@ ___
 
 ▸ **loadSync**(): *never*
 
-*Defined in [packages/loaders/url/src/index.ts:217](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L217)*
+*Defined in [packages/loaders/url/src/index.ts:234](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L234)*
 
 **Returns:** *never*
 
@@ -179,8 +179,8 @@ ___
 
 ▸ **loaderId**(): *string*
 
-*Implementation of [Loader](../interfaces/_utils_src_index_.loader)*
+*Implementation of [Loader](/docs/api/interfaces/_utils_src_index_.loader)*
 
-*Defined in [packages/loaders/url/src/index.ts:66](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L66)*
+*Defined in [packages/loaders/url/src/index.ts:67](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L67)*
 
 **Returns:** *string*

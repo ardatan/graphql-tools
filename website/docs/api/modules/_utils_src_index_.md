@@ -6,34 +6,34 @@ sidebar_label: "utils"
 
 ### Enumerations
 
-* [MapperKind](../enums/_utils_src_index_.mapperkind)
-* [VisitSchemaKind](../enums/_utils_src_index_.visitschemakind)
+* [MapperKind](/docs/api/enums/_utils_src_index_.mapperkind)
+* [VisitSchemaKind](/docs/api/enums/_utils_src_index_.visitschemakind)
 
 ### Classes
 
-* [SchemaDirectiveVisitor](../classes/_utils_src_index_.schemadirectivevisitor)
-* [SchemaVisitor](../classes/_utils_src_index_.schemavisitor)
+* [SchemaDirectiveVisitor](/docs/api/classes/_utils_src_index_.schemadirectivevisitor)
+* [SchemaVisitor](/docs/api/classes/_utils_src_index_.schemavisitor)
 
 ### Interfaces
 
-* [ExecutionResult](../interfaces/_utils_src_index_.executionresult)
-* [GraphQLExecutionContext](../interfaces/_utils_src_index_.graphqlexecutioncontext)
-* [GraphQLParseOptions](../interfaces/_utils_src_index_.graphqlparseoptions)
-* [IAddResolversToSchemaOptions](../interfaces/_utils_src_index_.iaddresolverstoschemaoptions)
-* [IDirectiveResolvers](../interfaces/_utils_src_index_.idirectiveresolvers)
-* [IFieldResolverOptions](../interfaces/_utils_src_index_.ifieldresolveroptions)
-* [IResolverValidationOptions](../interfaces/_utils_src_index_.iresolvervalidationoptions)
-* [LoadDocumentError](../interfaces/_utils_src_index_.loaddocumenterror)
-* [Loader](../interfaces/_utils_src_index_.loader)
-* [Observable](../interfaces/_utils_src_index_.observable)
-* [Observer](../interfaces/_utils_src_index_.observer)
-* [PruneSchemaOptions](../interfaces/_utils_src_index_.pruneschemaoptions)
-* [Request](../interfaces/_utils_src_index_.request)
-* [SchemaMapper](../interfaces/_utils_src_index_.schemamapper)
-* [SchemaPrintOptions](../interfaces/_utils_src_index_.schemaprintoptions)
-* [SchemaVisitorMap](../interfaces/_utils_src_index_.schemavisitormap)
-* [Source](../interfaces/_utils_src_index_.source)
-* [Transform](../interfaces/_utils_src_index_.transform)
+* [ExecutionResult](/docs/api/interfaces/_utils_src_index_.executionresult)
+* [GraphQLExecutionContext](/docs/api/interfaces/_utils_src_index_.graphqlexecutioncontext)
+* [GraphQLParseOptions](/docs/api/interfaces/_utils_src_index_.graphqlparseoptions)
+* [IAddResolversToSchemaOptions](/docs/api/interfaces/_utils_src_index_.iaddresolverstoschemaoptions)
+* [IDirectiveResolvers](/docs/api/interfaces/_utils_src_index_.idirectiveresolvers)
+* [IFieldResolverOptions](/docs/api/interfaces/_utils_src_index_.ifieldresolveroptions)
+* [IResolverValidationOptions](/docs/api/interfaces/_utils_src_index_.iresolvervalidationoptions)
+* [LoadDocumentError](/docs/api/interfaces/_utils_src_index_.loaddocumenterror)
+* [Loader](/docs/api/interfaces/_utils_src_index_.loader)
+* [Observable](/docs/api/interfaces/_utils_src_index_.observable)
+* [Observer](/docs/api/interfaces/_utils_src_index_.observer)
+* [PruneSchemaOptions](/docs/api/interfaces/_utils_src_index_.pruneschemaoptions)
+* [Request](/docs/api/interfaces/_utils_src_index_.request)
+* [SchemaMapper](/docs/api/interfaces/_utils_src_index_.schemamapper)
+* [SchemaPrintOptions](/docs/api/interfaces/_utils_src_index_.schemaprintoptions)
+* [SchemaVisitorMap](/docs/api/interfaces/_utils_src_index_.schemavisitormap)
+* [Source](/docs/api/interfaces/_utils_src_index_.source)
+* [Transform](/docs/api/interfaces/_utils_src_index_.transform)
 
 ### Type aliases
 
@@ -141,6 +141,7 @@ sidebar_label: "utils"
 * [compareNodes](_utils_src_index_.md#comparenodes)
 * [compareStrings](_utils_src_index_.md#comparestrings)
 * [concatInlineFragments](_utils_src_index_.md#concatinlinefragments)
+* [correctASTNodes](_utils_src_index_.md#correctastnodes)
 * [createNamedStub](_utils_src_index_.md#createnamedstub)
 * [createSchemaDefinition](_utils_src_index_.md#createschemadefinition)
 * [createStub](_utils_src_index_.md#createstub)
@@ -189,6 +190,7 @@ sidebar_label: "utils"
 * [relocatedError](_utils_src_index_.md#relocatederror)
 * [removeObjectFields](_utils_src_index_.md#removeobjectfields)
 * [renameFieldNode](_utils_src_index_.md#renamefieldnode)
+* [renameType](_utils_src_index_.md#renametype)
 * [rewireTypes](_utils_src_index_.md#rewiretypes)
 * [selectObjectFields](_utils_src_index_.md#selectobjectfields)
 * [serializeInputValue](_utils_src_index_.md#serializeinputvalue)
@@ -210,7 +212,7 @@ sidebar_label: "utils"
 
 Ƭ **AbstractTypeMapper**: *function*
 
-*Defined in [packages/utils/src/Interfaces.ts:491](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/Interfaces.ts#L491)*
+*Defined in [packages/utils/src/Interfaces.ts:492](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/Interfaces.ts#L492)*
 
 #### Type declaration:
 
@@ -248,7 +250,7 @@ ___
 
 Ƭ **ArgumentMapper**: *function*
 
-*Defined in [packages/utils/src/Interfaces.ts:517](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/Interfaces.ts#L517)*
+*Defined in [packages/utils/src/Interfaces.ts:518](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/Interfaces.ts#L518)*
 
 #### Type declaration:
 
@@ -287,7 +289,7 @@ ___
 
 Ƭ **CompositeTypeMapper**: *function*
 
-*Defined in [packages/utils/src/Interfaces.ts:479](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/Interfaces.ts#L479)*
+*Defined in [packages/utils/src/Interfaces.ts:480](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/Interfaces.ts#L480)*
 
 #### Type declaration:
 
@@ -337,7 +339,7 @@ ___
 
 Ƭ **DirectiveMapper**: *function*
 
-*Defined in [packages/utils/src/Interfaces.ts:503](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/Interfaces.ts#L503)*
+*Defined in [packages/utils/src/Interfaces.ts:504](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/Interfaces.ts#L504)*
 
 #### Type declaration:
 
@@ -410,7 +412,7 @@ ___
 
 ###  DocumentLoader
 
-Ƭ **DocumentLoader**: *[Loader](../interfaces/_utils_src_index_.loader)‹[DocumentPointerSingle](_utils_src_index_.md#documentpointersingle), TOptions›*
+Ƭ **DocumentLoader**: *[Loader](/docs/api/interfaces/_utils_src_index_.loader)‹[DocumentPointerSingle](_utils_src_index_.md#documentpointersingle), TOptions›*
 
 *Defined in [packages/utils/src/loaders.ts:38](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/loaders.ts#L38)*
 
@@ -486,15 +488,16 @@ ___
 
 #### Type declaration:
 
-▸ (`value`: GraphQLEnumValueConfig, `typeName`: string, `schema`: GraphQLSchema): *GraphQLEnumValueConfig | [string, GraphQLEnumValueConfig] | null | undefined*
+▸ (`valueConfig`: GraphQLEnumValueConfig, `typeName`: string, `schema`: GraphQLSchema, `externalValue`: string): *GraphQLEnumValueConfig | [string, GraphQLEnumValueConfig] | null | undefined*
 
 **Parameters:**
 
 Name | Type |
 ------ | ------ |
-`value` | GraphQLEnumValueConfig |
+`valueConfig` | GraphQLEnumValueConfig |
 `typeName` | string |
 `schema` | GraphQLSchema |
+`externalValue` | string |
 
 ___
 
@@ -549,7 +552,7 @@ ___
 
 Ƭ **FieldMapper**: *[GenericFieldMapper](_utils_src_index_.md#genericfieldmapper)‹GraphQLFieldConfig‹any, any››*
 
-*Defined in [packages/utils/src/Interfaces.ts:515](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/Interfaces.ts#L515)*
+*Defined in [packages/utils/src/Interfaces.ts:516](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/Interfaces.ts#L516)*
 
 ___
 
@@ -593,7 +596,7 @@ ___
 
 Ƭ **GenericFieldMapper**: *function*
 
-*Defined in [packages/utils/src/Interfaces.ts:508](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/Interfaces.ts#L508)*
+*Defined in [packages/utils/src/Interfaces.ts:509](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/Interfaces.ts#L509)*
 
 #### Type declaration:
 
@@ -808,7 +811,7 @@ ___
 
 Ƭ **InputFieldMapper**: *[GenericFieldMapper](_utils_src_index_.md#genericfieldmapper)‹GraphQLInputFieldConfig›*
 
-*Defined in [packages/utils/src/Interfaces.ts:524](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/Interfaces.ts#L524)*
+*Defined in [packages/utils/src/Interfaces.ts:525](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/Interfaces.ts#L525)*
 
 ___
 
@@ -816,7 +819,7 @@ ___
 
 Ƭ **InputObjectTypeMapper**: *function*
 
-*Defined in [packages/utils/src/Interfaces.ts:486](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/Interfaces.ts#L486)*
+*Defined in [packages/utils/src/Interfaces.ts:487](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/Interfaces.ts#L487)*
 
 #### Type declaration:
 
@@ -854,7 +857,7 @@ ___
 
 Ƭ **InterfaceTypeMapper**: *function*
 
-*Defined in [packages/utils/src/Interfaces.ts:498](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/Interfaces.ts#L498)*
+*Defined in [packages/utils/src/Interfaces.ts:499](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/Interfaces.ts#L499)*
 
 #### Type declaration:
 
@@ -950,7 +953,7 @@ ___
 
 Ƭ **ObjectTypeMapper**: *function*
 
-*Defined in [packages/utils/src/Interfaces.ts:484](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/Interfaces.ts#L484)*
+*Defined in [packages/utils/src/Interfaces.ts:485](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/Interfaces.ts#L485)*
 
 #### Type declaration:
 
@@ -1022,21 +1025,21 @@ ___
 
 #### Type declaration:
 
-▸ (`originalRequest`: [Request](../interfaces/_utils_src_index_.request), `delegationContext?`: Record‹string, any›, `transformationContext?`: Record‹string, any›): *[Request](../interfaces/_utils_src_index_.request)*
+▸ (`originalRequest`: [Request](/docs/api/interfaces/_utils_src_index_.request), `delegationContext?`: Record‹string, any›, `transformationContext?`: T): *[Request](/docs/api/interfaces/_utils_src_index_.request)*
 
 **Parameters:**
 
 Name | Type |
 ------ | ------ |
-`originalRequest` | [Request](../interfaces/_utils_src_index_.request) |
+`originalRequest` | [Request](/docs/api/interfaces/_utils_src_index_.request) |
 `delegationContext?` | Record‹string, any› |
-`transformationContext?` | Record‹string, any› |
+`transformationContext?` | T |
 
 ___
 
 ###  Result
 
-Ƭ **Result**: *[ExecutionResult](../interfaces/_utils_src_index_.executionresult)*
+Ƭ **Result**: *[ExecutionResult](/docs/api/interfaces/_utils_src_index_.executionresult)*
 
 *Defined in [packages/utils/src/Interfaces.ts:61](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/Interfaces.ts#L61)*
 
@@ -1050,15 +1053,15 @@ ___
 
 #### Type declaration:
 
-▸ (`originalResult`: [ExecutionResult](../interfaces/_utils_src_index_.executionresult), `delegationContext?`: Record‹string, any›, `transformationContext?`: Record‹string, any›): *[ExecutionResult](../interfaces/_utils_src_index_.executionresult)*
+▸ (`originalResult`: [ExecutionResult](/docs/api/interfaces/_utils_src_index_.executionresult), `delegationContext?`: Record‹string, any›, `transformationContext?`: T): *[ExecutionResult](/docs/api/interfaces/_utils_src_index_.executionresult)*
 
 **Parameters:**
 
 Name | Type |
 ------ | ------ |
-`originalResult` | [ExecutionResult](../interfaces/_utils_src_index_.executionresult) |
+`originalResult` | [ExecutionResult](/docs/api/interfaces/_utils_src_index_.executionresult) |
 `delegationContext?` | Record‹string, any› |
-`transformationContext?` | Record‹string, any› |
+`transformationContext?` | T |
 
 ___
 
@@ -1138,7 +1141,7 @@ ___
 
 ###  SchemaLoader
 
-Ƭ **SchemaLoader**: *[Loader](../interfaces/_utils_src_index_.loader)‹[SchemaPointerSingle](_utils_src_index_.md#schemapointersingle), TOptions›*
+Ƭ **SchemaLoader**: *[Loader](/docs/api/interfaces/_utils_src_index_.loader)‹[SchemaPointerSingle](_utils_src_index_.md#schemapointersingle), TOptions›*
 
 *Defined in [packages/utils/src/loaders.ts:33](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/loaders.ts#L33)*
 
@@ -1226,7 +1229,7 @@ ___
 
 Ƭ **UnionTypeMapper**: *function*
 
-*Defined in [packages/utils/src/Interfaces.ts:496](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/Interfaces.ts#L496)*
+*Defined in [packages/utils/src/Interfaces.ts:497](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/Interfaces.ts#L497)*
 
 #### Type declaration:
 
@@ -1262,7 +1265,7 @@ ___
 
 ###  UniversalLoader
 
-Ƭ **UniversalLoader**: *[Loader](../interfaces/_utils_src_index_.loader)‹[SchemaPointerSingle](_utils_src_index_.md#schemapointersingle) | [DocumentPointerSingle](_utils_src_index_.md#documentpointersingle), TOptions›*
+Ƭ **UniversalLoader**: *[Loader](/docs/api/interfaces/_utils_src_index_.loader)‹[SchemaPointerSingle](_utils_src_index_.md#schemapointersingle) | [DocumentPointerSingle](_utils_src_index_.md#documentpointersingle), TOptions›*
 
 *Defined in [packages/utils/src/loaders.ts:43](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/loaders.ts#L43)*
 
@@ -1320,7 +1323,7 @@ ___
 
 #### Type declaration:
 
-▸ (`type`: [VisitableSchemaType](_utils_src_index_.md#visitableschematype), `methodName`: string): *Array‹[SchemaVisitor](../classes/_utils_src_index_.schemavisitor) | [SchemaVisitorMap](../interfaces/_utils_src_index_.schemavisitormap)›*
+▸ (`type`: [VisitableSchemaType](_utils_src_index_.md#visitableschematype), `methodName`: string): *Array‹[SchemaVisitor](/docs/api/classes/_utils_src_index_.schemavisitor) | [SchemaVisitorMap](/docs/api/interfaces/_utils_src_index_.schemavisitormap)›*
 
 **Parameters:**
 
@@ -1384,7 +1387,7 @@ ___
 
 ###  applyRequestTransforms
 
-▸ **applyRequestTransforms**(`originalRequest`: [Request](../interfaces/_utils_src_index_.request), `transforms`: Array‹[Transform](../interfaces/_utils_src_index_.transform)›): *[Request](../interfaces/_utils_src_index_.request)*
+▸ **applyRequestTransforms**(`originalRequest`: [Request](/docs/api/interfaces/_utils_src_index_.request), `transforms`: Array‹[Transform](/docs/api/interfaces/_utils_src_index_.transform)›): *[Request](/docs/api/interfaces/_utils_src_index_.request)*
 
 *Defined in [packages/utils/src/transforms.ts:15](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/transforms.ts#L15)*
 
@@ -1392,16 +1395,16 @@ ___
 
 Name | Type |
 ------ | ------ |
-`originalRequest` | [Request](../interfaces/_utils_src_index_.request) |
-`transforms` | Array‹[Transform](../interfaces/_utils_src_index_.transform)› |
+`originalRequest` | [Request](/docs/api/interfaces/_utils_src_index_.request) |
+`transforms` | Array‹[Transform](/docs/api/interfaces/_utils_src_index_.transform)› |
 
-**Returns:** *[Request](../interfaces/_utils_src_index_.request)*
+**Returns:** *[Request](/docs/api/interfaces/_utils_src_index_.request)*
 
 ___
 
 ###  applyResultTransforms
 
-▸ **applyResultTransforms**(`originalResult`: any, `transforms`: Array‹[Transform](../interfaces/_utils_src_index_.transform)›): *any*
+▸ **applyResultTransforms**(`originalResult`: any, `transforms`: Array‹[Transform](/docs/api/interfaces/_utils_src_index_.transform)›): *any*
 
 *Defined in [packages/utils/src/transforms.ts:24](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/transforms.ts#L24)*
 
@@ -1410,7 +1413,7 @@ ___
 Name | Type |
 ------ | ------ |
 `originalResult` | any |
-`transforms` | Array‹[Transform](../interfaces/_utils_src_index_.transform)› |
+`transforms` | Array‹[Transform](/docs/api/interfaces/_utils_src_index_.transform)› |
 
 **Returns:** *any*
 
@@ -1418,7 +1421,7 @@ ___
 
 ###  applySchemaTransforms
 
-▸ **applySchemaTransforms**(`originalSchema`: GraphQLSchema, `transforms`: Array‹[Transform](../interfaces/_utils_src_index_.transform)›): *GraphQLSchema*
+▸ **applySchemaTransforms**(`originalSchema`: GraphQLSchema, `transforms`: Array‹[Transform](/docs/api/interfaces/_utils_src_index_.transform)›): *GraphQLSchema*
 
 *Defined in [packages/utils/src/transforms.ts:7](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/transforms.ts#L7)*
 
@@ -1427,7 +1430,7 @@ ___
 Name | Type |
 ------ | ------ |
 `originalSchema` | GraphQLSchema |
-`transforms` | Array‹[Transform](../interfaces/_utils_src_index_.transform)› |
+`transforms` | Array‹[Transform](/docs/api/interfaces/_utils_src_index_.transform)› |
 
 **Returns:** *GraphQLSchema*
 
@@ -1513,7 +1516,7 @@ ___
 
 ###  checkValidationErrors
 
-▸ **checkValidationErrors**(`loadDocumentErrors`: ReadonlyArray‹[LoadDocumentError](../interfaces/_utils_src_index_.loaddocumenterror)›): *void | never*
+▸ **checkValidationErrors**(`loadDocumentErrors`: ReadonlyArray‹[LoadDocumentError](/docs/api/interfaces/_utils_src_index_.loaddocumenterror)›): *void | never*
 
 *Defined in [packages/utils/src/validate-documents.ts:75](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/validate-documents.ts#L75)*
 
@@ -1521,7 +1524,7 @@ ___
 
 Name | Type |
 ------ | ------ |
-`loadDocumentErrors` | ReadonlyArray‹[LoadDocumentError](../interfaces/_utils_src_index_.loaddocumenterror)› |
+`loadDocumentErrors` | ReadonlyArray‹[LoadDocumentError](/docs/api/interfaces/_utils_src_index_.loaddocumenterror)› |
 
 **Returns:** *void | never*
 
@@ -1639,6 +1642,58 @@ Name | Type |
 `fragments` | Array‹InlineFragmentNode› |
 
 **Returns:** *InlineFragmentNode*
+
+___
+
+###  correctASTNodes
+
+▸ **correctASTNodes**(`type`: GraphQLObjectType): *GraphQLObjectType*
+
+*Defined in [packages/utils/src/mapSchema.ts:497](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/mapSchema.ts#L497)*
+
+**Parameters:**
+
+Name | Type |
+------ | ------ |
+`type` | GraphQLObjectType |
+
+**Returns:** *GraphQLObjectType*
+
+▸ **correctASTNodes**(`type`: GraphQLInterfaceType): *GraphQLInterfaceType*
+
+*Defined in [packages/utils/src/mapSchema.ts:498](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/mapSchema.ts#L498)*
+
+**Parameters:**
+
+Name | Type |
+------ | ------ |
+`type` | GraphQLInterfaceType |
+
+**Returns:** *GraphQLInterfaceType*
+
+▸ **correctASTNodes**(`type`: GraphQLInputObjectType): *GraphQLInputObjectType*
+
+*Defined in [packages/utils/src/mapSchema.ts:499](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/mapSchema.ts#L499)*
+
+**Parameters:**
+
+Name | Type |
+------ | ------ |
+`type` | GraphQLInputObjectType |
+
+**Returns:** *GraphQLInputObjectType*
+
+▸ **correctASTNodes**(`type`: GraphQLEnumType): *GraphQLEnumType*
+
+*Defined in [packages/utils/src/mapSchema.ts:500](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/mapSchema.ts#L500)*
+
+**Parameters:**
+
+Name | Type |
+------ | ------ |
+`type` | GraphQLEnumType |
+
+**Returns:** *GraphQLEnumType*
 
 ___
 
@@ -1809,7 +1864,7 @@ ___
 
 ###  fixSchemaAst
 
-▸ **fixSchemaAst**(`schema`: GraphQLSchema, `options`: BuildSchemaOptions & [SchemaPrintOptions](../interfaces/_utils_src_index_.schemaprintoptions)): *GraphQLSchema‹›*
+▸ **fixSchemaAst**(`schema`: GraphQLSchema, `options`: BuildSchemaOptions & [SchemaPrintOptions](/docs/api/interfaces/_utils_src_index_.schemaprintoptions)): *GraphQLSchema‹›*
 
 *Defined in [packages/utils/src/fix-schema-ast.ts:12](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/fix-schema-ast.ts#L12)*
 
@@ -1818,7 +1873,7 @@ ___
 Name | Type |
 ------ | ------ |
 `schema` | GraphQLSchema |
-`options` | BuildSchemaOptions & [SchemaPrintOptions](../interfaces/_utils_src_index_.schemaprintoptions) |
+`options` | BuildSchemaOptions & [SchemaPrintOptions](/docs/api/interfaces/_utils_src_index_.schemaprintoptions) |
 
 **Returns:** *GraphQLSchema‹›*
 
@@ -2268,16 +2323,16 @@ ___
 
 ###  mapSchema
 
-▸ **mapSchema**(`schema`: GraphQLSchema, `schemaMapper`: [SchemaMapper](../interfaces/_utils_src_index_.schemamapper)): *GraphQLSchema*
+▸ **mapSchema**(`schema`: GraphQLSchema, `schemaMapper`: [SchemaMapper](/docs/api/interfaces/_utils_src_index_.schemamapper)): *GraphQLSchema*
 
-*Defined in [packages/utils/src/mapSchema.ts:44](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/mapSchema.ts#L44)*
+*Defined in [packages/utils/src/mapSchema.ts:48](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/mapSchema.ts#L48)*
 
 **Parameters:**
 
 Name | Type | Default |
 ------ | ------ | ------ |
 `schema` | GraphQLSchema | - |
-`schemaMapper` | [SchemaMapper](../interfaces/_utils_src_index_.schemamapper) | {} |
+`schemaMapper` | [SchemaMapper](/docs/api/interfaces/_utils_src_index_.schemamapper) | {} |
 
 **Returns:** *GraphQLSchema*
 
@@ -2304,7 +2359,7 @@ ___
 
 ▸ **modifyObjectFields**(`schema`: GraphQLSchema, `typeName`: string, `testFn`: function, `newFields`: GraphQLFieldConfigMap‹any, any›): *[GraphQLSchema, GraphQLFieldConfigMap‹any, any›]*
 
-*Defined in [packages/utils/src/fields.ts:103](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/fields.ts#L103)*
+*Defined in [packages/utils/src/fields.ts:107](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/fields.ts#L107)*
 
 **Parameters:**
 
@@ -2347,7 +2402,7 @@ ___
 
 ###  observableToAsyncIterable
 
-▸ **observableToAsyncIterable**‹**T**›(`observable`: [Observable](../interfaces/_utils_src_index_.observable)‹T›): *AsyncIterator‹T› & object*
+▸ **observableToAsyncIterable**‹**T**›(`observable`: [Observable](/docs/api/interfaces/_utils_src_index_.observable)‹T›): *AsyncIterator‹T› & object*
 
 *Defined in [packages/utils/src/observableToAsyncIterable.ts:17](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/observableToAsyncIterable.ts#L17)*
 
@@ -2359,7 +2414,7 @@ ___
 
 Name | Type |
 ------ | ------ |
-`observable` | [Observable](../interfaces/_utils_src_index_.observable)‹T› |
+`observable` | [Observable](/docs/api/interfaces/_utils_src_index_.observable)‹T› |
 
 **Returns:** *AsyncIterator‹T› & object*
 
@@ -2383,7 +2438,7 @@ ___
 
 ###  parseGraphQLJSON
 
-▸ **parseGraphQLJSON**(`location`: string, `jsonContent`: string, `options`: [SchemaPrintOptions](../interfaces/_utils_src_index_.schemaprintoptions) & ParseOptions & GraphQLSchemaValidationOptions): *[Source](../interfaces/_utils_src_index_.source)*
+▸ **parseGraphQLJSON**(`location`: string, `jsonContent`: string, `options`: [SchemaPrintOptions](/docs/api/interfaces/_utils_src_index_.schemaprintoptions) & ParseOptions & GraphQLSchemaValidationOptions): *[Source](/docs/api/interfaces/_utils_src_index_.source)*
 
 *Defined in [packages/utils/src/parse-graphql-json.ts:23](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/parse-graphql-json.ts#L23)*
 
@@ -2393,9 +2448,9 @@ Name | Type |
 ------ | ------ |
 `location` | string |
 `jsonContent` | string |
-`options` | [SchemaPrintOptions](../interfaces/_utils_src_index_.schemaprintoptions) & ParseOptions & GraphQLSchemaValidationOptions |
+`options` | [SchemaPrintOptions](/docs/api/interfaces/_utils_src_index_.schemaprintoptions) & ParseOptions & GraphQLSchemaValidationOptions |
 
-**Returns:** *[Source](../interfaces/_utils_src_index_.source)*
+**Returns:** *[Source](/docs/api/interfaces/_utils_src_index_.source)*
 
 ___
 
@@ -2492,7 +2547,7 @@ ___
 
 ###  printSchemaWithDirectives
 
-▸ **printSchemaWithDirectives**(`schema`: GraphQLSchema, `_options`: [SchemaPrintOptions](../interfaces/_utils_src_index_.schemaprintoptions)): *string*
+▸ **printSchemaWithDirectives**(`schema`: GraphQLSchema, `_options`: [SchemaPrintOptions](/docs/api/interfaces/_utils_src_index_.schemaprintoptions)): *string*
 
 *Defined in [packages/utils/src/print-schema-with-directives.ts:21](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/print-schema-with-directives.ts#L21)*
 
@@ -2501,7 +2556,7 @@ ___
 Name | Type | Default |
 ------ | ------ | ------ |
 `schema` | GraphQLSchema | - |
-`_options` | [SchemaPrintOptions](../interfaces/_utils_src_index_.schemaprintoptions) | {} |
+`_options` | [SchemaPrintOptions](/docs/api/interfaces/_utils_src_index_.schemaprintoptions) | {} |
 
 **Returns:** *string*
 
@@ -2509,7 +2564,7 @@ ___
 
 ###  pruneSchema
 
-▸ **pruneSchema**(`schema`: GraphQLSchema, `options`: [PruneSchemaOptions](../interfaces/_utils_src_index_.pruneschemaoptions)): *GraphQLSchema*
+▸ **pruneSchema**(`schema`: GraphQLSchema, `options`: [PruneSchemaOptions](/docs/api/interfaces/_utils_src_index_.pruneschemaoptions)): *GraphQLSchema*
 
 *Defined in [packages/utils/src/prune.ts:62](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/prune.ts#L62)*
 
@@ -2520,7 +2575,7 @@ Prunes the provided schema, removing unused and empty types
 Name | Type | Default | Description |
 ------ | ------ | ------ | ------ |
 `schema` | GraphQLSchema | - | The schema to prune |
-`options` | [PruneSchemaOptions](../interfaces/_utils_src_index_.pruneschemaoptions) | {} | Additional options for removing unused types from the schema  |
+`options` | [PruneSchemaOptions](/docs/api/interfaces/_utils_src_index_.pruneschemaoptions) | {} | Additional options for removing unused types from the schema  |
 
 **Returns:** *GraphQLSchema*
 
@@ -2547,7 +2602,7 @@ ___
 
 ▸ **removeObjectFields**(`schema`: GraphQLSchema, `typeName`: string, `testFn`: function): *[GraphQLSchema, GraphQLFieldConfigMap‹any, any›]*
 
-*Defined in [packages/utils/src/fields.ts:43](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/fields.ts#L43)*
+*Defined in [packages/utils/src/fields.ts:45](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/fields.ts#L45)*
 
 **Parameters:**
 
@@ -2587,6 +2642,101 @@ Name | Type |
 
 ___
 
+###  renameType
+
+▸ **renameType**(`type`: GraphQLObjectType, `newTypeName`: string): *GraphQLObjectType*
+
+*Defined in [packages/utils/src/renameType.ts:17](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/renameType.ts#L17)*
+
+**Parameters:**
+
+Name | Type |
+------ | ------ |
+`type` | GraphQLObjectType |
+`newTypeName` | string |
+
+**Returns:** *GraphQLObjectType*
+
+▸ **renameType**(`type`: GraphQLInterfaceType, `newTypeName`: string): *GraphQLInterfaceType*
+
+*Defined in [packages/utils/src/renameType.ts:18](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/renameType.ts#L18)*
+
+**Parameters:**
+
+Name | Type |
+------ | ------ |
+`type` | GraphQLInterfaceType |
+`newTypeName` | string |
+
+**Returns:** *GraphQLInterfaceType*
+
+▸ **renameType**(`type`: GraphQLUnionType, `newTypeName`: string): *GraphQLUnionType*
+
+*Defined in [packages/utils/src/renameType.ts:19](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/renameType.ts#L19)*
+
+**Parameters:**
+
+Name | Type |
+------ | ------ |
+`type` | GraphQLUnionType |
+`newTypeName` | string |
+
+**Returns:** *GraphQLUnionType*
+
+▸ **renameType**(`type`: GraphQLEnumType, `newTypeName`: string): *GraphQLEnumType*
+
+*Defined in [packages/utils/src/renameType.ts:20](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/renameType.ts#L20)*
+
+**Parameters:**
+
+Name | Type |
+------ | ------ |
+`type` | GraphQLEnumType |
+`newTypeName` | string |
+
+**Returns:** *GraphQLEnumType*
+
+▸ **renameType**(`type`: GraphQLScalarType, `newTypeName`: string): *GraphQLScalarType*
+
+*Defined in [packages/utils/src/renameType.ts:21](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/renameType.ts#L21)*
+
+**Parameters:**
+
+Name | Type |
+------ | ------ |
+`type` | GraphQLScalarType |
+`newTypeName` | string |
+
+**Returns:** *GraphQLScalarType*
+
+▸ **renameType**(`type`: GraphQLInputObjectType, `newTypeName`: string): *GraphQLInputObjectType*
+
+*Defined in [packages/utils/src/renameType.ts:22](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/renameType.ts#L22)*
+
+**Parameters:**
+
+Name | Type |
+------ | ------ |
+`type` | GraphQLInputObjectType |
+`newTypeName` | string |
+
+**Returns:** *GraphQLInputObjectType*
+
+▸ **renameType**(`type`: GraphQLNamedType, `newTypeName`: string): *GraphQLNamedType*
+
+*Defined in [packages/utils/src/renameType.ts:23](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/renameType.ts#L23)*
+
+**Parameters:**
+
+Name | Type |
+------ | ------ |
+`type` | GraphQLNamedType |
+`newTypeName` | string |
+
+**Returns:** *GraphQLNamedType*
+
+___
+
 ###  rewireTypes
 
 ▸ **rewireTypes**(`originalTypeMap`: Record‹string, GraphQLNamedType | null›, `directives`: ReadonlyArray‹GraphQLDirective›, `options`: object): *object*
@@ -2619,7 +2769,7 @@ ___
 
 ▸ **selectObjectFields**(`schema`: GraphQLSchema, `typeName`: string, `testFn`: function): *GraphQLFieldConfigMap‹any, any›*
 
-*Defined in [packages/utils/src/fields.ts:76](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/fields.ts#L76)*
+*Defined in [packages/utils/src/fields.ts:80](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/fields.ts#L80)*
 
 **Parameters:**
 
@@ -2750,19 +2900,19 @@ ___
 
 ###  validateGraphQlDocuments
 
-▸ **validateGraphQlDocuments**(`schema`: GraphQLSchema, `documentFiles`: [Source](../interfaces/_utils_src_index_.source)[], `effectiveRules`: [ValidationRule](_utils_src_index_.md#validationrule)[]): *Promise‹ReadonlyArray‹[LoadDocumentError](../interfaces/_utils_src_index_.loaddocumenterror)››*
+▸ **validateGraphQlDocuments**(`schema`: GraphQLSchema, `documentFiles`: [Source](/docs/api/interfaces/_utils_src_index_.source)[], `effectiveRules?`: [ValidationRule](_utils_src_index_.md#validationrule)[]): *Promise‹ReadonlyArray‹[LoadDocumentError](/docs/api/interfaces/_utils_src_index_.loaddocumenterror)››*
 
-*Defined in [packages/utils/src/validate-documents.ts:22](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/validate-documents.ts#L22)*
+*Defined in [packages/utils/src/validate-documents.ts:21](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/validate-documents.ts#L21)*
 
 **Parameters:**
 
-Name | Type | Default |
------- | ------ | ------ |
-`schema` | GraphQLSchema | - |
-`documentFiles` | [Source](../interfaces/_utils_src_index_.source)[] | - |
-`effectiveRules` | [ValidationRule](_utils_src_index_.md#validationrule)[] | DEFAULT_EFFECTIVE_RULES |
+Name | Type |
+------ | ------ |
+`schema` | GraphQLSchema |
+`documentFiles` | [Source](/docs/api/interfaces/_utils_src_index_.source)[] |
+`effectiveRules?` | [ValidationRule](_utils_src_index_.md#validationrule)[] |
 
-**Returns:** *Promise‹ReadonlyArray‹[LoadDocumentError](../interfaces/_utils_src_index_.loaddocumenterror)››*
+**Returns:** *Promise‹ReadonlyArray‹[LoadDocumentError](/docs/api/interfaces/_utils_src_index_.loaddocumenterror)››*
 
 ___
 
@@ -2810,7 +2960,7 @@ ___
 
 ###  visitResult
 
-▸ **visitResult**(`result`: [ExecutionResult](../interfaces/_utils_src_index_.executionresult), `request`: [Request](../interfaces/_utils_src_index_.request), `schema`: GraphQLSchema, `resultVisitorMap?`: [ResultVisitorMap](_utils_src_index_.md#resultvisitormap), `errorVisitorMap?`: [ErrorVisitorMap](_utils_src_index_.md#errorvisitormap)): *any*
+▸ **visitResult**(`result`: [ExecutionResult](/docs/api/interfaces/_utils_src_index_.executionresult), `request`: [Request](/docs/api/interfaces/_utils_src_index_.request), `schema`: GraphQLSchema, `resultVisitorMap?`: [ResultVisitorMap](_utils_src_index_.md#resultvisitormap), `errorVisitorMap?`: [ErrorVisitorMap](_utils_src_index_.md#errorvisitormap)): *any*
 
 *Defined in [packages/utils/src/visitResult.ts:74](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/visitResult.ts#L74)*
 
@@ -2818,8 +2968,8 @@ ___
 
 Name | Type |
 ------ | ------ |
-`result` | [ExecutionResult](../interfaces/_utils_src_index_.executionresult) |
-`request` | [Request](../interfaces/_utils_src_index_.request) |
+`result` | [ExecutionResult](/docs/api/interfaces/_utils_src_index_.executionresult) |
+`request` | [Request](/docs/api/interfaces/_utils_src_index_.request) |
 `schema` | GraphQLSchema |
 `resultVisitorMap?` | [ResultVisitorMap](_utils_src_index_.md#resultvisitormap) |
 `errorVisitorMap?` | [ErrorVisitorMap](_utils_src_index_.md#errorvisitormap) |
@@ -2830,7 +2980,7 @@ ___
 
 ###  visitSchema
 
-▸ **visitSchema**(`schema`: GraphQLSchema, `visitorOrVisitorSelector`: [VisitorSelector](_utils_src_index_.md#visitorselector) | Array‹[SchemaVisitor](../classes/_utils_src_index_.schemavisitor) | [SchemaVisitorMap](../interfaces/_utils_src_index_.schemavisitormap)› | [SchemaVisitor](../classes/_utils_src_index_.schemavisitor) | [SchemaVisitorMap](../interfaces/_utils_src_index_.schemavisitormap)): *GraphQLSchema*
+▸ **visitSchema**(`schema`: GraphQLSchema, `visitorOrVisitorSelector`: [VisitorSelector](_utils_src_index_.md#visitorselector) | Array‹[SchemaVisitor](/docs/api/classes/_utils_src_index_.schemavisitor) | [SchemaVisitorMap](/docs/api/interfaces/_utils_src_index_.schemavisitormap)› | [SchemaVisitor](/docs/api/classes/_utils_src_index_.schemavisitor) | [SchemaVisitorMap](/docs/api/interfaces/_utils_src_index_.schemavisitormap)): *GraphQLSchema*
 
 *Defined in [packages/utils/src/visitSchema.ts:42](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/visitSchema.ts#L42)*
 
@@ -2839,7 +2989,7 @@ ___
 Name | Type |
 ------ | ------ |
 `schema` | GraphQLSchema |
-`visitorOrVisitorSelector` | [VisitorSelector](_utils_src_index_.md#visitorselector) &#124; Array‹[SchemaVisitor](../classes/_utils_src_index_.schemavisitor) &#124; [SchemaVisitorMap](../interfaces/_utils_src_index_.schemavisitormap)› &#124; [SchemaVisitor](../classes/_utils_src_index_.schemavisitor) &#124; [SchemaVisitorMap](../interfaces/_utils_src_index_.schemavisitormap) |
+`visitorOrVisitorSelector` | [VisitorSelector](_utils_src_index_.md#visitorselector) &#124; Array‹[SchemaVisitor](/docs/api/classes/_utils_src_index_.schemavisitor) &#124; [SchemaVisitorMap](/docs/api/interfaces/_utils_src_index_.schemavisitormap)› &#124; [SchemaVisitor](/docs/api/classes/_utils_src_index_.schemavisitor) &#124; [SchemaVisitorMap](/docs/api/interfaces/_utils_src_index_.schemavisitormap) |
 
 **Returns:** *GraphQLSchema*
 
