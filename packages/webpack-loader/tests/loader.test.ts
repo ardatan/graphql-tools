@@ -36,6 +36,7 @@ test('basic query', () => {
     module.exports = doc
   `);
 
+  // eslint-disable-next-line no-eval
   expect(print(eval(doc))).toBe(print(parse(docStr)));
 });
 
