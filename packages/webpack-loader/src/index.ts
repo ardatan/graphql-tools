@@ -1,5 +1,6 @@
 import os from 'os';
 import { isExecutableDefinitionNode, visit, Kind, DocumentNode } from 'graphql';
+import { uniqueCode } from '@graphql-tools/webpack-loader-runtime';
 import { parseDocument } from './parser';
 
 function isSDL(doc: DocumentNode) {
@@ -32,24 +33,22 @@ function removeDescriptions(doc: DocumentNode) {
   return doc;
 }
 
-function expandImports(source: string) {
+interface Options {
+  noDescription?: boolean;
+  esModule?: boolean;
+  importHelpers?: boolean;
+}
+
+function expandImports(source: string, options: Options) {
   const lines = source.split(/\r\n|\r|\n/);
-  let outputCode = `
-    const names = {};
-    function unique(defs) {
-      return defs.filter(
-        function(def) {
-          if (def.kind !== 'FragmentDefinition') return true;
-          const name = def.name.value
-          if (names[name]) {
-            return false;
-          } else {
-            names[name] = true;
-            return true;
-          }
-        }
-      )
-    }
+  let outputCode = options.importHelpers
+    ? `
+    const { useUnique } = require('@graphql-tools/webpack-loader-runtime');
+
+    const unique = useUnique();
+  `
+    : `
+    ${uniqueCode}
   `;
 
   lines.some(line => {
@@ -67,11 +66,7 @@ function expandImports(source: string) {
 
 export default function graphqlLoader(source: string) {
   this.cacheable();
-  const options: {
-    noDescription?: boolean;
-    esModule?: boolean;
-    importHelpers?: boolean;
-  } = this.query || {};
+  const options: Options = this.query || {};
   let doc = parseDocument(source);
 
   // Removes descriptions from Nodes
@@ -112,7 +107,7 @@ export default function graphqlLoader(source: string) {
     ${exportDefaultStatement('doc')}
   `;
 
-  const importOutputCode = expandImports(source);
+  const importOutputCode = expandImports(source, options);
   const allCode = [headerCode, importOutputCode, outputCode, ''].join(os.EOL);
 
   return allCode;
