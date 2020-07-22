@@ -4,6 +4,10 @@ import { existsSync } from 'fs';
 import nock from 'nock';
 import { cwd } from 'process';
 
+export function normalizeString(str: string) {
+  return str.replace(/[\s,]+/g, ' ').trim();
+}
+
 type PromiseOf<T extends (...args: any[]) => any> = T extends (...args: any[]) => Promise<infer R> ? R : ReturnType<T>;
 
 export function runTests<
