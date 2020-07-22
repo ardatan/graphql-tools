@@ -35,12 +35,12 @@ function removeDescriptions(doc: DocumentNode) {
 function expandImports(source: string) {
   const lines = source.split(/\r\n|\r|\n/);
   let outputCode = `
-    var names = {};
+    const names = {};
     function unique(defs) {
       return defs.filter(
         function(def) {
           if (def.kind !== 'FragmentDefinition') return true;
-          var name = def.name.value
+          const name = def.name.value
           if (names[name]) {
             return false;
           } else {
@@ -70,6 +70,7 @@ export default function graphqlLoader(source: string) {
   const options: {
     noDescription?: boolean;
     esModule?: boolean;
+    importHelpers?: boolean;
   } = this.query || {};
   let doc = parseDocument(source);
 
@@ -103,123 +104,13 @@ export default function graphqlLoader(source: string) {
     return `module.exports = ${identifier}`;
   }
 
-  function exportNamedStatement(identifier: string) {
-    if (options.esModule) {
-      return `export const ${identifier} =`;
-    }
-
-    return `module.exports["${identifier}"] =`;
+  if (operationCount > 1) {
+    throw new Error('GraphQL Webpack Loader allows only for one GraphQL Operation per file');
   }
 
-  if (operationCount < 1) {
-    outputCode += `
-      ${exportDefaultStatement('doc')}
-    `;
-  } else {
-    outputCode += `
-    // Collect any fragment/type references from a node, adding them to the refs Set
-    function collectFragmentReferences(node, refs) {
-      if (node.kind === "FragmentSpread") {
-        refs.add(node.name.value);
-      } else if (node.kind === "VariableDefinition") {
-        var type = node.type;
-        if (type.kind === "NamedType") {
-          refs.add(type.name.value);
-        }
-      }
-      if (node.selectionSet) {
-        node.selectionSet.selections.forEach(function(selection) {
-          collectFragmentReferences(selection, refs);
-        });
-      }
-      if (node.variableDefinitions) {
-        node.variableDefinitions.forEach(function(def) {
-          collectFragmentReferences(def, refs);
-        });
-      }
-      if (node.definitions) {
-        node.definitions.forEach(function(def) {
-          collectFragmentReferences(def, refs);
-        });
-      }
-    }
-    const definitionRefs = {};
-    (function extractReferences() {
-      doc.definitions.forEach(function(def) {
-        if (def.name) {
-          const refs = new Set();
-          collectFragmentReferences(def, refs);
-          definitionRefs[def.name.value] = refs;
-        }
-      });
-    })();
-    function findOperation(doc, name) {
-      for (var i = 0; i < doc.definitions.length; i++) {
-        const element = doc.definitions[i];
-        if (element.name && element.name.value == name) {
-          return element;
-        }
-      }
-    }
-    function oneQuery(doc, operationName) {
-      // Copy the DocumentNode, but clear out the definitions
-      const newDoc = {
-        kind: doc.kind,
-        definitions: [findOperation(doc, operationName)]
-      };
-      if (doc.hasOwnProperty("loc")) {
-        newDoc.loc = doc.loc;
-      }
-      // Now, for the operation we're running, find any fragments referenced by
-      // it or the fragments it references
-      const opRefs = definitionRefs[operationName] || new Set();
-      const allRefs = new Set();
-      let newRefs = new Set();
-      // IE 11 doesn't support "new Set(iterable)", so we add the members of opRefs to newRefs one by one
-      opRefs.forEach(function(refName) {
-        newRefs.add(refName);
-      });
-      while (newRefs.size > 0) {
-        const prevRefs = newRefs;
-        newRefs = new Set();
-        prevRefs.forEach(function(refName) {
-          if (!allRefs.has(refName)) {
-            allRefs.add(refName);
-            const childRefs = definitionRefs[refName] || new Set();
-            childRefs.forEach(function(childRef) {
-              newRefs.add(childRef);
-            });
-          }
-        });
-      }
-      allRefs.forEach(function(refName) {
-        const op = findOperation(doc, refName);
-        if (op) {
-          newDoc.definitions.push(op);
-        }
-      });
-      return newDoc;
-    }
+  outputCode += `
     ${exportDefaultStatement('doc')}
-    `;
-
-    for (const op of doc.definitions) {
-      if (op.kind === Kind.OPERATION_DEFINITION) {
-        if (!op.name) {
-          if (operationCount > 1) {
-            throw new Error('Query/mutation names are required for a document with multiple definitions');
-          } else {
-            continue;
-          }
-        }
-
-        const opName = op.name.value;
-        outputCode += `
-        ${exportNamedStatement(opName)} oneQuery(doc, "${opName}");
-        `;
-      }
-    }
-  }
+  `;
 
   const importOutputCode = expandImports(source);
   const allCode = [headerCode, importOutputCode, outputCode, ''].join(os.EOL);
