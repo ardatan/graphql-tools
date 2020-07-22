@@ -69,6 +69,7 @@ export default function graphqlLoader(source: string) {
   this.cacheable();
   const options: {
     noDescription?: boolean;
+    esModule?: boolean;
   } = this.query || {};
   let doc = parseDocument(source);
 
@@ -94,9 +95,25 @@ export default function graphqlLoader(source: string) {
     return accum;
   }, 0);
 
+  function exportDefaultStatement(identifier: string) {
+    if (options.esModule) {
+      return `export default ${identifier}`;
+    }
+
+    return `module.exports = ${identifier}`;
+  }
+
+  function exportNamedStatement(identifier: string) {
+    if (options.esModule) {
+      return `export const ${identifier} =`;
+    }
+
+    return `module.exports["${identifier}"] =`;
+  }
+
   if (operationCount < 1) {
     outputCode += `
-      export default doc
+      ${exportDefaultStatement('doc')}
     `;
   } else {
     outputCode += `
@@ -183,7 +200,7 @@ export default function graphqlLoader(source: string) {
       });
       return newDoc;
     }
-    export default doc;
+    ${exportDefaultStatement('doc')}
     `;
 
     for (const op of doc.definitions) {
@@ -198,7 +215,7 @@ export default function graphqlLoader(source: string) {
 
         const opName = op.name.value;
         outputCode += `
-        export const opName = oneQuery(doc, "${opName}");
+        ${exportNamedStatement(opName)} oneQuery(doc, "${opName}");
         `;
       }
     }
