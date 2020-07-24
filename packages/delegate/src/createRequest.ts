@@ -66,10 +66,11 @@ export function createRequest({
   selectionSet,
   fieldNodes,
 }: ICreateRequest): Request {
-  let newSelectionSet: SelectionSetNode = selectionSet;
+  let newSelectionSet: SelectionSetNode;
   let argumentNodeMap: Record<string, ArgumentNode>;
 
-  if (fieldNodes == null) {
+  if (selectionSet != null) {
+    newSelectionSet = selectionSet;
     argumentNodeMap = Object.create(null);
   } else {
     const selections: Array<SelectionNode> = fieldNodes.reduce(
