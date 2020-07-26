@@ -9,6 +9,7 @@ import { BatchDelegateOptionsFn, BatchDelegateFn, BatchDelegateOptions } from '.
 export function createBatchDelegateFn<K = any, V = any, C = K>(
   argFn: (args: ReadonlyArray<K>) => Record<string, any>,
   batchDelegateOptionsFn: BatchDelegateOptionsFn,
+  mappingFn?: (keys: ReadonlyArray<K>, results: any) => V[],
   dataLoaderOptions?: DataLoader.Options<K, V, C>
 ): BatchDelegateFn<K> {
   let cache: WeakMap<ReadonlyArray<FieldNode>, DataLoader<K, V, C>>;
@@ -20,7 +21,7 @@ export function createBatchDelegateFn<K = any, V = any, C = K>(
         args: argFn(keys),
         ...batchDelegateOptionsFn(options),
       });
-      return Array.isArray(results) ? results : keys.map(() => results);
+      return mappingFn ? mappingFn(keys, results) : results;
     };
   }
 
