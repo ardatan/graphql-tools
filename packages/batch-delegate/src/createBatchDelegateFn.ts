@@ -9,19 +9,20 @@ import { BatchDelegateOptionsFn, BatchDelegateFn, BatchDelegateOptions } from '.
 export function createBatchDelegateFn<K = any, V = any, C = K>(
   argFn: (args: ReadonlyArray<K>) => Record<string, any>,
   batchDelegateOptionsFn: BatchDelegateOptionsFn,
-  mappingFn?: (keys: ReadonlyArray<K>, results: any) => V[],
-  dataLoaderOptions?: DataLoader.Options<K, V, C>
+  dataLoaderOptions?: DataLoader.Options<K, V, C>,
+  resultsFn?: (results: any, keys: ReadonlyArray<K>) => V[]
 ): BatchDelegateFn<K> {
   let cache: WeakMap<ReadonlyArray<FieldNode>, DataLoader<K, V, C>>;
 
   function createBatchFn(options: BatchDelegateOptions) {
     return async (keys: ReadonlyArray<K>) => {
-      const results = await delegateToSchema({
+      let results = await delegateToSchema({
         returnType: new GraphQLList(getNamedType(options.info.returnType) as GraphQLOutputType),
         args: argFn(keys),
         ...batchDelegateOptionsFn(options),
       });
-      return mappingFn ? mappingFn(keys, results) : results;
+      results = resultsFn ? resultsFn(results, keys) : results;
+      return Array.isArray(results) ? results : keys.map(() => results)
     };
   }
 
