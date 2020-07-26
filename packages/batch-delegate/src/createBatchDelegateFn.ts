@@ -22,7 +22,7 @@ export function createBatchDelegateFn<K = any, V = any, C = K>(
         ...batchDelegateOptionsFn(options),
       });
       results = resultsFn ? resultsFn(results, keys) : results;
-      return Array.isArray(results) ? results : keys.map(() => results)
+      return Array.isArray(results) ? results : keys.map(() => results);
     };
   }
 
