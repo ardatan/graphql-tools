@@ -22,6 +22,14 @@ const defaults: GraphQLTagPluckOptions = {
       identifier: 'gql',
     },
     {
+      name: '@apollo/client/core',
+      identifier: 'gql',
+    },
+    {
+      name: 'apollo-angular',
+      identifier: 'gql',
+    },
+    {
       name: 'gatsby',
       identifier: 'graphql',
     },
