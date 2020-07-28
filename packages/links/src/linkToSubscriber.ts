@@ -20,6 +20,7 @@ export const linkToSubscriber = (link: ApolloLink) => async <TReturn, TArgs, TCo
       context: {
         graphqlContext: context,
         graphqlResolveInfo: info,
+        clientAwareness: {},
       },
     }) as Observable<FetchResult<TReturn>>
   );
