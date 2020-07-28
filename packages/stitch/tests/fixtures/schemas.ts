@@ -11,6 +11,7 @@ import {
   GraphQLError,
   GraphQLInterfaceType,
 } from 'graphql';
+import isPromise from 'is-promise';
 
 import { introspectSchema } from '@graphql-tools/wrap';
 import {
@@ -689,7 +690,7 @@ function makeExecutorFromSchema(schema: GraphQLSchema) {
       context,
       variables,
     ) as PromiseOrValue<ExecutionResult<TReturn>>;
-    if (result instanceof Promise) {
+    if (isPromise(result)) {
       return result.then(originalResult => JSON.parse(JSON.stringify(originalResult)));
     }
     return JSON.parse(JSON.stringify(result));
@@ -705,7 +706,7 @@ function makeSubscriberFromSchema(schema: GraphQLSchema) {
       context,
       variables,
     ) as Promise<AsyncIterator<ExecutionResult<TReturn>> | ExecutionResult<TReturn>>;
-    if (result instanceof Promise) {
+    if (isPromise(result)) {
       return result.then(asyncIterator =>
         mapAsyncIterator(asyncIterator as AsyncIterator<ExecutionResult>, (originalResult: ExecutionResult<TReturn>) => JSON.parse(JSON.stringify(originalResult))));
     }

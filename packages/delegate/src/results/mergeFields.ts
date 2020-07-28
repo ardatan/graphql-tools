@@ -1,4 +1,5 @@
 import { FieldNode, SelectionNode, Kind, GraphQLResolveInfo, SelectionSetNode } from 'graphql';
+import isPromise from 'is-promise';
 
 import { MergedTypeInfo, SubschemaConfig } from '../types';
 
@@ -158,7 +159,7 @@ export function mergeFields(
   delegationMap.forEach((selectionSet: SelectionSetNode, s: SubschemaConfig) => {
     const maybePromise = s.merge[typeName].resolve(object, context, info, s, selectionSet);
     maybePromises.push(maybePromise);
-    if (!containsPromises && maybePromise instanceof Promise) {
+    if (!containsPromises && isPromise(maybePromise)) {
       containsPromises = true;
     }
   });
