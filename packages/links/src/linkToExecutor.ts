@@ -19,6 +19,7 @@ export const linkToExecutor = (link: ApolloLink) => <TReturn, TArgs, TContext>({
       context: {
         graphqlContext: context,
         graphqlResolveInfo: info,
+        clientAwareness: {},
       },
     }) as Observable<FetchResult<TReturn>>
   );

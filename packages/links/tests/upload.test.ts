@@ -57,7 +57,12 @@ function testGraphqlMultipartRequest(query: string, port: number) {
 }
 
 describe('graphql upload', () => {
-  test('should return a file after uploading one', async () => {
+  let remoteServer: Server
+  let remotePort: number
+  let gatewayServer: Server
+  let gatewayPort: number
+
+  beforeAll(async () => {
     const remoteSchema = makeExecutableSchema({
       typeDefs: `
         scalar Upload
@@ -86,8 +91,8 @@ describe('graphql upload', () => {
       graphqlHTTP({ schema: remoteSchema }),
     );
 
-    const remoteServer = await startServer(remoteApp);
-    const remotePort = (remoteServer.address() as AddressInfo).port;
+    remoteServer = await startServer(remoteApp);
+    remotePort = (remoteServer.address() as AddressInfo).port;
 
     const nonExecutableSchema = buildSchema(`
       scalar Upload
@@ -120,8 +125,16 @@ describe('graphql upload', () => {
       graphqlHTTP({ schema: gatewaySchema }),
     );
 
-    const gatewayServer = await startServer(gatewayApp);
-    const gatewayPort = (gatewayServer.address() as AddressInfo).port;
+    gatewayServer = await startServer(gatewayApp);
+    gatewayPort = (gatewayServer.address() as AddressInfo).port;
+  })
+
+  afterAll(async () => {
+    remoteServer.close();
+    gatewayServer.close();
+  })
+
+  test('should return a file after uploading one', async () => {
     const query = `
       mutation upload($file: Upload!) {
         upload(file: $file)
@@ -134,8 +147,5 @@ describe('graphql upload', () => {
         upload: 'abc',
       },
     });
-
-    remoteServer.close();
-    gatewayServer.close();
   });
 });
