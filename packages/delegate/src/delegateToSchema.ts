@@ -162,10 +162,7 @@ export function delegateRequest({
       info,
     });
 
-    if (executionResult instanceof Promise) {
-      return executionResult.then(originalResult => transformer.transformResult(originalResult));
-    }
-    return transformer.transformResult(executionResult);
+    return Promise.resolve(executionResult).then(originalResult => transformer.transformResult(originalResult));
   }
 
   const subscriber =
