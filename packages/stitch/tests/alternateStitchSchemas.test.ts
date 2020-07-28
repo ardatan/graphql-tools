@@ -6,7 +6,6 @@ import {
   GraphQLScalarType,
   FieldNode,
   printSchema,
-  graphqlSync,
   assertValidSchema,
   GraphQLFieldConfig,
   isSpecifiedScalarType,
