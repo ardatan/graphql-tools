@@ -6,6 +6,7 @@ import {
   GraphQLScalarType,
   FieldNode,
   printSchema,
+  graphqlSync,
   assertValidSchema,
   GraphQLFieldConfig,
   isSpecifiedScalarType,
@@ -551,7 +552,7 @@ describe('default values', () => {
 });
 
 describe('rename fields that implement interface fields', () => {
-  test('should work', async () => {
+  test('should work', () => {
     const originalItem = {
       id: '123',
       camel: "I'm a camel!",
@@ -620,10 +621,10 @@ describe('rename fields that implement interface fields', () => {
       }
     `;
 
-    const originalResult = await graphql(originalSchema, originalQuery);
+    const originalResult = graphqlSync(originalSchema, originalQuery);
     expect(originalResult).toEqual({ data: { node: originalItem } });
 
-    const newResult = await graphql(wrappedSchema, newQuery);
+    const newResult = graphqlSync(wrappedSchema, newQuery);
     expect(newResult).toEqual({ data: { _node: originalItem } });
   });
 });
@@ -876,7 +877,7 @@ type Query {
 });
 
 describe('rename nested object fields with interfaces', () => {
-  test('should work', async () => {
+  test('should work', () => {
     const originalNode = {
       aList: [
         {
@@ -974,8 +975,8 @@ describe('rename nested object fields with interfaces', () => {
       }
     `;
 
-    const originalResult = await graphql(originalSchema, originalQuery);
-    const transformedResult = await graphql(transformedSchema, transformedQuery);
+    const originalResult = graphqlSync(originalSchema, originalQuery);
+    const transformedResult = graphqlSync(transformedSchema, transformedQuery);
 
     expect(originalResult).toEqual({ data: { node: originalNode } });
     expect(transformedResult).toEqual({
