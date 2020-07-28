@@ -11,7 +11,7 @@
     "lint": "eslint --ext .ts .",
     "prettier": "prettier --ignore-path .gitignore --write --list-different \"**/*.{ts,tsx,graphql,yml}\"",
     "prettier:check": "prettier --ignore-path .gitignore --check \"**/*.{ts,tsx,graphql,yml}\"",
-    "test": "jest --no-watchman",
+    "test": "jest --no-watchman --forceExit",
     "test-and-build": "yarn build && yarn test",
     "release": "node scripts/release.js",
     "release:canary": "node scripts/release.js --canary"
