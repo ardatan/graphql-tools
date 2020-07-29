@@ -26,8 +26,7 @@ export interface MergedTypeInfo {
   uniqueFields: Record<string, SubschemaConfig>;
   nonUniqueFields: Record<string, Array<SubschemaConfig>>;
   typeMaps: Map<SubschemaConfig, TypeMap>;
-  selectionSets: Map<SubschemaConfig, SelectionSetNode>;
-  containsSelectionSet: Map<SubschemaConfig, Map<SelectionSetNode, boolean>>;
+  containsSelectionSet: Map<SubschemaConfig, Map<SubschemaConfig, boolean>>;
 }
 
 export interface StitchingInfo {
