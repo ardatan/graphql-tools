@@ -1,0 +1,198 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Environment empty global prisma rc 1`] = `
+Array [
+  Object {
+    "baseUrl": "https://eu1.prisma.sh",
+    "clusterSecret": undefined,
+    "isPrivate": false,
+    "local": false,
+    "name": "prisma-eu1",
+    "shared": true,
+    "workspaceSlug": undefined,
+  },
+  Object {
+    "baseUrl": "https://us1.prisma.sh",
+    "clusterSecret": undefined,
+    "isPrivate": false,
+    "local": false,
+    "name": "prisma-us1",
+    "shared": true,
+    "workspaceSlug": undefined,
+  },
+]
+`;
+
+exports[`Environment interpolates env vars 1`] = `
+Array [
+  Object {
+    "baseUrl": "https://eu1.prisma.sh",
+    "clusterSecret": undefined,
+    "isPrivate": false,
+    "local": false,
+    "name": "prisma-eu1",
+    "shared": true,
+    "workspaceSlug": undefined,
+  },
+  Object {
+    "baseUrl": "https://us1.prisma.sh",
+    "clusterSecret": undefined,
+    "isPrivate": false,
+    "local": false,
+    "name": "prisma-us1",
+    "shared": true,
+    "workspaceSlug": undefined,
+  },
+]
+`;
+
+exports[`Environment loads multiple cluster definitions correctly + gives cluster by name 1`] = `
+Array [
+  Object {
+    "baseUrl": "https://eu1.prisma.sh",
+    "clusterSecret": undefined,
+    "isPrivate": false,
+    "local": false,
+    "name": "prisma-eu1",
+    "shared": true,
+    "workspaceSlug": undefined,
+  },
+  Object {
+    "baseUrl": "https://us1.prisma.sh",
+    "clusterSecret": undefined,
+    "isPrivate": false,
+    "local": false,
+    "name": "prisma-us1",
+    "shared": true,
+    "workspaceSlug": undefined,
+  },
+]
+`;
+
+exports[`Environment loads multiple cluster definitions correctly + gives cluster by name 2`] = `undefined`;
+
+exports[`Environment non-existent global prisma rc 1`] = `
+Array [
+  Object {
+    "baseUrl": "https://eu1.prisma.sh",
+    "clusterSecret": undefined,
+    "isPrivate": false,
+    "local": false,
+    "name": "prisma-eu1",
+    "shared": true,
+    "workspaceSlug": undefined,
+  },
+  Object {
+    "baseUrl": "https://us1.prisma.sh",
+    "clusterSecret": undefined,
+    "isPrivate": false,
+    "local": false,
+    "name": "prisma-us1",
+    "shared": true,
+    "workspaceSlug": undefined,
+  },
+]
+`;
+
+exports[`Environment persists .prisma correctly 1`] = `
+"clusters:
+  cluster:
+    host: 'http://localhost:60000'
+    clusterSecret: ''
+"
+`;
+
+exports[`Environment persists .prisma correctly 2`] = `
+Array [
+  Object {
+    "baseUrl": "https://eu1.prisma.sh",
+    "clusterSecret": undefined,
+    "isPrivate": false,
+    "local": false,
+    "name": "prisma-eu1",
+    "shared": true,
+    "workspaceSlug": undefined,
+  },
+  Object {
+    "baseUrl": "https://us1.prisma.sh",
+    "clusterSecret": undefined,
+    "isPrivate": false,
+    "local": false,
+    "name": "prisma-us1",
+    "shared": true,
+    "workspaceSlug": undefined,
+  },
+  Object {
+    "baseUrl": "http://localhost:60000",
+    "clusterSecret": "",
+    "isPrivate": false,
+    "local": true,
+    "name": "cluster",
+    "shared": false,
+    "workspaceSlug": undefined,
+  },
+]
+`;
+
+exports[`Environment sets the platform token correctly 1`] = `
+Array [
+  Object {
+    "baseUrl": "https://eu1.prisma.sh",
+    "clusterSecret": undefined,
+    "isPrivate": false,
+    "local": false,
+    "name": "prisma-eu1",
+    "shared": true,
+    "workspaceSlug": undefined,
+  },
+  Object {
+    "baseUrl": "https://us1.prisma.sh",
+    "clusterSecret": undefined,
+    "isPrivate": false,
+    "local": false,
+    "name": "prisma-us1",
+    "shared": true,
+    "workspaceSlug": undefined,
+  },
+]
+`;
+
+exports[`prisma definition dont load yml with secret and env var in args 1`] = `
+[Error: Invalid prisma.yml file
+prisma.yml should NOT have additional properties. additionalProperty: service]
+`;
+
+exports[`prisma definition load basic yml, provide cluster 1`] = `
+[Error: Invalid prisma.yml file
+prisma.yml should NOT have additional properties. additionalProperty: service]
+`;
+
+exports[`prisma definition load yml with disableAuth: true 1`] = `
+[Error: Invalid prisma.yml file
+prisma.yml should NOT have additional properties. additionalProperty: service]
+`;
+
+exports[`prisma definition load yml with injected env var 1`] = `
+[Error: Invalid prisma.yml file
+prisma.yml should NOT have additional properties. additionalProperty: service]
+`;
+
+exports[`prisma definition load yml with secret and env var 1`] = `
+[Error: Invalid prisma.yml file
+prisma.yml should NOT have additional properties. additionalProperty: service]
+`;
+
+exports[`prisma definition load yml with secret and env var in .env 1`] = `
+[Error: Invalid prisma.yml file
+prisma.yml should NOT have additional properties. additionalProperty: service]
+`;
+
+exports[`prisma definition throw when no secret or disable auth provided 1`] = `
+[Error: Invalid prisma.yml file
+prisma.yml should NOT have additional properties. additionalProperty: service]
+`;
+
+exports[`prisma definition throws when stages key apparent 1`] = `
+[Error: Invalid prisma.yml file
+prisma.yml should NOT have additional properties. additionalProperty: service]
+`;
