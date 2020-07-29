@@ -332,6 +332,7 @@ describe('merging using type merging', () => {
       typeDefs: `
         type Image {
           id: Int!
+          url: String!
           network: Network!
         }
         type Network {
@@ -344,7 +345,7 @@ describe('merging using type merging', () => {
       resolvers: {
         Query: {
           image(obj, args) {
-            return { id: args.id, networkId: 1 };
+            return { id: args.id, networkId: 1, url: 'https://domain.com/img.jpg' };
           }
         },
         Image: {
@@ -430,7 +431,7 @@ describe('merging using type merging', () => {
         }
         extended: post(id: 1) {
           image {
-            id
+            url
           }
         }
         both: post(id: 1) {
@@ -452,7 +453,7 @@ describe('merging using type merging', () => {
         },
         extended: {
           image: {
-            id: 1
+            url: 'https://domain.com/img.jpg'
           }
         },
         both: {
