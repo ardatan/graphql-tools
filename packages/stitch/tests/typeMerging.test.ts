@@ -307,4 +307,164 @@ describe('merging using type merging', () => {
 
     expect(result).toEqual(expectedResult);
   });
+
+  test('merges types within an extension subtree', async () => {
+    const networksSchema = makeExecutableSchema({
+      typeDefs: `
+        type Network {
+          id: Int!
+          name: String!
+        }
+        type Query {
+          networks(ids: [Int!]!): [Network]!
+        }
+      `,
+      resolvers: {
+        Query: {
+          networks(obj, args) {
+            return args.ids.map(id => ({ id, name: `Network ${id}` }));
+          }
+        }
+      }
+    });
+
+    const imagesSchema = makeExecutableSchema({
+      typeDefs: `
+        type Image {
+          id: Int!
+          network: Network!
+        }
+        type Network {
+          id: Int!
+        }
+        type Query {
+          image(id: Int!): Image
+        }
+      `,
+      resolvers: {
+        Query: {
+          image(obj, args) {
+            return { id: args.id, networkId: 1 };
+          }
+        },
+        Image: {
+          network(obj) {
+            return { id: obj.networkId };
+          }
+        }
+      }
+    });
+
+    const postsSchema = makeExecutableSchema({
+      typeDefs: `
+        type Post {
+          id: Int!
+          imageId: Int!
+        }
+        type Query {
+          post(id: Int!): Post
+        }
+      `,
+      resolvers: {
+        Query: {
+          post(obj, args) {
+            return { id: args.id, imageId: 1 };
+          }
+        }
+      }
+    });
+
+    const gatewaySchema = stitchSchemas({
+      subschemas: [
+        {
+          schema: networksSchema,
+          merge: {
+            Network: {
+              fieldName: 'networks',
+              selectionSet: '{ id }',
+              key: ({ id }) => id,
+              args: (ids) => ({ ids }),
+            }
+          }
+        },
+        {
+          schema: imagesSchema,
+          merge: { Network: {} }
+        },
+        {
+          schema: postsSchema,
+          merge: { Network: {} }
+        },
+      ],
+      mergeTypes: true,
+      typeDefs: `
+        extend type Post {
+          image: Image!
+        }
+      `,
+      resolvers: {
+        Post: {
+          image: {
+            selectionSet: '{ imageId }',
+            resolve(obj, args, context, info) {
+              return delegateToSchema({
+                schema: imagesSchema,
+                operation: 'query',
+                fieldName: 'image',
+                args: { id: obj.imageId },
+                context,
+                info
+              });
+            }
+          }
+        }
+      }
+    });
+
+    const result = await graphql(gatewaySchema, `
+      query {
+        merged: image(id: 1) {
+          network {
+            name
+          }
+        }
+        extended: post(id: 1) {
+          image {
+            id
+          }
+        }
+        both: post(id: 1) {
+          image {
+            network {
+              name
+            }
+          }
+        }
+      }
+    `);
+
+    const expectedResult = {
+      data: {
+        merged: {
+          network: {
+            name: 'Network 1'
+          }
+        },
+        extended: {
+          image: {
+            id: 1
+          }
+        },
+        both: {
+          image: {
+            network: {
+              name: 'Network 1'
+            }
+          }
+        }
+      }
+    };
+
+    expect(result).toEqual(expectedResult);
+  });
 });
