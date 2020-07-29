@@ -23,12 +23,7 @@ const sortSubschemasByProxiability = memoize3(function (
     ? sourceSubschemaOrSourceSubschemas
     : [sourceSubschemaOrSourceSubschemas];
   targetSubschemas.forEach(t => {
-    if (
-      sourceSubschemas.some(s => {
-        const selectionSet = mergedTypeInfo.selectionSets.get(t);
-        return mergedTypeInfo.containsSelectionSet.get(s).get(selectionSet);
-      })
-    ) {
+    if (sourceSubschemas.some(s => mergedTypeInfo.containsSelectionSet.get(s).get(t))) {
       proxiableSubschemas.push(t);
     } else {
       nonProxiableSubschemas.push(t);

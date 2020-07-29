@@ -21,13 +21,12 @@ export type MergeTypeCandidate = {
 export type MergeTypeFilter = (mergeTypeCandidates: Array<MergeTypeCandidate>, typeName: string) => boolean;
 
 export interface MergedTypeInfo {
-  targetSubschemas: Map<SubschemaConfig, Array<SubschemaConfig>>;
+  targetSubschemas: Map<GraphQLSchema | SubschemaConfig, Array<SubschemaConfig>>;
   requiredSelections: Array<SelectionNode>;
   uniqueFields: Record<string, SubschemaConfig>;
   nonUniqueFields: Record<string, Array<SubschemaConfig>>;
-  typeMaps: Map<SubschemaConfig, TypeMap>;
-  selectionSets: Map<SubschemaConfig, SelectionSetNode>;
-  containsSelectionSet: Map<SubschemaConfig, Map<SelectionSetNode, boolean>>;
+  typeMaps: Map<GraphQLSchema | SubschemaConfig, TypeMap>;
+  containsSelectionSet: Map<GraphQLSchema | SubschemaConfig, Map<SubschemaConfig, boolean>>;
 }
 
 export interface StitchingInfo {

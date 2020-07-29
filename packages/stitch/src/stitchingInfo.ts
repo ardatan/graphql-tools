@@ -61,8 +61,8 @@ function createMergedTypes(
   const mergedTypes: Record<string, MergedTypeInfo> = Object.create(null);
 
   Object.keys(typeCandidates).forEach(typeName => {
-    if (isObjectType(typeCandidates[typeName][0].type)) {
-      const mergedTypeCandidates = typeCandidates[typeName].filter(
+    if (isObjectType(typeCandidates[typeName][0].type) && typeCandidates[typeName].length > 1) {
+      const typeCandidatesWithMergedTypeConfig = typeCandidates[typeName].filter(
         typeCandidate =>
           typeCandidate.subschema != null &&
           isSubschemaConfig(typeCandidate.subschema) &&
@@ -74,105 +74,122 @@ function createMergedTypes(
         mergeTypes === true ||
         (typeof mergeTypes === 'function' && mergeTypes(typeCandidates[typeName], typeName)) ||
         (Array.isArray(mergeTypes) && mergeTypes.includes(typeName)) ||
-        mergedTypeCandidates.length
+        typeCandidatesWithMergedTypeConfig.length
       ) {
-        const subschemas: Array<SubschemaConfig> = [];
+        const targetSubschemas: Array<SubschemaConfig> = [];
 
         let requiredSelections: Array<SelectionNode> = [parseSelectionSet('{ __typename }').selections[0]];
         const fields = Object.create({});
-        const typeMaps: Map<SubschemaConfig, TypeMap> = new Map();
+        const typeMaps: Map<GraphQLSchema | SubschemaConfig, TypeMap> = new Map();
         const selectionSets: Map<SubschemaConfig, SelectionSetNode> = new Map();
 
-        mergedTypeCandidates.forEach(typeCandidate => {
-          const subschemaConfig = typeCandidate.subschema as SubschemaConfig;
+        typeCandidates[typeName].forEach(typeCandidate => {
+          const subschema = typeCandidate.subschema;
+
+          if (subschema == null) {
+            return;
+          }
+
           const transformedSubschema = typeCandidate.transformedSubschema;
-          typeMaps.set(subschemaConfig, transformedSubschema.getTypeMap());
+          typeMaps.set(subschema, transformedSubschema.getTypeMap());
           const type = transformedSubschema.getType(typeName) as GraphQLObjectType;
           const fieldMap = type.getFields();
           Object.keys(fieldMap).forEach(fieldName => {
             if (!(fieldName in fields)) {
               fields[fieldName] = [];
             }
-            fields[fieldName].push(subschemaConfig);
+            fields[fieldName].push(subschema);
           });
 
-          const mergedTypeConfig = subschemaConfig.merge[typeName];
+          if (!isSubschemaConfig(subschema)) {
+            return;
+          }
+
+          const mergedTypeConfig = subschema?.merge?.[typeName];
+
+          if (mergedTypeConfig == null) {
+            return;
+          }
 
           if (mergedTypeConfig.selectionSet) {
             const selectionSet = parseSelectionSet(mergedTypeConfig.selectionSet);
             requiredSelections = requiredSelections.concat(selectionSet.selections);
-            selectionSets.set(subschemaConfig, selectionSet);
+            selectionSets.set(subschema, selectionSet);
           }
 
-          if (!mergedTypeConfig.resolve) {
-            if (mergedTypeConfig.key != null) {
-              const batchDelegateToSubschema = createBatchDelegateFn(
-                mergedTypeConfig.args,
-                ({ schema, selectionSet, context, info }) => ({
-                  schema,
-                  operation: 'query',
-                  fieldName: mergedTypeConfig.fieldName,
-                  selectionSet,
-                  context,
-                  info,
-                  skipTypeMerging: true,
-                })
-              );
+          if (mergedTypeConfig.resolve != null) {
+            targetSubschemas.push(subschema);
+          } else if (mergedTypeConfig.key != null) {
+            const batchDelegateToSubschema = createBatchDelegateFn(
+              mergedTypeConfig.args,
+              ({ schema, selectionSet, context, info }) => ({
+                schema,
+                operation: 'query',
+                fieldName: mergedTypeConfig.fieldName,
+                selectionSet,
+                context,
+                info,
+                skipTypeMerging: true,
+              })
+            );
 
-              mergedTypeConfig.resolve = (originalResult, context, info, subschema, selectionSet) =>
-                batchDelegateToSubschema({
-                  key: mergedTypeConfig.key(originalResult),
-                  schema: subschema,
-                  context,
-                  info,
-                  selectionSet,
-                });
-            } else {
-              mergedTypeConfig.resolve = (originalResult, context, info, subschema, selectionSet) =>
-                delegateToSchema({
-                  schema: subschema,
-                  operation: 'query',
-                  fieldName: mergedTypeConfig.fieldName,
-                  returnType: getNamedType(info.returnType) as GraphQLOutputType,
-                  args: mergedTypeConfig.args(originalResult),
-                  selectionSet,
-                  context,
-                  info,
-                  skipTypeMerging: true,
-                });
-            }
+            mergedTypeConfig.resolve = (originalResult, context, info, subschema, selectionSet) =>
+              batchDelegateToSubschema({
+                key: mergedTypeConfig.key(originalResult),
+                schema: subschema,
+                context,
+                info,
+                selectionSet,
+              });
+
+            targetSubschemas.push(subschema);
+          } else if (mergedTypeConfig.fieldName != null) {
+            mergedTypeConfig.resolve = (originalResult, context, info, subschema, selectionSet) =>
+              delegateToSchema({
+                schema: subschema,
+                operation: 'query',
+                fieldName: mergedTypeConfig.fieldName,
+                returnType: getNamedType(info.returnType) as GraphQLOutputType,
+                args: mergedTypeConfig.args(originalResult),
+                selectionSet,
+                context,
+                info,
+                skipTypeMerging: true,
+              });
+
+            targetSubschemas.push(subschema);
           }
-
-          subschemas.push(subschemaConfig);
         });
 
-        const targetSubschemas: Map<SubschemaConfig, Array<SubschemaConfig>> = new Map();
-        subschemas.forEach(subschema => {
-          const filteredSubschemas = subschemas.filter(s => s !== subschema);
+        const sourceSubschemas = typeCandidates[typeName]
+          .filter(typeCandidate => typeCandidate.subschema != null)
+          .map(typeCandidate => typeCandidate.subschema);
+        const targetSubschemasBySubschema: Map<GraphQLSchema | SubschemaConfig, Array<SubschemaConfig>> = new Map();
+        sourceSubschemas.forEach(subschema => {
+          const filteredSubschemas = targetSubschemas.filter(s => s !== subschema);
           if (filteredSubschemas.length) {
-            targetSubschemas.set(subschema, filteredSubschemas);
+            targetSubschemasBySubschema.set(subschema, filteredSubschemas);
           }
         });
 
         mergedTypes[typeName] = {
-          targetSubschemas,
+          targetSubschemas: targetSubschemasBySubschema,
           typeMaps,
           requiredSelections,
-          selectionSets,
           containsSelectionSet: new Map(),
           uniqueFields: Object.create({}),
           nonUniqueFields: Object.create({}),
         };
 
-        subschemas.forEach(subschema => {
+        sourceSubschemas.forEach(subschema => {
           const type = typeMaps.get(subschema)[typeName] as GraphQLObjectType;
-          const subschemaMap = new Map();
-          subschemas
+          const subschemaMap: Map<SubschemaConfig, boolean> = new Map();
+          targetSubschemas
             .filter(s => s !== subschema)
             .forEach(s => {
               const selectionSet = selectionSets.get(s);
               if (selectionSet != null && typeContainsSelectionSet(type, selectionSet)) {
-                subschemaMap.set(selectionSet, true);
+                subschemaMap.set(s, true);
               }
             });
           mergedTypes[typeName].containsSelectionSet.set(subschema, subschemaMap);
