@@ -2030,7 +2030,7 @@ describe('onTypeConflict', () => {
   });
 });
 
-describe('mergeTypes', () => {
+describe('basic type merging', () => {
   let schema1: GraphQLSchema;
   let schema2: GraphQLSchema;
 
@@ -2143,7 +2143,7 @@ describe('mergeTypes', () => {
       subschemas: [subschemaConfig1, subschemaConfig2],
     });
 
-    const result1 = await graphql(
+    const result = await graphql(
       stitchedSchema,
       `
         {
@@ -2158,7 +2158,8 @@ describe('mergeTypes', () => {
         }
       `,
     );
-    expect(result1).toEqual({
+
+    expect(result).toEqual({
       data: {
         rootField1: {
           test: {
@@ -2168,18 +2169,130 @@ describe('mergeTypes', () => {
         },
       },
     });
+  });
+});
 
-    const stitchedSchemaWithMerge = stitchSchemas({
+describe('unidirectional type merging', () => {
+  let schema1: GraphQLSchema;
+  let schema2: GraphQLSchema;
+
+  beforeEach(() => {
+    const typeDefs1 = `
+      input ObjectInput {
+        val: String!
+      }
+
+      type Query {
+        rootField1: Wrapper
+      }
+
+      type Wrapper {
+        test: Test
+      }
+
+      type Test {
+        id: ID
+        field1: String
+      }
+    `;
+
+    const typeDefs2 = `
+      type Query {
+        rootField2: Wrapper
+        getTest(id: ID): Test
+      }
+
+      type Wrapper {
+        test: Test
+      }
+
+      type Test {
+        id: ID
+        field2: String
+      }
+    `;
+
+    schema1 = makeExecutableSchema({
+      typeDefs: typeDefs1,
+      resolvers: {
+        Query: {
+          rootField1: () => ({ test: { id: '1' } }),
+        },
+        Test: {
+          field1: (parent) => parent.id,
+        },
+      },
+    });
+
+    schema2 = makeExecutableSchema({
+      typeDefs: typeDefs2,
+      resolvers: {
+        Query: {
+          rootField2: () => ({ test: { id: '2' } }),
+          getTest: (_parent, { id }) => ({ id }),
+        },
+        Test: {
+          field2: (parent) => parent.id,
+        },
+      },
+    });
+  });
+
+  test('can merge types unidirectionally if specified', async () => {
+    const subschemaConfig1: SubschemaConfig = {
+      schema: schema1,
+    };
+
+    const subschemaConfig2: SubschemaConfig = {
+      schema: schema2,
+      merge: {
+        Test: {
+          selectionSet: '{ id }',
+          resolve: (originalResult, context, info, subschema, selectionSet) =>
+            delegateToSchema({
+              schema: subschema,
+              operation: 'query',
+              fieldName: 'getTest',
+              args: { id: originalResult.id },
+              selectionSet,
+              context,
+              info,
+              skipTypeMerging: true,
+            }),
+        },
+      },
+    };
+
+    const stitchedSchema = stitchSchemas({
       subschemas: [subschemaConfig1, subschemaConfig2],
-      mergeTypes: true,
-    })
+    });
 
-    const result2 = await graphql(
-      stitchedSchemaWithMerge,
-      `{ rootField1 { test { id } } }`
+    const result = await graphql(
+      stitchedSchema,
+      `
+        {
+          rootField1 {
+            test {
+              field1
+              ... on Test {
+                field2
+              }
+            }
+          }
+        }
+      `,
     );
 
-    expect(result2).toEqual({ data: { rootField1: { test: { id: '1' } } } })
+    expect(result).toEqual({
+      data: {
+        rootField1: {
+          test: {
+            field1: '1',
+            field2: '1',
+          },
+        },
+      },
+    });
   });
 });
 

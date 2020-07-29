@@ -18,7 +18,7 @@
   "devDependencies": {
     "@types/is-glob": "4.0.1",
     "@types/valid-url": "1.0.3",
-    "graphql-tag": "2.10.4",
+    "graphql-tag": "2.11.0",
     "graphql-type-json": "0.3.2"
   },
   "dependencies": {
