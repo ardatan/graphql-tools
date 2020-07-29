@@ -81,12 +81,12 @@ export interface ICreateRequest {
 }
 
 export interface MergedTypeInfo {
-  targetSubschemas: Map<SubschemaConfig, Array<SubschemaConfig>>;
+  targetSubschemas: Map<GraphQLSchema | SubschemaConfig, Array<SubschemaConfig>>;
   selectionSet?: SelectionSetNode;
   uniqueFields: Record<string, SubschemaConfig>;
   nonUniqueFields: Record<string, Array<SubschemaConfig>>;
-  typeMaps: Map<SubschemaConfig, TypeMap>;
-  containsSelectionSet: Map<SubschemaConfig, Map<SubschemaConfig, boolean>>;
+  typeMaps: Map<GraphQLSchema | SubschemaConfig, TypeMap>;
+  containsSelectionSet: Map<GraphQLSchema | SubschemaConfig, Map<SubschemaConfig, boolean>>;
 }
 
 export interface ExecutionParams<TArgs = Record<string, any>, TContext = any> {
