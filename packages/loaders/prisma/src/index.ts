@@ -1,5 +1,5 @@
 import { UrlLoader, LoadFromUrlOptions } from '@graphql-tools/url-loader';
-import { PrismaDefinitionClass, Environment } from 'prisma-yml';
+import { PrismaDefinitionClass, Environment } from './prisma-yml';
 import { join } from 'path';
 import { pathExists } from 'fs-extra';
 import { homedir } from 'os';
