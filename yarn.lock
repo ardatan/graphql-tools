@@ -3565,10 +3565,10 @@ bn.js@^5.1.1:
   resolved "https://registry.yarnpkg.com/bn.js/-/bn.js-5.1.1.tgz#48efc4031a9c4041b9c99c6941d903463ab62eb5"
   integrity sha512-IUTD/REb78Z2eodka1QZyyEk66pciRcP6Sroka0aI3tG/iwIdYLrBD62RsubR7vqdt3WyX8p4jxeatzmRSphtA==
 
-bob-the-bundler@1.0.2:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/bob-the-bundler/-/bob-the-bundler-1.0.2.tgz#f44e7315ead242e328171fcba42e9bcc1a457c31"
-  integrity sha512-tBLAekXApxF4yiIt26orEAzo1DM4ESnKGaTcGLjez7XlGbCqMJqzo1dBiohiNkv6qZJ1YoxLqZS16RNiSft/Aw==
+bob-the-bundler@1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/bob-the-bundler/-/bob-the-bundler-1.1.0.tgz#fd7cd427f754bf95826055ee356d64a67406387f"
+  integrity sha512-qqstwyxR7YX3Im8jY3vTV4FwnpuRS8AQclZwR9kg3SaWqZnzvEfJKO+JOf3Kbr1/48Zu6O1qPeKmEHesAyR3uw==
   dependencies:
     "@rollup/plugin-node-resolve" "7.1.1"
     consola "2.11.3"
@@ -3578,6 +3578,7 @@ bob-the-bundler@1.0.2:
     globby "11.0.0"
     lodash.get "4.4.2"
     minimatch "3.0.4"
+    mkdirp "1.0.4"
     p-limit "2.2.2"
     rollup "2.3.2"
     rollup-plugin-auto-external "2.0.0"
@@ -9337,7 +9338,7 @@ mixin-object@^2.0.1:
     for-in "^0.1.3"
     is-extendable "^0.1.1"
 
-mkdirp@1.x:
+mkdirp@1.0.4, mkdirp@1.x:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/mkdirp/-/mkdirp-1.0.4.tgz#3eb5ed62622756d79a5f0e2a221dfebad75c2f7e"
   integrity sha512-vVqVZQyf3WLx2Shd0qJ9xuvqgAyKPLAiqITEtqW0oIUjzo3PePDd6fW9iFz30ef7Ysp/oiWqbhszeGWW2T6Gzw==
