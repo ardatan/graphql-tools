@@ -214,7 +214,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
   async getSubschemaConfig(pointer: SchemaPointerSingle, options: LoadFromUrlOptions) {
     const { executor, subscriber } = await this.getExecutorAndSubscriber(pointer, options);
     return {
-      schema: await introspectSchema(executor),
+      schema: await introspectSchema(executor, undefined, options as IntrospectionOptions),
       executor,
       subscriber,
     };

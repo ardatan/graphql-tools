@@ -110,6 +110,16 @@ type CustomQuery {
       expect(headers.c).toContain(`3`);
     });
 
+    it('Should utilize extra introspection options', async () => {
+      const server = mockGraphQLServer({schema: testSchema, host: testHost, path: testPath});
+      const source = await loader.load(testUrl, { descriptions: false });
+
+      server.done();
+
+      expect(source).toBeDefined();
+      expect(source.schema.getQueryType().description).toBeUndefined();
+    });
+
     it('Absolute file path should not be accepted as URL', async () => {
       expect(await loader.canLoad(cwd(), {})).toBeFalsy();
     });
