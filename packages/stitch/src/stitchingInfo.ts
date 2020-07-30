@@ -21,7 +21,7 @@ import {
 } from '@graphql-tools/utils';
 
 import { delegateToSchema, isSubschemaConfig, SubschemaConfig } from '@graphql-tools/delegate';
-import { createBatchDelegateFn } from '@graphql-tools/batch-delegate';
+import { batchDelegateToSchema } from '@graphql-tools/batch-delegate';
 
 import { MergeTypeCandidate, MergedTypeInfo, StitchingInfo, MergeTypeFilter } from './types';
 
@@ -120,26 +120,18 @@ function createMergedTypes(
           if (mergedTypeConfig.resolve != null) {
             targetSubschemas.push(subschema);
           } else if (mergedTypeConfig.key != null) {
-            const batchDelegateToSubschema = createBatchDelegateFn(
-              mergedTypeConfig.args,
-              ({ schema, selectionSet, context, info }) => ({
-                schema,
+            mergedTypeConfig.resolve = (originalResult, context, info, subschema, selectionSet) =>
+              batchDelegateToSchema({
+                schema: subschema,
                 operation: 'query',
                 fieldName: mergedTypeConfig.fieldName,
+                argsFn: mergedTypeConfig.argsFn ?? mergedTypeConfig.args,
+                resultsFn: mergedTypeConfig.resultsFn,
+                key: mergedTypeConfig.key(originalResult),
                 selectionSet,
                 context,
                 info,
                 skipTypeMerging: true,
-              })
-            );
-
-            mergedTypeConfig.resolve = (originalResult, context, info, subschema, selectionSet) =>
-              batchDelegateToSubschema({
-                key: mergedTypeConfig.key(originalResult),
-                schema: subschema,
-                context,
-                info,
-                selectionSet,
               });
 
             targetSubschemas.push(subschema);
