@@ -137,7 +137,9 @@ export function delegateRequest({
     context,
     info,
     returnType:
-      returnType ?? info?.returnType ?? getDelegationReturnType(targetSchema, targetOperation, targetFieldName),
+      returnType ??
+      info?.returnType ??
+      getDelegationReturnType(transformedSchema ?? targetSchema, targetOperation, targetFieldName),
     transforms: allTransforms,
     transformedSchema: transformedSchema ?? targetSchema,
     skipTypeMerging,
