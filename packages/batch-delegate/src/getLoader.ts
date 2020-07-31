@@ -1,5 +1,3 @@
-import { getNamedType, GraphQLOutputType, GraphQLList } from 'graphql';
-
 import DataLoader from 'dataloader';
 
 import { delegateToSchema } from '@graphql-tools/delegate';
@@ -13,11 +11,17 @@ function createBatchFn<K = any>(options: BatchDelegateOptions) {
   const { mapResultsFn, optionsFn } = options;
 
   return async (keys: ReadonlyArray<K>) => {
-    let results = await delegateToSchema({
-      returnType: new GraphQLList(getNamedType(options.info.returnType) as GraphQLOutputType),
+    const delegateOptions = {
       args: mapKeysFn(keys),
       ...(optionsFn != null ? optionsFn(options) : options),
-    });
+    };
+
+    delegateOptions.info = {
+      ...delegateOptions.info,
+      returnType: undefined,
+    };
+
+    let results = await delegateToSchema(delegateOptions);
 
     if (mapResultsFn != null) {
       results = mapResultsFn(results, keys);
