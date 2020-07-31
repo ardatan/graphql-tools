@@ -509,9 +509,12 @@ The `merge` property on the `SubschemaConfig` object determines how types are me
 ```ts
 export interface MergedTypeConfig {
   selectionSet?: string;
+  resolve?: MergedTypeResolver;
   fieldName?: string;
   args?: (originalResult: any) => Record<string, any>;
-  resolve?: MergedTypeResolver;
+  key?: (originalResult: any) => K;
+  mapKeysFn?: (keys: ReadonlyArray<K>) => Record<string, any>;
+  mapResultsFn?: (results: any, keys: ReadonlyArray<K>) => Array<V>;
 }
 
 export type MergedTypeResolver = (
@@ -527,7 +530,9 @@ Type merging simply merges types with the same name, but is smart enough to appl
 
 All merged types returned by any subschema will delegate as necessary to subschemas also implementing the type, using the provided `resolve` function of type `MergedTypeResolver`.
 
-The simplified magic above happens because if left unspecified, we provide a default type-merging resolver for you, which uses the other `MergedTypeConfig` options, as follows:
+You can also use batch delegation instead of simple delegation by delegating to a root field returning a list and using the `key`, `mapKeysFn`, and `mapResultsFn` properties. See the [batch delegation](#batch-delegation) for more details.
+
+The simplified magic above happens because if left unspecified, we provide a default type-merging resolver for you, which uses the other `MergedTypeConfig` options (for simple delegation), as follows:
 
 ```js
 mergedTypeConfig.resolve = (originalResult, context, info, schemaOrSubschemaConfig, selectionSet) =>
