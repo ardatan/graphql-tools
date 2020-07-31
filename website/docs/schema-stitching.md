@@ -324,7 +324,7 @@ Batch delegation may be preferable over plain delegation whenever possible, as i
 
 ## Using with Transforms
 
-Often, when creating a GraphQL gateway that combines multiple existing schemas, we might want to modify one of the schemas. The most common tasks include renaming some of the types, and filtering the root fields. By using [transforms](/docs/schema-transforms/) with schema stitching, we can easily tweak the subschemas before merging them together. (In earlier versions of graphql-tools, this required an additional round of delegation prior to merging, but transforms can now be specifying directly when merging using the new subschema configuration objects.)
+Often, when creating a GraphQL gateway that combines multiple existing schemas, we might want to modify one of the schemas. The most common tasks include renaming some of the types, and filtering the root fields. By using [transforms](/docs/schema-wrapping) with schema stitching, we can easily tweak the subschemas before merging them together. (In earlier versions of graphql-tools, this required an additional round of delegation prior to merging, but transforms can now be specifying directly when merging using the new subschema configuration objects.)
 
 For example, suppose we transform the `chirpSchema` by removing the `chirpsByAuthorId` field and add a `Chirp_` prefix to all types and field names, in order to make it very clear which types and fields came from `chirpSchema`:
 
@@ -509,9 +509,12 @@ The `merge` property on the `SubschemaConfig` object determines how types are me
 ```ts
 export interface MergedTypeConfig {
   selectionSet?: string;
+  resolve?: MergedTypeResolver;
   fieldName?: string;
   args?: (originalResult: any) => Record<string, any>;
-  resolve?: MergedTypeResolver;
+  key?: (originalResult: any) => K;
+  mapKeysFn?: (keys: ReadonlyArray<K>) => Record<string, any>;
+  mapResultsFn?: (results: any, keys: ReadonlyArray<K>) => Array<V>;
 }
 
 export type MergedTypeResolver = (
@@ -527,7 +530,9 @@ Type merging simply merges types with the same name, but is smart enough to appl
 
 All merged types returned by any subschema will delegate as necessary to subschemas also implementing the type, using the provided `resolve` function of type `MergedTypeResolver`.
 
-The simplified magic above happens because if left unspecified, we provide a default type-merging resolver for you, which uses the other `MergedTypeConfig` options, as follows:
+You can also use batch delegation instead of simple delegation by delegating to a root field returning a list and using the `key`, `mapKeysFn`, and `mapResultsFn` properties. See the [batch delegation](#batch-delegation) for more details.
+
+The simplified magic above happens because if left unspecified, we provide a default type-merging resolver for you, which uses the other `MergedTypeConfig` options (for simple delegation), as follows:
 
 ```js
 mergedTypeConfig.resolve = (originalResult, context, info, schemaOrSubschemaConfig, selectionSet) =>
