@@ -2,10 +2,8 @@ import { BatchDelegateOptions } from './types';
 
 import { getLoader } from './getLoader';
 
-const emptyKeys = [null, undefined];
-
 export function batchDelegateToSchema(options: BatchDelegateOptions): any {
-  if (emptyKeys.includes(options.key)) {
+  if (options.key === undefined || options.key === null) {
     return null;
   } else if (Array.isArray(options.key) && !options.key.length) {
     return [];
