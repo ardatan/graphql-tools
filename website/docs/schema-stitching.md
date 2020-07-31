@@ -240,6 +240,88 @@ forwardArgsToSelectionSet('{ id chirpIds }', { chirpIds: ['since'] })
 
 Note that a dynamic `selectionSet` is simply a function that recieves a GraphQL `FieldNode` (the gateway field) and returns a `SelectionSetNode`. This dynamic capability can support a wide range of custom stitching configurations.
 
+### Batch Delegation
+
+Suppose there was an additional root field within the schema for chirps called `trendingChirps` that returned a list of the current most popular chirps, as well as an additonal field on the `Chirp` type called `chirpedAtUserId` that described the target of an individual chirp. Imagine as well that we used the above stitching strategy to add an additional new field on the `Chirp` type called `chirpedAtUser` so that we could write the following query:
+
+```graphql
+query {
+  trendingChirps {
+    id
+    text
+    chirpedAtUser {
+      id
+      email
+    }
+  }
+}
+```
+
+The implementation could be something like this:
+
+```js
+const schema = stitchSchemas({
+  subschemas: [chirpSchema, authorSchema],
+  typeDefs: linkTypeDefs,
+  resolvers: {
+    // ...
+    Chirp: {
+      chirpedAtUser: {
+        selectionSet: `{ chirpedAtUserId }`,
+        resolve(chirp, _args, context, info) {
+          return delegateToSchema({
+            schema: authorSchema,
+            operation: 'query',
+            fieldName: 'userById',
+            args: {
+              id: chirp.chirpedAtUserId,
+            },
+            context,
+            info,
+          });
+        },
+      },
+    },
+    // ...
+  },
+});
+```
+
+The above query as written would cause the gateway to fire an additional query to our author schema for each trending chirp, with the exact same arguments and selection set!
+
+Imagine, however, that the author schema had an additional root field `usersByIds` besides just `userById`. Because we know that for each member of a list, the arguments and selection set will always match, we can utilize batch delegation using the [DataLoader](https://www.npmjs.com/package/dataloader) pattern to combine the individual queries from the gateway into one batch to the `userByIds` root field instead of `userById`. The implementation would look very similar:
+
+```js
+const { batchDelegateToSchema } from '@graphql-tools/batchDelegate';
+
+const schema = stitchSchemas({
+  subschemas: [chirpSchema, authorSchema],
+  typeDefs: linkTypeDefs,
+  resolvers: {
+    // ...
+    Chirp: {
+      chirpedAtUser: {
+        selectionSet: `{ chirpedAtUserId }`,
+        resolve(chirp, _args, context, info) {
+          return batchDelegateToSchema({
+            schema: authorSchema,
+            operation: 'query',
+            fieldName: 'usersByIds',
+            key: chirp.chirpedAtUserId,
+            mapKeysFn: (ids) => ({ ids }),
+            context,
+            info,
+          });
+        },
+      },
+    },
+    // ...
+  },
+});
+```
+
+Batch delegation may be preferable over plain delegation whenever possible, as it reduces the number of requests significantly whenever the parent object type appears in a list!
+
 ## Using with Transforms
 
 Often, when creating a GraphQL gateway that combines multiple existing schemas, we might want to modify one of the schemas. The most common tasks include renaming some of the types, and filtering the root fields. By using [transforms](/docs/schema-transforms/) with schema stitching, we can easily tweak the subschemas before merging them together. (In earlier versions of graphql-tools, this required an additional round of delegation prior to merging, but transforms can now be specifying directly when merging using the new subschema configuration objects.)

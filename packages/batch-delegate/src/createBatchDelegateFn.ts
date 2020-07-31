@@ -4,34 +4,31 @@ import {
   CreateBatchDelegateFnOptions,
   BatchDelegateOptionsFn,
   BatchDelegateFn,
-  BatchDelegateArgsFn,
-  BatchDelegateResultsFn,
-  DataLoaderCache,
+  BatchDelegateMapKeysFn,
+  BatchDelegateMapResultsFn,
 } from './types';
 
 import { getLoader } from './getLoader';
 
 export function createBatchDelegateFn<K = any, V = any, C = K>(
-  optionsOrArgsFn: CreateBatchDelegateFnOptions | BatchDelegateArgsFn,
+  optionsOrMapKeysFn: CreateBatchDelegateFnOptions | BatchDelegateMapKeysFn,
   optionsFn?: BatchDelegateOptionsFn,
   dataLoaderOptions?: DataLoader.Options<K, V, C>,
-  resultsFn?: BatchDelegateResultsFn
+  mapResultsFn?: BatchDelegateMapResultsFn
 ): BatchDelegateFn<K> {
-  return typeof optionsOrArgsFn === 'function'
+  return typeof optionsOrMapKeysFn === 'function'
     ? createBatchDelegateFnImpl({
-        argsFn: optionsOrArgsFn,
+        mapKeysFn: optionsOrMapKeysFn,
         optionsFn,
         dataLoaderOptions,
-        resultsFn,
+        mapResultsFn,
       })
-    : createBatchDelegateFnImpl(optionsOrArgsFn);
+    : createBatchDelegateFnImpl(optionsOrMapKeysFn);
 }
 
-function createBatchDelegateFnImpl<K = any, V = any, C = K>(options: CreateBatchDelegateFnOptions): BatchDelegateFn<K> {
-  let cache: DataLoaderCache<K, V, C>;
-
+function createBatchDelegateFnImpl<K = any>(options: CreateBatchDelegateFnOptions): BatchDelegateFn<K> {
   return batchDelegateOptions => {
-    const loader = getLoader(cache, {
+    const loader = getLoader({
       ...options,
       ...batchDelegateOptions,
     });

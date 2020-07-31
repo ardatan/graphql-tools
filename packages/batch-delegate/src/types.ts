@@ -14,31 +14,23 @@ export type BatchDelegateOptionsFn<TContext = Record<string, any>, K = any> = (
   batchDelegateOptions: BatchDelegateOptions<TContext, K>
 ) => IDelegateToSchemaOptions<TContext>;
 
-export type BatchDelegateArgsFn<K = any> = (keys: ReadonlyArray<K>) => Record<string, any>;
+export type BatchDelegateMapKeysFn<K = any> = (keys: ReadonlyArray<K>) => Record<string, any>;
 
-export type BatchDelegateResultsFn<K = any, V = any> = (results: any, keys: ReadonlyArray<K>) => Array<V>;
+export type BatchDelegateMapResultsFn<K = any, V = any> = (results: any, keys: ReadonlyArray<K>) => Array<V>;
 
 export interface BatchDelegateOptions<TContext = Record<string, any>, K = any, V = any, C = K>
   extends Omit<IDelegateToSchemaOptions<TContext>, 'args'> {
-  key: K;
-  argsFn?: BatchDelegateArgsFn;
-  optionsFn?: BatchDelegateOptionsFn;
   dataLoaderOptions?: DataLoader.Options<K, V, C>;
-  resultsFn?: BatchDelegateResultsFn;
+  key: K;
+  mapKeysFn?: BatchDelegateMapKeysFn;
+  mapResultsFn?: BatchDelegateMapResultsFn;
+  optionsFn?: BatchDelegateOptionsFn;
 }
 
 export interface CreateBatchDelegateFnOptions<TContext = Record<string, any>, K = any, V = any, C = K>
   extends Partial<Omit<IDelegateToSchemaOptions<TContext>, 'args' | 'info'>> {
   dataLoaderOptions?: DataLoader.Options<K, V, C>;
-  argsFn?: BatchDelegateArgsFn;
-  resultsFn?: BatchDelegateResultsFn;
-  optionsFn?: BatchDelegateOptionsFn;
-}
-
-export interface BatchDelegateToSchema<TContext = Record<string, any>, K = any, V = any, C = K>
-  extends Omit<IDelegateToSchemaOptions<TContext>, 'schema' | 'args'> {
-  dataLoaderOptions?: DataLoader.Options<K, V, C>;
-  argsFn?: BatchDelegateArgsFn;
-  resultsFn?: BatchDelegateResultsFn;
+  mapKeysFn?: BatchDelegateMapKeysFn;
+  mapResultsFn?: BatchDelegateMapResultsFn;
   optionsFn?: BatchDelegateOptionsFn;
 }
