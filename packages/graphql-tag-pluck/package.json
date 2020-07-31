@@ -17,7 +17,7 @@
   "dependencies": {
     "@babel/parser": "7.10.5",
     "@babel/traverse": "7.10.5",
-    "@babel/types": "7.10.5",
+    "@babel/types": "7.11.0",
     "@graphql-tools/utils": "6.0.15"
   },
   "optionalDependencies": {
