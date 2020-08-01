@@ -3,11 +3,12 @@ import { BatchDelegateOptions } from './types';
 import { getLoader } from './getLoader';
 
 export function batchDelegateToSchema(options: BatchDelegateOptions): any {
-  if (options.key === undefined || options.key === null) {
+  const key = options.key;
+  if (key == null) {
     return null;
-  } else if (Array.isArray(options.key) && !options.key.length) {
+  } else if (Array.isArray(key) && !key.length) {
     return [];
   }
   const loader = getLoader(options);
-  return Array.isArray(options.key) ? loader.loadMany(options.key) : loader.load(options.key);
+  return Array.isArray(key) ? loader.loadMany(key) : loader.load(key);
 }
