@@ -1,6 +1,6 @@
 ---
 id: stitch-schema-transforms
-title: Schema transforms
+title: Transforming stitched schemas
 sidebar_label: Schema transforms
 ---
 

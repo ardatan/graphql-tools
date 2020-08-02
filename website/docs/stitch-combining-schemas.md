@@ -95,7 +95,7 @@ export interface SubschemaConfig {
 }
 ```
 
-Subschema config should be directly provided as many settings as possible to avoid unnecessary layers of delegation. For example, while you _could_ use `wrapSchema` to pre-bundle a schema with transforms and an executor, that would be far less efficient than providing the `schema`, `transforms`, and `executor` options directly to subschema config.
+Subschema config should be provided as many settings as possible (directly) to avoid unnecessary layers of delegation. For example, while you _could_ use `wrapSchema` to pre-bundle a schema with transforms and an executor, that would be far less efficient than providing the `schema`, `transforms`, and `executor` options directly to subschema config.
 
 Also note that your original subschema config objects will need to be referenced while setting up more advanced stitching features. With that in mind, you'll probably want to export your subschema configs from their module(s) so they may be referenced throughout your app.
 
@@ -106,7 +106,7 @@ Also note that your original subschema config objects will need to be referenced
 
 ## Stitching in remote schemas
 
-To include a remote schema, we'll need to provide subservice config settings for&mdash;at minimum&mdash;a _non-executable_ schema and an executor that connects to the remote API:
+To include a remote schema, we'll need to provide subschema config settings for&mdash;at minimum&mdash;a _non-executable_ schema and an executor that connects to the remote API:
 
 ```js
 import { buildSchema } from 'graphql';
@@ -120,6 +120,6 @@ export const chirpSubschema = {
 
 The remote schema's definition string may be obtained via introspection (see `introspectSchema`) or through your own internal protocol.
 
-An executor is a generic method of connecting to a schema. You may write your own, or use the `linkToExecutor` helper to wrap a link package such as [apollo-link-http](https://www.apollographql.com/docs/link/links/http/). Subschema config accepts an `executor` option for query and mutation operations, and a `subscriber` function for subscription operations. See the [remote schema](/docs/remote-schemas/) docs for further description of the options available.
+An executor is a generic method of connecting to a schema. You may write your own, or use the `linkToExecutor` helper to wrap a link package such as [apollo-link-http](https://www.apollographql.com/docs/link/links/http/). Subschema config accepts an `executor` option for query and mutation operations, and a `subscriber` function for subscription operations. See the [remote schema](/docs/remote-schemas/) docs for more information.
 
-_**For pre-version 5:** the old method of using [makeRemoteExecutableSchema](/docs/remote-schemas/) to create a local proxy of the remote schema still works. However, it adds an additional round of delegation that can be avoided by sending settings directly to `stitchSchemas` via Subschema Config._
+_**For pre-version 5:** the old method of using [makeRemoteExecutableSchema](/docs/remote-schemas/) to create a local proxy of the remote schema still works. However, it adds an additional layer of delegation that can be avoided by sending settings directly to `stitchSchemas` via SubschemaConfig._

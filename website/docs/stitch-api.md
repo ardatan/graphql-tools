@@ -1,7 +1,7 @@
 ---
 id: stitch-api
-title: Stitching methods API
-description: Stitching methods API
+title: Stitching API
+description: Stitching API
 ---
 
 ## API
