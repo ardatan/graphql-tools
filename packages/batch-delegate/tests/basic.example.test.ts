@@ -65,7 +65,7 @@ describe('batch delegation within basic stitching example', () => {
                 operation: 'query',
                 fieldName: 'usersByIds',
                 key: chirp.chirpedAtUserId,
-                mapKeysFn: (ids) => ({ ids }),
+                argsFromKeys: (ids) => ({ ids }),
                 context,
                 info,
               });

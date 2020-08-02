@@ -137,8 +137,8 @@ export interface MergedTypeConfig<K = any, V = any> {
   fieldName?: string;
   args?: (originalResult: any) => Record<string, any>;
   key?: (originalResult: any) => K;
-  mapKeysFn?: (keys: ReadonlyArray<K>) => Record<string, any>;
-  mapResultsFn?: (results: any, keys: ReadonlyArray<K>) => Array<V>;
+  argsFromKeys?: (keys: ReadonlyArray<K>) => Record<string, any>;
+  valuesFromResults?: (results: any, keys: ReadonlyArray<K>) => Array<V>;
 }
 
 export type MergedTypeResolver = (

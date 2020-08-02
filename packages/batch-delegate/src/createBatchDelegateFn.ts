@@ -1,29 +1,23 @@
 import DataLoader from 'dataloader';
 
-import {
-  CreateBatchDelegateFnOptions,
-  BatchDelegateOptionsFn,
-  BatchDelegateFn,
-  BatchDelegateMapKeysFn,
-  BatchDelegateMapResultsFn,
-} from './types';
+import { CreateBatchDelegateFnOptions, BatchDelegateOptionsFn, BatchDelegateFn } from './types';
 
 import { getLoader } from './getLoader';
 
 export function createBatchDelegateFn<K = any, V = any, C = K>(
-  optionsOrMapKeysFn: CreateBatchDelegateFnOptions | BatchDelegateMapKeysFn,
-  optionsFn?: BatchDelegateOptionsFn,
+  optionsOrArgsFromKeys: CreateBatchDelegateFnOptions | ((keys: ReadonlyArray<K>) => Record<string, any>),
+  lazyOptionsFn?: BatchDelegateOptionsFn,
   dataLoaderOptions?: DataLoader.Options<K, V, C>,
-  mapResultsFn?: BatchDelegateMapResultsFn
+  valuesFromResults?: (results: any, keys: ReadonlyArray<K>) => Array<V>
 ): BatchDelegateFn<K> {
-  return typeof optionsOrMapKeysFn === 'function'
+  return typeof optionsOrArgsFromKeys === 'function'
     ? createBatchDelegateFnImpl({
-        mapKeysFn: optionsOrMapKeysFn,
-        optionsFn,
+        argsFromKeys: optionsOrArgsFromKeys,
+        lazyOptionsFn,
         dataLoaderOptions,
-        mapResultsFn,
+        valuesFromResults,
       })
-    : createBatchDelegateFnImpl(optionsOrMapKeysFn);
+    : createBatchDelegateFnImpl(optionsOrArgsFromKeys);
 }
 
 function createBatchDelegateFnImpl<K = any>(options: CreateBatchDelegateFnOptions): BatchDelegateFn<K> {

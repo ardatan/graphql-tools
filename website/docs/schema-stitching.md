@@ -308,7 +308,7 @@ const schema = stitchSchemas({
             operation: 'query',
             fieldName: 'usersByIds',
             key: chirp.chirpedAtUserId,
-            mapKeysFn: (ids) => ({ ids }),
+            argsFromKeys: (ids) => ({ ids }),
             context,
             info,
           });
@@ -513,8 +513,8 @@ export interface MergedTypeConfig {
   fieldName?: string;
   args?: (originalResult: any) => Record<string, any>;
   key?: (originalResult: any) => K;
-  mapKeysFn?: (keys: ReadonlyArray<K>) => Record<string, any>;
-  mapResultsFn?: (results: any, keys: ReadonlyArray<K>) => Array<V>;
+  argsFromKeys?: (keys: ReadonlyArray<K>) => Record<string, any>;
+  valuesFromResults?: (results: any, keys: ReadonlyArray<K>) => Array<V>;
 }
 
 export type MergedTypeResolver = (
@@ -530,7 +530,7 @@ Type merging simply merges types with the same name, but is smart enough to appl
 
 All merged types returned by any subschema will delegate as necessary to subschemas also implementing the type, using the provided `resolve` function of type `MergedTypeResolver`.
 
-You can also use batch delegation instead of simple delegation by delegating to a root field returning a list and using the `key`, `mapKeysFn`, and `mapResultsFn` properties. See the [batch delegation](#batch-delegation) for more details.
+You can also use batch delegation instead of simple delegation by delegating to a root field returning a list and using the `key`, `argsFromKeys`, and `valuesFromResults` properties. See the [batch delegation](#batch-delegation) for more details.
 
 The simplified magic above happens because if left unspecified, we provide a default type-merging resolver for you, which uses the other `MergedTypeConfig` options (for simple delegation), as follows:
 
