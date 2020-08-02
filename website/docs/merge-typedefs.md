@@ -80,11 +80,9 @@ There are two ways you can use this package:
 
 ### Manually import each type
 
-If you decide to have manual control of each file that gets merged, all you need is the `mergeTypeDefs(types)` function from `@graphql-tools/merge` package.
+If you decide to have manual control of each file that gets merged, all you need is the `mergeTypeDefs(types)` function from `@graphql-tools/merge` package:
 
-Ability to merge a GQL Type defined multiple times in separate files. Will throw an error when fieldDefintitons have conflicting values defined. See [PR #118](https://github.com/okgrow/merge-graphql-schemas/pull/118) for more details.
 ```js
-// ./graphql/types/index.js
 const { mergeTypeDefs } = require('@graphql-tools/merge');
 const clientType = require('./clientType');
 const productType = require('./productType');
@@ -94,11 +92,10 @@ const types = [
   productType,
 ];
 
-// NOTE: 2nd param is optional, and defaults to false
-// Only use if you have defined the same type multiple times in
-// different files and wish to attempt merging them together.
-module.exports = mergeTypeDefs(types, { all: true });
+module.exports = mergeTypeDefs(types);
 ```
+
+See [`mergeTypeDefs`](https://www.graphql-tools.com/docs/api/modules/merge/#mergetypedefs) for more details.
 
 ### Import everything from a specified folder
 
