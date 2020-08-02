@@ -9,21 +9,19 @@ import { BatchDelegateOptions, DataLoaderCache } from './types';
 const cache: DataLoaderCache = new WeakMap();
 
 function createBatchFn<K = any>(options: BatchDelegateOptions) {
-  const mapKeysFn = options.mapKeysFn ?? ((keys: ReadonlyArray<K>) => ({ ids: keys }));
-  const { mapResultsFn, optionsFn } = options;
+  const argsFromKeys = options.argsFromKeys ?? ((keys: ReadonlyArray<K>) => ({ ids: keys }));
+  const { valuesFromResults, lazyOptionsFn } = options;
 
   return async (keys: ReadonlyArray<K>) => {
-    let results = await delegateToSchema({
+    const results = await delegateToSchema({
       returnType: new GraphQLList(getNamedType(options.info.returnType) as GraphQLOutputType),
-      args: mapKeysFn(keys),
-      ...(optionsFn != null ? optionsFn(options) : options),
+      args: argsFromKeys(keys),
+      ...(lazyOptionsFn == null ? options : lazyOptionsFn(options)),
     });
 
-    if (mapResultsFn != null) {
-      results = mapResultsFn(results, keys);
-    }
+    const values = valuesFromResults == null ? results : valuesFromResults(results, keys);
 
-    return Array.isArray(results) ? results : keys.map(() => results);
+    return Array.isArray(values) ? values : keys.map(() => values);
   };
 }
 
