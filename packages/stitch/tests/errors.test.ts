@@ -38,6 +38,7 @@ describe('passes along errors for missing fields on list', () => {
     const originalResult = await graphql(schema, query);
     const stitchedResult = await graphql(stitchedSchema, query);
     expect(stitchedResult).toEqual(originalResult);
+    expect(stitchedResult.errors[0].path).toEqual(originalResult.errors[0].path);
   });
 
   test('even if nullable', async () => {
@@ -72,6 +73,7 @@ describe('passes along errors for missing fields on list', () => {
     const originalResult = await graphql(schema, query);
     const stitchedResult = await graphql(stitchedSchema, query);
     expect(stitchedResult).toEqual(originalResult);
+    expect(stitchedResult.errors[0].path).toEqual(originalResult.errors[0].path);
   });
 });
 
@@ -108,6 +110,7 @@ describe('passes along errors when list field errors', () => {
     const originalResult = await graphql(schema, query);
     const stitchedResult = await graphql(stitchedSchema, query);
     expect(stitchedResult).toEqual(originalResult);
+    expect(stitchedResult.errors[0].path).toEqual(originalResult.errors[0].path);
   });
 
   test('even if nullable', async () => {
@@ -142,6 +145,38 @@ describe('passes along errors when list field errors', () => {
     const originalResult = await graphql(schema, query);
     const stitchedResult = await graphql(stitchedSchema, query);
     expect(stitchedResult).toEqual(originalResult);
+    expect(stitchedResult.errors[0].path).toEqual(originalResult.errors[0].path);
+  });
+
+  describe('passes along correct error when there are two non-null fields', () => {
+    test('should work', async () => {
+      const schema = makeExecutableSchema({
+        typeDefs: `
+          type Query {
+            getBoth: Both
+          }
+          type Both {
+            mandatoryField1: String!
+            mandatoryField2: String!
+          }
+        `,
+        resolvers: {
+          Query: {
+            getBoth: () => ({ mandatoryField1: 'test' }),
+          },
+        },
+      });
+
+      const stitchedSchema = stitchSchemas({
+        subschemas: [schema],
+      });
+
+      const query = '{ getBoth { mandatoryField1 mandatoryField2 } }';
+      const originalResult = await graphql(schema, query);
+      const stitchedResult = await graphql(stitchedSchema, query);
+      expect(stitchedResult).toEqual(originalResult);
+      expect(stitchedResult.errors[0].path).toEqual(originalResult.errors[0].path);
+    });
   });
 });
 

@@ -1,18 +1,51 @@
-import { mergeDeep, ERROR_SYMBOL } from '@graphql-tools/utils';
+import { GraphQLError, GraphQLResolveInfo, responsePathAsArray, SelectionSetNode, GraphQLObjectType } from 'graphql';
+
+import {
+  mergeDeep,
+  ERROR_SYMBOL,
+  extendedError,
+  collectFields,
+  GraphQLExecutionContext,
+  relocatedError,
+} from '@graphql-tools/utils';
 
 import { SubschemaConfig } from '../types';
 import { OBJECT_SUBSCHEMA_SYMBOL, FIELD_SUBSCHEMA_MAP_SYMBOL } from '../symbols';
 
-export function mergeProxiedResults(target: any, ...sources: Array<any>): any {
+export function mergeProxiedResults(
+  info: GraphQLResolveInfo,
+  target: any,
+  sources: Array<any>,
+  selectionSets: Array<SelectionSetNode>
+): any {
   const results: Array<any> = [];
-  const errors: Array<Error> = [];
+  let errors: Array<GraphQLError> = [];
 
-  sources.forEach(source => {
-    if (source instanceof Error) {
-      errors.push(source);
+  const path = responsePathAsArray(info.path);
+
+  sources.forEach((source, index) => {
+    if (source instanceof GraphQLError) {
+      const selectionSet = selectionSets[index];
+      const fieldNodes = collectFields(
+        {
+          schema: info.schema,
+          variableValues: {},
+          fragments: {},
+        } as GraphQLExecutionContext,
+        info.schema.getType(target.__typename) as GraphQLObjectType,
+        selectionSet,
+        Object.create(null),
+        Object.create(null)
+      );
+      const nullResult = {};
+      Object.keys(fieldNodes).forEach(responseKey => {
+        errors.push(relocatedError(source, [responseKey]));
+        nullResult[responseKey] = null;
+      });
+      results.push(nullResult);
     } else {
+      errors = errors.concat(source[ERROR_SYMBOL]);
       results.push(source);
-      errors.push(source[ERROR_SYMBOL]);
     }
   });
 
@@ -29,7 +62,14 @@ export function mergeProxiedResults(target: any, ...sources: Array<any>): any {
     ? Object.assign({}, target[FIELD_SUBSCHEMA_MAP_SYMBOL], fieldSubschemaMap)
     : fieldSubschemaMap;
 
-  result[ERROR_SYMBOL] = target[ERROR_SYMBOL].concat(...errors);
+  const annotatedErrors = errors.map(error => {
+    return extendedError(error, {
+      ...error.extensions,
+      graphQLToolsMergedPath: error.path != null ? [...path, ...error.path] : responsePathAsArray(info.path),
+    });
+  });
+
+  result[ERROR_SYMBOL] = target[ERROR_SYMBOL].concat(annotatedErrors);
 
   return result;
 }
