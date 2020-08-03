@@ -1,6 +1,13 @@
 import { GraphQLError } from 'graphql';
 
-import { IFieldResolver, getErrors, setErrors, relocatedError, ERROR_SYMBOL } from '@graphql-tools/utils';
+import {
+  IFieldResolver,
+  getErrors,
+  setErrors,
+  relocatedError,
+  ERROR_SYMBOL,
+  extendedError,
+} from '@graphql-tools/utils';
 
 import { OBJECT_SUBSCHEMA_SYMBOL } from './symbols';
 
@@ -54,7 +61,15 @@ function dehoistResult(parent: any, delimeter = '__gqltf__'): any {
       const path = error.path.slice();
       const pathSegment = path.shift();
       const expandedPathSegment: Array<string | number> = (pathSegment as string).split(delimeter);
-      return relocatedError(error, expandedPathSegment.concat(path));
+      const newPath = expandedPathSegment.concat(path);
+      const graphQLToolsMergedPath = error.extensions.graphQLToolsMergedPath;
+      let newGraphQLToolsMergedPath = graphQLToolsMergedPath.slice();
+      newGraphQLToolsMergedPath.pop();
+      newGraphQLToolsMergedPath = newGraphQLToolsMergedPath.concat(newPath);
+      return extendedError(relocatedError(error, newPath), {
+        ...error.extensions,
+        graphQLToolsMergedPath: newGraphQLToolsMergedPath,
+      });
     }
 
     return error;
