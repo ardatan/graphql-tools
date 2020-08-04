@@ -336,6 +336,9 @@ function mergeMocks(genericMockFunction: () => any, customMock: any): any {
   if (Array.isArray(customMock)) {
     return customMock.map((el: any) => mergeMocks(genericMockFunction, el));
   }
+  if (customMock instanceof Promise) {
+    return customMock.then((res: any) => mergeObjects(genericMockFunction(), res));
+  }
   if (isObject(customMock)) {
     return mergeObjects(genericMockFunction(), customMock);
   }
