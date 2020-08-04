@@ -1134,7 +1134,7 @@ describe('@directives', () => {
     });
   });
 
-  test('allows creation of types that reference other types', async () => {
+  test('allows creation of types that reference other types (issue #1877)', async () => {
     function listWrapperTransformer(schema: GraphQLSchema) {
       const listWrapperTypes = new Map();
       return mapSchema(schema, {
