@@ -41,10 +41,14 @@ export function rewireTypes(
   typeMap: TypeMap;
   directives: Array<GraphQLDirective>;
 } {
+  const referenceTypeMap = Object.create(null);
+  Object.keys(originalTypeMap).forEach(typeName => {
+    referenceTypeMap[typeName] = originalTypeMap[typeName];
+  });
   const newTypeMap: TypeMap = Object.create(null);
 
-  Object.keys(originalTypeMap).forEach(typeName => {
-    const namedType = originalTypeMap[typeName];
+  Object.keys(referenceTypeMap).forEach(typeName => {
+    const namedType = referenceTypeMap[typeName];
 
     if (namedType == null || typeName.startsWith('__')) {
       return;
@@ -194,10 +198,10 @@ export function rewireTypes(
       const rewiredType = rewireType(type.ofType);
       return rewiredType != null ? (new GraphQLNonNull(rewiredType) as T) : null;
     } else if (isNamedType(type)) {
-      let rewiredType = originalTypeMap[type.name];
+      let rewiredType = referenceTypeMap[type.name];
       if (rewiredType === undefined) {
-        rewiredType = isNamedStub(type) ? getBuiltInForStub(type) : type;
-        newTypeMap[rewiredType.name] = rewiredType;
+        rewiredType = isNamedStub(type) ? getBuiltInForStub(type) : rewireNamedType(type);
+        newTypeMap[rewiredType.name] = referenceTypeMap[type.name] = rewiredType;
       }
       return rewiredType != null ? (newTypeMap[rewiredType.name] as T) : null;
     }
