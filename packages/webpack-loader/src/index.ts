@@ -8,7 +8,7 @@ function isSDL(doc: DocumentNode) {
   return !doc.definitions.some(def => isExecutableDefinitionNode(def));
 }
 
-interface Options {
+export interface Options {
   noDescription?: boolean;
   noEmptyNodes?: boolean;
   noLoc?: boolean;
