@@ -56,20 +56,28 @@ describe('merging using type merging', () => {
 
   const inventorySchema = makeExecutableSchema({
     typeDefs: `
+      scalar ProductRepresentation
       type Product {
         upc: String!
         inStock: Boolean
         shippingEstimate: Int
       }
       type Query {
-        _productByUpc(
-          upc: String!,
-          weight: Int,
-          price: Int
-        ): Product
+        _productByRepresentation(product: ProductRepresentation): Product
       }
     `,
     resolvers: {
+      ProductRepresentation: {
+        parse: (value) => {
+          if (value.__typename !== 'Product') {
+            throw new Error('Invalid Product representation.')
+          }
+          if (value.upc == null) {
+            throw new Error('Invalid Product upc.')
+          }
+          return value;
+        }
+      },
       Product: {
         shippingEstimate: product => {
           if (product.price > 1000) {
@@ -79,10 +87,12 @@ describe('merging using type merging', () => {
         }
       },
       Query: {
-        _productByUpc: (_root, { upc, ...fields }) => ({
-          ...inventory.find(product => product.upc === upc),
-          ...fields
-        }),
+        _productByRepresentation: (_root, { product: { upc, ...fields } }) => {
+          return {
+            ...inventory.find(product => product.upc === upc),
+            ...fields
+          };
+        },
       },
     },
   });
@@ -230,9 +240,9 @@ describe('merging using type merging', () => {
         schema: inventorySchema,
         merge: {
           Product: {
-            selectionSet: '{ upc weight price }',
-            fieldName: '_productByUpc',
-            args: ({ upc, weight, price }) => ({ upc, weight, price }),
+            selectionSet: '{ upc }',
+            fieldName: '_productByRepresentation',
+            args: ({ upc, weight, price }) => ({ product: { upc, weight, price } }),
           }
         }
       },
@@ -263,6 +273,13 @@ describe('merging using type merging', () => {
         }
       }],
     mergeTypes: true,
+    resolvers: {
+      Product: {
+        shippingEstimate: {
+          selectionSet: '{ weight price }'
+        }
+      }
+    }
   });
 
   test('can stitch from products to inventory schema', async () => {
