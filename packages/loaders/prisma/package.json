@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/prisma-loader",
-  "version": "6.0.15",
+  "version": "6.0.16",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": "git@github.com:ardatan/graphql-tools.git",
   "author": "Dotan Simha <dotansimha@gmail.com>",
@@ -16,8 +16,8 @@
     "graphql": "^14.0.0 || ^15.0.0"
   },
   "dependencies": {
-    "@graphql-tools/url-loader": "6.0.15",
-    "@graphql-tools/utils": "6.0.15",
+    "@graphql-tools/url-loader": "6.0.16",
+    "@graphql-tools/utils": "6.0.16",
     "@types/http-proxy-agent": "^2.0.2",
     "@types/js-yaml": "^3.12.5",
     "@types/json-stable-stringify": "^1.0.32",
