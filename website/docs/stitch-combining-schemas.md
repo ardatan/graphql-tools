@@ -1,6 +1,6 @@
 ---
 id: stitch-combining-schemas
-title: Combining many schemas into one
+title: Combining multiple schemas
 sidebar_label: Combining schemas
 ---
 
@@ -72,7 +72,6 @@ This process builds two GraphQL schemas, places them each into subschema configu
 ```graphql
 type Query {
   chirpById(id: ID!): Chirp
-  chirpsByAuthorId(authorId: ID!): [Chirp]
   userById(id: ID!): User
 }
 ```
@@ -104,7 +103,7 @@ Also note that your original subschema config objects will need to be referenced
 1. transforms should be specified on the subschema config object, avoiding creation of a new schema with a new round of delegation in order to transform a schema prior to merging. This also makes it simple to include the necessary transforms when delegating, as you will pass the entire subschema configuration object to `delegateToSchema` instead of just the schema, with the required transforms included for free.
 2. remote subschema configuration options can be specified, also avoiding an additional round of schema proxying. That's three rounds of delegations reduce to one! -->
 
-## Stitching in remote schemas
+## Stitching remote schemas
 
 To include a remote schema, we'll need to provide subschema config settings for&mdash;at minimum&mdash;a _non-executable_ schema and an executor that connects to the remote API:
 
@@ -123,3 +122,25 @@ The remote schema's definition string may be obtained via introspection (see `in
 An executor is a generic method of connecting to a schema. You may write your own, or use the `linkToExecutor` helper to wrap a link package such as [apollo-link-http](https://www.apollographql.com/docs/link/links/http/). Subschema config accepts an `executor` option for query and mutation operations, and a `subscriber` function for subscription operations. See the [remote schema](/docs/remote-schemas/) docs for more information.
 
 _**For pre-version 5:** the old method of using [makeRemoteExecutableSchema](/docs/remote-schemas/) to create a local proxy of the remote schema still works. However, it adds an additional layer of delegation that can be avoided by sending settings directly to `stitchSchemas` via SubschemaConfig._
+
+## Duplicate definitions
+
+By default, schema stitching will override type definitions that are duplicated across subschemas&mdash;always favoring the final definition of fields, arguments, and docstrings for an object type across the array of stitched subschemas. This works fine for subschemas that implement identical versions of an object type. As of GraphQL Tools version 5, you may now enable [type merging](/docs/stitch-merging-types) to smartly merge divergent type definitions from across subschemas.
+
+## Adding Transforms
+
+Another strategy to avoid conflicts while combining existing schemas is to modify one or more of the schemas using [transforms](/docs/schema-wrapping). This process will allow us to groom a schema (probably one we don't own) in such ways as adding namespaces, renaming types, or removing fields prior to stitching it into our API. As of GraphQL Tools version 5, we can add these transforms directly to subschema config rather than delegating to a wrapped schema with transforms:
+
+```js
+import { FilterRootFields, RenameTypes } from '@graphql-tools/wrap';
+
+export const chirpSubschema = {
+  schema: chirpSchema,
+  transforms: [
+    new FilterRootFields((operation: string, rootField: string) => rootField !== 'chirpsByAuthorId'),
+    new RenameTypes((name: string) => `Chirp_${name}`),
+  ],
+};
+```
+
+In the example above, we transform the `chirpSchema` by removing the `chirpsByAuthorId` root field and adding a `Chirp_` prefix to all types.

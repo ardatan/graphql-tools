@@ -25,7 +25,6 @@
           "Schema stitching": [
             "stitch-combining-schemas",
             "stitch-schema-extensions",
-            "stitch-schema-transforms",
             "stitch-merging-types",
             "stitch-api"
           ]
