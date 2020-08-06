@@ -16,7 +16,7 @@
     "graphql": "^14.0.0 || ^15.0.0"
   },
   "devDependencies": {
-    "@types/lodash": "4.14.158"
+    "@types/lodash": "4.14.159"
   },
   "dependencies": {
     "@graphql-tools/utils": "6.0.16",
