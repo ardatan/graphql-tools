@@ -4655,7 +4655,7 @@ create-hmac@^1.1.0, create-hmac@^1.1.4, create-hmac@^1.1.7:
     safe-buffer "^5.0.1"
     sha.js "^2.4.8"
 
-cross-fetch@3.0.5:
+cross-fetch@3.0.5, cross-fetch@^3.0.4:
   version "3.0.5"
   resolved "https://registry.yarnpkg.com/cross-fetch/-/cross-fetch-3.0.5.tgz#2739d2981892e7ab488a7ad03b92df2816e03f4c"
   integrity sha512-FFLcLtraisj5eteosnX1gf01qYDCOc4fDy0+euOt8Kn9YBY2NtXL/pCoYPavw24NIQkQqm5ZOLsGD5Zzj0gyew==
@@ -6705,10 +6705,12 @@ graphql-extensions@^0.12.4:
     apollo-server-env "^2.4.5"
     apollo-server-types "^0.5.1"
 
-graphql-request@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/graphql-request/-/graphql-request-2.0.0.tgz#8dd12cf1eb2ce0c80f4114fd851741e091134862"
-  integrity sha512-Ww3Ax+G3l2d+mPT8w7HC9LfrKjutnCKtnDq7ZZp2ghVk5IQDjwAk3/arRF1ix17Ky15rm0hrSKVKxRhIVlSuoQ==
+graphql-request@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/graphql-request/-/graphql-request-3.0.0.tgz#942d81bbd621cc2223d35fbf2b42edf8be822b83"
+  integrity sha512-zW8AuLnKMYOnpVKdANU9FzLDoj4u4AoU6KZ79e+BcJaNiuw/vgCJ0p7ppDMSDrW77a12Moa7J7Mg4w0f9Kd/Kg==
+  dependencies:
+    cross-fetch "^3.0.4"
 
 graphql-scalars@1.2.6:
   version "1.2.6"

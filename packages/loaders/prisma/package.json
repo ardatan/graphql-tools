@@ -28,7 +28,7 @@
     "debug": "^4.1.1",
     "dotenv": "^8.2.0",
     "fs-extra": "9.0.1",
-    "graphql-request": "^2.0.0",
+    "graphql-request": "^3.0.0",
     "http-proxy-agent": "^4.0.1",
     "https-proxy-agent": "^5.0.0",
     "isomorphic-fetch": "^2.2.1",
