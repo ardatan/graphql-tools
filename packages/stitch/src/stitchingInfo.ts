@@ -2,12 +2,12 @@ import {
   GraphQLObjectType,
   GraphQLSchema,
   Kind,
-  SelectionNode,
   SelectionSetNode,
   isObjectType,
   isScalarType,
   getNamedType,
   GraphQLOutputType,
+  GraphQLInterfaceType,
 } from 'graphql';
 
 import {
@@ -21,6 +21,7 @@ import {
 } from '@graphql-tools/utils';
 
 import { delegateToSchema, isSubschemaConfig, SubschemaConfig } from '@graphql-tools/delegate';
+
 import { batchDelegateToSchema } from '@graphql-tools/batch-delegate';
 
 import { MergeTypeCandidate, MergedTypeInfo, StitchingInfo, MergeTypeFilter } from './types';
@@ -31,24 +32,36 @@ export function createStitchingInfo(
   mergeTypes?: boolean | Array<string> | MergeTypeFilter
 ): StitchingInfo {
   const mergedTypes = createMergedTypes(typeCandidates, mergeTypes);
-  const selectionSetsByType: Record<string, SelectionSetNode> = Object.entries(mergedTypes).reduce(
+  const selectionSetsByField: Record<string, Record<string, SelectionSetNode>> = Object.entries(mergedTypes).reduce(
     (acc, [typeName, mergedTypeInfo]) => {
-      if (mergedTypeInfo.requiredSelections != null) {
-        acc[typeName] = {
-          kind: Kind.SELECTION_SET,
-          selections: mergedTypeInfo.requiredSelections,
-        };
+      if (mergedTypeInfo.selectionSets == null) {
+        return;
       }
+
+      acc[typeName] = Object.create(null);
+
+      mergedTypeInfo.selectionSets.forEach((selectionSet, subschemaConfig) => {
+        const schema = subschemaConfig.schema;
+        const fields = (schema.getType(typeName) as GraphQLObjectType | GraphQLInterfaceType).getFields();
+        Object.keys(fields).forEach(fieldName => {
+          if (acc[typeName][fieldName] == null) {
+            acc[typeName][fieldName] = {
+              kind: Kind.SELECTION_SET,
+              selections: [parseSelectionSet('{ __typename }').selections[0]],
+            };
+          }
+          acc[typeName][fieldName].selections = acc[typeName][fieldName].selections.concat(selectionSet.selections);
+        });
+      });
       return acc;
     },
-    {}
+    Object.create(null)
   );
 
   return {
     transformedSchemas,
     fragmentsByField: undefined,
-    selectionSetsByType,
-    selectionSetsByField: undefined,
+    selectionSetsByField,
     dynamicSelectionSetsByField: undefined,
     mergedTypes,
   };
@@ -78,7 +91,6 @@ function createMergedTypes(
       ) {
         const targetSubschemas: Array<SubschemaConfig> = [];
 
-        let requiredSelections: Array<SelectionNode> = [parseSelectionSet('{ __typename }').selections[0]];
         const fields = Object.create({});
         const typeMaps: Map<GraphQLSchema | SubschemaConfig, TypeMap> = new Map();
         const selectionSets: Map<SubschemaConfig, SelectionSetNode> = new Map();
@@ -113,7 +125,6 @@ function createMergedTypes(
 
           if (mergedTypeConfig.selectionSet) {
             const selectionSet = parseSelectionSet(mergedTypeConfig.selectionSet);
-            requiredSelections = requiredSelections.concat(selectionSet.selections);
             selectionSets.set(subschema, selectionSet);
           }
 
@@ -167,7 +178,7 @@ function createMergedTypes(
         mergedTypes[typeName] = {
           targetSubschemas: targetSubschemasBySubschema,
           typeMaps,
-          requiredSelections,
+          selectionSets,
           containsSelectionSet: new Map(),
           uniqueFields: Object.create({}),
           nonUniqueFields: Object.create({}),
@@ -203,7 +214,7 @@ function createMergedTypes(
 }
 
 export function completeStitchingInfo(stitchingInfo: StitchingInfo, resolvers: IResolvers): StitchingInfo {
-  const selectionSetsByField = Object.create(null);
+  const selectionSetsByField = stitchingInfo.selectionSetsByField;
   const dynamicSelectionSetsByField = Object.create(null);
   const rawFragments: Array<{ field: string; fragment: string }> = [];
 

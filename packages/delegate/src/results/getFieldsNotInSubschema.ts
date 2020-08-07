@@ -4,7 +4,7 @@ import { collectFields, GraphQLExecutionContext } from '@graphql-tools/utils';
 import { isSubschemaConfig } from '../Subschema';
 import { MergedTypeInfo, SubschemaConfig, StitchingInfo } from '../types';
 
-import { memoizeInfoAnd2Objectsand1Primitive } from './memoize';
+import { memoizeInfoAnd2Objectsand1Primitive } from '../memoize';
 
 function collectSubFields(info: GraphQLResolveInfo, typeName: string): Record<string, Array<FieldNode>> {
   let subFieldNodes: Record<string, Array<FieldNode>> = Object.create(null);
@@ -28,21 +28,10 @@ function collectSubFields(info: GraphQLResolveInfo, typeName: string): Record<st
   });
 
   const stitchingInfo = info.schema.extensions.stitchingInfo as StitchingInfo;
-  const selectionSetsByType = stitchingInfo.selectionSetsByType;
   const selectionSetsByField = stitchingInfo.selectionSetsByField;
 
   Object.keys(subFieldNodes).forEach(responseName => {
     const fieldName = subFieldNodes[responseName][0].name.value;
-    const typeSelectionSet = selectionSetsByType[typeName];
-    if (typeSelectionSet != null) {
-      subFieldNodes = collectFields(
-        partialExecutionContext,
-        type,
-        typeSelectionSet,
-        subFieldNodes,
-        visitedFragmentNames
-      );
-    }
     const fieldSelectionSet = selectionSetsByField?.[typeName]?.[fieldName];
     if (fieldSelectionSet != null) {
       subFieldNodes = collectFields(

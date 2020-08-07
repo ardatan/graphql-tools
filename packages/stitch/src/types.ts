@@ -3,7 +3,6 @@ import {
   GraphQLSchema,
   SelectionSetNode,
   DocumentNode,
-  SelectionNode,
   InlineFragmentNode,
   FieldNode,
 } from 'graphql';
@@ -22,17 +21,16 @@ export type MergeTypeFilter = (mergeTypeCandidates: Array<MergeTypeCandidate>, t
 
 export interface MergedTypeInfo {
   targetSubschemas: Map<GraphQLSchema | SubschemaConfig, Array<SubschemaConfig>>;
-  requiredSelections: Array<SelectionNode>;
   uniqueFields: Record<string, SubschemaConfig>;
   nonUniqueFields: Record<string, Array<SubschemaConfig>>;
   typeMaps: Map<GraphQLSchema | SubschemaConfig, TypeMap>;
+  selectionSets: Map<SubschemaConfig, SelectionSetNode>;
   containsSelectionSet: Map<GraphQLSchema | SubschemaConfig, Map<SubschemaConfig, boolean>>;
 }
 
 export interface StitchingInfo {
   transformedSchemas: Map<GraphQLSchema | SubschemaConfig, GraphQLSchema>;
   fragmentsByField: Record<string, Record<string, InlineFragmentNode>>;
-  selectionSetsByType: Record<string, SelectionSetNode>;
   selectionSetsByField: Record<string, Record<string, SelectionSetNode>>;
   dynamicSelectionSetsByField: Record<string, Record<string, Array<(node: FieldNode) => SelectionSetNode>>>;
   mergedTypes: Record<string, MergedTypeInfo>;

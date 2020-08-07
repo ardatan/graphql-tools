@@ -1,9 +1,21 @@
-import { GraphQLSchema, SelectionSetNode, TypeInfo, GraphQLOutputType, Kind, FieldNode } from 'graphql';
+import {
+  GraphQLSchema,
+  SelectionSetNode,
+  TypeInfo,
+  GraphQLOutputType,
+  Kind,
+  FieldNode,
+  SelectionNode,
+  print,
+} from 'graphql';
 
 import { Transform, Request } from '@graphql-tools/utils';
+
+import { memoize2 } from '../memoize';
+
 import VisitSelectionSets from './VisitSelectionSets';
 
-export default class AddSelectionSetsByField implements Transform {
+export default class AddSelectionSets implements Transform {
   private readonly transformer: VisitSelectionSets;
 
   constructor(
@@ -31,15 +43,16 @@ function visitSelectionSet(
   dynamicSelectionSetsByField: Record<string, Record<string, Array<(node: FieldNode) => SelectionSetNode>>>
 ): SelectionSetNode {
   const parentType = typeInfo.getParentType();
+
+  const newSelections: Map<string, SelectionNode> = new Map();
+
   if (parentType != null) {
     const parentTypeName = parentType.name;
-    let selections = node.selections;
+    addSelectionsToMap(newSelections, node);
 
     if (parentTypeName in selectionSetsByType) {
       const selectionSet = selectionSetsByType[parentTypeName];
-      if (selectionSet != null) {
-        selections = selections.concat(selectionSet.selections);
-      }
+      addSelectionsToMap(newSelections, selectionSet);
     }
 
     if (parentTypeName in selectionSetsByField) {
@@ -48,7 +61,7 @@ function visitSelectionSet(
           const name = selection.name.value;
           const selectionSet = selectionSetsByField[parentTypeName][name];
           if (selectionSet != null) {
-            selections = selections.concat(selectionSet.selections);
+            addSelectionsToMap(newSelections, selectionSet);
           }
         }
       });
@@ -63,7 +76,7 @@ function visitSelectionSet(
             dynamicSelectionSets.forEach(selectionSetFn => {
               const selectionSet = selectionSetFn(selection);
               if (selectionSet != null) {
-                selections = selections.concat(selectionSet.selections);
+                addSelectionsToMap(newSelections, selectionSet);
               }
             });
           }
@@ -71,11 +84,15 @@ function visitSelectionSet(
       });
     }
 
-    if (selections !== node.selections) {
-      return {
-        ...node,
-        selections,
-      };
-    }
+    return {
+      ...node,
+      selections: Array.from(newSelections.values()),
+    };
   }
 }
+
+const addSelectionsToMap = memoize2(function (map: Map<string, SelectionNode>, selectionSet: SelectionSetNode): void {
+  selectionSet.selections.forEach(selection => {
+    map.set(print(selection), selection);
+  });
+});
