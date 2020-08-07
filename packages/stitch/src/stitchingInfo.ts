@@ -95,6 +95,7 @@ function createMergedTypes(
         const typeMaps: Map<GraphQLSchema | SubschemaConfig, TypeMap> = new Map();
         const supportedBySubschemas: Record<string, Array<SubschemaConfig>> = Object.create({});
         const selectionSets: Map<SubschemaConfig, SelectionSetNode> = new Map();
+        const fieldSelectionSets: Map<SubschemaConfig, Record<string, SelectionSetNode>> = new Map();
 
         typeCandidates[typeName].forEach(typeCandidate => {
           const subschema = typeCandidate.subschema;
@@ -186,6 +187,7 @@ function createMergedTypes(
           targetSubschemas: targetSubschemasBySubschema,
           typeMaps,
           selectionSets,
+          fieldSelectionSets,
           uniqueFields: Object.create({}),
           nonUniqueFields: Object.create({}),
         };

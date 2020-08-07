@@ -26,6 +26,7 @@ export interface MergedTypeInfo {
   nonUniqueFields: Record<string, Array<SubschemaConfig>>;
   typeMaps: Map<GraphQLSchema | SubschemaConfig, TypeMap>;
   selectionSets: Map<SubschemaConfig, SelectionSetNode>;
+  fieldSelectionSets: Map<SubschemaConfig, Record<string, SelectionSetNode>>;
 }
 
 export interface StitchingInfo {

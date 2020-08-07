@@ -88,6 +88,7 @@ export interface MergedTypeInfo {
   nonUniqueFields: Record<string, Array<SubschemaConfig>>;
   typeMaps: Map<GraphQLSchema | SubschemaConfig, TypeMap>;
   selectionSets: Map<SubschemaConfig, SelectionSetNode>;
+  fieldSelectionSets: Map<SubschemaConfig, Record<string, SelectionSetNode>>;
 }
 
 export interface ExecutionParams<TArgs = Record<string, any>, TContext = any> {
@@ -134,6 +135,7 @@ export interface SubschemaConfig {
 
 export interface MergedTypeConfig<K = any, V = any> {
   selectionSet?: string;
+  fields?: Record<string, { selectionSet?: string }>;
   resolve?: MergedTypeResolver;
   fieldName?: string;
   args?: (originalResult: any) => Record<string, any>;

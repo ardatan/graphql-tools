@@ -241,6 +241,11 @@ describe('merging using type merging', () => {
         merge: {
           Product: {
             selectionSet: '{ upc }',
+            fields: {
+              shippingEstimate: {
+                selectionSet: '{ price weight }',
+              },
+            },
             fieldName: '_productByRepresentation',
             args: ({ upc, weight, price }) => ({ product: { upc, weight, price } }),
           }
