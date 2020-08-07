@@ -4,7 +4,7 @@ import { collectFields, GraphQLExecutionContext } from '@graphql-tools/utils';
 import { isSubschemaConfig } from '../Subschema';
 import { MergedTypeInfo, SubschemaConfig, StitchingInfo } from '../types';
 
-import { memoizeInfoAnd2Objectsand1Primitive } from '../memoize';
+import { memoizeInfoAnd2Objects } from '../memoize';
 
 function collectSubFields(info: GraphQLResolveInfo, typeName: string): Record<string, Array<FieldNode>> {
   let subFieldNodes: Record<string, Array<FieldNode>> = Object.create(null);
@@ -47,13 +47,13 @@ function collectSubFields(info: GraphQLResolveInfo, typeName: string): Record<st
   return subFieldNodes;
 }
 
-export const getFieldsNotInSubschema = memoizeInfoAnd2Objectsand1Primitive(function (
+export const getFieldsNotInSubschema = memoizeInfoAnd2Objects(function (
   info: GraphQLResolveInfo,
   subschema: GraphQLSchema | SubschemaConfig,
-  mergedTypeInfo: MergedTypeInfo,
-  typeName: string
+  mergedTypeInfo: MergedTypeInfo
 ): Array<FieldNode> {
   const typeMap = isSubschemaConfig(subschema) ? mergedTypeInfo.typeMaps.get(subschema) : subschema.getTypeMap();
+  const typeName = mergedTypeInfo.typeName;
   const fields = (typeMap[typeName] as GraphQLObjectType).getFields();
 
   const subFieldNodes = collectSubFields(info, typeName);

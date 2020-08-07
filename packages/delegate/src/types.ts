@@ -81,6 +81,7 @@ export interface ICreateRequest {
 }
 
 export interface MergedTypeInfo {
+  typeName: string;
   selectionSet?: SelectionSetNode;
   targetSubschemas: Map<GraphQLSchema | SubschemaConfig, Array<SubschemaConfig>>;
   uniqueFields: Record<string, SubschemaConfig>;

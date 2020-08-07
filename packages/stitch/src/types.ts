@@ -20,6 +20,7 @@ export type MergeTypeCandidate = {
 export type MergeTypeFilter = (mergeTypeCandidates: Array<MergeTypeCandidate>, typeName: string) => boolean;
 
 export interface MergedTypeInfo {
+  typeName: string;
   targetSubschemas: Map<GraphQLSchema | SubschemaConfig, Array<SubschemaConfig>>;
   uniqueFields: Record<string, SubschemaConfig>;
   nonUniqueFields: Record<string, Array<SubschemaConfig>>;

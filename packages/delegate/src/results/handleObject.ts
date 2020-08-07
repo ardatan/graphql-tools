@@ -43,7 +43,7 @@ export function handleObject(
     return object;
   }
 
-  const fieldNodes = getFieldsNotInSubschema(info, subschema, mergedTypeInfo, typeName);
+  const fieldNodes = getFieldsNotInSubschema(info, subschema, mergedTypeInfo);
 
   return mergeFields(
     mergedTypeInfo,
