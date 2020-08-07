@@ -34,7 +34,7 @@ import { IExecutableSchemaDefinition } from './types';
  *
  * The `resolvers` object should be a map of type names to nested object, which
  * themselves map the type's fields to their appropriate resolvers.
- * See the [Resolvers](resolvers) section of the documentation for more details.
+ * See the [Resolvers](/docs/resolvers) section of the documentation for more details.
  *
  * ```js
  * const resolvers = {

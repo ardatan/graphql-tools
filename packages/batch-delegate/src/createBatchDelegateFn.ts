@@ -1,51 +1,31 @@
-import { FieldNode, getNamedType, GraphQLOutputType, GraphQLList } from 'graphql';
-
 import DataLoader from 'dataloader';
 
-import { delegateToSchema } from '@graphql-tools/delegate';
+import { CreateBatchDelegateFnOptions, BatchDelegateOptionsFn, BatchDelegateFn } from './types';
 
-import { BatchDelegateOptionsFn, BatchDelegateFn, BatchDelegateOptions } from './types';
+import { getLoader } from './getLoader';
 
 export function createBatchDelegateFn<K = any, V = any, C = K>(
-  argFn: (args: ReadonlyArray<K>) => Record<string, any>,
-  batchDelegateOptionsFn: BatchDelegateOptionsFn,
-  dataLoaderOptions?: DataLoader.Options<K, V, C>
+  optionsOrArgsFromKeys: CreateBatchDelegateFnOptions | ((keys: ReadonlyArray<K>) => Record<string, any>),
+  lazyOptionsFn?: BatchDelegateOptionsFn,
+  dataLoaderOptions?: DataLoader.Options<K, V, C>,
+  valuesFromResults?: (results: any, keys: ReadonlyArray<K>) => Array<V>
 ): BatchDelegateFn<K> {
-  let cache: WeakMap<ReadonlyArray<FieldNode>, DataLoader<K, V, C>>;
+  return typeof optionsOrArgsFromKeys === 'function'
+    ? createBatchDelegateFnImpl({
+        argsFromKeys: optionsOrArgsFromKeys,
+        lazyOptionsFn,
+        dataLoaderOptions,
+        valuesFromResults,
+      })
+    : createBatchDelegateFnImpl(optionsOrArgsFromKeys);
+}
 
-  function createBatchFn(options: BatchDelegateOptions) {
-    return async (keys: ReadonlyArray<K>) => {
-      const results = await delegateToSchema({
-        returnType: new GraphQLList(getNamedType(options.info.returnType) as GraphQLOutputType),
-        args: argFn(keys),
-        ...batchDelegateOptionsFn(options),
-      });
-      return Array.isArray(results) ? results : keys.map(() => results);
-    };
-  }
-
-  function getLoader(options: BatchDelegateOptions) {
-    if (!cache) {
-      cache = new WeakMap();
-      const batchFn = createBatchFn(options);
-      const newValue = new DataLoader<K, V, C>(keys => batchFn(keys), dataLoaderOptions);
-      cache.set(options.info.fieldNodes, newValue);
-      return newValue;
-    }
-
-    const cachedValue = cache.get(options.info.fieldNodes);
-    if (cachedValue === undefined) {
-      const batchFn = createBatchFn(options);
-      const newValue = new DataLoader<K, V, C>(keys => batchFn(keys), dataLoaderOptions);
-      cache.set(options.info.fieldNodes, newValue);
-      return newValue;
-    }
-
-    return cachedValue;
-  }
-
-  return options => {
-    const loader = getLoader(options);
-    return loader.load(options.key);
+function createBatchDelegateFnImpl<K = any>(options: CreateBatchDelegateFnOptions): BatchDelegateFn<K> {
+  return batchDelegateOptions => {
+    const loader = getLoader({
+      ...options,
+      ...batchDelegateOptions,
+    });
+    return loader.load(batchDelegateOptions.key);
   };
 }

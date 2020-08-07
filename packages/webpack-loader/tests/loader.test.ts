@@ -15,7 +15,7 @@ test('basic query', () => {
   `;
   const doc = useLoader(docStr, {});
 
-  const docLine = `const doc = ${JSON.stringify(parse(docStr, { noLocation: true }))};`;
+  const docLine = `var doc = ${JSON.stringify(parse(docStr, { noLocation: true }))};`;
   const exportLine = `module.exports = doc`;
 
   expect(doc).toContain(docLine);
@@ -43,7 +43,7 @@ test('basic query with esModules on', () => {
     esModule: true
   });
 
-  const docLine = `const doc = ${JSON.stringify(parse(docStr, { noLocation: true }))};`;
+  const docLine = `var doc = ${JSON.stringify(parse(docStr, { noLocation: true }))};`;
   const exportLine = `export default doc`;
 
   expect(doc).toContain(docLine);

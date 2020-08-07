@@ -1,6 +1,6 @@
 {
   "name": "graphql-tools-monorepo",
-  "version": "6.0.15",
+  "version": "6.0.16",
   "description": "Useful tools to create and manipulate GraphQL schemas.",
   "private": true,
   "scripts": {
@@ -39,12 +39,12 @@
   },
   "devDependencies": {
     "@types/fs-extra": "9.0.1",
-    "@types/jest": "26.0.7",
+    "@types/jest": "26.0.9",
     "@types/node": "14.0.27",
-    "@typescript-eslint/eslint-plugin": "3.7.1",
-    "@typescript-eslint/parser": "3.7.1",
-    "bob-the-bundler": "1.0.2",
-    "eslint": "7.5.0",
+    "@typescript-eslint/eslint-plugin": "3.8.0",
+    "@typescript-eslint/parser": "3.8.0",
+    "bob-the-bundler": "1.1.0",
+    "eslint": "7.6.0",
     "eslint-config-prettier": "6.11.0",
     "eslint-config-standard": "14.1.1",
     "eslint-plugin-import": "2.22.0",
@@ -54,13 +54,13 @@
     "fs-extra": "9.0.1",
     "graphql": "15.3.0",
     "husky": "4.2.5",
-    "jest": "26.1.0",
+    "jest": "26.2.2",
     "lint-staged": "10.2.11",
     "nock": "13.0.3",
     "prettier": "2.0.5",
     "ts-jest": "26.1.4",
     "typedoc": "0.17.0-3",
-    "typedoc-plugin-markdown": "2.3.1",
+    "typedoc-plugin-markdown": "2.4.0",
     "typescript": "3.9.7"
   },
   "husky": {

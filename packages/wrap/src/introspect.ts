@@ -4,6 +4,7 @@ import {
   getIntrospectionQuery,
   buildClientSchema,
   parse,
+  IntrospectionOptions,
   IntrospectionQuery,
 } from 'graphql';
 
@@ -26,8 +27,12 @@ function getSchemaFromIntrospection(introspectionResult: ExecutionResult<Introsp
   }
 }
 
-export async function introspectSchema(executor: AsyncExecutor, context?: Record<string, any>): Promise<GraphQLSchema> {
-  const parsedIntrospectionQuery: DocumentNode = parse(getIntrospectionQuery());
+export async function introspectSchema(
+  executor: AsyncExecutor,
+  context?: Record<string, any>,
+  options?: IntrospectionOptions
+): Promise<GraphQLSchema> {
+  const parsedIntrospectionQuery: DocumentNode = parse(getIntrospectionQuery(options));
   const introspectionResult = await executor<IntrospectionQuery>({
     document: parsedIntrospectionQuery,
     context,
@@ -35,8 +40,12 @@ export async function introspectSchema(executor: AsyncExecutor, context?: Record
   return getSchemaFromIntrospection(introspectionResult);
 }
 
-export function introspectSchemaSync(executor: SyncExecutor, context?: Record<string, any>): GraphQLSchema {
-  const parsedIntrospectionQuery: DocumentNode = parse(getIntrospectionQuery());
+export function introspectSchemaSync(
+  executor: SyncExecutor,
+  context?: Record<string, any>,
+  options?: IntrospectionOptions
+): GraphQLSchema {
+  const parsedIntrospectionQuery: DocumentNode = parse(getIntrospectionQuery(options));
   const introspectionResult = executor<IntrospectionQuery>({
     document: parsedIntrospectionQuery,
     context,

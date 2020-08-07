@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/schema",
-  "version": "6.0.15",
+  "version": "6.0.16",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": "git@github.com:ardatan/graphql-tools.git",
   "license": "MIT",
@@ -15,13 +15,13 @@
     "graphql": "^14.0.0 || ^15.0.0"
   },
   "devDependencies": {
-    "graphql-scalars": "1.2.2"
+    "graphql-scalars": "1.2.6"
   },
   "buildOptions": {
     "input": "./src/index.ts"
   },
   "dependencies": {
-    "@graphql-tools/utils": "6.0.15",
+    "@graphql-tools/utils": "6.0.16",
     "tslib": "~2.0.0"
   },
   "publishConfig": {

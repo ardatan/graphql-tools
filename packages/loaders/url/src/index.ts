@@ -53,7 +53,7 @@ export interface LoadFromUrlOptions extends SingleFileOptions, Partial<Introspec
 
 /**
  * This loader loads a schema from a URL. The loaded schema is a fully-executable,
- * remote schema since it's created using [@graphql-tools/wrap](remote-schemas).
+ * remote schema since it's created using [@graphql-tools/wrap](/docs/remote-schemas).
  *
  * ```
  * const schema = await loadSchema('http://localhost:3000/graphql', {
@@ -214,7 +214,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
   async getSubschemaConfig(pointer: SchemaPointerSingle, options: LoadFromUrlOptions) {
     const { executor, subscriber } = await this.getExecutorAndSubscriber(pointer, options);
     return {
-      schema: await introspectSchema(executor),
+      schema: await introspectSchema(executor, undefined, options as IntrospectionOptions),
       executor,
       subscriber,
     };

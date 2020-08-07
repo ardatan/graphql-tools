@@ -131,12 +131,14 @@ export interface SubschemaConfig {
   merge?: Record<string, MergedTypeConfig>;
 }
 
-export interface MergedTypeConfig {
+export interface MergedTypeConfig<K = any, V = any> {
   selectionSet?: string;
-  fieldName?: string;
-  args?: (source: any) => Record<string, any>;
-  key?: (originalResult: any) => any;
   resolve?: MergedTypeResolver;
+  fieldName?: string;
+  args?: (originalResult: any) => Record<string, any>;
+  key?: (originalResult: any) => K;
+  argsFromKeys?: (keys: ReadonlyArray<K>) => Record<string, any>;
+  valuesFromResults?: (results: any, keys: ReadonlyArray<K>) => Array<V>;
 }
 
 export type MergedTypeResolver = (
