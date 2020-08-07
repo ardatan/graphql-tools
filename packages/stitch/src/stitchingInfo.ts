@@ -91,8 +91,8 @@ function createMergedTypes(
       ) {
         const targetSubschemas: Array<SubschemaConfig> = [];
 
-        const fields = Object.create({});
         const typeMaps: Map<GraphQLSchema | SubschemaConfig, TypeMap> = new Map();
+        const supportedBySubschemas: Record<string, Array<SubschemaConfig>> = Object.create({});
         const selectionSets: Map<SubschemaConfig, SelectionSetNode> = new Map();
 
         typeCandidates[typeName].forEach(typeCandidate => {
@@ -104,14 +104,6 @@ function createMergedTypes(
 
           const transformedSubschema = typeCandidate.transformedSubschema;
           typeMaps.set(subschema, transformedSubschema.getTypeMap());
-          const type = transformedSubschema.getType(typeName) as GraphQLObjectType;
-          const fieldMap = type.getFields();
-          Object.keys(fieldMap).forEach(fieldName => {
-            if (!(fieldName in fields)) {
-              fields[fieldName] = [];
-            }
-            fields[fieldName].push(subschema);
-          });
 
           if (!isSubschemaConfig(subschema)) {
             return;
@@ -162,6 +154,19 @@ function createMergedTypes(
 
             targetSubschemas.push(subschema);
           }
+
+          if (mergedTypeConfig.resolve == null) {
+            return;
+          }
+
+          const type = transformedSubschema.getType(typeName) as GraphQLObjectType;
+          const fieldMap = type.getFields();
+          Object.keys(fieldMap).forEach(fieldName => {
+            if (!(fieldName in supportedBySubschemas)) {
+              supportedBySubschemas[fieldName] = [];
+            }
+            supportedBySubschemas[fieldName].push(subschema);
+          });
         });
 
         const sourceSubschemas = typeCandidates[typeName]
@@ -198,12 +203,11 @@ function createMergedTypes(
           mergedTypes[typeName].containsSelectionSet.set(subschema, subschemaMap);
         });
 
-        Object.keys(fields).forEach(fieldName => {
-          const supportedBySubschemas = fields[fieldName];
-          if (supportedBySubschemas.length === 1) {
-            mergedTypes[typeName].uniqueFields[fieldName] = supportedBySubschemas[0];
+        Object.keys(supportedBySubschemas).forEach(fieldName => {
+          if (supportedBySubschemas[fieldName].length === 1) {
+            mergedTypes[typeName].uniqueFields[fieldName] = supportedBySubschemas[fieldName][0];
           } else {
-            mergedTypes[typeName].nonUniqueFields[fieldName] = supportedBySubschemas;
+            mergedTypes[typeName].nonUniqueFields[fieldName] = supportedBySubschemas[fieldName];
           }
         });
       }
