@@ -8,6 +8,8 @@ import {
   getNamedType,
   GraphQLOutputType,
   GraphQLInterfaceType,
+  SelectionNode,
+  print,
 } from 'graphql';
 
 import {
@@ -248,6 +250,18 @@ export function completeStitchingInfo(stitchingInfo: StitchingInfo, resolvers: I
           fragment: field.fragment,
         });
       }
+    });
+  });
+
+  Object.keys(selectionSetsByField).forEach(typeName => {
+    const typeSelectionSets = selectionSetsByField[typeName];
+    Object.keys(typeSelectionSets).forEach(fieldName => {
+      const consolidatedSelections: Map<string, SelectionNode> = new Map();
+      const selectionSet = typeSelectionSets[fieldName];
+      selectionSet.selections.forEach(selection => {
+        consolidatedSelections.set(print(selection), selection);
+      });
+      selectionSet.selections = Array.from(consolidatedSelections.values());
     });
   });
 
