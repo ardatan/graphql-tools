@@ -13,7 +13,6 @@ import {
 import {
   parseFragmentToInlineFragment,
   concatInlineFragments,
-  typeContainsSelectionSet,
   parseSelectionSet,
   TypeMap,
   IResolvers,
@@ -184,24 +183,9 @@ function createMergedTypes(
           targetSubschemas: targetSubschemasBySubschema,
           typeMaps,
           selectionSets,
-          containsSelectionSet: new Map(),
           uniqueFields: Object.create({}),
           nonUniqueFields: Object.create({}),
         };
-
-        sourceSubschemas.forEach(subschema => {
-          const type = typeMaps.get(subschema)[typeName] as GraphQLObjectType;
-          const subschemaMap: Map<SubschemaConfig, boolean> = new Map();
-          targetSubschemas
-            .filter(s => s !== subschema)
-            .forEach(s => {
-              const selectionSet = selectionSets.get(s);
-              if (selectionSet != null && typeContainsSelectionSet(type, selectionSet)) {
-                subschemaMap.set(s, true);
-              }
-            });
-          mergedTypes[typeName].containsSelectionSet.set(subschema, subschemaMap);
-        });
 
         Object.keys(supportedBySubschemas).forEach(fieldName => {
           if (supportedBySubschemas[fieldName].length === 1) {

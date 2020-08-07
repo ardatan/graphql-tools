@@ -5,6 +5,30 @@ export function parseSelectionSet(selectionSet: string): SelectionSetNode {
   return query.selectionSet;
 }
 
+export function typesContainSelectionSet(types: Array<GraphQLObjectType>, selectionSet: SelectionSetNode): boolean {
+  const fieldMaps = types.map(type => type.getFields());
+
+  for (const selection of selectionSet.selections) {
+    if (selection.kind === Kind.FIELD) {
+      const fields = fieldMaps.map(fieldMap => fieldMap[selection.name.value]).filter(field => field != null);
+      if (!fields.length) {
+        return false;
+      }
+
+      if (selection.selectionSet != null) {
+        return typesContainSelectionSet(
+          fields.map(field => getNamedType(field.type)) as Array<GraphQLObjectType>,
+          selection.selectionSet
+        );
+      }
+    } else if (selection.kind === Kind.INLINE_FRAGMENT) {
+      return typesContainSelectionSet(types, selection.selectionSet);
+    }
+  }
+
+  return true;
+}
+
 export function typeContainsSelectionSet(type: GraphQLObjectType, selectionSet: SelectionSetNode): boolean {
   const fields = type.getFields();
 
@@ -20,10 +44,7 @@ export function typeContainsSelectionSet(type: GraphQLObjectType, selectionSet: 
         return typeContainsSelectionSet(getNamedType(field.type) as GraphQLObjectType, selection.selectionSet);
       }
     } else if (selection.kind === Kind.INLINE_FRAGMENT) {
-      const containsSelectionSet = typeContainsSelectionSet(type, selection.selectionSet);
-      if (!containsSelectionSet) {
-        return false;
-      }
+      return typeContainsSelectionSet(type, selection.selectionSet);
     }
   }
 

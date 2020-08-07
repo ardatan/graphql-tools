@@ -1,21 +1,24 @@
-import { FieldNode, SelectionNode, Kind, GraphQLResolveInfo, SelectionSetNode } from 'graphql';
+import { FieldNode, SelectionNode, Kind, GraphQLResolveInfo, SelectionSetNode, GraphQLObjectType } from 'graphql';
+
 import isPromise from 'is-promise';
 
-import { MergedTypeInfo, SubschemaConfig } from '../types';
+import { typesContainSelectionSet } from '@graphql-tools/utils';
 
-import { memoize3, memoize2 } from '../memoize';
+import { MergedTypeInfo, SubschemaConfig } from '../types';
+import { memoize3, memoize2, memoize3Objectsand1Primitive } from '../memoize';
+
 import { mergeProxiedResults } from './mergeProxiedResults';
 
-const sortSubschemasByProxiability = memoize3(function (
+const sortSubschemasByProxiability = memoize3Objectsand1Primitive(function (
   mergedTypeInfo: MergedTypeInfo,
   sourceSubschemaOrSourceSubschemas: SubschemaConfig | Array<SubschemaConfig>,
-  targetSubschemas: Array<SubschemaConfig>
+  targetSubschemas: Array<SubschemaConfig>,
+  typeName: string
 ): {
   proxiableSubschemas: Array<SubschemaConfig>;
   nonProxiableSubschemas: Array<SubschemaConfig>;
 } {
   // 1.  calculate if possible to delegate to given subschema
-  //    TODO: change logic so that required selection set can be spread across multiple subschemas?
 
   const proxiableSubschemas: Array<SubschemaConfig> = [];
   const nonProxiableSubschemas: Array<SubschemaConfig> = [];
@@ -23,8 +26,12 @@ const sortSubschemasByProxiability = memoize3(function (
   const sourceSubschemas = Array.isArray(sourceSubschemaOrSourceSubschemas)
     ? sourceSubschemaOrSourceSubschemas
     : [sourceSubschemaOrSourceSubschemas];
+
+  const types = sourceSubschemas.map(sourceSubschema => sourceSubschema.schema.getType(typeName) as GraphQLObjectType);
+
   targetSubschemas.forEach(t => {
-    if (sourceSubschemas.some(s => mergedTypeInfo.containsSelectionSet.get(s).get(t))) {
+    const selectionSet = mergedTypeInfo.selectionSets.get(t);
+    if (typesContainSelectionSet(types, selectionSet)) {
       proxiableSubschemas.push(t);
     } else {
       nonProxiableSubschemas.push(t);
@@ -140,7 +147,8 @@ export function mergeFields(
   const { proxiableSubschemas, nonProxiableSubschemas } = sortSubschemasByProxiability(
     mergedTypeInfo,
     sourceSubschemaOrSourceSubschemas,
-    targetSubschemas
+    targetSubschemas,
+    typeName
   );
 
   const { delegationMap, unproxiableFieldNodes } = buildDelegationPlan(mergedTypeInfo, fieldNodes, proxiableSubschemas);
