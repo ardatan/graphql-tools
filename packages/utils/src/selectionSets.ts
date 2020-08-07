@@ -21,7 +21,7 @@ export function typesContainSelectionSet(types: Array<GraphQLObjectType>, select
           selection.selectionSet
         );
       }
-    } else if (selection.kind === Kind.INLINE_FRAGMENT) {
+    } else if (selection.kind === Kind.INLINE_FRAGMENT && selection.typeCondition.name.value === types[0].name) {
       return typesContainSelectionSet(types, selection.selectionSet);
     }
   }
@@ -43,7 +43,7 @@ export function typeContainsSelectionSet(type: GraphQLObjectType, selectionSet: 
       if (selection.selectionSet != null) {
         return typeContainsSelectionSet(getNamedType(field.type) as GraphQLObjectType, selection.selectionSet);
       }
-    } else if (selection.kind === Kind.INLINE_FRAGMENT) {
+    } else if (selection.kind === Kind.INLINE_FRAGMENT && selection.typeCondition.name.value === type.name) {
       return typeContainsSelectionSet(type, selection.selectionSet);
     }
   }
