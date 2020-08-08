@@ -111,7 +111,7 @@ To include a remote schema, we'll need to provide subschema config settings for&
 import { buildSchema } from 'graphql';
 import { linkToExecutor } from '@graphql-tools/links';
 
-export const chirpSubschema = {
+const chirpSubschema = {
   schema: buildSchema(chirpTypeDefs),
   executor: linkToExecutor(chirpServiceLink),
 };
@@ -129,16 +129,16 @@ By default, schema stitching will override type definitions that are duplicated 
 
 ## Adding Transforms
 
-Another strategy to avoid conflicts while combining existing schemas is to modify one or more of the schemas using [transforms](/docs/schema-wrapping). This process will allow us to groom a schema (probably one we don't own) in such ways as adding namespaces, renaming types, or removing fields prior to stitching it into our API. As of GraphQL Tools version 5, we can add these transforms directly to subschema config rather than delegating to a wrapped schema with transforms:
+Another strategy to avoid conflicts while combining existing schemas is to modify one or more of the schemas using [transforms](/docs/schema-wrapping). This process allows us to groom a schema (possibly one we don't own) in such ways as adding namespaces, renaming types, or removing fields prior to stitching it into our API. As of GraphQL Tools version 5, we can add these transforms directly to subschema config rather than delegating to a wrapped schema with transforms:
 
 ```js
 import { FilterRootFields, RenameTypes } from '@graphql-tools/wrap';
 
-export const chirpSubschema = {
+const chirpSubschema = {
   schema: chirpSchema,
   transforms: [
-    new FilterRootFields((operation: string, rootField: string) => rootField !== 'chirpsByAuthorId'),
-    new RenameTypes((name: string) => `Chirp_${name}`),
+    new FilterRootFields((operation, rootField) => rootField !== 'chirpsByAuthorId'),
+    new RenameTypes((name) => `Chirp_${name}`),
   ],
 };
 ```
