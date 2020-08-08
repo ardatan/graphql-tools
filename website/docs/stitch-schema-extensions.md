@@ -141,7 +141,7 @@ Chirp: {
 },
 ```
 
-The `selectionSet` specifies the key field(s) needed from an object to query for its associations. For example, `Chirp.author` will require that a Chirp provide its `authorId`. Rather than relying on incoming queries to manually request this key for the association, the selectionSet will automatically be included in subschema requests to guarentee these fields are fetched.
+The `selectionSet` specifies the key field(s) needed from an object to query for its associations. For example, `Chirp.author` will require that a Chirp provide its `authorId`. Rather than relying on incoming queries to manually request this key for the association, the selectionSet will automatically be included in subschema requests to guarentee these fields are fetched. Dynamic selectionSets are also possible by providing a function that recieves a GraphQL `FieldNode` (the gateway field) and returns a `SelectionSetNode`.
 
 #### resolve
 
@@ -180,7 +180,7 @@ usersByIds(ids: [ID!]!): [User]!
 With this many-users query available, we can now delegate the `Chirp.author` field in batches across many Chirp records:
 
 ```js
-import { batchDelegateToSchema } from '@graphql-tools/batchDelegate';
+import { batchDelegateToSchema } from '@graphql-tools/batch-delegate';
 
 const schema = stitchSchemas({
   subschemas: [chirpSubschema, authorSubschema],
@@ -199,7 +199,7 @@ const schema = stitchSchemas({
             operation: 'query',
             fieldName: 'usersByIds',
             key: chirp.authorId,
-            mapKeysFn: (ids) => ({ ids }),
+            argsFromKeys: (ids) => ({ ids }),
             context,
             info,
           });
@@ -214,78 +214,84 @@ Internally, `batchDelegateToSchema` wraps a single `delegateToSchema` call in a 
 
 Batch delegation is generally preferable over plain delegation because it eliminates the redundancy of requesting the same field across an array of parent objects. However, there is still one subschema request made _per batched field_&mdash;for remote services, this may create many network requests sent to the same service. This can be optimized with an additional layer of network-level batching using a package such as [apollo-link-batch-http](https://www.apollographql.com/docs/link/links/batch-http/).
 
-### Passing arguments between resolvers
+### Passing gateway arguments
 
-As a stitching implementation scales, we encounter situations where it's impractical to pass around exhaustive sets of records between services. For example, what if a User has tens of thousands of Chirps? We'll want to add scoping arguments into our gateway schema to address this:
+What happens when a user has tens of thousands of chirps? Exhaustive accessors like `User.chirps` do not scale well, so the gateway should probably accept scoping arguments and pass them through to the underlying subschemas. Let's add a `pageNumber` argument to the `User.chirps` schema extension:
 
-```js
-const linkTypeDefs = `
-  extend type User {
-    chirps(since: DateTime): [Chirp]
-  }
-`;
+```graphql
+extend type User {
+  chirps(pageNumber: Int=1): [Chirp]!
+}
 ```
 
-This argument in the gateway schema won't do anything until passed through to the underlying subservice requests. How we pass this input through depends on which subservice manages the association data.
+This argument only exists in the gateway schema and won't do anything until passed through to subschemas. How we pass the input through depends on which subservice owns the association data...
 
-First, let's say that the Chirps service manages the association and implements a `since` param for scoping the returned Chirp results. This simply requires passing the resolver argument through to `delegateToSchema`:
+#### Via delegation
+
+First, let's say that the Chirps service defines this association. The first thing we'll need is a corresponding argument in the chirps subschema query; while we're at it, let's also support batching:
+
+```graphql
+chirpPagesByAuthorIds(authorIds: [ID!]!, pageNumber: Int=1): [[Chirp!]!]!
+```
+
+This `chirpPagesByAuthorIds` query is a very primitive example of pagination, and simply returns an array of chirps for each author. Now we just need to pass the resolver's page number argument through to `batchDelegateToSchema` (and manually specify a `returnType` that matches the pagination format):
 
 ```js
-export default {
-  User: {
-    chirps: {
-      selectionSet: `{ id }`,
-      resolve(user, args, context, info) {
-        return delegateToSchema({
-          schema: chirpSchema,
-          operation: 'query',
-          fieldName: 'chirpsByAuthorId',
-          args: {
-            authorId: user.id,
-            since: args.since
-          },
-          context,
-          info,
-        });
-      },
+User: {
+  chirps: {
+    selectionSet: `{ id }`,
+    resolve(user, args, context, info) {
+      return batchDelegateToSchema({
+        schema: chirpsSubschema,
+        operation: 'query',
+        fieldName: 'chirpPagesByAuthorIds',
+        key: user.id,
+        argsFromKeys: (authorIds) => ({ authorIds, pageNumber: args.pageNumber }),
+        returnType: new GraphQLList(new GraphQLList(chirpsSubschema.schema.getType('Chirp'))),
+        context,
+        info,
+      });
     },
-  }
-};
+  },
+}
 ```
 
-Alternatively, let's say that the Users service manages the association and implements a `User.chirpIds(since: DateTime):[Int]` method to stitch from. In this configuration, resolver arguments will need to passthrough with the initial `selectionSet` for User data. The `forwardArgsToSelectionSet` helper handles this:
+#### Via selectionSet
+
+Alternatively, let's say that users and chirps have a many-to-many relationship and the users service owns the association data. That might give us a `User.chirpIds` field to stitch from:
+
+```graphql
+User.chirpIds(pageNumber: Int=1): [ID]!
+```
+
+In this configuration, resolver arguments will need to pass through with the initial `selectionSet`. The `forwardArgsToSelectionSet` helper handles this:
 
 ```js
 import { forwardArgsToSelectionSet } from '@graphql-tools/stitch';
-
-export default {
-  User: {
-    chirps: {
-      selectionSet: forwardArgsToSelectionSet('{ chirpIds }'),
-      resolve(user, args, context, info) {
-        return delegateToSchema({
-          schema: chirpSchema,
-          operation: 'query',
-          fieldName: 'chirpsById',
-          args: {
-            ids: user.chirpIds,
-          },
-          context,
-          info,
-        });
-      },
+//...
+User: {
+  chirps: {
+    selectionSet: forwardArgsToSelectionSet('{ chirpIds }'),
+    resolve(user, args, context, info) {
+      return batchDelegateToSchema({
+        schema: chirpsSubschema,
+        operation: 'query',
+        fieldName: 'chirpsByIds',
+        key: user.chirpIds,
+        argsFromKeys: (ids) => ({ ids }),
+        context,
+        info,
+      });
     },
-  }
-};
+  },
+}
 ```
 
-By default, `forwardArgsToSelectionSet` will passthrough all arguments from the gateway field to _all_ root fields in the selection set. For complex selections that request multiple fields, you may provide an additional mapping of selection names with their respective arguments:
+By default, `forwardArgsToSelectionSet` will pass through all arguments from the gateway field to _all_ root fields in the selection set. For complex selections that request multiple fields, you may provide an additional mapping of selection names with their respective arguments:
 
 ```js
-forwardArgsToSelectionSet('{ id chirpIds }', { chirpIds: ['since'] })
+forwardArgsToSelectionSet('{ id chirpIds }', { chirpIds: ['pageNumber'] })
 ```
-
-Note that a dynamic `selectionSet` is simply a function that recieves a GraphQL `FieldNode` (the gateway field) and returns a `SelectionSetNode`. This dynamic capability can support a wide range of custom stitching configurations.
 
 ## Transforms
 

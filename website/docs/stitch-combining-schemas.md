@@ -31,7 +31,7 @@ let chirpSchema = makeExecutableSchema({
 
     type Query {
       chirpById(id: ID!): Chirp
-      chirpsByAuthorId(authorId: ID!): [Chirp]
+      chirpsByAuthorId(authorId: ID!): [Chirp]!
     }
   `
 });
