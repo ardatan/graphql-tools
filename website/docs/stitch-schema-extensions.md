@@ -4,11 +4,11 @@ title: Extending stitched schemas
 sidebar_label: Schema extensions
 ---
 
-While stitching many schemas together is extremely useful for consolidating queries, in practice we'll often want to add additional association fields that connect types from across subschemas. Using schema extensions, we can define additional GraphQL fields that only exist in the combined top-level schema to forge these connections.
+While stitching many schemas together is extremely useful for consolidating queries, in practice we'll often want to add additional association fields that connect types from across subschemas. Using schema extensions, we can define additional GraphQL fields that only exist in the combined top-level schema to establish these connections.
 
 ### Basic example
 
-Going back to the Users and Chirps model:
+Going back to the Chirps and Authors services:
 
 ```js
 import { makeExecutableSchema } from '@graphql-tools/schema';
@@ -46,10 +46,10 @@ const chirpSubschema = { schema: chirpSchema };
 const authorSubschema = { schema: authorSchema };
 ```
 
-Here we may want to navigate from a particular user to their chirps, or from a chirp to its author. This is possible by connecting a key field on an object to a corresponding root query:
+We may want to navigate from a particular user to their chirps, or from a chirp to its author. This is possible by connecting an existing object key to a corresponding root query:
 
-- `Chirp.authorId -> userById(id)`
-- `User.id -> chirpsByAuthorId(authorId)`
+- `Chirp.authorId -> userById(id)` (chirp author)
+- `User.id -> chirpsByAuthorId(authorId)`  (user chirps)
 
 To formalize this navigation in our gateway schema, we can _extend_ each type with a new field that translates its respective key field into an actual association:
 
@@ -72,7 +72,7 @@ export const schema = stitchSchemas({
 });
 ```
 
-The `typeDefs` option provides type extentions (using the `extend` keyword) that add additional fields into the _combined_ schema, therefore they may cross-reference types from any subschema.
+The `typeDefs` option provides type extentions (using the `extend` keyword) that add additional fields into the _combined_ schema, and therefore may cross-reference types from any subschema.
 
 However, these extensions alone won't do anything until they have corresponding resolvers. A complete example would look like this:
 
@@ -128,7 +128,7 @@ export const schema = stitchSchemas({
 });
 ```
 
-When resolving `User.chirps` and `Chirp.author`, we _delegate_ a reference to their corresponding root fields. Note that the structure of stitching resolvers is a bit unique: each resolver is an object with a `selectionSet` property and a `resolve` method:
+When resolving `User.chirps` and `Chirp.author`, we _delegate_ the key reference to its corresponding root query. Note that the structure of stitching resolvers is unique in that each resolver is an object with a `selectionSet` property and a `resolve` method...
 
 #### selectionSet
 
@@ -141,7 +141,7 @@ Chirp: {
 },
 ```
 
-The `selectionSet` specifies the necessary field(s) from an object needed to query for its association(s). For example, `Chirp.author` will require that a Chirp provide its `authorId`. Rather than relying on incoming queries to manually request this ID, subschema requests will automatically include the selectionSet to guarentee these fields are pre-fetched.
+The `selectionSet` specifies the key field(s) needed from an object to query for its associations. For example, `Chirp.author` will require that a Chirp provide its `authorId`. Rather than relying on incoming queries to manually request this key for the association, the selectionSet will automatically be included in subschema requests to guarentee these fields are fetched.
 
 #### resolve
 
@@ -165,34 +165,19 @@ Chirp: {
 
 Resolvers use the `delegateToSchema` function to forward parts of queries (or even whole new queries) to any other schema&mdash;inside _or outside_ of the stitched schema. When delegating to a stitched subschema, always provide the complete [subschema config](/docs/stitch-combining-schemas#subschema-configs) object as the `schema` option.
 
-By default, `delegateToSchema` assumes that the delegated operation will return the same GraphQL type as the resolved field. If this is not the case (say, the delegated query returns an array rather than a single instance), then you should manually pass a `returnType` option to `delegateToSchema` with the expected GraphQL result type, and handle transforming the result as needed in the resolver.
+By default, `delegateToSchema` assumes that the delegated operation will return the same GraphQL type as the resolved field (ex: a `User` field would delegate to a `User` query). If this is not the case, then you should manually provide a `returnType` option citing the expected GraphQL return type, and transform the result accordingly in the resolver.
 
 ### Batch Delegation
 
-Unfortunately, performing individual `delegateToSchema` calls can be fairly inefficient. Say that we request `Chirp.author` from an array of ten chirps&mdash;that would delegate ten individual user queries to the subschema! This becomes particularily inefficient when delegating to remote services. To improve this, we can instead delegate field resolvers in batches. This would request many users for many chirps all at once.
+Unfortunately, performing individual `delegateToSchema` calls can be fairly inefficient. Say we request `Chirp.author` from an array of ten chirps&mdash;that would delegate ten individual `userById` queries while resolving each author! To improve this, we can instead delegate in _batches_, where many instances of a field resolver are consolidated into one delegation.
 
-The first thing we'll need is a new query in the users service that fetches many users at once:
+To setup batching, the first thing we'll need is a new query in the authors service that allows fetching many users at once:
 
 ```graphql
 usersByIds(ids: [ID!]!): [User]!
 ```
 
-<!-- Suppose there was an additional root field within the schema for chirps called `trendingChirps` that returned a list of the current most popular chirps, as well as an additonal field on the `Chirp` type called `chirpedAtUserId` that described the target of an individual chirp. Imagine as well that we used the above stitching strategy to add an additional new field on the `Chirp` type called `chirpedAtUser` so that we could write the following query:
-
-```graphql
-query {
-  trendingChirps {
-    id
-    text
-    chirpedAtUser {
-      id
-      email
-    }
-  }
-}
-``` -->
-
-With this new collection service available, we can now delegate `Chirp.author` requests in batches across many chirp records:
+With this many-users query available, we can now delegate the `Chirp.author` field in batches across many Chirp records:
 
 ```js
 import { batchDelegateToSchema } from '@graphql-tools/batchDelegate';
@@ -225,9 +210,9 @@ const schema = stitchSchemas({
 });
 ```
 
-<!-- Imagine, however, that the author schema had an additional root field `usersByIds` besides just `userById`. Because we know that for each member of a list, the arguments and selection set will always match, we can utilize batch delegation using the [DataLoader](https://www.npmjs.com/package/dataloader) pattern to combine the individual queries from the gateway into one batch to the `userByIds` root field instead of `userById`. The implementation would look very similar: -->
+Internally, `batchDelegateToSchema` wraps a single `delegateToSchema` call in a [DataLoader](https://www.npmjs.com/package/dataloader) scoped by context, field, arguments, and object selection. It assumes that the delegated operation will return an array of the field's named GraphQL type (ex: a `User` field would delegate to a `[User]` query). If this is not the case, then you should manually provide a `returnType` option citing the expected GraphQL return type.
 
-Batch delegation may be preferable over plain delegation whenever possible, as it reduces the number of requests significantly whenever the parent object type appears in a list!
+Batch delegation is generally preferable over plain delegation because it eliminates the redundancy of requesting the same field across an array of parent objects. However, there is still one subschema request made _per batched field_&mdash;for remote services, this may create many network requests sent to the same service. This can be optimized with an additional layer of network-level batching using a package such as [apollo-link-batch-http](https://www.apollographql.com/docs/link/links/batch-http/).
 
 ### Passing arguments between resolvers
 
