@@ -302,11 +302,7 @@ import { makeExecutableSchema } from '@graphql-tools/schema';
 import { addMocksToSchema } from '@graphql-tools/mock';
 import { stitchSchemas } from '@graphql-tools/stitch';
 import { delegateToSchema } from '@graphql-tools/delegate';
-import {
-  FilterRootFields,
-  RenameTypes,
-  RenameRootFields,
-} from '@graphql-tools/wrap';
+import { FilterRootFields, RenameTypes } from '@graphql-tools/wrap';
 
 const chirpSchema = makeExecutableSchema({
   typeDefs: `
