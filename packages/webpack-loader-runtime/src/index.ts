@@ -1,11 +1,11 @@
 import { DefinitionNode } from 'graphql';
 
 export const uniqueCode = `
-  const names = {};
+  var names = {};
   function unique(defs) {
-    return defs.filter((def) => {
+    return defs.filter(function (def) {
       if (def.kind !== 'FragmentDefinition') return true;
-      const name = def.name.value;
+      var name = def.name.value;
       if (names[name]) {
         return false;
       } else {

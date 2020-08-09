@@ -43,9 +43,8 @@ function expandImports(source: string, options: Options) {
   const lines = source.split(/\r\n|\r|\n/);
   let outputCode = options.importHelpers
     ? `
-    const { useUnique } = require('@graphql-tools/webpack-loader-runtime');
-
-    const unique = useUnique();
+    var useUnique = require('@graphql-tools/webpack-loader-runtime').useUnique;
+    var unique = useUnique();
   `
     : `
     ${uniqueCode}
@@ -75,7 +74,7 @@ export default function graphqlLoader(source: string) {
   }
 
   const headerCode = `
-    const doc = ${JSON.stringify(doc)};
+    var doc = ${JSON.stringify(doc)};
   `;
 
   let outputCode = '';

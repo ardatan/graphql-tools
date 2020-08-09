@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/resolvers-composition",
-  "version": "6.0.15",
+  "version": "6.0.16",
   "description": "Common package containting utils and types for GraphQL tools",
   "repository": "git@github.com:ardatan/graphql-tools.git",
   "author": "Dotan Simha <dotansimha@gmail.com>",
@@ -16,10 +16,10 @@
     "graphql": "^14.0.0 || ^15.0.0"
   },
   "devDependencies": {
-    "@types/lodash": "4.14.158"
+    "@types/lodash": "4.14.159"
   },
   "dependencies": {
-    "@graphql-tools/utils": "6.0.15",
+    "@graphql-tools/utils": "6.0.16",
     "lodash": "4.17.19"
   },
   "publishConfig": {
