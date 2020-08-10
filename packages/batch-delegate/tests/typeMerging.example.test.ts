@@ -278,13 +278,6 @@ describe('merging using type merging', () => {
         }
       }],
     mergeTypes: true,
-    resolvers: {
-      Product: {
-        shippingEstimate: {
-          selectionSet: '{ weight price }'
-        }
-      }
-    }
   });
 
   test('can stitch from products to inventory schema', async () => {
