@@ -109,7 +109,9 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
         case 'GET':
           const urlObj = new URL(HTTP_URL);
           urlObj.searchParams.set('query', query);
-          urlObj.searchParams.set(variables, JSON.stringify(variables));
+          if (variables && Object.keys(variables).length > 0) {
+            urlObj.searchParams.set('variables', JSON.stringify(variables));
+          }
           const finalUrl = urlObj.toString();
           fetchResult = await fetch(finalUrl, {
             method: 'GET',

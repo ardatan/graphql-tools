@@ -86,29 +86,53 @@ export function mockGraphQLServer({
   host,
   path,
   intercept,
+  method = 'POST',
 }: {
   schema: GraphQLSchema;
   host: string;
-  path: string;
+  path: string | RegExp | ((path: string) => boolean);
   intercept?: (obj: nock.ReplyFnContext) => void;
+  method?: string;
 }) {
-  return nock(host)
-    .post(path)
-    .reply(async function (_: any, body: any) {
-      try {
-        if (intercept) {
-          intercept(this);
-        }
-
-        const result = await execute({
-          schema,
-          document: parse(body.query),
-          operationName: body.operationName,
-          variableValues: body.variables,
+  switch (method) {
+    case 'GET':
+      return nock(host)
+        .get(path)
+        .reply(async function (uri) {
+          const urlObj = new URL(host + uri);
+          try {
+            if (intercept) {
+              intercept(this);
+            }
+            const result = await execute({
+              schema,
+              document: parse(urlObj.searchParams.get('query')),
+              operationName: urlObj.searchParams.get('operationName'),
+              variableValues: JSON.parse(urlObj.searchParams.get('variables') || '{}'),
+            });
+            return [200, result];
+          } catch (error) {
+            return [500, error];
+          }
         });
-        return [200, result];
-      } catch (error) {
-        return [500, error];
-      }
-    });
+    case 'POST':
+      return nock(host)
+        .post(path)
+        .reply(async function (_: string, body: any) {
+          try {
+            if (intercept) {
+              intercept(this);
+            }
+            const result = await execute({
+              schema,
+              document: parse(body.query),
+              operationName: body.operationName,
+              variableValues: body.variables,
+            });
+            return [200, result];
+          } catch (error) {
+            return [500, error];
+          }
+        });
+  }
 }
