@@ -26,8 +26,9 @@
     "@graphql-tools/utils": "6.0.16",
     "apollo-link": "1.2.14",
     "apollo-upload-client": "14.1.1",
-    "form-data": "3.0.0",
     "cross-fetch": "3.0.5",
+    "form-data": "3.0.0",
+    "is-promise": "4.0.0",
     "tslib": "~2.0.0"
   },
   "publishConfig": {

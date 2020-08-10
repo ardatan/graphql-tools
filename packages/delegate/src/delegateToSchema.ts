@@ -13,6 +13,8 @@ import {
   GraphQLObjectType,
 } from 'graphql';
 
+import isPromise from 'is-promise';
+
 import { mapAsyncIterator, Transform, ExecutionResult } from '@graphql-tools/utils';
 
 import { IDelegateToSchemaOptions, IDelegateRequestOptions, SubschemaConfig, ExecutionParams } from './types';
@@ -162,7 +164,7 @@ export function delegateRequest({
       info,
     });
 
-    if (executionResult instanceof Promise) {
+    if (isPromise(executionResult)) {
       return executionResult.then(originalResult => transformer.transformResult(originalResult));
     }
     return transformer.transformResult(executionResult);
