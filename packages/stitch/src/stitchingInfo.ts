@@ -98,8 +98,8 @@ function createMergedTypes(
 
   Object.keys(typeCandidates).forEach(typeName => {
     if (
-      isObjectType(typeCandidates[typeName][0].type) ||
-      (isInterfaceType(typeCandidates[typeName][0].type) && typeCandidates[typeName].length > 1)
+      typeCandidates[typeName].length > 1 &&
+      (isObjectType(typeCandidates[typeName][0].type) || isInterfaceType(typeCandidates[typeName][0].type))
     ) {
       const typeCandidatesWithMergedTypeConfig = typeCandidates[typeName].filter(
         typeCandidate =>
