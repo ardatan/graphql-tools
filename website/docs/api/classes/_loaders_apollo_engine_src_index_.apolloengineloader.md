@@ -12,7 +12,7 @@ This loader loads a schema from Apollo Engine
 
 ## Implements
 
-* [Loader](/docs/api/interfaces/_utils_src_index_.loader)‹[ApolloEngineOptions](/docs/api/interfaces/_loaders_apollo_engine_src_index_.apolloengineoptions)›
+* [Loader](../interfaces/_utils_src_index_.loader.md)‹[ApolloEngineOptions](../interfaces/_loaders_apollo_engine_src_index_.apolloengineoptions.md)›
 
 ## Index
 
@@ -54,7 +54,7 @@ ___
 
 ###  load
 
-▸ **load**(`_`: "apollo-engine", `options`: [ApolloEngineOptions](/docs/api/interfaces/_loaders_apollo_engine_src_index_.apolloengineoptions)): *Promise‹[Source](/docs/api/interfaces/_utils_src_index_.source)›*
+▸ **load**(`_`: "apollo-engine", `options`: [ApolloEngineOptions](../interfaces/_loaders_apollo_engine_src_index_.apolloengineoptions.md)): *Promise‹[Source](../interfaces/_utils_src_index_.source.md)›*
 
 *Defined in [packages/loaders/apollo-engine/src/index.ts:36](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/apollo-engine/src/index.ts#L36)*
 
@@ -63,9 +63,9 @@ ___
 Name | Type |
 ------ | ------ |
 `_` | "apollo-engine" |
-`options` | [ApolloEngineOptions](/docs/api/interfaces/_loaders_apollo_engine_src_index_.apolloengineoptions) |
+`options` | [ApolloEngineOptions](../interfaces/_loaders_apollo_engine_src_index_.apolloengineoptions.md) |
 
-**Returns:** *Promise‹[Source](/docs/api/interfaces/_utils_src_index_.source)›*
+**Returns:** *Promise‹[Source](../interfaces/_utils_src_index_.source.md)›*
 
 ___
 
@@ -83,7 +83,7 @@ ___
 
 ▸ **loaderId**(): *string*
 
-*Implementation of [Loader](/docs/api/interfaces/_utils_src_index_.loader)*
+*Implementation of [Loader](../interfaces/_utils_src_index_.loader.md)*
 
 *Defined in [packages/loaders/apollo-engine/src/index.ts:24](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/apollo-engine/src/index.ts#L24)*
 

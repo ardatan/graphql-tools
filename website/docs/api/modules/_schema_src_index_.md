@@ -1,13 +1,15 @@
 ---
-id: "schema"
-title: "@graphql-tools/schema"
-sidebar_label: "schema"
+id: "_schema_src_index_"
+title: "schema/src/index"
+sidebar_label: "schema/src/index"
 ---
+
+## Index
 
 ### Interfaces
 
-* [IExecutableSchemaDefinition](/docs/api/interfaces/_schema_src_index_.iexecutableschemadefinition)
-* [ILogger](/docs/api/interfaces/_schema_src_index_.ilogger)
+* [IExecutableSchemaDefinition](../interfaces/_schema_src_index_.iexecutableschemadefinition.md)
+* [ILogger](../interfaces/_schema_src_index_.ilogger.md)
 
 ### Functions
 
@@ -48,7 +50,7 @@ ___
 
 ###  addErrorLoggingToSchema
 
-▸ **addErrorLoggingToSchema**(`schema`: GraphQLSchema, `logger?`: [ILogger](/docs/api/interfaces/_schema_src_index_.ilogger)): *GraphQLSchema*
+▸ **addErrorLoggingToSchema**(`schema`: GraphQLSchema, `logger?`: [ILogger](../interfaces/_schema_src_index_.ilogger.md)): *GraphQLSchema*
 
 *Defined in [packages/schema/src/addErrorLoggingToSchema.ts:6](https://github.com/ardatan/graphql-tools/blob/master/packages/schema/src/addErrorLoggingToSchema.ts#L6)*
 
@@ -57,7 +59,7 @@ ___
 Name | Type |
 ------ | ------ |
 `schema` | GraphQLSchema |
-`logger?` | [ILogger](/docs/api/interfaces/_schema_src_index_.ilogger) |
+`logger?` | [ILogger](../interfaces/_schema_src_index_.ilogger.md) |
 
 **Returns:** *GraphQLSchema*
 
@@ -65,7 +67,7 @@ ___
 
 ###  addResolversToSchema
 
-▸ **addResolversToSchema**(`schemaOrOptions`: GraphQLSchema | [IAddResolversToSchemaOptions](/docs/api/interfaces/_utils_src_index_.iaddresolverstoschemaoptions), `legacyInputResolvers?`: [IResolvers](_utils_src_index_.md#iresolvers), `legacyInputValidationOptions?`: [IResolverValidationOptions](/docs/api/interfaces/_utils_src_index_.iresolvervalidationoptions)): *GraphQLSchema*
+▸ **addResolversToSchema**(`schemaOrOptions`: GraphQLSchema | [IAddResolversToSchemaOptions](../interfaces/_utils_src_index_.iaddresolverstoschemaoptions.md), `legacyInputResolvers?`: [IResolvers](_utils_src_index_.md#iresolvers), `legacyInputValidationOptions?`: [IResolverValidationOptions](../interfaces/_utils_src_index_.iresolvervalidationoptions.md)): *GraphQLSchema*
 
 *Defined in [packages/schema/src/addResolversToSchema.ts:36](https://github.com/ardatan/graphql-tools/blob/master/packages/schema/src/addResolversToSchema.ts#L36)*
 
@@ -73,9 +75,9 @@ ___
 
 Name | Type |
 ------ | ------ |
-`schemaOrOptions` | GraphQLSchema &#124; [IAddResolversToSchemaOptions](/docs/api/interfaces/_utils_src_index_.iaddresolverstoschemaoptions) |
+`schemaOrOptions` | GraphQLSchema &#124; [IAddResolversToSchemaOptions](../interfaces/_utils_src_index_.iaddresolverstoschemaoptions.md) |
 `legacyInputResolvers?` | [IResolvers](_utils_src_index_.md#iresolvers) |
-`legacyInputValidationOptions?` | [IResolverValidationOptions](/docs/api/interfaces/_utils_src_index_.iresolvervalidationoptions) |
+`legacyInputValidationOptions?` | [IResolverValidationOptions](../interfaces/_utils_src_index_.iresolvervalidationoptions.md) |
 
 **Returns:** *GraphQLSchema*
 
@@ -100,7 +102,7 @@ ___
 
 ###  assertResolversPresent
 
-▸ **assertResolversPresent**(`schema`: GraphQLSchema, `resolverValidationOptions`: [IResolverValidationOptions](/docs/api/interfaces/_utils_src_index_.iresolvervalidationoptions)): *void*
+▸ **assertResolversPresent**(`schema`: GraphQLSchema, `resolverValidationOptions`: [IResolverValidationOptions](../interfaces/_utils_src_index_.iresolvervalidationoptions.md)): *void*
 
 *Defined in [packages/schema/src/assertResolversPresent.ts:5](https://github.com/ardatan/graphql-tools/blob/master/packages/schema/src/assertResolversPresent.ts#L5)*
 
@@ -109,7 +111,7 @@ ___
 Name | Type | Default |
 ------ | ------ | ------ |
 `schema` | GraphQLSchema | - |
-`resolverValidationOptions` | [IResolverValidationOptions](/docs/api/interfaces/_utils_src_index_.iresolvervalidationoptions) | {} |
+`resolverValidationOptions` | [IResolverValidationOptions](../interfaces/_utils_src_index_.iresolvervalidationoptions.md) | {} |
 
 **Returns:** *void*
 
@@ -117,7 +119,7 @@ ___
 
 ###  attachDirectiveResolvers
 
-▸ **attachDirectiveResolvers**(`schema`: GraphQLSchema, `directiveResolvers`: [IDirectiveResolvers](/docs/api/interfaces/_utils_src_index_.idirectiveresolvers)): *GraphQLSchema*
+▸ **attachDirectiveResolvers**(`schema`: GraphQLSchema, `directiveResolvers`: [IDirectiveResolvers](../interfaces/_utils_src_index_.idirectiveresolvers.md)): *GraphQLSchema*
 
 *Defined in [packages/schema/src/attachDirectiveResolvers.ts:5](https://github.com/ardatan/graphql-tools/blob/master/packages/schema/src/attachDirectiveResolvers.ts#L5)*
 
@@ -126,7 +128,7 @@ ___
 Name | Type |
 ------ | ------ |
 `schema` | GraphQLSchema |
-`directiveResolvers` | [IDirectiveResolvers](/docs/api/interfaces/_utils_src_index_.idirectiveresolvers) |
+`directiveResolvers` | [IDirectiveResolvers](../interfaces/_utils_src_index_.idirectiveresolvers.md) |
 
 **Returns:** *GraphQLSchema*
 
@@ -134,7 +136,7 @@ ___
 
 ###  buildDocumentFromTypeDefinitions
 
-▸ **buildDocumentFromTypeDefinitions**(`typeDefinitions`: [ITypeDefinitions](_utils_src_index_.md#itypedefinitions), `parseOptions?`: [GraphQLParseOptions](/docs/api/interfaces/_utils_src_index_.graphqlparseoptions)): *DocumentNode*
+▸ **buildDocumentFromTypeDefinitions**(`typeDefinitions`: [ITypeDefinitions](_utils_src_index_.md#itypedefinitions), `parseOptions?`: [GraphQLParseOptions](../interfaces/_utils_src_index_.graphqlparseoptions.md)): *DocumentNode*
 
 *Defined in [packages/schema/src/buildSchemaFromTypeDefinitions.ts:30](https://github.com/ardatan/graphql-tools/blob/master/packages/schema/src/buildSchemaFromTypeDefinitions.ts#L30)*
 
@@ -143,7 +145,7 @@ ___
 Name | Type |
 ------ | ------ |
 `typeDefinitions` | [ITypeDefinitions](_utils_src_index_.md#itypedefinitions) |
-`parseOptions?` | [GraphQLParseOptions](/docs/api/interfaces/_utils_src_index_.graphqlparseoptions) |
+`parseOptions?` | [GraphQLParseOptions](../interfaces/_utils_src_index_.graphqlparseoptions.md) |
 
 **Returns:** *DocumentNode*
 
@@ -151,7 +153,7 @@ ___
 
 ###  buildSchemaFromTypeDefinitions
 
-▸ **buildSchemaFromTypeDefinitions**(`typeDefinitions`: [ITypeDefinitions](_utils_src_index_.md#itypedefinitions), `parseOptions?`: [GraphQLParseOptions](/docs/api/interfaces/_utils_src_index_.graphqlparseoptions)): *GraphQLSchema*
+▸ **buildSchemaFromTypeDefinitions**(`typeDefinitions`: [ITypeDefinitions](_utils_src_index_.md#itypedefinitions), `parseOptions?`: [GraphQLParseOptions](../interfaces/_utils_src_index_.graphqlparseoptions.md)): *GraphQLSchema*
 
 *Defined in [packages/schema/src/buildSchemaFromTypeDefinitions.ts:8](https://github.com/ardatan/graphql-tools/blob/master/packages/schema/src/buildSchemaFromTypeDefinitions.ts#L8)*
 
@@ -160,7 +162,7 @@ ___
 Name | Type |
 ------ | ------ |
 `typeDefinitions` | [ITypeDefinitions](_utils_src_index_.md#itypedefinitions) |
-`parseOptions?` | [GraphQLParseOptions](/docs/api/interfaces/_utils_src_index_.graphqlparseoptions) |
+`parseOptions?` | [GraphQLParseOptions](../interfaces/_utils_src_index_.graphqlparseoptions.md) |
 
 **Returns:** *GraphQLSchema*
 
@@ -218,7 +220,7 @@ ___
 
 ###  decorateWithLogger
 
-▸ **decorateWithLogger**(`fn`: GraphQLFieldResolver‹any, any›, `logger`: [ILogger](/docs/api/interfaces/_schema_src_index_.ilogger), `hint`: string): *GraphQLFieldResolver‹any, any›*
+▸ **decorateWithLogger**(`fn`: GraphQLFieldResolver‹any, any›, `logger`: [ILogger](../interfaces/_schema_src_index_.ilogger.md), `hint`: string): *GraphQLFieldResolver‹any, any›*
 
 *Defined in [packages/schema/src/decorateWithLogger.ts:9](https://github.com/ardatan/graphql-tools/blob/master/packages/schema/src/decorateWithLogger.ts#L9)*
 
@@ -227,7 +229,7 @@ ___
 Name | Type |
 ------ | ------ |
 `fn` | GraphQLFieldResolver‹any, any› |
-`logger` | [ILogger](/docs/api/interfaces/_schema_src_index_.ilogger) |
+`logger` | [ILogger](../interfaces/_schema_src_index_.ilogger.md) |
 `hint` | string |
 
 **Returns:** *GraphQLFieldResolver‹any, any›*
@@ -265,7 +267,7 @@ Name | Type |
 
 **Returns:** *object*
 
-* **definitions**: *OperationDefinitionNode | FragmentDefinitionNode | SchemaDefinitionNode | ScalarTypeDefinitionNode | ObjectTypeDefinitionNode | InterfaceTypeDefinitionNode | UnionTypeDefinitionNode | EnumTypeDefinitionNode | InputObjectTypeDefinitionNode | DirectiveDefinitionNode | SchemaExtensionNode | ScalarTypeExtensionNode | ObjectTypeExtensionNode | InterfaceTypeExtensionNode | UnionTypeExtensionNode | EnumTypeExtensionNode | InputObjectTypeExtensionNode[]* = extensionDefs
+* **definitions**: *(OperationDefinitionNode | FragmentDefinitionNode | SchemaDefinitionNode | ScalarTypeDefinitionNode | ObjectTypeDefinitionNode | InterfaceTypeDefinitionNode | UnionTypeDefinitionNode | EnumTypeDefinitionNode | InputObjectTypeDefinitionNode | DirectiveDefinitionNode | SchemaExtensionNode | ScalarTypeExtensionNode | ObjectTypeExtensionNode | InterfaceTypeExtensionNode | UnionTypeExtensionNode | EnumTypeExtensionNode | InputObjectTypeExtensionNode)[]* = extensionDefs
 
 ___
 
@@ -283,7 +285,7 @@ Name | Type |
 
 **Returns:** *object*
 
-* **definitions**: *OperationDefinitionNode | FragmentDefinitionNode | SchemaDefinitionNode | ScalarTypeDefinitionNode | ObjectTypeDefinitionNode | InterfaceTypeDefinitionNode | UnionTypeDefinitionNode | EnumTypeDefinitionNode | InputObjectTypeDefinitionNode | DirectiveDefinitionNode | SchemaExtensionNode | ScalarTypeExtensionNode | ObjectTypeExtensionNode | InterfaceTypeExtensionNode | UnionTypeExtensionNode | EnumTypeExtensionNode | InputObjectTypeExtensionNode[]* = extensionDefs
+* **definitions**: *(OperationDefinitionNode | FragmentDefinitionNode | SchemaDefinitionNode | ScalarTypeDefinitionNode | ObjectTypeDefinitionNode | InterfaceTypeDefinitionNode | UnionTypeDefinitionNode | EnumTypeDefinitionNode | InputObjectTypeDefinitionNode | DirectiveDefinitionNode | SchemaExtensionNode | ScalarTypeExtensionNode | ObjectTypeExtensionNode | InterfaceTypeExtensionNode | UnionTypeExtensionNode | EnumTypeExtensionNode | InputObjectTypeExtensionNode)[]* = extensionDefs
 
 ___
 
@@ -315,13 +317,13 @@ const typeDefs = gql`
 
 The `resolvers` object should be a map of type names to nested object, which
 themselves map the type's fields to their appropriate resolvers.
-See the [Resolvers](/resolvers) section of the documentation for more details.
+See the [Resolvers](/docs/resolvers) section of the documentation for more details.
 
 ```js
 const resolvers = {
   Query: {
-    posts: (obj, args, ctx, info) =&gt; getAllPosts(),
-    author: (obj, args, ctx, info) =&gt; getAuthorById(args.id)
+    posts: (obj, args, ctx, info) => getAllPosts(),
+    author: (obj, args, ctx, info) => getAuthorById(args.id)
   }
 };
 ```
@@ -347,15 +349,15 @@ const schema = makeExecutableSchema({
 Name | Type | Default |
 ------ | ------ | ------ |
 `allowUndefinedInResolve` | boolean | true |
-`directiveResolvers` | [IDirectiveResolvers](/docs/api/interfaces/_utils_src_index_.idirectiveresolvers)‹any, TContext› | - |
+`directiveResolvers` | [IDirectiveResolvers](../interfaces/_utils_src_index_.idirectiveresolvers.md)‹any, TContext› | - |
 `inheritResolversFromInterfaces` | boolean | false |
-`logger` | [ILogger](/docs/api/interfaces/_schema_src_index_.ilogger) | - |
-`parseOptions` | [GraphQLParseOptions](/docs/api/interfaces/_utils_src_index_.graphqlparseoptions) | - |
-`pruningOptions` | [PruneSchemaOptions](/docs/api/interfaces/_utils_src_index_.pruneschemaoptions) | - |
-`resolverValidationOptions` | [IResolverValidationOptions](/docs/api/interfaces/_utils_src_index_.iresolvervalidationoptions) | - |
+`logger` | [ILogger](../interfaces/_schema_src_index_.ilogger.md) | - |
+`parseOptions` | [GraphQLParseOptions](../interfaces/_utils_src_index_.graphqlparseoptions.md) | - |
+`pruningOptions` | [PruneSchemaOptions](../interfaces/_utils_src_index_.pruneschemaoptions.md) | - |
+`resolverValidationOptions` | [IResolverValidationOptions](../interfaces/_utils_src_index_.iresolvervalidationoptions.md) | - |
 `resolvers` | object &#124; object[] | - |
 `schemaDirectives` | object | - |
 `schemaTransforms` | function[] | [] |
-`typeDefs` | string &#124; function &#124; DocumentNode &#124; string &#124; function &#124; DocumentNode[] | - |
+`typeDefs` | string &#124; function &#124; DocumentNode &#124; (string &#124; function &#124; DocumentNode)[] | - |
 
 **Returns:** *GraphQLSchema‹›*

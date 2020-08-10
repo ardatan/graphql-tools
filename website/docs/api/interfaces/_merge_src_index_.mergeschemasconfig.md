@@ -12,7 +12,7 @@ Configuration object for schema merging
 
 ## Hierarchy
 
-* [Config](_merge_src_index_.config)
+* [Config](_merge_src_index_.config.md)
 
 * BuildSchemaOptions
 
@@ -45,7 +45,7 @@ Configuration object for schema merging
 
 • **assumeValid**? : *boolean*
 
-*Inherited from [MergeSchemasConfig](_merge_src_index_.mergeschemasconfig).[assumeValid](_merge_src_index_.mergeschemasconfig.md#optional-assumevalid)*
+*Inherited from [MergeSchemasConfig](_merge_src_index_.mergeschemasconfig.md).[assumeValid](_merge_src_index_.mergeschemasconfig.md#optional-assumevalid)*
 
 Defined in node_modules/graphql/type/schema.d.ts:122
 
@@ -61,7 +61,7 @@ ___
 
 • **assumeValidSDL**? : *boolean*
 
-*Inherited from [MergeSchemasConfig](_merge_src_index_.mergeschemasconfig).[assumeValidSDL](_merge_src_index_.mergeschemasconfig.md#optional-assumevalidsdl)*
+*Inherited from [MergeSchemasConfig](_merge_src_index_.mergeschemasconfig.md).[assumeValidSDL](_merge_src_index_.mergeschemasconfig.md#optional-assumevalidsdl)*
 
 Defined in node_modules/graphql/utilities/buildASTSchema.d.ts:22
 
@@ -75,9 +75,9 @@ ___
 
 • **commentDescriptions**? : *boolean*
 
-*Inherited from [Config](_merge_src_index_.config).[commentDescriptions](_merge_src_index_.config.md#optional-commentdescriptions)*
+*Inherited from [Config](_merge_src_index_.config.md).[commentDescriptions](_merge_src_index_.config.md#optional-commentdescriptions)*
 
-*Overrides [GraphQLFileLoaderOptions](_loaders_graphql_file_src_index_.graphqlfileloaderoptions).[commentDescriptions](_loaders_graphql_file_src_index_.graphqlfileloaderoptions.md#optional-commentdescriptions)*
+*Overrides [GraphQLFileLoaderOptions](_loaders_graphql_file_src_index_.graphqlfileloaderoptions.md).[commentDescriptions](_loaders_graphql_file_src_index_.graphqlfileloaderoptions.md#optional-commentdescriptions)*
 
 *Defined in [packages/merge/src/typedefs-mergers/merge-typedefs.ts:38](https://github.com/ardatan/graphql-tools/blob/master/packages/merge/src/typedefs-mergers/merge-typedefs.ts#L38)*
 
@@ -94,7 +94,7 @@ ___
 
 • **convertExtensions**? : *boolean*
 
-*Inherited from [Config](_merge_src_index_.config).[convertExtensions](_merge_src_index_.config.md#optional-convertextensions)*
+*Inherited from [Config](_merge_src_index_.config.md).[convertExtensions](_merge_src_index_.config.md#optional-convertextensions)*
 
 *Defined in [packages/merge/src/typedefs-mergers/merge-typedefs.ts:59](https://github.com/ardatan/graphql-tools/blob/master/packages/merge/src/typedefs-mergers/merge-typedefs.ts#L59)*
 
@@ -104,7 +104,7 @@ ___
 
 • **exclusions**? : *string[]*
 
-*Inherited from [Config](_merge_src_index_.config).[exclusions](_merge_src_index_.config.md#optional-exclusions)*
+*Inherited from [Config](_merge_src_index_.config.md).[exclusions](_merge_src_index_.config.md#optional-exclusions)*
 
 *Defined in [packages/merge/src/typedefs-mergers/merge-typedefs.ts:57](https://github.com/ardatan/graphql-tools/blob/master/packages/merge/src/typedefs-mergers/merge-typedefs.ts#L57)*
 
@@ -114,7 +114,7 @@ ___
 
 • **forceSchemaDefinition**? : *boolean*
 
-*Inherited from [Config](_merge_src_index_.config).[forceSchemaDefinition](_merge_src_index_.config.md#optional-forceschemadefinition)*
+*Inherited from [Config](_merge_src_index_.config.md).[forceSchemaDefinition](_merge_src_index_.config.md#optional-forceschemadefinition)*
 
 *Defined in [packages/merge/src/typedefs-mergers/merge-typedefs.ts:23](https://github.com/ardatan/graphql-tools/blob/master/packages/merge/src/typedefs-mergers/merge-typedefs.ts#L23)*
 
@@ -127,7 +127,7 @@ ___
 
 ### `Optional` logger
 
-• **logger**? : *[ILogger](_schema_src_index_.ilogger)*
+• **logger**? : *[ILogger](_schema_src_index_.ilogger.md)*
 
 *Defined in [packages/merge/src/merge-schemas.ts:41](https://github.com/ardatan/graphql-tools/blob/master/packages/merge/src/merge-schemas.ts#L41)*
 
@@ -137,7 +137,7 @@ ___
 
 ### `Optional` resolverValidationOptions
 
-• **resolverValidationOptions**? : *[IResolverValidationOptions](_utils_src_index_.iresolvervalidationoptions)*
+• **resolverValidationOptions**? : *[IResolverValidationOptions](_utils_src_index_.iresolvervalidationoptions.md)*
 
 *Defined in [packages/merge/src/merge-schemas.ts:37](https://github.com/ardatan/graphql-tools/blob/master/packages/merge/src/merge-schemas.ts#L37)*
 
@@ -159,7 +159,7 @@ ___
 
 • **reverseDirectives**? : *boolean*
 
-*Inherited from [Config](_merge_src_index_.config).[reverseDirectives](_merge_src_index_.config.md#optional-reversedirectives)*
+*Inherited from [Config](_merge_src_index_.config.md).[reverseDirectives](_merge_src_index_.config.md#optional-reversedirectives)*
 
 *Defined in [packages/merge/src/typedefs-mergers/merge-typedefs.ts:56](https://github.com/ardatan/graphql-tools/blob/master/packages/merge/src/typedefs-mergers/merge-typedefs.ts#L56)*
 
@@ -209,7 +209,7 @@ ___
 
 • **sort**? : *boolean | CompareFn‹string›*
 
-*Inherited from [Config](_merge_src_index_.config).[sort](_merge_src_index_.config.md#optional-sort)*
+*Inherited from [Config](_merge_src_index_.config.md).[sort](_merge_src_index_.config.md#optional-sort)*
 
 *Defined in [packages/merge/src/typedefs-mergers/merge-typedefs.ts:58](https://github.com/ardatan/graphql-tools/blob/master/packages/merge/src/typedefs-mergers/merge-typedefs.ts#L58)*
 
@@ -219,7 +219,7 @@ ___
 
 • **throwOnConflict**? : *boolean*
 
-*Inherited from [Config](_merge_src_index_.config).[throwOnConflict](_merge_src_index_.config.md#optional-throwonconflict)*
+*Inherited from [Config](_merge_src_index_.config.md).[throwOnConflict](_merge_src_index_.config.md#optional-throwonconflict)*
 
 *Defined in [packages/merge/src/typedefs-mergers/merge-typedefs.ts:29](https://github.com/ardatan/graphql-tools/blob/master/packages/merge/src/typedefs-mergers/merge-typedefs.ts#L29)*
 
@@ -231,7 +231,7 @@ ___
 
 ### `Optional` typeDefs
 
-• **typeDefs**? : *string | DocumentNode[] | DocumentNode | string*
+• **typeDefs**? : *(string | DocumentNode)[] | DocumentNode | string*
 
 *Defined in [packages/merge/src/merge-schemas.ts:25](https://github.com/ardatan/graphql-tools/blob/master/packages/merge/src/merge-schemas.ts#L25)*
 
@@ -243,7 +243,7 @@ ___
 
 • **useSchemaDefinition**? : *boolean*
 
-*Inherited from [Config](_merge_src_index_.config).[useSchemaDefinition](_merge_src_index_.config.md#optional-useschemadefinition)*
+*Inherited from [Config](_merge_src_index_.config.md).[useSchemaDefinition](_merge_src_index_.config.md#optional-useschemadefinition)*
 
 *Defined in [packages/merge/src/typedefs-mergers/merge-typedefs.ts:16](https://github.com/ardatan/graphql-tools/blob/master/packages/merge/src/typedefs-mergers/merge-typedefs.ts#L16)*
 

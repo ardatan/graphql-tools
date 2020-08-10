@@ -17,7 +17,7 @@ const gitRemote = execSync('git remote -v', { encoding: 'utf-8' })
   .find(
     ([_name, description]) =>
       description === 'git@github.com:ardatan/graphql-tools.git (fetch)' ||
-      description === 'https://github.com/ardatan/graphql-tools (fetch)'
+      description === 'https://github.com/ardatan/graphql-tools.git (fetch)'
   );
 const gitRemoteName = gitRemote && gitRemote[0];
 if (!gitRemoteName) {

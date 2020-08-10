@@ -1,12 +1,14 @@
 ---
-id: "git-loader"
-title: "@graphql-tools/git-loader"
-sidebar_label: "git-loader"
+id: "_loaders_git_src_index_"
+title: "loaders/git/src/index"
+sidebar_label: "loaders/git/src/index"
 ---
+
+## Index
 
 ### Classes
 
-* [GitLoader](/docs/api/classes/_loaders_git_src_index_.gitloader)
+* [GitLoader](../classes/_loaders_git_src_index_.gitloader.md)
 
 ### Type aliases
 

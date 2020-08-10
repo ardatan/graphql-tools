@@ -8,7 +8,7 @@ additional options for loading from a `prisma.yml` file
 
 ## Hierarchy
 
-  ↳ [LoadFromUrlOptions](_loaders_url_src_index_.loadfromurloptions)
+  ↳ [LoadFromUrlOptions](_loaders_url_src_index_.loadfromurloptions.md)
 
   ↳ **PrismaLoaderOptions**
 
@@ -39,7 +39,7 @@ additional options for loading from a `prisma.yml` file
 
 • **allowLegacySDLEmptyFields**? : *boolean*
 
-*Inherited from [GraphQLFileLoaderOptions](_loaders_graphql_file_src_index_.graphqlfileloaderoptions).[allowLegacySDLEmptyFields](_loaders_graphql_file_src_index_.graphqlfileloaderoptions.md#optional-allowlegacysdlemptyfields)*
+*Inherited from [GraphQLFileLoaderOptions](_loaders_graphql_file_src_index_.graphqlfileloaderoptions.md).[allowLegacySDLEmptyFields](_loaders_graphql_file_src_index_.graphqlfileloaderoptions.md#optional-allowlegacysdlemptyfields)*
 
 Defined in node_modules/graphql/language/parser.d.ts:23
 
@@ -56,7 +56,7 @@ ___
 
 • **allowLegacySDLImplementsInterfaces**? : *boolean*
 
-*Inherited from [GraphQLFileLoaderOptions](_loaders_graphql_file_src_index_.graphqlfileloaderoptions).[allowLegacySDLImplementsInterfaces](_loaders_graphql_file_src_index_.graphqlfileloaderoptions.md#optional-allowlegacysdlimplementsinterfaces)*
+*Inherited from [GraphQLFileLoaderOptions](_loaders_graphql_file_src_index_.graphqlfileloaderoptions.md).[allowLegacySDLImplementsInterfaces](_loaders_graphql_file_src_index_.graphqlfileloaderoptions.md#optional-allowlegacysdlimplementsinterfaces)*
 
 Defined in node_modules/graphql/language/parser.d.ts:33
 
@@ -73,7 +73,7 @@ ___
 
 • **assumeValid**? : *boolean*
 
-*Inherited from [MergeSchemasConfig](_merge_src_index_.mergeschemasconfig).[assumeValid](_merge_src_index_.mergeschemasconfig.md#optional-assumevalid)*
+*Inherited from [MergeSchemasConfig](_merge_src_index_.mergeschemasconfig.md).[assumeValid](_merge_src_index_.mergeschemasconfig.md#optional-assumevalid)*
 
 Defined in node_modules/graphql/type/schema.d.ts:122
 
@@ -89,7 +89,7 @@ ___
 
 • **assumeValidSDL**? : *boolean*
 
-*Inherited from [MergeSchemasConfig](_merge_src_index_.mergeschemasconfig).[assumeValidSDL](_merge_src_index_.mergeschemasconfig.md#optional-assumevalidsdl)*
+*Inherited from [MergeSchemasConfig](_merge_src_index_.mergeschemasconfig.md).[assumeValidSDL](_merge_src_index_.mergeschemasconfig.md#optional-assumevalidsdl)*
 
 Defined in node_modules/graphql/utilities/buildASTSchema.d.ts:22
 
@@ -103,7 +103,7 @@ ___
 
 • **commentDescriptions**? : *boolean*
 
-*Inherited from [GraphQLFileLoaderOptions](_loaders_graphql_file_src_index_.graphqlfileloaderoptions).[commentDescriptions](_loaders_graphql_file_src_index_.graphqlfileloaderoptions.md#optional-commentdescriptions)*
+*Inherited from [GraphQLFileLoaderOptions](_loaders_graphql_file_src_index_.graphqlfileloaderoptions.md).[commentDescriptions](_loaders_graphql_file_src_index_.graphqlfileloaderoptions.md#optional-commentdescriptions)*
 
 Defined in node_modules/graphql/utilities/buildASTSchema.d.ts:15
 
@@ -120,7 +120,7 @@ ___
 
 • **customFetch**? : *[FetchFn](../modules/_loaders_url_src_index_.md#fetchfn) | string*
 
-*Inherited from [LoadFromUrlOptions](_loaders_url_src_index_.loadfromurloptions).[customFetch](_loaders_url_src_index_.loadfromurloptions.md#optional-customfetch)*
+*Inherited from [LoadFromUrlOptions](_loaders_url_src_index_.loadfromurloptions.md).[customFetch](_loaders_url_src_index_.loadfromurloptions.md#optional-customfetch)*
 
 *Defined in [packages/loaders/url/src/index.ts:34](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L34)*
 
@@ -143,7 +143,7 @@ ___
 
 • **enableSubscriptions**? : *boolean*
 
-*Inherited from [LoadFromUrlOptions](_loaders_url_src_index_.loadfromurloptions).[enableSubscriptions](_loaders_url_src_index_.loadfromurloptions.md#optional-enablesubscriptions)*
+*Inherited from [LoadFromUrlOptions](_loaders_url_src_index_.loadfromurloptions.md).[enableSubscriptions](_loaders_url_src_index_.loadfromurloptions.md#optional-enablesubscriptions)*
 
 *Defined in [packages/loaders/url/src/index.ts:42](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L42)*
 
@@ -167,7 +167,7 @@ ___
 
 • **experimentalFragmentVariables**? : *boolean*
 
-*Inherited from [GraphQLFileLoaderOptions](_loaders_graphql_file_src_index_.graphqlfileloaderoptions).[experimentalFragmentVariables](_loaders_graphql_file_src_index_.graphqlfileloaderoptions.md#optional-experimentalfragmentvariables)*
+*Inherited from [GraphQLFileLoaderOptions](_loaders_graphql_file_src_index_.graphqlfileloaderoptions.md).[experimentalFragmentVariables](_loaders_graphql_file_src_index_.graphqlfileloaderoptions.md#optional-experimentalfragmentvariables)*
 
 Defined in node_modules/graphql/language/parser.d.ts:51
 
@@ -200,7 +200,7 @@ ___
 
 • **headers**? : *Headers*
 
-*Inherited from [LoadFromUrlOptions](_loaders_url_src_index_.loadfromurloptions).[headers](_loaders_url_src_index_.loadfromurloptions.md#optional-headers)*
+*Inherited from [LoadFromUrlOptions](_loaders_url_src_index_.loadfromurloptions.md).[headers](_loaders_url_src_index_.loadfromurloptions.md#optional-headers)*
 
 *Defined in [packages/loaders/url/src/index.ts:29](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L29)*
 
@@ -212,7 +212,7 @@ ___
 
 • **method**? : *"GET" | "POST"*
 
-*Inherited from [LoadFromUrlOptions](_loaders_url_src_index_.loadfromurloptions).[method](_loaders_url_src_index_.loadfromurloptions.md#optional-method)*
+*Inherited from [LoadFromUrlOptions](_loaders_url_src_index_.loadfromurloptions.md).[method](_loaders_url_src_index_.loadfromurloptions.md#optional-method)*
 
 *Defined in [packages/loaders/url/src/index.ts:38](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L38)*
 
@@ -224,7 +224,7 @@ ___
 
 • **noLocation**? : *boolean*
 
-*Inherited from [GraphQLFileLoaderOptions](_loaders_graphql_file_src_index_.graphqlfileloaderoptions).[noLocation](_loaders_graphql_file_src_index_.graphqlfileloaderoptions.md#optional-nolocation)*
+*Inherited from [GraphQLFileLoaderOptions](_loaders_graphql_file_src_index_.graphqlfileloaderoptions.md).[noLocation](_loaders_graphql_file_src_index_.graphqlfileloaderoptions.md#optional-nolocation)*
 
 Defined in node_modules/graphql/language/parser.d.ts:13
 
@@ -238,7 +238,7 @@ ___
 
 • **useGETForQueries**? : *boolean*
 
-*Inherited from [LoadFromUrlOptions](_loaders_url_src_index_.loadfromurloptions).[useGETForQueries](_loaders_url_src_index_.loadfromurloptions.md#optional-usegetforqueries)*
+*Inherited from [LoadFromUrlOptions](_loaders_url_src_index_.loadfromurloptions.md).[useGETForQueries](_loaders_url_src_index_.loadfromurloptions.md#optional-usegetforqueries)*
 
 *Defined in [packages/loaders/url/src/index.ts:51](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L51)*
 
@@ -250,7 +250,7 @@ ___
 
 • **webSocketImpl**? : *typeof w3cwebsocket | string*
 
-*Inherited from [LoadFromUrlOptions](_loaders_url_src_index_.loadfromurloptions).[webSocketImpl](_loaders_url_src_index_.loadfromurloptions.md#optional-websocketimpl)*
+*Inherited from [LoadFromUrlOptions](_loaders_url_src_index_.loadfromurloptions.md).[webSocketImpl](_loaders_url_src_index_.loadfromurloptions.md#optional-websocketimpl)*
 
 *Defined in [packages/loaders/url/src/index.ts:47](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L47)*
 

@@ -5,11 +5,10 @@ import {
   GraphQLObjectType,
   GraphQLScalarType,
   GraphQLUnionType,
-  GraphQLType,
   GraphQLSchema,
 } from 'graphql';
 
-import { MapperKind, FieldFilter, RootFieldFilter } from './Interfaces';
+import { MapperKind, FieldFilter, RootFieldFilter, TypeFilter } from './Interfaces';
 
 import { mapSchema } from './mapSchema';
 
@@ -21,8 +20,8 @@ export function filterSchema({
 }: {
   schema: GraphQLSchema;
   rootFieldFilter?: RootFieldFilter;
-  typeFilter?: (typeName: string, type: GraphQLType) => boolean;
-  fieldFilter?: (typeName: string, fieldName: string) => boolean;
+  typeFilter?: TypeFilter;
+  fieldFilter?: FieldFilter;
 }): GraphQLSchema {
   const filteredSchema: GraphQLSchema = mapSchema(schema, {
     [MapperKind.QUERY]: (type: GraphQLObjectType) => filterRootFields(type, 'Query', rootFieldFilter),

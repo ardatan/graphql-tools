@@ -1,12 +1,14 @@
 ---
-id: "code-file-loader"
-title: "@graphql-tools/code-file-loader"
-sidebar_label: "code-file-loader"
+id: "_loaders_code_file_src_index_"
+title: "loaders/code-file/src/index"
+sidebar_label: "loaders/code-file/src/index"
 ---
+
+## Index
 
 ### Classes
 
-* [CodeFileLoader](/docs/api/classes/_loaders_code_file_src_index_.codefileloader)
+* [CodeFileLoader](../classes/_loaders_code_file_src_index_.codefileloader.md)
 
 ### Type aliases
 

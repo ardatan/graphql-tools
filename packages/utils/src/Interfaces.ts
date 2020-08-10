@@ -45,6 +45,7 @@ import {
   UnionTypeExtensionNode,
   InputObjectTypeExtensionNode,
   InputObjectTypeDefinitionNode,
+  GraphQLType,
 } from 'graphql';
 
 import { SchemaVisitor } from './SchemaVisitor';
@@ -221,6 +222,8 @@ export type RootFieldFilter = (
   rootFieldName?: string,
   fieldConfig?: GraphQLFieldConfig<any, any>
 ) => boolean;
+
+export type TypeFilter = (typeName: string, type: GraphQLType) => boolean;
 
 export type RenameTypesOptions = {
   renameBuiltins: boolean;

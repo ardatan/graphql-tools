@@ -32,7 +32,7 @@ const documents = await loadDocuments('queries/*.json', {
 
 ## Implements
 
-* [Loader](/docs/api/interfaces/_utils_src_index_.loader)
+* [Loader](../interfaces/_utils_src_index_.loader.md)
 
 ## Index
 
@@ -48,7 +48,7 @@ const documents = await loadDocuments('queries/*.json', {
 
 ###  canLoad
 
-▸ **canLoad**(`pointer`: [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle), `options`: [JsonFileLoaderOptions](/docs/api/interfaces/_loaders_json_file_src_index_.jsonfileloaderoptions)): *Promise‹boolean›*
+▸ **canLoad**(`pointer`: [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle), `options`: [JsonFileLoaderOptions](../interfaces/_loaders_json_file_src_index_.jsonfileloaderoptions.md)): *Promise‹boolean›*
 
 *Defined in [packages/loaders/json-file/src/index.ts:48](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/json-file/src/index.ts#L48)*
 
@@ -57,7 +57,7 @@ const documents = await loadDocuments('queries/*.json', {
 Name | Type |
 ------ | ------ |
 `pointer` | [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle) |
-`options` | [JsonFileLoaderOptions](/docs/api/interfaces/_loaders_json_file_src_index_.jsonfileloaderoptions) |
+`options` | [JsonFileLoaderOptions](../interfaces/_loaders_json_file_src_index_.jsonfileloaderoptions.md) |
 
 **Returns:** *Promise‹boolean›*
 
@@ -65,7 +65,7 @@ ___
 
 ###  canLoadSync
 
-▸ **canLoadSync**(`pointer`: [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle), `options`: [JsonFileLoaderOptions](/docs/api/interfaces/_loaders_json_file_src_index_.jsonfileloaderoptions)): *boolean*
+▸ **canLoadSync**(`pointer`: [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle), `options`: [JsonFileLoaderOptions](../interfaces/_loaders_json_file_src_index_.jsonfileloaderoptions.md)): *boolean*
 
 *Defined in [packages/loaders/json-file/src/index.ts:59](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/json-file/src/index.ts#L59)*
 
@@ -74,7 +74,7 @@ ___
 Name | Type |
 ------ | ------ |
 `pointer` | [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle) |
-`options` | [JsonFileLoaderOptions](/docs/api/interfaces/_loaders_json_file_src_index_.jsonfileloaderoptions) |
+`options` | [JsonFileLoaderOptions](../interfaces/_loaders_json_file_src_index_.jsonfileloaderoptions.md) |
 
 **Returns:** *boolean*
 
@@ -82,7 +82,7 @@ ___
 
 ###  load
 
-▸ **load**(`pointer`: [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle), `options`: [JsonFileLoaderOptions](/docs/api/interfaces/_loaders_json_file_src_index_.jsonfileloaderoptions)): *Promise‹[Source](/docs/api/interfaces/_utils_src_index_.source)›*
+▸ **load**(`pointer`: [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle), `options`: [JsonFileLoaderOptions](../interfaces/_loaders_json_file_src_index_.jsonfileloaderoptions.md)): *Promise‹[Source](../interfaces/_utils_src_index_.source.md)›*
 
 *Defined in [packages/loaders/json-file/src/index.ts:71](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/json-file/src/index.ts#L71)*
 
@@ -91,15 +91,15 @@ ___
 Name | Type |
 ------ | ------ |
 `pointer` | [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle) |
-`options` | [JsonFileLoaderOptions](/docs/api/interfaces/_loaders_json_file_src_index_.jsonfileloaderoptions) |
+`options` | [JsonFileLoaderOptions](../interfaces/_loaders_json_file_src_index_.jsonfileloaderoptions.md) |
 
-**Returns:** *Promise‹[Source](/docs/api/interfaces/_utils_src_index_.source)›*
+**Returns:** *Promise‹[Source](../interfaces/_utils_src_index_.source.md)›*
 
 ___
 
 ###  loadSync
 
-▸ **loadSync**(`pointer`: [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle), `options`: [JsonFileLoaderOptions](/docs/api/interfaces/_loaders_json_file_src_index_.jsonfileloaderoptions)): *[Source](/docs/api/interfaces/_utils_src_index_.source)*
+▸ **loadSync**(`pointer`: [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle), `options`: [JsonFileLoaderOptions](../interfaces/_loaders_json_file_src_index_.jsonfileloaderoptions.md)): *[Source](../interfaces/_utils_src_index_.source.md)*
 
 *Defined in [packages/loaders/json-file/src/index.ts:82](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/json-file/src/index.ts#L82)*
 
@@ -108,9 +108,9 @@ ___
 Name | Type |
 ------ | ------ |
 `pointer` | [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle) |
-`options` | [JsonFileLoaderOptions](/docs/api/interfaces/_loaders_json_file_src_index_.jsonfileloaderoptions) |
+`options` | [JsonFileLoaderOptions](../interfaces/_loaders_json_file_src_index_.jsonfileloaderoptions.md) |
 
-**Returns:** *[Source](/docs/api/interfaces/_utils_src_index_.source)*
+**Returns:** *[Source](../interfaces/_utils_src_index_.source.md)*
 
 ___
 
@@ -118,7 +118,7 @@ ___
 
 ▸ **loaderId**(): *string*
 
-*Implementation of [Loader](/docs/api/interfaces/_utils_src_index_.loader)*
+*Implementation of [Loader](../interfaces/_utils_src_index_.loader.md)*
 
 *Defined in [packages/loaders/json-file/src/index.ts:44](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/json-file/src/index.ts#L44)*
 

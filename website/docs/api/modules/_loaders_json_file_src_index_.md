@@ -1,13 +1,15 @@
 ---
-id: "json-file-loader"
-title: "@graphql-tools/json-file-loader"
-sidebar_label: "json-file-loader"
+id: "_loaders_json_file_src_index_"
+title: "loaders/json-file/src/index"
+sidebar_label: "loaders/json-file/src/index"
 ---
+
+## Index
 
 ### Classes
 
-* [JsonFileLoader](/docs/api/classes/_loaders_json_file_src_index_.jsonfileloader)
+* [JsonFileLoader](../classes/_loaders_json_file_src_index_.jsonfileloader.md)
 
 ### Interfaces
 
-* [JsonFileLoaderOptions](/docs/api/interfaces/_loaders_json_file_src_index_.jsonfileloaderoptions)
+* [JsonFileLoaderOptions](../interfaces/_loaders_json_file_src_index_.jsonfileloaderoptions.md)

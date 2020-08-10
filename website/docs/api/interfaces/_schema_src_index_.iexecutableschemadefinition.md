@@ -45,7 +45,7 @@ ___
 
 ### `Optional` directiveResolvers
 
-• **directiveResolvers**? : *[IDirectiveResolvers](_utils_src_index_.idirectiveresolvers)‹any, TContext›*
+• **directiveResolvers**? : *[IDirectiveResolvers](_utils_src_index_.idirectiveresolvers.md)‹any, TContext›*
 
 *Defined in [packages/schema/src/types.ts:45](https://github.com/ardatan/graphql-tools/blob/master/packages/schema/src/types.ts#L45)*
 
@@ -66,7 +66,7 @@ ___
 
 ### `Optional` logger
 
-• **logger**? : *[ILogger](_schema_src_index_.ilogger)*
+• **logger**? : *[ILogger](_schema_src_index_.ilogger.md)*
 
 *Defined in [packages/schema/src/types.ts:32](https://github.com/ardatan/graphql-tools/blob/master/packages/schema/src/types.ts#L32)*
 
@@ -77,7 +77,7 @@ ___
 
 ### `Optional` parseOptions
 
-• **parseOptions**? : *[GraphQLParseOptions](_utils_src_index_.graphqlparseoptions)*
+• **parseOptions**? : *[GraphQLParseOptions](_utils_src_index_.graphqlparseoptions.md)*
 
 *Defined in [packages/schema/src/types.ts:59](https://github.com/ardatan/graphql-tools/blob/master/packages/schema/src/types.ts#L59)*
 
@@ -88,7 +88,7 @@ ___
 
 ### `Optional` pruningOptions
 
-• **pruningOptions**? : *[PruneSchemaOptions](_utils_src_index_.pruneschemaoptions)*
+• **pruningOptions**? : *[PruneSchemaOptions](_utils_src_index_.pruneschemaoptions.md)*
 
 *Defined in [packages/schema/src/types.ts:68](https://github.com/ardatan/graphql-tools/blob/master/packages/schema/src/types.ts#L68)*
 
@@ -98,7 +98,7 @@ ___
 
 ### `Optional` resolverValidationOptions
 
-• **resolverValidationOptions**? : *[IResolverValidationOptions](_utils_src_index_.iresolvervalidationoptions)*
+• **resolverValidationOptions**? : *[IResolverValidationOptions](_utils_src_index_.iresolvervalidationoptions.md)*
 
 *Defined in [packages/schema/src/types.ts:41](https://github.com/ardatan/graphql-tools/blob/master/packages/schema/src/types.ts#L41)*
 

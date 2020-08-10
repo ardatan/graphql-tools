@@ -28,7 +28,7 @@ Executes the provided query against the mocked schema.
 
 #### Type declaration:
 
-▸ (`query`: string, `vars?`: Record‹string, any›): *Promise‹[ExecutionResult](_utils_src_index_.executionresult)›*
+▸ (`query`: string, `vars?`: Record‹string, any›): *Promise‹[ExecutionResult](_utils_src_index_.executionresult.md)›*
 
 GraphQL query to execute
 

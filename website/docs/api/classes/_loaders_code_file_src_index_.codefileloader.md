@@ -23,7 +23,7 @@ Supported extensions include: `.ts`, `.tsx`, `.js`, `.jsx`, `.vue`
 
 ## Implements
 
-* [Loader](/docs/api/interfaces/_utils_src_index_.loader)‹[CodeFileLoaderOptions](../modules/_loaders_code_file_src_index_.md#codefileloaderoptions)›
+* [Loader](../interfaces/_utils_src_index_.loader.md)‹[CodeFileLoaderOptions](../modules/_loaders_code_file_src_index_.md#codefileloaderoptions)›
 
 ## Index
 
@@ -73,7 +73,7 @@ ___
 
 ###  load
 
-▸ **load**(`pointer`: [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle) | [DocumentPointerSingle](../modules/_utils_src_index_.md#documentpointersingle), `options`: [CodeFileLoaderOptions](../modules/_loaders_code_file_src_index_.md#codefileloaderoptions)): *Promise‹[Source](/docs/api/interfaces/_utils_src_index_.source)›*
+▸ **load**(`pointer`: [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle) | [DocumentPointerSingle](../modules/_utils_src_index_.md#documentpointersingle), `options`: [CodeFileLoaderOptions](../modules/_loaders_code_file_src_index_.md#codefileloaderoptions)): *Promise‹[Source](../interfaces/_utils_src_index_.source.md)›*
 
 *Defined in [packages/loaders/code-file/src/index.ts:80](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/code-file/src/index.ts#L80)*
 
@@ -84,13 +84,13 @@ Name | Type |
 `pointer` | [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle) &#124; [DocumentPointerSingle](../modules/_utils_src_index_.md#documentpointersingle) |
 `options` | [CodeFileLoaderOptions](../modules/_loaders_code_file_src_index_.md#codefileloaderoptions) |
 
-**Returns:** *Promise‹[Source](/docs/api/interfaces/_utils_src_index_.source)›*
+**Returns:** *Promise‹[Source](../interfaces/_utils_src_index_.source.md)›*
 
 ___
 
 ###  loadSync
 
-▸ **loadSync**(`pointer`: [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle) | [DocumentPointerSingle](../modules/_utils_src_index_.md#documentpointersingle), `options`: [CodeFileLoaderOptions](../modules/_loaders_code_file_src_index_.md#codefileloaderoptions)): *[Source](/docs/api/interfaces/_utils_src_index_.source)*
+▸ **loadSync**(`pointer`: [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle) | [DocumentPointerSingle](../modules/_utils_src_index_.md#documentpointersingle), `options`: [CodeFileLoaderOptions](../modules/_loaders_code_file_src_index_.md#codefileloaderoptions)): *[Source](../interfaces/_utils_src_index_.source.md)*
 
 *Defined in [packages/loaders/code-file/src/index.ts:123](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/code-file/src/index.ts#L123)*
 
@@ -101,7 +101,7 @@ Name | Type |
 `pointer` | [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle) &#124; [DocumentPointerSingle](../modules/_utils_src_index_.md#documentpointersingle) |
 `options` | [CodeFileLoaderOptions](../modules/_loaders_code_file_src_index_.md#codefileloaderoptions) |
 
-**Returns:** *[Source](/docs/api/interfaces/_utils_src_index_.source)*
+**Returns:** *[Source](../interfaces/_utils_src_index_.source.md)*
 
 ___
 
@@ -109,7 +109,7 @@ ___
 
 ▸ **loaderId**(): *string*
 
-*Implementation of [Loader](/docs/api/interfaces/_utils_src_index_.loader)*
+*Implementation of [Loader](../interfaces/_utils_src_index_.loader.md)*
 
 *Defined in [packages/loaders/code-file/src/index.ts:51](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/code-file/src/index.ts#L51)*
 

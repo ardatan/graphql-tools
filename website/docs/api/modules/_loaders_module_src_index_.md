@@ -1,9 +1,11 @@
 ---
-id: "module-loader"
-title: "@graphql-tools/module-loader"
-sidebar_label: "module-loader"
+id: "_loaders_module_src_index_"
+title: "loaders/module/src/index"
+sidebar_label: "loaders/module/src/index"
 ---
+
+## Index
 
 ### Classes
 
-* [ModuleLoader](/docs/api/classes/_loaders_module_src_index_.moduleloader)
+* [ModuleLoader](../classes/_loaders_module_src_index_.moduleloader.md)

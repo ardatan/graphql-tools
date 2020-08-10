@@ -1,13 +1,15 @@
 ---
-id: "prisma-loader"
-title: "@graphql-tools/prisma-loader"
-sidebar_label: "prisma-loader"
+id: "_loaders_prisma_src_index_"
+title: "loaders/prisma/src/index"
+sidebar_label: "loaders/prisma/src/index"
 ---
+
+## Index
 
 ### Classes
 
-* [PrismaLoader](/docs/api/classes/_loaders_prisma_src_index_.prismaloader)
+* [PrismaLoader](../classes/_loaders_prisma_src_index_.prismaloader.md)
 
 ### Interfaces
 
-* [PrismaLoaderOptions](/docs/api/interfaces/_loaders_prisma_src_index_.prismaloaderoptions)
+* [PrismaLoaderOptions](../interfaces/_loaders_prisma_src_index_.prismaloaderoptions.md)

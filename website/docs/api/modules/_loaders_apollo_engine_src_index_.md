@@ -1,13 +1,15 @@
 ---
-id: "apollo-engine-loader"
-title: "@graphql-tools/apollo-engine-loader"
-sidebar_label: "apollo-engine-loader"
+id: "_loaders_apollo_engine_src_index_"
+title: "loaders/apollo-engine/src/index"
+sidebar_label: "loaders/apollo-engine/src/index"
 ---
+
+## Index
 
 ### Classes
 
-* [ApolloEngineLoader](/docs/api/classes/_loaders_apollo_engine_src_index_.apolloengineloader)
+* [ApolloEngineLoader](../classes/_loaders_apollo_engine_src_index_.apolloengineloader.md)
 
 ### Interfaces
 
-* [ApolloEngineOptions](/docs/api/interfaces/_loaders_apollo_engine_src_index_.apolloengineoptions)
+* [ApolloEngineOptions](../interfaces/_loaders_apollo_engine_src_index_.apolloengineoptions.md)

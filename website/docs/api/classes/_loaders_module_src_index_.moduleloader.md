@@ -18,7 +18,7 @@ const schema = await loadSchema('module:someModuleName#someNamedExport', {
 
 ## Implements
 
-* [Loader](/docs/api/interfaces/_utils_src_index_.loader)
+* [Loader](../interfaces/_utils_src_index_.loader.md)
 
 ## Index
 
@@ -66,7 +66,7 @@ ___
 
 ###  load
 
-▸ **load**(`pointer`: string, `options`: [SingleFileOptions](../modules/_utils_src_index_.md#singlefileoptions)): *Promise‹[Source](/docs/api/interfaces/_utils_src_index_.source)›*
+▸ **load**(`pointer`: string, `options`: [SingleFileOptions](../modules/_utils_src_index_.md#singlefileoptions)): *Promise‹[Source](../interfaces/_utils_src_index_.source.md)›*
 
 *Defined in [packages/loaders/module/src/index.ts:55](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/module/src/index.ts#L55)*
 
@@ -77,13 +77,13 @@ Name | Type |
 `pointer` | string |
 `options` | [SingleFileOptions](../modules/_utils_src_index_.md#singlefileoptions) |
 
-**Returns:** *Promise‹[Source](/docs/api/interfaces/_utils_src_index_.source)›*
+**Returns:** *Promise‹[Source](../interfaces/_utils_src_index_.source.md)›*
 
 ___
 
 ###  loadSync
 
-▸ **loadSync**(`pointer`: string, `options`: [SingleFileOptions](../modules/_utils_src_index_.md#singlefileoptions)): *[Source](/docs/api/interfaces/_utils_src_index_.source)*
+▸ **loadSync**(`pointer`: string, `options`: [SingleFileOptions](../modules/_utils_src_index_.md#singlefileoptions)): *[Source](../interfaces/_utils_src_index_.source.md)*
 
 *Defined in [packages/loaders/module/src/index.ts:69](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/module/src/index.ts#L69)*
 
@@ -94,7 +94,7 @@ Name | Type |
 `pointer` | string |
 `options` | [SingleFileOptions](../modules/_utils_src_index_.md#singlefileoptions) |
 
-**Returns:** *[Source](/docs/api/interfaces/_utils_src_index_.source)*
+**Returns:** *[Source](../interfaces/_utils_src_index_.source.md)*
 
 ___
 
@@ -102,7 +102,7 @@ ___
 
 ▸ **loaderId**(): *string*
 
-*Implementation of [Loader](/docs/api/interfaces/_utils_src_index_.loader)*
+*Implementation of [Loader](../interfaces/_utils_src_index_.loader.md)*
 
 *Defined in [packages/loaders/module/src/index.ts:43](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/module/src/index.ts#L43)*
 
