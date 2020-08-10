@@ -10,6 +10,8 @@ import {
   GraphQLInterfaceType,
   SelectionNode,
   print,
+  isInterfaceType,
+  isLeafType,
 } from 'graphql';
 
 import {
@@ -44,8 +46,14 @@ export function createStitchingInfo(
 
     mergedTypeInfo.selectionSets.forEach((selectionSet, subschemaConfig) => {
       const schema = subschemaConfig.schema;
-      const fields = (schema.getType(typeName) as GraphQLObjectType | GraphQLInterfaceType).getFields();
+      const type = schema.getType(typeName) as GraphQLObjectType | GraphQLInterfaceType;
+      const fields = type.getFields();
       Object.keys(fields).forEach(fieldName => {
+        const field = fields[fieldName];
+        const fieldType = getNamedType(field.type);
+        if (selectionSet && isLeafType(fieldType) && selectionSetContainsTopLevelField(selectionSet, fieldName)) {
+          return;
+        }
         if (selectionSetsByField[typeName][fieldName] == null) {
           selectionSetsByField[typeName][fieldName] = {
             kind: Kind.SELECTION_SET,
@@ -89,7 +97,10 @@ function createMergedTypes(
   const mergedTypes: Record<string, MergedTypeInfo> = Object.create(null);
 
   Object.keys(typeCandidates).forEach(typeName => {
-    if (isObjectType(typeCandidates[typeName][0].type) && typeCandidates[typeName].length > 1) {
+    if (
+      isObjectType(typeCandidates[typeName][0].type) ||
+      (isInterfaceType(typeCandidates[typeName][0].type) && typeCandidates[typeName].length > 1)
+    ) {
       const typeCandidatesWithMergedTypeConfig = typeCandidates[typeName].filter(
         typeCandidate =>
           typeCandidate.subschema != null &&
@@ -186,9 +197,15 @@ function createMergedTypes(
             return;
           }
 
-          const type = transformedSubschema.getType(typeName) as GraphQLObjectType;
+          const type = transformedSubschema.getType(typeName) as GraphQLObjectType | GraphQLInterfaceType;
           const fieldMap = type.getFields();
+          const selectionSet = selectionSets.get(subschema);
           Object.keys(fieldMap).forEach(fieldName => {
+            const field = fieldMap[fieldName];
+            const fieldType = getNamedType(field.type);
+            if (selectionSet && isLeafType(fieldType) && selectionSetContainsTopLevelField(selectionSet, fieldName)) {
+              return;
+            }
             if (!(fieldName in supportedBySubschemas)) {
               supportedBySubschemas[fieldName] = [];
             }
@@ -332,4 +349,8 @@ export function addStitchingInfo(stitchedSchema: GraphQLSchema, stitchingInfo: S
       stitchingInfo,
     },
   });
+}
+
+export function selectionSetContainsTopLevelField(selectionSet: SelectionSetNode, fieldName: string) {
+  return selectionSet.selections.some(selection => selection.kind === Kind.FIELD && selection.name.value === fieldName);
 }
