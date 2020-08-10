@@ -21,7 +21,14 @@
             "merge-schemas"
           ]
         },
-        "schema-stitching",
+        {
+          "Schema stitching": [
+            "stitch-combining-schemas",
+            "stitch-schema-extensions",
+            "stitch-merging-types",
+            "stitch-api"
+          ]
+        },
         "server-setup",
         "schema-loading",
         "documents-loading",
