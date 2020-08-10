@@ -8,7 +8,7 @@ sidebar_label: "Config"
 
 * **Config**
 
-  ↳ [MergeSchemasConfig](_merge_src_index_.mergeschemasconfig.md)
+  ↳ [MergeSchemasConfig](_merge_src_index_.mergeschemasconfig)
 
 ## Index
 

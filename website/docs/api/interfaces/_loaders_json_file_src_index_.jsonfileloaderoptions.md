@@ -31,7 +31,7 @@ Additional options for loading from a JSON file
 
 • **allowLegacySDLEmptyFields**? : *boolean*
 
-*Inherited from [GraphQLFileLoaderOptions](_loaders_graphql_file_src_index_.graphqlfileloaderoptions.md).[allowLegacySDLEmptyFields](_loaders_graphql_file_src_index_.graphqlfileloaderoptions.md#optional-allowlegacysdlemptyfields)*
+*Inherited from [GraphQLFileLoaderOptions](_loaders_graphql_file_src_index_.graphqlfileloaderoptions).[allowLegacySDLEmptyFields](_loaders_graphql_file_src_index_.graphqlfileloaderoptions.md#optional-allowlegacysdlemptyfields)*
 
 Defined in node_modules/graphql/language/parser.d.ts:23
 
@@ -48,7 +48,7 @@ ___
 
 • **allowLegacySDLImplementsInterfaces**? : *boolean*
 
-*Inherited from [GraphQLFileLoaderOptions](_loaders_graphql_file_src_index_.graphqlfileloaderoptions.md).[allowLegacySDLImplementsInterfaces](_loaders_graphql_file_src_index_.graphqlfileloaderoptions.md#optional-allowlegacysdlimplementsinterfaces)*
+*Inherited from [GraphQLFileLoaderOptions](_loaders_graphql_file_src_index_.graphqlfileloaderoptions).[allowLegacySDLImplementsInterfaces](_loaders_graphql_file_src_index_.graphqlfileloaderoptions.md#optional-allowlegacysdlimplementsinterfaces)*
 
 Defined in node_modules/graphql/language/parser.d.ts:33
 
@@ -65,9 +65,9 @@ ___
 
 • **assumeValid**? : *boolean*
 
-*Inherited from [MergeSchemasConfig](_merge_src_index_.mergeschemasconfig.md).[assumeValid](_merge_src_index_.mergeschemasconfig.md#optional-assumevalid)*
+*Inherited from [MergeSchemasConfig](_merge_src_index_.mergeschemasconfig).[assumeValid](_merge_src_index_.mergeschemasconfig.md#optional-assumevalid)*
 
-*Overrides [MergeSchemasConfig](_merge_src_index_.mergeschemasconfig.md).[assumeValid](_merge_src_index_.mergeschemasconfig.md#optional-assumevalid)*
+*Overrides [MergeSchemasConfig](_merge_src_index_.mergeschemasconfig).[assumeValid](_merge_src_index_.mergeschemasconfig.md#optional-assumevalid)*
 
 Defined in node_modules/graphql/type/schema.d.ts:122
 
@@ -83,7 +83,7 @@ ___
 
 • **assumeValidSDL**? : *boolean*
 
-*Inherited from [MergeSchemasConfig](_merge_src_index_.mergeschemasconfig.md).[assumeValidSDL](_merge_src_index_.mergeschemasconfig.md#optional-assumevalidsdl)*
+*Inherited from [MergeSchemasConfig](_merge_src_index_.mergeschemasconfig).[assumeValidSDL](_merge_src_index_.mergeschemasconfig.md#optional-assumevalidsdl)*
 
 Defined in node_modules/graphql/utilities/buildASTSchema.d.ts:22
 
@@ -97,7 +97,7 @@ ___
 
 • **commentDescriptions**? : *boolean*
 
-*Inherited from [GraphQLFileLoaderOptions](_loaders_graphql_file_src_index_.graphqlfileloaderoptions.md).[commentDescriptions](_loaders_graphql_file_src_index_.graphqlfileloaderoptions.md#optional-commentdescriptions)*
+*Inherited from [GraphQLFileLoaderOptions](_loaders_graphql_file_src_index_.graphqlfileloaderoptions).[commentDescriptions](_loaders_graphql_file_src_index_.graphqlfileloaderoptions.md#optional-commentdescriptions)*
 
 Defined in node_modules/graphql/utilities/buildASTSchema.d.ts:15
 
@@ -124,7 +124,7 @@ ___
 
 • **experimentalFragmentVariables**? : *boolean*
 
-*Inherited from [GraphQLFileLoaderOptions](_loaders_graphql_file_src_index_.graphqlfileloaderoptions.md).[experimentalFragmentVariables](_loaders_graphql_file_src_index_.graphqlfileloaderoptions.md#optional-experimentalfragmentvariables)*
+*Inherited from [GraphQLFileLoaderOptions](_loaders_graphql_file_src_index_.graphqlfileloaderoptions).[experimentalFragmentVariables](_loaders_graphql_file_src_index_.graphqlfileloaderoptions.md#optional-experimentalfragmentvariables)*
 
 Defined in node_modules/graphql/language/parser.d.ts:51
 
@@ -149,7 +149,7 @@ ___
 
 • **noLocation**? : *boolean*
 
-*Inherited from [GraphQLFileLoaderOptions](_loaders_graphql_file_src_index_.graphqlfileloaderoptions.md).[noLocation](_loaders_graphql_file_src_index_.graphqlfileloaderoptions.md#optional-nolocation)*
+*Inherited from [GraphQLFileLoaderOptions](_loaders_graphql_file_src_index_.graphqlfileloaderoptions).[noLocation](_loaders_graphql_file_src_index_.graphqlfileloaderoptions.md#optional-nolocation)*
 
 Defined in node_modules/graphql/language/parser.d.ts:13
 

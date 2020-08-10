@@ -1,15 +1,13 @@
 ---
-id: "_loaders_graphql_file_src_index_"
-title: "loaders/graphql-file/src/index"
-sidebar_label: "loaders/graphql-file/src/index"
+id: "graphql-file-loader"
+title: "@graphql-tools/graphql-file-loader"
+sidebar_label: "graphql-file-loader"
 ---
-
-## Index
 
 ### Classes
 
-* [GraphQLFileLoader](../classes/_loaders_graphql_file_src_index_.graphqlfileloader.md)
+* [GraphQLFileLoader](/docs/api/classes/_loaders_graphql_file_src_index_.graphqlfileloader)
 
 ### Interfaces
 
-* [GraphQLFileLoaderOptions](../interfaces/_loaders_graphql_file_src_index_.graphqlfileloaderoptions.md)
+* [GraphQLFileLoaderOptions](/docs/api/interfaces/_loaders_graphql_file_src_index_.graphqlfileloaderoptions)

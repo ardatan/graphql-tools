@@ -1,15 +1,13 @@
 ---
-id: "_loaders_github_src_index_"
-title: "loaders/github/src/index"
-sidebar_label: "loaders/github/src/index"
+id: "github-loader"
+title: "@graphql-tools/github-loader"
+sidebar_label: "github-loader"
 ---
-
-## Index
 
 ### Classes
 
-* [GithubLoader](../classes/_loaders_github_src_index_.githubloader.md)
+* [GithubLoader](/docs/api/classes/_loaders_github_src_index_.githubloader)
 
 ### Interfaces
 
-* [GithubLoaderOptions](../interfaces/_loaders_github_src_index_.githubloaderoptions.md)
+* [GithubLoaderOptions](/docs/api/interfaces/_loaders_github_src_index_.githubloaderoptions)

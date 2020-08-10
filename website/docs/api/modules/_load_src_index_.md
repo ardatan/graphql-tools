@@ -1,10 +1,8 @@
 ---
-id: "_load_src_index_"
-title: "load/src/index"
-sidebar_label: "load/src/index"
+id: "load"
+title: "@graphql-tools/load"
+sidebar_label: "load"
 ---
-
-## Index
 
 ### Type aliases
 
@@ -30,7 +28,7 @@ sidebar_label: "load/src/index"
 
 ###  LoadSchemaOptions
 
-Ƭ **LoadSchemaOptions**: *BuildSchemaOptions & [LoadTypedefsOptions](_load_src_index_.md#loadtypedefsoptions) & Partial‹[MergeSchemasConfig](../interfaces/_merge_src_index_.mergeschemasconfig.md)› & object*
+Ƭ **LoadSchemaOptions**: *BuildSchemaOptions & [LoadTypedefsOptions](_load_src_index_.md#loadtypedefsoptions) & Partial‹[MergeSchemasConfig](/docs/api/interfaces/_merge_src_index_.mergeschemasconfig)› & object*
 
 *Defined in [packages/load/src/schema.ts:7](https://github.com/ardatan/graphql-tools/blob/master/packages/load/src/schema.ts#L7)*
 
@@ -55,8 +53,8 @@ ___
 ### `Const` NON_OPERATION_KINDS
 
 • **NON_OPERATION_KINDS**: *any[]* = Object.keys(Kind)
-  .reduce((prev, v) => [...prev, Kind[v]], [])
-  .filter(v => !OPERATION_KINDS.includes(v))
+  .reduce((prev, v) =&gt; [...prev, Kind[v]], [])
+  .filter(v =&gt; !OPERATION_KINDS.includes(v))
 
 *Defined in [packages/load/src/documents.ts:13](https://github.com/ardatan/graphql-tools/blob/master/packages/load/src/documents.ts#L13)*
 
@@ -66,7 +64,7 @@ ___
 
 ### `Const` OPERATION_KINDS
 
-• **OPERATION_KINDS**: *("OperationDefinition" | "FragmentDefinition")[]* = [Kind.OPERATION_DEFINITION, Kind.FRAGMENT_DEFINITION]
+• **OPERATION_KINDS**: *"OperationDefinition" | "FragmentDefinition"[]* = [Kind.OPERATION_DEFINITION, Kind.FRAGMENT_DEFINITION]
 
 *Defined in [packages/load/src/documents.ts:8](https://github.com/ardatan/graphql-tools/blob/master/packages/load/src/documents.ts#L8)*
 
@@ -76,7 +74,7 @@ Kinds of AST nodes that are included in executable documents
 
 ###  loadDocuments
 
-▸ **loadDocuments**(`pointerOrPointers`: [UnnormalizedTypeDefPointer](_load_src_index_.md#unnormalizedtypedefpointer) | [UnnormalizedTypeDefPointer](_load_src_index_.md#unnormalizedtypedefpointer)[], `options`: [LoadTypedefsOptions](_load_src_index_.md#loadtypedefsoptions)): *Promise‹[Source](../interfaces/_utils_src_index_.source.md)[]›*
+▸ **loadDocuments**(`pointerOrPointers`: [UnnormalizedTypeDefPointer](_load_src_index_.md#unnormalizedtypedefpointer) | [UnnormalizedTypeDefPointer](_load_src_index_.md#unnormalizedtypedefpointer)[], `options`: [LoadTypedefsOptions](_load_src_index_.md#loadtypedefsoptions)): *Promise‹[Source](/docs/api/interfaces/_utils_src_index_.source)[]›*
 
 *Defined in [packages/load/src/documents.ts:25](https://github.com/ardatan/graphql-tools/blob/master/packages/load/src/documents.ts#L25)*
 
@@ -92,13 +90,13 @@ Name | Type | Description |
 `pointerOrPointers` | [UnnormalizedTypeDefPointer](_load_src_index_.md#unnormalizedtypedefpointer) &#124; [UnnormalizedTypeDefPointer](_load_src_index_.md#unnormalizedtypedefpointer)[] | Pointers to the files to load the documents from |
 `options` | [LoadTypedefsOptions](_load_src_index_.md#loadtypedefsoptions) | Additional options  |
 
-**Returns:** *Promise‹[Source](../interfaces/_utils_src_index_.source.md)[]›*
+**Returns:** *Promise‹[Source](/docs/api/interfaces/_utils_src_index_.source)[]›*
 
 ___
 
 ###  loadDocumentsSync
 
-▸ **loadDocumentsSync**(`pointerOrPointers`: [UnnormalizedTypeDefPointer](_load_src_index_.md#unnormalizedtypedefpointer) | [UnnormalizedTypeDefPointer](_load_src_index_.md#unnormalizedtypedefpointer)[], `options`: [LoadTypedefsOptions](_load_src_index_.md#loadtypedefsoptions)): *[Source](../interfaces/_utils_src_index_.source.md)[]*
+▸ **loadDocumentsSync**(`pointerOrPointers`: [UnnormalizedTypeDefPointer](_load_src_index_.md#unnormalizedtypedefpointer) | [UnnormalizedTypeDefPointer](_load_src_index_.md#unnormalizedtypedefpointer)[], `options`: [LoadTypedefsOptions](_load_src_index_.md#loadtypedefsoptions)): *[Source](/docs/api/interfaces/_utils_src_index_.source)[]*
 
 *Defined in [packages/load/src/documents.ts:40](https://github.com/ardatan/graphql-tools/blob/master/packages/load/src/documents.ts#L40)*
 
@@ -114,7 +112,7 @@ Name | Type | Description |
 `pointerOrPointers` | [UnnormalizedTypeDefPointer](_load_src_index_.md#unnormalizedtypedefpointer) &#124; [UnnormalizedTypeDefPointer](_load_src_index_.md#unnormalizedtypedefpointer)[] | Pointers to the files to load the documents from |
 `options` | [LoadTypedefsOptions](_load_src_index_.md#loadtypedefsoptions) | Additional options  |
 
-**Returns:** *[Source](../interfaces/_utils_src_index_.source.md)[]*
+**Returns:** *[Source](/docs/api/interfaces/_utils_src_index_.source)[]*
 
 ___
 
@@ -158,7 +156,7 @@ ___
 
 ###  loadTypedefs
 
-▸ **loadTypedefs**‹**AdditionalConfig**›(`pointerOrPointers`: [UnnormalizedTypeDefPointer](_load_src_index_.md#unnormalizedtypedefpointer) | [UnnormalizedTypeDefPointer](_load_src_index_.md#unnormalizedtypedefpointer)[], `options`: [LoadTypedefsOptions](_load_src_index_.md#loadtypedefsoptions)‹Partial‹AdditionalConfig››): *Promise‹[Source](../interfaces/_utils_src_index_.source.md)[]›*
+▸ **loadTypedefs**‹**AdditionalConfig**›(`pointerOrPointers`: [UnnormalizedTypeDefPointer](_load_src_index_.md#unnormalizedtypedefpointer) | [UnnormalizedTypeDefPointer](_load_src_index_.md#unnormalizedtypedefpointer)[], `options`: [LoadTypedefsOptions](_load_src_index_.md#loadtypedefsoptions)‹Partial‹AdditionalConfig››): *Promise‹[Source](/docs/api/interfaces/_utils_src_index_.source)[]›*
 
 *Defined in [packages/load/src/load-typedefs.ts:28](https://github.com/ardatan/graphql-tools/blob/master/packages/load/src/load-typedefs.ts#L28)*
 
@@ -177,13 +175,13 @@ Name | Type | Description |
 `pointerOrPointers` | [UnnormalizedTypeDefPointer](_load_src_index_.md#unnormalizedtypedefpointer) &#124; [UnnormalizedTypeDefPointer](_load_src_index_.md#unnormalizedtypedefpointer)[] | Pointers to the sources to load the documents from |
 `options` | [LoadTypedefsOptions](_load_src_index_.md#loadtypedefsoptions)‹Partial‹AdditionalConfig›› | Additional options  |
 
-**Returns:** *Promise‹[Source](../interfaces/_utils_src_index_.source.md)[]›*
+**Returns:** *Promise‹[Source](/docs/api/interfaces/_utils_src_index_.source)[]›*
 
 ___
 
 ###  loadTypedefsSync
 
-▸ **loadTypedefsSync**‹**AdditionalConfig**›(`pointerOrPointers`: [UnnormalizedTypeDefPointer](_load_src_index_.md#unnormalizedtypedefpointer) | [UnnormalizedTypeDefPointer](_load_src_index_.md#unnormalizedtypedefpointer)[], `options`: [LoadTypedefsOptions](_load_src_index_.md#loadtypedefsoptions)‹Partial‹AdditionalConfig››): *[Source](../interfaces/_utils_src_index_.source.md)[]*
+▸ **loadTypedefsSync**‹**AdditionalConfig**›(`pointerOrPointers`: [UnnormalizedTypeDefPointer](_load_src_index_.md#unnormalizedtypedefpointer) | [UnnormalizedTypeDefPointer](_load_src_index_.md#unnormalizedtypedefpointer)[], `options`: [LoadTypedefsOptions](_load_src_index_.md#loadtypedefsoptions)‹Partial‹AdditionalConfig››): *[Source](/docs/api/interfaces/_utils_src_index_.source)[]*
 
 *Defined in [packages/load/src/load-typedefs.ts:73](https://github.com/ardatan/graphql-tools/blob/master/packages/load/src/load-typedefs.ts#L73)*
 
@@ -202,4 +200,4 @@ Name | Type | Description |
 `pointerOrPointers` | [UnnormalizedTypeDefPointer](_load_src_index_.md#unnormalizedtypedefpointer) &#124; [UnnormalizedTypeDefPointer](_load_src_index_.md#unnormalizedtypedefpointer)[] | Pointers to the sources to load the documents from |
 `options` | [LoadTypedefsOptions](_load_src_index_.md#loadtypedefsoptions)‹Partial‹AdditionalConfig›› | Additional options  |
 
-**Returns:** *[Source](../interfaces/_utils_src_index_.source.md)[]*
+**Returns:** *[Source](/docs/api/interfaces/_utils_src_index_.source)[]*

@@ -1,14 +1,12 @@
 ---
-id: "_load_files_src_index_"
-title: "load-files/src/index"
-sidebar_label: "load-files/src/index"
+id: "load-files"
+title: "@graphql-tools/load-files"
+sidebar_label: "load-files"
 ---
-
-## Index
 
 ### Interfaces
 
-* [LoadFilesOptions](../interfaces/_load_files_src_index_.loadfilesoptions.md)
+* [LoadFilesOptions](/docs/api/interfaces/_load_files_src_index_.loadfilesoptions)
 
 ### Functions
 
@@ -19,7 +17,7 @@ sidebar_label: "load-files/src/index"
 
 ###  loadFiles
 
-▸ **loadFiles**(`pattern`: string | string[], `options`: [LoadFilesOptions](../interfaces/_load_files_src_index_.loadfilesoptions.md)): *Promise‹any[]›*
+▸ **loadFiles**(`pattern`: string | string[], `options`: [LoadFilesOptions](/docs/api/interfaces/_load_files_src_index_.loadfilesoptions)): *Promise‹any[]›*
 
 *Defined in [packages/load-files/src/index.ts:212](https://github.com/ardatan/graphql-tools/blob/master/packages/load-files/src/index.ts#L212)*
 
@@ -30,7 +28,7 @@ Asynchronously loads files using the provided glob pattern.
 Name | Type | Default | Description |
 ------ | ------ | ------ | ------ |
 `pattern` | string &#124; string[] | - | Glob pattern or patterns to use when loading files |
-`options` | [LoadFilesOptions](../interfaces/_load_files_src_index_.loadfilesoptions.md) | LoadFilesDefaultOptions | Additional options  |
+`options` | [LoadFilesOptions](/docs/api/interfaces/_load_files_src_index_.loadfilesoptions) | LoadFilesDefaultOptions | Additional options  |
 
 **Returns:** *Promise‹any[]›*
 
@@ -38,7 +36,7 @@ ___
 
 ###  loadFilesSync
 
-▸ **loadFilesSync**‹**T**›(`pattern`: string | string[], `options`: [LoadFilesOptions](../interfaces/_load_files_src_index_.loadfilesoptions.md)): *T[]*
+▸ **loadFilesSync**‹**T**›(`pattern`: string | string[], `options`: [LoadFilesOptions](/docs/api/interfaces/_load_files_src_index_.loadfilesoptions)): *T[]*
 
 *Defined in [packages/load-files/src/index.ts:116](https://github.com/ardatan/graphql-tools/blob/master/packages/load-files/src/index.ts#L116)*
 
@@ -53,6 +51,6 @@ Synchronously loads files using the provided glob pattern.
 Name | Type | Default | Description |
 ------ | ------ | ------ | ------ |
 `pattern` | string &#124; string[] | - | Glob pattern or patterns to use when loading files |
-`options` | [LoadFilesOptions](../interfaces/_load_files_src_index_.loadfilesoptions.md) | LoadFilesDefaultOptions | Additional options  |
+`options` | [LoadFilesOptions](/docs/api/interfaces/_load_files_src_index_.loadfilesoptions) | LoadFilesDefaultOptions | Additional options  |
 
 **Returns:** *T[]*
