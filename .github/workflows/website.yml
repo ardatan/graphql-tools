@@ -40,8 +40,6 @@ jobs:
             ${{ runner.os }}-14-15-yarn-
       - name: Install Dependencies using Yarn
         run: yarn install && git checkout yarn.lock
-      - name: Build API Docs
-        run: yarn build:api-docs
       - name: Deploy 🚀
         run: yarn deploy:website
         env:

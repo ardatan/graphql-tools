@@ -19,7 +19,7 @@ const typeDefs = await loadTypedefs('github:githubUser/githubRepo#branchName:pat
 
 ## Implements
 
-* [Loader](../interfaces/_utils_src_index_.loader.md)‹[GithubLoaderOptions](../interfaces/_loaders_github_src_index_.githubloaderoptions.md)›
+* [Loader](/docs/api/interfaces/_utils_src_index_.loader)‹[GithubLoaderOptions](/docs/api/interfaces/_loaders_github_src_index_.githubloaderoptions)›
 
 ## Index
 
@@ -61,7 +61,7 @@ ___
 
 ###  load
 
-▸ **load**(`pointer`: string, `options`: [GithubLoaderOptions](../interfaces/_loaders_github_src_index_.githubloaderoptions.md)): *Promise‹[Source](../interfaces/_utils_src_index_.source.md) | object›*
+▸ **load**(`pointer`: string, `options`: [GithubLoaderOptions](/docs/api/interfaces/_loaders_github_src_index_.githubloaderoptions)): *Promise‹[Source](/docs/api/interfaces/_utils_src_index_.source) | object›*
 
 *Defined in [packages/loaders/github/src/index.ts:63](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/github/src/index.ts#L63)*
 
@@ -70,9 +70,9 @@ ___
 Name | Type |
 ------ | ------ |
 `pointer` | string |
-`options` | [GithubLoaderOptions](../interfaces/_loaders_github_src_index_.githubloaderoptions.md) |
+`options` | [GithubLoaderOptions](/docs/api/interfaces/_loaders_github_src_index_.githubloaderoptions) |
 
-**Returns:** *Promise‹[Source](../interfaces/_utils_src_index_.source.md) | object›*
+**Returns:** *Promise‹[Source](/docs/api/interfaces/_utils_src_index_.source) | object›*
 
 ___
 
@@ -90,7 +90,7 @@ ___
 
 ▸ **loaderId**(): *string*
 
-*Implementation of [Loader](../interfaces/_utils_src_index_.loader.md)*
+*Implementation of [Loader](/docs/api/interfaces/_utils_src_index_.loader)*
 
 *Defined in [packages/loaders/github/src/index.ts:51](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/github/src/index.ts#L51)*
 

@@ -4,6 +4,7 @@
   "description": "Useful tools to create and manipulate GraphQL schemas.",
   "private": true,
   "scripts": {
+    "predeploy:website": "yarn build:api-docs",
     "deploy:website": "cd website && yarn deploy",
     "ts:transpile": "tsc --project tsconfig.build.json",
     "build": "yarn ts:transpile && bob build",

@@ -2,7 +2,6 @@ const fs = require('fs');
 const path = require('path');
 const rimraf = require('rimraf');
 const TypeDoc = require('typedoc');
-const { transpileModule } = require('typescript');
 const { execSync } = require('child_process');
 
 // Where to generate the API docs

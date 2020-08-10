@@ -32,7 +32,7 @@ const schema = await loadSchema('graphql/*.graphql', {
 
 ## Implements
 
-* [Loader](../interfaces/_utils_src_index_.loader.md)‹[GraphQLFileLoaderOptions](../interfaces/_loaders_graphql_file_src_index_.graphqlfileloaderoptions.md)›
+* [Loader](/docs/api/interfaces/_utils_src_index_.loader)‹[GraphQLFileLoaderOptions](/docs/api/interfaces/_loaders_graphql_file_src_index_.graphqlfileloaderoptions)›
 
 ## Index
 
@@ -49,7 +49,7 @@ const schema = await loadSchema('graphql/*.graphql', {
 
 ###  canLoad
 
-▸ **canLoad**(`pointer`: [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle) | [DocumentPointerSingle](../modules/_utils_src_index_.md#documentpointersingle), `options`: [GraphQLFileLoaderOptions](../interfaces/_loaders_graphql_file_src_index_.graphqlfileloaderoptions.md)): *Promise‹boolean›*
+▸ **canLoad**(`pointer`: [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle) | [DocumentPointerSingle](../modules/_utils_src_index_.md#documentpointersingle), `options`: [GraphQLFileLoaderOptions](/docs/api/interfaces/_loaders_graphql_file_src_index_.graphqlfileloaderoptions)): *Promise‹boolean›*
 
 *Defined in [packages/loaders/graphql-file/src/index.ts:62](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/graphql-file/src/index.ts#L62)*
 
@@ -58,7 +58,7 @@ const schema = await loadSchema('graphql/*.graphql', {
 Name | Type |
 ------ | ------ |
 `pointer` | [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle) &#124; [DocumentPointerSingle](../modules/_utils_src_index_.md#documentpointersingle) |
-`options` | [GraphQLFileLoaderOptions](../interfaces/_loaders_graphql_file_src_index_.graphqlfileloaderoptions.md) |
+`options` | [GraphQLFileLoaderOptions](/docs/api/interfaces/_loaders_graphql_file_src_index_.graphqlfileloaderoptions) |
 
 **Returns:** *Promise‹boolean›*
 
@@ -66,7 +66,7 @@ ___
 
 ###  canLoadSync
 
-▸ **canLoadSync**(`pointer`: [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle) | [DocumentPointerSingle](../modules/_utils_src_index_.md#documentpointersingle), `options`: [GraphQLFileLoaderOptions](../interfaces/_loaders_graphql_file_src_index_.graphqlfileloaderoptions.md)): *boolean*
+▸ **canLoadSync**(`pointer`: [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle) | [DocumentPointerSingle](../modules/_utils_src_index_.md#documentpointersingle), `options`: [GraphQLFileLoaderOptions](/docs/api/interfaces/_loaders_graphql_file_src_index_.graphqlfileloaderoptions)): *boolean*
 
 *Defined in [packages/loaders/graphql-file/src/index.ts:76](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/graphql-file/src/index.ts#L76)*
 
@@ -75,7 +75,7 @@ ___
 Name | Type |
 ------ | ------ |
 `pointer` | [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle) &#124; [DocumentPointerSingle](../modules/_utils_src_index_.md#documentpointersingle) |
-`options` | [GraphQLFileLoaderOptions](../interfaces/_loaders_graphql_file_src_index_.graphqlfileloaderoptions.md) |
+`options` | [GraphQLFileLoaderOptions](/docs/api/interfaces/_loaders_graphql_file_src_index_.graphqlfileloaderoptions) |
 
 **Returns:** *boolean*
 
@@ -83,7 +83,7 @@ ___
 
 ###  handleFileContent
 
-▸ **handleFileContent**(`rawSDL`: string, `pointer`: string, `options`: [GraphQLFileLoaderOptions](../interfaces/_loaders_graphql_file_src_index_.graphqlfileloaderoptions.md)): *object | object*
+▸ **handleFileContent**(`rawSDL`: string, `pointer`: string, `options`: [GraphQLFileLoaderOptions](/docs/api/interfaces/_loaders_graphql_file_src_index_.graphqlfileloaderoptions)): *object | object*
 
 *Defined in [packages/loaders/graphql-file/src/index.ts:100](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/graphql-file/src/index.ts#L100)*
 
@@ -93,7 +93,7 @@ Name | Type |
 ------ | ------ |
 `rawSDL` | string |
 `pointer` | string |
-`options` | [GraphQLFileLoaderOptions](../interfaces/_loaders_graphql_file_src_index_.graphqlfileloaderoptions.md) |
+`options` | [GraphQLFileLoaderOptions](/docs/api/interfaces/_loaders_graphql_file_src_index_.graphqlfileloaderoptions) |
 
 **Returns:** *object | object*
 
@@ -101,7 +101,7 @@ ___
 
 ###  load
 
-▸ **load**(`pointer`: [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle) | [DocumentPointerSingle](../modules/_utils_src_index_.md#documentpointersingle), `options`: [GraphQLFileLoaderOptions](../interfaces/_loaders_graphql_file_src_index_.graphqlfileloaderoptions.md)): *Promise‹[Source](../interfaces/_utils_src_index_.source.md)›*
+▸ **load**(`pointer`: [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle) | [DocumentPointerSingle](../modules/_utils_src_index_.md#documentpointersingle), `options`: [GraphQLFileLoaderOptions](/docs/api/interfaces/_loaders_graphql_file_src_index_.graphqlfileloaderoptions)): *Promise‹[Source](/docs/api/interfaces/_utils_src_index_.source)›*
 
 *Defined in [packages/loaders/graphql-file/src/index.ts:87](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/graphql-file/src/index.ts#L87)*
 
@@ -110,15 +110,15 @@ ___
 Name | Type |
 ------ | ------ |
 `pointer` | [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle) &#124; [DocumentPointerSingle](../modules/_utils_src_index_.md#documentpointersingle) |
-`options` | [GraphQLFileLoaderOptions](../interfaces/_loaders_graphql_file_src_index_.graphqlfileloaderoptions.md) |
+`options` | [GraphQLFileLoaderOptions](/docs/api/interfaces/_loaders_graphql_file_src_index_.graphqlfileloaderoptions) |
 
-**Returns:** *Promise‹[Source](../interfaces/_utils_src_index_.source.md)›*
+**Returns:** *Promise‹[Source](/docs/api/interfaces/_utils_src_index_.source)›*
 
 ___
 
 ###  loadSync
 
-▸ **loadSync**(`pointer`: [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle) | [DocumentPointerSingle](../modules/_utils_src_index_.md#documentpointersingle), `options`: [GraphQLFileLoaderOptions](../interfaces/_loaders_graphql_file_src_index_.graphqlfileloaderoptions.md)): *[Source](../interfaces/_utils_src_index_.source.md)*
+▸ **loadSync**(`pointer`: [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle) | [DocumentPointerSingle](../modules/_utils_src_index_.md#documentpointersingle), `options`: [GraphQLFileLoaderOptions](/docs/api/interfaces/_loaders_graphql_file_src_index_.graphqlfileloaderoptions)): *[Source](/docs/api/interfaces/_utils_src_index_.source)*
 
 *Defined in [packages/loaders/graphql-file/src/index.ts:94](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/graphql-file/src/index.ts#L94)*
 
@@ -127,9 +127,9 @@ ___
 Name | Type |
 ------ | ------ |
 `pointer` | [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle) &#124; [DocumentPointerSingle](../modules/_utils_src_index_.md#documentpointersingle) |
-`options` | [GraphQLFileLoaderOptions](../interfaces/_loaders_graphql_file_src_index_.graphqlfileloaderoptions.md) |
+`options` | [GraphQLFileLoaderOptions](/docs/api/interfaces/_loaders_graphql_file_src_index_.graphqlfileloaderoptions) |
 
-**Returns:** *[Source](../interfaces/_utils_src_index_.source.md)*
+**Returns:** *[Source](/docs/api/interfaces/_utils_src_index_.source)*
 
 ___
 
@@ -137,7 +137,7 @@ ___
 
 ▸ **loaderId**(): *string*
 
-*Implementation of [Loader](../interfaces/_utils_src_index_.loader.md)*
+*Implementation of [Loader](/docs/api/interfaces/_utils_src_index_.loader)*
 
 *Defined in [packages/loaders/graphql-file/src/index.ts:58](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/graphql-file/src/index.ts#L58)*
 
