@@ -1,6 +1,5 @@
-import { Source, printSchemaWithDirectives, fixSchemaAst } from '@graphql-tools/utils';
+import { Source, printSchemaWithDirectives, fixSchemaAst, parseGraphQLSDL } from '@graphql-tools/utils';
 import { printWithComments, resetComments } from '@graphql-tools/merge';
-import { parse, Source as GraphQLSource } from 'graphql';
 import { filterKind } from '../filter-document-kind';
 
 type Options = any;
@@ -67,7 +66,7 @@ function parseSchema(input: Input) {
 
 function parseRawSDL(input: Input) {
   if (input.source.rawSDL) {
-    input.source.document = parse(new GraphQLSource(input.source.rawSDL, input.source.location), input.options);
+    input.source.document = parseGraphQLSDL(input.source.location, input.source.rawSDL, input.options).document;
   }
 }
 

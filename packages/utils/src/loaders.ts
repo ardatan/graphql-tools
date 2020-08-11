@@ -1,5 +1,6 @@
-import { DocumentNode, GraphQLSchema, ParseOptions, BuildSchemaOptions } from 'graphql';
+import { DocumentNode, GraphQLSchema, BuildSchemaOptions } from 'graphql';
 import { GraphQLSchemaValidationOptions } from 'graphql/type/schema';
+import { ExtendedParseOptions } from './parse-graphql-sdl';
 
 export interface Source {
   document?: DocumentNode;
@@ -8,7 +9,7 @@ export interface Source {
   location?: string;
 }
 
-export type SingleFileOptions = ParseOptions &
+export type SingleFileOptions = ExtendedParseOptions &
   GraphQLSchemaValidationOptions &
   BuildSchemaOptions & {
     cwd?: string;

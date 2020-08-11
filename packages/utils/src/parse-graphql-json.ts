@@ -1,8 +1,9 @@
-import { buildClientSchema, parse, ParseOptions } from 'graphql';
+import { buildClientSchema, ParseOptions } from 'graphql';
 import { GraphQLSchemaValidationOptions } from 'graphql/type/schema';
 import { printSchemaWithDirectives } from './print-schema-with-directives';
 import { Source } from './loaders';
 import { SchemaPrintOptions } from './types';
+import { parseGraphQLSDL } from './parse-graphql-sdl';
 
 function stripBOM(content: string): string {
   content = content.toString();
@@ -44,7 +45,7 @@ export function parseGraphQLJSON(
 
     return {
       location,
-      document: parse(rawSDL, options),
+      document: parseGraphQLSDL(location, rawSDL, options).document,
       rawSDL,
       schema,
     };
