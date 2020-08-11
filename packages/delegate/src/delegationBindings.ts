@@ -41,7 +41,7 @@ export function defaultDelegationBinding(delegationContext: DelegationContext): 
       new AddSelectionSets(
         info.schema,
         returnType,
-        stitchingInfo.selectionSetsByType,
+        {},
         stitchingInfo.selectionSetsByField,
         stitchingInfo.dynamicSelectionSetsByField
       ),
