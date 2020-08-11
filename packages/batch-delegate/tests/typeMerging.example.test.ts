@@ -56,7 +56,11 @@ describe('merging using type merging', () => {
 
   const inventorySchema = makeExecutableSchema({
     typeDefs: `
-      scalar ProductRepresentation
+      input ProductRepresentation {
+        upc: String!
+        price: Int
+        weight: Int
+      }
       type Product {
         upc: String!
         inStock: Boolean
@@ -67,17 +71,6 @@ describe('merging using type merging', () => {
       }
     `,
     resolvers: {
-      ProductRepresentation: {
-        parse: (value) => {
-          if (value.__typename !== 'Product') {
-            throw new Error('Invalid Product representation.')
-          }
-          if (value.upc == null) {
-            throw new Error('Invalid Product upc.')
-          }
-          return value;
-        }
-      },
       Product: {
         shippingEstimate: product => {
           if (product.price > 1000) {
