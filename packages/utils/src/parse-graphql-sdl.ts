@@ -25,9 +25,11 @@ export interface ExtendedParseOptions extends ParseOptions {
 export function parseGraphQLSDL(location: string, rawSDL: string, options: ExtendedParseOptions = {}) {
   let document: DocumentNode;
   const sdl: string = rawSDL;
+  let sdlModified = false;
 
   try {
-    if (options.commentDescriptions) {
+    if (options.commentDescriptions && sdl.includes('#')) {
+      sdlModified = true;
       document = transformCommentsToDescriptions(rawSDL, options);
 
       // If noLocation=true, we need to make sure to print and parse it again, to remove locations,
@@ -53,7 +55,7 @@ export function parseGraphQLSDL(location: string, rawSDL: string, options: Exten
   return {
     location,
     document,
-    rawSDL: sdl,
+    rawSDL: sdlModified ? print(document) : sdl,
   };
 }
 
@@ -87,48 +89,44 @@ export function transformCommentsToDescriptions(
   sourceSdl: string,
   options: ExtendedParseOptions = {}
 ): DocumentNode | null {
-  if (sourceSdl.includes('#')) {
-    const parsedDoc = parse(sourceSdl, {
-      ...options,
-      noLocation: false,
-    });
-    const modifiedDoc = visit(parsedDoc, {
-      leave: (node: ASTNode) => {
-        if (isDescribable(node)) {
-          const rawValue = getLeadingCommentBlock(node);
+  const parsedDoc = parse(sourceSdl, {
+    ...options,
+    noLocation: false,
+  });
+  const modifiedDoc = visit(parsedDoc, {
+    leave: (node: ASTNode) => {
+      if (isDescribable(node)) {
+        const rawValue = getLeadingCommentBlock(node);
 
-          if (rawValue !== undefined) {
-            const commentsBlock = dedentBlockStringValue('\n' + rawValue);
-            const isBlock = commentsBlock.includes('\n');
+        if (rawValue !== undefined) {
+          const commentsBlock = dedentBlockStringValue('\n' + rawValue);
+          const isBlock = commentsBlock.includes('\n');
 
-            if (!node.description) {
-              return {
-                ...node,
-                description: {
-                  kind: Kind.STRING,
-                  value: commentsBlock,
-                  block: isBlock,
-                },
-              };
-            } else {
-              return {
-                ...node,
-                description: {
-                  ...node.description,
-                  value: node.description.value + '\n' + commentsBlock,
-                  block: true,
-                },
-              };
-            }
+          if (!node.description) {
+            return {
+              ...node,
+              description: {
+                kind: Kind.STRING,
+                value: commentsBlock,
+                block: isBlock,
+              },
+            };
+          } else {
+            return {
+              ...node,
+              description: {
+                ...node.description,
+                value: node.description.value + '\n' + commentsBlock,
+                block: true,
+              },
+            };
           }
         }
-      },
-    });
+      }
+    },
+  });
 
-    return modifiedDoc;
-  }
-
-  return null;
+  return modifiedDoc;
 }
 
 type DiscriminateUnion<T, U> = T extends U ? T : never;
