@@ -1,20 +1,18 @@
 ---
-id: "_mock_src_index_"
-title: "mock/src/index"
-sidebar_label: "mock/src/index"
+id: "mock"
+title: "@graphql-tools/mock"
+sidebar_label: "mock"
 ---
-
-## Index
 
 ### Classes
 
-* [MockList](../classes/_mock_src_index_.mocklist.md)
+* [MockList](/docs/api/classes/_mock_src_index_.mocklist)
 
 ### Interfaces
 
-* [IMockOptions](../interfaces/_mock_src_index_.imockoptions.md)
-* [IMockServer](../interfaces/_mock_src_index_.imockserver.md)
-* [IMocks](../interfaces/_mock_src_index_.imocks.md)
+* [IMockOptions](/docs/api/interfaces/_mock_src_index_.imockoptions)
+* [IMockServer](/docs/api/interfaces/_mock_src_index_.imockserver)
+* [IMocks](/docs/api/interfaces/_mock_src_index_.imocks)
 
 ### Type aliases
 
@@ -50,7 +48,7 @@ that can return mock data for any valid query that is sent to the server.
 
 Name | Type | Default |
 ------ | ------ | ------ |
-`mocks` | [IMocks](../interfaces/_mock_src_index_.imocks.md) | - |
+`mocks` | [IMocks](/docs/api/interfaces/_mock_src_index_.imocks) | - |
 `preserveResolvers` | boolean | false |
 `schema` | GraphQLSchema‹› | - |
 
@@ -60,7 +58,7 @@ ___
 
 ###  mockServer
 
-▸ **mockServer**(`schema`: GraphQLSchema | [ITypeDefinitions](_utils_src_index_.md#itypedefinitions), `mocks`: [IMocks](../interfaces/_mock_src_index_.imocks.md), `preserveResolvers`: boolean): *[IMockServer](../interfaces/_mock_src_index_.imockserver.md)*
+▸ **mockServer**(`schema`: GraphQLSchema | [ITypeDefinitions](_utils_src_index_.md#itypedefinitions), `mocks`: [IMocks](/docs/api/interfaces/_mock_src_index_.imocks), `preserveResolvers`: boolean): *[IMockServer](/docs/api/interfaces/_mock_src_index_.imockserver)*
 
 *Defined in [packages/mock/src/mocking.ts:39](https://github.com/ardatan/graphql-tools/blob/master/packages/mock/src/mocking.ts#L39)*
 
@@ -74,7 +72,7 @@ root will both equal `{}`.
 Name | Type | Default | Description |
 ------ | ------ | ------ | ------ |
 `schema` | GraphQLSchema &#124; [ITypeDefinitions](_utils_src_index_.md#itypedefinitions) | - | The schema to which to add mocks. This can also be a set of type definitions instead. |
-`mocks` | [IMocks](../interfaces/_mock_src_index_.imocks.md) | - | The mocks to add to the schema. |
+`mocks` | [IMocks](/docs/api/interfaces/_mock_src_index_.imocks) | - | The mocks to add to the schema. |
 `preserveResolvers` | boolean | false | Set to `true` to prevent existing resolvers from being overwritten to provide mock data. This can be used to mock some parts of the server and not others.  |
 
-**Returns:** *[IMockServer](../interfaces/_mock_src_index_.imockserver.md)*
+**Returns:** *[IMockServer](/docs/api/interfaces/_mock_src_index_.imockserver)*

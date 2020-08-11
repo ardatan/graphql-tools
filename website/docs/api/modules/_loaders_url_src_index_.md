@@ -1,18 +1,16 @@
 ---
-id: "_loaders_url_src_index_"
-title: "loaders/url/src/index"
-sidebar_label: "loaders/url/src/index"
+id: "url-loader"
+title: "@graphql-tools/url-loader"
+sidebar_label: "url-loader"
 ---
-
-## Index
 
 ### Classes
 
-* [UrlLoader](../classes/_loaders_url_src_index_.urlloader.md)
+* [UrlLoader](/docs/api/classes/_loaders_url_src_index_.urlloader)
 
 ### Interfaces
 
-* [LoadFromUrlOptions](../interfaces/_loaders_url_src_index_.loadfromurloptions.md)
+* [LoadFromUrlOptions](/docs/api/interfaces/_loaders_url_src_index_.loadfromurloptions)
 
 ### Type aliases
 

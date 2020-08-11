@@ -6413,7 +6413,7 @@ fs-extra@9.0.0:
     jsonfile "^6.0.1"
     universalify "^1.0.0"
 
-fs-extra@9.0.1, fs-extra@^9.0.1:
+fs-extra@9.0.1, fs-extra@^9.0.0:
   version "9.0.1"
   resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-9.0.1.tgz#910da0062437ba4c39fedd863f1675ccfefcb9fc"
   integrity sha512-h2iAoN838FqAFJY2/qVpzFXy+EBxfVE220PalAqQLDVsFOHLJrZvut5puAbCdNv6WJk+B8ihI+k0c7JK5erwqQ==
@@ -13315,12 +13315,12 @@ typedoc-default-themes@0.8.0-0:
     lunr "^2.3.8"
     underscore "^1.9.1"
 
-typedoc-plugin-markdown@2.4.0:
-  version "2.4.0"
-  resolved "https://registry.yarnpkg.com/typedoc-plugin-markdown/-/typedoc-plugin-markdown-2.4.0.tgz#276cf4d0e90b7f3c4892f3dec84c700acc7eaf98"
-  integrity sha512-m4eOwxSzeCbGNFzPDadNQcuMbkbc/45fgXsIP/m4K20i/8zVhCBmvoTxmKUqWYVTYc1BTtvQD5hY/qCueHoLFw==
+typedoc-plugin-markdown@2.3.1:
+  version "2.3.1"
+  resolved "https://registry.yarnpkg.com/typedoc-plugin-markdown/-/typedoc-plugin-markdown-2.3.1.tgz#c4c6c3228f625b24875e87cc1622b9a259b914ce"
+  integrity sha512-7rlmg1tLjddYy11uznHCAlyoOpxdWnFXqGEZ7j2mJ4KJg2avwWgEpw6SFZVofgPCGn36zklpFS51lHxYSRTLVQ==
   dependencies:
-    fs-extra "^9.0.1"
+    fs-extra "^9.0.0"
     handlebars "^4.7.6"
 
 typedoc@0.17.0-3:

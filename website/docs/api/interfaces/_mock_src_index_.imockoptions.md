@@ -20,7 +20,7 @@ sidebar_label: "IMockOptions"
 
 ### `Optional` mocks
 
-• **mocks**? : *[IMocks](_mock_src_index_.imocks.md)*
+• **mocks**? : *[IMocks](_mock_src_index_.imocks)*
 
 *Defined in [packages/mock/src/types.ts:25](https://github.com/ardatan/graphql-tools/blob/master/packages/mock/src/types.ts#L25)*
 
