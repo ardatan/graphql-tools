@@ -116,6 +116,7 @@ export class GraphQLFileLoader implements UniversalLoader<GraphQLFileLoaderOptio
         },
       };
     }
-    return parseGraphQLSDL(pointer, rawSDL.trim(), options);
+
+    return parseGraphQLSDL(pointer, rawSDL, options);
   }
 }

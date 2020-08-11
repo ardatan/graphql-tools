@@ -1,0 +1,107 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`parse sdl comment parsing should transform comments to descriptions correctly on all available nodes 1`] = `
+"\\"test type comment\\"
+type Type {
+  \\"test field comment\\"
+  f1: String!
+  \\"\\"\\"
+   Line 1
+  Line 2
+  \\"\\"\\"
+  f2: String!
+  \\"\\"\\"
+  line 2
+  Line 1
+  \\"\\"\\"
+  f3: String!
+}
+
+extend type Type {
+  \\"test extension field comment\\"
+  f4: String!
+}
+
+type OtherType implements Node {
+  id: ID!
+  f: String!
+}
+
+\\"input test\\"
+input Input {
+  \\"Input field test\\"
+  f: String
+}
+
+\\"Enum test\\"
+enum Enum {
+  \\"Enum value test\\"
+  V1
+  V2
+}
+
+\\"Union test\\"
+union Union = Type | OtherType
+
+\\"Inferface test\\"
+interface Node {
+  id: ID!
+}
+
+\\"Custom scalar test\\"
+scalar Date
+"
+`;
+
+exports[`parse sdl comment parsing should transform comments to descriptions correctly on all available nodes with noLocation=true 1`] = `
+"\\"test type comment\\"
+type Type {
+  \\"test field comment\\"
+  f1: String!
+  \\"\\"\\"
+   Line 1
+  Line 2
+  \\"\\"\\"
+  f2: String!
+  \\"\\"\\"
+  line 2
+  Line 1
+  \\"\\"\\"
+  f3: String!
+}
+
+extend type Type {
+  \\"test extension field comment\\"
+  f4: String!
+}
+
+type OtherType implements Node {
+  id: ID!
+  f: String!
+}
+
+\\"input test\\"
+input Input {
+  \\"Input field test\\"
+  f: String
+}
+
+\\"Enum test\\"
+enum Enum {
+  \\"Enum value test\\"
+  V1
+  V2
+}
+
+\\"Union test\\"
+union Union = Type | OtherType
+
+\\"Inferface test\\"
+interface Node {
+  id: ID!
+}
+
+\\"Custom scalar test\\"
+scalar Date
+"
+`;
