@@ -258,7 +258,7 @@ const gatewaySchema = stitchSchemas({
 
 Stubbed types are easy to setup and effectively work as automatic [schema extensions](/docs/stitch-schema-extensions) (in fact, you might not need extensions!). A stubbed type may always be expanded with additional service-specific fields (see the [basic example](#basic-example)), however it requires a query in `merge` config as soon as it offers unique data.
 
-In terms of performance, stubbed types match the capabilities of schema extensions&mdash;where one external delegation is required _per field_ referencing a stub type. For example, requesting both `buyer` and `seller` fields from a Listing will require two separate delegations to the users service to fetch their respective field selections. More advanced patterns like injected keys (discussed below) can outperform stubbing by resolving entire portions of a type with a single delegation per external service.
+In terms of performance, stubbed types match the capabilities of schema extensions&mdash;where one external delegation is required _per field_ referencing a stub type. For example, requesting both `buyer` and `seller` fields from a Listing will require two separate delegations to the users service to fetch their respective field selections, even when batching. More advanced patterns like injected keys (discussed below) can outperform stubbing by resolving entire portions of a type with a single delegation per external service.
 
 ### Injected keys
 
