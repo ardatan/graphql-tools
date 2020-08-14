@@ -90,7 +90,7 @@ const gatewaySchema = stitchSchemas({
 
 That's it! Under the [subschema config](/docs/stitch-combining-schemas#subschema-configs) `merge` option, each subschema simply provides a query for accessing its respective partial type (services without an expression of the type may omit this). The merge config's `fieldName` specifies a query, `selectionSet` specifies one or more key fields required from other services to perform the query, and `args` formats the preceding partial data into query arguments. This configuration allows type merging to smartly resolve a complete `User`, regardless of which service provides the initial representation of it.
 
-We now have a combined `User` type is in the gateway schema!
+We now have a combined `User` type in the gateway schema!
 
 ```graphql
 type User {
