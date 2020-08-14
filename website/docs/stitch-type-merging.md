@@ -371,7 +371,7 @@ const gatewaySchema = stitchSchemas({
 });
 ```
 
-Now, you may notice that both `sellerId` and `buyerId` keys are _always_ requested from the listing service, even though they are only needed when resolving their respective association fields. If we were sensitive to costs associated with keys, then we could judiciously select only what we need with a field-level selectionSet mapping:
+Neat! However, you may notice that both `sellerId` and `buyerId` keys are _always_ requested from the listing service, even though they are only needed when resolving their respective association fields. If we were sensitive to costs associated with keys, then we could judiciously select only what we need with a field-level selectionSet mapping:
 
 ```js
 {
