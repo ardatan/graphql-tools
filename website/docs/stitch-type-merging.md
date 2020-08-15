@@ -341,7 +341,7 @@ Some important features to notice in the above schema:
 - Users service `Listing` now _only_ provides `buyer` and `seller` associations without any need for a shared `id`.
 - Users service defines a `ListingRepresentation` input for external keys, and a `_listingsByReps` query that recieves them.
 
-To bring this all together, the gateway orchestrates collecting plain keys from the listing service, and then injecting them as representations of external records into the users service... from which they return as complete type partial:
+To bring this all together, the gateway orchestrates collecting plain keys from the listing service, and then injecting them as representations of external records into the users service... from which they return as a complete type partial:
 
 ```js
 const gatewaySchema = stitchSchemas({
