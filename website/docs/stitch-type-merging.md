@@ -262,7 +262,9 @@ In terms of performance, stubbed types match the capabilities of schema extensio
 
 ### Injected keys
 
-Until now we've always been putting a `User` concept into the listings service. However, what if we reversed that and put a `Listing` concept into the users service? While this pattern is considerably more sophisticated than stubbed types, it maximizes performance by resolving entire partial types with a single delegation per service (per generation of data). Here's a complete example:
+Until now we've always been putting a `User` concept into the listings service. However, what if we reversed that and put a `Listing` concept into the users service? This pattern has the gateway fetch a set of key fields from one or more initial schemas (listings), then send them as input to the target schema (users), and recieve back a complete type partial.
+
+While this pattern is considerably more sophisticated than stubbed types, it maximizes performance by resolving any number of fields of any type and selection&mdash;all with a single delegation. Here's a complete example:
 
 ```js
 const listings = [
@@ -339,7 +341,7 @@ Some important features to notice in the above schema:
 - Users service `Listing` now _only_ provides `buyer` and `seller` associations without any need for a shared `id`.
 - Users service defines a `ListingRepresentation` input for external keys, and a `_listingsByReps` query that recieves them.
 
-To bring this all together, the gateway orchestrates collecting plain keys from the listing service, and then injecting them as representations of external records into the users service... from which they return as complete partial types:
+To bring this all together, the gateway orchestrates collecting plain keys from the listing service, and then injecting them as representations of external records into the users service... from which they return as complete type partial:
 
 ```js
 const gatewaySchema = stitchSchemas({
