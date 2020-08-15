@@ -262,9 +262,9 @@ In terms of performance, stubbed types match the capabilities of schema extensio
 
 ### Injected keys
 
-Until now we've always been putting a `User` concept into the listings service. However, what if we reversed that and put a `Listing` concept into the users service? This pattern has the gateway fetch a set of key fields from one or more initial schemas (listings), then send them as input to the target schema (users), and recieve back a complete type partial.
+Until now we've always been putting a `User` concept into the listings service. However, what if we reversed that and put a `Listing` concept into the users service? This pattern has the gateway fetch a set of key fields from one or more initial schemas (listings), then send them as input to the target schema (users), and recieve back a complete type.
 
-While this pattern is considerably more sophisticated than stubbed types, it maximizes performance by resolving any number of fields of any type and selection&mdash;all with a single delegation. Here's a complete example:
+While this pattern is more sophisticated than stubbed types, it maximizes performance by effectively batching multiple fields of any type and selection&mdash;all with a single delegation. Here's a complete example:
 
 ```js
 const listings = [
@@ -341,7 +341,7 @@ Some important features to notice in the above schema:
 - Users service `Listing` now _only_ provides `buyer` and `seller` associations without any need for a shared `id`.
 - Users service defines a `ListingRepresentation` input for external keys, and a `_listingsByReps` query that recieves them.
 
-To bring this all together, the gateway orchestrates collecting plain keys from the listing service, and then injecting them as representations of external records into the users service... from which they return as a complete type partial:
+To bring this all together, the gateway orchestrates collecting plain keys from the listing service, and then injecting them as representations of external records into the users service... from which they return as a complete type:
 
 ```js
 const gatewaySchema = stitchSchemas({
@@ -373,7 +373,9 @@ const gatewaySchema = stitchSchemas({
 });
 ```
 
-Neat! However, you may notice that both `sellerId` and `buyerId` keys are _always_ requested from the listing service, even though they are only needed when resolving their respective association fields. If we were sensitive to costs associated with keys, then we could judiciously select only what we need with a field-level selectionSet mapping:
+In summary, the gateway had selected `buyerId` and `sellerId` fields from the listings services, sent those keys as input over to the users service, and then recieved back a complete type resolved with multiple fields of any type and selection. Neat!
+
+However, you may notice that both `sellerId` and `buyerId` keys are _always_ requested from the listing service, even though they are only needed when resolving their respective associations. If we were sensitive to costs associated with keys, then we could judiciously select only the keys needed for the query with a field-level selectionSet mapping:
 
 ```js
 {
