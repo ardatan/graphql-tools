@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "@graphql-tools/utils": "6.0.18",
-    "lodash": "4.17.19"
+    "lodash": "4.17.20"
   },
   "publishConfig": {
     "access": "public",
