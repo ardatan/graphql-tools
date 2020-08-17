@@ -2,54 +2,50 @@ import { graphql } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '../src/stitchSchemas';
 
-describe('merging using type merging', () => {
-  test('works', async () => {
-    let postsSchema = makeExecutableSchema({
+describe('extended interfaces', () => {
+  test('expands extended interface types for subservices', async () => {
+    const itemsSchema = makeExecutableSchema({
       typeDefs: `
         interface Slot {
           id: ID!
         }
-
-        type Post implements Slot {
+        type Item implements Slot {
           id: ID!
-          title: String!
+          name: String!
         }
-
         type Query {
           slot: Slot
         }
       `,
       resolvers: {
         Query: {
-          slot() {
-            return { id: '23', title: 'The Title' };
+          slot(obj, args, context, info) {
+            return { __typename: 'Item', id: '23', name: 'The Item' };
           }
         }
       }
     });
 
-    chirpSchema = addMocksToSchema({ schema: postsSchema });
-
     const stitchedSchema = stitchSchemas({
       subschemas: [
-        { schema: postsSchema },
+        { schema: itemsSchema },
       ],
       typeDefs: `
         extend interface Slot {
-          title: String!
+          name: String!
         }
       `,
     });
 
-    const result = await graphql(stitchedSchema, `
+    const { data } = await graphql(stitchedSchema, `
       query {
         slot {
           id
-          title
+          name
         }
       }
     `);
 
-    expect(result.data.slot).toBe({ id: '23', title: 'The Title' });
+    expect(data.slot).toEqual({ id: '23', name: 'The Item' });
   });
 });

@@ -10,6 +10,7 @@ import {
   TypeInfo,
   getNamedType,
   isAbstractType,
+  isInterfaceType,
   visit,
   visitWithTypeInfo,
 } from 'graphql';
@@ -23,7 +24,9 @@ export default class ExpandAbstractTypes implements Transform {
 
   constructor(sourceSchema: GraphQLSchema, targetSchema: GraphQLSchema) {
     this.targetSchema = targetSchema;
-    this.mapping = extractPossibleTypes(sourceSchema, targetSchema);
+    const { mapping, interfaceExtensions } = extractPossibleTypes(sourceSchema, targetSchema);
+    this.mapping = mapping;
+    this.interfaceExtensions = interfaceExtensions;
     this.reverseMapping = flipMapping(this.mapping);
   }
 
@@ -32,8 +35,10 @@ export default class ExpandAbstractTypes implements Transform {
       this.targetSchema,
       this.mapping,
       this.reverseMapping,
+      this.interfaceExtensions,
       originalRequest.document
     );
+
     return {
       ...originalRequest,
       document,
@@ -44,17 +49,29 @@ export default class ExpandAbstractTypes implements Transform {
 function extractPossibleTypes(sourceSchema: GraphQLSchema, targetSchema: GraphQLSchema) {
   const typeMap = sourceSchema.getTypeMap();
   const mapping: Record<string, Array<string>> = Object.create(null);
+  const interfaceExtensions: Record<string, Record<string, boolean>> = Object.create(null);
   Object.keys(typeMap).forEach(typeName => {
     const type = typeMap[typeName];
     if (isAbstractType(type)) {
       const targetType = targetSchema.getType(typeName);
-      if (!isAbstractType(targetType)) {
+
+      if (isInterfaceType(type) && isInterfaceType(targetType)) {
+        const targetTypeFields = Object.keys(targetType.getFields());
+        const extensionFields = Object.keys(type.getFields()).filter(
+          (fieldName: string) => !targetTypeFields.includes(fieldName)
+        );
+        if (extensionFields.length) {
+          interfaceExtensions[typeName] = extensionFields;
+        }
+      }
+
+      if (!isAbstractType(targetType) || typeName in interfaceExtensions) {
         const implementations = sourceSchema.getPossibleTypes(type);
         mapping[typeName] = implementations.filter(impl => targetSchema.getType(impl.name)).map(impl => impl.name);
       }
     }
   });
-  return mapping;
+  return { mapping, interfaceExtensions };
 }
 
 function flipMapping(mapping: Record<string, Array<string>>): Record<string, Array<string>> {
@@ -75,11 +92,13 @@ function expandAbstractTypes(
   targetSchema: GraphQLSchema,
   mapping: Record<string, Array<string>>,
   reverseMapping: Record<string, Array<string>>,
+  interfaceExtensions: Record<string, Array<string>>,
   document: DocumentNode
 ): DocumentNode {
   const operations: Array<OperationDefinitionNode> = document.definitions.filter(
     def => def.kind === Kind.OPERATION_DEFINITION
   ) as Array<OperationDefinitionNode>;
+
   const fragments: Array<FragmentDefinitionNode> = document.definitions.filter(
     def => def.kind === Kind.FRAGMENT_DEFINITION
   ) as Array<FragmentDefinitionNode>;
@@ -93,6 +112,19 @@ function expandAbstractTypes(
       fragmentCounter++;
     } while (existingFragmentNames.indexOf(fragmentName) !== -1);
     return fragmentName;
+  };
+  const generateInlineFragment = (typeName: string, selectionSet: SelectionSetNode) => {
+    return {
+      kind: Kind.INLINE_FRAGMENT,
+      typeCondition: {
+        kind: Kind.NAMED_TYPE,
+        name: {
+          kind: Kind.NAME,
+          value: typeName,
+        },
+      },
+      selectionSet,
+    };
   };
 
   const newFragments: Array<FragmentDefinitionNode> = [];
@@ -140,10 +172,13 @@ function expandAbstractTypes(
     newDocument,
     visitWithTypeInfo(typeInfo, {
       [Kind.SELECTION_SET](node: SelectionSetNode) {
-        const newSelections = [...node.selections];
+        let newSelections = node.selections;
+        const addedSelections = [];
         const maybeType = typeInfo.getParentType();
         if (maybeType != null) {
           const parentType: GraphQLNamedType = getNamedType(maybeType);
+          const extendedInterface = interfaceExtensions[parentType.name];
+          const extendedInterfaceFields = [];
           node.selections.forEach((selection: SelectionNode) => {
             if (selection.kind === Kind.INLINE_FRAGMENT) {
               if (selection.typeCondition != null) {
@@ -155,17 +190,7 @@ function expandAbstractTypes(
                       maybePossibleType != null &&
                       implementsAbstractType(targetSchema, parentType, maybePossibleType)
                     ) {
-                      newSelections.push({
-                        kind: Kind.INLINE_FRAGMENT,
-                        typeCondition: {
-                          kind: Kind.NAMED_TYPE,
-                          name: {
-                            kind: Kind.NAME,
-                            value: possibleType,
-                          },
-                        },
-                        selectionSet: selection.selectionSet,
-                      });
+                      addedSelections.push(generateInlineFragment(possibleType, selection.selectionSet));
                     }
                   });
                 }
@@ -177,7 +202,7 @@ function expandAbstractTypes(
                   const typeName = replacement.typeName;
                   const maybeReplacementType = targetSchema.getType(typeName);
                   if (maybeReplacementType != null && implementsAbstractType(targetSchema, parentType, maybeType)) {
-                    newSelections.push({
+                    addedSelections.push({
                       kind: Kind.FRAGMENT_SPREAD,
                       name: {
                         kind: Kind.NAME,
@@ -187,11 +212,15 @@ function expandAbstractTypes(
                   }
                 });
               }
+            } else if (selection.kind === Kind.FIELD && extendedInterface != null) {
+              if (extendedInterface.includes(selection.name.value)) {
+                extendedInterfaceFields.push(selection);
+              }
             }
           });
 
           if (parentType.name in reverseMapping) {
-            newSelections.push({
+            addedSelections.push({
               kind: Kind.FIELD,
               name: {
                 kind: Kind.NAME,
@@ -199,12 +228,31 @@ function expandAbstractTypes(
               },
             });
           }
+
+          if (extendedInterfaceFields.length) {
+            const possibleTypes = mapping[parentType.name];
+            if (possibleTypes != null) {
+              possibleTypes.forEach(possibleType => {
+                addedSelections.push(
+                  generateInlineFragment(possibleType, {
+                    kind: Kind.SELECTION_SET,
+                    selections: extendedInterfaceFields,
+                  })
+                );
+              });
+
+              newSelections = newSelections.filter(
+                (selection: SelectionNode) =>
+                  selection.kind !== Kind.FIELD || !extendedInterface.includes(selection.name.value)
+              );
+            }
+          }
         }
 
-        if (newSelections.length !== node.selections.length) {
+        if (addedSelections.length) {
           return {
             ...node,
-            selections: newSelections,
+            selections: newSelections.concat(addedSelections),
           };
         }
       },
