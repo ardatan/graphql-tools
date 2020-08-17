@@ -69,11 +69,17 @@ function mergeObjectTypeCandidates(
     {}
   );
 
-  const interfaces = configs
+  const interfaceMap = configs
     .map(config => config.interfaces)
     .reduce((acc, interfaces) => {
-      return interfaces != null ? acc.concat(interfaces) : acc;
-    }, []);
+      if (interfaces != null) {
+        interfaces.forEach(iface => {
+          acc[iface.name] = iface;
+        });
+      }
+      return acc;
+    }, Object.create(null));
+  const interfaces = Object.keys(interfaceMap).map(interfaceName => interfaceMap[interfaceName]);
 
   const astNodes = pluck<ObjectTypeDefinitionNode>('astNode', candidates);
   const astNode = astNodes
@@ -157,14 +163,17 @@ function mergeInterfaceTypeCandidates(typeName: string, candidates: Array<MergeT
     {}
   );
 
-  const interfaces =
-    'interfaces' in candidates[0].type.toConfig()
-      ? configs
-          .map(config => ((config as unknown) as { interfaces: Array<GraphQLInterfaceType> }).interfaces)
-          .reduce((acc, interfaces) => {
-            return interfaces != null ? acc.concat(interfaces) : acc;
-          }, [])
-      : undefined;
+  const interfaceMap = configs
+    .map(config => ((config as unknown) as { interfaces: Array<GraphQLInterfaceType> }).interfaces)
+    .reduce((acc, interfaces) => {
+      if (interfaces != null) {
+        interfaces.forEach(iface => {
+          acc[iface.name] = iface;
+        });
+      }
+      return acc;
+    }, Object.create(null));
+  const interfaces = Object.keys(interfaceMap).map(interfaceName => interfaceMap[interfaceName]);
 
   const astNodes = pluck<InterfaceTypeDefinitionNode>('astNode', candidates);
   const astNode = astNodes
@@ -196,7 +205,13 @@ function mergeUnionTypeCandidates(typeName: string, candidates: Array<MergeTypeC
   const description = descriptions[descriptions.length - 1];
 
   const configs = candidates.map(candidate => (candidate.type as GraphQLUnionType).toConfig());
-  const types = configs.reduce((acc, config) => acc.concat(config.types), []);
+  const typeMap = configs.reduce((acc, config) => {
+    config.types.forEach(type => {
+      typeMap[type.name] = type;
+    });
+    return acc;
+  }, Object.create(null));
+  const types = Object.keys(typeMap).map(typeName => typeMap[typeName]);
 
   const astNodes = pluck<UnionTypeDefinitionNode>('astNode', candidates);
   const astNode = astNodes
