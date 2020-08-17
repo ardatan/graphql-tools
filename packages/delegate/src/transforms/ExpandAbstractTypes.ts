@@ -19,23 +19,24 @@ import { implementsAbstractType, Transform, Request } from '@graphql-tools/utils
 
 export default class ExpandAbstractTypes implements Transform {
   private readonly targetSchema: GraphQLSchema;
-  private readonly mapping: Record<string, Array<string>>;
-  private readonly reverseMapping: Record<string, Array<string>>;
+  private readonly possibleTypesMap: Record<string, Array<string>>;
+  private readonly reversePossibleTypesMap: Record<string, Array<string>>;
+  private readonly interfaceExtensionsMap: Record<string, Record<string, boolean>>;
 
   constructor(sourceSchema: GraphQLSchema, targetSchema: GraphQLSchema) {
     this.targetSchema = targetSchema;
-    const { mapping, interfaceExtensions } = extractPossibleTypes(sourceSchema, targetSchema);
-    this.mapping = mapping;
-    this.interfaceExtensions = interfaceExtensions;
-    this.reverseMapping = flipMapping(this.mapping);
+    const { possibleTypesMap, interfaceExtensionsMap } = extractPossibleTypes(sourceSchema, targetSchema);
+    this.possibleTypesMap = possibleTypesMap;
+    this.reversePossibleTypesMap = flipMapping(this.possibleTypesMap);
+    this.interfaceExtensionsMap = interfaceExtensionsMap;
   }
 
   public transformRequest(originalRequest: Request): Request {
     const document = expandAbstractTypes(
       this.targetSchema,
-      this.mapping,
-      this.reverseMapping,
-      this.interfaceExtensions,
+      this.possibleTypesMap,
+      this.reversePossibleTypesMap,
+      this.interfaceExtensionsMap,
       originalRequest.document
     );
 
@@ -48,30 +49,35 @@ export default class ExpandAbstractTypes implements Transform {
 
 function extractPossibleTypes(sourceSchema: GraphQLSchema, targetSchema: GraphQLSchema) {
   const typeMap = sourceSchema.getTypeMap();
-  const mapping: Record<string, Array<string>> = Object.create(null);
-  const interfaceExtensions: Record<string, Record<string, boolean>> = Object.create(null);
+  const possibleTypesMap: Record<string, Array<string>> = Object.create(null);
+  const interfaceExtensionsMap: Record<string, Record<string, boolean>> = Object.create(null);
   Object.keys(typeMap).forEach(typeName => {
     const type = typeMap[typeName];
     if (isAbstractType(type)) {
       const targetType = targetSchema.getType(typeName);
 
       if (isInterfaceType(type) && isInterfaceType(targetType)) {
-        const targetTypeFields = Object.keys(targetType.getFields());
-        const extensionFields = Object.keys(type.getFields()).filter(
-          (fieldName: string) => !targetTypeFields.includes(fieldName)
-        );
-        if (extensionFields.length) {
-          interfaceExtensions[typeName] = extensionFields;
+        const targetTypeFields = targetType.getFields();
+        const extensionFields: Record<string, boolean> = Object.create(null);
+        Object.keys(type.getFields()).forEach((fieldName: string) => {
+          if (!targetTypeFields[fieldName]) {
+            extensionFields[fieldName] = true;
+          }
+        });
+        if (Object.keys(extensionFields).length) {
+          interfaceExtensionsMap[typeName] = extensionFields;
         }
       }
 
-      if (!isAbstractType(targetType) || typeName in interfaceExtensions) {
+      if (!isAbstractType(targetType) || typeName in interfaceExtensionsMap) {
         const implementations = sourceSchema.getPossibleTypes(type);
-        mapping[typeName] = implementations.filter(impl => targetSchema.getType(impl.name)).map(impl => impl.name);
+        possibleTypesMap[typeName] = implementations
+          .filter(impl => targetSchema.getType(impl.name))
+          .map(impl => impl.name);
       }
     }
   });
-  return { mapping, interfaceExtensions };
+  return { possibleTypesMap, interfaceExtensionsMap };
 }
 
 function flipMapping(mapping: Record<string, Array<string>>): Record<string, Array<string>> {
@@ -90,9 +96,9 @@ function flipMapping(mapping: Record<string, Array<string>>): Record<string, Arr
 
 function expandAbstractTypes(
   targetSchema: GraphQLSchema,
-  mapping: Record<string, Array<string>>,
-  reverseMapping: Record<string, Array<string>>,
-  interfaceExtensions: Record<string, Array<string>>,
+  possibleTypesMap: Record<string, Array<string>>,
+  reversePossibleTypesMap: Record<string, Array<string>>,
+  interfaceExtensionsMap: Record<string, Record<string, boolean>>,
   document: DocumentNode
 ): DocumentNode {
   const operations: Array<OperationDefinitionNode> = document.definitions.filter(
@@ -132,7 +138,7 @@ function expandAbstractTypes(
 
   fragments.forEach((fragment: FragmentDefinitionNode) => {
     newFragments.push(fragment);
-    const possibleTypes = mapping[fragment.typeCondition.name.value];
+    const possibleTypes = possibleTypesMap[fragment.typeCondition.name.value];
     if (possibleTypes != null) {
       fragmentReplacements[fragment.name.value] = [];
       possibleTypes.forEach(possibleTypeName => {
@@ -177,12 +183,12 @@ function expandAbstractTypes(
         const maybeType = typeInfo.getParentType();
         if (maybeType != null) {
           const parentType: GraphQLNamedType = getNamedType(maybeType);
-          const extendedInterface = interfaceExtensions[parentType.name];
-          const extendedInterfaceFields = [];
+          const interfaceExtension = interfaceExtensionsMap[parentType.name];
+          const interfaceExtensionFields = [];
           node.selections.forEach((selection: SelectionNode) => {
             if (selection.kind === Kind.INLINE_FRAGMENT) {
               if (selection.typeCondition != null) {
-                const possibleTypes = mapping[selection.typeCondition.name.value];
+                const possibleTypes = possibleTypesMap[selection.typeCondition.name.value];
                 if (possibleTypes != null) {
                   possibleTypes.forEach(possibleType => {
                     const maybePossibleType = targetSchema.getType(possibleType);
@@ -213,15 +219,15 @@ function expandAbstractTypes(
                 });
               }
             } else if (
-              selection.kind === Kind.FIELD &&
-              extendedInterface != null &&
-              extendedInterface.includes(selection.name.value)
+              interfaceExtension != null &&
+              interfaceExtension[selection.name.value] &&
+              selection.kind === Kind.FIELD
             ) {
-              extendedInterfaceFields.push(selection);
+              interfaceExtensionFields.push(selection);
             }
           });
 
-          if (parentType.name in reverseMapping) {
+          if (parentType.name in reversePossibleTypesMap) {
             addedSelections.push({
               kind: Kind.FIELD,
               name: {
@@ -231,21 +237,21 @@ function expandAbstractTypes(
             });
           }
 
-          if (extendedInterfaceFields.length) {
-            const possibleTypes = mapping[parentType.name];
+          if (interfaceExtensionFields.length) {
+            const possibleTypes = possibleTypesMap[parentType.name];
             if (possibleTypes != null) {
               possibleTypes.forEach(possibleType => {
                 addedSelections.push(
                   generateInlineFragment(possibleType, {
                     kind: Kind.SELECTION_SET,
-                    selections: extendedInterfaceFields,
+                    selections: interfaceExtensionFields,
                   })
                 );
               });
 
               newSelections = newSelections.filter(
                 (selection: SelectionNode) =>
-                  selection.kind !== Kind.FIELD || !extendedInterface.includes(selection.name.value)
+                  !(selection.kind === Kind.FIELD && interfaceExtension[selection.name.value])
               );
             }
           }
