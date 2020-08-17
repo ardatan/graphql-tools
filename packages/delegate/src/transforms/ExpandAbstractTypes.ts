@@ -184,7 +184,7 @@ function expandAbstractTypes(
         if (maybeType != null) {
           const parentType: GraphQLNamedType = getNamedType(maybeType);
           const interfaceExtension = interfaceExtensionsMap[parentType.name];
-          const interfaceExtensionFields = [];
+          const interfaceExtensionFields = [] as Array<SelectionNode>;
           node.selections.forEach((selection: SelectionNode) => {
             if (selection.kind === Kind.INLINE_FRAGMENT) {
               if (selection.typeCondition != null) {
