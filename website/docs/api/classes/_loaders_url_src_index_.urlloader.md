@@ -19,11 +19,11 @@ const schema = await loadSchema('http://localhost:3000/graphql', {
 
 * **UrlLoader**
 
-  ↳ [PrismaLoader](_loaders_prisma_src_index_.prismaloader)
+  ↳ [PrismaLoader](_loaders_prisma_src_index_.prismaloader.md)
 
 ## Implements
 
-* [Loader](/docs/api/interfaces/_utils_src_index_.loader)‹[LoadFromUrlOptions](/docs/api/interfaces/_loaders_url_src_index_.loadfromurloptions)›
+* [Loader](../interfaces/_utils_src_index_.loader.md)‹[LoadFromUrlOptions](../interfaces/_loaders_url_src_index_.loadfromurloptions.md)›
 
 ## Index
 
@@ -82,7 +82,7 @@ ___
 
 ###  canLoad
 
-▸ **canLoad**(`pointer`: [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle), `options`: [LoadFromUrlOptions](/docs/api/interfaces/_loaders_url_src_index_.loadfromurloptions)): *Promise‹boolean›*
+▸ **canLoad**(`pointer`: [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle), `options`: [LoadFromUrlOptions](../interfaces/_loaders_url_src_index_.loadfromurloptions.md)): *Promise‹boolean›*
 
 *Defined in [packages/loaders/url/src/index.ts:71](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L71)*
 
@@ -91,7 +91,7 @@ ___
 Name | Type |
 ------ | ------ |
 `pointer` | [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle) |
-`options` | [LoadFromUrlOptions](/docs/api/interfaces/_loaders_url_src_index_.loadfromurloptions) |
+`options` | [LoadFromUrlOptions](../interfaces/_loaders_url_src_index_.loadfromurloptions.md) |
 
 **Returns:** *Promise‹boolean›*
 
@@ -99,7 +99,7 @@ ___
 
 ###  canLoadSync
 
-▸ **canLoadSync**(`pointer`: [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle), `_options`: [LoadFromUrlOptions](/docs/api/interfaces/_loaders_url_src_index_.loadfromurloptions)): *boolean*
+▸ **canLoadSync**(`pointer`: [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle), `_options`: [LoadFromUrlOptions](../interfaces/_loaders_url_src_index_.loadfromurloptions.md)): *boolean*
 
 *Defined in [packages/loaders/url/src/index.ts:75](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L75)*
 
@@ -108,7 +108,7 @@ ___
 Name | Type |
 ------ | ------ |
 `pointer` | [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle) |
-`_options` | [LoadFromUrlOptions](/docs/api/interfaces/_loaders_url_src_index_.loadfromurloptions) |
+`_options` | [LoadFromUrlOptions](../interfaces/_loaders_url_src_index_.loadfromurloptions.md) |
 
 **Returns:** *boolean*
 
@@ -116,7 +116,7 @@ ___
 
 ###  getExecutorAndSubscriber
 
-▸ **getExecutorAndSubscriber**(`pointer`: [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle), `options`: [LoadFromUrlOptions](/docs/api/interfaces/_loaders_url_src_index_.loadfromurloptions)): *Promise‹object›*
+▸ **getExecutorAndSubscriber**(`pointer`: [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle), `options`: [LoadFromUrlOptions](../interfaces/_loaders_url_src_index_.loadfromurloptions.md)): *Promise‹object›*
 
 *Defined in [packages/loaders/url/src/index.ts:149](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L149)*
 
@@ -125,7 +125,7 @@ ___
 Name | Type |
 ------ | ------ |
 `pointer` | [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle) |
-`options` | [LoadFromUrlOptions](/docs/api/interfaces/_loaders_url_src_index_.loadfromurloptions) |
+`options` | [LoadFromUrlOptions](../interfaces/_loaders_url_src_index_.loadfromurloptions.md) |
 
 **Returns:** *Promise‹object›*
 
@@ -133,7 +133,7 @@ ___
 
 ###  getSubschemaConfig
 
-▸ **getSubschemaConfig**(`pointer`: [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle), `options`: [LoadFromUrlOptions](/docs/api/interfaces/_loaders_url_src_index_.loadfromurloptions)): *Promise‹object›*
+▸ **getSubschemaConfig**(`pointer`: [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle), `options`: [LoadFromUrlOptions](../interfaces/_loaders_url_src_index_.loadfromurloptions.md)): *Promise‹object›*
 
 *Defined in [packages/loaders/url/src/index.ts:216](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L216)*
 
@@ -142,7 +142,7 @@ ___
 Name | Type |
 ------ | ------ |
 `pointer` | [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle) |
-`options` | [LoadFromUrlOptions](/docs/api/interfaces/_loaders_url_src_index_.loadfromurloptions) |
+`options` | [LoadFromUrlOptions](../interfaces/_loaders_url_src_index_.loadfromurloptions.md) |
 
 **Returns:** *Promise‹object›*
 
@@ -150,7 +150,7 @@ ___
 
 ###  load
 
-▸ **load**(`pointer`: [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle), `options`: [LoadFromUrlOptions](/docs/api/interfaces/_loaders_url_src_index_.loadfromurloptions)): *Promise‹[Source](/docs/api/interfaces/_utils_src_index_.source)›*
+▸ **load**(`pointer`: [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle), `options`: [LoadFromUrlOptions](../interfaces/_loaders_url_src_index_.loadfromurloptions.md)): *Promise‹[Source](../interfaces/_utils_src_index_.source.md)›*
 
 *Defined in [packages/loaders/url/src/index.ts:225](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L225)*
 
@@ -159,9 +159,9 @@ ___
 Name | Type |
 ------ | ------ |
 `pointer` | [SchemaPointerSingle](../modules/_utils_src_index_.md#schemapointersingle) |
-`options` | [LoadFromUrlOptions](/docs/api/interfaces/_loaders_url_src_index_.loadfromurloptions) |
+`options` | [LoadFromUrlOptions](../interfaces/_loaders_url_src_index_.loadfromurloptions.md) |
 
-**Returns:** *Promise‹[Source](/docs/api/interfaces/_utils_src_index_.source)›*
+**Returns:** *Promise‹[Source](../interfaces/_utils_src_index_.source.md)›*
 
 ___
 
@@ -179,7 +179,7 @@ ___
 
 ▸ **loaderId**(): *string*
 
-*Implementation of [Loader](/docs/api/interfaces/_utils_src_index_.loader)*
+*Implementation of [Loader](../interfaces/_utils_src_index_.loader.md)*
 
 *Defined in [packages/loaders/url/src/index.ts:67](https://github.com/ardatan/graphql-tools/blob/master/packages/loaders/url/src/index.ts#L67)*
 
