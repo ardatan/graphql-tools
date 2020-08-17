@@ -118,7 +118,7 @@ _**For pre-version 5:** the old method of using [makeRemoteExecutableSchema](/do
 
 ## Duplicate type definitions
 
-By default, schema stitching will override type definitions that are duplicated across subschemas&mdash;always favoring the final definition of fields, arguments, and docstrings for a type found in the `subschemas` array. This works fine when subschemas implement identical versions of an object type. For divergent type definitions, you may now enable [type merging](/docs/stitch-merging-types) (as of GraphQL Tools 5) to smartly merge partial type definitions from across subschemas.
+By default, schema stitching will override type definitions that are duplicated across subschemas&mdash;always favoring the final definition of fields, arguments, and docstrings for a type found in the `subschemas` array. This works fine when subschemas implement identical versions of an object type. For divergent type definitions, you may now enable [type merging](/docs/stitch-type-merging) (as of GraphQL Tools 5) to smartly merge partial type definitions from across subschemas.
 
 ## Adding transforms
 
