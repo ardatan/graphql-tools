@@ -212,10 +212,12 @@ function expandAbstractTypes(
                   }
                 });
               }
-            } else if (selection.kind === Kind.FIELD && extendedInterface != null) {
-              if (extendedInterface.includes(selection.name.value)) {
-                extendedInterfaceFields.push(selection);
-              }
+            } else if (
+              selection.kind === Kind.FIELD &&
+              extendedInterface != null &&
+              extendedInterface.includes(selection.name.value)
+            ) {
+              extendedInterfaceFields.push(selection);
             }
           });
 
