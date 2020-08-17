@@ -15,7 +15,7 @@ The `graphql-tools` package provides several related tools for managing schema d
 
 * [Remote schemas](/docs/remote-schemas/) - turning a remote GraphQL endpoint into a local schema
 * [Schema wrapping](/docs/schema-wrapping/) - modifying existing schemas -- usually remote, but possibly local -- when wrapping them to make delegation easier
-* [Schema stitching](/docs/schema-stitching/) - merging multiple schemas into one
+* [Schema stitching](/docs/stitch-api/) - merging multiple schemas into one
 
 ## Motivational example
 

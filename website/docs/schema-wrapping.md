@@ -6,7 +6,7 @@ description: Wrap schemas to automatically modify schemas, requests and results
 
 Schema wrapping is a method of making modified copies of `GraphQLSchema` objects, without changing the original schema implementation. This is especially useful when the original schema _cannot_ be changed, i.e. when using [remote schemas](/docs/remote-schemas/).
 
-Schema wrapping can be useful when building GraphQL gateways that combine multiple schemas using [schema stitching](/docs/schema-stitching/) to combine schemas together without conflicts between types or fields.
+Schema wrapping can be useful when building GraphQL gateways that combine multiple schemas using [schema stitching](/docs/stitch-api/) to combine schemas together without conflicts between types or fields.
 
 Schema wrapping works by wrapping the original schema in a new 'gateway' schema that simply delegates all operations to the original subschema. A series of 'transforms' are applied to modify the schema after the initial wrapping is complete. Each transform includes a schema transformation function that changes the gateway schema. It may also include operation transforms, i.e. functions that either modify the operation prior to delegation or modify the result prior to its return.
 
