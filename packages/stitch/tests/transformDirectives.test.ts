@@ -1,5 +1,4 @@
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { getDirectives } from '@graphql-tools/utils';
 import { stitchSchemas } from '../src/stitchSchemas';
 import { RemoveDirectives, RemoveDirectiveFields } from '../src/index';
 
@@ -30,7 +29,7 @@ describe('transform deprecations', () => {
       `
     });
 
-    console.log(getDirectives(usersSchema))
+
 
     const gatewaySchema = stitchSchemas({
       subschemas: [
