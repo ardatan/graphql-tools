@@ -1,11 +1,14 @@
+import { GraphQLSchema } from 'graphql';
 import { Transform, MapperKind, mapSchema } from '@graphql-tools/utils';
 
 export class RemoveDeprecations implements Transform {
-  constructor(reason) {
+  private readonly reason: string;
+
+  constructor({ reason }: { reason: string }) {
     this.reason = reason;
   }
 
-  transformSchema(schema) {
+  public transformSchema(schema: GraphQLSchema): GraphQLSchema {
     return mapSchema(schema, {
       [MapperKind.FIELD]: field => {
         if (field.deprecationReason === this.reason) {

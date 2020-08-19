@@ -34,11 +34,11 @@ describe('transform deprecations', () => {
       subschemas: [
         {
           schema: listingsSchema,
-          transforms: [new RemoveDeprecatedFields('stitching use only')]
+          transforms: [new RemoveDeprecatedFields({ reason: 'stitching use only' })]
         },
         {
           schema: usersSchema,
-          transforms: [new RemoveDeprecations('gateway access only')]
+          transforms: [new RemoveDeprecations({ reason: 'gateway access only' })]
         },
       ],
     });
