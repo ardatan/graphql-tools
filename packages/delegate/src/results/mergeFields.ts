@@ -23,17 +23,10 @@ const sortSubschemasByProxiability = memoize4(function (
   const proxiableSubschemas: Array<SubschemaConfig> = [];
   const nonProxiableSubschemas: Array<SubschemaConfig> = [];
 
-  const sourceSubschemas = Array.isArray(sourceSubschemaOrSourceSubschemas)
-    ? sourceSubschemaOrSourceSubschemas
-    : [sourceSubschemaOrSourceSubschemas];
-
-  const typeName = mergedTypeInfo.typeName;
-  const types = sourceSubschemas.map(sourceSubschema => sourceSubschema.schema.getType(typeName) as GraphQLObjectType);
-
   targetSubschemas.forEach(t => {
     const selectionSet = mergedTypeInfo.selectionSets.get(t);
     const fieldSelectionSets = mergedTypeInfo.fieldSelectionSets.get(t);
-    if (!typesContainSelectionSet(types, selectionSet)) {
+    if (!subschemaTypesContainSelectionSet(mergedTypeInfo, sourceSubschemaOrSourceSubschemas, selectionSet)) {
       nonProxiableSubschemas.push(t);
     } else if (fieldSelectionSets == null) {
       proxiableSubschemas.push(t);
@@ -41,7 +34,10 @@ const sortSubschemasByProxiability = memoize4(function (
       fieldNodes.every(fieldNode => {
         const fieldName = fieldNode.name.value;
         const fieldSelectionSet = fieldSelectionSets[fieldName];
-        return fieldSelectionSet == null || typesContainSelectionSet(types, fieldSelectionSet);
+        return (
+          fieldSelectionSet == null ||
+          subschemaTypesContainSelectionSet(mergedTypeInfo, sourceSubschemaOrSourceSubschemas, fieldSelectionSet)
+        );
       })
     ) {
       proxiableSubschemas.push(t);
@@ -203,3 +199,23 @@ export function mergeFields(
         info
       );
 }
+
+const subschemaTypesContainSelectionSet = memoize3(function (
+  mergedTypeInfo: MergedTypeInfo,
+  sourceSubschemaOrSourceSubschemas: SubschemaConfig | Array<SubschemaConfig>,
+  selectionSet: SelectionSetNode
+) {
+  if (Array.isArray(sourceSubschemaOrSourceSubschemas)) {
+    return typesContainSelectionSet(
+      sourceSubschemaOrSourceSubschemas.map(
+        sourceSubschema => sourceSubschema.schema.getType(mergedTypeInfo.typeName) as GraphQLObjectType
+      ),
+      selectionSet
+    );
+  }
+
+  return typesContainSelectionSet(
+    [sourceSubschemaOrSourceSubschemas.schema.getType(mergedTypeInfo.typeName) as GraphQLObjectType],
+    selectionSet
+  );
+});
