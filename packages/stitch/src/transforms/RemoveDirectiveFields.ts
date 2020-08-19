@@ -1,16 +1,14 @@
 import { GraphQLSchema, GraphQLFieldConfig } from 'graphql';
-import { Transform } from '@graphql-tools/utils';
+import { Transform, matchDirective } from '@graphql-tools/utils';
 import { FilterObjectFields } from '@graphql-tools/wrap';
 
-export class RemoveDeprecatedFields implements Transform {
-  private readonly reason: string;
+export default class RemoveDirectiveFields implements Transform {
   private readonly transformer: FilterObjectFields;
 
-  constructor({ reason }: { reason: string }) {
-    this.reason = reason;
+  constructor(directiveName: string, args: Record<string, any> = {}) {
     this.transformer = new FilterObjectFields(
       (_typeName: string, _fieldName: string, fieldConfig: GraphQLFieldConfig<any, any>) => {
-        return fieldConfig.deprecationReason === this.reason ? undefined : null;
+        return !!fieldConfig.astNode.directives.find(dir => matchDirective(dir, directiveName, args));
       }
     );
   }

@@ -1,6 +1,6 @@
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '../src/stitchSchemas';
-import { RemoveDeprecations, RemoveDeprecatedFields } from '../src/index';
+import { RemoveDirectives, RemoveDirectiveFields } from '../src/index';
 
 describe('transform deprecations', () => {
   test('removes specific deprecations and deprecated fields from the gateway schema', async () => {
@@ -37,11 +37,11 @@ describe('transform deprecations', () => {
       subschemas: [
         {
           schema: listingsSchema,
-          transforms: [new RemoveDeprecatedFields({ reason: 'stitching use only' })]
+          transforms: [new RemoveDirectiveFields('deprecated', { reason: 'gateway access only' })]
         },
         {
           schema: usersSchema,
-          transforms: [new RemoveDeprecations({ reason: 'gateway access only' })]
+          transforms: [new RemoveDirectives('deprecated', { reason: 'gateway access only' })]
         },
       ],
     });
