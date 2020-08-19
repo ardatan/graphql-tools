@@ -1,6 +1,6 @@
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '../src/stitchSchemas';
-import { RemoveDirectives, RemoveFieldsWithDirective } from '../src/index';
+import { RemoveFieldDirectives, RemoveFieldsWithDirective } from '../src/index';
 
 describe('transform deprecations', () => {
   test('removes directives with arguments, includes deprecations', async () => {
@@ -39,7 +39,7 @@ describe('transform deprecations', () => {
         },
         {
           schema: usersSchema,
-          transforms: [new RemoveDirectives('deprecated', { reason: 'gateway access only' })]
+          transforms: [new RemoveFieldDirectives('deprecated', { reason: 'gateway access only' })]
         },
       ],
     });
