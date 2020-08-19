@@ -1,8 +1,6 @@
-import { graphql } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '../src/stitchSchemas';
-import { RemoveDeprecations } from '../src/index';
-import { RemoveDeprecatedFields } from '../src/index';
+import { RemoveDeprecations, RemoveDeprecatedFields } from '../src/index';
 
 describe('transform deprecations', () => {
   test('removes specific deprecations and deprecated fields from the gateway schema', async () => {
