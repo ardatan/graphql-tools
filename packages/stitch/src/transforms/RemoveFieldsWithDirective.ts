@@ -2,7 +2,7 @@ import { GraphQLSchema, GraphQLFieldConfig } from 'graphql';
 import { Transform, matchDirective } from '@graphql-tools/utils';
 import { FilterObjectFields } from '@graphql-tools/wrap';
 
-export default class RemoveDirectiveFields implements Transform {
+export default class RemoveFieldsWithDirective implements Transform {
   private readonly transformer: FilterObjectFields;
 
   constructor(directiveName: string, args: Record<string, any> = {}) {
