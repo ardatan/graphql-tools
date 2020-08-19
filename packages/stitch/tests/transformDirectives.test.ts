@@ -3,7 +3,7 @@ import { stitchSchemas } from '../src/stitchSchemas';
 import { RemoveDirectives, RemoveDirectiveFields } from '../src/index';
 
 describe('transform deprecations', () => {
-  test('removes specific deprecations and deprecated fields from the gateway schema', async () => {
+  test('removes directives with arguments, includes deprecations', async () => {
     const listingsSchema = makeExecutableSchema({
       typeDefs: `
         type Listing {
@@ -21,10 +21,6 @@ describe('transform deprecations', () => {
         type User {
           id: ID!
           email: String! @deprecated(reason: "other deprecation")
-        }
-
-        input List {
-          thing: String
         }
         type Listing {
           seller: User! @deprecated(reason: "gateway access only")
@@ -50,9 +46,13 @@ describe('transform deprecations', () => {
     expect(gatewaySchema.getType('Listing').getFields().sellerId).toBe(undefined);
 
     expect(usersSchema.getType('Listing').getFields().seller.deprecationReason).toBe('gateway access only');
+    expect(usersSchema.getType('Listing').getFields().seller.astNode.directives.length).toEqual(1);
     expect(gatewaySchema.getType('Listing').getFields().seller.deprecationReason).toBe(undefined);
+    expect(gatewaySchema.getType('Listing').getFields().seller.astNode.directives.length).toEqual(0);
 
     expect(usersSchema.getType('User').getFields().email.deprecationReason).toBe('other deprecation');
+    expect(usersSchema.getType('User').getFields().email.astNode.directives.length).toEqual(1);
     expect(gatewaySchema.getType('User').getFields().email.deprecationReason).toBe('other deprecation');
+    expect(gatewaySchema.getType('User').getFields().email.astNode.directives.length).toEqual(1);
   });
 });
