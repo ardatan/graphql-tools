@@ -1,3 +1,5 @@
+import { DirectiveNode, ArgumentNode } from 'graphql';
+
 export function matchDirective(
   directive: DirectiveNode,
   requiredName: string,
@@ -8,7 +10,7 @@ export function matchDirective(
 
     if (requiredArgNames.length) {
       const argsMap: Record<string, any> = Object.create(null);
-      directive.arguments.forEach(arg => {
+      directive.arguments.forEach((arg: ArgumentNode) => {
         argsMap[arg.name.value] = arg.value.value;
       });
       return requiredArgNames.every(name => requiredArgs[name] === argsMap[name]);
