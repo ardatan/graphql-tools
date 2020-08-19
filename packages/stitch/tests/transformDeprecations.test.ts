@@ -23,6 +23,9 @@ describe('transform deprecations', () => {
           email: String! @deprecated(reason: "other deprecation")
         }
 
+        input List {
+          thing: String
+        }
         type Listing {
           seller: User! @deprecated(reason: "gateway access only")
           buyer: User @deprecated(reason: "gateway access only")

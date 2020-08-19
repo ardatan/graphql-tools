@@ -1,28 +1,30 @@
 import { GraphQLSchema } from 'graphql';
-import { Transform, MapperKind, mapSchema } from '@graphql-tools/utils';
+import { Transform } from '@graphql-tools/utils';
+import { TransformObjectFields } from '@graphql-tools/wrap';
 
 export class RemoveDeprecations implements Transform {
   private readonly reason: string;
 
   constructor({ reason }: { reason: string }) {
     this.reason = reason;
-  }
-
-  public transformSchema(schema: GraphQLSchema): GraphQLSchema {
-    return mapSchema(schema, {
-      [MapperKind.FIELD]: field => {
-        if (field.deprecationReason === this.reason) {
-          field = {
-            ...field,
+    this.transformer = new TransformObjectFields(
+      (typeName: string, fieldName: string, fieldConfig: GraphQLFieldConfig<any, any>) => {
+        if (fieldConfig.deprecationReason === this.reason) {
+          fieldConfig = {
+            ...fieldConfig,
             astNode: {
-              ...field.astNode,
-              directives: field.astNode.directives.filter(dir => dir.name.value !== 'deprecated'),
+              ...fieldConfig.astNode,
+              directives: fieldConfig.astNode.directives.filter(dir => dir.name.value !== 'deprecated'),
             },
           };
-          delete field.deprecationReason;
-          return field;
+          delete fieldConfig.deprecationReason;
+          return fieldConfig;
         }
-      },
-    });
+      }
+    );
+  }
+
+  public transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
+    return this.transformer.transformSchema(originalSchema);
   }
 }
