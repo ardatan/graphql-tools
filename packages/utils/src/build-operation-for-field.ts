@@ -467,10 +467,7 @@ function resolveField({
     return null as any;
   }
 
-  let fieldName = field.name;
-  if (fieldTypeMap.has(fieldName) && fieldTypeMap.get(fieldName) !== field.type.toString()) {
-    fieldName += (field.type as any).toString().replace('!', 'NonNull');
-  }
+  const fieldName = field.name;
   fieldTypeMap.set(fieldName, field.type.toString());
 
   if (!isScalarType(namedType) && !isEnumType(namedType)) {
