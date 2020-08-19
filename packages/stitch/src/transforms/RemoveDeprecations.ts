@@ -1,6 +1,6 @@
 import { Transform, MapperKind, mapSchema } from '@graphql-tools/utils';
 
-export default class RemoveDeprecations implements Transform {
+export class RemoveDeprecations implements Transform {
   constructor(reason) {
     this.reason = reason;
   }
