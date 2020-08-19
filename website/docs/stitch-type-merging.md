@@ -341,7 +341,7 @@ Some important features to notice in the above schema:
 - Users service `Listing` now _only_ provides `buyer` and `seller` associations without any need for a shared `id`.
 - Users service defines a `ListingRepresentation` input for external keys, and a `_listingsByReps` query that recieves them.
 
-To bring this all together, the gateway orchestrates collecting plain keys from the listing service, and then injecting them as representations of external records into the users service... from which they return as a complete type:
+To bring this all together, the gateway orchestrates collecting plain keys from the listing service, and then injects them as representations of external records into the users service...
 
 ```js
 const gatewaySchema = stitchSchemas({
@@ -373,9 +373,9 @@ const gatewaySchema = stitchSchemas({
 });
 ```
 
-In summary, the gateway had selected `buyerId` and `sellerId` fields from the listings services, sent those keys as input over to the users service, and then recieved back a complete type resolved with multiple fields of any type and selection. Neat!
+To recap, the gateway has selected `buyerId` and `sellerId` fields from the listings services, sent those keys as input over to the users service, and then recieved back a complete type resolved with multiple fields of any type and selection. Neat!
 
-However, you may notice that both `sellerId` and `buyerId` keys are _always_ requested from the listing service, even though they are only needed when resolving their respective associations. If we were sensitive to costs associated with keys, then we could judiciously select only the keys needed for the query with a field-level selectionSet mapping:
+However, you may notice that both `buyerId` and `sellerId` keys are _always_ requested from the listing service, even though they are only needed when resolving their respective associations. If we were sensitive to costs associated with keys, then we could judiciously select only the keys needed for the query with a field-level selectionSet mapping:
 
 ```js
 {
@@ -394,7 +394,52 @@ However, you may notice that both `sellerId` and `buyerId` keys are _always_ req
 }
 ```
 
-One minor disadvantage of this pattern is that the listings service includes ugly `sellerId` and `buyerId` fields. There's no harm in marking these IDs as `@deprecated`, or they may be removed completely from the gateway schema using a [transform](/docs/stitch-combining-schemas#adding-transforms).
+One disadvantage of this pattern is that we end up with clutter&mdash;`buyerId`/`sellerId` are extra fields, and `buyer`/`seller` fields have gateway dependencies. To tidy things up, we can aggressively deprecate these fields in subschemas and then remove/normalize their behavior in the gateway using available transforms:
+
+```js
+import { RemoveDeprecatedFields, RemoveDeprecations } from '@graphql-tools/stitch';
+
+const listingsSchema = makeExecutableSchema({
+  typeDefs: `
+    type Listing {
+      id: ID!
+      description: String!
+      price: Float!
+      sellerId: ID! @deprecated(reason: "stitching use only")
+      buyerId: ID  @deprecated(reason: "stitching use only")
+    }
+  `
+});
+
+const usersSchema = makeExecutableSchema({
+  typeDefs: `
+    type User {
+      id: ID!
+      email: String!
+    }
+
+    type Listing {
+      seller: User! @deprecated(reason: "gateway access only")
+      buyer: User @deprecated(reason: "gateway access only")
+    }
+  `
+});
+
+const gatewaySchema = stitchSchemas({
+  subschemas: [
+    {
+      schema: listingsSchema,
+      transforms: [new RemoveDeprecatedFields('stitching use only')],
+      merge: { ... }
+    },
+    {
+      schema: usersSchema,
+      transforms: [new RemoveDeprecations('gateway access only')],
+      merge: { ... }
+    },
+  ],
+});
+```
 
 ### Federation services
 
