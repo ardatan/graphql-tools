@@ -8,7 +8,7 @@ export default class RemoveFieldsWithDirective implements Transform {
   constructor(directiveName: string, args: Record<string, any> = {}) {
     this.transformer = new FilterObjectFields(
       (_typeName: string, _fieldName: string, fieldConfig: GraphQLFieldConfig<any, any>) => {
-        return !!fieldConfig.astNode.directives.find(dir => matchDirective(dir, directiveName, args));
+        return !fieldConfig.astNode.directives.find(dir => matchDirective(dir, directiveName, args));
       }
     );
   }

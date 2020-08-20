@@ -35,13 +35,14 @@ describe('transform deprecations', () => {
       subschemas: [
         {
           schema: listingsSchema,
-          transforms: [new RemoveFieldsWithDirective('deprecated', { reason: 'gateway access only' })]
+          transforms: [new RemoveFieldsWithDirective('deprecated', { reason: 'stitching use only' })]
         },
         {
           schema: usersSchema,
           transforms: [new RemoveFieldDirectives('deprecated', { reason: 'gateway access only' })]
         },
       ],
+      mergeTypes: true
     });
 
     expect(listingsSchema.getType('Listing').getFields().sellerId.deprecationReason).toBe('stitching use only');
