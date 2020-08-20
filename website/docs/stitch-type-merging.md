@@ -429,7 +429,7 @@ const gatewaySchema = stitchSchemas({
   subschemas: [
     {
       schema: listingsSchema,
-      transforms: [new RemoveFieldsWithDirective('deprecated', { reason: 'gateway access only' })],
+      transforms: [new RemoveFieldsWithDirective('deprecated', { reason: 'stitching use only' })],
       merge: { ... }
     },
     {
