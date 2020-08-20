@@ -153,6 +153,73 @@ export default async () => {
 }
 ```
 
+## Create a remote executable schema combined with local schema, optionally keeping the operationName intact to send it downstream
+
+```ts
+const schema = makeExecutableSchema({
+  typeDefs: `
+    type Query {
+      field: String
+    }
+  `,
+  resolvers: {
+    Query: {
+      field: (_root, _args, _context, info) => {
+        return info.operation.name.value;
+      }
+    }
+  }
+});
+
+const remoteSchema = {
+  schema: await introspectSchema(executor),
+  executor,
+  createProxyingResolver: ({ // optional if you want to pass or modify the operationName
+                               schema,
+                               operation,
+                               transforms,
+                               transformedSchema
+                             }: ICreateProxyingResolverOptions): GraphQLFieldResolver<any, any> => {
+      return (_parent, _args, context, info) => {
+        return delegateToSchema({
+          schema,
+          operationName: info?.operation?.name.value, // this is where the magic happens
+          operation,
+          context,
+          info,
+          transforms,
+          transformedSchema
+        })
+      }
+}
+
+const stitchedSchema = stitchSchemas({
+  subschemas: [
+    remoteSchema,
+    {
+      schema,
+      createProxyingResolver: ({
+        schema,
+        operation,
+        transforms,
+        transformedSchema
+      }) => (_parent, _args, context, info) =>
+        delegateToSchema({
+          schema,
+          operationName: info.operation.name.value,
+          operation,
+          context,
+          info,
+          transforms,
+          transformedSchema
+        })
+    }
+  ],
+  mergeDirectives: truee
+});
+```
+
+
 ## API
 
 ### introspectSchema(executor, [context])
