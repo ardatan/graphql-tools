@@ -156,7 +156,7 @@ export default async () => {
 ## Create a remote executable schema combined with local schema, optionally keeping the operationName intact to send it downstream
 
 ```ts
-const schema = makeExecutableSchema({
+const localSchema = makeExecutableSchema({
   typeDefs: `
     type Query {
       field: String
@@ -171,6 +171,7 @@ const schema = makeExecutableSchema({
   }
 });
 
+const executor = anyExecutor()
 const remoteSchema = {
   schema: await introspectSchema(executor),
   executor,
@@ -197,25 +198,10 @@ const stitchedSchema = stitchSchemas({
   subschemas: [
     remoteSchema,
     {
-      schema,
-      createProxyingResolver: ({
-        schema,
-        operation,
-        transforms,
-        transformedSchema
-      }) => (_parent, _args, context, info) =>
-        delegateToSchema({
-          schema,
-          operationName: info.operation.name.value,
-          operation,
-          context,
-          info,
-          transforms,
-          transformedSchema
-        })
+      schema: localSchema
     }
   ],
-  mergeDirectives: truee
+  mergeDirectives: true
 });
 ```
 
