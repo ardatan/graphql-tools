@@ -29,8 +29,6 @@ describe('transform deprecations', () => {
       `
     });
 
-
-
     const gatewaySchema = stitchSchemas({
       subschemas: [
         {

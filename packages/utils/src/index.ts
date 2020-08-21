@@ -48,4 +48,4 @@ export * from './errors';
 export * from './toConfig';
 export * from './observableToAsyncIterable';
 export * from './visitResult';
-export * from './matchDirective';
+export * from './matchDirectiveValue';
