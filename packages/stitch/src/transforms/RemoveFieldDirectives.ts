@@ -1,5 +1,5 @@
 import { GraphQLSchema } from 'graphql';
-import { Transform, matchDirectiveValue } from '@graphql-tools/utils';
+import { Transform, valueMatchesCriteria } from '@graphql-tools/utils';
 import { FilterFieldDirectives } from '@graphql-tools/wrap';
 
 export default class RemoveFieldDirectives implements Transform {
@@ -7,7 +7,7 @@ export default class RemoveFieldDirectives implements Transform {
 
   constructor(directiveName: string, args: Record<string, any> = {}) {
     this.transformer = new FilterFieldDirectives((dirName: string, dirValue: any) => {
-      return !(directiveName === dirName && matchDirectiveValue(dirValue, args));
+      return !(directiveName === dirName && valueMatchesCriteria(dirValue, args));
     });
   }
 

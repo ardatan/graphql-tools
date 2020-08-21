@@ -1,5 +1,5 @@
 import { GraphQLSchema, GraphQLFieldConfig } from 'graphql';
-import { Transform, getDirectives, matchDirectiveValue } from '@graphql-tools/utils';
+import { Transform, getDirectives, valueMatchesCriteria } from '@graphql-tools/utils';
 import { FilterObjectFields } from '@graphql-tools/wrap';
 
 export default class RemoveFieldsWithDirective implements Transform {
@@ -15,9 +15,13 @@ export default class RemoveFieldsWithDirective implements Transform {
     const transformer = new FilterObjectFields(
       (_typeName: string, _fieldName: string, fieldConfig: GraphQLFieldConfig<any, any>) => {
         const valueMap = getDirectives(originalSchema, fieldConfig);
-        return !fieldConfig.astNode.directives.find(dir => {
-          return dir.name.value === this.directiveName && matchDirectiveValue(valueMap[dir.name.value], this.args);
-        });
+        return !Object.keys(valueMap).some(
+          directiveName =>
+            directiveName === this.directiveName &&
+            (valueMatchesCriteria(valueMap[directiveName], this.args) ||
+              (Array.isArray(valueMap[directiveName]) &&
+                valueMap[directiveName].some((value: any) => valueMatchesCriteria(value, this.args))))
+        );
       }
     );
 

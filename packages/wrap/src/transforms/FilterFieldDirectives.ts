@@ -1,5 +1,5 @@
 import { GraphQLSchema, GraphQLFieldConfig } from 'graphql';
-import { Transform, getDirectives } from '@graphql-tools/utils';
+import { Transform, getArgumentValues } from '@graphql-tools/utils';
 import TransformObjectFields from './TransformObjectFields';
 
 export default class FilterFieldDirectives implements Transform {
@@ -12,10 +12,11 @@ export default class FilterFieldDirectives implements Transform {
   public transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
     const transformer = new TransformObjectFields(
       (_typeName: string, _fieldName: string, fieldConfig: GraphQLFieldConfig<any, any>) => {
-        const valueMap = getDirectives(originalSchema, fieldConfig);
-        const keepDirectives = fieldConfig.astNode.directives.filter(dir =>
-          this.filter(dir.name.value, valueMap[dir.name.value])
-        );
+        const keepDirectives = fieldConfig.astNode.directives.filter(dir => {
+          const directiveDef = originalSchema.getDirective(dir.name.value);
+          const directiveValue = directiveDef ? getArgumentValues(directiveDef, dir) : undefined;
+          return this.filter(dir.name.value, directiveValue);
+        });
 
         if (keepDirectives.length !== fieldConfig.astNode.directives.length) {
           fieldConfig = {
