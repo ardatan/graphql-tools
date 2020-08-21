@@ -18,9 +18,9 @@ export default class RemoveFieldsWithDirective implements Transform {
         return !Object.keys(valueMap).some(
           directiveName =>
             directiveName === this.directiveName &&
-            (valueMatchesCriteria(valueMap[directiveName], this.args) ||
-              (Array.isArray(valueMap[directiveName]) &&
-                valueMap[directiveName].some((value: any) => valueMatchesCriteria(value, this.args))))
+            ((Array.isArray(valueMap[directiveName]) &&
+              valueMap[directiveName].some((value: any) => valueMatchesCriteria(value, this.args))) ||
+              valueMatchesCriteria(valueMap[directiveName], this.args))
         );
       }
     );
