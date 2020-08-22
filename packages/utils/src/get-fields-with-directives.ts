@@ -6,8 +6,8 @@ export type TypeAndFieldToDirectives = {
   [typeAndField: string]: DirectiveUsage[];
 };
 
-function isObjectTypeDefinitionOrExtension(obj: any): obj is ObjectTypeDefinitionNode | ObjectTypeDefinitionNode {
-  return obj && (obj.kind === 'ObjectTypeDefinition' || obj.kind === 'ObjectTypeExtension');
+interface Options {
+  includeInputTypes?: boolean;
 }
 
 function parseDirectiveValue(value: ValueNode): any {
@@ -32,16 +32,26 @@ function parseDirectiveValue(value: ValueNode): any {
   }
 }
 
-export function getFieldsWithDirectives(documentNode: DocumentNode): TypeAndFieldToDirectives {
+export function getFieldsWithDirectives(documentNode: DocumentNode, options: Options = {}): TypeAndFieldToDirectives {
   const result: TypeAndFieldToDirectives = {};
-  const allTypes = documentNode.definitions.filter<ObjectTypeDefinitionNode | ObjectTypeExtensionNode>(
-    isObjectTypeDefinitionOrExtension
-  );
+
+  let selected = ['ObjectTypeDefinition', 'ObjectTypeExtension'];
+
+  if (options.includeInputTypes) {
+    selected = [...selected, 'InputObjectTypeDefinition', 'InputObjectTypeExtension'];
+  }
+
+  const allTypes = documentNode.definitions.filter(obj => selected.includes(obj.kind));
 
   for (const type of allTypes) {
-    const typeName = type.name.value;
+    /* InputObjectTypeDefinitionNode && InputObjectTypeExtensionNode
+       types don't seem to match up with parsed ast
+    */
+    const _type = type as ObjectTypeDefinitionNode | ObjectTypeExtensionNode;
 
-    for (const field of type.fields) {
+    const typeName = _type.name.value;
+
+    for (const field of _type.fields) {
       if (field.directives && field.directives.length > 0) {
         const fieldName = field.name.value;
         const key = `${typeName}.${fieldName}`;
