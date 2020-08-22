@@ -31,6 +31,7 @@ import {
   RenameInputObjectFields,
   MapLeafValues,
   TransformEnumValues,
+  FilterFieldDirectives,
 } from '@graphql-tools/wrap';
 
 import {
@@ -1637,5 +1638,53 @@ describe('TransformEnumValues', () => {
 
     const result = await graphql(transformedSchema, query, undefined, undefined, { test: 'UNO' });
     expect(result.errors).toBeUndefined();
+  });
+});
+
+describe('FilterFieldDirectives', () => {
+  test('removes fields with unqualified directives', async () => {
+    const schema = makeExecutableSchema({
+      typeDefs: `
+        directive @remove on FIELD_DEFINITION
+        directive @keep(arg: Int) on FIELD_DEFINITION
+        type Query {
+          alpha:String @remove
+          bravo:String @keep
+          charlie:String @keep(arg:1)
+          delta:String @keep(arg:2)
+        }
+      `
+    });
+
+    const transformedSchema = wrapSchema(schema, [
+      new FilterFieldDirectives((dirName: string, dirValue: any) => dirName === 'keep' && dirValue.arg !== 1)
+    ]);
+
+    const fields = transformedSchema.getType('Query').getFields();
+    expect(fields.alpha.astNode.directives.length).toEqual(0);
+    expect(fields.bravo.astNode.directives.length).toEqual(1);
+    expect(fields.charlie.astNode.directives.length).toEqual(0);
+    expect(fields.delta.astNode.directives.length).toEqual(1);
+  });
+
+  test('clears deprecations', async () => {
+    const schema = makeExecutableSchema({
+      typeDefs: `
+        type Query {
+          alpha:String @deprecated(reason: "keep")
+          bravo:String @deprecated(reason: "remove")
+        }
+      `
+    });
+
+    const transformedSchema = wrapSchema(schema, [
+      new FilterFieldDirectives((dirName: string, dirValue: any) => dirName === 'deprecated' && dirValue.reason === 'keep')
+    ]);
+
+    const fields = transformedSchema.getType('Query').getFields();
+    expect(fields.alpha.astNode.directives.length).toEqual(1);
+    expect(fields.alpha.deprecationReason).toEqual('keep');
+    expect(fields.bravo.astNode.directives.length).toEqual(0);
+    expect(fields.bravo.deprecationReason).toBeUndefined();
   });
 });
