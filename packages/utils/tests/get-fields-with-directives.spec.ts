@@ -136,4 +136,36 @@ describe('getFieldsWithDirectives', () => {
     const result = getFieldsWithDirectives(node);
     expect(Object.keys(result).length).toBe(2);
   });
+
+  it('Should detect multiple input types', () => {
+    const node = parse(`
+        input A {
+          f1: String @a
+        }
+
+        input B {
+          f2: String @a
+        }
+    `);
+
+    const result = getFieldsWithDirectives(node, {includeInputTypes: true});
+    expect(result['A.f1']).toEqual([{ name: 'a', args: {} }]);
+    expect(result['B.f2']).toEqual([{ name: 'a', args: {} }]);
+  });
+
+  it('Should detect multiple extend input types', () => {
+    const node = parse(`
+        extend input A {
+          f1: String @a
+        }
+
+        extend input B {
+          f2: String @a
+        }
+    `);
+
+    const result = getFieldsWithDirectives(node, {includeInputTypes: true});
+    expect(result['A.f1']).toEqual([{ name: 'a', args: {} }]);
+    expect(result['B.f2']).toEqual([{ name: 'a', args: {} }]);
+  });
 });
