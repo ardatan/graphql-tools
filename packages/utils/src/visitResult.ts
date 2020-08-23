@@ -28,7 +28,9 @@ export type ResultVisitorMap = Record<string, ValueVisitor | ObjectValueVisitor>
 
 export type ErrorVisitor = (error: GraphQLError, pathIndex: number) => GraphQLError;
 
-export type ErrorVisitorMap = Record<string, Record<string, ErrorVisitor>>;
+export type ErrorVisitorMap = {
+  __unpathed?: (error: GraphQLError) => GraphQLError;
+} & Record<string, Record<string, ErrorVisitor>>;
 
 interface SegmentInfo {
   type: GraphQLObjectType;
@@ -38,12 +40,12 @@ interface SegmentInfo {
 
 interface ErrorInfo {
   segmentInfoMap: Map<GraphQLError, Array<SegmentInfo>>;
-  unpathedErrors: Array<GraphQLError>;
+  unpathedErrors: Set<GraphQLError>;
 }
 
 interface SortedErrors {
   errorMap: Record<string, Array<GraphQLError>>;
-  unpathedErrors: Array<GraphQLError>;
+  unpathedErrors: Set<GraphQLError>;
 }
 
 export function visitData(data: any, enter?: ValueVisitor, leave?: ValueVisitor): any {
@@ -91,7 +93,7 @@ export function visitResult(
 
   const errorInfo: ErrorInfo = {
     segmentInfoMap: new Map<GraphQLError, Array<SegmentInfo>>(),
-    unpathedErrors: [],
+    unpathedErrors: new Set<GraphQLError>(),
   };
 
   const data = result.data;
@@ -121,20 +123,30 @@ function visitErrorsByType(
   errorVisitorMap: ErrorVisitorMap,
   errorInfo: ErrorInfo
 ): Array<GraphQLError> {
-  return errors.map(error => {
-    const pathSegmentsInfo = errorInfo.segmentInfoMap.get(error);
-    if (pathSegmentsInfo == null) {
-      return error;
+  const segmentInfoMap = errorInfo.segmentInfoMap;
+  const unpathedErrors = errorInfo.unpathedErrors;
+  const unpathedErrorVisitor = errorVisitorMap['__unpathed'];
+
+  return errors.map(originalError => {
+    const pathSegmentsInfo = segmentInfoMap.get(originalError);
+    const newError =
+      pathSegmentsInfo == null
+        ? originalError
+        : pathSegmentsInfo.reduceRight((acc, segmentInfo) => {
+            const typeName = segmentInfo.type.name;
+            const typeVisitorMap = errorVisitorMap[typeName];
+            if (typeVisitorMap == null) {
+              return acc;
+            }
+            const errorVisitor = typeVisitorMap[segmentInfo.fieldName];
+            return errorVisitor == null ? acc : errorVisitor(acc, segmentInfo.pathIndex);
+          }, originalError);
+
+    if (unpathedErrorVisitor && unpathedErrors.has(originalError)) {
+      return unpathedErrorVisitor(newError);
     }
-    return pathSegmentsInfo.reduceRight((acc, segmentInfo) => {
-      const typeName = segmentInfo.type.name;
-      const typeVisitorMap = errorVisitorMap[typeName];
-      if (typeVisitorMap == null) {
-        return acc;
-      }
-      const errorVisitor = typeVisitorMap[segmentInfo.fieldName];
-      return errorVisitor == null ? acc : errorVisitor(acc as GraphQLError, segmentInfo.pathIndex);
-    }, error) as GraphQLError;
+
+    return newError;
   });
 }
 
@@ -179,7 +191,7 @@ function visitObjectValue(
   if (errors != null) {
     sortedErrors = sortErrorsByPathSegment(errors, pathIndex);
     errorMap = sortedErrors.errorMap;
-    errorInfo.unpathedErrors = errorInfo.unpathedErrors.concat(sortedErrors.unpathedErrors);
+    sortedErrors.unpathedErrors.forEach(error => errorInfo.unpathedErrors.add(error));
   }
 
   Object.keys(fieldNodeMap).forEach(responseKey => {
@@ -219,7 +231,7 @@ function visitObjectValue(
 
   if (errors != null) {
     Object.keys(errorMap).forEach(unknownResponseKey => {
-      errorInfo.unpathedErrors = errorInfo.unpathedErrors.concat(errorMap[unknownResponseKey]);
+      errorMap[unknownResponseKey].forEach(error => errorInfo.unpathedErrors.add(error));
     });
   }
 
@@ -334,11 +346,11 @@ function visitFieldValue(
 
 function sortErrorsByPathSegment(errors: ReadonlyArray<GraphQLError>, pathIndex: number): SortedErrors {
   const errorMap = Object.create(null);
-  const unpathedErrors: Array<GraphQLError> = [];
+  const unpathedErrors: Set<GraphQLError> = new Set();
   errors.forEach(error => {
     const pathSegment = error.path?.[pathIndex];
     if (pathSegment == null) {
-      unpathedErrors.push(error);
+      unpathedErrors.add(error);
       return;
     }
 
