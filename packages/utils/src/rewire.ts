@@ -31,12 +31,7 @@ import { TypeMap } from './Interfaces';
 
 export function rewireTypes(
   originalTypeMap: Record<string, GraphQLNamedType | null>,
-  directives: ReadonlyArray<GraphQLDirective>,
-  options: {
-    skipPruning: boolean;
-  } = {
-    skipPruning: false,
-  }
+  directives: ReadonlyArray<GraphQLDirective>
 ): {
   typeMap: TypeMap;
   directives: Array<GraphQLDirective>;
@@ -72,15 +67,10 @@ export function rewireTypes(
 
   const newDirectives = directives.map(directive => rewireDirective(directive));
 
-  // TODO:
-  // consider removing the default level of pruning in v7,
-  // see comments below on the pruneTypes function.
-  return options.skipPruning
-    ? {
-        typeMap: newTypeMap,
-        directives: newDirectives,
-      }
-    : pruneTypes(newTypeMap, newDirectives);
+  return {
+    typeMap: newTypeMap,
+    directives: newDirectives,
+  };
 
   function rewireDirective(directive: GraphQLDirective): GraphQLDirective {
     if (isSpecifiedDirective(directive)) {
@@ -208,66 +198,4 @@ export function rewireTypes(
 
     return null;
   }
-}
-
-// TODO:
-// consider removing the default level of pruning in v7
-//
-// Pruning during mapSchema limits the ability to create an unpruned schema, which may be of use
-// to some library users. pruning is now recommended via the dedicated pruneSchema function
-// which does not force pruning on library users and gives granular control in terms of pruning
-// types.
-function pruneTypes(
-  typeMap: TypeMap,
-  directives: Array<GraphQLDirective>
-): {
-  typeMap: TypeMap;
-  directives: Array<GraphQLDirective>;
-} {
-  const newTypeMap = {};
-
-  const implementedInterfaces = {};
-  Object.keys(typeMap).forEach(typeName => {
-    const namedType = typeMap[typeName];
-
-    if ('getInterfaces' in namedType) {
-      namedType.getInterfaces().forEach(iface => {
-        implementedInterfaces[iface.name] = true;
-      });
-    }
-  });
-
-  let prunedTypeMap = false;
-  const typeNames = Object.keys(typeMap);
-  for (let i = 0; i < typeNames.length; i++) {
-    const typeName = typeNames[i];
-    const type = typeMap[typeName];
-    if (isObjectType(type) || isInputObjectType(type)) {
-      // prune types with no fields
-      if (Object.keys(type.getFields()).length) {
-        newTypeMap[typeName] = type;
-      } else {
-        prunedTypeMap = true;
-      }
-    } else if (isUnionType(type)) {
-      // prune unions without underlying types
-      if (type.getTypes().length) {
-        newTypeMap[typeName] = type;
-      } else {
-        prunedTypeMap = true;
-      }
-    } else if (isInterfaceType(type)) {
-      // prune interfaces without fields or without implementations
-      if (Object.keys(type.getFields()).length && implementedInterfaces[type.name]) {
-        newTypeMap[typeName] = type;
-      } else {
-        prunedTypeMap = true;
-      }
-    } else {
-      newTypeMap[typeName] = type;
-    }
-  }
-
-  // every prune requires another round of healing
-  return prunedTypeMap ? rewireTypes(newTypeMap, directives) : { typeMap, directives };
 }

@@ -58,12 +58,7 @@ export function healSchema(schema: GraphQLSchema): GraphQLSchema {
 
 export function healTypes(
   originalTypeMap: Record<string, GraphQLNamedType | null>,
-  directives: ReadonlyArray<GraphQLDirective>,
-  config: {
-    skipPruning: boolean;
-  } = {
-    skipPruning: false,
-  }
+  directives: ReadonlyArray<GraphQLDirective>
 ) {
   const actualNamedTypeMap: TypeMap = Object.create(null);
 
@@ -118,13 +113,6 @@ export function healTypes(
     if (!typeName.startsWith('__') && !(typeName in actualNamedTypeMap)) {
       delete originalTypeMap[typeName];
     }
-  }
-
-  if (!config.skipPruning) {
-    // TODO:
-    // consider removing the default level of pruning in v7,
-    // see comments below on the pruneTypes function.
-    pruneTypes(originalTypeMap, directives);
   }
 
   function healNamedType(type: GraphQLNamedType) {
@@ -220,55 +208,5 @@ export function healTypes(
       }
     }
     return type;
-  }
-}
-
-// TODO:
-// consider removing the default level of pruning in v7
-//
-// Pruning was introduced into healSchema in v5, so legacy schema directives relying on pruning
-// during healing are likely to be rare. pruning is now recommended via the dedicated pruneSchema
-// function which does not force pruning on library users and gives granular control in terms of
-// pruning types. pruneSchema does recreate the schema -- a parallel version that prunes in place
-// could be considered.
-function pruneTypes(typeMap: Record<string, GraphQLNamedType | null>, directives: ReadonlyArray<GraphQLDirective>) {
-  const implementedInterfaces = {};
-  Object.values(typeMap).forEach(namedType => {
-    if ('getInterfaces' in namedType) {
-      namedType.getInterfaces().forEach(iface => {
-        implementedInterfaces[iface.name] = true;
-      });
-    }
-  });
-
-  let prunedTypeMap = false;
-  const typeNames = Object.keys(typeMap);
-  for (let i = 0; i < typeNames.length; i++) {
-    const typeName = typeNames[i];
-    const type = typeMap[typeName];
-    if (isObjectType(type) || isInputObjectType(type)) {
-      // prune types with no fields
-      if (!Object.keys(type.getFields()).length) {
-        typeMap[typeName] = null;
-        prunedTypeMap = true;
-      }
-    } else if (isUnionType(type)) {
-      // prune unions without underlying types
-      if (!type.getTypes().length) {
-        typeMap[typeName] = null;
-        prunedTypeMap = true;
-      }
-    } else if (isInterfaceType(type)) {
-      // prune interfaces without fields or without implementations
-      if (!Object.keys(type.getFields()).length || !(type.name in implementedInterfaces)) {
-        typeMap[typeName] = null;
-        prunedTypeMap = true;
-      }
-    }
-  }
-
-  // every prune requires another round of healing
-  if (prunedTypeMap) {
-    healTypes(typeMap, directives);
   }
 }
