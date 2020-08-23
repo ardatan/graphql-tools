@@ -1,8 +1,8 @@
 import { GraphQLError, GraphQLResolveInfo } from 'graphql';
 
-import { relocatedError, getErrors, ERROR_SYMBOL } from '@graphql-tools/utils';
-
-import { checkResultAndHandleErrors } from '@graphql-tools/delegate';
+import { checkResultAndHandleErrors } from '../src/transforms/CheckResultAndHandleErrors';
+import { getErrors } from '../src/externalData';
+import { ERROR_SYMBOL } from '../src/symbols';
 
 class ErrorWithExtensions extends GraphQLError {
   constructor(message: string, code: string) {
@@ -11,20 +11,6 @@ class ErrorWithExtensions extends GraphQLError {
 }
 
 describe('Errors', () => {
-  describe('relocatedError', () => {
-    test('should adjust the path of a GraphqlError', () => {
-      const originalError = new GraphQLError('test', null, null, null, [
-        'test',
-      ]);
-      const newError = relocatedError(originalError, ['test', 1]);
-      const expectedError = new GraphQLError('test', null, null, null, [
-        'test',
-        1,
-      ]);
-      expect(newError).toEqual(expectedError);
-    });
-  });
-
   describe('getErrors', () => {
     test('should return all errors including if path is not defined', () => {
       const error = {
