@@ -23,7 +23,6 @@ export { default as RemoveObjectFieldsWithDirective } from './RemoveObjectFields
 export { default as RemoveObjectFieldDeprecations } from './RemoveObjectFieldDeprecations';
 export { default as RemoveObjectFieldsWithDeprecation } from './RemoveObjectFieldsWithDeprecation';
 
-export { default as ExtendSchema } from './ExtendSchema';
 export { default as PruneSchema } from './PruneSchema';
 export { default as WrapType } from './WrapType';
 export { default as WrapFields } from './WrapFields';

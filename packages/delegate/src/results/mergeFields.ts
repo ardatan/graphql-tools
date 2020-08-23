@@ -1,4 +1,12 @@
-import { FieldNode, SelectionNode, Kind, GraphQLResolveInfo, SelectionSetNode, GraphQLObjectType } from 'graphql';
+import {
+  FieldNode,
+  SelectionNode,
+  Kind,
+  GraphQLResolveInfo,
+  SelectionSetNode,
+  GraphQLObjectType,
+  responsePathAsArray,
+} from 'graphql';
 
 import isPromise from 'is-promise';
 
@@ -6,8 +14,7 @@ import { typesContainSelectionSet } from '@graphql-tools/utils';
 
 import { MergedTypeInfo, SubschemaConfig } from '../types';
 import { memoize4, memoize3, memoize2 } from '../memoize';
-
-import { mergeProxiedResults } from './mergeProxiedResults';
+import { mergeExternalData } from '../externalData';
 
 const sortSubschemasByProxiability = memoize4(function (
   mergedTypeInfo: MergedTypeInfo,
@@ -180,7 +187,14 @@ export function mergeFields(
         mergeFields(
           mergedTypeInfo,
           typeName,
-          mergeProxiedResults(info, object, results, Array.from(resultMap.values())),
+          mergeExternalData(
+            info.schema,
+            responsePathAsArray(info.path),
+            object.__typename,
+            object,
+            results,
+            Array.from(resultMap.values())
+          ),
           unproxiableFieldNodes,
           combineSubschemas(sourceSubschemaOrSourceSubschemas, proxiableSubschemas),
           nonProxiableSubschemas,
@@ -191,7 +205,14 @@ export function mergeFields(
     : mergeFields(
         mergedTypeInfo,
         typeName,
-        mergeProxiedResults(info, object, Array.from(resultMap.keys()), Array.from(resultMap.values())),
+        mergeExternalData(
+          info.schema,
+          responsePathAsArray(info.path),
+          object.__typename,
+          object,
+          Array.from(resultMap.keys()),
+          Array.from(resultMap.values())
+        ),
         unproxiableFieldNodes,
         combineSubschemas(sourceSubschemaOrSourceSubschemas, proxiableSubschemas),
         nonProxiableSubschemas,

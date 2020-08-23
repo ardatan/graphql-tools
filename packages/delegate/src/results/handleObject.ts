@@ -1,10 +1,9 @@
 import { GraphQLCompositeType, GraphQLError, GraphQLSchema, isAbstractType, GraphQLResolveInfo } from 'graphql';
 
-import { setErrors, slicedError } from '@graphql-tools/utils';
+import { slicedError } from '@graphql-tools/utils';
 
 import { SubschemaConfig } from '../types';
-
-import { setObjectSubschema } from '../Subschema';
+import { annotateExternalData } from '../externalData';
 
 import { mergeFields } from './mergeFields';
 import { getFieldsNotInSubschema } from './getFieldsNotInSubschema';
@@ -20,12 +19,11 @@ export function handleObject(
 ) {
   const stitchingInfo = info?.schema.extensions?.stitchingInfo;
 
-  setErrors(
+  annotateExternalData(
     object,
-    errors.map(error => slicedError(error))
+    errors.map(error => slicedError(error)),
+    subschema
   );
-
-  setObjectSubschema(object, subschema);
 
   if (skipTypeMerging || !stitchingInfo) {
     return object;

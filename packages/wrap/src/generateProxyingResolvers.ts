@@ -1,6 +1,6 @@
 import { GraphQLSchema, GraphQLFieldResolver, GraphQLObjectType, GraphQLResolveInfo } from 'graphql';
 
-import { Operation, getResponseKeyFromInfo, getErrors } from '@graphql-tools/utils';
+import { Operation, getResponseKeyFromInfo } from '@graphql-tools/utils';
 import {
   delegateToSchema,
   getSubschema,
@@ -11,6 +11,8 @@ import {
   ICreateProxyingResolverOptions,
   Transform,
   applySchemaTransforms,
+  isExternalData,
+  getErrors,
 } from '@graphql-tools/delegate';
 
 export function generateProxyingResolvers(
@@ -88,11 +90,11 @@ function createPossiblyNestedProxyingResolver(
   return (parent, args, context, info) => {
     if (parent != null) {
       const responseKey = getResponseKeyFromInfo(info);
-      const errors = getErrors(parent, responseKey);
 
       // Check to see if the parent contains a proxied result
-      if (errors != null) {
+      if (isExternalData(parent)) {
         const subschema = getSubschema(parent, responseKey);
+        const errors = getErrors(parent, responseKey);
 
         // If there is a proxied result from this subschema, return it
         // This can happen even for a root field when the root type ia
