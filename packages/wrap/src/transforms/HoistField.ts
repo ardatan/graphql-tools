@@ -8,14 +8,7 @@ import {
   GraphQLArgument,
 } from 'graphql';
 
-import {
-  renameFieldNode,
-  appendObjectFields,
-  removeObjectFields,
-  Request,
-  ExecutionResult,
-  relocatedError,
-} from '@graphql-tools/utils';
+import { appendObjectFields, removeObjectFields, Request, ExecutionResult, relocatedError } from '@graphql-tools/utils';
 
 import { Transform, defaultMergedResolver, DelegationContext } from '@graphql-tools/delegate';
 
@@ -166,6 +159,20 @@ export function wrapFieldNode(
       arguments: fieldNode.arguments.filter(arg => argLevels[arg.name.value] === path.length),
     }
   );
+}
+
+export function renameFieldNode(fieldNode: FieldNode, name: string): FieldNode {
+  return {
+    ...fieldNode,
+    alias: {
+      kind: Kind.NAME,
+      value: fieldNode.alias != null ? fieldNode.alias.value : fieldNode.name.value,
+    },
+    name: {
+      kind: Kind.NAME,
+      value: name,
+    },
+  };
 }
 
 export function unwrapValue(originalValue: any, alias: string): any {
