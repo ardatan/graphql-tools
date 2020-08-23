@@ -16,7 +16,7 @@ import { handleObject } from './handleObject';
 import { handleList } from './handleList';
 import { extendedError } from '@graphql-tools/utils';
 
-export function handleResult(
+export function resolveExternalValue(
   result: any,
   errors: ReadonlyArray<GraphQLError>,
   subschema: GraphQLSchema | SubschemaConfig,
