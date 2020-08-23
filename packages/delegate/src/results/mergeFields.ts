@@ -6,11 +6,10 @@ import {
   SelectionSetNode,
   GraphQLObjectType,
   responsePathAsArray,
+  getNamedType,
 } from 'graphql';
 
 import isPromise from 'is-promise';
-
-import { typesContainSelectionSet } from '@graphql-tools/utils';
 
 import { MergedTypeInfo, SubschemaConfig } from '../types';
 import { memoize4, memoize3, memoize2 } from '../memoize';
@@ -240,3 +239,27 @@ const subschemaTypesContainSelectionSet = memoize3(function (
     selectionSet
   );
 });
+
+function typesContainSelectionSet(types: Array<GraphQLObjectType>, selectionSet: SelectionSetNode): boolean {
+  const fieldMaps = types.map(type => type.getFields());
+
+  for (const selection of selectionSet.selections) {
+    if (selection.kind === Kind.FIELD) {
+      const fields = fieldMaps.map(fieldMap => fieldMap[selection.name.value]).filter(field => field != null);
+      if (!fields.length) {
+        return false;
+      }
+
+      if (selection.selectionSet != null) {
+        return typesContainSelectionSet(
+          fields.map(field => getNamedType(field.type)) as Array<GraphQLObjectType>,
+          selection.selectionSet
+        );
+      }
+    } else if (selection.kind === Kind.INLINE_FRAGMENT && selection.typeCondition.name.value === types[0].name) {
+      return typesContainSelectionSet(types, selection.selectionSet);
+    }
+  }
+
+  return true;
+}
