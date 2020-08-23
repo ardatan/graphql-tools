@@ -49,4 +49,11 @@ describe('valueMatchesCriteria', () => {
     expect(valueMatchesCriteria(dirValue, [23, { world: false }])).toBe(true);
     expect(valueMatchesCriteria(dirValue, [{ hello: true }, 23])).toBe(false);
   });
+
+  test('matches value with regex', () => {
+    const dirValue = { reason: 'requires: id' };
+
+    expect(valueMatchesCriteria(dirValue, { reason: /^requires:/ })).toBe(true);
+    expect(valueMatchesCriteria(dirValue, { reason: /^required:/ })).toBe(false);
+  });
 });

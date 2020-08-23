@@ -9,6 +9,8 @@ export function valueMatchesCriteria(value: any, criteria: any): boolean {
       criteria &&
       Object.keys(criteria).every(propertyName => valueMatchesCriteria(value[propertyName], criteria[propertyName]))
     );
+  } else if (criteria instanceof RegExp) {
+    return criteria.test(value);
   }
 
   return value === criteria;

@@ -26,10 +26,6 @@ export default class FilterFieldDirectives implements Transform {
               directives: keepDirectives,
             },
           };
-
-          if (fieldConfig.deprecationReason && !keepDirectives.some(dir => dir.name.value === 'deprecated')) {
-            delete fieldConfig.deprecationReason;
-          }
           return fieldConfig;
         }
       }
