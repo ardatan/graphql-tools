@@ -2,7 +2,7 @@ import { defaultFieldResolver, GraphQLResolveInfo } from 'graphql';
 
 import { getResponseKeyFromInfo } from '@graphql-tools/utils';
 
-import { handleResult } from './results/handleResult';
+import { resolveExternalValue } from './resolveExternalValue';
 import { getSubschema } from './Subschema';
 import { getErrors, isExternalData } from './externalData';
 import { ExternalData } from './types';
@@ -31,9 +31,9 @@ export function defaultMergedResolver(
     return defaultFieldResolver(parent, args, context, info);
   }
 
-  const result = parent[responseKey];
+  const data = parent[responseKey];
   const subschema = getSubschema(parent, responseKey);
   const errors = getErrors(parent, responseKey);
 
-  return handleResult(result, errors, subschema, context, info);
+  return resolveExternalValue(data, errors, subschema, context, info);
 }

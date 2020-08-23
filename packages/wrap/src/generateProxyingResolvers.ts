@@ -4,7 +4,7 @@ import { Operation, getResponseKeyFromInfo } from '@graphql-tools/utils';
 import {
   delegateToSchema,
   getSubschema,
-  handleResult,
+  resolveExternalValue,
   SubschemaConfig,
   isSubschemaConfig,
   CreateProxyingResolverFn,
@@ -100,7 +100,7 @@ function createPossiblyNestedProxyingResolver(
         // This can happen even for a root field when the root type ia
         // also nested as a field within a different type.
         if (subschemaOrSubschemaConfig === subschema && parent[responseKey] !== undefined) {
-          return handleResult(parent[responseKey], errors, subschema, context, info);
+          return resolveExternalValue(parent[responseKey], errors, subschema, context, info);
         }
       }
     }
