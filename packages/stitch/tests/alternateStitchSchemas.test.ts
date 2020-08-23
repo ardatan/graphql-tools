@@ -28,6 +28,7 @@ import {
   FilterObjectFields,
   RenameInterfaceFields,
   TransformRootFields,
+  PruneSchema,
 } from '@graphql-tools/wrap';
 
 import {
@@ -120,6 +121,7 @@ describe('merge schemas through transforms', () => {
       new RenameRootFields(
         (_operation: string, name: string) => `Properties_${name}`,
       ),
+      new PruneSchema(),
     ];
     const bookingSchemaTransforms = [
       new FilterRootFields(
@@ -130,6 +132,7 @@ describe('merge schemas through transforms', () => {
       new RenameRootFields(
         (_operation: string, name: string) => `Bookings_${name}`,
       ),
+      new PruneSchema(),
     ];
     const subscriptionSchemaTransforms = [
       new FilterRootFields(
@@ -142,6 +145,7 @@ describe('merge schemas through transforms', () => {
       new RenameRootFields(
         (_operation: string, name: string) => `Subscriptions_${name}`,
       ),
+      new PruneSchema(),
     ];
 
     const propertySubschema = {
