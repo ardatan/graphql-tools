@@ -397,7 +397,7 @@ However, you may notice that both `buyerId` and `sellerId` keys are _always_ req
 One disadvantage of this pattern is that we end up with clutter&mdash;`buyerId`/`sellerId` are extra fields, and `buyer`/`seller` fields have gateway dependencies. To tidy things up, we can aggressively deprecate these fields in subschemas and then remove/normalize their behavior in the gateway using available transforms:
 
 ```js
-import { RemoveDeprecatedFields, RemoveDeprecations } from '@graphql-tools/wrap';
+import { RemoveFieldsWithDeprecation, RemoveFieldDeprecations } from '@graphql-tools/wrap';
 
 const listingsSchema = makeExecutableSchema({
   typeDefs: `
@@ -429,12 +429,12 @@ const gatewaySchema = stitchSchemas({
   subschemas: [
     {
       schema: listingsSchema,
-      transforms: [new RemoveDeprecatedFields('stitching use only')],
+      transforms: [new RemoveFieldsWithDeprecation('stitching use only')],
       merge: { ... }
     },
     {
       schema: usersSchema,
-      transforms: [new RemoveDeprecations('gateway access only')],
+      transforms: [new RemoveFieldDeprecations('gateway access only')],
       merge: { ... }
     },
   ],

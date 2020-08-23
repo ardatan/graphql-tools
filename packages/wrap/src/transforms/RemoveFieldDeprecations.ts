@@ -1,8 +1,8 @@
-import { GraphQLSchema } from 'graphql';
+import { GraphQLSchema, GraphQLFieldConfig } from 'graphql';
 import { Transform, valueMatchesCriteria } from '@graphql-tools/utils';
 import { FilterFieldDirectives, TransformObjectFields } from '@graphql-tools/wrap';
 
-export default class RemoveDeprecations implements Transform {
+export default class RemoveFieldDeprecations implements Transform {
   private readonly removeDirectives: FilterFieldDirectives;
   private readonly removeDeprecations: TransformObjectFields;
 

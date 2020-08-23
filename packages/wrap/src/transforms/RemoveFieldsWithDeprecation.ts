@@ -2,7 +2,7 @@ import { GraphQLSchema, GraphQLFieldConfig } from 'graphql';
 import { Transform } from '@graphql-tools/utils';
 import { FilterObjectFields } from '@graphql-tools/wrap';
 
-export default class RemoveDeprecatedFields implements Transform {
+export default class RemoveFieldsWithDeprecation implements Transform {
   private readonly transformer: FilterObjectFields;
 
   constructor(reason: string | RegExp) {

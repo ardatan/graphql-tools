@@ -2,7 +2,7 @@ import { wrapSchema, FilterFieldDirectives } from '@graphql-tools/wrap';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 
 describe('FilterFieldDirectives', () => {
-  test('removes fields with unqualified directives', async () => {
+  test('removes unmatched field directives', async () => {
     const schema = makeExecutableSchema({
       typeDefs: `
         directive @remove on FIELD_DEFINITION

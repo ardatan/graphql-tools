@@ -17,7 +17,7 @@ describe('RemoveFieldsWithDirective', () => {
     `
   });
 
-  test('removes directives by name', async () => {
+  test('removes directive fields by name', async () => {
     const transformedSchema = wrapSchema(originalSchema, [
       new RemoveFieldsWithDirective('alpha')
     ]);
@@ -29,7 +29,7 @@ describe('RemoveFieldsWithDirective', () => {
     expect(fields.fourth).toBeDefined();
   });
 
-  test('removes directives by name regex', async () => {
+  test('removes directive fields by name regex', async () => {
     const transformedSchema = wrapSchema(originalSchema, [
       new RemoveFieldsWithDirective(/^alp/)
     ]);
@@ -41,7 +41,7 @@ describe('RemoveFieldsWithDirective', () => {
     expect(fields.fourth).toBeDefined();
   });
 
-  test('removes directives by argument', async () => {
+  test('removes directive fields by argument', async () => {
     const transformedSchema = wrapSchema(originalSchema, [
       new RemoveFieldsWithDirective(/.+/, { arg: 'remove this' })
     ]);
@@ -53,7 +53,7 @@ describe('RemoveFieldsWithDirective', () => {
     expect(fields.third).toBeUndefined();
   });
 
-  test('removes directives by argument regex', async () => {
+  test('removes directive fields by argument regex', async () => {
     const transformedSchema = wrapSchema(originalSchema, [
       new RemoveFieldsWithDirective(/.+/, { arg: /remove/ })
     ]);

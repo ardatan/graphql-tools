@@ -1,7 +1,7 @@
-import { wrapSchema, RemoveDeprecations } from '@graphql-tools/wrap';
+import { wrapSchema, RemoveFieldDeprecations } from '@graphql-tools/wrap';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 
-describe('RemoveDeprecations', () => {
+describe('RemoveFieldDeprecations', () => {
   const originalSchema = makeExecutableSchema({
     typeDefs: `
       type Test {
@@ -12,9 +12,9 @@ describe('RemoveDeprecations', () => {
     `
   });
 
-  test('removes directives by name', async () => {
+  test('removes deprecations by reason', async () => {
     const transformedSchema = wrapSchema(originalSchema, [
-      new RemoveDeprecations('remove this')
+      new RemoveFieldDeprecations('remove this')
     ]);
 
     const fields = transformedSchema.getType('Test').getFields();
@@ -24,9 +24,9 @@ describe('RemoveDeprecations', () => {
     expect(fields.second.astNode.directives.length).toEqual(0);
   });
 
-  test('removes directives by name regex', async () => {
+  test('removes deprecations by reason regex', async () => {
     const transformedSchema = wrapSchema(originalSchema, [
-      new RemoveDeprecations(/remove/)
+      new RemoveFieldDeprecations(/remove/)
     ]);
 
     const fields = transformedSchema.getType('Test').getFields();

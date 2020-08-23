@@ -20,8 +20,8 @@ export { default as TransformQuery } from './TransformQuery';
 export { default as FilterFieldDirectives } from './FilterFieldDirectives';
 export { default as RemoveFieldDirectives } from './RemoveFieldDirectives';
 export { default as RemoveFieldsWithDirective } from './RemoveFieldsWithDirective';
-export { default as RemoveDeprecatedFields } from './RemoveDeprecatedFields';
-export { default as RemoveDeprecations } from './RemoveDeprecations';
+export { default as RemoveFieldDeprecations } from './RemoveFieldDeprecations';
+export { default as RemoveFieldsWithDeprecation } from './RemoveFieldsWithDeprecation';
 
 export { default as ExtendSchema } from './ExtendSchema';
 export { default as PruneSchema } from './PruneSchema';
