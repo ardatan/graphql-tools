@@ -15,7 +15,9 @@ import {
   visitWithTypeInfo,
 } from 'graphql';
 
-import { implementsAbstractType, Transform, Request } from '@graphql-tools/utils';
+import { implementsAbstractType, Request } from '@graphql-tools/utils';
+
+import { Transform, DelegationContext } from '../types';
 
 export default class ExpandAbstractTypes implements Transform {
   private readonly targetSchema: GraphQLSchema;
@@ -31,7 +33,11 @@ export default class ExpandAbstractTypes implements Transform {
     this.interfaceExtensionsMap = interfaceExtensionsMap;
   }
 
-  public transformRequest(originalRequest: Request): Request {
+  public transformRequest(
+    originalRequest: Request,
+    _delegationContext: DelegationContext,
+    _transformationContext: Record<string, any>
+  ): Request {
     const document = expandAbstractTypes(
       this.targetSchema,
       this.possibleTypesMap,

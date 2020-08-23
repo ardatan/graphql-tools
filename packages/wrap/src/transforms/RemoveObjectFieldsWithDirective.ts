@@ -1,6 +1,8 @@
 import { GraphQLSchema, GraphQLFieldConfig } from 'graphql';
 
-import { Transform, getDirectives, valueMatchesCriteria } from '@graphql-tools/utils';
+import { getDirectives, valueMatchesCriteria } from '@graphql-tools/utils';
+
+import { Transform } from '@graphql-tools/delegate';
 
 import FilterObjectFields from './FilterObjectFields';
 

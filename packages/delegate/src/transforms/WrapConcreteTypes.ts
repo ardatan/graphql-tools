@@ -12,7 +12,9 @@ import {
   FieldNode,
 } from 'graphql';
 
-import { Transform, Request } from '@graphql-tools/utils';
+import { Request } from '@graphql-tools/utils';
+
+import { Transform, DelegationContext } from '../types';
 
 // For motivation, see https://github.com/ardatan/graphql-tools/issues/751
 
@@ -25,7 +27,11 @@ export default class WrapConcreteTypes implements Transform {
     this.targetSchema = targetSchema;
   }
 
-  public transformRequest(originalRequest: Request): Request {
+  public transformRequest(
+    originalRequest: Request,
+    _delegationContext: DelegationContext,
+    _transformationContext: Record<string, any>
+  ): Request {
     const document = wrapConcreteTypes(this.returnType, this.targetSchema, originalRequest.document);
     return {
       ...originalRequest,
