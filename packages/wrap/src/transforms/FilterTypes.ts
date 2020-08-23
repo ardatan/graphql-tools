@@ -1,6 +1,8 @@
 import { GraphQLSchema, GraphQLNamedType } from 'graphql';
 
-import { mapSchema, Transform, MapperKind } from '@graphql-tools/utils';
+import { mapSchema, MapperKind } from '@graphql-tools/utils';
+
+import { Transform } from '@graphql-tools/delegate';
 
 export default class FilterTypes implements Transform {
   private readonly filter: (type: GraphQLNamedType) => boolean;

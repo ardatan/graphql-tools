@@ -1,8 +1,8 @@
 import { GraphQLResolveInfo, GraphQLOutputType, GraphQLSchema } from 'graphql';
 
-import { Transform, getResponseKeyFromInfo, ExecutionResult } from '@graphql-tools/utils';
+import { getResponseKeyFromInfo, ExecutionResult } from '@graphql-tools/utils';
 import { handleResult } from '../results/handleResult';
-import { SubschemaConfig } from '../types';
+import { SubschemaConfig, Transform, DelegationContext } from '../types';
 
 export default class CheckResultAndHandleErrors implements Transform {
   private readonly context?: Record<string, any>;
@@ -28,9 +28,13 @@ export default class CheckResultAndHandleErrors implements Transform {
     this.typeMerge = typeMerge;
   }
 
-  public transformResult(result: any): any {
+  public transformResult(
+    originalResult: ExecutionResult,
+    _delegationContext: DelegationContext,
+    _transformationContext: Record<string, any>
+  ): ExecutionResult {
     return checkResultAndHandleErrors(
-      result,
+      originalResult,
       this.context != null ? this.context : {},
       this.info,
       this.fieldName,

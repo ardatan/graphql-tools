@@ -1,3 +1,5 @@
+import { GraphQLSchema } from 'graphql';
+
 import {
   ITypeDefinitions,
   IResolvers,
@@ -5,7 +7,6 @@ import {
   IDirectiveResolvers,
   SchemaDirectiveVisitorClass,
   GraphQLParseOptions,
-  SchemaTransform,
   PruneSchemaOptions,
 } from '@graphql-tools/utils';
 
@@ -51,7 +52,7 @@ export interface IExecutableSchemaDefinition<TContext = any> {
   /**
    * An array of schema transformation functions
    */
-  schemaTransforms?: Array<SchemaTransform>;
+  schemaTransforms?: Array<(originalSchema: GraphQLSchema) => GraphQLSchema>;
   /**
    * Additional options for parsing the type definitions if they are provided
    * as a string

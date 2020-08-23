@@ -15,7 +15,6 @@ import {
 } from 'graphql';
 
 import {
-  Transform,
   Request,
   ExecutionResult,
   visitResult,
@@ -23,6 +22,8 @@ import {
   updateArgument,
   transformInputValue,
 } from '@graphql-tools/utils';
+
+import { Transform, DelegationContext } from '@graphql-tools/delegate';
 
 import { LeafValueTransformer } from '../types';
 
@@ -60,7 +61,7 @@ export default class MapLeafValues implements Transform<MapLeafValuesTransformat
 
   public transformRequest(
     originalRequest: Request,
-    _delegationContext?: Record<string, any>,
+    _delegationContext: DelegationContext,
     transformationContext?: MapLeafValuesTransformationContext
   ): Request {
     const document = originalRequest.document;
@@ -91,9 +92,9 @@ export default class MapLeafValues implements Transform<MapLeafValuesTransformat
 
   public transformResult(
     originalResult: ExecutionResult,
-    _delegationContext?: Record<string, any>,
+    _delegationContext: DelegationContext,
     transformationContext?: MapLeafValuesTransformationContext
-  ) {
+  ): ExecutionResult {
     return visitResult(
       originalResult,
       transformationContext.transformedRequest,

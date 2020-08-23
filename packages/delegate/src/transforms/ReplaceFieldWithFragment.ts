@@ -12,7 +12,9 @@ import {
   visitWithTypeInfo,
 } from 'graphql';
 
-import { concatInlineFragments, Transform, Request } from '@graphql-tools/utils';
+import { concatInlineFragments, Request } from '@graphql-tools/utils';
+
+import { Transform, DelegationContext } from '../types';
 
 export default class ReplaceFieldWithFragment implements Transform {
   private readonly targetSchema: GraphQLSchema;
@@ -44,7 +46,11 @@ export default class ReplaceFieldWithFragment implements Transform {
     }
   }
 
-  public transformRequest(originalRequest: Request): Request {
+  public transformRequest(
+    originalRequest: Request,
+    _delegationContext: DelegationContext,
+    _transformationContext: Record<string, any>
+  ): Request {
     const document = replaceFieldsWithFragments(this.targetSchema, originalRequest.document, this.mapping);
     return {
       ...originalRequest,

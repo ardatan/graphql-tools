@@ -13,7 +13,9 @@ import {
   DefinitionNode,
 } from 'graphql';
 
-import { Transform, Request, collectFields, GraphQLExecutionContext } from '@graphql-tools/utils';
+import { Request, collectFields, GraphQLExecutionContext } from '@graphql-tools/utils';
+
+import { Transform, DelegationContext } from '../types';
 
 export default class VisitSelectionSets implements Transform {
   private readonly schema: GraphQLSchema;
@@ -30,7 +32,11 @@ export default class VisitSelectionSets implements Transform {
     this.visitor = visitor;
   }
 
-  public transformRequest(originalRequest: Request): Request {
+  public transformRequest(
+    originalRequest: Request,
+    _delegationContext: DelegationContext,
+    _transformationContext: Record<string, any>
+  ): Request {
     const document = visitSelectionSets(originalRequest, this.schema, this.initialType, this.visitor);
     return {
       ...originalRequest,

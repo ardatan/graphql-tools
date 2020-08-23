@@ -1,15 +1,8 @@
 import { GraphQLSchema, extendSchema, parse } from 'graphql';
 
-import {
-  Transform,
-  IFieldResolver,
-  IResolvers,
-  Request,
-  FieldNodeMappers,
-  ExecutionResult,
-} from '@graphql-tools/utils';
+import { IFieldResolver, IResolvers, Request, FieldNodeMappers, ExecutionResult } from '@graphql-tools/utils';
 import { addResolversToSchema } from '@graphql-tools/schema';
-import { defaultMergedResolver } from '@graphql-tools/delegate';
+import { Transform, defaultMergedResolver, DelegationContext } from '@graphql-tools/delegate';
 
 import { ObjectValueTransformerMap, ErrorsTransformer } from '../types';
 
@@ -60,16 +53,16 @@ export default class ExtendSchema implements Transform {
 
   public transformRequest(
     originalRequest: Request,
-    delegationContext?: Record<string, any>,
-    transformationContext?: Record<string, any>
+    delegationContext: DelegationContext,
+    transformationContext: Record<string, any>
   ): Request {
     return this.transformer.transformRequest(originalRequest, delegationContext, transformationContext);
   }
 
   public transformResult(
     originalResult: ExecutionResult,
-    delegationContext?: Record<string, any>,
-    transformationContext?: Record<string, any>
+    delegationContext: DelegationContext,
+    transformationContext: Record<string, any>
   ): ExecutionResult {
     return this.transformer.transformResult(originalResult, delegationContext, transformationContext);
   }

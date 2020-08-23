@@ -11,7 +11,6 @@ import {
 } from 'graphql';
 
 import {
-  Transform,
   Request,
   appendObjectFields,
   selectObjectFields,
@@ -20,7 +19,7 @@ import {
   relocatedError,
 } from '@graphql-tools/utils';
 
-import { defaultMergedResolver } from '@graphql-tools/delegate';
+import { Transform, defaultMergedResolver, DelegationContext } from '@graphql-tools/delegate';
 
 import MapFields from './MapFields';
 
@@ -138,8 +137,8 @@ export default class WrapFields implements Transform<WrapFieldsTransformationCon
 
   public transformRequest(
     originalRequest: Request,
-    delegationContext?: Record<string, any>,
-    transformationContext?: WrapFieldsTransformationContext
+    delegationContext: DelegationContext,
+    transformationContext: WrapFieldsTransformationContext
   ): Request {
     transformationContext.nextIndex = 0;
     transformationContext.paths = Object.create(null);
@@ -148,8 +147,8 @@ export default class WrapFields implements Transform<WrapFieldsTransformationCon
 
   public transformResult(
     originalResult: ExecutionResult,
-    delegationContext?: Record<string, any>,
-    transformationContext?: WrapFieldsTransformationContext
+    delegationContext: DelegationContext,
+    transformationContext: WrapFieldsTransformationContext
   ): ExecutionResult {
     return this.transformer.transformResult(originalResult, delegationContext, transformationContext);
   }

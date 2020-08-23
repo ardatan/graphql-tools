@@ -58,9 +58,6 @@ export interface ExecutionResult<TData = Record<string, any>> extends GraphQLExe
   extensions?: Record<string, any>;
 }
 
-// for backwards compatibility
-export type Result = ExecutionResult;
-
 // graphql-js non-exported typings
 
 export type TypeMap = Record<string, GraphQLNamedType>;
@@ -177,24 +174,6 @@ export interface IFieldResolverOptions<TSource = any, TContext = any, TArgs = an
   deprecationReason?: string;
   extensions?: Record<string, any>;
   astNode?: FieldDefinitionNode;
-}
-
-export type SchemaTransform = (originalSchema: GraphQLSchema) => GraphQLSchema;
-export type RequestTransform<T = Record<string, any>> = (
-  originalRequest: Request,
-  delegationContext?: Record<string, any>,
-  transformationContext?: T
-) => Request;
-export type ResultTransform<T = Record<string, any>> = (
-  originalResult: ExecutionResult,
-  delegationContext?: Record<string, any>,
-  transformationContext?: T
-) => ExecutionResult;
-
-export interface Transform<T = Record<string, any>> {
-  transformSchema?: SchemaTransform;
-  transformRequest?: RequestTransform<T>;
-  transformResult?: ResultTransform<T>;
 }
 
 export type FieldNodeMapper = (

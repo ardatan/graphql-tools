@@ -9,7 +9,9 @@ import {
   visitWithTypeInfo,
 } from 'graphql';
 
-import { Transform, Request } from '@graphql-tools/utils';
+import { Request } from '@graphql-tools/utils';
+
+import { Transform, DelegationContext } from '../types';
 
 export default class AddSelectionSetsByField implements Transform {
   private readonly schema: GraphQLSchema;
@@ -20,7 +22,11 @@ export default class AddSelectionSetsByField implements Transform {
     this.mapping = mapping;
   }
 
-  public transformRequest(originalRequest: Request): Request {
+  public transformRequest(
+    originalRequest: Request,
+    _delegationContext: DelegationContext,
+    _transformationContext: Record<string, any>
+  ): Request {
     const document = addSelectionSetsByField(this.schema, originalRequest.document, this.mapping);
     return {
       ...originalRequest,

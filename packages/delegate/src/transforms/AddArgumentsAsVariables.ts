@@ -12,7 +12,9 @@ import {
   VariableDefinitionNode,
 } from 'graphql';
 
-import { Transform, Request, serializeInputValue, updateArgument } from '@graphql-tools/utils';
+import { Request, serializeInputValue, updateArgument } from '@graphql-tools/utils';
+
+import { Transform, DelegationContext } from '../types';
 
 export default class AddArgumentsAsVariables implements Transform {
   private readonly targetSchema: GraphQLSchema;
@@ -29,7 +31,11 @@ export default class AddArgumentsAsVariables implements Transform {
     );
   }
 
-  public transformRequest(originalRequest: Request): Request {
+  public transformRequest(
+    originalRequest: Request,
+    _delegationContext: DelegationContext,
+    _transformationContext: Record<string, any>
+  ): Request {
     const { document, variables } = addVariablesToRootField(this.targetSchema, originalRequest, this.args);
 
     return {

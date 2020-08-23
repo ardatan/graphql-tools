@@ -9,8 +9,9 @@ import {
   print,
 } from 'graphql';
 
-import { Transform, Request } from '@graphql-tools/utils';
+import { Request } from '@graphql-tools/utils';
 
+import { Transform, DelegationContext } from '../types';
 import { memoize2 } from '../memoize';
 
 import VisitSelectionSets from './VisitSelectionSets';
@@ -30,8 +31,12 @@ export default class AddSelectionSets implements Transform {
     );
   }
 
-  public transformRequest(originalRequest: Request): Request {
-    return this.transformer.transformRequest(originalRequest);
+  public transformRequest(
+    originalRequest: Request,
+    delegationContext: DelegationContext,
+    transformationContext: Record<string, any>
+  ): Request {
+    return this.transformer.transformRequest(originalRequest, delegationContext, transformationContext);
   }
 }
 
