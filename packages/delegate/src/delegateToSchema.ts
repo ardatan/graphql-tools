@@ -15,9 +15,15 @@ import {
 
 import isPromise from 'is-promise';
 
-import { mapAsyncIterator, Transform, ExecutionResult } from '@graphql-tools/utils';
+import { mapAsyncIterator, ExecutionResult } from '@graphql-tools/utils';
 
-import { IDelegateToSchemaOptions, IDelegateRequestOptions, SubschemaConfig, ExecutionParams } from './types';
+import {
+  IDelegateToSchemaOptions,
+  IDelegateRequestOptions,
+  SubschemaConfig,
+  ExecutionParams,
+  Transform,
+} from './types';
 
 import { isSubschemaConfig } from './Subschema';
 import { createRequestFromInfo, getDelegatingOperation } from './createRequest';

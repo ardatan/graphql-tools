@@ -1,9 +1,12 @@
 import { GraphQLSchema, GraphQLFieldConfig } from 'graphql';
 
-import { Transform, Request, ExecutionResult } from '@graphql-tools/utils';
+import { Request, ExecutionResult } from '@graphql-tools/utils';
+
+import { Transform, DelegationContext } from '@graphql-tools/delegate';
+
+import { RootFieldTransformer, FieldNodeTransformer } from '../types';
 
 import TransformObjectFields from './TransformObjectFields';
-import { RootFieldTransformer, FieldNodeTransformer } from '../types';
 
 export default class TransformRootFields implements Transform {
   private readonly rootFieldTransformer: RootFieldTransformer;
@@ -47,16 +50,16 @@ export default class TransformRootFields implements Transform {
 
   public transformRequest(
     originalRequest: Request,
-    delegationContext?: Record<string, any>,
-    transformationContext?: Record<string, any>
+    delegationContext: DelegationContext,
+    transformationContext: Record<string, any>
   ): Request {
     return this.transformer.transformRequest(originalRequest, delegationContext, transformationContext);
   }
 
   public transformResult(
     originalResult: ExecutionResult,
-    delegationContext?: Record<string, any>,
-    transformationContext?: Record<string, any>
+    delegationContext: DelegationContext,
+    transformationContext: Record<string, any>
   ): ExecutionResult {
     return this.transformer.transformResult(originalResult, delegationContext, transformationContext);
   }

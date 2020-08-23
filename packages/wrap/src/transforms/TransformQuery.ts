@@ -1,6 +1,8 @@
 import { visit, Kind, SelectionSetNode, FragmentDefinitionNode, GraphQLError } from 'graphql';
 
-import { Transform, Request, ExecutionResult, relocatedError } from '@graphql-tools/utils';
+import { Request, ExecutionResult, relocatedError } from '@graphql-tools/utils';
+
+import { Transform, DelegationContext } from '@graphql-tools/delegate';
 
 export type QueryTransformer = (
   selectionSet: SelectionSetNode,
@@ -38,7 +40,11 @@ export default class TransformQuery implements Transform {
     this.fragments = fragments;
   }
 
-  public transformRequest(originalRequest: Request): Request {
+  public transformRequest(
+    originalRequest: Request,
+    _delegationContext: DelegationContext,
+    _transformationContext: Record<string, any>
+  ): Request {
     const pathLength = this.path.length;
     let index = 0;
     const document = visit(originalRequest.document, {
@@ -71,7 +77,11 @@ export default class TransformQuery implements Transform {
     };
   }
 
-  public transformResult(originalResult: ExecutionResult): ExecutionResult {
+  public transformResult(
+    originalResult: ExecutionResult,
+    _delegationContext: DelegationContext,
+    _transformationContext: Record<string, any>
+  ): ExecutionResult {
     const data = this.transformData(originalResult.data);
     const errors = originalResult.errors;
     return {

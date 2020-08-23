@@ -1,6 +1,6 @@
-import { Transform, Request, ExecutionResult } from '@graphql-tools/utils';
+import { Request, ExecutionResult } from '@graphql-tools/utils';
 
-import { DelegationContext, DelegationBinding } from './types';
+import { DelegationContext, DelegationBinding, Transform } from './types';
 
 import { defaultDelegationBinding } from './delegationBindings';
 

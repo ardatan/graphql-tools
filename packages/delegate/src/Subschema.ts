@@ -1,10 +1,9 @@
 import { GraphQLSchema } from 'graphql';
 
-import { Transform, applySchemaTransforms } from '@graphql-tools/utils';
-
-import { SubschemaConfig, MergedTypeConfig, CreateProxyingResolverFn, Subscriber, Executor } from './types';
+import { SubschemaConfig, Transform, MergedTypeConfig, CreateProxyingResolverFn, Subscriber, Executor } from './types';
 
 import { FIELD_SUBSCHEMA_MAP_SYMBOL, OBJECT_SUBSCHEMA_SYMBOL } from './symbols';
+import { applySchemaTransforms } from './applySchemaTransforms';
 
 export function getSubschema(result: any, responseKey: string): GraphQLSchema | SubschemaConfig {
   const subschema = result[FIELD_SUBSCHEMA_MAP_SYMBOL] && result[FIELD_SUBSCHEMA_MAP_SYMBOL][responseKey];

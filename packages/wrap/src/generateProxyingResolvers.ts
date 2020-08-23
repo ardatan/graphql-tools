@@ -1,6 +1,6 @@
 import { GraphQLSchema, GraphQLFieldResolver, GraphQLObjectType, GraphQLResolveInfo } from 'graphql';
 
-import { Transform, Operation, getResponseKeyFromInfo, getErrors, applySchemaTransforms } from '@graphql-tools/utils';
+import { Operation, getResponseKeyFromInfo, getErrors } from '@graphql-tools/utils';
 import {
   delegateToSchema,
   getSubschema,
@@ -9,6 +9,8 @@ import {
   isSubschemaConfig,
   CreateProxyingResolverFn,
   ICreateProxyingResolverOptions,
+  Transform,
+  applySchemaTransforms,
 } from '@graphql-tools/delegate';
 
 export function generateProxyingResolvers(

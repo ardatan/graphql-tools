@@ -1,6 +1,8 @@
 import { visit, Kind, SelectionSetNode, BREAK, FieldNode } from 'graphql';
 
-import { Transform, Request } from '@graphql-tools/utils';
+import { Request } from '@graphql-tools/utils';
+
+import { Transform, DelegationContext } from '@graphql-tools/delegate';
 
 export default class ExtractField implements Transform {
   private readonly from: Array<string>;
@@ -11,7 +13,11 @@ export default class ExtractField implements Transform {
     this.to = to;
   }
 
-  public transformRequest(originalRequest: Request): Request {
+  public transformRequest(
+    originalRequest: Request,
+    _delegationContext: DelegationContext,
+    _transformationContext: Record<string, any>
+  ): Request {
     let fromSelection: SelectionSetNode | undefined;
     const ourPathFrom = JSON.stringify(this.from);
     const ourPathTo = JSON.stringify(this.to);
