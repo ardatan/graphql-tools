@@ -20,7 +20,6 @@ import {
   RenameRootFields,
   RenameObjectFields,
   TransformObjectFields,
-  ExtendSchema,
   WrapType,
   WrapFields,
   HoistField,
@@ -31,21 +30,10 @@ import {
   PruneSchema,
 } from '@graphql-tools/wrap';
 
-import {
-  delegateToSchema,
-  createMergedResolver,
-  SubschemaConfig
-} from '@graphql-tools/delegate';
-
+import { delegateToSchema, SubschemaConfig } from '@graphql-tools/delegate';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { addMocksToSchema } from '@graphql-tools/mock';
-import {
-  wrapFieldNode,
-  renameFieldNode,
-  hoistFieldNodes,
-  filterSchema,
-  ExecutionResult,
-} from '@graphql-tools/utils';
+import { filterSchema, ExecutionResult } from '@graphql-tools/utils';
 
 import { stitchSchemas } from '../src/stitchSchemas';
 
@@ -1172,76 +1160,6 @@ describe('WrapType', () => {
 });
 
 describe('schema transformation with extraction of nested fields', () => {
-  test('should work via ExtendSchema transform', async () => {
-    const transformedPropertySchema = wrapSchema(propertySchema, [
-      new ExtendSchema({
-        typeDefs: `
-          extend type Property {
-            locationName: String
-            renamedError: String
-          }
-        `,
-        resolvers: {
-          Property: {
-            locationName: createMergedResolver({ fromPath: ['location'] }),
-          },
-        },
-        fieldNodeTransformerMap: {
-          Property: {
-            locationName: (fieldNode) =>
-              wrapFieldNode(renameFieldNode(fieldNode, 'name'), ['location']),
-            renamedError: (fieldNode) => renameFieldNode(fieldNode, 'error'),
-          },
-        },
-      }),
-    ]);
-
-    const result = await graphql(
-      transformedPropertySchema,
-      `
-        query($pid: ID!) {
-          propertyById(id: $pid) {
-            id
-            name
-            test: locationName
-            renamedError
-          }
-        }
-      `,
-      {},
-      {},
-      {
-        pid: 'p1',
-      },
-    );
-
-    const expectedResult: any = {
-      data: {
-        propertyById: {
-          id: 'p1',
-          name: 'Super great hotel',
-          test: 'Helsinki',
-          renamedError: null,
-        },
-      },
-      errors: [
-        {
-          locations: [
-            {
-              column: 13,
-              line: 7,
-            },
-          ],
-          message: 'Property.error error',
-          path: ['propertyById', 'renamedError'],
-        },
-      ],
-    };
-    expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
-
-    expect(result).toEqual(expectedResult);
-  });
-
   test('should work via HoistField transform', async () => {
     const transformedPropertySchema = wrapSchema(propertySchema, [
       new HoistField('Property', ['location', 'name'], 'locationName'),
@@ -1274,109 +1192,6 @@ describe('schema transformation with extraction of nested fields', () => {
 });
 
 describe('schema transformation with wrapping of object fields', () => {
-  test('should work via ExtendSchema transform', async () => {
-    const transformedPropertySchema = wrapSchema(propertySchema, [
-      new ExtendSchema({
-        typeDefs: `
-          extend type Property {
-            outerWrap: OuterWrap
-          }
-
-          type OuterWrap {
-            innerWrap: InnerWrap
-          }
-
-          type InnerWrap {
-            id: ID
-            name: String
-            error: String
-          }
-        `,
-        resolvers: {
-          Property: {
-            outerWrap: createMergedResolver({ dehoist: true }),
-          },
-        },
-        fieldNodeTransformerMap: {
-          Property: {
-            outerWrap: (fieldNode, fragments) =>
-              hoistFieldNodes({
-                fieldNode,
-                fieldNames: ['id', 'name', 'error'],
-                path: ['innerWrap'],
-                fragments,
-              }),
-          },
-        },
-      }),
-    ]);
-
-    const result = await graphql(
-      transformedPropertySchema,
-      `
-        query($pid: ID!) {
-          propertyById(id: $pid) {
-            test1: outerWrap {
-              innerWrap {
-                ...W1
-              }
-            }
-            test2: outerWrap {
-              innerWrap {
-                ...W2
-              }
-            }
-          }
-        }
-        fragment W1 on InnerWrap {
-          one: id
-          two: error
-        }
-        fragment W2 on InnerWrap {
-          one: name
-        }
-      `,
-      {},
-      {},
-      {
-        pid: 'p1',
-      },
-    );
-
-    const expectedResult: any = {
-      data: {
-        propertyById: {
-          test1: {
-            innerWrap: {
-              one: 'p1',
-              two: null,
-            },
-          },
-          test2: {
-            innerWrap: {
-              one: 'Super great hotel',
-            },
-          },
-        },
-      },
-      errors: [
-        {
-          locations: [
-            {
-              column: 11,
-              line: 18,
-            },
-          ],
-          message: 'Property.error error',
-          path: ['propertyById', 'test1', 'innerWrap', 'two'],
-        },
-      ],
-    };
-    expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
-
-    expect(result).toEqual(expectedResult);
-  });
-
   describe('WrapFields transform', () => {
     test('should work', async () => {
       const transformedPropertySchema = wrapSchema(propertySchema, [
@@ -1563,70 +1378,6 @@ describe('schema transformation with wrapping of object fields', () => {
       const result = await graphql(stitchedSchema, query);
       expect(result.data.wrapped.user.dummy).not.toEqual(null);
     });
-  });
-});
-
-describe('schema transformation with renaming of object fields', () => {
-  let transformedPropertySchema: GraphQLSchema;
-
-  beforeAll(() => {
-    transformedPropertySchema = wrapSchema(propertySchema, [
-      new ExtendSchema({
-        typeDefs: `
-          extend type Property {
-            new_error: String
-          }
-        `,
-        fieldNodeTransformerMap: {
-          Property: {
-            // eslint-disable-next-line camelcase
-            new_error: (fieldNode) => renameFieldNode(fieldNode, 'error'),
-          },
-        },
-      }),
-    ]);
-  });
-
-  test('should work, even with aliases, and should preserve errors', async () => {
-    const result = await graphql(
-      transformedPropertySchema,
-      `
-        query($pid: ID!) {
-          propertyById(id: $pid) {
-            new_error
-          }
-        }
-      `,
-      {},
-      {},
-      {
-        pid: 'p1',
-      },
-    );
-
-    const expectedResult: any = {
-      data: {
-        propertyById: {
-          // eslint-disable-next-line camelcase
-          new_error: null,
-        },
-      },
-      errors: [
-        {
-          locations: [
-            {
-              column: 13,
-              line: 4,
-            },
-          ],
-          message: 'Property.error error',
-          path: ['propertyById', 'new_error'],
-        },
-      ],
-    };
-    expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
-
-    expect(result).toEqual(expectedResult);
   });
 });
 
