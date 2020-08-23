@@ -4,13 +4,12 @@ import {
   renameFieldNode,
   appendObjectFields,
   removeObjectFields,
-  Transform,
   Request,
   ExecutionResult,
   relocatedError,
 } from '@graphql-tools/utils';
 
-import { defaultMergedResolver } from '@graphql-tools/delegate';
+import { Transform, defaultMergedResolver, DelegationContext } from '@graphql-tools/delegate';
 
 import MapFields from './MapFields';
 
@@ -71,16 +70,16 @@ export default class HoistField implements Transform {
 
   public transformRequest(
     originalRequest: Request,
-    delegationContext?: Record<string, any>,
-    transformationContext?: Record<string, any>
+    delegationContext: DelegationContext,
+    transformationContext: Record<string, any>
   ): Request {
     return this.transformer.transformRequest(originalRequest, delegationContext, transformationContext);
   }
 
   public transformResult(
     originalResult: ExecutionResult,
-    delegationContext?: Record<string, any>,
-    transformationContext?: Record<string, any>
+    delegationContext: DelegationContext,
+    transformationContext: Record<string, any>
   ): ExecutionResult {
     return this.transformer.transformResult(originalResult, delegationContext, transformationContext);
   }

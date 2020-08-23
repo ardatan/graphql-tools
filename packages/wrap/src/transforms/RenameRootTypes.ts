@@ -1,14 +1,8 @@
 import { visit, GraphQLSchema, NamedTypeNode, Kind } from 'graphql';
 
-import {
-  Request,
-  ExecutionResult,
-  MapperKind,
-  Transform,
-  mapSchema,
-  renameType,
-  visitData,
-} from '@graphql-tools/utils';
+import { Request, ExecutionResult, MapperKind, mapSchema, renameType, visitData } from '@graphql-tools/utils';
+
+import { Transform, DelegationContext } from '@graphql-tools/delegate';
 
 export default class RenameRootTypes implements Transform {
   private readonly renamer: (name: string) => string | undefined;
@@ -36,7 +30,11 @@ export default class RenameRootTypes implements Transform {
     });
   }
 
-  public transformRequest(originalRequest: Request): Request {
+  public transformRequest(
+    originalRequest: Request,
+    _delegationContext: DelegationContext,
+    _transformationContext: Record<string, any>
+  ): Request {
     const document = visit(originalRequest.document, {
       [Kind.NAMED_TYPE]: (node: NamedTypeNode) => {
         const name = node.name.value;
@@ -57,10 +55,14 @@ export default class RenameRootTypes implements Transform {
     };
   }
 
-  public transformResult(result: ExecutionResult): ExecutionResult {
+  public transformResult(
+    originalResult: ExecutionResult,
+    _delegationContext: DelegationContext,
+    _transformationContext?: Record<string, any>
+  ): ExecutionResult {
     return {
-      ...result,
-      data: visitData(result.data, object => {
+      ...originalResult,
+      data: visitData(originalResult.data, object => {
         const typeName = object?.__typename;
         if (typeName != null && typeName in this.map) {
           object.__typename = this.map[typeName];

@@ -1,6 +1,8 @@
 import { GraphQLSchema, GraphQLFieldConfig } from 'graphql';
 
-import { Transform, FieldFilter } from '@graphql-tools/utils';
+import { FieldFilter } from '@graphql-tools/utils';
+
+import { Transform } from '@graphql-tools/delegate';
 
 import TransformObjectFields from './TransformObjectFields';
 

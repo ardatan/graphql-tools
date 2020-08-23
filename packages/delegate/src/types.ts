@@ -13,10 +13,28 @@ import {
   OperationTypeNode,
 } from 'graphql';
 
-import { Operation, Transform, Request, TypeMap, ExecutionResult } from '@graphql-tools/utils';
+import { Operation, Request, TypeMap, ExecutionResult } from '@graphql-tools/utils';
 
 import { Subschema } from './Subschema';
 import DataLoader from 'dataloader';
+
+export type SchemaTransform = (originalSchema: GraphQLSchema) => GraphQLSchema;
+export type RequestTransform<T = Record<string, any>> = (
+  originalRequest: Request,
+  delegationContext: DelegationContext,
+  transformationContext: T
+) => Request;
+export type ResultTransform<T = Record<string, any>> = (
+  originalResult: ExecutionResult,
+  delegationContext: DelegationContext,
+  transformationContext: T
+) => ExecutionResult;
+
+export interface Transform<T = Record<string, any>> {
+  transformSchema?: SchemaTransform;
+  transformRequest?: RequestTransform<T>;
+  transformResult?: ResultTransform<T>;
+}
 
 export interface DelegationContext {
   subschema: GraphQLSchema | SubschemaConfig;

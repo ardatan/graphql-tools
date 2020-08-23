@@ -1,6 +1,8 @@
 import { GraphQLSchema, GraphQLInputFieldConfig, ObjectFieldNode } from 'graphql';
 
-import { Transform, Request, mapSchema, MapperKind } from '@graphql-tools/utils';
+import { Request, mapSchema, MapperKind } from '@graphql-tools/utils';
+
+import { Transform, DelegationContext } from '@graphql-tools/delegate';
 
 import TransformInputObjectFields from './TransformInputObjectFields';
 
@@ -65,7 +67,11 @@ export default class RenameInputObjectFields implements Transform {
     return this.transformer.transformSchema(originalSchema);
   }
 
-  public transformRequest(originalRequest: Request, delegationContext?: Record<string, any>): Request {
-    return this.transformer.transformRequest(originalRequest, delegationContext);
+  public transformRequest(
+    originalRequest: Request,
+    delegationContext: DelegationContext,
+    transformationContext: Record<string, any>
+  ): Request {
+    return this.transformer.transformRequest(originalRequest, delegationContext, transformationContext);
   }
 }

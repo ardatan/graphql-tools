@@ -14,7 +14,7 @@ Schema wrapping works by wrapping the original schema in a new 'gateway' schema 
 interface Transform = {
   transformSchema?: (schema: GraphQLSchema) => GraphQLSchema;
   transformRequest?: (request: Request) => Request;
-  transformResult?: (result: Result) => Result;
+  transformResult?: (result: ExecutionResult) => ExecutionResult;
 };
 ```
 
@@ -85,16 +85,12 @@ By the same reasoning, we also need a `transformResult` function, because any re
 interface Transform = {
   transformSchema?: (schema: GraphQLSchema) => GraphQLSchema;
   transformRequest?: (request: Request) => Request;
-  transformResult?: (result: Result) => Result;
+  transformResult?: (result: ExecutionResult) => ExecutionResult;
 };
 
 type Request = {
   document: DocumentNode;
   variables: Record<string, any>;
-  extensions?: Record<string, any>;
-};
-
-type Result = ExecutionResult & {
   extensions?: Record<string, any>;
 };
 ```
