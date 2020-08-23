@@ -10,7 +10,9 @@ import {
   InlineFragmentNode,
 } from 'graphql';
 
-import { Transform, Request } from '@graphql-tools/utils';
+import { Request } from '@graphql-tools/utils';
+
+import { Transform, DelegationContext } from '../types';
 
 export default class AddFragmentsByField implements Transform {
   private readonly targetSchema: GraphQLSchema;
@@ -21,7 +23,11 @@ export default class AddFragmentsByField implements Transform {
     this.mapping = mapping;
   }
 
-  public transformRequest(originalRequest: Request): Request {
+  public transformRequest(
+    originalRequest: Request,
+    _delegationContext: DelegationContext,
+    _transformationContext: Record<string, any>
+  ): Request {
     const document = addFragmentsByField(this.targetSchema, originalRequest.document, this.mapping);
     return {
       ...originalRequest,

@@ -36,7 +36,6 @@ export * from './stub';
 export * from './fragments';
 export * from './selectionSets';
 export * from './getResponseKeyFromInfo';
-export * from './transforms';
 export * from './fields';
 export * from './renameType';
 export * from './collectFields';
