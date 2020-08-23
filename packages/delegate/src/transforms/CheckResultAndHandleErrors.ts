@@ -1,7 +1,7 @@
 import { GraphQLResolveInfo, GraphQLOutputType, GraphQLSchema } from 'graphql';
 
 import { getResponseKeyFromInfo, ExecutionResult } from '@graphql-tools/utils';
-import { handleResult } from '../results/handleResult';
+import { resolveExternalValue } from '../resolveExternalValue';
 import { SubschemaConfig, Transform, DelegationContext } from '../types';
 
 export default class CheckResultAndHandleErrors implements Transform {
@@ -57,5 +57,5 @@ export function checkResultAndHandleErrors(
   const errors = result.errors != null ? result.errors : [];
   const data = result.data != null ? result.data[responseKey] : undefined;
 
-  return handleResult(data, errors, subschema, context, info, returnType, skipTypeMerging);
+  return resolveExternalValue(data, errors, subschema, context, info, returnType, skipTypeMerging);
 }
