@@ -10,7 +10,9 @@ import {
   isAbstractType,
 } from 'graphql';
 
-import { Transform, Request } from '@graphql-tools/utils';
+import { Request } from '@graphql-tools/utils';
+
+import { Transform, DelegationContext } from '../types';
 
 export default class AddTypenameToAbstract implements Transform {
   private readonly targetSchema: GraphQLSchema;
@@ -19,7 +21,11 @@ export default class AddTypenameToAbstract implements Transform {
     this.targetSchema = targetSchema;
   }
 
-  public transformRequest(originalRequest: Request): Request {
+  public transformRequest(
+    originalRequest: Request,
+    _delegationContext: DelegationContext,
+    _transformationContext: Record<string, any>
+  ): Request {
     const document = addTypenameToAbstract(this.targetSchema, originalRequest.document);
     return {
       ...originalRequest,

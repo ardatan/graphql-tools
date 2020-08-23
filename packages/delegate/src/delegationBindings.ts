@@ -1,6 +1,4 @@
-import { Transform } from '@graphql-tools/utils';
-
-import { StitchingInfo, DelegationContext } from './types';
+import { Transform, StitchingInfo, DelegationContext } from './types';
 
 import AddSelectionSets from './transforms/AddSelectionSets';
 import ExpandAbstractTypes from './transforms/ExpandAbstractTypes';

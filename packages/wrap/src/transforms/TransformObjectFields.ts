@@ -1,6 +1,9 @@
 import { GraphQLSchema, isObjectType, GraphQLFieldConfig } from 'graphql';
 
-import { Transform, Request, ExecutionResult } from '@graphql-tools/utils';
+import { Request, ExecutionResult } from '@graphql-tools/utils';
+
+import { Transform, DelegationContext } from '@graphql-tools/delegate';
+
 import { FieldTransformer, FieldNodeTransformer } from '../types';
 
 import TransformCompositeFields from './TransformCompositeFields';
@@ -35,16 +38,16 @@ export default class TransformObjectFields implements Transform {
 
   public transformRequest(
     originalRequest: Request,
-    delegationContext?: Record<string, any>,
-    transformationContext?: Record<string, any>
+    delegationContext: DelegationContext,
+    transformationContext: Record<string, any>
   ): Request {
     return this.transformer.transformRequest(originalRequest, delegationContext, transformationContext);
   }
 
   public transformResult(
     originalResult: ExecutionResult,
-    delegationContext?: Record<string, any>,
-    transformationContext?: Record<string, any>
+    delegationContext: DelegationContext,
+    transformationContext: Record<string, any>
   ): ExecutionResult {
     return this.transformer.transformResult(originalResult, delegationContext, transformationContext);
   }
