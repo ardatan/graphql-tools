@@ -1,5 +1,5 @@
 import { GraphQLSchema, GraphQLFieldConfig } from 'graphql';
-import { Transform } from '@graphql-tools/utils';
+import { Transform, valueMatchesCriteria } from '@graphql-tools/utils';
 import { FilterObjectFields } from '@graphql-tools/wrap';
 
 export default class RemoveFieldsWithDeprecation implements Transform {
@@ -9,10 +9,7 @@ export default class RemoveFieldsWithDeprecation implements Transform {
     this.transformer = new FilterObjectFields(
       (_typeName: string, _fieldName: string, fieldConfig: GraphQLFieldConfig<any, any>) => {
         if (fieldConfig.deprecationReason) {
-          return !(
-            (reason instanceof RegExp && reason.test(fieldConfig.deprecationReason)) ||
-            reason === fieldConfig.deprecationReason
-          );
+          return !valueMatchesCriteria(fieldConfig.deprecationReason, reason);
         }
         return true;
       }

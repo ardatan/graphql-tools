@@ -7,10 +7,7 @@ export default class RemoveFieldDirectives implements Transform {
 
   constructor(directiveName: string | RegExp, args: Record<string, any> = {}) {
     this.transformer = new FilterFieldDirectives((dirName: string, dirValue: any) => {
-      return !(
-        ((directiveName instanceof RegExp && directiveName.test(dirName)) || directiveName === dirName) &&
-        valueMatchesCriteria(dirValue, args)
-      );
+      return !(valueMatchesCriteria(dirName, directiveName) && valueMatchesCriteria(dirValue, args));
     });
   }
 

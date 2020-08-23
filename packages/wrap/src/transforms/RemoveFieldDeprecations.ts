@@ -13,11 +13,7 @@ export default class RemoveFieldDeprecations implements Transform {
     });
     this.removeDeprecations = new TransformObjectFields(
       (_typeName: string, _fieldName: string, fieldConfig: GraphQLFieldConfig<any, any>) => {
-        if (
-          fieldConfig.deprecationReason &&
-          ((reason instanceof RegExp && reason.test(fieldConfig.deprecationReason)) ||
-            reason === fieldConfig.deprecationReason)
-        ) {
+        if (fieldConfig.deprecationReason && valueMatchesCriteria(fieldConfig.deprecationReason, reason)) {
           fieldConfig = { ...fieldConfig };
           delete fieldConfig.deprecationReason;
         }
