@@ -31,7 +31,6 @@ export * from './rewire';
 export * from './prune';
 export * from './mergeDeep';
 export * from './Interfaces';
-export * from './fieldNodes';
 export * from './stub';
 export * from './fragments';
 export * from './selectionSets';

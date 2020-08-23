@@ -11,12 +11,15 @@ import {
   GraphQLObjectType,
   VariableDefinitionNode,
   OperationTypeNode,
+  GraphQLError,
 } from 'graphql';
 
-import { Operation, Request, TypeMap, ExecutionResult } from '@graphql-tools/utils';
+import DataLoader from 'dataloader';
+
+import { Operation, Request, TypeMap, ExecutionResult, ERROR_SYMBOL } from '@graphql-tools/utils';
 
 import { Subschema } from './Subschema';
-import DataLoader from 'dataloader';
+import { OBJECT_SUBSCHEMA_SYMBOL, FIELD_SUBSCHEMA_MAP_SYMBOL } from './symbols';
 
 export type SchemaTransform = (originalSchema: GraphQLSchema) => GraphQLSchema;
 export type RequestTransform<T = Record<string, any>> = (
@@ -194,4 +197,11 @@ export interface StitchingInfo {
   dynamicSelectionSetsByField: Record<string, Record<string, Array<(node: FieldNode) => SelectionSetNode>>>;
   mergedTypes: Record<string, MergedTypeInfo>;
   endpoints: Record<string, Endpoint>;
+}
+
+export interface ExternalData {
+  key: any;
+  [OBJECT_SUBSCHEMA_SYMBOL]: GraphQLSchema | SubschemaConfig;
+  [FIELD_SUBSCHEMA_MAP_SYMBOL]: Record<string, GraphQLSchema | SubschemaConfig>;
+  [ERROR_SYMBOL]: Array<GraphQLError>;
 }
