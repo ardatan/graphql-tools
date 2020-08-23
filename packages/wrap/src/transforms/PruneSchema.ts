@@ -7,7 +7,7 @@ import { Transform } from '@graphql-tools/delegate';
 export default class PruneTypes implements Transform {
   private readonly options: PruneSchemaOptions;
 
-  constructor(options: PruneSchemaOptions) {
+  constructor(options: PruneSchemaOptions = {}) {
     this.options = options;
   }
 

@@ -1,8 +1,7 @@
 import { GraphQLObjectType, buildSchema } from 'graphql';
+import { pruneSchema } from '../src/prune';
 
-import { healSchema } from '../src/heal';
-
-describe('heal', () => {
+describe('pruneSchema', () => {
   test('should prune empty types', () => {
     const schema = buildSchema(`
       type WillBeEmptyObject {
@@ -21,9 +20,9 @@ describe('heal', () => {
       fields: {},
     });
 
-    healSchema(schema);
+    const prunedSchema = pruneSchema(schema);
 
-    const healedTypeMap = schema.getTypeMap();
-    expect(healedTypeMap).not.toHaveProperty('WillBeEmptyObject');
+    const prunedTypeMap = prunedSchema.getTypeMap();
+    expect(prunedTypeMap).not.toHaveProperty('WillBeEmptyObject');
   });
 });
