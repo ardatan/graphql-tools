@@ -11,9 +11,9 @@ import {
 
 import isPromise from 'is-promise';
 
-import { MergedTypeInfo, SubschemaConfig } from '../types';
-import { memoize4, memoize3, memoize2 } from '../memoize';
-import { mergeExternalData } from '../externalData';
+import { MergedTypeInfo, SubschemaConfig } from './types';
+import { memoize4, memoize3, memoize2 } from './memoize';
+import { mergeExternalData } from './externalData';
 
 const sortSubschemasByProxiability = memoize4(function (
   mergedTypeInfo: MergedTypeInfo,
