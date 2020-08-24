@@ -1,8 +1,13 @@
-import { GraphQLError, GraphQLResolveInfo } from 'graphql';
+import { GraphQLError, GraphQLResolveInfo, locatedError, graphql } from 'graphql';
+
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import { ExecutionResult } from '@graphql-tools/utils';
+import { stitchSchemas } from '@graphql-tools/stitch';
 
 import { checkResultAndHandleErrors } from '../src/transforms/CheckResultAndHandleErrors';
-import { getErrors } from '../src/externalData';
-import { ERROR_SYMBOL } from '../src/symbols';
+import { UNPATHED_ERRORS_SYMBOL } from '../src/symbols';
+import { getUnpathedErrors } from '../src/externalData';
+import { delegateToSchema, defaultMergedResolver } from '../src';
 
 class ErrorWithExtensions extends GraphQLError {
   constructor(message: string, code: string) {
@@ -11,18 +16,18 @@ class ErrorWithExtensions extends GraphQLError {
 }
 
 describe('Errors', () => {
-  describe('getErrors', () => {
-    test('should return all errors including if path is not defined', () => {
+  describe('getUnpathedErrors', () => {
+    test('should return all unpathed errors', () => {
       const error = {
         message: 'Test error without path',
       };
-      const mockErrors: any = {
+      const mockExternalData: any = {
         responseKey: '',
-        [ERROR_SYMBOL]: [error],
+        [UNPATHED_ERRORS_SYMBOL]: [error],
       };
 
-      expect(getErrors(mockErrors, 'responseKey')).toEqual([
-        mockErrors[ERROR_SYMBOL][0],
+      expect(getUnpathedErrors(mockExternalData)).toEqual([
+        mockExternalData[UNPATHED_ERRORS_SYMBOL][0],
       ]);
     });
   });
@@ -83,6 +88,125 @@ describe('Errors', () => {
           expect(e.originalError.errors[i]).toEqual(error);
         });
       }
+    });
+
+    // see https://github.com/ardatan/graphql-tools/issues/1641
+    describe('it proxies errors with invalid paths', () => {
+      test('it works with bare delegation', async () => {
+        const typeDefs = `
+          type Object {
+            field1: String
+            field2: String
+          }
+          type Query {
+            object: Object
+          }
+        `;
+
+        const unpathedError = locatedError(new Error('TestError'), undefined, ["_entities", 7, "name"]);
+
+        const remoteSchema = makeExecutableSchema({
+          typeDefs,
+          resolvers: {
+            Query: {
+              object: () => ({
+                field1: unpathedError,
+                field2: 'data',
+              })
+            }
+          }
+        });
+
+        const gatewaySchema = makeExecutableSchema({
+          typeDefs,
+          resolvers: {
+            Query: {
+              object: (_parent, _args, context, info) => delegateToSchema({
+                schema: remoteSchema,
+                operation: 'query',
+                context,
+                info,
+              }),
+            }
+          },
+        });
+
+        const query = `{
+          object {
+            field1
+            field2
+          }
+        }`;
+
+        const expectedResult: ExecutionResult = {
+          data: {
+            object: {
+              field1: null,
+              field2: 'data',
+            }
+          },
+          errors: [unpathedError],
+        };
+
+        const gatewayResult = await graphql({
+          schema: gatewaySchema,
+          source: query,
+          fieldResolver: defaultMergedResolver,
+        });
+
+        expect(gatewayResult).toEqual(expectedResult);
+      });
+
+      test('it works with stitched schemas', async () => {
+        const typeDefs = `
+          type Object {
+            field1: String
+            field2: String
+          }
+          type Query {
+            object: Object
+          }
+        `;
+
+        const unpathedError = locatedError(new Error('TestError'), undefined, ["_entities", 7, "name"]);
+
+        const remoteSchema = makeExecutableSchema({
+          typeDefs,
+          resolvers: {
+            Query: {
+              object: () => ({
+                field1: unpathedError,
+                field2: 'data',
+              })
+            }
+          }
+        });
+
+        const gatewaySchema = stitchSchemas({
+          subschemas: [remoteSchema],
+        });
+
+        const query = `{
+          object {
+            field1
+            field2
+          }
+        }`;
+
+        const expectedResult: ExecutionResult = {
+          data: {
+            object: {
+              field1: null,
+              field2: 'data',
+            }
+          },
+          errors: [unpathedError],
+        };
+
+        const gatewayResult = await graphql(gatewaySchema, query);
+
+        expect(gatewayResult).toEqual(expectedResult);
+      });
     });
   });
 });
