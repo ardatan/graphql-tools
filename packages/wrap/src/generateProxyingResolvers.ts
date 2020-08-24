@@ -11,7 +11,7 @@ import {
   ICreateProxyingResolverOptions,
   Transform,
   applySchemaTransforms,
-  isExternalData,
+  isExternalObject,
   getUnpathedErrors,
 } from '@graphql-tools/delegate';
 
@@ -92,7 +92,7 @@ function createPossiblyNestedProxyingResolver(
       const responseKey = getResponseKeyFromInfo(info);
 
       // Check to see if the parent contains a proxied result
-      if (isExternalData(parent)) {
+      if (isExternalObject(parent)) {
         const unpathedErrors = getUnpathedErrors(parent);
         const subschema = getSubschema(parent, responseKey);
 

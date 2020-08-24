@@ -13,7 +13,7 @@ import isPromise from 'is-promise';
 
 import { MergedTypeInfo, SubschemaConfig } from './types';
 import { memoize4, memoize3, memoize2 } from './memoize';
-import { mergeExternalData } from './externalData';
+import { mergeExternalObjects } from './externalObjects';
 
 const sortSubschemasByProxiability = memoize4(function (
   mergedTypeInfo: MergedTypeInfo,
@@ -186,7 +186,7 @@ export function mergeFields(
         mergeFields(
           mergedTypeInfo,
           typeName,
-          mergeExternalData(
+          mergeExternalObjects(
             info.schema,
             responsePathAsArray(info.path),
             object.__typename,
@@ -204,7 +204,7 @@ export function mergeFields(
     : mergeFields(
         mergedTypeInfo,
         typeName,
-        mergeExternalData(
+        mergeExternalObjects(
           info.schema,
           responsePathAsArray(info.path),
           object.__typename,
