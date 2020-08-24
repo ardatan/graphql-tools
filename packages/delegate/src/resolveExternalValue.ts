@@ -14,7 +14,7 @@ import {
 } from 'graphql';
 
 import { SubschemaConfig } from './types';
-import { annotateExternalData } from './externalData';
+import { annotateExternalObject } from './externalObjects';
 import { getFieldsNotInSubschema } from './getFieldsNotInSubschema';
 import { mergeFields } from './mergeFields';
 
@@ -57,7 +57,7 @@ function resolveExternalObject(
 ) {
   const stitchingInfo = info?.schema.extensions?.stitchingInfo;
 
-  annotateExternalData(object, unpathedErrors, subschema);
+  annotateExternalObject(object, unpathedErrors, subschema);
 
   if (skipTypeMerging || !stitchingInfo) {
     return object;
