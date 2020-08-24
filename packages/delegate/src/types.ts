@@ -14,10 +14,10 @@ import {
   GraphQLError,
 } from 'graphql';
 
-import { Operation, Request, TypeMap, ExecutionResult, UNPATHED_ERRORS_SYMBOL } from '@graphql-tools/utils';
+import { Operation, Request, TypeMap, ExecutionResult } from '@graphql-tools/utils';
 
 import { Subschema } from './Subschema';
-import { OBJECT_SUBSCHEMA_SYMBOL, FIELD_SUBSCHEMA_MAP_SYMBOL } from './symbols';
+import { OBJECT_SUBSCHEMA_SYMBOL, FIELD_SUBSCHEMA_MAP_SYMBOL, UNPATHED_ERRORS_SYMBOL } from './symbols';
 
 export type SchemaTransform = (originalSchema: GraphQLSchema) => GraphQLSchema;
 export type RequestTransform<T = Record<string, any>> = (
