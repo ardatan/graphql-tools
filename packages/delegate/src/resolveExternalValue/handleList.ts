@@ -11,7 +11,6 @@ import {
 } from 'graphql';
 
 import { SubschemaConfig } from '../types';
-import { getErrorsByPathSegment } from '../externalData';
 
 import { handleNull } from './handleNull';
 import { handleObject } from './handleObject';
@@ -19,19 +18,17 @@ import { handleObject } from './handleObject';
 export function handleList(
   type: GraphQLList<any>,
   list: Array<any>,
-  errors: ReadonlyArray<GraphQLError>,
+  unpathedErrors: Array<GraphQLError>,
   subschema: GraphQLSchema | SubschemaConfig,
   context: Record<string, any>,
   info: GraphQLResolveInfo,
   skipTypeMerging?: boolean
 ) {
-  const childErrors = getErrorsByPathSegment(errors);
-
-  return list.map((listMember, index) =>
+  return list.map(listMember =>
     handleListMember(
       getNullableType(type.ofType),
       listMember,
-      index in childErrors ? childErrors[index] : [],
+      unpathedErrors,
       subschema,
       context,
       info,
@@ -43,21 +40,25 @@ export function handleList(
 function handleListMember(
   type: GraphQLType,
   listMember: any,
-  errors: ReadonlyArray<GraphQLError>,
+  unpathedErrors: Array<GraphQLError>,
   subschema: GraphQLSchema | SubschemaConfig,
   context: Record<string, any>,
   info: GraphQLResolveInfo,
   skipTypeMerging?: boolean
 ): any {
+  if (listMember instanceof Error) {
+    return listMember;
+  }
+
   if (listMember == null) {
-    return handleNull(errors);
+    return handleNull(unpathedErrors);
   }
 
   if (isLeafType(type)) {
     return type.parseValue(listMember);
   } else if (isCompositeType(type)) {
-    return handleObject(type, listMember, errors, subschema, context, info, skipTypeMerging);
+    return handleObject(type, listMember, unpathedErrors, subschema, context, info, skipTypeMerging);
   } else if (isListType(type)) {
-    return handleList(type, listMember, errors, subschema, context, info, skipTypeMerging);
+    return handleList(type, listMember, unpathedErrors, subschema, context, info, skipTypeMerging);
   }
 }
