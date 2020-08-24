@@ -1,4 +1,12 @@
-import { DocumentNode, ObjectTypeDefinitionNode, ObjectTypeExtensionNode, ValueNode, Kind } from 'graphql';
+import {
+  DocumentNode,
+  ObjectTypeDefinitionNode,
+  ObjectTypeExtensionNode,
+  InputObjectTypeDefinitionNode,
+  InputObjectTypeExtensionNode,
+  ValueNode,
+  Kind,
+} from 'graphql';
 
 export type DirectiveArgs = { [name: string]: any };
 export type DirectiveUsage = { name: string; args: DirectiveArgs };
@@ -9,6 +17,12 @@ export type TypeAndFieldToDirectives = {
 interface Options {
   includeInputTypes?: boolean;
 }
+
+type SelectedNodes =
+  | ObjectTypeDefinitionNode
+  | ObjectTypeExtensionNode
+  | InputObjectTypeDefinitionNode
+  | InputObjectTypeExtensionNode;
 
 function parseDirectiveValue(value: ValueNode): any {
   switch (value.kind) {
@@ -41,17 +55,12 @@ export function getFieldsWithDirectives(documentNode: DocumentNode, options: Opt
     selected = [...selected, 'InputObjectTypeDefinition', 'InputObjectTypeExtension'];
   }
 
-  const allTypes = documentNode.definitions.filter(obj => selected.includes(obj.kind));
+  const allTypes = documentNode.definitions.filter(obj => selected.includes(obj.kind)) as SelectedNodes[];
 
   for (const type of allTypes) {
-    /* InputObjectTypeDefinitionNode && InputObjectTypeExtensionNode
-       types don't seem to match up with parsed ast
-    */
-    const _type = type as ObjectTypeDefinitionNode | ObjectTypeExtensionNode;
+    const typeName = type.name.value;
 
-    const typeName = _type.name.value;
-
-    for (const field of _type.fields) {
+    for (const field of type.fields) {
       if (field.directives && field.directives.length > 0) {
         const fieldName = field.name.value;
         const key = `${typeName}.${fieldName}`;
