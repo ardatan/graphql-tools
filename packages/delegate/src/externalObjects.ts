@@ -2,42 +2,42 @@ import { GraphQLSchema, GraphQLError, GraphQLObjectType, SelectionSetNode } from
 
 import { mergeDeep, relocatedError, GraphQLExecutionContext, collectFields } from '@graphql-tools/utils';
 
-import { SubschemaConfig, ExternalData } from './types';
+import { SubschemaConfig, ExternalObject } from './types';
 import { OBJECT_SUBSCHEMA_SYMBOL, FIELD_SUBSCHEMA_MAP_SYMBOL, UNPATHED_ERRORS_SYMBOL } from './symbols';
 
-export function isExternalData(data: any): data is ExternalData {
+export function isExternalObject(data: any): data is ExternalObject {
   return data[UNPATHED_ERRORS_SYMBOL] !== undefined;
 }
 
-export function annotateExternalData(
-  data: any,
+export function annotateExternalObject(
+  object: any,
   errors: Array<GraphQLError>,
   subschema: GraphQLSchema | SubschemaConfig
-): ExternalData {
-  Object.defineProperties(data, {
+): ExternalObject {
+  Object.defineProperties(object, {
     [OBJECT_SUBSCHEMA_SYMBOL]: { value: subschema },
     [FIELD_SUBSCHEMA_MAP_SYMBOL]: { value: Object.create(null) },
     [UNPATHED_ERRORS_SYMBOL]: { value: errors },
   });
-  return data;
+  return object;
 }
 
-export function getSubschema(data: ExternalData, responseKey: string): GraphQLSchema | SubschemaConfig {
-  return data[FIELD_SUBSCHEMA_MAP_SYMBOL][responseKey] ?? data[OBJECT_SUBSCHEMA_SYMBOL];
+export function getSubschema(object: ExternalObject, responseKey: string): GraphQLSchema | SubschemaConfig {
+  return object[FIELD_SUBSCHEMA_MAP_SYMBOL][responseKey] ?? object[OBJECT_SUBSCHEMA_SYMBOL];
 }
 
-export function getUnpathedErrors(data: ExternalData): Array<GraphQLError> {
-  return data[UNPATHED_ERRORS_SYMBOL];
+export function getUnpathedErrors(object: ExternalObject): Array<GraphQLError> {
+  return object[UNPATHED_ERRORS_SYMBOL];
 }
 
-export function mergeExternalData(
+export function mergeExternalObjects(
   schema: GraphQLSchema,
   path: Array<string | number>,
   typeName: string,
-  target: ExternalData,
-  sources: Array<ExternalData>,
+  target: ExternalObject,
+  sources: Array<ExternalObject>,
   selectionSets: Array<SelectionSetNode>
-): ExternalData {
+): ExternalObject {
   const results: Array<any> = [];
   let errors: Array<GraphQLError> = [];
 
