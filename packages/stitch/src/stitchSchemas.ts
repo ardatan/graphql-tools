@@ -136,7 +136,7 @@ export function stitchSchemas({
     typeMergingOptions,
   });
 
-  const { typeMap: newTypeMap, directives: newDirectives } = rewireTypes(typeMap, directives, { skipPruning: true });
+  const { typeMap: newTypeMap, directives: newDirectives } = rewireTypes(typeMap, directives);
 
   let schema = new GraphQLSchema({
     query: newTypeMap[operationTypeNames.query] as GraphQLObjectType,
