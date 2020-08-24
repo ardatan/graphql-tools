@@ -1,14 +1,14 @@
 import { GraphQLSchema, GraphQLFieldConfig } from 'graphql';
 import { Transform, valueMatchesCriteria } from '@graphql-tools/utils';
-import { FilterFieldDirectives, TransformObjectFields } from '@graphql-tools/wrap';
+import { FilterObjectFieldDirectives, TransformObjectFields } from '@graphql-tools/wrap';
 
-export default class RemoveFieldDeprecations implements Transform {
-  private readonly removeDirectives: FilterFieldDirectives;
+export default class RemoveObjectFieldDeprecations implements Transform {
+  private readonly removeDirectives: FilterObjectFieldDirectives;
   private readonly removeDeprecations: TransformObjectFields;
 
   constructor(reason: string | RegExp) {
     const args = { reason };
-    this.removeDirectives = new FilterFieldDirectives((dirName: string, dirValue: any) => {
+    this.removeDirectives = new FilterObjectFieldDirectives((dirName: string, dirValue: any) => {
       return !(dirName === 'deprecated' && valueMatchesCriteria(dirValue, args));
     });
     this.removeDeprecations = new TransformObjectFields(

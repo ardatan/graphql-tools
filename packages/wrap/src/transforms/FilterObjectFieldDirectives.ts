@@ -2,7 +2,7 @@ import { GraphQLSchema, GraphQLFieldConfig } from 'graphql';
 import { Transform, getArgumentValues } from '@graphql-tools/utils';
 import TransformObjectFields from './TransformObjectFields';
 
-export default class FilterFieldDirectives implements Transform {
+export default class FilterObjectFieldDirectives implements Transform {
   private readonly filter: (dirName: string, dirValue: any) => boolean;
 
   constructor(filter: (dirName: string, dirValue: any) => boolean) {

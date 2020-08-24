@@ -1,7 +1,7 @@
-import { wrapSchema, FilterFieldDirectives } from '@graphql-tools/wrap';
+import { wrapSchema, FilterObjectFieldDirectives } from '@graphql-tools/wrap';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 
-describe('FilterFieldDirectives', () => {
+describe('FilterObjectFieldDirectives', () => {
   test('removes unmatched field directives', async () => {
     const schema = makeExecutableSchema({
       typeDefs: `
@@ -17,7 +17,7 @@ describe('FilterFieldDirectives', () => {
     });
 
     const transformedSchema = wrapSchema(schema, [
-      new FilterFieldDirectives((dirName: string, dirValue: any) => dirName === 'keep' && dirValue.arg !== 1)
+      new FilterObjectFieldDirectives((dirName: string, dirValue: any) => dirName === 'keep' && dirValue.arg !== 1)
     ]);
 
     const fields = transformedSchema.getType('Query').getFields();

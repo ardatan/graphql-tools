@@ -1,7 +1,7 @@
-import { wrapSchema, RemoveFieldsWithDirective } from '@graphql-tools/wrap';
+import { wrapSchema, RemoveObjectFieldsWithDirective } from '@graphql-tools/wrap';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 
-describe('RemoveFieldsWithDirective', () => {
+describe('RemoveObjectFieldsWithDirective', () => {
   const originalSchema = makeExecutableSchema({
     typeDefs: `
       directive @alpha(arg: String) on FIELD_DEFINITION
@@ -19,7 +19,7 @@ describe('RemoveFieldsWithDirective', () => {
 
   test('removes directive fields by name', async () => {
     const transformedSchema = wrapSchema(originalSchema, [
-      new RemoveFieldsWithDirective('alpha')
+      new RemoveObjectFieldsWithDirective('alpha')
     ]);
 
     const fields = transformedSchema.getType('Test').getFields();
@@ -31,7 +31,7 @@ describe('RemoveFieldsWithDirective', () => {
 
   test('removes directive fields by name regex', async () => {
     const transformedSchema = wrapSchema(originalSchema, [
-      new RemoveFieldsWithDirective(/^alp/)
+      new RemoveObjectFieldsWithDirective(/^alp/)
     ]);
 
     const fields = transformedSchema.getType('Test').getFields();
@@ -43,7 +43,7 @@ describe('RemoveFieldsWithDirective', () => {
 
   test('removes directive fields by argument', async () => {
     const transformedSchema = wrapSchema(originalSchema, [
-      new RemoveFieldsWithDirective(/.+/, { arg: 'remove this' })
+      new RemoveObjectFieldsWithDirective(/.+/, { arg: 'remove this' })
     ]);
 
     const fields = transformedSchema.getType('Test').getFields();
@@ -55,7 +55,7 @@ describe('RemoveFieldsWithDirective', () => {
 
   test('removes directive fields by argument regex', async () => {
     const transformedSchema = wrapSchema(originalSchema, [
-      new RemoveFieldsWithDirective(/.+/, { arg: /remove/ })
+      new RemoveObjectFieldsWithDirective(/.+/, { arg: /remove/ })
     ]);
 
     const fields = transformedSchema.getType('Test').getFields();

@@ -1,7 +1,7 @@
-import { wrapSchema, RemoveFieldDeprecations } from '@graphql-tools/wrap';
+import { wrapSchema, RemoveObjectFieldDeprecations } from '@graphql-tools/wrap';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 
-describe('RemoveFieldDeprecations', () => {
+describe('RemoveObjectFieldDeprecations', () => {
   const originalSchema = makeExecutableSchema({
     typeDefs: `
       type Test {
@@ -14,7 +14,7 @@ describe('RemoveFieldDeprecations', () => {
 
   test('removes deprecations by reason', async () => {
     const transformedSchema = wrapSchema(originalSchema, [
-      new RemoveFieldDeprecations('remove this')
+      new RemoveObjectFieldDeprecations('remove this')
     ]);
 
     const fields = transformedSchema.getType('Test').getFields();
@@ -26,7 +26,7 @@ describe('RemoveFieldDeprecations', () => {
 
   test('removes deprecations by reason regex', async () => {
     const transformedSchema = wrapSchema(originalSchema, [
-      new RemoveFieldDeprecations(/remove/)
+      new RemoveObjectFieldDeprecations(/remove/)
     ]);
 
     const fields = transformedSchema.getType('Test').getFields();
