@@ -6,6 +6,6 @@ export { Subschema, isSubschema, isSubschemaConfig, cloneSubschemaConfig, getSub
 
 export * from './applySchemaTransforms';
 export * from './delegationBindings';
-export * from './externalData';
+export * from './externalObjects';
 export * from './transforms';
 export * from './types';
