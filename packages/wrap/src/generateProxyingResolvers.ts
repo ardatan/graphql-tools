@@ -12,7 +12,7 @@ import {
   Transform,
   applySchemaTransforms,
   isExternalData,
-  getErrors,
+  getUnpathedErrors,
 } from '@graphql-tools/delegate';
 
 export function generateProxyingResolvers(
@@ -93,14 +93,14 @@ function createPossiblyNestedProxyingResolver(
 
       // Check to see if the parent contains a proxied result
       if (isExternalData(parent)) {
+        const unpathedErrors = getUnpathedErrors(parent);
         const subschema = getSubschema(parent, responseKey);
-        const errors = getErrors(parent, responseKey);
 
         // If there is a proxied result from this subschema, return it
         // This can happen even for a root field when the root type ia
         // also nested as a field within a different type.
         if (subschemaOrSubschemaConfig === subschema && parent[responseKey] !== undefined) {
-          return resolveExternalValue(parent[responseKey], errors, subschema, context, info);
+          return resolveExternalValue(parent[responseKey], unpathedErrors, subschema, context, info);
         }
       }
     }
