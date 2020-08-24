@@ -466,7 +466,7 @@ interface HomepageSlot {
 
 ### Interface extensions
 
-Merging alone may not be enough for a combined interface depending on how types are arranged across subschemas. For example:
+Merging alone may not be enough depending on how types are arranged across subschemas. For example:
 
 ```js
 const postsSchema = makeExecutableSchema({
@@ -503,7 +503,7 @@ const layoutsSchema = makeExecutableSchema({
 });
 ```
 
-In this case, Post and Section would ideally provide an interface of `{ id title url }`, however they only share an `id` in the service that defines the interface. This constraint can be overcome with a gateway-only schema extension that adds `{ title url }` into the combined interface:
+In this case, Post and Section would ideally provide an interface of `{ id title url }`, however they only share an `id` in the service that defines the interface. This constraint can be overcome with a gateway-level schema extension that adds `{ title url }` into the combined interface:
 
 ```js
 const gatewaySchema = stitchSchemas({
