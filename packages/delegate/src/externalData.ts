@@ -1,19 +1,12 @@
 import { GraphQLSchema, GraphQLError, GraphQLObjectType, SelectionSetNode } from 'graphql';
 
-import {
-  slicedError,
-  extendedError,
-  mergeDeep,
-  relocatedError,
-  GraphQLExecutionContext,
-  collectFields,
-} from '@graphql-tools/utils';
+import { mergeDeep, relocatedError, GraphQLExecutionContext, collectFields } from '@graphql-tools/utils';
 
 import { SubschemaConfig, ExternalData } from './types';
-import { OBJECT_SUBSCHEMA_SYMBOL, FIELD_SUBSCHEMA_MAP_SYMBOL, ERROR_SYMBOL } from './symbols';
+import { OBJECT_SUBSCHEMA_SYMBOL, FIELD_SUBSCHEMA_MAP_SYMBOL, UNPATHED_ERRORS_SYMBOL } from './symbols';
 
 export function isExternalData(data: any): data is ExternalData {
-  return data[ERROR_SYMBOL] !== undefined;
+  return data[UNPATHED_ERRORS_SYMBOL] !== undefined;
 }
 
 export function annotateExternalData(
@@ -24,7 +17,7 @@ export function annotateExternalData(
   Object.defineProperties(data, {
     [OBJECT_SUBSCHEMA_SYMBOL]: { value: subschema },
     [FIELD_SUBSCHEMA_MAP_SYMBOL]: { value: Object.create(null) },
-    [ERROR_SYMBOL]: { value: errors },
+    [UNPATHED_ERRORS_SYMBOL]: { value: errors },
   });
   return data;
 }
@@ -33,39 +26,8 @@ export function getSubschema(data: ExternalData, responseKey: string): GraphQLSc
   return data[FIELD_SUBSCHEMA_MAP_SYMBOL][responseKey] ?? data[OBJECT_SUBSCHEMA_SYMBOL];
 }
 
-export function getErrors(data: ExternalData, pathSegment: string): Array<GraphQLError> {
-  const errors = data == null ? data : data[ERROR_SYMBOL];
-
-  if (!Array.isArray(errors)) {
-    return null;
-  }
-
-  const fieldErrors = [];
-
-  for (const error of errors) {
-    if (!error.path || error.path[0] === pathSegment) {
-      fieldErrors.push(error);
-    }
-  }
-
-  return fieldErrors;
-}
-
-export function getErrorsByPathSegment(errors: ReadonlyArray<GraphQLError>): Record<string, Array<GraphQLError>> {
-  const record = Object.create(null);
-  errors.forEach(error => {
-    if (!error.path || error.path.length < 2) {
-      return;
-    }
-
-    const pathSegment = error.path[1];
-
-    const current = pathSegment in record ? record[pathSegment] : [];
-    current.push(slicedError(error));
-    record[pathSegment] = current;
-  });
-
-  return record;
+export function getUnpathedErrors(data: ExternalData): Array<GraphQLError> {
+  return data[UNPATHED_ERRORS_SYMBOL];
 }
 
 export function mergeExternalData(
@@ -95,12 +57,11 @@ export function mergeExternalData(
       );
       const nullResult = {};
       Object.keys(fieldNodes).forEach(responseKey => {
-        errors.push(relocatedError(source, [responseKey]));
-        nullResult[responseKey] = null;
+        nullResult[responseKey] = relocatedError(source, path.concat([responseKey]));
       });
       results.push(nullResult);
     } else {
-      errors = errors.concat(source[ERROR_SYMBOL]);
+      errors = errors.concat(source[UNPATHED_ERRORS_SYMBOL]);
       results.push(source);
     }
   });
@@ -118,14 +79,7 @@ export function mergeExternalData(
     ? Object.assign({}, target[FIELD_SUBSCHEMA_MAP_SYMBOL], fieldSubschemaMap)
     : fieldSubschemaMap;
 
-  const annotatedErrors = errors.map(error => {
-    return extendedError(error, {
-      ...error.extensions,
-      graphQLToolsMergedPath: error.path != null ? [...path, ...error.path] : path,
-    });
-  });
-
-  result[ERROR_SYMBOL] = target[ERROR_SYMBOL].concat(annotatedErrors);
+  result[UNPATHED_ERRORS_SYMBOL] = target[UNPATHED_ERRORS_SYMBOL].concat(errors);
 
   return result;
 }
