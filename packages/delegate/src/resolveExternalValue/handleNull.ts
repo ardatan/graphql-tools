@@ -1,28 +1,27 @@
-import { GraphQLError } from 'graphql';
+import { GraphQLError, locatedError } from 'graphql';
 
 import AggregateError from '@ardatan/aggregate-error';
 
-import { relocatedError, unextendedError } from '@graphql-tools/utils';
+const reportedErrors: WeakMap<GraphQLError, boolean> = new Map();
 
-export function handleNull(errors: ReadonlyArray<GraphQLError>) {
-  if (errors.length) {
-    const graphQLToolsMergedPath = errors[0].extensions.graphQLToolsMergedPath;
-    const unannotatedErrors = errors.map(error => unextendedError(error, 'graphQLToolsMergedPath'));
+export function handleNull(unpathedErrors: Array<GraphQLError>) {
+  if (unpathedErrors.length) {
+    const unreportedErrors: Array<GraphQLError> = [];
+    unpathedErrors.forEach(error => {
+      if (!reportedErrors.has(error)) {
+        unreportedErrors.push(error);
+        reportedErrors.set(error, true);
+      }
+    });
 
-    if (unannotatedErrors.length > 1) {
-      const combinedError = new AggregateError(unannotatedErrors);
-      return new GraphQLError(
-        combinedError.message,
-        undefined,
-        undefined,
-        undefined,
-        graphQLToolsMergedPath,
-        combinedError
-      );
+    if (unreportedErrors.length) {
+      if (unreportedErrors.length === 1) {
+        return unreportedErrors[0];
+      }
+
+      const combinedError = new AggregateError(unreportedErrors);
+      return locatedError(combinedError, undefined, unreportedErrors[0].path);
     }
-
-    const error = unannotatedErrors[0];
-    return relocatedError(error, graphQLToolsMergedPath);
   }
 
   return null;
