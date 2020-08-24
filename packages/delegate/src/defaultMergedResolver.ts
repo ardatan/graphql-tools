@@ -4,7 +4,7 @@ import { getResponseKeyFromInfo } from '@graphql-tools/utils';
 
 import { resolveExternalValue } from './resolveExternalValue';
 import { getSubschema } from './Subschema';
-import { getErrors, isExternalData } from './externalData';
+import { getUnpathedErrors, isExternalData } from './externalData';
 import { ExternalData } from './types';
 
 /**
@@ -32,8 +32,8 @@ export function defaultMergedResolver(
   }
 
   const data = parent[responseKey];
+  const unpathedErrors = getUnpathedErrors(parent);
   const subschema = getSubschema(parent, responseKey);
-  const errors = getErrors(parent, responseKey);
 
-  return resolveExternalValue(data, errors, subschema, context, info);
+  return resolveExternalValue(data, unpathedErrors, subschema, context, info);
 }
