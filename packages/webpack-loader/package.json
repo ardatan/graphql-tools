@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@graphql-tools/webpack-loader-runtime": "6.0.18",
-    "tslib": "~2.0.0"
+    "tslib": "~2.0.1"
   },
   "publishConfig": {
     "access": "public",

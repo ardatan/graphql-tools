@@ -20,7 +20,7 @@
   "dependencies": {
     "@graphql-tools/delegate": "6.0.18",
     "dataloader": "2.0.0",
-    "tslib": "~2.0.0"
+    "tslib": "~2.0.1"
   },
   "devDependencies": {
     "@graphql-tools/schema": "6.0.18",
