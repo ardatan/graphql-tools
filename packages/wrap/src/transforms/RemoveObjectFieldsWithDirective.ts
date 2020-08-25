@@ -1,6 +1,8 @@
 import { GraphQLSchema, GraphQLFieldConfig } from 'graphql';
+
 import { Transform, getDirectives, valueMatchesCriteria } from '@graphql-tools/utils';
-import { FilterObjectFields } from '@graphql-tools/wrap';
+
+import FilterObjectFields from './FilterObjectFields';
 
 export default class RemoveObjectFieldsWithDirective implements Transform {
   private readonly directiveName: string | RegExp;

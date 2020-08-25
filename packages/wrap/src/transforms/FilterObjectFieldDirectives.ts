@@ -1,5 +1,7 @@
 import { GraphQLSchema, GraphQLFieldConfig } from 'graphql';
+
 import { Transform, getArgumentValues } from '@graphql-tools/utils';
+
 import TransformObjectFields from './TransformObjectFields';
 
 export default class FilterObjectFieldDirectives implements Transform {
