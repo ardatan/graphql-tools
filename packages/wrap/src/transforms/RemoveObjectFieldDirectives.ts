@@ -1,6 +1,8 @@
 import { GraphQLSchema } from 'graphql';
+
 import { Transform, valueMatchesCriteria } from '@graphql-tools/utils';
-import { FilterObjectFieldDirectives } from '@graphql-tools/wrap';
+
+import FilterObjectFieldDirectives from './FilterObjectFieldDirectives';
 
 export default class RemoveObjectFieldDirectives implements Transform {
   private readonly transformer: FilterObjectFieldDirectives;
