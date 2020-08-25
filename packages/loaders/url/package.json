@@ -28,7 +28,7 @@
     "@graphql-tools/utils": "6.0.18",
     "@types/websocket": "1.0.1",
     "cross-fetch": "3.0.5",
-    "tslib": "~2.0.0",
+    "tslib": "~2.0.1",
     "valid-url": "1.0.9",
     "subscriptions-transport-ws": "0.9.18",
     "websocket": "1.0.31"

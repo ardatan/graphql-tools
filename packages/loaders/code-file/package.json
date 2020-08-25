@@ -19,7 +19,7 @@
     "@graphql-tools/utils": "6.0.18",
     "@graphql-tools/graphql-tag-pluck": "6.0.18",
     "fs-extra": "9.0.1",
-    "tslib": "~2.0.0"
+    "tslib": "~2.0.1"
   },
   "publishConfig": {
     "access": "public",
