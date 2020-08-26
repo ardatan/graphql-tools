@@ -21,9 +21,8 @@ import {
   IResolvers,
   ExecutionResult,
 } from '@graphql-tools/utils';
-import { addMocksToSchema } from '@graphql-tools/mock';
 
-import { forAwaitEach } from './forAwaitEach';
+import { addMocksToSchema } from '@graphql-tools/mock';
 
 import {
   propertySchema as localPropertySchema,
@@ -846,7 +845,7 @@ bookingById(id: "b1") {
         expect(stitchedResult).toEqual(bookingResult);
       });
 
-      test('local subscriptions working in merged schema', (done) => {
+      test('local subscriptions working in merged schema', async () => {
         const mockNotification = {
           notifications: {
             text: 'Hello world',
@@ -861,30 +860,19 @@ bookingById(id: "b1") {
           }
         `);
 
-        let notificationCnt = 0;
-        subscribe(stitchedSchema, subscription)
-          .then((results) => {
-            forAwaitEach(
-              results as AsyncIterable<ExecutionResult>,
-              (result: ExecutionResult) => {
-                expect(result).toHaveProperty('data');
-                expect(result.data).toEqual(mockNotification);
-                if (!notificationCnt++) {
-                  done();
-                }
-              },
-            ).catch(done);
-          })
-          .then(() =>
-            subscriptionPubSub.publish(
-              subscriptionPubSubTrigger,
-              mockNotification,
-            ),
-          )
-          .catch(done);
+        const sub = await subscribe(stitchedSchema, subscription) as AsyncIterableIterator<ExecutionResult>;
+
+        const payload = sub.next();
+
+        await subscriptionPubSub.publish(
+          subscriptionPubSubTrigger,
+          mockNotification,
+        );
+
+        expect(await payload).toEqual({ done: false, value: { data: mockNotification } });
       });
 
-      test('subscription errors are working correctly in merged schema', (done) => {
+      test('subscription errors are working correctly in merged schema', async () => {
         const mockNotification = {
           notifications: {
             text: 'Hello world',
@@ -921,30 +909,16 @@ bookingById(id: "b1") {
           }
         `);
 
-        let notificationCnt = 0;
-        subscribe(stitchedSchema, subscription)
-          .then((results) => {
-            forAwaitEach(
-              results as AsyncIterable<ExecutionResult>,
-              (result: ExecutionResult) => {
-                expect(result).toHaveProperty('data');
-                expect(result).toHaveProperty('errors');
-                expect(result.errors).toHaveLength(1);
-                expect(result.errors).toEqual(expectedResult.errors);
-                expect(result.data).toEqual(expectedResult.data);
-                if (!notificationCnt++) {
-                  done();
-                }
-              },
-            ).catch(done);
-          })
-          .then(() =>
-            subscriptionPubSub.publish(
-              subscriptionPubSubTrigger,
-              mockNotification,
-            ),
-          )
-          .catch(done);
+        const sub = await subscribe(stitchedSchema, subscription) as AsyncIterableIterator<ExecutionResult>;
+
+        const payload = sub.next();
+
+        await subscriptionPubSub.publish(
+          subscriptionPubSubTrigger,
+          mockNotification,
+        );
+
+        expect(await payload).toEqual({ done: false, value: expectedResult });
       });
 
       test('links in queries', async () => {

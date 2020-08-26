@@ -37,8 +37,6 @@ import { filterSchema, ExecutionResult } from '@graphql-tools/utils';
 
 import { stitchSchemas } from '../src/stitchSchemas';
 
-import { forAwaitEach } from './forAwaitEach';
-
 import {
   bookingSchema,
   propertySchema,
@@ -309,7 +307,7 @@ describe('merge schemas through transforms', () => {
     });
   });
 
-  test('local subscriptions should work even if root fields are renamed', (done) => {
+  test('local subscriptions should work even if root fields are renamed', async () => {
     const originalNotification = {
       notifications: {
         text: 'Hello world',
@@ -322,34 +320,23 @@ describe('merge schemas through transforms', () => {
     };
 
     const subscription = parse(`
-        subscription Subscription {
-          Subscriptions_notifications {
-            text
-          }
+      subscription Subscription {
+        Subscriptions_notifications {
+          text
         }
-      `);
+      }
+    `);
 
-    let notificationCnt = 0;
-    subscribe(stitchedSchema, subscription)
-      .then((results) => {
-        forAwaitEach(
-          results as AsyncIterable<ExecutionResult>,
-          (result: ExecutionResult) => {
-            expect(result).toHaveProperty('data');
-            expect(result.data).toEqual(transformedNotification);
-            if (!notificationCnt++) {
-              return done();
-            }
-          },
-        ).catch(done);
-      })
-      .then(() =>
-        subscriptionPubSub.publish(
-          subscriptionPubSubTrigger,
-          originalNotification,
-        ),
-      )
-      .catch(done);
+    const sub = await subscribe(stitchedSchema, subscription) as AsyncIterableIterator<ExecutionResult>;
+
+    const payload = sub.next();
+
+    await subscriptionPubSub.publish(
+      subscriptionPubSubTrigger,
+      originalNotification,
+    );
+
+    expect(await payload).toEqual({ done: false, value: { data: transformedNotification } } );
   });
 });
 
