@@ -293,19 +293,35 @@ export function addMocksToSchema({ schema, mocks = {}, preserveResolvers = false
           });
       }
 
-      if (isOnSubscriptionType) {
-        newFieldConfig.subscribe = () => ({
-          [Symbol.asyncIterator]() {
-            return {
-              async next() {
-                return {
-                  done: true,
-                  value: {},
-                };
-              },
-            };
-          },
-        });
+      const fieldSubscriber = fieldConfig.subscribe;
+      const mockSubscriber = (..._args: any[]) => ({
+        [Symbol.asyncIterator]() {
+          return {
+            async next() {
+              return {
+                done: true,
+                value: {},
+              };
+            },
+          };
+        },
+      });
+
+      if (!preserveResolvers || !fieldSubscriber) {
+        newFieldConfig.subscribe = mockSubscriber;
+      } else {
+        newFieldConfig.subscribe = async (
+          rootObject: any,
+          args: Record<string, any>,
+          context: any,
+          info: GraphQLResolveInfo
+        ) => {
+          const [mockAsyncIterable, oldAsyncIterable] = await Promise.all([
+            mockSubscriber(rootObject, args, context, info),
+            fieldSubscriber(rootObject, args, context, info),
+          ]);
+          return oldAsyncIterable || mockAsyncIterable;
+        };
       }
 
       return newFieldConfig;
