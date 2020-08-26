@@ -17,11 +17,9 @@ import { Request, serializeInputValue, updateArgument } from '@graphql-tools/uti
 import { Transform, DelegationContext } from '../types';
 
 export default class AddArgumentsAsVariables implements Transform {
-  private readonly targetSchema: GraphQLSchema;
   private readonly args: Record<string, any>;
 
-  constructor(targetSchema: GraphQLSchema, args: Record<string, any>) {
-    this.targetSchema = targetSchema;
+  constructor(args: Record<string, any>) {
     this.args = Object.entries(args).reduce(
       (prev, [key, val]) => ({
         ...prev,
@@ -33,10 +31,10 @@ export default class AddArgumentsAsVariables implements Transform {
 
   public transformRequest(
     originalRequest: Request,
-    _delegationContext: DelegationContext,
+    delegationContext: DelegationContext,
     _transformationContext: Record<string, any>
   ): Request {
-    const { document, variables } = addVariablesToRootField(this.targetSchema, originalRequest, this.args);
+    const { document, variables } = addVariablesToRootField(delegationContext.targetSchema, originalRequest, this.args);
 
     return {
       ...originalRequest,

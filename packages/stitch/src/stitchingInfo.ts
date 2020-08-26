@@ -14,14 +14,7 @@ import {
   isLeafType,
 } from 'graphql';
 
-import {
-  parseFragmentToInlineFragment,
-  concatInlineFragments,
-  parseSelectionSet,
-  TypeMap,
-  IResolvers,
-  IFieldResolverOptions,
-} from '@graphql-tools/utils';
+import { parseSelectionSet, TypeMap, IResolvers, IFieldResolverOptions } from '@graphql-tools/utils';
 
 import { delegateToSchema, isSubschemaConfig, SubschemaConfig } from '@graphql-tools/delegate';
 
@@ -309,34 +302,8 @@ export function completeStitchingInfo(stitchingInfo: StitchingInfo, resolvers: I
     });
   });
 
-  const parsedFragments = Object.create(null);
-  rawFragments.forEach(({ field, fragment }) => {
-    const parsedFragment = parseFragmentToInlineFragment(fragment);
-    const actualTypeName = parsedFragment.typeCondition.name.value;
-    if (!(actualTypeName in parsedFragments)) {
-      parsedFragments[actualTypeName] = Object.create(null);
-    }
-
-    if (!(field in parsedFragments[actualTypeName])) {
-      parsedFragments[actualTypeName][field] = [];
-    }
-    parsedFragments[actualTypeName][field].push(parsedFragment);
-  });
-
-  const fragmentsByField = Object.create(null);
-  Object.keys(parsedFragments).forEach(typeName => {
-    Object.keys(parsedFragments[typeName]).forEach(field => {
-      if (!(typeName in fragmentsByField)) {
-        fragmentsByField[typeName] = Object.create(null);
-      }
-
-      fragmentsByField[typeName][field] = concatInlineFragments(typeName, parsedFragments[typeName][field]);
-    });
-  });
-
   stitchingInfo.selectionSetsByField = selectionSetsByField;
   stitchingInfo.dynamicSelectionSetsByField = dynamicSelectionSetsByField;
-  stitchingInfo.fragmentsByField = fragmentsByField;
 
   return stitchingInfo;
 }

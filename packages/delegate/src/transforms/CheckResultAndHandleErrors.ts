@@ -15,42 +15,19 @@ import { SubschemaConfig, Transform, DelegationContext } from '../types';
 import { resolveExternalValue } from '../resolveExternalValue';
 
 export default class CheckResultAndHandleErrors implements Transform {
-  private readonly context?: Record<string, any>;
-  private readonly info: GraphQLResolveInfo;
-  private readonly fieldName?: string;
-  private readonly subschema?: GraphQLSchema | SubschemaConfig;
-  private readonly returnType?: GraphQLOutputType;
-  private readonly typeMerge?: boolean;
-
-  constructor(
-    info: GraphQLResolveInfo,
-    fieldName?: string,
-    subschema?: GraphQLSchema | SubschemaConfig,
-    context?: Record<string, any>,
-    returnType: GraphQLOutputType = info.returnType,
-    typeMerge?: boolean
-  ) {
-    this.context = context;
-    this.info = info;
-    this.fieldName = fieldName;
-    this.subschema = subschema;
-    this.returnType = returnType;
-    this.typeMerge = typeMerge;
-  }
-
   public transformResult(
     originalResult: ExecutionResult,
-    _delegationContext: DelegationContext,
+    delegationContext: DelegationContext,
     _transformationContext: Record<string, any>
   ): ExecutionResult {
     return checkResultAndHandleErrors(
       originalResult,
-      this.context != null ? this.context : {},
-      this.info,
-      this.fieldName,
-      this.subschema,
-      this.returnType,
-      this.typeMerge
+      delegationContext.context != null ? delegationContext.context : {},
+      delegationContext.info,
+      delegationContext.fieldName,
+      delegationContext.subschema,
+      delegationContext.returnType,
+      delegationContext.skipTypeMerging
     );
   }
 }

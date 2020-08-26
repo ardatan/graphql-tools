@@ -32,7 +32,6 @@ export * from './prune';
 export * from './mergeDeep';
 export * from './Interfaces';
 export * from './stub';
-export * from './fragments';
 export * from './selectionSets';
 export * from './getResponseKeyFromInfo';
 export * from './fields';

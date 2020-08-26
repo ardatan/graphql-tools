@@ -4,71 +4,39 @@ import AddSelectionSets from './transforms/AddSelectionSets';
 import ExpandAbstractTypes from './transforms/ExpandAbstractTypes';
 import WrapConcreteTypes from './transforms/WrapConcreteTypes';
 import FilterToSchema from './transforms/FilterToSchema';
-import AddFragmentsByField from './transforms/AddFragmentsByField';
 import AddTypenameToAbstract from './transforms/AddTypenameToAbstract';
 import CheckResultAndHandleErrors from './transforms/CheckResultAndHandleErrors';
 import AddArgumentsAsVariables from './transforms/AddArgumentsAsVariables';
 
 export function defaultDelegationBinding(delegationContext: DelegationContext): Array<Transform> {
-  const {
-    subschema: schemaOrSubschemaConfig,
-    targetSchema,
-    fieldName,
-    args,
-    context,
-    info,
-    returnType,
-    transforms = [],
-    skipTypeMerging,
-  } = delegationContext;
+  let delegationTransforms: Array<Transform> = [new CheckResultAndHandleErrors()];
+
+  const info = delegationContext.info;
   const stitchingInfo: StitchingInfo = info?.schema.extensions?.stitchingInfo;
 
-  let transformedSchema = stitchingInfo?.transformedSchemas.get(schemaOrSubschemaConfig);
-  if (transformedSchema != null) {
-    delegationContext.transformedSchema = transformedSchema;
-  } else {
-    transformedSchema = delegationContext.transformedSchema;
-  }
-
-  let delegationTransforms: Array<Transform> = [
-    new CheckResultAndHandleErrors(info, fieldName, schemaOrSubschemaConfig, context, returnType, skipTypeMerging),
-  ];
-
   if (stitchingInfo != null) {
     delegationTransforms = delegationTransforms.concat([
-      new AddSelectionSets(
-        info.schema,
-        returnType,
-        {},
-        stitchingInfo.selectionSetsByField,
-        stitchingInfo.dynamicSelectionSetsByField
-      ),
-      new WrapConcreteTypes(returnType, transformedSchema),
-      new ExpandAbstractTypes(info.schema, transformedSchema),
+      new AddSelectionSets({}, stitchingInfo.selectionSetsByField, stitchingInfo.dynamicSelectionSetsByField),
+      new WrapConcreteTypes(),
+      new ExpandAbstractTypes(),
     ]);
   } else if (info != null) {
-    delegationTransforms = delegationTransforms.concat([
-      new WrapConcreteTypes(returnType, transformedSchema),
-      new ExpandAbstractTypes(info.schema, transformedSchema),
-    ]);
+    delegationTransforms = delegationTransforms.concat([new WrapConcreteTypes(), new ExpandAbstractTypes()]);
   } else {
-    delegationTransforms.push(new WrapConcreteTypes(returnType, transformedSchema));
+    delegationTransforms.push(new WrapConcreteTypes());
   }
 
-  delegationTransforms = delegationTransforms.concat(transforms.slice().reverse());
-
-  if (stitchingInfo != null) {
-    delegationTransforms.push(new AddFragmentsByField(targetSchema, stitchingInfo.fragmentsByField));
+  const transforms = delegationContext.transforms;
+  if (transforms != null) {
+    delegationTransforms = delegationTransforms.concat(transforms.slice().reverse());
   }
 
+  const args = delegationContext.args;
   if (args != null) {
-    delegationTransforms.push(new AddArgumentsAsVariables(targetSchema, args));
+    delegationTransforms.push(new AddArgumentsAsVariables(args));
   }
 
-  delegationTransforms = delegationTransforms.concat([
-    new FilterToSchema(targetSchema),
-    new AddTypenameToAbstract(targetSchema),
-  ]);
+  delegationTransforms = delegationTransforms.concat([new FilterToSchema(), new AddTypenameToAbstract()]);
 
   return delegationTransforms;
 }
