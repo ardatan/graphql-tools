@@ -237,7 +237,10 @@ export function addMocksToSchema({ schema, mocks = {}, preserveResolvers = false
       const mutationType = schema.getMutationType();
       const isOnMutationType = mutationType != null && mutationType.name === typeName;
 
-      if (isOnQueryType || isOnMutationType) {
+      const subscriptionType = schema.getSubscriptionType();
+      const isOnSubscriptionType = subscriptionType != null && subscriptionType.name === typeName;
+
+      if (isOnQueryType || isOnMutationType || isOnSubscriptionType) {
         if (mockFunctionMap.has(typeName)) {
           const rootMock = mockFunctionMap.get(typeName);
           // XXX: BUG in here, need to provide proper signature for rootMock.
@@ -250,7 +253,8 @@ export function addMocksToSchema({ schema, mocks = {}, preserveResolvers = false
               // otherwise we could just set field.resolve to rootMock()[fieldName]
               // it's like pretending there was a resolver that ran before
               // the root resolver.
-              return mockType(fieldConfig.type, typeName, fieldName)(updatedRoot, args, context, info);
+              const result = mockType(fieldConfig.type, typeName, fieldName)(updatedRoot, args, context, info);
+              return result;
             };
           }
         }
@@ -287,6 +291,21 @@ export function addMocksToSchema({ schema, mocks = {}, preserveResolvers = false
             }
             return undefined !== resolvedValue ? resolvedValue : mockedValue;
           });
+      }
+
+      if (isOnSubscriptionType) {
+        newFieldConfig.subscribe = () => ({
+          [Symbol.asyncIterator]() {
+            return {
+              async next() {
+                return {
+                  done: true,
+                  value: {},
+                };
+              },
+            };
+          },
+        });
       }
 
       return newFieldConfig;
