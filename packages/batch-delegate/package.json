@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/batch-delegate",
-  "version": "6.0.18",
+  "version": "6.1.0",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": "git@github.com:ardatan/graphql-tools.git",
   "license": "MIT",
@@ -18,14 +18,14 @@
     "input": "./src/index.ts"
   },
   "dependencies": {
-    "@graphql-tools/delegate": "6.0.18",
+    "@graphql-tools/delegate": "6.1.0",
     "dataloader": "2.0.0",
     "tslib": "~2.0.1"
   },
   "devDependencies": {
-    "@graphql-tools/schema": "6.0.18",
-    "@graphql-tools/stitch": "6.0.18",
-    "@graphql-tools/utils": "6.0.18"
+    "@graphql-tools/schema": "6.1.0",
+    "@graphql-tools/stitch": "6.1.0",
+    "@graphql-tools/utils": "6.1.0"
   },
   "publishConfig": {
     "access": "public",
