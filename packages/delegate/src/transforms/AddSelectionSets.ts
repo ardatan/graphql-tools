@@ -1,13 +1,4 @@
-import {
-  GraphQLSchema,
-  SelectionSetNode,
-  TypeInfo,
-  GraphQLOutputType,
-  Kind,
-  FieldNode,
-  SelectionNode,
-  print,
-} from 'graphql';
+import { SelectionSetNode, TypeInfo, Kind, FieldNode, SelectionNode, print } from 'graphql';
 
 import { Request } from '@graphql-tools/utils';
 
@@ -20,13 +11,11 @@ export default class AddSelectionSets implements Transform {
   private readonly transformer: VisitSelectionSets;
 
   constructor(
-    sourceSchema: GraphQLSchema,
-    initialType: GraphQLOutputType,
     selectionSetsByType: Record<string, SelectionSetNode>,
     selectionSetsByField: Record<string, Record<string, SelectionSetNode>>,
     dynamicSelectionSetsByField: Record<string, Record<string, Array<(node: FieldNode) => SelectionSetNode>>>
   ) {
-    this.transformer = new VisitSelectionSets(sourceSchema, initialType, (node, typeInfo) =>
+    this.transformer = new VisitSelectionSets((node, typeInfo) =>
       visitSelectionSet(node, typeInfo, selectionSetsByType, selectionSetsByField, dynamicSelectionSetsByField)
     );
   }
