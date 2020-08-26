@@ -20,29 +20,22 @@ import { implementsAbstractType, Request } from '@graphql-tools/utils';
 import { Transform, DelegationContext } from '../types';
 
 export default class ExpandAbstractTypes implements Transform {
-  private readonly targetSchema: GraphQLSchema;
-  private readonly possibleTypesMap: Record<string, Array<string>>;
-  private readonly reversePossibleTypesMap: Record<string, Array<string>>;
-  private readonly interfaceExtensionsMap: Record<string, Record<string, boolean>>;
-
-  constructor(sourceSchema: GraphQLSchema, targetSchema: GraphQLSchema) {
-    this.targetSchema = targetSchema;
-    const { possibleTypesMap, interfaceExtensionsMap } = extractPossibleTypes(sourceSchema, targetSchema);
-    this.possibleTypesMap = possibleTypesMap;
-    this.reversePossibleTypesMap = flipMapping(this.possibleTypesMap);
-    this.interfaceExtensionsMap = interfaceExtensionsMap;
-  }
-
   public transformRequest(
     originalRequest: Request,
-    _delegationContext: DelegationContext,
+    delegationContext: DelegationContext,
     _transformationContext: Record<string, any>
   ): Request {
+    const targetSchema = delegationContext.targetSchema;
+    const { possibleTypesMap, interfaceExtensionsMap } = extractPossibleTypes(
+      delegationContext.info.schema,
+      targetSchema
+    );
+    const reversePossibleTypesMap = flipMapping(possibleTypesMap);
     const document = expandAbstractTypes(
-      this.targetSchema,
-      this.possibleTypesMap,
-      this.reversePossibleTypesMap,
-      this.interfaceExtensionsMap,
+      targetSchema,
+      possibleTypesMap,
+      reversePossibleTypesMap,
+      interfaceExtensionsMap,
       originalRequest.document
     );
 

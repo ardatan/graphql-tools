@@ -19,20 +19,16 @@ import { Transform, DelegationContext } from '../types';
 // For motivation, see https://github.com/ardatan/graphql-tools/issues/751
 
 export default class WrapConcreteTypes implements Transform {
-  private readonly returnType: GraphQLOutputType;
-  private readonly targetSchema: GraphQLSchema;
-
-  constructor(returnType: GraphQLOutputType, targetSchema: GraphQLSchema) {
-    this.returnType = returnType;
-    this.targetSchema = targetSchema;
-  }
-
   public transformRequest(
     originalRequest: Request,
-    _delegationContext: DelegationContext,
+    delegationContext: DelegationContext,
     _transformationContext: Record<string, any>
   ): Request {
-    const document = wrapConcreteTypes(this.returnType, this.targetSchema, originalRequest.document);
+    const document = wrapConcreteTypes(
+      delegationContext.returnType,
+      delegationContext.targetSchema,
+      originalRequest.document
+    );
     return {
       ...originalRequest,
       document,
