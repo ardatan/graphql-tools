@@ -48,3 +48,4 @@ export * from './observableToAsyncIterable';
 export * from './visitResult';
 export * from './getArgumentValues';
 export * from './valueMatchesCriteria';
+export * from './isAsyncIterable';
