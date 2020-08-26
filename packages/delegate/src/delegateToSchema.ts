@@ -148,6 +148,8 @@ export function delegateRequest({
     allTransforms = transforms;
   }
 
+  const stitchingInfo: StitchingInfo = info?.schema.extensions?.stitchingInfo;
+
   const delegationContext = {
     subschema: subschemaOrSubschemaConfig,
     targetSchema,
@@ -159,7 +161,9 @@ export function delegateRequest({
     returnType:
       returnType ?? info?.returnType ?? getDelegationReturnType(targetSchema, targetOperation, targetFieldName),
     transforms: allTransforms,
-    transformedSchema: transformedSchema ?? targetSchema,
+    transformedSchema:
+      transformedSchema ??
+      (stitchingInfo ? stitchingInfo.transformedSchemas.get(subschemaOrSubschemaConfig) : targetSchema),
     skipTypeMerging,
   };
 

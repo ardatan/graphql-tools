@@ -15,18 +15,12 @@ import { Request } from '@graphql-tools/utils';
 import { Transform, DelegationContext } from '../types';
 
 export default class AddTypenameToAbstract implements Transform {
-  private readonly targetSchema: GraphQLSchema;
-
-  constructor(targetSchema: GraphQLSchema) {
-    this.targetSchema = targetSchema;
-  }
-
   public transformRequest(
     originalRequest: Request,
-    _delegationContext: DelegationContext,
+    delegationContext: DelegationContext,
     _transformationContext: Record<string, any>
   ): Request {
-    const document = addTypenameToAbstract(this.targetSchema, originalRequest.document);
+    const document = addTypenameToAbstract(delegationContext.targetSchema, originalRequest.document);
     return {
       ...originalRequest,
       document,
