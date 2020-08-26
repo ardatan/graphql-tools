@@ -467,11 +467,13 @@ function resolveField({
     return null as any;
   }
 
+  const fieldPath = [...path, field.name];
+  const fieldPathStr = fieldPath.join('.');
   let fieldName = field.name;
-  if (fieldTypeMap.has(fieldName) && fieldTypeMap.get(fieldName) !== field.type.toString()) {
+  if (fieldTypeMap.has(fieldPathStr) && fieldTypeMap.get(fieldPathStr) !== field.type.toString()) {
     fieldName += (field.type as any).toString().replace('!', 'NonNull');
   }
-  fieldTypeMap.set(fieldName, field.type.toString());
+  fieldTypeMap.set(fieldPathStr, field.type.toString());
 
   if (!isScalarType(namedType) && !isEnumType(namedType)) {
     return {
@@ -487,7 +489,7 @@ function resolveField({
           type: namedType,
           models,
           firstCall,
-          path: [...path, field.name],
+          path: fieldPath,
           ancestors: [...ancestors, type],
           ignore,
           depthLimit,
