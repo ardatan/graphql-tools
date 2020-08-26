@@ -11,8 +11,6 @@ import { makeExecutableSchema, addSchemaLevelResolver } from '@graphql-tools/sch
 
 import { ExecutionResult } from '@graphql-tools/utils';
 
-import { forAwaitEach } from './forAwaitEach';
-
 describe('Resolve', () => {
   describe('addSchemaLevelResolver', () => {
     const pubsub = new PubSub();
@@ -79,97 +77,58 @@ describe('Resolve', () => {
       });
     });
 
-    test('should isolate roots from the different operation types', (done) => {
+    test('should isolate roots from the different operation types', async () => {
       schemaLevelResolverCalls = 0;
       const queryRoot = 'queryRoot';
       const mutationRoot = 'mutationRoot';
       const subscriptionRoot = 'subscriptionRoot';
       const subscriptionRoot2 = 'subscriptionRoot2';
 
-      let subsCbkCalls = 0;
-      const firstSubsTriggered = new Promise((resolveFirst) => {
-        subscribe(
-          schema,
-          parse(`
-            subscription TestSubscription {
-              printRoot
-            }
-          `),
-        )
-          .then((results) => {
-            forAwaitEach(
-              results as AsyncIterable<ExecutionResult>,
-              (result: ExecutionResult) => {
-                if (result.errors != null) {
-                  return done(
-                    new Error(
-                      `Unexpected errors in GraphQL result: ${JSON.stringify(
-                        result.errors,
-                      )}`,
-                    ),
-                  );
-                }
+      const sub = await subscribe(
+        schema,
+        parse(`
+          subscription TestSubscription {
+            printRoot
+          }
+        `),
+      ) as AsyncIterableIterator<ExecutionResult>;
 
-                const subsData = result.data;
-                subsCbkCalls++;
-                try {
-                  if (subsCbkCalls === 1) {
-                    expect(schemaLevelResolverCalls).toEqual(1);
-                    expect(subsData).toEqual({ printRoot: subscriptionRoot });
-                    return resolveFirst();
-                  } else if (subsCbkCalls === 2) {
-                    expect(schemaLevelResolverCalls).toEqual(4);
-                    expect(subsData).toEqual({
-                      printRoot: subscriptionRoot2,
-                    });
-                    return done();
-                  }
-                } catch (e) {
-                  return done(e);
-                }
-                done(new Error('Too many subscription fired'));
-              },
-            ).catch(done);
-          })
-          .then(() =>
-            pubsub.publish('printRootChannel', { printRoot: subscriptionRoot }),
-          )
-          .catch(done);
-      });
+      const payload1 = sub.next();
+      await pubsub.publish('printRootChannel', { printRoot: subscriptionRoot });
 
-      firstSubsTriggered
-        .then(() =>
-          graphql(
-            schema,
-            `
-              query TestQuery {
-                printRoot
-              }
-            `,
-            queryRoot,
-          ),
-        )
-        .then(({ data }) => {
-          expect(schemaLevelResolverCalls).toEqual(2);
-          expect(data).toEqual({ printRoot: queryRoot });
-          return graphql(
-            schema,
-            `
-              mutation TestMutation {
-                printRoot
-              }
-            `,
-            mutationRoot,
-          );
-        })
-        .then(({ data: mutationData }) => {
-          expect(schemaLevelResolverCalls).toEqual(3);
-          expect(mutationData).toEqual({ printRoot: mutationRoot });
-          return pubsub.publish('printRootChannel', {
-            printRoot: subscriptionRoot2,
-          });
-        })
-        .catch(done);
+      expect(await payload1).toEqual({ done: false, value: { data: { printRoot: subscriptionRoot } } });
+      expect(schemaLevelResolverCalls).toEqual(1);
+
+      const queryResult = await graphql(
+        schema,
+        `
+          query TestQuery {
+            printRoot
+          }
+        `,
+        queryRoot,
+      );
+
+      expect(queryResult).toEqual({ data: { printRoot: queryRoot } });
+      expect(schemaLevelResolverCalls).toEqual(2);
+
+      const mutationResult = await graphql(
+        schema,
+        `
+          mutation TestMutation {
+            printRoot
+          }
+        `,
+        mutationRoot,
+      );
+
+      expect(mutationResult).toEqual({ data: { printRoot: mutationRoot } });
+      expect(schemaLevelResolverCalls).toEqual(3);
+
+      await pubsub.publish('printRootChannel', { printRoot: subscriptionRoot2 });
+
+      expect(await sub.next()).toEqual({ done: false, value: { data: { printRoot: subscriptionRoot2 } } });
+      expect(schemaLevelResolverCalls).toEqual(4);
     });
 
     it('should not force an otherwise synchronous operation to be asynchronous', () => {
