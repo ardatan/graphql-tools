@@ -1,4 +1,3 @@
-import { forAwaitEach } from './forAwaitEach';
 import {
   GraphQLSchema,
   subscribe,
@@ -6,6 +5,7 @@ import {
   graphql,
   execute,
   print,
+  ExecutionResult,
 } from 'graphql';
 
 import { makeRemoteExecutableSchema } from '../src/index';
@@ -63,7 +63,7 @@ describe('remote subscriptions', () => {
     schema = makeRemoteExecutableSchema(remoteSubschemaConfig);
   });
 
-  test('should work', (done) => {
+  test('should work', async () => {
     const mockNotification = {
       notifications: {
         text: 'Hello world',
@@ -78,21 +78,13 @@ describe('remote subscriptions', () => {
       }
     `);
 
-    let notificationCnt = 0;
-    subscribe(schema, subscription)
-      .then((results) => {
-        forAwaitEach(results, (result) => {
-          expect(result).toHaveProperty('data');
-          expect(result.data).toEqual(mockNotification);
-          if (!notificationCnt++) {
-            done();
-          }
-        }).catch(done);
-      })
-      .then(() =>
-        subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification),
-      )
-      .catch(done);
+    const sub = await subscribe(schema, subscription) as AsyncIterableIterator<ExecutionResult>;
+
+    const payload = sub.next();
+
+    await subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification);
+
+    expect(await payload).toEqual({ done: false, value: { data: mockNotification } });
   });
 
   test('should work without triggering multiple times per notification', (done) => {
@@ -111,36 +103,32 @@ describe('remote subscriptions', () => {
       `);
 
     let notificationCnt = 0;
-    const sub1 = subscribe(schema, subscription).then((results) => {
-      forAwaitEach(results, (result) => {
+    const sub1 = subscribe(schema, subscription);
+    sub1.then(async (results) => {
+      for await (let result of results as AsyncIterable<ExecutionResult>) {
         expect(result).toHaveProperty('data');
         expect(result.data).toEqual(mockNotification);
         notificationCnt++;
-      }).catch(done);
+      }
     });
 
-    const sub2 = subscribe(schema, subscription).then((results) => {
-      forAwaitEach(results, (result) => {
+    const sub2 = subscribe(schema, subscription);
+    sub2.then(async (results) => {
+      for await (let result of results as AsyncIterable<ExecutionResult>) {
         expect(result).toHaveProperty('data');
         expect(result.data).toEqual(mockNotification);
-      }).catch(done);
+      }
     });
 
     Promise.all([sub1, sub2])
       .then(() => {
-        subscriptionPubSub
-          .publish(subscriptionPubSubTrigger, mockNotification)
-          .catch(done);
-        subscriptionPubSub
-          .publish(subscriptionPubSubTrigger, mockNotification)
-          .catch(done);
-
+        subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification);
+        subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification);
         setTimeout(() => {
           expect(notificationCnt).toBe(2);
           done();
         }, 0);
       })
-      .catch(done);
   });
 });
 
