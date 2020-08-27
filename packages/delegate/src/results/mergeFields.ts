@@ -26,23 +26,27 @@ const sortSubschemasByProxiability = memoize4(function (
   targetSubschemas.forEach(t => {
     const selectionSet = mergedTypeInfo.selectionSets.get(t);
     const fieldSelectionSets = mergedTypeInfo.fieldSelectionSets.get(t);
-    if (!subschemaTypesContainSelectionSet(mergedTypeInfo, sourceSubschemaOrSourceSubschemas, selectionSet)) {
-      nonProxiableSubschemas.push(t);
-    } else if (fieldSelectionSets == null) {
-      proxiableSubschemas.push(t);
-    } else if (
-      fieldNodes.every(fieldNode => {
-        const fieldName = fieldNode.name.value;
-        const fieldSelectionSet = fieldSelectionSets[fieldName];
-        return (
-          fieldSelectionSet == null ||
-          subschemaTypesContainSelectionSet(mergedTypeInfo, sourceSubschemaOrSourceSubschemas, fieldSelectionSet)
-        );
-      })
+    if (
+      selectionSet != null &&
+      !subschemaTypesContainSelectionSet(mergedTypeInfo, sourceSubschemaOrSourceSubschemas, selectionSet)
     ) {
-      proxiableSubschemas.push(t);
-    } else {
       nonProxiableSubschemas.push(t);
+    } else {
+      if (
+        fieldSelectionSets == null ||
+        fieldNodes.every(fieldNode => {
+          const fieldName = fieldNode.name.value;
+          const fieldSelectionSet = fieldSelectionSets[fieldName];
+          return (
+            fieldSelectionSet == null ||
+            subschemaTypesContainSelectionSet(mergedTypeInfo, sourceSubschemaOrSourceSubschemas, fieldSelectionSet)
+          );
+        })
+      ) {
+        proxiableSubschemas.push(t);
+      } else {
+        nonProxiableSubschemas.push(t);
+      }
     }
   });
 
