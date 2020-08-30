@@ -1,4 +1,12 @@
-import { DocumentNode, ObjectTypeDefinitionNode, ObjectTypeExtensionNode, ValueNode, Kind } from 'graphql';
+import {
+  DocumentNode,
+  ObjectTypeDefinitionNode,
+  ObjectTypeExtensionNode,
+  InputObjectTypeDefinitionNode,
+  InputObjectTypeExtensionNode,
+  ValueNode,
+  Kind,
+} from 'graphql';
 
 export type DirectiveArgs = { [name: string]: any };
 export type DirectiveUsage = { name: string; args: DirectiveArgs };
@@ -6,9 +14,15 @@ export type TypeAndFieldToDirectives = {
   [typeAndField: string]: DirectiveUsage[];
 };
 
-function isObjectTypeDefinitionOrExtension(obj: any): obj is ObjectTypeDefinitionNode | ObjectTypeDefinitionNode {
-  return obj && (obj.kind === 'ObjectTypeDefinition' || obj.kind === 'ObjectTypeExtension');
+interface Options {
+  includeInputTypes?: boolean;
 }
+
+type SelectedNodes =
+  | ObjectTypeDefinitionNode
+  | ObjectTypeExtensionNode
+  | InputObjectTypeDefinitionNode
+  | InputObjectTypeExtensionNode;
 
 function parseDirectiveValue(value: ValueNode): any {
   switch (value.kind) {
@@ -32,11 +46,16 @@ function parseDirectiveValue(value: ValueNode): any {
   }
 }
 
-export function getFieldsWithDirectives(documentNode: DocumentNode): TypeAndFieldToDirectives {
+export function getFieldsWithDirectives(documentNode: DocumentNode, options: Options = {}): TypeAndFieldToDirectives {
   const result: TypeAndFieldToDirectives = {};
-  const allTypes = documentNode.definitions.filter<ObjectTypeDefinitionNode | ObjectTypeExtensionNode>(
-    isObjectTypeDefinitionOrExtension
-  );
+
+  let selected = ['ObjectTypeDefinition', 'ObjectTypeExtension'];
+
+  if (options.includeInputTypes) {
+    selected = [...selected, 'InputObjectTypeDefinition', 'InputObjectTypeExtension'];
+  }
+
+  const allTypes = documentNode.definitions.filter(obj => selected.includes(obj.kind)) as SelectedNodes[];
 
   for (const type of allTypes) {
     const typeName = type.name.value;
