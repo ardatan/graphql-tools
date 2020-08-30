@@ -151,6 +151,7 @@ export interface SubschemaConfig {
   createProxyingResolver?: CreateProxyingResolverFn;
   transforms?: Array<Transform>;
   merge?: Record<string, MergedTypeConfig>;
+  batch?: boolean;
 }
 
 export interface MergedTypeConfig<K = any, V = any> {
