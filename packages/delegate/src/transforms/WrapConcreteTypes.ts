@@ -47,50 +47,92 @@ function wrapConcreteTypes(
     return document;
   }
 
-  const queryRootType = targetSchema.getQueryType();
-  const mutationRootType = targetSchema.getMutationType();
-  const subscriptionRootType = targetSchema.getSubscriptionType();
-
   const typeInfo = new TypeInfo(targetSchema);
   const newDocument = visit(
     document,
     visitWithTypeInfo(typeInfo, {
-      [Kind.FIELD](node: FieldNode) {
-        const maybeType = typeInfo.getParentType();
-        if (maybeType == null) {
-          return false;
-        }
-
-        const parentType = getNamedType(maybeType);
-        if (parentType !== queryRootType && parentType !== mutationRootType && parentType !== subscriptionRootType) {
-          return false;
-        }
-
-        if (!isAbstractType(getNamedType(typeInfo.getType()))) {
-          return false;
-        }
-
-        return {
-          ...node,
-          selectionSet: {
-            kind: Kind.SELECTION_SET,
-            selections: [
-              {
-                kind: Kind.INLINE_FRAGMENT,
-                typeCondition: {
-                  kind: Kind.NAMED_TYPE,
-                  name: {
-                    kind: Kind.NAME,
-                    value: namedType.name,
+      [Kind.FIELD]: (node: FieldNode) => {
+        if (isAbstractType(getNamedType(typeInfo.getType()))) {
+          return {
+            ...node,
+            selectionSet: {
+              kind: Kind.SELECTION_SET,
+              selections: [
+                {
+                  kind: Kind.INLINE_FRAGMENT,
+                  typeCondition: {
+                    kind: Kind.NAMED_TYPE,
+                    name: {
+                      kind: Kind.NAME,
+                      value: namedType.name,
+                    },
                   },
+                  selectionSet: node.selectionSet,
                 },
-                selectionSet: node.selectionSet,
-              },
-            ],
-          },
-        };
+              ],
+            },
+          };
+        }
       },
-    })
+    }),
+    // visitorKeys argument usage a la https://github.com/gatsbyjs/gatsby/blob/master/packages/gatsby-source-graphql/src/batching/merge-queries.js
+    // empty keys cannot be removed only because of typescript errors
+    // will hopefully be fixed in future version of graphql-js to be optional
+    {
+      Name: [],
+
+      Document: ['definitions'],
+      OperationDefinition: ['selectionSet'],
+      VariableDefinition: [],
+      Variable: [],
+      SelectionSet: ['selections'],
+      Field: [],
+      Argument: [],
+
+      FragmentSpread: [],
+      InlineFragment: ['selectionSet'],
+      FragmentDefinition: ['selectionSet'],
+
+      IntValue: [],
+      FloatValue: [],
+      StringValue: [],
+      BooleanValue: [],
+      NullValue: [],
+      EnumValue: [],
+      ListValue: [],
+      ObjectValue: [],
+      ObjectField: [],
+
+      Directive: [],
+
+      NamedType: [],
+      ListType: [],
+      NonNullType: [],
+
+      SchemaDefinition: [],
+      OperationTypeDefinition: [],
+
+      ScalarTypeDefinition: [],
+      ObjectTypeDefinition: [],
+      FieldDefinition: [],
+      InputValueDefinition: [],
+      InterfaceTypeDefinition: [],
+      UnionTypeDefinition: [],
+      EnumTypeDefinition: [],
+      EnumValueDefinition: [],
+      InputObjectTypeDefinition: [],
+
+      DirectiveDefinition: [],
+
+      SchemaExtension: [],
+
+      ScalarTypeExtension: [],
+      ObjectTypeExtension: [],
+      InterfaceTypeExtension: [],
+      UnionTypeExtension: [],
+      EnumTypeExtension: [],
+      InputObjectTypeExtension: [],
+    }
   );
 
   return newDocument;
