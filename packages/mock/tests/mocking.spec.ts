@@ -4,7 +4,7 @@ import {
   GraphQLResolveInfo,
   GraphQLSchema,
   GraphQLFieldResolver,
-  buildSchema,
+  buildSchema, subscribe, parse
 } from 'graphql';
 
 import { sentence, first_name } from 'casual';
@@ -1615,6 +1615,44 @@ describe('Mock', () => {
       secondName: mockedSecondName,
     });
   });
+
+  it('resolves subscriptions only once', async () => {
+    let schema = buildSchema(/* GraphQL */ `
+      type Foo {
+        bar: String
+      }
+      type Query {
+        foo: Foo
+      }
+      type Subscription {
+        fooSub: Foo
+      }
+    `);
+
+    schema = addMocksToSchema({ schema });
+
+    const resultIterator = await subscribe({
+      schema,
+      document: /* GraphQL */ parse(`
+        subscription FooSub {
+          fooSub {
+            bar
+          }
+        }
+      `),
+    });
+
+    expect(resultIterator[Symbol.asyncIterator]).toBeTruthy();
+
+    for await (const result of resultIterator as any) {
+      expect(result).toBe({
+        fooSub: {
+          bar: 'Hello World!'
+        }
+      })
+    }
+
+  })
 
   // TODO add a test that checks that even when merging defaults, lists invoke
   // the function for every object, not just once per list.
