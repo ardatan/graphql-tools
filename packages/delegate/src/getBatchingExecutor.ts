@@ -17,14 +17,18 @@ export const getBatchingExecutor = memoize2of3(function (
   executor: ({ document, context, variables, info }: ExecutionParams) => ExecutionResult | Promise<ExecutionResult>
 ) {
   const loader = new DataLoader(
-    createLoadFn(executor ?? subschemaConfig.executor),
+    createLoadFn(
+      executor ?? subschemaConfig.executor,
+      subschemaConfig.batchingOptions?.extensionsReducer ?? defaultExtensionsReducer
+    ),
     subschemaConfig.batchingOptions?.dataLoaderOptions
   );
   return (executionParams: ExecutionParams) => loader.load(executionParams);
 });
 
 function createLoadFn(
-  executor: ({ document, context, variables, info }: ExecutionParams) => ExecutionResult | Promise<ExecutionResult>
+  executor: ({ document, context, variables, info }: ExecutionParams) => ExecutionResult | Promise<ExecutionResult>,
+  extensionsReducer: (mergedExtensions: Record<string, any>, executionParams: ExecutionParams) => Record<string, any>
 ) {
   return async (execs: Array<ExecutionParams>): Promise<Array<ExecutionResult>> => {
     const execBatches: Array<Array<ExecutionParams>> = [];
@@ -46,7 +50,7 @@ function createLoadFn(
     let containsPromises = false;
     const executionResults: Array<ExecutionResult | Promise<ExecutionResult>> = [];
     execBatches.forEach(execBatch => {
-      const mergedExecutionParams = mergeExecutionParams(execBatch);
+      const mergedExecutionParams = mergeExecutionParams(execBatch, extensionsReducer);
       const executionResult = executor(mergedExecutionParams);
 
       if (isPromise(executionResult)) {
@@ -71,4 +75,15 @@ function createLoadFn(
     });
     return results;
   };
+}
+
+function defaultExtensionsReducer(
+  mergedExtensions: Record<string, any>,
+  executionParams: ExecutionParams
+): Record<string, any> {
+  const newExtensions = executionParams.extensions;
+  if (newExtensions != null) {
+    Object.assign(mergedExtensions, newExtensions);
+  }
+  return mergedExtensions;
 }

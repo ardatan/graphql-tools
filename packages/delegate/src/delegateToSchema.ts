@@ -163,8 +163,7 @@ export function delegateRequest({
     }
 
     const executionResult = executor({
-      document: processedRequest.document,
-      variables: processedRequest.variables,
+      ...processedRequest,
       context,
       info,
     });
@@ -179,8 +178,7 @@ export function delegateRequest({
     subschemaConfig?.subscriber || createDefaultSubscriber(targetSchema, subschemaConfig?.rootValue || targetRootValue);
 
   return subscriber({
-    document: processedRequest.document,
-    variables: processedRequest.variables,
+    ...processedRequest,
     context,
     info,
   }).then((subscriptionResult: AsyncIterableIterator<ExecutionResult> | ExecutionResult) => {

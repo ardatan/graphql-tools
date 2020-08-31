@@ -95,6 +95,7 @@ export interface MergedTypeInfo {
 export interface ExecutionParams<TArgs = Record<string, any>, TContext = any> {
   document: DocumentNode;
   variables?: TArgs;
+  extensions?: Record<string, any>;
   context?: TContext;
   info?: GraphQLResolveInfo;
 }
@@ -134,6 +135,10 @@ export interface SubschemaConfig<K = any, V = any, C = K> {
   merge?: Record<string, MergedTypeConfig>;
   batch?: boolean;
   batchingOptions?: {
+    extensionsReducer?: (
+      mergedExtensions: Record<string, any>,
+      executionParams: ExecutionParams
+    ) => Record<string, any>;
     dataLoaderOptions?: DataLoader.Options<K, V, C>;
   };
 }

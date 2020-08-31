@@ -55,11 +55,15 @@ import { ExecutionParams } from './types';
  *     }
  *   }
  */
-export function mergeExecutionParams(execs: Array<ExecutionParams>): ExecutionParams {
+export function mergeExecutionParams(
+  execs: Array<ExecutionParams>,
+  extensionsReducer: (mergedExtensions: Record<string, any>, executionParams: ExecutionParams) => Record<string, any>
+): ExecutionParams {
   const mergedVariables: Record<string, any> = Object.create(null);
   const mergedVariableDefinitions: Array<VariableDefinitionNode> = [];
   const mergedSelections: Array<SelectionNode> = [];
   const mergedFragmentDefinitions: Array<FragmentDefinitionNode> = [];
+  let mergedExtensions: Record<string, any> = Object.create(null);
 
   let operation: OperationTypeNode;
 
@@ -77,6 +81,7 @@ export function mergeExecutionParams(execs: Array<ExecutionParams>): ExecutionPa
       }
     });
     Object.assign(mergedVariables, prefixedExecutionParams.variables);
+    mergedExtensions = extensionsReducer(mergedExtensions, executionParams);
   });
 
   const mergedOperationDefinition: OperationDefinitionNode = {
@@ -95,6 +100,7 @@ export function mergeExecutionParams(execs: Array<ExecutionParams>): ExecutionPa
       definitions: [mergedOperationDefinition, ...mergedFragmentDefinitions],
     },
     variables: mergedVariables,
+    extensions: mergedExtensions,
     context: execs[0].context,
     info: execs[0].info,
   };
