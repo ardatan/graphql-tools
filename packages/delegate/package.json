@@ -21,6 +21,7 @@
     "@graphql-tools/schema": "6.1.0",
     "@graphql-tools/utils": "6.1.0",
     "@ardatan/aggregate-error": "0.0.1",
+    "dataloader": "2.0.0",
     "is-promise": "4.0.0",
     "tslib": "~2.0.1"
   },

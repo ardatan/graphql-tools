@@ -147,14 +147,17 @@ describe('merge schemas through transforms', () => {
     const propertySubschema = {
       schema: propertySchema,
       transforms: propertySchemaTransforms,
+      batch: true,
     };
     const bookingSubschema = {
       ...bookingSubschemaConfig,
       transforms: bookingSchemaTransforms,
+      batch: true,
     };
     const subscriptionSubschema = {
       schema: subscriptionSchema,
       transforms: subscriptionSchemaTransforms,
+      batch: true,
     };
 
     stitchedSchema = stitchSchemas({

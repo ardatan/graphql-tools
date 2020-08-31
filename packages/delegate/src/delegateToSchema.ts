@@ -24,6 +24,7 @@ import { createRequestFromInfo, getDelegatingOperation } from './createRequest';
 import { Transformer } from './Transformer';
 
 import AggregateError from '@ardatan/aggregate-error';
+import { getBatchingExecutor } from './getBatchingExecutor';
 
 export function delegateToSchema(options: IDelegateToSchemaOptions | GraphQLSchema): any {
   if (isSchema(options)) {
@@ -154,8 +155,12 @@ export function delegateRequest({
   }
 
   if (targetOperation === 'query' || targetOperation === 'mutation') {
-    const executor =
+    let executor =
       subschemaConfig?.executor || createDefaultExecutor(targetSchema, subschemaConfig?.rootValue || targetRootValue);
+
+    if (subschemaConfig?.batch) {
+      executor = getBatchingExecutor(context, subschemaConfig, executor);
+    }
 
     const executionResult = executor({
       document: processedRequest.document,
