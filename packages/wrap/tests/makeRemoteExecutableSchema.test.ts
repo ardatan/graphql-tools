@@ -105,7 +105,7 @@ describe('remote subscriptions', () => {
     let notificationCnt = 0;
     const sub1 = subscribe(schema, subscription);
     sub1.then(async (results) => {
-      for await (let result of results as AsyncIterable<ExecutionResult>) {
+      for await (const result of results as AsyncIterable<ExecutionResult>) {
         expect(result).toHaveProperty('data');
         expect(result.data).toEqual(mockNotification);
         notificationCnt++;
@@ -114,7 +114,7 @@ describe('remote subscriptions', () => {
 
     const sub2 = subscribe(schema, subscription);
     sub2.then(async (results) => {
-      for await (let result of results as AsyncIterable<ExecutionResult>) {
+      for await (const result of results as AsyncIterable<ExecutionResult>) {
         expect(result).toHaveProperty('data');
         expect(result.data).toEqual(mockNotification);
       }
