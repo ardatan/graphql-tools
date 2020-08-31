@@ -31,7 +31,7 @@
     "tslib": "~2.0.1",
     "valid-url": "1.0.9",
     "subscriptions-transport-ws": "0.9.18",
-    "websocket": "1.0.31"
+    "websocket": "1.0.32"
   },
   "publishConfig": {
     "access": "public",
