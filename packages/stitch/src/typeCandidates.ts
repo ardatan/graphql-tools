@@ -37,7 +37,6 @@ function isDocumentNode(schemaLikeObject: any): schemaLikeObject is DocumentNode
 export function buildTypeCandidates({
   schemaLikeObjects,
   transformedSchemas,
-  typeCandidates,
   extensions,
   directiveMap,
   schemaDefs,
@@ -46,7 +45,6 @@ export function buildTypeCandidates({
 }: {
   schemaLikeObjects: Array<GraphQLSchema | SubschemaConfig | DocumentNode | GraphQLNamedType>;
   transformedSchemas: Map<GraphQLSchema | SubschemaConfig, GraphQLSchema>;
-  typeCandidates: Record<string, Array<MergeTypeCandidate>>;
   extensions: Array<DocumentNode>;
   directiveMap: Record<string, GraphQLDirective>;
   schemaDefs: {
@@ -55,7 +53,9 @@ export function buildTypeCandidates({
   };
   operationTypeNames: Record<string, any>;
   mergeDirectives: boolean;
-}): void {
+}): Record<string, Array<MergeTypeCandidate>> {
+  const typeCandidates: Record<string, Array<MergeTypeCandidate>> = Object.create(null);
+
   let schemaDef: SchemaDefinitionNode;
   let schemaExtensions: Array<SchemaExtensionNode> = [];
 
@@ -86,10 +86,9 @@ export function buildTypeCandidates({
       Object.keys(operationTypes).forEach(operationType => {
         if (operationTypes[operationType] != null) {
           addTypeCandidate(typeCandidates, operationTypeNames[operationType], {
-            schema,
             type: operationTypes[operationType],
             subschema: schemaLikeObject,
-            transformedSubschema: schema,
+            transformedSchema: schema,
           });
         }
       });
@@ -111,10 +110,9 @@ export function buildTypeCandidates({
           type !== operationTypes.subscription
         ) {
           addTypeCandidate(typeCandidates, type.name, {
-            schema,
             type,
             subschema: schemaLikeObject,
-            transformedSubschema: schema,
+            transformedSchema: schema,
           });
         }
       });
@@ -147,6 +145,8 @@ export function buildTypeCandidates({
       throw new Error(`Invalid object ${schemaLikeObject as string}`);
     }
   });
+
+  return typeCandidates;
 }
 
 function setOperationTypeNames(
@@ -186,16 +186,16 @@ function addTypeCandidate(
 
 export function buildTypeMap({
   typeCandidates,
-  mergeTypes,
   stitchingInfo,
-  onTypeConflict,
   operationTypeNames,
+  onTypeConflict,
+  mergeTypes,
 }: {
   typeCandidates: Record<string, Array<MergeTypeCandidate>>;
-  mergeTypes: boolean | Array<string> | MergeTypeFilter;
   stitchingInfo: StitchingInfo;
-  onTypeConflict: OnTypeConflict;
   operationTypeNames: Record<string, any>;
+  onTypeConflict: OnTypeConflict;
+  mergeTypes: boolean | Array<string> | MergeTypeFilter;
 }): TypeMap {
   const typeMap: TypeMap = Object.create(null);
 
@@ -227,10 +227,10 @@ function onTypeConflictToCandidateSelector(onTypeConflict: OnTypeConflict): Cand
     cands.reduce((prev, next) => {
       const type = onTypeConflict(prev.type, next.type, {
         left: {
-          schema: prev.schema,
+          schema: prev.transformedSchema,
         },
         right: {
-          schema: next.schema,
+          schema: next.transformedSchema,
         },
       });
       if (prev.type === type) {
