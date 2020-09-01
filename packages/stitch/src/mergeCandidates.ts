@@ -207,7 +207,7 @@ function mergeUnionTypeCandidates(typeName: string, candidates: Array<MergeTypeC
   const configs = candidates.map(candidate => (candidate.type as GraphQLUnionType).toConfig());
   const typeMap = configs.reduce((acc, config) => {
     config.types.forEach(type => {
-      typeMap[type.name] = type;
+      acc[type.name] = type;
     });
     return acc;
   }, Object.create(null));
