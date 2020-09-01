@@ -5,16 +5,37 @@ import {
   DocumentNode,
   InlineFragmentNode,
   FieldNode,
+  GraphQLFieldConfig,
+  GraphQLObjectType,
+  GraphQLInterfaceType,
+  GraphQLInputFieldConfig,
+  GraphQLInputObjectType,
 } from 'graphql';
 import { ITypeDefinitions, TypeMap } from '@graphql-tools/utils';
 import { SubschemaConfig } from '@graphql-tools/delegate';
 import { IExecutableSchemaDefinition } from '@graphql-tools/schema';
 
-export type MergeTypeCandidate = {
+export interface MergeTypeCandidate {
   type: GraphQLNamedType;
   subschema?: GraphQLSchema | SubschemaConfig;
   transformedSchema?: GraphQLSchema;
-};
+}
+
+export interface MergeFieldConfigCandidate {
+  fieldConfig: GraphQLFieldConfig<any, any>;
+  fieldName: string;
+  type: GraphQLObjectType | GraphQLInterfaceType;
+  subschema?: GraphQLSchema | SubschemaConfig;
+  transformedSchema?: GraphQLSchema;
+}
+
+export interface MergeInputFieldConfigCandidate {
+  inputFieldConfig: GraphQLInputFieldConfig;
+  fieldName: string;
+  type: GraphQLInputObjectType;
+  subschema?: GraphQLSchema | SubschemaConfig;
+  transformedSchema?: GraphQLSchema;
+}
 
 export type MergeTypeFilter = (mergeTypeCandidates: Array<MergeTypeCandidate>, typeName: string) => boolean;
 
@@ -46,6 +67,13 @@ export interface IStitchSchemasOptions<TContext = any> extends Omit<IExecutableS
   onTypeConflict?: OnTypeConflict;
   mergeDirectives?: boolean;
   mergeTypes?: boolean | Array<string> | MergeTypeFilter;
+  typeMergingOptions?: TypeMergingOptions;
+}
+
+export interface TypeMergingOptions {
+  typeDescriptionsMerger?: (candidates: Array<MergeTypeCandidate>) => string;
+  fieldConfigMerger?: (candidates: Array<MergeFieldConfigCandidate>) => GraphQLFieldConfig<any, any>;
+  inputFieldConfigMerger?: (candidates: Array<MergeInputFieldConfigCandidate>) => GraphQLInputFieldConfig;
 }
 
 export type OnTypeConflict = (

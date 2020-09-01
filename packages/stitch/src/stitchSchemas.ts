@@ -34,11 +34,12 @@ export function stitchSchemas({
   typeDefs,
   schemas = [],
   onTypeConflict,
+  mergeDirectives,
+  mergeTypes = false,
+  typeMergingOptions,
   resolvers = {},
   schemaDirectives,
   inheritResolversFromInterfaces = false,
-  mergeTypes = false,
-  mergeDirectives,
   logger,
   allowUndefinedInResolve = true,
   resolverValidationOptions = {},
@@ -124,6 +125,7 @@ export function stitchSchemas({
     operationTypeNames,
     onTypeConflict,
     mergeTypes,
+    typeMergingOptions,
   });
 
   const { typeMap: newTypeMap, directives: newDirectives } = rewireTypes(typeMap, directives, { skipPruning: true });
