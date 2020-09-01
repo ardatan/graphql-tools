@@ -621,9 +621,14 @@ Finally, you may wish to fine-tune which types are merged. Besides taking a bool
 
 ```ts
 export type MergeTypeCandidate = {
+  // type: a type to potentially merge
   type: GraphQLNamedType;
-  subschema?: GraphQLSchema | SubschemaConfig; // undefined if the type is added to the gateway directly, not from a subschema
-  transformedSubschema?: GraphQLSchema; // the target schema of the above after any subschema config schema transformations are applied
+  // subschema: undefined if the type is added to the gateway directly, not from a subschema
+  subschema?: GraphQLSchema | SubschemaConfig;
+  // transformedSchema: when `subschema` is a `GraphQLSchema`, identical to above.
+  // When `subschema` is a `SubschemaConfig` object, `transformedSchema` will be the result of applying the schema
+  // transforms from the `SubschemaConfig` object to the original schema.
+  transformedSchema?: GraphQLSchema;
 };
 
 export type MergeTypeFilter = (mergeTypeCandidates: Array<MergeTypeCandidate>, typeName: string) => boolean;

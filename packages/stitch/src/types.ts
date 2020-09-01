@@ -12,9 +12,8 @@ import { IExecutableSchemaDefinition } from '@graphql-tools/schema';
 
 export type MergeTypeCandidate = {
   type: GraphQLNamedType;
-  schema?: GraphQLSchema;
   subschema?: GraphQLSchema | SubschemaConfig;
-  transformedSubschema?: GraphQLSchema;
+  transformedSchema?: GraphQLSchema;
 };
 
 export type MergeTypeFilter = (mergeTypeCandidates: Array<MergeTypeCandidate>, typeName: string) => boolean;
@@ -45,8 +44,8 @@ export interface IStitchSchemasOptions<TContext = any> extends Omit<IExecutableS
   types?: Array<GraphQLNamedType>;
   schemas?: Array<SchemaLikeObject>;
   onTypeConflict?: OnTypeConflict;
-  mergeTypes?: boolean | Array<string> | MergeTypeFilter;
   mergeDirectives?: boolean;
+  mergeTypes?: boolean | Array<string> | MergeTypeFilter;
 }
 
 export type OnTypeConflict = (

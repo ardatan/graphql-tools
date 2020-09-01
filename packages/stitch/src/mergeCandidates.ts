@@ -279,10 +279,10 @@ function mergeScalarTypeCandidates(typeName: string, candidates: Array<MergeType
   const serialize = serializeFns[serializeFns.length - 1];
 
   const parseValueFns = pluck<GraphQLScalarValueParser<any>>('parseValue', candidates);
-  const parseValue = parseValueFns[descriptions.length - 1];
+  const parseValue = parseValueFns[parseValueFns.length - 1];
 
   const parseLiteralFns = pluck<GraphQLScalarLiteralParser<any>>('parseLiteral', candidates);
-  const parseLiteral = parseLiteralFns[descriptions.length - 1];
+  const parseLiteral = parseLiteralFns[parseLiteralFns.length - 1];
 
   const astNodes = pluck<ScalarTypeDefinitionNode>('astNode', candidates);
   const astNode = astNodes
