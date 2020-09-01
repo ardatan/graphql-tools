@@ -724,6 +724,7 @@ export async function makeSchemaRemote(
     schema: clientSchema,
     executor,
     subscriber,
+    batch: true,
   };
 }
 

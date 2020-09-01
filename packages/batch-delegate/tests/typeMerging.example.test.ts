@@ -227,7 +227,8 @@ describe('merging using type merging', () => {
             fieldName: '_userById',
             args: ({ id }) => ({ id })
           }
-        }
+        },
+        batch: true,
       },
       {
         schema: inventorySchema,
@@ -242,7 +243,8 @@ describe('merging using type merging', () => {
             fieldName: '_productByRepresentation',
             args: ({ upc, weight, price }) => ({ product: { upc, weight, price } }),
           }
-        }
+        },
+        batch: true,
       },
       {
         schema: productsSchema,
@@ -252,7 +254,8 @@ describe('merging using type merging', () => {
             fieldName: '_productByUpc',
             args: ({ upc }) => ({ upc }),
           }
-        }
+        },
+        batch: true,
       },
       {
         schema: reviewsSchema,
@@ -268,7 +271,8 @@ describe('merging using type merging', () => {
             fieldName: '_productByUpc',
             args: ({ upc }) => ({ upc }),
           },
-        }
+        },
+        batch: true,
       }],
     mergeTypes: true,
   });
@@ -284,6 +288,8 @@ describe('merging using type merging', () => {
           }
         }
       `,
+      undefined,
+      {},
     );
 
     const expectedResult = {
@@ -315,6 +321,8 @@ describe('merging using type merging', () => {
           }
         }
       `,
+      undefined,
+      {},
     );
 
     const expectedResult: ExecutionResult = {
@@ -348,6 +356,8 @@ describe('merging using type merging', () => {
           }
         }
       `,
+      undefined,
+      {},
     );
 
     const expectedResult: ExecutionResult = {
@@ -393,6 +403,8 @@ describe('merging using type merging', () => {
           }
         }
       `,
+      undefined,
+      {},
     );
 
     const expectedResult: ExecutionResult = {
