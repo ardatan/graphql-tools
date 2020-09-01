@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { GraphQLSchema, execute, parse } from 'graphql';
 import { resolve } from 'path';
 import { existsSync } from 'fs';
