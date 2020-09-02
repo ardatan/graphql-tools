@@ -152,13 +152,18 @@ export interface SubschemaConfig<K = any, V = any, C = K> extends SubschemaPermu
 
 export interface MergedTypeConfig<K = any, V = any> {
   selectionSet?: string;
-  fields?: Record<string, { selectionSet?: string }>;
+  fields?: Record<string, MergedFieldConfig>;
   resolve?: MergedTypeResolver;
   fieldName?: string;
   args?: (originalResult: any) => Record<string, any>;
   key?: (originalResult: any) => K;
   argsFromKeys?: (keys: ReadonlyArray<K>) => Record<string, any>;
   valuesFromResults?: (results: any, keys: ReadonlyArray<K>) => Array<V>;
+}
+
+export interface MergedFieldConfig<K = any, V = any> {
+  selectionSet?: string;
+  optional?: boolean;
 }
 
 export type MergedTypeResolver = (
