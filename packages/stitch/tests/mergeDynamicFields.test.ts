@@ -1,6 +1,7 @@
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
-import { printSchemaWithDirectives } from '@graphql-tools/utils';
+import { graphql } from 'graphql';
+import { isolateDynamicMergeSchemas } from '../src/isolateDynamicMergeSchemas';
 
 describe('dynamic fields', () => {
   const productSchema = makeExecutableSchema({
@@ -64,7 +65,7 @@ describe('dynamic fields', () => {
   });
 
   const gatewaySchema = stitchSchemas({
-    subschemas: [
+    subschemas: isolateDynamicMergeSchemas([
       {
         schema: productSchema,
         merge: {
@@ -81,8 +82,8 @@ describe('dynamic fields', () => {
           Product: {
             selectionSet: '{ id }',
             fields: {
-              shippingEstimate: { selectionSet: '{ price weight }' },
-              deliveryService: { selectionSet: '{ weight }' },
+              shippingEstimate: { selectionSet: '{ price weight }', required: true },
+              deliveryService: { selectionSet: '{ weight }', required: true },
             },
             fieldName: '_products',
             key: ({ id, price, weight }) => ({ id, price, weight }),
@@ -90,7 +91,7 @@ describe('dynamic fields', () => {
           }
         }
       }
-    ],
+    ]),
     mergeTypes: true
   });
 
