@@ -28,25 +28,35 @@ import {
 
 import { mergeType, mergeInputType, mergeInterface, mergeUnion, mergeEnum } from '@graphql-tools/merge';
 
-import { MergeTypeCandidate } from './types';
+import {
+  MergeTypeCandidate,
+  TypeMergingOptions,
+  MergeFieldConfigCandidate,
+  MergeInputFieldConfigCandidate,
+} from './types';
+import { fieldToFieldConfig, inputFieldToFieldConfig } from '@graphql-tools/utils';
 
-export function mergeCandidates(typeName: string, candidates: Array<MergeTypeCandidate>): GraphQLNamedType {
+export function mergeCandidates(
+  typeName: string,
+  candidates: Array<MergeTypeCandidate>,
+  typeMergingOptions: TypeMergingOptions
+): GraphQLNamedType {
   const initialCandidateType = candidates[0].type;
   if (candidates.some(candidate => candidate.type.constructor !== initialCandidateType.constructor)) {
     throw new Error(`Cannot merge different type categories into common type ${typeName}.`);
   }
   if (isObjectType(initialCandidateType)) {
-    return mergeObjectTypeCandidates(typeName, candidates);
+    return mergeObjectTypeCandidates(typeName, candidates, typeMergingOptions);
   } else if (isInputObjectType(initialCandidateType)) {
-    return mergeInputObjectTypeCandidates(typeName, candidates);
+    return mergeInputObjectTypeCandidates(typeName, candidates, typeMergingOptions);
   } else if (isInterfaceType(initialCandidateType)) {
-    return mergeInterfaceTypeCandidates(typeName, candidates);
+    return mergeInterfaceTypeCandidates(typeName, candidates, typeMergingOptions);
   } else if (isUnionType(initialCandidateType)) {
-    return mergeUnionTypeCandidates(typeName, candidates);
+    return mergeUnionTypeCandidates(typeName, candidates, typeMergingOptions);
   } else if (isEnumType(initialCandidateType)) {
-    return mergeEnumTypeCandidates(typeName, candidates);
+    return mergeEnumTypeCandidates(typeName, candidates, typeMergingOptions);
   } else if (isScalarType(initialCandidateType)) {
-    return mergeScalarTypeCandidates(typeName, candidates);
+    return mergeScalarTypeCandidates(typeName, candidates, typeMergingOptions);
   } else {
     // not reachable.
     throw new Error(`Type ${typeName} has unknown GraphQL type.`);
@@ -55,22 +65,14 @@ export function mergeCandidates(typeName: string, candidates: Array<MergeTypeCan
 
 function mergeObjectTypeCandidates(
   typeName: string,
-  candidates: Array<MergeTypeCandidate>
+  candidates: Array<MergeTypeCandidate>,
+  typeMergingOptions: TypeMergingOptions
 ): GraphQLObjectType<any, any> {
-  const descriptions = pluck<string>('description', candidates);
-  const description = descriptions[descriptions.length - 1];
-
-  const configs = candidates.map(candidate => (candidate.type as GraphQLObjectType).toConfig());
-  const fields = configs.reduce<GraphQLFieldConfigMap<any, any>>(
-    (acc, config) => ({
-      ...acc,
-      ...config.fields,
-    }),
-    {}
-  );
-
-  const interfaceMap = configs
-    .map(config => config.interfaces)
+  const description = mergeTypeDescriptions(candidates, typeMergingOptions);
+  const fields = fieldConfigMapFromTypeCandidates(candidates, typeMergingOptions);
+  const typeConfigs = candidates.map(candidate => (candidate.type as GraphQLObjectType).toConfig());
+  const interfaceMap = typeConfigs
+    .map(typeConfig => typeConfig.interfaces)
     .reduce((acc, interfaces) => {
       if (interfaces != null) {
         interfaces.forEach(iface => {
@@ -93,7 +95,7 @@ function mergeObjectTypeCandidates(
 
   const extensions = Object.assign({}, ...pluck<Record<string, any>>('extensions', candidates));
 
-  const config = {
+  const typeConfig = {
     name: typeName,
     description,
     fields,
@@ -103,24 +105,16 @@ function mergeObjectTypeCandidates(
     extensions,
   };
 
-  return new GraphQLObjectType(config);
+  return new GraphQLObjectType(typeConfig);
 }
 
 function mergeInputObjectTypeCandidates(
   typeName: string,
-  candidates: Array<MergeTypeCandidate>
+  candidates: Array<MergeTypeCandidate>,
+  typeMergingOptions: TypeMergingOptions
 ): GraphQLInputObjectType {
-  const descriptions = pluck<string>('description', candidates);
-  const description = descriptions[descriptions.length - 1];
-
-  const configs = candidates.map(candidate => (candidate.type as GraphQLInputObjectType).toConfig());
-  const fields = configs.reduce<GraphQLInputFieldConfigMap>(
-    (acc, config) => ({
-      ...acc,
-      ...config.fields,
-    }),
-    {}
-  );
+  const description = mergeTypeDescriptions(candidates, typeMergingOptions);
+  const fields = inputFieldConfigMapFromTypeCandidates(candidates, typeMergingOptions);
 
   const astNodes = pluck<InputObjectTypeDefinitionNode>('astNode', candidates);
   const astNode = astNodes
@@ -134,7 +128,7 @@ function mergeInputObjectTypeCandidates(
 
   const extensions = Object.assign({}, ...pluck<Record<string, any>>('extensions', candidates));
 
-  const config = {
+  const typeConfig = {
     name: typeName,
     description,
     fields,
@@ -143,28 +137,23 @@ function mergeInputObjectTypeCandidates(
     extensions,
   };
 
-  return new GraphQLInputObjectType(config);
+  return new GraphQLInputObjectType(typeConfig);
 }
 
 function pluck<T>(typeProperty: string, candidates: Array<MergeTypeCandidate>): Array<T> {
   return candidates.map(candidate => candidate.type[typeProperty]).filter(value => value != null) as Array<T>;
 }
 
-function mergeInterfaceTypeCandidates(typeName: string, candidates: Array<MergeTypeCandidate>): GraphQLInterfaceType {
-  const descriptions = pluck<string>('description', candidates);
-  const description = descriptions[descriptions.length - 1];
-
-  const configs = candidates.map(candidate => (candidate.type as GraphQLInterfaceType).toConfig());
-  const fields = configs.reduce<GraphQLFieldConfigMap<any, any>>(
-    (acc, config) => ({
-      ...acc,
-      ...config.fields,
-    }),
-    {}
-  );
-
-  const interfaceMap = configs
-    .map(config => ((config as unknown) as { interfaces: Array<GraphQLInterfaceType> }).interfaces)
+function mergeInterfaceTypeCandidates(
+  typeName: string,
+  candidates: Array<MergeTypeCandidate>,
+  typeMergingOptions: TypeMergingOptions
+): GraphQLInterfaceType {
+  const description = mergeTypeDescriptions(candidates, typeMergingOptions);
+  const fields = fieldConfigMapFromTypeCandidates(candidates, typeMergingOptions);
+  const typeConfigs = candidates.map(candidate => (candidate.type as GraphQLInterfaceType).toConfig());
+  const interfaceMap = typeConfigs
+    .map(typeConfig => ((typeConfig as unknown) as { interfaces: Array<GraphQLInterfaceType> }).interfaces)
     .reduce((acc, interfaces) => {
       if (interfaces != null) {
         interfaces.forEach(iface => {
@@ -187,7 +176,7 @@ function mergeInterfaceTypeCandidates(typeName: string, candidates: Array<MergeT
 
   const extensions = Object.assign({}, ...pluck<Record<string, any>>('extensions', candidates));
 
-  const config = {
+  const typeConfig = {
     name: typeName,
     description,
     fields,
@@ -197,16 +186,19 @@ function mergeInterfaceTypeCandidates(typeName: string, candidates: Array<MergeT
     extensions,
   };
 
-  return new GraphQLInterfaceType(config);
+  return new GraphQLInterfaceType(typeConfig);
 }
 
-function mergeUnionTypeCandidates(typeName: string, candidates: Array<MergeTypeCandidate>): GraphQLUnionType {
-  const descriptions = pluck<string>('description', candidates);
-  const description = descriptions[descriptions.length - 1];
+function mergeUnionTypeCandidates(
+  typeName: string,
+  candidates: Array<MergeTypeCandidate>,
+  typeMergingOptions: TypeMergingOptions
+): GraphQLUnionType {
+  const description = mergeTypeDescriptions(candidates, typeMergingOptions);
 
-  const configs = candidates.map(candidate => (candidate.type as GraphQLUnionType).toConfig());
-  const typeMap = configs.reduce((acc, config) => {
-    config.types.forEach(type => {
+  const typeConfigs = candidates.map(candidate => (candidate.type as GraphQLUnionType).toConfig());
+  const typeMap = typeConfigs.reduce((acc, typeConfig) => {
+    typeConfig.types.forEach(type => {
       acc[type.name] = type;
     });
     return acc;
@@ -225,7 +217,7 @@ function mergeUnionTypeCandidates(typeName: string, candidates: Array<MergeTypeC
 
   const extensions = Object.assign({}, ...pluck<Record<string, any>>('extensions', candidates));
 
-  const config = {
+  const typeConfig = {
     name: typeName,
     description,
     types,
@@ -234,18 +226,21 @@ function mergeUnionTypeCandidates(typeName: string, candidates: Array<MergeTypeC
     extensions,
   };
 
-  return new GraphQLUnionType(config);
+  return new GraphQLUnionType(typeConfig);
 }
 
-function mergeEnumTypeCandidates(typeName: string, candidates: Array<MergeTypeCandidate>): GraphQLEnumType {
-  const descriptions = pluck<string>('description', candidates);
-  const description = descriptions[descriptions.length - 1];
+function mergeEnumTypeCandidates(
+  typeName: string,
+  candidates: Array<MergeTypeCandidate>,
+  typeMergingOptions: TypeMergingOptions
+): GraphQLEnumType {
+  const description = mergeTypeDescriptions(candidates, typeMergingOptions);
 
-  const configs = candidates.map(candidate => (candidate.type as GraphQLEnumType).toConfig());
-  const values = configs.reduce<GraphQLEnumValueConfigMap>(
-    (acc, config) => ({
+  const typeConfigs = candidates.map(candidate => (candidate.type as GraphQLEnumType).toConfig());
+  const values = typeConfigs.reduce<GraphQLEnumValueConfigMap>(
+    (acc, typeConfig) => ({
       ...acc,
-      ...config.values,
+      ...typeConfig.values,
     }),
     {}
   );
@@ -259,7 +254,7 @@ function mergeEnumTypeCandidates(typeName: string, candidates: Array<MergeTypeCa
 
   const extensions = Object.assign({}, ...pluck<Record<string, any>>('extensions', candidates));
 
-  const config = {
+  const typeConfig = {
     name: typeName,
     description,
     values,
@@ -268,12 +263,15 @@ function mergeEnumTypeCandidates(typeName: string, candidates: Array<MergeTypeCa
     extensions,
   };
 
-  return new GraphQLEnumType(config);
+  return new GraphQLEnumType(typeConfig);
 }
 
-function mergeScalarTypeCandidates(typeName: string, candidates: Array<MergeTypeCandidate>): GraphQLScalarType {
-  const descriptions = pluck<string>('description', candidates);
-  const description = descriptions[descriptions.length - 1];
+function mergeScalarTypeCandidates(
+  typeName: string,
+  candidates: Array<MergeTypeCandidate>,
+  typeMergingOptions: TypeMergingOptions
+): GraphQLScalarType {
+  const description = mergeTypeDescriptions(candidates, typeMergingOptions);
 
   const serializeFns = pluck<GraphQLScalarSerializer<any>>('serialize', candidates);
   const serialize = serializeFns[serializeFns.length - 1];
@@ -293,7 +291,7 @@ function mergeScalarTypeCandidates(typeName: string, candidates: Array<MergeType
 
   const extensions = Object.assign({}, ...pluck<Record<string, any>>('extensions', candidates));
 
-  const config = {
+  const typeConfig = {
     name: typeName,
     description,
     serialize,
@@ -304,7 +302,108 @@ function mergeScalarTypeCandidates(typeName: string, candidates: Array<MergeType
     extensions,
   };
 
-  return new GraphQLScalarType(config);
+  return new GraphQLScalarType(typeConfig);
+}
+
+function mergeTypeDescriptions(candidates: Array<MergeTypeCandidate>, typeMergingOptions: TypeMergingOptions): string {
+  const typeDescriptionsMerger = typeMergingOptions?.typeDescriptionsMerger ?? defaultTypeDescriptionMerger;
+  return typeDescriptionsMerger(candidates);
+}
+
+function defaultTypeDescriptionMerger(candidates: Array<MergeTypeCandidate>): string {
+  return candidates[candidates.length - 1].type.description;
+}
+
+function fieldConfigMapFromTypeCandidates(
+  candidates: Array<MergeTypeCandidate>,
+  typeMergingOptions: TypeMergingOptions
+): GraphQLFieldConfigMap<any, any> {
+  const fieldConfigCandidatesMap: Record<string, Array<MergeFieldConfigCandidate>> = Object.create(null);
+
+  candidates.forEach(candidate => {
+    const fieldMap = (candidate.type as GraphQLObjectType | GraphQLInterfaceType).getFields();
+    Object.keys(fieldMap).forEach(fieldName => {
+      const fieldConfigCandidate = {
+        fieldConfig: fieldToFieldConfig(fieldMap[fieldName]),
+        fieldName,
+        type: candidate.type as GraphQLObjectType | GraphQLInterfaceType,
+        subschema: candidate.subschema,
+        transformedSchema: candidate.transformedSchema,
+      };
+
+      if (fieldName in fieldConfigCandidatesMap) {
+        fieldConfigCandidatesMap[fieldName].push(fieldConfigCandidate);
+      } else {
+        fieldConfigCandidatesMap[fieldName] = [fieldConfigCandidate];
+      }
+    });
+  });
+
+  const fieldConfigMap = Object.create(null);
+
+  Object.keys(fieldConfigCandidatesMap).forEach(fieldName => {
+    fieldConfigMap[fieldName] = mergeFieldConfigs(fieldConfigCandidatesMap[fieldName], typeMergingOptions);
+  });
+
+  return fieldConfigMap;
+}
+
+function mergeFieldConfigs(candidates: Array<MergeFieldConfigCandidate>, typeMergingOptions: TypeMergingOptions) {
+  const fieldConfigMerger = typeMergingOptions?.fieldConfigMerger ?? defaultFieldConfigMerger;
+  return fieldConfigMerger(candidates);
+}
+
+function defaultFieldConfigMerger(candidates: Array<MergeFieldConfigCandidate>) {
+  return candidates[candidates.length - 1].fieldConfig;
+}
+
+function inputFieldConfigMapFromTypeCandidates(
+  candidates: Array<MergeTypeCandidate>,
+  typeMergingOptions: TypeMergingOptions
+): GraphQLInputFieldConfigMap {
+  const inputFieldConfigCandidatesMap: Record<string, Array<MergeInputFieldConfigCandidate>> = Object.create(null);
+
+  candidates.forEach(candidate => {
+    const inputFieldMap = (candidate.type as GraphQLInputObjectType).getFields();
+    Object.keys(inputFieldMap).forEach(fieldName => {
+      const inputFieldConfigCandidate = {
+        inputFieldConfig: inputFieldToFieldConfig(inputFieldMap[fieldName]),
+        fieldName,
+        type: candidate.type as GraphQLInputObjectType,
+        subschema: candidate.subschema,
+        transformedSchema: candidate.transformedSchema,
+      };
+
+      if (fieldName in inputFieldConfigCandidatesMap) {
+        inputFieldConfigCandidatesMap[fieldName].push(inputFieldConfigCandidate);
+      } else {
+        inputFieldConfigCandidatesMap[fieldName] = [inputFieldConfigCandidate];
+      }
+    });
+  });
+
+  const inputFieldConfigMap = Object.create(null);
+
+  Object.keys(inputFieldConfigCandidatesMap).forEach(fieldName => {
+    inputFieldConfigMap[fieldName] = mergeInputFieldConfigs(
+      inputFieldConfigCandidatesMap[fieldName],
+      typeMergingOptions
+    );
+  });
+
+  return inputFieldConfigMap;
+}
+
+function mergeInputFieldConfigs(
+  candidates: Array<MergeInputFieldConfigCandidate>,
+  typeMergingOptions: TypeMergingOptions
+) {
+  const inputFieldConfigMerger = typeMergingOptions?.inputFieldConfigMerger ?? defaultInputFieldConfigMerger;
+  return inputFieldConfigMerger(candidates);
+}
+
+function defaultInputFieldConfigMerger(candidates: Array<MergeInputFieldConfigCandidate>) {
+  return candidates[candidates.length - 1].inputFieldConfig;
 }
 
 function mergeScalarTypeDefinitionNodes(
