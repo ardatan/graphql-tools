@@ -30,6 +30,7 @@ import { SubschemaConfig, isSubschemaConfig } from '@graphql-tools/delegate';
 
 export function stitchSchemas({
   subschemas = [],
+  endpoints = [],
   types = [],
   typeDefs,
   schemas = [],
@@ -117,7 +118,7 @@ export function stitchSchemas({
     directives.push(directiveMap[directiveName]);
   });
 
-  let stitchingInfo = createStitchingInfo(transformedSchemas, typeCandidates, mergeTypes);
+  let stitchingInfo = createStitchingInfo(transformedSchemas, typeCandidates, mergeTypes, endpoints);
 
   const typeMap = buildTypeMap({
     typeCandidates,

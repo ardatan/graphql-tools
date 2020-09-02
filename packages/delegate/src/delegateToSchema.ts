@@ -17,7 +17,14 @@ import isPromise from 'is-promise';
 
 import { mapAsyncIterator, Transform, ExecutionResult } from '@graphql-tools/utils';
 
-import { IDelegateToSchemaOptions, IDelegateRequestOptions, SubschemaConfig, ExecutionParams } from './types';
+import {
+  IDelegateToSchemaOptions,
+  IDelegateRequestOptions,
+  SubschemaConfig,
+  ExecutionParams,
+  StitchingInfo,
+  Endpoint,
+} from './types';
 
 import { isSubschemaConfig } from './Subschema';
 import { createRequestFromInfo, getDelegatingOperation } from './createRequest';
@@ -115,6 +122,7 @@ export function delegateRequest({
   let targetSchema: GraphQLSchema;
   let targetRootValue: Record<string, any>;
   let subschemaConfig: SubschemaConfig;
+  let endpoint: Endpoint;
 
   let allTransforms: Array<Transform>;
   if (isSubschemaConfig(subschemaOrSubschemaConfig)) {
@@ -125,6 +133,12 @@ export function delegateRequest({
       subschemaOrSubschemaConfig.transforms != null
         ? subschemaOrSubschemaConfig.transforms.concat(transforms)
         : transforms;
+    if (subschemaConfig.endpoint != null) {
+      const stitchingInfo: StitchingInfo = info?.schema.extensions?.stitchingInfo;
+      endpoint = stitchingInfo.endpoints[subschemaConfig.endpoint];
+    } else {
+      endpoint = subschemaConfig;
+    }
   } else {
     targetSchema = subschemaOrSubschemaConfig;
     targetRootValue = rootValue ?? info?.rootValue;
@@ -156,10 +170,10 @@ export function delegateRequest({
 
   if (targetOperation === 'query' || targetOperation === 'mutation') {
     let executor =
-      subschemaConfig?.executor || createDefaultExecutor(targetSchema, subschemaConfig?.rootValue || targetRootValue);
+      endpoint?.executor || createDefaultExecutor(targetSchema, subschemaConfig?.rootValue || targetRootValue);
 
-    if (subschemaConfig?.batch) {
-      executor = getBatchingExecutor(context, subschemaConfig, executor);
+    if (endpoint?.batch) {
+      executor = getBatchingExecutor(context, endpoint, executor);
     }
 
     const executionResult = executor({
@@ -175,7 +189,7 @@ export function delegateRequest({
   }
 
   const subscriber =
-    subschemaConfig?.subscriber || createDefaultSubscriber(targetSchema, subschemaConfig?.rootValue || targetRootValue);
+    endpoint?.subscriber || createDefaultSubscriber(targetSchema, subschemaConfig?.rootValue || targetRootValue);
 
   return subscriber({
     ...processedRequest,
