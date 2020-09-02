@@ -35,7 +35,7 @@ function splitDynamicMergeSubschemas(subschemaConfig: SubschemaConfig): Array<Su
       Object.keys(mergedTypeConfig.fields).forEach((fieldName: string) => {
         const mergedFieldConfig: MergedFieldConfig = mergedTypeConfig.fields[fieldName];
 
-        if (mergedFieldConfig.selectionSet && !mergedFieldConfig.optional) {
+        if (mergedFieldConfig.selectionSet && mergedFieldConfig.required) {
           dynamicFields[fieldName] = mergedFieldConfig;
         } else {
           staticFields[fieldName] = mergedFieldConfig;
@@ -43,7 +43,10 @@ function splitDynamicMergeSubschemas(subschemaConfig: SubschemaConfig): Array<Su
       });
 
       if (Object.keys(dynamicFields).length) {
-        staticTypes[typeName] = { ...mergedTypeConfig, fields: staticFields };
+        staticTypes[typeName] = {
+          ...mergedTypeConfig,
+          fields: Object.keys(staticFields).length ? staticFields : undefined,
+        };
         dynamicTypes[typeName] = { ...mergedTypeConfig, fields: dynamicFields };
       }
     }
@@ -51,8 +54,8 @@ function splitDynamicMergeSubschemas(subschemaConfig: SubschemaConfig): Array<Su
 
   if (Object.keys(dynamicTypes).length) {
     return [
-      filterStaticSubschema({ ...subschemaConfig, merge: staticTypes }, dynamicTypes),
       filterDynamicSubschema({ ...subschemaConfig, merge: dynamicTypes }),
+      filterStaticSubschema({ ...subschemaConfig, merge: staticTypes }, dynamicTypes),
     ];
   }
 
