@@ -6,22 +6,22 @@ import DataLoader from 'dataloader';
 
 import { ExecutionResult } from '@graphql-tools/utils';
 
-import { SubschemaConfig, ExecutionParams } from './types';
+import { ExecutionParams, Endpoint } from './types';
 import { memoize2of3 } from './memoize';
 import { mergeExecutionParams } from './mergeExecutionParams';
 import { splitResult } from './splitResult';
 
 export const getBatchingExecutor = memoize2of3(function (
   _context: Record<string, any>,
-  subschemaConfig: SubschemaConfig,
+  endpoint: Endpoint,
   executor: ({ document, context, variables, info }: ExecutionParams) => ExecutionResult | Promise<ExecutionResult>
 ) {
   const loader = new DataLoader(
     createLoadFn(
-      executor ?? subschemaConfig.executor,
-      subschemaConfig.batchingOptions?.extensionsReducer ?? defaultExtensionsReducer
+      executor ?? endpoint.executor,
+      endpoint.batchingOptions?.extensionsReducer ?? defaultExtensionsReducer
     ),
-    subschemaConfig.batchingOptions?.dataLoaderOptions
+    endpoint.batchingOptions?.dataLoaderOptions
   );
   return (executionParams: ExecutionParams) => loader.load(executionParams);
 });
