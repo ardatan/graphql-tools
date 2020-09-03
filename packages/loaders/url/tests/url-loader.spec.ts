@@ -11,7 +11,7 @@ const SHOULD_NOT_GET_HERE_ERROR = 'SHOULD_NOT_GET_HERE';
 describe('Schema URL Loader', () => {
   const loader = new UrlLoader();
 
-  const testTypeDefs = /* GraphQL */`
+  const testTypeDefs = /* GraphQL */ `
 schema { query: CustomQuery }
 """Test type comment"""
 type CustomQuery {
@@ -23,8 +23,8 @@ type CustomQuery {
   const testResolvers = {
     CustomQuery: {
       a: (_: never, { testVariable }: { testVariable: string }) => testVariable || 'a',
-    }
-  }
+    },
+  };
 
   const testSchema = makeExecutableSchema({ typeDefs: testTypeDefs, resolvers: testResolvers });
 
@@ -63,12 +63,15 @@ type CustomQuery {
     });
 
     it('Should pass default headers', async () => {
-      let headers: Record<string, string> = {}
+      let headers: Record<string, string> = {};
 
       const server = mockGraphQLServer({
-        schema: testSchema, host: testHost, path: testPathChecker, intercept(ctx) {
-          headers = ctx.req.headers
-        }
+        schema: testSchema,
+        host: testHost,
+        path: testPathChecker,
+        intercept(ctx) {
+          headers = ctx.req.headers;
+        },
       });
 
       const schema = await loader.load(testUrl, {});
@@ -84,11 +87,14 @@ type CustomQuery {
     });
 
     it('Should pass extra headers when they are specified as object', async () => {
-      let headers: Record<string, string> = {}
+      let headers: Record<string, string> = {};
       const server = mockGraphQLServer({
-        schema: testSchema, host: testHost, path: testPathChecker, intercept(ctx) {
-          headers = ctx.req.headers
-        }
+        schema: testSchema,
+        host: testHost,
+        path: testPathChecker,
+        intercept(ctx) {
+          headers = ctx.req.headers;
+        },
       });
 
       const schema = await loader.load(testUrl, { headers: { Auth: '1' } });
@@ -105,11 +111,14 @@ type CustomQuery {
     });
 
     it('Should pass extra headers when they are specified as array', async () => {
-      let headers: Record<string, string> = {}
+      let headers: Record<string, string> = {};
       const server = mockGraphQLServer({
-        schema: testSchema, host: testHost, path: testPathChecker, intercept(ctx) {
-          headers = ctx.req.headers
-        }
+        schema: testSchema,
+        host: testHost,
+        path: testPathChecker,
+        intercept(ctx) {
+          headers = ctx.req.headers;
+        },
       });
       const schema = await loader.load(testUrl, { headers: [{ A: '1' }, { B: '2', C: '3' }] });
 
@@ -140,12 +149,11 @@ type CustomQuery {
       expect(await loader.canLoad(cwd(), {})).toBeFalsy();
     });
     it('should handle useGETForQueries correctly', async () => {
-
       const server = mockGraphQLServer({ schema: testSchema, host: testHost, path: testPathChecker, method: 'GET' });
 
       const source = await loader.load(testUrl, {
         descriptions: false,
-        useGETForQueries: true
+        useGETForQueries: true,
       });
 
       server.done();
@@ -156,14 +164,14 @@ type CustomQuery {
 
       const result = await execute({
         schema: source.schema,
-        document: parse(/* GraphQL */`
+        document: parse(/* GraphQL */ `
           query TestQuery($testVariable: String) {
             a(testVariable: $testVariable)
           }
         `),
         variableValues: {
-          testVariable: testVariableValue
-        }
+          testVariable: testVariableValue,
+        },
       });
 
       server2.done();
@@ -171,7 +179,59 @@ type CustomQuery {
       expect(result?.errors).toBeFalsy();
 
       expect(result?.data?.a).toBe(testVariableValue);
+    });
 
-    })
+    it('Should preserve "ws" and "http" in the middle of a pointer', async () => {
+      const address = {
+        host: 'http://foo.ws:8080',
+        path: '/graphql',
+      };
+      const url = address.host + address.path;
+      const server = mockGraphQLServer({ schema: testSchema, host: address.host, path: address.path });
+      const result = await loader.load(url, {});
+
+      server.done();
+
+      expect(result.schema).toBeDefined();
+      expect(printSchemaWithDirectives(result.schema)).toBe(testTypeDefs);
+    });
+
+    it('Should replace ws:// with http:// in buildAsyncExecutor', async () => {
+      const address = {
+        host: 'ws://foo:8080',
+        path: '/graphql',
+      };
+      const url = address.host + address.path;
+      const server = mockGraphQLServer({
+        schema: testSchema,
+        host: address.host.replace('ws', 'http'),
+        path: address.path,
+      });
+      const result = await loader.load(url, {});
+
+      server.done();
+
+      expect(result.schema).toBeDefined();
+      expect(printSchemaWithDirectives(result.schema)).toBe(testTypeDefs);
+    });
+
+    it('Should replace wss:// with https:// in buildAsyncExecutor', async () => {
+      const address = {
+        host: 'wss://foo:8080',
+        path: '/graphql',
+      };
+      const url = address.host + address.path;
+      const server = mockGraphQLServer({
+        schema: testSchema,
+        host: address.host.replace('wss', 'https'),
+        path: address.path,
+      });
+      const result = await loader.load(url, {});
+
+      server.done();
+
+      expect(result.schema).toBeDefined();
+      expect(printSchemaWithDirectives(result.schema)).toBe(testTypeDefs);
+    });
   });
 });
