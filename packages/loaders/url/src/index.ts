@@ -89,7 +89,10 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     defaultMethod: 'GET' | 'POST';
     useGETForQueries: boolean;
   }): AsyncExecutor {
-    const HTTP_URL = pointer.replace('ws:', 'http:').replace('wss:', 'https:');
+    const HTTP_URL = switchProtocols(pointer, {
+      wss: 'https',
+      ws: 'http',
+    });
     return async ({ document, variables }: { document: DocumentNode; variables: any; info: GraphQLResolveInfo }) => {
       let method = defaultMethod;
       if (useGETForQueries) {
@@ -134,7 +137,10 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
   }
 
   buildSubscriber(pointer: string, webSocketImpl: typeof w3cwebsocket): Subscriber {
-    const WS_URL = pointer.replace('http:', 'ws:').replace('https:', 'wss:');
+    const WS_URL = switchProtocols(pointer, {
+      https: 'wss',
+      http: 'ws',
+    });
     const subscriptionClient = new SubscriptionClient(WS_URL, {}, webSocketImpl);
     return async <TReturn, TArgs>({ document, variables }: { document: DocumentNode; variables: TArgs }) => {
       return observableToAsyncIterable(
@@ -236,4 +242,12 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
   loadSync(): never {
     throw new Error('Loader Url has no sync mode');
   }
+}
+
+function switchProtocols(pointer: string, protocolMap: Record<string, string>): string {
+  const protocols: [string, string][] = Object.keys(protocolMap).map(source => [source, protocolMap[source]]);
+  return protocols.reduce(
+    (prev, [source, target]) => prev.replace(`${source}://`, `${target}://`).replace(`${source}:\\`, `${target}:\\`),
+    pointer
+  );
 }

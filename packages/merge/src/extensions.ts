@@ -141,7 +141,7 @@ export function travelSchemaPossibleExtensions(
 
 export function mergeExtensions(extensions: SchemaExtensions[]): SchemaExtensions {
   return extensions.reduce(
-    (result, extensionObj) => [result, extensionObj].reduce<SchemaExtensions>(mergeDeep, {}),
+    (result, extensionObj) => [result, extensionObj].reduce<SchemaExtensions>(mergeDeep, {} as SchemaExtensions),
     {} as SchemaExtensions
   );
 }

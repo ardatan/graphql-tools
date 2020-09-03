@@ -17,13 +17,21 @@ import isPromise from 'is-promise';
 
 import { mapAsyncIterator, Transform, ExecutionResult } from '@graphql-tools/utils';
 
-import { IDelegateToSchemaOptions, IDelegateRequestOptions, SubschemaConfig, ExecutionParams } from './types';
+import {
+  IDelegateToSchemaOptions,
+  IDelegateRequestOptions,
+  SubschemaConfig,
+  ExecutionParams,
+  StitchingInfo,
+  Endpoint,
+} from './types';
 
 import { isSubschemaConfig } from './Subschema';
 import { createRequestFromInfo, getDelegatingOperation } from './createRequest';
 import { Transformer } from './Transformer';
 
 import AggregateError from '@ardatan/aggregate-error';
+import { getBatchingExecutor } from './getBatchingExecutor';
 
 export function delegateToSchema(options: IDelegateToSchemaOptions | GraphQLSchema): any {
   if (isSchema(options)) {
@@ -114,6 +122,7 @@ export function delegateRequest({
   let targetSchema: GraphQLSchema;
   let targetRootValue: Record<string, any>;
   let subschemaConfig: SubschemaConfig;
+  let endpoint: Endpoint;
 
   let allTransforms: Array<Transform>;
   if (isSubschemaConfig(subschemaOrSubschemaConfig)) {
@@ -124,6 +133,12 @@ export function delegateRequest({
       subschemaOrSubschemaConfig.transforms != null
         ? subschemaOrSubschemaConfig.transforms.concat(transforms)
         : transforms;
+    if (subschemaConfig.endpoint != null) {
+      const stitchingInfo: StitchingInfo = info?.schema.extensions?.stitchingInfo;
+      endpoint = stitchingInfo.endpoints[subschemaConfig.endpoint];
+    } else {
+      endpoint = subschemaConfig;
+    }
   } else {
     targetSchema = subschemaOrSubschemaConfig;
     targetRootValue = rootValue ?? info?.rootValue;
@@ -154,12 +169,15 @@ export function delegateRequest({
   }
 
   if (targetOperation === 'query' || targetOperation === 'mutation') {
-    const executor =
-      subschemaConfig?.executor || createDefaultExecutor(targetSchema, subschemaConfig?.rootValue || targetRootValue);
+    let executor =
+      endpoint?.executor || createDefaultExecutor(targetSchema, subschemaConfig?.rootValue || targetRootValue);
+
+    if (endpoint?.batch) {
+      executor = getBatchingExecutor(context, endpoint, executor);
+    }
 
     const executionResult = executor({
-      document: processedRequest.document,
-      variables: processedRequest.variables,
+      ...processedRequest,
       context,
       info,
     });
@@ -171,11 +189,10 @@ export function delegateRequest({
   }
 
   const subscriber =
-    subschemaConfig?.subscriber || createDefaultSubscriber(targetSchema, subschemaConfig?.rootValue || targetRootValue);
+    endpoint?.subscriber || createDefaultSubscriber(targetSchema, subschemaConfig?.rootValue || targetRootValue);
 
   return subscriber({
-    document: processedRequest.document,
-    variables: processedRequest.variables,
+    ...processedRequest,
     context,
     info,
   }).then((subscriptionResult: AsyncIterableIterator<ExecutionResult> | ExecutionResult) => {

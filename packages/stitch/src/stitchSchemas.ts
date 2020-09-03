@@ -25,20 +25,22 @@ import {
 
 import { buildTypeCandidates, buildTypeMap } from './typeCandidates';
 import { createStitchingInfo, completeStitchingInfo, addStitchingInfo } from './stitchingInfo';
-import { MergeTypeCandidate, IStitchSchemasOptions, StitchingInfo } from './types';
+import { IStitchSchemasOptions } from './types';
 import { SubschemaConfig, isSubschemaConfig } from '@graphql-tools/delegate';
 
 export function stitchSchemas({
   subschemas = [],
+  endpoints = [],
   types = [],
   typeDefs,
   schemas = [],
   onTypeConflict,
+  mergeDirectives,
+  mergeTypes = false,
+  typeMergingOptions,
   resolvers = {},
   schemaDirectives,
   inheritResolversFromInterfaces = false,
-  mergeTypes = false,
-  mergeDirectives,
   logger,
   allowUndefinedInResolve = true,
   resolverValidationOptions = {},
@@ -89,7 +91,6 @@ export function stitchSchemas({
   });
 
   const transformedSchemas: Map<GraphQLSchema | SubschemaConfig, GraphQLSchema> = new Map();
-  const typeCandidates: Record<string, Array<MergeTypeCandidate>> = Object.create(null);
   const extensions: Array<DocumentNode> = [];
   const directives: Array<GraphQLDirective> = [];
   const directiveMap: Record<string, GraphQLDirective> = specifiedDirectives.reduce((acc, directive) => {
@@ -103,10 +104,9 @@ export function stitchSchemas({
     subscription: 'Subscription',
   };
 
-  buildTypeCandidates({
+  const typeCandidates = buildTypeCandidates({
     schemaLikeObjects,
     transformedSchemas,
-    typeCandidates,
     extensions,
     directiveMap,
     schemaDefs,
@@ -118,16 +118,15 @@ export function stitchSchemas({
     directives.push(directiveMap[directiveName]);
   });
 
-  let stitchingInfo: StitchingInfo;
-
-  stitchingInfo = createStitchingInfo(transformedSchemas, typeCandidates, mergeTypes);
+  let stitchingInfo = createStitchingInfo(transformedSchemas, typeCandidates, mergeTypes, endpoints);
 
   const typeMap = buildTypeMap({
     typeCandidates,
-    mergeTypes,
     stitchingInfo,
-    onTypeConflict,
     operationTypeNames,
+    onTypeConflict,
+    mergeTypes,
+    typeMergingOptions,
   });
 
   const { typeMap: newTypeMap, directives: newDirectives } = rewireTypes(typeMap, directives, { skipPruning: true });

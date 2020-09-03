@@ -16,6 +16,7 @@ import {
 import { Operation, Transform, Request, TypeMap, ExecutionResult } from '@graphql-tools/utils';
 
 import { Subschema } from './Subschema';
+import DataLoader from 'dataloader';
 
 export interface DelegationContext {
   subschema: GraphQLSchema | SubschemaConfig;
@@ -94,6 +95,7 @@ export interface MergedTypeInfo {
 export interface ExecutionParams<TArgs = Record<string, any>, TContext = any> {
   document: DocumentNode;
   variables?: TArgs;
+  extensions?: Record<string, any>;
   context?: TContext;
   info?: GraphQLResolveInfo;
 }
@@ -123,14 +125,30 @@ export interface ICreateProxyingResolverOptions {
 
 export type CreateProxyingResolverFn = (options: ICreateProxyingResolverOptions) => GraphQLFieldResolver<any, any>;
 
-export interface SubschemaConfig {
-  schema: GraphQLSchema;
-  rootValue?: Record<string, any>;
+export interface Endpoint<K = any, V = any, C = K> {
   executor?: Executor;
   subscriber?: Subscriber;
+  batch?: boolean;
+  batchingOptions?: {
+    extensionsReducer?: (
+      mergedExtensions: Record<string, any>,
+      executionParams: ExecutionParams
+    ) => Record<string, any>;
+    dataLoaderOptions?: DataLoader.Options<K, V, C>;
+  };
+}
+
+export interface NamedEndpoint extends Endpoint {
+  name: string;
+}
+
+export interface SubschemaConfig<K = any, V = any, C = K> extends Endpoint<K, V, C> {
+  schema: GraphQLSchema;
+  rootValue?: Record<string, any>;
   createProxyingResolver?: CreateProxyingResolverFn;
   transforms?: Array<Transform>;
   merge?: Record<string, MergedTypeConfig>;
+  endpoint?: string;
 }
 
 export interface MergedTypeConfig<K = any, V = any> {
@@ -158,4 +176,5 @@ export interface StitchingInfo {
   selectionSetsByField: Record<string, Record<string, SelectionSetNode>>;
   dynamicSelectionSetsByField: Record<string, Record<string, Array<(node: FieldNode) => SelectionSetNode>>>;
   mergedTypes: Record<string, MergedTypeInfo>;
+  endpoints: Record<string, Endpoint>;
 }

@@ -588,6 +588,8 @@ testCombinations.forEach((combination) => {
               test3: jsonTest(input: "6")
             }
           `,
+          undefined,
+          {},
         );
 
         expect(propertyResult).toEqual({
@@ -628,6 +630,8 @@ testCombinations.forEach((combination) => {
               }
             }
           `,
+          undefined,
+          {},
         );
 
         expect(scalarResult).toEqual({
@@ -714,6 +718,8 @@ testCombinations.forEach((combination) => {
               }
             }
           `,
+          undefined,
+          {},
         );
 
         expect(enumResult).toEqual({
@@ -783,9 +789,11 @@ bookingById(id: "b1") {
         const stitchedResult = await graphql(
           stitchedSchema,
           `query {
-      ${propertyFragment}
-      ${bookingFragment}
-    }`,
+            ${propertyFragment}
+            ${bookingFragment}
+          }`,
+          undefined,
+          {},
         );
         expect(stitchedResult).toEqual({
           data: {
@@ -977,6 +985,8 @@ bookingById(id: "b1") {
               }
             }
           `,
+          undefined,
+          {},
         );
 
         expect(stitchedResult).toEqual({
@@ -1043,7 +1053,7 @@ bookingById(id: "b1") {
           }
         `;
         const propertyResult = await graphql(localPropertySchema, query);
-        const stitchedResult = await graphql(stitchedSchema, query);
+        const stitchedResult = await graphql(stitchedSchema, query, undefined, {});
 
         expect(propertyResult).toEqual({
           data: {
@@ -1078,7 +1088,7 @@ bookingById(id: "b1") {
           }
         `;
 
-        const mergedDelegate = await graphql(stitchedSchema, delegateQuery);
+        const mergedDelegate = await graphql(stitchedSchema, delegateQuery, undefined, {});
 
         expect(mergedDelegate).toEqual({
           data: {
@@ -1112,6 +1122,8 @@ bookingById(id: "b1") {
               }
             }
           `,
+          undefined,
+          {},
         );
 
         expect(stitchedResult).toEqual({
@@ -1146,6 +1158,8 @@ bookingById(id: "b1") {
               }
             }
           `,
+          undefined,
+          {},
         );
 
         expect(stitchedResult).toEqual({
@@ -1189,7 +1203,7 @@ bookingById(id: "b1") {
             }
           }
         `;
-        const stitchedResult = await graphql(stitchedSchema, query);
+        const stitchedResult = await graphql(stitchedSchema, query, undefined, {});
         expect(stitchedResult).toEqual({
           data: {
             test1: {
@@ -1228,6 +1242,8 @@ bookingById(id: "b1") {
               }
             }
           `,
+          undefined,
+          {},
         );
 
         expect(stitchedResult).toEqual({
@@ -1270,6 +1286,8 @@ bookingById(id: "b1") {
               __typename
             }
           `,
+          undefined,
+          {},
         );
 
         expect(stitchedResult).toEqual({
@@ -1292,6 +1310,8 @@ bookingById(id: "b1") {
               two: defaultInputTest(input: { test: "Bar" })
             }
           `,
+          undefined,
+          {},
         );
 
         expect(stitchedResult).toEqual({
@@ -1323,6 +1343,8 @@ bookingById(id: "b1") {
               }
             }
           `,
+          undefined,
+          {},
         );
 
         expect(stitchedResult).toEqual({
@@ -1364,6 +1386,8 @@ bookingById(id: "b1") {
               }
             }
           `,
+          undefined,
+          {},
         );
 
         expect(stitchedResult).toEqual({
@@ -1578,6 +1602,8 @@ bookingById(id: "b1") {
               test3: jsonTest(input: "6")
             }
           `,
+          undefined,
+          {},
         );
         const expected = {
           data: {
@@ -1652,6 +1678,8 @@ fragment BookingFragment on Booking {
               }
             }
           `,
+          undefined,
+          {},
         );
 
         expect(stitchedResult).toEqual({
@@ -1697,9 +1725,11 @@ bookingById(id: "b1") {
         const stitchedResult = await graphql(
           stitchedSchema,
           `query {
-      ${propertyFragment}
-      ${bookingFragment}
-    }`,
+            ${propertyFragment}
+            ${bookingFragment}
+          }`,
+          undefined,
+          {},
         );
 
         expect(stitchedResult).toEqual({
@@ -1741,6 +1771,8 @@ bookingById(id: "b1") {
               name
             }
           `,
+          undefined,
+          {},
         );
 
         expect(stitchedResult).toEqual({
@@ -1838,6 +1870,8 @@ fragment BookingFragment on Booking {
               }
             }
           `,
+          undefined,
+          {},
         );
 
         expect(stitchedResult).toEqual({
@@ -1881,6 +1915,8 @@ fragment BookingFragment on Booking {
               }
             }
           `,
+          undefined,
+          {},
         );
 
         expect(stitchedResult).toEqual({
@@ -1938,6 +1974,8 @@ fragment BookingFragment on Booking {
               }
             }
           `,
+          undefined,
+          {},
         );
 
         expect(stitchedResult).toEqual({
@@ -1989,6 +2027,8 @@ fragment BookingFragment on Booking {
               }
             }
           `,
+          undefined,
+          {},
         );
 
         expect(stitchedResult).toEqual({
@@ -2153,6 +2193,8 @@ fragment BookingFragment on Booking {
               }
             }
           `,
+          undefined,
+          {},
         );
 
         expect(result).toEqual({
@@ -2222,6 +2264,8 @@ fragment BookingFragment on Booking {
               }
             }
           `,
+          undefined,
+          {},
         );
 
         expect(result).toEqual({
@@ -2292,6 +2336,8 @@ fragment BookingFragment on Booking {
             ${propertyFragment}
             ${bookingFragment}
           }`,
+          undefined,
+          {},
         );
         expect(stitchedResult.data).toEqual({
           ...propertyResult.data,
@@ -2304,11 +2350,13 @@ fragment BookingFragment on Booking {
         const stitchedResult2 = await graphql(
           stitchedSchema,
           `
-                query {
-                  errorTestNonNull
-                  ${bookingFragment}
-                }
-              `,
+            query {
+              errorTestNonNull
+              ${bookingFragment}
+            }
+          `,
+          undefined,
+          {},
         );
 
         expect(stitchedResult2.data).toBe(null);
@@ -2336,6 +2384,8 @@ fragment BookingFragment on Booking {
               }
             }
           `,
+          undefined,
+          {},
         );
 
         expect(result.data).toEqual({
@@ -2422,7 +2472,7 @@ fragment BookingFragment on Booking {
             propertyQuery,
           );
 
-          const stitchedResult = await graphql(stitchedSchema, propertyQuery);
+          const stitchedResult = await graphql(stitchedSchema, propertyQuery, undefined, {});
 
           [propertyResult, stitchedResult].forEach((result) => {
             expect(result.errors).toBeDefined();
@@ -2496,6 +2546,8 @@ fragment BookingFragment on Booking {
               }
             }
           `,
+          undefined,
+          {},
         );
 
         expect(result).toEqual({
@@ -2694,6 +2746,8 @@ fragment BookingFragment on Booking {
               }
             }
           `,
+          undefined,
+          {},
         );
 
         expect(result).toEqual({
@@ -2727,6 +2781,8 @@ fragment BookingFragment on Booking {
               }
             }
           `,
+          undefined,
+          {},
         );
 
         expect(result).toEqual({
@@ -2763,6 +2819,8 @@ fragment BookingFragment on Booking {
               }
             }
           `,
+          undefined,
+          {},
         );
 
         expect(result).toEqual({
@@ -2817,6 +2875,8 @@ fragment BookingFragment on Booking {
               }
             }
           `,
+          undefined,
+          {},
         );
 
         expect(result).toEqual({
@@ -2840,6 +2900,8 @@ fragment BookingFragment on Booking {
               }
             }
           `,
+          undefined,
+          {},
         );
 
         expect(result).toEqual({

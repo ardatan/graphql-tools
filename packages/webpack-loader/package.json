@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/webpack-loader",
-  "version": "6.1.0",
+  "version": "6.2.0",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": "git@github.com:ardatan/graphql-tools.git",
   "license": "MIT",
@@ -18,7 +18,7 @@
     "input": "./src/index.ts"
   },
   "dependencies": {
-    "@graphql-tools/webpack-loader-runtime": "6.1.0",
+    "@graphql-tools/webpack-loader-runtime": "6.2.0",
     "tslib": "~2.0.1"
   },
   "publishConfig": {

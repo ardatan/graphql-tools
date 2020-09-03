@@ -60,6 +60,7 @@ describe('merging using type merging', () => {
               selectionSet: '{ id }',
             },
           },
+          batch: true,
         },
         {
           schema: authorSchema,
@@ -70,6 +71,7 @@ describe('merging using type merging', () => {
               selectionSet: '{ id }',
             },
           },
+          batch: true,
         },
       ],
       mergeTypes: true,
@@ -96,7 +98,12 @@ describe('merging using type merging', () => {
       }
     `;
 
-    const result = await graphql(stitchedSchema, query);
+    const result = await graphql(
+      stitchedSchema,
+      query,
+      undefined,
+      {},
+    );
 
     expect(result.errors).toBeUndefined();
     expect(result.data.userById.__typename).toBe('User');
@@ -148,7 +155,8 @@ describe('merging using type merging', () => {
               selectionSet: '{ id }',
               args: (originalResult) => ({ id: originalResult.id }),
             }
-          }
+          },
+          batch: true,
         },
         {
           schema: userSchema,
@@ -158,7 +166,8 @@ describe('merging using type merging', () => {
               selectionSet: '{ id }',
               args: (originalResult) => ({ id: originalResult.id }),
             }
-          }
+          },
+          batch: true,
         },
       ],
       mergeTypes: true
@@ -170,7 +179,12 @@ describe('merging using type merging', () => {
       }
     `;
 
-    const result = await graphql(stitchedSchema, query);
+    const result = await graphql(
+      stitchedSchema,
+      query,
+      undefined,
+      {},
+    );
 
     expect(result.errors).not.toBeUndefined();
     expect(result.data).toMatchObject({ userById: { fail: null }});
@@ -235,6 +249,7 @@ describe('merging using type merging', () => {
       subschemas: [
         {
           schema: resultSchema,
+          batch: true,
         },
         {
           schema: containerSchemaA,
@@ -245,6 +260,7 @@ describe('merging using type merging', () => {
               selectionSet: '{ id }',
             },
           },
+          batch: true,
         },
         {
           schema: containerSchemaB,
@@ -255,6 +271,7 @@ describe('merging using type merging', () => {
               selectionSet: '{ id }',
             },
           },
+          batch: true,
         },
       ],
       mergeTypes: true,
@@ -294,6 +311,8 @@ describe('merging using type merging', () => {
           }
         }
       `,
+      undefined,
+      {},
     );
 
     const expectedResult = {
