@@ -22,7 +22,8 @@
   },
   "dependencies": {
     "@ardatan/aggregate-error": "0.0.3",
-    "camel-case": "4.1.1"
+    "camel-case": "4.1.1",
+    "tslib": "~2.0.1"
   },
   "publishConfig": {
     "access": "public",

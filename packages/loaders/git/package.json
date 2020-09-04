@@ -17,7 +17,8 @@
   },
   "dependencies": {
     "@graphql-tools/utils": "6.2.0",
-    "@graphql-tools/graphql-tag-pluck": "6.2.0"
+    "@graphql-tools/graphql-tag-pluck": "6.2.0",
+    "tslib": "~2.0.1"
   },
   "publishConfig": {
     "access": "public",

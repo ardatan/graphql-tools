@@ -162,6 +162,13 @@
   resolved "https://registry.yarnpkg.com/@ardatan/aggregate-error/-/aggregate-error-0.0.3.tgz#ec9fdfe576534b98653a11709b9d5d3b4cc93628"
   integrity sha512-JL6NPA13Fe9Mp+FL/WOsJOKDb/XpWLxX5Bz+5BMv0CvEQEn5gmPuBY6KyBhINxzVcFSqvS18Xmk4MdoV1LwfPw==
 
+"@ardatan/aggregate-error@0.0.4":
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/@ardatan/aggregate-error/-/aggregate-error-0.0.4.tgz#6fcec1e211dc84b956677b18594f9c77e2ff6d57"
+  integrity sha512-DkLMs9GeEkirJkW2dXOWxaqX2eDFqZCrIw3F+XukvvxT+XVYHaK7LOq/t51ijyousjo00dnQuEQXe2Zenpw0MQ==
+  dependencies:
+    tslib "~2.0.1"
+
 "@babel/code-frame@7.8.3":
   version "7.8.3"
   resolved "https://registry.yarnpkg.com/@babel/code-frame/-/code-frame-7.8.3.tgz#33e25903d7481181534e12ec0a25f16b6fcf419e"
