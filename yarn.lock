@@ -157,10 +157,10 @@
   dependencies:
     xss "^1.0.6"
 
-"@ardatan/aggregate-error@0.0.4":
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/@ardatan/aggregate-error/-/aggregate-error-0.0.4.tgz#6fcec1e211dc84b956677b18594f9c77e2ff6d57"
-  integrity sha512-DkLMs9GeEkirJkW2dXOWxaqX2eDFqZCrIw3F+XukvvxT+XVYHaK7LOq/t51ijyousjo00dnQuEQXe2Zenpw0MQ==
+"@ardatan/aggregate-error@0.0.6":
+  version "0.0.6"
+  resolved "https://registry.yarnpkg.com/@ardatan/aggregate-error/-/aggregate-error-0.0.6.tgz#fe6924771ea40fc98dc7a7045c2e872dc8527609"
+  integrity sha512-vyrkEHG1jrukmzTPtyWB4NLPauUw5bQeg4uhn8f+1SSynmrOcyvlb1GKQjjgoBzElLdfXCRYX8UnBlhklOHYRQ==
   dependencies:
     tslib "~2.0.1"
 

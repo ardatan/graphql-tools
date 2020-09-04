@@ -55,7 +55,7 @@ describe('validateGraphQlDocuments', () => {
       checkValidationErrors(result);
       expect(true).toBeFalsy();
     } catch (errors) {
-      expect(errors).toBeInstanceOf(AggregateError);
+      expect(Symbol.iterator in errors).toBeTruthy();
       const generator = errors[Symbol.iterator]();
 
       const error = generator.next().value;
@@ -117,7 +117,7 @@ describe('checkValidationErrors', () => {
       errors = _errors;
     }
 
-    expect(errors).toBeInstanceOf(AggregateError);
+    expect(Symbol.iterator in errors).toBeTruthy();
 
     let error;
     const generator = errors[Symbol.iterator]();
