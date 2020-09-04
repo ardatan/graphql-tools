@@ -157,10 +157,10 @@
   dependencies:
     xss "^1.0.6"
 
-"@ardatan/aggregate-error@0.0.2":
-  version "0.0.2"
-  resolved "https://registry.yarnpkg.com/@ardatan/aggregate-error/-/aggregate-error-0.0.2.tgz#0aaa959f44ed98803d9f3ff6b3519edb9d3e50d4"
-  integrity sha512-jMnka+0hYQr/qNfPb7gqdO0Au2qr2xUBfjA4Uxmnkb9dW7JtMjKhFpdx1wSik3WQSSmifXQinSSrqudqMAJ4XQ==
+"@ardatan/aggregate-error@0.0.3":
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/@ardatan/aggregate-error/-/aggregate-error-0.0.3.tgz#ec9fdfe576534b98653a11709b9d5d3b4cc93628"
+  integrity sha512-JL6NPA13Fe9Mp+FL/WOsJOKDb/XpWLxX5Bz+5BMv0CvEQEn5gmPuBY6KyBhINxzVcFSqvS18Xmk4MdoV1LwfPw==
 
 "@babel/code-frame@7.8.3":
   version "7.8.3"

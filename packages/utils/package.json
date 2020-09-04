@@ -21,7 +21,7 @@
     "graphql-scalars": "1.2.6"
   },
   "dependencies": {
-    "@ardatan/aggregate-error": "0.0.2",
+    "@ardatan/aggregate-error": "0.0.3",
     "camel-case": "4.1.1"
   },
   "publishConfig": {
