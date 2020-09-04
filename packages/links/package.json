@@ -18,7 +18,7 @@
     "input": "./src/index.ts"
   },
   "devDependencies": {
-    "@types/graphql-upload": "8.0.3",
+    "@types/graphql-upload": "8.0.4",
     "express-graphql": "0.11.0",
     "graphql-upload": "11.0.0"
   },

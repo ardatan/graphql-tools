@@ -157,10 +157,10 @@
   dependencies:
     xss "^1.0.6"
 
-"@ardatan/aggregate-error@0.0.1":
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/@ardatan/aggregate-error/-/aggregate-error-0.0.1.tgz#1403ac5de10d8ca689fc1f65844c27179ae1d44f"
-  integrity sha512-UQ9BequOTIavs0pTHLMwQwKQF8tTV1oezY/H2O9chA+JNPFZSua55xpU5dPSjAU9/jLJ1VwU+HJuTVN8u7S6Fg==
+"@ardatan/aggregate-error@0.0.2":
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/@ardatan/aggregate-error/-/aggregate-error-0.0.2.tgz#0aaa959f44ed98803d9f3ff6b3519edb9d3e50d4"
+  integrity sha512-jMnka+0hYQr/qNfPb7gqdO0Au2qr2xUBfjA4Uxmnkb9dW7JtMjKhFpdx1wSik3WQSSmifXQinSSrqudqMAJ4XQ==
 
 "@babel/code-frame@7.8.3":
   version "7.8.3"
@@ -2278,15 +2278,15 @@
   dependencies:
     "@types/node" "*"
 
-"@types/graphql-upload@8.0.3", "@types/graphql-upload@^8.0.0":
-  version "8.0.3"
-  resolved "https://registry.yarnpkg.com/@types/graphql-upload/-/graphql-upload-8.0.3.tgz#b371edb5f305a2a1f7b7843a890a2a7adc55c3ec"
-  integrity sha512-hmLg9pCU/GmxBscg8GCr1vmSoEmbItNNxdD5YH2TJkXm//8atjwuprB+xJBK714JG1dkxbbhp5RHX+Pz1KsCMA==
+"@types/graphql-upload@8.0.4", "@types/graphql-upload@^8.0.0":
+  version "8.0.4"
+  resolved "https://registry.yarnpkg.com/@types/graphql-upload/-/graphql-upload-8.0.4.tgz#23a8ffb3d2fe6e0ee07e6f16ee9d9d5e995a2f4f"
+  integrity sha512-0TRyJD2o8vbkmJF8InppFcPVcXKk+Rvlg/xvpHBIndSJYpmDWfmtx/ZAtl4f3jR2vfarpTqYgj8MZuJssSoU7Q==
   dependencies:
     "@types/express" "*"
     "@types/fs-capacitor" "*"
     "@types/koa" "*"
-    graphql "^14.5.3"
+    graphql "^15.3.0"
 
 "@types/html-minifier-terser@^5.0.0":
   version "5.1.0"
@@ -6929,7 +6929,7 @@ graphql-upload@^8.0.2:
     http-errors "^1.7.3"
     object-path "^0.11.4"
 
-graphql@15.3.0, graphql@^14.5.3:
+graphql@15.3.0, graphql@^14.5.3, graphql@^15.3.0:
   version "15.3.0"
   resolved "https://registry.yarnpkg.com/graphql/-/graphql-15.3.0.tgz#3ad2b0caab0d110e3be4a5a9b2aa281e362b5278"
   integrity sha512-GTCJtzJmkFLWRfFJuoo9RWWa/FfamUHgiFosxi/X1Ani4AVWbeyBenZTNX6dM+7WSbbFfTo/25eh0LLkwHMw2w==
