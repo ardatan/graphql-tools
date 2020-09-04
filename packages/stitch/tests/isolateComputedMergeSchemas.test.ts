@@ -58,7 +58,7 @@ describe('isolateComputedMergeSchemas', () => {
       expect(computedConfig.schema.getType('Storefront')).toBeUndefined();
       expect(computedConfig.schema.getType('ProductRepresentation')).toBeDefined();
       expect(computedConfig.merge.Product.fields).toEqual({
-        shippingEstimate: { selectionSet: '{ price weight }', computed: true },
+        shippingEstimate: { selectionSet: '{ price weight }' },
       });
 
       expect(Object.keys(staticConfig.schema.getType('Query').getFields())).toEqual(['storefront', '_products']);
@@ -177,10 +177,10 @@ describe('isolateComputedMergeSchemas', () => {
       expect(Object.keys(computedConfig.schema.getType('Product').getFields())).toEqual(['computed']);
       expect(Object.keys(computedConfig.schema.getType('Storefront').getFields())).toEqual(['computed']);
       expect(computedConfig.merge.Storefront.fields).toEqual({
-        computed: { selectionSet: '{ availableProductIds }', computed: true },
+        computed: { selectionSet: '{ availableProductIds }' },
       });
       expect(computedConfig.merge.Product.fields).toEqual({
-        computed: { selectionSet: '{ price weight }', computed: true },
+        computed: { selectionSet: '{ price weight }' },
       });
 
       expect(Object.keys(staticConfig.schema.getType('Query').getFields())).toEqual(['storefront', '_products']);

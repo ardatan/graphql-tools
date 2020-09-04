@@ -1,8 +1,12 @@
-import { isSubschemaConfig, MergedTypeConfig, MergedFieldConfig } from '@graphql-tools/delegate';
+import { isSubschemaConfig, SubschemaConfig, MergedTypeConfig, MergedFieldConfig } from '@graphql-tools/delegate';
 
 import { filterSchema, pruneSchema, getImplementingTypes } from '@graphql-tools/utils';
 
-import { GraphQLObjectType, GraphQLInterfaceType } from 'graphql';
+import { GraphQLSchema, GraphQLObjectType, GraphQLInterfaceType } from 'graphql';
+
+interface ComputedFieldConfig extends MergedFieldConfig {
+  computed?: string;
+}
 
 export function isolateComputedMergeSchemas(
   subschemas: Array<GraphQLSchema | SubschemaConfig>
@@ -33,13 +37,14 @@ function splitComputedMergeSubschemas(subschemaConfig: SubschemaConfig): Array<S
       const computedFields: Record<string, MergedFieldConfig> = {};
 
       Object.keys(mergedTypeConfig.fields).forEach((fieldName: string) => {
-        const mergedFieldConfig: MergedFieldConfig = mergedTypeConfig.fields[fieldName];
+        const mergedFieldConfig: ComputedFieldConfig = mergedTypeConfig.fields[fieldName] as ComputedFieldConfig;
 
         if (mergedFieldConfig.selectionSet && mergedFieldConfig.computed) {
           computedFields[fieldName] = mergedFieldConfig;
         } else {
           staticFields[fieldName] = mergedFieldConfig;
         }
+        delete mergedFieldConfig.computed;
       });
 
       const computedFieldCount = Object.keys(computedFields).length;

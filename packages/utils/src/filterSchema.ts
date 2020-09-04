@@ -2,9 +2,7 @@ import {
   GraphQLEnumType,
   GraphQLInputObjectType,
   GraphQLInterfaceType,
-  GraphQLInterfaceTypeConfig,
   GraphQLObjectType,
-  GraphQLObjectTypeConfig,
   GraphQLScalarType,
   GraphQLUnionType,
   GraphQLSchema,
@@ -13,6 +11,8 @@ import {
 import { MapperKind, FieldFilter, RootFieldFilter, TypeFilter } from './Interfaces';
 
 import { mapSchema } from './mapSchema';
+
+import { Constructor } from './types';
 
 export function filterSchema({
   schema,
@@ -35,11 +35,11 @@ export function filterSchema({
     [MapperKind.SUBSCRIPTION]: (type: GraphQLObjectType) => filterRootFields(type, 'Subscription', rootFieldFilter),
     [MapperKind.OBJECT_TYPE]: (type: GraphQLObjectType) =>
       typeFilter(type.name, type)
-        ? new GraphQLObjectType(filterElementFields(type, objectFieldFilter || fieldFilter) as GraphQLObjectTypeConfig)
+        ? filterElementFields<GraphQLObjectType>(type, objectFieldFilter || fieldFilter, GraphQLObjectType)
         : null,
     [MapperKind.INTERFACE_TYPE]: (type: GraphQLInterfaceType) =>
       typeFilter(type.name, type)
-        ? new GraphQLInterfaceType(filterElementFields(type, interfaceFieldFilter) as GraphQLInterfaceTypeConfig)
+        ? filterElementFields<GraphQLInterfaceType>(type, interfaceFieldFilter, GraphQLInterfaceType)
         : null,
     [MapperKind.UNION_TYPE]: (type: GraphQLUnionType) => (typeFilter(type.name, type) ? undefined : null),
     [MapperKind.INPUT_OBJECT_TYPE]: (type: GraphQLInputObjectType) => (typeFilter(type.name, type) ? undefined : null),
@@ -64,15 +64,16 @@ function filterRootFields(
   return new GraphQLObjectType(config);
 }
 
-function filterElementFields(
+function filterElementFields<ElementType>(
   type: GraphQLObjectType | GraphQLInterfaceType,
-  fieldFilter: FieldFilter
-): GraphQLObjectTypeConfig | GraphQLInterfaceTypeConfig {
+  fieldFilter: FieldFilter,
+  ElementConstructor: Constructor<ElementType>
+): ElementType {
   const config = type.toConfig();
   Object.keys(config.fields).forEach(fieldName => {
     if (!fieldFilter(type.name, fieldName, config.fields[fieldName])) {
       delete config.fields[fieldName];
     }
   });
-  return config;
+  return new ElementConstructor(config);
 }
