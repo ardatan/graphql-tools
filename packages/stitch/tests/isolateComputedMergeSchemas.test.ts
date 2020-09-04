@@ -1,6 +1,5 @@
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { isolateComputedMergeSchemas } from '../src/isolateComputedMergeSchemas';
-import { printSchemaWithDirectives } from '@graphql-tools/utils';
 
 describe('isolateComputedMergeSchemas', () => {
   describe('basic isolation', () => {
