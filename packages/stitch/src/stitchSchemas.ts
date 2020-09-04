@@ -26,7 +26,7 @@ import {
 import { buildTypeCandidates, buildTypeMap } from './typeCandidates';
 import { createStitchingInfo, completeStitchingInfo, addStitchingInfo } from './stitchingInfo';
 import { IStitchSchemasOptions } from './types';
-import { SubschemaConfig, isSubschemaConfig } from '@graphql-tools/delegate';
+import { SubschemaConfig, isSubschemaConfig, isSubschemaSetConfig } from '@graphql-tools/delegate';
 
 export function stitchSchemas({
   subschemas = [],
@@ -53,6 +53,23 @@ export function stitchSchemas({
     throw new Error('Expected `resolverValidationOptions` to be an object');
   }
 
+  let schemaLikeObjects: Array<GraphQLSchema | SubschemaConfig | DocumentNode | GraphQLNamedType> = [];
+
+  subschemas.forEach(subschema => {
+    if (isSubschemaSetConfig(subschema)) {
+      const { schema, permutations, endpoint } = subschema;
+      permutations.forEach(permutation => {
+        schemaLikeObjects.push({
+          schema,
+          ...permutation,
+          endpoint,
+        });
+      });
+    } else {
+      schemaLikeObjects.push(subschema);
+    }
+  });
+
   schemas.forEach(schemaLikeObject => {
     if (
       !isSchema(schemaLikeObject) &&
@@ -64,8 +81,6 @@ export function stitchSchemas({
       throw new Error('Invalid schema passed');
     }
   });
-
-  let schemaLikeObjects: Array<GraphQLSchema | SubschemaConfig | DocumentNode | GraphQLNamedType> = [...subschemas];
   schemas.forEach(schemaLikeObject => {
     if (isSchema(schemaLikeObject) || isSubschemaConfig(schemaLikeObject)) {
       schemaLikeObjects.push(schemaLikeObject);
