@@ -128,17 +128,19 @@ export function delegateRequest({
   if (isSubschemaConfig(subschemaOrSubschemaConfig)) {
     subschemaConfig = subschemaOrSubschemaConfig;
     targetSchema = subschemaConfig.schema;
-    targetRootValue = rootValue ?? subschemaConfig?.rootValue ?? info?.rootValue;
     allTransforms =
       subschemaOrSubschemaConfig.transforms != null
         ? subschemaOrSubschemaConfig.transforms.concat(transforms)
         : transforms;
-    if (subschemaConfig.endpoint != null) {
+    if (typeof subschemaConfig.endpoint === 'object') {
+      endpoint = subschemaConfig.endpoint;
+    } else if (typeof subschemaConfig.endpoint === 'string') {
       const stitchingInfo: StitchingInfo = info?.schema.extensions?.stitchingInfo;
       endpoint = stitchingInfo.endpoints[subschemaConfig.endpoint];
     } else {
       endpoint = subschemaConfig;
     }
+    targetRootValue = rootValue ?? endpoint?.rootValue ?? info?.rootValue;
   } else {
     targetSchema = subschemaOrSubschemaConfig;
     targetRootValue = rootValue ?? info?.rootValue;
