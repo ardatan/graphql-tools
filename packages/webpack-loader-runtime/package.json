@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/webpack-loader-runtime",
-  "version": "6.2.0",
+  "version": "6.2.1",
   "description": "A set of utils for GraphQL Webpack Loader",
   "repository": "git@github.com:ardatan/graphql-tools.git",
   "license": "MIT",
