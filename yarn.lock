@@ -164,10 +164,10 @@
   dependencies:
     tslib "~2.0.1"
 
-"@ardatan/bob-the-bundler@1.1.8":
-  version "1.1.8"
-  resolved "https://registry.yarnpkg.com/@ardatan/bob-the-bundler/-/bob-the-bundler-1.1.8.tgz#bf39b4e61e51cb228db7629e8c0737ca3b9e0945"
-  integrity sha512-o1UT2ljmNjbKQRQXeOmnY46vTOt5VbNYw4K2m3lH0AolKe5LAtKd1Q5bKUEkzSQpYKtmJ0FTVk+4gc5DNvdUlA==
+"@ardatan/bob-the-bundler@1.1.9":
+  version "1.1.9"
+  resolved "https://registry.yarnpkg.com/@ardatan/bob-the-bundler/-/bob-the-bundler-1.1.9.tgz#49e3f34fb0044e969be01e7fb1a7130d78b67fbd"
+  integrity sha512-8xueI9z/NA2bz0lYdYt1TFu1iz2iLuZmXIg25l07EY7+ttjzK+Ea0fdZsTjEus9GrgZ/aEzrEiU7R17FtzBzaQ==
   dependencies:
     "@rollup/plugin-node-resolve" "7.1.1"
     consola "2.11.3"

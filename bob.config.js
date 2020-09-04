@@ -1,4 +1,13 @@
 module.exports = {
   ignore: ['@graphql-tools/website'],
-  es5: true
+  dists: [
+    {
+      distDir: 'dist',
+      distPath: ''
+    },
+    {
+      distDir: 'dist-es5',
+      distPath: '/es5'
+    },
+  ]
 };
