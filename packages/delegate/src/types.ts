@@ -139,10 +139,6 @@ export interface Endpoint<K = any, V = any, C = K> {
   };
 }
 
-export interface NamedEndpoint extends Endpoint {
-  name: string;
-}
-
 export interface SubschemaPermutation {
   createProxyingResolver?: CreateProxyingResolverFn;
   transforms?: Array<Transform>;
@@ -151,13 +147,7 @@ export interface SubschemaPermutation {
 
 export interface SubschemaConfig<K = any, V = any, C = K> extends SubschemaPermutation, Endpoint<K, V, C> {
   schema: GraphQLSchema;
-  endpoint?: Endpoint | string;
-}
-
-export interface SubschemaSetConfig<K = any, V = any, C = K> extends Endpoint<K, V, C> {
-  schema: GraphQLSchema;
-  permutations: Array<SubschemaPermutation>;
-  endpoint: Endpoint;
+  endpoint?: Endpoint;
 }
 
 export interface MergedTypeConfig<K = any, V = any> {

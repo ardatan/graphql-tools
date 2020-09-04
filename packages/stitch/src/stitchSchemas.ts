@@ -26,11 +26,10 @@ import {
 import { buildTypeCandidates, buildTypeMap } from './typeCandidates';
 import { createStitchingInfo, completeStitchingInfo, addStitchingInfo } from './stitchingInfo';
 import { IStitchSchemasOptions } from './types';
-import { SubschemaConfig, isSubschemaConfig, isSubschemaSetConfig } from '@graphql-tools/delegate';
+import { SubschemaConfig, isSubschemaConfig } from '@graphql-tools/delegate';
 
 export function stitchSchemas({
   subschemas = [],
-  endpoints = [],
   types = [],
   typeDefs,
   schemas = [],
@@ -55,18 +54,11 @@ export function stitchSchemas({
 
   let schemaLikeObjects: Array<GraphQLSchema | SubschemaConfig | DocumentNode | GraphQLNamedType> = [];
 
-  subschemas.forEach(subschema => {
-    if (isSubschemaSetConfig(subschema)) {
-      const { schema, permutations, endpoint } = subschema;
-      permutations.forEach(permutation => {
-        schemaLikeObjects.push({
-          schema,
-          ...permutation,
-          endpoint,
-        });
-      });
+  subschemas.forEach(subschemaOrSubschemaArray => {
+    if (Array.isArray(subschemaOrSubschemaArray)) {
+      schemaLikeObjects = schemaLikeObjects.concat(subschemaOrSubschemaArray);
     } else {
-      schemaLikeObjects.push(subschema);
+      schemaLikeObjects.push(subschemaOrSubschemaArray);
     }
   });
 
@@ -133,7 +125,7 @@ export function stitchSchemas({
     directives.push(directiveMap[directiveName]);
   });
 
-  let stitchingInfo = createStitchingInfo(transformedSchemas, typeCandidates, mergeTypes, endpoints);
+  let stitchingInfo = createStitchingInfo(transformedSchemas, typeCandidates, mergeTypes);
 
   const typeMap = buildTypeMap({
     typeCandidates,
