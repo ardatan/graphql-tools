@@ -12,7 +12,7 @@ import {
   GraphQLInputObjectType,
 } from 'graphql';
 import { ITypeDefinitions, TypeMap } from '@graphql-tools/utils';
-import { SubschemaConfig, NamedEndpoint, Endpoint } from '@graphql-tools/delegate';
+import { SubschemaConfig, NamedEndpoint, Endpoint, SubschemaSetConfig } from '@graphql-tools/delegate';
 import { IExecutableSchemaDefinition } from '@graphql-tools/schema';
 
 export interface MergeTypeCandidate {
@@ -61,7 +61,7 @@ export interface StitchingInfo {
 export type SchemaLikeObject = SubschemaConfig | GraphQLSchema | string | DocumentNode | Array<GraphQLNamedType>;
 
 export interface IStitchSchemasOptions<TContext = any> extends Omit<IExecutableSchemaDefinition<TContext>, 'typeDefs'> {
-  subschemas?: Array<GraphQLSchema | SubschemaConfig>;
+  subschemas?: Array<GraphQLSchema | SubschemaConfig | SubschemaSetConfig>;
   endpoints?: Array<NamedEndpoint>;
   typeDefs?: ITypeDefinitions;
   types?: Array<GraphQLNamedType>;

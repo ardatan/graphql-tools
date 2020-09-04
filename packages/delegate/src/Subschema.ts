@@ -2,7 +2,14 @@ import { GraphQLSchema } from 'graphql';
 
 import { Transform, applySchemaTransforms } from '@graphql-tools/utils';
 
-import { SubschemaConfig, MergedTypeConfig, CreateProxyingResolverFn, Subscriber, Executor } from './types';
+import {
+  SubschemaConfig,
+  MergedTypeConfig,
+  CreateProxyingResolverFn,
+  Subscriber,
+  Executor,
+  SubschemaSetConfig,
+} from './types';
 
 import { FIELD_SUBSCHEMA_MAP_SYMBOL, OBJECT_SUBSCHEMA_SYMBOL } from './symbols';
 
@@ -16,11 +23,14 @@ export function setObjectSubschema(result: any, subschema: GraphQLSchema | Subsc
 }
 
 export function isSubschemaConfig(value: any): value is SubschemaConfig | Subschema {
-  return Boolean((value as SubschemaConfig).schema);
+  return Boolean(value.schema && value.permutations === undefined);
+}
+export function isSubschema(value: any): value is Subschema {
+  return Boolean(value.transformedSchema);
 }
 
-export function isSubschema(value: any): value is Subschema {
-  return Boolean((value as Subschema).transformedSchema);
+export function isSubschemaSetConfig(value: any): value is SubschemaSetConfig {
+  return Boolean(value.permutations);
 }
 
 export class Subschema {
