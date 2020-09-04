@@ -1,9 +1,9 @@
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { isolateDynamicMergeSchemas } from '../src/isolateDynamicMergeSchemas';
+import { isolateComputedMergeSchemas } from '../src/isolateComputedMergeSchemas';
 import { printSchemaWithDirectives } from '@graphql-tools/utils';
 
-describe('isolateDynamicMergeSchemas', () => {
-  describe('basic splitting', () => {
+describe('isolateComputedMergeSchemas', () => {
+  describe('basic isolation', () => {
     const storefrontSchema = makeExecutableSchema({
       typeDefs: `
         type Product {
@@ -36,13 +36,13 @@ describe('isolateDynamicMergeSchemas', () => {
     });
 
     it('splits a subschema into static and dynamic portions', async () => {
-      const [dynamicConfig, staticConfig] = isolateDynamicMergeSchemas([{
+      const [computedConfig, staticConfig] = isolateComputedMergeSchemas([{
         schema: storefrontSchema,
         merge: {
           Product: {
             selectionSet: '{ id }',
             fields: {
-              shippingEstimate: { selectionSet: '{ price weight }', required: true },
+              shippingEstimate: { selectionSet: '{ price weight }', computed: true },
               deliveryService: { selectionSet: '{ weight }' },
             },
             fieldName: '_products',
@@ -52,13 +52,13 @@ describe('isolateDynamicMergeSchemas', () => {
         }
       }]);
 
-      expect(Object.keys(dynamicConfig.schema.getType('Query').getFields())).toEqual(['_products']);
-      expect(Object.keys(dynamicConfig.schema.getType('Product').getFields())).toEqual(['shippingEstimate']);
-      expect(dynamicConfig.schema.getType('DeliveryService')).toBeUndefined();
-      expect(dynamicConfig.schema.getType('Storefront')).toBeUndefined();
-      expect(dynamicConfig.schema.getType('ProductRepresentation')).toBeDefined();
-      expect(dynamicConfig.merge.Product.fields).toEqual({
-        shippingEstimate: { selectionSet: '{ price weight }', required: true },
+      expect(Object.keys(computedConfig.schema.getType('Query').getFields())).toEqual(['_products']);
+      expect(Object.keys(computedConfig.schema.getType('Product').getFields())).toEqual(['shippingEstimate']);
+      expect(computedConfig.schema.getType('DeliveryService')).toBeUndefined();
+      expect(computedConfig.schema.getType('Storefront')).toBeUndefined();
+      expect(computedConfig.schema.getType('ProductRepresentation')).toBeDefined();
+      expect(computedConfig.merge.Product.fields).toEqual({
+        shippingEstimate: { selectionSet: '{ price weight }', computed: true },
       });
 
       expect(Object.keys(staticConfig.schema.getType('Query').getFields())).toEqual(['storefront', '_products']);
@@ -72,7 +72,7 @@ describe('isolateDynamicMergeSchemas', () => {
     });
 
     it('does not split schemas with only optional fields', async () => {
-      const results = isolateDynamicMergeSchemas([{
+      const results = isolateComputedMergeSchemas([{
         schema: storefrontSchema,
         merge: {
           Product: {
@@ -96,35 +96,28 @@ describe('isolateDynamicMergeSchemas', () => {
     });
   });
 
-  describe('fully dynamic type', () => {
+  describe('fully computed type', () => {
     const storefrontSchema = makeExecutableSchema({
       typeDefs: `
         type Product {
-          shippingEstimate: Float!
-          deliveryService: String!
+          computedOne: String!
+          computedTwo: String!
         }
-
-        input ProductRepresentation {
-          id: ID!
-          price: Float
-          weight: Int
-        }
-
         type Query {
-          _products(representations: [ProductRepresentation!]!): [Product]!
+          _products(representations: [ID!]!): [Product]!
         }
       `
     });
 
-    it('moves everything to the dynamic schema', async () => {
-      const [dynamicConfig, staticConfig] = isolateDynamicMergeSchemas([{
+    it('does not reprocess already isolated computations', async () => {
+      const result = isolateComputedMergeSchemas([{
         schema: storefrontSchema,
         merge: {
           Product: {
             selectionSet: '{ id }',
             fields: {
-              shippingEstimate: { selectionSet: '{ price weight }', required: true },
-              deliveryService: { selectionSet: '{ weight }', required: true },
+              computedOne: { selectionSet: '{ price weight }', computed: true },
+              computedTwo: { selectionSet: '{ weight }', computed: true },
             },
             fieldName: '_products',
             key: ({ id, price, weight }) => ({ id, price, weight }),
@@ -133,55 +126,36 @@ describe('isolateDynamicMergeSchemas', () => {
         }
       }]);
 
-      expect(dynamicConfig.schema.getType('Product')).toBeDefined();
-      expect(dynamicConfig.schema.getType('ProductRepresentation')).toBeDefined();
-      expect(dynamicConfig.schema.getType('Query')).toBeDefined();
-      expect(dynamicConfig.merge.Product.fields).toEqual({
-        shippingEstimate: { selectionSet: '{ price weight }', required: true },
-        deliveryService: { selectionSet: '{ weight }', required: true },
-      });
-
-      expect(staticConfig.schema.getType('Product')).toBeUndefined();
-      expect(staticConfig.schema.getType('ProductRepresentation')).toBeDefined();
-      expect(staticConfig.schema.getType('Query')).toBeUndefined();
-      expect(staticConfig.merge).toBeUndefined();
+      expect(result.length).toEqual(1);
     });
   });
 
-  describe('multiple types', () => {
+  describe('multiple computed types', () => {
     const storefrontSchema = makeExecutableSchema({
       typeDefs: `
         type Product {
-          shippingEstimate: Float!
-          deliveryService: String!
+          static: String!
+          computed: String!
         }
-
         type Storefront {
-          id: ID!
-          availableProducts: [Product]!
+          static: ID!
+          computed: [Product]!
         }
-
-        input ProductRepresentation {
-          id: ID!
-          price: Float
-          weight: Int
-        }
-
         type Query {
           storefront(id: ID!): Storefront
-          _products(representations: [ProductRepresentation!]!): [Product]!
+          _products(representations: [ID!]!): [Product]!
         }
       `
     });
 
     it('moves all dynamic types to the dynamic schema', async () => {
-      const [dynamicConfig, staticConfig] = isolateDynamicMergeSchemas([{
+      const [computedConfig, staticConfig] = isolateComputedMergeSchemas([{
         schema: storefrontSchema,
         merge: {
           Storefront: {
             selectionSet: '{ id }',
             fields: {
-              availableProducts: { selectionSet: '{ availableProductIds }', required: true },
+              computed: { selectionSet: '{ availableProductIds }', computed: true },
             },
             fieldName: 'storefront',
             args: ({ id }) => ({ id }),
@@ -189,8 +163,8 @@ describe('isolateDynamicMergeSchemas', () => {
           Product: {
             selectionSet: '{ id }',
             fields: {
-              shippingEstimate: { selectionSet: '{ price weight }', required: true },
-              deliveryService: { selectionSet: '{ weight }' },
+              computed: { selectionSet: '{ price weight }', computed: true },
+              static: { selectionSet: '{ weight }' },
             },
             fieldName: '_products',
             key: ({ id, price, weight }) => ({ id, price, weight }),
@@ -199,25 +173,63 @@ describe('isolateDynamicMergeSchemas', () => {
         }
       }]);
 
-      expect(Object.keys(dynamicConfig.schema.getType('Query').getFields())).toEqual(['storefront', '_products']);
-      expect(Object.keys(dynamicConfig.schema.getType('Product').getFields())).toEqual(['shippingEstimate']);
-      expect(Object.keys(dynamicConfig.schema.getType('Storefront').getFields())).toEqual(['availableProducts']);
-      expect(dynamicConfig.schema.getType('ProductRepresentation')).toBeDefined();
-      expect(dynamicConfig.merge.Storefront.fields).toEqual({
-        availableProducts: { selectionSet: '{ availableProductIds }', required: true },
+      expect(Object.keys(computedConfig.schema.getType('Query').getFields())).toEqual(['storefront', '_products']);
+      expect(Object.keys(computedConfig.schema.getType('Product').getFields())).toEqual(['computed']);
+      expect(Object.keys(computedConfig.schema.getType('Storefront').getFields())).toEqual(['computed']);
+      expect(computedConfig.merge.Storefront.fields).toEqual({
+        computed: { selectionSet: '{ availableProductIds }', computed: true },
       });
-      expect(dynamicConfig.merge.Product.fields).toEqual({
-        shippingEstimate: { selectionSet: '{ price weight }', required: true },
+      expect(computedConfig.merge.Product.fields).toEqual({
+        computed: { selectionSet: '{ price weight }', computed: true },
       });
 
       expect(Object.keys(staticConfig.schema.getType('Query').getFields())).toEqual(['storefront', '_products']);
-      expect(Object.keys(staticConfig.schema.getType('Product').getFields())).toEqual(['deliveryService']);
-      expect(Object.keys(staticConfig.schema.getType('Storefront').getFields())).toEqual(['id']);
-      expect(staticConfig.schema.getType('ProductRepresentation')).toBeDefined();
+      expect(Object.keys(staticConfig.schema.getType('Product').getFields())).toEqual(['static']);
+      expect(Object.keys(staticConfig.schema.getType('Storefront').getFields())).toEqual(['static']);
       expect(staticConfig.merge.Storefront.fields).toBeUndefined();
       expect(staticConfig.merge.Product.fields).toEqual({
-        deliveryService: { selectionSet: '{ weight }' },
+        static: { selectionSet: '{ weight }' },
       });
+    });
+  });
+
+  describe('with computed interface fields', () => {
+    it('shifts computed interface fields into computed schema', async () => {
+      const testSchema = makeExecutableSchema({
+        typeDefs: `
+          interface IProduct {
+            static: String!
+            computed: String!
+          }
+          type Product implements IProduct {
+            static: String!
+            computed: String!
+          }
+          type Query {
+            _products(representations: [ID!]!): [Product]!
+          }
+        `
+      });
+
+      const [computedConfig, staticConfig] = isolateComputedMergeSchemas([{
+        schema: testSchema,
+        merge: {
+          Product: {
+            selectionSet: '{ id }',
+            fields: {
+              computed: { selectionSet: '{ price weight }', computed: true }
+            },
+            fieldName: '_products',
+            key: ({ id, price, weight }) => ({ id, price, weight }),
+            argsFromKeys: (representations) => ({ representations }),
+          }
+        }
+      }]);
+
+      expect(Object.keys(computedConfig.schema.getType('IProduct').getFields())).toEqual(['computed']);
+      expect(Object.keys(computedConfig.schema.getType('Product').getFields())).toEqual(['computed']);
+      expect(Object.keys(staticConfig.schema.getType('IProduct').getFields())).toEqual(['static']);
+      expect(Object.keys(staticConfig.schema.getType('Product').getFields())).toEqual(['static']);
     });
   });
 });
