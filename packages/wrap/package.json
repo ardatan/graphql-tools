@@ -21,7 +21,6 @@
     "@graphql-tools/delegate": "6.2.0",
     "@graphql-tools/schema": "6.2.0",
     "@graphql-tools/utils": "6.2.0",
-    "aggregate-error": "3.1.0",
     "is-promise": "4.0.0",
     "tslib": "~2.0.1"
   },

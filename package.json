@@ -6,7 +6,7 @@
   "scripts": {
     "predeploy:website": "yarn build:api-docs",
     "deploy:website": "cd website && yarn deploy",
-    "ts:transpile": "tsc --project tsconfig.build.json",
+    "ts:transpile": "tsc --project tsconfig.build.json && tsc --project tsconfig.build.es5.json",
     "build": "yarn ts:transpile && bob build",
     "build:api-docs": "node scripts/build-api-docs.js",
     "lint": "eslint --ext .ts .",
@@ -44,7 +44,7 @@
     "@types/node": "14.6.4",
     "@typescript-eslint/eslint-plugin": "4.0.1",
     "@typescript-eslint/parser": "4.0.1",
-    "bob-the-bundler": "1.1.0",
+    "@ardatan/bob-the-bundler": "1.2.2",
     "eslint": "7.8.1",
     "eslint-config-prettier": "6.11.0",
     "eslint-config-standard": "14.1.1",
