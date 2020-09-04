@@ -40,6 +40,7 @@
     "@graphql-tools/schema": "6.2.0",
     "@graphql-tools/stitch": "6.2.0",
     "@graphql-tools/utils": "6.2.0",
-    "@graphql-tools/wrap": "6.2.0"
+    "@graphql-tools/wrap": "6.2.0",
+    "tslib": "~2.0.1"
   }
 }
