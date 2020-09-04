@@ -161,9 +161,8 @@ export interface MergedTypeConfig<K = any, V = any> {
   valuesFromResults?: (results: any, keys: ReadonlyArray<K>) => Array<V>;
 }
 
-export interface MergedFieldConfig<K = any, V = any> {
+export interface MergedFieldConfig {
   selectionSet?: string;
-  computed?: boolean;
 }
 
 export type MergedTypeResolver = (
