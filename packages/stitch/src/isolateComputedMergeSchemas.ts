@@ -64,7 +64,7 @@ function splitComputedMergeSubschemas(subschemaConfig: SubschemaConfig): Array<S
     return [
       filterComputedSubschema({ ...subschemaConfig, merge: computedTypes }),
       filterStaticSubschema({ ...subschemaConfig, merge: staticTypes }, computedTypes),
-    ].filter(Boolean);
+    ];
   }
 
   return [subschemaConfig];
@@ -92,10 +92,6 @@ function filterStaticSubschema(
   );
 
   const remainingTypes = subschemaConfig.schema.getTypeMap();
-  if (!Object.keys(remainingTypes).length) {
-    return undefined;
-  }
-
   Object.keys(subschemaConfig.merge).forEach(mergeType => {
     if (!remainingTypes[mergeType]) {
       delete subschemaConfig.merge[mergeType];
