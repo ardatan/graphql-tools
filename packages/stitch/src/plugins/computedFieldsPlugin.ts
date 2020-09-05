@@ -17,7 +17,7 @@ export class ComputedFieldsPlugin implements StitchSchemasPlugin {
 
       config.subschemas.forEach(schemaLikeObject => {
         if (isSubschemaConfig(schemaLikeObject) && schemaLikeObject.merge) {
-          mapped.push(...splitComputedMergeSubschemas(schemaLikeObject as SubschemaConfig));
+          mapped.push(...isolateComputedMergeSchemas(schemaLikeObject as SubschemaConfig));
         } else {
           mapped.push(schemaLikeObject);
         }
@@ -29,7 +29,7 @@ export class ComputedFieldsPlugin implements StitchSchemasPlugin {
   }
 }
 
-function splitComputedMergeSubschemas(subschemaConfig: SubschemaConfig): Array<SubschemaConfig> {
+function isolateComputedMergeSchemas(subschemaConfig: SubschemaConfig): Array<SubschemaConfig> {
   const staticTypes: Record<string, MergedTypeConfig> = {};
   const computedTypes: Record<string, MergedTypeConfig> = {};
 
