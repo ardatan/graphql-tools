@@ -508,7 +508,7 @@ const layoutsSchema = makeExecutableSchema({
 });
 ```
 
-In the above, both `Post` and `Section` will have a common interface of `{ id title url }` in the gateway schema. The difference in fields between the gateway schema and the layouts subschema will translate automatically.
+In the above, both `Post` and `Section` will have a common interface of `{ id title url }` in the gateway schema. The difference in fields between the gateway schema and the layouts subschema will be translated automatically.
 
 ## Custom merge resolvers
 
