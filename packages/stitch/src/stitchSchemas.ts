@@ -30,7 +30,6 @@ import { SubschemaConfig, isSubschemaConfig } from '@graphql-tools/delegate';
 
 export function stitchSchemas({
   subschemas = [],
-  endpoints = [],
   types = [],
   typeDefs,
   schemas = [],
@@ -53,6 +52,16 @@ export function stitchSchemas({
     throw new Error('Expected `resolverValidationOptions` to be an object');
   }
 
+  let schemaLikeObjects: Array<GraphQLSchema | SubschemaConfig | DocumentNode | GraphQLNamedType> = [];
+
+  subschemas.forEach(subschemaOrSubschemaArray => {
+    if (Array.isArray(subschemaOrSubschemaArray)) {
+      schemaLikeObjects = schemaLikeObjects.concat(subschemaOrSubschemaArray);
+    } else {
+      schemaLikeObjects.push(subschemaOrSubschemaArray);
+    }
+  });
+
   schemas.forEach(schemaLikeObject => {
     if (
       !isSchema(schemaLikeObject) &&
@@ -64,8 +73,6 @@ export function stitchSchemas({
       throw new Error('Invalid schema passed');
     }
   });
-
-  let schemaLikeObjects: Array<GraphQLSchema | SubschemaConfig | DocumentNode | GraphQLNamedType> = [...subschemas];
   schemas.forEach(schemaLikeObject => {
     if (isSchema(schemaLikeObject) || isSubschemaConfig(schemaLikeObject)) {
       schemaLikeObjects.push(schemaLikeObject);
@@ -118,7 +125,7 @@ export function stitchSchemas({
     directives.push(directiveMap[directiveName]);
   });
 
-  let stitchingInfo = createStitchingInfo(transformedSchemas, typeCandidates, mergeTypes, endpoints);
+  let stitchingInfo = createStitchingInfo(transformedSchemas, typeCandidates, mergeTypes);
 
   const typeMap = buildTypeMap({
     typeCandidates,

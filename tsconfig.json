@@ -15,6 +15,7 @@
     "resolveJsonModule": true,
     "sourceMap": true,
     "declaration": true,
+    "downlevelIteration": true,
 
     "suppressImplicitAnyIndexErrors": true,
     "noImplicitAny": true,

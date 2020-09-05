@@ -23,7 +23,7 @@ import {
   IFieldResolverOptions,
 } from '@graphql-tools/utils';
 
-import { delegateToSchema, isSubschemaConfig, SubschemaConfig, NamedEndpoint } from '@graphql-tools/delegate';
+import { delegateToSchema, isSubschemaConfig, SubschemaConfig } from '@graphql-tools/delegate';
 
 import { batchDelegateToSchema } from '@graphql-tools/batch-delegate';
 
@@ -32,8 +32,7 @@ import { MergeTypeCandidate, MergedTypeInfo, StitchingInfo, MergeTypeFilter } fr
 export function createStitchingInfo(
   transformedSchemas: Map<GraphQLSchema | SubschemaConfig, GraphQLSchema>,
   typeCandidates: Record<string, Array<MergeTypeCandidate>>,
-  mergeTypes?: boolean | Array<string> | MergeTypeFilter,
-  endpoints?: Array<NamedEndpoint>
+  mergeTypes?: boolean | Array<string> | MergeTypeFilter
 ): StitchingInfo {
   const mergedTypes = createMergedTypes(typeCandidates, mergeTypes);
   const selectionSetsByField: Record<string, Record<string, SelectionSetNode>> = Object.create(null);
@@ -88,10 +87,6 @@ export function createStitchingInfo(
     selectionSetsByField,
     dynamicSelectionSetsByField: undefined,
     mergedTypes,
-    endpoints: endpoints.reduce((acc, endpoint) => {
-      acc[endpoint.name] = endpoint;
-      return acc;
-    }, Object.create(null)),
   };
 }
 

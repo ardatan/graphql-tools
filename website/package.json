@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/website",
-  "version": "6.2.0",
+  "version": "6.2.1",
   "private": true,
   "scripts": {
     "start": "docusaurus start",
@@ -9,8 +9,8 @@
     "deploy": "docusaurus deploy"
   },
   "dependencies": {
-    "@docusaurus/core": "2.0.0-alpha.62",
-    "@docusaurus/preset-classic": "2.0.0-alpha.62",
+    "@docusaurus/core": "2.0.0-alpha.63",
+    "@docusaurus/preset-classic": "2.0.0-alpha.63",
     "classnames": "2.2.6",
     "react": "16.13.1",
     "react-dom": "16.13.1"

@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/links",
-  "version": "6.2.0",
+  "version": "6.2.1",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": "git@github.com:ardatan/graphql-tools.git",
   "license": "MIT",
@@ -18,12 +18,12 @@
     "input": "./src/index.ts"
   },
   "devDependencies": {
-    "@types/graphql-upload": "8.0.3",
+    "@types/graphql-upload": "8.0.4",
     "express-graphql": "0.11.0",
     "graphql-upload": "11.0.0"
   },
   "dependencies": {
-    "@graphql-tools/utils": "6.2.0",
+    "@graphql-tools/utils": "6.2.1",
     "apollo-link": "1.2.14",
     "apollo-upload-client": "14.1.1",
     "cross-fetch": "3.0.5",

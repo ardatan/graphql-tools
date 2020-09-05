@@ -16,11 +16,10 @@ export function setObjectSubschema(result: any, subschema: GraphQLSchema | Subsc
 }
 
 export function isSubschemaConfig(value: any): value is SubschemaConfig | Subschema {
-  return Boolean((value as SubschemaConfig).schema);
+  return Boolean(value.schema && value.permutations === undefined);
 }
-
 export function isSubschema(value: any): value is Subschema {
-  return Boolean((value as Subschema).transformedSchema);
+  return Boolean(value.transformedSchema);
 }
 
 export class Subschema {

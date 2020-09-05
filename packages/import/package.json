@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/import",
-  "version": "6.2.0",
+  "version": "6.2.1",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": "git@github.com:ardatan/graphql-tools.git",
   "author": "Dotan Simha <dotansimha@gmail.com>",
@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "fs-extra": "9.0.1",
-    "resolve-from": "5.0.0"
+    "resolve-from": "5.0.0",
+    "tslib": "~2.0.1"
   }
 }

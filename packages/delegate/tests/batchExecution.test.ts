@@ -1,7 +1,7 @@
 import { graphql, execute, ExecutionResult } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { delegateToSchema, SubschemaConfig, ExecutionParams, SyncExecutor, NamedEndpoint } from '../src';
+import { delegateToSchema, SubschemaConfig, ExecutionParams, SyncExecutor, Endpoint } from '../src';
 import { stitchSchemas } from '@graphql-tools/stitch';
 import { FilterObjectFields } from '@graphql-tools/wrap';
 
@@ -104,16 +104,15 @@ describe('batch execution', () => {
 
     let executions = 0;
 
-    const endpoint: NamedEndpoint =  {
-      name: 'commonEndpoint',
+    const endpoint: Endpoint = {
       batch: true,
       executor: ((params: ExecutionParams): ExecutionResult => {
         executions++;
         return execute(innerSchemaA, params.document, undefined, params.context, params.variables) as ExecutionResult;
       }) as SyncExecutor
-    }
+    };
 
-    const innerSubschemaConfigA1: SubschemaConfig = {
+    const innerSubschemaConfigA: Array<SubschemaConfig> = [{
       schema: innerSchemaA,
       transforms: [new FilterObjectFields((typeName, fieldName) => typeName !== 'Object' || fieldName !== 'field2')],
       merge: {
@@ -122,10 +121,8 @@ describe('batch execution', () => {
           args: () => ({}),
         },
       },
-      endpoint: 'commonEndpoint',
-    }
-
-    const innerSubschemaConfigA2: SubschemaConfig = {
+      endpoint,
+    }, {
       schema: innerSchemaA,
       transforms: [new FilterObjectFields((typeName, fieldName) => typeName !== 'Object' || fieldName !== 'field1')],
       merge: {
@@ -134,8 +131,8 @@ describe('batch execution', () => {
           args: () => ({}),
         },
       },
-      endpoint: 'commonEndpoint',
-    }
+      endpoint,
+    }];
 
     const innerSubschemaConfigB: SubschemaConfig = {
       schema: innerSchemaB,
@@ -147,10 +144,7 @@ describe('batch execution', () => {
       },
     }
 
-    const outerSchema = stitchSchemas({
-      subschemas: [innerSubschemaConfigA1, innerSubschemaConfigA2, innerSubschemaConfigB],
-      endpoints: [endpoint],
-    });
+    const query = '{ objectB { field1 field2 field3 } }';
 
     const expectedResult = {
       data: {
@@ -162,9 +156,22 @@ describe('batch execution', () => {
       },
     };
 
-    const result = await graphql(outerSchema, '{ objectB { field1 field2 field3 } }', undefined, {});
+    const outerSchemaWithSubschemasAsArray = stitchSchemas({
+      subschemas: [innerSubschemaConfigA, innerSubschemaConfigB],
+    });
 
-    expect(result).toEqual(expectedResult);
+    const resultWhenAsArray = await graphql(outerSchemaWithSubschemasAsArray, query, undefined, {});
+
+    expect(resultWhenAsArray).toEqual(expectedResult);
     expect(executions).toEqual(1);
+
+    const outerSchemaWithSubschemasSpread = stitchSchemas({
+      subschemas: [...innerSubschemaConfigA, innerSubschemaConfigB],
+    });
+
+    const resultWhenSpread = await graphql(outerSchemaWithSubschemasSpread, query, undefined, {});
+
+    expect(resultWhenSpread).toEqual(expectedResult);
+    expect(executions).toEqual(2);
   });
 });
