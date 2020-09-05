@@ -463,62 +463,20 @@ In fact, type merging can seamlessly interface with Federation services by sendi
 }
 ```
 
-## Combined interfaces
+## Interface merging
 
-Schema stitching offers multiple strategies for combining interfaces across subschemas; these techniques may be used individually or together.
-
-### Interface merging
-
-Type merging will automatically consolidate interfaces of the same name across subschemas, allowing each subschema to contribute fields:
-
-```js
-const contentSchema = makeExecutableSchema({
-  typeDefs: `
-    interface HomepageSlot {
-      id: ID!
-      title: String!
-    }
-
-    type Post implements HomepageSlot {
-      id: ID!
-      title: String!
-    }
-  `
-});
-
-const recommendationSchema = makeExecutableSchema({
-  typeDefs: `
-    interface HomepageSlot {
-      id: ID!
-      recommendedUrls: [URL!]!
-    }
-
-    type Post implements HomepageSlot {
-      id: ID!
-      recommendedUrls: [URL!]!
-    }
-  `
-});
-```
-
-These two `HomepageSlot` definitions will merge into a single gateway interface with combined fields:
-
-```graphql
-interface HomepageSlot {
-  id: ID!
-  title: String!
-  recommendedUrls: [URL!]!
-}
-```
-
-### Interface extensions
-
-Merging alone may not be enough depending on how types are arranged across subschemas. For example:
+Type merging will automatically consolidate interfaces of the same name across subschemas, allowing each subschema to contribute fields. This is extremely useful when the complete interface of fields is not available in all schemas&mdash;each schema simply provides the minimum set of fields that it does possess:
 
 ```js
 const postsSchema = makeExecutableSchema({
   typeDefs: `
-    type Post {
+    interface HomepageSlot {
+      id: ID!
+      title: String!
+      url: URL!
+    }
+
+    type Post implements HomepageSlot {
       id: ID!
       title: String!
       url: URL!
@@ -550,23 +508,7 @@ const layoutsSchema = makeExecutableSchema({
 });
 ```
 
-In this case, Post and Section would ideally provide an interface of `{ id title url }`, however they only share an `id` in the service that defines the interface. This constraint can be overcome with a gateway-level schema extension that adds `{ title url }` into the combined interface:
-
-```js
-const gatewaySchema = stitchSchemas({
-  subschemas: [
-    { schema: postsSchema, merge: { ... } },
-    { schema: layoutsSchema, merge: { ... } },
-  ],
-  typeDefs: `
-    extend interface HomepageSlot {
-      title: String!
-      url: URL!
-    }
-  `,
-  mergeTypes: true
-});
-```
+In the above, both `Post` and `Section` will have a common interface of `{ id title url }` in the gateway schema. The difference in fields between the gateway schema and the layouts subschema will translate automatically.
 
 ## Custom merge resolvers
 
