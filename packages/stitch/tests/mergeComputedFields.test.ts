@@ -1,7 +1,6 @@
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { stitchSchemas } from '@graphql-tools/stitch';
+import { stitchSchemas, ComputedFieldsPlugin } from '@graphql-tools/stitch';
 import { graphql } from 'graphql';
-import { isolateComputedMergeSchemas } from '../src/isolateComputedMergeSchemas';
 
 describe('dynamic fields', () => {
   const productSchema = makeExecutableSchema({
@@ -65,7 +64,7 @@ describe('dynamic fields', () => {
   });
 
   const gatewaySchema = stitchSchemas({
-    subschemas: isolateComputedMergeSchemas([
+    subschemas: [
       {
         schema: productSchema,
         merge: {
@@ -91,8 +90,9 @@ describe('dynamic fields', () => {
           }
         }
       }
-    ]),
-    mergeTypes: true
+    ],
+    mergeTypes: true,
+    plugins: [new ComputedFieldsPlugin()]
   });
 
   it('collects dynamic fields via the gateway', async () => {

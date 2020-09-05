@@ -28,26 +28,32 @@ import { createStitchingInfo, completeStitchingInfo, addStitchingInfo } from './
 import { IStitchSchemasOptions } from './types';
 import { SubschemaConfig, isSubschemaConfig } from '@graphql-tools/delegate';
 
-export function stitchSchemas({
-  subschemas = [],
-  types = [],
-  typeDefs,
-  schemas = [],
-  onTypeConflict,
-  mergeDirectives,
-  mergeTypes = false,
-  typeMergingOptions,
-  resolvers = {},
-  schemaDirectives,
-  inheritResolversFromInterfaces = false,
-  logger,
-  allowUndefinedInResolve = true,
-  resolverValidationOptions = {},
-  directiveResolvers,
-  schemaTransforms = [],
-  parseOptions = {},
-  pruningOptions,
-}: IStitchSchemasOptions): GraphQLSchema {
+export function stitchSchemas(config: IStitchSchemasOptions): GraphQLSchema {
+  if (config.plugins) {
+    config = config.plugins.reduce((memo, plugin) => (plugin.preconfigure ? plugin.preconfigure(memo) : memo), config);
+  }
+
+  const {
+    subschemas = [],
+    types = [],
+    typeDefs,
+    schemas = [],
+    onTypeConflict,
+    mergeDirectives,
+    mergeTypes = false,
+    typeMergingOptions,
+    resolvers = {},
+    schemaDirectives,
+    inheritResolversFromInterfaces = false,
+    logger,
+    allowUndefinedInResolve = true,
+    resolverValidationOptions = {},
+    directiveResolvers,
+    schemaTransforms = [],
+    parseOptions = {},
+    pruningOptions,
+  } = config;
+
   if (typeof resolverValidationOptions !== 'object') {
     throw new Error('Expected `resolverValidationOptions` to be an object');
   }
