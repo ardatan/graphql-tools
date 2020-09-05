@@ -4,24 +4,29 @@ import { filterSchema, pruneSchema, getImplementingTypes } from '@graphql-tools/
 
 import { GraphQLSchema, GraphQLObjectType, GraphQLInterfaceType } from 'graphql';
 
+import { IStitchSchemasOptions, StitchSchemasPlugin } from '../types';
+
 interface ComputedFieldConfig extends MergedFieldConfig {
   computed?: string;
 }
 
-export function isolateComputedMergeSchemas(
-  subschemas: Array<GraphQLSchema | SubschemaConfig>
-): Array<GraphQLSchema | SubschemaConfig> {
-  const mapped: Array<GraphQLSchema | SubschemaConfig> = [];
+export class ComputedFieldsPlugin implements StitchSchemasPlugin {
+  public preconfigure(config: IStitchSchemasOptions): IStitchSchemasOptions {
+    if (config.subschemas) {
+      const mapped: Array<GraphQLSchema | SubschemaConfig | Array<SubschemaConfig>> = [];
 
-  subschemas.forEach(schemaLikeObject => {
-    if (isSubschemaConfig(schemaLikeObject) && schemaLikeObject.merge) {
-      mapped.push(...splitComputedMergeSubschemas(schemaLikeObject as SubschemaConfig));
-    } else {
-      mapped.push(schemaLikeObject);
+      config.subschemas.forEach(schemaLikeObject => {
+        if (isSubschemaConfig(schemaLikeObject) && schemaLikeObject.merge) {
+          mapped.push(...splitComputedMergeSubschemas(schemaLikeObject as SubschemaConfig));
+        } else {
+          mapped.push(schemaLikeObject);
+        }
+      });
+
+      config.subschemas = mapped;
     }
-  });
-
-  return mapped;
+    return config;
+  }
 }
 
 function splitComputedMergeSubschemas(subschemaConfig: SubschemaConfig): Array<SubschemaConfig> {
@@ -88,7 +93,10 @@ function filterStaticSubschema(
           return computedTypes[implementingTypeName] && computedTypes[implementingTypeName].fields[fieldName];
         });
       },
-    })
+    }),
+    {
+      skipUnimplementedInterfacesPruning: true,
+    }
   );
 
   const remainingTypes = subschemaConfig.schema.getTypeMap();

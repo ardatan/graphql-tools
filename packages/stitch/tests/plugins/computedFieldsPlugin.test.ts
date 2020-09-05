@@ -1,5 +1,7 @@
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { isolateComputedMergeSchemas } from '../src/isolateComputedMergeSchemas';
+import { ComputedFieldsPlugin } from '@graphql-tools/stitch';
+
+const plugin = new ComputedFieldsPlugin();
 
 describe('isolateComputedMergeSchemas', () => {
   describe('basic isolation', () => {
@@ -35,21 +37,23 @@ describe('isolateComputedMergeSchemas', () => {
     });
 
     it('splits a subschema into static and dynamic portions', async () => {
-      const [computedConfig, staticConfig] = isolateComputedMergeSchemas([{
-        schema: storefrontSchema,
-        merge: {
-          Product: {
-            selectionSet: '{ id }',
-            fields: {
-              shippingEstimate: { selectionSet: '{ price weight }', computed: true },
-              deliveryService: { selectionSet: '{ weight }' },
-            },
-            fieldName: '_products',
-            key: ({ id, price, weight }) => ({ id, price, weight }),
-            argsFromKeys: (representations) => ({ representations }),
+      const { subschemas: [computedConfig, staticConfig] } = plugin.preconfigure({
+        subschemas: [{
+          schema: storefrontSchema,
+          merge: {
+            Product: {
+              selectionSet: '{ id }',
+              fields: {
+                shippingEstimate: { selectionSet: '{ price weight }', computed: true },
+                deliveryService: { selectionSet: '{ weight }' },
+              },
+              fieldName: '_products',
+              key: ({ id, price, weight }) => ({ id, price, weight }),
+              argsFromKeys: (representations) => ({ representations }),
+            }
           }
-        }
-      }]);
+        }]
+      });
 
       expect(Object.keys(computedConfig.schema.getType('Query').getFields())).toEqual(['_products']);
       expect(Object.keys(computedConfig.schema.getType('Product').getFields())).toEqual(['shippingEstimate']);
@@ -71,24 +75,26 @@ describe('isolateComputedMergeSchemas', () => {
     });
 
     it('does not split schemas with only optional fields', async () => {
-      const results = isolateComputedMergeSchemas([{
-        schema: storefrontSchema,
-        merge: {
-          Product: {
-            selectionSet: '{ id }',
-            fields: {
-              shippingEstimate: { selectionSet: '{ price weight }' },
-              deliveryService: { selectionSet: '{ weight }' },
-            },
-            fieldName: '_products',
-            key: ({ id, price, weight }) => ({ id, price, weight }),
-            argsFromKeys: (representations) => ({ representations }),
+      const { subschemas } = plugin.preconfigure({
+        subschemas: [{
+          schema: storefrontSchema,
+          merge: {
+            Product: {
+              selectionSet: '{ id }',
+              fields: {
+                shippingEstimate: { selectionSet: '{ price weight }' },
+                deliveryService: { selectionSet: '{ weight }' },
+              },
+              fieldName: '_products',
+              key: ({ id, price, weight }) => ({ id, price, weight }),
+              argsFromKeys: (representations) => ({ representations }),
+            }
           }
-        }
-      }]);
+        }]
+      });
 
-      expect(results.length).toEqual(1);
-      expect(results[0].merge.Product.fields).toEqual({
+      expect(subschemas.length).toEqual(1);
+      expect(subschemas[0].merge.Product.fields).toEqual({
         shippingEstimate: { selectionSet: '{ price weight }' },
         deliveryService: { selectionSet: '{ weight }' },
       });
@@ -109,23 +115,25 @@ describe('isolateComputedMergeSchemas', () => {
     });
 
     it('does not reprocess already isolated computations', async () => {
-      const result = isolateComputedMergeSchemas([{
-        schema: storefrontSchema,
-        merge: {
-          Product: {
-            selectionSet: '{ id }',
-            fields: {
-              computedOne: { selectionSet: '{ price weight }', computed: true },
-              computedTwo: { selectionSet: '{ weight }', computed: true },
-            },
-            fieldName: '_products',
-            key: ({ id, price, weight }) => ({ id, price, weight }),
-            argsFromKeys: (representations) => ({ representations }),
+      const { subschemas } = plugin.preconfigure({
+        subschemas: [{
+          schema: storefrontSchema,
+          merge: {
+            Product: {
+              selectionSet: '{ id }',
+              fields: {
+                computedOne: { selectionSet: '{ price weight }', computed: true },
+                computedTwo: { selectionSet: '{ weight }', computed: true },
+              },
+              fieldName: '_products',
+              key: ({ id, price, weight }) => ({ id, price, weight }),
+              argsFromKeys: (representations) => ({ representations }),
+            }
           }
-        }
-      }]);
+        }]
+      });
 
-      expect(result.length).toEqual(1);
+      expect(subschemas.length).toEqual(1);
     });
   });
 
@@ -148,29 +156,31 @@ describe('isolateComputedMergeSchemas', () => {
     });
 
     it('moves all dynamic types to the dynamic schema', async () => {
-      const [computedConfig, staticConfig] = isolateComputedMergeSchemas([{
-        schema: storefrontSchema,
-        merge: {
-          Storefront: {
-            selectionSet: '{ id }',
-            fields: {
-              computed: { selectionSet: '{ availableProductIds }', computed: true },
+      const { subschemas: [computedConfig, staticConfig] } = plugin.preconfigure({
+        subschemas: [{
+          schema: storefrontSchema,
+          merge: {
+            Storefront: {
+              selectionSet: '{ id }',
+              fields: {
+                computed: { selectionSet: '{ availableProductIds }', computed: true },
+              },
+              fieldName: 'storefront',
+              args: ({ id }) => ({ id }),
             },
-            fieldName: 'storefront',
-            args: ({ id }) => ({ id }),
-          },
-          Product: {
-            selectionSet: '{ id }',
-            fields: {
-              computed: { selectionSet: '{ price weight }', computed: true },
-              static: { selectionSet: '{ weight }' },
-            },
-            fieldName: '_products',
-            key: ({ id, price, weight }) => ({ id, price, weight }),
-            argsFromKeys: (representations) => ({ representations }),
+            Product: {
+              selectionSet: '{ id }',
+              fields: {
+                computed: { selectionSet: '{ price weight }', computed: true },
+                static: { selectionSet: '{ weight }' },
+              },
+              fieldName: '_products',
+              key: ({ id, price, weight }) => ({ id, price, weight }),
+              argsFromKeys: (representations) => ({ representations }),
+            }
           }
-        }
-      }]);
+        }]
+      });
 
       expect(Object.keys(computedConfig.schema.getType('Query').getFields())).toEqual(['storefront', '_products']);
       expect(Object.keys(computedConfig.schema.getType('Product').getFields())).toEqual(['computed']);
@@ -210,20 +220,22 @@ describe('isolateComputedMergeSchemas', () => {
         `
       });
 
-      const [computedConfig, staticConfig] = isolateComputedMergeSchemas([{
-        schema: testSchema,
-        merge: {
-          Product: {
-            selectionSet: '{ id }',
-            fields: {
-              computed: { selectionSet: '{ price weight }', computed: true }
-            },
-            fieldName: '_products',
-            key: ({ id, price, weight }) => ({ id, price, weight }),
-            argsFromKeys: (representations) => ({ representations }),
+      const { subschemas: [computedConfig, staticConfig] } = plugin.preconfigure({
+        subschemas: [{
+          schema: testSchema,
+          merge: {
+            Product: {
+              selectionSet: '{ id }',
+              fields: {
+                computed: { selectionSet: '{ price weight }', computed: true }
+              },
+              fieldName: '_products',
+              key: ({ id, price, weight }) => ({ id, price, weight }),
+              argsFromKeys: (representations) => ({ representations }),
+            }
           }
-        }
-      }]);
+        }]
+      });
 
       expect(Object.keys(computedConfig.schema.getType('IProduct').getFields())).toEqual(['computed']);
       expect(Object.keys(computedConfig.schema.getType('Product').getFields())).toEqual(['computed']);
