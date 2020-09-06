@@ -1,4 +1,10 @@
-import { isSubschemaConfig, SubschemaConfig, MergedTypeConfig, MergedFieldConfig } from '@graphql-tools/delegate';
+import {
+  isSubschemaConfig,
+  SubschemaConfig,
+  MergedTypeConfig,
+  MergedFieldConfig,
+  Endpoint,
+} from '@graphql-tools/delegate';
 
 import { filterSchema, pruneSchema, getImplementingTypes } from '@graphql-tools/utils';
 
@@ -66,13 +72,25 @@ function isolateComputedMergeSchemas(subschemaConfig: SubschemaConfig): Array<Su
   });
 
   if (Object.keys(computedTypes).length) {
+    const endpoint = getSharedEndpoint(subschemaConfig);
     return [
-      filterComputedSubschema({ ...subschemaConfig, merge: computedTypes }),
-      filterStaticSubschema({ ...subschemaConfig, merge: staticTypes }, computedTypes),
+      filterComputedSubschema({ ...subschemaConfig, endpoint, merge: computedTypes }),
+      filterStaticSubschema({ ...subschemaConfig, endpoint, merge: staticTypes }, computedTypes),
     ];
   }
 
   return [subschemaConfig];
+}
+
+function getSharedEndpoint(subschemaConfig: SubschemaConfig): Endpoint {
+  if (subschemaConfig.endpoint) {
+    return subschemaConfig.endpoint;
+  } else if (subschemaConfig.executor) {
+    return {
+      executor: subschemaConfig.executor,
+      batch: true,
+    };
+  }
 }
 
 function filterStaticSubschema(
