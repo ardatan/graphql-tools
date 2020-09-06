@@ -8,7 +8,7 @@ import {
   GraphQLSchema,
 } from 'graphql';
 
-import { MapperKind, FieldFilter, RootFieldFilter, TypeFilter } from './Interfaces';
+import { MapperKind, FieldFilter, RootFieldFilter, TypeFilter, ArgumentFilter } from './Interfaces';
 
 import { mapSchema } from './mapSchema';
 
@@ -16,11 +16,13 @@ import { Constructor } from './types';
 
 export function filterSchema({
   schema,
-  rootFieldFilter = () => true,
   typeFilter = () => true,
-  fieldFilter = () => true,
-  objectFieldFilter = () => true,
-  interfaceFieldFilter = () => true,
+  fieldFilter = undefined,
+  rootFieldFilter = undefined,
+  objectFieldFilter = undefined,
+  interfaceFieldFilter = undefined,
+  inputObjectFieldFilter = undefined,
+  argumentFilter = undefined,
 }: {
   schema: GraphQLSchema;
   rootFieldFilter?: RootFieldFilter;
@@ -28,6 +30,8 @@ export function filterSchema({
   fieldFilter?: FieldFilter;
   objectFieldFilter?: FieldFilter;
   interfaceFieldFilter?: FieldFilter;
+  inputObjectFieldFilter?: FieldFilter;
+  argumentFilter?: ArgumentFilter;
 }): GraphQLSchema {
   const filteredSchema: GraphQLSchema = mapSchema(schema, {
     [MapperKind.QUERY]: (type: GraphQLObjectType) => filterRootFields(type, 'Query', rootFieldFilter),
@@ -35,14 +39,31 @@ export function filterSchema({
     [MapperKind.SUBSCRIPTION]: (type: GraphQLObjectType) => filterRootFields(type, 'Subscription', rootFieldFilter),
     [MapperKind.OBJECT_TYPE]: (type: GraphQLObjectType) =>
       typeFilter(type.name, type)
-        ? filterElementFields<GraphQLObjectType>(type, objectFieldFilter || fieldFilter, GraphQLObjectType)
+        ? filterElementFields<GraphQLObjectType>(
+            GraphQLObjectType,
+            type,
+            objectFieldFilter || fieldFilter,
+            argumentFilter
+          )
         : null,
     [MapperKind.INTERFACE_TYPE]: (type: GraphQLInterfaceType) =>
       typeFilter(type.name, type)
-        ? filterElementFields<GraphQLInterfaceType>(type, interfaceFieldFilter, GraphQLInterfaceType)
+        ? filterElementFields<GraphQLInterfaceType>(
+            GraphQLInterfaceType,
+            type,
+            interfaceFieldFilter || fieldFilter,
+            argumentFilter
+          )
+        : null,
+    [MapperKind.INPUT_OBJECT_TYPE]: (type: GraphQLInputObjectType) =>
+      typeFilter(type.name, type)
+        ? filterElementFields<GraphQLInputObjectType>(
+            GraphQLInputObjectType,
+            type,
+            inputObjectFieldFilter || fieldFilter
+          )
         : null,
     [MapperKind.UNION_TYPE]: (type: GraphQLUnionType) => (typeFilter(type.name, type) ? undefined : null),
-    [MapperKind.INPUT_OBJECT_TYPE]: (type: GraphQLInputObjectType) => (typeFilter(type.name, type) ? undefined : null),
     [MapperKind.ENUM_TYPE]: (type: GraphQLEnumType) => (typeFilter(type.name, type) ? undefined : null),
     [MapperKind.SCALAR_TYPE]: (type: GraphQLScalarType) => (typeFilter(type.name, type) ? undefined : null),
   });
@@ -53,27 +74,41 @@ export function filterSchema({
 function filterRootFields(
   type: GraphQLObjectType,
   operation: 'Query' | 'Mutation' | 'Subscription',
-  rootFieldFilter: RootFieldFilter
+  rootFieldFilter?: RootFieldFilter
 ): GraphQLObjectType {
-  const config = type.toConfig();
-  Object.keys(config.fields).forEach(fieldName => {
-    if (!rootFieldFilter(operation, fieldName, config.fields[fieldName])) {
-      delete config.fields[fieldName];
-    }
-  });
-  return new GraphQLObjectType(config);
+  if (rootFieldFilter) {
+    const config = type.toConfig();
+    Object.keys(config.fields).forEach(fieldName => {
+      if (!rootFieldFilter(operation, fieldName, config.fields[fieldName])) {
+        delete config.fields[fieldName];
+      }
+    });
+    return new GraphQLObjectType(config);
+  }
+  return type;
 }
 
 function filterElementFields<ElementType>(
-  type: GraphQLObjectType | GraphQLInterfaceType,
-  fieldFilter: FieldFilter,
-  ElementConstructor: Constructor<ElementType>
-): ElementType {
-  const config = type.toConfig();
-  Object.keys(config.fields).forEach(fieldName => {
-    if (!fieldFilter(type.name, fieldName, config.fields[fieldName])) {
-      delete config.fields[fieldName];
+  ElementConstructor: Constructor<ElementType>,
+  type: GraphQLObjectType | GraphQLInterfaceType | GraphQLInputObjectType,
+  fieldFilter?: FieldFilter,
+  argumentFilter?: ArgumentFilter
+): ElementType | undefined {
+  if (fieldFilter || argumentFilter) {
+    if (!fieldFilter) fieldFilter = () => true;
+
+    const config = type.toConfig();
+    for (const [fieldName, field] of Object.entries(config.fields)) {
+      if (!fieldFilter(type.name, fieldName, config.fields[fieldName])) {
+        delete config.fields[fieldName];
+      } else if (argumentFilter && 'args' in field) {
+        for (const argName of Object.keys(field.args)) {
+          if (!argumentFilter(type.name, fieldName, argName, field.args[argName])) {
+            delete field.args[argName];
+          }
+        }
+      }
     }
-  });
-  return new ElementConstructor(config);
+    return new ElementConstructor(config);
+  }
 }
