@@ -193,7 +193,7 @@ export type InputFieldFilter = (
 export type FieldFilter = (
   typeName?: string,
   fieldName?: string,
-  fieldConfig?: GraphQLFieldConfig<any, any>
+  fieldConfig?: GraphQLFieldConfig<any, any> | GraphQLInputFieldConfig
 ) => boolean;
 
 export type RootFieldFilter = (
@@ -203,6 +203,13 @@ export type RootFieldFilter = (
 ) => boolean;
 
 export type TypeFilter = (typeName: string, type: GraphQLType) => boolean;
+
+export type ArgumentFilter = (
+  typeName?: string,
+  fieldName?: string,
+  argName?: string,
+  argConfig?: GraphQLArgumentConfig
+) => boolean;
 
 export type RenameTypesOptions = {
   renameBuiltins: boolean;
