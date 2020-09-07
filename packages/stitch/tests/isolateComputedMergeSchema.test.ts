@@ -1,7 +1,7 @@
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { isolateComputedMergeSchemas } from '@graphql-tools/stitch';
+import { splitFieldsFromSubschemaConfig } from '@graphql-tools/stitch';
 
-describe('isolateComputedMergeSchemas', () => {
+describe('splitFieldsFromSubschemaConfig', () => {
   describe('basic isolation', () => {
     const storefrontSchema = makeExecutableSchema({
       typeDefs: `
@@ -31,7 +31,7 @@ describe('isolateComputedMergeSchemas', () => {
     });
 
     it('splits a subschema into static and dynamic portions', async () => {
-      const [computedConfig, staticConfig] = isolateComputedMergeSchemas({
+      const [computedConfig, staticConfig] = splitFieldsFromSubschemaConfig({
         schema: storefrontSchema,
         merge: {
           Product: {
@@ -67,7 +67,7 @@ describe('isolateComputedMergeSchemas', () => {
     });
 
     it('does not split schemas with only optional fields', async () => {
-      const subschemas = isolateComputedMergeSchemas({
+      const subschemas = splitFieldsFromSubschemaConfig({
         schema: storefrontSchema,
         merge: {
           Product: {
@@ -120,7 +120,7 @@ describe('isolateComputedMergeSchemas', () => {
     });
 
     it('splits a subschema into static and dynamic portions', async () => {
-      const [computedConfig, staticConfig] = isolateComputedMergeSchemas({
+      const [computedConfig, staticConfig] = splitFieldsFromSubschemaConfig({
         schema: storefrontSchema,
         merge: {
           Product: {
@@ -161,7 +161,7 @@ describe('isolateComputedMergeSchemas', () => {
     });
 
     it('does not reprocess already isolated computations', async () => {
-      const subschemas = isolateComputedMergeSchemas({
+      const subschemas = splitFieldsFromSubschemaConfig({
         schema: storefrontSchema,
         merge: {
           Product: {
@@ -200,7 +200,7 @@ describe('isolateComputedMergeSchemas', () => {
     });
 
     it('moves all dynamic types to the dynamic schema', async () => {
-      const [computedConfig, staticConfig] = isolateComputedMergeSchemas({
+      const [computedConfig, staticConfig] = splitFieldsFromSubschemaConfig({
         schema: storefrontSchema,
         merge: {
           Storefront: {
@@ -262,7 +262,7 @@ describe('isolateComputedMergeSchemas', () => {
         `
       });
 
-      const [computedConfig, staticConfig] = isolateComputedMergeSchemas({
+      const [computedConfig, staticConfig] = splitFieldsFromSubschemaConfig({
         schema: testSchema,
         merge: {
           Product: {
