@@ -41,42 +41,42 @@ export function applyComputationsFromSDL(subschemaConfig: SubschemaConfig): Subs
 }
 
 export function splitFieldsFromSubschemaConfig(subschemaConfig: SubschemaConfig): Array<SubschemaConfig> {
-  const staticTypes: Record<string, MergedTypeConfig> = {};
-  const computedTypes: Record<string, MergedTypeConfig> = {};
+  const baseSchemaTypes: Record<string, MergedTypeConfig> = {};
+  const isolatedSchemaTypes: Record<string, MergedTypeConfig> = {};
 
   Object.keys(subschemaConfig.merge).forEach((typeName: string) => {
     const mergedTypeConfig: MergedTypeConfig = subschemaConfig.merge[typeName];
-    staticTypes[typeName] = mergedTypeConfig;
+    baseSchemaTypes[typeName] = mergedTypeConfig;
 
     if (mergedTypeConfig.fields) {
-      const staticFields: Record<string, MergedFieldConfig> = {};
-      const computedFields: Record<string, MergedFieldConfig> = {};
+      const baseFields: Record<string, MergedFieldConfig> = {};
+      const isolatedFields: Record<string, MergedFieldConfig> = {};
 
       Object.keys(mergedTypeConfig.fields).forEach((fieldName: string) => {
         const mergedFieldConfig = mergedTypeConfig.fields[fieldName];
 
         if (mergedFieldConfig.selectionSet && mergedFieldConfig.isolate) {
-          computedFields[fieldName] = mergedFieldConfig;
+          isolatedFields[fieldName] = mergedFieldConfig;
         } else {
-          staticFields[fieldName] = mergedFieldConfig;
+          baseFields[fieldName] = mergedFieldConfig;
         }
         delete mergedFieldConfig.isolate;
       });
 
-      const computedFieldCount = Object.keys(computedFields).length;
+      const isolatedFieldCount = Object.keys(isolatedFields).length;
       const objectType = subschemaConfig.schema.getType(typeName) as GraphQLObjectType;
 
-      if (computedFieldCount && computedFieldCount !== Object.keys(objectType.getFields()).length) {
-        staticTypes[typeName] = {
+      if (isolatedFieldCount && isolatedFieldCount !== Object.keys(objectType.getFields()).length) {
+        baseSchemaTypes[typeName] = {
           ...mergedTypeConfig,
-          fields: Object.keys(staticFields).length ? staticFields : undefined,
+          fields: Object.keys(baseFields).length ? baseFields : undefined,
         };
-        computedTypes[typeName] = { ...mergedTypeConfig, fields: computedFields };
+        isolatedSchemaTypes[typeName] = { ...mergedTypeConfig, fields: isolatedFields };
       }
     }
   });
 
-  if (Object.keys(computedTypes).length) {
+  if (Object.keys(isolatedSchemaTypes).length) {
     const endpoint = subschemaConfig.endpoint || {
       rootValue: subschemaConfig.rootValue,
       executor: subschemaConfig.executor,
@@ -85,30 +85,32 @@ export function splitFieldsFromSubschemaConfig(subschemaConfig: SubschemaConfig)
       batchingOptions: subschemaConfig.batchingOptions,
     };
     return [
-      filterComputedSubschema({ ...subschemaConfig, endpoint, merge: computedTypes }),
-      filterStaticSubschema({ ...subschemaConfig, endpoint, merge: staticTypes }, computedTypes),
+      filterIsolatedSubschema({ ...subschemaConfig, endpoint, merge: isolatedSchemaTypes }),
+      filterBaseSubschema({ ...subschemaConfig, endpoint, merge: baseSchemaTypes }, isolatedSchemaTypes),
     ];
   }
 
   return [subschemaConfig];
 }
 
-function filterStaticSubschema(
+function filterBaseSubschema(
   subschemaConfig: SubschemaConfig,
-  computedTypes: Record<string, MergedTypeConfig>
+  isolatedSchemaTypes: Record<string, MergedTypeConfig>
 ): SubschemaConfig {
   const typesForInterface: Record<string, string[]> = {};
   subschemaConfig.schema = pruneSchema(
     filterSchema({
       schema: subschemaConfig.schema,
       objectFieldFilter: (typeName: string, fieldName: string) =>
-        !(computedTypes[typeName] && computedTypes[typeName].fields[fieldName]),
+        !(isolatedSchemaTypes[typeName] && isolatedSchemaTypes[typeName].fields[fieldName]),
       interfaceFieldFilter: (typeName: string, fieldName: string) => {
         if (!typesForInterface[typeName]) {
           typesForInterface[typeName] = getImplementingTypes(typeName, subschemaConfig.schema);
         }
         return !typesForInterface[typeName].some(implementingTypeName => {
-          return computedTypes[implementingTypeName] && computedTypes[implementingTypeName].fields[fieldName];
+          return (
+            isolatedSchemaTypes[implementingTypeName] && isolatedSchemaTypes[implementingTypeName].fields[fieldName]
+          );
         });
       },
     })
@@ -128,7 +130,7 @@ function filterStaticSubschema(
   return subschemaConfig;
 }
 
-function filterComputedSubschema(subschemaConfig: SubschemaConfig): SubschemaConfig {
+function filterIsolatedSubschema(subschemaConfig: SubschemaConfig): SubschemaConfig {
   const rootFields: Record<string, boolean> = {};
 
   Object.keys(subschemaConfig.merge).forEach(typeName => {
