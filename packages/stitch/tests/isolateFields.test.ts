@@ -1,7 +1,8 @@
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { splitFieldsFromSubschema, applyComputationsFromSDL } from '@graphql-tools/stitch';
+import { isolateFields } from '@graphql-tools/stitch';
+import { Subschema } from '@graphql-tools/delegate';
 
-describe('splitFieldsFromSubschema', () => {
+describe('isolateFields', () => {
   describe('basic isolation', () => {
     const storefrontSchema = makeExecutableSchema({
       typeDefs: `
@@ -31,7 +32,7 @@ describe('splitFieldsFromSubschema', () => {
     });
 
     it('splits a subschema into static and dynamic portions', async () => {
-      const [computedConfig, staticConfig] = splitFieldsFromSubschema({
+      const [computedConfig, staticConfig] = isolateFields({
         schema: storefrontSchema,
         merge: {
           Product: {
@@ -67,7 +68,7 @@ describe('splitFieldsFromSubschema', () => {
     });
 
     it('does not split schemas with only optional fields', async () => {
-      const subschemas = splitFieldsFromSubschema({
+      const subschemas = isolateFields({
         schema: storefrontSchema,
         merge: {
           Product: {
@@ -94,11 +95,11 @@ describe('splitFieldsFromSubschema', () => {
   describe('from SDL directives', () => {
     const storefrontSchema = makeExecutableSchema({
       typeDefs: `
-        directive @requires(selectionSet: String) on FIELD_DEFINITION
+        directive @requires(selectionSet: String, isolate: Boolean) on FIELD_DEFINITION
         type Product {
           id: ID!
-          shippingEstimate: Float! @requires(selectionSet: "{ price weight }")
-          deliveryService: DeliveryService! @requires(selectionSet: "{ weight }")
+          shippingEstimate: Float! @requires(selectionSet: "{ price weight }", isolate: true)
+          deliveryService: DeliveryService! @requires(selectionSet: "{ weight }", isolate: true)
         }
         enum DeliveryService {
           POSTAL
@@ -121,7 +122,7 @@ describe('splitFieldsFromSubschema', () => {
     });
 
     it('splits a subschema into static and dynamic portions', async () => {
-      const [computedConfig, staticConfig] = splitFieldsFromSubschema(applyComputationsFromSDL({
+      const [computedConfig, staticConfig] = isolateFields(new Subschema({
         schema: storefrontSchema,
         merge: {
           Product: {
@@ -162,7 +163,7 @@ describe('splitFieldsFromSubschema', () => {
     });
 
     it('does not reprocess already isolated computations', async () => {
-      const subschemas = splitFieldsFromSubschema({
+      const subschemas = isolateFields({
         schema: storefrontSchema,
         merge: {
           Product: {
@@ -201,7 +202,7 @@ describe('splitFieldsFromSubschema', () => {
     });
 
     it('moves all dynamic types to the dynamic schema', async () => {
-      const [computedConfig, staticConfig] = splitFieldsFromSubschema({
+      const [computedConfig, staticConfig] = isolateFields({
         schema: storefrontSchema,
         merge: {
           Storefront: {
@@ -263,7 +264,7 @@ describe('splitFieldsFromSubschema', () => {
         `
       });
 
-      const [computedConfig, staticConfig] = splitFieldsFromSubschema({
+      const [computedConfig, staticConfig] = isolateFields({
         schema: testSchema,
         merge: {
           Product: {
