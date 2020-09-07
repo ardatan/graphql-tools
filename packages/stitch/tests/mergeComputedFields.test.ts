@@ -1,5 +1,6 @@
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { stitchSchemas, splitFieldsFromSubschema, applyComputationsFromSDL } from '@graphql-tools/stitch';
+import { Subschema } from '@graphql-tools/delegate';
+import { stitchSchemas } from '@graphql-tools/stitch';
 import { graphql } from 'graphql';
 
 const productSchema = makeExecutableSchema({
@@ -86,7 +87,7 @@ describe('merge computed fields with static config', () => {
           }
         }
       }
-    ].map(subschema => splitFieldsFromSubschema(subschema)),
+    ],
     mergeTypes: true,
   });
 
@@ -142,12 +143,12 @@ describe('merge computed fields with static config', () => {
 describe('merge computed fields from SDL via federation entities', () => {
   const storefrontSchema = makeExecutableSchema({
     typeDefs: `
-      directive @requires(selectionSet: String) on FIELD_DEFINITION
+      directive @requires(selectionSet: String, isolate: Boolean) on FIELD_DEFINITION
 
       type Product {
         id: ID!
-        shippingEstimate: Float! @requires(selectionSet: "{ price weight }")
-        deliveryService: DeliveryService! @requires(selectionSet: "{ weight }")
+        shippingEstimate: Float! @requires(selectionSet: "{ price weight }", isolate: true)
+        deliveryService: DeliveryService! @requires(selectionSet: "{ weight }", isolate: true)
       }
       enum DeliveryService {
         POSTAL
@@ -188,7 +189,7 @@ describe('merge computed fields from SDL via federation entities', () => {
           }
         }
       },
-      {
+      new Subschema({
         schema: storefrontSchema,
         merge: {
           Product: {
@@ -198,8 +199,8 @@ describe('merge computed fields from SDL via federation entities', () => {
             argsFromKeys: (representations) => ({ representations }),
           }
         }
-      }
-    ].map(subschema => splitFieldsFromSubschema(applyComputationsFromSDL(subschema))),
+      }),
+    ],
     mergeTypes: true,
   });
 

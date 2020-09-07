@@ -27,6 +27,7 @@ import { buildTypeCandidates, buildTypeMap } from './typeCandidates';
 import { createStitchingInfo, completeStitchingInfo, addStitchingInfo } from './stitchingInfo';
 import { IStitchSchemasOptions } from './types';
 import { SubschemaConfig, isSubschemaConfig } from '@graphql-tools/delegate';
+import { isolateFields } from './isolateFields';
 
 export function stitchSchemas({
   subschemas = [],
@@ -56,7 +57,11 @@ export function stitchSchemas({
 
   subschemas.forEach(subschemaOrSubschemaArray => {
     if (Array.isArray(subschemaOrSubschemaArray)) {
-      schemaLikeObjects = schemaLikeObjects.concat(subschemaOrSubschemaArray);
+      subschemaOrSubschemaArray.forEach(s => {
+        schemaLikeObjects = schemaLikeObjects.concat(isolateFields(s));
+      });
+    } else if (isSubschemaConfig(subschemaOrSubschemaArray)) {
+      schemaLikeObjects = schemaLikeObjects.concat(isolateFields(subschemaOrSubschemaArray));
     } else {
       schemaLikeObjects.push(subschemaOrSubschemaArray);
     }

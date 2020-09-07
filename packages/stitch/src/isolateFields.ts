@@ -1,48 +1,16 @@
 import { SubschemaConfig, MergedTypeConfig, MergedFieldConfig } from '@graphql-tools/delegate';
 
-import {
-  filterSchema,
-  pruneSchema,
-  getImplementingTypes,
-  mapSchema,
-  MapperKind,
-  getDirectives,
-} from '@graphql-tools/utils';
+import { filterSchema, pruneSchema, getImplementingTypes } from '@graphql-tools/utils';
 
 import { GraphQLObjectType, GraphQLInterfaceType } from 'graphql';
 
-export function applyComputationsFromSDL(subschemaConfig: SubschemaConfig): SubschemaConfig {
-  subschemaConfig.schema = mapSchema(subschemaConfig.schema, {
-    [MapperKind.OBJECT_FIELD]: (fieldConfig, fieldName, typeName, schema) => {
-      const mergeTypeConfig = subschemaConfig.merge[typeName];
-
-      if (mergeTypeConfig == null) {
-        return;
-      }
-
-      const requires = getDirectives(schema, fieldConfig)['requires'];
-
-      if (requires == null) {
-        return;
-      }
-
-      const selectionSet = requires.selectionSet;
-      mergeTypeConfig.fields = mergeTypeConfig.fields ?? {};
-      mergeTypeConfig.fields[fieldName] = mergeTypeConfig.fields[fieldName] ?? {};
-
-      const mergeFieldConfig = mergeTypeConfig.fields[fieldName];
-      mergeFieldConfig.selectionSet = mergeFieldConfig.selectionSet ?? selectionSet;
-      mergeFieldConfig.isolate = true;
-
-      return fieldConfig;
-    },
-  });
-  return subschemaConfig;
-}
-
-export function splitFieldsFromSubschema(subschemaConfig: SubschemaConfig): Array<SubschemaConfig> {
+export function isolateFields(subschemaConfig: SubschemaConfig): Array<SubschemaConfig> {
   const baseSchemaTypes: Record<string, MergedTypeConfig> = {};
   const isolatedSchemaTypes: Record<string, MergedTypeConfig> = {};
+
+  if (subschemaConfig.merge == null) {
+    return [subschemaConfig];
+  }
 
   Object.keys(subschemaConfig.merge).forEach((typeName: string) => {
     const mergedTypeConfig: MergedTypeConfig = subschemaConfig.merge[typeName];

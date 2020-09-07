@@ -130,13 +130,12 @@ export interface Endpoint<K = any, V = any, C = K> {
   executor?: Executor;
   subscriber?: Subscriber;
   batch?: boolean;
-  batchingOptions?: {
-    extensionsReducer?: (
-      mergedExtensions: Record<string, any>,
-      executionParams: ExecutionParams
-    ) => Record<string, any>;
-    dataLoaderOptions?: DataLoader.Options<K, V, C>;
-  };
+  batchingOptions?: EndpointBatchingOptions<K, V, C>;
+}
+
+export interface EndpointBatchingOptions<K = any, V = any, C = K> {
+  extensionsReducer?: (mergedExtensions: Record<string, any>, executionParams: ExecutionParams) => Record<string, any>;
+  dataLoaderOptions?: DataLoader.Options<K, V, C>;
 }
 
 export interface SubschemaPermutation {
@@ -148,6 +147,7 @@ export interface SubschemaPermutation {
 export interface SubschemaConfig<K = any, V = any, C = K> extends SubschemaPermutation, Endpoint<K, V, C> {
   schema: GraphQLSchema;
   endpoint?: Endpoint;
+  requiresDirectiveName?: string;
 }
 
 export interface MergedTypeConfig<K = any, V = any> {
