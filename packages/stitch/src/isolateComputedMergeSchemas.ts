@@ -6,36 +6,81 @@ import {
   Endpoint,
 } from '@graphql-tools/delegate';
 
-import { filterSchema, pruneSchema, getImplementingTypes } from '@graphql-tools/utils';
+import {
+  filterSchema,
+  pruneSchema,
+  valueMatchesCriteria,
+  getArgumentValues,
+  getImplementingTypes,
+} from '@graphql-tools/utils';
 
-import { GraphQLSchema, GraphQLObjectType, GraphQLInterfaceType } from 'graphql';
+import { TransformObjectFields } from '@graphql-tools/wrap';
 
-import { IStitchSchemasOptions, StitchSchemasPlugin } from '../types';
+import { GraphQLSchema, GraphQLObjectType, GraphQLInterfaceType, GraphQLFieldConfig, DirectiveNode } from 'graphql';
 
 interface ComputedFieldConfig extends MergedFieldConfig {
-  computed?: string;
+  computed?: boolean;
 }
 
-export class ComputedFieldsPlugin implements StitchSchemasPlugin {
-  public preconfigure(config: IStitchSchemasOptions): IStitchSchemasOptions {
-    if (config.subschemas) {
-      const mapped: Array<GraphQLSchema | SubschemaConfig | Array<SubschemaConfig>> = [];
+export function isolateComputedMergeSchemas(
+  subschemaOrSet: SubschemaConfig | Array<GraphQLSchema | SubschemaConfig>
+): Array<GraphQLSchema | SubschemaConfig> {
+  const subschemas: Array<GraphQLSchema | SubschemaConfig> = Array.isArray(subschemaOrSet)
+    ? subschemaOrSet
+    : [subschemaOrSet];
+  const mapped: Array<GraphQLSchema | SubschemaConfig> = [];
 
-      config.subschemas.forEach(schemaLikeObject => {
-        if (isSubschemaConfig(schemaLikeObject) && schemaLikeObject.merge) {
-          mapped.push(...isolateComputedMergeSchemas(schemaLikeObject as SubschemaConfig));
-        } else {
-          mapped.push(schemaLikeObject);
-        }
-      });
-
-      config.subschemas = mapped;
+  subschemas.forEach(schemaLikeObject => {
+    if (isSubschemaConfig(schemaLikeObject) && schemaLikeObject.merge) {
+      const subschemaConfig = applyComputationsFromSDL(schemaLikeObject as SubschemaConfig);
+      mapped.push(...splitComputedMergeSchemas(subschemaConfig));
+    } else {
+      mapped.push(schemaLikeObject);
     }
-    return config;
-  }
+  });
+
+  return mapped;
 }
 
-function isolateComputedMergeSchemas(subschemaConfig: SubschemaConfig): Array<SubschemaConfig> {
+const requiresSelectionSet = /^requires +(\{.+\})$/;
+
+function applyComputationsFromSDL(subschemaConfig: SubschemaConfig): SubschemaConfig {
+  const transform = new TransformObjectFields(
+    (typeName: string, fieldName: string, fieldConfig: GraphQLFieldConfig<any, any>) => {
+      const mergeTypeConfig = subschemaConfig.merge[typeName];
+
+      if (
+        mergeTypeConfig &&
+        fieldConfig.deprecationReason &&
+        valueMatchesCriteria(fieldConfig.deprecationReason.trim(), requiresSelectionSet)
+      ) {
+        mergeTypeConfig.fields = mergeTypeConfig.fields || {};
+        mergeTypeConfig.fields[fieldName] = mergeTypeConfig.fields[fieldName] || {};
+
+        const mergeFieldConfig: ComputedFieldConfig = mergeTypeConfig.fields[fieldName] as ComputedFieldConfig;
+        mergeFieldConfig.selectionSet =
+          mergeFieldConfig.selectionSet || fieldConfig.deprecationReason.trim().match(requiresSelectionSet)[1];
+        mergeFieldConfig.computed = true;
+
+        const directives = fieldConfig.astNode.directives.filter((dir: DirectiveNode) => {
+          const directiveDef = subschemaConfig.schema.getDirective(dir.name.value);
+          const directiveValue = directiveDef ? getArgumentValues(directiveDef, dir) : undefined;
+          return dir.name.value === 'deprecated' && directiveValue.reason === fieldConfig.deprecationReason;
+        });
+
+        fieldConfig = { ...fieldConfig, astNode: { ...fieldConfig.astNode, directives } };
+        delete fieldConfig.deprecationReason;
+      }
+
+      return fieldConfig;
+    }
+  );
+
+  subschemaConfig.schema = transform.transformSchema(subschemaConfig.schema);
+  return subschemaConfig;
+}
+
+function splitComputedMergeSchemas(subschemaConfig: SubschemaConfig): Array<SubschemaConfig> {
   const staticTypes: Record<string, MergedTypeConfig> = {};
   const computedTypes: Record<string, MergedTypeConfig> = {};
 
@@ -87,8 +132,11 @@ function getSharedEndpoint(subschemaConfig: SubschemaConfig): Endpoint {
     return subschemaConfig.endpoint;
   } else if (subschemaConfig.executor) {
     return {
+      rootValue: subschemaConfig.rootValue,
       executor: subschemaConfig.executor,
-      batch: true,
+      subscriber: subschemaConfig.subscriber,
+      batch: subschemaConfig.batch,
+      batchingOptions: subschemaConfig.batchingOptions,
     };
   }
 }
@@ -111,10 +159,7 @@ function filterStaticSubschema(
           return computedTypes[implementingTypeName] && computedTypes[implementingTypeName].fields[fieldName];
         });
       },
-    }),
-    {
-      skipUnimplementedInterfacesPruning: true,
-    }
+    })
   );
 
   const remainingTypes = subschemaConfig.schema.getTypeMap();
