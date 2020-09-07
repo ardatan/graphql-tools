@@ -6,17 +6,17 @@ import {
   valueMatchesCriteria,
   getArgumentValues,
   getImplementingTypes,
+  mapSchema,
+  MapperKind,
 } from '@graphql-tools/utils';
 
-import { TransformObjectFields } from '@graphql-tools/wrap';
-
-import { GraphQLObjectType, GraphQLInterfaceType, GraphQLFieldConfig, DirectiveNode } from 'graphql';
+import { GraphQLObjectType, GraphQLInterfaceType, DirectiveNode } from 'graphql';
 
 const requiresSelectionSet = /^requires +(\{.+\})$/;
 
 function applyComputationsFromSDL(subschemaConfig: SubschemaConfig): SubschemaConfig {
-  const transform = new TransformObjectFields(
-    (typeName: string, fieldName: string, fieldConfig: GraphQLFieldConfig<any, any>) => {
+  subschemaConfig.schema = mapSchema(subschemaConfig.schema, {
+    [MapperKind.OBJECT_FIELD]: (fieldConfig, fieldName, typeName) => {
       const mergeTypeConfig = subschemaConfig.merge[typeName];
 
       if (
@@ -43,10 +43,8 @@ function applyComputationsFromSDL(subschemaConfig: SubschemaConfig): SubschemaCo
       }
 
       return fieldConfig;
-    }
-  );
-
-  subschemaConfig.schema = transform.transformSchema(subschemaConfig.schema);
+    },
+  });
   return subschemaConfig;
 }
 
