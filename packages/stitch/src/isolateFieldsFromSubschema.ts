@@ -28,7 +28,6 @@ export function isolateFieldsFromSubschema(subschemaConfig: SubschemaConfig): Ar
         } else {
           baseFields[fieldName] = mergedFieldConfig;
         }
-        delete mergedFieldConfig.isolate;
       });
 
       const isolatedFieldCount = Object.keys(isolatedFields).length;

@@ -54,7 +54,7 @@ describe('isolateFieldsFromSubschema', () => {
       expect(computedConfig.schema.getType('Storefront')).toBeUndefined();
       expect(computedConfig.schema.getType('ProductRepresentation')).toBeDefined();
       expect(computedConfig.merge.Product.fields).toEqual({
-        shippingEstimate: { selectionSet: '{ price weight }' },
+        shippingEstimate: { selectionSet: '{ price weight }', isolate: true },
       });
 
       expect(Object.keys(staticConfig.schema.getType('Query').getFields())).toEqual(['storefront', '_products']);
@@ -141,8 +141,8 @@ describe('isolateFieldsFromSubschema', () => {
       expect(productFields.deliveryService).toBeDefined();
       expect(productFields.deliveryService.deprecationReason).toBeUndefined();
       expect(computedConfig.merge.Product.fields).toEqual({
-        shippingEstimate: { selectionSet: '{ price weight }' },
-        deliveryService: { selectionSet: '{ weight }' },
+        shippingEstimate: { selectionSet: '{ price weight }', isolate: true },
+        deliveryService: { selectionSet: '{ weight }', isolate: true },
       });
 
       expect(Object.keys(staticConfig.schema.getType('Product').getFields())).toEqual(['id']);
@@ -230,10 +230,10 @@ describe('isolateFieldsFromSubschema', () => {
       expect(Object.keys(computedConfig.schema.getType('Product').getFields())).toEqual(['computed']);
       expect(Object.keys(computedConfig.schema.getType('Storefront').getFields())).toEqual(['computed']);
       expect(computedConfig.merge.Storefront.fields).toEqual({
-        computed: { selectionSet: '{ availableProductIds }' },
+        computed: { selectionSet: '{ availableProductIds }', isolate: true },
       });
       expect(computedConfig.merge.Product.fields).toEqual({
-        computed: { selectionSet: '{ price weight }' },
+        computed: { selectionSet: '{ price weight }', isolate: true },
       });
 
       expect(Object.keys(staticConfig.schema.getType('Query').getFields())).toEqual(['storefront', '_products']);
