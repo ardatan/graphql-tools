@@ -14,7 +14,7 @@ import { GraphQLObjectType, GraphQLInterfaceType, DirectiveNode } from 'graphql'
 
 const requiresSelectionSet = /^requires +(\{.+\})$/;
 
-function applyComputationsFromSDL(subschemaConfig: SubschemaConfig): SubschemaConfig {
+export function applyComputationsFromSDL(subschemaConfig: SubschemaConfig): SubschemaConfig {
   subschemaConfig.schema = mapSchema(subschemaConfig.schema, {
     [MapperKind.OBJECT_FIELD]: (fieldConfig, fieldName, typeName) => {
       const mergeTypeConfig = subschemaConfig.merge[typeName];
@@ -52,7 +52,6 @@ export function splitFieldsFromSubschemaConfig(subschemaConfig: SubschemaConfig)
   const staticTypes: Record<string, MergedTypeConfig> = {};
   const computedTypes: Record<string, MergedTypeConfig> = {};
 
-  subschemaConfig = applyComputationsFromSDL(subschemaConfig);
   Object.keys(subschemaConfig.merge).forEach((typeName: string) => {
     const mergedTypeConfig: MergedTypeConfig = subschemaConfig.merge[typeName];
     staticTypes[typeName] = mergedTypeConfig;

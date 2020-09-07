@@ -1,5 +1,5 @@
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { splitFieldsFromSubschemaConfig } from '@graphql-tools/stitch';
+import { splitFieldsFromSubschemaConfig, applyComputationsFromSDL } from '@graphql-tools/stitch';
 
 describe('splitFieldsFromSubschemaConfig', () => {
   describe('basic isolation', () => {
@@ -120,7 +120,7 @@ describe('splitFieldsFromSubschemaConfig', () => {
     });
 
     it('splits a subschema into static and dynamic portions', async () => {
-      const [computedConfig, staticConfig] = splitFieldsFromSubschemaConfig({
+      const [computedConfig, staticConfig] = splitFieldsFromSubschemaConfig(applyComputationsFromSDL({
         schema: storefrontSchema,
         merge: {
           Product: {
@@ -130,7 +130,7 @@ describe('splitFieldsFromSubschemaConfig', () => {
             argsFromKeys: (representations) => ({ representations }),
           }
         }
-      });
+      }));
 
       const productFields = computedConfig.schema.getType('Product').getFields();
       expect(Object.keys(productFields)).toEqual(['shippingEstimate', 'deliveryService']);

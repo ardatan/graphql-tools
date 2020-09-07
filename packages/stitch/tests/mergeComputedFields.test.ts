@@ -1,5 +1,5 @@
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { stitchSchemas, splitFieldsFromSubschemaConfig } from '@graphql-tools/stitch';
+import { stitchSchemas, splitFieldsFromSubschemaConfig, applyComputationsFromSDL } from '@graphql-tools/stitch';
 import { graphql } from 'graphql';
 
 const productSchema = makeExecutableSchema({
@@ -197,7 +197,7 @@ describe('merge computed fields from SDL via federation entities', () => {
           }
         }
       }
-    ].map(subschema => splitFieldsFromSubschemaConfig(subschema)),
+    ].map(subschema => splitFieldsFromSubschemaConfig(applyComputationsFromSDL(subschema))),
     mergeTypes: true,
   });
 
