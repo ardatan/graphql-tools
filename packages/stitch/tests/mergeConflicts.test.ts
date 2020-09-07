@@ -1,7 +1,7 @@
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
 
-describe('type merging with only field selection sets', () => {
+describe('merge conflict handlers', () => {
   const listings1Schema = makeExecutableSchema({
     typeDefs: `
       "ignore! - do not document here"
@@ -39,7 +39,7 @@ describe('type merging with only field selection sets', () => {
     `
   });
 
-  it('does stuff', () => {
+  it('handles description merges', () => {
     const gatewaySchema = stitchSchemas({
       subschemas: [
         { schema: listings1Schema },
