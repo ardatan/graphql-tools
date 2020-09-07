@@ -12,10 +12,6 @@ import { TransformObjectFields } from '@graphql-tools/wrap';
 
 import { GraphQLSchema, GraphQLObjectType, GraphQLInterfaceType, GraphQLFieldConfig, DirectiveNode } from 'graphql';
 
-interface ComputedFieldConfig extends MergedFieldConfig {
-  computed?: boolean;
-}
-
 export function isolateComputedMergeSchemas(
   subschemaOrSet: SubschemaConfig | Array<GraphQLSchema | SubschemaConfig>
 ): Array<GraphQLSchema | SubschemaConfig> {
@@ -51,7 +47,7 @@ function applyComputationsFromSDL(subschemaConfig: SubschemaConfig): SubschemaCo
         mergeTypeConfig.fields = mergeTypeConfig.fields || {};
         mergeTypeConfig.fields[fieldName] = mergeTypeConfig.fields[fieldName] || {};
 
-        const mergeFieldConfig: ComputedFieldConfig = mergeTypeConfig.fields[fieldName] as ComputedFieldConfig;
+        const mergeFieldConfig = mergeTypeConfig.fields[fieldName];
         mergeFieldConfig.selectionSet =
           mergeFieldConfig.selectionSet || fieldConfig.deprecationReason.trim().match(requiresSelectionSet)[1];
         mergeFieldConfig.computed = true;
@@ -87,7 +83,7 @@ function splitComputedMergeSchemas(subschemaConfig: SubschemaConfig): Array<Subs
       const computedFields: Record<string, MergedFieldConfig> = {};
 
       Object.keys(mergedTypeConfig.fields).forEach((fieldName: string) => {
-        const mergedFieldConfig: ComputedFieldConfig = mergedTypeConfig.fields[fieldName] as ComputedFieldConfig;
+        const mergedFieldConfig = mergedTypeConfig.fields[fieldName];
 
         if (mergedFieldConfig.selectionSet && mergedFieldConfig.computed) {
           computedFields[fieldName] = mergedFieldConfig;
