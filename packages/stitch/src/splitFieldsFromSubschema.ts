@@ -40,7 +40,7 @@ export function applyComputationsFromSDL(subschemaConfig: SubschemaConfig): Subs
   return subschemaConfig;
 }
 
-export function splitFieldsFromSubschemaConfig(subschemaConfig: SubschemaConfig): Array<SubschemaConfig> {
+export function splitFieldsFromSubschema(subschemaConfig: SubschemaConfig): Array<SubschemaConfig> {
   const baseSchemaTypes: Record<string, MergedTypeConfig> = {};
   const isolatedSchemaTypes: Record<string, MergedTypeConfig> = {};
 
