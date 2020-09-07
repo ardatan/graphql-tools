@@ -137,9 +137,7 @@ describe('isolateFieldsFromSubschema', () => {
       const productFields = computedConfig.schema.getType('Product').getFields();
       expect(Object.keys(productFields)).toEqual(['shippingEstimate', 'deliveryService']);
       expect(productFields.shippingEstimate).toBeDefined();
-      expect(productFields.shippingEstimate.deprecationReason).toBeUndefined();
       expect(productFields.deliveryService).toBeDefined();
-      expect(productFields.deliveryService.deprecationReason).toBeUndefined();
       expect(computedConfig.merge.Product.fields).toEqual({
         shippingEstimate: { selectionSet: '{ price weight }', isolate: true },
         deliveryService: { selectionSet: '{ weight }', isolate: true },
