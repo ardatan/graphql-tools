@@ -3,44 +3,36 @@ import { SubschemaConfig, MergedTypeConfig, MergedFieldConfig } from '@graphql-t
 import {
   filterSchema,
   pruneSchema,
-  valueMatchesCriteria,
-  getArgumentValues,
   getImplementingTypes,
   mapSchema,
   MapperKind,
+  getDirectives,
 } from '@graphql-tools/utils';
 
-import { GraphQLObjectType, GraphQLInterfaceType, DirectiveNode } from 'graphql';
-
-const requiresSelectionSet = /^requires +(\{.+\})$/;
+import { GraphQLObjectType, GraphQLInterfaceType } from 'graphql';
 
 export function applyComputationsFromSDL(subschemaConfig: SubschemaConfig): SubschemaConfig {
   subschemaConfig.schema = mapSchema(subschemaConfig.schema, {
-    [MapperKind.OBJECT_FIELD]: (fieldConfig, fieldName, typeName) => {
+    [MapperKind.OBJECT_FIELD]: (fieldConfig, fieldName, typeName, schema) => {
       const mergeTypeConfig = subschemaConfig.merge[typeName];
 
-      if (
-        mergeTypeConfig &&
-        fieldConfig.deprecationReason &&
-        valueMatchesCriteria(fieldConfig.deprecationReason.trim(), requiresSelectionSet)
-      ) {
-        mergeTypeConfig.fields = mergeTypeConfig.fields || {};
-        mergeTypeConfig.fields[fieldName] = mergeTypeConfig.fields[fieldName] || {};
-
-        const mergeFieldConfig = mergeTypeConfig.fields[fieldName];
-        mergeFieldConfig.selectionSet =
-          mergeFieldConfig.selectionSet || fieldConfig.deprecationReason.trim().match(requiresSelectionSet)[1];
-        mergeFieldConfig.isolate = true;
-
-        const directives = fieldConfig.astNode.directives.filter((dir: DirectiveNode) => {
-          const directiveDef = subschemaConfig.schema.getDirective(dir.name.value);
-          const directiveValue = directiveDef ? getArgumentValues(directiveDef, dir) : undefined;
-          return dir.name.value === 'deprecated' && directiveValue.reason === fieldConfig.deprecationReason;
-        });
-
-        fieldConfig = { ...fieldConfig, astNode: { ...fieldConfig.astNode, directives } };
-        delete fieldConfig.deprecationReason;
+      if (mergeTypeConfig == null) {
+        return;
       }
+
+      const requires = getDirectives(schema, fieldConfig)['requires'];
+
+      if (requires == null) {
+        return;
+      }
+
+      const selectionSet = requires.selectionSet;
+      mergeTypeConfig.fields = mergeTypeConfig.fields ?? {};
+      mergeTypeConfig.fields[fieldName] = mergeTypeConfig.fields[fieldName] ?? {};
+
+      const mergeFieldConfig = mergeTypeConfig.fields[fieldName];
+      mergeFieldConfig.selectionSet = mergeFieldConfig.selectionSet ?? selectionSet;
+      mergeFieldConfig.isolate = true;
 
       return fieldConfig;
     },

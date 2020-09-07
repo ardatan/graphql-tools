@@ -91,13 +91,14 @@ describe('splitFieldsFromSubschemaConfig', () => {
     });
   });
 
-  describe('from SDL deprecations', () => {
+  describe('from SDL directives', () => {
     const storefrontSchema = makeExecutableSchema({
       typeDefs: `
+        directive @requires(selectionSet: String) on FIELD_DEFINITION
         type Product {
           id: ID!
-          shippingEstimate: Float! @deprecated(reason: "requires { price weight }")
-          deliveryService: DeliveryService! @deprecated(reason: "requires { weight }")
+          shippingEstimate: Float! @requires(selectionSet: "{ price weight }")
+          deliveryService: DeliveryService! @requires(selectionSet: "{ weight }")
         }
         enum DeliveryService {
           POSTAL
