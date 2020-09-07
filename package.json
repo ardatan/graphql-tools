@@ -4,6 +4,7 @@
   "description": "Useful tools to create and manipulate GraphQL schemas.",
   "private": true,
   "scripts": {
+    "postinstall": "patch-package",
     "predeploy:website": "yarn build:api-docs",
     "deploy:website": "cd website && yarn deploy",
     "ts:transpile": "tsc --project tsconfig.build.json && tsc --project tsconfig.build.es5.json",
@@ -14,8 +15,10 @@
     "prettier:check": "prettier --ignore-path .gitignore --check \"**/*.{ts,tsx,graphql,yml}\"",
     "test": "jest --no-watchman --forceExit",
     "test-and-build": "yarn build && yarn test",
-    "release": "node scripts/release.js",
-    "release:canary": "node scripts/release.js --canary"
+    "prerelease": "yarn build",
+    "prerelease-canary": "yarn build",
+    "release": "changeset publish",
+    "release:canary": "(node scripts/canary-release.js && yarn build && yarn changeset publish --tag alpha) || echo Skipping Canary..."
   },
   "repository": {
     "type": "git",
@@ -39,6 +42,8 @@
     "graphql": "^14.0.0 || ^15.0.0"
   },
   "devDependencies": {
+    "patch-package": "^6.2.2",
+    "@changesets/cli": "2.10.2",
     "@types/fs-extra": "9.0.1",
     "@types/jest": "26.0.14",
     "@types/node": "14.11.2",
