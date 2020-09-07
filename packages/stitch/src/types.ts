@@ -68,7 +68,6 @@ export interface IStitchSchemasOptions<TContext = any> extends Omit<IExecutableS
   mergeDirectives?: boolean;
   mergeTypes?: boolean | Array<string> | MergeTypeFilter;
   typeMergingOptions?: TypeMergingOptions;
-  plugins?: Array<StitchSchemasPlugin>;
 }
 
 export interface TypeMergingOptions {
@@ -89,10 +88,6 @@ export type OnTypeConflict = (
     };
   }
 ) => GraphQLNamedType;
-
-export interface StitchSchemasPlugin {
-  preconfigure?: (config: IStitchSchemasOptions) => IStitchSchemasOptions;
-}
 
 declare module '@graphql-tools/utils' {
   interface IFieldResolverOptions<TSource = any, TContext = any, TArgs = any> {
