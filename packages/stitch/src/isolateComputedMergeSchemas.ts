@@ -1,10 +1,4 @@
-import {
-  isSubschemaConfig,
-  SubschemaConfig,
-  MergedTypeConfig,
-  MergedFieldConfig,
-  Endpoint,
-} from '@graphql-tools/delegate';
+import { isSubschemaConfig, SubschemaConfig, MergedTypeConfig, MergedFieldConfig } from '@graphql-tools/delegate';
 
 import {
   filterSchema,
@@ -117,7 +111,13 @@ function splitComputedMergeSchemas(subschemaConfig: SubschemaConfig): Array<Subs
   });
 
   if (Object.keys(computedTypes).length) {
-    const endpoint = getSharedEndpoint(subschemaConfig);
+    const endpoint = subschemaConfig.endpoint || {
+      rootValue: subschemaConfig.rootValue,
+      executor: subschemaConfig.executor,
+      subscriber: subschemaConfig.subscriber,
+      batch: subschemaConfig.batch,
+      batchingOptions: subschemaConfig.batchingOptions,
+    };
     return [
       filterComputedSubschema({ ...subschemaConfig, endpoint, merge: computedTypes }),
       filterStaticSubschema({ ...subschemaConfig, endpoint, merge: staticTypes }, computedTypes),
@@ -125,20 +125,6 @@ function splitComputedMergeSchemas(subschemaConfig: SubschemaConfig): Array<Subs
   }
 
   return [subschemaConfig];
-}
-
-function getSharedEndpoint(subschemaConfig: SubschemaConfig): Endpoint {
-  if (subschemaConfig.endpoint) {
-    return subschemaConfig.endpoint;
-  } else if (subschemaConfig.executor) {
-    return {
-      rootValue: subschemaConfig.rootValue,
-      executor: subschemaConfig.executor,
-      subscriber: subschemaConfig.subscriber,
-      batch: subschemaConfig.batch,
-      batchingOptions: subschemaConfig.batchingOptions,
-    };
-  }
 }
 
 function filterStaticSubschema(
