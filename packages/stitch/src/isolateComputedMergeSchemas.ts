@@ -1,4 +1,4 @@
-import { isSubschemaConfig, SubschemaConfig, MergedTypeConfig, MergedFieldConfig } from '@graphql-tools/delegate';
+import { SubschemaConfig, MergedTypeConfig, MergedFieldConfig } from '@graphql-tools/delegate';
 
 import {
   filterSchema,
@@ -10,27 +10,7 @@ import {
 
 import { TransformObjectFields } from '@graphql-tools/wrap';
 
-import { GraphQLSchema, GraphQLObjectType, GraphQLInterfaceType, GraphQLFieldConfig, DirectiveNode } from 'graphql';
-
-export function isolateComputedMergeSchemas(
-  subschemaOrSet: SubschemaConfig | Array<GraphQLSchema | SubschemaConfig>
-): Array<GraphQLSchema | SubschemaConfig> {
-  const subschemas: Array<GraphQLSchema | SubschemaConfig> = Array.isArray(subschemaOrSet)
-    ? subschemaOrSet
-    : [subschemaOrSet];
-  const mapped: Array<GraphQLSchema | SubschemaConfig> = [];
-
-  subschemas.forEach(schemaLikeObject => {
-    if (isSubschemaConfig(schemaLikeObject) && schemaLikeObject.merge) {
-      const subschemaConfig = applyComputationsFromSDL(schemaLikeObject as SubschemaConfig);
-      mapped.push(...splitComputedMergeSchemas(subschemaConfig));
-    } else {
-      mapped.push(schemaLikeObject);
-    }
-  });
-
-  return mapped;
-}
+import { GraphQLObjectType, GraphQLInterfaceType, GraphQLFieldConfig, DirectiveNode } from 'graphql';
 
 const requiresSelectionSet = /^requires +(\{.+\})$/;
 
@@ -70,10 +50,11 @@ function applyComputationsFromSDL(subschemaConfig: SubschemaConfig): SubschemaCo
   return subschemaConfig;
 }
 
-function splitComputedMergeSchemas(subschemaConfig: SubschemaConfig): Array<SubschemaConfig> {
+export function splitFieldsFromSubschemaConfig(subschemaConfig: SubschemaConfig): Array<SubschemaConfig> {
   const staticTypes: Record<string, MergedTypeConfig> = {};
   const computedTypes: Record<string, MergedTypeConfig> = {};
 
+  subschemaConfig = applyComputationsFromSDL(subschemaConfig);
   Object.keys(subschemaConfig.merge).forEach((typeName: string) => {
     const mergedTypeConfig: MergedTypeConfig = subschemaConfig.merge[typeName];
     staticTypes[typeName] = mergedTypeConfig;
