@@ -142,10 +142,12 @@ describe('merge computed fields with static config', () => {
 describe('merge computed fields from SDL via federation entities', () => {
   const storefrontSchema = makeExecutableSchema({
     typeDefs: `
+      directive @requires(selectionSet: String) on FIELD_DEFINITION
+
       type Product {
         id: ID!
-        shippingEstimate: Float! @deprecated(reason: "requires { price weight }")
-        deliveryService: DeliveryService! @deprecated(reason: "requires { weight }")
+        shippingEstimate: Float! @requires(selectionSet: "{ price weight }")
+        deliveryService: DeliveryService! @requires(selectionSet: "{ weight }")
       }
       enum DeliveryService {
         POSTAL
