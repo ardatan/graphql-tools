@@ -50,7 +50,7 @@ function applyComputationsFromSDL(subschemaConfig: SubschemaConfig): SubschemaCo
         const mergeFieldConfig = mergeTypeConfig.fields[fieldName];
         mergeFieldConfig.selectionSet =
           mergeFieldConfig.selectionSet || fieldConfig.deprecationReason.trim().match(requiresSelectionSet)[1];
-        mergeFieldConfig.computed = true;
+        mergeFieldConfig.isolate = true;
 
         const directives = fieldConfig.astNode.directives.filter((dir: DirectiveNode) => {
           const directiveDef = subschemaConfig.schema.getDirective(dir.name.value);
@@ -85,12 +85,12 @@ function splitComputedMergeSchemas(subschemaConfig: SubschemaConfig): Array<Subs
       Object.keys(mergedTypeConfig.fields).forEach((fieldName: string) => {
         const mergedFieldConfig = mergedTypeConfig.fields[fieldName];
 
-        if (mergedFieldConfig.selectionSet && mergedFieldConfig.computed) {
+        if (mergedFieldConfig.selectionSet && mergedFieldConfig.isolate) {
           computedFields[fieldName] = mergedFieldConfig;
         } else {
           staticFields[fieldName] = mergedFieldConfig;
         }
-        delete mergedFieldConfig.computed;
+        delete mergedFieldConfig.isolate;
       });
 
       const computedFieldCount = Object.keys(computedFields).length;

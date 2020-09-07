@@ -77,8 +77,8 @@ describe('merge computed fields with static config', () => {
           Product: {
             selectionSet: '{ id }',
             fields: {
-              shippingEstimate: { selectionSet: '{ price weight }', computed: true },
-              deliveryService: { selectionSet: '{ weight }', computed: true },
+              shippingEstimate: { selectionSet: '{ price weight }', isolate: true },
+              deliveryService: { selectionSet: '{ weight }', isolate: true },
             },
             fieldName: '_products',
             key: ({ id, price, weight }) => ({ id, price, weight }),

@@ -37,7 +37,7 @@ describe('isolateComputedMergeSchemas', () => {
           Product: {
             selectionSet: '{ id }',
             fields: {
-              shippingEstimate: { selectionSet: '{ price weight }', computed: true },
+              shippingEstimate: { selectionSet: '{ price weight }', isolate: true },
               deliveryService: { selectionSet: '{ weight }' },
             },
             fieldName: '_products',
@@ -167,8 +167,8 @@ describe('isolateComputedMergeSchemas', () => {
           Product: {
             selectionSet: '{ id }',
             fields: {
-              computedOne: { selectionSet: '{ price weight }', computed: true },
-              computedTwo: { selectionSet: '{ weight }', computed: true },
+              computedOne: { selectionSet: '{ price weight }', isolate: true },
+              computedTwo: { selectionSet: '{ weight }', isolate: true },
             },
             fieldName: '_products',
             key: ({ id, price, weight }) => ({ id, price, weight }),
@@ -206,7 +206,7 @@ describe('isolateComputedMergeSchemas', () => {
           Storefront: {
             selectionSet: '{ id }',
             fields: {
-              computed: { selectionSet: '{ availableProductIds }', computed: true },
+              computed: { selectionSet: '{ availableProductIds }', isolate: true },
             },
             fieldName: 'storefront',
             args: ({ id }) => ({ id }),
@@ -214,7 +214,7 @@ describe('isolateComputedMergeSchemas', () => {
           Product: {
             selectionSet: '{ id }',
             fields: {
-              computed: { selectionSet: '{ price weight }', computed: true },
+              computed: { selectionSet: '{ price weight }', isolate: true },
               static: { selectionSet: '{ weight }' },
             },
             fieldName: '_products',
@@ -268,7 +268,7 @@ describe('isolateComputedMergeSchemas', () => {
           Product: {
             selectionSet: '{ id }',
             fields: {
-              computed: { selectionSet: '{ price weight }', computed: true }
+              computed: { selectionSet: '{ price weight }', isolate: true }
             },
             fieldName: '_products',
             key: ({ id, price, weight }) => ({ id, price, weight }),
