@@ -4,7 +4,7 @@ import { filterSchema, pruneSchema, getImplementingTypes } from '@graphql-tools/
 
 import { GraphQLObjectType, GraphQLInterfaceType } from 'graphql';
 
-export function isolateFields(subschemaConfig: SubschemaConfig): Array<SubschemaConfig> {
+export function isolateFieldsFromSubschema(subschemaConfig: SubschemaConfig): Array<SubschemaConfig> {
   const baseSchemaTypes: Record<string, MergedTypeConfig> = {};
   const isolatedSchemaTypes: Record<string, MergedTypeConfig> = {};
 

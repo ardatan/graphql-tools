@@ -1,8 +1,8 @@
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { isolateFields } from '@graphql-tools/stitch';
+import { isolateFieldsFromSubschema } from '@graphql-tools/stitch';
 import { Subschema } from '@graphql-tools/delegate';
 
-describe('isolateFields', () => {
+describe('isolateFieldsFromSubschema', () => {
   describe('basic isolation', () => {
     const storefrontSchema = makeExecutableSchema({
       typeDefs: `
@@ -32,7 +32,7 @@ describe('isolateFields', () => {
     });
 
     it('splits a subschema into static and dynamic portions', async () => {
-      const [computedConfig, staticConfig] = isolateFields({
+      const [computedConfig, staticConfig] = isolateFieldsFromSubschema({
         schema: storefrontSchema,
         merge: {
           Product: {
@@ -68,7 +68,7 @@ describe('isolateFields', () => {
     });
 
     it('does not split schemas with only optional fields', async () => {
-      const subschemas = isolateFields({
+      const subschemas = isolateFieldsFromSubschema({
         schema: storefrontSchema,
         merge: {
           Product: {
@@ -122,7 +122,7 @@ describe('isolateFields', () => {
     });
 
     it('splits a subschema into static and dynamic portions', async () => {
-      const [computedConfig, staticConfig] = isolateFields(new Subschema({
+      const [computedConfig, staticConfig] = isolateFieldsFromSubschema(new Subschema({
         schema: storefrontSchema,
         merge: {
           Product: {
@@ -163,7 +163,7 @@ describe('isolateFields', () => {
     });
 
     it('does not reprocess already isolated computations', async () => {
-      const subschemas = isolateFields({
+      const subschemas = isolateFieldsFromSubschema({
         schema: storefrontSchema,
         merge: {
           Product: {
@@ -202,7 +202,7 @@ describe('isolateFields', () => {
     });
 
     it('moves all dynamic types to the dynamic schema', async () => {
-      const [computedConfig, staticConfig] = isolateFields({
+      const [computedConfig, staticConfig] = isolateFieldsFromSubschema({
         schema: storefrontSchema,
         merge: {
           Storefront: {
@@ -264,7 +264,7 @@ describe('isolateFields', () => {
         `
       });
 
-      const [computedConfig, staticConfig] = isolateFields({
+      const [computedConfig, staticConfig] = isolateFieldsFromSubschema({
         schema: testSchema,
         merge: {
           Product: {
