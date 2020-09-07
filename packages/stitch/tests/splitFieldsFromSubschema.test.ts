@@ -1,7 +1,7 @@
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { splitFieldsFromSubschemaConfig, applyComputationsFromSDL } from '@graphql-tools/stitch';
+import { splitFieldsFromSubschema, applyComputationsFromSDL } from '@graphql-tools/stitch';
 
-describe('splitFieldsFromSubschemaConfig', () => {
+describe('splitFieldsFromSubschema', () => {
   describe('basic isolation', () => {
     const storefrontSchema = makeExecutableSchema({
       typeDefs: `
@@ -31,7 +31,7 @@ describe('splitFieldsFromSubschemaConfig', () => {
     });
 
     it('splits a subschema into static and dynamic portions', async () => {
-      const [computedConfig, staticConfig] = splitFieldsFromSubschemaConfig({
+      const [computedConfig, staticConfig] = splitFieldsFromSubschema({
         schema: storefrontSchema,
         merge: {
           Product: {
@@ -67,7 +67,7 @@ describe('splitFieldsFromSubschemaConfig', () => {
     });
 
     it('does not split schemas with only optional fields', async () => {
-      const subschemas = splitFieldsFromSubschemaConfig({
+      const subschemas = splitFieldsFromSubschema({
         schema: storefrontSchema,
         merge: {
           Product: {
@@ -121,7 +121,7 @@ describe('splitFieldsFromSubschemaConfig', () => {
     });
 
     it('splits a subschema into static and dynamic portions', async () => {
-      const [computedConfig, staticConfig] = splitFieldsFromSubschemaConfig(applyComputationsFromSDL({
+      const [computedConfig, staticConfig] = splitFieldsFromSubschema(applyComputationsFromSDL({
         schema: storefrontSchema,
         merge: {
           Product: {
@@ -162,7 +162,7 @@ describe('splitFieldsFromSubschemaConfig', () => {
     });
 
     it('does not reprocess already isolated computations', async () => {
-      const subschemas = splitFieldsFromSubschemaConfig({
+      const subschemas = splitFieldsFromSubschema({
         schema: storefrontSchema,
         merge: {
           Product: {
@@ -201,7 +201,7 @@ describe('splitFieldsFromSubschemaConfig', () => {
     });
 
     it('moves all dynamic types to the dynamic schema', async () => {
-      const [computedConfig, staticConfig] = splitFieldsFromSubschemaConfig({
+      const [computedConfig, staticConfig] = splitFieldsFromSubschema({
         schema: storefrontSchema,
         merge: {
           Storefront: {
@@ -263,7 +263,7 @@ describe('splitFieldsFromSubschemaConfig', () => {
         `
       });
 
-      const [computedConfig, staticConfig] = splitFieldsFromSubschemaConfig({
+      const [computedConfig, staticConfig] = splitFieldsFromSubschema({
         schema: testSchema,
         merge: {
           Product: {
