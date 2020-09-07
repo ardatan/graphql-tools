@@ -101,17 +101,14 @@ function filterBaseSubschema(
   subschemaConfig.schema = pruneSchema(
     filterSchema({
       schema: subschemaConfig.schema,
-      objectFieldFilter: (typeName: string, fieldName: string) =>
-        !(isolatedSchemaTypes[typeName] && isolatedSchemaTypes[typeName].fields[fieldName]),
+      objectFieldFilter: (typeName: string, fieldName: string) => !isolatedSchemaTypes[typeName]?.fields[fieldName],
       interfaceFieldFilter: (typeName: string, fieldName: string) => {
         if (!typesForInterface[typeName]) {
           typesForInterface[typeName] = getImplementingTypes(typeName, subschemaConfig.schema);
         }
-        return !typesForInterface[typeName].some(implementingTypeName => {
-          return (
-            isolatedSchemaTypes[implementingTypeName] && isolatedSchemaTypes[implementingTypeName].fields[fieldName]
-          );
-        });
+        return !typesForInterface[typeName].some(
+          implementingTypeName => isolatedSchemaTypes[implementingTypeName]?.fields[fieldName]
+        );
       },
     })
   );
@@ -154,11 +151,10 @@ function filterIsolatedSubschema(subschemaConfig: SubschemaConfig): SubschemaCon
   subschemaConfig.schema = pruneSchema(
     filterSchema({
       schema: subschemaConfig.schema,
-      rootFieldFilter: (operation: string, fieldName: string) => !!(operation === 'Query' && rootFields[fieldName]),
+      rootFieldFilter: (operation: string, fieldName: string) => operation === 'Query' && rootFields[fieldName] != null,
       objectFieldFilter: (typeName: string, fieldName: string) =>
-        !!(subschemaConfig.merge[typeName] && subschemaConfig.merge[typeName].fields[fieldName]),
-      interfaceFieldFilter: (typeName: string, fieldName: string) =>
-        !!(interfaceFields[typeName] && interfaceFields[typeName][fieldName]),
+        subschemaConfig.merge[typeName]?.fields[fieldName] != null,
+      interfaceFieldFilter: (typeName: string, fieldName: string) => interfaceFields[typeName]?.[fieldName] != null,
     })
   );
 
