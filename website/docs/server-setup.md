@@ -8,7 +8,7 @@ Here's an example using express-graphql:
 
 ```js
 const express = require('express');
-const graphqlHTTP = require('express-graphql');
+const { graphqlHTTP } = require('express-graphql');
 
 const typeDefs = require('./graphql/types');
 const resolvers = require('./graphql/resolvers');
