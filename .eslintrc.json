@@ -21,7 +21,7 @@
     "no-dupe-class-members": "off",
     "dot-notation": "off",
     "no-use-before-define": "off",
-    "@typescript-eslint/no-unused-vars": ["error", {"args":  "none"}],
+    "@typescript-eslint/no-unused-vars": "warn",
     "@typescript-eslint/no-use-before-define": "off",
     "@typescript-eslint/no-namespace": "off",
     "@typescript-eslint/no-empty-interface": "off",
