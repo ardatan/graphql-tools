@@ -163,7 +163,6 @@ export interface MergedTypeConfig<K = any, V = any> {
 
 export interface MergedFieldConfig {
   selectionSet?: string;
-  isolate?: boolean;
 }
 
 export type MergedTypeResolver = (

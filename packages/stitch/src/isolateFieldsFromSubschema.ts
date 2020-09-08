@@ -23,7 +23,7 @@ export function isolateFieldsFromSubschema(subschemaConfig: SubschemaConfig): Ar
       Object.keys(mergedTypeConfig.fields).forEach((fieldName: string) => {
         const mergedFieldConfig = mergedTypeConfig.fields[fieldName];
 
-        if (mergedFieldConfig.selectionSet && mergedFieldConfig.isolate) {
+        if (mergedFieldConfig.selectionSet) {
           isolatedFields[fieldName] = mergedFieldConfig;
         } else {
           baseFields[fieldName] = mergedFieldConfig;
