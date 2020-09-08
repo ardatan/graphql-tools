@@ -22,8 +22,8 @@ import {
   IDelegateRequestOptions,
   SubschemaConfig,
   ExecutionParams,
-  StitchingInfo,
   Endpoint,
+  StitchingInfo,
 } from './types';
 
 import { isSubschemaConfig } from './Subschema';
@@ -125,18 +125,23 @@ export function delegateRequest({
   let endpoint: Endpoint;
 
   let allTransforms: Array<Transform>;
+
   if (isSubschemaConfig(subschemaOrSubschemaConfig)) {
-    subschemaConfig = subschemaOrSubschemaConfig;
+    const stitchingInfo: StitchingInfo = info?.schema.extensions?.stitchingInfo;
+    if (stitchingInfo) {
+      const processedSubschema = stitchingInfo.processedSubschemas.get(subschemaOrSubschemaConfig);
+      if (processedSubschema != null) {
+        subschemaConfig = processedSubschema;
+      } else {
+        subschemaConfig = subschemaOrSubschemaConfig;
+      }
+    } else {
+      subschemaConfig = subschemaOrSubschemaConfig;
+    }
     targetSchema = subschemaConfig.schema;
-    allTransforms =
-      subschemaOrSubschemaConfig.transforms != null
-        ? subschemaOrSubschemaConfig.transforms.concat(transforms)
-        : transforms;
-    if (typeof subschemaConfig.endpoint === 'object') {
+    allTransforms = subschemaConfig.transforms != null ? subschemaConfig.transforms.concat(transforms) : transforms;
+    if (subschemaConfig.endpoint != null) {
       endpoint = subschemaConfig.endpoint;
-    } else if (typeof subschemaConfig.endpoint === 'string') {
-      const stitchingInfo: StitchingInfo = info?.schema.extensions?.stitchingInfo;
-      endpoint = stitchingInfo.endpoints[subschemaConfig.endpoint];
     } else {
       endpoint = subschemaConfig;
     }

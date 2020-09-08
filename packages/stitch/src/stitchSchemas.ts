@@ -26,12 +26,14 @@ import {
 import { buildTypeCandidates, buildTypeMap } from './typeCandidates';
 import { createStitchingInfo, completeStitchingInfo, addStitchingInfo } from './stitchingInfo';
 import { IStitchSchemasOptions } from './types';
-import { SubschemaConfig, isSubschemaConfig } from '@graphql-tools/delegate';
+import { SubschemaConfig, isSubschemaConfig, Subschema } from '@graphql-tools/delegate';
+import { isolateFieldsFromSubschema } from './isolateFieldsFromSubschema';
 
 export function stitchSchemas({
   subschemas = [],
   types = [],
   typeDefs,
+  // `schemas` to be removed in v7, replaces by subschemas, types, typeDefs
   schemas = [],
   onTypeConflict,
   mergeDirectives,
@@ -53,15 +55,19 @@ export function stitchSchemas({
   }
 
   let schemaLikeObjects: Array<GraphQLSchema | SubschemaConfig | DocumentNode | GraphQLNamedType> = [];
+  const processedSubschemas: Map<GraphQLSchema | SubschemaConfig, GraphQLSchema | SubschemaConfig> = new Map();
 
-  subschemas.forEach(subschemaOrSubschemaArray => {
-    if (Array.isArray(subschemaOrSubschemaArray)) {
-      schemaLikeObjects = schemaLikeObjects.concat(subschemaOrSubschemaArray);
+  subschemas.flat().forEach(subschema => {
+    if (isSubschemaConfig(subschema)) {
+      const staticAndComputedSchemas = isolateFieldsFromSubschema(new Subschema(subschema));
+      schemaLikeObjects = schemaLikeObjects.concat(staticAndComputedSchemas);
+      processedSubschemas.set(subschema, staticAndComputedSchemas[0]);
     } else {
-      schemaLikeObjects.push(subschemaOrSubschemaArray);
+      schemaLikeObjects.push(subschema);
     }
   });
 
+  // to be removed in v7
   schemas.forEach(schemaLikeObject => {
     if (
       !isSchema(schemaLikeObject) &&
@@ -73,6 +79,8 @@ export function stitchSchemas({
       throw new Error('Invalid schema passed');
     }
   });
+
+  // to be removed in v7
   schemas.forEach(schemaLikeObject => {
     if (isSchema(schemaLikeObject) || isSubschemaConfig(schemaLikeObject)) {
       schemaLikeObjects.push(schemaLikeObject);
@@ -82,6 +90,8 @@ export function stitchSchemas({
   if ((typeDefs && !Array.isArray(typeDefs)) || (Array.isArray(typeDefs) && typeDefs.length)) {
     schemaLikeObjects.push(buildDocumentFromTypeDefinitions(typeDefs, parseOptions));
   }
+
+  // to be removed in v7
   schemas.forEach(schemaLikeObject => {
     if (typeof schemaLikeObject === 'string' || isDocumentNode(schemaLikeObject)) {
       schemaLikeObjects.push(buildDocumentFromTypeDefinitions(schemaLikeObject, parseOptions));
@@ -91,6 +101,8 @@ export function stitchSchemas({
   if (types != null) {
     schemaLikeObjects = schemaLikeObjects.concat(types);
   }
+
+  // to be removed in v7
   schemas.forEach(schemaLikeObject => {
     if (Array.isArray(schemaLikeObject)) {
       schemaLikeObjects = schemaLikeObjects.concat(schemaLikeObject);
@@ -125,7 +137,7 @@ export function stitchSchemas({
     directives.push(directiveMap[directiveName]);
   });
 
-  let stitchingInfo = createStitchingInfo(transformedSchemas, typeCandidates, mergeTypes);
+  let stitchingInfo = createStitchingInfo(processedSubschemas, transformedSchemas, typeCandidates, mergeTypes);
 
   const typeMap = buildTypeMap({
     typeCandidates,

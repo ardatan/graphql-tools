@@ -1,5 +1,5 @@
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { stitchSchemas, isolateComputedMergeSchemas } from '@graphql-tools/stitch';
+import { stitchSchemas } from '@graphql-tools/stitch';
 import { graphql } from 'graphql';
 
 const productSchema = makeExecutableSchema({
@@ -60,7 +60,7 @@ describe('merge computed fields with static config', () => {
   });
 
   const gatewaySchema = stitchSchemas({
-    subschemas: isolateComputedMergeSchemas([
+    subschemas: [
       {
         schema: productSchema,
         merge: {
@@ -77,8 +77,8 @@ describe('merge computed fields with static config', () => {
           Product: {
             selectionSet: '{ id }',
             fields: {
-              shippingEstimate: { selectionSet: '{ price weight }', computed: true },
-              deliveryService: { selectionSet: '{ weight }', computed: true },
+              shippingEstimate: { selectionSet: '{ price weight }' },
+              deliveryService: { selectionSet: '{ weight }' },
             },
             fieldName: '_products',
             key: ({ id, price, weight }) => ({ id, price, weight }),
@@ -86,7 +86,7 @@ describe('merge computed fields with static config', () => {
           }
         }
       }
-    ]),
+    ],
     mergeTypes: true,
   });
 
@@ -142,10 +142,12 @@ describe('merge computed fields with static config', () => {
 describe('merge computed fields from SDL via federation entities', () => {
   const storefrontSchema = makeExecutableSchema({
     typeDefs: `
+      directive @requires(selectionSet: String) on FIELD_DEFINITION
+
       type Product {
         id: ID!
-        shippingEstimate: Float! @deprecated(reason: "requires { price weight }")
-        deliveryService: DeliveryService! @deprecated(reason: "requires { weight }")
+        shippingEstimate: Float! @requires(selectionSet: "{ price weight }")
+        deliveryService: DeliveryService! @requires(selectionSet: "{ weight }")
       }
       enum DeliveryService {
         POSTAL
@@ -175,7 +177,7 @@ describe('merge computed fields from SDL via federation entities', () => {
   });
 
   const gatewaySchema = stitchSchemas({
-    subschemas: isolateComputedMergeSchemas([
+    subschemas: [
       {
         schema: productSchema,
         merge: {
@@ -196,8 +198,8 @@ describe('merge computed fields from SDL via federation entities', () => {
             argsFromKeys: (representations) => ({ representations }),
           }
         }
-      }
-    ]),
+      },
+    ],
     mergeTypes: true,
   });
 
