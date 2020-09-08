@@ -30,6 +30,7 @@ import { batchDelegateToSchema } from '@graphql-tools/batch-delegate';
 import { MergeTypeCandidate, MergedTypeInfo, StitchingInfo, MergeTypeFilter } from './types';
 
 export function createStitchingInfo(
+  processedSubschemas: Map<SubschemaConfig, SubschemaConfig>,
   transformedSchemas: Map<GraphQLSchema | SubschemaConfig, GraphQLSchema>,
   typeCandidates: Record<string, Array<MergeTypeCandidate>>,
   mergeTypes?: boolean | Array<string> | MergeTypeFilter
@@ -82,6 +83,7 @@ export function createStitchingInfo(
   });
 
   return {
+    processedSubschemas,
     transformedSchemas,
     fragmentsByField: undefined,
     selectionSetsByField,

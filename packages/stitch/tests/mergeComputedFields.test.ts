@@ -1,5 +1,4 @@
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { Subschema } from '@graphql-tools/delegate';
 import { stitchSchemas } from '@graphql-tools/stitch';
 import { graphql } from 'graphql';
 
@@ -189,7 +188,7 @@ describe('merge computed fields from SDL via federation entities', () => {
           }
         }
       },
-      new Subschema({
+      {
         schema: storefrontSchema,
         merge: {
           Product: {
@@ -199,7 +198,7 @@ describe('merge computed fields from SDL via federation entities', () => {
             argsFromKeys: (representations) => ({ representations }),
           }
         }
-      }),
+      },
     ],
     mergeTypes: true,
   });
