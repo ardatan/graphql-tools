@@ -32,7 +32,7 @@ describe('isolateFieldsFromSubschema', () => {
     });
 
     it('splits a subschema into static and computed portions', async () => {
-      const [computedConfig, staticConfig] = isolateFieldsFromSubschema({
+      const [staticConfig, computedConfig] = isolateFieldsFromSubschema({
         schema: storefrontSchema,
         merge: {
           Product: {
@@ -110,7 +110,7 @@ describe('isolateFieldsFromSubschema', () => {
     });
 
     it('splits a subschema into static and computed portions', async () => {
-      const [computedConfig, staticConfig] = isolateFieldsFromSubschema(new Subschema({
+      const [staticConfig, computedConfig] = isolateFieldsFromSubschema(new Subschema({
         schema: storefrontSchema,
         merge: {
           Product: {
@@ -188,7 +188,7 @@ describe('isolateFieldsFromSubschema', () => {
     });
 
     it('moves all computed types to the computed schema', async () => {
-      const [computedConfig, staticConfig] = isolateFieldsFromSubschema({
+      const [staticConfig, computedConfig] = isolateFieldsFromSubschema({
         schema: storefrontSchema,
         merge: {
           Storefront: {
@@ -246,7 +246,7 @@ describe('isolateFieldsFromSubschema', () => {
         `
       });
 
-      const [computedConfig, staticConfig] = isolateFieldsFromSubschema({
+      const [staticConfig, computedConfig] = isolateFieldsFromSubschema({
         schema: testSchema,
         merge: {
           Product: {
