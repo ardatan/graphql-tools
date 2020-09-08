@@ -55,15 +55,21 @@ export function stitchSchemas({
   }
 
   let schemaLikeObjects: Array<GraphQLSchema | SubschemaConfig | DocumentNode | GraphQLNamedType> = [];
-  const processedSubschemas: Map<GraphQLSchema | SubschemaConfig, GraphQLSchema | SubschemaConfig> = new Map();
+  const processedSubschemas: Map<SubschemaConfig, SubschemaConfig> = new Map();
 
-  subschemas.flat().forEach(subschema => {
-    if (isSubschemaConfig(subschema)) {
-      const staticAndComputedSchemas = isolateFieldsFromSubschema(new Subschema(subschema));
+  subschemas.forEach(subschemaOrSubschemaArray => {
+    if (Array.isArray(subschemaOrSubschemaArray)) {
+      subschemaOrSubschemaArray.forEach(s => {
+        const staticAndComputedSchemas = isolateFieldsFromSubschema(new Subschema(s));
+        schemaLikeObjects = schemaLikeObjects.concat(staticAndComputedSchemas);
+        processedSubschemas.set(s, staticAndComputedSchemas[0]);
+      });
+    } else if (isSubschemaConfig(subschemaOrSubschemaArray)) {
+      const staticAndComputedSchemas = isolateFieldsFromSubschema(new Subschema(subschemaOrSubschemaArray));
       schemaLikeObjects = schemaLikeObjects.concat(staticAndComputedSchemas);
-      processedSubschemas.set(subschema, staticAndComputedSchemas[0]);
+      processedSubschemas.set(subschemaOrSubschemaArray, staticAndComputedSchemas[0]);
     } else {
-      schemaLikeObjects.push(subschema);
+      schemaLikeObjects.push(subschemaOrSubschemaArray);
     }
   });
 
