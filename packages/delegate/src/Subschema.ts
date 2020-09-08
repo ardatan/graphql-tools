@@ -78,7 +78,12 @@ export class Subschema<K = any, V = any, C = K> {
           return undefined;
         }
 
-        const selectionSet = requires.selectionSet;
+        const selectionSet = requires.fields != null ? `{ ${requires.fields} }` : requires.selectionSet;
+
+        if (selectionSet == null) {
+          return undefined;
+        }
+
         mergeTypeConfig.fields = mergeTypeConfig.fields ?? {};
         mergeTypeConfig.fields[fieldName] = mergeTypeConfig.fields[fieldName] ?? {};
 
