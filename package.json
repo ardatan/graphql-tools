@@ -54,7 +54,7 @@
     "eslint-plugin-standard": "4.0.1",
     "fs-extra": "9.0.1",
     "graphql": "15.3.0",
-    "husky": "4.2.5",
+    "husky": "4.3.0",
     "jest": "26.4.2",
     "lint-staged": "10.3.0",
     "nock": "13.0.4",
