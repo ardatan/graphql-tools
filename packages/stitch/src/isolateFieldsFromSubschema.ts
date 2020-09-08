@@ -52,8 +52,8 @@ export function isolateFieldsFromSubschema(subschemaConfig: SubschemaConfig): Ar
       batchingOptions: subschemaConfig.batchingOptions,
     };
     return [
-      filterIsolatedSubschema({ ...subschemaConfig, endpoint, merge: isolatedSchemaTypes }),
       filterBaseSubschema({ ...subschemaConfig, endpoint, merge: baseSchemaTypes }, isolatedSchemaTypes),
+      filterIsolatedSubschema({ ...subschemaConfig, endpoint, merge: isolatedSchemaTypes }),
     ];
   }
 
