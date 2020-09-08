@@ -84,7 +84,6 @@ export class Subschema<K = any, V = any, C = K> {
 
         const mergeFieldConfig = mergeTypeConfig.fields[fieldName];
         mergeFieldConfig.selectionSet = mergeFieldConfig.selectionSet ?? selectionSet;
-        mergeFieldConfig.isolate = requires.isolate;
 
         return undefined;
       },

@@ -31,15 +31,14 @@ describe('isolateFieldsFromSubschema', () => {
       `
     });
 
-    it('splits a subschema into static and dynamic portions', async () => {
+    it('splits a subschema into static and computed portions', async () => {
       const [computedConfig, staticConfig] = isolateFieldsFromSubschema({
         schema: storefrontSchema,
         merge: {
           Product: {
-            selectionSet: '{ id }',
+            selectionSet: '{ id weight }',
             fields: {
-              shippingEstimate: { selectionSet: '{ price weight }', isolate: true },
-              deliveryService: { selectionSet: '{ weight }' },
+              shippingEstimate: { selectionSet: '{ price }' },
             },
             fieldName: '_products',
             key: ({ id, price, weight }) => ({ id, price, weight }),
@@ -54,7 +53,7 @@ describe('isolateFieldsFromSubschema', () => {
       expect(computedConfig.schema.getType('Storefront')).toBeUndefined();
       expect(computedConfig.schema.getType('ProductRepresentation')).toBeDefined();
       expect(computedConfig.merge.Product.fields).toEqual({
-        shippingEstimate: { selectionSet: '{ price weight }', isolate: true },
+        shippingEstimate: { selectionSet: '{ price }' },
       });
 
       expect(Object.keys(staticConfig.schema.getType('Query').getFields())).toEqual(['storefront', '_products']);
@@ -62,21 +61,14 @@ describe('isolateFieldsFromSubschema', () => {
       expect(staticConfig.schema.getType('DeliveryService')).toBeDefined();
       expect(staticConfig.schema.getType('Storefront')).toBeDefined();
       expect(staticConfig.schema.getType('ProductRepresentation')).toBeDefined();
-      expect(staticConfig.merge.Product.fields).toEqual({
-        deliveryService: { selectionSet: '{ weight }' },
-      });
     });
 
-    it('does not split schemas with only optional fields', async () => {
+    it('does not split schemas with only static fields', async () => {
       const subschemas = isolateFieldsFromSubschema({
         schema: storefrontSchema,
         merge: {
           Product: {
-            selectionSet: '{ id }',
-            fields: {
-              shippingEstimate: { selectionSet: '{ price weight }' },
-              deliveryService: { selectionSet: '{ weight }' },
-            },
+            selectionSet: '{ id price weight }',
             fieldName: '_products',
             key: ({ id, price, weight }) => ({ id, price, weight }),
             argsFromKeys: (representations) => ({ representations }),
@@ -85,21 +77,17 @@ describe('isolateFieldsFromSubschema', () => {
       });
 
       expect(subschemas.length).toEqual(1);
-      expect(subschemas[0].merge.Product.fields).toEqual({
-        shippingEstimate: { selectionSet: '{ price weight }' },
-        deliveryService: { selectionSet: '{ weight }' },
-      });
     });
   });
 
   describe('from SDL directives', () => {
     const storefrontSchema = makeExecutableSchema({
       typeDefs: `
-        directive @requires(selectionSet: String, isolate: Boolean) on FIELD_DEFINITION
+        directive @requires(selectionSet: String) on FIELD_DEFINITION
         type Product {
           id: ID!
-          shippingEstimate: Float! @requires(selectionSet: "{ price weight }", isolate: true)
-          deliveryService: DeliveryService! @requires(selectionSet: "{ weight }", isolate: true)
+          shippingEstimate: Float! @requires(selectionSet: "{ price weight }")
+          deliveryService: DeliveryService! @requires(selectionSet: "{ weight }")
         }
         enum DeliveryService {
           POSTAL
@@ -121,7 +109,7 @@ describe('isolateFieldsFromSubschema', () => {
       `
     });
 
-    it('splits a subschema into static and dynamic portions', async () => {
+    it('splits a subschema into static and computed portions', async () => {
       const [computedConfig, staticConfig] = isolateFieldsFromSubschema(new Subschema({
         schema: storefrontSchema,
         merge: {
@@ -139,8 +127,8 @@ describe('isolateFieldsFromSubschema', () => {
       expect(productFields.shippingEstimate).toBeDefined();
       expect(productFields.deliveryService).toBeDefined();
       expect(computedConfig.merge.Product.fields).toEqual({
-        shippingEstimate: { selectionSet: '{ price weight }', isolate: true },
-        deliveryService: { selectionSet: '{ weight }', isolate: true },
+        shippingEstimate: { selectionSet: '{ price weight }' },
+        deliveryService: { selectionSet: '{ weight }' },
       });
 
       expect(Object.keys(staticConfig.schema.getType('Product').getFields())).toEqual(['id']);
@@ -167,8 +155,8 @@ describe('isolateFieldsFromSubschema', () => {
           Product: {
             selectionSet: '{ id }',
             fields: {
-              computedOne: { selectionSet: '{ price weight }', isolate: true },
-              computedTwo: { selectionSet: '{ weight }', isolate: true },
+              computedOne: { selectionSet: '{ price weight }' },
+              computedTwo: { selectionSet: '{ weight }' },
             },
             fieldName: '_products',
             key: ({ id, price, weight }) => ({ id, price, weight }),
@@ -199,23 +187,22 @@ describe('isolateFieldsFromSubschema', () => {
       `
     });
 
-    it('moves all dynamic types to the dynamic schema', async () => {
+    it('moves all computed types to the computed schema', async () => {
       const [computedConfig, staticConfig] = isolateFieldsFromSubschema({
         schema: storefrontSchema,
         merge: {
           Storefront: {
             selectionSet: '{ id }',
             fields: {
-              computed: { selectionSet: '{ availableProductIds }', isolate: true },
+              computed: { selectionSet: '{ availableProductIds }' },
             },
             fieldName: 'storefront',
             args: ({ id }) => ({ id }),
           },
           Product: {
-            selectionSet: '{ id }',
+            selectionSet: '{ id weight }',
             fields: {
-              computed: { selectionSet: '{ price weight }', isolate: true },
-              static: { selectionSet: '{ weight }' },
+              computed: { selectionSet: '{ price }' },
             },
             fieldName: '_products',
             key: ({ id, price, weight }) => ({ id, price, weight }),
@@ -228,19 +215,16 @@ describe('isolateFieldsFromSubschema', () => {
       expect(Object.keys(computedConfig.schema.getType('Product').getFields())).toEqual(['computed']);
       expect(Object.keys(computedConfig.schema.getType('Storefront').getFields())).toEqual(['computed']);
       expect(computedConfig.merge.Storefront.fields).toEqual({
-        computed: { selectionSet: '{ availableProductIds }', isolate: true },
+        computed: { selectionSet: '{ availableProductIds }' },
       });
       expect(computedConfig.merge.Product.fields).toEqual({
-        computed: { selectionSet: '{ price weight }', isolate: true },
+        computed: { selectionSet: '{ price }' },
       });
 
       expect(Object.keys(staticConfig.schema.getType('Query').getFields())).toEqual(['storefront', '_products']);
       expect(Object.keys(staticConfig.schema.getType('Product').getFields())).toEqual(['static']);
       expect(Object.keys(staticConfig.schema.getType('Storefront').getFields())).toEqual(['static']);
       expect(staticConfig.merge.Storefront.fields).toBeUndefined();
-      expect(staticConfig.merge.Product.fields).toEqual({
-        static: { selectionSet: '{ weight }' },
-      });
     });
   });
 
@@ -268,7 +252,7 @@ describe('isolateFieldsFromSubschema', () => {
           Product: {
             selectionSet: '{ id }',
             fields: {
-              computed: { selectionSet: '{ price weight }', isolate: true }
+              computed: { selectionSet: '{ price weight }' }
             },
             fieldName: '_products',
             key: ({ id, price, weight }) => ({ id, price, weight }),
