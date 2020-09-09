@@ -60,14 +60,18 @@ export function stitchSchemas({
   subschemas.forEach(subschemaOrSubschemaArray => {
     if (Array.isArray(subschemaOrSubschemaArray)) {
       subschemaOrSubschemaArray.forEach(s => {
-        const staticAndComputedSchemas = isolateFieldsFromSubschema(new Subschema(s));
-        schemaLikeObjects = schemaLikeObjects.concat(staticAndComputedSchemas);
-        processedSubschemas.set(s, staticAndComputedSchemas[0]);
+        if (!s.enableFieldSelectionSetIsolation) {
+          schemaLikeObjects.push(s);
+        } else {
+          schemaLikeObjects = schemaLikeObjects.concat(processSubschema(s, processedSubschemas));
+        }
       });
     } else if (isSubschemaConfig(subschemaOrSubschemaArray)) {
-      const staticAndComputedSchemas = isolateFieldsFromSubschema(new Subschema(subschemaOrSubschemaArray));
-      schemaLikeObjects = schemaLikeObjects.concat(staticAndComputedSchemas);
-      processedSubschemas.set(subschemaOrSubschemaArray, staticAndComputedSchemas[0]);
+      if (!subschemaOrSubschemaArray.enableFieldSelectionSetIsolation) {
+        schemaLikeObjects.push(subschemaOrSubschemaArray);
+      } else {
+        schemaLikeObjects = schemaLikeObjects.concat(processSubschema(subschemaOrSubschemaArray, processedSubschemas));
+      }
     } else {
       schemaLikeObjects.push(subschemaOrSubschemaArray);
     }
@@ -220,6 +224,15 @@ export function stitchSchemas({
   }
 
   return pruningOptions ? pruneSchema(schema, pruningOptions) : schema;
+}
+
+function processSubschema(
+  subschema: SubschemaConfig,
+  processedSubschemas: Map<SubschemaConfig, SubschemaConfig>
+): Array<SubschemaConfig> {
+  const staticAndComputedSchemas = isolateFieldsFromSubschema(new Subschema(subschema));
+  processedSubschemas.set(subschema, staticAndComputedSchemas[0]);
+  return staticAndComputedSchemas;
 }
 
 export function isDocumentNode(object: any): object is DocumentNode {
