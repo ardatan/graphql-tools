@@ -82,8 +82,7 @@ describe('merging using type merging', () => {
         }
       },
       Query: {
-        mostStockedProduct: () => ({ upc: '3' }),
-        newestProduct: () => ({ upc: '4', price: 1, weight: 8560 }),
+        mostStockedProduct: () => ({ upc: '4', price: 1, weight: 8560 }),
         _productByRepresentation: (_root, { product: { upc, ...fields } }) => {
           return {
             ...inventory.find(product => product.upc === upc),
@@ -444,10 +443,6 @@ describe('merging using type merging', () => {
             upc
             shippingEstimate
           }
-          newestProduct {
-            upc
-            shippingEstimate
-          }
         }
       `,
       undefined,
@@ -457,12 +452,8 @@ describe('merging using type merging', () => {
     const expectedResult: ExecutionResult = {
       data: {
         mostStockedProduct: {
-          upc: '3',
-          shippingEstimate: 25,
-        },
-        newestProduct: {
           upc: '4',
-          shippingEstimate: 25,
+          shippingEstimate: 4280,
         },
       },
     };

@@ -45,6 +45,7 @@ export class Subschema<K = any, V = any, C = K> {
   public transformedSchema: GraphQLSchema;
 
   public merge?: Record<string, MergedTypeConfig>;
+  public enableFieldSelectionSetIsolation?: boolean;
   public requiresDirectiveName: string;
 
   constructor(config: SubschemaConfig) {
@@ -62,6 +63,7 @@ export class Subschema<K = any, V = any, C = K> {
     this.transformedSchema = applySchemaTransforms(this.schema, this.transforms);
 
     this.merge = config.merge ?? {};
+    this.enableFieldSelectionSetIsolation = Boolean(config.enableFieldSelectionSetIsolation);
     this.requiresDirectiveName = config.requiresDirectiveName ?? 'requires';
 
     this.schema = mapSchema(this.schema, {
