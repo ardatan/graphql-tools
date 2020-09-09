@@ -67,6 +67,8 @@ describe('merging using type merging', () => {
         shippingEstimate: Int
       }
       type Query {
+        mostStockedProduct: Product
+        newestProduct: Product
         _productByRepresentation(product: ProductRepresentation): Product
       }
     `,
@@ -80,6 +82,8 @@ describe('merging using type merging', () => {
         }
       },
       Query: {
+        mostStockedProduct: () => ({ upc: '3' }),
+        newestProduct: () => ({ upc: '4', price: 1, weight: 8560 }),
         _productByRepresentation: (_root, { product: { upc, ...fields } }) => {
           return {
             ...inventory.find(product => product.upc === upc),
@@ -424,6 +428,41 @@ describe('merging using type merging', () => {
               }
             },
           ],
+        },
+      },
+    };
+
+    expect(result).toEqual(expectedResult);
+  });
+
+  test('can mix static and computed fields', async () => {
+    const result = await graphql(
+      stitchedSchema,
+      `
+        query {
+          mostStockedProduct {
+            upc
+            shippingEstimate
+          }
+          newestProduct {
+            upc
+            shippingEstimate
+          }
+        }
+      `,
+      undefined,
+      {},
+    );
+
+    const expectedResult: ExecutionResult = {
+      data: {
+        mostStockedProduct: {
+          upc: '3',
+          shippingEstimate: 25,
+        },
+        newestProduct: {
+          upc: '4',
+          shippingEstimate: 25,
         },
       },
     };
