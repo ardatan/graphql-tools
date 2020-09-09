@@ -4,7 +4,20 @@ import { SubschemaConfig } from '../types';
 import { OBJECT_SUBSCHEMA_SYMBOL, FIELD_SUBSCHEMA_MAP_SYMBOL } from '../symbols';
 
 export function mergeProxiedResults(target: any, ...sources: Array<any>): any {
-  const results = sources.filter(source => !(source instanceof Error));
+  const results: Array<any> = [];
+  const errors: Array<Error> = [];
+
+  sources.forEach(source => {
+    if (source != null) {
+      if (source instanceof Error) {
+        errors.push(source);
+      } else {
+        results.push(source);
+        errors.push(source[ERROR_SYMBOL]);
+      }
+    }
+  });
+
   const fieldSubschemaMap = results.reduce((acc: Record<any, SubschemaConfig>, source: any) => {
     const subschema = source[OBJECT_SUBSCHEMA_SYMBOL];
     Object.keys(source).forEach(key => {
@@ -18,7 +31,6 @@ export function mergeProxiedResults(target: any, ...sources: Array<any>): any {
     ? Object.assign({}, target[FIELD_SUBSCHEMA_MAP_SYMBOL], fieldSubschemaMap)
     : fieldSubschemaMap;
 
-  const errors = sources.map((source: any) => (source instanceof Error ? source : source[ERROR_SYMBOL]));
   result[ERROR_SYMBOL] = target[ERROR_SYMBOL].concat(...errors);
 
   return result;
