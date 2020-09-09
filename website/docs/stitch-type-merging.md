@@ -323,9 +323,34 @@ const postsSchema = makeExecutableSchema({
 
 In the above, both `Post` and `Section` will have a common interface of `{ id title url }` in the gateway schema. The difference in fields between the gateway schema and the layouts subschema will be translated automatically.
 
+## Merged descriptions
+
+The default description (docstring) of each merged type and field comes from the final definition encountered in the subschemas array. You may customize this by adding selection logic into `typeMergingOptions`. For example, these handlers select the first non-blank description for each type and field:
+
+```js
+const gatewaySchema = stitchSchemas({
+  subschemas: [...],
+  mergeTypes: true,
+  typeMergingOptions: {
+    typeDescriptionsMerger(candidates) {
+      const candidate = candidates.find(({ type }) => !!type.description) || candidates.pop();
+      return candidate.type.description;
+    },
+    fieldConfigMerger(candidates) {
+      const configs = candidates.map(c => c.fieldConfig);
+      return configs.find(({ description }) => !!description) || configs.pop();
+    },
+    inputFieldConfigMerger(candidates) {
+      const configs = candidates.map(c => c.inputFieldConfig);
+      return configs.find(({ description }) => !!description) || configs.pop();
+    }
+  },
+});
+```
+
 ## Computed fields
 
-Modern gateways frequently take advantage of the gateway layer itself to transport field dependencies from one service to another while resolving data. Though the type merging query planner expects that subservices can fulfill all of their own fields... blah blah
+APIs may leverage their own gateway layer to transport field dependencies from one subservice to another while resolving data. While this is not the preferred use case for type merging (autonomous subservices are always more consistent), passing merged field dependencies is supported as an alternative to [schema extensions](./stitch-schema-extensions). For example:
 
 ```js
 const productsSchema = makeExecutableSchema({
@@ -404,9 +429,9 @@ const gatewaySchema = stitchSchemas({
 });
 ```
 
-In the above, storefronts `Product` has two fields marked with `@requires` selection sets, indicating fields required from other subschemas to compute these fields. These selections are fetched by the gateway, formatted into input objects, and then sent into the storefronts service as representations of remote Products. The storefronts service then uses these Product representations to compute its fields.
+In the above, storefronts `Product` has two fields marked with `@requires` selection sets, indicating fields required from other subschemas to compute these fields. These required selections are fetched by the gateway, formatted as input objects, and then sent to the storefronts service as representations of remote Products. The storefronts service then uses these Product representations to compute its fields.
 
-The `@requires` SDL directive is a convenience syntax for static configuration that can also be written as:
+The `@requires` SDL directive is a convenience syntax for static configuration that can be written as:
 
 ```js
 {
@@ -415,8 +440,8 @@ The `@requires` SDL directive is a convenience syntax for static configuration t
     Product: {
       selectionSet: '{ id }',
       fields: {
-        shippingEstimate: { selectionSet: '{ price weight }', required: true },
-        deliveryService: { selectionSet: '{ weight }', required: true },
+        shippingEstimate: { selectionSet: '{ price weight }' },
+        deliveryService: { selectionSet: '{ weight }' },
       },
       fieldName: '_products',
       key: ({ id, price, weight }) => ({ id, price, weight }),
@@ -426,13 +451,13 @@ The `@requires` SDL directive is a convenience syntax for static configuration t
 }
 ```
 
-The main disadvantage of computed fields is that they create defunct fields within a subservice that cannot be resolved without gateway context. Tollerence for this inconsistency is largely dependent on your service architecture. An imperfect approach is to deprecate all computed fields within a subschema, and then remove their deprecations in the gateway schema using a `RemoveFieldDeprecations` transform (available in `@graphql-tools/wrap`).
+The main disadvantage of computed fields is that they create defunct fields within a subservice that cannot be resolved without gateway context. Tollerence for this inconsistency is largely dependent on your own service architecture. An imperfect solution is to deprecate all computed fields within a subschema, and then normalize their behavior in the gateway schema using the [`RemoveObjectFieldDeprecations`](https://github.com/ardatan/graphql-tools/blob/master/packages/wrap/tests/transformRemoveObjectFieldDeprecations.test.ts) transform.
 
 ## Federation services
 
-If you're familiar with [Apollo Federation](https://www.apollographql.com/docs/apollo-server/federation/introduction/), then you may notice that the above pattern of computed fields looks familiar... You're right, it's very similar to the `_entities` service design of the [Federation schema specification](https://www.apollographql.com/docs/apollo-server/federation/federation-spec/).
+If you're familiar with [Apollo Federation](https://www.apollographql.com/docs/apollo-server/federation/introduction/), then you may notice that the above pattern of computed fields looks very similar to the `_entities` service design of the [Federation specification](https://www.apollographql.com/docs/apollo-server/federation/federation-spec/).
 
-In fact, type merging can seamlessly interface with Federation services by sending appropraitely formatted representations to their `_entities` query:
+While type merging offers [simpler patterns](#unidirectional-merges) with [comparable performance](#batching), it can also interface with Federation services when needed by sending appropraitely formatted representations to the `_entities` query:
 
 ```js
 {
@@ -441,18 +466,18 @@ In fact, type merging can seamlessly interface with Federation services by sendi
     Product: {
       selectionSet: '{ id price weight }',
       fieldName: '_entities',
-      key: ({ id, price, weight }) => ({ id, price, weight, __typename: 'Product' }),
+      key: ({ id, price, weight }) => ({ __typename: 'Product', id, price, weight }),
       argsFromKeys: (representations) => ({ representations }),
     }
   }
 }
 ```
 
-Additionally, the Federation `@requires` directive format is supported as an alias of the type merging counterpart. Other Federation directives are ignored as their behaviors are implicit within type merging:
+The Federation `@requires(fields: "first second")` directive is supported as an alias of the type merging counterpart. Other Federation directives are ignored as their behaviors are implicit within type merging:
 
-- `@key`: type merging is fully distributed with no concept of an "origin" service for a type. Required field selections will be resolved from any number of services guided entirely by availability.
+- `@key`: type merging is fully decentralized with no concept of an "origin" service. Required field selections are resolved from any number of services guided entirely by availability.
 - `@external`: type merging expects that types only implement fields they provide.
-- `@provides`: type merging selects as many fields as possible from as few services as possible. Sub-objects available within a visited service will automatically be selected.
+- `@provides`: type merging automatically selects as many requested fields as possible from as few services as possible. Sub-objects available within a visited service are automatically selected.
 
 
 ## Custom merge resolvers
@@ -503,20 +528,3 @@ mergedTypeConfig.resolve = (originalResult, context, info, schemaOrSubschemaConf
 This resolver switches to a batched implementation in the presence of a `mergedTypeConfig.key` function. You may also provide your own custom implementation, however... note the extremely important `skipTypeMerging` setting. Without this option, your gateway will recursively merge types forever!
 
 Type merging simply merges types of the same name, though it is smart enough to apply provided subschema transforms prior to merging. That means types have to be identical on the gateway, but not the individual subschema.
-
-Finally, you may wish to fine-tune which types are merged. Besides taking a boolean value, you can also specify an array of type names, or a function of type `MergeTypeFilter` that takes the potential types and decides dynamically how to merge.
-
-```ts
-export type MergeTypeCandidate = {
-  // type: a type to potentially merge
-  type: GraphQLNamedType;
-  // subschema: undefined if the type is added to the gateway directly, not from a subschema
-  subschema?: GraphQLSchema | SubschemaConfig;
-  // transformedSchema: when `subschema` is a `GraphQLSchema`, identical to above.
-  // When `subschema` is a `SubschemaConfig` object, `transformedSchema` will be the result of applying the schema
-  // transforms from the `SubschemaConfig` object to the original schema.
-  transformedSchema?: GraphQLSchema;
-};
-
-export type MergeTypeFilter = (mergeTypeCandidates: Array<MergeTypeCandidate>, typeName: string) => boolean;
-```
