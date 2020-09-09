@@ -60,18 +60,10 @@ export function stitchSchemas({
   subschemas.forEach(subschemaOrSubschemaArray => {
     if (Array.isArray(subschemaOrSubschemaArray)) {
       subschemaOrSubschemaArray.forEach(s => {
-        if (!s.enableFieldSelectionSetIsolation) {
-          schemaLikeObjects.push(s);
-        } else {
-          schemaLikeObjects = schemaLikeObjects.concat(processSubschema(s, processedSubschemas));
-        }
+        schemaLikeObjects = schemaLikeObjects.concat(processSubschema(s, processedSubschemas));
       });
     } else if (isSubschemaConfig(subschemaOrSubschemaArray)) {
-      if (!subschemaOrSubschemaArray.enableFieldSelectionSetIsolation) {
-        schemaLikeObjects.push(subschemaOrSubschemaArray);
-      } else {
-        schemaLikeObjects = schemaLikeObjects.concat(processSubschema(subschemaOrSubschemaArray, processedSubschemas));
-      }
+      schemaLikeObjects = schemaLikeObjects.concat(processSubschema(subschemaOrSubschemaArray, processedSubschemas));
     } else {
       schemaLikeObjects.push(subschemaOrSubschemaArray);
     }
@@ -230,7 +222,14 @@ function processSubschema(
   subschema: SubschemaConfig,
   processedSubschemas: Map<SubschemaConfig, SubschemaConfig>
 ): Array<SubschemaConfig> {
-  const staticAndComputedSchemas = isolateFieldsFromSubschema(new Subschema(subschema));
+  const processedSubschema = new Subschema(subschema);
+
+  if (!subschema.enableFieldSelectionSetIsolation) {
+    processedSubschemas.set(subschema, processedSubschema);
+    return [processedSubschema];
+  }
+
+  const staticAndComputedSchemas = isolateFieldsFromSubschema(processedSubschema);
   processedSubschemas.set(subschema, staticAndComputedSchemas[0]);
   return staticAndComputedSchemas;
 }
