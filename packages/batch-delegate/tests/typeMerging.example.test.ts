@@ -231,10 +231,10 @@ describe('merging using type merging', () => {
             args: ({ id }) => ({ id })
           }
         },
+        batch: true
       },
       {
         schema: inventorySchema,
-        enableFieldSelectionSetIsolation: true,
         merge: {
           Product: {
             selectionSet: '{ upc }',
@@ -247,6 +247,7 @@ describe('merging using type merging', () => {
             args: ({ upc, weight, price }) => ({ product: { upc, weight, price } }),
           }
         },
+        batch: true
       },
       {
         schema: productsSchema,
@@ -257,6 +258,7 @@ describe('merging using type merging', () => {
             args: ({ upc }) => ({ upc }),
           }
         },
+        batch: true
       },
       {
         schema: reviewsSchema,
@@ -273,6 +275,7 @@ describe('merging using type merging', () => {
             args: ({ upc }) => ({ upc }),
           },
         },
+        batch: true
       }],
     mergeTypes: true,
   });

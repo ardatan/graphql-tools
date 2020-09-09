@@ -8,13 +8,11 @@ export function mergeProxiedResults(target: any, ...sources: Array<any>): any {
   const errors: Array<Error> = [];
 
   sources.forEach(source => {
-    if (source != null) {
-      if (source instanceof Error) {
-        errors.push(source);
-      } else {
-        results.push(source);
-        errors.push(source[ERROR_SYMBOL]);
-      }
+    if (source instanceof Error) {
+      errors.push(source);
+    } else {
+      results.push(source);
+      errors.push(source[ERROR_SYMBOL]);
     }
   });
 
