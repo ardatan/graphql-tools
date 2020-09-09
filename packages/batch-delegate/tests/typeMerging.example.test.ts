@@ -82,7 +82,7 @@ describe('merging using type merging', () => {
         }
       },
       Query: {
-        mostStockedProduct: () => ({ upc: '4', price: 1, weight: 8560 }),
+        mostStockedProduct: () => ({ upc: '3', price: 1, weight: 8560 }),
         _productByRepresentation: (_root, { product: { upc, ...fields } }) => {
           return {
             ...inventory.find(product => product.upc === upc),
@@ -231,10 +231,10 @@ describe('merging using type merging', () => {
             args: ({ id }) => ({ id })
           }
         },
-        batch: true,
       },
       {
         schema: inventorySchema,
+        enableFieldSelectionSetIsolation: true,
         merge: {
           Product: {
             selectionSet: '{ upc }',
@@ -247,7 +247,6 @@ describe('merging using type merging', () => {
             args: ({ upc, weight, price }) => ({ product: { upc, weight, price } }),
           }
         },
-        batch: true,
       },
       {
         schema: productsSchema,
@@ -258,7 +257,6 @@ describe('merging using type merging', () => {
             args: ({ upc }) => ({ upc }),
           }
         },
-        batch: true,
       },
       {
         schema: reviewsSchema,
@@ -275,7 +273,6 @@ describe('merging using type merging', () => {
             args: ({ upc }) => ({ upc }),
           },
         },
-        batch: true,
       }],
     mergeTypes: true,
   });
@@ -452,7 +449,7 @@ describe('merging using type merging', () => {
     const expectedResult: ExecutionResult = {
       data: {
         mostStockedProduct: {
-          upc: '4',
+          upc: '3',
           shippingEstimate: 4280,
         },
       },
