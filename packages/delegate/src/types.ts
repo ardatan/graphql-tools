@@ -147,7 +147,7 @@ export interface SubschemaPermutation {
 export interface SubschemaConfig<K = any, V = any, C = K> extends SubschemaPermutation, Endpoint<K, V, C> {
   schema: GraphQLSchema;
   endpoint?: Endpoint;
-  enableFieldSelectionSetIsolation?: boolean;
+  useGatewayData?: boolean;
   requiresDirectiveName?: string;
 }
 
