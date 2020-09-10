@@ -224,7 +224,7 @@ function processSubschema(
 ): Array<SubschemaConfig> {
   const processedSubschema = new Subschema(subschema);
 
-  if (!subschema.enableFieldSelectionSetIsolation) {
+  if (!subschema.useGatewayData) {
     processedSubschemas.set(subschema, processedSubschema);
     return [processedSubschema];
   }
