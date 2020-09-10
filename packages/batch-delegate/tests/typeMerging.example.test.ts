@@ -67,6 +67,8 @@ describe('merging using type merging', () => {
         shippingEstimate: Int
       }
       type Query {
+        mostStockedProduct: Product
+        newestProduct: Product
         _productByRepresentation(product: ProductRepresentation): Product
       }
     `,
@@ -80,6 +82,7 @@ describe('merging using type merging', () => {
         }
       },
       Query: {
+        mostStockedProduct: () => ({ upc: '3', price: 1, weight: 8560 }),
         _productByRepresentation: (_root, { product: { upc, ...fields } }) => {
           return {
             ...inventory.find(product => product.upc === upc),
@@ -228,7 +231,7 @@ describe('merging using type merging', () => {
             args: ({ id }) => ({ id })
           }
         },
-        batch: true,
+        batch: true
       },
       {
         schema: inventorySchema,
@@ -244,7 +247,7 @@ describe('merging using type merging', () => {
             args: ({ upc, weight, price }) => ({ product: { upc, weight, price } }),
           }
         },
-        batch: true,
+        batch: true
       },
       {
         schema: productsSchema,
@@ -255,7 +258,7 @@ describe('merging using type merging', () => {
             args: ({ upc }) => ({ upc }),
           }
         },
-        batch: true,
+        batch: true
       },
       {
         schema: reviewsSchema,
@@ -272,7 +275,7 @@ describe('merging using type merging', () => {
             args: ({ upc }) => ({ upc }),
           },
         },
-        batch: true,
+        batch: true
       }],
     mergeTypes: true,
   });
@@ -424,6 +427,33 @@ describe('merging using type merging', () => {
               }
             },
           ],
+        },
+      },
+    };
+
+    expect(result).toEqual(expectedResult);
+  });
+
+  test('can mix static and computed fields', async () => {
+    const result = await graphql(
+      stitchedSchema,
+      `
+        query {
+          mostStockedProduct {
+            upc
+            shippingEstimate
+          }
+        }
+      `,
+      undefined,
+      {},
+    );
+
+    const expectedResult: ExecutionResult = {
+      data: {
+        mostStockedProduct: {
+          upc: '3',
+          shippingEstimate: 4280,
         },
       },
     };

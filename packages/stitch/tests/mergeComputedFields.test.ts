@@ -53,8 +53,8 @@ describe('merge computed fields with static config', () => {
         _products: (root, { representations }) => representations,
       },
       Product: {
-        shippingEstimate: (obj) => obj.price > 50 ? 0 : obj.weight / 2,
-        deliveryService: (obj) => obj.weight > 50 ? 'FREIGHT' : 'POSTAL',
+        shippingEstimate: (obj) => obj.price != null && obj.weight != null ? (obj.price > 50 ? 0 : obj.weight / 2) : null,
+        deliveryService: (obj) => obj.weight != null ? (obj.weight > 50 ? 'FREIGHT' : 'POSTAL') : null,
       }
     }
   });
@@ -73,6 +73,7 @@ describe('merge computed fields with static config', () => {
       },
       {
         schema: storefrontSchema,
+        enableFieldSelectionSetIsolation: true,
         merge: {
           Product: {
             selectionSet: '{ id }',
@@ -170,8 +171,8 @@ describe('merge computed fields from SDL via federation entities', () => {
         _entities: (root, { representations }) => representations,
       },
       Product: {
-        shippingEstimate: (obj) => obj.price > 50 ? 0 : obj.weight / 2,
-        deliveryService: (obj) => obj.weight > 50 ? 'FREIGHT' : 'POSTAL',
+        shippingEstimate: (obj) => obj.price != null && obj.weight != null ? (obj.price > 50 ? 0 : obj.weight / 2) : null,
+        deliveryService: (obj) => obj.weight != null ? (obj.weight > 50 ? 'FREIGHT' : 'POSTAL') : null,
       }
     }
   });
@@ -190,6 +191,7 @@ describe('merge computed fields from SDL via federation entities', () => {
       },
       {
         schema: storefrontSchema,
+        enableFieldSelectionSetIsolation: true,
         merge: {
           Product: {
             selectionSet: '{ id }',
