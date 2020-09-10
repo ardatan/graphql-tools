@@ -1,7 +1,6 @@
 import { graphql } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { ExecutionResult } from '@graphql-tools/utils';
 import { stitchSchemas } from '@graphql-tools/stitch';
 
 describe('required fields', () => {
@@ -310,7 +309,5 @@ describe('required fields', () => {
         inStock: true,
       }
     });
-
-    console.log(JSON.stringify(result, null, 2))
   });
 });
