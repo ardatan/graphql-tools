@@ -147,7 +147,6 @@ export interface SubschemaPermutation {
 export interface SubschemaConfig<K = any, V = any, C = K> extends SubschemaPermutation, Endpoint<K, V, C> {
   schema: GraphQLSchema;
   endpoint?: Endpoint;
-  useGatewayData?: boolean;
   requiresDirectiveName?: string;
 }
 
@@ -164,6 +163,7 @@ export interface MergedTypeConfig<K = any, V = any> {
 
 export interface MergedFieldConfig {
   selectionSet?: string;
+  federate?: boolean;
 }
 
 export type MergedTypeResolver = (

@@ -73,13 +73,12 @@ describe('merge computed fields with static config', () => {
       },
       {
         schema: storefrontSchema,
-        useGatewayData: true,
         merge: {
           Product: {
             selectionSet: '{ id }',
             fields: {
-              shippingEstimate: { selectionSet: '{ price weight }' },
-              deliveryService: { selectionSet: '{ weight }' },
+              shippingEstimate: { selectionSet: '{ price weight }', federate: true },
+              deliveryService: { selectionSet: '{ weight }', federate: true },
             },
             fieldName: '_products',
             key: ({ id, price, weight }) => ({ id, price, weight }),
@@ -143,7 +142,7 @@ describe('merge computed fields with static config', () => {
 describe('merge computed fields from SDL via federation entities', () => {
   const storefrontSchema = makeExecutableSchema({
     typeDefs: `
-      directive @requires(selectionSet: String) on FIELD_DEFINITION
+      directive @requires(selectionSet: String!, federate: Boolean = true) on FIELD_DEFINITION
 
       type Product {
         id: ID!
@@ -191,7 +190,6 @@ describe('merge computed fields from SDL via federation entities', () => {
       },
       {
         schema: storefrontSchema,
-        useGatewayData: true,
         merge: {
           Product: {
             selectionSet: '{ id }',

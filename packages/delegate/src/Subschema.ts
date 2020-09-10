@@ -45,7 +45,6 @@ export class Subschema<K = any, V = any, C = K> {
   public transformedSchema: GraphQLSchema;
 
   public merge?: Record<string, MergedTypeConfig>;
-  public useGatewayData?: boolean;
   public requiresDirectiveName: string;
 
   constructor(config: SubschemaConfig) {
@@ -63,7 +62,6 @@ export class Subschema<K = any, V = any, C = K> {
     this.transformedSchema = applySchemaTransforms(this.schema, this.transforms);
 
     this.merge = config.merge ?? {};
-    this.useGatewayData = Boolean(config.useGatewayData);
     this.requiresDirectiveName = config.requiresDirectiveName ?? 'requires';
 
     this.schema = mapSchema(this.schema, {
@@ -91,6 +89,7 @@ export class Subschema<K = any, V = any, C = K> {
 
         const mergeFieldConfig = mergeTypeConfig.fields[fieldName];
         mergeFieldConfig.selectionSet = mergeFieldConfig.selectionSet ?? selectionSet;
+        mergeFieldConfig.federate = Boolean(requires.federate);
 
         return undefined;
       },

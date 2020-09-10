@@ -224,11 +224,6 @@ function processSubschema(
 ): Array<SubschemaConfig> {
   const processedSubschema = new Subschema(subschema);
 
-  if (!subschema.useGatewayData) {
-    processedSubschemas.set(subschema, processedSubschema);
-    return [processedSubschema];
-  }
-
   const staticAndComputedSchemas = isolateFieldsFromSubschema(processedSubschema);
   processedSubschemas.set(subschema, staticAndComputedSchemas[0]);
   return staticAndComputedSchemas;

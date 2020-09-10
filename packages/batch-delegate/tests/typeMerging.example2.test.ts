@@ -49,7 +49,7 @@ describe('required fields', () => {
 
   const inventorySchema = makeExecutableSchema({
     typeDefs: `
-      directive @requires(selectionSet: String!) on FIELD_DEFINITION
+      directive @requires(selectionSet: String!, federate: Boolean = true) on FIELD_DEFINITION
 
       input ProductRepresentation {
         upc: String!
@@ -226,7 +226,6 @@ describe('required fields', () => {
       },
       {
         schema: inventorySchema,
-        useGatewayData: true,
         merge: {
           Product: {
             selectionSet: '{ upc }',

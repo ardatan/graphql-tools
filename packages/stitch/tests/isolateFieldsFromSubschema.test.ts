@@ -38,7 +38,7 @@ describe('isolateFieldsFromSubschema', () => {
           Product: {
             selectionSet: '{ id weight }',
             fields: {
-              shippingEstimate: { selectionSet: '{ price }' },
+              shippingEstimate: { selectionSet: '{ price }', federate: true },
             },
             fieldName: '_products',
             key: ({ id, price, weight }) => ({ id, price, weight }),
@@ -64,7 +64,7 @@ describe('isolateFieldsFromSubschema', () => {
       expect(computedSubschema.transformedSchema.getType('Storefront')).toBeUndefined();
       expect(computedSubschema.transformedSchema.getType('ProductRepresentation')).toBeDefined();
       expect(computedSubschema.merge.Product.fields).toEqual({
-        shippingEstimate: { selectionSet: '{ price }' },
+        shippingEstimate: { selectionSet: '{ price }', federate: true },
       });
     });
 
@@ -88,11 +88,11 @@ describe('isolateFieldsFromSubschema', () => {
   describe('from SDL directives', () => {
     const storefrontSchema = makeExecutableSchema({
       typeDefs: `
-        directive @requires(selectionSet: String) on FIELD_DEFINITION
+        directive @requires(selectionSet: String!, federate: Boolean = true) on FIELD_DEFINITION
         type Product {
           id: ID!
-          shippingEstimate: Float! @requires(selectionSet: "{ price weight }")
-          deliveryService: DeliveryService! @requires(selectionSet: "{ weight }")
+          shippingEstimate: Float! @requires(selectionSet: "{ price weight }", federate: true)
+          deliveryService: DeliveryService! @requires(selectionSet: "{ weight }", federate: true)
         }
         enum DeliveryService {
           POSTAL
@@ -137,8 +137,8 @@ describe('isolateFieldsFromSubschema', () => {
       expect(productFields.shippingEstimate).toBeDefined();
       expect(productFields.deliveryService).toBeDefined();
       expect(computedSubschema.merge.Product.fields).toEqual({
-        shippingEstimate: { selectionSet: '{ price weight }' },
-        deliveryService: { selectionSet: '{ weight }' },
+        shippingEstimate: { selectionSet: '{ price weight }', federate: true },
+        deliveryService: { selectionSet: '{ weight }', federate: true },
       });
     });
   });
@@ -163,8 +163,8 @@ describe('isolateFieldsFromSubschema', () => {
           Product: {
             selectionSet: '{ id }',
             fields: {
-              computedOne: { selectionSet: '{ price weight }' },
-              computedTwo: { selectionSet: '{ weight }' },
+              computedOne: { selectionSet: '{ price weight }', federate: true },
+              computedTwo: { selectionSet: '{ weight }', federate: true },
             },
             fieldName: '_products',
             key: ({ id, price, weight }) => ({ id, price, weight }),
@@ -202,7 +202,7 @@ describe('isolateFieldsFromSubschema', () => {
           Storefront: {
             selectionSet: '{ id }',
             fields: {
-              computed: { selectionSet: '{ availableProductIds }' },
+              computed: { selectionSet: '{ availableProductIds }', federate: true },
             },
             fieldName: 'storefront',
             args: ({ id }) => ({ id }),
@@ -210,7 +210,7 @@ describe('isolateFieldsFromSubschema', () => {
           Product: {
             selectionSet: '{ id weight }',
             fields: {
-              computed: { selectionSet: '{ price }' },
+              computed: { selectionSet: '{ price }', federate: true },
             },
             fieldName: '_products',
             key: ({ id, price, weight }) => ({ id, price, weight }),
@@ -231,10 +231,10 @@ describe('isolateFieldsFromSubschema', () => {
       expect(Object.keys(computedSubschema.transformedSchema.getType('Product').getFields())).toEqual(['computed']);
       expect(Object.keys(computedSubschema.transformedSchema.getType('Storefront').getFields())).toEqual(['computed']);
       expect(computedSubschema.merge.Storefront.fields).toEqual({
-        computed: { selectionSet: '{ availableProductIds }' },
+        computed: { selectionSet: '{ availableProductIds }', federate: true },
       });
       expect(computedSubschema.merge.Product.fields).toEqual({
-        computed: { selectionSet: '{ price }' },
+        computed: { selectionSet: '{ price }', federate: true },
       });
     });
   });
@@ -263,7 +263,7 @@ describe('isolateFieldsFromSubschema', () => {
           Product: {
             selectionSet: '{ id }',
             fields: {
-              computed: { selectionSet: '{ price weight }' }
+              computed: { selectionSet: '{ price weight }', federate: true }
             },
             fieldName: '_products',
             key: ({ id, price, weight }) => ({ id, price, weight }),

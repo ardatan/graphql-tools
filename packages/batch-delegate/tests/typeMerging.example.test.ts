@@ -240,13 +240,13 @@ describe('merging using type merging', () => {
             fields: {
               shippingEstimate: {
                 selectionSet: '{ price weight }',
+                federate: true,
               },
             },
             fieldName: '_productByRepresentation',
             args: ({ upc, weight, price }) => ({ product: { upc, weight, price } }),
           }
         },
-        useGatewayData: true,
         batch: true,
       },
       {
