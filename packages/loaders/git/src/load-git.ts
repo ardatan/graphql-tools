@@ -13,7 +13,7 @@ const createCommand = ({ ref, path }: Input) => {
 export async function loadFromGit(input: Input): Promise<string | never> {
   try {
     return await new Promise((resolve, reject) => {
-      exec(createCommand(input), { encoding: 'utf-8' }, (error, stdout) => {
+      exec(createCommand(input), { encoding: 'utf-8', maxBuffer: 1024 * 1024 * 1024 }, (error, stdout) => {
         if (error) {
           reject(error);
         } else {
