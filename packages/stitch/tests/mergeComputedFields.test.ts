@@ -73,7 +73,7 @@ describe('merge computed fields with static config', () => {
       },
       {
         schema: storefrontSchema,
-        enableFieldSelectionSetIsolation: true,
+        useGatewayData: true,
         merge: {
           Product: {
             selectionSet: '{ id }',
@@ -191,7 +191,7 @@ describe('merge computed fields from SDL via federation entities', () => {
       },
       {
         schema: storefrontSchema,
-        enableFieldSelectionSetIsolation: true,
+        useGatewayData: true,
         merge: {
           Product: {
             selectionSet: '{ id }',

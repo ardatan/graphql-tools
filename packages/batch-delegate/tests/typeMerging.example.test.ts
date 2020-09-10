@@ -68,7 +68,6 @@ describe('merging using type merging', () => {
       }
       type Query {
         mostStockedProduct: Product
-        newestProduct: Product
         _productByRepresentation(product: ProductRepresentation): Product
       }
     `,
@@ -82,7 +81,7 @@ describe('merging using type merging', () => {
         }
       },
       Query: {
-        mostStockedProduct: () => ({ upc: '3', price: 1, weight: 8560 }),
+        mostStockedProduct: () => inventory.find(i => i.upc === '3'),
         _productByRepresentation: (_root, { product: { upc, ...fields } }) => {
           return {
             ...inventory.find(product => product.upc === upc),
@@ -231,7 +230,7 @@ describe('merging using type merging', () => {
             args: ({ id }) => ({ id })
           }
         },
-        batch: true
+        batch: true,
       },
       {
         schema: inventorySchema,
@@ -247,7 +246,8 @@ describe('merging using type merging', () => {
             args: ({ upc, weight, price }) => ({ product: { upc, weight, price } }),
           }
         },
-        batch: true
+        useGatewayData: true,
+        batch: true,
       },
       {
         schema: productsSchema,
@@ -258,7 +258,7 @@ describe('merging using type merging', () => {
             args: ({ upc }) => ({ upc }),
           }
         },
-        batch: true
+        batch: true,
       },
       {
         schema: reviewsSchema,
@@ -275,7 +275,7 @@ describe('merging using type merging', () => {
             args: ({ upc }) => ({ upc }),
           },
         },
-        batch: true
+        batch: true,
       }],
     mergeTypes: true,
   });
@@ -439,8 +439,14 @@ describe('merging using type merging', () => {
       stitchedSchema,
       `
         query {
+          topProducts(first: 2) {
+            upc
+            inStock
+            shippingEstimate
+          }
           mostStockedProduct {
             upc
+            inStock
             shippingEstimate
           }
         }
@@ -451,9 +457,19 @@ describe('merging using type merging', () => {
 
     const expectedResult: ExecutionResult = {
       data: {
+        topProducts: [{
+          upc: '1',
+          inStock: true,
+          shippingEstimate: 50,
+        }, {
+          upc: '2',
+          inStock: false,
+          shippingEstimate: 0,
+        }],       ]
         mostStockedProduct: {
           upc: '3',
-          shippingEstimate: 4280,
+          inStock: true,
+          shippingEstimate: 25,
         },
       },
     };

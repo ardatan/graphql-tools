@@ -22,8 +22,8 @@ import {
   IDelegateRequestOptions,
   SubschemaConfig,
   ExecutionParams,
-  Endpoint,
   StitchingInfo,
+  Endpoint,
 } from './types';
 
 import { isSubschemaConfig } from './Subschema';
