@@ -465,7 +465,7 @@ describe('merging using type merging', () => {
           upc: '2',
           inStock: false,
           shippingEstimate: 0,
-        }],       ]
+        }],
         mostStockedProduct: {
           upc: '3',
           inStock: true,
