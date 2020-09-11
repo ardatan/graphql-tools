@@ -21,7 +21,7 @@ const productSchema = makeExecutableSchema({
   }
 });
 
-describe('merge federated fields with static config', () => {
+describe('merge federated fields via config', () => {
   const storefrontSchema = makeExecutableSchema({
     typeDefs: `
       type Product {

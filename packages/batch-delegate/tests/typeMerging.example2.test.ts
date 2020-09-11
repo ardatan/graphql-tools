@@ -267,7 +267,7 @@ describe('required fields', () => {
     mergeTypes: true,
   });
 
-  it('gets static and federated fields from both local and remote services', async () => {
+  it('gets non-federated and federated fields from both local and remote services', async () => {
     const result = await graphql(
       stitchedSchema, `
         query {

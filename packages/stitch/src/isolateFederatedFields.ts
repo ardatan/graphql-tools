@@ -6,7 +6,7 @@ import { getImplementingTypes, pruneSchema, filterSchema } from '@graphql-tools/
 
 import { TransformCompositeFields } from '@graphql-tools/wrap';
 
-export function isolateFieldsFromSubschema(subschemaConfig: SubschemaConfig): Array<SubschemaConfig> {
+export function isolateFederatedFields(subschemaConfig: SubschemaConfig): Array<SubschemaConfig> {
   const baseSchemaTypes: Record<string, MergedTypeConfig> = {};
   const isolatedSchemaTypes: Record<string, MergedTypeConfig> = {};
 

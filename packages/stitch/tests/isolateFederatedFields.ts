@@ -1,8 +1,8 @@
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { isolateFieldsFromSubschema } from '@graphql-tools/stitch';
+import { isolateFederatedFields } from '@graphql-tools/stitch';
 import { Subschema } from '@graphql-tools/delegate';
 
-describe('isolateFieldsFromSubschema', () => {
+describe('isolateFederatedFields', () => {
   describe('basic isolation', () => {
     const storefrontSchema = makeExecutableSchema({
       typeDefs: `
@@ -31,8 +31,8 @@ describe('isolateFieldsFromSubschema', () => {
       `
     });
 
-    it('splits a subschema into static and federated portions', async () => {
-      const [staticConfig, federatedConfig] = isolateFieldsFromSubschema({
+    it('splits a subschema into non-federated and federated portions', async () => {
+      const [nonFederatedConfig, federatedConfig] = isolateFederatedFields({
         schema: storefrontSchema,
         merge: {
           Product: {
@@ -47,14 +47,14 @@ describe('isolateFieldsFromSubschema', () => {
         }
       });
 
-      const staticSubschema = new Subschema(staticConfig);
+      const nonFederatedSubschema = new Subschema(nonFederatedConfig);
       const federatedSubschema = new Subschema(federatedConfig);
 
-      expect(Object.keys(staticSubschema.transformedSchema.getType('Query').getFields())).toEqual(['storefront', '_products']);
-      expect(Object.keys(staticSubschema.transformedSchema.getType('Product').getFields())).toEqual(['id', 'deliveryService']);
-      expect(staticSubschema.transformedSchema.getType('DeliveryService')).toBeDefined();
-      expect(staticSubschema.transformedSchema.getType('Storefront')).toBeDefined();
-      expect(staticSubschema.transformedSchema.getType('ProductRepresentation')).toBeDefined();
+      expect(Object.keys(nonFederatedSubschema.transformedSchema.getType('Query').getFields())).toEqual(['storefront', '_products']);
+      expect(Object.keys(nonFederatedSubschema.transformedSchema.getType('Product').getFields())).toEqual(['id', 'deliveryService']);
+      expect(nonFederatedSubschema.transformedSchema.getType('DeliveryService')).toBeDefined();
+      expect(nonFederatedSubschema.transformedSchema.getType('Storefront')).toBeDefined();
+      expect(nonFederatedSubschema.transformedSchema.getType('ProductRepresentation')).toBeDefined();
 
       expect(Object.keys(federatedSubschema.transformedSchema.getType('Query').getFields())).toEqual(['_products']);
       expect(Object.keys(federatedSubschema.transformedSchema.getType('Product').getFields())).toEqual(['shippingEstimate']);
@@ -68,8 +68,8 @@ describe('isolateFieldsFromSubschema', () => {
       });
     });
 
-    it('does not split schemas with only static fields', async () => {
-      const subschemas = isolateFieldsFromSubschema({
+    it('does not split schemas with only non-federated fields', async () => {
+      const subschemas = isolateFederatedFields({
         schema: storefrontSchema,
         merge: {
           Product: {
@@ -114,8 +114,8 @@ describe('isolateFieldsFromSubschema', () => {
       `
     });
 
-    it('splits a subschema into static and federated portions', async () => {
-      const [staticConfig, federatedConfig] = isolateFieldsFromSubschema(new Subschema({
+    it('splits a subschema into non-federated and federated portions', async () => {
+      const [nonFederatedConfig, federatedConfig] = isolateFederatedFields(new Subschema({
         schema: storefrontSchema,
         merge: {
           Product: {
@@ -127,10 +127,10 @@ describe('isolateFieldsFromSubschema', () => {
         }
       }));
 
-      const staticSubschema = new Subschema(staticConfig);
+      const nonFederatedSubschema = new Subschema(nonFederatedConfig);
       const federatedSubschema = new Subschema(federatedConfig);
 
-      expect(Object.keys(staticSubschema.transformedSchema.getType('Product').getFields())).toEqual(['id']);
+      expect(Object.keys(nonFederatedSubschema.transformedSchema.getType('Product').getFields())).toEqual(['id']);
 
       const productFields = federatedSubschema.transformedSchema.getType('Product').getFields();
       expect(Object.keys(productFields)).toEqual(['shippingEstimate', 'deliveryService']);
@@ -157,7 +157,7 @@ describe('isolateFieldsFromSubschema', () => {
     });
 
     it('does not reprocess already isolated computations', async () => {
-      const subschemas = isolateFieldsFromSubschema({
+      const subschemas = isolateFederatedFields({
         schema: storefrontSchema,
         merge: {
           Product: {
@@ -181,11 +181,11 @@ describe('isolateFieldsFromSubschema', () => {
     const storefrontSchema = makeExecutableSchema({
       typeDefs: `
         type Product {
-          static: String!
+          nonFederated: String!
           federated: String!
         }
         type Storefront {
-          static: ID!
+          nonFederated: ID!
           federated: [Product]!
         }
         type Query {
@@ -196,7 +196,7 @@ describe('isolateFieldsFromSubschema', () => {
     });
 
     it('moves all federated types to the federated schema', async () => {
-      const [staticConfig, federatedConfig] = isolateFieldsFromSubschema({
+      const [nonFederatedConfig, federatedConfig] = isolateFederatedFields({
         schema: storefrontSchema,
         merge: {
           Storefront: {
@@ -219,13 +219,13 @@ describe('isolateFieldsFromSubschema', () => {
         }
       });
 
-      const staticSubschema = new Subschema(staticConfig);
+      const nonFederatedSubschema = new Subschema(nonFederatedConfig);
       const federatedSubschema = new Subschema(federatedConfig);
 
-      expect(Object.keys(staticSubschema.transformedSchema.getType('Query').getFields())).toEqual(['storefront', '_products']);
-      expect(Object.keys(staticSubschema.transformedSchema.getType('Product').getFields())).toEqual(['static']);
-      expect(Object.keys(staticSubschema.transformedSchema.getType('Storefront').getFields())).toEqual(['static']);
-      expect(staticSubschema.merge.Storefront.fields).toBeUndefined();
+      expect(Object.keys(nonFederatedSubschema.transformedSchema.getType('Query').getFields())).toEqual(['storefront', '_products']);
+      expect(Object.keys(nonFederatedSubschema.transformedSchema.getType('Product').getFields())).toEqual(['nonFederated']);
+      expect(Object.keys(nonFederatedSubschema.transformedSchema.getType('Storefront').getFields())).toEqual(['nonFederated']);
+      expect(nonFederatedSubschema.merge.Storefront.fields).toBeUndefined();
 
       expect(Object.keys(federatedSubschema.transformedSchema.getType('Query').getFields())).toEqual(['storefront', '_products']);
       expect(Object.keys(federatedSubschema.transformedSchema.getType('Product').getFields())).toEqual(['federated']);
@@ -244,11 +244,11 @@ describe('isolateFieldsFromSubschema', () => {
       const testSchema = makeExecutableSchema({
         typeDefs: `
           interface IProduct {
-            static: String!
+            nonFederated: String!
             federated: String!
           }
           type Product implements IProduct {
-            static: String!
+            nonFederated: String!
             federated: String!
           }
           type Query {
@@ -257,7 +257,7 @@ describe('isolateFieldsFromSubschema', () => {
         `
       });
 
-      const [staticConfig, federatedConfig] = isolateFieldsFromSubschema({
+      const [nonFederatedConfig, federatedConfig] = isolateFederatedFields({
         schema: testSchema,
         merge: {
           Product: {
@@ -272,11 +272,11 @@ describe('isolateFieldsFromSubschema', () => {
         }
       });
 
-      const staticSubschema = new Subschema(staticConfig);
+      const nonFederatedSubschema = new Subschema(nonFederatedConfig);
       const federatedSubschema = new Subschema(federatedConfig);
 
-      expect(Object.keys(staticSubschema.transformedSchema.getType('IProduct').getFields())).toEqual(['static']);
-      expect(Object.keys(staticSubschema.transformedSchema.getType('Product').getFields())).toEqual(['static']);
+      expect(Object.keys(nonFederatedSubschema.transformedSchema.getType('IProduct').getFields())).toEqual(['nonFederated']);
+      expect(Object.keys(nonFederatedSubschema.transformedSchema.getType('Product').getFields())).toEqual(['nonFederated']);
       expect(Object.keys(federatedSubschema.transformedSchema.getType('IProduct').getFields())).toEqual(['federated']);
       expect(Object.keys(federatedSubschema.transformedSchema.getType('Product').getFields())).toEqual(['federated']);
     });

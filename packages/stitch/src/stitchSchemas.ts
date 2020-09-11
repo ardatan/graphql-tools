@@ -27,7 +27,7 @@ import { buildTypeCandidates, buildTypeMap } from './typeCandidates';
 import { createStitchingInfo, completeStitchingInfo, addStitchingInfo } from './stitchingInfo';
 import { IStitchSchemasOptions } from './types';
 import { SubschemaConfig, isSubschemaConfig, Subschema } from '@graphql-tools/delegate';
-import { isolateFieldsFromSubschema } from './isolateFieldsFromSubschema';
+import { isolateFederatedFields } from './isolateFederatedFields';
 
 export function stitchSchemas({
   subschemas = [],
@@ -224,9 +224,11 @@ function processSubschema(
 ): Array<SubschemaConfig> {
   const processedSubschema = new Subschema(subschema);
 
-  const staticAndFederatedSchemas = isolateFieldsFromSubschema(processedSubschema);
-  processedSubschemas.set(subschema, staticAndFederatedSchemas[0]);
-  return staticAndFederatedSchemas;
+  const subschemas = isolateFederatedFields(processedSubschema);
+
+  const nonFederatedSubschema = subschemas[0];
+  processedSubschemas.set(subschema, nonFederatedSubschema);
+  return subschemas;
 }
 
 export function isDocumentNode(object: any): object is DocumentNode {
