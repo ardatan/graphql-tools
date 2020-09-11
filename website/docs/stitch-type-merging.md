@@ -12,6 +12,8 @@ Type merging is now the preferred method of including GraphQL types across subsc
 Using type merging frequently eliminates the need for schema extensions, though does not preclude their use. Merging can often outperform extensions by resolving entire portions of an object tree with a single delegation. More broadly, it offers similar capabilities to [Apollo Federation](https://www.apollographql.com/docs/apollo-server/federation/introduction/) while using only plain GraphQL and bare-metal configuration.
 -->
 
+Type merging simply merges types of the same name, though it is smart enough to apply provided subschema transforms prior to merging. That means type names have to be identical on the gateway, but not the individual subschema.
+
 ## Basic example
 
 Type merging allows each subschema to provide portions of a type that it posesses data for. For example:
@@ -554,4 +556,4 @@ mergedTypeConfig.resolve = (originalResult, context, info, schemaOrSubschemaConf
 
 This resolver switches to a batched implementation in the presence of a `mergedTypeConfig.key` function. You may also provide your own custom implementation, however... note the extremely important `skipTypeMerging` setting. Without this option, your gateway will recursively merge types forever!
 
-Type merging simply merges types of the same name, though it is smart enough to apply provided subschema transforms prior to merging. That means types have to be identical on the gateway, but not the individual subschema.
+Note that when using a custom `resolve` implementation, `fieldName` and `args` are not required. Secondary to an underlying implementation detail, however, `fieldName` must also be included, whenever ary fields are being federated.
