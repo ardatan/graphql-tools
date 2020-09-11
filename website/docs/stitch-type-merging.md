@@ -214,7 +214,7 @@ Using both array batching and query batching together is recommended whenever po
 
 ## Unidirectional merges
 
-Type merging allows services to provide the bare minimum of fields they posess data for&mdash;and this is frequently nothing but an ID. For example:
+Type merging allows services to provide the bare minimum of fields they possess data for&mdash;and this is frequently nothing but an ID. For example:
 
 ```js
 let postsSchema = makeExecutableSchema({
@@ -350,7 +350,7 @@ const gatewaySchema = stitchSchemas({
 
 ## Computed fields
 
-APIs may leverage their own gateway layer to transport field dependencies from one subservice to another while resolving data. While this is not the preferred use case for type merging (autonomous subservices are always more consistent), passing merged field dependencies is supported as an alternative to [schema extensions](./stitch-schema-extensions). For example:
+APIs may leverage the gateway layer to transport field dependencies from one subservice to another while resolving data. The gateway can also be used in some situations to specify which service should be used to gather the field dependencies. For example:
 
 ```js
 const productsSchema = makeExecutableSchema({
@@ -364,11 +364,16 @@ const productsSchema = makeExecutableSchema({
     type Query {
       productsByIds(ids: [ID!]!): [Product]!
     }
-  `
+  `,
+  resolvers: {
+    ...
+  }
 });
 
 const storefrontsSchema = makeExecutableSchema({
   typeDefs: `
+    directive @requires(selectionSet: String!, federate: Boolean = true) on FIELD_DEFINITION
+
     type Storefront {
       id: ID!
       availableProducts: [Product]!
@@ -429,9 +434,31 @@ const gatewaySchema = stitchSchemas({
 });
 ```
 
-In the above, storefronts `Product` has two fields marked with `@requires` selection sets, indicating fields required from other subschemas to compute these fields. These required selections are fetched by the gateway, formatted as input objects, and then sent to the storefronts service as representations of remote Products. The storefronts service then uses these Product representations to compute its fields.
+In the above, the storefronts service's `Product` type has two fields, `shippingEstimate` and `deliveryService` marked with `@requires` directives, which indicates that additional selectionSets are required to resolve those fields beyond what is required to resolve the type. If&mdash;and only if&mdash;these fields are included within the query, the gateway will collect the necessary fields before attempts to access the `Product` from the storefronts service.
 
-The `@requires` SDL directive is a convenience syntax for static configuration that can be written as:
+The above schema also enables the `federate` option by default, which means that even though the storefronts schema may originate objects of type `Product` (via the `storefront.availableProducts` query), the fields marked with `@requires` will always fetch the declared dependencies from other services. The storefronts service will then be visited again to resolve the extra fields.
+
+Of note, the resolver for `availableProducts` therefore needs only return the product `id`&mdash;and not the `price` and `weight`&mdash;even though the `price` and `weight`, for example, are necessary to resolve the `shippingEstimate`. In this setup, the products service remains the single source of truth for the `price` and `weight` of a `Product`, while the storefronts service is solely responsible for the `shippingEstimate`, but the gateway is required to make this work, as the storefronts service has no internal concept at all of `price` and `weight`.
+
+What happens if the storefronts service is queried for `storefront.availableProducts.shippingEstimate` directly? It would return `null`. What happens if the storefronts service was modified as follows?
+
+```
+...
+  resolvers: {
+    Query: {
+      storefront: (root, { id }) => ({ id, availableProducts: [{ id: '23', price: 5, weight 25 }] }),
+      ...
+    },
+    ...
+});
+...
+```
+
+Now querying it directly for `shippingEstimate` would be possible, but as long as `federate` is set to true, if the gateway is queried, the internal `price` and `weight` data would be ignored in favor of the single source of truth for this data within the products service. The same query may therefore yield different results when directed to the subschema or the gateway.
+
+Alternatively, `federate` could be set to false. Then as long as the `availableProducts` has been modified to include internal `price` and `weight` data as above, the gateway would use the `requires` directive to avoid requesting fields it doesn't need. When originating data from within the service via the `storefront.availableProducts` query, `price` and `weight` data may be overfetched.
+
+The `@requires` SDL directive is a convenience syntax for static configuration that can be written as follows:
 
 ```js
 {
@@ -440,8 +467,8 @@ The `@requires` SDL directive is a convenience syntax for static configuration t
     Product: {
       selectionSet: '{ id }',
       fields: {
-        shippingEstimate: { selectionSet: '{ price weight }' },
-        deliveryService: { selectionSet: '{ weight }' },
+        shippingEstimate: { selectionSet: '{ price weight }', federate: true },
+        deliveryService: { selectionSet: '{ weight }', federate: true },
       },
       fieldName: '_products',
       key: ({ id, price, weight }) => ({ id, price, weight }),
