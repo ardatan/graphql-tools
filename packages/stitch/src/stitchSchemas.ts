@@ -55,15 +55,17 @@ export function stitchSchemas({
   }
 
   let schemaLikeObjects: Array<GraphQLSchema | SubschemaConfig | DocumentNode | GraphQLNamedType> = [];
-  const processedSubschemas: Map<SubschemaConfig, SubschemaConfig> = new Map();
+  const compiledSubschemas: Map<SubschemaConfig, SubschemaConfig> = new Map();
 
   subschemas.forEach(subschemaOrSubschemaArray => {
     if (Array.isArray(subschemaOrSubschemaArray)) {
       subschemaOrSubschemaArray.forEach(s => {
-        schemaLikeObjects = schemaLikeObjects.concat(processSubschema(s, processedSubschemas));
+        schemaLikeObjects = schemaLikeObjects.concat(compileSubschemaConfig(s, compiledSubschemas));
       });
     } else if (isSubschemaConfig(subschemaOrSubschemaArray)) {
-      schemaLikeObjects = schemaLikeObjects.concat(processSubschema(subschemaOrSubschemaArray, processedSubschemas));
+      schemaLikeObjects = schemaLikeObjects.concat(
+        compileSubschemaConfig(subschemaOrSubschemaArray, compiledSubschemas)
+      );
     } else {
       schemaLikeObjects.push(subschemaOrSubschemaArray);
     }
@@ -139,7 +141,7 @@ export function stitchSchemas({
     directives.push(directiveMap[directiveName]);
   });
 
-  let stitchingInfo = createStitchingInfo(processedSubschemas, transformedSchemas, typeCandidates, mergeTypes);
+  let stitchingInfo = createStitchingInfo(compiledSubschemas, transformedSchemas, typeCandidates, mergeTypes);
 
   const typeMap = buildTypeMap({
     typeCandidates,
@@ -218,16 +220,18 @@ export function stitchSchemas({
   return pruningOptions ? pruneSchema(schema, pruningOptions) : schema;
 }
 
-function processSubschema(
-  subschema: SubschemaConfig,
-  processedSubschemas: Map<SubschemaConfig, SubschemaConfig>
+function compileSubschemaConfig(
+  subschemaConfig: SubschemaConfig,
+  compiledSubschemas: Map<SubschemaConfig, SubschemaConfig>
 ): Array<SubschemaConfig> {
-  const processedSubschema = new Subschema(subschema);
+  const subschema = new Subschema(subschemaConfig);
 
-  const subschemas = isolateFederatedFields(processedSubschema);
+  const subschemas = isolateFederatedFields(subschema);
 
   const nonFederatedSubschema = subschemas[0];
-  processedSubschemas.set(subschema, nonFederatedSubschema);
+
+  compiledSubschemas.set(subschemaConfig, nonFederatedSubschema);
+
   return subschemas;
 }
 
