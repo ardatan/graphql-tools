@@ -437,16 +437,11 @@ describe('merging using type merging', () => {
     expect(result).toEqual(expectedResult);
   });
 
-  test('can mix non-federated and federated fields', async () => {
+  test('can stitch from inventory to products and then back to inventory', async () => {
     const result = await graphql(
       stitchedSchema,
       `
         query {
-          topProducts(first: 2) {
-            upc
-            inStock
-            shippingEstimate
-          }
           mostStockedProduct {
             upc
             inStock
@@ -460,15 +455,6 @@ describe('merging using type merging', () => {
 
     const expectedResult: ExecutionResult = {
       data: {
-        topProducts: [{
-          upc: '1',
-          inStock: true,
-          shippingEstimate: 50,
-        }, {
-          upc: '2',
-          inStock: false,
-          shippingEstimate: 0,
-        }],
         mostStockedProduct: {
           upc: '3',
           inStock: true,
