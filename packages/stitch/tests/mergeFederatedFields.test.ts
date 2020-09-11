@@ -90,7 +90,7 @@ describe('merge federated fields via config', () => {
     mergeTypes: true,
   });
 
-  it('collects dynamic fields via the gateway', async () => {
+  it('can stitch from product service to inventory service', async () => {
     const { data } = await graphql(gatewaySchema, `
       query {
         product(id: 77) {
@@ -112,7 +112,7 @@ describe('merge federated fields via config', () => {
     });
   });
 
-  it('collects dynamic fields via a subservice', async () => {
+  it('can stitch from inventory service to product service and back to inventory service', async () => {
     const { data } = await graphql(gatewaySchema, `
       query {
         storefront(id: 77) {
@@ -139,7 +139,7 @@ describe('merge federated fields via config', () => {
   });
 });
 
-describe('merge federated fields from SDL via federation entities', () => {
+describe('merge federated fields via SDL (Apollo Federation-style directive annotation)', () => {
   const storefrontSchema = makeExecutableSchema({
     typeDefs: `
       directive @requires(selectionSet: String!, federate: Boolean = true) on FIELD_DEFINITION
@@ -203,7 +203,7 @@ describe('merge federated fields from SDL via federation entities', () => {
     mergeTypes: true,
   });
 
-  it('collects dynamic fields via subservice origin', async () => {
+  it('can stitch from inventory service to product service and back to inventory service', async () => {
     const { data } = await graphql(gatewaySchema, `
       query {
         storefront(id: 77) {
