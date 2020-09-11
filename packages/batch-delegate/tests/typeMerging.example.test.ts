@@ -3,6 +3,7 @@
 // See also:
 // https://github.com/ardatan/graphql-tools/issues/1697
 // https://github.com/ardatan/graphql-tools/issues/1710
+// https://github.com/ardatan/graphql-tools/issues/1959
 
 import { graphql } from 'graphql';
 
