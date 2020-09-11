@@ -31,8 +31,8 @@ describe('isolateFieldsFromSubschema', () => {
       `
     });
 
-    it('splits a subschema into static and computed portions', async () => {
-      const [staticConfig, computedConfig] = isolateFieldsFromSubschema({
+    it('splits a subschema into static and federated portions', async () => {
+      const [staticConfig, federatedConfig] = isolateFieldsFromSubschema({
         schema: storefrontSchema,
         merge: {
           Product: {
@@ -48,7 +48,7 @@ describe('isolateFieldsFromSubschema', () => {
       });
 
       const staticSubschema = new Subschema(staticConfig);
-      const computedSubschema = new Subschema(computedConfig);
+      const federatedSubschema = new Subschema(federatedConfig);
 
       expect(Object.keys(staticSubschema.transformedSchema.getType('Query').getFields())).toEqual(['storefront', '_products']);
       expect(Object.keys(staticSubschema.transformedSchema.getType('Product').getFields())).toEqual(['id', 'deliveryService']);
@@ -56,14 +56,14 @@ describe('isolateFieldsFromSubschema', () => {
       expect(staticSubschema.transformedSchema.getType('Storefront')).toBeDefined();
       expect(staticSubschema.transformedSchema.getType('ProductRepresentation')).toBeDefined();
 
-      expect(Object.keys(computedSubschema.transformedSchema.getType('Query').getFields())).toEqual(['_products']);
-      expect(Object.keys(computedSubschema.transformedSchema.getType('Product').getFields())).toEqual(['shippingEstimate']);
+      expect(Object.keys(federatedSubschema.transformedSchema.getType('Query').getFields())).toEqual(['_products']);
+      expect(Object.keys(federatedSubschema.transformedSchema.getType('Product').getFields())).toEqual(['shippingEstimate']);
 
       // pruning does not yet remove unused scalars/enums
-      // expect(computedSubschema.transformedSchema.getType('DeliveryService')).toBeUndefined();
-      expect(computedSubschema.transformedSchema.getType('Storefront')).toBeUndefined();
-      expect(computedSubschema.transformedSchema.getType('ProductRepresentation')).toBeDefined();
-      expect(computedSubschema.merge.Product.fields).toEqual({
+      // expect(federatedSubschema.transformedSchema.getType('DeliveryService')).toBeUndefined();
+      expect(federatedSubschema.transformedSchema.getType('Storefront')).toBeUndefined();
+      expect(federatedSubschema.transformedSchema.getType('ProductRepresentation')).toBeDefined();
+      expect(federatedSubschema.merge.Product.fields).toEqual({
         shippingEstimate: { selectionSet: '{ price }', federate: true },
       });
     });
@@ -114,8 +114,8 @@ describe('isolateFieldsFromSubschema', () => {
       `
     });
 
-    it('splits a subschema into static and computed portions', async () => {
-      const [staticConfig, computedConfig] = isolateFieldsFromSubschema(new Subschema({
+    it('splits a subschema into static and federated portions', async () => {
+      const [staticConfig, federatedConfig] = isolateFieldsFromSubschema(new Subschema({
         schema: storefrontSchema,
         merge: {
           Product: {
@@ -128,27 +128,27 @@ describe('isolateFieldsFromSubschema', () => {
       }));
 
       const staticSubschema = new Subschema(staticConfig);
-      const computedSubschema = new Subschema(computedConfig);
+      const federatedSubschema = new Subschema(federatedConfig);
 
       expect(Object.keys(staticSubschema.transformedSchema.getType('Product').getFields())).toEqual(['id']);
 
-      const productFields = computedSubschema.transformedSchema.getType('Product').getFields();
+      const productFields = federatedSubschema.transformedSchema.getType('Product').getFields();
       expect(Object.keys(productFields)).toEqual(['shippingEstimate', 'deliveryService']);
       expect(productFields.shippingEstimate).toBeDefined();
       expect(productFields.deliveryService).toBeDefined();
-      expect(computedSubschema.merge.Product.fields).toEqual({
+      expect(federatedSubschema.merge.Product.fields).toEqual({
         shippingEstimate: { selectionSet: '{ price weight }', federate: true },
         deliveryService: { selectionSet: '{ weight }', federate: true },
       });
     });
   });
 
-  describe('fully computed type', () => {
+  describe('fully federated type', () => {
     const storefrontSchema = makeExecutableSchema({
       typeDefs: `
         type Product {
-          computedOne: String!
-          computedTwo: String!
+          federatedOne: String!
+          federatedTwo: String!
         }
         type Query {
           _products(representations: [ID!]!): [Product]!
@@ -163,8 +163,8 @@ describe('isolateFieldsFromSubschema', () => {
           Product: {
             selectionSet: '{ id }',
             fields: {
-              computedOne: { selectionSet: '{ price weight }', federate: true },
-              computedTwo: { selectionSet: '{ weight }', federate: true },
+              federatedOne: { selectionSet: '{ price weight }', federate: true },
+              federatedTwo: { selectionSet: '{ weight }', federate: true },
             },
             fieldName: '_products',
             key: ({ id, price, weight }) => ({ id, price, weight }),
@@ -177,16 +177,16 @@ describe('isolateFieldsFromSubschema', () => {
     });
   });
 
-  describe('multiple computed types', () => {
+  describe('multiple federated types', () => {
     const storefrontSchema = makeExecutableSchema({
       typeDefs: `
         type Product {
           static: String!
-          computed: String!
+          federated: String!
         }
         type Storefront {
           static: ID!
-          computed: [Product]!
+          federated: [Product]!
         }
         type Query {
           storefront(id: ID!): Storefront
@@ -195,14 +195,14 @@ describe('isolateFieldsFromSubschema', () => {
       `
     });
 
-    it('moves all computed types to the computed schema', async () => {
-      const [staticConfig, computedConfig] = isolateFieldsFromSubschema({
+    it('moves all federated types to the federated schema', async () => {
+      const [staticConfig, federatedConfig] = isolateFieldsFromSubschema({
         schema: storefrontSchema,
         merge: {
           Storefront: {
             selectionSet: '{ id }',
             fields: {
-              computed: { selectionSet: '{ availableProductIds }', federate: true },
+              federated: { selectionSet: '{ availableProductIds }', federate: true },
             },
             fieldName: 'storefront',
             args: ({ id }) => ({ id }),
@@ -210,7 +210,7 @@ describe('isolateFieldsFromSubschema', () => {
           Product: {
             selectionSet: '{ id weight }',
             fields: {
-              computed: { selectionSet: '{ price }', federate: true },
+              federated: { selectionSet: '{ price }', federate: true },
             },
             fieldName: '_products',
             key: ({ id, price, weight }) => ({ id, price, weight }),
@@ -220,36 +220,36 @@ describe('isolateFieldsFromSubschema', () => {
       });
 
       const staticSubschema = new Subschema(staticConfig);
-      const computedSubschema = new Subschema(computedConfig);
+      const federatedSubschema = new Subschema(federatedConfig);
 
       expect(Object.keys(staticSubschema.transformedSchema.getType('Query').getFields())).toEqual(['storefront', '_products']);
       expect(Object.keys(staticSubschema.transformedSchema.getType('Product').getFields())).toEqual(['static']);
       expect(Object.keys(staticSubschema.transformedSchema.getType('Storefront').getFields())).toEqual(['static']);
       expect(staticSubschema.merge.Storefront.fields).toBeUndefined();
 
-      expect(Object.keys(computedSubschema.transformedSchema.getType('Query').getFields())).toEqual(['storefront', '_products']);
-      expect(Object.keys(computedSubschema.transformedSchema.getType('Product').getFields())).toEqual(['computed']);
-      expect(Object.keys(computedSubschema.transformedSchema.getType('Storefront').getFields())).toEqual(['computed']);
-      expect(computedSubschema.merge.Storefront.fields).toEqual({
-        computed: { selectionSet: '{ availableProductIds }', federate: true },
+      expect(Object.keys(federatedSubschema.transformedSchema.getType('Query').getFields())).toEqual(['storefront', '_products']);
+      expect(Object.keys(federatedSubschema.transformedSchema.getType('Product').getFields())).toEqual(['federated']);
+      expect(Object.keys(federatedSubschema.transformedSchema.getType('Storefront').getFields())).toEqual(['federated']);
+      expect(federatedSubschema.merge.Storefront.fields).toEqual({
+        federated: { selectionSet: '{ availableProductIds }', federate: true },
       });
-      expect(computedSubschema.merge.Product.fields).toEqual({
-        computed: { selectionSet: '{ price }', federate: true },
+      expect(federatedSubschema.merge.Product.fields).toEqual({
+        federated: { selectionSet: '{ price }', federate: true },
       });
     });
   });
 
-  describe('with computed interface fields', () => {
-    it('shifts computed interface fields into computed schema', async () => {
+  describe('with federated interface fields', () => {
+    it('shifts federated interface fields into federated schema', async () => {
       const testSchema = makeExecutableSchema({
         typeDefs: `
           interface IProduct {
             static: String!
-            computed: String!
+            federated: String!
           }
           type Product implements IProduct {
             static: String!
-            computed: String!
+            federated: String!
           }
           type Query {
             _products(representations: [ID!]!): [Product]!
@@ -257,13 +257,13 @@ describe('isolateFieldsFromSubschema', () => {
         `
       });
 
-      const [staticConfig, computedConfig] = isolateFieldsFromSubschema({
+      const [staticConfig, federatedConfig] = isolateFieldsFromSubschema({
         schema: testSchema,
         merge: {
           Product: {
             selectionSet: '{ id }',
             fields: {
-              computed: { selectionSet: '{ price weight }', federate: true }
+              federated: { selectionSet: '{ price weight }', federate: true }
             },
             fieldName: '_products',
             key: ({ id, price, weight }) => ({ id, price, weight }),
@@ -273,12 +273,12 @@ describe('isolateFieldsFromSubschema', () => {
       });
 
       const staticSubschema = new Subschema(staticConfig);
-      const computedSubschema = new Subschema(computedConfig);
+      const federatedSubschema = new Subschema(federatedConfig);
 
       expect(Object.keys(staticSubschema.transformedSchema.getType('IProduct').getFields())).toEqual(['static']);
       expect(Object.keys(staticSubschema.transformedSchema.getType('Product').getFields())).toEqual(['static']);
-      expect(Object.keys(computedSubschema.transformedSchema.getType('IProduct').getFields())).toEqual(['computed']);
-      expect(Object.keys(computedSubschema.transformedSchema.getType('Product').getFields())).toEqual(['computed']);
+      expect(Object.keys(federatedSubschema.transformedSchema.getType('IProduct').getFields())).toEqual(['federated']);
+      expect(Object.keys(federatedSubschema.transformedSchema.getType('Product').getFields())).toEqual(['federated']);
     });
   });
 });

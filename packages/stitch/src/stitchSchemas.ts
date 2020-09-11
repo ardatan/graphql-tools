@@ -224,9 +224,9 @@ function processSubschema(
 ): Array<SubschemaConfig> {
   const processedSubschema = new Subschema(subschema);
 
-  const staticAndComputedSchemas = isolateFieldsFromSubschema(processedSubschema);
-  processedSubschemas.set(subschema, staticAndComputedSchemas[0]);
-  return staticAndComputedSchemas;
+  const staticAndFederatedSchemas = isolateFieldsFromSubschema(processedSubschema);
+  processedSubschemas.set(subschema, staticAndFederatedSchemas[0]);
+  return staticAndFederatedSchemas;
 }
 
 export function isDocumentNode(object: any): object is DocumentNode {

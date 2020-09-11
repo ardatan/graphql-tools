@@ -434,7 +434,7 @@ describe('merging using type merging', () => {
     expect(result).toEqual(expectedResult);
   });
 
-  test('can mix static and computed fields', async () => {
+  test('can mix static and federated fields', async () => {
     const result = await graphql(
       stitchedSchema,
       `

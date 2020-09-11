@@ -348,7 +348,7 @@ const gatewaySchema = stitchSchemas({
 });
 ```
 
-## Computed fields
+## Federated fields
 
 APIs may leverage the gateway layer to transport field dependencies from one subservice to another while resolving data. The gateway can also be used in some situations to specify which service should be used to gather the field dependencies. For example:
 
@@ -478,13 +478,13 @@ The `@requires` SDL directive is a convenience syntax for static configuration t
 }
 ```
 
-The main disadvantage of computed fields is that they create defunct fields within a subservice that cannot be resolved without gateway context. Tollerence for this inconsistency is largely dependent on your own service architecture. An imperfect solution is to deprecate all computed fields within a subschema, and then normalize their behavior in the gateway schema using the [`RemoveObjectFieldDeprecations`](https://github.com/ardatan/graphql-tools/blob/master/packages/wrap/tests/transformRemoveObjectFieldDeprecations.test.ts) transform.
+The main disadvantage of federating fields is that they create fields within a subservice that cannot be resolved without the gateway. Tolerance for this inconsistency is largely dependent on your own service architecture. An imperfect solution is to deprecate all federated fields within a subschema, and then normalize their behavior in the gateway schema using the [`RemoveObjectFieldDeprecations`](https://github.com/ardatan/graphql-tools/blob/master/packages/wrap/tests/transformRemoveObjectFieldDeprecations.test.ts) transform.
 
-## Federation services
+## Federated services
 
-If you're familiar with [Apollo Federation](https://www.apollographql.com/docs/apollo-server/federation/introduction/), then you may notice that the above pattern of computed fields looks very similar to the `_entities` service design of the [Federation specification](https://www.apollographql.com/docs/apollo-server/federation/federation-spec/).
+If you're familiar with [Apollo Federation](https://www.apollographql.com/docs/apollo-server/federation/introduction/), then you may notice that the above pattern of federated fields looks very similar to the `_entities` service design of the [Apollo Federation specification](https://www.apollographql.com/docs/apollo-server/federation/federation-spec/).
 
-While type merging offers [simpler patterns](#unidirectional-merges) with [comparable performance](#batching), it can also interface with Federation services when needed by sending appropraitely formatted representations to the `_entities` query:
+While type merging offers [simpler patterns](#unidirectional-merges) with [comparable performance](#batching), it can also interface directly with Apollo Federation services when needed by sending appropraitely formatted representations to the `_entities` query:
 
 ```js
 {

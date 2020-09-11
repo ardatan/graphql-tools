@@ -21,7 +21,7 @@ const productSchema = makeExecutableSchema({
   }
 });
 
-describe('merge computed fields with static config', () => {
+describe('merge federated fields with static config', () => {
   const storefrontSchema = makeExecutableSchema({
     typeDefs: `
       type Product {
@@ -139,7 +139,7 @@ describe('merge computed fields with static config', () => {
   });
 });
 
-describe('merge computed fields from SDL via federation entities', () => {
+describe('merge federated fields from SDL via federation entities', () => {
   const storefrontSchema = makeExecutableSchema({
     typeDefs: `
       directive @requires(selectionSet: String!, federate: Boolean = true) on FIELD_DEFINITION
