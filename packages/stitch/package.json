@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/stitch",
-  "version": "6.2.1",
+  "version": "6.2.2",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": "git@github.com:ardatan/graphql-tools.git",
   "license": "MIT",
@@ -21,12 +21,12 @@
     "dataloader": "2.0.0"
   },
   "dependencies": {
-    "@graphql-tools/batch-delegate": "6.2.1",
-    "@graphql-tools/delegate": "6.2.1",
-    "@graphql-tools/merge": "6.2.1",
-    "@graphql-tools/schema": "6.2.1",
-    "@graphql-tools/utils": "6.2.1",
-    "@graphql-tools/wrap": "6.2.1",
+    "@graphql-tools/batch-delegate": "6.2.2",
+    "@graphql-tools/delegate": "6.2.2",
+    "@graphql-tools/merge": "6.2.2",
+    "@graphql-tools/schema": "6.2.2",
+    "@graphql-tools/utils": "6.2.2",
+    "@graphql-tools/wrap": "6.2.2",
     "is-promise": "4.0.0",
     "tslib": "~2.0.1"
   },
