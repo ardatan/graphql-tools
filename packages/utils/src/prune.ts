@@ -167,6 +167,7 @@ function visitInputType(
   }
 
   pruningContext.unusedTypes[type.name] = false;
+  visitedTypes[type.name] = true;
 
   if (isInputObjectType(type)) {
     const fields = type.getFields();
@@ -176,8 +177,6 @@ function visitInputType(
       visitInputType(visitedTypes, pruningContext, namedType);
     });
   }
-
-  visitedTypes[type.name] = true;
 }
 
 function visitTypes(pruningContext: PruningContext, schema: GraphQLSchema): void {
