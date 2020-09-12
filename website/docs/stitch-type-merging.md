@@ -8,12 +8,6 @@ Type merging allows _partial definitions_ of a type to exist in any subschema, a
 
 Type merging is now the preferred method of including GraphQL types across subschemas (replacing the need for [schema extensions](/docs/stitch-schema-extensions)).
 
-<!--
-Using type merging frequently eliminates the need for schema extensions, though does not preclude their use. Merging can often outperform extensions by resolving entire portions of an object tree with a single delegation. More broadly, it offers similar capabilities to [Apollo Federation](https://www.apollographql.com/docs/apollo-server/federation/introduction/) while using only plain GraphQL and bare-metal configuration.
--->
-
-Type merging simply merges types of the same name, though it is smart enough to apply provided subschema transforms prior to merging. That means type names have to be identical on the gateway, but not the individual subschema.
-
 ## Basic example
 
 Type merging allows each subschema to provide portions of a type that it posesses data for. For example:
@@ -107,6 +101,8 @@ type User {
   posts: [Post]!
 }
 ```
+
+Type merging simply merges types of the same name, though it is smart enough to apply provided subschema transforms prior to merging. That means type names have to be identical on the gateway, but not the individual subschema.
 
 ### Types without a database
 
@@ -436,7 +432,7 @@ const gatewaySchema = stitchSchemas({
 });
 ```
 
-In the above, the storefronts service's `Product` type has two fields, `shippingEstimate` and `deliveryService` marked with `@requires` directives, which indicates that additional selectionSets are required to resolve those fields beyond what is required to resolve the type. If&mdash;and only if&mdash;these fields are included within the query, the gateway will collect the necessary fields before attempts to access the `Product` from the storefronts service.
+In the above, the storefronts service's `Product` type has two fields, `shippingEstimate` and `deliveryService` marked with `@requires` directives, which indicate that additional selection sets are required to resolve those fields beyond what is required to resolve the type. If&mdash;and only if&mdash;these fields are selected within a query, the gateway will collect the necessary dependencies before attempting to access a `Product` from the storefronts service.
 
 The above schema also enables the `federate` option by default, which means that even though the storefronts schema may originate objects of type `Product` (via the `storefront.availableProducts` query), the fields marked with `@requires` will always fetch the declared dependencies from other services. The storefronts service will then be visited again to resolve the extra fields.
 
