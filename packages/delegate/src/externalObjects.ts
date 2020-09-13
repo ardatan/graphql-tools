@@ -42,7 +42,7 @@ export function mergeExternalObjects(
   let errors: Array<GraphQLError> = [];
 
   sources.forEach((source, index) => {
-    if (source instanceof GraphQLError) {
+    if (source instanceof GraphQLError || source === null) {
       const selectionSet = selectionSets[index];
       const fieldNodes = collectFields(
         {
@@ -57,7 +57,8 @@ export function mergeExternalObjects(
       );
       const nullResult = {};
       Object.keys(fieldNodes).forEach(responseKey => {
-        nullResult[responseKey] = relocatedError(source, path.concat([responseKey]));
+        nullResult[responseKey] =
+          source instanceof GraphQLError ? relocatedError(source, path.concat([responseKey])) : null;
       });
       results.push(nullResult);
     } else {
