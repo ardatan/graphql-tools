@@ -4,9 +4,9 @@ title: Extending stitched schemas
 sidebar_label: Schema extensions
 ---
 
-While stitching many schemas together is extremely useful for consolidating queries, in practice we'll often want to add additional association fields that connect types to one another across subschemas. Using schema extensions, we can define additional GraphQL fields that only exist in the combined gateway schema that establish these connections.
+Schema extensions add gateway-level type definitions and resolvers into a combined API, which is useful for establishing connections between types that exist in separate subschemas.
 
-While considering these capabilities, be sure to compare them with the newer automated features available through [type merging](/docs/stitch-type-merging).
+When considering these capabilities, be sure to compare them with the newer automated features available through [type merging](/docs/stitch-type-merging). While type merging frequently eliminates the need for schema extensions, it does not preclude their use.
 
 ## Basic example
 

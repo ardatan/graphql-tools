@@ -30,6 +30,7 @@ import { batchDelegateToSchema } from '@graphql-tools/batch-delegate';
 import { MergeTypeCandidate, MergedTypeInfo, StitchingInfo, MergeTypeFilter } from './types';
 
 export function createStitchingInfo(
+  transformedSubschemaConfigs: Map<SubschemaConfig, SubschemaConfig>,
   transformedSchemas: Map<GraphQLSchema | SubschemaConfig, GraphQLSchema>,
   typeCandidates: Record<string, Array<MergeTypeCandidate>>,
   mergeTypes?: boolean | Array<string> | MergeTypeFilter
@@ -82,6 +83,7 @@ export function createStitchingInfo(
   });
 
   return {
+    transformedSubschemaConfigs,
     transformedSchemas,
     fragmentsByField: undefined,
     selectionSetsByField,
@@ -151,6 +153,17 @@ function createMergedTypes(
             Object.keys(mergedTypeConfig.fields).forEach(fieldName => {
               if (mergedTypeConfig.fields[fieldName].selectionSet) {
                 const rawFieldSelectionSet = mergedTypeConfig.fields[fieldName].selectionSet;
+                parsedFieldSelectionSets[fieldName] = parseSelectionSet(rawFieldSelectionSet);
+              }
+            });
+            fieldSelectionSets.set(subschema, parsedFieldSelectionSets);
+          }
+
+          if (mergedTypeConfig.computedFields) {
+            const parsedFieldSelectionSets = Object.create(null);
+            Object.keys(mergedTypeConfig.computedFields).forEach(fieldName => {
+              if (mergedTypeConfig.computedFields[fieldName].selectionSet) {
+                const rawFieldSelectionSet = mergedTypeConfig.computedFields[fieldName].selectionSet;
                 parsedFieldSelectionSets[fieldName] = parseSelectionSet(rawFieldSelectionSet);
               }
             });

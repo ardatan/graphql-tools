@@ -3,6 +3,7 @@
 // See also:
 // https://github.com/ardatan/graphql-tools/issues/1697
 // https://github.com/ardatan/graphql-tools/issues/1710
+// https://github.com/ardatan/graphql-tools/issues/1959
 
 import { graphql } from 'graphql';
 
@@ -67,7 +68,8 @@ describe('merging using type merging', () => {
         shippingEstimate: Int
       }
       type Query {
-        _productByRepresentation(product: ProductRepresentation): Product
+        mostStockedProduct: Product
+        _products(representations: [ProductRepresentation!]!): [Product]!
       }
     `,
     resolvers: {
@@ -80,11 +82,9 @@ describe('merging using type merging', () => {
         }
       },
       Query: {
-        _productByRepresentation: (_root, { product: { upc, ...fields } }) => {
-          return {
-            ...inventory.find(product => product.upc === upc),
-            ...fields
-          };
+        mostStockedProduct: () => inventory.find(i => i.upc === '3'),
+        _products: (_root, { representations }) => {
+          return representations.map((rep: Record<string, any>) => ({ ...rep, ...inventory.find(i => i.upc === rep.upc) }));
         },
       },
     },
@@ -114,7 +114,7 @@ describe('merging using type merging', () => {
   const productsSchema = makeExecutableSchema({
     typeDefs: `
       type Query {
-        topProducts(first: Int = 5): [Product]
+        topProducts(first: Int = 2): [Product]
         _productByUpc(upc: String!): Product
         _productsByUpc(upcs: [String!]!): [Product]
       }
@@ -235,13 +235,14 @@ describe('merging using type merging', () => {
         merge: {
           Product: {
             selectionSet: '{ upc }',
-            fields: {
+            computedFields: {
               shippingEstimate: {
                 selectionSet: '{ price weight }',
               },
             },
-            fieldName: '_productByRepresentation',
-            args: ({ upc, weight, price }) => ({ product: { upc, weight, price } }),
+            fieldName: '_products',
+            key: ({ upc, weight, price }) => ({ upc, weight, price }),
+            argsFromKeys: (representations) => ({ representations }),
           }
         },
         batch: true,
@@ -277,13 +278,14 @@ describe('merging using type merging', () => {
     mergeTypes: true,
   });
 
-  test('can stitch from products to inventory schema', async () => {
+  test('can stitch from products to inventory schema including mixture of computed and non-computed fields', async () => {
     const result = await graphql(
       stitchedSchema,
       `
         query {
           topProducts {
             upc
+            inStock
             shippingEstimate
           }
         }
@@ -292,13 +294,17 @@ describe('merging using type merging', () => {
       {},
     );
 
-    const expectedResult = {
+    const expectedResult: ExecutionResult = {
       data: {
-        topProducts: [
-          { shippingEstimate: 50, upc: '1' },
-          { shippingEstimate: 0, upc: '2' },
-          { shippingEstimate: 25, upc: '3' },
-        ],
+        topProducts: [{
+          upc: '1',
+          inStock: true,
+          shippingEstimate: 50,
+        }, {
+          upc: '2',
+          inStock: false,
+          shippingEstimate: 0,
+        }],
       },
     };
 
@@ -424,6 +430,35 @@ describe('merging using type merging', () => {
               }
             },
           ],
+        },
+      },
+    };
+
+    expect(result).toEqual(expectedResult);
+  });
+
+  test('can stitch from inventory to products and then back to inventory', async () => {
+    const result = await graphql(
+      stitchedSchema,
+      `
+        query {
+          mostStockedProduct {
+            upc
+            inStock
+            shippingEstimate
+          }
+        }
+      `,
+      undefined,
+      {},
+    );
+
+    const expectedResult: ExecutionResult = {
+      data: {
+        mostStockedProduct: {
+          upc: '3',
+          inStock: true,
+          shippingEstimate: 25,
         },
       },
     };

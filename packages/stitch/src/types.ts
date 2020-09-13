@@ -50,6 +50,7 @@ export interface MergedTypeInfo {
 }
 
 export interface StitchingInfo {
+  transformedSubschemaConfigs: Map<SubschemaConfig, SubschemaConfig>;
   transformedSchemas: Map<GraphQLSchema | SubschemaConfig, GraphQLSchema>;
   fragmentsByField: Record<string, Record<string, InlineFragmentNode>>;
   selectionSetsByField: Record<string, Record<string, SelectionSetNode>>;
@@ -68,7 +69,10 @@ export interface IStitchSchemasOptions<TContext = any> extends Omit<IExecutableS
   mergeDirectives?: boolean;
   mergeTypes?: boolean | Array<string> | MergeTypeFilter;
   typeMergingOptions?: TypeMergingOptions;
+  subschemaConfigTransforms?: Array<SubschemaConfigTransform>;
 }
+
+export type SubschemaConfigTransform = (subschemaConfig: SubschemaConfig) => SubschemaConfig;
 
 export interface TypeMergingOptions {
   typeDescriptionsMerger?: (candidates: Array<MergeTypeCandidate>) => string;

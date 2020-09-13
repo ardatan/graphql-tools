@@ -1,12 +1,12 @@
-import { getNamedType, GraphQLOutputType, GraphQLList } from 'graphql';
+import { getNamedType, GraphQLOutputType, GraphQLList, GraphQLSchema } from 'graphql';
 
 import DataLoader from 'dataloader';
 
-import { delegateToSchema } from '@graphql-tools/delegate';
+import { delegateToSchema, SubschemaConfig } from '@graphql-tools/delegate';
 
 import { BatchDelegateOptions, DataLoaderCache } from './types';
 
-const cache: DataLoaderCache = new WeakMap();
+const cache1: DataLoaderCache = new WeakMap();
 
 function createBatchFn<K = any>(options: BatchDelegateOptions) {
   const argsFromKeys = options.argsFromKeys ?? ((keys: ReadonlyArray<K>) => ({ ids: keys }));
@@ -25,18 +25,27 @@ function createBatchFn<K = any>(options: BatchDelegateOptions) {
   };
 }
 
-function createLoader<K = any, V = any, C = K>(options: BatchDelegateOptions): DataLoader<K, V, C> {
-  const batchFn = createBatchFn(options);
-  const newValue = new DataLoader<K, V, C>(keys => batchFn(keys), options.dataLoaderOptions);
-  cache.set(options.info.fieldNodes, newValue);
-  return newValue;
-}
-
 export function getLoader<K = any, V = any, C = K>(options: BatchDelegateOptions): DataLoader<K, V, C> {
-  const cachedValue = cache.get(options.info.fieldNodes);
-  if (cachedValue === undefined) {
-    return createLoader(options);
+  let cache2: WeakMap<GraphQLSchema | SubschemaConfig, DataLoader<K, V, C>> = cache1.get(options.info.fieldNodes);
+  let loader: DataLoader<K, V, C>;
+
+  if (cache2 === undefined) {
+    const batchFn = createBatchFn(options);
+    cache2 = new WeakMap();
+    cache1.set(options.info.fieldNodes, cache2);
+    loader = new DataLoader<K, V, C>(keys => batchFn(keys), options.dataLoaderOptions);
+    cache2.set(options.schema, loader);
+    return loader;
   }
 
-  return cachedValue;
+  loader = cache2.get(options.schema);
+
+  if (loader === undefined) {
+    const batchFn = createBatchFn(options);
+    loader = new DataLoader<K, V, C>(keys => batchFn(keys), options.dataLoaderOptions);
+    cache2.set(options.schema, loader);
+    return loader;
+  }
+
+  return loader;
 }
