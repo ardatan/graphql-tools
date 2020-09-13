@@ -8,12 +8,6 @@ Type merging allows _partial definitions_ of a type to exist in any subschema, a
 
 Type merging is now the preferred method of including GraphQL types across subschemas (replacing the need for [schema extensions](/docs/stitch-schema-extensions)).
 
-<!--
-Using type merging frequently eliminates the need for schema extensions, though does not preclude their use. Merging can often outperform extensions by resolving entire portions of an object tree with a single delegation. More broadly, it offers similar capabilities to [Apollo Federation](https://www.apollographql.com/docs/apollo-server/federation/introduction/) while using only plain GraphQL and bare-metal configuration.
--->
-
-Type merging simply merges types of the same name, though it is smart enough to apply provided subschema transforms prior to merging. That means type names have to be identical on the gateway, but not the individual subschema.
-
 ## Basic example
 
 Type merging allows each subschema to provide portions of a type that it posesses data for. For example:
@@ -107,6 +101,8 @@ type User {
   posts: [Post]!
 }
 ```
+
+Type merging simply merges types of the same name, though it is smart enough to apply provided subschema transforms prior to merging. That means type names have to be identical on the gateway, but not the individual subschema.
 
 ### Types without a database
 
@@ -436,9 +432,25 @@ const gatewaySchema = stitchSchemas({
 });
 ```
 
-In the above, the storefronts service's `Product` type has two fields, `shippingEstimate` and `deliveryService` marked with `@computed` directives, which indicates that additional selection sets are required to resolve those fields beyond what is required to resolve the type. If&mdash;and only if&mdash;these fields are included within the query, the gateway will collect the necessary fields before attempts to access the `Product` from the storefronts service.
+In the above, the storefronts service's `Product` type has two fields, `shippingEstimate` and `deliveryService` marked with `@computed` directives, which indicate that additional selection sets are required to resolve those fields beyond what is required to resolve the type. If&mdash;and only if&mdash;these fields are selected within a query, the gateway will collect the necessary dependencies before attempting to access a `Product` from the storefronts service.
 
-Of note, the resolver for `availableProducts` therefore needs only return the product `id`&mdash;and not the `price` and `weight`&mdash;even though the `price` and `weight`, for example, are necessary to resolve the `shippingEstimate`. In this setup, the products service remains the single source of truth for the `price` and `weight` of a `Product`, while the storefronts service is solely responsible for the `shippingEstimate`. Importantly, the gateway is required to make this work, as the storefronts service has no internal concept at all of `price` and `weight` and, if queried directly for `storefront.availableProducts.shippingEstimate`, the query will be valid, but only `null` will be returned.
+Of note, the resolver for `availableProducts` therefore needs only return the product `id`&mdash;and not the `price` and `weight`&mdash;even though the `price` and `weight`, for example, are necessary to resolve the `shippingEstimate`. In this setup, the products service remains the single source of truth for the `price` and `weight` of a `Product`, while the storefronts service is solely responsible for the `shippingEstimate`, but the gateway is required to make this work, as the storefronts service has no internal concept at all of `price` and `weight`.
+
+What happens if the storefronts service is queried for `storefront.availableProducts.shippingEstimate` directly? It would return `null`. What happens if the storefronts service was modified as follows?
+
+```
+...
+  resolvers: {
+    Query: {
+      storefront: (root, { id }) => ({ id, availableProducts: [{ id: '23', price: 5, weight 25 }] }),
+      ...
+    },
+    ...
+});
+...
+```
+
+Now querying it directly for `shippingEstimate` would be possible, but if the gateway is queried, the internal `price` and `weight` data would be ignored in favor of the single source of truth for this data within the products service. The same query may therefore yield different results when directed to the subschema or the gateway.
 
 The `@computed` SDL directive is a convenience syntax for static configuration that can be written as follows:
 
