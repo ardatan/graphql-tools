@@ -129,7 +129,7 @@ export function delegateRequest({
   if (isSubschemaConfig(subschemaOrSubschemaConfig)) {
     const stitchingInfo: StitchingInfo = info?.schema.extensions?.stitchingInfo;
     if (stitchingInfo) {
-      const processedSubschema = stitchingInfo.processedSubschemas.get(subschemaOrSubschemaConfig);
+      const processedSubschema = stitchingInfo.transformedSubschemaConfigs.get(subschemaOrSubschemaConfig);
       subschemaConfig = processedSubschema != null ? processedSubschema : subschemaOrSubschemaConfig;
     } else {
       subschemaConfig = subschemaOrSubschemaConfig;

@@ -235,10 +235,9 @@ describe('merging using type merging', () => {
         merge: {
           Product: {
             selectionSet: '{ upc }',
-            fields: {
+            computedFields: {
               shippingEstimate: {
                 selectionSet: '{ price weight }',
-                federate: true,
               },
             },
             fieldName: '_products',
@@ -279,7 +278,7 @@ describe('merging using type merging', () => {
     mergeTypes: true,
   });
 
-  test('can stitch from products to inventory schema including non-federated and federated fields', async () => {
+  test('can stitch from products to inventory schema including mixture of computed and non-computed fields', async () => {
     const result = await graphql(
       stitchedSchema,
       `

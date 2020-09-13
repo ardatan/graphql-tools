@@ -350,7 +350,7 @@ const gatewaySchema = stitchSchemas({
 });
 ```
 
-## Federated fields
+## Computed fields
 
 APIs may leverage the gateway layer to transport field dependencies from one subservice to another while resolving data. The gateway can also be used in some situations to specify which service should be used to gather the field dependencies. For example:
 
@@ -374,17 +374,17 @@ const productsSchema = makeExecutableSchema({
 
 const storefrontsSchema = makeExecutableSchema({
   typeDefs: `
-    directive @requires(selectionSet: String!, federate: Boolean = true) on FIELD_DEFINITION
+    directive @computed(selectionSet: String!) on FIELD_DEFINITION
 
     type Storefront {
       id: ID!
       availableProducts: [Product]!
     }
-
+s
     type Product {
       id: ID!
-      shippingEstimate: Float! @requires(selectionSet: "{ price weight }")
-      deliveryService: String! @requires(selectionSet: "{ weight }")
+      shippingEstimate: Float! @computed(selectionSet: "{ price weight }")
+      deliveryService: String! @computed(selectionSet: "{ weight }")
     }
 
     input ProductInput {
@@ -436,31 +436,11 @@ const gatewaySchema = stitchSchemas({
 });
 ```
 
-In the above, the storefronts service's `Product` type has two fields, `shippingEstimate` and `deliveryService` marked with `@requires` directives, which indicates that additional selectionSets are required to resolve those fields beyond what is required to resolve the type. If&mdash;and only if&mdash;these fields are included within the query, the gateway will collect the necessary fields before attempts to access the `Product` from the storefronts service.
+In the above, the storefronts service's `Product` type has two fields, `shippingEstimate` and `deliveryService` marked with `@computed` directives, which indicates that additional selection sets are required to resolve those fields beyond what is required to resolve the type. If&mdash;and only if&mdash;these fields are included within the query, the gateway will collect the necessary fields before attempts to access the `Product` from the storefronts service.
 
-The above schema also enables the `federate` option by default, which means that even though the storefronts schema may originate objects of type `Product` (via the `storefront.availableProducts` query), the fields marked with `@requires` will always fetch the declared dependencies from other services. The storefronts service will then be visited again to resolve the extra fields.
+Of note, the resolver for `availableProducts` therefore needs only return the product `id`&mdash;and not the `price` and `weight`&mdash;even though the `price` and `weight`, for example, are necessary to resolve the `shippingEstimate`. In this setup, the products service remains the single source of truth for the `price` and `weight` of a `Product`, while the storefronts service is solely responsible for the `shippingEstimate`. Importantly, the gateway is required to make this work, as the storefronts service has no internal concept at all of `price` and `weight` and, if queried directly for `storefront.availableProducts.shippingEstimate`, the query will be valid, but only `null` will be returned.
 
-Of note, the resolver for `availableProducts` therefore needs only return the product `id`&mdash;and not the `price` and `weight`&mdash;even though the `price` and `weight`, for example, are necessary to resolve the `shippingEstimate`. In this setup, the products service remains the single source of truth for the `price` and `weight` of a `Product`, while the storefronts service is solely responsible for the `shippingEstimate`, but the gateway is required to make this work, as the storefronts service has no internal concept at all of `price` and `weight`.
-
-What happens if the storefronts service is queried for `storefront.availableProducts.shippingEstimate` directly? It would return `null`. What happens if the storefronts service was modified as follows?
-
-```
-...
-  resolvers: {
-    Query: {
-      storefront: (root, { id }) => ({ id, availableProducts: [{ id: '23', price: 5, weight 25 }] }),
-      ...
-    },
-    ...
-});
-...
-```
-
-Now querying it directly for `shippingEstimate` would be possible, but as long as `federate` is set to true, if the gateway is queried, the internal `price` and `weight` data would be ignored in favor of the single source of truth for this data within the products service. The same query may therefore yield different results when directed to the subschema or the gateway.
-
-Alternatively, `federate` could be set to false. Then as long as the `availableProducts` has been modified to include internal `price` and `weight` data as above, the gateway would use the `requires` directive to avoid requesting fields it doesn't need. When originating data from within the service via the `storefront.availableProducts` query, `price` and `weight` data may be overfetched.
-
-The `@requires` SDL directive is a convenience syntax for static configuration that can be written as follows:
+The `@computed` SDL directive is a convenience syntax for static configuration that can be written as follows:
 
 ```js
 {
@@ -468,9 +448,9 @@ The `@requires` SDL directive is a convenience syntax for static configuration t
   merge: {
     Product: {
       selectionSet: '{ id }',
-      fields: {
-        shippingEstimate: { selectionSet: '{ price weight }', federate: true },
-        deliveryService: { selectionSet: '{ weight }', federate: true },
+      computedFields: {
+        shippingEstimate: { selectionSet: '{ price weight }' },
+        deliveryService: { selectionSet: '{ weight }' },
       },
       fieldName: '_products',
       key: ({ id, price, weight }) => ({ id, price, weight }),
@@ -480,11 +460,11 @@ The `@requires` SDL directive is a convenience syntax for static configuration t
 }
 ```
 
-The main disadvantage of federating fields is that they create fields within a subservice that cannot be resolved without the gateway. Tolerance for this inconsistency is largely dependent on your own service architecture. An imperfect solution is to deprecate all federated fields within a subschema, and then normalize their behavior in the gateway schema using the [`RemoveObjectFieldDeprecations`](https://github.com/ardatan/graphql-tools/blob/master/packages/wrap/tests/transformRemoveObjectFieldDeprecations.test.ts) transform.
+The main disadvantage of computed fields is that they create fields within a subservice that cannot be resolved without the gateway. Tolerance for this inconsistency is largely dependent on your own service architecture. An imperfect solution is to deprecate all computed fields within a subschema, and then normalize their behavior in the gateway schema using the [`RemoveObjectFieldDeprecations`](https://github.com/ardatan/graphql-tools/blob/master/packages/wrap/tests/transformRemoveObjectFieldDeprecations.test.ts) transform.
 
 ## Federated services
 
-If you're familiar with [Apollo Federation](https://www.apollographql.com/docs/apollo-server/federation/introduction/), then you may notice that the above pattern of federated fields looks very similar to the `_entities` service design of the [Apollo Federation specification](https://www.apollographql.com/docs/apollo-server/federation/federation-spec/).
+If you're familiar with [Apollo Federation](https://www.apollographql.com/docs/apollo-server/federation/introduction/), then you may notice that the above pattern of computed fields looks very similar to the `@computed` directive and the `_entities` service design of the [Apollo Federation specification](https://www.apollographql.com/docs/apollo-server/federation/federation-spec/).
 
 While type merging offers [simpler patterns](#unidirectional-merges) with [comparable performance](#batching), it can also interface directly with Apollo Federation services when needed by sending appropraitely formatted representations to the `_entities` query:
 
@@ -502,11 +482,11 @@ While type merging offers [simpler patterns](#unidirectional-merges) with [compa
 }
 ```
 
-The Federation `@requires(fields: "first second")` directive is supported as an alias of the type merging counterpart. Other Federation directives are ignored as their behaviors are implicit within type merging:
+The field set syntax `@computed(fields: "first second")` directive is supported as an alias of the Apollo Federation `@computed` counterpart. Counterparts of the other Federation directives are as follows:
 
-- `@key`: type merging is fully decentralized with no concept of an "origin" service. Required field selections are resolved from any number of services guided entirely by availability.
-- `@external`: type merging expects that types only implement fields they provide.
-- `@provides`: type merging automatically selects as many requested fields as possible from as few services as possible. Sub-objects available within a visited service are automatically selected.
+- `@key`: type merging is fully decentralized with no concept of an "origin" service. Required field selections are resolved from any number of services guided entirely by availability. The closest thing to a key is the type-wide selection set within the merged type configuration.
+- `@external`: similarly, type merging expects types to only implement fields they provide.
+- `@provides`: type merging implicitly handles multiple services implementing the same fields and automatically selects as many requested fields as possible from as few services as possible. Sub-objects available within a visited service are automatically selected.
 
 
 ## Custom merge resolvers
@@ -556,4 +536,4 @@ mergedTypeConfig.resolve = (originalResult, context, info, schemaOrSubschemaConf
 
 This resolver switches to a batched implementation in the presence of a `mergedTypeConfig.key` function. You may also provide your own custom implementation, however... note the extremely important `skipTypeMerging` setting. Without this option, your gateway will recursively merge types forever!
 
-Note that when using a custom `resolve` implementation, `fieldName` and `args` are not required. Secondary to an underlying implementation detail, however, `fieldName` must also be included, whenever ary fields are being federated.
+Note that when using a custom `resolve` implementation, `fieldName` and `args` are not required. Secondary to an underlying implementation detail, however, `fieldName` must also be included, whenever ary fields are being computed.

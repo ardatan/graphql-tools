@@ -6,7 +6,7 @@ import { getImplementingTypes, pruneSchema, filterSchema } from '@graphql-tools/
 
 import { TransformCompositeFields } from '@graphql-tools/wrap';
 
-export function isolateFederatedFields(subschemaConfig: SubschemaConfig): Array<SubschemaConfig> {
+export function isolateComputedFields(subschemaConfig: SubschemaConfig): Array<SubschemaConfig> {
   const baseSchemaTypes: Record<string, MergedTypeConfig> = {};
   const isolatedSchemaTypes: Record<string, MergedTypeConfig> = {};
 
@@ -18,14 +18,14 @@ export function isolateFederatedFields(subschemaConfig: SubschemaConfig): Array<
     const mergedTypeConfig: MergedTypeConfig = subschemaConfig.merge[typeName];
     baseSchemaTypes[typeName] = mergedTypeConfig;
 
-    if (mergedTypeConfig.fields) {
+    if (mergedTypeConfig.computedFields) {
       const baseFields: Record<string, MergedFieldConfig> = {};
       const isolatedFields: Record<string, MergedFieldConfig> = {};
 
-      Object.keys(mergedTypeConfig.fields).forEach((fieldName: string) => {
-        const mergedFieldConfig = mergedTypeConfig.fields[fieldName];
+      Object.keys(mergedTypeConfig.computedFields).forEach((fieldName: string) => {
+        const mergedFieldConfig = mergedTypeConfig.computedFields[fieldName];
 
-        if (mergedFieldConfig.selectionSet && mergedFieldConfig.federate) {
+        if (mergedFieldConfig.selectionSet) {
           isolatedFields[fieldName] = mergedFieldConfig;
         } else {
           baseFields[fieldName] = mergedFieldConfig;

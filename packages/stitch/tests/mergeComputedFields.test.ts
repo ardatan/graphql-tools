@@ -21,7 +21,7 @@ const productSchema = makeExecutableSchema({
   }
 });
 
-describe('merge federated fields via config', () => {
+describe('merge computed fields via config', () => {
   const storefrontSchema = makeExecutableSchema({
     typeDefs: `
       type Product {
@@ -76,9 +76,9 @@ describe('merge federated fields via config', () => {
         merge: {
           Product: {
             selectionSet: '{ id }',
-            fields: {
-              shippingEstimate: { selectionSet: '{ price weight }', federate: true },
-              deliveryService: { selectionSet: '{ weight }', federate: true },
+            computedFields: {
+              shippingEstimate: { selectionSet: '{ price weight }' },
+              deliveryService: { selectionSet: '{ weight }' },
             },
             fieldName: '_products',
             key: ({ id, price, weight }) => ({ id, price, weight }),
@@ -139,15 +139,15 @@ describe('merge federated fields via config', () => {
   });
 });
 
-describe('merge federated fields via SDL (Apollo Federation-style directive annotation)', () => {
+describe('merge computed fields via SDL (Apollo Federation-style directive annotation)', () => {
   const storefrontSchema = makeExecutableSchema({
     typeDefs: `
-      directive @requires(selectionSet: String!, federate: Boolean = true) on FIELD_DEFINITION
+      directive @computed(selectionSet: String!) on FIELD_DEFINITION
 
       type Product {
         id: ID!
-        shippingEstimate: Float! @requires(selectionSet: "{ price weight }")
-        deliveryService: DeliveryService! @requires(selectionSet: "{ weight }")
+        shippingEstimate: Float! @computed(selectionSet: "{ price weight }")
+        deliveryService: DeliveryService! @computed(selectionSet: "{ weight }")
       }
       enum DeliveryService {
         POSTAL

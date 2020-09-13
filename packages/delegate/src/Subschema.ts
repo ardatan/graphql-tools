@@ -1,6 +1,6 @@
 import { GraphQLSchema } from 'graphql';
 
-import { Transform, applySchemaTransforms, mapSchema, MapperKind, getDirectives } from '@graphql-tools/utils';
+import { Transform, applySchemaTransforms } from '@graphql-tools/utils';
 
 import {
   SubschemaConfig,
@@ -26,6 +26,37 @@ export function setObjectSubschema(result: any, subschema: GraphQLSchema | Subsc
 export function isSubschemaConfig(value: any): value is SubschemaConfig | Subschema {
   return Boolean(value.schema && value.permutations === undefined);
 }
+
+export function cloneSubschemaConfig(subschemaConfig: SubschemaConfig): SubschemaConfig {
+  const newSubschemaConfig = {
+    ...subschemaConfig,
+    transforms: subschemaConfig.transforms != null ? [...subschemaConfig.transforms] : undefined,
+  };
+
+  if (newSubschemaConfig.merge != null) {
+    newSubschemaConfig.merge = { ...subschemaConfig.merge };
+    Object.keys(newSubschemaConfig.merge).forEach(typeName => {
+      newSubschemaConfig.merge[typeName] = { ...subschemaConfig.merge[typeName] };
+
+      const fields = newSubschemaConfig.merge[typeName].fields;
+      if (fields != null) {
+        Object.keys(fields).forEach(fieldName => {
+          fields[fieldName] = { ...fields[fieldName] };
+        });
+      }
+
+      const computedFields = newSubschemaConfig.merge[typeName].computedFields;
+      if (computedFields != null) {
+        Object.keys(computedFields).forEach(fieldName => {
+          computedFields[fieldName] = { ...computedFields[fieldName] };
+        });
+      }
+    });
+  }
+
+  return newSubschemaConfig;
+}
+
 export function isSubschema(value: any): value is Subschema {
   return Boolean(value.transformedSchema);
 }
@@ -45,7 +76,6 @@ export class Subschema<K = any, V = any, C = K> {
   public transformedSchema: GraphQLSchema;
 
   public merge?: Record<string, MergedTypeConfig>;
-  public requiresDirectiveName: string;
 
   constructor(config: SubschemaConfig) {
     this.schema = config.schema;
@@ -61,38 +91,6 @@ export class Subschema<K = any, V = any, C = K> {
     this.transforms = config.transforms ?? [];
     this.transformedSchema = applySchemaTransforms(this.schema, this.transforms);
 
-    this.merge = config.merge ?? {};
-    this.requiresDirectiveName = config.requiresDirectiveName ?? 'requires';
-
-    this.schema = mapSchema(this.schema, {
-      [MapperKind.OBJECT_FIELD]: (fieldConfig, fieldName, typeName, schema) => {
-        const mergeTypeConfig = this.merge[typeName];
-
-        if (mergeTypeConfig == null) {
-          return undefined;
-        }
-
-        const requires = getDirectives(schema, fieldConfig)[this.requiresDirectiveName];
-
-        if (requires == null) {
-          return undefined;
-        }
-
-        const selectionSet = requires.fields != null ? `{ ${requires.fields} }` : requires.selectionSet;
-
-        if (selectionSet == null) {
-          return undefined;
-        }
-
-        mergeTypeConfig.fields = mergeTypeConfig.fields ?? {};
-        mergeTypeConfig.fields[fieldName] = mergeTypeConfig.fields[fieldName] ?? {};
-
-        const mergeFieldConfig = mergeTypeConfig.fields[fieldName];
-        mergeFieldConfig.selectionSet = mergeFieldConfig.selectionSet ?? selectionSet;
-        mergeFieldConfig.federate = Boolean(requires.federate);
-
-        return undefined;
-      },
-    });
+    this.merge = config.merge;
   }
 }

@@ -147,12 +147,12 @@ export interface SubschemaPermutation {
 export interface SubschemaConfig<K = any, V = any, C = K> extends SubschemaPermutation, Endpoint<K, V, C> {
   schema: GraphQLSchema;
   endpoint?: Endpoint;
-  requiresDirectiveName?: string;
 }
 
 export interface MergedTypeConfig<K = any, V = any> {
   selectionSet?: string;
-  fields?: Record<string, MergedFieldConfig>;
+  fields?: Record<string, { selectionSet?: string }>;
+  computedFields?: Record<string, { selectionSet?: string }>;
   resolve?: MergedTypeResolver;
   fieldName?: string;
   args?: (originalResult: any) => Record<string, any>;
@@ -163,7 +163,6 @@ export interface MergedTypeConfig<K = any, V = any> {
 
 export interface MergedFieldConfig {
   selectionSet?: string;
-  federate?: boolean;
 }
 
 export type MergedTypeResolver = (
@@ -175,7 +174,7 @@ export type MergedTypeResolver = (
 ) => any;
 
 export interface StitchingInfo {
-  processedSubschemas: Map<SubschemaConfig, SubschemaConfig>;
+  transformedSubschemaConfigs: Map<SubschemaConfig, SubschemaConfig>;
   transformedSchemas: Map<GraphQLSchema | SubschemaConfig, GraphQLSchema>;
   fragmentsByField: Record<string, Record<string, InlineFragmentNode>>;
   selectionSetsByField: Record<string, Record<string, SelectionSetNode>>;

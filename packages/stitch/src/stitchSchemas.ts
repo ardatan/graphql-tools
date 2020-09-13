@@ -25,9 +25,10 @@ import {
 
 import { buildTypeCandidates, buildTypeMap } from './typeCandidates';
 import { createStitchingInfo, completeStitchingInfo, addStitchingInfo } from './stitchingInfo';
-import { IStitchSchemasOptions } from './types';
-import { SubschemaConfig, isSubschemaConfig, Subschema } from '@graphql-tools/delegate';
-import { isolateFederatedFields } from './isolateFederatedFields';
+import { IStitchSchemasOptions, SubschemaConfigTransform } from './types';
+import { SubschemaConfig, isSubschemaConfig } from '@graphql-tools/delegate';
+import { isolateComputedFields } from './isolateComputedFields';
+import { defaultSubschemaConfigTransforms } from './subschemaConfigTransforms';
 
 export function stitchSchemas({
   subschemas = [],
@@ -39,6 +40,7 @@ export function stitchSchemas({
   mergeDirectives,
   mergeTypes = false,
   typeMergingOptions,
+  subschemaConfigTransforms = defaultSubschemaConfigTransforms,
   resolvers = {},
   schemaDirectives,
   inheritResolversFromInterfaces = false,
@@ -55,19 +57,23 @@ export function stitchSchemas({
   }
 
   let schemaLikeObjects: Array<GraphQLSchema | SubschemaConfig | DocumentNode | GraphQLNamedType> = [];
-  const compiledSubschemas: Map<SubschemaConfig, SubschemaConfig> = new Map();
+  const transformedSubschemaConfigs: Map<SubschemaConfig, SubschemaConfig> = new Map();
 
   subschemas.forEach(subschemaOrSubschemaArray => {
     if (Array.isArray(subschemaOrSubschemaArray)) {
       subschemaOrSubschemaArray.forEach(s => {
-        schemaLikeObjects = schemaLikeObjects.concat(compileSubschemaConfig(s, compiledSubschemas));
+        schemaLikeObjects = schemaLikeObjects.concat(
+          applySubschemaConfigTransforms(subschemaConfigTransforms, s, transformedSubschemaConfigs)
+        );
       });
-    } else if (isSubschemaConfig(subschemaOrSubschemaArray)) {
-      schemaLikeObjects = schemaLikeObjects.concat(
-        compileSubschemaConfig(subschemaOrSubschemaArray, compiledSubschemas)
-      );
     } else {
-      schemaLikeObjects.push(subschemaOrSubschemaArray);
+      schemaLikeObjects = schemaLikeObjects.concat(
+        applySubschemaConfigTransforms(
+          subschemaConfigTransforms,
+          subschemaOrSubschemaArray,
+          transformedSubschemaConfigs
+        )
+      );
     }
   });
 
@@ -141,7 +147,7 @@ export function stitchSchemas({
     directives.push(directiveMap[directiveName]);
   });
 
-  let stitchingInfo = createStitchingInfo(compiledSubschemas, transformedSchemas, typeCandidates, mergeTypes);
+  let stitchingInfo = createStitchingInfo(transformedSubschemaConfigs, transformedSchemas, typeCandidates, mergeTypes);
 
   const typeMap = buildTypeMap({
     typeCandidates,
@@ -220,17 +226,24 @@ export function stitchSchemas({
   return pruningOptions ? pruneSchema(schema, pruningOptions) : schema;
 }
 
-function compileSubschemaConfig(
-  subschemaConfig: SubschemaConfig,
-  compiledSubschemas: Map<SubschemaConfig, SubschemaConfig>
+function applySubschemaConfigTransforms(
+  subschemaConfigTransforms: Array<SubschemaConfigTransform>,
+  subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig,
+  transformedSubschemaConfigs: Map<SubschemaConfig, SubschemaConfig>
 ): Array<SubschemaConfig> {
-  const subschema = new Subschema(subschemaConfig);
+  const subschemaConfig = isSubschemaConfig(subschemaOrSubschemaConfig)
+    ? subschemaOrSubschemaConfig
+    : { schema: subschemaOrSubschemaConfig };
 
-  const subschemas = isolateFederatedFields(subschema);
+  const newSubschemaConfig = subschemaConfigTransforms.reduce((acc, subschemaConfigTransform) => {
+    return subschemaConfigTransform(acc);
+  }, subschemaConfig);
 
-  const nonFederatedSubschema = subschemas[0];
+  const subschemas = isolateComputedFields(newSubschemaConfig);
 
-  compiledSubschemas.set(subschemaConfig, nonFederatedSubschema);
+  const baseSubschema = subschemas[0];
+
+  transformedSubschemaConfigs.set(subschemaConfig, baseSubschema);
 
   return subschemas;
 }

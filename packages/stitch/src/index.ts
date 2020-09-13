@@ -1,3 +1,5 @@
 export { stitchSchemas } from './stitchSchemas';
 export { forwardArgsToSelectionSet } from './selectionSetArgs';
-export { isolateFederatedFields } from './isolateFederatedFields';
+export { isolateComputedFields } from './isolateComputedFields';
+
+export * from './subschemaConfigTransforms';
