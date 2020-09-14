@@ -479,7 +479,7 @@ While type merging offers [simpler patterns](#unidirectional-merges) with [compa
 Type merging generally maps to Federation concepts as follows:
 
 - `@key`: type merging's closest analog is the type-level `selectionSet` specified in merged type configuration. Unlike Federation though, merging is fully decentralized with no concept of an "origin" service.
-- `@requires`: directly comperable to type merging's `@computed` directive. However, merging is decentralized and may resolve required fields from any number of services.
+- `@requires`: directly comparable to type merging's `@computed` directive. However, merging is decentralized and may resolve required fields from any number of services.
 - `@external`: type merging implicitly expects types in each service to only implement the fields they provide.
 - `@provides`: type merging implicitly handles multiple services implementing the same fields, and automatically selects as many requested fields as possible from as few services as possible. Available sub-objects within a visited service are automatically selected.
 
