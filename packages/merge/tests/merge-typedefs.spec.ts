@@ -763,7 +763,7 @@ describe('Merge TypeDefs', () => {
     });
     it('should handle extend types when GraphQLSchema is the source', () => {
       const schema = stitchSchemas({
-        schemas: [
+        typeDefs: [
           `
           type Query {
             foo: String
@@ -807,7 +807,7 @@ describe('Merge TypeDefs', () => {
 
     it('should handle extend input types', () => {
       const schema = stitchSchemas({
-        schemas: [
+        typeDefs: [
           `
           type Query {
             foo(i: TestInput): String

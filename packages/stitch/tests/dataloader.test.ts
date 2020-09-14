@@ -49,7 +49,7 @@ describe('dataloader', () => {
     });
 
     const schema = stitchSchemas({
-      schemas: [taskSchema, userSchema],
+      subschemas: [taskSchema, userSchema],
       typeDefs: `
         extend type Task {
           user: User!

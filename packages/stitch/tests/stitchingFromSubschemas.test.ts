@@ -39,7 +39,7 @@ const schemas: Record<string, GraphQLSchema> = {};
 const getSchema = (name: string) => schemas[name];
 
 let chirpSchema = stitchSchemas({
-  schemas: [
+  typeDefs: [
     chirpTypeDefs,
     authorTypeDefs,
     `
@@ -77,7 +77,7 @@ chirpSchema = addMocksToSchema({
 });
 
 let authorSchema = stitchSchemas({
-  schemas: [
+  typeDefs: [
     chirpTypeDefs,
     authorTypeDefs,
     `
@@ -117,7 +117,7 @@ schemas.chirpSchema = chirpSchema;
 schemas.authorSchema = authorSchema;
 
 const stitchedSchema = stitchSchemas({
-  schemas: Object.keys(schemas).map((schemaName) => schemas[schemaName]),
+  subschemas:Object.keys(schemas).map((schemaName) => schemas[schemaName]),
 });
 
 describe('merging without specifying fragments', () => {

@@ -78,7 +78,8 @@ describe('stitching', () => {
     let schema: GraphQLSchema;
     beforeAll(() => {
       schema = stitchSchemas({
-        schemas: [bookingSchema, propertySchema, proxyTypeDefs],
+        subschemas: [bookingSchema, propertySchema],
+        typeDefs: proxyTypeDefs,
         resolvers: proxyResolvers,
       });
     });
