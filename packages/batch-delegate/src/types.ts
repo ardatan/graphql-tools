@@ -1,10 +1,13 @@
-import { FieldNode } from 'graphql';
+import { FieldNode, GraphQLSchema } from 'graphql';
 
 import DataLoader from 'dataloader';
 
-import { IDelegateToSchemaOptions } from '@graphql-tools/delegate';
+import { IDelegateToSchemaOptions, SubschemaConfig } from '@graphql-tools/delegate';
 
-export type DataLoaderCache<K = any, V = any, C = K> = WeakMap<ReadonlyArray<FieldNode>, DataLoader<K, V, C>>;
+export type DataLoaderCache<K = any, V = any, C = K> = WeakMap<
+  ReadonlyArray<FieldNode>,
+  WeakMap<GraphQLSchema | SubschemaConfig, DataLoader<K, V, C>>
+>;
 
 export type BatchDelegateFn<TContext = Record<string, any>, K = any> = (
   batchDelegateOptions: BatchDelegateOptions<TContext, K>

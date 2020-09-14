@@ -151,13 +151,12 @@ export interface Endpoint<K = any, V = any, C = K> {
   executor?: Executor;
   subscriber?: Subscriber;
   batch?: boolean;
-  batchingOptions?: {
-    extensionsReducer?: (
-      mergedExtensions: Record<string, any>,
-      executionParams: ExecutionParams
-    ) => Record<string, any>;
-    dataLoaderOptions?: DataLoader.Options<K, V, C>;
-  };
+  batchingOptions?: EndpointBatchingOptions<K, V, C>;
+}
+
+export interface EndpointBatchingOptions<K = any, V = any, C = K> {
+  extensionsReducer?: (mergedExtensions: Record<string, any>, executionParams: ExecutionParams) => Record<string, any>;
+  dataLoaderOptions?: DataLoader.Options<K, V, C>;
 }
 
 export interface SubschemaPermutation {
@@ -174,12 +173,17 @@ export interface SubschemaConfig<K = any, V = any, C = K> extends SubschemaPermu
 export interface MergedTypeConfig<K = any, V = any> {
   selectionSet?: string;
   fields?: Record<string, { selectionSet?: string }>;
+  computedFields?: Record<string, { selectionSet?: string }>;
   resolve?: MergedTypeResolver;
   fieldName?: string;
   args?: (originalResult: any) => Record<string, any>;
   key?: (originalResult: any) => K;
   argsFromKeys?: (keys: ReadonlyArray<K>) => Record<string, any>;
   valuesFromResults?: (results: any, keys: ReadonlyArray<K>) => Array<V>;
+}
+
+export interface MergedFieldConfig {
+  selectionSet?: string;
 }
 
 export type MergedTypeResolver = (
@@ -191,12 +195,12 @@ export type MergedTypeResolver = (
 ) => any;
 
 export interface StitchingInfo {
+  transformedSubschemaConfigs: Map<SubschemaConfig, SubschemaConfig>;
   transformedSchemas: Map<GraphQLSchema | SubschemaConfig, GraphQLSchema>;
   fragmentsByField: Record<string, Record<string, InlineFragmentNode>>;
   selectionSetsByField: Record<string, Record<string, SelectionSetNode>>;
   dynamicSelectionSetsByField: Record<string, Record<string, Array<(node: FieldNode) => SelectionSetNode>>>;
   mergedTypes: Record<string, MergedTypeInfo>;
-  endpoints: Record<string, Endpoint>;
 }
 
 export interface ExternalObject {

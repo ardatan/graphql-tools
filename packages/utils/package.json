@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/utils",
-  "version": "6.2.0",
+  "version": "6.2.2",
   "description": "Common package containting utils and types for GraphQL tools",
   "repository": "git@github.com:ardatan/graphql-tools.git",
   "author": "Dotan Simha <dotansimha@gmail.com>",
@@ -18,11 +18,12 @@
   "devDependencies": {
     "@types/dateformat": "3.0.1",
     "dateformat": "3.0.3",
-    "graphql-scalars": "1.2.6"
+    "graphql-scalars": "1.2.7"
   },
   "dependencies": {
-    "@ardatan/aggregate-error": "0.0.2",
-    "camel-case": "4.1.1"
+    "@ardatan/aggregate-error": "0.0.6",
+    "camel-case": "4.1.1",
+    "tslib": "~2.0.1"
   },
   "publishConfig": {
     "access": "public",

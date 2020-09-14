@@ -62,6 +62,7 @@ typings/
 
 
 dist
+dist-es5
 build
 temp
 .idea

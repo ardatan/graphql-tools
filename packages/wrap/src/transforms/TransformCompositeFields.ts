@@ -155,12 +155,12 @@ export default class TransformCompositeFields implements Transform {
         transformedSelection = transformedSelection === undefined ? selection : transformedSelection;
       }
 
-      if (Array.isArray(transformedSelection)) {
+      if (transformedSelection == null) {
+        return;
+      } else if (Array.isArray(transformedSelection)) {
         newSelections = newSelections.concat(transformedSelection);
         return;
-      }
-
-      if (transformedSelection.kind !== Kind.FIELD) {
+      } else if (transformedSelection.kind !== Kind.FIELD) {
         newSelections.push(transformedSelection);
         return;
       }
