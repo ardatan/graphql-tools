@@ -64,7 +64,6 @@ export interface IStitchSchemasOptions<TContext = any> extends Omit<IExecutableS
   subschemas?: Array<GraphQLSchema | SubschemaConfig | Array<SubschemaConfig>>;
   typeDefs?: ITypeDefinitions;
   types?: Array<GraphQLNamedType>;
-  schemas?: Array<SchemaLikeObject>;
   onTypeConflict?: OnTypeConflict;
   mergeDirectives?: boolean;
   mergeTypes?: boolean | Array<string> | MergeTypeFilter;

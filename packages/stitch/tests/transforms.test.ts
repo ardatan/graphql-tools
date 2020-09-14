@@ -115,14 +115,14 @@ describe('filter fields', () => {
     assertValidSchema(filteredSchema);
 
     const stitchedSchema = stitchSchemas({
-      schemas: [
+      subschemas: [
         filteredSchema,
-        `
-          extend type Property {
-            location: Location
-          }
-        `,
       ],
+      typeDefs: `
+        extend type Property {
+          location: Location
+        }
+      `,
     });
 
     assertValidSchema(stitchedSchema);

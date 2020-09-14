@@ -31,7 +31,7 @@ describe('passes along errors for missing fields on list', () => {
     });
 
     const stitchedSchema = stitchSchemas({
-      schemas: [schema],
+      subschemas: [schema],
     });
 
     const query = '{ getOuter { innerList { mandatoryField } } }';
@@ -66,7 +66,7 @@ describe('passes along errors for missing fields on list', () => {
     });
 
     const stitchedSchema = stitchSchemas({
-      schemas: [schema],
+      subschemas: [schema],
     });
 
     const query = '{ getOuter { innerList { mandatoryField } } }';
@@ -103,7 +103,7 @@ describe('passes along errors when list field errors', () => {
     });
 
     const stitchedSchema = stitchSchemas({
-      schemas: [schema],
+      subschemas: [schema],
     });
 
     const query = '{ getOuter { innerList { mandatoryField } } }';
@@ -138,7 +138,7 @@ describe('passes along errors when list field errors', () => {
     });
 
     const stitchedSchema = stitchSchemas({
-      schemas: [schema],
+      subschemas: [schema],
     });
 
     const query = '{ getOuter { innerList { mandatoryField } } }';
@@ -207,7 +207,7 @@ describe('passes along errors for remote schemas', () => {
     }) as ExecutionResult<any>;
 
     const stitchedSchema = stitchSchemas({
-      schemas: [{
+      subschemas: [{
         schema,
         executor,
       }]

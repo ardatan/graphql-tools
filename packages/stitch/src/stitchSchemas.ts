@@ -5,7 +5,6 @@ import {
   GraphQLDirective,
   specifiedDirectives,
   extendSchema,
-  isSchema,
   ASTNode,
   GraphQLNamedType,
 } from 'graphql';
@@ -34,8 +33,6 @@ export function stitchSchemas({
   subschemas = [],
   types = [],
   typeDefs,
-  // `schemas` to be removed in v7, replaces by subschemas, types, typeDefs
-  schemas = [],
   onTypeConflict,
   mergeDirectives,
   mergeTypes = false,
@@ -77,47 +74,13 @@ export function stitchSchemas({
     }
   });
 
-  // to be removed in v7
-  schemas.forEach(schemaLikeObject => {
-    if (
-      !isSchema(schemaLikeObject) &&
-      !isSubschemaConfig(schemaLikeObject) &&
-      typeof schemaLikeObject !== 'string' &&
-      !isDocumentNode(schemaLikeObject) &&
-      !Array.isArray(schemaLikeObject)
-    ) {
-      throw new Error('Invalid schema passed');
-    }
-  });
-
-  // to be removed in v7
-  schemas.forEach(schemaLikeObject => {
-    if (isSchema(schemaLikeObject) || isSubschemaConfig(schemaLikeObject)) {
-      schemaLikeObjects.push(schemaLikeObject);
-    }
-  });
-
   if ((typeDefs && !Array.isArray(typeDefs)) || (Array.isArray(typeDefs) && typeDefs.length)) {
     schemaLikeObjects.push(buildDocumentFromTypeDefinitions(typeDefs, parseOptions));
   }
 
-  // to be removed in v7
-  schemas.forEach(schemaLikeObject => {
-    if (typeof schemaLikeObject === 'string' || isDocumentNode(schemaLikeObject)) {
-      schemaLikeObjects.push(buildDocumentFromTypeDefinitions(schemaLikeObject, parseOptions));
-    }
-  });
-
   if (types != null) {
     schemaLikeObjects = schemaLikeObjects.concat(types);
   }
-
-  // to be removed in v7
-  schemas.forEach(schemaLikeObject => {
-    if (Array.isArray(schemaLikeObject)) {
-      schemaLikeObjects = schemaLikeObjects.concat(schemaLikeObject);
-    }
-  });
 
   const transformedSchemas: Map<GraphQLSchema | SubschemaConfig, GraphQLSchema> = new Map();
   const extensions: Array<DocumentNode> = [];
