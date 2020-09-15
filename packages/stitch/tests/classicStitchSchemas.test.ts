@@ -41,10 +41,17 @@ const serviceSchema = makeExecutableSchema({
   }
 });
 
+const serviceSchemaConfig = {
+  schema: serviceSchema,
+  transforms: [
+    new RenameTypes((name: string) => `Classic${name}`),
+  ]
+};
+
 const item: IFieldResolverOptions = {
   resolve(_, args, context, info) {
     return delegateToSchema({
-      schema: serviceSchema,
+      schema: serviceSchemaConfig,
       fieldName: 'item',
       args,
       context,
@@ -56,7 +63,7 @@ const item: IFieldResolverOptions = {
 const itemByVariant: IFieldResolverOptions = {
   resolve(_, { variant }, context, info) {
     return delegateToSchema({
-      schema: serviceSchema,
+      schema: serviceSchemaConfig,
       fieldName: 'item',
       args: { id: `item_${variant}` },
       context,
@@ -84,12 +91,7 @@ describe('test delegateToSchema() with type renaming', () => {
   beforeAll(async () => {
 
     stitchedSchema = stitchSchemas({
-      subschemas: [{
-        schema: serviceSchema,
-        transforms: [
-           new RenameTypes((name: string) => `Classic${name}`),
-        ]
-      }],
+      subschemas: [serviceSchemaConfig],
       typeDefs,
       resolvers: {
         Query: {
@@ -121,7 +123,10 @@ describe('test delegateToSchema() with type renaming', () => {
 
     expect(result).toEqual({
       data: {
-        item: ITEM,
+        item: {
+          ...ITEM,
+          __typename: 'ClassicItem',
+        },
       },
     });
   });
@@ -147,7 +152,10 @@ describe('test delegateToSchema() with type renaming', () => {
 
     expect(result).toEqual({
       data: {
-        itemByVariant: ITEM,
+        itemByVariant: {
+          ...ITEM,
+          __typename: 'ClassicItem',
+        },
       },
     });
   });
