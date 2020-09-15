@@ -1,5 +1,6 @@
 import {
   graphql,
+  GraphQLError,
   GraphQLSchema,
 } from 'graphql';
 
@@ -48,31 +49,6 @@ const serviceSchemaConfig = {
   ]
 };
 
-const item: IFieldResolverOptions = {
-  resolve(_, args, context, info) {
-    return delegateToSchema({
-      schema: serviceSchemaConfig,
-      fieldName: 'item',
-      args,
-      context,
-      info,
-    });
-  }
-};
-
-const itemByVariant: IFieldResolverOptions = {
-  resolve(_, { variant }, context, info) {
-    return delegateToSchema({
-      schema: serviceSchemaConfig,
-      fieldName: 'item',
-      args: { id: `item_${variant}` },
-      context,
-      info,
-    });
-  },
-};
-
-
 describe('test delegateToSchema() with type renaming', () => {
   let stitchedSchema: GraphQLSchema;
 
@@ -95,37 +71,13 @@ describe('test delegateToSchema() with type renaming', () => {
       typeDefs,
       resolvers: {
         Query: {
-          item,
-          itemByVariant
-        },
-      },
-    });
-  });
-
-  test('item should work', async () => {
-    const result = await graphql(
-      stitchedSchema,
-      `
-        query($id: ID!) {
-          item(id: $id) {
-            __typename
-            id
-            name
-          }
-        }
-      `,
-      {},
-      {},
-      {
-        id: '123',
-      },
-    );
-
-    expect(result).toEqual({
-      data: {
-        item: {
-          ...ITEM,
-          __typename: 'ClassicItem',
+          itemByVariant: (_, { variant }, context, info) => delegateToSchema({
+            schema: serviceSchema,
+            fieldName: 'item',
+            args: { id: `item_${variant}` },
+            context,
+            info,
+          }),
         },
       },
     });
@@ -152,11 +104,9 @@ describe('test delegateToSchema() with type renaming', () => {
 
     expect(result).toEqual({
       data: {
-        itemByVariant: {
-          ...ITEM,
-          __typename: 'ClassicItem',
-        },
+        itemByVariant: null,
       },
+      errors: [new GraphQLError(`Unable to resolve type 'Item'. Did you possibly transform types and forget to delegate to the subschema configuration object?`)],
     });
   });
 
