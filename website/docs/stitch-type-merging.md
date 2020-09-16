@@ -146,7 +146,7 @@ const postsSchema = makeExecutableSchema({
 });
 ```
 
-In this example, `userById` simply converts the submitted ID into stub record that get resolved as the local `User` type.
+In this example, `userById` simply converts the submitted ID into stub record that gets resolved as the local `User` type.
 
 ## Batching
 
