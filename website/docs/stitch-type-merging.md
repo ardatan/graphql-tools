@@ -255,7 +255,7 @@ let usersSchema = makeExecutableSchema({
 });
 ```
 
-When a stub type like the above includes no other data beyond a key shared across services, then the type may be considered _unidirectional_ to the service&mdash;that is, the service holds no unique data that would require an inbound request to fetch it. In these cases, `merge` config may be omitted entirely for the stub type:
+When a stub type like the one above includes no other data beyond a key shared across services, then the type may be considered _unidirectional_ to the service&mdash;that is, the service holds no unique data that would require an inbound request to fetch it. In these cases, `merge` config may be omitted entirely for the stub type:
 
 ```js
 const gatewaySchema = stitchSchemas({
@@ -286,6 +286,22 @@ Stubbed types are quick and easy to setup and effectively work as automatic [sch
 Type merging will automatically consolidate interfaces of the same name across subschemas, allowing each subschema to contribute fields. This is extremely useful when the complete interface of fields is not available in all subschemas&mdash;each subschema simply provides the minimum set of fields that it contains:
 
 ```js
+const postsSchema = makeExecutableSchema({
+  typeDefs: `
+    interface HomepageSlot {
+      id: ID!
+      title: String!
+      url: URL!
+    }
+
+    type Post implements HomepageSlot {
+      id: ID!
+      title: String!
+      url: URL!
+    }
+  `
+});
+
 const layoutsSchema = makeExecutableSchema({
   typeDefs: `
     interface HomepageSlot {
@@ -308,29 +324,13 @@ const layoutsSchema = makeExecutableSchema({
     }
   `
 });
-
-const postsSchema = makeExecutableSchema({
-  typeDefs: `
-    interface HomepageSlot {
-      id: ID!
-      title: String!
-      url: URL!
-    }
-
-    type Post implements HomepageSlot {
-      id: ID!
-      title: String!
-      url: URL!
-    }
-  `
-});
 ```
 
 In the above, both `Post` and `Section` will have a common interface of `{ id title url }` in the gateway schema. The difference in fields between the gateway schema and the layouts subschema will be translated automatically.
 
 ## Merged descriptions
 
-The default description (docstring) of each merged type and field comes from the final definition encountered in the subschemas array. You may customize this by adding selection logic into `typeMergingOptions`. For example, these handlers select the first non-blank description for each type and field:
+The default description (docstring) of each merged type and field comes from the final definition encountered in the subschemas array. You may customize this by adding selection logic into `typeMergingOptions`. For example, these handlers will select the first non-blank description for each type and field:
 
 ```js
 const gatewaySchema = stitchSchemas({
@@ -488,7 +488,7 @@ Type merging generally maps to Federation concepts as follows:
 - `@key`: type merging's closest analog is the type-level `selectionSet` specified in merged type configuration. Unlike Federation though, merging is fully decentralized with no concept of an "origin" service.
 - `@requires`: directly comparable to type merging's `@computed` directive. However, merging is decentralized and may resolve required fields from any number of services.
 - `@external`: type merging implicitly expects types in each service to only implement the fields they provide.
-- `@provides`: type merging implicitly handles multiple services implementing the same fields, and automatically selects as many requested fields as possible from as few services as possible. Available sub-objects within a visited service are automatically selected.
+- `@provides`: type merging implicitly handles multiple services that implement the same fields, and automatically selects as many requested fields as possible from as few services as possible. Available sub-objects within a visited service are automatically selected.
 
 
 ## Custom merge resolvers
