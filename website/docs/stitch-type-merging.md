@@ -6,7 +6,7 @@ sidebar_label: Type merging
 
 Type merging allows _partial definitions_ of a type to exist in any subschema, all of which are merged into one unified type in the gateway schema. When querying for a merged type, the gateway smartly delegates portions of a request to each relevant subschema in dependency order, and then combines all results for the final return.
 
-Type merging is now the preferred method of including GraphQL types across subschemas (replacing the need for [schema extensions](/docs/stitch-schema-extensions)).
+Type merging is now the preferred method of including GraphQL types across subschemas, replacing the need for [schema extensions](/docs/stitch-schema-extensions) (though does not preclude their use). To migrate from schema extensions, simply enable type merging and then start replacing extensions one by one with merges.
 
 ## Basic example
 
@@ -188,7 +188,7 @@ const gatewaySchema = stitchSchemas({
 });
 ```
 
-A `valuesFromResults` method may also be provided to map the raw query result into the batched set. With this array optimization in place, we'll now only perform one query per merged field. However, multiple merged fields will still perform a query each. To optimize this further, we can now enable query-level batching (as of GraphQL Tools v6.2):
+A `valuesFromResults` method may also be provided to map the raw query result into the batched set. With this array optimization in place, we'll now only perform one query per merged field. However, multiple merged fields will still perform a query each. To optimize this further, we can now enable [query-level batching](https://github.com/prisma-labs/http-link-dataloader#even-better-batching) (as of GraphQL Tools v6.2):
 
 ```js
 {
@@ -206,9 +206,16 @@ A `valuesFromResults` method may also be provided to map the raw query result in
 }
 ```
 
-Query batching will collect all merge queries made during an execution cycle and combine them into a single GraphQL operation to send to the subschema. This consolidates networking with remote services, and improves database batching within the underlying service implementation.
+Query batching will collect all queries made during an execution cycle and combine them into a single GraphQL operation to send to the subschema. This consolidates networking with remote services, and improves database batching within the underlying service implementation. You may customize query batching behavior with `batchingOptions`&mdash;this is particularly useful for providing [DataLoader options](https://github.com/graphql/dataloader#new-dataloaderbatchloadfn--options):
 
-Using both array batching and query batching together is recommended whenever possible for optimized performance.
+```ts
+batchingOptions?: {
+  dataLoaderOptions?: DataLoader.Options<K, V, C>;
+  extensionsReducer?: (mergedExtensions: Record<string, any>, executionParams: ExecutionParams) => Record<string, any>;
+}
+```
+
+Using both array batching and query batching together is recommended for best performance.
 
 ## Unidirectional merges
 
