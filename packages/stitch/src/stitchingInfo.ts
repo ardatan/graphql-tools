@@ -170,37 +170,50 @@ function createMergedTypes(
             fieldSelectionSets.set(subschema, parsedFieldSelectionSets);
           }
 
+          if (mergedTypeConfig.eagerReturn == null) {
+            mergedTypeConfig.eagerReturn = () => null;
+          }
+
           if (mergedTypeConfig.resolve != null) {
             targetSubschemas.push(subschema);
           } else if (mergedTypeConfig.key != null) {
-            mergedTypeConfig.resolve = (originalResult, context, info, subschema, selectionSet) =>
-              batchDelegateToSchema({
-                schema: subschema,
-                operation: 'query',
-                fieldName: mergedTypeConfig.fieldName,
-                key: mergedTypeConfig.key(originalResult),
-                argsFromKeys: mergedTypeConfig.argsFromKeys ?? mergedTypeConfig.args,
-                valuesFromResults: mergedTypeConfig.valuesFromResults,
-                selectionSet,
-                context,
-                info,
-                skipTypeMerging: true,
-              });
+            mergedTypeConfig.resolve = (originalResult, context, info, subschema, selectionSet) => {
+              const key = mergedTypeConfig.key(originalResult);
+              return (
+                mergedTypeConfig.eagerReturn(originalResult, key) ??
+                batchDelegateToSchema({
+                  schema: subschema,
+                  operation: 'query',
+                  fieldName: mergedTypeConfig.fieldName,
+                  key,
+                  argsFromKeys: mergedTypeConfig.argsFromKeys ?? mergedTypeConfig.args,
+                  valuesFromResults: mergedTypeConfig.valuesFromResults,
+                  selectionSet,
+                  context,
+                  info,
+                  skipTypeMerging: true,
+                })
+              );
+            };
 
             targetSubschemas.push(subschema);
           } else if (mergedTypeConfig.fieldName != null) {
-            mergedTypeConfig.resolve = (originalResult, context, info, subschema, selectionSet) =>
-              delegateToSchema({
-                schema: subschema,
-                operation: 'query',
-                fieldName: mergedTypeConfig.fieldName,
-                returnType: getNamedType(info.returnType) as GraphQLOutputType,
-                args: mergedTypeConfig.args(originalResult),
-                selectionSet,
-                context,
-                info,
-                skipTypeMerging: true,
-              });
+            mergedTypeConfig.resolve = (originalResult, context, info, subschema, selectionSet) => {
+              return (
+                mergedTypeConfig.eagerReturn(originalResult) ??
+                delegateToSchema({
+                  schema: subschema,
+                  operation: 'query',
+                  fieldName: mergedTypeConfig.fieldName,
+                  returnType: getNamedType(info.returnType) as GraphQLOutputType,
+                  args: mergedTypeConfig.args(originalResult),
+                  selectionSet,
+                  context,
+                  info,
+                  skipTypeMerging: true,
+                })
+              );
+            };
 
             targetSubschemas.push(subschema);
           }
