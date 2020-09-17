@@ -188,7 +188,12 @@ const gatewaySchema = stitchSchemas({
 });
 ```
 
-A `valuesFromResults` method may also be provided to map the raw query result into the batched set. With this array optimization in place, we'll now only perform one query per merged field. However, multiple merged fields will still perform a query each. To optimize this further, we can now enable query-level batching (as of GraphQL Tools v6.2):
+Additional batching functions may also be provided:
+
+- `eagerReturn`: accepts `originalObject` and `key`, and may eagerly return a modified object without triggering a batch request.
+- `valuesFromResults`: accepts `results` and `keys`, and may be used to map the raw query result into the batched set.
+
+With this array optimization in place, we'll now only perform one query per merged field. However, multiple merged fields will still perform a query each. To optimize this further, we can now enable query-level batching (as of GraphQL Tools v6.2):
 
 ```js
 {
