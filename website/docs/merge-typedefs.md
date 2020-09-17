@@ -109,7 +109,7 @@ const { mergeTypeDefs } = require('@graphql-tools/merge');
 
 const typesArray = loadFilesSync(path.join(__dirname, './types'));
 
-module.exports = mergeTypeDefs(typesArray, { all: true });
+module.exports = mergeTypeDefs(typesArray);
 ```
 When using the `loadFilesSync` function you can also implement your type definitions using `.graphql` or `.gql` or `.graphqls` files.
 
@@ -123,7 +123,7 @@ const { mergeTypeDefs } = require('@graphql-tools/merge');
 
 const typesArray = loadFilesSync(path.join(__dirname, './types'), { extensions: ['graphql'] });
 
-module.exports = mergeTypeDefs(typesArray, { all: true });
+module.exports = mergeTypeDefs(typesArray);
 ```
 
 > By default, the `loadFilesSync` function will not ignore files named `index.js` or `index.ts`, but you can set the `ignoreIndex` option to `true` to enable this behavior. This allows you to create your index file inside the actual types folder if desired.
@@ -185,7 +185,7 @@ const { mergeTypeDefs } = require('@graphql-tools/merge');
 
 const typesArray = loadFilesSync(path.join(__dirname, '.'), { recursive: true })
 
-module.exports = mergeTypeDefs(typesArray, { all: true })
+module.exports = mergeTypeDefs(typesArray)
 ```
 
 You can also load files in different folders by passing a glob pattern in `loadFilesSync`.
@@ -211,7 +211,7 @@ const { mergeTypeDefs } = require('@graphql-tools/merge');
 
 const typesArray = loadFilesSync(path.join(__dirname, 'graphql/**/*.graphql'))
 
-module.exports = mergeTypeDefs(typesArray, { all: true })
+module.exports = mergeTypeDefs(typesArray)
 ```
 
 ### Output the string of typeDefs
@@ -225,7 +225,7 @@ const { print } = require('graphql');
 const fs = require('fs');
 
 const loadedFiles = loadFilesSync(`${__dirname}/schema/**/*.graphql`);
-const typeDefs = mergeTypeDefs(loadedFiles, { all: true });
+const typeDefs = mergeTypeDefs(loadedFiles);
 const printedTypeDefs = print(typeDefs);
 fs.writeFileSync('joined.graphql', printedTypeDefs);
 ```
