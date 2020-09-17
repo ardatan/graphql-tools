@@ -159,7 +159,7 @@ export interface MergedTypeConfig<K = any, V = any> {
   key?: (originalResult: any) => K;
   argsFromKeys?: (keys: ReadonlyArray<K>) => Record<string, any>;
   valuesFromResults?: (results: any, keys: ReadonlyArray<K>) => Array<V>;
-  eagerReturn?: (originalResult: any, key?: any) => any;
+  eagerReturn?: (originalResult: any, key?: K) => any;
 }
 
 export interface MergedFieldConfig {
