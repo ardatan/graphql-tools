@@ -1,5 +1,5 @@
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { graphql, buildSchema, GraphQLScalarType, Kind, GraphQLSchema, ListValueNode } from 'graphql';
+import { graphql, buildSchema, GraphQLScalarType, Kind, GraphQLSchema, ListValueNode, print } from 'graphql';
 import { mergeSchemas, mergeSchemasAsync } from '../src/merge-schemas';
 import { printSchemaWithDirectives } from '@graphql-tools/utils';
 
@@ -390,6 +390,15 @@ describe('Merge Schemas', () => {
         });
 
         expect(data.a).toEqual(now.toISOString());
+    });
+
+    it.only('should not duplicate directives of scalars', () => {
+        const schema = buildSchema(`
+            directive @sqlType(type: String!) on SCALAR
+            scalar JSON @sqlType(type: "json")
+        `);
+        const merged = mergeSchemas({ schemas: [schema] });
+        expect(print(merged.getType('JSON')!.astNode!)).toEqual('scalar JSON @sqlType(type: "json")');
     });
 
     it('should merge when directive uses enum', () => {

@@ -1,4 +1,5 @@
 import {
+  GraphQLScalarType,
   GraphQLSchema,
   isScalarType,
   isEnumType,
@@ -10,8 +11,6 @@ import {
 
 import { IResolvers } from './Interfaces';
 
-import { cloneType } from './clone';
-
 export function getResolversFromSchema(schema: GraphQLSchema): IResolvers {
   const resolvers = Object.create({});
 
@@ -22,7 +21,9 @@ export function getResolversFromSchema(schema: GraphQLSchema): IResolvers {
 
     if (isScalarType(type)) {
       if (!isSpecifiedScalarType(type)) {
-        resolvers[typeName] = cloneType(type);
+        const config = type.toConfig();
+        delete config.astNode; // avoid AST duplication elsewhere
+        resolvers[typeName] = new GraphQLScalarType(config);
       }
     } else if (isEnumType(type)) {
       resolvers[typeName] = {};
