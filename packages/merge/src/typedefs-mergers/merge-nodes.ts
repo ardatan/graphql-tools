@@ -17,6 +17,7 @@ import {
 } from './utils';
 import { mergeType } from './type';
 import { mergeEnum } from './enum';
+import { mergeScalar } from './scalar';
 import { mergeUnion } from './union';
 import { mergeInputType } from './input-type';
 import { mergeInterface } from './interface';
@@ -49,7 +50,7 @@ export function mergeGraphQLNodes(nodes: ReadonlyArray<DefinitionNode>, config?:
       } else if (isGraphQLUnion(nodeDefinition) || isGraphQLUnionExtension(nodeDefinition)) {
         prev[name] = mergeUnion(nodeDefinition, prev[name] as any, config);
       } else if (isGraphQLScalar(nodeDefinition) || isGraphQLScalarExtension(nodeDefinition)) {
-        prev[name] = nodeDefinition;
+        prev[name] = mergeScalar(nodeDefinition, prev[name] as any, config);
       } else if (isGraphQLInputType(nodeDefinition) || isGraphQLInputTypeExtension(nodeDefinition)) {
         prev[name] = mergeInputType(nodeDefinition, prev[name] as any, config);
       } else if (isGraphQLInterface(nodeDefinition) || isGraphQLInterfaceExtension(nodeDefinition)) {
