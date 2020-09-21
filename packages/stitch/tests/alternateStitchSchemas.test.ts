@@ -764,7 +764,7 @@ describe('filter and rename object fields', () => {
       ]),
       rootFieldFilter: (operation: string, fieldName: string) =>
         `${operation}.${fieldName}` === 'Query.propertyById',
-      fieldFilter: (typeName: string, fieldName: string) =>
+      objectFieldFilter: (typeName: string, fieldName: string) =>
         typeName === 'New_Property' || fieldName === 'name',
       typeFilter: (typeName: string, type) =>
         typeName === 'New_Property' ||
