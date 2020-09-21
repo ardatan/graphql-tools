@@ -6,7 +6,7 @@ sidebar_label: Type merging
 
 Type merging allows _partial definitions_ of a type to exist in any subschema, all of which are merged into one unified type in the gateway schema. When querying for a merged type, the gateway smartly delegates portions of a request to each relevant subschema in dependency order, and then combines all results for the final return.
 
-Type merging is now the preferred method of including GraphQL types across subschemas (replacing the need for [schema extensions](/docs/stitch-schema-extensions)).
+Type merging is now the preferred method of including GraphQL types across subschemas, replacing the need for [schema extensions](/docs/stitch-schema-extensions) (though does not preclude their use). To migrate from schema extensions, simply enable type merging and then start replacing extensions one by one with merges.
 
 ## Basic example
 
@@ -102,7 +102,7 @@ type User {
 }
 ```
 
-Type merging simply merges types of the same name, though it is smart enough to apply provided subschema transforms prior to merging. That means type names have to be identical on the gateway, but not the individual subschema.
+Note that [subschema transforms](/docs/stitch-combining-schemas#adding-transforms) are applied prior to merging. That means transformed types will merge based on their _transformed_ names within the combined gateway schema.
 
 ### Types without a database
 
@@ -146,7 +146,7 @@ const postsSchema = makeExecutableSchema({
 });
 ```
 
-In this example, `userById` simply converts the submitted ID into stub record that get resolved as the local `User` type.
+In this example, `userById` simply converts the submitted ID into stub record that gets resolved as the local `User` type.
 
 ## Batching
 
@@ -188,7 +188,7 @@ const gatewaySchema = stitchSchemas({
 });
 ```
 
-A `valuesFromResults` method may also be provided to map the raw query result into the batched set. With this array optimization in place, we'll now only perform one query per merged field. However, multiple merged fields will still perform a query each. To optimize this further, we can now enable query-level batching (as of GraphQL Tools v6.2):
+A `valuesFromResults` method may also be provided to map the raw query result into the batched set. With this array optimization in place, we'll now only perform one query per merged field. However, multiple merged fields will still perform a query each. To optimize this further, we can now enable [query-level batching](https://github.com/prisma-labs/http-link-dataloader#even-better-batching) (as of GraphQL Tools v6.2):
 
 ```js
 {
@@ -206,9 +206,16 @@ A `valuesFromResults` method may also be provided to map the raw query result in
 }
 ```
 
-Query batching will collect all merge queries made during an execution cycle and combine them into a single GraphQL operation to send to the subschema. This consolidates networking with remote services, and improves database batching within the underlying service implementation.
+Query batching will collect all queries made during an execution cycle and combine them into a single GraphQL operation to send to the subschema. This consolidates networking with remote services, and improves database batching within the underlying service implementation. You may customize query batching behavior with `batchingOptions`&mdash;this is particularly useful for providing [DataLoader options](https://github.com/graphql/dataloader#new-dataloaderbatchloadfn--options):
 
-Using both array batching and query batching together is recommended whenever possible for optimized performance.
+```ts
+batchingOptions?: {
+  dataLoaderOptions?: DataLoader.Options<K, V, C>;
+  extensionsReducer?: (mergedExtensions: Record<string, any>, executionParams: ExecutionParams) => Record<string, any>;
+}
+```
+
+Using both array batching and query batching together is recommended for best performance.
 
 ## Unidirectional merges
 
@@ -248,7 +255,7 @@ let usersSchema = makeExecutableSchema({
 });
 ```
 
-When a stub type like the above includes no other data beyond a key shared across services, then the type may be considered _unidirectional_ to the service&mdash;that is, the service holds no unique data that would require an inbound request to fetch it. In these cases, `merge` config may be omitted entirely for the stub type:
+When a stub type like the one above includes no other data beyond a key shared across services, then the type may be considered _unidirectional_ to the service&mdash;that is, the service holds no unique data that would require an inbound request to fetch it. In these cases, `merge` config may be omitted entirely for the stub type:
 
 ```js
 const gatewaySchema = stitchSchemas({
@@ -276,9 +283,25 @@ Stubbed types are quick and easy to setup and effectively work as automatic [sch
 
 ## Merged interfaces
 
-Type merging will automatically consolidate interfaces of the same name across subschemas, allowing each subschema to contribute fields. This is extremely useful when the complete interface of fields is not available in all schemas&mdash;each schema simply provides the minimum set of fields that it does possess:
+Type merging will automatically consolidate interfaces of the same name across subschemas, allowing each subschema to contribute fields. This is extremely useful when the complete interface of fields is not available in all subschemas&mdash;each subschema simply provides the minimum set of fields that it contains:
 
 ```js
+const postsSchema = makeExecutableSchema({
+  typeDefs: `
+    interface HomepageSlot {
+      id: ID!
+      title: String!
+      url: URL!
+    }
+
+    type Post implements HomepageSlot {
+      id: ID!
+      title: String!
+      url: URL!
+    }
+  `
+});
+
 const layoutsSchema = makeExecutableSchema({
   typeDefs: `
     interface HomepageSlot {
@@ -301,29 +324,13 @@ const layoutsSchema = makeExecutableSchema({
     }
   `
 });
-
-const postsSchema = makeExecutableSchema({
-  typeDefs: `
-    interface HomepageSlot {
-      id: ID!
-      title: String!
-      url: URL!
-    }
-
-    type Post implements HomepageSlot {
-      id: ID!
-      title: String!
-      url: URL!
-    }
-  `
-});
 ```
 
 In the above, both `Post` and `Section` will have a common interface of `{ id title url }` in the gateway schema. The difference in fields between the gateway schema and the layouts subschema will be translated automatically.
 
 ## Merged descriptions
 
-The default description (docstring) of each merged type and field comes from the final definition encountered in the subschemas array. You may customize this by adding selection logic into `typeMergingOptions`. For example, these handlers select the first non-blank description for each type and field:
+The default description (docstring) of each merged type and field comes from the final definition encountered in the subschemas array. You may customize this by adding selection logic into `typeMergingOptions`. For example, these handlers will select the first non-blank description for each type and field:
 
 ```js
 const gatewaySchema = stitchSchemas({
@@ -348,7 +355,7 @@ const gatewaySchema = stitchSchemas({
 
 ## Computed fields
 
-APIs may leverage the gateway layer to transport field dependencies from one subservice to another while resolving data. The gateway can also be used in some situations to specify which service should be used to gather the field dependencies. For example:
+APIs may leverage the gateway layer to transport field dependencies from one subservice to another while resolving data. This is useful when a field in one subschema requires one or more fields from other subschemas to be resolved, as described in the [federation spec](https://www.apollographql.com/docs/apollo-server/federation/federation-spec/#requires). For example:
 
 ```js
 const productsSchema = makeExecutableSchema({
@@ -363,9 +370,7 @@ const productsSchema = makeExecutableSchema({
       productsByIds(ids: [ID!]!): [Product]!
     }
   `,
-  resolvers: {
-    ...
-  }
+  resolvers: { ... },
 });
 
 const storefrontsSchema = makeExecutableSchema({
@@ -376,7 +381,7 @@ const storefrontsSchema = makeExecutableSchema({
       id: ID!
       availableProducts: [Product]!
     }
-s
+
     type Product {
       id: ID!
       shippingEstimate: Float! @computed(selectionSet: "{ price weight }")
@@ -408,7 +413,7 @@ s
 
 const gatewaySchema = stitchSchemas({
   subschemas: [{
-    schema: addMocksToSchema({ schema: productsSchema }),
+    schema: productsSchema,
     merge: {
       Product: {
         selectionSet: '{ id }',
@@ -432,25 +437,9 @@ const gatewaySchema = stitchSchemas({
 });
 ```
 
-In the above, the storefronts service's `Product` type has two fields, `shippingEstimate` and `deliveryService` marked with `@computed` directives, which indicate that additional selection sets are required to resolve those fields beyond what is required to resolve the type. If&mdash;and only if&mdash;these fields are selected within a query, the gateway will collect the necessary dependencies before attempting to access a `Product` from the storefronts service.
+In the above, the `shippingEstimate` and `deliveryService` fields are marked with `@computed` directives, which specify additional _field-level dependencies_ required to resolve these specific fields beyond the `Product` type's base selection set. When a computed field appears in a query, the gateway will collect that field's dependencies from other subschemas so they may be sent as input with the request for the computed field(s).
 
-Of note, the resolver for `availableProducts` therefore needs only return the product `id`&mdash;and not the `price` and `weight`&mdash;even though the `price` and `weight`, for example, are necessary to resolve the `shippingEstimate`. In this setup, the products service remains the single source of truth for the `price` and `weight` of a `Product`, while the storefronts service is solely responsible for the `shippingEstimate`, but the gateway is required to make this work, as the storefronts service has no internal concept at all of `price` and `weight`.
-
-What happens if the storefronts service is queried for `storefront.availableProducts.shippingEstimate` directly? It would return `null`. What happens if the storefronts service was modified as follows?
-
-```
-...
-  resolvers: {
-    Query: {
-      storefront: (root, { id }) => ({ id, availableProducts: [{ id: '23', price: 5, weight 25 }] }),
-      ...
-    },
-    ...
-});
-...
-```
-
-Now querying it directly for `shippingEstimate` would be possible, but if the gateway is queried, the internal `price` and `weight` data would be ignored in favor of the single source of truth for this data within the products service. The same query may therefore yield different results when directed to the subschema or the gateway.
+To facilitate this dependency pattern, computed and non-computed fields of a type in the same subservice are automatically split apart into separate schemas. This assures that computed fields are always requested directly by the gateway with their dependencies provided. For example, `Storefront.availableProducts` may originate Product records within the storefronts service, but these records may not immedaitely compute `shippingEstimate` because they do not yet have their external dependencies. Instead, the gateway will need to return to the storefronts service with a dedicated request for computed fields that includes their dependencies as input. All told, types that combine computed and non-computed fields in a single subschema may require an extra resolution step by the gateway. You may enable [query batching](#batching) to consolidate these requests whenever possible.
 
 The `@computed` SDL directive is a convenience syntax for static configuration that can be written as follows:
 
@@ -474,11 +463,11 @@ The `@computed` SDL directive is a convenience syntax for static configuration t
 
 The main disadvantage of computed fields is that they create fields within a subservice that cannot be resolved without the gateway. Tolerance for this inconsistency is largely dependent on your own service architecture. An imperfect solution is to deprecate all computed fields within a subschema, and then normalize their behavior in the gateway schema using the [`RemoveObjectFieldDeprecations`](https://github.com/ardatan/graphql-tools/blob/master/packages/wrap/tests/transformRemoveObjectFieldDeprecations.test.ts) transform.
 
-## Federated services
+## Federation services
 
-If you're familiar with [Apollo Federation](https://www.apollographql.com/docs/apollo-server/federation/introduction/), then you may notice that the above pattern of computed fields looks very similar to the `@computed` directive and the `_entities` service design of the [Apollo Federation specification](https://www.apollographql.com/docs/apollo-server/federation/federation-spec/).
+If you're familiar with [Apollo Federation](https://www.apollographql.com/docs/apollo-server/federation/introduction/), then you may notice that the above pattern of computed fields looks similar to the `_entities` service design of the [Apollo Federation specification](https://www.apollographql.com/docs/apollo-server/federation/federation-spec/).
 
-While type merging offers [simpler patterns](#unidirectional-merges) with [comparable performance](#batching), it can also interface directly with Apollo Federation services when needed by sending appropraitely formatted representations to the `_entities` query:
+While type merging offers [simpler patterns](#unidirectional-merges) with [comparable performance](#batching), it can also interface with Apollo Federation services when needed by sending appropraitely formatted representations to the `_entities` query:
 
 ```js
 {
@@ -494,11 +483,12 @@ While type merging offers [simpler patterns](#unidirectional-merges) with [compa
 }
 ```
 
-The field set syntax `@computed(fields: "first second")` directive is supported as an alias of the Apollo Federation `@computed` counterpart. Counterparts of the other Federation directives are as follows:
+Type merging generally maps to Federation concepts as follows:
 
-- `@key`: type merging is fully decentralized with no concept of an "origin" service. Required field selections are resolved from any number of services guided entirely by availability. The closest thing to a key is the type-wide selection set within the merged type configuration.
-- `@external`: similarly, type merging expects types to only implement fields they provide.
-- `@provides`: type merging implicitly handles multiple services implementing the same fields and automatically selects as many requested fields as possible from as few services as possible. Sub-objects available within a visited service are automatically selected.
+- `@key`: type merging's closest analog is the type-level `selectionSet` specified in merged type configuration. Unlike Federation though, merging is fully decentralized with no concept of an "origin" service.
+- `@requires`: directly comparable to type merging's `@computed` directive. However, merging is decentralized and may resolve required fields from any number of services.
+- `@external`: type merging implicitly expects types in each service to only implement the fields they provide.
+- `@provides`: type merging implicitly handles multiple services that implement the same fields, and automatically selects as many requested fields as possible from as few services as possible. Available sub-objects within a visited service are automatically selected.
 
 
 ## Custom merge resolvers
