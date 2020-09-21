@@ -51,6 +51,7 @@ const builtinDirectives = [
   'provides',
   'connection',
   'client',
+  'specifiedBy',
 ];
 
 const IMPORT_FROM_REGEX = /^import\s+(\*|(.*))\s+from\s+('|")(.*)('|");?$/;
