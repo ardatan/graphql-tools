@@ -28,6 +28,7 @@ import {
   FilterObjectFields,
   RenameInterfaceFields,
   TransformRootFields,
+  PruneSchema,
 } from '@graphql-tools/wrap';
 
 import {
@@ -1266,6 +1267,100 @@ describe('schema transformation with extraction of nested fields', () => {
         },
       },
     });
+  });
+});
+
+describe('HoistField transform', () => {
+  const schema = makeExecutableSchema({
+    typeDefs: `
+      type Query {
+        query: Outer
+      }
+      type Outer {
+        inner(innerArg: String): Inner
+      }
+      type Inner {
+        test(testArg: String = "test"): String
+      }
+    `,
+    resolvers: {
+      Query: {
+        query: () => ({ inner: {} }),
+      },
+      Outer: {
+        inner: (_parent, args) => ({ innerArg: args.innerArg }),
+      },
+      Inner: {
+        test: (parent, args) => parent.innerArg ?? args.testArg,
+      },
+    },
+  })
+
+  test('should work to hoist fields without using arguments', async () => {
+    const wrappedSchema = wrapSchema({
+      schema,
+      transforms: [new HoistField('Outer', ['inner', 'test'], 'hoisted'), new PruneSchema({})],
+    })
+
+    const result = await graphql(wrappedSchema, '{ query { hoisted } }');
+
+    const expectedResult = {
+      data: {
+        query: {
+          hoisted: 'test',
+        },
+      },
+    };
+
+    expect(result).toEqual(expectedResult);
+  });
+
+  test('should work to hoist fields with using arguments', async () => {
+    const wrappedSchema = wrapSchema({
+      schema,
+      transforms: [new HoistField('Outer', ['inner', 'test'], 'hoisted'), new PruneSchema({})],
+    })
+
+    const result = await graphql(wrappedSchema, '{ query { hoisted(testArg: "custom") } }');
+
+    const expectedResult = {
+      data: {
+        query: {
+          hoisted: 'custom',
+        },
+      },
+    };
+
+    expect(result).toEqual(expectedResult);
+  });
+
+  test('should work to hoist fields with using arguments from fields in path', async () => {
+    const wrappedSchema = wrapSchema({
+      schema,
+      transforms: [
+        new HoistField(
+          'Outer',
+          [
+            { fieldName: 'inner', argFilter: () => true },
+            'test'
+          ],
+          'hoisted'
+        ),
+        new PruneSchema({})
+      ],
+    })
+
+    const result = await graphql(wrappedSchema, '{ query { hoisted(innerArg: "priority", testArg: "custom") } }');
+
+    const expectedResult = {
+      data: {
+        query: {
+          hoisted: 'priority',
+        },
+      },
+    };
+
+    expect(result).toEqual(expectedResult);
   });
 });
 
