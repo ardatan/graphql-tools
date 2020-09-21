@@ -11,7 +11,6 @@ import { makeExecutableSchema } from '@graphql-tools/schema';
 import { RenameTypes } from "@graphql-tools/wrap";
 
 import { stitchSchemas } from '../src/stitchSchemas';
-import { IFieldResolverOptions } from '@graphql-tools/utils';
 
 const ITEM = {
   __typename: "Item",
@@ -106,7 +105,7 @@ describe('test delegateToSchema() with type renaming', () => {
       data: {
         itemByVariant: null,
       },
-      errors: [new GraphQLError(`Unable to resolve type 'Item'. Did you possibly transform types and forget to delegate to the subschema configuration object?`)],
+      errors: [new GraphQLError(`Unable to resolve type 'Item'. Did you forget to include a transform that renames types? Did you delegate to the original subschema rather that the subschema config object containing the transform?`)],
     });
   });
 

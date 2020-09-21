@@ -37,7 +37,7 @@ export function handleObject(
     const resolvedType = info.schema.getTypeMap()[object.__typename];
     if (resolvedType == null) {
       throw new Error(
-        `Unable to resolve type '${object.__typename}'. Did you possibly transform types and forget to delegate to the subschema configuration object?`
+        `Unable to resolve type '${object.__typename}'. Did you forget to include a transform that renames types? Did you delegate to the original subschema rather that the subschema config object containing the transform?`
       );
     }
     typeName = resolvedType.name;
