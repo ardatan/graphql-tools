@@ -272,6 +272,24 @@ describe('Merge TypeDefs', () => {
       expect(schema.getType('UniqueId')).toBeDefined();
     });
 
+    it('should merge scalar directives', () => {
+      const merged = mergeTypeDefs([
+        `
+        scalar JSON
+        directive @sqlType(type: String!) on SCALAR
+        extend scalar JSON @sqlType(type: "json")
+        `
+      ]);
+
+      expect(stripWhitespaces(print(merged))).toBe(
+        stripWhitespaces(/* GraphQL */`
+          scalar JSON @sqlType(type: "json")
+
+          directive @sqlType(type: String!) on SCALAR
+          `
+        ));
+    });
+
     it('should merge descriptions', () => {
       const merged = mergeTypeDefs([
         `
