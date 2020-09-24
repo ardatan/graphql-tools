@@ -58,7 +58,7 @@
     "jest": "26.4.2",
     "lint-staged": "10.4.0",
     "nock": "13.0.4",
-    "prettier": "2.1.1",
+    "prettier": "2.1.2",
     "ts-jest": "26.4.0",
     "typedoc": "0.17.0-3",
     "typedoc-plugin-markdown": "2.3.1",
