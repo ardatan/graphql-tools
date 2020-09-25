@@ -2,7 +2,7 @@ import { GraphQLSchema, GraphQLEnumValueConfig, ExecutionResult } from 'graphql'
 
 import { Request, MapperKind, mapSchema } from '@graphql-tools/utils';
 
-import { Transform, DelegationContext } from '@graphql-tools/delegate';
+import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
 import { EnumValueTransformer, LeafValueTransformer } from '../types';
 
@@ -29,8 +29,8 @@ export default class TransformEnumValues implements Transform<MapLeafValuesTrans
     );
   }
 
-  public transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
-    const transformedSchema = this.transformer.transformSchema(originalSchema);
+  public transformSchema(originalWrappingSchema: GraphQLSchema, subschemaConfig?: SubschemaConfig): GraphQLSchema {
+    const transformedSchema = this.transformer.transformSchema(originalWrappingSchema, subschemaConfig);
     this.transformedSchema = mapSchema(transformedSchema, {
       [MapperKind.ENUM_VALUE]: (valueConfig, typeName, _schema, externalValue) =>
         this.transformEnumValue(typeName, externalValue, valueConfig),

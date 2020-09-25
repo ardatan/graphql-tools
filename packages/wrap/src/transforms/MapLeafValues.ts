@@ -23,7 +23,7 @@ import {
   transformInputValue,
 } from '@graphql-tools/utils';
 
-import { Transform, DelegationContext } from '@graphql-tools/delegate';
+import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
 import { LeafValueTransformer } from '../types';
 
@@ -35,7 +35,7 @@ export default class MapLeafValues implements Transform<MapLeafValuesTransformat
   private readonly inputValueTransformer: LeafValueTransformer;
   private readonly outputValueTransformer: LeafValueTransformer;
   private readonly resultVisitorMap: ResultVisitorMap;
-  private originalSchema: GraphQLSchema;
+  private originalWrappingSchema: GraphQLSchema;
   private typeInfo: TypeInfo;
 
   constructor(inputValueTransformer: LeafValueTransformer, outputValueTransformer: LeafValueTransformer) {
@@ -44,9 +44,9 @@ export default class MapLeafValues implements Transform<MapLeafValuesTransformat
     this.resultVisitorMap = Object.create(null);
   }
 
-  public transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
-    this.originalSchema = originalSchema;
-    const typeMap = originalSchema.getTypeMap();
+  public transformSchema(originalWrappingSchema: GraphQLSchema, _subschemaConfig: SubschemaConfig): GraphQLSchema {
+    this.originalWrappingSchema = originalWrappingSchema;
+    const typeMap = originalWrappingSchema.getTypeMap();
     Object.keys(typeMap).forEach(typeName => {
       const type = typeMap[typeName];
       if (!typeName.startsWith('__')) {
@@ -55,8 +55,8 @@ export default class MapLeafValues implements Transform<MapLeafValuesTransformat
         }
       }
     });
-    this.typeInfo = new TypeInfo(originalSchema);
-    return originalSchema;
+    this.typeInfo = new TypeInfo(originalWrappingSchema);
+    return originalWrappingSchema;
   }
 
   public transformRequest(
@@ -98,7 +98,7 @@ export default class MapLeafValues implements Transform<MapLeafValuesTransformat
     return visitResult(
       originalResult,
       transformationContext.transformedRequest,
-      this.originalSchema,
+      this.originalWrappingSchema,
       this.resultVisitorMap
     );
   }

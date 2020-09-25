@@ -2,7 +2,7 @@ import { GraphQLSchema, GraphQLFieldConfig } from 'graphql';
 
 import { Request, ExecutionResult } from '@graphql-tools/utils';
 
-import { Transform, DelegationContext } from '@graphql-tools/delegate';
+import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
 import { RootFieldTransformer, FieldNodeTransformer } from '../types';
 
@@ -18,10 +18,10 @@ export default class TransformRootFields implements Transform {
     this.fieldNodeTransformer = fieldNodeTransformer;
   }
 
-  public transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
-    const queryTypeName = originalSchema.getQueryType()?.name;
-    const mutationTypeName = originalSchema.getMutationType()?.name;
-    const subscriptionTypeName = originalSchema.getSubscriptionType()?.name;
+  public transformSchema(originalWrappingSchema: GraphQLSchema, subschemaConfig?: SubschemaConfig): GraphQLSchema {
+    const queryTypeName = originalWrappingSchema.getQueryType()?.name;
+    const mutationTypeName = originalWrappingSchema.getMutationType()?.name;
+    const subscriptionTypeName = originalWrappingSchema.getSubscriptionType()?.name;
 
     const rootToObjectFieldTransformer = (
       typeName: string,
@@ -45,7 +45,7 @@ export default class TransformRootFields implements Transform {
 
     this.transformer = new TransformObjectFields(rootToObjectFieldTransformer, this.fieldNodeTransformer);
 
-    return this.transformer.transformSchema(originalSchema);
+    return this.transformer.transformSchema(originalWrappingSchema, subschemaConfig);
   }
 
   public transformRequest(

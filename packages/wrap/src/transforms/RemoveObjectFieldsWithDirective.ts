@@ -2,7 +2,7 @@ import { GraphQLSchema, GraphQLFieldConfig } from 'graphql';
 
 import { getDirectives, valueMatchesCriteria } from '@graphql-tools/utils';
 
-import { Transform } from '@graphql-tools/delegate';
+import { SubschemaConfig, Transform } from '@graphql-tools/delegate';
 
 import FilterObjectFields from './FilterObjectFields';
 
@@ -15,10 +15,10 @@ export default class RemoveObjectFieldsWithDirective implements Transform {
     this.args = args;
   }
 
-  public transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
+  public transformSchema(originalWrappingSchema: GraphQLSchema, subschemaConfig?: SubschemaConfig): GraphQLSchema {
     const transformer = new FilterObjectFields(
       (_typeName: string, _fieldName: string, fieldConfig: GraphQLFieldConfig<any, any>) => {
-        const valueMap = getDirectives(originalSchema, fieldConfig);
+        const valueMap = getDirectives(originalWrappingSchema, fieldConfig);
         return !Object.keys(valueMap).some(
           directiveName =>
             valueMatchesCriteria(directiveName, this.directiveName) &&
@@ -29,6 +29,6 @@ export default class RemoveObjectFieldsWithDirective implements Transform {
       }
     );
 
-    return transformer.transformSchema(originalSchema);
+    return transformer.transformSchema(originalWrappingSchema, subschemaConfig);
   }
 }

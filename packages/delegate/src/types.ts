@@ -21,7 +21,10 @@ import { Operation, Request, TypeMap, ExecutionResult } from '@graphql-tools/uti
 import { Subschema } from './Subschema';
 import { OBJECT_SUBSCHEMA_SYMBOL, FIELD_SUBSCHEMA_MAP_SYMBOL, UNPATHED_ERRORS_SYMBOL } from './symbols';
 
-export type SchemaTransform = (originalSchema: GraphQLSchema) => GraphQLSchema;
+export type SchemaTransform = (
+  originalWrappingSchema: GraphQLSchema,
+  subschemaConfig?: SubschemaConfig
+) => GraphQLSchema;
 export type RequestTransform<T = Record<string, any>> = (
   originalRequest: Request,
   delegationContext: DelegationContext,

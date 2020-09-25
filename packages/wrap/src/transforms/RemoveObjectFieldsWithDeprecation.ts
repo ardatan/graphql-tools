@@ -2,7 +2,7 @@ import { GraphQLSchema, GraphQLFieldConfig } from 'graphql';
 
 import { valueMatchesCriteria } from '@graphql-tools/utils';
 
-import { Transform } from '@graphql-tools/delegate';
+import { SubschemaConfig, Transform } from '@graphql-tools/delegate';
 
 import FilterObjectFields from './FilterObjectFields';
 
@@ -20,7 +20,7 @@ export default class RemoveObjectFieldsWithDeprecation implements Transform {
     );
   }
 
-  public transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
-    return this.transformer.transformSchema(originalSchema);
+  public transformSchema(originalWrappingSchema: GraphQLSchema, subschemaConfig?: SubschemaConfig): GraphQLSchema {
+    return this.transformer.transformSchema(originalWrappingSchema, subschemaConfig);
   }
 }

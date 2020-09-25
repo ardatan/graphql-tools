@@ -2,7 +2,7 @@ import { GraphQLSchema, GraphQLInputFieldConfig, ObjectFieldNode } from 'graphql
 
 import { Request, mapSchema, MapperKind } from '@graphql-tools/utils';
 
-import { Transform, DelegationContext } from '@graphql-tools/delegate';
+import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
 import TransformInputObjectFields from './TransformInputObjectFields';
 
@@ -42,8 +42,8 @@ export default class RenameInputObjectFields implements Transform {
     this.reverseMap = Object.create(null);
   }
 
-  public transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
-    mapSchema(originalSchema, {
+  public transformSchema(originalWrappingSchema: GraphQLSchema, subschemaConfig?: SubschemaConfig): GraphQLSchema {
+    mapSchema(originalWrappingSchema, {
       [MapperKind.INPUT_OBJECT_FIELD]: (
         inputFieldConfig: GraphQLInputFieldConfig,
         fieldName: string,
@@ -64,7 +64,7 @@ export default class RenameInputObjectFields implements Transform {
       },
     });
 
-    return this.transformer.transformSchema(originalSchema);
+    return this.transformer.transformSchema(originalWrappingSchema, subschemaConfig);
   }
 
   public transformRequest(
