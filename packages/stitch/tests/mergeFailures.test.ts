@@ -161,3 +161,122 @@ describe('merge failures', () => {
     expect(result).toEqual(expectedResult);
   });
 });
+
+describe('nullable merging', () => {
+  test('works for asymmetric record sets', async () => {
+    const users = [
+      { id: '1', username: 'hanshotfirst' },
+      { id: '2', username: 'bigvader23' },
+      { id: '3', username: 'yodamecrazy' },
+    ];
+
+    const usersSchema = makeExecutableSchema({
+      typeDefs: `
+        type User {
+          id: ID!
+          username: String!
+        }
+        type Query {
+          users(ids: [ID!]!): [User]!
+        }
+      `,
+      resolvers: {
+        Query: {
+          users: (_root, { ids }) => ids.map((id: string) => users.find(u => u.id === id)),
+        }
+      }
+    });
+
+    const appUserSettings = [
+      { id: '1', user_id: '1', appSetting1: 'yes', appSetting2: true },
+      { id: '2', user_id: '3', appSetting1: 'no', appSetting2: false },
+    ];
+
+    const appSchema = makeExecutableSchema({
+      typeDefs: `
+        type User {
+          id: ID!
+          appSetting1: String
+          appSetting2: Boolean
+        }
+        type Query {
+          _users(ids: [ID!]!): [User]!
+        }
+      `,
+      resolvers: {
+        Query: {
+          _users: (_root, { ids }) => ids.map((id: string) => {
+            const userSettings = appUserSettings.find(u => u.user_id === id);
+            return userSettings ? { ...userSettings, id } : null;
+          }),
+        }
+      }
+    });
+
+    const gatewaySchema = stitchSchemas({
+      subschemas: [
+        {
+          schema: usersSchema,
+          merge: {
+            User: {
+              selectionSet: '{ id }',
+              fieldName: 'users',
+              key: ({ id }) => id,
+              args: (ids) => ({ ids }),
+            }
+          }
+        },
+        {
+          schema: appSchema,
+          merge: {
+            User: {
+              selectionSet: '{ id }',
+              fieldName: '_users',
+              key: ({ id }) => id,
+              args: (ids) => ({ ids }),
+            }
+          }
+        },
+      ],
+      mergeTypes: true
+    });
+
+    const result = await graphql(gatewaySchema, `
+      query {
+        users(ids: [1, 2, 3]) {
+          id
+          username
+          appSetting1
+          appSetting2
+        }
+      }
+    `);
+
+    const expectedResult = {
+      data: {
+        users: [
+          {
+            id: '1',
+            username: 'hanshotfirst',
+            appSetting1: 'yes',
+            appSetting2: true,
+          },
+          {
+            id: '2',
+            username: 'bigvader23',
+            appSetting1: null,
+            appSetting2: null,
+          },
+          {
+            id: '3',
+            username: 'yodamecrazy',
+            appSetting1: 'no',
+            appSetting2: false,
+          },
+        ],
+      },
+    };
+
+    expect(result).toEqual(expectedResult);
+  });
+});
