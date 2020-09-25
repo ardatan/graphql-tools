@@ -89,7 +89,7 @@ export class Subschema<K = any, V = any, C = K> {
 
     this.createProxyingResolver = config.createProxyingResolver;
     this.transforms = config.transforms ?? [];
-    this.transformedSchema = applySchemaTransforms(this.schema, this.transforms);
+    this.transformedSchema = applySchemaTransforms(this.schema, this.transforms, config);
 
     this.merge = config.merge;
   }

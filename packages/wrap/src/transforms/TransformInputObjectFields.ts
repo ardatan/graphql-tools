@@ -14,7 +14,7 @@ import {
 
 import { Request, MapperKind, mapSchema } from '@graphql-tools/utils';
 
-import { Transform, DelegationContext } from '@graphql-tools/delegate';
+import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
 import { InputFieldTransformer, InputFieldNodeTransformer, InputObjectNodeTransformer } from '../types';
 
@@ -36,8 +36,8 @@ export default class TransformInputObjectFields implements Transform {
     this.mapping = {};
   }
 
-  public transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
-    this.transformedSchema = mapSchema(originalSchema, {
+  public transformSchema(originalWrappingSchema: GraphQLSchema, _subschemaConfig?: SubschemaConfig): GraphQLSchema {
+    this.transformedSchema = mapSchema(originalWrappingSchema, {
       [MapperKind.INPUT_OBJECT_FIELD]: (inputFieldConfig, fieldName, typeName) => {
         const transformedInputField = this.inputFieldTransformer(typeName, fieldName, inputFieldConfig);
         if (Array.isArray(transformedInputField)) {

@@ -2,7 +2,7 @@ import { GraphQLSchema } from 'graphql';
 
 import { Request, ExecutionResult } from '@graphql-tools/utils';
 
-import { Transform, DelegationContext } from '@graphql-tools/delegate';
+import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
 import WrapFields from './WrapFields';
 
@@ -13,8 +13,8 @@ export default class WrapType implements Transform {
     this.transformer = new WrapFields(outerTypeName, [fieldName], [innerTypeName]);
   }
 
-  public transformSchema(schema: GraphQLSchema): GraphQLSchema {
-    return this.transformer.transformSchema(schema);
+  public transformSchema(originalWrappingSchema: GraphQLSchema, subschemaConfig?: SubschemaConfig): GraphQLSchema {
+    return this.transformer.transformSchema(originalWrappingSchema, subschemaConfig);
   }
 
   public transformRequest(

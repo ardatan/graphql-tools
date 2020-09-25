@@ -22,9 +22,11 @@ export function generateProxyingResolvers(
   let targetSchema: GraphQLSchema;
   let schemaTransforms: Array<Transform> = [];
   let createProxyingResolver: CreateProxyingResolverFn;
+  let subschemaConfig: SubschemaConfig;
 
   if (isSubschemaConfig(subschemaOrSubschemaConfig)) {
     targetSchema = subschemaOrSubschemaConfig.schema;
+    subschemaConfig = subschemaOrSubschemaConfig;
     createProxyingResolver = subschemaOrSubschemaConfig.createProxyingResolver ?? defaultCreateProxyingResolver;
     if (subschemaOrSubschemaConfig.transforms != null) {
       schemaTransforms = schemaTransforms.concat(subschemaOrSubschemaConfig.transforms);
@@ -38,7 +40,7 @@ export function generateProxyingResolvers(
     schemaTransforms = schemaTransforms.concat(transforms);
   }
 
-  const transformedSchema = applySchemaTransforms(targetSchema, schemaTransforms);
+  const transformedSchema = applySchemaTransforms(targetSchema, schemaTransforms, subschemaConfig);
 
   const operationTypes: Record<Operation, GraphQLObjectType> = {
     query: targetSchema.getQueryType(),

@@ -13,7 +13,7 @@ import {
 
 import { Request, MapperKind, mapSchema, visitData, ExecutionResult } from '@graphql-tools/utils';
 
-import { Transform, DelegationContext } from '@graphql-tools/delegate';
+import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
 import { FieldTransformer, FieldNodeTransformer, DataTransformer, ErrorsTransformer } from '../types';
 
@@ -39,8 +39,8 @@ export default class TransformCompositeFields implements Transform {
     this.mapping = {};
   }
 
-  public transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
-    this.transformedSchema = mapSchema(originalSchema, {
+  public transformSchema(originalWrappingSchema: GraphQLSchema, _subschemaConfig: SubschemaConfig): GraphQLSchema {
+    this.transformedSchema = mapSchema(originalWrappingSchema, {
       [MapperKind.COMPOSITE_FIELD]: (fieldConfig, fieldName, typeName) => {
         const transformedField = this.fieldTransformer(typeName, fieldName, fieldConfig);
         if (Array.isArray(transformedField)) {

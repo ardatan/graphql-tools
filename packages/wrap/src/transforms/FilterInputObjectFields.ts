@@ -2,7 +2,7 @@ import { GraphQLSchema, GraphQLInputFieldConfig } from 'graphql';
 
 import { Request, InputFieldFilter } from '@graphql-tools/utils';
 
-import { Transform, DelegationContext } from '@graphql-tools/delegate';
+import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
 import { InputObjectNodeTransformer } from '../types';
 
@@ -20,8 +20,8 @@ export default class FilterInputObjectFields implements Transform {
     );
   }
 
-  public transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
-    return this.transformer.transformSchema(originalSchema);
+  public transformSchema(originalWrappingSchema: GraphQLSchema, subschemaConfig?: SubschemaConfig): GraphQLSchema {
+    return this.transformer.transformSchema(originalWrappingSchema, subschemaConfig);
   }
 
   public transformRequest(

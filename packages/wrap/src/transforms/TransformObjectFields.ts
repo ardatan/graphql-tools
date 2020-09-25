@@ -2,7 +2,7 @@ import { GraphQLSchema, isObjectType, GraphQLFieldConfig } from 'graphql';
 
 import { Request, ExecutionResult } from '@graphql-tools/utils';
 
-import { Transform, DelegationContext } from '@graphql-tools/delegate';
+import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
 import { FieldTransformer, FieldNodeTransformer } from '../types';
 
@@ -18,13 +18,13 @@ export default class TransformObjectFields implements Transform {
     this.fieldNodeTransformer = fieldNodeTransformer;
   }
 
-  public transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
+  public transformSchema(originalWrappingSchema: GraphQLSchema, subschemaConfig?: SubschemaConfig): GraphQLSchema {
     const compositeToObjectFieldTransformer = (
       typeName: string,
       fieldName: string,
       fieldConfig: GraphQLFieldConfig<any, any>
     ) => {
-      if (isObjectType(originalSchema.getType(typeName))) {
+      if (isObjectType(originalWrappingSchema.getType(typeName))) {
         return this.objectFieldTransformer(typeName, fieldName, fieldConfig);
       }
 
@@ -33,7 +33,7 @@ export default class TransformObjectFields implements Transform {
 
     this.transformer = new TransformCompositeFields(compositeToObjectFieldTransformer, this.fieldNodeTransformer);
 
-    return this.transformer.transformSchema(originalSchema);
+    return this.transformer.transformSchema(originalWrappingSchema, subschemaConfig);
   }
 
   public transformRequest(

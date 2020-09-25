@@ -18,7 +18,7 @@ import {
   renameType,
 } from '@graphql-tools/utils';
 
-import { Transform, DelegationContext } from '@graphql-tools/delegate';
+import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
 export default class RenameTypes implements Transform {
   private readonly renamer: (name: string) => string | undefined;
@@ -36,8 +36,8 @@ export default class RenameTypes implements Transform {
     this.renameScalars = renameScalars;
   }
 
-  public transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
-    return mapSchema(originalSchema, {
+  public transformSchema(originalWrappingSchema: GraphQLSchema, _subschemaConfig?: SubschemaConfig): GraphQLSchema {
+    return mapSchema(originalWrappingSchema, {
       [MapperKind.TYPE]: (type: GraphQLNamedType) => {
         if (isSpecifiedScalarType(type) && !this.renameBuiltins) {
           return undefined;

@@ -2,7 +2,7 @@ import { GraphQLSchema } from 'graphql';
 
 import { Request, FieldNodeMappers, ExecutionResult } from '@graphql-tools/utils';
 
-import { Transform, DelegationContext } from '@graphql-tools/delegate';
+import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
 import { ObjectValueTransformerMap, ErrorsTransformer } from '../types';
 
@@ -54,8 +54,8 @@ export default class MapFields implements Transform {
     );
   }
 
-  public transformSchema(schema: GraphQLSchema): GraphQLSchema {
-    return this.transformer.transformSchema(schema);
+  public transformSchema(originalWrappingSchema: GraphQLSchema, subschemaConfig?: SubschemaConfig): GraphQLSchema {
+    return this.transformer.transformSchema(originalWrappingSchema, subschemaConfig);
   }
 
   public transformRequest(

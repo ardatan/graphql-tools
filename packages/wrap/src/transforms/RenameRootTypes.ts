@@ -2,7 +2,7 @@ import { visit, GraphQLSchema, NamedTypeNode, Kind } from 'graphql';
 
 import { Request, ExecutionResult, MapperKind, mapSchema, renameType, visitData } from '@graphql-tools/utils';
 
-import { Transform, DelegationContext } from '@graphql-tools/delegate';
+import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
 export default class RenameRootTypes implements Transform {
   private readonly renamer: (name: string) => string | undefined;
@@ -15,8 +15,8 @@ export default class RenameRootTypes implements Transform {
     this.reverseMap = Object.create(null);
   }
 
-  public transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
-    return mapSchema(originalSchema, {
+  public transformSchema(originalWrappingSchema: GraphQLSchema, _subschemaConfig?: SubschemaConfig): GraphQLSchema {
+    return mapSchema(originalWrappingSchema, {
       [MapperKind.ROOT_OBJECT]: type => {
         const oldName = type.name;
         const newName = this.renamer(oldName);
