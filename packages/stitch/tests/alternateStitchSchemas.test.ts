@@ -1834,9 +1834,10 @@ describe('onTypeConflict', () => {
     });
   });
 
-  test('by default takes last type', async () => {
+  test('takes last type if mergeTypes is false', async () => {
     const stitchedSchema = stitchSchemas({
       subschemas: [schema1, schema2],
+      mergeTypes: false,
     });
     const result1 = await graphql(stitchedSchema, '{ test2 { fieldC } }');
     expect(result1.data?.test2.fieldC).toBe('C');
@@ -1847,6 +1848,7 @@ describe('onTypeConflict', () => {
   test('can use onTypeConflict to select last type', async () => {
     const stitchedSchema = stitchSchemas({
       subschemas: [schema1, schema2],
+      mergeTypes: false,
       onTypeConflict: (_left, right) => right,
     });
     const result1 = await graphql(stitchedSchema, '{ test2 { fieldC } }');
@@ -1858,6 +1860,7 @@ describe('onTypeConflict', () => {
   test('can use onTypeConflict to select first type', async () => {
     const stitchedSchema = stitchSchemas({
       subschemas: [schema1, schema2],
+      mergeTypes: false,
       onTypeConflict: (left) => left,
     });
     const result1 = await graphql(stitchedSchema, '{ test1 { fieldB } }');

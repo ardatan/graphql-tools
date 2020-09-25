@@ -35,7 +35,7 @@ export function stitchSchemas({
   typeDefs,
   onTypeConflict,
   mergeDirectives,
-  mergeTypes = false,
+  mergeTypes = true,
   typeMergingOptions,
   subschemaConfigTransforms = defaultSubschemaConfigTransforms,
   resolvers = {},
