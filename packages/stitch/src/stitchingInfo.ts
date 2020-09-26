@@ -24,7 +24,7 @@ import { MergeTypeCandidate, MergedTypeInfo, StitchingInfo, MergeTypeFilter } fr
 
 export function createStitchingInfo(
   transformedSubschemaConfigs: Map<SubschemaConfig, SubschemaConfig>,
-  transformedSchemas: Map<GraphQLSchema | SubschemaConfig, GraphQLSchema>,
+  transformedSchemas: Map<SubschemaConfig, GraphQLSchema>,
   typeCandidates: Record<string, Array<MergeTypeCandidate>>,
   mergeTypes?: boolean | Array<string> | MergeTypeFilter
 ): StitchingInfo {

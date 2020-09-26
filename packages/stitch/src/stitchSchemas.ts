@@ -6,7 +6,6 @@ import {
   specifiedDirectives,
   extendSchema,
   ASTNode,
-  GraphQLNamedType,
 } from 'graphql';
 
 import { SchemaDirectiveVisitor, mergeDeep, IResolvers, rewireTypes, pruneSchema } from '@graphql-tools/utils';
@@ -18,7 +17,6 @@ import {
   addCatchUndefinedToSchema,
   assertResolversPresent,
   attachDirectiveResolvers,
-  buildDocumentFromTypeDefinitions,
   extendResolversFromInterfaces,
 } from '@graphql-tools/schema';
 
@@ -53,18 +51,18 @@ export function stitchSchemas({
     throw new Error('Expected `resolverValidationOptions` to be an object');
   }
 
-  let schemaLikeObjects: Array<GraphQLSchema | SubschemaConfig | DocumentNode | GraphQLNamedType> = [];
+  let subschemaConfigs: Array<SubschemaConfig> = [];
   const transformedSubschemaConfigs: Map<SubschemaConfig, SubschemaConfig> = new Map();
 
   subschemas.forEach(subschemaOrSubschemaArray => {
     if (Array.isArray(subschemaOrSubschemaArray)) {
       subschemaOrSubschemaArray.forEach(s => {
-        schemaLikeObjects = schemaLikeObjects.concat(
+        subschemaConfigs = subschemaConfigs.concat(
           applySubschemaConfigTransforms(subschemaConfigTransforms, s, transformedSubschemaConfigs)
         );
       });
     } else {
-      schemaLikeObjects = schemaLikeObjects.concat(
+      subschemaConfigs = subschemaConfigs.concat(
         applySubschemaConfigTransforms(
           subschemaConfigTransforms,
           subschemaOrSubschemaArray,
@@ -74,15 +72,7 @@ export function stitchSchemas({
     }
   });
 
-  if ((typeDefs && !Array.isArray(typeDefs)) || (Array.isArray(typeDefs) && typeDefs.length)) {
-    schemaLikeObjects.push(buildDocumentFromTypeDefinitions(typeDefs, parseOptions));
-  }
-
-  if (types != null) {
-    schemaLikeObjects = schemaLikeObjects.concat(types);
-  }
-
-  const transformedSchemas: Map<GraphQLSchema | SubschemaConfig, GraphQLSchema> = new Map();
+  const transformedSchemas: Map<SubschemaConfig, GraphQLSchema> = new Map();
   const extensions: Array<DocumentNode> = [];
   const directives: Array<GraphQLDirective> = [];
   const directiveMap: Record<string, GraphQLDirective> = specifiedDirectives.reduce((acc, directive) => {
@@ -97,7 +87,10 @@ export function stitchSchemas({
   };
 
   const typeCandidates = buildTypeCandidates({
-    schemaLikeObjects,
+    subschemaConfigs,
+    types,
+    typeDefs,
+    parseOptions,
     transformedSchemas,
     extensions,
     directiveMap,

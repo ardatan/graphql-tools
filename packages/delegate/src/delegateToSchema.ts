@@ -127,11 +127,11 @@ export function delegateRequest({
 
   let allTransforms: Array<Transform>;
 
+  const stitchingInfo: StitchingInfo = info?.schema.extensions?.stitchingInfo;
   if (isSubschemaConfig(subschemaOrSubschemaConfig)) {
-    const stitchingInfo: StitchingInfo = info?.schema.extensions?.stitchingInfo;
     if (stitchingInfo) {
-      const processedSubschema = stitchingInfo.transformedSubschemaConfigs.get(subschemaOrSubschemaConfig);
-      subschemaConfig = processedSubschema != null ? processedSubschema : subschemaOrSubschemaConfig;
+      const transformedSubschemaConfig = stitchingInfo.transformedSubschemaConfigs.get(subschemaOrSubschemaConfig);
+      subschemaConfig = transformedSubschemaConfig || subschemaOrSubschemaConfig;
     } else {
       subschemaConfig = subschemaOrSubschemaConfig;
     }
@@ -144,12 +144,16 @@ export function delegateRequest({
     }
     targetRootValue = rootValue ?? endpoint?.rootValue ?? info?.rootValue;
   } else {
+    if (stitchingInfo) {
+      const transformedSubschemaConfig = stitchingInfo.transformedSubschemaConfigs.get(subschemaOrSubschemaConfig);
+      if (transformedSubschemaConfig) {
+        subschemaConfig = transformedSubschemaConfig;
+      }
+    }
     targetSchema = subschemaOrSubschemaConfig;
     targetRootValue = rootValue ?? info?.rootValue;
     allTransforms = transforms;
   }
-
-  const stitchingInfo: StitchingInfo = info?.schema.extensions?.stitchingInfo;
 
   const delegationContext = {
     subschema: subschemaOrSubschemaConfig,
@@ -163,8 +167,7 @@ export function delegateRequest({
       returnType ?? info?.returnType ?? getDelegationReturnType(targetSchema, targetOperation, targetFieldName),
     transforms: allTransforms,
     transformedSchema:
-      transformedSchema ??
-      (stitchingInfo ? stitchingInfo.transformedSchemas.get(subschemaOrSubschemaConfig) : targetSchema),
+      transformedSchema ?? (stitchingInfo ? stitchingInfo.transformedSchemas.get(subschemaConfig) : targetSchema),
     skipTypeMerging,
   };
 
