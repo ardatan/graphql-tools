@@ -3,6 +3,7 @@ import { isSourceTypes, isStringTypes, isSchemaDefinition } from './utils';
 import { MergedResultMap, mergeGraphQLNodes } from './merge-nodes';
 import { resetComments, printWithComments } from './comments';
 import { createSchemaDefinition, printSchemaWithDirectives } from '@graphql-tools/utils';
+import { OnFieldTypeConflict } from './fields';
 
 type Omit<T, K extends keyof any> = Pick<T, Exclude<keyof T, K>>;
 type CompareFn<T> = (a: T, b: T) => number;
@@ -57,6 +58,22 @@ export interface Config {
   exclusions?: string[];
   sort?: boolean | CompareFn<string>;
   convertExtensions?: boolean;
+  /**
+   * Called if types of the same fields are different
+   *
+   * Default: false
+   *
+   * @example:
+   * Given:
+   * ```graphql
+   *  type User { a: String }
+   *  type User { a: Int }
+   * ```
+   *
+   * Instead of throwing `already defined with a different type` error,
+   * `onFieldTypeConflict` function is called.
+   */
+  onFieldTypeConflict?: OnFieldTypeConflict;
 }
 
 /**

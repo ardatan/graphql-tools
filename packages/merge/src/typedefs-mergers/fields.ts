@@ -5,17 +5,30 @@ import { mergeDirectives } from './directives';
 import { isNotEqual, compareNodes } from '@graphql-tools/utils';
 import { mergeArguments } from './arguments';
 
-function fieldAlreadyExists(fieldsArr: ReadonlyArray<any>, otherField: any): boolean {
-  const result: FieldDefinitionNode | null = fieldsArr.find(field => field.name.value === otherField.name.value);
+type FieldDefNode = FieldDefinitionNode | InputValueDefinitionNode;
+export type OnFieldTypeConflict = (existingField: FieldDefNode, otherField: FieldDefNode) => void;
+
+function fieldAlreadyExists(
+  fieldsArr: ReadonlyArray<FieldDefNode>,
+  otherField: FieldDefNode,
+  onFieldTypeConflict?: OnFieldTypeConflict
+): boolean {
+  const result: FieldDefinitionNode | FieldDefNode | null = fieldsArr.find(
+    field => field.name.value === otherField.name.value
+  );
 
   if (result) {
     const t1 = extractType(result.type);
     const t2 = extractType(otherField.type);
 
     if (t1.name.value !== t2.name.value) {
-      throw new Error(
-        `Field "${otherField.name.value}" already defined with a different type. Declared as "${t1.name.value}", but you tried to override with "${t2.name.value}"`
-      );
+      if (onFieldTypeConflict) {
+        onFieldTypeConflict(result, otherField);
+      } else {
+        throw new Error(
+          `Field "${otherField.name.value}" already defined with a different type. Declared as "${t1.name.value}", but you tried to override with "${t2.name.value}"`
+        );
+      }
     }
   }
 
@@ -31,10 +44,10 @@ export function mergeFields<T extends FieldDefinitionNode | InputValueDefinition
   const result: T[] = [...f2];
 
   for (const field of f1) {
-    if (fieldAlreadyExists(result, field)) {
+    if (fieldAlreadyExists(result, field, config?.onFieldTypeConflict)) {
       const existing: any = result.find((f: any) => f.name.value === (field as any).name.value);
 
-      if (config && config.throwOnConflict) {
+      if (config?.throwOnConflict) {
         preventConflicts(type, existing, field, false);
       } else {
         preventConflicts(type, existing, field, true);
@@ -51,10 +64,10 @@ export function mergeFields<T extends FieldDefinitionNode | InputValueDefinition
       result.push(field);
     }
   }
-  if (config && config.sort) {
+  if (config?.sort) {
     result.sort(compareNodes);
   }
-  if (config && config.exclusions) {
+  if (config?.exclusions) {
     return result.filter(field => !config.exclusions.includes(`${type.name.value}.${field.name.value}`));
   }
   return result;
