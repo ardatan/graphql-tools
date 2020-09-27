@@ -6,10 +6,11 @@ import { isNotEqual, compareNodes } from '@graphql-tools/utils';
 import { mergeArguments } from './arguments';
 
 type FieldDefNode = FieldDefinitionNode | InputValueDefinitionNode;
+type NamedDefNode = { name: NameNode };
 export type OnFieldTypeConflict = (
   existingField: FieldDefNode,
   otherField: FieldDefNode,
-  type: NamedTypeNode,
+  type: NamedDefNode,
   config: Config
 ) => FieldDefNode;
 
@@ -33,7 +34,7 @@ const defaultOnFieldTypeConflict: OnFieldTypeConflict = (
 };
 
 export function mergeFields<T extends FieldDefinitionNode | InputValueDefinitionNode>(
-  type: NamedTypeNode,
+  type: NamedDefNode,
   f1: ReadonlyArray<T>,
   f2: ReadonlyArray<T>,
   config: Config
