@@ -104,8 +104,8 @@ For subscriptions, we need to define a subscriber that returns `AsyncIterator`. 
 type Subscriber = (executionParams: ExecutionParams) => Promise<AsyncIterator<ExecutionResult>>;
 ```
 
-#### Using `subscriptions-transport-ws`
-You can learn more about [`subscriptions-transport-ws`](https://github.com/apollographql/subscriptions-transport-ws).
+#### Using `graphql-transport-ws`
+For the following example to work, the server must implement the [library's transport protocol](https://github.com/enisdenjo/graphql-transport-ws/blob/master/PROTOCOL.md). Learn more about [`graphql-transport-ws`](https://github.com/enisdenjo/graphql-transport-ws).
 
 ```ts
 import { wrapSchema, introspectSchema } from '@graphql-tools/wrap';
@@ -113,7 +113,7 @@ import { Executor, Subscriber } from '@graphql-tools/delegate';
 import { fetch } from 'cross-fetch';
 import { print } from 'graphql';
 import { observableToAsyncIterable } from '@graphql-tools/utils';
-import { SubscriptionClient } from 'subscriptions-transport-ws';
+import { createClient } from 'graphql-transport-ws';
 
 const HTTP_GRAPHQL_ENDPOINT = 'http://localhost:3000/graphql';
 const WS_GRAPHQL_ENDPOINT = 'ws://localhost:3000/graphql';
@@ -130,17 +130,36 @@ const executor: Executor = async ({ document, variables }) => {
   return fetchResult.json();
 };
 
-const subscriptionClient = new SubscriptionClient(WS_GRAPHQL_ENDPOINT, {
-  reconnect: true,
+const subscriptionClient = createClient({
+  url: WS_GRAPHQL_ENDPOINT,
 });
 
-const subscriber: Subscriber = ({ document, variables, context, info }) => observableToAsyncIterable(
-  subscriptionClient.request({
-    query: document,
-    variables,
-    context,
-  })
-);
+const subscriber: Subscriber = ({ document, variables }) =>
+  observableToAsyncIterable({
+    subscribe: observer => ({
+      unsubscribe: subscriptionClient.subscribe(
+        {
+          query: document,
+          variables,
+        },
+        {
+          next: data => observer.next && observer.next(data),
+          error: err => {
+            if (!observer.error) return;
+            if (err instanceof Error) {
+              observer.error(err);
+            } else if (err instanceof CloseEvent) {
+              observer.error(new Error(`Socket closed with event ${err.code}`));
+            } else {
+              // GraphQLError[]
+              observer.error(new Error(err.map(({ message }) => message).join(', ')));
+            }
+          },
+          complete: () => observer.complete && observer.complete(),
+        }
+      ),
+    }),
+  });
 
 export default async () => {
   const schema = wrapSchema({
