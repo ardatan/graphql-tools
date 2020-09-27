@@ -105,7 +105,7 @@ type Subscriber = (executionParams: ExecutionParams) => Promise<AsyncIterator<Ex
 ```
 
 #### Using `graphql-transport-ws`
-Learn more about [`graphql-transport-ws`](https://github.com/enisdenjo/graphql-transport-ws).
+For the following example to work, the server must implement the [library's transport protocol](https://github.com/enisdenjo/graphql-transport-ws/blob/master/PROTOCOL.md). Learn more about [`graphql-transport-ws`](https://github.com/enisdenjo/graphql-transport-ws).
 
 ```ts
 import { wrapSchema, introspectSchema } from '@graphql-tools/wrap';
