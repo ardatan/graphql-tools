@@ -6,6 +6,7 @@ import { stripWhitespaces } from './utils';
 import gql from 'graphql-tag';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import '../../testing/to-be-similar-gql-doc';
 
 const introspectionSchema = JSON.parse(readFileSync(join(__dirname, './schema.json'), 'utf8'));
 
@@ -1343,5 +1344,58 @@ describe('Merge TypeDefs', () => {
 
       expect(mergeDirectives(directivesOne, directivesTwo, config)).toEqual(directivesTwo);
     });
-  })
+  });
+  it('should call onFieldTypeConflict if there are two different types', () => {
+    const onFieldTypeConflict = jest.fn().mockImplementation((_, r) => r);
+    const typeDefs1 = parse(/* GraphQL */`
+      type Query {
+        foo: Int
+      }
+    `);
+    const typeDefs2 = parse(/* GraphQL */`
+      type Query {
+        foo: String
+      }
+    `);
+    const mergedTypeDefs = mergeTypeDefs([typeDefs1, typeDefs2], {
+      onFieldTypeConflict,
+    });
+    expect(print(onFieldTypeConflict.mock.calls[0][0])).toContain('foo: Int');
+    expect(print(onFieldTypeConflict.mock.calls[0][1])).toContain('foo: String');
+    expect(print(mergedTypeDefs)).toBeSimilarGqlDoc(/* GraphQL */`
+      schema {
+        query: Query
+      }
+
+      type Query {
+        foo: String
+      }
+    `);
+  }); it('should call onFieldTypeConflict if there are two same types but with different nullability', () => {
+    const onFieldTypeConflict = jest.fn().mockImplementation((_, r) => r);
+    const typeDefs1 = parse(/* GraphQL */`
+      type Query {
+        foo: String!
+      }
+    `);
+    const typeDefs2 = parse(/* GraphQL */`
+      type Query {
+        foo: String
+      }
+    `);
+    const mergedTypeDefs = mergeTypeDefs([typeDefs1, typeDefs2], {
+      onFieldTypeConflict,
+    });
+    expect(print(onFieldTypeConflict.mock.calls[0][0])).toContain('foo: String!');
+    expect(print(onFieldTypeConflict.mock.calls[0][1])).toContain('foo: String');
+    expect(print(mergedTypeDefs)).toBeSimilarGqlDoc(/* GraphQL */`
+      schema {
+        query: Query
+      }
+
+      type Query {
+        foo: String
+      }
+    `);
+  });
 });

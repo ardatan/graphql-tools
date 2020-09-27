@@ -1,23 +1,39 @@
 import { Config } from './merge-typedefs';
-import { FieldDefinitionNode, InputValueDefinitionNode, TypeNode, NameNode } from 'graphql';
+import { FieldDefinitionNode, InputValueDefinitionNode, TypeNode, NameNode, NamedTypeNode } from 'graphql';
 import { extractType, isWrappingTypeNode, isListTypeNode, isNonNullTypeNode, printTypeNode } from './utils';
 import { mergeDirectives } from './directives';
 import { isNotEqual, compareNodes } from '@graphql-tools/utils';
 import { mergeArguments } from './arguments';
 
 type FieldDefNode = FieldDefinitionNode | InputValueDefinitionNode;
-export type OnFieldTypeConflict = (existingField: FieldDefNode, otherField: FieldDefNode) => FieldDefNode | void;
+export type OnFieldTypeConflict = (
+  existingField: FieldDefNode,
+  otherField: FieldDefNode,
+  type: NamedTypeNode,
+  config: Config
+) => FieldDefNode;
 
-function fieldAlreadyExists(fieldsArr: ReadonlyArray<FieldDefNode>, otherField: FieldDefNode): FieldDefNode {
-  const result: FieldDefinitionNode | FieldDefNode | null = fieldsArr.find(
-    field => field.name.value === otherField.name.value
-  );
+function fieldAlreadyExists(fieldsArr: ReadonlyArray<FieldDefNode>, otherField: FieldDefNode): [FieldDefNode, number] {
+  const resultIndex: number | null = fieldsArr.findIndex(field => field.name.value === otherField.name.value);
 
-  return result;
+  return [resultIndex > -1 ? fieldsArr[resultIndex] : null, resultIndex];
 }
 
+const defaultOnFieldTypeConflict: OnFieldTypeConflict = (
+  f1: FieldDefNode,
+  f2: FieldDefNode,
+  type: NamedTypeNode,
+  config: Config
+) => {
+  const newField: any = preventConflicts(type, f1, f2, !config?.throwOnConflict);
+  newField.arguments = mergeArguments(f2['arguments'] || [], f1['arguments'] || [], config);
+  newField.directives = mergeDirectives(f2.directives, f1.directives, config);
+  newField.description = f2.description || f1.description;
+  return newField;
+};
+
 export function mergeFields<T extends FieldDefinitionNode | InputValueDefinitionNode>(
-  type: { name: NameNode },
+  type: NamedTypeNode,
   f1: ReadonlyArray<T>,
   f2: ReadonlyArray<T>,
   config: Config
@@ -25,13 +41,10 @@ export function mergeFields<T extends FieldDefinitionNode | InputValueDefinition
   const result: T[] = [...f2];
 
   for (const field of f1) {
-    let existing: any = fieldAlreadyExists(result, field);
+    const [existing, existingIndex] = fieldAlreadyExists(result, field);
     if (existing) {
-      existing = preventConflicts(type, existing, field, !config?.throwOnConflict, config?.onFieldTypeConflict);
-
-      existing.arguments = mergeArguments(field['arguments'] || [], existing.arguments || [], config);
-      existing.directives = mergeDirectives(field.directives, existing.directives, config);
-      existing.description = field.description || existing.description;
+      const onFieldTypeConflict = config?.onFieldTypeConflict || defaultOnFieldTypeConflict;
+      result[existingIndex] = onFieldTypeConflict(existing, field, type, config) as T;
     } else {
       result.push(field);
     }
@@ -45,13 +58,7 @@ export function mergeFields<T extends FieldDefinitionNode | InputValueDefinition
   return result;
 }
 
-function preventConflicts(
-  type: { name: NameNode },
-  a: FieldDefinitionNode | InputValueDefinitionNode,
-  b: FieldDefinitionNode | InputValueDefinitionNode,
-  ignoreNullability = false,
-  onFieldTypeConflict: OnFieldTypeConflict
-) {
+function preventConflicts(type: { name: NameNode }, a: FieldDefNode, b: FieldDefNode, ignoreNullability = false) {
   const aType = printTypeNode(a.type);
   const bType = printTypeNode(b.type);
 
@@ -60,17 +67,11 @@ function preventConflicts(
     const t2 = extractType(b.type);
 
     if (t1.name.value !== t2.name.value) {
-      if (onFieldTypeConflict) {
-        return onFieldTypeConflict(a, b) || a;
-      }
       throw new Error(
         `Field "${b.name.value}" already defined with a different type. Declared as "${t1.name.value}", but you tried to override with "${t2.name.value}"`
       );
     }
     if (!safeChangeForFieldType(a.type, b.type, ignoreNullability)) {
-      if (onFieldTypeConflict) {
-        return onFieldTypeConflict(a, b) || a;
-      }
       throw new Error(`Field '${type.name.value}.${a.name.value}' changed type from '${aType}' to '${bType}'`);
     }
   }
@@ -108,5 +109,5 @@ function safeChangeForFieldType(oldType: TypeNode, newType: TypeNode, ignoreNull
     );
   }
 
-  return false;
+  return ignoreNullability;
 }
