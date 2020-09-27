@@ -1,5 +1,5 @@
 import { Config } from './merge-typedefs';
-import { FieldDefinitionNode, InputValueDefinitionNode, TypeNode, NameNode, NamedTypeNode } from 'graphql';
+import { FieldDefinitionNode, InputValueDefinitionNode, TypeNode, NameNode } from 'graphql';
 import { extractType, isWrappingTypeNode, isListTypeNode, isNonNullTypeNode, printTypeNode } from './utils';
 import { mergeDirectives } from './directives';
 import { isNotEqual, compareNodes } from '@graphql-tools/utils';
@@ -23,7 +23,7 @@ function fieldAlreadyExists(fieldsArr: ReadonlyArray<FieldDefNode>, otherField: 
 const defaultOnFieldTypeConflict: OnFieldTypeConflict = (
   f1: FieldDefNode,
   f2: FieldDefNode,
-  type: NamedTypeNode,
+  type: NamedDefNode,
   config: Config
 ) => {
   const newField: any = preventConflicts(type, f1, f2, !config?.throwOnConflict);
