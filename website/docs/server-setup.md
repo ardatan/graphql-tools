@@ -42,4 +42,48 @@ And you can test your queries using built-in [GraphiQL](https://github.com/graph
 ></iframe>
 
 ## Adding Subscriptions support
-> TODO
+[`graphql-transport-ws`](https://github.com/enisdenjo/graphql-transport-ws) offers a server and client implementation for transporting subscription events over WebSockets.
+
+```js
+const http = require('http');
+const express = require('express');
+const { graphqlHTTP } = require('express-graphql');
+const { execute, subscribe } = require('graphql');
+const { createServer } = require('graphql-transport-ws');
+
+const typeDefs = require('./graphql/types');
+const resolvers = require('./graphql/resolvers');
+
+const { makeExecutableSchema } = require('@graphql-tools/schema');
+
+const schema = makeExecutableSchema({
+  typeDefs,
+  resolvers,
+});
+
+const app = express();
+app.use(
+  '/graphql',
+  graphqlHTTP({
+    schema,
+    graphiql: true,
+  })
+);
+
+const server = http.createServer(app);
+
+server.listen(3000, () => {
+  createServer(
+    {
+      schema,
+      execute,
+      subscribe,
+    },
+    {
+      server,
+      path: '/graphql', // can be same path, just use the `ws` schema
+    }
+  );
+  console.info('Listening on http://localhost:3000/graphql');
+});
+```
