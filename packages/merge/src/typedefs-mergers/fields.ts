@@ -6,33 +6,14 @@ import { isNotEqual, compareNodes } from '@graphql-tools/utils';
 import { mergeArguments } from './arguments';
 
 type FieldDefNode = FieldDefinitionNode | InputValueDefinitionNode;
-export type OnFieldTypeConflict = (existingField: FieldDefNode, otherField: FieldDefNode) => void;
+export type OnFieldTypeConflict = (existingField: FieldDefNode, otherField: FieldDefNode) => FieldDefNode | void;
 
-function fieldAlreadyExists(
-  fieldsArr: ReadonlyArray<FieldDefNode>,
-  otherField: FieldDefNode,
-  onFieldTypeConflict?: OnFieldTypeConflict
-): boolean {
+function fieldAlreadyExists(fieldsArr: ReadonlyArray<FieldDefNode>, otherField: FieldDefNode): FieldDefNode {
   const result: FieldDefinitionNode | FieldDefNode | null = fieldsArr.find(
     field => field.name.value === otherField.name.value
   );
 
-  if (result) {
-    const t1 = extractType(result.type);
-    const t2 = extractType(otherField.type);
-
-    if (t1.name.value !== t2.name.value) {
-      if (onFieldTypeConflict) {
-        onFieldTypeConflict(result, otherField);
-      } else {
-        throw new Error(
-          `Field "${otherField.name.value}" already defined with a different type. Declared as "${t1.name.value}", but you tried to override with "${t2.name.value}"`
-        );
-      }
-    }
-  }
-
-  return !!result;
+  return result;
 }
 
 export function mergeFields<T extends FieldDefinitionNode | InputValueDefinitionNode>(
@@ -44,18 +25,9 @@ export function mergeFields<T extends FieldDefinitionNode | InputValueDefinition
   const result: T[] = [...f2];
 
   for (const field of f1) {
-    if (fieldAlreadyExists(result, field, config?.onFieldTypeConflict)) {
-      const existing: any = result.find((f: any) => f.name.value === (field as any).name.value);
-
-      if (config?.throwOnConflict) {
-        preventConflicts(type, existing, field, false);
-      } else {
-        preventConflicts(type, existing, field, true);
-      }
-
-      if (isNonNullTypeNode(field.type) && !isNonNullTypeNode(existing.type)) {
-        existing.type = field.type;
-      }
+    let existing: any = fieldAlreadyExists(result, field);
+    if (existing) {
+      existing = preventConflicts(type, existing, field, !config?.throwOnConflict, config?.onFieldTypeConflict);
 
       existing.arguments = mergeArguments(field['arguments'] || [], existing.arguments || [], config);
       existing.directives = mergeDirectives(field.directives, existing.directives, config);
@@ -77,16 +49,37 @@ function preventConflicts(
   type: { name: NameNode },
   a: FieldDefinitionNode | InputValueDefinitionNode,
   b: FieldDefinitionNode | InputValueDefinitionNode,
-  ignoreNullability = false
+  ignoreNullability = false,
+  onFieldTypeConflict: OnFieldTypeConflict
 ) {
   const aType = printTypeNode(a.type);
   const bType = printTypeNode(b.type);
 
   if (isNotEqual(aType, bType)) {
-    if (safeChangeForFieldType(a.type, b.type, ignoreNullability) === false) {
+    const t1 = extractType(a.type);
+    const t2 = extractType(b.type);
+
+    if (t1.name.value !== t2.name.value) {
+      if (onFieldTypeConflict) {
+        return onFieldTypeConflict(a, b) || a;
+      }
+      throw new Error(
+        `Field "${b.name.value}" already defined with a different type. Declared as "${t1.name.value}", but you tried to override with "${t2.name.value}"`
+      );
+    }
+    if (!safeChangeForFieldType(a.type, b.type, ignoreNullability)) {
+      if (onFieldTypeConflict) {
+        return onFieldTypeConflict(a, b) || a;
+      }
       throw new Error(`Field '${type.name.value}.${a.name.value}' changed type from '${aType}' to '${bType}'`);
     }
   }
+
+  if (isNonNullTypeNode(b.type) && !isNonNullTypeNode(a.type)) {
+    (a as any).type = b.type;
+  }
+
+  return a;
 }
 
 function safeChangeForFieldType(oldType: TypeNode, newType: TypeNode, ignoreNullability = false): boolean {
