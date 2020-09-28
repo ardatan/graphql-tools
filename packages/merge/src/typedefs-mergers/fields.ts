@@ -63,7 +63,7 @@ function preventConflicts(a: FieldDefNode, b: FieldDefNode, type: { name: NameNo
         `Field "${b.name.value}" already defined with a different type. Declared as "${t1.name.value}", but you tried to override with "${t2.name.value}"`
       );
     }
-    if (!safeChangeForFieldType(a.type, b.type, !config.throwOnConflict)) {
+    if (!safeChangeForFieldType(a.type, b.type, !config?.throwOnConflict)) {
       throw new Error(`Field '${type.name.value}.${a.name.value}' changed type from '${aType}' to '${bType}'`);
     }
   }
