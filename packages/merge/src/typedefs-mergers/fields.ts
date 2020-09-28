@@ -20,19 +20,6 @@ function fieldAlreadyExists(fieldsArr: ReadonlyArray<FieldDefNode>, otherField: 
   return [resultIndex > -1 ? fieldsArr[resultIndex] : null, resultIndex];
 }
 
-const defaultOnFieldTypeConflict: OnFieldTypeConflict = (
-  f1: FieldDefNode,
-  f2: FieldDefNode,
-  type: NamedDefNode,
-  config: Config
-) => {
-  const newField: any = preventConflicts(type, f1, f2, !config?.throwOnConflict);
-  newField.arguments = mergeArguments(f2['arguments'] || [], f1['arguments'] || [], config);
-  newField.directives = mergeDirectives(f2.directives, f1.directives, config);
-  newField.description = f2.description || f1.description;
-  return newField;
-};
-
 export function mergeFields<T extends FieldDefinitionNode | InputValueDefinitionNode>(
   type: NamedDefNode,
   f1: ReadonlyArray<T>,
@@ -44,8 +31,12 @@ export function mergeFields<T extends FieldDefinitionNode | InputValueDefinition
   for (const field of f1) {
     const [existing, existingIndex] = fieldAlreadyExists(result, field);
     if (existing) {
-      const onFieldTypeConflict = config?.onFieldTypeConflict || defaultOnFieldTypeConflict;
-      result[existingIndex] = onFieldTypeConflict(existing, field, type, config) as T;
+      const onFieldTypeConflict = config?.onFieldTypeConflict || preventConflicts;
+      const newField: any = onFieldTypeConflict(existing, field, type, config) as T;
+      newField.arguments = mergeArguments(field['arguments'] || [], existing['arguments'] || [], config);
+      newField.directives = mergeDirectives(field.directives, existing.directives, config);
+      newField.description = field.description || existing.description;
+      result[existingIndex] = newField;
     } else {
       result.push(field);
     }
@@ -59,7 +50,7 @@ export function mergeFields<T extends FieldDefinitionNode | InputValueDefinition
   return result;
 }
 
-function preventConflicts(type: { name: NameNode }, a: FieldDefNode, b: FieldDefNode, ignoreNullability = false) {
+function preventConflicts(a: FieldDefNode, b: FieldDefNode, type: { name: NameNode }, config: Config) {
   const aType = printTypeNode(a.type);
   const bType = printTypeNode(b.type);
 
@@ -72,7 +63,7 @@ function preventConflicts(type: { name: NameNode }, a: FieldDefNode, b: FieldDef
         `Field "${b.name.value}" already defined with a different type. Declared as "${t1.name.value}", but you tried to override with "${t2.name.value}"`
       );
     }
-    if (!safeChangeForFieldType(a.type, b.type, ignoreNullability)) {
+    if (!safeChangeForFieldType(a.type, b.type, !config.throwOnConflict)) {
       throw new Error(`Field '${type.name.value}.${a.name.value}' changed type from '${aType}' to '${bType}'`);
     }
   }
