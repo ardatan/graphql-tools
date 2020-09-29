@@ -20,7 +20,7 @@
     "@types/supertest": "2.0.10",
     "apollo-server-express": "2.18.1",
     "express": "4.17.1",
-    "supertest": "4.0.2"
+    "supertest": "5.0.0"
   },
   "dependencies": {
     "@graphql-tools/delegate": "6.2.3",
