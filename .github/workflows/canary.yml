@@ -31,26 +31,32 @@ jobs:
             ${{ runner.os }}-14-15-yarn-
       - name: Install Dependencies using Yarn
         run: yarn install && git checkout yarn.lock
-      - name: Build
-        run: yarn build
-
       - name: Release Canary
         id: canary
         uses: 'kamilkisiela/release-canary@master'
-        if: github.repository == 'ardatan/graphql-tools'
         with:
           npm-token: ${{ secrets.NODE_AUTH_TOKEN }}
-          npm-script: 'release:canary'
+          npm-script: 'yarn release:canary'
+          changesets: true
       - name: Publish a message
         if: steps.canary.outputs.released
         uses: 'kamilkisiela/pr-comment@master'
         with:
           message: |
-            The latest changes of this PR are available as alpha in npm: `${{ steps.canary.outputs.version }}`
+            The latest changes of this PR are available as alpha in npm (based on the declared `changesets`):
 
-            Quickly update your package.json by running:
-
-                npx match-version @graphql-tools ${{ steps.canary.outputs.version }}
+            ```
+            ${{ steps.canary.outputs.changesetsPublishedPackages}}
+            ```
+          bot-token: ${{ secrets.GH_API_TOKEN }}
+          bot: 'theguild-bot'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish a empty message
+        if: steps.canary.outputs.released == 'false'
+        uses: 'kamilkisiela/pr-comment@master'
+        with:
+          message: |
+            The latest changes of this PR are not available as alpha, since there are no linked `changesets` for this PR.
           bot-token: ${{ secrets.GH_API_TOKEN }}
           bot: 'theguild-bot'
           github-token: ${{ secrets.GITHUB_TOKEN }}

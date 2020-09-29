@@ -19,8 +19,8 @@
     "input": "./src/index.ts"
   },
   "dependencies": {
-    "@graphql-tools/import": "6.2.3",
-    "@graphql-tools/utils": "6.2.3",
+    "@graphql-tools/import": "^6.2.3",
+    "@graphql-tools/utils": "^6.2.3",
     "fs-extra": "9.0.1",
     "tslib": "~2.0.1"
   },

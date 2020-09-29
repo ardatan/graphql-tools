@@ -16,8 +16,8 @@
     "graphql": "^14.0.0 || ^15.0.0"
   },
   "dependencies": {
-    "@graphql-tools/url-loader": "6.2.3",
-    "@graphql-tools/utils": "6.2.3",
+    "@graphql-tools/url-loader": "^6.2.3",
+    "@graphql-tools/utils": "^6.2.3",
     "@types/http-proxy-agent": "^2.0.2",
     "@types/js-yaml": "^3.12.5",
     "@types/json-stable-stringify": "^1.0.32",

@@ -42,15 +42,13 @@ jobs:
         run: yarn install && git checkout yarn.lock
       - name: Build
         run: yarn build
-      - name: Publish to NPM
-        run: npm run release
-        env:
-          RELEASE_VERSION: ${{ github.event.release.tag_name }}
-      - name: Commit updated package.json files
-        run: |
-          git add .
-          git commit -m "${{ github.event.release.tag_name }}"
-      - name: Push all the changes
-        uses: ad-m/github-push-action@master
+      - name: Create Release Pull Request or Publish to npm
+        id: changesets
+        uses: changesets/action@master
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish: yarn release
+          commit: 'chore(release): update monorepo packages versions'
+          title: 'Upcoming Release Changes'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}

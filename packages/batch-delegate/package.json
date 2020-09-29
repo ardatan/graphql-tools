@@ -18,7 +18,7 @@
     "input": "./src/index.ts"
   },
   "dependencies": {
-    "@graphql-tools/delegate": "6.2.3",
+    "@graphql-tools/delegate": "^6.2.3",
     "dataloader": "2.0.0",
     "tslib": "~2.0.1"
   },
