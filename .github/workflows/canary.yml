@@ -35,7 +35,7 @@ jobs:
         id: canary
         uses: 'kamilkisiela/release-canary@master'
         with:
-          npm-token: ${{ secrets.NODE_AUTH_TOKEN }}
+          npm-token: ${{ secrets.NPM_TOKEN }}
           npm-script: 'yarn release:canary'
           changesets: true
       - name: Publish a message
