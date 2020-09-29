@@ -16,8 +16,8 @@
     "graphql": "^14.0.0 || ^15.0.0"
   },
   "dependencies": {
-    "@graphql-tools/utils": "6.2.3",
-    "@graphql-tools/graphql-tag-pluck": "6.2.3",
+    "@graphql-tools/utils": "^6.2.3",
+    "@graphql-tools/graphql-tag-pluck": "^6.2.3",
     "fs-extra": "9.0.1",
     "tslib": "~2.0.1"
   },
