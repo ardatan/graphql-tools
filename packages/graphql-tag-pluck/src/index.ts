@@ -1,7 +1,7 @@
 import generateConfig from './config';
 import { parse } from '@babel/parser';
 import { getExtNameFromFilePath } from './libs/extname';
-import createVisitor from './visitor';
+import createVisitor, { PluckedContent } from './visitor';
 import traverse from '@babel/traverse';
 import { freeText } from './utils';
 
@@ -131,7 +131,9 @@ export const gqlPluckFromCodeString = async (
     code = await pluckVueFileScript(code);
   }
 
-  return parseCode({ code, filePath, options });
+  return parseCode({ code, filePath, options })
+    .map(t => t.content)
+    .join('\n\n');
 };
 
 /**
@@ -156,10 +158,12 @@ export const gqlPluckFromCodeStringSync = (
     code = pluckVueFileScriptSync(code);
   }
 
-  return parseCode({ code, filePath, options });
+  return parseCode({ code, filePath, options })
+    .map(t => t.content)
+    .join('\n\n');
 };
 
-function parseCode({
+export function parseCode({
   code,
   filePath,
   options,
@@ -167,14 +171,14 @@ function parseCode({
   code: string;
   filePath: string;
   options: GraphQLTagPluckOptions;
-}): any {
+}): PluckedContent[] {
   const out: any = { returnValue: null };
   const ast = parse(code, generateConfig(filePath, code, options));
   const visitor = createVisitor(code, out, options);
 
   traverse(ast as any, visitor);
 
-  return out.returnValue;
+  return out.returnValue || [];
 }
 
 function validate({ code, options }: { code: string; options: GraphQLTagPluckOptions }) {
