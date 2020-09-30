@@ -79,7 +79,7 @@ function addVariablesToRootField(
 
     operation.selectionSet.selections.forEach((selection: SelectionNode) => {
       if (selection.kind === Kind.FIELD) {
-        const argumentNodes = selection.arguments;
+        const argumentNodes = selection.arguments || [];
         const argumentNodeMap: Record<string, ArgumentNode> = argumentNodes.reduce(
           (prev, argument) => ({
             ...prev,
