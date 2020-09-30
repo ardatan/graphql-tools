@@ -43,12 +43,12 @@
   },
   "devDependencies": {
     "patch-package": "^6.2.2",
-    "@changesets/cli": "2.10.2",
+    "@changesets/cli": "2.10.3",
     "@types/fs-extra": "9.0.1",
     "@types/jest": "26.0.14",
     "@types/node": "14.11.2",
     "@typescript-eslint/eslint-plugin": "4.3.0",
-    "@typescript-eslint/parser": "4.2.0",
+    "@typescript-eslint/parser": "4.3.0",
     "@ardatan/bob-the-bundler": "1.2.2",
     "eslint": "7.10.0",
     "eslint-config-prettier": "6.12.0",
@@ -64,7 +64,7 @@
     "lint-staged": "10.4.0",
     "nock": "13.0.4",
     "prettier": "2.1.2",
-    "ts-jest": "26.4.0",
+    "ts-jest": "26.4.1",
     "typedoc": "0.17.0-3",
     "typedoc-plugin-markdown": "2.3.1",
     "typescript": "4.0.3"
