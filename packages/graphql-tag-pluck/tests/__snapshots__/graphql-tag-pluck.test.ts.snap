@@ -1,0 +1,37 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`graphql-tag-pluck async should allow to pluck without indentation changes 1`] = `
+"
+  fragment Foo on FooType {
+    id
+  }
+
+
+
+  query foo {
+    foo {
+      ...Foo
+    }
+  }
+
+  
+"
+`;
+
+exports[`graphql-tag-pluck sync should allow to pluck without indentation changes 1`] = `
+"
+  fragment Foo on FooType {
+    id
+  }
+
+
+
+  query foo {
+    foo {
+      ...Foo
+    }
+  }
+
+  
+"
+`;

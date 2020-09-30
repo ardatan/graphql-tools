@@ -7,6 +7,32 @@ describe('graphql-tag-pluck', () => {
     async: gqlPluckFromCodeString,
     sync: gqlPluckFromCodeStringSync
   })(pluck => {
+    it('should allow to pluck without indentation changes', async () => {
+      const gqlString = await pluck('tmp-XXXXXX.js', freeText(`
+        import gql from 'graphql-tag'
+
+        const fragment = gql(\`
+          fragment Foo on FooType {
+            id
+          }
+        \`)
+
+        const doc = gql\`
+          query foo {
+            foo {
+              ...Foo
+            }
+          }
+
+          \${fragment}
+        \`
+      `), {
+        skipIndent: true
+      });
+
+      expect(gqlString).toMatchSnapshot();
+    });
+
     it('should pluck graphql-tag template literals from .js file', async () => {
       const gqlString = await pluck('tmp-XXXXXX.js', freeText(`
         import gql from 'graphql-tag'
