@@ -27,7 +27,6 @@
 '@graphql-tools/load-files': patch
 '@graphql-tools/utils': patch
 '@graphql-tools/webpack-loader-runtime': patch
-'@graphql-tools/website': patch
 ---
 
 Bump all packages to allow adjustments
