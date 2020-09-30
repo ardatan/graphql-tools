@@ -1,5 +1,5 @@
 // Will use the shortest indention as an axis
-export const freeText = (text: string | string[]) => {
+export const freeText = (text: string | string[], fixIndentation = true) => {
   if (text instanceof Array) {
     text = text.join('');
   }
@@ -13,18 +13,21 @@ export const freeText = (text: string | string[]) => {
       .join('\n');
   });
 
-  const lines = text.split('\n');
+  let lines = text.split('\n');
 
-  const minIndent = lines
-    .filter(line => line.trim())
-    .reduce<number>((minIndent, line) => {
-      const currIndent = line.match(/^ */)[0].length;
+  if (fixIndentation) {
+    const minIndent = lines
+      .filter(line => line.trim())
+      .reduce<number>((minIndent, line) => {
+        const currIndent = line.match(/^ */)[0].length;
 
-      return currIndent < minIndent ? currIndent : minIndent;
-    }, Infinity);
+        return currIndent < minIndent ? currIndent : minIndent;
+      }, Infinity);
+
+    lines = lines.map(line => line.slice(minIndent));
+  }
 
   return lines
-    .map(line => line.slice(minIndent))
     .join('\n')
     .trim()
     .replace(/\n +\n/g, '\n\n');

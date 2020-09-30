@@ -98,6 +98,10 @@ export interface GraphQLTagPluckOptions {
    * ```
    */
   globalGqlIdentifierName?: string | string[];
+  /**
+   * Set to `true` in order to get the found documents as-is, without any changes indentation changes
+   */
+  skipIndent?: boolean;
 }
 
 const supportedExtensions = ['.js', '.jsx', '.ts', '.tsx', '.flow', '.flow.js', '.flow.jsx', '.vue'];
