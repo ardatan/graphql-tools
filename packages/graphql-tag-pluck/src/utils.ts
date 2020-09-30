@@ -1,5 +1,5 @@
 // Will use the shortest indention as an axis
-export const freeText = (text: string | string[]) => {
+export const freeText = (text: string | string[], skipIndentation = false) => {
   if (text instanceof Array) {
     text = text.join('');
   }
@@ -12,6 +12,10 @@ export const freeText = (text: string | string[]) => {
       .map(line => `${baseIndent}${line}`)
       .join('\n');
   });
+
+  if (skipIndentation) {
+    return text;
+  }
 
   const lines = text.split('\n');
 

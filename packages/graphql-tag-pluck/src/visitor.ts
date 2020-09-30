@@ -152,7 +152,8 @@ export default (code: string, out: any, options: GraphQLTagPluckOptions = {}) =>
         // string anyways
         .replace(/\$\{[^}]*\}/g, '')
         .split('\\`')
-        .join('`')
+        .join('`'),
+      options.skipIndent
     );
   };
 
