@@ -90,6 +90,22 @@ const defaults: GraphQLTagPluckOptions = {
   globalGqlIdentifierName: ['gql', 'graphql'],
 };
 
+export type PluckedContent = {
+  content: string;
+  start: number;
+  end: number;
+  loc: {
+    start: {
+      line: number;
+      column: number;
+    };
+    end: {
+      line: number;
+      column: number;
+    };
+  };
+};
+
 export default (code: string, out: any, options: GraphQLTagPluckOptions = {}) => {
   // Apply defaults to options
   let { modules, globalGqlIdentifierName, gqlMagicComment } = {
@@ -115,7 +131,7 @@ export default (code: string, out: any, options: GraphQLTagPluckOptions = {}) =>
   const definedIdentifierNames: string[] = [];
 
   // Will accumulate all template literals
-  const gqlTemplateLiterals: string[] = [];
+  const gqlTemplateLiterals: PluckedContent[] = [];
 
   // Check if package is registered
   function isValidPackage(name: string) {
@@ -159,10 +175,16 @@ export default (code: string, out: any, options: GraphQLTagPluckOptions = {}) =>
       return;
     }
 
-    const gqlTemplateLiteral = pluckStringFromFile(takeExpression ? node.expression : node);
+    const nodeToUse = takeExpression ? node.expression : node;
+    const gqlTemplateLiteral = pluckStringFromFile(nodeToUse);
 
     if (gqlTemplateLiteral) {
-      gqlTemplateLiterals.push(gqlTemplateLiteral);
+      gqlTemplateLiterals.push({
+        content: gqlTemplateLiteral,
+        loc: node.loc,
+        end: node.end,
+        start: node.start,
+      });
     }
   };
 
@@ -194,7 +216,12 @@ export default (code: string, out: any, options: GraphQLTagPluckOptions = {}) =>
           // If the entire template was made out of interpolations it should be an empty
           // string by now and thus should be ignored
           if (gqlTemplateLiteral) {
-            gqlTemplateLiterals.push(gqlTemplateLiteral);
+            gqlTemplateLiterals.push({
+              content: gqlTemplateLiteral,
+              loc: arg0.loc,
+              end: arg0.end,
+              start: arg0.start,
+            });
           }
         }
       },
@@ -262,13 +289,18 @@ export default (code: string, out: any, options: GraphQLTagPluckOptions = {}) =>
         const gqlTemplateLiteral = pluckStringFromFile(path.node.quasi);
 
         if (gqlTemplateLiteral) {
-          gqlTemplateLiterals.push(gqlTemplateLiteral);
+          gqlTemplateLiterals.push({
+            content: gqlTemplateLiteral,
+            end: path.node.quasi.end,
+            start: path.node.quasi.start,
+            loc: path.node.quasi.loc,
+          });
         }
       },
     },
 
     exit() {
-      out.returnValue = gqlTemplateLiterals.join('\n\n');
+      out.returnValue = gqlTemplateLiterals;
     },
   };
 };
