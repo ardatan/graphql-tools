@@ -42,7 +42,12 @@ export default class RenameInputObjectFields implements Transform {
     this.reverseMap = Object.create(null);
   }
 
-  public transformSchema(originalWrappingSchema: GraphQLSchema, subschemaConfig?: SubschemaConfig): GraphQLSchema {
+  public transformSchema(
+    originalWrappingSchema: GraphQLSchema,
+    subschemaConfig?: SubschemaConfig,
+    transforms?: Array<Transform>,
+    transformedSchema?: GraphQLSchema
+  ): GraphQLSchema {
     mapSchema(originalWrappingSchema, {
       [MapperKind.INPUT_OBJECT_FIELD]: (
         inputFieldConfig: GraphQLInputFieldConfig,
@@ -64,7 +69,7 @@ export default class RenameInputObjectFields implements Transform {
       },
     });
 
-    return this.transformer.transformSchema(originalWrappingSchema, subschemaConfig);
+    return this.transformer.transformSchema(originalWrappingSchema, subschemaConfig, transforms, transformedSchema);
   }
 
   public transformRequest(

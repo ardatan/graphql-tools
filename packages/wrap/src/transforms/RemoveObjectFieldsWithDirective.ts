@@ -15,7 +15,12 @@ export default class RemoveObjectFieldsWithDirective implements Transform {
     this.args = args;
   }
 
-  public transformSchema(originalWrappingSchema: GraphQLSchema, subschemaConfig?: SubschemaConfig): GraphQLSchema {
+  public transformSchema(
+    originalWrappingSchema: GraphQLSchema,
+    subschemaConfig?: SubschemaConfig,
+    transforms?: Array<Transform>,
+    transformedSchema?: GraphQLSchema
+  ): GraphQLSchema {
     const transformer = new FilterObjectFields(
       (_typeName: string, _fieldName: string, fieldConfig: GraphQLFieldConfig<any, any>) => {
         const valueMap = getDirectives(originalWrappingSchema, fieldConfig);
@@ -29,6 +34,6 @@ export default class RemoveObjectFieldsWithDirective implements Transform {
       }
     );
 
-    return transformer.transformSchema(originalWrappingSchema, subschemaConfig);
+    return transformer.transformSchema(originalWrappingSchema, subschemaConfig, transforms, transformedSchema);
   }
 }

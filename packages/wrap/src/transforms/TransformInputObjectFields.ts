@@ -36,7 +36,12 @@ export default class TransformInputObjectFields implements Transform {
     this.mapping = {};
   }
 
-  public transformSchema(originalWrappingSchema: GraphQLSchema, _subschemaConfig?: SubschemaConfig): GraphQLSchema {
+  public transformSchema(
+    originalWrappingSchema: GraphQLSchema,
+    _subschemaConfig?: SubschemaConfig,
+    _transforms?: Array<Transform>,
+    _transformedSchema?: GraphQLSchema
+  ): GraphQLSchema {
     this.transformedSchema = mapSchema(originalWrappingSchema, {
       [MapperKind.INPUT_OBJECT_FIELD]: (inputFieldConfig, fieldName, typeName) => {
         const transformedInputField = this.inputFieldTransformer(typeName, fieldName, inputFieldConfig);

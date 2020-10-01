@@ -25,8 +25,13 @@ export default class RenameRootFields implements Transform {
     );
   }
 
-  public transformSchema(originalWrappingSchema: GraphQLSchema, subschemaConfig?: SubschemaConfig): GraphQLSchema {
-    return this.transformer.transformSchema(originalWrappingSchema, subschemaConfig);
+  public transformSchema(
+    originalWrappingSchema: GraphQLSchema,
+    subschemaConfig?: SubschemaConfig,
+    transforms?: Array<Transform>,
+    transformedSchema?: GraphQLSchema
+  ): GraphQLSchema {
+    return this.transformer.transformSchema(originalWrappingSchema, subschemaConfig, transforms, transformedSchema);
   }
 
   public transformRequest(

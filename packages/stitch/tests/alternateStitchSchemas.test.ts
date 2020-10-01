@@ -1176,6 +1176,7 @@ describe('schema transformation with extraction of nested fields', () => {
       },
     });
   });
+
 });
 
 describe('HoistField transform', () => {
@@ -1265,6 +1266,23 @@ describe('HoistField transform', () => {
         query: {
           hoisted: 'priority',
         },
+      },
+    };
+
+    expect(result).toEqual(expectedResult);
+  });
+
+  test('should work to hoist fields to new root fields', async () => {
+    const wrappedSchema = wrapSchema({
+      schema,
+      transforms: [new HoistField('Query', ['query', 'inner', 'test'], 'hoisted'), new PruneSchema({})],
+    })
+
+    const result = await graphql(wrappedSchema, '{ hoisted }');
+
+    const expectedResult = {
+      data: {
+        hoisted: 'test',
       },
     };
 
