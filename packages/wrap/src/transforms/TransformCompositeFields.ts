@@ -39,7 +39,12 @@ export default class TransformCompositeFields implements Transform {
     this.mapping = {};
   }
 
-  public transformSchema(originalWrappingSchema: GraphQLSchema, _subschemaConfig: SubschemaConfig): GraphQLSchema {
+  public transformSchema(
+    originalWrappingSchema: GraphQLSchema,
+    _subschemaConfig?: SubschemaConfig,
+    _transforms?: Array<Transform>,
+    _transformedSchema?: GraphQLSchema
+  ): GraphQLSchema {
     this.transformedSchema = mapSchema(originalWrappingSchema, {
       [MapperKind.COMPOSITE_FIELD]: (fieldConfig, fieldName, typeName) => {
         const transformedField = this.fieldTransformer(typeName, fieldName, fieldConfig);

@@ -27,10 +27,17 @@ export default class RemoveObjectFieldDeprecations implements Transform {
     );
   }
 
-  public transformSchema(originalWrappingSchema: GraphQLSchema, subschemaConfig?: SubschemaConfig): GraphQLSchema {
+  public transformSchema(
+    originalWrappingSchema: GraphQLSchema,
+    subschemaConfig?: SubschemaConfig,
+    transforms?: Array<Transform>,
+    transformedSchema?: GraphQLSchema
+  ): GraphQLSchema {
     return this.removeDeprecations.transformSchema(
       this.removeDirectives.transformSchema(originalWrappingSchema, subschemaConfig),
-      subschemaConfig
+      subschemaConfig,
+      transforms,
+      transformedSchema
     );
   }
 }

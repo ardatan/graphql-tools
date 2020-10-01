@@ -15,7 +15,12 @@ export default class RenameRootTypes implements Transform {
     this.reverseMap = Object.create(null);
   }
 
-  public transformSchema(originalWrappingSchema: GraphQLSchema, _subschemaConfig?: SubschemaConfig): GraphQLSchema {
+  public transformSchema(
+    originalWrappingSchema: GraphQLSchema,
+    _subschemaConfig?: SubschemaConfig,
+    _transforms?: Array<Transform>,
+    _transformedSchema?: GraphQLSchema
+  ): GraphQLSchema {
     return mapSchema(originalWrappingSchema, {
       [MapperKind.ROOT_OBJECT]: type => {
         const oldName = type.name;

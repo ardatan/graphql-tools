@@ -13,7 +13,12 @@ export default class FilterObjectFieldDirectives implements Transform {
     this.filter = filter;
   }
 
-  public transformSchema(originalWrappingSchema: GraphQLSchema, _subschemaConfig?: SubschemaConfig): GraphQLSchema {
+  public transformSchema(
+    originalWrappingSchema: GraphQLSchema,
+    subschemaConfig?: SubschemaConfig,
+    transforms?: Array<Transform>,
+    transformedSchema?: GraphQLSchema
+  ): GraphQLSchema {
     const transformer = new TransformObjectFields(
       (_typeName: string, _fieldName: string, fieldConfig: GraphQLFieldConfig<any, any>) => {
         const keepDirectives = fieldConfig.astNode.directives.filter(dir => {
@@ -35,6 +40,6 @@ export default class FilterObjectFieldDirectives implements Transform {
       }
     );
 
-    return transformer.transformSchema(originalWrappingSchema);
+    return transformer.transformSchema(originalWrappingSchema, subschemaConfig, transforms, transformedSchema);
   }
 }

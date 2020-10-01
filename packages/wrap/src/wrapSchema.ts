@@ -22,27 +22,21 @@ export function wrapSchema(
   transforms?: Array<Transform>
 ): GraphQLSchema {
   let targetSchema: GraphQLSchema;
-  let schemaTransforms: Array<Transform> = [];
   let subschemaConfig: SubschemaConfig;
 
   if (isSubschemaConfig(subschemaOrSubschemaConfig)) {
     targetSchema = subschemaOrSubschemaConfig.schema;
     subschemaConfig = subschemaOrSubschemaConfig;
-    if (subschemaOrSubschemaConfig.transforms != null) {
-      schemaTransforms = schemaTransforms.concat(subschemaOrSubschemaConfig.transforms);
-    }
   } else {
     targetSchema = subschemaOrSubschemaConfig;
-  }
-
-  if (transforms != null) {
-    schemaTransforms = schemaTransforms.concat(transforms);
   }
 
   const proxyingResolvers = generateProxyingResolvers(subschemaOrSubschemaConfig, transforms);
   const schema = createWrappingSchema(targetSchema, proxyingResolvers);
 
-  return applySchemaTransforms(schema, schemaTransforms, subschemaConfig);
+  const transformedSchema = applySchemaTransforms(schema, subschemaConfig, transforms);
+
+  return applySchemaTransforms(schema, subschemaConfig, transforms, transformedSchema);
 }
 
 function createWrappingSchema(

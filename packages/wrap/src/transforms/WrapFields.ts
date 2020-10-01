@@ -19,7 +19,7 @@ import {
   relocatedError,
 } from '@graphql-tools/utils';
 
-import { Transform, defaultMergedResolver, DelegationContext } from '@graphql-tools/delegate';
+import { Transform, defaultMergedResolver, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
 import MapFields from './MapFields';
 
@@ -92,9 +92,14 @@ export default class WrapFields implements Transform<WrapFieldsTransformationCon
     );
   }
 
-  public transformSchema(schema: GraphQLSchema): GraphQLSchema {
+  public transformSchema(
+    originalWrappingSchema: GraphQLSchema,
+    _subschemaConfig?: SubschemaConfig,
+    _transforms?: Array<Transform>,
+    _transformedSchema?: GraphQLSchema
+  ): GraphQLSchema {
     const targetFieldConfigMap = selectObjectFields(
-      schema,
+      originalWrappingSchema,
       this.outerTypeName,
       !this.fieldNames ? () => true : fieldName => this.fieldNames.includes(fieldName)
     );
@@ -103,7 +108,7 @@ export default class WrapFields implements Transform<WrapFieldsTransformationCon
     let wrappingTypeName = this.wrappingTypeNames[wrapIndex];
     let wrappingFieldName = this.wrappingFieldNames[wrapIndex];
 
-    let newSchema = appendObjectFields(schema, wrappingTypeName, targetFieldConfigMap);
+    let newSchema = appendObjectFields(originalWrappingSchema, wrappingTypeName, targetFieldConfigMap);
 
     for (wrapIndex--; wrapIndex > -1; wrapIndex--) {
       const nextWrappingTypeName = this.wrappingTypeNames[wrapIndex];

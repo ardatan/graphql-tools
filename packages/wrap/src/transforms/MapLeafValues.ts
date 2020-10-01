@@ -44,7 +44,12 @@ export default class MapLeafValues implements Transform<MapLeafValuesTransformat
     this.resultVisitorMap = Object.create(null);
   }
 
-  public transformSchema(originalWrappingSchema: GraphQLSchema, _subschemaConfig: SubschemaConfig): GraphQLSchema {
+  public transformSchema(
+    originalWrappingSchema: GraphQLSchema,
+    _subschemaConfig: SubschemaConfig,
+    _transforms?: Array<Transform>,
+    _transformedSchema?: GraphQLSchema
+  ): GraphQLSchema {
     this.originalWrappingSchema = originalWrappingSchema;
     const typeMap = originalWrappingSchema.getTypeMap();
     Object.keys(typeMap).forEach(typeName => {
