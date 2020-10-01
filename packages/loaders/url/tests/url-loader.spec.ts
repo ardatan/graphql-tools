@@ -1,10 +1,11 @@
+import '../../../testing/to-be-similar-string';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { UrlLoader } from '../src';
 import { printSchemaWithDirectives } from '@graphql-tools/utils';
 import nock from 'nock';
 import { mockGraphQLServer } from '../../../testing/utils';
 import { cwd } from 'process';
-import { execute, parse } from 'graphql';
+import { execute, parse, print } from 'graphql';
 
 const SHOULD_NOT_GET_HERE_ERROR = 'SHOULD_NOT_GET_HERE';
 
@@ -233,5 +234,19 @@ type CustomQuery {
       expect(result.schema).toBeDefined();
       expect(printSchemaWithDirectives(result.schema)).toBe(testTypeDefs);
     });
+    it('should handle .graphql files', async () => {
+      const testHost = 'http://localhost:3000';
+      const testPath = '/schema.graphql';
+      const server = nock(testHost).get(testPath).reply(200, testTypeDefs);
+      const result = await loader.load(testHost + testPath, {});
+
+      server.done();
+
+      expect(result.schema).toBeDefined();
+      expect(printSchemaWithDirectives(result.schema)).toBeSimilarString(testTypeDefs);
+
+      expect(result.document).toBeDefined();
+      expect(print(result.document)).toBeSimilarString(testTypeDefs);
+    })
   });
 });

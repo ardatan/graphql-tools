@@ -1,5 +1,5 @@
 /* eslint-disable no-case-declarations */
-import { print, IntrospectionOptions, DocumentNode, GraphQLResolveInfo, Kind } from 'graphql';
+import { print, IntrospectionOptions, DocumentNode, GraphQLResolveInfo, Kind, parse, buildASTSchema } from 'graphql';
 import {
   SchemaPointerSingle,
   Source,
@@ -152,13 +152,9 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     };
   }
 
-  async getExecutorAndSubscriber(
-    pointer: SchemaPointerSingle,
-    options: LoadFromUrlOptions
-  ): Promise<{ executor: AsyncExecutor; subscriber: Subscriber }> {
+  private async getFetch(options: LoadFromUrlOptions, defaultMethod: 'GET' | 'POST') {
     let headers = {};
     let fetch = crossFetch;
-    let defaultMethod: 'GET' | 'POST' = 'POST';
     let webSocketImpl = w3cwebsocket;
 
     if (options) {
@@ -192,6 +188,14 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
         defaultMethod = options.method;
       }
     }
+    return { headers, defaultMethod, fetch, webSocketImpl };
+  }
+
+  async getExecutorAndSubscriber(
+    pointer: SchemaPointerSingle,
+    options: LoadFromUrlOptions
+  ): Promise<{ executor: AsyncExecutor; subscriber: Subscriber }> {
+    const { headers, defaultMethod, fetch, webSocketImpl } = await this.getFetch(options, 'POST');
 
     const extraHeaders = {
       Accept: 'application/json',
@@ -228,7 +232,30 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     };
   }
 
+  async handleSDL(pointer: SchemaPointerSingle, options: LoadFromUrlOptions) {
+    const { fetch, defaultMethod, headers } = await this.getFetch(options, 'GET');
+    const response = await fetch(pointer, {
+      method: defaultMethod,
+      headers,
+    });
+    const schemaString = await response.text();
+    const document = parse(schemaString, options);
+    const schema = buildASTSchema(document, options);
+    return {
+      document,
+      schema,
+    };
+  }
+
   async load(pointer: SchemaPointerSingle, options: LoadFromUrlOptions): Promise<Source> {
+    if (pointer.endsWith('.graphql')) {
+      const { document, schema } = await this.handleSDL(pointer, options);
+      return {
+        location: pointer,
+        document,
+        schema,
+      };
+    }
     const subschemaConfig = await this.getSubschemaConfig(pointer, options);
 
     const remoteExecutableSchema = wrapSchema(subschemaConfig);
