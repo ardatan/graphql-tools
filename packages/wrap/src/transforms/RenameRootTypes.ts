@@ -17,7 +17,7 @@ export default class RenameRootTypes implements Transform {
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    _subschemaConfig?: SubschemaConfig,
+    _subschemaOrSubschemaConfig?: GraphQLSchema | SubschemaConfig,
     _transforms?: Array<Transform>,
     _transformedSchema?: GraphQLSchema
   ): GraphQLSchema {

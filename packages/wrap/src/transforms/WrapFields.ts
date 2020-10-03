@@ -1,13 +1,14 @@
 import {
   GraphQLSchema,
   GraphQLObjectType,
-  GraphQLResolveInfo,
-  GraphQLFieldResolver,
   GraphQLError,
   FieldNode,
   FragmentDefinitionNode,
   SelectionSetNode,
   Kind,
+  GraphQLFieldConfigMap,
+  GraphQLFieldConfig,
+  GraphQLFieldResolver,
 } from 'graphql';
 
 import {
@@ -19,26 +20,20 @@ import {
   relocatedError,
 } from '@graphql-tools/utils';
 
-import { Transform, defaultMergedResolver, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
+import {
+  Transform,
+  defaultMergedResolver,
+  DelegationContext,
+  SubschemaConfig,
+  isSubschemaConfig,
+} from '@graphql-tools/delegate';
 
 import MapFields from './MapFields';
+import { defaultCreateProxyingResolver } from '../generateProxyingResolvers';
 
 interface WrapFieldsTransformationContext {
   nextIndex: number;
   paths: Record<string, { pathToField: Array<string>; alias: string }>;
-}
-
-function defaultWrappingResolver(
-  parent: any,
-  args: Record<string, any>,
-  context: Record<string, any>,
-  info: GraphQLResolveInfo
-): any {
-  if (!parent) {
-    return {};
-  }
-
-  return defaultMergedResolver(parent, args, context, info);
 }
 
 export default class WrapFields implements Transform<WrapFieldsTransformationContext> {
@@ -47,7 +42,6 @@ export default class WrapFields implements Transform<WrapFieldsTransformationCon
   private readonly wrappingTypeNames: Array<string>;
   private readonly numWraps: number;
   private readonly fieldNames: Array<string>;
-  private readonly wrappingResolver: GraphQLFieldResolver<any, any>;
   private readonly transformer: Transform;
 
   constructor(
@@ -55,7 +49,6 @@ export default class WrapFields implements Transform<WrapFieldsTransformationCon
     wrappingFieldNames: Array<string>,
     wrappingTypeNames: Array<string>,
     fieldNames?: Array<string>,
-    wrappingResolver: GraphQLFieldResolver<any, any> = defaultWrappingResolver,
     prefix = 'gqtld'
   ) {
     this.outerTypeName = outerTypeName;
@@ -63,7 +56,6 @@ export default class WrapFields implements Transform<WrapFieldsTransformationCon
     this.wrappingTypeNames = wrappingTypeNames;
     this.numWraps = wrappingFieldNames.length;
     this.fieldNames = fieldNames;
-    this.wrappingResolver = wrappingResolver;
 
     const remainingWrappingFieldNames = this.wrappingFieldNames.slice();
     const outerMostWrappingFieldName = remainingWrappingFieldNames.shift();
@@ -94,9 +86,9 @@ export default class WrapFields implements Transform<WrapFieldsTransformationCon
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    _subschemaConfig?: SubschemaConfig,
-    _transforms?: Array<Transform>,
-    _transformedSchema?: GraphQLSchema
+    subschemaOrSubschemaConfig?: GraphQLSchema | SubschemaConfig,
+    transforms?: Array<Transform>,
+    transformedSchema?: GraphQLSchema
   ): GraphQLSchema {
     const targetFieldConfigMap = selectObjectFields(
       originalWrappingSchema,
@@ -104,11 +96,21 @@ export default class WrapFields implements Transform<WrapFieldsTransformationCon
       !this.fieldNames ? () => true : fieldName => this.fieldNames.includes(fieldName)
     );
 
+    const newTargetFieldConfigMap: GraphQLFieldConfigMap<any, any> = Object.create(null);
+    Object.keys(targetFieldConfigMap).forEach(fieldName => {
+      const field = targetFieldConfigMap[fieldName];
+      const newField: GraphQLFieldConfig<any, any> = {
+        ...field,
+        resolve: defaultMergedResolver,
+      };
+      newTargetFieldConfigMap[fieldName] = newField;
+    });
+
     let wrapIndex = this.numWraps - 1;
     let wrappingTypeName = this.wrappingTypeNames[wrapIndex];
     let wrappingFieldName = this.wrappingFieldNames[wrapIndex];
 
-    let newSchema = appendObjectFields(originalWrappingSchema, wrappingTypeName, targetFieldConfigMap);
+    let newSchema = appendObjectFields(originalWrappingSchema, wrappingTypeName, newTargetFieldConfigMap);
 
     for (wrapIndex--; wrapIndex > -1; wrapIndex--) {
       const nextWrappingTypeName = this.wrappingTypeNames[wrapIndex];
@@ -116,7 +118,7 @@ export default class WrapFields implements Transform<WrapFieldsTransformationCon
       newSchema = appendObjectFields(newSchema, nextWrappingTypeName, {
         [wrappingFieldName]: {
           type: newSchema.getType(wrappingTypeName) as GraphQLObjectType,
-          resolve: this.wrappingResolver,
+          resolve: defaultMergedResolver,
         },
       });
 
@@ -124,7 +126,34 @@ export default class WrapFields implements Transform<WrapFieldsTransformationCon
       wrappingFieldName = this.wrappingFieldNames[wrapIndex];
     }
 
-    const selectedFieldNames = Object.keys(targetFieldConfigMap);
+    const wrappingRootField =
+      this.outerTypeName === originalWrappingSchema.getQueryType()?.name ||
+      this.outerTypeName === originalWrappingSchema.getMutationType()?.name;
+
+    let resolve: GraphQLFieldResolver<any, any>;
+    if (transformedSchema) {
+      if (wrappingRootField) {
+        const targetSchema = isSubschemaConfig(subschemaOrSubschemaConfig)
+          ? subschemaOrSubschemaConfig.schema
+          : subschemaOrSubschemaConfig;
+        const operation = this.outerTypeName === targetSchema.getQueryType().name ? 'query' : 'mutation';
+        const createProxyingResolver =
+          isSubschemaConfig(subschemaOrSubschemaConfig) && subschemaOrSubschemaConfig.createProxyingResolver
+            ? subschemaOrSubschemaConfig.createProxyingResolver
+            : defaultCreateProxyingResolver;
+        resolve = createProxyingResolver({
+          schema: subschemaOrSubschemaConfig,
+          transforms,
+          transformedSchema,
+          operation,
+          fieldName: wrappingFieldName,
+        });
+      } else {
+        resolve = defaultMergedResolver;
+      }
+    }
+
+    const selectedFieldNames = Object.keys(newTargetFieldConfigMap);
     [newSchema] = modifyObjectFields(
       newSchema,
       this.outerTypeName,
@@ -132,12 +161,12 @@ export default class WrapFields implements Transform<WrapFieldsTransformationCon
       {
         [wrappingFieldName]: {
           type: newSchema.getType(wrappingTypeName) as GraphQLObjectType,
-          resolve: this.wrappingResolver,
+          resolve,
         },
       }
     );
 
-    return this.transformer.transformSchema(newSchema);
+    return this.transformer.transformSchema(newSchema, subschemaOrSubschemaConfig, transforms, transformedSchema);
   }
 
   public transformRequest(

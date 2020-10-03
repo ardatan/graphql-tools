@@ -36,7 +36,7 @@ export function wrapSchema(
 
   const transformedSchema = applySchemaTransforms(schema, subschemaConfig, transforms);
 
-  return applySchemaTransforms(schema, subschemaConfig, transforms, transformedSchema);
+  return applySchemaTransforms(schema, subschemaOrSubschemaConfig, transforms, transformedSchema);
 }
 
 function createWrappingSchema(

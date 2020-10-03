@@ -6,12 +6,18 @@ import {
   Kind,
   GraphQLError,
   GraphQLArgument,
-  GraphQLFieldConfig,
+  GraphQLFieldResolver,
 } from 'graphql';
 
 import { appendObjectFields, removeObjectFields, Request, ExecutionResult, relocatedError } from '@graphql-tools/utils';
 
-import { Transform, defaultMergedResolver, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
+import {
+  Transform,
+  defaultMergedResolver,
+  DelegationContext,
+  SubschemaConfig,
+  isSubschemaConfig,
+} from '@graphql-tools/delegate';
 
 import { defaultCreateProxyingResolver } from '../generateProxyingResolvers';
 
@@ -66,7 +72,7 @@ export default class HoistField implements Transform {
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaConfig: SubschemaConfig,
+    subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig,
     transforms: Array<Transform>,
     transformedSchema: GraphQLSchema
   ): GraphQLSchema {
@@ -90,28 +96,38 @@ export default class HoistField implements Transform {
 
     const targetField = targetFieldConfigMap[this.oldFieldName];
 
-    const hoistingToRootField =
-      this.typeName === originalWrappingSchema.getQueryType()?.name || originalWrappingSchema.getMutationType()?.name;
+    let resolve: GraphQLFieldResolver<any, any>;
+    if (transformedSchema) {
+      const hoistingToRootField =
+        this.typeName === originalWrappingSchema.getQueryType()?.name ||
+        this.typeName === originalWrappingSchema.getMutationType()?.name;
 
-    let newTargetField: GraphQLFieldConfig<any, any>;
-    if (hoistingToRootField) {
-      const createProxyingResolver = subschemaConfig.createProxyingResolver ?? defaultCreateProxyingResolver;
-      newTargetField = {
-        ...targetField,
-        resolve: createProxyingResolver({
-          schema: subschemaConfig,
+      if (hoistingToRootField) {
+        const targetSchema = isSubschemaConfig(subschemaOrSubschemaConfig)
+          ? subschemaOrSubschemaConfig.schema
+          : subschemaOrSubschemaConfig;
+        const operation = this.typeName === targetSchema.getQueryType().name ? 'query' : 'mutation';
+        const createProxyingResolver =
+          isSubschemaConfig(subschemaOrSubschemaConfig) && subschemaOrSubschemaConfig.createProxyingResolver
+            ? subschemaOrSubschemaConfig.createProxyingResolver
+            : defaultCreateProxyingResolver;
+        resolve = createProxyingResolver({
+          schema: subschemaOrSubschemaConfig,
           transforms,
           transformedSchema,
-          operation: this.typeName === originalWrappingSchema.getQueryType().name ? 'query' : 'mutation',
+          operation,
           fieldName: this.newFieldName,
-        }),
-      };
-    } else {
-      newTargetField = {
-        ...targetField,
-        resolve: defaultMergedResolver,
-      };
+        });
+      } else {
+        resolve = defaultMergedResolver;
+      }
     }
+
+    const newTargetField = {
+      ...targetField,
+      resolve,
+    };
+
     const level = this.pathToField.length;
 
     Object.keys(targetField.args).forEach(argName => {

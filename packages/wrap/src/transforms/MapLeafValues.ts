@@ -46,7 +46,7 @@ export default class MapLeafValues implements Transform<MapLeafValuesTransformat
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    _subschemaConfig: SubschemaConfig,
+    _subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig,
     _transforms?: Array<Transform>,
     _transformedSchema?: GraphQLSchema
   ): GraphQLSchema {

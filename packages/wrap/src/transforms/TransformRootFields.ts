@@ -20,7 +20,7 @@ export default class TransformRootFields implements Transform {
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaConfig?: SubschemaConfig,
+    subschemaOrSubschemaConfig?: GraphQLSchema | SubschemaConfig,
     transforms?: Array<Transform>,
     transformedSchema?: GraphQLSchema
   ): GraphQLSchema {
@@ -50,7 +50,12 @@ export default class TransformRootFields implements Transform {
 
     this.transformer = new TransformObjectFields(rootToObjectFieldTransformer, this.fieldNodeTransformer);
 
-    return this.transformer.transformSchema(originalWrappingSchema, subschemaConfig, transforms, transformedSchema);
+    return this.transformer.transformSchema(
+      originalWrappingSchema,
+      subschemaOrSubschemaConfig,
+      transforms,
+      transformedSchema
+    );
   }
 
   public transformRequest(
