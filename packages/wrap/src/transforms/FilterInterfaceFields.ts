@@ -18,10 +18,15 @@ export default class FilterInterfaceFields implements Transform {
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaConfig?: SubschemaConfig,
+    subschemaOrSubschemaConfig?: GraphQLSchema | SubschemaConfig,
     transforms?: Array<Transform>,
     transformedSchema?: GraphQLSchema
   ): GraphQLSchema {
-    return this.transformer.transformSchema(originalWrappingSchema, subschemaConfig, transforms, transformedSchema);
+    return this.transformer.transformSchema(
+      originalWrappingSchema,
+      subschemaOrSubschemaConfig,
+      transforms,
+      transformedSchema
+    );
   }
 }

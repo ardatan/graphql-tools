@@ -194,7 +194,9 @@ export function delegateRequest({
     });
 
     if (isPromise(executionResult)) {
-      return executionResult.then(originalResult => transformer.transformResult(originalResult));
+      return executionResult.then(originalResult => {
+        return transformer.transformResult(originalResult);
+      });
     }
     return transformer.transformResult(executionResult);
   }

@@ -24,7 +24,7 @@ export function setObjectSubschema(result: any, subschema: GraphQLSchema | Subsc
 }
 
 export function isSubschemaConfig(value: any): value is SubschemaConfig | Subschema {
-  return Boolean(value.schema && value.permutations === undefined);
+  return Boolean(value?.schema);
 }
 
 export function cloneSubschemaConfig(subschemaConfig: SubschemaConfig): SubschemaConfig {

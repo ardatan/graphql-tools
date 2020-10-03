@@ -1292,7 +1292,7 @@ describe('HoistField transform', () => {
 
 describe('schema transformation with wrapping of object fields', () => {
   describe('WrapFields transform', () => {
-    test('should work', async () => {
+    test('should work to wrap fields even with errors', async () => {
       const transformedPropertySchema = wrapSchema(propertySchema, [
         new WrapFields(
           'Property',
