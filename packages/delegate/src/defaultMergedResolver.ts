@@ -3,8 +3,7 @@ import { defaultFieldResolver, GraphQLResolveInfo } from 'graphql';
 import { getResponseKeyFromInfo } from '@graphql-tools/utils';
 
 import { resolveExternalValue } from './resolveExternalValue';
-import { getSubschema } from './Subschema';
-import { getUnpathedErrors, isExternalObject } from './externalObjects';
+import { getSubschema, getUnpathedErrors, isExternalObject } from './externalObjects';
 import { ExternalObject } from './types';
 
 /**

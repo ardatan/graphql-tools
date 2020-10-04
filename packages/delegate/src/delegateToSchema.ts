@@ -29,7 +29,7 @@ import {
   Transform,
 } from './types';
 
-import { isSubschemaConfig } from './Subschema';
+import { isSubschemaConfig } from './subschemaConfig';
 import { createRequestFromInfo, getDelegatingOperation } from './createRequest';
 import { Transformer } from './Transformer';
 

@@ -2,7 +2,7 @@ import { GraphQLSchema, FieldNode, GraphQLObjectType, GraphQLResolveInfo } from 
 
 import { collectFields, GraphQLExecutionContext } from '@graphql-tools/utils';
 
-import { isSubschemaConfig } from './Subschema';
+import { isSubschemaConfig } from './subschemaConfig';
 import { MergedTypeInfo, SubschemaConfig, StitchingInfo } from './types';
 import { memoizeInfoAnd2Objects } from './memoize';
 

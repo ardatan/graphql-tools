@@ -18,7 +18,7 @@ import DataLoader from 'dataloader';
 
 import { Request, TypeMap, ExecutionResult } from '@graphql-tools/utils';
 
-import { Subschema } from './Subschema';
+import { Subschema } from './subschema';
 import { OBJECT_SUBSCHEMA_SYMBOL, FIELD_SUBSCHEMA_MAP_SYMBOL, UNPATHED_ERRORS_SYMBOL } from './symbols';
 
 export type SchemaTransform = (

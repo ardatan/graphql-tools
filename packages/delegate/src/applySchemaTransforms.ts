@@ -3,7 +3,7 @@ import { GraphQLSchema } from 'graphql';
 import { cloneSchema } from '@graphql-tools/utils';
 
 import { SubschemaConfig, Transform } from './types';
-import { isSubschemaConfig } from './Subschema';
+import { isSubschemaConfig } from './subschemaConfig';
 
 export function applySchemaTransforms(
   originalWrappingSchema: GraphQLSchema,
