@@ -19,7 +19,7 @@ Breaking Changes:
 
 - Utils: `filterSchema`'s `fieldFilter` will now filter *all* fields across Object, Interface, and Input types. For the previous Object-only behavior, switch to the `objectFieldFilter` option.
 
-- API Pruning: remove support for `ExtendSchema` transform , simpler just to use `stitchSchemas` with one subschema. Trim `utils` package size: remove unused `fieldNodes` utility functions, remove unused `typeContainsSelectionSet` function, move `typesContainSelectionSet` to stitch package.
+- API Pruning: remove support for `ExtendSchema` transform , simpler just to use `stitchSchemas` with one subschema. Trim `utils` package size: remove unused `fieldNodes` utility functions, remove unused `typeContainsSelectionSet` function, move `typesContainSelectionSet` to stitch package. Remove `Operation` type in favor of `OperationTypeNode` from upstream graphql-js.
 
 Related Issues
 

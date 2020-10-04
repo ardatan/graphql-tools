@@ -302,8 +302,6 @@ export interface IDirectiveResolvers<TSource = any, TContext = any> {
   [directiveName: string]: DirectiveResolverFn<TSource, TContext>;
 }
 
-export type Operation = 'query' | 'mutation' | 'subscription';
-
 export interface Request {
   document: DocumentNode;
   variables: Record<string, any>;

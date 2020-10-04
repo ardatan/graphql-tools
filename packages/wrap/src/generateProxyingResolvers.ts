@@ -1,6 +1,6 @@
-import { GraphQLSchema, GraphQLFieldResolver, GraphQLObjectType, GraphQLResolveInfo } from 'graphql';
+import { GraphQLSchema, GraphQLFieldResolver, GraphQLObjectType, GraphQLResolveInfo, OperationTypeNode } from 'graphql';
 
-import { Operation, getResponseKeyFromInfo } from '@graphql-tools/utils';
+import { getResponseKeyFromInfo } from '@graphql-tools/utils';
 import {
   delegateToSchema,
   getSubschema,
@@ -34,14 +34,14 @@ export function generateProxyingResolvers(
 
   const transformedSchema = applySchemaTransforms(targetSchema, subschemaConfig, transforms);
 
-  const operationTypes: Record<Operation, GraphQLObjectType> = {
+  const operationTypes: Record<OperationTypeNode, GraphQLObjectType> = {
     query: targetSchema.getQueryType(),
     mutation: targetSchema.getMutationType(),
     subscription: targetSchema.getSubscriptionType(),
   };
 
   const resolvers = {};
-  Object.keys(operationTypes).forEach((operation: Operation) => {
+  Object.keys(operationTypes).forEach((operation: OperationTypeNode) => {
     const rootType = operationTypes[operation];
     if (rootType != null) {
       const typeName = rootType.name;

@@ -16,7 +16,7 @@ import {
 
 import DataLoader from 'dataloader';
 
-import { Operation, Request, TypeMap, ExecutionResult } from '@graphql-tools/utils';
+import { Request, TypeMap, ExecutionResult } from '@graphql-tools/utils';
 
 import { Subschema } from './Subschema';
 import { OBJECT_SUBSCHEMA_SYMBOL, FIELD_SUBSCHEMA_MAP_SYMBOL, UNPATHED_ERRORS_SYMBOL } from './symbols';
@@ -63,7 +63,7 @@ export type DelegationBinding = (delegationContext: DelegationContext) => Array<
 export interface IDelegateToSchemaOptions<TContext = Record<string, any>, TArgs = Record<string, any>> {
   schema: GraphQLSchema | SubschemaConfig | Subschema;
   operationName?: string;
-  operation?: Operation;
+  operation?: OperationTypeNode;
   fieldName?: string;
   returnType?: GraphQLOutputType;
   args?: TArgs;
@@ -87,7 +87,7 @@ export interface IDelegateRequestOptions extends Omit<IDelegateToSchemaOptions, 
 export interface ICreateRequestFromInfo {
   info: GraphQLResolveInfo;
   operationName?: string;
-  operation: Operation;
+  operation: OperationTypeNode;
   fieldName: string;
   selectionSet?: SelectionSetNode;
   fieldNodes?: ReadonlyArray<FieldNode>;
@@ -100,7 +100,7 @@ export interface ICreateRequest {
   fragments?: Record<string, FragmentDefinitionNode>;
   variableDefinitions?: ReadonlyArray<VariableDefinitionNode>;
   variableValues?: Record<string, any>;
-  targetOperation: Operation;
+  targetOperation: OperationTypeNode;
   targetOperationName?: string;
   targetFieldName: string;
   selectionSet?: SelectionSetNode;
@@ -145,7 +145,7 @@ export interface ICreateProxyingResolverOptions {
   schema: GraphQLSchema | SubschemaConfig;
   transforms?: Array<Transform>;
   transformedSchema?: GraphQLSchema;
-  operation?: Operation;
+  operation?: OperationTypeNode;
   fieldName?: string;
 }
 
