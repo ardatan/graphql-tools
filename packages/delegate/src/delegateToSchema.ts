@@ -15,6 +15,8 @@ import {
 
 import isPromise from 'is-promise';
 
+import { createBatchingExecutor } from '@graphql-tools/batch-execute';
+
 import { mapAsyncIterator, ExecutionResult } from '@graphql-tools/utils';
 
 import {
@@ -32,7 +34,7 @@ import { createRequestFromInfo, getDelegatingOperation } from './createRequest';
 import { Transformer } from './Transformer';
 
 import AggregateError from '@ardatan/aggregate-error';
-import { getBatchingExecutor } from './getBatchingExecutor';
+import { Executor } from 'packages/batch-execute/src/types';
 
 export function delegateToSchema(options: IDelegateToSchemaOptions | GraphQLSchema): any {
   if (isSchema(options)) {
@@ -180,11 +182,16 @@ export function delegateRequest({
   }
 
   if (targetOperation === 'query' || targetOperation === 'mutation') {
-    let executor =
+    let executor: Executor =
       endpoint?.executor || createDefaultExecutor(targetSchema, subschemaConfig?.rootValue || targetRootValue);
 
     if (endpoint?.batch) {
-      executor = getBatchingExecutor(context, endpoint, executor);
+      executor = createBatchingExecutor(
+        executor,
+        context,
+        endpoint?.batchingOptions?.extensionsReducer,
+        endpoint?.batchingOptions?.dataLoaderOptions
+      );
     }
 
     const executionResult = executor({
@@ -235,15 +242,15 @@ function validateRequest(targetSchema: GraphQLSchema, document: DocumentNode) {
   }
 }
 
-function createDefaultExecutor(schema: GraphQLSchema, rootValue: Record<string, any>) {
-  return ({ document, context, variables, info }: ExecutionParams) =>
+function createDefaultExecutor(schema: GraphQLSchema, rootValue: Record<string, any>): Executor {
+  return (({ document, context, variables, info }: ExecutionParams) =>
     execute({
       schema,
       document,
       contextValue: context,
       variableValues: variables,
       rootValue: rootValue ?? info?.rootValue,
-    });
+    })) as Executor;
 }
 
 function createDefaultSubscriber(schema: GraphQLSchema, rootValue: Record<string, any>) {
