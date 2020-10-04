@@ -15,7 +15,7 @@ import {
 
 import isPromise from 'is-promise';
 
-import { createBatchingExecutor } from '@graphql-tools/batch-execute';
+import { getBatchingExecutor } from '@graphql-tools/batch-execute';
 
 import { mapAsyncIterator, ExecutionResult } from '@graphql-tools/utils';
 
@@ -186,11 +186,11 @@ export function delegateRequest({
       endpoint?.executor || createDefaultExecutor(targetSchema, subschemaConfig?.rootValue || targetRootValue);
 
     if (endpoint?.batch) {
-      executor = createBatchingExecutor(
-        executor,
+      executor = getBatchingExecutor(
         context,
-        endpoint?.batchingOptions?.extensionsReducer,
-        endpoint?.batchingOptions?.dataLoaderOptions
+        executor,
+        endpoint?.batchingOptions?.dataLoaderOptions,
+        endpoint?.batchingOptions?.extensionsReducer
       );
     }
 

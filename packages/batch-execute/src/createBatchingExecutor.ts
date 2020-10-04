@@ -8,22 +8,20 @@ import { ExecutionResult } from '@graphql-tools/utils';
 
 import { ExecutionParams, Executor } from './types';
 
-import { memoize2of4 } from './memoize';
 import { mergeExecutionParams } from './mergeExecutionParams';
 import { splitResult } from './splitResult';
 
-export const createBatchingExecutor = memoize2of4(function (
+export function createBatchingExecutor(
   executor: Executor,
-  _context: Record<string, any> = self ?? window ?? global,
-  extensionsReducer?: (mergedExtensions: Record<string, any>, executionParams: ExecutionParams) => Record<string, any>,
-  dataLoaderOptions?: DataLoader.Options<any, any, any>
+  dataLoaderOptions?: DataLoader.Options<any, any, any>,
+  extensionsReducer?: (mergedExtensions: Record<string, any>, executionParams: ExecutionParams) => Record<string, any>
 ): Executor {
   const loader = new DataLoader(
     createLoadFn(executor, extensionsReducer ?? defaultExtensionsReducer),
     dataLoaderOptions
   );
   return (executionParams: ExecutionParams) => loader.load(executionParams);
-});
+}
 
 function createLoadFn(
   executor: ({ document, context, variables, info }: ExecutionParams) => ExecutionResult | Promise<ExecutionResult>,
