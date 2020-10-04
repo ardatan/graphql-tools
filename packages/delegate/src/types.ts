@@ -183,6 +183,7 @@ export interface MergedTypeConfig<K = any, V = any> {
   fieldName?: string;
   args?: (originalResult: any) => Record<string, any>;
   key?: (originalResult: any) => K;
+  eagerReturn?: (key: K) => any;
   argsFromKeys?: (keys: ReadonlyArray<K>) => Record<string, any>;
   valuesFromResults?: (results: any, keys: ReadonlyArray<K>) => Array<V>;
 }

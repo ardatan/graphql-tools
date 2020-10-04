@@ -174,6 +174,7 @@ function createMergedTypes(
                 key: mergedTypeConfig.key(originalResult),
                 argsFromKeys: mergedTypeConfig.argsFromKeys ?? mergedTypeConfig.args,
                 valuesFromResults: mergedTypeConfig.valuesFromResults,
+                eagerReturn: mergedTypeConfig.eagerReturn,
                 selectionSet,
                 context,
                 info,

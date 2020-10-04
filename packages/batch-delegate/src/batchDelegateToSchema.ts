@@ -10,5 +10,17 @@ export function batchDelegateToSchema(options: BatchDelegateOptions): any {
     return [];
   }
   const loader = getLoader(options);
+
+  if (options.eagerReturn) {
+    const cacheKeyFn = options.dataLoaderOptions?.cacheKeyFn;
+
+    [key].flat().forEach(reqKey => {
+      const eagerValue = options.eagerReturn(reqKey);
+      if (eagerValue !== undefined) {
+        loader.prime(cacheKeyFn ? cacheKeyFn(reqKey) : reqKey, eagerValue);
+      }
+    });
+  }
+
   return Array.isArray(key) ? loader.loadMany(key) : loader.load(key);
 }
