@@ -36,7 +36,7 @@
         "relay-operation-optimizer",
         {
           "Migration": [
-            "migration-from-tools-v5",
+            "migration-from-tools",
             "migration-from-toolkit",
             "migration-from-merge-graphql-schemas",
             "migration-from-import"

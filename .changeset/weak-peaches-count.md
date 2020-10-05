@@ -9,20 +9,41 @@
 '@graphql-tools/schema': patch
 ---
 
-Breaking Changes:
-- Delegation result: `ExternalObject` concept formalized and matured, resulting in deprecation of `slicedError`, `getErrors`, `getErrorsByPathSegment` functions, see new `getUnpathedErrors` function for errors that cannot be merged into the `ExternalObject`. See as well new `annotateExternalObject` and `mergeExternalObjects` functions. Rename `handleResult` to `resolveExternalValue`.
+## Breaking Changes:
 
-- Transforms: `transformRequest`/`transformResult` methods are now provided additional `delegationContext` and `transformationContext` arguments -- these were previously optional. The `transformSchema` method may wish to create additional delegating resolvers and so it is now provided the `subschemaOrSubschemaConfig`, `transforms`, and (non-executable) `transformedSchema` as optional parameters. `transformSchema` is kicked off once to produce the non-executable version, and then a second time with the `transformedSchema` parameter set to the result of the first one so an executable version can be produced with the necessary information for any new proxying resolvers. Transform types and the `applySchemaTransforms` are now within delegate package; `applyRequestTransforms`/`applyResultTransforms` functions have been deprecated, however, as this is done by the `Transformer` abstraction.
+#### Schema Delegation (`delegateToSchema` & `@graphql-tools/delegate`)
 
-- Wrapping: remove support for `createMergedResolver` and non-standard transforms where resolvers do not use `defaultMergedResolver`. This is still theoretically possible, but not supported out of the box due to conflicts with type merging, where resolvers expected to be identical across subschemas. Remove custom `wrappingResolver` option from WrapFields as this does not make sense in the context of planned functionality to wrap subscription root fields in potentially multiple layers, as the wrapping resolvers will have to be different for the root field and the other layers. Modifying resolvers can be performed using a later transform such as `TransformRootFields` or `TransformObjectFields`.
+- The `delegateToSchema` return value has matured and been formalized as an `ExternalObject`, in which all errors are integrated into the GraphQL response, preserving their initial path. Those advanced users accessing the result directly will note the change in error handling. This also allows for the deprecation of unnecessary helper functions including `slicedError`, `getErrors`, `getErrorsByPathSegment` functions. Only external errors with missing or invalid paths must still be preserved by annotating the remote object with special properties. The new `getUnpathedErrors` function is therefore necessary for retrieving only these errors. Note also the new `annotateExternalObject` and `mergeExternalObjects` functions, as well as the renaming of `handleResult` to `resolveExternalValue`.
 
-- Stitching: `stitchSchemas`'s `mergeTypes` option is now true by default, causing types to be merged and the `onTypeConflict` option to be ignored. To use `onTypeConflict` to again select a specific type instead of merging, set `mergeTypes` to false. Removed support for fragment hints in favor of selection set hints.
+- The `transformRequest`/`transformResult` methods are now provided additional `delegationContext` and `transformationContext` arguments -- these were introduced in v6, but previously optional.
 
-- Utils: `filterSchema`'s `fieldFilter` will now filter *all* fields across Object, Interface, and Input types. For the previous Object-only behavior, switch to the `objectFieldFilter` option.
+- The `transformSchema` method may wish to create additional delegating resolvers and so it is now provided the optional `subschemaOrSubschemaConfig`, `transforms`, and (non-executable) `transformedSchema` parameters. As in v6, the `transformSchema` is kicked off once to produce the non-executable version, and then, if a wrapping schema is being generated, proxying resolvers are created with access to the (non-executabel) initial result. In v7, the individual `transformSchema` methods also get access to the result of the first run in the form of these optional parameters so that, if necessary, they can create additional wrapping schema proxying resolvers.
 
-- API Pruning: remove support for `ExtendSchema` transform , simpler just to use `stitchSchemas` with one subschema. Trim `utils` package size: remove unused `fieldNodes` utility functions, remove unused `typeContainsSelectionSet` function, move `typesContainSelectionSet` to stitch package. Remove `Operation` type in favor of `OperationTypeNode` from upstream graphql-js.
+- Transform types and the `applySchemaTransforms` are now relocated to the `delegate` package; `applyRequestTransforms`/`applyResultTransforms` functions have been deprecated, however, as this functionality has been replaced since v6 by the `Transformer` abstraction.
 
-Related Issues
+#### Remote Schemas & Wrapping (`wrapSchema`, `makeRemoteExecutableSchema`, and `@graphql-tools/wrap`)
+
+- The format of the wrapping schema has solidified. All non-root fields are expected to use identical resolvers, either `defaultMergedResolver` or a custom equivalent, with root fields doing the hard work of proxying. Support for custom merged resolvers throught `createMergedResolver` has been deprecated, as custom merging resolvers conflicts when using stitching's type merging, where resolvers are expected to be identical across subschemas.
+
+- The `WrapFields` transform's `wrappingResolver` option has been removed, as this complicates multiple wrapping layers, as well as planned functionality to wrap subscription root fields in potentially multiple layers, as the wrapping resolvers may be different in different layers. Modifying resolvers can still be performed by use of an additional transform such as `TransformRootFields` or `TransformObjectFields`.
+
+- The `ExtendSchema` transform has been removed, as it is conceptually simpler just to use `stitchSchemas` with one subschema.
+
+#### Schema Stitching (`stitchSchemas` & `@graphql-tools/stitch`)
+
+- `stitchSchemas`'s `mergeTypes` option is now true by default! This causes the `onTypeConflict` option to be ignored by default. To use `onTypeConflict` to select a specific type instead of simply merging, simply set `mergeTypes` to false.
+
+- Support for fragment hints has been removed in favor of selection set hints.
+
+#### Other Utilities (`@graphql-tools/utils`)
+
+- `filterSchema`'s `fieldFilter` will now filter *all* fields across Object, Interface, and Input types. For the previous Object-only behavior, switch to the `objectFieldFilter` option.
+- Unused `fieldNodes` utility functions have been removed.
+- Unused `typeContainsSelectionSet` function has been removed, and `typesContainSelectionSet` has been moved to the `stitch` package.
+- Unnecessary `Operation` type has been removed in favor of `OperationTypeNode` from upstream graphql-js.
+- As above, `applySchemaTransforms`/`applyRequestTransforms`/`applyResultTransforms` have been removed from the `utils` package, as they are implemented elsewhere or no longer necessary.
+
+## Related Issues
 
 - proxy all the errors: #1047, #1641
 - better error handling for merges #2016, #2062
