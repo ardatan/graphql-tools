@@ -17,7 +17,7 @@ export default class RemoveObjectFieldsWithDirective implements Transform {
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaOrSubschemaConfig?: GraphQLSchema | SubschemaConfig,
+    subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig,
     transforms?: Array<Transform>,
     transformedSchema?: GraphQLSchema
   ): GraphQLSchema {

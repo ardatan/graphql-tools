@@ -86,7 +86,7 @@ export default class WrapFields implements Transform<WrapFieldsTransformationCon
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaOrSubschemaConfig?: GraphQLSchema | SubschemaConfig,
+    subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig,
     transforms?: Array<Transform>,
     transformedSchema?: GraphQLSchema
   ): GraphQLSchema {

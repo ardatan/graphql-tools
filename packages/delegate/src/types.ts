@@ -23,7 +23,7 @@ import { OBJECT_SUBSCHEMA_SYMBOL, FIELD_SUBSCHEMA_MAP_SYMBOL, UNPATHED_ERRORS_SY
 
 export type SchemaTransform = (
   originalWrappingSchema: GraphQLSchema,
-  subschemaOrSubschemaConfig?: GraphQLSchema | SubschemaConfig,
+  subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig,
   transforms?: Array<Transform>,
   transformedSchema?: GraphQLSchema
 ) => GraphQLSchema;

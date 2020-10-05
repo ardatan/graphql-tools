@@ -13,7 +13,7 @@ export default class FilterTypes implements Transform {
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    _subschemaOrSubschemaConfig?: GraphQLSchema | SubschemaConfig,
+    _subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig,
     _transforms?: Array<Transform>,
     _transformedSchema?: GraphQLSchema
   ): GraphQLSchema {

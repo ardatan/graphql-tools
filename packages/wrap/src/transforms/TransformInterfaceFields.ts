@@ -20,7 +20,7 @@ export default class TransformInterfaceFields implements Transform {
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaOrSubschemaConfig?: GraphQLSchema | SubschemaConfig,
+    subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig,
     transforms?: Array<Transform>,
     transformedSchema?: GraphQLSchema
   ): GraphQLSchema {

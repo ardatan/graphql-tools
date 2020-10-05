@@ -31,7 +31,7 @@ export default class TransformEnumValues implements Transform<MapLeafValuesTrans
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaOrSubschemaConfig?: GraphQLSchema | SubschemaConfig,
+    subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig,
     transforms?: Array<Transform>,
     transformedSchema?: GraphQLSchema
   ): GraphQLSchema {

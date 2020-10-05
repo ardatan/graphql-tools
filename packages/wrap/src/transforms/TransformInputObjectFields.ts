@@ -38,7 +38,7 @@ export default class TransformInputObjectFields implements Transform {
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    _subschemaOrSubschemaConfig?: GraphQLSchema | SubschemaConfig,
+    _subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig,
     _transforms?: Array<Transform>,
     _transformedSchema?: GraphQLSchema
   ): GraphQLSchema {

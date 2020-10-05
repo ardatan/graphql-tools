@@ -7,7 +7,7 @@ import { isSubschemaConfig } from './subschemaConfig';
 
 export function applySchemaTransforms(
   originalWrappingSchema: GraphQLSchema,
-  subschemaOrSubschemaConfig?: GraphQLSchema | SubschemaConfig,
+  subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig,
   transforms?: Array<Transform>,
   transformedSchema?: GraphQLSchema
 ): GraphQLSchema {
