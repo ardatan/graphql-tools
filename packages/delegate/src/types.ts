@@ -143,8 +143,7 @@ export type Subscriber = <TReturn = Record<string, any>, TArgs = Record<string, 
 ) => Promise<AsyncIterator<ExecutionResult<TReturn>> | ExecutionResult<TReturn>>;
 
 export interface ICreateProxyingResolverOptions {
-  schema: GraphQLSchema | SubschemaConfig;
-  transforms?: Array<Transform>;
+  subschemaConfig: SubschemaConfig;
   transformedSchema?: GraphQLSchema;
   operation?: OperationTypeNode;
   fieldName?: string;

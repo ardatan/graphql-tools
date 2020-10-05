@@ -36,7 +36,7 @@ export function generateProxyingResolvers(
       resolvers[typeName] = {};
       Object.keys(fields).forEach(fieldName => {
         const proxyingResolver = createProxyingResolver({
-          schema: subschemaConfig,
+          subschemaConfig,
           transformedSchema,
           operation,
           fieldName,
@@ -89,18 +89,16 @@ function createPossiblyNestedProxyingResolver(
 }
 
 export function defaultCreateProxyingResolver({
-  schema,
+  subschemaConfig,
   operation,
-  transforms,
   transformedSchema,
 }: ICreateProxyingResolverOptions): GraphQLFieldResolver<any, any> {
   return (_parent, _args, context, info) =>
     delegateToSchema({
-      schema,
+      schema: subschemaConfig,
       operation,
       context,
       info,
-      transforms,
       transformedSchema,
     });
 }

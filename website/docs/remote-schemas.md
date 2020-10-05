@@ -213,9 +213,8 @@ For users who need to customize the root proxying resolvers at the time that the
 export type CreateProxyingResolverFn = (options: ICreateProxyingResolverOptions) => GraphQLFieldResolver<any, any>;
 
 export interface ICreateProxyingResolverOptions {
-  schema: GraphQLSchema | SubschemaConfig;   // target schema for delegation
-  transforms?: Array<Transform>;   // array of transformations to apply
-  transformedSchema?: GraphQLSchema;   // pre-processed result of applying those transforms to the target schema
+  subschemaConfig: SubschemaConfig;   // target schema config for delegation
+  transformedSchema?: GraphQLSchema;   // pre-processed result of applying any transforms to the target schema
   operation?: Operation;   // target operation type = 'query' | 'mutation' | 'subscription'
   fieldName?: string;   // target root field name
 };
@@ -225,18 +224,17 @@ You may not need all the options to accomplish what you need. For example, the d
 
 ```ts
 export function defaultCreateProxyingResolver({
-  schema,
+  subschemaConfig,
   operation,
   transforms,
   transformedSchema,
 }: ICreateProxyingResolverOptions): GraphQLFieldResolver<any, any> {
   return (_parent, _args, context, info) =>
     delegateToSchema({
-      schema,
+      schema: subschemaConfig,
       operation,
       context,
       info,
-      transforms,
       transformedSchema,
     });
 }
