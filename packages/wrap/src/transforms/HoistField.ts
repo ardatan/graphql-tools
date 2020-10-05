@@ -100,7 +100,7 @@ export default class HoistField implements Transform {
         const operation = this.typeName === targetSchema.getQueryType().name ? 'query' : 'mutation';
         const createProxyingResolver = subschemaConfig.createProxyingResolver ?? defaultCreateProxyingResolver;
         resolve = createProxyingResolver({
-          schema: subschemaConfig,
+          subschemaConfig,
           transformedSchema,
           operation,
           fieldName: this.newFieldName,

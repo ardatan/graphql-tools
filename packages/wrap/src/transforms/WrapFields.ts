@@ -130,7 +130,7 @@ export default class WrapFields implements Transform<WrapFieldsTransformationCon
         const operation = this.outerTypeName === targetSchema.getQueryType().name ? 'query' : 'mutation';
         const createProxyingResolver = subschemaConfig.createProxyingResolver ?? defaultCreateProxyingResolver;
         resolve = createProxyingResolver({
-          schema: subschemaConfig,
+          subschemaConfig,
           transformedSchema,
           operation,
           fieldName: wrappingFieldName,
