@@ -11,13 +11,12 @@ export function batchDelegateToSchema(options: BatchDelegateOptions): any {
   }
   const loader = getLoader(options);
 
-  if (options.eagerReturn) {
+  if (options.keyIsEmpty) {
     const cacheKeyFn = options.dataLoaderOptions?.cacheKeyFn;
 
-    [key].flat().forEach(reqKey => {
-      const eagerValue = options.eagerReturn(reqKey);
-      if (eagerValue !== undefined) {
-        loader.prime(cacheKeyFn ? cacheKeyFn(reqKey) : reqKey, eagerValue);
+    (Array.isArray(key) ? key : [key]).forEach(k => {
+      if (options.keyIsEmpty(k)) {
+        loader.prime(cacheKeyFn ? cacheKeyFn(k) : k, null);
       }
     });
   }

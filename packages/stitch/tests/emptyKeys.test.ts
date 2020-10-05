@@ -68,7 +68,7 @@ describe('eager returns', () => {
     }
   });
 
-  const getGatewaySchema = (eagerReturn): GraphQLSchema => stitchSchemas({
+  const gatewaySchema = stitchSchemas({
     subschemas: [
       {
         schema: postsSchema,
@@ -91,8 +91,8 @@ describe('eager returns', () => {
             },
             fieldName: '_posts',
             key: ({ id, productDealId, restaurantId }) => ({ id, productDealId, restaurantId }),
+            keyIsEmpty: (key) => Object.keys(key).every(field => field === 'id' || key[field] == null),
             argsFromKeys: (representations) => ({ representations }),
-            eagerReturn,
           },
         },
       },
@@ -104,10 +104,8 @@ describe('eager returns', () => {
     metadataRequests = 0;
   });
 
-  it('allows early return for empty keys', async () => {
-    const eagerReturn = (key) => null;
-
-    const result = await graphql(getGatewaySchema(eagerReturn), `
+  it('skips request for empty keys', async () => {
+    const result = await graphql(gatewaySchema, `
       query {
         post(id: 1) {
           id
@@ -129,37 +127,8 @@ describe('eager returns', () => {
     });
   });
 
-  it('allows early return with custom result', async () => {
-    const eagerReturn = (key) => ({ id: key.id, restaurant: { id: '55' } });
-
-    const result = await graphql(getGatewaySchema(eagerReturn), `
-      query {
-        post(id: 1) {
-          id
-          productDeal {
-            id
-          }
-          restaurant {
-            id
-          }
-        }
-      }
-    `);
-
-    expect(metadataRequests).toEqual(0);
-    expect(result.data.post).toEqual({
-      id: '1',
-      productDeal: null,
-      restaurant: {
-        id: '55',
-      },
-    });
-  });
-
-  it('requests as normal when eagerReturn is undefined', async () => {
-    const eagerReturn = (key) => undefined;
-
-    const result = await graphql(getGatewaySchema(eagerReturn), `
+  it('requests as normal for non-empty keys', async () => {
+    const result = await graphql(gatewaySchema, `
       query {
         post(id: 2) {
           id

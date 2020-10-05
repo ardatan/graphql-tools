@@ -21,7 +21,7 @@ export interface BatchDelegateOptions<TContext = Record<string, any>, K = any, V
   extends Omit<IDelegateToSchemaOptions<TContext>, 'args'> {
   dataLoaderOptions?: DataLoader.Options<K, V, C>;
   key: K;
-  eagerReturn?: (key: K) => any;
+  keyIsEmpty?: (key: K) => boolean;
   argsFromKeys?: (keys: ReadonlyArray<K>) => Record<string, any>;
   valuesFromResults?: (results: any, keys: ReadonlyArray<K>) => Array<V>;
   lazyOptionsFn?: BatchDelegateOptionsFn;
