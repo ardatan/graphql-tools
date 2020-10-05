@@ -7320,10 +7320,10 @@ graphql-request@^3.1.0:
     extract-files "^9.0.0"
     form-data "^3.0.0"
 
-graphql-scalars@1.2.7:
-  version "1.2.7"
-  resolved "https://registry.yarnpkg.com/graphql-scalars/-/graphql-scalars-1.2.7.tgz#dad338ffa5f415615770b01281c83d710d9b314d"
-  integrity sha512-bkB/OEsfiYm/hMwSnZfg91SZ3ChOM6Dnw5LZkUN68IXtBGKrBxjw8kXbD3bBXhWpjaKshvNVG7ZK3vFtfBmwrQ==
+graphql-scalars@1.3.0:
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/graphql-scalars/-/graphql-scalars-1.3.0.tgz#c046227b102db29b9ec8a9b2575222b93843bee6"
+  integrity sha512-5iO838pIUw1YkhRmK+/8gaBJt8+Gei3mcOqweX91I5yCS8+J9F21SOKOOYYH+X4HgrZVWq5j0R+vnTIsPpC+jQ==
 
 graphql-subscriptions@^1.0.0:
   version "1.1.0"
