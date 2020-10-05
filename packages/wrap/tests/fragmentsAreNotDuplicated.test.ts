@@ -22,7 +22,7 @@ describe('Merging schemas', () => {
     );
     assertNoDuplicateFragmentErrors(originalResult);
 
-    const transformedSchema = wrapSchema(originalSchema, []);
+    const transformedSchema = wrapSchema({ schema: originalSchema });
 
     const transformedResult = await graphql(
       transformedSchema,

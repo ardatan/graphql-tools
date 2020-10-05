@@ -20,8 +20,7 @@ export default class TransformInterfaceFields implements Transform {
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig,
-    transforms?: Array<Transform>,
+    subschemaConfig: SubschemaConfig,
     transformedSchema?: GraphQLSchema
   ): GraphQLSchema {
     const compositeToObjectFieldTransformer = (
@@ -38,12 +37,7 @@ export default class TransformInterfaceFields implements Transform {
 
     this.transformer = new TransformCompositeFields(compositeToObjectFieldTransformer, this.fieldNodeTransformer);
 
-    return this.transformer.transformSchema(
-      originalWrappingSchema,
-      subschemaOrSubschemaConfig,
-      transforms,
-      transformedSchema
-    );
+    return this.transformer.transformSchema(originalWrappingSchema, subschemaConfig, transformedSchema);
   }
 
   public transformRequest(

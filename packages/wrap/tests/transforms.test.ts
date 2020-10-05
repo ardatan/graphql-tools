@@ -78,7 +78,7 @@ describe('transforms', () => {
     });
 
     test('should work', async () => {
-      const schema = wrapSchema(scalarSchema, []);
+      const schema = wrapSchema({ schema: scalarSchema });
       const result = await graphql(
         schema,
         `
@@ -105,10 +105,10 @@ describe('transforms', () => {
     });
 
     test('should work when specified as a subschema configuration object', async () => {
-      const schema = wrapSchema(
-        { schema: scalarSchema, transforms: [] },
-        [],
-      );
+      const schema = wrapSchema({
+        schema: scalarSchema,
+        transforms: [],
+      });
       const result = await graphql(
         schema,
         `
@@ -152,7 +152,7 @@ describe('transforms', () => {
           },
         },
       });
-      const schema = wrapSchema(subschema, []);
+      const schema = wrapSchema({ schema: subschema });
 
       const query = 'query { errorTest }';
       const originalResult = await graphql(subschema, query);
@@ -178,7 +178,10 @@ describe('transforms', () => {
             }[name]),
         ),
       ];
-      schema = wrapSchema(propertySchema, transforms);
+      schema = wrapSchema({
+        schema: propertySchema,
+        transforms,
+      });
     });
     test('should work', async () => {
       const result = await graphql(
@@ -248,9 +251,12 @@ describe('transforms', () => {
 
       subschema = addMocksToSchema({ schema: subschema });
 
-      const schema = wrapSchema(subschema, [
-        new RenameRootTypes((name) => (name === 'QueryRoot' ? 'Query' : name)),
-      ]);
+      const schema = wrapSchema({
+        schema: subschema,
+        transforms: [
+          new RenameRootTypes((name) => (name === 'QueryRoot' ? 'Query' : name)),
+        ],
+      });
 
       const result = await graphql(
         schema,
@@ -284,7 +290,10 @@ describe('transforms', () => {
         new RenameTypes((name: string) => `_${name}`),
         new RenameTypes((name: string) => `Property${name}`),
       ];
-      schema = wrapSchema(propertySchema, transforms);
+      schema = wrapSchema({
+        schema: propertySchema,
+        transforms,
+      });
     });
     test('should work', async () => {
       const result = await graphql(
@@ -452,7 +461,10 @@ describe('transforms', () => {
           (type: GraphQLNamedType) => typeNames.indexOf(type.name) >= 0,
         ),
       ];
-      schema = wrapSchema(bookingSchema, transforms);
+      schema = wrapSchema({
+        schema: bookingSchema,
+        transforms
+      });
     });
 
     test('should work normally', async () => {
@@ -1165,26 +1177,29 @@ describe('transform input object fields', () => {
       }
     });
 
-    const transformedSchema = wrapSchema(schema, [
-      new FilterInputObjectFields(
-        (typeName, fieldName) => (typeName !== 'InputObject' || fieldName !== 'field2'),
-        (typeName, inputObjectNode) => {
-          if (typeName === 'InputObject') {
-            return {
-              ...inputObjectNode,
-              fields: [...inputObjectNode.fields, {
-                kind: Kind.OBJECT_FIELD,
-                name: {
-                  kind: Kind.NAME,
-                  value: 'field2',
-                },
-                value: astFromValue('field2', GraphQLString),
-              }],
-            };
+    const transformedSchema = wrapSchema({
+      schema,
+      transforms: [
+        new FilterInputObjectFields(
+          (typeName, fieldName) => (typeName !== 'InputObject' || fieldName !== 'field2'),
+          (typeName, inputObjectNode) => {
+            if (typeName === 'InputObject') {
+              return {
+                ...inputObjectNode,
+                fields: [...inputObjectNode.fields, {
+                  kind: Kind.OBJECT_FIELD,
+                  name: {
+                    kind: Kind.NAME,
+                    value: 'field2',
+                  },
+                  value: astFromValue('field2', GraphQLString),
+                }],
+              };
+            }
           }
-        }
-      )
-    ]);
+        )
+      ],
+    });
 
     const query = `{
       test(argument: {
@@ -1226,15 +1241,18 @@ describe('transform input object fields', () => {
       }
     });
 
-    const transformedSchema = wrapSchema(schema, [
-      new RenameInputObjectFields(
-        (typeName: string, fieldName: string) => {
-          if (typeName === 'InputObject' && fieldName === 'field2') {
-            return 'field3';
-          }
-        },
-      )
-    ]);
+    const transformedSchema = wrapSchema({
+      schema,
+      transforms: [
+        new RenameInputObjectFields(
+          (typeName: string, fieldName: string) => {
+            if (typeName === 'InputObject' && fieldName === 'field2') {
+              return 'field3';
+            }
+          },
+        )
+      ],
+    });
 
     const query = `{
       test(argument: {
@@ -1285,9 +1303,12 @@ describe('MapLeafValues', () => {
       }
     };
 
-    const transformedSchema = wrapSchema(schema, [
-      new MapLeafValues(valueIterator, valueIterator),
-    ]);
+    const transformedSchema = wrapSchema({
+      schema,
+      transforms: [
+        new MapLeafValues(valueIterator, valueIterator),
+      ],
+    });
 
     const query = `{
       testEnum(argument: ONE)
@@ -1319,11 +1340,14 @@ describe('TransformEnumValues', () => {
       }
     });
 
-    const transformedSchema = wrapSchema(schema, [
-      new TransformEnumValues(
-        (_typeName, _externalValue, valueConfig) => ['UNO', valueConfig],
-      )
-    ]);
+    const transformedSchema = wrapSchema({
+      schema,
+      transforms: [
+        new TransformEnumValues(
+          (_typeName, _externalValue, valueConfig) => ['UNO', valueConfig],
+        )
+      ],
+    });
 
     const query = `{
       test(argument: UNO)
@@ -1350,14 +1374,17 @@ describe('TransformEnumValues', () => {
       }
     });
 
-    const transformedSchema = wrapSchema(schema, [
-      new TransformEnumValues(
-        (_typeName, _externalValue, valueConfig) => ['UNO', {
-          ...valueConfig,
-          value: 'ONE',
-        }],
-      )
-    ]);
+    const transformedSchema = wrapSchema({
+      schema,
+      transforms: [
+        new TransformEnumValues(
+          (_typeName, _externalValue, valueConfig) => ['UNO', {
+            ...valueConfig,
+            value: 'ONE',
+          }],
+        )
+      ],
+    });
 
     const query = `{
       test(argument: UNO)
@@ -1386,11 +1413,14 @@ describe('TransformEnumValues', () => {
       }
     });
 
-    const transformedSchema = wrapSchema(schema, [
-      new TransformEnumValues(
-        (_typeName, _externalValue, valueConfig) => ['UNO', valueConfig],
-      )
-    ]);
+    const transformedSchema = wrapSchema({
+      schema,
+      transforms: [
+        new TransformEnumValues(
+          (_typeName, _externalValue, valueConfig) => ['UNO', valueConfig],
+        )
+      ],
+    });
 
     const query = `query Test($test: TestEnum) {
       test(argument: $test)

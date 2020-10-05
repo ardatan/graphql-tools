@@ -31,16 +31,10 @@ export default class TransformEnumValues implements Transform<MapLeafValuesTrans
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig,
-    transforms?: Array<Transform>,
+    subschemaConfig: SubschemaConfig,
     transformedSchema?: GraphQLSchema
   ): GraphQLSchema {
-    const mappingSchema = this.transformer.transformSchema(
-      originalWrappingSchema,
-      subschemaOrSubschemaConfig,
-      transforms,
-      transformedSchema
-    );
+    const mappingSchema = this.transformer.transformSchema(originalWrappingSchema, subschemaConfig, transformedSchema);
     this.transformedSchema = mapSchema(mappingSchema, {
       [MapperKind.ENUM_VALUE]: (valueConfig, typeName, _schema, externalValue) =>
         this.transformEnumValue(typeName, externalValue, valueConfig),

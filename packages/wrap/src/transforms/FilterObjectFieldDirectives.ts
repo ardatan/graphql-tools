@@ -15,8 +15,7 @@ export default class FilterObjectFieldDirectives implements Transform {
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig,
-    transforms?: Array<Transform>,
+    subschemaConfig: SubschemaConfig,
     transformedSchema?: GraphQLSchema
   ): GraphQLSchema {
     const transformer = new TransformObjectFields(
@@ -40,11 +39,6 @@ export default class FilterObjectFieldDirectives implements Transform {
       }
     );
 
-    return transformer.transformSchema(
-      originalWrappingSchema,
-      subschemaOrSubschemaConfig,
-      transforms,
-      transformedSchema
-    );
+    return transformer.transformSchema(originalWrappingSchema, subschemaConfig, transformedSchema);
   }
 }

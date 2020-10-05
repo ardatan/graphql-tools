@@ -13,9 +13,12 @@ describe('RemoveObjectFieldsWithDeprecation', () => {
   });
 
   test('removes deprecated fields by reason', async () => {
-    const transformedSchema = wrapSchema(originalSchema, [
-      new RemoveObjectFieldsWithDeprecation('remove this')
-    ]);
+    const transformedSchema = wrapSchema({
+      schema: originalSchema,
+      transforms: [
+        new RemoveObjectFieldsWithDeprecation('remove this')
+      ],
+    });
 
     const fields = transformedSchema.getType('Test').getFields();
     expect(fields.first).toBeDefined();
@@ -23,9 +26,12 @@ describe('RemoveObjectFieldsWithDeprecation', () => {
   });
 
   test('removes deprecated fields by reason regex', async () => {
-    const transformedSchema = wrapSchema(originalSchema, [
-      new RemoveObjectFieldsWithDeprecation(/remove/)
-    ]);
+    const transformedSchema = wrapSchema({
+      schema: originalSchema,
+      transforms: [
+        new RemoveObjectFieldsWithDeprecation(/remove/)
+      ],
+    });
 
     const fields = transformedSchema.getType('Test').getFields();
     expect(fields.first).toBeUndefined();

@@ -3,28 +3,22 @@ import { GraphQLSchema } from 'graphql';
 import { cloneSchema } from '@graphql-tools/utils';
 
 import { SubschemaConfig, Transform } from './types';
-import { isSubschemaConfig } from './subschemaConfig';
 
 export function applySchemaTransforms(
   originalWrappingSchema: GraphQLSchema,
-  subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig,
-  transforms?: Array<Transform>,
+  subschemaConfig: SubschemaConfig,
   transformedSchema?: GraphQLSchema
 ): GraphQLSchema {
-  let schemaTransforms: Array<Transform> = [];
+  const schemaTransforms = subschemaConfig.transforms;
 
-  if (isSubschemaConfig(subschemaOrSubschemaConfig) && subschemaOrSubschemaConfig.transforms != null) {
-    schemaTransforms = schemaTransforms.concat(subschemaOrSubschemaConfig.transforms);
-  }
-
-  if (transforms) {
-    schemaTransforms = schemaTransforms.concat(transforms);
+  if (schemaTransforms == null) {
+    return originalWrappingSchema;
   }
 
   return schemaTransforms.reduce(
     (schema: GraphQLSchema, transform: Transform) =>
       transform.transformSchema != null
-        ? transform.transformSchema(cloneSchema(schema), subschemaOrSubschemaConfig, transforms, transformedSchema)
+        ? transform.transformSchema(cloneSchema(schema), subschemaConfig, transformedSchema)
         : schema,
     originalWrappingSchema
   );

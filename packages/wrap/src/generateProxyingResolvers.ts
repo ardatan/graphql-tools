@@ -1,4 +1,4 @@
-import { GraphQLSchema, GraphQLFieldResolver, GraphQLObjectType, GraphQLResolveInfo, OperationTypeNode } from 'graphql';
+import { GraphQLFieldResolver, GraphQLObjectType, GraphQLResolveInfo, OperationTypeNode } from 'graphql';
 
 import { getResponseKeyFromInfo } from '@graphql-tools/utils';
 import {
@@ -6,33 +6,19 @@ import {
   getSubschema,
   resolveExternalValue,
   SubschemaConfig,
-  isSubschemaConfig,
-  CreateProxyingResolverFn,
   ICreateProxyingResolverOptions,
-  Transform,
   applySchemaTransforms,
   isExternalObject,
   getUnpathedErrors,
 } from '@graphql-tools/delegate';
 
 export function generateProxyingResolvers(
-  subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig,
-  transforms: Array<Transform>
+  subschemaConfig: SubschemaConfig
 ): Record<string, Record<string, GraphQLFieldResolver<any, any>>> {
-  let targetSchema: GraphQLSchema;
-  let createProxyingResolver: CreateProxyingResolverFn;
-  let subschemaConfig: SubschemaConfig;
+  const targetSchema = subschemaConfig.schema;
+  const createProxyingResolver = subschemaConfig.createProxyingResolver ?? defaultCreateProxyingResolver;
 
-  if (isSubschemaConfig(subschemaOrSubschemaConfig)) {
-    targetSchema = subschemaOrSubschemaConfig.schema;
-    subschemaConfig = subschemaOrSubschemaConfig;
-    createProxyingResolver = subschemaOrSubschemaConfig.createProxyingResolver ?? defaultCreateProxyingResolver;
-  } else {
-    targetSchema = subschemaOrSubschemaConfig;
-    createProxyingResolver = defaultCreateProxyingResolver;
-  }
-
-  const transformedSchema = applySchemaTransforms(targetSchema, subschemaConfig, transforms);
+  const transformedSchema = applySchemaTransforms(targetSchema, subschemaConfig);
 
   const operationTypes: Record<OperationTypeNode, GraphQLObjectType> = {
     query: targetSchema.getQueryType(),
@@ -50,14 +36,13 @@ export function generateProxyingResolvers(
       resolvers[typeName] = {};
       Object.keys(fields).forEach(fieldName => {
         const proxyingResolver = createProxyingResolver({
-          schema: subschemaOrSubschemaConfig,
-          transforms,
+          schema: subschemaConfig,
           transformedSchema,
           operation,
           fieldName,
         });
 
-        const finalResolver = createPossiblyNestedProxyingResolver(subschemaOrSubschemaConfig, proxyingResolver);
+        const finalResolver = createPossiblyNestedProxyingResolver(subschemaConfig, proxyingResolver);
 
         if (operation === 'subscription') {
           resolvers[typeName][fieldName] = {
@@ -78,7 +63,7 @@ export function generateProxyingResolvers(
 }
 
 function createPossiblyNestedProxyingResolver(
-  subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig,
+  subschemaConfig: SubschemaConfig,
   proxyingResolver: GraphQLFieldResolver<any, any>
 ): GraphQLFieldResolver<any, any> {
   return (parent, args, context, info) => {
@@ -93,7 +78,7 @@ function createPossiblyNestedProxyingResolver(
         // If there is a proxied result from this subschema, return it
         // This can happen even for a root field when the root type ia
         // also nested as a field within a different type.
-        if (subschemaOrSubschemaConfig === subschema && parent[responseKey] !== undefined) {
+        if (subschemaConfig === subschema && parent[responseKey] !== undefined) {
           return resolveExternalValue(parent[responseKey], unpathedErrors, subschema, context, info);
         }
       }

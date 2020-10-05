@@ -20,13 +20,7 @@ import {
   relocatedError,
 } from '@graphql-tools/utils';
 
-import {
-  Transform,
-  defaultMergedResolver,
-  DelegationContext,
-  SubschemaConfig,
-  isSubschemaConfig,
-} from '@graphql-tools/delegate';
+import { Transform, defaultMergedResolver, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
 import MapFields from './MapFields';
 import { defaultCreateProxyingResolver } from '../generateProxyingResolvers';
@@ -86,8 +80,7 @@ export default class WrapFields implements Transform<WrapFieldsTransformationCon
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig,
-    transforms?: Array<Transform>,
+    subschemaConfig: SubschemaConfig,
     transformedSchema?: GraphQLSchema
   ): GraphQLSchema {
     const targetFieldConfigMap = selectObjectFields(
@@ -133,17 +126,11 @@ export default class WrapFields implements Transform<WrapFieldsTransformationCon
     let resolve: GraphQLFieldResolver<any, any>;
     if (transformedSchema) {
       if (wrappingRootField) {
-        const targetSchema = isSubschemaConfig(subschemaOrSubschemaConfig)
-          ? subschemaOrSubschemaConfig.schema
-          : subschemaOrSubschemaConfig;
+        const targetSchema = subschemaConfig.schema;
         const operation = this.outerTypeName === targetSchema.getQueryType().name ? 'query' : 'mutation';
-        const createProxyingResolver =
-          isSubschemaConfig(subschemaOrSubschemaConfig) && subschemaOrSubschemaConfig.createProxyingResolver
-            ? subschemaOrSubschemaConfig.createProxyingResolver
-            : defaultCreateProxyingResolver;
+        const createProxyingResolver = subschemaConfig.createProxyingResolver ?? defaultCreateProxyingResolver;
         resolve = createProxyingResolver({
-          schema: subschemaOrSubschemaConfig,
-          transforms,
+          schema: subschemaConfig,
           transformedSchema,
           operation,
           fieldName: wrappingFieldName,
@@ -166,7 +153,7 @@ export default class WrapFields implements Transform<WrapFieldsTransformationCon
       }
     );
 
-    return this.transformer.transformSchema(newSchema, subschemaOrSubschemaConfig, transforms, transformedSchema);
+    return this.transformer.transformSchema(newSchema, subschemaConfig, transformedSchema);
   }
 
   public transformRequest(

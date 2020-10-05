@@ -16,9 +16,12 @@ describe('FilterObjectFieldDirectives', () => {
       `
     });
 
-    const transformedSchema = wrapSchema(schema, [
-      new FilterObjectFieldDirectives((dirName: string, dirValue: any) => dirName === 'keep' && dirValue.arg !== 1)
-    ]);
+    const transformedSchema = wrapSchema({
+      schema,
+      transforms: [
+        new FilterObjectFieldDirectives((dirName: string, dirValue: any) => dirName === 'keep' && dirValue.arg !== 1)
+      ],
+    });
 
     const fields = transformedSchema.getType('Query').getFields();
     expect(fields.alpha.astNode.directives.length).toEqual(0);

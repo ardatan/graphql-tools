@@ -41,8 +41,7 @@ export default class TransformCompositeFields implements Transform {
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    _subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig,
-    _transforms?: Array<Transform>,
+    _subschemaConfig: SubschemaConfig,
     _transformedSchema?: GraphQLSchema
   ): GraphQLSchema {
     this.transformedSchema = mapSchema(originalWrappingSchema, {

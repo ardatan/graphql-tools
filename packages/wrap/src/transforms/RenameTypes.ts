@@ -38,8 +38,7 @@ export default class RenameTypes implements Transform {
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    _subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig,
-    _transforms?: Array<Transform>,
+    _subschemaConfig: SubschemaConfig,
     _transformedSchema?: GraphQLSchema
   ): GraphQLSchema {
     return mapSchema(originalWrappingSchema, {

@@ -103,9 +103,12 @@ describe('printSchemaWithDirectives', () => {
 
     const schema = buildSchema(printedSchema);
 
-    const transformedSchema = wrapSchema(schema, [
-      new RenameTypes(typeName => `My${typeName}`)
-    ]);
+    const transformedSchema = wrapSchema({
+      schema,
+      transforms: [
+        new RenameTypes(typeName => `My${typeName}`)
+      ]
+    });
     const printedTransformedSchema = printSchemaWithDirectives(transformedSchema);
     expect(printedTransformedSchema).not.toContain(/* GraphQL */`type Foo`);
     expect(printedTransformedSchema).toContain(/* GraphQL */`type MyFoo`);

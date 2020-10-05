@@ -135,15 +135,18 @@ describe('Gatsby transforms', () => {
 
     schema = addMocksToSchema({ schema });
 
-    const transformedSchema = wrapSchema(schema, [
-      new StripNonQueryTransform(),
-      new RenameTypes((name) => `CountriesQuery_${name}`),
-      new NamespaceUnderFieldTransform({
-        typeName: 'CountriesQuery',
-        fieldName: 'countries',
-        resolver: () => ({}),
-      }),
-    ]);
+    const transformedSchema = wrapSchema({
+      schema,
+      transforms: [
+        new StripNonQueryTransform(),
+        new RenameTypes((name) => `CountriesQuery_${name}`),
+        new NamespaceUnderFieldTransform({
+          typeName: 'CountriesQuery',
+          fieldName: 'countries',
+          resolver: () => ({}),
+        }),
+      ],
+    });
 
     expect(transformedSchema).toBeInstanceOf(GraphQLSchema);
 

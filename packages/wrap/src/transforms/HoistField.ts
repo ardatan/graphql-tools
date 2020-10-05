@@ -11,13 +11,7 @@ import {
 
 import { appendObjectFields, removeObjectFields, Request, ExecutionResult, relocatedError } from '@graphql-tools/utils';
 
-import {
-  Transform,
-  defaultMergedResolver,
-  DelegationContext,
-  SubschemaConfig,
-  isSubschemaConfig,
-} from '@graphql-tools/delegate';
+import { Transform, defaultMergedResolver, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
 import { defaultCreateProxyingResolver } from '../generateProxyingResolvers';
 
@@ -72,8 +66,7 @@ export default class HoistField implements Transform {
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig,
-    transforms: Array<Transform>,
+    subschemaConfig: SubschemaConfig,
     transformedSchema: GraphQLSchema
   ): GraphQLSchema {
     const argsMap: Record<string, GraphQLArgument> = Object.create(null);
@@ -103,17 +96,11 @@ export default class HoistField implements Transform {
         this.typeName === originalWrappingSchema.getMutationType()?.name;
 
       if (hoistingToRootField) {
-        const targetSchema = isSubschemaConfig(subschemaOrSubschemaConfig)
-          ? subschemaOrSubschemaConfig.schema
-          : subschemaOrSubschemaConfig;
+        const targetSchema = subschemaConfig.schema;
         const operation = this.typeName === targetSchema.getQueryType().name ? 'query' : 'mutation';
-        const createProxyingResolver =
-          isSubschemaConfig(subschemaOrSubschemaConfig) && subschemaOrSubschemaConfig.createProxyingResolver
-            ? subschemaOrSubschemaConfig.createProxyingResolver
-            : defaultCreateProxyingResolver;
+        const createProxyingResolver = subschemaConfig.createProxyingResolver ?? defaultCreateProxyingResolver;
         resolve = createProxyingResolver({
-          schema: subschemaOrSubschemaConfig,
-          transforms,
+          schema: subschemaConfig,
           transformedSchema,
           operation,
           fieldName: this.newFieldName,
@@ -152,7 +139,7 @@ export default class HoistField implements Transform {
       [this.newFieldName]: newTargetField,
     });
 
-    return this.transformer.transformSchema(newSchema);
+    return this.transformer.transformSchema(newSchema, subschemaConfig, transformedSchema);
   }
 
   public transformRequest(
