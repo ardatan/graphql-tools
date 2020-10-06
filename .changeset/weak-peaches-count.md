@@ -40,6 +40,8 @@
 
 - `stitchSchemas`'s `mergeTypes` option is now true by default! This causes the `onTypeConflict` option to be ignored by default. To use `onTypeConflict` to select a specific type instead of simply merging, simply set `mergeTypes` to false.
 
+- When using batch delegation in type merging, the `argsFromKeys` function is now set only via the `argsFromKeys` property. Previously, if `argsFromKeys` was absent, it could be read from `args`.
+
 - Support for fragment hints has been removed in favor of selection set hints.
 
 #### Mocking (`addMocksToSchema` and `@graphql-tools/mock`)

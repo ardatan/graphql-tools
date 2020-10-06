@@ -39,6 +39,8 @@ If you are using GraphQL Tools v6, there are several breaking changes to be awar
 
 - Support for fragment hints has been removed in favor of selection set hints.
 
+- When using batch delegation in type merging, the `argsFromKeys` function is now set only via the `argsFromKeys` property. Previously, if `argsFromKeys` was absent, it could be read from `args`.
+
 #### Mocking (`addMocksToSchema` and `@graphql-tools/mock`)
 
 - Mocks returning objects with fields set as functions are now operating according to upstream graphql-js convention, i.e. these functions take three arguments, `args`, `context`, and `info` with `parent` available as `this` rather than as the first argument.

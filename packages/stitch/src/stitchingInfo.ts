@@ -172,7 +172,7 @@ function createMergedTypes(
                 operation: 'query',
                 fieldName: mergedTypeConfig.fieldName,
                 key: mergedTypeConfig.key(originalResult),
-                argsFromKeys: mergedTypeConfig.argsFromKeys ?? mergedTypeConfig.args,
+                argsFromKeys: mergedTypeConfig.argsFromKeys,
                 valuesFromResults: mergedTypeConfig.valuesFromResults,
                 selectionSet,
                 context,
