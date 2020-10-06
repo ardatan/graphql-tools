@@ -1,6 +1,7 @@
 ---
 '@graphql-tools/batch-execute': major
 '@graphql-tools/delegate': major
+'@graphql-tools/mock': major
 '@graphql-tools/stitch': major
 '@graphql-tools/utils': major
 '@graphql-tools/wrap': major
