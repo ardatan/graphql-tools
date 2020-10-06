@@ -37,6 +37,10 @@ If you are using GraphQL Tools v6, there are several breaking changes to be awar
 
 - Support for fragment hints has been removed in favor of selection set hints.
 
+#### Mocking (`addMocksToSchema` and `@graphql-tools/mock`)
+
+- Mocks returning objects with fields set as functions are now operating according to upstream graphql-js convention, i.e. these functions take three arguments, `args`, `context`, and `info` with `parent` available as `this` rather than as the first argument.
+
 #### Other Utilities (`@graphql-tools/utils`)
 
 - `filterSchema`'s `fieldFilter` will now filter *all* fields across Object, Interface, and Input types. For the previous Object-only behavior, switch to the `objectFieldFilter` option.

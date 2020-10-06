@@ -1056,7 +1056,7 @@ describe('Mock', () => {
     let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {
       RootQuery: () => ({
-        returnStringArgument: (_o: any, a: Record<string, any>) => a.s,
+        returnStringArgument: (a: Record<string, any>) => a.s,
       }),
     };
     jsSchema = addMocksToSchema({ schema: jsSchema, mocks: mockMap });
@@ -1075,7 +1075,7 @@ describe('Mock', () => {
     let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {
       RootMutation: () => ({
-        returnStringArgument: (_o: any, a: Record<string, any>) => a.s,
+        returnStringArgument: (a: Record<string, any>) => a.s,
       }),
     };
     jsSchema = addMocksToSchema({ schema: jsSchema, mocks: mockMap });
@@ -1129,7 +1129,7 @@ describe('Mock', () => {
     let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {
       RootQuery: () => ({
-        returnListOfIntArg: (_o: any, a: Record<string, any>) =>
+        returnListOfIntArg: (a: Record<string, any>) =>
           new MockList(a.l),
       }),
       Int: () => 12,
@@ -1258,13 +1258,13 @@ describe('Mock', () => {
     // unintuitive corner-cases
     const mockMap = {
       RootQuery: () => ({
-        thread: (_o: any, a: Record<string, any>) => ({ id: a.id }),
-        threads: (_o: any, a: Record<string, any>) =>
+        thread: (a: Record<string, any>) => ({ id: a.id }),
+        threads: (a: Record<string, any>) =>
           new MockList(ITEMS_PER_PAGE * a.num),
       }),
       Thread: () => ({
         name: 'Lorem Ipsum',
-        posts: (_o: any, a: Record<string, any>) =>
+        posts: (a: Record<string, any>) =>
           new MockList(
             ITEMS_PER_PAGE * a.num,
             (_oi: any, ai: Record<string, any>) => ({
