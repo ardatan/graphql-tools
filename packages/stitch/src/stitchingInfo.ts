@@ -256,7 +256,6 @@ function createMergedTypes(
 export function completeStitchingInfo(stitchingInfo: StitchingInfo, resolvers: IResolvers): StitchingInfo {
   const selectionSetsByField = stitchingInfo.selectionSetsByField;
   const dynamicSelectionSetsByField = Object.create(null);
-  const rawFragments: Array<{ field: string; fragment: string }> = [];
 
   Object.keys(resolvers).forEach(typeName => {
     const type = resolvers[typeName];
@@ -292,12 +291,6 @@ export function completeStitchingInfo(stitchingInfo: StitchingInfo, resolvers: I
             fieldName
           ].selections.concat(selectionSet.selections);
         }
-      }
-      if (field.fragment) {
-        rawFragments.push({
-          field: fieldName,
-          fragment: field.fragment,
-        });
       }
     });
   });
