@@ -10,14 +10,6 @@ Schema wrapping can be useful when building GraphQL gateways that combine multip
 
 Schema wrapping works by wrapping the original schema in a new 'gateway' schema that simply delegates all operations to the original subschema. A series of 'transforms' are applied to modify the schema after the initial wrapping is complete. Each transform includes a schema transformation function that changes the gateway schema. It may also include operation transforms, i.e. functions that either modify the operation prior to delegation or modify the result prior to its return.
 
-```ts
-interface Transform = {
-  transformSchema?: (schema: GraphQLSchema) => GraphQLSchema;
-  transformRequest?: (request: Request) => Request;
-  transformResult?: (result: ExecutionResult) => ExecutionResult;
-};
-```
-
 For example, let's consider changing the name of the type in a simple schema. Imagine we've written a function that takes a `GraphQLSchema` and replaces all instances of type `Test` with `NewTest`.
 
 ```graphql
@@ -82,11 +74,29 @@ By the same reasoning, we also need a `transformResult` function, because any re
 ### Transform
 
 ```ts
-interface Transform = {
-  transformSchema?: (schema: GraphQLSchema) => GraphQLSchema;
-  transformRequest?: (request: Request) => Request;
-  transformResult?: (result: ExecutionResult) => ExecutionResult;
-};
+export interface Transform<T = Record<string, any>> {
+  transformSchema?: SchemaTransform;
+  transformRequest?: RequestTransform<T>;
+  transformResult?: ResultTransform<T>;
+}
+
+export type SchemaTransform = (
+  originalWrappingSchema: GraphQLSchema,
+  subschemaConfig: SubschemaConfig,
+  transformedSchema?: GraphQLSchema
+) => GraphQLSchema;
+
+export type RequestTransform<T = Record<string, any>> = (
+  originalRequest: Request,
+  delegationContext: DelegationContext,
+  transformationContext: T
+) => Request;
+
+export type ResultTransform<T = Record<string, any>> = (
+  originalResult: ExecutionResult,
+  delegationContext: DelegationContext,
+  transformationContext: T
+) => ExecutionResult;
 
 type Request = {
   document: DocumentNode;
@@ -97,11 +107,13 @@ type Request = {
 
 ### wrapSchema
 
-Given a `GraphQLSchema` and an array of `Transform` objects, `wrapSchema` produces a new schema with those transforms applied.
+Given a `GraphQLSchema` and an array of `Transform` objects, `wrapSchema` produces a new schema with the `transformSchema` methods applied.
 
 Delegating resolvers are generated to map from new schema root fields to old schema root fields. These automatic resolvers should be sufficient, so you don't have to implement your own.
 
 The delegating resolvers will apply the operation transforms defined by the `Transform` objects. Each provided `transformRequest` functions will be applies in reverse order, until the request matches the original schema. The `tranformResult` functions will be applied in the opposite order until the result matches the final gateway schema.
+
+In advanced cases, transforms may wish to create additional delegating root resolvers (for example, when hoisting a field into a root type). This is also possible. The wrapping schema is actually generated twice -- the first run results in a possibly non-executable version, while the second execution also includes the result of the first one within the `transformedSchema` argument so that an executable version with any new proxying resolvers can be created.
 
 Remote schemas can also be wrapped! In fact, this is the primary use case. See documentation regarding [remote schemas](/docs/remote-schemas/) for further details about remote schemas. Note that as explained there, when wrapping remote schemas, you will be wrapping a subschema config object, and the array of transforms should be defined on that object rather than as a second argument to `wrapSchema`.
 
@@ -306,4 +318,3 @@ By passing a custom `transforms` array to `delegateToSchema`, it's possible to r
 
 * `AddReplacementSelectionSets(schema: GraphQLSchema, mapping: ReplacementSelectionSetMapping)`:  `stitchSchemas` adds selection sets on outgoing requests from the gateway, enabling delegation from fields specified on the gateway using fields obtained from the original requests. The selection sets can be added depending on the presence of fields within the request using the `selectionSet` option within the resolver map.  `stitchSchemas` creates the mapping at gateway startup. Selection sets are used instead of fragments as the selections are added prior to transformation in case type names are changed, obviating the need for the fragment name.
 * `AddMergedTypeSelectionSets(schema: GraphQLSchema, mapping: Record<string, MergedTypeInfo>)`: `stitchSchemas` adds selection sets on outgoing requests from the gateway, enabling type merging from the initial result using any fields initially obtained. The mapping is created at gateway startup.
-* Deprecated: `ReplaceFieldWithFragment(targetSchema: GraphQLSchema, fragments: Array<{ field: string; fragment: string; }>)`: Replace the given fields with an inline fragment. Used by original `stitchSchemas` to add prespecified fragments to root fields, enabling delegation `fragment` option. Array was parsed at each delegation.
