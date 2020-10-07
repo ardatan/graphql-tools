@@ -15,6 +15,8 @@ import {
 
 import isPromise from 'is-promise';
 
+import AggregateError from '@ardatan/aggregate-error';
+
 import { getBatchingExecutor } from '@graphql-tools/batch-execute';
 
 import { mapAsyncIterator, ExecutionResult } from '@graphql-tools/utils';
@@ -27,15 +29,13 @@ import {
   StitchingInfo,
   Endpoint,
   Transform,
+  Executor,
 } from './types';
 
 import { isSubschemaConfig } from './subschemaConfig';
 import { Subschema } from './Subschema';
 import { createRequestFromInfo, getDelegatingOperation } from './createRequest';
 import { Transformer } from './Transformer';
-
-import AggregateError from '@ardatan/aggregate-error';
-import { Executor } from 'packages/batch-execute/src/types';
 
 export function delegateToSchema(options: IDelegateToSchemaOptions): any {
   const {

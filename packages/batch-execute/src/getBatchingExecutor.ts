@@ -1,7 +1,7 @@
-import { ExecutionParams, Executor } from 'packages/delegate/src';
-import { createBatchingExecutor } from './createBatchingExecutor';
 import DataLoader from 'dataloader';
 
+import { ExecutionParams, Executor } from './types';
+import { createBatchingExecutor } from './createBatchingExecutor';
 import { memoize2of4 } from './memoize';
 
 export const getBatchingExecutor = memoize2of4(function (
