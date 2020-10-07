@@ -46,7 +46,7 @@
     "@changesets/cli": "2.10.3",
     "@types/fs-extra": "9.0.1",
     "@types/jest": "26.0.14",
-    "@types/node": "14.11.2",
+    "@types/node": "14.11.5",
     "@typescript-eslint/eslint-plugin": "4.3.0",
     "@typescript-eslint/parser": "4.3.0",
     "@ardatan/bob-the-bundler": "1.2.2",
