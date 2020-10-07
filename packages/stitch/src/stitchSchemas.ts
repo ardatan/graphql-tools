@@ -54,14 +54,14 @@ export function stitchSchemas({
   }
 
   let transformedSubschemas: Array<Subschema> = [];
-  const stitchedSubschemas: Map<GraphQLSchema | SubschemaConfig, Subschema> = new Map();
+  const subschemaMap: Map<GraphQLSchema | SubschemaConfig, Subschema> = new Map();
   const originalSubschemaMap: Map<Subschema, GraphQLSchema | SubschemaConfig> = new Map();
 
   subschemas.forEach(subschemaOrSubschemaArray => {
     if (Array.isArray(subschemaOrSubschemaArray)) {
       subschemaOrSubschemaArray.forEach(s => {
         transformedSubschemas = transformedSubschemas.concat(
-          applySubschemaConfigTransforms(subschemaConfigTransforms, s, stitchedSubschemas, originalSubschemaMap)
+          applySubschemaConfigTransforms(subschemaConfigTransforms, s, subschemaMap, originalSubschemaMap)
         );
       });
     } else {
@@ -69,7 +69,7 @@ export function stitchSchemas({
         applySubschemaConfigTransforms(
           subschemaConfigTransforms,
           subschemaOrSubschemaArray,
-          stitchedSubschemas,
+          subschemaMap,
           originalSubschemaMap
         )
       );
@@ -106,7 +106,7 @@ export function stitchSchemas({
     directives.push(directiveMap[directiveName]);
   });
 
-  let stitchingInfo = createStitchingInfo(stitchedSubschemas, typeCandidates, mergeTypes);
+  let stitchingInfo = createStitchingInfo(subschemaMap, typeCandidates, mergeTypes);
 
   const typeMap = buildTypeMap({
     typeCandidates,
@@ -188,7 +188,7 @@ export function stitchSchemas({
 function applySubschemaConfigTransforms(
   subschemaConfigTransforms: Array<SubschemaConfigTransform>,
   subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig,
-  stitchedSubschemas: Map<GraphQLSchema | SubschemaConfig, Subschema>,
+  subschemaMap: Map<GraphQLSchema | SubschemaConfig, Subschema>,
   originalSubschemaMap: Map<Subschema, GraphQLSchema | SubschemaConfig>
 ): Array<Subschema> {
   const subschemaConfig = isSubschemaConfig(subschemaOrSubschemaConfig)
@@ -205,7 +205,7 @@ function applySubschemaConfigTransforms(
 
   const baseSubschema = transformedSubschemas[0];
 
-  stitchedSubschemas.set(subschemaOrSubschemaConfig, baseSubschema);
+  subschemaMap.set(subschemaOrSubschemaConfig, baseSubschema);
 
   transformedSubschemas.forEach(subschema => originalSubschemaMap.set(subschema, subschemaOrSubschemaConfig));
 
