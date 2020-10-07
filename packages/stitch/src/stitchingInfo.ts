@@ -121,7 +121,7 @@ function createMergedTypes(
             return;
           }
 
-          typeMaps.set(subschema, typeCandidate.transformedSchema.getTypeMap());
+          typeMaps.set(subschema, typeCandidate.subschema.transformedSchema.getTypeMap());
 
           if (!isSubschemaConfig(subschema)) {
             return;
@@ -199,7 +199,9 @@ function createMergedTypes(
             return;
           }
 
-          const type = typeCandidate.transformedSchema.getType(typeName) as GraphQLObjectType | GraphQLInterfaceType;
+          const type = typeCandidate.subschema.transformedSchema.getType(typeName) as
+            | GraphQLObjectType
+            | GraphQLInterfaceType;
           const fieldMap = type.getFields();
           const selectionSet = selectionSets.get(subschema);
           Object.keys(fieldMap).forEach(fieldName => {

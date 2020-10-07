@@ -83,7 +83,6 @@ export function buildTypeCandidates({
         addTypeCandidate(typeCandidates, operationTypeNames[operationType], {
           type: operationTypes[operationType],
           subschema,
-          transformedSchema: schema,
         });
       }
     });
@@ -104,11 +103,7 @@ export function buildTypeCandidates({
         type !== operationTypes.mutation &&
         type !== operationTypes.subscription
       ) {
-        addTypeCandidate(typeCandidates, type.name, {
-          type,
-          subschema,
-          transformedSchema: schema,
-        });
+        addTypeCandidate(typeCandidates, type.name, { type, subschema });
       }
     });
   });
@@ -219,10 +214,10 @@ function onTypeConflictToCandidateSelector(onTypeConflict: OnTypeConflict): Cand
     cands.reduce((prev, next) => {
       const type = onTypeConflict(prev.type, next.type, {
         left: {
-          schema: prev.transformedSchema,
+          schema: prev.subschema.transformedSchema,
         },
         right: {
-          schema: next.transformedSchema,
+          schema: next.subschema.transformedSchema,
         },
       });
       if (prev.type === type) {

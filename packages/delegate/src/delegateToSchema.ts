@@ -11,6 +11,7 @@ import {
   DocumentNode,
   GraphQLOutputType,
   GraphQLObjectType,
+  GraphQLResolveInfo,
 } from 'graphql';
 
 import isPromise from 'is-promise';
@@ -123,40 +124,12 @@ export function delegateRequest({
     targetFieldName = fieldName;
   }
 
-  let targetSchema: GraphQLSchema;
-  let targetRootValue: Record<string, any>;
-  let subschemaConfig: SubschemaConfig;
-  let endpoint: Endpoint;
-
-  let allTransforms: Array<Transform>;
-
-  const stitchingInfo: StitchingInfo = info?.schema.extensions?.stitchingInfo;
-  if (isSubschemaConfig(subschemaOrSubschemaConfig)) {
-    if (stitchingInfo) {
-      const transformedSubschema = stitchingInfo.transformedSubschemaMap.get(subschemaOrSubschemaConfig);
-      subschemaConfig = transformedSubschema || subschemaOrSubschemaConfig;
-    } else {
-      subschemaConfig = subschemaOrSubschemaConfig;
-    }
-    targetSchema = subschemaConfig.schema;
-    allTransforms = subschemaConfig.transforms != null ? subschemaConfig.transforms.concat(transforms) : transforms;
-    if (subschemaConfig.endpoint != null) {
-      endpoint = subschemaConfig.endpoint;
-    } else {
-      endpoint = subschemaConfig;
-    }
-    targetRootValue = rootValue ?? endpoint?.rootValue ?? info?.rootValue;
-  } else {
-    if (stitchingInfo) {
-      const transformedSubschema = stitchingInfo.transformedSubschemaMap.get(subschemaOrSubschemaConfig);
-      if (transformedSubschema) {
-        subschemaConfig = transformedSubschema;
-      }
-    }
-    targetSchema = subschemaOrSubschemaConfig;
-    targetRootValue = rootValue ?? info?.rootValue;
-    allTransforms = transforms;
-  }
+  const { targetSchema, targetRootValue, subschemaConfig, endpoint, allTransforms } = collectTargetParameters(
+    subschemaOrSubschemaConfig,
+    rootValue,
+    info,
+    transforms
+  );
 
   const delegationContext = {
     subschema: subschemaOrSubschemaConfig,
@@ -228,6 +201,44 @@ export function delegateRequest({
 
     return transformer.transformResult(subscriptionResult as ExecutionResult);
   });
+}
+
+function collectTargetParameters(
+  subschema: GraphQLSchema | SubschemaConfig,
+  rootValue: Record<string, any>,
+  info: GraphQLResolveInfo,
+  transforms: Array<Transform> = []
+): {
+  targetSchema: GraphQLSchema;
+  targetRootValue: Record<string, any>;
+  subschemaConfig: SubschemaConfig;
+  endpoint: Endpoint;
+  allTransforms: Array<Transform>;
+} {
+  const stitchingInfo: StitchingInfo = info?.schema.extensions?.stitchingInfo;
+
+  const subschemaOrSubschemaConfig = stitchingInfo?.transformedSubschemaMap.get(subschema) ?? subschema;
+
+  if (isSubschemaConfig(subschemaOrSubschemaConfig)) {
+    return {
+      targetSchema: subschemaOrSubschemaConfig.schema,
+      targetRootValue: rootValue ?? subschemaOrSubschemaConfig?.rootValue ?? info?.rootValue,
+      subschemaConfig: subschemaOrSubschemaConfig,
+      endpoint: subschemaOrSubschemaConfig.endpoint ?? subschemaOrSubschemaConfig,
+      allTransforms:
+        subschemaOrSubschemaConfig.transforms != null
+          ? subschemaOrSubschemaConfig.transforms.concat(transforms)
+          : transforms,
+    };
+  }
+
+  return {
+    targetSchema: subschemaOrSubschemaConfig,
+    targetRootValue: rootValue ?? info?.rootValue,
+    subschemaConfig: undefined,
+    endpoint: undefined,
+    allTransforms: transforms,
+  };
 }
 
 function validateRequest(targetSchema: GraphQLSchema, document: DocumentNode) {

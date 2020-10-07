@@ -16,8 +16,7 @@ import { IExecutableSchemaDefinition } from '@graphql-tools/schema';
 
 export interface MergeTypeCandidate {
   type: GraphQLNamedType;
-  subschema?: GraphQLSchema | SubschemaConfig;
-  transformedSchema?: GraphQLSchema;
+  subschema?: Subschema;
 }
 
 export interface MergeFieldConfigCandidate {
