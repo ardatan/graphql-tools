@@ -6,7 +6,6 @@ import {
   DocumentNode,
   GraphQLResolveInfo,
   GraphQLFieldResolver,
-  InlineFragmentNode,
   FragmentDefinitionNode,
   GraphQLObjectType,
   VariableDefinitionNode,
