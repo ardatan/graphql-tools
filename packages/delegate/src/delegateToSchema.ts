@@ -3,7 +3,6 @@ import {
   execute,
   validate,
   GraphQLSchema,
-  isSchema,
   FieldDefinitionNode,
   getOperationAST,
   OperationTypeNode,
@@ -38,13 +37,7 @@ import { Transformer } from './Transformer';
 import AggregateError from '@ardatan/aggregate-error';
 import { Executor } from 'packages/batch-execute/src/types';
 
-export function delegateToSchema(options: IDelegateToSchemaOptions | GraphQLSchema): any {
-  if (isSchema(options)) {
-    throw new Error(
-      'Passing positional arguments to delegateToSchema is deprecated. ' + 'Please pass named parameters instead.'
-    );
-  }
-
+export function delegateToSchema(options: IDelegateToSchemaOptions): any {
   const {
     info,
     operationName,
