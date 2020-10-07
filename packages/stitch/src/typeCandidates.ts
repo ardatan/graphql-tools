@@ -7,10 +7,11 @@ import {
   SchemaDefinitionNode,
   SchemaExtensionNode,
   isSpecifiedScalarType,
+  GraphQLSchema,
 } from 'graphql';
 
 import { wrapSchema } from '@graphql-tools/wrap';
-import { Subschema } from '@graphql-tools/delegate';
+import { Subschema, SubschemaConfig } from '@graphql-tools/delegate';
 import { GraphQLParseOptions, ITypeDefinitions, TypeMap } from '@graphql-tools/utils';
 import { buildDocumentFromTypeDefinitions } from '@graphql-tools/schema';
 
@@ -30,6 +31,7 @@ type CandidateSelector = (candidates: Array<MergeTypeCandidate>) => MergeTypeCan
 
 export function buildTypeCandidates({
   subschemas,
+  originalSubschemaMap,
   types,
   typeDefs,
   parseOptions,
@@ -40,6 +42,7 @@ export function buildTypeCandidates({
   mergeDirectives,
 }: {
   subschemas: Array<Subschema>;
+  originalSubschemaMap: Map<Subschema, GraphQLSchema | SubschemaConfig>;
   types: Array<GraphQLNamedType>;
   typeDefs: ITypeDefinitions;
   parseOptions: GraphQLParseOptions;
@@ -82,7 +85,8 @@ export function buildTypeCandidates({
       if (operationTypes[operationType] != null) {
         addTypeCandidate(typeCandidates, operationTypeNames[operationType], {
           type: operationTypes[operationType],
-          subschema,
+          subschema: originalSubschemaMap.get(subschema),
+          transformedSubschema: subschema,
         });
       }
     });
@@ -103,7 +107,11 @@ export function buildTypeCandidates({
         type !== operationTypes.mutation &&
         type !== operationTypes.subscription
       ) {
-        addTypeCandidate(typeCandidates, type.name, { type, subschema });
+        addTypeCandidate(typeCandidates, type.name, {
+          type,
+          subschema: originalSubschemaMap.get(subschema),
+          transformedSubschema: subschema,
+        });
       }
     });
   });
@@ -214,10 +222,12 @@ function onTypeConflictToCandidateSelector(onTypeConflict: OnTypeConflict): Cand
     cands.reduce((prev, next) => {
       const type = onTypeConflict(prev.type, next.type, {
         left: {
-          schema: prev.subschema.transformedSchema,
+          subschema: prev.subschema,
+          transformedSubschema: prev.transformedSubschema,
         },
         right: {
-          schema: next.subschema.transformedSchema,
+          subschema: prev.subschema,
+          transformedSubschema: prev.transformedSubschema,
         },
       });
       if (prev.type === type) {

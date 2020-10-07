@@ -7,7 +7,7 @@ description: Stitching API
 ## API
 
 ```ts
-export type SubschemaConfig = {
+export interface SubschemaConfig = {
   schema: GraphQLSchema;
   rootValue?: Record<string, any>;
   executor?: Executor;
@@ -15,28 +15,26 @@ export type SubschemaConfig = {
   transforms?: Array<Transform>;
 };
 
-export type SchemaLikeObject =
-  SubschemaConfig |
-  GraphQLSchema |
-  string |
-  DocumentNode |
-  Array<GraphQLNamedType>;
+export interface Subschema extends SubschemaConfig {
+  transformedSchema: GraphQLSchema;
+}
 
 stitchSchemas({
-  subschemas: Array<SubschemaConfig>;
+  subschemas: Array<GraphQLSchema | SubschemaConfig>;
   types: Array<GraphQLNamedType>;
   typeDefs: string | DocumentNode;
-  schemas: Array<SchemaLikeObject>;
   resolvers?: Array<IResolvers> | IResolvers;
   onTypeConflict?: (
     left: GraphQLNamedType,
     right: GraphQLNamedType,
     info?: {
       left: {
-        schema?: GraphQLSchema;
+        subschema?: GraphQLSchema | SubschemaConfig;
+        transformedSubschema?: Subschema;
       };
       right: {
-        schema?: GraphQLSchema;
+        subschema?: GraphQLSchema | SubschemaConfig;
+        transformedSubschema?: Subschema;
       };
     },
   ) => GraphQLNamedType;
@@ -111,10 +109,12 @@ type OnTypeConflict = (
   right: GraphQLNamedType,
   info?: {
     left: {
-      schema?: GraphQLSchema;
+      subschema?: GraphQLSchema | SubschemaConfig;
+      transformedSubschema?: Subschema;
     };
     right: {
-      schema?: GraphQLSchema;
+      subschema?: GraphQLSchema | SubschemaConfig;
+      transformedSubschema?: Subschema;
     };
   },
 ) => GraphQLNamedType;

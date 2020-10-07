@@ -17,7 +17,11 @@ export function isSubschema(value: any): value is Subschema {
   return Boolean(value.transformedSchema);
 }
 
-export class Subschema<K = any, V = any, C = K> {
+interface ISubschema extends SubschemaConfig {
+  transformedSchema: GraphQLSchema;
+}
+
+export class Subschema<K = any, V = any, C = K> implements ISubschema {
   public schema: GraphQLSchema;
 
   public rootValue?: Record<string, any>;

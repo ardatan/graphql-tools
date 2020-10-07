@@ -55,17 +55,23 @@ export function stitchSchemas({
 
   let transformedSubschemas: Array<Subschema> = [];
   const transformedSubschemaMap: Map<GraphQLSchema | SubschemaConfig, Subschema> = new Map();
+  const originalSubschemaMap: Map<Subschema, GraphQLSchema | SubschemaConfig> = new Map();
 
   subschemas.forEach(subschemaOrSubschemaArray => {
     if (Array.isArray(subschemaOrSubschemaArray)) {
       subschemaOrSubschemaArray.forEach(s => {
         transformedSubschemas = transformedSubschemas.concat(
-          applySubschemaConfigTransforms(subschemaConfigTransforms, s, transformedSubschemaMap)
+          applySubschemaConfigTransforms(subschemaConfigTransforms, s, transformedSubschemaMap, originalSubschemaMap)
         );
       });
     } else {
       transformedSubschemas = transformedSubschemas.concat(
-        applySubschemaConfigTransforms(subschemaConfigTransforms, subschemaOrSubschemaArray, transformedSubschemaMap)
+        applySubschemaConfigTransforms(
+          subschemaConfigTransforms,
+          subschemaOrSubschemaArray,
+          transformedSubschemaMap,
+          originalSubschemaMap
+        )
       );
     }
   });
@@ -85,6 +91,7 @@ export function stitchSchemas({
 
   const typeCandidates = buildTypeCandidates({
     subschemas: transformedSubschemas,
+    originalSubschemaMap,
     types,
     typeDefs,
     parseOptions,
@@ -181,7 +188,8 @@ export function stitchSchemas({
 function applySubschemaConfigTransforms(
   subschemaConfigTransforms: Array<SubschemaConfigTransform>,
   subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig,
-  transformedSubschemaMap: Map<GraphQLSchema | SubschemaConfig, Subschema>
+  transformedSubschemaMap: Map<GraphQLSchema | SubschemaConfig, Subschema>,
+  originalSubschemaMap: Map<Subschema, GraphQLSchema | SubschemaConfig>
 ): Array<Subschema> {
   const subschemaConfig = isSubschemaConfig(subschemaOrSubschemaConfig)
     ? subschemaOrSubschemaConfig
@@ -198,6 +206,8 @@ function applySubschemaConfigTransforms(
   const baseSubschema = transformedSubschemas[0];
 
   transformedSubschemaMap.set(subschemaOrSubschemaConfig, baseSubschema);
+
+  transformedSubschemas.forEach(subschema => originalSubschemaMap.set(subschema, subschemaOrSubschemaConfig));
 
   return transformedSubschemas;
 }

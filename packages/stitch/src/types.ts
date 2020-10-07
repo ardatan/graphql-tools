@@ -16,7 +16,8 @@ import { IExecutableSchemaDefinition } from '@graphql-tools/schema';
 
 export interface MergeTypeCandidate {
   type: GraphQLNamedType;
-  subschema?: Subschema;
+  subschema?: GraphQLSchema | SubschemaConfig;
+  transformedSubschema?: Subschema;
 }
 
 export interface MergeFieldConfigCandidate {
@@ -24,7 +25,7 @@ export interface MergeFieldConfigCandidate {
   fieldName: string;
   type: GraphQLObjectType | GraphQLInterfaceType;
   subschema?: GraphQLSchema | SubschemaConfig;
-  transformedSchema?: GraphQLSchema;
+  transformedSubschema?: Subschema;
 }
 
 export interface MergeInputFieldConfigCandidate {
@@ -32,7 +33,7 @@ export interface MergeInputFieldConfigCandidate {
   fieldName: string;
   type: GraphQLInputObjectType;
   subschema?: GraphQLSchema | SubschemaConfig;
-  transformedSchema?: GraphQLSchema;
+  transformedSubschema?: Subschema;
 }
 
 export type MergeTypeFilter = (mergeTypeCandidates: Array<MergeTypeCandidate>, typeName: string) => boolean;
@@ -80,10 +81,12 @@ export type OnTypeConflict = (
   right: GraphQLNamedType,
   info?: {
     left: {
-      schema?: GraphQLSchema | SubschemaConfig;
+      subschema?: GraphQLSchema | SubschemaConfig;
+      transformedSubschema?: Subschema;
     };
     right: {
-      schema?: GraphQLSchema | SubschemaConfig;
+      subschema?: GraphQLSchema | SubschemaConfig;
+      transformedSubschema?: Subschema;
     };
   }
 ) => GraphQLNamedType;

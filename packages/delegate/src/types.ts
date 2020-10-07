@@ -59,7 +59,7 @@ export interface DelegationContext {
 export type DelegationBinding = (delegationContext: DelegationContext) => Array<Transform>;
 
 export interface IDelegateToSchemaOptions<TContext = Record<string, any>, TArgs = Record<string, any>> {
-  schema: GraphQLSchema | SubschemaConfig | Subschema;
+  schema: GraphQLSchema | SubschemaConfig;
   operationName?: string;
   operation?: OperationTypeNode;
   fieldName?: string;
