@@ -204,8 +204,8 @@ function collectTargetParameters(
 ): {
   targetSchema: GraphQLSchema;
   targetRootValue: Record<string, any>;
-  subschemaConfig: SubschemaConfig;
-  endpoint: Endpoint;
+  subschemaConfig?: SubschemaConfig;
+  endpoint?: Endpoint;
   allTransforms: Array<Transform>;
 } {
   const stitchingInfo: StitchingInfo = info?.schema.extensions?.stitchingInfo;
@@ -228,8 +228,6 @@ function collectTargetParameters(
   return {
     targetSchema: subschemaOrSubschemaConfig,
     targetRootValue: rootValue ?? info?.rootValue,
-    subschemaConfig: undefined,
-    endpoint: undefined,
     allTransforms: transforms,
   };
 }
