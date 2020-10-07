@@ -30,6 +30,7 @@ import {
 } from './types';
 
 import { isSubschemaConfig } from './subschemaConfig';
+import { Subschema } from './Subschema';
 import { createRequestFromInfo, getDelegatingOperation } from './createRequest';
 import { Transformer } from './Transformer';
 
@@ -132,8 +133,8 @@ export function delegateRequest({
   const stitchingInfo: StitchingInfo = info?.schema.extensions?.stitchingInfo;
   if (isSubschemaConfig(subschemaOrSubschemaConfig)) {
     if (stitchingInfo) {
-      const transformedSubschemaConfig = stitchingInfo.transformedSubschemaConfigs.get(subschemaOrSubschemaConfig);
-      subschemaConfig = transformedSubschemaConfig || subschemaOrSubschemaConfig;
+      const transformedSubschema = stitchingInfo.transformedSubschemaMap.get(subschemaOrSubschemaConfig);
+      subschemaConfig = transformedSubschema || subschemaOrSubschemaConfig;
     } else {
       subschemaConfig = subschemaOrSubschemaConfig;
     }
@@ -147,9 +148,9 @@ export function delegateRequest({
     targetRootValue = rootValue ?? endpoint?.rootValue ?? info?.rootValue;
   } else {
     if (stitchingInfo) {
-      const transformedSubschemaConfig = stitchingInfo.transformedSubschemaConfigs.get(subschemaOrSubschemaConfig);
-      if (transformedSubschemaConfig) {
-        subschemaConfig = transformedSubschemaConfig;
+      const transformedSubschema = stitchingInfo.transformedSubschemaMap.get(subschemaOrSubschemaConfig);
+      if (transformedSubschema) {
+        subschemaConfig = transformedSubschema;
       }
     }
     targetSchema = subschemaOrSubschemaConfig;
@@ -168,8 +169,7 @@ export function delegateRequest({
     returnType:
       returnType ?? info?.returnType ?? getDelegationReturnType(targetSchema, targetOperation, targetFieldName),
     transforms: allTransforms,
-    transformedSchema:
-      transformedSchema ?? (stitchingInfo ? stitchingInfo.transformedSchemas.get(subschemaConfig) : targetSchema),
+    transformedSchema: transformedSchema ?? (subschemaConfig as Subschema)?.transformedSchema ?? targetSchema,
     skipTypeMerging,
   };
 

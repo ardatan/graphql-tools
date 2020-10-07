@@ -50,9 +50,7 @@ export interface MergedTypeInfo {
 }
 
 export interface StitchingInfo {
-  transformedSubschemaConfigs: Map<GraphQLSchema | SubschemaConfig, SubschemaConfig>;
-  transformedSchemas: Map<SubschemaConfig, GraphQLSchema>;
-  fragmentsByField: Record<string, Record<string, InlineFragmentNode>>;
+  transformedSubschemaMap: Map<GraphQLSchema | SubschemaConfig, Subschema>;
   selectionSetsByField: Record<string, Record<string, SelectionSetNode>>;
   dynamicSelectionSetsByField: Record<string, Record<string, Array<(node: FieldNode) => SelectionSetNode>>>;
   mergedTypes: Record<string, MergedTypeInfo>;

@@ -20,10 +20,12 @@ import {
   extendResolversFromInterfaces,
 } from '@graphql-tools/schema';
 
+import { SubschemaConfig, isSubschemaConfig, Subschema } from '@graphql-tools/delegate';
+
+import { IStitchSchemasOptions, SubschemaConfigTransform } from './types';
+
 import { buildTypeCandidates, buildTypeMap } from './typeCandidates';
 import { createStitchingInfo, completeStitchingInfo, addStitchingInfo } from './stitchingInfo';
-import { IStitchSchemasOptions, SubschemaConfigTransform } from './types';
-import { SubschemaConfig, isSubschemaConfig } from '@graphql-tools/delegate';
 import { isolateComputedFields } from './isolateComputedFields';
 import { defaultSubschemaConfigTransforms } from './subschemaConfigTransforms';
 
@@ -51,28 +53,23 @@ export function stitchSchemas({
     throw new Error('Expected `resolverValidationOptions` to be an object');
   }
 
-  let subschemaConfigs: Array<SubschemaConfig> = [];
-  const transformedSubschemaConfigs: Map<SubschemaConfig, SubschemaConfig> = new Map();
+  let transformedSubschemas: Array<Subschema> = [];
+  const transformedSubschemaMap: Map<GraphQLSchema | SubschemaConfig, Subschema> = new Map();
 
   subschemas.forEach(subschemaOrSubschemaArray => {
     if (Array.isArray(subschemaOrSubschemaArray)) {
       subschemaOrSubschemaArray.forEach(s => {
-        subschemaConfigs = subschemaConfigs.concat(
-          applySubschemaConfigTransforms(subschemaConfigTransforms, s, transformedSubschemaConfigs)
+        transformedSubschemas = transformedSubschemas.concat(
+          applySubschemaConfigTransforms(subschemaConfigTransforms, s, transformedSubschemaMap)
         );
       });
     } else {
-      subschemaConfigs = subschemaConfigs.concat(
-        applySubschemaConfigTransforms(
-          subschemaConfigTransforms,
-          subschemaOrSubschemaArray,
-          transformedSubschemaConfigs
-        )
+      transformedSubschemas = transformedSubschemas.concat(
+        applySubschemaConfigTransforms(subschemaConfigTransforms, subschemaOrSubschemaArray, transformedSubschemaMap)
       );
     }
   });
 
-  const transformedSchemas: Map<SubschemaConfig, GraphQLSchema> = new Map();
   const extensions: Array<DocumentNode> = [];
   const directives: Array<GraphQLDirective> = [];
   const directiveMap: Record<string, GraphQLDirective> = specifiedDirectives.reduce((acc, directive) => {
@@ -87,11 +84,10 @@ export function stitchSchemas({
   };
 
   const typeCandidates = buildTypeCandidates({
-    subschemaConfigs,
+    subschemas: transformedSubschemas,
     types,
     typeDefs,
     parseOptions,
-    transformedSchemas,
     extensions,
     directiveMap,
     schemaDefs,
@@ -103,7 +99,7 @@ export function stitchSchemas({
     directives.push(directiveMap[directiveName]);
   });
 
-  let stitchingInfo = createStitchingInfo(transformedSubschemaConfigs, transformedSchemas, typeCandidates, mergeTypes);
+  let stitchingInfo = createStitchingInfo(transformedSubschemaMap, typeCandidates, mergeTypes);
 
   const typeMap = buildTypeMap({
     typeCandidates,
@@ -185,8 +181,8 @@ export function stitchSchemas({
 function applySubschemaConfigTransforms(
   subschemaConfigTransforms: Array<SubschemaConfigTransform>,
   subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig,
-  transformedSubschemaConfigs: Map<SubschemaConfig, SubschemaConfig>
-): Array<SubschemaConfig> {
+  transformedSubschemaMap: Map<GraphQLSchema | SubschemaConfig, Subschema>
+): Array<Subschema> {
   const subschemaConfig = isSubschemaConfig(subschemaOrSubschemaConfig)
     ? subschemaOrSubschemaConfig
     : { schema: subschemaOrSubschemaConfig };
@@ -195,13 +191,15 @@ function applySubschemaConfigTransforms(
     return subschemaConfigTransform(acc);
   }, subschemaConfig);
 
-  const subschemas = isolateComputedFields(newSubschemaConfig);
+  const transformedSubschemas = isolateComputedFields(newSubschemaConfig).map(
+    subschemaConfig => new Subschema(subschemaConfig)
+  );
 
-  const baseSubschema = subschemas[0];
+  const baseSubschema = transformedSubschemas[0];
 
-  transformedSubschemaConfigs.set(subschemaConfig, baseSubschema);
+  transformedSubschemaMap.set(subschemaOrSubschemaConfig, baseSubschema);
 
-  return subschemas;
+  return transformedSubschemas;
 }
 
 export function isDocumentNode(object: any): object is DocumentNode {

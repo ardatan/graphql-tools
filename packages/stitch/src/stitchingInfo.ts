@@ -16,15 +16,14 @@ import {
 
 import { parseSelectionSet, TypeMap, IResolvers, IFieldResolverOptions } from '@graphql-tools/utils';
 
-import { delegateToSchema, isSubschemaConfig, SubschemaConfig } from '@graphql-tools/delegate';
+import { delegateToSchema, isSubschemaConfig, Subschema, SubschemaConfig } from '@graphql-tools/delegate';
 
 import { batchDelegateToSchema } from '@graphql-tools/batch-delegate';
 
 import { MergeTypeCandidate, MergedTypeInfo, StitchingInfo, MergeTypeFilter } from './types';
 
 export function createStitchingInfo(
-  transformedSubschemaConfigs: Map<SubschemaConfig, SubschemaConfig>,
-  transformedSchemas: Map<SubschemaConfig, GraphQLSchema>,
+  transformedSubschemaMap: Map<GraphQLSchema | SubschemaConfig, Subschema>,
   typeCandidates: Record<string, Array<MergeTypeCandidate>>,
   mergeTypes?: boolean | Array<string> | MergeTypeFilter
 ): StitchingInfo {
@@ -76,9 +75,7 @@ export function createStitchingInfo(
   });
 
   return {
-    transformedSubschemaConfigs,
-    transformedSchemas,
-    fragmentsByField: undefined,
+    transformedSubschemaMap,
     selectionSetsByField,
     dynamicSelectionSetsByField: undefined,
     mergedTypes,

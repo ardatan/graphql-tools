@@ -1,7 +1,6 @@
 import {
   DocumentNode,
   GraphQLNamedType,
-  GraphQLSchema,
   getNamedType,
   isNamedType,
   GraphQLDirective,
@@ -11,7 +10,7 @@ import {
 } from 'graphql';
 
 import { wrapSchema } from '@graphql-tools/wrap';
-import { SubschemaConfig } from '@graphql-tools/delegate';
+import { Subschema } from '@graphql-tools/delegate';
 import { GraphQLParseOptions, ITypeDefinitions, TypeMap } from '@graphql-tools/utils';
 import { buildDocumentFromTypeDefinitions } from '@graphql-tools/schema';
 
@@ -30,22 +29,20 @@ import { mergeCandidates } from './mergeCandidates';
 type CandidateSelector = (candidates: Array<MergeTypeCandidate>) => MergeTypeCandidate;
 
 export function buildTypeCandidates({
-  subschemaConfigs,
+  subschemas,
   types,
   typeDefs,
   parseOptions,
-  transformedSchemas,
   extensions,
   directiveMap,
   schemaDefs,
   operationTypeNames,
   mergeDirectives,
 }: {
-  subschemaConfigs: Array<SubschemaConfig>;
+  subschemas: Array<Subschema>;
   types: Array<GraphQLNamedType>;
   typeDefs: ITypeDefinitions;
   parseOptions: GraphQLParseOptions;
-  transformedSchemas: Map<SubschemaConfig, GraphQLSchema>;
   extensions: Array<DocumentNode>;
   directiveMap: Record<string, GraphQLDirective>;
   schemaDefs: {
@@ -72,10 +69,8 @@ export function buildTypeCandidates({
 
   setOperationTypeNames(schemaDefs, operationTypeNames);
 
-  subschemaConfigs.forEach(subschemaConfig => {
-    const schema = wrapSchema(subschemaConfig);
-
-    transformedSchemas.set(subschemaConfig, schema);
+  subschemas.forEach(subschema => {
+    const schema = wrapSchema(subschema);
 
     const operationTypes = {
       query: schema.getQueryType(),
@@ -87,7 +82,7 @@ export function buildTypeCandidates({
       if (operationTypes[operationType] != null) {
         addTypeCandidate(typeCandidates, operationTypeNames[operationType], {
           type: operationTypes[operationType],
-          subschema: subschemaConfig,
+          subschema,
           transformedSchema: schema,
         });
       }
@@ -111,7 +106,7 @@ export function buildTypeCandidates({
       ) {
         addTypeCandidate(typeCandidates, type.name, {
           type,
-          subschema: subschemaConfig,
+          subschema,
           transformedSchema: schema,
         });
       }
