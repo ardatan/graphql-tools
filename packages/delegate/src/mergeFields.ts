@@ -11,23 +11,24 @@ import {
 
 import isPromise from 'is-promise';
 
-import { MergedTypeInfo, SubschemaConfig } from './types';
+import { MergedTypeInfo } from './types';
 import { memoize4, memoize3, memoize2 } from './memoize';
 import { mergeExternalObjects } from './externalObjects';
+import { Subschema } from './Subschema';
 
 const sortSubschemasByProxiability = memoize4(function (
   mergedTypeInfo: MergedTypeInfo,
-  sourceSubschemaOrSourceSubschemas: SubschemaConfig | Array<SubschemaConfig>,
-  targetSubschemas: Array<SubschemaConfig>,
+  sourceSubschemaOrSourceSubschemas: Subschema | Array<Subschema>,
+  targetSubschemas: Array<Subschema>,
   fieldNodes: Array<FieldNode>
 ): {
-  proxiableSubschemas: Array<SubschemaConfig>;
-  nonProxiableSubschemas: Array<SubschemaConfig>;
+  proxiableSubschemas: Array<Subschema>;
+  nonProxiableSubschemas: Array<Subschema>;
 } {
   // 1.  calculate if possible to delegate to given subschema
 
-  const proxiableSubschemas: Array<SubschemaConfig> = [];
-  const nonProxiableSubschemas: Array<SubschemaConfig> = [];
+  const proxiableSubschemas: Array<Subschema> = [];
+  const nonProxiableSubschemas: Array<Subschema> = [];
 
   targetSubschemas.forEach(t => {
     const selectionSet = mergedTypeInfo.selectionSets.get(t);
@@ -65,9 +66,9 @@ const sortSubschemasByProxiability = memoize4(function (
 const buildDelegationPlan = memoize3(function (
   mergedTypeInfo: MergedTypeInfo,
   fieldNodes: Array<FieldNode>,
-  proxiableSubschemas: Array<SubschemaConfig>
+  proxiableSubschemas: Array<Subschema>
 ): {
-  delegationMap: Map<SubschemaConfig, SelectionSetNode>;
+  delegationMap: Map<Subschema, SelectionSetNode>;
   unproxiableFieldNodes: Array<FieldNode>;
 } {
   const { uniqueFields, nonUniqueFields } = mergedTypeInfo;
@@ -75,7 +76,7 @@ const buildDelegationPlan = memoize3(function (
 
   // 2. for each selection:
 
-  const delegationMap: Map<SubschemaConfig, Array<SelectionNode>> = new Map();
+  const delegationMap: Map<Subschema, Array<SelectionNode>> = new Map();
   fieldNodes.forEach(fieldNode => {
     if (fieldNode.name.value === '__typename') {
       return;
@@ -83,7 +84,7 @@ const buildDelegationPlan = memoize3(function (
 
     // 2a. use uniqueFields map to assign fields to subschema if one of possible subschemas
 
-    const uniqueSubschema: SubschemaConfig = uniqueFields[fieldNode.name.value];
+    const uniqueSubschema: Subschema = uniqueFields[fieldNode.name.value];
     if (uniqueSubschema != null) {
       if (!proxiableSubschemas.includes(uniqueSubschema)) {
         unproxiableFieldNodes.push(fieldNode);
@@ -103,7 +104,7 @@ const buildDelegationPlan = memoize3(function (
     // 2b. use nonUniqueFields to assign to a possible subschema,
     //     preferring one of the subschemas already targets of delegation
 
-    let nonUniqueSubschemas: Array<SubschemaConfig> = nonUniqueFields[fieldNode.name.value];
+    let nonUniqueSubschemas: Array<Subschema> = nonUniqueFields[fieldNode.name.value];
     if (nonUniqueSubschemas == null) {
       unproxiableFieldNodes.push(fieldNode);
       return;
@@ -115,7 +116,7 @@ const buildDelegationPlan = memoize3(function (
       return;
     }
 
-    const subschemas: Array<SubschemaConfig> = Array.from(delegationMap.keys());
+    const subschemas: Array<Subschema> = Array.from(delegationMap.keys());
     const existingSubschema = nonUniqueSubschemas.find(s => subschemas.includes(s));
     if (existingSubschema != null) {
       delegationMap.get(existingSubschema).push(fieldNode);
@@ -124,7 +125,7 @@ const buildDelegationPlan = memoize3(function (
     }
   });
 
-  const finalDelegationMap: Map<SubschemaConfig, SelectionSetNode> = new Map();
+  const finalDelegationMap: Map<Subschema, SelectionSetNode> = new Map();
 
   delegationMap.forEach((selections, subschema) => {
     finalDelegationMap.set(subschema, {
@@ -140,9 +141,9 @@ const buildDelegationPlan = memoize3(function (
 });
 
 const combineSubschemas = memoize2(function (
-  subschemaOrSubschemas: SubschemaConfig | Array<SubschemaConfig>,
-  additionalSubschemas: Array<SubschemaConfig>
-): Array<SubschemaConfig> {
+  subschemaOrSubschemas: Subschema | Array<Subschema>,
+  additionalSubschemas: Array<Subschema>
+): Array<Subschema> {
   return Array.isArray(subschemaOrSubschemas)
     ? subschemaOrSubschemas.concat(additionalSubschemas)
     : [subschemaOrSubschemas].concat(additionalSubschemas);
@@ -153,8 +154,8 @@ export function mergeFields(
   typeName: string,
   object: any,
   fieldNodes: Array<FieldNode>,
-  sourceSubschemaOrSourceSubschemas: SubschemaConfig | Array<SubschemaConfig>,
-  targetSubschemas: Array<SubschemaConfig>,
+  sourceSubschemaOrSourceSubschemas: Subschema | Array<Subschema>,
+  targetSubschemas: Array<Subschema>,
   context: Record<string, any>,
   info: GraphQLResolveInfo
 ): any {
@@ -177,7 +178,7 @@ export function mergeFields(
 
   let containsPromises = false;
   const resultMap: Map<Promise<any> | any, SelectionSetNode> = new Map();
-  delegationMap.forEach((selectionSet: SelectionSetNode, s: SubschemaConfig) => {
+  delegationMap.forEach((selectionSet: SelectionSetNode, s: Subschema) => {
     const maybePromise = s.merge[typeName].resolve(object, context, info, s, selectionSet);
     resultMap.set(maybePromise, selectionSet);
     if (isPromise(maybePromise)) {
@@ -226,7 +227,7 @@ export function mergeFields(
 
 const subschemaTypesContainSelectionSet = memoize3(function (
   mergedTypeInfo: MergedTypeInfo,
-  sourceSubschemaOrSourceSubschemas: SubschemaConfig | Array<SubschemaConfig>,
+  sourceSubschemaOrSourceSubschemas: Subschema | Array<Subschema>,
   selectionSet: SelectionSetNode
 ) {
   if (Array.isArray(sourceSubschemaOrSourceSubschemas)) {

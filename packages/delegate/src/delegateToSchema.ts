@@ -210,7 +210,7 @@ function collectTargetParameters(
 } {
   const stitchingInfo: StitchingInfo = info?.schema.extensions?.stitchingInfo;
 
-  const subschemaOrSubschemaConfig = stitchingInfo?.targetSubschemaMap.get(subschema) ?? subschema;
+  const subschemaOrSubschemaConfig = stitchingInfo?.stitchedSubschemas.get(subschema) ?? subschema;
 
   if (isSubschemaConfig(subschemaOrSubschemaConfig)) {
     return {

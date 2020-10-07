@@ -23,7 +23,7 @@ import { batchDelegateToSchema } from '@graphql-tools/batch-delegate';
 import { MergeTypeCandidate, MergedTypeInfo, StitchingInfo, MergeTypeFilter } from './types';
 
 export function createStitchingInfo(
-  targetSubschemaMap: Map<GraphQLSchema | SubschemaConfig, Subschema>,
+  stitchedSubschemas: Map<GraphQLSchema | SubschemaConfig, Subschema>,
   typeCandidates: Record<string, Array<MergeTypeCandidate>>,
   mergeTypes?: boolean | Array<string> | MergeTypeFilter
 ): StitchingInfo {
@@ -75,7 +75,7 @@ export function createStitchingInfo(
   });
 
   return {
-    targetSubschemaMap,
+    stitchedSubschemas,
     selectionSetsByField,
     dynamicSelectionSetsByField: undefined,
     mergedTypes,
@@ -106,12 +106,12 @@ function createMergedTypes(
         (Array.isArray(mergeTypes) && mergeTypes.includes(typeName)) ||
         typeCandidatesWithMergedTypeConfig.length
       ) {
-        const targetSubschemas: Array<SubschemaConfig> = [];
+        const targetSubschemas: Array<Subschema> = [];
 
         const typeMaps: Map<GraphQLSchema | SubschemaConfig, TypeMap> = new Map();
-        const supportedBySubschemas: Record<string, Array<SubschemaConfig>> = Object.create({});
-        const selectionSets: Map<SubschemaConfig, SelectionSetNode> = new Map();
-        const fieldSelectionSets: Map<SubschemaConfig, Record<string, SelectionSetNode>> = new Map();
+        const supportedBySubschemas: Record<string, Array<Subschema>> = Object.create({});
+        const selectionSets: Map<Subschema, SelectionSetNode> = new Map();
+        const fieldSelectionSets: Map<Subschema, Record<string, SelectionSetNode>> = new Map();
 
         typeCandidates[typeName].forEach(typeCandidate => {
           const subschema = typeCandidate.transformedSubschema;
@@ -213,7 +213,7 @@ function createMergedTypes(
         const sourceSubschemas = typeCandidates[typeName]
           .filter(typeCandidate => typeCandidate.transformedSubschema != null)
           .map(typeCandidate => typeCandidate.transformedSubschema);
-        const targetSubschemasBySubschema: Map<GraphQLSchema | SubschemaConfig, Array<SubschemaConfig>> = new Map();
+        const targetSubschemasBySubschema: Map<Subschema, Array<Subschema>> = new Map();
         sourceSubschemas.forEach(subschema => {
           const filteredSubschemas = targetSubschemas.filter(s => s !== subschema);
           if (filteredSubschemas.length) {

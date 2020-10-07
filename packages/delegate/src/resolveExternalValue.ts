@@ -13,10 +13,11 @@ import {
   locatedError,
 } from 'graphql';
 
-import { SubschemaConfig } from './types';
+import { StitchingInfo, SubschemaConfig } from './types';
 import { annotateExternalObject } from './externalObjects';
 import { getFieldsNotInSubschema } from './getFieldsNotInSubschema';
 import { mergeFields } from './mergeFields';
+import { Subschema } from './Subschema';
 
 export function resolveExternalValue(
   result: any,
@@ -55,7 +56,7 @@ function resolveExternalObject(
   info: GraphQLResolveInfo,
   skipTypeMerging?: boolean
 ) {
-  const stitchingInfo = info?.schema.extensions?.stitchingInfo;
+  const stitchingInfo: StitchingInfo = info?.schema.extensions?.stitchingInfo;
 
   annotateExternalObject(object, unpathedErrors, subschema);
 
@@ -78,12 +79,15 @@ function resolveExternalObject(
   }
 
   const mergedTypeInfo = stitchingInfo.mergedTypes[typeName];
-  let targetSubschemas: Array<SubschemaConfig>;
+  let targetSubschemas: Array<Subschema>;
 
+  // Within the stitching context, delegation to a stitched GraphQLSchema or SubschemaConfig
+  // will be redirected to the appropriate Subschema object, from which merge targets can be queried.
   if (mergedTypeInfo != null) {
-    targetSubschemas = mergedTypeInfo.targetSubschemas.get(subschema);
+    targetSubschemas = mergedTypeInfo.targetSubschemas.get(subschema as Subschema);
   }
 
+  // If there are no merge targets from the subschema, return.
   if (!targetSubschemas) {
     return object;
   }
@@ -95,7 +99,7 @@ function resolveExternalObject(
     typeName,
     object,
     fieldNodes,
-    subschema as SubschemaConfig,
+    subschema as Subschema,
     targetSubschemas,
     context,
     info

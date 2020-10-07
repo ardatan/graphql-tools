@@ -108,12 +108,12 @@ export interface ICreateRequest {
 export interface MergedTypeInfo {
   typeName: string;
   selectionSet?: SelectionSetNode;
-  targetSubschemas: Map<GraphQLSchema | SubschemaConfig, Array<SubschemaConfig>>;
-  uniqueFields: Record<string, SubschemaConfig>;
-  nonUniqueFields: Record<string, Array<SubschemaConfig>>;
+  targetSubschemas: Map<Subschema, Array<Subschema>>;
+  uniqueFields: Record<string, Subschema>;
+  nonUniqueFields: Record<string, Array<Subschema>>;
   typeMaps: Map<GraphQLSchema | SubschemaConfig, TypeMap>;
-  selectionSets: Map<SubschemaConfig, SelectionSetNode>;
-  fieldSelectionSets: Map<SubschemaConfig, Record<string, SelectionSetNode>>;
+  selectionSets: Map<Subschema, SelectionSetNode>;
+  fieldSelectionSets: Map<Subschema, Record<string, SelectionSetNode>>;
 }
 
 export interface ExecutionParams<TArgs = Record<string, any>, TContext = any> {
@@ -199,7 +199,7 @@ export type MergedTypeResolver = (
 ) => any;
 
 export interface StitchingInfo {
-  targetSubschemaMap: Map<GraphQLSchema | SubschemaConfig, Subschema>;
+  stitchedSubschemas: Map<GraphQLSchema | SubschemaConfig, Subschema>;
   selectionSetsByField: Record<string, Record<string, SelectionSetNode>>;
   dynamicSelectionSetsByField: Record<string, Record<string, Array<(node: FieldNode) => SelectionSetNode>>>;
   mergedTypes: Record<string, MergedTypeInfo>;

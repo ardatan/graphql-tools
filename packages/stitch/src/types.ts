@@ -2,7 +2,6 @@ import {
   GraphQLNamedType,
   GraphQLSchema,
   SelectionSetNode,
-  DocumentNode,
   FieldNode,
   GraphQLFieldConfig,
   GraphQLObjectType,
@@ -40,22 +39,20 @@ export type MergeTypeFilter = (mergeTypeCandidates: Array<MergeTypeCandidate>, t
 
 export interface MergedTypeInfo {
   typeName: string;
-  targetSubschemas: Map<GraphQLSchema | SubschemaConfig, Array<SubschemaConfig>>;
-  uniqueFields: Record<string, SubschemaConfig>;
-  nonUniqueFields: Record<string, Array<SubschemaConfig>>;
+  targetSubschemas: Map<Subschema, Array<Subschema>>;
+  uniqueFields: Record<string, Subschema>;
+  nonUniqueFields: Record<string, Array<Subschema>>;
   typeMaps: Map<GraphQLSchema | SubschemaConfig, TypeMap>;
-  selectionSets: Map<SubschemaConfig, SelectionSetNode>;
-  fieldSelectionSets: Map<SubschemaConfig, Record<string, SelectionSetNode>>;
+  selectionSets: Map<Subschema, SelectionSetNode>;
+  fieldSelectionSets: Map<Subschema, Record<string, SelectionSetNode>>;
 }
 
 export interface StitchingInfo {
-  targetSubschemaMap: Map<GraphQLSchema | SubschemaConfig, Subschema>;
+  stitchedSubschemas: Map<GraphQLSchema | SubschemaConfig, Subschema>;
   selectionSetsByField: Record<string, Record<string, SelectionSetNode>>;
   dynamicSelectionSetsByField: Record<string, Record<string, Array<(node: FieldNode) => SelectionSetNode>>>;
   mergedTypes: Record<string, MergedTypeInfo>;
 }
-
-export type SchemaLikeObject = SubschemaConfig | GraphQLSchema | string | DocumentNode | Array<GraphQLNamedType>;
 
 export interface IStitchSchemasOptions<TContext = any> extends Omit<IExecutableSchemaDefinition<TContext>, 'typeDefs'> {
   subschemas?: Array<GraphQLSchema | SubschemaConfig | Array<SubschemaConfig>>;
