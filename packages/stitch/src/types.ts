@@ -3,7 +3,6 @@ import {
   GraphQLSchema,
   SelectionSetNode,
   DocumentNode,
-  InlineFragmentNode,
   FieldNode,
   GraphQLFieldConfig,
   GraphQLObjectType,
@@ -12,7 +11,7 @@ import {
   GraphQLInputObjectType,
 } from 'graphql';
 import { ITypeDefinitions, TypeMap } from '@graphql-tools/utils';
-import { SubschemaConfig } from '@graphql-tools/delegate';
+import { Subschema, SubschemaConfig } from '@graphql-tools/delegate';
 import { IExecutableSchemaDefinition } from '@graphql-tools/schema';
 
 export interface MergeTypeCandidate {
