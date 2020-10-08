@@ -31,7 +31,7 @@ If you are using GraphQL Tools v6, there are several breaking changes to be awar
 
 - The `ExtendSchema` transform has been removed, as it is conceptually simpler just to use `stitchSchemas` with one subschema.
 
-- The `ReplaceFieldsWithFragment` transform has been removed, as it is has been superseded by the `AddReplacementSelectionSets` transform.
+- The `ReplaceFieldsWithFragment`, `AddFragmentsByField`, `AddSelectionSetsByField`, and `AddMergedTypeSelectionSets` transforms has been removed, as they are superseded by the `AddSelectionSets` and `VisitSelectionSets` transforms. The `AddSelectionSets` purposely takes parsed SDL rather than strings, to nudge end users to parse these strings at build time (when possible), rather than at runtime. Parsing of selection set strings can be performed using the `parseSelectionSet` function from `@graphql-tools/utils`.
 
 #### Schema Stitching (`stitchSchemas` & `@graphql-tools/stitch`)
 
