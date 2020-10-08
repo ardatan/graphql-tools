@@ -223,9 +223,9 @@ export type IFieldResolver<TSource, TContext, TArgs = Record<string, any>, TRetu
   info: GraphQLResolveInfo
 ) => TReturn;
 
-export type ITypedef = (() => Array<ITypedef>) | string | DocumentNode;
+export type ITypedef = string | DocumentNode | (() => Array<ITypedef>);
 
-export type ITypeDefinitions = ITypedef | Array<ITypedef>;
+export type ITypeDefinitions = string | DocumentNode | Array<ITypedef>;
 
 export type IObjectTypeResolver<TSource = any, TContext = any, TArgs = any> = {
   [key: string]: IFieldResolver<TSource, TContext, TArgs> | IFieldResolverOptions<TSource, TContext>;
