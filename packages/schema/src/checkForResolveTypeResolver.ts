@@ -1,21 +1,18 @@
-import { GraphQLInterfaceType, GraphQLUnionType, GraphQLSchema, isAbstractType } from 'graphql';
+import { GraphQLSchema } from 'graphql';
 
-// If we have any union or interface types throw if no there is no resolveType or isTypeOf resolvers
+import { MapperKind, mapSchema } from '@graphql-tools/utils';
+
+// If we have any union or interface types throw if no there is no resolveType resolver
 export function checkForResolveTypeResolver(schema: GraphQLSchema, requireResolversForResolveType?: boolean) {
-  Object.keys(schema.getTypeMap())
-    .map(typeName => schema.getType(typeName))
-    .forEach((type: GraphQLUnionType | GraphQLInterfaceType) => {
-      if (!isAbstractType(type)) {
-        return;
-      }
-      if (!type.resolveType) {
-        if (!requireResolversForResolveType) {
-          return;
-        }
+  mapSchema(schema, {
+    [MapperKind.ABSTRACT_TYPE]: type => {
+      if (!type.resolveType && requireResolversForResolveType) {
         throw new Error(
           `Type "${type.name}" is missing a "__resolveType" resolver. Pass false into ` +
             '"resolverValidationOptions.requireResolversForResolveType" to disable this error.'
         );
       }
-    });
+      return undefined;
+    },
+  });
 }
