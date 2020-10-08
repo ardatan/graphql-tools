@@ -8,7 +8,7 @@ import {
   ASTNode,
 } from 'graphql';
 
-import { SchemaDirectiveVisitor, mergeDeep, IResolvers, rewireTypes, pruneSchema } from '@graphql-tools/utils';
+import { SchemaDirectiveVisitor, mergeDeep, IResolvers, pruneSchema } from '@graphql-tools/utils';
 
 import {
   addResolversToSchema,
@@ -24,7 +24,7 @@ import { SubschemaConfig, isSubschemaConfig, Subschema } from '@graphql-tools/de
 
 import { IStitchSchemasOptions, SubschemaConfigTransform } from './types';
 
-import { buildTypeCandidates, buildTypeMap } from './typeCandidates';
+import { buildTypeCandidates, buildTypes } from './typeCandidates';
 import { createStitchingInfo, completeStitchingInfo, addStitchingInfo } from './stitchingInfo';
 import { isolateComputedFields } from './isolateComputedFields';
 import { defaultSubschemaConfigTransforms } from './subschemaConfigTransforms';
@@ -108,16 +108,15 @@ export function stitchSchemas({
 
   let stitchingInfo = createStitchingInfo(subschemaMap, typeCandidates, mergeTypes);
 
-  const typeMap = buildTypeMap({
+  const { typeMap: newTypeMap, directives: newDirectives } = buildTypes({
     typeCandidates,
+    directives,
     stitchingInfo,
     operationTypeNames,
     onTypeConflict,
     mergeTypes,
     typeMergingOptions,
   });
-
-  const { typeMap: newTypeMap, directives: newDirectives } = rewireTypes(typeMap, directives);
 
   let schema = new GraphQLSchema({
     query: newTypeMap[operationTypeNames.query] as GraphQLObjectType,

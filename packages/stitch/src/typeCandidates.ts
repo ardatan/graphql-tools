@@ -12,7 +12,7 @@ import {
 
 import { wrapSchema } from '@graphql-tools/wrap';
 import { Subschema, SubschemaConfig } from '@graphql-tools/delegate';
-import { GraphQLParseOptions, ITypeDefinitions, TypeMap } from '@graphql-tools/utils';
+import { GraphQLParseOptions, ITypeDefinitions, rewireTypes, TypeMap } from '@graphql-tools/utils';
 import { buildDocumentFromTypeDefinitions } from '@graphql-tools/schema';
 
 import {
@@ -177,8 +177,9 @@ function addTypeCandidate(
   typeCandidates[name].push(typeCandidate);
 }
 
-export function buildTypeMap({
+export function buildTypes({
   typeCandidates,
+  directives,
   stitchingInfo,
   operationTypeNames,
   onTypeConflict,
@@ -186,12 +187,13 @@ export function buildTypeMap({
   typeMergingOptions,
 }: {
   typeCandidates: Record<string, Array<MergeTypeCandidate>>;
+  directives: Array<GraphQLDirective>;
   stitchingInfo: StitchingInfo;
   operationTypeNames: Record<string, any>;
   onTypeConflict: OnTypeConflict;
   mergeTypes: boolean | Array<string> | MergeTypeFilter;
   typeMergingOptions: TypeMergingOptions;
-}): TypeMap {
+}): { typeMap: TypeMap; directives: Array<GraphQLDirective> } {
   const typeMap: TypeMap = Object.create(null);
 
   Object.keys(typeCandidates).forEach(typeName => {
@@ -214,7 +216,7 @@ export function buildTypeMap({
     }
   });
 
-  return typeMap;
+  return rewireTypes(typeMap, directives);
 }
 
 function onTypeConflictToCandidateSelector(onTypeConflict: OnTypeConflict): CandidateSelector {
