@@ -20,7 +20,7 @@ import { IExecutableSchemaDefinition } from './types';
  * should return an array of strings or `DocumentNode`s.
  *
  * Note: You can use `graphql-tag` to not only parse a string into a
- * `DocumentNode` but also to provide additinal syntax hightlighting in your
+ * `DocumentNode` but also to provide additional syntax highlighting in your
  * editor (with the appropriate editor plugin).
  *
  * ```js
