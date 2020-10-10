@@ -983,11 +983,6 @@ describe('Mock', () => {
     let jsSchema = makeExecutableSchema({
       typeDefs: [shorthand],
       resolvers,
-      resolverValidationOptions: {
-        requireResolversForArgs: false,
-        requireResolversForNonScalar: false,
-        requireResolversForAllFields: false,
-      },
       logger: console,
     });
     const mockMap = {

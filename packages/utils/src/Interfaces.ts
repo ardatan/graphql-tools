@@ -82,35 +82,37 @@ export interface GraphQLParseOptions {
 
 // graphql-tools typings
 
+export type ValidatorBehavior = 'error' | 'warn' | 'ignore';
+
 /**
  * Options for validating resolvers
  */
 export interface IResolverValidationOptions {
   /**
-   * Set to `true` to require a resolver to be defined for any field that has
-   * arguments. Defaults to `false`.
+   * Enable to require a resolver to be defined for any field that has
+   * arguments. Defaults to `ignore`.
    */
-  requireResolversForArgs?: boolean;
+  requireResolversForArgs?: ValidatorBehavior;
   /**
-   * Set to `true` to require a resolver to be defined for any field which has
-   * a return type that isn't a scalar. Defaults to `false`.
+   * Enable to require a resolver to be defined for any field which has
+   * a return type that isn't a scalar. Defaults to `ignore`.
    */
-  requireResolversForNonScalar?: boolean;
+  requireResolversForNonScalar?: ValidatorBehavior;
   /**
-   * Set to `true` to require a resolver for be defined for all fields defined
-   * in the schema. Defaults to `false`.
+   * Enable to require a resolver for be defined for all fields defined
+   * in the schema. Defaults to `ignore`.
    */
-  requireResolversForAllFields?: boolean;
+  requireResolversForAllFields?: ValidatorBehavior;
   /**
-   * Set to `true` to require a `resolveType()` for Interface and Union types.
-   * Defaults to `false`.
+   * Enable to require a `resolveType()` for Interface and Union types.
+   * Defaults to `ignore`.
    */
-  requireResolversForResolveType?: boolean;
+  requireResolversForResolveType?: ValidatorBehavior;
   /**
-   * Set to `false` to require all defined resolvers to match fields that
-   * actually exist in the schema. Defaults to `true`.
+   * Enable to require all defined resolvers to match fields that
+   * actually exist in the schema. Defaults to `error` to catch common errors.
    */
-  allowResolversNotInSchema?: boolean;
+  requireResolversToMatchSchema?: ValidatorBehavior;
 }
 
 /**

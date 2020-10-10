@@ -55,7 +55,7 @@ export function addResolversToSchema(
     updateResolversInPlace = false,
   } = options;
 
-  const { allowResolversNotInSchema = false, requireResolversForResolveType } = resolverValidationOptions;
+  const { requireResolversToMatchSchema = 'error', requireResolversForResolveType } = resolverValidationOptions;
 
   const resolvers = inheritResolversFromInterfaces
     ? extendResolversFromInterfaces(schema, inputResolvers)
@@ -85,7 +85,7 @@ export function addResolversToSchema(
       const type = schema.getType(typeName);
 
       if (type == null) {
-        if (allowResolversNotInSchema) {
+        if (requireResolversToMatchSchema === 'ignore') {
           return;
         }
 
@@ -106,14 +106,19 @@ export function addResolversToSchema(
           if (
             !fieldName.startsWith('__') &&
             !values.some(value => value.name === fieldName) &&
-            !allowResolversNotInSchema
+            requireResolversToMatchSchema &&
+            requireResolversToMatchSchema !== 'ignore'
           ) {
             throw new Error(`${type.name}.${fieldName} was defined in resolvers, but not present within ${type.name}`);
           }
         });
       } else if (isUnionType(type)) {
         Object.keys(resolverValue).forEach(fieldName => {
-          if (!fieldName.startsWith('__') && !allowResolversNotInSchema) {
+          if (
+            !fieldName.startsWith('__') &&
+            requireResolversToMatchSchema &&
+            requireResolversToMatchSchema !== 'ignore'
+          ) {
             throw new Error(
               `${type.name}.${fieldName} was defined in resolvers, but ${type.name} is not an object or interface type`
             );
@@ -125,7 +130,7 @@ export function addResolversToSchema(
             const fields = type.getFields();
             const field = fields[fieldName];
 
-            if (field == null && !allowResolversNotInSchema) {
+            if (field == null && requireResolversToMatchSchema && requireResolversToMatchSchema !== 'ignore') {
               throw new Error(`${typeName}.${fieldName} defined in resolvers, but not in schema`);
             }
 

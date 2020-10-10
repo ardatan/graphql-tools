@@ -1,6 +1,7 @@
 ---
 '@graphql-tools/batch-execute': major
 '@graphql-tools/delegate': major
+'@graphql-tools/generate': major
 '@graphql-tools/mock': major
 '@graphql-tools/stitch': major
 '@graphql-tools/utils': major
@@ -11,6 +12,12 @@
 ---
 
 ## Breaking Changes:
+
+#### Schema Generation and Decoration API (`@graphql-tools/schema`)
+
+- Resolver validation options should now be set to `error`, `warn` or `ignore` rather than `true` or `false`. In previous versions, some of the validators caused errors to be thrown, while some issued warnings. This changes brings consistency to validator behavior.
+
+- The `allowResolversNotInSchema` has been renamed to `requireResolversToMatchSchema`, to harmonize the naming convention of all the validators. The default setting of `requireResolversToMatchSchema` is `error`, matching the previous behavior.
 
 #### Schema Delegation (`delegateToSchema` & `@graphql-tools/delegate`)
 

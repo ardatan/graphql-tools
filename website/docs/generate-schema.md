@@ -239,16 +239,16 @@ const jsSchema = makeExecutableSchema({
 
 - `allowUndefinedInResolve` is an optional argument, which is `true` by default. When set to `false`, causes your resolver to throw errors if they return undefined, which can help make debugging easier.
 
-- `resolverValidationOptions` is an optional argument which accepts an `ResolverValidationOptions` object which has the following boolean properties:
-  - `requireResolversForArgs` will cause `makeExecutableSchema` to throw an error if no resolver is defined for a field that has arguments.
+- `resolverValidationOptions` is an optional argument with the following properties, each of which can be set to `error`, `warn`, or `ignore`:
+  - `requireResolversForArgs` will cause `makeExecutableSchema` to throw an error (`error`) or issue a warning (`warn`)unless a resolver is defined for every field with arguments. The default is `ignore`, causing this validator to be skipped.
 
-  - `requireResolversForNonScalar` will cause `makeExecutableSchema` to throw an error if a non-scalar field has no resolver defined. Setting this to `true` can be helpful in catching errors, but defaults to `false` to avoid confusing behavior for those coming from other GraphQL libraries.
+  - `requireResolversForNonScalar` require a resolver for every non-scalar field. Default is `ignore`.
 
-  - `requireResolversForAllFields` asserts that *all* fields have valid resolvers.
+  - `requireResolversForAllFields` asserts that *all* fields have valid resolvers. This option cannot be set in combination with the previous two validators. Default is `ignore`.
 
-  - `requireResolversForResolveType` will require a `resolveType()` method for Interface and Union types. This can be passed in with the field resolvers as `__resolveType()`. False to disable the warning.
+  - `requireResolversForResolveType` will require a `resolveType()` method for Interface and Union types. This can be passed in with the field resolvers as `__resolveType()`. Default is `ignore`.
 
-  - `allowResolversNotInSchema` turns off the functionality which throws errors when resolvers are found which are not present in the schema. Defaults to `false`, to help catch common errors.
+  - `requireResolversToMatchSchema` requires every resolver within the resolver map to correspond to a GraphQL entity within the schema. Defaults to `error`, to help catch common errors.
 
 - `inheritResolversFromInterfaces` GraphQL Objects that implement interfaces will inherit missing resolvers from their interface types defined in the `resolvers` object.
 

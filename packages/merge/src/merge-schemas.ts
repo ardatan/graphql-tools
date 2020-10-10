@@ -42,11 +42,11 @@ export interface MergeSchemasConfig<Resolvers extends IResolvers = IResolvers> e
 }
 
 const defaultResolverValidationOptions: Partial<IResolverValidationOptions> = {
-  requireResolversForArgs: false,
-  requireResolversForNonScalar: false,
-  requireResolversForAllFields: false,
-  requireResolversForResolveType: false,
-  allowResolversNotInSchema: true,
+  requireResolversForArgs: 'ignore',
+  requireResolversForNonScalar: 'ignore',
+  requireResolversForAllFields: 'ignore',
+  requireResolversForResolveType: 'ignore',
+  requireResolversToMatchSchema: 'ignore',
 };
 
 /**
