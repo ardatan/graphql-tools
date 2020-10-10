@@ -27,7 +27,6 @@ import {
   SubschemaConfig,
   ExecutionParams,
   StitchingInfo,
-  Endpoint,
   Transform,
   Executor,
 } from './types';
@@ -36,6 +35,7 @@ import { isSubschemaConfig } from './subschemaConfig';
 import { Subschema } from './Subschema';
 import { createRequestFromInfo, getDelegatingOperation } from './createRequest';
 import { Transformer } from './Transformer';
+import { memoize2 } from './memoize';
 
 export function delegateToSchema(options: IDelegateToSchemaOptions): any {
   const {
@@ -196,6 +196,8 @@ export function delegateRequest({
   });
 }
 
+const emptyObject = {};
+
 function collectTargetParameters(
   subschema: GraphQLSchema | SubschemaConfig,
   rootValue: Record<string, any>,
@@ -205,7 +207,6 @@ function collectTargetParameters(
   targetSchema: GraphQLSchema;
   targetRootValue: Record<string, any>;
   subschemaConfig?: SubschemaConfig;
-  endpoint?: Endpoint;
   allTransforms: Array<Transform>;
 } {
   const stitchingInfo: StitchingInfo = info?.schema.extensions?.stitchingInfo;
@@ -215,7 +216,7 @@ function collectTargetParameters(
   if (isSubschemaConfig(subschemaOrSubschemaConfig)) {
     return {
       targetSchema: subschemaOrSubschemaConfig.schema,
-      targetRootValue: rootValue ?? subschemaOrSubschemaConfig?.rootValue ?? info?.rootValue,
+      targetRootValue: rootValue ?? subschemaOrSubschemaConfig?.rootValue ?? info?.rootValue ?? emptyObject,
       subschemaConfig: subschemaOrSubschemaConfig,
       endpoint: subschemaOrSubschemaConfig.endpoint ?? subschemaOrSubschemaConfig,
       allTransforms:
@@ -227,7 +228,7 @@ function collectTargetParameters(
 
   return {
     targetSchema: subschemaOrSubschemaConfig,
-    targetRootValue: rootValue ?? info?.rootValue,
+    targetRootValue: rootValue ?? info?.rootValue ?? emptyObject,
     allTransforms: transforms,
   };
 }
@@ -244,7 +245,7 @@ function validateRequest(targetSchema: GraphQLSchema, document: DocumentNode) {
   }
 }
 
-function createDefaultExecutor(schema: GraphQLSchema, rootValue: Record<string, any>): Executor {
+const createDefaultExecutor = memoize2(function (schema: GraphQLSchema, rootValue: Record<string, any>): Executor {
   return (({ document, context, variables, info }: ExecutionParams) =>
     execute({
       schema,
@@ -253,7 +254,7 @@ function createDefaultExecutor(schema: GraphQLSchema, rootValue: Record<string, 
       variableValues: variables,
       rootValue: rootValue ?? info?.rootValue,
     })) as Executor;
-}
+});
 
 function createDefaultSubscriber(schema: GraphQLSchema, rootValue: Record<string, any>) {
   return ({ document, context, variables, info }: ExecutionParams) =>
