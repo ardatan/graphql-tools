@@ -1,14 +1,13 @@
 ---
 '@graphql-tools/batch-execute': major
 '@graphql-tools/delegate': major
-'@graphql-tools/generate': major
 '@graphql-tools/mock': major
+'@graphql-tools/schema': major
 '@graphql-tools/stitch': major
 '@graphql-tools/utils': major
 '@graphql-tools/wrap': major
 '@graphql-tools/links': patch
 '@graphql-tools/merge': patch
-'@graphql-tools/schema': patch
 ---
 
 ## Breaking Changes:
