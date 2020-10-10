@@ -1,7 +1,7 @@
 import { graphql, execute, ExecutionResult } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { delegateToSchema, SubschemaConfig, ExecutionParams, SyncExecutor, Endpoint } from '../src';
+import { delegateToSchema, SubschemaConfig, ExecutionParams, SyncExecutor, Executor } from '../src';
 import { stitchSchemas } from '@graphql-tools/stitch';
 import { FilterObjectFields } from '@graphql-tools/wrap';
 
@@ -61,7 +61,7 @@ describe('batch execution', () => {
     expect(executions).toEqual(1);
   });
 
-  it('should share batching dataloader between subschemas when using a common endpoint', async () => {
+  it('should share batching dataloader between subschemas when using a common executor', async () => {
     const innerSchemaA = makeExecutableSchema({
       typeDefs: `
         type Object {
@@ -104,13 +104,10 @@ describe('batch execution', () => {
 
     let executions = 0;
 
-    const endpoint: Endpoint = {
-      batch: true,
-      executor: ((params: ExecutionParams): ExecutionResult => {
-        executions++;
-        return execute(innerSchemaA, params.document, undefined, params.context, params.variables) as ExecutionResult;
-      }) as SyncExecutor
-    };
+    const executor = ((params: ExecutionParams): ExecutionResult => {
+      executions++;
+      return execute(innerSchemaA, params.document, undefined, params.context, params.variables) as ExecutionResult;
+    }) as Executor;
 
     const innerSubschemaConfigA: Array<SubschemaConfig> = [{
       schema: innerSchemaA,
@@ -121,7 +118,8 @@ describe('batch execution', () => {
           args: () => ({}),
         },
       },
-      endpoint,
+      batch: true,
+      executor,
     }, {
       schema: innerSchemaA,
       transforms: [new FilterObjectFields((typeName, fieldName) => typeName !== 'Object' || fieldName !== 'field1')],
@@ -131,7 +129,8 @@ describe('batch execution', () => {
           args: () => ({}),
         },
       },
-      endpoint,
+      batch: true,
+      executor,
     }];
 
     const innerSubschemaConfigB: SubschemaConfig = {

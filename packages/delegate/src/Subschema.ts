@@ -7,8 +7,7 @@ import {
   CreateProxyingResolverFn,
   Subscriber,
   Executor,
-  Endpoint,
-  EndpointBatchingOptions,
+  BatchingOptions,
 } from './types';
 
 import { applySchemaTransforms } from './applySchemaTransforms';
@@ -28,8 +27,7 @@ export class Subschema<K = any, V = any, C = K> implements ISubschema {
   public executor?: Executor;
   public subscriber?: Subscriber;
   public batch?: boolean;
-  public batchingOptions?: EndpointBatchingOptions<K, V, C>;
-  public endpoint?: Endpoint;
+  public batchingOptions?: BatchingOptions<K, V, C>;
 
   public createProxyingResolver?: CreateProxyingResolverFn;
   public transforms: Array<Transform>;
@@ -45,7 +43,6 @@ export class Subschema<K = any, V = any, C = K> implements ISubschema {
     this.subscriber = config.subscriber;
     this.batch = config.batch;
     this.batchingOptions = config.batchingOptions;
-    this.endpoint = config.endpoint;
 
     this.createProxyingResolver = config.createProxyingResolver;
     this.transforms = config.transforms ?? [];

@@ -46,16 +46,9 @@ export function isolateComputedFields(subschemaConfig: SubschemaConfig): Array<S
   });
 
   if (Object.keys(isolatedSchemaTypes).length) {
-    const endpoint = subschemaConfig.endpoint ?? {
-      rootValue: subschemaConfig.rootValue,
-      executor: subschemaConfig.executor,
-      subscriber: subschemaConfig.subscriber,
-      batch: subschemaConfig.batch,
-      batchingOptions: subschemaConfig.batchingOptions,
-    };
     return [
-      filterBaseSubschema({ ...subschemaConfig, endpoint, merge: baseSchemaTypes }, isolatedSchemaTypes),
-      filterIsolatedSubschema({ ...subschemaConfig, endpoint, merge: isolatedSchemaTypes }),
+      filterBaseSubschema({ ...subschemaConfig, merge: baseSchemaTypes }, isolatedSchemaTypes),
+      filterIsolatedSubschema({ ...subschemaConfig, merge: isolatedSchemaTypes }),
     ];
   }
 

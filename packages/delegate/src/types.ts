@@ -150,28 +150,21 @@ export interface ICreateProxyingResolverOptions {
 
 export type CreateProxyingResolverFn = (options: ICreateProxyingResolverOptions) => GraphQLFieldResolver<any, any>;
 
-export interface Endpoint<K = any, V = any, C = K> {
-  rootValue?: Record<string, any>;
-  executor?: Executor;
-  subscriber?: Subscriber;
-  batch?: boolean;
-  batchingOptions?: EndpointBatchingOptions<K, V, C>;
-}
-
-export interface EndpointBatchingOptions<K = any, V = any, C = K> {
+export interface BatchingOptions<K = any, V = any, C = K> {
   extensionsReducer?: (mergedExtensions: Record<string, any>, executionParams: ExecutionParams) => Record<string, any>;
   dataLoaderOptions?: DataLoader.Options<K, V, C>;
 }
 
-export interface SubschemaPermutation {
+export interface SubschemaConfig<K = any, V = any, C = K> {
+  schema: GraphQLSchema;
   createProxyingResolver?: CreateProxyingResolverFn;
   transforms?: Array<Transform>;
   merge?: Record<string, MergedTypeConfig>;
-}
-
-export interface SubschemaConfig<K = any, V = any, C = K> extends SubschemaPermutation, Endpoint<K, V, C> {
-  schema: GraphQLSchema;
-  endpoint?: Endpoint;
+  rootValue?: Record<string, any>;
+  executor?: Executor;
+  subscriber?: Subscriber;
+  batch?: boolean;
+  batchingOptions?: BatchingOptions<K, V, C>;
 }
 
 export interface MergedTypeConfig<K = any, V = any> {

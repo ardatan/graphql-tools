@@ -117,7 +117,7 @@ export function delegateRequest({
     targetFieldName = fieldName;
   }
 
-  const { targetSchema, targetRootValue, subschemaConfig, endpoint, allTransforms } = collectTargetParameters(
+  const { targetSchema, targetRootValue, subschemaConfig, allTransforms } = collectTargetParameters(
     subschemaOrSubschemaConfig,
     rootValue,
     info,
@@ -149,14 +149,15 @@ export function delegateRequest({
 
   if (targetOperation === 'query' || targetOperation === 'mutation') {
     let executor: Executor =
-      endpoint?.executor || createDefaultExecutor(targetSchema, subschemaConfig?.rootValue || targetRootValue);
+      subschemaConfig?.executor || createDefaultExecutor(targetSchema, subschemaConfig?.rootValue || targetRootValue);
 
-    if (endpoint?.batch) {
+    if (subschemaConfig?.batch) {
+      const batchingOptions = subschemaConfig?.batchingOptions;
       executor = getBatchingExecutor(
         context,
         executor,
-        endpoint?.batchingOptions?.dataLoaderOptions,
-        endpoint?.batchingOptions?.extensionsReducer
+        batchingOptions?.dataLoaderOptions,
+        batchingOptions?.extensionsReducer
       );
     }
 
@@ -175,7 +176,7 @@ export function delegateRequest({
   }
 
   const subscriber =
-    endpoint?.subscriber || createDefaultSubscriber(targetSchema, subschemaConfig?.rootValue || targetRootValue);
+    subschemaConfig?.subscriber || createDefaultSubscriber(targetSchema, subschemaConfig?.rootValue || targetRootValue);
 
   return subscriber({
     ...processedRequest,
@@ -218,7 +219,6 @@ function collectTargetParameters(
       targetSchema: subschemaOrSubschemaConfig.schema,
       targetRootValue: rootValue ?? subschemaOrSubschemaConfig?.rootValue ?? info?.rootValue ?? emptyObject,
       subschemaConfig: subschemaOrSubschemaConfig,
-      endpoint: subschemaOrSubschemaConfig.endpoint ?? subschemaOrSubschemaConfig,
       allTransforms:
         subschemaOrSubschemaConfig.transforms != null
           ? subschemaOrSubschemaConfig.transforms.concat(transforms)
