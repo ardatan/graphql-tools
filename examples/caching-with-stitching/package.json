@@ -1,0 +1,31 @@
+{
+  "name": "node-ts",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "license": "ISC",
+  "scripts": {
+    "build": "rimraf dist && tsc",
+    "start:author": "node dist/author.js",
+    "start:chirp": "node dist/chirp.js",
+    "start:gateway": "node dist/gateway.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "rimraf": "^3.0.2",
+    "tslint": "^6.1.3",
+    "typescript": "4.0.3"
+  },
+  "dependencies": {
+    "@graphql-tools/links": "^6.2.4",
+    "@graphql-tools/merge": "^6.2.4",
+    "@graphql-tools/mock": "^6.2.4",
+    "@graphql-tools/schema": "^6.2.4",
+    "@graphql-tools/stitch": "^6.2.4",
+    "@graphql-tools/wrap": "^6.2.4",
+    "apollo-link-http": "^1.5.17",
+    "apollo-server": "^2.18.2",
+    "apollo-server-cache-redis": "^1.2.2",
+    "apollo-server-plugin-response-cache": "^0.5.5",
+    "cross-fetch": "^3.0.6"
+  }
+}
