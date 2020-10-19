@@ -29,6 +29,6 @@
       "@graphql-tools/*": ["packages/*/src/index.ts"]
     }
   },
-  "include": ["packages"],
+  "include": ["packages", "examples"],
   "exclude": ["**/node_modules", "**/dist"]
 }
