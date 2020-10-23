@@ -18,9 +18,12 @@ describe('RemoveObjectFieldsWithDirective', () => {
   });
 
   test('removes directive fields by name', async () => {
-    const transformedSchema = wrapSchema(originalSchema, [
-      new RemoveObjectFieldsWithDirective('alpha')
-    ]);
+    const transformedSchema = wrapSchema({
+      schema: originalSchema,
+      transforms: [
+        new RemoveObjectFieldsWithDirective('alpha')
+      ],
+    });
 
     const fields = transformedSchema.getType('Test').getFields();
     expect(fields.first).toBeUndefined();
@@ -30,9 +33,12 @@ describe('RemoveObjectFieldsWithDirective', () => {
   });
 
   test('removes directive fields by name regex', async () => {
-    const transformedSchema = wrapSchema(originalSchema, [
-      new RemoveObjectFieldsWithDirective(/^alp/)
-    ]);
+    const transformedSchema = wrapSchema({
+      schema: originalSchema,
+      transforms: [
+        new RemoveObjectFieldsWithDirective(/^alp/)
+      ],
+    });
 
     const fields = transformedSchema.getType('Test').getFields();
     expect(fields.first).toBeUndefined();
@@ -42,9 +48,12 @@ describe('RemoveObjectFieldsWithDirective', () => {
   });
 
   test('removes directive fields by argument', async () => {
-    const transformedSchema = wrapSchema(originalSchema, [
-      new RemoveObjectFieldsWithDirective(/.+/, { arg: 'remove this' })
-    ]);
+    const transformedSchema = wrapSchema({
+      schema: originalSchema,
+      transforms: [
+        new RemoveObjectFieldsWithDirective(/.+/, { arg: 'remove this' })
+      ],
+    });
 
     const fields = transformedSchema.getType('Test').getFields();
     expect(fields.first).toBeDefined();
@@ -54,9 +63,12 @@ describe('RemoveObjectFieldsWithDirective', () => {
   });
 
   test('removes directive fields by argument regex', async () => {
-    const transformedSchema = wrapSchema(originalSchema, [
-      new RemoveObjectFieldsWithDirective(/.+/, { arg: /remove/ })
-    ]);
+    const transformedSchema = wrapSchema({
+      schema: originalSchema,
+      transforms: [
+        new RemoveObjectFieldsWithDirective(/.+/, { arg: /remove/ })
+      ],
+    });
 
     const fields = transformedSchema.getType('Test').getFields();
     expect(fields.first).toBeUndefined();

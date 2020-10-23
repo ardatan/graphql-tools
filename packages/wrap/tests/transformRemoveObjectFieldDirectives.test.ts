@@ -17,9 +17,12 @@ describe('RemoveObjectFieldDirectives', () => {
   });
 
   test('removes directives by name', async () => {
-    const transformedSchema = wrapSchema(originalSchema, [
-      new RemoveObjectFieldDirectives('alpha')
-    ]);
+    const transformedSchema = wrapSchema({
+      schema: originalSchema,
+      transforms: [
+        new RemoveObjectFieldDirectives('alpha')
+      ],
+    });
 
     const fields = transformedSchema.getType('Test').getFields();
     expect(fields.id.astNode.directives.length).toEqual(1);
@@ -29,9 +32,12 @@ describe('RemoveObjectFieldDirectives', () => {
   });
 
   test('removes directives by name regex', async () => {
-    const transformedSchema = wrapSchema(originalSchema, [
-      new RemoveObjectFieldDirectives(/^alp/)
-    ]);
+    const transformedSchema = wrapSchema({
+      schema: originalSchema,
+      transforms: [
+        new RemoveObjectFieldDirectives(/^alp/)
+      ],
+    });
 
     const fields = transformedSchema.getType('Test').getFields();
     expect(fields.id.astNode.directives.length).toEqual(1);
@@ -41,9 +47,12 @@ describe('RemoveObjectFieldDirectives', () => {
   });
 
   test('removes directives by argument', async () => {
-    const transformedSchema = wrapSchema(originalSchema, [
-      new RemoveObjectFieldDirectives(/.+/, { arg: 'remove this' })
-    ]);
+    const transformedSchema = wrapSchema({
+      schema: originalSchema,
+      transforms: [
+        new RemoveObjectFieldDirectives(/.+/, { arg: 'remove this' })
+      ],
+    });
 
     const fields = transformedSchema.getType('Test').getFields();
     expect(fields.id.astNode.directives.length).toEqual(0);
@@ -53,9 +62,12 @@ describe('RemoveObjectFieldDirectives', () => {
   });
 
   test('removes directives by argument regex', async () => {
-    const transformedSchema = wrapSchema(originalSchema, [
-      new RemoveObjectFieldDirectives(/.+/, { arg: /remove/ })
-    ]);
+    const transformedSchema = wrapSchema({
+      schema: originalSchema,
+      transforms: [
+        new RemoveObjectFieldDirectives(/.+/, { arg: /remove/ })
+      ],
+    });
 
     const fields = transformedSchema.getType('Test').getFields();
     expect(fields.id.astNode.directives.length).toEqual(0);

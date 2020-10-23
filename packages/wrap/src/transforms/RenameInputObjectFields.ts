@@ -1,6 +1,8 @@
 import { GraphQLSchema, GraphQLInputFieldConfig, ObjectFieldNode } from 'graphql';
 
-import { Transform, Request, mapSchema, MapperKind } from '@graphql-tools/utils';
+import { Request, mapSchema, MapperKind } from '@graphql-tools/utils';
+
+import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
 import TransformInputObjectFields from './TransformInputObjectFields';
 
@@ -40,8 +42,12 @@ export default class RenameInputObjectFields implements Transform {
     this.reverseMap = Object.create(null);
   }
 
-  public transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
-    mapSchema(originalSchema, {
+  public transformSchema(
+    originalWrappingSchema: GraphQLSchema,
+    subschemaConfig: SubschemaConfig,
+    transformedSchema?: GraphQLSchema
+  ): GraphQLSchema {
+    mapSchema(originalWrappingSchema, {
       [MapperKind.INPUT_OBJECT_FIELD]: (
         inputFieldConfig: GraphQLInputFieldConfig,
         fieldName: string,
@@ -62,10 +68,14 @@ export default class RenameInputObjectFields implements Transform {
       },
     });
 
-    return this.transformer.transformSchema(originalSchema);
+    return this.transformer.transformSchema(originalWrappingSchema, subschemaConfig, transformedSchema);
   }
 
-  public transformRequest(originalRequest: Request, delegationContext?: Record<string, any>): Request {
-    return this.transformer.transformRequest(originalRequest, delegationContext);
+  public transformRequest(
+    originalRequest: Request,
+    delegationContext: DelegationContext,
+    transformationContext: Record<string, any>
+  ): Request {
+    return this.transformer.transformRequest(originalRequest, delegationContext, transformationContext);
   }
 }

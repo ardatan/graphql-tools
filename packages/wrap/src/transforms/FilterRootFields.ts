@@ -1,6 +1,8 @@
 import { GraphQLSchema, GraphQLFieldConfig } from 'graphql';
 
-import { Transform, RootFieldFilter } from '@graphql-tools/utils';
+import { RootFieldFilter } from '@graphql-tools/utils';
+
+import { SubschemaConfig, Transform } from '@graphql-tools/delegate';
 
 import TransformRootFields from './TransformRootFields';
 
@@ -23,7 +25,11 @@ export default class FilterRootFields implements Transform {
     );
   }
 
-  public transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
-    return this.transformer.transformSchema(originalSchema);
+  public transformSchema(
+    originalWrappingSchema: GraphQLSchema,
+    subschemaConfig: SubschemaConfig,
+    transformedSchema?: GraphQLSchema
+  ): GraphQLSchema {
+    return this.transformer.transformSchema(originalWrappingSchema, subschemaConfig, transformedSchema);
   }
 }

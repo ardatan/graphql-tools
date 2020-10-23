@@ -328,7 +328,7 @@ function fieldConfigMapFromTypeCandidates(
         fieldName,
         type: candidate.type as GraphQLObjectType | GraphQLInterfaceType,
         subschema: candidate.subschema,
-        transformedSchema: candidate.transformedSchema,
+        transformedSubschema: candidate.transformedSubschema,
       };
 
       if (fieldName in fieldConfigCandidatesMap) {
@@ -371,7 +371,7 @@ function inputFieldConfigMapFromTypeCandidates(
         fieldName,
         type: candidate.type as GraphQLInputObjectType,
         subschema: candidate.subschema,
-        transformedSchema: candidate.transformedSchema,
+        transformedSubschema: candidate.transformedSubschema,
       };
 
       if (fieldName in inputFieldConfigCandidatesMap) {

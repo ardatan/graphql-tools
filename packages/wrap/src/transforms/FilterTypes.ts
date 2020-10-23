@@ -1,6 +1,8 @@
 import { GraphQLSchema, GraphQLNamedType } from 'graphql';
 
-import { mapSchema, Transform, MapperKind } from '@graphql-tools/utils';
+import { mapSchema, MapperKind } from '@graphql-tools/utils';
+
+import { SubschemaConfig, Transform } from '@graphql-tools/delegate';
 
 export default class FilterTypes implements Transform {
   private readonly filter: (type: GraphQLNamedType) => boolean;
@@ -9,8 +11,12 @@ export default class FilterTypes implements Transform {
     this.filter = filter;
   }
 
-  public transformSchema(schema: GraphQLSchema): GraphQLSchema {
-    return mapSchema(schema, {
+  public transformSchema(
+    originalWrappingSchema: GraphQLSchema,
+    _subschemaConfig: SubschemaConfig,
+    _transformedSchema?: GraphQLSchema
+  ): GraphQLSchema {
+    return mapSchema(originalWrappingSchema, {
       [MapperKind.TYPE]: (type: GraphQLNamedType) => {
         if (this.filter(type)) {
           return undefined;

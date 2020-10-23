@@ -12,9 +12,11 @@ import {
   ObjectFieldNode,
 } from 'graphql';
 
-import { Transform, Request, MapperKind, mapSchema } from '@graphql-tools/utils';
+import { Request, MapperKind, mapSchema } from '@graphql-tools/utils';
+
+import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
+
 import { InputFieldTransformer, InputFieldNodeTransformer, InputObjectNodeTransformer } from '../types';
-import { DelegationContext } from '@graphql-tools/delegate';
 
 export default class TransformInputObjectFields implements Transform {
   private readonly inputFieldTransformer: InputFieldTransformer;
@@ -34,8 +36,12 @@ export default class TransformInputObjectFields implements Transform {
     this.mapping = {};
   }
 
-  public transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
-    this.transformedSchema = mapSchema(originalSchema, {
+  public transformSchema(
+    originalWrappingSchema: GraphQLSchema,
+    _subschemaConfig: SubschemaConfig,
+    _transformedSchema?: GraphQLSchema
+  ): GraphQLSchema {
+    this.transformedSchema = mapSchema(originalWrappingSchema, {
       [MapperKind.INPUT_OBJECT_FIELD]: (inputFieldConfig, fieldName, typeName) => {
         const transformedInputField = this.inputFieldTransformer(typeName, fieldName, inputFieldConfig);
         if (Array.isArray(transformedInputField)) {
@@ -55,7 +61,11 @@ export default class TransformInputObjectFields implements Transform {
     return this.transformedSchema;
   }
 
-  public transformRequest(originalRequest: Request, delegationContext?: Record<string, any>): Request {
+  public transformRequest(
+    originalRequest: Request,
+    delegationContext: DelegationContext,
+    _transformationContextד: Record<string, any>
+  ): Request {
     const fragments = Object.create(null);
     originalRequest.document.definitions
       .filter(def => def.kind === Kind.FRAGMENT_DEFINITION)
@@ -68,8 +78,7 @@ export default class TransformInputObjectFields implements Transform {
       this.inputFieldNodeTransformer,
       this.inputObjectNodeTransformer,
       originalRequest,
-      // cast to DelegationContext as workaround to avoid breaking change in types until next major version
-      delegationContext as DelegationContext
+      delegationContext
     );
     return {
       ...originalRequest,

@@ -1,6 +1,8 @@
 import { GraphQLSchema } from 'graphql';
 
-import { Transform, valueMatchesCriteria } from '@graphql-tools/utils';
+import { valueMatchesCriteria } from '@graphql-tools/utils';
+
+import { SubschemaConfig, Transform } from '@graphql-tools/delegate';
 
 import FilterObjectFieldDirectives from './FilterObjectFieldDirectives';
 
@@ -13,7 +15,11 @@ export default class RemoveObjectFieldDirectives implements Transform {
     });
   }
 
-  public transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
-    return this.transformer.transformSchema(originalSchema);
+  public transformSchema(
+    originalWrappingSchema: GraphQLSchema,
+    subschemaConfig: SubschemaConfig,
+    transformedSchema?: GraphQLSchema
+  ): GraphQLSchema {
+    return this.transformer.transformSchema(originalWrappingSchema, subschemaConfig, transformedSchema);
   }
 }

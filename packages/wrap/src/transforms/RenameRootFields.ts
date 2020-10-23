@@ -1,6 +1,8 @@
 import { GraphQLSchema, GraphQLFieldConfig } from 'graphql';
 
-import { Transform, Request } from '@graphql-tools/utils';
+import { Request } from '@graphql-tools/utils';
+
+import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
 import TransformRootFields from './TransformRootFields';
 
@@ -23,11 +25,19 @@ export default class RenameRootFields implements Transform {
     );
   }
 
-  public transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
-    return this.transformer.transformSchema(originalSchema);
+  public transformSchema(
+    originalWrappingSchema: GraphQLSchema,
+    subschemaConfig: SubschemaConfig,
+    transformedSchema?: GraphQLSchema
+  ): GraphQLSchema {
+    return this.transformer.transformSchema(originalWrappingSchema, subschemaConfig, transformedSchema);
   }
 
-  public transformRequest(originalRequest: Request): Request {
-    return this.transformer.transformRequest(originalRequest);
+  public transformRequest(
+    originalRequest: Request,
+    delegationContext: DelegationContext,
+    transformationContext: Record<string, any>
+  ): Request {
+    return this.transformer.transformRequest(originalRequest, delegationContext, transformationContext);
   }
 }

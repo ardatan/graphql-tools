@@ -1,14 +1,8 @@
 import { visit, GraphQLSchema, NamedTypeNode, Kind } from 'graphql';
 
-import {
-  Request,
-  ExecutionResult,
-  MapperKind,
-  Transform,
-  mapSchema,
-  renameType,
-  visitData,
-} from '@graphql-tools/utils';
+import { Request, ExecutionResult, MapperKind, mapSchema, renameType, visitData } from '@graphql-tools/utils';
+
+import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
 export default class RenameRootTypes implements Transform {
   private readonly renamer: (name: string) => string | undefined;
@@ -21,8 +15,12 @@ export default class RenameRootTypes implements Transform {
     this.reverseMap = Object.create(null);
   }
 
-  public transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
-    return mapSchema(originalSchema, {
+  public transformSchema(
+    originalWrappingSchema: GraphQLSchema,
+    _subschemaConfig: SubschemaConfig,
+    _transformedSchema?: GraphQLSchema
+  ): GraphQLSchema {
+    return mapSchema(originalWrappingSchema, {
       [MapperKind.ROOT_OBJECT]: type => {
         const oldName = type.name;
         const newName = this.renamer(oldName);
@@ -36,7 +34,11 @@ export default class RenameRootTypes implements Transform {
     });
   }
 
-  public transformRequest(originalRequest: Request): Request {
+  public transformRequest(
+    originalRequest: Request,
+    _delegationContext: DelegationContext,
+    _transformationContext: Record<string, any>
+  ): Request {
     const document = visit(originalRequest.document, {
       [Kind.NAMED_TYPE]: (node: NamedTypeNode) => {
         const name = node.name.value;
@@ -57,10 +59,14 @@ export default class RenameRootTypes implements Transform {
     };
   }
 
-  public transformResult(result: ExecutionResult): ExecutionResult {
+  public transformResult(
+    originalResult: ExecutionResult,
+    _delegationContext: DelegationContext,
+    _transformationContext?: Record<string, any>
+  ): ExecutionResult {
     return {
-      ...result,
-      data: visitData(result.data, object => {
+      ...originalResult,
+      data: visitData(originalResult.data, object => {
         const typeName = object?.__typename;
         if (typeName != null && typeName in this.map) {
           object.__typename = this.map[typeName];

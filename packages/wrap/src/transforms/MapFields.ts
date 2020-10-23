@@ -1,10 +1,12 @@
 import { GraphQLSchema } from 'graphql';
 
-import { Transform, Request, FieldNodeMappers, ExecutionResult } from '@graphql-tools/utils';
+import { Request, FieldNodeMappers, ExecutionResult } from '@graphql-tools/utils';
 
-import TransformCompositeFields from './TransformCompositeFields';
+import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
 import { ObjectValueTransformerMap, ErrorsTransformer } from '../types';
+
+import TransformCompositeFields from './TransformCompositeFields';
 
 export default class MapFields implements Transform {
   private readonly transformer: TransformCompositeFields;
@@ -52,22 +54,26 @@ export default class MapFields implements Transform {
     );
   }
 
-  public transformSchema(schema: GraphQLSchema): GraphQLSchema {
-    return this.transformer.transformSchema(schema);
+  public transformSchema(
+    originalWrappingSchema: GraphQLSchema,
+    subschemaConfig: SubschemaConfig,
+    transformedSchema?: GraphQLSchema
+  ): GraphQLSchema {
+    return this.transformer.transformSchema(originalWrappingSchema, subschemaConfig, transformedSchema);
   }
 
   public transformRequest(
     originalRequest: Request,
-    delegationContext?: Record<string, any>,
-    transformationContext?: Record<string, any>
+    delegationContext: DelegationContext,
+    transformationContext: Record<string, any>
   ): Request {
     return this.transformer.transformRequest(originalRequest, delegationContext, transformationContext);
   }
 
   public transformResult(
     originalResult: ExecutionResult,
-    delegationContext?: Record<string, any>,
-    transformationContext?: Record<string, any>
+    delegationContext: DelegationContext,
+    transformationContext: Record<string, any>
   ): ExecutionResult {
     return this.transformer.transformResult(originalResult, delegationContext, transformationContext);
   }

@@ -1517,7 +1517,7 @@ describe('generating schema from shorthand', () => {
         typeDefs: short,
         resolvers: rf,
         resolverValidationOptions: {
-          requireResolversForArgs: true,
+          requireResolversForArgs: 'warn',
         },
       });
     }, 'Resolver missing for "Query.bird"');
@@ -1573,7 +1573,7 @@ describe('generating schema from shorthand', () => {
     const rf = {};
 
     const resolverValidationOptions: IResolverValidationOptions = {
-      requireResolversForNonScalar: true,
+      requireResolversForNonScalar: 'warn',
     };
 
     expectWarning(() => {
@@ -1582,7 +1582,11 @@ describe('generating schema from shorthand', () => {
         resolvers: rf,
         resolverValidationOptions,
       });
-    }, 'Resolver missing for "Query.bird"');
+    }, `Resolver missing for "Query.bird".
+To disable this validator, use:
+  resolverValidationOptions: {
+    requireResolversForNonScalar: 'ignore'
+  }`);
   });
 
   test('allows non-scalar field to use default resolver if `resolverValidationOptions.requireResolversForNonScalar` = false', () => {
@@ -1644,7 +1648,7 @@ describe('generating schema from shorthand', () => {
         typeDefs: short,
         resolvers: rf,
         resolverValidationOptions: {
-          allowResolversNotInSchema: true,
+          requireResolversToMatchSchema: 'ignore',
         },
       }),
     ).not.toThrowError();
@@ -1679,7 +1683,7 @@ describe('generating schema from shorthand', () => {
         typeDefs: short,
         resolvers: rf,
         resolverValidationOptions: {
-          allowResolversNotInSchema: true,
+          requireResolversToMatchSchema: 'ignore',
         },
       }),
     ).not.toThrowError();
@@ -1740,7 +1744,7 @@ describe('generating schema from shorthand', () => {
         typeDefs: short,
         resolvers: rf,
         resolverValidationOptions: {
-          allowResolversNotInSchema: true,
+          requireResolversToMatchSchema: 'ignore',
         },
       }),
     ).not.toThrowError();
@@ -1787,7 +1791,7 @@ describe('generating schema from shorthand', () => {
         typeDefs: short,
         resolvers: rf,
         resolverValidationOptions: {
-          allowResolversNotInSchema: true,
+          requireResolversToMatchSchema: 'ignore',
         },
       }),
     ).not.toThrowError();
@@ -1819,21 +1823,21 @@ describe('generating schema from shorthand', () => {
     }
 
     assertOptionsError({
-      requireResolversForAllFields: true,
-      requireResolversForNonScalar: true,
-      requireResolversForArgs: true,
+      requireResolversForAllFields: 'error',
+      requireResolversForNonScalar: 'error',
+      requireResolversForArgs: 'error',
     });
     assertOptionsError({
-      requireResolversForAllFields: true,
-      requireResolversForNonScalar: true,
+      requireResolversForAllFields: 'error',
+      requireResolversForNonScalar: 'error',
     });
     assertOptionsError({
-      requireResolversForAllFields: true,
-      requireResolversForArgs: true,
+      requireResolversForAllFields: 'error',
+      requireResolversForArgs: 'error',
     });
   });
 
-  test('throws for any missing field if `resolverValidationOptions.requireResolversForAllFields` = true', () => {
+  test('warns for any missing field if `resolverValidationOptions.requireResolversForAllFields` = warn', () => {
     const typeDefs = `
       type Bird {
         id: ID
@@ -1851,7 +1855,7 @@ describe('generating schema from shorthand', () => {
           typeDefs,
           resolvers,
           resolverValidationOptions: {
-            requireResolversForAllFields: true,
+            requireResolversForAllFields: 'warn',
           },
         });
       }, errorMatcher);
@@ -1869,7 +1873,7 @@ describe('generating schema from shorthand', () => {
     });
   });
 
-  test('does not throw if all fields are satisfied when `resolverValidationOptions.requireResolversForAllFields` = true', () => {
+  test('does not throw if all fields are satisfied when `resolverValidationOptions.requireResolversForAllFields` = error', () => {
     const typeDefs = `
       type Bird {
         id: ID
@@ -1894,7 +1898,7 @@ describe('generating schema from shorthand', () => {
       makeExecutableSchema({
         typeDefs,
         resolvers,
-        resolverValidationOptions: { requireResolversForAllFields: true },
+        resolverValidationOptions: { requireResolversForAllFields: 'error' },
       }),
     ).not.toThrow();
   });
@@ -2543,11 +2547,11 @@ describe('interfaces', () => {
       makeExecutableSchema({
         typeDefs: testSchemaWithInterfaces,
         resolvers,
-        resolverValidationOptions: { requireResolversForResolveType: true },
+        resolverValidationOptions: { requireResolversForResolveType: 'error' },
       });
     } catch (error) {
       expect(error.message).toEqual(
-        'Type "Node" is missing a "__resolveType" resolver. Pass false into "resolverValidationOptions.requireResolversForResolveType" to disable this error.',
+        `Type "Node" is missing a "__resolveType" resolver. Pass 'ignore' into "resolverValidationOptions.requireResolversForResolveType" to disable this error.`,
       );
       return;
     }
@@ -2563,7 +2567,7 @@ describe('interfaces', () => {
     const schema = makeExecutableSchema({
       typeDefs: testSchemaWithInterfaces,
       resolvers,
-      resolverValidationOptions: { requireResolversForResolveType: true },
+      resolverValidationOptions: { requireResolversForResolveType: 'error' },
     });
     const response = await graphql(schema, query);
     expect(response.errors).not.toBeDefined();
@@ -2575,7 +2579,7 @@ describe('interfaces', () => {
     makeExecutableSchema({
       typeDefs: testSchemaWithInterfaces,
       resolvers,
-      resolverValidationOptions: { requireResolversForResolveType: false },
+      resolverValidationOptions: { requireResolversForResolveType: 'ignore' },
     });
   });
 });
@@ -2615,8 +2619,8 @@ describe('interface resolver inheritance', () => {
       resolvers,
       inheritResolversFromInterfaces: true,
       resolverValidationOptions: {
-        requireResolversForAllFields: true,
-        requireResolversForResolveType: true,
+        requireResolversForAllFields: 'error',
+        requireResolversForResolveType: 'error',
       },
     });
     const query = '{ user { id name } }';
@@ -2679,8 +2683,8 @@ describe('interface resolver inheritance', () => {
       resolvers,
       inheritResolversFromInterfaces: true,
       resolverValidationOptions: {
-        requireResolversForAllFields: true,
-        requireResolversForResolveType: true,
+        requireResolversForAllFields: 'error',
+        requireResolversForResolveType: 'error',
       },
     });
     const query = '{ cyborg { id name } replicant { id name }}';
@@ -2742,11 +2746,11 @@ describe('unions', () => {
       makeExecutableSchema({
         typeDefs: testSchemaWithUnions,
         resolvers,
-        resolverValidationOptions: { requireResolversForResolveType: true },
+        resolverValidationOptions: { requireResolversForResolveType: 'error' },
       });
     } catch (error) {
       expect(error.message).toEqual(
-        'Type "Displayable" is missing a "__resolveType" resolver. Pass false into "resolverValidationOptions.requireResolversForResolveType" to disable this error.',
+        `Type "Displayable" is missing a "__resolveType" resolver. Pass 'ignore' into "resolverValidationOptions.requireResolversForResolveType" to disable this error.`,
       );
       return;
     }
@@ -2762,7 +2766,7 @@ describe('unions', () => {
     const schema = makeExecutableSchema({
       typeDefs: testSchemaWithUnions,
       resolvers,
-      resolverValidationOptions: { requireResolversForResolveType: true },
+      resolverValidationOptions: { requireResolversForResolveType: 'error' },
     });
     const response = await graphql(schema, query);
     expect(response.errors).not.toBeDefined();
@@ -2774,7 +2778,7 @@ describe('unions', () => {
     makeExecutableSchema({
       typeDefs: testSchemaWithUnions,
       resolvers,
-      resolverValidationOptions: { requireResolversForResolveType: false },
+      resolverValidationOptions: { requireResolversForResolveType: 'ignore' },
     });
   });
 });

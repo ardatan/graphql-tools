@@ -1,9 +1,10 @@
 import { defaultFieldResolver, GraphQLResolveInfo } from 'graphql';
 
-import { getResponseKeyFromInfo, getErrors } from '@graphql-tools/utils';
+import { getResponseKeyFromInfo } from '@graphql-tools/utils';
 
-import { handleResult } from './results/handleResult';
-import { getSubschema } from './Subschema';
+import { resolveExternalValue } from './resolveExternalValue';
+import { getSubschema, getUnpathedErrors, isExternalObject } from './externalObjects';
+import { ExternalObject } from './types';
 
 /**
  * Resolver that knows how to:
@@ -12,7 +13,7 @@ import { getSubschema } from './Subschema';
  * c) handle external to internal enum coversion
  */
 export function defaultMergedResolver(
-  parent: Record<string, any>,
+  parent: ExternalObject,
   args: Record<string, any>,
   context: Record<string, any>,
   info: GraphQLResolveInfo
@@ -22,16 +23,16 @@ export function defaultMergedResolver(
   }
 
   const responseKey = getResponseKeyFromInfo(info);
-  const errors = getErrors(parent, responseKey);
 
   // check to see if parent is not a proxied result, i.e. if parent resolver was manually overwritten
   // See https://github.com/apollographql/graphql-tools/issues/967
-  if (!errors) {
+  if (!isExternalObject(parent)) {
     return defaultFieldResolver(parent, args, context, info);
   }
 
-  const result = parent[responseKey];
+  const data = parent[responseKey];
+  const unpathedErrors = getUnpathedErrors(parent);
   const subschema = getSubschema(parent, responseKey);
 
-  return handleResult(result, errors, subschema, context, info);
+  return resolveExternalValue(data, unpathedErrors, subschema, context, info);
 }

@@ -1,6 +1,8 @@
 import { GraphQLSchema, GraphQLEnumValueConfig, ExecutionResult } from 'graphql';
 
-import { Transform, Request, MapperKind, mapSchema } from '@graphql-tools/utils';
+import { Request, MapperKind, mapSchema } from '@graphql-tools/utils';
+
+import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
 import { EnumValueTransformer, LeafValueTransformer } from '../types';
 
@@ -27,9 +29,13 @@ export default class TransformEnumValues implements Transform<MapLeafValuesTrans
     );
   }
 
-  public transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
-    const transformedSchema = this.transformer.transformSchema(originalSchema);
-    this.transformedSchema = mapSchema(transformedSchema, {
+  public transformSchema(
+    originalWrappingSchema: GraphQLSchema,
+    subschemaConfig: SubschemaConfig,
+    transformedSchema?: GraphQLSchema
+  ): GraphQLSchema {
+    const mappingSchema = this.transformer.transformSchema(originalWrappingSchema, subschemaConfig, transformedSchema);
+    this.transformedSchema = mapSchema(mappingSchema, {
       [MapperKind.ENUM_VALUE]: (valueConfig, typeName, _schema, externalValue) =>
         this.transformEnumValue(typeName, externalValue, valueConfig),
     });
@@ -38,16 +44,16 @@ export default class TransformEnumValues implements Transform<MapLeafValuesTrans
 
   public transformRequest(
     originalRequest: Request,
-    delegationContext?: Record<string, any>,
-    transformationContext?: MapLeafValuesTransformationContext
+    delegationContext: DelegationContext,
+    transformationContext: MapLeafValuesTransformationContext
   ): Request {
     return this.transformer.transformRequest(originalRequest, delegationContext, transformationContext);
   }
 
   public transformResult(
     originalResult: ExecutionResult,
-    delegationContext?: Record<string, any>,
-    transformationContext?: MapLeafValuesTransformationContext
+    delegationContext: DelegationContext,
+    transformationContext: MapLeafValuesTransformationContext
   ) {
     return this.transformer.transformResult(originalResult, delegationContext, transformationContext);
   }

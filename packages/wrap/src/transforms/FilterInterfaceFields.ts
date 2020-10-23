@@ -1,6 +1,8 @@
 import { GraphQLSchema, GraphQLFieldConfig } from 'graphql';
 
-import { Transform, FieldFilter } from '@graphql-tools/utils';
+import { FieldFilter } from '@graphql-tools/utils';
+
+import { SubschemaConfig, Transform } from '@graphql-tools/delegate';
 
 import TransformInterfaceFields from './TransformInterfaceFields';
 
@@ -14,7 +16,11 @@ export default class FilterInterfaceFields implements Transform {
     );
   }
 
-  public transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
-    return this.transformer.transformSchema(originalSchema);
+  public transformSchema(
+    originalWrappingSchema: GraphQLSchema,
+    subschemaConfig: SubschemaConfig,
+    transformedSchema?: GraphQLSchema
+  ): GraphQLSchema {
+    return this.transformer.transformSchema(originalWrappingSchema, subschemaConfig, transformedSchema);
   }
 }

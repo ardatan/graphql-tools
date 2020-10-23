@@ -124,7 +124,7 @@ export function addMocksToSchema({ schema, mocks = {}, preserveResolvers = false
 
         // if we're here, the field is already defined
         if (typeof root[fieldName] === 'function') {
-          result = root[fieldName](root, args, context, info);
+          result = root[fieldName](args, context, info);
           if (isMockList(result)) {
             result = result.mock(root, args, context, info, fieldType as GraphQLList<any>, mockType);
           }

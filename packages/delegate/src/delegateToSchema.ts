@@ -3,7 +3,6 @@ import {
   execute,
   validate,
   GraphQLSchema,
-  isSchema,
   FieldDefinitionNode,
   getOperationAST,
   OperationTypeNode,
@@ -11,11 +10,16 @@ import {
   DocumentNode,
   GraphQLOutputType,
   GraphQLObjectType,
+  GraphQLResolveInfo,
 } from 'graphql';
 
 import isPromise from 'is-promise';
 
-import { mapAsyncIterator, Transform, ExecutionResult } from '@graphql-tools/utils';
+import AggregateError from '@ardatan/aggregate-error';
+
+import { getBatchingExecutor } from '@graphql-tools/batch-execute';
+
+import { mapAsyncIterator, ExecutionResult } from '@graphql-tools/utils';
 
 import {
   IDelegateToSchemaOptions,
@@ -23,23 +27,17 @@ import {
   SubschemaConfig,
   ExecutionParams,
   StitchingInfo,
-  Endpoint,
+  Transform,
+  Executor,
 } from './types';
 
-import { isSubschemaConfig } from './Subschema';
+import { isSubschemaConfig } from './subschemaConfig';
+import { Subschema } from './Subschema';
 import { createRequestFromInfo, getDelegatingOperation } from './createRequest';
 import { Transformer } from './Transformer';
+import { memoize2 } from './memoize';
 
-import AggregateError from '@ardatan/aggregate-error';
-import { getBatchingExecutor } from './getBatchingExecutor';
-
-export function delegateToSchema(options: IDelegateToSchemaOptions | GraphQLSchema): any {
-  if (isSchema(options)) {
-    throw new Error(
-      'Passing positional arguments to delegateToSchema is deprecated. ' + 'Please pass named parameters instead.'
-    );
-  }
-
+export function delegateToSchema(options: IDelegateToSchemaOptions): any {
   const {
     info,
     operationName,
@@ -119,34 +117,12 @@ export function delegateRequest({
     targetFieldName = fieldName;
   }
 
-  let targetSchema: GraphQLSchema;
-  let targetRootValue: Record<string, any>;
-  let subschemaConfig: SubschemaConfig;
-  let endpoint: Endpoint;
-
-  let allTransforms: Array<Transform>;
-
-  if (isSubschemaConfig(subschemaOrSubschemaConfig)) {
-    const stitchingInfo: StitchingInfo = info?.schema.extensions?.stitchingInfo;
-    if (stitchingInfo) {
-      const processedSubschema = stitchingInfo.transformedSubschemaConfigs.get(subschemaOrSubschemaConfig);
-      subschemaConfig = processedSubschema != null ? processedSubschema : subschemaOrSubschemaConfig;
-    } else {
-      subschemaConfig = subschemaOrSubschemaConfig;
-    }
-    targetSchema = subschemaConfig.schema;
-    allTransforms = subschemaConfig.transforms != null ? subschemaConfig.transforms.concat(transforms) : transforms;
-    if (subschemaConfig.endpoint != null) {
-      endpoint = subschemaConfig.endpoint;
-    } else {
-      endpoint = subschemaConfig;
-    }
-    targetRootValue = rootValue ?? endpoint?.rootValue ?? info?.rootValue;
-  } else {
-    targetSchema = subschemaOrSubschemaConfig;
-    targetRootValue = rootValue ?? info?.rootValue;
-    allTransforms = transforms;
-  }
+  const { targetSchema, targetRootValue, subschemaConfig, allTransforms } = collectTargetParameters(
+    subschemaOrSubschemaConfig,
+    rootValue,
+    info,
+    transforms
+  );
 
   const delegationContext = {
     subschema: subschemaOrSubschemaConfig,
@@ -159,7 +135,7 @@ export function delegateRequest({
     returnType:
       returnType ?? info?.returnType ?? getDelegationReturnType(targetSchema, targetOperation, targetFieldName),
     transforms: allTransforms,
-    transformedSchema: transformedSchema ?? targetSchema,
+    transformedSchema: transformedSchema ?? (subschemaConfig as Subschema)?.transformedSchema ?? targetSchema,
     skipTypeMerging,
   };
 
@@ -172,11 +148,17 @@ export function delegateRequest({
   }
 
   if (targetOperation === 'query' || targetOperation === 'mutation') {
-    let executor =
-      endpoint?.executor || createDefaultExecutor(targetSchema, subschemaConfig?.rootValue || targetRootValue);
+    let executor: Executor =
+      subschemaConfig?.executor || createDefaultExecutor(targetSchema, subschemaConfig?.rootValue || targetRootValue);
 
-    if (endpoint?.batch) {
-      executor = getBatchingExecutor(context, endpoint, executor);
+    if (subschemaConfig?.batch) {
+      const batchingOptions = subschemaConfig?.batchingOptions;
+      executor = getBatchingExecutor(
+        context,
+        executor,
+        batchingOptions?.dataLoaderOptions,
+        batchingOptions?.extensionsReducer
+      );
     }
 
     const executionResult = executor({
@@ -186,13 +168,15 @@ export function delegateRequest({
     });
 
     if (isPromise(executionResult)) {
-      return executionResult.then(originalResult => transformer.transformResult(originalResult));
+      return executionResult.then(originalResult => {
+        return transformer.transformResult(originalResult);
+      });
     }
     return transformer.transformResult(executionResult);
   }
 
   const subscriber =
-    endpoint?.subscriber || createDefaultSubscriber(targetSchema, subschemaConfig?.rootValue || targetRootValue);
+    subschemaConfig?.subscriber || createDefaultSubscriber(targetSchema, subschemaConfig?.rootValue || targetRootValue);
 
   return subscriber({
     ...processedRequest,
@@ -213,6 +197,42 @@ export function delegateRequest({
   });
 }
 
+const emptyObject = {};
+
+function collectTargetParameters(
+  subschema: GraphQLSchema | SubschemaConfig,
+  rootValue: Record<string, any>,
+  info: GraphQLResolveInfo,
+  transforms: Array<Transform> = []
+): {
+  targetSchema: GraphQLSchema;
+  targetRootValue: Record<string, any>;
+  subschemaConfig?: SubschemaConfig;
+  allTransforms: Array<Transform>;
+} {
+  const stitchingInfo: StitchingInfo = info?.schema.extensions?.stitchingInfo;
+
+  const subschemaOrSubschemaConfig = stitchingInfo?.subschemaMap.get(subschema) ?? subschema;
+
+  if (isSubschemaConfig(subschemaOrSubschemaConfig)) {
+    return {
+      targetSchema: subschemaOrSubschemaConfig.schema,
+      targetRootValue: rootValue ?? subschemaOrSubschemaConfig?.rootValue ?? info?.rootValue ?? emptyObject,
+      subschemaConfig: subschemaOrSubschemaConfig,
+      allTransforms:
+        subschemaOrSubschemaConfig.transforms != null
+          ? subschemaOrSubschemaConfig.transforms.concat(transforms)
+          : transforms,
+    };
+  }
+
+  return {
+    targetSchema: subschemaOrSubschemaConfig,
+    targetRootValue: rootValue ?? info?.rootValue ?? emptyObject,
+    allTransforms: transforms,
+  };
+}
+
 function validateRequest(targetSchema: GraphQLSchema, document: DocumentNode) {
   const errors = validate(targetSchema, document);
   if (errors.length > 0) {
@@ -225,16 +245,16 @@ function validateRequest(targetSchema: GraphQLSchema, document: DocumentNode) {
   }
 }
 
-function createDefaultExecutor(schema: GraphQLSchema, rootValue: Record<string, any>) {
-  return ({ document, context, variables, info }: ExecutionParams) =>
+const createDefaultExecutor = memoize2(function (schema: GraphQLSchema, rootValue: Record<string, any>): Executor {
+  return (({ document, context, variables, info }: ExecutionParams) =>
     execute({
       schema,
       document,
       contextValue: context,
       variableValues: variables,
       rootValue: rootValue ?? info?.rootValue,
-    });
-}
+    })) as Executor;
+});
 
 function createDefaultSubscriber(schema: GraphQLSchema, rootValue: Record<string, any>) {
   return ({ document, context, variables, info }: ExecutionParams) =>

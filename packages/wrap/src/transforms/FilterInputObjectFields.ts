@@ -1,9 +1,12 @@
 import { GraphQLSchema, GraphQLInputFieldConfig } from 'graphql';
 
-import { Transform, Request, InputFieldFilter } from '@graphql-tools/utils';
+import { Request, InputFieldFilter } from '@graphql-tools/utils';
+
+import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
+
+import { InputObjectNodeTransformer } from '../types';
 
 import TransformInputObjectFields from './TransformInputObjectFields';
-import { InputObjectNodeTransformer } from '../types';
 
 export default class FilterInputObjectFields implements Transform {
   private readonly transformer: TransformInputObjectFields;
@@ -17,11 +20,19 @@ export default class FilterInputObjectFields implements Transform {
     );
   }
 
-  public transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
-    return this.transformer.transformSchema(originalSchema);
+  public transformSchema(
+    originalWrappingSchema: GraphQLSchema,
+    subschemaConfig: SubschemaConfig,
+    transformedSchema?: GraphQLSchema
+  ): GraphQLSchema {
+    return this.transformer.transformSchema(originalWrappingSchema, subschemaConfig, transformedSchema);
   }
 
-  public transformRequest(originalRequest: Request, delegationContext?: Record<string, any>): Request {
-    return this.transformer.transformRequest(originalRequest, delegationContext);
+  public transformRequest(
+    originalRequest: Request,
+    delegationContext: DelegationContext,
+    transformationContext: Record<string, any>
+  ): Request {
+    return this.transformer.transformRequest(originalRequest, delegationContext, transformationContext);
   }
 }

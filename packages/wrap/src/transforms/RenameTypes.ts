@@ -9,7 +9,6 @@ import {
 } from 'graphql';
 
 import {
-  Transform,
   Request,
   ExecutionResult,
   MapperKind,
@@ -18,6 +17,8 @@ import {
   visitData,
   renameType,
 } from '@graphql-tools/utils';
+
+import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
 export default class RenameTypes implements Transform {
   private readonly renamer: (name: string) => string | undefined;
@@ -35,8 +36,12 @@ export default class RenameTypes implements Transform {
     this.renameScalars = renameScalars;
   }
 
-  public transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
-    return mapSchema(originalSchema, {
+  public transformSchema(
+    originalWrappingSchema: GraphQLSchema,
+    _subschemaConfig: SubschemaConfig,
+    _transformedSchema?: GraphQLSchema
+  ): GraphQLSchema {
+    return mapSchema(originalWrappingSchema, {
       [MapperKind.TYPE]: (type: GraphQLNamedType) => {
         if (isSpecifiedScalarType(type) && !this.renameBuiltins) {
           return undefined;
@@ -60,7 +65,11 @@ export default class RenameTypes implements Transform {
     });
   }
 
-  public transformRequest(originalRequest: Request): Request {
+  public transformRequest(
+    originalRequest: Request,
+    _delegationContext: DelegationContext,
+    _transformationContext: Record<string, any>
+  ): Request {
     const document = visit(originalRequest.document, {
       [Kind.NAMED_TYPE]: (node: NamedTypeNode) => {
         const name = node.name.value;
@@ -82,10 +91,14 @@ export default class RenameTypes implements Transform {
     };
   }
 
-  public transformResult(result: ExecutionResult): ExecutionResult {
+  public transformResult(
+    originalResult: ExecutionResult,
+    _delegationContext: DelegationContext,
+    _transformationContext?: Record<string, any>
+  ): ExecutionResult {
     return {
-      ...result,
-      data: visitData(result.data, object => {
+      ...originalResult,
+      data: visitData(originalResult.data, object => {
         const typeName = object?.__typename;
         if (typeName != null && typeName in this.map) {
           object.__typename = this.map[typeName];

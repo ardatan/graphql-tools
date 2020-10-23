@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@graphql-tools/batch-delegate": "^6.2.4",
+    "@graphql-tools/batch-execute": "^6.2.4",
     "@graphql-tools/delegate": "^6.2.4",
     "@graphql-tools/graphql-tag-pluck": "^6.2.4",
     "@graphql-tools/import": "^6.2.4",

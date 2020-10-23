@@ -114,7 +114,7 @@ describe('graphql upload', () => {
     };
 
     const gatewaySchema = stitchSchemas({
-      schemas: [subschema],
+      subschemas: [subschema],
       resolvers: {
         Upload: ServerGraphQLUpload,
       },

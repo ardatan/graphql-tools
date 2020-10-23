@@ -1,19 +1,19 @@
 import {
   DocumentNode,
   GraphQLNamedType,
-  GraphQLSchema,
   getNamedType,
   isNamedType,
   GraphQLDirective,
-  ASTNode,
-  isSchema,
   SchemaDefinitionNode,
   SchemaExtensionNode,
   isSpecifiedScalarType,
+  GraphQLSchema,
 } from 'graphql';
 
 import { wrapSchema } from '@graphql-tools/wrap';
-import { isSubschemaConfig, SubschemaConfig } from '@graphql-tools/delegate';
+import { Subschema, SubschemaConfig } from '@graphql-tools/delegate';
+import { GraphQLParseOptions, ITypeDefinitions, rewireTypes, TypeMap } from '@graphql-tools/utils';
+import { buildDocumentFromTypeDefinitions } from '@graphql-tools/schema';
 
 import {
   extractTypeDefinitions,
@@ -25,26 +25,27 @@ import {
 
 import typeFromAST from './typeFromAST';
 import { MergeTypeCandidate, MergeTypeFilter, OnTypeConflict, StitchingInfo, TypeMergingOptions } from './types';
-import { TypeMap } from '@graphql-tools/utils';
 import { mergeCandidates } from './mergeCandidates';
 
 type CandidateSelector = (candidates: Array<MergeTypeCandidate>) => MergeTypeCandidate;
 
-function isDocumentNode(schemaLikeObject: any): schemaLikeObject is DocumentNode {
-  return (schemaLikeObject as ASTNode).kind !== undefined;
-}
-
 export function buildTypeCandidates({
-  schemaLikeObjects,
-  transformedSchemas,
+  subschemas,
+  originalSubschemaMap,
+  types,
+  typeDefs,
+  parseOptions,
   extensions,
   directiveMap,
   schemaDefs,
   operationTypeNames,
   mergeDirectives,
 }: {
-  schemaLikeObjects: Array<GraphQLSchema | SubschemaConfig | DocumentNode | GraphQLNamedType>;
-  transformedSchemas: Map<GraphQLSchema | SubschemaConfig, GraphQLSchema>;
+  subschemas: Array<Subschema>;
+  originalSubschemaMap: Map<Subschema, GraphQLSchema | SubschemaConfig>;
+  types: Array<GraphQLNamedType>;
+  typeDefs: ITypeDefinitions;
+  parseOptions: GraphQLParseOptions;
   extensions: Array<DocumentNode>;
   directiveMap: Record<string, GraphQLDirective>;
   schemaDefs: {
@@ -59,92 +60,84 @@ export function buildTypeCandidates({
   let schemaDef: SchemaDefinitionNode;
   let schemaExtensions: Array<SchemaExtensionNode> = [];
 
-  schemaLikeObjects.forEach(schemaLikeObject => {
-    if (isDocumentNode(schemaLikeObject)) {
-      schemaDef = extractSchemaDefinition(schemaLikeObject);
-      schemaExtensions = schemaExtensions.concat(extractSchemaExtensions(schemaLikeObject));
-    }
-  });
+  let document: DocumentNode;
+  if ((typeDefs && !Array.isArray(typeDefs)) || (Array.isArray(typeDefs) && typeDefs.length)) {
+    document = buildDocumentFromTypeDefinitions(typeDefs, parseOptions);
+    schemaDef = extractSchemaDefinition(document);
+    schemaExtensions = schemaExtensions.concat(extractSchemaExtensions(document));
+  }
 
   schemaDefs.schemaDef = schemaDef;
   schemaDefs.schemaExtensions = schemaExtensions;
 
   setOperationTypeNames(schemaDefs, operationTypeNames);
 
-  schemaLikeObjects.forEach(schemaLikeObject => {
-    if (isSchema(schemaLikeObject) || isSubschemaConfig(schemaLikeObject)) {
-      const schema = wrapSchema(schemaLikeObject);
+  subschemas.forEach(subschema => {
+    const schema = wrapSchema(subschema);
 
-      transformedSchemas.set(schemaLikeObject, schema);
+    const operationTypes = {
+      query: schema.getQueryType(),
+      mutation: schema.getMutationType(),
+      subscription: schema.getSubscriptionType(),
+    };
 
-      const operationTypes = {
-        query: schema.getQueryType(),
-        mutation: schema.getMutationType(),
-        subscription: schema.getSubscriptionType(),
-      };
-
-      Object.keys(operationTypes).forEach(operationType => {
-        if (operationTypes[operationType] != null) {
-          addTypeCandidate(typeCandidates, operationTypeNames[operationType], {
-            type: operationTypes[operationType],
-            subschema: schemaLikeObject,
-            transformedSchema: schema,
-          });
-        }
-      });
-
-      if (mergeDirectives) {
-        schema.getDirectives().forEach(directive => {
-          directiveMap[directive.name] = directive;
+    Object.keys(operationTypes).forEach(operationType => {
+      if (operationTypes[operationType] != null) {
+        addTypeCandidate(typeCandidates, operationTypeNames[operationType], {
+          type: operationTypes[operationType],
+          subschema: originalSubschemaMap.get(subschema),
+          transformedSubschema: subschema,
         });
       }
+    });
 
-      const originalTypeMap = schema.getTypeMap();
-      Object.keys(originalTypeMap).forEach(typeName => {
-        const type: GraphQLNamedType = originalTypeMap[typeName];
-        if (
-          isNamedType(type) &&
-          getNamedType(type).name.slice(0, 2) !== '__' &&
-          type !== operationTypes.query &&
-          type !== operationTypes.mutation &&
-          type !== operationTypes.subscription
-        ) {
-          addTypeCandidate(typeCandidates, type.name, {
-            type,
-            subschema: schemaLikeObject,
-            transformedSchema: schema,
-          });
-        }
-      });
-    } else if (isDocumentNode(schemaLikeObject)) {
-      const typesDocument = extractTypeDefinitions(schemaLikeObject);
-      typesDocument.definitions.forEach(def => {
-        const type = typeFromAST(def) as GraphQLNamedType;
-        if (type != null) {
-          addTypeCandidate(typeCandidates, type.name, {
-            type,
-          });
-        }
-      });
-
-      const directivesDocument = extractDirectiveDefinitions(schemaLikeObject);
-      directivesDocument.definitions.forEach(def => {
-        const directive = typeFromAST(def) as GraphQLDirective;
+    if (mergeDirectives) {
+      schema.getDirectives().forEach(directive => {
         directiveMap[directive.name] = directive;
       });
-
-      const extensionsDocument = extractTypeExtensionDefinitions(schemaLikeObject);
-      if (extensionsDocument.definitions.length > 0) {
-        extensions.push(extensionsDocument);
-      }
-    } else if (isNamedType(schemaLikeObject)) {
-      addTypeCandidate(typeCandidates, schemaLikeObject.name, {
-        type: schemaLikeObject,
-      });
-    } else {
-      throw new Error(`Invalid object ${schemaLikeObject as string}`);
     }
+
+    const originalTypeMap = schema.getTypeMap();
+    Object.keys(originalTypeMap).forEach(typeName => {
+      const type: GraphQLNamedType = originalTypeMap[typeName];
+      if (
+        isNamedType(type) &&
+        getNamedType(type).name.slice(0, 2) !== '__' &&
+        type !== operationTypes.query &&
+        type !== operationTypes.mutation &&
+        type !== operationTypes.subscription
+      ) {
+        addTypeCandidate(typeCandidates, type.name, {
+          type,
+          subschema: originalSubschemaMap.get(subschema),
+          transformedSubschema: subschema,
+        });
+      }
+    });
   });
+
+  if (document !== undefined) {
+    const typesDocument = extractTypeDefinitions(document);
+    typesDocument.definitions.forEach(def => {
+      const type = typeFromAST(def) as GraphQLNamedType;
+      if (type != null) {
+        addTypeCandidate(typeCandidates, type.name, { type });
+      }
+    });
+
+    const directivesDocument = extractDirectiveDefinitions(document);
+    directivesDocument.definitions.forEach(def => {
+      const directive = typeFromAST(def) as GraphQLDirective;
+      directiveMap[directive.name] = directive;
+    });
+
+    const extensionsDocument = extractTypeExtensionDefinitions(document);
+    if (extensionsDocument.definitions.length > 0) {
+      extensions.push(extensionsDocument);
+    }
+  }
+
+  types.forEach(type => addTypeCandidate(typeCandidates, type.name, { type }));
 
   return typeCandidates;
 }
@@ -184,8 +177,9 @@ function addTypeCandidate(
   typeCandidates[name].push(typeCandidate);
 }
 
-export function buildTypeMap({
+export function buildTypes({
   typeCandidates,
+  directives,
   stitchingInfo,
   operationTypeNames,
   onTypeConflict,
@@ -193,12 +187,13 @@ export function buildTypeMap({
   typeMergingOptions,
 }: {
   typeCandidates: Record<string, Array<MergeTypeCandidate>>;
+  directives: Array<GraphQLDirective>;
   stitchingInfo: StitchingInfo;
   operationTypeNames: Record<string, any>;
   onTypeConflict: OnTypeConflict;
   mergeTypes: boolean | Array<string> | MergeTypeFilter;
   typeMergingOptions: TypeMergingOptions;
-}): TypeMap {
+}): { typeMap: TypeMap; directives: Array<GraphQLDirective> } {
   const typeMap: TypeMap = Object.create(null);
 
   Object.keys(typeCandidates).forEach(typeName => {
@@ -221,7 +216,7 @@ export function buildTypeMap({
     }
   });
 
-  return typeMap;
+  return rewireTypes(typeMap, directives);
 }
 
 function onTypeConflictToCandidateSelector(onTypeConflict: OnTypeConflict): CandidateSelector {
@@ -229,10 +224,12 @@ function onTypeConflictToCandidateSelector(onTypeConflict: OnTypeConflict): Cand
     cands.reduce((prev, next) => {
       const type = onTypeConflict(prev.type, next.type, {
         left: {
-          schema: prev.transformedSchema,
+          subschema: prev.subschema,
+          transformedSubschema: prev.transformedSubschema,
         },
         right: {
-          schema: next.transformedSchema,
+          subschema: prev.subschema,
+          transformedSubschema: prev.transformedSubschema,
         },
       });
       if (prev.type === type) {

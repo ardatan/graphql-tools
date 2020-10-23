@@ -14,6 +14,8 @@ import {
   isInputObjectType,
 } from 'graphql';
 
+import { PruneSchemaOptions } from './types';
+
 import { mapSchema } from './mapSchema';
 import { MapperKind } from './Interfaces';
 
@@ -29,29 +31,6 @@ interface PruningContext {
   schema: GraphQLSchema;
   unusedTypes: Record<string, boolean>;
   implementations: Record<string, Record<string, boolean>>;
-}
-
-/**
- * Options for removing unused types from the schema
- */
-export interface PruneSchemaOptions {
-  /**
-   * Set to `true` to skip pruning object types or interfaces with no no fields
-   */
-  skipEmptyCompositeTypePruning?: boolean;
-  /**
-   * Set to `true` to skip pruning interfaces that are not implemented by any
-   * other types
-   */
-  skipUnimplementedInterfacesPruning?: boolean;
-  /**
-   * Set to `true` to skip pruning empty unions
-   */
-  skipEmptyUnionPruning?: boolean;
-  /**
-   * Set to `true` to skip pruning unused types
-   */
-  skipUnusedTypesPruning?: boolean;
 }
 
 /**

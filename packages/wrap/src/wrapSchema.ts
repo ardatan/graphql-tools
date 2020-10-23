@@ -6,35 +6,20 @@ import {
   GraphQLFieldResolver,
 } from 'graphql';
 
-import { Transform, MapperKind, mapSchema, applySchemaTransforms } from '@graphql-tools/utils';
+import { MapperKind, mapSchema } from '@graphql-tools/utils';
 
-import { SubschemaConfig, isSubschemaConfig, defaultMergedResolver } from '@graphql-tools/delegate';
+import { SubschemaConfig, defaultMergedResolver, applySchemaTransforms } from '@graphql-tools/delegate';
 import { generateProxyingResolvers } from './generateProxyingResolvers';
 
-export function wrapSchema(
-  subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig,
-  transforms?: Array<Transform>
-): GraphQLSchema {
-  let targetSchema: GraphQLSchema;
-  let schemaTransforms: Array<Transform> = [];
+export function wrapSchema(subschemaConfig: SubschemaConfig): GraphQLSchema {
+  const targetSchema = subschemaConfig.schema;
 
-  if (isSubschemaConfig(subschemaOrSubschemaConfig)) {
-    targetSchema = subschemaOrSubschemaConfig.schema;
-    if (subschemaOrSubschemaConfig.transforms != null) {
-      schemaTransforms = schemaTransforms.concat(subschemaOrSubschemaConfig.transforms);
-    }
-  } else {
-    targetSchema = subschemaOrSubschemaConfig;
-  }
-
-  if (transforms != null) {
-    schemaTransforms = schemaTransforms.concat(transforms);
-  }
-
-  const proxyingResolvers = generateProxyingResolvers(subschemaOrSubschemaConfig, transforms);
+  const proxyingResolvers = generateProxyingResolvers(subschemaConfig);
   const schema = createWrappingSchema(targetSchema, proxyingResolvers);
 
-  return applySchemaTransforms(schema, schemaTransforms);
+  const transformedSchema = applySchemaTransforms(schema, subschemaConfig);
+
+  return applySchemaTransforms(schema, subschemaConfig, transformedSchema);
 }
 
 function createWrappingSchema(

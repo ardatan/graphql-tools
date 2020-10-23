@@ -13,3 +13,26 @@ export interface SchemaPrintOptions {
 export type Maybe<T> = null | undefined | T;
 
 export type Constructor<T> = new (...args: any[]) => T;
+
+/**
+ * Options for removing unused types from the schema
+ */
+export interface PruneSchemaOptions {
+  /**
+   * Set to `true` to skip pruning object types or interfaces with no no fields
+   */
+  skipEmptyCompositeTypePruning?: boolean;
+  /**
+   * Set to `true` to skip pruning interfaces that are not implemented by any
+   * other types
+   */
+  skipUnimplementedInterfacesPruning?: boolean;
+  /**
+   * Set to `true` to skip pruning empty unions
+   */
+  skipEmptyUnionPruning?: boolean;
+  /**
+   * Set to `true` to skip pruning unused types
+   */
+  skipUnusedTypesPruning?: boolean;
+}

@@ -18,8 +18,9 @@ import {
   OperationTypeNode,
 } from 'graphql';
 
-import { createPrefix } from './prefix';
 import { ExecutionParams } from './types';
+
+import { createPrefix } from './prefix';
 
 /**
  * Merge multiple queries into a single query in such a way that query results

@@ -1,6 +1,8 @@
 import { GraphQLSchema, GraphQLFieldConfig } from 'graphql';
 
-import { Transform, valueMatchesCriteria } from '@graphql-tools/utils';
+import { valueMatchesCriteria } from '@graphql-tools/utils';
+
+import { SubschemaConfig, Transform } from '@graphql-tools/delegate';
 
 import FilterObjectFieldDirectives from './FilterObjectFieldDirectives';
 import TransformObjectFields from './TransformObjectFields';
@@ -25,7 +27,15 @@ export default class RemoveObjectFieldDeprecations implements Transform {
     );
   }
 
-  public transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
-    return this.removeDeprecations.transformSchema(this.removeDirectives.transformSchema(originalSchema));
+  public transformSchema(
+    originalWrappingSchema: GraphQLSchema,
+    subschemaConfig: SubschemaConfig,
+    transformedSchema?: GraphQLSchema
+  ): GraphQLSchema {
+    return this.removeDeprecations.transformSchema(
+      this.removeDirectives.transformSchema(originalWrappingSchema, subschemaConfig, transformedSchema),
+      subschemaConfig,
+      transformedSchema
+    );
   }
 }

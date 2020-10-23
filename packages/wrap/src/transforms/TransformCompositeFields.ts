@@ -11,7 +11,10 @@ import {
   FragmentDefinitionNode,
 } from 'graphql';
 
-import { Transform, Request, MapperKind, mapSchema, visitData, ExecutionResult } from '@graphql-tools/utils';
+import { Request, MapperKind, mapSchema, visitData, ExecutionResult } from '@graphql-tools/utils';
+
+import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
+
 import { FieldTransformer, FieldNodeTransformer, DataTransformer, ErrorsTransformer } from '../types';
 
 export default class TransformCompositeFields implements Transform {
@@ -36,8 +39,12 @@ export default class TransformCompositeFields implements Transform {
     this.mapping = {};
   }
 
-  public transformSchema(originalSchema: GraphQLSchema): GraphQLSchema {
-    this.transformedSchema = mapSchema(originalSchema, {
+  public transformSchema(
+    originalWrappingSchema: GraphQLSchema,
+    _subschemaConfig: SubschemaConfig,
+    _transformedSchema?: GraphQLSchema
+  ): GraphQLSchema {
+    this.transformedSchema = mapSchema(originalWrappingSchema, {
       [MapperKind.COMPOSITE_FIELD]: (fieldConfig, fieldName, typeName) => {
         const transformedField = this.fieldTransformer(typeName, fieldName, fieldConfig);
         if (Array.isArray(transformedField)) {
@@ -60,8 +67,8 @@ export default class TransformCompositeFields implements Transform {
 
   public transformRequest(
     originalRequest: Request,
-    _delegationContext?: Record<string, any>,
-    transformationContext?: Record<string, any>
+    _delegationContext: DelegationContext,
+    transformationContext: Record<string, any>
   ): Request {
     const document = originalRequest.document;
     const fragments = Object.create(null);
@@ -78,9 +85,9 @@ export default class TransformCompositeFields implements Transform {
 
   public transformResult(
     result: ExecutionResult,
-    _delegationContext?: Record<string, any>,
-    transformationContext?: Record<string, any>
-  ) {
+    _delegationContext: DelegationContext,
+    transformationContext: Record<string, any>
+  ): ExecutionResult {
     if (this.dataTransformer != null) {
       result.data = visitData(result.data, value => this.dataTransformer(value, transformationContext));
     }

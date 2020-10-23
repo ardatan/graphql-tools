@@ -72,7 +72,7 @@ export type FieldNodeTransformer = (
 
 export type LeafValueTransformer = (typeName: string, value: any) => any;
 
-export type DataTransformer = (value: any, transformationContext?: Record<string, any>) => any;
+export type DataTransformer = (value: any, transformationContext: Record<string, any>) => any;
 
 export type ObjectValueTransformerMap = Record<string, DataTransformer>;
 

@@ -6,19 +6,14 @@ import {
   Kind,
   GraphQLError,
   GraphQLArgument,
+  GraphQLFieldResolver,
 } from 'graphql';
 
-import {
-  renameFieldNode,
-  appendObjectFields,
-  removeObjectFields,
-  Transform,
-  Request,
-  ExecutionResult,
-  relocatedError,
-} from '@graphql-tools/utils';
+import { appendObjectFields, removeObjectFields, Request, ExecutionResult, relocatedError } from '@graphql-tools/utils';
 
-import { defaultMergedResolver } from '@graphql-tools/delegate';
+import { Transform, defaultMergedResolver, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
+
+import { defaultCreateProxyingResolver } from '../generateProxyingResolvers';
 
 import MapFields from './MapFields';
 
@@ -69,7 +64,11 @@ export default class HoistField implements Transform {
     this.argLevels = argLevels;
   }
 
-  public transformSchema(schema: GraphQLSchema): GraphQLSchema {
+  public transformSchema(
+    originalWrappingSchema: GraphQLSchema,
+    subschemaConfig: SubschemaConfig,
+    transformedSchema: GraphQLSchema
+  ): GraphQLSchema {
     const argsMap: Record<string, GraphQLArgument> = Object.create(null);
     const innerType: GraphQLObjectType = this.pathToField.reduce((acc, pathSegment, index) => {
       const field = acc.getFields()[pathSegment];
@@ -80,19 +79,40 @@ export default class HoistField implements Transform {
         }
       });
       return getNullableType(field.type) as GraphQLObjectType;
-    }, schema.getType(this.typeName) as GraphQLObjectType);
+    }, originalWrappingSchema.getType(this.typeName) as GraphQLObjectType);
 
     let [newSchema, targetFieldConfigMap] = removeObjectFields(
-      schema,
+      originalWrappingSchema,
       innerType.name,
       fieldName => fieldName === this.oldFieldName
     );
 
     const targetField = targetFieldConfigMap[this.oldFieldName];
 
+    let resolve: GraphQLFieldResolver<any, any>;
+    if (transformedSchema) {
+      const hoistingToRootField =
+        this.typeName === originalWrappingSchema.getQueryType()?.name ||
+        this.typeName === originalWrappingSchema.getMutationType()?.name;
+
+      if (hoistingToRootField) {
+        const targetSchema = subschemaConfig.schema;
+        const operation = this.typeName === targetSchema.getQueryType().name ? 'query' : 'mutation';
+        const createProxyingResolver = subschemaConfig.createProxyingResolver ?? defaultCreateProxyingResolver;
+        resolve = createProxyingResolver({
+          subschemaConfig,
+          transformedSchema,
+          operation,
+          fieldName: this.newFieldName,
+        });
+      } else {
+        resolve = defaultMergedResolver;
+      }
+    }
+
     const newTargetField = {
       ...targetField,
-      resolve: defaultMergedResolver,
+      resolve,
     };
 
     const level = this.pathToField.length;
@@ -119,21 +139,21 @@ export default class HoistField implements Transform {
       [this.newFieldName]: newTargetField,
     });
 
-    return this.transformer.transformSchema(newSchema);
+    return this.transformer.transformSchema(newSchema, subschemaConfig, transformedSchema);
   }
 
   public transformRequest(
     originalRequest: Request,
-    delegationContext?: Record<string, any>,
-    transformationContext?: Record<string, any>
+    delegationContext: DelegationContext,
+    transformationContext: Record<string, any>
   ): Request {
     return this.transformer.transformRequest(originalRequest, delegationContext, transformationContext);
   }
 
   public transformResult(
     originalResult: ExecutionResult,
-    delegationContext?: Record<string, any>,
-    transformationContext?: Record<string, any>
+    delegationContext: DelegationContext,
+    transformationContext: Record<string, any>
   ): ExecutionResult {
     return this.transformer.transformResult(originalResult, delegationContext, transformationContext);
   }
@@ -167,6 +187,20 @@ export function wrapFieldNode(
       arguments: fieldNode.arguments.filter(arg => argLevels[arg.name.value] === path.length),
     }
   );
+}
+
+export function renameFieldNode(fieldNode: FieldNode, name: string): FieldNode {
+  return {
+    ...fieldNode,
+    alias: {
+      kind: Kind.NAME,
+      value: fieldNode.alias != null ? fieldNode.alias.value : fieldNode.name.value,
+    },
+    name: {
+      kind: Kind.NAME,
+      value: name,
+    },
+  };
 }
 
 export function unwrapValue(originalValue: any, alias: string): any {

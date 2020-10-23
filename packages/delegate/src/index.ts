@@ -1,10 +1,11 @@
-export { delegateToSchema, delegateRequest } from './delegateToSchema';
-export { createRequestFromInfo, createRequest } from './createRequest';
-export { defaultMergedResolver } from './defaultMergedResolver';
-export { createMergedResolver } from './createMergedResolver';
-export { handleResult } from './results/handleResult';
-export { Subschema, isSubschema, isSubschemaConfig, cloneSubschemaConfig, getSubschema } from './Subschema';
-
+export * from './Subschema';
+export * from './applySchemaTransforms';
+export * from './createRequest';
+export * from './defaultMergedResolver';
+export * from './delegateToSchema';
 export * from './delegationBindings';
+export * from './externalObjects';
+export * from './resolveExternalValue';
+export * from './subschemaConfig';
 export * from './transforms';
 export * from './types';

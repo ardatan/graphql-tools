@@ -21,9 +21,8 @@ import {
   IResolvers,
   ExecutionResult,
 } from '@graphql-tools/utils';
-import { addMocksToSchema } from '@graphql-tools/mock';
 
-import { forAwaitEach } from './forAwaitEach';
+import { addMocksToSchema } from '@graphql-tools/mock';
 
 import {
   propertySchema as localPropertySchema,
@@ -340,16 +339,18 @@ testCombinations.forEach((combination) => {
       productSchema = await combination.product;
 
       stitchedSchema = stitchSchemas({
-        schemas: [
+        subschemas: [
           propertySchema,
           bookingSchema,
           productSchema,
-          interfaceExtensionTest,
           scalarSchema,
           enumSchema,
-          linkSchema,
-          loneExtend,
           localSubscriptionSchema,
+        ],
+        typeDefs: [
+          linkSchema,
+          interfaceExtensionTest,
+          loneExtend,
           codeCoverageTypeDefs,
           schemaDirectiveTypeDefs,
         ],
@@ -846,7 +847,7 @@ bookingById(id: "b1") {
         expect(stitchedResult).toEqual(bookingResult);
       });
 
-      test('local subscriptions working in merged schema', (done) => {
+      test('local subscriptions working in merged schema', async () => {
         const mockNotification = {
           notifications: {
             text: 'Hello world',
@@ -861,30 +862,19 @@ bookingById(id: "b1") {
           }
         `);
 
-        let notificationCnt = 0;
-        subscribe(stitchedSchema, subscription)
-          .then((results) => {
-            forAwaitEach(
-              results as AsyncIterable<ExecutionResult>,
-              (result: ExecutionResult) => {
-                expect(result).toHaveProperty('data');
-                expect(result.data).toEqual(mockNotification);
-                if (!notificationCnt++) {
-                  done();
-                }
-              },
-            ).catch(done);
-          })
-          .then(() =>
-            subscriptionPubSub.publish(
-              subscriptionPubSubTrigger,
-              mockNotification,
-            ),
-          )
-          .catch(done);
+        const sub = await subscribe(stitchedSchema, subscription) as AsyncIterableIterator<ExecutionResult>;
+
+        const payload = sub.next();
+
+        await subscriptionPubSub.publish(
+          subscriptionPubSubTrigger,
+          mockNotification,
+        );
+
+        expect(await payload).toEqual({ done: false, value: { data: mockNotification } });
       });
 
-      test('subscription errors are working correctly in merged schema', (done) => {
+      test('subscription errors are working correctly in merged schema', async () => {
         const mockNotification = {
           notifications: {
             text: 'Hello world',
@@ -921,30 +911,16 @@ bookingById(id: "b1") {
           }
         `);
 
-        let notificationCnt = 0;
-        subscribe(stitchedSchema, subscription)
-          .then((results) => {
-            forAwaitEach(
-              results as AsyncIterable<ExecutionResult>,
-              (result: ExecutionResult) => {
-                expect(result).toHaveProperty('data');
-                expect(result).toHaveProperty('errors');
-                expect(result.errors).toHaveLength(1);
-                expect(result.errors).toEqual(expectedResult.errors);
-                expect(result.data).toEqual(expectedResult.data);
-                if (!notificationCnt++) {
-                  done();
-                }
-              },
-            ).catch(done);
-          })
-          .then(() =>
-            subscriptionPubSub.publish(
-              subscriptionPubSubTrigger,
-              mockNotification,
-            ),
-          )
-          .catch(done);
+        const sub = await subscribe(stitchedSchema, subscription) as AsyncIterableIterator<ExecutionResult>;
+
+        const payload = sub.next();
+
+        await subscriptionPubSub.publish(
+          subscriptionPubSubTrigger,
+          mockNotification,
+        );
+
+        expect(await payload).toEqual({ done: false, value: expectedResult });
       });
 
       test('links in queries', async () => {
@@ -1571,15 +1547,17 @@ bookingById(id: "b1") {
           },
         };
         const schema = stitchSchemas({
-          schemas: [
+          subschemas: [
             propertySchema,
             bookingSchema,
             productSchema,
-            scalarTest,
             enumSchema,
+            localSubscriptionSchema,
+          ],
+          typeDefs: [
+            scalarTest,
             linkSchema,
             loneExtend,
-            localSubscriptionSchema,
           ],
           resolvers: [
             Scalars,
@@ -2932,7 +2910,7 @@ fragment BookingFragment on Booking {
         };
 
         schema = stitchSchemas({
-          schemas: [schema],
+          subschemas: [schema],
           resolvers,
         });
 
@@ -2966,7 +2944,8 @@ fragment BookingFragment on Booking {
         };
 
         const schema = stitchSchemas({
-          schemas: [propertySchema, typeDefs],
+          subschemas: [propertySchema],
+          typeDefs,
           resolvers,
         });
 
@@ -3016,7 +2995,7 @@ fragment BookingFragment on Booking {
       };
 
       const result = await graphql(
-        stitchSchemas({ schemas: [BookSchema, AuthorSchema], resolvers }),
+        stitchSchemas({ typeDefs: [BookSchema, AuthorSchema], resolvers }),
         `
           query {
             book {
@@ -3063,7 +3042,7 @@ fragment BookingFragment on Booking {
       };
 
       schema = stitchSchemas({
-        schemas: [schema],
+        subschemas: [schema],
         resolvers,
         typeDefs: [],
       });
@@ -3103,7 +3082,7 @@ fragment BookingFragment on Booking {
       movieSchema = addMocksToSchema({ schema: movieSchema });
 
       const stitchedSchema = stitchSchemas({
-        schemas: [bookSchema, movieSchema],
+        subschemas: [bookSchema, movieSchema],
         typeDefs: `
           schema {
             query: RootQuery

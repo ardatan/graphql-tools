@@ -21,19 +21,19 @@ import {
   isInterfaceType,
 } from 'graphql';
 
-import { Transform, Request, implementsAbstractType, TypeMap } from '@graphql-tools/utils';
+import { Request, implementsAbstractType, TypeMap } from '@graphql-tools/utils';
+
+import { Transform, DelegationContext } from '../types';
 
 export default class FilterToSchema implements Transform {
-  private readonly targetSchema: GraphQLSchema;
-
-  constructor(targetSchema: GraphQLSchema) {
-    this.targetSchema = targetSchema;
-  }
-
-  public transformRequest(originalRequest: Request): Request {
+  public transformRequest(
+    originalRequest: Request,
+    delegationContext: DelegationContext,
+    _transformationContext: Record<string, any>
+  ): Request {
     return {
       ...originalRequest,
-      ...filterToSchema(this.targetSchema, originalRequest.document, originalRequest.variables),
+      ...filterToSchema(delegationContext.targetSchema, originalRequest.document, originalRequest.variables),
     };
   }
 }

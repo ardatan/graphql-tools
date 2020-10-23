@@ -13,10 +13,6 @@ import {
 } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import {
-  concatInlineFragments,
-  parseFragmentToInlineFragment,
-} from '@graphql-tools/utils';
 import { addMocksToSchema } from '@graphql-tools/mock';
 
 import {
@@ -36,9 +32,8 @@ import {
 import {
   delegateToSchema,
   defaultMergedResolver,
-  ReplaceFieldWithFragment,
   FilterToSchema,
-  AddFragmentsByField,
+  DelegationContext,
 } from '@graphql-tools/delegate';
 
 import { propertySchema, bookingSchema } from './fixtures/schemas';
@@ -83,7 +78,7 @@ describe('transforms', () => {
     });
 
     test('should work', async () => {
-      const schema = wrapSchema(scalarSchema, []);
+      const schema = wrapSchema({ schema: scalarSchema });
       const result = await graphql(
         schema,
         `
@@ -110,10 +105,10 @@ describe('transforms', () => {
     });
 
     test('should work when specified as a subschema configuration object', async () => {
-      const schema = wrapSchema(
-        { schema: scalarSchema, transforms: [] },
-        [],
-      );
+      const schema = wrapSchema({
+        schema: scalarSchema,
+        transforms: [],
+      });
       const result = await graphql(
         schema,
         `
@@ -157,7 +152,7 @@ describe('transforms', () => {
           },
         },
       });
-      const schema = wrapSchema(subschema, []);
+      const schema = wrapSchema({ schema: subschema });
 
       const query = 'query { errorTest }';
       const originalResult = await graphql(subschema, query);
@@ -183,7 +178,10 @@ describe('transforms', () => {
             }[name]),
         ),
       ];
-      schema = wrapSchema(propertySchema, transforms);
+      schema = wrapSchema({
+        schema: propertySchema,
+        transforms,
+      });
     });
     test('should work', async () => {
       const result = await graphql(
@@ -253,9 +251,12 @@ describe('transforms', () => {
 
       subschema = addMocksToSchema({ schema: subschema });
 
-      const schema = wrapSchema(subschema, [
-        new RenameRootTypes((name) => (name === 'QueryRoot' ? 'Query' : name)),
-      ]);
+      const schema = wrapSchema({
+        schema: subschema,
+        transforms: [
+          new RenameRootTypes((name) => (name === 'QueryRoot' ? 'Query' : name)),
+        ],
+      });
 
       const result = await graphql(
         schema,
@@ -289,7 +290,10 @@ describe('transforms', () => {
         new RenameTypes((name: string) => `_${name}`),
         new RenameTypes((name: string) => `Property${name}`),
       ];
-      schema = wrapSchema(propertySchema, transforms);
+      schema = wrapSchema({
+        schema: propertySchema,
+        transforms,
+      });
     });
     test('should work', async () => {
       const result = await graphql(
@@ -347,7 +351,7 @@ describe('transforms', () => {
   describe('filter to schema', () => {
     let filter: FilterToSchema;
     beforeAll(() => {
-      filter = new FilterToSchema(bookingSchema);
+      filter = new FilterToSchema();
     });
 
     test('should remove empty selection sets on objects', () => {
@@ -366,8 +370,10 @@ describe('transforms', () => {
         document: query,
         variables: {
           id: 'c1',
-        },
-      });
+        }
+      }, {
+        targetSchema: bookingSchema
+      } as DelegationContext, {});
 
       const expected = parse(`
       query customerQuery($id: ID!) {
@@ -398,7 +404,9 @@ describe('transforms', () => {
           id: 'c1',
           limit: 10,
         },
-      });
+      }, {
+        targetSchema: bookingSchema
+      } as DelegationContext, {});
 
       const expected = parse(`
       query customerQuery($id: ID!) {
@@ -428,7 +436,9 @@ describe('transforms', () => {
         variables: {
           id: 'b1',
         },
-      });
+      }, {
+        targetSchema: bookingSchema
+      } as DelegationContext, {});
 
       const expected = parse(`
         query bookingQuery($id: ID!) {
@@ -451,7 +461,10 @@ describe('transforms', () => {
           (type: GraphQLNamedType) => typeNames.indexOf(type.name) >= 0,
         ),
       ];
-      schema = wrapSchema(bookingSchema, transforms);
+      schema = wrapSchema({
+        schema: bookingSchema,
+        transforms
+      });
     });
 
     test('should work normally', async () => {
@@ -1135,275 +1148,38 @@ describe('transforms', () => {
       });
     });
   });
-
-  describe('replaces field with fragments', () => {
-    let data: any;
-    let schema: GraphQLSchema;
-    let subschema: GraphQLSchema;
-    beforeAll(() => {
-      data = {
-        u1: {
-          id: 'u1',
-          name: 'joh',
-          surname: 'gats',
-        },
-      };
-
-      subschema = makeExecutableSchema({
-        typeDefs: `
-          type User {
-            id: ID!
-            name: String!
-            surname: String!
-          }
-
-          type Query {
-            userById(id: ID!): User
-          }
-        `,
-        resolvers: {
-          Query: {
-            userById(_parent, { id }) {
-              return data[id];
-            },
-          },
-        },
-      });
-
-      schema = makeExecutableSchema({
-        typeDefs: `
-          type User {
-            id: ID!
-            name: String!
-            surname: String!
-            fullname: String!
-          }
-
-          type Query {
-            userById(id: ID!): User
-          }
-        `,
-        resolvers: {
-          Query: {
-            userById(_parent, { id }, context, info) {
-              return delegateToSchema({
-                schema: subschema,
-                operation: 'query',
-                fieldName: 'userById',
-                args: { id },
-                context,
-                info,
-                transforms: [
-                  new ReplaceFieldWithFragment(subschema, [
-                    {
-                      field: 'fullname',
-                      fragment: 'fragment UserName on User { name }',
-                    },
-                    {
-                      field: 'fullname',
-                      fragment: 'fragment UserSurname on User { surname }',
-                    },
-                  ]),
-                ],
-              });
-            },
-          },
-          User: {
-            fullname(parent, _args, _context, _info) {
-              return `${parent.name as string} ${parent.surname as string}`;
-            },
-          },
-        },
-      });
-    });
-    test('should work', async () => {
-      const result = await graphql(
-        schema,
-        `
-          query {
-            userById(id: "u1") {
-              id
-              fullname
-            }
-          }
-        `,
-      );
-
-      expect(result).toEqual({
-        data: {
-          userById: {
-            id: 'u1',
-            fullname: 'joh gats',
-          },
-        },
-      });
-    });
-  });
 });
 
-describe('replaces field with processed fragment node', () => {
-  let data: any;
-  let schema: GraphQLSchema;
-  let subschema: GraphQLSchema;
-  beforeAll(() => {
-    data = {
-      u1: {
-        id: 'u1',
-        name: 'joh',
-        surname: 'gats',
-      },
-    };
-
-    subschema = makeExecutableSchema({
+describe('transform input object fields', () => {
+  test('filtering works', async () => {
+    const schema = makeExecutableSchema({
       typeDefs: `
-        type User {
-          id: ID!
-          name: String!
-          surname: String!
+        input InputObject {
+          field1: String
+          field2: String
+        }
+
+        type OutputObject {
+          field1: String
+          field2: String
         }
 
         type Query {
-          userById(id: ID!): User
+          test(argument: InputObject): OutputObject
         }
       `,
       resolvers: {
         Query: {
-          userById(_parent, { id }) {
-            return data[id];
-          },
-        },
-      },
+          test: (_root, args) => {
+            return args.argument;
+          }
+        }
+      }
     });
 
-    schema = makeExecutableSchema({
-      typeDefs: `
-        type User implements Named {
-          id: ID!
-          name: String!
-          surname: String!
-          fullname: String!
-          specialName: String!
-        }
-
-        type Query {
-          userById(id: ID!): User
-        }
-
-        interface Named {
-          specialName: String!
-        }
-      `,
-      resolvers: {
-        Query: {
-          userById(_parent, { id }, context, info) {
-            return delegateToSchema({
-              schema: subschema,
-              operation: 'query',
-              fieldName: 'userById',
-              args: { id },
-              context,
-              info,
-              transforms: [
-                new AddFragmentsByField(subschema, {
-                  User: {
-                    fullname: concatInlineFragments('User', [
-                      parseFragmentToInlineFragment(
-                        'fragment UserName on User { name }',
-                      ),
-                      parseFragmentToInlineFragment(
-                        'fragment UserSurname on User { surname }',
-                      ),
-                      parseFragmentToInlineFragment('... on Named { name }'),
-                    ]),
-                  },
-                }),
-              ],
-            });
-          },
-        },
-        User: {
-          fullname(parent, _args, _context, _info) {
-            return `${parent.name as string} ${parent.surname as string}`;
-          },
-          specialName() {
-            return data.u1.name;
-          },
-        },
-      },
-    });
-  });
-  test('should work', async () => {
-    const result = await graphql(
+    const transformedSchema = wrapSchema({
       schema,
-      `
-        query {
-          userById(id: "u1") {
-            id
-            fullname
-          }
-        }
-      `,
-    );
-
-    expect(result).toEqual({
-      data: {
-        userById: {
-          id: 'u1',
-          fullname: 'joh gats',
-        },
-      },
-    });
-  });
-
-  it('should accept fragments and resolvers that rely on an interface the type implements', async () => {
-    const result = await graphql(
-      schema,
-      `
-        query {
-          userById(id: "u1") {
-            specialName
-          }
-        }
-      `,
-    );
-
-    expect(result).toEqual({
-      data: {
-        userById: {
-          specialName: data.u1.name,
-        },
-      },
-    });
-  });
-
-  describe('transform input object fields', () => {
-    test('filtering works', async () => {
-      const schema = makeExecutableSchema({
-        typeDefs: `
-          input InputObject {
-            field1: String
-            field2: String
-          }
-
-          type OutputObject {
-            field1: String
-            field2: String
-          }
-
-          type Query {
-            test(argument: InputObject): OutputObject
-          }
-        `,
-        resolvers: {
-          Query: {
-            test: (_root, args) => {
-              return args.argument;
-            }
-          }
-        }
-      });
-
-      const transformedSchema = wrapSchema(schema, [
+      transforms: [
         new FilterInputObjectFields(
           (typeName, fieldName) => (typeName !== 'InputObject' || fieldName !== 'field2'),
           (typeName, inputObjectNode) => {
@@ -1422,21 +1198,21 @@ describe('replaces field with processed fragment node', () => {
             }
           }
         )
-      ]);
-
-      const query = `{
-        test(argument: {
-          field1: "field1"
-        }) {
-          field1
-          field2
-        }
-      }`;
-
-      const result = await graphql(transformedSchema, query);
-      expect(result.data.test.field1).toBe('field1');
-      expect(result.data.test.field2).toBe('field2');
+      ],
     });
+
+    const query = `{
+      test(argument: {
+        field1: "field1"
+      }) {
+        field1
+        field2
+      }
+    }`;
+
+    const result = await graphql(transformedSchema, query);
+    expect(result.data.test.field1).toBe('field1');
+    expect(result.data.test.field2).toBe('field2');
   });
 
   test('renaming works', async () => {
@@ -1465,15 +1241,18 @@ describe('replaces field with processed fragment node', () => {
       }
     });
 
-    const transformedSchema = wrapSchema(schema, [
-      new RenameInputObjectFields(
-        (typeName: string, fieldName: string) => {
-          if (typeName === 'InputObject' && fieldName === 'field2') {
-            return 'field3';
-          }
-        },
-      )
-    ]);
+    const transformedSchema = wrapSchema({
+      schema,
+      transforms: [
+        new RenameInputObjectFields(
+          (typeName: string, fieldName: string) => {
+            if (typeName === 'InputObject' && fieldName === 'field2') {
+              return 'field3';
+            }
+          },
+        )
+      ],
+    });
 
     const query = `{
       test(argument: {
@@ -1524,9 +1303,12 @@ describe('MapLeafValues', () => {
       }
     };
 
-    const transformedSchema = wrapSchema(schema, [
-      new MapLeafValues(valueIterator, valueIterator),
-    ]);
+    const transformedSchema = wrapSchema({
+      schema,
+      transforms: [
+        new MapLeafValues(valueIterator, valueIterator),
+      ],
+    });
 
     const query = `{
       testEnum(argument: ONE)
@@ -1558,11 +1340,14 @@ describe('TransformEnumValues', () => {
       }
     });
 
-    const transformedSchema = wrapSchema(schema, [
-      new TransformEnumValues(
-        (_typeName, _externalValue, valueConfig) => ['UNO', valueConfig],
-      )
-    ]);
+    const transformedSchema = wrapSchema({
+      schema,
+      transforms: [
+        new TransformEnumValues(
+          (_typeName, _externalValue, valueConfig) => ['UNO', valueConfig],
+        )
+      ],
+    });
 
     const query = `{
       test(argument: UNO)
@@ -1589,14 +1374,17 @@ describe('TransformEnumValues', () => {
       }
     });
 
-    const transformedSchema = wrapSchema(schema, [
-      new TransformEnumValues(
-        (_typeName, _externalValue, valueConfig) => ['UNO', {
-          ...valueConfig,
-          value: 'ONE',
-        }],
-      )
-    ]);
+    const transformedSchema = wrapSchema({
+      schema,
+      transforms: [
+        new TransformEnumValues(
+          (_typeName, _externalValue, valueConfig) => ['UNO', {
+            ...valueConfig,
+            value: 'ONE',
+          }],
+        )
+      ],
+    });
 
     const query = `{
       test(argument: UNO)
@@ -1625,11 +1413,14 @@ describe('TransformEnumValues', () => {
       }
     });
 
-    const transformedSchema = wrapSchema(schema, [
-      new TransformEnumValues(
-        (_typeName, _externalValue, valueConfig) => ['UNO', valueConfig],
-      )
-    ]);
+    const transformedSchema = wrapSchema({
+      schema,
+      transforms: [
+        new TransformEnumValues(
+          (_typeName, _externalValue, valueConfig) => ['UNO', valueConfig],
+        )
+      ],
+    });
 
     const query = `query Test($test: TestEnum) {
       test(argument: $test)

@@ -105,24 +105,27 @@ describe('filter fields', () => {
   // E.g. strip out types/fields from the monolith slowly and re-add them
   // as stitched resolvers to another service.
   it('should allow stitching a previously filtered field onto a type', () => {
-    const filteredSchema = wrapSchema(propertySchema, [
-      new FilterObjectFields(
-        (typeName, fieldName) =>
-          `${typeName}.${fieldName}` !== 'Property.location',
-      ),
-    ]);
+    const filteredSchema = wrapSchema({
+      schema: propertySchema,
+      transforms: [
+        new FilterObjectFields(
+          (typeName, fieldName) =>
+            `${typeName}.${fieldName}` !== 'Property.location',
+        ),
+      ],
+    });
 
     assertValidSchema(filteredSchema);
 
     const stitchedSchema = stitchSchemas({
-      schemas: [
+      subschemas: [
         filteredSchema,
-        `
-          extend type Property {
-            location: Location
-          }
-        `,
       ],
+      typeDefs: `
+        extend type Property {
+          location: Location
+        }
+      `,
     });
 
     assertValidSchema(stitchedSchema);

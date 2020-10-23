@@ -58,9 +58,6 @@ export interface ExecutionResult<TData = Record<string, any>> extends GraphQLExe
   extensions?: Record<string, any>;
 }
 
-// for backwards compatibility
-export type Result = ExecutionResult;
-
 // graphql-js non-exported typings
 
 export type TypeMap = Record<string, GraphQLNamedType>;
@@ -85,35 +82,37 @@ export interface GraphQLParseOptions {
 
 // graphql-tools typings
 
+export type ValidatorBehavior = 'error' | 'warn' | 'ignore';
+
 /**
  * Options for validating resolvers
  */
 export interface IResolverValidationOptions {
   /**
-   * Set to `true` to require a resolver to be defined for any field that has
-   * arguments. Defaults to `false`.
+   * Enable to require a resolver to be defined for any field that has
+   * arguments. Defaults to `ignore`.
    */
-  requireResolversForArgs?: boolean;
+  requireResolversForArgs?: ValidatorBehavior;
   /**
-   * Set to `true` to require a resolver to be defined for any field which has
-   * a return type that isn't a scalar. Defaults to `false`.
+   * Enable to require a resolver to be defined for any field which has
+   * a return type that isn't a scalar. Defaults to `ignore`.
    */
-  requireResolversForNonScalar?: boolean;
+  requireResolversForNonScalar?: ValidatorBehavior;
   /**
-   * Set to `true` to require a resolver for be defined for all fields defined
-   * in the schema. Defaults to `false`.
+   * Enable to require a resolver for be defined for all fields defined
+   * in the schema. Defaults to `ignore`.
    */
-  requireResolversForAllFields?: boolean;
+  requireResolversForAllFields?: ValidatorBehavior;
   /**
-   * Set to `true` to require a `resolveType()` for Interface and Union types.
-   * Defaults to `false`.
+   * Enable to require a `resolveType()` for Interface and Union types.
+   * Defaults to `ignore`.
    */
-  requireResolversForResolveType?: boolean;
+  requireResolversForResolveType?: ValidatorBehavior;
   /**
-   * Set to `false` to require all defined resolvers to match fields that
-   * actually exist in the schema. Defaults to `true`.
+   * Enable to require all defined resolvers to match fields that
+   * actually exist in the schema. Defaults to `error` to catch common errors.
    */
-  allowResolversNotInSchema?: boolean;
+  requireResolversToMatchSchema?: ValidatorBehavior;
 }
 
 /**
@@ -179,24 +178,6 @@ export interface IFieldResolverOptions<TSource = any, TContext = any, TArgs = an
   astNode?: FieldDefinitionNode;
 }
 
-export type SchemaTransform = (originalSchema: GraphQLSchema) => GraphQLSchema;
-export type RequestTransform<T = Record<string, any>> = (
-  originalRequest: Request,
-  delegationContext?: Record<string, any>,
-  transformationContext?: T
-) => Request;
-export type ResultTransform<T = Record<string, any>> = (
-  originalResult: ExecutionResult,
-  delegationContext?: Record<string, any>,
-  transformationContext?: T
-) => ExecutionResult;
-
-export interface Transform<T = Record<string, any>> {
-  transformSchema?: SchemaTransform;
-  transformRequest?: RequestTransform<T>;
-  transformResult?: ResultTransform<T>;
-}
-
 export type FieldNodeMapper = (
   fieldNode: FieldNode,
   fragments: Record<string, FragmentDefinitionNode>,
@@ -214,7 +195,7 @@ export type InputFieldFilter = (
 export type FieldFilter = (
   typeName?: string,
   fieldName?: string,
-  fieldConfig?: GraphQLFieldConfig<any, any>
+  fieldConfig?: GraphQLFieldConfig<any, any> | GraphQLInputFieldConfig
 ) => boolean;
 
 export type RootFieldFilter = (
@@ -224,6 +205,13 @@ export type RootFieldFilter = (
 ) => boolean;
 
 export type TypeFilter = (typeName: string, type: GraphQLType) => boolean;
+
+export type ArgumentFilter = (
+  typeName?: string,
+  fieldName?: string,
+  argName?: string,
+  argConfig?: GraphQLArgumentConfig
+) => boolean;
 
 export type RenameTypesOptions = {
   renameBuiltins: boolean;
@@ -237,9 +225,9 @@ export type IFieldResolver<TSource, TContext, TArgs = Record<string, any>, TRetu
   info: GraphQLResolveInfo
 ) => TReturn;
 
-export type ITypedef = (() => Array<ITypedef>) | string | DocumentNode;
+export type ITypedef = string | DocumentNode | (() => Array<ITypedef>);
 
-export type ITypeDefinitions = ITypedef | Array<ITypedef>;
+export type ITypeDefinitions = string | DocumentNode | Array<ITypedef>;
 
 export type IObjectTypeResolver<TSource = any, TContext = any, TArgs = any> = {
   [key: string]: IFieldResolver<TSource, TContext, TArgs> | IFieldResolverOptions<TSource, TContext>;
@@ -315,8 +303,6 @@ export type DirectiveResolverFn<TSource = any, TContext = any> = (
 export interface IDirectiveResolvers<TSource = any, TContext = any> {
   [directiveName: string]: DirectiveResolverFn<TSource, TContext>;
 }
-
-export type Operation = 'query' | 'mutation' | 'subscription';
 
 export interface Request {
   document: DocumentNode;
