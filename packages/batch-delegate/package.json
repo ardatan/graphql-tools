@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/batch-delegate",
-  "version": "6.2.5",
+  "version": "6.2.6",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": "git@github.com:ardatan/graphql-tools.git",
   "license": "MIT",

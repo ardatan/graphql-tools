@@ -1,5 +1,16 @@
 # graphql-tools
 
+## 6.2.6
+
+### Patch Changes
+
+- 96a7555d: Fix release
+
+  Last PATCH release actually transitively updated graphql-tools and @graphql-tools/delegate to use latest MAJOR version of dependencies.
+
+- Updated dependencies [96a7555d]
+  - @graphql-tools/batch-delegate@6.2.6
+
 ## 6.2.5
 
 ### Patch Changes
