@@ -1,5 +1,12 @@
 # @graphql-tools/stitch
 
+## 7.0.1
+
+### Patch Changes
+
+- Updated dependencies [a9254491]
+  - @graphql-tools/batch-delegate@7.0.0
+
 ## 7.0.0
 
 ### Major Changes
