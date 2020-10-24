@@ -1,6 +1,6 @@
 {
   "name": "graphql-tools",
-  "version": "6.2.6",
+  "version": "7.0.0",
   "description": "Useful tools to create and manipulate GraphQL schemas.",
   "repository": "git@github.com:ardatan/graphql-tools.git",
   "license": "MIT",
@@ -19,7 +19,7 @@
     "directory": "dist"
   },
   "dependencies": {
-    "@graphql-tools/batch-delegate": "^6.2.6",
+    "@graphql-tools/batch-delegate": "^7.0.0",
     "@graphql-tools/batch-execute": "^7.0.0",
     "@graphql-tools/delegate": "^7.0.0",
     "@graphql-tools/graphql-tag-pluck": "^6.2.6",
@@ -39,8 +39,9 @@
     "@graphql-tools/relay-operation-optimizer": "^6.2.5",
     "@graphql-tools/resolvers-composition": "^6.2.5",
     "@graphql-tools/schema": "^7.0.0",
-    "@graphql-tools/stitch": "^7.0.0",
+    "@graphql-tools/stitch": "^7.0.1",
     "@graphql-tools/utils": "^7.0.0",
     "@graphql-tools/wrap": "^7.0.0",
-    "tslib": "~2.0.1"  }
+    "tslib": "~2.0.1"
+  }
 }
