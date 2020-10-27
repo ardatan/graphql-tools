@@ -15,10 +15,10 @@ jobs:
     steps:
       - name: Checkout Master
         uses: actions/checkout@v1
-      - name: Use Node 14
+      - name: Use Node 15
         uses: actions/setup-node@master
         with:
-          node-version: 14
+          node-version: 15
       - name: Get yarn cache
         id: yarn-cache
         run: echo "::set-output name=dir::$(yarn cache dir)"
@@ -45,7 +45,7 @@ jobs:
       - name: Use Node 14
         uses: actions/setup-node@master
         with:
-          node-version: 14
+          node-version: 15
       - name: Get yarn cache
         id: yarn-cache
         run: echo "::set-output name=dir::$(yarn cache dir)"
@@ -68,7 +68,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
-        node_version: [10, 14]
+        node_version: [10, 15]
         graphql_version: [14, 15]
     steps:
       - name: Checkout Master

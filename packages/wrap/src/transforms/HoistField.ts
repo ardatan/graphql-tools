@@ -119,14 +119,14 @@ export default class HoistField implements Transform {
 
     Object.keys(targetField.args).forEach(argName => {
       const argConfig = targetField.args[argName];
-      const arg: GraphQLArgument = {
+      const arg = {
         ...argConfig,
         name: argName,
         description: argConfig.description,
         defaultValue: argConfig.defaultValue,
         extensions: argConfig.extensions,
         astNode: argConfig.astNode,
-      };
+      } as GraphQLArgument;
       if (this.argFilters[level](arg)) {
         argsMap[argName] = arg;
         this.argLevels[arg.name] = level;
