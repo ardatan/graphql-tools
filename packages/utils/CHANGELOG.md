@@ -1,5 +1,12 @@
 # @graphql-tools/utils
 
+## 7.0.1
+
+### Patch Changes
+
+- 8133a907: fix(utils): Remove \$ from invalidPathRegex
+- 2b6c813e: fix(utils): fix typing mismatch between linkToSubscriber and observableToAsyncIterable
+
 ## 7.0.0
 
 ### Major Changes

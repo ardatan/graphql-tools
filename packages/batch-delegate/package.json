@@ -18,14 +18,14 @@
     "input": "./src/index.ts"
   },
   "dependencies": {
-    "@graphql-tools/delegate": "^7.0.0",
+    "@graphql-tools/delegate": "^7.0.1",
     "dataloader": "2.0.0",
     "tslib": "~2.0.1"
   },
   "devDependencies": {
     "@graphql-tools/schema": "7.0.0",
     "@graphql-tools/stitch": "7.0.1",
-    "@graphql-tools/utils": "7.0.0"
+    "@graphql-tools/utils": "7.0.1"
   },
   "publishConfig": {
     "access": "public",

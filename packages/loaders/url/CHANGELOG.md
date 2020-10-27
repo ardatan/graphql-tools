@@ -1,5 +1,16 @@
 # @graphql-tools/url-loader
 
+## 6.3.2
+
+### Patch Changes
+
+- 294dedda: fix(url-loader): fix typing mismatch
+- Updated dependencies [294dedda]
+- Updated dependencies [8133a907]
+- Updated dependencies [2b6c813e]
+  - @graphql-tools/delegate@7.0.1
+  - @graphql-tools/utils@7.0.1
+
 ## 6.3.1
 
 ### Patch Changes
