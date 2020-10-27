@@ -16,7 +16,12 @@
     "@apollo/client": "~3.2.5"
   },
   "buildOptions": {
-    "input": "./src/index.ts"
+    "input": "./src/index.ts",
+    "external": [
+      "@apollo/client/link/core",
+      "@apollo/client/link/utils",
+      "@apollo/client/utilities"
+    ]
   },
   "devDependencies": {
     "@apollo/client": "3.2.5",
