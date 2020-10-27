@@ -42,7 +42,7 @@ export function isDocumentString(str: string): boolean {
   return false;
 }
 
-const invalidPathRegex = /[‘“!$%&^<=>`]/;
+const invalidPathRegex = /[‘“!%&^<=>`]/;
 export function isValidPath(str: string): boolean {
   return typeof str === 'string' && !invalidPathRegex.test(str);
 }
