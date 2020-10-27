@@ -15,10 +15,10 @@ jobs:
     steps:
       - name: Checkout Master
         uses: actions/checkout@v1
-      - name: Use Node 14
+      - name: Use Node 15
         uses: actions/setup-node@master
         with:
-          node-version: 14
+          node-version: 15
       - name: Get yarn cache
         id: yarn-cache
         run: echo "::set-output name=dir::$(yarn cache dir)"
@@ -30,7 +30,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-${{matrix.node_version}}-${{matrix.graphql_version}}-yarn
       - name: Install Dependencies using Yarn
-        run: yarn install && git checkout yarn.lock
+        run: yarn install --ignore-engines && git checkout yarn.lock
       - name: Lint
         run: yarn lint
   build:
@@ -45,7 +45,7 @@ jobs:
       - name: Use Node 14
         uses: actions/setup-node@master
         with:
-          node-version: 14
+          node-version: 15
       - name: Get yarn cache
         id: yarn-cache
         run: echo "::set-output name=dir::$(yarn cache dir)"
@@ -59,7 +59,7 @@ jobs:
       - name: Use GraphQL v${{matrix.graphql_version}}
         run: node ./scripts/match-graphql.js ${{matrix.graphql_version}}
       - name: Install Dependencies using Yarn
-        run: yarn install && git checkout yarn.lock
+        run: yarn install --ignore-engines && git checkout yarn.lock
       - name: Build
         run: yarn ts:transpile
   test:
@@ -68,7 +68,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
-        node_version: [10, 14]
+        node_version: [10, 15]
         graphql_version: [14, 15]
     steps:
       - name: Checkout Master
@@ -90,7 +90,7 @@ jobs:
       - name: Use GraphQL v${{matrix.graphql_version}}
         run: node ./scripts/match-graphql.js ${{matrix.graphql_version}}
       - name: Install Dependencies using Yarn
-        run: yarn install && git checkout yarn.lock
+        run: yarn install --ignore-engines && git checkout yarn.lock
       - name: Cache Jest
         uses: actions/cache@v1
         with:
