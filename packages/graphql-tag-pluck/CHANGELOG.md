@@ -1,5 +1,11 @@
 # @graphql-tools/graphql-tag-pluck
 
+## 6.3.0
+
+### Minor Changes
+
+- 9ee20108: feat(graphql-tag-pluck): Support Vue files with TypeScript
+
 ## 6.2.6
 
 ### Patch Changes

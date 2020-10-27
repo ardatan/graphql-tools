@@ -1,5 +1,11 @@
 # @graphql-tools/wrap
 
+## 7.0.1
+
+### Patch Changes
+
+- 51e387c3: transformedSchema argument within transformSchema method of transforms should be optional. The HoistField transform incorrectly set it to non-optional, breaking Typescript builds -- presumably when used with strict compilation.
+
 ## 7.0.0
 
 ### Major Changes
