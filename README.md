@@ -117,6 +117,22 @@ const executableSchema = makeExecutableSchema({
 });
 ```
 
+GraphQL-Tools schema can be consumed by frameworks like Apollo GraphQL or express-graphql
+For example 
+
+```js
+var express = require('express');
+var { graphqlHTTP } = require('express-graphql');
+
+var app = express();
+app.use('/graphql', graphqlHTTP({
+  schema: executableSchema,
+  graphiql: true,
+}));
+app.listen(4000);
+console.log('Running a GraphQL API server at http://localhost:4000/graphql');
+```
+
 This example has the entire type definition in one string and all resolvers in one file, but you can combine types and resolvers from multiple files and objects, as documented in the [modularizing type definitions](https://graphql-tools.com/docs/merge-typedefs) and [merging resolvers](https://graphql-tools.com/docs/merge-resolvers) section of the docs.
 
 ## Contributions
