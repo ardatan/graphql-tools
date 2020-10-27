@@ -40,7 +40,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-15-15-yarn-
       - name: Install Dependencies using Yarn
-        run: yarn install && git checkout yarn.lock
+        run: yarn install --ignore-engines && git checkout yarn.lock
       - name: Build
         run: yarn build
       - name: Create Release Pull Request or Publish to npm
