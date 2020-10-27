@@ -65,7 +65,7 @@ export default function generateConfig(
       plugins.push('jsx', ...flowPlugins);
       break;
     case '.vue':
-      plugins.push('vue');
+      plugins.push('typescript', 'vue');
       break;
     default:
       plugins.push('jsx', ...dynamicFlowPlugins);
