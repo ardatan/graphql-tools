@@ -1,4 +1,5 @@
-import { ApolloLink, Operation, NextLink, Observable, FetchResult } from 'apollo-link';
+import { ApolloLink, FetchResult, NextLink, Operation } from '@apollo/client/link/core';
+import { Observable } from '@apollo/client/utilities';
 
 function getFinalPromise(object: any): Promise<any> {
   return Promise.resolve(object).then(resolvedObject => {

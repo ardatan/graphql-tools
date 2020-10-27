@@ -1,4 +1,5 @@
-import { ApolloLink, execute, FetchResult, Observable } from 'apollo-link';
+import { ApolloLink, execute, FetchResult } from '@apollo/client/link/core';
+import { Observable } from '@apollo/client/utilities';
 import { observableToAsyncIterable } from '@graphql-tools/utils';
 import { GraphQLResolveInfo, DocumentNode } from 'graphql';
 
