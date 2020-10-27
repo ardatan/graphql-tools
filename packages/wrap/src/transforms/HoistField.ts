@@ -67,7 +67,7 @@ export default class HoistField implements Transform {
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
     subschemaConfig: SubschemaConfig,
-    transformedSchema: GraphQLSchema
+    transformedSchema?: GraphQLSchema
   ): GraphQLSchema {
     const argsMap: Record<string, GraphQLArgument> = Object.create(null);
     const innerType: GraphQLObjectType = this.pathToField.reduce((acc, pathSegment, index) => {
