@@ -1,5 +1,20 @@
 # @graphql-tools/links
 
+## 7.0.0
+
+### Major Changes
+
+- 2b6c813e: feat(links): AC3 support
+
+  `apollo-link` has been deprecated so this package now uses `@apollo/client` as peer dependency;
+  You can [see more on migration guide.](https://www.apollographql.com/docs/react/migrating/apollo-client-3-migration/#apollo-link-and-apollo-link-http)
+
+### Patch Changes
+
+- Updated dependencies [8133a907]
+- Updated dependencies [2b6c813e]
+  - @graphql-tools/utils@7.0.1
+
 ## 6.2.5
 
 ### Patch Changes

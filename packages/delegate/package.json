@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/delegate",
-  "version": "7.0.0",
+  "version": "7.0.1",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": "git@github.com:ardatan/graphql-tools.git",
   "license": "MIT",
@@ -20,7 +20,7 @@
   "dependencies": {
     "@graphql-tools/batch-execute": "^7.0.0",
     "@graphql-tools/schema": "^7.0.0",
-    "@graphql-tools/utils": "^7.0.0",
+    "@graphql-tools/utils": "^7.0.1",
     "@ardatan/aggregate-error": "0.0.6",
     "dataloader": "2.0.0",
     "is-promise": "4.0.0",

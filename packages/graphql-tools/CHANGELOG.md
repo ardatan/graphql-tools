@@ -1,5 +1,19 @@
 # graphql-tools
 
+## 7.0.1
+
+### Patch Changes
+
+- Updated dependencies [294dedda]
+- Updated dependencies [294dedda]
+- Updated dependencies [2b6c813e]
+- Updated dependencies [8133a907]
+- Updated dependencies [2b6c813e]
+  - @graphql-tools/delegate@7.0.1
+  - @graphql-tools/url-loader@6.3.2
+  - @graphql-tools/links@7.0.0
+  - @graphql-tools/utils@7.0.1
+
 ## 7.0.0
 
 ### Major Changes

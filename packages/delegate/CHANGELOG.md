@@ -1,5 +1,14 @@
 # @graphql-tools/delegate
 
+## 7.0.1
+
+### Patch Changes
+
+- 294dedda: fix(delegate): Fix type error with `arguments` being undefined
+- Updated dependencies [8133a907]
+- Updated dependencies [2b6c813e]
+  - @graphql-tools/utils@7.0.1
+
 ## 7.0.0
 
 ### Major Changes

@@ -245,7 +245,11 @@ export default (code: string, out: any, options: GraphQLTagPluckOptions = {}) =>
           }
 
           // When it's a named import that matches registered package's identifier
-          if (isImportSpecifier(importSpecifier) && importSpecifier.imported.name === moduleNode.identifier) {
+          if (
+            isImportSpecifier(importSpecifier) &&
+            'name' in importSpecifier.imported &&
+            importSpecifier.imported.name === moduleNode.identifier
+          ) {
             return true;
           }
 
