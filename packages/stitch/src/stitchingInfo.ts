@@ -12,6 +12,7 @@ import {
   print,
   isInterfaceType,
   isLeafType,
+  GraphQLList,
 } from 'graphql';
 
 import { parseSelectionSet, TypeMap, IResolvers, IFieldResolverOptions } from '@graphql-tools/utils';
@@ -163,6 +164,9 @@ function createMergedTypes(
                 schema: subschema,
                 operation: 'query',
                 fieldName: mergedTypeConfig.fieldName,
+                returnType: new GraphQLList(
+                  getNamedType(info.schema.getType(originalResult.__typename) ?? info.returnType) as GraphQLOutputType
+                ),
                 key: mergedTypeConfig.key(originalResult),
                 argsFromKeys: mergedTypeConfig.argsFromKeys,
                 valuesFromResults: mergedTypeConfig.valuesFromResults,
@@ -179,7 +183,9 @@ function createMergedTypes(
                 schema: subschema,
                 operation: 'query',
                 fieldName: mergedTypeConfig.fieldName,
-                returnType: getNamedType(info.returnType) as GraphQLOutputType,
+                returnType: getNamedType(
+                  info.schema.getType(originalResult.__typename) ?? info.returnType
+                ) as GraphQLOutputType,
                 args: mergedTypeConfig.args(originalResult),
                 selectionSet,
                 context,
