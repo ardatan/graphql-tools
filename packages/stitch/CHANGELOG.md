@@ -1,5 +1,11 @@
 # @graphql-tools/stitch
 
+## 7.0.2
+
+### Patch Changes
+
+- fcbc497b: fix(stitch): support type merging with abstract types (#2137)
+
 ## 7.0.1
 
 ### Patch Changes
