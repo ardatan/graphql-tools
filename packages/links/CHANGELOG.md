@@ -1,5 +1,11 @@
 # @graphql-tools/links
 
+## 7.0.1
+
+### Patch Changes
+
+- 38f6decf: use identical ExecutionParams across packages to facilitate TS compilation in strict mode
+
 ## 7.0.0
 
 ### Major Changes
