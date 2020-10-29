@@ -47,7 +47,7 @@
     "@types/fs-extra": "9.0.1",
     "@types/jest": "26.0.14",
     "@types/node": "14.14.5",
-    "@typescript-eslint/eslint-plugin": "4.4.1",
+    "@typescript-eslint/eslint-plugin": "4.6.0",
     "@typescript-eslint/parser": "4.6.0",
     "@ardatan/bob-the-bundler": "1.2.2",
     "eslint": "7.12.1",
