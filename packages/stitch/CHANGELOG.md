@@ -1,5 +1,16 @@
 # @graphql-tools/stitch
 
+## 7.0.3
+
+### Patch Changes
+
+- 718eda30: fix(stitch): fix mergeExternalObject regressions
+
+  v7 introduced a regression in the merging of ExternalObjects that causes type merging to fail when undergoing multiple rounds of merging.
+
+- Updated dependencies [718eda30]
+  - @graphql-tools/delegate@7.0.2
+
 ## 7.0.2
 
 ### Patch Changes
