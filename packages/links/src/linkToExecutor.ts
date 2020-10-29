@@ -1,11 +1,13 @@
-import { ApolloLink, execute, FetchResult } from '@apollo/client/link/core';
+import { ApolloLink, execute } from '@apollo/client/link/core';
 import { Observable } from '@apollo/client/utilities';
 import { toPromise } from '@apollo/client/link/utils';
-import { ExecutionParams } from './types';
 
-export const linkToExecutor = (link: ApolloLink) => <TReturn, TArgs, TContext>(
+import { Executor, ExecutionParams } from '@graphql-tools/delegate';
+import { ExecutionResult } from '@graphql-tools/utils';
+
+export const linkToExecutor = (link: ApolloLink): Executor => <TReturn, TArgs, TContext>(
   params: ExecutionParams<TArgs, TContext>
-) => {
+): ExecutionResult<TReturn> | Promise<ExecutionResult<TReturn>> => {
   const { document, variables, extensions, context, info } = params;
   return toPromise(
     execute(link, {
@@ -17,6 +19,6 @@ export const linkToExecutor = (link: ApolloLink) => <TReturn, TArgs, TContext>(
         clientAwareness: {},
       },
       extensions,
-    }) as Observable<FetchResult<TReturn>>
+    }) as Observable<ExecutionResult<TReturn>>
   );
 };
