@@ -1,5 +1,13 @@
 # @graphql-tools/links
 
+## 7.0.2
+
+### Patch Changes
+
+- 16bb2fdd: fix(links): refactor and fully fix types (#2148)
+- Updated dependencies [718eda30]
+  - @graphql-tools/delegate@7.0.2
+
 ## 7.0.1
 
 ### Patch Changes

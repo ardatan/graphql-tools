@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/links",
-  "version": "7.0.1",
+  "version": "7.0.2",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": "git@github.com:ardatan/graphql-tools.git",
   "license": "MIT",
@@ -30,7 +30,7 @@
     "graphql-upload": "11.0.0"
   },
   "dependencies": {
-    "@graphql-tools/delegate": "7.0.1",
+    "@graphql-tools/delegate": "7.0.2",
     "@graphql-tools/utils": "7.0.1",
     "apollo-upload-client": "14.1.2",
     "cross-fetch": "3.0.6",
