@@ -327,3 +327,107 @@ describe('merging using type merging', () => {
     expect(result).toEqual(expectedResult);
   });
 });
+
+describe('Merged associations', () => {
+  const layoutSchema = makeExecutableSchema({
+    typeDefs: `
+      type Network {
+        id: ID!
+        domain: String!
+      }
+      type Post {
+        id: ID!
+        sections: [String]!
+      }
+      type Query {
+        networks(ids: [ID!]!): [Network]!
+        _posts(ids: [ID!]!): [Post]!
+      }
+    `,
+    resolvers: {
+      Query: {
+        networks: (_root, { ids }) => ids.map((id: any) => ({ id, domain: `network${id}.com` })),
+        _posts: (_root, { ids }) => ids.map((id: any) => ({
+          id,
+          sections: ['News']
+        })),
+      }
+    }
+  });
+
+  const postsSchema = makeExecutableSchema({
+    typeDefs: `
+      type Network {
+        id: ID!
+      }
+      type Post {
+        id: ID!
+        title: String!
+        network: Network
+      }
+      type Query {
+        posts(ids: [ID!]!): [Post]!
+      }
+    `,
+    resolvers: {
+      Query: {
+        posts: (_root, { ids }) => ids.map((id: any) => ({
+          id,
+          title: `Post ${id}`,
+          network: { id: Number(id)+2 }
+        })),
+      }
+    }
+  });
+
+  const gatewaySchema = stitchSchemas({
+    subschemas: [
+      {
+        schema: layoutSchema,
+        merge: {
+          Network: {
+            selectionSet: '{ id }',
+            fieldName: 'networks',
+            key: ({ id }) => id,
+            argsFromKeys: (ids) => ({ ids }),
+          },
+          Post: {
+            selectionSet: '{ id }',
+            fieldName: '_posts',
+            key: ({ id }) => id,
+            argsFromKeys: (ids) => ({ ids }),
+          },
+        },
+      },
+      {
+        schema: postsSchema,
+        merge: {
+          Post: {
+            selectionSet: '{ id }',
+            fieldName: 'posts',
+            key: ({ id }) => id,
+            argsFromKeys: (ids) => ({ ids }),
+          },
+        },
+      },
+    ]
+  });
+
+  it('merges object with own remote type and association with associated remote type', async () => {
+    const { data } = await graphql(gatewaySchema, `
+      query {
+        posts(ids: [55]) {
+          title
+          network { domain }
+          sections
+        }
+      }
+    `);
+
+    expect(data.posts).toEqual([{
+      title: 'Post 55',
+      network: { domain: 'network57.com' },
+      sections: ['News']
+    }]);
+  });
+});

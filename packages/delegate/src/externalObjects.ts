@@ -67,20 +67,27 @@ export function mergeExternalObjects(
     }
   });
 
-  const fieldSubschemaMap = results.reduce((acc: Record<any, SubschemaConfig>, source: any) => {
-    const subschema = source[OBJECT_SUBSCHEMA_SYMBOL];
-    Object.keys(source).forEach(key => {
-      acc[key] = subschema;
-    });
-    return acc;
-  }, {});
+  const combinedResult: ExternalObject = results.reduce(mergeDeep, target);
 
-  const result = results.reduce(mergeDeep, target);
-  result[FIELD_SUBSCHEMA_MAP_SYMBOL] = target[FIELD_SUBSCHEMA_MAP_SYMBOL]
-    ? Object.assign({}, target[FIELD_SUBSCHEMA_MAP_SYMBOL], fieldSubschemaMap)
-    : fieldSubschemaMap;
+  const newFieldSubschemaMap = target[FIELD_SUBSCHEMA_MAP_SYMBOL] ?? Object.create(null);
 
-  result[UNPATHED_ERRORS_SYMBOL] = target[UNPATHED_ERRORS_SYMBOL].concat(errors);
+  results.forEach((source: ExternalObject) => {
+    const objectSubschema = source[OBJECT_SUBSCHEMA_SYMBOL];
+    const fieldSubschemaMap = source[FIELD_SUBSCHEMA_MAP_SYMBOL];
+    if (fieldSubschemaMap === undefined) {
+      Object.keys(source).forEach(responseKey => {
+        newFieldSubschemaMap[responseKey] = objectSubschema;
+      });
+    } else {
+      Object.keys(source).forEach(responseKey => {
+        newFieldSubschemaMap[responseKey] = fieldSubschemaMap[responseKey] ?? objectSubschema;
+      });
+    }
+  });
 
-  return result;
+  combinedResult[FIELD_SUBSCHEMA_MAP_SYMBOL] = newFieldSubschemaMap;
+  combinedResult[OBJECT_SUBSCHEMA_SYMBOL] = target[OBJECT_SUBSCHEMA_SYMBOL];
+  combinedResult[UNPATHED_ERRORS_SYMBOL] = target[UNPATHED_ERRORS_SYMBOL].concat(errors);
+
+  return combinedResult;
 }
