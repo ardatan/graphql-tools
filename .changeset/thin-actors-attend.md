@@ -2,4 +2,4 @@
 '@graphql-tools/links': patch
 ---
 
-fix linkToSubscriber types
+fix(links): refactor and fully fix types (#2148)
