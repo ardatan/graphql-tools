@@ -1,15 +1,14 @@
-import { ApolloLink, execute, FetchResult } from '@apollo/client/link/core';
+import { ApolloLink, execute } from '@apollo/client/link/core';
 import { Observable } from '@apollo/client/utilities';
-import { observableToAsyncIterable } from '@graphql-tools/utils';
-import { ExecutionResult } from 'graphql';
 
-import { ExecutionParams } from './types';
+import { ExecutionResult, observableToAsyncIterable } from '@graphql-tools/utils';
+import { Subscriber, ExecutionParams } from '@graphql-tools/delegate';
 
-export const linkToSubscriber = (link: ApolloLink) => async <TReturn, TArgs, TContext>(
+export const linkToSubscriber = (link: ApolloLink): Subscriber => async <TReturn, TArgs, TContext>(
   params: ExecutionParams<TArgs, TContext>
-) => {
+): Promise<ExecutionResult<TReturn> | AsyncIterator<ExecutionResult<TReturn>>> => {
   const { document, variables, extensions, context, info } = params;
-  return observableToAsyncIterable<ExecutionResult<TReturn> | AsyncIterator<ExecutionResult<TReturn>>>(
+  return observableToAsyncIterable<ExecutionResult<TReturn>>(
     execute(link, {
       query: document,
       variables,
@@ -19,6 +18,6 @@ export const linkToSubscriber = (link: ApolloLink) => async <TReturn, TArgs, TCo
         clientAwareness: {},
       },
       extensions,
-    }) as Observable<FetchResult<TReturn>>
-  );
+    }) as Observable<ExecutionResult<TReturn>>
+  )[Symbol.asyncIterator]();
 };
