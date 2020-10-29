@@ -60,7 +60,7 @@
     "fs-extra": "9.0.1",
     "graphql": "15.4.0",
     "husky": "4.3.0",
-    "jest": "26.5.3",
+    "jest": "26.6.1",
     "lint-staged": "10.4.0",
     "nock": "13.0.4",
     "prettier": "2.1.2",
