@@ -1,7 +1,6 @@
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { isolateComputedFields } from '@graphql-tools/stitch';
 import { Subschema } from '@graphql-tools/delegate';
-import { printSchema } from 'graphql';
 
 describe('isolateComputedFields', () => {
   describe('basic isolation', ()    => {
