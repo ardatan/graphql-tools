@@ -1,6 +1,7 @@
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { isolateComputedFields } from '@graphql-tools/stitch';
 import { Subschema } from '@graphql-tools/delegate';
+import { printSchema } from 'graphql';
 
 describe('isolateComputedFields', () => {
   describe('basic isolation', ()    => {
@@ -61,7 +62,7 @@ describe('isolateComputedFields', () => {
 
       // pruning does not yet remove unused scalars/enums
       // expect(computedSubschema.transformedSchema.getType('DeliveryService')).toBeUndefined();
-      expect(computedSubschema.transformedSchema.getType('Storefront')).toBeUndefined();
+      expect(Object.keys(computedSubschema.transformedSchema.getType('Storefront').getFields()).length).toEqual(0);
       expect(computedSubschema.transformedSchema.getType('ProductRepresentation')).toBeDefined();
       expect(computedSubschema.merge.Product.computedFields).toEqual({
         shippingEstimate: { selectionSet: '{ price }' },
@@ -82,64 +83,6 @@ describe('isolateComputedFields', () => {
       });
 
       expect(subschemas.length).toEqual(1);
-    });
-  });
-
-  describe('from SDL directives', () => {
-    const storefrontSchema = makeExecutableSchema({
-      typeDefs: `
-        directive @computed(selectionSet: String!) on FIELD_DEFINITION
-        type Product {
-          id: ID!
-          shippingEstimate: Float! @computed(selectionSet: "{ price weight }")
-          deliveryService: DeliveryService! @computed(selectionSet: "{ weight }")
-        }
-        enum DeliveryService {
-          POSTAL
-          FREIGHT
-        }
-        type Storefront {
-          id: ID!
-          availableProducts: [Product]!
-        }
-        input ProductRepresentation {
-          id: ID!
-          price: Float
-          weight: Int
-        }
-        type Query {
-          storefront(id: ID!): Storefront
-          _products(representations: [ProductRepresentation!]!): [Product]!
-        }
-      `
-    });
-
-    it('splits a subschema into non-computed and computed portions', async () => {
-      const [baseConfig, computedConfig] = isolateComputedFields(new Subschema({
-        schema: storefrontSchema,
-        merge: {
-          Product: {
-            selectionSet: '{ id }',
-            fieldName: '_products',
-            key: ({ id, price, weight }) => ({ id, price, weight }),
-            argsFromKeys: (representations) => ({ representations }),
-          }
-        }
-      }));
-
-      const baseSubschema = new Subschema(baseConfig);
-      const computedSubschema = new Subschema(computedConfig);
-
-      expect(Object.keys(baseSubschema.transformedSchema.getType('Product').getFields())).toEqual(['id']);
-
-      const productFields = computedSubschema.transformedSchema.getType('Product').getFields();
-      expect(Object.keys(productFields)).toEqual(['shippingEstimate', 'deliveryService']);
-      expect(productFields.shippingEstimate).toBeDefined();
-      expect(productFields.deliveryService).toBeDefined();
-      expect(computedSubschema.merge.Product.computedFields).toEqual({
-        shippingEstimate: { selectionSet: '{ price weight }' },
-        deliveryService: { selectionSet: '{ weight }' },
-      });
     });
   });
 
