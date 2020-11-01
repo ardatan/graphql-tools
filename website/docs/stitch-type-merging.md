@@ -490,52 +490,42 @@ Type merging generally maps to Federation concepts as follows:
 - `@external`: type merging implicitly expects types in each service to only implement the fields they provide.
 - `@provides`: type merging implicitly handles multiple services that implement the same fields, and automatically selects as many requested fields as possible from as few services as possible. Available sub-objects within a visited service are automatically selected.
 
-
 ## Custom merge resolvers
 
-The `merge` property of [subschema config](/docs/stitch-combining-schemas#subschema-configs) specifies how types are merged for a service, and provides a map of `MergedTypeConfig` objects:
+All merged types have a `resolve` method that handles fetching the type from its subschema. These resolvers are provided by default, however you may define your own to partially or completely override the default.
+
+Custom resolvers are extremely useful for preflight checks that may return static values (such as `null` or errors) before triggering a costly subschema delegation. For example, here's a custom resolver that returns an error when an obviously invalid key is encountered:
 
 ```ts
-export interface MergedTypeConfig {
-  selectionSet?: string;
-  resolve?: MergedTypeResolver;
-  fieldName?: string;
-  args?: (originalResult: any) => Record<string, any>;
-  key?: (originalResult: any) => K;
-  argsFromKeys?: (keys: ReadonlyArray<K>) => Record<string, any>;
-  valuesFromResults?: (results: any, keys: ReadonlyArray<K>) => Array<V>;
+{
+  schema: widgetsSchema,
+  merge: {
+    Widget: {
+      selectionSet: '{ id }',
+      fieldName: 'widgets',
+      key: ({ id }) => id,
+      argsFromKeys: (ids) => ({ ids }),
+      resolve: (obj, ctx, info, cfg, sel, key) => {
+        if (key < 0) {
+          return new Error('invalid record key');
+        }
+      }
+    }
+  }
 }
 ```
 
-All merged types across subschemas will delegate as necessary to other subschemas implementing the same type using the provided `resolve` function of type `MergedTypeResolver`:
+When a custom resolver returns `undefined`, its behavior will passthrough to the default resolver implementation. Resolver methods are of type `MergedTypeResolver`:
 
 ```ts
 export type MergedTypeResolver = (
-  originalResult: any, // initial result from a previous subschema
-  context: Record<string, any>, // gateway context
-  info: GraphQLResolveInfo, // gateway info
-  subschema: GraphQLSchema | SubschemaConfig, // the additional implementing subschema from which to retrieve data
-  selectionSet: SelectionSetNode // the additional fields required from that subschema
+  originalResult: any, // initial object
+  context: Record<string, any>, // gateway request context
+  info: GraphQLResolveInfo, // gateway request info
+  subschema: SubschemaConfig, // target subschema configuration
+  selectionSet: SelectionSetNode // target subschema selection
+  key?: any // the batch key being requested
 ) => any;
 ```
 
-The default `resolve` implementation that powers type merging out of the box looks like this:
-
-```js
-mergedTypeConfig.resolve = (originalResult, context, info, schemaOrSubschemaConfig, selectionSet) =>
-  delegateToSchema({
-    schema: schemaOrSubschemaConfig,
-    operation: 'query',
-    fieldName: mergedTypeConfig.fieldName,
-    returnType: getNamedType(info.returnType),
-    args: mergedTypeConfig.args(originalResult),
-    selectionSet,
-    context,
-    info,
-    skipTypeMerging: true,
-  });
-```
-
-This resolver switches to a batched implementation in the presence of a `mergedTypeConfig.key` function. You may also provide your own custom implementation, however... note the extremely important `skipTypeMerging` setting. Without this option, your gateway will recursively merge types forever!
-
-Note that when using a custom `resolve` implementation, `fieldName` and `args` are not required. Secondary to an underlying implementation detail, however, `fieldName` must also be included, whenever ary fields are being computed.
+Under the hood, the default merge resolvers call upon `delegateToSchema` and `batchDelegateToSchema`, as documented for [schema extensions](/docs/stitch-schema-extensions#basic-example). You may leverage these same delegation methods in a custom resolver, though you must include a `skipTypeMerging: true` option to prevent infinite recursion.
