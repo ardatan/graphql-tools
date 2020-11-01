@@ -14,7 +14,7 @@ export interface Observable<T> {
 
 export type Callback = (value?: any) => any;
 
-export function observableToAsyncIterable<T>(observable: Observable<T>): AsyncIterable<T> {
+export function observableToAsyncIterable<T>(observable: Observable<T>): AsyncIterableIterator<T> {
   const pullQueue: Array<Callback> = [];
   const pushQueue: Array<any> = [];
 
@@ -70,20 +70,19 @@ export function observableToAsyncIterable<T>(observable: Observable<T>): AsyncIt
   };
 
   return {
+    next() {
+      return listening ? pullValue() : this.return();
+    },
+    return() {
+      emptyQueue();
+      return Promise.resolve({ value: undefined, done: true });
+    },
+    throw(error) {
+      emptyQueue();
+      return Promise.reject(error);
+    },
     [Symbol.asyncIterator]() {
-      return {
-        next() {
-          return listening ? pullValue() : this.return();
-        },
-        return() {
-          emptyQueue();
-          return Promise.resolve({ value: undefined, done: true });
-        },
-        throw(error) {
-          emptyQueue();
-          return Promise.reject(error);
-        },
-      };
+      return this;
     },
   };
 }
