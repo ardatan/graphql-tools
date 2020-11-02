@@ -1,5 +1,15 @@
 # @graphql-tools/links
 
+## 7.0.3
+
+### Patch Changes
+
+- a74f885c: links should behave like other packages when releasing and not publish new versions with minor updates of internal dependencies
+- Updated dependencies [856e23fa]
+- Updated dependencies [e3176633]
+  - @graphql-tools/delegate@7.0.3
+  - @graphql-tools/utils@7.0.2
+
 ## 7.0.2
 
 ### Patch Changes

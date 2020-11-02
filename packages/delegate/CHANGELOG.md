@@ -1,5 +1,13 @@
 # @graphql-tools/delegate
 
+## 7.0.3
+
+### Patch Changes
+
+- 856e23fa: fix(delegate): WrapConcreteTypes should not process fragments that are not on a root type (#2173)
+- Updated dependencies [e3176633]
+  - @graphql-tools/utils@7.0.2
+
 ## 7.0.2
 
 ### Patch Changes

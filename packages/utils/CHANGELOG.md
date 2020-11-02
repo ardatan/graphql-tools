@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 7.0.2
+
+### Patch Changes
+
+- e3176633: fix(utils): revert to old observableToAsyncIterable return type
+
 ## 7.0.1
 
 ### Patch Changes
