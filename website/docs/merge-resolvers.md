@@ -51,7 +51,7 @@ const resolvers = [
   productResolver,
 ];
 
-module.exports mergeResolvers(resolvers);
+module.exports = mergeResolvers(resolvers);
 ```
 Or automatically:
 
