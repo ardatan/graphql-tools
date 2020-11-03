@@ -42,14 +42,14 @@ And you can test your queries using built-in [GraphiQL](https://github.com/graph
 ></iframe>
 
 ## Adding Subscriptions support
-[`graphql-transport-ws`](https://github.com/enisdenjo/graphql-transport-ws) offers a server and client implementation for transporting subscription events over WebSockets.
+[`graphql-ws`](https://github.com/enisdenjo/graphql-ws) offers a server and client implementation for transporting subscription events over WebSockets.
 
 ```js
 const http = require('http');
 const express = require('express');
 const { graphqlHTTP } = require('express-graphql');
 const { execute, subscribe } = require('graphql');
-const { createServer } = require('graphql-transport-ws');
+const { createServer } = require('graphql-ws');
 
 const typeDefs = require('./graphql/types');
 const resolvers = require('./graphql/resolvers');
