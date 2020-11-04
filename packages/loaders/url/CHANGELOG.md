@@ -1,5 +1,11 @@
 # @graphql-tools/url-loader
 
+## 6.4.0
+
+### Minor Changes
+
+- f9e72f2b: feat(url-loader): support loadSync
+
 ## 6.3.2
 
 ### Patch Changes
