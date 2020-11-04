@@ -1,5 +1,11 @@
 # @graphql-tools/delegate
 
+## 7.0.4
+
+### Patch Changes
+
+- 83b8e428: fix(delegate): import AggregateError polyfill (#2196)
+
 ## 7.0.3
 
 ### Patch Changes
