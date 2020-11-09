@@ -1,5 +1,3 @@
-'use strict';
-
 import * as lodash from 'lodash';
 // eslint-disable-next-line
 // @ts-ignore
@@ -12,12 +10,13 @@ import { Output, IOutput } from './Output';
 
 export class Variables {
   json: any;
-  overwriteSyntax = RegExp(/,/g);
-  envRefSyntax = RegExp(/^env:/g);
-  selfRefSyntax = RegExp(/^self:/g);
-  stringRefSyntax = RegExp(/('.*')|(".*")/g);
-  optRefSyntax = RegExp(/^opt:/g);
-  variableSyntax = RegExp(
+  overwriteSyntax = /,/g;
+  envRefSyntax = /^env:/g;
+  selfRefSyntax = /^self:/g;
+  stringRefSyntax = /('.*')|(".*")/g;
+  optRefSyntax = /^opt:/g;
+  // eslint-disable-next-line
+  variableSyntax = new RegExp(
     // eslint-disable-next-line
     '\\${([ ~:a-zA-Z0-9._\'",\\-\\/\\(\\)]+?)}',
     'g'
@@ -49,12 +48,7 @@ export class Variables {
         deepMapValues(value, callback, propertyPath ? propertyPath.concat(key) : [key]);
       if (lodash.isArray(object)) {
         return lodash.map(object, deepMapValuesIteratee);
-      } else if (
-        lodash.isObject(object) &&
-        !lodash.isDate(object) &&
-        !lodash.isRegExp(object) &&
-        !lodash.isFunction(object)
-      ) {
+      } else if (lodash.isObject(object) && !lodash.isDate(object) && !lodash.isFunction(object)) {
         return lodash.extend({}, object, lodash.mapValues(object, deepMapValuesIteratee));
       }
       return callback(object, propertyPath);

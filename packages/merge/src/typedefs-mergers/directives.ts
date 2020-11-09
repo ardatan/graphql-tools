@@ -85,6 +85,7 @@ export function mergeDirectives(
 function validateInputs(node: DirectiveDefinitionNode, existingNode: DirectiveDefinitionNode): void | never {
   const printedNode = print(node);
   const printedExistingNode = print(existingNode);
+  // eslint-disable-next-line
   const leaveInputs = new RegExp('(directive @w*d*)|( on .*$)', 'g');
   const sameArguments = printedNode.replace(leaveInputs, '') === printedExistingNode.replace(leaveInputs, '');
 

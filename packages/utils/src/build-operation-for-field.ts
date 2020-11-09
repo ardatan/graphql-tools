@@ -338,6 +338,7 @@ function resolveSelectionSet({
               selectedFields: selectedSubFields,
             });
           }
+          return null;
         })
         .filter(f => {
           if (f) {
