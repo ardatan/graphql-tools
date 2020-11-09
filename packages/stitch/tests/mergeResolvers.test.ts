@@ -1,6 +1,6 @@
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas, createMergedTypeResolver } from '@graphql-tools/stitch';
-import { MergedTypeConfig } from '@graphql-tools/delegate';
+import { MergedTypeResolver, MergedTypeResolverOptions } from '@graphql-tools/delegate';
 import { graphql } from 'graphql';
 
 describe('Merge resolvers', () => {
@@ -89,14 +89,13 @@ describe('Merge resolvers', () => {
   });
 
   it('works with wrapped resolvers', async () => {
-    function wrappedResolve(mergedTypeConfig: MergedTypeConfig): MergedTypeConfig {
-      const defaultResolve = createMergedTypeResolver(mergedTypeConfig);
-      mergedTypeConfig.resolve = async (obj, ctx, inf, sch, sel, key) => {
+    function wrapResolve(mergedTypeResolverOptions: MergedTypeResolverOptions): MergedTypeResolver {
+      const defaultResolve = createMergedTypeResolver(mergedTypeResolverOptions);
+      return async (obj, ctx, inf, sch, sel, key) => {
         const result = await defaultResolve(obj, ctx, inf, sch, sel, key);
         result.source += '->resolve';
         return result;
       };
-      return mergedTypeConfig;
     }
 
     const gatewaySchema = stitchSchemas({
@@ -107,17 +106,21 @@ describe('Merge resolvers', () => {
         {
           schema: secondSchema,
           merge: {
-            Widget: wrappedResolve({
+            Widget: {
               selectionSet: '{ id }',
-              fieldName: '_widgets',
               key: ({ id }) => id,
-              argsFromKeys: (ids) => ({ ids }),
-            }),
-            Sprocket: wrappedResolve({
+              resolve: wrapResolve({
+                fieldName: '_widgets',
+                argsFromKeys: (ids) => ({ ids }),
+              }),
+            },
+            Sprocket: {
               selectionSet: '{ id }',
-              fieldName: '_sprocket',
-              args: ({ id }) => ({ id }),
-            }),
+              resolve: wrapResolve({
+                fieldName: '_sprocket',
+                args: ({ id }) => ({ id }),
+              }),
+            },
           },
         },
       ]

@@ -533,9 +533,9 @@ const schema = stitchSchemas({
     merge: {
       Widget: {
         selectionSet: '{ id }',
+        key: ({ id }) => id,
         resolve: createInstrumentedMergedTypeResolver({
           fieldName: 'widgets',
-          key: ({ id }) => id,
           argsFromKeys: (ids) => ({ ids }),
         }),
       }
