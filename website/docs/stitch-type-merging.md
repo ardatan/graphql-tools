@@ -500,7 +500,8 @@ export type MergedTypeResolver = (
   context: Record<string, any>, // gateway request context
   info: GraphQLResolveInfo, // gateway request info
   subschema: SubschemaConfig, // target subschema configuration
-  selectionSet: SelectionSetNode // target subschema selection
+  selectionSet: SelectionSetNode, // target subschema selection
+  key?: any // the batch key being requested
 ) => any;
 ```
 
@@ -508,7 +509,7 @@ export type MergedTypeResolver = (
 
 Frequently we'll want to augment type resolution without fundamentally changing its behavior. This can be done by wrapping a default merged type resolver in a custom implementation. For example, adding [statsd instrumentation](https://github.com/msiebuhr/node-statsd-client) might look like this:
 
-```ts
+```js
 import { createMergedTypeResolver, stitchSchemas } from '@graphql-tools/stitch';
 import { SDC } from 'statsd-client';
 
@@ -548,7 +549,7 @@ The `createMergedTypeResolver` helper accepts a `MergedTypeConfig` object and re
 
 Alternatively, you may provide a completely custom resolver implementation for fetching types in non-standard ways. For example, fetching a merged object from a REST API might look like this:
 
-```ts
+```js
 {
   schema: widgetsSchema,
   merge: {
