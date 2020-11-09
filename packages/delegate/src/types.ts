@@ -188,7 +188,8 @@ export type MergedTypeResolver = (
   context: Record<string, any>,
   info: GraphQLResolveInfo,
   subschema: GraphQLSchema | SubschemaConfig,
-  selectionSet: SelectionSetNode
+  selectionSet: SelectionSetNode,
+  key?: any
 ) => any;
 
 export interface StitchingInfo {
