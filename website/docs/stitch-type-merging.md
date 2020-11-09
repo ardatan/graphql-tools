@@ -514,6 +514,43 @@ import { SDC } from 'statsd-client';
 
 const statsd = new SDC({ ... });
 
+function createInstrumentedMergedTypeResolver(mergedTypeConfig) {
+  const defaultResolve = createMergedTypeResolver(mergedTypeConfig);
+  return async (obj, ctx, info, cfg, sel, key) => {
+    const startTime = process.hrtime();
+    try {
+      return await defaultResolve(obj, ctx, info, cfg, sel, key);
+    } finally {
+      statsd.timing(info.path.join('.'), process.hrtime(startTime));
+    }
+  };
+}
+
+const schema = stitchSchemas({
+  subschemas: [{
+    schema: widgetsSchema,
+    merge: {
+      Widget: {
+        selectionSet: '{ id }',
+        resolve: createInstrumentedMergedTypeResolver({
+          fieldName: 'widgets',
+          key: ({ id }) => id,
+          argsFromKeys: (ids) => ({ ids }),
+        }),
+      }
+    }
+  }]
+});
+```
+
+Or:
+
+```ts
+import { createMergedTypeResolver, stitchSchemas } from '@graphql-tools/stitch';
+import { SDC } from 'statsd-client';
+
+const statsd = new SDC({ ... });
+
 function instrumentMergedType(mergedTypeConfig) {
   const defaultResolve = createMergedTypeResolver(mergedTypeConfig);
   mergedTypeConfig.resolve = async (obj, ctx, info, cfg, sel, key) => {
