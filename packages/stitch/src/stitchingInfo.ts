@@ -19,7 +19,7 @@ import { Subschema, SubschemaConfig } from '@graphql-tools/delegate';
 
 import { MergeTypeCandidate, MergedTypeInfo, StitchingInfo, MergeTypeFilter } from './types';
 
-import { makeDefaultMergedTypeResolver } from './makeDefaultMergedTypeResolver';
+import { createMergedTypeResolver } from './createMergedTypeResolver';
 
 export function createStitchingInfo(
   subschemaMap: Map<GraphQLSchema | SubschemaConfig, Subschema>,
@@ -155,7 +155,7 @@ function createMergedTypes(
           }
 
           if (mergedTypeConfig.resolve == null) {
-            mergedTypeConfig.resolve = makeDefaultMergedTypeResolver(mergedTypeConfig);
+            mergedTypeConfig.resolve = createMergedTypeResolver(mergedTypeConfig);
           }
 
           if (mergedTypeConfig.resolve != null) {

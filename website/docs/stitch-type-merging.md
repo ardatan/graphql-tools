@@ -509,13 +509,13 @@ export type MergedTypeResolver = (
 Frequently we'll want to augment type resolution without fundamentally changing its behavior. This can be done by wrapping a default merged type resolver in a custom implementation. For example, adding [statsd instrumentation](https://github.com/msiebuhr/node-statsd-client) might look like this:
 
 ```ts
-import { makeDefaultMergedTypeResolver, stitchSchemas } from '@graphql-tools/stitch';
+import { createMergedTypeResolver, stitchSchemas } from '@graphql-tools/stitch';
 import { SDC } from 'statsd-client';
 
 const statsd = new SDC({ ... });
 
 function instrumentMergedType(mergedTypeConfig) {
-  const defaultResolve = makeDefaultMergedTypeResolver(mergedTypeConfig);
+  const defaultResolve = createMergedTypeResolver(mergedTypeConfig);
   mergedTypeConfig.resolve = async (obj, ctx, info, cfg, sel, key) => {
     const startTime = process.hrtime();
     try {
@@ -542,7 +542,7 @@ const schema = stitchSchemas({
 });
 ```
 
-The `makeDefaultMergedTypeResolver` helper accepts a `MergedTypeConfig` object and returns a default `MergedTypeResolver` for that config. This resolver function can then be wrapped with additional behavior, and then assigned as a custom `resolve` method for the config.
+The `createMergedTypeResolver` helper accepts a `MergedTypeConfig` object and returns a default `MergedTypeResolver` for that config. This resolver function can then be wrapped with additional behavior, and then assigned as a custom `resolve` method for the config.
 
 ### Custom resolvers
 
