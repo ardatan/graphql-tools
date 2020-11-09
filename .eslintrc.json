@@ -21,7 +21,7 @@
     "no-dupe-class-members": "off",
     "dot-notation": "off",
     "no-use-before-define": "off",
-    "@typescript-eslint/no-unused-vars": "warn",
+    "@typescript-eslint/no-unused-vars": "off",
     "@typescript-eslint/no-use-before-define": "off",
     "@typescript-eslint/no-namespace": "off",
     "@typescript-eslint/no-empty-interface": "off",
@@ -34,7 +34,8 @@
     "@typescript-eslint/return-await": "error",
     "@typescript-eslint/naming-convention": "off",
     "@typescript-eslint/interface-name-prefix": "off",
-    "@typescript-eslint/explicit-module-boundary-types": "off"
+    "@typescript-eslint/explicit-module-boundary-types": "off",
+    "default-param-last": "off"
   },
   "env": {
     "es6": true,
@@ -56,6 +57,7 @@
   ],
   "ignorePatterns": [
     "dist",
+    "dist-es5",
     "node_modules",
     "packages/load/tests/loaders/schema",
     "website",

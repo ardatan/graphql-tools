@@ -130,7 +130,7 @@ export function loadFilesSync<T = any>(
   return relevantPaths
     .map(path => {
       if (!checkExtension(path, options)) {
-        return;
+        return null;
       }
 
       if (isIndex(path, execOptions.extensions) && options.ignoreIndex) {
