@@ -7,7 +7,9 @@ export function createMergedTypeResolver(mergedTypeConfig: MergedTypeConfig): Me
 
   const { fieldName, key: keyFn, argsFromKeys, valuesFromResults, args, resolve } = mergedTypeConfig;
 
-  if (fieldName != null) {
+  if (resolve != null) {
+    resolver = resolve;
+  } else {
     if (keyFn != null) {
       resolver = (originalResult, context, info, subschema, selectionSet, key) =>
         batchDelegateToSchema({
@@ -41,8 +43,6 @@ export function createMergedTypeResolver(mergedTypeConfig: MergedTypeConfig): Me
           skipTypeMerging: true,
         });
     }
-  } else {
-    resolver = resolve;
   }
 
   if (keyFn && resolver) {
