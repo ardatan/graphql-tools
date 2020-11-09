@@ -3,7 +3,7 @@ import { stitchSchemas, makeDefaultMergedTypeResolver } from '@graphql-tools/sti
 import { MergedTypeConfig } from '@graphql-tools/delegate';
 import { graphql } from 'graphql';
 
-describe('Custom resolvers', () => {
+describe('Merge resolvers', () => {
   const firstSchema = makeExecutableSchema({
     typeDefs: `
       type Widget {
@@ -48,63 +48,7 @@ describe('Custom resolvers', () => {
     }
   });
 
-  describe('eagerReturn', () => {
-    const gatewaySchema = stitchSchemas({
-      subschemas: [
-        {
-          schema: firstSchema,
-        },
-        {
-          schema: secondSchema,
-          merge: {
-            Widget: {
-              selectionSet: '{ id }',
-              fieldName: '_widgets',
-              key: ({ id }) => id,
-              argsFromKeys: (ids) => ({ ids }),
-              eagerReturn: (_obj, _ctx, _inf, _sch, _sel, key) => Number(key) > 5 ? null : undefined,
-            },
-            Sprocket: {
-              selectionSet: '{ id }',
-              fieldName: '_sprocket',
-              args: ({ id }) => ({ id }),
-              eagerReturn: ({ id }) => Number(id) > 5 ? null : undefined,
-            },
-          },
-        },
-      ]
-    });
-
-    it('passes undefined from eagerReturn through to delegation', async () => {
-      const { data } = await graphql(gatewaySchema, `
-        query {
-          widget(id: 1) { id source }
-          sprocket(id: 1) { id source }
-        }
-      `);
-
-      expect(data).toEqual({
-        widget: { id: '1', source: 'service' },
-        sprocket: { id: '1', source: 'service' },
-      });
-    });
-
-    it('returns value from eagerReturn directly', async () => {
-      const { data } = await graphql(gatewaySchema, `
-        query {
-          widget(id: 10) { id source }
-          sprocket(id: 10) { id source }
-        }
-      `);
-
-      expect(data).toEqual({
-        widget: { id: '10', source: null },
-        sprocket: { id: '10', source: null },
-      });
-    });
-  });
-
-  describe('custom resolve', () => {
+  it('works with custom resolvers', async () => {
     const gatewaySchema = stitchSchemas({
       subschemas: [
         {
@@ -131,26 +75,24 @@ describe('Custom resolvers', () => {
       ]
     });
 
-    it('uses custom resolvers when provided', async () => {
-      const { data } = await graphql(gatewaySchema, `
-        query {
-          widget(id: 1) { id source }
-          sprocket(id: 1) { id source }
-        }
-      `);
+    const { data } = await graphql(gatewaySchema, `
+      query {
+        widget(id: 1) { id source }
+        sprocket(id: 1) { id source }
+      }
+    `);
 
-      expect(data).toEqual({
-        widget: { id: '1', source: 'resolve' },
-        sprocket: { id: '1', source: 'resolve' },
-      });
+    expect(data).toEqual({
+      widget: { id: '1', source: 'resolve' },
+      sprocket: { id: '1', source: 'resolve' },
     });
   });
 
-  describe('wrapped default resolver', () => {
+  it('works with wrapped resolvers', async () => {
     function wrappedResolve(mergedTypeConfig: MergedTypeConfig): MergedTypeConfig {
       const defaultResolve = makeDefaultMergedTypeResolver(mergedTypeConfig);
-      mergedTypeConfig.resolve = async (obj, ctx, inf, sch, sel, key) => {
-        const result = await defaultResolve(obj, ctx, inf, sch, sel, key);
+      mergedTypeConfig.resolve = async (obj, ctx, inf, sch, sel) => {
+        const result = await defaultResolve(obj, ctx, inf, sch, sel);
         result.source += '->resolve';
         return result;
       };
@@ -181,18 +123,16 @@ describe('Custom resolvers', () => {
       ]
     });
 
-    it('uses default merge resolver with custom wrapper', async () => {
-      const { data } = await graphql(gatewaySchema, `
-        query {
-          widget(id: 1) { id source }
-          sprocket(id: 1) { id source }
-        }
-      `);
+    const { data } = await graphql(gatewaySchema, `
+      query {
+        widget(id: 1) { id source }
+        sprocket(id: 1) { id source }
+      }
+    `);
 
-      expect(data).toEqual({
-        widget: { id: '1', source: 'service->resolve' },
-        sprocket: { id: '1', source: 'service->resolve' },
-      });
+    expect(data).toEqual({
+      widget: { id: '1', source: 'service->resolve' },
+      sprocket: { id: '1', source: 'service->resolve' },
     });
   });
 

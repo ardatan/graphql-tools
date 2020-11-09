@@ -171,7 +171,6 @@ export interface MergedTypeConfig<K = any, V = any> {
   selectionSet?: string;
   fields?: Record<string, { selectionSet?: string }>;
   computedFields?: Record<string, { selectionSet?: string }>;
-  eagerReturn?: MergedTypeResolver;
   resolve?: MergedTypeResolver;
   fieldName?: string;
   args?: (originalResult: any) => Record<string, any>;
@@ -189,8 +188,7 @@ export type MergedTypeResolver = (
   context: Record<string, any>,
   info: GraphQLResolveInfo,
   subschema: GraphQLSchema | SubschemaConfig,
-  selectionSet: SelectionSetNode,
-  key?: any
+  selectionSet: SelectionSetNode
 ) => any;
 
 export interface StitchingInfo {

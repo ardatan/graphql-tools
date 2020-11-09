@@ -492,47 +492,21 @@ Type merging generally maps to Federation concepts as follows:
 
 ## Type resolvers
 
-Similar to how GraphQL objects implement field resolvers, type merging implements resolver methods for entire types. While these type-level resolvers are setup automatically, advanced usecases may choose to customize some or all of the default behavior. All type resolver methods are of type `MergedTypeResolver`:
+Similar to how GraphQL objects implement field resolvers, type merging implements type-level resolver methods. While these resolvers are setup automatically by default, advanced uses may want to customize some or all of their default behavior. All merged type resolver methods are of type `MergedTypeResolver`:
 
 ```ts
 export type MergedTypeResolver = (
-  originalResult: any, // initial object
+  originalObject: any, // initial object being merged onto
   context: Record<string, any>, // gateway request context
   info: GraphQLResolveInfo, // gateway request info
   subschema: SubschemaConfig, // target subschema configuration
   selectionSet: SelectionSetNode // target subschema selection
-  key?: any // the batch key being requested
 ) => any;
 ```
 
-### Before-resolve
-
-The `beforeResolve` hook acts as a preflight check that may return static values (such as `null` or errors) before triggering a formal resolve step. This example returns an error when an obviously invalid key is encountered:
-
-```ts
-{
-  schema: widgetsSchema,
-  merge: {
-    Widget: {
-      selectionSet: '{ id }',
-      fieldName: 'widgets',
-      key: ({ id }) => id,
-      argsFromKeys: (ids) => ({ ids }),
-      beforeResolve: (obj, ctx, info, cfg, sel, key) => {
-        if (key < 0) {
-          return new Error('invalid record key');
-        }
-      }
-    }
-  }
-}
-```
-
-The `beforeResolve` option is a `MergedTypeResolver` that will passthrough to the default resolver implementation unless a value is returned (anything but `undefined`).
-
 ### Wrapped resolvers
 
-Frequently we'll want to augment merged type resolution without fundamentally changing its behavior. This can be done by _wrapping_ a default merged type resolver in a custom implementation. For example, adding [statsd](https://github.com/msiebuhr/node-statsd-client) instrumentation might look like this:
+Frequently we'll want to augment type resolution without fundamentally changing its behavior. This can be done by wrapping a default merged type resolver in a custom implementation. For example, adding [statsd instrumentation](https://github.com/msiebuhr/node-statsd-client) might look like this:
 
 ```ts
 import { makeDefaultMergedTypeResolver, stitchSchemas } from '@graphql-tools/stitch';
@@ -568,7 +542,7 @@ const schema = stitchSchemas({
 });
 ```
 
-The `makeDefaultMergedTypeResolver` helper accepts a `MergedTypeConfig` object and returns the default `MergedTypeResolver` implementation for that config. This resolver function is then wrapped with additional behavior, and assigned as a custom `resolve` method for the config.
+The `makeDefaultMergedTypeResolver` helper accepts a `MergedTypeConfig` object and returns a default `MergedTypeResolver` for that config. This resolver function can then be wrapped with additional behavior, and then assigned as a custom `resolve` method for the config.
 
 ### Custom resolvers
 
@@ -589,4 +563,4 @@ Alternatively, you may provide a completely custom resolver implementation for f
 }
 ```
 
-When incorporating plain objects, always merge onto the provided `originalObject` to retain internal merge configuration. You may also return direct results from calling `delegateToSchema` or `batchDelegateToSchema` (as documented for [schema extensions](/docs/stitch-schema-extensions#basic-example)), however, always call these delegation methods with a `skipTypeMerging: true` option to prevent infinite recursion.
+When incorporating plain objects, always extend the provided `originalObject` to retain internal merge configuration. You may also return direct results from calling `delegateToSchema` and `batchDelegateToSchema` (as documented in [schema extensions](/docs/stitch-schema-extensions#basic-example)), however&mdash;always provide these delegation methods with a `skipTypeMerging: true` option to prevent infinite recursion.

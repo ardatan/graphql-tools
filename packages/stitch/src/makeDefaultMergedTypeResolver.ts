@@ -3,10 +3,8 @@ import { delegateToSchema, MergedTypeResolver, MergedTypeConfig } from '@graphql
 import { batchDelegateToSchema } from '@graphql-tools/batch-delegate';
 
 export function makeDefaultMergedTypeResolver(mergedTypeConfig: MergedTypeConfig): MergedTypeResolver {
-  let resolver: MergedTypeResolver;
-
   if (mergedTypeConfig.key != null) {
-    resolver = (originalResult, context, info, subschema, selectionSet, key?) =>
+    return (originalResult, context, info, subschema, selectionSet) =>
       batchDelegateToSchema({
         schema: subschema,
         operation: 'query',
@@ -14,7 +12,7 @@ export function makeDefaultMergedTypeResolver(mergedTypeConfig: MergedTypeConfig
         returnType: new GraphQLList(
           getNamedType(info.schema.getType(originalResult.__typename) ?? info.returnType) as GraphQLOutputType
         ),
-        key: key ?? mergedTypeConfig.key(originalResult),
+        key: mergedTypeConfig.key(originalResult),
         argsFromKeys: mergedTypeConfig.argsFromKeys,
         valuesFromResults: mergedTypeConfig.valuesFromResults,
         selectionSet,
@@ -22,25 +20,8 @@ export function makeDefaultMergedTypeResolver(mergedTypeConfig: MergedTypeConfig
         info,
         skipTypeMerging: true,
       });
-
-    if (mergedTypeConfig.eagerReturn != null) {
-      return (originalResult, context, info, subschema, selectionSet) => {
-        const key = mergedTypeConfig.key(originalResult);
-        const eagerResult: any = mergedTypeConfig.eagerReturn(
-          originalResult,
-          context,
-          info,
-          subschema,
-          selectionSet,
-          key
-        );
-        return eagerResult !== undefined
-          ? eagerResult
-          : resolver(originalResult, context, info, subschema, selectionSet, key);
-      };
-    }
   } else if (mergedTypeConfig.fieldName != null) {
-    resolver = (originalResult, context, info, subschema, selectionSet) =>
+    return (originalResult, context, info, subschema, selectionSet) =>
       delegateToSchema({
         schema: subschema,
         operation: 'query',
@@ -54,16 +35,5 @@ export function makeDefaultMergedTypeResolver(mergedTypeConfig: MergedTypeConfig
         info,
         skipTypeMerging: true,
       });
-
-    if (mergedTypeConfig.eagerReturn != null) {
-      return (originalResult, context, info, subschema, selectionSet) => {
-        const eagerResult: any = mergedTypeConfig.eagerReturn(originalResult, context, info, subschema, selectionSet);
-        return eagerResult !== undefined
-          ? eagerResult
-          : resolver(originalResult, context, info, subschema, selectionSet);
-      };
-    }
   }
-
-  return resolver;
 }
