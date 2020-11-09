@@ -544,42 +544,6 @@ const schema = stitchSchemas({
 });
 ```
 
-Or:
-
-```js
-import { createMergedTypeResolver, stitchSchemas } from '@graphql-tools/stitch';
-import { SDC } from 'statsd-client';
-
-const statsd = new SDC({ ... });
-
-function instrumentMergedType(mergedTypeConfig) {
-  const defaultResolve = createMergedTypeResolver(mergedTypeConfig);
-  mergedTypeConfig.resolve = async (obj, ctx, info, cfg, sel, key) => {
-    const startTime = process.hrtime();
-    try {
-      return await defaultResolve(obj, ctx, info, cfg, sel, key);
-    } finally {
-      statsd.timing(info.path.join('.'), process.hrtime(startTime));
-    }
-  };
-  return mergedTypeConfig;
-}
-
-const schema = stitchSchemas({
-  subschemas: [{
-    schema: widgetsSchema,
-    merge: {
-      Widget: instrumentMergedType({
-        selectionSet: '{ id }',
-        fieldName: 'widgets',
-        key: ({ id }) => id,
-        argsFromKeys: (ids) => ({ ids }),
-      })
-    }
-  }]
-});
-```
-
 The `createMergedTypeResolver` helper accepts a `MergedTypeConfig` object and returns a default `MergedTypeResolver` for that _specific_ config. This resolver function can then be wrapped with additional behavior, and then assigned as a custom `resolve` method for the config.
 
 ### Custom resolvers
