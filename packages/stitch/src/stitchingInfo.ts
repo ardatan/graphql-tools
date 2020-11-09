@@ -154,9 +154,7 @@ function createMergedTypes(
             fieldSelectionSets.set(subschema, parsedFieldSelectionSets);
           }
 
-          if (mergedTypeConfig.resolve == null) {
-            mergedTypeConfig.resolve = createMergedTypeResolver(mergedTypeConfig);
-          }
+          mergedTypeConfig.resolve = createMergedTypeResolver(mergedTypeConfig);
 
           if (mergedTypeConfig.resolve != null) {
             targetSubschemas.push(subschema);

@@ -45,7 +45,7 @@ export function createMergedTypeResolver(mergedTypeConfig: MergedTypeConfig): Me
     resolver = resolve;
   }
 
-  if (keyFn) {
+  if (keyFn && resolver) {
     return (originalResult, context, info, subschema, selectionSet) => {
       const key = keyFn(originalResult);
       return resolver(originalResult, context, info, subschema, selectionSet, key);
