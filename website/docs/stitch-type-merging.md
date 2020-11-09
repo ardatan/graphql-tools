@@ -546,7 +546,7 @@ const schema = stitchSchemas({
 
 Or:
 
-```ts
+```js
 import { createMergedTypeResolver, stitchSchemas } from '@graphql-tools/stitch';
 import { SDC } from 'statsd-client';
 
