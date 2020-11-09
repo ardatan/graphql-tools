@@ -490,32 +490,9 @@ Type merging generally maps to Federation concepts as follows:
 - `@external`: type merging implicitly expects types in each service to only implement the fields they provide.
 - `@provides`: type merging implicitly handles multiple services that implement the same fields, and automatically selects as many requested fields as possible from as few services as possible. Available sub-objects within a visited service are automatically selected.
 
-## Custom merge resolvers
+## Type resolvers
 
-All merged types have a `resolve` method that handles fetching the type from its subschema. These resolvers are provided by default, however you may define your own to partially or completely override the default.
-
-Custom resolvers are extremely useful for preflight checks that may return static values (such as `null` or errors) before triggering a costly subschema delegation. For example, here's a custom resolver that returns an error when an obviously invalid key is encountered:
-
-```ts
-{
-  schema: widgetsSchema,
-  merge: {
-    Widget: {
-      selectionSet: '{ id }',
-      fieldName: 'widgets',
-      key: ({ id }) => id,
-      argsFromKeys: (ids) => ({ ids }),
-      resolve: (obj, ctx, info, cfg, sel, key) => {
-        if (key < 0) {
-          return new Error('invalid record key');
-        }
-      }
-    }
-  }
-}
-```
-
-When a custom resolver returns `undefined`, its behavior will passthrough to the default resolver implementation. Resolver methods are of type `MergedTypeResolver`:
+Similar to how GraphQL objects implement field resolvers, type merging implements resolver methods for entire types. While these type-level resolvers are setup automatically, advanced usecases may choose to customize some or all of the default behavior. All type resolver methods are of type `MergedTypeResolver`:
 
 ```ts
 export type MergedTypeResolver = (
@@ -528,4 +505,88 @@ export type MergedTypeResolver = (
 ) => any;
 ```
 
-Under the hood, the default merge resolvers call upon `delegateToSchema` and `batchDelegateToSchema`, as documented for [schema extensions](/docs/stitch-schema-extensions#basic-example). You may leverage these same delegation methods in a custom resolver, though you must include a `skipTypeMerging: true` option to prevent infinite recursion.
+### Before-resolve
+
+The `beforeResolve` hook acts as a preflight check that may return static values (such as `null` or errors) before triggering a formal resolve step. This example returns an error when an obviously invalid key is encountered:
+
+```ts
+{
+  schema: widgetsSchema,
+  merge: {
+    Widget: {
+      selectionSet: '{ id }',
+      fieldName: 'widgets',
+      key: ({ id }) => id,
+      argsFromKeys: (ids) => ({ ids }),
+      beforeResolve: (obj, ctx, info, cfg, sel, key) => {
+        if (key < 0) {
+          return new Error('invalid record key');
+        }
+      }
+    }
+  }
+}
+```
+
+The `beforeResolve` option is a `MergedTypeResolver` that will passthrough to the default resolver implementation unless a value is returned (anything but `undefined`).
+
+### Wrapped resolvers
+
+Frequently we'll want to augment merged type resolution without fundamentally changing its behavior. This can be done by _wrapping_ a default merged type resolver in a custom implementation. For example, adding [statsd](https://github.com/msiebuhr/node-statsd-client) instrumentation might look like this:
+
+```ts
+import { makeDefaultMergedTypeResolver, stitchSchemas } from '@graphql-tools/stitch';
+import { SDC } from 'statsd-client';
+
+const statsd = new SDC({ ... });
+
+function instrumentMergedType(mergedTypeConfig) {
+  const defaultResolve = makeDefaultMergedTypeResolver(mergedTypeConfig);
+  mergedTypeConfig.resolve = async (obj, ctx, info, cfg, sel, key) => {
+    const startTime = process.hrtime();
+    try {
+      return await defaultResolve(obj, ctx, info, cfg, sel, key);
+    } finally {
+      statsd.timing(info.path.join('.'), process.hrtime(startTime));
+    }
+  };
+  return mergedTypeConfig;
+}
+
+const schema = stitchSchemas({
+  subschemas: [{
+    schema: widgetsSchema,
+    merge: {
+      Widget: instrumentMergedType({
+        selectionSet: '{ id }',
+        fieldName: 'widgets',
+        key: ({ id }) => id,
+        argsFromKeys: (ids) => ({ ids }),
+      })
+    }
+  }]
+});
+```
+
+The `makeDefaultMergedTypeResolver` helper accepts a `MergedTypeConfig` object and returns the default `MergedTypeResolver` implementation for that config. This resolver function is then wrapped with additional behavior, and assigned as a custom `resolve` method for the config.
+
+### Custom resolvers
+
+Alternatively, you may provide a completely custom resolver implementation for fetching types in non-standard ways. For example, fetching a merged object from a REST API might look like this:
+
+```ts
+{
+  schema: widgetsSchema,
+  merge: {
+    Widget: {
+      selectionSet: '{ id }',
+      resolve: async (originalObject) => {
+        const mergeObject = await fetchViaREST(originalObject.id);
+        return { ...originalObject, ...mergeObject };
+      }
+    }
+  }
+}
+```
+
+When incorporating plain objects, always merge onto the provided `originalObject` to retain internal merge configuration. You may also return direct results from calling `delegateToSchema` or `batchDelegateToSchema` (as documented for [schema extensions](/docs/stitch-schema-extensions#basic-example)), however, always call these delegation methods with a `skipTypeMerging: true` option to prevent infinite recursion.

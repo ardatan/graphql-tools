@@ -2,7 +2,7 @@ import { getNamedType, GraphQLOutputType, GraphQLList } from 'graphql';
 import { delegateToSchema, MergedTypeResolver, MergedTypeConfig } from '@graphql-tools/delegate';
 import { batchDelegateToSchema } from '@graphql-tools/batch-delegate';
 
-export function defaultMergedTypeResolver(mergedTypeConfig: MergedTypeConfig): MergedTypeResolver {
+export function makeDefaultMergedTypeResolver(mergedTypeConfig: MergedTypeConfig): MergedTypeResolver {
   let resolver: MergedTypeResolver;
 
   if (mergedTypeConfig.key != null) {

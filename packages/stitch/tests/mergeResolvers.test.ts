@@ -1,5 +1,5 @@
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { stitchSchemas, defaultMergedTypeResolver } from '@graphql-tools/stitch';
+import { stitchSchemas, makeDefaultMergedTypeResolver } from '@graphql-tools/stitch';
 import { MergedTypeConfig } from '@graphql-tools/delegate';
 import { graphql } from 'graphql';
 
@@ -148,7 +148,7 @@ describe('Custom resolvers', () => {
 
   describe('wrapped default resolver', () => {
     function wrappedResolve(mergedTypeConfig: MergedTypeConfig): MergedTypeConfig {
-      const defaultResolve = defaultMergedTypeResolver(mergedTypeConfig);
+      const defaultResolve = makeDefaultMergedTypeResolver(mergedTypeConfig);
       mergedTypeConfig.resolve = async (obj, ctx, inf, sch, sel, key) => {
         const result = await defaultResolve(obj, ctx, inf, sch, sel, key);
         result.source += '->resolve';

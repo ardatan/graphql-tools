@@ -1,5 +1,5 @@
 export { stitchSchemas } from './stitchSchemas';
-export { defaultMergedTypeResolver } from './defaultMergedTypeResolver';
+export { makeDefaultMergedTypeResolver } from './makeDefaultMergedTypeResolver';
 export { forwardArgsToSelectionSet } from './selectionSetArgs';
 export { isolateComputedFields } from './isolateComputedFields';
 
