@@ -114,6 +114,7 @@ export interface MergedTypeInfo {
   typeMaps: Map<GraphQLSchema | SubschemaConfig, TypeMap>;
   selectionSets: Map<Subschema, SelectionSetNode>;
   fieldSelectionSets: Map<Subschema, Record<string, SelectionSetNode>>;
+  resolvers: Map<Subschema, MergedTypeResolver>;
 }
 
 export interface ExecutionParams<TArgs = Record<string, any>, TContext = any> {
@@ -167,12 +168,15 @@ export interface SubschemaConfig<K = any, V = any, C = K> {
   batchingOptions?: BatchingOptions<K, V, C>;
 }
 
-export interface MergedTypeConfig<K = any, V = any> {
+export interface MergedTypeConfig<K = any, V = any> extends MergedTypeResolverOptions<K, V> {
   selectionSet?: string;
   fields?: Record<string, { selectionSet?: string }>;
   computedFields?: Record<string, { selectionSet?: string }>;
   key?: (originalResult: any) => K;
   resolve?: MergedTypeResolver;
+}
+
+export interface MergedTypeResolverOptions<K = any, V = any> {
   fieldName?: string;
   args?: (originalResult: any) => Record<string, any>;
   argsFromKeys?: (keys: ReadonlyArray<K>) => Record<string, any>;

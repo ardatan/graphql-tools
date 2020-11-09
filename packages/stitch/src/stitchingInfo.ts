@@ -15,7 +15,7 @@ import {
 
 import { parseSelectionSet, TypeMap, IResolvers, IFieldResolverOptions } from '@graphql-tools/utils';
 
-import { Subschema, SubschemaConfig } from '@graphql-tools/delegate';
+import { MergedTypeResolver, Subschema, SubschemaConfig } from '@graphql-tools/delegate';
 
 import { MergeTypeCandidate, MergedTypeInfo, StitchingInfo, MergeTypeFilter } from './types';
 
@@ -111,6 +111,7 @@ function createMergedTypes(
         const supportedBySubschemas: Record<string, Array<Subschema>> = Object.create({});
         const selectionSets: Map<Subschema, SelectionSetNode> = new Map();
         const fieldSelectionSets: Map<Subschema, Record<string, SelectionSetNode>> = new Map();
+        const resolvers: Map<Subschema, MergedTypeResolver> = new Map();
 
         typeCandidates[typeName].forEach(typeCandidate => {
           const subschema = typeCandidate.transformedSubschema;
@@ -154,20 +155,24 @@ function createMergedTypes(
             fieldSelectionSets.set(subschema, parsedFieldSelectionSets);
           }
 
-          const resolver = createMergedTypeResolver(mergedTypeConfig);
-          const keyFn = mergedTypeConfig.key;
-          mergedTypeConfig.resolve = keyFn
-            ? (originalResult, context, info, subschema, selectionSet) => {
-                const key = keyFn(originalResult);
-                return resolver(originalResult, context, info, subschema, selectionSet, key);
-              }
-            : resolver;
+          const resolver = mergedTypeConfig.resolve ?? createMergedTypeResolver(mergedTypeConfig);
 
-          if (mergedTypeConfig.resolve != null) {
-            targetSubschemas.push(subschema);
-          } else {
+          if (resolver == null) {
             return;
           }
+
+          const keyFn = mergedTypeConfig.key;
+          resolvers.set(
+            subschema,
+            keyFn
+              ? (originalResult, context, info, subschema, selectionSet) => {
+                  const key = keyFn(originalResult);
+                  return resolver(originalResult, context, info, subschema, selectionSet, key);
+                }
+              : resolver
+          );
+
+          targetSubschemas.push(subschema);
 
           const type = subschema.transformedSchema.getType(typeName) as GraphQLObjectType | GraphQLInterfaceType;
           const fieldMap = type.getFields();
@@ -204,6 +209,7 @@ function createMergedTypes(
           fieldSelectionSets,
           uniqueFields: Object.create({}),
           nonUniqueFields: Object.create({}),
+          resolvers,
         };
 
         Object.keys(supportedBySubschemas).forEach(fieldName => {

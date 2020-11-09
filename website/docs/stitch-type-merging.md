@@ -544,7 +544,7 @@ const schema = stitchSchemas({
 });
 ```
 
-The `createMergedTypeResolver` helper accepts a `MergedTypeConfig` object and returns a default `MergedTypeResolver` for that _specific_ config. This resolver function can then be wrapped with additional behavior, and then assigned as a custom `resolve` method for the config.
+The `createMergedTypeResolver` helper accepts a `MergedTypeResolverOptions` object --consisting of the portion of the `MergedTypeConfig` related to resolver setup-- and returns the default `MergedTypeResolver` for that _specific_ config. This resolver function can then be wrapped with additional behavior, and then assigned as a custom `resolve` method for the config.
 
 ### Custom resolvers
 

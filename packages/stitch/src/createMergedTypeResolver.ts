@@ -1,13 +1,9 @@
 import { getNamedType, GraphQLOutputType, GraphQLList } from 'graphql';
-import { delegateToSchema, MergedTypeResolver, MergedTypeConfig } from '@graphql-tools/delegate';
+import { delegateToSchema, MergedTypeResolver, MergedTypeResolverOptions } from '@graphql-tools/delegate';
 import { batchDelegateToSchema } from '@graphql-tools/batch-delegate';
 
-export function createMergedTypeResolver(mergedTypeConfig: MergedTypeConfig): MergedTypeResolver {
-  const { resolve, fieldName, argsFromKeys, valuesFromResults, args } = mergedTypeConfig;
-
-  if (resolve != null) {
-    return resolve;
-  }
+export function createMergedTypeResolver(mergedTypeResolverOptions: MergedTypeResolverOptions): MergedTypeResolver {
+  const { fieldName, argsFromKeys, valuesFromResults, args } = mergedTypeResolverOptions;
 
   if (argsFromKeys != null) {
     return (originalResult, context, info, subschema, selectionSet, key) =>
@@ -28,16 +24,22 @@ export function createMergedTypeResolver(mergedTypeConfig: MergedTypeConfig): Me
       });
   }
 
-  return (originalResult, context, info, subschema, selectionSet) =>
-    delegateToSchema({
-      schema: subschema,
-      operation: 'query',
-      fieldName,
-      returnType: getNamedType(info.schema.getType(originalResult.__typename) ?? info.returnType) as GraphQLOutputType,
-      args: args(originalResult),
-      selectionSet,
-      context,
-      info,
-      skipTypeMerging: true,
-    });
+  if (args != null) {
+    return (originalResult, context, info, subschema, selectionSet) =>
+      delegateToSchema({
+        schema: subschema,
+        operation: 'query',
+        fieldName,
+        returnType: getNamedType(
+          info.schema.getType(originalResult.__typename) ?? info.returnType
+        ) as GraphQLOutputType,
+        args: args(originalResult),
+        selectionSet,
+        context,
+        info,
+        skipTypeMerging: true,
+      });
+  }
+
+  return undefined;
 }
