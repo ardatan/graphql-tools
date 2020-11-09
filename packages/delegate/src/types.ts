@@ -171,6 +171,7 @@ export interface MergedTypeConfig<K = any, V = any> {
   selectionSet?: string;
   fields?: Record<string, { selectionSet?: string }>;
   computedFields?: Record<string, { selectionSet?: string }>;
+  eagerReturn?: MergedTypeResolver;
   resolve?: MergedTypeResolver;
   fieldName?: string;
   args?: (originalResult: any) => Record<string, any>;

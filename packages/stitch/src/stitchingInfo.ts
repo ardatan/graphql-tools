@@ -6,22 +6,20 @@ import {
   isObjectType,
   isScalarType,
   getNamedType,
-  GraphQLOutputType,
   GraphQLInterfaceType,
   SelectionNode,
   print,
   isInterfaceType,
   isLeafType,
-  GraphQLList,
 } from 'graphql';
 
 import { parseSelectionSet, TypeMap, IResolvers, IFieldResolverOptions } from '@graphql-tools/utils';
 
-import { delegateToSchema, Subschema, SubschemaConfig, MergedTypeResolver } from '@graphql-tools/delegate';
-
-import { batchDelegateToSchema } from '@graphql-tools/batch-delegate';
+import { Subschema, SubschemaConfig } from '@graphql-tools/delegate';
 
 import { MergeTypeCandidate, MergedTypeInfo, StitchingInfo, MergeTypeFilter } from './types';
+
+import { defaultMergedTypeResolver } from './defaultMergedTypeResolver';
 
 export function createStitchingInfo(
   subschemaMap: Map<GraphQLSchema | SubschemaConfig, Subschema>,
@@ -156,64 +154,13 @@ function createMergedTypes(
             fieldSelectionSets.set(subschema, parsedFieldSelectionSets);
           }
 
-          const customResolve: MergedTypeResolver = mergedTypeConfig.resolve;
-
-          if (mergedTypeConfig.key != null) {
-            mergedTypeConfig.resolve = (originalResult, context, info, subschema, selectionSet) => {
-              const key: any = mergedTypeConfig.key(originalResult);
-              const customResult: any =
-                customResolve && customResolve(originalResult, context, info, subschema, selectionSet, key);
-
-              return customResult !== undefined
-                ? customResult
-                : batchDelegateToSchema({
-                    schema: subschema,
-                    operation: 'query',
-                    fieldName: mergedTypeConfig.fieldName,
-                    returnType: new GraphQLList(
-                      getNamedType(
-                        info.schema.getType(originalResult.__typename) ?? info.returnType
-                      ) as GraphQLOutputType
-                    ),
-                    key,
-                    argsFromKeys: mergedTypeConfig.argsFromKeys,
-                    valuesFromResults: mergedTypeConfig.valuesFromResults,
-                    selectionSet,
-                    context,
-                    info,
-                    skipTypeMerging: true,
-                  });
-            };
-
-            targetSubschemas.push(subschema);
-          } else if (mergedTypeConfig.fieldName != null) {
-            mergedTypeConfig.resolve = (originalResult, context, info, subschema, selectionSet) => {
-              const customResult: any =
-                customResolve && customResolve(originalResult, context, info, subschema, selectionSet);
-
-              return customResult !== undefined
-                ? customResult
-                : delegateToSchema({
-                    schema: subschema,
-                    operation: 'query',
-                    fieldName: mergedTypeConfig.fieldName,
-                    returnType: getNamedType(
-                      info.schema.getType(originalResult.__typename) ?? info.returnType
-                    ) as GraphQLOutputType,
-                    args: mergedTypeConfig.args(originalResult),
-                    selectionSet,
-                    context,
-                    info,
-                    skipTypeMerging: true,
-                  });
-            };
-
-            targetSubschemas.push(subschema);
-          } else if (mergedTypeConfig.resolve != null) {
-            targetSubschemas.push(subschema);
+          if (mergedTypeConfig.resolve == null) {
+            mergedTypeConfig.resolve = defaultMergedTypeResolver(mergedTypeConfig);
           }
 
-          if (mergedTypeConfig.resolve == null) {
+          if (mergedTypeConfig.resolve != null) {
+            targetSubschemas.push(subschema);
+          } else {
             return;
           }
 
