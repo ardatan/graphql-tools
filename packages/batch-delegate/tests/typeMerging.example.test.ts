@@ -264,7 +264,7 @@ describe('merging using type merging', () => {
           User: {
             selectionSet: '{ id }',
             fieldName: '_usersById',
-            args: (ids) => ({ ids }),
+            argsFromKeys: (ids) => ({ ids }),
             key: ({ id }) => id,
           },
           Product: {

@@ -171,10 +171,10 @@ export interface MergedTypeConfig<K = any, V = any> {
   selectionSet?: string;
   fields?: Record<string, { selectionSet?: string }>;
   computedFields?: Record<string, { selectionSet?: string }>;
+  key?: (originalResult: any) => K;
   resolve?: MergedTypeResolver;
   fieldName?: string;
   args?: (originalResult: any) => Record<string, any>;
-  key?: (originalResult: any) => K;
   argsFromKeys?: (keys: ReadonlyArray<K>) => Record<string, any>;
   valuesFromResults?: (results: any, keys: ReadonlyArray<K>) => Array<V>;
 }

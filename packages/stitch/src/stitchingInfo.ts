@@ -154,7 +154,14 @@ function createMergedTypes(
             fieldSelectionSets.set(subschema, parsedFieldSelectionSets);
           }
 
-          mergedTypeConfig.resolve = createMergedTypeResolver(mergedTypeConfig);
+          const resolver = createMergedTypeResolver(mergedTypeConfig);
+          const keyFn = mergedTypeConfig.key;
+          mergedTypeConfig.resolve = keyFn
+            ? (originalResult, context, info, subschema, selectionSet) => {
+                const key = keyFn(originalResult);
+                return resolver(originalResult, context, info, subschema, selectionSet, key);
+              }
+            : resolver;
 
           if (mergedTypeConfig.resolve != null) {
             targetSubschemas.push(subschema);

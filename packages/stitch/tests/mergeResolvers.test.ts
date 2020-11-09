@@ -91,8 +91,8 @@ describe('Merge resolvers', () => {
   it('works with wrapped resolvers', async () => {
     function wrappedResolve(mergedTypeConfig: MergedTypeConfig): MergedTypeConfig {
       const defaultResolve = createMergedTypeResolver(mergedTypeConfig);
-      mergedTypeConfig.resolve = async (obj, ctx, inf, sch, sel) => {
-        const result = await defaultResolve(obj, ctx, inf, sch, sel);
+      mergedTypeConfig.resolve = async (obj, ctx, inf, sch, sel, key) => {
+        const result = await defaultResolve(obj, ctx, inf, sch, sel, key);
         result.source += '->resolve';
         return result;
       };
