@@ -82,7 +82,7 @@ const gatewaySchema = stitchSchemas({
       }
     },
   ],
-  mergeTypes: true
+  mergeTypes: true // << optional in v7
 });
 ```
 
@@ -183,8 +183,7 @@ const gatewaySchema = stitchSchemas({
         }
       }
     },
-  ],
-  mergeTypes: true
+  ]
 });
 ```
 
@@ -274,8 +273,7 @@ const gatewaySchema = stitchSchemas({
         }
       }
     },
-  ],
-  mergeTypes: true
+  ]
 });
 ```
 
@@ -335,7 +333,6 @@ The default description (docstring) of each merged type and field comes from the
 ```js
 const gatewaySchema = stitchSchemas({
   subschemas: [...],
-  mergeTypes: true,
   typeMergingOptions: {
     typeDescriptionsMerger(candidates) {
       const candidate = candidates.find(({ type }) => !!type.description) || candidates.pop();
@@ -432,8 +429,7 @@ const gatewaySchema = stitchSchemas({
         argsFromKeys: (representations) => ({ representations }),
       }
     }
-  }],
-  mergeTypes: true,
+  }]
 });
 ```
 
@@ -490,52 +486,79 @@ Type merging generally maps to Federation concepts as follows:
 - `@external`: type merging implicitly expects types in each service to only implement the fields they provide.
 - `@provides`: type merging implicitly handles multiple services that implement the same fields, and automatically selects as many requested fields as possible from as few services as possible. Available sub-objects within a visited service are automatically selected.
 
+## Type resolvers
 
-## Custom merge resolvers
-
-The `merge` property of [subschema config](/docs/stitch-combining-schemas#subschema-configs) specifies how types are merged for a service, and provides a map of `MergedTypeConfig` objects:
-
-```ts
-export interface MergedTypeConfig {
-  selectionSet?: string;
-  resolve?: MergedTypeResolver;
-  fieldName?: string;
-  args?: (originalResult: any) => Record<string, any>;
-  key?: (originalResult: any) => K;
-  argsFromKeys?: (keys: ReadonlyArray<K>) => Record<string, any>;
-  valuesFromResults?: (results: any, keys: ReadonlyArray<K>) => Array<V>;
-}
-```
-
-All merged types across subschemas will delegate as necessary to other subschemas implementing the same type using the provided `resolve` function of type `MergedTypeResolver`:
+Similar to how GraphQL objects implement field resolvers, merging implements type-level resolvers for fetching and merging partial types. While these resolvers are setup automatically, advanced use cases may want to customize some or all of their default behavior. Merged type resolver methods are of type `MergedTypeResolver`:
 
 ```ts
 export type MergedTypeResolver = (
-  originalResult: any, // initial result from a previous subschema
-  context: Record<string, any>, // gateway context
-  info: GraphQLResolveInfo, // gateway info
-  subschema: GraphQLSchema | SubschemaConfig, // the additional implementing subschema from which to retrieve data
-  selectionSet: SelectionSetNode // the additional fields required from that subschema
+  originalObject: any, // initial object being merged onto
+  context: Record<string, any>, // gateway request context
+  info: GraphQLResolveInfo, // gateway request info
+  subschema: SubschemaConfig, // target subschema configuration
+  selectionSet: SelectionSetNode, // target subschema selection
+  key?: any // the batch key being requested
 ) => any;
 ```
 
-The default `resolve` implementation that powers type merging out of the box looks like this:
+### Wrapped resolvers
+
+Frequently we want to augment type resolution without fundamentally changing its behavior. This can be done by wrapping a default type resolver in a custom implementation. For example, adding [statsd instrumentation](https://github.com/msiebuhr/node-statsd-client) might look like this:
 
 ```js
-mergedTypeConfig.resolve = (originalResult, context, info, schemaOrSubschemaConfig, selectionSet) =>
-  delegateToSchema({
-    schema: schemaOrSubschemaConfig,
-    operation: 'query',
-    fieldName: mergedTypeConfig.fieldName,
-    returnType: getNamedType(info.returnType),
-    args: mergedTypeConfig.args(originalResult),
-    selectionSet,
-    context,
-    info,
-    skipTypeMerging: true,
-  });
+import { createMergedTypeResolver, stitchSchemas } from '@graphql-tools/stitch';
+import { SDC } from 'statsd-client';
+
+const statsd = new SDC({ ... });
+
+function createInstrumentedMergedTypeResolver(resolverOptions) {
+  const defaultResolve = createMergedTypeResolver(resolverOptions);
+  return async (obj, ctx, info, cfg, sel, key) => {
+    const startTime = process.hrtime();
+    try {
+      return await defaultResolve(obj, ctx, info, cfg, sel, key);
+    } finally {
+      statsd.timing(info.path.join('.'), process.hrtime(startTime));
+    }
+  };
+}
+
+const schema = stitchSchemas({
+  subschemas: [{
+    schema: widgetsSchema,
+    merge: {
+      Widget: {
+        selectionSet: '{ id }',
+        key: ({ id }) => id,
+        resolve: createInstrumentedMergedTypeResolver({
+          fieldName: 'widgets',
+          argsFromKeys: (ids) => ({ ids }),
+        }),
+      }
+    }
+  }]
+});
 ```
 
-This resolver switches to a batched implementation in the presence of a `mergedTypeConfig.key` function. You may also provide your own custom implementation, however... note the extremely important `skipTypeMerging` setting. Without this option, your gateway will recursively merge types forever!
+The `createMergedTypeResolver` helper accepts a subset of options that would otherwise be included directly on merged type configuration: `fieldName`, `args`, `argsFromKeys`, and `valuesFromResults`. A default `MergedTypeResolver` function is returned, and may be wrapped with additional behavior and then assigned as a custom `resolve` option for the type.
 
-Note that when using a custom `resolve` implementation, `fieldName` and `args` are not required. Secondary to an underlying implementation detail, however, `fieldName` must also be included, whenever ary fields are being computed.
+### Custom resolvers
+
+Alternatively, you may also provide completely custom resolver implementations for fetching types in non-standard ways. For example, fetching a merged object from a REST API might look like this:
+
+```js
+{
+  schema: widgetsSchema,
+  merge: {
+    Widget: {
+      selectionSet: '{ id }',
+      resolve: async (originalObject) => {
+        const mergeObject = await fetchViaREST(originalObject.id);
+        return { ...originalObject, ...mergeObject };
+      }
+    }
+  }
+}
+```
+
+When incorporating plain objects, always extend the provided `originalObject` to retain internal merge configuration. You may also return direct results from calling `delegateToSchema` and `batchDelegateToSchema` (see [schema extensions](/docs/stitch-schema-extensions#basic-example)), however&mdash;always provide these delegation methods with a `skipTypeMerging: true` option to prevent infinite recursion.

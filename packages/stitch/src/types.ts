@@ -10,7 +10,7 @@ import {
   GraphQLInputObjectType,
 } from 'graphql';
 import { ITypeDefinitions, TypeMap } from '@graphql-tools/utils';
-import { Subschema, SubschemaConfig } from '@graphql-tools/delegate';
+import { MergedTypeResolver, Subschema, SubschemaConfig } from '@graphql-tools/delegate';
 import { IExecutableSchemaDefinition } from '@graphql-tools/schema';
 
 export interface MergeTypeCandidate {
@@ -45,6 +45,7 @@ export interface MergedTypeInfo {
   typeMaps: Map<GraphQLSchema | SubschemaConfig, TypeMap>;
   selectionSets: Map<Subschema, SelectionSetNode>;
   fieldSelectionSets: Map<Subschema, Record<string, SelectionSetNode>>;
+  resolvers: Map<Subschema, MergedTypeResolver>;
 }
 
 export interface StitchingInfo {

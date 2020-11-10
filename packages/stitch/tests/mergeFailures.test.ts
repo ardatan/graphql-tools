@@ -222,7 +222,7 @@ describe('nullable merging', () => {
               selectionSet: '{ id }',
               fieldName: 'users',
               key: ({ id }) => id,
-              args: (ids) => ({ ids }),
+              argsFromKeys: (ids) => ({ ids }),
             }
           }
         },
@@ -233,7 +233,7 @@ describe('nullable merging', () => {
               selectionSet: '{ id }',
               fieldName: '_users',
               key: ({ id }) => id,
-              args: (ids) => ({ ids }),
+              argsFromKeys: (ids) => ({ ids }),
             }
           }
         },
