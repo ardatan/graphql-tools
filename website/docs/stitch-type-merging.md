@@ -82,7 +82,7 @@ const gatewaySchema = stitchSchemas({
       }
     },
   ],
-  mergeTypes: true
+  mergeTypes: true // << optional in v7
 });
 ```
 
@@ -183,8 +183,7 @@ const gatewaySchema = stitchSchemas({
         }
       }
     },
-  ],
-  mergeTypes: true
+  ]
 });
 ```
 
@@ -274,8 +273,7 @@ const gatewaySchema = stitchSchemas({
         }
       }
     },
-  ],
-  mergeTypes: true
+  ]
 });
 ```
 
@@ -335,7 +333,6 @@ The default description (docstring) of each merged type and field comes from the
 ```js
 const gatewaySchema = stitchSchemas({
   subschemas: [...],
-  mergeTypes: true,
   typeMergingOptions: {
     typeDescriptionsMerger(candidates) {
       const candidate = candidates.find(({ type }) => !!type.description) || candidates.pop();
@@ -432,8 +429,7 @@ const gatewaySchema = stitchSchemas({
         argsFromKeys: (representations) => ({ representations }),
       }
     }
-  }],
-  mergeTypes: true,
+  }]
 });
 ```
 
@@ -492,7 +488,7 @@ Type merging generally maps to Federation concepts as follows:
 
 ## Type resolvers
 
-Similar to how GraphQL objects implement field resolvers, merging implements type-level resolver methods. While these resolvers are setup automatically, advanced uses may want to customize some or all of their default behavior. Merged type resolver methods are of type `MergedTypeResolver`:
+Similar to how GraphQL objects implement field resolvers, merging implements type-level resolvers for fetching and merging partial types. While these resolvers are setup automatically, advanced use cases may want to customize some or all of their default behavior. Merged type resolver methods are of type `MergedTypeResolver`:
 
 ```ts
 export type MergedTypeResolver = (
@@ -507,7 +503,7 @@ export type MergedTypeResolver = (
 
 ### Wrapped resolvers
 
-Frequently we'll want to augment type resolution without fundamentally changing its behavior. This can be done by wrapping a default merged type resolver in a custom implementation. For example, adding [statsd instrumentation](https://github.com/msiebuhr/node-statsd-client) might look like this:
+Frequently we want to augment type resolution without fundamentally changing its behavior. This can be done by wrapping a default type resolver in a custom implementation. For example, adding [statsd instrumentation](https://github.com/msiebuhr/node-statsd-client) might look like this:
 
 ```js
 import { createMergedTypeResolver, stitchSchemas } from '@graphql-tools/stitch';
@@ -515,8 +511,8 @@ import { SDC } from 'statsd-client';
 
 const statsd = new SDC({ ... });
 
-function createInstrumentedMergedTypeResolver(mergedTypeConfig) {
-  const defaultResolve = createMergedTypeResolver(mergedTypeConfig);
+function createInstrumentedMergedTypeResolver(resolverOptions) {
+  const defaultResolve = createMergedTypeResolver(resolverOptions);
   return async (obj, ctx, info, cfg, sel, key) => {
     const startTime = process.hrtime();
     try {
@@ -544,11 +540,11 @@ const schema = stitchSchemas({
 });
 ```
 
-The `createMergedTypeResolver` helper accepts a `MergedTypeResolverOptions` object --consisting of the portion of the `MergedTypeConfig` related to resolver setup-- and returns the default `MergedTypeResolver` for that _specific_ config. This resolver function can then be wrapped with additional behavior, and then assigned as a custom `resolve` method for the config.
+The `createMergedTypeResolver` helper accepts a subset of options that would otherwise be included directly on merged type configuration: `fieldName`, `args`, `argsFromKeys`, and `valuesFromResults`. A default `MergedTypeResolver` function is returned, and may be wrapped with additional behavior and then assigned as a custom `resolve` option for the type.
 
 ### Custom resolvers
 
-Alternatively, you may provide completely custom resolver implementations for fetching types in non-standard ways. For example, fetching a merged object from a REST API might look like this:
+Alternatively, you may also provide completely custom resolver implementations for fetching types in non-standard ways. For example, fetching a merged object from a REST API might look like this:
 
 ```js
 {
