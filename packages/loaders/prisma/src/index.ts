@@ -31,7 +31,7 @@ export class PrismaLoader extends UrlLoader {
   }
 
   async load(prismaConfigFilePath: string, options: PrismaLoaderOptions) {
-    const { graceful, envVars = {} } = options;
+    const { graceful, envVars } = options;
     const home = homedir();
     const env = new Environment(home);
     await env.load();
