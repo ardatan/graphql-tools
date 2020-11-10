@@ -1,5 +1,11 @@
 # @graphql-tools/delegate
 
+## 7.0.5
+
+### Patch Changes
+
+- e50f80a3: enhance(stitch): custom merge resolvers
+
 ## 7.0.4
 
 ### Patch Changes
