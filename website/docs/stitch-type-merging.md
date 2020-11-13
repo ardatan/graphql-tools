@@ -102,11 +102,9 @@ type User {
 }
 ```
 
-Note that [subschema transforms](/docs/stitch-combining-schemas#adding-transforms) are applied prior to merging. That means transformed types will merge based on their _transformed_ names within the combined gateway schema.
-
 ### Types without a database
 
-It's logical to assume that each `userById` query has a backing database table used to lookup the requested user ID. However, this is frequently not the case! Here's a simple example that demonstrates how `User.posts` can be resolved without the posts service having any formal database concept of a User:
+It's logical to assume that each `userById` query has a backing database table used to lookup the requested user ID. However, this is frequently not the case. Here's a simple example that demonstrates how `User.posts` can be resolved without the posts service having any formal database concept of a User:
 
 ```js
 const postsData = [
@@ -147,6 +145,18 @@ const postsSchema = makeExecutableSchema({
 ```
 
 In this example, `userById` simply converts the submitted ID into stub record that gets resolved as the local `User` type.
+
+### Empty records
+
+The above example will always resolve a stubbed `User` record for _any_ requested ID. For example, requesting ID `23` would return the following:
+
+```js
+{ id: '23', posts: [] }
+```
+
+This fabricated result is necessary to fulfill the not-null requirement of the `posts:[Post]!` field. However, this makes the posts service awkwardly responsible for data known only by omission.
+
+A cleaner solution would be to loosen the field nullability requirement to `posts:[Post]`, at which time the service could simply return `null` for user IDs with no known post associations.
 
 ## Batching
 
@@ -277,7 +287,7 @@ const gatewaySchema = stitchSchemas({
 });
 ```
 
-Stubbed types are quick and easy to setup and effectively work as automatic [schema extensions](/docs/stitch-schema-extensions) (in fact, you might not need extensions!). A stubbed type may always be expanded with additional service-specific fields (see the [basic example](#basic-example)), however it requires a query in `merge` config as soon as it offers unique data.
+Stubbed types are quick and easy to setup and effectively work as automatic [schema extensions](/docs/stitch-schema-extensions) (in fact, you might not need extensions). A stubbed type may always be expanded with additional service-specific fields (see the [basic example](#basic-example)), however it requires a query in `merge` config as soon as it offers unique data.
 
 ## Merged interfaces
 
@@ -325,30 +335,6 @@ const layoutsSchema = makeExecutableSchema({
 ```
 
 In the above, both `Post` and `Section` will have a common interface of `{ id title url }` in the gateway schema. The difference in fields between the gateway schema and the layouts subschema will be translated automatically.
-
-## Merged descriptions
-
-The default description (docstring) of each merged type and field comes from the final definition encountered in the subschemas array. You may customize this by adding selection logic into `typeMergingOptions`. For example, these handlers will select the first non-blank description for each type and field:
-
-```js
-const gatewaySchema = stitchSchemas({
-  subschemas: [...],
-  typeMergingOptions: {
-    typeDescriptionsMerger(candidates) {
-      const candidate = candidates.find(({ type }) => !!type.description) || candidates.pop();
-      return candidate.type.description;
-    },
-    fieldConfigMerger(candidates) {
-      const configs = candidates.map(c => c.fieldConfig);
-      return configs.find(({ description }) => !!description) || configs.pop();
-    },
-    inputFieldConfigMerger(candidates) {
-      const configs = candidates.map(c => c.inputFieldConfig);
-      return configs.find(({ description }) => !!description) || configs.pop();
-    }
-  },
-});
-```
 
 ## Computed fields
 
@@ -482,9 +468,9 @@ While type merging offers [simpler patterns](#unidirectional-merges) with [compa
 Type merging generally maps to Federation concepts as follows:
 
 - `@key`: type merging's closest analog is the type-level `selectionSet` specified in merged type configuration. Unlike Federation though, merging is fully decentralized with no concept of an "origin" service.
-- `@requires`: directly comparable to type merging's `@computed` directive. However, merging is decentralized and may resolve required fields from any number of services.
+- `@requires`: directly comparable to type merging's `@computed` directive. However, merging is decentralized and may resolve computed fields from any number of services.
 - `@external`: type merging implicitly expects types in each service to only implement the fields they provide.
-- `@provides`: type merging implicitly handles multiple services that implement the same fields, and automatically selects as many requested fields as possible from as few services as possible. Available sub-objects within a visited service are automatically selected.
+- `@provides`: type merging implicitly handles multiple services that implement the same fields, and automatically selects as many requested fields as possible from as few services as possible. Requested child objects within a visited service are automatically selected.
 
 ## Type resolvers
 
@@ -540,7 +526,7 @@ const schema = stitchSchemas({
 });
 ```
 
-The `createMergedTypeResolver` helper accepts a subset of options that would otherwise be included directly on merged type configuration: `fieldName`, `args`, `argsFromKeys`, and `valuesFromResults`. A default `MergedTypeResolver` function is returned, and may be wrapped with additional behavior and then assigned as a custom `resolve` option for the type.
+The `createMergedTypeResolver` helper accepts a subset of options that would otherwise be included directly on merged type configuration: `fieldName`, `args`, `argsFromKeys`, and `valuesFromResults`. A default MergedTypeResolver function is returned, and may be wrapped with additional behavior and then assigned as a custom `resolve` option for the type.
 
 ### Custom resolvers
 

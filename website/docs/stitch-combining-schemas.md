@@ -6,35 +6,35 @@ sidebar_label: Combining schemas
 
 Schema stitching is the process of creating a single GraphQL gateway schema from multiple underlying GraphQL APIs.
 
-One of the main benefits of GraphQL is that we can query for all of our data in a single request from one schema. As that schema grows though, it may become cumbersome to manage it all in one codebase. It may become preferable to split the schema into seperate modules or microservices that can be developed and deployed independently. We may also want to integrate our own schema with third-party schemas.
+One of the main benefits of GraphQL is that we can query for all data in a single request to one schema. As that schema grows though, it may become preferable to break it up into seperate modules or microservices that can be developed independently. We may also want to integrate the schemas we own with third-party schemas, allowing mashups with external data.
 
-In these cases, `stitchSchemas` is used to combine multiple GraphQL schemas into one unified gateway schema that knows how to delegate parts of a query to the relevant underlying subschemas. These subschemas may be local GraphQL instances or APIs running on a remote server. They can even be third-party services, allowing us to create mashups with external data.
+In these cases, `stitchSchemas` is used to combine multiple GraphQL schemas into one unified gateway schema that knows how to delegate parts of a query to the relevant underlying subschemas. These subschemas may be local GraphQL instances or APIs running on remote servers.
 
 ## Getting started
 
-In this example we'll stitch together two very simple schemas. We'll be dealing with a system of users and "chirps"&mdash;or, small snippets of text that users can post.
+In this example we'll stitch together two very simple schemas. We'll be dealing with a system of users and posts.
 
 ```js
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { addMocksToSchema } from '@graphql-tools/mock';
 import { stitchSchemas } from '@graphql-tools/stitch';
 
-let chirpSchema = makeExecutableSchema({
+let postsSchema = makeExecutableSchema({
   typeDefs: `
-    type Chirp {
+    type Post {
       id: ID!
       text: String
       authorId: ID!
     }
 
     type Query {
-      chirpById(id: ID!): Chirp
-      chirpsByAuthorId(authorId: ID!): [Chirp]!
+      postById(id: ID!): Post
+      postsByAuthorId(authorId: ID!): [Post]!
     }
   `
 });
 
-let authorSchema = makeExecutableSchema({
+let usersSchema = makeExecutableSchema({
   typeDefs: `
     type User {
       id: ID!
@@ -48,37 +48,37 @@ let authorSchema = makeExecutableSchema({
 });
 
 // just mock the schemas for now to make them return dummy data
-chirpSchema = addMocksToSchema({ schema: chirpSchema });
-authorSchema = addMocksToSchema({ schema: authorSchema });
+postsSchema = addMocksToSchema({ schema: postsSchema });
+usersSchema = addMocksToSchema({ schema: usersSchema });
 
 // setup subschema configurations
-export const chirpSubschema = { schema: chirpSchema };
-export const authorSubschema = { schema: authorSchema };
+export const postsSubschema = { schema: postsSchema };
+export const usersSubschema = { schema: usersSchema };
 
 // build the combined schema
 export const gatewaySchema = stitchSchemas({
   subschemas: [
-    chirpSubschema,
-    authorSubschema,
+    postsSubschema,
+    usersSubschema,
   ]
 });
 ```
 
-This process builds two (mocked) GraphQL schemas, places them each into [subschema configuration](#subschema-configs) wrappers, and then passes the subschema configs to `stitchSchems` to produce one combined schema with the following root fields:
+This process builds two mocked GraphQL schemas, places them each into subschema configuration wrappers (discussed below), and then passes the subschemas to `stitchSchemas` to produce one combined schema with the following root fields:
 
 ```graphql
 type Query {
-  chirpById(id: ID!): Chirp
-  chirpsByAuthorId(authorId: ID!): [Chirp]!
+  postById(id: ID!): Post
+  postsByAuthorId(authorId: ID!): [Post]!
   userById(id: ID!): User
 }
 ```
 
-We now have a single gateway schema that allows data from either subschema to be requested in the same query!
+We now have a single gateway schema that allows data from either subschema to be requested in the same query.
 
-## Subschema Configs
+## Subschema configs
 
-In the example above, the extra "subschema" wrapper objects may look verbose at first glance, but they are actually basic implementations of the `SubschemaConfig` interface that accept several additional settings (discussed throughout this guide):
+In the example above, the extra "subschema" wrapper objects may look verbose at first glance, but they are actually basic implementations of the `SubschemaConfig` interface that accepts several additional settings (discussed throughout this guide):
 
 ```js
 export interface SubschemaConfig {
@@ -97,48 +97,92 @@ export interface SubschemaConfig {
 }
 ```
 
-Subschema config should _directly_ provide as many settings as possible to avoid unnecessary layers of delegation. For example, while `wrapSchema` _could_ be used to pre-wrap a schema with transforms and a remote executor, that would be far less efficient than providing the `schema`, `transforms`, and `executor` options directly to subschema config.
+Subschema config should _directly_ provide as many settings as possible to avoid unnecessary layers of delegation. For example, while we _could_ pre-wrap a subschema with transforms and a remote executor, that would be far less efficient than providing the `schema`, `transforms`, and `executor` options directly to subschema config.
 
-Also note that the original subschema config objects will need to be referenced again in other stitching contexts. With that in mind, you'll probably want to export your subschema configs from their module(s) so they may be referenced throughout your app.
+Also note that these subschema config objects may need to be referenced again in other stitching contexts, such as [schema extensions](/docs/stitch-schema-extensions). With that in mind, you may want to export your subschema configs from their module(s).
 
 ## Stitching remote schemas
 
-To include a remote schema in the combined gateway, we must provide subschema config for&mdash;at minimum&mdash;a schema and an executor that connects to the remote API:
+To include a remote schema in the combined gateway, we must provide at least the `schema` and `executor` subschema config options:
 
 ```js
 import { buildSchema } from 'graphql';
 import { linkToExecutor } from '@graphql-tools/links';
 
-export const chirpSubschema = {
-  schema: buildSchema(chirpTypeDefs),
-  executor: linkToExecutor(chirpServiceLink),
+export const postsSubschema = {
+  schema: buildSchema(postsServiceTypeDefs),
+  executor: linkToExecutor(postsServiceLink),
 };
 ```
 
-The remote schema's type definitions string may be obtained via introspection (see `introspectSchema`) or through your own internal protocol.
+* `schema`: this is a non-executable schema representing the remote API. The remote schema's SDL (schema definition language) may be obtained through a dedicated service such as the [federation service spec](https://www.apollographql.com/docs/federation/federation-spec/#query_service), or using [introspection](/docs/remote-schemas/#introspectschemaexecutor-context). Note that not all GraphQL servers enable introspection, and those that do will not include custom directives.
+* `executor`: is a generic method that performs requests to a remote schema. You may [write your own](/docs/remote-schemas#creating-an-executor), or use the `linkToExecutor` helper to wrap a [link package](https://www.npmjs.com/package/apollo-link-http). Subschema config uses the `executor` for query and mutation operations, and accepts a `subscriber` function for subscription operations.
 
-An executor is a generic method that performs requests to a remote schema. You may write your own, or use the `linkToExecutor` helper to wrap a link package such as [apollo-link-http](https://www.apollographql.com/docs/link/links/http/). Subschema config accepts an `executor` option for query and mutation operations, and a `subscriber` function for subscription operations. See the [remote schema](/docs/remote-schemas/) docs for more information.
+See [remote schemas](/docs/remote-schemas/) documentation for more related tools and information.
 
-_**For pre-version 5:** the old method of using [makeRemoteExecutableSchema](/docs/remote-schemas/) to create a local proxy of a remote schema still works. However, it adds an additional layer of delegation that can be avoided by sending settings directly to `stitchSchemas` via SubschemaConfig._
+## Duplicate types
 
-## Duplicate type definitions
+Stitching has two strategies for types duplicated across subschemas: a merge strategy (default), and an older binary strategy. You may select between these strategies using the `mergeTypes` option.
 
-By default, schema stitching will override type definitions that are duplicated across subschemas&mdash;always favoring the final definition of fields, arguments, and descriptions for a type found in the `subschemas` array. This works fine when subschemas implement identical versions of an object type. For divergent type definitions, you may now enable [type merging](/docs/stitch-type-merging) (as of GraphQL Tools 5) to smartly merge partial type definitions from across subschemas.
+### Merged types
+
+Duplicate type names are merged by default in GraphQL Tools v7. That means objects, interfaces, and input objects with the same name will have their fields consolidated from across schemas, and unions will consolidate their member types. The combined gateway schema will then smartly delegate portions of a request to the proper origin schema(s). See [type merging](/docs/stitch-type-merging/) for a comprehensive overview.
+
+Type merging only encounters conflicts on type-level descriptions (docstrings) and fields. By default, the final definition of a type description or field found in the subschemas array is used. You may customize this by adding selection logic to `typeMergingOptions`. For example, the following handlers will select the first non-blank description for each type and field encountered in the subschemas array:
+
+```js
+const gatewaySchema = stitchSchemas({
+  subschemas: [...],
+  mergeTypes: true, // << optional in v7
+  typeMergingOptions: {
+    typeDescriptionsMerger(candidates) {
+      const candidate = candidates.find(({ type }) => !!type.description) || candidates.pop();
+      return candidate.type.description;
+    },
+    fieldConfigMerger(candidates) {
+      const configs = candidates.map(c => c.fieldConfig);
+      return configs.find(({ description }) => !!description) || configs.pop();
+    },
+    inputFieldConfigMerger(candidates) {
+      const configs = candidates.map(c => c.inputFieldConfig);
+      return configs.find(({ description }) => !!description) || configs.pop();
+    }
+  },
+});
+```
+
+### Binary types
+
+By setting `mergeTypes: false`, only the final set of fields, arguments, and descriptions for a type found in the subschemas array will be used. Conflict resolution may be customized with an `onTypeConflict` handler:
+
+```js
+const gatewaySchema = stitchSchemas({
+  subschemas: [...],
+  mergeTypes: false,
+  onTypeConflict: (left, right, info) => {
+    return info.left.schema.version >= info.right.schema.version ? left : right;
+  }
+});
+```
+
+Practically speaking, binary resolution requires subschemas to implement identical versions of a type for parity.
 
 ## Adding transforms
 
-Another strategy to avoid conflicts while combining schemas is to modify one or more of the schemas using [transforms](/docs/schema-wrapping). Transforming allows a schema to be groomed in such ways as adding namespaces, renaming types, or removing fields (to name a few) prior to stitching it into the combined gateway schema. As of GraphQL Tools version 5, these transforms should be added directly to subschema config:
+Another strategy to avoid conflicts while combining schemas is to modify one or more of the schemas using [transforms](/docs/schema-wrapping#transform). Transforming allows a schema to be groomed in such ways as adding namespaces, renaming types, or removing fields (to name a few) prior to stitching it into the combined gateway schema. These transforms should be added directly to subschema config:
 
 ```js
 import { FilterRootFields, RenameTypes } from '@graphql-tools/wrap';
 
-const chirpSubschema = {
-  schema: chirpSchema,
+const postsSubschema = {
+  schema: postsSchema,
   transforms: [
-    new FilterRootFields((operation, rootField) => rootField !== 'chirpsByAuthorId'),
-    new RenameTypes((name) => `Chirp_${name}`),
+    new FilterRootFields((operation, rootField) => rootField !== 'postsByAuthorId'),
+    new RenameTypes((name) => `Post_${name}`),
   ],
 };
 ```
 
-In the example above, we transform the `chirpSchema` by removing the `chirpsByAuthorId` root field and adding a `Chirp_` prefix to all types. These modifications will only be present in the combined gateway schema.
+In the example above, we transform the `postsSchema` by removing the `postsByAuthorId` root field and adding a `Post_` prefix to all types in the schema. These modifications will only be present in the combined gateway schema.
+
+Note that when [merging types](#merged-types), all transforms are applied _prior_ to merging. That means transformed types will merge based on their transformed names within the combined gateway schema.
