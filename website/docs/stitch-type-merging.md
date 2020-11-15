@@ -148,13 +148,13 @@ In this example, the `postUserById` resolver simply converts a submitted user ID
 
 ### Null records
 
-The above example will always resolve a stubbed `User` record for _any_ requested ID. For example, requesting ID `7` (which has no associated posts) would return as:
+The above example will always resolve a stubbed `User` record for _any_ requested ID. For example, requesting ID `7` (which has no associated posts) would return:
 
 ```js
 { id: '7', posts: [] }
 ```
 
-This fabricated result fulfills the not-null requirement of the `posts:[Post]!` field. However, it also makes the posts service awkwardly responsible for data known only by omission. A cleaner solution would be to loosen schema nullability down to `posts:[Post]`, and then return `null` for unknown user IDs without associated posts. Null is always a valid merge object as long as the unique fields it fulfills are nullable.
+This fabricated record fulfills the not-null requirement of the `posts:[Post]!` field. However, it also makes the posts service awkwardly responsible for data it knows only by omission. A cleaner solution may be to loosen schema nullability down to `posts:[Post]`, and then return `null` for unknown user IDs without associated posts. Null is a valid mergable object as long as the unique fields it fulfills are nullable.
 
 ## Batching
 
