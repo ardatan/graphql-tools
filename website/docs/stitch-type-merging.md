@@ -31,7 +31,7 @@ let postsSchema = makeExecutableSchema({
 
     type Query {
       postById(id: ID!): Post
-      userById(id: ID!): User
+      postUserById(id: ID!): User
     }
   `
 });
@@ -65,7 +65,7 @@ const gatewaySchema = stitchSchemas({
       schema: postsSchema,
       merge: {
         User: {
-          fieldName: 'userById',
+          fieldName: 'postUserById',
           selectionSet: '{ id }',
           args: (originalObject) => ({ id: originalObject.id }),
         }
@@ -104,7 +104,7 @@ type User {
 
 ### Types without a database
 
-It's logical to assume that each `userById` query has a backing database table used to lookup the requested user ID. However, this is frequently not the case. Here's a simple example that demonstrates how `User.posts` can be resolved without the posts service having any formal database concept of a User:
+It's logical to assume that each `postUserById` query has a backing database table used to lookup the requested user ID. However, this is frequently not the case. Here's a simple example that demonstrates how `User.posts` can be resolved without the posts service having any formal database concept of a User:
 
 ```js
 const postsData = [
@@ -127,13 +127,13 @@ const postsSchema = makeExecutableSchema({
 
     type Query {
       postById(id: ID!): Post
-      userById(id: ID!): User
+      postUserById(id: ID!): User
     }
   `,
   resolvers: {
     Query: {
       postById: (root, { id }) => postsData.find(post => post.id === id),
-      userById: (root, { id }) => ({ id }),
+      postUserById: (root, { id }) => ({ id }),
     },
     User: {
       posts(user) {
@@ -144,7 +144,7 @@ const postsSchema = makeExecutableSchema({
 });
 ```
 
-In this example, the `userById` resolver simply converts a submitted user ID into stub record that gets resolved as the local `User` type.
+In this example, the `postUserById` resolver simply converts a submitted user ID into stub record that gets resolved as the local `User` type.
 
 ### Null records
 
@@ -158,9 +158,10 @@ This fabricated result fulfills the not-null requirement of the `posts:[Post]!` 
 
 ## Batching
 
-The basic example above queries for a single record each time it performs a merge, which is suboptimal when merging arrays of objects. Instead, we should batch many record requests together using array queries that may fetch many partials at once, the schema for which looks like this:
+The basic example above queries for a single record each time it performs a merge, which is suboptimal when merging arrays of objects. Instead, we should batch many record requests together using array queries that may fetch many partials at once, the schema for which would be:
 
 ```graphql
+postUsersByIds(ids: [ID!]!): [User]!
 usersByIds(ids: [ID!]!): [User]!
 ```
 
@@ -173,7 +174,7 @@ const gatewaySchema = stitchSchemas({
       schema: postsSchema,
       merge: {
         User: {
-          fieldName: 'usersByIds',
+          fieldName: 'postUsersByIds',
           selectionSet: '{ id }',
           key: ({ id }) => id,
           argsFromKeys: (ids) => ({ ids }),
@@ -204,7 +205,7 @@ A `valuesFromResults` method may also be provided to map the raw query result in
   batchingOptions: { ... },
   merge: {
     User: {
-      fieldName: 'usersByIds',
+      fieldName: 'postUsersByIds',
       selectionSet: '{ id }',
       key: ({ id }) => id,
       argsFromKeys: (ids) => ({ ids }),
@@ -546,10 +547,3 @@ Alternatively, you may provide completely custom resolver implementations for fe
 ```
 
 When incorporating plain objects, always extend the provided `originalObject` to retain internal merge configuration. You may also return direct calls to `delegateToSchema` and `batchDelegateToSchema` (as described for [schema extensions](/docs/stitch-schema-extensions#basic-example)), however&mdash;always provide these delegation methods with a `skipTypeMerging: true` option to prevent infinite recursion.
-
-## Error handling
-
-Merging integrates both fetched objects _and their associated errors_. That means an error returned by a subschema in one position will be mapped to its corresponding output position within the final results. All told, providing quality errors from a stitched schema is relatively seamless following some basic guidelines:
-
-1. Make subschemas return errors for missing and invalid records.
-2. Assure all errors provided by subschemas have a `path`.

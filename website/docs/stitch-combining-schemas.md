@@ -16,7 +16,6 @@ In this example we'll stitch together two very simple schemas. We'll be dealing 
 
 ```js
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { addMocksToSchema } from '@graphql-tools/mock';
 import { stitchSchemas } from '@graphql-tools/stitch';
 
 let postsSchema = makeExecutableSchema({
@@ -24,14 +23,15 @@ let postsSchema = makeExecutableSchema({
     type Post {
       id: ID!
       text: String
-      authorId: ID!
+      userId: ID!
     }
 
     type Query {
       postById(id: ID!): Post
-      postsByAuthorId(authorId: ID!): [Post]!
+      postsByUserId(userId: ID!): [Post]!
     }
-  `
+  `,
+  resolvers: { ... }
 });
 
 let usersSchema = makeExecutableSchema({
@@ -44,12 +44,9 @@ let usersSchema = makeExecutableSchema({
     type Query {
       userById(id: ID!): User
     }
-  `
+  `,
+  resolvers: { ... }
 });
-
-// just mock the schemas for now to make them return dummy data
-postsSchema = addMocksToSchema({ schema: postsSchema });
-usersSchema = addMocksToSchema({ schema: usersSchema });
 
 // setup subschema configurations
 export const postsSubschema = { schema: postsSchema };
@@ -64,12 +61,12 @@ export const gatewaySchema = stitchSchemas({
 });
 ```
 
-This process builds two mocked GraphQL schemas, places them each into subschema configuration wrappers (discussed below), and then passes the subschemas to `stitchSchemas` to produce one combined schema with the following root fields:
+This process builds two GraphQL schemas, places them each into subschema configuration wrappers (discussed below), and then passes the subschemas to `stitchSchemas` to produce one combined schema with the following root fields:
 
 ```graphql
 type Query {
   postById(id: ID!): Post
-  postsByAuthorId(authorId: ID!): [Post]!
+  postsByUserId(userId: ID!): [Post]!
   userById(id: ID!): User
 }
 ```
@@ -115,20 +112,20 @@ export const postsSubschema = {
 };
 ```
 
-* `schema`: this is a non-executable schema representing the remote API. The remote schema's SDL (schema definition language) may be obtained through a dedicated service such as the [federation service spec](https://www.apollographql.com/docs/federation/federation-spec/#query_service), or using [introspection](/docs/remote-schemas/#introspectschemaexecutor-context). Note that not all GraphQL servers enable introspection, and those that do will not include custom directives.
+* `schema`: this is a non-executable schema representing the remote API. The remote schema's SDL (schema definition language) may be obtained through a dedicated service (similar to the [federation service spec](https://www.apollographql.com/docs/federation/federation-spec/#query_service)), or using [introspection](/docs/remote-schemas/#introspectschemaexecutor-context). Note that not all GraphQL servers enable introspection, and those that do will not include custom directives.
 * `executor`: is a generic method that performs requests to a remote schema. You may [write your own](/docs/remote-schemas#creating-an-executor), or use the `linkToExecutor` helper to wrap a [link package](https://www.npmjs.com/package/apollo-link-http). Subschema config uses the `executor` for query and mutation operations, and accepts a `subscriber` function for subscription operations.
 
 See [remote schemas](/docs/remote-schemas/) documentation for more related tools and information.
 
 ## Duplicate types
 
-Stitching has two strategies for types duplicated across subschemas: a merge strategy (default), and an older binary strategy. You may select between these strategies using the `mergeTypes` option.
+Stitching has two strategies for handling types duplicated across subschemas: a merge strategy (default), and an older binary strategy. You may select between these strategies using the `mergeTypes` option.
 
 ### Merged types
 
-Duplicate type names are merged by default in GraphQL Tools v7. That means objects, interfaces, and input objects with the same name will have their fields consolidated from across schemas, and unions will consolidate their member types. The combined gateway schema will then smartly delegate portions of a request to the proper origin schema(s). See [type merging](/docs/stitch-type-merging/) for a comprehensive overview.
+Duplicate type names are merged by default in GraphQL Tools v7. That means objects, interfaces, and input objects with the same name will have their fields consolidated from across subschemas, and unions will consolidate all member types. The combined gateway schema will then smartly delegate portions of a request to the proper origin schema(s). See [type merging guide](/docs/stitch-type-merging/) for a comprehensive overview.
 
-Type merging only encounters conflicts on type-level descriptions (docstrings) and fields. By default, the final definition of a type description or field found in the subschemas array is used. You may customize this by adding selection logic to `typeMergingOptions`. For example, the following handlers will select the first non-blank description for each type and field encountered in the subschemas array:
+Type merging will only encounter conflicts on fields and type-level descriptions. By default, the final definition of a field or type description found in the subschemas array is used. You may customize this with `typeMergingOptions` selection logic. For example, the following handlers will select the first non-blank description for each type and field encountered in the subschemas array:
 
 ```js
 const gatewaySchema = stitchSchemas({
@@ -177,12 +174,32 @@ import { FilterRootFields, RenameTypes } from '@graphql-tools/wrap';
 const postsSubschema = {
   schema: postsSchema,
   transforms: [
-    new FilterRootFields((operation, rootField) => rootField !== 'postsByAuthorId'),
+    new FilterRootFields((operation, rootField) => rootField !== 'postsByUserId'),
     new RenameTypes((name) => `Post_${name}`),
   ],
 };
 ```
 
-In the example above, we transform the `postsSchema` by removing the `postsByAuthorId` root field and adding a `Post_` prefix to all types in the schema. These modifications will only be present in the combined gateway schema.
+In the example above, we transform the `postsSchema` by removing the `postsByUserId` root field and adding a `Post_` prefix to all types in the schema. These modifications will only be present in the combined gateway schema.
 
 Note that when [merging types](#merged-types), all transforms are applied _prior_ to merging. That means transformed types will merge based on their transformed names within the combined gateway schema.
+
+## Error handling
+
+Whether you're [merging types](/docs/stitch-type-merging), using [schema extensions](/docs/stitch-schema-extensions), or simply combining schemas, any errors returned by a subschema will flow through the stitching process and report at their mapped output positions. It's fairly seamless to provide quality errors from a stitched schema by following some basic guidelines:
+
+- **Report errors!** Having a subschema return `null` without an error for missing or failed records is a poor development experience to begin with. This omission will compound when unexpected values generate misleading failures in gateway stitching. Report [proper GraphQL errors](https://spec.graphql.org/June2018/#sec-Errors) to contexualize failures in subschemas, and by extension, within the stitched schema.
+
+- **Map errors to array positions**. When returning arrays of records (a common pattern in [batch loading](/docs/stitch-type-merging#batching)), make sure to return errors for specific array positions rather than erroring out the entire array. For example, here's an array resolver:
+
+```js
+posts() {
+  return [
+    { id: '1', ... },
+    new NotFoundError(),
+    { id: '3', ... },
+  ];
+}
+```
+
+- **Assure valid error paths**. The [GraphQL errors spec](https://spec.graphql.org/June2018/#sec-Errors) prescribes a `path` attribute mapping an error to its corresponding document position. Stitching uses these paths to remap subschema errors into the combined result. While GraphQL libraries should automatically configure this `path` for you, the accuracy [may vary by programming language](https://github.com/rmosolgo/graphql-ruby/issues/3193).
