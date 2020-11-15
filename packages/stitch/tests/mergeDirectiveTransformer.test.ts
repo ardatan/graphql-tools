@@ -14,6 +14,18 @@ interface PreparsedMergeArgs {
   expansions?: Record<string, string>;
 }
 
+function parseMergeArgs() {
+  //preparseMergeArgs
+  //parse resultant args, extractVariables and obtain map of variable names to paths
+  //update expansions record to index by paths rather than variable names
+  // if there are expansions
+    // for each expansion
+      //parse args as input value
+    // collect all variable values to see what key is required
+    // construct an argsToKeys function
+  // if there are no expansions...
+}
+
 function parseInputValue(inputValue: string): ValueNode {
   const query = parse(`{ parse(parse: ${inputValue}) { __typename } }`, { noLocation: true });
   return ((query.definitions[0] as OperationDefinitionNode).selectionSet.selections[0] as FieldNode).arguments[0].value;
