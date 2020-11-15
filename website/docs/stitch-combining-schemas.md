@@ -119,13 +119,13 @@ See [remote schemas](/docs/remote-schemas/) documentation for more related tools
 
 ## Duplicate types
 
-Stitching has two strategies for handling types duplicated across subschemas: a merge strategy (default), and an older binary strategy. You may select between these strategies using the `mergeTypes` option.
+Stitching has two strategies for handling types duplicated across subschemas: an automatic merge strategy (default), and an older manual resolution strategy. You may select between these strategies using the `mergeTypes` option.
 
-### Merged types
+### Automatic merge
 
-Duplicate type names are merged by default in GraphQL Tools v7. That means objects, interfaces, and input objects with the same name will have their fields consolidated from across subschemas, and unions will consolidate all member types. The combined gateway schema will then smartly delegate portions of a request to the proper origin schema(s). See [type merging guide](/docs/stitch-type-merging/) for a comprehensive overview.
+Types with the same name are automatically merged by default in GraphQL Tools v7. That means objects, interfaces, and input objects with the same name will have their fields consolidated from across subschemas, and unions will consolidate all member types. The combined gateway schema will then smartly delegate portions of a request to the proper origin subschema(s). See [type merging guide](/docs/stitch-type-merging/) for a comprehensive overview.
 
-Type merging will only encounter conflicts on fields and type-level descriptions. By default, the final definition of a field or type description found in the subschemas array is used. You may customize this with `typeMergingOptions` selection logic. For example, the following handlers will select the first non-blank description for each type and field encountered in the subschemas array:
+Automatic merging will only encounter conflicts on fields and type descriptions. By default, the final definition of a field or type description found in the subschemas array is used. You may customize this selection logic in `typeMergingOptions`:
 
 ```js
 const gatewaySchema = stitchSchemas({
@@ -148,9 +148,11 @@ const gatewaySchema = stitchSchemas({
 });
 ```
 
-### Binary types
+In the example above, the first non-blank description encountered for each type and field in the subschemas array will be used.
 
-By setting `mergeTypes: false`, only the final set of fields, arguments, and descriptions for a type found in the subschemas array will be used. Conflict resolution may be customized with an `onTypeConflict` handler:
+### Manual resolution
+
+By setting `mergeTypes: false`, only the final description and fields for a type found in the subschemas array will be used. You may manually resolve differences between conflicting types with an `onTypeConflict` handler:
 
 ```js
 const gatewaySchema = stitchSchemas({
@@ -162,11 +164,9 @@ const gatewaySchema = stitchSchemas({
 });
 ```
 
-Practically speaking, binary resolution requires subschemas to implement identical versions of a type for parity.
-
 ## Adding transforms
 
-Another strategy to avoid conflicts while combining schemas is to modify one or more of the schemas using [transforms](/docs/schema-wrapping#transform). Transforming allows a schema to be groomed in such ways as adding namespaces, renaming types, or removing fields (to name a few) prior to stitching it into the combined gateway schema. These transforms should be added directly to subschema config:
+Another strategy to avoid conflicts while combining schemas is to modify one or more of the subschemas using [transforms](/docs/schema-wrapping#transform). Transforming allows a schema to be groomed in such ways as adding namespaces, renaming types, or removing fields (to name a few) prior to stitching it into the combined gateway schema. These transforms should be added directly to subschema config:
 
 ```js
 import { FilterRootFields, RenameTypes } from '@graphql-tools/wrap';
@@ -182,15 +182,15 @@ const postsSubschema = {
 
 In the example above, we transform the `postsSchema` by removing the `postsByUserId` root field and adding a `Post_` prefix to all types in the schema. These modifications will only be present in the combined gateway schema.
 
-Note that when [merging types](#merged-types), all transforms are applied _prior_ to merging. That means transformed types will merge based on their transformed names within the combined gateway schema.
+Note that when [automatically merging types](#automatic-merge), all transforms are applied _prior_ to merging. That means transformed types will merge based on their transformed names within the combined gateway schema.
 
 ## Error handling
 
 Whether you're [merging types](/docs/stitch-type-merging), using [schema extensions](/docs/stitch-schema-extensions), or simply combining schemas, any errors returned by a subschema will flow through the stitching process and report at their mapped output positions. It's fairly seamless to provide quality errors from a stitched schema by following some basic guidelines:
 
-- **Report errors!** Having a subschema return `null` without an error for missing or failed records is a poor development experience to begin with. This omission will compound when unexpected values generate misleading failures in gateway stitching. Report [proper GraphQL errors](https://spec.graphql.org/June2018/#sec-Errors) to contexualize failures in subschemas, and by extension, within the stitched schema.
+1. **Report errors!** Having a subschema return `null` without an error for missing or failed records is a poor development experience to begin with. This omission will compound should an unexpected value produce a misleading failure in gateway stitching. Reporting [proper GraphQL errors](https://spec.graphql.org/June2018/#sec-Errors) will contexualize failures in subschemas, and by extension, within the stitched schema.
 
-- **Map errors to array positions**. When returning arrays of records (a common pattern in [batch loading](/docs/stitch-type-merging#batching)), make sure to return errors for specific array positions rather than erroring out the entire array. For example, here's an array resolver:
+2. **Map errors to array positions**. When returning arrays of records (a common pattern while [batch loading](/docs/stitch-type-merging#batching)), make sure to return errors for specific array positions rather than erroring out the entire array. For example, an array should be resolved as:
 
 ```js
 posts() {
@@ -202,4 +202,4 @@ posts() {
 }
 ```
 
-- **Assure valid error paths**. The [GraphQL errors spec](https://spec.graphql.org/June2018/#sec-Errors) prescribes a `path` attribute mapping an error to its corresponding document position. Stitching uses these paths to remap subschema errors into the combined result. While GraphQL libraries should automatically configure this `path` for you, the accuracy [may vary by programming language](https://github.com/rmosolgo/graphql-ruby/issues/3193).
+3. **Assure valid error paths**. The [GraphQL errors spec](https://spec.graphql.org/June2018/#sec-Errors) prescribes a `path` attribute mapping an error to its corresponding document position. Stitching uses these paths to remap subschema errors into the combined result. While GraphQL libraries should automatically configure this `path` for you, the accuracy [may vary by programming language](https://github.com/rmosolgo/graphql-ruby/issues/3193).

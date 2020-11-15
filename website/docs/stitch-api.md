@@ -48,8 +48,8 @@ export type OnTypeConflict = (
 - `typeDefs`: strings or parsed documents that contain additional types or type extensions. Type extensions are always applied last.
 - `resolvers`: accepts [standard resolvers](/docs/resolvers/) with the addition of specifying a [`selectionSet`](/docs/stitch-schema-extensions#selectionset).
 - `mergeTypes`: specifies a strategy for [handling duplicated types](/docs/stitch-combining-schemas#duplicate-types).
-- `typeMergingOptions`: allows customization of [type merging](/docs/stitch-combining-schemas#merged-types).
-- `onTypeConflict`: allows customization of [binary type selection](/docs/stitch-combining-schemas#binary-types).
+- `typeMergingOptions`: allows customization of [automatic type merging](/docs/stitch-combining-schemas#automatic-merge).
+- `onTypeConflict`: allows customization of [manual type resolution](/docs/stitch-combining-schemas#manual-resolution).
 
 ### createMergedTypeResolver
 
