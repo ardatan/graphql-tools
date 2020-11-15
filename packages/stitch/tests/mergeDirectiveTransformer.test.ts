@@ -1,75 +1,96 @@
-import { DocumentNode, FieldNode, Kind, OperationDefinitionNode, parse, print, visit } from "graphql";
+import {
+  FieldNode,
+  Kind,
+  ObjectFieldNode,
+  OperationDefinitionNode,
+  parse,
+  ValueNode,
+  VariableNode,
+  visit
+ } from "graphql";
 
 interface PreparsedMergeArgs {
   args: string;
   expansions?: Record<string, string>;
 }
 
-function extractVariables(arg: string): { arg: string; variables: Record<string, string> } {
-  const query = parse(`{ parse(parse: ${arg}) { __typename } }`, { noLocation: true });
+function parseInputValue(inputValue: string): ValueNode {
+  const query = parse(`{ parse(parse: ${inputValue}) { __typename } }`, { noLocation: true });
+  return ((query.definitions[0] as OperationDefinitionNode).selectionSet.selections[0] as FieldNode).arguments[0].value;
+}
 
+function extractVariables(inputValue: ValueNode): { inputValue: ValueNode; variables: Record<string, string> } {
   const path: Array<string | number> = [];
   const variables = Object.create(null);
-  const newQuery: DocumentNode = visit(query, {
-    [Kind.OBJECT]: {
-      enter: (_node, key) => {
-        if (typeof key === 'number') {
-          path.push(key);
-        }
-      },
-      leave: (_node, key) => {
-        if (typeof key === 'number') {
-          path.pop();
-        }
-      },
+
+  const keyPathVisitor = {
+    enter: (_node: any, key: string | number) => {
+      if (typeof key === 'number') {
+        path.push(key);
+      }
     },
-    [Kind.LIST]: {
-      enter: (_node, key) => {
-        if (typeof key === 'number') {
-          path.push(key);
-        }
-      },
-      leave: (_node, key) => {
-        if (typeof key === 'number') {
-          path.pop();
-        }
-      },
-    },
-    [Kind.OBJECT_FIELD]: {
-      enter: (node) => {
-        path.push(node.name.value);
-      },
-      leave: () => {
+    leave: (_node: any, key: string | number) => {
+      if (typeof key === 'number') {
         path.pop();
-      },
+      }
     },
-    [Kind.VARIABLE]: {
-      enter: (node, key) => {
-        if (typeof key === 'number') {
-          variables[node.name.value] = `${path.join('.')}.${key}`;
-        } else {
-          variables[node.name.value] = path.join('.');
-        }
-        return {
-          kind: Kind.NULL,
-        };
-      },
+  };
+
+  const fieldPathVisitor = {
+    enter: (node: ObjectFieldNode) => {
+      path.push(node.name.value);
     },
+    leave: () => {
+      path.pop();
+    },
+  };
+
+  const variableVisitor = {
+    enter: (node: VariableNode, key: string | number) => {
+      if (typeof key === 'number') {
+        variables[node.name.value] = `${path.join('.')}.${key}`;
+      } else {
+        variables[node.name.value] = path.join('.');
+      }
+      return {
+        kind: Kind.NULL,
+      };
+    },
+  };
+
+  const newInputValue: ValueNode = visit(inputValue, {
+    [Kind.OBJECT]: keyPathVisitor,
+    [Kind.LIST]: keyPathVisitor,
+    [Kind.OBJECT_FIELD]: fieldPathVisitor,
+    [Kind.VARIABLE]: variableVisitor,
   });
 
-  const newArg = ((newQuery.definitions[0] as OperationDefinitionNode).selectionSet.selections[0] as FieldNode).arguments[0].value;
-
   return {
-    arg: print(newArg),
+    inputValue: newInputValue,
     variables,
   };
 }
 
-describe('can extractVariables', () => {
-  test('return arg if no variables present', () => {
-    const arg = `{ outer: [{ inner: [$test1, 2]}, {inner: [3, $test4] }] }`;
-    const { arg: newArg, variables} = extractVariables(arg);
-    expect(newArg).toEqual(`{outer: [{inner: [null, 2]}, {inner: [3, null]}]}`);
+describe('can extract variables', () => {
+  test('return unmodified input value if no variables present', () => {
+    const str = `{ outer: [{ inner: [1, 2]}, {inner: [3, 4] }] }`;
+    const inputValue = parseInputValue(str);
+    const { inputValue: newInputValue, variables} = extractVariables(inputValue);
+
+    const expectedInputValue = parseInputValue(`{ outer: [{ inner: [1, 2]}, { inner: [3, 4] }] }`);
+
+    expect(newInputValue).toEqual(expectedInputValue);
+    expect(variables).toEqual({});
+  });
+
+  test('return replaced input value and record with variable names and values', () => {
+    const str = `{ outer: [{ inner: [$test1, 2]}, {inner: [3, $test4] }] }`;
+    const inputValue = parseInputValue(str);
+    const { inputValue: newInputValue, variables} = extractVariables(inputValue);
+
+    const expectedInputValue = parseInputValue(`{ outer: [{ inner: [null, 2]}, { inner: [3, null] }] }`);
+
+    expect(newInputValue).toEqual(expectedInputValue);
     expect(variables).toEqual({
       test1: 'outer.0.inner.0',
       test4: 'outer.1.inner.1',
