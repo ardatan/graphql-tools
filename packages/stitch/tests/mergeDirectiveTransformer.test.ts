@@ -1,9 +1,7 @@
 import {
-  FieldNode,
   Kind,
   ObjectFieldNode,
-  OperationDefinitionNode,
-  parse,
+  parseValue,
   ValueNode,
   VariableNode,
   visit
@@ -24,11 +22,6 @@ function parseMergeArgs() {
     // collect all variable values to see what key is required
     // construct an argsToKeys function
   // if there are no expansions...
-}
-
-function parseInputValue(inputValue: string): ValueNode {
-  const query = parse(`{ parse(parse: ${inputValue}) { __typename } }`, { noLocation: true });
-  return ((query.definitions[0] as OperationDefinitionNode).selectionSet.selections[0] as FieldNode).arguments[0].value;
 }
 
 function extractVariables(inputValue: ValueNode): { inputValue: ValueNode; variables: Record<string, string> } {
@@ -86,10 +79,10 @@ function extractVariables(inputValue: ValueNode): { inputValue: ValueNode; varia
 describe('can extract variables', () => {
   test('return unmodified input value if no variables present', () => {
     const str = `{ outer: [{ inner: [1, 2]}, {inner: [3, 4] }] }`;
-    const inputValue = parseInputValue(str);
+    const inputValue = parseValue(str, { noLocation: true });
     const { inputValue: newInputValue, variables} = extractVariables(inputValue);
 
-    const expectedInputValue = parseInputValue(`{ outer: [{ inner: [1, 2]}, { inner: [3, 4] }] }`);
+    const expectedInputValue = parseValue(`{ outer: [{ inner: [1, 2]}, { inner: [3, 4] }] }`, { noLocation: true });
 
     expect(newInputValue).toEqual(expectedInputValue);
     expect(variables).toEqual({});
@@ -97,10 +90,10 @@ describe('can extract variables', () => {
 
   test('return replaced input value and record with variable names and values', () => {
     const str = `{ outer: [{ inner: [$test1, 2]}, {inner: [3, $test4] }] }`;
-    const inputValue = parseInputValue(str);
+    const inputValue = parseValue(str, { noLocation: true });
     const { inputValue: newInputValue, variables} = extractVariables(inputValue);
 
-    const expectedInputValue = parseInputValue(`{ outer: [{ inner: [null, 2]}, { inner: [3, null] }] }`);
+    const expectedInputValue = parseValue(`{ outer: [{ inner: [null, 2]}, { inner: [3, null] }] }`, { noLocation: true });
 
     expect(newInputValue).toEqual(expectedInputValue);
     expect(variables).toEqual({
