@@ -48,7 +48,7 @@
     "@types/jest": "26.0.15",
     "@types/node": "14.14.7",
     "@typescript-eslint/eslint-plugin": "4.6.0",
-    "@typescript-eslint/parser": "4.6.1",
+    "@typescript-eslint/parser": "4.7.0",
     "@ardatan/bob-the-bundler": "1.2.2",
     "eslint": "7.13.0",
     "eslint-config-prettier": "6.15.0",
