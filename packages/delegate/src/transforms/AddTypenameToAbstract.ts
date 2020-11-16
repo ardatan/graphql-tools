@@ -30,6 +30,8 @@ export default class AddTypenameToAbstract implements Transform {
 
 function addTypenameToAbstract(targetSchema: GraphQLSchema, document: DocumentNode): DocumentNode {
   const typeInfo = new TypeInfo(targetSchema);
+  const TYPE_NAME = '__typename';
+
   return visit(
     document,
     visitWithTypeInfo(typeInfo, {
@@ -37,13 +39,20 @@ function addTypenameToAbstract(targetSchema: GraphQLSchema, document: DocumentNo
         const parentType: GraphQLType = typeInfo.getParentType();
         let selections = node.selections;
         if (parentType != null && isAbstractType(parentType)) {
-          selections = selections.concat({
-            kind: Kind.FIELD,
-            name: {
-              kind: Kind.NAME,
-              value: '__typename',
-            },
+          const hasTypename = selections.some(selectionNode => {
+            const name = selectionNode['name'] || {};
+            return selectionNode.kind === Kind.FIELD && name.kind === Kind.NAME && name.value === TYPE_NAME;
           });
+
+          if (!hasTypename) {
+            selections = selections.concat({
+              kind: Kind.FIELD,
+              name: {
+                kind: Kind.NAME,
+                value: TYPE_NAME,
+              },
+            });
+          }
         }
 
         if (selections !== node.selections) {
