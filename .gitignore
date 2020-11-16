@@ -74,3 +74,4 @@ junit.xml
 *.tgz
 
 package-lock.json
+website/yarn.lock

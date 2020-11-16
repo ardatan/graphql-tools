@@ -4,107 +4,30 @@ title: Stitching API
 description: Stitching API
 ---
 
-## API
+### stitchSchemas
+
+This is the main function that implements schema stitching. It accepts all the same arguments as [`makeExecutableSchema`](/docs/generate-schema/), and the additions below.
 
 ```ts
-export interface SubschemaConfig = {
-  schema: GraphQLSchema;
-  rootValue?: Record<string, any>;
-  executor?: Executor;
-  subscriber?: Subscriber;
-  transforms?: Array<Transform>;
-};
-
-export interface Subschema extends SubschemaConfig {
-  transformedSchema: GraphQLSchema;
-}
-
 stitchSchemas({
-  subschemas: Array<GraphQLSchema | SubschemaConfig>;
-  types: Array<GraphQLNamedType>;
-  typeDefs: string | DocumentNode;
-  resolvers?: Array<IResolvers> | IResolvers;
-  onTypeConflict?: (
-    left: GraphQLNamedType,
-    right: GraphQLNamedType,
-    info?: {
-      left: {
-        subschema?: GraphQLSchema | SubschemaConfig;
-        transformedSubschema?: Subschema;
-      };
-      right: {
-        subschema?: GraphQLSchema | SubschemaConfig;
-        transformedSubschema?: Subschema;
-      };
-    },
-  ) => GraphQLNamedType;
-})
-```
+  subschemas?: Array<GraphQLSchema | SubschemaConfig | Array<SubschemaConfig>>;
+  types?: Array<GraphQLNamedType>;
+  typeDefs?: ITypeDefinitions;
+  resolvers?: IResolvers<any, TContext> | Array<IResolvers<any, TContext>>;
+  mergeDirectives?: boolean;
+  mergeTypes?: boolean | Array<string> | MergeTypeFilter;
+  typeMergingOptions?: TypeMergingOptions;
+  onTypeConflict?: OnTypeConflict;
+  subschemaConfigTransforms?: Array<SubschemaConfigTransform>;
+}): GraphQLSchema
 
-This is the main function that implements schema stitching. Note that in addition to the above arguments, the function also takes all the same arguments as [`makeExecutableSchema`](/docs/generate-schema/). Read below for a description of each option.
-
-### subschemas
-
-`subschemas` is an array of `GraphQLSchema` or `SubschemaConfig` objects. These subschemas are wrapped with proxying resolvers in the final schema.
-
-### types
-
-Additional types to add to the final type map, most useful for custom scalars or enums.
-
-### typeDefs
-
-Strings or parsed documents that can contain additional types or type extensions. Note that type extensions are always applied last, while types are defined in the order in which they are provided.
-
-### resolvers
-
-`resolvers` accepts resolvers in same format as [makeExecutableSchema](/docs/resolvers/). It can also take an Array of resolvers. One addition to the resolver format is the possibility to specify a `selectionSet` for a resolver. The `selectionSet` must be a GraphQL selection set definition string, specifying which fields from the parent schema are required for the resolver to function properly.
-
-```js
-resolvers: {
-  Booking: {
-    property: {
-      selectionSet: '{ propertyId }',
-      resolve(parent, args, context, info) {
-        return delegateToSchema({
-          schema: bookingSchema,
-          operation: 'query',
-          fieldName: 'propertyById',
-          args: {
-            id: parent.propertyId,
-          },
-          context,
-          info,
-        });
-      },
-    },
-  },
+export interface TypeMergingOptions {
+  typeDescriptionsMerger?: (candidates: Array<MergeTypeCandidate>) => string;
+  fieldConfigMerger?: (candidates: Array<MergeFieldConfigCandidate>) => GraphQLFieldConfig<any, any>;
+  inputFieldConfigMerger?: (candidates: Array<MergeInputFieldConfigCandidate>) => GraphQLInputFieldConfig;
 }
-```
 
-### delegateToSchema
-
-The `delegateToSchema` method:
-
-```js
-delegateToSchema<TContext>(options: IDelegateToSchemaOptions<TContext>): any;
-
-interface IDelegateToSchemaOptions<TContext = Record<string, any>> {
-    schemaOrSchemaConfig: GraphQLSchema | SubschemaConfig;
-    operation: Operation;
-    fieldName: string;
-    args?: Record<string, any>;
-    context: TContext;
-    info: GraphQLResolveInfo;
-    transforms?: Array<Transform>;
-}
-```
-
-As described in the documentation above, `delegateToSchema` allows delegating to any `GraphQLSchema` or `SubschemaConfig` object. Transforms do not have to be re-specified when passing a `SubschemaConfig` object, which is the preserved workflow. Additional transforms can also be passed as needed. See [Schema Delegation](/docs/schema-delegation/) and the [*Using with transforms*](#using-with-transforms) section of this document.
-
-#### onTypeConflict
-
-```js
-type OnTypeConflict = (
+export type OnTypeConflict = (
   left: GraphQLNamedType,
   right: GraphQLNamedType,
   info?: {
@@ -116,34 +39,38 @@ type OnTypeConflict = (
       subschema?: GraphQLSchema | SubschemaConfig;
       transformedSubschema?: Subschema;
     };
-  },
+  }
 ) => GraphQLNamedType;
 ```
 
-The `onTypeConflict` option to `stitchSchemas` allows customization of type resolving logic.
+- `subschemas`: an array of schema-like objects. These subschemas are wrapped with proxying resolvers in the final schema.
+- `types`: additional types to add to the final type map, most useful for custom scalars or enums.
+- `typeDefs`: strings or parsed documents that contain additional types or type extensions. Type extensions are always applied last.
+- `resolvers`: accepts [standard resolvers](/docs/resolvers/) with the addition of specifying a [`selectionSet`](/docs/stitch-schema-extensions#selectionset).
+- `mergeTypes`: specifies a strategy for [handling duplicated types](/docs/stitch-combining-schemas#duplicate-types).
+- `typeMergingOptions`: allows customization of [automatic type merging](/docs/stitch-combining-schemas#automatic-merge).
+- `onTypeConflict`: allows customization of [manual type resolution](/docs/stitch-combining-schemas#manual-resolution).
 
-The default behavior of `stitchSchemas` is to take the *last* encountered type of all the types with the same name, with a warning that type conflicts have been encountered. If specified, `onTypeConflict` enables explicit selection of the winning type.
+### createMergedTypeResolver
 
-For example, here's how we could select the *first* type among multiple types with the same name:
+Creates a merged type resolver that may be [wrapped with custom behaviors](/docs/stitch-type-merging#wrapped-resolvers).
 
-```js
-const onTypeConflict = (left, right) => left;
+```ts
+createMergedTypeResolver({
+  fieldName?: string;
+  args?: (originalResult: any) => Record<string, any>;
+  argsFromKeys?: (keys: ReadonlyArray<K>) => Record<string, any>;
+  valuesFromResults?: (results: any, keys: ReadonlyArray<K>) => Array<V>;
+}): MergedTypeResolver
 ```
 
-And here's how we might select the type whose schema has the latest `version`:
+### forwardArgsToSelectionSet
 
-```js
-const onTypeConflict = (left, right, info) => {
-  if (info.left.schema.version >= info.right.schema.version) {
-    return left;
-  } else {
-    return right;
-  }
-}
+Creates a dynamic `selectionSet` that [forwards gateway arguments](/docs/stitch-schema-extensions#via-selectionset) to a resolver selection hint.
+
+```ts
+forwardArgsToSelectionSet(
+  selectionSet: string,
+  mapping?: Record<string, string[]>
+) => (field: FieldNode) => SelectionSetNode
 ```
-
-When using schema transforms, `onTypeConflict` is often unnecessary, since transforms can be used to prevent conflicts before merging schemas. However, if you're not using schema transforms, `onTypeConflict` can be a quick way to make `stitchSchemas` produce more desirable results.
-
-#### inheritResolversFromInterfaces
-
-The `inheritResolversFromInterfaces` option is simply passed through to `addResolversToSchema`, which is called when adding resolvers to the schema under the covers. See [`addResolversToSchema`](/docs/resolvers/#addresolverstoschema-schema-resolvers-resolvervalidationoptions-inheritresolversfrominterfaces-) for more info.

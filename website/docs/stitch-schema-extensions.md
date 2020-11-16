@@ -10,28 +10,28 @@ When considering these capabilities, be sure to compare them with the newer auto
 
 ## Basic example
 
-Going back to the chirps and authors service example:
+Going back to the posts and users service example:
 
 ```js
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { addMocksToSchema } from '@graphql-tools/mock';
 
-let chirpSchema = makeExecutableSchema({
+let postSchema = makeExecutableSchema({
   typeDefs: `
-    type Chirp {
+    type Post {
       id: ID!
       text: String
-      authorId: ID!
+      userId: ID!
     }
 
     type Query {
-      chirpById(id: ID!): Chirp
-      chirpsByAuthorId(authorId: ID!): [Chirp!]!
+      postById(id: ID!): Post
+      postsByUserId(userId: ID!): [Post!]!
     }
   `
 });
 
-let authorSchema = makeExecutableSchema({
+let userSchema = makeExecutableSchema({
   typeDefs: `
     type User {
       id: ID!
@@ -45,18 +45,18 @@ let authorSchema = makeExecutableSchema({
 });
 
 // just mock the schemas for now to make them return dummy data
-chirpSchema = addMocksToSchema({ schema: chirpSchema });
-authorSchema = addMocksToSchema({ schema: authorSchema });
+postSchema = addMocksToSchema({ schema: postSchema });
+userSchema = addMocksToSchema({ schema: userSchema });
 
 // setup subschema config objects
-export const chirpSubschema = { schema: chirpSchema };
-export const authorSubschema = { schema: authorSchema };
+export const postsSubschema = { schema: postSchema };
+export const usersSubschema = { schema: userSchema };
 ```
 
-We may want to navigate from a particular user to their chirps, or from a chirp to its author. This is possible within our service architecture by connecting an existing key of each object to a corresponding root query:
+We may want to navigate from a particular user to their posts, or from a post to its user. This is possible within our service architecture by connecting an existing key of each object to a corresponding root query:
 
-- `Chirp.authorId -> userById(id)` gets a Chirp's author.
-- `User.id -> chirpsByAuthorId(authorId)` gets a User's chirps.
+- `Post.userId -> userById(id)` gets a Post's user.
+- `User.id -> postsByUserId(userId)` gets a User's posts.
 
 To formalize this navigation within our gateway schema, we can _extend_ each type with a new field that will translate its respective key into an actual object association:
 
@@ -65,15 +65,15 @@ import { stitchSchemas } from '@graphql-tools/stitch';
 
 export const schema = stitchSchemas({
   subschemas: [
-    chirpSubschema,
-    authorSubschema,
+    postsSubschema,
+    usersSubschema,
   ],
   typeDefs: `
-    extend type Chirp {
-      author: User!
+    extend type Post {
+      user: User!
     }
     extend type User {
-      chirps: [Chirp!]!
+      posts: [Post!]!
     }
   `
 });
@@ -89,42 +89,42 @@ import { delegateToSchema } from '@graphql-tools/delegate';
 
 export const schema = stitchSchemas({
   subschemas: [
-    chirpSubschema,
-    authorSubschema,
+    postsSubschema,
+    usersSubschema,
   ],
   typeDefs: `
-    extend type Chirp {
-      author: User!
+    extend type Post {
+      user: User!
     }
     extend type User {
-      chirps: [Chirp!]!
+      posts: [Post!]!
     }
   `,
   resolvers: {
     User: {
-      chirps: {
+      posts: {
         selectionSet: `{ id }`,
         resolve(user, args, context, info) {
           return delegateToSchema({
-            schema: chirpSubschema,
+            schema: postsSubschema,
             operation: 'query',
-            fieldName: 'chirpsByAuthorId',
-            args: { authorId: user.id },
+            fieldName: 'postsByUserId',
+            args: { userId: user.id },
             context,
             info,
           });
         },
       },
     },
-    Chirp: {
-      author: {
-        selectionSet: `{ authorId }`,
-        resolve(chirp, args, context, info) {
+    Post: {
+      user: {
+        selectionSet: `{ userId }`,
+        resolve(post, args, context, info) {
           return delegateToSchema({
-            schema: authorSubschema,
+            schema: usersSubschema,
             operation: 'query',
             fieldName: 'userById',
-            args: { id: chirp.authorId },
+            args: { id: post.userId },
             context,
             info,
           });
@@ -135,33 +135,33 @@ export const schema = stitchSchemas({
 });
 ```
 
-When resolving `User.chirps` and `Chirp.author`, we _delegate_ each key reference to its corresponding root query. Note that the structure of stitching resolvers has a `selectionSet` property and a `resolve` method.
+When resolving `User.posts` and `Post.user`, we _delegate_ each key reference to its corresponding root query. Note that the structure of stitching resolvers has a `selectionSet` property and a `resolve` method.
 
 ### selectionSet
 
 ```js
-Chirp: {
-  author: {
-    selectionSet: `{ authorId }`,
+Post: {
+  user: {
+    selectionSet: `{ userId }`,
     // ... resolve
   },
 },
 ```
 
-The `selectionSet` specifies the key field(s) needed from an object to query for its associations. For example, `Chirp.author` will require that a Chirp provide its `authorId`. Rather than relying on incoming queries to manually request this key for the association, the selection set will automatically be included in subschema requests to guarentee that these fields are fetched. Dynamic selection sets are also possible by providing a function that recieves a GraphQL `FieldNode` (the gateway field) and returns a `SelectionSetNode`.
+The `selectionSet` specifies the key field(s) needed from an object to query for its associations. For example, `Post.user` will require that a Post provide its `userId`. Rather than relying on incoming queries to manually request this key for the association, the selection set will automatically be included in subschema requests to guarentee that these fields are fetched. Dynamic selection sets are also possible by providing a function that recieves a GraphQL `FieldNode` (the gateway field) and returns a `SelectionSetNode`.
 
 ### resolve
 
 ```js
-Chirp: {
-  author: {
+Post: {
+  user: {
     // ... selectionSet
-    resolve(chirp, args, context, info) {
+    resolve(post, args, context, info) {
       return delegateToSchema({
-        schema: authorSubschema,
+        schema: usersSubschema,
         operation: 'query',
         fieldName: 'userById',
-        args: { id: chirp.authorId },
+        args: { id: post.userId },
         context,
         info,
       });
@@ -176,39 +176,39 @@ By default, `delegateToSchema` assumes that the delegated operation will return 
 
 ## Batch delegation
 
-The drawback of performing individual `delegateToSchema` calls is that they can be fairly inefficient. Say we request `Chirp.author` from an array of ten chirps&mdash;that would delegate ten individual `userById` queries while resolving each author! To improve this, we can instead delegate in _batches_, where many instances of a field resolver are consolidated into one delegation.
+The drawback of performing individual `delegateToSchema` calls is that they can be fairly inefficient. Say we request `Post.user` from an array of ten posts&mdash;that would delegate ten individual `userById` queries while resolving each user! To improve this, we can instead delegate in _batches_, where many instances of a field resolver are consolidated into one delegation.
 
-To setup batching, the first thing we'll need is a new query in the authors service that allows fetching many users at once:
+To setup batching, the first thing we'll need is a new query in the users service that allows fetching many users at once:
 
 ```graphql
 usersByIds(ids: [ID!]!): [User]!
 ```
 
-With this many-users query available, we can now delegate the `Chirp.author` field in batches across many records:
+With this many-users query available, we can now delegate the `Post.user` field in batches across many records:
 
 ```js
 import { batchDelegateToSchema } from '@graphql-tools/batch-delegate';
 
 const schema = stitchSchemas({
   subschemas: [
-    chirpSubschema,
-    authorSubschema,
+    postsSubschema,
+    usersSubschema,
   ],
   typeDefs: `
-    extend type Chirp {
-      author: User!
+    extend type Post {
+      user: User!
     }
   `,
   resolvers: {
-    Chirp: {
-      author: {
-        selectionSet: `{ authorId }`,
-        resolve(chirp, _args, context, info) {
+    Post: {
+      user: {
+        selectionSet: `{ userId }`,
+        resolve(post, _args, context, info) {
           return batchDelegateToSchema({
-            schema: authorSubschema,
+            schema: usersSubschema,
             operation: 'query',
             fieldName: 'usersByIds',
-            key: chirp.authorId,
+            key: post.userId,
             argsFromKeys: (ids) => ({ ids }),
             context,
             info,
@@ -226,11 +226,11 @@ Batch delegation is generally preferable over plain delegation because it elimin
 
 ## Passing gateway arguments
 
-Exhaustive accessors like `User.chirps` do not scale well (...what happens when a user has tens of thousands of chirps?), so the gateway should probably accept scoping arguments and pass them through to the underlying subschemas. Let's add a `pageNumber` argument to the `User.chirps` schema extension:
+Exhaustive accessors like `User.posts` do not scale well (...what happens when a user has tens of thousands of posts?), so the gateway should probably accept scoping arguments and pass them through to the underlying subschemas. Let's add a `pageNumber` argument to the `User.posts` schema extension:
 
 ```graphql
 extend type User {
-  chirps(pageNumber: Int=1): [Chirp]!
+  posts(pageNumber: Int=1): [Post]!
 }
 ```
 
@@ -238,26 +238,26 @@ This argument only exists in the gateway schema and won't do anything until pass
 
 ### Via delegation
 
-First, let's say that the Chirps service defines this association. The first thing we'll need is a corresponding argument in the chirps query; and while we're at it, let's also support batching:
+First, let's say that the Posts service defines this association. The first thing we'll need is a corresponding argument in the posts query; and while we're at it, let's also support batching:
 
 ```graphql
-chirpPagesByAuthorIds(authorIds: [ID!]!, pageNumber: Int=1): [[Chirp!]!]!
+postPagesByUserIds(userIds: [ID!]!, pageNumber: Int=1): [[Post!]!]!
 ```
 
-This `chirpPagesByAuthorIds` query is a very primitive example of pagination, and simply returns an array of chirps for each author ID. Now we just need to pass the resolver's page number argument through to `batchDelegateToSchema`, and manually specify a `returnType` that matches the pagination format:
+This `postPagesByUserIds` query is a very primitive example of pagination, and simply returns an array of posts for each user ID. Now we just need to pass the resolver's page number argument through to `batchDelegateToSchema`, and manually specify a `returnType` that matches the pagination format:
 
 ```js
 User: {
-  chirps: {
+  posts: {
     selectionSet: `{ id }`,
     resolve(user, args, context, info) {
       return batchDelegateToSchema({
-        schema: chirpsSubschema,
+        schema: postsSubschema,
         operation: 'query',
-        fieldName: 'chirpPagesByAuthorIds',
+        fieldName: 'postPagesByUserIds',
         key: user.id,
-        argsFromKeys: (authorIds) => ({ authorIds, pageNumber: args.pageNumber }),
-        returnType: new GraphQLList(new GraphQLList(chirpsSubschema.schema.getType('Chirp'))),
+        argsFromKeys: (userIds) => ({ userIds, pageNumber: args.pageNumber }),
+        returnType: new GraphQLList(new GraphQLList(postsSubschema.schema.getType('Post'))),
         context,
         info,
       });
@@ -268,10 +268,10 @@ User: {
 
 ### Via selectionSet
 
-Alternatively, let's say that users and chirps have a many-to-many relationship and the users service owns the association data. That might give us a `User.chirpIds` field to stitch from:
+Alternatively, let's say that users and posts have a many-to-many relationship and the users service owns the association data. That might give us a `User.postIds` field to stitch from:
 
 ```graphql
-User.chirpIds(pageNumber: Int=1): [ID]!
+User.postIds(pageNumber: Int=1): [ID]!
 ```
 
 In this configuration, resolver arguments will need to pass through with the initial `selectionSet`. The `forwardArgsToSelectionSet` helper handles this:
@@ -280,14 +280,14 @@ In this configuration, resolver arguments will need to pass through with the ini
 import { forwardArgsToSelectionSet } from '@graphql-tools/stitch';
 //...
 User: {
-  chirps: {
-    selectionSet: forwardArgsToSelectionSet('{ chirpIds }'),
+  posts: {
+    selectionSet: forwardArgsToSelectionSet('{ postIds }'),
     resolve(user, args, context, info) {
       return batchDelegateToSchema({
-        schema: chirpsSubschema,
+        schema: postsSubschema,
         operation: 'query',
-        fieldName: 'chirpsByIds',
-        key: user.chirpIds,
+        fieldName: 'postsByIds',
+        key: user.postIds,
         argsFromKeys: (ids) => ({ ids }),
         context,
         info,
@@ -300,7 +300,7 @@ User: {
 By default, `forwardArgsToSelectionSet` will pass through all arguments from the gateway field to _all_ root fields in the selection set. For complex selections that request multiple fields, you may provide an additional mapping of selection names with their respective arguments:
 
 ```js
-forwardArgsToSelectionSet('{ id chirpIds }', { chirpIds: ['pageNumber'] })
+forwardArgsToSelectionSet('{ id postIds }', { postIds: ['pageNumber'] })
 ```
 
 ## Extending transformed schemas
@@ -314,31 +314,31 @@ import { stitchSchemas } from '@graphql-tools/stitch';
 import { delegateToSchema } from '@graphql-tools/delegate';
 import { FilterRootFields, RenameTypes } from '@graphql-tools/wrap';
 
-const chirpSchema = makeExecutableSchema({
+const postSchema = makeExecutableSchema({
   typeDefs: `
-    type Chirp {
+    type Post {
       id: ID!
       text: String
-      authorId: ID!
+      userId: ID!
     }
     type Query {
-      chirpById(id: ID!): Chirp
-      chirpsByAuthorId(authorId: ID!): [Chirp]!
+      postById(id: ID!): Post
+      postsByUserId(userId: ID!): [Post]!
     }
   `
 });
 
-const chirpSubschema = {
-  schema: addMocksToSchema({ schema: chirpSchema }),
+const postsSubschema = {
+  schema: addMocksToSchema({ schema: postSchema }),
   transforms: [
-    // remove the "chirpsByAuthorId" root field
-    new FilterRootFields((op, field) => field !== 'chirpsByAuthorId'),
-    // prefix all type names with "Chirp_"
-    new RenameTypes((name) => `Chirp_${name}`),
+    // remove the "postsByUserId" root field
+    new FilterRootFields((op, field) => field !== 'postsByUserId'),
+    // prefix all type names with "Post_"
+    new RenameTypes((name) => `Post_${name}`),
   ],
 };
 
-const authorSchema = makeExecutableSchema({
+const userSchema = makeExecutableSchema({
   typeDefs: `
     type User {
       id: ID!
@@ -351,48 +351,48 @@ const authorSchema = makeExecutableSchema({
   `
 });
 
-const authorSubschema = {
-  schema: addMocksToSchema({ schema: authorSchema })
+const usersSubschema = {
+  schema: addMocksToSchema({ schema: userSchema })
 };
 
 const stitchedSchema = stitchSchemas({
   subschemas: [
-    chirpSubschema,
-    authorSubschema,
+    postsSubschema,
+    usersSubschema,
   ],
   typeDefs: `
     extend type User {
-      chirps: [Chirp_Chirp!]!
+      posts: [Post_Post!]!
     }
-    extend type Chirp_Chirp {
-      author: User!
+    extend type Post_Post {
+      user: User!
     }
   `,
   resolvers: {
     User: {
-      chirps: {
+      posts: {
         selectionSet: `{ id }`,
         resolve(user, args, context, info) {
           return delegateToSchema({
-            schema: chirpSubschema,
+            schema: postsSubschema,
             operation: 'query',
-            fieldName: 'chirpsByAuthorId',
-            args: { authorId: user.id },
+            fieldName: 'postsByUserId',
+            args: { userId: user.id },
             context,
             info,
           });
         },
       },
     },
-    Chirp_Chirp: {
-      author: {
-        selectionSet: `{ authorId }`,
-        resolve(chirp, args, context, info) {
+    Post_Post: {
+      user: {
+        selectionSet: `{ userId }`,
+        resolve(post, args, context, info) {
           return delegateToSchema({
-            schema: authorSubschema,
+            schema: usersSubschema,
             operation: 'query',
             fieldName: 'userById',
-            args: { id: chirp.authorId },
+            args: { id: post.userId },
             context,
             info,
           });
@@ -405,6 +405,6 @@ const stitchedSchema = stitchSchemas({
 
 A few key points to note here:
 
-- All schema extensions and their resolvers exist in the gateway schema, and therefore refer to the transformed type name `Chirp_Chirp`.
+- All schema extensions and their resolvers exist in the gateway schema, and therefore refer to the transformed type name `Post_Post`.
 
-- Delegations refer to the original subschema, and therefore may reference fields such as `chirpsByAuthorId` that have been removed from the gateway schema.
+- Delegations refer to the original subschema, and therefore may reference fields such as `postsByUserId` that have been removed from the gateway schema.
