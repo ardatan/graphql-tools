@@ -435,6 +435,9 @@ export class MockStore implements IMockStore {
       if (typeof mockFn !== 'function') throw new Error(`No mock provided for type ${nullableType.name}`);
       return mockFn();
     } else if (isEnumType(nullableType)) {
+      const mockFn = this.mocks[nullableType.name];
+      if (typeof mockFn === 'function') return mockFn();
+
       const values = nullableType.getValues().map(v => v.value);
       return takeRandom(values);
     } else if (isObjectType(nullableType)) {
