@@ -1,21 +1,21 @@
 import { parseValue } from "graphql";
 
 import {
-  parseMergeArgsExpr,
-  preparseMergeArgsExpr,
-  extractVariables,
   EXPANSION_PREFIX,
   KEY_DELIMITER,
+  extractVariables,
+  parseMergeArgsExpr,
+  preparseMergeArgsExpr,
+  selectionSetsToPaths,
+  expandUnqualifiedKeys,
 } from '../src/parseMergeArgsExpr';
+
+import { parseSelectionSet } from '../src/selectionSets';
+import { KeyDeclaration } from '../src/types';
 
 describe('can parse merge arguments', () => {
   test('throws if no key declared', () => {
     expect(() => parseMergeArgsExpr(`test: "test"`)).toThrowError('Merge arguments must declare a key.');
-  });
-
-  test('throws if whole key declarations are mixed with keys declared by their selectionSet members', () => {
-    expect(() => parseMergeArgsExpr(`whole: $key, member: $key.test`)).toThrowError('Cannot mix whole keys with keys declared via their selectionSet members.');
-    expect(() => parseMergeArgsExpr(`member: $key.test, whole: $key`)).toThrowError('Cannot mix whole keys with keys declared via their selectionSet members.');
   });
 
   test('throws if expansions are mixed with key declarations', () => {
@@ -47,14 +47,29 @@ describe('can parse merge arguments', () => {
     expect(result.expansions).toEqual([]);
   });
 
+  test('can parseMergeArgsExpr with key defined by selectionSet', () => {
+    const selectionSet = parseSelectionSet(`{ field1 field2 { subFieldA subFieldB } }`);
+    const args = `test: $key`;
+    const result = parseMergeArgsExpr(args, [selectionSet]);
+    expect(result).toEqual({
+      args: { test: { field1: null, field2: { subFieldA: null, subFieldB: null }} },
+      keyDeclarations: [
+        { valuePath: ['test', 'field1'], keyPath: ['field1'] },
+        { valuePath: ['test', 'field2', 'subFieldA'], keyPath: ['field2', 'subFieldA'] },
+        { valuePath: ['test', 'field2', 'subFieldB'], keyPath: ['field2', 'subFieldB'] },
+      ],
+      expansions: [],
+    });
+  });
+
   test('can parseMergeArgsExpr with expansion', () => {
     const args = `test: [[$key.test]]`;
     const result = parseMergeArgsExpr(args);
     expect(result.args).toEqual({ test: null });
     expect(result.keyDeclarations).toEqual([]);
     expect(result.expansions).toEqual([{
-      value: null,
       valuePath: ['test'],
+      value: null,
       keyDeclarations: [{ valuePath: [], keyPath: ['test'] }],
     }]);
   });
@@ -65,8 +80,8 @@ describe('can parse merge arguments', () => {
     expect(result.args).toEqual({ outer: { inner: null } });
     expect(result.keyDeclarations).toEqual([]);
     expect(result.expansions).toEqual([{
-      value: null,
       valuePath: ['outer', 'inner'],
+      value: null,
       keyDeclarations: [{ valuePath: [], keyPath: ['test'] }],
     }]);
   });
@@ -77,8 +92,8 @@ describe('can parse merge arguments', () => {
     expect(result.args).toEqual({ outer: null });
     expect(result.keyDeclarations).toEqual([]);
     expect(result.expansions).toEqual([{
-      value: { inner: null },
       valuePath: ['outer'],
+      value: { inner: null },
       keyDeclarations: [{ valuePath: ['inner'], keyPath: ['test'] }],
     }]);
   });
@@ -89,9 +104,26 @@ describe('can parse merge arguments', () => {
     expect(result.args).toEqual({ test: null });
     expect(result.keyDeclarations).toEqual([]);
     expect(result.expansions).toEqual([{
-      value: null,
       valuePath: ['test'],
+      value: null,
       keyDeclarations: [{ valuePath: [], keyPath: ['outer', 'inner'] }],
+    }]);
+  });
+
+  test('can parseMergeArgsExpr with expansion with complex key defined by selectionSet', () => {
+    const selectionSet = parseSelectionSet(`{ field1 field2 { subFieldA subFieldB } }`);
+    const args = `test: [[$key]]`;
+    const result = parseMergeArgsExpr(args, [selectionSet]);
+    expect(result.args).toEqual({ test: null });
+    expect(result.keyDeclarations).toEqual([]);
+    expect(result.expansions).toEqual([{
+      valuePath: ['test'],
+      value: { field1: null, field2: { subFieldA: null, subFieldB: null } },
+      keyDeclarations: [
+        { valuePath: ['field1'], keyPath: ['field1'] },
+        { valuePath: ['field2', 'subFieldA'], keyPath: ['field2', 'subFieldA'] },
+        { valuePath: ['field2', 'subFieldB'], keyPath: ['field2', 'subFieldB'] },
+      ],
     }]);
   });
 });
@@ -176,5 +208,54 @@ describe('can preparse merge arguments', () => {
     const result = preparseMergeArgsExpr(args);
     expect(result.mergeArgsExpr).toEqual(`input: { ids: $${EXPANSION_PREFIX}1, networkIds: $${EXPANSION_PREFIX}2 }`);
     expect(result.expansionExpressions).toEqual({ [`${EXPANSION_PREFIX}1`]: `$key${KEY_DELIMITER}id`, [`${EXPANSION_PREFIX}2`]: `$key${KEY_DELIMITER}networkId`});
+  });
+});
+
+describe('can convert selectionSet hints to paths', () => {
+  test('can convert a simple selection set', () => {
+    const selectionSet = parseSelectionSet(`{ test }`);
+    const result = selectionSetsToPaths([selectionSet]);
+    expect(result).toEqual([['test']]);
+  });
+
+  test('can convert a complex selection set', () => {
+    const selectionSet = parseSelectionSet(`{ field1 field2 { subFieldA subFieldB } }`);
+    const result = selectionSetsToPaths([selectionSet]);
+    expect(result).toEqual([['field1'], ['field2', 'subFieldA'], ['field2', 'subFieldB']]);
+  });
+
+  test('can convert multiple selection sets', () => {
+    const selectionSet1 = parseSelectionSet(`{ field1 }`);
+    const selectionSet2 = parseSelectionSet(`{ field2 }`);
+    const result = selectionSetsToPaths([selectionSet1, selectionSet2]);
+    expect(result).toEqual([['field1'], ['field2']]);
+  });
+});
+
+describe('can compile references', () => {
+  test('can convert a simple selection set', () => {
+    const selectionSet = parseSelectionSet(`{ field1 field2 }`);
+    const result = expandUnqualifiedKeys({ test: null }, [{
+      valuePath: ['test'],
+      keyPath: [],
+    }], [selectionSet]);
+
+    const newValue: any = {
+      test: {
+        field1: null,
+        field2: null,
+      }
+    };
+
+    const newKeyDeclarations: Array<KeyDeclaration> = [{
+      valuePath: ['test', 'field1'],
+      keyPath: ['field1'],
+    }, {
+      valuePath: ['test', 'field2'],
+      keyPath: ['field2'],
+    }];
+
+    expect(result.value).toEqual(newValue);
+    expect(result.keyDeclarations).toEqual(newKeyDeclarations);
   });
 });
