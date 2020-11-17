@@ -293,7 +293,7 @@ export class MockStore implements IMockStore {
         isRef(currentValue) ? { ...currentValue, ...value } : value,
         noOverride
       );
-    } else if (isListType(fieldType) && isCompositeType(getNullableType(fieldType.ofType)) && isDefined(value)) {
+    } else if (isListType(fieldType) && isDefined(value)) {
       if (!Array.isArray(value))
         throw new Error(`Value to set for ${typeName}.${fieldName} should be an array or null or undefined`);
 
@@ -301,34 +301,40 @@ export class MockStore implements IMockStore {
 
       valueToStore = value.map((v, index) => {
         if (v === null) return null;
-        if (v !== undefined && !isRecord(v))
-          throw new Error(
-            `Value to set for ${typeName}.${fieldName}[${index}] should be an object or null or undefined but got ${v}`
-          );
 
-        // if v is undefined (empty array slot) it means we just want to generate something
-        let joinedTypeName;
-        if (isAbstractType(nonNullableItemType)) {
-          if (!v) {
-            // no value so no typename => take one randomly
-            joinedTypeName = takeRandom(this.schema.getPossibleTypes(nonNullableItemType).map(t => t.name));
-          } else {
-            if (isRef(v)) {
-              joinedTypeName = v.$ref.typeName;
-            } else {
-              if (typeof v['__typename'] !== 'string') {
-                throw new Error(
-                  `Value to set for ${typeName}.${fieldName}[${index}] should contain a '__typename' because the return type ${nonNullableItemType.name} is abstract`
-                );
-              }
-              joinedTypeName = v['__typename'];
-            }
-          }
+        if (!isCompositeType(nonNullableItemType)) {
+          if (v !== undefined) return v;
+          return this.generateValueFromType(nonNullableItemType);
         } else {
-          joinedTypeName = getNullableType(fieldType.ofType).name;
-        }
+          if (v !== undefined && !isRecord(v))
+            throw new Error(
+              `Value to set for ${typeName}.${fieldName}[${index}] should be an object or null or undefined but got ${v}`
+            );
 
-        return this.insert(joinedTypeName, v || {}, noOverride);
+          // if v is undefined (empty array slot) it means we just want to generate something
+          let joinedTypeName;
+          if (isAbstractType(nonNullableItemType)) {
+            if (!v) {
+              // no value so no typename => take one randomly
+              joinedTypeName = takeRandom(this.schema.getPossibleTypes(nonNullableItemType).map(t => t.name));
+            } else {
+              if (isRef(v)) {
+                joinedTypeName = v.$ref.typeName;
+              } else {
+                if (typeof v['__typename'] !== 'string') {
+                  throw new Error(
+                    `Value to set for ${typeName}.${fieldName}[${index}] should contain a '__typename' because the return type ${nonNullableItemType.name} is abstract`
+                  );
+                }
+                joinedTypeName = v['__typename'];
+              }
+            }
+          } else {
+            joinedTypeName = getNullableType(fieldType.ofType).name;
+          }
+
+          return this.insert(joinedTypeName, v || {}, noOverride);
+        }
       });
     } else {
       valueToStore = value;
