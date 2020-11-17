@@ -14,7 +14,7 @@ import { addResolversToSchema,
   buildSchemaFromTypeDefinitions,
   makeExecutableSchema, } from '@graphql-tools/schema';
 
-describe('Mock', () => {
+describe('Mock retro-compatibility', () => {
   const shorthand = `
     scalar MissingMockType
 
