@@ -9,7 +9,11 @@ export function uuidv4() {
   });
 }
 
-export const randomListLength = () => 1 + Math.round(Math.random() * 10);
+export const randomListLength = () => {
+  // Mocking has always returned list of length 2 by default
+  // return 1 + Math.round(Math.random() * 10)
+  return 2;
+};
 
 export const takeRandom = <T>(arr: T[]) => arr[Math.floor(Math.random() * arr.length)];
 
