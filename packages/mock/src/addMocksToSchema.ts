@@ -109,6 +109,11 @@ export function addMocksToSchema({
     typeof resolversOrFnResolvers === 'function' ? resolversOrFnResolvers(store) : resolversOrFnResolvers;
 
   const mockResolver: GraphQLFieldResolver<any, any> = (source, args, contex, info) => {
+    const defaultResolvedValue = defaultFieldResolver(source, args, contex, info);
+
+    // priority to default resolved value
+    if (defaultResolvedValue !== undefined) return defaultResolvedValue;
+
     if (isRef(source)) {
       return store.get({
         typeName: source.$ref.typeName,
@@ -129,7 +134,7 @@ export function addMocksToSchema({
       });
     }
 
-    return defaultFieldResolver(source, args, contex, info);
+    return undefined;
   };
 
   const typeResolver: GraphQLTypeResolver<any, any> = data => {
