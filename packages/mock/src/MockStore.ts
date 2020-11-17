@@ -432,7 +432,7 @@ export class MockStore implements IMockStore {
 
     if (isScalarType(nullableType)) {
       const mockFn = this.mocks[nullableType.name];
-      if (typeof mockFn !== 'function') throw new Error(`No mock provided for type ${nullableType.name}`);
+      if (typeof mockFn !== 'function') throw new Error(`No mock defined for type "${nullableType.name}"`);
       return mockFn();
     } else if (isEnumType(nullableType)) {
       const mockFn = this.mocks[nullableType.name];
@@ -462,9 +462,7 @@ export class MockStore implements IMockStore {
 
         values = mockRes;
         if (typeof values['__typename'] !== 'string') {
-          throw new Error(
-            `Value returned by the mock for abstract type ${nullableType.name} does not contain any '__typename'`
-          );
+          throw new Error(`Please return a __typename in "${nullableType.name}"`);
         }
         typeName = values['__typename'];
       } else if (typeof mock['__typename'] === 'function') {
@@ -473,9 +471,7 @@ export class MockStore implements IMockStore {
           throw new Error(`'__typename' returned by the mock for abstract type ${nullableType.name} is not a string`);
         typeName = mockRes;
       } else {
-        throw new Error(
-          `Value returned by the mock for abstract type ${nullableType.name} does not contain any '__typename'`
-        );
+        throw new Error(`Please return a __typename in "${nullableType.name}"`);
       }
 
       const ref = this.generateValueFromType(this.getType(typeName)) as Ref;
