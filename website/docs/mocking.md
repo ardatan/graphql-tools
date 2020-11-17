@@ -41,6 +41,17 @@ graphql(schemaWithMocks, query).then((result) => console.log('Got result', resul
 
 This mocking logic simply looks at your schema and makes sure to return a string where your schema has a string, a number for a number, etc. So you can already get the right shape of result. But if you want to use the mocks to do sophisticated testing, you will likely want to customize them to your particular data model.
 
+The generated mocked entities are stored in a `MockStore` that you can use to `get` and `set` mocked values. You can initiate the store independently to access it:
+
+```ts
+
+// Create a MockStore for this schema
+const store = createMockStore({ schema });
+
+// Create a new schema with the mock store
+const schemaWithMocks = addMocksToSchema({ schema, store });
+```
+
 ## Customizing mocks
 
 This is where the `mocks` option comes in, it's an object that describes your desired mocking logic. This is similar to the `resolverMap` in `makeExecutableSchema`, but has a few extra features aimed at mocking.
@@ -60,8 +71,8 @@ You can also use this to describe object types, and the fields can be functions 
 ```js
 {
   Person: () => ({
-    name: casual.name,
-    age: () => casual.integer(0, 120),
+    name: casual.name(),
+    age: casual.integer(0, 120),
   }),
 }
 ```
@@ -125,131 +136,189 @@ const schemaWithMocks = addMocksToSchema({
 
 Now, when you make a Query which response contains the DateTime Scalar Type, the DateTime function will return a value for it.
 
-### Using MockList in resolvers
+### Using lists in mocks
 
-You can also use the MockList constructor to automate mocking a list:
+To define a mock for a list, simply return an empty array of the desired length as mock value for the field:
 
 ```js
 {
   Person: () => ({
-    // a list of length between 2 and 6 (inclusive)
-    friends: () => new MockList([2,6]),
+    // a list of length between 2 and 6
+    friends: [...new Array(casual.integer(2, 6))],
     // a list of three lists of two items: [[1, 1], [2, 2], [3, 3]]
-    listOfLists: () => new MockList(3, () => new MockList(2)),
+    listOfLists: () => [...new Array(3)].map((i) => [...new Array(2)]),
   }),
 }
 ```
 
-In more complex schemas, MockList is helpful for randomizing the number of entries returned in lists.
+#### Abstract types
+If you'd like to provide a mock for an `Union` or `Interface` type, you need to provide the type with an extra `__typename`.
 
-For example, this schema:
-
-```graphql
-type Usage {
-  account: String!
-  summary: [Summary]!
-}
-
-type Summary {
-  date: String!
-  cost: Float!
-}
-```
-
-By default, the `summary` field will always return 2 entries. To change this, we can add a mock resolver with MockList as follows:
-
-```js
-{
-  Usage: () =>({
-    summary: () => new MockList([0, 12]),
-  }),
-}
-```
-
-Now the mock data will contain between zero and 12 summary entries.
-
-### Accessing arguments in mock resolvers
-
-Since the mock functions on fields are actually just GraphQL resolvers, you can use arguments and context in them as well:
-
-```js
-{
-  Person: () => ({
-    // the number of friends in the list now depends on numPages
-    paginatedFriends: (root, { numPages }) => new MockList(numPages * PAGE_SIZE),
-  }),
-}
-```
-
-You can read some background and flavor on this approach in our blog post, ["Mocking your server with one line of code"](https://medium.com/apollo-stack/mocking-your-server-with-just-one-line-of-code-692feda6e9cd).
-
-## Mocking interfaces
-
-You will need resolvers to mock interfaces. By default [`addMocksToSchema`](#addmockstoschema) will overwrite resolver functions.
-By setting the property `preserveResolvers` on the options object to `true`, the type resolvers will be preserved.
-
-```js
-import { makeExecutableSchema } from '@graphql-tools/schema';
-import { addMocksToSchema } from '@graphql-tools/mock';
-import mocks from './mocks' // your mock functions
-
+```ts
 const typeDefs = `
+  ...
+  union Result = User | Book
+`;
+const mocks = {
+  Result: () => ({
+    __typename: 'User',
+    name: casual.name(),
+  })
+}
+```
+
+### Appplying mutations
+
+Use `resolvers` option of `addMocksToSchema` to implement custom resolvers that interact with the mock store, especially to mutate field values in store.
+
+```ts
+const typeDefs = `
+type User {
+  id: Id!
+  name: String!
+}
 type Query {
-  fetchMore(listType: String!, amount: Int!, offset: Int!): List
+  me: User!
 }
-
-type Distributor {
-  id: Int
-  name: String
-}
-
-type Product {
-  id: Int
-  name: String
-}
-
-interface List {
-  amount: Int
-  offset: Int
-  total: Int
-  remaining: Int
-}
-
-type DistributorList implements List {
-  amount: Int
-  offset: Int
-  total: Int
-  remaining: Int
-  items: [Distributor]
-}
-
-type ProductList implements List {
-  amount: Int
-  offset: Int
-  total: Int
-  remaining: Int
-  items: [Product]
+type Mutation {
+  changeMyName(newName: String!): User!
 }
 `
-
-const resolvers = {
-  List: {
-    __resolveType(data) {
-      return data.typename // typename property must be set by your mock functions
-    }
-  }
-}
-
-const schema = makeExecutableSchema({
-  typeDefs,
-  resolvers
-})
-
+const schema = makeExecutableSchema({ typeDefs: schemaString });
 const schemaWithMocks = addMocksToSchema({
   schema,
-  mocks,
-  preserveResolvers: true
-})
+  resolvers: (store) => ({
+    Mutation: {
+      changeMyName: (_, { newName }) => {
+        // special singleton types `Query` and `Mutation` will use the key `ROOT`
+
+        // this will set the field value for the `User` entity referenced in field
+        // `me` of the singleton `Query`
+        store.set('Query', 'ROOT', 'me', { name: newName });
+
+        return store.get('Query', 'ROOT', 'me');
+      }
+    }
+  })
+});
+```
+
+As a result, any query that queries the field `name` of the `User` referenced in `me` will get the updated value.
+
+Note the sugar signature of `set`:
+
+```ts
+store.set('Query', 'ROOT', 'me', { name: newName });
+
+// is equivalent to:
+const meRef = store.get('Query', 'ROOT', `me`) as Ref;
+store.set(meRef, 'name', newName);
+```
+
+### Handling `*byId` fields
+
+By default, `*byId` (like `userById(id: ID!)`) field will return an entity that does not have the same `id` as the one queried. We can fix that:
+
+```ts
+const typeDefs = `
+type User {
+  id: Id!
+  name: String!
+}
+type Query {
+  userById(id: ID!): User!
+}
+`
+const schema = makeExecutableSchema({ typeDefs: schemaString });
+const schemaWithMocks = addMocksToSchema({
+  schema,
+  store,
+  resolvers: (store) => ({
+    Query {
+      userById(_, { id }) => store.get('User', id),
+    }
+  })
+});
+```
+
+Note that, by default, the `id` or `_id` field will be used as storage key and the store will make sure the storage key and the field value are equal. You can change the key field using the option `typePolicies`.
+
+### Mocking a pagination
+
+The idea is that the store contains the full list, as field value, and that the resolver queries the store and slice the results:
+
+```ts
+const typeDefs = `
+type User {
+  id: Id!
+  name: String!
+  friends(offset: Int!, limit: Int!): [User!]!
+}
+type Query {
+  me: User!
+}
+`
+const schema = makeExecutableSchema({ typeDefs: schemaString });
+const schemaWithMocks = addMocksToSchema({
+  schema,
+  store,
+  resolvers: (store) => ({
+    User: {
+      // `addMocksToSchema` resolver will pass a `Ref` as `parent`
+      // it contains a key to the `User` we are dealing with
+      friends: (userRef, { offset, limit }) => {
+        // this will generate and store a list of `Ref`s to some `User`s
+        // next time we go thru this resolver (with same parent), the list
+        // will be the same
+        const fullList = store.get(userRef, 'friends') as Ref[];
+
+        // actually apply pagination slicing
+        return fullList.slice(offset, offset + limit)
+      }
+    }
+  })
+});
+```
+
+#### Relay-style pagination
+The principles stay the same than for basic pagination:
+
+```ts
+const typeDefs = `
+type User {
+  id: Id!
+  name: String!
+  friends(offset: Int!, limit: Int!): FriendsConnection;
+}
+type FriendsConnection {
+  totalCount: Int!
+  edges: [FriendConnectionEdge!]!
+}
+type FriendsConnectionEdge {
+  node: User!
+}
+type Query {
+  me: User!
+}
+`
+const schema = makeExecutableSchema({ typeDefs: schemaString });
+const store = createMockStore({ schema });
+const schemaWithMocks = addMocksToSchema({
+  schema,
+  store,
+  resolvers: (store) => ({
+    User: {
+      friends: (userRef, { offset, limit }) => {
+
+        const connectionRef = store.get(userRef, 'friends', 'edges');
+
+        return {
+          totalCount: edgesFullList.length,
+          edges: edgesFullList.slice(offset, offset + limit)
+      }
+    }
+  })
+});
 ```
 
 ## Mocking a schema using introspection
@@ -284,16 +353,6 @@ const schemaWithMocks = addMocksToSchema({
 ```
 
 Given an instance of GraphQLSchema and a mock object, `addMocksToSchema` returns a new schema that can return mock data for any valid query that is sent to the server. If `mocks` is not passed, the defaults will be used for each of the scalar types. If `preserveResolvers` is set to `true`, existing resolvers will not be overwritten to provide mock data. This can be used to mock some parts of the server and not others.
-
-### MockList
-
-```js
-import { MockList } from '@graphql-tools/mock';
-
-new MockList(length: number | number[], mockFunction: (...args: any[]) => any);
-```
-
-This is an object you can return from your mock resolvers which calls the `mockFunction` once for each list item. The first argument can either be an exact length, or an inclusive range of possible lengths for the list, in case you want to see how your UI responds to varying lists of data.
 
 ### mockServer
 
