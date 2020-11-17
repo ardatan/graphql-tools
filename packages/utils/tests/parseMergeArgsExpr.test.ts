@@ -140,7 +140,7 @@ describe('can preparse merge arguments', () => {
     const args = `test`;
     const result = preparseMergeArgsExpr(args);
     expect(result.mergeArgsExpr).toEqual('test');
-    expect(result.expansionExpressions).toBeUndefined;
+    expect(result.expansionExpressions).toEqual({});
   });
 
   test('can preparseMergeArgsExpr an empty single key expansion', () => {
