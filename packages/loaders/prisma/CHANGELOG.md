@@ -1,5 +1,11 @@
 # @graphql-tools/prisma-loader
 
+## 6.2.6
+
+### Patch Changes
+
+- 07548058: Don't initialize env vars with an empty object, so it can fall back on process.env
+
 ## 6.2.5
 
 ### Patch Changes
