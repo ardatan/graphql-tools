@@ -28,7 +28,6 @@ import formatDate from 'dateformat';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import {
-  SchemaTransform,
   mapSchema,
   MapperKind,
   getDirectives,
@@ -120,7 +119,7 @@ describe('@directives', () => {
   test('can be iterated with mapSchema', () => {
     const visited: Set<GraphQLObjectType> = new Set();
 
-    function addObjectTypeToSetDirective(directiveNames: Array<string>): SchemaTransform {
+    function addObjectTypeToSetDirective(directiveNames: Array<string>): (schema: GraphQLSchema) => GraphQLSchema {
       return schema => mapSchema(schema, {
         [MapperKind.OBJECT_TYPE]: type => {
           const directives = getDirectives(schema, type);
@@ -148,7 +147,7 @@ describe('@directives', () => {
   test('can visit the schema directly', () => {
     const visited: Array<GraphQLSchema> = [];
 
-    function recordSchemaDirectiveUses(directiveNames: Array<string>): SchemaTransform {
+    function recordSchemaDirectiveUses(directiveNames: Array<string>): (schema: GraphQLSchema) => GraphQLSchema {
       return schema => {
         const directives = getDirectives(schema, schema);
         Object.keys(directives).forEach(directiveName => {
@@ -818,7 +817,7 @@ describe('@directives', () => {
   });
 
   test('automatically updates references to changed types', () => {
-    function renameObjectTypeToHumanDirective(directiveName: string): SchemaTransform {
+    function renameObjectTypeToHumanDirective(directiveName: string): (schema: GraphQLSchema) => GraphQLSchema {
       return schema => mapSchema(schema, {
         [MapperKind.OBJECT_TYPE]: (type) => {
           const directives = getDirectives(schema, type);
@@ -866,7 +865,7 @@ describe('@directives', () => {
   });
 
   test('can remove enum values', () => {
-    function removeEnumValueDirective(directiveName: string): SchemaTransform {
+    function removeEnumValueDirective(directiveName: string): (schema: GraphQLSchema) => GraphQLSchema {
       return schema => mapSchema(schema, {
         [MapperKind.ENUM_VALUE]: (enumValueConfig) => {
           const directives = getDirectives(schema, enumValueConfig);
@@ -903,7 +902,7 @@ describe('@directives', () => {
   });
 
   test("can modify enum value's external value", () => {
-    function modfyExternalEnumValueDirective(directiveName: string): SchemaTransform {
+    function modfyExternalEnumValueDirective(directiveName: string): (schema: GraphQLSchema) => GraphQLSchema {
       return schema => mapSchema(schema, {
         [MapperKind.ENUM_VALUE]: (enumValueConfig) => {
           const directives = getDirectives(schema, enumValueConfig);
@@ -941,7 +940,7 @@ describe('@directives', () => {
   });
 
   test("can modify enum value's internal value", () => {
-    function modfyInternalEnumValueDirective(directiveName: string): SchemaTransform {
+    function modfyInternalEnumValueDirective(directiveName: string): (schema: GraphQLSchema) => GraphQLSchema {
       return schema => mapSchema(schema, {
         [MapperKind.ENUM_VALUE]: (enumValueConfig) => {
           const directives = getDirectives(schema, enumValueConfig);
@@ -980,7 +979,7 @@ describe('@directives', () => {
   });
 
   test('can swap names of GraphQLNamedType objects', () => {
-    function renameObjectTypeDirective(directiveName: string): SchemaTransform {
+    function renameObjectTypeDirective(directiveName: string): (schema: GraphQLSchema) => GraphQLSchema {
       return schema => mapSchema(schema, {
         [MapperKind.OBJECT_TYPE]: (type) => {
           const directives = getDirectives(schema, type);
@@ -1033,7 +1032,7 @@ describe('@directives', () => {
   });
 
   test('does not enforce query directive locations (issue #680)', () => {
-    function addObjectTypeToSetDirective(directiveName: string): SchemaTransform {
+    function addObjectTypeToSetDirective(directiveName: string): (schema: GraphQLSchema) => GraphQLSchema {
       return schema => mapSchema(schema, {
         [MapperKind.OBJECT_TYPE]: type => {
           const directives = getDirectives(schema, type);
@@ -1063,7 +1062,7 @@ describe('@directives', () => {
   });
 
   test('allows multiple directives when first replaces type (issue #851)', () => {
-    function upperDirective(directiveName: string): SchemaTransform {
+    function upperDirective(directiveName: string): (schema: GraphQLSchema) => GraphQLSchema {
       return schema => mapSchema(schema, {
         [MapperKind.OBJECT_FIELD]: (fieldConfig) => {
           const directives = getDirectives(schema, fieldConfig);
@@ -1082,7 +1081,7 @@ describe('@directives', () => {
       });
     }
 
-    function reverseDirective(directiveName: string): SchemaTransform {
+    function reverseDirective(directiveName: string): (schema: GraphQLSchema) => GraphQLSchema {
       return schema => mapSchema(schema, {
         [MapperKind.OBJECT_FIELD]: (fieldConfig) => {
           const directives = getDirectives(schema, fieldConfig);

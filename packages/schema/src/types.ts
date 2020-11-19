@@ -77,4 +77,4 @@ export interface IExecutableSchemaDefinition<TContext = any> {
   noExtensionExtraction?: boolean;
 }
 
-export type ExecutableSchemaTransformation = (originalWrappingSchema: GraphQLSchema) => GraphQLSchema;
+export type ExecutableSchemaTransformation = (schema: GraphQLSchema) => GraphQLSchema;

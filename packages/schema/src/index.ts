@@ -13,4 +13,3 @@ export { addErrorLoggingToSchema } from './addErrorLoggingToSchema';
 export { addCatchUndefinedToSchema } from './addCatchUndefinedToSchema';
 export * from './makeExecutableSchema';
 export * from './types';
-export * from './schemaTransforms';
