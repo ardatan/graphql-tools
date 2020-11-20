@@ -53,10 +53,8 @@ export function typeMergingDirectivesValidator(
           }
 
           let returnType = getNullableType(fieldConfig.type);
-          let returnsList = false;
 
           if (isListType(returnType)) {
-            returnsList = true;
             returnType = getNullableType(returnType.ofType);
           }
 
