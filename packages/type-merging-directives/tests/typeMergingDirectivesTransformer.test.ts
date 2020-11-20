@@ -8,7 +8,7 @@ import { typeMergingDirectives } from '../src';
 describe('type merging directives', () => {
   const { typeMergingDirectivesTypeDefs, typeMergingDirectivesTransformer } = typeMergingDirectives();
 
-  test('transforms', () => {
+  test('adds base selection sets', () => {
     const typeDefs = `
       ${typeMergingDirectivesTypeDefs}
       scalar _Key
@@ -31,11 +31,7 @@ describe('type merging directives', () => {
 
     const transformedSubschemaConfig = typeMergingDirectivesTransformer(subschemaConfig);
 
-    expect(transformedSubschemaConfig.merge).toEqual({
-      User: {
-        selectionSet: print(parseSelectionSet('{ id }')),
-        fieldName: '_user',
-      }
-    });
+    expect(transformedSubschemaConfig.merge.User.selectionSet).toEqual(print(parseSelectionSet('{ id }')));
+    expect(transformedSubschemaConfig.merge.User.fieldName).toEqual('_user');
   });
 });

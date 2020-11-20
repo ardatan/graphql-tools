@@ -9,12 +9,20 @@ import {
 } from 'graphql';
 
 import { cloneSubschemaConfig, SubschemaConfig } from '@graphql-tools/delegate';
-import { getDirectives, getImplementingTypes, MapperKind, mapSchema, parseSelectionSet } from '@graphql-tools/utils';
+import {
+  getDirectives,
+  getImplementingTypes,
+  MapperKind,
+  mapSchema,
+  mergeDeep,
+  parseSelectionSet,
+} from '@graphql-tools/utils';
 
-import { MergedTypeResolverInfo, TypeMergingDirectivesOptions } from './types';
+import { KeyDeclaration, MergedTypeResolverInfo, TypeMergingDirectivesOptions } from './types';
 
 import { defaultTypeMergingDirectiveOptions } from './defaultTypeMergingDirectiveOptions';
 import { parseMergeArgsExpr } from './parseMergeArgsExpr';
+import { addKey, getKey, getKeys, propertyTreeFromPaths } from './properties';
 
 export function typeMergingDirectivesTransformer(
   options: TypeMergingDirectivesOptions = {}
@@ -158,8 +166,59 @@ export function typeMergingDirectivesTransformer(
       const mergeTypeConfig = newSubschemaConfig.merge[typeName];
 
       mergeTypeConfig.fieldName = mergedTypeResolverInfo.fieldName;
+
+      if (mergedTypeResolverInfo.returnsList) {
+        mergeTypeConfig.key = generateKeyFn(mergedTypeResolverInfo);
+        mergeTypeConfig.argsFromKeys = generateArgsFromKeysFn(mergedTypeResolverInfo);
+      } else {
+        mergeTypeConfig.args = generateArgsFn(mergedTypeResolverInfo);
+      }
     });
 
     return newSubschemaConfig;
+  };
+}
+
+function generateKeyFn(mergedTypeResolverInfo: MergedTypeResolverInfo): (originalResult: any) => any {
+  const keyDeclarations: Array<KeyDeclaration> = [].concat(
+    mergedTypeResolverInfo.expansions.map(expansion => expansion.keyDeclarations)
+  );
+  const propertyTree = propertyTreeFromPaths(keyDeclarations.map(keyDeclaration => keyDeclaration.keyPath));
+
+  return (originalResult: any): any => getKeys(originalResult, propertyTree);
+}
+
+function generateArgsFromKeysFn(
+  mergedTypeResolverInfo: MergedTypeResolverInfo
+): (keys: Array<any>) => Record<string, any> {
+  const expansions = mergedTypeResolverInfo.expansions;
+  const args = mergedTypeResolverInfo.args;
+  return (keys: Array<any>): Record<string, any> => {
+    const newArgs = mergeDeep({}, args);
+    expansions.forEach(expansion => {
+      const keyDeclarations = expansion.keyDeclarations;
+      const expanded: Array<any> = [];
+      keys.forEach(key => {
+        const newValue = mergeDeep({}, expansion.valuePath);
+        keyDeclarations.forEach(keyDeclaration => {
+          addKey(newValue, keyDeclaration.valuePath, getKey(key, keyDeclaration.keyPath));
+        });
+        expanded.push(key);
+      });
+      addKey(newArgs, expansion.valuePath, expanded);
+    });
+    return newArgs;
+  };
+}
+
+function generateArgsFn(mergedTypeResolverInfo: MergedTypeResolverInfo): (originalResult: any) => Record<string, any> {
+  const keyDeclarations = mergedTypeResolverInfo.keyDeclarations;
+  const args = mergedTypeResolverInfo.args;
+  return (originalResult: any): Record<string, any> => {
+    const newArgs = mergeDeep({}, args);
+    keyDeclarations.forEach(keyDeclaration => {
+      addKey(newArgs, keyDeclaration.valuePath, getKey(originalResult, keyDeclaration.keyPath));
+    });
+    return newArgs;
   };
 }

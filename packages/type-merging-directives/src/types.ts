@@ -1,16 +1,20 @@
+export interface PropertyTree {
+  [property: string]: any | PropertyTree;
+}
+
 export interface ParsedMergeArgsExpr {
-  args: Record<string, any>;
+  args: PropertyTree;
   keyDeclarations: Array<KeyDeclaration>;
   expansions: Array<Expansion>;
 }
 
 export interface KeyDeclaration {
-  valuePath: Array<string | number>;
+  valuePath: Array<string>;
   keyPath: Array<string>;
 }
 
 export interface Expansion {
-  valuePath: Array<string | number>;
+  valuePath: Array<string>;
   value: any;
   keyDeclarations: Array<KeyDeclaration>;
 }

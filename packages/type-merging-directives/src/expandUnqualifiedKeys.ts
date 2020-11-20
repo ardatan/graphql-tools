@@ -2,7 +2,7 @@ import { SelectionSetNode } from 'graphql';
 
 import { KeyDeclaration } from './types';
 
-import { addKey } from './addKey';
+import { addKey } from './properties';
 import { pathsFromSelectionSets } from './pathsFromSelectionSets';
 
 export interface PreparsedMergeArgsExpr {

@@ -38,12 +38,7 @@ export function parseMergeArgsExpr(
       selectionSets
     );
 
-    const args: Record<string, any> = Object.create(null);
-    Object.entries(finalValue).forEach(([argName, argValue]) => {
-      args[argName] = argValue;
-    });
-
-    return { args, keyDeclarations: finalKeyDeclarations, expansions: [] };
+    return { args: finalValue, keyDeclarations: finalKeyDeclarations, expansions: [] };
   }
 
   const expansionRegEx = new RegExp(`${EXPANSION_PREFIX}[0-9]+`);
@@ -76,18 +71,13 @@ export function parseMergeArgsExpr(
     );
 
     expansions.push({
-      valuePath,
+      valuePath: assertNotWithinList(valuePath),
       value: finalValue,
       keyDeclarations: finalKeyDeclarations,
     });
   });
 
-  const args: Record<string, any> = Object.create(null);
-  Object.entries(valueFromASTUntyped(newInputValue)).forEach(([argName, argValue]) => {
-    args[argName] = argValue;
-  });
-
-  return { args, keyDeclarations: [], expansions };
+  return { args: valueFromASTUntyped(newInputValue), keyDeclarations: [], expansions };
 }
 
 function getKeyDeclarations(variablePaths: VariablePaths): Array<KeyDeclaration> {
@@ -96,10 +86,19 @@ function getKeyDeclarations(variablePaths: VariablePaths): Array<KeyDeclaration>
     const splitKeyPath = keyPath.split(KEY_DELIMITER).slice(1);
 
     keyDeclarations.push({
-      valuePath,
+      valuePath: assertNotWithinList(valuePath),
       keyPath: splitKeyPath,
     });
   });
 
   return keyDeclarations;
+}
+
+function assertNotWithinList(path: Array<string | number>): Array<string> {
+  path.forEach(pathSegment => {
+    if (typeof pathSegment === 'number') {
+      throw new Error('Insertions cannot be made into a list.');
+    }
+  });
+  return path as Array<string>;
 }
