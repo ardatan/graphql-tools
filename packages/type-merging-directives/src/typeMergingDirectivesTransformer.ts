@@ -1,5 +1,6 @@
 import {
   getNullableType,
+  GraphQLNamedType,
   isInterfaceType,
   isListType,
   isObjectType,
@@ -65,6 +66,34 @@ export function typeMergingDirectivesTransformer(
           selectionSetsByField[typeName][fieldName] = selectionSet;
         }
 
+        return undefined;
+      },
+    });
+
+    const allSelectionSetsByType: Record<string, Array<SelectionSetNode>> = Object.create(null);
+
+    Object.entries(selectionSetsByType).forEach(([typeName, selectionSet]) => {
+      if (allSelectionSetsByType[typeName] == null) {
+        allSelectionSetsByType[typeName] = [selectionSet];
+      } else {
+        allSelectionSetsByType[typeName].push(selectionSet);
+      }
+    });
+
+    Object.entries(selectionSetsByField).forEach(([typeName, selectionSets]) => {
+      Object.values(selectionSets).forEach(selectionSet => {
+        if (allSelectionSetsByType[typeName] == null) {
+          allSelectionSetsByType[typeName] = [selectionSet];
+        } else {
+          allSelectionSetsByType[typeName].push(selectionSet);
+        }
+      });
+    });
+
+    mapSchema(schema, {
+      [MapperKind.OBJECT_FIELD]: (fieldConfig, fieldName) => {
+        const directives = getDirectives(schema, fieldConfig);
+
         if (directives[mergeDirectiveName]) {
           const directiveArgumentMap = directives[mergeDirectiveName];
 
@@ -85,7 +114,10 @@ export function typeMergingDirectivesTransformer(
             mergeArgsExpr = returnsList ? `${argName}: [[$key]]` : `${argName}: $key`;
           }
 
-          const parsedMergeArgsExpr = parseMergeArgsExpr(mergeArgsExpr);
+          const parsedMergeArgsExpr = parseMergeArgsExpr(
+            mergeArgsExpr,
+            allSelectionSetsByType[(returnType as GraphQLNamedType).name]
+          );
 
           if (isInterfaceType(returnType)) {
             getImplementingTypes(returnType.name, schema).forEach(typeName => {
@@ -181,7 +213,7 @@ export function typeMergingDirectivesTransformer(
 
 function generateKeyFn(mergedTypeResolverInfo: MergedTypeResolverInfo): (originalResult: any) => any {
   const keyDeclarations: Array<KeyDeclaration> = [].concat(
-    mergedTypeResolverInfo.expansions.map(expansion => expansion.keyDeclarations)
+    ...mergedTypeResolverInfo.expansions.map(expansion => expansion.keyDeclarations)
   );
   const propertyTree = propertyTreeFromPaths(keyDeclarations.map(keyDeclaration => keyDeclaration.keyPath));
 

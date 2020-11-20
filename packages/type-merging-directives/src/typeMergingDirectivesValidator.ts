@@ -1,4 +1,12 @@
-import { getNullableType, GraphQLSchema, isInterfaceType, isListType, isObjectType, isUnionType } from 'graphql';
+import {
+  getNullableType,
+  GraphQLSchema,
+  isInterfaceType,
+  isListType,
+  isNamedType,
+  isObjectType,
+  isUnionType,
+} from 'graphql';
 
 import { getDirectives, MapperKind, mapSchema, parseSelectionSet } from '@graphql-tools/utils';
 
@@ -52,7 +60,11 @@ export function typeMergingDirectivesValidator(
             returnType = getNullableType(returnType.ofType);
           }
 
-          let mergeArgsExpr = directiveArgumentMap.argsExpr;
+          if (!isNamedType(returnType)) {
+            throw new Error('@merge directive must be used on a field that returns an object or a list of objects.');
+          }
+
+          const mergeArgsExpr = directiveArgumentMap.argsExpr;
           if (mergeArgsExpr == null) {
             const args = Object.keys(fieldConfig.args);
 
@@ -61,13 +73,9 @@ export function typeMergingDirectivesValidator(
                 'Cannot use @merge directive without arguments if resolver takes more than one argument.'
               );
             }
-
-            const argName = args[0];
-
-            mergeArgsExpr = returnsList ? `${argName}: [[$key]]` : `${argName}: $key`;
+          } else {
+            parseMergeArgsExpr(mergeArgsExpr);
           }
-
-          parseMergeArgsExpr(mergeArgsExpr);
 
           if (!isInterfaceType(returnType) && !isUnionType(returnType) && !isObjectType(returnType)) {
             throw new Error(
