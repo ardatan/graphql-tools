@@ -8,11 +8,13 @@ import {
   SingleFileOptions,
 } from '@graphql-tools/utils';
 import { isAbsolute, resolve } from 'path';
-import { readFile, readFileSync, pathExists, pathExistsSync } from 'fs-extra';
+import { readFileSync, accessSync, promises as fsPromises } from 'fs';
 import { cwd as processCwd } from 'process';
 import { isExecutableDefinitionNode, Kind } from 'graphql';
 import { processImport } from '@graphql-tools/import';
 import { mergeTypeDefs } from '@graphql-tools/merge';
+
+const { readFile, access } = fsPromises;
 
 const FILE_EXTENSIONS = ['.gql', '.gqls', '.graphql', '.graphqls'];
 
@@ -66,7 +68,12 @@ export class GraphQLFileLoader implements UniversalLoader<GraphQLFileLoaderOptio
     if (isValidPath(pointer)) {
       if (FILE_EXTENSIONS.find(extension => pointer.endsWith(extension))) {
         const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || processCwd(), pointer);
-        return pathExists(normalizedFilePath);
+        try {
+          await access(normalizedFilePath);
+          return true;
+        } catch {
+          return false;
+        }
       }
     }
 
@@ -77,7 +84,12 @@ export class GraphQLFileLoader implements UniversalLoader<GraphQLFileLoaderOptio
     if (isValidPath(pointer)) {
       if (FILE_EXTENSIONS.find(extension => pointer.endsWith(extension))) {
         const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || processCwd(), pointer);
-        return pathExistsSync(normalizedFilePath);
+        try {
+          accessSync(normalizedFilePath);
+          return true;
+        } catch {
+          return false;
+        }
       }
     }
 

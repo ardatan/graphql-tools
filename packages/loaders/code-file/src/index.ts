@@ -18,8 +18,10 @@ import {
 } from '@graphql-tools/graphql-tag-pluck';
 import { tryToLoadFromExport, tryToLoadFromExportSync } from './load-from-module';
 import { isAbsolute, resolve } from 'path';
-import { readFileSync, readFile, pathExists, pathExistsSync } from 'fs-extra';
 import { cwd } from 'process';
+import { readFileSync, accessSync, promises as fsPromises } from 'fs';
+
+const { readFile, access } = fsPromises;
 
 /**
  * Additional options for loading from a code file
@@ -59,7 +61,12 @@ export class CodeFileLoader implements UniversalLoader<CodeFileLoaderOptions> {
     if (isValidPath(pointer)) {
       if (FILE_EXTENSIONS.find(extension => pointer.endsWith(extension))) {
         const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || cwd(), pointer);
-        return pathExists(normalizedFilePath);
+        try {
+          await access(normalizedFilePath);
+          return true;
+        } catch {
+          return false;
+        }
       }
     }
 
@@ -70,7 +77,12 @@ export class CodeFileLoader implements UniversalLoader<CodeFileLoaderOptions> {
     if (isValidPath(pointer)) {
       if (FILE_EXTENSIONS.find(extension => pointer.endsWith(extension))) {
         const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || cwd(), pointer);
-        return pathExistsSync(normalizedFilePath);
+        try {
+          accessSync(normalizedFilePath);
+          return true;
+        } catch {
+          return false;
+        }
       }
     }
 

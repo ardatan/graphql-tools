@@ -1,9 +1,11 @@
 import { UrlLoader, LoadFromUrlOptions } from '@graphql-tools/url-loader';
 import { PrismaDefinitionClass, Environment } from './prisma-yml';
 import { join } from 'path';
-import { pathExists } from 'fs-extra';
+import { promises as fsPromises } from 'fs';
 import { homedir } from 'os';
 import { cwd } from 'process';
+
+const { access } = fsPromises;
 
 /**
  * additional options for loading from a `prisma.yml` file
@@ -25,7 +27,12 @@ export class PrismaLoader extends UrlLoader {
   async canLoad(prismaConfigFilePath: string, options: PrismaLoaderOptions): Promise<boolean> {
     if (typeof prismaConfigFilePath === 'string' && prismaConfigFilePath.endsWith('prisma.yml')) {
       const joinedYmlPath = join(options.cwd || cwd(), prismaConfigFilePath);
-      return pathExists(joinedYmlPath);
+      try {
+        await access(joinedYmlPath);
+        return true;
+      } catch {
+        return false;
+      }
     }
     return false;
   }

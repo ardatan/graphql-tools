@@ -1,7 +1,9 @@
 import globby, { sync as globbySync, GlobbyOptions } from 'globby';
 import unixify from 'unixify';
 import { extname } from 'path';
-import { readFile, stat, statSync, readFileSync } from 'fs-extra';
+import { statSync, readFileSync, promises as fsPromises } from 'fs';
+
+const { readFile, stat } = fsPromises;
 
 const DEFAULT_IGNORED_EXTENSIONS = ['spec', 'test', 'd', 'map'];
 const DEFAULT_EXTENSIONS = ['gql', 'graphql', 'graphqls', 'ts', 'js'];

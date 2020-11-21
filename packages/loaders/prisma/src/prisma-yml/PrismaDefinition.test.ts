@@ -1,5 +1,5 @@
 import { PrismaDefinitionClass } from './PrismaDefinition';
-import * as fs from 'fs-extra';
+import * as fs from 'fs';
 import * as path from 'path';
 import { getTmpDir } from './test/getTmpDir';
 import { makeEnv } from './Environment.test';
@@ -129,7 +129,8 @@ type User @model {
     const { definition, env } = makeDefinition(yml, datamodel, {});
     const envPath = path.join(definition.definitionDir, '.env');
 
-    fs.outputFileSync(envPath, `MY_DOT_ENV_SECRET=this-is-very-secret,and-comma,seperated`);
+    fs.mkdirSync(path.dirname(envPath), { recursive: true });
+    fs.writeFileSync(envPath, `MY_DOT_ENV_SECRET=this-is-very-secret,and-comma,seperated`);
 
     await env.load();
 
@@ -242,7 +243,8 @@ type User @model {
     const { definition, env } = makeDefinition(yml, datamodel);
     const envPath = path.join(definition.definitionDir, '.env');
 
-    fs.outputFileSync(envPath, `MY_DOT_ENV_SECRET=this-is-very-secret,and-comma,seperated`);
+    fs.mkdirSync(path.dirname(envPath), { recursive: true });
+    fs.writeFileSync(envPath, `MY_DOT_ENV_SECRET=this-is-very-secret,and-comma,seperated`);
 
     await env.load();
     try {

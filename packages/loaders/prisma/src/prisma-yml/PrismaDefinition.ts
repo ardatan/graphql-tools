@@ -1,6 +1,6 @@
 import { readDefinition } from './yaml';
 import { PrismaDefinition } from './prisma-json-schema';
-import * as fs from 'fs-extra';
+import * as fs from 'fs';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 // eslint-disable-next-line
@@ -48,7 +48,9 @@ export class PrismaDefinitionClass {
     if (args.project) {
       const flagPath = path.resolve(args.project as string);
 
-      if (!fs.pathExistsSync(flagPath)) {
+      try {
+        fs.accessSync(flagPath);
+      } catch {
         throw new Error(`Prisma definition path specified by --project '${flagPath}' does not exist`);
       }
 
@@ -61,11 +63,15 @@ export class PrismaDefinitionClass {
     }
 
     if (envPath) {
-      if (!fs.pathExistsSync(envPath)) {
+      try {
+        fs.accessSync(envPath);
+      } catch {
         envPath = path.join(process.cwd(), envPath);
       }
 
-      if (!fs.pathExistsSync(envPath)) {
+      try {
+        fs.accessSync(envPath);
+      } catch {
         throw new Error(`--env-file path '${envPath}' does not exist`);
       }
     }
@@ -251,10 +257,11 @@ and execute ${chalk.bold.green('prisma deploy')} again, to get that value auto-f
     let allTypes = '';
     typesPaths.forEach(unresolvedTypesPath => {
       const typesPath = path.join(this.definitionDir, unresolvedTypesPath!);
-      if (fs.existsSync(typesPath)) {
+      try {
+        fs.accessSync(typesPath);
         const types = fs.readFileSync(typesPath, 'utf-8');
         allTypes += types + '\n';
-      } else {
+      } catch {
         throw new Error(`The types definition file "${typesPath}" could not be found.`);
       }
     });
@@ -291,7 +298,9 @@ and execute ${chalk.bold.green('prisma deploy')} again, to get that value auto-f
         let query = subscription.query;
         if (subscription.query.endsWith('.graphql')) {
           const queryPath = path.join(this.definitionDir, subscription.query);
-          if (!fs.pathExistsSync(queryPath)) {
+          try {
+            fs.accessSync(queryPath);
+          } catch {
             throw new Error(
               `Subscription query ${queryPath} provided in subscription "${name}" in prisma.yml does not exist.`
             );
