@@ -231,11 +231,15 @@ function generateArgsFromKeysFn(
       const keyDeclarations = expansion.keyDeclarations;
       const expanded: Array<any> = [];
       keys.forEach(key => {
-        const newValue = mergeDeep({}, expansion.valuePath);
+        let newValue = mergeDeep({}, expansion.valuePath);
         keyDeclarations.forEach(keyDeclaration => {
-          addKey(newValue, keyDeclaration.valuePath, getKey(key, keyDeclaration.keyPath));
+          if (keyDeclaration.valuePath.length) {
+            addKey(newValue, keyDeclaration.valuePath, getKey(key, keyDeclaration.keyPath));
+          } else {
+            newValue = getKey(key, keyDeclaration.keyPath);
+          }
         });
-        expanded.push(key);
+        expanded.push(newValue);
       });
       addKey(newArgs, expansion.valuePath, expanded);
     });
