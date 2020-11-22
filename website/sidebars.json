@@ -14,13 +14,7 @@
         "schema-delegation",
         "remote-schemas",
         "schema-wrapping",
-        {
-          "Schema merging": [
-            "merge-typedefs",
-            "merge-resolvers",
-            "merge-schemas"
-          ]
-        },
+        "schema-merging",
         {
           "Schema stitching": [
             "stitch-combining-schemas",
