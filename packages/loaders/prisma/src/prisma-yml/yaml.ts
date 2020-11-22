@@ -1,6 +1,6 @@
 import Ajv from 'ajv';
 import * as yaml from 'js-yaml';
-import * as fs from 'fs-extra';
+import * as fs from 'fs';
 import schema, { PrismaDefinition } from './prisma-json-schema';
 import { Variables } from './Variables';
 import { Args } from './types/common';
@@ -23,7 +23,9 @@ export async function readDefinition(
   envVars?: any,
   graceful?: boolean
 ): Promise<{ definition: PrismaDefinition; rawJson: any }> {
-  if (!fs.pathExistsSync(filePath)) {
+  try {
+    fs.accessSync(filePath);
+  } catch {
     throw new Error(`${filePath} could not be found.`);
   }
   const file = fs.readFileSync(filePath, 'utf-8');

@@ -1,6 +1,6 @@
 import { Args } from './types/common';
 import { Cluster } from './Cluster';
-import * as fs from 'fs-extra';
+import * as fs from 'fs';
 import * as yaml from 'js-yaml';
 import { ClusterNotFound } from './errors/ClusterNotFound';
 import { Variables } from './Variables';
@@ -34,7 +34,7 @@ export class Environment {
     this.version = version;
 
     this.rcPath = path.join(this.home, '.prisma/config.yml');
-    fs.mkdirpSync(path.dirname(this.rcPath));
+    fs.mkdirSync(path.dirname(this.rcPath), { recursive: true });
   }
 
   async load() {
@@ -192,9 +192,17 @@ export class Environment {
   }
 
   async loadGlobalRC(): Promise<void> {
-    const globalFile =
-      this.rcPath && fs.pathExistsSync(this.rcPath) ? fs.readFileSync(this.rcPath, 'utf-8') : undefined;
-    await this.parseGlobalRC(globalFile);
+    if (this.rcPath) {
+      try {
+        fs.accessSync(this.rcPath);
+        const globalFile = fs.readFileSync(this.rcPath, 'utf-8');
+        await this.parseGlobalRC(globalFile);
+      } catch {
+        await this.parseGlobalRC();
+      }
+    } else {
+      await this.parseGlobalRC();
+    }
   }
 
   async parseGlobalRC(globalFile?: string): Promise<void> {

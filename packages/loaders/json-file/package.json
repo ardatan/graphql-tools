@@ -17,7 +17,6 @@
   },
   "dependencies": {
     "@graphql-tools/utils": "^7.0.0",
-    "fs-extra": "9.0.1",
     "tslib": "~2.0.1"
   },
   "publishConfig": {

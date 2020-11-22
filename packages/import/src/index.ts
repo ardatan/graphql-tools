@@ -34,7 +34,7 @@ import {
   ScalarTypeDefinitionNode,
   ScalarTypeExtensionNode,
 } from 'graphql';
-import { readFileSync, realpathSync } from 'fs-extra';
+import { readFileSync, realpathSync } from 'fs';
 import { dirname, join, isAbsolute } from 'path';
 import resolveFrom from 'resolve-from';
 

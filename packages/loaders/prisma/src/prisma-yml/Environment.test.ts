@@ -1,6 +1,6 @@
 import { Environment } from './Environment';
 import { getTmpDir } from './test/getTmpDir';
-import * as fs from 'fs-extra';
+import * as fs from 'fs';
 import { Cluster } from './Cluster';
 import { Output } from './Output';
 
