@@ -1,5 +1,11 @@
 # @graphql-tools/prisma-loader
 
+## 6.2.7
+
+### Patch Changes
+
+- eacf0dc3: Replace fs-extra with native methods
+
 ## 6.2.6
 
 ### Patch Changes
