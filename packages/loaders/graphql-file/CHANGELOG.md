@@ -1,5 +1,13 @@
 # @graphql-tools/graphql-file-loader
 
+## 6.2.6
+
+### Patch Changes
+
+- eacf0dc3: Replace fs-extra with native methods
+- Updated dependencies [eacf0dc3]
+  - @graphql-tools/import@6.2.5
+
 ## 6.2.5
 
 ### Patch Changes
