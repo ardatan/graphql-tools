@@ -30,14 +30,21 @@ describe('merging using type merging', () => {
       username: '@complete',
     },
   ];
-
   const accountsSchema = makeExecutableSchema({
+    // @merge directive will direct the gateway to use the tagged resolver to resolve objects
+    // of that type. By default:
+    // 1. the key for that type will be sent to the resolvers first argument.
+    // 2. an array of keys will sent if the resolver returns a list.
+    //
+    // Note: the subschema can rely on the gateway correctly sending the indicated key and
+    // so it is safe to use a non-validated scalar argument. In the next example, the subschema
+    // will choose to strongly type the `keys` argument, but it is not strictly necessary.
     typeDefs: `
       ${typeMergingDirectivesTypeDefs}
+      scalar _Key
       type Query {
         me: User
-        _userById(id: ID!): User
-        _usersById(ids: [ID!]!): [User] @merge(argsExpr: "ids: [[$key.id]]")
+        _users(keys: [_Key!]!): [User] @merge
       }
       type User @base(selectionSet: "{ id }") {
         id: ID!
@@ -48,8 +55,7 @@ describe('merging using type merging', () => {
     resolvers: {
       Query: {
         me: () => users[0],
-        _userById: (_root, { id }) => users.find(user => user.id === id),
-        _usersById: (_root, { ids }) => ids.map((id: any) => users.find(user => user.id === id)),
+        _users: (_root, { keys }) => keys.map((key: Record<string, any>) => users.find(u => u.id === key.id)),
       },
     },
     schemaTransforms: [typeMergingDirectivesValidator],
@@ -62,9 +68,29 @@ describe('merging using type merging', () => {
   ];
 
   const inventorySchema = makeExecutableSchema({
+    // @merge directive will direct the gateway to use the tagged resolver to resolve objects
+    // of that type. By default:
+    // 1. the key for that type will be sent to the resolvers first argument.
+    // 2. an array of keys will sent if the resolver returns a list.
+    //
+    // In this example, the key is constructed by using @base and @computed selection sets.
+    // The @computed directive for a given field instructs the gateway to only add the required
+    // additional selections when the tagged field is included within a query. In addition,
+    // the @computed directive will defer resolution of these fields even when queries originate
+    // within this subschema. The resolver for the mostStockedProduct therefore correctly returns
+    // an object with a `upc` property, but without `price` and `weight`. The gateway will use
+    // the `upc` to retrive the `price` and `weight` from the external services and return to this
+    // service for the `shippingEstimate`. Resolution for @computed fields thereby differs when
+    // querying via the gateway versus when querying the subservice directly.
+    //
+    // This example strongly types the ProductKey using an input object. This is optional,
+    // as the subschema can rely on the gateway always sending in the correctly typed data.
+    // It is typed correctly; `upc` is always specified, but `price` and `weight` will only
+    // be included when `shippingEstimate` is included within the query.
+    //
     typeDefs: `
       ${typeMergingDirectivesTypeDefs}
-      input ProductRepresentation {
+      input ProductKey {
         upc: String!
         price: Int
         weight: Int
@@ -76,7 +102,7 @@ describe('merging using type merging', () => {
       }
       type Query {
         mostStockedProduct: Product
-        _products(representations: [ProductRepresentation!]!): [Product]! @merge
+        _products(keys: [ProductKey!]!): [Product]! @merge
       }
     `,
     resolvers: {
@@ -90,9 +116,7 @@ describe('merging using type merging', () => {
       },
       Query: {
         mostStockedProduct: () => inventory.find(i => i.upc === '3'),
-        _products: (_root, { representations }) => {
-          return representations.map((rep: Record<string, any>) => ({ ...rep, ...inventory.find(i => i.upc === rep.upc) }));
-        },
+        _products: (_root, { keys }) => keys.map((key: Record<string, any>) => inventory.find(i => i.upc === key.upc)),
       },
     },
     schemaTransforms: [typeMergingDirectivesValidator],
@@ -120,12 +144,26 @@ describe('merging using type merging', () => {
   ];
 
   const productsSchema = makeExecutableSchema({
+    // @merge directive will direct the gateway to use the tagged resolver to resolve objects
+    // of that type. By default:
+    // 1. the key for that type will be sent to the resolvers first argument.
+    // 2. an array of keys will sent if the resolver returns a list.
+    //
+    // In this example, the `argsExpr` argument for the @merge directive is used to customize
+    // the arguments that the gateway will pass to the resolver.
+    //
+    // Rules for evaluation of these arguments are as follows:
+    //
+    // A. any expression enclosed by double brackets will be evaluated once for each of the
+    //    requested keys, and then sent as a list.
+    // B. selections from the key can be referenced by using the $ sign and dot notation, so that
+    //    $key.upc refers to the `upc` field of the key.
+    //
     typeDefs: `
       ${typeMergingDirectivesTypeDefs}
       type Query {
         topProducts(first: Int = 2): [Product]
-        _productByUpc(upc: String!): Product
-        _productsByUpc(upcs: [String!]!): [Product] @merge(argsExpr: "upcs: [[$key.upc]]")
+        _productsByUpc(upcs: [String!]!): [Product] @merge(argsExpr: "upcs: [[$base.upc]]")
       }
       type Product @base(selectionSet: "{ upc }") {
         upc: String!
@@ -137,7 +175,6 @@ describe('merging using type merging', () => {
     resolvers: {
       Query: {
         topProducts: (_root, args) => products.slice(0, args.first),
-        _productByUpc: (_root, { upc }) => products.find(product => product.upc === upc),
         _productsByUpc: (_root, { upcs }) => upcs.map((upc: any) => products.find(product => product.upc === upc)),
       }
     },
@@ -177,6 +214,17 @@ describe('merging using type merging', () => {
   ];
 
   const reviewsSchema = makeExecutableSchema({
+    // @merge directive will direct the gateway to use the tagged resolver to resolve objects
+    // of that type. By default:
+    // 1. the key for that type will be sent to the resolvers first argument.
+    // 2. an array of keys will sent if the resolver returns a list.
+    //
+    // In this example, the `argsExpr` argument for the @merge directive is used to customize
+    // the arguments that the gateway will pass to the resolver.
+    //
+    // This example highlights how using the $ sign without dot notation will pass the entire
+    // key as an object. This allows arbitary nesting of the key input as needed.
+    //
     typeDefs: `
       ${typeMergingDirectivesTypeDefs}
       type Review {
@@ -185,22 +233,29 @@ describe('merging using type merging', () => {
         author: User
         product: Product
       }
+      input UserKey {
+        id: ID!
+      }
       type User @base(selectionSet: "{ id }") {
         id: ID!
         username: String
         numberOfReviews: Int
         reviews: [Review]
       }
+      input ProductKey {
+        upc: String!
+      }
+      input ProductInput {
+        keys: [ProductKey!]!
+      }
       type Product @base(selectionSet: "{ upc }") {
         upc: String!
         reviews: [Review]
       }
       type Query {
-        _userById(id: ID!): User
-        _usersById(ids: [ID!]!): [User] @merge(argsExpr: "ids: [[$key.id]]")
         _reviewById(id: ID!): Review
-        _productByUpc(upc: String!): Product
-        _productsByUpc(upcs: [String!]!): [Product] @merge(argsExpr: "upcs: [[$key.upc]]")
+        _users(keys: [UserKey!]!): [User] @merge
+        _products(input: ProductInput): [Product]! @merge(argsExpr: "input: { keys: [[$key]] }")
       }
     `,
     resolvers: {
@@ -219,11 +274,9 @@ describe('merging using type merging', () => {
         reviews: (product) => reviews.filter(review => review.product.upc === product.upc),
       },
       Query: {
-        _reviewById: (_root, { id }) => reviews.find(review => review.id === id),
-        _userById: (_root, { id }) => ({ id }),
-        _usersById: (_root, { ids }) => ids.map((id: string) => ({ id })),
-        _productByUpc: (_, { upc }) => ({ upc }),
-        _productsByUpc: (_, { upcs }) => upcs.map((upc: string) => ({ upc })),
+        _reviews: (_root, { id }) => reviews.find(review => review.id === id),
+        _users: (_root, { keys }) => keys,
+        _products: (_root, { input }) => input.keys,
       },
     },
     schemaTransforms: [typeMergingDirectivesValidator],
