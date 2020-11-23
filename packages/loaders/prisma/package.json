@@ -25,7 +25,7 @@
     "ajv": "^6.12.6",
     "bluebird": "^3.7.2",
     "chalk": "^4.1.0",
-    "debug": "^4.2.0",
+    "debug": "^4.3.1",
     "dotenv": "^8.2.0",
     "graphql-request": "^3.3.0",
     "http-proxy-agent": "^4.0.1",
