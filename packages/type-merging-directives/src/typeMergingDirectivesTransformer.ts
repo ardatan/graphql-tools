@@ -10,14 +10,7 @@ import {
 } from 'graphql';
 
 import { cloneSubschemaConfig, SubschemaConfig } from '@graphql-tools/delegate';
-import {
-  getDirectives,
-  getImplementingTypes,
-  MapperKind,
-  mapSchema,
-  mergeDeep,
-  parseSelectionSet,
-} from '@graphql-tools/utils';
+import { getDirectives, MapperKind, mapSchema, mergeDeep, parseSelectionSet } from '@graphql-tools/utils';
 
 import { KeyDeclaration, MergedTypeResolverInfo, TypeMergingDirectivesOptions } from './types';
 
@@ -119,21 +112,27 @@ export function typeMergingDirectivesTransformer(
             allSelectionSetsByType[(returnType as GraphQLNamedType).name]
           );
 
+          const typeNames: Array<string> = directiveArgumentMap.types;
+
           if (isInterfaceType(returnType)) {
-            getImplementingTypes(returnType.name, schema).forEach(typeName => {
-              mergedTypesResolversInfo[typeName] = {
-                fieldName,
-                returnsList,
-                ...parsedMergeArgsExpr,
-              };
+            schema.getImplementations(returnType).objects.forEach(type => {
+              if (typeNames == null || typeNames.includes(type.name)) {
+                mergedTypesResolversInfo[type.name] = {
+                  fieldName,
+                  returnsList,
+                  ...parsedMergeArgsExpr,
+                };
+              }
             });
           } else if (isUnionType(returnType)) {
             returnType.getTypes().forEach(type => {
-              mergedTypesResolversInfo[type.name] = {
-                fieldName,
-                returnsList,
-                ...parsedMergeArgsExpr,
-              };
+              if (typeNames == null || typeNames.includes(type.name)) {
+                mergedTypesResolversInfo[type.name] = {
+                  fieldName,
+                  returnsList,
+                  ...parsedMergeArgsExpr,
+                };
+              }
             });
           } else if (isObjectType(returnType)) {
             mergedTypesResolversInfo[returnType.name] = {

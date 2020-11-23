@@ -1,6 +1,7 @@
 import {
   getNullableType,
   GraphQLSchema,
+  isAbstractType,
   isInterfaceType,
   isListType,
   isNamedType,
@@ -79,6 +80,24 @@ export function typeMergingDirectivesValidator(
             throw new Error(
               '@merge directive may be used only with resolver that return an object, interface, or union.'
             );
+          }
+
+          const typeNames: Array<string> = directiveArgumentMap.types;
+          if (typeNames != null) {
+            if (!isAbstractType(returnType)) {
+              throw new Error('Types argument can only be used with a field that returns an abstract type.');
+            }
+            const implementingTypes = isInterfaceType(returnType)
+              ? schema.getImplementations(returnType).objects
+              : returnType.getTypes();
+            const implementingTypeNames = implementingTypes.map(type => type.name);
+            typeNames.forEach(typeName => {
+              if (!implementingTypeNames.includes(typeName)) {
+                throw new Error(
+                  `Types argument can only include only type names that implement the field return type's abstract type.`
+                );
+              }
+            });
           }
         }
 
