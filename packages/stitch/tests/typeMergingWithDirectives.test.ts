@@ -83,6 +83,10 @@ describe('merging using type merging', () => {
     // service for the `shippingEstimate`. Resolution for @computed fields thereby differs when
     // querying via the gateway versus when querying the subservice directly.
     //
+    // Note as well how the merging resolver used by the gateway includes the `price` and `weight`
+    // from the key within its internal representation of a Product even though they are not
+    // by this subschema.
+    //
     // This example strongly types the ProductKey using an input object. This is optional,
     // as the subschema can rely on the gateway always sending in the correctly typed data.
     // It is typed correctly; `upc` is always specified, but `price` and `weight` will only
@@ -116,7 +120,9 @@ describe('merging using type merging', () => {
       },
       Query: {
         mostStockedProduct: () => inventory.find(i => i.upc === '3'),
-        _products: (_root, { keys }) => keys.map((key: Record<string, any>) => inventory.find(i => i.upc === key.upc)),
+        _products: (_root, { keys }) => {
+          return keys.map((key: Record<string, any>) => ({ ...key, ...inventory.find(i => i.upc === key.upc) }));
+        },
       },
     },
     schemaTransforms: [typeMergingDirectivesValidator],
@@ -253,7 +259,7 @@ describe('merging using type merging', () => {
         reviews: [Review]
       }
       type Query {
-        _reviewById(id: ID!): Review
+        _reviews(id: ID!): Review
         _users(keys: [UserKey!]!): [User] @merge
         _products(input: ProductInput): [Product]! @merge(argsExpr: "input: { keys: [[$key]] }")
       }
