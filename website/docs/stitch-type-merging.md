@@ -156,9 +156,26 @@ The above example will always resolve a stubbed `User` record for _any_ requeste
 
 This fabricated record fulfills the not-null requirement of the `posts:[Post]!` field. However, it also makes the posts service awkwardly responsible for data it knows only by omission. A cleaner solution may be to loosen schema nullability down to `posts:[Post]`, and then return `null` for unknown user IDs without associated posts. Null is a valid mergable object as long as the unique fields it fulfills are nullable.
 
+## Merging flow
+
+To better understand the flow of merged object calls, let's break down the [basic example](#basic-example) above:
+
+![Schema Stitching flow](/img/stitching-flow.png)
+
+1. A request is submitted to the gateway schema that selects fields from many subschemas.
+2. The gateway fetches the resource that was **explicitly** requested (`userById`), known as the _original object_. This subquery is filtered to match its subschema, and adds the `selectionSet` of other subschemas that must **implicitly** provide data for the request.
+3. The original object returns with fields requested by the user and those necessary to query other subschemas, per their `selectionSet`.
+4. Merge config builds subsequent queries for _merger objects_ that will provide missing data. These subqueries are built using `fieldName` with arguments derived from the original object.
+5. Subqueries for merger objects are initiated; again filtering each query to match its intended subschema, and adding the `selectionSet` of other subschemas&dagger;. Merger queries run in parallel when possible.
+6. Merger objects are returned with additional fields requested by the user and those necessary to query other subschemas, per their `selectionSet`&dagger;.
+7. Merger objects are applied to the original object, building an aggregate result.
+8. The gateway responds with the original query selection applied to the aggregate merge result.
+
+_&dagger; Note: merger subqueries may still collect unique `selectionSet` fields. Given subschemas A, B, and C, it's perfectly valid for schema C to specify fields from both A and B in its selection set. When this happens, resolving C will simply be deferred until the merger of A and B can be provided as its original object._
+
 ## Batching
 
-The basic example above queries for a single record each time it performs a merge, which is suboptimal when merging arrays of objects. Instead, we should batch many record requests together using array queries that may fetch many partials at once, the schema for which would be:
+The [basic example](#basic-example) above queries for a single record each time it performs a merge, which is suboptimal when merging arrays of objects. Instead, we should batch many record requests together using array queries that may fetch many partials at once, the schema for which would be:
 
 ```graphql
 postUsersByIds(ids: [ID!]!): [User]!
