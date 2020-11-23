@@ -41,11 +41,12 @@ describe('can parse merge arguments', () => {
     const args = `test: $key`;
     const result = parseMergeArgsExpr(args, [selectionSet]);
     expect(result).toEqual({
-      args: { test: { field1: null, field2: { subFieldA: null, subFieldB: null }} },
+      args: { test: { field1: null, field2: { subFieldA: null, subFieldB: null }, __typename: null } },
       keyDeclarations: [
         { valuePath: ['test', 'field1'], keyPath: ['field1'] },
         { valuePath: ['test', 'field2', 'subFieldA'], keyPath: ['field2', 'subFieldA'] },
         { valuePath: ['test', 'field2', 'subFieldB'], keyPath: ['field2', 'subFieldB'] },
+        { valuePath: ['test', '__typename'], keyPath: ['__typename'] },
       ],
       expansions: [],
     });
@@ -107,11 +108,12 @@ describe('can parse merge arguments', () => {
     expect(result.keyDeclarations).toEqual([]);
     expect(result.expansions).toEqual([{
       valuePath: ['test'],
-      value: { field1: null, field2: { subFieldA: null, subFieldB: null } },
+      value: { field1: null, field2: { subFieldA: null, subFieldB: null }, __typename: null },
       keyDeclarations: [
         { valuePath: ['field1'], keyPath: ['field1'] },
         { valuePath: ['field2', 'subFieldA'], keyPath: ['field2', 'subFieldA'] },
         { valuePath: ['field2', 'subFieldB'], keyPath: ['field2', 'subFieldB'] },
+        { valuePath: ['__typename'], keyPath: ['__typename'] },
       ],
     }]);
   });

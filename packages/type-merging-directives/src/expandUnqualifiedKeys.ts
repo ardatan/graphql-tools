@@ -1,4 +1,4 @@
-import { SelectionSetNode } from 'graphql';
+import { SelectionSetNode, TypeNameMetaFieldDef } from 'graphql';
 
 import { KeyDeclaration } from './types';
 
@@ -31,6 +31,13 @@ export function expandUnqualifiedKeys(
           valuePath,
           keyPath: path,
         });
+      });
+      const typeNamePath = [TypeNameMetaFieldDef.name];
+      const valuePath = keyDeclaration.valuePath.concat(typeNamePath);
+      addKey(value, valuePath, null);
+      newKeyDeclarations.push({
+        valuePath,
+        keyPath: typeNamePath,
       });
     }
   });

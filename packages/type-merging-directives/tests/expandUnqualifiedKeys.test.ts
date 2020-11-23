@@ -16,6 +16,7 @@ describe('can expand unqualified keys', () => {
       test: {
         field1: null,
         field2: null,
+        __typename: null,
       }
     };
 
@@ -25,6 +26,9 @@ describe('can expand unqualified keys', () => {
     }, {
       valuePath: ['test', 'field2'],
       keyPath: ['field2'],
+    }, {
+      valuePath: ['test', '__typename'],
+      keyPath: ['__typename'],
     }];
 
     expect(result.value).toEqual(newValue);
