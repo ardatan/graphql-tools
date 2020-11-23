@@ -162,7 +162,7 @@ To better understand the flow of merged object calls, let's break down the [basi
 
 ![Schema Stitching flow](/img/stitching-flow.png)
 
-1. A request is submitted to the gateway schema that selects fields from many subschemas.
+1. A request is submitted to the gateway schema that selects fields from multiple subschemas.
 2. The gateway fetches the resource that was **explicitly** requested (`userById`), known as the _original object_. This subquery is filtered to match its subschema, and adds the `selectionSet` of other subschemas that must **implicitly** provide data for the request.
 3. The original object returns with fields requested by the user and those necessary to query other subschemas, per their `selectionSet`.
 4. Merge config builds subsequent queries for _merger objects_ that will provide missing data. These subqueries are built using `fieldName` with arguments derived from the original object.
