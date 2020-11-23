@@ -15,7 +15,7 @@
     "graphql": "^14.0.0 || ^15.0.0"
   },
   "devDependencies": {
-    "graphql-scalars": "1.4.1"
+    "graphql-scalars": "1.5.0"
   },
   "buildOptions": {
     "input": "./src/index.ts"
