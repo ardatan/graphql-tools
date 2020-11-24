@@ -19,14 +19,14 @@ import {
   parseSelectionSet,
 } from '@graphql-tools/utils';
 
-import { KeyDeclaration, MergedTypeResolverInfo, TypeMergingDirectivesOptions } from './types';
+import { KeyDeclaration, MergedTypeResolverInfo, StitchingDirectivesOptions } from './types';
 
 import { defaultStitchingDirectiveOptions } from './defaultStitchingDirectiveOptions';
 import { parseMergeArgsExpr } from './parseMergeArgsExpr';
 import { addKey, getKey, getKeys, propertyTreeFromPaths } from './properties';
 
 export function stitchingDirectivesTransformer(
-  options: TypeMergingDirectivesOptions = {}
+  options: StitchingDirectivesOptions = {}
 ): (subschemaConfig: SubschemaConfig) => SubschemaConfig {
   const { baseDirectiveName, computedDirectiveName, mergeDirectiveName } = {
     ...defaultStitchingDirectiveOptions,

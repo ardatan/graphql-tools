@@ -2,14 +2,14 @@ import { GraphQLSchema } from 'graphql';
 
 import { SubschemaConfig } from '@graphql-tools/delegate';
 
-import { TypeMergingDirectivesOptions } from './types';
+import { StitchingDirectivesOptions } from './types';
 
 import { defaultStitchingDirectiveOptions } from './defaultStitchingDirectiveOptions';
 import { stitchingDirectivesValidator } from './stitchingDirectivesValidator';
 import { stitchingDirectivesTransformer } from './stitchingDirectivesTransformer';
 
 export function stitchingDirectives(
-  options: TypeMergingDirectivesOptions = {}
+  options: StitchingDirectivesOptions = {}
 ): {
   stitchingDirectivesTypeDefs: string;
   stitchingDirectivesValidator: (schema: GraphQLSchema) => GraphQLSchema;

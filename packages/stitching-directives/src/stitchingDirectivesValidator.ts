@@ -11,13 +11,13 @@ import {
 
 import { getDirectives, getImplementingTypes, MapperKind, mapSchema, parseSelectionSet } from '@graphql-tools/utils';
 
-import { TypeMergingDirectivesOptions } from './types';
+import { StitchingDirectivesOptions } from './types';
 
 import { defaultStitchingDirectiveOptions } from './defaultStitchingDirectiveOptions';
 import { parseMergeArgsExpr } from './parseMergeArgsExpr';
 
 export function stitchingDirectivesValidator(
-  options: TypeMergingDirectivesOptions = {}
+  options: StitchingDirectivesOptions = {}
 ): (schema: GraphQLSchema) => GraphQLSchema {
   const { baseDirectiveName, computedDirectiveName, mergeDirectiveName } = {
     ...defaultStitchingDirectiveOptions,

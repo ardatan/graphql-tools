@@ -21,7 +21,7 @@ export interface Expansion {
 
 export type VariablePaths = Record<string, Array<string | number>>;
 
-export interface TypeMergingDirectivesOptions {
+export interface StitchingDirectivesOptions {
   baseDirectiveName?: string;
   computedDirectiveName?: string;
   mergeDirectiveName?: string;
