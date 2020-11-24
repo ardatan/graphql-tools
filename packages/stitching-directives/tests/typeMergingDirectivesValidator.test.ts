@@ -1,13 +1,13 @@
 import { makeExecutableSchema } from '@graphql-tools/schema';
 
-import { typeMergingDirectives } from '../src';
+import { stitchingDirectives } from '../src';
 
 describe('type merging directives', () => {
-  const { typeMergingDirectivesTypeDefs, typeMergingDirectivesValidator } = typeMergingDirectives();
+  const { stitchingDirectivesTypeDefs, stitchingDirectivesValidator } = stitchingDirectives();
 
   test('throws an error if base selectionSet invalid', () => {
     const typeDefs = `
-      ${typeMergingDirectivesTypeDefs}
+      ${stitchingDirectivesTypeDefs}
       type Query {
         _user: User
       }
@@ -19,12 +19,12 @@ describe('type merging directives', () => {
     `;
 
     expect(() => makeExecutableSchema({ typeDefs })).not.toThrow();
-    expect(() => makeExecutableSchema({ typeDefs, schemaTransforms: [typeMergingDirectivesValidator] })).toThrow();
+    expect(() => makeExecutableSchema({ typeDefs, schemaTransforms: [stitchingDirectivesValidator] })).toThrow();
   });
 
   test('does not throws an error if base selectionSet valid', () => {
     const typeDefs = `
-      ${typeMergingDirectivesTypeDefs}
+      ${stitchingDirectivesTypeDefs}
       type Query {
         _user: User
       }
@@ -36,12 +36,12 @@ describe('type merging directives', () => {
     `;
 
     expect(() => makeExecutableSchema({ typeDefs })).not.toThrow();
-    expect(() => makeExecutableSchema({ typeDefs, schemaTransforms: [typeMergingDirectivesValidator] })).not.toThrow();
+    expect(() => makeExecutableSchema({ typeDefs, schemaTransforms: [stitchingDirectivesValidator] })).not.toThrow();
   });
 
   test('throws an error if computed selectionSet invalid', () => {
     const typeDefs = `
-      ${typeMergingDirectivesTypeDefs}
+      ${stitchingDirectivesTypeDefs}
       type Query {
         _user: User
       }
@@ -53,12 +53,12 @@ describe('type merging directives', () => {
     `;
 
     expect(() => makeExecutableSchema({ typeDefs })).not.toThrow();
-    expect(() => makeExecutableSchema({ typeDefs, schemaTransforms: [typeMergingDirectivesValidator] })).toThrow();
+    expect(() => makeExecutableSchema({ typeDefs, schemaTransforms: [stitchingDirectivesValidator] })).toThrow();
   });
 
   test('does not throws an error if computed selectionSet valid', () => {
     const typeDefs = `
-      ${typeMergingDirectivesTypeDefs}
+      ${stitchingDirectivesTypeDefs}
       type Query {
         _user: User
       }
@@ -70,12 +70,12 @@ describe('type merging directives', () => {
     `;
 
     expect(() => makeExecutableSchema({ typeDefs })).not.toThrow();
-    expect(() => makeExecutableSchema({ typeDefs, schemaTransforms: [typeMergingDirectivesValidator] })).not.toThrow();
+    expect(() => makeExecutableSchema({ typeDefs, schemaTransforms: [stitchingDirectivesValidator] })).not.toThrow();
   });
 
   test('throws an error if merge argsExpr invalid', () => {
     const typeDefs = `
-      ${typeMergingDirectivesTypeDefs}
+      ${stitchingDirectivesTypeDefs}
       scalar _Key
 
       type Query {
@@ -89,12 +89,12 @@ describe('type merging directives', () => {
     `;
 
     expect(() => makeExecutableSchema({ typeDefs })).not.toThrow();
-    expect(() => makeExecutableSchema({ typeDefs, schemaTransforms: [typeMergingDirectivesValidator] })).toThrow();
+    expect(() => makeExecutableSchema({ typeDefs, schemaTransforms: [stitchingDirectivesValidator] })).toThrow();
   });
 
   test('does not throws an error if merge argsExpr valid', () => {
     const typeDefs = `
-      ${typeMergingDirectivesTypeDefs}
+      ${stitchingDirectivesTypeDefs}
       scalar _Key
 
       type Query {
@@ -108,12 +108,12 @@ describe('type merging directives', () => {
     `;
 
     expect(() => makeExecutableSchema({ typeDefs })).not.toThrow();
-    expect(() => makeExecutableSchema({ typeDefs, schemaTransforms: [typeMergingDirectivesValidator] })).not.toThrow();
+    expect(() => makeExecutableSchema({ typeDefs, schemaTransforms: [stitchingDirectivesValidator] })).not.toThrow();
   });
 
   test('does not throws an error if merge used without arguments', () => {
     const typeDefs = `
-      ${typeMergingDirectivesTypeDefs}
+      ${stitchingDirectivesTypeDefs}
       scalar _Key
 
       type Query {
@@ -127,6 +127,6 @@ describe('type merging directives', () => {
     `;
 
     expect(() => makeExecutableSchema({ typeDefs })).not.toThrow();
-    expect(() => makeExecutableSchema({ typeDefs, schemaTransforms: [typeMergingDirectivesValidator] })).not.toThrow();
+    expect(() => makeExecutableSchema({ typeDefs, schemaTransforms: [stitchingDirectivesValidator] })).not.toThrow();
   });
 });

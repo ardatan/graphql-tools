@@ -3,14 +3,14 @@ import { print } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { parseSelectionSet } from '@graphql-tools/utils';
 
-import { typeMergingDirectives } from '../src';
+import { stitchingDirectives } from '../src';
 
 describe('type merging directives', () => {
-  const { typeMergingDirectivesTypeDefs, typeMergingDirectivesTransformer } = typeMergingDirectives();
+  const { stitchingDirectivesTypeDefs, stitchingDirectivesTransformer } = stitchingDirectives();
 
   test('adds base selection sets', () => {
     const typeDefs = `
-      ${typeMergingDirectivesTypeDefs}
+      ${stitchingDirectivesTypeDefs}
       scalar _Key
 
       type Query {
@@ -29,7 +29,7 @@ describe('type merging directives', () => {
       schema,
     }
 
-    const transformedSubschemaConfig = typeMergingDirectivesTransformer(subschemaConfig);
+    const transformedSubschemaConfig = stitchingDirectivesTransformer(subschemaConfig);
 
     expect(transformedSubschemaConfig.merge.User.selectionSet).toEqual(print(parseSelectionSet('{ id }')));
     expect(transformedSubschemaConfig.merge.User.fieldName).toEqual('_user');
@@ -37,7 +37,7 @@ describe('type merging directives', () => {
 
   test('adds computed selection sets', () => {
     const typeDefs = `
-      ${typeMergingDirectivesTypeDefs}
+      ${stitchingDirectivesTypeDefs}
       scalar _Key
 
       type Query {
@@ -56,7 +56,7 @@ describe('type merging directives', () => {
       schema,
     }
 
-    const transformedSubschemaConfig = typeMergingDirectivesTransformer(subschemaConfig);
+    const transformedSubschemaConfig = stitchingDirectivesTransformer(subschemaConfig);
 
     expect(transformedSubschemaConfig.merge.User.computedFields.name.selectionSet).toEqual(print(parseSelectionSet('{ id }')));
     expect(transformedSubschemaConfig.merge.User.fieldName).toEqual('_user');
@@ -64,7 +64,7 @@ describe('type merging directives', () => {
 
   test('adds args function when used without arguments', () => {
     const typeDefs = `
-      ${typeMergingDirectivesTypeDefs}
+      ${stitchingDirectivesTypeDefs}
       scalar _Key
 
       type Query {
@@ -83,7 +83,7 @@ describe('type merging directives', () => {
       schema,
     }
 
-    const transformedSubschemaConfig = typeMergingDirectivesTransformer(subschemaConfig);
+    const transformedSubschemaConfig = stitchingDirectivesTransformer(subschemaConfig);
 
     const argsFn = transformedSubschemaConfig.merge.User.args;
 
@@ -103,7 +103,7 @@ describe('type merging directives', () => {
 
   test('adds args function when used with argsExpr argument usnig an unqualified key', () => {
     const typeDefs = `
-      ${typeMergingDirectivesTypeDefs}
+      ${stitchingDirectivesTypeDefs}
       scalar _Key
 
       type Query {
@@ -122,7 +122,7 @@ describe('type merging directives', () => {
       schema,
     }
 
-    const transformedSubschemaConfig = typeMergingDirectivesTransformer(subschemaConfig);
+    const transformedSubschemaConfig = stitchingDirectivesTransformer(subschemaConfig);
 
     const argsFn = transformedSubschemaConfig.merge.User.args;
 
@@ -142,7 +142,7 @@ describe('type merging directives', () => {
 
   test('adds args function when used with argsExpr argument using a fully qualified key', () => {
     const typeDefs = `
-      ${typeMergingDirectivesTypeDefs}
+      ${stitchingDirectivesTypeDefs}
       scalar _Key
 
       type Query {
@@ -161,7 +161,7 @@ describe('type merging directives', () => {
       schema,
     }
 
-    const transformedSubschemaConfig = typeMergingDirectivesTransformer(subschemaConfig);
+    const transformedSubschemaConfig = stitchingDirectivesTransformer(subschemaConfig);
 
     const argsFn = transformedSubschemaConfig.merge.User.args;
 
@@ -181,7 +181,7 @@ describe('type merging directives', () => {
 
   test('adds key and argsFromKeys functions when used without arguments', () => {
     const typeDefs = `
-      ${typeMergingDirectivesTypeDefs}
+      ${stitchingDirectivesTypeDefs}
       scalar _Key
 
       type Query {
@@ -200,7 +200,7 @@ describe('type merging directives', () => {
       schema,
     }
 
-    const transformedSubschemaConfig = typeMergingDirectivesTransformer(subschemaConfig);
+    const transformedSubschemaConfig = stitchingDirectivesTransformer(subschemaConfig);
 
     const keyFn = transformedSubschemaConfig.merge.User.key;
     const argsFromKeysFn = transformedSubschemaConfig.merge.User.argsFromKeys;
@@ -225,7 +225,7 @@ describe('type merging directives', () => {
 
   test('adds key and argsFromKeys functions with argsExpr argument using an unqualified key', () => {
     const typeDefs = `
-      ${typeMergingDirectivesTypeDefs}
+      ${stitchingDirectivesTypeDefs}
       scalar _Key
 
       type Query {
@@ -244,7 +244,7 @@ describe('type merging directives', () => {
       schema,
     }
 
-    const transformedSubschemaConfig = typeMergingDirectivesTransformer(subschemaConfig);
+    const transformedSubschemaConfig = stitchingDirectivesTransformer(subschemaConfig);
 
     const keyFn = transformedSubschemaConfig.merge.User.key;
     const argsFromKeysFn = transformedSubschemaConfig.merge.User.argsFromKeys;
@@ -269,7 +269,7 @@ describe('type merging directives', () => {
 
   test('adds key and argsFromKeys functions with argsExpr argument using a fully qualified key', () => {
     const typeDefs = `
-      ${typeMergingDirectivesTypeDefs}
+      ${stitchingDirectivesTypeDefs}
       scalar _Key
 
       type Query {
@@ -288,7 +288,7 @@ describe('type merging directives', () => {
       schema,
     }
 
-    const transformedSubschemaConfig = typeMergingDirectivesTransformer(subschemaConfig);
+    const transformedSubschemaConfig = stitchingDirectivesTransformer(subschemaConfig);
 
     const keyFn = transformedSubschemaConfig.merge.User.key;
     const argsFromKeysFn = transformedSubschemaConfig.merge.User.argsFromKeys;

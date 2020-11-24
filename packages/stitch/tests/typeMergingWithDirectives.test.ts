@@ -11,10 +11,10 @@ import { makeExecutableSchema } from '@graphql-tools/schema';
 import { ExecutionResult } from '@graphql-tools/utils';
 import { stitchSchemas } from '@graphql-tools/stitch';
 
-import { typeMergingDirectives } from '@graphql-tools/type-merging-directives';
+import { stitchingDirectives } from '@graphql-tools/stitching-directives';
 
 describe('merging using type merging', () => {
-  const { typeMergingDirectivesTypeDefs, typeMergingDirectivesValidator, typeMergingDirectivesTransformer } = typeMergingDirectives();
+  const { stitchingDirectivesTypeDefs, stitchingDirectivesValidator, stitchingDirectivesTransformer } = stitchingDirectives();
 
   const users = [
     {
@@ -40,7 +40,7 @@ describe('merging using type merging', () => {
     // so it is safe to use a non-validated scalar argument. In the next example, the subschema
     // will choose to strongly type the `keys` argument, but it is not strictly necessary.
     typeDefs: `
-      ${typeMergingDirectivesTypeDefs}
+      ${stitchingDirectivesTypeDefs}
       scalar _Key
       type Query {
         me: User
@@ -58,7 +58,7 @@ describe('merging using type merging', () => {
         _users: (_root, { keys }) => keys.map((key: Record<string, any>) => users.find(u => u.id === key.id)),
       },
     },
-    schemaTransforms: [typeMergingDirectivesValidator],
+    schemaTransforms: [stitchingDirectivesValidator],
   });
 
   const inventory = [
@@ -93,7 +93,7 @@ describe('merging using type merging', () => {
     // be included when `shippingEstimate` is included within the query.
     //
     typeDefs: `
-      ${typeMergingDirectivesTypeDefs}
+      ${stitchingDirectivesTypeDefs}
       input ProductKey {
         upc: String!
         price: Int
@@ -125,7 +125,7 @@ describe('merging using type merging', () => {
         },
       },
     },
-    schemaTransforms: [typeMergingDirectivesValidator],
+    schemaTransforms: [stitchingDirectivesValidator],
   });
 
   const products = [
@@ -166,7 +166,7 @@ describe('merging using type merging', () => {
     //    $key.upc refers to the `upc` field of the key.
     //
     typeDefs: `
-      ${typeMergingDirectivesTypeDefs}
+      ${stitchingDirectivesTypeDefs}
       type Query {
         topProducts(first: Int = 2): [Product]
         _productsByUpc(upcs: [String!]!): [Product] @merge(argsExpr: "upcs: [[$base.upc]]")
@@ -184,7 +184,7 @@ describe('merging using type merging', () => {
         _productsByUpc: (_root, { upcs }) => upcs.map((upc: any) => products.find(product => product.upc === upc)),
       }
     },
-    schemaTransforms: [typeMergingDirectivesValidator],
+    schemaTransforms: [stitchingDirectivesValidator],
   });
 
   const usernames = [
@@ -232,7 +232,7 @@ describe('merging using type merging', () => {
     // key as an object. This allows arbitary nesting of the key input as needed.
     //
     typeDefs: `
-      ${typeMergingDirectivesTypeDefs}
+      ${stitchingDirectivesTypeDefs}
       type Review {
         id: ID!
         body: String
@@ -285,7 +285,7 @@ describe('merging using type merging', () => {
         _products: (_root, { input }) => input.keys,
       },
     },
-    schemaTransforms: [typeMergingDirectivesValidator],
+    schemaTransforms: [stitchingDirectivesValidator],
   });
 
   const stitchedSchema = stitchSchemas({
@@ -306,7 +306,7 @@ describe('merging using type merging', () => {
         schema: reviewsSchema,
         batch: true,
       }],
-    subschemaConfigTransforms: [typeMergingDirectivesTransformer],
+    subschemaConfigTransforms: [stitchingDirectivesTransformer],
   });
 
   test('can stitch from products to inventory schema including mixture of computed and non-computed fields', async () => {

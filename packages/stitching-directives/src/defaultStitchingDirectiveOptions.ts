@@ -1,4 +1,4 @@
-export const defaultTypeMergingDirectiveOptions = {
+export const defaultStitchingDirectiveOptions = {
   baseDirectiveName: 'base',
   computedDirectiveName: 'computed',
   mergeDirectiveName: 'merge',

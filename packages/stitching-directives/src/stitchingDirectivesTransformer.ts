@@ -14,15 +14,15 @@ import { getDirectives, MapperKind, mapSchema, mergeDeep, parseSelectionSet } fr
 
 import { KeyDeclaration, MergedTypeResolverInfo, TypeMergingDirectivesOptions } from './types';
 
-import { defaultTypeMergingDirectiveOptions } from './defaultTypeMergingDirectiveOptions';
+import { defaultStitchingDirectiveOptions } from './defaultStitchingDirectiveOptions';
 import { parseMergeArgsExpr } from './parseMergeArgsExpr';
 import { addKey, getKey, getKeys, propertyTreeFromPaths } from './properties';
 
-export function typeMergingDirectivesTransformer(
+export function stitchingDirectivesTransformer(
   options: TypeMergingDirectivesOptions = {}
 ): (subschemaConfig: SubschemaConfig) => SubschemaConfig {
   const { baseDirectiveName, computedDirectiveName, mergeDirectiveName } = {
-    ...defaultTypeMergingDirectiveOptions,
+    ...defaultStitchingDirectiveOptions,
     ...options,
   };
 
