@@ -24,6 +24,7 @@ import { KeyDeclaration, MergedTypeResolverInfo, StitchingDirectivesOptions } fr
 import { defaultStitchingDirectiveOptions } from './defaultStitchingDirectiveOptions';
 import { parseMergeArgsExpr } from './parseMergeArgsExpr';
 import { addKey, getKey, getKeys, propertyTreeFromPaths } from './properties';
+import { stitchingDirectivesValidator } from './stitchingDirectivesValidator';
 
 export function stitchingDirectivesTransformer(
   options: StitchingDirectivesOptions = {}
@@ -41,6 +42,9 @@ export function stitchingDirectivesTransformer(
     const mergedTypesResolversInfo: Record<string, MergedTypeResolverInfo> = Object.create(null);
 
     const schema = subschemaConfig.schema;
+
+    // gateway should also run validation
+    stitchingDirectivesValidator(options)(schema);
 
     mapSchema(schema, {
       [MapperKind.OBJECT_TYPE]: type => {
