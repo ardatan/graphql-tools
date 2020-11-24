@@ -9,7 +9,7 @@ import {
   isUnionType,
 } from 'graphql';
 
-import { getDirectives, MapperKind, mapSchema, parseSelectionSet } from '@graphql-tools/utils';
+import { getDirectives, getImplementingTypes, MapperKind, mapSchema, parseSelectionSet } from '@graphql-tools/utils';
 
 import { TypeMergingDirectivesOptions } from './types';
 
@@ -88,7 +88,7 @@ export function stitchingDirectivesValidator(
               throw new Error('Types argument can only be used with a field that returns an abstract type.');
             }
             const implementingTypes = isInterfaceType(returnType)
-              ? schema.getImplementations(returnType).objects
+              ? getImplementingTypes(returnType.name, schema).map(typeName => schema.getType(typeName))
               : returnType.getTypes();
             const implementingTypeNames = implementingTypes.map(type => type.name);
             typeNames.forEach(typeName => {

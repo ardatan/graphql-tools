@@ -2,7 +2,7 @@ import { GraphQLObjectType, GraphQLInterfaceType, isObjectType, isInterfaceType 
 
 import { SubschemaConfig, MergedTypeConfig, MergedFieldConfig } from '@graphql-tools/delegate';
 
-import { pruneSchema, filterSchema } from '@graphql-tools/utils';
+import { getImplementingTypes, pruneSchema, filterSchema } from '@graphql-tools/utils';
 
 import { TransformCompositeFields } from '@graphql-tools/wrap';
 
@@ -67,9 +67,7 @@ function filterBaseSubschema(
       objectFieldFilter: (typeName, fieldName) => !isolatedSchemaTypes[typeName]?.fields[fieldName],
       interfaceFieldFilter: (typeName, fieldName) => {
         if (!typesForInterface[typeName]) {
-          typesForInterface[typeName] = schema
-            .getImplementations(schema.getType(typeName) as GraphQLInterfaceType)
-            .objects.map(type => type.name);
+          typesForInterface[typeName] = getImplementingTypes(typeName, schema);
         }
         return !typesForInterface[typeName].some(
           implementingTypeName => isolatedSchemaTypes[implementingTypeName]?.fields[fieldName]

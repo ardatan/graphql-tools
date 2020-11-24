@@ -10,7 +10,14 @@ import {
 } from 'graphql';
 
 import { cloneSubschemaConfig, SubschemaConfig } from '@graphql-tools/delegate';
-import { getDirectives, MapperKind, mapSchema, mergeDeep, parseSelectionSet } from '@graphql-tools/utils';
+import {
+  getDirectives,
+  getImplementingTypes,
+  MapperKind,
+  mapSchema,
+  mergeDeep,
+  parseSelectionSet,
+} from '@graphql-tools/utils';
 
 import { KeyDeclaration, MergedTypeResolverInfo, TypeMergingDirectivesOptions } from './types';
 
@@ -115,9 +122,9 @@ export function stitchingDirectivesTransformer(
           const typeNames: Array<string> = directiveArgumentMap.types;
 
           if (isInterfaceType(returnType)) {
-            schema.getImplementations(returnType).objects.forEach(type => {
-              if (typeNames == null || typeNames.includes(type.name)) {
-                mergedTypesResolversInfo[type.name] = {
+            getImplementingTypes(returnType.name, schema).forEach(typeName => {
+              if (typeNames == null || typeNames.includes(typeName)) {
+                mergedTypesResolversInfo[typeName] = {
                   fieldName,
                   returnsList,
                   ...parsedMergeArgsExpr,
