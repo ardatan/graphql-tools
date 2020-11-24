@@ -11,6 +11,9 @@ import { stitchingDirectivesTransformer } from './stitchingDirectivesTransformer
 export function stitchingDirectives(
   options: StitchingDirectivesOptions = {}
 ): {
+  baseDirectiveTypeDefs: string;
+  computedDirectiveTypeDefs: string;
+  mergeDirectiveTypeDefs: string;
   stitchingDirectivesTypeDefs: string;
   stitchingDirectivesValidator: (schema: GraphQLSchema) => GraphQLSchema;
   stitchingDirectivesTransformer: (subschemaConfig: SubschemaConfig) => SubschemaConfig;
@@ -22,11 +25,18 @@ export function stitchingDirectives(
 
   const { baseDirectiveName, computedDirectiveName, mergeDirectiveName } = finalOptions;
 
+  const baseDirectiveTypeDefs = `directive @${baseDirectiveName}(selectionSet: String!) on OBJECT`;
+  const computedDirectiveTypeDefs = `directive @${computedDirectiveName}(selectionSet: String!) on FIELD_DEFINITION`;
+  const mergeDirectiveTypeDefs = `directive @${mergeDirectiveName}(argsExpr: String) on FIELD_DEFINITION`;
+
   return {
+    baseDirectiveTypeDefs,
+    computedDirectiveTypeDefs,
+    mergeDirectiveTypeDefs,
     stitchingDirectivesTypeDefs: `
-      directive @${baseDirectiveName}(selectionSet: String!) on OBJECT
-      directive @${computedDirectiveName}(selectionSet: String!) on FIELD_DEFINITION
-      directive @${mergeDirectiveName}(argsExpr: String) on FIELD_DEFINITION
+      ${baseDirectiveTypeDefs}
+      ${computedDirectiveTypeDefs}
+      ${mergeDirectiveTypeDefs}
     `,
     stitchingDirectivesValidator: stitchingDirectivesValidator(finalOptions),
     stitchingDirectivesTransformer: stitchingDirectivesTransformer(finalOptions),
