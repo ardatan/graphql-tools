@@ -5,6 +5,15 @@ import { stitchingDirectives } from '../src';
 describe('type merging directives', () => {
   const { stitchingDirectivesTypeDefs, stitchingDirectivesValidator } = stitchingDirectives();
 
+  test('does not throws an error if no other typeDefs used', () => {
+    const typeDefs = `
+      ${stitchingDirectivesTypeDefs}
+    `;
+
+    expect(() => makeExecutableSchema({ typeDefs })).not.toThrow();
+    expect(() => makeExecutableSchema({ typeDefs, schemaTransforms: [stitchingDirectivesValidator] })).not.toThrow();
+  });
+
   test('throws an error if base selectionSet invalid', () => {
     const typeDefs = `
       ${stitchingDirectivesTypeDefs}

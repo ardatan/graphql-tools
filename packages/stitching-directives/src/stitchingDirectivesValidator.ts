@@ -25,7 +25,7 @@ export function stitchingDirectivesValidator(
   };
 
   return (schema: GraphQLSchema): GraphQLSchema => {
-    const queryTypeName = schema.getQueryType().name;
+    const queryTypeName = schema.getQueryType()?.name;
 
     mapSchema(schema, {
       [MapperKind.OBJECT_TYPE]: type => {
