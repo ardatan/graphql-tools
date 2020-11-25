@@ -24,11 +24,9 @@ export function optimizeDocumentNode(node: DocumentNode, optimizers = DEFAULT_OP
     const result = optimizer(resultNode);
 
     if (!result) {
-      if (typeof optimizer !== 'function') {
-        throw new Error(
-          `Optimizer provided for "optimizeDocumentNode" returned empty value instead of modified "DocumentNode"!`
-        );
-      }
+      throw new Error(
+        `Optimizer provided for "optimizeDocumentNode" returned empty value instead of modified "DocumentNode"!`
+      );
     }
 
     resultNode = result;
