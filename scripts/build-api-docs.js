@@ -7,6 +7,7 @@ const { execSync } = require('child_process');
 // Where to generate the API docs
 const outputDir = path.join(__dirname, '../website/docs/api');
 // sidebars.json
+const sidebarsTemplatePath = path.join(__dirname, '../website/sidebars.template.json');
 const sidebarsPath = path.join(__dirname, '../website/sidebars.json');
 
 // Get the upstream git remote -- we don't want to assume it exists or is named "upstream"
@@ -116,7 +117,7 @@ sidebar_label: "${id}"
 });
 
 // Update sidebars.json
-const sidebars = require(sidebarsPath);
+const sidebars = require(sidebarsTemplatePath);
 sidebars.someSidebar.find(category => category['API Reference'])['API Reference'] = [
   {
     Modules: modules.map(([name]) => `api/modules/${convertNameToId(name)}`),
