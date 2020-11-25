@@ -1,5 +1,12 @@
 # @graphql-tools/webpack-loader
 
+## 6.3.1
+
+### Patch Changes
+
+- Updated dependencies [fb14cd28]
+  - @graphql-tools/optimize@1.0.1
+
 ## 6.3.0
 
 ### Minor Changes
