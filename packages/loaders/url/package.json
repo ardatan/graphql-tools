@@ -28,11 +28,13 @@
     "@graphql-tools/utils": "^7.0.1",
     "@types/websocket": "1.0.1",
     "cross-fetch": "3.0.6",
+    "is-promise": "4.0.0",
+    "isomorphic-ws": "4.0.1",
     "tslib": "~2.0.1",
     "valid-url": "1.0.9",
-    "subscriptions-transport-ws": "0.9.18",
-    "sync-fetch": "0.3.0",
-    "websocket": "1.0.32"
+    "graphql-ws": "2.0.0",
+    "ws": "7.4.0",
+    "sync-fetch": "0.3.0"
   },
   "publishConfig": {
     "access": "public",

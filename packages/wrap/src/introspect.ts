@@ -9,8 +9,9 @@ import {
 } from 'graphql';
 
 import { ExecutionResult } from '@graphql-tools/utils';
-import { AsyncExecutor, SyncExecutor } from '@graphql-tools/delegate';
+import { AsyncExecutor, Executor, SyncExecutor } from '@graphql-tools/delegate';
 import AggregateError from '@ardatan/aggregate-error';
+import isPromise from 'is-promise';
 
 function getSchemaFromIntrospection(introspectionResult: ExecutionResult<IntrospectionQuery>): GraphQLSchema {
   if (introspectionResult?.data?.__schema) {
@@ -27,31 +28,18 @@ function getSchemaFromIntrospection(introspectionResult: ExecutionResult<Introsp
   }
 }
 
-export async function introspectSchema(
-  executor: AsyncExecutor,
+export function introspectSchema<TExecutor extends AsyncExecutor | SyncExecutor>(
+  executor: TExecutor,
   context?: Record<string, any>,
   options?: IntrospectionOptions
-): Promise<GraphQLSchema> {
+): TExecutor extends AsyncExecutor ? Promise<GraphQLSchema> : GraphQLSchema {
   const parsedIntrospectionQuery: DocumentNode = parse(getIntrospectionQuery(options));
-  const introspectionResult = await executor<IntrospectionQuery>({
+  const introspectionResult = (executor as Executor)<IntrospectionQuery>({
     document: parsedIntrospectionQuery,
     context,
   });
-  return getSchemaFromIntrospection(introspectionResult);
-}
-
-export function introspectSchemaSync(
-  executor: SyncExecutor,
-  context?: Record<string, any>,
-  options?: IntrospectionOptions
-): GraphQLSchema {
-  const parsedIntrospectionQuery: DocumentNode = parse(getIntrospectionQuery(options));
-  const introspectionResult = executor<IntrospectionQuery>({
-    document: parsedIntrospectionQuery,
-    context,
-  });
-  if ('then' in introspectionResult) {
-    throw new Error(`Executor cannot return promise value in introspectSchemaSync!`);
+  if (isPromise(introspectionResult)) {
+    return introspectionResult.then(introspection => getSchemaFromIntrospection(introspection)) as any;
   }
-  return getSchemaFromIntrospection(introspectionResult);
+  return getSchemaFromIntrospection(introspectionResult) as any;
 }

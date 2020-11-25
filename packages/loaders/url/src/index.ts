@@ -1,20 +1,14 @@
 /* eslint-disable no-case-declarations */
 import { print, IntrospectionOptions, DocumentNode, GraphQLResolveInfo, Kind, parse, buildASTSchema } from 'graphql';
-import {
-  SchemaPointerSingle,
-  Source,
-  DocumentLoader,
-  SingleFileOptions,
-  observableToAsyncIterable,
-  ExecutionResult,
-} from '@graphql-tools/utils';
+import { SchemaPointerSingle, Source, DocumentLoader, SingleFileOptions } from '@graphql-tools/utils';
 import { isWebUri } from 'valid-url';
 import { fetch as crossFetch } from 'cross-fetch';
-import { AsyncExecutor, Subscriber, SyncExecutor } from '@graphql-tools/delegate';
-import { introspectSchema, introspectSchemaSync, wrapSchema } from '@graphql-tools/wrap';
-import { SubscriptionClient } from 'subscriptions-transport-ws';
-import { w3cwebsocket } from 'websocket';
+import { AsyncExecutor, Executor, Subscriber, SyncExecutor } from '@graphql-tools/delegate';
+import { introspectSchema, wrapSchema } from '@graphql-tools/wrap';
+import { createClient } from 'graphql-ws';
+import WebSocket from 'isomorphic-ws';
 import syncFetch from 'sync-fetch';
+import isPromise from 'is-promise';
 
 export type AsyncFetchFn = typeof import('cross-fetch').fetch;
 export type SyncFetchFn = (input: RequestInfo, init?: RequestInit) => SyncResponse;
@@ -25,6 +19,14 @@ export type SyncResponse = Omit<Response, 'json' | 'text'> & {
 export type FetchFn = AsyncFetchFn | SyncFetchFn;
 
 type Headers = Record<string, string> | Array<Record<string, string>>;
+
+type BuildExecutorOptions<TFetchFn> = {
+  pointer: string;
+  fetch: TFetchFn;
+  extraHeaders: any;
+  defaultMethod: 'GET' | 'POST';
+  useGETForQueries: boolean;
+};
 
 /**
  * Additional options for loading from a URL
@@ -51,7 +53,7 @@ export interface LoadFromUrlOptions extends SingleFileOptions, Partial<Introspec
    * Custom WebSocket implementation used by the loaded schema if subscriptions
    * are enabled
    */
-  webSocketImpl?: typeof w3cwebsocket | string;
+  webSocketImpl?: typeof WebSocket | string;
   /**
    * Whether to use the GET HTTP method for queries when querying the original schema
    */
@@ -83,7 +85,9 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     return !!isWebUri(pointer);
   }
 
-  buildAsyncExecutor({
+  buildExecutor(options: BuildExecutorOptions<SyncFetchFn>): SyncExecutor;
+  buildExecutor(options: BuildExecutorOptions<AsyncFetchFn>): AsyncExecutor;
+  buildExecutor({
     pointer,
     fetch,
     extraHeaders,
@@ -91,16 +95,23 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     useGETForQueries,
   }: {
     pointer: string;
-    fetch: typeof crossFetch;
+    fetch: FetchFn;
     extraHeaders: any;
     defaultMethod: 'GET' | 'POST';
     useGETForQueries: boolean;
-  }): AsyncExecutor {
+  }): Executor {
     const HTTP_URL = switchProtocols(pointer, {
       wss: 'https',
       ws: 'http',
     });
-    return async ({ document, variables }: { document: DocumentNode; variables: any; info: GraphQLResolveInfo }) => {
+    const executor = ({
+      document,
+      variables,
+    }: {
+      document: DocumentNode;
+      variables: any;
+      info: GraphQLResolveInfo;
+    }) => {
       let method = defaultMethod;
       if (useGETForQueries) {
         method = 'GET';
@@ -113,67 +124,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
         }
       }
 
-      let fetchResult: Response;
-      const query = print(document);
-      switch (method) {
-        case 'GET':
-          const urlObj = new URL(HTTP_URL);
-          urlObj.searchParams.set('query', query);
-          if (variables && Object.keys(variables).length > 0) {
-            urlObj.searchParams.set('variables', JSON.stringify(variables));
-          }
-          const finalUrl = urlObj.toString();
-          fetchResult = await fetch(finalUrl, {
-            method: 'GET',
-            headers: extraHeaders,
-          });
-          break;
-        case 'POST':
-          fetchResult = await fetch(HTTP_URL, {
-            method: 'POST',
-            body: JSON.stringify({
-              query,
-              variables,
-            }),
-            headers: extraHeaders,
-          });
-          break;
-      }
-      return fetchResult.json();
-    };
-  }
-
-  buildSyncExecutor({
-    pointer,
-    fetch,
-    extraHeaders,
-    defaultMethod,
-    useGETForQueries,
-  }: {
-    pointer: string;
-    fetch: SyncFetchFn;
-    extraHeaders: any;
-    defaultMethod: 'GET' | 'POST';
-    useGETForQueries: boolean;
-  }): SyncExecutor {
-    const HTTP_URL = switchProtocols(pointer, {
-      wss: 'https',
-      ws: 'http',
-    });
-    return ({ document, variables }: { document: DocumentNode; variables: any; info: GraphQLResolveInfo }) => {
-      let method = defaultMethod;
-      if (useGETForQueries) {
-        method = 'GET';
-        for (const definition of document.definitions) {
-          if (definition.kind === Kind.OPERATION_DEFINITION) {
-            if (definition.operation !== 'query') {
-              method = defaultMethod;
-            }
-          }
-        }
-      }
-
-      let fetchResult: SyncResponse;
+      let fetchResult: SyncResponse | Promise<Response>;
       const query = print(document);
       switch (method) {
         case 'GET':
@@ -199,23 +150,71 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
           });
           break;
       }
+      if (isPromise(fetchResult)) {
+        return fetchResult.then(res => res.json());
+      }
       return fetchResult.json();
     };
+
+    return executor;
   }
 
-  buildSubscriber(pointer: string, webSocketImpl: typeof w3cwebsocket): Subscriber {
+  buildSubscriber(pointer: string, webSocketImpl: typeof WebSocket): Subscriber {
     const WS_URL = switchProtocols(pointer, {
       https: 'wss',
       http: 'ws',
     });
-    const subscriptionClient = new SubscriptionClient(WS_URL, {}, webSocketImpl);
+    const subscriptionClient = createClient({
+      url: WS_URL,
+      webSocketImpl,
+    });
+    // Taken from https://www.npmjs.com/package/graphql-ws#async-iterator
     return async <TReturn, TArgs>({ document, variables }: { document: DocumentNode; variables: TArgs }) => {
-      return observableToAsyncIterable(
-        subscriptionClient.request({
-          query: document,
-          variables,
-        })
-      ) as AsyncIterableIterator<ExecutionResult<TReturn>>;
+      let deferred: {
+        resolve: (done: boolean) => void;
+        reject: (err: unknown) => void;
+      } | null = null;
+      const pending: TReturn[] = [];
+      let throwMe: unknown = null;
+      let done = false;
+      const query = print(document);
+      const dispose = subscriptionClient.subscribe<TReturn>(
+        {
+          query,
+          variables: variables as any,
+        },
+        {
+          next: data => {
+            pending.push(data);
+            deferred?.resolve(false);
+          },
+          error: err => {
+            throwMe = err;
+            deferred?.reject(throwMe);
+          },
+          complete: () => {
+            done = true;
+            deferred?.resolve(true);
+          },
+        }
+      );
+      return {
+        [Symbol.asyncIterator]() {
+          return this;
+        },
+        async next() {
+          if (done) return { done: true, value: undefined };
+          if (throwMe) throw throwMe;
+          if (pending.length) return { value: pending.shift()! };
+          return (await new Promise<boolean>((resolve, reject) => (deferred = { resolve, reject })))
+            ? { done: true, value: undefined }
+            : { value: pending.shift()! };
+        },
+        async return() {
+          dispose();
+          return { done: true, value: undefined };
+        },
+      };
     };
   }
 
@@ -248,7 +247,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
 
   private getFetchSync(options: LoadFromUrlOptions, defaultMethod: 'GET' | 'POST') {
     let headers = {};
-    let fetch = syncFetch;
+    let fetch: SyncFetchFn = syncFetch;
 
     if (options) {
       if (Array.isArray(options.headers)) {
@@ -263,7 +262,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
           const module = require(moduleName);
           fetch = fetchFnName ? module[fetchFnName] : module;
         } else {
-          fetch = options.customFetch as AsyncFetchFn;
+          fetch = options.customFetch as SyncFetchFn;
         }
       }
 
@@ -274,27 +273,39 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     return { headers, defaultMethod, fetch };
   }
 
-  async getWebSocketImplAsync(options: LoadFromUrlOptions) {
-    let webSocketImpl = w3cwebsocket;
-    if (typeof options.webSocketImpl === 'string') {
-      const [moduleName, webSocketImplName] = options.webSocketImpl.split('#');
-      webSocketImpl = await import(moduleName).then(module => (webSocketImplName ? module[webSocketImplName] : module));
-    } else {
-      webSocketImpl = options.webSocketImpl;
-    }
-    return webSocketImpl;
-  }
+  getWebSocketImpl(
+    options: LoadFromUrlOptions,
+    importFn: (moduleName: string) => PromiseLike<unknown>,
+    async: true
+  ): PromiseLike<typeof WebSocket>;
 
-  getWebSocketImplSync(options: LoadFromUrlOptions) {
-    let webSocketImpl = w3cwebsocket;
-    if (typeof options.webSocketImpl === 'string') {
+  getWebSocketImpl(
+    options: LoadFromUrlOptions,
+    importFn: (moduleName: string) => unknown,
+    async: false
+  ): typeof WebSocket;
+
+  getWebSocketImpl(
+    options: LoadFromUrlOptions,
+    importFn: (moduleName: string) => unknown | PromiseLike<unknown>,
+    async: boolean
+  ): typeof WebSocket | PromiseLike<typeof WebSocket> {
+    if (typeof options?.webSocketImpl === 'string') {
       const [moduleName, webSocketImplName] = options.webSocketImpl.split('#');
-      const module = require(moduleName);
-      webSocketImpl = webSocketImplName ? module[webSocketImplName] : module;
+      const importedModule = importFn(moduleName);
+      if (async && isPromise(importedModule)) {
+        return importedModule.then(webSocketImplName ? importedModule[webSocketImplName] : importedModule);
+      } else {
+        return webSocketImplName ? importedModule[webSocketImplName] : importedModule;
+      }
     } else {
-      webSocketImpl = options.webSocketImpl;
+      const websocketImpl = options.webSocketImpl || WebSocket;
+      if (async) {
+        return Promise.resolve(websocketImpl);
+      } else {
+        return websocketImpl;
+      }
     }
-    return webSocketImpl;
   }
 
   async getExecutorAndSubscriberAsync(
@@ -309,7 +320,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       ...headers,
     };
 
-    const executor = this.buildAsyncExecutor({
+    const executor = this.buildExecutor({
       pointer,
       fetch,
       extraHeaders,
@@ -320,7 +331,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     let subscriber: Subscriber;
 
     if (options.enableSubscriptions) {
-      const webSocketImpl = await this.getWebSocketImplAsync(options);
+      const webSocketImpl = await this.getWebSocketImpl(options, (moduleName: string) => import(moduleName), true);
       subscriber = this.buildSubscriber(pointer, webSocketImpl);
     }
 
@@ -342,7 +353,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       ...headers,
     };
 
-    const executor = this.buildSyncExecutor({
+    const executor = this.buildExecutor({
       pointer,
       fetch,
       extraHeaders,
@@ -353,7 +364,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     let subscriber: Subscriber;
 
     if (options.enableSubscriptions) {
-      const webSocketImpl = this.getWebSocketImplSync(options);
+      const webSocketImpl = this.getWebSocketImpl(options, (moduleName: string) => require(moduleName), false);
       subscriber = this.buildSubscriber(pointer, webSocketImpl);
     }
 
@@ -375,7 +386,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
   getSubschemaConfigSync(pointer: SchemaPointerSingle, options: LoadFromUrlOptions) {
     const { executor, subscriber } = this.getExecutorAndSubscriberSync(pointer, options);
     return {
-      schema: introspectSchemaSync(executor, undefined, options as IntrospectionOptions),
+      schema: introspectSchema(executor, undefined, options as IntrospectionOptions),
       executor,
       subscriber,
     };
