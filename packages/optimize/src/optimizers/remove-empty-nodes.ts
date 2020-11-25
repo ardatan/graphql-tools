@@ -42,5 +42,6 @@ export const removeEmptyNodes: DocumentOptimizer = input => {
     FragmentSpread: transformNode,
     InlineFragment: transformNode,
     Name: transformNode,
+    Directive: transformNode,
   });
 };

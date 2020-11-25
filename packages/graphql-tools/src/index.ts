@@ -20,3 +20,4 @@ export * from '@graphql-tools/schema';
 export * from '@graphql-tools/stitch';
 export * from '@graphql-tools/utils';
 export * from '@graphql-tools/wrap';
+export * from '@graphql-tools/optimize';

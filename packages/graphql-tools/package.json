@@ -19,6 +19,7 @@
     "directory": "dist"
   },
   "dependencies": {
+    "@graphql-tools/optimize": "1.0.0",
     "@graphql-tools/batch-delegate": "^7.0.0",
     "@graphql-tools/batch-execute": "^7.0.0",
     "@graphql-tools/delegate": "^7.0.1",
