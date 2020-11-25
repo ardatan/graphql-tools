@@ -21,3 +21,5 @@ yarn-error.log*
 
 # Generated API Docs
 /docs/api
+
+sidebars.json

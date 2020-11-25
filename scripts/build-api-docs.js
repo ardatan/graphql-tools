@@ -7,7 +7,7 @@ const { execSync } = require('child_process');
 // Where to generate the API docs
 const outputDir = path.join(__dirname, '../website/docs/api');
 // sidebars.json
-const sidebarsPath = path.join(__dirname, '../website/sidebars.json');
+const sidebarsPath = path.join(__dirname, '../website/sidebars.template.json');
 
 // Get the upstream git remote -- we don't want to assume it exists or is named "upstream"
 const gitRemote = execSync('git remote -v', { encoding: 'utf-8' })
