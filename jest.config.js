@@ -12,17 +12,12 @@ module.exports = {
   globals: {
     'ts-jest': {
       diagnostics: false,
-      tsConfig: TSCONFIG,
+      tsconfig: TSCONFIG,
     },
   },
   restoreMocks: true,
   reporters: ['default'],
-  modulePathIgnorePatterns: [
-    'dist',
-    'test-assets',
-    'test-files',
-    'fixtures'
-  ],
+  modulePathIgnorePatterns: ['dist', 'test-assets', 'test-files', 'fixtures'],
   moduleNameMapper: pathsToModuleNameMapper(tsconfig.compilerOptions.paths, { prefix: `${ROOT_DIR}/` }),
   collectCoverage: false,
 };
