@@ -1,5 +1,13 @@
 # graphql-tools
 
+## 7.0.2
+
+### Patch Changes
+
+- fb14cd28: Added export from new optimize package
+- Updated dependencies [fb14cd28]
+  - @graphql-tools/optimize@1.0.1
+
 ## 7.0.1
 
 ### Patch Changes
