@@ -1,40 +1,17 @@
 import os from 'os';
-import { isExecutableDefinitionNode, visit, Kind, DocumentNode } from 'graphql';
+import { isExecutableDefinitionNode, Kind, DocumentNode } from 'graphql';
 import { uniqueCode } from '@graphql-tools/webpack-loader-runtime';
 import { parseDocument } from './parser';
+import { optimizeDocumentNode, removeDescriptions, removeLoc, removeEmptyNodes } from '@graphql-tools/optimize';
 
 function isSDL(doc: DocumentNode) {
   return !doc.definitions.some(def => isExecutableDefinitionNode(def));
 }
 
-function removeDescriptions(doc: DocumentNode) {
-  function transformNode(node: any) {
-    if (node.description) {
-      node.description = undefined;
-    }
-
-    return node;
-  }
-
-  if (isSDL(doc)) {
-    return visit(doc, {
-      ScalarTypeDefinition: transformNode,
-      ObjectTypeDefinition: transformNode,
-      InterfaceTypeDefinition: transformNode,
-      UnionTypeDefinition: transformNode,
-      EnumTypeDefinition: transformNode,
-      EnumValueDefinition: transformNode,
-      InputObjectTypeDefinition: transformNode,
-      InputValueDefinition: transformNode,
-      FieldDefinition: transformNode,
-    });
-  }
-
-  return doc;
-}
-
 interface Options {
   noDescription?: boolean;
+  noEmptyNodes?: boolean;
+  noLoc?: boolean;
   esModule?: boolean;
   importHelpers?: boolean;
 }
@@ -68,9 +45,20 @@ export default function graphqlLoader(source: string) {
   const options: Options = this.query || {};
   let doc = parseDocument(source);
 
-  // Removes descriptions from Nodes
+  const optimizers = [];
+
   if (options.noDescription) {
-    doc = removeDescriptions(doc);
+    optimizers.push(removeDescriptions);
+  }
+  if (options.noEmptyNodes) {
+    optimizers.push(removeEmptyNodes);
+  }
+  if (options.noLoc) {
+    optimizers.push(removeLoc);
+  }
+
+  if (optimizers.length > 0 && isSDL(doc)) {
+    doc = optimizeDocumentNode(doc, optimizers);
   }
 
   const headerCode = `
