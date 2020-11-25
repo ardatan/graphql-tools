@@ -84,6 +84,15 @@ export function stitchingDirectivesValidator(
             throw new Error(
               '`keyArg` argument for @merge directive must be a set of valid GraphQL SDL names separated by periods.'
             );
+            // TODO: ideally we should check that the arg exists for the resolver
+          }
+
+          const keyField = directiveArgumentMap.keyArg;
+          if (keyField != null && !keyField.match(dottedNameRegEx)) {
+            throw new Error(
+              '`keyField` argument for @merge directive must be a set of valid GraphQL SDL names separated by periods.'
+            );
+            // TODO: ideally we should check that it is part of the key
           }
 
           const additionalArgs = directiveArgumentMap.additionalArgs;

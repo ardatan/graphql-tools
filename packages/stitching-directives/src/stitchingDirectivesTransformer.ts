@@ -114,19 +114,18 @@ export function stitchingDirectivesTransformer(
           let mergeArgsExpr: string = directiveArgumentMap.argsExpr;
 
           if (mergeArgsExpr == null) {
-            const keyArg: string = directiveArgumentMap.keyArg;
+            const keyField: string = directiveArgumentMap.keyField;
+            const keyExpr = keyField == null ? '$key' : `$key.${keyField}`;
 
-            if (keyArg == null) {
-              const argName = Object.keys(fieldConfig.args)[0];
-              mergeArgsExpr = returnsList ? `${argName}: [[$key]]` : `${argName}: $key`;
-            } else {
-              const argNames = keyArg.split('.');
-              const lastArgName = argNames.pop();
-              mergeArgsExpr = returnsList ? `${lastArgName}: [[$key]]` : `${lastArgName}: $key`;
-              argNames.reverse().forEach(argName => {
-                mergeArgsExpr = `${argName}: { ${mergeArgsExpr} }`;
-              });
-            }
+            const keyArg: string = directiveArgumentMap.keyArg;
+            const argNames = keyArg == null ? [Object.keys(fieldConfig.args)[0]] : keyArg.split('.');
+
+            const lastArgName = argNames.pop();
+            mergeArgsExpr = returnsList ? `${lastArgName}: [[${keyExpr}]]` : `${lastArgName}: ${keyExpr}`;
+
+            argNames.reverse().forEach(argName => {
+              mergeArgsExpr = `${argName}: { ${mergeArgsExpr} }`;
+            });
           }
 
           const parsedMergeArgsExpr = parseMergeArgsExpr(

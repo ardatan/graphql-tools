@@ -304,6 +304,41 @@ describe('type merging directives', () => {
     });
   });
 
+  test('adds args function when used with keyField argument', () => {
+    const typeDefs = `
+      ${stitchingDirectivesTypeDefs}
+      type Query {
+        _user(id: ID): User @merge(keyField: "id")
+      }
+
+      type User @base(selectionSet: "{ id }") {
+        id: ID
+        name: String
+      }
+    `;
+
+    const schema = makeExecutableSchema({ typeDefs });
+
+    const subschemaConfig = {
+      schema,
+    }
+
+    const transformedSubschemaConfig = stitchingDirectivesTransformer(subschemaConfig);
+
+    const argsFn = transformedSubschemaConfig.merge.User.args;
+
+    const originalResult = {
+      id: '5',
+      email: 'email@email.com',
+    };
+
+    const args = argsFn(originalResult);
+
+    expect(args).toEqual({
+      id: '5',
+    });
+  });
+
   test('adds key and argsFromKeys functions when used without arguments', () => {
     const typeDefs = `
       ${stitchingDirectivesTypeDefs}
