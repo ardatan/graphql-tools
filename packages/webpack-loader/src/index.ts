@@ -2,7 +2,7 @@ import os from 'os';
 import { isExecutableDefinitionNode, Kind, DocumentNode } from 'graphql';
 import { uniqueCode } from '@graphql-tools/webpack-loader-runtime';
 import { parseDocument } from './parser';
-import { optimizeDocumentNode, removeDescriptions, removeLoc, removeEmptyNodes } from '@graphql-tools/optimize';
+import { optimizeDocumentNode, removeDescriptions, removeEmptyNodes } from '@graphql-tools/optimize';
 
 function isSDL(doc: DocumentNode) {
   return !doc.definitions.some(def => isExecutableDefinitionNode(def));
@@ -52,9 +52,6 @@ export default function graphqlLoader(source: string) {
   }
   if (options.noEmptyNodes) {
     optimizers.push(removeEmptyNodes);
-  }
-  if (options.noLoc) {
-    optimizers.push(removeLoc);
   }
 
   if (optimizers.length > 0 && isSDL(doc)) {
