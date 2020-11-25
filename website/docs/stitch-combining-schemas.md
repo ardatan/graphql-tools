@@ -125,7 +125,7 @@ export const postsSubschema = {
 };
 ```
 
-* `schema`: this is a non-executable schema representing the remote API. The remote schema may be obtained using [introspection](/docs/remote-schemas/#introspectschemaexecutor-context), or fetched as a flat SDL string (from a server or a repo) and built into a schema using `buildSchema` from the graphql-js package. Note that not all GraphQL servers enable introspection, and those that do will not include custom directives. This often makes a custom fetch option preferable to introspection.
+* `schema`: this is a non-executable schema representing the remote API. The remote schema may be obtained using [introspection](/docs/remote-schemas/#introspectschemaexecutor-context), or fetched as a flat SDL string (from a server or repo) and built into a schema using [`buildSchema`](https://graphql.org/graphql-js/utilities/#buildschema). Note that not all GraphQL servers enable introspection, and those that do will not include custom directives. This often makes a custom fetch option preferable to introspection.
 * `executor`: is a generic method that performs requests to a remote schema. It's quite simple to [write your own](/docs/remote-schemas#creating-an-executor). Subschema config uses the `executor` for query and mutation operations, and accepts a `subscriber` function for subscription operations.
 
 See [remote schemas](/docs/remote-schemas/) documentation for more related tools and information, or the [combining local and remote schemas](https://github.com/gmac/schema-stitching-demos/tree/master/01-combining-local-and-remote-schemas) example.
