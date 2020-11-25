@@ -5,8 +5,10 @@ import {
   isListType,
   isObjectType,
   isUnionType,
+  parseValue,
   print,
   SelectionSetNode,
+  valueFromASTUntyped,
 } from 'graphql';
 
 import { cloneSubschemaConfig, SubschemaConfig } from '@graphql-tools/delegate';
@@ -109,19 +111,36 @@ export function stitchingDirectivesTransformer(
             returnType = getNullableType(returnType.ofType);
           }
 
-          let mergeArgsExpr = directiveArgumentMap.argsExpr;
+          let mergeArgsExpr: string = directiveArgumentMap.argsExpr;
+
           if (mergeArgsExpr == null) {
-            const args = Object.keys(fieldConfig.args);
+            const keyArg: string = directiveArgumentMap.keyArg;
 
-            const argName = args[0];
-
-            mergeArgsExpr = returnsList ? `${argName}: [[$key]]` : `${argName}: $key`;
+            if (keyArg == null) {
+              const argName = Object.keys(fieldConfig.args)[0];
+              mergeArgsExpr = returnsList ? `${argName}: [[$key]]` : `${argName}: $key`;
+            } else {
+              const argNames = keyArg.split('.');
+              const lastArgName = argNames.pop();
+              mergeArgsExpr = returnsList ? `${lastArgName}: [[$key]]` : `${lastArgName}: $key`;
+              argNames.reverse().forEach(argName => {
+                mergeArgsExpr = `${argName}: { ${mergeArgsExpr} }`;
+              });
+            }
           }
 
           const parsedMergeArgsExpr = parseMergeArgsExpr(
             mergeArgsExpr,
             allSelectionSetsByType[(returnType as GraphQLNamedType).name]
           );
+
+          const additionalArgs = directiveArgumentMap.additionalArgs;
+          if (additionalArgs != null) {
+            parsedMergeArgsExpr.args = mergeDeep(
+              parsedMergeArgsExpr.args,
+              valueFromASTUntyped(parseValue(`{ ${additionalArgs} }`, { noLocation: true }))
+            );
+          }
 
           const typeNames: Array<string> = directiveArgumentMap.types;
 

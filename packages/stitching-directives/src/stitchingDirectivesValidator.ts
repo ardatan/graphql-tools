@@ -7,6 +7,7 @@ import {
   isNamedType,
   isObjectType,
   isUnionType,
+  parseValue,
 } from 'graphql';
 
 import { getDirectives, getImplementingTypes, MapperKind, mapSchema, parseSelectionSet } from '@graphql-tools/utils';
@@ -15,6 +16,8 @@ import { StitchingDirectivesOptions } from './types';
 
 import { defaultStitchingDirectiveOptions } from './defaultStitchingDirectiveOptions';
 import { parseMergeArgsExpr } from './parseMergeArgsExpr';
+
+const dottedNameRegEx = /^[_A-Za-z][_0-9A-Za-z]*(.[_A-Za-z][_0-9A-Za-z]*)*$/;
 
 export function stitchingDirectivesValidator(
   options: StitchingDirectivesOptions = {}
@@ -64,16 +67,32 @@ export function stitchingDirectivesValidator(
           }
 
           const mergeArgsExpr = directiveArgumentMap.argsExpr;
-          if (mergeArgsExpr == null) {
-            const args = Object.keys(fieldConfig.args);
+          if (mergeArgsExpr != null) {
+            parseMergeArgsExpr(mergeArgsExpr);
+          }
 
+          const args = Object.keys(fieldConfig.args);
+
+          const keyArg = directiveArgumentMap.keyArg;
+          if (keyArg == null) {
             if (args.length !== 1) {
               throw new Error(
-                'Cannot use @merge directive without arguments if resolver takes more than one argument.'
+                'Cannot use @merge directive without `keyArg` argument if resolver takes more than one argument.'
               );
             }
-          } else {
-            parseMergeArgsExpr(mergeArgsExpr);
+          } else if (!keyArg.match(dottedNameRegEx)) {
+            throw new Error(
+              '`keyArg` argument for @merge directive must be a set of valid GraphQL SDL names separated by periods.'
+            );
+          }
+
+          const additionalArgs = directiveArgumentMap.additionalArgs;
+          if (additionalArgs != null) {
+            parseValue(`{ ${additionalArgs} }`, { noLocation: true });
+          }
+
+          if (mergeArgsExpr != null && (keyArg != null || additionalArgs != null)) {
+            throw new Error('Cannot use @merge directive with both `argsExpr` argument and any additional argument.');
           }
 
           if (!isInterfaceType(returnType) && !isUnionType(returnType) && !isObjectType(returnType)) {

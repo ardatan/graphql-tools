@@ -101,7 +101,7 @@ describe('type merging directives', () => {
     });
   });
 
-  test('adds args function when used with argsExpr argument usnig an unqualified key', () => {
+  test('adds args function when used with argsExpr argument using an unqualified key', () => {
     const typeDefs = `
       ${stitchingDirectivesTypeDefs}
       scalar _Key
@@ -176,6 +176,131 @@ describe('type merging directives', () => {
       key: {
         id: '5',
       },
+    });
+  });
+
+  test('adds args function when used with keyArg argument', () => {
+    const typeDefs = `
+      ${stitchingDirectivesTypeDefs}
+      scalar _Key
+
+      type Query {
+        _user(key: _Key): User @merge(keyArg: "key")
+      }
+
+      type User @base(selectionSet: "{ id }") {
+        id: ID
+        name: String
+      }
+    `;
+
+    const schema = makeExecutableSchema({ typeDefs });
+
+    const subschemaConfig = {
+      schema,
+    }
+
+    const transformedSubschemaConfig = stitchingDirectivesTransformer(subschemaConfig);
+
+    const argsFn = transformedSubschemaConfig.merge.User.args;
+
+    const originalResult = {
+      id: '5',
+      email: 'email@email.com',
+    };
+
+    const args = argsFn(originalResult);
+
+    expect(args).toEqual({
+      key: {
+        id: '5',
+      },
+    });
+  });
+
+  test('adds args function when used with nested keyArg argument', () => {
+    const typeDefs = `
+      ${stitchingDirectivesTypeDefs}
+      scalar _Key
+
+      input UserInput {
+        key: _Key
+      }
+
+      type Query {
+        _user(input: UserInput, scope: String): User @merge(keyArg: "input.key", additionalArgs: """ scope: "full" """)
+      }
+
+      type User @base(selectionSet: "{ id }") {
+        id: ID
+        name: String
+      }
+    `;
+
+    const schema = makeExecutableSchema({ typeDefs });
+
+    const subschemaConfig = {
+      schema,
+    }
+
+    const transformedSubschemaConfig = stitchingDirectivesTransformer(subschemaConfig);
+
+    const argsFn = transformedSubschemaConfig.merge.User.args;
+
+    const originalResult = {
+      id: '5',
+      email: 'email@email.com',
+    };
+
+    const args = argsFn(originalResult);
+
+    expect(args).toEqual({
+      input: {
+        key: {
+          id: '5',
+        },
+      },
+      scope: 'full',
+    });
+  });
+
+  test('adds args function when used with keyArg and additionalArgs arguments', () => {
+    const typeDefs = `
+      ${stitchingDirectivesTypeDefs}
+      scalar _Key
+
+      type Query {
+        _user(key: _Key, scope: String): User @merge(keyArg: "key", additionalArgs: """ scope: "full" """)
+      }
+
+      type User @base(selectionSet: "{ id }") {
+        id: ID
+        name: String
+      }
+    `;
+
+    const schema = makeExecutableSchema({ typeDefs });
+
+    const subschemaConfig = {
+      schema,
+    }
+
+    const transformedSubschemaConfig = stitchingDirectivesTransformer(subschemaConfig);
+
+    const argsFn = transformedSubschemaConfig.merge.User.args;
+
+    const originalResult = {
+      id: '5',
+      email: 'email@email.com',
+    };
+
+    const args = argsFn(originalResult);
+
+    expect(args).toEqual({
+      key: {
+        id: '5',
+      },
+      scope: 'full',
     });
   });
 

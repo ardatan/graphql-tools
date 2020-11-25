@@ -41,7 +41,7 @@ export function parseMergeArgsExpr(
     return { args: finalValue, keyDeclarations: finalKeyDeclarations, expansions: [] };
   }
 
-  const expansionRegEx = new RegExp(`${EXPANSION_PREFIX}[0-9]+`);
+  const expansionRegEx = new RegExp(`^${EXPANSION_PREFIX}[0-9]+$`);
   Object.keys(variablePaths).forEach(variableName => {
     if (!variableName.match(expansionRegEx)) {
       throw new Error('Expansions cannot be mixed with single key declarations.');

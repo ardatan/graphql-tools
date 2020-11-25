@@ -27,7 +27,7 @@ export function stitchingDirectives(
 
   const baseDirectiveTypeDefs = `directive @${baseDirectiveName}(selectionSet: String!) on OBJECT`;
   const computedDirectiveTypeDefs = `directive @${computedDirectiveName}(selectionSet: String!) on FIELD_DEFINITION`;
-  const mergeDirectiveTypeDefs = `directive @${mergeDirectiveName}(argsExpr: String) on FIELD_DEFINITION`;
+  const mergeDirectiveTypeDefs = `directive @${mergeDirectiveName}(argsExpr: String, keyArg: String, additionalArgs: String) on FIELD_DEFINITION`;
 
   return {
     baseDirectiveTypeDefs,
