@@ -109,7 +109,7 @@ import { introspectSchema } from '@graphql-tools/wrap';
 import { fetch } from 'cross-fetch';
 import { print } from 'graphql';
 
-async function remoteExecutor({ document, variables }) => {
+async function remoteExecutor({ document, variables }) {
   const query = print(document);
   const fetchResult = await fetch('https://my.remote.service/graphql', {
     method: 'POST',
