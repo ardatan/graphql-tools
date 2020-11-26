@@ -9,6 +9,7 @@ export * from './interface';
 export * from './merge-named-type-array';
 export * from './merge-nodes';
 export * from './merge-typedefs';
+export * from './scalar';
 export * from './type';
 export * from './union';
 export * from './utils';

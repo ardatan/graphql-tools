@@ -26,7 +26,7 @@ import {
   GraphQLScalarLiteralParser,
 } from 'graphql';
 
-import { mergeType, mergeInputType, mergeInterface, mergeUnion, mergeEnum } from '@graphql-tools/merge';
+import { mergeType, mergeInputType, mergeInterface, mergeUnion, mergeEnum, mergeScalar } from '@graphql-tools/merge';
 
 import {
   MergeTypeCandidate,
@@ -285,7 +285,7 @@ function mergeScalarTypeCandidates(
   const astNodes = pluck<ScalarTypeDefinitionNode>('astNode', candidates);
   const astNode = astNodes
     .slice(1)
-    .reduce((acc, astNode) => mergeScalarTypeDefinitionNodes(acc as ScalarTypeDefinitionNode, astNode), astNodes[0]);
+    .reduce((acc, astNode) => mergeScalar(acc, astNode), astNodes[0]) as ScalarTypeDefinitionNode;
 
   const extensionASTNodes = [].concat(pluck<Record<string, any>>('extensionASTNodes', candidates));
 
@@ -404,15 +404,4 @@ function mergeInputFieldConfigs(
 
 function defaultInputFieldConfigMerger(candidates: Array<MergeInputFieldConfigCandidate>) {
   return candidates[candidates.length - 1].inputFieldConfig;
-}
-
-function mergeScalarTypeDefinitionNodes(
-  targetNode: ScalarTypeDefinitionNode,
-  sourceNode: ScalarTypeDefinitionNode
-): ScalarTypeDefinitionNode {
-  return {
-    ...targetNode,
-    description: sourceNode.description ?? targetNode.description,
-    directives: (targetNode.directives ?? []).concat(sourceNode.directives ?? []),
-  };
 }
