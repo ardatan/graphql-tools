@@ -13,7 +13,8 @@ export async function loadFile(pointer: string, options: LoadTypedefsOptions): P
       const canLoad = await loader.canLoad(pointer, options);
 
       if (canLoad) {
-        return await loader.load(pointer, options);
+        const loadedValue = await loader.load(pointer, options);
+        return loadedValue;
       }
     } catch (error) {
       debugLog(`Failed to find any GraphQL type definitions in: ${pointer} - ${error.message}`);
