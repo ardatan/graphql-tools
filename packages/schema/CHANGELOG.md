@@ -1,5 +1,18 @@
 # @graphql-tools/schema
 
+## 7.1.0
+
+### Minor Changes
+
+- 4f5a4efe: enhance(schema): add some options to improve schema creation performance
+
+### Patch Changes
+
+- 65ed780a: enhance(schema): do not visit resolvers if no validation is selected
+- b79e3a6b: enhance(schema): do not visit abstract types if requireResolversForResolveType not present
+- Updated dependencies [4f5a4efe]
+  - @graphql-tools/utils@7.1.0
+
 ## 7.0.0
 
 ### Major Changes
