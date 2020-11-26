@@ -155,8 +155,10 @@ describe('merging using type merging', () => {
     // 1. the key for that type will be sent to the resolvers first argument.
     // 2. an array of keys will sent if the resolver returns a list.
     //
-    // In this example, the `argsExpr` argument for the @merge directive is used to customize
-    // the arguments that the gateway will pass to the resolver.
+    // In this example, the `keyField` argument for the @merge directive is used to customize
+    // the portion of the key that the gateway will pass to the resolver.
+    //
+    // Alternatively, the `argsExpr` argument can be used to allow more customization:
     //
     // Rules for evaluation of these arguments are as follows:
     //
@@ -169,7 +171,8 @@ describe('merging using type merging', () => {
       ${stitchingDirectivesTypeDefs}
       type Query {
         topProducts(first: Int = 2): [Product]
-        _productsByUpc(upcs: [String!]!): [Product] @merge(argsExpr: "upcs: [[$base.upc]]")
+        _productsByUpc(upcs: [String!]!): [Product] @merge(keyField: "upc")
+        # EQUIVALENT TO: _productsByUpc(upcs: [String!]!): [Product] @merge(argsExpr: "upcs: [[$key.upc]]")
       }
       type Product @base(selectionSet: "{ upc }") {
         upc: String!
@@ -225,11 +228,12 @@ describe('merging using type merging', () => {
     // 1. the key for that type will be sent to the resolvers first argument.
     // 2. an array of keys will sent if the resolver returns a list.
     //
-    // In this example, the `argsExpr` argument for the @merge directive is used to customize
-    // the arguments that the gateway will pass to the resolver.
+    // In this example, the `keyArg` argument for the @merge directive is used to set the
+    // argument to which the gateway will pass the key.
     //
-    // This example highlights how using the $ sign without dot notation will pass the entire
-    // key as an object. This allows arbitary nesting of the key input as needed.
+    // The equivalent `argsExpr` is also included. This example highlights how when using
+    // `argsExpr`, the $ sign without dot notation will pass the entire key as an object.
+    // This allows arbitary nesting of the key input as needed.
     //
     typeDefs: `
       ${stitchingDirectivesTypeDefs}
@@ -261,7 +265,8 @@ describe('merging using type merging', () => {
       type Query {
         _reviews(id: ID!): Review
         _users(keys: [UserKey!]!): [User] @merge
-        _products(input: ProductInput): [Product]! @merge(argsExpr: "input: { keys: [[$key]] }")
+        _products(input: ProductInput): [Product]! @merge(keyField: "input.keys")
+        # EQUIVALENT TO: _products(input: ProductInput): [Product]! @merge(argsExpr: "input: { keys: [[$key]] }")
       }
     `,
     resolvers: {
