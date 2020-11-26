@@ -91,7 +91,9 @@ export function makeExecutableSchema<TContext = any>({
     inheritResolversFromInterfaces,
   });
 
-  assertResolversPresent(schema, resolverValidationOptions);
+  if (Object.keys(resolverValidationOptions).length > 0) {
+    assertResolversPresent(schema, resolverValidationOptions);
+  }
 
   if (!allowUndefinedInResolve) {
     schema = addCatchUndefinedToSchema(schema);
