@@ -148,7 +148,9 @@ export function addResolversToSchema(
     ? addResolversToExistingSchema(schema, resolvers, defaultFieldResolver)
     : createNewSchemaWithResolvers(schema, resolvers, defaultFieldResolver);
 
-  checkForResolveTypeResolver(schema, requireResolversForResolveType);
+  if (requireResolversForResolveType || requireResolversForResolveType !== 'ignore') {
+    checkForResolveTypeResolver(schema, requireResolversForResolveType);
+  }
 
   return schema;
 }
