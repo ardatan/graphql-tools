@@ -49,7 +49,8 @@ const http = require('http');
 const express = require('express');
 const { graphqlHTTP } = require('express-graphql');
 const { execute, subscribe } = require('graphql');
-const { createServer } = require('graphql-ws');
+const ws = require('ws'); // yarn add ws
+const { useServer } = require('graphql-ws/lib/use/ws');
 
 const typeDefs = require('./graphql/types');
 const resolvers = require('./graphql/resolvers');
@@ -72,17 +73,19 @@ app.use(
 
 const server = http.createServer(app);
 
+const wsServer = new ws.Server({
+  server,
+  path: '/graphql',
+});
+
 server.listen(3000, () => {
-  createServer(
+  useServer(
     {
       schema,
       execute,
       subscribe,
     },
-    {
-      server,
-      path: '/graphql', // can be same path, just use the `ws` schema
-    }
+    wsServer,
   );
   console.info('Listening on http://localhost:3000/graphql');
 });
