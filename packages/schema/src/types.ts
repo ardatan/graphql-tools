@@ -52,7 +52,7 @@ export interface IExecutableSchemaDefinition<TContext = any> {
   /**
    * An array of schema transformation functions
    */
-  schemaTransforms?: Array<(originalWrappingSchema: GraphQLSchema) => GraphQLSchema>;
+  schemaTransforms?: ExecutableSchemaTransformation[];
   /**
    * Additional options for parsing the type definitions if they are provided
    * as a string
@@ -67,4 +67,14 @@ export interface IExecutableSchemaDefinition<TContext = any> {
    * Additional options for removing unused types from the schema
    */
   pruningOptions?: PruneSchemaOptions;
+  /**
+   * Do not create a schema again and use the one from `buildASTSchema`
+   */
+  updateResolversInPlace?: boolean;
+  /**
+   * Do not extract and apply extensions seperately and leave it to `buildASTSchema`
+   */
+  noExtensionExtraction?: boolean;
 }
+
+export type ExecutableSchemaTransformation = (originalWrappingSchema: GraphQLSchema) => GraphQLSchema;
