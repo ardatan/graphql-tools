@@ -92,7 +92,7 @@ That's it! Under the subschema config `merge` option, each merged type provides 
 - `selectionSet` specifies one or more key fields required from other services to perform this query. Query planning will automatically resolve these fields from other subschemas in dependency order.
 -  `args` formats the initial object representation into query arguments.
 
-This configuration allows type merging to smartly resolve a complete `User`, regardless of which service provides the initial representation of it. We now have a combined `User` type in the gateway schema:
+This configuration allows type merging to smartly resolve a complete `User`, regardless of which service provides the initial representation of it. See the [basic merging demo](https://github.com/gmac/schema-stitching-demos/tree/master/02-single-record-type-merging) for a working example of this process. We now have a combined `User` type in the gateway schema:
 
 ```graphql
 type User {
@@ -213,7 +213,7 @@ const gatewaySchema = stitchSchemas({
 });
 ```
 
-A `valuesFromResults` method may also be provided to map the raw query result into the batched set. With this array optimization in place, we'll now only perform one query _per merged field_ (versus per record). However, requesting multiple merged fields will still perform a query each. To optimize this further, we can enable [query batching](https://github.com/prisma-labs/http-link-dataloader#even-better-batching):
+A `valuesFromResults` method may also be provided to map the raw query result into the batched set. With this array optimization in place, we'll now only perform one query _per merged field_ (versus per record). However, requesting multiple merged fields will still perform a query each. To optimize this further, we can enable [query batching](https://github.com/gmac/schema-stitching-demos/wiki/Batching-Arrays-and-Queries#what-is-query-batching):
 
 ```js
 {
@@ -240,7 +240,7 @@ batchingOptions?: {
 }
 ```
 
-Using both array batching and query batching together is recommended, and should flatten transactional costs down to one query per subservice per generation of data.
+Using both array batching and query batching together is recommended, and should flatten transactional costs down to one query per subservice per generation of data. See [batching demo](https://github.com/gmac/schema-stitching-demos/tree/master/03-array-batched-type-merging) for a working example of this process.
 
 ## Unidirectional merges
 
