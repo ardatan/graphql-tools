@@ -92,7 +92,7 @@ That's it! Under the subschema config `merge` option, each merged type provides 
 - `selectionSet` specifies one or more key fields required from other services to perform this query. Query planning will automatically resolve these fields from other subschemas in dependency order.
 -  `args` formats the initial object representation into query arguments.
 
-This configuration allows type merging to smartly resolve a complete `User`, regardless of which service provides the initial representation of it. We now have a combined `User` type in the gateway schema:
+This configuration allows type merging to smartly resolve a complete `User`, regardless of which service provides the initial representation of it. See the [basic merging demo](https://github.com/gmac/schema-stitching-demos/tree/master/02-single-record-type-merging) for a working example of this process. We now have a combined `User` type in the gateway schema:
 
 ```graphql
 type User {
@@ -156,9 +156,26 @@ The above example will always resolve a stubbed `User` record for _any_ requeste
 
 This fabricated record fulfills the not-null requirement of the `posts:[Post]!` field. However, it also makes the posts service awkwardly responsible for data it knows only by omission. A cleaner solution may be to loosen schema nullability down to `posts:[Post]`, and then return `null` for unknown user IDs without associated posts. Null is a valid mergable object as long as the unique fields it fulfills are nullable.
 
+## Merging flow
+
+To better understand the flow of merged object calls, let's break down the [basic example](#basic-example) above:
+
+![Schema Stitching flow](../static/img/stitching-flow.png)
+
+1. A request is submitted to the gateway schema that selects fields from multiple subschemas.
+2. The gateway fetches the resource that was **explicitly** requested (`userById`), known as the _original object_. This subquery is filtered to match its subschema, and adds the `selectionSet` of other subschemas that must **implicitly** provide data for the request.
+3. The original object returns with fields requested by the user and those necessary to query other subschemas, per their `selectionSet`.
+4. Merge config builds subsequent queries for _merger objects_ that will provide missing data. These subqueries are built using `fieldName` with arguments derived from the original object.
+5. Subqueries for merger objects are initiated; again filtering each query to match its intended subschema, and adding the `selectionSet` of other subschemas&dagger;. Merger queries run in parallel when possible.
+6. Merger objects are returned with additional fields requested by the user and those necessary to query other subschemas, per their `selectionSet`&dagger;.
+7. Merger objects are applied to the original object, building an aggregate result.
+8. The gateway responds with the original query selection applied to the aggregate merge result.
+
+_&dagger; Note: merger subqueries may still collect unique `selectionSet` fields. Given subschemas A, B, and C, it's perfectly valid for schema C to specify fields from both A and B in its selection set. When this happens, resolving C will simply be deferred until the merger of A and B can be provided as its original object._
+
 ## Batching
 
-The basic example above queries for a single record each time it performs a merge, which is suboptimal when merging arrays of objects. Instead, we should batch many record requests together using array queries that may fetch many partials at once, the schema for which would be:
+The [basic example](#basic-example) above queries for a single record each time it performs a merge, which is suboptimal when merging arrays of objects. Instead, we should batch many record requests together using array queries that may fetch many partials at once, the schema for which would be:
 
 ```graphql
 postUsersByIds(ids: [ID!]!): [User]!
@@ -196,7 +213,7 @@ const gatewaySchema = stitchSchemas({
 });
 ```
 
-A `valuesFromResults` method may also be provided to map the raw query result into the batched set. With this array optimization in place, we'll now only perform one query _per merged field_ (versus per record). However, requesting multiple merged fields will still perform a query each. To optimize this further, we can enable [query batching](https://github.com/prisma-labs/http-link-dataloader#even-better-batching):
+A `valuesFromResults` method may also be provided to map the raw query result into the batched set. With this array optimization in place, we'll now only perform one query _per merged field_ (versus per record). However, requesting multiple merged fields will still perform a query each. To optimize this further, we can enable [query batching](https://github.com/gmac/schema-stitching-demos/wiki/Batching-Arrays-and-Queries#what-is-query-batching):
 
 ```js
 {
@@ -223,7 +240,7 @@ batchingOptions?: {
 }
 ```
 
-Using both array batching and query batching together is recommended, and should flatten transactional costs down to one query per subservice per generation of data.
+Using both array batching and query batching together is recommended, and should flatten transactional costs down to one query per subservice per generation of data. See [batching demo](https://github.com/gmac/schema-stitching-demos/tree/master/03-array-batched-type-merging) for a working example of this process.
 
 ## Unidirectional merges
 
