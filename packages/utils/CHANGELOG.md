@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 7.1.0
+
+### Minor Changes
+
+- 4f5a4efe: enhance(schema): add some options to improve schema creation performance
+
 ## 7.0.2
 
 ### Patch Changes

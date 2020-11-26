@@ -1,5 +1,19 @@
 # @graphql-tools/stitch
 
+## 7.1.0
+
+### Minor Changes
+
+- 4f5a4efe: enhance(schema): add some options to improve schema creation performance
+
+### Patch Changes
+
+- Updated dependencies [65ed780a]
+- Updated dependencies [4f5a4efe]
+- Updated dependencies [b79e3a6b]
+  - @graphql-tools/schema@7.1.0
+  - @graphql-tools/utils@7.1.0
+
 ## 7.0.4
 
 ### Patch Changes
