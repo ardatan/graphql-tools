@@ -47,6 +47,7 @@ export function stitchSchemas({
   schemaTransforms = [],
   parseOptions = {},
   pruningOptions,
+  updateResolversInPlace,
 }: IStitchSchemasOptions): GraphQLSchema {
   if (typeof resolverValidationOptions !== 'object') {
     throw new Error('Expected `resolverValidationOptions` to be an object');
@@ -148,9 +149,12 @@ export function stitchSchemas({
     resolvers: finalResolvers,
     resolverValidationOptions,
     inheritResolversFromInterfaces: false,
+    updateResolversInPlace,
   });
 
-  assertResolversPresent(schema, resolverValidationOptions);
+  if (Object.keys(resolverValidationOptions).length > 0) {
+    assertResolversPresent(schema, resolverValidationOptions);
+  }
 
   schema = addStitchingInfo(schema, stitchingInfo);
 
@@ -180,7 +184,11 @@ export function stitchSchemas({
     SchemaDirectiveVisitor.visitSchemaDirectives(schema, schemaDirectives);
   }
 
-  return pruningOptions ? pruneSchema(schema, pruningOptions) : schema;
+  if (pruningOptions) {
+    schema = pruneSchema(schema, pruningOptions);
+  }
+
+  return schema;
 }
 
 function applySubschemaConfigTransforms(

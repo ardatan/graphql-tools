@@ -1,60 +1,54 @@
-import { DocumentNode, DefinitionNode, Kind, SchemaExtensionNode, SchemaDefinitionNode } from 'graphql';
+import {
+  DocumentNode,
+  TypeExtensionNode,
+  Kind,
+  SchemaExtensionNode,
+  SchemaDefinitionNode,
+  TypeDefinitionNode,
+  DirectiveDefinitionNode,
+} from 'graphql';
 
-export function extractTypeDefinitions(ast: DocumentNode) {
-  const typeDefs = ast.definitions.filter(
-    (def: DefinitionNode) =>
-      def.kind === Kind.OBJECT_TYPE_DEFINITION ||
-      def.kind === Kind.INTERFACE_TYPE_DEFINITION ||
-      def.kind === Kind.INPUT_OBJECT_TYPE_DEFINITION ||
-      def.kind === Kind.UNION_TYPE_DEFINITION ||
-      def.kind === Kind.ENUM_TYPE_DEFINITION ||
-      def.kind === Kind.SCALAR_TYPE_DEFINITION
-  );
-
-  return {
-    ...ast,
-    definitions: typeDefs,
-  };
-}
-
-export function extractDirectiveDefinitions(ast: DocumentNode) {
-  const directiveDefs = ast.definitions.filter((def: DefinitionNode) => def.kind === Kind.DIRECTIVE_DEFINITION);
-
-  return {
-    ...ast,
-    definitions: directiveDefs,
-  };
-}
-
-export function extractSchemaDefinition(ast: DocumentNode): SchemaDefinitionNode {
-  const schemaDefs = ast.definitions.filter((def: DefinitionNode) => def.kind === Kind.SCHEMA_DEFINITION) as Array<
-    SchemaDefinitionNode
-  >;
-
-  return schemaDefs.length ? schemaDefs[schemaDefs.length - 1] : null;
-}
-
-export function extractSchemaExtensions(ast: DocumentNode): Array<SchemaExtensionNode> {
-  const schemaExtensions = ast.definitions.filter((def: DefinitionNode) => def.kind === Kind.SCHEMA_EXTENSION) as Array<
-    SchemaExtensionNode
-  >;
-
-  return schemaExtensions;
-}
-
-export function extractTypeExtensionDefinitions(ast: DocumentNode) {
-  const extensionDefs = ast.definitions.filter(
-    (def: DefinitionNode) =>
-      def.kind === Kind.OBJECT_TYPE_EXTENSION ||
-      def.kind === Kind.INTERFACE_TYPE_EXTENSION ||
-      def.kind === Kind.INPUT_OBJECT_TYPE_EXTENSION ||
-      def.kind === Kind.UNION_TYPE_EXTENSION ||
-      def.kind === Kind.ENUM_TYPE_EXTENSION ||
-      def.kind === Kind.SCALAR_TYPE_EXTENSION
-  );
+export function extractDefinitions(ast: DocumentNode) {
+  const typeDefinitions: TypeDefinitionNode[] = [];
+  const directiveDefs: DirectiveDefinitionNode[] = [];
+  const schemaDefs: SchemaDefinitionNode[] = [];
+  const schemaExtensions: SchemaExtensionNode[] = [];
+  const extensionDefs: TypeExtensionNode[] = [];
+  ast.definitions.forEach(def => {
+    switch (def.kind) {
+      case Kind.OBJECT_TYPE_DEFINITION:
+      case Kind.INTERFACE_TYPE_DEFINITION:
+      case Kind.INPUT_OBJECT_TYPE_DEFINITION:
+      case Kind.UNION_TYPE_DEFINITION:
+      case Kind.ENUM_TYPE_DEFINITION:
+      case Kind.SCALAR_TYPE_DEFINITION:
+        typeDefinitions.push(def);
+        break;
+      case Kind.DIRECTIVE_DEFINITION:
+        directiveDefs.push(def);
+        break;
+      case Kind.SCHEMA_DEFINITION:
+        schemaDefs.push(def);
+        break;
+      case Kind.SCHEMA_EXTENSION:
+        schemaExtensions.push(def);
+        break;
+      case Kind.OBJECT_TYPE_EXTENSION:
+      case Kind.INTERFACE_TYPE_EXTENSION:
+      case Kind.INPUT_OBJECT_TYPE_EXTENSION:
+      case Kind.UNION_TYPE_EXTENSION:
+      case Kind.ENUM_TYPE_EXTENSION:
+      case Kind.SCALAR_TYPE_EXTENSION:
+        extensionDefs.push(def);
+        break;
+    }
+  });
 
   return {
-    ...ast,
-    definitions: extensionDefs,
+    typeDefinitions,
+    directiveDefs,
+    schemaDefs,
+    schemaExtensions,
+    extensionDefs,
   };
 }
