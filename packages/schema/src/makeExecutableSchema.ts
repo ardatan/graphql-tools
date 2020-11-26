@@ -9,7 +9,7 @@ import { addSchemaLevelResolver } from './addSchemaLevelResolver';
 import { buildSchemaFromTypeDefinitions } from './buildSchemaFromTypeDefinitions';
 import { addErrorLoggingToSchema } from './addErrorLoggingToSchema';
 import { addCatchUndefinedToSchema } from './addCatchUndefinedToSchema';
-import { IExecutableSchemaDefinition } from './types';
+import { ExecutableSchemaTransformation, IExecutableSchemaDefinition } from './types';
 
 /**
  * Builds a schema from the provided type definitions and resolvers.
@@ -63,10 +63,12 @@ export function makeExecutableSchema<TContext = any>({
   resolverValidationOptions = {},
   directiveResolvers,
   schemaDirectives,
-  schemaTransforms = [],
+  schemaTransforms: userProvidedSchemaTransforms,
   parseOptions = {},
   inheritResolversFromInterfaces = false,
   pruningOptions,
+  updateResolversInPlace = false,
+  noExtensionExtraction = false,
 }: IExecutableSchemaDefinition<TContext>) {
   // Validate and clean up arguments
   if (typeof resolverValidationOptions !== 'object') {
@@ -77,51 +79,68 @@ export function makeExecutableSchema<TContext = any>({
     throw new Error('Must provide typeDefs');
   }
 
-  // We allow passing in an array of resolver maps, in which case we merge them
-  const resolverMap: any = Array.isArray(resolvers) ? resolvers.reduce(mergeDeep, {}) : resolvers;
-
   // Arguments are now validated and cleaned up
+  const schemaTransforms: ExecutableSchemaTransformation[] = [
+    schema => {
+      // We allow passing in an array of resolver maps, in which case we merge them
+      const resolverMap: any = Array.isArray(resolvers) ? resolvers.reduce(mergeDeep, {}) : resolvers;
 
-  let schema = buildSchemaFromTypeDefinitions(typeDefs, parseOptions);
+      const schemaWithResolvers = addResolversToSchema({
+        schema,
+        resolvers: resolverMap,
+        resolverValidationOptions,
+        inheritResolversFromInterfaces,
+        updateResolversInPlace,
+      });
 
-  schema = addResolversToSchema({
-    schema,
-    resolvers: resolverMap,
-    resolverValidationOptions,
-    inheritResolversFromInterfaces,
-  });
+      if (Object.keys(resolverValidationOptions).length > 0) {
+        assertResolversPresent(schemaWithResolvers, resolverValidationOptions);
+      }
 
-  if (Object.keys(resolverValidationOptions).length > 0) {
-    assertResolversPresent(schema, resolverValidationOptions);
-  }
+      return schemaWithResolvers;
+    },
+  ];
 
   if (!allowUndefinedInResolve) {
-    schema = addCatchUndefinedToSchema(schema);
+    schemaTransforms.push(addCatchUndefinedToSchema);
   }
 
   if (logger != null) {
-    schema = addErrorLoggingToSchema(schema, logger);
+    schemaTransforms.push(schema => addErrorLoggingToSchema(schema, logger));
   }
 
   if (typeof resolvers['__schema'] === 'function') {
     // TODO a bit of a hack now, better rewrite generateSchema to attach it there.
     // not doing that now, because I'd have to rewrite a lot of tests.
-    schema = addSchemaLevelResolver(schema, resolvers['__schema'] as GraphQLFieldResolver<any, any>);
+    schemaTransforms.push(schema =>
+      addSchemaLevelResolver(schema, resolvers['__schema'] as GraphQLFieldResolver<any, any>)
+    );
   }
 
-  schemaTransforms.forEach(schemaTransform => {
-    schema = schemaTransform(schema);
-  });
+  if (userProvidedSchemaTransforms) {
+    schemaTransforms.push(schema =>
+      userProvidedSchemaTransforms.reduce((s, schemaTransform) => schemaTransform(s), schema)
+    );
+  }
 
   // directive resolvers are implemented using SchemaDirectiveVisitor.visitSchemaDirectives
   // schema visiting modifies the schema in place
   if (directiveResolvers != null) {
-    schema = attachDirectiveResolvers(schema, directiveResolvers);
+    schemaTransforms.push(schema => attachDirectiveResolvers(schema, directiveResolvers));
   }
 
   if (schemaDirectives != null) {
-    SchemaDirectiveVisitor.visitSchemaDirectives(schema, schemaDirectives);
+    schemaTransforms.push(schema => {
+      SchemaDirectiveVisitor.visitSchemaDirectives(schema, schemaDirectives);
+      return schema;
+    });
   }
 
-  return pruningOptions ? pruneSchema(schema, pruningOptions) : schema;
+  if (pruningOptions) {
+    schemaTransforms.push(pruneSchema);
+  }
+
+  const schemaFromTypeDefs = buildSchemaFromTypeDefinitions(typeDefs, parseOptions, noExtensionExtraction);
+
+  return schemaTransforms.reduce((schema, schemaTransform) => schemaTransform(schema), schemaFromTypeDefs);
 }

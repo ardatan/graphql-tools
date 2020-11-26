@@ -1,5 +1,4 @@
 import {
-  ParseOptions,
   DocumentNode,
   Kind,
   TokenKind,
@@ -12,17 +11,9 @@ import {
   print,
 } from 'graphql';
 import { dedentBlockStringValue } from 'graphql/language/blockString';
+import { GraphQLParseOptions } from './Interfaces';
 
-export interface ExtendedParseOptions extends ParseOptions {
-  /**
-   * Set to `true` in order to convert all GraphQL comments (marked with # sign) to descriptions (""")
-   * GraphQL has built-in support for transforming descriptions to comments (with `print`), but not while
-   * parsing. Turning the flag on will support the other way as well (`parse`)
-   */
-  commentDescriptions?: boolean;
-}
-
-export function parseGraphQLSDL(location: string, rawSDL: string, options: ExtendedParseOptions = {}) {
+export function parseGraphQLSDL(location: string, rawSDL: string, options: GraphQLParseOptions = {}) {
   let document: DocumentNode;
   const sdl: string = rawSDL;
   let sdlModified = false;
@@ -87,7 +78,7 @@ export function getLeadingCommentBlock(node: ASTNode): void | string {
 
 export function transformCommentsToDescriptions(
   sourceSdl: string,
-  options: ExtendedParseOptions = {}
+  options: GraphQLParseOptions = {}
 ): DocumentNode | null {
   const parsedDoc = parse(sourceSdl, {
     ...options,

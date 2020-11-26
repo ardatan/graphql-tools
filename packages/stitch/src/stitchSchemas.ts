@@ -5,7 +5,6 @@ import {
   GraphQLDirective,
   specifiedDirectives,
   extendSchema,
-  ASTNode,
 } from 'graphql';
 
 import { SchemaDirectiveVisitor, mergeDeep, IResolvers, pruneSchema } from '@graphql-tools/utils';
@@ -209,8 +208,4 @@ function applySubschemaConfigTransforms(
   transformedSubschemas.forEach(subschema => originalSubschemaMap.set(subschema, subschemaOrSubschemaConfig));
 
   return transformedSubschemas;
-}
-
-export function isDocumentNode(object: any): object is DocumentNode {
-  return (object as ASTNode).kind !== undefined;
 }

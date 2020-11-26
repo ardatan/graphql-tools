@@ -78,6 +78,12 @@ export interface GraphQLParseOptions {
   allowLegacySDLEmptyFields?: boolean;
   allowLegacySDLImplementsInterfaces?: boolean;
   experimentalFragmentVariables?: boolean;
+  /**
+   * Set to `true` in order to convert all GraphQL comments (marked with # sign) to descriptions (""")
+   * GraphQL has built-in support for transforming descriptions to comments (with `print`), but not while
+   * parsing. Turning the flag on will support the other way as well (`parse`)
+   */
+  commentDescriptions?: boolean;
 }
 
 // graphql-tools typings

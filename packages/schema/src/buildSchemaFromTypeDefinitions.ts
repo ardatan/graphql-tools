@@ -1,30 +1,31 @@
-import { extendSchema, buildASTSchema, GraphQLSchema, DocumentNode, ASTNode } from 'graphql';
+import { extendSchema, buildASTSchema, GraphQLSchema, DocumentNode } from 'graphql';
 
-import { ITypeDefinitions, GraphQLParseOptions, parseGraphQLSDL } from '@graphql-tools/utils';
+import { ITypeDefinitions, GraphQLParseOptions, parseGraphQLSDL, isDocumentNode } from '@graphql-tools/utils';
 
-import { extractExtensionDefinitions, filterExtensionDefinitions } from './extensionDefinitions';
+import { filterAndExtractExtensionDefinitions } from './extensionDefinitions';
 import { concatenateTypeDefs } from './concatenateTypeDefs';
 
 export function buildSchemaFromTypeDefinitions(
   typeDefinitions: ITypeDefinitions,
-  parseOptions?: GraphQLParseOptions
+  parseOptions?: GraphQLParseOptions,
+  noExtensionExtraction?: boolean
 ): GraphQLSchema {
   const document = buildDocumentFromTypeDefinitions(typeDefinitions, parseOptions);
-  const typesAst = filterExtensionDefinitions(document);
+
+  if (noExtensionExtraction) {
+    return buildASTSchema(document);
+  }
+
+  const { typesAst, extensionsAst } = filterAndExtractExtensionDefinitions(document);
 
   const backcompatOptions = { commentDescriptions: true };
   let schema: GraphQLSchema = buildASTSchema(typesAst, backcompatOptions);
 
-  const extensionsAst = extractExtensionDefinitions(document);
   if (extensionsAst.definitions.length > 0) {
     schema = extendSchema(schema, extensionsAst, backcompatOptions);
   }
 
   return schema;
-}
-
-export function isDocumentNode(typeDefinitions: ITypeDefinitions): typeDefinitions is DocumentNode {
-  return (typeDefinitions as ASTNode).kind !== undefined;
 }
 
 export function buildDocumentFromTypeDefinitions(
