@@ -339,6 +339,52 @@ describe('type merging directives', () => {
     });
   });
 
+  test('adds args function when used with key argument', () => {
+    const typeDefs = `
+      ${stitchingDirectivesTypeDefs}
+      scalar _Key
+
+      type Query {
+        _user(key: _Key): User @merge(key: ["id", "outer.inner.firstName:name.firstName"])
+      }
+
+      type User @base(selectionSet: "{ id name { firstName } }") {
+        id: ID
+        email: String
+      }
+    `;
+
+    const schema = makeExecutableSchema({ typeDefs });
+
+    const subschemaConfig = {
+      schema,
+    }
+
+    const transformedSubschemaConfig = stitchingDirectivesTransformer(subschemaConfig);
+
+    const argsFn = transformedSubschemaConfig.merge.User.args;
+
+    const originalResult = {
+      id: '5',
+      name: {
+        firstName: 'Tester',
+      },
+    };
+
+    const args = argsFn(originalResult);
+
+    expect(args).toEqual({
+      key: {
+        id: '5',
+        outer: {
+          inner: {
+            firstName: 'Tester',
+          },
+        },
+      },
+    });
+  });
+
   test('adds key and argsFromKeys functions when used without arguments', () => {
     const typeDefs = `
       ${stitchingDirectivesTypeDefs}

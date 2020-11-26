@@ -114,8 +114,9 @@ export function stitchingDirectivesTransformer(
           let mergeArgsExpr: string = directiveArgumentMap.argsExpr;
 
           if (mergeArgsExpr == null) {
+            const key: Array<string> = directiveArgumentMap.key;
             const keyField: string = directiveArgumentMap.keyField;
-            const keyExpr = keyField == null ? '$key' : `$key.${keyField}`;
+            const keyExpr = key != null ? buildKey(key) : keyField != null ? `$key.${keyField}` : '$key';
 
             const keyArg: string = directiveArgumentMap.keyArg;
             const argNames = keyArg == null ? [Object.keys(fieldConfig.args)[0]] : keyArg.split('.');
@@ -285,4 +286,27 @@ function generateArgsFn(mergedTypeResolverInfo: MergedTypeResolverInfo): (origin
     });
     return newArgs;
   };
+}
+
+function buildKey(key: Array<string>): string {
+  let mergedObect = {};
+  key.forEach(keyDef => {
+    let [aliasOrKeyPath, keyPath] = keyDef.split(':');
+    let aliasPath: string;
+    if (keyPath == null) {
+      keyPath = aliasPath = aliasOrKeyPath;
+    } else {
+      aliasPath = aliasOrKeyPath;
+    }
+    const aliasParts = aliasPath.split('.');
+    const lastAliasPart = aliasParts.pop();
+    let object: any = { [lastAliasPart]: `$key.${keyPath}` };
+
+    aliasParts.reverse().forEach(aliasPart => {
+      object = { [aliasPart]: object };
+    });
+    mergedObect = mergeDeep(mergedObect, object);
+  });
+
+  return JSON.stringify(mergedObect).replace(/"/g, '');
 }

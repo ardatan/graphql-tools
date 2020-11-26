@@ -95,6 +95,36 @@ export function stitchingDirectivesValidator(
             // TODO: ideally we should check that it is part of the key
           }
 
+          const key: Array<string> = directiveArgumentMap.key;
+          if (key != null) {
+            if (keyField != null) {
+              throw new Error('Cannot use @merge directive with both `keyField` and `key` arguments.');
+            }
+
+            key.forEach(keyDef => {
+              let [aliasOrKeyPath, keyPath] = keyDef.split(':');
+              let aliasPath: string;
+              if (keyPath == null) {
+                keyPath = aliasPath = aliasOrKeyPath;
+              } else {
+                aliasPath = aliasOrKeyPath;
+              }
+
+              if (keyPath != null && !keyPath.match(dottedNameRegEx)) {
+                throw new Error(
+                  'Each partial key within the `key` argument for @merge directive must be a set of valid GraphQL SDL names separated by periods.'
+                );
+                // TODO: ideally we should check that it is part of the key
+              }
+              if (aliasPath != null && !aliasOrKeyPath.match(dottedNameRegEx)) {
+                throw new Error(
+                  'Each alias within the `key` argument for @merge directive must be a set of valid GraphQL SDL names separated by periods.'
+                );
+                // TODO: ideally we should check that the arg exists within the resolver
+              }
+            });
+          }
+
           const additionalArgs = directiveArgumentMap.additionalArgs;
           if (additionalArgs != null) {
             parseValue(`{ ${additionalArgs} }`, { noLocation: true });
