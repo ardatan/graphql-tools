@@ -15,17 +15,10 @@ import { Subschema, SubschemaConfig } from '@graphql-tools/delegate';
 import { GraphQLParseOptions, ITypeDefinitions, rewireTypes, TypeMap } from '@graphql-tools/utils';
 import { buildDocumentFromTypeDefinitions } from '@graphql-tools/schema';
 
-import {
-  extractTypeDefinitions,
-  extractTypeExtensionDefinitions,
-  extractDirectiveDefinitions,
-  extractSchemaDefinition,
-  extractSchemaExtensions,
-} from './definitions';
-
 import typeFromAST from './typeFromAST';
 import { MergeTypeCandidate, MergeTypeFilter, OnTypeConflict, StitchingInfo, TypeMergingOptions } from './types';
 import { mergeCandidates } from './mergeCandidates';
+import { extractDefinitions } from './definitions';
 
 type CandidateSelector = (candidates: Array<MergeTypeCandidate>) => MergeTypeCandidate;
 
@@ -61,10 +54,12 @@ export function buildTypeCandidates({
   let schemaExtensions: Array<SchemaExtensionNode> = [];
 
   let document: DocumentNode;
+  let extraction: ReturnType<typeof extractDefinitions>;
   if ((typeDefs && !Array.isArray(typeDefs)) || (Array.isArray(typeDefs) && typeDefs.length)) {
     document = buildDocumentFromTypeDefinitions(typeDefs, parseOptions);
-    schemaDef = extractSchemaDefinition(document);
-    schemaExtensions = schemaExtensions.concat(extractSchemaExtensions(document));
+    extraction = extractDefinitions(document);
+    schemaDef = extraction.schemaDefs[0];
+    schemaExtensions = schemaExtensions.concat(extraction.schemaExtensions);
   }
 
   schemaDefs.schemaDef = schemaDef;
@@ -117,23 +112,23 @@ export function buildTypeCandidates({
   });
 
   if (document !== undefined) {
-    const typesDocument = extractTypeDefinitions(document);
-    typesDocument.definitions.forEach(def => {
+    extraction.typeDefinitions.forEach(def => {
       const type = typeFromAST(def) as GraphQLNamedType;
       if (type != null) {
         addTypeCandidate(typeCandidates, type.name, { type });
       }
     });
 
-    const directivesDocument = extractDirectiveDefinitions(document);
-    directivesDocument.definitions.forEach(def => {
+    extraction.directiveDefs.forEach(def => {
       const directive = typeFromAST(def) as GraphQLDirective;
       directiveMap[directive.name] = directive;
     });
 
-    const extensionsDocument = extractTypeExtensionDefinitions(document);
-    if (extensionsDocument.definitions.length > 0) {
-      extensions.push(extensionsDocument);
+    if (extraction.extensionDefs.length > 0) {
+      extensions.push({
+        ...document,
+        definitions: extraction.extensionDefs,
+      });
     }
   }
 
