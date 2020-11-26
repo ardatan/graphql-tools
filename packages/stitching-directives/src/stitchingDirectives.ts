@@ -11,7 +11,7 @@ import { stitchingDirectivesTransformer } from './stitchingDirectivesTransformer
 export function stitchingDirectives(
   options: StitchingDirectivesOptions = {}
 ): {
-  baseDirectiveTypeDefs: string;
+  keyDirectiveTypeDefs: string;
   computedDirectiveTypeDefs: string;
   mergeDirectiveTypeDefs: string;
   stitchingDirectivesTypeDefs: string;
@@ -23,18 +23,18 @@ export function stitchingDirectives(
     ...options,
   };
 
-  const { baseDirectiveName, computedDirectiveName, mergeDirectiveName } = finalOptions;
+  const { keyDirectiveName, computedDirectiveName, mergeDirectiveName } = finalOptions;
 
-  const baseDirectiveTypeDefs = `directive @${baseDirectiveName}(selectionSet: String!) on OBJECT`;
+  const keyDirectiveTypeDefs = `directive @${keyDirectiveName}(selectionSet: String!) on OBJECT`;
   const computedDirectiveTypeDefs = `directive @${computedDirectiveName}(selectionSet: String!) on FIELD_DEFINITION`;
   const mergeDirectiveTypeDefs = `directive @${mergeDirectiveName}(argsExpr: String, keyArg: String, keyField: String, key: [String!], additionalArgs: String) on FIELD_DEFINITION`;
 
   return {
-    baseDirectiveTypeDefs,
+    keyDirectiveTypeDefs,
     computedDirectiveTypeDefs,
     mergeDirectiveTypeDefs,
     stitchingDirectivesTypeDefs: `
-      ${baseDirectiveTypeDefs}
+      ${keyDirectiveTypeDefs}
       ${computedDirectiveTypeDefs}
       ${mergeDirectiveTypeDefs}
     `,

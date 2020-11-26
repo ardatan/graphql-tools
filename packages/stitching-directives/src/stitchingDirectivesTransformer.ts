@@ -31,7 +31,7 @@ import { stitchingDirectivesValidator } from './stitchingDirectivesValidator';
 export function stitchingDirectivesTransformer(
   options: StitchingDirectivesOptions = {}
 ): (subschemaConfig: SubschemaConfig) => SubschemaConfig {
-  const { baseDirectiveName, computedDirectiveName, mergeDirectiveName } = {
+  const { keyDirectiveName, computedDirectiveName, mergeDirectiveName } = {
     ...defaultStitchingDirectiveOptions,
     ...options,
   };
@@ -52,8 +52,8 @@ export function stitchingDirectivesTransformer(
       [MapperKind.OBJECT_TYPE]: type => {
         const directives = getDirectives(schema, type);
 
-        if (directives[baseDirectiveName]) {
-          const directiveArgumentMap = directives[baseDirectiveName];
+        if (directives[keyDirectiveName]) {
+          const directiveArgumentMap = directives[keyDirectiveName];
           const selectionSet = parseSelectionSet(directiveArgumentMap.selectionSet);
           selectionSetsByType[type.name] = selectionSet;
         }

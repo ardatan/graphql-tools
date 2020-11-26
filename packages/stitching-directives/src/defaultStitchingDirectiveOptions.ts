@@ -1,5 +1,5 @@
 export const defaultStitchingDirectiveOptions = {
-  baseDirectiveName: 'base',
+  keyDirectiveName: 'key',
   computedDirectiveName: 'computed',
   mergeDirectiveName: 'merge',
 };

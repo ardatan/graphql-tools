@@ -14,14 +14,14 @@ describe('type merging directives', () => {
     expect(() => makeExecutableSchema({ typeDefs, schemaTransforms: [stitchingDirectivesValidator] })).not.toThrow();
   });
 
-  test('throws an error if base selectionSet invalid', () => {
+  test('throws an error if type selectionSet invalid', () => {
     const typeDefs = `
       ${stitchingDirectivesTypeDefs}
       type Query {
         _user: User
       }
 
-      type User @base(selectionSet: "** invalid **") {
+      type User @key(selectionSet: "** invalid **") {
         id: ID
         name: String
       }
@@ -31,14 +31,14 @@ describe('type merging directives', () => {
     expect(() => makeExecutableSchema({ typeDefs, schemaTransforms: [stitchingDirectivesValidator] })).toThrow();
   });
 
-  test('does not throws an error if base selectionSet valid', () => {
+  test('does not throws an error if type selectionSet valid', () => {
     const typeDefs = `
       ${stitchingDirectivesTypeDefs}
       type Query {
         _user: User
       }
 
-      type User @base(selectionSet: "{ id }") {
+      type User @key(selectionSet: "{ id }") {
         id: ID
         name: String
       }
@@ -91,7 +91,7 @@ describe('type merging directives', () => {
         _user(key: _Key): User @merge(argsExpr: "key: $$key")
       }
 
-      type User @base(selectionSet: "{ id }") {
+      type User @key(selectionSet: "{ id }") {
         id: ID
         name: String
       }
@@ -110,7 +110,7 @@ describe('type merging directives', () => {
         _user(key: _Key): User @merge(argsExpr: "key: $key")
       }
 
-      type User @base(selectionSet: "{ id }") {
+      type User @key(selectionSet: "{ id }") {
         id: ID
         name: String
       }
@@ -129,7 +129,7 @@ describe('type merging directives', () => {
         _user(key: _Key): User @merge
       }
 
-      type User @base(selectionSet: "{ id }") {
+      type User @key(selectionSet: "{ id }") {
         id: ID
         name: String
       }

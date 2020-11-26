@@ -22,7 +22,7 @@ export interface Expansion {
 export type VariablePaths = Record<string, Array<string | number>>;
 
 export interface StitchingDirectivesOptions {
-  baseDirectiveName?: string;
+  keyDirectiveName?: string;
   computedDirectiveName?: string;
   mergeDirectiveName?: string;
 }

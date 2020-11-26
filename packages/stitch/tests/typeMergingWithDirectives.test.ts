@@ -46,7 +46,7 @@ describe('merging using type merging', () => {
         me: User
         _users(keys: [_Key!]!): [User] @merge
       }
-      type User @base(selectionSet: "{ id }") {
+      type User @key(selectionSet: "{ id }") {
         id: ID!
         name: String
         username: String
@@ -73,7 +73,7 @@ describe('merging using type merging', () => {
     // 1. the key for that type will be sent to the resolvers first argument.
     // 2. an array of keys will sent if the resolver returns a list.
     //
-    // In this example, the key is constructed by using @base and @computed selection sets.
+    // In this example, the key is constructed by using @key and @computed selection sets.
     // The @computed directive for a given field instructs the gateway to only add the required
     // additional selections when the tagged field is included within a query. In addition,
     // the @computed directive will defer resolution of these fields even when queries originate
@@ -99,7 +99,7 @@ describe('merging using type merging', () => {
         price: Int
         weight: Int
       }
-      type Product @base(selectionSet: "{ upc }") {
+      type Product @key(selectionSet: "{ upc }") {
         upc: String!
         inStock: Boolean
         shippingEstimate: Int @computed(selectionSet: "{ price weight }")
@@ -172,9 +172,10 @@ describe('merging using type merging', () => {
       type Query {
         topProducts(first: Int = 2): [Product]
         _productsByUpc(upcs: [String!]!): [Product] @merge(keyField: "upc")
-        # EQUIVALENT TO: _productsByUpc(upcs: [String!]!): [Product] @merge(argsExpr: "upcs: [[$key.upc]]")
+        # EQUIVALENT TO:
+        # _productsByUpc(upcs: [String!]!): [Product] @merge(argsExpr: "upcs: [[$key.upc]]")
       }
-      type Product @base(selectionSet: "{ upc }") {
+      type Product @key(selectionSet: "{ upc }") {
         upc: String!
         name: String
         price: Int
@@ -246,7 +247,7 @@ describe('merging using type merging', () => {
       input UserKey {
         id: ID!
       }
-      type User @base(selectionSet: "{ id }") {
+      type User @key(selectionSet: "{ id }") {
         id: ID!
         username: String
         numberOfReviews: Int
@@ -258,7 +259,7 @@ describe('merging using type merging', () => {
       input ProductInput {
         keys: [ProductKey!]!
       }
-      type Product @base(selectionSet: "{ upc }") {
+      type Product @key(selectionSet: "{ upc }") {
         upc: String!
         reviews: [Review]
       }
@@ -266,7 +267,8 @@ describe('merging using type merging', () => {
         _reviews(id: ID!): Review
         _users(keys: [UserKey!]!): [User] @merge
         _products(input: ProductInput): [Product]! @merge(keyField: "input.keys")
-        # EQUIVALENT TO: _products(input: ProductInput): [Product]! @merge(argsExpr: "input: { keys: [[$key]] }")
+        # EQUIVALENT TO:
+        # _products(input: ProductInput): [Product]! @merge(argsExpr: "input: { keys: [[$key]] }")
       }
     `,
     resolvers: {

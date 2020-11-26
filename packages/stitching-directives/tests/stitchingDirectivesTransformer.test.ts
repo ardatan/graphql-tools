@@ -8,7 +8,7 @@ import { stitchingDirectives } from '../src';
 describe('type merging directives', () => {
   const { stitchingDirectivesTypeDefs, stitchingDirectivesTransformer } = stitchingDirectives();
 
-  test('adds base selection sets', () => {
+  test('adds type selection sets', () => {
     const typeDefs = `
       ${stitchingDirectivesTypeDefs}
       scalar _Key
@@ -17,7 +17,7 @@ describe('type merging directives', () => {
         _user(key: _Key): User @merge
       }
 
-      type User @base(selectionSet: "{ id }") {
+      type User @key(selectionSet: "{ id }") {
         id: ID
         name: String
       }
@@ -71,7 +71,7 @@ describe('type merging directives', () => {
         _user(key: _Key): User @merge
       }
 
-      type User @base(selectionSet: "{ id }") {
+      type User @key(selectionSet: "{ id }") {
         id: ID
         name: String
       }
@@ -110,7 +110,7 @@ describe('type merging directives', () => {
         _user(key: _Key): User @merge(argsExpr: "key: $key")
       }
 
-      type User @base(selectionSet: "{ id }") {
+      type User @key(selectionSet: "{ id }") {
         id: ID
         name: String
       }
@@ -149,7 +149,7 @@ describe('type merging directives', () => {
         _user(key: _Key): User @merge(argsExpr: "key: { id: $key.id }")
       }
 
-      type User @base(selectionSet: "{ id }") {
+      type User @key(selectionSet: "{ id }") {
         id: ID
         name: String
       }
@@ -188,7 +188,7 @@ describe('type merging directives', () => {
         _user(key: _Key): User @merge(keyArg: "key")
       }
 
-      type User @base(selectionSet: "{ id }") {
+      type User @key(selectionSet: "{ id }") {
         id: ID
         name: String
       }
@@ -231,7 +231,7 @@ describe('type merging directives', () => {
         _user(input: UserInput, scope: String): User @merge(keyArg: "input.key", additionalArgs: """ scope: "full" """)
       }
 
-      type User @base(selectionSet: "{ id }") {
+      type User @key(selectionSet: "{ id }") {
         id: ID
         name: String
       }
@@ -273,7 +273,7 @@ describe('type merging directives', () => {
         _user(key: _Key, scope: String): User @merge(keyArg: "key", additionalArgs: """ scope: "full" """)
       }
 
-      type User @base(selectionSet: "{ id }") {
+      type User @key(selectionSet: "{ id }") {
         id: ID
         name: String
       }
@@ -311,7 +311,7 @@ describe('type merging directives', () => {
         _user(id: ID): User @merge(keyField: "id")
       }
 
-      type User @base(selectionSet: "{ id }") {
+      type User @key(selectionSet: "{ id }") {
         id: ID
         name: String
       }
@@ -348,7 +348,7 @@ describe('type merging directives', () => {
         _user(key: _Key): User @merge(key: ["id", "outer.inner.firstName:name.firstName"])
       }
 
-      type User @base(selectionSet: "{ id name { firstName } }") {
+      type User @key(selectionSet: "{ id name { firstName } }") {
         id: ID
         email: String
       }
@@ -394,7 +394,7 @@ describe('type merging directives', () => {
         _user(key: _Key): [User] @merge
       }
 
-      type User @base(selectionSet: "{ id }") {
+      type User @key(selectionSet: "{ id }") {
         id: ID
         name: String
       }
@@ -438,7 +438,7 @@ describe('type merging directives', () => {
         _user(key: _Key): [User] @merge(argsExpr: "key: [[$key]]")
       }
 
-      type User @base(selectionSet: "{ id }") {
+      type User @key(selectionSet: "{ id }") {
         id: ID
         name: String
       }
@@ -482,7 +482,7 @@ describe('type merging directives', () => {
         _user(key: _Key): [User] @merge(argsExpr: "key: [[{ id: $key.id }]]")
       }
 
-      type User @base(selectionSet: "{ id }") {
+      type User @key(selectionSet: "{ id }") {
         id: ID
         name: String
       }
