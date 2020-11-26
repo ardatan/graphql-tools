@@ -20,7 +20,7 @@ export type FetchFn = AsyncFetchFn | SyncFetchFn;
 
 type Headers = Record<string, string> | Array<Record<string, string>>;
 
-type BuildExecutorOptions<TFetchFn> = {
+type BuildExecutorOptions<TFetchFn = FetchFn> = {
   pointer: string;
   fetch: TFetchFn;
   extraHeaders: any;
@@ -87,19 +87,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
 
   buildExecutor(options: BuildExecutorOptions<SyncFetchFn>): SyncExecutor;
   buildExecutor(options: BuildExecutorOptions<AsyncFetchFn>): AsyncExecutor;
-  buildExecutor({
-    pointer,
-    fetch,
-    extraHeaders,
-    defaultMethod,
-    useGETForQueries,
-  }: {
-    pointer: string;
-    fetch: FetchFn;
-    extraHeaders: any;
-    defaultMethod: 'GET' | 'POST';
-    useGETForQueries: boolean;
-  }): Executor {
+  buildExecutor({ pointer, fetch, extraHeaders, defaultMethod, useGETForQueries }: BuildExecutorOptions): Executor {
     const HTTP_URL = switchProtocols(pointer, {
       wss: 'https',
       ws: 'http',
