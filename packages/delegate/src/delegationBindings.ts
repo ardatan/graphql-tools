@@ -16,9 +16,9 @@ export function defaultDelegationBinding(delegationContext: DelegationContext): 
 
   if (stitchingInfo != null) {
     delegationTransforms = delegationTransforms.concat([
+      new ExpandAbstractTypes(),
       new AddSelectionSets({}, stitchingInfo.selectionSetsByField, stitchingInfo.dynamicSelectionSetsByField),
       new WrapConcreteTypes(),
-      new ExpandAbstractTypes(),
     ]);
   } else if (info != null) {
     delegationTransforms = delegationTransforms.concat([new WrapConcreteTypes(), new ExpandAbstractTypes()]);
