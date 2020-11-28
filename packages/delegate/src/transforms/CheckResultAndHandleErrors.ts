@@ -66,10 +66,10 @@ export function mergeDataAndErrors(
 
     if (errors.length === 1) {
       const error = errors[0];
-      const errorPath = Array.isArray(error.path) ? error.path.slice() : undefined;
+      let errorPath = error.path;
 
       if (errorPath != null && isListType(returnType)) {
-        errorPath.pop();
+        errorPath = errorPath.slice(0, -1);
       }
 
       const newPath = path === undefined ? errorPath : errorPath === undefined ? path : path.concat(errorPath.slice(1));
