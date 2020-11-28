@@ -63,8 +63,13 @@ export function mergeDataAndErrors(
 
     if (errors.length === 1) {
       const error = errors[0];
-      const newPath =
-        path === undefined ? error.path : error.path === undefined ? path : path.concat(error.path.slice(1));
+      const errorPath = error.path.slice();
+
+      if (errorPath != null && typeof errorPath[errorPath.length - 1] === 'number') {
+        errorPath.pop();
+      }
+
+      const newPath = path === undefined ? errorPath : errorPath === undefined ? path : path.concat(errorPath.slice(1));
       return { data: relocatedError(errors[0], newPath), unpathedErrors: [] };
     }
 
