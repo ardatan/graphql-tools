@@ -3,6 +3,7 @@ import {
   GraphQLOutputType,
   GraphQLSchema,
   GraphQLError,
+  isListType,
   responsePathAsArray,
   locatedError,
 } from 'graphql';
@@ -44,7 +45,8 @@ export function checkResultAndHandleErrors(
   const { data, unpathedErrors } = mergeDataAndErrors(
     result.data == null ? undefined : result.data[responseKey],
     result.errors == null ? [] : result.errors,
-    info ? responsePathAsArray(info.path) : undefined
+    info ? responsePathAsArray(info.path) : undefined,
+    returnType
   );
 
   return resolveExternalValue(data, unpathedErrors, subschema, context, info, returnType, skipTypeMerging);
@@ -54,6 +56,7 @@ export function mergeDataAndErrors(
   data: any,
   errors: ReadonlyArray<GraphQLError>,
   path: Array<string | number>,
+  returnType: GraphQLOutputType,
   index = 1
 ): { data: any; unpathedErrors: Array<GraphQLError> } {
   if (data == null) {
@@ -63,9 +66,9 @@ export function mergeDataAndErrors(
 
     if (errors.length === 1) {
       const error = errors[0];
-      const errorPath = error.path.slice();
+      const errorPath = Array.isArray(error.path) ? error.path.slice() : undefined;
 
-      if (errorPath != null && typeof errorPath[errorPath.length - 1] === 'number') {
+      if (errorPath != null && isListType(returnType)) {
         errorPath.pop();
       }
 
@@ -103,6 +106,7 @@ export function mergeDataAndErrors(
         data[pathSegment],
         errorMap[pathSegment],
         path,
+        returnType,
         index + 1
       );
       data[pathSegment] = newData;
