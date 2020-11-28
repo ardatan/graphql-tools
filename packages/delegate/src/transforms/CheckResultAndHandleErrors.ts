@@ -68,7 +68,7 @@ export function mergeDataAndErrors(
       const error = errors[0];
       let errorPath = error.path;
 
-      if (errorPath != null && isListType(returnType)) {
+      if (errorPath != null && isListType(returnType) && Number.isInteger(errorPath[errorPath.length - 1])) {
         errorPath = errorPath.slice(0, -1);
       }
 
