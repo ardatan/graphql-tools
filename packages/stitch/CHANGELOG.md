@@ -1,5 +1,16 @@
 # @graphql-tools/stitch
 
+## 7.1.1
+
+### Patch Changes
+
+- 878c36b6: enhance(stitch): use mergeScalar from merge
+- 9c6a4409: enhance(stitch): avoid multiple iterations
+- Updated dependencies [878c36b6]
+- Updated dependencies [d40c0a84]
+  - @graphql-tools/merge@6.2.6
+  - @graphql-tools/delegate@7.0.6
+
 ## 7.1.0
 
 ### Minor Changes

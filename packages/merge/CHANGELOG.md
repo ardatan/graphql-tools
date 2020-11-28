@@ -1,5 +1,11 @@
 # @graphql-tools/merge
 
+## 6.2.6
+
+### Patch Changes
+
+- 878c36b6: enhance(stitch): use mergeScalar from merge
+
 ## 6.2.5
 
 ### Patch Changes

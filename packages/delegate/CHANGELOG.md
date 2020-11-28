@@ -1,5 +1,11 @@
 # @graphql-tools/delegate
 
+## 7.0.6
+
+### Patch Changes
+
+- d40c0a84: fix(delegate): add selectionSets prior to expanding abstract types
+
 ## 7.0.5
 
 ### Patch Changes
