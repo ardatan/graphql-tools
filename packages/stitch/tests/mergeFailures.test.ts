@@ -85,6 +85,64 @@ describe('merge failures', () => {
     expect(result).toEqual(expectedResult);
   });
 
+  test('proxies merged error arrays', async () => {
+    const schema1 = makeExecutableSchema({
+      typeDefs: `
+        type Thing {
+          id: ID!
+          name: String
+          desc: String
+        }
+        type Query {
+          things(ids: [ID!]!): [Thing]!
+        }
+      `,
+      resolvers: {
+        Query: {
+          things: () => [new Error('no thing')],
+        },
+      },
+    });
+
+    const schema2 = makeExecutableSchema({
+      typeDefs: `
+        type ParentThing {
+          thing: Thing
+        }
+        type Thing {
+          id: ID!
+        }
+        type Query {
+          parent: ParentThing
+        }
+      `,
+      resolvers: {
+        Query: {
+          parent: () => ({ thing: { id: 23 } }),
+        },
+      },
+    });
+
+    const stitchedSchema = stitchSchemas({
+      subschemas: [{
+        schema: schema1,
+        merge: {
+          Thing: {
+            selectionSet: '{ id }',
+            fieldName: 'things',
+            key: ({ id }) => id,
+            argsFromKeys: (ids) => ({ ids }),
+          },
+        }
+      }, {
+        schema: schema2,
+      }],
+    });
+
+    const stitchedResult = await graphql(stitchedSchema, '{ parent { thing { name desc id } } }');
+    expect(stitchedResult.errors[0].path).toEqual(['parent', 'thing', 'name']);
+  });
+
   it('proxies inappropriate null', async () => {
     const secondSchema = makeExecutableSchema({
       typeDefs: `

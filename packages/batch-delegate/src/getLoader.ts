@@ -3,6 +3,7 @@ import { getNamedType, GraphQLOutputType, GraphQLList, GraphQLSchema } from 'gra
 import DataLoader from 'dataloader';
 
 import { delegateToSchema, SubschemaConfig } from '@graphql-tools/delegate';
+import { relocatedError } from '@graphql-tools/utils';
 
 import { BatchDelegateOptions, DataLoaderCache } from './types';
 
@@ -15,9 +16,15 @@ function createBatchFn<K = any>(options: BatchDelegateOptions) {
   return async (keys: ReadonlyArray<K>) => {
     const results = await delegateToSchema({
       returnType: new GraphQLList(getNamedType(options.info.returnType) as GraphQLOutputType),
+      onLocatedError: originalError =>
+        relocatedError(originalError, originalError.path.slice(0, 0).concat(originalError.path.slice(2))),
       args: argsFromKeys(keys),
       ...(lazyOptionsFn == null ? options : lazyOptionsFn(options)),
     });
+
+    if (results instanceof Error) {
+      return keys.map(() => results);
+    }
 
     const values = valuesFromResults == null ? results : valuesFromResults(results, keys);
 
