@@ -9,17 +9,31 @@ import { ObjectValueTransformerMap, ErrorsTransformer } from '../types';
 import TransformCompositeFields from './TransformCompositeFields';
 
 export default class MapFields implements Transform {
-  private readonly transformer: TransformCompositeFields;
+  private fieldNodeTransformerMap: FieldNodeMappers;
+  private objectValueTransformerMap?: ObjectValueTransformerMap;
+  private errorsTransformer?: ErrorsTransformer;
+  private transformer: TransformCompositeFields;
 
   constructor(
     fieldNodeTransformerMap: FieldNodeMappers,
     objectValueTransformerMap?: ObjectValueTransformerMap,
     errorsTransformer?: ErrorsTransformer
   ) {
+    this.fieldNodeTransformerMap = fieldNodeTransformerMap;
+    this.objectValueTransformerMap = objectValueTransformerMap;
+    this.errorsTransformer = errorsTransformer;
+  }
+
+  public transformSchema(
+    originalWrappingSchema: GraphQLSchema,
+    subschemaConfig: SubschemaConfig,
+    transformedSchema?: GraphQLSchema
+  ): GraphQLSchema {
+    const subscriptionTypeName = originalWrappingSchema.getSubscriptionType()?.name;
     this.transformer = new TransformCompositeFields(
       () => undefined,
       (typeName, fieldName, fieldNode, fragments, transformationContext) => {
-        const typeTransformers = fieldNodeTransformerMap[typeName];
+        const typeTransformers = this.fieldNodeTransformerMap[typeName];
         if (typeTransformers == null) {
           return undefined;
         }
@@ -31,18 +45,22 @@ export default class MapFields implements Transform {
 
         return fieldNodeTransformer(fieldNode, fragments, transformationContext);
       },
-      objectValueTransformerMap != null
+      this.objectValueTransformerMap != null
         ? (data, transformationContext) => {
             if (data == null) {
               return data;
             }
 
-            const typeName = data.__typename;
+            let typeName = data.__typename;
             if (typeName == null) {
-              return data;
+              // see https://github.com/ardatan/graphql-tools/issues/2282
+              typeName = subscriptionTypeName;
+              if (typeName == null) {
+                return data;
+              }
             }
 
-            const transformer = objectValueTransformerMap[typeName];
+            const transformer = this.objectValueTransformerMap[typeName];
             if (transformer == null) {
               return data;
             }
@@ -50,15 +68,8 @@ export default class MapFields implements Transform {
             return transformer(data, transformationContext);
           }
         : undefined,
-      errorsTransformer != null ? errorsTransformer : undefined
+      this.errorsTransformer != null ? this.errorsTransformer : undefined
     );
-  }
-
-  public transformSchema(
-    originalWrappingSchema: GraphQLSchema,
-    subschemaConfig: SubschemaConfig,
-    transformedSchema?: GraphQLSchema
-  ): GraphQLSchema {
     return this.transformer.transformSchema(originalWrappingSchema, subschemaConfig, transformedSchema);
   }
 
