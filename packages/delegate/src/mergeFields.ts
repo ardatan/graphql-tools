@@ -234,14 +234,14 @@ const subschemaTypesContainSelectionSet = memoize3(function (
   if (Array.isArray(sourceSubschemaOrSourceSubschemas)) {
     return typesContainSelectionSet(
       sourceSubschemaOrSourceSubschemas.map(
-        sourceSubschema => sourceSubschema.schema.getType(mergedTypeInfo.typeName) as GraphQLObjectType
+        sourceSubschema => sourceSubschema.transformedSchema.getType(mergedTypeInfo.typeName) as GraphQLObjectType
       ),
       selectionSet
     );
   }
 
   return typesContainSelectionSet(
-    [sourceSubschemaOrSourceSubschemas.schema.getType(mergedTypeInfo.typeName) as GraphQLObjectType],
+    [sourceSubschemaOrSourceSubschemas.transformedSchema.getType(mergedTypeInfo.typeName) as GraphQLObjectType],
     selectionSet
   );
 });
