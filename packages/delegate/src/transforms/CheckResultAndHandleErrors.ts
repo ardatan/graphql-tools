@@ -27,7 +27,8 @@ export default class CheckResultAndHandleErrors implements Transform {
       delegationContext.fieldName,
       delegationContext.subschema,
       delegationContext.returnType,
-      delegationContext.skipTypeMerging
+      delegationContext.skipTypeMerging,
+      delegationContext.onLocatedError
     );
   }
 }
@@ -39,12 +40,14 @@ export function checkResultAndHandleErrors(
   responseKey: string = getResponseKeyFromInfo(info),
   subschema?: GraphQLSchema | SubschemaConfig,
   returnType: GraphQLOutputType = info.returnType,
-  skipTypeMerging?: boolean
+  skipTypeMerging?: boolean,
+  onLocatedError?: (originalError: GraphQLError) => GraphQLError
 ): any {
   const { data, unpathedErrors } = mergeDataAndErrors(
     result.data == null ? undefined : result.data[responseKey],
     result.errors == null ? [] : result.errors,
-    info ? responsePathAsArray(info.path) : undefined
+    info ? responsePathAsArray(info.path) : undefined,
+    onLocatedError
   );
 
   return resolveExternalValue(data, unpathedErrors, subschema, context, info, returnType, skipTypeMerging);
@@ -54,6 +57,7 @@ export function mergeDataAndErrors(
   data: any,
   errors: ReadonlyArray<GraphQLError>,
   path: Array<string | number>,
+  onLocatedError: (originalError: GraphQLError) => GraphQLError,
   index = 1
 ): { data: any; unpathedErrors: Array<GraphQLError> } {
   if (data == null) {
@@ -62,13 +66,16 @@ export function mergeDataAndErrors(
     }
 
     if (errors.length === 1) {
-      const error = errors[0];
+      const error = onLocatedError ? onLocatedError(errors[0]) : errors[0];
       const newPath =
         path === undefined ? error.path : error.path === undefined ? path : path.concat(error.path.slice(1));
+
       return { data: relocatedError(errors[0], newPath), unpathedErrors: [] };
     }
 
-    return { data: locatedError(new AggregateError(errors), undefined, path), unpathedErrors: [] };
+    const newError = locatedError(new AggregateError(errors), undefined, path);
+
+    return { data: newError, unpathedErrors: [] };
   }
 
   if (!errors.length) {
@@ -98,6 +105,7 @@ export function mergeDataAndErrors(
         data[pathSegment],
         errorMap[pathSegment],
         path,
+        onLocatedError,
         index + 1
       );
       data[pathSegment] = newData;

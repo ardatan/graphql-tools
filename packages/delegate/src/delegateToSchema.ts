@@ -92,6 +92,7 @@ export function delegateRequest({
   fieldName,
   args,
   returnType,
+  onLocatedError,
   context,
   transforms = [],
   transformedSchema,
@@ -134,6 +135,7 @@ export function delegateRequest({
     info,
     returnType:
       returnType ?? info?.returnType ?? getDelegationReturnType(targetSchema, targetOperation, targetFieldName),
+    onLocatedError,
     transforms: allTransforms,
     transformedSchema: transformedSchema ?? (subschemaConfig as Subschema)?.transformedSchema ?? targetSchema,
     skipTypeMerging,

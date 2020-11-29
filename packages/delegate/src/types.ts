@@ -51,6 +51,7 @@ export interface DelegationContext {
   context: Record<string, any>;
   info: GraphQLResolveInfo;
   returnType: GraphQLOutputType;
+  onLocatedError?: (originalError: GraphQLError) => GraphQLError;
   transforms: Array<Transform>;
   transformedSchema: GraphQLSchema;
   skipTypeMerging: boolean;
@@ -64,6 +65,7 @@ export interface IDelegateToSchemaOptions<TContext = Record<string, any>, TArgs 
   operation?: OperationTypeNode;
   fieldName?: string;
   returnType?: GraphQLOutputType;
+  onLocatedError?: (originalError: GraphQLError) => GraphQLError;
   args?: TArgs;
   selectionSet?: SelectionSetNode;
   fieldNodes?: ReadonlyArray<FieldNode>;
