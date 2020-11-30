@@ -62,6 +62,19 @@ describe('documentsFromGlob', () => {
       expect(Object.keys(operations)).toHaveLength(1);
     });
 
+    test(`Should throw on syntax errors`, async () => {
+      try {
+        const glob = join(__dirname, './test-files/', 'syntax-invalid.query.graphql');
+        await load(glob, {
+          loaders: [new GraphQLFileLoader()]
+        });
+        expect(true).toBeFalsy();
+      } catch (e) {
+        expect(e).toBeDefined();
+        expect(e.message).toContain("Syntax Error");
+      }
+    });
+
     test(`Should throw on empty files and empty result`, async () => {
       try {
         const glob = join(__dirname, './test-files/', '*.empty.graphql');
