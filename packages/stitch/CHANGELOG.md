@@ -1,5 +1,11 @@
 # @graphql-tools/stitch
 
+## 7.1.2
+
+### Patch Changes
+
+- 8db8f8dd: fix(typeMerging): support transformed type names when merging types
+
 ## 7.1.1
 
 ### Patch Changes
