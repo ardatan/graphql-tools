@@ -1,5 +1,14 @@
 # @graphql-tools/batch-delegate
 
+## 7.0.1
+
+### Patch Changes
+
+- 29ead57c: fix(batch-delegate): proxy batched errors
+- Updated dependencies [1b730f80]
+- Updated dependencies [29ead57c]
+  - @graphql-tools/delegate@7.0.7
+
 ## 7.0.0
 
 ### Major Changes

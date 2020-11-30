@@ -1,5 +1,12 @@
 # @graphql-tools/delegate
 
+## 7.0.7
+
+### Patch Changes
+
+- 1b730f80: fix(typeMerging): enable subschemas to use keys that have been renamed via transforms
+- 29ead57c: fix(batch-delegate): proxy batched errors
+
 ## 7.0.6
 
 ### Patch Changes
