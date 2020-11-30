@@ -25,7 +25,10 @@ export function transformInputValue(type: GraphQLInputType, value: any, transfor
     const fields = nullableType.getFields();
     const newValue = {};
     Object.keys(value).forEach(key => {
-      newValue[key] = transformInputValue(fields[key].type, value[key], transformer);
+      const field = fields[key];
+      if (field != null) {
+        newValue[key] = transformInputValue(field.type, value[key], transformer);
+      }
     });
     return newValue;
   }

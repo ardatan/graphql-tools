@@ -59,14 +59,15 @@ function filterBaseSubschema(
   subschemaConfig: SubschemaConfig,
   isolatedSchemaTypes: Record<string, MergedTypeConfig>
 ): SubschemaConfig {
+  const schema = subschemaConfig.schema;
   const typesForInterface: Record<string, string[]> = {};
   const filteredSchema = pruneSchema(
     filterSchema({
-      schema: subschemaConfig.schema,
+      schema,
       objectFieldFilter: (typeName, fieldName) => !isolatedSchemaTypes[typeName]?.fields[fieldName],
       interfaceFieldFilter: (typeName, fieldName) => {
         if (!typesForInterface[typeName]) {
-          typesForInterface[typeName] = getImplementingTypes(typeName, subschemaConfig.schema);
+          typesForInterface[typeName] = getImplementingTypes(typeName, schema);
         }
         return !typesForInterface[typeName].some(
           implementingTypeName => isolatedSchemaTypes[implementingTypeName]?.fields[fieldName]

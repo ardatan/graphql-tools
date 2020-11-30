@@ -8,7 +8,7 @@ import { delegateToSchema } from '@graphql-tools/delegate';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
 
-import { RenameTypes } from "@graphql-tools/wrap";
+import { RenameTypes } from '@graphql-tools/wrap';
 
 import { stitchSchemas } from '../src/stitchSchemas';
 
