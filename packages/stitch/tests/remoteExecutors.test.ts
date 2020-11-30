@@ -1,4 +1,4 @@
-import { graphql } from 'graphql';
+import { graphql, parse, subscribe } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { Executor, Subscriber } from '@graphql-tools/delegate';
 import { stitchSchemas } from '../src/stitchSchemas';
@@ -90,7 +90,11 @@ describe('remote executors and subscribers', () => {
       }]
     });
 
-    await graphql(stitchedSchema, `subscription { newPost { message } }`);
+    try {
+      await subscribe(stitchedSchema, parse(`subscription { newPost { message } }`));
+    } catch (error) {
+      console.log(error);
+    }
     expect(calls).toEqual(1);
   });
 });
