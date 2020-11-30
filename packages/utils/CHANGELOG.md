@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 7.1.2
+
+### Patch Changes
+
+- 21da6904: fix release
+
 ## 7.1.1
 
 ### Patch Changes

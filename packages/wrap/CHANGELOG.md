@@ -1,5 +1,14 @@
 # @graphql-tools/wrap
 
+## 7.0.3
+
+### Patch Changes
+
+- 21da6904: fix release
+- Updated dependencies [21da6904]
+  - @graphql-tools/schema@7.1.2
+  - @graphql-tools/utils@7.1.2
+
 ## 7.0.2
 
 ### Patch Changes
