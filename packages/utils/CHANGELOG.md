@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 7.1.1
+
+### Patch Changes
+
+- b48a91b1: add ability to specify merge config within subschemas using directives
+
 ## 7.1.0
 
 ### Minor Changes
