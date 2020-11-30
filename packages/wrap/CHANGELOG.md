@@ -1,5 +1,20 @@
 # @graphql-tools/wrap
 
+## 7.0.2
+
+### Patch Changes
+
+- 9f60cad6: fix(transforms): don't add \_\_typename to subscriptions
+
+  see:
+  https://github.com/ardatan/graphql-tools/issues/2282
+  https://github.com/graphql/graphql-js/pull/2861
+  https://github.com/graphql/graphql-spec/pull/776
+
+- Updated dependencies [1b730f80]
+- Updated dependencies [29ead57c]
+  - @graphql-tools/delegate@7.0.7
+
 ## 7.0.1
 
 ### Patch Changes

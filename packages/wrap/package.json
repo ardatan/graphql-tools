@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/wrap",
-  "version": "7.0.1",
+  "version": "7.0.2",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": "git@github.com:ardatan/graphql-tools.git",
   "license": "MIT",
@@ -18,7 +18,7 @@
     "input": "./src/index.ts"
   },
   "dependencies": {
-    "@graphql-tools/delegate": "^7.0.0",
+    "@graphql-tools/delegate": "^7.0.7",
     "@graphql-tools/schema": "^7.0.0",
     "@graphql-tools/utils": "^7.0.0",
     "is-promise": "4.0.0",
