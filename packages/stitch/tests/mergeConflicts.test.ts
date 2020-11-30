@@ -68,7 +68,6 @@ describe('merge conflict handlers', () => {
           }) || inputFieldConfig[inputFieldConfig.length-1];
         }
       },
-      mergeTypes: true
     });
 
     expect(gatewaySchema.getType('Listing').description).toEqual('A type');

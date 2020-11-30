@@ -275,7 +275,6 @@ describe('merging using type merging', () => {
         },
         batch: true,
       }],
-    mergeTypes: true,
   });
 
   test('can stitch from products to inventory schema including mixture of computed and non-computed fields', async () => {

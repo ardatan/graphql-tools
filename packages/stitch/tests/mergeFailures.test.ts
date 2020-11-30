@@ -44,7 +44,6 @@ describe('merge failures', () => {
         }
       },
     ],
-    mergeTypes: true
   });
 
   it('proxies merged errors', async () => {
@@ -296,7 +295,6 @@ describe('nullable merging', () => {
           }
         },
       ],
-      mergeTypes: true
     });
 
     const result = await graphql(gatewaySchema, `

@@ -87,7 +87,6 @@ describe('merge computed fields via config', () => {
         }
       }
     ],
-    mergeTypes: true,
   });
 
   it('can stitch from product service to inventory service', async () => {
@@ -200,7 +199,6 @@ describe('merge computed fields via SDL (Apollo Federation-style directive annot
         }
       },
     ],
-    mergeTypes: true,
   });
 
   it('can stitch from inventory service to product service and back to inventory service', async () => {

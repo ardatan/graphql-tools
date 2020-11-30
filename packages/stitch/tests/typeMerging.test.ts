@@ -76,7 +76,6 @@ describe('merging using type merging', () => {
           batch: true,
         },
       ],
-      mergeTypes: true,
     });
 
     const query = `
@@ -172,7 +171,6 @@ describe('merging using type merging', () => {
           batch: true,
         },
       ],
-      mergeTypes: true
     });
 
     const query = `
@@ -276,7 +274,6 @@ describe('merging using type merging', () => {
           batch: true,
         },
       ],
-      mergeTypes: true,
       typeDefs: `
         extend type Container {
           result: String!
