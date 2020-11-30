@@ -139,8 +139,9 @@ export default class TransformCompositeFields implements Transform {
 
       // See https://github.com/ardatan/graphql-tools/issues/2282
       if (
-        (this.subscriptionTypeName && parentTypeName !== this.subscriptionTypeName && this.dataTransformer != null) ||
-        this.errorsTransformer != null
+        this.subscriptionTypeName &&
+        parentTypeName !== this.subscriptionTypeName &&
+        (this.dataTransformer != null || this.errorsTransformer != null)
       ) {
         newSelections.push({
           kind: Kind.FIELD,
