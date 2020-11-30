@@ -5,6 +5,7 @@ import {
   isListType,
   isObjectType,
   isUnionType,
+  Kind,
   parseValue,
   print,
   SelectionSetNode,
@@ -27,6 +28,7 @@ import { defaultStitchingDirectiveOptions } from './defaultStitchingDirectiveOpt
 import { parseMergeArgsExpr } from './parseMergeArgsExpr';
 import { addKey, getKey, getKeys, propertyTreeFromPaths } from './properties';
 import { stitchingDirectivesValidator } from './stitchingDirectivesValidator';
+import { type } from 'os';
 
 export function stitchingDirectivesTransformer(
   options: StitchingDirectivesOptions = {}
@@ -40,7 +42,7 @@ export function stitchingDirectivesTransformer(
     const newSubschemaConfig = cloneSubschemaConfig(subschemaConfig);
 
     const selectionSetsByType: Record<string, SelectionSetNode> = Object.create(null);
-    const selectionSetsByField: Record<string, Record<string, SelectionSetNode>> = Object.create(null);
+    const computedFieldSelectionSets: Record<string, Record<string, SelectionSetNode>> = Object.create(null);
     const mergedTypesResolversInfo: Record<string, MergedTypeResolverInfo> = Object.create(null);
 
     const schema = subschemaConfig.schema;
@@ -66,15 +68,48 @@ export function stitchingDirectivesTransformer(
         if (directives[computedDirectiveName]) {
           const directiveArgumentMap = directives[computedDirectiveName];
           const selectionSet = parseSelectionSet(directiveArgumentMap.selectionSet);
-          if (!selectionSetsByField[typeName]) {
-            selectionSetsByField[typeName] = Object.create(null);
+          if (!computedFieldSelectionSets[typeName]) {
+            computedFieldSelectionSets[typeName] = Object.create(null);
           }
-          selectionSetsByField[typeName][fieldName] = selectionSet;
+          computedFieldSelectionSets[typeName][fieldName] = selectionSet;
         }
 
         return undefined;
       },
     });
+
+    if (subschemaConfig.merge) {
+      Object.entries(subschemaConfig.merge).forEach(([typeName, mergedTypeConfig]) => {
+        if (mergedTypeConfig.selectionSet) {
+          const selectionSet = parseSelectionSet(mergedTypeConfig.selectionSet);
+          if (selectionSet) {
+            if (selectionSetsByType[typeName]) {
+              selectionSetsByType[typeName] = mergeSelectionSets(selectionSetsByType[typeName], selectionSet);
+            } else {
+              selectionSetsByType[typeName] = selectionSet;
+            }
+          }
+        }
+        if (mergedTypeConfig.computedFields) {
+          Object.entries(mergedTypeConfig.computedFields).forEach(([fieldName, computedFieldConfig]) => {
+            const selectionSet = parseSelectionSet(computedFieldConfig.selectionSet);
+            if (selectionSet) {
+              if (computedFieldSelectionSets[typeName]?.[fieldName]) {
+                computedFieldSelectionSets[typeName][fieldName] = mergeSelectionSets(
+                  computedFieldSelectionSets[typeName][fieldName],
+                  selectionSet
+                );
+              } else {
+                if (computedFieldSelectionSets[typeName] == null) {
+                  computedFieldSelectionSets[typeName] = Object.create(null);
+                }
+                computedFieldSelectionSets[typeName][fieldName] = selectionSet;
+              }
+            }
+          });
+        }
+      });
+    }
 
     const allSelectionSetsByType: Record<string, Array<SelectionSetNode>> = Object.create(null);
 
@@ -86,7 +121,7 @@ export function stitchingDirectivesTransformer(
       }
     });
 
-    Object.entries(selectionSetsByField).forEach(([typeName, selectionSets]) => {
+    Object.entries(computedFieldSelectionSets).forEach(([typeName, selectionSets]) => {
       Object.values(selectionSets).forEach(selectionSet => {
         if (allSelectionSetsByType[typeName] == null) {
           allSelectionSetsByType[typeName] = [selectionSet];
@@ -191,7 +226,7 @@ export function stitchingDirectivesTransformer(
       mergeTypeConfig.selectionSet = print(selectionSet);
     });
 
-    Object.entries(selectionSetsByField).forEach(([typeName, selectionSets]) => {
+    Object.entries(computedFieldSelectionSets).forEach(([typeName, selectionSets]) => {
       if (newSubschemaConfig.merge == null) {
         newSubschemaConfig.merge = Object.create(null);
       }
@@ -309,4 +344,13 @@ function buildKey(key: Array<string>): string {
   });
 
   return JSON.stringify(mergedObect).replace(/"/g, '');
+}
+
+function mergeSelectionSets(set1: SelectionSetNode, set2: SelectionSetNode): SelectionSetNode {
+  const newSelectionSet = {
+    kind: Kind.SELECTION_SET,
+    selections: set1.selections.concat(set2.selections),
+  };
+
+  return newSelectionSet;
 }
