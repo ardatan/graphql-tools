@@ -28,7 +28,6 @@ import { defaultStitchingDirectiveOptions } from './defaultStitchingDirectiveOpt
 import { parseMergeArgsExpr } from './parseMergeArgsExpr';
 import { addKey, getKey, getKeys, propertyTreeFromPaths } from './properties';
 import { stitchingDirectivesValidator } from './stitchingDirectivesValidator';
-import { type } from 'os';
 
 export function stitchingDirectivesTransformer(
   options: StitchingDirectivesOptions = {}
