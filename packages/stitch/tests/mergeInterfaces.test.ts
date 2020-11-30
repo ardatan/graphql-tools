@@ -63,7 +63,6 @@ describe('merged interfaces via concrete type', () => {
       },
       { schema: indexedItemSchema },
     ],
-    mergeTypes: true,
   });
 
 
@@ -156,7 +155,6 @@ describe('merged interfaces via abstract type', () => {
       },
       { schema: indexedItemSchema },
     ],
-    mergeTypes: true,
   });
 
 

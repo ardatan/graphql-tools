@@ -69,7 +69,6 @@ describe('Abstract type merge', () => {
           },
         },
       ],
-      mergeTypes: true
     });
 
     const { data } = await graphql(gatewaySchema, `

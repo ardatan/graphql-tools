@@ -9,6 +9,8 @@ import { addMocksToSchema } from '@graphql-tools/mock';
 
 import { delegateToSchema } from '@graphql-tools/delegate';
 
+import { RenameRootFields, RenameTypes } from '@graphql-tools/wrap';
+
 import { stitchSchemas } from '../src/stitchSchemas';
 
 describe('merging using type merging', () => {
@@ -74,7 +76,6 @@ describe('merging using type merging', () => {
           batch: true,
         },
       ],
-      mergeTypes: true,
     });
 
     const query = `
@@ -170,7 +171,6 @@ describe('merging using type merging', () => {
           batch: true,
         },
       ],
-      mergeTypes: true
     });
 
     const query = `
@@ -274,7 +274,6 @@ describe('merging using type merging', () => {
           batch: true,
         },
       ],
-      mergeTypes: true,
       typeDefs: `
         extend type Container {
           result: String!
@@ -429,5 +428,108 @@ describe('Merged associations', () => {
       network: { domain: 'network57.com' },
       sections: ['News']
     }]);
+  });
+});
+
+describe('merging using type merging when renaming', () => {
+  test('works', async () => {
+    let chirpSchema = makeExecutableSchema({
+      typeDefs: `
+        type Chirp {
+          id: ID!
+          text: String
+          author: User
+          coAuthors: [User]
+          authorGroups: [[User]]
+        }
+
+        type User {
+          id: ID!
+          chirps: [Chirp]
+        }
+        type Query {
+          userById(id: ID!): User
+        }
+      `,
+    });
+
+    chirpSchema = addMocksToSchema({ schema: chirpSchema });
+
+    let authorSchema = makeExecutableSchema({
+      typeDefs: `
+        type User {
+          id: ID!
+          email: String
+        }
+        type Query {
+          userById(id: ID!): User
+        }
+      `,
+    });
+
+    authorSchema = addMocksToSchema({ schema: authorSchema });
+
+    const stitchedSchema = stitchSchemas({
+      subschemas: [
+        {
+          schema: chirpSchema,
+          transforms: [new RenameTypes(name => `Gateway_${name}`), new RenameRootFields((_operation, name) => `Chirp_${name}`)],
+          merge: {
+            Gateway_User: {
+              fieldName: 'Chirp_userById',
+              args: (originalResult) => ({ id: originalResult.id }),
+              selectionSet: '{ id }',
+            },
+          },
+          batch: true,
+        },
+        {
+          schema: authorSchema,
+          transforms: [new RenameTypes(name => `Gateway_${name}`), new RenameRootFields((_operation, name) => `User_${name}`)],
+          merge: {
+            Gateway_User: {
+              fieldName: 'User_userById',
+              args: (originalResult) => ({ id: originalResult.id }),
+              selectionSet: '{ id }',
+            },
+          },
+          batch: true,
+        },
+      ],
+    });
+
+    const query = `
+      query {
+        User_userById(id: 5) {
+          __typename
+          chirps {
+            id
+            textAlias: text
+            author {
+              email
+            }
+            coAuthors {
+              email
+            }
+            authorGroups {
+              email
+            }
+          }
+        }
+      }
+    `;
+
+    const result = await graphql(
+      stitchedSchema,
+      query,
+      undefined,
+      {},
+    );
+
+    expect(result.errors).toBeUndefined();
+    expect(result.data.User_userById.__typename).toBe('Gateway_User');
+    expect(result.data.User_userById.chirps[1].id).not.toBe(null);
+    expect(result.data.User_userById.chirps[1].text).not.toBe(null);
+    expect(result.data.User_userById.chirps[1].author.email).not.toBe(null);
   });
 });

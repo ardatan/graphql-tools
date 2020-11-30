@@ -66,7 +66,6 @@ describe('type merging with only field selection sets', () => {
         schema: usersSchema,
         merge: {
           Listing: {
-            // selectionSet: '{ id }', // <~ required? We don't need this data for anything here
             fields: {
               buyer: { selectionSet: '{ buyerId }' },
               seller: { selectionSet: '{ sellerId }' },
@@ -78,7 +77,6 @@ describe('type merging with only field selection sets', () => {
         }
       }
     ],
-    mergeTypes: true,
   });
 
   test('errors without selectionSet...', async () => {
