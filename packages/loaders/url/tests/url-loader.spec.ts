@@ -5,7 +5,7 @@ import { printSchemaWithDirectives } from '@graphql-tools/utils';
 import nock from 'nock';
 import { mockGraphQLServer } from '../../../testing/utils';
 import { cwd } from 'process';
-import { execute, subscribe, parse, print, ExecutionResult } from 'graphql';
+import { execute, subscribe, parse, print, ExecutionResult, introspectionFromSchema } from 'graphql';
 import { GraphQLUpload } from 'graphql-upload';
 import { createReadStream , readFileSync } from 'fs';
 import { join } from 'path';
@@ -75,7 +75,8 @@ type TestMessgae {
               if (numbers.length === 0) {
                 return { value: null, done: true };
               }
-              return { value: { testMessage: { number: numbers.pop() } }, done: false };
+              const number = numbers.shift();
+              return { value: { number }, done: false };
             }
           };
 
@@ -85,6 +86,7 @@ type TestMessgae {
             [Symbol.asyncIterator]: () => asyncIterator
           };
         },
+        resolve: (payload: any) => payload,
       }
     }
   };
@@ -312,21 +314,20 @@ type TestMessgae {
       expect(print(result.document)).toBeSimilarString(testTypeDefs);
     })
     it.skip('should handle subscriptions', async (done) => {
-      const testHttpHost = 'http://localhost:8080';
-      const server = mockGraphQLServer({ schema: testSchema, host: testHttpHost, path: testPathChecker, method: 'POST', });
-
-      const testUrl = 'http://localhost:8080/graphql';
-
+      const testUrl = 'ws://localhost:8080';
       const { schema } = await loader.load(testUrl, {
         enableSubscriptions: true,
+        customFetch: async () => ({
+          json: async () => ({
+            data: introspectionFromSchema(testSchema),
+          })
+        }) as any,
         webSocketImpl: WebSocket,
       });
 
-      server.done();
-      const testWSUrl = 'http://localhost:8080/graphql';
-      const wsServer = new WSServer(testWSUrl);
+      const wsServer = new WSServer(testUrl);
 
-      const subscriptionsServer = useServer(
+      useServer(
         {
           schema, // from the previous step
           execute,
@@ -347,13 +348,15 @@ type TestMessgae {
         contextValue: {},
       }) as AsyncIterableIterator<ExecutionResult>;
 
-
       expect(asyncIterator['errors']).toBeFalsy();
+      expect(asyncIterator['errors']?.length).toBeFalsy();
+
 
       // eslint-disable-next-line no-inner-declarations
       async function getNextResult() {
         const result = await asyncIterator.next();
-        return result?.value?.testMessage?.number;
+        expect(result?.done).toBeFalsy();
+        return result?.value?.data?.testMessage?.number;
       }
 
       expect(await getNextResult()).toBe(0);
@@ -361,7 +364,6 @@ type TestMessgae {
       expect(await getNextResult()).toBe(2);
 
       await asyncIterator.return();
-      await subscriptionsServer.dispose();
       wsServer.stop(done);
     });
     it('should handle multipart requests', async () => {

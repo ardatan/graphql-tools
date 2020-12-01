@@ -31,6 +31,9 @@ type BuildExecutorOptions<TFetchFn = FetchFn> = {
   multipart?: boolean;
 };
 
+const asyncImport = (moduleName: string) => import(moduleName);
+const syncImport = (moduleName: string) => require(moduleName);
+
 /**
  * Additional options for loading from a URL
  */
@@ -244,14 +247,17 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
         { query, variables: variables as any },
         {
           next: data => {
+            console.log('NEXT', { data });
             pending.push(data);
             deferred?.resolve(false);
           },
           error: err => {
+            console.log('ERR', { err });
             throwMe = err;
             deferred?.reject(throwMe);
           },
           complete: () => {
+            console.log('COMPLETE');
             done = true;
             deferred?.resolve(true);
           },
@@ -277,93 +283,80 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     };
   }
 
-  private async getFetchAsync(options: LoadFromUrlOptions, defaultMethod: 'GET' | 'POST') {
-    let headers = {};
-    let fetch = crossFetch;
-
-    if (options) {
-      if (Array.isArray(options.headers)) {
-        headers = options.headers.reduce((prev: any, v: any) => ({ ...prev, ...v }), {});
-      } else if (typeof options.headers === 'object') {
-        headers = options.headers;
-      }
-
-      if (options.customFetch) {
-        if (typeof options.customFetch === 'string') {
-          const [moduleName, fetchFnName] = options.customFetch.split('#');
-          fetch = await import(moduleName).then(module => (fetchFnName ? module[fetchFnName] : module));
-        } else {
-          fetch = options.customFetch as AsyncFetchFn;
-        }
-      }
-
-      if (options.method) {
-        defaultMethod = options.method;
-      }
-    }
-    return { headers, defaultMethod, fetch };
-  }
-
-  private getFetchSync(options: LoadFromUrlOptions, defaultMethod: 'GET' | 'POST') {
-    let headers = {};
-    let fetch: SyncFetchFn = syncFetch;
-
-    if (options) {
-      if (Array.isArray(options.headers)) {
-        headers = options.headers.reduce((prev: any, v: any) => ({ ...prev, ...v }), {});
-      } else if (typeof options.headers === 'object') {
-        headers = options.headers;
-      }
-
-      if (options.customFetch) {
-        if (typeof options.customFetch === 'string') {
-          const [moduleName, fetchFnName] = options.customFetch.split('#');
-          const module = require(moduleName);
-          fetch = fetchFnName ? module[fetchFnName] : module;
-        } else {
-          fetch = options.customFetch as SyncFetchFn;
-        }
-      }
-
-      if (options.method) {
-        defaultMethod = options.method;
-      }
-    }
-    return { headers, defaultMethod, fetch };
-  }
-
-  getWebSocketImpl(
-    options: LoadFromUrlOptions,
+  getFetch(
+    customFetch: LoadFromUrlOptions['customFetch'],
     importFn: (moduleName: string) => PromiseLike<unknown>,
     async: true
-  ): PromiseLike<typeof WebSocket>;
+  ): PromiseLike<AsyncFetchFn>;
 
-  getWebSocketImpl(
-    options: LoadFromUrlOptions,
+  getFetch(
+    customFetch: LoadFromUrlOptions['customFetch'],
     importFn: (moduleName: string) => unknown,
     async: false
-  ): typeof WebSocket;
+  ): SyncFetchFn;
+
+  getFetch(
+    customFetch: LoadFromUrlOptions['customFetch'],
+    importFn: (moduleName: string) => unknown | PromiseLike<unknown>,
+    async: boolean
+  ): SyncFetchFn | PromiseLike<AsyncFetchFn> {
+    if (customFetch) {
+      if (typeof customFetch === 'string') {
+        const [moduleName, fetchFnName] = customFetch.split('#');
+        const moduleResult = importFn(moduleName);
+        if (isPromise(moduleResult)) {
+          return moduleResult.then(module => (fetchFnName ? module[fetchFnName] : module));
+        } else {
+          return fetchFnName ? moduleResult[fetchFnName] : moduleResult;
+        }
+      } else {
+        return customFetch as any;
+      }
+    }
+    return async ? crossFetch : syncFetch;
+  }
+
+  private getHeadersFromOptions(customHeaders: Headers) {
+    let headers = {};
+    if (customHeaders) {
+      if (Array.isArray(customHeaders)) {
+        headers = customHeaders.reduce((prev: any, v: any) => ({ ...prev, ...v }), {});
+      } else if (typeof customHeaders === 'object') {
+        headers = customHeaders;
+      }
+    }
+    return headers;
+  }
+
+  private getDefaultMethodFromOptions(method: LoadFromUrlOptions['method'], defaultMethod: 'GET' | 'POST') {
+    if (method) {
+      defaultMethod = method;
+    }
+    return defaultMethod;
+  }
 
   getWebSocketImpl(
     options: LoadFromUrlOptions,
-    importFn: (moduleName: string) => unknown | PromiseLike<unknown>,
-    async: boolean
+    importFn: (moduleName: string) => PromiseLike<unknown>
+  ): PromiseLike<typeof WebSocket>;
+
+  getWebSocketImpl(options: LoadFromUrlOptions, importFn: (moduleName: string) => unknown): typeof WebSocket;
+
+  getWebSocketImpl(
+    options: LoadFromUrlOptions,
+    importFn: (moduleName: string) => unknown | PromiseLike<unknown>
   ): typeof WebSocket | PromiseLike<typeof WebSocket> {
     if (typeof options?.webSocketImpl === 'string') {
       const [moduleName, webSocketImplName] = options.webSocketImpl.split('#');
       const importedModule = importFn(moduleName);
-      if (async && isPromise(importedModule)) {
+      if (isPromise(importedModule)) {
         return importedModule.then(webSocketImplName ? importedModule[webSocketImplName] : importedModule);
       } else {
         return webSocketImplName ? importedModule[webSocketImplName] : importedModule;
       }
     } else {
       const websocketImpl = options.webSocketImpl || WebSocket;
-      if (async) {
-        return Promise.resolve(websocketImpl);
-      } else {
-        return websocketImpl;
-      }
+      return websocketImpl;
     }
   }
 
@@ -371,7 +364,9 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     pointer: SchemaPointerSingle,
     options: LoadFromUrlOptions
   ): Promise<{ executor: AsyncExecutor; subscriber: Subscriber }> {
-    const { headers, defaultMethod, fetch } = await this.getFetchAsync(options, 'POST');
+    const fetch = await this.getFetch(options?.customFetch, asyncImport, true);
+    const headers = this.getHeadersFromOptions(options?.headers);
+    const defaultMethod = this.getDefaultMethodFromOptions(options?.method, 'POST');
 
     const extraHeaders = {
       accept: 'application/json',
@@ -390,7 +385,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     let subscriber: Subscriber;
 
     if (options.enableSubscriptions) {
-      const webSocketImpl = await this.getWebSocketImpl(options, (moduleName: string) => import(moduleName), true);
+      const webSocketImpl = await this.getWebSocketImpl(options, asyncImport);
       subscriber = this.buildSubscriber(pointer, webSocketImpl);
     }
 
@@ -404,7 +399,9 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     pointer: SchemaPointerSingle,
     options: LoadFromUrlOptions
   ): { executor: SyncExecutor; subscriber: Subscriber } {
-    const { headers, defaultMethod, fetch } = this.getFetchSync(options, 'POST');
+    const fetch = this.getFetch(options?.customFetch, syncImport, false);
+    const headers = this.getHeadersFromOptions(options?.headers);
+    const defaultMethod = this.getDefaultMethodFromOptions(options?.method, 'POST');
 
     const extraHeaders = {
       accept: 'application/json',
@@ -422,7 +419,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     let subscriber: Subscriber;
 
     if (options.enableSubscriptions) {
-      const webSocketImpl = this.getWebSocketImpl(options, (moduleName: string) => require(moduleName), false);
+      const webSocketImpl = this.getWebSocketImpl(options, (moduleName: string) => require(moduleName));
       subscriber = this.buildSubscriber(pointer, webSocketImpl);
     }
 
@@ -451,7 +448,9 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
   }
 
   async handleSDLAsync(pointer: SchemaPointerSingle, options: LoadFromUrlOptions) {
-    const { fetch, defaultMethod, headers } = await this.getFetchAsync(options, 'GET');
+    const fetch = await this.getFetch(options?.customFetch, asyncImport, true);
+    const headers = this.getHeadersFromOptions(options?.headers);
+    const defaultMethod = this.getDefaultMethodFromOptions(options?.method, 'GET');
     const response = await fetch(pointer, {
       method: defaultMethod,
       headers,
@@ -466,7 +465,9 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
   }
 
   handleSDLSync(pointer: SchemaPointerSingle, options: LoadFromUrlOptions) {
-    const { fetch, defaultMethod, headers } = this.getFetchSync(options, 'GET');
+    const fetch = this.getFetch(options?.customFetch, syncImport, false);
+    const headers = this.getHeadersFromOptions(options?.headers);
+    const defaultMethod = this.getDefaultMethodFromOptions(options?.method, 'GET');
     const response = fetch(pointer, {
       method: defaultMethod,
       headers,
