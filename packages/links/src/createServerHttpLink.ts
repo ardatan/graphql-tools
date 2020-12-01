@@ -65,7 +65,7 @@ export const createServerHttpLink = (options: any) =>
             contentType: file.mimetype,
           });
         } else {
-          formDataAppendFile(form, index, file);
+          formDataAppendFile(form as any, index, file);
         }
       },
     })
