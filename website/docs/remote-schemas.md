@@ -104,8 +104,8 @@ For subscriptions, we need to define a subscriber that returns `AsyncIterator`. 
 type Subscriber = (executionParams: ExecutionParams) => Promise<AsyncIterator<ExecutionResult>>;
 ```
 
-#### Using `graphql-transport-ws`
-For the following example to work, the server must implement the [library's transport protocol](https://github.com/enisdenjo/graphql-transport-ws/blob/master/PROTOCOL.md). Learn more about [`graphql-transport-ws`](https://github.com/enisdenjo/graphql-transport-ws).
+#### Using `graphql-ws`
+For the following example to work, the server must implement the [library's transport protocol](https://github.com/enisdenjo/graphql-ws/blob/master/PROTOCOL.md). Learn more about [`graphql-ws`](https://github.com/enisdenjo/graphql-ws).
 
 ```ts
 import { wrapSchema, introspectSchema } from '@graphql-tools/wrap';
@@ -113,7 +113,7 @@ import { Executor, Subscriber } from '@graphql-tools/delegate';
 import { fetch } from 'cross-fetch';
 import { print } from 'graphql';
 import { observableToAsyncIterable } from '@graphql-tools/utils';
-import { createClient } from 'graphql-transport-ws';
+import { createClient } from 'graphql-ws';
 
 const HTTP_GRAPHQL_ENDPOINT = 'http://localhost:3000/graphql';
 const WS_GRAPHQL_ENDPOINT = 'ws://localhost:3000/graphql';
