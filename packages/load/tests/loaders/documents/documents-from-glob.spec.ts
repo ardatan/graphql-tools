@@ -64,7 +64,7 @@ describe('documentsFromGlob', () => {
 
     test(`Should throw on syntax errors`, async () => {
       try {
-        const glob = join(__dirname, './test-files/', 'syntax-invalid.query.graphql');
+        const glob = join(__dirname, './test-invalid-syntax/', 'invalid-syntax.query.graphql');
         await load(glob, {
           loaders: [new GraphQLFileLoader()]
         });
