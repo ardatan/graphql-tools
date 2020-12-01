@@ -9,6 +9,8 @@ import { createClient } from 'graphql-ws';
 import WebSocket from 'isomorphic-ws';
 import syncFetch from 'sync-fetch';
 import isPromise from 'is-promise';
+import { extractFiles, isExtractableFile } from 'extract-files';
+import 'isomorphic-form-data';
 
 export type AsyncFetchFn = typeof import('cross-fetch').fetch;
 export type SyncFetchFn = (input: RequestInfo, init?: RequestInit) => SyncResponse;
@@ -26,6 +28,7 @@ type BuildExecutorOptions<TFetchFn = FetchFn> = {
   extraHeaders: any;
   defaultMethod: 'GET' | 'POST';
   useGETForQueries: boolean;
+  multipart?: boolean;
 };
 
 /**
@@ -58,6 +61,10 @@ export interface LoadFromUrlOptions extends SingleFileOptions, Partial<Introspec
    * Whether to use the GET HTTP method for queries when querying the original schema
    */
   useGETForQueries?: boolean;
+  /**
+   * Use multipart for POST requests
+   */
+  multipart?: boolean;
 }
 
 /**
@@ -85,9 +92,62 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     return !!isWebUri(pointer);
   }
 
+  async createFormDataFromVariables<TVariables>({ query, variables }: { query: string; variables: TVariables }) {
+    const { Upload } = await import('graphql-upload');
+    const vars = Object.assign({}, variables);
+    const { clone, files } = extractFiles(
+      vars,
+      'variables',
+      ((v: any) => isExtractableFile(v) || v instanceof Upload || Symbol.asyncIterator in v || isPromise(v)) as any
+    );
+    const map = Object.fromEntries(Array.from(files.values()).map((p, i) => [i, p]));
+    const uploads: any = new Map(Array.from(files.keys()).map((u, i) => [i, u]));
+    const form = new FormData();
+    form.append(
+      'operations',
+      JSON.stringify({
+        query,
+        variables: clone,
+      })
+    );
+    form.append('map', JSON.stringify(map));
+    await Promise.all(
+      Array.from(uploads.entries()).map(async ([i, u]) => {
+        if (isPromise(u)) {
+          u = await u;
+        }
+        if (u instanceof Upload) {
+          const upload = await u.promise;
+          const stream = upload.createReadStream();
+          form.append(i.toString(), stream, {
+            filename: upload.filename,
+            contentType: upload.mimetype,
+          } as any);
+        } else {
+          form.append(
+            i.toString(),
+            u as any,
+            {
+              filename: 'name' in u ? u['name'] : i,
+              contentType: u.type,
+            } as any
+          );
+        }
+      })
+    );
+    return form;
+  }
+
   buildExecutor(options: BuildExecutorOptions<SyncFetchFn>): SyncExecutor;
   buildExecutor(options: BuildExecutorOptions<AsyncFetchFn>): AsyncExecutor;
-  buildExecutor({ pointer, fetch, extraHeaders, defaultMethod, useGETForQueries }: BuildExecutorOptions): Executor {
+  buildExecutor({
+    pointer,
+    fetch,
+    extraHeaders,
+    defaultMethod,
+    useGETForQueries,
+    multipart,
+  }: BuildExecutorOptions): Executor {
     const HTTP_URL = switchProtocols(pointer, {
       wss: 'https',
       ws: 'http',
@@ -128,14 +188,29 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
           });
           break;
         case 'POST':
-          fetchResult = fetch(HTTP_URL, {
-            method: 'POST',
-            body: JSON.stringify({
-              query,
-              variables,
-            }),
-            headers: extraHeaders,
-          });
+          if (multipart) {
+            fetchResult = this.createFormDataFromVariables({ query, variables }).then(form =>
+              (fetch as AsyncFetchFn)(HTTP_URL, {
+                method: 'POST',
+                body: form,
+                headers: {
+                  ...extraHeaders,
+                },
+              })
+            );
+          } else {
+            fetchResult = fetch(HTTP_URL, {
+              method: 'POST',
+              body: JSON.stringify({
+                query,
+                variables,
+              }),
+              headers: {
+                'content-type': 'application/json',
+                ...extraHeaders,
+              },
+            });
+          }
           break;
       }
       if (isPromise(fetchResult)) {
@@ -156,8 +231,8 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       url: WS_URL,
       webSocketImpl,
     });
-    // Taken from https://www.npmjs.com/package/graphql-ws#async-iterator
     return async <TReturn, TArgs>({ document, variables }: { document: DocumentNode; variables: TArgs }) => {
+      const query = print(document);
       let deferred: {
         resolve: (done: boolean) => void;
         reject: (err: unknown) => void;
@@ -165,12 +240,8 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       const pending: TReturn[] = [];
       let throwMe: unknown = null;
       let done = false;
-      const query = print(document);
       const dispose = subscriptionClient.subscribe<TReturn>(
-        {
-          query,
-          variables: variables as any,
-        },
+        { query, variables: variables as any },
         {
           next: data => {
             pending.push(data);
@@ -303,8 +374,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     const { headers, defaultMethod, fetch } = await this.getFetchAsync(options, 'POST');
 
     const extraHeaders = {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
+      accept: 'application/json',
       ...headers,
     };
 
@@ -314,6 +384,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       extraHeaders,
       defaultMethod,
       useGETForQueries: options.useGETForQueries,
+      multipart: options.multipart,
     });
 
     let subscriber: Subscriber;
@@ -336,8 +407,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     const { headers, defaultMethod, fetch } = this.getFetchSync(options, 'POST');
 
     const extraHeaders = {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
+      accept: 'application/json',
       ...headers,
     };
 

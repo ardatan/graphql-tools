@@ -16,11 +16,11 @@
     "graphql": "^14.0.0 || ^15.0.0"
   },
   "devDependencies": {
-    "@types/express": "4.17.9",
-    "@types/supertest": "2.0.10",
-    "apollo-server-express": "2.19.0",
-    "express": "4.17.1",
-    "supertest": "6.0.1"
+    "@types/extract-files": "8.1.0",
+    "@types/isomorphic-form-data": "2.0.0",
+    "graphql-helix": "1.1.0",
+    "mock-http": "1.1.0",
+    "mock-socket": "9.0.3"
   },
   "dependencies": {
     "@graphql-tools/delegate": "^7.0.1",
@@ -28,8 +28,11 @@
     "@graphql-tools/utils": "^7.0.1",
     "@types/websocket": "1.0.1",
     "cross-fetch": "3.0.6",
+    "extract-files": "9.0.0",
+    "graphql-upload": "^11.0.0",
     "is-promise": "4.0.0",
     "isomorphic-ws": "4.0.1",
+    "isomorphic-form-data": "2.0.0",
     "tslib": "~2.0.1",
     "valid-url": "1.0.9",
     "graphql-ws": "2.0.0",
