@@ -1,5 +1,5 @@
 ---
-'@graphql-tools/wrap': major
+'@graphql-tools/wrap': patch
 ---
 
 enhance(wrap): use introspectSchema for both sync and async executors
