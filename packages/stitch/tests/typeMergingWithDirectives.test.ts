@@ -266,7 +266,7 @@ describe('merging using type merging', () => {
       type Query {
         _reviews(id: ID!): Review
         _users(keys: [UserKey!]!): [User] @merge
-        _products(input: ProductInput): [Product]! @merge(keyField: "input.keys")
+        _products(input: ProductInput): [Product]! @merge(keyArg: "input.keys")
         # EQUIVALENT TO:
         # _products(input: ProductInput): [Product]! @merge(argsExpr: "input: { keys: [[$key]] }")
       }
