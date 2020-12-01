@@ -33,7 +33,7 @@ export function parseGraphQLSDL(location: string, rawSDL: string, options: Graph
       document = parse(new GraphQLSource(sdl, location), options);
     }
   } catch (e) {
-    if (e.message.includes('EOF') && sdl.replace(/(\/\*[^*]*\*\/)|(\/\/[^*]*)|(\#[^*]*)/g, '').trim() === '') {
+    if (e.message.includes('EOF') && sdl.replace(/(\#[^*]*)/g, '').trim() === '') {
       document = {
         kind: Kind.DOCUMENT,
         definitions: [],
