@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 7.1.3
+
+### Patch Changes
+
+- 6165c827: Trow on SDL syntax errors
+
 ## 7.1.2
 
 ### Patch Changes
