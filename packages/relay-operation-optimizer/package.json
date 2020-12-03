@@ -8,7 +8,11 @@
     "url": "https://github.com/n1ru4l"
   },
   "license": "MIT",
-  "repository": "git@github.com:ardatan/graphql-tools.git",
+  "repository": {
+    "type": "git",
+    "url": "ardatan/graphql-tools",
+    "directory": "packages/relay-operation-optimizer"
+  },
   "keywords": [
     "graphql",
     "codegen",

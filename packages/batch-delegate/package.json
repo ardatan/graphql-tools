@@ -2,7 +2,11 @@
   "name": "@graphql-tools/batch-delegate",
   "version": "7.0.1",
   "description": "A set of utils for faster development of GraphQL tools",
-  "repository": "git@github.com:ardatan/graphql-tools.git",
+  "repository": {
+    "type": "git",
+    "url": "ardatan/graphql-tools",
+    "directory": "packages/batch-delegate"
+  },
   "license": "MIT",
   "sideEffects": false,
   "main": "dist/index.cjs.js",

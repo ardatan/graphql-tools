@@ -2,7 +2,11 @@
   "name": "@graphql-tools/wrap",
   "version": "7.0.4",
   "description": "A set of utils for faster development of GraphQL tools",
-  "repository": "git@github.com:ardatan/graphql-tools.git",
+  "repository": {
+    "type": "git",
+    "url": "ardatan/graphql-tools",
+    "directory": "packages/wrap"
+  },
   "license": "MIT",
   "sideEffects": false,
   "main": "dist/index.cjs.js",
