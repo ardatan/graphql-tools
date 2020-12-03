@@ -68,5 +68,5 @@ export const createServerHttpLink = (options: any) =>
           formDataAppendFile(form as any, index, file);
         }
       },
-    })
+    }) as any
   );
