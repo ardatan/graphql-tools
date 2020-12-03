@@ -2,7 +2,11 @@
   "name": "@graphql-tools/resolvers-composition",
   "version": "6.2.5",
   "description": "Common package containting utils and types for GraphQL tools",
-  "repository": "git@github.com:ardatan/graphql-tools.git",
+  "repository": {
+    "type": "git",
+    "url": "ardatan/graphql-tools",
+    "directory": "packages/resolvers-composition"
+  },
   "author": "Dotan Simha <dotansimha@gmail.com>",
   "license": "MIT",
   "sideEffects": false,

@@ -3,7 +3,11 @@
   "version": "6.3.0",
   "description": "Pluck graphql-tag template literals",
   "license": "MIT",
-  "repository": "git@github.com:ardatan/graphql-tools.git",
+  "repository": {
+    "type": "git",
+    "url": "ardatan/graphql-tools",
+    "directory": "packages/graphql-tag-pluck"
+  },
   "sideEffects": false,
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",

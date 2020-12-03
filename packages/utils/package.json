@@ -2,7 +2,11 @@
   "name": "@graphql-tools/utils",
   "version": "7.1.4",
   "description": "Common package containting utils and types for GraphQL tools",
-  "repository": "git@github.com:ardatan/graphql-tools.git",
+  "repository": {
+    "type": "git",
+    "url": "ardatan/graphql-tools",
+    "directory": "packages/utils"
+  },
   "author": "Dotan Simha <dotansimha@gmail.com>",
   "license": "MIT",
   "sideEffects": false,

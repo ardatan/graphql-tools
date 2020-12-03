@@ -2,7 +2,11 @@
   "name": "@graphql-tools/stitch",
   "version": "7.1.4",
   "description": "A set of utils for faster development of GraphQL tools",
-  "repository": "git@github.com:ardatan/graphql-tools.git",
+  "repository": {
+    "type": "git",
+    "url": "ardatan/graphql-tools",
+    "directory": "packages/stitch"
+  },
   "license": "MIT",
   "sideEffects": false,
   "main": "dist/index.cjs.js",
