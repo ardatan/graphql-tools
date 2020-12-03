@@ -10,6 +10,8 @@ $ yarn
 
 ### Local Development
 
+Make a sibling copy of `sidebars.template.json`, named `sidebars.json`. This file is gitignored, and will setup the local dev sidebar.
+
 ```
 $ yarn start
 ```
