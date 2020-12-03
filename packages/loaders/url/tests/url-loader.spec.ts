@@ -10,7 +10,8 @@ import { GraphQLUpload } from 'graphql-upload';
 import { createReadStream , readFileSync } from 'fs';
 import { join } from 'path';
 import { useServer } from 'graphql-ws/lib/use/ws';
-import { WebSocket, Server as WSServer } from 'mock-socket';
+import ws from 'ws';
+import http from 'http';
 
 const SHOULD_NOT_GET_HERE_ERROR = 'SHOULD_NOT_GET_HERE';
 
@@ -313,8 +314,8 @@ type TestMessgae {
       expect(result.document).toBeDefined();
       expect(print(result.document)).toBeSimilarGqlDoc(testTypeDefs);
     })
-    it.skip('should handle subscriptions', async (done) => {
-      const testUrl = 'ws://localhost:8080';
+    it('should handle subscriptions', async () => {
+      const testUrl = 'http://localhost:8081/graphql';
       const { schema } = await loader.load(testUrl, {
         enableSubscriptions: true,
         customFetch: async () => ({
@@ -322,19 +323,29 @@ type TestMessgae {
             data: introspectionFromSchema(testSchema),
           })
         }) as any,
-        webSocketImpl: WebSocket,
+        webSocketImpl: ws,
       });
 
-      const wsServer = new WSServer(testUrl);
+      const httpServer = http.createServer(function weServeSocketsOnly(_, res) {
+        res.writeHead(404);
+        res.end();
+      });
+
+      const wsServer = new ws.Server({
+        server: httpServer,
+        path: '/graphql'
+      });
 
       useServer(
         {
-          schema, // from the previous step
+          schema: testSchema, // from the previous step
           execute,
           subscribe,
         },
         wsServer,
       );
+
+      httpServer.listen(8081);
 
       const asyncIterator = await subscribe({
         schema,
@@ -363,8 +374,7 @@ type TestMessgae {
       expect(await getNextResult()).toBe(1);
       expect(await getNextResult()).toBe(2);
 
-      await asyncIterator.return();
-      wsServer.stop(done);
+      httpServer.close();
     });
     it('should handle multipart requests', async () => {
       let server = mockGraphQLServer({ schema: testSchema, host: testHost, path: testPathChecker, method: 'POST' });

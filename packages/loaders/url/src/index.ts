@@ -1,6 +1,12 @@
 /* eslint-disable no-case-declarations */
 import { print, IntrospectionOptions, DocumentNode, GraphQLResolveInfo, Kind, parse, buildASTSchema } from 'graphql';
-import { SchemaPointerSingle, Source, DocumentLoader, SingleFileOptions } from '@graphql-tools/utils';
+import {
+  SchemaPointerSingle,
+  Source,
+  DocumentLoader,
+  SingleFileOptions,
+  observableToAsyncIterable,
+} from '@graphql-tools/utils';
 import { isWebUri } from 'valid-url';
 import { fetch as crossFetch } from 'cross-fetch';
 import { AsyncExecutor, Executor, Subscriber, SyncExecutor } from '@graphql-tools/delegate';
@@ -239,50 +245,20 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     });
     return async <TReturn, TArgs>({ document, variables }: { document: DocumentNode; variables: TArgs }) => {
       const query = print(document);
-      let deferred: {
-        resolve: (done: boolean) => void;
-        reject: (err: unknown) => void;
-      } | null = null;
-      const pending: TReturn[] = [];
-      let throwMe: unknown = null;
-      let done = false;
-      const dispose = subscriptionClient.subscribe<TReturn>(
-        { query, variables: variables as any },
-        {
-          next: data => {
-            console.log('NEXT', { data });
-            pending.push(data);
-            deferred?.resolve(false);
-          },
-          error: err => {
-            console.log('ERR', { err });
-            throwMe = err;
-            deferred?.reject(throwMe);
-          },
-          complete: () => {
-            console.log('COMPLETE');
-            done = true;
-            deferred?.resolve(true);
-          },
-        }
-      );
-      return {
-        [Symbol.asyncIterator]() {
-          return this;
+      return observableToAsyncIterable({
+        subscribe: observer => {
+          const unsubscribe = subscriptionClient.subscribe<TReturn>(
+            {
+              query,
+              variables: variables as any,
+            },
+            observer as any
+          );
+          return {
+            unsubscribe,
+          };
         },
-        async next() {
-          if (done) return { done: true, value: undefined };
-          if (throwMe) throw throwMe;
-          if (pending.length) return { value: pending.shift()! };
-          return (await new Promise<boolean>((resolve, reject) => (deferred = { resolve, reject })))
-            ? { done: true, value: undefined }
-            : { value: pending.shift()! };
-        },
-        async return() {
-          dispose();
-          return { done: true, value: undefined };
-        },
-      };
+      });
     };
   }
 
