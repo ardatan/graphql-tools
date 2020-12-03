@@ -1,4 +1,4 @@
-import '../../../testing/to-be-similar-string';
+import '../../../testing/to-be-similar-gql-doc';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { UrlLoader } from '../src';
 import { printSchemaWithDirectives } from '@graphql-tools/utils';
@@ -278,7 +278,7 @@ type TestMessgae {
       server.done();
 
       expect(result.schema).toBeDefined();
-      expect(printSchemaWithDirectives(result.schema)).toBe(testTypeDefs);
+      expect(printSchemaWithDirectives(result.schema)).toBeSimilarGqlDoc(testTypeDefs);
     });
 
     it('Should replace wss:// with https:// in buildAsyncExecutor', async () => {
@@ -308,10 +308,10 @@ type TestMessgae {
       server.done();
 
       expect(result.schema).toBeDefined();
-      expect(printSchemaWithDirectives(result.schema)).toBeSimilarString(testTypeDefs);
+      expect(printSchemaWithDirectives(result.schema)).toBeSimilarGqlDoc(testTypeDefs);
 
       expect(result.document).toBeDefined();
-      expect(print(result.document)).toBeSimilarString(testTypeDefs);
+      expect(print(result.document)).toBeSimilarGqlDoc(testTypeDefs);
     })
     it.skip('should handle subscriptions', async (done) => {
       const testUrl = 'ws://localhost:8080';
