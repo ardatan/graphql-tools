@@ -1,7 +1,7 @@
 export interface Observer<T> {
-  next?: (value: T) => void;
-  error?: (error: Error) => void;
-  complete?: () => void;
+  next: (value: T) => void;
+  error: (error: Error) => void;
+  complete: () => void;
 }
 
 export interface Observable<T> {
@@ -57,6 +57,7 @@ export function observableToAsyncIterable<T>(observable: Observable<T>): AsyncIt
     error(err: Error) {
       pushError(err);
     },
+    complete() {},
   });
 
   const emptyQueue = () => {

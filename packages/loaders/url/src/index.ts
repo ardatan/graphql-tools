@@ -243,16 +243,16 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       url: WS_URL,
       webSocketImpl,
     });
-    return async <TReturn, TArgs>({ document, variables }: { document: DocumentNode; variables: TArgs }) => {
+    return async <TReturn>({ document, variables }: { document: DocumentNode; variables: any }) => {
       const query = print(document);
       return observableToAsyncIterable({
         subscribe: observer => {
           const unsubscribe = subscriptionClient.subscribe<TReturn>(
             {
               query,
-              variables: variables as any,
+              variables,
             },
-            observer as any
+            observer
           );
           return {
             unsubscribe,
