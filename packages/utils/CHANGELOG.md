@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 7.1.4
+
+### Patch Changes
+
+- 4240a959: fix(utils): fix Observable signature for observableToAsyncIterator
+
 ## 7.1.3
 
 ### Patch Changes
