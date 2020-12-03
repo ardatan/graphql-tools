@@ -11,7 +11,7 @@ jobs:
     if: contains(github.event.head_commit.message, '[deploy_website]') || contains(github.ref, 'refs/tags/')
     steps:
       - name: Checkout Master
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2
       - name: Configure Git Credientials
         run: |
           git config --global user.email "theguild-bot@users.noreply.github.com"
