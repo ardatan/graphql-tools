@@ -42,7 +42,7 @@
     "graphql": "^14.0.0 || ^15.0.0"
   },
   "devDependencies": {
-    "patch-package": "^6.2.2",
+    "patch-package": "6.2.2",
     "@changesets/cli": "2.10.3",
     "@types/jest": "26.0.16",
     "@types/node": "14.14.10",
