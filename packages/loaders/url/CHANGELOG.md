@@ -1,5 +1,18 @@
 # @graphql-tools/url-loader
 
+## 6.5.0
+
+### Minor Changes
+
+- 4240a959: feat(url-loader): support graphql-ws and multipart requests and file upload
+
+### Patch Changes
+
+- Updated dependencies [4240a959]
+- Updated dependencies [4240a959]
+  - @graphql-tools/wrap@7.0.4
+  - @graphql-tools/utils@7.1.4
+
 ## 6.4.0
 
 ### Minor Changes

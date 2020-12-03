@@ -1,5 +1,13 @@
 # @graphql-tools/wrap
 
+## 7.0.4
+
+### Patch Changes
+
+- 4240a959: enhance(wrap): use introspectSchema for both sync and async executors
+- Updated dependencies [4240a959]
+  - @graphql-tools/utils@7.1.4
+
 ## 7.0.3
 
 ### Patch Changes
