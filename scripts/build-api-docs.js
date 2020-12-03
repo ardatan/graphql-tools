@@ -26,26 +26,16 @@ if (!gitRemoteName) {
 
 // An array of tuples where the first element is the package's name and the
 // the second element is the relative path to the package's entry point
-const modules = [
-  ['@graphql-tools/schema', 'packages/schema/src/index.ts'],
-  ['@graphql-tools/stitch', 'packages/stitch/src/index.ts'],
-  ['@graphql-tools/wrap', 'packages/wrap/src/index.ts'],
-  ['@graphql-tools/merge', 'packages/merge/src/index.ts'],
-  ['@graphql-tools/mock', 'packages/mock/src/index.ts'],
-  ['@graphql-tools/load', 'packages/load/src/index.ts'],
-  ['@graphql-tools/load-files', 'packages/load-files/src/index.ts'],
-  ['@graphql-tools/graphql-file-loader', 'packages/loaders/graphql-file/src/index.ts'],
-  ['@graphql-tools/code-file-loader', 'packages/loaders/code-file/src/index.ts'],
-  ['@graphql-tools/json-file-loader', 'packages/loaders/json-file/src/index.ts'],
-  ['@graphql-tools/url-loader', 'packages/loaders/url/src/index.ts'],
-  ['@graphql-tools/module-loader', 'packages/loaders/module/src/index.ts'],
-  ['@graphql-tools/git-loader', 'packages/loaders/git/src/index.ts'],
-  ['@graphql-tools/github-loader', 'packages/loaders/github/src/index.ts'],
-  ['@graphql-tools/apollo-engine-loader', 'packages/loaders/apollo-engine/src/index.ts'],
-  ['@graphql-tools/prisma-loader', 'packages/loaders/prisma/src/index.ts'],
-  ['@graphql-tools/graphql-tag-pluck', 'packages/graphql-tag-pluck/src/index.ts'],
-  ['@graphql-tools/utils', 'packages/utils/src/index.ts'],
-];
+const workspacePackageJson = require('../package.json');
+const { join } = require('path');
+const packageJsonFiles = require('globby').sync(workspacePackageJson.workspaces.map(f => `${f}/package.json`));
+const modules = [];
+for (const packageJsonPath of packageJsonFiles) {
+  const packageJsonContent = require(join(__dirname, '..', packageJsonPath));
+  if (!packageJsonContent.private) {
+    modules.push([packageJsonContent.name, packageJsonPath.replace('./', '').replace('package.json', 'src/index.ts')]);
+  }
+}
 
 // Delete existing docs
 rimraf.sync(outputDir);
@@ -93,26 +83,28 @@ typeDoc.generateDocs(project, outputDir);
 });
 
 // Remove the generated "index.md" file
-fs.unlinkSync(path.join(outputDir, 'index.md'));
+// fs.unlinkSync(path.join(outputDir, 'index.md'));
 
 // Update each module 's frontmatter and title
 modules.forEach(([name, originalFilePath]) => {
   const filePath = path.join(outputDir, 'modules', convertEntryFilePath(originalFilePath));
   if (!fs.existsSync(filePath)) {
+    console.warn(`Module ${name} not found!`);
     return;
   }
   const id = convertNameToId(name);
-  fs.writeFileSync(
-    filePath,
-    fs.readFileSync(filePath, 'utf-8').replace(
-      /^---.+---\n\n## Index/s,
-      `
+  const oldContent = fs.readFileSync(filePath, 'utf-8');
+  const necessaryPart = oldContent.split('\n').slice(5).join('\n');
+  const finalContent = `
 ---
 id: "${id}"
 title: "${name}"
 sidebar_label: "${id}"
----`.substring(1)
-    )
+---
+`.substring(1) + necessaryPart;
+  fs.writeFileSync(
+    filePath,
+    finalContent
   );
 });
 
@@ -136,7 +128,7 @@ fs.writeFileSync(sidebarsPath, JSON.stringify(sidebars, null, 2));
 
 function convertEntryFilePath(filePath) {
   const { dir, name } = path.parse(filePath);
-  return `_${dir.split('/').slice(1).join('_').replace(/-/g, '_')}_${name}_.md`;
+  return `_${dir.split('/').join('_').replace(/-/g, '_')}_${name}_.md`;
 }
 
 function convertNameToId(name) {
