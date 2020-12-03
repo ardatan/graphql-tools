@@ -126,7 +126,7 @@ type TestMessgae {
       server.done();
 
       expect(schema.schema).toBeDefined();
-      expect(printSchemaWithDirectives(schema.schema)).toBe(testTypeDefs);
+      expect(printSchemaWithDirectives(schema.schema)).toBeSimilarGqlDoc(testTypeDefs);
     });
 
     it('Should pass default headers', async () => {
@@ -147,7 +147,7 @@ type TestMessgae {
 
       expect(schema).toBeDefined();
       expect(schema.schema).toBeDefined();
-      expect(printSchemaWithDirectives(schema.schema)).toBe(testTypeDefs);
+      expect(printSchemaWithDirectives(schema.schema)).toBeSimilarGqlDoc(testTypeDefs);
 
       expect(headers.accept).toContain(`application/json`);
       expect(headers['content-type']).toContain(`application/json`);
@@ -170,7 +170,7 @@ type TestMessgae {
 
       expect(schema).toBeDefined();
       expect(schema.schema).toBeDefined();
-      expect(printSchemaWithDirectives(schema.schema)).toBe(testTypeDefs);
+      expect(printSchemaWithDirectives(schema.schema)).toBeSimilarGqlDoc(testTypeDefs);
 
       expect(headers.accept).toContain(`application/json`);
       expect(headers['content-type']).toContain(`application/json`);
@@ -193,7 +193,7 @@ type TestMessgae {
 
       expect(schema).toBeDefined();
       expect(schema.schema).toBeDefined();
-      expect(printSchemaWithDirectives(schema.schema)).toBe(testTypeDefs);
+      expect(printSchemaWithDirectives(schema.schema)).toBeSimilarGqlDoc(testTypeDefs);
 
       expect(headers.accept).toContain(`application/json`);
       expect(headers['content-type']).toContain(`application/json`);
@@ -260,7 +260,7 @@ type TestMessgae {
       server.done();
 
       expect(result.schema).toBeDefined();
-      expect(printSchemaWithDirectives(result.schema)).toBe(testTypeDefs);
+      expect(printSchemaWithDirectives(result.schema)).toBeSimilarGqlDoc(testTypeDefs);
     });
 
     it('Should replace ws:// with http:// in buildAsyncExecutor', async () => {
@@ -298,7 +298,7 @@ type TestMessgae {
       server.done();
 
       expect(result.schema).toBeDefined();
-      expect(printSchemaWithDirectives(result.schema)).toBe(testTypeDefs);
+      expect(printSchemaWithDirectives(result.schema)).toBeSimilarGqlDoc(testTypeDefs);
     });
     it('should handle .graphql files', async () => {
       const testHost = 'http://localhost:3000';
