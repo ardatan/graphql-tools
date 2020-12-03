@@ -3,5 +3,6 @@
   "automerge": true,
   "major": {
     "automerge": false
-  }
+  },
+  "labels": ["dependencies"]
 }
