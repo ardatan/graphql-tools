@@ -1,11 +1,17 @@
-import '../../../testing/to-be-similar-string';
+import '../../../testing/to-be-similar-gql-doc';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { UrlLoader } from '../src';
 import { printSchemaWithDirectives } from '@graphql-tools/utils';
 import nock from 'nock';
 import { mockGraphQLServer } from '../../../testing/utils';
 import { cwd } from 'process';
-import { execute, parse, print } from 'graphql';
+import { execute, subscribe, parse, print, ExecutionResult, introspectionFromSchema } from 'graphql';
+import { GraphQLUpload } from 'graphql-upload';
+import { createReadStream , readFileSync } from 'fs';
+import { join } from 'path';
+import { useServer } from 'graphql-ws/lib/use/ws';
+import ws from 'ws';
+import http from 'http';
 
 const SHOULD_NOT_GET_HERE_ERROR = 'SHOULD_NOT_GET_HERE';
 
@@ -13,11 +19,30 @@ describe('Schema URL Loader', () => {
   const loader = new UrlLoader();
 
   const testTypeDefs = /* GraphQL */ `
-schema { query: CustomQuery }
+schema { query: CustomQuery
+mutation: Mutation
+subscription: Subscription }
+"""The \`Upload\` scalar type represents a file upload."""
+scalar Upload
 """Test type comment"""
 type CustomQuery {
   """Test field comment"""
   a(testVariable: String): String
+}
+type Mutation {
+  uploadFile(file: Upload): File
+}
+type File {
+  filename: String
+  mimetype: String
+  encoding: String
+  content: String
+}
+type Subscription {
+  testMessage: TestMessgae
+}
+type TestMessgae {
+  number: Int
 }
 `.trim();
 
@@ -25,6 +50,46 @@ type CustomQuery {
     CustomQuery: {
       a: (_: never, { testVariable }: { testVariable: string }) => testVariable || 'a',
     },
+    Upload: GraphQLUpload,
+    File: {
+      content: (file: any) => {
+        const stream: NodeJS.ReadableStream = file.createReadStream();
+        return new Promise((resolve, reject) => {
+          let data = "";
+
+          // eslint-disable-next-line no-return-assign
+          stream.on("data", chunk => data += chunk);
+          stream.on("end", () => resolve(data));
+          stream.on("error", error => reject(error));
+        });
+      }
+    },
+    Mutation: {
+      uploadFile: async (_: never, { file }: any) => file
+    },
+    Subscription: {
+      testMessage: {
+        subscribe: () => {
+          const numbers = [0,1,2];
+          const asyncIterator = {
+            next: async () => {
+              if (numbers.length === 0) {
+                return { value: null, done: true };
+              }
+              const number = numbers.shift();
+              return { value: { number }, done: false };
+            }
+          };
+
+          return {
+            // Note that async iterables use `Symbol.asyncIterator`, **not**
+            // `Symbol.iterator`.
+            [Symbol.asyncIterator]: () => asyncIterator
+          };
+        },
+        resolve: (payload: any) => payload,
+      }
+    }
   };
 
   const testSchema = makeExecutableSchema({ typeDefs: testTypeDefs, resolvers: testResolvers });
@@ -37,6 +102,7 @@ type CustomQuery {
   const testUrl = `${testHost}${testPath}`;
 
   describe('handle', () => {
+
     it('Should throw an error when introspection is not valid', async () => {
       const brokenData = { data: {} };
       const scope = nock(testHost).post(testPathChecker).reply(200, brokenData);
@@ -60,7 +126,7 @@ type CustomQuery {
       server.done();
 
       expect(schema.schema).toBeDefined();
-      expect(printSchemaWithDirectives(schema.schema)).toBe(testTypeDefs);
+      expect(printSchemaWithDirectives(schema.schema)).toBeSimilarGqlDoc(testTypeDefs);
     });
 
     it('Should pass default headers', async () => {
@@ -81,7 +147,7 @@ type CustomQuery {
 
       expect(schema).toBeDefined();
       expect(schema.schema).toBeDefined();
-      expect(printSchemaWithDirectives(schema.schema)).toBe(testTypeDefs);
+      expect(printSchemaWithDirectives(schema.schema)).toBeSimilarGqlDoc(testTypeDefs);
 
       expect(headers.accept).toContain(`application/json`);
       expect(headers['content-type']).toContain(`application/json`);
@@ -104,7 +170,7 @@ type CustomQuery {
 
       expect(schema).toBeDefined();
       expect(schema.schema).toBeDefined();
-      expect(printSchemaWithDirectives(schema.schema)).toBe(testTypeDefs);
+      expect(printSchemaWithDirectives(schema.schema)).toBeSimilarGqlDoc(testTypeDefs);
 
       expect(headers.accept).toContain(`application/json`);
       expect(headers['content-type']).toContain(`application/json`);
@@ -127,7 +193,7 @@ type CustomQuery {
 
       expect(schema).toBeDefined();
       expect(schema.schema).toBeDefined();
-      expect(printSchemaWithDirectives(schema.schema)).toBe(testTypeDefs);
+      expect(printSchemaWithDirectives(schema.schema)).toBeSimilarGqlDoc(testTypeDefs);
 
       expect(headers.accept).toContain(`application/json`);
       expect(headers['content-type']).toContain(`application/json`);
@@ -194,7 +260,7 @@ type CustomQuery {
       server.done();
 
       expect(result.schema).toBeDefined();
-      expect(printSchemaWithDirectives(result.schema)).toBe(testTypeDefs);
+      expect(printSchemaWithDirectives(result.schema)).toBeSimilarGqlDoc(testTypeDefs);
     });
 
     it('Should replace ws:// with http:// in buildAsyncExecutor', async () => {
@@ -213,7 +279,7 @@ type CustomQuery {
       server.done();
 
       expect(result.schema).toBeDefined();
-      expect(printSchemaWithDirectives(result.schema)).toBe(testTypeDefs);
+      expect(printSchemaWithDirectives(result.schema)).toBeSimilarGqlDoc(testTypeDefs);
     });
 
     it('Should replace wss:// with https:// in buildAsyncExecutor', async () => {
@@ -232,7 +298,7 @@ type CustomQuery {
       server.done();
 
       expect(result.schema).toBeDefined();
-      expect(printSchemaWithDirectives(result.schema)).toBe(testTypeDefs);
+      expect(printSchemaWithDirectives(result.schema)).toBeSimilarGqlDoc(testTypeDefs);
     });
     it('should handle .graphql files', async () => {
       const testHost = 'http://localhost:3000';
@@ -243,10 +309,110 @@ type CustomQuery {
       server.done();
 
       expect(result.schema).toBeDefined();
-      expect(printSchemaWithDirectives(result.schema)).toBeSimilarString(testTypeDefs);
+      expect(printSchemaWithDirectives(result.schema)).toBeSimilarGqlDoc(testTypeDefs);
 
       expect(result.document).toBeDefined();
-      expect(print(result.document)).toBeSimilarString(testTypeDefs);
+      expect(print(result.document)).toBeSimilarGqlDoc(testTypeDefs);
     })
+    it('should handle subscriptions', async () => {
+      const testUrl = 'http://localhost:8081/graphql';
+      const { schema } = await loader.load(testUrl, {
+        enableSubscriptions: true,
+        customFetch: async () => ({
+          json: async () => ({
+            data: introspectionFromSchema(testSchema),
+          })
+        }) as any,
+        webSocketImpl: ws,
+      });
+
+      const httpServer = http.createServer(function weServeSocketsOnly(_, res) {
+        res.writeHead(404);
+        res.end();
+      });
+
+      const wsServer = new ws.Server({
+        server: httpServer,
+        path: '/graphql'
+      });
+
+      useServer(
+        {
+          schema: testSchema, // from the previous step
+          execute,
+          subscribe,
+        },
+        wsServer,
+      );
+
+      httpServer.listen(8081);
+
+      const asyncIterator = await subscribe({
+        schema,
+        document: parse(/* GraphQL */`
+          subscription TestMessage {
+            testMessage {
+              number
+            }
+          }
+        `),
+        contextValue: {},
+      }) as AsyncIterableIterator<ExecutionResult>;
+
+      expect(asyncIterator['errors']).toBeFalsy();
+      expect(asyncIterator['errors']?.length).toBeFalsy();
+
+
+      // eslint-disable-next-line no-inner-declarations
+      async function getNextResult() {
+        const result = await asyncIterator.next();
+        expect(result?.done).toBeFalsy();
+        return result?.value?.data?.testMessage?.number;
+      }
+
+      expect(await getNextResult()).toBe(0);
+      expect(await getNextResult()).toBe(1);
+      expect(await getNextResult()).toBe(2);
+
+      httpServer.close();
+    });
+    it('should handle multipart requests', async () => {
+      let server = mockGraphQLServer({ schema: testSchema, host: testHost, path: testPathChecker, method: 'POST' });
+
+      const { schema } = await loader.load(testUrl, {
+        multipart: true,
+      });
+
+      server.done();
+
+      server = mockGraphQLServer({ schema: testSchema, host: testHost, path: testPathChecker, method: 'POST' })
+
+      const fileName = 'testfile.txt';
+
+      const absoluteFilePath = join(__dirname, fileName);
+
+      const result = await execute({
+        schema,
+        document: parse(/* GraphQL */`
+          mutation UploadFile($file: Upload!) {
+            uploadFile(file: $file) {
+              filename
+              content
+            }
+          }
+        `),
+        variableValues: {
+          file: createReadStream(absoluteFilePath),
+        },
+      })
+
+      server.done();
+
+      const content = readFileSync(absoluteFilePath, 'utf8')
+
+      expect(result.errors).toBeFalsy();
+      expect(result.data.uploadFile?.filename).toBe(fileName);
+      expect(result.data.uploadFile?.content).toBe(content);
+    });
   });
 });
