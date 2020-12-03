@@ -103,7 +103,10 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       'variables',
       ((v: any) => isExtractableFile(v) || v instanceof Upload || Symbol.asyncIterator in v || isPromise(v)) as any
     );
-    const map = Object.fromEntries(Array.from(files.values()).map((p, i) => [i, p]));
+    const map = Array.from(files.values()).reduce((prev, curr, currIndex) => {
+      prev[currIndex] = curr;
+      return prev;
+    }, {});
     const uploads: any = new Map(Array.from(files.keys()).map((u, i) => [i, u]));
     const form = new FormData();
     form.append(
