@@ -21,7 +21,7 @@
   },
   "devDependencies": {
     "@types/dateformat": "3.0.1",
-    "dateformat": "4.0.2",
+    "dateformat": "4.2.1",
     "graphql-scalars": "1.5.0"
   },
   "dependencies": {
