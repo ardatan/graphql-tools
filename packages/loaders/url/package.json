@@ -39,7 +39,7 @@
     "tslib": "~2.0.1",
     "valid-url": "1.0.9",
     "graphql-ws": "2.0.1",
-    "ws": "7.4.0",
+    "ws": "7.4.1",
     "sync-fetch": "0.3.0"
   },
   "publishConfig": {
