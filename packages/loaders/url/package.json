@@ -13,6 +13,11 @@
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
   "typings": "dist/index.d.ts",
+  "buildOptions": {
+    "external": [
+      "eventsource/lib/eventsource-polyfill"
+    ]
+  },
   "typescript": {
     "definition": "dist/index.d.ts"
   },
@@ -21,6 +26,7 @@
   },
   "devDependencies": {
     "@types/extract-files": "8.1.0",
+    "@types/eventsource": "1.1.5",
     "@types/isomorphic-form-data": "2.0.0",
     "mock-http": "1.1.0",
     "mock-socket": "9.0.3"
@@ -32,6 +38,7 @@
     "@types/websocket": "1.0.1",
     "cross-fetch": "3.0.6",
     "extract-files": "9.0.0",
+    "eventsource": "1.0.7",
     "graphql-upload": "^11.0.0",
     "is-promise": "4.0.0",
     "isomorphic-ws": "4.0.1",
@@ -40,7 +47,8 @@
     "valid-url": "1.0.9",
     "graphql-ws": "2.0.1",
     "ws": "7.4.1",
-    "sync-fetch": "0.3.0"
+    "sync-fetch": "0.3.0",
+    "sse-z": "0.3.0"
   },
   "publishConfig": {
     "access": "public",

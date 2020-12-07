@@ -10,7 +10,7 @@ import { GraphQLUpload } from 'graphql-upload';
 import { createReadStream , readFileSync } from 'fs';
 import { join } from 'path';
 import { useServer } from 'graphql-ws/lib/use/ws';
-import ws from 'ws';
+import { Server as WSServer } from 'ws';
 import http from 'http';
 
 const SHOULD_NOT_GET_HERE_ERROR = 'SHOULD_NOT_GET_HERE';
@@ -317,13 +317,11 @@ type TestMessgae {
     it('should handle subscriptions', async () => {
       const testUrl = 'http://localhost:8081/graphql';
       const { schema } = await loader.load(testUrl, {
-        enableSubscriptions: true,
         customFetch: async () => ({
           json: async () => ({
             data: introspectionFromSchema(testSchema),
           })
         }) as any,
-        webSocketImpl: ws,
       });
 
       const httpServer = http.createServer(function weServeSocketsOnly(_, res) {
@@ -331,7 +329,7 @@ type TestMessgae {
         res.end();
       });
 
-      const wsServer = new ws.Server({
+      const wsServer = new WSServer({
         server: httpServer,
         path: '/graphql'
       });
