@@ -9,7 +9,7 @@ import {
 } from '@graphql-tools/utils';
 import { isWebUri } from 'valid-url';
 import { fetch as crossFetch } from 'cross-fetch';
-import { AsyncExecutor, Executor, Subscriber, SyncExecutor } from '@graphql-tools/delegate';
+import { AsyncExecutor, Executor, SubschemaConfig, Subscriber, SyncExecutor } from '@graphql-tools/delegate';
 import { introspectSchema, wrapSchema } from '@graphql-tools/wrap';
 import { createClient } from 'graphql-ws';
 import WebSocket from 'isomorphic-ws';
@@ -17,6 +17,8 @@ import syncFetch from 'sync-fetch';
 import isPromise from 'is-promise';
 import { extractFiles, isExtractableFile } from 'extract-files';
 import 'isomorphic-form-data';
+import 'eventsource/lib/eventsource-polyfill';
+import { Subscription, SubscriptionOptions } from 'sse-z';
 
 export type AsyncFetchFn = typeof import('cross-fetch').fetch;
 export type SyncFetchFn = (input: RequestInfo, init?: RequestInit) => SyncResponse;
@@ -37,8 +39,11 @@ type BuildExecutorOptions<TFetchFn = FetchFn> = {
   multipart?: boolean;
 };
 
-const asyncImport = (moduleName: string) => import(moduleName);
-const syncImport = (moduleName: string) => require(moduleName);
+export type AsyncImportFn<T = unknown> = (moduleName: string) => PromiseLike<T>;
+export type SyncImportFn<T = unknown> = (moduleName: string) => T;
+
+const asyncImport: AsyncImportFn = (moduleName: string) => import(moduleName);
+const syncImport: SyncImportFn = (moduleName: string) => require(moduleName);
 
 /**
  * Additional options for loading from a URL
@@ -58,10 +63,6 @@ export interface LoadFromUrlOptions extends SingleFileOptions, Partial<Introspec
    */
   method?: 'GET' | 'POST';
   /**
-   * Whether to enable subscriptions on the loaded schema
-   */
-  enableSubscriptions?: boolean;
-  /**
    * Custom WebSocket implementation used by the loaded schema if subscriptions
    * are enabled
    */
@@ -74,6 +75,14 @@ export interface LoadFromUrlOptions extends SingleFileOptions, Partial<Introspec
    * Use multipart for POST requests
    */
   multipart?: boolean;
+  /**
+   * Use SSE for subscription instead of WebSocket
+   */
+  useSSEForSubscription?: boolean;
+  /**
+   * Additional options to pass to the constructor of the underlying EventSource instance.
+   */
+  eventSourceOptions?: SubscriptionOptions['eventSourceOptions'];
 }
 
 /**
@@ -234,7 +243,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     return executor;
   }
 
-  buildSubscriber(pointer: string, webSocketImpl: typeof WebSocket): Subscriber {
+  buildWSSubscriber(pointer: string, webSocketImpl: typeof WebSocket): Subscriber {
     const WS_URL = switchProtocols(pointer, {
       https: 'wss',
       http: 'ws',
@@ -262,21 +271,50 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     };
   }
 
+  buildSSESubscriber(pointer: string, eventSourceOptions?: SubscriptionOptions['eventSourceOptions']): Subscriber {
+    return async <TReturn>({ document, variables }: { document: DocumentNode; variables: any }) => {
+      const query = print(document);
+      return observableToAsyncIterable({
+        subscribe: observer => {
+          const subscription = new Subscription({
+            url: pointer,
+            searchParams: {
+              query,
+              variables: JSON.stringify(variables),
+            },
+            eventSourceOptions: {
+              // Ensure cookies are included with the request
+              withCredentials: true,
+              ...eventSourceOptions,
+            },
+            onNext: data => {
+              const parsedData: TReturn = JSON.parse(data);
+              observer.next(parsedData);
+            },
+            onError: data => {
+              observer.error(data);
+            },
+            onComplete: () => {
+              observer.complete();
+            },
+          });
+          return subscription;
+        },
+      });
+    };
+  }
+
   getFetch(
     customFetch: LoadFromUrlOptions['customFetch'],
-    importFn: (moduleName: string) => PromiseLike<unknown>,
+    importFn: AsyncImportFn,
     async: true
   ): PromiseLike<AsyncFetchFn>;
 
-  getFetch(
-    customFetch: LoadFromUrlOptions['customFetch'],
-    importFn: (moduleName: string) => unknown,
-    async: false
-  ): SyncFetchFn;
+  getFetch(customFetch: LoadFromUrlOptions['customFetch'], importFn: SyncImportFn, async: false): SyncFetchFn;
 
   getFetch(
     customFetch: LoadFromUrlOptions['customFetch'],
-    importFn: (moduleName: string) => unknown | PromiseLike<unknown>,
+    importFn: SyncImportFn | AsyncImportFn,
     async: boolean
   ): SyncFetchFn | PromiseLike<AsyncFetchFn> {
     if (customFetch) {
@@ -314,16 +352,13 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     return defaultMethod;
   }
 
-  getWebSocketImpl(
-    options: LoadFromUrlOptions,
-    importFn: (moduleName: string) => PromiseLike<unknown>
-  ): PromiseLike<typeof WebSocket>;
+  getWebSocketImpl(options: LoadFromUrlOptions, importFn: AsyncImportFn): PromiseLike<typeof WebSocket>;
 
-  getWebSocketImpl(options: LoadFromUrlOptions, importFn: (moduleName: string) => unknown): typeof WebSocket;
+  getWebSocketImpl(options: LoadFromUrlOptions, importFn: SyncImportFn): typeof WebSocket;
 
   getWebSocketImpl(
     options: LoadFromUrlOptions,
-    importFn: (moduleName: string) => unknown | PromiseLike<unknown>
+    importFn: SyncImportFn | AsyncImportFn
   ): typeof WebSocket | PromiseLike<typeof WebSocket> {
     if (typeof options?.webSocketImpl === 'string') {
       const [moduleName, webSocketImplName] = options.webSocketImpl.split('#');
@@ -363,9 +398,11 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
 
     let subscriber: Subscriber;
 
-    if (options.enableSubscriptions) {
+    if (options.useSSEForSubscription) {
+      subscriber = this.buildSSESubscriber(pointer, options.eventSourceOptions);
+    } else {
       const webSocketImpl = await this.getWebSocketImpl(options, asyncImport);
-      subscriber = this.buildSubscriber(pointer, webSocketImpl);
+      subscriber = this.buildWSSubscriber(pointer, webSocketImpl);
     }
 
     return {
@@ -396,10 +433,11 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     });
 
     let subscriber: Subscriber;
-
-    if (options.enableSubscriptions) {
-      const webSocketImpl = this.getWebSocketImpl(options, (moduleName: string) => require(moduleName));
-      subscriber = this.buildSubscriber(pointer, webSocketImpl);
+    if (options.useSSEForSubscription) {
+      subscriber = this.buildSSESubscriber(pointer, options.eventSourceOptions);
+    } else {
+      const webSocketImpl = this.getWebSocketImpl(options, syncImport);
+      subscriber = this.buildWSSubscriber(pointer, webSocketImpl);
     }
 
     return {
@@ -408,7 +446,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     };
   }
 
-  async getSubschemaConfigAsync(pointer: SchemaPointerSingle, options: LoadFromUrlOptions) {
+  async getSubschemaConfigAsync(pointer: SchemaPointerSingle, options: LoadFromUrlOptions): Promise<SubschemaConfig> {
     const { executor, subscriber } = await this.getExecutorAndSubscriberAsync(pointer, options);
     return {
       schema: await introspectSchema(executor, undefined, options as IntrospectionOptions),
@@ -417,7 +455,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     };
   }
 
-  getSubschemaConfigSync(pointer: SchemaPointerSingle, options: LoadFromUrlOptions) {
+  getSubschemaConfigSync(pointer: SchemaPointerSingle, options: LoadFromUrlOptions): SubschemaConfig {
     const { executor, subscriber } = this.getExecutorAndSubscriberSync(pointer, options);
     return {
       schema: introspectSchema(executor, undefined, options as IntrospectionOptions),
@@ -426,7 +464,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     };
   }
 
-  async handleSDLAsync(pointer: SchemaPointerSingle, options: LoadFromUrlOptions) {
+  async handleSDLAsync(pointer: SchemaPointerSingle, options: LoadFromUrlOptions): Promise<Source> {
     const fetch = await this.getFetch(options?.customFetch, asyncImport, true);
     const headers = this.getHeadersFromOptions(options?.headers);
     const defaultMethod = this.getDefaultMethodFromOptions(options?.method, 'GET');
@@ -438,12 +476,14 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     const document = parse(schemaString, options);
     const schema = buildASTSchema(document, options);
     return {
+      location: pointer,
+      rawSDL: schemaString,
       document,
       schema,
     };
   }
 
-  handleSDLSync(pointer: SchemaPointerSingle, options: LoadFromUrlOptions) {
+  handleSDLSync(pointer: SchemaPointerSingle, options: LoadFromUrlOptions): Source {
     const fetch = this.getFetch(options?.customFetch, syncImport, false);
     const headers = this.getHeadersFromOptions(options?.headers);
     const defaultMethod = this.getDefaultMethodFromOptions(options?.method, 'GET');
@@ -455,6 +495,8 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     const document = parse(schemaString, options);
     const schema = buildASTSchema(document, options);
     return {
+      location: pointer,
+      rawSDL: schemaString,
       document,
       schema,
     };
@@ -462,13 +504,9 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
 
   async load(pointer: SchemaPointerSingle, options: LoadFromUrlOptions): Promise<Source> {
     if (pointer.endsWith('.graphql')) {
-      const { document, schema } = await this.handleSDLAsync(pointer, options);
-      return {
-        location: pointer,
-        document,
-        schema,
-      };
+      return this.handleSDLAsync(pointer, options);
     }
+
     const subschemaConfig = await this.getSubschemaConfigAsync(pointer, options);
 
     const remoteExecutableSchema = wrapSchema(subschemaConfig);
@@ -481,13 +519,9 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
 
   loadSync(pointer: SchemaPointerSingle, options: LoadFromUrlOptions): Source {
     if (pointer.endsWith('.graphql')) {
-      const { document, schema } = this.handleSDLSync(pointer, options);
-      return {
-        location: pointer,
-        document,
-        schema,
-      };
+      return this.handleSDLSync(pointer, options);
     }
+
     const subschemaConfig = this.getSubschemaConfigSync(pointer, options);
 
     const remoteExecutableSchema = wrapSchema(subschemaConfig);
