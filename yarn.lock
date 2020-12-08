@@ -7255,10 +7255,10 @@ grapheme-splitter@^1.0.4:
   resolved "https://registry.yarnpkg.com/grapheme-splitter/-/grapheme-splitter-1.0.4.tgz#9cf3a665c6247479896834af35cf1dbb4400767e"
   integrity sha512-bzh50DW9kTPM00T8y4o8vQg89Di9oLJVLW/KaOGIXJWP/iqCN6WKYkbNOF04vFLJhwcpYUh9ydh/+5vpOqV4YQ==
 
-graphql-helix@1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/graphql-helix/-/graphql-helix-1.1.0.tgz#de5e8b74868b4f930536d767ff4502a0cf86c158"
-  integrity sha512-sFRBE+LPB4k9BKu9wUKXUJx1r9HbbnLrB1iEFvOI3hBLHuGrQ8vck+kfmFGGTEB7QPl8UO15r77K1BApzEjTuQ==
+graphql-helix@1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/graphql-helix/-/graphql-helix-1.2.0.tgz#263dba445d1eb668d44ddf592a4a6423f197dcb5"
+  integrity sha512-oOdJc9xvbwr5xe0zPublElbE8BUXGJhhtemJbcN8W7+TPEmZm8At1YcRCoazrdrNyd2gPkOCODaFNd9JnByNjA==
 
 graphql-request@^3.3.0:
   version "3.3.0"
