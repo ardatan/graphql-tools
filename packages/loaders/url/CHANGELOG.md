@@ -1,5 +1,15 @@
 # @graphql-tools/url-loader
 
+## 6.6.0
+
+### Minor Changes
+
+- 1ce1b9f7: feat(url-loader): support SSE for subscriptions
+
+### Patch Changes
+
+- 1ce1b9f7: fix(url-loader): fix issues with nonobject variables in multipart requests
+
 ## 6.5.0
 
 ### Minor Changes
