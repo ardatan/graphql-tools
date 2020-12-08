@@ -215,7 +215,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
             fetchResult = this.createFormDataFromVariables({ query, variables }).then(form =>
               (fetch as AsyncFetchFn)(HTTP_URL, {
                 method: 'POST',
-                body: form,
+                body: form as any,
                 headers: {
                   ...extraHeaders,
                 },
