@@ -57,7 +57,7 @@
     "eslint-plugin-promise": "4.2.1",
     "eslint-plugin-standard": "5.0.0",
     "graphql": "15.4.0",
-    "graphql-helix": "1.1.0",
+    "graphql-helix": "1.2.0",
     "graphql-subscriptions": "1.1.0",
     "husky": "4.3.5",
     "jest": "26.6.3",
