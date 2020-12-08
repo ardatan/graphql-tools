@@ -116,7 +116,9 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     const { clone, files } = extractFiles(
       vars,
       'variables',
-      ((v: any) => isExtractableFile(v) || v instanceof Upload || Symbol.asyncIterator in v || isPromise(v)) as any
+      ((v: any) =>
+        typeof v === 'object' &&
+        (isExtractableFile(v) || v instanceof Upload || Symbol.asyncIterator in v || isPromise(v))) as any
     );
     const map = Array.from(files.values()).reduce((prev, curr, currIndex) => {
       prev[currIndex] = curr;
