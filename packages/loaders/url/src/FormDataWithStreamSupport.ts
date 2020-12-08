@@ -1,4 +1,4 @@
-import { AppendOptions } from 'isomorphic-form-data';
+import FormData, { AppendOptions } from 'isomorphic-form-data';
 
 export class FormDataWithStreamSupport extends FormData {
   private hasUnknowableLength: boolean;
