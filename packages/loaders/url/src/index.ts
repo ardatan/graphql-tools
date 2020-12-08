@@ -16,7 +16,7 @@ import WebSocket from 'isomorphic-ws';
 import syncFetch from 'sync-fetch';
 import isPromise from 'is-promise';
 import { extractFiles, isExtractableFile } from 'extract-files';
-import 'isomorphic-form-data';
+import { FormDataWithStreamSupport } from './FormDataWithStreamSupport';
 import 'eventsource/lib/eventsource-polyfill';
 import { Subscription, SubscriptionOptions } from 'sse-z';
 
@@ -125,7 +125,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       return prev;
     }, {});
     const uploads: any = new Map(Array.from(files.keys()).map((u, i) => [i, u]));
-    const form = new FormData();
+    const form = new FormDataWithStreamSupport();
     form.append(
       'operations',
       JSON.stringify({
