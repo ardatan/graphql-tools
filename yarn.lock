@@ -3077,6 +3077,13 @@
   dependencies:
     "@types/node" "*"
 
+"@types/ws@7.4.0":
+  version "7.4.0"
+  resolved "https://registry.yarnpkg.com/@types/ws/-/ws-7.4.0.tgz#499690ea08736e05a8186113dac37769ab251a0e"
+  integrity sha512-Y29uQ3Uy+58bZrFLhX36hcI3Np37nqWE7ky5tjiDoy1GDZnIwVxS0CgF+s+1bXMzjKBFy+fqaRfb708iNzdinw==
+  dependencies:
+    "@types/node" "*"
+
 "@types/yargs-parser@*":
   version "15.0.0"
   resolved "https://registry.yarnpkg.com/@types/yargs-parser/-/yargs-parser-15.0.0.tgz#cb3f9f741869e20cce330ffbeb9271590483882d"
