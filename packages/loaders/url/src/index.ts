@@ -83,6 +83,10 @@ export interface LoadFromUrlOptions extends SingleFileOptions, Partial<Introspec
    * Additional options to pass to the constructor of the underlying EventSource instance.
    */
   eventSourceOptions?: SubscriptionOptions['eventSourceOptions'];
+  /**
+   * Handle URL as schema SDL
+   */
+  handleAsSDL?: boolean;
 }
 
 /**
@@ -505,7 +509,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
   }
 
   async load(pointer: SchemaPointerSingle, options: LoadFromUrlOptions): Promise<Source> {
-    if (pointer.endsWith('.graphql')) {
+    if (options?.handleAsSDL || pointer.endsWith('.graphql')) {
       return this.handleSDLAsync(pointer, options);
     }
 
@@ -520,7 +524,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
   }
 
   loadSync(pointer: SchemaPointerSingle, options: LoadFromUrlOptions): Source {
-    if (pointer.endsWith('.graphql')) {
+    if (options?.handleAsSDL || pointer.endsWith('.graphql')) {
       return this.handleSDLSync(pointer, options);
     }
 

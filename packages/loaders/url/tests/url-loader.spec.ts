@@ -314,7 +314,23 @@ type TestMessgae {
       expect(result.document).toBeDefined();
       expect(print(result.document)).toBeSimilarGqlDoc(testTypeDefs);
     })
-    it('should handle subscriptions', async () => {
+    it('should handle results with handleAsSDL option even if it doesn\'t end with .graphql', async () => {
+      const testHost = 'http://localhost:3000';
+      const testPath = '/sdl';
+      const server = nock(testHost).get(testPath).reply(200, testTypeDefs);
+      const result = await loader.load(testHost + testPath, {
+        handleAsSDL: true,
+      });
+
+      server.done();
+
+      expect(result.schema).toBeDefined();
+      expect(printSchemaWithDirectives(result.schema)).toBeSimilarGqlDoc(testTypeDefs);
+
+      expect(result.document).toBeDefined();
+      expect(print(result.document)).toBeSimilarGqlDoc(testTypeDefs);
+    })
+    it('should handle subscriptions', async (done) => {
       const testUrl = 'http://localhost:8081/graphql';
       const { schema } = await loader.load(testUrl, {
         customFetch: async () => ({
@@ -334,7 +350,7 @@ type TestMessgae {
         path: '/graphql'
       });
 
-      useServer(
+      const subscriptionServer = useServer(
         {
           schema: testSchema, // from the previous step
           execute,
@@ -372,7 +388,12 @@ type TestMessgae {
       expect(await getNextResult()).toBe(1);
       expect(await getNextResult()).toBe(2);
 
-      httpServer.close();
+      await asyncIterator.return();
+      await subscriptionServer.dispose();
+      wsServer.close(() => {
+        httpServer.close(done);
+      });
+
     });
     it('should handle multipart requests', async () => {
       let server = mockGraphQLServer({ schema: testSchema, host: testHost, path: testPathChecker, method: 'POST' });
