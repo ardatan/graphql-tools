@@ -1,5 +1,11 @@
 # @graphql-tools/url-loader
 
+## 6.7.0
+
+### Minor Changes
+
+- cfe3e1f9: feat(url-loader): handle HTTP result as an SDL with handleAsSDL option
+
 ## 6.6.0
 
 ### Minor Changes
