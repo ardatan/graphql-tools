@@ -30,7 +30,7 @@ type CustomQuery {
   a(testVariable: String): String
 }
 type Mutation {
-  uploadFile(file: Upload): File
+  uploadFile(file: Upload, dummyVar: TestInput, secondDummyVar: String): File
 }
 type File {
   filename: String
@@ -39,10 +39,13 @@ type File {
   content: String
 }
 type Subscription {
-  testMessage: TestMessgae
+  testMessage: TestMessage
 }
-type TestMessgae {
+type TestMessage {
   number: Int
+}
+input TestInput {
+  testField: String
 }
 `.trim();
 
@@ -413,8 +416,8 @@ type TestMessgae {
       const result = await execute({
         schema,
         document: parse(/* GraphQL */`
-          mutation UploadFile($file: Upload!) {
-            uploadFile(file: $file) {
+          mutation UploadFile($file: Upload!, $nullVar: TestInput, $nonObjectVar: String) {
+            uploadFile(file: $file, dummyVar: $nullVar, secondDummyVar: $nonObjectVar) {
               filename
               content
             }
@@ -422,6 +425,8 @@ type TestMessgae {
         `),
         variableValues: {
           file: createReadStream(absoluteFilePath),
+          nullVar: null,
+          nonObjectVar: 'somefilename.txt'
         },
       })
 
