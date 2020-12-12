@@ -88,7 +88,7 @@ To setup stitching directives, you'll need to install their definitions into eac
 
 ### Subservice setup
 
-Need an SDL query and to add the proper transforms, go...
+When setting up a subservice, you'll need to do three things:
 
 ```js
 const { makeExecutableSchema } = require('@graphql-tools/schema');
@@ -119,9 +119,14 @@ module.exports = makeExecutableSchema({
 });
 ```
 
+1. Include `stitchingDirectivesTypeDefs` in your schema's type definitions string (these define the schema of the directives themselves).
+2. Include a `stitchingDirectivesValidator` in your executable schema (highly recommended).
+3. Setup a query field that returns the schema's raw type definitions string (see the `_sdl` field above). This field is extremely important for exposing the annotated SDL to your stitched gateway. Unfortunately, custom directives cannot be obtained through schema introspection.
+
+
 ### Gateway setup
 
-Then fetch the SDL using your executor, also with proper transforms...
+When setting up the stitched gateway, you'll need to do two things:
 
 ```js
 const { stitchSchemas } = require('@graphql-tools/stitch');
@@ -162,6 +167,9 @@ async function createGatewaySchema() {
   });
 }
 ```
+
+1. Include `stitchingDirectivesTransformer` in your stitched gateway's config transformations. This will read SDL directives into the schema's static configuration.
+2. Fetch subschemas going through their `_sdl` query. You _cannot_ introspect custom directives, so you must use a custom query that provides the complete annotated type definitions string.
 
 ## Recipes
 
