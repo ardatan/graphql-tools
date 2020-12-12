@@ -1,5 +1,13 @@
 # @graphql-tools/url-loader
 
+## 6.7.1
+
+### Patch Changes
+
+- 298cd39e: fix(url-loader): do not fail multipart request when null variable given
+- Updated dependencies [298cd39e]
+  - @graphql-tools/utils@7.1.5
+
 ## 6.7.0
 
 ### Minor Changes
