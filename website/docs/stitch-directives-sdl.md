@@ -4,11 +4,11 @@ title: Directives SDL
 sidebar_label: Directives SDL
 ---
 
-Stitching directives (`@graphql-tools/stitching-directives`) may be used to configure a stitched gateway schema directly through the Schema Definition Language (SDL, also referred to as "type definitions") of its subservices. The advantage of this approach is that all schema _and stitching configuration_ is represented in a single document managed by each subservice, and can be loaded (or reloaded) by the gateway on the fly. These SDL configurations enable hot-reloading of the gateway schema without a formal deployment or server restart.
+Stitching directives (`@graphql-tools/stitching-directives`) may be used to configure a stitched gateway directly through the Schema Definition Language (SDL) of its subservices. The advantage of this approach is that all schema _and type merging configuration_ is represented in a single document managed by each subservice, and can be reloaded by the gateway on the fly without a formal deploy or server restart.
 
 ## Overview
 
-Using SDL directives, a subservice may express its complete schema _and type merging configuration_ in a single document, which may then be pushed to the gateway server to trigger a reload.
+Using SDL directives, a subservice may express its complete schema _and type merging configuration_ in a single document. See the [handbook example](https://github.com/gmac/schema-stitching-handbook/tree/master/stitching-directives-sdl) for a working demonstration.
 
 ```graphql
 # --- Users schema ---
@@ -40,7 +40,7 @@ type Query {
 }
 ```
 
-In the above example, the Users and Posts schemas will be combined in the stitched gateway and provide all of their own merged type configuration. All SDL directives will translate directly into the static configurations discussed in [type merging docs](/docs/stitch-type-merging). See the [recipes](#recipes) section below for some common translations.
+In the above example, the Users and Posts schemas will be combined in the stitched gateway and provide all of their own merged type configuration. All SDL directives will translate directly into the static configurations discussed in [type merging docs](/docs/stitch-type-merging). See the [recipes](#recipes) section below for some common patterns.
 
 ## Directives glossary
 
@@ -56,9 +56,9 @@ The function of these directives are:
 
 * **`@key`:** specifies a base selection set needed to merge the annotated type across subschemas. Analogous to the `selectionSet` setting specified in [merged type configuration](/docs/stitch-type-merging#basic-example).
 
-* **`@merge`:** denotes a root field used to merge a type across services. The marked field's name is analogous to the `fieldName` setting in merged type configuration, while the field's arguments and return types automatically configure applicable type mergers. Additional arguments may tune the merge behavior:
+* **`@merge`:** denotes a root field used to query a merged type across services. The marked field's name is analogous to the `fieldName` setting in [merged type configuration](/docs/stitch-type-merging#basic-example), while the field's arguments and return types automatically configure merging. Additional arguments may tune the merge behavior (see [example recipes](#recipes)):
 
-  * `keyField`: specifies the name of a field to pick off of original objects as the key value. Omitting this option yields an object key that includes all selectionSet fields.
+  * `keyField`: specifies the name of a field to pick off origin objects as the key value. Omitting this option yields an [object key](#object-keys) that includes all selectionSet fields.
   * `keyArg`: specifies which field argument receives the merge key. This may be omitted for fields with only one argument where the key recipient can be inferred.
   * `additionalArgs`: specifies a string of additional keys and values to apply to other arguments, formatted as `name: "value"`.
   * _`key`: advanced use only; builds a custom key._
@@ -84,7 +84,7 @@ const {
 
 ## Schema setup
 
-To setup stitching directives, you'll need to install their definitions into each subschema, and then add a transformer to the stitched gateway that reads them. See the [handbook example](https://github.com/gmac/schema-stitching-handbook/tree/master/stitching-directives-sdl) for a complete working demonstration.
+To setup stitching directives, you'll need to install their definitions into each subschema, and then add a transformer to the stitched gateway that reads them. See the [handbook example](https://github.com/gmac/schema-stitching-handbook/tree/master/stitching-directives-sdl) for a complete demonstration.
 
 ### Subservice setup
 
@@ -98,6 +98,7 @@ const {
   stitchingDirectivesValidator
 } = stitchingDirectives();
 
+// 1. include directive type definitions...
 const typeDefs = `
   ${stitchingDirectivesTypeDefs}
   # schema here ...
@@ -108,10 +109,12 @@ const typeDefs = `
 `;
 
 module.exports = makeExecutableSchema({
+  // 2. include the stitching directives validator...
   schemaTransforms: [stitchingDirectivesValidator],
   typeDefs,
   resolvers: {
     Query: {
+      // 3. setup a query that exposes the raw SDL...
       _sdl: () => typeDefs
     }
   }
@@ -122,10 +125,9 @@ module.exports = makeExecutableSchema({
 2. Include a `stitchingDirectivesValidator` in your executable schema (highly recommended).
 3. Setup a query field that returns the schema's raw type definitions string (see the `_sdl` field example above). This field is extremely important for exposing the annotated SDL to your stitched gateway. Unfortunately, custom directives cannot be obtained through schema introspection.
 
-
 ### Gateway setup
 
-When setting up the stitched gateway, you'll need to do two things to bring in [remote schemas](/docs/stitch-combining-schemas#stitching-remote-schemas) properly:
+When setting up the stitched gateway, you'll need to do two things:
 
 ```js
 const { stitchSchemas } = require('@graphql-tools/stitch');
@@ -138,6 +140,7 @@ async function createGatewaySchema() {
   const postsExec = createRemoteExecutor('http://localhost:4002/graphql');
 
   return stitchSchemas({
+    // 1. include directives transformer...
     subschemaConfigTransforms: [stitchingDirectivesTransformer],
     subschemas: [{
       schema: await fetchRemoteSchema(usersExec),
@@ -162,27 +165,32 @@ function createRemoteExecutor(url) {
 }
 
 async function fetchRemoteSchema(executor) {
+  // 2. fetch schemas from their raw SDL queries...
   const result = await executor({ document: '{ _sdl }' });
   return buildSchema(result.data._sdl);
 }
 ```
-
-1. Fetch subschemas through their `_sdl` query. You _cannot_ introspect custom directives, so you must use a custom query that provides the complete annotated type definitions string.
-2. Include the `stitchingDirectivesTransformer` in your stitched gateway's config transforms. This will read SDL directives into the stitched schema's static configuration.
+1. Include the `stitchingDirectivesTransformer` in your stitched gateway's config transforms. This will read SDL directives into the stitched schema's static configuration.
+2. Fetch subschemas through their `_sdl` query. You _cannot_ introspect custom directives, so you must use a custom query that provides the complete annotated type definitions string.
 
 ## Recipes
 
-### Single picked key
+### Picked keys
 
-This pattern configures a [single-record merge query](../type-merging-single-records):
+The simplest merge pattern picks a key field from origin objects:
 
 ```graphql
 type User @key(selectionSet: "{ id }") {
+  # ...
+}
+
+type Product @key(selectionSet: "{ upc }") {
   # ...
 }
 
 type Query {
   user(id: ID!): User @merge(keyField: "id")
+  products(upcs: [ID!]!): [Product]! @merge(keyField: "upc")
 }
 ```
 
@@ -191,43 +199,22 @@ This SDL translates into the following merge config:
 ```js
 merge: {
   User: {
+    // single-record query:
     selectionSet: '{ id }'
     fieldName: 'user',
     args: ({ id }) => ({ id }),
+  },
+  Product: {
+    // array query:
+    selectionSet: '{ upc }'
+    fieldName: 'products',
+    key: ({ upc }) => upc,
+    argsFromKeys: (upcs) => ({ upcs }),
   }
 }
 ```
 
-Here the `@key` directive specifies a base selection set for the merged type, and the `@merge` directive marks its merge query&mdash;the `keyField` argument specifies that the `id` field should be picked from the original object as the argument value.
-
-### Picked keys array
-
-This pattern configures an [array-batched merge query](../type-merging-arrays):
-
-```graphql
-type User @key(selectionSet: "{ id }") {
-  # ...
-}
-
-type Query {
-  users(ids: [ID!]!): [User]! @merge(keyField: "id")
-}
-```
-
-This SDL translates into the following merge config:
-
-```js
-merge: {
-  User: {
-    selectionSet: '{ id }'
-    fieldName: 'users',
-    key: ({ id }) => id,
-    argsFromKeys: (ids) => ({ ids }),
-  }
-}
-```
-
-Again, the `@key` directive specifies a base selection set for the merged type, and the `@merge` directive marks its merge query&mdash;the `keyField` argument specifies that the `id` field should be picked from each original object for the argument array.
+Here the `@key` directive specifies a base selection set for each merged type, and the `@merge` directive marks each type's merge query&mdash;then `keyField` specifies a field to be picked from each original object as the query argument value.
 
 ### Multiple arguments
 
@@ -264,7 +251,7 @@ Because the merge field recieves multiple arguments, the `keyArg` parameter is r
 
 ### Object keys
 
-In the absence of a `keyField` to pick, keys will assume the shape of an object with a `__typename` and all fields collected by all selectionSets on the type. These object keys should be represented in your schema with a dedicated scalar type:
+In the absence of a `keyField` to pick, keys will assume the shape of an object with a `__typename` and all fields collected for all selectionSets on the type. These object keys should be represented in your schema with a dedicated scalar type:
 
 ```graphql
 type Product @key(selectionSet: "{ upc }") {
@@ -279,7 +266,7 @@ type Query {
 }
 ```
 
-This SDL translates into the following merge config:
+You may use any name for the key scalar. This SDL translates into the following merge config:
 
 ```js
 // assume "pick" works like the lodash method...
