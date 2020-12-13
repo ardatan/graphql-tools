@@ -48,27 +48,27 @@ By default, stitching directives use the following definitions (though the names
 
 ```graphql
 directive @key(selectionSet: String!) on OBJECT
-directive @merge(keyField: String, keyArg: String, key: [String!], argsExpr: String, additionalArgs: String) on FIELD_DEFINITION
+directive @merge(keyField: String, keyArg: String, additionalArgs: String, key: [String!], argsExpr: String) on FIELD_DEFINITION
 directive @computed(selectionSet: String!) on FIELD_DEFINITION
 ```
 
 The function of these directives are:
 
-* **`@key`:** specifies the base selection set used to merge the annotated type across subschemas. Analogous to the `selectionSet` setting specified in [merged type configuration](/docs/stitch-type-merging#basic-example).
+* **`@key`:** specifies a base selection set needed to merge the annotated type across subschemas. Analogous to the `selectionSet` setting specified in [merged type configuration](/docs/stitch-type-merging#basic-example).
 
-* **`@merge`:** denotes a root field used to merge a type across services. The marked field's name is analogous to the `fieldName` setting in merged type configuration, and the field's arguments and return type provide details used in setting up the merger. Additional arguments may tune the merge behavior:
+* **`@merge`:** denotes a root field used to merge a type across services. The marked field's name is analogous to the `fieldName` setting in merged type configuration, while the field's arguments and return types automatically configure applicable type mergers. Additional arguments may tune the merge behavior:
 
-  * `keyField`: specifies the name of a field to pick off the original object as the key value. Generally matches the field specified in the type-level selection set.
-  * `keyArg`: specifies which field argument receives the merge key. This may be omitted for fields with only one argument, thus allowing the argument to be inferred.
-  * `key`: tktk
-  * `argsExpr`: tktk
-  * `additionalArgs`: tktk
+  * `keyField`: specifies the name of a field to pick off of original objects as the key value. Omitting this option yields an object key that includes all selectionSet fields.
+  * `keyArg`: specifies which field argument receives the merge key. This may be omitted for fields with only one argument where the key recipient can be inferred.
+  * `additionalArgs`: specifies a string of additional keys and values to apply to other arguments, formatted as `name: "value"`.
+  * _`key`: advanced use only; builds a custom key._
+  * _`argsExpr`: advanced use only; builds a custom args object._
 
 * **`@computed`:** specifies a selection of fields required from other services to compute the value of this field. These assitional fields are only selected when the computed field is requested. Analogous to [computed field](/docs/stitch-type-merging#computed-fields) in merged type configuration. Computed field dependencies must be sent into the subservice using an [object key](#object-keys).
 
 #### Customizing names
 
-You may use the `stitchingDirectives` helper to build your own directives type definition and validator that implement your own names. For example, the configuration below creates the resources for `@myKey`, `@myMerge`, and `@myComputed` directives:
+You may use the `stitchingDirectives` helper to build your own type definitions and validator with custom names. For example, the configuration below creates the resources for `@myKey`, `@myMerge`, and `@myComputed` directives:
 
 ```js
 const { stitchingDirectives } = require('@graphql-tools/stitching-directives');
@@ -93,7 +93,6 @@ When setting up a subservice, you'll need to do three things:
 ```js
 const { makeExecutableSchema } = require('@graphql-tools/schema');
 const { stitchingDirectives } = require('@graphql-tools/stitching-directives');
-
 const {
   stitchingDirectivesTypeDefs,
   stitchingDirectivesValidator
@@ -121,12 +120,12 @@ module.exports = makeExecutableSchema({
 
 1. Include `stitchingDirectivesTypeDefs` in your schema's type definitions string (these define the schema of the directives themselves).
 2. Include a `stitchingDirectivesValidator` in your executable schema (highly recommended).
-3. Setup a query field that returns the schema's raw type definitions string (see the `_sdl` field above). This field is extremely important for exposing the annotated SDL to your stitched gateway. Unfortunately, custom directives cannot be obtained through schema introspection.
+3. Setup a query field that returns the schema's raw type definitions string (see the `_sdl` field example above). This field is extremely important for exposing the annotated SDL to your stitched gateway. Unfortunately, custom directives cannot be obtained through schema introspection.
 
 
 ### Gateway setup
 
-When setting up the stitched gateway, you'll need to do two things:
+When setting up the stitched gateway, you'll need to do two things to bring in [remote schemas](/docs/stitch-combining-schemas#stitching-remote-schemas) properly:
 
 ```js
 const { stitchSchemas } = require('@graphql-tools/stitch');
@@ -134,7 +133,23 @@ const { stitchingDirectivesTransformer } = require('@graphql-tools/stitching-dir
 const { print, buildSchema } = require('graphql');
 const { fetch } = require('cross-fetch');
 
-function makeRemoteExecutor(url) {
+async function createGatewaySchema() {
+  const usersExec = createRemoteExecutor('http://localhost:4001/graphql');
+  const postsExec = createRemoteExecutor('http://localhost:4002/graphql');
+
+  return stitchSchemas({
+    subschemaConfigTransforms: [stitchingDirectivesTransformer],
+    subschemas: [{
+      schema: await fetchRemoteSchema(usersExec),
+      executor: usersExec,
+    }, {
+      schema: await fetchRemoteSchema(postsExec),
+      executor: postsExec,
+    }]
+  });
+}
+
+function createRemoteExecutor(url) {
   return async ({ document, variables }) => {
     const query = typeof document === 'string' ? document : print(document);
     const fetchResult = await fetch(url, {
@@ -150,41 +165,20 @@ async function fetchRemoteSchema(executor) {
   const result = await executor({ document: '{ _sdl }' });
   return buildSchema(result.data._sdl);
 }
-
-async function createGatewaySchema() {
-  const executor1 = makeRemoteExecutor('http://localhost:4001/graphql');
-  const executor2 = makeRemoteExecutor('http://localhost:4002/graphql');
-
-  return stitchSchemas({
-    subschemaConfigTransforms: [stitchingDirectivesTransformer],
-    subschemas: [{
-      schema: await fetchRemoteSchema(executor1),
-      executor: executor1,
-    }, {
-      schema: await fetchRemoteSchema(executor2),
-      executor: executor2,
-    }]
-  });
-}
 ```
 
-1. Include `stitchingDirectivesTransformer` in your stitched gateway's config transformations. This will read SDL directives into the schema's static configuration.
-2. Fetch subschemas going through their `_sdl` query. You _cannot_ introspect custom directives, so you must use a custom query that provides the complete annotated type definitions string.
+1. Fetch subschemas through their `_sdl` query. You _cannot_ introspect custom directives, so you must use a custom query that provides the complete annotated type definitions string.
+2. Include the `stitchingDirectivesTransformer` in your stitched gateway's config transforms. This will read SDL directives into the stitched schema's static configuration.
 
 ## Recipes
 
-Describe all the major formulas for using directives...
-
-
 ### Single picked key
 
-Open the Accounts schema and see the expression of a [single-record merge query](../type-merging-single-records):
+This pattern configures a [single-record merge query](../type-merging-single-records):
 
 ```graphql
 type User @key(selectionSet: "{ id }") {
-  id: ID!
-  name: String!
-  username: String!
+  # ...
 }
 
 type Query {
@@ -192,150 +186,188 @@ type Query {
 }
 ```
 
-This translates into the following configuration:
+This SDL translates into the following merge config:
 
 ```js
 merge: {
   User: {
     selectionSet: '{ id }'
     fieldName: 'user',
-    args: (id) => ({ id }),
+    args: ({ id }) => ({ id }),
   }
 }
 ```
 
-Here the `@key` directive specifies a base selection set for the merged type, and the `@merge(keyField: "id")` directive marks a merger query&mdash;specifying that the `id` field should be picked from the original object as the query argument.
+Here the `@key` directive specifies a base selection set for the merged type, and the `@merge` directive marks its merge query&mdash;the `keyField` argument specifies that the `id` field should be picked from the original object as the argument value.
 
 ### Picked keys array
 
-Next, open the Products schema and see the expression of an [array-batched merge query](../type-merging-arrays):
+This pattern configures an [array-batched merge query](../type-merging-arrays):
 
 ```graphql
-type Product @key(selectionSet: "{ upc }") {
-  upc: ID!
+type User @key(selectionSet: "{ id }") {
+  # ...
 }
 
 type Query {
-  products(upcs: [ID!]!): [Product]! @merge(keyField: "upc")
+  users(ids: [ID!]!): [User]! @merge(keyField: "id")
 }
 ```
 
-This translates into the following configuration:
+This SDL translates into the following merge config:
 
 ```js
 merge: {
-  Product: {
-    selectionSet: '{ upc }'
-    fieldName: 'products',
-    key: ({ upc }) => upc,
-    argsFromKeys: (upcs) => ({ upcs }),
+  User: {
+    selectionSet: '{ id }'
+    fieldName: 'users',
+    key: ({ id }) => id,
+    argsFromKeys: (ids) => ({ ids }),
   }
 }
 ```
 
-Again, the `@key` directive specifies a base selection set for the merged type, and the `@merge(keyField: "upc")` directive marks a merger array query&mdash;specifying that a `upc` field should be picked from each original object for the query argument array.
+Again, the `@key` directive specifies a base selection set for the merged type, and the `@merge` directive marks its merge query&mdash;the `keyField` argument specifies that the `id` field should be picked from each original object for the argument array.
+
+### Multiple arguments
+
+This pattern configures a merge query that receives multiple arguments:
+
+```graphql
+type User @key(selectionSet: "{ id }") {
+  # ...
+}
+
+type Query {
+  users(ids: [ID!]!, scope: String): [User]! @merge(
+    keyField: "id",
+    keyArg: "ids",
+    additionalArgs: """ scope: "all" """
+  )
+}
+```
+
+This SDL translates into the following merge config:
+
+```js
+merge: {
+  User: {
+    selectionSet: '{ id }'
+    fieldName: 'users',
+    key: ({ id }) => id,
+    argsFromKeys: (ids) => ({ ids, scope: 'all' }),
+  }
+}
+```
+
+Because the merge field recieves multiple arguments, the `keyArg` parameter is required to specify which argument recieves the key(s). The `additionalArgs` parameter may then be used to provide static values for the other arguments.
 
 ### Object keys
 
-Now open the Inventory schema and see the expression of an object key, denoted by the `_Key` scalar. This special scalar builds a typed object like those sent to [federation services](../federation-services):
+In the absence of a `keyField` to pick, keys will assume the shape of an object with a `__typename` and all fields collected by all selectionSets on the type. These object keys should be represented in your schema with a dedicated scalar type:
 
 ```graphql
 type Product @key(selectionSet: "{ upc }") {
-  upc: ID!
+  # ...
   shippingEstimate: Int @computed(selectionSet: "{ price weight }")
 }
 
 scalar _Key
 
 type Query {
-  _products(keys: [_Key!]!): [Product]! @merge
+  products(keys: [_Key!]!): [Product]! @merge
 }
 ```
 
-This translates into the following configuration:
+This SDL translates into the following merge config:
 
 ```js
-// uses lodash-like behavior for picking keys...
-const { pick } = require('lodash');
-
+// assume "pick" works like the lodash method...
 merge: {
   Product: {
     selectionSet: '{ upc }',
     computedFields: {
       shippingEstimate: { selectionSet: '{ price weight }' },
     },
-    fieldName: '_products',
+    fieldName: 'products',
     key: (obj) => ({ __typename: 'Product', ...pick(obj, ['upc', 'price', 'weight']) }),
     argsFromKeys: (keys) => ({ keys }),
   }
 }
 ```
 
-The `_Key` scalar generates an object with a `__typename` and all _utilized_ selectionSet fields on the type. For example, when the `shippingEstimate` field is requested, the resulting object keys look like:
+Each generated object key will have a `__typename` and all _utilized_ selectionSet fields on the type. For example, when the `shippingEstimate` field is requested, the resulting object keys will look like this:
 
 ```js
 [
-  { upc: '1', price: 899, weight: 100, __typename: 'Product' },
-  { upc: '2', price: 1299, weight: 1000, __typename: 'Product' }
+  { __typename: 'Product', upc: '1', price: 899, weight: 100 },
+  { __typename: 'Product', upc: '2', price: 1299, weight: 1000 }
 ]
 ```
 
-However, when `shippingEstimate` is NOT requested, the generated object keys will only contain fields from the base selectionSet and a `__typename`:
+However, when `shippingEstimate` is NOT requested, the generated object keys will only contain fields from the base selectionSet:
 
 ```js
 [
-  { upc: '1', __typename: 'Product' },
-  { upc: '2', __typename: 'Product' }
+  { __typename: 'Product', upc: '1' },
+  { __typename: 'Product', upc: '2' }
 ]
 ```
 
 ### Typed inputs
 
-Similar to the [object keys](#object-keys) discussed above, an input object type may be used to constrain the specific fields included on a object key:
+Similar to the [object keys](#object-keys) discussed above, an input object type may be used in place of a generic scalar to cast object keys with a specific schema:
 
 ```graphql
-type User @key(selectionSet: "{ id }") {
-  id: ID!
+type Product @key(selectionSet: "{ upc }") {
+  # ...
+  shippingEstimate: Int @computed(selectionSet: "{ price weight }")
 }
 
-input UserKey {
-  id: ID!
+input ProductKey {
+  upc: ID!
+  price: Int
+  weight: Int
 }
 
 type Query {
-  _users(keys: [UserKey!]!): [User]! @merge
+  products(keys: [ProductKey!]!): [Product]! @merge
 }
 ```
 
-This translates into the following configuration:
+This SDL translates into the following merge config:
 
 ```js
+// assume "pick" works like the lodash method...
 merge: {
-  User: {
-    selectionSet: '{ id }',
-    fieldName: '_users',
-    key: ({ id }) => ({ id }),
+  Product: {
+    selectionSet: '{ upc }',
+    computedFields: {
+      shippingEstimate: { selectionSet: '{ price weight }' },
+    },
+    fieldName: 'products',
+    key: (obj) => pick(obj, ['upc', 'price', 'weight']),
     argsFromKeys: (keys) => ({ keys }),
   }
 }
 ```
 
-In this case, the generated object keys will contain nothing but utilized selectionSet fields that are whitelisted by the input type:
+These typed inputs follow the same behavior as object keys with regards to only including fields from _utilized_ selectionSets. The resulting objects will only ever include fields whitelisted by their input schema, and are subject to nullability mismatch errors:
 
 ```js
 [
-  { id: '1' },
-  { id: '2' }
+  { upc: '1', price: 899, weight: 100 },
+  { upc: '2', price: 1299, weight: 1000 }
 ]
 ```
 
 ### Nested inputs
 
-A more advanced form of [typed input keys](#typed-inputs), this pattern uses the `keyArg` parameter to specify an input path at which to format the stitching query arguments:
+More advanced cases may need to interface with complex inputs. In these cases, the `keyArg` may specify a namespaced path at which to send the merge key:
 
 ```graphql
 type Product @key(selectionSet: "{ upc }") {
-  upc: ID!
+  # ...
 }
 
 input ProductKey {
@@ -347,10 +379,14 @@ input ProductInput {
 }
 
 type Query {
-  _products(input: ProductInput): [Product]! @merge(keyArg: "input.keys")
+  products(input: ProductInput): [Product]! @merge(keyArg: "input.keys")
 }
 ```
 
-## Hot reloading
+## Versioning
+
+Talk about hot reloading...
+
+## Deployment
 
 Talk about hot reloading...
