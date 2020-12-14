@@ -60,7 +60,7 @@ The function of these directives are:
 
   * `keyField`: specifies the name of a field to pick off origin objects as the key value. Omitting this option yields an [object key](#object-keys) that includes all selectionSet fields.
   * `keyArg`: specifies which field argument receives the merge key. This may be omitted for fields with only one argument where the key recipient can be inferred.
-  * `additionalArgs`: specifies a string of additional keys and values to apply to other arguments, formatted as `name: "value"`.
+  * `additionalArgs`: specifies a string of additional keys and values to apply to other arguments, formatted as `""" arg1: "value", arg2: "value" """`.
   * _`key`: advanced use only; builds a custom key._
   * _`argsExpr`: advanced use only; builds a custom args object._
 
