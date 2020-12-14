@@ -64,7 +64,7 @@ The function of these directives are:
   * _`key`: advanced use only; builds a custom key._
   * _`argsExpr`: advanced use only; builds a custom args object._
 
-* **`@computed`:** specifies a selection of fields required from other services to compute the value of this field. These assitional fields are only selected when the computed field is requested. Analogous to [computed field](/docs/stitch-type-merging#computed-fields) in merged type configuration. Computed field dependencies must be sent into the subservice using an [object key](#object-keys).
+* **`@computed`:** specifies a selection of fields required from other services to compute the value of this field. These additional fields are only selected when the computed field is requested. Analogous to [computed field](/docs/stitch-type-merging#computed-fields) in merged type configuration. Computed field dependencies must be sent into the subservice using an [object key](#object-keys).
 
 #### Customizing names
 
@@ -251,7 +251,7 @@ Because the merge field recieves multiple arguments, the `keyArg` parameter is r
 
 ### Object keys
 
-In the absence of a `keyField` to pick, keys will assume the shape of an object with a `__typename` and all fields collected for all selectionSets on the type. These object keys should be represented in your schema with a dedicated scalar type:
+In the absence of a `keyField` to pick, keys will assume the shape of an object with a `__typename` and all fields collected for all selectionSets on the type. These object keys may be represented in your schema with a dedicated scalar type, or as an [input object](#typed-inputs):
 
 ```graphql
 type Product @key(selectionSet: "{ upc }") {
