@@ -8,7 +8,7 @@ Stitching directives (`@graphql-tools/stitching-directives`) may be used to conf
 
 ## Overview
 
-Using SDL directives, a subservice may express its complete schema _and type merging configuration_ in a single document. See the [handbook example](https://github.com/gmac/schema-stitching-handbook/tree/master/stitching-directives-sdl) for a working demonstration.
+Using SDL directives, a subservice may express its complete schema _and type merging configuration_ in a single document. See related [handbook example](https://github.com/gmac/schema-stitching-handbook/tree/master/stitching-directives-sdl) for a working demonstration.
 
 ```graphql
 # --- Users schema ---
@@ -84,7 +84,7 @@ const {
 
 ## Schema setup
 
-To setup stitching directives, you'll need to install their definitions into each subschema, and then add a transformer to the stitched gateway that reads them. See the [handbook example](https://github.com/gmac/schema-stitching-handbook/tree/master/stitching-directives-sdl) for a complete demonstration.
+To setup stitching directives, you'll need to install their definitions into each subschema, and then add a transformer to the stitched gateway that reads them. See related [handbook example](https://github.com/gmac/schema-stitching-handbook/tree/master/stitching-directives-sdl) for a complete demonstration.
 
 ### Subservice setup
 
@@ -266,7 +266,7 @@ type Query {
 }
 ```
 
-You may use any name for the key scalar. This SDL translates into the following merge config:
+You may use any name for the key scalar, here we're calling it `_Key`. This SDL translates into the following merge config:
 
 ```js
 // assume "pick" works like the lodash method...
@@ -370,10 +370,16 @@ type Query {
 }
 ```
 
-## Versioning
+## Versioning &amp; release
 
-Talk about hot reloading...
+Once all schemas and their merge configurations are defined together as annotated SDL documents, new versions of these documents can be pushed up to the gateway to trigger a "hot" reload&mdash;or, a reload of the gateway schema with server deployment and a restart. See related [handbook example](https://github.com/gmac/schema-stitching-handbook/tree/master/hot-schema-reloading) demonstrating a basic reload.
 
-## Deployment
+However, pushing new SDL versions directly to the gateway is a risky proposition given the potential for incompatible subschema versions to be mixed. Therefore, a formal versioning, testing, and release strategy is necessary for long-term stability. The general process is as follows:
 
-Talk about hot reloading...
+1. Subservice schemas are comitted to a central schema registry where they are all versioned together.
+2. Continuous integration tests run on the latest versions of all subservice schemas composed together _before_ any schemas are released.
+3. Once a composed release of new subschemas passes integration tests, their underlying subservices are deployed.
+4. New subservices should quietly activate new schemas behind the gateway proxy layer without breaking any existing schemas. Breaking changes should always be rolled out during a maintenance window.
+5. After all new subservices have been rolled out, the revised schemas may be activated within the gateway proxy layer.
+
+While that process sounds fairly involved (in many ways, it is), you can tune your workflow to naturally build around this process. See our [handbook example](https://github.com/gmac/schema-stitching-handbook/tree/master/versioning-schema-releases) that demonstrates using the GitHub API to turn a basic repo into a schema registry in charge of versioning and releases.

@@ -8,6 +8,8 @@ Type merging allows _partial definitions_ of a type to exist in any subschema, a
 
 Type merging is now the preferred method of including GraphQL types across subschemas, replacing the need for [schema extensions](/docs/stitch-schema-extensions) (though does not preclude their use). To migrate from schema extensions, simply enable type merging and then start replacing extensions one by one with merges.
 
+<div class="video-player"><iframe src="https://www.youtube.com/embed/KBACiSA5sEQ?list=PLTJ2vmU3jbWy6JntdRQZAmy0mcpYu2OD1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>
+
 ## Basic example
 
 Type merging allows each subschema to provide subsets of a type that it has data for. For example:
@@ -92,7 +94,20 @@ That's it! Under the subschema config `merge` option, each merged type provides 
 - `selectionSet` specifies one or more key fields required from other services to perform this query. Query planning will automatically resolve these fields from other subschemas in dependency order.
 -  `args` formats the initial object representation into query arguments.
 
-This configuration allows type merging to smartly resolve a complete `User`, regardless of which service provides the initial representation of it. See the [basic merging demo](https://github.com/gmac/schema-stitching-demos/tree/master/02-single-record-type-merging) for a working example of this process. We now have a combined `User` type in the gateway schema:
+See related [handbook example](https://github.com/gmac/schema-stitching-handbook/tree/master/type-merging-single-records) for a working demonstration of this setup. This JavaScript-based syntax may also be written directly into schema type definitions using the [stitching directives SDL](/docs/stitch-directives-sdl):
+
+```graphql
+type User @key(selectionSet: "{ id }") {
+  id: ID!
+  email: String!
+}
+
+type Query {
+  userById(id: ID!): User @merge(keyField: "id")
+}
+```
+
+Regardless of how this merge configuration is written, it allows type merging to smartly resolve a complete `User`, regardless of which service provides the initial representation of it. We now have a combined `User` type in the gateway schema:
 
 ```graphql
 type User {
@@ -213,7 +228,7 @@ const gatewaySchema = stitchSchemas({
 });
 ```
 
-A `valuesFromResults` method may also be provided to map the raw query result into the batched set. With this array optimization in place, we'll now only perform one query _per merged field_ (versus per record). However, requesting multiple merged fields will still perform a query each. To optimize this further, we can enable [query batching](https://github.com/gmac/schema-stitching-demos/wiki/Batching-Arrays-and-Queries#what-is-query-batching):
+A `valuesFromResults` method may also be provided to map the raw query result into the batched set. With this array optimization in place, we'll now only perform one query _per merged field_ (versus per record). However, requesting multiple merged fields will still perform a query each. To optimize this further, we can enable [query batching](https://github.com/gmac/schema-stitching-handbook/wiki/Batching-Arrays-and-Queries#what-is-query-batching):
 
 ```js
 {
@@ -240,7 +255,7 @@ batchingOptions?: {
 }
 ```
 
-Using both array batching and query batching together is recommended, and should flatten transactional costs down to one query per subservice per generation of data. See [batching demo](https://github.com/gmac/schema-stitching-demos/tree/master/03-array-batched-type-merging) for a working example of this process.
+Using both array batching and query batching together is recommended, and should flatten transactional costs down to one query per subservice per generation of data. See related [handbook example](https://github.com/gmac/schema-stitching-handbook/tree/master/type-merging-arrays) for a working demonstration of this process.
 
 ## Unidirectional merges
 
@@ -350,7 +365,7 @@ const layoutsSchema = makeExecutableSchema({
 });
 ```
 
-In the above, both `Post` and `Section` will have a common interface of `{ id title url }` in the gateway schema. The difference in interface fields between the gateway schema and the layouts subschema will be translated automatically during delegation.
+In the above, both `Post` and `Section` will have a common interface of `{ id title url }` in the gateway schema. The difference in interface fields between the gateway schema and the layouts subschema will be translated automatically during delegation. See related [handbook example](https://github.com/gmac/schema-stitching-handbook/tree/master/type-merging-interfaces) for a working demonstration.
 
 ## Computed fields
 
@@ -435,9 +450,7 @@ const gatewaySchema = stitchSchemas({
 });
 ```
 
-In the above, the `shippingEstimate` and `deliveryService` fields are marked with `@computed` directives, which specify additional _field-level dependencies_ required to resolve these specific fields beyond the `Product` type's base selection set. When a computed field appears in a query, the gateway will collect that field's dependencies from other subschemas so they may be sent as input with the request for the computed field(s).
-
-To facilitate this dependency pattern, computed and non-computed fields of a type in the same subservice are automatically split apart into separate schemas. This assures that computed fields are always requested directly by the gateway with their dependencies provided. For example, `Storefront.availableProducts` may originate Product records within the storefronts service, but these records may not immedaitely compute `shippingEstimate` because they do not yet have their external dependencies. Instead, the gateway will need to return to the storefronts service with a dedicated request for computed fields that includes their required inputs. All told, types that combine computed and non-computed fields in a single subschema may require an extra resolution step by the gateway. You may enable [query batching](#batching) to consolidate these requests whenever possible.
+In the above, the `shippingEstimate` and `deliveryService` fields are marked with `@computed` directives (see [stitching directives SDL](/docs/stitch-directives-sdl)), which specify additional _field-level dependencies_ required to resolve these specific fields beyond the `Product` type's base selection set. When a computed field appears in a query, the gateway will collect that field's dependencies from other subschemas so they may be sent as input with the request for the computed field(s).
 
 The `@computed` SDL directive is a convenience syntax for static configuration that can be written as:
 
@@ -460,6 +473,8 @@ The `@computed` SDL directive is a convenience syntax for static configuration t
 ```
 
 The main disadvantage of computed fields is that they cannot be resolved independently from the stitched gateway. Tolerance for this subservice inconsistency is largely dependent on your own service architecture. An imperfect solution is to deprecate all computed fields within a subschema, and then normalize their behavior in the gateway schema using the [`RemoveObjectFieldDeprecations`](https://github.com/ardatan/graphql-tools/blob/master/packages/wrap/tests/transformRemoveObjectFieldDeprecations.test.ts) transform.
+
+> **Implementation note:** to facilitate field-level dependencies, computed and non-computed fields of a type in the same subservice are automatically split apart into separate schemas. This assures that computed fields are always requested directly by the gateway with their dependencies provided. However, it also means that computed and non-computed fields may require separate resolution steps. You may enable [query batching](#batching) to consolidate requests whenever possible.
 
 ## Federation services
 
@@ -487,6 +502,8 @@ Type merging generally maps to Federation concepts as follows:
 - `@requires`: directly comparable to type merging's `@computed` directive. However, merging is decentralized and may resolve computed fields from any number of services.
 - `@external`: type merging implicitly expects types in each service to only implement the fields they provide.
 - `@provides`: type merging implicitly handles multiple services that implement the same fields, and automatically selects as many requested fields as possible from as few services as possible during each execution cycle.
+
+See related [handbook example](https://github.com/gmac/schema-stitching-handbook/tree/master/type-merging-interfaces) for a demonstration of federation services used in a stitched gateway.
 
 ## Type resolvers
 
