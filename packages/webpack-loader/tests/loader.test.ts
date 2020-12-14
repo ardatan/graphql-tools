@@ -57,3 +57,18 @@ test('basic query with esModules on', () => {
     ${exportLine}
   `);
 });
+
+test('replaceKinds enabled', () => {
+  const docStr = /* GraphQL */`
+    query Foo {
+      foo
+    }
+  `;
+  const doc = useLoader(docStr, {
+    replaceKinds: true
+  });
+
+  expect(doc).toMatch(`var Kind = require('graphql/language/kinds');`)
+  expect(doc).toMatch(`"kind": Kind.DOCUMENT`);
+  expect(doc).not.toMatch(`"kind": "`);
+});
