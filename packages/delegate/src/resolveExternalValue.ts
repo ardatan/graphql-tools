@@ -16,7 +16,7 @@ import {
 import AggregateError from '@ardatan/aggregate-error';
 
 import { StitchingInfo, SubschemaConfig } from './types';
-import { annotateExternalObject } from './externalObjects';
+import { annotateExternalObject, isExternalObject } from './externalObjects';
 import { getFieldsNotInSubschema } from './getFieldsNotInSubschema';
 import { mergeFields } from './mergeFields';
 import { Subschema } from './Subschema';
@@ -58,10 +58,15 @@ function resolveExternalObject(
   info: GraphQLResolveInfo,
   skipTypeMerging?: boolean
 ) {
-  const stitchingInfo: StitchingInfo = info?.schema.extensions?.stitchingInfo;
+  // if we have already resolved this object, for example, when the identical object appears twice
+  // in a list, see https://github.com/ardatan/graphql-tools/issues/2304
+  if (isExternalObject(object)) {
+    return object;
+  }
 
   annotateExternalObject(object, unpathedErrors, subschema);
 
+  const stitchingInfo: StitchingInfo = info?.schema.extensions?.stitchingInfo;
   if (skipTypeMerging || !stitchingInfo) {
     return object;
   }
