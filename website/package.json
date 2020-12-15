@@ -9,8 +9,8 @@
     "deploy": "docusaurus deploy"
   },
   "dependencies": {
-    "@docusaurus/core": "2.0.0-alpha.f37987f32",
-    "@docusaurus/preset-classic": "2.0.0-alpha.f37987f32",
+    "@docusaurus/core": "2.0.0-alpha.6703f8420",
+    "@docusaurus/preset-classic": "2.0.0-alpha.6703f8420",
     "classnames": "2.2.6",
     "react": "17.0.1",
     "react-dom": "17.0.1"

@@ -10,7 +10,7 @@ module.exports = {
   projectName: 'graphql-tools', // Usually your repo name.
   themeConfig: {
     colorMode: {
-      defaultMode: "dark",
+      defaultMode: 'dark',
     },
     navbar: {
       // title: 'GraphQL Tools',
@@ -33,7 +33,7 @@ module.exports = {
         {
           href: 'https://the-guild.dev/contact',
           label: 'Contact Us',
-          position: 'right'
+          position: 'right',
         },
       ],
     },
@@ -46,7 +46,7 @@ module.exports = {
     footer: {
       style: 'dark',
       links: [
-/* {
+        /* {
           title: 'Docs',
           items: [
             {
@@ -64,27 +64,27 @@ module.exports = {
           items: [
             {
               label: 'Discord',
-              href: 'http://bit.ly/guild-chat'
+              href: 'http://bit.ly/guild-chat',
             },
             {
               label: 'Stack Overflow',
-              href: 'https://stackoverflow.com/questions/tagged/graphql-tools'
-            }
-          ]
+              href: 'https://stackoverflow.com/questions/tagged/graphql-tools',
+            },
+          ],
         },
         {
           title: 'Social',
           items: [
             {
               label: 'GitHub',
-              href: 'https://github.com/Urigo/graphql-tools/'
+              href: 'https://github.com/Urigo/graphql-tools/',
             },
             {
               label: 'Twitter',
-              href: 'https://twitter.com/TheGuildDev'
-            }
-          ]
-        }
+              href: 'https://twitter.com/TheGuildDev',
+            },
+          ],
+        },
       ],
       copyright: `Copyright © ${new Date().getFullYear()} The Guild, Inc. Built with Docusaurus.`,
     },
@@ -102,8 +102,7 @@ module.exports = {
       {
         docs: {
           sidebarPath: require.resolve('./sidebars.json'),
-          editUrl:
-            'https://github.com/ardatan/graphql-tools/edit/master/website/',
+          editUrl: 'https://github.com/ardatan/graphql-tools/edit/master/website/',
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
@@ -111,4 +110,6 @@ module.exports = {
       },
     ],
   ],
+  onBrokenLinks: 'warn',
+  onBrokenMarkdownLinks: 'warn',
 };
