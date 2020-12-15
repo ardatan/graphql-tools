@@ -14,7 +14,7 @@ In these cases, `stitchSchemas` is used to combine multiple GraphQL APIs into on
 
 ## Getting started
 
-In this example we'll stitch together two very simple schemas representing a system of users and posts. You can find many supporting examples of stitching concepts in the [demos repository](https://github.com/gmac/schema-stitching-demos).
+In this example we'll stitch together two very simple schemas representing a system of users and posts. You can find many supporting examples of stitching concepts in the [Schema Stitching Handbook](https://github.com/gmac/schema-stitching-handbook).
 
 ```js
 import { makeExecutableSchema } from '@graphql-tools/schema';
@@ -102,7 +102,7 @@ Also note that these subschema config objects may need to be referenced again in
 
 ## Stitching remote schemas
 
-To include a remote schema in the combined gateway, we must provide at least the `schema` and `executor` subschema config options:
+To include a remote schema in the combined gateway, you must provide at least the `schema` and `executor` subschema config options:
 
 ```js
 import { introspectSchema } from '@graphql-tools/wrap';
@@ -122,13 +122,13 @@ async function remoteExecutor({ document, variables }) {
 export const postsSubschema = {
   schema: await introspectSchema(remoteExecutor),
   executor: remoteExecutor,
+  // subscriber: remoteSubscriber
 };
 ```
 
-* `schema`: this is a non-executable schema representing the remote API. The remote schema may be obtained using [introspection](/docs/remote-schemas/#introspectschemaexecutor-context), or fetched as a flat SDL string (from a server or repo) and built into a schema using [`buildSchema`](https://graphql.org/graphql-js/utilities/#buildschema). Note that not all GraphQL servers enable introspection, and those that do will not include custom directives. This often makes a custom fetch option preferable to introspection.
-* `executor`: is a generic method that performs requests to a remote schema. It's quite simple to [write your own](/docs/remote-schemas#creating-an-executor). Subschema config uses the `executor` for query and mutation operations, and accepts a `subscriber` function for subscription operations.
-
-See [remote schemas](/docs/remote-schemas/) documentation for more related tools and information, or the [combining local and remote schemas](https://github.com/gmac/schema-stitching-demos/tree/master/01-combining-local-and-remote-schemas) example.
+* `schema`: this is a non-executable schema representing the remote API. The remote schema may be obtained using [introspection](/docs/remote-schemas/#introspectschemaexecutor-context), or fetched as a flat SDL string (from a server or repo) and built into a schema using [`buildSchema`](https://graphql.org/graphql-js/utilities/#buildschema). Note that not all GraphQL servers enable introspection, and those that do will not include custom directives.
+* `executor`: is a generic method that performs requests to a remote schema. It's quite simple to [write your own](/docs/remote-schemas#creating-an-executor). Subschema config uses the executor for query and mutation operations. See [handbook example](https://github.com/gmac/schema-stitching-handbook/tree/master/combining-local-and-remote-schemas).
+* `subscriber`: to enable subscription operations, include a [subscriber function](/docs/remote-schemas#creating-a-subscriber) that returns an AsyncIterator. See [handbook example](https://github.com/gmac/schema-stitching-handbook/tree/master/mutations-and-subscriptions).
 
 ## Duplicate types
 

@@ -19,6 +19,7 @@
           "Schema stitching": [
             "stitch-combining-schemas",
             "stitch-type-merging",
+            "stitch-directives-sdl",
             "stitch-schema-extensions",
             "stitch-api"
           ]
