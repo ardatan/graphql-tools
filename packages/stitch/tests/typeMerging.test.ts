@@ -533,3 +533,98 @@ describe('merging using type merging when renaming', () => {
     expect(result.data.User_userById.chirps[1].author.email).not.toBe(null);
   });
 });
+
+describe('external object annotation with batchDelegateToSchema', () => {
+  const networkSchema = makeExecutableSchema({
+    typeDefs: `
+      type Domain {
+        id: ID!
+        name: String!
+      }
+      type Network {
+        id: ID!
+        domains: [Domain!]!
+      }
+      type Query {
+        networks(ids: [ID!]!): [Network!]!
+      }
+    `,
+    resolvers: {
+      Query: {
+        networks: (_root, { ids }) =>
+          ids.map((id) => ({ id, domains: [{ id: Number(id) + 3, name: `network${id}.com` }] })),
+      },
+    },
+  })
+
+  const postsSchema = makeExecutableSchema({
+    typeDefs: `
+      type Network {
+        id: ID!
+      }
+      type Post {
+        id: ID!
+        network: Network!
+      }
+      type Query {
+        posts(ids: [ID!]!): [Post]!
+      }
+    `,
+    resolvers: {
+      Query: {
+        posts: (_root, { ids }) =>
+          ids.map((id) => ({
+            id,
+            network: { id: Number(id) + 2 },
+          })),
+      },
+    },
+  })
+
+  const gatewaySchema = stitchSchemas({
+    subschemas: [
+      {
+        schema: networkSchema,
+        merge: {
+          Network: {
+            fieldName: 'networks',
+            selectionSet: '{ id }',
+            key: (originalObject) => originalObject.id,
+            argsFromKeys: (ids) => ({ ids }),
+          },
+        },
+      },
+      {
+        schema: postsSchema,
+      },
+    ],
+  })
+
+  test('if batchDelegateToSchema can delegate 2 times the same key', async () => {
+    const { data, errors } = await graphql(
+      gatewaySchema,
+      `
+        query {
+          posts(ids: [55, 55]) {
+            network {
+              id
+              domains {
+                id
+                name
+              }
+            }
+          }
+        }
+      `,
+    )
+
+    expect(data.posts).toEqual([
+      {
+        network: { id: '57', domains: [{ id: '60', name: 'network57.com' }] },
+      },
+      {
+        network: { id: '57', domains: [{ id: '60', name: 'network57.com' }] },
+      },
+    ])
+  })
+})
