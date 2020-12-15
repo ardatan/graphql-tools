@@ -45,7 +45,7 @@
     "patch-package": "6.2.2",
     "@changesets/cli": "2.12.0",
     "@types/jest": "26.0.19",
-    "@types/node": "14.14.13",
+    "@types/node": "14.14.14",
     "@typescript-eslint/eslint-plugin": "4.10.0",
     "@typescript-eslint/parser": "4.10.0",
     "@ardatan/bob-the-bundler": "1.2.2",
