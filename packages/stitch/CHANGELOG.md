@@ -1,5 +1,11 @@
 # @graphql-tools/stitch
 
+## 7.1.6
+
+### Patch Changes
+
+- c84d2f8f: fix(stitch): always use defaultMergedResolver by default on gateway
+
 ## 7.1.5
 
 ### Patch Changes
