@@ -7,6 +7,7 @@ import {
   isUnionType,
   GraphQLUnionType,
   GraphQLInterfaceType,
+  isSchema,
 } from 'graphql';
 import { mapSchema, MapperKind, IResolvers } from '@graphql-tools/utils';
 import { addResolversToSchema } from '@graphql-tools/schema';
@@ -97,6 +98,16 @@ export function addMocksToSchema({
   resolvers: resolversOrFnResolvers,
   preserveResolvers = false,
 }: IMockOptions): GraphQLSchema {
+  if (!schema) {
+    throw new Error('Must provide schema to mock');
+  }
+  if (!isSchema(schema)) {
+    throw new Error('Value at "schema" must be of type GraphQLSchema');
+  }
+  if (mocks && !isObject(mocks)) {
+    throw new Error('mocks must be of type Object');
+  }
+
   const store =
     maybeStore ||
     createMockStore({
