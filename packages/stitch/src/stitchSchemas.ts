@@ -142,7 +142,7 @@ export function stitchSchemas({
     ? extendResolversFromInterfaces(schema, resolverMap)
     : resolverMap;
 
-  stitchingInfo = completeStitchingInfo(stitchingInfo, finalResolvers);
+  stitchingInfo = completeStitchingInfo(stitchingInfo, finalResolvers, schema);
 
   schema = addResolversToSchema({
     schema,

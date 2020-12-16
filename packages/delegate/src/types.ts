@@ -200,6 +200,7 @@ export type MergedTypeResolver = (
 
 export interface StitchingInfo {
   subschemaMap: Map<GraphQLSchema | SubschemaConfig, Subschema>;
+  selectionSetsByType: Record<string, SelectionSetNode>;
   selectionSetsByField: Record<string, Record<string, SelectionSetNode>>;
   dynamicSelectionSetsByField: Record<string, Record<string, Array<(node: FieldNode) => SelectionSetNode>>>;
   mergedTypes: Record<string, MergedTypeInfo>;
