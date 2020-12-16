@@ -111,17 +111,6 @@ describe('Mock retro-compatibility', () => {
     ).toThrowError('mocks must be of type Object');
   });
 
-  test('throws an error if mockFunctionMap contains a non-function thingy', () => {
-    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
-    const mockMap = { Int: 55 };
-    expect(() =>
-      addMocksToSchema({
-        schema: jsSchema,
-        mocks: (mockMap as unknown) as IMocks,
-      }),
-    ).toThrowError('mockFunctionMap[Int] must be a function');
-  });
-
   test('mocks the default types for you', () => {
     let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     const mockMap = {};
