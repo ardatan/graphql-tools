@@ -9,6 +9,7 @@ import {
   defaultFieldResolver,
   findDeprecatedUsages,
   printSchema,
+  GraphQLResolveInfo,
 } from 'graphql';
 
 import { delegateToSchema, SubschemaConfig } from '@graphql-tools/delegate';
@@ -2147,6 +2148,244 @@ fragment BookingFragment on Booking {
     });
 
     describe('aliases', () => {
+      test('should allow aliasing on the gateway level in a complex schema with new types', async () => {
+        const remoteSchema = makeExecutableSchema({
+          typeDefs: `type Query {
+            persona: Persona!
+          }
+
+          type Persona {
+            id: ID!
+            transactions: TransactionsResult!
+          }
+
+          type TransactionsResult {
+            items: [Transaction!]!
+          }
+
+          type Transaction {
+            debt: Debt!
+            id: ID!
+          }
+
+          type Debt {
+            installmentPlan: SliceItByCardInstallmentPlan!
+          }
+
+          type SliceItByCardInstallmentPlan {
+            category: String!
+            installments: [String!]!
+          }
+
+          type PayTomorrow {
+            id: String!
+            installments: [String!]!
+          }
+
+          `,
+          resolvers: {
+            Query: {
+              persona: () => ({
+                transactions: {
+                  items: [
+                    { id: 1,
+                      debt: {
+                      installmentPlan: {
+                        category: "Cat-B",
+                        installments: ["B1", "B2"]
+                      }
+                    } },
+                    {
+                      id: 3,
+                      debt: {
+                        installmentPlan: {
+                          category: "Cat-A",
+                          installments: ["A1", "A2"]
+                        }
+                      }
+                    }
+                  ]
+                }
+              })
+            }
+          }
+        });
+
+        const originalResult = await graphql({
+          schema: remoteSchema,
+          source: `
+          query {
+            persona {
+              transactions {
+                items {
+                  id
+                  debt {
+                    ...DebtFields
+                  }
+                }
+              }
+            }
+          }
+
+          fragment DebtFields on Debt {
+            debtInstallmentPlan: installmentPlan {
+              category
+              installments
+            }
+          }
+          `
+        });
+
+        expect(originalResult.errors).toBeUndefined();
+        expect(originalResult.data).toBeDefined();
+        expect(originalResult.data.persona.transactions.items.length).toBe(2);
+        expect(originalResult.data.persona.transactions.items[1].debt).toBeDefined();
+
+        const mergedSchema = stitchSchemas({
+          subschemas: [remoteSchema],
+          typeDefs: `
+            type Query {
+              flattenedTransactions: FlattenedTransactions
+            }
+
+            type FlattenedTransactions {
+              page: [Transaction]
+              totalCount: Int
+            }
+
+            extend type Transaction {
+              type: String
+            }
+          `,
+          resolvers: {
+            Query: {
+              flattenedTransactions: async (_root: any, _args: any, context: any, info: GraphQLResolveInfo) => {
+                const result = await delegateToSchema(
+                    {
+                      schema: remoteSchema,
+                      operation: "query",
+                      fieldName: "persona",
+                      context,
+                      info,
+                      args: [],
+                      // better to to use a transformResult method than returnType
+                      // returnType: remoteSchema.getQueryType().getFields()['persona'].type,
+                      transforms: [
+                        {
+                          transformRequest: (ast) => {
+                            /**
+                             * This is the query before:
+                              {
+                                persona {
+                                  page {
+                                    id
+                                    debt {
+                                      ...DebtFields
+                                    }
+                                  }
+                                  totalCount
+                                }
+                              }
+                             */
+                            const query = ast.document.definitions.find(
+                              ({ operation }: any) => operation === "query"
+                            );
+                            const personaNode = (query as any).selectionSet.selections.find(
+                              ({ name }: any) => name.value === "persona"
+                            );
+                            const pageNode = personaNode.selectionSet.selections.find(
+                              ({ name }: any) => name.value === "page"
+                            );
+
+                            personaNode.selectionSet.selections = [
+                                {
+                                  kind: 'Field',
+                                  alias: undefined,
+                                  name: { kind: 'Name', value: 'transactions' },
+                                  arguments: [],
+                                  directives: [],
+                                  selectionSet: {
+                                    kind: 'SelectionSet',
+                                    selections: [
+                                      {
+                                        kind: 'Field',
+                                        alias: undefined,
+                                        name: { kind: 'Name', value: 'items' },
+                                        arguments: [],
+                                        directives: [],
+                                        selectionSet: pageNode.selectionSet,
+                                      }
+                                    ]
+                                  },
+                              }
+                            ]
+
+                            /**
+                             * The is the query after:
+                               {
+                                  persona {
+                                    transactions {
+                                      items {
+                                        id
+                                        debt {
+                                          ...DebtFields
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                             */
+
+                            return ast;
+                          },
+                          transformResult: (originalResult: ExecutionResult) => {
+                            originalResult.data.persona = {
+                              page: originalResult.data.persona.transactions.items,
+                            };
+                            return originalResult;
+                          },
+                        }
+                      ]
+                    },
+                  );
+
+                result.totalCount = result.page.length;
+                return result;
+              }
+            }
+          },
+        });
+
+        const result = await graphql({
+          schema: mergedSchema,
+          source: `
+            query {
+              flattenedTransactions {
+                page {
+                  id
+                  debt {
+                    ...DebtFields
+                  }
+                }
+                totalCount
+              }
+            }
+
+            fragment DebtFields on Debt {
+              debtInstallmentPlan: installmentPlan {
+                category
+                installments
+              }
+            }
+            `,
+        });
+
+        expect(result.errors).toBeUndefined();
+        expect(result.data).toBeDefined();
+        expect(result.data.flattenedTransactions.page.length).toBe(2);
+        expect(result.data.flattenedTransactions.page[1].debt).toBeDefined();
+      });
+
       test('aliases', async () => {
         const result = await graphql(
           stitchedSchema,

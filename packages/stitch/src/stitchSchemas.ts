@@ -19,7 +19,7 @@ import {
   extendResolversFromInterfaces,
 } from '@graphql-tools/schema';
 
-import { SubschemaConfig, isSubschemaConfig, Subschema } from '@graphql-tools/delegate';
+import { SubschemaConfig, isSubschemaConfig, Subschema, defaultMergedResolver } from '@graphql-tools/delegate';
 
 import { IStitchSchemasOptions, SubschemaConfigTransform } from './types';
 
@@ -146,6 +146,7 @@ export function stitchSchemas({
 
   schema = addResolversToSchema({
     schema,
+    defaultFieldResolver: defaultMergedResolver,
     resolvers: finalResolvers,
     resolverValidationOptions,
     inheritResolversFromInterfaces: false,
