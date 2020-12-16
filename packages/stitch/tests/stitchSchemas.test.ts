@@ -9,11 +9,7 @@ import {
   defaultFieldResolver,
   findDeprecatedUsages,
   printSchema,
-  execute,
   GraphQLResolveInfo,
-  SelectionSetNode,
-  Kind,
-  print,
 } from 'graphql';
 
 import { delegateToSchema, SubschemaConfig } from '@graphql-tools/delegate';
@@ -40,7 +36,6 @@ import {
   subscriptionPubSub,
   subscriptionPubSubTrigger,
 } from './fixtures/schemas';
-import { WrapQuery } from '@graphql-tools/wrap';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const removeLocations = ({ locations, ...rest }: any): any => ({ ...rest });
@@ -2153,7 +2148,7 @@ fragment BookingFragment on Booking {
     });
 
     describe('aliases', () => {
-      test.only('should allow aliasing on the gateway level', async () => {
+      test('should allow aliasing on the gateway level in a complex schema with new types', async () => {
         const remoteSchema = makeExecutableSchema({
           typeDefs: `type Query {
             persona: Persona!
@@ -2169,11 +2164,11 @@ fragment BookingFragment on Booking {
           }
 
           type Transaction {
-            debt: InstallmentPlan!
+            debt: Debt!
             id: ID!
           }
 
-          type InstallmentPlan {
+          type Debt {
             installmentPlan: SliceItByCardInstallmentPlan!
           }
 
@@ -2216,9 +2211,9 @@ fragment BookingFragment on Booking {
           }
         });
 
-        const originalResult = await execute({
+        const originalResult = await graphql({
           schema: remoteSchema,
-          document: parse(`
+          source: `
           query {
             persona {
               transactions {
@@ -2238,7 +2233,7 @@ fragment BookingFragment on Booking {
               installments
             }
           }
-          `)
+          `
         });
 
         expect(originalResult.errors).toBeUndefined();
@@ -2264,7 +2259,7 @@ fragment BookingFragment on Booking {
           `,
           resolvers: {
             Query: {
-              flattenedTransactions: async (root: any, args: any, context: any, info: GraphQLResolveInfo) => {
+              flattenedTransactions: async (_root: any, _args: any, context: any, info: GraphQLResolveInfo) => {
                 const result = await delegateToSchema(
                     {
                       schema: remoteSchema,
@@ -2273,7 +2268,8 @@ fragment BookingFragment on Booking {
                       context,
                       info,
                       args: [],
-                      returnType: remoteSchema.getQueryType().getFields()['persona'].type,
+                      // better to to use a transformResult method than returnType
+                      // returnType: remoteSchema.getQueryType().getFields()['persona'].type,
                       transforms: [
                         {
                           transformRequest: (ast) => {
@@ -2297,7 +2293,7 @@ fragment BookingFragment on Booking {
                             const personaNode = (query as any).selectionSet.selections.find(
                               ({ name }: any) => name.value === "persona"
                             );
-                            const pageSelectionSet = personaNode.selectionSet.selections.find(
+                            const pageNode = personaNode.selectionSet.selections.find(
                               ({ name }: any) => name.value === "page"
                             );
 
@@ -2317,7 +2313,7 @@ fragment BookingFragment on Booking {
                                         name: { kind: 'Name', value: 'items' },
                                         arguments: [],
                                         directives: [],
-                                        selectionSet: pageSelectionSet.selectionSet,
+                                        selectionSet: pageNode.selectionSet,
                                       }
                                     ]
                                   },
@@ -2341,32 +2337,28 @@ fragment BookingFragment on Booking {
                              */
 
                             return ast;
-                          }
+                          },
+                          transformResult: (originalResult: ExecutionResult) => {
+                            originalResult.data.persona = {
+                              page: originalResult.data.persona.transactions.items,
+                            };
+                            return originalResult;
+                          },
                         }
                       ]
                     },
                   );
 
-                  expect(result.transactions.items.length).toBe(2);
-
-                  // Here, we have an issue, we have `id` but no `debt` here
-                  expect(result.transactions.items[0].debt).toBeDefined();
-
-                return {
-                  page: result.transactions.items,
-                  totalCount: result.transactions.items.length
-                };
+                result.totalCount = result.page.length;
+                return result;
               }
             }
           },
         });
 
-        const result = await execute({
+        const result = await graphql({
           schema: mergedSchema,
-          contextValue: {},
-          rootValue: {},
-          variableValues: {},
-          document: parse(`
+          source: `
             query {
               flattenedTransactions {
                 page {
@@ -2386,7 +2378,6 @@ fragment BookingFragment on Booking {
               }
             }
             `,
-            )
         });
 
         expect(result.errors).toBeUndefined();
