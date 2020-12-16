@@ -242,7 +242,7 @@ export function visitSchema(
         objectType: type,
       });
 
-      if (newField.args != null) {
+      if (newField?.args != null) {
         newField.args = newField.args
           .map(arg =>
             callMethod('visitArgumentDefinition', arg, {
