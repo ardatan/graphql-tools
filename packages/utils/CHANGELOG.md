@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 7.1.6
+
+### Patch Changes
+
+- cd5da458: fix(utils): fix crashs when return null while visitSchema
+
 ## 7.1.5
 
 ### Patch Changes
