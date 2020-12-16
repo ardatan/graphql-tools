@@ -134,9 +134,9 @@ export function addMocksToSchema({
       });
     }
 
-    // we have to handle the root mutation and root query types differently,
-    // because no resolver is called at the root
-    if (isQueryOrMuationType(info.parentType, info.schema)) {
+    // we have to handle the root mutation, root query and root subscripton types
+    // differently, because no resolver is called at the root
+    if (isRootType(info.parentType, info.schema)) {
       return store.get({
         typeName: info.parentType.name,
         key: 'ROOT',
@@ -154,18 +154,30 @@ export function addMocksToSchema({
     }
   };
 
+  const mockSubscriber: GraphQLFieldResolver<any, any> = () => ({
+    [Symbol.asyncIterator]() {
+      return {
+        async next() {
+          return {
+            done: true,
+            value: {},
+          };
+        },
+      };
+    },
+  });
+
   const schemaWithMocks = mapSchema(schema, {
     [MapperKind.OBJECT_FIELD]: fieldConfig => {
+      const newFieldConfig = {
+        ...fieldConfig,
+      };
+
       const oldResolver = fieldConfig.resolve;
       if (!preserveResolvers || !oldResolver) {
-        return {
-          ...fieldConfig,
-          resolve: mockResolver,
-        };
-      }
-      return {
-        ...fieldConfig,
-        resolve: async (rootObject, args, context, info) => {
+        newFieldConfig.resolve = mockResolver;
+      } else {
+        newFieldConfig.resolve = async (rootObject, args, context, info) => {
           const [mockedValue, resolvedValue] = await Promise.all([
             mockResolver(rootObject, args, context, info),
             oldResolver(rootObject, args, context, info),
@@ -191,8 +203,23 @@ export function addMocksToSchema({
             return copyOwnProps(emptyObject, resolvedValue, mockedValue);
           }
           return undefined !== resolvedValue ? resolvedValue : mockedValue;
-        },
-      };
+        };
+      }
+
+      const fieldSubscriber = fieldConfig.subscribe;
+      if (!preserveResolvers || !fieldSubscriber) {
+        newFieldConfig.subscribe = mockSubscriber;
+      } else {
+        newFieldConfig.subscribe = async (rootObject, args, context, info) => {
+          const [mockAsyncIterable, oldAsyncIterable] = await Promise.all([
+            mockSubscriber(rootObject, args, context, info),
+            fieldSubscriber(rootObject, args, context, info),
+          ]);
+          return oldAsyncIterable || mockAsyncIterable;
+        };
+      }
+
+      return newFieldConfig;
     },
     [MapperKind.ABSTRACT_TYPE]: type => {
       if (preserveResolvers && type.resolveType != null && type.resolveType.length) {
@@ -215,12 +242,15 @@ export function addMocksToSchema({
   return resolvers ? addResolversToSchema(schemaWithMocks, resolvers) : schemaWithMocks;
 }
 
-const isQueryOrMuationType = (type: GraphQLObjectType, schema: GraphQLSchema) => {
+const isRootType = (type: GraphQLObjectType, schema: GraphQLSchema) => {
   const queryType = schema.getQueryType();
   const isOnQueryType = queryType != null && queryType.name === type.name;
 
   const mutationType = schema.getMutationType();
   const isOnMutationType = mutationType != null && mutationType.name === type.name;
 
-  return isOnQueryType || isOnMutationType;
+  const subscriptionType = schema.getSubscriptionType();
+  const isOnSubscriptionType = subscriptionType != null && subscriptionType.name === type.name;
+
+  return isOnQueryType || isOnMutationType || isOnSubscriptionType;
 };
