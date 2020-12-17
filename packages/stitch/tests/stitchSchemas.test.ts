@@ -2148,7 +2148,7 @@ fragment BookingFragment on Booking {
     });
 
     describe('aliases', () => {
-      test.only('should allow aliasing on the gateway level in a complex schema with new types', async () => {
+      test('should allow aliasing on the gateway level in a complex schema with new types', async () => {
         const remoteSchema = makeExecutableSchema({
           typeDefs: `type Query {
             persona: Persona!
@@ -2268,7 +2268,6 @@ fragment BookingFragment on Booking {
                       context,
                       info,
                       args: [],
-                      returnType: remoteSchema.getQueryType().getFields()['persona'].type,
                       transforms: [
                         {
                           transformRequest: (ast) => {
@@ -2337,21 +2336,19 @@ fragment BookingFragment on Booking {
 
                             return ast;
                           },
-                          // transformResult: (originalResult: ExecutionResult) => {
-                          //   originalResult.data.persona = {
-                          //     page: originalResult.data.persona.transactions.items,
-                          //   };
-                          //   return originalResult;
-                          // },
+                          transformResult: (originalResult: ExecutionResult) => {
+                            originalResult.data.persona = {
+                              page: originalResult.data.persona.transactions.items,
+                            };
+                            return originalResult;
+                          },
                         }
                       ]
                     },
                   );
 
-                return {
-                  page: result.transactions.items,
-                  totalCount: result.transactions.items.length,
-                };
+                result.totalCount = result.page.length;
+                return result;
               }
             }
           },
