@@ -354,7 +354,6 @@ describe('Mock retro-compatibility', () => {
 
   test('can mock Interfaces by default', () => {
     let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
-    jsSchema = addResolversToSchema(jsSchema, resolveFunctions);
     const mockMap = {
       Int: () => 10,
       String: () => 'aha',
@@ -366,7 +365,6 @@ describe('Mock retro-compatibility', () => {
     jsSchema = addMocksToSchema({
       schema: jsSchema,
       mocks: mockMap,
-      preserveResolvers: true,
     });
     const testQuery = `{
       returnFlying {
