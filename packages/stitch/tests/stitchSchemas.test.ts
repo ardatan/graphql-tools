@@ -2169,7 +2169,7 @@ fragment BookingFragment on Booking {
           }
 
           type Debt {
-            installmentPlan: SliceItByCardInstallmentPlan!
+            installmentPlan: [SliceItByCardInstallmentPlan!]!
           }
 
           type SliceItByCardInstallmentPlan {
@@ -2190,18 +2190,18 @@ fragment BookingFragment on Booking {
                   items: [
                     { id: 1,
                       debt: {
-                      installmentPlan: {
+                      installmentPlan: [{
                         category: "Cat-B",
                         installments: ["B1", "B2"]
-                      }
+                      }]
                     } },
                     {
                       id: 3,
                       debt: {
-                        installmentPlan: {
+                        installmentPlan: [{
                           category: "Cat-A",
                           installments: ["A1", "A2"]
-                        }
+                        }]
                       }
                     }
                   ]
@@ -2268,8 +2268,6 @@ fragment BookingFragment on Booking {
                       context,
                       info,
                       args: [],
-                      // better to to use a transformResult method than returnType
-                      // returnType: remoteSchema.getQueryType().getFields()['persona'].type,
                       transforms: [
                         {
                           transformRequest: (ast) => {
