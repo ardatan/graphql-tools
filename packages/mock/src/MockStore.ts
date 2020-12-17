@@ -28,7 +28,7 @@ import {
   ITypeMock,
 } from './types';
 import { uuidv4, randomListLength, takeRandom, makeRef } from './utils';
-import { isMockList } from './MockList';
+import { deepResolveMockList, isMockList } from './MockList';
 
 export const defaultMocks = {
   Int: () => Math.round(Math.random() * 200) - 100,
@@ -224,7 +224,7 @@ export class MockStore implements IMockStore {
     const { typeName, key, fieldName, fieldArgs, noOverride } = args;
     let { value } = args;
     if (isMockList(value)) {
-      value = value.mock();
+      value = deepResolveMockList(value);
     }
 
     if (!fieldName) {

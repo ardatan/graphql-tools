@@ -65,3 +65,10 @@ export class MockList {
     return Math.floor(Math.random() * (high - low + 1) + low);
   }
 }
+
+export function deepResolveMockList(mockList: MockList): unknown[] {
+  return mockList.mock().map(v => {
+    if (isMockList(v)) return deepResolveMockList(v);
+    return v;
+  });
+}
