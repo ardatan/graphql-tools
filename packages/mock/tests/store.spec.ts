@@ -9,6 +9,7 @@ type User {
   age: Int!
   name: String!
   surnames: [String!]!
+  listOfList: [[String]]!
 
   friends: [User!]!
 
@@ -325,7 +326,30 @@ describe('MockStore', () => {
     expect(MyFriendsNames).toEqual(['Nico', 'Ross', 'Trev']);
   });
 
-  it('should support nested set with empyt list', () => {
+  it('should support nested set with empty list of scalars', () => {
+    const store = createMockStore({ schema });
+
+    store.set('User', 'me', 'surnames', [...new Array(2)]);
+
+    const mySurnames = store.get('User', 'me', 'surnames') as string[];
+    expect(mySurnames).toHaveLength(2);
+
+    expect(typeof mySurnames[0]).toBe('string')
+  });
+
+  it('should support nested set of lists of lists with empty list of scalars', () => {
+    const store = createMockStore({ schema });
+
+    store.set('User', 'me', 'listOfList', [[undefined, undefined], [undefined, undefined]]);
+
+    const myListOfList = store.get('User', 'me', 'listOfList') as string[][];
+    expect(myListOfList).toHaveLength(2);
+    expect(myListOfList[0]).toHaveLength(2);
+
+    expect(typeof myListOfList[0][0]).toBe('string')
+  });
+
+  it('should support nested set with empty list of types', () => {
     const store = createMockStore({ schema });
 
     store.set('User', 'me', 'friends', [...new Array(2)]);

@@ -8,8 +8,9 @@ import {
   isEnumType,
   isAbstractType,
   isCompositeType,
+  isNullableType,
 } from 'graphql';
-import { assertIsDefined, isDefined } from 'ts-is-defined';
+import { assertIsDefined } from 'ts-is-defined';
 import stringify from 'fast-json-stable-stringify';
 
 import {
@@ -263,87 +264,75 @@ export class MockStore implements IMockStore {
       return;
     }
 
-    let valueToStore: unknown;
-    const fieldType = getNullableType(this.getFieldType(typeName, fieldName));
+    const fieldType = this.getFieldType(typeName, fieldName);
+    const currentValue = this.store[typeName][key][fieldNameInStore];
 
-    // deal with nesting
-    if (isCompositeType(fieldType) && isDefined(value)) {
-      if (!isRecord(value))
-        throw new Error(`Value to set for ${typeName}.${fieldName} should be an object or null or undefined`);
-      assertIsDefined(value, 'Should not be null at this point');
-      let joinedTypeName;
-      if (isAbstractType(fieldType)) {
-        if (isRef(value)) {
-          joinedTypeName = value.$ref.typeName;
-        } else {
-          if (typeof value['__typename'] !== 'string') {
-            throw new Error(
-              `Value to set for ${typeName}.${fieldName} should contain a '__typename' because the return type ${fieldType.name} is abstract`
-            );
-          }
-          joinedTypeName = value['__typename'];
-        }
-      } else {
-        joinedTypeName = fieldType.name;
-      }
-
-      const currentValue = this.store[typeName][key][fieldNameInStore];
-      valueToStore = this.insert(
-        joinedTypeName,
-        isRef(currentValue) ? { ...currentValue, ...value } : value,
-        noOverride
+    let valueToStore;
+    try {
+      valueToStore = this.normalizeValueToStore(fieldType, value, currentValue, (typeName, values) =>
+        this.insert(typeName, values, noOverride)
       );
-    } else if (isListType(fieldType) && isDefined(value)) {
-      if (!Array.isArray(value))
-        throw new Error(`Value to set for ${typeName}.${fieldName} should be an array or null or undefined`);
-
-      const nonNullableItemType = getNullableType(fieldType.ofType);
-
-      valueToStore = value.map((v, index) => {
-        if (v === null) return null;
-
-        if (!isCompositeType(nonNullableItemType)) {
-          if (v !== undefined) return v;
-          return this.generateValueFromType(nonNullableItemType);
-        } else {
-          if (v !== undefined && !isRecord(v))
-            throw new Error(
-              `Value to set for ${typeName}.${fieldName}[${index}] should be an object or null or undefined but got ${v}`
-            );
-
-          // if v is undefined (empty array slot) it means we just want to generate something
-          let joinedTypeName;
-          if (isAbstractType(nonNullableItemType)) {
-            if (!v) {
-              // no value so no typename => take one randomly
-              joinedTypeName = takeRandom(this.schema.getPossibleTypes(nonNullableItemType).map(t => t.name));
-            } else {
-              if (isRef(v)) {
-                joinedTypeName = v.$ref.typeName;
-              } else {
-                if (typeof v['__typename'] !== 'string') {
-                  throw new Error(
-                    `Value to set for ${typeName}.${fieldName}[${index}] should contain a '__typename' because the return type ${nonNullableItemType.name} is abstract`
-                  );
-                }
-                joinedTypeName = v['__typename'];
-              }
-            }
-          } else {
-            joinedTypeName = getNullableType(fieldType.ofType).name;
-          }
-
-          return this.insert(joinedTypeName, v || {}, noOverride);
-        }
-      });
-    } else {
-      valueToStore = value;
+    } catch (e) {
+      throw new Error(`Value to set in ${typeName}.${fieldName} in not normalizable: ${e.message}`);
     }
 
     this.store[typeName][key] = {
       ...this.store[typeName][key],
       [fieldNameInStore]: valueToStore,
     };
+  }
+
+  private normalizeValueToStore(
+    fieldType: GraphQLOutputType,
+    value: unknown,
+    currentValue: unknown,
+    onInsertType: (typeName: string, values: { [fieldName: string]: unknown }) => Ref
+  ): unknown {
+    const fieldTypeName = fieldType.toString();
+    if (value === null) {
+      if (!isNullableType(fieldType)) {
+        throw new Error(`should not be null bacause ${fieldTypeName} is not nullable. Received null.`);
+      }
+    }
+
+    const nullableFieldType = getNullableType(fieldType);
+    if (value === undefined) return this.generateValueFromType(nullableFieldType);
+
+    // deal with nesting insert
+    if (isCompositeType(nullableFieldType)) {
+      if (!isRecord(value)) throw new Error(`should be an object or null or undefined. Received ${value}`);
+
+      let joinedTypeName;
+      if (isAbstractType(nullableFieldType)) {
+        if (isRef(value)) {
+          joinedTypeName = value.$ref.typeName;
+        } else {
+          if (typeof value['__typename'] !== 'string') {
+            throw new Error(`should contain a '__typename' because ${nullableFieldType.name} an abstract type`);
+          }
+          joinedTypeName = value['__typename'];
+        }
+      } else {
+        joinedTypeName = nullableFieldType.name;
+      }
+
+      return onInsertType(joinedTypeName, isRef(currentValue) ? { ...currentValue, ...value } : value);
+    }
+
+    if (isListType(nullableFieldType)) {
+      if (!Array.isArray(value)) throw new Error(`should be an array or null or undefined. Received ${value}`);
+
+      return value.map((v, index) => {
+        return this.normalizeValueToStore(
+          nullableFieldType.ofType,
+          v,
+          currentValue && currentValue[index] ? currentValue : undefined,
+          onInsertType
+        );
+      });
+    }
+
+    return value;
   }
 
   private insert<KeyT extends KeyTypeConstraints>(
