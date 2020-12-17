@@ -9,7 +9,7 @@ import {
 
 import { sentence, first_name } from 'casual';
 
-import { addMocksToSchema, MockList, mockServer, IMocks } from '../src';
+import { addMocksToSchema, MockList, mockServer, IMocks, IMockStore } from '../src';
 import { addResolversToSchema,
   buildSchemaFromTypeDefinitions,
   makeExecutableSchema, } from '@graphql-tools/schema';
@@ -20,11 +20,13 @@ describe('Mock retro-compatibility', () => {
 
     interface Flying {
       id:String!
+      returnSong: String
       returnInt: Int
     }
 
     type Bird implements Flying {
       id:String!
+      returnSong: String
       returnInt: Int
       returnString: String
       returnStringArgument(s: String): String
@@ -32,6 +34,7 @@ describe('Mock retro-compatibility', () => {
 
     type Bee implements Flying {
       id:String!
+      returnSong: String
       returnInt: Int
       returnEnum: SomeEnum
     }
@@ -432,36 +435,41 @@ describe('Mock retro-compatibility', () => {
 
   test('can support explicit Interface mock', () => {
     let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
-    jsSchema = addResolversToSchema(jsSchema, resolveFunctions);
     let spy = 0;
     const mockMap = {
-      Bird: (_root: any, args: any) => ({
-        id: args.id,
+      Bird: () => ({
         returnInt: 100,
       }),
-      Bee: (_root: any, args: any) => ({
-        id: args.id,
+      Bee: () => ({
         returnInt: 200,
       }),
-      Flying: (_root: any, args: any) => {
-        spy++;
-        const { id } = args;
-        const type = id.split(':')[0];
-        const __typename = ['Bird', 'Bee'].find(
-          (r) => r.toLowerCase() === type,
-        );
-        return { __typename };
-      },
+      Flying: () => ({
+        returnSong: 'I believe i can fly'
+      })
     };
+    const resolvers = (store: IMockStore ) => ({
+      RootQuery: {
+        node: (_root: any, args: any) => {
+          spy++;
+          const { id } = args;
+          const type = id.split(':')[0];
+          const __typename = ['Bird', 'Bee'].find(
+            (r) => r.toLowerCase() === type,
+          );
+          return store.get(__typename, id);
+        }
+      }
+    });
     jsSchema = addMocksToSchema({
       schema: jsSchema,
       mocks: mockMap,
-      preserveResolvers: true,
+      resolvers,
     });
     const testQuery = `{
       node(id:"bee:123456"){
         id,
-        returnInt
+        returnSong,
+        returnInt,
       }
     }`;
 
@@ -469,6 +477,7 @@ describe('Mock retro-compatibility', () => {
       expect(spy).toBe(1); // to make sure that Flying possible types are not randomly selected
       expect(res.data.node).toMatchObject({
         id: 'bee:123456',
+        returnSong: 'I believe i can fly',
         returnInt: 200,
       });
     });

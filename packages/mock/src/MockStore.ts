@@ -9,6 +9,7 @@ import {
   isAbstractType,
   isCompositeType,
   isNullableType,
+  isInterfaceType,
 } from 'graphql';
 import { assertIsDefined } from 'ts-is-defined';
 import stringify from 'fast-json-stable-stringify';
@@ -381,10 +382,21 @@ export class MockStore implements IMockStore {
     fieldName: string,
     onOtherFieldsGenerated?: (fieldName: string, value: unknown) => void
   ): unknown | undefined {
+    const mockedValue = this.generateFieldValueFromMocks(typeName, fieldName, onOtherFieldsGenerated);
+    if (mockedValue !== undefined) return mockedValue;
+
+    const fieldType = this.getFieldType(typeName, fieldName);
+    return this.generateValueFromType(fieldType);
+  }
+
+  private generateFieldValueFromMocks(
+    typeName: string,
+    fieldName: string,
+    onOtherFieldsGenerated?: (fieldName: string, value: unknown) => void
+  ): unknown | undefined {
     let value;
 
     const mock: IScalarMock | ITypeMock | undefined = this.mocks ? this.mocks[typeName] : undefined;
-
     if (mock) {
       if (typeof mock === 'function') {
         const values = mock();
@@ -405,10 +417,19 @@ export class MockStore implements IMockStore {
       }
     }
 
-    if (value) return value;
+    if (value !== undefined) return value;
 
-    const fieldType = this.getFieldType(typeName, fieldName);
-    return this.generateValueFromType(fieldType);
+    const type = this.getType(typeName);
+    const interfaces = type.getInterfaces();
+
+    if (interfaces.length > 0) {
+      for (const interface_ of interfaces) {
+        if (value) break;
+        value = this.generateFieldValueFromMocks(interface_.name, fieldName, onOtherFieldsGenerated);
+      }
+    }
+
+    return value;
   }
 
   private generateKeyForType<KeyT extends KeyTypeConstraints>(
@@ -498,8 +519,8 @@ export class MockStore implements IMockStore {
   private getType(typeName: string) {
     const type = this.schema.getType(typeName);
 
-    if (!type || !isObjectType(type)) {
-      throw new Error(`${typeName} does not exist on schema or is not an object`);
+    if (!type || !(isObjectType(type) || isInterfaceType(type))) {
+      throw new Error(`${typeName} does not exist on schema or is not an object or interface`);
     }
 
     return type;
