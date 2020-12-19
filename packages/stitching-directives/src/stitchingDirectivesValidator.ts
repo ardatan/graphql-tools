@@ -22,7 +22,7 @@ const dottedNameRegEx = /^[_A-Za-z][_0-9A-Za-z]*(.[_A-Za-z][_0-9A-Za-z]*)*$/;
 export function stitchingDirectivesValidator(
   options: StitchingDirectivesOptions = {}
 ): (schema: GraphQLSchema) => GraphQLSchema {
-  const { keyDirectiveName, computedDirectiveName, mergeDirectiveName } = {
+  const { keyDirectiveName, computedDirectiveName, mergeDirectiveName, pathToDirectivesInExtensions } = {
     ...defaultStitchingDirectiveOptions,
     ...options,
   };
@@ -32,7 +32,7 @@ export function stitchingDirectivesValidator(
 
     mapSchema(schema, {
       [MapperKind.OBJECT_TYPE]: type => {
-        const directives = getDirectives(schema, type);
+        const directives = getDirectives(schema, type, pathToDirectivesInExtensions);
 
         if (directives[keyDirectiveName]) {
           const directiveArgumentMap = directives[keyDirectiveName];
@@ -42,7 +42,7 @@ export function stitchingDirectivesValidator(
         return undefined;
       },
       [MapperKind.OBJECT_FIELD]: (fieldConfig, _fieldName, typeName) => {
-        const directives = getDirectives(schema, fieldConfig);
+        const directives = getDirectives(schema, fieldConfig, pathToDirectivesInExtensions);
 
         if (directives[computedDirectiveName]) {
           const directiveArgumentMap = directives[computedDirectiveName];

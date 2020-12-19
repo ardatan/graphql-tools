@@ -54,7 +54,20 @@ type DirectableGraphQLObject =
   | GraphQLFieldConfig<any, any>
   | GraphQLInputFieldConfig;
 
-export function getDirectives(schema: GraphQLSchema, node: DirectableGraphQLObject): DirectiveUseMap {
+export function getDirectives(
+  schema: GraphQLSchema,
+  node: DirectableGraphQLObject,
+  pathToDirectivesInExtensions = ['directives']
+): DirectiveUseMap {
+  const directivesInExtensions = pathToDirectivesInExtensions.reduce(
+    (acc, pathSegment) => (acc == null ? acc : acc[pathSegment]),
+    node?.extensions
+  );
+
+  if (directivesInExtensions != null) {
+    return directivesInExtensions;
+  }
+
   const schemaDirectives: ReadonlyArray<GraphQLDirective> =
     schema && schema.getDirectives ? schema.getDirectives() : [];
 

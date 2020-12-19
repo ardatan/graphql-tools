@@ -718,6 +718,14 @@ export function attachDirectiveResolvers(
 
 Existing code that uses `directiveResolvers` could consider migrating to direct usage of `mapSchema`, though we have no immediate plans to deprecate `directiveResolvers`.
 
+## What about code-first schemas?
+
+You can use schema transformation functions with code-first schemas as well. By default, if a `directives` key exists within the `extensions` field for a given GraphQL entity, the `getDirectives` function will retrieve the directive data from the GraphQL entity's `extensions.directives` data rather than from the SDL. This, of course, allows schemas created without SDL to use any schema transformation functions created for directive use, as long as they define the necessary data within the GraphQL entity extensions.
+
+This behavior can be customized! The `getDirectives` function takes a third argument, `pathToDirectivesInExtensions`, an array of strings, that allows customization of this path to directive data within extensions, which is set to `['directives']` by default. We recommend allowing end users to customize this path similar to how the directive name can be customized above.
+
+See [this `graphql-js` issue](https://github.com/graphql/graphql-js/issues/1343) for more information on directives with code-first schemas. We follow the [Gatsby and graphql-compose convention](https://github.com/graphql/graphql-js/issues/1343#issuecomment-479877640) of reading directives from the `extensions` field, but allow customization as above.
+
 ## Full mapSchema API
 
 How can you customize schema mapping? The second argument provided to mapSchema is an object of type `SchemaMapper` that can specify individual mapping functions.

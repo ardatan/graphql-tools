@@ -32,7 +32,7 @@ import { stitchingDirectivesValidator } from './stitchingDirectivesValidator';
 export function stitchingDirectivesTransformer(
   options: StitchingDirectivesOptions = {}
 ): (subschemaConfig: SubschemaConfig) => SubschemaConfig {
-  const { keyDirectiveName, computedDirectiveName, mergeDirectiveName } = {
+  const { keyDirectiveName, computedDirectiveName, mergeDirectiveName, pathToDirectivesInExtensions } = {
     ...defaultStitchingDirectiveOptions,
     ...options,
   };
@@ -51,7 +51,7 @@ export function stitchingDirectivesTransformer(
 
     mapSchema(schema, {
       [MapperKind.OBJECT_TYPE]: type => {
-        const directives = getDirectives(schema, type);
+        const directives = getDirectives(schema, type, pathToDirectivesInExtensions);
 
         if (directives[keyDirectiveName]) {
           const directiveArgumentMap = directives[keyDirectiveName];
@@ -62,7 +62,7 @@ export function stitchingDirectivesTransformer(
         return undefined;
       },
       [MapperKind.OBJECT_FIELD]: (fieldConfig, fieldName, typeName) => {
-        const directives = getDirectives(schema, fieldConfig);
+        const directives = getDirectives(schema, fieldConfig, pathToDirectivesInExtensions);
 
         if (directives[computedDirectiveName]) {
           const directiveArgumentMap = directives[computedDirectiveName];
@@ -132,7 +132,7 @@ export function stitchingDirectivesTransformer(
 
     mapSchema(schema, {
       [MapperKind.OBJECT_FIELD]: (fieldConfig, fieldName) => {
-        const directives = getDirectives(schema, fieldConfig);
+        const directives = getDirectives(schema, fieldConfig, pathToDirectivesInExtensions);
 
         if (directives[mergeDirectiveName]) {
           const directiveArgumentMap = directives[mergeDirectiveName];
