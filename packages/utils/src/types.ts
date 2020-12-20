@@ -10,7 +10,7 @@ export interface SchemaPrintOptions {
   commentDescriptions?: boolean;
 }
 
-export interface PrintSchemaWithDirectivesOptions {
+export interface PrintSchemaWithDirectivesOptions extends SchemaPrintOptions {
   pathToDirectivesInExtensions?: Array<string>;
 }
 
