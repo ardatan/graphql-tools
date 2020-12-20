@@ -1,6 +1,6 @@
 import { RenameTypes, wrapSchema } from '@graphql-tools/wrap';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { buildSchema, printSchema } from 'graphql';
+import { buildSchema, GraphQLDirective, printSchema, GraphQLSchema } from 'graphql';
 import { printSchemaWithDirectives } from '../src';
 import { GraphQLJSON } from 'graphql-scalars';
 
@@ -65,6 +65,19 @@ describe('printSchemaWithDirectives', () => {
     expect(output).toContain('type Other');
     expect(output).toContain('type TestType');
     expect(output).toContain('type Query');
+  });
+
+  it('Should print directives correctly if they dont have astNode', () => {
+    const schema = new GraphQLSchema({
+      directives: [new GraphQLDirective({
+        name: 'dummy',
+        locations: ['QUERY'],
+      })]
+    });
+
+    const output = printSchemaWithDirectives(schema);
+
+    expect(output).toContain('directive @dummy on QUERY');
   });
 
   it('should print comments', () => {

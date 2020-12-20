@@ -7,17 +7,24 @@ import {
   ObjectTypeExtensionNode,
   isSpecifiedScalarType,
   isIntrospectionType,
-  isScalarType,
   parse,
   TypeDefinitionNode,
   DirectiveNode,
   FieldDefinitionNode,
   InputValueDefinitionNode,
+  GraphQLArgument,
   EnumValueDefinitionNode,
+  isSpecifiedDirective,
+  GraphQLDirective,
+  DirectiveDefinitionNode,
+  astFromValue,
 } from 'graphql';
 import { SchemaPrintOptions } from './types';
 import { createSchemaDefinition } from './create-schema-definition';
+import { astFromType } from './astFromType';
 
+// this approach uses the default schema printer rather than a custom solution, so may be more backwards compatible
+// currently does not allow customization of printSchema options having to do with comments.
 export function printSchemaWithDirectives(schema: GraphQLSchema, _options: SchemaPrintOptions = {}): string {
   const typesMap = schema.getTypeMap();
 
@@ -25,7 +32,7 @@ export function printSchemaWithDirectives(schema: GraphQLSchema, _options: Schem
 
   for (const typeName in typesMap) {
     const type = typesMap[typeName];
-    const isPredefinedScalar = isScalarType(type) && isSpecifiedScalarType(type);
+    const isPredefinedScalar = isSpecifiedScalarType(type);
     const isIntrospection = isIntrospectionType(type);
 
     if (isPredefinedScalar || isIntrospection) {
@@ -38,9 +45,11 @@ export function printSchemaWithDirectives(schema: GraphQLSchema, _options: Schem
 
   const directives = schema.getDirectives();
   for (const directive of directives) {
-    if (directive.astNode) {
-      result.push(print(directive.astNode));
+    if (isSpecifiedDirective(directive)) {
+      continue;
     }
+
+    result.push(print(astFromDirective(directive)));
   }
 
   return result.join('\n');
@@ -134,4 +143,95 @@ function getSchemaDefinition(schema: GraphQLSchema) {
       subscription: schema.getSubscriptionType(),
     });
   }
+}
+
+function astFromDirective(directive: GraphQLDirective): DirectiveDefinitionNode {
+  return {
+    kind: Kind.DIRECTIVE_DEFINITION,
+    loc: directive.astNode?.loc,
+    description:
+      directive.astNode?.description ??
+      (directive.description
+        ? {
+            kind: Kind.STRING,
+            value: directive.description,
+          }
+        : undefined),
+    name: {
+      kind: Kind.NAME,
+      value: directive.name,
+    },
+    arguments: directive?.args ? directive.args.map(astFromArg) : undefined,
+    repeatable: directive.isRepeatable,
+    locations: directive?.locations
+      ? directive.locations.map(location => ({
+          kind: Kind.NAME,
+          value: location,
+        }))
+      : undefined,
+  };
+}
+
+function astFromArg(arg: GraphQLArgument): InputValueDefinitionNode {
+  let directiveNodesBesidesDeprecated: Array<DirectiveNode> = [];
+  let deprecatedDirectiveNode: DirectiveNode;
+
+  const hasASTDirectives = arg.astNode?.directives;
+  if (hasASTDirectives) {
+    directiveNodesBesidesDeprecated = arg.astNode.directives.filter(directive => directive.name.value !== 'deprecated');
+    if (((arg as unknown) as { deprecationReason: string }).deprecationReason != null) {
+      deprecatedDirectiveNode = ((arg as unknown) as { astNode: InputValueDefinitionNode }).astNode.directives.filter(
+        directive => directive.name.value === 'deprecated'
+      )?.[0];
+    }
+  }
+
+  if (
+    ((arg as unknown) as { deprecationReason: string }).deprecationReason != null &&
+    deprecatedDirectiveNode == null
+  ) {
+    deprecatedDirectiveNode = {
+      kind: Kind.DIRECTIVE,
+      name: {
+        kind: Kind.NAME,
+        value: 'deprecated',
+      },
+      arguments: [
+        {
+          kind: Kind.ARGUMENT,
+          name: {
+            kind: Kind.NAME,
+            value: 'reason',
+          },
+          value: {
+            kind: Kind.STRING,
+            value: ((arg as unknown) as { deprecationReason: string }).deprecationReason,
+          },
+        },
+      ],
+    };
+  }
+
+  return {
+    kind: Kind.INPUT_VALUE_DEFINITION,
+    loc: arg.astNode?.loc,
+    description:
+      arg.astNode?.description ??
+      (arg.description
+        ? {
+            kind: Kind.STRING,
+            value: arg.description,
+          }
+        : undefined),
+    name: {
+      kind: Kind.NAME,
+      value: arg.name,
+    },
+    type: astFromType(arg.type),
+    defaultValue: arg.defaultValue !== undefined ? astFromValue(arg.defaultValue, arg.type) : undefined,
+    directives:
+      deprecatedDirectiveNode == null
+        ? directiveNodesBesidesDeprecated
+        : [deprecatedDirectiveNode].concat(directiveNodesBesidesDeprecated),
+  };
 }

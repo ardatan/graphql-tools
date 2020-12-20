@@ -10,6 +10,10 @@ export interface SchemaPrintOptions {
   commentDescriptions?: boolean;
 }
 
+export interface PrintSchemaWithDirectivesOptions {
+  pathToDirectivesInExtensions?: Array<string>;
+}
+
 export type Maybe<T> = null | undefined | T;
 
 export type Constructor<T> = new (...args: any[]) => T;
