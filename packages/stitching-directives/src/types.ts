@@ -25,6 +25,7 @@ export interface StitchingDirectivesOptions {
   keyDirectiveName?: string;
   computedDirectiveName?: string;
   mergeDirectiveName?: string;
+  pathToDirectivesInExtensions?: Array<string>;
 }
 
 export interface MergedTypeResolverInfo extends ParsedMergeArgsExpr {

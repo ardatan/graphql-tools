@@ -124,6 +124,18 @@ SchemaDirectiveVisitor.visitSchemaDirectives(schema, {
 });
 ```
 
+This syntax is especially useful for code-first schemas that wish to make use of directive implementations. For code-first schemas, directives are read from the `directives` key within the `extensions` field for each GraphQL entity, unless a different path is provided, as per below:
+
+```typescript
+SchemaDirectiveVisitor.visitSchemaDirectives(schema, {
+  deprecated: DeprecatedDirective
+}, undefined, ['custom', 'path', 'to', 'directives', 'within', 'the', 'extensions', 'object']);
+```
+
+The second argument to `visitSchemaDirectives` refers to a shared context object that may be passed to `SchemaDirectiveVisitor` classes -- it is not often used, and can usually be safely set to undefined.
+
+See [this `graphql-js` issue](https://github.com/graphql/graphql-js/issues/1343) for more information on directives with code-first schemas. We follow the [Gatsby and graphql-compose convention](https://github.com/graphql/graphql-js/issues/1343#issuecomment-479877640) of reading directives from the `extensions` field, but allow customization as above.
+
 Note that a subclass of `SchemaDirectiveVisitor` may be instantiated multiple times to visit multiple different occurrences of the `@deprecated` directive. That's why you provide a class rather than an instance of that class.
 
 If for some reason you have a schema that uses another name for the `@deprecated` directive, but you want to use the same implementation, you can! The same `DeprecatedDirective` class can be passed with a different name, simply by changing its key in the `schemaDirectives` object passed to `makeExecutableSchema`. In other words, `SchemaDirectiveVisitor` implementations are effectively anonymous, so it's up to whoever uses them to assign names to them.

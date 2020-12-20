@@ -105,9 +105,10 @@ export class SchemaDirectiveVisitor<TArgs = any, TContext = any> extends SchemaV
     directiveVisitors: Record<string, SchemaDirectiveVisitorClass>,
     // Optional context object that will be available to all visitor instances
     // via this.context. Defaults to an empty null-prototype object.
-    context: Record<string, any> = Object.create(null)
+    context: Record<string, any> = Object.create(null),
     // The visitSchemaDirectives method returns a map from directive names to
     // lists of SchemaDirectiveVisitors created while visiting the schema.
+    pathToDirectivesInExtensions = ['directives']
   ): Record<string, Array<SchemaDirectiveVisitor>> {
     // If the schema declares any directives for public consumption, record
     // them here so that we can properly coerce arguments when/if we encounter
@@ -133,23 +134,69 @@ export class SchemaDirectiveVisitor<TArgs = any, TContext = any> extends SchemaV
     );
 
     function visitorSelector(type: VisitableSchemaType, methodName: string): Array<SchemaDirectiveVisitor> {
-      let directiveNodes = type?.astNode?.directives ?? [];
+      const directivesInExtensions = pathToDirectivesInExtensions.reduce(
+        (acc, pathSegment) => (acc == null ? acc : acc[pathSegment]),
+        type?.extensions
+      );
 
-      const extensionASTNodes: ReadonlyArray<TypeSystemExtensionNode> = (type as {
-        extensionASTNodes?: Array<TypeSystemExtensionNode>;
-      }).extensionASTNodes;
+      const directives: Record<string, Array<any>> = Object.create(null);
 
-      if (extensionASTNodes != null) {
-        extensionASTNodes.forEach(extensionASTNode => {
-          if (extensionASTNode.directives != null) {
-            directiveNodes = directiveNodes.concat(extensionASTNode.directives);
+      if (directivesInExtensions != null) {
+        Object.entries(directivesInExtensions).forEach(([directiveName, directiveValue]) => {
+          if (!directives[directiveName]) {
+            directives[directiveName] = [directiveValue];
+          } else {
+            directives[directiveName].push([directiveValue]);
+          }
+        });
+      } else {
+        let directiveNodes = type?.astNode?.directives ?? [];
+
+        const extensionASTNodes: ReadonlyArray<TypeSystemExtensionNode> = (type as {
+          extensionASTNodes?: Array<TypeSystemExtensionNode>;
+        }).extensionASTNodes;
+
+        if (extensionASTNodes != null) {
+          extensionASTNodes.forEach(extensionASTNode => {
+            if (extensionASTNode.directives != null) {
+              directiveNodes = directiveNodes.concat(extensionASTNode.directives);
+            }
+          });
+        }
+
+        directiveNodes.forEach(directiveNode => {
+          const directiveName = directiveNode.name.value;
+
+          const decl = declaredDirectives[directiveName];
+          let args: Record<string, any>;
+
+          if (decl != null) {
+            // If this directive was explicitly declared, use the declared
+            // argument types (and any default values) to check, coerce, and/or
+            // supply default values for the given arguments.
+            args = getArgumentValues(decl, directiveNode);
+          } else {
+            // If this directive was not explicitly declared, just convert the
+            // argument nodes to their corresponding JavaScript values.
+            args = Object.create(null);
+            if (directiveNode.arguments != null) {
+              directiveNode.arguments.forEach(arg => {
+                args[arg.name.value] = valueFromASTUntyped(arg.value);
+              });
+            }
+          }
+
+          if (!directives[directiveName]) {
+            directives[directiveName] = [args];
+          } else {
+            directives[directiveName].push(args);
           }
         });
       }
 
       const visitors: Array<SchemaDirectiveVisitor> = [];
-      directiveNodes.forEach(directiveNode => {
-        const directiveName = directiveNode.name.value;
+
+      Object.entries(directives).forEach(([directiveName, directiveValues]) => {
         if (!(directiveName in directiveVisitorMap)) {
           return;
         }
@@ -162,39 +209,22 @@ export class SchemaDirectiveVisitor<TArgs = any, TContext = any> extends SchemaV
           return;
         }
 
-        const decl = declaredDirectives[directiveName];
-        let args: Record<string, any>;
-
-        if (decl != null) {
-          // If this directive was explicitly declared, use the declared
-          // argument types (and any default values) to check, coerce, and/or
-          // supply default values for the given arguments.
-          args = getArgumentValues(decl, directiveNode);
-        } else {
-          // If this directive was not explicitly declared, just convert the
-          // argument nodes to their corresponding JavaScript values.
-          args = Object.create(null);
-          if (directiveNode.arguments != null) {
-            directiveNode.arguments.forEach(arg => {
-              args[arg.name.value] = valueFromASTUntyped(arg.value);
-            });
-          }
-        }
-
-        // As foretold in comments near the top of the visitSchemaDirectives
-        // method, this is where instances of the SchemaDirectiveVisitor class
-        // get created and assigned names. While subclasses could override the
-        // constructor method, the constructor is marked as protected, so
-        // these are the only arguments that will ever be passed.
-        visitors.push(
-          new VisitorClass({
-            name: directiveName,
-            args,
-            visitedType: type,
-            schema,
-            context,
-          })
-        );
+        directiveValues.forEach(directiveValue => {
+          // As foretold in comments near the top of the visitSchemaDirectives
+          // method, this is where instances of the SchemaDirectiveVisitor class
+          // get created and assigned names. While subclasses could override the
+          // constructor method, the constructor is marked as protected, so
+          // these are the only arguments that will ever be passed.
+          visitors.push(
+            new VisitorClass({
+              name: directiveName,
+              args: directiveValue,
+              visitedType: type,
+              schema,
+              context,
+            })
+          );
+        });
       });
 
       if (visitors.length > 0) {
