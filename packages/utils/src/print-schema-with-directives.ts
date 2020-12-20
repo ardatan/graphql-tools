@@ -19,13 +19,19 @@ import {
   DirectiveDefinitionNode,
   astFromValue,
 } from 'graphql';
-import { SchemaPrintOptions } from './types';
+import { PrintSchemaWithDirectivesOptions } from './types';
 import { createSchemaDefinition } from './create-schema-definition';
 import { astFromType } from './astFromType';
+import { mapSchema } from './mapSchema';
 
 // this approach uses the default schema printer rather than a custom solution, so may be more backwards compatible
 // currently does not allow customization of printSchema options having to do with comments.
-export function printSchemaWithDirectives(schema: GraphQLSchema, _options: SchemaPrintOptions = {}): string {
+export function printSchemaWithDirectives(
+  schema: GraphQLSchema,
+  options: PrintSchemaWithDirectivesOptions = {}
+): string {
+  schema = loadDirectivesFromExtensions(schema, options);
+
   const typesMap = schema.getTypeMap();
 
   const result: string[] = [getSchemaDefinition(schema)];
@@ -133,7 +139,7 @@ function correctType<TMap extends { [key: string]: GraphQLNamedType }, TName ext
   return type;
 }
 
-function getSchemaDefinition(schema: GraphQLSchema) {
+export function getSchemaDefinition(schema: GraphQLSchema) {
   if (!Object.getOwnPropertyDescriptor(schema, 'astNode').get && schema.astNode) {
     return print(schema.astNode);
   } else {
@@ -234,4 +240,11 @@ function astFromArg(arg: GraphQLArgument): InputValueDefinitionNode {
         ? directiveNodesBesidesDeprecated
         : [deprecatedDirectiveNode].concat(directiveNodesBesidesDeprecated),
   };
+}
+
+export function loadDirectivesFromExtensions(schema: GraphQLSchema, options: PrintSchemaWithDirectivesOptions) {
+  const pathToDirectivesInExtensions = options.pathToDirectivesInExtensions ?? ['directives'];
+
+  // do the thing
+  return mapSchema(schema, {});
 }
