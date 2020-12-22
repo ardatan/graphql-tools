@@ -6,11 +6,11 @@ import { parseSelectionSet } from '@graphql-tools/utils';
 import { stitchingDirectives } from '../src';
 
 describe('type merging directives', () => {
-  const { stitchingDirectivesTypeDefs, stitchingDirectivesTransformer } = stitchingDirectives();
+  const { allStitchingDirectivesTypeDefs, stitchingDirectivesTransformer } = stitchingDirectives();
 
   test('adds type selection sets', () => {
     const typeDefs = `
-      ${stitchingDirectivesTypeDefs}
+      ${allStitchingDirectivesTypeDefs}
       scalar _Key
 
       type Query {
@@ -37,7 +37,7 @@ describe('type merging directives', () => {
 
   test('adds computed selection sets', () => {
     const typeDefs = `
-      ${stitchingDirectivesTypeDefs}
+      ${allStitchingDirectivesTypeDefs}
       scalar _Key
 
       type Query {
@@ -64,7 +64,7 @@ describe('type merging directives', () => {
 
   test('adds args function when used without arguments', () => {
     const typeDefs = `
-      ${stitchingDirectivesTypeDefs}
+      ${allStitchingDirectivesTypeDefs}
       scalar _Key
 
       type Query {
@@ -103,7 +103,7 @@ describe('type merging directives', () => {
 
   test('adds args function when used with argsExpr argument using an unqualified key', () => {
     const typeDefs = `
-      ${stitchingDirectivesTypeDefs}
+      ${allStitchingDirectivesTypeDefs}
       scalar _Key
 
       type Query {
@@ -142,7 +142,7 @@ describe('type merging directives', () => {
 
   test('adds args function when used with argsExpr argument using a fully qualified key', () => {
     const typeDefs = `
-      ${stitchingDirectivesTypeDefs}
+      ${allStitchingDirectivesTypeDefs}
       scalar _Key
 
       type Query {
@@ -181,7 +181,7 @@ describe('type merging directives', () => {
 
   test('adds args function when used with keyArg argument', () => {
     const typeDefs = `
-      ${stitchingDirectivesTypeDefs}
+      ${allStitchingDirectivesTypeDefs}
       scalar _Key
 
       type Query {
@@ -220,7 +220,7 @@ describe('type merging directives', () => {
 
   test('adds args function when used with nested keyArg argument', () => {
     const typeDefs = `
-      ${stitchingDirectivesTypeDefs}
+      ${allStitchingDirectivesTypeDefs}
       scalar _Key
 
       input UserInput {
@@ -266,7 +266,7 @@ describe('type merging directives', () => {
 
   test('adds args function when used with keyArg and additionalArgs arguments', () => {
     const typeDefs = `
-      ${stitchingDirectivesTypeDefs}
+      ${allStitchingDirectivesTypeDefs}
       scalar _Key
 
       type Query {
@@ -306,7 +306,7 @@ describe('type merging directives', () => {
 
   test('adds args function when used with keyField argument', () => {
     const typeDefs = `
-      ${stitchingDirectivesTypeDefs}
+      ${allStitchingDirectivesTypeDefs}
       type Query {
         _user(id: ID): User @merge(keyField: "id")
       }
@@ -341,7 +341,7 @@ describe('type merging directives', () => {
 
   test('adds args function when used with key argument', () => {
     const typeDefs = `
-      ${stitchingDirectivesTypeDefs}
+      ${allStitchingDirectivesTypeDefs}
       scalar _Key
 
       type Query {
@@ -387,7 +387,7 @@ describe('type merging directives', () => {
 
   test('adds key and argsFromKeys functions when used without arguments', () => {
     const typeDefs = `
-      ${stitchingDirectivesTypeDefs}
+      ${allStitchingDirectivesTypeDefs}
       scalar _Key
 
       type Query {
@@ -431,7 +431,7 @@ describe('type merging directives', () => {
 
   test('adds key and argsFromKeys functions with argsExpr argument using an unqualified key', () => {
     const typeDefs = `
-      ${stitchingDirectivesTypeDefs}
+      ${allStitchingDirectivesTypeDefs}
       scalar _Key
 
       type Query {
@@ -475,7 +475,7 @@ describe('type merging directives', () => {
 
   test('adds key and argsFromKeys functions with argsExpr argument using a fully qualified key', () => {
     const typeDefs = `
-      ${stitchingDirectivesTypeDefs}
+      ${allStitchingDirectivesTypeDefs}
       scalar _Key
 
       type Query {

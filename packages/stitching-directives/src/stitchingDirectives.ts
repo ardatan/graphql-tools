@@ -14,13 +14,14 @@ export function stitchingDirectives(
   keyDirectiveTypeDefs: string;
   computedDirectiveTypeDefs: string;
   mergeDirectiveTypeDefs: string;
-  stitchingDirectivesTypeDefs: string;
+  stitchingDirectivesTypeDefs: string; // for backwards compatibility
+  allStitchingDirectivesTypeDefs: string;
   stitchingDirectivesValidator: (schema: GraphQLSchema) => GraphQLSchema;
   stitchingDirectivesTransformer: (subschemaConfig: SubschemaConfig) => SubschemaConfig;
   keyDirective: GraphQLDirective;
   computedDirective: GraphQLDirective;
   mergeDirective: GraphQLDirective;
-  stitchingDirectives: Array<GraphQLDirective>;
+  allStitchingDirectives: Array<GraphQLDirective>;
 } {
   const finalOptions = {
     ...defaultStitchingDirectiveOptions,
@@ -61,19 +62,22 @@ export function stitchingDirectives(
     },
   });
 
+  const allStitchingDirectivesTypeDefs = `
+    ${keyDirectiveTypeDefs}
+    ${computedDirectiveTypeDefs}
+    ${mergeDirectiveTypeDefs}
+  `;
+
   return {
     keyDirectiveTypeDefs,
     computedDirectiveTypeDefs,
     mergeDirectiveTypeDefs,
-    stitchingDirectivesTypeDefs: `
-      ${keyDirectiveTypeDefs}
-      ${computedDirectiveTypeDefs}
-      ${mergeDirectiveTypeDefs}
-    `,
+    stitchingDirectivesTypeDefs: allStitchingDirectivesTypeDefs, // for backwards compatibility
+    allStitchingDirectivesTypeDefs,
     keyDirective,
     computedDirective,
     mergeDirective,
-    stitchingDirectives: [keyDirective, computedDirective, mergeDirective],
+    allStitchingDirectives: [keyDirective, computedDirective, mergeDirective],
     stitchingDirectivesValidator: stitchingDirectivesValidator(finalOptions),
     stitchingDirectivesTransformer: stitchingDirectivesTransformer(finalOptions),
   };
