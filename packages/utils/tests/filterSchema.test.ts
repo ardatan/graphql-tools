@@ -18,7 +18,7 @@ describe('filterSchema', () => {
 
     const filtered = filterSchema({
       schema,
-      rootFieldFilter: (opName, fieldName) => fieldName.startsWith('keep'),
+      rootFieldFilter: (_opName, fieldName) => fieldName.startsWith('keep'),
     });
 
     expect(filtered.getType('Query').getFields()['keep']).toBeDefined();
@@ -96,7 +96,7 @@ describe('filterSchema', () => {
 
     const filtered = filterSchema({
       schema,
-      objectFieldFilter: (typeName, fieldName) => fieldName.startsWith('keep'),
+      objectFieldFilter: (_typeName, fieldName) => fieldName.startsWith('keep'),
     });
 
     expect(filtered.getType('Thing').getFields()['keep']).toBeDefined();
@@ -119,7 +119,7 @@ describe('filterSchema', () => {
 
     const filtered = filterSchema({
       schema,
-      interfaceFieldFilter: (typeName, fieldName) => fieldName.startsWith('keep'),
+      interfaceFieldFilter: (_typeName, fieldName) => fieldName.startsWith('keep'),
     });
 
     expect(filtered.getType('IThing').getFields()['keep']).toBeDefined();
@@ -142,7 +142,7 @@ describe('filterSchema', () => {
 
     const filtered = filterSchema({
       schema,
-      inputObjectFieldFilter: (typeName, fieldName) => fieldName.startsWith('keep'),
+      inputObjectFieldFilter: (_typeName, fieldName) => fieldName.startsWith('keep'),
     });
 
     expect(filtered.getType('ThingInput').getFields()['keep']).toBeDefined();
@@ -170,7 +170,7 @@ describe('filterSchema', () => {
 
     const filtered = filterSchema({
       schema,
-      fieldFilter: (typeName, fieldName) => fieldName.startsWith('keep'),
+      fieldFilter: (_typeName, fieldName) => fieldName.startsWith('keep'),
     });
 
     expect(filtered.getType('Thing').getFields()['keep']).toBeDefined();
@@ -184,6 +184,9 @@ describe('filterSchema', () => {
   it('filters all arguments', () => {
     const schema = makeExecutableSchema({
       typeDefs: `
+        type Query {
+          field(keep: String, omit: String): String
+        }
         type Thing implements IThing {
           field(keep: String, omit: String): String
         }
@@ -195,9 +198,10 @@ describe('filterSchema', () => {
 
     const filtered = filterSchema({
       schema,
-      argumentFilter: (typeName, fieldName, argName) => argName.startsWith('keep'),
+      argumentFilter: (_typeName, _fieldName, argName) => argName.startsWith('keep'),
     });
 
+    expect(filtered.getType('Query').getFields()['field'].args.map(arg => arg.name)).toEqual(['keep']);
     expect(filtered.getType('Thing').getFields()['field'].args.map(arg => arg.name)).toEqual(['keep']);
     expect(filtered.getType('IThing').getFields()['field'].args.map(arg => arg.name)).toEqual(['keep']);
   });
