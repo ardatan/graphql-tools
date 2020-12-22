@@ -3,11 +3,11 @@ import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchingDirectives } from '../src';
 
 describe('type merging directives', () => {
-  const { stitchingDirectivesTypeDefs, stitchingDirectivesValidator } = stitchingDirectives();
+  const { allStitchingDirectivesTypeDefs, stitchingDirectivesValidator } = stitchingDirectives();
 
   test('does not throws an error if no other typeDefs used', () => {
     const typeDefs = `
-      ${stitchingDirectivesTypeDefs}
+      ${allStitchingDirectivesTypeDefs}
     `;
 
     expect(() => makeExecutableSchema({ typeDefs })).not.toThrow();
@@ -16,7 +16,7 @@ describe('type merging directives', () => {
 
   test('throws an error if type selectionSet invalid', () => {
     const typeDefs = `
-      ${stitchingDirectivesTypeDefs}
+      ${allStitchingDirectivesTypeDefs}
       type Query {
         _user: User
       }
@@ -33,7 +33,7 @@ describe('type merging directives', () => {
 
   test('does not throws an error if type selectionSet valid', () => {
     const typeDefs = `
-      ${stitchingDirectivesTypeDefs}
+      ${allStitchingDirectivesTypeDefs}
       type Query {
         _user: User
       }
@@ -50,7 +50,7 @@ describe('type merging directives', () => {
 
   test('throws an error if computed selectionSet invalid', () => {
     const typeDefs = `
-      ${stitchingDirectivesTypeDefs}
+      ${allStitchingDirectivesTypeDefs}
       type Query {
         _user: User
       }
@@ -67,7 +67,7 @@ describe('type merging directives', () => {
 
   test('does not throws an error if computed selectionSet valid', () => {
     const typeDefs = `
-      ${stitchingDirectivesTypeDefs}
+      ${allStitchingDirectivesTypeDefs}
       type Query {
         _user: User
       }
@@ -84,7 +84,7 @@ describe('type merging directives', () => {
 
   test('throws an error if merge argsExpr invalid', () => {
     const typeDefs = `
-      ${stitchingDirectivesTypeDefs}
+      ${allStitchingDirectivesTypeDefs}
       scalar _Key
 
       type Query {
@@ -103,7 +103,7 @@ describe('type merging directives', () => {
 
   test('does not throws an error if merge argsExpr valid', () => {
     const typeDefs = `
-      ${stitchingDirectivesTypeDefs}
+      ${allStitchingDirectivesTypeDefs}
       scalar _Key
 
       type Query {
@@ -122,7 +122,7 @@ describe('type merging directives', () => {
 
   test('does not throws an error if merge used without arguments', () => {
     const typeDefs = `
-      ${stitchingDirectivesTypeDefs}
+      ${allStitchingDirectivesTypeDefs}
       scalar _Key
 
       type Query {

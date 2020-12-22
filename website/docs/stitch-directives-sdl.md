@@ -73,7 +73,7 @@ You may use the `stitchingDirectives` helper to build your own type definitions 
 ```js
 const { stitchingDirectives } = require('@graphql-tools/stitching-directives');
 const {
-  stitchingDirectivesTypeDefs,
+  allStitchingDirectivesTypeDefs,
   stitchingDirectivesValidator
 } = stitchingDirectives({
   keyDirectiveName: 'myKey',
@@ -94,13 +94,13 @@ When setting up a subservice, you'll need to do three things:
 const { makeExecutableSchema } = require('@graphql-tools/schema');
 const { stitchingDirectives } = require('@graphql-tools/stitching-directives');
 const {
-  stitchingDirectivesTypeDefs,
+  allStitchingDirectivesTypeDefs,
   stitchingDirectivesValidator
 } = stitchingDirectives();
 
 // 1. include directive type definitions...
 const typeDefs = `
-  ${stitchingDirectivesTypeDefs}
+  ${allStitchingDirectivesTypeDefs}
   # schema here ...
   type Query {
     # schema here ...
@@ -121,7 +121,7 @@ module.exports = makeExecutableSchema({
 });
 ```
 
-1. Include `stitchingDirectivesTypeDefs` in your schema's type definitions string (these define the schema of the directives themselves).
+1. Include `allStitchingDirectivesTypeDefs` in your schema's type definitions string (these define the schema of the directives themselves).
 2. Include a `stitchingDirectivesValidator` in your executable schema (highly recommended).
 3. Setup a query field that returns the schema's raw type definitions string (see the `_sdl` field example above). This field is extremely important for exposing the annotated SDL to your stitched gateway. Unfortunately, custom directives cannot be obtained through schema introspection.
 
