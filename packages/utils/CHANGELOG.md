@@ -1,5 +1,17 @@
 # @graphql-tools/utils
 
+## 7.2.0
+
+### Minor Changes
+
+- c3996f60: enhance(utils): support code-first schemas by allowing directives to be read from extensions
+
+### Patch Changes
+
+- c3996f60: fix(stitchingDirectives): complete support for code first schemas
+- c3996f60: fix(printSchemaWithDirectives): should work for code-first schemas as well
+- c3996f60: enhance(utils) filter root field arguments with filterSchema
+
 ## 7.1.6
 
 ### Patch Changes
