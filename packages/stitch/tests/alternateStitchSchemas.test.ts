@@ -12,6 +12,7 @@ import {
   isSpecifiedScalarType,
   GraphQLNamedType,
   Kind,
+  execute,
 } from 'graphql';
 
 import {
@@ -1168,6 +1169,110 @@ describe('WrapType', () => {
 
     expect(result).toEqual(expectedResult);
   });
+
+  it('Mutations should have been executed and returned values properly in wrapped root fields', async () => {
+    const USERS: any[] = [];
+    const userSchema = makeExecutableSchema({
+      typeDefs: /* GraphQL */`
+      type Query {
+        userById(id: ID): User
+      }
+      type Mutation {
+        addUser(name: String): User
+      }
+      type User {
+        id: ID
+        name: String
+      }
+      `,
+      resolvers: {
+        Query: {
+          userById: (_, { args }) => USERS.find(user => user.id === args.id),
+        },
+        Mutation: {
+          addUser: (_, { name }) => {
+            const newUser = {
+              id: USERS.length,
+              name,
+            };
+            USERS.push(newUser);
+            return newUser;
+          }
+        }
+      }
+    });
+    const USER_NAME = 'Dotan';
+    const result = await execute({
+      schema: userSchema,
+      document: parse(/* GraphQL */`
+        mutation AddUser($name: String!){
+          addUser(name: $name) {
+            id
+            name
+          }
+        }
+      `),
+      variableValues: {
+        name: USER_NAME,
+      }
+    });
+    expect(USERS.some(user => user.name === USER_NAME)).toBeTruthy();
+    expect(result?.data?.addUser?.name).toBe(USER_NAME);
+
+    const postSchema = makeExecutableSchema({
+      typeDefs: /* GraphQL */`
+      type Query {
+        postById(id: ID): Post
+      }
+      type Mutation {
+        addPost(name: String): Post
+      }
+      type Post {
+        id: ID
+        name: String
+      }
+      `
+    });
+    const gatewaySchema = stitchSchemas({
+      subschemas: [
+        {
+          schema: userSchema,
+          transforms: [
+            new WrapType('UserQuery', 'Query', 'User'),
+            new WrapType('UserMutation', 'Mutation', 'User'),
+          ]
+        },
+        {
+          schema: postSchema,
+          transforms: [
+            new WrapType('PostQuery', 'Query', 'Post'),
+            new WrapType('PostMutation', 'Mutation', 'Post'),
+          ]
+        }
+      ]
+    });
+
+    const USER_NAME_2 = 'Uri';
+    const result2 = await execute({
+      schema: gatewaySchema,
+      document: parse(/* GraphQL */`
+        mutation AddUser($name: String!){
+          User {
+            addUser(name: $name) {
+              id
+              name
+            }
+          }
+        }
+      `),
+      variableValues: {
+        name: USER_NAME_2,
+      }
+    });
+
+    expect(USERS.some(user => user.name === USER_NAME_2)).toBeTruthy();
+    expect(result2?.data?.User?.addUser?.name).toBe(USER_NAME_2);
+  })
 });
 
 describe('schema transformation with extraction of nested fields', () => {
