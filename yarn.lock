@@ -5495,10 +5495,10 @@ dataloader@2.0.0:
   resolved "https://registry.yarnpkg.com/dataloader/-/dataloader-2.0.0.tgz#41eaf123db115987e21ca93c005cd7753c55fe6f"
   integrity sha512-YzhyDAwA4TaQIhM5go+vCLmU0UikghC/t9DTQYZR2M/UvZ1MdOhPezSDZcjj9uqQJOMqjLcpWtyW2iNINdlatQ==
 
-dateformat@4.4.0:
-  version "4.4.0"
-  resolved "https://registry.yarnpkg.com/dateformat/-/dateformat-4.4.0.tgz#f31b34a60337a1dc61828f043431cea64283281c"
-  integrity sha512-DWHU66U5jrpT5Z7+m0iC9iRk9mnzRRBaVXTJ4nXxcfHb4Squ5cl93gS3DcSiJCQpw4I8ZJdxl7XnXBhIdFSKgg==
+dateformat@4.4.1:
+  version "4.4.1"
+  resolved "https://registry.yarnpkg.com/dateformat/-/dateformat-4.4.1.tgz#c6b3b821588f36826735c346148424d7a39007c3"
+  integrity sha512-3V9b/50QBYmFtd2c3cPOmdr2xNfnDphoBLxh/UVBoPIsylWkbUYGq3f4EQYuEaK7Mq4vcIpQCmOyJ37pqW/Uug==
 
 de-indent@^1.0.2:
   version "1.0.2"
