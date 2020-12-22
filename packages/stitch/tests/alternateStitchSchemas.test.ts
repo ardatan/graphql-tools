@@ -1219,20 +1219,6 @@ describe('WrapType', () => {
     expect(USERS.some(user => user.name === USER_NAME)).toBeTruthy();
     expect(result?.data?.addUser?.name).toBe(USER_NAME);
 
-    const postSchema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
-      type Query {
-        postById(id: ID): Post
-      }
-      type Mutation {
-        addPost(name: String): Post
-      }
-      type Post {
-        id: ID
-        name: String
-      }
-      `
-    });
     const gatewaySchema = stitchSchemas({
       subschemas: [
         {
@@ -1240,13 +1226,6 @@ describe('WrapType', () => {
           transforms: [
             new WrapType('UserQuery', 'Query', 'User'),
             new WrapType('UserMutation', 'Mutation', 'User'),
-          ]
-        },
-        {
-          schema: postSchema,
-          transforms: [
-            new WrapType('PostQuery', 'Query', 'Post'),
-            new WrapType('PostMutation', 'Mutation', 'Post'),
           ]
         }
       ]
