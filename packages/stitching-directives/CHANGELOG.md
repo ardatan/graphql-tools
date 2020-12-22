@@ -1,5 +1,24 @@
 # @graphql-tools/stitching-directives
 
+## 1.1.0
+
+### Minor Changes
+
+- c3996f60: enhance(utils): support code-first schemas by allowing directives to be read from extensions
+
+### Patch Changes
+
+- c3996f60: fix(stitchingDirectives): complete support for code first schemas
+- c3996f60: fix(stitchingDirectives): fix name clash
+
+  export all stitching directives as `allDirectives` instead of `stitchingDirectives as the main package function is`stitchingDirectives`
+
+- Updated dependencies [c3996f60]
+- Updated dependencies [c3996f60]
+- Updated dependencies [c3996f60]
+- Updated dependencies [c3996f60]
+  - @graphql-tools/utils@7.2.0
+
 ## 1.0.0
 
 ### Major Changes
