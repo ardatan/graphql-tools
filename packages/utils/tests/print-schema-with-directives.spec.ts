@@ -1,6 +1,6 @@
 import { RenameTypes, wrapSchema } from '@graphql-tools/wrap';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { buildSchema, printSchema } from 'graphql';
+import { buildSchema, GraphQLDirective, printSchema, GraphQLSchema, specifiedDirectives, GraphQLObjectType, GraphQLNonNull, GraphQLID, GraphQLList } from 'graphql';
 import { printSchemaWithDirectives } from '../src';
 import { GraphQLJSON } from 'graphql-scalars';
 
@@ -20,6 +20,96 @@ describe('printSchemaWithDirectives', () => {
         friends: [User!]! @link
       }
     `);
+
+    const printedSchemaByGraphQL = printSchema(schemaWithDirectives);
+    expect(printedSchemaByGraphQL).toContain('directive @entity on OBJECT');
+    expect(printedSchemaByGraphQL).not.toContain(`id: ID! @id`);
+    expect(printedSchemaByGraphQL).not.toContain(`friends: [User!]! @link`);
+    expect(printedSchemaByGraphQL).not.toContain(`type User @entity`);
+    const printedSchemaAlternative = printSchemaWithDirectives(schemaWithDirectives);
+    expect(printedSchemaAlternative).toContain('directive @entity on OBJECT');
+    expect(printedSchemaAlternative).toContain(`id: ID! @id`);
+    expect(printedSchemaAlternative).toContain(`friends: [User!]! @link`);
+    expect(printedSchemaAlternative).toContain(`type User @entity`);
+  });
+
+  it('Should print with directives, even when using extend', () => {
+    // note that in graphql v14, similar test will fail when using buildSchema from graphql-js
+    // instead of makeExecutableSchema, because in v14, buildSchema ignores the extend keywords
+    const schemaWithDirectives = makeExecutableSchema({
+      typeDefs: `
+        directive @entity on OBJECT
+
+        type Query {
+          me: User
+        }
+
+        type User {
+          id: ID!
+          friends: [User!]!
+        }
+
+        extend type User @entity
+      `
+    });
+
+    const printedSchemaAlternative = printSchemaWithDirectives(schemaWithDirectives);
+    expect(printedSchemaAlternative).toContain('directive @entity on OBJECT');
+    expect(printedSchemaAlternative).toContain(`type User @entity`);
+  });
+
+  it('Should print with directives even with code-first approach', () => {
+    const schemaTypes = Object.create(null);
+    schemaTypes.Query = new GraphQLObjectType({
+      name: 'Query',
+      fields: () => ({
+        me: { type: schemaTypes.User}
+      }),
+    });
+    schemaTypes.User = new GraphQLObjectType({
+      name: 'User',
+      fields: () => ({
+        id: {
+          type: new GraphQLNonNull(GraphQLID),
+          extensions: {
+            directives: {
+              id: {},
+            },
+          },
+        },
+        friends: {
+          type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(schemaTypes.User))),
+          extensions: {
+            directives: {
+              link: {},
+            },
+          },
+        },
+      }),
+      extensions: {
+        directives: {
+          entity: {},
+        },
+      },
+    });
+
+    const schemaWithDirectives = new GraphQLSchema({
+      query: schemaTypes.Query,
+      directives: specifiedDirectives.concat([
+        new GraphQLDirective({
+          name: 'entity',
+          locations: ['OBJECT'],
+        }),
+        new GraphQLDirective({
+          name: 'id',
+          locations: ['FIELD_DEFINITION'],
+        }),
+        new GraphQLDirective({
+          name: 'link',
+          locations: ['FIELD_DEFINITION'],
+        }),
+      ]),
+    })
 
     const printedSchemaByGraphQL = printSchema(schemaWithDirectives);
     expect(printedSchemaByGraphQL).toContain('directive @entity on OBJECT');
@@ -65,6 +155,19 @@ describe('printSchemaWithDirectives', () => {
     expect(output).toContain('type Other');
     expect(output).toContain('type TestType');
     expect(output).toContain('type Query');
+  });
+
+  it('Should print directives correctly if they dont have astNode', () => {
+    const schema = new GraphQLSchema({
+      directives: [new GraphQLDirective({
+        name: 'dummy',
+        locations: ['QUERY'],
+      })]
+    });
+
+    const output = printSchemaWithDirectives(schema);
+
+    expect(output).toContain('directive @dummy on QUERY');
   });
 
   it('should print comments', () => {

@@ -3,7 +3,7 @@ import { SchemaPrintOptions } from './types';
 import { printSchemaWithDirectives } from './print-schema-with-directives';
 
 function buildFixedSchema(schema: GraphQLSchema, options: BuildSchemaOptions & SchemaPrintOptions) {
-  return buildSchema(printSchemaWithDirectives(schema, options), {
+  return buildSchema(printSchemaWithDirectives(schema), {
     noLocation: true,
     ...(options || {}),
   });
@@ -11,25 +11,15 @@ function buildFixedSchema(schema: GraphQLSchema, options: BuildSchemaOptions & S
 
 export function fixSchemaAst(schema: GraphQLSchema, options: BuildSchemaOptions & SchemaPrintOptions) {
   let schemaWithValidAst: GraphQLSchema;
+  if (!schema.astNode || !schema.extensionASTNodes) {
+    schemaWithValidAst = buildFixedSchema(schema, options);
+  }
+
   if (!schema.astNode) {
-    Object.defineProperty(schema, 'astNode', {
-      get() {
-        if (!schemaWithValidAst) {
-          schemaWithValidAst = buildFixedSchema(schema, options);
-        }
-        return schemaWithValidAst.astNode;
-      },
-    });
+    schema.astNode = schemaWithValidAst.astNode;
   }
   if (!schema.extensionASTNodes) {
-    Object.defineProperty(schema, 'extensionASTNodes', {
-      get() {
-        if (!schemaWithValidAst) {
-          schemaWithValidAst = buildFixedSchema(schema, options);
-        }
-        return schemaWithValidAst.extensionASTNodes;
-      },
-    });
+    schema.extensionASTNodes = schemaWithValidAst.extensionASTNodes;
   }
   return schema;
 }

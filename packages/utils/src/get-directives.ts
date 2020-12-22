@@ -54,8 +54,7 @@ type DirectableGraphQLObject =
   | GraphQLFieldConfig<any, any>
   | GraphQLInputFieldConfig;
 
-export function getDirectives(
-  schema: GraphQLSchema,
+export function getDirectivesInExtensions(
   node: DirectableGraphQLObject,
   pathToDirectivesInExtensions = ['directives']
 ): DirectiveUseMap {
@@ -63,6 +62,16 @@ export function getDirectives(
     (acc, pathSegment) => (acc == null ? acc : acc[pathSegment]),
     node?.extensions
   );
+
+  return directivesInExtensions;
+}
+
+export function getDirectives(
+  schema: GraphQLSchema,
+  node: DirectableGraphQLObject,
+  pathToDirectivesInExtensions = ['directives']
+): DirectiveUseMap {
+  const directivesInExtensions = getDirectivesInExtensions(node, pathToDirectivesInExtensions);
 
   if (directivesInExtensions != null) {
     return directivesInExtensions;
