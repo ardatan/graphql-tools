@@ -34,9 +34,11 @@ export function filterSchema({
   argumentFilter?: ArgumentFilter;
 }): GraphQLSchema {
   const filteredSchema: GraphQLSchema = mapSchema(schema, {
-    [MapperKind.QUERY]: (type: GraphQLObjectType) => filterRootFields(type, 'Query', rootFieldFilter),
-    [MapperKind.MUTATION]: (type: GraphQLObjectType) => filterRootFields(type, 'Mutation', rootFieldFilter),
-    [MapperKind.SUBSCRIPTION]: (type: GraphQLObjectType) => filterRootFields(type, 'Subscription', rootFieldFilter),
+    [MapperKind.QUERY]: (type: GraphQLObjectType) => filterRootFields(type, 'Query', rootFieldFilter, argumentFilter),
+    [MapperKind.MUTATION]: (type: GraphQLObjectType) =>
+      filterRootFields(type, 'Mutation', rootFieldFilter, argumentFilter),
+    [MapperKind.SUBSCRIPTION]: (type: GraphQLObjectType) =>
+      filterRootFields(type, 'Subscription', rootFieldFilter, argumentFilter),
     [MapperKind.OBJECT_TYPE]: (type: GraphQLObjectType) =>
       typeFilter(type.name, type)
         ? filterElementFields<GraphQLObjectType>(
@@ -74,13 +76,20 @@ export function filterSchema({
 function filterRootFields(
   type: GraphQLObjectType,
   operation: 'Query' | 'Mutation' | 'Subscription',
-  rootFieldFilter?: RootFieldFilter
+  rootFieldFilter?: RootFieldFilter,
+  argumentFilter?: ArgumentFilter
 ): GraphQLObjectType {
-  if (rootFieldFilter) {
+  if (rootFieldFilter || argumentFilter) {
     const config = type.toConfig();
-    Object.keys(config.fields).forEach(fieldName => {
-      if (!rootFieldFilter(operation, fieldName, config.fields[fieldName])) {
+    Object.entries(config.fields).forEach(([fieldName, field]) => {
+      if (rootFieldFilter && !rootFieldFilter(operation, fieldName, config.fields[fieldName])) {
         delete config.fields[fieldName];
+      } else if (argumentFilter) {
+        for (const argName of Object.keys(field.args)) {
+          if (!argumentFilter(operation, fieldName, argName, field.args[argName])) {
+            delete field.args[argName];
+          }
+        }
       }
     });
     return new GraphQLObjectType(config);
@@ -95,11 +104,9 @@ function filterElementFields<ElementType>(
   argumentFilter?: ArgumentFilter
 ): ElementType | undefined {
   if (fieldFilter || argumentFilter) {
-    if (!fieldFilter) fieldFilter = () => true;
-
     const config = type.toConfig();
-    for (const [fieldName, field] of Object.entries(config.fields)) {
-      if (!fieldFilter(type.name, fieldName, config.fields[fieldName])) {
+    Object.entries(config.fields).forEach(([fieldName, field]) => {
+      if (fieldFilter && !fieldFilter(type.name, fieldName, config.fields[fieldName])) {
         delete config.fields[fieldName];
       } else if (argumentFilter && 'args' in field) {
         for (const argName of Object.keys(field.args)) {
@@ -108,7 +115,7 @@ function filterElementFields<ElementType>(
           }
         }
       }
-    }
+    });
     return new ElementConstructor(config);
   }
 }
