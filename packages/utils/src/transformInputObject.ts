@@ -1,4 +1,5 @@
 import {
+  GraphQLInputObjectType,
   GraphQLInputType,
   GraphQLInputField,
   getNullableType,
@@ -7,7 +8,7 @@ import {
   isInputObjectType,
 } from 'graphql';
 
-type InputObjectTransformer = (type: GraphQLInputType, field: GraphQLInputField) => any;
+type InputObjectTransformer = (type: GraphQLInputObjectType, field: GraphQLInputField) => any;
 
 export function transformInputObject(type: GraphQLInputType, variables: any, transformer: InputObjectTransformer): any {
   if (variables == null) {
