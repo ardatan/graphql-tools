@@ -2,17 +2,23 @@ import {
   GraphQLSchema,
   GraphQLType,
   DocumentNode,
+  typeFromAST,
   TypeInfo,
   visit,
   visitWithTypeInfo,
   Kind,
   FragmentDefinitionNode,
   GraphQLInputObjectType,
+  GraphQLInputType,
   ObjectValueNode,
   ObjectFieldNode,
+  OperationDefinitionNode,
+  NamedTypeNode,
 } from 'graphql';
 
-import { Request, MapperKind, mapSchema } from '@graphql-tools/utils';
+import { dir } from 'console';
+
+import { Request, transformInputObject, MapperKind, mapSchema } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
@@ -64,9 +70,26 @@ export default class TransformInputObjectFields implements Transform {
   public transformRequest(
     originalRequest: Request,
     delegationContext: DelegationContext,
-    _transformationContextד: Record<string, any>
+    _transformationContext: Record<string, any>
   ): Request {
+    const variableValues = originalRequest.variables
     const fragments = Object.create(null);
+
+    originalRequest.document.definitions
+      .reduce ((acc, def: OperationDefinitionNode) =>
+         [... acc, ... def.variableDefinitions],
+         []
+      ).forEach(def => {
+      const varName = def.variable.name.value;
+      const varType = typeFromAST(delegationContext.transformedSchema, def.type as NamedTypeNode) as GraphQLInputType;
+      variableValues[varName] = transformInputObject(varType, variableValues[varName], (type, field) => {
+        return this.mapping[type.name] && this.mapping[type.name][field.name]
+          ? this.mapping[type.name][field.name]
+          : field.name
+      });
+    })
+
+
     originalRequest.document.definitions
       .filter(def => def.kind === Kind.FRAGMENT_DEFINITION)
       .forEach(def => {
@@ -83,6 +106,7 @@ export default class TransformInputObjectFields implements Transform {
     return {
       ...originalRequest,
       document,
+      variables: variableValues,
     };
   }
 
