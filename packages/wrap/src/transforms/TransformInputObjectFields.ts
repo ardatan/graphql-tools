@@ -16,8 +16,6 @@ import {
   NamedTypeNode,
 } from 'graphql';
 
-import { dir } from 'console';
-
 import { Request, transformInputObject, MapperKind, mapSchema } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
