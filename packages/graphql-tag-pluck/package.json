@@ -20,8 +20,8 @@
   },
   "dependencies": {
     "@babel/parser": "7.12.11",
-    "@babel/traverse": "7.12.10",
-    "@babel/types": "7.12.11",
+    "@babel/traverse": "7.12.12",
+    "@babel/types": "7.12.12",
     "@graphql-tools/utils": "^7.0.0",
     "tslib": "~2.0.1"
   },
