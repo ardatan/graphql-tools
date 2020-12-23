@@ -1,16 +1,13 @@
-import {
-  GraphQLEnumType,
-  GraphQLInputType,
-  GraphQLScalarType,
-  getNullableType,
-  isLeafType,
-  isListType,
-  isInputObjectType,
-} from 'graphql';
+import { GraphQLInputType, getNullableType, isLeafType, isListType, isInputObjectType } from 'graphql';
 
-type InputValueTransformer = (type: GraphQLEnumType | GraphQLScalarType, originalValue: any) => any;
+import { InputLeafValueTransformer, InputObjectValueTransformer } from './types';
 
-export function transformInputValue(type: GraphQLInputType, value: any, transformer: InputValueTransformer): any {
+export function transformInputValue(
+  type: GraphQLInputType,
+  value: any,
+  inputLeafValueTransformer: InputLeafValueTransformer = null,
+  inputObjectValueTransformer: InputObjectValueTransformer = null
+): any {
   if (value == null) {
     return value;
   }
@@ -18,19 +15,26 @@ export function transformInputValue(type: GraphQLInputType, value: any, transfor
   const nullableType = getNullableType(type);
 
   if (isLeafType(nullableType)) {
-    return transformer(nullableType, value);
+    return inputLeafValueTransformer != null ? inputLeafValueTransformer(nullableType, value) : value;
   } else if (isListType(nullableType)) {
-    return value.map((listMember: any) => transformInputValue(nullableType.ofType, listMember, transformer));
+    return value.map((listMember: any) =>
+      transformInputValue(nullableType.ofType, listMember, inputLeafValueTransformer, inputObjectValueTransformer)
+    );
   } else if (isInputObjectType(nullableType)) {
     const fields = nullableType.getFields();
     const newValue = {};
     Object.keys(value).forEach(key => {
       const field = fields[key];
       if (field != null) {
-        newValue[key] = transformInputValue(field.type, value[key], transformer);
+        newValue[key] = transformInputValue(
+          field.type,
+          value[key],
+          inputLeafValueTransformer,
+          inputObjectValueTransformer
+        );
       }
     });
-    return newValue;
+    return inputObjectValueTransformer != null ? inputObjectValueTransformer(nullableType, newValue) : newValue;
   }
 
   // unreachable, no other possible return value

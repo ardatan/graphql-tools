@@ -16,7 +16,7 @@ import {
   NamedTypeNode,
 } from 'graphql';
 
-import { Request, transformInputObject, MapperKind, mapSchema } from '@graphql-tools/utils';
+import { Request, MapperKind, mapSchema, transformInputValue } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
@@ -70,23 +70,53 @@ export default class TransformInputObjectFields implements Transform {
     delegationContext: DelegationContext,
     _transformationContext: Record<string, any>
   ): Request {
-    const variableValues = originalRequest.variables
+    const variableValues = originalRequest.variables;
     const fragments = Object.create(null);
 
-    originalRequest.document.definitions
-      .reduce ((acc, def: OperationDefinitionNode) =>
-         [... acc, ... def.variableDefinitions],
-         []
-      ).forEach(def => {
-      const varName = def.variable.name.value;
-      const varType = typeFromAST(delegationContext.transformedSchema, def.type as NamedTypeNode) as GraphQLInputType;
-      variableValues[varName] = transformInputObject(varType, variableValues[varName], (type, field) => {
-        return this.mapping[type.name] && this.mapping[type.name][field.name]
-          ? this.mapping[type.name][field.name]
-          : field.name
-      });
-    })
+    const operations: Array<OperationDefinitionNode> = [];
 
+    originalRequest.document.definitions.forEach(def => {
+      if ((def as OperationDefinitionNode).kind === Kind.OPERATION_DEFINITION) {
+        operations.push(def as OperationDefinitionNode);
+      } else {
+        fragments[(def as FragmentDefinitionNode).name.value] = def;
+      }
+    });
+
+    operations.forEach(def => {
+      const variableDefs = def.variableDefinitions;
+      if (variableDefs != null) {
+        variableDefs.forEach(variableDef => {
+          const varName = variableDef.variable.name.value;
+          // requirement for 'as NamedTypeNode' appears to be a bug within types, as function should take any TypeNode
+          const varType = typeFromAST(
+            delegationContext.transformedSchema,
+            variableDef.type as NamedTypeNode
+          ) as GraphQLInputType;
+          variableValues[varName] = transformInputValue(
+            varType,
+            variableValues[varName],
+            undefined,
+            (type, originalValue) => {
+              const newValue = Object.create(null);
+              const fields = type.getFields();
+              Object.keys(originalValue).forEach(key => {
+                const field = fields[key];
+                if (field != null) {
+                  const newFieldName = this.mapping[type.name]?.[field.name];
+                  if (newFieldName != null) {
+                    newValue[newFieldName] = originalValue[field.name];
+                  } else {
+                    newValue[field.name] = originalValue[field.name];
+                  }
+                }
+              });
+              return newValue;
+            }
+          );
+        });
+      }
+    });
 
     originalRequest.document.definitions
       .filter(def => def.kind === Kind.FRAGMENT_DEFINITION)
