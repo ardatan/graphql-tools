@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 7.2.3
+
+### Patch Changes
+
+- 3d1340a3: fix(printSchemaWithDirectives): typo
+
 ## 7.2.2
 
 ### Patch Changes
