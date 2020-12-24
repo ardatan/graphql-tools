@@ -2,17 +2,21 @@ import {
   GraphQLSchema,
   GraphQLType,
   DocumentNode,
+  typeFromAST,
   TypeInfo,
   visit,
   visitWithTypeInfo,
   Kind,
   FragmentDefinitionNode,
   GraphQLInputObjectType,
+  GraphQLInputType,
   ObjectValueNode,
   ObjectFieldNode,
+  OperationDefinitionNode,
+  NamedTypeNode,
 } from 'graphql';
 
-import { Request, MapperKind, mapSchema } from '@graphql-tools/utils';
+import { Request, MapperKind, mapSchema, transformInputValue } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
@@ -64,9 +68,56 @@ export default class TransformInputObjectFields implements Transform {
   public transformRequest(
     originalRequest: Request,
     delegationContext: DelegationContext,
-    _transformationContextד: Record<string, any>
+    _transformationContext: Record<string, any>
   ): Request {
+    const variableValues = originalRequest.variables;
     const fragments = Object.create(null);
+
+    const operations: Array<OperationDefinitionNode> = [];
+
+    originalRequest.document.definitions.forEach(def => {
+      if ((def as OperationDefinitionNode).kind === Kind.OPERATION_DEFINITION) {
+        operations.push(def as OperationDefinitionNode);
+      } else {
+        fragments[(def as FragmentDefinitionNode).name.value] = def;
+      }
+    });
+
+    operations.forEach(def => {
+      const variableDefs = def.variableDefinitions;
+      if (variableDefs != null) {
+        variableDefs.forEach(variableDef => {
+          const varName = variableDef.variable.name.value;
+          // requirement for 'as NamedTypeNode' appears to be a bug within types, as function should take any TypeNode
+          const varType = typeFromAST(
+            delegationContext.transformedSchema,
+            variableDef.type as NamedTypeNode
+          ) as GraphQLInputType;
+          variableValues[varName] = transformInputValue(
+            varType,
+            variableValues[varName],
+            undefined,
+            (type, originalValue) => {
+              const newValue = Object.create(null);
+              const fields = type.getFields();
+              Object.keys(originalValue).forEach(key => {
+                const field = fields[key];
+                if (field != null) {
+                  const newFieldName = this.mapping[type.name]?.[field.name];
+                  if (newFieldName != null) {
+                    newValue[newFieldName] = originalValue[field.name];
+                  } else {
+                    newValue[field.name] = originalValue[field.name];
+                  }
+                }
+              });
+              return newValue;
+            }
+          );
+        });
+      }
+    });
+
     originalRequest.document.definitions
       .filter(def => def.kind === Kind.FRAGMENT_DEFINITION)
       .forEach(def => {
@@ -83,6 +134,7 @@ export default class TransformInputObjectFields implements Transform {
     return {
       ...originalRequest,
       document,
+      variables: variableValues,
     };
   }
 

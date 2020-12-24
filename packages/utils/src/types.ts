@@ -1,3 +1,5 @@
+import { GraphQLEnumType, GraphQLInputObjectType, GraphQLScalarType } from 'graphql';
+
 export interface SchemaPrintOptions {
   /**
    * Descriptions are defined as preceding string literals, however an older
@@ -40,3 +42,9 @@ export interface PruneSchemaOptions {
    */
   skipUnusedTypesPruning?: boolean;
 }
+
+export type InputLeafValueTransformer = (type: GraphQLEnumType | GraphQLScalarType, originalValue: any) => any;
+export type InputObjectValueTransformer = (
+  type: GraphQLInputObjectType,
+  originalValue: Record<string, any>
+) => Record<string, any>;
