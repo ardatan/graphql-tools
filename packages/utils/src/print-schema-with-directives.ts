@@ -536,7 +536,7 @@ function makeDirective(name: string, args: Record<string, any>, directive: Graph
   if (directive != null) {
     directive.args.forEach(arg => {
       const argName = arg.name;
-      const argValue = arg[argName];
+      const argValue = args[argName];
       if (argValue !== undefined) {
         directiveArguments.push({
           kind: Kind.ARGUMENT,
