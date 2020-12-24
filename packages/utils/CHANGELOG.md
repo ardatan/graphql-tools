@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 7.2.2
+
+### Patch Changes
+
+- 63ab0034: fix(printSchemaWithDirectives): should print directives where used, even if directives themselves are not defined within the schema.
+
 ## 7.2.1
 
 ### Patch Changes
