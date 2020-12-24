@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 7.2.1
+
+### Patch Changes
+
+- 270046a1: fix(TransformInputObjectFields): transform variables #2353
+
 ## 7.2.0
 
 ### Minor Changes
