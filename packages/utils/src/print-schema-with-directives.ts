@@ -50,6 +50,7 @@ import { PrintSchemaWithDirectivesOptions } from './types';
 
 import { astFromType } from './astFromType';
 import { getDirectivesInExtensions } from './get-directives';
+import { astFromValueUntyped } from './astFromValueUntyped';
 
 // this approach uses the default schema printer rather than a custom solution, so may be more backwards compatible
 // currently does not allow customization of printSchema options having to do with comments.
@@ -532,20 +533,33 @@ function makeDeprecatedDirective(deprecationReason: string): DirectiveNode {
 function makeDirective(name: string, args: Record<string, any>, directive: GraphQLDirective): DirectiveNode {
   const directiveArguments: Array<ArgumentNode> = [];
 
-  Object.entries(args).forEach(([argName, argValue]) => {
-    const directiveArg = directive.args.find(arg => arg.name === argName);
-
-    if (directiveArg) {
+  if (directive != null) {
+    directive.args.forEach(arg => {
+      const argName = arg.name;
+      const argValue = arg[argName];
+      if (argValue !== undefined) {
+        directiveArguments.push({
+          kind: Kind.ARGUMENT,
+          name: {
+            kind: Kind.NAME,
+            value: argName,
+          },
+          value: astFromValue(argValue, arg.type),
+        });
+      }
+    });
+  } else {
+    Object.entries(args).forEach(([argName, argValue]) => {
       directiveArguments.push({
         kind: Kind.ARGUMENT,
         name: {
           kind: Kind.NAME,
           value: argName,
         },
-        value: astFromValue(argValue, directiveArg.type),
+        value: astFromValueUntyped(argValue),
       });
-    }
-  });
+    });
+  }
 
   return {
     kind: Kind.DIRECTIVE,
@@ -561,14 +575,12 @@ function makeDirectives(schema: GraphQLSchema, directiveValues: Record<string, a
   const directiveNodes: Array<DirectiveNode> = [];
   Object.entries(directiveValues).forEach(([directiveName, arrayOrSingleValue]) => {
     const directive = schema.getDirective(directiveName);
-    if (directive != null) {
-      if (Array.isArray(arrayOrSingleValue)) {
-        arrayOrSingleValue.forEach(value => {
-          directiveNodes.push(makeDirective(directiveName, value, directive));
-        });
-      } else {
-        directiveNodes.push(makeDirective(directiveName, arrayOrSingleValue, directive));
-      }
+    if (Array.isArray(arrayOrSingleValue)) {
+      arrayOrSingleValue.forEach(value => {
+        directiveNodes.push(makeDirective(directiveName, value, directive));
+      });
+    } else {
+      directiveNodes.push(makeDirective(directiveName, arrayOrSingleValue, directive));
     }
   });
   return directiveNodes;

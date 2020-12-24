@@ -1,5 +1,6 @@
 import { RenameTypes, wrapSchema } from '@graphql-tools/wrap';
 import { makeExecutableSchema } from '@graphql-tools/schema';
+import { stitchSchemas } from '@graphql-tools/stitch';
 import { buildSchema, GraphQLDirective, printSchema, GraphQLSchema, specifiedDirectives, GraphQLObjectType, GraphQLNonNull, GraphQLID, GraphQLList } from 'graphql';
 import { printSchemaWithDirectives } from '../src';
 import { GraphQLJSON } from 'graphql-scalars';
@@ -31,6 +32,26 @@ describe('printSchemaWithDirectives', () => {
     expect(printedSchemaAlternative).toContain(`id: ID! @id`);
     expect(printedSchemaAlternative).toContain(`friends: [User!]! @link`);
     expect(printedSchemaAlternative).toContain(`type User @entity`);
+  });
+
+  it('Should print with directives, even without definitions', () => {
+    const schemaWithDirectives = stitchSchemas({
+      typeDefs: /* GraphQL */ `
+        type Query {
+          me: User
+        }
+
+        type User @entity {
+          id: ID! @id
+          friends: [User!]! @link
+        }
+      `
+    });
+
+    const printedSchema = printSchemaWithDirectives(schemaWithDirectives);
+    expect(printedSchema).toContain(`id: ID! @id`);
+    expect(printedSchema).toContain(`friends: [User!]! @link`);
+    expect(printedSchema).toContain(`type User @entity`);
   });
 
   it('Should print with directives, even when using extend', () => {
@@ -111,16 +132,56 @@ describe('printSchemaWithDirectives', () => {
       ]),
     })
 
-    const printedSchemaByGraphQL = printSchema(schemaWithDirectives);
-    expect(printedSchemaByGraphQL).toContain('directive @entity on OBJECT');
-    expect(printedSchemaByGraphQL).not.toContain(`id: ID! @id`);
-    expect(printedSchemaByGraphQL).not.toContain(`friends: [User!]! @link`);
-    expect(printedSchemaByGraphQL).not.toContain(`type User @entity`);
-    const printedSchemaAlternative = printSchemaWithDirectives(schemaWithDirectives);
-    expect(printedSchemaAlternative).toContain('directive @entity on OBJECT');
-    expect(printedSchemaAlternative).toContain(`id: ID! @id`);
-    expect(printedSchemaAlternative).toContain(`friends: [User!]! @link`);
-    expect(printedSchemaAlternative).toContain(`type User @entity`);
+    const printedSchema = printSchemaWithDirectives(schemaWithDirectives);
+    expect(printedSchema).toContain('directive @entity on OBJECT');
+    expect(printedSchema).toContain(`id: ID! @id`);
+    expect(printedSchema).toContain(`friends: [User!]! @link`);
+    expect(printedSchema).toContain(`type User @entity`);
+  });
+
+  it('Should print with directives with code-first approach, without directive defs', () => {
+    const schemaTypes = Object.create(null);
+    schemaTypes.Query = new GraphQLObjectType({
+      name: 'Query',
+      fields: () => ({
+        me: { type: schemaTypes.User}
+      }),
+    });
+    schemaTypes.User = new GraphQLObjectType({
+      name: 'User',
+      fields: () => ({
+        id: {
+          type: new GraphQLNonNull(GraphQLID),
+          extensions: {
+            directives: {
+              id: {},
+            },
+          },
+        },
+        friends: {
+          type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(schemaTypes.User))),
+          extensions: {
+            directives: {
+              link: {},
+            },
+          },
+        },
+      }),
+      extensions: {
+        directives: {
+          entity: {},
+        },
+      },
+    });
+
+    const schemaWithDirectives = new GraphQLSchema({
+      query: schemaTypes.Query,
+    })
+
+    const printedSchema = printSchemaWithDirectives(schemaWithDirectives);
+    expect(printedSchema).toContain(`id: ID! @id`);
+    expect(printedSchema).toContain(`friends: [User!]! @link`);
+    expect(printedSchema).toContain(`type User @entity`);
   });
 
   it('Should print types correctly if they dont have astNode', () => {
