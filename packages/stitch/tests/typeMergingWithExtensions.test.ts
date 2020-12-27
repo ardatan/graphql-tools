@@ -181,13 +181,14 @@ describe('merging using type merging', () => {
       price: { type: GraphQLInt },
       weight: { type: GraphQLInt },
     }),
-    extensions: {
-      directives: {
-        key: {
-          selectionSet: '{ upc }',
-        },
-      },
-    },
+    // key is not necessary when using keyField
+    //extensions: {
+    //  directives: {
+    //    key: {
+    //      selectionSet: '{ upc }',
+    //    },
+    //  },
+    //},
   });
 
   productsSchemaTypes.Query = new GraphQLObjectType({

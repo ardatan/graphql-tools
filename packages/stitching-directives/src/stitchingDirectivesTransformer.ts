@@ -10,6 +10,7 @@ import {
   Kind,
   parseValue,
   print,
+  SelectionNode,
   SelectionSetNode,
   valueFromASTUntyped,
 } from 'graphql';
@@ -55,9 +56,9 @@ export function stitchingDirectivesTransformer(
       [MapperKind.OBJECT_TYPE]: type => {
         const directives = getDirectives(schema, type, pathToDirectivesInExtensions);
 
-        if (directives[keyDirectiveName]) {
-          const directiveArgumentMap = directives[keyDirectiveName];
-          const selectionSet = parseSelectionSet(directiveArgumentMap.selectionSet);
+        const keyDirective = directives[keyDirectiveName];
+        if (keyDirective) {
+          const selectionSet = parseSelectionSet(keyDirective.selectionSet, { noLocation: true });
           selectionSetsByType[type.name] = selectionSet;
         }
 
@@ -66,13 +67,31 @@ export function stitchingDirectivesTransformer(
       [MapperKind.OBJECT_FIELD]: (fieldConfig, fieldName, typeName) => {
         const directives = getDirectives(schema, fieldConfig, pathToDirectivesInExtensions);
 
-        if (directives[computedDirectiveName]) {
-          const directiveArgumentMap = directives[computedDirectiveName];
-          const selectionSet = parseSelectionSet(directiveArgumentMap.selectionSet);
+        const computedDirective = directives[computedDirectiveName];
+        if (computedDirective) {
+          const selectionSet = parseSelectionSet(computedDirective.selectionSet, { noLocation: true });
           if (!computedFieldSelectionSets[typeName]) {
             computedFieldSelectionSets[typeName] = Object.create(null);
           }
           computedFieldSelectionSets[typeName][fieldName] = selectionSet;
+        }
+
+        const mergeDirectiveKeyField = directives[mergeDirectiveName]?.keyField;
+        if (mergeDirectiveKeyField) {
+          const selectionSet = parseSelectionSet(`{ ${mergeDirectiveKeyField}}`, { noLocation: true });
+
+          const typeNames: Array<string> = directives[mergeDirectiveName]?.types;
+
+          const returnType = getNamedType(fieldConfig.type);
+
+          forEachConcreteType(schema, returnType, directives[mergeDirectiveName]?.types, typeName => {
+            if (typeNames == null || typeNames.includes(typeName)) {
+              const existingSelectionSet = selectionSetsByType[typeName];
+              selectionSetsByType[typeName] = existingSelectionSet
+                ? mergeSelectionSets(existingSelectionSet, selectionSet)
+                : selectionSet;
+            }
+          });
         }
 
         return undefined;
@@ -82,7 +101,7 @@ export function stitchingDirectivesTransformer(
     if (subschemaConfig.merge) {
       Object.entries(subschemaConfig.merge).forEach(([typeName, mergedTypeConfig]) => {
         if (mergedTypeConfig.selectionSet) {
-          const selectionSet = parseSelectionSet(mergedTypeConfig.selectionSet);
+          const selectionSet = parseSelectionSet(mergedTypeConfig.selectionSet, { noLocation: true });
           if (selectionSet) {
             if (selectionSetsByType[typeName]) {
               selectionSetsByType[typeName] = mergeSelectionSets(selectionSetsByType[typeName], selectionSet);
@@ -93,7 +112,7 @@ export function stitchingDirectivesTransformer(
         }
         if (mergedTypeConfig.computedFields) {
           Object.entries(mergedTypeConfig.computedFields).forEach(([fieldName, computedFieldConfig]) => {
-            const selectionSet = parseSelectionSet(computedFieldConfig.selectionSet);
+            const selectionSet = parseSelectionSet(computedFieldConfig.selectionSet, { noLocation: true });
             if (selectionSet) {
               if (computedFieldSelectionSets[typeName]?.[fieldName]) {
                 computedFieldSelectionSets[typeName][fieldName] = mergeSelectionSets(
@@ -249,6 +268,29 @@ export function stitchingDirectivesTransformer(
   };
 }
 
+function forEachConcreteType(
+  schema: GraphQLSchema,
+  type: GraphQLNamedType,
+  typeNames: Array<string>,
+  fn: (typeName: string) => void
+) {
+  if (isInterfaceType(type)) {
+    getImplementingTypes(type.name, schema).forEach(typeName => {
+      if (typeNames == null || typeNames.includes(typeName)) {
+        fn(typeName);
+      }
+    });
+  } else if (isUnionType(type)) {
+    type.getTypes().forEach(({ name: typeName }) => {
+      if (typeNames == null || typeNames.includes(typeName)) {
+        fn(typeName);
+      }
+    });
+  } else if (isObjectType(type)) {
+    fn(type.name);
+  }
+}
+
 function generateKeyFn(mergedTypeResolverInfo: MergedTypeResolverInfo): (originalResult: any) => any {
   const keyDeclarations: Array<KeyDeclaration> = [].concat(
     ...mergedTypeResolverInfo.expansions.map(expansion => expansion.keyDeclarations)
@@ -320,10 +362,19 @@ function buildKey(key: Array<string>): string {
   return JSON.stringify(mergedObect).replace(/"/g, '');
 }
 
-function mergeSelectionSets(set1: SelectionSetNode, set2: SelectionSetNode): SelectionSetNode {
+function mergeSelectionSets(selectionSet1: SelectionSetNode, selectionSet2: SelectionSetNode): SelectionSetNode {
+  const normalizedSelections: Record<string, SelectionNode> = Object.create(null);
+
+  [selectionSet1, selectionSet2].forEach(set => {
+    set.selections.forEach(selection => {
+      const normalizedSelection = print(selection);
+      normalizedSelections[normalizedSelection] = selection;
+    });
+  });
+
   const newSelectionSet = {
     kind: Kind.SELECTION_SET,
-    selections: set1.selections.concat(set2.selections),
+    selections: Object.values(normalizedSelections),
   };
 
   return newSelectionSet;

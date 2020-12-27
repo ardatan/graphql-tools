@@ -47,22 +47,22 @@ In the above example, the Users and Posts schemas will be combined in the stitch
 By default, stitching directives use the following definitions (though the names of these directives [may be customized](#customizing-names)):
 
 ```graphql
-directive @key(selectionSet: String!) on OBJECT
 directive @merge(keyField: String, keyArg: String, additionalArgs: String, key: [String!], argsExpr: String) on FIELD_DEFINITION
+directive @key(selectionSet: String!) on OBJECT
 directive @computed(selectionSet: String!) on FIELD_DEFINITION
 ```
 
 The function of these directives are:
 
-* **`@key`:** specifies a base selection set needed to merge the annotated type across subschemas. Analogous to the `selectionSet` setting specified in [merged type configuration](/docs/stitch-type-merging#basic-example).
-
 * **`@merge`:** denotes a root field used to query a merged type across services. The marked field's name is analogous to the `fieldName` setting in [merged type configuration](/docs/stitch-type-merging#basic-example), while the field's arguments and return types automatically configure merging. Additional arguments may tune the merge behavior (see [example recipes](#recipes)):
 
-  * `keyField`: specifies the name of a field to pick off origin objects as the key value. Omitting this option yields an [object key](#object-keys) that includes all selectionSet fields.
+  * `keyField`: specifies the name of a field to pick off origin objects as the key value. Omitting this option requires specification of an [object key](#object-keys) using the `@key` directive.
   * `keyArg`: specifies which field argument receives the merge key. This may be omitted for fields with only one argument where the key recipient can be inferred.
   * `additionalArgs`: specifies a string of additional keys and values to apply to other arguments, formatted as `""" arg1: "value", arg2: "value" """`.
   * _`key`: advanced use only; builds a custom key._
   * _`argsExpr`: advanced use only; builds a custom args object._
+
+* **`@key`:** specifies a base selection set needed to merge the annotated type across subschemas. Analogous to the `selectionSet` setting specified in [merged type configuration](/docs/stitch-type-merging#basic-example).
 
 * **`@computed`:** specifies a selection of fields required from other services to compute the value of this field. These additional fields are only selected when the computed field is requested. Analogous to [computed field](/docs/stitch-type-merging#computed-fields) in merged type configuration. Computed field dependencies must be sent into the subservice using an [object key](#object-keys).
 
@@ -180,11 +180,11 @@ async function fetchRemoteSchema(executor) {
 The simplest merge pattern picks a key field from origin objects:
 
 ```graphql
-type User @key(selectionSet: "{ id }") {
+type User {
   # ...
 }
 
-type Product @key(selectionSet: "{ upc }") {
+type Product {
   # ...
 }
 
@@ -214,14 +214,14 @@ merge: {
 }
 ```
 
-Here the `@key` directive specifies a base selection set for each merged type, and the `@merge` directive marks each type's merge query&mdash;then `keyField` specifies a field to be picked from each original object as the query argument value.
+Here, the `@merge` directive marks each type's merge query&mdash;then `keyField` specifies a field to be picked from each original object as the query argument value.
 
 ### Multiple arguments
 
 This pattern configures a merge query that receives multiple arguments:
 
 ```graphql
-type User @key(selectionSet: "{ id }") {
+type User {
   # ...
 }
 
@@ -247,7 +247,7 @@ merge: {
 }
 ```
 
-Because the merge field recieves multiple arguments, the `keyArg` parameter is required to specify which argument recieves the key(s). The `additionalArgs` parameter may then be used to provide static values for the other arguments.
+Because the merge field receives multiple arguments, the `keyArg` parameter is required to specify which argument receives the key(s). The `additionalArgs` parameter may then be used to provide static values for the other arguments.
 
 ### Object keys
 
