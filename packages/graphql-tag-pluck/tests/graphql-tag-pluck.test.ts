@@ -448,16 +448,16 @@ describe('graphql-tag-pluck', () => {
         </template>
 
         <script>
-        </script>
-        <script setup>
         import { defineComponent } from 'vue'
-        import gql from 'graphql-tag';
-
         export default defineComponent({
           name: 'TestComponent'
         })
+        </script>
+        <script setup>
+        import gql from 'graphql-tag';
 
-        export const pageQuery = gql\`
+
+        const pageQuery = gql\`
           query IndexQuery {
             site {
               siteMetadata {
@@ -467,7 +467,7 @@ describe('graphql-tag-pluck', () => {
           }
         \`;
 
-        // export const pageQuery = gql\`
+        // const pageQuery = gql\`
         //   query OtherQuery {
         //     site {
         //       siteMetadata {
@@ -501,16 +501,15 @@ describe('graphql-tag-pluck', () => {
         </template>
 
         <script lang="ts">
-        </script>
-        <script lang="ts" setup>
         import { defineComponent } from 'vue'
-        import gql from 'graphql-tag';
-
         export default defineComponent({
           name: 'TestComponent'
         })
+        </script>
+        <script lang="ts" setup>
+        import gql from 'graphql-tag';
 
-        export const pageQuery = gql\`
+        const pageQuery = gql\`
           query IndexQuery {
             site {
               siteMetadata {
@@ -520,7 +519,7 @@ describe('graphql-tag-pluck', () => {
           }
         \`;
 
-        // export const pageQuery = gql\`
+        // const pageQuery = gql\`
         //   query OtherQuery {
         //     site {
         //       siteMetadata {
@@ -553,6 +552,7 @@ describe('graphql-tag-pluck', () => {
         </template>
 
         <script>
+        import gql from 'graphql-tag';
         export const pageQuery = gql\`
         query IndexQuery {
           site {
@@ -572,14 +572,12 @@ describe('graphql-tag-pluck', () => {
         //     }
         //   }
         // \`;
-        </script>
-        <script setup>
         import { defineComponent } from 'vue'
-        import gql from 'graphql-tag';
-
         export default defineComponent({
           name: 'TestComponent'
         })
+        </script>
+        <script setup>
         </script>
 
         <style>
@@ -605,6 +603,7 @@ describe('graphql-tag-pluck', () => {
         </template>
 
         <script lang="ts">
+        import gql from 'graphql-tag';
         export const pageQuery = gql\`
         query IndexQuery {
           site {
@@ -624,14 +623,12 @@ describe('graphql-tag-pluck', () => {
         //     }
         //   }
         // \`;
-        </script>
-        <script lang="ts" setup>
         import { defineComponent } from 'vue'
-        import gql from 'graphql-tag';
-
         export default defineComponent({
           name: 'TestComponent'
         })
+        </script>
+        <script lang="ts" setup>
         </script>
 
         <style lang="scss">

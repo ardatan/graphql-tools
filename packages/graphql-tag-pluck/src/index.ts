@@ -110,9 +110,9 @@ const supportedExtensions = ['.js', '.jsx', '.ts', '.tsx', '.flow', '.flow.js', 
 function parseWithVue(vueTemplateCompiler: typeof import('@vue/compiler-sfc'), fileData: string) {
   const { descriptor } = vueTemplateCompiler.parse(fileData);
 
-  return `${descriptor.script ? descriptor.script.content : ''}
-  ${descriptor.scriptSetup ? descriptor.scriptSetup.content : ''}
-  `;
+  return descriptor.script || descriptor.scriptSetup
+    ? vueTemplateCompiler.compileScript(descriptor, { id: '' }).content
+    : '';
 }
 
 /**
