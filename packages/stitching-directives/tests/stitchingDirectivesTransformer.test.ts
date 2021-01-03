@@ -35,6 +35,66 @@ describe('type merging directives', () => {
     expect(transformedSubschemaConfig.merge.User.fieldName).toEqual('_user');
   });
 
+  test('adds type selection sets when returns union', () => {
+    const typeDefs = `
+      ${allStitchingDirectivesTypeDefs}
+      scalar _Key
+
+      union Entity = User
+
+      type Query {
+        _entity(key: _Key): Entity @merge
+      }
+
+      type User @key(selectionSet: "{ id }") {
+        id: ID
+        name: String
+      }
+    `;
+
+    const schema = makeExecutableSchema({ typeDefs });
+
+    const subschemaConfig = {
+      schema,
+    }
+
+    const transformedSubschemaConfig = stitchingDirectivesTransformer(subschemaConfig);
+
+    expect(transformedSubschemaConfig.merge.User.selectionSet).toEqual(print(parseSelectionSet('{ id }')));
+    expect(transformedSubschemaConfig.merge.User.fieldName).toEqual('_entity');
+  });
+
+  test('adds type selection sets when returns interface', () => {
+    const typeDefs = `
+      ${allStitchingDirectivesTypeDefs}
+      scalar _Key
+
+      interface Entity {
+        id: ID
+      }
+
+      type Query {
+        _entity(key: _Key): Entity @merge
+      }
+
+      type User implements Entity @key(selectionSet: "{ id }") {
+        id: ID
+        name: String
+      }
+    `;
+
+    const schema = makeExecutableSchema({ typeDefs });
+
+    const subschemaConfig = {
+      schema,
+    }
+
+    const transformedSubschemaConfig = stitchingDirectivesTransformer(subschemaConfig);
+
+    expect(transformedSubschemaConfig.merge.User.selectionSet).toEqual(print(parseSelectionSet('{ id }')));
+    expect(transformedSubschemaConfig.merge.User.fieldName).toEqual('_entity');
+  });
+
   test('adds computed selection sets', () => {
     const typeDefs = `
       ${allStitchingDirectivesTypeDefs}
@@ -424,6 +484,106 @@ describe('type merging directives', () => {
     });
     expect(args).toEqual({
       key: [{
+        id: '5',
+      }],
+    });
+  });
+
+  test('adds key and argsFromKeys functions when used without arguments and returns union', () => {
+    const typeDefs = `
+      ${allStitchingDirectivesTypeDefs}
+      scalar _Key
+
+      union Entity = User
+
+      type Query {
+        _entity(key: _Key): [Entity] @merge
+      }
+
+      type User @key(selectionSet: "{ id }") {
+        id: ID
+        name: String
+      }
+    `;
+
+    const schema = makeExecutableSchema({ typeDefs });
+
+    const subschemaConfig = {
+      schema,
+    }
+
+    const transformedSubschemaConfig = stitchingDirectivesTransformer(subschemaConfig);
+
+    const keyFn = transformedSubschemaConfig.merge.User.key;
+    const argsFromKeysFn = transformedSubschemaConfig.merge.User.argsFromKeys;
+
+    const originalResult = {
+      __typename: 'User',
+      id: '5',
+      email: 'email@email.com',
+    };
+
+    const key = keyFn(originalResult);
+    const args = argsFromKeysFn([key]);
+
+    expect(key).toEqual({
+      __typename: 'User',
+      id: '5',
+    });
+    expect(args).toEqual({
+      key: [{
+        __typename: 'User',
+        id: '5',
+      }],
+    });
+  });
+
+  test('adds key and argsFromKeys functions when used without arguments and returns interface', () => {
+    const typeDefs = `
+      ${allStitchingDirectivesTypeDefs}
+      scalar _Key
+
+      interface Entity {
+        id: ID
+      }
+
+      type Query {
+        _entity(key: _Key): [Entity] @merge
+      }
+
+      type User implements Entity @key(selectionSet: "{ id }") {
+        id: ID
+        name: String
+      }
+    `;
+
+    const schema = makeExecutableSchema({ typeDefs });
+
+    const subschemaConfig = {
+      schema,
+    }
+
+    const transformedSubschemaConfig = stitchingDirectivesTransformer(subschemaConfig);
+
+    const keyFn = transformedSubschemaConfig.merge.User.key;
+    const argsFromKeysFn = transformedSubschemaConfig.merge.User.argsFromKeys;
+
+    const originalResult = {
+      __typename: 'User',
+      id: '5',
+      email: 'email@email.com',
+    };
+
+    const key = keyFn(originalResult);
+    const args = argsFromKeysFn([key]);
+
+    expect(key).toEqual({
+      __typename: 'User',
+      id: '5',
+    });
+    expect(args).toEqual({
+      key: [{
+        __typename: 'User',
         id: '5',
       }],
     });

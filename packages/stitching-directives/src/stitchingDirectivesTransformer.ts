@@ -1,6 +1,8 @@
 import {
+  getNamedType,
   getNullableType,
   GraphQLNamedType,
+  GraphQLSchema,
   isInterfaceType,
   isListType,
   isObjectType,
@@ -137,13 +139,9 @@ export function stitchingDirectivesTransformer(
         if (directives[mergeDirectiveName]) {
           const directiveArgumentMap = directives[mergeDirectiveName];
 
-          let returnType = getNullableType(fieldConfig.type);
-          let returnsList = false;
-
-          if (isListType(returnType)) {
-            returnsList = true;
-            returnType = getNullableType(returnType.ofType);
-          }
+          const returnType = getNullableType(fieldConfig.type);
+          const returnsList = isListType(returnType);
+          const namedType = getNamedType(returnType);
 
           let mergeArgsExpr: string = directiveArgumentMap.argsExpr;
 
@@ -163,48 +161,25 @@ export function stitchingDirectivesTransformer(
             });
           }
 
-          const parsedMergeArgsExpr = parseMergeArgsExpr(
-            mergeArgsExpr,
-            allSelectionSetsByType[(returnType as GraphQLNamedType).name]
-          );
-
-          const additionalArgs = directiveArgumentMap.additionalArgs;
-          if (additionalArgs != null) {
-            parsedMergeArgsExpr.args = mergeDeep(
-              parsedMergeArgsExpr.args,
-              valueFromASTUntyped(parseValue(`{ ${additionalArgs} }`, { noLocation: true }))
-            );
-          }
-
           const typeNames: Array<string> = directiveArgumentMap.types;
 
-          if (isInterfaceType(returnType)) {
-            getImplementingTypes(returnType.name, schema).forEach(typeName => {
-              if (typeNames == null || typeNames.includes(typeName)) {
-                mergedTypesResolversInfo[typeName] = {
-                  fieldName,
-                  returnsList,
-                  ...parsedMergeArgsExpr,
-                };
-              }
-            });
-          } else if (isUnionType(returnType)) {
-            returnType.getTypes().forEach(type => {
-              if (typeNames == null || typeNames.includes(type.name)) {
-                mergedTypesResolversInfo[type.name] = {
-                  fieldName,
-                  returnsList,
-                  ...parsedMergeArgsExpr,
-                };
-              }
-            });
-          } else if (isObjectType(returnType)) {
-            mergedTypesResolversInfo[returnType.name] = {
+          forEachConcreteTypeName(namedType, schema, typeNames, typeName => {
+            const parsedMergeArgsExpr = parseMergeArgsExpr(mergeArgsExpr, allSelectionSetsByType[typeName]);
+
+            const additionalArgs = directiveArgumentMap.additionalArgs;
+            if (additionalArgs != null) {
+              parsedMergeArgsExpr.args = mergeDeep(
+                parsedMergeArgsExpr.args,
+                valueFromASTUntyped(parseValue(`{ ${additionalArgs} }`, { noLocation: true }))
+              );
+            }
+
+            mergedTypesResolversInfo[typeName] = {
               fieldName,
               returnsList,
               ...parsedMergeArgsExpr,
             };
-          }
+          });
         }
 
         return undefined;
@@ -352,4 +327,27 @@ function mergeSelectionSets(set1: SelectionSetNode, set2: SelectionSetNode): Sel
   };
 
   return newSelectionSet;
+}
+
+function forEachConcreteTypeName(
+  returnType: GraphQLNamedType,
+  schema: GraphQLSchema,
+  typeNames: Array<string>,
+  fn: (typeName: string) => void
+): void {
+  if (isInterfaceType(returnType)) {
+    getImplementingTypes(returnType.name, schema).forEach(typeName => {
+      if (typeNames == null || typeNames.includes(typeName)) {
+        fn(typeName);
+      }
+    });
+  } else if (isUnionType(returnType)) {
+    returnType.getTypes().forEach(type => {
+      if (typeNames == null || typeNames.includes(type.name)) {
+        fn(type.name);
+      }
+    });
+  } else if (isObjectType(returnType) && (typeNames == null || typeNames.includes(returnType.name))) {
+    fn(returnType.name);
+  }
 }
