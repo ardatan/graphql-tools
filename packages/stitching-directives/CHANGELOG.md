@@ -1,5 +1,11 @@
 # @graphql-tools/stitching-directives
 
+## 1.1.1
+
+### Patch Changes
+
+- 394c4775: fix(stitching-directives): fix abstract types
+
 ## 1.1.0
 
 ### Minor Changes
