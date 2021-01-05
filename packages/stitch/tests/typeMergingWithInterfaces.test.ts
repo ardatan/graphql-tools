@@ -167,11 +167,11 @@ describe('merging using type merging', () => {
     //
     typeDefs: `
       ${allStitchingDirectivesTypeDefs}
+      scalar _Key
+      union _Entity = Product
       type Query {
         topProducts(first: Int = 2): [Product]
-        _productsByUpc(upcs: [String!]!): [Product] @merge(keyField: "upc")
-        # EQUIVALENT TO:
-        # _productsByUpc(upcs: [String!]!): [Product] @merge(argsExpr: "upcs: [[$key.upc]]")
+        _entities(keys: [_Key!]!): [_Entity] @merge
       }
       type Product @key(selectionSet: "{ upc }") {
         upc: String!
@@ -183,7 +183,7 @@ describe('merging using type merging', () => {
     resolvers: {
       Query: {
         topProducts: (_root, args) => products.slice(0, args.first),
-        _productsByUpc: (_root, { upcs }) => upcs.map((upc: any) => products.find(product => product.upc === upc)),
+        _entities: (_root, { keys }) => keys.map((key: Record<string, any>) => products.find(product => product.upc === key.upc)),
       }
     },
     schemaTransforms: [stitchingDirectivesValidator],
@@ -236,14 +236,13 @@ describe('merging using type merging', () => {
     //
     typeDefs: `
       ${allStitchingDirectivesTypeDefs}
+      scalar _Key
+      union _Entity = User | Product
       type Review {
         id: ID!
         body: String
         author: User
         product: Product
-      }
-      input UserKey {
-        id: ID!
       }
       type User @key(selectionSet: "{ id }") {
         id: ID!
@@ -251,22 +250,13 @@ describe('merging using type merging', () => {
         numberOfReviews: Int
         reviews: [Review]
       }
-      input ProductKey {
-        upc: String!
-      }
-      input ProductInput {
-        keys: [ProductKey!]!
-      }
       type Product @key(selectionSet: "{ upc }") {
         upc: String!
         reviews: [Review]
       }
       type Query {
         _reviews(id: ID!): Review
-        _users(keys: [UserKey!]!): [User] @merge
-        _products(input: ProductInput): [Product]! @merge(keyArg: "input.keys")
-        # EQUIVALENT TO:
-        # _products(input: ProductInput): [Product]! @merge(argsExpr: "input: { keys: [[$key]] }")
+        _entities(keys: [_Key!]!): [_Entity] @merge
       }
     `,
     resolvers: {
@@ -286,8 +276,7 @@ describe('merging using type merging', () => {
       },
       Query: {
         _reviews: (_root, { id }) => reviews.find(review => review.id === id),
-        _users: (_root, { keys }) => keys,
-        _products: (_root, { input }) => input.keys,
+        _entities: (_root, { keys }) => keys,
       },
     },
     schemaTransforms: [stitchingDirectivesValidator],
