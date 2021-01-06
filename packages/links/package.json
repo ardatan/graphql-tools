@@ -41,7 +41,7 @@
     "cross-fetch": "3.0.6",
     "form-data": "3.0.0",
     "is-promise": "4.0.0",
-    "tslib": "~2.0.1"
+    "tslib": "~2.1.0"
   },
   "publishConfig": {
     "access": "public",
