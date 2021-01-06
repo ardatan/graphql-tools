@@ -56,7 +56,9 @@ describe('merging using type merging', () => {
     resolvers: {
       Query: {
         me: () => users[0],
-        _entities: (_root, { keys }) => keys.map((key: Record<string, any>) => users.find(u => u.id === key.id)),
+        _entities: (_root, { keys }) => {
+          return keys.map((key: Record<string, any>) => ({ ...key,  ...users.find(u => u.id === key.id) }));
+        },
       },
     },
     schemaTransforms: [stitchingDirectivesValidator],
@@ -183,7 +185,9 @@ describe('merging using type merging', () => {
     resolvers: {
       Query: {
         topProducts: (_root, args) => products.slice(0, args.first),
-        _entities: (_root, { keys }) => keys.map((key: Record<string, any>) => products.find(product => product.upc === key.upc)),
+        _entities: (_root, { keys }) => {
+          return keys.map((key: Record<string, any>) => ({ ...key, ...products.find(product => product.upc === key.upc) }));
+        }
       }
     },
     schemaTransforms: [stitchingDirectivesValidator],
@@ -237,7 +241,7 @@ describe('merging using type merging', () => {
     typeDefs: `
       ${allStitchingDirectivesTypeDefs}
       scalar _Key
-      union _Entity = User | Product
+      union _Entity = User | Product | Review
       type Review {
         id: ID!
         body: String
@@ -255,13 +259,12 @@ describe('merging using type merging', () => {
         reviews: [Review]
       }
       type Query {
-        _reviews(id: ID!): Review
         _entities(keys: [_Key!]!): [_Entity] @merge
       }
     `,
     resolvers: {
       Review: {
-        author: (review) => ({ __typename: 'User', id: review.authorId }),
+        author: (review) => ({ id: review.authorId }),
       },
       User: {
         reviews: (user) => reviews.filter(review => review.authorId === user.id),
@@ -275,8 +278,15 @@ describe('merging using type merging', () => {
         reviews: (product) => reviews.filter(review => review.product.upc === product.upc),
       },
       Query: {
-        _reviews: (_root, { id }) => reviews.find(review => review.id === id),
-        _entities: (_root, { keys }) => keys,
+        _entities: (_root, { keys }) => {
+          return keys.map((key: Record<string, any>) => {
+            if (key.__typename === 'Review') {
+              return ({ ...key, ...reviews.find(review => review.id === key.id) });
+            }
+
+            return { ...key };
+          });
+        },
       },
     },
     schemaTransforms: [stitchingDirectivesValidator],
@@ -303,7 +313,7 @@ describe('merging using type merging', () => {
     subschemaConfigTransforms: [stitchingDirectivesTransformer],
   });
 
-  test.only('can stitch from products to inventory schema including mixture of computed and non-computed fields', async () => {
+  test('can stitch from products to inventory schema including mixture of computed and non-computed fields', async () => {
     const result = await graphql(
       stitchedSchema,
       `

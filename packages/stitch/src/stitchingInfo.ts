@@ -38,7 +38,7 @@ export function createStitchingInfo(
 
     mergedTypeInfo.selectionSets.forEach((selectionSet, subschemaConfig) => {
       const schema = subschemaConfig.transformedSchema;
-      const type = schema.getType(typeName) as GraphQLObjectType | GraphQLInterfaceType;
+      const type = schema.getType(typeName) as GraphQLObjectType;
       const fields = type.getFields();
       Object.keys(fields).forEach(fieldName => {
         const field = fields[fieldName];
