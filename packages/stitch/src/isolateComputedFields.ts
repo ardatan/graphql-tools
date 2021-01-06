@@ -151,7 +151,7 @@ function filterIsolatedSubschema(subschemaConfig: SubschemaConfig): SubschemaCon
   Object.keys(filteredSchema.getTypeMap()).forEach(typeName => {
     const type = filteredSchema.getType(typeName);
     if (isObjectType(type) || isInterfaceType(type)) {
-      filteredFields[typeName] = {};
+      filteredFields[typeName] = { __typename: true };
       const fieldMap = type.getFields();
       Object.keys(fieldMap).forEach(fieldName => {
         filteredFields[typeName][fieldName] = true;
