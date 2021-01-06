@@ -198,4 +198,10 @@ GraphQL resolve info of the current resolver. Provides access to the subquery th
 
 #### transforms: Array < Transform >
 
-Any additional operation [transforms](/docs/schema-wrapping/) to apply to the query and results. Transforms are specified similarly to the transforms used in conjunction with schema wrapping, but only the operational components of transforms will be used by `delegateToSchema`, i.e. any specified `transformRequest` and `transformResult` functions.
+Any additional operation [transforms](/docs/schema-wrapping/) to apply to the query and results. Transforms are specified similarly to the transforms used in conjunction with schema wrapping, but only the operational components of transforms will be used by `delegateToSchema`, i.e. any specified `transformRequest` and `transformResult` functions. The following transforms are automatically applied during schema delegation to translate between source and target types and fields:
+
+* `ExpandAbstractTypes`: If an abstract type within a document does not exist within the target schema, expand the type to each and any of its implementations that do exist.
+* `FilterToSchema`: Remove all fields, variables and fragments for types that don't exist within the target schema.
+* `AddTypenameToAbstract`: Add `__typename` to all abstract types in the document, necessary for type resolution of interfaces within the source schema to work.
+* `CheckResultAndHandleErrors`: Given a result from a subschema, propagate errors so that they match the correct subfield. Also provide the correct key if aliases are used.
+* `AddSelectionSets`: activated by schema stitching to add selection sets into outgoing requests from the gateway schema. These selections collect key fields used to perform queries for related records from other subservices.

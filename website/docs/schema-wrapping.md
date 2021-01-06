@@ -132,9 +132,9 @@ const schema = wrapSchema({
 });
 ```
 
-### Definitions
+### Modifying
 
-Definition transforms allow element names and their definitions to be modified or omitted. They may filter, rename, and make other freeform modifications all at once. These transforms accept element transformer functions that may return one of several outcomes:
+Modifying transforms allow element names and their definitions to be modified or omitted. They may filter, rename, and make other freeform modifications all at once. These transforms accept element transformer functions that may return one of several outcomes:
 
 1. A modified version of the element config.
 2. An array with a modified field name and new element config.
@@ -166,7 +166,7 @@ const schema = wrapSchema({
 
 These transforms accept an optional second node transformer function. When specified, the node transformer is called upon any element of the given kind in a request; transforming the result is possible by wrapping the element's resolver with the element transformer function (first argument).
 
-### Cleanup
+### Grooming
 
 These transforms eliminate unwanted or unnecessary elements from a schema. These are configured in a variety of ways, so consult API documentation for specific options.
 
@@ -189,7 +189,7 @@ const schema = wrapSchema({
 });
 ```
 
-### Operations
+### Operational
 
 It may be sometimes useful to add additional transforms to manually change an operation request or result when using `delegateToSchema`. Common use cases may be move selections around or to wrap them. The following built-in transforms may be useful in those cases.
 
@@ -319,6 +319,8 @@ class RemovePrivateElementsTransform {
       argumentFilter: (typeName, fieldName, argName) => isPublicName(argName),
     }));
   }
+
+  // no need for operational transforms
 }
 
 const schema = wrapSchema({
@@ -327,30 +329,12 @@ const schema = wrapSchema({
 });
 ```
 
-## Delegation
+## Subschema delegation
 
-Given a `GraphQLSchema` and an array of `Transform` objects, `wrapSchema` produces a new schema with the `transformSchema` methods applied.
+The `wrapSchema` method will produce a new schema with all queued `transformSchema` methods applied. Delegating resolvers are automatically generated to map from new schema root fields to old schema root fields. These resolvers should be sufficient for most common case so you don't have to implement your own.
 
-Delegating resolvers are generated to map from new schema root fields to old schema root fields. These automatic resolvers should be sufficient, so you don't have to implement your own.
-
-The delegating resolvers will apply the operation transforms defined by the `Transform` objects. Each provided `transformRequest` functions will be applies in reverse order, until the request matches the original schema. The `tranformResult` functions will be applied in the opposite order until the result matches the final gateway schema.
+Delegating resolvers will apply all operation transforms defined by the wrapper's `Transform` objects. Each provided `transformRequest` functions will be applies in reverse order, until the request matches the original schema. The `tranformResult` functions will be applied in the opposite order until the result matches the final gateway schema.
 
 In advanced cases, transforms may wish to create additional delegating root resolvers (for example, when hoisting a field into a root type). This is also possible. The wrapping schema is actually generated twice -- the first run results in a possibly non-executable version, while the second execution also includes the result of the first one within the `transformedSchema` argument so that an executable version with any new proxying resolvers can be created.
 
 Remote schemas can also be wrapped! In fact, this is the primary use case. See documentation regarding [remote schemas](/docs/remote-schemas/) for further details about remote schemas. Note that as explained there, when wrapping remote schemas, you will be wrapping a subschema config object, and the array of transforms should be defined on that object rather than as a second argument to `wrapSchema`.
-
-## delegateToSchema (delegation) transforms
-
-The following transforms are automatically applied by `delegateToSchema` during schema delegation, to translate between source and target types and fields:
-
-* `ExpandAbstractTypes`: If an abstract type within a document does not exist within the target schema, expand the type to each and any of its implementations that do exist.
-* `FilterToSchema`: Remove all fields, variables and fragments for types that don't exist within the target schema.
-* `AddTypenameToAbstract`: Add `__typename` to all abstract types in the document, necessary for type resolution of interfaces within the source schema to work.
-* `CheckResultAndHandleErrors`: Given a result from a subschema, propagate errors so that they match the correct subfield. Also provide the correct key if aliases are used.
-
-By passing a custom `transforms` array to `delegateToSchema`, it's possible to run additional operation (request/result) transforms before these default transforms.
-
-## stitchSchemas (gateway/stitching) transforms
-
-* `AddReplacementSelectionSets(schema: GraphQLSchema, mapping: ReplacementSelectionSetMapping)`:  `stitchSchemas` adds selection sets on outgoing requests from the gateway, enabling delegation from fields specified on the gateway using fields obtained from the original requests. The selection sets can be added depending on the presence of fields within the request using the `selectionSet` option within the resolver map.  `stitchSchemas` creates the mapping at gateway startup. Selection sets are used instead of fragments as the selections are added prior to transformation in case type names are changed, obviating the need for the fragment name.
-* `AddMergedTypeSelectionSets(schema: GraphQLSchema, mapping: Record<string, MergedTypeInfo>)`: `stitchSchemas` adds selection sets on outgoing requests from the gateway, enabling type merging from the initial result using any fields initially obtained. The mapping is created at gateway startup.

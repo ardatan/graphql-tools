@@ -372,14 +372,13 @@ type Query {
 
 ## Versioning &amp; release
 
-Once all schemas and their merge configurations are defined together as annotated SDL documents, new versions of these documents can be pushed up to the gateway to trigger a "hot" reload&mdash;or, a reload of the gateway schema with server deployment and a restart. See related [handbook example](https://github.com/gmac/schema-stitching-handbook/tree/master/hot-schema-reloading) demonstrating a basic reload.
+Once subschemas and their merge configurations are defined as annotated SDLs, new versions of these documents can be pushed to the gateway to trigger a ["hot" reload](https://github.com/gmac/schema-stitching-handbook/tree/master/hot-schema-reloading)&mdash;or, a reload of the gateway schema without restarting its server.
 
-However, pushing new SDL versions directly to the gateway is a risky proposition given the potential for incompatible subschema versions to be mixed. Therefore, a formal versioning, testing, and release strategy is necessary for long-term stability. The general process is as follows:
+However, pushing untested SDLs directly to the gateway is risky due to the potential for incompatible subschema versions to be mixed. Therefore, a formal versioning, testing, and release strategy is necessary for long-term stability. See the [versioning handbook example](https://github.com/gmac/schema-stitching-handbook/tree/master/versioning-schema-releases) that demonstrates using the GitHub API to turn a basic Git repo into a schema registry that manages versioning and release.
 
-1. Subservice schemas are comitted to a central schema registry where they are all versioned together.
-2. Continuous integration tests run on the latest versions of all subservice schemas composed together _before_ any schemas are released.
-3. Once a composed release of new subschemas passes integration tests, their underlying subservices are deployed.
-4. New subservices should quietly activate new schemas behind the gateway proxy layer without breaking any existing schemas. Breaking changes should always be rolled out during a maintenance window.
-5. After all new subservices have been rolled out, the revised schemas may be activated within the gateway proxy layer.
+The general process for zero-downtime rollouts is:
 
-While that process sounds fairly involved (in many ways, it is), you can tune your workflow to naturally build around this process. See our [handbook example](https://github.com/gmac/schema-stitching-handbook/tree/master/versioning-schema-releases) that demonstrates using the GitHub API to turn a basic repo into a schema registry in charge of versioning and releases.
+1. Compose and test all subschema head versions together to verify their combined stability prior to release.
+1. Deploy all updated subservice applications while keeping their existing subschema features operational.
+1. Push all updated subschema SDLs to the gateway as a single cutover.
+1. Decommission old subservices, and/or outdated subservice features.
