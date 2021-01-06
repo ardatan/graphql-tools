@@ -23,7 +23,7 @@
     "@babel/traverse": "7.12.12",
     "@babel/types": "7.12.12",
     "@graphql-tools/utils": "^7.0.0",
-    "tslib": "~2.0.1"
+    "tslib": "~2.1.0"
   },
   "optionalDependencies": {
     "vue-template-compiler": "^2.6.12"
