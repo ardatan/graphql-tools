@@ -136,14 +136,14 @@ Stitching has two strategies for handling types duplicated across subschemas: an
 
 ### Automatic merge
 
-Types with the same name are automatically merged by default in GraphQL Tools v7. That means objects, interfaces, and input objects with the same name will have their fields consolidated from across subschemas, and unions/enums will consolidate all members. The combined gateway schema will then smartly delegate portions of a request to the proper origin subschema(s). See [type merging guide](/docs/stitch-type-merging/) for a comprehensive overview.
+Types with the same name are automatically merged by default in GraphQL Tools v7. That means objects, interfaces, and input objects with the same name will consolidate their fields consolidated from across subschemas, and unions/enums will consolidate all their members. The combined gateway schema will then smartly delegate portions of a request to the proper origin subschema(s). See [type merging guide](/docs/stitch-type-merging/) for a comprehensive overview.
 
 Automatic merging will only encounter conflicts on fields and type descriptions. By default, the final definition of a field or type description found in the subschemas array is used. You may customize this selection logic in `typeMergingOptions`:
 
 ```js
 const gatewaySchema = stitchSchemas({
   subschemas: [...],
-  mergeTypes: true, // << optional in v7
+  mergeTypes: true, // << default in v7
   typeMergingOptions: {
     typeDescriptionsMerger(candidates) {
       const candidate = candidates.find(({ type }) => !!type.description) || candidates.pop();
