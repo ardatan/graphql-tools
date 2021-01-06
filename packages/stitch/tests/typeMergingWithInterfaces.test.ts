@@ -186,7 +186,6 @@ describe('merging using type merging', () => {
       Query: {
         topProducts: (_root, args) => products.slice(0, args.first),
         _entities: (_root, { keys }) => {
-          console.log(JSON.stringify(keys, null, 2));
           return keys.map((key: Record<string, any>) => ({ ...key, ...products.find(product => product.upc === key.upc) }));
         }
       }
@@ -242,7 +241,7 @@ describe('merging using type merging', () => {
     typeDefs: `
       ${allStitchingDirectivesTypeDefs}
       scalar _Key
-      union _Entity = User | Product
+      union _Entity = User | Product | Review
       type Review {
         id: ID!
         body: String
@@ -260,13 +259,12 @@ describe('merging using type merging', () => {
         reviews: [Review]
       }
       type Query {
-        _reviews(id: ID!): Review
         _entities(keys: [_Key!]!): [_Entity] @merge
       }
     `,
     resolvers: {
       Review: {
-        author: (review) => ({ __typename: 'User', id: review.authorId }),
+        author: (review) => ({ id: review.authorId }),
       },
       User: {
         reviews: (user) => reviews.filter(review => review.authorId === user.id),
@@ -280,9 +278,14 @@ describe('merging using type merging', () => {
         reviews: (product) => reviews.filter(review => review.product.upc === product.upc),
       },
       Query: {
-        _reviews: (_root, { id }) => reviews.find(review => review.id === id),
         _entities: (_root, { keys }) => {
-          return keys.map((key: Record<string, any>) => ({ ...key }));
+          return keys.map((key: Record<string, any>) => {
+            if (key.__typename === 'Review') {
+              return ({ ...key, ...reviews.find(review => review.id === key.id) });
+            }
+
+            return { ...key };
+          });
         },
       },
     },
