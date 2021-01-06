@@ -4,12 +4,12 @@ const rimraf = require('rimraf');
 const TypeDoc = require('typedoc');
 const { execSync } = require('child_process');
 
+const MONOREPO = 'graphql-tools';
+
 async function buildApiDocs() {
   // Where to generate the API docs
   const outputDir = path.join(__dirname, '../website/docs/api');
-  // sidebars.json
-  const sidebarsTemplatePath = path.join(__dirname, '../website/sidebars.template.json');
-  const sidebarsPath = path.join(__dirname, '../website/sidebars.json');
+  const sidebarsPath = path.join(__dirname, '../website/api-sidebar.json');
 
   // Get the upstream git remote -- we don't want to assume it exists or is named "upstream"
   const gitRemote = execSync('git remote -v', { encoding: 'utf-8' })
@@ -29,8 +29,8 @@ async function buildApiDocs() {
   const modules = [];
   for (const packageJsonPath of packageJsonFiles) {
     const packageJsonContent = require(path.join(__dirname, '..', packageJsonPath));
-    // Do not include private and large `graphql-tools` npm package
-    if (!packageJsonContent.private && packageJsonContent.name !== 'graphql-tools') {
+    // Do not include private and large npm package that contains rest
+    if (!packageJsonContent.private && packageJsonContent.name !== MONOREPO) {
       modules.push([
         packageJsonContent.name,
         packageJsonPath.replace('./', '').replace('package.json', 'src/index.ts'),
@@ -108,9 +108,7 @@ sidebar_label: "${id}"
     fs.writeFileSync(filePath, finalContent);
   });
 
-  // Update sidebars.json
-  const sidebars = require(sidebarsTemplatePath);
-  sidebars.someSidebar.find(category => category['API Reference'])['API Reference'] = [
+  fs.writeFileSync(sidebarsPath, JSON.stringify([
     {
       Modules: modules.map(([name]) => `api/modules/${convertNameToId(name)}`),
     },
@@ -123,8 +121,7 @@ sidebar_label: "${id}"
     {
       Enums: getSidebarItemsByDirectory('enums'),
     },
-  ];
-  fs.writeFileSync(sidebarsPath, JSON.stringify(sidebars, null, 2));
+  ], null, 2));
 
   function convertEntryFilePath(filePath) {
     const { dir, name } = path.parse(filePath);
@@ -134,7 +131,7 @@ sidebar_label: "${id}"
   }
 
   function convertNameToId(name) {
-    return name.replace(/@graphql-tools\//g, '');
+    return name.replace(`@${MONOREPO}/`, '');
   }
 
   function getSidebarItemsByDirectory(dirName) {

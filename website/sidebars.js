@@ -1,4 +1,4 @@
-{
+module.exports = {
   "someSidebar": [
     "introduction",
     {
@@ -39,6 +39,8 @@
         }
       ]
     },
-    { "API Reference": [] }
+    {
+      "API Reference": require('./api-sidebar.json')
+    }
   ]
 }
