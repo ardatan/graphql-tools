@@ -24,7 +24,7 @@
   "dependencies": {
     "@graphql-tools/schema": "^7.0.0",
     "@graphql-tools/utils": "^7.0.0",
-    "tslib": "~2.0.1"
+    "tslib": "~2.1.0"
   },
   "devDependencies": {
     "casual": "1.6.2"
