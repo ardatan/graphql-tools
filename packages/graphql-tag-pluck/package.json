@@ -26,11 +26,11 @@
     "tslib": "~2.1.0"
   },
   "optionalDependencies": {
-    "vue-template-compiler": "^2.6.12"
+    "@vue/compiler-sfc": "^3.0.4"
   },
   "devDependencies": {
     "@types/babel__traverse": "7.11.0",
-    "vue-template-compiler": "2.6.12"
+    "@vue/compiler-sfc": "^3.0.4"
   },
   "publishConfig": {
     "access": "public",

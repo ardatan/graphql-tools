@@ -107,10 +107,12 @@ export interface GraphQLTagPluckOptions {
 const supportedExtensions = ['.js', '.jsx', '.ts', '.tsx', '.flow', '.flow.js', '.flow.jsx', '.vue'];
 
 // tslint:disable-next-line: no-implicit-dependencies
-function parseWithVue(vueTemplateCompiler: typeof import('vue-template-compiler'), fileData: string) {
-  const parsed = vueTemplateCompiler.parseComponent(fileData);
+function parseWithVue(vueTemplateCompiler: typeof import('@vue/compiler-sfc'), fileData: string) {
+  const { descriptor } = vueTemplateCompiler.parse(fileData);
 
-  return parsed.script ? parsed.script.content : '';
+  return descriptor.script || descriptor.scriptSetup
+    ? vueTemplateCompiler.compileScript(descriptor, { id: '' }).content
+    : '';
 }
 
 /**
@@ -214,20 +216,20 @@ const MissingVueTemplateCompilerError = new Error(
 
     Via NPM:
 
-        $ npm install vue-template-compiler
+        $ npm install @vue/compiler-sfc
 
     Via Yarn:
 
-        $ yarn add vue-template-compiler
+        $ yarn add @vue/compiler-sfc
   `)
 );
 
 async function pluckVueFileScript(fileData: string) {
   // tslint:disable-next-line: no-implicit-dependencies
-  let vueTemplateCompiler: typeof import('vue-template-compiler');
+  let vueTemplateCompiler: typeof import('@vue/compiler-sfc');
   try {
     // tslint:disable-next-line: no-implicit-dependencies
-    vueTemplateCompiler = await import('vue-template-compiler');
+    vueTemplateCompiler = await import('@vue/compiler-sfc');
   } catch (e) {
     throw MissingVueTemplateCompilerError;
   }
@@ -237,11 +239,11 @@ async function pluckVueFileScript(fileData: string) {
 
 function pluckVueFileScriptSync(fileData: string) {
   // tslint:disable-next-line: no-implicit-dependencies
-  let vueTemplateCompiler: typeof import('vue-template-compiler');
+  let vueTemplateCompiler: typeof import('@vue/compiler-sfc');
 
   try {
     // tslint:disable-next-line: no-implicit-dependencies
-    vueTemplateCompiler = require('vue-template-compiler');
+    vueTemplateCompiler = require('@vue/compiler-sfc');
   } catch (e) {
     throw MissingVueTemplateCompilerError;
   }
