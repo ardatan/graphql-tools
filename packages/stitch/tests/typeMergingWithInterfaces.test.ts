@@ -56,7 +56,9 @@ describe('merging using type merging', () => {
     resolvers: {
       Query: {
         me: () => users[0],
-        _entities: (_root, { keys }) => keys.map((key: Record<string, any>) => users.find(u => u.id === key.id)),
+        _entities: (_root, { keys }) => {
+          return keys.map((key: Record<string, any>) => ({ ...key,  ...users.find(u => u.id === key.id) }));
+        },
       },
     },
     schemaTransforms: [stitchingDirectivesValidator],
@@ -183,7 +185,10 @@ describe('merging using type merging', () => {
     resolvers: {
       Query: {
         topProducts: (_root, args) => products.slice(0, args.first),
-        _entities: (_root, { keys }) => keys.map((key: Record<string, any>) => products.find(product => product.upc === key.upc)),
+        _entities: (_root, { keys }) => {
+          console.log(JSON.stringify(keys, null, 2));
+          return keys.map((key: Record<string, any>) => ({ ...key, ...products.find(product => product.upc === key.upc) }));
+        }
       }
     },
     schemaTransforms: [stitchingDirectivesValidator],
@@ -276,7 +281,9 @@ describe('merging using type merging', () => {
       },
       Query: {
         _reviews: (_root, { id }) => reviews.find(review => review.id === id),
-        _entities: (_root, { keys }) => keys,
+        _entities: (_root, { keys }) => {
+          return keys.map((key: Record<string, any>) => ({ ...key }));
+        },
       },
     },
     schemaTransforms: [stitchingDirectivesValidator],
@@ -303,7 +310,7 @@ describe('merging using type merging', () => {
     subschemaConfigTransforms: [stitchingDirectivesTransformer],
   });
 
-  test.only('can stitch from products to inventory schema including mixture of computed and non-computed fields', async () => {
+  test('can stitch from products to inventory schema including mixture of computed and non-computed fields', async () => {
     const result = await graphql(
       stitchedSchema,
       `
