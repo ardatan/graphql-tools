@@ -183,7 +183,7 @@ export class Environment {
       clusters: this.getLocalClusterConfig(),
     };
     // parse & stringify to rm undefined for yaml parser
-    const rcString = yaml.safeDump(JSON.parse(JSON.stringify(rc)));
+    const rcString = yaml.dump(JSON.parse(JSON.stringify(rc)));
     fs.writeFileSync(this.rcPath, rcString);
   }
 
@@ -216,7 +216,7 @@ export class Environment {
     if (file) {
       let content;
       try {
-        content = yaml.safeLoad(file);
+        content = yaml.load(file);
       } catch (e) {
         throw new Error(`Yaml parsing error in ${filePath}: ${e.message}`);
       }
