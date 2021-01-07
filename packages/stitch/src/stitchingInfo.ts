@@ -49,7 +49,7 @@ export function createStitchingInfo(
         if (selectionSetsByField[typeName][fieldName] == null) {
           selectionSetsByField[typeName][fieldName] = {
             kind: Kind.SELECTION_SET,
-            selections: [parseSelectionSet('{ __typename }').selections[0]],
+            selections: [parseSelectionSet('{ __typename }', { noLocation: true }).selections[0]],
           };
         }
         selectionSetsByField[typeName][fieldName].selections = selectionSetsByField[typeName][
@@ -63,7 +63,7 @@ export function createStitchingInfo(
         if (selectionSetsByField[typeName][fieldName] == null) {
           selectionSetsByField[typeName][fieldName] = {
             kind: Kind.SELECTION_SET,
-            selections: [parseSelectionSet('{ __typename }').selections[0]],
+            selections: [parseSelectionSet('{ __typename }', { noLocation: true }).selections[0]],
           };
         }
         selectionSetsByField[typeName][fieldName].selections = selectionSetsByField[typeName][
@@ -130,7 +130,7 @@ function createMergedTypes(
           }
 
           if (mergedTypeConfig.selectionSet) {
-            const selectionSet = parseSelectionSet(mergedTypeConfig.selectionSet);
+            const selectionSet = parseSelectionSet(mergedTypeConfig.selectionSet, { noLocation: true });
             selectionSets.set(subschema, selectionSet);
           }
 
@@ -139,7 +139,7 @@ function createMergedTypes(
             Object.keys(mergedTypeConfig.fields).forEach(fieldName => {
               if (mergedTypeConfig.fields[fieldName].selectionSet) {
                 const rawFieldSelectionSet = mergedTypeConfig.fields[fieldName].selectionSet;
-                parsedFieldSelectionSets[fieldName] = parseSelectionSet(rawFieldSelectionSet);
+                parsedFieldSelectionSets[fieldName] = parseSelectionSet(rawFieldSelectionSet, { noLocation: true });
               }
             });
             fieldSelectionSets.set(subschema, parsedFieldSelectionSets);
@@ -150,7 +150,7 @@ function createMergedTypes(
             Object.keys(mergedTypeConfig.computedFields).forEach(fieldName => {
               if (mergedTypeConfig.computedFields[fieldName].selectionSet) {
                 const rawFieldSelectionSet = mergedTypeConfig.computedFields[fieldName].selectionSet;
-                parsedFieldSelectionSets[fieldName] = parseSelectionSet(rawFieldSelectionSet);
+                parsedFieldSelectionSets[fieldName] = parseSelectionSet(rawFieldSelectionSet, { noLocation: true });
               }
             });
             fieldSelectionSets.set(subschema, parsedFieldSelectionSets);
@@ -235,7 +235,7 @@ export function completeStitchingInfo(
   const selectionSetsByType = Object.create(null);
   [schema.getQueryType(), schema.getMutationType].forEach(rootType => {
     if (rootType) {
-      selectionSetsByType[rootType.name] = parseSelectionSet('{ __typename }');
+      selectionSetsByType[rootType.name] = parseSelectionSet('{ __typename }', { noLocation: true });
     }
   });
 
@@ -261,7 +261,7 @@ export function completeStitchingInfo(
 
           dynamicSelectionSetsByField[typeName][fieldName].push(field.selectionSet);
         } else {
-          const selectionSet = parseSelectionSet(field.selectionSet);
+          const selectionSet = parseSelectionSet(field.selectionSet, { noLocation: true });
           if (!(typeName in selectionSetsByField)) {
             selectionSetsByField[typeName] = Object.create(null);
           }

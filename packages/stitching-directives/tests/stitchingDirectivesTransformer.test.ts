@@ -364,14 +364,14 @@ describe('type merging directives', () => {
     });
   });
 
-  test('adds args function when used with keyField argument', () => {
+  test('adds key and args function when @merge is used with keyField argument', () => {
     const typeDefs = `
       ${allStitchingDirectivesTypeDefs}
       type Query {
         _user(id: ID): User @merge(keyField: "id")
       }
 
-      type User @key(selectionSet: "{ id }") {
+      type User {
         id: ID
         name: String
       }
@@ -384,6 +384,8 @@ describe('type merging directives', () => {
     }
 
     const transformedSubschemaConfig = stitchingDirectivesTransformer(subschemaConfig);
+
+    expect(transformedSubschemaConfig.merge.User.selectionSet).toEqual(`{\n  id\n}`);
 
     const argsFn = transformedSubschemaConfig.merge.User.args;
 

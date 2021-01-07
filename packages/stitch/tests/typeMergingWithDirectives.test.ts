@@ -175,7 +175,9 @@ describe('merging using type merging', () => {
         # EQUIVALENT TO:
         # _productsByUpc(upcs: [String!]!): [Product] @merge(argsExpr: "upcs: [[$key.upc]]")
       }
-      type Product @key(selectionSet: "{ upc }") {
+      # @key is not necessary when using keyField
+      # type Product @key(selectionSet: "{ upc }") {
+      type Product {
         upc: String!
         name: String
         price: Int
