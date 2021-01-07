@@ -1,5 +1,13 @@
 # @graphql-tools/utils
 
+## 7.2.4
+
+### Patch Changes
+
+- 6e50d9fc: enhance(stitching-directives): use keyField
+
+  When using simple keys, i.e. when using the keyField argument to `@merge`, the keyField can be added implicitly to the types's key. In most cases, therefore, `@key` should not be required at all.
+
 ## 7.2.3
 
 ### Patch Changes

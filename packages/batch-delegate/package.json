@@ -28,8 +28,8 @@
   },
   "devDependencies": {
     "@graphql-tools/schema": "7.1.2",
-    "@graphql-tools/stitch": "7.1.7",
-    "@graphql-tools/utils": "7.2.3"
+    "@graphql-tools/stitch": "7.1.8",
+    "@graphql-tools/utils": "7.2.4"
   },
   "publishConfig": {
     "access": "public",
