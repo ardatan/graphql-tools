@@ -26,7 +26,7 @@ export function mergeFields<T extends FieldDefinitionNode | InputValueDefinition
   type: { name: NameNode },
   f1: ReadonlyArray<T>,
   f2: ReadonlyArray<T>,
-  config?: Config
+  config: Config
 ): T[] {
   const result: T[] = [...f2];
 

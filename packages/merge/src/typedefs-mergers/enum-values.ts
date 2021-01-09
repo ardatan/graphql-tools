@@ -6,7 +6,7 @@ import { compareNodes } from '@graphql-tools/utils';
 export function mergeEnumValues(
   first: ReadonlyArray<EnumValueDefinitionNode>,
   second: ReadonlyArray<EnumValueDefinitionNode>,
-  config?: Config
+  config: Config
 ): EnumValueDefinitionNode[] {
   const enumValueMap = new Map<string, EnumValueDefinitionNode>();
   for (const firstValue of first) {
