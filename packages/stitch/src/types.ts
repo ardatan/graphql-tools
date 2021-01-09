@@ -80,7 +80,7 @@ export interface IStitchSchemasOptions<TContext = any> extends Omit<IExecutableS
 export type SubschemaConfigTransform = (subschemaConfig: SubschemaConfig) => SubschemaConfig;
 
 export interface TypeMergingOptions {
-  selectCanonicalTypeCandidate?: (candidates: Array<MergeTypeCandidate>) => MergeTypeCandidate;
+  typeCandidateMerger?: (candidates: Array<MergeTypeCandidate>) => MergeTypeCandidate;
   typeDescriptionsMerger?: (candidates: Array<MergeTypeCandidate>) => string;
   fieldConfigMerger?: (candidates: Array<MergeFieldConfigCandidate>) => GraphQLFieldConfig<any, any>;
   inputFieldConfigMerger?: (candidates: Array<MergeInputFieldConfigCandidate>) => GraphQLInputFieldConfig;

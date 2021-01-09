@@ -404,13 +404,12 @@ function orderedTypeCandidates(
   candidates: Array<MergeTypeCandidate>,
   typeMergingOptions: TypeMergingOptions
 ): Array<MergeTypeCandidate> {
-  const selectCanonicalTypeCandidate =
-    typeMergingOptions?.selectCanonicalTypeCandidate ?? defaultSelectCanonicalTypeCandidate;
-  const candidate = selectCanonicalTypeCandidate(candidates);
+  const typeCandidateMerger = typeMergingOptions?.typeCandidateMerger ?? defaultTypeCandidateMerger;
+  const candidate = typeCandidateMerger(candidates);
   return candidates.sort((_a, b) => (b === candidate ? -1 : 0));
 }
 
-function defaultSelectCanonicalTypeCandidate(candidates: Array<MergeTypeCandidate>): MergeTypeCandidate {
+function defaultTypeCandidateMerger(candidates: Array<MergeTypeCandidate>): MergeTypeCandidate {
   const canonical: Array<MergeTypeCandidate> = candidates.filter(({ type, subschema }) =>
     isSubschemaConfig(subschema) ? subschema.merge?.[type.name]?.canonical : false
   );
