@@ -92,7 +92,7 @@ function mergeObjectTypeCandidates(
 
   const astNodes = pluck<ObjectTypeDefinitionNode>('astNode', candidates);
   const fieldAstNodes = Object.values(fields)
-    .map(({ astNode }) => astNode)
+    .map(f => f.astNode)
     .filter(n => n != null);
 
   if (astNodes.length > 1 && fieldAstNodes.length) {
@@ -110,6 +110,7 @@ function mergeObjectTypeCandidates(
     );
 
   const extensionASTNodes = [].concat(pluck<Record<string, any>>('extensionASTNodes', candidates));
+
   const extensions = Object.assign({}, ...pluck<Record<string, any>>('extensions', candidates));
 
   const typeConfig = {
@@ -137,7 +138,7 @@ function mergeInputObjectTypeCandidates(
 
   const astNodes = pluck<InputObjectTypeDefinitionNode>('astNode', candidates);
   const fieldAstNodes = Object.values(fields)
-    .map(({ astNode }) => astNode)
+    .map(f => f.astNode)
     .filter(n => n != null);
 
   if (astNodes.length > 1 && fieldAstNodes.length) {
@@ -198,7 +199,7 @@ function mergeInterfaceTypeCandidates(
 
   const astNodes = pluck<InterfaceTypeDefinitionNode>('astNode', candidates);
   const fieldAstNodes = Object.values(fields)
-    .map(({ astNode }) => astNode)
+    .map(f => f.astNode)
     .filter(n => n != null);
 
   if (astNodes.length > 1 && fieldAstNodes.length) {
@@ -239,6 +240,7 @@ function mergeUnionTypeCandidates(
 ): GraphQLUnionType {
   candidates = orderedTypeCandidates(candidates, typeMergingOptions);
   const description = mergeTypeDescriptions(candidates, typeMergingOptions);
+
   const typeConfigs = candidates.map(candidate => (candidate.type as GraphQLUnionType).toConfig());
   const typeMap = typeConfigs.reduce((acc, typeConfig) => {
     typeConfig.types.forEach(type => {
@@ -284,7 +286,7 @@ function mergeEnumTypeCandidates(
 
   const astNodes = pluck<EnumTypeDefinitionNode>('astNode', candidates);
   const valueAstNodes = Object.values(values)
-    .map(({ astNode }) => astNode)
+    .map(v => v.astNode)
     .filter(n => n != null);
 
   if (astNodes.length > 1 && valueAstNodes.length) {
@@ -346,7 +348,7 @@ function enumValueConfigMapFromTypeCandidates(
     enumValueConfigMap[enumValue] = enumValueConfigMerger(enumValueConfigCandidatesMap[enumValue]);
   });
 
-  return JSON.parse(JSON.stringify(enumValueConfigMap)) as GraphQLEnumValueConfigMap;
+  return enumValueConfigMap;
 }
 
 function defaultEnumValueConfigMerger(candidates: Array<MergeEnumValueConfigCandidate>) {

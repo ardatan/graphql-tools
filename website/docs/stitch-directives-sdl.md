@@ -67,7 +67,7 @@ The function of these directives are:
 
 * **`@computed`:** specifies a selection of fields required from other services to compute the value of this field. These additional fields are only selected when the computed field is requested. Analogous to [computed field](/docs/stitch-type-merging#computed-fields) in merged type configuration. Computed field dependencies must be sent into the subservice using an [object key](#object-keys).
 
-* **`@canonical`:** identifies types and fields that provide a [canonical definition](/docs/stitch-type-merging#canonical-definitions) to be built into the combined gateway schema. Useful when the same types appear across multiple subschemas and a specific definition should be preferred.
+* **`@canonical`:** identifies types and fields that provide a [canonical definition](/docs/stitch-type-merging#canonical-definitions) to be built into the combined gateway schema. Useful when the same types appear across multiple subschemas and a specific element definition should be preferred.
 
 #### Customizing names
 

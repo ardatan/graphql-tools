@@ -147,7 +147,7 @@ const gatewaySchema = stitchSchemas({
   typeMergingOptions: {
     // select a preferred candidate:
     selectCanonicalTypeCandidate: (candidates) => candidate[0],
-    // and/or, itemize specific element definitions:
+    // and/or itemize the selection of specific definitions:
     typeDescriptionsMerger: (candidates) => candidate[0].type.description,
     fieldConfigMerger: (candidates) => candidate[0].fieldConfig,
     inputFieldConfigMerger: (candidates) => candidate[0].inputFieldConfig,
