@@ -16,7 +16,6 @@ import {
   GraphQLInputFieldConfig,
   GraphQLInputFieldConfigMap,
   ObjectTypeDefinitionNode,
-  FieldDefinitionNode,
   InputObjectTypeDefinitionNode,
   InterfaceTypeDefinitionNode,
   UnionTypeDefinitionNode,
