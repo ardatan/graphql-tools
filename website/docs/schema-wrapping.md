@@ -6,239 +6,195 @@ description: Wrap schemas to automatically modify schemas, requests and results
 
 Schema wrapping (`@graphql-tools/wrap`) creates a modified version of a schema that proxies, or "wraps", the original unmodified schema. This technique is particularily useful when the original schema _cannot_ be changed, such as with [remote schemas](/docs/remote-schemas/).
 
-Schema wrapping works by wrapping the original schema in a new 'gateway' schema that simply delegates all operations to the original subschema. A series of 'transforms' are applied to modify the schema after the initial wrapping is complete. Each transform includes a schema transformation function that changes the gateway schema. It may also include operation transforms, i.e. functions that either modify the operation prior to delegation or modify the result prior to its return.
+Schema wrapping works by creating a new "gateway" schema that simply delegates all operations to the original subschema. A series of _transforms_ are applied that may modify the shape of the gateway schema and all proxied operations; these operational transforms may modify an operation prior to delegation, or modify the subschema result prior to its return.
 
 ## Getting started
 
-For example, let's consider changing the name of the type in a simple schema. Imagine we've written a function that takes a `GraphQLSchema` and replaces all instances of type `Test` with `NewTest`.
+Let's consider changing the name of a type in a simple schema. In this example, we'd like to replace all instances of type `Widget` with `NewWidget`.
 
 ```graphql
-# old schema
-type Test {
+# original subschema
+type Widget {
   id: ID!
   name: String
 }
 
 type Query {
-  returnTest: Test
+  widget: Widget
 }
 
-# new schema
-
-type NewTest {
+# wrapping gateway schema
+type NewWidget {
   id: ID!
   name: String
 }
 
 type Query {
-  returnTest: NewTest
+  widget: NewWidget
 }
 ```
 
-On delegation to the original subschema, we want the `NewTest` type to be automatically mapped to the old `Test` type.
-
-At first glance, it might seem as though most queries work the same way as before:
+Upon delegation to the original subschema, we want the `NewWidget` type to be mapped to the underlying `Widget` type. At first glance, it might seem as though most queries will work the same as before:
 
 ```graphql
 query {
-  returnTest {
+  widget {
     id
     name
   }
 }
 ```
 
-Since the fields of the type have not changed, delegating to the old schema is relatively easy here.
-
-However, the new name begins to matter more when fragments and variables are used:
+Since the fields of the type have not changed, delegating to the original subschema is relatively easy here. However, the new name begins to matter when fragments and variables are used:
 
 ```graphql
 query {
-  returnTest {
+  widget {
     id
-    ... on NewTest {
+    ... on NewWidget {
       name
     }
   }
 }
 ```
 
-Since the `NewTest` type did not exist on old schema, this fragment will not match anything in the old schema, so it will be filtered out during delegation.
+Since the `NewWidget` type does not exist in the original subschema, this fragment will not match anything there and gets filtered out during delegation. This problem is solved by operational transforms:
 
-What we need is a `transformRequest` function that knows how to rename any occurrences of `NewTest` to `Test` before delegating to the old schema.
+- **transformRequest**: a function that renames occurrences of `NewWidget -> Widget` before delegating to the original subschema.
+- **transformResult**: a function that conversely renames returned `__typename` fields `Widget -> NewWidget` in the final result.
 
-By the same reasoning, we also need a `transformResult` function, because any results contain a `__typename` field whose value is `Test`, that name needs to be updated to `NewTest` in the final result.
+Conveniently, this task of renaming types is very common and there's a built-in transform available for it. Using the built-in transform with a call to `wrapSchema` gets the job done:
 
-## API
+```js
+const { wrapSchema, RenameTypes } = require('@graphql-tools/wrap');
 
-### Transform
-
-```ts
-export interface Transform<T = Record<string, any>> {
-  transformSchema?: SchemaTransform;
-  transformRequest?: RequestTransform<T>;
-  transformResult?: ResultTransform<T>;
-}
-
-export type SchemaTransform = (
-  originalWrappingSchema: GraphQLSchema,
-  subschemaConfig: SubschemaConfig,
-  transformedSchema?: GraphQLSchema
-) => GraphQLSchema;
-
-export type RequestTransform<T = Record<string, any>> = (
-  originalRequest: Request,
-  delegationContext: DelegationContext,
-  transformationContext: T
-) => Request;
-
-export type ResultTransform<T = Record<string, any>> = (
-  originalResult: ExecutionResult,
-  delegationContext: DelegationContext,
-  transformationContext: T
-) => ExecutionResult;
-
-type Request = {
-  document: DocumentNode;
-  variables: Record<string, any>;
-  extensions?: Record<string, any>;
+const typeNameMap = {
+  Widget: 'NewWidget',
 };
+
+const schema = wrapSchema({
+  schema: originalSchema,
+  transforms: [new RenameTypes((name) => typeNameMap[name] || name)]
+});
 ```
-
-### wrapSchema
-
-Given a `GraphQLSchema` and an array of `Transform` objects, `wrapSchema` produces a new schema with the `transformSchema` methods applied.
-
-Delegating resolvers are generated to map from new schema root fields to old schema root fields. These automatic resolvers should be sufficient, so you don't have to implement your own.
-
-The delegating resolvers will apply the operation transforms defined by the `Transform` objects. Each provided `transformRequest` functions will be applies in reverse order, until the request matches the original schema. The `tranformResult` functions will be applied in the opposite order until the result matches the final gateway schema.
-
-In advanced cases, transforms may wish to create additional delegating root resolvers (for example, when hoisting a field into a root type). This is also possible. The wrapping schema is actually generated twice -- the first run results in a possibly non-executable version, while the second execution also includes the result of the first one within the `transformedSchema` argument so that an executable version with any new proxying resolvers can be created.
-
-Remote schemas can also be wrapped! In fact, this is the primary use case. See documentation regarding [remote schemas](/docs/remote-schemas/) for further details about remote schemas. Note that as explained there, when wrapping remote schemas, you will be wrapping a subschema config object, and the array of transforms should be defined on that object rather than as a second argument to `wrapSchema`.
 
 ## Built-in transforms
 
-Built-in transforms are ready-made classes implementing the `Transform` interface. They are intended to cover many of the most common schema transformation use cases, but they also serve as examples of how to implement transforms for your own needs.
+These are ready-made classes implementing the `Transform` interface. They are intended to cover many common use cases, and they may also serve as examples of how to implement your own [custom transforms](#custom-transforms).
 
-### Modifying types
+### Filtering
 
-* `FilterTypes(filter: (type: GraphQLNamedType) => boolean)`: Remove all types for which the `filter` function returns `false`.
+Filter transforms are constructed with a filter function that returns a boolean. The transform executes the filter on each schema element within its scope, and rejects elements that do not pass the filter.
 
-* `RenameTypes(renamer, options?)`: Rename types by applying `renamer` to each type name. If `renamer` returns `undefined`, the name will be left unchanged. Options controls whether built-in types and scalars are renamed. Root objects are never renamed by this transform.
+- [`FilterTypes`](/docs/api/classes/wrap_src.filtertypes): filters all element types.
+- [`FilterRootFields`](/docs/api/classes/wrap_src.filterrootfields): filters fields on the root Query, Mutation, and Subscription objects.
+- [`FilterObjectFields`](/docs/api/classes/wrap_src.filterobjectfields): filters fields of Object types.
+- [`FilterObjectFieldDirectives`](/docs/api/classes/wrap_src.filterobjectfielddirectives): filters Object field directives.
+- [`FilterInterfaceFields`](/docs/api/classes/wrap_src.filterinterfacefields): filters fields of Interface types.
+- [`FilterInputObjectFields`](/docs/api/classes/wrap_src.filterinputobjectfields): filters input fields of InputObject types.
 
-```ts
-RenameTypes(
-  (name: string) => string | void,
-  options?: {
-    renameBuiltins: Boolean;
-    renameScalars: Boolean;
-  },
-)
+```js
+const schema = wrapSchema({
+  schema: originalSchema,
+  transforms: [
+    new FilterTypes((type) => true),
+    new FilterRootFields((operationName, fieldName, fieldConfig) => true),
+    new FilterObjectFields((typeName, fieldName, fieldConfig) => true),
+    new FilterObjectFieldDirectives((directiveName, directiveValue) => true),
+    new FilterInterfaceFields((typeName, fieldName, fieldConfig) => true),
+    new FilterInputObjectFields((typeName, fieldName, inputFieldConfig) => true),
+  ]
+});
 ```
 
-### Modifying root fields
+### Renaming
 
-* `TransformRootFields(transformer: RootTransformer)`: Given a transformer, arbitrarily transform root fields. The `transformer` can return a `GraphQLFieldConfig` definition, a object with new `name` and a `field`, `null` to remove the field, or `undefined` to leave the field unchanged.
+Renaming transforms are constructed with a renamer function that returns a string. The transform executes the renamer on each schema element within its scope, and applies the revised names to gateway schema elements. If a renamer returns `undefined`, the name will be left unchanged. Additional options may control whether built-in types and scalars are renamed, see linked API docs.
 
-```ts
-TransformRootFields(transformer: RootTransformer)
+- [`RenameTypes`](/docs/api/classes/wrap_src.renametypes): renames all element types.
+- [`RenameRootTypes`](/docs/api/classes/wrap_src.renameroottypes): renames the root Query, Mutation, and Subscription types.
+- [`RenameRootFields`](/docs/api/classes/wrap_src.renamerootfields): renames fields on the root Query, Mutation, and Subscription objects.
+- [`RenameObjectFields`](/docs/api/classes/wrap_src.renameobjectfields): renames fields of Object types.
+- [`RenameInterfaceFields`](/docs/api/classes/wrap_src.renameinterfacefields): renames fields of Interface types.
+- [`RenameInputObjectFields`](/docs/api/classes/wrap_src.renameinputobjectfields): renames input fields of InputObject types.
 
-type RootTransformer = (
-  operation: 'Query' | 'Mutation' | 'Subscription',
-  fieldName: string,
-  fieldConfig: GraphQLField<any, any>,
-) =>
-  | GraphQLFieldConfig<any, any>
-  | [string, GraphQLFieldConfig<any, any>]
-  | null
-  | void;
+```js
+const schema = wrapSchema({
+  schema: originalSchema,
+  transforms: [
+    new RenameTypes((name) => `New${name}`),
+    new RenameRootTypes((name) => `New${name}`),
+    new RenameRootFields((operationName, fieldName, fieldConfig) => `new_${fieldName}`),
+    new RenameObjectFields((typeName, fieldName, fieldConfig) => `new_${fieldName}`),
+    new RenameInterfaceFields((typeName, fieldName, fieldConfig) => `new_${fieldName}`),
+    new RenameInputObjectFields((typeName, fieldName, inputFieldConfig) => `new_${fieldName}`),
+  ]
+});
 ```
 
-* `FilterRootFields(filter: RootFilter)`: Like `FilterTypes`, removes root fields for which the `filter` function returns `false`.
+### Modifying
 
-```ts
-FilterRootFields(filter: RootFilter)
+Modifying transforms allow element names and their definitions to be modified or omitted. They may filter, rename, and make other freeform modifications all at once. These transforms accept element transformer functions that may return one of several outcomes:
 
-type RootFilter = (
-  operation: 'Query' | 'Mutation' | 'Subscription',
-  fieldName: string,
-  fieldConfig: GraphQLFieldConfig<any, any>,
-) => boolean;
+1. A modified version of the element config.
+2. An array with a modified field name and new element config.
+3. `null` to omit the element from the schema.
+4. `undefined` to leave the element unchanged.
+
+Available transforms include:
+
+- [`TransformRootFields`](/docs/api/classes/wrap_src.transformrootfields): redefines fields on the root Query, Mutation, and Subscription objects.
+- [`TransformObjectFields`](/docs/api/classes/wrap_src.transformobjectfields): redefines fields of Object types.
+- [`TransformInterfaceFields`](/docs/api/classes/wrap_src.transforminterfacefields): redefines fields of Interface types.
+- [`TransformCompositeFields`](/docs/api/classes/wrap_src.transformcompositefields): redefines composite fields.
+- [`TransformInputObjectFields`](/docs/api/classes/wrap_src.transforminputobjectfields): redefines fields of InputObject types.
+- [`TransformEnumValues`](/docs/api/classes/wrap_src.transformenumvalues): redefines values of Enum types.
+
+```js
+const schema = wrapSchema({
+  schema: originalSchema,
+  transforms: [
+    new TransformRootFields((operationName, fieldName, fieldConfig) => fieldConfig),
+    new TransformObjectFields((typeName, fieldName, fieldConfig) => [`new_${fieldName}`, fieldConfig]),
+    new TransformInterfaceFields((typeName, fieldName, fieldConfig) => null),
+    new TransformCompositeFields((typeName, fieldName, fieldConfig) => undefined),
+    new TransformInputObjectFields((typeName, fieldName, inputFieldConfig) => [`new_${fieldName}`, inputFieldConfig]),
+    new TransformEnumValues((typeName, enumValue, enumValueConfig) => [`NEW_${enumValue}`, enumValueConfig]),
+  ]
+});
 ```
 
-* `RenameRootFields(renamer)`: Rename root fields, by applying the `renamer` function to their names.
+These transforms accept an optional second node transformer function. When specified, the node transformer is called upon any element of the given kind in a request; transforming the result is possible by wrapping the element's resolver with the element transformer function (first argument).
 
-```ts
-RenameRootFields(
-  renamer: (
-    operation: 'Query' | 'Mutation' | 'Subscription',
-    name: string,
-    fieldConfig: GraphQLFieldConfig<any, any>,
-  ) => string,
-)
+### Grooming
+
+These transforms eliminate unwanted or unnecessary elements from a schema. These are configured in a variety of ways, so consult API documentation for specific options.
+
+- [`PruneSchema`](/docs/api/classes/wrap_src.pruneschema): eliminates unreachable elements from the schema. This is generally useful to include _after_ a filter transform so that orphaned types and values are eliminated from the schema. Accepts [pruneSchema](/docs/api/modules/utils#pruneschema) options.
+- [`RemoveObjectFieldDeprecations`](/docs/api/classes/wrap_src.removeobjectfielddeprecations): accepts a string or regex describing a deprecation to remove from the gateway schema. Fields matching this deprecation will be un-deprecated. Useful for normalizing [computed fields](/docs/stitch-type-merging#computed-fields) that are activated by the gateway wrapper.
+- [`RemoveObjectFieldDirectives`](/docs/api/classes/wrap_src.removeobjectfielddirectives): removes object field directives that match a directive name and optional argument criteria.
+- [`RemoveObjectFieldsWithDeprecation`](/docs/api/classes/wrap_src.removeobjectfieldswithdeprecation): removes object fields whose deprecation reason matches the provided string or regex.
+- [`RemoveObjectFieldsWithDirective`](/docs/api/classes/wrap_src.removeobjectfieldswithdirective): removes object fields with a schema directive matching a given name and optional argument criteria.
+
+```js
+const schema = wrapSchema({
+  schema: originalSchema,
+  transforms: [
+    new PruneSchema(options),
+    new RemoveObjectFieldDeprecations(/^gateway access only/),
+    new RemoveObjectFieldDirectives('deprecated', { reason: /^gateway access only/ }),
+    new RemoveObjectFieldsWithDeprecation(/^gateway access only/),
+    new RemoveObjectFieldsWithDirective('deprecated', { reason: /^gateway access only/ }),
+  ]
+});
 ```
 
-### Modifying object fields
-
-* `TransformObjectFields(objectFieldTransformer: FieldTransformer, fieldNodeTransformer?: FieldNodeTransformer))`: Given a field transformer, arbitrarily transform fields. The `objectFieldTransformer` can return a `GraphQLFieldConfig` definition, an array with first member being the new field name and second member being the new `GraphQLFieldConfig` definition, `null` to remove the field, or `undefined` to leave the field unchanged. The optional `fieldNodeTransformer`, if specified, is called upon any field of that type in the request; result transformation can be specified by wrapping the field's resolver within the `objectFieldTransformer`.
-
-```ts
-TransformObjectFields(objectFieldTransformer: FieldTransformer, fieldNodeTransformer: FieldNodeTransformer)
-
-export type FieldTransformer = (
-  typeName: string,
-  fieldName: string,
-  fieldConfig: GraphQLFieldConfig<any, any>,
-) =>
-  | GraphQLFieldConfig<any, any>
-  | [string, GraphQLFieldConfig<any, any>]
-  | null
-  | undefined;
-
-export type FieldNodeTransformer = (
-  typeName: string,
-  fieldName: string,
-  fieldNode: FieldNode,
-  fragments: Record<string, FragmentDefinitionNode>
-) => SelectionNode | Array<SelectionNode>;
-```
-
-* `FilterObjectFields(filter: ObjectFilter)`: Removes object fields for which the `filter` function returns `false`.
-
-```ts
-FilterObjectFields(filter: ObjectFilter)
-
-type ObjectFilter = (
-  typeName: string,
-  fieldName: string,
-  fieldConfig: GraphQLFieldConfig<any, any>,
-) => boolean;
-```
-
-* `RenameObjectFields(renamer)`: Rename object fields, by applying the `renamer` function to their names.
-
-```ts
-RenameObjectFields(
-  renamer: (
-    typeName: string,
-    fieldName: string,
-    fieldConfig: GraphQLFieldConfig<any, any>,
-  ) => string,
-)
-```
-
-### Additional Operation Transforms
+### Operational
 
 It may be sometimes useful to add additional transforms to manually change an operation request or result when using `delegateToSchema`. Common use cases may be move selections around or to wrap them. The following built-in transforms may be useful in those cases.
 
-* `ExtractField({ from: Array<string>, to: Array<string> })` - move selection at `from` path to `to` path.
-
-* `WrapQuery(
-    path: Array<string>,
-    wrapper: QueryWrapper,
-    extractor: (result: any) => any,
-  )` - wrap a selection at `path` using function `wrapper`. Apply `extractor` at the same path to get the result. This is used to get a result nested inside other result
+- `ExtractField({ from: Array<string>, to: Array<string> })` move selection at `from` path to `to` path.
+- `WrapQuery(path: Array<string>, wrapper: QueryWrapper, extractor: (result: any) => any)` wrap a selection at `path` using function `wrapper`. Apply `extractor` at the same path to get the result. This is used to get a result nested inside other result.
 
 ```js
 transforms: [
@@ -303,18 +259,82 @@ transforms: [
     })
 ```
 
-## delegateToSchema (delegation) transforms
+## Custom transforms
 
-The following transforms are automatically applied by `delegateToSchema` during schema delegation, to translate between source and target types and fields:
+Custom transforms are fairly straightforward to write. They are simply objects with up to three methods:
 
-* `ExpandAbstractTypes`: If an abstract type within a document does not exist within the target schema, expand the type to each and any of its implementations that do exist.
-* `FilterToSchema`: Remove all fields, variables and fragments for types that don't exist within the target schema.
-* `AddTypenameToAbstract`: Add `__typename` to all abstract types in the document, necessary for type resolution of interfaces within the source schema to work.
-* `CheckResultAndHandleErrors`: Given a result from a subschema, propagate errors so that they match the correct subfield. Also provide the correct key if aliases are used.
+- `transformSchema`: recieves the original subschema and applies modifications to it, returning a modified wrapper (proxy) schema. This method runs once while initially wrapping the subschema.
+- `transformRequest`: recieves each request made to the wrapped schema. The shape of a request matches the wrapper schema, and must be returned in a shape that matches the original subschema.
+- `transformResult`: recieves each result returned from the original subschema. The shape of the result matches the original subschema, and must be returned in a shape that matches the wrapper schema.
 
-By passing a custom `transforms` array to `delegateToSchema`, it's possible to run additional operation (request/result) transforms before these default transforms.
+The complete transform object API is as follows:
 
-## stitchSchemas (gateway/stitching) transforms
+```ts
+export interface Transform<T = Record<string, any>> {
+  transformSchema?: SchemaTransform;
+  transformRequest?: RequestTransform<T>;
+  transformResult?: ResultTransform<T>;
+}
 
-* `AddReplacementSelectionSets(schema: GraphQLSchema, mapping: ReplacementSelectionSetMapping)`:  `stitchSchemas` adds selection sets on outgoing requests from the gateway, enabling delegation from fields specified on the gateway using fields obtained from the original requests. The selection sets can be added depending on the presence of fields within the request using the `selectionSet` option within the resolver map.  `stitchSchemas` creates the mapping at gateway startup. Selection sets are used instead of fragments as the selections are added prior to transformation in case type names are changed, obviating the need for the fragment name.
-* `AddMergedTypeSelectionSets(schema: GraphQLSchema, mapping: Record<string, MergedTypeInfo>)`: `stitchSchemas` adds selection sets on outgoing requests from the gateway, enabling type merging from the initial result using any fields initially obtained. The mapping is created at gateway startup.
+export type SchemaTransform = (
+  originalWrappingSchema: GraphQLSchema,
+  subschemaConfig: SubschemaConfig,
+  transformedSchema?: GraphQLSchema
+) => GraphQLSchema;
+
+export type RequestTransform<T = Record<string, any>> = (
+  originalRequest: Request,
+  delegationContext: DelegationContext,
+  transformationContext: T
+) => Request;
+
+export type ResultTransform<T = Record<string, any>> = (
+  originalResult: ExecutionResult,
+  delegationContext: DelegationContext,
+  transformationContext: T
+) => ExecutionResult;
+
+type Request = {
+  document: DocumentNode;
+  variables: Record<string, any>;
+  extensions?: Record<string, any>;
+};
+```
+
+A simple transform that removes types, fields, and arguments prefixed by an underscore might look like this:
+
+```js
+import { wrapSchema } from '@graphql-tools/wrap';
+import { filterSchema, pruneSchema } from '@graphql-tools/utils';
+
+class RemovePrivateElementsTransform {
+  transformSchema(originalWrappingSchema) {
+    const isPublicName = (name) => !name.startsWith('_');
+
+    return pruneSchema(filterSchema({
+      schema: originalWrappingSchema,
+      typeFilter: (typeName) => isPublicName(typeName),
+      rootFieldFilter: (operationName, fieldName) => isPublicName(fieldName),
+      fieldFilter: (typeName, fieldName) => isPublicName(fieldName),
+      argumentFilter: (typeName, fieldName, argName) => isPublicName(argName),
+    }));
+  }
+
+  // no need for operational transforms
+}
+
+const schema = wrapSchema({
+  schema: myRemoteSchema,
+  transforms: [new RemovePrivateElementsTransform()]
+});
+```
+
+## Subschema delegation
+
+The `wrapSchema` method will produce a new schema with all queued `transformSchema` methods applied. Delegating resolvers are automatically generated to map from new schema root fields to old schema root fields. These resolvers should be sufficient for most common case so you don't have to implement your own.
+
+Delegating resolvers will apply all operation transforms defined by the wrapper's `Transform` objects. Each provided `transformRequest` functions will be applies in reverse order, until the request matches the original schema. The `tranformResult` functions will be applied in the opposite order until the result matches the final gateway schema.
+
+In advanced cases, transforms may wish to create additional delegating root resolvers (for example, when hoisting a field into a root type). This is also possible. The wrapping schema is actually generated twice -- the first run results in a possibly non-executable version, while the second execution also includes the result of the first one within the `transformedSchema` argument so that an executable version with any new proxying resolvers can be created.
+
+Remote schemas can also be wrapped! In fact, this is the primary use case. See documentation regarding [remote schemas](/docs/remote-schemas/) for further details about remote schemas. Note that as explained there, when wrapping remote schemas, you will be wrapping a subschema config object, and the array of transforms should be defined on that object rather than as a second argument to `wrapSchema`.

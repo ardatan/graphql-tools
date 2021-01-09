@@ -14,6 +14,7 @@ export function stitchingDirectives(
   keyDirectiveTypeDefs: string;
   computedDirectiveTypeDefs: string;
   mergeDirectiveTypeDefs: string;
+  canonicalDirectiveTypeDefs: string;
   stitchingDirectivesTypeDefs: string; // for backwards compatibility
   allStitchingDirectivesTypeDefs: string;
   stitchingDirectivesValidator: (schema: GraphQLSchema) => GraphQLSchema;
@@ -21,6 +22,7 @@ export function stitchingDirectives(
   keyDirective: GraphQLDirective;
   computedDirective: GraphQLDirective;
   mergeDirective: GraphQLDirective;
+  canonicalDirective: GraphQLDirective;
   allStitchingDirectives: Array<GraphQLDirective>;
 } {
   const finalOptions = {
@@ -28,11 +30,12 @@ export function stitchingDirectives(
     ...options,
   };
 
-  const { keyDirectiveName, computedDirectiveName, mergeDirectiveName } = finalOptions;
+  const { keyDirectiveName, computedDirectiveName, mergeDirectiveName, canonicalDirectiveName } = finalOptions;
 
   const keyDirectiveTypeDefs = `directive @${keyDirectiveName}(selectionSet: String!) on OBJECT`;
   const computedDirectiveTypeDefs = `directive @${computedDirectiveName}(selectionSet: String!) on FIELD_DEFINITION`;
   const mergeDirectiveTypeDefs = `directive @${mergeDirectiveName}(argsExpr: String, keyArg: String, keyField: String, key: [String!], additionalArgs: String) on FIELD_DEFINITION`;
+  const canonicalDirectiveTypeDefs = `directive @${canonicalDirectiveName} on OBJECT | INTERFACE | INPUT_OBJECT | UNION | ENUM | SCALAR | FIELD_DEFINITION | INPUT_FIELD_DEFINITION`;
 
   const keyDirective = new GraphQLDirective({
     name: keyDirectiveName,
@@ -62,22 +65,39 @@ export function stitchingDirectives(
     },
   });
 
-  const allStitchingDirectivesTypeDefs = `
-    ${keyDirectiveTypeDefs}
-    ${computedDirectiveTypeDefs}
-    ${mergeDirectiveTypeDefs}
-  `;
+  const canonicalDirective = new GraphQLDirective({
+    name: canonicalDirectiveName,
+    locations: [
+      'OBJECT',
+      'INTERFACE',
+      'INPUT_OBJECT',
+      'UNION',
+      'ENUM',
+      'SCALAR',
+      'FIELD_DEFINITION',
+      'INPUT_FIELD_DEFINITION',
+    ],
+  });
+
+  const allStitchingDirectivesTypeDefs = [
+    keyDirectiveTypeDefs,
+    computedDirectiveTypeDefs,
+    mergeDirectiveTypeDefs,
+    canonicalDirectiveTypeDefs,
+  ].join('\n');
 
   return {
     keyDirectiveTypeDefs,
     computedDirectiveTypeDefs,
     mergeDirectiveTypeDefs,
+    canonicalDirectiveTypeDefs,
     stitchingDirectivesTypeDefs: allStitchingDirectivesTypeDefs, // for backwards compatibility
     allStitchingDirectivesTypeDefs,
     keyDirective,
     computedDirective,
     mergeDirective,
-    allStitchingDirectives: [keyDirective, computedDirective, mergeDirective],
+    canonicalDirective,
+    allStitchingDirectives: [keyDirective, computedDirective, mergeDirective, canonicalDirective],
     stitchingDirectivesValidator: stitchingDirectivesValidator(finalOptions),
     stitchingDirectivesTransformer: stitchingDirectivesTransformer(finalOptions),
   };

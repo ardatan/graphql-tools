@@ -339,6 +339,421 @@ describe('graphql-tag-pluck', () => {
         }
       `));
     });
+    it('should pluck graphql-tag template literals from .vue 3 JavaScript file', async () => {
+      const gqlString = await pluck('tmp-XXXXXX.vue', freeText(`
+        <template>
+          <div>test</div>
+        </template>
+
+        <script>
+        import { defineComponent } from 'vue'
+        import gql from 'graphql-tag';
+
+        export default defineComponent({
+          name: 'TestComponent'
+        })
+
+        export const pageQuery = gql\`
+          query IndexQuery {
+            site {
+              siteMetadata {
+                title
+              }
+            }
+          }
+        \`;
+
+        // export const pageQuery = gql\`
+        //   query OtherQuery {
+        //     site {
+        //       siteMetadata {
+        //         title
+        //       }
+        //     }
+        //   }
+        // \`;
+        </script>
+
+        <style>
+        .test { color: red };
+        </style>
+      `));
+
+      expect(gqlString).toEqual(freeText(`
+        query IndexQuery {
+          site {
+            siteMetadata {
+              title
+            }
+          }
+        }
+      `));
+    });
+
+    it('should pluck graphql-tag template literals from .vue 3 TS/Pug/SCSS file', async () => {
+      const gqlString = await pluck('tmp-XXXXXX.vue', freeText(`
+        <template lang="pug">
+          <div>test</div>
+        </template>
+
+        <script lang="ts">
+        import { defineComponent } from 'vue'
+        import gql from 'graphql-tag';
+
+        export default defineComponent({
+          name: 'TestComponent'
+        })
+
+        export const pageQuery = gql\`
+          query IndexQuery {
+            site {
+              siteMetadata {
+                title
+              }
+            }
+          }
+        \`;
+
+        // export const pageQuery = gql\`
+        //   query OtherQuery {
+        //     site {
+        //       siteMetadata {
+        //         title
+        //       }
+        //     }
+        //   }
+        // \`;
+        </script>
+
+        <style lang="scss">
+        .test { color: red };
+        </style>
+      `));
+
+      expect(gqlString).toEqual(freeText(`
+        query IndexQuery {
+          site {
+            siteMetadata {
+              title
+            }
+          }
+        }
+      `));
+    });
+
+    it('should pluck graphql-tag template literals from .vue 3 setup sugar JavaScript file', async () => {
+      const gqlString = await pluck('tmp-XXXXXX.vue', freeText(`
+        <template>
+          <div>test</div>
+        </template>
+
+        <script>
+        import { defineComponent } from 'vue'
+        export default defineComponent({
+          name: 'TestComponent'
+        })
+        </script>
+        <script setup>
+        import gql from 'graphql-tag';
+
+
+        const pageQuery = gql\`
+          query IndexQuery {
+            site {
+              siteMetadata {
+                title
+              }
+            }
+          }
+        \`;
+
+        // const pageQuery = gql\`
+        //   query OtherQuery {
+        //     site {
+        //       siteMetadata {
+        //         title
+        //       }
+        //     }
+        //   }
+        // \`;
+        </script>
+
+        <style>
+        .test { color: red };
+        </style>
+      `));
+
+      expect(gqlString).toEqual(freeText(`
+        query IndexQuery {
+          site {
+            siteMetadata {
+              title
+            }
+          }
+        }
+      `));
+    });
+
+    it('should pluck graphql-tag template literals from .vue 3 setup sugar TS/Pug/SCSS file', async () => {
+      const gqlString = await pluck('tmp-XXXXXX.vue', freeText(`
+        <template lang="pug">
+          <div>test</div>
+        </template>
+
+        <script lang="ts">
+        import { defineComponent } from 'vue'
+        export default defineComponent({
+          name: 'TestComponent'
+        })
+        </script>
+        <script lang="ts" setup>
+        import gql from 'graphql-tag';
+
+        const pageQuery = gql\`
+          query IndexQuery {
+            site {
+              siteMetadata {
+                title
+              }
+            }
+          }
+        \`;
+
+        // const pageQuery = gql\`
+        //   query OtherQuery {
+        //     site {
+        //       siteMetadata {
+        //         title
+        //       }
+        //     }
+        //   }
+        // \`;
+        </script>
+
+        <style lang="scss">
+        .test { color: red };
+        </style>
+      `));
+
+      expect(gqlString).toEqual(freeText(`
+        query IndexQuery {
+          site {
+            siteMetadata {
+              title
+            }
+          }
+        }
+      `));
+    });
+    it('should pluck graphql-tag template literals from .vue 3 outside setup sugar JavaScript file', async () => {
+      const gqlString = await pluck('tmp-XXXXXX.vue', freeText(`
+        <template>
+          <div>test</div>
+        </template>
+
+        <script>
+        import gql from 'graphql-tag';
+        export const pageQuery = gql\`
+        query IndexQuery {
+          site {
+            siteMetadata {
+              title
+            }
+          }
+        }
+        \`;
+
+        // export const pageQuery = gql\`
+        //   query OtherQuery {
+        //     site {
+        //       siteMetadata {
+        //         title
+        //       }
+        //     }
+        //   }
+        // \`;
+        import { defineComponent } from 'vue'
+        export default defineComponent({
+          name: 'TestComponent'
+        })
+        </script>
+        <script setup>
+        </script>
+
+        <style>
+        .test { color: red };
+        </style>
+      `));
+
+      expect(gqlString).toEqual(freeText(`
+        query IndexQuery {
+          site {
+            siteMetadata {
+              title
+            }
+          }
+        }
+      `));
+    });
+
+    it('should pluck graphql-tag template literals from .vue 3 outside setup sugar TS/Pug/SCSS file', async () => {
+      const gqlString = await pluck('tmp-XXXXXX.vue', freeText(`
+        <template lang="pug">
+          <div>test</div>
+        </template>
+
+        <script lang="ts">
+        import gql from 'graphql-tag';
+        export const pageQuery = gql\`
+        query IndexQuery {
+          site {
+            siteMetadata {
+              title
+            }
+          }
+        }
+        \`;
+
+        // export const pageQuery = gql\`
+        //   query OtherQuery {
+        //     site {
+        //       siteMetadata {
+        //         title
+        //       }
+        //     }
+        //   }
+        // \`;
+        import { defineComponent } from 'vue'
+        export default defineComponent({
+          name: 'TestComponent'
+        })
+        </script>
+        <script lang="ts" setup>
+        </script>
+
+        <style lang="scss">
+        .test { color: red };
+        </style>
+      `));
+
+      expect(gqlString).toEqual(freeText(`
+        query IndexQuery {
+          site {
+            siteMetadata {
+              title
+            }
+          }
+        }
+      `));
+    });
+
+    it('should pluck graphql-tag template literals from .vue 3 setup JavaScript file', async () => {
+      const gqlString = await pluck('tmp-XXXXXX.vue', freeText(`
+        <template>
+          <div>test</div>
+        </template>
+
+        <script>
+        import { defineComponent } from 'vue'
+        import gql from 'graphql-tag';
+
+        export default defineComponent({
+          name: 'TestComponent',
+          setup(){
+            return {
+              pageQuery: gql\`
+              query IndexQuery {
+                site {
+                  siteMetadata {
+                    title
+                  }
+                }
+              }
+            \`
+            }
+          }
+        })
+
+        // export const pageQuery = gql\`
+        //   query OtherQuery {
+        //     site {
+        //       siteMetadata {
+        //         title
+        //       }
+        //     }
+        //   }
+        // \`;
+        </script>
+
+        <style>
+        .test { color: red };
+        </style>
+      `));
+
+      expect(gqlString).toEqual(freeText(`
+        query IndexQuery {
+          site {
+            siteMetadata {
+              title
+            }
+          }
+        }
+      `));
+    });
+
+    it('should pluck graphql-tag template literals from .vue 3 setup TS/Pug/SCSS file', async () => {
+      const gqlString = await pluck('tmp-XXXXXX.vue', freeText(`
+        <template lang="pug">
+          <div>test</div>
+        </template>
+
+        <script lang="ts">
+        import { defineComponent } from 'vue'
+        import gql from 'graphql-tag';
+
+        export default defineComponent({
+          name: 'TestComponent',
+          setup(){
+            return {
+              pageQuery: gql\`
+              query IndexQuery {
+                site {
+                  siteMetadata {
+                    title
+                  }
+                }
+              }
+            \`
+            }
+          }
+        })
+
+        // export const pageQuery = gql\`
+        //   query OtherQuery {
+        //     site {
+        //       siteMetadata {
+        //         title
+        //       }
+        //     }
+        //   }
+        // \`;
+        </script>
+
+        <style lang="scss">
+        .test { color: red };
+        </style>
+      `));
+
+      expect(gqlString).toEqual(freeText(`
+        query IndexQuery {
+          site {
+            siteMetadata {
+              title
+            }
+          }
+        }
+      `));
+    });
 
     it('should pluck graphql-tag template literals from .tsx file with generic jsx elements', async () => {
       const gqlString = await pluck('tmp-XXXXXX.tsx', freeText(`

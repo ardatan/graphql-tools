@@ -1,5 +1,11 @@
 # @graphql-tools/graphql-tag-pluck
 
+## 6.4.0
+
+### Minor Changes
+
+- 76162cc8: feat(graphql-tag-pluck): vue 3 support
+
 ## 6.3.0
 
 ### Minor Changes

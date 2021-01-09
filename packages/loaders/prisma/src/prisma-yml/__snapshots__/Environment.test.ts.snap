@@ -97,7 +97,7 @@ Array [
 exports[`Environment persists .prisma correctly 1`] = `
 "clusters:
   cluster:
-    host: 'http://localhost:60000'
+    host: http://localhost:60000
     clusterSecret: ''
 "
 `;
