@@ -406,7 +406,7 @@ function orderedTypeCandidates(
 ): Array<MergeTypeCandidate> {
   const typeCandidateMerger = typeMergingOptions?.typeCandidateMerger ?? defaultTypeCandidateMerger;
   const candidate = typeCandidateMerger(candidates);
-  return candidates.sort((_a, b) => (b === candidate ? -1 : 0));
+  return candidates.filter(c => c !== candidate).concat([candidate]);
 }
 
 function defaultTypeCandidateMerger(candidates: Array<MergeTypeCandidate>): MergeTypeCandidate {
