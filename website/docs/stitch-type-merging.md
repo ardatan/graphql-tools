@@ -92,10 +92,10 @@ That's it! Under the subschema config `merge` option, each merged type provides 
 - `selectionSet` specifies one or more key fields required from other services to perform this query. Query planning will automatically resolve these fields from other subschemas in dependency order.
 -  `args` formats the initial object representation into query arguments.
 
-See related [handbook example](https://github.com/gmac/schema-stitching-handbook/tree/master/type-merging-single-records) for a working demonstration of this setup. This JavaScript-based syntax may also be written directly into schema type definitions using the [stitching directives SDL](/docs/stitch-directives-sdl):
+See related [handbook example](https://github.com/gmac/schema-stitching-handbook/tree/master/type-merging-single-records) for a working demonstration of this setup. This JavaScript-based syntax may also be written directly into schema type definitions using the `@merge` directive of the [stitching SDL](/docs/stitch-directives-sdl):
 
 ```graphql
-type User @key(selectionSet: "{ id }") {
+type User {
   id: ID!
   email: String!
 }
