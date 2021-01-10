@@ -102,7 +102,7 @@ Also note that these subschema config objects may need to be referenced again in
 
 ## Stitching remote schemas
 
-To include a remote schema in the combined gateway, you must provide at least the `schema` and `executor` subschema config options:
+To include a remote schema in the combined gateway, you must provide at least the `schema` and `executor` subschema config options, and an optional `subscriber` for subscriptions:
 
 ```js
 import { introspectSchema } from '@graphql-tools/wrap';
@@ -138,14 +138,14 @@ Stitching has two strategies for handling types duplicated across subschemas: an
 
 Types with the same name are automatically merged by default in GraphQL Tools v7. That means objects, interfaces, and input objects with the same name will consolidate their fields across subschemas, and unions/enums will consolidate all their members. The combined gateway schema will then smartly delegate portions of a request to the proper origin subschema(s). See [type merging guide](/docs/stitch-type-merging/) for a comprehensive overview.
 
-Automatic merging will only encounter conflicts on fields and type descriptions. By default, the final definition of a field or type description found in the subschemas array is used, or a specific version may be [marked as canonical](/docs/stitch-type-merging#canonical-definitions). You may customize this selection logic using `typeMergingOptions`; the following prefers the _first_ definition of each conflicting element found in the subschemas array:
+Automatic merging will only encounter conflicts on type descriptions and fields. By default, the final definition of a type or field found in the subschemas array is used, or a specific definition may be [marked as canonical](/docs/stitch-type-merging#canonical-definitions). You may customize all selection logic using `typeMergingOptions`; the following prefers the _first_ definition of each conflicting element found in the subschemas array:
 
 ```js
 const gatewaySchema = stitchSchemas({
   subschemas: [...],
   mergeTypes: true, // << default in v7
   typeMergingOptions: {
-    // select a preferred candidate:
+    // select a preferred type candidate that provides definitions:
     typeCandidateMerger: (candidates) => candidate[0],
     // and/or itemize the selection of other specific definitions:
     typeDescriptionsMerger: (candidates) => candidate[0].type.description,
