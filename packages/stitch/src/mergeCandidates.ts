@@ -90,8 +90,8 @@ function mergeObjectTypeCandidates(
   const interfaces = Object.keys(interfaceMap).map(interfaceName => interfaceMap[interfaceName]);
 
   const astNodes = pluck<ObjectTypeDefinitionNode>('astNode', candidates);
-  const fieldAstNodes = Object.values(fields)
-    .map(f => f.astNode)
+  const fieldAstNodes = canonicalFieldNamesForType(candidates)
+    .map(fieldName => fields[fieldName]?.astNode)
     .filter(n => n != null);
 
   if (astNodes.length > 1 && fieldAstNodes.length) {
@@ -136,8 +136,8 @@ function mergeInputObjectTypeCandidates(
   const fields = inputFieldConfigMapFromTypeCandidates(candidates, typeMergingOptions);
 
   const astNodes = pluck<InputObjectTypeDefinitionNode>('astNode', candidates);
-  const fieldAstNodes = Object.values(fields)
-    .map(f => f.astNode)
+  const fieldAstNodes = canonicalFieldNamesForType(candidates)
+    .map(fieldName => fields[fieldName]?.astNode)
     .filter(n => n != null);
 
   if (astNodes.length > 1 && fieldAstNodes.length) {
@@ -197,8 +197,8 @@ function mergeInterfaceTypeCandidates(
   const interfaces = Object.keys(interfaceMap).map(interfaceName => interfaceMap[interfaceName]);
 
   const astNodes = pluck<InterfaceTypeDefinitionNode>('astNode', candidates);
-  const fieldAstNodes = Object.values(fields)
-    .map(f => f.astNode)
+  const fieldAstNodes = canonicalFieldNamesForType(candidates)
+    .map(fieldName => fields[fieldName]?.astNode)
     .filter(n => n != null);
 
   if (astNodes.length > 1 && fieldAstNodes.length) {
@@ -284,17 +284,6 @@ function mergeEnumTypeCandidates(
   const values = enumValueConfigMapFromTypeCandidates(candidates, typeMergingOptions);
 
   const astNodes = pluck<EnumTypeDefinitionNode>('astNode', candidates);
-  const valueAstNodes = Object.values(values)
-    .map(v => v.astNode)
-    .filter(n => n != null);
-
-  if (astNodes.length > 1 && valueAstNodes.length) {
-    astNodes.push({
-      ...astNodes[astNodes.length - 1],
-      values: JSON.parse(JSON.stringify(valueAstNodes)),
-    });
-  }
-
   const astNode = astNodes
     .slice(1)
     .reduce((acc, astNode) => mergeEnum(astNode, acc as EnumTypeDefinitionNode) as EnumTypeDefinitionNode, astNodes[0]);
@@ -552,4 +541,20 @@ function defaultInputFieldConfigMerger(candidates: Array<MergeInputFieldConfigCa
   }
 
   return candidates[candidates.length - 1].inputFieldConfig;
+}
+
+function canonicalFieldNamesForType(candidates: Array<MergeTypeCandidate>): Array<string> {
+  const canonicalFieldNames: Record<string, boolean> = Object.create(null);
+
+  candidates.forEach(({ type, subschema }) => {
+    if (isSubschemaConfig(subschema) && subschema.merge?.[type.name]?.fields && !subschema.merge[type.name].canonical) {
+      Object.entries(subschema.merge[type.name].fields).forEach(([fieldName, mergedFieldConfig]) => {
+        if (mergedFieldConfig.canonical) {
+          canonicalFieldNames[fieldName] = true;
+        }
+      });
+    }
+  });
+
+  return Object.keys(canonicalFieldNames);
 }
