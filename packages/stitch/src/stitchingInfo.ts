@@ -233,7 +233,7 @@ export function completeStitchingInfo(
   schema: GraphQLSchema
 ): StitchingInfo {
   const selectionSetsByType = Object.create(null);
-  [schema.getQueryType(), schema.getMutationType].forEach(rootType => {
+  [schema.getQueryType(), schema.getMutationType()].forEach(rootType => {
     if (rootType) {
       selectionSetsByType[rootType.name] = parseSelectionSet('{ __typename }', { noLocation: true });
     }
