@@ -1,5 +1,13 @@
 # @graphql-tools/stitch
 
+## 7.1.9
+
+### Patch Changes
+
+- 6a966bee: fix(stitch): add \_\_typename for mutations
+
+  fix related to #2349
+
 ## 7.1.8
 
 ### Patch Changes
