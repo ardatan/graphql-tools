@@ -82,11 +82,16 @@
       "prettier --write"
     ]
   },
-  "workspaces": [
-    "./packages/*",
-    "./packages/loaders/*",
-    "./website"
-  ],
+  "workspaces": {
+    "packages": [
+      "./packages/*",
+      "./packages/loaders/*",
+      "./website"
+    ],
+    "nohoist": [
+      "@graphql-tools/website/@docusaurus/*"
+    ]
+  },
   "resolutions": {
     "graphql": "15.4.0"
   }
