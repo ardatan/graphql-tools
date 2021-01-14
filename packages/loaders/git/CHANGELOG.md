@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- 6a966bee: Fix vulnerability: use execFile instead of exec
+- 6a966bee: Fix vulnerability: use execFile instead of exec (Thank you Ron Masas @ Checkmarx.com for reporting it!)
 
 ## 6.2.5
 
