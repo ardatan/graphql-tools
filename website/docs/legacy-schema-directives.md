@@ -25,7 +25,7 @@ This document focuses on directives that appear in GraphQL _schemas_ (as opposed
 
 ## (At least) two strategies
 
-`graphql-tools` provides [a newer functional approach](/docs/legacy-schema-directives/) for directive-based schema modification. The remainder of this document describes the earlier class-based mechanism. We believe the newer approach is easier to reason about, but older class-based schema directives are still supported, as long as the in-place schema modification techniques they employ do not yield an invalid schema.
+`graphql-tools` provides [a newer functional approach](/docs/schema-directives/) for directive-based schema modification. The remainder of this document describes the earlier class-based mechanism. We believe the newer approach is easier to reason about, but older class-based schema directives are still supported, as long as the in-place schema modification techniques they employ do not yield an invalid schema.
 
 ## Using schema directives
 
