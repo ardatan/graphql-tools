@@ -1,5 +1,11 @@
 # @graphql-tools/url-loader
 
+## 6.8.0
+
+### Minor Changes
+
+- c50deec5: chore(url-loader): bump graphql-ws version
+
 ## 6.7.1
 
 ### Patch Changes
