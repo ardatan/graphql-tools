@@ -111,13 +111,12 @@ const buildDelegationPlan = memoize3(function (
     }
 
     nonUniqueSubschemas = nonUniqueSubschemas.filter(s => proxiableSubschemas.includes(s));
-    if (nonUniqueSubschemas == null) {
+    if (!nonUniqueSubschemas.length) {
       unproxiableFieldNodes.push(fieldNode);
       return;
     }
 
-    const subschemas: Array<Subschema> = Array.from(delegationMap.keys());
-    const existingSubschema = nonUniqueSubschemas.find(s => subschemas.includes(s));
+    const existingSubschema = nonUniqueSubschemas.find(s => delegationMap.has(s));
     if (existingSubschema != null) {
       delegationMap.get(existingSubschema).push(fieldNode);
     } else {
