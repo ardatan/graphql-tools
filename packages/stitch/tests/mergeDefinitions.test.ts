@@ -1,7 +1,15 @@
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
 import { getDirectives } from '@graphql-tools/utils';
-import { GraphQLObjectType, GraphQLInterfaceType, GraphQLInputObjectType, GraphQLEnumType, GraphQLUnionType, GraphQLScalarType } from 'graphql';
+import {
+  GraphQLObjectType,
+  GraphQLInterfaceType,
+  GraphQLInputObjectType,
+  GraphQLEnumType,
+  GraphQLUnionType,
+  GraphQLScalarType,
+  graphql
+} from 'graphql';
 
 describe('merge canonical types', () => {
   const firstSchema = makeExecutableSchema({
@@ -45,7 +53,21 @@ describe('merge canonical types', () => {
 
       "first"
       scalar ProductScalar @mydir(value: "first")
-    `
+
+      "first"
+      type Query @mydir(value: "first") {
+        "first"
+        field1: String @mydir(value: "first")
+        "first"
+        field2: String @mydir(value: "first")
+      }
+    `,
+    resolvers: {
+      Query: {
+        field1: () => 'first',
+        field2: () => 'first',
+      }
+    }
   });
 
   const secondSchema = makeExecutableSchema({
@@ -91,7 +113,21 @@ describe('merge canonical types', () => {
 
       "second"
       scalar ProductScalar @mydir(value: "second")
-    `
+
+      "second"
+      type Query @mydir(value: "second") {
+        "second"
+        field1: String @mydir(value: "second")
+        "second"
+        field2: String @mydir(value: "second")
+      }
+    `,
+    resolvers: {
+      Query: {
+        field1: () => 'second',
+        field2: () => 'second',
+      }
+    }
   });
 
   const gatewaySchema = stitchSchemas({
@@ -120,6 +156,9 @@ describe('merge canonical types', () => {
           ProductScalar: {
             canonical: true,
           },
+          Query: {
+            canonical: true,
+          },
         }
       },
       {
@@ -142,7 +181,12 @@ describe('merge canonical types', () => {
             fields: {
               url: { canonical: true },
             }
-          }
+          },
+          Query: {
+            fields: {
+              field2: { canonical: true },
+            }
+          },
         }
       },
     ],
@@ -190,6 +234,7 @@ describe('merge canonical types', () => {
   });
 
   it('merges prioritized descriptions', () => {
+    expect(gatewaySchema.getQueryType().description).toEqual('first');
     expect(gatewaySchema.getType('Product').description).toEqual('first');
     expect(gatewaySchema.getType('IProduct').description).toEqual('first');
     expect(gatewaySchema.getType('ProductInput').description).toEqual('first');
@@ -197,10 +242,14 @@ describe('merge canonical types', () => {
     expect(gatewaySchema.getType('ProductUnion').description).toEqual('first');
     expect(gatewaySchema.getType('ProductScalar').description).toEqual('first');
 
+    const queryType = gatewaySchema.getQueryType();
     const objectType = gatewaySchema.getType('Product') as GraphQLObjectType;
     const interfaceType = gatewaySchema.getType('IProduct') as GraphQLInterfaceType;
     const inputType = gatewaySchema.getType('ProductInput') as GraphQLInputObjectType;
     const enumType = gatewaySchema.getType('ProductEnum') as GraphQLEnumType;
+
+    expect(queryType.getFields().field1.description).toEqual('first');
+    expect(queryType.getFields().field2.description).toEqual('second');
 
     expect(objectType.getFields().id.description).toEqual('first');
     expect(interfaceType.getFields().id.description).toEqual('first');
@@ -216,6 +265,7 @@ describe('merge canonical types', () => {
   });
 
   it('merges prioritized ASTs', () => {
+    const queryType = gatewaySchema.getQueryType();
     const objectType = gatewaySchema.getType('Product') as GraphQLObjectType;
     const interfaceType = gatewaySchema.getType('IProduct') as GraphQLInterfaceType;
     const inputType = gatewaySchema.getType('ProductInput') as GraphQLInputObjectType;
@@ -223,6 +273,7 @@ describe('merge canonical types', () => {
     const unionType = gatewaySchema.getType('ProductUnion') as GraphQLUnionType;
     const scalarType = gatewaySchema.getType('ProductScalar') as GraphQLScalarType;
 
+    expect(getDirectives(firstSchema, queryType.toConfig()).mydir.value).toEqual('first');
     expect(getDirectives(firstSchema, objectType.toConfig()).mydir.value).toEqual('first');
     expect(getDirectives(firstSchema, interfaceType.toConfig()).mydir.value).toEqual('first');
     expect(getDirectives(firstSchema, inputType.toConfig()).mydir.value).toEqual('first');
@@ -230,6 +281,8 @@ describe('merge canonical types', () => {
     expect(getDirectives(firstSchema, unionType.toConfig()).mydir.value).toEqual('first');
     expect(getDirectives(firstSchema, scalarType.toConfig()).mydir.value).toEqual('first');
 
+    expect(getDirectives(firstSchema, queryType.getFields().field1).mydir.value).toEqual('first');
+    expect(getDirectives(firstSchema, queryType.getFields().field2).mydir.value).toEqual('second');
     expect(getDirectives(firstSchema, objectType.getFields().id).mydir.value).toEqual('first');
     expect(getDirectives(firstSchema, objectType.getFields().url).mydir.value).toEqual('second');
     expect(getDirectives(firstSchema, interfaceType.getFields().id).mydir.value).toEqual('first');
@@ -249,5 +302,13 @@ describe('merge canonical types', () => {
     expect(objectType.getFields().url.deprecationReason).toEqual('second');
     expect(getDirectives(firstSchema, objectType.getFields().id).deprecated.reason).toEqual('first');
     expect(getDirectives(firstSchema, objectType.getFields().url).deprecated.reason).toEqual('second');
+  });
+
+  it('promotes canonical root field definitions', async () => {
+    const { data } = await graphql(gatewaySchema, '{ field1 field2 }');
+    expect(data).toEqual({
+      field1: 'first',
+      field2: 'second',
+    });
   });
 });
