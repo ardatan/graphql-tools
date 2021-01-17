@@ -476,66 +476,83 @@ The main disadvantage of computed fields is that they cannot be resolved indepen
 
 ## Federation services
 
-If you're familiar with [Apollo Federation](https://www.apollographql.com/docs/apollo-server/federation/introduction/), then you may notice that the above pattern of computed fields looks similar to the `_entities` service design of the [Apollo Federation specification](https://www.apollographql.com/docs/apollo-server/federation/federation-spec/). Federation resources can be included in a stitched gateway when integrating with third-party services or in the process of a migration. See related [handbook example](https://github.com/gmac/schema-stitching-handbook/tree/master/federation-services) for specifics.
+If you're familiar with [Apollo Federation](https://www.apollographql.com/docs/apollo-server/federation/introduction/), then you may notice that the above pattern of computed fields looks similar to the `_entities` service design of the [Apollo Federation specification](https://www.apollographql.com/docs/apollo-server/federation/federation-spec/). Federation resources may be included in a stitched gateway; this comes in handy when integrating with third-party services or in the process of a migration. See related [handbook example](https://github.com/gmac/schema-stitching-handbook/tree/master/federation-services) for more information.
 
 ## Canonical definitions
 
-As the same types are introduced across services, managing the gateway schema definitions for each GraphQL element becomes challenging. Element definitions may specify:
+Managing the gateway schema definition of each type and field becomes challenging as the same type names are introduced across subschemas. By default, the final definition of each named GraphQL element found in the stitched `subschemas` array provides its gateway definition. However, preferred definitions may be marked as `canonical` to recieve this final priority. Canonical definitions provide:
 
-- Descriptions (i.e.: doc strings)
-- Metadata (custom directives)
-- Field nullability
-- Field deprecations
+- an element's description (doc string).
+- an element's final directive values.
+- a field's final nullability, arguments, and deprecation reason.
+- a root field's default delegation target.
 
-By default, the final definition of each type and field found in the stitched `subschemas` array provides the element's gateway definition. However, this strategy alone can be cumbersome when changes in subschema order cause preferred definitions to be deprioritized.
-
-The `canonical` setting allows you to specify preferred type and field definitions that should be built into the gateway schema:
-
-```js
-let usersSchema = makeExecutableSchema({
-  typeDefs: `
-    "Represents an authenticated user"
-    type User @canonical {
-      "The primary key of this user record"
-      id: ID! @mydir(schema: "users")
-      "ignore this description"
-      field: String!
-    }
-  `
-});
-
-let postsSchema = makeExecutableSchema({
-  typeDefs: `
-    type Post {
-      id: ID!
-    }
-
-    "ignore this description"
-    type User {
-      "ignore this description"
-      id: ID! @mydir(schema: "posts")
-      "Preferred description for this field"
-      field: String @canonical
-      "Posts authored by this user"
-      posts: [Post!]
-    }
-  `
-});
-```
-
-The above example uses [stitching directives](/docs/stitch-directives-sdl) to mark schema elements as `@canonical`. A type marked as canonical will provide it's definition and that of all of its fields to the combined gateway schema. In the uncommon scenario where an overlapping field in another subschema provides a more robust definition, that field may be marked as canonical to override the base type. Fields that are unique to a given service (such as `User.posts` above) have no competing definition so are canonical by default. The above User types and ASTs will merge into:
+The following example uses [stitching directives](/docs/stitch-directives-sdl) to mark preferred subschema elements as `@canonical`:
 
 ```graphql
+# --- Users schema ---
+
+"Represents an authenticated user"
+type User @canonical {
+  "The primary key of this user record"
+  id: ID! @mydir(schema: "users")
+  "other description"
+  field: String!
+}
+
+type Query {
+  "Users schema definition"
+  user(id: ID!): User @canonical
+}
+
+# --- Posts schema ---
+
+type Post {
+  id: ID!
+}
+
+"other description"
+type User {
+  "other description"
+  id: ID! @mydir(schema: "posts")
+  "The canonical field description"
+  field: String @canonical
+  "Posts authored by this user"
+  posts: [Post!]
+}
+
+type Query {
+  "Posts schema definition"
+  user(id: ID!): User
+}
+```
+
+The above ASTs will merge into the following gateway schema definition, and the root `user` field will proxy the Users subschema by default:
+
+```graphql
+# --- Gateway schema ---
+
 "Represents an authenticated user"
 type User {
   "The primary key of this user record"
   id: ID! @mydir(schema: "users")
-  "Preferred description for this field"
+  "The canonical field description"
   field: String
   "Posts authored by this user"
   posts: [Post!]
 }
+
+type Query {
+  "Users schema definition"
+  user(id: ID!): User
+}
 ```
+
+- **Types** marked as canonical will provide their definition _and that of all of their fields_ to the combined gateway schema.
+- **Fields** marked as canonical will override those of a canonical type.
+- **Root fields** marked as canonical will specify which subschema the field proxies by default for new queries entering the graph.
+
+Only one of any given type or field may be made canonical. Fields that are unique to one service (such as `User.posts` above) have no competing definition so are canonical by default.
 
 The above SDL directives can also be written as static configuration:
 
@@ -547,6 +564,11 @@ const gatewaySchema = stitchSchemas({
       User: {
         // ...
         canonical: true
+      },
+      Query: {
+        fields: {
+          user: { canonical: true }
+        }
       }
     }
   }, {
@@ -563,7 +585,7 @@ const gatewaySchema = stitchSchemas({
 });
 ```
 
-> **Implementation note:** canonical settings are only used while building the combined gateway schema; they are given no special priority in runtime query planning. You may override the assembly of canonical definitions using [`typeMergingOptions`](/docs/stitch-combining-schemas#automatic-merge).
+> **Implementation note:** canonical settings are _only_ used for building the combined gateway schema definition and defaulting root field targets; otherwise, they are given no special priority in runtime query planning (which always selects necessary fields from as few subschemas as possible). You may override the assembly of canonical definitions using [`typeMergingOptions`](/docs/stitch-combining-schemas#automatic-merge).
 
 ## Type resolvers
 

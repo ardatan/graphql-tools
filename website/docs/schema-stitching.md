@@ -17,7 +17,7 @@ Browse the following documentation topics to learn about stitching libraries, or
 
 ## Basic example
 
-Given two self-contained subschemas, a single "stitched" schema can be build that delegates (or, proxies) relevant portions of a request to each subservice:
+Given two self-contained subschemas, a single "stitched" schema can be built that delegates (or, proxies) relevant portions of a request to each subservice:
 
 ```js
 import { makeExecutableSchema } from '@graphql-tools/schema';
@@ -56,7 +56,7 @@ const usersService = makeExecutableSchema({
     }
 
     type Query {
-      users(ids: [ID!]!): [User]! @merge(keyField: "id") @primary
+      users(ids: [ID!]!): [User]! @merge(keyField: "id") @canonical
     }
   `,
   resolvers: {

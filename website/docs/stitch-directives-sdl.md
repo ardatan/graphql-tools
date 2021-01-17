@@ -19,7 +19,7 @@ type User {
 }
 
 type Query {
-  users(ids: [ID!]!): [User]! @merge(keyField: "id")
+  users(ids: [ID!]!): [User]! @merge(keyField: "id") @canonical
 }
 
 # --- Posts schema ---
@@ -36,7 +36,7 @@ type User {
 
 type Query {
   post(id: ID!): Post
-  _users(ids: [ID!]!): [User]! @merge(keyField: "id")
+  users(ids: [ID!]!): [User]! @merge(keyField: "id")
 }
 ```
 
@@ -67,7 +67,7 @@ The function of these directives are:
 
 * **`@computed`:** specifies a selection of fields required from other services to compute the value of this field. These additional fields are only selected when the computed field is requested. Analogous to [computed field](/docs/stitch-type-merging#computed-fields) in merged type configuration. Computed field dependencies must be sent into the subservice using an [object key](#object-keys).
 
-* **`@canonical`:** identifies types and fields that provide a [canonical definition](/docs/stitch-type-merging#canonical-definitions) to be built into the combined gateway schema. Useful when the same types appear across multiple subschemas and a specific definition should be promoted.
+* **`@canonical`:** specifies types and fields that provide a [canonical definition](/docs/stitch-type-merging#canonical-definitions) to be built into the gateway schema. Useful for selecting preferred characteristics among types and fields that overlap across subschemas. Root fields marked as canonical specify which subschema the field proxies for new queries entering the graph.
 
 #### Customizing directive names
 
