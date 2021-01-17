@@ -678,4 +678,67 @@ describe('type merging directives', () => {
       }],
     });
   });
+
+  test('applies canonical merge attributions', () => {
+    const typeDefs = `
+      ${allStitchingDirectivesTypeDefs}
+
+      type User implements IUser @canonical {
+        id: ID
+        name: String @canonical
+      }
+
+      interface IUser @canonical {
+        id: ID
+        name: String @canonical
+      }
+
+      input UserInput @canonical {
+        id: ID
+        name: String @canonical
+      }
+
+      enum UserEnum @canonical {
+        VALUE
+      }
+
+      union UserUnion @canonical = User
+
+      scalar Key @canonical
+    `;
+
+    const schema = makeExecutableSchema({ typeDefs });
+    const subschemaConfig = { schema };
+    const transformedSubschemaConfig = stitchingDirectivesTransformer(subschemaConfig);
+
+    expect(transformedSubschemaConfig.merge).toEqual({
+      User: {
+        canonical: true,
+        fields: {
+          name: { canonical: true },
+        }
+      },
+      IUser: {
+        canonical: true,
+        fields: {
+          name: { canonical: true },
+        }
+      },
+      UserInput: {
+        canonical: true,
+        fields: {
+          name: { canonical: true },
+        }
+      },
+      UserEnum: {
+        canonical: true,
+      },
+      UserUnion: {
+        canonical: true,
+      },
+      Key: {
+        canonical: true,
+      }
+    });
+  });
 });

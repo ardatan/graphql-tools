@@ -35,7 +35,13 @@ import { stitchingDirectivesValidator } from './stitchingDirectivesValidator';
 export function stitchingDirectivesTransformer(
   options: StitchingDirectivesOptions = {}
 ): (subschemaConfig: SubschemaConfig) => SubschemaConfig {
-  const { keyDirectiveName, computedDirectiveName, mergeDirectiveName, pathToDirectivesInExtensions } = {
+  const {
+    keyDirectiveName,
+    computedDirectiveName,
+    mergeDirectiveName,
+    canonicalDirectiveName,
+    pathToDirectivesInExtensions,
+  } = {
     ...defaultStitchingDirectiveOptions,
     ...options,
   };
@@ -46,11 +52,24 @@ export function stitchingDirectivesTransformer(
     const selectionSetsByType: Record<string, SelectionSetNode> = Object.create(null);
     const computedFieldSelectionSets: Record<string, Record<string, SelectionSetNode>> = Object.create(null);
     const mergedTypesResolversInfo: Record<string, MergedTypeResolverInfo> = Object.create(null);
+    const canonicalTypesInfo: Record<string, { canonical?: boolean; fields?: Record<string, boolean> }> = Object.create(
+      null
+    );
 
     const schema = subschemaConfig.schema;
 
     // gateway should also run validation
     stitchingDirectivesValidator(options)(schema);
+
+    function setCanonicalDefinition(typeName: string, fieldName?: string): void {
+      canonicalTypesInfo[typeName] = canonicalTypesInfo[typeName] || Object.create(null);
+      if (fieldName) {
+        canonicalTypesInfo[typeName].fields = canonicalTypesInfo[typeName].fields || Object.create(null);
+        canonicalTypesInfo[typeName].fields[fieldName] = true;
+      } else {
+        canonicalTypesInfo[typeName].canonical = true;
+      }
+    }
 
     mapSchema(schema, {
       [MapperKind.OBJECT_TYPE]: type => {
@@ -60,6 +79,10 @@ export function stitchingDirectivesTransformer(
         if (keyDirective) {
           const selectionSet = parseSelectionSet(keyDirective.selectionSet, { noLocation: true });
           selectionSetsByType[type.name] = selectionSet;
+        }
+
+        if (directives[canonicalDirectiveName]) {
+          setCanonicalDefinition(type.name);
         }
 
         return undefined;
@@ -92,6 +115,73 @@ export function stitchingDirectivesTransformer(
                 : selectionSet;
             }
           });
+        }
+
+        if (directives[canonicalDirectiveName]) {
+          setCanonicalDefinition(typeName, fieldName);
+        }
+
+        return undefined;
+      },
+      [MapperKind.INTERFACE_TYPE]: type => {
+        const directives = getDirectives(schema, type, pathToDirectivesInExtensions);
+
+        if (directives[canonicalDirectiveName]) {
+          setCanonicalDefinition(type.name);
+        }
+
+        return undefined;
+      },
+      [MapperKind.INTERFACE_FIELD]: (fieldConfig, fieldName, typeName) => {
+        const directives = getDirectives(schema, fieldConfig, pathToDirectivesInExtensions);
+
+        if (directives[canonicalDirectiveName]) {
+          setCanonicalDefinition(typeName, fieldName);
+        }
+
+        return undefined;
+      },
+      [MapperKind.INPUT_OBJECT_TYPE]: type => {
+        const directives = getDirectives(schema, type, pathToDirectivesInExtensions);
+
+        if (directives[canonicalDirectiveName]) {
+          setCanonicalDefinition(type.name);
+        }
+
+        return undefined;
+      },
+      [MapperKind.INPUT_OBJECT_FIELD]: (inputFieldConfig, fieldName, typeName) => {
+        const directives = getDirectives(schema, inputFieldConfig, pathToDirectivesInExtensions);
+
+        if (directives[canonicalDirectiveName]) {
+          setCanonicalDefinition(typeName, fieldName);
+        }
+
+        return undefined;
+      },
+      [MapperKind.UNION_TYPE]: type => {
+        const directives = getDirectives(schema, type, pathToDirectivesInExtensions);
+
+        if (directives[canonicalDirectiveName]) {
+          setCanonicalDefinition(type.name);
+        }
+
+        return undefined;
+      },
+      [MapperKind.ENUM_TYPE]: type => {
+        const directives = getDirectives(schema, type, pathToDirectivesInExtensions);
+
+        if (directives[canonicalDirectiveName]) {
+          setCanonicalDefinition(type.name);
+        }
+
+        return undefined;
+      },
+      [MapperKind.SCALAR_TYPE]: type => {
+        const directives = getDirectives(schema, type, pathToDirectivesInExtensions);
+
+        if (directives[canonicalDirectiveName]) {
+          setCanonicalDefinition(type.name);
         }
 
         return undefined;
@@ -261,6 +351,34 @@ export function stitchingDirectivesTransformer(
         mergeTypeConfig.argsFromKeys = generateArgsFromKeysFn(mergedTypeResolverInfo);
       } else {
         mergeTypeConfig.args = generateArgsFn(mergedTypeResolverInfo);
+      }
+    });
+
+    Object.entries(canonicalTypesInfo).forEach(([typeName, canonicalTypeInfo]) => {
+      if (newSubschemaConfig.merge == null) {
+        newSubschemaConfig.merge = Object.create(null);
+      }
+
+      if (newSubschemaConfig.merge[typeName] == null) {
+        newSubschemaConfig.merge[typeName] = Object.create(null);
+      }
+
+      const mergeTypeConfig = newSubschemaConfig.merge[typeName];
+
+      if (canonicalTypeInfo.canonical) {
+        mergeTypeConfig.canonical = true;
+      }
+
+      if (canonicalTypeInfo.fields) {
+        if (mergeTypeConfig.fields == null) {
+          mergeTypeConfig.fields = Object.create(null);
+        }
+        Object.keys(canonicalTypeInfo.fields).forEach(fieldName => {
+          if (mergeTypeConfig.fields[fieldName] == null) {
+            mergeTypeConfig.fields[fieldName] = Object.create(null);
+          }
+          mergeTypeConfig.fields[fieldName].canonical = true;
+        });
       }
     });
 

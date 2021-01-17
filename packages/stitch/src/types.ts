@@ -8,6 +8,8 @@ import {
   GraphQLInterfaceType,
   GraphQLInputFieldConfig,
   GraphQLInputObjectType,
+  GraphQLEnumValueConfig,
+  GraphQLEnumType,
 } from 'graphql';
 import { ITypeDefinitions, TypeMap } from '@graphql-tools/utils';
 import { MergedTypeResolver, Subschema, SubschemaConfig } from '@graphql-tools/delegate';
@@ -31,6 +33,14 @@ export interface MergeInputFieldConfigCandidate {
   inputFieldConfig: GraphQLInputFieldConfig;
   fieldName: string;
   type: GraphQLInputObjectType;
+  subschema?: GraphQLSchema | SubschemaConfig;
+  transformedSubschema?: Subschema;
+}
+
+export interface MergeEnumValueConfigCandidate {
+  enumValueConfig: GraphQLEnumValueConfig;
+  enumValue: string;
+  type: GraphQLEnumType;
   subschema?: GraphQLSchema | SubschemaConfig;
   transformedSubschema?: Subschema;
 }
@@ -70,9 +80,11 @@ export interface IStitchSchemasOptions<TContext = any> extends Omit<IExecutableS
 export type SubschemaConfigTransform = (subschemaConfig: SubschemaConfig) => SubschemaConfig;
 
 export interface TypeMergingOptions {
+  typeCandidateMerger?: (candidates: Array<MergeTypeCandidate>) => MergeTypeCandidate;
   typeDescriptionsMerger?: (candidates: Array<MergeTypeCandidate>) => string;
   fieldConfigMerger?: (candidates: Array<MergeFieldConfigCandidate>) => GraphQLFieldConfig<any, any>;
   inputFieldConfigMerger?: (candidates: Array<MergeInputFieldConfigCandidate>) => GraphQLInputFieldConfig;
+  enumValueConfigMerger?: (candidates: Array<MergeEnumValueConfigCandidate>) => GraphQLEnumValueConfig;
 }
 
 export type OnTypeConflict = (
