@@ -286,7 +286,11 @@ function mergeEnumTypeCandidates(
   const astNodes = pluck<EnumTypeDefinitionNode>('astNode', candidates);
   const astNode = astNodes
     .slice(1)
-    .reduce((acc, astNode) => mergeEnum(astNode, acc as EnumTypeDefinitionNode) as EnumTypeDefinitionNode, astNodes[0]);
+    .reduce(
+      (acc, astNode) =>
+        mergeEnum(astNode, acc as EnumTypeDefinitionNode, { consistentEnumMerge: true }) as EnumTypeDefinitionNode,
+      astNodes[0]
+    );
 
   const extensionASTNodes = [].concat(pluck<Record<string, any>>('extensionASTNodes', candidates));
 
