@@ -7,6 +7,7 @@ import {
   isNonNullType,
   getNamedType,
   isListType,
+  GraphQLType,
 } from 'graphql';
 
 import {
@@ -147,9 +148,9 @@ export function validateTypeConsistency(
   typeMergingOptions: TypeMergingOptions
 ): void {
   const finalType = getNamedType(finalElementConfig.type);
-  const finalIsListType = isListType(finalElementConfig.type);
+  const finalIsList = hasListType(finalElementConfig.type);
   const typeConflict = candidates.find(c => {
-    if (finalIsListType !== isListType(c.type)) {
+    if (finalIsList !== hasListType(c.type)) {
       throw new Error(
         `Definitions of ${definitionType} "${settingNamespace}" implement inconsistent list types across subschemas and cannot be merged.`
       );
@@ -165,6 +166,10 @@ export function validateTypeConsistency(
       typeMergingOptions
     );
   }
+}
+
+function hasListType(type: GraphQLType): boolean {
+  return isNonNullType(type) ? isListType(type.ofType) : isListType(type);
 }
 
 export function validateInputEnumConsistency(
@@ -203,6 +208,7 @@ function validationMessage(
   const setting =
     typeMergingOptions?.elementValidationSettings?.[settingNamespace]?.[settingName] ??
     typeMergingOptions?.validationSettings?.[settingName] ??
+    typeMergingOptions?.defaultValidationLevel ??
     ValidationLevel.Warn;
 
   switch (setting) {

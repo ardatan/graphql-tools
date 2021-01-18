@@ -82,7 +82,7 @@ export type SubschemaConfigTransform = (subschemaConfig: SubschemaConfig) => Sub
 export interface TypeMergingOptions {
   validationSettings?: ValidationSettings;
   elementValidationSettings?: Record<string, ValidationSettings>;
-  validationLevel?: 'error' | 'warn' | 'none';
+  defaultValidationLevel?: ValidationLevel;
   typeCandidateMerger?: (candidates: Array<MergeTypeCandidate>) => MergeTypeCandidate;
   typeDescriptionsMerger?: (candidates: Array<MergeTypeCandidate>) => string;
   fieldConfigMerger?: (candidates: Array<MergeFieldConfigCandidate>) => GraphQLFieldConfig<any, any>;
