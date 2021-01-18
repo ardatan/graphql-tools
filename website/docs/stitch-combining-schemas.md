@@ -4,7 +4,7 @@ title: Combining schemas
 sidebar_label: Combining schemas
 ---
 
-Schema stitching (`@graphql-tools/stitch`) creates a single GraphQL gateway schema from multiple underlying GraphQL services. Unlike [schema merging](/docs/merge-schemas), which simply combines local schema instances, stitching builds a combined proxy layer that delegates requests through to underlying service APIs. Stitching is a comperable alternative to [Apollo Federation](https://www.apollographql.com/docs/federation/).
+Schema stitching (`@graphql-tools/stitch`) creates a single GraphQL gateway schema from multiple underlying GraphQL services. Unlike [schema merging](/docs/merge-schemas), which simply combines local schema instances, stitching builds a combined proxy layer that delegates requests through to underlying service APIs. As of GraphQL Tools v7, stitching is a comparable alternative to [Apollo Federation](https://www.apollographql.com/docs/federation/) with automated query planning, merged types, and declarative schema directives.
 
 ## Why stitching?
 
@@ -102,7 +102,7 @@ Also note that these subschema config objects may need to be referenced again in
 
 ## Stitching remote schemas
 
-To include a remote schema in the combined gateway, you must provide at least the `schema` and `executor` subschema config options:
+To include a remote schema in the combined gateway, you must provide at least the `schema` and `executor` subschema config options, and an optional `subscriber` for subscriptions:
 
 ```js
 import { introspectSchema } from '@graphql-tools/wrap';
@@ -136,32 +136,25 @@ Stitching has two strategies for handling types duplicated across subschemas: an
 
 ### Automatic merge
 
-Types with the same name are automatically merged by default in GraphQL Tools v7. That means objects, interfaces, and input objects with the same name will have their fields consolidated from across subschemas, and unions/enums will consolidate all members. The combined gateway schema will then smartly delegate portions of a request to the proper origin subschema(s). See [type merging guide](/docs/stitch-type-merging/) for a comprehensive overview.
+Types with the same name are automatically merged by default in GraphQL Tools v7. That means objects, interfaces, and input objects with the same name will consolidate their fields across subschemas, and unions/enums will consolidate all their members. The combined gateway schema will then smartly delegate portions of a request to the proper origin subschema(s). See [type merging guide](/docs/stitch-type-merging/) for a comprehensive overview.
 
-Automatic merging will only encounter conflicts on fields and type descriptions. By default, the final definition of a field or type description found in the subschemas array is used. You may customize this selection logic in `typeMergingOptions`:
+Automatic merging will only encounter conflicts on type descriptions and fields. By default, the final definition of a type or field found in the subschemas array is used, or a specific definition may be [marked as canonical](/docs/stitch-type-merging#canonical-definitions). You may customize all selection logic using `typeMergingOptions`; the following prefers the _first_ definition of each conflicting element found in the subschemas array:
 
 ```js
 const gatewaySchema = stitchSchemas({
   subschemas: [...],
-  mergeTypes: true, // << optional in v7
+  mergeTypes: true, // << default in v7
   typeMergingOptions: {
-    typeDescriptionsMerger(candidates) {
-      const candidate = candidates.find(({ type }) => !!type.description) || candidates.pop();
-      return candidate.type.description;
-    },
-    fieldConfigMerger(candidates) {
-      const configs = candidates.map(c => c.fieldConfig);
-      return configs.find(({ description }) => !!description) || configs.pop();
-    },
-    inputFieldConfigMerger(candidates) {
-      const configs = candidates.map(c => c.inputFieldConfig);
-      return configs.find(({ description }) => !!description) || configs.pop();
-    }
+    // select a preferred type candidate that provides definitions:
+    typeCandidateMerger: (candidates) => candidate[0],
+    // and/or itemize the selection of other specific definitions:
+    typeDescriptionsMerger: (candidates) => candidate[0].type.description,
+    fieldConfigMerger: (candidates) => candidate[0].fieldConfig,
+    inputFieldConfigMerger: (candidates) => candidate[0].inputFieldConfig,
+    enumValueConfigMerger: (candidates) => candidate[0].enumValueConfig,
   },
 });
 ```
-
-In the example above, the first non-blank description encountered for each type and field in the subschemas array will be used.
 
 ### Manual resolution
 

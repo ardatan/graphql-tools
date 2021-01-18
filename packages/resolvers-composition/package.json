@@ -20,12 +20,12 @@
     "graphql": "^14.0.0 || ^15.0.0"
   },
   "devDependencies": {
-    "@types/lodash": "4.14.166"
+    "@types/lodash": "4.14.167"
   },
   "dependencies": {
     "@graphql-tools/utils": "^7.0.0",
     "lodash": "4.17.20",
-    "tslib": "~2.0.1"
+    "tslib": "~2.1.0"
   },
   "publishConfig": {
     "access": "public",

@@ -29,7 +29,7 @@ export async function readDefinition(
     throw new Error(`${filePath} could not be found.`);
   }
   const file = fs.readFileSync(filePath, 'utf-8');
-  const json = yaml.safeLoad(file) as PrismaDefinition;
+  const json = yaml.load(file) as PrismaDefinition;
   // we need this copy because populateJson runs inplace
   const jsonCopy = { ...json };
 

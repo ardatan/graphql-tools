@@ -11,10 +11,11 @@ Before;
 ```ts
 import { importSchema } from 'graphql-import';
 import { makeExecutableSchema } from 'graphql-tools';
+import { join } from 'path';
 
 const typeDefs = importSchema(join(__dirname, 'schema.graphql'));
 const resolvers = {
-  Query: {...}
+  Query: {/**...*/}
 };
 const schema = makeExecutableSchema({ typeDefs, resolvers });
 ```
@@ -24,9 +25,10 @@ After;
 import { loadSchemaSync } from '@graphql-tools/load';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { addResolversToSchema } from '@graphql-tools/schema';
+import { join } from 'path';
 
 const schema = loadSchemaSync(join(__dirname, 'schema.graphql'), { loaders: [new GraphQLFileLoader()] });
-const resolvers = { Query: {...} };
+const resolvers = { Query: {/**...*/} };
 
 const schemaWithResolvers = addResolversToSchema({
   schema,

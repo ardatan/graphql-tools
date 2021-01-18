@@ -12,14 +12,14 @@ Using SDL directives, a subservice may express its complete schema _and type mer
 
 ```graphql
 # --- Users schema ---
-type User @key(selectionSet: "{ id }") {
+type User {
   id: ID!
   username: String!
   email: String!
 }
 
 type Query {
-  users(ids: [ID!]!): [User]! @merge(keyField: "id")
+  users(ids: [ID!]!): [User]! @merge(keyField: "id") @canonical
 }
 
 # --- Posts schema ---
@@ -29,14 +29,14 @@ type Post {
   author: User
 }
 
-type User @key(selectionSet: "{ id }") {
+type User {
   id: ID!
   posts: [Post]
 }
 
 type Query {
   post(id: ID!): Post
-  _users(ids: [ID!]!): [User]! @merge(keyField: "id")
+  users(ids: [ID!]!): [User]! @merge(keyField: "id")
 }
 ```
 
@@ -44,29 +44,32 @@ In the above example, the Users and Posts schemas will be combined in the stitch
 
 ## Directives glossary
 
-By default, stitching directives use the following definitions (though the names of these directives [may be customized](#customizing-names)):
+By default, stitching directives use the following definitions (though the names of these directives [may be customized](#customizing-directive-names)):
 
 ```graphql
-directive @key(selectionSet: String!) on OBJECT
 directive @merge(keyField: String, keyArg: String, additionalArgs: String, key: [String!], argsExpr: String) on FIELD_DEFINITION
+directive @key(selectionSet: String!) on OBJECT
 directive @computed(selectionSet: String!) on FIELD_DEFINITION
+directive @canonical on OBJECT | INTERFACE | INPUT_OBJECT | UNION | ENUM | SCALAR | FIELD_DEFINITION | INPUT_FIELD_DEFINITION
 ```
 
 The function of these directives are:
 
-* **`@key`:** specifies a base selection set needed to merge the annotated type across subschemas. Analogous to the `selectionSet` setting specified in [merged type configuration](/docs/stitch-type-merging#basic-example).
+* **`@merge`:** denotes a root field used to query a merged type across services. The marked field's name is analogous to the `fieldName` setting in [merged type configuration](/docs/stitch-type-merging#basic-example), while the field's arguments and return type are used to infer merge configuration. Directive arguments tune the merge behavior (see [example recipes](#recipes)):
 
-* **`@merge`:** denotes a root field used to query a merged type across services. The marked field's name is analogous to the `fieldName` setting in [merged type configuration](/docs/stitch-type-merging#basic-example), while the field's arguments and return types automatically configure merging. Additional arguments may tune the merge behavior (see [example recipes](#recipes)):
-
-  * `keyField`: specifies the name of a field to pick off origin objects as the key value. Omitting this option yields an [object key](#object-keys) that includes all selectionSet fields.
-  * `keyArg`: specifies which field argument receives the merge key. This may be omitted for fields with only one argument where the key recipient can be inferred.
+  * `keyField`: specifies the name of a field to pick off origin objects as the key value. When omitted, a `@key` directive must be included on the return type's definition to be built into an [object key](#object-keys).
+  * `keyArg`: specifies which field argument receives the merge key. This may be omitted for fields with only one argument where the recipient can be inferred.
   * `additionalArgs`: specifies a string of additional keys and values to apply to other arguments, formatted as `""" arg1: "value", arg2: "value" """`.
   * _`key`: advanced use only; builds a custom key._
   * _`argsExpr`: advanced use only; builds a custom args object._
 
+* **`@key`:** specifies a base selection set needed to merge the annotated type across subschemas. Analogous to the `selectionSet` setting specified in [merged type configuration](/docs/stitch-type-merging#basic-example).
+
 * **`@computed`:** specifies a selection of fields required from other services to compute the value of this field. These additional fields are only selected when the computed field is requested. Analogous to [computed field](/docs/stitch-type-merging#computed-fields) in merged type configuration. Computed field dependencies must be sent into the subservice using an [object key](#object-keys).
 
-#### Customizing names
+* **`@canonical`:** specifies types and fields that provide a [canonical definition](/docs/stitch-type-merging#canonical-definitions) to be built into the gateway schema. Useful for selecting preferred characteristics among types and fields that overlap across subschemas. Root fields marked as canonical specify which subschema the field proxies for new queries entering the graph.
+
+#### Customizing directive names
 
 You may use the `stitchingDirectives` helper to build your own type definitions and validator with custom names. For example, the configuration below creates the resources for `@myKey`, `@myMerge`, and `@myComputed` directives:
 
@@ -180,12 +183,12 @@ async function fetchRemoteSchema(executor) {
 The simplest merge pattern picks a key field from origin objects:
 
 ```graphql
-type User @key(selectionSet: "{ id }") {
-  # ...
+type User {
+  id: ID!
 }
 
-type Product @key(selectionSet: "{ upc }") {
-  # ...
+type Product {
+  upc: ID!
 }
 
 type Query {
@@ -194,7 +197,7 @@ type Query {
 }
 ```
 
-This SDL translates into the following merge config:
+Here, the `@merge` directive marks each type's merge query, and its `keyField` argument specifies a field to be picked from each original object as the query argument value. The above SDL translates into the following merge config:
 
 ```js
 merge: {
@@ -214,15 +217,13 @@ merge: {
 }
 ```
 
-Here the `@key` directive specifies a base selection set for each merged type, and the `@merge` directive marks each type's merge query&mdash;then `keyField` specifies a field to be picked from each original object as the query argument value.
-
 ### Multiple arguments
 
 This pattern configures a merge query that receives multiple arguments:
 
 ```graphql
-type User @key(selectionSet: "{ id }") {
-  # ...
+type User {
+  id: ID!
 }
 
 type Query {
@@ -234,7 +235,7 @@ type Query {
 }
 ```
 
-This SDL translates into the following merge config:
+Because the merger field receives multiple arguments, the `keyArg` parameter is required to specify which argument receives the key(s). The `additionalArgs` parameter may also be used to provide static values for other arguments. The above SDL translates into the following merge config:
 
 ```js
 merge: {
@@ -247,15 +248,13 @@ merge: {
 }
 ```
 
-Because the merge field recieves multiple arguments, the `keyArg` parameter is required to specify which argument recieves the key(s). The `additionalArgs` parameter may then be used to provide static values for the other arguments.
-
 ### Object keys
 
-In the absence of a `keyField` to pick, keys will assume the shape of an object with a `__typename` and all fields collected for all selectionSets on the type. These object keys may be represented in your schema with a dedicated scalar type, or as an [input object](#typed-inputs):
+In the absence of a `keyField` for the merge directive to pick, keys will assume the shape of an object with a `__typename` and all fields collected for utilized selectionSets on the type:
 
 ```graphql
 type Product @key(selectionSet: "{ upc }") {
-  # ...
+  upc: ID!
   shippingEstimate: Int @computed(selectionSet: "{ price weight }")
 }
 
@@ -266,7 +265,7 @@ type Query {
 }
 ```
 
-You may use any name for the key scalar, here we're calling it `_Key`. This SDL translates into the following merge config:
+The above SDL specifies a type-level selectionSet using the `@key` directive, and a field-level selectionSet using the `@computed` directive. The `@merge` directive takes no arguments here, and will build object keys with fields collected from all utilized selectionSets. These object keys are passed to the merger field as a custom scalar (here called `_Key`), or as an [input object](#typed-inputs). This SDL translates into the following merge config:
 
 ```js
 // assume "pick" works like the lodash method...
@@ -307,7 +306,7 @@ Similar to the [object keys](#object-keys) discussed above, an input object type
 
 ```graphql
 type Product @key(selectionSet: "{ upc }") {
-  # ...
+  upc: ID!
   shippingEstimate: Int @computed(selectionSet: "{ price weight }")
 }
 
@@ -354,7 +353,7 @@ More advanced cases may need to interface with complex inputs. In these cases, t
 
 ```graphql
 type Product @key(selectionSet: "{ upc }") {
-  # ...
+  upc: ID!
 }
 
 input ProductKey {
@@ -372,14 +371,13 @@ type Query {
 
 ## Versioning &amp; release
 
-Once all schemas and their merge configurations are defined together as annotated SDL documents, new versions of these documents can be pushed up to the gateway to trigger a "hot" reload&mdash;or, a reload of the gateway schema with server deployment and a restart. See related [handbook example](https://github.com/gmac/schema-stitching-handbook/tree/master/hot-schema-reloading) demonstrating a basic reload.
+Once subschemas and their merge configurations are defined as annotated SDLs, new versions of these documents can be pushed to the gateway to trigger a ["hot" reload](https://github.com/gmac/schema-stitching-handbook/tree/master/hot-schema-reloading)&mdash;or, a reload of the gateway schema without restarting its server.
 
-However, pushing new SDL versions directly to the gateway is a risky proposition given the potential for incompatible subschema versions to be mixed. Therefore, a formal versioning, testing, and release strategy is necessary for long-term stability. The general process is as follows:
+However, pushing untested SDLs directly to the gateway is risky due to the potential for incompatible subschema versions to be mixed. Therefore, a formal versioning, testing, and release strategy is necessary for long-term stability. See the [handbook's versioning example](https://github.com/gmac/schema-stitching-handbook/tree/master/versioning-schema-releases) that demonstrates turning a basic Git repo into a schema registry that manages versioning and release.
 
-1. Subservice schemas are comitted to a central schema registry where they are all versioned together.
-2. Continuous integration tests run on the latest versions of all subservice schemas composed together _before_ any schemas are released.
-3. Once a composed release of new subschemas passes integration tests, their underlying subservices are deployed.
-4. New subservices should quietly activate new schemas behind the gateway proxy layer without breaking any existing schemas. Breaking changes should always be rolled out during a maintenance window.
-5. After all new subservices have been rolled out, the revised schemas may be activated within the gateway proxy layer.
+**The general process for zero-downtime rollouts is:**
 
-While that process sounds fairly involved (in many ways, it is), you can tune your workflow to naturally build around this process. See our [handbook example](https://github.com/gmac/schema-stitching-handbook/tree/master/versioning-schema-releases) that demonstrates using the GitHub API to turn a basic repo into a schema registry in charge of versioning and releases.
+1. Compose and test all subschema head versions together to verify their combined stability prior to release.
+1. Deploy all updated subservice applications while keeping their existing subschema features operational.
+1. Push all updated subschema SDLs to the gateway as a single cutover.
+1. Decommission old subservices, and/or outdated subservice features.

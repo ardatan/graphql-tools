@@ -1,5 +1,33 @@
 # @graphql-tools/stitch
 
+## 7.1.9
+
+### Patch Changes
+
+- 6a966bee: fix(stitch): add \_\_typename for mutations
+
+  fix related to #2349
+
+## 7.1.8
+
+### Patch Changes
+
+- 6e50d9fc: enhance(stitching-directives): use keyField
+
+  When using simple keys, i.e. when using the keyField argument to `@merge`, the keyField can be added implicitly to the types's key. In most cases, therefore, `@key` should not be required at all.
+
+- Updated dependencies [6e50d9fc]
+  - @graphql-tools/utils@7.2.4
+
+## 7.1.7
+
+### Patch Changes
+
+- 06a6acbe: fix(stitch): computed fields should work with merge resolvers that return abstract types
+
+  see: https://github.com/ardatan/graphql-tools/pull/2432#issuecomment-753729191
+  and: https://github.com/gmac/schema-stitching-handbook/pull/17
+
 ## 7.1.6
 
 ### Patch Changes

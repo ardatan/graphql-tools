@@ -1,5 +1,11 @@
 # @graphql-tools/git-loader
 
+## 6.2.6
+
+### Patch Changes
+
+- 6a966bee: Fix vulnerability: use execFile instead of exec (Thank you Ron Masas @ Checkmarx.com for reporting it!)
+
 ## 6.2.5
 
 ### Patch Changes

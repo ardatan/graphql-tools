@@ -67,6 +67,7 @@ build
 temp
 .idea
 .bob
+.DS_Store
 
 test-results/
 junit.xml

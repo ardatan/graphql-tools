@@ -8,8 +8,6 @@ Type merging allows _partial definitions_ of a type to exist in any subschema, a
 
 Type merging is now the preferred method of including GraphQL types across subschemas, replacing the need for [schema extensions](/docs/stitch-schema-extensions) (though does not preclude their use). To migrate from schema extensions, simply enable type merging and then start replacing extensions one by one with merges.
 
-<div class="video-player"><iframe src="https://www.youtube.com/embed/KBACiSA5sEQ?list=PLTJ2vmU3jbWy6JntdRQZAmy0mcpYu2OD1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>
-
 ## Basic example
 
 Type merging allows each subschema to provide subsets of a type that it has data for. For example:
@@ -84,7 +82,7 @@ const gatewaySchema = stitchSchemas({
       }
     },
   ],
-  mergeTypes: true // << optional in v7
+  mergeTypes: true // << default in v7
 });
 ```
 
@@ -94,10 +92,10 @@ That's it! Under the subschema config `merge` option, each merged type provides 
 - `selectionSet` specifies one or more key fields required from other services to perform this query. Query planning will automatically resolve these fields from other subschemas in dependency order.
 -  `args` formats the initial object representation into query arguments.
 
-See related [handbook example](https://github.com/gmac/schema-stitching-handbook/tree/master/type-merging-single-records) for a working demonstration of this setup. This JavaScript-based syntax may also be written directly into schema type definitions using the [stitching directives SDL](/docs/stitch-directives-sdl):
+See related [handbook example](https://github.com/gmac/schema-stitching-handbook/tree/master/type-merging-single-records) for a working demonstration of this setup. This JavaScript-based syntax may also be written directly into schema type definitions using the `@merge` directive of the [stitching SDL](/docs/stitch-directives-sdl):
 
 ```graphql
-type User @key(selectionSet: "{ id }") {
+type User {
   id: ID!
   email: String!
 }
@@ -169,7 +167,7 @@ The above example will always resolve a stubbed `User` record for _any_ requeste
 { id: '7', posts: [] }
 ```
 
-This fabricated record fulfills the not-null requirement of the `posts:[Post]!` field. However, it also makes the posts service awkwardly responsible for data it knows only by omission. A cleaner solution may be to loosen schema nullability down to `posts:[Post]`, and then return `null` for unknown user IDs without associated posts. Null is a valid mergable object as long as the unique fields it fulfills are nullable.
+This fabricated record fulfills the not-null requirement of the `posts:[Post]!` field. However, it also makes the posts service awkwardly responsible for data it knows only by omission. A cleaner solution may be to loosen schema nullability down to `posts:[Post]`, and then return `null` for unknown user IDs without associated posts. Null is a valid mergable object as long as the unique fields it fulfills are nullable. See the related [handbook example](https://github.com/gmac/schema-stitching-handbook/tree/master/type-merging-nullables) for a detailed explanation.
 
 ## Merging flow
 
@@ -365,7 +363,7 @@ const layoutsSchema = makeExecutableSchema({
 });
 ```
 
-In the above, both `Post` and `Section` will have a common interface of `{ id title url }` in the gateway schema. The difference in interface fields between the gateway schema and the layouts subschema will be translated automatically during delegation. See related [handbook example](https://github.com/gmac/schema-stitching-handbook/tree/master/type-merging-interfaces) for a working demonstration.
+In the above, both `Post` and `Section` will have a common interface of `{ id title url }` in the gateway schema. The difference in interface fields between the gateway schema and the layouts subschema will automatically be expanded into typed fragments for compatibility. See related [handbook example](https://github.com/gmac/schema-stitching-handbook/tree/master/type-merging-interfaces) for a working demonstration.
 
 ## Computed fields
 
@@ -472,38 +470,122 @@ The `@computed` SDL directive is a convenience syntax for static configuration t
 }
 ```
 
-The main disadvantage of computed fields is that they cannot be resolved independently from the stitched gateway. Tolerance for this subservice inconsistency is largely dependent on your own service architecture. An imperfect solution is to deprecate all computed fields within a subschema, and then normalize their behavior in the gateway schema using the [`RemoveObjectFieldDeprecations`](https://github.com/ardatan/graphql-tools/blob/master/packages/wrap/tests/transformRemoveObjectFieldDeprecations.test.ts) transform.
+The main disadvantage of computed fields is that they cannot be resolved independently from the stitched gateway. Tolerance for this subservice inconsistency is largely dependent on your own service architecture. An imperfect solution is to deprecate all computed fields within a subschema, and then normalize their behavior in the gateway schema with a [`RemoveObjectFieldDeprecations`](/docs/schema-wrapping#grooming) transform. See related [handbook example](https://github.com/gmac/schema-stitching-handbook/tree/master/computed-fields).
 
 > **Implementation note:** to facilitate field-level dependencies, computed and non-computed fields of a type in the same subservice are automatically split apart into separate schemas. This assures that computed fields are always requested directly by the gateway with their dependencies provided. However, it also means that computed and non-computed fields may require separate resolution steps. You may enable [query batching](#batching) to consolidate requests whenever possible.
 
 ## Federation services
 
-If you're familiar with [Apollo Federation](https://www.apollographql.com/docs/apollo-server/federation/introduction/), then you may notice that the above pattern of computed fields looks similar to the `_entities` service design of the [Apollo Federation specification](https://www.apollographql.com/docs/apollo-server/federation/federation-spec/).
+If you're familiar with [Apollo Federation](https://www.apollographql.com/docs/apollo-server/federation/introduction/), then you may notice that the above pattern of computed fields looks similar to the `_entities` service design of the [Apollo Federation specification](https://www.apollographql.com/docs/apollo-server/federation/federation-spec/). Federation resources may be included in a stitched gateway; this comes in handy when integrating with third-party services or in the process of a migration. See related [handbook example](https://github.com/gmac/schema-stitching-handbook/tree/master/federation-services) for more information.
 
-While type merging offers [simpler patterns](#unidirectional-merges) with [comparable performance](#batching), it can also interface with Apollo Federation services when needed by sending appropraitely formatted representations to the `_entities` query:
+## Canonical definitions
 
-```js
-{
-  schema: storefrontsSchema,
-  merge: {
-    Product: {
-      selectionSet: '{ id price weight }',
-      fieldName: '_entities',
-      key: ({ id, price, weight }) => ({ __typename: 'Product', id, price, weight }),
-      argsFromKeys: (representations) => ({ representations }),
-    }
-  }
+Managing the gateway schema definition of each type and field becomes challenging as the same type names are introduced across subschemas. By default, the final definition of each named GraphQL element found in the stitched `subschemas` array provides its gateway definition. However, preferred definitions may be marked as `canonical` to recieve this final priority. Canonical definitions provide:
+
+- an element's description (doc string).
+- an element's final directive values.
+- a field's final nullability, arguments, and deprecation reason.
+- a root field's default delegation target.
+
+The following example uses [stitching directives](/docs/stitch-directives-sdl) to mark preferred subschema elements as `@canonical`:
+
+```graphql
+# --- Users schema ---
+
+"Represents an authenticated user"
+type User @canonical {
+  "The primary key of this user record"
+  id: ID! @mydir(schema: "users")
+  "other description"
+  field: String!
+}
+
+type Query {
+  "Users schema definition"
+  user(id: ID!): User @canonical
+}
+
+# --- Posts schema ---
+
+type Post {
+  id: ID!
+}
+
+"other description"
+type User {
+  "other description"
+  id: ID! @mydir(schema: "posts")
+  "The canonical field description"
+  field: String @canonical
+  "Posts authored by this user"
+  posts: [Post!]
+}
+
+type Query {
+  "Posts schema definition"
+  user(id: ID!): User
 }
 ```
 
-Type merging generally maps to Federation concepts as follows:
+The above ASTs will merge into the following gateway schema definition, and the root `user` field will proxy the Users subschema by default:
 
-- `@key`: type merging's closest analog is the type-level `selectionSet` specified in merged type configuration. Unlike Federation though, merging is fully decentralized with no concept of an "origin" service.
-- `@requires`: directly comparable to type merging's `@computed` directive. However, merging is decentralized and may resolve computed fields from any number of services.
-- `@external`: type merging implicitly expects types in each service to only implement the fields they provide.
-- `@provides`: type merging implicitly handles multiple services that implement the same fields, and automatically selects as many requested fields as possible from as few services as possible during each execution cycle.
+```graphql
+# --- Gateway schema ---
 
-See related [handbook example](https://github.com/gmac/schema-stitching-handbook/tree/master/type-merging-interfaces) for a demonstration of federation services used in a stitched gateway.
+"Represents an authenticated user"
+type User {
+  "The primary key of this user record"
+  id: ID! @mydir(schema: "users")
+  "The canonical field description"
+  field: String
+  "Posts authored by this user"
+  posts: [Post!]
+}
+
+type Query {
+  "Users schema definition"
+  user(id: ID!): User
+}
+```
+
+- **Types** marked as canonical will provide their definition _and that of all of their fields_ to the combined gateway schema.
+- **Fields** marked as canonical will override those of a canonical type.
+- **Root fields** marked as canonical will specify which subschema the field proxies by default for new queries entering the graph.
+
+Only one of any given type or field may be made canonical. Fields that are unique to one service (such as `User.posts` above) have no competing definition so are canonical by default.
+
+The above SDL directives can also be written as static configuration:
+
+```js
+const gatewaySchema = stitchSchemas({
+  subschemas: [{
+    schema: usersSchema,
+    merge: {
+      User: {
+        // ...
+        canonical: true
+      },
+      Query: {
+        fields: {
+          user: { canonical: true }
+        }
+      }
+    }
+  }, {
+    schema: postsSchema,
+    merge: {
+      User: {
+        // ...
+        fields: {
+          email: { canonical: true }
+        }
+      }
+    }
+  }]
+});
+```
+
+> **Implementation note:** canonical settings are _only_ used for building the combined gateway schema definition and defaulting root field targets; otherwise, they are given no special priority in runtime query planning (which always selects necessary fields from as few subschemas as possible). You may override the assembly of canonical definitions using [`typeMergingOptions`](/docs/stitch-combining-schemas#automatic-merge).
 
 ## Type resolvers
 

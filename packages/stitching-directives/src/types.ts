@@ -25,6 +25,7 @@ export interface StitchingDirectivesOptions {
   keyDirectiveName?: string;
   computedDirectiveName?: string;
   mergeDirectiveName?: string;
+  canonicalDirectiveName?: string;
   pathToDirectivesInExtensions?: Array<string>;
 }
 

@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/utils",
-  "version": "7.2.3",
+  "version": "7.2.4",
   "description": "Common package containting utils and types for GraphQL tools",
   "repository": {
     "type": "git",
@@ -27,7 +27,7 @@
   "dependencies": {
     "@ardatan/aggregate-error": "0.0.6",
     "camel-case": "4.1.2",
-    "tslib": "~2.0.1"
+    "tslib": "~2.1.0"
   },
   "publishConfig": {
     "access": "public",

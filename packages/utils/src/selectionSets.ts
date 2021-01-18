@@ -1,6 +1,7 @@
 import { OperationDefinitionNode, SelectionSetNode, parse } from 'graphql';
+import { GraphQLParseOptions } from './Interfaces';
 
-export function parseSelectionSet(selectionSet: string): SelectionSetNode {
-  const query = parse(selectionSet).definitions[0] as OperationDefinitionNode;
+export function parseSelectionSet(selectionSet: string, options?: GraphQLParseOptions): SelectionSetNode {
+  const query = parse(selectionSet, options).definitions[0] as OperationDefinitionNode;
   return query.selectionSet;
 }
