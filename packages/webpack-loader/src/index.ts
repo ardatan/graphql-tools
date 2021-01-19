@@ -12,6 +12,7 @@ interface Options {
   noDescription?: boolean;
   noEmptyNodes?: boolean;
   noLoc?: boolean;
+  replaceKinds?: boolean;
   esModule?: boolean;
   importHelpers?: boolean;
 }
@@ -58,8 +59,19 @@ export default function graphqlLoader(source: string) {
     doc = optimizeDocumentNode(doc, optimizers);
   }
 
+  let stringifiedDoc = JSON.stringify(doc);
+
+  if (options.replaceKinds) {
+    Object.keys(Kind).forEach((identifier: keyof typeof Kind) => {
+      const value = Kind[identifier];
+
+      stringifiedDoc = stringifiedDoc.replace(new RegExp(`"kind":"${value}"`, 'g'), `"kind": Kind.${identifier}`);
+    });
+  }
+
   const headerCode = `
-    var doc = ${JSON.stringify(doc)};
+    ${options.replaceKinds ? "var Kind = require('graphql/language/kinds');" : ''}
+    var doc = ${stringifiedDoc};
   `;
 
   let outputCode = '';
