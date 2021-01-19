@@ -490,15 +490,13 @@ export class MockStore implements IMockStore {
         throw new Error(`Please return a __typename in "${nullableType.name}"`);
       }
 
-      const ref = this.generateValueFromType(this.getType(typeName)) as Ref;
-
+      const toInsert = {};
       for (const fieldName of Object.keys(values)) {
         if (fieldName === '__typename') continue;
         const fieldValue = (values as any)[fieldName];
-        this.set(ref, fieldName, typeof fieldValue === 'function' ? fieldValue() : fieldValue);
+        toInsert[fieldName] = typeof fieldValue === 'function' ? fieldValue() : fieldValue;
       }
-
-      return ref;
+      return this.insert(typeName, toInsert);
     } else {
       throw new Error(`${nullableType} not implemented`);
     }
