@@ -1,5 +1,17 @@
 # @graphql-tools/stitching-directives
 
+## 1.2.0
+
+### Minor Changes
+
+- d9b82a2e: enhance(stitch) canonical merged type and field definitions. Use the @canonical directive to promote preferred type and field descriptions into the combined gateway schema.
+
+### Patch Changes
+
+- Updated dependencies [d9b82a2e]
+- Updated dependencies [d9b82a2e]
+  - @graphql-tools/delegate@7.0.9
+
 ## 1.1.2
 
 ### Patch Changes

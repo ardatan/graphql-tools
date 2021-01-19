@@ -1,5 +1,12 @@
 # @graphql-tools/delegate
 
+## 7.0.9
+
+### Patch Changes
+
+- d9b82a2e: fix(delegate) fix array check
+- d9b82a2e: enhance(stitch) canonical merged type and field definitions. Use the @canonical directive to promote preferred type and field descriptions into the combined gateway schema.
+
 ## 7.0.8
 
 ### Patch Changes
