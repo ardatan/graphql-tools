@@ -44,7 +44,7 @@ type Entity = {
 };
 
 export class MockStore implements IMockStore {
-  private schema: GraphQLSchema;
+  public schema: GraphQLSchema;
   private mocks: IMocks;
   private typePolicies: {
     [typeName: string]: TypePolicy;

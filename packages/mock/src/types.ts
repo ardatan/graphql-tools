@@ -1,4 +1,4 @@
-import { ExecutionResult } from 'graphql';
+import { ExecutionResult, GraphQLSchema } from 'graphql';
 
 export type IMockFn = () => unknown;
 export type IScalarMock = unknown | IMockFn;
@@ -66,6 +66,7 @@ export type SetArgs<KeyT extends KeyTypeConstraints = string> = {
 };
 
 export interface IMockStore {
+  schema: GraphQLSchema;
   /**
    * Get a field value from the store for the given type, key and field
    * name — and optionnally field arguments. If the field name is not given,
