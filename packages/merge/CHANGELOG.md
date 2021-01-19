@@ -1,5 +1,12 @@
 # @graphql-tools/merge
 
+## 6.2.7
+
+### Patch Changes
+
+- d9b82a2e: fix(merge/stitch) consistent enum value merge
+- d9b82a2e: enhance(stitch) canonical merged type and field definitions. Use the @canonical directive to promote preferred type and field descriptions into the combined gateway schema.
+
 ## 6.2.6
 
 ### Patch Changes
