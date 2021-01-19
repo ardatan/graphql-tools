@@ -1562,51 +1562,6 @@ describe('Mock retro-compatibility', () => {
     expect(typeof result.data?.reviews[0]?.user?.first_name).toBe('string');
   });
 
-  it('should merge resolved result of a promise with default mock if available', async () => {
-    const resolvedName = 'Resolved name';
-    const mockedSecondName = 'mocked second name';
-    const mocks = {
-      MyType: () => ({
-        name: 'mocked name',
-        secondName: mockedSecondName,
-      }),
-      Query: () => ({
-        pendingQuery: () => Promise.resolve({
-          name: 'Resolved name'
-        }),
-      }),
-    };
-
-    let schema = buildSchema(/* GraphQL */ `
-      type MyType {
-        name: String
-        secondName: String
-      }
-      type Query {
-        pendingQuery: MyType
-      }
-    `);
-
-    schema = addMocksToSchema({ schema, mocks });
-
-    const result = await graphql({
-      schema,
-      source: /* GraphQL */ `
-        {
-          pendingQuery {
-            name
-            secondName
-          }
-        }
-      `,
-    });
-
-    expect(result.data?.pendingQuery).toEqual({
-      name: resolvedName,
-      secondName: mockedSecondName,
-    });
-  });
-
   it('resolves subscriptions only once', async () => {
     let schema = buildSchema(/* GraphQL */ `
       type Foo {
