@@ -587,7 +587,7 @@ schema = addResolversToSchema(schema, resolvers)
 const schemaWithMocks = addMocksToSchema({ schema, preserveResolvers: true })
 ```
 
-If you used `__resolveType` resolver for mocking interfaces and unions, rather use `__typename` directly in mocks. See [_Abstract types_](#abstract-types)).
+If you used `__resolveType` resolver for mocking interfaces and unions, rather use `__typename` directly in mocks. See [_Abstract types_](#abstract-types).
 
 Example:
 
