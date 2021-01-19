@@ -57,6 +57,7 @@ export interface Config {
   exclusions?: string[];
   sort?: boolean | CompareFn<string>;
   convertExtensions?: boolean;
+  consistentEnumMerge?: boolean;
 }
 
 /**
