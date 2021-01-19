@@ -1,5 +1,11 @@
 # @graphql-tools/import
 
+## 6.2.6
+
+### Patch Changes
+
+- 5ec2e354: enhance(import): handle duplicate definitions
+
 ## 6.2.5
 
 ### Patch Changes

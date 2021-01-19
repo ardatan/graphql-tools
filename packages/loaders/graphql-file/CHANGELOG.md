@@ -1,5 +1,13 @@
 # @graphql-tools/graphql-file-loader
 
+## 6.2.7
+
+### Patch Changes
+
+- 5ec2e354: enhance(graphql-file-loader): do not merge in the loader and handle duplicates inside import
+- Updated dependencies [5ec2e354]
+  - @graphql-tools/import@6.2.6
+
 ## 6.2.6
 
 ### Patch Changes
