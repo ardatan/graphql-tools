@@ -1045,12 +1045,12 @@ describe('Mock retro-compatibility', () => {
 
   test('lets you mock root query fields', () => {
     let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
-    const mockMap = {
-      RootQuery: () => ({
-        returnStringArgument: (a: Record<string, any>) => a.s,
-      }),
+    const resolvers = {
+      RootQuery: {
+        returnStringArgument: (_: void, a: Record<string, any>) => a.s,
+      },
     };
-    jsSchema = addMocksToSchema({ schema: jsSchema, mocks: mockMap });
+    jsSchema = addMocksToSchema({ schema: jsSchema, resolvers });
     const testQuery = `{
       returnStringArgument(s: "adieu")
     }`;
@@ -1064,12 +1064,12 @@ describe('Mock retro-compatibility', () => {
 
   test('lets you mock root mutation fields', () => {
     let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
-    const mockMap = {
-      RootMutation: () => ({
-        returnStringArgument: (a: Record<string, any>) => a.s,
-      }),
+    const resolvers = {
+      RootMutation: {
+        returnStringArgument: (_: void, a: Record<string, any>) => a.s,
+      },
     };
-    jsSchema = addMocksToSchema({ schema: jsSchema, mocks: mockMap });
+    jsSchema = addMocksToSchema({ schema: jsSchema, resolvers });
     const testQuery = `mutation {
       returnStringArgument(s: "adieu")
     }`;
