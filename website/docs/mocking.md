@@ -491,3 +491,203 @@ store.get('Query', 'ROOT', {
   },
 });
 ```
+
+## Migration from V7 and below
+
+### Breaking change: Mock functions signature
+
+Mock functions does not receive resolvers' source, arguments and context anymore. Use `resolvers` option of `addMocksToSchema`
+to define "true" resolvers that can intract with [`MockStore`](#mockstore).
+
+Example:
+
+```js
+// Previously:
+const mocks = {
+  Person: () => ({
+    paginatedFriends: (root, { numPages }) => new MockList(numPages * PAGE_SIZE),
+  }),
+}
+const schemaWithMocks = addMocksToSchema({ schema, mocks });
+
+// Now:
+const resolvers = (store) => ({
+  Person: {
+    paginatedFriends: (root, { numPages }) =>
+      store.get(root, 'paginatedFriends').slice(numPages * PAGE_SIZE, (numPages + 1) * PAGE_SIZE),
+  }
+});
+const schemaWithMocks = addMocksToSchema({ schema, resolvers });
+```
+
+_Read more about mocking pagination [here](#mocking-a-pagination)_
+
+Mock functions can't return a `Promise` anymore: it has to be a plain value. You can also use resolvers to work around this:
+
+```js
+cont getName = () => Promise.resolve('Vlad');
+// Previously
+const mocks = {
+  Person: () => ({
+    name: () => getName(),
+  }),
+}
+const schemaWithMocks = addMocksToSchema({ schema, mocks });
+
+// Now:
+const resolvers = (store) => ({
+  Person: {
+    name: async (root) => {
+      const name = name = await getName();
+      return store.get({
+        typeName: root.$ref.typeName,
+        key: root.$ref.key,
+        fieldName: 'name',
+        defaultValue: name,
+      })
+    }
+  }
+});
+const schemaWithMocks = addMocksToSchema({ schema, resolvers });
+```
+
+### Breaking change: preserved resolvers source argument and abstract types mocking
+
+When preserved, resolvers will not receive plain mock data anymore as source but rather a `Ref` that can be used to query the store:
+
+```js
+// Previously:
+const resolvers = {
+  User: {
+    name: (data) => {
+      return data.name.toLowerCase();
+    }
+  }
+}
+const schema = makeExecutableSchema({
+  typeDefs,
+  resolvers
+})
+const schemaWithMocks = addMocksToSchema({ schema, preserveResolvers: true })
+
+// Now:
+let schema = makeExecutableSchema({ typeDefs })
+const store = createMockStore({ schema });
+
+const resolvers = {
+  User: {
+    name: (source) => {
+      // `source` is an entity `Ref`
+      return store.get(source, 'name').toLowerCase();
+    }
+  }
+}
+schema = addResolversToSchema(schema, resolvers)
+
+const schemaWithMocks = addMocksToSchema({ schema, preserveResolvers: true })
+```
+
+If you used `__resolveType` resolver for mocking interfaces and unions, rather use `__typename` directly in mocks. See [_Abstract types_](#abstract-types)).
+
+Example:
+
+```js
+const typeDefs = `
+type Query {
+  fetchMore(listType: String!, amount: Int!, offset: Int!): List
+}
+
+type Distributor {
+  id: Int
+  name: String
+}
+
+type Product {
+  id: Int
+  name: String
+}
+
+interface List {
+  amount: Int
+  offset: Int
+  total: Int
+  remaining: Int
+}
+
+type DistributorList implements List {
+  amount: Int
+  offset: Int
+  total: Int
+  remaining: Int
+  items: [Distributor]
+}
+
+type ProductList implements List {
+  amount: Int
+  offset: Int
+  total: Int
+  remaining: Int
+  items: [Product]
+}
+`
+
+// Previously:
+const mocks = {
+  List: () => ({
+    typename: 'ProductList',
+  })
+}
+
+const resolvers = {
+  List: {
+    __resolveType(data) {
+      return data.typename
+    }
+  }
+}
+
+const schema = makeExecutableSchema({
+  typeDefs,
+  resolvers
+})
+
+const schemaWithMocks = addMocksToSchema({
+  schema,
+  mocks,
+  preserveResolvers: true
+})
+
+// Now:
+const mocks = {
+  List: () => ({
+    __typename: 'ProductList',
+  })
+}
+
+const schema = makeExecutableSchema({ typeDefs });
+
+const schemaWithMocks = addMocksToSchema({ schema, mocks })
+```
+### Deprecated: MockList
+
+`MockList` is deprecated, use plain arrays instead. See [_Using lists in mocks_](#using-lists-in-mocks).
+
+Example:
+```js
+// Previously:
+const mocks = {
+  Person: () => ({
+    friends: () => new MockList([2,6]),
+    listOfLists: () => new MockList(3, () => new MockList(2)),
+  }),
+}
+
+// Now:
+var casual = require('casual');
+const mocks = {
+  Person: () => ({
+    friends: [...new Array(casual.integer(2, 6))],
+    listOfLists: () => [...new Array(3)].map((i) => [...new Array(2)]),
+  }),
+}
+```
