@@ -1,5 +1,11 @@
 # @graphql-tools/webpack-loader
 
+## 6.4.0
+
+### Minor Changes
+
+- b35f5edf: Introduce replaceKinds option to replace kinds as strings with Kind of graphql-js
+
 ## 6.3.1
 
 ### Patch Changes
