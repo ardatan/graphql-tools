@@ -41,17 +41,6 @@ graphql(schemaWithMocks, query).then((result) => console.log('Got result', resul
 
 This mocking logic simply looks at your schema and makes sure to return a string where your schema has a string, a number for a number, etc. So you can already get the right shape of result. But if you want to use the mocks to do sophisticated testing, you will likely want to customize them to your particular data model.
 
-The generated mocked entities are stored in a `MockStore` that you can use to `get` and `set` mocked values. You can initiate the store independently to access it:
-
-```ts
-
-// Create a MockStore for this schema
-const store = createMockStore({ schema });
-
-// Create a new schema with the mock store
-const schemaWithMocks = addMocksToSchema({ schema, store });
-```
-
 ## Customizing mocks
 
 This is where the `mocks` option comes in, it's an object that describes your desired mocking logic. This is similar to the `resolverMap` in `makeExecutableSchema`, but has a few extra features aimed at mocking.
@@ -169,7 +158,7 @@ const mocks = {
 
 ### Appplying mutations
 
-Use `resolvers` option of `addMocksToSchema` to implement custom resolvers that interact with the mock store, especially to mutate field values in store.
+Use `resolvers` option of `addMocksToSchema` to implement custom resolvers that interact with the [`MockStore`][#mockstore], especially to mutate field values.
 
 ```ts
 const typeDefs = `
@@ -245,7 +234,7 @@ Note that, by default, the `id` or `_id` field will be used as storage key and t
 
 ### Mocking a pagination
 
-The idea is that the store contains the full list, as field value, and that the resolver queries the store and slice the results:
+The idea is that the [`MockStore`](#mockstore) contains the full list, as field value, and that the resolver queries the store and slice the result:
 
 ```ts
 const typeDefs = `
@@ -302,7 +291,6 @@ type Query {
 }
 `
 const schema = makeExecutableSchema({ typeDefs: schemaString });
-const store = createMockStore({ schema });
 const schemaWithMocks = addMocksToSchema({
   schema,
   store,
@@ -381,3 +369,125 @@ server.query(query, variables)
 `mockServer` is just a convenience wrapper on top of `addMocksToSchema`. It adds your mock resolvers to your schema and returns a client that will correctly execute
 your query with variables. **Note**: when executing queries from the returned server,
 `context` and `root` will both equal `{}`.
+
+### MockStore
+
+The `MockStore` is holding the generated mocks and can be used to acess, generate or alter mocked values.
+
+You can access the `MockStore` either as argument of `resolvers` option of `addMocksToSchema`:
+
+```ts
+const schemaWithMocks = addMocksToSchema({
+  schema,
+  resolvers: (store) => {
+    // store is your `MockStore`
+    return {
+      Query: {
+        //... your custom resolvers
+      }
+    }
+  }
+  });
+```
+
+or by using `createMockStore` (and use the store in `addMocksToSchema`):
+
+```ts
+const store = createMockStore({ schema });
+const schemaWithMocks = addMocksToSchema({ schema, store });
+```
+
+The content is accessible and modifiabale via the methods `get` and `set` of the `MockStore`. These methods have several signatures (see [their typing](https://github.com/ardatan/graphql-tools/blob/master/packages/mock/src/types.ts))
+but here are some examples:
+
+#### get
+
+Get a field value from the store for the given type, store key and field name. If the the value for this field is not set, a value will be generated according to field return type and mock functions:
+
+```ts
+store.get('User', 'abc-737dh-djdjd', 'name')
+> "Hello World"
+```
+
+If the field is the key field of this type, the store key itself is returned. By default, `id` and `_id` fields are considered as key fields but it can be customized with option `typePolicies`.
+
+```ts
+store.get('User', 'abc-737dh-djdjd', 'id')
+> "abc-737dh-djdjd"
+```
+
+If the field's output type is a `ObjectType` (or list of `ObjectType`), it will return a `Ref` (or array of `Ref`), ie a reference to an entity in the store.
+
+```ts
+store.get('User', 'abc-737dh-djdjd', 'organization')
+> { $ref: { key: 'acme', typeName: 'Organization' } }
+```
+
+`Ref` can then be used, for example to get a field value given of a `Ref`:
+
+```ts
+const organizationRef = { $ref: { key: 'acme', typeName: 'Organization' } }
+store.get(organizationRef, 'name')
+> `Acme Group`
+```
+
+As a shortcut, you can traverse the graph quickly with an array of field names (nested get):
+
+```ts
+store.get('User', 'abc-737dh-djdjd', ['organization', 'name'])
+> `Acme Group`
+```
+
+You can generate a entity reference `Ref` with:
+```ts
+store.get('User', 'abc-737dh-djdjd')
+> { $ref: { key: 'abc-737dh-djdjd', typeName: 'User' } }
+```
+
+Root types (`Query`, `Mutation`), which necessarely have only one entity, will use the special store key `ROOT` to reference this only entity:
+
+```ts
+store.get('Query', 'ROOT', 'viewer');
+> { $ref: { key: 'abc-737dh-djdjd', typeName: 'User' } }
+```
+
+#### set
+
+Set a field value in the store for the given type, store key and field name:
+
+```ts
+store.set('User', '1', 'name', 'Alexandre')
+
+store.get('User', '1', 'name')
+> "Alexandre"
+```
+
+If the field's output type is a `ObjectType` (or list of `ObjectType`), you can set a `Ref` (or array of `Ref`):
+```ts
+store.set('User', '1', 'organization', store.get('Organization', 'acme'))
+```
+
+You can use a `Ref` to set field name:
+
+```ts
+const organizationRef = { $ref: { key: 'acme', typeName: 'Organization' } }
+store.set(organizationRef, 'name', 'Acme Group')
+```
+
+Set multiple field values at once:
+```ts
+store.set('User', '1', { name: 'Alexandre', age: 31 })
+```
+
+Set a field value via graph traversal (nested set):
+```ts
+store.get('Query', 'ROOT', {
+  viewer: {
+    name: 'Alexamdre',
+    friends: [
+      { name: 'Emily' },
+      { name: 'Caroline' }
+    ]
+  },
+});
+```
