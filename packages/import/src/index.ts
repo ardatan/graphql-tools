@@ -33,10 +33,12 @@ import {
   DocumentNode,
   ScalarTypeDefinitionNode,
   ScalarTypeExtensionNode,
+  print,
 } from 'graphql';
 import { readFileSync, realpathSync } from 'fs';
 import { dirname, join, isAbsolute } from 'path';
 import resolveFrom from 'resolve-from';
+import { cwd as cwdFactory } from 'process';
 
 const builtinTypes = ['String', 'Float', 'Int', 'Boolean', 'ID', 'Upload'];
 
@@ -59,21 +61,29 @@ const IMPORT_DEFAULT_REGEX = /^import\s+('|")(.*)('|");?$/;
 
 export function processImport(
   filePath: string,
-  cwd = process.cwd(),
+  cwd = cwdFactory(),
   predefinedImports: Record<string, string> = {}
 ): DocumentNode {
   const visitedFiles = new Map<string, Map<string, Set<DefinitionNode>>>();
   const set = visitFile(filePath, join(cwd + '/root.graphql'), visitedFiles, predefinedImports);
-  const definitionSet = new Set<DefinitionNode>();
+  const definitionStrSet = new Set<string>();
+  let definitionsStr = '';
   for (const defs of set.values()) {
     for (const def of defs) {
-      definitionSet.add(def);
+      const defStr = print(def);
+      if (!definitionStrSet.has(defStr)) {
+        definitionStrSet.add(defStr);
+        definitionsStr += defStr + '\n';
+      }
     }
   }
-  return {
-    kind: Kind.DOCUMENT,
-    definitions: [...definitionSet],
-  };
+
+  return definitionsStr?.length
+    ? parse(new Source(definitionsStr, filePath))
+    : {
+        kind: Kind.DOCUMENT,
+        definitions: [],
+      };
 }
 
 function visitFile(

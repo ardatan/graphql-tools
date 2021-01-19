@@ -3,7 +3,7 @@ const path = require('path');
 const rimraf = require('rimraf');
 const TypeDoc = require('typedoc');
 const { execSync } = require('child_process');
-const fsPromises = require('fs/promises');
+const fsPromises = fs.promises;
 const workspacePackageJson = require('../package.json');
 
 const MONOREPO = workspacePackageJson.name.replace('-monorepo', '');
