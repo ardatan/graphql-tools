@@ -1,5 +1,6 @@
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { filterSchema } from '@graphql-tools/utils';
+import { GraphQLObjectType, GraphQLInterfaceType, GraphQLInputObjectType } from 'graphql';
 
 describe('filterSchema', () => {
   it('filters root fields', () => {
@@ -21,10 +22,10 @@ describe('filterSchema', () => {
       rootFieldFilter: (_opName, fieldName) => fieldName.startsWith('keep'),
     });
 
-    expect(filtered.getType('Query').getFields()['keep']).toBeDefined();
-    expect(filtered.getType('Query').getFields()['omit']).toBeUndefined();
-    expect(filtered.getType('Mutation').getFields()['keepThis']).toBeDefined();
-    expect(filtered.getType('Mutation').getFields()['omitThis']).toBeUndefined();
+    expect((filtered.getType('Query') as GraphQLObjectType).getFields()['keep']).toBeDefined();
+    expect((filtered.getType('Query') as GraphQLObjectType).getFields()['omit']).toBeUndefined();
+    expect((filtered.getType('Mutation') as GraphQLObjectType).getFields()['keepThis']).toBeDefined();
+    expect((filtered.getType('Mutation') as GraphQLObjectType).getFields()['omitThis']).toBeUndefined();
   });
 
   it('filters types', () => {
@@ -99,9 +100,9 @@ describe('filterSchema', () => {
       objectFieldFilter: (_typeName, fieldName) => fieldName.startsWith('keep'),
     });
 
-    expect(filtered.getType('Thing').getFields()['keep']).toBeDefined();
-    expect(filtered.getType('Thing').getFields()['omit']).toBeUndefined();
-    expect(filtered.getType('IThing').getFields()['control']).toBeDefined();
+    expect((filtered.getType('Thing') as GraphQLObjectType).getFields()['keep']).toBeDefined();
+    expect((filtered.getType('Thing') as GraphQLObjectType).getFields()['omit']).toBeUndefined();
+    expect((filtered.getType('IThing') as GraphQLInterfaceType).getFields()['control']).toBeDefined();
   });
 
   it('filters interface fields', () => {
@@ -122,9 +123,9 @@ describe('filterSchema', () => {
       interfaceFieldFilter: (_typeName, fieldName) => fieldName.startsWith('keep'),
     });
 
-    expect(filtered.getType('IThing').getFields()['keep']).toBeDefined();
-    expect(filtered.getType('IThing').getFields()['omit']).toBeUndefined();
-    expect(filtered.getType('Thing').getFields()['control']).toBeDefined();
+    expect((filtered.getType('IThing') as GraphQLInterfaceType).getFields()['keep']).toBeDefined();
+    expect((filtered.getType('IThing') as GraphQLInterfaceType).getFields()['omit']).toBeUndefined();
+    expect((filtered.getType('Thing') as GraphQLObjectType).getFields()['control']).toBeDefined();
   });
 
   it('filters input object fields', () => {
@@ -145,9 +146,9 @@ describe('filterSchema', () => {
       inputObjectFieldFilter: (_typeName, fieldName) => fieldName.startsWith('keep'),
     });
 
-    expect(filtered.getType('ThingInput').getFields()['keep']).toBeDefined();
-    expect(filtered.getType('ThingInput').getFields()['omit']).toBeUndefined();
-    expect(filtered.getType('Thing').getFields()['control']).toBeDefined();
+    expect((filtered.getType('ThingInput') as GraphQLInputObjectType).getFields()['keep']).toBeDefined();
+    expect((filtered.getType('ThingInput') as GraphQLInputObjectType).getFields()['omit']).toBeUndefined();
+    expect((filtered.getType('Thing') as GraphQLObjectType).getFields()['control']).toBeDefined();
   });
 
   it('filters all field types', () => {
@@ -173,12 +174,12 @@ describe('filterSchema', () => {
       fieldFilter: (_typeName, fieldName) => fieldName.startsWith('keep'),
     });
 
-    expect(filtered.getType('Thing').getFields()['keep']).toBeDefined();
-    expect(filtered.getType('Thing').getFields()['omit']).toBeUndefined();
-    expect(filtered.getType('IThing').getFields()['keep']).toBeDefined();
-    expect(filtered.getType('IThing').getFields()['omit']).toBeUndefined();
-    expect(filtered.getType('ThingInput').getFields()['keep']).toBeDefined();
-    expect(filtered.getType('ThingInput').getFields()['omit']).toBeUndefined();
+    expect((filtered.getType('Thing') as GraphQLObjectType).getFields()['keep']).toBeDefined();
+    expect((filtered.getType('Thing') as GraphQLObjectType).getFields()['omit']).toBeUndefined();
+    expect((filtered.getType('IThing') as GraphQLInterfaceType).getFields()['keep']).toBeDefined();
+    expect((filtered.getType('IThing') as GraphQLInterfaceType).getFields()['omit']).toBeUndefined();
+    expect((filtered.getType('ThingInput') as GraphQLInputObjectType).getFields()['keep']).toBeDefined();
+    expect((filtered.getType('ThingInput') as GraphQLInputObjectType).getFields()['omit']).toBeUndefined();
   });
 
   it('filters all arguments', () => {
@@ -201,8 +202,8 @@ describe('filterSchema', () => {
       argumentFilter: (_typeName, _fieldName, argName) => argName.startsWith('keep'),
     });
 
-    expect(filtered.getType('Query').getFields()['field'].args.map(arg => arg.name)).toEqual(['keep']);
-    expect(filtered.getType('Thing').getFields()['field'].args.map(arg => arg.name)).toEqual(['keep']);
-    expect(filtered.getType('IThing').getFields()['field'].args.map(arg => arg.name)).toEqual(['keep']);
+    expect((filtered.getType('Query') as GraphQLObjectType).getFields()['field'].args.map(arg => arg.name)).toEqual(['keep']);
+    expect((filtered.getType('Thing') as GraphQLObjectType).getFields()['field'].args.map(arg => arg.name)).toEqual(['keep']);
+    expect((filtered.getType('IThing') as GraphQLInterfaceType).getFields()['field'].args.map(arg => arg.name)).toEqual(['keep']);
   });
 });
