@@ -158,7 +158,7 @@ const mocks = {
 
 ### Appplying mutations
 
-Use `resolvers` option of `addMocksToSchema` to implement custom resolvers that interact with the [`MockStore`][#mockstore], especially to mutate field values.
+Use `resolvers` option of `addMocksToSchema` to implement custom resolvers that interact with the [`MockStore`](#mockstore), especially to mutate field values.
 
 ```ts
 const typeDefs = `
