@@ -95,12 +95,12 @@ describe('addMocksToSchema', () => {
       }
     }});
 
-    const { data: data1 } = await graphql({
+    await graphql({
       schema: mockedSchema,
       source: `query { viewer { name }}`,
     });
 
-    const { data: data2 } = await graphql({
+    await graphql({
       schema: mockedSchema,
       source: `mutation { changeViewerName(newName: "Alexandre") { name } }`,
     });

@@ -3,16 +3,17 @@ import {
   graphql,
   GraphQLResolveInfo,
   GraphQLSchema,
-  GraphQLFieldResolver,
   buildSchema, subscribe, parse
 } from 'graphql';
 
 import { sentence, first_name } from 'casual';
 
 import { addMocksToSchema, MockList, mockServer, IMocks, IMockStore } from '../src';
-import { addResolversToSchema,
+import {
+  addResolversToSchema,
   buildSchemaFromTypeDefinitions,
-  makeExecutableSchema, } from '@graphql-tools/schema';
+  makeExecutableSchema,
+} from '@graphql-tools/schema';
 
 describe('Mock retro-compatibility', () => {
   const shorthand = `
@@ -93,7 +94,7 @@ describe('Mock retro-compatibility', () => {
   };
 
   test('throws an error if you forget to pass schema', () => {
-    expect(() => addMocksToSchema({})).toThrowError(
+    expect(() => addMocksToSchema({} as any)).toThrowError(
       'Must provide schema to mock',
     );
   });
@@ -447,7 +448,7 @@ describe('Mock retro-compatibility', () => {
         returnSong: 'I believe i can fly'
       })
     };
-    const resolvers = (store: IMockStore ) => ({
+    const resolvers = (store: IMockStore) => ({
       RootQuery: {
         node: (_root: any, args: any) => {
           spy++;
@@ -1139,7 +1140,7 @@ describe('Mock retro-compatibility', () => {
   test('throws an error if the second argument to MockList is not a function', () => {
     expect(
       () =>
-        new MockList(5, ('abc' as unknown) as GraphQLFieldResolver<any, any>),
+        new MockList(5, ('abc' as any)),
     ).toThrowError(
       'Second argument to MockList must be a function or undefined',
     );
