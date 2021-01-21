@@ -1,5 +1,11 @@
 # @graphql-tools/stitch
 
+## 7.2.1
+
+### Patch Changes
+
+- 3cf9104c: fix(stitch) canonical via transformed subschema
+
 ## 7.2.0
 
 ### Minor Changes
