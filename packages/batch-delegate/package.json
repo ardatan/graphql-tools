@@ -28,7 +28,7 @@
   },
   "devDependencies": {
     "@graphql-tools/schema": "7.1.2",
-    "@graphql-tools/stitch": "7.2.0",
+    "@graphql-tools/stitch": "7.2.1",
     "@graphql-tools/utils": "7.2.4"
   },
   "publishConfig": {
