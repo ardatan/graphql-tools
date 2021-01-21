@@ -1,6 +1,7 @@
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
 import { getDirectives } from '@graphql-tools/utils';
+import { stitchingDirectives } from '@graphql-tools/stitching-directives';
 import {
   GraphQLObjectType,
   GraphQLInterfaceType,
@@ -310,5 +311,81 @@ describe('merge canonical types', () => {
       field1: 'first',
       field2: 'second',
     });
+  });
+});
+
+describe('merge @canonical directives', () => {
+  const { stitchingDirectivesTransformer, stitchingDirectivesTypeDefs } = stitchingDirectives();
+  const firstSchema = makeExecutableSchema({
+    typeDefs: `
+      ${stitchingDirectivesTypeDefs}
+      "first"
+      type Product @canonical {
+        "first"
+        id: ID!
+        "first"
+        name: String
+      }
+      "first"
+      input ProductInput @canonical {
+        "first"
+        value: ProductEnum
+      }
+      "first"
+      enum ProductEnum @canonical {
+        "first"
+        YES
+      }
+      type Query {
+        "first"
+        product(input: ProductInput): Product @canonical
+      }
+    `
+  });
+  const secondSchema = makeExecutableSchema({
+    typeDefs: `
+      ${stitchingDirectivesTypeDefs}
+      "second"
+      type Product {
+        "second"
+        id: ID!
+        "second"
+        name: String @canonical
+      }
+      "second"
+      input ProductInput {
+        "second"
+        value: ProductEnum @canonical
+      }
+      "second"
+      enum ProductEnum {
+        "second"
+        YES
+      }
+      type Query {
+        "second"
+        product(input: ProductInput): Product
+      }
+    `
+  });
+  const gatewaySchema = stitchSchemas({
+    subschemaConfigTransforms: [stitchingDirectivesTransformer],
+    subschemas: [
+      { schema: firstSchema },
+      { schema: secondSchema },
+    ],
+  });
+
+  it('merges with directive', async () => {
+    const objectType = gatewaySchema.getType('Product') as GraphQLObjectType;
+    const inputType = gatewaySchema.getType('ProductInput') as GraphQLInputObjectType;
+    const enumType = gatewaySchema.getType('ProductEnum') as GraphQLEnumType;
+    expect(objectType.description).toEqual('first');
+    expect(inputType.description).toEqual('first');
+    expect(enumType.description).toEqual('first');
+    expect(gatewaySchema.getQueryType().getFields().product.description).toEqual('first');
+    expect(objectType.getFields().id.description).toEqual('first');
+    expect(objectType.getFields().name.description).toEqual('second');
+    expect(inputType.getFields().value.description).toEqual('second');
   });
 });
