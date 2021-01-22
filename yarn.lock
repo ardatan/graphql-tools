@@ -12695,10 +12695,10 @@ relateurl@^0.2.7:
   resolved "https://registry.yarnpkg.com/relateurl/-/relateurl-0.2.7.tgz#54dbf377e51440aca90a4cd274600d3ff2d888a9"
   integrity sha1-VNvzd+UUQKypCkzSdGANP/LYiKk=
 
-relay-compiler@10.1.2:
-  version "10.1.2"
-  resolved "https://registry.yarnpkg.com/relay-compiler/-/relay-compiler-10.1.2.tgz#9a770be6ef8dcb090eddcd649962087d268e9806"
-  integrity sha512-MRZWMIyl7f+YvtD9BVsxFcn/5pUlb5p5+YZ7dFzlWVS6ox0wtAvs+CFMSm6zYbxfR+E39E1PWdsGQ2zQxedKBQ==
+relay-compiler@10.1.3:
+  version "10.1.3"
+  resolved "https://registry.yarnpkg.com/relay-compiler/-/relay-compiler-10.1.3.tgz#76ec4fd5d16f5b6aae61183f64b5caaef27f2525"
+  integrity sha512-AJoET3U8PrLXiA1/jmcr5beR/928+8c8qf46nOuumaNXhTfJC2RvN2fpD0APF0Fti+oKBxwKcQJ93R5BK6A2xw==
   dependencies:
     "@babel/core" "^7.0.0"
     "@babel/generator" "^7.5.0"
@@ -12713,14 +12713,14 @@ relay-compiler@10.1.2:
     glob "^7.1.1"
     immutable "~3.7.6"
     nullthrows "^1.1.1"
-    relay-runtime "10.1.2"
+    relay-runtime "10.1.3"
     signedsource "^1.0.0"
     yargs "^15.3.1"
 
-relay-runtime@10.1.2:
-  version "10.1.2"
-  resolved "https://registry.yarnpkg.com/relay-runtime/-/relay-runtime-10.1.2.tgz#842577b78f556a52712773a5c328f94bafd71570"
-  integrity sha512-nAMji6xaQ4bPlBZdXwVEDBDmmPZMfmgHHskUpnDVVldhtuu9zUb4bTDYM5Sk4MMBO8uOR5MJqDkEfBkpV02w+A==
+relay-runtime@10.1.3:
+  version "10.1.3"
+  resolved "https://registry.yarnpkg.com/relay-runtime/-/relay-runtime-10.1.3.tgz#1d7bfe590b50cd7f18f6d1c0f20df71fe5bb451a"
+  integrity sha512-NSh4CaRRpUaziK72h4T5uKw6rvHovmS/xD9+czqUYg6yKv22ajwBE6SWmjwTSKnt2NBzIfDjh2C3heo9pLbvtg==
   dependencies:
     "@babel/runtime" "^7.0.0"
     fbjs "^3.0.0"
