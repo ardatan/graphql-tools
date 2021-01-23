@@ -179,7 +179,7 @@ export function buildTypes({
   operationTypeNames,
   onTypeConflict,
   mergeTypes,
-  typeMergingOptions = {},
+  typeMergingOptions,
 }: {
   typeCandidates: Record<string, Array<MergeTypeCandidate>>;
   directives: Array<GraphQLDirective>;
