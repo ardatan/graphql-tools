@@ -91,7 +91,7 @@ describe('Argument validations', () => {
             { schema: buildSchema('type Query { field(arg2: Int): Int }') },
           ]
         });
-      }).toThrow(/inconsistent arguments names/);
+      }).toThrow(/inconsistent argument names/);
     });
 
     it('permits consistent argument names', () => {
