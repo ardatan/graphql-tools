@@ -138,7 +138,7 @@ Stitching has two strategies for handling types duplicated across subschemas: an
 
 Types with the same name are automatically merged by default in GraphQL Tools v7. That means objects, interfaces, and input objects with the same name will consolidate their fields across subschemas, and unions/enums will consolidate all their members. The combined gateway schema will then smartly delegate portions of a request to the proper origin subschema(s). See [type merging guide](/docs/stitch-type-merging/) for a comprehensive overview.
 
-Automatic merging will only encounter conflicts on type descriptions and fields. By default, the final definition of a type or field found in the subschemas array is used, or a specific definition may be [marked as canonical](/docs/stitch-type-merging#canonical-definitions). You may customize all selection logic using `typeMergingOptions`; the following prefers the _first_ definition of each conflicting element found in the subschemas array:
+Automatic merging will only encounter conflicts on type descriptions and fields. By default, the final definition of a type or field found in the subschemas array is used, or a specific definition may be [marked as canonical](/docs/stitch-type-merging#canonical-definitions). You may customize all selection logic using `typeMergingOptions`; the following example prefers the _first_ definition of each conflicting element found in the subschemas array:
 
 ```js
 const gatewaySchema = stitchSchemas({
@@ -156,9 +156,26 @@ const gatewaySchema = stitchSchemas({
 });
 ```
 
+### Merge validations
+
+The automatic merge strategy includes validations that inspect the integrity of merged types. There are numerous validations, and each one may be configured individually for the entire schema or for specific types and fields. Validation settings include:
+
+* `fieldTypeConsistency`: alerts when variations of a field implement different named types. You may want to be permissive of mismatched types when a gateway schema field proxies a compatible subschema datatype; for example, an `ID` scalar proxying a basic `String`. Fields with mismatched list types will automatically error.
+* `fieldNullConsistency`: alerts when a gateway schema field implements nullability that is _stricter_ than that of another subschema.
+* `fieldArgNameConsistency`: alerts when a merged field implements inconsistent argument names across subschemas. While all merged arguments will appear in the gateway schema, some will be ignored by subschemas that do not implement them.
+* `fieldArgTypeConsistency`: same as `fieldTypeConsistency`, but for field argument types.
+* `fieldArgNullConsistency`: alerts when a gateway schema field argument implements nullability that is _looser_ than that of another subschema. All input should be as strict as the maximum requirement.
+* `inputFieldNameConsistency`: like `fieldArgNameConsistency`, but for input object fields. While all merged input fields will appear in the gateway schema, some will be ignored by subschemas that do not implement them.
+* `inputFieldTypeConsistency`: same as `fieldTypeConsistency`, but for input fields.
+* `inputFieldNullConsistency`: same as `fieldArgNullConsistency`, but for input fields.
+* `inputEnumValueConsistency`: alerts when an enum type is used as an argument or input field value with inconsistent values across subschemas. These differences permit invalid values input to some subschemas.
+
+to `error`, `warn`, or `off` for the entire schema or for specific types and fields.
+
+
 ### Manual resolution
 
-By setting `mergeTypes: false`, only the final description and fields for a type found in the subschemas array will be used. You may manually resolve differences between conflicting types with an `onTypeConflict` handler:
+By setting `mergeTypes: false`, only the final description and fields for a type found in the subschemas array will be used, and automated query planning will be disabled. You may manually resolve differences between conflicting types with an `onTypeConflict` handler:
 
 ```js
 const gatewaySchema = stitchSchemas({

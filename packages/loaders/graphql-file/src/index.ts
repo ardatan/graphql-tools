@@ -10,9 +10,7 @@ import {
 import { isAbsolute, resolve } from 'path';
 import { readFileSync, accessSync, promises as fsPromises } from 'fs';
 import { cwd as processCwd } from 'process';
-import { isExecutableDefinitionNode, Kind } from 'graphql';
 import { processImport } from '@graphql-tools/import';
-import { mergeTypeDefs } from '@graphql-tools/merge';
 
 const { readFile, access } = fsPromises;
 
@@ -112,20 +110,9 @@ export class GraphQLFileLoader implements UniversalLoader<GraphQLFileLoaderOptio
   handleFileContent(rawSDL: string, pointer: string, options: GraphQLFileLoaderOptions) {
     if (!options.skipGraphQLImport && isGraphQLImportFile(rawSDL)) {
       const document = processImport(pointer, options.cwd);
-      const typeSystemDefinitions = document.definitions
-        .filter(d => !isExecutableDefinitionNode(d))
-        .map(definition => ({
-          kind: Kind.DOCUMENT,
-          definitions: [definition],
-        }));
-      const mergedTypeDefs = mergeTypeDefs(typeSystemDefinitions, { useSchemaDefinition: false });
-      const executableDefinitions = document.definitions.filter(isExecutableDefinitionNode);
       return {
         location: pointer,
-        document: {
-          ...mergedTypeDefs,
-          definitions: [...mergedTypeDefs.definitions, ...executableDefinitions],
-        },
+        document,
       };
     }
 

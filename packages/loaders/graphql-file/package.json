@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/graphql-file-loader",
-  "version": "6.2.6",
+  "version": "6.2.7",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
@@ -23,7 +23,7 @@
     "input": "./src/index.ts"
   },
   "dependencies": {
-    "@graphql-tools/import": "^6.2.5",
+    "@graphql-tools/import": "^6.2.6",
     "@graphql-tools/utils": "^7.0.0",
     "tslib": "~2.1.0"
   },

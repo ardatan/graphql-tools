@@ -296,7 +296,11 @@ function mergeEnumTypeCandidates(
   const astNodes = pluck<EnumTypeDefinitionNode>('astNode', candidates);
   const astNode = astNodes
     .slice(1)
-    .reduce((acc, astNode) => mergeEnum(astNode, acc as EnumTypeDefinitionNode) as EnumTypeDefinitionNode, astNodes[0]);
+    .reduce(
+      (acc, astNode) =>
+        mergeEnum(astNode, acc as EnumTypeDefinitionNode, { consistentEnumMerge: true }) as EnumTypeDefinitionNode,
+      astNodes[0]
+    );
 
   const extensionASTNodes = [].concat(pluck<Record<string, any>>('extensionASTNodes', candidates));
 
@@ -351,7 +355,8 @@ function enumValueConfigMapFromTypeCandidates(
 
 function defaultEnumValueConfigMerger(candidates: Array<MergeEnumValueConfigCandidate>) {
   const preferred = candidates.find(
-    ({ type, subschema }) => isSubschemaConfig(subschema) && subschema.merge?.[type.name]?.canonical
+    ({ type, transformedSubschema }) =>
+      isSubschemaConfig(transformedSubschema) && transformedSubschema.merge?.[type.name]?.canonical
   );
   return (preferred || candidates[candidates.length - 1]).enumValueConfig;
 }
@@ -409,8 +414,8 @@ function orderedTypeCandidates(
 }
 
 function defaultTypeCandidateMerger(candidates: Array<MergeTypeCandidate>): MergeTypeCandidate {
-  const canonical: Array<MergeTypeCandidate> = candidates.filter(({ type, subschema }) =>
-    isSubschemaConfig(subschema) ? subschema.merge?.[type.name]?.canonical : false
+  const canonical: Array<MergeTypeCandidate> = candidates.filter(({ type, transformedSubschema }) =>
+    isSubschemaConfig(transformedSubschema) ? transformedSubschema.merge?.[type.name]?.canonical : false
   );
 
   if (canonical.length > 1) {
@@ -476,11 +481,11 @@ function defaultFieldConfigMerger(candidates: Array<MergeFieldConfigCandidate>) 
   const canonicalByField: Array<GraphQLFieldConfig<any, any>> = [];
   const canonicalByType: Array<GraphQLFieldConfig<any, any>> = [];
 
-  candidates.forEach(({ type, fieldName, fieldConfig, subschema }) => {
-    if (!isSubschemaConfig(subschema)) return;
-    if (subschema.merge?.[type.name]?.fields?.[fieldName]?.canonical) {
+  candidates.forEach(({ type, fieldName, fieldConfig, transformedSubschema }) => {
+    if (!isSubschemaConfig(transformedSubschema)) return;
+    if (transformedSubschema.merge?.[type.name]?.fields?.[fieldName]?.canonical) {
       canonicalByField.push(fieldConfig);
-    } else if (subschema.merge?.[type.name]?.canonical) {
+    } else if (transformedSubschema.merge?.[type.name]?.canonical) {
       canonicalByType.push(fieldConfig);
     }
   });
@@ -546,11 +551,11 @@ function defaultInputFieldConfigMerger(candidates: Array<MergeInputFieldConfigCa
   const canonicalByField: Array<GraphQLInputFieldConfig> = [];
   const canonicalByType: Array<GraphQLInputFieldConfig> = [];
 
-  candidates.forEach(({ type, fieldName, inputFieldConfig, subschema }) => {
-    if (!isSubschemaConfig(subschema)) return;
-    if (subschema.merge?.[type.name]?.fields?.[fieldName]?.canonical) {
+  candidates.forEach(({ type, fieldName, inputFieldConfig, transformedSubschema }) => {
+    if (!isSubschemaConfig(transformedSubschema)) return;
+    if (transformedSubschema.merge?.[type.name]?.fields?.[fieldName]?.canonical) {
       canonicalByField.push(inputFieldConfig);
-    } else if (subschema.merge?.[type.name]?.canonical) {
+    } else if (transformedSubschema.merge?.[type.name]?.canonical) {
       canonicalByType.push(inputFieldConfig);
     }
   });
@@ -569,9 +574,13 @@ function defaultInputFieldConfigMerger(candidates: Array<MergeInputFieldConfigCa
 function canonicalFieldNamesForType(candidates: Array<MergeTypeCandidate>): Array<string> {
   const canonicalFieldNames: Record<string, boolean> = Object.create(null);
 
-  candidates.forEach(({ type, subschema }) => {
-    if (isSubschemaConfig(subschema) && subschema.merge?.[type.name]?.fields && !subschema.merge[type.name].canonical) {
-      Object.entries(subschema.merge[type.name].fields).forEach(([fieldName, mergedFieldConfig]) => {
+  candidates.forEach(({ type, transformedSubschema }) => {
+    if (
+      isSubschemaConfig(transformedSubschema) &&
+      transformedSubschema.merge?.[type.name]?.fields &&
+      !transformedSubschema.merge[type.name].canonical
+    ) {
+      Object.entries(transformedSubschema.merge[type.name].fields).forEach(([fieldName, mergedFieldConfig]) => {
         if (mergedFieldConfig.canonical) {
           canonicalFieldNames[fieldName] = true;
         }

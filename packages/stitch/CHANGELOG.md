@@ -1,5 +1,26 @@
 # @graphql-tools/stitch
 
+## 7.2.1
+
+### Patch Changes
+
+- 3cf9104c: fix(stitch) canonical via transformed subschema
+
+## 7.2.0
+
+### Minor Changes
+
+- d9b82a2e: enhance(stitch) canonical merged type and field definitions. Use the @canonical directive to promote preferred type and field descriptions into the combined gateway schema.
+
+### Patch Changes
+
+- d9b82a2e: fix(merge/stitch) consistent enum value merge
+- Updated dependencies [d9b82a2e]
+- Updated dependencies [d9b82a2e]
+- Updated dependencies [d9b82a2e]
+  - @graphql-tools/merge@6.2.7
+  - @graphql-tools/delegate@7.0.9
+
 ## 7.1.9
 
 ### Patch Changes
