@@ -136,16 +136,16 @@ Stitching has two strategies for handling types duplicated across subschemas: an
 
 ### Automatic merge
 
-Types with the same name are automatically merged by default in GraphQL Tools v7. That means objects, interfaces, and input objects with the same name will consolidate their fields across subschemas, and unions/enums will consolidate all their members. The combined gateway schema will then smartly delegate portions of a request to the proper origin subschema(s). See [type merging guide](/docs/stitch-type-merging/) for a comprehensive overview.
+Types with the same name are automatically merged by default in GraphQL Tools v7. That means objects, interfaces, and input objects with the same name will consolidate their fields across subschemas, and unions/enums will consolidate all of their members. The combined gateway schema will then smartly delegate portions of a request to the proper origin subschema(s). See [type merging guide](/docs/stitch-type-merging/) for a comprehensive overview.
 
-Automatic merging will only encounter conflicts on type descriptions and fields. By default, the final definition of a type or field found in the subschemas array is used, or a specific definition may be [marked as canonical](/docs/stitch-type-merging#canonical-definitions). You may customize all selection logic using `typeMergingOptions`; the following example prefers the _first_ definition of each conflicting element found in the subschemas array:
+Automatic merging will only encounter conflicts on type descriptions and fields. By default, the final definition of a type or field found in the subschemas array is used, or a specific definition may be [marked as canonical](/docs/stitch-type-merging#canonical-definitions) to prioritize it. You may customize all selection logic using `typeMergingOptions`; the following example prefers the _first_ definition of each conflicting element found in the subschemas array:
 
 ```js
 const gatewaySchema = stitchSchemas({
   subschemas: [...],
   mergeTypes: true, // << default in v7
   typeMergingOptions: {
-    // select a preferred type candidate that provides definitions:
+    // select a preferred type candidate to provide definitions:
     typeCandidateMerger: (candidates) => candidate[0],
     // and/or itemize the selection of other specific definitions:
     typeDescriptionsMerger: (candidates) => candidate[0].type.description,
@@ -158,20 +158,34 @@ const gatewaySchema = stitchSchemas({
 
 ### Merge validations
 
-The automatic merge strategy includes validations that inspect the integrity of merged types. There are numerous validations, and each one may be configured individually for the entire schema or for specific types and fields. Validation settings include:
+The automatic merge strategy also validates the integrity of merged schemas. These validations maybe be controlled individually:
 
-* `fieldTypeConsistency`: alerts when variations of a field implement different named types. You may want to be permissive of mismatched types when a gateway schema field proxies a compatible subschema datatype; for example, an `ID` scalar proxying a basic `String`. Fields with mismatched list types will automatically error.
-* `fieldNullConsistency`: alerts when a gateway schema field implements nullability that is _stricter_ than that of another subschema.
-* `fieldArgNameConsistency`: alerts when a merged field implements inconsistent argument names across subschemas. While all merged arguments will appear in the gateway schema, some will be ignored by subschemas that do not implement them.
-* `fieldArgTypeConsistency`: same as `fieldTypeConsistency`, but for field argument types.
-* `fieldArgNullConsistency`: alerts when a gateway schema field argument implements nullability that is _looser_ than that of another subschema. All input should be as strict as the maximum requirement.
-* `inputFieldNameConsistency`: like `fieldArgNameConsistency`, but for input object fields. While all merged input fields will appear in the gateway schema, some will be ignored by subschemas that do not implement them.
-* `inputFieldTypeConsistency`: same as `fieldTypeConsistency`, but for input fields.
-* `inputFieldNullConsistency`: same as `fieldArgNullConsistency`, but for input fields.
-* `inputEnumValueConsistency`: alerts when an enum type is used as an argument or input field value with inconsistent values across subschemas. These differences permit invalid values input to some subschemas.
+* **`fieldTypeConsistency`**: alerts when variants of a field implement different named types. You may want to be _permissive_ of mismatched types when a gateway schema field proxies a compatible subschema datatype; for example, an `ID` scalar proxying a basic `String`. Fields with mismatched list types automatically error.
+* **`fieldNullConsistency`**: alerts when the gateway schema field implements nullability that is _stricter_ than that of other variants.
+* **`inputTypeConsistency`**: same as `fieldTypeConsistency`, but for arguments and input fields; also for inconsistent enum types used as input values.
+* **`inputNullConsistency`**: alerts when the gateway schema argument or input field implements nullability that is _looser_ than that of other variants.
+* **`inputNameConsistency`**: alerts when merged argument names or input field names are inconsistent across subschema variants. While all merged inputs will appear in the gateway schema, outliers will be ignored by subschemas that do not implement them.
 
-to `error`, `warn`, or `off` for the entire schema or for specific types and fields.
+Each validation setting may be set to `error`, `warn`, or `off` for the entire schema or for specific types and fields:
 
+```js
+const gatewaySchema = stitchSchemas({
+  subschemas: [...],
+  mergeTypes: true, // << default in v7
+  typeMergingOptions: {
+    validationSettings: {
+      fieldTypeConsistency: 'off',
+      fieldNullConsistency: 'warn',
+      inputTypeConsistency: 'error',
+      inputNullConsistency: 'error',
+      inputNameConsistency: 'error',
+    },
+    elementValidationSettings: {
+      'User.id': { fieldNullConsistency: 'off' },
+    }
+  },
+});
+```
 
 ### Manual resolution
 

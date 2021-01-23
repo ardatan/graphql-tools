@@ -54,7 +54,7 @@ export function validateFieldConsistency(
   if (Object.values(argCandidatesMap).some(argCandidates => candidates.length !== argCandidates.length)) {
     validationMessage(
       `Definition of field "${fieldNamespace}" implements inconsistent arguments names across subschemas. This will cause some user input to be ignored.`,
-      'fieldArgNameConsistency',
+      'inputNameConsistency',
       fieldNamespace,
       typeMergingOptions
     );
@@ -69,7 +69,7 @@ export function validateFieldConsistency(
       finalArgConfig,
       argCandidates,
       'argument',
-      'fieldArgTypeConsistency',
+      'inputTypeConsistency',
       argNamespace,
       typeMergingOptions
     );
@@ -77,7 +77,7 @@ export function validateFieldConsistency(
     if (!isNonNullType(finalArgConfig.type) && argCandidates.some(c => isNonNullType(c.type))) {
       validationMessage(
         `Canonical argument definition of "${argNamespace}" permits null while some subschemas require not-null. This allows for input errors.`,
-        'fieldArgNullConsistency',
+        'inputNullConsistency',
         argNamespace,
         typeMergingOptions
       );
@@ -99,7 +99,7 @@ export function validateInputObjectConsistency(
       const namespace = `${candidates[0].type.name}.${fieldName}`;
       validationMessage(
         `Definition of input field "${namespace}" is not implemented by all subschemas. This will cause some user input to be ignored.`,
-        'inputFieldNameConsistency',
+        'inputNameConsistency',
         namespace,
         typeMergingOptions
       );
@@ -119,7 +119,7 @@ export function validateInputFieldConsistency(
     finalInputFieldConfig,
     inputFieldConfigs,
     'input field',
-    'inputFieldTypeConsistency',
+    'inputTypeConsistency',
     inputFieldNamespace,
     typeMergingOptions
   );
@@ -127,7 +127,7 @@ export function validateInputFieldConsistency(
   if (!isNonNullType(finalInputFieldConfig.type) && candidates.some(c => isNonNullType(c.inputFieldConfig.type))) {
     validationMessage(
       `Canonical input field definition of "${inputFieldNamespace}" permits null while some subschemas require not-null. This allows for input errors.`,
-      'inputFieldNullConsistency',
+      'inputNullConsistency',
       inputFieldNamespace,
       typeMergingOptions
     );
@@ -192,7 +192,7 @@ export function validateInputEnumConsistency(
   if (Object.values(enumValueInclusionMap).some(count => candidates.length !== count)) {
     validationMessage(
       `Enum "${inputEnumType.name}" is used as an input with inconsistent values across subschemas. This allows for input errors.`,
-      'inputEnumValueConsistency',
+      'inputTypeConsistency',
       inputEnumType.name,
       typeMergingOptions
     );
@@ -208,7 +208,6 @@ function validationMessage(
   const setting =
     typeMergingOptions?.elementValidationSettings?.[settingNamespace]?.[settingName] ??
     typeMergingOptions?.validationSettings?.[settingName] ??
-    typeMergingOptions?.defaultValidationLevel ??
     ValidationLevel.Warn;
 
   switch (setting) {

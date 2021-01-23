@@ -318,7 +318,13 @@ describe('merging using type merging', () => {
       }],
     subschemaConfigTransforms: [stitchingDirectivesTransformer],
     typeMergingOptions: {
-      defaultValidationLevel: ValidationLevel.Off
+      validationSettings: {
+        fieldTypeConsistency: ValidationLevel.Off,
+        fieldNullConsistency: ValidationLevel.Off,
+        inputTypeConsistency: ValidationLevel.Off,
+        inputNullConsistency: ValidationLevel.Off,
+        inputNameConsistency: ValidationLevel.Off,
+      }
     }
   });
 

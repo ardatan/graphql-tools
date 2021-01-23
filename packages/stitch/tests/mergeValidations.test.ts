@@ -2,141 +2,7 @@ import { stitchSchemas } from '@graphql-tools/stitch';
 import { buildSchema } from 'graphql';
 import { ValidationLevel } from '../src/types';
 
-describe('merge canonical types', () => {
-  describe('inputFieldNameConsistency', () => {
-    it('raises for inconsistent input fields', () => {
-      expect(() => {
-        stitchSchemas({
-          typeMergingOptions: {
-            validationSettings: { inputFieldNameConsistency: ValidationLevel.Error },
-          },
-          subschemas: [
-            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field1: Int }') },
-            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field2: Int }') },
-          ]
-        });
-      }).toThrow(/not implemented by all subschemas/);
-    });
-
-    it('permits for consistent input fields', () => {
-      expect(() => {
-        stitchSchemas({
-          typeMergingOptions: {
-            validationSettings: { inputFieldNameConsistency: ValidationLevel.Error },
-          },
-          subschemas: [
-            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: Int }') },
-            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: Int }') },
-          ]
-        });
-      }).not.toThrow();
-    });
-  });
-
-  describe('inputFieldTypeConsistency', () => {
-    it('raises for inconsistent named types', () => {
-      expect(() => {
-        stitchSchemas({
-          typeMergingOptions: {
-            validationSettings: { inputFieldTypeConsistency: ValidationLevel.Error },
-          },
-          subschemas: [
-            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: String }') },
-            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: URL } scalar URL') },
-          ]
-        });
-      }).toThrow(/inconsistent named types/);
-    });
-
-    it('raises for inconsistent list types', () => {
-      expect(() => {
-        stitchSchemas({
-          typeMergingOptions: {
-            validationSettings: { inputFieldTypeConsistency: ValidationLevel.Error },
-          },
-          subschemas: [
-            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: String }') },
-            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: [String] }') },
-          ]
-        });
-      }).toThrow(/inconsistent list types/);
-    });
-
-    it('permits consistent types', () => {
-      expect(() => {
-        stitchSchemas({
-          typeMergingOptions: {
-            validationSettings: { inputFieldTypeConsistency: ValidationLevel.Error },
-          },
-          subschemas: [
-            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: [URL] } scalar URL') },
-            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: [URL] } scalar URL') },
-          ]
-        });
-      }).not.toThrow();
-    });
-  });
-
-  describe('inputFieldNullConsistency', () => {
-    it('raises looser nullability in canonical definition', () => {
-      expect(() => {
-        stitchSchemas({
-          typeMergingOptions: {
-            validationSettings: { inputFieldNullConsistency: ValidationLevel.Error },
-          },
-          subschemas: [
-            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: Int! }') },
-            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: Int }') },
-          ]
-        });
-      }).toThrow(/permits null while some subschemas require not-null/);
-    });
-
-    it('permits stricter nullability in canonical definition', () => {
-      expect(() => {
-        stitchSchemas({
-          typeMergingOptions: {
-            validationSettings: { inputFieldNullConsistency: ValidationLevel.Error },
-          },
-          subschemas: [
-            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: Int }') },
-            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: Int! }') },
-          ]
-        });
-      }).not.toThrow();
-    });
-  });
-
-  describe('inputEnumValueConsistency with input fields', () => {
-    it('raises for inconsistent input field enum values', () => {
-      expect(() => {
-        stitchSchemas({
-          typeMergingOptions: {
-            validationSettings: { inputEnumValueConsistency: ValidationLevel.Error },
-          },
-          subschemas: [
-            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { status: BlobStatus! } enum BlobStatus { YES }') },
-            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { status: BlobStatus! } enum BlobStatus { NO }') },
-          ]
-        });
-      }).toThrow(/inconsistent values/);
-    });
-
-    it('permits consistent input field enum values', () => {
-      expect(() => {
-        stitchSchemas({
-          typeMergingOptions: {
-            validationSettings: { inputEnumValueConsistency: ValidationLevel.Error },
-          },
-          subschemas: [
-            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { status: BlobStatus! } enum BlobStatus { YES NO }') },
-            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { status: BlobStatus! } enum BlobStatus { NO YES }') },
-          ]
-        });
-      }).not.toThrow();
-    });
-  });
-
+describe('Field validations', () => {
   describe('fieldTypeConsistency', () => {
     it('raises for inconsistent named types', () => {
       expect(() => {
@@ -210,13 +76,15 @@ describe('merge canonical types', () => {
       }).not.toThrow();
     });
   });
+});
 
-  describe('fieldArgNameConsistency', () => {
+describe('Argument validations', () => {
+  describe('inputNameConsistency', () => {
     it('raises for inconsistent argument names', () => {
       expect(() => {
         stitchSchemas({
           typeMergingOptions: {
-            validationSettings: { fieldArgNameConsistency: ValidationLevel.Error },
+            validationSettings: { inputNameConsistency: ValidationLevel.Error },
           },
           subschemas: [
             { schema: buildSchema('type Query { field(arg1: Int): Int }') },
@@ -230,7 +98,7 @@ describe('merge canonical types', () => {
       expect(() => {
         stitchSchemas({
           typeMergingOptions: {
-            validationSettings: { fieldArgNameConsistency: ValidationLevel.Error },
+            validationSettings: { inputNameConsistency: ValidationLevel.Error },
           },
           subschemas: [
             { schema: buildSchema('type Query { field(arg: Int): Int }') },
@@ -241,56 +109,12 @@ describe('merge canonical types', () => {
     });
   });
 
-  describe('fieldArgTypeConsistency', () => {
-    it('raises for inconsistent argument named types', () => {
-      expect(() => {
-        stitchSchemas({
-          typeMergingOptions: {
-            validationSettings: { fieldArgTypeConsistency: ValidationLevel.Error },
-          },
-          subschemas: [
-            { schema: buildSchema('type Query { field(arg: String): String }') },
-            { schema: buildSchema('type Query { field(arg: URL): String } scalar URL') },
-          ]
-        });
-      }).toThrow(/inconsistent named types/);
-    });
-
-    it('raises for inconsistent argument list types', () => {
-      expect(() => {
-        stitchSchemas({
-          typeMergingOptions: {
-            validationSettings: { fieldArgTypeConsistency: ValidationLevel.Error },
-          },
-          subschemas: [
-            { schema: buildSchema('type Query { field(arg: URL): String } scalar URL') },
-            { schema: buildSchema('type Query { field(arg: [URL]): String } scalar URL') },
-          ]
-        });
-      }).toThrow(/inconsistent list types/);
-    });
-
-    it('permits consistent argument types', () => {
-      expect(() => {
-        stitchSchemas({
-          typeMergingOptions: {
-            validationSettings: { fieldArgTypeConsistency: ValidationLevel.Error },
-          },
-          subschemas: [
-            { schema: buildSchema('type Query { field(arg: [URL]): String } scalar URL') },
-            { schema: buildSchema('type Query { field(arg: [URL]): String } scalar URL') },
-          ]
-        });
-      }).not.toThrow();
-    });
-  });
-
-  describe('fieldArgNullConsistency', () => {
+  describe('inputNullConsistency', () => {
     it('raises looser nullability in canonical definition', () => {
       expect(() => {
         stitchSchemas({
           typeMergingOptions: {
-            validationSettings: { fieldArgNullConsistency: ValidationLevel.Error },
+            validationSettings: { inputNullConsistency: ValidationLevel.Error },
           },
           subschemas: [
             { schema: buildSchema('type Query { field(arg: Int!): Int }') },
@@ -304,7 +128,7 @@ describe('merge canonical types', () => {
       expect(() => {
         stitchSchemas({
           typeMergingOptions: {
-            validationSettings: { fieldArgNullConsistency: ValidationLevel.Error },
+            validationSettings: { inputNullConsistency: ValidationLevel.Error },
           },
           subschemas: [
             { schema: buildSchema('type Query { field(arg: Int): Int }') },
@@ -315,12 +139,56 @@ describe('merge canonical types', () => {
     });
   });
 
-  describe('inputEnumValueConsistency with field arguments', () => {
+  describe('inputTypeConsistency', () => {
+    it('raises for inconsistent argument named types', () => {
+      expect(() => {
+        stitchSchemas({
+          typeMergingOptions: {
+            validationSettings: { inputTypeConsistency: ValidationLevel.Error },
+          },
+          subschemas: [
+            { schema: buildSchema('type Query { field(arg: String): String }') },
+            { schema: buildSchema('type Query { field(arg: URL): String } scalar URL') },
+          ]
+        });
+      }).toThrow(/inconsistent named types/);
+    });
+
+    it('raises for inconsistent argument list types', () => {
+      expect(() => {
+        stitchSchemas({
+          typeMergingOptions: {
+            validationSettings: { inputTypeConsistency: ValidationLevel.Error },
+          },
+          subschemas: [
+            { schema: buildSchema('type Query { field(arg: URL): String } scalar URL') },
+            { schema: buildSchema('type Query { field(arg: [URL]): String } scalar URL') },
+          ]
+        });
+      }).toThrow(/inconsistent list types/);
+    });
+
+    it('permits consistent argument types', () => {
+      expect(() => {
+        stitchSchemas({
+          typeMergingOptions: {
+            validationSettings: { inputTypeConsistency: ValidationLevel.Error },
+          },
+          subschemas: [
+            { schema: buildSchema('type Query { field(arg: [URL]): String } scalar URL') },
+            { schema: buildSchema('type Query { field(arg: [URL]): String } scalar URL') },
+          ]
+        });
+      }).not.toThrow();
+    });
+  });
+
+  describe('inputTypeConsistency with enums', () => {
     it('raises for inconsistent argument enum values', () => {
       expect(() => {
         stitchSchemas({
           typeMergingOptions: {
-            validationSettings: { inputEnumValueConsistency: ValidationLevel.Error },
+            validationSettings: { inputTypeConsistency: ValidationLevel.Error },
           },
           subschemas: [
             { schema: buildSchema('type Query { field(status: Status): Int } enum Status { YES }') },
@@ -334,11 +202,147 @@ describe('merge canonical types', () => {
       expect(() => {
         stitchSchemas({
           typeMergingOptions: {
-            validationSettings: { inputEnumValueConsistency: ValidationLevel.Error },
+            validationSettings: { inputTypeConsistency: ValidationLevel.Error },
           },
           subschemas: [
             { schema: buildSchema('type Query { field(status: Status): Int } enum Status { YES NO }') },
             { schema: buildSchema('type Query { field(status: Status): Int } enum Status { NO YES }') },
+          ]
+        });
+      }).not.toThrow();
+    });
+  });
+});
+
+describe('InputObject validations', () => {
+  describe('inputNameConsistency', () => {
+    it('raises for inconsistent input fields', () => {
+      expect(() => {
+        stitchSchemas({
+          typeMergingOptions: {
+            validationSettings: { inputNameConsistency: ValidationLevel.Error },
+          },
+          subschemas: [
+            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field1: Int }') },
+            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field2: Int }') },
+          ]
+        });
+      }).toThrow(/not implemented by all subschemas/);
+    });
+
+    it('permits for consistent input fields', () => {
+      expect(() => {
+        stitchSchemas({
+          typeMergingOptions: {
+            validationSettings: { inputNameConsistency: ValidationLevel.Error },
+          },
+          subschemas: [
+            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: Int }') },
+            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: Int }') },
+          ]
+        });
+      }).not.toThrow();
+    });
+  });
+
+  describe('inputNullConsistency', () => {
+    it('raises looser nullability in canonical definition', () => {
+      expect(() => {
+        stitchSchemas({
+          typeMergingOptions: {
+            validationSettings: { inputNullConsistency: ValidationLevel.Error },
+          },
+          subschemas: [
+            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: Int! }') },
+            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: Int }') },
+          ]
+        });
+      }).toThrow(/permits null while some subschemas require not-null/);
+    });
+
+    it('permits stricter nullability in canonical definition', () => {
+      expect(() => {
+        stitchSchemas({
+          typeMergingOptions: {
+            validationSettings: { inputNullConsistency: ValidationLevel.Error },
+          },
+          subschemas: [
+            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: Int }') },
+            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: Int! }') },
+          ]
+        });
+      }).not.toThrow();
+    });
+  });
+
+  describe('inputTypeConsistency', () => {
+    it('raises for inconsistent named types', () => {
+      expect(() => {
+        stitchSchemas({
+          typeMergingOptions: {
+            validationSettings: { inputTypeConsistency: ValidationLevel.Error },
+          },
+          subschemas: [
+            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: String }') },
+            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: URL } scalar URL') },
+          ]
+        });
+      }).toThrow(/inconsistent named types/);
+    });
+
+    it('raises for inconsistent list types', () => {
+      expect(() => {
+        stitchSchemas({
+          typeMergingOptions: {
+            validationSettings: { inputTypeConsistency: ValidationLevel.Error },
+          },
+          subschemas: [
+            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: String }') },
+            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: [String] }') },
+          ]
+        });
+      }).toThrow(/inconsistent list types/);
+    });
+
+    it('permits consistent types', () => {
+      expect(() => {
+        stitchSchemas({
+          typeMergingOptions: {
+            validationSettings: { inputTypeConsistency: ValidationLevel.Error },
+          },
+          subschemas: [
+            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: [URL] } scalar URL') },
+            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: [URL] } scalar URL') },
+          ]
+        });
+      }).not.toThrow();
+    });
+  });
+
+  describe('inputTypeConsistency with enums', () => {
+    it('raises for inconsistent input field enum values', () => {
+      expect(() => {
+        stitchSchemas({
+          typeMergingOptions: {
+            validationSettings: { inputTypeConsistency: ValidationLevel.Error },
+          },
+          subschemas: [
+            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { status: BlobStatus! } enum BlobStatus { YES }') },
+            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { status: BlobStatus! } enum BlobStatus { NO }') },
+          ]
+        });
+      }).toThrow(/inconsistent values/);
+    });
+
+    it('permits consistent input field enum values', () => {
+      expect(() => {
+        stitchSchemas({
+          typeMergingOptions: {
+            validationSettings: { inputTypeConsistency: ValidationLevel.Error },
+          },
+          subschemas: [
+            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { status: BlobStatus! } enum BlobStatus { YES NO }') },
+            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { status: BlobStatus! } enum BlobStatus { NO YES }') },
           ]
         });
       }).not.toThrow();

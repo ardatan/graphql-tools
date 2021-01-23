@@ -82,7 +82,6 @@ export type SubschemaConfigTransform = (subschemaConfig: SubschemaConfig) => Sub
 export interface TypeMergingOptions {
   validationSettings?: ValidationSettings;
   elementValidationSettings?: Record<string, ValidationSettings>;
-  defaultValidationLevel?: ValidationLevel;
   typeCandidateMerger?: (candidates: Array<MergeTypeCandidate>) => MergeTypeCandidate;
   typeDescriptionsMerger?: (candidates: Array<MergeTypeCandidate>) => string;
   fieldConfigMerger?: (candidates: Array<MergeFieldConfigCandidate>) => GraphQLFieldConfig<any, any>;
@@ -99,13 +98,9 @@ export enum ValidationLevel {
 export interface ValidationSettings {
   fieldTypeConsistency?: ValidationLevel;
   fieldNullConsistency?: ValidationLevel;
-  fieldArgNameConsistency?: ValidationLevel;
-  fieldArgTypeConsistency?: ValidationLevel;
-  fieldArgNullConsistency?: ValidationLevel;
-  inputFieldNameConsistency?: ValidationLevel;
-  inputFieldTypeConsistency?: ValidationLevel;
-  inputFieldNullConsistency?: ValidationLevel;
-  inputEnumValueConsistency?: ValidationLevel;
+  inputTypeConsistency?: ValidationLevel;
+  inputNullConsistency?: ValidationLevel;
+  inputNameConsistency?: ValidationLevel;
 }
 
 export type OnTypeConflict = (
