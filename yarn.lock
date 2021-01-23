@@ -5620,10 +5620,10 @@ dataloader@2.0.0:
   resolved "https://registry.yarnpkg.com/dataloader/-/dataloader-2.0.0.tgz#41eaf123db115987e21ca93c005cd7753c55fe6f"
   integrity sha512-YzhyDAwA4TaQIhM5go+vCLmU0UikghC/t9DTQYZR2M/UvZ1MdOhPezSDZcjj9uqQJOMqjLcpWtyW2iNINdlatQ==
 
-dateformat@4.4.2:
-  version "4.4.2"
-  resolved "https://registry.yarnpkg.com/dateformat/-/dateformat-4.4.2.tgz#893758f83397ab5d366f841f4fb5f1d6f17e4d1f"
-  integrity sha512-GdplOQjYDNWJ1DxVFgTn9x9gHqigo8a5GS8oceQurS8RtTIG2v/T2GLke1ry9Le+M5gatDWMDsanaiT646WzDQ==
+dateformat@4.5.0:
+  version "4.5.0"
+  resolved "https://registry.yarnpkg.com/dateformat/-/dateformat-4.5.0.tgz#2b5fbae50d9f30dd0c82bf85344878cbc41b08cc"
+  integrity sha512-YkS64mgmj9At0Ua9p3qyqoHqjqkOTV/FGCluRIcrFNbhFmltQGl2x/DFBgpbRRPTNPoyxfzjqgNaGYjMbfnsdg==
 
 debug@2.6.9, debug@^2.2.0, debug@^2.3.3, debug@^2.6.0, debug@^2.6.9:
   version "2.6.9"
