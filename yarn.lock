@@ -14527,10 +14527,10 @@ typedoc-plugin-markdown@3.4.3:
   dependencies:
     handlebars "^4.7.6"
 
-typedoc@0.20.17:
-  version "0.20.17"
-  resolved "https://registry.yarnpkg.com/typedoc/-/typedoc-0.20.17.tgz#6404e7a14ae269198e02d8ab02d5a43ccf563363"
-  integrity sha512-FLEAanvCDGIFzfgXppN7GdYzsdDJ8+5wD4QfmCti8LAjRnn6qJIdQOmI5kqrpdiTzNCK7Wvs1vpT0vqMgO+uGQ==
+typedoc@0.20.18:
+  version "0.20.18"
+  resolved "https://registry.yarnpkg.com/typedoc/-/typedoc-0.20.18.tgz#10a3baa2fc544c24e61a3a04945d7b090178c213"
+  integrity sha512-AX4WgbVI7k3IoFmUFcAGhNBSjAHbQ8lE/EVVFkYDWIUAcxtLHlpF761Bbasniv5F9bwwxBuyAlLpJRJW/zIy4Q==
   dependencies:
     colors "^1.4.0"
     fs-extra "^9.0.1"
