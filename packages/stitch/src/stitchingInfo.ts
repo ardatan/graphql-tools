@@ -134,22 +134,27 @@ function createMergedTypes(
             selectionSets.set(subschema, selectionSet);
           }
 
+          if (mergedTypeConfig.computedFields) {
+            mergedTypeConfig.fields = mergedTypeConfig.fields ?? Object.create(null);
+            Object.keys(mergedTypeConfig.computedFields).forEach(fieldName => {
+              const fieldConfig = mergedTypeConfig.computedFields[fieldName];
+              console.warn(
+                `MergedTypeConfig.computedFields is deprecated. Use MergedTypeConfig.fields.${fieldName} = { selectionSet: '${fieldConfig.selectionSet}', computed: true }`
+              );
+              mergedTypeConfig.fields[fieldName] = {
+                ...(mergedTypeConfig.fields[fieldName] ?? {}),
+                ...fieldConfig,
+                computed: true,
+              };
+            });
+            delete mergedTypeConfig.computedFields;
+          }
+
           if (mergedTypeConfig.fields) {
             const parsedFieldSelectionSets = Object.create(null);
             Object.keys(mergedTypeConfig.fields).forEach(fieldName => {
               if (mergedTypeConfig.fields[fieldName].selectionSet) {
                 const rawFieldSelectionSet = mergedTypeConfig.fields[fieldName].selectionSet;
-                parsedFieldSelectionSets[fieldName] = parseSelectionSet(rawFieldSelectionSet, { noLocation: true });
-              }
-            });
-            fieldSelectionSets.set(subschema, parsedFieldSelectionSets);
-          }
-
-          if (mergedTypeConfig.computedFields) {
-            const parsedFieldSelectionSets = Object.create(null);
-            Object.keys(mergedTypeConfig.computedFields).forEach(fieldName => {
-              if (mergedTypeConfig.computedFields[fieldName].selectionSet) {
-                const rawFieldSelectionSet = mergedTypeConfig.computedFields[fieldName].selectionSet;
                 parsedFieldSelectionSets[fieldName] = parseSelectionSet(rawFieldSelectionSet, { noLocation: true });
               }
             });

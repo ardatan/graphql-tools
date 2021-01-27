@@ -235,9 +235,10 @@ describe('merging using type merging', () => {
         merge: {
           Product: {
             selectionSet: '{ upc }',
-            computedFields: {
+            fields: {
               shippingEstimate: {
                 selectionSet: '{ price weight }',
+                computed: true,
               },
             },
             fieldName: '_products',
