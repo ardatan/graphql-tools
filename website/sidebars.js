@@ -40,7 +40,7 @@ module.exports = {
       ]
     },
     {
-      "API Reference": []
+      "API Reference": require('./api-sidebar.json')
     }
   ]
 }
