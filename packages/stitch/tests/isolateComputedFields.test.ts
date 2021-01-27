@@ -1,6 +1,7 @@
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { isolateComputedFields } from '@graphql-tools/stitch';
 import { Subschema } from '@graphql-tools/delegate';
+import { GraphQLObjectType, GraphQLInterfaceType } from 'graphql';
 
 describe('isolateComputedFields', () => {
   describe('basic isolation', ()    => {
@@ -37,12 +38,17 @@ describe('isolateComputedFields', () => {
         merge: {
           Product: {
             selectionSet: '{ id weight }',
+            fields: {
+              shippingEstimate: { canonical: true },
+              deliveryService: { canonical: true },
+            },
             computedFields: {
               shippingEstimate: { selectionSet: '{ price }' },
             },
             fieldName: '_products',
             key: ({ id, price, weight }) => ({ id, price, weight }),
             argsFromKeys: (representations) => ({ representations }),
+            canonical: true,
           }
         }
       });
@@ -50,21 +56,28 @@ describe('isolateComputedFields', () => {
       const baseSubschema = new Subschema(baseConfig);
       const computedSubschema = new Subschema(computedConfig);
 
-      expect(Object.keys(baseSubschema.transformedSchema.getType('Query').getFields())).toEqual(['storefront', '_products']);
-      expect(Object.keys(baseSubschema.transformedSchema.getType('Product').getFields())).toEqual(['id', 'deliveryService']);
+      expect(Object.keys((baseSubschema.transformedSchema.getType('Query') as GraphQLObjectType).getFields())).toEqual(['storefront', '_products']);
+      expect(Object.keys((baseSubschema.transformedSchema.getType('Product') as GraphQLObjectType).getFields())).toEqual(['id', 'deliveryService']);
       expect(baseSubschema.transformedSchema.getType('DeliveryService')).toBeDefined();
       expect(baseSubschema.transformedSchema.getType('Storefront')).toBeDefined();
       expect(baseSubschema.transformedSchema.getType('ProductRepresentation')).toBeDefined();
 
-      expect(Object.keys(computedSubschema.transformedSchema.getType('Query').getFields())).toEqual(['_products']);
-      expect(Object.keys(computedSubschema.transformedSchema.getType('Product').getFields())).toEqual(['shippingEstimate']);
+      expect(Object.keys((computedSubschema.transformedSchema.getType('Query') as GraphQLObjectType).getFields())).toEqual(['_products']);
+      expect(Object.keys((computedSubschema.transformedSchema.getType('Product') as GraphQLObjectType).getFields())).toEqual(['shippingEstimate']);
 
       // pruning does not yet remove unused scalars/enums
       // expect(computedSubschema.transformedSchema.getType('DeliveryService')).toBeUndefined();
-      expect(Object.keys(computedSubschema.transformedSchema.getType('Storefront').getFields()).length).toEqual(0);
+      expect(Object.keys((computedSubschema.transformedSchema.getType('Storefront') as GraphQLObjectType).getFields()).length).toEqual(0);
       expect(computedSubschema.transformedSchema.getType('ProductRepresentation')).toBeDefined();
-      expect(computedSubschema.merge.Product.computedFields).toEqual({
-        shippingEstimate: { selectionSet: '{ price }' },
+
+      expect(baseSubschema.merge.Product.canonical).toEqual(true);
+      expect(baseSubschema.merge.Product.fields).toEqual({
+        deliveryService: { canonical: true },
+      });
+
+      expect(computedSubschema.merge.Product.canonical).toBeUndefined();
+      expect(computedSubschema.merge.Product.fields).toEqual({
+        shippingEstimate: { selectionSet: '{ price }', canonical: true },
       });
     });
 
@@ -164,18 +177,18 @@ describe('isolateComputedFields', () => {
       const baseSubschema = new Subschema(baseConfig);
       const computedSubschema = new Subschema(computedConfig);
 
-      expect(Object.keys(baseSubschema.transformedSchema.getType('Query').getFields())).toEqual(['storefront', '_products']);
-      expect(Object.keys(baseSubschema.transformedSchema.getType('Product').getFields())).toEqual(['base']);
-      expect(Object.keys(baseSubschema.transformedSchema.getType('Storefront').getFields())).toEqual(['base']);
+      expect(Object.keys((baseSubschema.transformedSchema.getType('Query') as GraphQLObjectType).getFields())).toEqual(['storefront', '_products']);
+      expect(Object.keys((baseSubschema.transformedSchema.getType('Product') as GraphQLObjectType).getFields())).toEqual(['base']);
+      expect(Object.keys((baseSubschema.transformedSchema.getType('Storefront') as GraphQLObjectType).getFields())).toEqual(['base']);
       expect(baseSubschema.merge.Storefront.fields).toBeUndefined();
 
-      expect(Object.keys(computedSubschema.transformedSchema.getType('Query').getFields())).toEqual(['storefront', '_products']);
-      expect(Object.keys(computedSubschema.transformedSchema.getType('Product').getFields())).toEqual(['computed']);
-      expect(Object.keys(computedSubschema.transformedSchema.getType('Storefront').getFields())).toEqual(['computed']);
-      expect(computedSubschema.merge.Storefront.computedFields).toEqual({
+      expect(Object.keys((computedSubschema.transformedSchema.getType('Query') as GraphQLObjectType).getFields())).toEqual(['storefront', '_products']);
+      expect(Object.keys((computedSubschema.transformedSchema.getType('Product') as GraphQLObjectType).getFields())).toEqual(['computed']);
+      expect(Object.keys((computedSubschema.transformedSchema.getType('Storefront') as GraphQLObjectType).getFields())).toEqual(['computed']);
+      expect(computedSubschema.merge.Storefront.fields).toEqual({
         computed: { selectionSet: '{ availableProductIds }' },
       });
-      expect(computedSubschema.merge.Product.computedFields).toEqual({
+      expect(computedSubschema.merge.Product.fields).toEqual({
         computed: { selectionSet: '{ price }' },
       });
     });
@@ -217,10 +230,10 @@ describe('isolateComputedFields', () => {
       const baseSubschema = new Subschema(baseConfig);
       const computedSubschema = new Subschema(computedConfig);
 
-      expect(Object.keys(baseSubschema.transformedSchema.getType('IProduct').getFields())).toEqual(['base']);
-      expect(Object.keys(baseSubschema.transformedSchema.getType('Product').getFields())).toEqual(['base']);
-      expect(Object.keys(computedSubschema.transformedSchema.getType('IProduct').getFields())).toEqual(['computed']);
-      expect(Object.keys(computedSubschema.transformedSchema.getType('Product').getFields())).toEqual(['computed']);
+      expect(Object.keys((baseSubschema.transformedSchema.getType('IProduct') as GraphQLInterfaceType).getFields())).toEqual(['base']);
+      expect(Object.keys((baseSubschema.transformedSchema.getType('Product') as GraphQLObjectType).getFields())).toEqual(['base']);
+      expect(Object.keys((computedSubschema.transformedSchema.getType('IProduct') as GraphQLInterfaceType).getFields())).toEqual(['computed']);
+      expect(Object.keys((computedSubschema.transformedSchema.getType('Product') as GraphQLObjectType).getFields())).toEqual(['computed']);
     });
   });
 });

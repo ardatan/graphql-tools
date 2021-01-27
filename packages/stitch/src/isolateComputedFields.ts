@@ -19,16 +19,20 @@ export function isolateComputedFields(subschemaConfig: SubschemaConfig): Array<S
     baseSchemaTypes[typeName] = mergedTypeConfig;
 
     if (mergedTypeConfig.computedFields) {
-      const baseFields: Record<string, MergedFieldConfig> = {};
+      const baseFields: Record<string, MergedFieldConfig> = { ...(mergedTypeConfig?.fields || {}) };
       const isolatedFields: Record<string, MergedFieldConfig> = {};
 
       Object.keys(mergedTypeConfig.computedFields).forEach((fieldName: string) => {
         const mergedFieldConfig = mergedTypeConfig.computedFields[fieldName];
+        const fieldCollection = mergedFieldConfig.selectionSet ? isolatedFields : baseFields;
 
-        if (mergedFieldConfig.selectionSet) {
-          isolatedFields[fieldName] = mergedFieldConfig;
-        } else {
-          baseFields[fieldName] = mergedFieldConfig;
+        fieldCollection[fieldName] = {
+          ...(mergedTypeConfig?.fields?.[fieldName] || {}),
+          ...mergedFieldConfig,
+        };
+
+        if (fieldCollection === isolatedFields && baseFields[fieldName]) {
+          delete baseFields[fieldName];
         }
       });
 
@@ -39,8 +43,13 @@ export function isolateComputedFields(subschemaConfig: SubschemaConfig): Array<S
         baseSchemaTypes[typeName] = {
           ...mergedTypeConfig,
           fields: Object.keys(baseFields).length ? baseFields : undefined,
+          computedFields: undefined,
         };
-        isolatedSchemaTypes[typeName] = { ...mergedTypeConfig, fields: isolatedFields };
+        isolatedSchemaTypes[typeName] = {
+          ...mergedTypeConfig,
+          fields: isolatedFields,
+          canonical: undefined,
+        };
       }
     }
   });
