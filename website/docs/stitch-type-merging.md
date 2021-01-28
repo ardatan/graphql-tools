@@ -458,9 +458,15 @@ The `@computed` SDL directive is a convenience syntax for static configuration t
   merge: {
     Product: {
       selectionSet: '{ id }',
-      computedFields: {
-        shippingEstimate: { selectionSet: '{ price weight }' },
-        deliveryService: { selectionSet: '{ weight }' },
+      fields: {
+        shippingEstimate: {
+          selectionSet: '{ price weight }',
+          computed: true,
+        },
+        deliveryService: {
+          selectionSet: '{ weight }',
+          computed: true,
+        },
       },
       fieldName: '_products',
       key: ({ id, price, weight }) => ({ id, price, weight }),
@@ -470,9 +476,11 @@ The `@computed` SDL directive is a convenience syntax for static configuration t
 }
 ```
 
-The main disadvantage of computed fields is that they cannot be resolved independently from the stitched gateway. Tolerance for this subservice inconsistency is largely dependent on your own service architecture. An imperfect solution is to deprecate all computed fields within a subschema, and then normalize their behavior in the gateway schema with a [`RemoveObjectFieldDeprecations`](/docs/schema-wrapping#grooming) transform. See related [handbook example](https://github.com/gmac/schema-stitching-handbook/tree/master/computed-fields).
+A field-level `selectionSet` specifies field dependencies while the `computed` setting structures the field in a way that assures it is always selected with this data provided. The `selectionSet` is intentionally generic to support possible future uses.
 
-> **Implementation note:** to facilitate field-level dependencies, computed and non-computed fields of a type in the same subservice are automatically split apart into separate schemas. This assures that computed fields are always requested directly by the gateway with their dependencies provided. However, it also means that computed and non-computed fields may require separate resolution steps. You may enable [query batching](#batching) to consolidate requests whenever possible.
+> **Implementation note:** to assure that computed fields are always requested directly by the gateway with their dependencies provided, computed and non-computed fields of a type in the same subservice are automatically split apart into separate schemas. This means that computed and non-computed fields may require separate resolution steps. You may enable [query batching](#batching) to consolidate requests whenever possible.
+
+The main disadvantage of computed fields is that they cannot be resolved independently from the stitched gateway. Tolerance for this subservice inconsistency is largely dependent on your own service architecture. An imperfect solution is to deprecate all computed fields within a subschema, and then normalize their behavior in the gateway schema with a [`RemoveObjectFieldDeprecations`](/docs/schema-wrapping#grooming) transform. See related [handbook example](https://github.com/gmac/schema-stitching-handbook/tree/master/computed-fields).
 
 ## Federation services
 

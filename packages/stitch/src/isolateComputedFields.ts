@@ -24,6 +24,8 @@ export function isolateComputedFields(subschemaConfig: SubschemaConfig): Array<S
       Object.entries(mergedTypeConfig.fields).forEach(([fieldName, mergedFieldConfig]) => {
         if (mergedFieldConfig.computed && mergedFieldConfig.selectionSet) {
           isolatedFields[fieldName] = mergedFieldConfig;
+        } else if (mergedFieldConfig.computed) {
+          throw new Error(`A selectionSet is required for computed field "${typeName}.${fieldName}"`);
         } else {
           baseFields[fieldName] = { ...mergedFieldConfig, computed: false };
         }
