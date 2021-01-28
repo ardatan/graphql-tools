@@ -75,7 +75,7 @@ describe('isolateComputedFields', () => {
 
       expect(baseSubschema.merge.Product.canonical).toEqual(true);
       expect(baseSubschema.merge.Product.fields).toEqual({
-        deliveryService: { computed: false, canonical: true },
+        deliveryService: { canonical: true },
       });
 
       expect(computedSubschema.merge.Product.canonical).toBeUndefined();

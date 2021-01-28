@@ -27,7 +27,7 @@ export function isolateComputedFields(subschemaConfig: SubschemaConfig): Array<S
         } else if (mergedFieldConfig.computed) {
           throw new Error(`A selectionSet is required for computed field "${typeName}.${fieldName}"`);
         } else {
-          baseFields[fieldName] = { ...mergedFieldConfig, computed: false };
+          baseFields[fieldName] = mergedFieldConfig;
         }
       });
 

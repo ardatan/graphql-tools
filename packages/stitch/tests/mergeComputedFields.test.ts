@@ -144,7 +144,7 @@ describe('merge computed fields via config', () => {
   });
 
   it('supports deprecated computedFields setting (remove in major version)', async () => {
-    const legacySchema = stitchSchemas({
+    const oldComputedSchema = stitchSchemas({
       subschemas: [
         {
           schema: productSchema,
@@ -162,7 +162,6 @@ describe('merge computed fields via config', () => {
             Product: {
               selectionSet: '{ id }',
               computedFields: {
-                shippingEstimate: { selectionSet: '{ price weight }' },
                 deliveryService: { selectionSet: '{ weight }' },
               },
               fieldName: '_products',
@@ -174,13 +173,12 @@ describe('merge computed fields via config', () => {
       ],
     });
 
-    const { data } = await graphql(legacySchema, `
+    const { data } = await graphql(oldComputedSchema, `
       query {
         product(id: 77) {
           id
           price
           weight
-          shippingEstimate
           deliveryService
         }
       }
@@ -190,7 +188,6 @@ describe('merge computed fields via config', () => {
       id: '77',
       price: 77.99,
       weight: 77,
-      shippingEstimate: 0,
       deliveryService: 'FREIGHT'
     });
   });
