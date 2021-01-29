@@ -21,13 +21,6 @@ export function cloneSubschemaConfig(subschemaConfig: SubschemaConfig): Subschem
           fields[fieldName] = { ...fields[fieldName] };
         });
       }
-
-      const computedFields = newSubschemaConfig.merge[typeName].computedFields;
-      if (computedFields != null) {
-        Object.keys(computedFields).forEach(fieldName => {
-          computedFields[fieldName] = { ...computedFields[fieldName] };
-        });
-      }
     });
   }
 

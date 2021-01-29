@@ -134,22 +134,6 @@ function createMergedTypes(
             selectionSets.set(subschema, selectionSet);
           }
 
-          if (mergedTypeConfig.computedFields) {
-            mergedTypeConfig.fields = mergedTypeConfig.fields ?? Object.create(null);
-            Object.keys(mergedTypeConfig.computedFields).forEach(fieldName => {
-              const fieldConfig = mergedTypeConfig.computedFields[fieldName];
-              console.warn(
-                `MergedTypeConfig.computedFields is deprecated. Use MergedTypeConfig.fields.${fieldName} = { selectionSet: '${fieldConfig.selectionSet}', computed: true }\nIf using @graphql-tools/stitching-directives, update the package.`
-              );
-              mergedTypeConfig.fields[fieldName] = {
-                ...(mergedTypeConfig.fields[fieldName] ?? {}),
-                ...fieldConfig,
-                computed: true,
-              };
-            });
-            delete mergedTypeConfig.computedFields;
-          }
-
           if (mergedTypeConfig.fields) {
             const parsedFieldSelectionSets = Object.create(null);
             Object.keys(mergedTypeConfig.fields).forEach(fieldName => {
