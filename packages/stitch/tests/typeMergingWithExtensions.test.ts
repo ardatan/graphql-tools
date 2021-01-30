@@ -405,11 +405,7 @@ describe('merging using type merging', () => {
     subschemaConfigTransforms: [stitchingDirectivesTransformer],
     typeMergingOptions: {
       validationSettings: {
-        fieldTypeConsistency: ValidationLevel.Off,
-        fieldNullConsistency: ValidationLevel.Off,
-        inputTypeConsistency: ValidationLevel.Off,
-        inputNullConsistency: ValidationLevel.Off,
-        inputNameConsistency: ValidationLevel.Off,
+        defaultValidationLevel: ValidationLevel.Off,
       }
     }
   });

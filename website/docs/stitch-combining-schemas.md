@@ -171,7 +171,6 @@ Each validation setting may be set to `error`, `warn`, or `off` for the entire s
 ```js
 const gatewaySchema = stitchSchemas({
   subschemas: [...],
-  mergeTypes: true, // << default in v7
   typeMergingOptions: {
     validationSettings: {
       fieldTypeConsistency: 'off',
@@ -179,9 +178,11 @@ const gatewaySchema = stitchSchemas({
       inputTypeConsistency: 'error',
       inputNullConsistency: 'error',
       inputNameConsistency: 'error',
+      defaultValidationLevel: 'warn',
     },
-    elementValidationSettings: {
-      'User.id': { fieldNullConsistency: 'off' },
+    namespaceValidationSettings: {
+      'User.id': { fieldNullConsistency: 'off' }, // << specific field
+      'User': { fieldNullConsistency: 'off' }, // << all fields of type
     }
   },
 });

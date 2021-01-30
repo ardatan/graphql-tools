@@ -348,4 +348,54 @@ describe('InputObject validations', () => {
       }).not.toThrow();
     });
   });
+
+  describe('namespaced validation settings', () => {
+    it('adjustable by field', () => {
+      expect(() => {
+        stitchSchemas({
+          typeMergingOptions: {
+            namespaceValidationSettings: {
+              'Query.field1': { fieldTypeConsistency: ValidationLevel.Error }
+            },
+          },
+          subschemas: [
+            { schema: buildSchema('type Query { field1: String }') },
+            { schema: buildSchema('type Query { field1: Int }') },
+          ]
+        });
+      }).toThrow();
+    });
+
+    it('adjustable by type', () => {
+      expect(() => {
+        stitchSchemas({
+          typeMergingOptions: {
+            namespaceValidationSettings: {
+              'Query': { fieldTypeConsistency: ValidationLevel.Error }
+            },
+          },
+          subschemas: [
+            { schema: buildSchema('type Query { field1: String }') },
+            { schema: buildSchema('type Query { field1: Int }') },
+          ]
+        });
+      }).toThrow();
+    });
+
+    it('adjustable by default', () => {
+      expect(() => {
+        stitchSchemas({
+          typeMergingOptions: {
+            validationSettings: {
+              defaultValidationLevel: ValidationLevel.Error,
+            },
+          },
+          subschemas: [
+            { schema: buildSchema('type Query { field1: String }') },
+            { schema: buildSchema('type Query { field1: Int }') },
+          ]
+        });
+      }).toThrow();
+    });
+  });
 });

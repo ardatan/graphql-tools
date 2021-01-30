@@ -61,7 +61,7 @@ export function validateFieldConsistency(
   }
 
   Object.entries(argCandidatesMap).forEach(([argName, argCandidates]) => {
-    const argNamespace = `${fieldNamespace}(${argName})`;
+    const argNamespace = `${fieldNamespace}.${argName}`;
     const finalArgConfig = finalFieldConfig.args[argName] || argCandidates[argCandidates.length - 1];
     const finalArgType = getNamedType(finalArgConfig.type);
 
@@ -205,10 +205,22 @@ function validationMessage(
   settingNamespace: string,
   typeMergingOptions: TypeMergingOptions
 ): void {
-  const setting =
-    typeMergingOptions?.elementValidationSettings?.[settingNamespace]?.[settingName] ??
-    typeMergingOptions?.validationSettings?.[settingName] ??
-    ValidationLevel.Warn;
+  let setting;
+  const namespace = settingNamespace.split('.');
+
+  while (!setting && namespace.length) {
+    setting =
+      typeMergingOptions?.namespaceValidationSettings?.[namespace.join('.')]?.[settingName] ??
+      typeMergingOptions?.namespaceValidationSettings?.[namespace.join('.')]?.defaultValidationLevel;
+    namespace.pop();
+  }
+
+  if (setting == null) {
+    setting =
+      typeMergingOptions?.validationSettings?.[settingName] ??
+      typeMergingOptions?.validationSettings?.defaultValidationLevel ??
+      ValidationLevel.Warn;
+  }
 
   switch (setting) {
     case ValidationLevel.Off:
@@ -218,7 +230,7 @@ function validationMessage(
     default:
       console.warn(
         message,
-        `To disable this warning or elevate it to an error, adjust "validationSettings.${settingName}" or "elementValidationSettings['${settingNamespace}'].${settingName}" in typeMergingOptions.`
+        `To disable this warning or elevate it to an error, adjust "validationSettings.${settingName}" or "namespaceValidationSettings['${settingNamespace}'].${settingName}" in typeMergingOptions.`
       );
   }
 }
