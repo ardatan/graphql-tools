@@ -69,7 +69,8 @@ export function getDirectivesInExtensions(
 export function getDirectives(
   schema: GraphQLSchema,
   node: DirectableGraphQLObject,
-  pathToDirectivesInExtensions = ['directives']
+  pathToDirectivesInExtensions = ['directives'],
+  { flatRepeatable } = { flatRepeatable: false }
 ): DirectiveUseMap {
   const directivesInExtensions = getDirectivesInExtensions(node, pathToDirectivesInExtensions);
 
@@ -97,39 +98,25 @@ export function getDirectives(
 
   astNodes.forEach(astNode => {
     if (astNode.directives) {
-      astNode.directives.forEach(directive => {
-        const schemaDirective = schemaDirectiveMap[directive.name.value];
-        if (schemaDirective) {
-          const directiveValue = getDirectiveValues(schemaDirective, astNode);
+      astNode.directives.forEach(directiveNode => {
+        const schemaDirective = schemaDirectiveMap[directiveNode.name.value];
+        if (!schemaDirective) return;
 
-          if (schemaDirective.isRepeatable) {
-            if (result[schemaDirective.name]) {
-              result[schemaDirective.name] = result[schemaDirective.name].concat([directiveValue]);
-            } else {
-              result[schemaDirective.name] = [directiveValue];
-            }
-          } else {
-            result[schemaDirective.name] = directiveValue;
-          }
+        if (schemaDirective.isRepeatable) {
+          result[schemaDirective.name] = result[schemaDirective.name] ?? [];
+          result[schemaDirective.name].push(
+            flatRepeatable
+              ? getArgumentValues(schemaDirective, directiveNode)
+              : astNode.directives
+                  .filter(directive => directive.name.value === schemaDirective.name)
+                  .map(directiveNode => getArgumentValues(schemaDirective, directiveNode))
+          );
+        } else {
+          result[schemaDirective.name] = getArgumentValues(schemaDirective, directiveNode);
         }
       });
     }
   });
 
   return result;
-}
-
-// graphql-js getDirectiveValues does not handle repeatable directives
-function getDirectiveValues(directiveDef: GraphQLDirective, node: SchemaOrTypeNode): any {
-  if (node.directives) {
-    if (directiveDef.isRepeatable) {
-      const directiveNodes = node.directives.filter(directive => directive.name.value === directiveDef.name);
-
-      return directiveNodes.map(directiveNode => getArgumentValues(directiveDef, directiveNode));
-    }
-
-    const directiveNode = node.directives.find(directive => directive.name.value === directiveDef.name);
-
-    return getArgumentValues(directiveDef, directiveNode);
-  }
 }
