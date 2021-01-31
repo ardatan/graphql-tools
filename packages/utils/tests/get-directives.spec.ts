@@ -80,4 +80,35 @@ describe('getDirectives', () => {
       mydir: {},
     });
   });
+
+  it('provides the extension definition over base', () => {
+    const schema = makeExecutableSchema({
+      typeDefs: `
+        directive @mydir(arg: String) on OBJECT
+        extend type Query @mydir(arg: "ext1") {
+          second: String
+        }
+        type Query @mydir(arg: "base") {
+          first: String
+        }
+      `
+    });
+
+    expect(getDirectives(schema, schema.getQueryType())).toEqual({ mydir: { arg: 'ext1' } });
+  });
+
+  it('builds proper repeatable directives listing', () => {
+    const schema = makeExecutableSchema({
+      typeDefs: `
+        directive @mydir(arg: String) repeatable on OBJECT
+        type Query @mydir(arg: "first") @mydir(arg: "second") {
+          first: String
+        }
+      `
+    });
+
+    expect(getDirectives(schema, schema.getQueryType())).toEqual({
+      mydir: [{ arg: "first" }, { arg: "second" }]
+    });
+  });
 });
