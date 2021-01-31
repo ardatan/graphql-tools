@@ -69,8 +69,7 @@ export function getDirectivesInExtensions(
 export function getDirectives(
   schema: GraphQLSchema,
   node: DirectableGraphQLObject,
-  pathToDirectivesInExtensions = ['directives'],
-  { flatRepeatable } = { flatRepeatable: false }
+  pathToDirectivesInExtensions = ['directives']
 ): DirectiveUseMap {
   const directivesInExtensions = getDirectivesInExtensions(node, pathToDirectivesInExtensions);
 
@@ -100,19 +99,13 @@ export function getDirectives(
     if (astNode.directives) {
       astNode.directives.forEach(directiveNode => {
         const schemaDirective = schemaDirectiveMap[directiveNode.name.value];
-        if (!schemaDirective) return;
-
-        if (schemaDirective.isRepeatable) {
-          result[schemaDirective.name] = result[schemaDirective.name] ?? [];
-          result[schemaDirective.name].push(
-            flatRepeatable
-              ? getArgumentValues(schemaDirective, directiveNode)
-              : astNode.directives
-                  .filter(directive => directive.name.value === schemaDirective.name)
-                  .map(directiveNode => getArgumentValues(schemaDirective, directiveNode))
-          );
-        } else {
-          result[schemaDirective.name] = getArgumentValues(schemaDirective, directiveNode);
+        if (schemaDirective) {
+          if (schemaDirective.isRepeatable) {
+            result[schemaDirective.name] = result[schemaDirective.name] ?? [];
+            result[schemaDirective.name].push(getArgumentValues(schemaDirective, directiveNode));
+          } else {
+            result[schemaDirective.name] = getArgumentValues(schemaDirective, directiveNode);
+          }
         }
       });
     }

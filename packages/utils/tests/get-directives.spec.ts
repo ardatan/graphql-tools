@@ -97,24 +97,6 @@ describe('getDirectives', () => {
     expect(getDirectives(schema, schema.getQueryType())).toEqual({ mydir: { arg: 'ext1' } });
   });
 
-  it('builds busted repeatable directives for backwards compatibility (deprecate this!)', () => {
-    const schema = makeExecutableSchema({
-      typeDefs: `
-        directive @mydir(arg: String) repeatable on OBJECT
-        type Query @mydir(arg: "first") @mydir(arg: "second") {
-          first: String
-        }
-      `
-    });
-
-    expect(getDirectives(schema, schema.getQueryType())).toEqual({
-      mydir: [
-        [{ arg: "first" }, { arg: "second" }],
-        [{ arg: "first" }, { arg: "second" }],
-      ]
-    });
-  });
-
   it('builds proper repeatable directives listing', () => {
     const schema = makeExecutableSchema({
       typeDefs: `
@@ -125,7 +107,7 @@ describe('getDirectives', () => {
       `
     });
 
-    expect(getDirectives(schema, schema.getQueryType(), undefined, { flatRepeatable: true })).toEqual({
+    expect(getDirectives(schema, schema.getQueryType())).toEqual({
       mydir: [{ arg: "first" }, { arg: "second" }]
     });
   });
