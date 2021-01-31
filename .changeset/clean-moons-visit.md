@@ -2,4 +2,14 @@
 "@graphql-tools/utils": patch
 ---
 
-Adds a `flatRepeatable` option to the `getDirectives` method. Enabling this setting will return a flat array of repeatable directives, versus the current nested result with duplicative records. This flat parsing will become the new result in a future major version.
+Fixes the handling of repeatable directives in the `getDirectives` method. Previously repeatable directives were nested and duplicated. They will now return as a flat array map:
+
+```graphql
+@mydir(arg: "first") @mydir(arg: "second")
+```
+
+translates into:
+
+```js
+{ mydir: [{ arg: "first" }, { arg: "second" }] }
+````
