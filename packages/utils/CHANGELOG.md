@@ -1,5 +1,23 @@
 # @graphql-tools/utils
 
+## 7.2.5
+
+### Patch Changes
+
+- 4fc05eb7: Fixes the handling of repeatable directives in the `getDirectives` method. Previously repeatable directives were nested and duplicated. They will now return as a flat array map:
+
+  ```graphql
+  @mydir(arg: "first") @mydir(arg: "second")
+  ```
+
+  translates into:
+
+  ```js
+  {
+    mydir: [{ arg: 'first' }, { arg: 'second' }];
+  }
+  ```
+
 ## 7.2.4
 
 ### Patch Changes
