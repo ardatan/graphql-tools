@@ -7,6 +7,7 @@ import {
   isNonNullType,
   getNamedType,
   isListType,
+  isScalarType,
   GraphQLType,
 } from 'graphql';
 
@@ -40,13 +41,13 @@ export function validateFieldConsistency(
     candidates.some(c => finalFieldNull !== isNonNullType(c.fieldConfig.type))
   ) {
     validationMessage(
-      `Nullability of field "${fieldNamespace}" does not match across subschemas.`,
+      `Nullability of field "${fieldNamespace}" does not match across subschemas. Disable typeMergingOptions.validationSettings.strictNullComparison to permit safe divergences.`,
       fieldNamespace,
       typeMergingOptions
     );
   } else if (finalFieldNull && candidates.some(c => !isNonNullType(c.fieldConfig.type))) {
     validationMessage(
-      `Canonical definition of field "${fieldNamespace}" is not-null while some subschemas permit null. This will not be allowed in future versions.`,
+      `Canonical definition of field "${fieldNamespace}" is not-null while some subschemas permit null. This will be an automatic error in future versions.`,
       fieldNamespace,
       typeMergingOptions
     );
@@ -81,13 +82,13 @@ export function validateFieldConsistency(
       argCandidates.some(c => finalArgNull !== isNonNullType(c.type))
     ) {
       validationMessage(
-        `Nullability of argument "${argNamespace}" does not match across subschemas.`,
+        `Nullability of argument "${argNamespace}" does not match across subschemas. Disable typeMergingOptions.validationSettings.strictNullComparison to permit safe divergences.`,
         argNamespace,
         typeMergingOptions
       );
     } else if (!finalArgNull && argCandidates.some(c => isNonNullType(c.type))) {
       validationMessage(
-        `Canonical definition of argument "${argNamespace}" permits null while some subschemas require not-null. This will not be allowed in future versions.`,
+        `Canonical definition of argument "${argNamespace}" permits null while some subschemas require not-null. This will be an automatic error in future versions.`,
         argNamespace,
         typeMergingOptions
       );
@@ -139,13 +140,13 @@ export function validateInputFieldConsistency(
     candidates.some(c => finalInputFieldNull !== isNonNullType(c.inputFieldConfig.type))
   ) {
     validationMessage(
-      `Nullability of input field "${inputFieldNamespace}" does not match across subschemas.`,
+      `Nullability of input field "${inputFieldNamespace}" does not match across subschemas. Disable typeMergingOptions.validationSettings.strictNullComparison to permit safe divergences.`,
       inputFieldNamespace,
       typeMergingOptions
     );
   } else if (!finalInputFieldNull && candidates.some(c => isNonNullType(c.inputFieldConfig.type))) {
     validationMessage(
-      `Canonical definition of input field "${inputFieldNamespace}" permits null while some subschemas require not-null. This will not be allowed in future versions.`,
+      `Canonical definition of input field "${inputFieldNamespace}" permits null while some subschemas require not-null. This will be an automatic error in future versions.`,
       inputFieldNamespace,
       typeMergingOptions
     );
@@ -164,23 +165,36 @@ export function validateTypeConsistency(
   typeMergingOptions: TypeMergingOptions
 ): void {
   const finalNamedType = getNamedType(finalElementConfig.type);
+  const finalIsScalar = isScalarType(finalNamedType);
   const finalIsList = hasListType(finalElementConfig.type);
-  const hasTypeConflict = candidates.some(c => {
+
+  candidates.forEach(c => {
     if (finalIsList !== hasListType(c.type)) {
       throw new Error(
         `Definitions of ${definitionType} "${settingNamespace}" implement inconsistent list types across subschemas and cannot be merged.`
       );
     }
-    return finalNamedType.toString() !== getNamedType(c.type).toString();
-  });
 
-  if (hasTypeConflict) {
-    validationMessage(
-      `Definitions of ${definitionType} "${settingNamespace}" implement inconsistent named types across subschemas.`,
-      settingNamespace,
-      typeMergingOptions
-    );
-  }
+    const currentNamedType = getNamedType(c.type);
+
+    if (finalNamedType.toString() !== currentNamedType.toString()) {
+      const proxyableScalar = !!typeMergingOptions?.validationSettings?.proxyableScalars?.[
+        finalNamedType.toString()
+      ]?.includes(currentNamedType.toString());
+      const bothScalars = finalIsScalar && isScalarType(currentNamedType);
+      const permitScalar = proxyableScalar && bothScalars;
+      if (proxyableScalar && !bothScalars) {
+        throw new Error(`Types ${finalNamedType} and ${currentNamedType} are not proxyable scalars.`);
+      }
+      if (!permitScalar) {
+        validationMessage(
+          `Definitions of ${definitionType} "${settingNamespace}" implement inconsistent named types across subschemas. This will be an automatic error in future versions.`,
+          settingNamespace,
+          typeMergingOptions
+        );
+      }
+    }
+  });
 }
 
 function hasListType(type: GraphQLType): boolean {
@@ -206,7 +220,7 @@ export function validateInputEnumConsistency(
 
   if (Object.values(enumValueInclusionMap).some(count => candidates.length !== count)) {
     validationMessage(
-      `Enum "${inputEnumType.name}" is used as an input with inconsistent values across subschemas. This will not be allowed in future versions.`,
+      `Enum "${inputEnumType.name}" is used as an input with inconsistent values across subschemas. This will be an automatic error in future versions.`,
       inputEnumType.name,
       typeMergingOptions
     );
@@ -214,7 +228,7 @@ export function validateInputEnumConsistency(
 }
 
 function validationMessage(message: string, settingNamespace: string, typeMergingOptions: TypeMergingOptions): void {
-  const override = `typeMergingOptions.validationSettings.scopes['${settingNamespace}']`;
+  const override = `typeMergingOptions.validationScopes['${settingNamespace}'].validationLevel`;
   const settings = getValidationSettings(settingNamespace, typeMergingOptions);
 
   switch (settings.validationLevel ?? ValidationLevel.Warn) {
@@ -230,13 +244,8 @@ function validationMessage(message: string, settingNamespace: string, typeMergin
 }
 
 function getValidationSettings(settingNamespace: string, typeMergingOptions: TypeMergingOptions): ValidationSettings {
-  const path = settingNamespace.split('.');
-  let settings;
-
-  while (!settings && path.length) {
-    settings = typeMergingOptions?.validationScopes?.[path.join('.')];
-    path.pop();
-  }
-
-  return settings ?? typeMergingOptions?.validationSettings ?? {};
+  return {
+    ...(typeMergingOptions?.validationSettings ?? {}),
+    ...(typeMergingOptions?.validationScopes?.[settingNamespace] ?? {}),
+  };
 }

@@ -98,6 +98,7 @@ export enum ValidationLevel {
 export interface ValidationSettings {
   validationLevel?: ValidationLevel;
   strictNullComparison?: boolean;
+  proxyableScalars?: Record<string, Array<string>>;
 }
 
 export type OnTypeConflict = (

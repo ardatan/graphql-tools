@@ -165,12 +165,14 @@ const gatewaySchema = stitchSchemas({
   subschemas: [...],
   typeMergingOptions: {
     validationSettings: {
-      strictNullComparison: false,
       validationLevel: 'error',
+      strictNullComparison: false, // << gateway "String" may proxy subschema "String!"
+      proxyableScalars: {
+        ID: ['String'], // << gateway "ID" may proxy subschema "String"
+      }
     },
     validationScopes: {
-      'User.id': { validationLevel: 'off' }, // << specific field
-      'User': { strictNullComparison: true }, // << all fields of type
+      'User.id': { strictNullComparison: true },
     }
   },
 });

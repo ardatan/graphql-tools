@@ -32,7 +32,7 @@ describe('Field validations', () => {
       }).toThrow(/inconsistent list types/);
     });
 
-    it('permits consistent types', () => {
+    it('permits consistent named types', () => {
       expect(() => {
         stitchSchemas({
           typeMergingOptions: {
@@ -44,6 +44,46 @@ describe('Field validations', () => {
           ]
         });
       }).not.toThrow();
+    });
+  });
+
+  describe('proxyableScalars', () => {
+    it('permits whitelisted scalar proxies', () => {
+      expect(() => {
+        stitchSchemas({
+          typeMergingOptions: {
+            validationSettings: {
+              validationLevel: ValidationLevel.Error,
+              proxyableScalars: {
+                ID: ['String']
+              }
+            },
+          },
+          subschemas: [
+            { schema: buildSchema('type Query { field: [String] }') },
+            { schema: buildSchema('type Query { field: [ID] }') },
+          ]
+        });
+      }).not.toThrow();
+    });
+
+    it('throws for non-proxyable scalar types', () => {
+      expect(() => {
+        stitchSchemas({
+          typeMergingOptions: {
+            validationSettings: {
+              validationLevel: ValidationLevel.Error,
+              proxyableScalars: {
+                ID: ['Thing']
+              }
+            },
+          },
+          subschemas: [
+            { schema: buildSchema('type Query { field: [Thing] } type Thing { id: ID }') },
+            { schema: buildSchema('type Query { field: [ID] }') },
+          ]
+        });
+      }).toThrow(/not proxyable scalars/);
     });
   });
 
@@ -406,31 +446,16 @@ describe('Scoped validation settings', () => {
     expect(() => {
       stitchSchemas({
         typeMergingOptions: {
+          validationSettings: { validationLevel: ValidationLevel.Error },
           validationScopes: {
-            'Query.field1': { validationLevel: ValidationLevel.Error }
+            'Query.field1': { strictNullComparison: true },
           },
         },
         subschemas: [
-          { schema: buildSchema('type Query { field1: String }') },
+          { schema: buildSchema('type Query { field1: Int! }') },
           { schema: buildSchema('type Query { field1: Int }') },
         ]
       });
-    }).toThrow();
-  });
-
-  it('adjustable by type', () => {
-    expect(() => {
-      stitchSchemas({
-        typeMergingOptions: {
-          validationScopes: {
-            'Query': { validationLevel: ValidationLevel.Error }
-          },
-        },
-        subschemas: [
-          { schema: buildSchema('type Query { field1: String }') },
-          { schema: buildSchema('type Query { field1: Int }') },
-        ]
-      });
-    }).toThrow();
+    }).toThrow(/does not match/);
   });
 });
