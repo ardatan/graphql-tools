@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/utils",
-  "version": "7.2.4",
+  "version": "7.2.5",
   "description": "Common package containting utils and types for GraphQL tools",
   "repository": {
     "type": "git",
@@ -21,7 +21,7 @@
   },
   "devDependencies": {
     "@types/dateformat": "3.0.1",
-    "dateformat": "4.4.2",
+    "dateformat": "4.5.1",
     "graphql-scalars": "1.7.0"
   },
   "dependencies": {
