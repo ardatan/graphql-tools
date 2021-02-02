@@ -15,6 +15,7 @@ import {
   MergeFieldConfigCandidate,
   MergeInputFieldConfigCandidate,
   TypeMergingOptions,
+  ValidationSettings,
   ValidationLevel,
 } from './types';
 
@@ -24,20 +25,28 @@ export function validateFieldConsistency(
   typeMergingOptions: TypeMergingOptions
 ): void {
   const fieldNamespace = `${candidates[0].type.name}.${candidates[0].fieldName}`;
+  const finalFieldNull = isNonNullType(finalFieldConfig.type);
 
   validateTypeConsistency(
     finalFieldConfig,
     candidates.map(c => c.fieldConfig),
     'field',
-    'fieldTypeConsistency',
     fieldNamespace,
     typeMergingOptions
   );
 
-  if (isNonNullType(finalFieldConfig.type) && candidates.some(c => !isNonNullType(c.fieldConfig.type))) {
+  if (
+    getValidationSettings(fieldNamespace, typeMergingOptions).strictNullComparison &&
+    candidates.some(c => finalFieldNull !== isNonNullType(c.fieldConfig.type))
+  ) {
     validationMessage(
-      `Canonical definition of field "${fieldNamespace}" is not-null while some subschemas permit null.`,
-      'fieldNullConsistency',
+      `Nullability of field "${fieldNamespace}" does not match across subschemas.`,
+      fieldNamespace,
+      typeMergingOptions
+    );
+  } else if (finalFieldNull && candidates.some(c => !isNonNullType(c.fieldConfig.type))) {
+    validationMessage(
+      `Canonical definition of field "${fieldNamespace}" is not-null while some subschemas permit null. This will not be allowed in future versions.`,
       fieldNamespace,
       typeMergingOptions
     );
@@ -53,8 +62,7 @@ export function validateFieldConsistency(
 
   if (Object.values(argCandidatesMap).some(argCandidates => candidates.length !== argCandidates.length)) {
     validationMessage(
-      `Canonical definition of field "${fieldNamespace}" implements inconsistent argument names across subschemas. Some user input will be ignored.`,
-      'inputNameConsistency',
+      `Canonical definition of field "${fieldNamespace}" implements inconsistent argument names across subschemas. Input may be filtered from some requests.`,
       fieldNamespace,
       typeMergingOptions
     );
@@ -64,20 +72,22 @@ export function validateFieldConsistency(
     const argNamespace = `${fieldNamespace}.${argName}`;
     const finalArgConfig = finalFieldConfig.args[argName] || argCandidates[argCandidates.length - 1];
     const finalArgType = getNamedType(finalArgConfig.type);
+    const finalArgNull = isNonNullType(finalArgConfig.type);
 
-    validateTypeConsistency(
-      finalArgConfig,
-      argCandidates,
-      'argument',
-      'inputTypeConsistency',
-      argNamespace,
-      typeMergingOptions
-    );
+    validateTypeConsistency(finalArgConfig, argCandidates, 'argument', argNamespace, typeMergingOptions);
 
-    if (!isNonNullType(finalArgConfig.type) && argCandidates.some(c => isNonNullType(c.type))) {
+    if (
+      getValidationSettings(argNamespace, typeMergingOptions).strictNullComparison &&
+      argCandidates.some(c => finalArgNull !== isNonNullType(c.type))
+    ) {
       validationMessage(
-        `Canonical definition of argument "${argNamespace}" permits null while some subschemas require not-null.`,
-        'inputNullConsistency',
+        `Nullability of argument "${argNamespace}" does not match across subschemas.`,
+        argNamespace,
+        typeMergingOptions
+      );
+    } else if (!finalArgNull && argCandidates.some(c => isNonNullType(c.type))) {
+      validationMessage(
+        `Canonical definition of argument "${argNamespace}" permits null while some subschemas require not-null. This will not be allowed in future versions.`,
         argNamespace,
         typeMergingOptions
       );
@@ -98,8 +108,7 @@ export function validateInputObjectConsistency(
     if (candidates.length !== count) {
       const namespace = `${candidates[0].type.name}.${fieldName}`;
       validationMessage(
-        `Definition of input field "${namespace}" is not implemented by all subschemas. Some user input will be ignored.`,
-        'inputNameConsistency',
+        `Definition of input field "${namespace}" is not implemented by all subschemas. Input may be filtered from some requests.`,
         namespace,
         typeMergingOptions
       );
@@ -114,26 +123,34 @@ export function validateInputFieldConsistency(
 ): void {
   const inputFieldNamespace = `${candidates[0].type.name}.${candidates[0].fieldName}`;
   const inputFieldConfigs = candidates.map(c => c.inputFieldConfig);
+  const finalInputFieldType = getNamedType(finalInputFieldConfig.type);
+  const finalInputFieldNull = isNonNullType(finalInputFieldConfig.type);
 
   validateTypeConsistency(
     finalInputFieldConfig,
     inputFieldConfigs,
     'input field',
-    'inputTypeConsistency',
     inputFieldNamespace,
     typeMergingOptions
   );
 
-  if (!isNonNullType(finalInputFieldConfig.type) && candidates.some(c => isNonNullType(c.inputFieldConfig.type))) {
+  if (
+    getValidationSettings(inputFieldNamespace, typeMergingOptions).strictNullComparison &&
+    candidates.some(c => finalInputFieldNull !== isNonNullType(c.inputFieldConfig.type))
+  ) {
     validationMessage(
-      `Canonical definition of input field "${inputFieldNamespace}" permits null while some subschemas require not-null.`,
-      'inputNullConsistency',
+      `Nullability of input field "${inputFieldNamespace}" does not match across subschemas.`,
+      inputFieldNamespace,
+      typeMergingOptions
+    );
+  } else if (!finalInputFieldNull && candidates.some(c => isNonNullType(c.inputFieldConfig.type))) {
+    validationMessage(
+      `Canonical definition of input field "${inputFieldNamespace}" permits null while some subschemas require not-null. This will not be allowed in future versions.`,
       inputFieldNamespace,
       typeMergingOptions
     );
   }
 
-  const finalInputFieldType = getNamedType(finalInputFieldConfig.type);
   if (isEnumType(finalInputFieldType)) {
     validateInputEnumConsistency(finalInputFieldType, inputFieldConfigs, typeMergingOptions);
   }
@@ -143,25 +160,23 @@ export function validateTypeConsistency(
   finalElementConfig: GraphQLFieldConfig<any, any> | GraphQLArgumentConfig | GraphQLInputFieldConfig,
   candidates: Array<GraphQLFieldConfig<any, any> | GraphQLArgumentConfig | GraphQLInputFieldConfig>,
   definitionType: string,
-  settingName: string,
   settingNamespace: string,
   typeMergingOptions: TypeMergingOptions
 ): void {
-  const finalType = getNamedType(finalElementConfig.type);
+  const finalNamedType = getNamedType(finalElementConfig.type);
   const finalIsList = hasListType(finalElementConfig.type);
-  const typeConflict = candidates.find(c => {
+  const hasTypeConflict = candidates.some(c => {
     if (finalIsList !== hasListType(c.type)) {
       throw new Error(
         `Definitions of ${definitionType} "${settingNamespace}" implement inconsistent list types across subschemas and cannot be merged.`
       );
     }
-    return finalType.toString() !== getNamedType(c.type).toString();
+    return finalNamedType.toString() !== getNamedType(c.type).toString();
   });
 
-  if (typeConflict) {
+  if (hasTypeConflict) {
     validationMessage(
-      `Definitions of ${definitionType} "${settingNamespace}" implement inconsistent named types across subschemas. Incompatibilities may exist between the gateway proxy and subservices.`,
-      settingName,
+      `Definitions of ${definitionType} "${settingNamespace}" implement inconsistent named types across subschemas.`,
       settingNamespace,
       typeMergingOptions
     );
@@ -191,46 +206,37 @@ export function validateInputEnumConsistency(
 
   if (Object.values(enumValueInclusionMap).some(count => candidates.length !== count)) {
     validationMessage(
-      `Enum "${inputEnumType.name}" is used as an input with inconsistent values across subschemas.`,
-      'inputTypeConsistency',
+      `Enum "${inputEnumType.name}" is used as an input with inconsistent values across subschemas. This will not be allowed in future versions.`,
       inputEnumType.name,
       typeMergingOptions
     );
   }
 }
 
-function validationMessage(
-  message: string,
-  settingName: string,
-  settingNamespace: string,
-  typeMergingOptions: TypeMergingOptions
-): void {
-  let setting;
-  const namespace = settingNamespace.split('.');
+function validationMessage(message: string, settingNamespace: string, typeMergingOptions: TypeMergingOptions): void {
+  const override = `typeMergingOptions.validationSettings.scopes['${settingNamespace}']`;
+  const settings = getValidationSettings(settingNamespace, typeMergingOptions);
 
-  while (!setting && namespace.length) {
-    setting =
-      typeMergingOptions?.namespaceValidationSettings?.[namespace.join('.')]?.[settingName] ??
-      typeMergingOptions?.namespaceValidationSettings?.[namespace.join('.')]?.defaultValidationLevel;
-    namespace.pop();
-  }
-
-  if (setting == null) {
-    setting =
-      typeMergingOptions?.validationSettings?.[settingName] ??
-      typeMergingOptions?.validationSettings?.defaultValidationLevel ??
-      ValidationLevel.Warn;
-  }
-
-  switch (setting) {
+  switch (settings.validationLevel ?? ValidationLevel.Warn) {
     case ValidationLevel.Off:
       return;
     case ValidationLevel.Error:
-      throw new Error(message);
-    default:
-      console.warn(
-        message,
-        `To disable this warning or elevate it to an error, adjust "validationSettings.${settingName}" or "namespaceValidationSettings['${settingNamespace}'].${settingName}" in typeMergingOptions.`
+      throw new Error(
+        `${message} If this is intentional, you may disable this error by setting ${override} = "warn|off"`
       );
+    default:
+      console.warn(`${message} To disable this warning or elevate it to an error, set ${override} = "error|off"`);
   }
+}
+
+function getValidationSettings(settingNamespace: string, typeMergingOptions: TypeMergingOptions): ValidationSettings {
+  const path = settingNamespace.split('.');
+  let settings;
+
+  while (!settings && path.length) {
+    settings = typeMergingOptions?.validationScopes?.[path.join('.')];
+    path.pop();
+  }
+
+  return settings ?? typeMergingOptions?.validationSettings ?? {};
 }

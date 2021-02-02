@@ -318,9 +318,7 @@ describe('merging using type merging', () => {
       }],
     subschemaConfigTransforms: [stitchingDirectivesTransformer],
     typeMergingOptions: {
-      validationSettings: {
-        defaultValidationLevel: ValidationLevel.Off,
-      }
+      validationSettings: { validationLevel: ValidationLevel.Off }
     }
   });
 

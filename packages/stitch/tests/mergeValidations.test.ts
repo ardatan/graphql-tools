@@ -8,7 +8,7 @@ describe('Field validations', () => {
       expect(() => {
         stitchSchemas({
           typeMergingOptions: {
-            validationSettings: { fieldTypeConsistency: ValidationLevel.Error },
+            validationSettings: { validationLevel: ValidationLevel.Error },
           },
           subschemas: [
             { schema: buildSchema('type Query { field: String }') },
@@ -22,7 +22,7 @@ describe('Field validations', () => {
       expect(() => {
         stitchSchemas({
           typeMergingOptions: {
-            validationSettings: { fieldTypeConsistency: ValidationLevel.Error },
+            validationSettings: { validationLevel: ValidationLevel.Error },
           },
           subschemas: [
             { schema: buildSchema('type Query { field: [URL] } scalar URL') },
@@ -36,7 +36,7 @@ describe('Field validations', () => {
       expect(() => {
         stitchSchemas({
           typeMergingOptions: {
-            validationSettings: { fieldTypeConsistency: ValidationLevel.Error },
+            validationSettings: { validationLevel: ValidationLevel.Error },
           },
           subschemas: [
             { schema: buildSchema('type Query { field: [URL] } scalar URL') },
@@ -52,7 +52,7 @@ describe('Field validations', () => {
       expect(() => {
         stitchSchemas({
           typeMergingOptions: {
-            validationSettings: { fieldNullConsistency: ValidationLevel.Error },
+            validationSettings: { validationLevel: ValidationLevel.Error },
           },
           subschemas: [
             { schema: buildSchema('type Query { field: String }') },
@@ -66,7 +66,7 @@ describe('Field validations', () => {
       expect(() => {
         stitchSchemas({
           typeMergingOptions: {
-            validationSettings: { fieldNullConsistency: ValidationLevel.Error },
+            validationSettings: { validationLevel: ValidationLevel.Error },
           },
           subschemas: [
             { schema: buildSchema('type Query { field: String! }') },
@@ -74,6 +74,23 @@ describe('Field validations', () => {
           ]
         });
       }).not.toThrow();
+    });
+
+    it('raises for mismatched strict null definition', () => {
+      expect(() => {
+        stitchSchemas({
+          typeMergingOptions: {
+            validationSettings: {
+              validationLevel: ValidationLevel.Error,
+              strictNullComparison: true,
+            },
+          },
+          subschemas: [
+            { schema: buildSchema('type Query { field: String! }') },
+            { schema: buildSchema('type Query { field: String }') },
+          ]
+        });
+      }).toThrow(/does not match across subschemas/);
     });
   });
 });
@@ -84,7 +101,7 @@ describe('Argument validations', () => {
       expect(() => {
         stitchSchemas({
           typeMergingOptions: {
-            validationSettings: { inputNameConsistency: ValidationLevel.Error },
+            validationSettings: { validationLevel: ValidationLevel.Error },
           },
           subschemas: [
             { schema: buildSchema('type Query { field(arg1: Int): Int }') },
@@ -98,7 +115,7 @@ describe('Argument validations', () => {
       expect(() => {
         stitchSchemas({
           typeMergingOptions: {
-            validationSettings: { inputNameConsistency: ValidationLevel.Error },
+            validationSettings: { validationLevel: ValidationLevel.Error },
           },
           subschemas: [
             { schema: buildSchema('type Query { field(arg: Int): Int }') },
@@ -114,7 +131,7 @@ describe('Argument validations', () => {
       expect(() => {
         stitchSchemas({
           typeMergingOptions: {
-            validationSettings: { inputNullConsistency: ValidationLevel.Error },
+            validationSettings: { validationLevel: ValidationLevel.Error },
           },
           subschemas: [
             { schema: buildSchema('type Query { field(arg: Int!): Int }') },
@@ -128,7 +145,7 @@ describe('Argument validations', () => {
       expect(() => {
         stitchSchemas({
           typeMergingOptions: {
-            validationSettings: { inputNullConsistency: ValidationLevel.Error },
+            validationSettings: { validationLevel: ValidationLevel.Error },
           },
           subschemas: [
             { schema: buildSchema('type Query { field(arg: Int): Int }') },
@@ -137,6 +154,23 @@ describe('Argument validations', () => {
         });
       }).not.toThrow();
     });
+
+    it('raises strict nullability mismatches', () => {
+      expect(() => {
+        stitchSchemas({
+          typeMergingOptions: {
+            validationSettings: {
+              validationLevel: ValidationLevel.Error,
+              strictNullComparison: true,
+            },
+          },
+          subschemas: [
+            { schema: buildSchema('type Query { field(arg: Int): Int }') },
+            { schema: buildSchema('type Query { field(arg: Int!): Int }') },
+          ]
+        });
+      }).toThrow(/does not match across subschemas/);
+    });
   });
 
   describe('inputTypeConsistency', () => {
@@ -144,7 +178,7 @@ describe('Argument validations', () => {
       expect(() => {
         stitchSchemas({
           typeMergingOptions: {
-            validationSettings: { inputTypeConsistency: ValidationLevel.Error },
+            validationSettings: { validationLevel: ValidationLevel.Error },
           },
           subschemas: [
             { schema: buildSchema('type Query { field(arg: String): String }') },
@@ -158,7 +192,7 @@ describe('Argument validations', () => {
       expect(() => {
         stitchSchemas({
           typeMergingOptions: {
-            validationSettings: { inputTypeConsistency: ValidationLevel.Error },
+            validationSettings: { validationLevel: ValidationLevel.Error },
           },
           subschemas: [
             { schema: buildSchema('type Query { field(arg: URL): String } scalar URL') },
@@ -172,7 +206,7 @@ describe('Argument validations', () => {
       expect(() => {
         stitchSchemas({
           typeMergingOptions: {
-            validationSettings: { inputTypeConsistency: ValidationLevel.Error },
+            validationSettings: { validationLevel: ValidationLevel.Error },
           },
           subschemas: [
             { schema: buildSchema('type Query { field(arg: [URL]): String } scalar URL') },
@@ -188,7 +222,7 @@ describe('Argument validations', () => {
       expect(() => {
         stitchSchemas({
           typeMergingOptions: {
-            validationSettings: { inputTypeConsistency: ValidationLevel.Error },
+            validationSettings: { validationLevel: ValidationLevel.Error },
           },
           subschemas: [
             { schema: buildSchema('type Query { field(status: Status): Int } enum Status { YES }') },
@@ -202,7 +236,7 @@ describe('Argument validations', () => {
       expect(() => {
         stitchSchemas({
           typeMergingOptions: {
-            validationSettings: { inputTypeConsistency: ValidationLevel.Error },
+            validationSettings: { validationLevel: ValidationLevel.Error },
           },
           subschemas: [
             { schema: buildSchema('type Query { field(status: Status): Int } enum Status { YES NO }') },
@@ -220,7 +254,7 @@ describe('InputObject validations', () => {
       expect(() => {
         stitchSchemas({
           typeMergingOptions: {
-            validationSettings: { inputNameConsistency: ValidationLevel.Error },
+            validationSettings: { validationLevel: ValidationLevel.Error },
           },
           subschemas: [
             { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field1: Int }') },
@@ -234,7 +268,7 @@ describe('InputObject validations', () => {
       expect(() => {
         stitchSchemas({
           typeMergingOptions: {
-            validationSettings: { inputNameConsistency: ValidationLevel.Error },
+            validationSettings: { validationLevel: ValidationLevel.Error },
           },
           subschemas: [
             { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: Int }') },
@@ -250,7 +284,7 @@ describe('InputObject validations', () => {
       expect(() => {
         stitchSchemas({
           typeMergingOptions: {
-            validationSettings: { inputNullConsistency: ValidationLevel.Error },
+            validationSettings: { validationLevel: ValidationLevel.Error },
           },
           subschemas: [
             { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: Int! }') },
@@ -264,7 +298,7 @@ describe('InputObject validations', () => {
       expect(() => {
         stitchSchemas({
           typeMergingOptions: {
-            validationSettings: { inputNullConsistency: ValidationLevel.Error },
+            validationSettings: { validationLevel: ValidationLevel.Error },
           },
           subschemas: [
             { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: Int }') },
@@ -273,6 +307,23 @@ describe('InputObject validations', () => {
         });
       }).not.toThrow();
     });
+
+    it('raises strict nullability mismatches', () => {
+      expect(() => {
+        stitchSchemas({
+          typeMergingOptions: {
+            validationSettings: {
+              validationLevel: ValidationLevel.Error,
+              strictNullComparison: true,
+            },
+          },
+          subschemas: [
+            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: Int }') },
+            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: Int! }') },
+          ]
+        });
+      }).toThrow(/does not match across subschemas/);
+    });
   });
 
   describe('inputTypeConsistency', () => {
@@ -280,7 +331,7 @@ describe('InputObject validations', () => {
       expect(() => {
         stitchSchemas({
           typeMergingOptions: {
-            validationSettings: { inputTypeConsistency: ValidationLevel.Error },
+            validationSettings: { validationLevel: ValidationLevel.Error },
           },
           subschemas: [
             { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: String }') },
@@ -294,7 +345,7 @@ describe('InputObject validations', () => {
       expect(() => {
         stitchSchemas({
           typeMergingOptions: {
-            validationSettings: { inputTypeConsistency: ValidationLevel.Error },
+            validationSettings: { validationLevel: ValidationLevel.Error },
           },
           subschemas: [
             { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: String }') },
@@ -308,7 +359,7 @@ describe('InputObject validations', () => {
       expect(() => {
         stitchSchemas({
           typeMergingOptions: {
-            validationSettings: { inputTypeConsistency: ValidationLevel.Error },
+            validationSettings: { validationLevel: ValidationLevel.Error },
           },
           subschemas: [
             { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: [URL] } scalar URL') },
@@ -324,7 +375,7 @@ describe('InputObject validations', () => {
       expect(() => {
         stitchSchemas({
           typeMergingOptions: {
-            validationSettings: { inputTypeConsistency: ValidationLevel.Error },
+            validationSettings: { validationLevel: ValidationLevel.Error },
           },
           subschemas: [
             { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { status: BlobStatus! } enum BlobStatus { YES }') },
@@ -338,7 +389,7 @@ describe('InputObject validations', () => {
       expect(() => {
         stitchSchemas({
           typeMergingOptions: {
-            validationSettings: { inputTypeConsistency: ValidationLevel.Error },
+            validationSettings: { validationLevel: ValidationLevel.Error },
           },
           subschemas: [
             { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { status: BlobStatus! } enum BlobStatus { YES NO }') },
@@ -348,54 +399,38 @@ describe('InputObject validations', () => {
       }).not.toThrow();
     });
   });
+});
 
-  describe('namespaced validation settings', () => {
-    it('adjustable by field', () => {
-      expect(() => {
-        stitchSchemas({
-          typeMergingOptions: {
-            namespaceValidationSettings: {
-              'Query.field1': { fieldTypeConsistency: ValidationLevel.Error }
-            },
+describe('Scoped validation settings', () => {
+  it('adjustable by field', () => {
+    expect(() => {
+      stitchSchemas({
+        typeMergingOptions: {
+          validationScopes: {
+            'Query.field1': { validationLevel: ValidationLevel.Error }
           },
-          subschemas: [
-            { schema: buildSchema('type Query { field1: String }') },
-            { schema: buildSchema('type Query { field1: Int }') },
-          ]
-        });
-      }).toThrow();
-    });
+        },
+        subschemas: [
+          { schema: buildSchema('type Query { field1: String }') },
+          { schema: buildSchema('type Query { field1: Int }') },
+        ]
+      });
+    }).toThrow();
+  });
 
-    it('adjustable by type', () => {
-      expect(() => {
-        stitchSchemas({
-          typeMergingOptions: {
-            namespaceValidationSettings: {
-              'Query': { fieldTypeConsistency: ValidationLevel.Error }
-            },
+  it('adjustable by type', () => {
+    expect(() => {
+      stitchSchemas({
+        typeMergingOptions: {
+          validationScopes: {
+            'Query': { validationLevel: ValidationLevel.Error }
           },
-          subschemas: [
-            { schema: buildSchema('type Query { field1: String }') },
-            { schema: buildSchema('type Query { field1: Int }') },
-          ]
-        });
-      }).toThrow();
-    });
-
-    it('adjustable by default', () => {
-      expect(() => {
-        stitchSchemas({
-          typeMergingOptions: {
-            validationSettings: {
-              defaultValidationLevel: ValidationLevel.Error,
-            },
-          },
-          subschemas: [
-            { schema: buildSchema('type Query { field1: String }') },
-            { schema: buildSchema('type Query { field1: Int }') },
-          ]
-        });
-      }).toThrow();
-    });
+        },
+        subschemas: [
+          { schema: buildSchema('type Query { field1: String }') },
+          { schema: buildSchema('type Query { field1: Int }') },
+        ]
+      });
+    }).toThrow();
   });
 });

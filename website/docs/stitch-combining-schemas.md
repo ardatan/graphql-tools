@@ -156,33 +156,21 @@ const gatewaySchema = stitchSchemas({
 });
 ```
 
-### Merge validations
+#### Merge validations
 
-The automatic merge strategy also validates the integrity of merged schemas. These validations maybe be controlled individually:
-
-* **`fieldTypeConsistency`**: alerts when variants of a field implement different named types. You may want to be _permissive_ of mismatched types when a gateway schema field proxies a compatible subschema datatype; for example, an `ID` scalar proxying a basic `String`. Fields with mismatched list types automatically error.
-* **`fieldNullConsistency`**: alerts when the gateway schema field implements nullability that is _stricter_ than that of other variants.
-* **`inputTypeConsistency`**: same as `fieldTypeConsistency`, but for arguments and input fields; also for inconsistent enum types used as input values.
-* **`inputNullConsistency`**: alerts when the gateway schema argument or input field implements nullability that is _looser_ than that of other variants.
-* **`inputNameConsistency`**: alerts when merged argument names or input field names are inconsistent across subschema variants. While all merged inputs will appear in the gateway schema, outliers will be ignored by subschemas that do not implement them.
-
-Each validation setting may be set to `error`, `warn`, or `off` for the entire schema or for specific types and fields:
+The automatic merge strategy also validates the integrity of merged schemas. Validations may be set to `error`, `warn`, or `off` for the entire schema or for specific types and fields:
 
 ```js
 const gatewaySchema = stitchSchemas({
   subschemas: [...],
   typeMergingOptions: {
     validationSettings: {
-      fieldTypeConsistency: 'off',
-      fieldNullConsistency: 'warn',
-      inputTypeConsistency: 'error',
-      inputNullConsistency: 'error',
-      inputNameConsistency: 'error',
-      defaultValidationLevel: 'warn',
+      strictNullComparison: false,
+      validationLevel: 'error',
     },
-    namespaceValidationSettings: {
-      'User.id': { fieldNullConsistency: 'off' }, // << specific field
-      'User': { fieldNullConsistency: 'off' }, // << all fields of type
+    validationScopes: {
+      'User.id': { validationLevel: 'off' }, // << specific field
+      'User': { strictNullComparison: true }, // << all fields of type
     }
   },
 });
