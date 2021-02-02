@@ -11,7 +11,7 @@ export function extendResolversFromInterfaces(schema: GraphQLSchema, resolvers: 
   const extendedResolvers = {};
   typeNames.forEach(typeName => {
     const type = schema.getType(typeName);
-    if ('getInterfaces' in type) {
+    if (type && 'getInterfaces' in type) {
       const allInterfaceResolvers = type
         .getInterfaces()
         .map(iFace => resolvers[iFace.name])
