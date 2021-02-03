@@ -2781,4 +2781,21 @@ describe('unions', () => {
       resolverValidationOptions: { requireResolversForResolveType: 'ignore' },
     });
   });
+  test('ignore resolvers that are not defined in the schema while inheriting resolvers from interfaces', async () => {
+    const schema = makeExecutableSchema({
+      typeDefs: `
+        type Query {
+          foo: String
+        }
+      `,
+      resolvers: {
+        Foo: {
+          bar: () => null,
+        },
+      },
+      inheritResolversFromInterfaces: true,
+    });
+    const response = await graphql(schema, query);
+    expect(response.errors).not.toBeDefined();
+  })
 });
