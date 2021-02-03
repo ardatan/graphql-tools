@@ -1,5 +1,11 @@
 # @graphql-tools/graphql-tag-pluck
 
+## 6.4.2
+
+### Patch Changes
+
+- f1bec378: fix(graphql-tag-pluck): fix @vue/compiler-sfc import issue
+
 ## 6.4.1
 
 ### Patch Changes
