@@ -19,7 +19,7 @@
     "graphql": "^14.0.0 || ^15.0.0"
   },
   "dependencies": {
-    "@babel/parser": "7.12.13",
+    "@babel/parser": "7.12.14",
     "@babel/traverse": "7.12.13",
     "@babel/types": "7.12.13",
     "@graphql-tools/utils": "^7.0.0",
