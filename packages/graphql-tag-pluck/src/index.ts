@@ -111,7 +111,7 @@ function parseWithVue(vueTemplateCompiler: typeof import('@vue/compiler-sfc'), f
   const { descriptor } = vueTemplateCompiler.parse(fileData);
 
   return descriptor.script || descriptor.scriptSetup
-    ? vueTemplateCompiler.compileScript(descriptor, { id: '' }).content
+    ? vueTemplateCompiler.compileScript(descriptor, { id: Date.now().toString() }).content
     : '';
 }
 

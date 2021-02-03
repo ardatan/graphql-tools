@@ -2702,6 +2702,30 @@ describe('interface resolver inheritance', () => {
       },
     });
   });
+  test('ignore resolvers that are not defined in the schema while inheriting resolvers from interfaces', async () => {
+    const schema = makeExecutableSchema({
+      typeDefs: `
+        type Query {
+          foo: String
+        }
+      `,
+      resolvers: {
+        Foo: {
+          bar: () => null,
+        },
+      },
+      inheritResolversFromInterfaces: true,
+      resolverValidationOptions: {
+        requireResolversToMatchSchema: 'ignore'
+      }
+    });
+    const response = await graphql(schema, /* GraphQL */`
+      {
+        foo
+      }
+    `);
+    expect(response.errors).not.toBeDefined();
+  })
 });
 
 describe('unions', () => {
