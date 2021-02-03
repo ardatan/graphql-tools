@@ -211,7 +211,7 @@ function extractExtension(filePath: string) {
 
 const MissingVueTemplateCompilerError = new Error(
   freeText(`
-    GraphQL template literals cannot be plucked from a Vue template code without having the "vue-template-compiler" package installed.
+    GraphQL template literals cannot be plucked from a Vue template code without having the "@vue/compiler-sfc" package installed.
     Please install it and try again.
 
     Via NPM:
