@@ -1,5 +1,11 @@
 # @graphql-tools/schema
 
+## 7.1.3
+
+### Patch Changes
+
+- c8e26b8c: fix(schema): ignore resolvers if they are not in schema
+
 ## 7.1.2
 
 ### Patch Changes
