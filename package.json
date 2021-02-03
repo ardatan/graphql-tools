@@ -93,6 +93,7 @@
     ]
   },
   "resolutions": {
-    "graphql": "15.5.0"
+    "graphql": "15.5.0",
+    "@changesets/apply-release-plan": "4.0.0"
   }
 }
