@@ -43,7 +43,7 @@
   },
   "devDependencies": {
     "patch-package": "6.2.2",
-    "@changesets/cli": "2.13.1",
+    "@changesets/cli": "2.14.0",
     "@types/jest": "26.0.20",
     "@types/node": "14.14.22",
     "@typescript-eslint/eslint-plugin": "4.14.2",
@@ -93,6 +93,7 @@
     ]
   },
   "resolutions": {
-    "graphql": "15.5.0"
+    "graphql": "15.5.0",
+    "@changesets/apply-release-plan": "4.0.0"
   }
 }
