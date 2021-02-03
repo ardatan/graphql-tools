@@ -4,4 +4,29 @@
 "@graphql-tools/website": patch
 ---
 
-enhance(stitch) schema merger validations
+Introduces a suite of stitched schema validations that enforce the integrity of merged schemas. This includes validations for:
+
+- Strict and safe null consistency (the later of which allows safe transitions in nullability).
+- Named type consistency with the option to whitelist proxyable scalar mappings.
+- Argument and input field name consistency.
+- Enum value consistency when used as an input value.
+
+Validations may be adjusted by setting `validationLevel` to `off|warn|error` globally or for specific field scopes. In this initial v7 release, all validations are introduced at the `warn` threshold for backwards compatibility. Most of these validations will become automatic errors in v8. To enable validation errors now, set `validationLevel: 'error'`. Full configuration options look like this: 
+
+```js
+const gatewaySchema = stitchSchemas({
+  subschemas: [...],
+  typeMergingOptions: {
+    validationSettings: {
+      validationLevel: 'error',
+      strictNullComparison: false, // << gateway "String" may proxy subschema "String!"
+      proxyableScalars: {
+        ID: ['String'], // << gateway "ID" may proxy subschema "String"
+      }
+    },
+    validationScopes: {
+      'User.id': { strictNullComparison: true },
+    }
+  },
+});
+```
