@@ -8,7 +8,7 @@ Schema stitching (`@graphql-tools/stitch`) creates a single GraphQL gateway sche
 
 ## Why stitching?
 
-One of the main benefits of GraphQL is that we can query for all data in a single request to one schema. As that schema grows though, it may become preferable to break it up into seperate modules or microservices that can be developed independently. We may also want to integrate the schemas we own with third-party schemas, allowing mashups with external data.
+One of the main benefits of GraphQL is that we can query for all data in a single request to one schema. As that schema grows though, it may become preferable to break it up into separate modules or microservices that can be developed independently. We may also want to integrate the schemas we own with third-party schemas, allowing mashups with external data.
 
 In these cases, `stitchSchemas` is used to combine multiple GraphQL APIs into one unified gateway schema that knows how to delegate parts of a request to the relevant underlying subschemas. These subschemas may be local GraphQL instances or APIs running on remote servers.
 
@@ -194,7 +194,7 @@ Note that when [automatically merging types](#automatic-merge), all transforms a
 
 Whether you're [merging types](/docs/stitch-type-merging), using [schema extensions](/docs/stitch-schema-extensions), or simply combining schemas, any errors returned by a subschema will flow through the stitching process and report at their mapped output positions. It's fairly seamless to provide quality errors from a stitched schema by following some basic guidelines:
 
-1. **Report errors!** Having a subschema return `null` without an error for missing or failed records is a poor development experience to begin with. This omission will compound should an unexpected value produce a misleading failure in gateway stitching. Reporting [proper GraphQL errors](https://spec.graphql.org/June2018/#sec-Errors) will contexualize failures in subschemas, and by extension, within the stitched schema.
+1. **Report errors!** Having a subschema return `null` without an error for missing or failed records is a poor development experience to begin with. This omission will compound should an unexpected value produce a misleading failure in gateway stitching. Reporting [proper GraphQL errors](https://spec.graphql.org/June2018/#sec-Errors) will contextualize failures in subschemas, and by extension, within the stitched schema.
 
 2. **Map errors to array positions**. When returning arrays of records (a common pattern while [batch loading](/docs/stitch-type-merging#batching)), make sure to return errors for specific array positions rather than erroring out the entire array. For example, an array should be resolved as:
 
