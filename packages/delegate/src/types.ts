@@ -172,7 +172,7 @@ export interface SubschemaConfig<K = any, V = any, C = K> {
 
 export interface MergedTypeConfig<K = any, V = any> extends MergedTypeResolverOptions<K, V> {
   selectionSet?: string;
-  fields?: Record<string, { selectionSet?: string; canonical?: boolean }>;
+  fields?: Record<string, MergedFieldConfig>;
   computedFields?: Record<string, { selectionSet?: string }>;
   key?: (originalResult: any) => K;
   canonical?: boolean;
@@ -188,6 +188,8 @@ export interface MergedTypeResolverOptions<K = any, V = any> {
 
 export interface MergedFieldConfig {
   selectionSet?: string;
+  computed?: boolean;
+  canonical?: boolean;
 }
 
 export type MergedTypeResolver = (

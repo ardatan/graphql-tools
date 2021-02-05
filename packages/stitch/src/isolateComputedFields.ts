@@ -7,26 +7,40 @@ import { getImplementingTypes, pruneSchema, filterSchema } from '@graphql-tools/
 import { TransformCompositeFields } from '@graphql-tools/wrap';
 
 export function isolateComputedFields(subschemaConfig: SubschemaConfig): Array<SubschemaConfig> {
-  const baseSchemaTypes: Record<string, MergedTypeConfig> = {};
-  const isolatedSchemaTypes: Record<string, MergedTypeConfig> = {};
-
   if (subschemaConfig.merge == null) {
     return [subschemaConfig];
   }
 
-  Object.keys(subschemaConfig.merge).forEach((typeName: string) => {
-    const mergedTypeConfig: MergedTypeConfig = subschemaConfig.merge[typeName];
+  const baseSchemaTypes: Record<string, MergedTypeConfig> = Object.create(null);
+  const isolatedSchemaTypes: Record<string, MergedTypeConfig> = Object.create(null);
+
+  Object.entries(subschemaConfig.merge).forEach(([typeName, mergedTypeConfig]) => {
     baseSchemaTypes[typeName] = mergedTypeConfig;
 
     if (mergedTypeConfig.computedFields) {
-      const baseFields: Record<string, MergedFieldConfig> = {};
-      const isolatedFields: Record<string, MergedFieldConfig> = {};
+      mergedTypeConfig.fields = mergedTypeConfig.fields ?? Object.create(null);
+      Object.entries(mergedTypeConfig.computedFields).forEach(([fieldName, mergedFieldConfig]) => {
+        console.warn(
+          `The "computedFields" setting is deprecated. Update your @graphql-tools/stitching-directives package, and/or update static merged type config to "${typeName}.fields.${fieldName} = { selectionSet: '${mergedFieldConfig.selectionSet}', computed: true }"`
+        );
+        mergedTypeConfig.fields[fieldName] = {
+          ...(mergedTypeConfig.fields[fieldName] ?? {}),
+          ...mergedFieldConfig,
+          computed: true,
+        };
+      });
+      delete mergedTypeConfig.computedFields;
+    }
 
-      Object.keys(mergedTypeConfig.computedFields).forEach((fieldName: string) => {
-        const mergedFieldConfig = mergedTypeConfig.computedFields[fieldName];
+    if (mergedTypeConfig.fields) {
+      const baseFields: Record<string, MergedFieldConfig> = Object.create(null);
+      const isolatedFields: Record<string, MergedFieldConfig> = Object.create(null);
 
-        if (mergedFieldConfig.selectionSet) {
+      Object.entries(mergedTypeConfig.fields).forEach(([fieldName, mergedFieldConfig]) => {
+        if (mergedFieldConfig.computed && mergedFieldConfig.selectionSet) {
           isolatedFields[fieldName] = mergedFieldConfig;
+        } else if (mergedFieldConfig.computed) {
+          throw new Error(`A selectionSet is required for computed field "${typeName}.${fieldName}"`);
         } else {
           baseFields[fieldName] = mergedFieldConfig;
         }
@@ -38,9 +52,13 @@ export function isolateComputedFields(subschemaConfig: SubschemaConfig): Array<S
       if (isolatedFieldCount && isolatedFieldCount !== Object.keys(objectType.getFields()).length) {
         baseSchemaTypes[typeName] = {
           ...mergedTypeConfig,
-          fields: Object.keys(baseFields).length ? baseFields : undefined,
+          fields: baseFields,
         };
-        isolatedSchemaTypes[typeName] = { ...mergedTypeConfig, fields: isolatedFields };
+        isolatedSchemaTypes[typeName] = {
+          ...mergedTypeConfig,
+          fields: isolatedFields,
+          canonical: undefined,
+        };
       }
     }
   });

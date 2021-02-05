@@ -27,11 +27,12 @@ export function computedDirectiveTransformer(computedDirectiveName: string): Sub
           return undefined;
         }
 
-        mergeTypeConfig.computedFields = mergeTypeConfig.computedFields ?? {};
-        mergeTypeConfig.computedFields[fieldName] = mergeTypeConfig.computedFields[fieldName] ?? {};
+        mergeTypeConfig.fields = mergeTypeConfig.fields ?? {};
+        mergeTypeConfig.fields[fieldName] = mergeTypeConfig.fields[fieldName] ?? {};
 
-        const mergeFieldConfig = mergeTypeConfig.computedFields[fieldName];
+        const mergeFieldConfig = mergeTypeConfig.fields[fieldName];
         mergeFieldConfig.selectionSet = mergeFieldConfig.selectionSet ?? selectionSet;
+        mergeFieldConfig.computed = true;
 
         return undefined;
       },
