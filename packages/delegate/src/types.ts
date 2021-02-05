@@ -170,12 +170,17 @@ export interface SubschemaConfig<K = any, V = any, C = K> {
   batchingOptions?: BatchingOptions<K, V, C>;
 }
 
-export interface MergedTypeConfig<K = any, V = any> extends MergedTypeResolverOptions<K, V> {
-  selectionSet?: string;
+export interface MergedTypeConfig<K = any, V = any> extends MergedTypeAccessor<K, V> {
+  accessors?: Array<MergedTypeAccessor>;
   fields?: Record<string, MergedFieldConfig>;
   computedFields?: Record<string, { selectionSet?: string }>;
   key?: (originalResult: any) => K;
   canonical?: boolean;
+}
+
+export interface MergedTypeAccessor<K = any, V = any> extends MergedTypeResolverOptions<K, V> {
+  selectionSet?: string;
+  key?: (originalResult: any) => K;
   resolve?: MergedTypeResolver;
 }
 

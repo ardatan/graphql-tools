@@ -77,7 +77,7 @@ export interface IStitchSchemasOptions<TContext = any> extends Omit<IExecutableS
   subschemaConfigTransforms?: Array<SubschemaConfigTransform>;
 }
 
-export type SubschemaConfigTransform = (subschemaConfig: SubschemaConfig) => SubschemaConfig;
+export type SubschemaConfigTransform = (subschemaConfig: SubschemaConfig) => SubschemaConfig | Array<SubschemaConfig>;
 
 export interface TypeMergingOptions {
   typeCandidateMerger?: (candidates: Array<MergeTypeCandidate>) => MergeTypeCandidate;
