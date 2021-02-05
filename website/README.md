@@ -2,15 +2,22 @@
 
 This website is built using [Docusaurus 2](https://v2.docusaurus.io/), a modern static website generator.
 
-### Installation
+### Install Dependencies (on the root directory)
 
 ```
 $ yarn
 ```
 
-### Local Development
+### Generate API Docs (on the root directory)
 
-Make a sibling copy of `sidebars.template.json`, named `sidebars.json`. This file is gitignored, and will setup the local dev sidebar.
+
+This command generates API Documentation and its sidebar configuration.
+
+```
+yarn build:api-docs
+```
+
+### Start Local Dev Server
 
 ```
 $ yarn start
