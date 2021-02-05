@@ -212,7 +212,14 @@ function applySubschemaConfigTransforms(
     const mapped: Array<SubschemaConfig | Array<SubschemaConfig>> = transformedSubschemaConfigs.map(ssConfig =>
       subschemaConfigTransform(ssConfig)
     );
-    transformedSubschemaConfigs = mapped.flat();
+    transformedSubschemaConfigs = mapped.reduce((acc, configOrList) => {
+      if (Array.isArray(configOrList)) {
+        acc = acc.concat(configOrList);
+      } else {
+        acc.push(configOrList);
+      }
+      return acc;
+    }, []);
   });
 
   const transformedSubschemas = transformedSubschemaConfigs.map(ssConfig => new Subschema(ssConfig));
