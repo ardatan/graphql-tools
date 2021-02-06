@@ -23,6 +23,10 @@ export function splitMergedTypeAccessTransformer(subschemaConfig: SubschemaConfi
       const mergedTypeAccessor = mergedTypeConfig?.accessors?.[i];
 
       if (mergedTypeAccessor) {
+        if (mergedTypeConfig.selectionSet || mergedTypeConfig.fieldName) {
+          throw new Error(`Merged type ${typeName} may not define both accessors and a selectionSet or fieldName`);
+        }
+
         subschemaPermutation.merge[typeName] = {
           ...mergedTypeConfig,
           ...mergedTypeAccessor,

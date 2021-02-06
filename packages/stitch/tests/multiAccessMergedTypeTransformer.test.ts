@@ -13,8 +13,6 @@ describe('splitMergedTypeAccessTransformer', () => {
             selectionSet: '{ yep }',
             fieldName: 'yep',
           }],
-          selectionSet: '{ nope }',
-          fieldName: 'nope',
         }
       }
     });
@@ -25,6 +23,32 @@ describe('splitMergedTypeAccessTransformer', () => {
       fieldName: 'yep',
       accessors: undefined,
     });
+  });
+
+  it('raises for accessors with selectionSet or fieldName', () => {
+    expect(() => {
+      splitMergedTypeAccessTransformer({
+        schema,
+        merge: {
+          Product: {
+            accessors: [{ selectionSet: '{ yep }', fieldName: 'yep' }],
+            selectionSet: '{ nope }',
+          }
+        }
+      });
+    }).toThrow();
+
+    expect(() => {
+      splitMergedTypeAccessTransformer({
+        schema,
+        merge: {
+          Product: {
+            accessors: [{ selectionSet: '{ yep }', fieldName: 'yep' }],
+            fieldName: 'thing',
+          }
+        }
+      });
+    }).toThrow();
   });
 
   it('builds multiple subschemas for separate accessors', () => {
