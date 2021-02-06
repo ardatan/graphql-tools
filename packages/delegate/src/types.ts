@@ -174,7 +174,6 @@ export interface MergedTypeConfig<K = any, V = any> extends MergedTypeAccessor<K
   accessors?: Array<MergedTypeAccessor>;
   fields?: Record<string, MergedFieldConfig>;
   computedFields?: Record<string, { selectionSet?: string }>;
-  key?: (originalResult: any) => K;
   canonical?: boolean;
 }
 
