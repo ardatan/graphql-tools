@@ -7833,10 +7833,10 @@ graphql-upload@11.0.0, graphql-upload@^11.0.0:
     isobject "^4.0.0"
     object-path "^0.11.4"
 
-graphql-ws@4.1.2:
-  version "4.1.2"
-  resolved "https://registry.yarnpkg.com/graphql-ws/-/graphql-ws-4.1.2.tgz#e2653b9e65505e484eda5e00496783caffd0041d"
-  integrity sha512-c/iOE4kGW6J5h9hmHWaYvgsjAQacioae3ZXvq3JDuVw8uXo3Tbmky71Fzn0+emSKRaRNL1jQuzYtRqFKge2PIw==
+graphql-ws@4.1.3:
+  version "4.1.3"
+  resolved "https://registry.yarnpkg.com/graphql-ws/-/graphql-ws-4.1.3.tgz#09a189af0f9fbc5ad0a342fed808f7a050d624a7"
+  integrity sha512-G32UQ/Fw5b8Z1kMwO4lv9vsdS1ndJXm+OJfC7CM+WxElAXe8TGA7GhMjd0hQ2dymXyeIt8T3vK/6dYLlUmJ8zA==
 
 graphql@15.5.0, graphql@^14.5.3, graphql@^15.3.0:
   version "15.5.0"
