@@ -1,5 +1,17 @@
 # graphql-tools
 
+## 7.0.3
+
+### Patch Changes
+
+- Updated dependencies [24926654]
+- Updated dependencies [24926654]
+- Updated dependencies [24926654]
+  - @graphql-tools/delegate@7.0.10
+  - @graphql-tools/stitch@7.3.0
+  - @graphql-tools/links@7.0.4
+  - @graphql-tools/mock@8.0.0
+
 ## 7.0.2
 
 ### Patch Changes
