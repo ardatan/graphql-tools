@@ -51,19 +51,9 @@ function buildGlob(
   return `${basePath}${recursive ? '/**' : ''}/${ignored}+(${ext})`;
 }
 
-function extractExports(fileExport: any, exportNames: string[]): any | null {
-  if (!fileExport) {
-    return null;
-  }
-
-  if (fileExport.default) {
-    for (const exportName of exportNames) {
-      if (fileExport.default[exportName]) {
-        return fileExport.default[exportName];
-      }
-    }
-
-    return fileExport.default;
+function extractExport(fileExport: any, exportNames: string[], adapters: any): any | null {
+  if (fileExport instanceof Function) {
+    fileExport = fileExport(adapters);
   }
 
   for (const exportName of exportNames) {
@@ -73,6 +63,14 @@ function extractExports(fileExport: any, exportNames: string[]): any | null {
   }
 
   return fileExport;
+}
+
+function extractExports(fileExport: any, exportNames: string[], adapters: any): any | null {
+  if (!fileExport) {
+    return null;
+  }
+
+  return extractExport(fileExport.default || fileExport, exportNames, adapters);
 }
 
 /**
@@ -95,6 +93,8 @@ export interface LoadFilesOptions {
   recursive?: boolean;
   // Set to `true` to ignore files named `index.js` and `index.ts`
   ignoreIndex?: boolean;
+  // Config and adapter objects passed to resolvers factory functions
+  adapters?: any;
 }
 
 const LoadFilesDefaultOptions: LoadFilesOptions = {
@@ -143,7 +143,7 @@ export function loadFilesSync<T = any>(
 
       if (extension.endsWith('.js') || extension.endsWith('.ts') || execOptions.useRequire) {
         const fileExports = (execOptions.requireMethod ? execOptions.requireMethod : require)(path);
-        const extractedExport = extractExports(fileExports, execOptions.exportNames);
+        const extractedExport = extractExports(fileExports, execOptions.exportNames, options.adapters);
 
         if (extractedExport.typeDefs && extractedExport.resolvers) {
           return extractedExport;
@@ -237,7 +237,7 @@ export async function loadFiles(
 
         if (extension.endsWith('.js') || extension.endsWith('.ts') || execOptions.useRequire) {
           const fileExports = await (execOptions.requireMethod ? execOptions.requireMethod : require$)(path);
-          const extractedExport = extractExports(fileExports, execOptions.exportNames);
+          const extractedExport = await extractExports(fileExports, execOptions.exportNames, options.adapters);
 
           if (extractedExport.resolver) {
             return extractedExport.resolver;
