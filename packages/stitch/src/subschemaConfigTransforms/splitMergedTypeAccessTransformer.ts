@@ -13,13 +13,14 @@ export function splitMergedTypeAccessTransformer(subschemaConfig: SubschemaConfi
 
   for (let i = 0; i < maxAccessors; i += 1) {
     const subschemaPermutation = cloneSubschemaConfig(subschemaConfig);
+    const mergedTypesCopy = subschemaPermutation.merge;
 
     if (i > 0) {
       subschemaPermutation.merge = Object.create(null);
     }
 
-    Object.keys(subschemaConfig.merge).forEach(typeName => {
-      const mergedTypeConfig = subschemaConfig.merge[typeName];
+    Object.keys(mergedTypesCopy).forEach(typeName => {
+      const mergedTypeConfig = mergedTypesCopy[typeName];
       const mergedTypeAccessor = mergedTypeConfig?.accessors?.[i];
 
       if (mergedTypeAccessor) {
@@ -27,11 +28,19 @@ export function splitMergedTypeAccessTransformer(subschemaConfig: SubschemaConfi
           throw new Error(`Merged type ${typeName} may not define both accessors and a selectionSet or fieldName`);
         }
 
-        subschemaPermutation.merge[typeName] = {
-          ...mergedTypeConfig,
-          ...mergedTypeAccessor,
-          accessors: undefined,
-        };
+        Object.assign(mergedTypeConfig, mergedTypeAccessor);
+        delete mergedTypeConfig.accessors;
+
+        if (i > 0) {
+          delete mergedTypeConfig.canonical;
+          if (mergedTypeConfig.fields != null) {
+            Object.values(mergedTypeConfig.fields).forEach(mergedFieldConfig => {
+              delete mergedFieldConfig.canonical;
+            });
+          }
+        }
+
+        subschemaPermutation.merge[typeName] = mergedTypeConfig;
       }
     });
 

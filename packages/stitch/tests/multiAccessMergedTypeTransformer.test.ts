@@ -21,7 +21,6 @@ describe('splitMergedTypeAccessTransformer', () => {
     expect(results[0].merge.Product).toEqual({
       selectionSet: '{ yep }',
       fieldName: 'yep',
-      accessors: undefined,
     });
   });
 
@@ -71,12 +70,10 @@ describe('splitMergedTypeAccessTransformer', () => {
     expect(results[0].merge.Product).toEqual({
       selectionSet: '{ id }',
       fieldName: 'productById',
-      accessors: undefined,
     });
     expect(results[1].merge.Product).toEqual({
       selectionSet: '{ upc }',
       fieldName: 'productByUpc',
-      accessors: undefined,
     });
   });
 
@@ -103,7 +100,11 @@ describe('splitMergedTypeAccessTransformer', () => {
           }, {
             selectionSet: '{ key }',
             fieldName: 'videoByKey',
-          }]
+          }],
+          fields: {
+            duration: { canonical: true },
+          },
+          canonical: true,
         },
         User: {
           accessors: [{
@@ -123,17 +124,18 @@ describe('splitMergedTypeAccessTransformer', () => {
       Product: {
         selectionSet: '{ id }',
         fieldName: 'productById',
-        accessors: undefined,
       },
       Video: {
         selectionSet: '{ id }',
         fieldName: 'videoById',
-        accessors: undefined,
+        canonical: true,
+        fields: {
+          duration: { canonical: true },
+        },
       },
       User: {
         selectionSet: '{ id }',
         fieldName: 'userById',
-        accessors: undefined,
       },
       Thing: {
         selectionSet: '{ id }',
@@ -145,12 +147,13 @@ describe('splitMergedTypeAccessTransformer', () => {
       Product: {
         selectionSet: '{ upc }',
         fieldName: 'productByUpc',
-        accessors: undefined,
       },
       Video: {
         selectionSet: '{ key }',
         fieldName: 'videoByKey',
-        accessors: undefined,
+        fields: {
+          duration: {},
+        },
       },
     });
 
@@ -158,7 +161,6 @@ describe('splitMergedTypeAccessTransformer', () => {
       Product: {
         selectionSet: '{ key }',
         fieldName: 'productByKey',
-        accessors: undefined,
       },
     });
   });
