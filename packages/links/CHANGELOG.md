@@ -1,5 +1,13 @@
 # @graphql-tools/links
 
+## 7.0.4
+
+### Patch Changes
+
+- 24926654: fix(links): peer dependency issue
+- Updated dependencies [24926654]
+  - @graphql-tools/delegate@7.0.10
+
 ## 7.0.3
 
 ### Patch Changes
