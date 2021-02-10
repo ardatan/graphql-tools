@@ -16,7 +16,7 @@ export function cloneSubschemaConfig(subschemaConfig: SubschemaConfig): Subschem
       const mergedTypeConfig = (newSubschemaConfig.merge[typeName] = { ...subschemaConfig.merge[typeName] });
 
       if (mergedTypeConfig.accessors != null) {
-        mergedTypeConfig.accessors = mergedTypeConfig.accessors.slice();
+        mergedTypeConfig.accessors = mergedTypeConfig.accessors.map(accessor => ({ ...accessor }));
       }
 
       if (mergedTypeConfig.fields != null) {
