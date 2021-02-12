@@ -118,7 +118,7 @@ const executableSchema = makeExecutableSchema({
 ```
 
 GraphQL-Tools schema can be consumed by frameworks like Apollo GraphQL or express-graphql
-For example 
+For example
 
 ```js
 var express = require('express');
@@ -138,6 +138,12 @@ This example has the entire type definition in one string and all resolvers in o
 ## Contributions
 
 Contributions, issues and feature requests are very welcome. If you are using this package and fixed a bug for yourself, please consider submitting a PR!
+
+And if this is your first time contributing to this project, please do read our [Contributor Workflow Guide](https://github.com/the-guild-org/Stack/blob/master/CONTRIBUTING.md) before you get started off.
+
+### Code of Conduct
+
+Help us keep GraphQL Tools open and inclusive. Please read and follow our [Code of Conduct](https://github.com/the-guild-org/Stack/blob/master/CODE_OF_CONDUCT.md) as adopted from [Contributor Covenant](https://www.contributor-covenant.org/)
 
 ## Maintainers
 
