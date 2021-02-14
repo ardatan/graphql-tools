@@ -240,7 +240,7 @@ export function defaultCreateProxyingResolver({
 }
 ```
 
-Parentheticaly, note that that `args` from the root field resolver are not directly passed to the target schema. These arguments have already been parsed into their corresponding internal values by the GraphQL execution algorithm. The correct, serialized form of the arguments are available within the `info` object, ready for proxying. Specifying the `args` property for `delegateToSchema` allows one to pass *additional* arguments to the target schema, which is not necessary when creating a simple proxying schema.
+Parenthetically, note that that `args` from the root field resolver are not directly passed to the target schema. These arguments have already been parsed into their corresponding internal values by the GraphQL execution algorithm. The correct, serialized form of the arguments are available within the `info` object, ready for proxying. Specifying the `args` property for `delegateToSchema` allows one to pass *additional* arguments to the target schema, which is not necessary when creating a simple proxying schema.
 
 The above can can all be put together like this:
 
