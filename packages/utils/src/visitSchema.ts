@@ -269,7 +269,7 @@ export function visitSchema(
   visit(schema);
 
   // Automatically update any references to named schema types replaced
-  // during the traversal, so implementors don't have to worry about that.
+  // during the traversal, so implementers don't have to worry about that.
   healSchema(schema);
 
   // Return schema for convenience, even though schema parameter has all updated types.
