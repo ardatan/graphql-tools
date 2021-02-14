@@ -4,7 +4,7 @@ title: Schema wrapping
 description: Wrap schemas to automatically modify schemas, requests and results
 ---
 
-Schema wrapping (`@graphql-tools/wrap`) creates a modified version of a schema that proxies, or "wraps", the original unmodified schema. This technique is particularily useful when the original schema _cannot_ be changed, such as with [remote schemas](/docs/remote-schemas/).
+Schema wrapping (`@graphql-tools/wrap`) creates a modified version of a schema that proxies, or "wraps", the original unmodified schema. This technique is particularly useful when the original schema _cannot_ be changed, such as with [remote schemas](/docs/remote-schemas/).
 
 Schema wrapping works by creating a new "gateway" schema that simply delegates all operations to the original subschema. A series of _transforms_ are applied that may modify the shape of the gateway schema and all proxied operations; these operational transforms may modify an operation prior to delegation, or modify the subschema result prior to its return.
 
