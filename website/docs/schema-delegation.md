@@ -190,7 +190,7 @@ const resolvers = {
 
 #### context: Record<string, any>
 
-GraphQL context that is going to be passed to the subschema execution or subsciption call.
+GraphQL context that is going to be passed to the subschema execution or subscription call.
 
 #### info: GraphQLResolveInfo
 

@@ -20,7 +20,7 @@ Generally, to create a remote schema, you generally need just three steps:
 2. Use [`introspectSchema`](#introspectschemaexecutor-context) to get the non-executable schema of the remote server
 3. Use [`wrapSchema`](#wrapschemaschemaconfig) to create a schema that uses the executor to delegate requests to the underlying service
 
-You can optionally also include a [subscriber](#creating-a-subscriber) that can retrieve real time subcription results from the remote schema (only if you are using GraphQL Subscriptions)
+You can optionally also include a [subscriber](#creating-a-subscriber) that can retrieve real time subscription results from the remote schema (only if you are using GraphQL Subscriptions)
 
 ### Creating an executor
 
