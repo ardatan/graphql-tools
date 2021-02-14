@@ -191,7 +191,7 @@ const schema = await introspectSchema(executor);
 
 ### wrapSchema(schemaConfig)
 
-`wrapSchema` comes most in handly when wrapping a remote schema. When using the function to wrap a remote schema, it takes a single object: an subschema configuration object with properties describing how the schema should be accessed and wrapped. The `schema` and `executor` options are required.
+`wrapSchema` comes most in handy when wrapping a remote schema. When using the function to wrap a remote schema, it takes a single object: an subschema configuration object with properties describing how the schema should be accessed and wrapped. The `schema` and `executor` options are required.
 
 ```js
 import { wrapSchema } from '@graphql-tools/wrap';
