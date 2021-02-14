@@ -292,7 +292,7 @@ export class MockStore implements IMockStore {
     const fieldTypeName = fieldType.toString();
     if (value === null) {
       if (!isNullableType(fieldType)) {
-        throw new Error(`should not be null bacause ${fieldTypeName} is not nullable. Received null.`);
+        throw new Error(`should not be null because ${fieldTypeName} is not nullable. Received null.`);
       }
     }
 
