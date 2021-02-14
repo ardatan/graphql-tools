@@ -359,7 +359,7 @@ describe('MockStore', () => {
     const myFriendsRefs = store.get('User', 'me', 'friends') as Ref[];
     expect(myFriendsRefs).toHaveLength(2);
 
-    // should retrurn array of valid refs
+    // should return array of valid refs
     expect(myFriendsRefs[0]).toHaveProperty('$ref')
   });
 
