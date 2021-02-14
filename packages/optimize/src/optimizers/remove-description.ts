@@ -2,7 +2,7 @@ import { visit } from 'graphql';
 import { DocumentOptimizer } from '../types';
 
 /**
- * This optimizer removes "desciption" field from schema AST definitions.
+ * This optimizer removes "description" field from schema AST definitions.
  * @param input
  */
 export const removeDescriptions: DocumentOptimizer = input => {
