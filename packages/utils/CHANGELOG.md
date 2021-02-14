@@ -66,7 +66,7 @@
 
 ### Patch Changes
 
-- cd5da458: fix(utils): fix crashs when return null while visitSchema
+- cd5da458: fix(utils): fix crashes when return null while visitSchema
 
 ## 7.1.5
 
