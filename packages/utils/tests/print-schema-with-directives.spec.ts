@@ -6,7 +6,7 @@ import { printSchemaWithDirectives } from '../src';
 import { GraphQLJSON } from 'graphql-scalars';
 
 describe('printSchemaWithDirectives', () => {
-  it('Should print with directives, while printSchema doesnt', () => {
+  it(`Should print with directives, while printSchema doesn't`, () => {
     const schemaWithDirectives = buildSchema(/* GraphQL */ `
       directive @entity on OBJECT
       directive @id on FIELD_DEFINITION

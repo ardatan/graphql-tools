@@ -1715,7 +1715,7 @@ To disable this validator, use:
     );
   });
 
-  test('doesnt let you define resolver field not present in schema', () => {
+  test(`doesn't let you define resolver field not present in schema`, () => {
     const short = `
       type Person {
         name: String
