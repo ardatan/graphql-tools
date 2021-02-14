@@ -372,7 +372,7 @@ your query with variables. **Note**: when executing queries from the returned se
 
 ### MockStore
 
-The `MockStore` is holding the generated mocks and can be used to acess, generate or alter mocked values.
+The `MockStore` is holding the generated mocks and can be used to access, generate or alter mocked values.
 
 You can access the `MockStore` either as argument of `resolvers` option of `addMocksToSchema`:
 
