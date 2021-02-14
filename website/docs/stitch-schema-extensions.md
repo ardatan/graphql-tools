@@ -148,7 +148,7 @@ Post: {
 },
 ```
 
-The `selectionSet` specifies the key field(s) needed from an object to query for its associations. For example, `Post.user` will require that a Post provide its `userId`. Rather than relying on incoming queries to manually request this key for the association, the selection set will automatically be included in subschema requests to guarentee that these fields are fetched. Dynamic selection sets are also possible by providing a function that receives a GraphQL `FieldNode` (the gateway field) and returns a `SelectionSetNode`.
+The `selectionSet` specifies the key field(s) needed from an object to query for its associations. For example, `Post.user` will require that a Post provide its `userId`. Rather than relying on incoming queries to manually request this key for the association, the selection set will automatically be included in subschema requests to guarantee that these fields are fetched. Dynamic selection sets are also possible by providing a function that receives a GraphQL `FieldNode` (the gateway field) and returns a `SelectionSetNode`.
 
 ### resolve
 
