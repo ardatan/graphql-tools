@@ -10,7 +10,7 @@ import { ExternalObject } from './types';
  * Resolver that knows how to:
  * a) handle aliases for proxied schemas
  * b) handle errors from proxied schemas
- * c) handle external to internal enum coversion
+ * c) handle external to internal enum conversion
  */
 export function defaultMergedResolver(
   parent: ExternalObject,
