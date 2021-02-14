@@ -237,7 +237,7 @@ describe('merge schemas through transforms', () => {
     });
   });
 
-  // FIXME fragemnt replacements
+  // FIXME fragment replacements
   test('node should work', async () => {
     const result = await graphql(
       stitchedSchema,
