@@ -198,7 +198,7 @@ describe('MockStore', () => {
     expect(store.get('User', '123', 'name')).toEqual('Superman');
   });
 
-  it('with type level mocks, it should produce consistant values', () => {
+  it('with type level mocks, it should produce consistent values', () => {
     const store = createMockStore({
       schema,
       mocks: {
