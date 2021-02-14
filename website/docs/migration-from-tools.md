@@ -67,7 +67,7 @@ If you are using GraphQL Tools v6, there are several breaking changes to be awar
 
 ## Upgrading from v4/v5
 
-If you are using GraphQL Tools v4/v5, additioanl changes are necessary.
+If you are using GraphQL Tools v4/v5, additional changes are necessary.
 
 #### Monorepo design
 
