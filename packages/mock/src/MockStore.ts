@@ -77,7 +77,7 @@ export class MockStore implements IMockStore {
     if (typeof _typeName !== 'string') {
       if (_key === undefined) {
         if (isRef<KeyT>(_typeName)) {
-          throw new Error("Can't provide a ref as first arguement and no other argument");
+          throw new Error("Can't provide a ref as first argument and no other argument");
         }
         // get({...})
         return this.getImpl(_typeName);
@@ -139,7 +139,7 @@ export class MockStore implements IMockStore {
     if (typeof _typeName !== 'string') {
       if (_key === undefined) {
         if (isRef<KeyT>(_typeName)) {
-          throw new Error("Can't provide a ref as first arguement and no other argument");
+          throw new Error("Can't provide a ref as first argument and no other argument");
         }
         // set({...})
         return this.setImpl(_typeName);
