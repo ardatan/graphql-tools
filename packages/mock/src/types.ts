@@ -36,7 +36,7 @@ export type GetArgs<KeyT extends KeyTypeConstraints = string> = {
    * ```
    *
    * Args can be a record, just like `args` argument of field resolver or an
-   * arbitraty string.
+   * arbitrary string.
    */
   fieldArgs?: string | { [argName: string]: any };
   /**

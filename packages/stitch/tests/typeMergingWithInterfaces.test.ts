@@ -236,7 +236,7 @@ describe('merging using type merging', () => {
     //
     // The equivalent `argsExpr` is also included. This example highlights how when using
     // `argsExpr`, the $ sign without dot notation will pass the entire key as an object.
-    // This allows arbitary nesting of the key input as needed.
+    // This allows arbitrary nesting of the key input as needed.
     //
     typeDefs: `
       ${allStitchingDirectivesTypeDefs}
