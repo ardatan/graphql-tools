@@ -444,7 +444,7 @@ store.get('User', 'abc-737dh-djdjd')
 > { $ref: { key: 'abc-737dh-djdjd', typeName: 'User' } }
 ```
 
-Root types (`Query`, `Mutation`), which necessarely have only one entity, will use the special store key `ROOT` to reference this only entity:
+Root types (`Query`, `Mutation`), which necessarily have only one entity, will use the special store key `ROOT` to reference this only entity:
 
 ```ts
 store.get('Query', 'ROOT', 'viewer');
