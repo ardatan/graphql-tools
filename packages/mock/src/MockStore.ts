@@ -420,7 +420,7 @@ export class MockStore implements IMockStore {
     if (value !== undefined) return value;
 
     const type = this.getType(typeName);
-    // GraphQL 14 Compability
+    // GraphQL 14 Compatibility
     const interfaces = 'getInterfaces' in type ? type.getInterfaces() : [];
 
     if (interfaces.length > 0) {
