@@ -397,7 +397,7 @@ const store = createMockStore({ schema });
 const schemaWithMocks = addMocksToSchema({ schema, store });
 ```
 
-The content is accessible and modifiabale via the methods `get` and `set` of the `MockStore`. These methods have several signatures (see [their typing](https://github.com/ardatan/graphql-tools/blob/master/packages/mock/src/types.ts))
+The content is accessible and modifiable via the methods `get` and `set` of the `MockStore`. These methods have several signatures (see [their typing](https://github.com/ardatan/graphql-tools/blob/master/packages/mock/src/types.ts))
 but here are some examples:
 
 #### get
