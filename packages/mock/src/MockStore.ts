@@ -260,7 +260,7 @@ export class MockStore implements IMockStore {
       this.store[typeName][key] = {};
     }
 
-    // if already set and we don't ovveride
+    // if already set and we don't override
     if (this.store[typeName][key][fieldNameInStore] !== undefined && noOverride) {
       return;
     }
