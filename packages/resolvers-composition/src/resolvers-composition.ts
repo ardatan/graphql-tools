@@ -26,16 +26,16 @@ function resolveRelevantMappings<Resolvers extends Record<string, any> = Record<
   path: string,
   allMappings: ResolversComposerMapping<Resolvers>
 ): string[] {
-  const splitted = path.split('.');
+  const split = path.split('.');
 
-  if (splitted.length === 2) {
-    const typeName = splitted[0];
+  if (split.length === 2) {
+    const typeName = split[0];
 
     if (isScalarType(resolvers[typeName])) {
       return [];
     }
 
-    const fieldName = splitted[1];
+    const fieldName = split[1];
 
     if (typeName === '*') {
       return flatten(
@@ -70,8 +70,8 @@ function resolveRelevantMappings<Resolvers extends Record<string, any> = Record<
 
       return paths;
     }
-  } else if (splitted.length === 1) {
-    const typeName = splitted[0];
+  } else if (split.length === 1) {
+    const typeName = split[0];
 
     return flatten(
       Object.keys(resolvers[typeName]).map(fieldName =>
