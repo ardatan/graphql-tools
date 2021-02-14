@@ -58,7 +58,7 @@ export type SetArgs<KeyT extends KeyTypeConstraints = string> = {
   value?: unknown | { [fieldName: string]: any };
   /**
    * If the value for this field is already set, it won't
-   * be overriden.
+   * be overridden.
    *
    * Propagates down do nested `set`.
    */
