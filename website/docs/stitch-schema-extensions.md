@@ -79,7 +79,7 @@ export const schema = stitchSchemas({
 });
 ```
 
-The `typeDefs` option provides type extentions (using the `extend` keyword) that add additional fields into the _combined_ gateway schema, and therefore may cross-reference types from any subschema.
+The `typeDefs` option provides type extensions (using the `extend` keyword) that add additional fields into the _combined_ gateway schema, and therefore may cross-reference types from any subschema.
 
 However, these extensions alone won't do anything until they have corresponding resolvers. A complete example would look like this:
 
