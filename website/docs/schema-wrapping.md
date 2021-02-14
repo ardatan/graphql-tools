@@ -333,7 +333,7 @@ const schema = wrapSchema({
 
 The `wrapSchema` method will produce a new schema with all queued `transformSchema` methods applied. Delegating resolvers are automatically generated to map from new schema root fields to old schema root fields. These resolvers should be sufficient for most common case so you don't have to implement your own.
 
-Delegating resolvers will apply all operation transforms defined by the wrapper's `Transform` objects. Each provided `transformRequest` functions will be applies in reverse order, until the request matches the original schema. The `tranformResult` functions will be applied in the opposite order until the result matches the final gateway schema.
+Delegating resolvers will apply all operation transforms defined by the wrapper's `Transform` objects. Each provided `transformRequest` functions will be applies in reverse order, until the request matches the original schema. The `transformResult` functions will be applied in the opposite order until the result matches the final gateway schema.
 
 In advanced cases, transforms may wish to create additional delegating root resolvers (for example, when hoisting a field into a root type). This is also possible. The wrapping schema is actually generated twice -- the first run results in a possibly non-executable version, while the second execution also includes the result of the first one within the `transformedSchema` argument so that an executable version with any new proxying resolvers can be created.
 
