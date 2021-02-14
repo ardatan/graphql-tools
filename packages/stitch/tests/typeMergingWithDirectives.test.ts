@@ -79,7 +79,7 @@ describe('merging using type merging', () => {
     // the @computed directive will defer resolution of these fields even when queries originate
     // within this subschema. The resolver for the mostStockedProduct therefore correctly returns
     // an object with a `upc` property, but without `price` and `weight`. The gateway will use
-    // the `upc` to retrive the `price` and `weight` from the external services and return to this
+    // the `upc` to retrieve the `price` and `weight` from the external services and return to this
     // service for the `shippingEstimate`. Resolution for @computed fields thereby differs when
     // querying via the gateway versus when querying the subservice directly.
     //
