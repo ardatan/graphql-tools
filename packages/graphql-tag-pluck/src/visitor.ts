@@ -149,7 +149,7 @@ export default (code: string, out: any, options: GraphQLTagPluckOptions = {}) =>
         // Slice quotes
         .slice(start + 1, end - 1)
         // Erase string interpolations as we gonna export everything as a single
-        // string anyways
+        // string anyway
         .replace(/\$\{[^}]*\}/g, '')
         .split('\\`')
         .join('`'),
