@@ -263,9 +263,9 @@ transforms: [
 
 Custom transforms are fairly straightforward to write. They are simply objects with up to three methods:
 
-- `transformSchema`: recieves the original subschema and applies modifications to it, returning a modified wrapper (proxy) schema. This method runs once while initially wrapping the subschema.
-- `transformRequest`: recieves each request made to the wrapped schema. The shape of a request matches the wrapper schema, and must be returned in a shape that matches the original subschema.
-- `transformResult`: recieves each result returned from the original subschema. The shape of the result matches the original subschema, and must be returned in a shape that matches the wrapper schema.
+- `transformSchema`: receives the original subschema and applies modifications to it, returning a modified wrapper (proxy) schema. This method runs once while initially wrapping the subschema.
+- `transformRequest`: receives each request made to the wrapped schema. The shape of a request matches the wrapper schema, and must be returned in a shape that matches the original subschema.
+- `transformResult`: receives each result returned from the original subschema. The shape of the result matches the original subschema, and must be returned in a shape that matches the wrapper schema.
 
 The complete transform object API is as follows:
 
