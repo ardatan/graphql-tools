@@ -483,7 +483,7 @@ Set a field value via graph traversal (nested set):
 ```ts
 store.get('Query', 'ROOT', {
   viewer: {
-    name: 'Alexamdre',
+    name: 'Alexandre',
     friends: [
       { name: 'Emily' },
       { name: 'Caroline' }
