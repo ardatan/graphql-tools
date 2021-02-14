@@ -25,7 +25,7 @@ export type GetArgs<KeyT extends KeyTypeConstraints = string> = {
   key?: KeyT;
   fieldName?: string;
   /**
-   * Optionnal arguments when querying the field.
+   * Optional arguments when querying the field.
    *
    * Querying the field with the same arguments will return
    * the same value. Deep equality is checked.
@@ -50,7 +50,7 @@ export type SetArgs<KeyT extends KeyTypeConstraints = string> = {
   key: KeyT;
   fieldName?: string;
   /**
-   * Optionnal arguments when querying the field.
+   * Optional arguments when querying the field.
    *
    * @see GetArgs#fieldArgs
    */
