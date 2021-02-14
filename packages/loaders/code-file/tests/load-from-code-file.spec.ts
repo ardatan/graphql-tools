@@ -22,7 +22,7 @@ describe('loadFromCodeFile', () => {
     }
   });
 
-  it('should load a vaild file', async () => {
+  it('should load a valid file', async () => {
     const loaded = await loader.load('./test-files/valid-doc.js', {
       noRequire: true,
       fs,
@@ -85,7 +85,7 @@ describe('loadFromCodeFileSync', () => {
     }).toThrowError('Syntax Error: Unexpected Name "InvalidGetUser"')
   });
 
-  it('should load a vaild file', () => {
+  it('should load a valid file', () => {
     const loaded = loader.loadSync('./test-files/valid-doc.js', {
       noRequire: true,
       fs,
