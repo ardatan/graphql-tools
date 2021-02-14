@@ -69,7 +69,7 @@ export interface IMockStore {
   schema: GraphQLSchema;
   /**
    * Get a field value from the store for the given type, key and field
-   * name — and optionnally field arguments. If the field name is not given,
+   * name — and optionally field arguments. If the field name is not given,
    * a reference to the type will be returned.
    *
    * If the the value for this field is not set, a value will be
@@ -122,7 +122,7 @@ export interface IMockStore {
 
   /**
    * Set a field value in the store for the given type, key and field
-   * name — and optionnally field arguments.
+   * name — and optionally field arguments.
    *
    * If the the field return type is an `ObjectType` or a list of
    * `ObjectType`, you can set references to other entity as value:
