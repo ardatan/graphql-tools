@@ -23,7 +23,7 @@ This package provides a few useful ways to create a GraphQL schema:
 
 If you want to bind your JavaScript GraphQL schema to an HTTP server, you can use [`express-graphql`](https://github.com/graphql/express-graphql).
 
-You can develop your Javascript based GraphQL API with `graphql-tools` and `express-graphql` together: One to write the schema and resolver code, and the other to connect it to a web server.
+You can develop your JavaScript based GraphQL API with `graphql-tools` and `express-graphql` together: One to write the schema and resolver code, and the other to connect it to a web server.
 
 ## Example
 

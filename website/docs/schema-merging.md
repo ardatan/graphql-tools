@@ -357,7 +357,7 @@ const resolversArray = loadFilesSync(path.join(__dirname, './resolvers'));
 module.exports = mergeResolvers(resolversArray);
 ```
 
-> Beware that `mergeResolvers` is simply merging plain Javascript objects together.
+> Beware that `mergeResolvers` is simply merging plain JavaScript objects together.
 This means that you should be careful with Queries, Mutations or Subscriptions with naming conflicts.
 
 You can also load files with specified extensions by setting the extensions option.
