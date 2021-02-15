@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- e53f97b3: fix(utils): provide { done: true } from iterator when complete is called on observer in obsvervableToAsyncIterable
+- e53f97b3: fix(utils): provide { done: true } from iterator when complete is called on observer in observableToAsyncIterable
 
 ## 7.2.5
 
