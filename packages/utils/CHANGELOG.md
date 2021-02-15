@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 7.2.6
+
+### Patch Changes
+
+- e53f97b3: fix(utils): provide { done: true } from iterator when complete is called on observer in obsvervableToAsyncIterable
+
 ## 7.2.5
 
 ### Patch Changes
