@@ -27,7 +27,7 @@ function normalize(doc: string): string {
     return print(parse(doc));
 }
 
-test('load schema from Github', async () => {
+test('load schema from GitHub', async () => {
   let headers: Record<string, string> = {};
   let query: string;
   let variables: any;
