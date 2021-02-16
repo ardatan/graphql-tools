@@ -54,6 +54,10 @@ const defaults: GraphQLTagPluckOptions = {
       identifier: 'graphql',
     },
     {
+      name: 'babel-plugin-relay/macro',
+      identifier: 'graphql',
+    },
+    {
       name: 'apollo-boost',
       identifier: 'gql',
     },
