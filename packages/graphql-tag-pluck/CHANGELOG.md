@@ -1,5 +1,11 @@
 # @graphql-tools/graphql-tag-pluck
 
+## 6.5.0
+
+### Minor Changes
+
+- 8e030db0: Updated list of default plucked tags (added urql and Relay)
+
 ## 6.4.2
 
 ### Patch Changes
