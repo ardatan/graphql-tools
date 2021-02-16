@@ -58,7 +58,7 @@ describe('parse sdl', () => {
       # Union test
       union Union = Type | OtherType
 
-      # Inferface test
+      # Interface test
       interface Node {
         id: ID!
       }

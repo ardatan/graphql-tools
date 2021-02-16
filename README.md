@@ -1,4 +1,4 @@
-[![toolskit](https://user-images.githubusercontent.com/20847995/80261023-feb6e380-8691-11ea-8680-5747fa02c5d8.gif)](https://graphql-tools.com)
+[![toolkit](https://user-images.githubusercontent.com/20847995/80261023-feb6e380-8691-11ea-8680-5747fa02c5d8.gif)](https://graphql-tools.com)
 
 [![npm version](https://badge.fury.io/js/%40graphql-tools%2Futils.svg)](https://badge.fury.io/js/%40graphql-tools%2Futils)
 [![CI](https://github.com/ardatan/graphql-tools/workflows/CI/badge.svg)](https://github.com/ardatan/graphql-tools/actions)
@@ -23,7 +23,7 @@ This package provides a few useful ways to create a GraphQL schema:
 
 If you want to bind your JavaScript GraphQL schema to an HTTP server, you can use [`express-graphql`](https://github.com/graphql/express-graphql).
 
-You can develop your Javascript based GraphQL API with `graphql-tools` and `express-graphql` together: One to write the schema and resolver code, and the other to connect it to a web server.
+You can develop your JavaScript based GraphQL API with `graphql-tools` and `express-graphql` together: One to write the schema and resolver code, and the other to connect it to a web server.
 
 ## Example
 

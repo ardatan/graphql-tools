@@ -41,8 +41,8 @@
 
 ### Patch Changes
 
-- e9ed9394: Change intenral API to add more details on found locations, and export parseCode for lower-level parsing
-- 54b440a9: allow to skip identation while plucking
+- e9ed9394: Change internal API to add more details on found locations, and export parseCode for lower-level parsing
+- 54b440a9: allow to skip indentation while plucking
 
 ## 6.2.4
 

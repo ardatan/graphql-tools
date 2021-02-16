@@ -19,7 +19,7 @@ import { getArgumentValues } from './getArgumentValues';
 // registers interest in certain schema types, such as GraphQLObjectType,
 // GraphQLUnionType, etc. When SchemaDirectiveVisitor.visitSchemaDirectives is
 // called with a GraphQLSchema object and a map of visitor subclasses, the
-// overidden methods of those subclasses allow the visitors to obtain
+// overridden methods of those subclasses allow the visitors to obtain
 // references to any type objects that have @directives attached to them,
 // enabling visitors to inspect or modify the schema as appropriate.
 //

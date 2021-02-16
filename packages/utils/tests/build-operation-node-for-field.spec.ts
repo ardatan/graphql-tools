@@ -30,7 +30,7 @@ const schema = buildSchema(/* GraphQL */ `
     ingredients: [String!]!
   }
 
-  type CeaserSalad implements Salad {
+  type CaeserSalad implements Salad {
     ingredients: [String!]!
     additionalParmesan: Boolean!
   }
@@ -101,7 +101,7 @@ test('should work with Query', async () => {
               toppings
             }
             ... on Salad {
-              ... on CeaserSalad {
+              ... on CaeserSalad {
                 ingredients
                 additionalParmesan
               }
@@ -148,7 +148,7 @@ test('should work with Query and variables', async () => {
               toppings
             }
             ... on Salad {
-              ... on CeaserSalad {
+              ... on CaeserSalad {
                 ingredients
                 additionalParmesan
               }
@@ -185,7 +185,7 @@ test('should work with Query and complicated variable', async () => {
             toppings
           }
           ... on Salad {
-            ... on CeaserSalad {
+            ... on CaeserSalad {
               ingredients
               additionalParmesan
             }
@@ -218,7 +218,7 @@ test('should work with Union', async () => {
             toppings
           }
           ... on Salad {
-            ... on CeaserSalad {
+            ... on CaeserSalad {
               ingredients
               additionalParmesan
             }
@@ -246,7 +246,7 @@ test('should work with mutation', async () => {
     clean(/* GraphQL */ `
       mutation addSaladMutation($ingredients: [String!]!) {
         addSalad(ingredients: $ingredients) {
-          ... on CeaserSalad {
+          ... on CaeserSalad {
             ingredients
             additionalParmesan
           }
@@ -278,7 +278,7 @@ test('should work with mutation and unions', async () => {
             toppings
           }
           ... on Salad {
-            ... on CeaserSalad {
+            ... on CaeserSalad {
               ingredients
               additionalParmesan
             }
@@ -342,7 +342,7 @@ test('should be able to ignore using models when requested', async () => {
               toppings
             }
             ... on Salad {
-              ... on CeaserSalad {
+              ... on CaeserSalad {
                 ingredients
                 additionalParmesan
               }
@@ -380,7 +380,7 @@ test('should work with Subscription', async () => {
             toppings
           }
           ... on Salad {
-            ... on CeaserSalad {
+            ... on CaeserSalad {
               ingredients
               additionalParmesan
             }

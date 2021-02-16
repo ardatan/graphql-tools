@@ -187,7 +187,7 @@ export interface IAddResolveFunctionsToSchemaOptions {
 }
 ```
 
-Additonally, the `updateResolversInPlace` property, when set to true, changes `addResolversToSchema` behavior to modify the original schema in place without recreating it. By default, a new schema will be returned without modification of the original schema.
+Additionally, the `updateResolversInPlace` property, when set to true, changes `addResolversToSchema` behavior to modify the original schema in place without recreating it. By default, a new schema will be returned without modification of the original schema.
 
 ### addSchemaLevelResolver(schema, rootResolveFunction)
 

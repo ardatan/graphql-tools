@@ -205,7 +205,7 @@ describe('file scanner', function() {
           },
         },
       ],
-      note: 'ingore index files',
+      note: 'ignore index files',
       extensions: ['js'],
       compareValue: true,
       ignoreIndex: true,

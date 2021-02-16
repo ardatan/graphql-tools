@@ -44,7 +44,7 @@ export function introspectSchema<TExecutor extends AsyncExecutor | SyncExecutor>
   return getSchemaFromIntrospection(introspectionResult) as any;
 }
 
-// Keep for backwards compability. Will be removed on next release.
+// Keep for backwards compatibility. Will be removed on next release.
 export function introspectSchemaSync(
   executor: SyncExecutor,
   context?: Record<string, any>,

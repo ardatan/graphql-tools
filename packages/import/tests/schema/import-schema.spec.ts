@@ -95,7 +95,7 @@ describe('importSchema', () => {
   });
 
   test('parseSDL: non-import comment', () => {
-    expect(parseSDL(`#importent: comment`)).toEqual([]);
+    expect(parseSDL(`#important: comment`)).toEqual([]);
   });
 
   test('parse: multi line import', () => {

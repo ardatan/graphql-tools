@@ -43,7 +43,7 @@ enum Enum {
 \\"Union test\\"
 union Union = Type | OtherType
 
-\\"Inferface test\\"
+\\"Interface test\\"
 interface Node {
   id: ID!
 }
@@ -96,7 +96,7 @@ enum Enum {
 \\"Union test\\"
 union Union = Type | OtherType
 
-\\"Inferface test\\"
+\\"Interface test\\"
 interface Node {
   id: ID!
 }

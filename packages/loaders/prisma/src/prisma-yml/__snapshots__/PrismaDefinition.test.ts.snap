@@ -157,7 +157,7 @@ Array [
 ]
 `;
 
-exports[`prisma definition dont load yml with secret and env var in args 1`] = `
+exports[`prisma definition don't load yml with secret and env var in args 1`] = `
 [Error: Invalid prisma.yml file
 prisma.yml should NOT have additional properties. additionalProperty: service]
 `;
