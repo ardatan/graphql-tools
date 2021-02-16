@@ -46,6 +46,14 @@ const defaults: GraphQLTagPluckOptions = {
       identifier: 'graphql',
     },
     {
+      name: 'react-relay/hooks',
+      identifier: 'graphql',
+    },
+    {
+      name: 'relay-runtime',
+      identifier: 'graphql',
+    },
+    {
       name: 'apollo-boost',
       identifier: 'gql',
     },
@@ -83,6 +91,26 @@ const defaults: GraphQLTagPluckOptions = {
     },
     {
       name: 'graphql.macro',
+      identifier: 'gql',
+    },
+    {
+      name: '@urql/core',
+      identifier: 'gql',
+    },
+    {
+      name: 'urql',
+      identifier: 'gql',
+    },
+    {
+      name: '@urql/preact',
+      identifier: 'gql',
+    },
+    {
+      name: '@urql/svelte',
+      identifier: 'gql',
+    },
+    {
+      name: '@urql/vue',
       identifier: 'gql',
     },
   ],
