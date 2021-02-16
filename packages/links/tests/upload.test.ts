@@ -25,13 +25,13 @@ function streamToString(stream: Readable) {
 
 function startServer(e: Express): Promise<Server> {
   return new Promise((resolve, reject) => {
-    e.listen(undefined, 'localhost', function (error) {
+    e.listen(undefined, 'localhost', function (error: Error) {
       if (error) {
         reject(error);
       } else {
         resolve(this);
       }
-    });
+    } as any);
   });
 }
 
