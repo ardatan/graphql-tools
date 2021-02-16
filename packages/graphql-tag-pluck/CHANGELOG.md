@@ -1,5 +1,11 @@
 # @graphql-tools/graphql-tag-pluck
 
+## 6.5.1
+
+### Patch Changes
+
+- f80ce4f4: Added support for loading tags from babel-plugin-relay/macro as well
+
 ## 6.5.0
 
 ### Minor Changes

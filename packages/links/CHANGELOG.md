@@ -1,5 +1,11 @@
 # @graphql-tools/links
 
+## 7.0.5
+
+### Patch Changes
+
+- f80ce4f4: enhance(url-loader/links): use new form-data that already supports streams
+
 ## 7.0.4
 
 ### Patch Changes
