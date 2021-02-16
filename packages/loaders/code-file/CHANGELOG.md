@@ -1,5 +1,11 @@
 # @graphql-tools/code-file-loader
 
+## 6.3.0
+
+### Minor Changes
+
+- 619c2143: Bump code-file loader to use latest graphql-tag-pluck
+
 ## 6.2.6
 
 ### Patch Changes
