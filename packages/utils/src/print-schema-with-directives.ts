@@ -103,7 +103,7 @@ export function printSchemaWithDirectives(
   return result.join('\n');
 }
 
-function astFromSchema(
+export function astFromSchema(
   schema: GraphQLSchema,
   pathToDirectivesInExtensions: Array<string>
 ): SchemaDefinitionNode | SchemaExtensionNode {
@@ -178,7 +178,7 @@ function astFromSchema(
   return schemaNode;
 }
 
-function astFromDirective(
+export function astFromDirective(
   directive: GraphQLDirective,
   schema: GraphQLSchema,
   pathToDirectivesInExtensions: Array<string>
@@ -210,7 +210,7 @@ function astFromDirective(
   };
 }
 
-function getDirectiveNodes(
+export function getDirectiveNodes(
   entity: GraphQLSchema | GraphQLNamedType | GraphQLEnumValue,
   schema: GraphQLSchema,
   pathToDirectivesInExtensions: Array<string>
@@ -237,7 +237,7 @@ function getDirectiveNodes(
   return directives;
 }
 
-function getDeprecatableDirectiveNodes(
+export function getDeprecatableDirectiveNodes(
   entity: GraphQLArgument | GraphQLField<any, any> | GraphQLInputField,
   schema: GraphQLSchema,
   pathToDirectivesInExtensions: Array<string>
@@ -275,7 +275,7 @@ function getDeprecatableDirectiveNodes(
     : [deprecatedDirectiveNode].concat(directiveNodesBesidesDeprecated);
 }
 
-function astFromArg(
+export function astFromArg(
   arg: GraphQLArgument,
   schema: GraphQLSchema,
   pathToDirectivesInExtensions: Array<string>
@@ -300,7 +300,7 @@ function astFromArg(
   };
 }
 
-function astFromObjectType(
+export function astFromObjectType(
   type: GraphQLObjectType,
   schema: GraphQLSchema,
   pathToDirectivesInExtensions: Array<string>
@@ -325,7 +325,7 @@ function astFromObjectType(
   };
 }
 
-function astFromInterfaceType(
+export function astFromInterfaceType(
   type: GraphQLInterfaceType,
   schema: GraphQLSchema,
   pathToDirectivesInExtensions: Array<string>
@@ -357,7 +357,7 @@ function astFromInterfaceType(
   return node;
 }
 
-function astFromUnionType(
+export function astFromUnionType(
   type: GraphQLUnionType,
   schema: GraphQLSchema,
   pathToDirectivesInExtensions: Array<string>
@@ -381,7 +381,7 @@ function astFromUnionType(
   };
 }
 
-function astFromInputObjectType(
+export function astFromInputObjectType(
   type: GraphQLInputObjectType,
   schema: GraphQLSchema,
   pathToDirectivesInExtensions: Array<string>
@@ -407,7 +407,7 @@ function astFromInputObjectType(
   };
 }
 
-function astFromEnumType(
+export function astFromEnumType(
   type: GraphQLEnumType,
   schema: GraphQLSchema,
   pathToDirectivesInExtensions: Array<string>
@@ -526,11 +526,11 @@ function astFromEnumValue(
   };
 }
 
-function makeDeprecatedDirective(deprecationReason: string): DirectiveNode {
+export function makeDeprecatedDirective(deprecationReason: string): DirectiveNode {
   return makeDirective('deprecated', { reason: deprecationReason }, GraphQLDeprecatedDirective);
 }
 
-function makeDirective(name: string, args: Record<string, any>, directive: GraphQLDirective): DirectiveNode {
+export function makeDirective(name: string, args: Record<string, any>, directive: GraphQLDirective): DirectiveNode {
   const directiveArguments: Array<ArgumentNode> = [];
 
   if (directive != null) {
@@ -571,7 +571,7 @@ function makeDirective(name: string, args: Record<string, any>, directive: Graph
   };
 }
 
-function makeDirectives(schema: GraphQLSchema, directiveValues: Record<string, any>): Array<DirectiveNode> {
+export function makeDirectives(schema: GraphQLSchema, directiveValues: Record<string, any>): Array<DirectiveNode> {
   const directiveNodes: Array<DirectiveNode> = [];
   Object.entries(directiveValues).forEach(([directiveName, arrayOrSingleValue]) => {
     const directive = schema.getDirective(directiveName);
