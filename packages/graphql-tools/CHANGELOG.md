@@ -1,4 +1,10 @@
 # graphql-tools
+## 7.0.4
+
+### Patch Changes
+
+- Revert mock package to v7 to avoid breaking changes
+
 
 ## 7.0.3
 

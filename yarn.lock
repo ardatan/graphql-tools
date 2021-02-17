@@ -2475,6 +2475,15 @@
     minimatch "^3.0.4"
     strip-json-comments "^3.1.1"
 
+"@graphql-tools/mock@^7.0.0":
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/@graphql-tools/mock/-/mock-7.0.0.tgz#b43858f47fedfbf7d8bbbf7d33e6acb64b8b7da7"
+  integrity sha512-ShO8D9HudgnhqoWeKb3iejGtPV8elFqSO1U0O70g3FH3W/CBW2abXfuyodBUevXVGIjyqzfkNzVtpIE0qiOVVQ==
+  dependencies:
+    "@graphql-tools/schema" "^7.0.0"
+    "@graphql-tools/utils" "^7.0.0"
+    tslib "~2.0.1"
+
 "@graphql-typed-document-node/core@^3.0.0":
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/@graphql-typed-document-node/core/-/core-3.1.0.tgz#0eee6373e11418bfe0b5638f654df7a4ca6a3950"
