@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 7.3.0
+
+### Minor Changes
+
+- 6387572c: feat(utils): export astFrom\* helper functions
+
 ## 7.2.6
 
 ### Patch Changes
