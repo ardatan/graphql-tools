@@ -242,7 +242,7 @@ export function getDirectiveNodes(
 
   let directives: Array<DirectiveNode>;
   if (directivesInExtensions != null) {
-    directives = makeDirectives(schema, directivesInExtensions);
+    directives = makeDirectiveNodes(schema, directivesInExtensions);
   } else {
     directives = [].concat(...nodes.filter(node => node.directives != null).map(node => node.directives));
   }
@@ -262,7 +262,7 @@ export function getDeprecatableDirectiveNodes(
 
   let directives: ReadonlyArray<DirectiveNode>;
   if (directivesInExtensions != null) {
-    directives = makeDirectives(schema, directivesInExtensions);
+    directives = makeDirectiveNodes(schema, directivesInExtensions);
   } else {
     directives = entity.astNode?.directives;
   }
@@ -449,6 +449,36 @@ export function astFromScalarType(
   schema: GraphQLSchema,
   pathToDirectivesInExtensions: Array<string>
 ): ScalarTypeDefinitionNode {
+  let directiveNodesBesidesSpecifiedBy: Array<DirectiveNode> = [];
+  let specifiedByDirectiveNode: DirectiveNode;
+
+  const directivesInExtensions = getDirectivesInExtensions(type, pathToDirectivesInExtensions);
+
+  let allDirectives: ReadonlyArray<DirectiveNode>;
+  if (directivesInExtensions != null) {
+    allDirectives = makeDirectiveNodes(schema, directivesInExtensions);
+  } else {
+    allDirectives = type.astNode?.directives;
+  }
+
+  if (allDirectives != null) {
+    directiveNodesBesidesSpecifiedBy = allDirectives.filter(directive => directive.name.value !== 'specifiedBy');
+    if (((type as unknown) as { specifiedByUrl: string }).specifiedByUrl != null) {
+      specifiedByDirectiveNode = allDirectives.filter(directive => directive.name.value === 'specifiedBy')?.[0];
+    }
+  }
+
+  if (((type as unknown) as { specifiedByUrl: string }).specifiedByUrl != null && specifiedByDirectiveNode == null) {
+    specifiedByDirectiveNode = makeDirectiveNode('specifiedBy', {
+      url: ((type as unknown) as { specifiedByUrl: string }).specifiedByUrl,
+    });
+  }
+
+  const directives =
+    specifiedByDirectiveNode == null
+      ? directiveNodesBesidesSpecifiedBy
+      : [specifiedByDirectiveNode].concat(directiveNodesBesidesSpecifiedBy);
+
   return {
     kind: Kind.SCALAR_TYPE_DEFINITION,
     description:
@@ -463,7 +493,7 @@ export function astFromScalarType(
       kind: Kind.NAME,
       value: type.name,
     },
-    directives: getDirectiveNodes(type, schema, pathToDirectivesInExtensions),
+    directives,
   };
 }
 
@@ -541,10 +571,14 @@ export function astFromEnumValue(
 }
 
 export function makeDeprecatedDirective(deprecationReason: string): DirectiveNode {
-  return makeDirective('deprecated', { reason: deprecationReason }, GraphQLDeprecatedDirective);
+  return makeDirectiveNode('deprecated', { reason: deprecationReason }, GraphQLDeprecatedDirective);
 }
 
-export function makeDirective(name: string, args: Record<string, any>, directive: GraphQLDirective): DirectiveNode {
+export function makeDirectiveNode(
+  name: string,
+  args: Record<string, any>,
+  directive?: GraphQLDirective
+): DirectiveNode {
   const directiveArguments: Array<ArgumentNode> = [];
 
   if (directive != null) {
@@ -585,16 +619,16 @@ export function makeDirective(name: string, args: Record<string, any>, directive
   };
 }
 
-export function makeDirectives(schema: GraphQLSchema, directiveValues: Record<string, any>): Array<DirectiveNode> {
+export function makeDirectiveNodes(schema: GraphQLSchema, directiveValues: Record<string, any>): Array<DirectiveNode> {
   const directiveNodes: Array<DirectiveNode> = [];
   Object.entries(directiveValues).forEach(([directiveName, arrayOrSingleValue]) => {
     const directive = schema.getDirective(directiveName);
     if (Array.isArray(arrayOrSingleValue)) {
       arrayOrSingleValue.forEach(value => {
-        directiveNodes.push(makeDirective(directiveName, value, directive));
+        directiveNodes.push(makeDirectiveNode(directiveName, value, directive));
       });
     } else {
-      directiveNodes.push(makeDirective(directiveName, arrayOrSingleValue, directive));
+      directiveNodes.push(makeDirectiveNode(directiveName, arrayOrSingleValue, directive));
     }
   });
   return directiveNodes;
