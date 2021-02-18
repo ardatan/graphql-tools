@@ -3286,10 +3286,10 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-14.14.9.tgz#04afc9a25c6ff93da14deabd65dc44485b53c8d6"
   integrity sha512-JsoLXFppG62tWTklIoO4knA+oDTYsmqWxHRvd4lpmfQRNhX6osheUOWETP2jMoV/2bEHuMra8Pp3Dmo/stBFcw==
 
-"@types/node@14.14.28":
-  version "14.14.28"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-14.14.28.tgz#cade4b64f8438f588951a6b35843ce536853f25b"
-  integrity sha512-lg55ArB+ZiHHbBBttLpzD07akz0QPrZgUODNakeC09i62dnrywr9mFErHuaPlB6I7z+sEbK+IYmplahvplCj2g==
+"@types/node@14.14.29":
+  version "14.14.29"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-14.14.29.tgz#2bbaefda2b715f9a0cd31c55b55b9092c5920e59"
+  integrity sha512-z1PF7SVwqolmqu21eoWM82FPx699C2sCmrxTcCRotRn+2gt9Ve4dwmZsDntxgGyEHFHXYaqMcMMCdPKUeTKXsA==
 
 "@types/node@^12.7.1":
   version "12.12.62"
