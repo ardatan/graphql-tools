@@ -302,6 +302,7 @@ describe('printSchemaWithDirectives', () => {
         }
 
         scalar DateTime @SCALAR
+        scalar JSONObject @specifiedBy(url: "http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf")
 
         type SomeType @OBJECT {
           someField(someArg: Int! @ARGUMENT_DEFINITION): String @FIELD_DEFINITION
