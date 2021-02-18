@@ -1,5 +1,15 @@
 # @graphql-tools/utils
 
+## 7.4.0
+
+### Minor Changes
+
+- 8f331aaa: enhance(utils): Extract getDocumentNodeFromSchema from printSchemaWithDirectives
+
+### Patch Changes
+
+- 8f331aaa: fix(utils): fix missing default value of input object type field
+
 ## 7.3.0
 
 ### Minor Changes
