@@ -319,6 +319,7 @@ describe('printSchemaWithDirectives', () => {
 
         input SomeInputType @INPUT_OBJECT {
           someInputField: String @INPUT_FIELD_DEFINITION
+          someOtherInputField: Int = 1
         }
     `;
     const schema = buildSchema(typeDefs);

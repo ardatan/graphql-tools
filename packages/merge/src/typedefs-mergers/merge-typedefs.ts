@@ -2,7 +2,7 @@ import { DefinitionNode, DocumentNode, GraphQLSchema, parse, Source, Kind, isSch
 import { isSourceTypes, isStringTypes, isSchemaDefinition } from './utils';
 import { MergedResultMap, mergeGraphQLNodes } from './merge-nodes';
 import { resetComments, printWithComments } from './comments';
-import { createSchemaDefinition, printSchemaWithDirectives } from '@graphql-tools/utils';
+import { createSchemaDefinition, getDocumentNodeFromSchema } from '@graphql-tools/utils';
 
 type Omit<T, K extends keyof any> = Pick<T, Exclude<keyof T, K>>;
 type CompareFn<T> = (a: T, b: T) => number;
@@ -115,7 +115,7 @@ export function mergeGraphQLTypes(
         type = mergeTypeDefs(type);
       }
       if (isSchema(type)) {
-        return parse(printSchemaWithDirectives(type));
+        return getDocumentNodeFromSchema(type);
       } else if (isStringTypes(type) || isSourceTypes(type)) {
         return parse(type);
       }

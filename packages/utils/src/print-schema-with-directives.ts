@@ -45,25 +45,25 @@ import {
   GraphQLScalarType,
   ScalarTypeDefinitionNode,
   StringValueNode,
+  DefinitionNode,
+  DocumentNode,
 } from 'graphql';
-import { PrintSchemaWithDirectivesOptions } from './types';
+import { GetDocumentNodeFromSchemaOptions, PrintSchemaWithDirectivesOptions } from './types';
 
 import { astFromType } from './astFromType';
 import { getDirectivesInExtensions } from './get-directives';
 import { astFromValueUntyped } from './astFromValueUntyped';
 
-// this approach uses the default schema printer rather than a custom solution, so may be more backwards compatible
-// currently does not allow customization of printSchema options having to do with comments.
-export function printSchemaWithDirectives(
+export function getDocumentNodeFromSchema(
   schema: GraphQLSchema,
-  options: PrintSchemaWithDirectivesOptions = {}
-): string {
+  options: GetDocumentNodeFromSchemaOptions = {}
+): DocumentNode {
   const pathToDirectivesInExtensions = options.pathToDirectivesInExtensions;
 
   const typesMap = schema.getTypeMap();
 
   const schemaNode = astFromSchema(schema, pathToDirectivesInExtensions);
-  const result: Array<string> = schemaNode != null ? [print(schemaNode)] : [];
+  const definitions: Array<DefinitionNode> = schemaNode != null ? [schemaNode] : [];
 
   for (const typeName in typesMap) {
     const type = typesMap[typeName];
@@ -75,17 +75,17 @@ export function printSchemaWithDirectives(
     }
 
     if (isObjectType(type)) {
-      result.push(print(astFromObjectType(type, schema, pathToDirectivesInExtensions)));
+      definitions.push(astFromObjectType(type, schema, pathToDirectivesInExtensions));
     } else if (isInterfaceType(type)) {
-      result.push(print(astFromInterfaceType(type, schema, pathToDirectivesInExtensions)));
+      definitions.push(astFromInterfaceType(type, schema, pathToDirectivesInExtensions));
     } else if (isUnionType(type)) {
-      result.push(print(astFromUnionType(type, schema, pathToDirectivesInExtensions)));
+      definitions.push(astFromUnionType(type, schema, pathToDirectivesInExtensions));
     } else if (isInputObjectType(type)) {
-      result.push(print(astFromInputObjectType(type, schema, pathToDirectivesInExtensions)));
+      definitions.push(astFromInputObjectType(type, schema, pathToDirectivesInExtensions));
     } else if (isEnumType(type)) {
-      result.push(print(astFromEnumType(type, schema, pathToDirectivesInExtensions)));
+      definitions.push(astFromEnumType(type, schema, pathToDirectivesInExtensions));
     } else if (isScalarType(type)) {
-      result.push(print(astFromScalarType(type, schema, pathToDirectivesInExtensions)));
+      definitions.push(astFromScalarType(type, schema, pathToDirectivesInExtensions));
     } else {
       throw new Error(`Unknown type ${type}.`);
     }
@@ -97,10 +97,23 @@ export function printSchemaWithDirectives(
       continue;
     }
 
-    result.push(print(astFromDirective(directive, schema, pathToDirectivesInExtensions)));
+    definitions.push(astFromDirective(directive, schema, pathToDirectivesInExtensions));
   }
 
-  return result.join('\n');
+  return {
+    kind: Kind.DOCUMENT,
+    definitions,
+  };
+}
+
+// this approach uses the default schema printer rather than a custom solution, so may be more backwards compatible
+// currently does not allow customization of printSchema options having to do with comments.
+export function printSchemaWithDirectives(
+  schema: GraphQLSchema,
+  options: PrintSchemaWithDirectivesOptions = {}
+): string {
+  const documentNode = getDocumentNodeFromSchema(schema, options);
+  return print(documentNode);
 }
 
 export function astFromSchema(
@@ -431,7 +444,7 @@ export function astFromEnumType(
   };
 }
 
-function astFromScalarType(
+export function astFromScalarType(
   type: GraphQLScalarType,
   schema: GraphQLSchema,
   pathToDirectivesInExtensions: Array<string>
@@ -454,7 +467,7 @@ function astFromScalarType(
   };
 }
 
-function astFromField(
+export function astFromField(
   field: GraphQLField<any, any>,
   schema: GraphQLSchema,
   pathToDirectivesInExtensions: Array<string>
@@ -479,7 +492,7 @@ function astFromField(
   };
 }
 
-function astFromInputField(
+export function astFromInputField(
   field: GraphQLInputField,
   schema: GraphQLSchema,
   pathToDirectivesInExtensions: Array<string>
@@ -500,10 +513,11 @@ function astFromInputField(
     },
     type: astFromType(field.type),
     directives: getDeprecatableDirectiveNodes(field, schema, pathToDirectivesInExtensions),
+    defaultValue: astFromValue(field.defaultValue, field.type),
   };
 }
 
-function astFromEnumValue(
+export function astFromEnumValue(
   value: GraphQLEnumValue,
   schema: GraphQLSchema,
   pathToDirectivesInExtensions: Array<string>
