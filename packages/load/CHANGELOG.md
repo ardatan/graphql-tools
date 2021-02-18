@@ -1,5 +1,16 @@
 # @graphql-tools/load
 
+## 6.2.6
+
+### Patch Changes
+
+- 8f331aaa: enhance(load/module-loader/merge): use getDocumentNodeFromSchema instead of parse and printSchemaWithDirectives together
+- Updated dependencies [8f331aaa]
+- Updated dependencies [8f331aaa]
+- Updated dependencies [8f331aaa]
+  - @graphql-tools/utils@7.4.0
+  - @graphql-tools/merge@6.2.8
+
 ## 6.2.5
 
 ### Patch Changes
