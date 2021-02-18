@@ -2,7 +2,7 @@ import { parse, isSchema } from 'graphql';
 import {
   UniversalLoader,
   fixSchemaAst,
-  printSchemaWithDirectives,
+  getDocumentNodeFromSchema,
   SingleFileOptions,
   Source,
 } from '@graphql-tools/utils';
@@ -86,7 +86,7 @@ export class ModuleLoader implements UniversalLoader {
       return {
         schema,
         get document() {
-          return parse(printSchemaWithDirectives(schema, options));
+          return getDocumentNodeFromSchema(schema);
         },
         location: pointer,
       };
