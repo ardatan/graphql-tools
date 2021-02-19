@@ -9,7 +9,7 @@ describe('parseEndpoint', () => {
   });
   test('local behind a proxy', () => {
     // This snapshot will be incorrect for now as URL does not have enough
-    // information to detemine if something is truly local
+    // information to determine if something is truly local
     expect(parseEndpoint('http://local.dev')).toMatchSnapshot();
   });
   test('work for url with service', () => {

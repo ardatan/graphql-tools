@@ -19,7 +19,7 @@
 // Type recreation happens, for example, with every use of mapSchema, as the
 // types are always rewired. If fields are selected and removed using
 // mapSchema, adding those fields to a new type can no longer be simply done
-// by toConfig, as the types are not the identical Javascript objects, and
+// by toConfig, as the types are not the identical JavaScript objects, and
 // schema creation will fail with errors referencing multiple types with the
 // same names.
 //

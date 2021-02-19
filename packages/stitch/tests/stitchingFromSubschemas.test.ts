@@ -121,7 +121,7 @@ const stitchedSchema = stitchSchemas({
 });
 
 describe('merging without specifying fragments', () => {
-  test('works', async () => {
+  test.skip('works', async () => {
     const query = `
       query {
         userById(id: 5) {

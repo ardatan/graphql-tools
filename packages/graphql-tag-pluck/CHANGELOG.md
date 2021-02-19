@@ -1,5 +1,29 @@
 # @graphql-tools/graphql-tag-pluck
 
+## 6.5.1
+
+### Patch Changes
+
+- f80ce4f4: Added support for loading tags from babel-plugin-relay/macro as well
+
+## 6.5.0
+
+### Minor Changes
+
+- 8e030db0: Updated list of default plucked tags (added urql and Relay)
+
+## 6.4.2
+
+### Patch Changes
+
+- f1bec378: fix(graphql-tag-pluck): fix @vue/compiler-sfc import issue
+
+## 6.4.1
+
+### Patch Changes
+
+- c8e26b8c: fix(graphql-tag-pluck): fix warning about providing id for vue compiler
+
 ## 6.4.0
 
 ### Minor Changes
@@ -23,8 +47,8 @@
 
 ### Patch Changes
 
-- e9ed9394: Change intenral API to add more details on found locations, and export parseCode for lower-level parsing
-- 54b440a9: allow to skip identation while plucking
+- e9ed9394: Change internal API to add more details on found locations, and export parseCode for lower-level parsing
+- 54b440a9: allow to skip indentation while plucking
 
 ## 6.2.4
 

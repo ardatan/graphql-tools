@@ -118,7 +118,8 @@ describe('type merging directives', () => {
 
     const transformedSubschemaConfig = stitchingDirectivesTransformer(subschemaConfig);
 
-    expect(transformedSubschemaConfig.merge.User.computedFields.name.selectionSet).toEqual(print(parseSelectionSet('{ id }')));
+    expect(transformedSubschemaConfig.merge.User.fields.name.selectionSet).toEqual(print(parseSelectionSet('{ id }')));
+    expect(transformedSubschemaConfig.merge.User.fields.name.computed).toEqual(true);
     expect(transformedSubschemaConfig.merge.User.fieldName).toEqual('_user');
   });
 

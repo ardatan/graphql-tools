@@ -1,5 +1,24 @@
 # @graphql-tools/merge
 
+## 6.2.9
+
+### Patch Changes
+
+- 219ed392: enhance(load/module-loader/merge): use getDocumentNodeFromSchema instead of parse and printSchemaWithDirectives together
+- Updated dependencies [219ed392]
+- Updated dependencies [219ed392]
+- Updated dependencies [219ed392]
+  - @graphql-tools/utils@7.5.0
+
+## 6.2.8
+
+### Patch Changes
+
+- 8f331aaa: enhance(load/module-loader/merge): use getDocumentNodeFromSchema instead of parse and printSchemaWithDirectives together
+- Updated dependencies [8f331aaa]
+- Updated dependencies [8f331aaa]
+  - @graphql-tools/utils@7.4.0
+
 ## 6.2.7
 
 ### Patch Changes
@@ -33,7 +52,7 @@
 
   - The `transformRequest`/`transformResult` methods are now provided additional `delegationContext` and `transformationContext` arguments -- these were introduced in v6, but previously optional.
 
-  - The `transformSchema` method may wish to create additional delegating resolvers and so it is now provided the `subschemaConfig` and final (non-executable) `transformedSchema` parameters. As in v6, the `transformSchema` is kicked off once to produce the non-executable version, and then, if a wrapping schema is being generated, proxying resolvers are created with access to the (non-executabel) initial result. In v7, the individual `transformSchema` methods also get access to the result of the first run, if necessary, they can create additional wrapping schema proxying resolvers.
+  - The `transformSchema` method may wish to create additional delegating resolvers and so it is now provided the `subschemaConfig` and final (non-executable) `transformedSchema` parameters. As in v6, the `transformSchema` is kicked off once to produce the non-executable version, and then, if a wrapping schema is being generated, proxying resolvers are created with access to the (non-executable) initial result. In v7, the individual `transformSchema` methods also get access to the result of the first run, if necessary, they can create additional wrapping schema proxying resolvers.
 
   - `applySchemaTransforms` parameters have been updated to match and support the `transformSchema` parameters above.
 

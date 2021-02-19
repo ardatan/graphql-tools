@@ -6,7 +6,7 @@ import { printSchemaWithDirectives } from '../src';
 import { GraphQLJSON } from 'graphql-scalars';
 
 describe('printSchemaWithDirectives', () => {
-  it('Should print with directives, while printSchema doesnt', () => {
+  it(`Should print with directives, while printSchema doesn't`, () => {
     const schemaWithDirectives = buildSchema(/* GraphQL */ `
       directive @entity on OBJECT
       directive @id on FIELD_DEFINITION
@@ -184,7 +184,7 @@ describe('printSchemaWithDirectives', () => {
     expect(printedSchema).toContain(`type User @entity`);
   });
 
-  it('Should print types correctly if they dont have astNode', () => {
+  it(`Should print types correctly if they don't have astNode`, () => {
     const schema = makeExecutableSchema({
       typeDefs: `
       scalar JSON
@@ -218,7 +218,7 @@ describe('printSchemaWithDirectives', () => {
     expect(output).toContain('type Query');
   });
 
-  it('Should print directives correctly if they dont have astNode', () => {
+  it(`Should print directives correctly if they don't have astNode`, () => {
     const schema = new GraphQLSchema({
       directives: [new GraphQLDirective({
         name: 'dummy',
@@ -319,6 +319,7 @@ describe('printSchemaWithDirectives', () => {
 
         input SomeInputType @INPUT_OBJECT {
           someInputField: String @INPUT_FIELD_DEFINITION
+          someOtherInputField: Int = 1
         }
     `;
     const schema = buildSchema(typeDefs);

@@ -51,7 +51,7 @@ describe('schema from typedefs', () => {
       }
     });
 
-    it('should ignore graphql documents when loading a scehma', async () => {
+    it('should ignore graphql documents when loading a schema', async () => {
       const glob = './tests/loaders/schema/test-files/schema-dir/*.non-schema.graphql';
 
       try {

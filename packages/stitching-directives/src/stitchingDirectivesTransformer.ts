@@ -200,9 +200,11 @@ export function stitchingDirectivesTransformer(
             }
           }
         }
-        if (mergedTypeConfig.computedFields) {
-          Object.entries(mergedTypeConfig.computedFields).forEach(([fieldName, computedFieldConfig]) => {
-            const selectionSet = parseSelectionSet(computedFieldConfig.selectionSet, { noLocation: true });
+        if (mergedTypeConfig.fields) {
+          Object.entries(mergedTypeConfig.fields).forEach(([fieldName, fieldConfig]) => {
+            if (!fieldConfig.selectionSet) return;
+
+            const selectionSet = parseSelectionSet(fieldConfig.selectionSet, { noLocation: true });
             if (selectionSet) {
               if (computedFieldSelectionSets[typeName]?.[fieldName]) {
                 computedFieldSelectionSets[typeName][fieldName] = mergeSelectionSets(
@@ -320,16 +322,17 @@ export function stitchingDirectivesTransformer(
 
       const mergeTypeConfig = newSubschemaConfig.merge[typeName];
 
-      if (mergeTypeConfig.computedFields == null) {
-        mergeTypeConfig.computedFields = Object.create(null);
+      if (mergeTypeConfig.fields == null) {
+        mergeTypeConfig.fields = Object.create(null);
       }
 
       Object.entries(selectionSets).forEach(([fieldName, selectionSet]) => {
-        if (mergeTypeConfig.computedFields[fieldName] == null) {
-          mergeTypeConfig.computedFields[fieldName] = Object.create(null);
+        if (mergeTypeConfig.fields[fieldName] == null) {
+          mergeTypeConfig.fields[fieldName] = Object.create(null);
         }
 
-        mergeTypeConfig.computedFields[fieldName].selectionSet = print(selectionSet);
+        mergeTypeConfig.fields[fieldName].selectionSet = print(selectionSet);
+        mergeTypeConfig.fields[fieldName].computed = true;
       });
     });
 
@@ -458,7 +461,7 @@ function generateArgsFn(mergedTypeResolverInfo: MergedTypeResolverInfo): (origin
 }
 
 function buildKey(key: Array<string>): string {
-  let mergedObect = {};
+  let mergedObject = {};
   key.forEach(keyDef => {
     let [aliasOrKeyPath, keyPath] = keyDef.split(':');
     let aliasPath: string;
@@ -474,10 +477,10 @@ function buildKey(key: Array<string>): string {
     aliasParts.reverse().forEach(aliasPart => {
       object = { [aliasPart]: object };
     });
-    mergedObect = mergeDeep(mergedObect, object);
+    mergedObject = mergeDeep(mergedObject, object);
   });
 
-  return JSON.stringify(mergedObect).replace(/"/g, '');
+  return JSON.stringify(mergedObject).replace(/"/g, '');
 }
 
 function mergeSelectionSets(selectionSet1: SelectionSetNode, selectionSet2: SelectionSetNode): SelectionSetNode {

@@ -26,7 +26,7 @@
     "@types/js-yaml": "^4.0.0",
     "@types/json-stable-stringify": "^1.0.32",
     "@types/jsonwebtoken": "^8.5.0",
-    "ajv": "^6.12.6",
+    "ajv": "^7.0.0",
     "bluebird": "^3.7.2",
     "chalk": "^4.1.0",
     "debug": "^4.3.1",

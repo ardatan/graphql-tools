@@ -145,17 +145,6 @@ function createMergedTypes(
             fieldSelectionSets.set(subschema, parsedFieldSelectionSets);
           }
 
-          if (mergedTypeConfig.computedFields) {
-            const parsedFieldSelectionSets = Object.create(null);
-            Object.keys(mergedTypeConfig.computedFields).forEach(fieldName => {
-              if (mergedTypeConfig.computedFields[fieldName].selectionSet) {
-                const rawFieldSelectionSet = mergedTypeConfig.computedFields[fieldName].selectionSet;
-                parsedFieldSelectionSets[fieldName] = parseSelectionSet(rawFieldSelectionSet, { noLocation: true });
-              }
-            });
-            fieldSelectionSets.set(subschema, parsedFieldSelectionSets);
-          }
-
           const resolver = mergedTypeConfig.resolve ?? createMergedTypeResolver(mergedTypeConfig);
 
           if (resolver == null) {

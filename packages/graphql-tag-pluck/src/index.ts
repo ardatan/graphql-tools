@@ -111,7 +111,7 @@ function parseWithVue(vueTemplateCompiler: typeof import('@vue/compiler-sfc'), f
   const { descriptor } = vueTemplateCompiler.parse(fileData);
 
   return descriptor.script || descriptor.scriptSetup
-    ? vueTemplateCompiler.compileScript(descriptor, { id: '' }).content
+    ? vueTemplateCompiler.compileScript(descriptor, { id: Date.now().toString() }).content
     : '';
 }
 
@@ -211,7 +211,7 @@ function extractExtension(filePath: string) {
 
 const MissingVueTemplateCompilerError = new Error(
   freeText(`
-    GraphQL template literals cannot be plucked from a Vue template code without having the "vue-template-compiler" package installed.
+    GraphQL template literals cannot be plucked from a Vue template code without having the "@vue/compiler-sfc" package installed.
     Please install it and try again.
 
     Via NPM:

@@ -12,9 +12,11 @@ export interface SchemaPrintOptions {
   commentDescriptions?: boolean;
 }
 
-export interface PrintSchemaWithDirectivesOptions extends SchemaPrintOptions {
+export interface GetDocumentNodeFromSchemaOptions {
   pathToDirectivesInExtensions?: Array<string>;
 }
+
+export type PrintSchemaWithDirectivesOptions = SchemaPrintOptions & GetDocumentNodeFromSchemaOptions;
 
 export type Maybe<T> = null | undefined | T;
 

@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/mock",
-  "version": "7.0.0",
+  "version": "8.0.0",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
@@ -24,6 +24,8 @@
   "dependencies": {
     "@graphql-tools/schema": "^7.0.0",
     "@graphql-tools/utils": "^7.0.0",
+    "fast-json-stable-stringify": "^2.1.0",
+    "ts-is-defined": "^1.0.0",
     "tslib": "~2.1.0"
   },
   "devDependencies": {

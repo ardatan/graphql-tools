@@ -31,10 +31,10 @@ test('fragment spread', () => {
   const docStr = /* GraphQL */`
     query Foo {
       foo {
-        ...fooFrgmnt
+        ...fooFragment
       }
     }
-    fragment fooFrgmnt on Foo {
+    fragment fooFragment on Foo {
       id
     }
   `;

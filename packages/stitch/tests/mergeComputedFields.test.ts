@@ -16,7 +16,7 @@ const productSchema = makeExecutableSchema({
   `,
   resolvers: {
     Query: {
-      product: (root, { id }) => ({ id, price: Number(id) + 0.99, weight: Number(id) }),
+      product: (_root, { id }) => ({ id, price: Number(id) + 0.99, weight: Number(id) }),
     }
   }
 });
@@ -49,8 +49,8 @@ describe('merge computed fields via config', () => {
     `,
     resolvers: {
       Query: {
-        storefront: (root, { id }) => ({ id, availableProducts: [{ id: '23' }] }),
-        _products: (root, { representations }) => representations,
+        storefront: (_root, { id }) => ({ id, availableProducts: [{ id: '23' }] }),
+        _products: (_root, { representations }) => representations,
       },
       Product: {
         shippingEstimate: (obj) => obj.price != null && obj.weight != null ? (obj.price > 50 ? 0 : obj.weight / 2) : null,
@@ -76,9 +76,15 @@ describe('merge computed fields via config', () => {
         merge: {
           Product: {
             selectionSet: '{ id }',
-            computedFields: {
-              shippingEstimate: { selectionSet: '{ price weight }' },
-              deliveryService: { selectionSet: '{ weight }' },
+            fields: {
+              shippingEstimate: {
+                selectionSet: '{ price weight }',
+                computed: true,
+              },
+              deliveryService: {
+                selectionSet: '{ weight }',
+                computed: true,
+              },
             },
             fieldName: '_products',
             key: ({ id, price, weight }) => ({ id, price, weight }),
@@ -136,6 +142,55 @@ describe('merge computed fields via config', () => {
       }
     ]);
   });
+
+  it('supports deprecated computedFields setting (remove in major version)', async () => {
+    const oldComputedSchema = stitchSchemas({
+      subschemas: [
+        {
+          schema: productSchema,
+          merge: {
+            Product: {
+              selectionSet: '{ id }',
+              fieldName: 'product',
+              args: ({ id }) => ({ id }),
+            }
+          }
+        },
+        {
+          schema: storefrontSchema,
+          merge: {
+            Product: {
+              selectionSet: '{ id }',
+              computedFields: {
+                deliveryService: { selectionSet: '{ weight }' },
+              },
+              fieldName: '_products',
+              key: ({ id, price, weight }) => ({ id, price, weight }),
+              argsFromKeys: (representations) => ({ representations }),
+            }
+          }
+        }
+      ],
+    });
+
+    const { data } = await graphql(oldComputedSchema, `
+      query {
+        product(id: 77) {
+          id
+          price
+          weight
+          deliveryService
+        }
+      }
+    `);
+
+    expect(data.product).toEqual({
+      id: '77',
+      price: 77.99,
+      weight: 77,
+      deliveryService: 'FREIGHT'
+    });
+  });
 });
 
 describe('merge computed fields via SDL (Apollo Federation-style directive annotation)', () => {
@@ -165,8 +220,8 @@ describe('merge computed fields via SDL (Apollo Federation-style directive annot
     `,
     resolvers: {
       Query: {
-        storefront: (root, { id }) => ({ id, availableProducts: [{ id: '23' }] }),
-        _entities: (root, { representations }) => representations,
+        storefront: (_root, { id }) => ({ id, availableProducts: [{ id: '23' }] }),
+        _entities: (_root, { representations }) => representations,
       },
       Product: {
         shippingEstimate: (obj) => obj.price != null && obj.weight != null ? (obj.price > 50 ? 0 : obj.weight / 2) : null,

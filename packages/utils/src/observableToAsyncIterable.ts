@@ -24,7 +24,7 @@ export function observableToAsyncIterable<T>(observable: Observable<T>): AsyncIt
     if (pullQueue.length !== 0) {
       pullQueue.shift()({ value, done: false });
     } else {
-      pushQueue.push({ value });
+      pushQueue.push({ value, done: false });
     }
   };
 
@@ -32,7 +32,15 @@ export function observableToAsyncIterable<T>(observable: Observable<T>): AsyncIt
     if (pullQueue.length !== 0) {
       pullQueue.shift()({ value: { errors: [error] }, done: false });
     } else {
-      pushQueue.push({ value: { errors: [error] } });
+      pushQueue.push({ value: { errors: [error] }, done: false });
+    }
+  };
+
+  const pushDone = () => {
+    if (pullQueue.length !== 0) {
+      pullQueue.shift()({ done: true });
+    } else {
+      pushQueue.push({ done: true });
     }
   };
 
@@ -41,10 +49,7 @@ export function observableToAsyncIterable<T>(observable: Observable<T>): AsyncIt
       if (pushQueue.length !== 0) {
         const element = pushQueue.shift();
         // either {value: {errors: [...]}} or {value: ...}
-        resolve({
-          ...element,
-          done: false,
-        });
+        resolve(element);
       } else {
         pullQueue.push(resolve);
       }
@@ -57,7 +62,9 @@ export function observableToAsyncIterable<T>(observable: Observable<T>): AsyncIt
     error(err: Error) {
       pushError(err);
     },
-    complete() {},
+    complete() {
+      pushDone();
+    },
   });
 
   const emptyQueue = () => {
