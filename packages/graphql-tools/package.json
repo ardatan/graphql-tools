@@ -40,7 +40,7 @@
     "@graphql-tools/url-loader": "^6.3.2",
     "@graphql-tools/load-files": "^6.2.4",
     "@graphql-tools/merge": "^6.2.5",
-    "@graphql-tools/mock": "^7.0.0",
+    "@graphql-tools/mock": "^8.0.0",
     "@graphql-tools/relay-operation-optimizer": "^6.2.5",
     "@graphql-tools/resolvers-composition": "^6.2.5",
     "@graphql-tools/schema": "^7.0.0",
