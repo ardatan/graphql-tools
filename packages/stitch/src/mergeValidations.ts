@@ -5,6 +5,7 @@ import {
   GraphQLEnumType,
   isEnumType,
   isNonNullType,
+  getNullableType,
   getNamedType,
   isListType,
   isScalarType,
@@ -198,7 +199,7 @@ export function validateTypeConsistency(
 }
 
 function hasListType(type: GraphQLType): boolean {
-  return isNonNullType(type) ? isListType(type.ofType) : isListType(type);
+  return isListType(getNullableType(type));
 }
 
 export function validateInputEnumConsistency(
