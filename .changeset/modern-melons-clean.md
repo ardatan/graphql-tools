@@ -11,7 +11,7 @@ Introduces a suite of stitched schema validations that enforce the integrity of 
 - Argument and input field name consistency.
 - Enum value consistency when used as an input value.
 
-Validations may be adjusted by setting `validationLevel` to `off|warn|error` globally or for specific field scopes. In this initial v7 release, all validations are introduced at the `warn` threshold for backwards compatibility. Most of these validations will become automatic errors in v8. To enable validation errors now, set `validationLevel: 'error'`. Full configuration options look like this:
+Validations may be adjusted by setting `validationLevel` to `off|warn|error` globally  or scoped for specific types and fields. In this initial v7 release, all validations are introduced at the `warn` threshold for backwards compatibility. Most of these validations will become automatic errors in v8. To enable validation errors now, set `validationLevel: 'error'`. Full configuration options look like this:
 
 ```js
 const gatewaySchema = stitchSchemas({
@@ -25,6 +25,7 @@ const gatewaySchema = stitchSchemas({
       }
     },
     validationScopes: {
+      // scope to specific element paths
       'User.id': { strictNullComparison: true },
     }
   },

@@ -158,7 +158,7 @@ const gatewaySchema = stitchSchemas({
 
 #### Merge validations
 
-The automatic merge strategy also validates the integrity of merged schemas. Validations may be set to `error`, `warn`, or `off` for the entire schema or for specific types and fields:
+The automatic merge strategy also validates the integrity of merged schemas. Validations may be set to `error`, `warn`, or `off` for the entire schema or scoped for specific types and fields:
 
 ```js
 const gatewaySchema = stitchSchemas({
@@ -172,6 +172,7 @@ const gatewaySchema = stitchSchemas({
       }
     },
     validationScopes: {
+      // scope to specific element paths
       'User.id': { strictNullComparison: true },
     }
   },
