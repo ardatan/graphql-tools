@@ -179,13 +179,13 @@ export function validateTypeConsistency(
     const currentNamedType = getNamedType(c.type);
 
     if (finalNamedType.toString() !== currentNamedType.toString()) {
-      const proxyableScalar = !!typeMergingOptions?.validationSettings?.proxyableScalars?.[
+      const proxiableScalar = !!typeMergingOptions?.validationSettings?.proxiableScalars?.[
         finalNamedType.toString()
       ]?.includes(currentNamedType.toString());
       const bothScalars = finalIsScalar && isScalarType(currentNamedType);
-      const permitScalar = proxyableScalar && bothScalars;
-      if (proxyableScalar && !bothScalars) {
-        throw new Error(`Types ${finalNamedType} and ${currentNamedType} are not proxyable scalars.`);
+      const permitScalar = proxiableScalar && bothScalars;
+      if (proxiableScalar && !bothScalars) {
+        throw new Error(`Types ${finalNamedType} and ${currentNamedType} are not proxiable scalars.`);
       }
       if (!permitScalar) {
         validationMessage(

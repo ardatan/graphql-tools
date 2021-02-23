@@ -47,14 +47,14 @@ describe('Field validations', () => {
     });
   });
 
-  describe('proxyableScalars', () => {
+  describe('proxiableScalars', () => {
     it('permits whitelisted scalar proxies', () => {
       expect(() => {
         stitchSchemas({
           typeMergingOptions: {
             validationSettings: {
               validationLevel: ValidationLevel.Error,
-              proxyableScalars: {
+              proxiableScalars: {
                 ID: ['String']
               }
             },
@@ -67,13 +67,13 @@ describe('Field validations', () => {
       }).not.toThrow();
     });
 
-    it('throws for non-proxyable scalar types', () => {
+    it('throws for non-proxiable scalar types', () => {
       expect(() => {
         stitchSchemas({
           typeMergingOptions: {
             validationSettings: {
               validationLevel: ValidationLevel.Error,
-              proxyableScalars: {
+              proxiableScalars: {
                 ID: ['Thing']
               }
             },
@@ -83,7 +83,7 @@ describe('Field validations', () => {
             { schema: buildSchema('type Query { field: [ID] }') },
           ]
         });
-      }).toThrow(/not proxyable scalars/);
+      }).toThrow(/not proxiable scalars/);
     });
   });
 

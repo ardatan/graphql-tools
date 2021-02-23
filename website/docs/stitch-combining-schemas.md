@@ -167,7 +167,7 @@ const gatewaySchema = stitchSchemas({
     validationSettings: {
       validationLevel: 'error',
       strictNullComparison: false, // << gateway "String" may proxy subschema "String!"
-      proxyableScalars: {
+      proxiableScalars: {
         ID: ['String'], // << gateway "ID" may proxy subschema "String"
       }
     },
