@@ -7,8 +7,7 @@
     "eslint:recommended",
     "standard",
     "prettier",
-    "plugin:@typescript-eslint/recommended",
-    "prettier/@typescript-eslint"
+    "plugin:@typescript-eslint/recommended"
   ],
   "plugins": ["@typescript-eslint"],
   "rules": {
