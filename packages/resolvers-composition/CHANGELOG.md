@@ -1,5 +1,11 @@
 # @graphql-tools/resolvers-composition
 
+## 6.2.6
+
+### Patch Changes
+
+- 0194118f: chore(resolvers-composition): bump lodash version
+
 ## 6.2.5
 
 ### Patch Changes
