@@ -173,7 +173,10 @@ const gatewaySchema = stitchSchemas({
     },
     validationScopes: {
       // scope to specific element paths
-      'User.id': { strictNullComparison: true },
+      'User.id': {
+        validationLevel: 'warn',
+        strictNullComparison: true,
+      },
     }
   },
 });
