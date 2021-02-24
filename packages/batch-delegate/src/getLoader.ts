@@ -1,13 +1,16 @@
-import { getNamedType, GraphQLOutputType, GraphQLList, GraphQLSchema } from 'graphql';
+import { getNamedType, GraphQLOutputType, GraphQLList, GraphQLSchema, FieldNode } from 'graphql';
 
 import DataLoader from 'dataloader';
 
 import { delegateToSchema, SubschemaConfig } from '@graphql-tools/delegate';
 import { relocatedError } from '@graphql-tools/utils';
 
-import { BatchDelegateOptions, DataLoaderCache } from './types';
+import { BatchDelegateOptions } from './types';
 
-const cache1: DataLoaderCache = new WeakMap();
+const cache1: WeakMap<
+  ReadonlyArray<FieldNode>,
+  WeakMap<GraphQLSchema | SubschemaConfig, Record<string, DataLoader<any, any>>>
+> = new WeakMap();
 
 function createBatchFn<K = any>(options: BatchDelegateOptions) {
   const argsFromKeys = options.argsFromKeys ?? ((keys: ReadonlyArray<K>) => ({ ids: keys }));

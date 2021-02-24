@@ -4,9 +4,10 @@ import DataLoader from 'dataloader';
 
 import { IDelegateToSchemaOptions, SubschemaConfig } from '@graphql-tools/delegate';
 
+// TODO: remove in next major release
 export type DataLoaderCache<K = any, V = any, C = K> = WeakMap<
   ReadonlyArray<FieldNode>,
-  WeakMap<GraphQLSchema | SubschemaConfig, Record<string, DataLoader<K, V, C>>>
+  WeakMap<GraphQLSchema | SubschemaConfig, DataLoader<K, V, C>>
 >;
 
 export type BatchDelegateFn<TContext = Record<string, any>, K = any> = (
