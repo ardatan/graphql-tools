@@ -20,20 +20,25 @@ type UserImageURL {
   url: String!
 }
 
+scalar Date
+
 interface Book {
   id: ID!
   title: String
+  publishedAt: Date
 }
 
 type TextBook implements Book {
   id: ID!
   title: String
+  publishedAt: Date
   text: String
 }
 
 type ColoringBook implements Book {
   id: ID!
   title: String
+  publishedAt: Date
   colors: [String]
 }
 
@@ -201,4 +206,33 @@ describe('addMocksToSchema', () => {
     expect(data).toBeDefined();
     expect(data!['viewer']['book']['__typename']).toBeDefined();
   });
+  it('should handle custom scalars', async () => {
+
+    const mockDate = new Date().toJSON().split('T')[0];
+
+    const query = `
+      query {
+        viewer {
+          book {
+            title
+            publishedAt
+          }
+        }
+      }
+    `;
+
+    const mockedSchema = addMocksToSchema({ schema, mocks: {
+      Date: () => mockDate
+    }});
+    const { data, errors } = await graphql({
+      schema: mockedSchema,
+      source: query,
+    });
+
+
+    expect(errors).not.toBeDefined();
+    expect(data).toBeDefined();
+    expect(data!['viewer']['book']['publishedAt']).toBe(mockDate);
+
+  })
 });
