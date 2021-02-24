@@ -1,7 +1,6 @@
 ---
 "@graphql-tools/merge": patch
 "@graphql-tools/stitch": minor
-"@graphql-tools/website": patch
 ---
 
 Introduces a suite of stitched schema validations that enforce the integrity of merged schemas. This includes validations for:
