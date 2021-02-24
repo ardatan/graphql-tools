@@ -5,10 +5,10 @@ import { mergeDirectives } from './directives';
 import { isNotEqual, compareNodes } from '@graphql-tools/utils';
 import { mergeArguments } from './arguments';
 
-function fieldAlreadyExists(fieldsArr: ReadonlyArray<any>, otherField: any): boolean {
+function fieldAlreadyExists(fieldsArr: ReadonlyArray<any>, otherField: any, config?: Config): boolean {
   const result: FieldDefinitionNode | null = fieldsArr.find(field => field.name.value === otherField.name.value);
 
-  if (result) {
+  if (result && !config?.ignoreFieldConflicts) {
     const t1 = extractType(result.type);
     const t2 = extractType(otherField.type);
 
@@ -26,22 +26,24 @@ export function mergeFields<T extends FieldDefinitionNode | InputValueDefinition
   type: { name: NameNode },
   f1: ReadonlyArray<T>,
   f2: ReadonlyArray<T>,
-  config: Config
+  config?: Config
 ): T[] {
   const result: T[] = [...f2];
 
   for (const field of f1) {
-    if (fieldAlreadyExists(result, field)) {
+    if (fieldAlreadyExists(result, field, config)) {
       const existing: any = result.find((f: any) => f.name.value === (field as any).name.value);
 
-      if (config && config.throwOnConflict) {
-        preventConflicts(type, existing, field, false);
-      } else {
-        preventConflicts(type, existing, field, true);
-      }
+      if (!config?.ignoreFieldConflicts) {
+        if (config?.throwOnConflict) {
+          preventConflicts(type, existing, field, false);
+        } else {
+          preventConflicts(type, existing, field, true);
+        }
 
-      if (isNonNullTypeNode(field.type) && !isNonNullTypeNode(existing.type)) {
-        existing.type = field.type;
+        if (isNonNullTypeNode(field.type) && !isNonNullTypeNode(existing.type)) {
+          existing.type = field.type;
+        }
       }
 
       existing.arguments = mergeArguments(field['arguments'] || [], existing.arguments || [], config);

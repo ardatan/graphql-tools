@@ -58,6 +58,7 @@ export interface Config {
   sort?: boolean | CompareFn<string>;
   convertExtensions?: boolean;
   consistentEnumMerge?: boolean;
+  ignoreFieldConflicts?: boolean;
 }
 
 /**

@@ -136,16 +136,16 @@ Stitching has two strategies for handling types duplicated across subschemas: an
 
 ### Automatic merge
 
-Types with the same name are automatically merged by default in GraphQL Tools v7. That means objects, interfaces, and input objects with the same name will consolidate their fields across subschemas, and unions/enums will consolidate all their members. The combined gateway schema will then smartly delegate portions of a request to the proper origin subschema(s). See [type merging guide](/docs/stitch-type-merging/) for a comprehensive overview.
+Types with the same name are automatically merged by default in GraphQL Tools v7. That means objects, interfaces, and input objects with the same name will consolidate their fields across subschemas, and unions/enums will consolidate all of their members. The combined gateway schema will then smartly delegate portions of a request to the proper origin subschema(s). See [type merging guide](/docs/stitch-type-merging/) for a comprehensive overview.
 
-Automatic merging will only encounter conflicts on type descriptions and fields. By default, the final definition of a type or field found in the subschemas array is used, or a specific definition may be [marked as canonical](/docs/stitch-type-merging#canonical-definitions). You may customize all selection logic using `typeMergingOptions`; the following prefers the _first_ definition of each conflicting element found in the subschemas array:
+Automatic merging will only encounter conflicts on type descriptions and fields. By default, the final definition of a type or field found in the subschemas array is used, or a specific definition may be [marked as canonical](/docs/stitch-type-merging#canonical-definitions) to prioritize it. You may customize all selection logic using `typeMergingOptions`; the following example prefers the _first_ definition of each conflicting element found in the subschemas array:
 
 ```js
 const gatewaySchema = stitchSchemas({
   subschemas: [...],
   mergeTypes: true, // << default in v7
   typeMergingOptions: {
-    // select a preferred type candidate that provides definitions:
+    // select a preferred type candidate to provide definitions:
     typeCandidateMerger: (candidates) => candidate[0],
     // and/or itemize the selection of other specific definitions:
     typeDescriptionsMerger: (candidates) => candidate[0].type.description,
@@ -156,9 +156,35 @@ const gatewaySchema = stitchSchemas({
 });
 ```
 
+#### Merge validations
+
+The automatic merge strategy also validates the integrity of merged schemas. Validations may be set to `error`, `warn`, or `off` for the entire schema or scoped for specific types and fields:
+
+```js
+const gatewaySchema = stitchSchemas({
+  subschemas: [...],
+  typeMergingOptions: {
+    validationSettings: {
+      validationLevel: 'error',
+      strictNullComparison: false, // << gateway "String" may proxy subschema "String!"
+      proxiableScalars: {
+        ID: ['String'], // << gateway "ID" may proxy subschema "String"
+      }
+    },
+    validationScopes: {
+      // scope to specific element paths
+      'User.id': {
+        validationLevel: 'warn',
+        strictNullComparison: true,
+      },
+    }
+  },
+});
+```
+
 ### Manual resolution
 
-By setting `mergeTypes: false`, only the final description and fields for a type found in the subschemas array will be used. You may manually resolve differences between conflicting types with an `onTypeConflict` handler:
+By setting `mergeTypes: false`, only the final description and fields for a type found in the subschemas array will be used, and automated query planning will be disabled. You may manually resolve differences between conflicting types with an `onTypeConflict` handler:
 
 ```js
 const gatewaySchema = stitchSchemas({
