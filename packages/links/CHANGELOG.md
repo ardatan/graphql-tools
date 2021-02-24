@@ -1,5 +1,11 @@
 # @graphql-tools/links
 
+## 7.0.6
+
+### Patch Changes
+
+- 1516c89a: fix(links): fix typing issues with linkToExecutor and AsyncExecutor
+
 ## 7.0.5
 
 ### Patch Changes
