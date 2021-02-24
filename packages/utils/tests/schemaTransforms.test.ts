@@ -451,7 +451,7 @@ describe('@directives', () => {
           }
         })
       };
-    };
+    }
 
     function getUser(token: string) {
       const roles = ['UNKNOWN', 'USER', 'REVIEWER', 'ADMIN'];
@@ -628,7 +628,7 @@ describe('@directives', () => {
           }
         }),
       };
-    };
+    }
 
     const { lengthDirectiveTypeDefs, lengthDirectiveTransformer } = lengthDirective('length');
 
