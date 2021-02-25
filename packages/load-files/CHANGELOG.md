@@ -1,5 +1,11 @@
 # @graphql-tools/load-files
 
+## 6.2.6
+
+### Patch Changes
+
+- 5c7a20db: fix(load-files): fix ignored file bug when filename finishes with extension
+
 ## 6.2.5
 
 ### Patch Changes
