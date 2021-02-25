@@ -1,4 +1,22 @@
 # graphql-tools
+## 7.0.4
+
+### Patch Changes
+
+- Revert mock package to v7 to avoid breaking changes
+
+
+## 7.0.3
+
+### Patch Changes
+
+- Updated dependencies [24926654]
+- Updated dependencies [24926654]
+- Updated dependencies [24926654]
+  - @graphql-tools/delegate@7.0.10
+  - @graphql-tools/stitch@7.3.0
+  - @graphql-tools/links@7.0.4
+  - @graphql-tools/mock@8.0.0
 
 ## 7.0.2
 
@@ -36,7 +54,7 @@
 
   * The `transformRequest`/`transformResult` methods are now provided additional `delegationContext` and `transformationContext` arguments -- these were introduced in v6, but previously optional.
 
-  * The `transformSchema` method may wish to create additional delegating resolvers and so it is now provided the `subschemaConfig` and final (non-executable) `transformedSchema` parameters. As in v6, the `transformSchema` is kicked off once to produce the non-executable version, and then, if a wrapping schema is being generated, proxying resolvers are created with access to the (non-executabel) initial result. In v7, the individual `transformSchema` methods also get access to the result of the first run, if necessary, they can create additional wrapping schema proxying resolvers.
+  * The `transformSchema` method may wish to create additional delegating resolvers and so it is now provided the `subschemaConfig` and final (non-executable) `transformedSchema` parameters. As in v6, the `transformSchema` is kicked off once to produce the non-executable version, and then, if a wrapping schema is being generated, proxying resolvers are created with access to the (non-executable) initial result. In v7, the individual `transformSchema` methods also get access to the result of the first run, if necessary, they can create additional wrapping schema proxying resolvers.
 
   * `applySchemaTransforms` parameters have been updated to match and support the `transformSchema` parameters above.
 

@@ -1,5 +1,5 @@
 export default {
-  IngoredType: {
+  IgnoredType: {
     f: '12',
   },
 };

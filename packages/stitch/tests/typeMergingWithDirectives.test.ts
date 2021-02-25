@@ -12,6 +12,7 @@ import { ExecutionResult } from '@graphql-tools/utils';
 import { stitchSchemas } from '@graphql-tools/stitch';
 
 import { stitchingDirectives } from '@graphql-tools/stitching-directives';
+import { ValidationLevel } from '../src/types';
 
 describe('merging using type merging', () => {
   const { allStitchingDirectivesTypeDefs, stitchingDirectivesValidator, stitchingDirectivesTransformer } = stitchingDirectives();
@@ -79,7 +80,7 @@ describe('merging using type merging', () => {
     // the @computed directive will defer resolution of these fields even when queries originate
     // within this subschema. The resolver for the mostStockedProduct therefore correctly returns
     // an object with a `upc` property, but without `price` and `weight`. The gateway will use
-    // the `upc` to retrive the `price` and `weight` from the external services and return to this
+    // the `upc` to retrieve the `price` and `weight` from the external services and return to this
     // service for the `shippingEstimate`. Resolution for @computed fields thereby differs when
     // querying via the gateway versus when querying the subservice directly.
     //
@@ -236,7 +237,7 @@ describe('merging using type merging', () => {
     //
     // The equivalent `argsExpr` is also included. This example highlights how when using
     // `argsExpr`, the $ sign without dot notation will pass the entire key as an object.
-    // This allows arbitary nesting of the key input as needed.
+    // This allows arbitrary nesting of the key input as needed.
     //
     typeDefs: `
       ${allStitchingDirectivesTypeDefs}
@@ -316,6 +317,9 @@ describe('merging using type merging', () => {
         batch: true,
       }],
     subschemaConfigTransforms: [stitchingDirectivesTransformer],
+    typeMergingOptions: {
+      validationSettings: { validationLevel: ValidationLevel.Off }
+    }
   });
 
   test('can stitch from products to inventory schema including mixture of computed and non-computed fields', async () => {

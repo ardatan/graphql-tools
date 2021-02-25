@@ -461,7 +461,7 @@ function generateArgsFn(mergedTypeResolverInfo: MergedTypeResolverInfo): (origin
 }
 
 function buildKey(key: Array<string>): string {
-  let mergedObect = {};
+  let mergedObject = {};
   key.forEach(keyDef => {
     let [aliasOrKeyPath, keyPath] = keyDef.split(':');
     let aliasPath: string;
@@ -477,10 +477,10 @@ function buildKey(key: Array<string>): string {
     aliasParts.reverse().forEach(aliasPart => {
       object = { [aliasPart]: object };
     });
-    mergedObect = mergeDeep(mergedObect, object);
+    mergedObject = mergeDeep(mergedObject, object);
   });
 
-  return JSON.stringify(mergedObect).replace(/"/g, '');
+  return JSON.stringify(mergedObject).replace(/"/g, '');
 }
 
 function mergeSelectionSets(selectionSet1: SelectionSetNode, selectionSet2: SelectionSetNode): SelectionSetNode {

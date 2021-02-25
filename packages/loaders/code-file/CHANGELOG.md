@@ -1,5 +1,19 @@
 # @graphql-tools/code-file-loader
 
+## 6.3.1
+
+### Patch Changes
+
+- f80ce4f4: Added support for loading tags from babel-plugin-relay/macro as well
+- Updated dependencies [f80ce4f4]
+  - @graphql-tools/graphql-tag-pluck@6.5.1
+
+## 6.3.0
+
+### Minor Changes
+
+- 619c2143: Bump code-file loader to use latest graphql-tag-pluck
+
 ## 6.2.6
 
 ### Patch Changes

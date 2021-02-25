@@ -177,7 +177,7 @@ type User @model {
   /**
    * This test ensures, that GRAPHCOOL_SECRET can't be injected anymore
    */
-  test('dont load yml with secret and env var in args', async () => {
+  test(`don't load yml with secret and env var in args`, async () => {
     const yml = `\
 service: jj
 stage: dev

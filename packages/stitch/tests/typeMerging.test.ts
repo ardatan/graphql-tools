@@ -601,7 +601,7 @@ describe('external object annotation with batchDelegateToSchema', () => {
   })
 
   test('if batchDelegateToSchema can delegate 2 times the same key', async () => {
-    const { data, errors } = await graphql(
+    const { data } = await graphql(
       gatewaySchema,
       `
         query {

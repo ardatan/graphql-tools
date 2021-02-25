@@ -38,10 +38,10 @@ module.exports = {
       ],
     },
     algolia: {
-      // appId: 'graphql-tools',
-      apiKey: 'ee4c137daf1262df2ca2faacaf83fa4e',
-      indexName: 'graphql-tools',
-      algoliaOptions: {}, // Optional, if provided by Algolia
+      appId: 'ANRJKXZTRW',
+      apiKey: '811d453fc7f80306044dd5cc4b87e064',
+      indexName: 'theguild',
+      algoliaOptions: {}
     },
     footer: {
       style: 'dark',

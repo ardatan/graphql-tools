@@ -80,11 +80,25 @@ export interface IStitchSchemasOptions<TContext = any> extends Omit<IExecutableS
 export type SubschemaConfigTransform = (subschemaConfig: SubschemaConfig) => SubschemaConfig;
 
 export interface TypeMergingOptions {
+  validationSettings?: ValidationSettings;
+  validationScopes?: Record<string, ValidationSettings>;
   typeCandidateMerger?: (candidates: Array<MergeTypeCandidate>) => MergeTypeCandidate;
   typeDescriptionsMerger?: (candidates: Array<MergeTypeCandidate>) => string;
   fieldConfigMerger?: (candidates: Array<MergeFieldConfigCandidate>) => GraphQLFieldConfig<any, any>;
   inputFieldConfigMerger?: (candidates: Array<MergeInputFieldConfigCandidate>) => GraphQLInputFieldConfig;
   enumValueConfigMerger?: (candidates: Array<MergeEnumValueConfigCandidate>) => GraphQLEnumValueConfig;
+}
+
+export enum ValidationLevel {
+  Error = 'error',
+  Warn = 'warn',
+  Off = 'off',
+}
+
+export interface ValidationSettings {
+  validationLevel?: ValidationLevel;
+  strictNullComparison?: boolean;
+  proxiableScalars?: Record<string, Array<string>>;
 }
 
 export type OnTypeConflict = (

@@ -1,54 +1,9 @@
 import { concat } from '@apollo/client/link/core';
 import { createUploadLink, formDataAppendFile, isExtractableFile } from 'apollo-upload-client';
-import FormData, { AppendOptions } from 'form-data';
+import FormData from 'form-data';
 import { fetch } from 'cross-fetch';
 
 import { AwaitVariablesLink } from './AwaitVariablesLink';
-
-class FormDataWithStreamSupport extends FormData {
-  private hasUnknowableLength: boolean;
-
-  constructor(options?: any) {
-    super(options);
-    this.hasUnknowableLength = false;
-  }
-
-  public append(key: string, value: any, optionsOrFilename: AppendOptions | string = {}): void {
-    // allow filename as single option
-    const options: AppendOptions =
-      typeof optionsOrFilename === 'string' ? { filename: optionsOrFilename } : optionsOrFilename;
-
-    // empty or either doesn't have path or not an http response
-    if (
-      !options.knownLength &&
-      !Buffer.isBuffer(value) &&
-      typeof value !== 'string' &&
-      !value.path &&
-      !(value.readable && 'httpVersion' in value)
-    ) {
-      this.hasUnknowableLength = true;
-    }
-
-    super.append(key, value, options);
-  }
-
-  public getLength(callback: (err: Error | null, length: number) => void): void {
-    if (this.hasUnknowableLength) {
-      return null;
-    }
-
-    return super.getLength(callback);
-  }
-
-  public getLengthSync(): number {
-    if (this.hasUnknowableLength) {
-      return null;
-    }
-
-    // eslint-disable-next-line no-sync
-    return super.getLengthSync();
-  }
-}
 
 export const createServerHttpLink = (options: any) =>
   concat(
@@ -56,7 +11,7 @@ export const createServerHttpLink = (options: any) =>
     createUploadLink({
       ...options,
       fetch,
-      FormData: FormDataWithStreamSupport,
+      FormData,
       isExtractableFile: (value: any) => isExtractableFile(value) || value?.createReadStream,
       formDataAppendFile: (form: FormData, index: string, file: any) => {
         if (file.createReadStream != null) {

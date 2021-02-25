@@ -141,7 +141,7 @@ export function loadFilesSync<T = any>(
 
       const extension = extname(path);
 
-      if (extension.endsWith('.js') || extension.endsWith('.ts') || execOptions.useRequire) {
+      if (extension === '.js' || extension === '.ts' || execOptions.useRequire) {
         const fileExports = (execOptions.requireMethod ? execOptions.requireMethod : require)(path);
         const extractedExport = extractExports(fileExports, execOptions.exportNames, options.adapters);
 
@@ -187,7 +187,7 @@ const checkExtension = (
 ) => {
   if (ignoredExtensions) {
     for (const ignoredExtension of ignoredExtensions) {
-      if (path.endsWith(ignoredExtension)) {
+      if (path.endsWith(`.${ignoredExtension}`)) {
         return false;
       }
     }
@@ -198,7 +198,7 @@ const checkExtension = (
   }
 
   for (const extension of extensions) {
-    if (path.endsWith(extension)) {
+    if (path.endsWith(`.${extension}`)) {
       return true;
     }
   }

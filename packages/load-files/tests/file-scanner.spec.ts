@@ -1,16 +1,22 @@
-import { loadFilesSync, loadFiles } from '@graphql-tools/load-files';
+import { loadFilesSync, loadFiles, LoadFilesOptions } from '@graphql-tools/load-files';
 import { print } from 'graphql';
 
-function testSchemaDir({ path, expected, note, extensions, ignoreIndex }: { path: string; expected: any; note: string; extensions?: string[] | null; ignoreIndex?: boolean }) {
-  it(`SYNC: should return the correct schema results for path: ${path} (${note})`, () => {
-    const options = {
+function testSchemaDir({ path, expected, note, extensions, ignoreIndex }: TestDirOptions) {
+  let options: LoadFilesOptions;
+
+  beforeEach(() => {
+    options = {
       ignoreIndex,
       globOptions: {
         cwd: __dirname
       },
       requireMethod: jest.requireActual,
+      ...(extensions && { extensions }),
     };
-    const result = loadFilesSync(path, extensions ? { ...options, extensions } : options);
+  });
+
+  it(`SYNC: should return the correct schema results for path: ${path} (${note})`, () => {
+    const result = loadFilesSync(path, options);
 
     expect(result.length).toBe(expected.length);
     expect(result.map(res => {
@@ -22,14 +28,7 @@ function testSchemaDir({ path, expected, note, extensions, ignoreIndex }: { path
   });
 
   it(`ASYNC: should return the correct schema results for path: ${path} (${note})`, async () => {
-    const options = {
-      ignoreIndex,
-      globOptions: {
-        cwd: __dirname
-      },
-      requireMethod: jest.requireActual,
-    };
-    const result = await loadFiles(path, extensions ? { ...options, extensions } : options);
+    const result = await loadFiles(path, options);
 
     expect(result.length).toBe(expected.length);
     expect(result.map(res => {
@@ -41,20 +40,26 @@ function testSchemaDir({ path, expected, note, extensions, ignoreIndex }: { path
   });
 }
 
-function testResolversDir({ path, expected, note, extensions, compareValue, ignoreIndex }: { path: string; expected: any; note: string; extensions?: string[]; compareValue?: boolean; ignoreIndex?: boolean }) {
+function testResolversDir({ path, expected, note, extensions, compareValue, ignoreIndex, ignoredExtensions }: TestDirOptions) {
   if (typeof compareValue === 'undefined') {
     compareValue = true;
   }
+  let options: LoadFilesOptions;
 
-  it(`SYNC: should return the correct resolvers results for path: ${path} (${note})`, () => {
-    const options = {
+  beforeEach(() => {
+    options = {
       ignoreIndex,
       globOptions: {
         cwd: __dirname
       },
       requireMethod: jest.requireActual,
+      ...(extensions && { extensions }),
+      ...(ignoredExtensions && { ignoredExtensions }),
     };
-    const result = loadFilesSync(path, extensions ? { ...options, extensions } : options);
+  });
+
+  it(`SYNC: should return the correct resolvers results for path: ${path} (${note})`, () => {
+    const result = loadFilesSync(path, options);
 
     expect(result.length).toBe(expected.length);
 
@@ -64,14 +69,7 @@ function testResolversDir({ path, expected, note, extensions, compareValue, igno
   });
 
   it(`ASYNC: should return the correct resolvers results for path: ${path} (${note})`, async () => {
-    const options = {
-      ignoreIndex,
-      globOptions: {
-        cwd: __dirname
-      },
-      requireMethod: jest.requireActual,
-    };
-    const result = await loadFiles(path, extensions ? { ...options, extensions } : options);
+    const result = await loadFiles(path, options);
 
     expect(result.length).toBe(expected.length);
 
@@ -205,7 +203,7 @@ describe('file scanner', function() {
           },
         },
       ],
-      note: 'ingore index files',
+      note: 'ignore index files',
       extensions: ['js'],
       compareValue: true,
       ignoreIndex: true,
@@ -215,5 +213,22 @@ describe('file scanner', function() {
       expected: [{ MyType: { f: 1 } }],
       note: 'non-directory pattern',
     });
+    testResolversDir({
+      path: './test-assets/13',
+      extensions: ['js'],
+      ignoredExtensions: ['s.js'],
+      expected: [{ MyType: { f: 1 } }],
+      note: 'include path finishing in s.js but do not include paths finishing in .s.js',
+    });
   });
 });
+
+interface TestDirOptions {
+  path: string;
+  expected: any;
+  note: string;
+  extensions?: string[];
+  compareValue?: boolean;
+  ignoreIndex?: boolean;
+  ignoredExtensions?: string[];
+}

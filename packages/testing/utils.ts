@@ -82,7 +82,7 @@ function findProjectDir(dirname: string): string | never {
     }
   }
 
-  throw new Error(`Coudn't find project's root from: ${originalDirname}`);
+  throw new Error(`Couldn't find project's root from: ${originalDirname}`);
 }
 
 export function mockGraphQLServer({
