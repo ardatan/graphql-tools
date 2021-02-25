@@ -99,4 +99,4 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-${{matrix.node_version}}-${{matrix.graphql_version}}-jest-
       - name: Test
-        run: yarn test --logHeapUsage
+        run: yarn test --logHeapUsage --ci
