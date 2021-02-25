@@ -1,5 +1,13 @@
 # @graphql-tools/batch-delegate
 
+## 7.0.2
+
+### Patch Changes
+
+- 161963ac: fix(batch-delegate): only batch together delegations to the same root field
+
+  see #2638.
+
 ## 7.0.1
 
 ### Patch Changes
