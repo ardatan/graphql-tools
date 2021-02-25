@@ -214,11 +214,6 @@ describe('file scanner', function() {
       note: 'non-directory pattern',
     });
     testResolversDir({
-      path: './test-assets/6/*.resolvers.js',
-      expected: [{ MyType: { f: 1 } }],
-      note: 'non-directory pattern',
-    });
-    testResolversDir({
       path: './test-assets/13',
       extensions: ['js'],
       ignoredExtensions: ['s.js'],
