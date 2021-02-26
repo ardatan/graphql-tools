@@ -1,0 +1,7 @@
+81fd14f72f71b420b89db7207baa0257
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.fixWindowsPath = void 0;
+const fixWindowsPath = (path) => path.replace(/\\/g, '/');
+exports.fixWindowsPath = fixWindowsPath;
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJmaWxlIjoiL2hvbWUvYXJkYXRfMDAwL0d1aWxkL2dyYXBocWwtdG9vbHMvcGFja2FnZXMvdXRpbHMvc3JjL2ZpeC13aW5kb3dzLXBhdGgudHMiLCJtYXBwaW5ncyI6Ijs7O0FBQU8sTUFBTSxjQUFjLEdBQUcsQ0FBQyxJQUFZLEVBQUUsRUFBRSxDQUFDLElBQUksQ0FBQyxPQUFPLENBQUMsS0FBSyxFQUFFLEdBQUcsQ0FBQyxDQUFDO0FBQTVELFFBQUEsY0FBYyxrQkFBOEMiLCJuYW1lcyI6W10sInNvdXJjZXMiOlsiL2hvbWUvYXJkYXRfMDAwL0d1aWxkL2dyYXBocWwtdG9vbHMvcGFja2FnZXMvdXRpbHMvc3JjL2ZpeC13aW5kb3dzLXBhdGgudHMiXSwic291cmNlc0NvbnRlbnQiOlsiZXhwb3J0IGNvbnN0IGZpeFdpbmRvd3NQYXRoID0gKHBhdGg6IHN0cmluZykgPT4gcGF0aC5yZXBsYWNlKC9cXFxcL2csICcvJyk7XG4iXSwidmVyc2lvbiI6M30=

@@ -491,6 +491,13 @@ store.get('Query', 'ROOT', {
   },
 });
 ```
+#### reset
+
+This method will reset `MockStore`.
+
+```ts
+store.reset();
+```
 
 ## Migration from V7 and below
 
