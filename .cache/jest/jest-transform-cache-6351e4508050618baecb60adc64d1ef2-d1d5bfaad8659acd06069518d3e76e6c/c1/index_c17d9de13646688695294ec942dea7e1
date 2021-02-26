@@ -1,0 +1,41 @@
+4f91334a79451224bab9dac145e83932
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.createMockStore = void 0;
+const tslib_1 = require("tslib");
+const MockStore_1 = require("./MockStore");
+tslib_1.__exportStar(require("./MockStore"), exports);
+tslib_1.__exportStar(require("./addMocksToSchema"), exports);
+tslib_1.__exportStar(require("./mockServer"), exports);
+tslib_1.__exportStar(require("./types"), exports);
+tslib_1.__exportStar(require("./MockList"), exports);
+/**
+ * Will create `MockStore` for the given `schema`.
+ *
+ * A `MockStore` will generate mock values for the given schem when queried.
+ *
+ * It will stores generated mocks, so that, provided with same arguments
+ * the returned values will be the same.
+ *
+ * Its API also allows to modify the stored values.
+ *
+ * Basic example:
+ * ```ts
+ * store.get('User', 1, 'name');
+ * // > "Hello World"
+ * store.set('User', 1, 'name', 'Alexandre');
+ * store.get('User', 1, 'name');
+ * // > "Alexandre"
+ * ```
+ *
+ * The storage key will correspond to the "key field"
+ * of the type. Field with name `id` or `_id` will be
+ * by default considered as the key field for the type.
+ * However, use `typePolicies` to precise the field to use
+ * as key.
+ */
+function createMockStore(options) {
+    return new MockStore_1.MockStore(options);
+}
+exports.createMockStore = createMockStore;
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJmaWxlIjoiL2hvbWUvYXJkYXRfMDAwL0d1aWxkL2dyYXBocWwtdG9vbHMvcGFja2FnZXMvbW9jay9zcmMvaW5kZXgudHMiLCJtYXBwaW5ncyI6Ijs7OztBQUdBLDJDQUF3QztBQUV4QyxzREFBNEI7QUFDNUIsNkRBQW1DO0FBQ25DLHVEQUE2QjtBQUM3QixrREFBd0I7QUFDeEIscURBQTJCO0FBRTNCOzs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7R0F3Qkc7QUFDSCxTQUFnQixlQUFlLENBQUMsT0FjL0I7SUFDQyxPQUFPLElBQUkscUJBQVMsQ0FBQyxPQUFPLENBQUMsQ0FBQztBQUNoQyxDQUFDO0FBaEJELDBDQWdCQyIsIm5hbWVzIjpbXSwic291cmNlcyI6WyIvaG9tZS9hcmRhdF8wMDAvR3VpbGQvZ3JhcGhxbC10b29scy9wYWNrYWdlcy9tb2NrL3NyYy9pbmRleC50cyJdLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgeyBHcmFwaFFMU2NoZW1hIH0gZnJvbSAnZ3JhcGhxbCc7XG5cbmltcG9ydCB7IElNb2NrU3RvcmUsIElNb2NrcywgVHlwZVBvbGljeSB9IGZyb20gJy4vdHlwZXMnO1xuaW1wb3J0IHsgTW9ja1N0b3JlIH0gZnJvbSAnLi9Nb2NrU3RvcmUnO1xuXG5leHBvcnQgKiBmcm9tICcuL01vY2tTdG9yZSc7XG5leHBvcnQgKiBmcm9tICcuL2FkZE1vY2tzVG9TY2hlbWEnO1xuZXhwb3J0ICogZnJvbSAnLi9tb2NrU2VydmVyJztcbmV4cG9ydCAqIGZyb20gJy4vdHlwZXMnO1xuZXhwb3J0ICogZnJvbSAnLi9Nb2NrTGlzdCc7XG5cbi8qKlxuICogV2lsbCBjcmVhdGUgYE1vY2tTdG9yZWAgZm9yIHRoZSBnaXZlbiBgc2NoZW1hYC5cbiAqXG4gKiBBIGBNb2NrU3RvcmVgIHdpbGwgZ2VuZXJhdGUgbW9jayB2YWx1ZXMgZm9yIHRoZSBnaXZlbiBzY2hlbSB3aGVuIHF1ZXJpZWQuXG4gKlxuICogSXQgd2lsbCBzdG9yZXMgZ2VuZXJhdGVkIG1vY2tzLCBzbyB0aGF0LCBwcm92aWRlZCB3aXRoIHNhbWUgYXJndW1lbnRzXG4gKiB0aGUgcmV0dXJuZWQgdmFsdWVzIHdpbGwgYmUgdGhlIHNhbWUuXG4gKlxuICogSXRzIEFQSSBhbHNvIGFsbG93cyB0byBtb2RpZnkgdGhlIHN0b3JlZCB2YWx1ZXMuXG4gKlxuICogQmFzaWMgZXhhbXBsZTpcbiAqIGBgYHRzXG4gKiBzdG9yZS5nZXQoJ1VzZXInLCAxLCAnbmFtZScpO1xuICogLy8gPiBcIkhlbGxvIFdvcmxkXCJcbiAqIHN0b3JlLnNldCgnVXNlcicsIDEsICduYW1lJywgJ0FsZXhhbmRyZScpO1xuICogc3RvcmUuZ2V0KCdVc2VyJywgMSwgJ25hbWUnKTtcbiAqIC8vID4gXCJBbGV4YW5kcmVcIlxuICogYGBgXG4gKlxuICogVGhlIHN0b3JhZ2Uga2V5IHdpbGwgY29ycmVzcG9uZCB0byB0aGUgXCJrZXkgZmllbGRcIlxuICogb2YgdGhlIHR5cGUuIEZpZWxkIHdpdGggbmFtZSBgaWRgIG9yIGBfaWRgIHdpbGwgYmVcbiAqIGJ5IGRlZmF1bHQgY29uc2lkZXJlZCBhcyB0aGUga2V5IGZpZWxkIGZvciB0aGUgdHlwZS5cbiAqIEhvd2V2ZXIsIHVzZSBgdHlwZVBvbGljaWVzYCB0byBwcmVjaXNlIHRoZSBmaWVsZCB0byB1c2VcbiAqIGFzIGtleS5cbiAqL1xuZXhwb3J0IGZ1bmN0aW9uIGNyZWF0ZU1vY2tTdG9yZShvcHRpb25zOiB7XG4gIC8qKlxuICAgKiBUaGUgYHNjaGVtYWAgdG8gYmFzZWQgbW9ja3Mgb24uXG4gICAqL1xuICBzY2hlbWE6IEdyYXBoUUxTY2hlbWE7XG5cbiAgLyoqXG4gICAqIFRoZSBtb2NrcyBmdW5jdGlvbnMgdG8gdXNlLlxuICAgKi9cbiAgbW9ja3M/OiBJTW9ja3M7XG5cbiAgdHlwZVBvbGljaWVzPzoge1xuICAgIFt0eXBlTmFtZTogc3RyaW5nXTogVHlwZVBvbGljeTtcbiAgfTtcbn0pOiBJTW9ja1N0b3JlIHtcbiAgcmV0dXJuIG5ldyBNb2NrU3RvcmUob3B0aW9ucyk7XG59XG4iXSwidmVyc2lvbiI6M30=

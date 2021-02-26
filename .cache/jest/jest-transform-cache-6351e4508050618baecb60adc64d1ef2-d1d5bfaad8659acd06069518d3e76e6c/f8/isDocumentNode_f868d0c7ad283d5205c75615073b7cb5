@@ -1,0 +1,10 @@
+4ca93a99b07a9c769b28b104b8be75b0
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.isDocumentNode = void 0;
+const graphql_1 = require("graphql");
+function isDocumentNode(object) {
+    return object && typeof object === 'object' && 'kind' in object && object.kind === graphql_1.Kind.DOCUMENT;
+}
+exports.isDocumentNode = isDocumentNode;
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJmaWxlIjoiL2hvbWUvYXJkYXRfMDAwL0d1aWxkL2dyYXBocWwtdG9vbHMvcGFja2FnZXMvdXRpbHMvc3JjL2lzRG9jdW1lbnROb2RlLnRzIiwibWFwcGluZ3MiOiI7OztBQUFBLHFDQUE2QztBQUU3QyxTQUFnQixjQUFjLENBQUMsTUFBVztJQUN4QyxPQUFPLE1BQU0sSUFBSSxPQUFPLE1BQU0sS0FBSyxRQUFRLElBQUksTUFBTSxJQUFJLE1BQU0sSUFBSSxNQUFNLENBQUMsSUFBSSxLQUFLLGNBQUksQ0FBQyxRQUFRLENBQUM7QUFDbkcsQ0FBQztBQUZELHdDQUVDIiwibmFtZXMiOltdLCJzb3VyY2VzIjpbIi9ob21lL2FyZGF0XzAwMC9HdWlsZC9ncmFwaHFsLXRvb2xzL3BhY2thZ2VzL3V0aWxzL3NyYy9pc0RvY3VtZW50Tm9kZS50cyJdLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgeyBEb2N1bWVudE5vZGUsIEtpbmQgfSBmcm9tICdncmFwaHFsJztcblxuZXhwb3J0IGZ1bmN0aW9uIGlzRG9jdW1lbnROb2RlKG9iamVjdDogYW55KTogb2JqZWN0IGlzIERvY3VtZW50Tm9kZSB7XG4gIHJldHVybiBvYmplY3QgJiYgdHlwZW9mIG9iamVjdCA9PT0gJ29iamVjdCcgJiYgJ2tpbmQnIGluIG9iamVjdCAmJiBvYmplY3Qua2luZCA9PT0gS2luZC5ET0NVTUVOVDtcbn1cbiJdLCJ2ZXJzaW9uIjozfQ==
