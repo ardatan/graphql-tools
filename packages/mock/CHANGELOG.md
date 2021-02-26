@@ -1,5 +1,11 @@
 # @graphql-tools/mock
 
+## 8.1.0
+
+### Minor Changes
+
+- a2e7ff77: feat(mock): add reset method to MockStore
+
 ## 8.0.0
 
 ### Major Changes
