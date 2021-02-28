@@ -1,5 +1,11 @@
 # @graphql-tools/import
 
+## 6.3.0
+
+### Minor Changes
+
+- 87709f42: processImport() now lets you know all the visited files by passing a map as a fourth argument.
+
 ## 6.2.6
 
 ### Patch Changes
