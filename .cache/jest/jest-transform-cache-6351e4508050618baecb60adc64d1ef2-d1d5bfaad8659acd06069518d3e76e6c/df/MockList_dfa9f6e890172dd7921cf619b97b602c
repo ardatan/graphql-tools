@@ -1,0 +1,77 @@
+818f6ea99e74d5c63faf79faa30a3cd8
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.deepResolveMockList = exports.MockList = exports.isMockList = void 0;
+/**
+ * @internal
+ */
+function isMockList(obj) {
+    if (typeof (obj === null || obj === void 0 ? void 0 : obj.len) === 'number' || (Array.isArray(obj === null || obj === void 0 ? void 0 : obj.len) && typeof (obj === null || obj === void 0 ? void 0 : obj.len[0]) === 'number')) {
+        if (typeof obj.wrappedFunction === 'undefined' || typeof obj.wrappedFunction === 'function') {
+            return true;
+        }
+    }
+    return false;
+}
+exports.isMockList = isMockList;
+/**
+ * This is an object you can return from your mock resolvers which calls the
+ * provided `mockFunction` once for each list item.
+ */
+class MockList {
+    /**
+     * @param length Either the exact length of items to return or an inclusive
+     * range of possible lengths.
+     * @param mockFunction The function to call for each item in the list to
+     * resolve it. It can return another MockList or a value.
+     */
+    constructor(length, mockFunction) {
+        this.len = length;
+        if (typeof mockFunction !== 'undefined') {
+            if (typeof mockFunction !== 'function') {
+                throw new Error('Second argument to MockList must be a function or undefined');
+            }
+            this.wrappedFunction = mockFunction;
+        }
+    }
+    /**
+     * @internal
+     */
+    mock() {
+        let arr;
+        if (Array.isArray(this.len)) {
+            arr = new Array(this.randint(this.len[0], this.len[1]));
+        }
+        else {
+            arr = new Array(this.len);
+        }
+        for (let i = 0; i < arr.length; i++) {
+            if (typeof this.wrappedFunction === 'function') {
+                const res = this.wrappedFunction();
+                if (isMockList(res)) {
+                    arr[i] = res.mock();
+                }
+                else {
+                    arr[i] = res;
+                }
+            }
+            else {
+                arr[i] = undefined;
+            }
+        }
+        return arr;
+    }
+    randint(low, high) {
+        return Math.floor(Math.random() * (high - low + 1) + low);
+    }
+}
+exports.MockList = MockList;
+function deepResolveMockList(mockList) {
+    return mockList.mock().map(v => {
+        if (isMockList(v))
+            return deepResolveMockList(v);
+        return v;
+    });
+}
+exports.deepResolveMockList = deepResolveMockList;
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJmaWxlIjoiL2hvbWUvYXJkYXRfMDAwL0d1aWxkL2dyYXBocWwtdG9vbHMvcGFja2FnZXMvbW9jay9zcmMvTW9ja0xpc3QudHMiLCJtYXBwaW5ncyI6Ijs7O0FBQUE7O0dBRUc7QUFDSCxTQUFnQixVQUFVLENBQUMsR0FBUTtJQUNqQyxJQUFJLE9BQU8sQ0FBQSxHQUFHLGFBQUgsR0FBRyx1QkFBSCxHQUFHLENBQUUsR0FBRyxDQUFBLEtBQUssUUFBUSxJQUFJLENBQUMsS0FBSyxDQUFDLE9BQU8sQ0FBQyxHQUFHLGFBQUgsR0FBRyx1QkFBSCxHQUFHLENBQUUsR0FBRyxDQUFDLElBQUksT0FBTyxDQUFBLEdBQUcsYUFBSCxHQUFHLHVCQUFILEdBQUcsQ0FBRSxHQUFHLENBQUMsQ0FBQyxDQUFDLENBQUEsS0FBSyxRQUFRLENBQUMsRUFBRTtRQUNoRyxJQUFJLE9BQU8sR0FBRyxDQUFDLGVBQWUsS0FBSyxXQUFXLElBQUksT0FBTyxHQUFHLENBQUMsZUFBZSxLQUFLLFVBQVUsRUFBRTtZQUMzRixPQUFPLElBQUksQ0FBQztTQUNiO0tBQ0Y7SUFFRCxPQUFPLEtBQUssQ0FBQztBQUNmLENBQUM7QUFSRCxnQ0FRQztBQUVEOzs7R0FHRztBQUNILE1BQWEsUUFBUTtJQUluQjs7Ozs7T0FLRztJQUNILFlBQVksTUFBOEIsRUFBRSxZQUE0QjtRQUN0RSxJQUFJLENBQUMsR0FBRyxHQUFHLE1BQU0sQ0FBQztRQUNsQixJQUFJLE9BQU8sWUFBWSxLQUFLLFdBQVcsRUFBRTtZQUN2QyxJQUFJLE9BQU8sWUFBWSxLQUFLLFVBQVUsRUFBRTtnQkFDdEMsTUFBTSxJQUFJLEtBQUssQ0FBQyw2REFBNkQsQ0FBQyxDQUFDO2FBQ2hGO1lBQ0QsSUFBSSxDQUFDLGVBQWUsR0FBRyxZQUFZLENBQUM7U0FDckM7SUFDSCxDQUFDO0lBRUQ7O09BRUc7SUFDSSxJQUFJO1FBQ1QsSUFBSSxHQUFtQixDQUFDO1FBQ3hCLElBQUksS0FBSyxDQUFDLE9BQU8sQ0FBQyxJQUFJLENBQUMsR0FBRyxDQUFDLEVBQUU7WUFDM0IsR0FBRyxHQUFHLElBQUksS0FBSyxDQUFDLElBQUksQ0FBQyxPQUFPLENBQUMsSUFBSSxDQUFDLEdBQUcsQ0FBQyxDQUFDLENBQUMsRUFBRSxJQUFJLENBQUMsR0FBRyxDQUFDLENBQUMsQ0FBQyxDQUFDLENBQUMsQ0FBQztTQUN6RDthQUFNO1lBQ0wsR0FBRyxHQUFHLElBQUksS0FBSyxDQUFDLElBQUksQ0FBQyxHQUFHLENBQUMsQ0FBQztTQUMzQjtRQUVELEtBQUssSUFBSSxDQUFDLEdBQUcsQ0FBQyxFQUFFLENBQUMsR0FBRyxHQUFHLENBQUMsTUFBTSxFQUFFLENBQUMsRUFBRSxFQUFFO1lBQ25DLElBQUksT0FBTyxJQUFJLENBQUMsZUFBZSxLQUFLLFVBQVUsRUFBRTtnQkFDOUMsTUFBTSxHQUFHLEdBQUcsSUFBSSxDQUFDLGVBQWUsRUFBRSxDQUFDO2dCQUNuQyxJQUFJLFVBQVUsQ0FBQyxHQUFHLENBQUMsRUFBRTtvQkFDbkIsR0FBRyxDQUFDLENBQUMsQ0FBQyxHQUFHLEdBQUcsQ0FBQyxJQUFJLEVBQUUsQ0FBQztpQkFDckI7cUJBQU07b0JBQ0wsR0FBRyxDQUFDLENBQUMsQ0FBQyxHQUFHLEdBQUcsQ0FBQztpQkFDZDthQUNGO2lCQUFNO2dCQUNMLEdBQUcsQ0FBQyxDQUFDLENBQUMsR0FBRyxTQUFTLENBQUM7YUFDcEI7U0FDRjtRQUNELE9BQU8sR0FBRyxDQUFDO0lBQ2IsQ0FBQztJQUVPLE9BQU8sQ0FBQyxHQUFXLEVBQUUsSUFBWTtRQUN2QyxPQUFPLElBQUksQ0FBQyxLQUFLLENBQUMsSUFBSSxDQUFDLE1BQU0sRUFBRSxHQUFHLENBQUMsSUFBSSxHQUFHLEdBQUcsR0FBRyxDQUFDLENBQUMsR0FBRyxHQUFHLENBQUMsQ0FBQztJQUM1RCxDQUFDO0NBQ0Y7QUFqREQsNEJBaURDO0FBRUQsU0FBZ0IsbUJBQW1CLENBQUMsUUFBa0I7SUFDcEQsT0FBTyxRQUFRLENBQUMsSUFBSSxFQUFFLENBQUMsR0FBRyxDQUFDLENBQUMsQ0FBQyxFQUFFO1FBQzdCLElBQUksVUFBVSxDQUFDLENBQUMsQ0FBQztZQUFFLE9BQU8sbUJBQW1CLENBQUMsQ0FBQyxDQUFDLENBQUM7UUFDakQsT0FBTyxDQUFDLENBQUM7SUFDWCxDQUFDLENBQUMsQ0FBQztBQUNMLENBQUM7QUFMRCxrREFLQyIsIm5hbWVzIjpbXSwic291cmNlcyI6WyIvaG9tZS9hcmRhdF8wMDAvR3VpbGQvZ3JhcGhxbC10b29scy9wYWNrYWdlcy9tb2NrL3NyYy9Nb2NrTGlzdC50cyJdLCJzb3VyY2VzQ29udGVudCI6WyIvKipcbiAqIEBpbnRlcm5hbFxuICovXG5leHBvcnQgZnVuY3Rpb24gaXNNb2NrTGlzdChvYmo6IGFueSk6IG9iaiBpcyBNb2NrTGlzdCB7XG4gIGlmICh0eXBlb2Ygb2JqPy5sZW4gPT09ICdudW1iZXInIHx8IChBcnJheS5pc0FycmF5KG9iaj8ubGVuKSAmJiB0eXBlb2Ygb2JqPy5sZW5bMF0gPT09ICdudW1iZXInKSkge1xuICAgIGlmICh0eXBlb2Ygb2JqLndyYXBwZWRGdW5jdGlvbiA9PT0gJ3VuZGVmaW5lZCcgfHwgdHlwZW9mIG9iai53cmFwcGVkRnVuY3Rpb24gPT09ICdmdW5jdGlvbicpIHtcbiAgICAgIHJldHVybiB0cnVlO1xuICAgIH1cbiAgfVxuXG4gIHJldHVybiBmYWxzZTtcbn1cblxuLyoqXG4gKiBUaGlzIGlzIGFuIG9iamVjdCB5b3UgY2FuIHJldHVybiBmcm9tIHlvdXIgbW9jayByZXNvbHZlcnMgd2hpY2ggY2FsbHMgdGhlXG4gKiBwcm92aWRlZCBgbW9ja0Z1bmN0aW9uYCBvbmNlIGZvciBlYWNoIGxpc3QgaXRlbS5cbiAqL1xuZXhwb3J0IGNsYXNzIE1vY2tMaXN0IHtcbiAgcHJpdmF0ZSByZWFkb25seSBsZW46IG51bWJlciB8IEFycmF5PG51bWJlcj47XG4gIHByaXZhdGUgcmVhZG9ubHkgd3JhcHBlZEZ1bmN0aW9uOiAoKSA9PiB1bmtub3duO1xuXG4gIC8qKlxuICAgKiBAcGFyYW0gbGVuZ3RoIEVpdGhlciB0aGUgZXhhY3QgbGVuZ3RoIG9mIGl0ZW1zIHRvIHJldHVybiBvciBhbiBpbmNsdXNpdmVcbiAgICogcmFuZ2Ugb2YgcG9zc2libGUgbGVuZ3Rocy5cbiAgICogQHBhcmFtIG1vY2tGdW5jdGlvbiBUaGUgZnVuY3Rpb24gdG8gY2FsbCBmb3IgZWFjaCBpdGVtIGluIHRoZSBsaXN0IHRvXG4gICAqIHJlc29sdmUgaXQuIEl0IGNhbiByZXR1cm4gYW5vdGhlciBNb2NrTGlzdCBvciBhIHZhbHVlLlxuICAgKi9cbiAgY29uc3RydWN0b3IobGVuZ3RoOiBudW1iZXIgfCBBcnJheTxudW1iZXI+LCBtb2NrRnVuY3Rpb24/OiAoKSA9PiB1bmtub3duKSB7XG4gICAgdGhpcy5sZW4gPSBsZW5ndGg7XG4gICAgaWYgKHR5cGVvZiBtb2NrRnVuY3Rpb24gIT09ICd1bmRlZmluZWQnKSB7XG4gICAgICBpZiAodHlwZW9mIG1vY2tGdW5jdGlvbiAhPT0gJ2Z1bmN0aW9uJykge1xuICAgICAgICB0aHJvdyBuZXcgRXJyb3IoJ1NlY29uZCBhcmd1bWVudCB0byBNb2NrTGlzdCBtdXN0IGJlIGEgZnVuY3Rpb24gb3IgdW5kZWZpbmVkJyk7XG4gICAgICB9XG4gICAgICB0aGlzLndyYXBwZWRGdW5jdGlvbiA9IG1vY2tGdW5jdGlvbjtcbiAgICB9XG4gIH1cblxuICAvKipcbiAgICogQGludGVybmFsXG4gICAqL1xuICBwdWJsaWMgbW9jaygpIHtcbiAgICBsZXQgYXJyOiBBcnJheTx1bmtub3duPjtcbiAgICBpZiAoQXJyYXkuaXNBcnJheSh0aGlzLmxlbikpIHtcbiAgICAgIGFyciA9IG5ldyBBcnJheSh0aGlzLnJhbmRpbnQodGhpcy5sZW5bMF0sIHRoaXMubGVuWzFdKSk7XG4gICAgfSBlbHNlIHtcbiAgICAgIGFyciA9IG5ldyBBcnJheSh0aGlzLmxlbik7XG4gICAgfVxuXG4gICAgZm9yIChsZXQgaSA9IDA7IGkgPCBhcnIubGVuZ3RoOyBpKyspIHtcbiAgICAgIGlmICh0eXBlb2YgdGhpcy53cmFwcGVkRnVuY3Rpb24gPT09ICdmdW5jdGlvbicpIHtcbiAgICAgICAgY29uc3QgcmVzID0gdGhpcy53cmFwcGVkRnVuY3Rpb24oKTtcbiAgICAgICAgaWYgKGlzTW9ja0xpc3QocmVzKSkge1xuICAgICAgICAgIGFycltpXSA9IHJlcy5tb2NrKCk7XG4gICAgICAgIH0gZWxzZSB7XG4gICAgICAgICAgYXJyW2ldID0gcmVzO1xuICAgICAgICB9XG4gICAgICB9IGVsc2Uge1xuICAgICAgICBhcnJbaV0gPSB1bmRlZmluZWQ7XG4gICAgICB9XG4gICAgfVxuICAgIHJldHVybiBhcnI7XG4gIH1cblxuICBwcml2YXRlIHJhbmRpbnQobG93OiBudW1iZXIsIGhpZ2g6IG51bWJlcik6IG51bWJlciB7XG4gICAgcmV0dXJuIE1hdGguZmxvb3IoTWF0aC5yYW5kb20oKSAqIChoaWdoIC0gbG93ICsgMSkgKyBsb3cpO1xuICB9XG59XG5cbmV4cG9ydCBmdW5jdGlvbiBkZWVwUmVzb2x2ZU1vY2tMaXN0KG1vY2tMaXN0OiBNb2NrTGlzdCk6IHVua25vd25bXSB7XG4gIHJldHVybiBtb2NrTGlzdC5tb2NrKCkubWFwKHYgPT4ge1xuICAgIGlmIChpc01vY2tMaXN0KHYpKSByZXR1cm4gZGVlcFJlc29sdmVNb2NrTGlzdCh2KTtcbiAgICByZXR1cm4gdjtcbiAgfSk7XG59XG4iXSwidmVyc2lvbiI6M30=

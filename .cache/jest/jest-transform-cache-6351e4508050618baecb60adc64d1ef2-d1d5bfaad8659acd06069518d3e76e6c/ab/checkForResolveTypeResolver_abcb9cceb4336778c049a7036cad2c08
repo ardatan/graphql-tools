@@ -1,0 +1,26 @@
+70e522977c4c5bb9d751a024f8e1b6b8
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.checkForResolveTypeResolver = void 0;
+const utils_1 = require("@graphql-tools/utils");
+// If we have any union or interface types throw if no there is no resolveType resolver
+function checkForResolveTypeResolver(schema, requireResolversForResolveType) {
+    utils_1.mapSchema(schema, {
+        [utils_1.MapperKind.ABSTRACT_TYPE]: type => {
+            if (!type.resolveType) {
+                const message = `Type "${type.name}" is missing a "__resolveType" resolver. Pass 'ignore' into ` +
+                    '"resolverValidationOptions.requireResolversForResolveType" to disable this error.';
+                if (requireResolversForResolveType === 'error') {
+                    throw new Error(message);
+                }
+                if (requireResolversForResolveType === 'warn') {
+                    // eslint-disable-next-line no-console
+                    console.warn(message);
+                }
+            }
+            return undefined;
+        },
+    });
+}
+exports.checkForResolveTypeResolver = checkForResolveTypeResolver;
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJmaWxlIjoiL2hvbWUvYXJkYXRfMDAwL0d1aWxkL2dyYXBocWwtdG9vbHMvcGFja2FnZXMvc2NoZW1hL3NyYy9jaGVja0ZvclJlc29sdmVUeXBlUmVzb2x2ZXIudHMiLCJtYXBwaW5ncyI6Ijs7O0FBRUEsZ0RBQWdGO0FBRWhGLHVGQUF1RjtBQUN2RixTQUFnQiwyQkFBMkIsQ0FBQyxNQUFxQixFQUFFLDhCQUFpRDtJQUNsSCxpQkFBUyxDQUFDLE1BQU0sRUFBRTtRQUNoQixDQUFDLGtCQUFVLENBQUMsYUFBYSxDQUFDLEVBQUUsSUFBSSxDQUFDLEVBQUU7WUFDakMsSUFBSSxDQUFDLElBQUksQ0FBQyxXQUFXLEVBQUU7Z0JBQ3JCLE1BQU0sT0FBTyxHQUNYLFNBQVMsSUFBSSxDQUFDLElBQUksOERBQThEO29CQUNoRixtRkFBbUYsQ0FBQztnQkFDdEYsSUFBSSw4QkFBOEIsS0FBSyxPQUFPLEVBQUU7b0JBQzlDLE1BQU0sSUFBSSxLQUFLLENBQUMsT0FBTyxDQUFDLENBQUM7aUJBQzFCO2dCQUVELElBQUksOEJBQThCLEtBQUssTUFBTSxFQUFFO29CQUM3QyxzQ0FBc0M7b0JBQ3RDLE9BQU8sQ0FBQyxJQUFJLENBQUMsT0FBTyxDQUFDLENBQUM7aUJBQ3ZCO2FBQ0Y7WUFDRCxPQUFPLFNBQVMsQ0FBQztRQUNuQixDQUFDO0tBQ0YsQ0FBQyxDQUFDO0FBQ0wsQ0FBQztBQW5CRCxrRUFtQkMiLCJuYW1lcyI6W10sInNvdXJjZXMiOlsiL2hvbWUvYXJkYXRfMDAwL0d1aWxkL2dyYXBocWwtdG9vbHMvcGFja2FnZXMvc2NoZW1hL3NyYy9jaGVja0ZvclJlc29sdmVUeXBlUmVzb2x2ZXIudHMiXSwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IHsgR3JhcGhRTFNjaGVtYSB9IGZyb20gJ2dyYXBocWwnO1xuXG5pbXBvcnQgeyBNYXBwZXJLaW5kLCBtYXBTY2hlbWEsIFZhbGlkYXRvckJlaGF2aW9yIH0gZnJvbSAnQGdyYXBocWwtdG9vbHMvdXRpbHMnO1xuXG4vLyBJZiB3ZSBoYXZlIGFueSB1bmlvbiBvciBpbnRlcmZhY2UgdHlwZXMgdGhyb3cgaWYgbm8gdGhlcmUgaXMgbm8gcmVzb2x2ZVR5cGUgcmVzb2x2ZXJcbmV4cG9ydCBmdW5jdGlvbiBjaGVja0ZvclJlc29sdmVUeXBlUmVzb2x2ZXIoc2NoZW1hOiBHcmFwaFFMU2NoZW1hLCByZXF1aXJlUmVzb2x2ZXJzRm9yUmVzb2x2ZVR5cGU6IFZhbGlkYXRvckJlaGF2aW9yKSB7XG4gIG1hcFNjaGVtYShzY2hlbWEsIHtcbiAgICBbTWFwcGVyS2luZC5BQlNUUkFDVF9UWVBFXTogdHlwZSA9PiB7XG4gICAgICBpZiAoIXR5cGUucmVzb2x2ZVR5cGUpIHtcbiAgICAgICAgY29uc3QgbWVzc2FnZSA9XG4gICAgICAgICAgYFR5cGUgXCIke3R5cGUubmFtZX1cIiBpcyBtaXNzaW5nIGEgXCJfX3Jlc29sdmVUeXBlXCIgcmVzb2x2ZXIuIFBhc3MgJ2lnbm9yZScgaW50byBgICtcbiAgICAgICAgICAnXCJyZXNvbHZlclZhbGlkYXRpb25PcHRpb25zLnJlcXVpcmVSZXNvbHZlcnNGb3JSZXNvbHZlVHlwZVwiIHRvIGRpc2FibGUgdGhpcyBlcnJvci4nO1xuICAgICAgICBpZiAocmVxdWlyZVJlc29sdmVyc0ZvclJlc29sdmVUeXBlID09PSAnZXJyb3InKSB7XG4gICAgICAgICAgdGhyb3cgbmV3IEVycm9yKG1lc3NhZ2UpO1xuICAgICAgICB9XG5cbiAgICAgICAgaWYgKHJlcXVpcmVSZXNvbHZlcnNGb3JSZXNvbHZlVHlwZSA9PT0gJ3dhcm4nKSB7XG4gICAgICAgICAgLy8gZXNsaW50LWRpc2FibGUtbmV4dC1saW5lIG5vLWNvbnNvbGVcbiAgICAgICAgICBjb25zb2xlLndhcm4obWVzc2FnZSk7XG4gICAgICAgIH1cbiAgICAgIH1cbiAgICAgIHJldHVybiB1bmRlZmluZWQ7XG4gICAgfSxcbiAgfSk7XG59XG4iXSwidmVyc2lvbiI6M30=
