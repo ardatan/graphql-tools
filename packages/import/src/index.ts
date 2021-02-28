@@ -59,12 +59,14 @@ const builtinDirectives = [
 const IMPORT_FROM_REGEX = /^import\s+(\*|(.*))\s+from\s+('|")(.*)('|");?$/;
 const IMPORT_DEFAULT_REGEX = /^import\s+('|")(.*)('|");?$/;
 
+export type VisitedFilesMap = Map<string, Map<string, Set<DefinitionNode>>>;
+
 export function processImport(
   filePath: string,
   cwd = cwdFactory(),
-  predefinedImports: Record<string, string> = {}
+  predefinedImports: Record<string, string> = {},
+  visitedFiles: VisitedFilesMap = new Map()
 ): DocumentNode {
-  const visitedFiles = new Map<string, Map<string, Set<DefinitionNode>>>();
   const set = visitFile(filePath, join(cwd + '/root.graphql'), visitedFiles, predefinedImports);
   const definitionStrSet = new Set<string>();
   let definitionsStr = '';
@@ -89,7 +91,7 @@ export function processImport(
 function visitFile(
   filePath: string,
   cwd: string,
-  visitedFiles: Map<string, Map<string, Set<DefinitionNode>>>,
+  visitedFiles: VisitedFilesMap,
   predefinedImports: Record<string, string>
 ) {
   if (!isAbsolute(filePath) && !(filePath in predefinedImports)) {
