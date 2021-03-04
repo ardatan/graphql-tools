@@ -70,7 +70,7 @@
     "nock": "13.0.10",
     "prettier": "2.2.1",
     "ts-jest": "26.5.2",
-    "typedoc": "0.20.28",
+    "typedoc": "0.20.29",
     "typedoc-plugin-markdown": "3.6.0",
     "typescript": "4.2.2"
   },
