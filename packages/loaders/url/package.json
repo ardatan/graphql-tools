@@ -35,7 +35,7 @@
     "@graphql-tools/delegate": "^7.0.1",
     "@graphql-tools/wrap": "^7.0.4",
     "@graphql-tools/utils": "^7.1.5",
-    "@types/websocket": "1.0.1",
+    "@types/websocket": "1.0.2",
     "cross-fetch": "3.0.6",
     "extract-files": "9.0.0",
     "eventsource": "1.0.7",
