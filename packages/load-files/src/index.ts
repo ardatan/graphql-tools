@@ -39,14 +39,19 @@ function scanForFilesSync(globStr: string | string[], globOptions: GlobbyOptions
   return globbySync(globStr, { absolute: true, ...globOptions });
 }
 
+function formatExtension(extension: string): string {
+  return extension.charAt(0) === '.' ? extension : `.${extension}`;
+}
+
 function buildGlob(
   basePath: string,
   extensions: string[],
   ignoredExtensions: string[] = [],
   recursive: boolean
 ): string {
-  const ignored = ignoredExtensions.length > 0 ? `!(${ignoredExtensions.map(e => '*.' + e).join('|')})` : '*';
-  const ext = extensions.map(e => '*.' + e).join('|');
+  const ignored =
+    ignoredExtensions.length > 0 ? `!(${ignoredExtensions.map(e => `*${formatExtension(e)}`).join('|')})` : '*';
+  const ext = extensions.map(e => `*${formatExtension(e)}`).join('|');
 
   return `${basePath}${recursive ? '/**' : ''}/${ignored}+(${ext})`;
 }
@@ -141,7 +146,7 @@ export function loadFilesSync<T = any>(
 
       const extension = extname(path);
 
-      if (extension === '.js' || extension === '.ts' || execOptions.useRequire) {
+      if (extension === formatExtension('js') || extension === formatExtension('ts') || execOptions.useRequire) {
         const fileExports = (execOptions.requireMethod ? execOptions.requireMethod : require)(path);
         const extractedExport = extractExports(fileExports, execOptions.exportNames, options.adapters);
 
@@ -187,7 +192,7 @@ const checkExtension = (
 ) => {
   if (ignoredExtensions) {
     for (const ignoredExtension of ignoredExtensions) {
-      if (path.endsWith(`.${ignoredExtension}`)) {
+      if (path.endsWith(formatExtension(ignoredExtension))) {
         return false;
       }
     }
@@ -198,7 +203,7 @@ const checkExtension = (
   }
 
   for (const extension of extensions) {
-    if (path.endsWith(`.${extension}`)) {
+    if (path.endsWith(formatExtension(extension))) {
       return true;
     }
   }
@@ -235,7 +240,7 @@ export async function loadFiles(
       .map(async path => {
         const extension = extname(path);
 
-        if (extension.endsWith('.js') || extension.endsWith('.ts') || execOptions.useRequire) {
+        if (extension === formatExtension('js') || extension === formatExtension('ts') || execOptions.useRequire) {
           const fileExports = await (execOptions.requireMethod ? execOptions.requireMethod : require$)(path);
           const extractedExport = await extractExports(fileExports, execOptions.exportNames, options.adapters);
 
@@ -257,5 +262,5 @@ export async function loadFiles(
 
 function isIndex(path: string, extensions: string[] = []): boolean {
   const IS_INDEX = /(\/|\\)index\.[^\/\\]+$/i; // (/ or \) AND `index.` AND (everything except \ and /)(end of line)
-  return IS_INDEX.test(path) && extensions.some(ext => path.endsWith('.' + ext));
+  return IS_INDEX.test(path) && extensions.some(ext => path.endsWith(formatExtension(ext)));
 }

@@ -517,4 +517,11 @@ describe('MockStore', () => {
 
     })
   })
+  it('should reset the store', () => {
+    const store = createMockStore({ schema });
+
+    store.set(makeRef('User', 'me'), 'name', 'Alexandre');
+    store.reset();
+    expect(store.get('User', 'me', 'name')).not.toEqual('Alexandre');
+  })
 });

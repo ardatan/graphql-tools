@@ -1,5 +1,17 @@
 # @graphql-tools/mock
 
+## 8.1.1
+
+### Patch Changes
+
+- cf794a42: fix(mock): fix missing reset method to IMockStore
+
+## 8.1.0
+
+### Minor Changes
+
+- a2e7ff77: feat(mock): add reset method to MockStore
+
 ## 8.0.0
 
 ### Major Changes

@@ -176,6 +176,10 @@ export class MockStore implements IMockStore {
     return this.setImpl(args);
   }
 
+  reset() {
+    this.store = {};
+  }
+
   private getImpl<KeyT extends KeyTypeConstraints>(args: GetArgs<KeyT>) {
     const { typeName, key, fieldName, fieldArgs, defaultValue } = args;
 

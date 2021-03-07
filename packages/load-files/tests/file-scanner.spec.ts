@@ -220,6 +220,13 @@ describe('file scanner', function() {
       expected: [{ MyType: { f: 1 } }],
       note: 'include path finishing in s.js but do not include paths finishing in .s.js',
     });
+    testResolversDir({
+      path: './test-assets/13',
+      extensions: ['.js'],
+      ignoredExtensions: ['.s.js'],
+      expected: [{ MyType: { f: 1 } }],
+      note: 'extensions and ignored extensions works with a trailing dot',
+    });
   });
 });
 

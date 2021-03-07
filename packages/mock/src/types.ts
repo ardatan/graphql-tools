@@ -175,6 +175,11 @@ export interface IMockStore {
    * Set the given field values to the type with ref.
    */
   set<KeyT extends KeyTypeConstraints = string>(ref: Ref<KeyT>, values: { [fieldName: string]: any }): void;
+
+  /**
+   * Resets the mock store
+   */
+  reset(): void;
 }
 
 export type Ref<KeyT extends KeyTypeConstraints = string> = {

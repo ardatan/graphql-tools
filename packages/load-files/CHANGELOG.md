@@ -1,5 +1,11 @@
 # @graphql-tools/load-files
 
+## 6.2.7
+
+### Patch Changes
+
+- a2e7ff77: Allow extensions and ignoredExtensions options to have a trailing dot
+
 ## 6.2.6
 
 ### Patch Changes
