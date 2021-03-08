@@ -1,5 +1,8 @@
 import { loadFilesSync, loadFiles, LoadFilesOptions } from '@graphql-tools/load-files';
 import { print } from 'graphql';
+import { join } from 'path';
+
+const syncAndAsync = Object.entries({ 'SYNC': loadFilesSync, 'ASYNC': loadFiles });
 
 function testSchemaDir({ path, expected, note, extensions, ignoreIndex }: TestDirOptions) {
   let options: LoadFilesOptions;
@@ -15,29 +18,22 @@ function testSchemaDir({ path, expected, note, extensions, ignoreIndex }: TestDi
     };
   });
 
-  it(`SYNC: should return the correct schema results for path: ${path} (${note})`, () => {
-    const result = loadFilesSync(path, options);
+  syncAndAsync.forEach(([type, loadFiles]) => {
+    describe(type, () => {
+      it(`should return the correct schema results for path: ${path} (${note})`, async () => {
+        const result = await loadFiles(path, options);
 
-    expect(result.length).toBe(expected.length);
-    expect(result.map(res => {
-      if (res.kind === 'Document') {
-        res = print(res);
-      }
-      return stripWhitespaces(res);
-    })).toEqual(expected.map(stripWhitespaces));
-  });
+        expect(result.length).toBe(expected.length);
+        expect(result.map(res => {
+          if (res.kind === 'Document') {
+            res = print(res);
+          }
+          return stripWhitespaces(res);
+        })).toEqual(expected.map(stripWhitespaces));
+      });
+    });
+  })
 
-  it(`ASYNC: should return the correct schema results for path: ${path} (${note})`, async () => {
-    const result = await loadFiles(path, options);
-
-    expect(result.length).toBe(expected.length);
-    expect(result.map(res => {
-      if (res.kind === 'Document') {
-        res = print(res);
-      }
-      return stripWhitespaces(res);
-    })).toEqual(expected.map(stripWhitespaces));
-  });
 }
 
 function testResolversDir({ path, expected, note, extensions, compareValue, ignoreIndex, ignoredExtensions }: TestDirOptions) {
@@ -58,24 +54,18 @@ function testResolversDir({ path, expected, note, extensions, compareValue, igno
     };
   });
 
-  it(`SYNC: should return the correct resolvers results for path: ${path} (${note})`, () => {
-    const result = loadFilesSync(path, options);
+  syncAndAsync.forEach(([type, loadFiles]) => {
+    describe(type, () => {
+      it(`should return the correct resolvers results for path: ${path} (${note})`, async () => {
+        const result = await loadFiles(path, options);
 
-    expect(result.length).toBe(expected.length);
+        expect(result.length).toBe(expected.length);
 
-    if (compareValue) {
-      expect(result).toEqual(expected);
-    }
-  });
-
-  it(`ASYNC: should return the correct resolvers results for path: ${path} (${note})`, async () => {
-    const result = await loadFiles(path, options);
-
-    expect(result.length).toBe(expected.length);
-
-    if (compareValue) {
-      expect(result).toEqual(expected);
-    }
+        if (compareValue) {
+          expect(result).toEqual(expected);
+        }
+      });
+    })
   });
 }
 
@@ -228,6 +218,24 @@ describe('file scanner', function() {
       note: 'extensions and ignored extensions works with a trailing dot',
     });
   });
+  syncAndAsync.forEach(([type, loadFiles]) => {
+    it(`${type}: should process custom extractExports properly`, async () => {
+      const customQueryTypeName = 'root_query';
+      const customExtractExports = (fileExport: any) => {
+        fileExport = fileExport.default || fileExport;
+        // Incoming exported value is function
+        return fileExport(customQueryTypeName);
+      };
+      const loadedFiles = await loadFiles(join(__dirname, './test-assets/custom-extractor/factory-func.js'), {
+        extractExports: customExtractExports
+      });
+      expect(loadedFiles).toHaveLength(1);
+      expect(customQueryTypeName in loadedFiles[0]).toBeTruthy();
+      expect('foo' in loadedFiles[0][customQueryTypeName]).toBeTruthy();
+      expect(typeof loadedFiles[0][customQueryTypeName]['foo']).toBe('function');
+      expect(loadedFiles[0][customQueryTypeName]['foo']()).toBe('FOO');
+    });
+  })
 });
 
 interface TestDirOptions {

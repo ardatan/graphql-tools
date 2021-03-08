@@ -414,3 +414,31 @@ Or by **type**...
 |   |   |   +-- ...
 |   |   +-- index.ts <<< Merges all `*.resolvers.*` files
 ```
+
+**Custom extraction from exports**
+
+By default, `loadFiles` checks export names `typeDefs`, `resolvers` and `schema`. But you can change the way it extracts the content from the exported values.
+
+Let's say you have a factory function inside your resolvers like below;
+
+```js
+module.exports = customQueryTypeName = ({
+  [customQueryTypeName]: {
+    foo: () => 'FOO',
+  }
+})
+```
+
+And you can define custom `extractExports` like below;
+```js
+const { loadFilesSync } = require('@graphql-tools/load-files');
+
+const resolvers = loadFilesSync(join(__dirname, './resolvers/**/*.js'), {
+  extractExports: fileExport => {
+    if (typeof fileExport === 'function') {
+      return fileExport('query_root');
+    }
+    return fileExport;
+  }
+})
+```
