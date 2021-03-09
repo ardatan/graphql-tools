@@ -7,7 +7,30 @@ const { readFile, stat } = fsPromises;
 
 const DEFAULT_IGNORED_EXTENSIONS = ['spec', 'test', 'd', 'map'];
 const DEFAULT_EXTENSIONS = ['gql', 'graphql', 'graphqls', 'ts', 'js'];
-const DEFAULT_EXPORT_NAMES = ['typeDefs', 'schema'];
+const DEFAULT_EXPORT_NAMES = ['schema', 'typeDef', 'typeDefs', 'resolver', 'resolvers'];
+const DEFAULT_EXTRACT_EXPORTS_FACTORY = (exportNames: string[]) => (fileExport: any): any | null => {
+  if (!fileExport) {
+    return null;
+  }
+
+  if (fileExport.default) {
+    for (const exportName of exportNames) {
+      if (fileExport.default[exportName]) {
+        return fileExport.default[exportName];
+      }
+    }
+
+    return fileExport.default;
+  }
+
+  for (const exportName of exportNames) {
+    if (fileExport[exportName]) {
+      return fileExport[exportName];
+    }
+  }
+
+  return fileExport;
+};
 
 function asArray<T>(obj: T | T[]): T[] {
   if (obj instanceof Array) {
@@ -56,30 +79,6 @@ function buildGlob(
   return `${basePath}${recursive ? '/**' : ''}/${ignored}+(${ext})`;
 }
 
-function extractExports(fileExport: any, exportNames: string[]): any | null {
-  if (!fileExport) {
-    return null;
-  }
-
-  if (fileExport.default) {
-    for (const exportName of exportNames) {
-      if (fileExport.default[exportName]) {
-        return fileExport.default[exportName];
-      }
-    }
-
-    return fileExport.default;
-  }
-
-  for (const exportName of exportNames) {
-    if (fileExport[exportName]) {
-      return fileExport[exportName];
-    }
-  }
-
-  return fileExport;
-}
-
 /**
  * Additional options for loading files
  */
@@ -100,6 +99,8 @@ export interface LoadFilesOptions {
   recursive?: boolean;
   // Set to `true` to ignore files named `index.js` and `index.ts`
   ignoreIndex?: boolean;
+  // Custom export extractor function
+  extractExports?: (fileExport: any) => any;
 }
 
 const LoadFilesDefaultOptions: LoadFilesOptions = {
@@ -134,6 +135,9 @@ export function loadFilesSync<T = any>(
     options.globOptions
   );
 
+  const extractExports = execOptions.extractExports || DEFAULT_EXTRACT_EXPORTS_FACTORY(execOptions.exportNames);
+  const requireMethod = execOptions.requireMethod || require;
+
   return relevantPaths
     .map(path => {
       if (!checkExtension(path, options)) {
@@ -147,33 +151,8 @@ export function loadFilesSync<T = any>(
       const extension = extname(path);
 
       if (extension === formatExtension('js') || extension === formatExtension('ts') || execOptions.useRequire) {
-        const fileExports = (execOptions.requireMethod ? execOptions.requireMethod : require)(path);
-        const extractedExport = extractExports(fileExports, execOptions.exportNames);
-
-        if (extractedExport.typeDefs && extractedExport.resolvers) {
-          return extractedExport;
-        }
-
-        if (extractedExport.schema) {
-          return extractedExport.schema;
-        }
-
-        if (extractedExport.typeDef) {
-          return extractedExport.typeDef;
-        }
-
-        if (extractedExport.typeDefs) {
-          return extractedExport.typeDefs;
-        }
-
-        if (extractedExport.resolver) {
-          return extractedExport.resolver;
-        }
-
-        if (extractedExport.resolvers) {
-          return extractedExport.resolvers;
-        }
-
+        const fileExports = requireMethod(path);
+        const extractedExport = extractExports(fileExports);
         return extractedExport;
       } else {
         return readFileSync(path, { encoding: 'utf-8' });
@@ -232,7 +211,9 @@ export async function loadFiles(
     options.globOptions
   );
 
-  const require$ = (path: string) => import(path).catch(async () => require(path));
+  const extractExports = execOptions.extractExports || DEFAULT_EXTRACT_EXPORTS_FACTORY(execOptions.exportNames);
+  const defaultRequireMethod = (path: string) => import(path).catch(async () => require(path));
+  const requireMethod = execOptions.requireMethod || defaultRequireMethod;
 
   return Promise.all(
     relevantPaths
@@ -241,8 +222,8 @@ export async function loadFiles(
         const extension = extname(path);
 
         if (extension === formatExtension('js') || extension === formatExtension('ts') || execOptions.useRequire) {
-          const fileExports = await (execOptions.requireMethod ? execOptions.requireMethod : require$)(path);
-          const extractedExport = extractExports(fileExports, execOptions.exportNames);
+          const fileExports = await requireMethod(path);
+          const extractedExport = extractExports(fileExports);
 
           if (extractedExport.resolver) {
             return extractedExport.resolver;
