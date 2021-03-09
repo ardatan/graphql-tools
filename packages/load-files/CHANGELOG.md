@@ -1,5 +1,11 @@
 # @graphql-tools/load-files
 
+## 6.3.0
+
+### Minor Changes
+
+- efe8b8a9: feat(load-files): ability to provide a custom extractExports
+
 ## 6.2.7
 
 ### Patch Changes
