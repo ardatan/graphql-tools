@@ -1,7 +1,7 @@
 import { buildSchema } from 'graphql';
 import { pruneSchema } from '../src/prune';
 
-describe('prune', () => {
+describe('pruneSchema', () => {
   test('can handle recursive input types', () => {
     const schema = buildSchema(`
       input Input {
@@ -129,5 +129,19 @@ describe('prune', () => {
     const result = pruneSchema(schema);
     expect(result.getType('UnusedType')).toBeUndefined();
     expect(result.getType('UnusedUnion')).toBeUndefined();
+  });
+
+  test('does not throw on pruning unimplemented interfaces', () => {
+    const schema = buildSchema(`
+      interface UnimplementedInterface {
+        value: String
+      }
+
+      type Query {
+        foo: UnimplementedInterface
+      }
+    `);
+    const result = pruneSchema(schema);
+    expect(result.getType('UnimplementedInterface')).toBeDefined();
   });
 });
