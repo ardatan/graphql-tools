@@ -76,10 +76,11 @@ export function pruneSchema(schema: GraphQLSchema, options: PruneSchemaOptions =
           return null;
         }
       } else if (isInterfaceType(type)) {
+        const implementations = pruningContext.implementations[type.name] || {};
+
         if (
           (!Object.keys(type.getFields()).length && !options.skipEmptyCompositeTypePruning) ||
-          (!Object.keys(pruningContext.implementations[type.name]).length &&
-            !options.skipUnimplementedInterfacesPruning) ||
+          (!Object.keys(implementations).length && !options.skipUnimplementedInterfacesPruning) ||
           (pruningContext.unusedTypes[type.name] && !options.skipUnusedTypesPruning)
         ) {
           return null;
