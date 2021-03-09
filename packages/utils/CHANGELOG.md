@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 7.5.1
+
+### Patch Changes
+
+- 33d1b9e7: Fix pruneSchema with unused interfaces
+
 ## 7.5.0
 
 ### Minor Changes
