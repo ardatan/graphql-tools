@@ -49,7 +49,8 @@ export function pruneSchema(schema: GraphQLSchema, options: PruneSchemaOptions =
     const type = schema.getType(typeName);
     if ('getInterfaces' in type) {
       type.getInterfaces().forEach(iface => {
-        if (pruningContext.implementations[iface.name] == null) {
+        const implementations = getImplementations(pruningContext, iface);
+        if (implementations == null) {
           pruningContext.implementations[iface.name] = Object.create(null);
         }
         pruningContext.implementations[iface.name][type.name] = true;
@@ -76,11 +77,11 @@ export function pruneSchema(schema: GraphQLSchema, options: PruneSchemaOptions =
           return null;
         }
       } else if (isInterfaceType(type)) {
-        const implementations = pruningContext.implementations[type.name] || {};
+        const implementations = getImplementations(pruningContext, type);
 
         if (
           (!Object.keys(type.getFields()).length && !options.skipEmptyCompositeTypePruning) ||
-          (!Object.keys(implementations).length && !options.skipUnimplementedInterfacesPruning) ||
+          (implementations && !Object.keys(implementations).length && !options.skipUnimplementedInterfacesPruning) ||
           (pruningContext.unusedTypes[type.name] && !options.skipUnusedTypesPruning)
         ) {
           return null;
@@ -121,9 +122,12 @@ function visitOutputType(
     });
 
     if (isInterfaceType(type)) {
-      Object.keys(pruningContext.implementations[type.name]).forEach(typeName => {
-        visitOutputType(visitedTypes, pruningContext, pruningContext.schema.getType(typeName) as NamedOutputType);
-      });
+      const implementations = getImplementations(pruningContext, type);
+      if (implementations) {
+        Object.keys(implementations).forEach(typeName => {
+          visitOutputType(visitedTypes, pruningContext, pruningContext.schema.getType(typeName) as NamedOutputType);
+        });
+      }
     }
 
     if ('getInterfaces' in type) {
@@ -135,6 +139,16 @@ function visitOutputType(
     const types = type.getTypes();
     types.forEach(type => visitOutputType(visitedTypes, pruningContext, type));
   }
+}
+
+/**
+ * Get the implementations of an interface. May return undefined.
+ */
+function getImplementations(
+  pruningContext: PruningContext,
+  type: GraphQLNamedType
+): Record<string, boolean> | undefined {
+  return pruningContext.implementations[type.name];
 }
 
 function visitInputType(
