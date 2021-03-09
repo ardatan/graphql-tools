@@ -42,8 +42,8 @@
   },
   "devDependencies": {
     "patch-package": "6.4.6",
-    "@babel/core": "7.13.8",
-    "@babel/preset-env": "7.13.9",
+    "@babel/core": "7.13.10",
+    "@babel/preset-env": "7.13.10",
     "@babel/preset-typescript": "7.13.0",
     "@babel/plugin-proposal-class-properties": "7.13.0",
     "@changesets/cli": "2.14.0",
