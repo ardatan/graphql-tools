@@ -182,7 +182,16 @@ const checkExtension = (
   }
 
   for (const extension of extensions) {
-    if (path.endsWith(formatExtension(extension))) {
+    const formattedExtension = formatExtension(extension);
+    if (path.endsWith(formattedExtension)) {
+      if (ignoredExtensions) {
+        for (const ignoredExtension of ignoredExtensions) {
+          const formattedIgnoredExtension = formatExtension(ignoredExtension);
+          if (path.endsWith(formattedIgnoredExtension + formattedExtension)) {
+            return false;
+          }
+        }
+      }
       return true;
     }
   }

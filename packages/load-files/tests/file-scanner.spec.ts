@@ -235,7 +235,7 @@ describe('file scanner', function() {
       expect(typeof loadedFiles[0][customQueryTypeName]['foo']).toBe('function');
       expect(loadedFiles[0][customQueryTypeName]['foo']()).toBe('FOO');
     });
-    it(`${type}: ignore .d.ts files by default`, async () => {
+    it(`${type}: ignore .d.ts files by default without file glob`, async () => {
       const loadedFiles = await loadFiles(join(__dirname, './test-assets/ignore-extensions'));
       expect(loadedFiles).toHaveLength(1);
       const resolvers = loadedFiles[0];
@@ -243,7 +243,16 @@ describe('file scanner', function() {
       expect(typeof resolvers.Query).toBe('object');
       expect(typeof resolvers.Query.foo).toBe('function');
       expect(resolvers.Query.foo()).toBe('FOO');
-    })
+    });
+    it(`${type}: ignore .d.ts files by default without file glob`, async () => {
+      const loadedFiles = await loadFiles(join(__dirname, './test-assets/ignore-extensions/*.*'));
+      expect(loadedFiles).toHaveLength(1);
+      const resolvers = loadedFiles[0];
+      expect(typeof resolvers).toBe('object');
+      expect(typeof resolvers.Query).toBe('object');
+      expect(typeof resolvers.Query.foo).toBe('function');
+      expect(resolvers.Query.foo()).toBe('FOO');
+    });
   })
 });
 
