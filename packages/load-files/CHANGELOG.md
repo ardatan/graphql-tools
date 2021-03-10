@@ -1,5 +1,11 @@
 # @graphql-tools/load-files
 
+## 6.3.1
+
+### Patch Changes
+
+- 61889f28: fix(load-files): respect ignoredExtensions even if there is a specific file glob
+
 ## 6.3.0
 
 ### Minor Changes
