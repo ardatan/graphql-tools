@@ -8598,10 +8598,10 @@ graphql-upload@11.0.0, graphql-upload@^11.0.0:
     isobject "^4.0.0"
     object-path "^0.11.4"
 
-graphql-ws@4.2.0:
-  version "4.2.0"
-  resolved "https://registry.yarnpkg.com/graphql-ws/-/graphql-ws-4.2.0.tgz#dfb8e355d3a226672ec682ea517b64e9e7e006a3"
-  integrity sha512-tPdRAFfl9Ypx+evsSYFa3nTGVcSKKaOMhTlOD7eEbiMpsb2hi6XJeSyenrH/hgf5+Q3v3GV6aZ9R/UEjakl7eQ==
+graphql-ws@4.2.1:
+  version "4.2.1"
+  resolved "https://registry.yarnpkg.com/graphql-ws/-/graphql-ws-4.2.1.tgz#3e734ede574f7c0840b45a18cf26e8c26d864722"
+  integrity sha512-j4RA5gl6tVUq/2iPzmbt7qbGj2WsdGq45jsmyxL/ek25cCm/yl198qAxXyLy418jhkFVMxf8VoAxUS7Zh4/k4Q==
 
 graphql@15.5.0, graphql@^14.5.3, graphql@^15.3.0:
   version "15.5.0"
