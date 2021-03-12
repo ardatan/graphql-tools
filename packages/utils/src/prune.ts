@@ -62,6 +62,11 @@ export function pruneSchema(schema: GraphQLSchema, options: PruneSchemaOptions =
 
   return mapSchema(schema, {
     [MapperKind.TYPE]: (type: GraphQLNamedType) => {
+      // If we should NOT prune the type, return it immediately as unmodified
+      if (options.skipPruning && options.skipPruning(type)) {
+        return type;
+      }
+
       if (isObjectType(type) || isInputObjectType(type)) {
         if (
           (!Object.keys(type.getFields()).length && !options.skipEmptyCompositeTypePruning) ||
