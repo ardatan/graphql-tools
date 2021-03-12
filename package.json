@@ -48,7 +48,7 @@
     "@babel/plugin-proposal-class-properties": "7.13.0",
     "@changesets/cli": "2.14.0",
     "@types/jest": "26.0.20",
-    "@types/node": "14.14.33",
+    "@types/node": "14.14.34",
     "@typescript-eslint/eslint-plugin": "4.17.0",
     "@typescript-eslint/parser": "4.17.0",
     "@ardatan/bob-the-bundler": "1.2.2",
