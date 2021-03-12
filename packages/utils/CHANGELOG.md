@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 7.6.0
+
+### Minor Changes
+
+- 5b637e2f: Add generic pruning filter option
+
 ## 7.5.2
 
 ### Patch Changes
