@@ -14500,10 +14500,10 @@ shellwords@^0.1.1:
   resolved "https://registry.yarnpkg.com/shellwords/-/shellwords-0.1.1.tgz#d6b9181c1a48d397324c84871efbcfc73fc0654b"
   integrity sha512-vFwSUfQvqybiICwZY5+DAWIPLKsWO31Q91JSKl3UYv+K5c2QRPzn0qzec6QPu1Qc9eHYItiP3NdJqNVqetYAww==
 
-shiki@^0.9.2:
-  version "0.9.2"
-  resolved "https://registry.yarnpkg.com/shiki/-/shiki-0.9.2.tgz#b9e660b750d38923275765c4dc4c92b23877b115"
-  integrity sha512-BjUCxVbxMnvjs8jC4b+BQ808vwjJ9Q8NtLqPwXShZ307HdXiDFYP968ORSVfaTNNSWYDBYdMnVKJ0fYNsoZUBA==
+shiki@^0.9.3:
+  version "0.9.3"
+  resolved "https://registry.yarnpkg.com/shiki/-/shiki-0.9.3.tgz#7bf7bcf3ed50ca525ec89cc09254abce4264d5ca"
+  integrity sha512-NEjg1mVbAUrzRv2eIcUt3TG7X9svX7l3n3F5/3OdFq+/BxUdmBOeKGiH4icZJBLHy354Shnj6sfBTemea2e7XA==
   dependencies:
     onigasm "^2.2.5"
     vscode-textmate "^5.2.0"
@@ -15641,10 +15641,10 @@ typedarray@^0.0.6:
   resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
   integrity sha1-hnrHTjhkGHsdPUfZlqeOxciDB3c=
 
-typedoc-default-themes@^0.12.8:
-  version "0.12.8"
-  resolved "https://registry.yarnpkg.com/typedoc-default-themes/-/typedoc-default-themes-0.12.8.tgz#a04dfc4c01545bc52d2ee6c6ed98a381f2b7249f"
-  integrity sha512-tyjyDTKy/JLnBSwvhoqd99VIjrP33SdOtwcMD32b+OqnrjZWe8HmZECbfBoacqoxjHd58gfeNw6wA7uvqWFa4w==
+typedoc-default-themes@^0.12.9:
+  version "0.12.9"
+  resolved "https://registry.yarnpkg.com/typedoc-default-themes/-/typedoc-default-themes-0.12.9.tgz#97dfecb74faca36f8aff81d3be984b095d2bbbd8"
+  integrity sha512-Jd5fYTiqzinZdoIY382W7tQXTwAzWRdg8KbHfaxmb78m1/3jL9riXtk23oBOKwhi8GFVykCOdPzEJKY87/D0LQ==
 
 typedoc-plugin-markdown@3.6.0:
   version "3.6.0"
@@ -15653,10 +15653,10 @@ typedoc-plugin-markdown@3.6.0:
   dependencies:
     handlebars "^4.7.6"
 
-typedoc@0.20.30:
-  version "0.20.30"
-  resolved "https://registry.yarnpkg.com/typedoc/-/typedoc-0.20.30.tgz#a7e0e3902c08df9b3f9d66da0cc603eed716fad3"
-  integrity sha512-A4L6JDShPFwZDt9qp7FBsEpW7C6rA5fRv6ywgBuxGxZnT2wuF5afbWzmrwqHR3Xw38V1H2L4v/VJ0S/llBwV6Q==
+typedoc@0.20.31:
+  version "0.20.31"
+  resolved "https://registry.yarnpkg.com/typedoc/-/typedoc-0.20.31.tgz#4439cc637d31497c7696f46b1e52ac7ac3ee8ade"
+  integrity sha512-36ADb6bdzmnGde6H3dlyMmof0y0ryRvSOhYh96bJHcYdJKipf5Ir4uduj+mZfshd8ktCGlLg48LfNTAE9PpIrQ==
   dependencies:
     colors "^1.4.0"
     fs-extra "^9.1.0"
@@ -15667,8 +15667,8 @@ typedoc@0.20.30:
     minimatch "^3.0.0"
     progress "^2.0.3"
     shelljs "^0.8.4"
-    shiki "^0.9.2"
-    typedoc-default-themes "^0.12.8"
+    shiki "^0.9.3"
+    typedoc-default-themes "^0.12.9"
 
 typescript@4.2.3:
   version "4.2.3"
