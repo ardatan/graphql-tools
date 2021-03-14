@@ -27,7 +27,6 @@
     "@types/json-stable-stringify": "^1.0.32",
     "@types/jsonwebtoken": "^8.5.0",
     "ajv": "^7.0.0",
-    "bluebird": "^3.7.2",
     "chalk": "^4.1.0",
     "debug": "^4.3.1",
     "dotenv": "^8.2.0",
