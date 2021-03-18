@@ -38,7 +38,7 @@
     "@types/websocket": "1.0.2",
     "cross-fetch": "3.0.6",
     "extract-files": "9.0.0",
-    "eventsource": "1.0.7",
+    "eventsource": "1.1.0",
     "graphql-upload": "^11.0.0",
     "is-promise": "4.0.0",
     "isomorphic-ws": "4.0.1",
