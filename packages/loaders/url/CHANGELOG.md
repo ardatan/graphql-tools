@@ -1,5 +1,11 @@
 # @graphql-tools/url-loader
 
+## 6.8.2
+
+### Patch Changes
+
+- 50bc2178: fix(url-loader): support newer cross-fetch
+
 ## 6.8.1
 
 ### Patch Changes
