@@ -2,9 +2,6 @@ import * as lodash from 'lodash';
 // eslint-disable-next-line
 // @ts-ignore
 import replaceall from 'replaceall';
-// eslint-disable-next-line
-// @ts-ignore
-import * as BbPromise from 'bluebird';
 import { Args } from './types/common';
 import { Output, IOutput } from './Output';
 
@@ -37,7 +34,7 @@ export class Variables {
   populateJson(json: any): Promise<any> {
     this.json = json;
     return this.populateObject(this.json).then(() => {
-      return BbPromise.resolve(this.json);
+      return Promise.resolve(this.json);
     });
   }
 
@@ -56,17 +53,17 @@ export class Variables {
 
     deepMapValues(objectToPopulate, (property: any, propertyPath: any) => {
       if (typeof property === 'string') {
-        const populateSingleProperty = this.populateProperty(property, true)
-          .then((newProperty: any) => lodash.set(objectToPopulate, propertyPath, newProperty))
-          .return();
+        const populateSingleProperty = this.populateProperty(property, true).then((newProperty: any) =>
+          lodash.set(objectToPopulate, propertyPath, newProperty)
+        );
         populateAll.push(populateSingleProperty);
       }
     });
 
-    return BbPromise.all(populateAll).then(() => objectToPopulate);
+    return Promise.all(populateAll).then(() => objectToPopulate);
   }
 
-  populateProperty(propertyParam: any, populateInPlace?: boolean) {
+  populateProperty(propertyParam: any, populateInPlace?: boolean): any {
     let property = populateInPlace ? propertyParam : lodash.cloneDeep(propertyParam);
     const allValuesToPopulate: any[] = [];
     let warned = false;
@@ -95,20 +92,20 @@ export class Variables {
           }
           return this.populateVariable(property, matchedString, valueToPopulate).then((newProperty: any) => {
             property = newProperty;
-            return BbPromise.resolve(property);
+            return Promise.resolve(property);
           });
         });
 
         allValuesToPopulate.push(singleValueToPopulate);
       });
-      return BbPromise.all(allValuesToPopulate).then(() => {
+      return Promise.all(allValuesToPopulate).then(() => {
         if ((property as any) !== (this.json as any) && !warned) {
           return this.populateProperty(property);
         }
-        return BbPromise.resolve(property);
+        return Promise.resolve(property);
       });
     }
-    return BbPromise.resolve(property);
+    return Promise.resolve(property);
   }
 
   populateVariable(propertyParam: any, matchedString: any, valueToPopulate: any) {
@@ -127,11 +124,11 @@ export class Variables {
           ].join('');
           this.out.warn(this.out.getErrorPrefix(this.fileName, 'warning') + errorMessage);
         }
-        return BbPromise.resolve(property);
+        return Promise.resolve(property);
       }
       property = valueToPopulate;
     }
-    return BbPromise.resolve(property);
+    return Promise.resolve(property);
   }
 
   overwrite(variableStringsString: any) {
@@ -140,7 +137,7 @@ export class Variables {
     const allValuesFromSource = variableStringsArray.map((variableString: any) =>
       this.getValueFromSource(variableString)
     );
-    return BbPromise.all(allValuesFromSource).then((valuesFromSources: any) => {
+    return Promise.all(allValuesFromSource).then((valuesFromSources: any) => {
       valuesFromSources.find((valueFromSource: any) => {
         finalValue = valueFromSource;
         return (
@@ -149,7 +146,7 @@ export class Variables {
           !(typeof finalValue === 'object' && lodash.isEmpty(finalValue))
         );
       });
-      return BbPromise.resolve(finalValue);
+      return Promise.resolve(finalValue);
     });
   }
 
@@ -174,18 +171,18 @@ export class Variables {
   getValueFromEnv(variableString: any) {
     const requestedEnvVar = variableString.split(':')[1];
     const valueToPopulate = requestedEnvVar !== '' || '' in this.envVars ? this.envVars[requestedEnvVar] : this.envVars;
-    return BbPromise.resolve(valueToPopulate);
+    return Promise.resolve(valueToPopulate);
   }
 
   getValueFromString(variableString: any) {
     const valueToPopulate = variableString.replace(/^['"]|['"]$/g, '');
-    return BbPromise.resolve(valueToPopulate);
+    return Promise.resolve(valueToPopulate);
   }
 
   getValueFromOptions(variableString: any) {
     const requestedOption = variableString.split(':')[1];
     const valueToPopulate = requestedOption !== '' || '' in this.options ? this.options[requestedOption] : this.options;
-    return BbPromise.resolve(valueToPopulate);
+    return Promise.resolve(valueToPopulate);
   }
 
   getValueFromSelf(variableString: any) {
@@ -195,7 +192,7 @@ export class Variables {
   }
 
   getDeepValue(deepProperties: any, valueToPopulate: any) {
-    return BbPromise.reduce(
+    return promiseReduce(
       deepProperties,
       (computedValueToPopulateParam: any, subProperty: any) => {
         let computedValueToPopulate = computedValueToPopulateParam;
@@ -207,7 +204,7 @@ export class Variables {
         if (typeof computedValueToPopulate === 'string' && computedValueToPopulate.match(this.variableSyntax)) {
           return this.populateProperty(computedValueToPopulate);
         }
-        return BbPromise.resolve(computedValueToPopulate);
+        return Promise.resolve(computedValueToPopulate);
       },
       valueToPopulate
     );
@@ -236,4 +233,20 @@ export class Variables {
 
     return false;
   }
+}
+
+function promiseReduce<T, U>(
+  values: readonly T[],
+  callback: (u: U, t: T) => Promise<U>,
+  initialValue: Promise<U>
+): Promise<U> {
+  return values.reduce(
+    (previous, value) =>
+      isPromise(previous) ? previous.then(resolved => callback(resolved, value)) : callback(previous, value),
+    initialValue
+  );
+}
+
+function isPromise<T>(value: T | Promise<T>): value is Promise<T> {
+  return typeof (value as any)?.then === 'function';
 }
