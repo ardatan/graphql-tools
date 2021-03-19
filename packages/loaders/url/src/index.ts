@@ -1,4 +1,5 @@
 /* eslint-disable no-case-declarations */
+/// <reference lib="dom" />
 import { print, IntrospectionOptions, DocumentNode, GraphQLResolveInfo, Kind, parse, buildASTSchema } from 'graphql';
 import {
   SchemaPointerSingle,
@@ -20,6 +21,8 @@ import { extractFiles, isExtractableFile } from 'extract-files';
 import FormData from 'form-data';
 import 'eventsource/lib/eventsource-polyfill';
 import { Subscription, SubscriptionOptions } from 'sse-z';
+import { RequestInfo, RequestInit, Response } from 'cross-fetch/lib.fetch';
+import { URL } from 'url';
 
 export type AsyncFetchFn = typeof import('cross-fetch').fetch;
 export type SyncFetchFn = (input: RequestInfo, init?: RequestInit) => SyncResponse;
