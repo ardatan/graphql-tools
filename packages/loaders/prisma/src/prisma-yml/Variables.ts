@@ -53,9 +53,9 @@ export class Variables {
 
     deepMapValues(objectToPopulate, (property: any, propertyPath: any) => {
       if (typeof property === 'string') {
-        const populateSingleProperty = this.populateProperty(property, true)
-          .then((newProperty: any) => lodash.set(objectToPopulate, propertyPath, newProperty))
-          .return();
+        const populateSingleProperty = this.populateProperty(property, true).then((newProperty: any) =>
+          lodash.set(objectToPopulate, propertyPath, newProperty)
+        );
         populateAll.push(populateSingleProperty);
       }
     });
@@ -63,7 +63,7 @@ export class Variables {
     return Promise.all(populateAll).then(() => objectToPopulate);
   }
 
-  populateProperty(propertyParam: any, populateInPlace?: boolean) {
+  populateProperty(propertyParam: any, populateInPlace?: boolean): any {
     let property = populateInPlace ? propertyParam : lodash.cloneDeep(propertyParam);
     const allValuesToPopulate: any[] = [];
     let warned = false;
