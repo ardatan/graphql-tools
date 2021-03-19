@@ -12,7 +12,7 @@ export async function readDefinition(
   args: Args,
   out: IOutput = new Output(),
   envVars?: any,
-  graceful?: boolean
+  _graceful?: boolean
 ): Promise<{ definition: PrismaDefinition; rawJson: any }> {
   try {
     fs.accessSync(filePath);
