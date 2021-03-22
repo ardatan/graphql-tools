@@ -20,7 +20,7 @@
     "graphql": "^14.0.0 || ^15.0.0"
   },
   "dependencies": {
-    "globby": "11.0.2",
+    "globby": "11.0.3",
     "unixify": "1.0.0",
     "tslib": "~2.1.0"
   },
