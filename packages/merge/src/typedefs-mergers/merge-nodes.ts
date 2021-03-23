@@ -1,20 +1,5 @@
 import { Config } from './merge-typedefs';
-import { DefinitionNode } from 'graphql';
-import {
-  isGraphQLEnum,
-  isGraphQLInputType,
-  isGraphQLInterface,
-  isGraphQLScalar,
-  isGraphQLType,
-  isGraphQLUnion,
-  isGraphQLDirective,
-  isGraphQLTypeExtension,
-  isGraphQLInputTypeExtension,
-  isGraphQLEnumExtension,
-  isGraphQLUnionExtension,
-  isGraphQLScalarExtension,
-  isGraphQLInterfaceExtension,
-} from './utils';
+import { DefinitionNode, Kind, NameNode, SchemaDefinitionNode, SchemaExtensionNode } from 'graphql';
 import { mergeType } from './type';
 import { mergeEnum } from './enum';
 import { mergeScalar } from './scalar';
@@ -23,43 +8,64 @@ import { mergeInputType } from './input-type';
 import { mergeInterface } from './interface';
 import { mergeDirective } from './directives';
 import { collectComment } from './comments';
+import { mergeSchemaDefs } from './schema-def';
 
-export type MergedResultMap = { [name: string]: DefinitionNode };
+export type MergedResultMap = Record<string, NamedDefinitionNode> & {
+  [schemaDefSymbol]: SchemaDefinitionNode | SchemaExtensionNode;
+};
+export type NamedDefinitionNode = DefinitionNode & { name?: NameNode };
+
+export function isNamedDefinitionNode(definitionNode: DefinitionNode): definitionNode is NamedDefinitionNode {
+  return 'name' in definitionNode;
+}
+
+export const schemaDefSymbol = Symbol('schemaDefSymbol');
 
 export function mergeGraphQLNodes(nodes: ReadonlyArray<DefinitionNode>, config?: Config): MergedResultMap {
-  return nodes.reduce<MergedResultMap>((prev: MergedResultMap, nodeDefinition: DefinitionNode) => {
-    const node = nodeDefinition as any;
-
-    if (node && node.name && node.name.value) {
-      const name = node.name.value;
-
-      if (config && config.commentDescriptions) {
-        collectComment(node);
+  const mergedResultMap = {} as MergedResultMap;
+  for (const nodeDefinition of nodes) {
+    if (isNamedDefinitionNode(nodeDefinition)) {
+      const name = nodeDefinition.name.value;
+      if (config?.commentDescriptions) {
+        collectComment(nodeDefinition);
       }
 
-      if (
-        config &&
-        config.exclusions &&
-        (config.exclusions.includes(name + '.*') || config.exclusions.includes(name))
-      ) {
-        delete prev[name];
-      } else if (isGraphQLType(nodeDefinition) || isGraphQLTypeExtension(nodeDefinition)) {
-        prev[name] = mergeType(nodeDefinition, prev[name] as any, config);
-      } else if (isGraphQLEnum(nodeDefinition) || isGraphQLEnumExtension(nodeDefinition)) {
-        prev[name] = mergeEnum(nodeDefinition, prev[name] as any, config);
-      } else if (isGraphQLUnion(nodeDefinition) || isGraphQLUnionExtension(nodeDefinition)) {
-        prev[name] = mergeUnion(nodeDefinition, prev[name] as any, config);
-      } else if (isGraphQLScalar(nodeDefinition) || isGraphQLScalarExtension(nodeDefinition)) {
-        prev[name] = mergeScalar(nodeDefinition, prev[name] as any, config);
-      } else if (isGraphQLInputType(nodeDefinition) || isGraphQLInputTypeExtension(nodeDefinition)) {
-        prev[name] = mergeInputType(nodeDefinition, prev[name] as any, config);
-      } else if (isGraphQLInterface(nodeDefinition) || isGraphQLInterfaceExtension(nodeDefinition)) {
-        prev[name] = mergeInterface(nodeDefinition, prev[name] as any, config);
-      } else if (isGraphQLDirective(nodeDefinition)) {
-        prev[name] = mergeDirective(nodeDefinition, prev[name] as any);
+      if (config?.exclusions?.includes(name + '.*') || config?.exclusions?.includes(name)) {
+        delete mergedResultMap[name];
+      } else {
+        switch (nodeDefinition.kind) {
+          case Kind.OBJECT_TYPE_DEFINITION:
+          case Kind.OBJECT_TYPE_EXTENSION:
+            mergedResultMap[name] = mergeType(nodeDefinition, mergedResultMap[name] as any, config);
+            break;
+          case Kind.ENUM_TYPE_DEFINITION:
+          case Kind.ENUM_TYPE_EXTENSION:
+            mergedResultMap[name] = mergeEnum(nodeDefinition, mergedResultMap[name] as any, config);
+            break;
+          case Kind.UNION_TYPE_DEFINITION:
+          case Kind.UNION_TYPE_EXTENSION:
+            mergedResultMap[name] = mergeUnion(nodeDefinition, mergedResultMap[name] as any, config);
+            break;
+          case Kind.SCALAR_TYPE_DEFINITION:
+          case Kind.SCALAR_TYPE_EXTENSION:
+            mergedResultMap[name] = mergeScalar(nodeDefinition, mergedResultMap[name] as any, config);
+            break;
+          case Kind.INPUT_OBJECT_TYPE_DEFINITION:
+          case Kind.INPUT_OBJECT_TYPE_EXTENSION:
+            mergedResultMap[name] = mergeInputType(nodeDefinition, mergedResultMap[name] as any, config);
+            break;
+          case Kind.INTERFACE_TYPE_DEFINITION:
+          case Kind.INTERFACE_TYPE_EXTENSION:
+            mergedResultMap[name] = mergeInterface(nodeDefinition, mergedResultMap[name] as any, config);
+            break;
+          case Kind.DIRECTIVE_DEFINITION:
+            mergedResultMap[name] = mergeDirective(nodeDefinition, mergedResultMap[name] as any);
+            break;
+        }
       }
+    } else if (nodeDefinition.kind === Kind.SCHEMA_DEFINITION || nodeDefinition.kind === Kind.SCHEMA_EXTENSION) {
+      mergedResultMap[schemaDefSymbol] = mergeSchemaDefs(nodeDefinition, mergedResultMap[schemaDefSymbol], config);
     }
-
-    return prev;
-  }, {});
+  }
+  return mergedResultMap;
 }
