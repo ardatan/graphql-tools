@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 7.7.1
+
+### Patch Changes
+
+- 194ac370: fix(utils): add createSchemaDefinition again to fix breaking change
+
 ## 7.7.0
 
 ### Minor Changes
