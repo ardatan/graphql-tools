@@ -1,5 +1,14 @@
 # @graphql-tools/merge
 
+## 6.2.11
+
+### Patch Changes
+
+- 43da6b59: enhance(merge): reduce number of iterations
+- Updated dependencies [58fd4b28]
+- Updated dependencies [43da6b59]
+  - @graphql-tools/utils@7.7.0
+
 ## 6.2.10
 
 ### Patch Changes
