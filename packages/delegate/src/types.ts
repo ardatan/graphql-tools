@@ -126,7 +126,7 @@ export interface ICreateProxyingResolverOptions<TContext = Record<string, any>> 
 }
 
 export type CreateProxyingResolverFn<TContext = Record<string, any>> = (
-  options: ICreateProxyingResolverOptions
+  options: ICreateProxyingResolverOptions<TContext>
 ) => GraphQLFieldResolver<any, TContext>;
 
 export interface BatchingOptions<K = any, V = any, C = K> {
