@@ -234,5 +234,40 @@ describe('addMocksToSchema', () => {
     expect(data).toBeDefined();
     expect(data!['viewer']['book']['publishedAt']).toBe(mockDate);
 
+  });
+  it('should handle null fields correctly', async () => {
+    const schema = buildSchema(/* GraphQL */`
+      type Query {
+        foo: Foo
+      }
+      type Foo {
+        field1: String
+        field2: Int
+      }
+    `);
+    const query = /* GraphQL */`
+      {
+        foo {
+          field1
+          field2
+        }
+      }
+    `;
+    const mockedSchema = addMocksToSchema({
+      schema,
+      mocks: {
+        Foo: () => ({
+          field1: 'text',
+          field2: null as any
+        })
+      }
+    })
+    const { data } = await graphql({
+      schema: mockedSchema,
+      source: query
+    });
+
+    expect(data.foo.field1).toBe('text');
+    expect(data.foo.field2).toBe(null);
   })
 });
