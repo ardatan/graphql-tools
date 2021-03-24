@@ -13,6 +13,7 @@ export * from './fix-schema-ast';
 export * from './parse-graphql-json';
 export * from './parse-graphql-sdl';
 export * from './get-user-types-from-schema';
+export * from './create-schema-definition';
 export * from './build-operation-for-field';
 export * from './types';
 export * from './filterSchema';
