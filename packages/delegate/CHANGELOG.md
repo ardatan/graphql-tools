@@ -1,5 +1,13 @@
 # @graphql-tools/delegate
 
+## 7.1.1
+
+### Patch Changes
+
+- f84e7b15: fix(delegate): export executor typings not to have breaking change
+- Updated dependencies [194ac370]
+  - @graphql-tools/utils@7.7.1
+
 ## 7.1.0
 
 ### Minor Changes
