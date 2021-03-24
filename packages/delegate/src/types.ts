@@ -138,7 +138,7 @@ export interface SubschemaConfig<K = any, V = any, C = K, TContext = Record<stri
   schema: GraphQLSchema;
   createProxyingResolver?: CreateProxyingResolverFn<TContext>;
   transforms?: Array<Transform>;
-  merge?: Record<string, MergedTypeConfig>;
+  merge?: Record<string, MergedTypeConfig<any, any, TContext>>;
   rootValue?: Record<string, any>;
   executor?: Executor<TContext>;
   subscriber?: Subscriber<TContext>;
@@ -146,13 +146,14 @@ export interface SubschemaConfig<K = any, V = any, C = K, TContext = Record<stri
   batchingOptions?: BatchingOptions<K, V, C>;
 }
 
-export interface MergedTypeConfig<K = any, V = any> extends MergedTypeResolverOptions<K, V> {
+export interface MergedTypeConfig<K = any, V = any, TContext = Record<string, any>>
+  extends MergedTypeResolverOptions<K, V> {
   selectionSet?: string;
   fields?: Record<string, MergedFieldConfig>;
   computedFields?: Record<string, { selectionSet?: string }>;
   key?: (originalResult: any) => K;
   canonical?: boolean;
-  resolve?: MergedTypeResolver;
+  resolve?: MergedTypeResolver<TContext>;
 }
 
 export interface MergedTypeResolverOptions<K = any, V = any> {
