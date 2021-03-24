@@ -1,5 +1,19 @@
 # @graphql-tools/stitch
 
+## 7.5.0
+
+### Minor Changes
+
+- 58fd4b28: feat(types): add TContext to stitchSchemas and executor
+
+### Patch Changes
+
+- Updated dependencies [58fd4b28]
+- Updated dependencies [43da6b59]
+  - @graphql-tools/delegate@7.1.0
+  - @graphql-tools/utils@7.7.0
+  - @graphql-tools/merge@6.2.11
+
 ## 7.4.0
 
 ### Minor Changes

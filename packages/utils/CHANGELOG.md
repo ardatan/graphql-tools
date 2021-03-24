@@ -1,5 +1,15 @@
 # @graphql-tools/utils
 
+## 7.7.0
+
+### Minor Changes
+
+- 58fd4b28: feat(types): add TContext to stitchSchemas and executor
+
+### Patch Changes
+
+- 43da6b59: enhance(merge): reduce number of iterations
+
 ## 7.6.0
 
 ### Minor Changes
