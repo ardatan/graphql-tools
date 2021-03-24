@@ -28,7 +28,7 @@ import { createStitchingInfo, completeStitchingInfo, addStitchingInfo } from './
 import { isolateComputedFields } from './isolateComputedFields';
 import { defaultSubschemaConfigTransforms } from './subschemaConfigTransforms';
 
-export function stitchSchemas({
+export function stitchSchemas<TContext = Record<string, any>>({
   subschemas = [],
   types = [],
   typeDefs,
@@ -48,14 +48,14 @@ export function stitchSchemas({
   parseOptions = {},
   pruningOptions,
   updateResolversInPlace,
-}: IStitchSchemasOptions): GraphQLSchema {
+}: IStitchSchemasOptions<TContext>): GraphQLSchema {
   if (typeof resolverValidationOptions !== 'object') {
     throw new Error('Expected `resolverValidationOptions` to be an object');
   }
 
   let transformedSubschemas: Array<Subschema> = [];
-  const subschemaMap: Map<GraphQLSchema | SubschemaConfig, Subschema> = new Map();
-  const originalSubschemaMap: Map<Subschema, GraphQLSchema | SubschemaConfig> = new Map();
+  const subschemaMap: Map<GraphQLSchema | SubschemaConfig<any, any, any, TContext>, Subschema> = new Map();
+  const originalSubschemaMap: Map<Subschema, GraphQLSchema | SubschemaConfig<any, any, any, TContext>> = new Map();
 
   subschemas.forEach(subschemaOrSubschemaArray => {
     if (Array.isArray(subschemaOrSubschemaArray)) {
@@ -192,11 +192,11 @@ export function stitchSchemas({
   return schema;
 }
 
-function applySubschemaConfigTransforms(
-  subschemaConfigTransforms: Array<SubschemaConfigTransform>,
-  subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig,
+function applySubschemaConfigTransforms<TContext = Record<string, any>>(
+  subschemaConfigTransforms: Array<SubschemaConfigTransform<TContext>>,
+  subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig<any, any, any, TContext>,
   subschemaMap: Map<GraphQLSchema | SubschemaConfig, Subschema>,
-  originalSubschemaMap: Map<Subschema, GraphQLSchema | SubschemaConfig>
+  originalSubschemaMap: Map<Subschema, GraphQLSchema | SubschemaConfig<any, any, any, TContext>>
 ): Array<Subschema> {
   const subschemaConfig = isSubschemaConfig(subschemaOrSubschemaConfig)
     ? subschemaOrSubschemaConfig

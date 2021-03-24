@@ -4,9 +4,7 @@ import isPromise from 'is-promise';
 
 import DataLoader from 'dataloader';
 
-import { ExecutionResult } from '@graphql-tools/utils';
-
-import { ExecutionParams, Executor } from './types';
+import { ExecutionParams, Executor, ExecutionResult } from '@graphql-tools/utils';
 
 import { mergeExecutionParams } from './mergeExecutionParams';
 import { splitResult } from './splitResult';

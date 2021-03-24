@@ -49,3 +49,4 @@ export * from './valueMatchesCriteria';
 export * from './isAsyncIterable';
 export * from './isDocumentNode';
 export * from './astFromValueUntyped';
+export * from './executor';
