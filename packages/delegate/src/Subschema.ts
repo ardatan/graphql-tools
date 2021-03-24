@@ -1,41 +1,36 @@
 import { GraphQLSchema } from 'graphql';
 
-import {
-  SubschemaConfig,
-  Transform,
-  MergedTypeConfig,
-  CreateProxyingResolverFn,
-  Subscriber,
-  Executor,
-  BatchingOptions,
-} from './types';
+import { SubschemaConfig, Transform, MergedTypeConfig, CreateProxyingResolverFn, BatchingOptions } from './types';
 
 import { applySchemaTransforms } from './applySchemaTransforms';
+import { Executor, Subscriber } from '@graphql-tools/utils';
 
 export function isSubschema(value: any): value is Subschema {
   return Boolean(value.transformedSchema);
 }
 
-interface ISubschema extends SubschemaConfig {
+interface ISubschema<K = any, V = any, C = K, TContext = Record<string, any>>
+  extends SubschemaConfig<K, V, C, TContext> {
   transformedSchema: GraphQLSchema;
 }
 
-export class Subschema<K = any, V = any, C = K> implements ISubschema {
+export class Subschema<K = any, V = any, C = K, TContext = Record<string, any>>
+  implements ISubschema<K, V, C, TContext> {
   public schema: GraphQLSchema;
 
   public rootValue?: Record<string, any>;
-  public executor?: Executor;
-  public subscriber?: Subscriber;
+  public executor?: Executor<TContext>;
+  public subscriber?: Subscriber<TContext>;
   public batch?: boolean;
   public batchingOptions?: BatchingOptions<K, V, C>;
 
-  public createProxyingResolver?: CreateProxyingResolverFn;
+  public createProxyingResolver?: CreateProxyingResolverFn<TContext>;
   public transforms: Array<Transform>;
   public transformedSchema: GraphQLSchema;
 
-  public merge?: Record<string, MergedTypeConfig>;
+  public merge?: Record<string, MergedTypeConfig<any, any, TContext>>;
 
-  constructor(config: SubschemaConfig) {
+  constructor(config: SubschemaConfig<K, V, C, TContext>) {
     this.schema = config.schema;
 
     this.rootValue = config.rootValue;

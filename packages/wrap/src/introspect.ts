@@ -8,8 +8,7 @@ import {
   IntrospectionQuery,
 } from 'graphql';
 
-import { ExecutionResult } from '@graphql-tools/utils';
-import { AsyncExecutor, Executor, SyncExecutor } from '@graphql-tools/delegate';
+import { AsyncExecutor, Executor, SyncExecutor, ExecutionResult } from '@graphql-tools/utils';
 import AggregateError from '@ardatan/aggregate-error';
 import isPromise from 'is-promise';
 
