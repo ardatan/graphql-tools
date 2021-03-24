@@ -19,17 +19,9 @@ import AggregateError from '@ardatan/aggregate-error';
 
 import { getBatchingExecutor } from '@graphql-tools/batch-execute';
 
-import { mapAsyncIterator, ExecutionResult } from '@graphql-tools/utils';
+import { mapAsyncIterator, ExecutionResult, Executor, ExecutionParams } from '@graphql-tools/utils';
 
-import {
-  IDelegateToSchemaOptions,
-  IDelegateRequestOptions,
-  SubschemaConfig,
-  ExecutionParams,
-  StitchingInfo,
-  Transform,
-  Executor,
-} from './types';
+import { IDelegateToSchemaOptions, IDelegateRequestOptions, SubschemaConfig, StitchingInfo, Transform } from './types';
 
 import { isSubschemaConfig } from './subschemaConfig';
 import { Subschema } from './Subschema';
@@ -37,7 +29,9 @@ import { createRequestFromInfo, getDelegatingOperation } from './createRequest';
 import { Transformer } from './Transformer';
 import { memoize2 } from './memoize';
 
-export function delegateToSchema(options: IDelegateToSchemaOptions): any {
+export function delegateToSchema<TContext = Record<string, any>, TArgs = any>(
+  options: IDelegateToSchemaOptions<TContext, TArgs>
+): any {
   const {
     info,
     operationName,
@@ -83,7 +77,7 @@ function getDelegationReturnType(
   return rootType.getFields()[fieldName].type;
 }
 
-export function delegateRequest({
+export function delegateRequest<TContext = Record<string, any>, TArgs = any>({
   request,
   schema: subschemaOrSubschemaConfig,
   rootValue,
@@ -99,7 +93,7 @@ export function delegateRequest({
   skipValidation,
   skipTypeMerging,
   binding,
-}: IDelegateRequestOptions) {
+}: IDelegateRequestOptions<TContext, TArgs>) {
   let operationDefinition: OperationDefinitionNode;
   let targetOperation: OperationTypeNode;
   let targetFieldName: string;

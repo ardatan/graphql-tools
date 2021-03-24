@@ -59,7 +59,7 @@ export interface DelegationContext {
 export type DelegationBinding = (delegationContext: DelegationContext) => Array<Transform>;
 
 export interface IDelegateToSchemaOptions<TContext = Record<string, any>, TArgs = Record<string, any>> {
-  schema: GraphQLSchema | SubschemaConfig;
+  schema: GraphQLSchema | SubschemaConfig<any, any, any, TContext>;
   operationName?: string;
   operation?: OperationTypeNode;
   fieldName?: string;
@@ -78,7 +78,8 @@ export interface IDelegateToSchemaOptions<TContext = Record<string, any>, TArgs 
   binding?: DelegationBinding;
 }
 
-export interface IDelegateRequestOptions extends Omit<IDelegateToSchemaOptions, 'info'> {
+export interface IDelegateRequestOptions<TContext = Record<string, any>, TArgs = Record<string, any>>
+  extends Omit<IDelegateToSchemaOptions<TContext, TArgs>, 'info'> {
   request: Request;
   info?: GraphQLResolveInfo;
 }
@@ -179,7 +180,7 @@ export type MergedTypeResolver<TContext = Record<string, any>> = (
 ) => any;
 
 export interface StitchingInfo<TContext = Record<string, any>> {
-  subschemaMap: Map<GraphQLSchema | SubschemaConfig<any, any, any, TContext>, Subschema>;
+  subschemaMap: Map<GraphQLSchema | SubschemaConfig<any, any, any, TContext>, Subschema<any, any, any, TContext>>;
   selectionSetsByType: Record<string, SelectionSetNode>;
   selectionSetsByField: Record<string, Record<string, SelectionSetNode>>;
   dynamicSelectionSetsByField: Record<string, Record<string, Array<(node: FieldNode) => SelectionSetNode>>>;

@@ -18,7 +18,7 @@ import { IExecutableSchemaDefinition } from '@graphql-tools/schema';
 export interface MergeTypeCandidate<TContext = Record<string, any>> {
   type: GraphQLNamedType;
   subschema?: GraphQLSchema | SubschemaConfig<any, any, any, TContext>;
-  transformedSubschema?: Subschema;
+  transformedSubschema?: Subschema<any, any, any, TContext>;
 }
 
 export interface MergeFieldConfigCandidate<TContext = Record<string, any>> {
@@ -26,7 +26,7 @@ export interface MergeFieldConfigCandidate<TContext = Record<string, any>> {
   fieldName: string;
   type: GraphQLObjectType | GraphQLInterfaceType;
   subschema?: GraphQLSchema | SubschemaConfig<any, any, any, TContext>;
-  transformedSubschema?: Subschema;
+  transformedSubschema?: Subschema<any, any, any, TContext>;
 }
 
 export interface MergeInputFieldConfigCandidate<TContext = Record<string, any>> {
@@ -34,7 +34,7 @@ export interface MergeInputFieldConfigCandidate<TContext = Record<string, any>> 
   fieldName: string;
   type: GraphQLInputObjectType;
   subschema?: GraphQLSchema | SubschemaConfig<any, any, any, TContext>;
-  transformedSubschema?: Subschema;
+  transformedSubschema?: Subschema<any, any, any, TContext>;
 }
 
 export interface MergeEnumValueConfigCandidate<TContext = Record<string, any>> {
@@ -42,7 +42,7 @@ export interface MergeEnumValueConfigCandidate<TContext = Record<string, any>> {
   enumValue: string;
   type: GraphQLEnumType;
   subschema?: GraphQLSchema | SubschemaConfig<any, any, any, TContext>;
-  transformedSubschema?: Subschema;
+  transformedSubschema?: Subschema<any, any, any, TContext>;
 }
 
 export type MergeTypeFilter<TContext = Record<string, any>> = (
@@ -52,17 +52,17 @@ export type MergeTypeFilter<TContext = Record<string, any>> = (
 
 export interface MergedTypeInfo<TContext = Record<string, any>> {
   typeName: string;
-  targetSubschemas: Map<Subschema, Array<Subschema>>;
-  uniqueFields: Record<string, Subschema>;
-  nonUniqueFields: Record<string, Array<Subschema>>;
+  targetSubschemas: Map<Subschema<any, any, any, TContext>, Array<Subschema<any, any, any, TContext>>>;
+  uniqueFields: Record<string, Subschema<any, any, any, TContext>>;
+  nonUniqueFields: Record<string, Array<Subschema<any, any, any, TContext>>>;
   typeMaps: Map<GraphQLSchema | SubschemaConfig<any, any, any, TContext>, TypeMap>;
-  selectionSets: Map<Subschema, SelectionSetNode>;
-  fieldSelectionSets: Map<Subschema, Record<string, SelectionSetNode>>;
-  resolvers: Map<Subschema, MergedTypeResolver<TContext>>;
+  selectionSets: Map<Subschema<any, any, any, TContext>, SelectionSetNode>;
+  fieldSelectionSets: Map<Subschema<any, any, any, TContext>, Record<string, SelectionSetNode>>;
+  resolvers: Map<Subschema<any, any, any, TContext>, MergedTypeResolver<TContext>>;
 }
 
 export interface StitchingInfo<TContext = Record<string, any>> {
-  subschemaMap: Map<GraphQLSchema | SubschemaConfig<any, any, any, TContext>, Subschema>;
+  subschemaMap: Map<GraphQLSchema | SubschemaConfig<any, any, any, TContext>, Subschema<any, any, any, TContext>>;
   selectionSetsByType: Record<string, SelectionSetNode>;
   selectionSetsByField: Record<string, Record<string, SelectionSetNode>>;
   dynamicSelectionSetsByField: Record<string, Record<string, Array<(node: FieldNode) => SelectionSetNode>>>;
@@ -115,11 +115,11 @@ export type OnTypeConflict<TContext = Record<string, any>> = (
   info?: {
     left: {
       subschema?: GraphQLSchema | SubschemaConfig<any, any, any, TContext>;
-      transformedSubschema?: Subschema;
+      transformedSubschema?: Subschema<any, any, any, TContext>;
     };
     right: {
       subschema?: GraphQLSchema | SubschemaConfig<any, any, any, TContext>;
-      transformedSubschema?: Subschema;
+      transformedSubschema?: Subschema<any, any, any, TContext>;
     };
   }
 ) => GraphQLNamedType;

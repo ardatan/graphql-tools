@@ -2,6 +2,10 @@
 /// <reference lib="dom" />
 import { print, IntrospectionOptions, DocumentNode, GraphQLResolveInfo, Kind, parse, buildASTSchema } from 'graphql';
 import {
+  AsyncExecutor,
+  Executor,
+  Subscriber,
+  SyncExecutor,
   SchemaPointerSingle,
   Source,
   DocumentLoader,
@@ -11,7 +15,7 @@ import {
 } from '@graphql-tools/utils';
 import { isWebUri } from 'valid-url';
 import { fetch as crossFetch } from 'cross-fetch';
-import { AsyncExecutor, Executor, SubschemaConfig, Subscriber, SyncExecutor } from '@graphql-tools/delegate';
+import { SubschemaConfig } from '@graphql-tools/delegate';
 import { introspectSchema, wrapSchema } from '@graphql-tools/wrap';
 import { createClient } from 'graphql-ws';
 import WebSocket from 'isomorphic-ws';
@@ -260,11 +264,11 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       url: WS_URL,
       webSocketImpl,
     });
-    return async <TReturn>({ document, variables }: { document: DocumentNode; variables: any }) => {
+    return async ({ document, variables }: { document: DocumentNode; variables: any }) => {
       const query = print(document);
       return observableToAsyncIterable({
         subscribe: observer => {
-          const unsubscribe = subscriptionClient.subscribe<TReturn>(
+          const unsubscribe = subscriptionClient.subscribe(
             {
               query,
               variables,
@@ -280,7 +284,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
   }
 
   buildSSESubscriber(pointer: string, eventSourceOptions?: SubscriptionOptions['eventSourceOptions']): Subscriber {
-    return async <TReturn>({ document, variables }: { document: DocumentNode; variables: any }) => {
+    return async ({ document, variables }: { document: DocumentNode; variables: any }) => {
       const query = print(document);
       return observableToAsyncIterable({
         subscribe: observer => {
@@ -296,7 +300,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
               ...eventSourceOptions,
             },
             onNext: data => {
-              const parsedData: TReturn = JSON.parse(data);
+              const parsedData = JSON.parse(data);
               observer.next(parsedData);
             },
             onError: data => {
