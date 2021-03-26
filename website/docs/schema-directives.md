@@ -659,7 +659,7 @@ const schema = makeExecutableSchema({
 
 ## Declaring schema directives
 
-SDL syntax requires declaring the names, argument types, default argument values, and permissible locations of any available directives. We have shown one approach above to doing so. If you're implementing a reusable directive for public consumption, you will probably want to either guide your users as to how properly declare their directives, or export the required SDL syntax as above so that users can pass it to `makeExecutableSchema`. These techniques can be used in combination, i.e. you may with to export the directive syntax and provide instructions on how to structure any dependent types. Take a second look at the auth example above to see how this may be done and note the interplay between the directive definition and the `Role` type.
+SDL syntax requires declaring the names, argument types, default argument values, and permissible locations of any available directives. We have shown one approach above to doing so. If you're implementing a reusable directive for public consumption, you will probably want to either guide your users as to how properly declare their directives, or export the required SDL syntax as above so that users can pass it to `makeExecutableSchema`. These techniques can be used in combination, i.e. you may wish to export the directive syntax and provide instructions on how to structure any dependent types. Take a second look at the auth example above to see how this may be done and note the interplay between the directive definition and the `Role` type.
 
 ## What about query directives?
 
