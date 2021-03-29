@@ -45,7 +45,7 @@
     "form-data": "4.0.0",
     "tslib": "~2.1.0",
     "valid-url": "1.0.9",
-    "graphql-ws": "4.3.1",
+    "graphql-ws": "4.3.2",
     "ws": "7.4.4",
     "sync-fetch": "0.3.0",
     "sse-z": "0.3.0"
