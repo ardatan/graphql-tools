@@ -14,7 +14,7 @@ import {
   isAsyncIterable,
 } from '@graphql-tools/utils';
 import { isWebUri } from 'valid-url';
-import { fetch as crossFetch } from 'cross-fetch';
+import { fetch as crossFetch, RequestInfo, RequestInit } from 'cross-fetch';
 import { SubschemaConfig } from '@graphql-tools/delegate';
 import { introspectSchema, wrapSchema } from '@graphql-tools/wrap';
 import { createClient } from 'graphql-ws';
@@ -25,7 +25,6 @@ import { extractFiles, isExtractableFile } from 'extract-files';
 import FormData from 'form-data';
 import 'eventsource/lib/eventsource-polyfill';
 import { Subscription, SubscriptionOptions } from 'sse-z';
-import { RequestInfo, RequestInit, Response } from 'cross-fetch/lib.fetch';
 import { URL } from 'url';
 
 export type AsyncFetchFn = typeof import('cross-fetch').fetch;
