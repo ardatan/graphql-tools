@@ -1,5 +1,11 @@
 # @graphql-tools/load-files
 
+## 6.3.2
+
+### Patch Changes
+
+- 7c6e0083: Remove duplicate code
+
 ## 6.3.1
 
 ### Patch Changes
