@@ -233,15 +233,6 @@ export async function loadFiles(
         if (extension === formatExtension('js') || extension === formatExtension('ts') || execOptions.useRequire) {
           const fileExports = await requireMethod(path);
           const extractedExport = extractExports(fileExports);
-
-          if (extractedExport.resolver) {
-            return extractedExport.resolver;
-          }
-
-          if (extractedExport.resolvers) {
-            return extractedExport.resolvers;
-          }
-
           return extractedExport;
         } else {
           return readFile(path, { encoding: 'utf-8' });
