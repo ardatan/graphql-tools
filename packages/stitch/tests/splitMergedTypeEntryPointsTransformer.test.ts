@@ -54,8 +54,8 @@ describe('splitMergedTypeEntryPointsTransformer', () => {
         schema,
         merge: {
           Product: {
-            entryPoints: [{ resolver: () => null }],
-            resolver: () => null,
+            entryPoints: [{ resolve: () => null }],
+            resolve: () => null,
           }
         }
       });
