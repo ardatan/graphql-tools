@@ -255,7 +255,7 @@ describe('isolateComputedFieldsTransformer', () => {
     });
   });
 
-  describe('with multiple accessors', () => {
+  describe('with multiple entryPoints', () => {
     it('includes all accessor fields', async () => {
       const testSchema = makeExecutableSchema({
         typeDefs: `
@@ -286,7 +286,7 @@ describe('isolateComputedFieldsTransformer', () => {
         schema: testSchema,
         merge: {
           Product: {
-            accessors: [{
+            entryPoints: [{
               selectionSet: '{ id }',
               fieldName: 'productById',
               key: ({ id, price, weight }) => ({ id, price, weight }),

@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/load",
-  "version": "6.2.5",
+  "version": "6.2.7",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
@@ -26,9 +26,9 @@
     "graphql-type-json": "0.3.2"
   },
   "dependencies": {
-    "@graphql-tools/utils": "^7.0.0",
-    "@graphql-tools/merge": "^6.2.5",
-    "globby": "11.0.2",
+    "@graphql-tools/utils": "^7.5.0",
+    "@graphql-tools/merge": "^6.2.9",
+    "globby": "11.0.3",
     "import-from": "3.0.0",
     "is-glob": "4.0.1",
     "p-limit": "3.1.0",

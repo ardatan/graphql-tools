@@ -12,14 +12,17 @@ import {
   GraphQLError,
   GraphQLEnumValueConfig,
 } from 'graphql';
-import { Executor, Subscriber, DelegationContext } from '@graphql-tools/delegate';
-import { Request } from '@graphql-tools/utils';
+import { DelegationContext } from '@graphql-tools/delegate';
+import { Executor, Subscriber, Request } from '@graphql-tools/utils';
 
-export interface IMakeRemoteExecutableSchemaOptions {
+export interface IMakeRemoteExecutableSchemaOptions<TContext = Record<string, any>> {
   schema: GraphQLSchema | string;
-  executor?: Executor;
-  subscriber?: Subscriber;
-  createResolver?: (executor: Executor, subscriber: Subscriber) => GraphQLFieldResolver<any, any>;
+  executor?: Executor<TContext>;
+  subscriber?: Subscriber<TContext>;
+  createResolver?: (
+    executor: Executor<TContext>,
+    subscriber: Subscriber<TContext>
+  ) => GraphQLFieldResolver<any, TContext>;
   buildSchemaOptions?: BuildSchemaOptions;
 }
 
@@ -44,17 +47,17 @@ export type InputObjectNodeTransformer = (
   delegationContext?: DelegationContext
 ) => ObjectValueNode;
 
-export type FieldTransformer = (
+export type FieldTransformer<TContext = Record<string, any>> = (
   typeName: string,
   fieldName: string,
-  fieldConfig: GraphQLFieldConfig<any, any>
-) => GraphQLFieldConfig<any, any> | [string, GraphQLFieldConfig<any, any>] | null | undefined;
+  fieldConfig: GraphQLFieldConfig<any, TContext>
+) => GraphQLFieldConfig<any, TContext> | [string, GraphQLFieldConfig<any, TContext>] | null | undefined;
 
-export type RootFieldTransformer = (
+export type RootFieldTransformer<TContext = Record<string, any>> = (
   operation: 'Query' | 'Mutation' | 'Subscription',
   fieldName: string,
-  fieldConfig: GraphQLFieldConfig<any, any>
-) => GraphQLFieldConfig<any, any> | [string, GraphQLFieldConfig<any, any>] | null | undefined;
+  fieldConfig: GraphQLFieldConfig<any, TContext>
+) => GraphQLFieldConfig<any, TContext> | [string, GraphQLFieldConfig<any, TContext>] | null | undefined;
 
 export type EnumValueTransformer = (
   typeName: string,

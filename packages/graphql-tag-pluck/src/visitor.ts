@@ -46,6 +46,18 @@ const defaults: GraphQLTagPluckOptions = {
       identifier: 'graphql',
     },
     {
+      name: 'react-relay/hooks',
+      identifier: 'graphql',
+    },
+    {
+      name: 'relay-runtime',
+      identifier: 'graphql',
+    },
+    {
+      name: 'babel-plugin-relay/macro',
+      identifier: 'graphql',
+    },
+    {
       name: 'apollo-boost',
       identifier: 'gql',
     },
@@ -83,6 +95,26 @@ const defaults: GraphQLTagPluckOptions = {
     },
     {
       name: 'graphql.macro',
+      identifier: 'gql',
+    },
+    {
+      name: '@urql/core',
+      identifier: 'gql',
+    },
+    {
+      name: 'urql',
+      identifier: 'gql',
+    },
+    {
+      name: '@urql/preact',
+      identifier: 'gql',
+    },
+    {
+      name: '@urql/svelte',
+      identifier: 'gql',
+    },
+    {
+      name: '@urql/vue',
       identifier: 'gql',
     },
   ],
@@ -149,7 +181,7 @@ export default (code: string, out: any, options: GraphQLTagPluckOptions = {}) =>
         // Slice quotes
         .slice(start + 1, end - 1)
         // Erase string interpolations as we gonna export everything as a single
-        // string anyways
+        // string anyway
         .replace(/\$\{[^}]*\}/g, '')
         .split('\\`')
         .join('`'),

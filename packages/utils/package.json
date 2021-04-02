@@ -1,7 +1,7 @@
 {
   "name": "@graphql-tools/utils",
-  "version": "7.2.5",
-  "description": "Common package containting utils and types for GraphQL tools",
+  "version": "7.7.1",
+  "description": "Common package containing utils and types for GraphQL tools",
   "repository": {
     "type": "git",
     "url": "ardatan/graphql-tools",
@@ -22,7 +22,7 @@
   "devDependencies": {
     "@types/dateformat": "3.0.1",
     "dateformat": "4.5.1",
-    "graphql-scalars": "1.7.0"
+    "graphql-scalars": "1.9.0"
   },
   "dependencies": {
     "@ardatan/aggregate-error": "0.0.6",

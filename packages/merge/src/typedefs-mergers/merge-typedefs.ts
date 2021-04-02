@@ -1,11 +1,22 @@
-import { DefinitionNode, DocumentNode, GraphQLSchema, parse, Source, Kind, isSchema } from 'graphql';
-import { isSourceTypes, isStringTypes, isSchemaDefinition } from './utils';
-import { MergedResultMap, mergeGraphQLNodes } from './merge-nodes';
+import {
+  DefinitionNode,
+  DocumentNode,
+  GraphQLSchema,
+  parse,
+  Source,
+  Kind,
+  isSchema,
+  OperationTypeDefinitionNode,
+  OperationTypeNode,
+  isDefinitionNode,
+} from 'graphql';
+import { CompareFn, defaultStringComparator, isSourceTypes, isStringTypes } from './utils';
+import { MergedResultMap, mergeGraphQLNodes, schemaDefSymbol } from './merge-nodes';
 import { resetComments, printWithComments } from './comments';
-import { createSchemaDefinition, printSchemaWithDirectives } from '@graphql-tools/utils';
+import { getDocumentNodeFromSchema } from '@graphql-tools/utils';
+import { operationTypeDefinitionNodeTypeRootTypeMap } from './schema-def';
 
 type Omit<T, K extends keyof any> = Pick<T, Exclude<keyof T, K>>;
-type CompareFn<T> = (a: T, b: T) => number;
 
 export interface Config {
   /**
@@ -58,6 +69,7 @@ export interface Config {
   sort?: boolean | CompareFn<string>;
   convertExtensions?: boolean;
   consistentEnumMerge?: boolean;
+  ignoreFieldConflicts?: boolean;
 }
 
 /**
@@ -103,75 +115,95 @@ export function mergeTypeDefs(
   return result;
 }
 
+function visitTypeSources(
+  types: Array<string | Source | DocumentNode | GraphQLSchema | DefinitionNode>,
+  allNodes: DefinitionNode[]
+) {
+  for (const type of types) {
+    if (type) {
+      if (Array.isArray(type)) {
+        visitTypeSources(types, allNodes);
+      } else if (isSchema(type)) {
+        const documentNode = getDocumentNodeFromSchema(type);
+        visitTypeSources(documentNode.definitions as DefinitionNode[], allNodes);
+      } else if (isStringTypes(type) || isSourceTypes(type)) {
+        const documentNode = parse(type);
+        visitTypeSources(documentNode.definitions as DefinitionNode[], allNodes);
+      } else if (isDefinitionNode(type)) {
+        allNodes.push(type);
+      } else {
+        visitTypeSources(type.definitions as DefinitionNode[], allNodes);
+      }
+    }
+  }
+}
+
 export function mergeGraphQLTypes(
   types: Array<string | Source | DocumentNode | GraphQLSchema>,
   config: Config
 ): DefinitionNode[] {
   resetComments();
 
-  const allNodes: ReadonlyArray<DefinitionNode> = types
-    .map<DocumentNode>(type => {
-      if (Array.isArray(type)) {
-        type = mergeTypeDefs(type);
-      }
-      if (isSchema(type)) {
-        return parse(printSchemaWithDirectives(type));
-      } else if (isStringTypes(type) || isSourceTypes(type)) {
-        return parse(type);
-      }
-
-      return type;
-    })
-    .map(ast => ast.definitions)
-    .reduce((defs, newDef = []) => [...defs, ...newDef], []);
-
-  // XXX: right now we don't handle multiple schema definitions
-  let schemaDef: {
-    query: string | null;
-    mutation: string | null;
-    subscription: string | null;
-  } = allNodes.filter(isSchemaDefinition).reduce<any>(
-    (def, node) => {
-      node.operationTypes
-        .filter(op => op.type.name.value)
-        .forEach(op => {
-          def[op.operation] = op.type.name.value;
-        });
-
-      return def;
-    },
-    {
-      query: null,
-      mutation: null,
-      subscription: null,
-    }
-  );
+  const allNodes: DefinitionNode[] = [];
+  visitTypeSources(types, allNodes);
 
   const mergedNodes: MergedResultMap = mergeGraphQLNodes(allNodes, config);
-  const allTypes = Object.keys(mergedNodes);
 
-  if (config && config.sort) {
-    allTypes.sort(typeof config.sort === 'function' ? config.sort : undefined);
+  // XXX: right now we don't handle multiple schema definitions
+  let schemaDef = mergedNodes[schemaDefSymbol] || {
+    kind: Kind.SCHEMA_DEFINITION,
+    operationTypes: [],
+  };
+
+  if (config?.useSchemaDefinition) {
+    const operationTypes = schemaDef.operationTypes as OperationTypeDefinitionNode[];
+    for (const opTypeDefNodeType in operationTypeDefinitionNodeTypeRootTypeMap) {
+      const opTypeDefNode = operationTypes.find(operationType => operationType.operation === opTypeDefNodeType);
+      if (!opTypeDefNode) {
+        const existingPossibleRootType = mergedNodes[operationTypeDefinitionNodeTypeRootTypeMap[opTypeDefNodeType]];
+        if (existingPossibleRootType) {
+          operationTypes.push({
+            kind: Kind.OPERATION_TYPE_DEFINITION,
+            type: {
+              kind: Kind.NAMED_TYPE,
+              name: existingPossibleRootType.name,
+            },
+            operation: opTypeDefNodeType as OperationTypeNode,
+          });
+        }
+      }
+    }
   }
 
-  if (config && config.useSchemaDefinition) {
-    const queryType = schemaDef.query ? schemaDef.query : allTypes.find(t => t === 'Query');
-    const mutationType = schemaDef.mutation ? schemaDef.mutation : allTypes.find(t => t === 'Mutation');
-    const subscriptionType = schemaDef.subscription ? schemaDef.subscription : allTypes.find(t => t === 'Subscription');
+  if (config?.forceSchemaDefinition && !schemaDef?.operationTypes?.length) {
     schemaDef = {
-      query: queryType,
-      mutation: mutationType,
-      subscription: subscriptionType,
+      kind: Kind.SCHEMA_DEFINITION,
+      operationTypes: [
+        {
+          kind: Kind.OPERATION_TYPE_DEFINITION,
+          operation: 'query',
+          type: {
+            kind: Kind.NAMED_TYPE,
+            name: {
+              kind: Kind.NAME,
+              value: 'Query',
+            },
+          },
+        },
+      ],
     };
   }
 
-  const schemaDefinition = createSchemaDefinition(schemaDef, {
-    force: config.forceSchemaDefinition,
-  });
+  const mergedNodeDefinitions = Object.values(mergedNodes);
 
-  if (!schemaDefinition) {
-    return Object.values(mergedNodes);
+  if (schemaDef.operationTypes?.length) {
+    mergedNodeDefinitions.push(schemaDef);
   }
 
-  return [...Object.values(mergedNodes), parse(schemaDefinition).definitions[0]];
+  if (config?.sort) {
+    const sortFn = typeof config.sort === 'function' ? config.sort : defaultStringComparator;
+    mergedNodeDefinitions.sort((a, b) => sortFn(a.name?.value, b.name?.value));
+  }
+
+  return mergedNodeDefinitions;
 }

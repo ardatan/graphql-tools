@@ -1,6 +1,11 @@
 /* eslint-disable no-case-declarations */
+/// <reference lib="dom" />
 import { print, IntrospectionOptions, DocumentNode, GraphQLResolveInfo, Kind, parse, buildASTSchema } from 'graphql';
 import {
+  AsyncExecutor,
+  Executor,
+  Subscriber,
+  SyncExecutor,
   SchemaPointerSingle,
   Source,
   DocumentLoader,
@@ -9,17 +14,18 @@ import {
   isAsyncIterable,
 } from '@graphql-tools/utils';
 import { isWebUri } from 'valid-url';
-import { fetch as crossFetch } from 'cross-fetch';
-import { AsyncExecutor, Executor, SubschemaConfig, Subscriber, SyncExecutor } from '@graphql-tools/delegate';
+import { fetch as crossFetch, RequestInfo, RequestInit } from 'cross-fetch';
+import { SubschemaConfig } from '@graphql-tools/delegate';
 import { introspectSchema, wrapSchema } from '@graphql-tools/wrap';
 import { createClient } from 'graphql-ws';
 import WebSocket from 'isomorphic-ws';
 import syncFetch from 'sync-fetch';
 import isPromise from 'is-promise';
 import { extractFiles, isExtractableFile } from 'extract-files';
-import { FormDataWithStreamSupport } from './FormDataWithStreamSupport';
+import FormData from 'form-data';
 import 'eventsource/lib/eventsource-polyfill';
 import { Subscription, SubscriptionOptions } from 'sse-z';
+import { URL } from 'url';
 
 export type AsyncFetchFn = typeof import('cross-fetch').fetch;
 export type SyncFetchFn = (input: RequestInfo, init?: RequestInit) => SyncResponse;
@@ -128,7 +134,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       return prev;
     }, {});
     const uploads: any = new Map(Array.from(files.keys()).map((u, i) => [i, u]));
-    const form = new FormDataWithStreamSupport();
+    const form = new FormData();
     form.append(
       'operations',
       JSON.stringify({
@@ -257,11 +263,11 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       url: WS_URL,
       webSocketImpl,
     });
-    return async <TReturn>({ document, variables }: { document: DocumentNode; variables: any }) => {
+    return async ({ document, variables }: { document: DocumentNode; variables: any }) => {
       const query = print(document);
       return observableToAsyncIterable({
         subscribe: observer => {
-          const unsubscribe = subscriptionClient.subscribe<TReturn>(
+          const unsubscribe = subscriptionClient.subscribe(
             {
               query,
               variables,
@@ -277,7 +283,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
   }
 
   buildSSESubscriber(pointer: string, eventSourceOptions?: SubscriptionOptions['eventSourceOptions']): Subscriber {
-    return async <TReturn>({ document, variables }: { document: DocumentNode; variables: any }) => {
+    return async ({ document, variables }: { document: DocumentNode; variables: any }) => {
       const query = print(document);
       return observableToAsyncIterable({
         subscribe: observer => {
@@ -293,7 +299,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
               ...eventSourceOptions,
             },
             onNext: data => {
-              const parsedData: TReturn = JSON.parse(data);
+              const parsedData = JSON.parse(data);
               observer.next(parsedData);
             },
             onError: data => {

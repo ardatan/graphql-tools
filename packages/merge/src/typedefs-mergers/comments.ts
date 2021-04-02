@@ -1,7 +1,6 @@
 import {
   getDescription,
   StringValueNode,
-  TypeDefinitionNode,
   FieldDefinitionNode,
   InputValueDefinitionNode,
   ASTNode,
@@ -10,6 +9,7 @@ import {
   visit,
   VisitFn,
 } from 'graphql';
+import { NamedDefinitionNode } from './merge-nodes';
 
 let commentsRegistry: {
   [path: string]: string[];
@@ -19,7 +19,7 @@ export function resetComments(): void {
   commentsRegistry = {};
 }
 
-export function collectComment(node: TypeDefinitionNode): void {
+export function collectComment(node: NamedDefinitionNode): void {
   const entityName = node.name.value;
   pushComment(node, entityName);
 
@@ -48,12 +48,7 @@ export function collectComment(node: TypeDefinitionNode): void {
   }
 }
 
-export function pushComment(
-  node: { readonly description?: StringValueNode },
-  entity: string,
-  field?: string,
-  argument?: string
-): void {
+export function pushComment(node: any, entity: string, field?: string, argument?: string): void {
   const comment = getDescription(node, { commentDescriptions: true });
 
   if (typeof comment !== 'string' || comment.length === 0) {

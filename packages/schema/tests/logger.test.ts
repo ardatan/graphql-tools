@@ -36,7 +36,7 @@ describe('Logger', () => {
       resolvers: resolve,
       logger,
     });
-    // calling the mutation here so the erros will be ordered.
+    // calling the mutation here so the errors will be ordered.
     const testQuery = 'mutation { species, stuff }';
     const expected0 = 'Error in resolver RootMutation.species\noops!';
     const expected1 = 'Error in resolver RootMutation.stuff\noh noes!';

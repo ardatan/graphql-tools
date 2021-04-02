@@ -36,7 +36,7 @@ export * from './MockList';
  */
 export function createMockStore(options: {
   /**
-   * The `schema` to based mokcks on.
+   * The `schema` to based mocks on.
    */
   schema: GraphQLSchema;
 

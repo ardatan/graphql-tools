@@ -1,6 +1,6 @@
 import DataLoader from 'dataloader';
 
-import { ExecutionParams, Executor } from './types';
+import { ExecutionParams, Executor } from '@graphql-tools/utils';
 import { createBatchingExecutor } from './createBatchingExecutor';
 import { memoize2of4 } from './memoize';
 

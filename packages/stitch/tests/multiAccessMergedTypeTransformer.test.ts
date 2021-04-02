@@ -4,12 +4,12 @@ import { splitMergedTypeAccessTransformer } from '@graphql-tools/stitch';
 const schema = makeExecutableSchema({ typeDefs: 'type Query { go:Int }' });
 
 describe('splitMergedTypeAccessTransformer', () => {
-  it('applies merged type config accessors', () => {
+  it('applies merged type config entryPoints', () => {
     const results = splitMergedTypeAccessTransformer({
       schema,
       merge: {
         Product: {
-          accessors: [{
+          entryPoints: [{
             selectionSet: '{ yep }',
             fieldName: 'yep',
           }],
@@ -24,13 +24,13 @@ describe('splitMergedTypeAccessTransformer', () => {
     });
   });
 
-  it('raises for accessors with selectionSet or fieldName', () => {
+  it('raises for entryPoints with selectionSet or fieldName', () => {
     expect(() => {
       splitMergedTypeAccessTransformer({
         schema,
         merge: {
           Product: {
-            accessors: [{ selectionSet: '{ yep }', fieldName: 'yep' }],
+            entryPoints: [{ selectionSet: '{ yep }', fieldName: 'yep' }],
             selectionSet: '{ nope }',
           }
         }
@@ -42,7 +42,7 @@ describe('splitMergedTypeAccessTransformer', () => {
         schema,
         merge: {
           Product: {
-            accessors: [{ selectionSet: '{ yep }', fieldName: 'yep' }],
+            entryPoints: [{ selectionSet: '{ yep }', fieldName: 'yep' }],
             fieldName: 'thing',
           }
         }
@@ -50,12 +50,12 @@ describe('splitMergedTypeAccessTransformer', () => {
     }).toThrow();
   });
 
-  it('builds multiple subschemas for separate accessors', () => {
+  it('builds multiple subschemas for separate entryPoints', () => {
     const results = splitMergedTypeAccessTransformer({
       schema,
       merge: {
         Product: {
-          accessors: [{
+          entryPoints: [{
             selectionSet: '{ id }',
             fieldName: 'productById',
           }, {
@@ -82,7 +82,7 @@ describe('splitMergedTypeAccessTransformer', () => {
       schema,
       merge: {
         Product: {
-          accessors: [{
+          entryPoints: [{
             selectionSet: '{ id }',
             fieldName: 'productById',
           }, {
@@ -94,7 +94,7 @@ describe('splitMergedTypeAccessTransformer', () => {
           }]
         },
         Video: {
-          accessors: [{
+          entryPoints: [{
             selectionSet: '{ id }',
             fieldName: 'videoById',
           }, {
@@ -107,7 +107,7 @@ describe('splitMergedTypeAccessTransformer', () => {
           canonical: true,
         },
         User: {
-          accessors: [{
+          entryPoints: [{
             selectionSet: '{ id }',
             fieldName: 'userById',
           }]

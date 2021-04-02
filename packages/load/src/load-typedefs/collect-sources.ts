@@ -1,5 +1,5 @@
-import { Source, isDocumentString, parseGraphQLSDL, asArray, printSchemaWithDirectives } from '@graphql-tools/utils';
-import { isSchema, Kind, parse } from 'graphql';
+import { Source, isDocumentString, parseGraphQLSDL, asArray, getDocumentNodeFromSchema } from '@graphql-tools/utils';
+import { isSchema, Kind } from 'graphql';
 import isGlob from 'is-glob';
 import { LoadTypedefsOptions } from '../load-typedefs';
 import { loadFile, loadFileSync } from './load-file';
@@ -296,7 +296,7 @@ function addResultOfCustomLoader({
       source: {
         location: pointer,
         schema: result,
-        document: parse(printSchemaWithDirectives(result)),
+        document: getDocumentNodeFromSchema(result),
       },
       pointer,
       noCache: true,

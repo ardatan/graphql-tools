@@ -1,8 +1,7 @@
 import { ApolloLink, execute } from '@apollo/client/link/core';
 import { Observable } from '@apollo/client/utilities';
 
-import { ExecutionResult, observableToAsyncIterable } from '@graphql-tools/utils';
-import { Subscriber, ExecutionParams } from '@graphql-tools/delegate';
+import { Subscriber, ExecutionParams, ExecutionResult, observableToAsyncIterable } from '@graphql-tools/utils';
 
 export const linkToSubscriber = (link: ApolloLink): Subscriber => async <TReturn, TArgs, TContext>(
   params: ExecutionParams<TArgs, TContext>

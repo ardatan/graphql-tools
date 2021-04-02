@@ -1,5 +1,72 @@
 # @graphql-tools/utils
 
+## 7.7.1
+
+### Patch Changes
+
+- 194ac370: fix(utils): add createSchemaDefinition again to fix breaking change
+
+## 7.7.0
+
+### Minor Changes
+
+- 58fd4b28: feat(types): add TContext to stitchSchemas and executor
+
+### Patch Changes
+
+- 43da6b59: enhance(merge): reduce number of iterations
+
+## 7.6.0
+
+### Minor Changes
+
+- 5b637e2f: Add generic pruning filter option
+
+## 7.5.2
+
+### Patch Changes
+
+- de16fff4: Fix pruneSchema with unimplemented interfaces
+
+## 7.5.1
+
+### Patch Changes
+
+- 33d1b9e7: Fix pruneSchema with unused interfaces
+
+## 7.5.0
+
+### Minor Changes
+
+- 219ed392: enhance(utils): Extract getDocumentNodeFromSchema from printSchemaWithDirectives
+
+### Patch Changes
+
+- 219ed392: fix(utils): fix missing default value of input object type field
+- 219ed392: fix(utils): print specifiedBy directive definitions correctly
+
+## 7.4.0
+
+### Minor Changes
+
+- 8f331aaa: enhance(utils): Extract getDocumentNodeFromSchema from printSchemaWithDirectives
+
+### Patch Changes
+
+- 8f331aaa: fix(utils): fix missing default value of input object type field
+
+## 7.3.0
+
+### Minor Changes
+
+- 6387572c: feat(utils): export astFrom\* helper functions
+
+## 7.2.6
+
+### Patch Changes
+
+- e53f97b3: fix(utils): provide { done: true } from iterator when complete is called on observer in observableToAsyncIterable
+
 ## 7.2.5
 
 ### Patch Changes
@@ -60,7 +127,7 @@
 
 ### Patch Changes
 
-- cd5da458: fix(utils): fix crashs when return null while visitSchema
+- cd5da458: fix(utils): fix crashes when return null while visitSchema
 
 ## 7.1.5
 
@@ -131,7 +198,7 @@
 
   - The `transformRequest`/`transformResult` methods are now provided additional `delegationContext` and `transformationContext` arguments -- these were introduced in v6, but previously optional.
 
-  - The `transformSchema` method may wish to create additional delegating resolvers and so it is now provided the `subschemaConfig` and final (non-executable) `transformedSchema` parameters. As in v6, the `transformSchema` is kicked off once to produce the non-executable version, and then, if a wrapping schema is being generated, proxying resolvers are created with access to the (non-executabel) initial result. In v7, the individual `transformSchema` methods also get access to the result of the first run, if necessary, they can create additional wrapping schema proxying resolvers.
+  - The `transformSchema` method may wish to create additional delegating resolvers and so it is now provided the `subschemaConfig` and final (non-executable) `transformedSchema` parameters. As in v6, the `transformSchema` is kicked off once to produce the non-executable version, and then, if a wrapping schema is being generated, proxying resolvers are created with access to the (non-executable) initial result. In v7, the individual `transformSchema` methods also get access to the result of the first run, if necessary, they can create additional wrapping schema proxying resolvers.
 
   - `applySchemaTransforms` parameters have been updated to match and support the `transformSchema` parameters above.
 

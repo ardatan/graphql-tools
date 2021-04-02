@@ -1,5 +1,16 @@
 # @graphql-tools/prisma-loader
 
+## 6.3.0
+
+### Minor Changes
+
+- de05971c: Use native Promise instead of Bluebird
+
+### Patch Changes
+
+- Updated dependencies [50bc2178]
+  - @graphql-tools/url-loader@6.8.2
+
 ## 6.2.7
 
 ### Patch Changes

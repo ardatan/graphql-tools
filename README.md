@@ -1,4 +1,4 @@
-[![toolskit](https://user-images.githubusercontent.com/20847995/80261023-feb6e380-8691-11ea-8680-5747fa02c5d8.gif)](https://graphql-tools.com)
+[![toolkit](https://user-images.githubusercontent.com/20847995/80261023-feb6e380-8691-11ea-8680-5747fa02c5d8.gif)](https://graphql-tools.com)
 
 [![npm version](https://badge.fury.io/js/%40graphql-tools%2Futils.svg)](https://badge.fury.io/js/%40graphql-tools%2Futils)
 [![CI](https://github.com/ardatan/graphql-tools/workflows/CI/badge.svg)](https://github.com/ardatan/graphql-tools/actions)
@@ -23,7 +23,7 @@ This package provides a few useful ways to create a GraphQL schema:
 
 If you want to bind your JavaScript GraphQL schema to an HTTP server, you can use [`express-graphql`](https://github.com/graphql/express-graphql).
 
-You can develop your Javascript based GraphQL API with `graphql-tools` and `express-graphql` together: One to write the schema and resolver code, and the other to connect it to a web server.
+You can develop your JavaScript based GraphQL API with `graphql-tools` and `express-graphql` together: One to write the schema and resolver code, and the other to connect it to a web server.
 
 ## Example
 
@@ -118,7 +118,7 @@ const executableSchema = makeExecutableSchema({
 ```
 
 GraphQL-Tools schema can be consumed by frameworks like Apollo GraphQL or express-graphql
-For example 
+For example
 
 ```js
 var express = require('express');
@@ -138,6 +138,12 @@ This example has the entire type definition in one string and all resolvers in o
 ## Contributions
 
 Contributions, issues and feature requests are very welcome. If you are using this package and fixed a bug for yourself, please consider submitting a PR!
+
+And if this is your first time contributing to this project, please do read our [Contributor Workflow Guide](https://github.com/the-guild-org/Stack/blob/master/CONTRIBUTING.md) before you get started off.
+
+### Code of Conduct
+
+Help us keep GraphQL Tools open and inclusive. Please read and follow our [Code of Conduct](https://github.com/the-guild-org/Stack/blob/master/CODE_OF_CONDUCT.md) as adopted from [Contributor Covenant](https://www.contributor-covenant.org/)
 
 ## Maintainers
 

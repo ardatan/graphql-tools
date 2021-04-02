@@ -488,7 +488,7 @@ If you're familiar with [Apollo Federation](https://www.apollographql.com/docs/a
 
 ## Canonical definitions
 
-Managing the gateway schema definition of each type and field becomes challenging as the same type names are introduced across subschemas. By default, the final definition of each named GraphQL element found in the stitched `subschemas` array provides its gateway definition. However, preferred definitions may be marked as `canonical` to recieve this final priority. Canonical definitions provide:
+Managing the gateway schema definition of each type and field becomes challenging as the same type names are introduced across subschemas. By default, the final definition of each named GraphQL element found in the stitched `subschemas` array provides its gateway definition. However, preferred definitions may be marked as `canonical` to receive this final priority. Canonical definitions provide:
 
 - an element's description (doc string).
 - an element's final directive values.

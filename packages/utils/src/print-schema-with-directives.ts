@@ -45,25 +45,25 @@ import {
   GraphQLScalarType,
   ScalarTypeDefinitionNode,
   StringValueNode,
+  DefinitionNode,
+  DocumentNode,
 } from 'graphql';
-import { PrintSchemaWithDirectivesOptions } from './types';
+import { GetDocumentNodeFromSchemaOptions, PrintSchemaWithDirectivesOptions } from './types';
 
 import { astFromType } from './astFromType';
 import { getDirectivesInExtensions } from './get-directives';
 import { astFromValueUntyped } from './astFromValueUntyped';
 
-// this approach uses the default schema printer rather than a custom solution, so may be more backwards compatible
-// currently does not allow customization of printSchema options having to do with comments.
-export function printSchemaWithDirectives(
+export function getDocumentNodeFromSchema(
   schema: GraphQLSchema,
-  options: PrintSchemaWithDirectivesOptions = {}
-): string {
+  options: GetDocumentNodeFromSchemaOptions = {}
+): DocumentNode {
   const pathToDirectivesInExtensions = options.pathToDirectivesInExtensions;
 
   const typesMap = schema.getTypeMap();
 
   const schemaNode = astFromSchema(schema, pathToDirectivesInExtensions);
-  const result: Array<string> = schemaNode != null ? [print(schemaNode)] : [];
+  const definitions: Array<DefinitionNode> = schemaNode != null ? [schemaNode] : [];
 
   for (const typeName in typesMap) {
     const type = typesMap[typeName];
@@ -75,17 +75,17 @@ export function printSchemaWithDirectives(
     }
 
     if (isObjectType(type)) {
-      result.push(print(astFromObjectType(type, schema, pathToDirectivesInExtensions)));
+      definitions.push(astFromObjectType(type, schema, pathToDirectivesInExtensions));
     } else if (isInterfaceType(type)) {
-      result.push(print(astFromInterfaceType(type, schema, pathToDirectivesInExtensions)));
+      definitions.push(astFromInterfaceType(type, schema, pathToDirectivesInExtensions));
     } else if (isUnionType(type)) {
-      result.push(print(astFromUnionType(type, schema, pathToDirectivesInExtensions)));
+      definitions.push(astFromUnionType(type, schema, pathToDirectivesInExtensions));
     } else if (isInputObjectType(type)) {
-      result.push(print(astFromInputObjectType(type, schema, pathToDirectivesInExtensions)));
+      definitions.push(astFromInputObjectType(type, schema, pathToDirectivesInExtensions));
     } else if (isEnumType(type)) {
-      result.push(print(astFromEnumType(type, schema, pathToDirectivesInExtensions)));
+      definitions.push(astFromEnumType(type, schema, pathToDirectivesInExtensions));
     } else if (isScalarType(type)) {
-      result.push(print(astFromScalarType(type, schema, pathToDirectivesInExtensions)));
+      definitions.push(astFromScalarType(type, schema, pathToDirectivesInExtensions));
     } else {
       throw new Error(`Unknown type ${type}.`);
     }
@@ -97,13 +97,26 @@ export function printSchemaWithDirectives(
       continue;
     }
 
-    result.push(print(astFromDirective(directive, schema, pathToDirectivesInExtensions)));
+    definitions.push(astFromDirective(directive, schema, pathToDirectivesInExtensions));
   }
 
-  return result.join('\n');
+  return {
+    kind: Kind.DOCUMENT,
+    definitions,
+  };
 }
 
-function astFromSchema(
+// this approach uses the default schema printer rather than a custom solution, so may be more backwards compatible
+// currently does not allow customization of printSchema options having to do with comments.
+export function printSchemaWithDirectives(
+  schema: GraphQLSchema,
+  options: PrintSchemaWithDirectivesOptions = {}
+): string {
+  const documentNode = getDocumentNodeFromSchema(schema, options);
+  return print(documentNode);
+}
+
+export function astFromSchema(
   schema: GraphQLSchema,
   pathToDirectivesInExtensions: Array<string>
 ): SchemaDefinitionNode | SchemaExtensionNode {
@@ -178,7 +191,7 @@ function astFromSchema(
   return schemaNode;
 }
 
-function astFromDirective(
+export function astFromDirective(
   directive: GraphQLDirective,
   schema: GraphQLSchema,
   pathToDirectivesInExtensions: Array<string>
@@ -210,7 +223,7 @@ function astFromDirective(
   };
 }
 
-function getDirectiveNodes(
+export function getDirectiveNodes(
   entity: GraphQLSchema | GraphQLNamedType | GraphQLEnumValue,
   schema: GraphQLSchema,
   pathToDirectivesInExtensions: Array<string>
@@ -229,7 +242,7 @@ function getDirectiveNodes(
 
   let directives: Array<DirectiveNode>;
   if (directivesInExtensions != null) {
-    directives = makeDirectives(schema, directivesInExtensions);
+    directives = makeDirectiveNodes(schema, directivesInExtensions);
   } else {
     directives = [].concat(...nodes.filter(node => node.directives != null).map(node => node.directives));
   }
@@ -237,7 +250,7 @@ function getDirectiveNodes(
   return directives;
 }
 
-function getDeprecatableDirectiveNodes(
+export function getDeprecatableDirectiveNodes(
   entity: GraphQLArgument | GraphQLField<any, any> | GraphQLInputField,
   schema: GraphQLSchema,
   pathToDirectivesInExtensions: Array<string>
@@ -249,7 +262,7 @@ function getDeprecatableDirectiveNodes(
 
   let directives: ReadonlyArray<DirectiveNode>;
   if (directivesInExtensions != null) {
-    directives = makeDirectives(schema, directivesInExtensions);
+    directives = makeDirectiveNodes(schema, directivesInExtensions);
   } else {
     directives = entity.astNode?.directives;
   }
@@ -275,7 +288,7 @@ function getDeprecatableDirectiveNodes(
     : [deprecatedDirectiveNode].concat(directiveNodesBesidesDeprecated);
 }
 
-function astFromArg(
+export function astFromArg(
   arg: GraphQLArgument,
   schema: GraphQLSchema,
   pathToDirectivesInExtensions: Array<string>
@@ -300,7 +313,7 @@ function astFromArg(
   };
 }
 
-function astFromObjectType(
+export function astFromObjectType(
   type: GraphQLObjectType,
   schema: GraphQLSchema,
   pathToDirectivesInExtensions: Array<string>
@@ -325,7 +338,7 @@ function astFromObjectType(
   };
 }
 
-function astFromInterfaceType(
+export function astFromInterfaceType(
   type: GraphQLInterfaceType,
   schema: GraphQLSchema,
   pathToDirectivesInExtensions: Array<string>
@@ -357,7 +370,7 @@ function astFromInterfaceType(
   return node;
 }
 
-function astFromUnionType(
+export function astFromUnionType(
   type: GraphQLUnionType,
   schema: GraphQLSchema,
   pathToDirectivesInExtensions: Array<string>
@@ -381,7 +394,7 @@ function astFromUnionType(
   };
 }
 
-function astFromInputObjectType(
+export function astFromInputObjectType(
   type: GraphQLInputObjectType,
   schema: GraphQLSchema,
   pathToDirectivesInExtensions: Array<string>
@@ -407,7 +420,7 @@ function astFromInputObjectType(
   };
 }
 
-function astFromEnumType(
+export function astFromEnumType(
   type: GraphQLEnumType,
   schema: GraphQLSchema,
   pathToDirectivesInExtensions: Array<string>
@@ -431,11 +444,41 @@ function astFromEnumType(
   };
 }
 
-function astFromScalarType(
+export function astFromScalarType(
   type: GraphQLScalarType,
   schema: GraphQLSchema,
   pathToDirectivesInExtensions: Array<string>
 ): ScalarTypeDefinitionNode {
+  let directiveNodesBesidesSpecifiedBy: Array<DirectiveNode> = [];
+  let specifiedByDirectiveNode: DirectiveNode;
+
+  const directivesInExtensions = getDirectivesInExtensions(type, pathToDirectivesInExtensions);
+
+  let allDirectives: ReadonlyArray<DirectiveNode>;
+  if (directivesInExtensions != null) {
+    allDirectives = makeDirectiveNodes(schema, directivesInExtensions);
+  } else {
+    allDirectives = type.astNode?.directives;
+  }
+
+  if (allDirectives != null) {
+    directiveNodesBesidesSpecifiedBy = allDirectives.filter(directive => directive.name.value !== 'specifiedBy');
+    if (((type as unknown) as { specifiedByUrl: string }).specifiedByUrl != null) {
+      specifiedByDirectiveNode = allDirectives.filter(directive => directive.name.value === 'specifiedBy')?.[0];
+    }
+  }
+
+  if (((type as unknown) as { specifiedByUrl: string }).specifiedByUrl != null && specifiedByDirectiveNode == null) {
+    specifiedByDirectiveNode = makeDirectiveNode('specifiedBy', {
+      url: ((type as unknown) as { specifiedByUrl: string }).specifiedByUrl,
+    });
+  }
+
+  const directives =
+    specifiedByDirectiveNode == null
+      ? directiveNodesBesidesSpecifiedBy
+      : [specifiedByDirectiveNode].concat(directiveNodesBesidesSpecifiedBy);
+
   return {
     kind: Kind.SCALAR_TYPE_DEFINITION,
     description:
@@ -450,11 +493,11 @@ function astFromScalarType(
       kind: Kind.NAME,
       value: type.name,
     },
-    directives: getDirectiveNodes(type, schema, pathToDirectivesInExtensions),
+    directives,
   };
 }
 
-function astFromField(
+export function astFromField(
   field: GraphQLField<any, any>,
   schema: GraphQLSchema,
   pathToDirectivesInExtensions: Array<string>
@@ -479,7 +522,7 @@ function astFromField(
   };
 }
 
-function astFromInputField(
+export function astFromInputField(
   field: GraphQLInputField,
   schema: GraphQLSchema,
   pathToDirectivesInExtensions: Array<string>
@@ -500,10 +543,11 @@ function astFromInputField(
     },
     type: astFromType(field.type),
     directives: getDeprecatableDirectiveNodes(field, schema, pathToDirectivesInExtensions),
+    defaultValue: astFromValue(field.defaultValue, field.type),
   };
 }
 
-function astFromEnumValue(
+export function astFromEnumValue(
   value: GraphQLEnumValue,
   schema: GraphQLSchema,
   pathToDirectivesInExtensions: Array<string>
@@ -526,11 +570,15 @@ function astFromEnumValue(
   };
 }
 
-function makeDeprecatedDirective(deprecationReason: string): DirectiveNode {
-  return makeDirective('deprecated', { reason: deprecationReason }, GraphQLDeprecatedDirective);
+export function makeDeprecatedDirective(deprecationReason: string): DirectiveNode {
+  return makeDirectiveNode('deprecated', { reason: deprecationReason }, GraphQLDeprecatedDirective);
 }
 
-function makeDirective(name: string, args: Record<string, any>, directive: GraphQLDirective): DirectiveNode {
+export function makeDirectiveNode(
+  name: string,
+  args: Record<string, any>,
+  directive?: GraphQLDirective
+): DirectiveNode {
   const directiveArguments: Array<ArgumentNode> = [];
 
   if (directive != null) {
@@ -571,16 +619,16 @@ function makeDirective(name: string, args: Record<string, any>, directive: Graph
   };
 }
 
-function makeDirectives(schema: GraphQLSchema, directiveValues: Record<string, any>): Array<DirectiveNode> {
+export function makeDirectiveNodes(schema: GraphQLSchema, directiveValues: Record<string, any>): Array<DirectiveNode> {
   const directiveNodes: Array<DirectiveNode> = [];
   Object.entries(directiveValues).forEach(([directiveName, arrayOrSingleValue]) => {
     const directive = schema.getDirective(directiveName);
     if (Array.isArray(arrayOrSingleValue)) {
       arrayOrSingleValue.forEach(value => {
-        directiveNodes.push(makeDirective(directiveName, value, directive));
+        directiveNodes.push(makeDirectiveNode(directiveName, value, directive));
       });
     } else {
-      directiveNodes.push(makeDirective(directiveName, arrayOrSingleValue, directive));
+      directiveNodes.push(makeDirectiveNode(directiveName, arrayOrSingleValue, directive));
     }
   });
   return directiveNodes;

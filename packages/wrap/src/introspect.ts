@@ -8,8 +8,7 @@ import {
   IntrospectionQuery,
 } from 'graphql';
 
-import { ExecutionResult } from '@graphql-tools/utils';
-import { AsyncExecutor, Executor, SyncExecutor } from '@graphql-tools/delegate';
+import { AsyncExecutor, Executor, SyncExecutor, ExecutionResult } from '@graphql-tools/utils';
 import AggregateError from '@ardatan/aggregate-error';
 import isPromise from 'is-promise';
 
@@ -44,7 +43,7 @@ export function introspectSchema<TExecutor extends AsyncExecutor | SyncExecutor>
   return getSchemaFromIntrospection(introspectionResult) as any;
 }
 
-// Keep for backwards compability. Will be removed on next release.
+// Keep for backwards compatibility. Will be removed on next release.
 export function introspectSchemaSync(
   executor: SyncExecutor,
   context?: Record<string, any>,

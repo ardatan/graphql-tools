@@ -4,7 +4,7 @@ title: Schema wrapping
 description: Wrap schemas to automatically modify schemas, requests and results
 ---
 
-Schema wrapping (`@graphql-tools/wrap`) creates a modified version of a schema that proxies, or "wraps", the original unmodified schema. This technique is particularily useful when the original schema _cannot_ be changed, such as with [remote schemas](/docs/remote-schemas/).
+Schema wrapping (`@graphql-tools/wrap`) creates a modified version of a schema that proxies, or "wraps", the original unmodified schema. This technique is particularly useful when the original schema _cannot_ be changed, such as with [remote schemas](/docs/remote-schemas/).
 
 Schema wrapping works by creating a new "gateway" schema that simply delegates all operations to the original subschema. A series of _transforms_ are applied that may modify the shape of the gateway schema and all proxied operations; these operational transforms may modify an operation prior to delegation, or modify the subschema result prior to its return.
 
@@ -263,9 +263,9 @@ transforms: [
 
 Custom transforms are fairly straightforward to write. They are simply objects with up to three methods:
 
-- `transformSchema`: recieves the original subschema and applies modifications to it, returning a modified wrapper (proxy) schema. This method runs once while initially wrapping the subschema.
-- `transformRequest`: recieves each request made to the wrapped schema. The shape of a request matches the wrapper schema, and must be returned in a shape that matches the original subschema.
-- `transformResult`: recieves each result returned from the original subschema. The shape of the result matches the original subschema, and must be returned in a shape that matches the wrapper schema.
+- `transformSchema`: receives the original subschema and applies modifications to it, returning a modified wrapper (proxy) schema. This method runs once while initially wrapping the subschema.
+- `transformRequest`: receives each request made to the wrapped schema. The shape of a request matches the wrapper schema, and must be returned in a shape that matches the original subschema.
+- `transformResult`: receives each result returned from the original subschema. The shape of the result matches the original subschema, and must be returned in a shape that matches the wrapper schema.
 
 The complete transform object API is as follows:
 
@@ -333,7 +333,7 @@ const schema = wrapSchema({
 
 The `wrapSchema` method will produce a new schema with all queued `transformSchema` methods applied. Delegating resolvers are automatically generated to map from new schema root fields to old schema root fields. These resolvers should be sufficient for most common case so you don't have to implement your own.
 
-Delegating resolvers will apply all operation transforms defined by the wrapper's `Transform` objects. Each provided `transformRequest` functions will be applies in reverse order, until the request matches the original schema. The `tranformResult` functions will be applied in the opposite order until the result matches the final gateway schema.
+Delegating resolvers will apply all operation transforms defined by the wrapper's `Transform` objects. Each provided `transformRequest` functions will be applies in reverse order, until the request matches the original schema. The `transformResult` functions will be applied in the opposite order until the result matches the final gateway schema.
 
 In advanced cases, transforms may wish to create additional delegating root resolvers (for example, when hoisting a field into a root type). This is also possible. The wrapping schema is actually generated twice -- the first run results in a possibly non-executable version, while the second execution also includes the result of the first one within the `transformedSchema` argument so that an executable version with any new proxying resolvers can be created.
 

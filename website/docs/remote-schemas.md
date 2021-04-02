@@ -20,7 +20,7 @@ Generally, to create a remote schema, you generally need just three steps:
 2. Use [`introspectSchema`](#introspectschemaexecutor-context) to get the non-executable schema of the remote server
 3. Use [`wrapSchema`](#wrapschemaschemaconfig) to create a schema that uses the executor to delegate requests to the underlying service
 
-You can optionally also include a [subscriber](#creating-a-subscriber) that can retrieve real time subcription results from the remote schema (only if you are using GraphQL Subscriptions)
+You can optionally also include a [subscriber](#creating-a-subscriber) that can retrieve real time subscription results from the remote schema (only if you are using GraphQL Subscriptions)
 
 ### Creating an executor
 
@@ -191,7 +191,7 @@ const schema = await introspectSchema(executor);
 
 ### wrapSchema(schemaConfig)
 
-`wrapSchema` comes most in handly when wrapping a remote schema. When using the function to wrap a remote schema, it takes a single object: an subschema configuration object with properties describing how the schema should be accessed and wrapped. The `schema` and `executor` options are required.
+`wrapSchema` comes most in handy when wrapping a remote schema. When using the function to wrap a remote schema, it takes a single object: an subschema configuration object with properties describing how the schema should be accessed and wrapped. The `schema` and `executor` options are required.
 
 ```js
 import { wrapSchema } from '@graphql-tools/wrap';
@@ -240,7 +240,7 @@ export function defaultCreateProxyingResolver({
 }
 ```
 
-Parentheticaly, note that that `args` from the root field resolver are not directly passed to the target schema. These arguments have already been parsed into their corresponding internal values by the GraphQL execution algorithm. The correct, serialized form of the arguments are available within the `info` object, ready for proxying. Specifying the `args` property for `delegateToSchema` allows one to pass *additional* arguments to the target schema, which is not necessary when creating a simple proxying schema.
+Parenthetically, note that that `args` from the root field resolver are not directly passed to the target schema. These arguments have already been parsed into their corresponding internal values by the GraphQL execution algorithm. The correct, serialized form of the arguments are available within the `info` object, ready for proxying. Specifying the `args` property for `delegateToSchema` allows one to pass *additional* arguments to the target schema, which is not necessary when creating a simple proxying schema.
 
 The above can can all be put together like this:
 

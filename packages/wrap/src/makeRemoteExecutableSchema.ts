@@ -1,9 +1,10 @@
 import { buildSchema, GraphQLFieldResolver, GraphQLSchema } from 'graphql';
 
 import { IMakeRemoteExecutableSchemaOptions } from './types';
-import { Executor, Subscriber, delegateToSchema } from '@graphql-tools/delegate';
+import { delegateToSchema } from '@graphql-tools/delegate';
 
 import { wrapSchema } from './wrapSchema';
+import { Executor, Subscriber } from '@graphql-tools/utils';
 
 export function makeRemoteExecutableSchema({
   schema: schemaOrTypeDefs,

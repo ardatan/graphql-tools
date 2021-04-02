@@ -1,5 +1,29 @@
 # @graphql-tools/mock
 
+## 8.1.1
+
+### Patch Changes
+
+- cf794a42: fix(mock): fix missing reset method to IMockStore
+
+## 8.1.0
+
+### Minor Changes
+
+- a2e7ff77: feat(mock): add reset method to MockStore
+
+## 8.0.0
+
+### Major Changes
+
+- 24926654: Reworked to add state-full behavior to the library:
+
+  - Breaking: mock functions does not receive resolver arguments anymore and can't return promise. Use `resolvers` option instead.
+  - Breaking: when preserved, resolvers will not receive plain object returned by mock anymore as source but rather a `Ref` that can be used to query the store.
+  - Deprecated: MockList is deprecated. Use plain arrays instead.
+
+  See [migration guide](https://www.graphql-tools.com/docs/mocking/#migration-from-v7-and-below).
+
 ## 7.0.0
 
 ### Major Changes
@@ -20,7 +44,7 @@
 
   - The `transformRequest`/`transformResult` methods are now provided additional `delegationContext` and `transformationContext` arguments -- these were introduced in v6, but previously optional.
 
-  - The `transformSchema` method may wish to create additional delegating resolvers and so it is now provided the `subschemaConfig` and final (non-executable) `transformedSchema` parameters. As in v6, the `transformSchema` is kicked off once to produce the non-executable version, and then, if a wrapping schema is being generated, proxying resolvers are created with access to the (non-executabel) initial result. In v7, the individual `transformSchema` methods also get access to the result of the first run, if necessary, they can create additional wrapping schema proxying resolvers.
+  - The `transformSchema` method may wish to create additional delegating resolvers and so it is now provided the `subschemaConfig` and final (non-executable) `transformedSchema` parameters. As in v6, the `transformSchema` is kicked off once to produce the non-executable version, and then, if a wrapping schema is being generated, proxying resolvers are created with access to the (non-executable) initial result. In v7, the individual `transformSchema` methods also get access to the result of the first run, if necessary, they can create additional wrapping schema proxying resolvers.
 
   - `applySchemaTransforms` parameters have been updated to match and support the `transformSchema` parameters above.
 

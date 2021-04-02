@@ -3,7 +3,6 @@ import {
   GraphQLOutputType,
   SelectionSetNode,
   FieldNode,
-  DocumentNode,
   GraphQLResolveInfo,
   GraphQLFieldResolver,
   FragmentDefinitionNode,
@@ -15,7 +14,7 @@ import {
 
 import DataLoader from 'dataloader';
 
-import { Request, TypeMap, ExecutionResult } from '@graphql-tools/utils';
+import { ExecutionParams, ExecutionResult, Executor, Request, Subscriber, TypeMap } from '@graphql-tools/utils';
 
 import { Subschema } from './Subschema';
 import { OBJECT_SUBSCHEMA_SYMBOL, FIELD_SUBSCHEMA_MAP_SYMBOL, UNPATHED_ERRORS_SYMBOL } from './symbols';
@@ -60,7 +59,7 @@ export interface DelegationContext {
 export type DelegationBinding = (delegationContext: DelegationContext) => Array<Transform>;
 
 export interface IDelegateToSchemaOptions<TContext = Record<string, any>, TArgs = Record<string, any>> {
-  schema: GraphQLSchema | SubschemaConfig;
+  schema: GraphQLSchema | SubschemaConfig<any, any, any, TContext>;
   operationName?: string;
   operation?: OperationTypeNode;
   fieldName?: string;
@@ -79,7 +78,8 @@ export interface IDelegateToSchemaOptions<TContext = Record<string, any>, TArgs 
   binding?: DelegationBinding;
 }
 
-export interface IDelegateRequestOptions extends Omit<IDelegateToSchemaOptions, 'info'> {
+export interface IDelegateRequestOptions<TContext = Record<string, any>, TArgs = Record<string, any>>
+  extends Omit<IDelegateToSchemaOptions<TContext, TArgs>, 'info'> {
   request: Request;
   info?: GraphQLResolveInfo;
 }
@@ -107,7 +107,7 @@ export interface ICreateRequest {
   fieldNodes?: ReadonlyArray<FieldNode>;
 }
 
-export interface MergedTypeInfo {
+export interface MergedTypeInfo<TContext = Record<string, any>> {
   typeName: string;
   selectionSet?: SelectionSetNode;
   targetSubschemas: Map<Subschema, Array<Subschema>>;
@@ -116,71 +116,48 @@ export interface MergedTypeInfo {
   typeMaps: Map<GraphQLSchema | SubschemaConfig, TypeMap>;
   selectionSets: Map<Subschema, SelectionSetNode>;
   fieldSelectionSets: Map<Subschema, Record<string, SelectionSetNode>>;
-  resolvers: Map<Subschema, MergedTypeResolver>;
+  resolvers: Map<Subschema, MergedTypeResolver<TContext>>;
 }
 
-export interface ExecutionParams<TArgs = Record<string, any>, TContext = any> {
-  document: DocumentNode;
-  variables?: TArgs;
-  extensions?: Record<string, any>;
-  context?: TContext;
-  info?: GraphQLResolveInfo;
-}
-
-export type AsyncExecutor = <
-  TReturn = Record<string, any>,
-  TArgs = Record<string, any>,
-  TContext = Record<string, any>
->(
-  params: ExecutionParams<TArgs, TContext>
-) => Promise<ExecutionResult<TReturn>>;
-export type SyncExecutor = <TReturn = Record<string, any>, TArgs = Record<string, any>, TContext = Record<string, any>>(
-  params: ExecutionParams<TArgs, TContext>
-) => ExecutionResult<TReturn>;
-export type Executor = <TReturn = Record<string, any>, TArgs = Record<string, any>, TContext = Record<string, any>>(
-  params: ExecutionParams<TArgs, TContext>
-) => ExecutionResult<TReturn> | Promise<ExecutionResult<TReturn>>;
-export type Subscriber = <TReturn = Record<string, any>, TArgs = Record<string, any>, TContext = Record<string, any>>(
-  params: ExecutionParams<TArgs, TContext>
-) => Promise<AsyncIterator<ExecutionResult<TReturn>> | ExecutionResult<TReturn>>;
-
-export interface ICreateProxyingResolverOptions {
-  subschemaConfig: SubschemaConfig;
+export interface ICreateProxyingResolverOptions<TContext = Record<string, any>> {
+  subschemaConfig: SubschemaConfig<any, any, any, TContext>;
   transformedSchema?: GraphQLSchema;
   operation?: OperationTypeNode;
   fieldName?: string;
 }
 
-export type CreateProxyingResolverFn = (options: ICreateProxyingResolverOptions) => GraphQLFieldResolver<any, any>;
+export type CreateProxyingResolverFn<TContext = Record<string, any>> = (
+  options: ICreateProxyingResolverOptions<TContext>
+) => GraphQLFieldResolver<any, TContext>;
 
 export interface BatchingOptions<K = any, V = any, C = K> {
   extensionsReducer?: (mergedExtensions: Record<string, any>, executionParams: ExecutionParams) => Record<string, any>;
   dataLoaderOptions?: DataLoader.Options<K, V, C>;
 }
 
-export interface SubschemaConfig<K = any, V = any, C = K> {
+export interface SubschemaConfig<K = any, V = any, C = K, TContext = Record<string, any>> {
   schema: GraphQLSchema;
-  createProxyingResolver?: CreateProxyingResolverFn;
+  createProxyingResolver?: CreateProxyingResolverFn<TContext>;
   transforms?: Array<Transform>;
-  merge?: Record<string, MergedTypeConfig>;
+  merge?: Record<string, MergedTypeConfig<any, any, TContext>>;
   rootValue?: Record<string, any>;
-  executor?: Executor;
-  subscriber?: Subscriber;
+  executor?: Executor<TContext>;
+  subscriber?: Subscriber<TContext>;
   batch?: boolean;
   batchingOptions?: BatchingOptions<K, V, C>;
 }
 
-export interface MergedTypeConfig<K = any, V = any> extends MergedTypeAccessor<K, V> {
-  accessors?: Array<MergedTypeAccessor>;
+export interface MergedTypeConfig<K = any, V = any, TContext = Record<string, any>> extends MergedTypeEntryPoint<K, V, TContext> {
+  entryPoints?: Array<MergedTypeEntryPoint>;
   fields?: Record<string, MergedFieldConfig>;
   computedFields?: Record<string, { selectionSet?: string }>;
   canonical?: boolean;
 }
 
-export interface MergedTypeAccessor<K = any, V = any> extends MergedTypeResolverOptions<K, V> {
+export interface MergedTypeEntryPoint<K = any, V = any, TContext = Record<string, any>> extends MergedTypeResolverOptions<K, V> {
   selectionSet?: string;
   key?: (originalResult: any) => K;
-  resolve?: MergedTypeResolver;
+  resolve?: MergedTypeResolver<TContext>;
 }
 
 export interface MergedTypeResolverOptions<K = any, V = any> {
@@ -196,26 +173,26 @@ export interface MergedFieldConfig {
   canonical?: boolean;
 }
 
-export type MergedTypeResolver = (
+export type MergedTypeResolver<TContext = Record<string, any>> = (
   originalResult: any,
-  context: Record<string, any>,
+  context: TContext,
   info: GraphQLResolveInfo,
-  subschema: GraphQLSchema | SubschemaConfig,
+  subschema: GraphQLSchema | SubschemaConfig<any, any, any, TContext>,
   selectionSet: SelectionSetNode,
   key?: any
 ) => any;
 
-export interface StitchingInfo {
-  subschemaMap: Map<GraphQLSchema | SubschemaConfig, Subschema>;
+export interface StitchingInfo<TContext = Record<string, any>> {
+  subschemaMap: Map<GraphQLSchema | SubschemaConfig<any, any, any, TContext>, Subschema<any, any, any, TContext>>;
   selectionSetsByType: Record<string, SelectionSetNode>;
   selectionSetsByField: Record<string, Record<string, SelectionSetNode>>;
   dynamicSelectionSetsByField: Record<string, Record<string, Array<(node: FieldNode) => SelectionSetNode>>>;
-  mergedTypes: Record<string, MergedTypeInfo>;
+  mergedTypes: Record<string, MergedTypeInfo<TContext>>;
 }
 
-export interface ExternalObject {
+export interface ExternalObject<TContext = Record<string, any>> {
   key: any;
-  [OBJECT_SUBSCHEMA_SYMBOL]: GraphQLSchema | SubschemaConfig;
-  [FIELD_SUBSCHEMA_MAP_SYMBOL]: Record<string, GraphQLSchema | SubschemaConfig>;
+  [OBJECT_SUBSCHEMA_SYMBOL]: GraphQLSchema | SubschemaConfig<any, any, any, TContext>;
+  [FIELD_SUBSCHEMA_MAP_SYMBOL]: Record<string, GraphQLSchema | SubschemaConfig<any, any, any, TContext>>;
   [UNPATHED_ERRORS_SYMBOL]: Array<GraphQLError>;
 }

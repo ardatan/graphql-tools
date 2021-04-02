@@ -72,7 +72,7 @@ export interface IExecutableSchemaDefinition<TContext = any> {
    */
   updateResolversInPlace?: boolean;
   /**
-   * Do not extract and apply extensions seperately and leave it to `buildASTSchema`
+   * Do not extract and apply extensions separately and leave it to `buildASTSchema`
    */
   noExtensionExtraction?: boolean;
 }

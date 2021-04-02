@@ -1,83 +1,71 @@
-import { loadFilesSync, loadFiles } from '@graphql-tools/load-files';
+import { loadFilesSync, loadFiles, LoadFilesOptions } from '@graphql-tools/load-files';
 import { print } from 'graphql';
+import { join } from 'path';
 
-function testSchemaDir({ path, expected, note, extensions, ignoreIndex }: { path: string; expected: any; note: string; extensions?: string[] | null; ignoreIndex?: boolean }) {
-  it(`SYNC: should return the correct schema results for path: ${path} (${note})`, () => {
-    const options = {
+const syncAndAsync = Object.entries({ 'SYNC': loadFilesSync, 'ASYNC': loadFiles });
+
+function testSchemaDir({ path, expected, note, extensions, ignoreIndex }: TestDirOptions) {
+  let options: LoadFilesOptions;
+
+  beforeEach(() => {
+    options = {
       ignoreIndex,
       globOptions: {
         cwd: __dirname
       },
       requireMethod: jest.requireActual,
+      ...(extensions && { extensions }),
     };
-    const result = loadFilesSync(path, extensions ? { ...options, extensions } : options);
-
-    expect(result.length).toBe(expected.length);
-    expect(result.map(res => {
-      if (res.kind === 'Document') {
-        res = print(res);
-      }
-      return stripWhitespaces(res);
-    })).toEqual(expected.map(stripWhitespaces));
   });
 
-  it(`ASYNC: should return the correct schema results for path: ${path} (${note})`, async () => {
-    const options = {
-      ignoreIndex,
-      globOptions: {
-        cwd: __dirname
-      },
-      requireMethod: jest.requireActual,
-    };
-    const result = await loadFiles(path, extensions ? { ...options, extensions } : options);
+  syncAndAsync.forEach(([type, loadFiles]) => {
+    describe(type, () => {
+      it(`should return the correct schema results for path: ${path} (${note})`, async () => {
+        const result = await loadFiles(path, options);
 
-    expect(result.length).toBe(expected.length);
-    expect(result.map(res => {
-      if (res.kind === 'Document') {
-        res = print(res);
-      }
-      return stripWhitespaces(res);
-    })).toEqual(expected.map(stripWhitespaces));
-  });
+        expect(result.length).toBe(expected.length);
+        expect(result.map(res => {
+          if (res.kind === 'Document') {
+            res = print(res);
+          }
+          return stripWhitespaces(res);
+        })).toEqual(expected.map(stripWhitespaces));
+      });
+    });
+  })
+
 }
 
-function testResolversDir({ path, expected, note, extensions, compareValue, ignoreIndex }: { path: string; expected: any; note: string; extensions?: string[]; compareValue?: boolean; ignoreIndex?: boolean }) {
+function testResolversDir({ path, expected, note, extensions, compareValue, ignoreIndex, ignoredExtensions }: TestDirOptions) {
   if (typeof compareValue === 'undefined') {
     compareValue = true;
   }
+  let options: LoadFilesOptions;
 
-  it(`SYNC: should return the correct resolvers results for path: ${path} (${note})`, () => {
-    const options = {
+  beforeEach(() => {
+    options = {
       ignoreIndex,
       globOptions: {
         cwd: __dirname
       },
       requireMethod: jest.requireActual,
+      ...(extensions && { extensions }),
+      ...(ignoredExtensions && { ignoredExtensions }),
     };
-    const result = loadFilesSync(path, extensions ? { ...options, extensions } : options);
-
-    expect(result.length).toBe(expected.length);
-
-    if (compareValue) {
-      expect(result).toEqual(expected);
-    }
   });
 
-  it(`ASYNC: should return the correct resolvers results for path: ${path} (${note})`, async () => {
-    const options = {
-      ignoreIndex,
-      globOptions: {
-        cwd: __dirname
-      },
-      requireMethod: jest.requireActual,
-    };
-    const result = await loadFiles(path, extensions ? { ...options, extensions } : options);
+  syncAndAsync.forEach(([type, loadFiles]) => {
+    describe(type, () => {
+      it(`should return the correct resolvers results for path: ${path} (${note})`, async () => {
+        const result = await loadFiles(path, options);
 
-    expect(result.length).toBe(expected.length);
+        expect(result.length).toBe(expected.length);
 
-    if (compareValue) {
-      expect(result).toEqual(expected);
-    }
+        if (compareValue) {
+          expect(result).toEqual(expected);
+        }
+      });
+    })
   });
 }
 
@@ -205,7 +193,7 @@ describe('file scanner', function() {
           },
         },
       ],
-      note: 'ingore index files',
+      note: 'ignore index files',
       extensions: ['js'],
       compareValue: true,
       ignoreIndex: true,
@@ -215,5 +203,65 @@ describe('file scanner', function() {
       expected: [{ MyType: { f: 1 } }],
       note: 'non-directory pattern',
     });
+    testResolversDir({
+      path: './test-assets/13',
+      extensions: ['js'],
+      ignoredExtensions: ['s.js'],
+      expected: [{ MyType: { f: 1 } }],
+      note: 'include path finishing in s.js but do not include paths finishing in .s.js',
+    });
+    testResolversDir({
+      path: './test-assets/13',
+      extensions: ['.js'],
+      ignoredExtensions: ['.s.js'],
+      expected: [{ MyType: { f: 1 } }],
+      note: 'extensions and ignored extensions works with a trailing dot',
+    });
   });
+  syncAndAsync.forEach(([type, loadFiles]) => {
+    it(`${type}: should process custom extractExports properly`, async () => {
+      const customQueryTypeName = 'root_query';
+      const customExtractExports = (fileExport: any) => {
+        fileExport = fileExport.default || fileExport;
+        // Incoming exported value is function
+        return fileExport(customQueryTypeName);
+      };
+      const loadedFiles = await loadFiles(join(__dirname, './test-assets/custom-extractor/factory-func.js'), {
+        extractExports: customExtractExports
+      });
+      expect(loadedFiles).toHaveLength(1);
+      expect(customQueryTypeName in loadedFiles[0]).toBeTruthy();
+      expect('foo' in loadedFiles[0][customQueryTypeName]).toBeTruthy();
+      expect(typeof loadedFiles[0][customQueryTypeName]['foo']).toBe('function');
+      expect(loadedFiles[0][customQueryTypeName]['foo']()).toBe('FOO');
+    });
+    it(`${type}: ignore .d.ts files by default without file glob`, async () => {
+      const loadedFiles = await loadFiles(join(__dirname, './test-assets/ignore-extensions'));
+      expect(loadedFiles).toHaveLength(1);
+      const resolvers = loadedFiles[0];
+      expect(typeof resolvers).toBe('object');
+      expect(typeof resolvers.Query).toBe('object');
+      expect(typeof resolvers.Query.foo).toBe('function');
+      expect(resolvers.Query.foo()).toBe('FOO');
+    });
+    it(`${type}: ignore .d.ts files by default without file glob`, async () => {
+      const loadedFiles = await loadFiles(join(__dirname, './test-assets/ignore-extensions/*.*'));
+      expect(loadedFiles).toHaveLength(1);
+      const resolvers = loadedFiles[0];
+      expect(typeof resolvers).toBe('object');
+      expect(typeof resolvers.Query).toBe('object');
+      expect(typeof resolvers.Query.foo).toBe('function');
+      expect(resolvers.Query.foo()).toBe('FOO');
+    });
+  })
 });
+
+interface TestDirOptions {
+  path: string;
+  expected: any;
+  note: string;
+  extensions?: string[];
+  compareValue?: boolean;
+  ignoreIndex?: boolean;
+  ignoredExtensions?: string[];
+}

@@ -23,7 +23,7 @@ If you are using GraphQL Tools v6, there are several breaking changes to be awar
 
 - The `transformRequest`/`transformResult` methods are now provided additional `delegationContext` and `transformationContext` arguments -- these were introduced in v6, but previously optional.
 
-- The `transformSchema` method may wish to create additional delegating resolvers and so it is now provided the `subschemaConfig` and final (non-executable) `transformedSchema` parameters. As in v6, the `transformSchema` is kicked off once to produce the non-executable version, and then, if a wrapping schema is being generated, proxying resolvers are created with access to the (non-executabel) initial result. In v7, the individual `transformSchema` methods also get access to the result of the first run, if necessary, they can create additional wrapping schema proxying resolvers.
+- The `transformSchema` method may wish to create additional delegating resolvers and so it is now provided the `subschemaConfig` and final (non-executable) `transformedSchema` parameters. As in v6, the `transformSchema` is kicked off once to produce the non-executable version, and then, if a wrapping schema is being generated, proxying resolvers are created with access to the (non-executable) initial result. In v7, the individual `transformSchema` methods also get access to the result of the first run, if necessary, they can create additional wrapping schema proxying resolvers.
 
 - `applySchemaTransforms` parameters have been updated to match and support the `transformSchema` parameters above.
 
@@ -49,7 +49,20 @@ If you are using GraphQL Tools v6, there are several breaking changes to be awar
 
 - When using batch delegation in type merging, the `argsFromKeys` function is now set only via the `argsFromKeys` property. Previously, if `argsFromKeys` was absent, it could be read from `args`.
 
-- Support for fragment hints has been removed in favor of selection set hints.
+- Support for fragment hints has been removed in favor of selection set hints. To migrate you need to replace your resolver fragment hints for selection set hints eg.: 
+```gql 
+Type: {
+  fragment: '... on Type { id }'
+  resolve: () => { ... }
+}
+```
+for
+```gql
+Type: {
+  selectionSet: '{ id }'
+  resolve: () => { ... }
+}
+```
 
 - `stitchSchemas` now processes all `GraphQLSchema` and `SubschemaConfig` subschema input into new `Subschema` objects, handling schema config directives such aso`@computed` as well as generating the final transformed schema, stored as the `transformedSchema` property, if transforms are used. Signatures of the `onTypeConflict`, `fieldConfigMerger`, and `inputFieldConfigMerger` have been updated to include metadata related to the original and transformed subschemas. Note the property name change for `onTypeConflict` from `schema` to `subschema`.
 
@@ -67,7 +80,7 @@ If you are using GraphQL Tools v6, there are several breaking changes to be awar
 
 ## Upgrading from v4/v5
 
-If you are using GraphQL Tools v4/v5, additioanl changes are necessary.
+If you are using GraphQL Tools v4/v5, additional changes are necessary.
 
 #### Monorepo design
 

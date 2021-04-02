@@ -77,7 +77,7 @@ export class MockStore implements IMockStore {
     if (typeof _typeName !== 'string') {
       if (_key === undefined) {
         if (isRef<KeyT>(_typeName)) {
-          throw new Error("Can't provide a ref as first arguement and no other argument");
+          throw new Error("Can't provide a ref as first argument and no other argument");
         }
         // get({...})
         return this.getImpl(_typeName);
@@ -139,7 +139,7 @@ export class MockStore implements IMockStore {
     if (typeof _typeName !== 'string') {
       if (_key === undefined) {
         if (isRef<KeyT>(_typeName)) {
-          throw new Error("Can't provide a ref as first arguement and no other argument");
+          throw new Error("Can't provide a ref as first argument and no other argument");
         }
         // set({...})
         return this.setImpl(_typeName);
@@ -174,6 +174,10 @@ export class MockStore implements IMockStore {
     args.value = _value;
 
     return this.setImpl(args);
+  }
+
+  reset() {
+    this.store = {};
   }
 
   private getImpl<KeyT extends KeyTypeConstraints>(args: GetArgs<KeyT>) {
@@ -260,7 +264,7 @@ export class MockStore implements IMockStore {
       this.store[typeName][key] = {};
     }
 
-    // if already set and we don't ovveride
+    // if already set and we don't override
     if (this.store[typeName][key][fieldNameInStore] !== undefined && noOverride) {
       return;
     }
@@ -292,7 +296,7 @@ export class MockStore implements IMockStore {
     const fieldTypeName = fieldType.toString();
     if (value === null) {
       if (!isNullableType(fieldType)) {
-        throw new Error(`should not be null bacause ${fieldTypeName} is not nullable. Received null.`);
+        throw new Error(`should not be null because ${fieldTypeName} is not nullable. Received null.`);
       }
     }
 
@@ -420,7 +424,7 @@ export class MockStore implements IMockStore {
     if (value !== undefined) return value;
 
     const type = this.getType(typeName);
-    // GraphQL 14 Compability
+    // GraphQL 14 Compatibility
     const interfaces = 'getInterfaces' in type ? type.getInterfaces() : [];
 
     if (interfaces.length > 0) {

@@ -37,6 +37,13 @@ import {
   MergeInputFieldConfigCandidate,
   MergeEnumValueConfigCandidate,
 } from './types';
+
+import {
+  validateFieldConsistency,
+  validateInputFieldConsistency,
+  validateInputObjectConsistency,
+} from './mergeValidations';
+
 import { fieldToFieldConfig, inputFieldToFieldConfig } from '@graphql-tools/utils';
 import { isSubschemaConfig } from '@graphql-tools/delegate';
 
@@ -104,7 +111,8 @@ function mergeObjectTypeCandidates(
   const astNode = astNodes
     .slice(1)
     .reduce(
-      (acc, astNode) => mergeType(astNode, acc as ObjectTypeDefinitionNode) as ObjectTypeDefinitionNode,
+      (acc, astNode) =>
+        mergeType(astNode, acc as ObjectTypeDefinitionNode, { ignoreFieldConflicts: true }) as ObjectTypeDefinitionNode,
       astNodes[0]
     );
 
@@ -147,12 +155,13 @@ function mergeInputObjectTypeCandidates(
     });
   }
 
-  const astNode = astNodes
-    .slice(1)
-    .reduce(
-      (acc, astNode) => mergeInputType(astNode, acc as InputObjectTypeDefinitionNode) as InputObjectTypeDefinitionNode,
-      astNodes[0]
-    );
+  const astNode = astNodes.slice(1).reduce(
+    (acc, astNode) =>
+      mergeInputType(astNode, acc as InputObjectTypeDefinitionNode, {
+        ignoreFieldConflicts: true,
+      }) as InputObjectTypeDefinitionNode,
+    astNodes[0]
+  );
 
   const extensionASTNodes = [].concat(pluck<Record<string, any>>('extensionASTNodes', candidates));
 
@@ -208,12 +217,13 @@ function mergeInterfaceTypeCandidates(
     });
   }
 
-  const astNode = astNodes
-    .slice(1)
-    .reduce(
-      (acc, astNode) => mergeInterface(astNode, acc as InterfaceTypeDefinitionNode, {}) as InterfaceTypeDefinitionNode,
-      astNodes[0]
-    );
+  const astNode = astNodes.slice(1).reduce(
+    (acc, astNode) =>
+      mergeInterface(astNode, acc as InterfaceTypeDefinitionNode, {
+        ignoreFieldConflicts: true,
+      }) as InterfaceTypeDefinitionNode,
+    astNodes[0]
+  );
 
   const extensionASTNodes = [].concat(pluck<Record<string, any>>('extensionASTNodes', candidates));
 
@@ -462,7 +472,9 @@ function fieldConfigMapFromTypeCandidates(
 
 function mergeFieldConfigs(candidates: Array<MergeFieldConfigCandidate>, typeMergingOptions: TypeMergingOptions) {
   const fieldConfigMerger = typeMergingOptions?.fieldConfigMerger ?? defaultFieldConfigMerger;
-  return fieldConfigMerger(candidates);
+  const finalFieldConfig = fieldConfigMerger(candidates);
+  validateFieldConsistency(finalFieldConfig, candidates, typeMergingOptions);
+  return finalFieldConfig;
 }
 
 function defaultFieldConfigMerger(candidates: Array<MergeFieldConfigCandidate>) {
@@ -494,10 +506,14 @@ function inputFieldConfigMapFromTypeCandidates(
   typeMergingOptions: TypeMergingOptions
 ): GraphQLInputFieldConfigMap {
   const inputFieldConfigCandidatesMap: Record<string, Array<MergeInputFieldConfigCandidate>> = Object.create(null);
+  const fieldInclusionMap: Record<string, number> = Object.create(null);
 
   candidates.forEach(candidate => {
     const inputFieldMap = (candidate.type as GraphQLInputObjectType).getFields();
     Object.keys(inputFieldMap).forEach(fieldName => {
+      fieldInclusionMap[fieldName] = fieldInclusionMap[fieldName] || 0;
+      fieldInclusionMap[fieldName] += 1;
+
       const inputFieldConfigCandidate = {
         inputFieldConfig: inputFieldToFieldConfig(inputFieldMap[fieldName]),
         fieldName,
@@ -514,11 +530,18 @@ function inputFieldConfigMapFromTypeCandidates(
     });
   });
 
+  validateInputObjectConsistency(fieldInclusionMap, candidates, typeMergingOptions);
+
   const inputFieldConfigMap = Object.create(null);
 
   Object.keys(inputFieldConfigCandidatesMap).forEach(fieldName => {
     const inputFieldConfigMerger = typeMergingOptions?.inputFieldConfigMerger ?? defaultInputFieldConfigMerger;
     inputFieldConfigMap[fieldName] = inputFieldConfigMerger(inputFieldConfigCandidatesMap[fieldName]);
+    validateInputFieldConsistency(
+      inputFieldConfigMap[fieldName],
+      inputFieldConfigCandidatesMap[fieldName],
+      typeMergingOptions
+    );
   });
 
   return inputFieldConfigMap;

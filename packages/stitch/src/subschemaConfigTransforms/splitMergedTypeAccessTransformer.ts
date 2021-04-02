@@ -3,15 +3,15 @@ import { cloneSubschemaConfig, SubschemaConfig } from '@graphql-tools/delegate';
 export function splitMergedTypeAccessTransformer(subschemaConfig: SubschemaConfig): Array<SubschemaConfig> {
   if (!subschemaConfig.merge) return [subschemaConfig];
 
-  const maxAccessors = Object.values(subschemaConfig.merge).reduce((max: number, mergedTypeConfig) => {
-    return Math.max(max, mergedTypeConfig?.accessors?.length ?? 0);
+  const maxEntryPoints = Object.values(subschemaConfig.merge).reduce((max: number, mergedTypeConfig) => {
+    return Math.max(max, mergedTypeConfig?.entryPoints?.length ?? 0);
   }, 0);
 
-  if (maxAccessors === 0) return [subschemaConfig];
+  if (maxEntryPoints === 0) return [subschemaConfig];
 
   const subschemaPermutations = [];
 
-  for (let i = 0; i < maxAccessors; i += 1) {
+  for (let i = 0; i < maxEntryPoints; i += 1) {
     const subschemaPermutation = cloneSubschemaConfig(subschemaConfig);
     const mergedTypesCopy = subschemaPermutation.merge;
 
@@ -21,15 +21,15 @@ export function splitMergedTypeAccessTransformer(subschemaConfig: SubschemaConfi
 
     Object.keys(mergedTypesCopy).forEach(typeName => {
       const mergedTypeConfig = mergedTypesCopy[typeName];
-      const mergedTypeAccessor = mergedTypeConfig?.accessors?.[i];
+      const mergedTypeEntryPoint = mergedTypeConfig?.entryPoints?.[i];
 
-      if (mergedTypeAccessor) {
+      if (mergedTypeEntryPoint) {
         if (mergedTypeConfig.selectionSet || mergedTypeConfig.fieldName) {
-          throw new Error(`Merged type ${typeName} may not define both accessors and a selectionSet or fieldName`);
+          throw new Error(`Merged type ${typeName} may not define both entryPoints and a selectionSet or fieldName`);
         }
 
-        Object.assign(mergedTypeConfig, mergedTypeAccessor);
-        delete mergedTypeConfig.accessors;
+        Object.assign(mergedTypeConfig, mergedTypeEntryPoint);
+        delete mergedTypeConfig.entryPoints;
 
         if (i > 0) {
           delete mergedTypeConfig.canonical;

@@ -76,7 +76,7 @@ describe('merge on multiple keys', () => {
         schema: vendorSchema,
         merge: {
           Product: {
-            accessors: [{
+            entryPoints: [{
               selectionSet: '{ upc }',
               fieldName: 'productsByKey',
               key: ({ upc }) => ({ upc }),

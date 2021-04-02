@@ -1,5 +1,85 @@
 # @graphql-tools/stitch
 
+## 7.5.0
+
+### Minor Changes
+
+- 58fd4b28: feat(types): add TContext to stitchSchemas and executor
+
+### Patch Changes
+
+- Updated dependencies [58fd4b28]
+- Updated dependencies [43da6b59]
+  - @graphql-tools/delegate@7.1.0
+  - @graphql-tools/utils@7.7.0
+  - @graphql-tools/merge@6.2.11
+
+## 7.4.0
+
+### Minor Changes
+
+- 0194118f: Introduces a suite of stitched schema validations that enforce the integrity of merged schemas. This includes validations for:
+
+  - Strict and safe null consistency (the later of which allows safe transitions in nullability).
+  - Named type consistency with the option to whitelist proxiable scalar mappings.
+  - Argument and input field name consistency.
+  - Enum value consistency when used as an input value.
+
+  Validations may be adjusted by setting `validationLevel` to `off|warn|error` globally or scoped for specific types and fields. In this initial v7 release, all validations are introduced at the `warn` threshold for backwards compatibility. Most of these validations will become automatic errors in v8. To enable validation errors now, set `validationLevel: 'error'`. Full configuration options look like this:
+
+  ```js
+  const gatewaySchema = stitchSchemas({
+    subschemas: [...],
+    typeMergingOptions: {
+      validationSettings: {
+        validationLevel: 'error',
+        strictNullComparison: false, // << gateway "String" may proxy subschema "String!"
+        proxiableScalars: {
+          ID: ['String'], // << gateway "ID" may proxy subschema "String"
+        }
+      },
+      validationScopes: {
+        // scope to specific element paths
+        'User.id': {
+          validationLevel: 'warn',
+          strictNullComparison: true,
+        },
+      }
+    },
+  });
+  ```
+
+### Patch Changes
+
+- Updated dependencies [0194118f]
+  - @graphql-tools/merge@6.2.10
+
+## 7.3.0
+
+### Minor Changes
+
+- 24926654: Deprecates the `MergeTypeConfig.computedFields` setting (with backwards-compatible warning) in favor of new computed field configuration written as:
+
+  ```js
+  merge: {
+    MyType: {
+      fields: {
+        myComputedField: {
+          selectionSet: '{ weight }',
+          computed: true,
+        }
+      }
+    }
+  }
+  ```
+
+  A field-level `selectionSet` specifies field dependencies while the `computed` setting structures the field in a way that assures it is always selected with this data provided. The `selectionSet` is intentionally generic to support possible future uses. This new pattern organizes all field-level configuration (including `canonical`) into a single structure.
+
+### Patch Changes
+
+- Updated dependencies [24926654]
+  - @graphql-tools/delegate@7.0.10
+
 ## 7.2.1
 
 ### Patch Changes
@@ -177,7 +257,7 @@
 
   - The `transformRequest`/`transformResult` methods are now provided additional `delegationContext` and `transformationContext` arguments -- these were introduced in v6, but previously optional.
 
-  - The `transformSchema` method may wish to create additional delegating resolvers and so it is now provided the `subschemaConfig` and final (non-executable) `transformedSchema` parameters. As in v6, the `transformSchema` is kicked off once to produce the non-executable version, and then, if a wrapping schema is being generated, proxying resolvers are created with access to the (non-executabel) initial result. In v7, the individual `transformSchema` methods also get access to the result of the first run, if necessary, they can create additional wrapping schema proxying resolvers.
+  - The `transformSchema` method may wish to create additional delegating resolvers and so it is now provided the `subschemaConfig` and final (non-executable) `transformedSchema` parameters. As in v6, the `transformSchema` is kicked off once to produce the non-executable version, and then, if a wrapping schema is being generated, proxying resolvers are created with access to the (non-executable) initial result. In v7, the individual `transformSchema` methods also get access to the result of the first run, if necessary, they can create additional wrapping schema proxying resolvers.
 
   - `applySchemaTransforms` parameters have been updated to match and support the `transformSchema` parameters above.
 

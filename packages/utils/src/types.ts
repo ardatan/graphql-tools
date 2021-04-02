@@ -1,4 +1,4 @@
-import { GraphQLEnumType, GraphQLInputObjectType, GraphQLScalarType } from 'graphql';
+import { GraphQLEnumType, GraphQLInputObjectType, GraphQLNamedType, GraphQLScalarType } from 'graphql';
 
 export interface SchemaPrintOptions {
   /**
@@ -12,18 +12,28 @@ export interface SchemaPrintOptions {
   commentDescriptions?: boolean;
 }
 
-export interface PrintSchemaWithDirectivesOptions extends SchemaPrintOptions {
+export interface GetDocumentNodeFromSchemaOptions {
   pathToDirectivesInExtensions?: Array<string>;
 }
+
+export type PrintSchemaWithDirectivesOptions = SchemaPrintOptions & GetDocumentNodeFromSchemaOptions;
 
 export type Maybe<T> = null | undefined | T;
 
 export type Constructor<T> = new (...args: any[]) => T;
 
+export type PruneSchemaFilter = (type: GraphQLNamedType) => boolean;
+
 /**
  * Options for removing unused types from the schema
  */
 export interface PruneSchemaOptions {
+  /**
+   * Return true to skip pruning this type. This check will run first before any other options.
+   * This can be helpful for schemas that support type extensions like Apollo Federation.
+   */
+  skipPruning?: PruneSchemaFilter;
+
   /**
    * Set to `true` to skip pruning object types or interfaces with no no fields
    */

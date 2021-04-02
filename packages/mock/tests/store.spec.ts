@@ -198,7 +198,7 @@ describe('MockStore', () => {
     expect(store.get('User', '123', 'name')).toEqual('Superman');
   });
 
-  it('with type level mocks, it should produce consistant values', () => {
+  it('with type level mocks, it should produce consistent values', () => {
     const store = createMockStore({
       schema,
       mocks: {
@@ -359,7 +359,7 @@ describe('MockStore', () => {
     const myFriendsRefs = store.get('User', 'me', 'friends') as Ref[];
     expect(myFriendsRefs).toHaveLength(2);
 
-    // should retrurn array of valid refs
+    // should return array of valid refs
     expect(myFriendsRefs[0]).toHaveProperty('$ref')
   });
 
@@ -516,5 +516,12 @@ describe('MockStore', () => {
       })
 
     })
+  })
+  it('should reset the store', () => {
+    const store = createMockStore({ schema });
+
+    store.set(makeRef('User', 'me'), 'name', 'Alexandre');
+    store.reset();
+    expect(store.get('User', 'me', 'name')).not.toEqual('Alexandre');
   })
 });

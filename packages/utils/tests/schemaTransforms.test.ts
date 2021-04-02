@@ -451,7 +451,7 @@ describe('@directives', () => {
           }
         })
       };
-    };
+    }
 
     function getUser(token: string) {
       const roles = ['UNKNOWN', 'USER', 'REVIEWER', 'ADMIN'];
@@ -628,7 +628,7 @@ describe('@directives', () => {
           }
         }),
       };
-    };
+    }
 
     const { lengthDirectiveTypeDefs, lengthDirectiveTransformer } = lengthDirective('length');
 
@@ -902,7 +902,7 @@ describe('@directives', () => {
   });
 
   test("can modify enum value's external value", () => {
-    function modfyExternalEnumValueDirective(directiveName: string): (schema: GraphQLSchema) => GraphQLSchema {
+    function modifyExternalEnumValueDirective(directiveName: string): (schema: GraphQLSchema) => GraphQLSchema {
       return schema => mapSchema(schema, {
         [MapperKind.ENUM_VALUE]: (enumValueConfig) => {
           const directives = getDirectives(schema, enumValueConfig);
@@ -928,7 +928,7 @@ describe('@directives', () => {
           LAPTOP @value(new: "COMPUTER")
         }
       `,
-      schemaTransforms: [modfyExternalEnumValueDirective('value')]
+      schemaTransforms: [modifyExternalEnumValueDirective('value')]
     });
 
     const Device = schema.getType('Device') as GraphQLEnumType;
@@ -940,7 +940,7 @@ describe('@directives', () => {
   });
 
   test("can modify enum value's internal value", () => {
-    function modfyInternalEnumValueDirective(directiveName: string): (schema: GraphQLSchema) => GraphQLSchema {
+    function modifyInternalEnumValueDirective(directiveName: string): (schema: GraphQLSchema) => GraphQLSchema {
       return schema => mapSchema(schema, {
         [MapperKind.ENUM_VALUE]: (enumValueConfig) => {
           const directives = getDirectives(schema, enumValueConfig);
@@ -967,7 +967,7 @@ describe('@directives', () => {
           LAPTOP @value(new: "COMPUTER")
         }
       `,
-      schemaTransforms: [modfyInternalEnumValueDirective('value')]
+      schemaTransforms: [modifyInternalEnumValueDirective('value')]
     });
 
     const Device = schema.getType('Device') as GraphQLEnumType;

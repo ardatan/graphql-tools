@@ -25,7 +25,7 @@ export type GetArgs<KeyT extends KeyTypeConstraints = string> = {
   key?: KeyT;
   fieldName?: string;
   /**
-   * Optionnal arguments when querying the field.
+   * Optional arguments when querying the field.
    *
    * Querying the field with the same arguments will return
    * the same value. Deep equality is checked.
@@ -36,7 +36,7 @@ export type GetArgs<KeyT extends KeyTypeConstraints = string> = {
    * ```
    *
    * Args can be a record, just like `args` argument of field resolver or an
-   * arbitraty string.
+   * arbitrary string.
    */
   fieldArgs?: string | { [argName: string]: any };
   /**
@@ -50,7 +50,7 @@ export type SetArgs<KeyT extends KeyTypeConstraints = string> = {
   key: KeyT;
   fieldName?: string;
   /**
-   * Optionnal arguments when querying the field.
+   * Optional arguments when querying the field.
    *
    * @see GetArgs#fieldArgs
    */
@@ -58,7 +58,7 @@ export type SetArgs<KeyT extends KeyTypeConstraints = string> = {
   value?: unknown | { [fieldName: string]: any };
   /**
    * If the value for this field is already set, it won't
-   * be overriden.
+   * be overridden.
    *
    * Propagates down do nested `set`.
    */
@@ -69,7 +69,7 @@ export interface IMockStore {
   schema: GraphQLSchema;
   /**
    * Get a field value from the store for the given type, key and field
-   * name — and optionnally field arguments. If the field name is not given,
+   * name — and optionally field arguments. If the field name is not given,
    * a reference to the type will be returned.
    *
    * If the the value for this field is not set, a value will be
@@ -122,7 +122,7 @@ export interface IMockStore {
 
   /**
    * Set a field value in the store for the given type, key and field
-   * name — and optionnally field arguments.
+   * name — and optionally field arguments.
    *
    * If the the field return type is an `ObjectType` or a list of
    * `ObjectType`, you can set references to other entity as value:
@@ -175,6 +175,11 @@ export interface IMockStore {
    * Set the given field values to the type with ref.
    */
   set<KeyT extends KeyTypeConstraints = string>(ref: Ref<KeyT>, values: { [fieldName: string]: any }): void;
+
+  /**
+   * Resets the mock store
+   */
+  reset(): void;
 }
 
 export type Ref<KeyT extends KeyTypeConstraints = string> = {

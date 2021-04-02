@@ -157,42 +157,8 @@ Array [
 ]
 `;
 
-exports[`prisma definition dont load yml with secret and env var in args 1`] = `
-[Error: Invalid prisma.yml file
-prisma.yml should NOT have additional properties. additionalProperty: service]
-`;
+exports[`prisma definition don't load yml with secret and env var in args 1`] = `undefined`;
 
-exports[`prisma definition load basic yml, provide cluster 1`] = `
-[Error: Invalid prisma.yml file
-prisma.yml should NOT have additional properties. additionalProperty: service]
-`;
+exports[`prisma definition throw when no secret or disable auth provided 1`] = `undefined`;
 
-exports[`prisma definition load yml with disableAuth: true 1`] = `
-[Error: Invalid prisma.yml file
-prisma.yml should NOT have additional properties. additionalProperty: service]
-`;
-
-exports[`prisma definition load yml with injected env var 1`] = `
-[Error: Invalid prisma.yml file
-prisma.yml should NOT have additional properties. additionalProperty: service]
-`;
-
-exports[`prisma definition load yml with secret and env var 1`] = `
-[Error: Invalid prisma.yml file
-prisma.yml should NOT have additional properties. additionalProperty: service]
-`;
-
-exports[`prisma definition load yml with secret and env var in .env 1`] = `
-[Error: Invalid prisma.yml file
-prisma.yml should NOT have additional properties. additionalProperty: service]
-`;
-
-exports[`prisma definition throw when no secret or disable auth provided 1`] = `
-[Error: Invalid prisma.yml file
-prisma.yml should NOT have additional properties. additionalProperty: service]
-`;
-
-exports[`prisma definition throws when stages key apparent 1`] = `
-[Error: Invalid prisma.yml file
-prisma.yml should NOT have additional properties. additionalProperty: service]
-`;
+exports[`prisma definition throws when stages key apparent 1`] = `undefined`;

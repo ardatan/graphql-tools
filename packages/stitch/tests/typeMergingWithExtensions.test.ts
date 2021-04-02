@@ -11,6 +11,7 @@ import { ExecutionResult } from '@graphql-tools/utils';
 import { stitchSchemas } from '@graphql-tools/stitch';
 
 import { stitchingDirectives } from '@graphql-tools/stitching-directives';
+import { ValidationLevel } from '../src/types';
 
 describe('merging using type merging', () => {
   const { stitchingDirectivesValidator, stitchingDirectivesTransformer } = stitchingDirectives();
@@ -402,6 +403,9 @@ describe('merging using type merging', () => {
         batch: true,
       }],
     subschemaConfigTransforms: [stitchingDirectivesTransformer],
+    typeMergingOptions: {
+      validationSettings: { validationLevel: ValidationLevel.Off }
+    }
   });
 
   test('can stitch from products to inventory schema including mixture of computed and non-computed fields', async () => {

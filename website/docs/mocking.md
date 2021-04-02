@@ -156,7 +156,7 @@ const mocks = {
 }
 ```
 
-### Appplying mutations
+### Applying mutations
 
 Use `resolvers` option of `addMocksToSchema` to implement custom resolvers that interact with the [`MockStore`](#mockstore), especially to mutate field values.
 
@@ -372,7 +372,7 @@ your query with variables. **Note**: when executing queries from the returned se
 
 ### MockStore
 
-The `MockStore` is holding the generated mocks and can be used to acess, generate or alter mocked values.
+The `MockStore` is holding the generated mocks and can be used to access, generate or alter mocked values.
 
 You can access the `MockStore` either as argument of `resolvers` option of `addMocksToSchema`:
 
@@ -397,7 +397,7 @@ const store = createMockStore({ schema });
 const schemaWithMocks = addMocksToSchema({ schema, store });
 ```
 
-The content is accessible and modifiabale via the methods `get` and `set` of the `MockStore`. These methods have several signatures (see [their typing](https://github.com/ardatan/graphql-tools/blob/master/packages/mock/src/types.ts))
+The content is accessible and modifiable via the methods `get` and `set` of the `MockStore`. These methods have several signatures (see [their typing](https://github.com/ardatan/graphql-tools/blob/master/packages/mock/src/types.ts))
 but here are some examples:
 
 #### get
@@ -444,7 +444,7 @@ store.get('User', 'abc-737dh-djdjd')
 > { $ref: { key: 'abc-737dh-djdjd', typeName: 'User' } }
 ```
 
-Root types (`Query`, `Mutation`), which necessarely have only one entity, will use the special store key `ROOT` to reference this only entity:
+Root types (`Query`, `Mutation`), which necessarily have only one entity, will use the special store key `ROOT` to reference this only entity:
 
 ```ts
 store.get('Query', 'ROOT', 'viewer');
@@ -483,13 +483,20 @@ Set a field value via graph traversal (nested set):
 ```ts
 store.get('Query', 'ROOT', {
   viewer: {
-    name: 'Alexamdre',
+    name: 'Alexandre',
     friends: [
       { name: 'Emily' },
       { name: 'Caroline' }
     ]
   },
 });
+```
+#### reset
+
+This method will reset `MockStore`.
+
+```ts
+store.reset();
 ```
 
 ## Migration from V7 and below

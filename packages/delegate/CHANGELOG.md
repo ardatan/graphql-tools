@@ -1,5 +1,47 @@
 # @graphql-tools/delegate
 
+## 7.1.1
+
+### Patch Changes
+
+- f84e7b15: fix(delegate): export executor typings not to have breaking change
+- Updated dependencies [194ac370]
+  - @graphql-tools/utils@7.7.1
+
+## 7.1.0
+
+### Minor Changes
+
+- 58fd4b28: feat(types): add TContext to stitchSchemas and executor
+
+### Patch Changes
+
+- Updated dependencies [58fd4b28]
+- Updated dependencies [43da6b59]
+  - @graphql-tools/batch-execute@7.1.0
+  - @graphql-tools/utils@7.7.0
+
+## 7.0.10
+
+### Patch Changes
+
+- 24926654: Deprecates the `MergeTypeConfig.computedFields` setting (with backwards-compatible warning) in favor of new computed field configuration written as:
+
+  ```js
+  merge: {
+    MyType: {
+      fields: {
+        myComputedField: {
+          selectionSet: '{ weight }',
+          computed: true,
+        }
+      }
+    }
+  }
+  ```
+
+  A field-level `selectionSet` specifies field dependencies while the `computed` setting structures the field in a way that assures it is always selected with this data provided. The `selectionSet` is intentionally generic to support possible future uses. This new pattern organizes all field-level configuration (including `canonical`) into a single structure.
+
 ## 7.0.9
 
 ### Patch Changes
@@ -100,7 +142,7 @@
 
   - The `transformRequest`/`transformResult` methods are now provided additional `delegationContext` and `transformationContext` arguments -- these were introduced in v6, but previously optional.
 
-  - The `transformSchema` method may wish to create additional delegating resolvers and so it is now provided the `subschemaConfig` and final (non-executable) `transformedSchema` parameters. As in v6, the `transformSchema` is kicked off once to produce the non-executable version, and then, if a wrapping schema is being generated, proxying resolvers are created with access to the (non-executabel) initial result. In v7, the individual `transformSchema` methods also get access to the result of the first run, if necessary, they can create additional wrapping schema proxying resolvers.
+  - The `transformSchema` method may wish to create additional delegating resolvers and so it is now provided the `subschemaConfig` and final (non-executable) `transformedSchema` parameters. As in v6, the `transformSchema` is kicked off once to produce the non-executable version, and then, if a wrapping schema is being generated, proxying resolvers are created with access to the (non-executable) initial result. In v7, the individual `transformSchema` methods also get access to the result of the first run, if necessary, they can create additional wrapping schema proxying resolvers.
 
   - `applySchemaTransforms` parameters have been updated to match and support the `transformSchema` parameters above.
 

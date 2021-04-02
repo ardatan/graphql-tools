@@ -134,7 +134,7 @@ export function addMocksToSchema({
       });
     }
 
-    // we have to handle the root mutation, root query and root subscripton types
+    // we have to handle the root mutation, root query and root subscription types
     // differently, because no resolver is called at the root
     if (isRootType(info.parentType, info.schema)) {
       return store.get({

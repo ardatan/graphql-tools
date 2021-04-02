@@ -1,5 +1,38 @@
 # @graphql-tools/links
 
+## 7.1.0
+
+### Minor Changes
+
+- 58fd4b28: feat(types): add TContext to stitchSchemas and executor
+
+### Patch Changes
+
+- Updated dependencies [58fd4b28]
+- Updated dependencies [43da6b59]
+  - @graphql-tools/delegate@7.1.0
+  - @graphql-tools/utils@7.7.0
+
+## 7.0.6
+
+### Patch Changes
+
+- 1516c89a: fix(links): fix typing issues with linkToExecutor and AsyncExecutor
+
+## 7.0.5
+
+### Patch Changes
+
+- f80ce4f4: enhance(url-loader/links): use new form-data that already supports streams
+
+## 7.0.4
+
+### Patch Changes
+
+- 24926654: fix(links): peer dependency issue
+- Updated dependencies [24926654]
+  - @graphql-tools/delegate@7.0.10
+
 ## 7.0.3
 
 ### Patch Changes
@@ -59,7 +92,7 @@
 
   - The `transformRequest`/`transformResult` methods are now provided additional `delegationContext` and `transformationContext` arguments -- these were introduced in v6, but previously optional.
 
-  - The `transformSchema` method may wish to create additional delegating resolvers and so it is now provided the `subschemaConfig` and final (non-executable) `transformedSchema` parameters. As in v6, the `transformSchema` is kicked off once to produce the non-executable version, and then, if a wrapping schema is being generated, proxying resolvers are created with access to the (non-executabel) initial result. In v7, the individual `transformSchema` methods also get access to the result of the first run, if necessary, they can create additional wrapping schema proxying resolvers.
+  - The `transformSchema` method may wish to create additional delegating resolvers and so it is now provided the `subschemaConfig` and final (non-executable) `transformedSchema` parameters. As in v6, the `transformSchema` is kicked off once to produce the non-executable version, and then, if a wrapping schema is being generated, proxying resolvers are created with access to the (non-executable) initial result. In v7, the individual `transformSchema` methods also get access to the result of the first run, if necessary, they can create additional wrapping schema proxying resolvers.
 
   - `applySchemaTransforms` parameters have been updated to match and support the `transformSchema` parameters above.
 

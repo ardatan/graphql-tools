@@ -79,7 +79,7 @@ export const schema = stitchSchemas({
 });
 ```
 
-The `typeDefs` option provides type extentions (using the `extend` keyword) that add additional fields into the _combined_ gateway schema, and therefore may cross-reference types from any subschema.
+The `typeDefs` option provides type extensions (using the `extend` keyword) that add additional fields into the _combined_ gateway schema, and therefore may cross-reference types from any subschema.
 
 However, these extensions alone won't do anything until they have corresponding resolvers. A complete example would look like this:
 
@@ -148,7 +148,9 @@ Post: {
 },
 ```
 
-The `selectionSet` specifies the key field(s) needed from an object to query for its associations. For example, `Post.user` will require that a Post provide its `userId`. Rather than relying on incoming queries to manually request this key for the association, the selection set will automatically be included in subschema requests to guarentee that these fields are fetched. Dynamic selection sets are also possible by providing a function that receives a GraphQL `FieldNode` (the gateway field) and returns a `SelectionSetNode`.
+The `selectionSet` specifies the key field(s) needed from an object to query for its associations. For example, `Post.user` will require that a Post provide its `userId`. Rather than relying on incoming queries to manually request this key for the association, the selection set will automatically be included in subschema requests to guarantee that these fields are fetched. Dynamic selection sets are also possible by providing a function that receives a GraphQL `FieldNode` (the gateway field) and returns a `SelectionSetNode`.
+
+Note: As of version 7 of graphql-tools, `fragment` hints are removed in favor of `selectionSet` hints, read more in migration guide.
 
 ### resolve
 

@@ -139,8 +139,8 @@ function filterIsolatedSubschema(subschemaConfig: SubschemaConfig): SubschemaCon
   const rootFields: Record<string, boolean> = {};
 
   Object.values(subschemaConfig.merge).forEach(mergedTypeConfig => {
-    const accessors = mergedTypeConfig.accessors || [mergedTypeConfig];
-    accessors.forEach(accessor => {
+    const entryPoints = mergedTypeConfig.entryPoints || [mergedTypeConfig];
+    entryPoints.forEach(accessor => {
       rootFields[accessor.fieldName] = true;
     });
   });
