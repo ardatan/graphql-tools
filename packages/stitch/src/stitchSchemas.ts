@@ -28,7 +28,7 @@ import { createStitchingInfo, completeStitchingInfo, addStitchingInfo } from './
 import {
   defaultSubschemaConfigTransforms,
   isolateComputedFieldsTransformer,
-  splitMergedTypeAccessTransformer,
+  splitMergedTypeEntryPointsTransformer,
 } from './subschemaConfigTransforms';
 
 export function stitchSchemas<TContext = Record<string, any>>({
@@ -195,7 +195,7 @@ export function stitchSchemas<TContext = Record<string, any>>({
   return schema;
 }
 
-const subschemaConfigTransformerPresets = [isolateComputedFieldsTransformer, splitMergedTypeAccessTransformer];
+const subschemaConfigTransformerPresets = [isolateComputedFieldsTransformer, splitMergedTypeEntryPointsTransformer];
 
 function applySubschemaConfigTransforms<TContext = Record<string, any>>(
   subschemaConfigTransforms: Array<SubschemaConfigTransform<TContext>>,

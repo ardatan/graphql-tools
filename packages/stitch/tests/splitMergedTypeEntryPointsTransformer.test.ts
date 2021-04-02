@@ -1,11 +1,11 @@
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { splitMergedTypeAccessTransformer } from '@graphql-tools/stitch';
+import { splitMergedTypeEntryPointsTransformer } from '@graphql-tools/stitch';
 
 const schema = makeExecutableSchema({ typeDefs: 'type Query { go:Int }' });
 
-describe('splitMergedTypeAccessTransformer', () => {
+describe('splitMergedTypeEntryPointsTransformer', () => {
   it('applies merged type config entryPoints', () => {
-    const results = splitMergedTypeAccessTransformer({
+    const results = splitMergedTypeEntryPointsTransformer({
       schema,
       merge: {
         Product: {
@@ -26,7 +26,7 @@ describe('splitMergedTypeAccessTransformer', () => {
 
   it('raises for entryPoints with selectionSet or fieldName', () => {
     expect(() => {
-      splitMergedTypeAccessTransformer({
+      splitMergedTypeEntryPointsTransformer({
         schema,
         merge: {
           Product: {
@@ -38,7 +38,7 @@ describe('splitMergedTypeAccessTransformer', () => {
     }).toThrow();
 
     expect(() => {
-      splitMergedTypeAccessTransformer({
+      splitMergedTypeEntryPointsTransformer({
         schema,
         merge: {
           Product: {
@@ -51,7 +51,7 @@ describe('splitMergedTypeAccessTransformer', () => {
   });
 
   it('builds multiple subschemas for separate entryPoints', () => {
-    const results = splitMergedTypeAccessTransformer({
+    const results = splitMergedTypeEntryPointsTransformer({
       schema,
       merge: {
         Product: {
@@ -78,7 +78,7 @@ describe('splitMergedTypeAccessTransformer', () => {
   });
 
   it('consolidates type permutations into shared subschemas', () => {
-    const results = splitMergedTypeAccessTransformer({
+    const results = splitMergedTypeEntryPointsTransformer({
       schema,
       merge: {
         Product: {
