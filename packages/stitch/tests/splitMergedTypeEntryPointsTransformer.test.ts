@@ -24,7 +24,7 @@ describe('splitMergedTypeEntryPointsTransformer', () => {
     });
   });
 
-  it('raises for entryPoints with selectionSet or fieldName', () => {
+  it('raises for entryPoints with selectionSet, fieldName, or resolver', () => {
     expect(() => {
       splitMergedTypeEntryPointsTransformer({
         schema,
@@ -44,6 +44,18 @@ describe('splitMergedTypeEntryPointsTransformer', () => {
           Product: {
             entryPoints: [{ selectionSet: '{ yep }', fieldName: 'yep' }],
             fieldName: 'thing',
+          }
+        }
+      });
+    }).toThrow();
+
+    expect(() => {
+      splitMergedTypeEntryPointsTransformer({
+        schema,
+        merge: {
+          Product: {
+            entryPoints: [{ resolver: () => null }],
+            resolver: () => null,
           }
         }
       });

@@ -24,8 +24,8 @@ export function splitMergedTypeEntryPointsTransformer(subschemaConfig: Subschema
       const mergedTypeEntryPoint = mergedTypeConfig?.entryPoints?.[i];
 
       if (mergedTypeEntryPoint) {
-        if (mergedTypeConfig.selectionSet || mergedTypeConfig.fieldName) {
-          throw new Error(`Merged type ${typeName} may not define both entryPoints and a selectionSet or fieldName`);
+        if (mergedTypeConfig.selectionSet ?? mergedTypeConfig.fieldName ?? mergedTypeConfig.resolver) {
+          throw new Error(`Merged type ${typeName} may not define entryPoints with a selectionSet, fieldName, or resolver`);
         }
 
         Object.assign(mergedTypeConfig, mergedTypeEntryPoint);
