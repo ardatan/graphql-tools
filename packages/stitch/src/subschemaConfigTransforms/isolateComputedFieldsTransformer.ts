@@ -140,8 +140,8 @@ function filterIsolatedSubschema(subschemaConfig: SubschemaConfig): SubschemaCon
 
   Object.values(subschemaConfig.merge).forEach(mergedTypeConfig => {
     const entryPoints = mergedTypeConfig.entryPoints ?? [mergedTypeConfig];
-    entryPoints.forEach(accessor => {
-      rootFields[accessor.fieldName] = true;
+    entryPoints.forEach(entryPoint => {
+      rootFields[entryPoint.fieldName] = true;
     });
   });
 

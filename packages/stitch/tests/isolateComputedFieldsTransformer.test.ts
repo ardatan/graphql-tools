@@ -256,7 +256,7 @@ describe('isolateComputedFieldsTransformer', () => {
   });
 
   describe('with multiple entryPoints', () => {
-    it('includes all accessor fields', async () => {
+    it('includes all entryPoint fields', async () => {
       const testSchema = makeExecutableSchema({
         typeDefs: `
           type Product {
