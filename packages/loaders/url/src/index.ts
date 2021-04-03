@@ -14,7 +14,7 @@ import {
   isAsyncIterable,
 } from '@graphql-tools/utils';
 import { isWebUri } from 'valid-url';
-import { fetch as crossFetch, RequestInfo, RequestInit } from 'cross-fetch';
+import { fetch as crossFetch } from 'cross-fetch';
 import { SubschemaConfig } from '@graphql-tools/delegate';
 import { introspectSchema, wrapSchema } from '@graphql-tools/wrap';
 import { createClient } from 'graphql-ws';
