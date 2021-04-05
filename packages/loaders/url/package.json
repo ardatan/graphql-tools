@@ -43,7 +43,7 @@
     "is-promise": "4.0.0",
     "isomorphic-ws": "4.0.1",
     "form-data": "4.0.0",
-    "tslib": "~2.1.0",
+    "tslib": "~2.2.0",
     "valid-url": "1.0.9",
     "graphql-ws": "4.3.2",
     "ws": "7.4.4",

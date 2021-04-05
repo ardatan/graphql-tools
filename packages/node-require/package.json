@@ -24,7 +24,7 @@
   "dependencies": {
     "@graphql-tools/load": "^6.2.4",
     "@graphql-tools/graphql-file-loader": "^6.2.4",
-    "tslib": "~2.1.0"
+    "tslib": "~2.2.0"
   },
   "publishConfig": {
     "access": "public",
