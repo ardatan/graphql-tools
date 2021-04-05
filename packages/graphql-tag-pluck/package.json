@@ -23,7 +23,7 @@
     "@babel/traverse": "7.13.13",
     "@babel/types": "7.13.14",
     "@graphql-tools/utils": "^7.0.0",
-    "tslib": "~2.1.0"
+    "tslib": "~2.2.0"
   },
   "devDependencies": {
     "@types/babel__traverse": "7.11.1",
