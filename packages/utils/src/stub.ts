@@ -39,7 +39,7 @@ export function createNamedStub(
   return new constructor({
     name,
     fields: {
-      __fake: {
+      _fake: {
         type: GraphQLString,
       },
     },
@@ -67,7 +67,7 @@ export function isNamedStub(type: GraphQLNamedType): boolean {
   if (isObjectType(type) || isInterfaceType(type) || isInputObjectType(type)) {
     const fields = type.getFields();
     const fieldNames = Object.keys(fields);
-    return fieldNames.length === 1 && fields[fieldNames[0]].name === '__fake';
+    return fieldNames.length === 1 && fields[fieldNames[0]].name === '_fake';
   }
 
   return false;
