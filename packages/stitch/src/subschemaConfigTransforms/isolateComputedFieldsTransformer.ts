@@ -6,7 +6,7 @@ import { getImplementingTypes, pruneSchema, filterSchema } from '@graphql-tools/
 
 import { TransformCompositeFields } from '@graphql-tools/wrap';
 
-export function isolateComputedFields(subschemaConfig: SubschemaConfig): Array<SubschemaConfig> {
+export function isolateComputedFieldsTransformer(subschemaConfig: SubschemaConfig): Array<SubschemaConfig> {
   if (subschemaConfig.merge == null) {
     return [subschemaConfig];
   }
@@ -138,8 +138,11 @@ function filterBaseSubschema(
 function filterIsolatedSubschema(subschemaConfig: SubschemaConfig): SubschemaConfig {
   const rootFields: Record<string, boolean> = {};
 
-  Object.keys(subschemaConfig.merge).forEach(typeName => {
-    rootFields[subschemaConfig.merge[typeName].fieldName] = true;
+  Object.values(subschemaConfig.merge).forEach(mergedTypeConfig => {
+    const entryPoints = mergedTypeConfig.entryPoints ?? [mergedTypeConfig];
+    entryPoints.forEach(entryPoint => {
+      rootFields[entryPoint.fieldName] = true;
+    });
   });
 
   const interfaceFields: Record<string, Record<string, boolean>> = {};

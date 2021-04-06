@@ -365,6 +365,62 @@ const layoutsSchema = makeExecutableSchema({
 
 In the above, both `Post` and `Section` will have a common interface of `{ id title url }` in the gateway schema. The difference in interface fields between the gateway schema and the layouts subschema will automatically be expanded into typed fragments for compatibility. See related [handbook example](https://github.com/gmac/schema-stitching-handbook/tree/master/type-merging-interfaces) for a working demonstration.
 
+## Multiple keys
+
+Merged types may define multiple key fields across services that join through a central service, for example:
+
+- Catalog service: `type Product { upc }`
+- Vendors service: `type Product { upc id }`
+- Reviews service: `type Product { id }`
+
+Given this graph, the Vendors service must provide lookups for its `Product` type by either `upc` _or_ `id` to enable all possible traversals. These multiple pathways can be configured as `entryPoints`:
+
+```js
+const gatewaySchema = stitchSchemas({
+  subschemas: [
+    {
+      schema: catalogSchema,
+      merge: {
+        Product: {
+          selectionSet: '{ upc }',
+          fieldName: 'productByUpc',
+          args: (upc) => ({ upc }),
+        }
+      }
+    },
+    {
+      schema: vendorsSchema,
+      merge: {
+        Product: {
+          // Entry points for each key format:
+          entryPoints: [{
+            selectionSet: '{ upc }',
+            fieldName: 'productByUpc',
+            args: (upc) => ({ upc }),
+          }, {
+            selectionSet: '{ id }',
+            fieldName: 'productById',
+            args: (id) => ({ id }),
+          }]
+        }
+      }
+    },
+    {
+      schema: reviewsSchema,
+      merge: {
+        Product: {
+          selectionSet: '{ id }',
+          fieldName: 'productById',
+          args: (id) => ({ id }),
+        }
+      }
+    },
+  ]
+});
+```
+
+Note that the `entryPoints` option replaces a merged type's base `selectionSet` and `fieldName`. This configuration is not currently possible with SDL directives, though it may be statically configured alongside of SDL parsing.
+
 ## Computed fields
 
 APIs may leverage the gateway layer to transport field dependencies from one subservice to another while resolving data. This is useful when a field in one subschema requires one or more fields from other subschemas to be resolved, as described in the [federation spec](https://www.apollographql.com/docs/apollo-server/federation/federation-spec/#requires). For example:

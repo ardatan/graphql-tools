@@ -13,10 +13,14 @@ export function cloneSubschemaConfig(subschemaConfig: SubschemaConfig): Subschem
   if (newSubschemaConfig.merge != null) {
     newSubschemaConfig.merge = { ...subschemaConfig.merge };
     Object.keys(newSubschemaConfig.merge).forEach(typeName => {
-      newSubschemaConfig.merge[typeName] = { ...subschemaConfig.merge[typeName] };
+      const mergedTypeConfig = (newSubschemaConfig.merge[typeName] = { ...subschemaConfig.merge[typeName] });
 
-      const fields = newSubschemaConfig.merge[typeName].fields;
-      if (fields != null) {
+      if (mergedTypeConfig.entryPoints != null) {
+        mergedTypeConfig.entryPoints = mergedTypeConfig.entryPoints.map(entryPoint => ({ ...entryPoint }));
+      }
+
+      if (mergedTypeConfig.fields != null) {
+        const fields = (mergedTypeConfig.fields = { ...mergedTypeConfig.fields });
         Object.keys(fields).forEach(fieldName => {
           fields[fieldName] = { ...fields[fieldName] };
         });
