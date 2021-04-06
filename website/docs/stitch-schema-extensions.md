@@ -226,6 +226,8 @@ Internally, `batchDelegateToSchema` wraps a single `delegateToSchema` call in a 
 > - The Array of values must be the same length as the Array of keys.
 > - Each index in the Array of values must correspond to the same index in the Array of keys.
 
+If the query you're delegating to doesn't conform to these expectations, you can provide a custom [valuesFromResults](https://www.graphql-tools.com/docs/api/interfaces/batch_delegate_src.createbatchdelegatefnoptions/#valuesfromresults) function to transform it appropriately.
+
 Batch delegation is generally preferable over plain delegation because it eliminates the redundancy of requesting the same field across an array of parent objects. Even so, delegation costs can add up because there is still one subschema request made _per batched field_&mdash;for remote services, this may create many network requests sent to the same service. Consider enabling an additional layer of network-level batching with a package such as [apollo-link-batch-http](https://www.apollographql.com/docs/link/links/batch-http/) to consolidate requests per subschema.
 
 ## Passing gateway arguments
