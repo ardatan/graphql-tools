@@ -40,8 +40,7 @@ module.exports = {
     algolia: {
       appId: 'ANRJKXZTRW',
       apiKey: '811d453fc7f80306044dd5cc4b87e064',
-      indexName: 'theguild',
-      algoliaOptions: {}
+      indexName: 'theguild'
     },
     footer: {
       style: 'dark',
