@@ -452,11 +452,14 @@ function generateArgsFromKeysFn(
 function generateArgsFn(mergedTypeResolverInfo: MergedTypeResolverInfo): (originalResult: any) => Record<string, any> {
   const mappingInstructions = mergedTypeResolverInfo.mappingInstructions;
   const args = mergedTypeResolverInfo.args;
+  const propertyTree = propertyTreeFromPaths(mappingInstructions.map(mappingInstruction => mappingInstruction.sourcePath));
+
   return (originalResult: any): Record<string, any> => {
     const newArgs = mergeDeep({}, args);
+    const filteredResult = getProperties(originalResult, propertyTree);
     mappingInstructions.forEach(mappingInstruction => {
       const { destinationPath, sourcePath } = mappingInstruction;
-      addProperty(newArgs, destinationPath, getProperty(originalResult, sourcePath));
+      addProperty(newArgs, destinationPath, getProperty(filteredResult, sourcePath));
     });
     return newArgs;
   };
