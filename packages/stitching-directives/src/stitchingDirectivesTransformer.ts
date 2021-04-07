@@ -25,11 +25,11 @@ import {
   parseSelectionSet,
 } from '@graphql-tools/utils';
 
-import { KeyDeclaration, MergedTypeResolverInfo, StitchingDirectivesOptions } from './types';
+import { MappingInstruction, MergedTypeResolverInfo, StitchingDirectivesOptions } from './types';
 
 import { defaultStitchingDirectiveOptions } from './defaultStitchingDirectiveOptions';
 import { parseMergeArgsExpr } from './parseMergeArgsExpr';
-import { addKey, getKey, getKeys, propertyTreeFromPaths } from './properties';
+import { addProperty, getProperty, getProperties, propertyTreeFromPaths } from './properties';
 import { stitchingDirectivesValidator } from './stitchingDirectivesValidator';
 
 export function stitchingDirectivesTransformer(
@@ -413,12 +413,12 @@ function forEachConcreteType(
 }
 
 function generateKeyFn(mergedTypeResolverInfo: MergedTypeResolverInfo): (originalResult: any) => any {
-  const keyDeclarations: Array<KeyDeclaration> = [].concat(
-    ...mergedTypeResolverInfo.expansions.map(expansion => expansion.keyDeclarations)
+  const mappingInstructions: Array<MappingInstruction> = [].concat(
+    ...mergedTypeResolverInfo.expansions.map(expansion => expansion.mappingInstructions)
   );
-  const propertyTree = propertyTreeFromPaths(keyDeclarations.map(keyDeclaration => keyDeclaration.keyPath));
+  const propertyTree = propertyTreeFromPaths(mappingInstructions.map(mappingInstruction => mappingInstruction.sourcePath));
 
-  return (originalResult: any): any => getKeys(originalResult, propertyTree);
+  return (originalResult: any): any => getProperties(originalResult, propertyTree);
 }
 
 function generateArgsFromKeysFn(
@@ -429,32 +429,34 @@ function generateArgsFromKeysFn(
   return (keys: Array<any>): Record<string, any> => {
     const newArgs = mergeDeep({}, args);
     expansions.forEach(expansion => {
-      const keyDeclarations = expansion.keyDeclarations;
+      const mappingInstructions = expansion.mappingInstructions;
       const expanded: Array<any> = [];
       keys.forEach(key => {
         let newValue = mergeDeep({}, expansion.valuePath);
-        keyDeclarations.forEach(keyDeclaration => {
-          if (keyDeclaration.valuePath.length) {
-            addKey(newValue, keyDeclaration.valuePath, getKey(key, keyDeclaration.keyPath));
+        mappingInstructions.forEach(mappingInstruction => {
+          const { destinationPath, sourcePath } = mappingInstruction;
+          if (destinationPath.length) {
+            addProperty(newValue, destinationPath, getProperty(key, sourcePath));
           } else {
-            newValue = getKey(key, keyDeclaration.keyPath);
+            newValue = getProperty(key, sourcePath);
           }
         });
         expanded.push(newValue);
       });
-      addKey(newArgs, expansion.valuePath, expanded);
+      addProperty(newArgs, expansion.valuePath, expanded);
     });
     return newArgs;
   };
 }
 
 function generateArgsFn(mergedTypeResolverInfo: MergedTypeResolverInfo): (originalResult: any) => Record<string, any> {
-  const keyDeclarations = mergedTypeResolverInfo.keyDeclarations;
+  const mappingInstructions = mergedTypeResolverInfo.mappingInstructions;
   const args = mergedTypeResolverInfo.args;
   return (originalResult: any): Record<string, any> => {
     const newArgs = mergeDeep({}, args);
-    keyDeclarations.forEach(keyDeclaration => {
-      addKey(newArgs, keyDeclaration.valuePath, getKey(originalResult, keyDeclaration.keyPath));
+    mappingInstructions.forEach(mappingInstruction => {
+      const { destinationPath, sourcePath } = mappingInstruction;
+      addProperty(newArgs, destinationPath, getProperty(originalResult, sourcePath));
     });
     return newArgs;
   };

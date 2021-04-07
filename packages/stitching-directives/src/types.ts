@@ -4,19 +4,19 @@ export interface PropertyTree {
 
 export interface ParsedMergeArgsExpr {
   args: PropertyTree;
-  keyDeclarations: Array<KeyDeclaration>;
+  mappingInstructions: Array<MappingInstruction>;
   expansions: Array<Expansion>;
 }
 
-export interface KeyDeclaration {
-  valuePath: Array<string>;
-  keyPath: Array<string>;
+export interface MappingInstruction {
+  destinationPath: Array<string>;
+  sourcePath: Array<string>;
 }
 
 export interface Expansion {
   valuePath: Array<string>;
-  value: any;
-  keyDeclarations: Array<KeyDeclaration>;
+  value: PropertyTree;
+  mappingInstructions: Array<MappingInstruction>;
 }
 
 export type VariablePaths = Record<string, Array<string | number>>;

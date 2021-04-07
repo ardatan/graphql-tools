@@ -16,7 +16,7 @@ describe('can parse merge arguments', () => {
     const args = `test: $key.test`;
     const result = parseMergeArgsExpr(args);
     expect(result.args).toEqual({ test: null });
-    expect(result.keyDeclarations).toEqual([{ valuePath: ['test'], keyPath: ['test'] }]);
+    expect(result.mappingInstructions).toEqual([{ destinationPath: ['test'], sourcePath: ['test'] }]);
     expect(result.expansions).toEqual([]);
   });
 
@@ -24,7 +24,7 @@ describe('can parse merge arguments', () => {
     const args = `outer: { inner: $key.test }`;
     const result = parseMergeArgsExpr(args);
     expect(result.args).toEqual({ outer: { inner: null } });
-    expect(result.keyDeclarations).toEqual([{ valuePath: ['outer', 'inner'], keyPath: ['test'] }]);
+    expect(result.mappingInstructions).toEqual([{ destinationPath: ['outer', 'inner'], sourcePath: ['test'] }]);
     expect(result.expansions).toEqual([]);
   });
 
@@ -32,7 +32,7 @@ describe('can parse merge arguments', () => {
     const args = `test: $key.outer.inner`;
     const result = parseMergeArgsExpr(args);
     expect(result.args).toEqual({ test: null });
-    expect(result.keyDeclarations).toEqual([{ valuePath: ['test'], keyPath: ['outer', 'inner'] }]);
+    expect(result.mappingInstructions).toEqual([{ destinationPath: ['test'], sourcePath: ['outer', 'inner'] }]);
     expect(result.expansions).toEqual([]);
   });
 
@@ -42,11 +42,11 @@ describe('can parse merge arguments', () => {
     const result = parseMergeArgsExpr(args, [selectionSet]);
     expect(result).toEqual({
       args: { test: { field1: null, field2: { subFieldA: null, subFieldB: null }, __typename: null } },
-      keyDeclarations: [
-        { valuePath: ['test', 'field1'], keyPath: ['field1'] },
-        { valuePath: ['test', 'field2', 'subFieldA'], keyPath: ['field2', 'subFieldA'] },
-        { valuePath: ['test', 'field2', 'subFieldB'], keyPath: ['field2', 'subFieldB'] },
-        { valuePath: ['test', '__typename'], keyPath: ['__typename'] },
+      mappingInstructions: [
+        { destinationPath: ['test', 'field1'], sourcePath: ['field1'] },
+        { destinationPath: ['test', 'field2', 'subFieldA'], sourcePath: ['field2', 'subFieldA'] },
+        { destinationPath: ['test', 'field2', 'subFieldB'], sourcePath: ['field2', 'subFieldB'] },
+        { destinationPath: ['test', '__typename'], sourcePath: ['__typename'] },
       ],
       expansions: [],
     });
@@ -56,11 +56,11 @@ describe('can parse merge arguments', () => {
     const args = `test: [[$key.test]]`;
     const result = parseMergeArgsExpr(args);
     expect(result.args).toEqual({ test: null });
-    expect(result.keyDeclarations).toEqual([]);
+    expect(result.mappingInstructions).toEqual([]);
     expect(result.expansions).toEqual([{
       valuePath: ['test'],
       value: null,
-      keyDeclarations: [{ valuePath: [], keyPath: ['test'] }],
+      mappingInstructions: [{ destinationPath: [], sourcePath: ['test'] }],
     }]);
   });
 
@@ -68,11 +68,11 @@ describe('can parse merge arguments', () => {
     const args = `outer: { inner: [[$key.test]] }`;
     const result = parseMergeArgsExpr(args);
     expect(result.args).toEqual({ outer: { inner: null } });
-    expect(result.keyDeclarations).toEqual([]);
+    expect(result.mappingInstructions).toEqual([]);
     expect(result.expansions).toEqual([{
       valuePath: ['outer', 'inner'],
       value: null,
-      keyDeclarations: [{ valuePath: [], keyPath: ['test'] }],
+      mappingInstructions: [{ destinationPath: [], sourcePath: ['test'] }],
     }]);
   });
 
@@ -80,11 +80,11 @@ describe('can parse merge arguments', () => {
     const args = `outer: [[{ inner: $key.test }]]`;
     const result = parseMergeArgsExpr(args);
     expect(result.args).toEqual({ outer: null });
-    expect(result.keyDeclarations).toEqual([]);
+    expect(result.mappingInstructions).toEqual([]);
     expect(result.expansions).toEqual([{
       valuePath: ['outer'],
       value: { inner: null },
-      keyDeclarations: [{ valuePath: ['inner'], keyPath: ['test'] }],
+      mappingInstructions: [{ destinationPath: ['inner'], sourcePath: ['test'] }],
     }]);
   });
 
@@ -92,11 +92,11 @@ describe('can parse merge arguments', () => {
     const args = `test: [[$key.outer.inner]]`;
     const result = parseMergeArgsExpr(args);
     expect(result.args).toEqual({ test: null });
-    expect(result.keyDeclarations).toEqual([]);
+    expect(result.mappingInstructions).toEqual([]);
     expect(result.expansions).toEqual([{
       valuePath: ['test'],
       value: null,
-      keyDeclarations: [{ valuePath: [], keyPath: ['outer', 'inner'] }],
+      mappingInstructions: [{ destinationPath: [], sourcePath: ['outer', 'inner'] }],
     }]);
   });
 
@@ -105,15 +105,15 @@ describe('can parse merge arguments', () => {
     const args = `test: [[$key]]`;
     const result = parseMergeArgsExpr(args, [selectionSet]);
     expect(result.args).toEqual({ test: null });
-    expect(result.keyDeclarations).toEqual([]);
+    expect(result.mappingInstructions).toEqual([]);
     expect(result.expansions).toEqual([{
       valuePath: ['test'],
       value: { field1: null, field2: { subFieldA: null, subFieldB: null }, __typename: null },
-      keyDeclarations: [
-        { valuePath: ['field1'], keyPath: ['field1'] },
-        { valuePath: ['field2', 'subFieldA'], keyPath: ['field2', 'subFieldA'] },
-        { valuePath: ['field2', 'subFieldB'], keyPath: ['field2', 'subFieldB'] },
-        { valuePath: ['__typename'], keyPath: ['__typename'] },
+      mappingInstructions: [
+        { destinationPath: ['field1'], sourcePath: ['field1'] },
+        { destinationPath: ['field2', 'subFieldA'], sourcePath: ['field2', 'subFieldA'] },
+        { destinationPath: ['field2', 'subFieldB'], sourcePath: ['field2', 'subFieldB'] },
+        { destinationPath: ['__typename'], sourcePath: ['__typename'] },
       ],
     }]);
   });

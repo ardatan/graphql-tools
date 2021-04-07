@@ -1,6 +1,6 @@
 import { parseValue, SelectionSetNode, valueFromASTUntyped } from 'graphql';
 
-import { Expansion, KeyDeclaration, ParsedMergeArgsExpr } from './types';
+import { Expansion, MappingInstruction, ParsedMergeArgsExpr } from './types';
 
 import { expandUnqualifiedKeys } from './expandUnqualifiedKeys';
 import { extractVariables } from './extractVariables';
@@ -23,17 +23,17 @@ export function parseMergeArgsExpr(
       throw new Error('Merge arguments must declare a key.');
     }
 
-    const keyDeclarations = getKeyDeclarations(variablePaths);
+    const mappingInstructions = getMappingInstructions(variablePaths);
 
     const value = valueFromASTUntyped(newInputValue);
 
-    const { value: finalValue, keyDeclarations: finalKeyDeclarations } = expandUnqualifiedKeys(
+    const { value: finalValue, mappingInstructions: finalMappingInstructions } = expandUnqualifiedKeys(
       value,
-      keyDeclarations,
+      mappingInstructions,
       selectionSets
     );
 
-    return { args: finalValue, keyDeclarations: finalKeyDeclarations, expansions: [] };
+    return { args: finalValue, mappingInstructions: finalMappingInstructions, expansions: [] };
   }
 
   const expansionRegEx = new RegExp(`^${EXPANSION_PREFIX}[0-9]+$`);
@@ -55,38 +55,38 @@ export function parseMergeArgsExpr(
       throw new Error('Merge arguments must declare a key.');
     }
 
-    const keyDeclarations = getKeyDeclarations(expansionVariablePaths);
+    const mappingInstructions = getMappingInstructions(expansionVariablePaths);
 
     const value = valueFromASTUntyped(expansionInputValue);
 
-    const { value: finalValue, keyDeclarations: finalKeyDeclarations } = expandUnqualifiedKeys(
+    const { value: finalValue, mappingInstructions: finalMappingInstructions } = expandUnqualifiedKeys(
       value,
-      keyDeclarations,
+      mappingInstructions,
       selectionSets
     );
 
     expansions.push({
       valuePath: assertNotWithinList(valuePath),
       value: finalValue,
-      keyDeclarations: finalKeyDeclarations,
+      mappingInstructions: finalMappingInstructions,
     });
   });
 
-  return { args: valueFromASTUntyped(newInputValue), keyDeclarations: [], expansions };
+  return { args: valueFromASTUntyped(newInputValue), mappingInstructions: [], expansions };
 }
 
-function getKeyDeclarations(variablePaths: VariablePaths): Array<KeyDeclaration> {
-  const keyDeclarations: Array<KeyDeclaration> = [];
+function getMappingInstructions(variablePaths: VariablePaths): Array<MappingInstruction> {
+  const mappingInstructions: Array<MappingInstruction> = [];
   Object.entries(variablePaths).forEach(([keyPath, valuePath]) => {
     const splitKeyPath = keyPath.split(KEY_DELIMITER).slice(1);
 
-    keyDeclarations.push({
-      valuePath: assertNotWithinList(valuePath),
-      keyPath: splitKeyPath,
+    mappingInstructions.push({
+      destinationPath: assertNotWithinList(valuePath),
+      sourcePath: splitKeyPath,
     });
   });
 
-  return keyDeclarations;
+  return mappingInstructions;
 }
 
 function assertNotWithinList(path: Array<string | number>): Array<string> {

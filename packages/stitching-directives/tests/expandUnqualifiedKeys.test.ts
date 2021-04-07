@@ -1,6 +1,6 @@
 import { parseSelectionSet } from '@graphql-tools/utils';
 
-import { KeyDeclaration } from '../src/types';
+import { MappingInstruction } from '../src/types';
 
 import { expandUnqualifiedKeys } from '../src/expandUnqualifiedKeys';
 
@@ -8,8 +8,8 @@ describe('can expand unqualified keys', () => {
   test('can convert a simple selection set', () => {
     const selectionSet = parseSelectionSet(`{ field1 field2 }`);
     const result = expandUnqualifiedKeys({ test: null }, [{
-      valuePath: ['test'],
-      keyPath: [],
+      destinationPath: ['test'],
+      sourcePath: [],
     }], [selectionSet]);
 
     const newValue: any = {
@@ -20,18 +20,18 @@ describe('can expand unqualified keys', () => {
       }
     };
 
-    const newKeyDeclarations: Array<KeyDeclaration> = [{
-      valuePath: ['test', 'field1'],
-      keyPath: ['field1'],
+    const newMappingInstructions: Array<MappingInstruction> = [{
+      destinationPath: ['test', 'field1'],
+      sourcePath: ['field1'],
     }, {
-      valuePath: ['test', 'field2'],
-      keyPath: ['field2'],
+      destinationPath: ['test', 'field2'],
+      sourcePath: ['field2'],
     }, {
-      valuePath: ['test', '__typename'],
-      keyPath: ['__typename'],
+      destinationPath: ['test', '__typename'],
+      sourcePath: ['__typename'],
     }];
 
     expect(result.value).toEqual(newValue);
-    expect(result.keyDeclarations).toEqual(newKeyDeclarations);
+    expect(result.mappingInstructions).toEqual(newMappingInstructions);
   });
 });

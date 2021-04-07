@@ -1,43 +1,43 @@
 import { SelectionSetNode, TypeNameMetaFieldDef } from 'graphql';
 
-import { KeyDeclaration } from './types';
+import { MappingInstruction } from './types';
 
-import { addKey } from './properties';
+import { addProperty } from './properties';
 import { pathsFromSelectionSets } from './pathsFromSelectionSets';
 
 export function expandUnqualifiedKeys(
   value: any,
-  keyDeclarations: Array<KeyDeclaration>,
+  mappingInstructions: Array<MappingInstruction>,
   selectionSets: Array<SelectionSetNode>
-): { value: any; keyDeclarations: Array<KeyDeclaration> } {
+): { value: any; mappingInstructions: Array<MappingInstruction> } {
   const paths = pathsFromSelectionSets(selectionSets);
-  const newKeyDeclarations: Array<KeyDeclaration> = [];
-  keyDeclarations.forEach(keyDeclaration => {
-    if (keyDeclaration.keyPath.length) {
-      newKeyDeclarations.push(keyDeclaration);
+  const newMappingInstructions: Array<MappingInstruction> = [];
+  mappingInstructions.forEach(mappingInstruction => {
+    const { destinationPath, sourcePath } = mappingInstruction;
+    if (sourcePath.length) {
+      newMappingInstructions.push(mappingInstruction);
     } else {
       if (value == null) {
         value = Object.create(null);
       }
       paths.forEach(path => {
-        const valuePath = keyDeclaration.valuePath.concat(path);
-        addKey(value, valuePath, null);
-        newKeyDeclarations.push({
-          valuePath,
-          keyPath: path,
+        const newDestinationPath = destinationPath.concat(path);
+        addProperty(value, newDestinationPath, null);
+        newMappingInstructions.push({
+          destinationPath: newDestinationPath,
+          sourcePath: path,
         });
       });
-      const typeNamePath = [TypeNameMetaFieldDef.name];
-      const valuePath = keyDeclaration.valuePath.concat(typeNamePath);
-      addKey(value, valuePath, null);
-      newKeyDeclarations.push({
-        valuePath,
-        keyPath: typeNamePath,
+      const typeNamePath = destinationPath.concat([TypeNameMetaFieldDef.name]);
+      addProperty(value, typeNamePath, null);
+      newMappingInstructions.push({
+        destinationPath: typeNamePath,
+        sourcePath: [TypeNameMetaFieldDef.name],
       });
     }
   });
   return {
     value,
-    keyDeclarations: newKeyDeclarations,
+    mappingInstructions: newMappingInstructions,
   };
 }
