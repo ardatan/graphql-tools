@@ -5,11 +5,6 @@ import { KeyDeclaration } from './types';
 import { addKey } from './properties';
 import { pathsFromSelectionSets } from './pathsFromSelectionSets';
 
-export interface PreparsedMergeArgsExpr {
-  mergeArgsExpr: string;
-  expansionExpressions: Record<string, string>;
-}
-
 export function expandUnqualifiedKeys(
   value: any,
   keyDeclarations: Array<KeyDeclaration>,

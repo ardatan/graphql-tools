@@ -6,11 +6,6 @@ import { expandUnqualifiedKeys } from './expandUnqualifiedKeys';
 import { extractVariables } from './extractVariables';
 import { EXPANSION_PREFIX, KEY_DELIMITER, preparseMergeArgsExpr } from './preparseMergeArgsExpr';
 
-export interface PreparsedMergeArgsExpr {
-  mergeArgsExpr: string;
-  expansionExpressions: Record<string, string>;
-}
-
 type VariablePaths = Record<string, Array<string | number>>;
 
 export function parseMergeArgsExpr(

@@ -1,10 +1,5 @@
 import { Kind, SelectionNode, SelectionSetNode } from 'graphql';
 
-export interface PreparsedMergeArgsExpr {
-  mergeArgsExpr: string;
-  expansionExpressions: Record<string, string>;
-}
-
 export function pathsFromSelectionSets(
   selectionSets: Array<SelectionSetNode>,
   path: Array<string> = []
