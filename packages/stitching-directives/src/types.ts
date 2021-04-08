@@ -1,11 +1,12 @@
 export interface PropertyTree {
-  [property: string]: any | PropertyTree;
+  [property: string]: null | PropertyTree;
 }
 
 export interface ParsedMergeArgsExpr {
-  args: PropertyTree;
-  mappingInstructions: Array<MappingInstruction>;
-  expansions: Array<Expansion>;
+  args: Record<string, any>;
+  usedProperties: PropertyTree;
+  mappingInstructions?: Array<MappingInstruction>;
+  expansions?: Array<Expansion>;
 }
 
 export interface MappingInstruction {
@@ -15,7 +16,7 @@ export interface MappingInstruction {
 
 export interface Expansion {
   valuePath: Array<string>;
-  value: PropertyTree;
+  value: any;
   mappingInstructions: Array<MappingInstruction>;
 }
 

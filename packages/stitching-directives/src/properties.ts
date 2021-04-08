@@ -23,18 +23,28 @@ export function addProperty(object: Record<string, any>, path: Array<string | nu
 }
 
 export function getProperty(object: Record<string, any>, path: Array<string>): any {
-  return path.reduce((acc, pathSegment) => acc[pathSegment], object);
+  return path.reduce((acc, pathSegment) => acc[pathSegment],object);
 }
 
 export function getProperties(object: Record<string, any>, propertyTree: PropertyTree): any {
   const newObject = Object.create(null);
+
   Object.entries(propertyTree).forEach(([key, subKey]) => {
     if (subKey == null) {
       newObject[key] = object[key];
-    } else {
-      newObject[key] = getProperties(object[key], subKey);
+      return;
     }
+
+    const prop = object[key];
+
+    if (Array.isArray(prop)) {
+      newObject[key] = prop.map(item => getProperties(item, subKey));
+      return;
+    }
+
+    newObject[key] = getProperties(prop, subKey);
   });
+
   return newObject;
 }
 

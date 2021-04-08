@@ -25,11 +25,11 @@ import {
   parseSelectionSet,
 } from '@graphql-tools/utils';
 
-import { MappingInstruction, MergedTypeResolverInfo, StitchingDirectivesOptions } from './types';
+import { MergedTypeResolverInfo, StitchingDirectivesOptions } from './types';
 
 import { defaultStitchingDirectiveOptions } from './defaultStitchingDirectiveOptions';
 import { parseMergeArgsExpr } from './parseMergeArgsExpr';
-import { addProperty, getProperty, getProperties, propertyTreeFromPaths } from './properties';
+import { addProperty, getProperty, getProperties } from './properties';
 import { stitchingDirectivesValidator } from './stitchingDirectivesValidator';
 
 export function stitchingDirectivesTransformer(
@@ -259,7 +259,7 @@ export function stitchingDirectivesTransformer(
           if (mergeArgsExpr == null) {
             const key: Array<string> = directiveArgumentMap.key;
             const keyField: string = directiveArgumentMap.keyField;
-            const keyExpr = key != null ? buildKey(key) : keyField != null ? `$key.${keyField}` : '$key';
+            const keyExpr = key != null ? buildKeyExpr(key) : keyField != null ? `$key.${keyField}` : '$key';
 
             const keyArg: string = directiveArgumentMap.keyArg;
             const argNames = keyArg == null ? [Object.keys(fieldConfig.args)[0]] : keyArg.split('.');
@@ -275,7 +275,10 @@ export function stitchingDirectivesTransformer(
           const typeNames: Array<string> = directiveArgumentMap.types;
 
           forEachConcreteTypeName(namedType, schema, typeNames, typeName => {
-            const parsedMergeArgsExpr = parseMergeArgsExpr(mergeArgsExpr, allSelectionSetsByType[typeName]);
+            const parsedMergeArgsExpr = parseMergeArgsExpr(
+              mergeArgsExpr,
+              allSelectionSetsByType[typeName] == null ? undefined : mergeSelectionSets(...allSelectionSetsByType[typeName]),
+            );
 
             const additionalArgs = directiveArgumentMap.additionalArgs;
             if (additionalArgs != null) {
@@ -413,19 +416,13 @@ function forEachConcreteType(
 }
 
 function generateKeyFn(mergedTypeResolverInfo: MergedTypeResolverInfo): (originalResult: any) => any {
-  const mappingInstructions: Array<MappingInstruction> = [].concat(
-    ...mergedTypeResolverInfo.expansions.map(expansion => expansion.mappingInstructions)
-  );
-  const propertyTree = propertyTreeFromPaths(mappingInstructions.map(mappingInstruction => mappingInstruction.sourcePath));
-
-  return (originalResult: any): any => getProperties(originalResult, propertyTree);
+  return (originalResult: any): any => getProperties(originalResult, mergedTypeResolverInfo.usedProperties);
 }
 
 function generateArgsFromKeysFn(
   mergedTypeResolverInfo: MergedTypeResolverInfo
 ): (keys: Array<any>) => Record<string, any> {
-  const expansions = mergedTypeResolverInfo.expansions;
-  const args = mergedTypeResolverInfo.args;
+  const { expansions, args } = mergedTypeResolverInfo;
   return (keys: Array<any>): Record<string, any> => {
     const newArgs = mergeDeep({}, args);
     expansions.forEach(expansion => {
@@ -450,13 +447,11 @@ function generateArgsFromKeysFn(
 }
 
 function generateArgsFn(mergedTypeResolverInfo: MergedTypeResolverInfo): (originalResult: any) => Record<string, any> {
-  const mappingInstructions = mergedTypeResolverInfo.mappingInstructions;
-  const args = mergedTypeResolverInfo.args;
-  const propertyTree = propertyTreeFromPaths(mappingInstructions.map(mappingInstruction => mappingInstruction.sourcePath));
+  const { mappingInstructions, args, usedProperties } = mergedTypeResolverInfo;
 
   return (originalResult: any): Record<string, any> => {
     const newArgs = mergeDeep({}, args);
-    const filteredResult = getProperties(originalResult, propertyTree);
+    const filteredResult = getProperties(originalResult, usedProperties);
     mappingInstructions.forEach(mappingInstruction => {
       const { destinationPath, sourcePath } = mappingInstruction;
       addProperty(newArgs, destinationPath, getProperty(filteredResult, sourcePath));
@@ -465,7 +460,7 @@ function generateArgsFn(mergedTypeResolverInfo: MergedTypeResolverInfo): (origin
   };
 }
 
-function buildKey(key: Array<string>): string {
+function buildKeyExpr(key: Array<string>): string {
   let mergedObject = {};
   key.forEach(keyDef => {
     let [aliasOrKeyPath, keyPath] = keyDef.split(':');
@@ -488,11 +483,11 @@ function buildKey(key: Array<string>): string {
   return JSON.stringify(mergedObject).replace(/"/g, '');
 }
 
-function mergeSelectionSets(selectionSet1: SelectionSetNode, selectionSet2: SelectionSetNode): SelectionSetNode {
+function mergeSelectionSets(...selectionSets: Array<SelectionSetNode>): SelectionSetNode {
   const normalizedSelections: Record<string, SelectionNode> = Object.create(null);
 
-  [selectionSet1, selectionSet2].forEach(set => {
-    set.selections.forEach(selection => {
+  selectionSets.forEach(selectionSet => {
+    selectionSet.selections.forEach(selection => {
       const normalizedSelection = print(selection);
       normalizedSelections[normalizedSelection] = selection;
     });

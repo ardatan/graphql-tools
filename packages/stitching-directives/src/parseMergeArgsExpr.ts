@@ -2,15 +2,16 @@ import { parseValue, SelectionSetNode, valueFromASTUntyped } from 'graphql';
 
 import { Expansion, MappingInstruction, ParsedMergeArgsExpr } from './types';
 
-import { expandUnqualifiedKeys } from './expandUnqualifiedKeys';
 import { extractVariables } from './extractVariables';
 import { EXPANSION_PREFIX, KEY_DELIMITER, preparseMergeArgsExpr } from './preparseMergeArgsExpr';
+import { propertyTreeFromPaths } from './properties';
+import { getSourcePaths } from './getSourcePaths';
 
 type VariablePaths = Record<string, Array<string | number>>;
 
 export function parseMergeArgsExpr(
   mergeArgsExpr: string,
-  selectionSets: Array<SelectionSetNode> = []
+  selectionSet?: SelectionSetNode,
 ): ParsedMergeArgsExpr {
   const { mergeArgsExpr: newMergeArgsExpr, expansionExpressions } = preparseMergeArgsExpr(mergeArgsExpr);
 
@@ -25,15 +26,9 @@ export function parseMergeArgsExpr(
 
     const mappingInstructions = getMappingInstructions(variablePaths);
 
-    const value = valueFromASTUntyped(newInputValue);
+    const usedProperties = propertyTreeFromPaths(getSourcePaths(mappingInstructions, selectionSet));
 
-    const { value: finalValue, mappingInstructions: finalMappingInstructions } = expandUnqualifiedKeys(
-      value,
-      mappingInstructions,
-      selectionSets
-    );
-
-    return { args: finalValue, mappingInstructions: finalMappingInstructions, expansions: [] };
+    return { args: valueFromASTUntyped(newInputValue), usedProperties, mappingInstructions };
   }
 
   const expansionRegEx = new RegExp(`^${EXPANSION_PREFIX}[0-9]+$`);
@@ -44,6 +39,7 @@ export function parseMergeArgsExpr(
   });
 
   const expansions: Array<Expansion> = [];
+  const sourcePaths: Array<Array<string>> = [];
   Object.keys(expansionExpressions).forEach(variableName => {
     const str = expansionExpressions[variableName];
     const valuePath = variablePaths[variableName];
@@ -59,20 +55,18 @@ export function parseMergeArgsExpr(
 
     const value = valueFromASTUntyped(expansionInputValue);
 
-    const { value: finalValue, mappingInstructions: finalMappingInstructions } = expandUnqualifiedKeys(
-      value,
-      mappingInstructions,
-      selectionSets
-    );
+    sourcePaths.push(...getSourcePaths(mappingInstructions, selectionSet));
 
     expansions.push({
       valuePath: assertNotWithinList(valuePath),
-      value: finalValue,
-      mappingInstructions: finalMappingInstructions,
+      value,
+      mappingInstructions,
     });
   });
 
-  return { args: valueFromASTUntyped(newInputValue), mappingInstructions: [], expansions };
+  const usedProperties = propertyTreeFromPaths(sourcePaths);
+
+  return { args: valueFromASTUntyped(newInputValue), usedProperties, expansions };
 }
 
 function getMappingInstructions(variablePaths: VariablePaths): Array<MappingInstruction> {
