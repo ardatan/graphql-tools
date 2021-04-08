@@ -1,5 +1,11 @@
 # @graphql-tools/stitching-directives
 
+## 1.3.1
+
+### Patch Changes
+
+- d7b4e09e: fix(stitching-directives): to allow keys to include lists
+
 ## 1.3.0
 
 ### Minor Changes
