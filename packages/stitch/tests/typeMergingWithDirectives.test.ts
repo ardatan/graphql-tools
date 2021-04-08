@@ -14,7 +14,7 @@ import { stitchSchemas } from '@graphql-tools/stitch';
 import { stitchingDirectives } from '@graphql-tools/stitching-directives';
 import { ValidationLevel } from '../src/types';
 
-describe('merging using type merging', () => {
+describe('merging using type merging with directives', () => {
   const { allStitchingDirectivesTypeDefs, stitchingDirectivesValidator, stitchingDirectivesTransformer } = stitchingDirectives();
 
   const users = [
@@ -510,3 +510,4 @@ describe('merging using type merging', () => {
     expect(result).toEqual(expectedResult);
   });
 });
+
