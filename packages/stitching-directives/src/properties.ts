@@ -23,10 +23,22 @@ export function addProperty(object: Record<string, any>, path: Array<string | nu
 }
 
 export function getProperty(object: Record<string, any>, path: Array<string>): any {
-  return path.reduce((acc, pathSegment) => acc[pathSegment],object);
+  if (!path.length || object == null) {
+    return object;
+  }
+
+  const newPath = path.slice();
+  const key = newPath.shift();
+  const prop = object[key];
+
+  return getProperty(prop, newPath);
 }
 
 export function getProperties(object: Record<string, any>, propertyTree: PropertyTree): any {
+  if (object == null) {
+    return object;
+  }
+
   const newObject = Object.create(null);
 
   Object.entries(propertyTree).forEach(([key, subKey]) => {
