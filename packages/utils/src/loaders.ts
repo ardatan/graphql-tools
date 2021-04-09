@@ -38,6 +38,7 @@ export type DocumentPointer = WithList<DocumentGlobPathPointer>;
 export type DocumentPointerSingle = ElementOf<DocumentPointer>;
 
 export interface Loader<TPointer = string, TOptions extends SingleFileOptions = SingleFileOptions> {
+  cacheable?: boolean;
   loaderId(): string;
   canLoad(pointer: TPointer, options?: TOptions): Promise<boolean>;
   canLoadSync?(pointer: TPointer, options?: TOptions): boolean;

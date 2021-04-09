@@ -6,8 +6,6 @@ import {
   isValidPath,
   parseGraphQLSDL,
   SingleFileOptions,
-  makeCacheable,
-  makeCacheableSync,
 } from '@graphql-tools/utils';
 import { isAbsolute, resolve } from 'path';
 import { readFileSync, accessSync, promises as fsPromises } from 'fs';
@@ -57,6 +55,8 @@ function isGraphQLImportFile(rawSDL: string) {
  * ```
  */
 export class GraphQLFileLoader implements UniversalLoader<GraphQLFileLoaderOptions> {
+  cacheable = true;
+
   loaderId(): string {
     return 'graphql-file';
   }
@@ -96,21 +96,13 @@ export class GraphQLFileLoader implements UniversalLoader<GraphQLFileLoaderOptio
     return false;
   }
 
-  async load(pointer: SchemaPointerSingle | DocumentPointerSingle, options: GraphQLFileLoaderOptions): Promise<Source> {
-    return makeCacheable(this._load.bind(this), pointer, options);
-  }
-
   loadSync(pointer: SchemaPointerSingle | DocumentPointerSingle, options: GraphQLFileLoaderOptions): Source {
-    return makeCacheableSync(this._loadSync.bind(this), pointer, options);
-  }
-
-  private _loadSync(pointer: SchemaPointerSingle | DocumentPointerSingle, options: GraphQLFileLoaderOptions): Source {
     const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || processCwd(), pointer);
     const rawSDL = readFileSync(normalizedFilePath, { encoding: 'utf8' });
     return this.handleFileContent(rawSDL, pointer, options);
   }
 
-  private async _load(
+  async load(
     pointer: SchemaPointerSingle | DocumentPointerSingle,
     options: GraphQLFileLoaderOptions
   ): Promise<Source> {

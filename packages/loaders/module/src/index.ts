@@ -42,6 +42,8 @@ function extractData(
  * ```
  */
 export class ModuleLoader implements UniversalLoader {
+  cacheable = true;
+
   loaderId() {
     return 'module-loader';
   }
@@ -54,15 +56,7 @@ export class ModuleLoader implements UniversalLoader {
     return typeof pointer === 'string' && pointer.toLowerCase().startsWith('module:');
   }
 
-  async load(pointer: string, options: SingleFileOptions): Promise<Source> {
-    return makeCacheable(this._load.bind(this), pointer, options);
-  }
-
-  loadSync(pointer: string, options: SingleFileOptions): Source {
-    return makeCacheableSync(this._loadSync.bind(this), pointer, options);
-  }
-
-  private async _load(pointer: string, options: SingleFileOptions) {
+  async load(pointer: string, options: SingleFileOptions) {
     try {
       const result = this.parse(pointer, options, await this.importModule(pointer));
 
@@ -76,7 +70,7 @@ export class ModuleLoader implements UniversalLoader {
     }
   }
 
-  private _loadSync(pointer: string, options: SingleFileOptions) {
+  loadSync(pointer: string, options: SingleFileOptions) {
     try {
       const result = this.parse(pointer, options, this.importModuleSync(pointer));
 

@@ -1,4 +1,4 @@
-import { Source, debugLog } from '@graphql-tools/utils';
+import { Source, debugLog, makeCacheable, makeCacheableSync } from '@graphql-tools/utils';
 import { LoadTypedefsOptions } from '../load-typedefs';
 
 export async function loadFile(pointer: string, options: LoadTypedefsOptions): Promise<Source> {
@@ -13,7 +13,7 @@ export async function loadFile(pointer: string, options: LoadTypedefsOptions): P
       const canLoad = await loader.canLoad(pointer, options);
 
       if (canLoad) {
-        const loadedValue = await loader.load(pointer, options);
+        const loadedValue = await makeCacheable(loader.load.bind(loader), pointer, options);
         return loadedValue;
       }
     } catch (error) {
@@ -37,7 +37,7 @@ export function loadFileSync(pointer: string, options: LoadTypedefsOptions): Sou
       const canLoad = loader.canLoadSync && loader.loadSync && loader.canLoadSync(pointer, options);
 
       if (canLoad) {
-        return loader.loadSync(pointer, options);
+        return makeCacheableSync(loader.loadSync.bind(loader), pointer, options);
       }
     } catch (error) {
       debugLog(`Failed to find any GraphQL type definitions in: ${pointer} - ${error.message}`);
