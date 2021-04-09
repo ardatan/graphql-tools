@@ -20,7 +20,7 @@
     "graphql": "^14.0.0 || ^15.0.0"
   },
   "dependencies": {
-    "@graphql-tools/utils": "^7.8.0",
+    "@graphql-tools/utils": "^7.0.0",
     "@graphql-tools/graphql-tag-pluck": "^6.5.1",
     "tslib": "~2.2.0"
   },
