@@ -153,7 +153,7 @@ export class CodeFileLoader implements UniversalLoader<CodeFileLoaderOptions> {
         const sdl = gqlPluckFromCodeStringSync(normalizedFilePath, content, options.pluckConfig);
 
         if (sdl) {
-          return parseSDL({ pointer, sdl, options });
+          return parseSDL({ pointer: normalizedFilePath, sdl, options });
         }
       } catch (e) {
         debugLog(`Failed to load schema from code file "${normalizedFilePath}": ${e.message}`);
@@ -168,7 +168,7 @@ export class CodeFileLoader implements UniversalLoader<CodeFileLoaderOptions> {
         }
 
         const loaded = tryToLoadFromExportSync(normalizedFilePath);
-        const source = resolveSource(pointer, loaded, options);
+        const source = resolveSource(normalizedFilePath, loaded, options);
 
         if (source) {
           return source;
