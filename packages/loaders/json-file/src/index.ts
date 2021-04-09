@@ -5,6 +5,8 @@ import {
   DocumentLoader,
   isValidPath,
   SingleFileOptions,
+  makeCacheable,
+  makeCacheableSync
 } from '@graphql-tools/utils';
 import { isAbsolute, resolve } from 'path';
 import { readFileSync, accessSync, promises as fsPromises } from 'fs';
@@ -81,6 +83,14 @@ export class JsonFileLoader implements DocumentLoader {
   }
 
   async load(pointer: SchemaPointerSingle, options: JsonFileLoaderOptions): Promise<Source> {
+    return makeCacheable(this._load.bind(this), pointer, options);
+  }
+
+  loadSync(pointer: SchemaPointerSingle, options: JsonFileLoaderOptions): Source {
+    return makeCacheableSync(this._loadSync.bind(this), pointer, options);
+  }
+
+  private async _load(pointer: SchemaPointerSingle, options: JsonFileLoaderOptions): Promise<Source> {
     const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || cwd(), pointer);
 
     try {
@@ -91,7 +101,7 @@ export class JsonFileLoader implements DocumentLoader {
     }
   }
 
-  loadSync(pointer: SchemaPointerSingle, options: JsonFileLoaderOptions): Source {
+  private _loadSync(pointer: SchemaPointerSingle, options: JsonFileLoaderOptions): Source {
     const normalizedFilepath = isAbsolute(pointer) ? pointer : resolve(options.cwd || cwd(), pointer);
 
     try {

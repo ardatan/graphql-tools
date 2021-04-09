@@ -10,6 +10,8 @@ import {
   isValidPath,
   parseGraphQLSDL,
   printSchemaWithDirectives,
+  makeCacheable,
+  makeCacheableSync
 } from '@graphql-tools/utils';
 import {
   GraphQLTagPluckOptions,
@@ -90,6 +92,14 @@ export class CodeFileLoader implements UniversalLoader<CodeFileLoaderOptions> {
   }
 
   async load(pointer: SchemaPointerSingle | DocumentPointerSingle, options: CodeFileLoaderOptions): Promise<Source> {
+    return makeCacheable(this._load.bind(this), pointer, options);
+  }
+
+  loadSync(pointer: SchemaPointerSingle | DocumentPointerSingle, options: CodeFileLoaderOptions): Source {
+    return makeCacheableSync(this._loadSync.bind(this), pointer, options);
+  }
+
+  private async _load(pointer: SchemaPointerSingle | DocumentPointerSingle, options: CodeFileLoaderOptions): Promise<Source> {
     const normalizedFilePath = ensureAbsolutePath(pointer, options);
 
     const errors: Error[] = [];
@@ -132,7 +142,7 @@ export class CodeFileLoader implements UniversalLoader<CodeFileLoaderOptions> {
     return null;
   }
 
-  loadSync(pointer: SchemaPointerSingle | DocumentPointerSingle, options: CodeFileLoaderOptions): Source {
+  private _loadSync(pointer: SchemaPointerSingle | DocumentPointerSingle, options: CodeFileLoaderOptions): Source {
     const normalizedFilePath = ensureAbsolutePath(pointer, options);
 
     const errors: Error[] = [];
