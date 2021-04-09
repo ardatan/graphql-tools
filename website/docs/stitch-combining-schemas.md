@@ -14,7 +14,7 @@ One of the main benefits of GraphQL is that we can query for all data in a singl
 
 ![distributed service graph](../static/img/distributed-graph.png)
 
-In these cases, `stitchSchemas` is used to combine multiple GraphQL APIs into one unified gateway schema that knows how to delegate parts of a request to the relevant underlying subschemas. These subschemas may be local GraphQL instances or APIs running on remote servers.
+In these cases, `stitchSchemas` is used to combine multiple GraphQL APIs into one unified gateway proxy schema that knows how to delegate parts of a request to the relevant underlying subschemas. These subschemas may be local GraphQL instances or APIs running on remote servers.
 
 ## Getting started
 
