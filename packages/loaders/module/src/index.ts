@@ -5,8 +5,6 @@ import {
   getDocumentNodeFromSchema,
   SingleFileOptions,
   Source,
-  makeCacheable,
-  makeCacheableSync
 } from '@graphql-tools/utils';
 
 const InvalidError = new Error(`Imported object was not a string, DocumentNode or GraphQLSchema`);

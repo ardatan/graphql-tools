@@ -9,7 +9,7 @@ import {
   asArray,
   isValidPath,
   parseGraphQLSDL,
-  printSchemaWithDirectives
+  printSchemaWithDirectives,
 } from '@graphql-tools/utils';
 import {
   GraphQLTagPluckOptions,

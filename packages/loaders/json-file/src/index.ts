@@ -4,7 +4,7 @@ import {
   SchemaPointerSingle,
   DocumentLoader,
   isValidPath,
-  SingleFileOptions
+  SingleFileOptions,
 } from '@graphql-tools/utils';
 import { isAbsolute, resolve } from 'path';
 import { readFileSync, accessSync, promises as fsPromises } from 'fs';
