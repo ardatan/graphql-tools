@@ -49,12 +49,7 @@ export function getProperties(object: Record<string, any>, propertyTree: Propert
 
     const prop = object[key];
 
-    if (Array.isArray(prop)) {
-      newObject[key] = prop.map(item => getProperties(item, subKey));
-      return;
-    }
-
-    newObject[key] = getProperties(prop, subKey);
+    newObject[key] = deepMap(prop, (item) => getProperties(item, subKey));
   });
 
   return newObject;
@@ -66,4 +61,12 @@ export function propertyTreeFromPaths(paths: Array<Array<string>>): PropertyTree
     addProperty(propertyTree, path, null);
   });
   return propertyTree;
+}
+
+function deepMap(arrayOrItem: any, fn: (item: any) => any): any {
+  if (Array.isArray(arrayOrItem)) {
+    return arrayOrItem.map(nestedArrayOrItem => deepMap(nestedArrayOrItem, fn));
+  }
+
+  return fn(arrayOrItem);
 }
