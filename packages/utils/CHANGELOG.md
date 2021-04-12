@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 7.7.2
+
+### Patch Changes
+
+- a4f1ee58: \_\_ is reserved for introspection
+
 ## 7.7.1
 
 ### Patch Changes
