@@ -1,5 +1,27 @@
-import { Source, debugLog, makeCacheable, makeCacheableSync } from '@graphql-tools/utils';
+import { Source, debugLog, Cacheable } from '@graphql-tools/utils';
 import { LoadTypedefsOptions } from '../load-typedefs';
+
+function makeCacheable<TPointer, TOptions extends Cacheable>(
+  fn: (pointer: TPointer, options?: TOptions) => Promise<Source | never>,
+  pointer: TPointer,
+  options: TOptions
+): Promise<Source | never> {
+  if (options?.cacheable) {
+    return options.cacheable(fn, pointer, options);
+  }
+  return fn(pointer, options);
+}
+
+function makeCacheableSync<TPointer, TOptions extends Cacheable>(
+  fn: (pointer: TPointer, options?: TOptions) => Source | never,
+  pointer: TPointer,
+  options: TOptions
+): Source | never {
+  if (options?.cacheableSync) {
+    return options.cacheableSync(fn, pointer, options);
+  }
+  return fn(pointer, options);
+}
 
 export async function loadFile(pointer: string, options: LoadTypedefsOptions): Promise<Source> {
   const cached = useCache({ pointer, options });

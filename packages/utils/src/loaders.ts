@@ -9,7 +9,7 @@ export interface Source {
   location?: string;
 }
 
-interface Cacheable {
+export interface Cacheable {
   cacheable?<TPointer, TOptions>(
     fn: (pointer: TPointer, options?: TOptions) => PromiseLike<Source | never>,
     pointer: TPointer,
@@ -60,25 +60,3 @@ export type UniversalLoader<TOptions extends SingleFileOptions = SingleFileOptio
   SchemaPointerSingle | DocumentPointerSingle,
   TOptions
 >;
-
-export function makeCacheable<TPointer, TOptions extends Cacheable>(
-  fn: (pointer: TPointer, options?: TOptions) => Promise<Source | never>,
-  pointer: TPointer,
-  options: TOptions
-): Promise<Source | never> {
-  if (options?.cacheable) {
-    return options.cacheable(fn, pointer, options);
-  }
-  return fn(pointer, options);
-}
-
-export function makeCacheableSync<TPointer, TOptions extends Cacheable>(
-  fn: (pointer: TPointer, options?: TOptions) => Source | never,
-  pointer: TPointer,
-  options: TOptions
-): Source | never {
-  if (options?.cacheableSync) {
-    return options.cacheableSync(fn, pointer, options);
-  }
-  return fn(pointer, options);
-}
