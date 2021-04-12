@@ -25,8 +25,11 @@ import { IStitchSchemasOptions, SubschemaConfigTransform } from './types';
 
 import { buildTypeCandidates, buildTypes } from './typeCandidates';
 import { createStitchingInfo, completeStitchingInfo, addStitchingInfo } from './stitchingInfo';
-import { isolateComputedFields } from './isolateComputedFields';
-import { defaultSubschemaConfigTransforms } from './subschemaConfigTransforms';
+import {
+  defaultSubschemaConfigTransforms,
+  isolateComputedFieldsTransformer,
+  splitMergedTypeEntryPointsTransformer,
+} from './subschemaConfigTransforms';
 
 export function stitchSchemas<TContext = Record<string, any>>({
   subschemas = [],
@@ -192,6 +195,8 @@ export function stitchSchemas<TContext = Record<string, any>>({
   return schema;
 }
 
+const subschemaConfigTransformerPresets = [isolateComputedFieldsTransformer, splitMergedTypeEntryPointsTransformer];
+
 function applySubschemaConfigTransforms<TContext = Record<string, any>>(
   subschemaConfigTransforms: Array<SubschemaConfigTransform<TContext>>,
   subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig<any, any, any, TContext>,
@@ -202,13 +207,25 @@ function applySubschemaConfigTransforms<TContext = Record<string, any>>(
     ? subschemaOrSubschemaConfig
     : { schema: subschemaOrSubschemaConfig };
 
-  const newSubschemaConfig = subschemaConfigTransforms.reduce((acc, subschemaConfigTransform) => {
-    return subschemaConfigTransform(acc);
-  }, subschemaConfig);
+  let transformedSubschemaConfigs: Array<SubschemaConfig> = [subschemaConfig];
+  subschemaConfigTransforms.concat(subschemaConfigTransformerPresets).forEach(subschemaConfigTransform => {
+    const mapped: Array<SubschemaConfig | Array<SubschemaConfig>> = transformedSubschemaConfigs.map(ssConfig =>
+      subschemaConfigTransform(ssConfig)
+    );
 
-  const transformedSubschemas = isolateComputedFields(newSubschemaConfig).map(
-    subschemaConfig => new Subschema(subschemaConfig)
-  );
+    transformedSubschemaConfigs = mapped.reduce(
+      (acc: Array<SubschemaConfig>, configOrList: SubschemaConfig | Array<SubschemaConfig>) => {
+        if (Array.isArray(configOrList)) {
+          return acc.concat(configOrList as Array<SubschemaConfig>);
+        }
+        acc.push(configOrList as SubschemaConfig);
+        return acc;
+      },
+      []
+    ) as Array<SubschemaConfig>;
+  });
+
+  const transformedSubschemas = transformedSubschemaConfigs.map(ssConfig => new Subschema(ssConfig));
 
   const baseSubschema = transformedSubschemas[0];
 

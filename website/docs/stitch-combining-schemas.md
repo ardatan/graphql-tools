@@ -4,13 +4,17 @@ title: Combining schemas
 sidebar_label: Combining schemas
 ---
 
-Schema stitching (`@graphql-tools/stitch`) creates a single GraphQL gateway schema from multiple underlying GraphQL services. Unlike [schema merging](/docs/merge-schemas), which simply combines local schema instances, stitching builds a combined proxy layer that delegates requests through to underlying service APIs. As of GraphQL Tools v7, stitching is a comparable alternative to [Apollo Federation](https://www.apollographql.com/docs/federation/) with automated query planning, merged types, and declarative schema directives.
+Schema stitching (`@graphql-tools/stitch`) creates a single GraphQL gateway schema from multiple underlying GraphQL services. Unlike [schema merging](/docs/merge-schemas), which simply combines local schema instances, stitching builds a combined proxy layer that delegates requests through to underlying service APIs. As of GraphQL Tools v7, stitching is fairly comparable to [Apollo Federation](https://www.apollographql.com/docs/federation/) with automated query planning, merged types, and declarative schema directives.
+
+Note that schema stitching is a superset of the [schema wrapping](/docs/stitch-wrapping) API. Rather than wrapping schemas individually and then combining them, `stitchSchemas` may be used directly to handle all wrapping concerns.
 
 ## Why stitching?
 
 One of the main benefits of GraphQL is that we can query for all data in a single request to one schema. As that schema grows though, it may become preferable to break it up into separate modules or microservices that can be developed independently. We may also want to integrate the schemas we own with third-party schemas, allowing mashups with external data.
 
-In these cases, `stitchSchemas` is used to combine multiple GraphQL APIs into one unified gateway schema that knows how to delegate parts of a request to the relevant underlying subschemas. These subschemas may be local GraphQL instances or APIs running on remote servers.
+![distributed service graph](../static/img/distributed-graph.png)
+
+In these cases, `stitchSchemas` is used to combine multiple GraphQL APIs into one unified gateway proxy schema that knows how to delegate parts of a request to the relevant underlying subschemas. These subschemas may be local GraphQL instances or APIs running on remote servers.
 
 ## Getting started
 

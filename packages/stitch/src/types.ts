@@ -85,7 +85,7 @@ export interface IStitchSchemasOptions<TContext = Record<string, any>>
 
 export type SubschemaConfigTransform<TContext = Record<string, any>> = (
   subschemaConfig: SubschemaConfig<any, any, any, TContext>
-) => SubschemaConfig<any, any, any, TContext>;
+) => SubschemaConfig<any, any, any, TContext> | Array<SubschemaConfig<any, any, any, TContext>>;
 
 export interface TypeMergingOptions<TContext = Record<string, any>> {
   validationSettings?: ValidationSettings;

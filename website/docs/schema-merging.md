@@ -4,7 +4,7 @@ title: Schema merging
 sidebar_label: Schema merging
 ---
 
-Schema merging (`@graphql-tools/merge`) consolidates the type definitions and resolvers from many local schema instances into a single executable schema. This is useful for building a local service schema from many individually-managed parts. This should not be confused with [schema stitching](/docs/stitch-combining-schemas), which builds a combined proxy schema atop numerous service APIs.
+Schema merging (`@graphql-tools/merge`) consolidates the type definitions and resolvers from many local schema instances into a single executable schema. This is useful for building a single local service schema from many individually-managed parts. This should not be confused with [schema stitching](/docs/stitch-combining-schemas), which builds a combined proxy schema atop numerous subservice APIs.
 
 ## Getting started
 

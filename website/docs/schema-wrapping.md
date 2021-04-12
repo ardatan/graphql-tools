@@ -8,6 +8,8 @@ Schema wrapping (`@graphql-tools/wrap`) creates a modified version of a schema t
 
 Schema wrapping works by creating a new "gateway" schema that simply delegates all operations to the original subschema. A series of _transforms_ are applied that may modify the shape of the gateway schema and all proxied operations; these operational transforms may modify an operation prior to delegation, or modify the subschema result prior to its return.
 
+Note that [schema stitching](/docs/stitch-combining-schemas) is a _superset_ of the wrapping API. If you want to combine multiple services (with optional transforms) into one combined gateway schema, then you should use the [stitchSchemas](/docs/stitch-combining-schemas) method directly and allow it to handle all of the subservice wrappings.
+
 ## Getting started
 
 Let's consider changing the name of a type in a simple schema. In this example, we'd like to replace all instances of type `Widget` with `NewWidget`.

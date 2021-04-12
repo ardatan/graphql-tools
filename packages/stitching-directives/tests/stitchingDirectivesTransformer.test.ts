@@ -95,6 +95,159 @@ describe('type merging directives', () => {
     expect(transformedSubschemaConfig.merge.User.fieldName).toEqual('_entity');
   });
 
+  test('adds type selection sets when returns list', () => {
+    const typeDefs = `
+      ${allStitchingDirectivesTypeDefs}
+      scalar _Key
+
+      type User @key(selectionSet: "{ relations { id } }") {
+        relationIds: [String!]!
+      }
+
+      type Query {
+        _user(key: _Key): User @merge
+      }
+    `;
+
+    const schema = makeExecutableSchema({ typeDefs });
+
+    const subschemaConfig = {
+      schema,
+    }
+
+    const transformedSubschemaConfig = stitchingDirectivesTransformer(subschemaConfig);
+
+    const argsFn = transformedSubschemaConfig.merge.User.args;
+
+    const originalResult = {
+      relations: [
+        {
+          id: 2
+        },
+        {
+          id: 3
+        }
+      ]
+    };
+
+    const args = argsFn(originalResult);
+
+    expect(args).toEqual({
+      key: {
+        relations: [
+          {
+            id: 2
+          },
+          {
+            id: 3
+          }
+        ]
+      },
+    });
+  });
+
+  test('adds type selection sets when returns multi-layered list', () => {
+    const typeDefs = `
+      ${allStitchingDirectivesTypeDefs}
+      scalar _Key
+
+      type User @key(selectionSet: "{ relationSets { id } }") {
+        relationIds: [[String!]!]!
+      }
+
+      type Query {
+        _user(key: _Key): User @merge
+      }
+    `;
+
+    const schema = makeExecutableSchema({ typeDefs });
+
+    const subschemaConfig = {
+      schema,
+    }
+
+    const transformedSubschemaConfig = stitchingDirectivesTransformer(subschemaConfig);
+
+    const argsFn = transformedSubschemaConfig.merge.User.args;
+
+    const originalResult = {
+      relationSets: [
+        [
+          {
+            id: 2
+          },
+          {
+            id: 3
+          }
+        ],
+        [
+          {
+            id: 4
+          }
+        ]
+      ]
+    };
+
+    const args = argsFn(originalResult);
+
+    expect(args).toEqual({
+      key: {
+        relationSets: [
+          [
+            {
+              id: 2
+            },
+            {
+              id: 3
+            }
+          ],
+          [
+            {
+              id: 4
+            }
+          ]
+        ]
+      },
+    });
+  });
+
+  test('adds type selection sets when returns null', () => {
+    const typeDefs = `
+      ${allStitchingDirectivesTypeDefs}
+      scalar _Key
+
+      type User @key(selectionSet: "{ nestedField { id } }") {
+        nestedId: [String!]!
+      }
+
+      type Query {
+        _user(key: _Key): User @merge
+      }
+    `;
+
+    const schema = makeExecutableSchema({ typeDefs });
+
+    const subschemaConfig = {
+      schema,
+    }
+
+    const transformedSubschemaConfig = stitchingDirectivesTransformer(subschemaConfig);
+
+    const argsFn = transformedSubschemaConfig.merge.User.args;
+
+    const originalResult: { nestedField: null } = {
+      nestedField: null
+    };
+
+    const args = argsFn(originalResult);
+
+    expect(args).toEqual({
+      key: {
+        nestedField: null
+      },
+    });
+  });
+
   test('adds computed selection sets', () => {
     const typeDefs = `
       ${allStitchingDirectivesTypeDefs}

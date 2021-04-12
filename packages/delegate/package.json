@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/delegate",
-  "version": "7.1.1",
+  "version": "7.1.2",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
@@ -28,7 +28,7 @@
     "@ardatan/aggregate-error": "0.0.6",
     "dataloader": "2.0.0",
     "is-promise": "4.0.0",
-    "tslib": "~2.1.0"
+    "tslib": "~2.2.0"
   },
   "publishConfig": {
     "access": "public",

@@ -1,9 +1,9 @@
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { isolateComputedFields } from '@graphql-tools/stitch';
+import { isolateComputedFieldsTransformer } from '@graphql-tools/stitch';
 import { Subschema } from '@graphql-tools/delegate';
 import { GraphQLObjectType, GraphQLInterfaceType } from 'graphql';
 
-describe('isolateComputedFields', () => {
+describe('isolateComputedFieldsTransformer', () => {
   describe('basic isolation', ()    => {
     const storefrontSchema = makeExecutableSchema({
       typeDefs: `
@@ -33,7 +33,7 @@ describe('isolateComputedFields', () => {
     });
 
     it('splits a subschema into base and computed portions', async () => {
-      const [baseConfig, computedConfig] = isolateComputedFields({
+      const [baseConfig, computedConfig] = isolateComputedFieldsTransformer({
         schema: storefrontSchema,
         merge: {
           Product: {
@@ -85,7 +85,7 @@ describe('isolateComputedFields', () => {
     });
 
     it('does not split schemas with only non-computed fields', async () => {
-      const subschemas = isolateComputedFields({
+      const subschemas = isolateComputedFieldsTransformer({
         schema: storefrontSchema,
         merge: {
           Product: {
@@ -115,7 +115,7 @@ describe('isolateComputedFields', () => {
     });
 
     it('does not reprocess already isolated computations', async () => {
-      const subschemas = isolateComputedFields({
+      const subschemas = isolateComputedFieldsTransformer({
         schema: storefrontSchema,
         merge: {
           Product: {
@@ -160,7 +160,7 @@ describe('isolateComputedFields', () => {
     });
 
     it('moves all computed types to the computed schema', async () => {
-      const [baseConfig, computedConfig] = isolateComputedFields({
+      const [baseConfig, computedConfig] = isolateComputedFieldsTransformer({
         schema: storefrontSchema,
         merge: {
           Storefront: {
@@ -227,7 +227,7 @@ describe('isolateComputedFields', () => {
         `
       });
 
-      const [baseConfig, computedConfig] = isolateComputedFields({
+      const [baseConfig, computedConfig] = isolateComputedFieldsTransformer({
         schema: testSchema,
         merge: {
           Product: {
@@ -252,6 +252,68 @@ describe('isolateComputedFields', () => {
       expect(Object.keys((baseSubschema.transformedSchema.getType('Product') as GraphQLObjectType).getFields())).toEqual(['base']);
       expect(Object.keys((computedSubschema.transformedSchema.getType('IProduct') as GraphQLInterfaceType).getFields())).toEqual(['computeMe']);
       expect(Object.keys((computedSubschema.transformedSchema.getType('Product') as GraphQLObjectType).getFields())).toEqual(['computeMe']);
+    });
+  });
+
+  describe('with multiple entryPoints', () => {
+    it('includes all entryPoint fields', async () => {
+      const testSchema = makeExecutableSchema({
+        typeDefs: `
+          type Product {
+            id: ID!
+            upc: ID!
+            computeMe: String!
+          }
+          input ProductById {
+            id: ID!
+            price: Int
+            weight: Int
+          }
+          input ProductByUpc {
+            upc: ID!
+            price: Int
+            weight: Int
+          }
+          type Query {
+            featuredProduct: Product
+            productById(key: ProductById!): Product
+            productByUpc(key: ProductByUpc!): Product
+          }
+        `
+      });
+
+      const [baseConfig, computedConfig] = isolateComputedFieldsTransformer({
+        schema: testSchema,
+        merge: {
+          Product: {
+            entryPoints: [{
+              selectionSet: '{ id }',
+              fieldName: 'productById',
+              key: ({ id, price, weight }) => ({ id, price, weight }),
+              argsFromKeys: (key) => ({ key }),
+            }, {
+              selectionSet: '{ upc }',
+              fieldName: 'productByUpc',
+              key: ({ upc, price, weight }) => ({ upc, price, weight }),
+              argsFromKeys: (key) => ({ key }),
+            }],
+            fields: {
+              computeMe: {
+                selectionSet: '{ price weight }',
+                computed: true,
+              }
+            }
+          }
+        }
+      });
+
+      const baseSubschema = new Subschema(baseConfig);
+      const computedSubschema = new Subschema(computedConfig);
+
+      expect(Object.keys((baseSubschema.transformedSchema.getType('Product') as GraphQLObjectType).getFields())).toEqual(['id', 'upc']);
+      expect(Object.keys((computedSubschema.transformedSchema.getType('Product') as GraphQLObjectType).getFields())).toEqual(['computeMe']);
+      expect(Object.keys((baseSubschema.transformedSchema.getType('Query') as GraphQLObjectType).getFields())).toEqual(['featuredProduct', 'productById', 'productByUpc']);
+      expect(Object.keys((computedSubschema.transformedSchema.getType('Query') as GraphQLObjectType).getFields())).toEqual(['productById', 'productByUpc']);
     });
   });
 });

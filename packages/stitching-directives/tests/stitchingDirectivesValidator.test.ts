@@ -5,7 +5,7 @@ import { stitchingDirectives } from '../src';
 describe('type merging directives', () => {
   const { allStitchingDirectivesTypeDefs, stitchingDirectivesValidator } = stitchingDirectives();
 
-  test('does not throws an error if no other typeDefs used', () => {
+  test('does not throw an error if no other typeDefs used', () => {
     const typeDefs = `
       ${allStitchingDirectivesTypeDefs}
     `;
@@ -31,7 +31,7 @@ describe('type merging directives', () => {
     expect(() => makeExecutableSchema({ typeDefs, schemaTransforms: [stitchingDirectivesValidator] })).toThrow();
   });
 
-  test('does not throws an error if type selectionSet valid', () => {
+  test('does not throw an error if type selectionSet valid', () => {
     const typeDefs = `
       ${allStitchingDirectivesTypeDefs}
       type Query {
@@ -65,7 +65,7 @@ describe('type merging directives', () => {
     expect(() => makeExecutableSchema({ typeDefs, schemaTransforms: [stitchingDirectivesValidator] })).toThrow();
   });
 
-  test('does not throws an error if computed selectionSet valid', () => {
+  test('does not throw an error if computed selectionSet valid', () => {
     const typeDefs = `
       ${allStitchingDirectivesTypeDefs}
       type Query {
@@ -101,7 +101,7 @@ describe('type merging directives', () => {
     expect(() => makeExecutableSchema({ typeDefs, schemaTransforms: [stitchingDirectivesValidator] })).toThrow();
   });
 
-  test('does not throws an error if merge argsExpr valid', () => {
+  test('does not throw an error if merge argsExpr valid', () => {
     const typeDefs = `
       ${allStitchingDirectivesTypeDefs}
       scalar _Key
@@ -120,7 +120,7 @@ describe('type merging directives', () => {
     expect(() => makeExecutableSchema({ typeDefs, schemaTransforms: [stitchingDirectivesValidator] })).not.toThrow();
   });
 
-  test('does not throws an error if merge used without arguments', () => {
+  test('does not throw an error if merge used without arguments', () => {
     const typeDefs = `
       ${allStitchingDirectivesTypeDefs}
       scalar _Key

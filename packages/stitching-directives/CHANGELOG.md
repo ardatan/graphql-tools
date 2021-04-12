@@ -1,5 +1,17 @@
 # @graphql-tools/stitching-directives
 
+## 1.3.2
+
+### Patch Changes
+
+- 2c4db53d: fix(stitching-directives): allow selectionSets to include variably nested lists
+
+## 1.3.1
+
+### Patch Changes
+
+- d7b4e09e: fix(stitching-directives): to allow keys to include lists
+
 ## 1.3.0
 
 ### Minor Changes

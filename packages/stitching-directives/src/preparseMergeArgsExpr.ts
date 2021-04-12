@@ -1,12 +1,12 @@
-export interface PreparsedMergeArgsExpr {
-  mergeArgsExpr: string;
-  expansionExpressions: Record<string, string>;
-}
-
 export const KEY_DELIMITER = '__dot__';
 export const EXPANSION_PREFIX = '__exp';
 
-export function preparseMergeArgsExpr(mergeArgsExpr: string): PreparsedMergeArgsExpr {
+export function preparseMergeArgsExpr(
+  mergeArgsExpr: string
+): {
+  mergeArgsExpr: string;
+  expansionExpressions: Record<string, string>;
+} {
   const variableRegex = /\$[_A-Za-z][_A-Za-z0-9.]*/g;
   const dotRegex = /\./g;
   mergeArgsExpr = mergeArgsExpr.replace(variableRegex, variable => variable.replace(dotRegex, KEY_DELIMITER));
