@@ -49,16 +49,16 @@
     "@changesets/cli": "2.16.0",
     "@types/jest": "26.0.22",
     "@types/node": "14.14.37",
-    "@typescript-eslint/eslint-plugin": "4.21.0",
-    "@typescript-eslint/parser": "4.21.0",
+    "@typescript-eslint/eslint-plugin": "4.22.0",
+    "@typescript-eslint/parser": "4.22.0",
     "babel-jest": "26.6.3",
-    "concurrently": "6.0.1",
+    "concurrently": "6.0.2",
     "eslint": "7.24.0",
     "eslint-config-prettier": "8.1.0",
     "eslint-config-standard": "16.0.2",
     "eslint-plugin-import": "2.22.1",
     "eslint-plugin-node": "11.1.0",
-    "eslint-plugin-promise": "4.3.1",
+    "eslint-plugin-promise": "5.1.0",
     "eslint-plugin-standard": "5.0.0",
     "graphql": "15.5.0",
     "graphql-helix": "1.2.3",
@@ -99,6 +99,6 @@
   },
   "resolutions": {
     "graphql": "15.5.0",
-    "@changesets/apply-release-plan": "4.2.0"
+    "@changesets/apply-release-plan": "5.0.0"
   }
 }
