@@ -31,7 +31,6 @@ export function mergeSchemaDefs(
   if (existingNode) {
     return {
       kind:
-        config?.convertExtensions ||
         node.kind === Kind.SCHEMA_DEFINITION ||
         existingNode.kind === Kind.SCHEMA_DEFINITION
           ? Kind.SCHEMA_DEFINITION
