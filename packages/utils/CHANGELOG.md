@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 7.7.3
+
+### Patch Changes
+
+- d2a17c70: enhance(printSchemaWithDirectives): show directives before other definitions #2752
+
 ## 7.7.2
 
 ### Patch Changes
