@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/merge",
-  "version": "6.2.11",
+  "version": "6.2.12",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
