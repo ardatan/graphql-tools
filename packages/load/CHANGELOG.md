@@ -1,5 +1,13 @@
 # @graphql-tools/load
 
+## 6.2.8
+
+### Patch Changes
+
+- 68946667: fix(merge): fix handling schema definitions with convertExtensions flag
+- Updated dependencies [68946667]
+  - @graphql-tools/merge@6.2.12
+
 ## 6.2.7
 
 ### Patch Changes
