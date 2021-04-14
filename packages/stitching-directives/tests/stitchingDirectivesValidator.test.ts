@@ -120,6 +120,24 @@ describe('type merging directives', () => {
     expect(() => makeExecutableSchema({ typeDefs, schemaTransforms: [stitchingDirectivesValidator] })).not.toThrow();
   });
 
+  test('does not throw an error when using merge with argsExpr on a multiple args endpoint', () => {
+    const typeDefs = `
+      ${allStitchingDirectivesTypeDefs}
+      
+      type Query {
+        _user(id: ID, name: String): User @merge(argsExpr: "id: $key.id, name: $key.name")
+      }
+
+      type User @key(selectionSet: "{ id name }") {
+        id: ID
+        name: String
+      }
+    `;
+
+    expect(() => makeExecutableSchema({ typeDefs })).not.toThrow();
+    expect(() => makeExecutableSchema({ typeDefs, schemaTransforms: [stitchingDirectivesValidator] })).not.toThrow();
+  });
+
   test('does not throw an error if merge used without arguments', () => {
     const typeDefs = `
       ${allStitchingDirectivesTypeDefs}

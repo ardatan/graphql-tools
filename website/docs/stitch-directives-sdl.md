@@ -60,8 +60,11 @@ The function of these directives are:
   * `keyField`: specifies the name of a field to pick off origin objects as the key value. When omitted, a `@key` directive must be included on the return type's definition to be built into an [object key](#object-keys).
   * `keyArg`: specifies which field argument receives the merge key. This may be omitted for fields with only one argument where the recipient can be inferred.
   * `additionalArgs`: specifies a string of additional keys and values to apply to other arguments, formatted as `""" arg1: "value", arg2: "value" """`.
-  * _`key`: advanced use only; builds a custom key._
-  * _`argsExpr`: advanced use only; builds a custom args object._
+  * _`key`: advanced use only;_ Allows building a custom key just for the argument from the selectionSet included by the `@key` directive.
+  * _`argsExpr`: advanced use only;_ This argument specifies a string expression that allows more customization of the input arguments. Rules for evaluation of this argument are as follows:
+    * basic object parsing of the input key: `"arg1: $key.arg1, arg2: $key.arg2"`
+    * any expression enclosed by double brackets will be evaluated once for each of the requested keys, and then sent as a list: `"input: { keys: [[$key]] }"`
+    * selections from the key can be referenced by using the $ sign and dot notation: `"upcs: [[$key.upc]]"`, so that `$key.upc` refers to the `upc` field of the key.
 
 * **`@key`:** specifies a base selection set needed to merge the annotated type across subschemas. Analogous to the `selectionSet` setting specified in [merged type configuration](/docs/stitch-type-merging#basic-example).
 
