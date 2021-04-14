@@ -1,5 +1,11 @@
 # @graphql-tools/stitching-directives
 
+## 1.3.3
+
+### Patch Changes
+
+- 5f5436fc: Fix stitching-directives to allow using 'argsExpr' with multiple arguments
+
 ## 1.3.2
 
 ### Patch Changes
