@@ -65,6 +65,15 @@ export function getDocumentNodeFromSchema(
   const schemaNode = astFromSchema(schema, pathToDirectivesInExtensions);
   const definitions: Array<DefinitionNode> = schemaNode != null ? [schemaNode] : [];
 
+  const directives = schema.getDirectives();
+  for (const directive of directives) {
+    if (isSpecifiedDirective(directive)) {
+      continue;
+    }
+
+    definitions.push(astFromDirective(directive, schema, pathToDirectivesInExtensions));
+  }
+
   for (const typeName in typesMap) {
     const type = typesMap[typeName];
     const isPredefinedScalar = isSpecifiedScalarType(type);
@@ -89,15 +98,6 @@ export function getDocumentNodeFromSchema(
     } else {
       throw new Error(`Unknown type ${type}.`);
     }
-  }
-
-  const directives = schema.getDirectives();
-  for (const directive of directives) {
-    if (isSpecifiedDirective(directive)) {
-      continue;
-    }
-
-    definitions.push(astFromDirective(directive, schema, pathToDirectivesInExtensions));
   }
 
   return {
