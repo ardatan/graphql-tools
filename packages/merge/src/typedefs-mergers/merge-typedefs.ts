@@ -122,7 +122,7 @@ function visitTypeSources(
   for (const type of types) {
     if (type) {
       if (Array.isArray(type)) {
-        visitTypeSources(types, allNodes);
+        visitTypeSources(type, allNodes);
       } else if (isSchema(type)) {
         const documentNode = getDocumentNodeFromSchema(type);
         visitTypeSources(documentNode.definitions as DefinitionNode[], allNodes);
