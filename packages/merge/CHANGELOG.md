@@ -1,5 +1,11 @@
 # @graphql-tools/merge
 
+## 6.2.13
+
+### Patch Changes
+
+- 60a9c9a5: fix(merge): handle arrays correctly
+
 ## 6.2.12
 
 ### Patch Changes
