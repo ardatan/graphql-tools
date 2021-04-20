@@ -1,0 +1,117 @@
+- color: 1d76db
+  description: ''
+  name: automerge
+- color: b60205
+  description: Prevents production or dev due to perf, bug, build error, etc..
+  name: blocking
+- color: fc2929
+  description: ''
+  name: bug
+- color: b60205
+  description: ''
+  name: bugfix
+- color: 1f6d01
+  description: ''
+  name: chore
+- color: 0366d6
+  description: Pull requests that update a dependency file
+  name: dependencies
+- color: ededed
+  description: ''
+  name: design-limitation
+- color: c2e0c6
+  description: Focuses on documentation changes
+  name: docs
+- color: cccccc
+  description: ''
+  name: duplicate
+- color: d4c5f9
+  description: ''
+  name: easy
+- color: 84b6eb
+  description: ''
+  name: enhancement
+- color: 0e8a16
+  description: ''
+  name: external-bug
+- color: a2eeef
+  description: New addition or enhancement to existing solutions
+  name: feature
+- color: ededed
+  description: ''
+  name: fixed
+- color: 7057ff
+  description: Issues that are suitable for first-time contributors.
+  name: good first issue
+- color: 7057ff
+  description: PR's that are suitable for first-time contributors to review.
+  name: good first review
+- color: ededed
+  description: ''
+  name: greenkeeper
+- color: 42f44e
+  description: ❤ Has a reproduction in a codesandbox or single minimal repository
+  name: has-reproduction
+- color: '159818'
+  description: ''
+  name: help wanted
+- color: c2e0c6
+  description: ''
+  name: import
+- color: ededed
+  description: ''
+  name: in progress
+- color: e6e6e6
+  description: ''
+  name: in progress by contributor
+- color: e6e6e6
+  description: ''
+  name: invalid
+- color: 1d76db
+  description: ''
+  name: loaders
+- color: d93f0b
+  description: ''
+  name: needs-reproduction
+- color: cc317c
+  description: ''
+  name: question
+- color: ededed
+  description: ''
+  name: ready
+- color: d13078
+  description: ''
+  name: repro-only-pr
+- color: fbca04
+  description: ''
+  name: requires documentation fix
+- color: 0052cc
+  description: ''
+  name: schema merging
+- color: 5df492
+  description: ''
+  name: schema stitching
+- color: 0e8a16
+  description: ''
+  name: testing
+- color: ededed
+  description: ''
+  name: to do
+- color: fff2c9
+  description: ''
+  name: v5
+- color: 254faa
+  description: ''
+  name: v6
+- color: b75409
+  description: ''
+  name: waiting for answer
+- color: ffbae9
+  description: ''
+  name: waiting on contributor
+- color: dfff8e
+  description: Fixed/resolved, and waiting for the next stable release
+  name: waiting-for-release
+- color: ffffff
+  description: ''
+  name: wontfix
