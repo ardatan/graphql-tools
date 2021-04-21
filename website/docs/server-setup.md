@@ -48,7 +48,6 @@ And you can test your queries using built-in [GraphiQL](https://github.com/graph
 const http = require('http');
 const express = require('express');
 const { graphqlHTTP } = require('express-graphql');
-const { execute, subscribe } = require('graphql');
 const ws = require('ws'); // yarn add ws
 const { useServer } = require('graphql-ws/lib/use/ws');
 
@@ -79,14 +78,7 @@ const wsServer = new ws.Server({
 });
 
 server.listen(3000, () => {
-  useServer(
-    {
-      schema,
-      execute,
-      subscribe,
-    },
-    wsServer,
-  );
+  useServer({ schema }, wsServer);
   console.info('Listening on http://localhost:3000/graphql');
 });
 ```
