@@ -1,5 +1,11 @@
 # @graphql-tools/url-loader
 
+## 6.8.3
+
+### Patch Changes
+
+- 64663c45: chore(url-loader): Use compatible graphq-ws versioning
+
 ## 6.8.2
 
 ### Patch Changes
