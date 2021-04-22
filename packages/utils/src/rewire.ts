@@ -27,6 +27,7 @@ import {
 } from 'graphql';
 
 import { getBuiltInForStub, isNamedStub } from './stub';
+import { copyCustomFields } from './copy-custom-type-fields';
 
 export function rewireTypes(
   originalTypeMap: Record<string, GraphQLNamedType | null>,
@@ -101,7 +102,8 @@ export function rewireTypes(
         fields: () => rewireFields(config.fields),
         interfaces: () => rewireNamedTypes(config.interfaces),
       };
-      return new GraphQLObjectType(newConfig);
+      const newType = new GraphQLObjectType(newConfig);
+      return copyCustomFields(type, newType);
     } else if (isInterfaceType(type)) {
       const config = (type as GraphQLInterfaceType).toConfig();
       const newConfig: any = {

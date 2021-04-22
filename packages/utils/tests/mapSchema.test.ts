@@ -1214,4 +1214,27 @@ describe('mapSchema', () => {
       expect(result.data).toEqual(expectedResult);
     });
   });
+
+  test('apollo extensions are retained', () => {
+    const schema = makeExecutableSchema({
+      typeDefs: `
+        type TestType {
+          id: ID!
+          properties: [String!]!
+        }
+      `,
+    });
+
+    const s = schema as any;
+    s._typeMap.TestType.resolveReference = () => {};
+    s._typeMap.TestType.resolveObject = () => {};
+
+    expect(s._typeMap.TestType.resolveReference).toBeTruthy()
+    expect(s._typeMap.TestType.resolveObject).toBeTruthy()
+
+    const mappedSchema = mapSchema(schema) as any
+
+    expect(mappedSchema._typeMap.TestType.resolveReference).toBeTruthy()
+    expect(mappedSchema._typeMap.TestType.resolveObject).toBeTruthy()
+  })
 });
