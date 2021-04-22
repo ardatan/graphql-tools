@@ -120,7 +120,7 @@ function mapTypes(
         continue;
       }
 
-      newTypeMap[typeName] = maybeNewType;
+      newTypeMap[typeName] = copyCustomFields(originalType, maybeNewType);
     }
   }
 
