@@ -1225,6 +1225,9 @@ describe('mapSchema', () => {
       `,
     });
 
+    // This is required to specify any additional fields to copy
+    schema.extensions = { customFields: ['resolveObject', 'resolveReference'] };
+
     const s = schema as any;
     s._typeMap.TestType.resolveReference = () => {};
     s._typeMap.TestType.resolveObject = () => {};
@@ -1239,7 +1242,12 @@ describe('mapSchema', () => {
 
     // ... retained through a simple objecttype copy mapping
     mappedSchema = mapSchema(schema, {
-      [MapperKind.OBJECT_TYPE]: (type) => new GraphQLObjectType(type.toConfig())
+      [MapperKind.OBJECT_TYPE]: (type) => {
+        const newType = new GraphQLObjectType(type.toConfig());
+        newType.resolveObject = type.resolveObject;
+        newType.resolveReference = type.resolveReference;
+        return newType;
+      }
     });
 
     expect(mappedSchema._typeMap.TestType.resolveReference).toBeTruthy()

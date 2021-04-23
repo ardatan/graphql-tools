@@ -120,7 +120,8 @@ function mapTypes(
         continue;
       }
 
-      newTypeMap[typeName] = copyCustomFields(originalType, maybeNewType);
+      newTypeMap[typeName] =
+        copyCustomFields(schema, originalType, maybeNewType!);
     }
   }
 
@@ -272,12 +273,15 @@ function mapFields(
       }
 
       if (isObjectType(originalType)) {
-        newTypeMap[typeName] = correctASTNodes(
+        newTypeMap[typeName] = copyCustomFields(
+          schema,
+          originalType,
+          correctASTNodes(
           new GraphQLObjectType({
             ...(config as GraphQLObjectTypeConfig<any, any>),
             fields: newFieldConfigMap,
           })
-        );
+        ));
       } else if (isInterfaceType(originalType)) {
         newTypeMap[typeName] = correctASTNodes(
           new GraphQLInterfaceType({
@@ -365,10 +369,14 @@ function mapArguments(
       }
 
       if (isObjectType(originalType)) {
-        newTypeMap[typeName] = copyCustomFields(originalType, new GraphQLObjectType({
-          ...((config as unknown) as GraphQLObjectTypeConfig<any, any>),
-          fields: newFieldConfigMap,
-        }));
+        newTypeMap[typeName] = copyCustomFields(
+          schema,
+          originalType,
+          new GraphQLObjectType({
+            ...((config as unknown) as GraphQLObjectTypeConfig<any, any>),
+            fields: newFieldConfigMap,
+          })
+        );
       } else if (isInterfaceType(originalType)) {
         newTypeMap[typeName] = new GraphQLInterfaceType({
           ...(config as unknown as GraphQLInterfaceTypeConfig<any, any>),
