@@ -1,3 +1,4 @@
+import '../../testing/to-be-similar-string';
 import { createHash } from 'crypto';
 
 import {
@@ -24,6 +25,9 @@ import {
   isScalarType,
   isListType,
   TypeSystemExtensionNode,
+  GraphQLDirective,
+  DirectiveLocation,
+  print,
 } from 'graphql';
 import formatDate from 'dateformat';
 
@@ -34,6 +38,7 @@ import {
   SchemaVisitor,
   visitSchema,
   ExecutionResult,
+  astFromDirective,
 } from '@graphql-tools/utils';
 
 const typeDefs = `
@@ -1556,4 +1561,22 @@ describe('@directives', () => {
       expect(errors[0].originalError).toEqual(new Error('Author input error'));
     });
   });
+  it('should print a directive correctly from GraphQLDirective object using astFromDirective and print', () => {
+    const sampleDirective = new GraphQLDirective({
+      name: 'sample',
+      args: {
+        foo: {
+          type: GraphQLString
+        }
+      },
+      locations: [DirectiveLocation.FIELD_DEFINITION]
+    });
+    expect(
+      print(
+        astFromDirective(sampleDirective)
+      )
+    ).toBeSimilarString(/* GraphQL */`
+      directive @sample(foo: String) on FIELD_DEFINITION
+    `);
+  })
 });

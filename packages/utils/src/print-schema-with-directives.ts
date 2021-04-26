@@ -193,8 +193,8 @@ export function astFromSchema(
 
 export function astFromDirective(
   directive: GraphQLDirective,
-  schema: GraphQLSchema,
-  pathToDirectivesInExtensions: Array<string>
+  schema?: GraphQLSchema,
+  pathToDirectivesInExtensions?: Array<string>
 ): DirectiveDefinitionNode {
   return {
     kind: Kind.DIRECTIVE_DEFINITION,
@@ -622,7 +622,7 @@ export function makeDirectiveNode(
 export function makeDirectiveNodes(schema: GraphQLSchema, directiveValues: Record<string, any>): Array<DirectiveNode> {
   const directiveNodes: Array<DirectiveNode> = [];
   Object.entries(directiveValues).forEach(([directiveName, arrayOrSingleValue]) => {
-    const directive = schema.getDirective(directiveName);
+    const directive = schema?.getDirective(directiveName);
     if (Array.isArray(arrayOrSingleValue)) {
       arrayOrSingleValue.forEach(value => {
         directiveNodes.push(makeDirectiveNode(directiveName, value, directive));
