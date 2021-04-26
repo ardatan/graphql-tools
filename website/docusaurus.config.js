@@ -38,11 +38,6 @@ module.exports = {
         },
       ],
     },
-    // algolia: {
-    //   appId: 'ANRJKXZTRW',
-    //   apiKey: '811d453fc7f80306044dd5cc4b87e064',
-    //   indexName: 'theguild',
-    // },
     footer: {
       style: 'dark',
       links: [
@@ -89,7 +84,6 @@ module.exports = {
       copyright: `Copyright © ${new Date().getFullYear()} The Guild, Inc. Built with Docusaurus.`,
     },
   },
-  scripts: [],
   presets: [
     [
       '@docusaurus/preset-classic',
