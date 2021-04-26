@@ -11,6 +11,7 @@ module.exports = {
   themeConfig: {
     colorMode: {
       defaultMode: 'dark',
+      disableSwitch: true,
     },
     navbar: {
       // title: 'GraphQL Tools',
@@ -37,11 +38,11 @@ module.exports = {
         },
       ],
     },
-    algolia: {
-      appId: 'ANRJKXZTRW',
-      apiKey: '811d453fc7f80306044dd5cc4b87e064',
-      indexName: 'theguild'
-    },
+    // algolia: {
+    //   appId: 'ANRJKXZTRW',
+    //   apiKey: '811d453fc7f80306044dd5cc4b87e064',
+    //   indexName: 'theguild',
+    // },
     footer: {
       style: 'dark',
       links: [
@@ -88,13 +89,7 @@ module.exports = {
       copyright: `Copyright © ${new Date().getFullYear()} The Guild, Inc. Built with Docusaurus.`,
     },
   },
-  scripts: [
-    {
-      src: 'https://the-guild.dev/static/banner.js',
-      async: true,
-      defer: true,
-    },
-  ],
+  scripts: [],
   presets: [
     [
       '@docusaurus/preset-classic',
