@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 7.8.0
+
+### Minor Changes
+
+- 03c579b1: enhance(utils): astFromDirective doesn't need schema anymore
+
 ## 7.7.3
 
 ### Patch Changes
