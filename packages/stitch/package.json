@@ -22,7 +22,8 @@
     "input": "./src/index.ts"
   },
   "devDependencies": {
-    "dataloader": "2.0.0"
+    "dataloader": "2.0.0",
+    "value-or-promise": "~1.0.1"
   },
   "dependencies": {
     "@graphql-tools/batch-delegate": "^7.0.0",

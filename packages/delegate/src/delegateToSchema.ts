@@ -13,7 +13,7 @@ import {
   GraphQLResolveInfo,
 } from 'graphql';
 
-import isPromise from 'is-promise';
+import { ValueOrPromise } from 'value-or-promise';
 
 import AggregateError from '@ardatan/aggregate-error';
 
@@ -157,18 +157,11 @@ export function delegateRequest<TContext = Record<string, any>, TArgs = any>({
       );
     }
 
-    const executionResult = executor({
+    return new ValueOrPromise(() => executor({
       ...processedRequest,
       context,
       info,
-    });
-
-    if (isPromise(executionResult)) {
-      return executionResult.then(originalResult => {
-        return transformer.transformResult(originalResult);
-      });
-    }
-    return transformer.transformResult(executionResult);
+    })).then(originalResult => transformer.transformResult(originalResult)).resolve();
   }
 
   const subscriber =

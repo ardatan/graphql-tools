@@ -11,7 +11,10 @@ import {
   GraphQLError,
   GraphQLInterfaceType,
 } from 'graphql';
+
 import isPromise from 'is-promise';
+
+import { ValueOrPromise } from 'value-or-promise';
 
 import { introspectSchema } from '@graphql-tools/wrap';
 import {
@@ -20,7 +23,7 @@ import {
   mapAsyncIterator,
 } from '@graphql-tools/utils';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { PromiseOrValue } from 'graphql/jsutils/PromiseOrValue';
+
 import { ExecutionParams, SubschemaConfig } from '@graphql-tools/delegate';
 
 export class CustomError extends GraphQLError {
@@ -683,17 +686,15 @@ export const subscriptionSchema: GraphQLSchema = makeExecutableSchema({
 
 function makeExecutorFromSchema(schema: GraphQLSchema) {
   return async <TReturn, TArgs, TContext>({ document, variables, context }: ExecutionParams<TArgs, TContext>) => {
-    const result = graphql(
+    return (new ValueOrPromise(() => graphql(
       schema,
       print(document),
       null,
       context,
       variables,
-    ) as PromiseOrValue<ExecutionResult<TReturn>>;
-    if (isPromise(result)) {
-      return result.then(originalResult => JSON.parse(JSON.stringify(originalResult)));
-    }
-    return JSON.parse(JSON.stringify(result));
+    ))
+    .then(originalResult => JSON.parse(JSON.stringify(originalResult)))
+    .resolve()) as Promise<ExecutionResult<TReturn>> | ExecutionResult<TReturn>;
   };
 }
 
