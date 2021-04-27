@@ -290,11 +290,9 @@ describe('executor errors are propagated', () => {
               selectionSet: '{ id }',
             },
           },
-          batch: false,
         },
         {
           schema: containerSchemaB,
-          batch: false,
         },
       ],
     });
