@@ -7632,10 +7632,10 @@ graphql-request@^3.3.0:
     extract-files "^9.0.0"
     form-data "^3.0.0"
 
-graphql-scalars@1.9.1:
-  version "1.9.1"
-  resolved "https://registry.yarnpkg.com/graphql-scalars/-/graphql-scalars-1.9.1.tgz#905a7e1c129194e248e0d4b3dbbbe466850806f2"
-  integrity sha512-UHOrd8WUhfgP4/MFfj+W0cpl9yJw8W5Zph5s2DskfnmCeefg4lmlm84kb6sDHttwAprXpGGdo2dQXubE6vx0Cw==
+graphql-scalars@1.9.3:
+  version "1.9.3"
+  resolved "https://registry.yarnpkg.com/graphql-scalars/-/graphql-scalars-1.9.3.tgz#84d27e42d280a16821ab0ef59cddaac84f798575"
+  integrity sha512-vP71Og4ALfe3PCk6T+B7LcJHH55gL0tYidmAE/kWT3ScE2FUCFS7iiMXFQXjCaYLi8nZcRLn9HuejGcjZ8kRug==
   dependencies:
     tslib "~2.2.0"
 
