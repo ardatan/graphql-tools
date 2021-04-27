@@ -37,7 +37,7 @@ export function introspectSchema<TExecutor extends AsyncExecutor | SyncExecutor>
   return new ValueOrPromise(() => (executor as Executor)<IntrospectionQuery>({
     document: parsedIntrospectionQuery,
     context,
-  })).then(introspection => getSchemaFromIntrospection(introspection)) as any;
+  })).then(introspection => getSchemaFromIntrospection(introspection)).resolve() as any;
 }
 
 // Keep for backwards compatibility. Will be removed on next release.
