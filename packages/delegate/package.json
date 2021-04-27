@@ -28,7 +28,7 @@
     "@ardatan/aggregate-error": "0.0.6",
     "dataloader": "2.0.0",
     "tslib": "~2.2.0",
-    "value-or-promise": "~1.0.1"
+    "value-or-promise": "~1.0.5"
   },
   "publishConfig": {
     "access": "public",

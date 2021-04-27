@@ -1,8 +1,8 @@
 import { getOperationAST } from 'graphql';
 
-import isPromise from 'is-promise';
-
 import DataLoader from 'dataloader';
+
+import { ValueOrPromise } from 'value-or-promise';
 
 import { ExecutionParams, Executor, ExecutionResult } from '@graphql-tools/utils';
 
@@ -42,33 +42,19 @@ function createLoadFn(
       }
     }
 
-    let containsPromises = false;
-    const executionResults: Array<ExecutionResult | Promise<ExecutionResult>> = [];
+    const executionResults: Array<ValueOrPromise<ExecutionResult>> = [];
     execBatches.forEach(execBatch => {
       const mergedExecutionParams = mergeExecutionParams(execBatch, extensionsReducer);
-      const executionResult = executor(mergedExecutionParams);
-
-      if (isPromise(executionResult)) {
-        containsPromises = true;
-      }
-      executionResults.push(executionResult);
+      executionResults.push(new ValueOrPromise(() => executor(mergedExecutionParams)));
     });
 
-    if (containsPromises) {
-      return Promise.all(executionResults).then(resultBatches => {
-        let results: Array<ExecutionResult> = [];
-        resultBatches.forEach((resultBatch, index) => {
-          results = results.concat(splitResult(resultBatch, execBatches[index].length));
-        });
-        return results;
+    return ValueOrPromise.all(executionResults).then(resultBatches => {
+      let results: Array<ExecutionResult> = [];
+      resultBatches.forEach((resultBatch, index) => {
+        results = results.concat(splitResult(resultBatch, execBatches[index].length));
       });
-    }
-
-    let results: Array<ExecutionResult> = [];
-    (executionResults as Array<ExecutionResult>).forEach((resultBatch, index) => {
-      results = results.concat(splitResult(resultBatch, execBatches[index].length));
-    });
-    return results;
+      return results;
+    }).resolve();
   };
 }
 
