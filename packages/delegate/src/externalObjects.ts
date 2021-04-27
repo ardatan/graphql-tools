@@ -1,4 +1,4 @@
-import { GraphQLSchema, GraphQLError, GraphQLObjectType, SelectionSetNode } from 'graphql';
+import { GraphQLSchema, GraphQLError, GraphQLObjectType, SelectionSetNode, locatedError } from 'graphql';
 
 import { mergeDeep, relocatedError, GraphQLExecutionContext, collectFields } from '@graphql-tools/utils';
 
@@ -42,7 +42,7 @@ export function mergeExternalObjects(
   let errors: Array<GraphQLError> = [];
 
   sources.forEach((source, index) => {
-    if (source instanceof GraphQLError || source === null) {
+    if (source instanceof Error || source === null) {
       const selectionSet = selectionSets[index];
       const fieldNodes = collectFields(
         {
@@ -57,8 +57,13 @@ export function mergeExternalObjects(
       );
       const nullResult = {};
       Object.keys(fieldNodes).forEach(responseKey => {
-        nullResult[responseKey] =
-          source instanceof GraphQLError ? relocatedError(source, path.concat([responseKey])) : null;
+        if (source instanceof GraphQLError) {
+          nullResult[responseKey] = relocatedError(source, path.concat([responseKey]));
+        } else if (source instanceof Error) {
+          nullResult[responseKey] = locatedError(source, fieldNodes[responseKey], path.concat([responseKey]));
+        } else {
+          nullResult[responseKey] = null;
+        }
       });
       results.push(nullResult);
     } else {

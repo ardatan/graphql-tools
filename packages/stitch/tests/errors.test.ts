@@ -236,3 +236,87 @@ describe('passes along errors for remote schemas', () => {
     expect(result).toEqual(expectedResult);
   });
 });
+
+describe('executor errors are propagated', () => {
+  test('when a microservice is down', async () => {
+    const containerSchemaA = makeExecutableSchema({
+      typeDefs: `
+          type Container {
+            id: ID!
+            name: String
+          }
+
+          type Query {
+            containerById(id: ID!): Container
+          }
+      `,
+      resolvers: {
+        Query: {
+          containerById: () => ({ id: 'ContainerID', name: 'ContainerName' }),
+        },
+      },
+    });
+
+    const containerSchemaB = makeExecutableSchema({
+      typeDefs: `
+        type Container {
+          id: ID!
+        }
+
+        type Query {
+          rootContainer: Container
+        }
+      `,
+      resolvers: {
+        Query: {
+          rootContainer: () => ({ id: 'ContainerID' }),
+        },
+      },
+    });
+
+    const rejectingExecutor = async () => {
+      return Promise.reject(new Error('Service is down'));
+    };
+
+    const schema = stitchSchemas({
+      subschemas: [
+        {
+          schema: containerSchemaA,
+          executor: rejectingExecutor,
+          merge: {
+            Container: {
+              fieldName: 'containerById',
+              args: ({ id }) => ({ id }),
+              selectionSet: '{ id }',
+            },
+          },
+        },
+        {
+          schema: containerSchemaB,
+        },
+      ],
+    });
+
+    const result = await graphql(
+      schema,
+      `
+        query {
+          rootContainer {
+            id
+            name
+          }
+        }
+      `,
+      undefined,
+      {}
+    );
+    expect(result.data).toEqual({
+      rootContainer: {
+        id: 'ContainerID',
+        name: null,
+      },
+    });
+
+    expect(result.errors).toEqual([new GraphQLError('Service is down')]);
+  });
+});
