@@ -1,5 +1,11 @@
 # @graphql-tools/delegate
 
+## 7.1.3
+
+### Patch Changes
+
+- b202587b: fix(delegate): handle executor errors
+
 ## 7.1.2
 
 ### Patch Changes
