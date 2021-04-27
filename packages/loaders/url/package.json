@@ -27,7 +27,7 @@
   "devDependencies": {
     "@types/extract-files": "8.1.0",
     "@types/eventsource": "1.1.5",
-    "@types/ws": "7.4.1",
+    "@types/ws": "7.4.2",
     "mock-http": "1.1.0",
     "mock-socket": "9.0.3"
   },
