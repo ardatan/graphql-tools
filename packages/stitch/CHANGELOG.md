@@ -1,5 +1,15 @@
 # @graphql-tools/stitch
 
+## 7.5.2
+
+### Patch Changes
+
+- 61da3e82: use value-or-promise to streamline working with sync values or async promises
+- Updated dependencies [61da3e82]
+  - @graphql-tools/delegate@7.1.4
+  - @graphql-tools/schema@7.1.4
+  - @graphql-tools/wrap@7.0.6
+
 ## 7.5.1
 
 ### Patch Changes

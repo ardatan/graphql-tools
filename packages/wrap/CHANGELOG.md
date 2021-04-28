@@ -1,5 +1,14 @@
 # @graphql-tools/wrap
 
+## 7.0.6
+
+### Patch Changes
+
+- 61da3e82: use value-or-promise to streamline working with sync values or async promises
+- Updated dependencies [61da3e82]
+  - @graphql-tools/delegate@7.1.4
+  - @graphql-tools/schema@7.1.4
+
 ## 7.0.5
 
 ### Patch Changes

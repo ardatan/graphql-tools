@@ -22,13 +22,13 @@
     "input": "./src/index.ts"
   },
   "dependencies": {
-    "@graphql-tools/delegate": "^7.1.2",
+    "@graphql-tools/delegate": "^7.1.4",
     "dataloader": "2.0.0",
     "tslib": "~2.2.0"
   },
   "devDependencies": {
-    "@graphql-tools/schema": "7.1.3",
-    "@graphql-tools/stitch": "7.5.1",
+    "@graphql-tools/schema": "7.1.4",
+    "@graphql-tools/stitch": "7.5.2",
     "@graphql-tools/utils": "7.8.0"
   },
   "publishConfig": {

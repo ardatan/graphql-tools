@@ -1,5 +1,11 @@
 # @graphql-tools/batch-execute
 
+## 7.1.1
+
+### Patch Changes
+
+- 61da3e82: use value-or-promise to streamline working with sync values or async promises
+
 ## 7.1.0
 
 ### Minor Changes
