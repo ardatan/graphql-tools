@@ -917,4 +917,27 @@ describe('importSchema', () => {
   `;
     expect(importSchema('fixtures/multiple-imports/schema.graphql')).toBeSimilarGqlDoc(expectedSDL);
   });
+
+  test('imports multi-level types without direct references', () => {
+    const expectedSDL = /* GraphQL */`\
+  type Level1 {
+    id: ID!
+  }
+  
+  type Level2 {
+    id: ID!
+    level1: Level1
+  }
+  
+  type Level3 {
+    id: ID!
+    level2: Level2
+  }
+
+  type Query {
+    level: Level3
+  }
+  `;
+    expect(importSchema('fixtures/deep/a.graphql')).toBeSimilarGqlDoc(expectedSDL);
+  });
 })
