@@ -1,5 +1,14 @@
 # @graphql-tools/delegate
 
+## 7.1.4
+
+### Patch Changes
+
+- 61da3e82: use value-or-promise to streamline working with sync values or async promises
+- Updated dependencies [61da3e82]
+  - @graphql-tools/batch-execute@7.1.1
+  - @graphql-tools/schema@7.1.4
+
 ## 7.1.3
 
 ### Patch Changes
