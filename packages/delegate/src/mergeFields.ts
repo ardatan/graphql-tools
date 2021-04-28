@@ -9,7 +9,7 @@ import {
   getNamedType,
 } from 'graphql';
 
-import isPromise from 'is-promise';
+import { ValueOrPromise } from 'value-or-promise';
 
 import { MergedTypeInfo } from './types';
 import { memoize4, memoize3, memoize2 } from './memoize';
@@ -175,55 +175,32 @@ export function mergeFields(
     return object;
   }
 
-  let containsPromises = false;
-  const resultMap: Map<Promise<any> | any, SelectionSetNode> = new Map();
+  const resultMap: Map<ValueOrPromise<any>, SelectionSetNode> = new Map();
   delegationMap.forEach((selectionSet: SelectionSetNode, s: Subschema) => {
     const resolver = mergedTypeInfo.resolvers.get(s);
-    let maybePromise = resolver(object, context, info, s, selectionSet);
-    if (isPromise(maybePromise)) {
-      containsPromises = true;
-      maybePromise = maybePromise.then(undefined, error => error);
-    }
-    resultMap.set(maybePromise, selectionSet);
+    const valueOrPromise = new ValueOrPromise(() => resolver(object, context, info, s, selectionSet)).catch(error => error);
+    resultMap.set(valueOrPromise, selectionSet);
   });
 
-  return containsPromises
-    ? Promise.all(resultMap.keys()).then(results =>
-        mergeFields(
-          mergedTypeInfo,
-          typeName,
-          mergeExternalObjects(
-            info.schema,
-            responsePathAsArray(info.path),
-            object.__typename,
-            object,
-            results,
-            Array.from(resultMap.values())
-          ),
-          unproxiableFieldNodes,
-          combineSubschemas(sourceSubschemaOrSourceSubschemas, proxiableSubschemas),
-          nonProxiableSubschemas,
-          context,
-          info
-        )
-      )
-    : mergeFields(
-        mergedTypeInfo,
-        typeName,
-        mergeExternalObjects(
-          info.schema,
-          responsePathAsArray(info.path),
-          object.__typename,
-          object,
-          Array.from(resultMap.keys()),
-          Array.from(resultMap.values())
-        ),
-        unproxiableFieldNodes,
-        combineSubschemas(sourceSubschemaOrSourceSubschemas, proxiableSubschemas),
-        nonProxiableSubschemas,
-        context,
-        info
-      );
+  return ValueOrPromise.all(Array.from(resultMap.keys())).then(results =>
+    mergeFields(
+      mergedTypeInfo,
+      typeName,
+      mergeExternalObjects(
+        info.schema,
+        responsePathAsArray(info.path),
+        object.__typename,
+        object,
+        results,
+        Array.from(resultMap.values())
+      ),
+      unproxiableFieldNodes,
+      combineSubschemas(sourceSubschemaOrSourceSubschemas, proxiableSubschemas),
+      nonProxiableSubschemas,
+      context,
+      info
+    )
+  ).resolve();
 }
 
 const subschemaTypesContainSelectionSet = memoize3(function (

@@ -1,4 +1,7 @@
 import { defaultFieldResolver, GraphQLSchema, GraphQLFieldResolver } from 'graphql';
+
+import { ValueOrPromise } from 'value-or-promise';
+
 import { mapSchema, MapperKind } from '@graphql-tools/utils';
 
 // wraps all resolvers of query, mutation or subscription fields
@@ -33,28 +36,16 @@ function wrapResolver(
   innerResolver: GraphQLFieldResolver<any, any> | undefined,
   outerResolver: GraphQLFieldResolver<any, any>
 ): GraphQLFieldResolver<any, any> {
-  return (obj, args, ctx, info) =>
-    resolveMaybePromise(outerResolver(obj, args, ctx, info), root => {
-      if (innerResolver != null) {
-        return innerResolver(root, args, ctx, info);
-      }
-      return defaultFieldResolver(root, args, ctx, info);
-    });
-}
-
-function isPromise<T>(maybePromise: Promise<T> | T): maybePromise is Promise<T> {
-  return maybePromise && typeof (maybePromise as Promise<T>).then === 'function';
-}
-
-// resolvers can be synchronous or asynchronous. if all resolvers
-// in an operation return synchronously, the execution should return
-// synchronously. the maybe-sync/maybe-async nature of resolvers should be
-// preserved
-function resolveMaybePromise<T, U>(maybePromise: Promise<T> | T, fulfillmentCallback: (value: T) => U): Promise<U> | U {
-  if (isPromise(maybePromise)) {
-    return maybePromise.then(fulfillmentCallback);
+  return (obj, args, ctx, info) => {
+    return new ValueOrPromise(() => outerResolver(obj, args, ctx, info))
+      .then(root => {
+        if (innerResolver != null) {
+          return innerResolver(root, args, ctx, info);
+        }
+        return defaultFieldResolver(root, args, ctx, info);
+      })
+      .resolve();
   }
-  return fulfillmentCallback(maybePromise);
 }
 
 // XXX this function only works for resolvers

@@ -27,8 +27,8 @@
     "@graphql-tools/utils": "^7.7.1",
     "@ardatan/aggregate-error": "0.0.6",
     "dataloader": "2.0.0",
-    "is-promise": "4.0.0",
-    "tslib": "~2.2.0"
+    "tslib": "~2.2.0",
+    "value-or-promise": "~1.0.5"
   },
   "publishConfig": {
     "access": "public",

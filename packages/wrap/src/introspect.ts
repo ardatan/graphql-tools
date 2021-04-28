@@ -8,9 +8,10 @@ import {
   IntrospectionQuery,
 } from 'graphql';
 
+import { ValueOrPromise } from 'value-or-promise';
+
 import { AsyncExecutor, Executor, SyncExecutor, ExecutionResult } from '@graphql-tools/utils';
 import AggregateError from '@ardatan/aggregate-error';
-import isPromise from 'is-promise';
 
 function getSchemaFromIntrospection(introspectionResult: ExecutionResult<IntrospectionQuery>): GraphQLSchema {
   if (introspectionResult?.data?.__schema) {
@@ -33,14 +34,10 @@ export function introspectSchema<TExecutor extends AsyncExecutor | SyncExecutor>
   options?: IntrospectionOptions
 ): TExecutor extends AsyncExecutor ? Promise<GraphQLSchema> : GraphQLSchema {
   const parsedIntrospectionQuery: DocumentNode = parse(getIntrospectionQuery(options));
-  const introspectionResult = (executor as Executor)<IntrospectionQuery>({
+  return new ValueOrPromise(() => (executor as Executor)<IntrospectionQuery>({
     document: parsedIntrospectionQuery,
     context,
-  });
-  if (isPromise(introspectionResult)) {
-    return introspectionResult.then(introspection => getSchemaFromIntrospection(introspection)) as any;
-  }
-  return getSchemaFromIntrospection(introspectionResult) as any;
+  })).then(introspection => getSchemaFromIntrospection(introspection)).resolve() as any;
 }
 
 // Keep for backwards compatibility. Will be removed on next release.
