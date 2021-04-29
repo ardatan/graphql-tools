@@ -1,36 +1,47 @@
-import { graphql } from 'graphql';
+import { graphql, Kind } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { batchDelegateToSchema } from '@graphql-tools/batch-delegate';
 import { stitchSchemas } from '@graphql-tools/stitch';
+import { TransformQuery } from '@graphql-tools/wrap'
 
 describe('batch delegation with query aliasing', () => {
   test('works with valuesFromResults returning plain objects', async () => {
-    let numCalls = 0;
-
-    const chirpSchema = makeExecutableSchema({
+    const bookSchema = makeExecutableSchema({
       typeDefs: `
-        type Chirp {
-          chirpedAtUserId: ID!
+        type Book {
+          id: ID!
+          title: String!
+        }
+
+        type UserBooks {
+          userId: ID!
+          books: [Book!]!
         }
 
         type Query {
-          trendingChirps: [Chirp]
+          booksByUserIds(userIds: [ID!]!): [UserBooks!]!
         }
       `,
       resolvers: {
         Query: {
-          trendingChirps: () => [{ chirpedAtUserId: 1 }, { chirpedAtUserId: 2 }]
+          booksByUserIds: (_root, { userIds }) =>
+            userIds.map((userId: any) => ({
+              userId,
+              books: [
+                {id: 'b1', title: 'Harry Potter 1'},
+                {id: 'b2', title: 'Harry Potter 2'},
+              ]
+            }))
         }
       }
     });
 
-    // Mocked author schema
-    const authorSchema = makeExecutableSchema({
+    const userSchema = makeExecutableSchema({
       typeDefs: `
         type User {
           id: String!
-          email: String
+          email: String!
         }
 
         type Query {
@@ -40,7 +51,6 @@ describe('batch delegation with query aliasing', () => {
       resolvers: {
         Query: {
           usersByIds: (_root, args) => {
-            numCalls++;
             return args.ids.map((id: string) => ({ id, email: `${id}@test.com` }));
           }
         }
@@ -48,30 +58,50 @@ describe('batch delegation with query aliasing', () => {
     });
 
     const linkTypeDefs = `
-      extend type Chirp {
-        chirpedAtUser: User
+      extend type User {
+        books: [Book!]!
       }
     `;
 
+    const queryTransform = new TransformQuery({
+      path: ['booksByUserIds'],
+      queryTransformer: (selectionSet) => ({
+        kind: Kind.SELECTION_SET,
+        selections: [
+          { kind: Kind.FIELD, name: { kind: Kind.NAME, value: 'userId' } },
+          { kind: Kind.FIELD, name: { kind: Kind.NAME, value: 'books' }, selectionSet }
+        ]
+      })
+    });
+
     const stitchedSchema = stitchSchemas({
-      subschemas: [chirpSchema, authorSchema],
+      subschemas: [bookSchema, userSchema],
       typeDefs: linkTypeDefs,
       resolvers: {
-        Chirp: {
-          chirpedAtUser: {
-            selectionSet: `{ chirpedAtUserId }`,
-            resolve(chirp, _args, context, info) {
+        User: {
+          books: {
+            selectionSet: `{ id }`,
+            resolve(user, _args, context, info) {
               return batchDelegateToSchema({
-                schema: authorSchema,
+                schema: bookSchema,
                 operation: 'query',
-                fieldName: 'usersByIds',
-                key: chirp.chirpedAtUserId,
-                argsFromKeys: (ids) => ({ ids }),
+                fieldName: 'booksByUserIds',
+                key: user.id,
+                argsFromKeys: (userIds) => ({ userIds }),
                 context,
                 info,
-                valuesFromResults: (results, ids) =>
-                  // return plain object with no symbols
-                  ids.map((id) => ({ ...results.find((r) => r.id === id) }))
+                transforms: [queryTransform],
+                valuesFromResults: (results, ids) => {
+                  console.log('symbols for result: ', Object.getOwnPropertySymbols(results[0]));
+                  const booksByUserIds = results.reduce(
+                    (acc: any, { userId, books }: { userId: string, books: any[] }) => {
+                      acc[userId] = books
+                      return acc
+                    }, {});
+                  const orderedAndUnwrapped = ids.map((id) => booksByUserIds[id]);
+                  console.log('symbols for orderedAndUnwrapped: ', Object.getOwnPropertySymbols(orderedAndUnwrapped[0]));
+                  return orderedAndUnwrapped
+                }
               });
             },
           },
@@ -81,10 +111,11 @@ describe('batch delegation with query aliasing', () => {
 
     const query = `
       query {
-        trendingChirps {
-          chirpedAtUser {
+        usersByIds(ids: ["u1", "u2"]) {
+          id
+          books {
             id
-            username: email
+            name: title
           }
         }
       }
@@ -92,8 +123,24 @@ describe('batch delegation with query aliasing', () => {
 
     const result = await graphql(stitchedSchema, query);
 
-    expect(numCalls).toEqual(1);
     expect(result.errors).toBeUndefined();
-    expect(result.data.trendingChirps[0].chirpedAtUser.username).not.toBe(null);
+    expect(result.data).toEqual({
+      usersByIds: [
+        {
+          id: 'u1',
+          books: [
+            {id: 'b1', name: 'Harry Potter 1'},
+            {id: 'b2', name: 'Harry Potter 2'},
+          ]
+        },
+        {
+          id: 'u2',
+          books: [
+            {id: 'b1', name: 'Harry Potter 1'},
+            {id: 'b2', name: 'Harry Potter 2'},
+          ]
+        }
+      ]
+    });
   });
 });
