@@ -1,4 +1,4 @@
-import { graphql, Kind } from 'graphql';
+import { graphql, GraphQLList, Kind, GraphQLNonNull } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { batchDelegateToSchema } from '@graphql-tools/batch-delegate';
@@ -71,7 +71,16 @@ describe('batch delegation with query aliasing', () => {
           { kind: Kind.FIELD, name: { kind: Kind.NAME, value: 'userId' } },
           { kind: Kind.FIELD, name: { kind: Kind.NAME, value: 'books' }, selectionSet }
         ]
-      })
+      }),
+      resultTransformer: (results, { userIds }) => {
+        const booksByUserIds = results.reduce(
+          (acc: any, { userId, books }: { userId: string, books: any[] }) => {
+            acc[userId] = books
+            return acc
+          }, {});
+        const orderedAndUnwrapped = userIds.map((id: any) => booksByUserIds[id]);
+        return orderedAndUnwrapped
+      }
     });
 
     const stitchedSchema = stitchSchemas({
@@ -81,8 +90,8 @@ describe('batch delegation with query aliasing', () => {
         User: {
           books: {
             selectionSet: `{ id }`,
-            resolve(user, _args, context, info) {
-              return batchDelegateToSchema({
+            async resolve(user, _args, context, info) {
+              const books =  await batchDelegateToSchema({
                 schema: bookSchema,
                 operation: 'query',
                 fieldName: 'booksByUserIds',
@@ -91,18 +100,11 @@ describe('batch delegation with query aliasing', () => {
                 context,
                 info,
                 transforms: [queryTransform],
-                valuesFromResults: (results, ids) => {
-                  console.log('symbols for result: ', Object.getOwnPropertySymbols(results[0]));
-                  const booksByUserIds = results.reduce(
-                    (acc: any, { userId, books }: { userId: string, books: any[] }) => {
-                      acc[userId] = books
-                      return acc
-                    }, {});
-                  const orderedAndUnwrapped = ids.map((id) => booksByUserIds[id]);
-                  console.log('symbols for orderedAndUnwrapped: ', Object.getOwnPropertySymbols(orderedAndUnwrapped[0]));
-                  return orderedAndUnwrapped
-                }
+                returnType: new GraphQLList(new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(bookSchema.getType('Book')))))
               });
+              console.log('symbols for books: ', Object.getOwnPropertySymbols(books[0]));
+
+              return books
             },
           },
         },

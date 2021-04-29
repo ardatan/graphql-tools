@@ -9,7 +9,7 @@ export type QueryTransformer = (
   fragments: Record<string, FragmentDefinitionNode>
 ) => SelectionSetNode;
 
-export type ResultTransformer = (result: any) => any;
+export type ResultTransformer = (result: any, args: any) => any;
 
 export type ErrorPathTransformer = (path: ReadonlyArray<string | number>) => Array<string | number>;
 
@@ -79,10 +79,10 @@ export default class TransformQuery implements Transform {
 
   public transformResult(
     originalResult: ExecutionResult,
-    _delegationContext: DelegationContext,
+    delegationContext: DelegationContext,
     _transformationContext: Record<string, any>
   ): ExecutionResult {
-    const data = this.transformData(originalResult.data);
+    const data = this.transformData(originalResult.data, delegationContext);
     const errors = originalResult.errors;
     return {
       data,
@@ -90,7 +90,7 @@ export default class TransformQuery implements Transform {
     };
   }
 
-  private transformData(data: any): any {
+  private transformData(data: any, delegationContext: DelegationContext): any {
     const leafIndex = this.path.length - 1;
     let index = 0;
     let newData = data;
@@ -105,7 +105,7 @@ export default class TransformQuery implements Transform {
         index++;
         next = this.path[index];
       }
-      newData[next] = this.resultTransformer(newData[next]);
+      newData[next] = this.resultTransformer(newData[next], delegationContext.args);
     }
     return newData;
   }
