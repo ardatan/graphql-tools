@@ -12,6 +12,7 @@ import {
   isObjectType,
   OperationDefinitionNode,
   GraphQLError,
+  TypeNameMetaFieldDef,
 } from 'graphql';
 
 import { Request, GraphQLExecutionContext, ExecutionResult } from './Interfaces';
@@ -197,7 +198,7 @@ function visitObjectValue(
   Object.keys(fieldNodeMap).forEach(responseKey => {
     const subFieldNodes = fieldNodeMap[responseKey];
     const fieldName = subFieldNodes[0].name.value;
-    const fieldType = fieldMap[fieldName].type;
+    const fieldType = fieldName === '__typename' ? TypeNameMetaFieldDef.type : fieldMap[fieldName].type;
 
     const newPathIndex = pathIndex + 1;
 
