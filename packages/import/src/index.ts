@@ -264,29 +264,50 @@ function visitFile(
       visitedFiles.set(filePath, allImportedDefinitionsMap);
     } else {
       const fileDefinitionMap = visitedFiles.get(filePath);
-      for (const [definitionName] of definitionsByName) {
-        const addDefinition = (definition: DefinitionNode) => {
-          definitionsWithDependencies.add(definition);
-          // Regenerate field exports if some fields are imported after visitor
-          if ('fields' in definition) {
-            for (const field of definition.fields) {
-              const fieldName = field.name.value;
-              const fieldDefinitionName = definition.name.value + '.' + fieldName;
-              const allImportedDefinitions = allImportedDefinitionsMap.get(definitionName);
-              allImportedDefinitions?.forEach(importedDefinition => {
-                if (!fileDefinitionMap.has(fieldDefinitionName)) {
-                  fileDefinitionMap.set(fieldDefinitionName, new Set());
-                }
-                const definitionsWithDeps = fileDefinitionMap.get(fieldDefinitionName);
-                definitionsWithDeps.add(importedDefinition);
-              });
+      const addDefinition = (
+        definition: DefinitionNode,
+        definitionName: string,
+        definitionSet: Set<DefinitionNode>
+      ) => {
+        if (!definitionSet.has(definition)) {
+        definitionSet.add(definition);
+        // Regenerate field exports if some fields are imported after visitor
+        if ('fields' in definition) {
+          for (const field of definition.fields) {
+            const fieldName = field.name.value;
+            const fieldDefinitionName = definition.name.value + '.' + fieldName;
+            const allImportedDefinitions = allImportedDefinitionsMap.get(definitionName);
+            allImportedDefinitions?.forEach(importedDefinition => {
+              if (!fileDefinitionMap.has(fieldDefinitionName)) {
+                fileDefinitionMap.set(fieldDefinitionName, new Set());
+              }
+              const definitionsWithDeps = fileDefinitionMap.get(fieldDefinitionName);
+              addDefinition(importedDefinition, fieldDefinitionName, definitionsWithDeps);
+            });
+            const newDependencySet = new Set<string>();
+            switch (field.kind) {
+              case Kind.FIELD_DEFINITION:
+                visitFieldDefinitionNode(field, newDependencySet, dependenciesByDefinitionName);
+                break;
+              case Kind.INPUT_VALUE_DEFINITION:
+                visitInputValueDefinitionNode(field, newDependencySet, dependenciesByDefinitionName);
+                break;
             }
+            newDependencySet.forEach(dependencyName => {
+              const definitionsInCurrentFile = fileDefinitionMap.get(dependencyName);
+              definitionsInCurrentFile?.forEach(def => addDefinition(def, definitionName, definitionSet));
+              const definitionsFromImports = allImportedDefinitionsMap.get(dependencyName);
+              definitionsFromImports?.forEach(def => addDefinition(def, definitionName, definitionSet));
+            });
           }
-        };
+        }
+        }
+      };
+      for (const [definitionName] of definitionsByName) {
         const definitionsWithDependencies = fileDefinitionMap.get(definitionName);
         const allImportedDefinitions = allImportedDefinitionsMap.get(definitionName);
         allImportedDefinitions?.forEach(importedDefinition => {
-          addDefinition(importedDefinition);
+          addDefinition(importedDefinition, definitionName, definitionsWithDependencies);
         });
         const dependenciesOfDefinition = dependenciesByDefinitionName.get(definitionName);
         for (const dependencyName of dependenciesOfDefinition) {
@@ -296,7 +317,7 @@ function visitFile(
           }
           const dependencyDefinitionsFromImports = allImportedDefinitionsMap.get(dependencyName);
           dependencyDefinitionsFromImports?.forEach(dependencyDefinition => {
-            addDefinition(dependencyDefinition);
+            addDefinition(dependencyDefinition, definitionName, definitionsWithDependencies);
           });
         }
       }
