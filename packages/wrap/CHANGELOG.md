@@ -1,5 +1,13 @@
 # @graphql-tools/wrap
 
+## 7.0.7
+
+### Patch Changes
+
+- 36f19ddb: fix(TransformQuery): pass delegation context to query and result transformers for required flexibility
+- Updated dependencies [dbdb78e0]
+  - @graphql-tools/utils@7.8.1
+
 ## 7.0.6
 
 ### Patch Changes

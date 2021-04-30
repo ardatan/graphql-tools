@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 7.8.1
+
+### Patch Changes
+
+- dbdb78e0: fix(visitResult): don't throw on encountering \_\_typename in request (#2860)
+
 ## 7.8.0
 
 ### Minor Changes
