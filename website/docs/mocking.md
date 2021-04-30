@@ -204,6 +204,19 @@ const meRef = store.get('Query', 'ROOT', `me`) as Ref;
 store.set(meRef, 'name', newName);
 ```
 
+Usage with `mockServer`:
+
+```ts
+const schema = buildSchemaFromTypeDefinitions(typeDefs);
+const mySchema = addResolversToSchema(schema, resolvers);
+const preserveResolvers = true;
+
+const server = mockServer(mySchema, mocks, preserveResolvers);
+
+// get result from resolvers
+const result = await server.query(query, variables);
+```
+
 ### Handling `*byId` fields
 
 By default, `*byId` (like `userById(id: ID!)`) field will return an entity that does not have the same `id` as the one queried. We can fix that:
