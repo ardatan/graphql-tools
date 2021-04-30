@@ -1,5 +1,11 @@
 # @graphql-tools/import
 
+## 6.3.1
+
+### Patch Changes
+
+- 77902864: fix(import): handle nested imports correctly
+
 ## 6.3.0
 
 ### Minor Changes
