@@ -6,10 +6,12 @@ import { Transform, DelegationContext } from '@graphql-tools/delegate';
 
 export type QueryTransformer = (
   selectionSet: SelectionSetNode,
-  fragments: Record<string, FragmentDefinitionNode>
+  fragments: Record<string, FragmentDefinitionNode>,
+  delegationContext: DelegationContext,
+  transformationContext: Record<string, any>,
 ) => SelectionSetNode;
 
-export type ResultTransformer = (result: any, args: any) => any;
+export type ResultTransformer = (result: any, delegationContext: DelegationContext, transformationContext: Record<string, any>) => any;
 
 export type ErrorPathTransformer = (path: ReadonlyArray<string | number>) => Array<string | number>;
 
@@ -42,8 +44,8 @@ export default class TransformQuery implements Transform {
 
   public transformRequest(
     originalRequest: Request,
-    _delegationContext: DelegationContext,
-    _transformationContext: Record<string, any>
+    delegationContext: DelegationContext,
+    transformationContext: Record<string, any>
   ): Request {
     const pathLength = this.path.length;
     let index = 0;
@@ -57,7 +59,7 @@ export default class TransformQuery implements Transform {
           index++;
 
           if (index === pathLength) {
-            const selectionSet = this.queryTransformer(node.selectionSet, this.fragments);
+            const selectionSet = this.queryTransformer(node.selectionSet, this.fragments, delegationContext, transformationContext);
 
             return {
               ...node,
@@ -80,9 +82,9 @@ export default class TransformQuery implements Transform {
   public transformResult(
     originalResult: ExecutionResult,
     delegationContext: DelegationContext,
-    _transformationContext: Record<string, any>
+    transformationContext: Record<string, any>
   ): ExecutionResult {
-    const data = this.transformData(originalResult.data, delegationContext);
+    const data = this.transformData(originalResult.data, delegationContext, transformationContext);
     const errors = originalResult.errors;
     return {
       data,
@@ -90,7 +92,7 @@ export default class TransformQuery implements Transform {
     };
   }
 
-  private transformData(data: any, delegationContext: DelegationContext): any {
+  private transformData(data: any, delegationContext: DelegationContext, transformationContext: Record<string, any>): any {
     const leafIndex = this.path.length - 1;
     let index = 0;
     let newData = data;
@@ -105,7 +107,7 @@ export default class TransformQuery implements Transform {
         index++;
         next = this.path[index];
       }
-      newData[next] = this.resultTransformer(newData[next], delegationContext.args);
+      newData[next] = this.resultTransformer(newData[next], delegationContext, transformationContext);
     }
     return newData;
   }

@@ -5,8 +5,8 @@ import { batchDelegateToSchema } from '@graphql-tools/batch-delegate';
 import { stitchSchemas } from '@graphql-tools/stitch';
 import { TransformQuery } from '@graphql-tools/wrap'
 
-describe('batch delegation with query aliasing', () => {
-  test('works with valuesFromResults returning plain objects', async () => {
+describe('works with complex transforms', () => {
+  test('using TransformQuery instead of valuesFromResults', async () => {
     const bookSchema = makeExecutableSchema({
       typeDefs: `
         type Book {
@@ -72,14 +72,14 @@ describe('batch delegation with query aliasing', () => {
           { kind: Kind.FIELD, name: { kind: Kind.NAME, value: 'books' }, selectionSet }
         ]
       }),
-      resultTransformer: (results, { userIds }) => {
+      resultTransformer: (results, { args: userIds }) => {
         const booksByUserIds = results.reduce(
           (acc: any, { userId, books }: { userId: string, books: any[] }) => {
             acc[userId] = books
             return acc
           }, {});
         const orderedAndUnwrapped = userIds.map((id: any) => booksByUserIds[id]);
-        return orderedAndUnwrapped
+        return orderedAndUnwrapped;
       }
     });
 
