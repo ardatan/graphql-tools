@@ -72,7 +72,8 @@ describe('works with complex transforms', () => {
           { kind: Kind.FIELD, name: { kind: Kind.NAME, value: 'books' }, selectionSet }
         ]
       }),
-      resultTransformer: (results, { args: userIds }) => {
+      resultTransformer: (results, delegationContext) => {
+        const userIds = delegationContext.args.userIds;
         const booksByUserIds = results.reduce(
           (acc: any, { userId, books }: { userId: string, books: any[] }) => {
             acc[userId] = books
