@@ -100,7 +100,7 @@ describe('batch delegation with query aliasing', () => {
                 context,
                 info,
                 transforms: [queryTransform],
-                returnType: new GraphQLList(new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(bookSchema.getType('Book')))))
+                returnType: new GraphQLList(new GraphQLList(info.schema.getType('Book')))
               });
               console.log('symbols for books: ', Object.getOwnPropertySymbols(books[0]));
 
