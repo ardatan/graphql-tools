@@ -1,0 +1,5 @@
+# import * from "b.graphql"
+
+type Query {
+  level: Level3
+}
