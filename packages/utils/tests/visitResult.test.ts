@@ -42,6 +42,22 @@ describe('visiting results', () => {
     expect(visitedResult).toEqual(result);
   });
 
+  it('should visit with a request with introspection fields without throwing', async () => {
+    const introspectionRequest = {
+      document: parse('{ test { field __typename } }'),
+      variables: {}
+    };
+    const result = {
+      data: {
+        test: {
+          __typename: 'Test',
+          field: 'test',
+        },
+      },
+    };
+    expect(() => visitResult(result, introspectionRequest, schema, undefined)).not.toThrow();
+  });
+
   it('should successfully modify the result using an object type result visitor', async () => {
     const result = {
       data: {
