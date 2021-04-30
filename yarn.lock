@@ -15257,7 +15257,12 @@ value-equal@^1.0.1:
   resolved "https://registry.yarnpkg.com/value-equal/-/value-equal-1.0.1.tgz#1e0b794c734c5c0cade179c437d356d931a34d6c"
   integrity sha512-NOJ6JZCAWr0zlxZt+xqCHNTEKOsrks2HQd4MqhP1qy4z1SkbEP467eNx6TgDKXMvUOb+OENfJCZwM+16n7fRfw==
 
-value-or-promise@1.0.5, value-or-promise@~1.0.5:
+value-or-promise@1.0.6:
+  version "1.0.6"
+  resolved "https://registry.yarnpkg.com/value-or-promise/-/value-or-promise-1.0.6.tgz#218aa4794aa2ee24dcf48a29aba4413ed584747f"
+  integrity sha512-9r0wQsWD8z/BxPOvnwbPf05ZvFngXyouE9EKB+5GbYix+BYnAwrIChCUyFIinfbf2FL/U71z+CPpbnmTdxrwBg==
+
+value-or-promise@~1.0.5:
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/value-or-promise/-/value-or-promise-1.0.5.tgz#6c9c5496288df3be9c71c60def01262e95d30adf"
   integrity sha512-9ZmqlFSp5ihOF8jh8zykx3wGJG83jz1jiXmSxm0onPIlt9Vak4FTyHrvTVaL5Ykj3UpSPvbCbnuYxnzUQyLBHA==
