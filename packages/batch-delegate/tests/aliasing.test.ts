@@ -1,4 +1,4 @@
-import { graphql, GraphQLList, Kind, GraphQLNonNull } from 'graphql';
+import { graphql, GraphQLList, Kind } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { batchDelegateToSchema } from '@graphql-tools/batch-delegate';
@@ -90,22 +90,17 @@ describe('batch delegation with query aliasing', () => {
         User: {
           books: {
             selectionSet: `{ id }`,
-            async resolve(user, _args, context, info) {
-              const books =  await batchDelegateToSchema({
-                schema: bookSchema,
-                operation: 'query',
-                fieldName: 'booksByUserIds',
-                key: user.id,
-                argsFromKeys: (userIds) => ({ userIds }),
-                context,
-                info,
-                transforms: [queryTransform],
-                returnType: new GraphQLList(new GraphQLList(info.schema.getType('Book')))
-              });
-              console.log('symbols for books: ', Object.getOwnPropertySymbols(books[0]));
-
-              return books
-            },
+            resolve: (user, _args, context, info) => batchDelegateToSchema({
+              schema: bookSchema,
+              operation: 'query',
+              fieldName: 'booksByUserIds',
+              key: user.id,
+              argsFromKeys: (userIds) => ({ userIds }),
+              context,
+              info,
+              transforms: [queryTransform],
+              returnType: new GraphQLList(new GraphQLList(info.schema.getType('Book')))
+            }),
           },
         },
       },
