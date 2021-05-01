@@ -259,7 +259,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     return executor;
   }
 
-  buildWSSubscriber(pointer: string, webSocketImpl: typeof WebSocket): Subscriber {
+  buildWSSubscriber(pointer: string, webSocketImpl: typeof WebSocket, headers: Record<string,string>): Subscriber {
     const WS_URL = switchProtocols(pointer, {
       https: 'wss',
       http: 'ws',
@@ -267,6 +267,11 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     const subscriptionClient = createClient({
       url: WS_URL,
       webSocketImpl,
+      connectionParams: () => {
+        return {
+          headers
+        }
+      }
     });
     return async ({ document, variables }: { document: DocumentNode; variables: any }) => {
       const query = print(document);
@@ -445,7 +450,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       if(options.useWebSocketLegacyProtocol){
         subscriber = this.buildWSLegacySubscriber(pointer, webSocketImpl, headers);
       } else {
-        subscriber = this.buildWSSubscriber(pointer, webSocketImpl);
+        subscriber = this.buildWSSubscriber(pointer, webSocketImpl, headers);
       }
     }
 
@@ -484,7 +489,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       if(options.useWebSocketLegacyProtocol){
         subscriber = this.buildWSLegacySubscriber(pointer, webSocketImpl, headers);
       } else {
-        subscriber = this.buildWSSubscriber(pointer, webSocketImpl);
+        subscriber = this.buildWSSubscriber(pointer, webSocketImpl, headers);
       }
     }
 
