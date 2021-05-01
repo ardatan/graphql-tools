@@ -108,6 +108,10 @@ export interface LoadFromUrlOptions extends SingleFileOptions, Partial<Introspec
    * Handle URL as schema SDL
    */
   handleAsSDL?: boolean;
+  /**
+   * Subscriptions endpoint; defaults to the endpoint given as pointer
+   */
+  subscriptionsEndpoint?: string;
 }
 
 /**
@@ -222,12 +226,14 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       const query = print(document);
       switch (method) {
         case 'GET':
-          const urlObj = new URL(HTTP_URL);
+          const dummyHostname = 'https://dummyhostname.com';
+          const validUrl = HTTP_URL.startsWith('http') ? HTTP_URL : `${dummyHostname}/${HTTP_URL}`;
+          const urlObj = new URL(validUrl);
           urlObj.searchParams.set('query', query);
           if (variables && Object.keys(variables).length > 0) {
             urlObj.searchParams.set('variables', JSON.stringify(variables));
           }
-          const finalUrl = urlObj.toString();
+          const finalUrl = urlObj.toString().replace(dummyHostname, '');
           fetchResult = fetch(finalUrl, {
             method: 'GET',
             headers: extraHeaders,
@@ -269,11 +275,11 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
   }
 
   buildWSSubscriber(
-    pointer: string,
+    subscriptionsEndpoint: string,
     webSocketImpl: typeof WebSocket,
     connectionParams: ClientOptions['connectionParams']
   ): Subscriber {
-    const WS_URL = switchProtocols(pointer, {
+    const WS_URL = switchProtocols(subscriptionsEndpoint, {
       https: 'wss',
       http: 'ws',
     });
@@ -302,11 +308,11 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
   }
 
   buildWSLegacySubscriber(
-    pointer: string,
+    subscriptionsEndpoint: string,
     webSocketImpl: typeof WebSocket,
     connectionParams: ConnectionParamsOptions
   ): Subscriber {
-    const WS_URL = switchProtocols(pointer, {
+    const WS_URL = switchProtocols(subscriptionsEndpoint, {
       https: 'wss',
       http: 'ws',
     });
@@ -455,15 +461,16 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
 
     let subscriber: Subscriber;
 
+    const subscriptionsEndpoint = options.subscriptionsEndpoint || pointer;
     if (options.useSSEForSubscription) {
-      subscriber = this.buildSSESubscriber(pointer, options.eventSourceOptions);
+      subscriber = this.buildSSESubscriber(subscriptionsEndpoint, options.eventSourceOptions);
     } else {
       const webSocketImpl = await this.getWebSocketImpl(options, asyncImport);
 
       if (options.useWebSocketLegacyProtocol) {
-        subscriber = this.buildWSLegacySubscriber(pointer, webSocketImpl, { headers });
+        subscriber = this.buildWSLegacySubscriber(subscriptionsEndpoint, webSocketImpl, { headers });
       } else {
-        subscriber = this.buildWSSubscriber(pointer, webSocketImpl, { headers });
+        subscriber = this.buildWSSubscriber(subscriptionsEndpoint, webSocketImpl, { headers });
       }
     }
 
@@ -494,15 +501,16 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       useGETForQueries: options.useGETForQueries,
     });
 
+    const subscriptionsEndpoint = options.subscriptionsEndpoint || pointer;
     let subscriber: Subscriber;
     if (options.useSSEForSubscription) {
-      subscriber = this.buildSSESubscriber(pointer, options.eventSourceOptions);
+      subscriber = this.buildSSESubscriber(subscriptionsEndpoint, options.eventSourceOptions);
     } else {
       const webSocketImpl = this.getWebSocketImpl(options, syncImport);
       if (options.useWebSocketLegacyProtocol) {
-        subscriber = this.buildWSLegacySubscriber(pointer, webSocketImpl, { headers });
+        subscriber = this.buildWSLegacySubscriber(subscriptionsEndpoint, webSocketImpl, { headers });
       } else {
-        subscriber = this.buildWSSubscriber(pointer, webSocketImpl, { headers });
+        subscriber = this.buildWSSubscriber(subscriptionsEndpoint, webSocketImpl, { headers });
       }
     }
 

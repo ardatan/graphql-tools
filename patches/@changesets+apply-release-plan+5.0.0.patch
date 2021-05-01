@@ -1,5 +1,5 @@
 diff --git a/node_modules/@changesets/apply-release-plan/dist/apply-release-plan.cjs.dev.js b/node_modules/@changesets/apply-release-plan/dist/apply-release-plan.cjs.dev.js
-index 8b33aee..5cb7113 100644
+index 5435d7a..a95a3ad 100644
 --- a/node_modules/@changesets/apply-release-plan/dist/apply-release-plan.cjs.dev.js
 +++ b/node_modules/@changesets/apply-release-plan/dist/apply-release-plan.cjs.dev.js
 @@ -117,7 +117,8 @@ const DEPENDENCY_TYPES = ["dependencies", "devDependencies", "peerDependencies",
@@ -21,7 +21,7 @@ index 8b33aee..5cb7113 100644
            if (usesWorkspaceRange) newNewRange = `workspace:${newNewRange}`;
            deps[name] = newNewRange;
          }
-@@ -271,7 +272,7 @@ async function getCommitsThatAddChangesets(changesetIds, cwd) {
+@@ -273,7 +274,7 @@ async function getCommitsThatAddChangesets(changesetIds, cwd) {
    return commits;
  }
  
@@ -30,7 +30,7 @@ index 8b33aee..5cb7113 100644
    let cwd = packages.root.dir;
    let touchedFiles = [];
    const packagesByName = new Map(packages.packages.map(x => [x.packageJson.name, x]));
-@@ -309,6 +310,7 @@ async function applyReleasePlan(releasePlan, packages, config$1 = config.default
+@@ -311,6 +312,7 @@ async function applyReleasePlan(releasePlan, packages, config$1 = config.default
    let finalisedRelease = releaseWithChangelogs.map(release => {
      return versionPackage(release, versionsToUpdate, {
        updateInternalDependencies: config$1.updateInternalDependencies,
@@ -39,7 +39,7 @@ index 8b33aee..5cb7113 100644
        bumpVersionsWithWorkspaceProtocolOnly: config$1.bumpVersionsWithWorkspaceProtocolOnly
      });
 diff --git a/node_modules/@changesets/apply-release-plan/dist/apply-release-plan.cjs.prod.js b/node_modules/@changesets/apply-release-plan/dist/apply-release-plan.cjs.prod.js
-index 9e9d03c..5ea12d6 100644
+index f83761f..bc94382 100644
 --- a/node_modules/@changesets/apply-release-plan/dist/apply-release-plan.cjs.prod.js
 +++ b/node_modules/@changesets/apply-release-plan/dist/apply-release-plan.cjs.prod.js
 @@ -64,7 +64,7 @@ function shouldUpdateDependencyBasedOnConfig(release, {depVersionRange: depVersi
@@ -60,7 +60,7 @@ index 9e9d03c..5ea12d6 100644
          usesWorkspaceRange && (newNewRange = "workspace:" + newNewRange), deps[name] = newNewRange;
        }
      }
-@@ -160,7 +160,7 @@ async function getCommitsThatAddChangesets(changesetIds, cwd) {
+@@ -161,7 +161,7 @@ async function getCommitsThatAddChangesets(changesetIds, cwd) {
    })), commits;
  }
  
@@ -69,7 +69,7 @@ index 9e9d03c..5ea12d6 100644
    let cwd = packages.root.dir, touchedFiles = [];
    const packagesByName = new Map(packages.packages.map((x => [ x.packageJson.name, x ])));
    let {releases: releases, changesets: changesets} = releasePlan;
-@@ -177,6 +177,7 @@ async function applyReleasePlan(releasePlan, packages, config$1 = config.default
+@@ -178,6 +178,7 @@ async function applyReleasePlan(releasePlan, packages, config$1 = config.default
      type: type
    }))), finalisedRelease = releaseWithChangelogs.map((release => versionPackage(release, versionsToUpdate, {
      updateInternalDependencies: config$1.updateInternalDependencies,

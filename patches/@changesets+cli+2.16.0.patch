@@ -1,8 +1,8 @@
 diff --git a/node_modules/@changesets/cli/dist/cli.cjs.dev.js b/node_modules/@changesets/cli/dist/cli.cjs.dev.js
-index 14f0fdf..a5cc31a 100644
+index f771824..a2fb0ce 100644
 --- a/node_modules/@changesets/cli/dist/cli.cjs.dev.js
 +++ b/node_modules/@changesets/cli/dist/cli.cjs.dev.js
-@@ -570,7 +570,7 @@ async function version(cwd, options, config) {
+@@ -576,7 +576,7 @@ async function version(cwd, options, config) {
  // @ts-ignore
  var isCI = !!(isCI__default['default'] || process.env.GITHUB_ACTIONS);
  
@@ -12,10 +12,10 @@ index 14f0fdf..a5cc31a 100644
  
  function jsonParse(input) {
 diff --git a/node_modules/@changesets/cli/dist/cli.esm.js b/node_modules/@changesets/cli/dist/cli.esm.js
-index 1c227ab..b84e188 100644
+index 40bcc31..4b376a3 100644
 --- a/node_modules/@changesets/cli/dist/cli.esm.js
 +++ b/node_modules/@changesets/cli/dist/cli.esm.js
-@@ -547,7 +547,7 @@ async function version(cwd, options, config) {
+@@ -553,7 +553,7 @@ async function version(cwd, options, config) {
  // @ts-ignore
  var isCI = !!(isCI$1 || process.env.GITHUB_ACTIONS);
  
