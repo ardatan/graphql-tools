@@ -1,5 +1,11 @@
 # @graphql-tools/schema
 
+## 7.1.5
+
+### Patch Changes
+
+- 22a9f3da: fix(deps): follow package conventions on when to pin
+
 ## 7.1.4
 
 ### Patch Changes

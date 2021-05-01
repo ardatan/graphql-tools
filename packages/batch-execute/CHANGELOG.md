@@ -1,5 +1,11 @@
 # @graphql-tools/batch-execute
 
+## 7.1.2
+
+### Patch Changes
+
+- 22a9f3da: fix(deps): follow package conventions on when to pin
+
 ## 7.1.1
 
 ### Patch Changes
