@@ -1748,7 +1748,7 @@
     "@manypkg/get-packages" "^1.0.1"
     semver "^5.4.1"
 
-"@changesets/cli@2.16.0", "@changesets/cli@^2.16.0":
+"@changesets/cli@2.16.0":
   version "2.16.0"
   resolved "https://registry.yarnpkg.com/@changesets/cli/-/cli-2.16.0.tgz#9f794005d0503efba5e348b929821a1732fd0f0d"
   integrity sha512-VFkXSyyk/WRjjUoBI7g7cDy09qBjPbBQOloPMEshTzMo/NY9muWHl2yB/FSSkV/6PxGimPtJ7aEJPYfk8HCfXw==
@@ -15287,13 +15287,6 @@ value-or-promise@1.0.6:
   version "1.0.6"
   resolved "https://registry.yarnpkg.com/value-or-promise/-/value-or-promise-1.0.6.tgz#218aa4794aa2ee24dcf48a29aba4413ed584747f"
   integrity sha512-9r0wQsWD8z/BxPOvnwbPf05ZvFngXyouE9EKB+5GbYix+BYnAwrIChCUyFIinfbf2FL/U71z+CPpbnmTdxrwBg==
-
-value-or-promise@~1.0.5:
-  version "1.0.5"
-  resolved "https://registry.yarnpkg.com/value-or-promise/-/value-or-promise-1.0.5.tgz#6c9c5496288df3be9c71c60def01262e95d30adf"
-  integrity sha512-9ZmqlFSp5ihOF8jh8zykx3wGJG83jz1jiXmSxm0onPIlt9Vak4FTyHrvTVaL5Ykj3UpSPvbCbnuYxnzUQyLBHA==
-  dependencies:
-    "@changesets/cli" "^2.16.0"
 
 vary@~1.1.2:
   version "1.1.2"
